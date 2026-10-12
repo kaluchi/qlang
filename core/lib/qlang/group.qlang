@@ -1,35 +1,54 @@
-|~ `::group`, the steps in parentheses run on the value in the pipe,
-   and its refusals. ~|
+|~ `::group`, the steps in parentheses run on the value in the pipe, and
+   what is declared under it: its constructor and its refusals. ~|
 
-::group
-  |~~ The step `(pipeline)`, a group: it runs its steps on the value in
-      the pipe and answers their result, its names left inside. Each part
-      of a literal is such a group, which is why a literal is the shape an
-      answer takes, `[(add 1) (mul 2)]`. As a record it wraps the quote
-      of its pipeline. ::link~(::bind | doc)
-      ::link~(::qlang | doc :pipeline)
+:group
+  |~~ A group, `(…)`, runs a pipeline as one word: its steps run on the
+      value in the pipe, it answers what its last step answers, and the
+      names it declares stay inside. Each part of a literal is one,
+      which is why a literal is the shape an answer takes,
+      `5 | [(add 1) (mul 2)]` answering `[6 10]`, and a modifier of more
+      than one word stands in one, `take (count | sub 1)`.
 
-      ~(~((add 1 | mul 2)) | first | payload | count | eq 2)
-  ~~|
-  ::builtin{:impl :qlang/type/group}
-
-::GroupPayloadNotQuoteError
-  |~~ The payload of ::group is the quote of its pipeline.
-
-      ~(
-        42 | tag ::group
-        !| [type /actualType]
-        |  eq [::GroupPayloadNotQuoteError ::number]
-       )
+      In a quote the step is a record that wraps the quote of its
+      pipeline, `~((add 1 | mul 2)) | first` answering
+      `::group~(add 1 | mul 2)`.
+      ::link~(::bind | doc) ::link~(::qlang/pipeline | doc)
   ~~|
 
-::GroupReadBackDiffersError
-  |~~ The ::group prints as text that reads back as another step, or
-      as none: a group holds at least one step.
+:group/holdsItsSteps
+  |~~ A group holds its steps. ~~|
+  ::law~(~((add 1 | mul 2)) | first | payload | count | eq 2)
 
-      ~(
-        ~() | tag ::group
-        !| [type /printed]
-        |  eq [::GroupReadBackDiffersError "()"]
-       )
+:group/construct
+  |~~ The step `(pipeline)` from the quote of its pipeline. ~~|
+  ::builtin{}
+
+:group/PayloadNotQuoteError
+  |~~ The payload of `::group` is the quote of its pipeline, so
+      `~(add 1 | mul 2) | tag ::group` is the step `(add 1 | mul 2)`.
+      ::link~(::group | doc)
   ~~|
+
+:group/PayloadNotQuoteError/refusesANumber
+  |~~ A number payload is refused. ~~|
+  ::law~(42 | tag ::group !| [type /actualType] | eq [::group/PayloadNotQuoteError ::number])
+
+:group/PayloadNotQuoteError/buildsTheStepOfAPipeline
+  |~~ The quote of a pipeline builds the group that runs it. ~~|
+  ::law~(~(add 1 | mul 2) | tag ::group | [/] | tag ::quote | eq ~((add 1 | mul 2)))
+
+:group/ReadBackDiffersError
+  |~~ The `::group` prints as text that reads back as another step, or
+      as none, and `:printed` is that text: an empty group prints as
+      `()`, which reads as no step. A group holds one step at least, and
+      `/` keeps the value as it is, `~(/) | tag ::group`.
+      ::link~(::group | doc)
+  ~~|
+
+:group/ReadBackDiffersError/refusesAnEmptyGroup
+  |~~ An empty group prints as text that reads back as none. ~~|
+  ::law~(~() | tag ::group !| [type /printed] | eq [::group/ReadBackDiffersError "()"])
+
+:group/ReadBackDiffersError/keepsTheValueByTheWholeValue
+  |~~ A group of `/` is a step that keeps the value. ~~|
+  ::law~(~(/) | tag ::group | [/] | tag ::quote | eq ~((/)))

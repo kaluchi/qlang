@@ -1,101 +1,94 @@
-// State — the evaluator's (pipeValue, env) pair plus the depth budget.
-//
-// State is meta-notation: it lives only inside the evaluator.
-// Users never see or construct it. Within the evaluator we model
-// it as a frozen object carrying the semantic pair — `pipeValue`,
-// `env` — and one bookkeeping field, `depth`: how many nested
-// evaluation frames (verb bodies, modifiers run at a call, `apply`
-// re-entry, Quote-bodied tag constructors, doc-segment
-// literals, locator-loaded modules) sit between the root and this
-// state. Every step returns a fresh State carrying the next
-// pipeValue or the next env; the previous State stays observable
-// to ancestor frames so fork boundaries can discard inner-env
-// writes without copying.
-//
-// The env is a JS Map whose keys are plain strings (identifier
-// names). Identifier lookup passes the name string directly.
+// The state of the evaluator, the value in the pipe, the scope and the
+// depth of the frames nested under the query, a new one at each step, so
+// a fork leaves the declarations of its inside behind by keeping the
+// state it started from; the scope maps the names a reader declared to
+// their records, the frame, over the root the host's sources declared,
+// under a key no name spells, a lookup reading the frame and then the
+// root [D153].
 
-import { EvaluationDepthExceededError } from './errors.mjs';
-import { isModuleNamespaceKey } from './env-keys.mjs';
+import { CallEvaluationDepthExceededError } from './errors.mjs';
+import { ROOT_KEY } from './env-keys.mjs';
 
-// EVAL_DEPTH_LIMIT — deepest frame `nestState` admits. A verb
-// that calls itself without a base case, a Quote that applies
-// itself, a tag constructor that mints its own tag: each descends
-// one frame per call and lifts `EvaluationDepthExceededError` on
-// the frame past the budget, so the fail-track reports the runaway
-// while the host's heap stays bounded.
+// The deepest frame `nestState` admits: a runaway, a word that calls
+// itself without end, is refused on the frame past it, and the host's
+// heap stays bounded.
 export const EVAL_DEPTH_LIMIT = 1000;
 
 function makeState(pipeValue, env, depth) {
   return Object.freeze({ pipeValue, env, depth });
 }
 
-// rootState(pipeValue, env) → State at depth 0 — the entry frame of
-// a query, a session cell, a module load, the catalog bootstrap.
+// rootState(pipeValue, env) → a state at depth 0, the first of a query, a
+// cell of a session or a source of the root.
 export function rootState(pipeValue, env) {
   return makeState(pipeValue, env, 0);
 }
 
-// withPipeValue(state, nextPipeValue) → State on the same frame
+// withPipeValue(state, nextPipeValue) → a state at the same depth holding
+// the value.
 export function withPipeValue(state, nextPipeValue) {
   return makeState(nextPipeValue, state.env, state.depth);
 }
 
-// withEnv(state, nextEnv) → State on the same frame
+// withEnv(state, nextEnv) → a state at the same depth holding the scope.
 export function withEnv(state, nextEnv) {
   return makeState(state.pipeValue, nextEnv, state.depth);
 }
 
-// nestState(state, pipeValue, env) → State one frame deeper, or
-// EvaluationDepthExceededError once the frame passes
-// EVAL_DEPTH_LIMIT. `context.depth` names the refused frame.
-export function nestState(state, pipeValue, env) {
+// frameBelow(state) → the depth of the frame one below a state, or
+// CallEvaluationDepthExceededError once it passes EVAL_DEPTH_LIMIT, its
+// fact `:depth` the refused frame; a frame read with no state of its own
+// meets the budget by it alone.
+export function frameBelow(state) {
   const depth = state.depth + 1;
-  if (depth > EVAL_DEPTH_LIMIT) {
-    throw new EvaluationDepthExceededError({ depth, limit: EVAL_DEPTH_LIMIT });
-  }
-  return makeState(pipeValue, env, depth);
+  if (depth > EVAL_DEPTH_LIMIT) throw new CallEvaluationDepthExceededError({ depth, limit: EVAL_DEPTH_LIMIT });
+  return depth;
 }
 
-// envGet(env, name) → value or undefined
-export function envGet(env, name) {
-  return env.get(name);
+// nestState(state, pipeValue, env) → the state one frame below.
+export function nestState(state, pipeValue, env) {
+  return makeState(pipeValue, env, frameBelow(state));
 }
 
-// envHas(env, name) → boolean
+const NO_ROOT = new Map();
+
+// rootOf(env) → the root beneath a frame, the bindings the host's
+// sources declared.
+export function rootOf(env) {
+  return env.get(ROOT_KEY) ?? NO_ROOT;
+}
+
+// envHas(env, name) → whether the frame or the root holds the name.
 export function envHas(env, name) {
-  return env.has(name);
+  return env.has(name) || rootOf(env).has(name);
 }
 
-// What an env's module namespaces derive, computed once and shared by
-// every env a step wrote from it without touching a namespace, so a
-// lookup reads it instead of scanning the env.
-const NAMESPACE_DERIVED = new WeakMap();
-const NAMESPACES_FROM = new WeakMap();
-
-export function namespaceDerivedOf(env, derive) {
-  let derived = NAMESPACE_DERIVED.get(env);
-  if (derived === undefined) {
-    const source = NAMESPACES_FROM.get(env);
-    derived = source === undefined ? derive(env) : namespaceDerivedOf(source, derive);
-    NAMESPACE_DERIVED.set(env, derived);
-  }
-  return derived;
-}
-
-function keepingDerived(from, to, writtenKeys) {
-  if (!writtenKeys.some(isModuleNamespaceKey)) NAMESPACES_FROM.set(to, from);
-  return to;
-}
-
-// envSet(env, name, value) → new env Map
+// envSet(env, name, value) → a new scope, the name holding the value.
 export function envSet(env, name, value) {
-  return keepingDerived(env, new Map(env).set(name, value), [name]);
+  return asScopeOf(env, new Map(env).set(name, value));
 }
 
-// envMerge(env, otherMap) → new env Map
+// The scopes of the words of the root, where a bare name and the
+// definition of a call read the root alone [D222], and every scope made
+// from one.
+const ROOT_WORD_SCOPES = new WeakSet();
+
+export function markRootWordScope(scope) {
+  ROOT_WORD_SCOPES.add(scope);
+  return scope;
+}
+
+export function isRootWordScope(scope) {
+  return ROOT_WORD_SCOPES.has(scope);
+}
+
+export function asScopeOf(from, made) {
+  return ROOT_WORD_SCOPES.has(from) ? markRootWordScope(made) : made;
+}
+
+// envMerge(env, otherMap) → a new scope, the names of the map over its own.
 export function envMerge(env, otherMap) {
   const next = new Map(env);
   for (const [key, value] of otherMap) next.set(key, value);
-  return keepingDerived(env, next, [...otherMap.keys()]);
+  return asScopeOf(env, next);
 }

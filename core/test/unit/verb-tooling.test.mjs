@@ -1,37 +1,38 @@
-// The head of a verb as the tooling reads it [D72]: the slots as the
-// head writes them, the verb a tool shows for a name, and the verbs a
-// value of a kind reaches.
+// A word as the tooling reads it [D164]: what a tool shows for a name,
+// and the words a value of a kind reaches.
 
 import { describe, it, expect } from 'vitest';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { evalQuery } from '../../src/eval.mjs';
-import { slotLabelsOf, verbShownFor } from '../../src/runtime/verb.mjs';
-import { verbsReaching } from '../../src/runtime/nouns.mjs';
-import { bindingValueOf, residenceOfVerb } from '../../src/types.mjs';
+import { shownFor } from '../../src/runtime/verb.mjs';
+import { nodeOf, verbsReaching } from '../../src/runtime/nouns.mjs';
+import { answerKindsOf } from '../../src/eval.mjs';
 
-describe('the head of a verb as the tooling reads it', () => {
-  it('labels the slots as the head writes them, the rest behind a star', async () => {
-    const verb = await evalQuery('::verb~(:n ::number * :xs ::any | xs)');
-    expect(slotLabelsOf(verb)).toEqual([':n ::number', '* :xs ::any']);
+describe('a word as the tooling reads it', () => {
+  it('shows a name under a label by its address and the parts of its object [D164]', async () => {
+    const shown = shownFor(await langRuntime(), 'add');
+    expect(shown.address.name).toBe('number/add');
+    expect(shown.labels).toEqual(['addend']);
   });
 
-  it('shows the verb a name binds, its slots labeled', async () => {
+  it('shows nothing for a name that reaches neither a verb nor a name under a label', async () => {
+    expect(shownFor(await langRuntime(), 'nothingAtAll')).toBeUndefined();
+  });
+
+  it('shows the first kind\'s name of a word several kinds answer, and the parts of its object', async () => {
+    const shown = shownFor(await langRuntime(), 'gt');
+    expect(shown.address.name.endsWith('/gt')).toBe(true);
+    expect(shown.labels).toEqual(['value']);
+  });
+
+  it('shows the name any value answers', async () => {
+    expect(shownFor(await langRuntime(), 'type').address.name).toBe('any/type');
+  });
+
+  it('reads the kinds of the answer of a name from the definition of its answer, the subject\'s own where that is the word\'s own label [D169]', async () => {
     const env = await langRuntime();
-    const addVerb = verbShownFor(env, 'add');
-    expect(addVerb).toBe(bindingValueOf(env.get('add')));
-    expect(slotLabelsOf(addVerb)).toEqual([':addend ::number']);
-  });
-
-  it('shows the first verb a contract answers for', async () => {
-    const env = await langRuntime();
-    expect(residenceOfVerb(verbShownFor(env, 'gt'))).not.toBeNull();
-  });
-
-  it('shows a contract no verb answers for as it is', async () => {
-    const env = new Map(await langRuntime());
-    const lonelyContract = await evalQuery('::verb~()');
-    env.set('lonely', lonelyContract);
-    expect(verbShownFor(env, 'lonely')).toBe(lonelyContract);
+    expect(answerKindsOf(env, nodeOf(env, 'vec/filter'), ['set'])).toEqual(['set']);
+    expect(answerKindsOf(env, nodeOf(env, 'vec/count'), ['vec'])).toEqual(['number']);
+    expect(answerKindsOf(env, nodeOf(env, 'any/coalesce'), ['vec'])).toBeNull();
   });
 });
 
@@ -40,10 +41,10 @@ describe('the verbs a value of a kind reaches [D34]', () => {
     const reached = verbsReaching(await langRuntime(), ['number']);
     expect(reached.get('add').address.name).toBe('number/add');
     expect(reached.get('type').address.name).toBe('any/type');
-    expect(slotLabelsOf(reached.get('add').verb)).toEqual([':addend ::number']);
+    expect(reached.get('take')).toBeUndefined();
   });
 
-  it('leaves out a contract of any value its kind does not answer', async () => {
+  it('leaves out a word its kind does not answer', async () => {
     const env = await langRuntime();
     expect(verbsReaching(env, ['number']).has('count')).toBe(false);
     expect(verbsReaching(env, ['vec']).get('count').address.name).toBe('vec/count');

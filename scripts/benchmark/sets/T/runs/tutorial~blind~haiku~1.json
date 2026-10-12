@@ -1,0 +1,16 @@
+{
+ "set": "T",
+ "screen": "tutorial",
+ "screenHash": "82d21c84e974",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 1,
+ "date": "2026-10-09",
+ "commit": "56d8b78",
+ "result": "Looking at the qlang documentation, I need to write queries that process the input data through pipelines. Let me work through each task carefully.\n\nT1: Count active users with non-null emails ending in \"@example.com\" (case-insensitive)\nT2: Get names of users with \"admin\" role (case-insensitive), sorted by lowercase name\nT3: Count users per country (null/missing → \"unknown\")\nT4: Average age of users with non-null ages, rounded to 2 decimals\nT5: Open issues: collect label names, lowercase, deduplicate, sort\nT6: Top 3 issues by comments desc, ties broken by number asc\nT7: Count open issues per assignee (excluding null assignees)\nT8: Dependencies with \"^\", formatted as \"name@version\", sorted\nT9: Services with enabled=true and port>8000, lowercased names, comma-joined\nT10: ERROR count per service (3rd whitespace-separated token)\nT11: Average of ms=<integer> values, rounded to 1 decimal\nT12: Sum of qty*price for shipped rows (case-insensitive), non-empty prices\nT13: Top 2 customers by total spend (excluding cancelled and empty prices)\nT14: Process word list: lowercase, deduplicate, sort by length desc then alphabetically, join with \"-\"\n\nT1: /data/users | filter ~(allOf /active (/email | ne null) (/email | lower | endsWith \"@example.com\")) | count\n\nT2: /data/users | filter ~(/roles * lower | any ~(eq \"admin\")) | * /name | sort ~(lower)\n\nT3: /data/users * (at /profile/country | coalesce \"unknown\") | groupBy * count\n\nT4: /data/users * at /profile/age | filter ~(ne null) | avg | round 2\n\nT5: filter ~(/state | eq \"open\") | * /labels | flat | * /name | * lower | distinct | sort\n\nT6: sort ~([(/comments | desc) /number]) | take 3 | * {:number /number :assignee (at /assignee/login)}\n\nT7: filter ~(/state | eq \"open\") | * at /assignee/login | filter ~(ne null) | groupBy * count\n\nT8: [(/dependencies | entries) (/devDependencies | entries)] | flat | filter ~(/1 | startsWith \"^\") | * (/0 | append \"@\" | append /1) | sort\n\nT9: /services | filter ~(allOf (at /enabled | coalesce false) (/port | gt 8000)) | * (/name | lower) | sort | join \",\"\n\nT10: split \"\\n\" | filter ~(split \" \" | /1 | eq \"ERROR\") | * (split \" \" | /2) | groupBy * count\n\nT11: split \"\\n\" | filter ~(contains \"ms=\") | * (split \" \" | filter ~(contains \"ms=\") | first | split \"=\" | /1 | parseJson) | avg | round 1\n\nT12: split \"\\n\" | drop 1 | * ((split \",\" | if (allOf (/5 | lower | eq \"shipped\") (/4 | ne \"\")) ~({:a (at /3 | parseJson) :b (at /4 | parseJson)} | mulOf /a /b) ~(0)) !| 0) | sum | round 2\n\nT13: split \"\\n\" | drop 1 | filter ~(allOf (/5 | lower | ne \"cancelled\") (/4 | ne \"\")) | * (split \",\" | {:customer /1 :revenue ({:a (at /3 | parseJson) :b (at /4 | parseJson)} | mulOf /a /b !| 0)}) | groupBy ~(/customer) * sum ~(/revenue) | entries | sort ~((/1 | desc)) | take 2 | * {:customer /0 :total (/1 | round 2)}\n\nT14: [\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | * lower | distinct | sort ~([(count | desc) /]) | join \"-\"",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 9840,
+ "outputTokens": 25899,
+ "calls": []
+}

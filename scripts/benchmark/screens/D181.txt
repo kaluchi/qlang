@@ -1,0 +1,65 @@
+ qlang is a pipeline language over values. A query is a subject and its steps: each step is a command on the value the step before it answered, and answers a new value; nothing changes in place, and the answer is the last value. Everything the language handles is a value with a literal that prints and reads back as itself: data, code, prose and failures alike. So the language describes itself in its own values: every name has a page, the pages grow from ::qlang, and a query reads them like any data.
+
+      The laws of a name stand under it, each a query that runs and answers true, `::vec/take | laws`, and a form copied from a law is a form that works.
+
+      What a reader can rely on, the invariants every rule below follows from:
+      - A query is a function of its input: the same subject answers the same value, nothing changes in place, and nothing is read or written outside it but by the verbs of the host.
+      - The value in the pipe is the one implicit argument: every command takes it as its subject, and every modifier is computed against it.
+      - Every nested piece, an element of a literal, a group, a modifier, starts from the value in the pipe of its step and the names around it and gives back only its value.
+      - Nothing is converted behind the reader: no truthiness, no number read out of a string; a part read strictly, `/k` or `/0`, fails where it is missing, and one read softly, `at`, `first`, `last`, `min`, `max` or `avg`, answers null; a value that does not fit makes its step fail, under a tag naming that step.
+      - One order ranks every value, so anything sorts, dedupes and has a least and a greatest; `gt` and `lt` compare two values of one kind.
+      - A failure is a value: it rides past `|` until `!|` opens it.
+      - Every value prints as a literal that reads back as itself: what an answer shows is the value.
+      - What exists is what the language lists: a verb missing from the list of a kind does not exist for it, and a page tells the truth about its name because its laws run.
+
+      1. The combinators. Steps are joined by two combinators, each set off by spaces on both sides; they bind alike, from left to right.
+      `a | b` runs b on the value a answered.
+      `a !| b` runs b only when a answered a failure; any other value passes it untouched, and a pipe written before `!|` stands for it.
+      `(…)` is a group: its steps run on the value in the pipe and answer their result.
+      At the top level a line is a step, joined to the next line by `|`.
+
+      2. The literals. A literal is a step: it replaces the value in the pipe, and every word inside it is computed against that value.
+      42, -1.5 and 1e3 are numbers, finite doubles. "text" is a string. :name and :"two words" are keywords, names that stand for themselves. null, true and false. [1 2 3] is a vector, [1, 2, 3] the same vector. {:k 1} is a map, and {"k": 1} the same map: every key of a map is a keyword. #[3 1 2] is a set. `~(add 1)` is code, a quote. |~~ text ~~| is prose, a doc. !{:reason :x} is a failure. ::Box is a tag name, a value of its own. ::Box{:a 1} is a value under the tag ::Box.
+      A literal is how data is reshaped: write the shape the answer takes, with its parts read from the value.
+
+      3. Reading parts. /k reads a key of a map, /0 an element of a vector, /-1 counts from the end, /a/b walks a path, / alone is the whole value. A part that is not there is a failure; `at` reads softly and answers null, and `coalesce` puts a fallback in its place, `at :k | coalesce 0`.
+
+      4. Commands. A command is a name and its modifiers, one word each, separated by spaces: `add 1`, `split ","`, `filter ~(gt 1)`. A step sees one value, the one the step before handed it, and everything inside the step is computed from that value: what an earlier step saw is gone unless a name keeps it. So `mulOf /price /qty` multiplies two fields of one record, but after `/active |` a modifier reads the boolean, not the record; `:r /` keeps the record for the steps after. A command with modifiers, or a pipeline, inside a literal or a modifier stands in parentheses.
+      A modifier that is code, which a verb runs later on each element, is a quote: `~(…)`, or `~name` for one word. `[1 2 3] | map ~(mul 2)` runs `mul 2` on each element and answers `[2 4 6]`, a map answering a map under the same keys, and `filter ~(gt 1)` keeps the elements its code holds of. A value computed at the call is refused there.
+
+      5. Kinds and verbs. Every value has a kind, which `type` answers as a tag: ::number ::string ::keyword ::boolean ::null ::vec ::map ::set, and ::quote ::doc ::tag and others. A verb lives on the kinds it serves, and a name finds its verb through the kind of its subject; what a kind answers is listed by `::string | manifest`, and a verb outside its list does not exist for it. The verbs most queries use:
+      numbers: add sub mul div round, and gt gte lt lte to compare.
+      strings: split lines trim contains startsWith endsWith lower upper append prepend keyword, parseJson to read a number or any JSON out of text, and count take drop by characters; strings join from a vector by `join ","`.
+      containers: count first last at take drop map filter every any sort reverse distinct flat sum avg min max reduce groupBy indexBy has contains, and for maps keys vals entries; union minus inter for sets and maps. The greatest by a key is `max ~(key)`, and `sort ~([(/n | desc) /name])` ranks by n descending and then by name, and `flat` splices one level of nesting.
+      every value: type eq ne print json if cond coalesce apply tag desc, and `payload` opens a value under a tag.
+      booleans: and or not, and `allOf` and `anyOf` to hold conditions of one value together, `filter ~(allOf /active (/age | gte 18))`.
+
+      6. What differs from the languages a reader knows.
+      One order ranks every value: null, then booleans, numbers, strings, keywords, tag names, vectors, sets, maps; so anything sorts. A set is the vector in that order without duplicates: `distinct` and `keys` answer a set, `take`, `drop` and `filter` keep a set, and `sort` and `reverse` answer a vector.
+      A map's elements are its values: `count`, `sum`, `first`, `map`, `filter` and `sort` read the values, and the keys travel with them.
+      A condition is a boolean: `if`, `filter`, `every`, `any` and `cond` refuse any other value, so nothing is truthy.
+      A string and a keyword turn into each other by `keyword`; text and code turn into each other by `parse`; `print` answers the text a value reads back from, a string.
+      A name, `:n v`, holds v for the steps after it, and the value in the pipe goes on unchanged; `:n /` names the value in the pipe. A name is declared once in a scope, and the names a group declares close with it.
+
+      7. Failures. A step that fails answers a failure, a value: `|` passes it by, and `!|` opens it to its facts. The tag of a failure is the address of what refused: ::number/add/SubjectNotNumberError is `add` refusing its subject for not being a number, ::number/add/addend/NotNumberError the invariant of its part `addend` that the part is a number, broken. `!| explain` shows the page of what refused.
+      A failure is built from a map by `raise`, or written as a literal with the tag of its own kind before the bang; `!|` opens it to that map, its tag stacked over the kind ::error. Whether a value is a failure is `false !| true`, and `/trail` holds the path it took, the steps it skipped last.
+
+      8. Code and names of your own. A quote holds steps unrun: it is the vector of its steps, `apply` runs it on a subject, and `parse` turns text into a quote and a quote into its text.
+      A kind of your own is a label, a name declared by its page, and every value put under it keeps the invariants declared under it, names whose values are `::holds~(…)`, each named by its refusal. A name under a label, a quote, runs on its values when mentioned. What a call gives is its args, `::Box/put[7]`, and each name under the call's address reads a part of them, `~(/0)` given or `~(at 0 d)` d by default, held to the invariants declared under it and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
+      A step of a quote is a record of what it computes, a command under ::call with its `:name`.
+      Prose is a value too: |~~ text ~~| is a doc, whose `content` is its text, `segments` its prose and quotes, and `links` and `snippets` the quotes a reader follows and runs. A comment, written |~ like this ~| or from |~| to the end of its line, is whitespace.
+
+      9. Working a task. Look at the input before shaping it: `type`, `keys`, `/0`, `count`. Write the shape of the answer as a literal, and build the query one step at a time, running each. When a step fails, its tag is the address of what refused; `!| explain` reads its page, `::vec/sort | doc` the page of a verb, and `::vec/sort | laws` its laws to copy.
+
+      10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its links `links`, its snippets `snippets`, and `x | laws` answers the laws declared under the name. ::snippet~(env | keys) lists the names in scope, ::snippet~(::vec | manifest) the names under a kind by address, `::vec/sort | doc` the page of one, `::vec/sort | manifest` the parts of its args and its answer, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an ::elision whose `:read` continues the query to it.
+
+      11. The chapters, in the order they rest on each other, each naming its neighbours and its kinds:
+      ::link~(::qlang/values | doc) values, kinds and tags;
+      ::link~(::qlang/pipeline | doc) the steps of a query;
+      ::link~(::qlang/names | doc) names and their records;
+      ::link~(::qlang/verbs | doc) the verbs that live on kinds;
+      ::link~(::qlang/errors | doc) the failure as a value;
+      ::link~(::qlang/code | doc) code as a value;
+      ::link~(::qlang/hypertext | doc) the pages and how to move through them;
+      ::link~(::qlang/hosts | doc) the tool the language runs in and the budget of an answer.
+  

@@ -9,9 +9,9 @@
     { "include": "#comment-line-plain" },
     { "include": "#comment-block-plain" },
     { "include": "#string" },
-    { "include": "#tagKeyword" },
+    { "include": "#tag" },
     { "include": "#map-key" },
-    { "include": "#keyword-atom" },
+    { "include": "#keyword" },
     { "include": "#number" },
     { "include": "#constant" },
     { "include": "#projection" },
@@ -26,17 +26,61 @@
   "repository": {
 
     "comment-line-doc": {
-      "comment": "|~~| doc comment to end of line",
+      "comment": "|~~| doc to end of line: prose, and the code it holds painted as code.",
       "name": "comment.line.documentation.qlang",
-      "match": "\\|~~\\|[^\\n]*"
+      "begin": "\\|~~\\|",
+      "end": "$",
+      "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.qlang" } },
+      "patterns": [{ "include": "#doc-code" }]
     },
     "comment-block-doc": {
-      "comment": "|~~ ... ~~| block doc",
+      "comment": "|~~ ... ~~| block doc: prose, and the code it holds painted as code, so a doc inside a quote of it closes at its own ~~| and not at the outer one.",
       "name": "comment.block.documentation.qlang",
       "begin": "\\|~~(?!\\|)",
       "end": "~~\\|",
       "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.qlang" } },
-      "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.qlang" } }
+      "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.qlang" } },
+      "patterns": [{ "include": "#doc-code" }]
+    },
+    "doc-code": {
+      "comment": "The code a doc holds: a quote ~( ... ), the short form ~name, and a span in backticks.",
+      "patterns": [
+        { "include": "#doc-quote" },
+        { "include": "#doc-quote-short" },
+        { "include": "#doc-code-span" }
+      ]
+    },
+    "doc-quote": {
+      "comment": "A quote inside a doc, its parentheses balanced, its body painted as code.",
+      "begin": "~\\(",
+      "end": "\\)",
+      "beginCaptures": { "0": { "name": "keyword.operator.quote.qlang" } },
+      "endCaptures":   { "0": { "name": "keyword.operator.quote.qlang" } },
+      "patterns": [{ "include": "#group" }, { "include": "$self" }]
+    },
+    "doc-quote-short": {
+      "comment": "The short form of a quote inside a doc: ~name, ~/path, ~::tag.",
+      "match": "(~)((?:::|/)?[@_a-zA-Z][a-zA-Z0-9_/-]*)",
+      "captures": {
+        "1": { "name": "keyword.operator.quote.qlang" },
+        "2": { "name": "entity.name.function.qlang" }
+      }
+    },
+    "doc-code-span": {
+      "comment": "A span in backticks inside a doc names code and paints as code.",
+      "begin": "`",
+      "end": "`|$",
+      "beginCaptures": { "0": { "name": "punctuation.definition.code.qlang" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.code.qlang" } },
+      "patterns": [{ "include": "$self" }]
+    },
+    "group": {
+      "comment": "Parentheses inside a quote of a doc, balanced so the quote closes at its own parenthesis.",
+      "begin": "\\(",
+      "end": "\\)",
+      "beginCaptures": { "0": { "name": "punctuation.section.parens.begin.qlang" } },
+      "endCaptures":   { "0": { "name": "punctuation.section.parens.end.qlang" } },
+      "patterns": [{ "include": "#group" }, { "include": "$self" }]
     },
     "comment-line-plain": {
       "comment": "|~| plain comment to end of line",
@@ -64,10 +108,10 @@
       ]
     },
 
-    "tagKeyword": {
-      "comment": "::tag — tag-namespace identifier. Covers TaggedLit head (`::duration{...}`, `::AddLeftNotNumberError!{...}`) and BareTypeKeyword reference (`::verb | docs`). Tag accepts the namespaced shape `::qlang/error/guards`. Tried before map-key / keyword-atom so leading `::` does not partially match the value-namespace `:` patterns and leave a stray colon uncolored.",
+    "tag": {
+      "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/add/SubjectNotNumberError!{...}`) and a TagLit reference (`::vec/count | doc`). Tried before map-key / keyword so leading `::` does not split into two keyword sigils.",
       "name": "entity.name.type.qlang",
-      "match": "::[@_a-zA-Z][a-zA-Z0-9_/-]*"
+      "match": "::[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
     },
 
     "map-key": {
@@ -82,7 +126,7 @@
         },
         {
           "comment": "bare map key :ident followed by whitespace",
-          "match": "(:[a-zA-Z@_][a-zA-Z0-9_-]*)(?=[ \\t])",
+          "match": "(:[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*)(?=[ \\t])",
           "captures": {
             "1": { "name": "support.type.property-name.qlang" }
           }
@@ -90,8 +134,8 @@
       ]
     },
 
-    "keyword-atom": {
-      "comment": "qlang keyword/symbol literals used as values",
+    "keyword": {
+      "comment": "Keyword literals, a name used as a value and a key of a map",
       "patterns": [
         {
           "comment": "quoted keyword :\"...\"",
@@ -107,7 +151,7 @@
         {
           "comment": "bare keyword :name",
           "name": "constant.other.symbol.qlang",
-          "match": ":[@_a-zA-Z][a-zA-Z0-9_-]*"
+          "match": ":[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
         }
       ]
     },
@@ -169,16 +213,15 @@
     },
 
     "combinator": {
-      "comment": "Pipeline combinators: !| (fail-apply — fires its step on an error pipeValue against the materialized descriptor, deflects on success), | (pipe), * (spread). !| is tried before | so the 2-char token wins the match against the trailing | that would otherwise match the 1-char pipe rule.",
+      "comment": "The combinators: `!|` the fail track and `|` the pipe, `!|` matched first.",
       "patterns": [
         { "name": "keyword.operator.fail-apply.qlang", "match": "!\\|" },
-        { "name": "keyword.operator.pipe.qlang",       "match": "\\|(?!~)" },
-        { "name": "keyword.operator.spread.qlang",     "match": "\\*" }
+        { "name": "keyword.operator.pipe.qlang",       "match": "\\|(?!~)" }
       ]
     },
 
     "effect-identifier": {
-      "comment": "@-prefixed identifiers — effectful host operands per spec §'Effect markers'. @ sigil gets punctuation scope so themes can color it separately from the name.",
+      "comment": "@-prefixed names, the effectful words of a host. The @ sigil gets punctuation scope so themes can color it apart from the name.",
       "match": "(@)([a-zA-Z_][a-zA-Z0-9_-]*)",
       "captures": {
         "1": { "name": "punctuation.definition.variable.qlang" },
@@ -187,9 +230,9 @@
     },
 
     "identifier": {
-      "comment": "User-defined operand calls and verb references.",
+      "comment": "Names called as words, and addresses of words.",
       "name": "entity.name.function.qlang",
-      "match": "[@_a-zA-Z][a-zA-Z0-9_-]*"
+      "match": "[@_a-zA-Z][a-zA-Z0-9_-]*(?:/[@_a-zA-Z][a-zA-Z0-9_-]*)*"
     },
 
     "punctuation": {

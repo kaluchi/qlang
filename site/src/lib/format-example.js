@@ -14,7 +14,7 @@
 // @param {string}   code     — raw demo block text
 // @param {Function} parse    — qlang `parse` function
 // @param {Function} walkAst  — qlang `walkAst` function
-// @param {Set}      builtins — Set of builtin operand name strings
+// @param {Set}      builtins — Set of the names of the words of the language
 // @returns {string} HTML string
 
 import { highlightQlang } from './qlang-highlight.js';

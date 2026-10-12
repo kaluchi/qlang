@@ -1,121 +1,180 @@
-|~ `::proj`, the step that reads a part of a value, and the refusals of
-   a read that misses. ~|
+|~ `::proj`, the step that reads a part of a value, and what is declared
+   under it: its constructor and the refusals of a read that misses. ~|
 
-::proj
-  |~~ The step of a projection, `/a/0/b`: it reads a part of the value in
-      the pipe by keys and indices, a negative index from the end, and a
-      miss answers an error, never null, so a misspelled field is found
-      where it is read. `/` is the value itself. A key is written as a
-      keyword is, bare, in quotes, `/"foo bar"`, or with its colon when it
-      is a path, `/:qlang/error`, which is one key where `/qlang/error`
-      is two. As a record, `:path` is the keys and indices it walks,
-      `[]` for `/`.
+:proj
+  |~~ A projection, `/a/0/b`, reads a part of the value in the pipe by
+      its keys and places, a negative place from the end, and `/` is the
+      value itself. A missing part is a failure, never null, so a
+      misspelled field is found where it is read; `at` reads softly.
+
+      A key is written as a keyword is, bare, `/name`, quoted,
+      `/"first name"`, or with its colon when it holds a slash,
+      `/:qlang/error`, one key where `/qlang/error` is two. In a quote
+      the step is a record, `~(/a/0) | first` answering
+      `::proj{:path [:a 0]}`, `:path` the keys and places it walks.
       ::snippet~({:a {:b [5 6]}} | /a/b/-1) answers `6`.
-      ::link~(::qlang | doc :pipeline)
-
-      ~(~(/items/0/name) | first | /path | eq [:items 0 :name])
-      ~(~(/) | first | /path | eq [])
-      ~({:"foo bar" {:qlang/error 1}} | /"foo bar"/:qlang/error | eq 1)
-      ~({:qlang {:error 2}} | /qlang/error | eq 2)
-      ~(5 | mul / | eq 25)
+      ::link~(::map/at | doc) ::link~(::qlang/pipeline | doc)
   ~~|
-  ::builtin{:impl :qlang/type/proj}
 
-::ProjPayloadNotSchemaError
-  |~~ A `::proj` is a map of `:path`, a vector of keys and
-      integers.
+:proj/holdsThePath
+  |~~ A projection holds its path of keys and indices. ~~|
+  ::law~(~(/items/0/name) | first | /path | eq [:items 0 :name])
+
+:proj/holdsTheEmptyPath
+  |~~ `/` alone has the empty path. ~~|
+  ::law~(~(/) | first | /path | eq [])
+
+:proj/readsQuotedAndPathKeys
+  |~~ Quoted keys and keys with a path read in a path. ~~|
+  ::law~({:"foo bar" {:qlang/error 1}} | /"foo bar"/:qlang/error | eq 1)
+
+:proj/readsNestedKeys
+  |~~ A path of two keys reads nested maps. ~~|
+  ::law~({:qlang {:error 2}} | /qlang/error | eq 2)
+
+:proj/readsTheWholeValue
+  |~~ `/` reads the whole value. ~~|
+  ::law~(5 | mul / | eq 25)
+
+:proj/construct
+  |~~ The step of a projection from its record, `:path`, which reads
+      back as itself.
+  ~~|
+  ::builtin{}
+
+:proj/PayloadNotSchemaError
+  |~~ A `::proj` is a map of `:path`, a vector of keys and integers, and
+      no string: `{:path [:items 0]} | tag ::proj` is the step
+      `/items/0`. `:field` names the field that does not fit.
       ::link~(::proj | doc)
-
-      ~(
-        ::proj{:path "items"}
-        !| [type /field]
-        |  eq [::ProjPayloadNotSchemaError :path]
-       )
   ~~|
 
-::ProjReadBackDiffersError
-  |~~ The ::proj prints as text that reads back as another step: a
-      key that reads as an index is written as the index.
+:proj/PayloadNotSchemaError/refusesAPathThatIsAString
+  |~~ A path that is a string is refused, `:field` naming it. ~~|
+  ::law~(::proj{:path "items"} !| [type /field] | eq [::proj/PayloadNotSchemaError :path])
+
+:proj/PayloadNotSchemaError/buildsTheStepOfAPath
+  |~~ A path of keys and indices builds the step that walks it. ~~|
+  ::law~({:path [:items 0]} | tag ::proj | [/] | tag ::quote | eq ~(/items/0))
+
+:proj/ReadBackDiffersError
+  |~~ The `::proj` prints as text that reads back as another step: a key
+      that reads as an index, `:"0"`, prints as `/"0"`, which reads back
+      as the index `0`; `:printed` is that text. The path holds the index,
+      `{:path [0]}`, which reads the key `"0"` of a map as well,
+      `{:"0" 5} | /0` answering `5`.
       ::link~(::proj | doc)
-
-      ~(
-        ::proj{:path [:"0"]}
-        !| [type /printed]
-        |  eq [::ProjReadBackDiffersError "/\"0\""]
-       )
   ~~|
 
-::ProjectionFieldNotOnValueClassError
-  |~~ Projection segment names no declaration of the signature it
-      reads.
-      ::link~(::proj | doc)
+:proj/ReadBackDiffersError/refusesAKeyThatReadsAsAnIndex
+  |~~ A key that reads as an index prints as the index. ~~|
+  ::law~(::proj{:path [:"0"]} !| [type /printed] | eq [::proj/ReadBackDiffersError "/\"0\""])
 
-      ~(
-        ::vec/join | spec | /missing
-        !| [type /key]
-        |  eq [::ProjectionFieldNotOnValueClassError "missing"]
-       )
-  ~~|
+:proj/ReadBackDiffersError/readsTheKeyOfAMapByTheIndex
+  |~~ The index reads the key of a map that spells it. ~~|
+  ::law~({:"0" 5} | /0 | eq 5)
 
-::ProjectionIndexOutOfBoundsError
+:proj/IndexOutOfBoundsError
   |~~ An index reads within a vector or a set, from `/0` to the last,
-      `/-1`; `take` and `drop` answer the part there is without refusing.
-      `:length` holds the length of the subject.
-      ::link~(::proj | doc)
-
-      ~(
-        [10 20 30] | /99
-        !| [type /index /length]
-        |  eq [::ProjectionIndexOutOfBoundsError 99 3]
-       )
+      `/-1`, a negative index counting from the end; `:index` holds the
+      index read and `:length` the length of the subject. The last
+      element is `/-1` whatever the length, an index that may lie past
+      the end is read by `at`, which answers null there, and `take` and
+      `drop` answer the part there is without refusing.
+      ::link~(::proj | doc) ::link~(::vec/at | doc)
   ~~|
 
-::ProjectionKeyNotInMapError
+:proj/IndexOutOfBoundsError/index
+  |~~ The index the projection read, counted from the end when negative. ~~|
+  ::number
+
+:proj/IndexOutOfBoundsError/length
+  |~~ How many elements the value holds. ~~|
+  ::number
+
+:proj/IndexOutOfBoundsError/refusesAnIndexPastTheEnd
+  |~~ An index past the end is refused with the length. ~~|
+  ::law~([10 20 30] | /99 !| [type /index /length] | eq [::proj/IndexOutOfBoundsError 99 3])
+
+:proj/IndexOutOfBoundsError/refusesAnIndexBeforeTheStart
+  |~~ A negative index past the start is refused as it was written. ~~|
+  ::law~([10 20 30] | /-4 !| [type /index /length] | eq [::proj/IndexOutOfBoundsError -4 3])
+
+:proj/IndexOutOfBoundsError/readsTheLastFromTheEnd
+  |~~ `/-1` reads the last element whatever the length. ~~|
+  ::law~([10 20 30] | /-1 | eq 30)
+
+:proj/KeyNotInMapError
   |~~ A projection names a key the map holds, so a misspelled field is
-      found where it is read; `keys` lists the keys there are, and
-      `at :key` answers null for a key that may be absent.
-      ::link~(::proj | doc)
-
-      ~(
-        {:a 1} | /b
-        !| [type /key]
-        |  eq [::ProjectionKeyNotInMapError "b"]
-       )
+      found where it is read; `:key` holds the key read, and `:nearest`
+      the keys of the map it was likely meant to be, near it in spelling
+      as a name is near the names of the scope. `keys` lists the keys
+      there are, `{:a 1} | keys`, and a key that may be absent is read by
+      `at`, which answers null for it, a `coalesce` after it giving the
+      fallback, `at :b | coalesce 0`.
+      ::link~(::proj | doc) ::link~(::map/at | doc)
   ~~|
 
-::ProjectionSubjectNotProjectableError
+:proj/KeyNotInMapError/key
+  |~~ The key the projection read, which the map does not hold. ~~|
+  ::keyword
+
+:proj/KeyNotInMapError/refusesAKeyTheMapLacks
+  |~~ A key the map lacks is refused. ~~|
+  ::law~({:a 1} | /b !| [type /key] | eq [::proj/KeyNotInMapError :b])
+
+:proj/KeyNotInMapError/suggestsTheNearestKey
+  |~~ The keys of the map nearest in spelling are suggested. ~~|
+  ::law~({:emails [] :age 3} | /email !| /nearest | eq [:emails])
+
+:proj/SubjectNotProjectableError
   |~~ A projection reads a part of a map, a vector or a set, one under a
-      tag among them; a number, a string or null has no parts, and a map
-      that may lack a key is read by `at`, which answers null for it.
-      A modifier reads the subject of its own step: after `/qty |` the
-      subject is the number, so two parts of one record are read in one
-      step, `mul /qty /price`.
-      ::link~(::proj | doc)
-
-      ~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::ProjectionSubjectNotProjectableError)
-      ~({:qty 2 :price 3} | mul /qty /price | eq 6)
-
-      ~(
-        42 | /foo
-        !| [type /key /actualType]
-        |  eq [::ProjectionSubjectNotProjectableError "foo" ::number]
-       )
+      tag among them; a number, a string or null has no parts, and `:key`
+      holds the key or the index read. A modifier reads the subject of
+      its own step: after `/qty |` the subject is the number, so two
+      fields of one record are read in one step by a form whose args they
+      are, `mulOf /qty /price`. A value that may be null is read by `at`,
+      which answers null.
+      ::link~(::proj | doc) ::link~(::any/mulOf | doc)
   ~~|
 
-::ProjectionSequenceKeyNotIntegerError
-  |~~ A vector is read by an index, `/0`, a set's in its one order; a
-      field of each element is read under `*`, `* /name`, and the
-      elements a field picks are found by `filter`.
-      ::link~(::proj | doc)
+:proj/SubjectNotProjectableError/key
+  |~~ The segment the projection read, a key or an index. ~~|
+  #[::keyword ::number]
 
-      ~(
-        [10 20 30] | /name
-        !| [type /key]
-        |  eq [::ProjectionSequenceKeyNotIntegerError "name"]
-       )
-       ~(
-        #[:a :b :c] | /name
-        !| [type /key]
-        |  eq [::ProjectionSequenceKeyNotIntegerError "name"]
-       )
+:proj/SubjectNotProjectableError/readsTwoFieldsInOneStep
+  |~~ Two fields of one record combine in one step by `mulOf`. ~~|
+  ::law~({:qty 2 :price 3} | mulOf /qty /price | eq 6)
+
+:proj/SubjectNotProjectableError/refusesANumber
+  |~~ A number has no fields. ~~|
+  ::law~(42 | /foo
+    !| [type /key /actualType] | eq [::proj/SubjectNotProjectableError :foo ::number])
+
+:proj/SubjectNotProjectableError/refusesNull
+  |~~ Null has no parts. ~~|
+  ::law~(null | /k !| [type /actualType] | eq [::proj/SubjectNotProjectableError ::null])
+
+:proj/IndexNotIntegerError
+  |~~ A vector is read by an index, `/0`, and a set by the index of an
+      element in its one order; `:key` holds the field read. A field of
+      each element is read by `map`, `map ~/name`, and the elements a field
+      picks are found by `filter`, `filter ~(/n | gt 1)`.
+      ::link~(::proj | doc) ::link~(::vec/filter | doc)
   ~~|
+
+:proj/IndexNotIntegerError/key
+  |~~ The segment the projection read, which names no index. ~~|
+  ::keyword
+
+:proj/IndexNotIntegerError/refusesAFieldOfAVector
+  |~~ A vector is read by an index, not a field. ~~|
+  ::law~([10 20 30] | /name !| [type /key] | eq [::proj/IndexNotIntegerError :name])
+
+:proj/IndexNotIntegerError/refusesAFieldOfASet
+  |~~ A set is read by an index, not a field. ~~|
+  ::law~(#[:a :b :c] | /name !| [type /key] | eq [::proj/IndexNotIntegerError :name])
+
+:proj/IndexNotIntegerError/readsAFieldOfEachElement
+  |~~ A field of each element is read by `map`. ~~|
+  ::law~([{:name "a"} {:name "b"}] | map ~/name | eq ["a" "b"])

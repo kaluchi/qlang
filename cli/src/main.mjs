@@ -1,26 +1,11 @@
-// Top-level CLI orchestrator — reads a process-argv slice plus the
-// stdin / stdout / stderr stream trio, dispatches on the parsed
-// cliInvocation, and returns the exit code. bin.mjs is the
-// single-line bootstrap that wires the Node runtime and forwards
-// the resolved exit code to `process.exit`.
-//
-// Script mode (non-REPL) acts as a filter:
-//   1. Read piped stdin to a String.
-//   2. Resolve the inputFormat (auto / json / raw) into a concrete
-//      initial pipeValue and a resolvedFormat label.
-//   3. Bind I/O + format + parse operands, evaluate the query with
-//      the initial pipeValue seeded via session.evalCell.
-//   4. If the query wrote to stdout via `@out`, stop — user is in
-//      control. Otherwise encode the success-track value back into
-//      the resolvedFormat (JSON in → JSON out, raw in → raw out).
-//
-// Streams cross the boundary because the REPL needs an actual
-// Readable for raw-mode keystroke capture; the script-mode branch
-// derives its writers and the stdin text from the same stream
-// trio. The orchestrator stays free of direct `process.*`
-// references, keeping the entire flow unit-testable without
-// spawning a subprocess.
+// main(argv, stdin, stdout, stderr, env) → the exit code of the command
+// line: the help, the version, the REPL over the streams, or a query run
+// on what standard input lifts to, its answer written as the language
+// prints it unless the query wrote to stdout by `@out`; the streams are
+// handed in, so a test runs it without a process.
 
+import { existsSync } from 'node:fs';
+import { parse, readsItsSubject } from '@kaluchi/qlang-core';
 import { parseArgv, HELP_TEXT, VERSION_LINE } from './argv.mjs';
 import { runQuery } from './run.mjs';
 import { renderCellOutcome } from './render.mjs';
@@ -28,20 +13,9 @@ import { runRepl } from './repl.mjs';
 import { readStdinToString, memoiseStdinReader } from './io-stdin.mjs';
 import { liftStdinToPipeValue } from './script-mode.mjs';
 
-// Resolve the user-facing `--color={auto,always,never}` argument
-// plus the `NO_COLOR` / `FORCE_COLOR` env vars plus the actual
-// `stdout.isTTY` flag into a single boolean: paint or not.
-//
-// Precedence — explicit > environment > terminal-detection:
-//   --color=always         → true
-//   --color=never          → false
-//   FORCE_COLOR set        → true     (only if --color=auto)
-//   NO_COLOR set           → false    (only if --color=auto)
-//   stdout is a TTY        → true     (auto, default)
-//   stdout is piped / file → false    (auto, default)
-//
-// The explicit flag wins over both env vars because the user typed
-// it for this invocation; env vars are the shell default.
+// Whether the answer is painted: as `--color` says, and under `auto` as
+// `FORCE_COLOR`, then `NO_COLOR` say, and otherwise where stdout is a
+// terminal.
 export function resolveShouldColorize(colorMode, stdoutStream, env) {
   if (colorMode === 'always') return true;
   if (colorMode === 'never')  return false;
@@ -50,21 +24,43 @@ export function resolveShouldColorize(colorMode, stdoutStream, env) {
   return Boolean(stdoutStream.isTTY);
 }
 
-// A codec refusal carries `:path` — the keys and indices walked to
-// reach the refused scalar. Rendering it as a projection chain
-// points the reader straight at the slot in their document.
-function slotSuffixOf(codecError) {
-  const path = codecError.context.path;
-  return path.length === 0 ? '' : ` at ${path.map(segment => `/${segment}`).join('')}`;
-}
-
 // A query no qlang source begins with: a drive and a slash, the path
 // Git Bash on Windows writes for an argument that began with `/`, so
-// `qlang '/data/users'` arrives as `C:/Program Files/Git/data/users`.
+// `qlang '/data/users'` arrives as `C:/Program Files/Git/data/users`;
+// such a query never parses, and the note goes beside its failure.
 const SHELL_PATH_OF_A_QUERY = /^[A-Za-z]:\//;
 
 const SHELL_PATH_HINT = 'qlang: the shell turned a query that began with `/` into a path; '
   + "begin it with a pipe, `| /data/users`, or run it as `MSYS_NO_PATHCONV=1 qlang '/data/users'`\n";
+
+// The runtime of MSYS, the shell beneath Git Bash, under the root it
+// writes a path from.
+const MSYS_RUNTIME = 'usr/bin/msys-2.0.dll';
+
+// queryAsWritten(queryText, env, exists?) → the query as the reader
+// wrote it: under MSYS, whose `MSYSTEM` names it, a query that begins
+// with the root of the shell, the nearest directory of its path that
+// holds the runtime, is read from the slash after the root, which the
+// shell wrote the root before [D199]; any other query as it came.
+export function queryAsWritten(queryText, env, exists = existsSync) {
+  if (env.MSYSTEM === undefined || !SHELL_PATH_OF_A_QUERY.test(queryText)) return queryText;
+  for (let slash = queryText.indexOf('/'); slash !== -1; slash = queryText.indexOf('/', slash + 1)) {
+    if (exists(queryText.slice(0, slash + 1) + MSYS_RUNTIME)) return queryText.slice(slash);
+  }
+  return queryText;
+}
+
+// Whether a query reads the subject standard input lifts to [D215]; a
+// query that does not parse reads none, its refusal written at once.
+function queryReadsInput(queryText) {
+  let ast;
+  try {
+    ast = parse(queryText);
+  } catch {
+    return false;
+  }
+  return readsItsSubject(ast);
+}
 
 export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env = process.env) {
   const stdoutWrite = (text) => stdoutStream.write(text);
@@ -85,45 +81,40 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return 2;
   }
   if (cliInvocation.kind === 'repl') {
-    return await runRepl(stdinStream, stdoutWrite, stderrWrite, { budget: cliInvocation.budget, initialQuery: cliInvocation.initialQuery });
+    return await runRepl(stdinStream, stdoutWrite, stderrWrite, { budget: cliInvocation.budget, initialQuery: queryAsWritten(cliInvocation.initialQuery, env) });
   }
 
-  const stdinText = await readStdinToString(stdinStream);
+  // A query that reads no subject, `[1 2] | sum` or `::vec | doc`, runs
+  // without waiting on standard input, which a shell may hand open with
+  // nothing piped [D215].
+  const queryText = queryAsWritten(cliInvocation.queryText, env);
+  const readsInput = queryReadsInput(queryText);
+  const stdinText = readsInput ? await readStdinToString(stdinStream) : '';
   const lifted = liftStdinToPipeValue(stdinText, cliInvocation.inputFormat);
+  // An input that does not read as the JSON it is taken for answers as
+  // `parseJson` refuses its text, a failure like every other [D232].
+  const unreadable = lifted.parseError !== undefined || lifted.codecError !== undefined;
 
-  if (lifted.parseError) {
-    stderrWrite(`qlang: --json input: ${lifted.parseError.message}\n`);
-    return 1;
-  }
-  if (lifted.codecError) {
-    stderrWrite(`qlang: stdin: ${lifted.codecError.message}${slotSuffixOf(lifted.codecError)}\n`);
-    return 1;
-  }
-
-  // Memoised reader feeds the `@in` operand if the user's query
-  // explicitly reaches for stdin. The stdin bytes are already in
-  // hand as `stdinText`; returning them immediately avoids a
-  // second pass over the stream.
-  const stdinReader = memoiseStdinReader(() => Promise.resolve(stdinText));
+  // `@in` reads the text standard input already gave, or reads it then.
+  const stdinReader = memoiseStdinReader(() => (readsInput ? Promise.resolve(stdinText) : readStdinToString(stdinStream)));
 
   let didExplicitStdoutEffect = false;
   const recordStdoutEffect = () => { didExplicitStdoutEffect = true; };
 
   const cellEntry = await runQuery(
-    cliInvocation.queryText,
+    unreadable ? 'parseJson' : queryText,
     { stdinReader, stdoutWrite, stderrWrite, recordStdoutEffect },
-    { initialPipeValue: lifted.pipeValue }
+    { initialPipeValue: unreadable ? stdinText : lifted.pipeValue }
   );
 
   const cliOutcome = await renderCellOutcome(cellEntry, {
-    resolvedFormat: lifted.resolvedFormat,
     didExplicitStdoutEffect,
     shouldColorize: resolveShouldColorize(cliInvocation.colorMode, stdoutStream, env),
     budget: cliInvocation.budget
   });
 
-  if (cliOutcome.stdoutText) stdoutWrite(cliOutcome.stdoutText);
-  if (cliOutcome.stderrText) stderrWrite(cliOutcome.stderrText);
-  if (cliOutcome.exitCode !== 0 && SHELL_PATH_OF_A_QUERY.test(cliInvocation.queryText)) stderrWrite(SHELL_PATH_HINT);
+  stdoutWrite(cliOutcome.stdoutText);
+  stderrWrite(cliOutcome.stderrText);
+  if (SHELL_PATH_OF_A_QUERY.test(queryText)) stderrWrite(SHELL_PATH_HINT);
   return cliOutcome.exitCode;
 }

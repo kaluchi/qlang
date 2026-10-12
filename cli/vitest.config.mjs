@@ -10,6 +10,10 @@ export default defineConfig({
     // the default `npm test` keeps fast-feedback semantics and
     // the coverage gate stays in-process.
     exclude: ['node_modules/**', 'test/integration/**'],
+    // The first test of a file loads the full langRuntime bootstrap,
+    // which under v8 coverage instrumentation outgrows the default 5s,
+    // as in the core; 15s still catches a genuine hang.
+    testTimeout: 15000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary'],

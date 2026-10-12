@@ -8,7 +8,7 @@ import { evalAst } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import { rootState } from '../../src/state.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { makeTaggedInstance, makeTagKeyword, typeKeyword } from '../../src/types.mjs';
+import { makeTaggedInstance, makeTag, typeKeyword } from '../../src/types.mjs';
 
 describe('an undeclared tag survives a verb that returns its subject', () => {
   // The tag carries no constructor, so `mintUnderTag` lays it over the
@@ -20,7 +20,7 @@ describe('an undeclared tag survives a verb that returns its subject', () => {
   }
 
   it('take on a host-built unbound tagged Vec keeps the tag', async () => {
-    const result = await transform(makeTaggedInstance(makeTagKeyword('Box'), [1, 2, 3]), 'take 1');
+    const result = await transform(makeTaggedInstance(makeTag('Box'), [1, 2, 3]), 'take 1');
     expect(typeKeyword(result).name).toBe('Box');
     expect([...result]).toEqual([1]);
   });

@@ -30,11 +30,11 @@ describe('distinct — structural equality', () => {
     expect(items[1].get('fqn')).toBe('b');
   });
 
-  it('count matches * /fqn | distinct | count on Map-valued sequence', async () => {
+  it('count matches | map ~/fqn | distinct | count on Map-valued sequence', async () => {
     const byValue = await evalQuery(
       '[{:fqn "a"} {:fqn "b"} {:fqn "a"} {:fqn "c"} {:fqn "b"}] | distinct | count');
     const byFqn = await evalQuery(
-      '[{:fqn "a"} {:fqn "b"} {:fqn "a"} {:fqn "c"} {:fqn "b"}] * /fqn | distinct | count');
+      '[{:fqn "a"} {:fqn "b"} {:fqn "a"} {:fqn "c"} {:fqn "b"}] | map ~/fqn | distinct | count');
     expect(byValue).toBe(byFqn);
     expect(byValue).toBe(3);
   });

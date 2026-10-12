@@ -1,0 +1,17 @@
+{
+ "set": "T",
+ "screen": "examplesInPlace",
+ "screenHash": "fceac5be0169",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 3,
+ "date": "2026-10-10",
+ "commit": "14d351e",
+ "modelId": "claude-haiku-4-5-20251001",
+ "result": "Looking at the qlang documentation and the tasks, I'll work through each query carefully, understanding the pipeline structure, filtering, grouping, and data transformations.\n\nLet me trace through the key concepts:\n- `|` chains steps\n- `*` combinator applies code to each element\n- `filter ~(...)` with quote predicates\n- Soft reads with `at` return `null` if missing\n- `groupBy ~(...)` groups by a key\n- Named values with `:name value` are available in subsequent steps\n\nHere are my queries:\n\nT1: /data/users | filter ~(if (/active) ~(if (/email | ne null) ~(/email | lower | endsWith \"@example.com\") ~(false)) ~(false)) | count\n\nT2: /data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | * /name | sort ~(lower)\n\nT3: /data/users | groupBy ~(at :profile | at :country | coalesce \"unknown\") | * count\n\nT4: /data/users | filter ~(at :profile | at :age | ne null) | * (at :profile | at :age) | avg | round 2\n\nT5: filter ~(/state | eq \"open\") | * /labels | flat | * /name | * lower | distinct | sort\n\nT6: sort ~([(/comments | desc) /number]) | take 3 | * {:number /number :assignee (/assignee | at :login)}\n\nT7: filter ~(/state | eq \"open\") | filter ~(/assignee | ne null) | groupBy ~(/assignee | /login) | * count\n\nT8: /dependencies | union /devDependencies | entries | filter ~(/1 | startsWith \"^\") | * (:v /1 | /0 | keyword | append \"@\" | append v) | sort\n\nT9: /services | filter ~(if (at :enabled | coalesce false) ~(if (/port | gt 8000) ~(true) ~(false)) ~(false)) | * (/name | lower) | sort | join \",\"\n\nT10: lines | filter ~(split \" \" | /1 | eq \"ERROR\") | * (split \" \" | /2) | groupBy ~(.) | * count\n\nT11: lines | filter ~(contains \"ms=\") | * (split \"ms=\" | /1 | trim | parseJson) | avg | round 1\n\nT12: lines | drop 1 | * (split \",\") | filter ~(if (/5 | lower | eq \"shipped\") ~(if (/4 | ne \"\") ~(true) ~(false)) ~(false)) | * (:qty (/3 | parseJson) | /4 | parseJson | mul qty) | sum | round 2\n\nT13: lines | drop 1 | * (split \",\") | filter ~(if (/5 | lower | ne \"cancelled\") ~(if (/4 | ne \"\") ~(true) ~(false)) ~(false)) | * {:customer /1 :total (:qty (/3 | parseJson) | /4 | parseJson | mul qty)} | groupBy ~(/customer) | * sum | entries | sort ~(/1 | desc) | take 2 | * {:customer (/0 | keyword) :total (/1 | round 2)}\n\nT14: [\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | * lower | distinct | sort ~([(count | desc) /]) | join \"-\"",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 8137,
+ "outputTokens": 40075,
+ "calls": []
+}

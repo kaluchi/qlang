@@ -1,119 +1,253 @@
-|~ The module of the command line, a noun of the core, `::qlang/cli`,
-   written short `::cli`: its verbs live on it, and their
-   primitives, in `cli/src/io-operands.mjs` and `format-operands.mjs`,
-   are plain functions over the values the head of
-   each verb checks; the refusals of a verb sit under it. ~|
+|~ The command line: its topic, `::cli`, and the names it declares under
+   the kinds of their subjects, `table` under `::vec` and the names of
+   the streams under `::any`. Their primitives are plain functions over
+   the served subject and the parts. ~|
 
-::qlang/cli
-  |~~ The command line of qlang: `@in`, `@out`, `@err` and `@tap` read
-      and write the streams of the process, and `table` renders a
-      vector of maps as text. A value one query hands another over a
-      pipe keeps its kinds as its literal: `print | @out` writes it and
-      `@in | parse | open` reads it back.
-      A query runs on what stdin holds: JSON read as values, an object
-      a map whose keys are keywords, whose answer is written as JSON,
-      where a value JSON has no form for is refused; text read
-      as a string, whose answer is written as its `print`; and
-      `| json` writes JSON text. A query that writes to stdout itself,
-      by `@out`, holds the channel, and its answer is left unwritten.
-      Every query the command line runs calls its verbs by their names,
-      and `::cli | manifest` lists them.
+:cli
+  |~~ The command line runs a query on what a shell hands it and prints
+      the answer: `qlang '/users | count' < data.json` in a script, and
+      `qlang -i` a session of cells. It is the host a reader meets first,
+      and the words it adds read and write the streams of the process.
+
+      A query runs on what stdin holds. JSON is read as values, an object
+      a map whose keys are keywords, `{"name": "Ann"}` arriving as
+      `{:name "Ann"}`; any other text is one string, and `--raw` reads
+      JSON text as a string too. A query that reads no subject,
+      `qlang '::vec | doc'` or `qlang '[1 2] | sum'`, runs at once and
+      reads no stdin. One that reads it with nothing piped, a terminal or
+      `< /dev/null`, runs on the noun of the language, `::qlang`, so
+      `qlang 'doc'` reads the first page; where a shell leaves stdin
+      open, it waits for the end, as every reader of a pipe does.
+
+      The answer is printed as the language prints it, whatever the input
+      was: a map as `{:name "Ann" :tags #["a"]}`, a kind as `::map`. A
+      string goes out as its text, so a query that ends in a conversion
+      writes what the conversion made: `| json` the JSON text of the
+      answer, `| table` a vector of maps drawn as a table, `| print` the
+      literal of the answer, a string in its quotes. A failure prints as
+      its alert, the error at rest `::Tag!{…}` with the subject where it
+      arose cut to an excerpt, under the line
+      `|~| raised, and no !| caught it` and above the prose of its
+      refusal's page as line comments `|~| …`, which tells how to repair
+      the call; `!| json` writes a failure as JSON. Every answer goes to
+      stdout with the exit code 0, a failure among them: a query that does
+      not parse answers `::quote/ParseError`, and an input that does not
+      read as JSON answers as `parseJson` refuses its text, so calls run
+      side by side never stop each other.
+
+      An answer prints whole, and `--budget=N` or `| elide N` bounds it,
+      what is left out an `::elision` marker whose `:read` continues the
+      query to it. `@in`, `@out`, `@err` and `@tap` read and write the
+      streams, `@tap` showing a value halfway through a query on stderr;
+      a query that writes to stdout by `@out` holds the channel, and its
+      answer is left unwritten. A value one query hands another over a
+      pipe keeps its kinds as its literal, `print | @out` writing it and
+      `@in | parse | open` reading it back.
+      ::link~(::any/json | doc) ::link~(::vec/table | doc)
+      ::link~(::qlang/errors | doc) ::link~(::any/elide | doc)
+      ::link~(::any/@tap | doc) ::link~(::qlang/hosts | doc)
   ~~|
 
-::AnswerNotJsonError
-  |~~ The input was JSON, so the answer is written as JSON, and a value
-      under it has no form there: a quote, a tag or a value under a tag;
-      a set is written as the array of its elements, and a keyword as
-      its name.
-      `:path` holds the map keys and the indices to it, `:actualType` its
-      kind. The query ends before the answer is data: `* (…)` runs a body
-      where `* ~(…)` hands each element the quote, and `payload` a value
-      without its tag. ~~|
+:cli/declaresTable
+  |~~ The command line declares `table` under vectors. ~~|
+  ::law~(::vec | manifest | has ::vec/table)
 
-:@in
-  |~~ The text stdin holds, read to its end whatever the subject, the
-      text the command line also lifts into the subject; a terminal with
-      nothing piped answers the empty string. It heads a query that reads
-      the text as it came: ::snippet~(@in | lines | count) counts the
-      lines piped in. ~~|
-  ::verb~(:subject ::any | :returns ::string | ::builtin{:impl :qlang/cli/@in})
+:cli/declaresTheStreams
+  |~~ The command line declares the streams under any value. ~~|
+  ::law~(::any | manifest | has ::any/@out)
 
-:@out
-  |~~ Writes a line to stdout and answers its subject as it came: the
-      subject when it is a string, `"hi" | @out`, or the text a modifier
-      computes from it, `42 | @out json`, the steps after still reading
-      `42`. A query that writes by `@out` leaves its answer unwritten.
-      ::snippet~([1 2] | @out json | count) writes `[1,2]`. ~~|
-  ::verb~(:subject ::any | :text #[::string ::null] | ::builtin{:impl :qlang/cli/@out})
+:any/@in
+  |~~ Answers the text stdin holds, read to its end whatever the subject,
+      the text the command line also lifts into the subject; a terminal
+      with nothing piped answers the empty string. It heads a query that
+      reads the text as it came, ::snippet~(@in | lines | count) counting
+      the lines piped in, and it takes no value.
+  ~~|
+  ::builtin{}
 
-::OutSubjectNotStringError
+:any/@in/answer
+  |~~ The text stdin held, the empty string when nothing was piped. ~~|
+  ::string
+
+:any/@out
+  |~~ Writes a line to stdout and answers its subject as it came: it
+      writes the subject when it is a string, `"hi" | @out`, or the text
+      the call gives, computed against the subject, `42 | @out json`, the
+      steps after still reading `42`. A query that writes by `@out`
+      leaves its answer unwritten.
+      ::snippet~([1 2] | @out json | count) writes `[1,2]`.
+  ~~|
+  ::builtin{}
+
+:any/@out/answer
+  |~~ The subject as it came. ~~|
+  ::any
+
+:any/@out/text
+  |~~ The text written, computed against the subject, null when the call
+      gives none.
+  ~~|
+  ~(at 0)
+
+:any/@out/text/NotStringOrNullError
+  |~~ The text `@out` writes is a string: a value of another kind is made
+      text first, `@out json` or `@out print`.
+  ~~|
+  ::holds~(is ::string ::null)
+
+:any/@out/SubjectNotStringError
   |~~ `@out` alone writes its subject, a string, as a line; another
-      value is written as the text a modifier computes from it,
-      `42 | @out json` or `{:x 1} | @out print`. ~~|
+      value is written as the text the call computes from it,
+      `42 | @out json` or `{:x 1} | @out print`.
+  ~~|
 
-::OutRendererResultNotStringError
-  |~~ The text `@out` writes is a string; a modifier that answers
-      another kind is refused, and `json` or `print` makes the text. ~~|
+:any/@out/ArgsBeyondPartsError
+  |~~ `@out` writes its subject, or the one text its call gives, `"hi" |
+      @out`; texts are joined first, `@out (["a" "b"] | join "")`.
+  ~~|
 
-:@err
+:any/@out/SubjectNotStringError/refusesANumber
+  |~~ A number is no line `@out` writes alone. ~~|
+  ::law~(42 | @out !| type | eq ::any/@out/SubjectNotStringError)
+
+:any/@out/text/NotStringOrNullError/refusesANumber
+  |~~ A number is no text to write. ~~|
+  ::law~("hi" | @out 5 !| type | eq ::any/@out/text/NotStringOrNullError)
+
+:any/@out/ArgsBeyondPartsError/refusesTwoTexts
+  |~~ A call with two texts is refused under the word. ~~|
+  ::law~("hi" | @out "a" "b" !| type | eq ::any/@out/ArgsBeyondPartsError)
+
+:any/@err
   |~~ Writes a line to stderr, the channel of diagnostics, as `@out`
-      writes to stdout, and answers its subject; the answer of the query
-      is written as ever.
+      writes to stdout, and answers its subject as it came; the answer of
+      the query is written as ever.
       ::snippet~([1 2 3] | @err "counting" | count) writes `counting` to
-      stderr and answers 3. ~~|
-  ::verb~(:subject ::any | :text #[::string ::null] | ::builtin{:impl :qlang/cli/@err})
+      stderr and answers 3.
+  ~~|
+  ::builtin{}
 
-::ErrSubjectNotStringError
+:any/@err/answer
+  |~~ The subject as it came. ~~|
+  ::any
+
+:any/@err/text
+  |~~ The text written, computed against the subject, null when the call
+      gives none.
+  ~~|
+  ~(at 0)
+
+:any/@err/text/NotStringOrNullError
+  |~~ The text `@err` writes is a string: a value of another kind is made
+      text first, `@err json` or `@err print`.
+  ~~|
+  ::holds~(is ::string ::null)
+
+:any/@err/SubjectNotStringError
   |~~ `@err` alone writes its subject, a string, as a line on stderr;
-      another value is written as the text a modifier computes, `@err
-      json` or `@err print`. ~~|
+      another value is written as the text the call computes from it,
+      `@err json` or `@err print`.
+  ~~|
 
-::ErrRendererResultNotStringError
-  |~~ The text `@err` writes is a string; `json` or `print` makes one
-      of any value. ~~|
+:any/@err/ArgsBeyondPartsError
+  |~~ `@err` writes its subject, or the one text its call gives, `"hi" |
+      @err`; texts are joined first, `@err (["a" "b"] | join "")`.
+  ~~|
 
-:@tap
+:any/@err/SubjectNotStringError/refusesANumber
+  |~~ A number is no line `@err` writes alone. ~~|
+  ::law~(42 | @err !| type | eq ::any/@err/SubjectNotStringError)
+
+:any/@err/ArgsBeyondPartsError/refusesTwoTexts
+  |~~ A call with two texts is refused under the word. ~~|
+  ::law~("hi" | @err "a" "b" !| type | eq ::any/@err/ArgsBeyondPartsError)
+
+:any/@tap
   |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
-      answers the subject, a look at a value halfway through a query:
+      answers the subject as it came, a look at a value halfway through a
+      query:
       ::snippet~([{:on true} {:on false}] | @tap :before | filter ~(/on) | @tap :after | count)
-      shows both vectors and answers 1. ~~|
-  ::verb~(:subject ::any | :label ::keyword | ::builtin{:impl :qlang/cli/@tap})
+      shows both vectors and answers 1.
+  ~~|
+  ::builtin{}
 
-::TapLabelNotKeywordError
+:any/@tap/answer
+  |~~ The subject as it came. ~~|
+  ::any
+
+:any/@tap/label
+  |~~ The label written before the value, a keyword. ~~|
+  ~(/0)
+
+:any/@tap/label/NotKeywordError
   |~~ The label of `@tap` is a keyword, `@tap :before`, written before
-      the value as `[tap before]`. ~~|
-
-
-:table
-  |~~ A vector of maps drawn as a table of fixed-width columns, a view
-      for a terminal. Columns are derived from keys in first-occurrence
-      order across all rows; missing keys render as empty cells. A
-      string cell prints bare, null as an empty cell, and every other
-      value as its literal on one line. The empty vector yields the marker
-      "(empty)".
-
-      ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
-      ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
-      ~([] | table | eq "(empty)")
+      the value as `[tap before]`.
   ~~|
-  ::verb~(:subject ::vec | :returns ::string | ::builtin{:impl :qlang/cli/table})
+  ::holds~(is ::keyword)
 
-::TableSubjectNotVecError
-  |~~ `table` draws a vector of maps, a row each; a single map goes in a
-      vector first, `[/] | table`.
-      ~(
-        42 | table
-        !| [type /actualType]
-        |  eq [::TableSubjectNotVecError ::number]
-       )
+:any/@tap/ArgsBeyondPartsError
+  |~~ `@tap` writes its subject under one label its call gives, `5 | @tap
+      :n`; a call with more labels is refused.
   ~~|
 
-::TableRowNotMapError
+:any/@tap/label/NotKeywordError/refusesAString
+  |~~ A string is no label. ~~|
+  ::law~(1 | @tap "x" !| type | eq ::any/@tap/label/NotKeywordError)
+
+:any/@tap/ArgsBeyondPartsError/refusesTwoLabels
+  |~~ A call with two labels is refused under the word. ~~|
+  ::law~(5 | @tap :a :b !| type | eq ::any/@tap/ArgsBeyondPartsError)
+
+:vec/table
+  |~~ Answers a vector of maps drawn as a table of fixed-width columns, a
+      text for a terminal. The columns are the keys in the order they
+      first occur across the rows, and a key a row lacks draws an empty
+      cell; a string cell prints bare, null as an empty cell, and every
+      other value as its literal on one line. The empty vector draws as
+      `(empty)`. A single map goes in a vector first, `[/] | table`, and
+      the call takes no value.
+  ~~|
+  ::builtin{}
+
+:vec/table/answer
+  |~~ The rows drawn as text, a line each. ~~|
+  ::string
+
+:vec/table/SubjectNotVecError
+  |~~ `table` draws a vector of maps; a single map goes in a vector
+      first, `{:name "alice"} | [/] | table`.
+  ~~|
+
+:vec/table/RowNotMapError
   |~~ Every row of `table` is a map, its keys the columns; `:index`
       names the first that is not.
-      ~(
-        [42 "hello"] | table
-        !| [type /index /actualType]
-        |  eq [::TableRowNotMapError 0 ::number]
-       )
   ~~|
+
+:vec/table/drawsEachRow
+  |~~ Each row is drawn. ~~|
+  ::law~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
+
+:vec/table/drawsANestedValueAsItsLiteral
+  |~~ A nested value is drawn as its literal. ~~|
+  ::law~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
+
+:vec/table/drawsNothingAsEmpty
+  |~~ An empty vector draws as `(empty)`. ~~|
+  ::law~([] | table | eq "(empty)")
+
+:vec/table/drawsAMapInAVector
+  |~~ A single map is drawn in a vector. ~~|
+  ::law~({:name "alice"} | [/] | table | contains "alice")
+
+:vec/table/SubjectNotVecError/refusesAMap
+  |~~ A single map is refused under the word. ~~|
+  ::law~({:name "alice"} | table !| [type /actualType] | eq [::vec/table/SubjectNotVecError ::map])
+
+:vec/table/SubjectNotVecError/refusesANumber
+  |~~ A number is no vector of rows. ~~|
+  ::law~(42 | table !| [type /actualType] | eq [::vec/table/SubjectNotVecError ::number])
+
+:vec/table/RowNotMapError/refusesARowThatIsNoMap
+  |~~ A row that is no map is refused at its index. ~~|
+  ::law~([42 "hello"] | table !| [type /index /actualType]
+    | eq [::vec/table/RowNotMapError 0 ::number])

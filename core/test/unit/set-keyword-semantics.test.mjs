@@ -114,16 +114,16 @@ describe('deepEqual Set keyword mismatch', async () => {
 });
 
 describe('setops keyword-aware minus/inter with mixed Set members', async () => {
-  it('Map×Set minus refuses a member that names no key [D139]', async () => {
+  it('Map×Set minus refuses a member that names no key, under the word of the fold [D139], [D172]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2}, #[:a 42]] | minus !| type');
-    expect(result.name).toBe('MinusKeyNotKeywordOrStringError');
+    expect(result.name).toBe('vec/minus/KeyNotKeywordOrStringError');
   });
 
-  it('Map×Set inter refuses a member that names no key [D139]', async () => {
+  it('Map×Set inter refuses a member that names no key, under the word of the fold [D139], [D172]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2 :c 3}, #[:b 99]] | inter !| type');
-    expect(result.name).toBe('InterKeyNotKeywordOrStringError');
+    expect(result.name).toBe('vec/inter/KeyNotKeywordOrStringError');
   });
 });
 
@@ -141,7 +141,7 @@ describe('setops Set×Set non-keyword elements', async () => {
   });
 });
 
-// Keyword / TagKeyword ordering — sort / min / max / gt / lt / gte /
+// Keyword / tag ordering — sort / min / max / gt / lt / gte /
 // lte pairwise comparability extends to identifier-shape pairs through
 // lexicographic `.name` compare. `checkComparable` /
 // `compareScalars` in vec.mjs and `orderingCheck` / `compareOrdering`
@@ -162,7 +162,7 @@ describe('keyword ordering — sort / min / max / gt-family', async () => {
     expect(result.map(k => k.name)).toEqual(['a', 'm', 'y']);
   });
 
-  it('sort over TagKeyword Vec lexicographic by .name', async () => {
+  it('sort over tag Vec lexicographic by .name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[::Beta ::Alpha ::Gamma] | sort');
     expect(result.map(k => k.name)).toEqual(['Alpha', 'Beta', 'Gamma']);
@@ -183,7 +183,7 @@ describe('keyword ordering — sort / min / max / gt-family', async () => {
     expect(await evalQuery(':a | lte :a')).toBe(true);
   });
 
-  it('gt / lt on TagKeywords compare by .name', async () => {
+  it('gt / lt on tags compare by .name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('::B | gt ::A')).toBe(true);
     expect(await evalQuery('::A | lt ::B')).toBe(true);
@@ -217,10 +217,8 @@ describe('groupBy on a Set subject yields Set buckets', async () => {
   });
 });
 
-// `at` on a Set subject — insertion-order indexing through the
-// polymorphic dispatch. Non-integer index pairs go through the
-// shared `AtIndexNotIntegerError` site that the Vec branch already
-// uses.
+// `at` on a Set subject — indexing in the one order, its index a
+// whole number by the law of its part [D172].
 describe('at on a Set subject', async () => {
   it('positive index returns the n-th-added element', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
@@ -238,9 +236,9 @@ describe('at on a Set subject', async () => {
     expect(await evalQuery('#[:a :b :c] | at 99')).toBe(null);
   });
 
-  it('non-integer index raises AtIndexNotIntegerError', async () => {
+  it('a non-integer index breaks the law of the index of set/at', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const err = await evalQuery('#[:a :b] | at 0.5');
-    expect(err.tag.name).toBe('AtIndexNotIntegerError');
+    expect(err.tag.name).toBe('set/at/index/NotIntegerError');
   });
 });

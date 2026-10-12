@@ -7,10 +7,10 @@
 // brackets a newline is whitespace. Every combinator is set off by
 // whitespace on both sides.
 //
-// Every produced node carries `.location` (peggy's start/end offsets,
-// lines and columns) and `.text` (the matched source slice). The
-// post-parse pass in src/parse.mjs adds `.id` and `.parent` on every
-// node and `.source`, `.uri` and `.comments` on the root.
+// Every node carries `.location`, its span, the offsets, lines and
+// columns `span()` reads, and `.text`, the source it matched; the pass
+// after the parse in src/parse.mjs adds `.id` and `.parent` on every node
+// and `.source`, `.uri` and `.comments` on the root.
 //
 // A plain comment, `|~| …` to the end of its line or `|~ … ~|`, is
 // whitespace wherever whitespace stands [D81]; the parser records each on
@@ -40,10 +40,32 @@
 {
   const commentTrivia = options.commentTrivia;
 
+  // The offsets where the lines of the input begin, which `span()` reads
+  // a node's lines and columns from.
+  const lineStarts = [0];
+  for (let at = input.indexOf('\n'); at !== -1; at = input.indexOf('\n', at + 1)) lineStarts.push(at + 1);
+
+  function pointOf(offset) {
+    let low = 0;
+    let high = lineStarts.length - 1;
+    while (low < high) {
+      const middle = (low + high + 1) >> 1;
+      if (lineStarts[middle] <= offset) low = middle;
+      else high = middle - 1;
+    }
+    return { offset, line: low + 1, column: offset - lineStarts[low] + 1 };
+  }
+
+  // What the rule read, in the shape of `location()`.
+  function span() {
+    const { source, start, end } = range();
+    return { source, start: pointOf(start), end: pointOf(end) };
+  }
+
   // A plain comment the parser read as whitespace, kept by its offset,
   // since a branch the parser abandons reads the same comment again.
   function recordComment(type, content) {
-    const loc = location();
+    const loc = span();
     commentTrivia.set(loc.start.offset, { type, content, location: loc, text: text() });
   }
 
@@ -76,7 +98,7 @@
 // does [D81].
 Query
   = _ p:LinePipeline _ { return p; }
-  / _ { return node('Blank', {}, location(), text()); }
+  / _ { return node('Blank', {}, span(), text()); }
 
 // ── Pipelines ──────────────────────────────────────────────────────
 //
@@ -87,33 +109,41 @@ Query
 
 Pipeline
   = leadingComb:(LeadingCombinator __)? head:PipelineHead tail:ContinuationUnit*
-    { return assemblePipeline(leadingComb, head, tail, location(), text()); }
+    { return assemblePipeline(leadingComb, head, tail, span(), text()); }
 
 LinePipeline
   = leadingComb:(LeadingCombinator __)? head:LinePipelineHead tail:LineContinuationUnit*
-    { return assemblePipeline(leadingComb, head, tail, location(), text()); }
+    { return assemblePipeline(leadingComb, head, tail, span(), text()); }
 
 // The `!"~"` lookahead keeps the comment markers `|~`, `|~|`, `|~~`,
 // `|~~|` from reading as a pipe.
 LeadingCombinator
-  = "!|" / "|" !"~" { return '|'; } / "*"
+  = "!|" / "|" !"~" { return '|'; }
 
 Combinator
   = "!|" { return '!|'; }
   / "|" !"~" { return '|'; }
-  / "*"  { return '*'; }
 
 PipelineHead
   = DocBeforeDeclaration
   / BindStep
+  / TagDeclarationRefusal
   / Step
   / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
 
 LinePipelineHead
   = LineDocBeforeDeclaration
   / LineBindStep
+  / TagDeclarationRefusal
   / LineStep
   / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
+
+// A tag name in the place of a declaration's name declares nothing: a
+// name is declared by its keyword, and a value under a tag touches its
+// payload [D152].
+TagDeclarationRefusal
+  = &{ return docQuoteDepth === 0; } TagLit _h1 !Combinator (DocOpen / Word)
+    { error('a name is declared by its keyword, `:Box |~~ A parcel. ~~|`, and a value under a tag touches its payload, `::Box[…]`'); }
 
 ContinuationUnit
   = _ DocBeforeDeclaration
@@ -123,10 +153,10 @@ ContinuationUnit
   / __ c:PipedCombinator __ step:StepAfterCombinator { return { combinator: c, step }; }
   / SpacingRefusal
 
-// A pipe written before `*` or `!|`, the habit of a pipe before every
-// step, stands for the combinator after it [D130].
+// A pipe written before `!|`, the habit of a pipe before every step,
+// stands for it [D130].
 PipedCombinator
-  = "|" __ c:("*" { return '*'; } / "!|" { return '!|'; }) { return c; }
+  = "|" __ "!|" { return '!|'; }
 
 // A break with a combinator at neither end stands for `|` at the top
 // level.
@@ -155,11 +185,13 @@ SpacingRefusal
 StepAfterCombinator
   = DocBeforeDeclaration
   / BindStep
+  / TagDeclarationRefusal
   / Step
 
 LineStepAfterCombinator
   = LineDocBeforeDeclaration
   / LineBindStep
+  / TagDeclarationRefusal
   / LineStep
 
 // A doc documents the declaration whose slot it stands in, between the
@@ -274,11 +306,11 @@ ProjectionBeforeWord
 // the group `(gt(1))`. At the top level the modifiers end with the line.
 Command
   = callName:CallName first:(FirstModifierSeparator @ModifierWord)? rest:(__ @ModifierWord)*
-    { return node('OperandCall', { ...callName, args: first === null ? [] : [first, ...rest] }, location(), text()); }
+    { return node('Call', { ...callName, args: first === null ? [] : [first, ...rest] }, span(), text()); }
 
 LineCommand
   = callName:CallName first:(FirstLineModifierSeparator @ModifierWord)? rest:(_h1 @ModifierWord)*
-    { return node('OperandCall', { ...callName, args: first === null ? [] : [first, ...rest] }, location(), text()); }
+    { return node('Call', { ...callName, args: first === null ? [] : [first, ...rest] }, span(), text()); }
 
 FirstModifierSeparator
   = __ / &"("
@@ -286,49 +318,44 @@ FirstModifierSeparator
 FirstLineModifierSeparator
   = _h1 / &"("
 
-// A declaration: a keyword or a tag name, then the doc literals of its
-// slot and an optional body, each of which may take a line of its own.
-// A body is a step other than a bare keyword or tag name; a lone `:foo`
-// is a keyword.
+// A declaration: a keyword, then the doc literals of its slot and an
+// optional body, each of which may take a line of its own [D152]; a lone
+// `:foo` is a keyword.
 BindStep
-  = key:BindName docs:(__ @DocSlot)? body:(_h1 @KindBody / __ @BindBody)?
+  = key:BindName docs:(__ @DocSlot)? body:Body?
     & { return docs !== null || body !== null; }
-    { return node('BindStep', { key, docs, body }, location(), text()); }
+    { return node('BindStep', { key, docs, body }, span(), text()); }
 
 LineBindStep
-  = key:BindName docs:(__ @DocSlot)? body:(_h1 @LineKindBody / __ @LineBindBody)?
+  = key:BindName docs:(__ @DocSlot)? body:LineBody?
     & { return docs !== null || body !== null; }
-    { return node('BindStep', { key, docs, body }, location(), text()); }
+    { return node('BindStep', { key, docs, body }, span(), text()); }
 
 BindName
-  = key:Keyword         { return key; }
-  / key:BareTypeKeyword { return key; }
+  = Keyword
 
 DocSlot
   = first:DocLit rest:(_ @DocLit)*
     { return [first, ...rest]; }
 
-BindBody
-  = body:Step
-    & { return body.type !== 'Keyword' && body.type !== 'BareTypeKeyword'; }
+// A body is a step read once after the whitespace before it: a keyword is
+// a body on the line of its declaration's name or doc [D66], since on a
+// later line it opens a declaration of its own, and a tag name, which
+// opens none [D152], is the body on a later line too [D154].
+Body
+  = later:BodyBreak body:Step
+    & { return body.type !== 'Keyword' || !later; }
     { return body; }
 
-LineBindBody
-  = body:LineStep
-    & { return body.type !== 'Keyword' && body.type !== 'BareTypeKeyword'; }
+LineBody
+  = later:BodyBreak body:LineStep
+    & { return body.type !== 'Keyword' || !later; }
     { return body; }
 
-// A keyword or a tag name is a body on the line of its declaration's
-// name or doc; on a later line it opens a declaration of its own [D66].
-KindBody
-  = body:Step
-    & { return body.type === 'Keyword' || body.type === 'BareTypeKeyword'; }
-    { return body; }
-
-LineKindBody
-  = body:LineStep
-    & { return body.type === 'Keyword' || body.type === 'BareTypeKeyword'; }
-    { return body; }
+// Whether the whitespace before a body crosses a line.
+BodyBreak
+  = _h1 !Whitespace { return false; }
+  / __ { return true; }
 
 // ── Words ──────────────────────────────────────────────────────────
 //
@@ -345,7 +372,7 @@ Word
   / QuoteLit
   / ShortQuoteLit
   / TaggedLit
-  / BareTypeKeyword
+  / TagLit
   / Projection
   / Name
   / Scalar
@@ -361,7 +388,7 @@ ModifierWord
 
 Name
   = callName:CallName
-    { return node('OperandCall', { ...callName, args: [] }, location(), text()); }
+    { return node('Call', { ...callName, args: [] }, span(), text()); }
 
 // A name with a path, the path of a noun and the name of a verb that
 // lives on it, calls the verb by its address, as the keyword and the tag
@@ -379,11 +406,11 @@ CallName
 // the payload touching the name; `::tag` alone is the tag name itself.
 TaggedLit
   = "::" tag:TagName payload:Element
-    { return node('TaggedLit', { tag, payload }, location(), text()); }
+    { return node('TaggedLit', { tag, payload }, span(), text()); }
 
-BareTypeKeyword
+TagLit
   = "::" tag:TagName
-    { return node('BareTypeKeyword', { tag }, location(), text()); }
+    { return node('TagLit', { tag }, span(), text()); }
 
 // A tag's name lives apart from the values, so a name after `::` may be
 // a reserved word, as after `:` and `/`: `::null` is the kind of null
@@ -394,20 +421,19 @@ TagName
 
 ParenGroup
   = "(" _ p:Pipeline _ ")"
-    { return node('ParenGroup', { pipeline: p }, location(), text()); }
-  / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('the argument comma left the language: modifiers are separated by spaces, `f a b`'); }
+    { return node('ParenGroup', { pipeline: p }, span(), text()); }
+  / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('modifiers are separated by spaces, not by commas: `f a b`'); }
 
 // A quote holds the pipeline it is written around, a leading combinator
-// included (`~(* inc | sort)`, `~(!| /trail)`); `~()` is the empty
-// quote. A single name, projection or tag name may drop the
-// parentheses, `~add`, `~/age`.
+// included (`~(!| /trail)`); `~()` is the empty quote. A single name,
+// projection or tag name may drop the parentheses, `~add`, `~/age`.
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"
-    { return node('QuoteLit', { pipeline }, location(), text()); }
+    { return node('QuoteLit', { pipeline }, span(), text()); }
 
 ShortQuoteLit
-  = "~" pipeline:(Projection / BareTypeKeyword / Name)
-    { return node('QuoteLit', { pipeline }, location(), text()); }
+  = "~" pipeline:(Projection / TagLit / Name)
+    { return node('QuoteLit', { pipeline }, span(), text()); }
 
 // The balance reading of a `~(…)` span inside a comment or a doc, where
 // the span is prose: parentheses nest, and a string or a comment token
@@ -465,9 +491,9 @@ QuoteChar
 // would read as a comment's [D7].
 DocLit
   = LineDocOpen segments:LineDocSegments
-    { return node('DocLit', { segments, content: text().slice(4) }, location(), text()); }
+    { return node('DocLit', { segments, content: text().slice(4) }, span(), text()); }
   / BlockDocOpen segments:BlockDocSegments "~~|"
-    { return node('DocLit', { segments, content: text().slice(3, -3) }, location(), text()); }
+    { return node('DocLit', { segments, content: text().slice(3, -3) }, span(), text()); }
 
 LineDocOpen "doc"
   = "|~~|"
@@ -478,8 +504,13 @@ BlockDocOpen "doc"
 LineDocSegments
   = parts:LineDocPart* { return proseJoined(parts); }
 
+// A run of prose free of `~`, a backquote, `:` and, in a block, `|` is
+// one part: a quote begins at `~` or at the `::` of its tags, a span
+// between backquotes at a backquote, and in a block a nested comment or
+// doc at `|`.
 LineDocPart
-  = quote:DocQuote &{ return !quote.text.includes('\n'); } { return quote; }
+  = [^~`:\n]+ { return text(); }
+  / quote:DocQuote &{ return !quote.text.includes('\n'); } { return quote; }
   / "`" [^`\n]* "`" { return text(); }
   / [^\n]
 
@@ -487,7 +518,8 @@ BlockDocSegments
   = parts:BlockDocPart* { return proseJoined(parts); }
 
 BlockDocPart
-  = DocQuote
+  = [^~`:|]+ { return text(); }
+  / DocQuote
   / "`" (!"`" !"~~|" .)* "`" { return text(); }
   / QuoteSpan
   / NestedLineDocSpan
@@ -503,7 +535,7 @@ BlockDocPart
 // branch fails always, after its predicate gave the depth back.
 DocQuote
   = &{ docQuoteDepth++; return true; } tags:DocQuoteTag* quote:QuoteLit &{ docQuoteDepth--; return true; }
-    { return tags.length === 0 ? quote : node('DocTaggedQuote', { tags, quote }, location(), text()); }
+    { return tags.length === 0 ? quote : node('DocTaggedQuote', { tags, quote }, span(), text()); }
   / &{ docQuoteDepth--; return false; } "~("
 
 DocQuoteTag
@@ -511,14 +543,14 @@ DocQuoteTag
 
 // ── Literals ───────────────────────────────────────────────────────
 
-// An error literal, `!{…}`, and the literal of an error whose content
-// carries a tag, `::Tag!{…}`, the tag written before the bang: one
-// literal, so no tag stands over an error [D86].
+// An error literal, `!{…}`, the literal of an error at rest, and the
+// literal of one under a tag, `::Tag!{…}`, the tag written before the
+// bang and laid through its label [D211].
 ErrorLit
   = tag:ErrorLitTag? "!{" _ "}"
-    { return node('ErrorLit', { tag, entries: [] }, location(), text()); }
+    { return node('ErrorLit', { tag, entries: [] }, span(), text()); }
   / tag:ErrorLitTag? "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
-    { return node('ErrorLit', { tag, entries: [head, ...tail] }, location(), text()); }
+    { return node('ErrorLit', { tag, entries: [head, ...tail] }, span(), text()); }
 
 ErrorLitTag
   = "::" @TagName
@@ -528,37 +560,35 @@ ErrorLitTag
 // spellings is refused.
 MapLit
   = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ "}"
-    { return node('MapLit', { entries: [head, ...tail] }, location(), text()); }
+    { return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
   / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
-    { return node('MapLit', { entries: [head, ...tail] }, location(), text()); }
+    { return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
   / "{" _ "}"
-    { return node('MapLit', { entries: [] }, location(), text()); }
+    { return node('MapLit', { entries: [] }, span(), text()); }
   / &{ return docQuoteDepth === 0; } "{" _ QlangMapEntry (_ QlangMapEntry)* _ !"}" !Keyword Element
     { error('a map entry holds one word; a command with modifiers or a pipeline stands in parentheses there: `{:k (f x)}`'); }
 
 JsonMapEntry
   = key:StringLit _ ":" _ value:Element
-    { return node('MapEntry', { key: node('Keyword', { name: key.value }, key.location, key.text), value }, location(), text()); }
+    { return node('MapEntry', { key: node('Keyword', { name: key.value }, key.location, key.text), value }, span(), text()); }
 
 QlangMapEntry
   = key:Keyword __ value:Element
-    { return node('MapEntry', { key, value }, location(), text()); }
+    { return node('MapEntry', { key, value }, span(), text()); }
 
 SetLit
   = "#[" _ "]"
-    { return node('SetLit', { elements: [] }, location(), text()); }
+    { return node('SetLit', { elements: [] }, span(), text()); }
   / "#[" _ elements:ElementList _ "]"
-    { return node('SetLit', { elements }, location(), text()); }
+    { return node('SetLit', { elements }, span(), text()); }
 
 // Brackets with commas are JSON syntax for a vector; whitespace-separated
 // elements are the vector's own.
 VecLit
-  = "[" _ head:Element tail:(_ "," _ @Element)+ _ "]"
-    { return node('VecLit', { elements: [head, ...tail] }, location(), text()); }
-  / "[" _ elements:ElementList _ "]"
-    { return node('VecLit', { elements }, location(), text()); }
+  = "[" _ head:Element tail:((_ "," _ @Element)+ / (LiteralGap @Element)*) _ "]"
+    { return node('VecLit', { elements: [head, ...tail] }, span(), text()); }
   / "[" _ "]"
-    { return node('VecLit', { elements: [] }, location(), text()); }
+    { return node('VecLit', { elements: [] }, span(), text()); }
 
 ElementList
   = head:Element tail:(LiteralGap @Element)*
@@ -575,9 +605,9 @@ LiteralGap
 // quoted key, a namespaced keyword after `:`, or an index.
 Projection
   = "/" first:KeySegment rest:("/" @KeySegment)*
-    { return node('Projection', { keys: [first, ...rest] }, location(), text()); }
+    { return node('Projection', { keys: [first, ...rest] }, span(), text()); }
   / "/"
-    { return node('Projection', { keys: [] }, location(), text()); }
+    { return node('Projection', { keys: [] }, span(), text()); }
 
 KeySegment
   = ":" name:NamespacedName { return name; }
@@ -598,7 +628,7 @@ Scalar
 
 StringLit
   = '"' chars:DoubleStringChar* '"'
-    { return node('StringLit', { value: chars.join('') }, location(), text()); }
+    { return node('StringLit', { value: chars.join('') }, span(), text()); }
 
 DoubleStringChar
   = !('"' / "\\") char:. { return char; }
@@ -627,20 +657,20 @@ NumberLit "number within the finite double range"
                      + (frac ? '.' + frac[1].join('') : '')
                      + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
        return Number.isFinite(Number(matched)); }
-    { return node('NumberLit', { value: Number(text()) }, location(), text()); }
+    { return node('NumberLit', { value: Number(text()) }, span(), text()); }
 
 BooleanLit
-  = "true"  !IdentTail { return node('BooleanLit', { value: true }, location(), text()); }
-  / "false" !IdentTail { return node('BooleanLit', { value: false }, location(), text()); }
+  = "true"  !IdentTail { return node('BooleanLit', { value: true }, span(), text()); }
+  / "false" !IdentTail { return node('BooleanLit', { value: false }, span(), text()); }
 
 NullLit
-  = "null" !IdentTail { return node('NullLit', {}, location(), text()); }
+  = "null" !IdentTail { return node('NullLit', {}, span(), text()); }
 
 // `:name` and `:"any text"` read as the same keyword.
 Keyword
-  = ":" name:QuotedKeywordName  { return node('Keyword', { name }, location(), text()); }
-  / ":" name:NamespacedName     { return node('Keyword', { name }, location(), text()); }
-  / ":" name:KeywordName        { return node('Keyword', { name }, location(), text()); }
+  = ":" name:QuotedKeywordName  { return node('Keyword', { name }, span(), text()); }
+  / ":" name:NamespacedName     { return node('Keyword', { name }, span(), text()); }
+  / ":" name:KeywordName        { return node('Keyword', { name }, span(), text()); }
 
 NamespacedName
   = head:KeywordName tail:("/" @KeywordName)+

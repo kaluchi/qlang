@@ -282,11 +282,11 @@ code, pre {
 .repl-input-highlight .keyword,
 .repl-entry-input .keyword, .repl-entry-output .keyword { color: #4338ca; }
 
-.code-editor-body .atom,
-.pg-source .atom,          .pg-value .atom,
-.playground-highlight .atom,
-.repl-input-highlight .atom,
-.repl-entry-input .atom,   .repl-entry-output .atom     { color: #15803d; }
+.code-editor-body .name,
+.pg-source .name,          .pg-value .name,
+.playground-highlight .name,
+.repl-input-highlight .name,
+.repl-entry-input .name,   .repl-entry-output .name     { color: #15803d; }
 
 .code-editor-body .effect,
 .pg-source .effect,        .pg-value .effect,
@@ -300,11 +300,11 @@ code, pre {
 .repl-input-highlight .tag,
 .repl-entry-input .tag,    .repl-entry-output .tag      { color: #7c3aed; }
 
-.code-editor-body .operand,
-.pg-source .operand,       .pg-value .operand,
-.playground-highlight .operand,
-.repl-input-highlight .operand,
-.repl-entry-input .operand, .repl-entry-output .operand { color: #0e7490; }
+.code-editor-body .word,
+.pg-source .word,          .pg-value .word,
+.playground-highlight .word,
+.repl-input-highlight .word,
+.repl-entry-input .word,   .repl-entry-output .word { color: #0e7490; }
 
 .code-editor-body .string,
 .pg-source .string,        .pg-value .string,
@@ -319,7 +319,7 @@ code, pre {
 .repl-entry-input .quote,  .repl-entry-output .quote    { color: #15803d; }
 
 /* `italic` is a modifier added to every token inside a `~(...)`
-   Quote — the body keeps its per-kind colour (atom / operand /
+   Quote — the body keeps its per-kind colour (name / word /
    number / string / …) and gains italic to mark "code-as-data".
    The `~(` / `)` delimiters themselves get the `.quote` class
    only, without italic, so the boundary reads upright while the

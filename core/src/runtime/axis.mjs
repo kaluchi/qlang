@@ -1,196 +1,114 @@
 // The axes, each a passage from a name to its declaration
 // [D61], the record the declaration wrote into its scope [D63]: a
 // keyword `:foo` reads the record its scope holds under the name, a tag
-// name `::Foo` the tag's, a tag name that no tag binds the record of
-// the verb it addresses from the root, `::vec/count` [D62], a record
-// the binding it records, and every other value the record of its
-// kind, the kind `type` answers. Each axis projects a field of the
-// record:
+// name the node of the tree it addresses, `::vec/count` or
+// `::qlang/values` [D153], a record the binding it records, and every
+// other value the node of its kind, the kind `type` answers. Each axis
+// projects a field of the record:
 //
 // `source`   the quote of the declaring step, null for a binding no
-//            step declared, a value `use` or a host bound.
+//            step declared, a value a host bound.
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [D119].
-// `spec`     the value the binding holds, a verb's signature for a verb.
 // `binding`  the record itself, `::binding` with its name, docs, value,
-//            source and module [D5].
+//            source and origin, the source it was read from [D153].
 //
 // Given a name, each axis reads the member the subject holds under it
-// [D88]: the slot a verb's head declares, `::vec/take | doc :count`,
-// and for any other subject the verb the name calls after it,
-// `::map | doc :minus` the page of `::map/minus`.
+// [D88]: for a tag name the name under its address, a part of the args
+// of a word among them, `::vec/take | doc :count`, and for any other
+// subject the word the name calls after it, `::map | doc :minus` the
+// page of `::map/minus`.
 
 import { bindStateReader } from '../primitives.mjs';
-import { envHas } from '../state.mjs';
 import {
-  isKeyword, isQuote, isTagKeyword, isBinding, isVerb, isNull, isQSet, isVec, typeKeyword, stampTagHeader, makeSet, makeTaggedInstance,
-  makeTagKeyword, makeDoc, isQMap, isValueClass, TAG_HEADER_SYMBOL, NULL, ERROR_TAG
+  isKeyword, isTag, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
+  makeTag, makeQuote, makeDoc, NULL
 } from '../types.mjs';
-import { refusalsOfVerb, signatureSpecOf, slotMemberOf } from './verb.mjs';
-import { tagBindingKey } from '../env-keys.mjs';
 import {
-  addressedVerb, addressesOf, isNoun, pageAddressesOf, isNounMember, isProviderBinding, nounMemberOf, refusalsOfNoun,
-  residenceOnSubject, verbsOfKind
+  addressesOf, declarationsUnder, nodeOf, residenceOnSubject
 } from './nouns.mjs';
-import { declareShapeError } from '../errors.mjs';
-import { raisedFrom } from './raise.mjs';
-import { nearestNames, nearestTagNames } from '../nearest-names.mjs';
+import { declareRefusal } from '../errors.mjs';
+import { nearestTagNames } from '../nearest-names.mjs';
+import { splitAddress } from '../address.mjs';
 
-// `bindingName` (a value-namespace identifier or a `::`-prefixed
-// tag-binding reference) is an identifier-shaped string at the JS
-// level; the JS→qlang lift in `error-convert.mjs::liftIdentifier`
-// converts it to a Keyword / TagKeyword at descriptor build time,
-// so the printed message body reads the same regardless of shape.
-// The factory's template stringifies via `${value}` which produces
-// the raw `name` half — the lifted-keyword printValue surface kicks
-// in only when projection consumers (`!| /bindingName`) read the
-// descriptor.
+// `name` is the name an axis read, a keyword or a tag.
 //
 // One class per axis: the axis is the site, so `!| type` alone says
 // which lookup failed.
-export const SourceBindingNotFoundError = declareShapeError('SourceBindingNotFoundError',
-  ({ bindingName }) =>
-    `source: no binding found for '${bindingName}'`,
-  { operand: 'source' });
-export const DocBindingNotFoundError = declareShapeError('DocBindingNotFoundError',
-  ({ bindingName }) =>
-    `doc: no binding found for '${bindingName}'`,
-  { operand: 'doc' });
-const BindingNotFoundError = declareShapeError('BindingNotFoundError',
-  ({ bindingName }) =>
-    `binding: no binding found for '${bindingName}'`,
-  { operand: 'binding' });
-const DocAnchorNotKeywordError = declareShapeError('DocAnchorNotKeywordError',
-  ({ index, actualType }) => `doc: anchor ${index} of a path must be a keyword, got ${actualType.name}`,
-  { operand: 'doc', expectedType: 'keyword' });
-export const ExplainBindingNotFoundError = declareShapeError('ExplainBindingNotFoundError',
-  ({ bindingName }) =>
-    `explain: no binding found for '${bindingName}'`,
-  { operand: 'explain' });
-export const SpecBindingNotFoundError = declareShapeError('SpecBindingNotFoundError',
-  ({ bindingName }) =>
-    `spec: no binding found for '${bindingName}'`,
-  { operand: 'spec' });
+export const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
+export const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
+const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError');
+const AnyDocAnchorElementNotKeywordError = declareRefusal('any/doc/anchor/ElementNotKeywordError');
+export const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError');
 
-// The binding a subject names: a keyword names a binding, a tag name
-// a tag's, and every other value names the declaration of its kind,
-// the kind `type` answers [D61].
-function bindingNameOf(subject) {
-  if (isKeyword(subject)) return subject.name;
-  if (isTagKeyword(subject)) return tagBindingKey(subject.name);
-  return tagBindingKey(typeKeyword(subject).name);
+// The name a refusal says a subject read: a tag name itself, and for
+// every other value the tag of its kind, the kind `type` answers [D61].
+function nameReadOf(subject) {
+  return isTag(subject) ? subject : typeKeyword(subject);
 }
 
-// A tag name that no tag binds addresses a verb from the root of the
-// tree of names through the noun it lives on, `::vec/count` [D62], and
-// reads what the verb's provider declared, whatever the scope binds
-// under its name; a member of a noun that is no verb is read through
-// the noun, `::qlang | doc :pipeline` [D119].
-function addressOf(env, subject) {
-  if (!isTagKeyword(subject) || envHas(env, tagBindingKey(subject.name))) return null;
-  return addressedVerb(env, subject.name);
-}
-
-// A keyword names a binding of the scope where it stands, so under the
-// name of a verb a provider exports it names nothing, and the verb is
-// read through the noun it lives on [D62].
-function namesNoScopeBinding(env, subject) {
-  return isKeyword(subject) && (isProviderBinding(env, subject.name) || isNounMember(env, subject.name));
-}
-
-// The name whose verbs a refusal lists: a keyword's, the last name of a
-// tag name's path, `::any/links` naming `links` [D127], or its kind's.
+// The name whose verbs a refusal lists: the last name of a tag name's
+// path, `::any/links` naming `links` [D127], or its kind's.
 function nameOf(subject) {
-  if (isKeyword(subject)) return subject.name;
-  if (isTagKeyword(subject)) return subject.name.slice(subject.name.lastIndexOf('/') + 1);
+  if (isTag(subject)) return splitAddress(subject.name)[1];
   return typeKeyword(subject).name;
 }
 
 // What a refusal of an axis holds: the name it read and the addresses
-// where the pages of that name live, the contract's among them [D62],
-// [D137].
+// where the pages of that name live [D62], [D137].
 export function refusalOf(env, subject) {
-  return { bindingName: bindingNameOf(subject), addresses: pageAddressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
+  return { name: nameReadOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
 }
 
-// The names near the one a subject reads, tags for a tag name and the
-// names of the scope for a keyword [D118].
+// The names near the one a tag name reads, the reader's own among them
+// [D118].
 function nearestOfSubject(env, subject) {
-  if (isTagKeyword(subject)) return nearestTagNames(env, subject.name);
-  return isKeyword(subject) ? nearestNames(env, subject.name) : Object.freeze([]);
+  return isTag(subject) ? nearestTagNames(env, subject.name) : Object.freeze([]);
 }
 
 // The record a subject names, the one record every axis and
-// `runLaws` read, or null when it names none: a value a host bound
-// under a name is no record.
+// `runLaws` read, or null when it names none: a name by its tag, the
+// address of its node, and any other value, a keyword among them, by its
+// kind [D221]; a value a host bound under a name is no record.
 export function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
-  if (namesNoScopeBinding(env, subject)) return null;
-  const address = addressOf(env, subject);
-  if (address !== null) return address.record;
-  const entry = env.get(bindingNameOf(subject));
-  return isBinding(entry) ? entry : null;
+  const name = isTag(subject) ? subject.name : typeKeyword(subject).name;
+  return nodeOf(env, name) ?? nodeOfRefused(env, name);
 }
 
-// The caption a run of prose gives the laws after it [D124]: the last
-// sentence of its last paragraph when that sentence ends in a colon and
-// no blank line stands between it and the law, its lines joined as one.
-// A run of whitespace alone keeps the caption above it unless it holds a
-// blank line.
-const BLANK_LINE = /\n[ \t]*\n/;
-function captionAfter(prose, captionAbove) {
-  const paragraphs = prose.split(BLANK_LINE);
-  const lastParagraph = paragraphs.at(-1).trim().replace(/\s+/g, ' ');
-  if (lastParagraph === '') return paragraphs.length > 1 ? null : captionAbove;
-  if (!lastParagraph.endsWith(':')) return null;
-  return lastParagraph.slice(0, -1).split(/(?<=[.!?])\s+/).at(-1);
-}
-
-// Every claim of a record's page: each law, a quote with no tag among the
-// segments of its docs, with the caption it proves, what `runLaws` runs
-// [D123], [D124].
-export function claimsOfRecord(record) {
-  const claims = [];
-  for (const doc of record.get('docs')) {
-    let caption = null;
-    for (const segment of doc) {
-      if (typeof segment === 'string') caption = captionAfter(segment, caption);
-      else if (isQuote(segment)) claims.push({ law: segment, says: caption ?? NULL });
-    }
-  }
-  return claims;
+// The node a refusal named by the address of what refused reads its page
+// from, that address, when no node of its own declares it [D166].
+function nodeOfRefused(env, name) {
+  const [refusedName] = splitAddress(name);
+  return refusedName !== null && name.endsWith('Error') ? nodeOf(env, refusedName) : null;
 }
 
 // The record of the member the subject holds under a name [D88], or
-// null: the slot a verb declares, and for any other subject the verb its
-// walk reaches under the name, the noun's own after a tag name, else the
-// member a noun holds under it that is no verb [D117].
+// null: the name under the address a tag name writes, a part of the
+// args of a word among them, and otherwise the word the subject's walk
+// reaches under the name [D117].
 function memberRecordOf(env, subject, memberName) {
-  const declared = declaringRecordOf(env, subject)?.get('value');
-  if (isVerb(declared)) return slotMemberOf(declared, memberName);
-  const residence = residenceOnSubject(env, memberName, subject);
-  if (residence !== null || !isTagKeyword(subject) || !isNoun(env, subject.name)) return residence;
-  return nounMemberOf(env, subject.name, memberName);
+  const under = isTag(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;
+  return under ?? residenceOnSubject(env, memberName, subject);
 }
 
-// What the refusal of a member holds: the address the name would have
-// on a noun, or the name alone, and where the verbs of that name live.
-function memberRefusalOf(env, subject, memberName) {
-  const onNoun = isTagKeyword(subject) && isNoun(env, subject.name);
+// What the refusal of a member holds: the name the reader asked, a
+// keyword, and where the words of that name live [D206].
+function memberRefusalOf(env, memberName) {
   return {
-    bindingName: onNoun ? tagBindingKey(`${subject.name}/${memberName}`) : memberName,
-    addresses: isVerb(declaringRecordOf(env, subject)?.get('value')) ? makeSet([]) : addressesOf(env, memberName)
+    name: keyword(memberName),
+    addresses: addressesOf(env, memberName)
   };
 }
 
 // The record the subject names in the scope of the call, or the member
 // it holds under a name, or the refusal of the axis that read it; each
-// axis resides on `::qlang/any`, and its primitive reads the state of
+// axis resides on `::any`, and its primitive reads the state of
 // the call [D79].
 export function recordReadBy(subject, memberName, state, NotFoundError) {
   if (!isNull(memberName)) {
     const member = memberRecordOf(state.env, subject, memberName.name);
-    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, subject, memberName.name));
+    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, memberName.name));
     return member;
   }
   const record = declaringRecordOf(state.env, subject);
@@ -198,13 +116,20 @@ export function recordReadBy(subject, memberName, state, NotFoundError) {
   return record;
 }
 
-bindStateReader('binding', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, BindingNotFoundError));
-bindStateReader('source', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, SourceBindingNotFoundError).get('source'));
+bindStateReader('any/binding', (subject, memberName, state) =>
+  recordReadBy(subject, memberName, state, AnyBindingUnknownNameError));
+// The source of a record and of every declaration under its address,
+// one quote of their steps in the order they were written, what stands
+// under the address read at once; a value a host bound wrote none
+// [D168].
+bindStateReader('any/source', (subject, memberName, state) => {
+  const record = recordReadBy(subject, memberName, state, AnySourceUnknownNameError);
+  const written = [record, ...declarationsUnder(state.env, record.get('name').name)].filter(declared => declared.get('source') !== null);
+  return written.length === 0 ? NULL : makeQuote(written.flatMap(declared => [...declared.get('source')]));
+});
 // The one page of a record: its docs joined, a line break between two,
 // null for a declaration without one [D119].
-function pageOfRecord(record) {
+export function pageOfRecord(record) {
   const docs = record.get('docs');
   if (docs.length <= 1) return docs[0] ?? NULL;
   return makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
@@ -219,73 +144,31 @@ const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anc
 // of the record the one before it reached, the empty path the record of
 // the subject itself [D119].
 function recordAlongPath(subject, anchors, state) {
-  if (anchors.length === 0) return recordReadBy(subject, NULL, state, DocBindingNotFoundError);
+  if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocUnknownNameError);
   return anchors.reduce((reached, anchor, index) => {
-    if (!isKeyword(anchor)) throw new DocAnchorNotKeywordError({ index, actualType: typeKeyword(anchor) });
-    return recordReadBy(reached, anchor, state, DocBindingNotFoundError);
+    if (!isKeyword(anchor)) throw new AnyDocAnchorElementNotKeywordError({ index, actualValue: anchor });
+    return recordReadBy(index === 0 ? reached : underRecord(reached), anchor, state, AnyDocUnknownNameError);
   }, subject);
 }
+
+// What the next anchor of a path reads under: the address of the record
+// reached, so a name under a name is read by its address [D164].
+const underRecord = record => makeTag(record.get('name').name);
 
 // The page an anchor reads, the page of the member at the end of its path.
 const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));
 
 // A set of anchors reads a page at each, in the order of the set.
-bindStateReader('doc', (subject, anchor, state) =>
+bindStateReader('any/doc', (subject, anchor, state) =>
   isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
 
-// The value as an explanation holds it: an error, a map under `::error`
-// beneath the tags stacked over it, raised under the tag it shows, as it
-// arrived before `!|` opened it [D101]; any other value as it is.
-function heldByExplanation(subject) {
-  const passedTags = [];
-  let beneath = subject;
-  while (isValueClass(beneath, 'taggedInstance')) {
-    passedTags.push(beneath.tag);
-    beneath = beneath.payload;
-  }
-  return isQMap(beneath) && beneath[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name ? raisedFrom(beneath, passedTags) : subject;
-}
-
 // The explanation of a value [D100]: the page `doc` reads for it,
-// null for a declaration without one, above the value itself, so an
-// explanation prints as the page above what it explains [D98].
-const EXPLANATION_TAG = makeTagKeyword('explanation');
-bindStateReader('explain', (subject, state) => {
-  const page = pageOfRecord(recordReadBy(subject, NULL, state, ExplainBindingNotFoundError));
-  return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', heldByExplanation(subject)]]));
+// null for a declaration without one, above the value itself, an error at
+// rest as `!|` caught it [D210], so an explanation prints as the page
+// above what it explains [D98].
+const EXPLANATION_TAG = makeTag('explanation');
+bindStateReader('any/explain', (subject, state) => {
+  const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainUnknownNameError));
+  return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', subject]]));
 });
-
-// `spec` — the value the record holds: the map a catalog
-// `::builtin{…}` body declared for a built-in verb and a kind's
-// constructor;
-// the throw-site spec the bootstrap stamps for an error tag, since
-// what raises the error is what knows the category and the slot; the
-// signature of a verb as a `::spec~(…)` [D67]; and the value itself
-// for any other binding.
-//
-// The discriminator path for per-tag static facts attached to any
-// tagged value-class: `result !| type | spec | /category`
-// reads `:typeError` / `:arityError` / etc. off the error tag;
-// `::number/add | spec | /throws` lists the per-site error classes
-// `add` raises; `::verb | spec | /impl` returns the
-// `:qlang/type/verb` constructor handle.
-bindStateReader('spec', (subject, memberName, state) => {
-  const record = recordReadBy(subject, memberName, state, SpecBindingNotFoundError);
-  const declaration = record.get('value');
-  return isVerb(declaration) ? signatureSpecOf(declaration) : withVerbsOfNoun(state.env, record);
-});
-
-// The declaration of a provider's noun lists the verbs that live on it
-// [D61], computed from the subjects its providers' verbs declare,
-// and the refusals a query provokes on it, its own and its verbs' [D64].
-function withVerbsOfNoun(env, record) {
-  const declaration = record.get('value');
-  const recordName = record.get('name');
-  if (!isTagKeyword(recordName) || !isNoun(env, recordName.name)) return declaration;
-  const withVerbs = new Map(declaration);
-  withVerbs.set('verbs', verbsOfKind(env, recordName.name));
-  withVerbs.set('throws', refusalsOfNoun(env, recordName.name, declaration.get('throws') ?? [], refusalsOfVerb));
-  stampTagHeader(withVerbs, declaration[TAG_HEADER_SYMBOL]);
-  return withVerbs;
-}
 

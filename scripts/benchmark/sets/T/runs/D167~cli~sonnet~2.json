@@ -1,0 +1,63 @@
+{
+ "set": "T",
+ "screen": "D167",
+ "screenHash": "95264feb47ca",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-09",
+ "commit": "c9643a6",
+ "modelId": "claude-sonnet-5-5",
+ "result": "I ran all fourteen queries against the input files. They returned plausible answers, but I didn't check any answer by hand against the raw data.\n\n- **T3 and T10:** these print their keys as keywords such as `:db`. That is how qlang prints map keys, since every map key is a keyword.\n- **T1:** it counts a user only when `email` is a string, so null and missing emails are excluded.\n\nT1: /data/users | filter ~(/active | eq true) | filter ~(at :email | type | eq ::string) | filter ~(/email | lower | endsWith \"@example.com\") | count\nT2: /data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | sort ~(/name | lower) | * /name\nT3: /data/users | * (at :profile | coalesce {} | at :country | coalesce \"unknown\") | groupBy * count\nT4: /data/users | * (at :profile | coalesce {} | at :age) | filter ~(type | eq ::number) | avg | round 2\nT5: filter ~(/state | eq \"open\") | * (/labels | * (/name | lower)) | flat | distinct | sort\nT6: sort ~([(/comments | desc) /number]) | take 3 | * {:number /number :assignee (at :assignee | coalesce {} | at :login)}\nT7: filter ~(/state | eq \"open\") | * (at :assignee | coalesce {} | at :login) | filter ~(type | eq ::string) | groupBy * count\nT8: unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | * ([(/0 | keyword) /1] | join \"@\")\nT9: /services | filter ~(at :enabled | eq true) | filter ~(/port | gt 8000) | * (/name | lower) | sort | join \",\"\nT10: lines | filter ~(split \" \" | /1 | eq \"ERROR\") | * (split \" \" | /2) | groupBy * count\nT11: lines | * (split \" \" | filter ~(startsWith \"ms=\") | first) | filter ~(type | eq ::string) | * (drop 3 | parseJson) | avg | round 1\nT12: lines | drop 1 | * split \",\" | filter ~(/5 | lower | eq \"shipped\") | filter ~(/4 | ne \"\") | * (mulOf (/3 | parseJson) (/4 | parseJson)) | sum | round 2\nT13: lines | drop 1 | * split \",\" | filter ~(/5 | lower | ne \"cancelled\") | filter ~(/4 | ne \"\") | groupBy ~(/1) | * (* (mulOf (/3 | parseJson) (/4 | parseJson)) | sum) | entries | * {:customer (/0 | keyword) :total (/1 | round 2)} | sort ~(/total | desc) | take 2\nT14: [\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | * lower | distinct | sort ~([(count | desc) (/)]) | join \"-\"",
+ "failed": false,
+ "turns": 10,
+ "inputTokens": 116860,
+ "outputTokens": 4767,
+ "calls": [
+  {
+   "command": "ls; head -c 600 users.json; echo; head -c 500 issues.json; echo; head -c 500 package.json; echo; head -c 500 config.json; echo; head -n 5 logs.txt; head -n 5 orders.csv",
+   "answered": "value",
+   "head": "config.json issues.json logs.txt orders.csv package.json users.json { \"status\": \"ok\", \"data\": { \"users\": [ { \"id\": 1, \"name\": \"alice\", \"email\": \"Alice@Example.com\", \"active\": true, \"roles\": [ \"admin\", \"dev\" ], \"profile\": { \"country\": \"US\", "
+  },
+  {
+   "command": "qlang '/data/users | filter ~(and (/active) ...)' < users.json 2>&1 | head -5\nqlang '/data/users | filter ~(/active | eq true) | filter ~(/email | if (isA ::string) ~(lower | endsWith \"@example.com\") ~(false)) | count' < users.json 2>&1 | head -20",
+   "answered": "value",
+   "head": "::quote/ParseError!{ :source \"C:/Program Files/Git/data/users | filter ~(and (/active) ...)\" :marker \" ^ \" :expected [:\"identifier continue (letter, digit, hyphen, underscore)\" \"/\" :whitespace \"\\r\" \"\\n\" :end-of-input] :found \":\" { \"$error\":"
+  },
+  {
+   "command": "qlang '/data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | sort ~(/name | lower) | * /name' < users.json 2>&1 | head -20\nqlang '/data/users | * (at :profile | coalesce {} | at :country | coalesce \"unknown\") | groupBy * count' < users.json 2>&1 | head -20\nqlang '/data/users | * (at :profile | coalesce {} | at :age) | filter ~(isA ::number) | avg | round 2' < users.json 2>&1 | head -20",
+   "answered": "value",
+   "head": "[ \"alice\", \"carol\", \"erin\", \"ivan\" ] { \"US\": 3, \"DE\": 2, \"unknown\": 2, \"FR\": 2 } { \"$error\": { \"$tag\": \"call/UnknownNameError\", \"descriptor\": { \"name\": \"isA\", \"nearest\": [ \"is\" ], \"addresses\": [], \"trail\": [ { \"step\": \"~(isA ::number)\", \"su"
+  },
+  {
+   "command": "export MSYS_NO_PATHCONV=1\nqlang '/data/users | filter ~(/active | eq true) | filter ~(at :email | type | eq ::string) | filter ~(/email | lower | endsWith \"@example.com\") | count' < users.json 2>&1 | head -20\nqlang '/data/users | * (at :profile | coalesce {} | at :age) | filter ~(type | eq ::number) | avg | round 2' < users.json 2>&1 | head -20\nqlang 'filter ~(/state | eq \"open\") | * (/labels | * (/name | lower)) | flat | distinct | sort' < issues.json 2>&1 | head -20\nqlang 'sort ~[(/comments | desc) /number] | take 3 | * {:number /number :assignee (at :assignee | coalesce {} | at :login)}' < ",
+   "answered": "value",
+   "head": "Contains zsh ~[ dynamic directory syntax"
+  },
+  {
+   "command": "export MSYS_NO_PATHCONV=1\nqlang '/data/users | filter ~(/active | eq true) | filter ~(at :email | type | eq ::string) | filter ~(/email | lower | endsWith \"@example.com\") | count' < users.json 2>&1 | head -20\nqlang '/data/users | * (at :profile | coalesce {} | at :age) | filter ~(type | eq ::number) | avg | round 2' < users.json 2>&1 | head -20\nqlang 'filter ~(/state | eq \"open\") | * (/labels | * (/name | lower)) | flat | distinct | sort' < issues.json 2>&1 | head -20\nqlang 'sort ~([(/comments | desc) /number]) | take 3 | * {:number /number :assignee (at :assignee | coalesce {} | at :login)}' ",
+   "answered": "denied",
+   "head": "This Bash command contains multiple operations. The following part requires approval: export MSYS_NO_PATHCONV=1 qlang '/data/users | filter ~(/active | eq true) | filter ~(at :email | type | eq ::string) | filter ~(/email | lower | endsWith"
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang '/data/users | filter ~(/active | eq true) | filter ~(at :email | type | eq ::string) | filter ~(/email | lower | endsWith \"@example.com\") | count' < users.json 2>&1 | head -20\nMSYS_NO_PATHCONV=1 qlang '/data/users | * (at :profile | coalesce {} | at :age) | filter ~(type | eq ::number) | avg | round 2' < users.json 2>&1 | head -20\nqlang 'filter ~(/state | eq \"open\") | * (/labels | * (/name | lower)) | flat | distinct | sort' < issues.json 2>&1 | head -20\nqlang 'sort ~([(/comments | desc) /number]) | take 3 | * {:number /number :assignee (at :assignee | coalesce {} | a",
+   "answered": "value",
+   "head": "4 33.17 [ \"bug\", \"feature\", \"performance\", \"tests\", \"urgent\" ] [ { \"number\": 106, \"assignee\": \"carol\" }, { \"number\": 102, \"assignee\": null }, { \"number\": 108, \"assignee\": null } ] { \"alice\": 3, \"bob\": 1 }"
+  },
+  {
+   "command": "qlang 'unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | * (/0 | append \"@\" | append \"\") ' < package.json 2>&1 | head -20\nqlang '/services | filter ~(at :enabled | eq true) | filter ~(/port | gt 8000) | * (/name | lower) | sort | join \",\"' < config.json 2>&1 | head\nqlang --raw 'lines | filter ~(split \" \" | /1 | eq \"ERROR\") | * (split \" \" | /2) | groupBy * count' < logs.txt 2>&1 | head -20\nqlang --raw 'lines | * (split \" \" | filter ~(startsWith \"ms=\") | first) | filter ~(type | eq ::string) | * (drop 3 | parseJson) | avg | round 1' < logs.txt 2>&1 |",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"call/KindAnswersNoVerbError\", \"descriptor\": { \"name\": \"append\", \"addresses\": [ \"::string/append\", \"::vec/append\" ], \"actualType\": \"::keyword\", \"trail\": [ { \"step\": \"~(append \\\"@\\\")\", \"subject\": \"eslint\", \"skipped\": \"~"
+  },
+  {
+   "command": "qlang 'unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | * ((/0 | keyword) | append \"@\" | append (/1))' < package.json 2>&1 | head -20\nqlang --raw 'lines | drop 1 | * split \",\" | filter ~(/5 | lower | ne \"cancelled\") | filter ~(/4 | ne \"\") | groupBy ~(/1) | * (* (mulOf (/3 | parseJson) (/4 | parseJson)) | sum) | entries | * {:customer /0 :total (/1 | round 2)} | sort ~(/total | desc) | take 2' < orders.csv 2>&1 | head -30",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"proj/SubjectNotProjectableError\", \"descriptor\": { \"key\": 1, \"actualType\": \"::string\", \"trail\": [ { \"step\": \"~(/1)\", \"subject\": \"eslint@\", \"skipped\": \"~()\" }, { \"step\": \"~((/1))\", \"subject\": \"eslint@\", \"skipped\": \"~()\""
+  },
+  {
+   "command": "qlang 'unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | * ([(/0 | keyword) /1] | join \"@\")' < package.json 2>&1 | head -20\nqlang --raw 'lines | drop 1 | * split \",\" | filter ~(/5 | lower | ne \"cancelled\") | filter ~(/4 | ne \"\") | groupBy ~(/1) | * (* (mulOf (/3 | parseJson) (/4 | parseJson)) | sum) | entries | * {:customer (/0 | keyword) :total (/1 | round 2)} | sort ~(/total | desc) | take 2' < orders.csv 2>&1 | head -30",
+   "answered": "value",
+   "head": "[ \"eslint@^8.56.0\", \"express@^4.18.2\", \"jest@^29.7.0\", \"typescript@^5.3.3\", \"zod@^3.22.0\" ] [{:customer \"Birch\" :total 109.97} {:customer \"Acme\" :total 104.96}]"
+  }
+ ]
+}

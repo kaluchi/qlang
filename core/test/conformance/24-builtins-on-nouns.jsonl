@@ -1,26 +1,25 @@
-{"name":"a-built-in-takes-the-kind-of-its-noun-as-subject","query":"::number/add | spec | /subject","expect":"::number","decision":"D72"}
-{"name":"a-built-in-lists-its-refusals-in-its-signature","query":"::number/add | spec | /throws","expect":"[::AddLeftNotNumberError ::AddRightNotNumberError ::AddResultNotFiniteError]","decision":"D72"}
-{"name":"a-projection-of-a-signature-reads-a-slot","query":"::number/add | spec | /addend","expect":"::number","decision":"D72"}
-{"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| [type /actualType]","expect":"[::AddLeftNotNumberError ::string]","decision":"D72"}
-{"name":"the-head-raises-the-refusal-of-the-site-at-a-slot","query":"1 | add \"a\" !| [type /actualType]","expect":"[::AddRightNotNumberError ::string]","decision":"D72"}
-{"name":"a-full-application-reads-its-first-modifier-as-the-subject","query":"{:price 100 :qty 3} | mul /price /qty","expect":"300","decision":"D72"}
-{"name":"a-full-application-checks-its-subject-by-the-head","query":"add \"a\" 1 !| type","expect":"::AddLeftNotNumberError","decision":"D72"}
-{"name":"a-declared-verb-takes-a-full-application","query":":scale ::verb~(:k ::number | mul k) | null | scale 5 2","expect":"10","decision":"D72"}
-{"name":"a-full-application-leaves-no-modifier-beyond-the-slots","query":":scale ::verb~(:k ::number | mul k) | null | scale 5 2 3 !| type","expect":"::VerbModifiersBeyondSlotsError","decision":"D72"}
+{"name":"a-name-under-a-kind-serves-its-values-and-refuses-another-subject","query":"[(5 | add 1) (\"x\" | add 1 !| type)]","expect":"[6 ::number/add/SubjectNotNumberError]","decision":["D72","D164"]}
+{"name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | source | map ~/name | filter ~(keyword | endsWith \"Error\")","expect":"[:number/add/addend/NotNumberError :number/add/SubjectNotNumberError :number/add/ArgsBeyondPartsError]","decision":["D46","D168","D179"]}
+{"name":"a-part-of-the-args-is-the-quote-that-reads-it","query":"::number/add/addend | binding | /value","expect":"~(/0)","decision":["D164","D169"]}
+{"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| [type /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]","decision":"D72"}
+{"name":"a-part-raises-the-refusal-under-its-address","query":"1 | add \"a\" !| [type /actualType]","expect":"[::number/add/addend/NotNumberError ::string]","decision":"D72"}
+{"name":"a-call-on-a-subject-of-another-kind-names-the-form-that-fits","query":"{:price 100 :qty 3} | mul /price /qty !| [type (explain | page | content | contains \"mulOf\")]","expect":"[::number/mul/SubjectNotNumberError true]","decision":["D72","D165"]}
+{"name":"a-full-application-checks-its-subject-by-the-head","query":"add \"a\" 1 !| type","expect":"::number/add/SubjectNotNumberError","decision":"D72"}
+{"name":"a-name-refuses-a-modifier-beyond-its-places","query":":any/scale ~(mul k) | :any/scale/k ~(/0) | :any/scale/k/NotNumberError ::holds~(is ::number) | null | scale 5 2 !| type","expect":"::any/scale/ArgsBeyondPartsError","decision":["D165","D166"]}
+{"name":"a-call-of-more-values-than-places-is-refused","query":":any/scale ~(mul k) | :any/scale/k ~(/0) | :any/scale/k/NotNumberError ::holds~(is ::number) | null | scale 5 2 3 !| type","expect":"::any/scale/ArgsBeyondPartsError","decision":["D165","D166"]}
 {"name":"a-comparison-of-strings-resides-on-strings","query":"\"b\" | gt \"a\"","expect":"true","decision":["D65","D72"]}
 {"name":"a-comparison-of-keywords-resides-on-keywords","query":":b | lt :a","expect":"false","decision":["D65","D72"]}
 {"name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true","decision":["D65","D72"]}
-{"name":"a-comparison-refuses-a-slot-of-another-kind-by-the-kind","query":"1 | gt \"x\" !| type","expect":"::NumberPayloadNotNumberError","decision":["D65","D72"]}
+{"name":"a-comparison-refuses-a-part-of-another-kind-by-its-law","query":"1 | gt \"x\" !| type","expect":"::number/gt/value/NotNumberError","decision":["D65","D72"]}
 {"name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| /addresses","expect":"#[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]","decision":["D65","D72","D140"]}
-{"name":"a-name-several-kinds-answer-is-found-again-from-a-full-application","query":"{:a 2 :b 1} | gt /a /b","expect":"true","decision":"D72"}
-{"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | spec | /verbs | has ::number/gt","expect":"true","decision":"D72"}
-{"name":"the-contract-of-a-comparison-has-its-page","query":"::any/gt | doc | type | eq ::doc","expect":"true","decision":["D72","D119"]}
+{"name":"two-fields-compare-by-the-subject-in-the-pipe","query":"{:a 2 :b 1} | gt /a /b !| type","expect":"::call/KindAnswersNoVerbError","decision":["D72","D165"]}
+{"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true","decision":"D72"}
+{"name":"a-comparison-has-its-page-on-each-kind","query":"::number/gt | doc | type | eq ::doc","expect":"true","decision":["D72","D119","D169"]}
 {"name":"a-call-by-address-reaches-the-residence","query":"5 | number/gt 3","expect":"true","decision":"D72"}
-{"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::NumberPayloadNotNumberError","decision":"D72"}
+{"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::number/gt/SubjectNotNumberError","decision":["D72","D156"]}
 {"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box(5) | gt 3","expect":"true","decision":"D72"}
-{"name":"a-projection-of-a-signature-names-what-it-declares","query":"::number/add | spec | /nope !| /availableFields","expect":"[\"subject\" \"addend\" \"returns\" \"throws\"]","decision":"D72"}
-{"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1}) 2 !| /k","expect":"1","decision":"D72"}
-{"name":"a-full-application-keeps-its-verb-where-the-subject-finds-none","query":"5 | add \"a\" 1 !| type","expect":"::AddLeftNotNumberError","decision":"D72"}
-{"name":"a-declared-verb-in-full-application-answers-an-error-subject","query":":s ::verb~(:k ::number | mul k) | null | s (!{:k 1}) 2 !| /k","expect":"1","decision":"D72"}
-{"name":"a-builtin-body-without-a-handle-is-a-step","query":":v ::verb~(::builtin{:a 1}) | null | v | type","expect":"::builtin","decision":"D72"}
-{"name": "the-loader-refuses-modifiers-beyond-its-slots", "query": "use :a :b :c :d !| type", "expect": "::VerbModifiersBeyondSlotsError", "decision": ["D72", "D113"]}
+{"name":"the-manifest-of-a-name-lists-the-parts-it-declares","query":"::map/at | manifest","expect":"#[::map/at/answer ::map/at/default ::map/at/key]","decision":["D167","D169","D180"]}
+{"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1} | raise) 2 !| /k","expect":"1","decision":"D72"}
+{"name":"args-of-more-values-than-places-are-refused","query":"5 | add \"a\" 1 !| type","expect":"::number/add/ArgsBeyondPartsError","decision":["D72","D165"]}
+{"name":"an-error-among-the-modifiers-answers-before-the-places-are-counted","query":":any/s ~(mul k) | :any/s/k ~(/0) | :any/s/k/NotNumberError ::holds~(is ::number) | null | s (!{:k 1} | raise) 2 !| type","expect":"::error","decision":"D167"}
+{"name":"a-builtin-body-without-a-handle-is-a-step","query":":any/v ~(::builtin{:a 1}) | null | v | type","expect":"::builtin","decision":"D72"}

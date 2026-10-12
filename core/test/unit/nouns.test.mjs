@@ -1,120 +1,130 @@
-// The nouns a session can reach and the verbs that live on a kind
-// [D61], [D62]: `::qlang | manifest`, `/verbs` on a noun's `spec`, and a
-// tag name that no tag binds read as the address of a verb.
+// The names of a scope [D153]: the nouns of the root and the reader's
+// own, the nodes a name with a path declares under its noun, and the
+// address that reads one.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
-import { makeTagKeyword } from '../../src/types.mjs';
+import { makeTag } from '../../src/types.mjs';
 
-describe('the nouns of the core', () => {
-  it('the core answers the nouns beneath it, itself and its refusals apart', async () => {
-    expect(await evalQuery('::qlang | manifest | filter ~(eq ::number) | count')).toBe(1);
-    expect(await evalQuery('::qlang | manifest | filter ~(eq ::qlang) | count')).toBe(0);
-    expect(await evalQuery('::qlang | manifest | filter ~(eq ::AddLeftNotNumberError) | count')).toBe(0);
+describe('the names of the scope', () => {
+  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [D160], [D169]', async () => {
+    expect(await evalQuery('env | eq {}')).toBe(true);
+    expect(await evalQuery('kinds | [(has ::number) (has ::qlang) (has ::number/add/SubjectNotNumberError)]'))
+      .toEqual([true, true, false]);
   });
 
-  it('a refusal the catalog declares with its category is no noun, and the kind of errors is one', async () => {
-    expect(await evalQuery('::qlang | manifest | has ::ForeignFailureError')).toBe(false);
-    expect(await evalQuery('::qlang | manifest | has ::error')).toBe(true);
+  it('a kind the reader declares is a name of its scope', async () => {
+    expect(await evalQuery(':Box |~~ A box. ~~| | env | has :Box')).toBe(true);
   });
 
-  it('a noun answers what lies below it, the nouns under its path and the verbs that live on it', async () => {
-    const session = await createSession({
-      locator: async nsName => (nsName === 'tests/shop'
-        ? { source: '::shop/Order |~~ An order. ~~| | ::shop/Line |~~ A line. ~~| | env' }
-        : null)
-    });
-    const cellEntry = await session.evalCell('use :tests/shop | ::shop | manifest');
-    expect([...cellEntry.result]).toEqual([makeTagKeyword('shop/Line'), makeTagKeyword('shop/Order')]);
-    expect(await evalQuery('::number | manifest | eq (::number | spec | /verbs)')).toBe(true);
-    expect([...await evalQuery('::builtin | manifest')]).toEqual([]);
+  it('a noun answers the nodes declared one name under it', async () => {
+    const session = await createSession({ sources: [{
+      uri: 'shop',
+      source: ':shop |~~ A shop. ~~|\n:shop/Order |~~ An order. ~~|\n:shop/Line |~~ A line. ~~|\n:shop/Line/qty ~(1)'
+    }] });
+    expect([...(await session.evalCell('::shop | manifest')).result])
+      .toEqual([makeTag('shop/Line'), makeTag('shop/Order')]);
+    expect([...await evalQuery('::qlang/values | manifest')]).toEqual([]);
   });
 
-  it('a tag the session declares is its own, beside the providers\' nouns', async () => {
-    expect(await evalQuery('::Box |~~ A box. ~~| | ::qlang | manifest | filter ~(eq ::Box) | count')).toBe(0);
+  it('a bare name reads a value a source of the root declares, and no label of the root [D191]', async () => {
+    const session = await createSession({ sources: [{
+      uri: 'shop',
+      source: ':shop |~~ A shop. ~~|\n:limit 5'
+    }] });
+    expect((await session.evalCell('limit')).result).toBe(5);
+    expect((await session.evalCell('shop !| type')).result).toEqual(makeTag('call/UnknownNameError'));
+  });
+
+  it('a word of a source reads a bare value of its source before a word of that name a reader or a later source declares [D200]', async () => {
+    const shop = { uri: 'shop', source: ':shop |~~ A shop. ~~|\n:limit 5\n:shop/capped ~(limit)' };
+    const later = { uri: 'stock', source: ':stock |~~ A stock. ~~|\n:stock/limit ~(7)' };
+    const alone = await createSession({ sources: [shop] });
+    expect((await alone.evalCell(':vec/limit ~(99) | ::shop{} | capped')).result).toBe(5);
+    const beside = await createSession({ sources: [shop, later] });
+    expect((await beside.evalCell('::shop{} | capped')).result).toBe(5);
+  });
+
+  it('a label of a source is no bare name inside the words of its source [D191], [D200]', async () => {
+    const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/self ~(shop)' }] });
+    expect((await session.evalCell('::shop{} | self !| type')).result).toEqual(makeTag('call/UnknownNameError'));
+  });
+
+  it('a word of a source reads a bare value its source declares after it [D200]', async () => {
+    const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/capped ~(limit)\n:limit 5' }] });
+    expect((await session.evalCell('::shop{} | capped')).result).toBe(5);
+  });
+
+  it('a value of the reader meets a word a later source declares, where the subject answers the word alone [D223]', async () => {
+    const later = { uri: 'stock', source: ':vec/tally ~(count)' };
+    const alone = await createSession({ sources: [] });
+    expect((await alone.evalCell(':tally 5 | [1 2] | tally')).result).toBe(5);
+    const beside = await createSession({ sources: [later] });
+    const met = ':tally 5 | [(7 | tally) ([1 2] | tally !| [type /addresses]) ([1 2] | vec/tally)]';
+    expect((await beside.evalCell(`${met} | eq [5 [::call/ValueMeetsWordError #[::vec/tally]] 2]`)).result).toBe(true);
   });
 });
 
 describe('the verbs that live on a kind', () => {
-  it('a kind lists by address the operands whose subject names it, and any value lists its own', async () => {
-    expect(await evalQuery('::number | spec | /verbs | has ::number/add')).toBe(true);
-    expect(await evalQuery('::qlang/any | spec | /verbs | has ::any/doc')).toBe(true);
-    expect(await evalQuery('::string | spec | /verbs | has ::string/doc')).toBe(false);
+  it('a kind lists by address the verbs declared under it, and any value lists its own', async () => {
+    expect(await evalQuery('::number | manifest | has ::number/add')).toBe(true);
+    expect(await evalQuery('::any | manifest | has ::any/doc')).toBe(true);
+    expect(await evalQuery('::string | manifest | has ::string/doc')).toBe(false);
   });
 
-  it('an address the listing answers leads the axes to its verb', async () => {
-    expect(await evalQuery('::number | spec | /verbs | every ~(spec | /subject | eq ::number)')).toBe(true);
-  });
-
-  it('an address under a kind of the core goes by its short name', async () => {
-    expect(await evalQuery('::qlang/vec/count')).toEqual(makeTagKeyword('vec/count'));
+  it('an address the listing answers leads the axes to its name', async () => {
+    expect(await evalQuery('[::number/gt ::number/lt] | map ~manifest | eq [#[::number/gt/answer ::number/gt/value] #[::number/lt/answer ::number/lt/value]]')).toBe(true);
   });
 
   it('a verb of any tagged value lives on the kind of tagged values', async () => {
-    expect(await evalQuery('::tagged | spec | /verbs | has ::tagged/within')).toBe(true);
+    expect(await evalQuery('::tagged | manifest | has ::tagged/within')).toBe(true);
   });
 
-  it('a host verb serves the kind its head names beneath a tag', async () => {
-    const session = await createSession({
-      locator: async nsName => (nsName === 'tests/typed'
-        ? {
-            source: ':shout ::verb~(:subject ::string | ::builtin{:impl :tests/typed/shout})',
-            impls: { shout: text => text.toUpperCase() }
-          }
-        : null)
-    });
-    const cellEntry = await session.evalCell('use :tests/typed | ::Box("hi") | shout');
-    expect(cellEntry.result).toBe('HI');
-  });
-
-  it('a refusal and a tag the session declares carry no list of verbs', async () => {
-    expect(await evalQuery('::AddLeftNotNumberError | spec | has :verbs')).toBe(false);
-    expect(await evalQuery('::Box {} | ::Box | spec | has :verbs')).toBe(false);
+  it('a host verb declared under a kind serves its values beneath a tag', async () => {
+    const session = await createSession({ sources: [{
+      uri: 'tests/typed',
+      source: ':string/shout ::builtin{}',
+      impls: { 'string/shout': text => text.toUpperCase() }
+    }] });
+    expect((await session.evalCell('::Box("hi") | shout')).result).toBe('HI');
   });
 });
 
-describe('a tag name that no tag binds addresses a verb', () => {
-  it('an address with a kind reads the verb that lives on that kind', async () => {
-    expect(await evalQuery('::qlang/vec/count | doc | type')).toEqual(makeTagKeyword('doc'));
-    expect(await evalQuery('::vec/count | source | parse | startsWith ":count"')).toBe(true);
-    expect(await evalQuery('::vec/count | doc | laws | count | gt 0')).toBe(true);
-    expect(await evalQuery('::vec/count | spec | /subject')).toEqual(makeTagKeyword('vec'));
+describe('an address reads the node its name declared', () => {
+  it('an address with a kind reads the verb declared under that kind', async () => {
+    expect(await evalQuery('::vec/count | doc | type')).toEqual(makeTag('doc'));
+    expect(await evalQuery('::vec/count | source | parse | startsWith ":vec/count"')).toBe(true);
+    expect(await evalQuery('::vec/count | laws | count | gt 0')).toBe(true);
+    expect(await evalQuery('::vec/count | binding | /value | type')).toEqual(makeTag('builtin'));
   });
 
   it('a verb has no address of its own, only through the noun it lives on', async () => {
-    expect(await evalQuery('::count | doc !| type')).toEqual(makeTagKeyword('DocBindingNotFoundError'));
+    expect(await evalQuery('::count | doc !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
   });
 
-  it('an address reads the provider\'s verb whatever the scope binds under its name', async () => {
-    expect(await evalQuery(':count 5 | ::vec/count | doc | content | contains "number of elements"'))
+  it('an address reads the root\'s verb whatever the scope binds', async () => {
+    expect(await evalQuery(':limit 5 | ::vec/count | doc | content | contains "number of elements"'))
       .toBe(true);
   });
 
   it('an address whose kind the verb does not live on names nothing', async () => {
-    expect(await evalQuery('::string/sum | doc !| type')).toEqual(makeTagKeyword('DocBindingNotFoundError'));
-    expect(await evalQuery('::nowhere/nothing | spec !| type')).toEqual(makeTagKeyword('SpecBindingNotFoundError'));
-  });
-});
-
-describe('the scope holds the names it wrote', () => {
-  it('a descriptor the scope binds under a name of its own is its binding', async () => {
-    expect(await evalQuery('{:c (::vec/count | spec)} | use | env | has :c')).toBe(true);
+    expect(await evalQuery('::string/sum | doc !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
+    expect(await evalQuery('::nowhere/nothing | binding !| type')).toEqual(makeTag('any/binding/UnknownNameError'));
   });
 
-  it('a value whose tag no declaration pages reads no page', async () => {
-    expect(await evalQuery('::Box#[3 1] | doc')).toBeNull();
+  it('a value whose tag no node answers reads no page', async () => {
+    expect((await evalQuery('::Box#[3 1] | doc')).tag.name).toBe('any/doc/UnknownNameError');
   });
 });
 
 describe('a name with a path calls the verb its address names', () => {
-  it('calls past the bindings of the scope, with the modifiers the call takes', async () => {
-    expect(await evalQuery(':count 5 | [1 2 3] | vec/count')).toBe(3);
+  it('calls the verb its address names, with the modifiers the call takes', async () => {
+    expect(await evalQuery('[1 2 3] | vec/count')).toBe(3);
     expect(await evalQuery('[1 2 3] | vec/filter ~(gt 1)')).toEqual([2, 3]);
-    expect(await evalQuery('[1 2 3] | qlang/vec/count')).toBe(3);
   });
 
   it('an address that names no verb is refused with the address', async () => {
-    expect(await evalQuery('[1 2 3] | vec/nothing !| /address')).toEqual(makeTagKeyword('vec/nothing'));
+    expect(await evalQuery('[1 2 3] | vec/nothing !| /address')).toEqual(makeTag('vec/nothing'));
   });
 });

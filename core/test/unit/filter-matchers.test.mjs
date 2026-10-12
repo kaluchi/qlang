@@ -6,13 +6,13 @@
 // so does a verb it names or a verb handed in its place [D67].
 //
 // Each per-site error class is asserted three ways per review
-// discipline: class name, `instanceof QlangTypeError`, and structured
+// discipline: class name, `instanceof QlangError`, and structured
 // context fields via the error-value descriptor.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { QlangTypeError } from '../../src/errors.mjs';
-import { isQMap, isQSet, keyword, makeTagKeyword } from '../../src/types.mjs';
+import { QlangError } from '../../src/errors.mjs';
+import { isQMap, isQSet, keyword, makeTag } from '../../src/types.mjs';
 import {
   expectErrorThrown,
   expectOriginalError
@@ -49,7 +49,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with a declared verb predicate fires against value', async () => {
     const mapResult = await evalQuery(
-      '{:a 1 :b 2 :c 3} | :big ::verb~(gt 1) | filter ~big'
+      '{:a 1 :b 2 :c 3} | :any/big ~(gt 1) | filter ~big'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -58,7 +58,7 @@ describe('filter — container polymorphism', () => {
   it('Map with a verb predicate reading a field of the value', async () => {
     const mapResult = await evalQuery(
       '{:a {:tier :a} :b {:tier :b} :c {:tier :x}} '
-      + '| :tiered ::verb~(/tier | eq :x | not) '
+      + '| :any/tiered ~(/tier | eq :x | not) '
       + '| filter ~tiered'
     );
     expect(isQMap(mapResult)).toBe(true);
@@ -70,7 +70,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map with an unresolved name for pred — surfaces on fail-track', async () => {
     const errorValue = await evalQuery('{:a 1} | filter ~(unknownPred) !| type');
-    expect(errorValue).toEqual(makeTagKeyword('UnresolvedIdentifierError'));
+    expect(errorValue).toEqual(makeTag('call/UnknownNameError'));
   });
 
   it('Map with a value bound for pred — every entry passes', async () => {
@@ -92,24 +92,24 @@ describe('filter — container polymorphism', () => {
     expect(orderedKeys).toEqual(['c', 'b']);
   });
 
-  it('a non-container subject reaches the contract of filter on fail-track [D72]', async () => {
-    const errorValue = await expectErrorThrown('42 | filter ~(gt 0)', 'VerbWithoutBodyError');
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('VerbWithoutBodyError');
+  it('a non-container subject is refused where filter is looked up, on the fail-track [D169]', async () => {
+    const errorValue = await expectErrorThrown('42 | filter ~(gt 0)', 'call/KindAnswersNoVerbError');
+    const originalErr = expectOriginalError(errorValue, QlangError);
+    expect(originalErr.name).toBe('KindAnswersNoVerbError');
   });
 
   it('Vec with a verb handed as the predicate', async () => {
-    expect(await evalQuery('[1 -2 3] | filter ::verb~(gt 0)')).toEqual([1, 3]);
+    expect(await evalQuery('[1 -2 3] | filter ~(gt 0)')).toEqual([1, 3]);
   });
 
   it('Set with a verb handed as the predicate', async () => {
-    const setResult = await evalQuery('#[1 -2 3] | filter ::verb~(gt 0)');
+    const setResult = await evalQuery('#[1 -2 3] | filter ~(gt 0)');
     expect(isQSet(setResult)).toBe(true);
     expect([...setResult].sort()).toEqual([1, 3]);
   });
 
   it('Map with a verb handed as the predicate', async () => {
-    const mapResult = await evalQuery('{:a 1 :b -2 :c 3} | filter ::verb~(gt 0)');
+    const mapResult = await evalQuery('{:a 1 :b -2 :c 3} | filter ~(gt 0)');
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
     expect(mapResult.get('a')).toBe(1);
@@ -148,24 +148,24 @@ describe('every — container polymorphism', () => {
     expect(await evalQuery('{} | every ~(gt 0)')).toBe(true);
   });
 
-  it('a non-container subject reaches the contract of every on fail-track [D72]', async () => {
-    const errorValue = await expectErrorThrown('42 | every ~(gt 0)', 'VerbWithoutBodyError');
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('VerbWithoutBodyError');
+  it('a non-container subject is refused where every is looked up, on the fail-track [D169]', async () => {
+    const errorValue = await expectErrorThrown('42 | every ~(gt 0)', 'call/KindAnswersNoVerbError');
+    const originalErr = expectOriginalError(errorValue, QlangError);
+    expect(originalErr.name).toBe('KindAnswersNoVerbError');
   });
 
   it('Vec with a declared verb predicate', async () => {
-    expect(await evalQuery('[1 2 3] | :positive ::verb~(gt 0) | every ~positive')).toBe(true);
-    expect(await evalQuery('[1 -2 3] | :positive ::verb~(gt 0) | every ~positive')).toBe(false);
+    expect(await evalQuery('[1 2 3] | :any/positive ~(gt 0) | every ~positive')).toBe(true);
+    expect(await evalQuery('[1 -2 3] | :any/positive ~(gt 0) | every ~positive')).toBe(false);
   });
 
   it('Set with a verb handed as the predicate', async () => {
-    expect(await evalQuery('#[2 4 6] | every ::verb~(gt 0)')).toBe(true);
+    expect(await evalQuery('#[2 4 6] | every ~(gt 0)')).toBe(true);
   });
 
   it('Map with a declared verb predicate', async () => {
-    expect(await evalQuery('{:a 1 :b 2} | :positive ::verb~(gt 0) | every ~positive')).toBe(true);
-    expect(await evalQuery('{:a 1 :b -2} | :positive ::verb~(gt 0) | every ~positive')).toBe(false);
+    expect(await evalQuery('{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive')).toBe(true);
+    expect(await evalQuery('{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive')).toBe(false);
   });
 });
 
@@ -192,10 +192,10 @@ describe('any — container polymorphism', () => {
     expect(await evalQuery('{} | any ~(gt 0)')).toBe(false);
   });
 
-  it('a non-container subject reaches the contract of any on fail-track [D72]', async () => {
-    const errorValue = await expectErrorThrown('42 | any ~(gt 0)', 'VerbWithoutBodyError');
-    const originalErr = expectOriginalError(errorValue, QlangTypeError);
-    expect(originalErr.name).toBe('VerbWithoutBodyError');
+  it('a non-container subject is refused where any is looked up, on the fail-track [D169]', async () => {
+    const errorValue = await expectErrorThrown('42 | any ~(gt 0)', 'call/KindAnswersNoVerbError');
+    const originalErr = expectOriginalError(errorValue, QlangError);
+    expect(originalErr.name).toBe('KindAnswersNoVerbError');
   });
 });
 
@@ -230,9 +230,9 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
     expect(await evalQuery('#[:a] | type | eq ::map')).toBe(false);
   });
 
-  it('type answers ::binding, not :map, for the record of a verb', async () => {
-    expect(await evalQuery(':double ::verb~(mul 2) | env | /double | type | eq ::map')).toBe(false);
-    expect(await evalQuery(':double ::verb~(mul 2) | env | /double | type | eq ::binding')).toBe(true);
+  it('type answers ::binding, not ::map, for the record of a name', async () => {
+    expect(await evalQuery(':double ~(mul 2) | env | /double | type | eq ::map')).toBe(false);
+    expect(await evalQuery(':double ~(mul 2) | env | /double | type | eq ::binding')).toBe(true);
   });
 
   it('type answers ::set for Set subjects', async () => {
@@ -261,7 +261,7 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
     expect(await evalQuery('null | type | eq ::null')).toBe(true);
     // A Map entry whose value is the explicit `null` is the only
     // post-strict-projection path to null-via-projection. A missing
-    // key now errors (::ProjectionKeyNotInMapError) instead of silently
+    // key now errors (::proj/KeyNotInMapError) instead of silently
     // returning null.
     expect(await evalQuery('{:nothing null} | /nothing | type | eq ::null')).toBe(true);
     expect(await evalQuery('0 | type | eq ::null')).toBe(false);
@@ -300,12 +300,12 @@ describe('filter + type classifiers integration', () => {
 describe('filter — verb portability across containers', () => {
   it('a declared verb fires uniformly on Vec elements and Map values', async () => {
     const vecResult = await evalQuery(
-      ':big ::verb~(gt 1) | [1 2 3] | filter ~big'
+      ':any/big ~(gt 1) | [1 2 3] | filter ~big'
     );
     expect(vecResult).toEqual([2, 3]);
 
     const mapResult = await evalQuery(
-      ':big ::verb~(gt 1) | {:a 1 :b 2 :c 3} | filter ~big'
+      ':any/big ~(gt 1) | {:a 1 :b 2 :c 3} | filter ~big'
     );
     expect(isQMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
@@ -318,22 +318,22 @@ describe('filter — verb portability across containers', () => {
 
 describe('filter/every/any — predicate returning error value propagates on fail-track', () => {
   it('filter over Set — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('#[1 2] | filter ~(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('#[1 2] | filter ~(!{:kind :pred-failed} | raise) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('filter over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1 :b 2} | filter ~(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('{:a 1 :b 2} | filter ~(!{:kind :pred-failed} | raise) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('every over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1} | every ~(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('{:a 1} | every ~(!{:kind :pred-failed} | raise) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('any over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1} | any ~(!{:kind :pred-failed}) !| /kind');
+    const errorValue = await evalQuery('{:a 1} | any ~(!{:kind :pred-failed} | raise) !| /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 });

@@ -7,14 +7,16 @@
 // A set lives under `sets/<id>/`: `set.json` (who wrote it, whether it
 // was seen), `tasks.json`, `inputs/`, the author's record under
 // `author/`, and the runs under `runs/`, each named
-// `<screen>~<mode>~<model>~<n>.json`.
+// `<screen>~<mode>~<model>~<n>.json`, the screen of a measurement the
+// number of the decision it measures [D183].
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync, spawn } from 'node:child_process';
-import { runChild } from './child.mjs';
-import { screenText, screenHash } from './screens.mjs';
+import { runChild, CHILD_ENVIRONMENT } from './child.mjs';
+import { screenText, fixScreen } from './screens.mjs';
+import { pipeEnv } from '../pipe-env.mjs';
 
 const benchDir = import.meta.dirname;
 const repoRoot = join(benchDir, '..', '..');
@@ -77,52 +79,78 @@ export async function author(setId, model = 'sonnet') {
 
 const LINE_RULE = setId => `\`${setId}1: <query>\``;
 
-function cliPrompt(setId, screen) {
+function promptOf(setId, screen) {
   const tasks = tasksOf(setId);
   return [
-    'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below is the first page of its documentation, and you may run the `qlang` command to try queries and to ask the language about itself.',
+    'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below are the pages of the language and of its command line, as the language prints them, and you may run the `qlang` command to try queries and to ask the language about itself.',
     '', '<<<', screenText(screen), '>>>', '',
-    'RULES: use the Bash tool only to run `qlang` and to `cat` or `head` the input files of the current directory; read nothing else. Always pass stdin: `qlang \'<query>\' < file.json` or `< /dev/null`; for a text file use `qlang --raw \'<query>\' < file.log`. In Git Bash prefix a query that begins with `/` with MSYS_NO_PATHCONV=1.',
+    'RULES: use the Bash tool only to run `qlang` and to `cat` or `head` the input files of the current directory; read nothing else. A query over an input file reads it from stdin: `qlang \'<query>\' < file.json`, and a text file `qlang --raw \'<query>\' < file.log`.',
     '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json`; a task with no input runs with nothing piped, so its query writes the data the task gives as a literal):',
     ...tasks.map(task => `${task.id} (${task.input ?? 'no input'}): ${task.text}`),
     '', `When done, end your reply with exactly one line per task, ${LINE_RULE(setId)} and so on, the query alone on the line.`
   ].join('\n');
 }
 
-function blindPrompt(setId, screen) {
-  const tasks = tasksOf(setId);
-  return [
-    'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below is the first page of its documentation. You cannot run anything: write each query from the page alone, as your first and only attempt.',
-    '', '<<<', screenText(screen), '>>>', '',
-    'Each query runs with its input file as its subject: a JSON file arrives as the value it holds, a text file as one string; a task with no input runs with nothing piped, so its query writes the data the task gives as a literal. Do not end a query with `| json`.',
-    '', 'TASKS:', ...tasks.map(task => `${task.id} (${task.input ?? 'no input'}): ${task.text}`),
-    '', 'INPUT FILES:', ...inputNamesOf(setId).map(name => `--- ${name}\n${readFileSync(join(setDirOf(setId), 'inputs', name), 'utf8')}`),
-    '', `End your reply with exactly one line per task, ${LINE_RULE(setId)} and so on, the query alone on the line.`
-  ].join('\n');
+// The numbers of the decisions the runs of every set measured.
+function measuredNumbers() {
+  const numbers = [];
+  for (const setId of readdirSync(setsDir)) {
+    const runsDir = join(setDirOf(setId), 'runs');
+    if (!existsSync(runsDir)) continue;
+    for (const name of readdirSync(runsDir)) {
+      const measured = /^D(\d+)[.~]/.exec(name);
+      if (measured !== null) numbers.push(Number(measured[1]));
+    }
+  }
+  return numbers;
 }
 
-// run(setId, { screen, mode, model, runs }) — the runs a record does not
-// hold yet, in parallel; each record names the screen, its hash and the
-// commit of the tree the children ran.
-export async function run(setId, { screen, mode, model, runs }) {
+// The changes of the tree outside its commit, the records of the
+// benchmark aside.
+function changesOutsideCommit() {
+  return execFileSync('git', ['status', '--porcelain'], { cwd: repoRoot, encoding: 'utf8' }).split('\n')
+    .filter(line => line.trim() !== '' && !/scripts\/benchmark\/(sets\/[^/]+\/runs|screens)\//.test(line));
+}
+
+// run(setId, { decision, model, runs, reason }) — a measurement of a
+// decision [D183]: the numbers measured grow, a decision measured before is
+// measured again with a reason alone, and each run fixes the screen the
+// tree printed, the commit of a clean tree, the model that answered and
+// its score.
+export async function run(setId, { decision, model, runs, reason }) {
+  const mode = 'cli';
+  if (!/^D\d+$/.test(decision ?? '') || !existsSync(join(repoRoot, 'docs', 'decisions', `${decision}.md`))) {
+    throw new Error(`--decision names no decision: ${decision}`);
+  }
+  const changes = changesOutsideCommit();
+  if (changes.length > 0) throw new Error(`the tree holds changes outside its commit:\n${changes.join('\n')}`);
+  const measured = measuredNumbers();
+  const number = Number(decision.slice(1));
+  const last = Math.max(0, ...measured);
+  if (number < last) throw new Error(`D${last} is measured; ${decision} comes before it`);
+  if (measured.includes(number) && !reason) throw new Error(`${decision} is measured; another measurement states its --reason`);
+  const screen = fixScreen(decision);
   const runsDir = join(setDirOf(setId), 'runs');
   mkdirSync(runsDir, { recursive: true });
-  const prompt = mode === 'cli' ? cliPrompt(setId, screen) : blindPrompt(setId, screen);
+  const prefix = `${screen.name}~${mode}~${model}~`;
+  const taken = readdirSync(runsDir).filter(name => name.startsWith(prefix)).map(name => Number(name.slice(prefix.length, -'.json'.length)));
+  const first = Math.max(0, ...taken) + 1;
+  const prompt = promptOf(setId, screen.name);
+  const commit = commitOf();
   const jobs = [];
-  for (let runIndex = 1; runIndex <= runs; runIndex++) {
-    const recordPath = join(runsDir, `${screen}~${mode}~${model}~${runIndex}.json`);
-    if (existsSync(recordPath) && !JSON.parse(readFileSync(recordPath, 'utf8')).failed) continue;
-    const workDir = join(scratchRoot, 'children', `${setId}-${screen}-${mode}-${model}-${runIndex}`);
+  for (let runIndex = first; runIndex < first + runs; runIndex++) {
+    const workDir = join(scratchRoot, 'children', `${setId}-${screen.name}-${mode}-${model}-${runIndex}`);
     rmSync(workDir, { recursive: true, force: true });
     mkdirSync(workDir, { recursive: true });
-    if (mode === 'cli') for (const name of inputNamesOf(setId)) copyFileSync(join(setDirOf(setId), 'inputs', name), join(workDir, name));
-    jobs.push(runChild({ prompt, model, mode, workDir }).then(record => writeFileSync(recordPath, JSON.stringify({
-      set: setId, screen, screenHash: screenHash(screen), mode, model, run: runIndex,
-      date: new Date().toISOString().slice(0, 10), commit: commitOf(), ...record
+    for (const name of inputNamesOf(setId)) copyFileSync(join(setDirOf(setId), 'inputs', name), join(workDir, name));
+    jobs.push(runChild({ prompt, model, workDir }).then(record => writeFileSync(join(runsDir, `${prefix}${runIndex}.json`), JSON.stringify({
+      set: setId, decision, screen: screen.name, screenHash: screen.hash, mode, model, run: runIndex,
+      date: new Date().toISOString().slice(0, 10), commit, reason: reason ?? null, environment: CHILD_ENVIRONMENT, ...record,
+      score: scoreOf(setId, record.result)
     }, null, 1) + '\n')));
   }
   await Promise.all(jobs);
-  console.log(`${setId} ${screen} ${mode} ${model}: ${jobs.length} runs`);
+  console.log(`${setId} ${decision} ${mode} ${model}: ${jobs.length} runs, screen ${screen.name} ${screen.hash}`);
 }
 
 // ── grade ──────────────────────────────────────────────────────
@@ -144,10 +172,8 @@ function answerOf(setId, task, query) {
   try {
     const flags = isTextInput(task.input) ? ['--raw'] : [];
     const input = task.input === null ? '' : readFileSync(join(setDirOf(setId), 'inputs', task.input));
-    const printed = execFileSync(process.execPath, [commandLine, ...flags, `(${query}) | json`], { input, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'] }).trim();
-    let answer = JSON.parse(printed);
-    if (typeof answer === 'string') { try { answer = JSON.parse(answer); } catch { /* the answer is a string */ } }
-    return { answer };
+    const printed = execFileSync(process.execPath, [commandLine, ...flags, `(${query}) | json`], { input, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
+    return { answer: JSON.parse(printed) };
   } catch {
     return null;
   }
@@ -163,6 +189,17 @@ function sameJson(one, other) {
     return keys.length === Object.keys(other).length && keys.every(key => key in other && sameJson(one[key], other[key]));
   }
   return one === other;
+}
+
+// The score of a reply, each task's final query run by the tree of the
+// run against the answer of the task [D183].
+function scoreOf(setId, reply) {
+  const finals = finalQueriesOf(setId, reply);
+  return tasksOf(setId).map(task => {
+    const query = finals.get(task.id) ?? null;
+    const answered = query === null ? null : answerOf(setId, task, query);
+    return { task: task.id, query, answer: answered === null ? null : answered.answer, solved: answered !== null && sameJson(answered.answer, task.expected) };
+  });
 }
 
 function runRecordsOf(setId) {
@@ -185,7 +222,7 @@ export function grade(setId) {
       return answered !== null && sameJson(answered.answer, task.expected);
     }).map(task => task.id);
     const missed = tasks.map(task => task.id).filter(taskId => !solved.includes(taskId));
-    console.log(`${name.padEnd(30)} solved ${String(solved.length).padStart(2)}/${tasks.length}  turns ${String(record.turns ?? '').padStart(3)}  missed ${missed.join(' ')}`);
+    console.log(`${name.padEnd(30)} solved ${String(solved.length).padStart(2)}/${tasks.length}  requests ${String(record.requests ?? '').padStart(3)}  missed ${missed.join(' ')}`);
   }
 }
 
@@ -205,7 +242,7 @@ export function misses(setId, runName, taskIds) {
     if (query !== null) {
       try {
         const input = task.input === null ? '' : readFileSync(join(setDirOf(setId), 'inputs', task.input));
-        printed = execFileSync(process.execPath, [commandLine, ...(isTextInput(task.input) ? ['--raw'] : []), query], { input, encoding: 'utf8', timeout: 30000 });
+        printed = execFileSync(process.execPath, [commandLine, ...(isTextInput(task.input) ? ['--raw'] : []), query], { input, encoding: 'utf8', timeout: 30000, env: pipeEnv });
       } catch (failure) {
         printed = `${failure.stdout ?? ''}${failure.stderr ?? ''}`;
       }

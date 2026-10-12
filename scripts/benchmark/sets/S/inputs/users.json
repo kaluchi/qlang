@@ -1,0 +1,49 @@
+{
+  "status": "ok",
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "email": "Anna@Example.com",
+        "profile": {
+          "city": "Berlin"
+        }
+      },
+      {
+        "id": 2,
+        "email": "bob@example.com",
+        "profile": null
+      },
+      {
+        "id": 3,
+        "email": "CARL@example.com",
+        "profile": {
+          "city": "berlin"
+        }
+      },
+      {
+        "id": 4,
+        "email": "dina@example.com",
+        "profile": {}
+      },
+      {
+        "id": 5,
+        "email": "Eve@Example.com",
+        "profile": {
+          "city": "Paris"
+        }
+      },
+      {
+        "id": 6,
+        "email": "abe@example.com",
+        "profile": {
+          "city": "BERLIN"
+        }
+      },
+      {
+        "id": 7,
+        "email": "fay@example.com"
+      }
+    ]
+  }
+}

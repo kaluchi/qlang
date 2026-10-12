@@ -1,0 +1,2 @@
+{"name":"a-refusal-of-a-word-leads-to-where-it-lives","query":"::reduce | doc !| /addresses","expect":"#[::map/reduce ::set/reduce ::vec/reduce]","decision":["D137","D169"]}
+{"name":"the-page-of-a-kinds-word-is-read-by-its-address","query":"::vec/reduce | doc | type","expect":"::doc","decision":"D137"}

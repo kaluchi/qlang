@@ -15,7 +15,7 @@
 // (HTTP error, parse error inside the loaded source) propagates as
 // `SourceLoadError`.
 
-import { SourceLoadError } from './source-load-error.mjs';
+import { BuiltinSourceLoadError } from './source-load-error.mjs';
 
 /* global fetch */
 export async function loadSource(logicalName) {
@@ -27,7 +27,7 @@ export async function loadSource(logicalName) {
   }
   const res = await fetch(url);
   if (!res.ok) {
-    throw new SourceLoadError({
+    throw new BuiltinSourceLoadError({
       host: 'web',
       logicalName,
       sourceLocation: url,

@@ -2,14 +2,15 @@
 {"name":"sub-partial","query":"10 | sub 3","expect":"7"}
 {"name":"mul-partial","query":"10 | mul 2","expect":"20"}
 {"name":"div-partial","query":"10 | div 2","expect":"5"}
-{"name":"add-full","query":"{:x 10 :y 5} | add /x /y","expect":"15"}
-{"name":"sub-full-noncommutative","query":"{:x 10 :y 3} | sub /x /y","expect":"7"}
-{"name":"mul-full","query":"{:x 5 :y 4} | mul /x /y","expect":"20"}
-{"name":"div-full-noncommutative","query":"{:x 20 :y 4} | div /x /y","expect":"5"}
+{"name":"sumOf-adds-two-fields-of-one-map","query":"{:x 10 :y 5} | sumOf /x /y","expect":"15","decision":"D165"}
+{"name":"subOf-subtracts-the-second-field-from-the-first","query":"{:x 10 :y 3} | subOf /x /y","expect":"7","decision":"D165"}
+{"name":"mulOf-multiplies-two-fields-of-one-map","query":"{:x 5 :y 4} | mulOf /x /y","expect":"20","decision":"D165"}
+{"name":"divOf-divides-the-first-field-by-the-second","query":"{:x 20 :y 4} | divOf /x /y","expect":"5","decision":"D165"}
 {"name":"chained-arith","query":"10 | add 5 | mul 2 | sub 10","expect":"20"}
-{"name":"add-overflow-lifts-not-finite","query":"1e308 | add 1e308 !| type","expect":"::AddResultNotFiniteError"}
-{"name":"sub-overflow-lifts-not-finite","query":"-1e308 | sub 1e308 !| type","expect":"::SubResultNotFiniteError"}
-{"name":"mul-overflow-lifts-not-finite","query":"1e308 | mul 10 !| type","expect":"::MulResultNotFiniteError"}
-{"name":"div-overflow-lifts-not-finite","query":"1e308 | div 0.0001 !| type","expect":"::DivResultNotFiniteError"}
-{"name":"overflow-descriptor-carries-both-operands","query":"1e308 | mul 10 !| [/leftValue /rightValue]","expect":"[1e308 10]"}
+{"name":"add-overflow-lifts-not-finite","query":"1e308 | add 1e308 !| type","expect":"::number/NotFiniteError","decision":"D169"}
+{"name":"sub-overflow-lifts-not-finite","query":"-1e308 | sub 1e308 !| type","expect":"::number/NotFiniteError","decision":"D169"}
+{"name":"mul-overflow-lifts-not-finite","query":"1e308 | mul 10 !| type","expect":"::number/NotFiniteError","decision":"D169"}
+{"name":"div-overflow-lifts-not-finite","query":"1e308 | div 0.0001 !| type","expect":"::number/NotFiniteError","decision":"D169"}
+{"name":"an-overflow-holds-its-subject-on-the-trail","query":"1e308 | mul 10 !| /trail/0/subject","expect":"1e308","decision":"D169"}
 {"name":"finite-arithmetic-pays-no-toll","query":"[1 2 3] | sum | add 4 | mul 2 | div 4 | sub 1","expect":"4"}
+{"name":"the-digits-of-round-are-refused-under-the-part","query":"2.5 | round 0.5 !| type","expect":"::number/round/digits/NotIntegerError","decision":"D218"}

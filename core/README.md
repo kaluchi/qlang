@@ -7,7 +7,7 @@ pipelines. Domain-agnostic. Pure. Composable.
 > [1 2 3 4 5] | filter ~(gt 3) | count
 2
 
-> :double ::verb~(mul 2) | [10 20 30] * double
+> :number/double ~(mul 2) | [10 20 30] | map ~double
 [20 40 60]
 
 > "10 | add 3" | parse | apply /
@@ -15,38 +15,44 @@ pipelines. Domain-agnostic. Pure. Composable.
 ```
 
 The language documents itself: every name has a page, a doc whose
-laws run. `::qlang | doc` opens the root page, `::qlang | manifest`
-lists the kinds, `::vec | spec | /verbs` the verbs of one, and
-`::vec/sort | doc` the page of a verb. The command line,
-`@kaluchi/qlang-cli`, runs a query from the shell.
+laws run. `::qlang | doc` opens the first page, `env | keys` lists the
+names in scope, the kinds among them, `::vec | manifest` the names
+declared under one, `::any/sort | manifest` the parts every `sort`
+shares, and `::vec/sort | doc` the page of a name. The command line, `@kaluchi/qlang-cli`, runs a query from the
+shell.
 
 ## Embedding
 
-A host keeps a session, whose cells share the names they declare:
+A host keeps a session, whose cells share the names they declare. The
+host's sources declare the root beside the language's, each run as a
+cell before the first one a reader writes:
 
 ```js
 import { createSession, printValue } from '@kaluchi/qlang-core';
 
 const session = await createSession({
-  locator: async (namespaceName) => namespaceName === 'my/tools'
-    ? { source: ':@fetch ::verb~(:url ::string | ::builtin{:impl :my/tools/@fetch})',
-        impls: { '@fetch': async (subject, url) => fetchText(url) } }
-    : null
+  sources: [{
+    uri: 'my/tools',
+    source: ':string/@fetch ::builtin{}',
+    impls: { 'string/@fetch': async (url) => fetchText(url) }
+  }]
 });
 
-const cell = await session.evalCell('use :my/tools | @fetch "https://example.org"');
+const cell = await session.evalCell('"https://example.org" | @fetch');
 cell.error;               // a ParseError when the source does not parse, else null
 printValue(cell.result);  // the answer as its literal; a failure is an error value
 ```
 
-- `createSession({ env?, locator? })` answers a session: `evalCell(source,
+- `createSession({ env?, sources? })` answers a session: `evalCell(source,
   { initialPipeValue?, uri? })` evaluates one cell and answers
   `{ source, uri, ast, result, error, envAfterCell }`; `bind(name, value)`
   installs a value under a name; `env` is the current scope.
-- A locator answers a module as `{ source, impls }`: the source declares
-  its verbs with their heads, and each implementation is a plain function
-  over the values the head checked, the subject first and the slots in
-  their order. `use :ns` asks the locator once per namespace.
+- A source is `{ uri, source, impls? }`: its declarations stand in the
+  root, a name declared under the kind of its subject whose value is
+  `::builtin{}`, `:string/@fetch`, the parts of its args names under
+  it, and each implementation is a plain function over the subject and
+  the values of the parts in their order. A source that declares a name
+  the root holds is refused.
 - `evalQuery(source)` evaluates one query in a fresh runtime.
 - `printValue(value)` writes the literal of a value, which `evalQuery`
   reads back; the literal is the one lossless form. `toPlain` and

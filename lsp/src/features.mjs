@@ -3,39 +3,35 @@
 
 import {
   parse, ParseError,
-  langRuntime, evalQuery,
+  langRuntime, evalQuery, answerKindsOf,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
   writesTag,
   bindingNamesVisibleAt,
-  VALUE_NAMESPACE,
-  TAG_NAMESPACE,
+  splitAddress,
+  CALL_SPELLING,
+  TAG_SPELLING,
   FORK_ISOLATING_AST_TYPES,
   walkAst,
-  isModuleNamespaceKey,
-  isTagBindingName,
-  RUNTIME_LOCATOR_KEY,
-  tagBindingKey,
-  canonicalTagName,
   tokenize,
   isNameStart,
   isNameContinue,
-  isKeyword,
-  isTagKeyword,
-  isVerb,
-  typeKeyword,
-  bindingValueOf,
-  printQuoteSource,
-  signatureSpecOf,
-  slotLabelsOf,
-  verbShownFor,
-  verbsReaching
+  shownFor,
+  verbsReaching,
+  verbNames,
+  nodeOf,
+  nodeAddresses,
+  bareNameReach,
+  residencesOf,
+  isLabel,
+  isWord,
+  declaresWord
 } from '@kaluchi/qlang-core';
 
-// The fields of a descriptor, which the loader's `use` alone is [D79].
-const F_CATEGORY  = 'category';
-const F_SUBJECT   = 'subject';
-const F_MODIFIERS = 'modifiers';
+// A tag as the server names it, `::number`, apart from the names of verbs.
+const TAG_SIGIL = '::';
+const tagNameOf = tag => TAG_SIGIL + tag;
+const isTagName = name => name.startsWith(TAG_SIGIL);
 
 // The prose of a doc, its segments without its quotes [D94], which hover
 // and completion show; a doc the runtime answers is its segments, and a
@@ -65,14 +61,14 @@ function dedent(text) {
 }
 
 // The contents of the page a name reads, once per name: a tag's own, the
-// page of a verb several kinds answer on its contract on any value [D72],
-// or the page of the first address where a verb of the name lives [D62].
+// page of a word of any value, or the page of the first address where
+// the word lives [D62], [D169].
 const docsCache = new Map();
 async function fetchDocsContents(name) {
   if (docsCache.has(name)) return docsCache.get(name);
-  const query = isTagBindingName(name)
+  const query = isTagName(name)
     ? `${name} | doc`
-    : `::any/${name} | doc !| (:"${name}" | doc) !| (/addresses | first | if (eq null) ~(null) ~(doc))`;
+    : `::any/${name} | doc !| (::${name} | doc) !| (/addresses | first | if (eq null) ~(null) ~(doc))`;
   let page;
   try {
     page = await evalQuery(query);
@@ -115,8 +111,8 @@ export function parseDocument(source, uri) {
 
 // ── Catalog context ───────────────────────────────────────────
 
-// The declarations of a module of the catalog by name, a verb's and a
-// tag's alike, each with the span goto-definition jumps to.
+// The declarations of a source of the catalog by the name each declares,
+// its address [D153], with the span goto-definition jumps to.
 export function buildCatalogIndex(catalogAst) {
   const index = new Map();
   if (!catalogAst) return index;
@@ -124,16 +120,23 @@ export function buildCatalogIndex(catalogAst) {
     // The declarations of a doc's examples belong to the examples.
     if (node.type === 'DocLit') return false;
     if (node.type !== 'BindStep') return;
-    let name;
-    if (node.key.type === 'Keyword') name = node.key.name;
-    else if (node.key.type === 'BareTypeKeyword') name = tagBindingKey(node.key.tag);
-    else return;
-    index.set(name, {
-      startOffset: node.location.start.offset,
-      endOffset: node.location.end.offset
-    });
+    const span = { startOffset: node.location.start.offset, endOffset: node.location.end.offset };
+    index.set(node.key.name, span);
   });
   return index;
+}
+
+// The catalog's declaration of what a name reaches with no subject [D62],
+// [D153]: the one word of the name, or of a word several kinds answer the
+// first the catalog declares [D169]; for an address the node it names.
+function catalogDeclarationOf({ index, runtime }, name) {
+  const reach = bareNameReach(runtime, name);
+  if (reach !== null) return index.get(reach.record.get('name').name) ?? null;
+  for (const [, record] of residencesOf(runtime, name)) {
+    const span = index.get(record.get('name').name);
+    if (span !== undefined) return span;
+  }
+  return index.get(name) ?? null;
 }
 
 // ── Completion ────────────────────────────────────────────────
@@ -142,38 +145,34 @@ export function buildCatalogIndex(catalogAst) {
 let _valueCompletions = null;
 let _tagCompletions = null;
 
-async function valueNamespaceCompletions() {
+async function nameCompletions() {
   if (_valueCompletions) return _valueCompletions;
   const runtime = await langRuntime();
   _valueCompletions = [];
-  for (const [k, entry] of runtime) {
-    if (isModuleNamespaceKey(k)) continue;
-    if (k === RUNTIME_LOCATOR_KEY) continue;
-    if (isTagBindingName(k)) continue;
-    const descriptor = bindingValueOf(entry);
-    if (!(descriptor instanceof Map) && !isVerb(descriptor)) continue;
-    const docContents = await fetchDocsContents(k);
+  for (const name of verbNames(runtime)) {
+    if (shownFor(runtime, name) === undefined) continue;
+    const docContents = await fetchDocsContents(name);
     _valueCompletions.push({
-      label: k,
+      label: name,
       kind: 'function',
-      detail: isVerb(descriptor) ? signatureTextOf(runtime, k) : formatMetaValue(descriptor.get(F_CATEGORY)),
+      detail: signatureTextOf(runtime, name),
       documentation: tidyProse(docContents[0] ?? '')
     });
   }
   return _valueCompletions;
 }
 
-async function tagNamespaceCompletions() {
+async function tagCompletions() {
   if (_tagCompletions) return _tagCompletions;
   const runtime = await langRuntime();
   _tagCompletions = [];
-  for (const [k] of runtime) {
-    if (!isTagBindingName(k)) continue;
-    const docContents = await fetchDocsContents(k);
+  for (const address of nodeAddresses(runtime)) {
+    const label = tagNameOf(address);
+    const docContents = await fetchDocsContents(label);
     _tagCompletions.push({
-      label: k,
+      label,
       kind: 'tag',
-      detail: 'tag-binding',
+      detail: 'a name of the root',
       documentation: tidyProse(docContents[0] ?? '')
     });
   }
@@ -191,25 +190,26 @@ function justTypedDoubleColon(source, offset) {
 // declaration's, every name.
 export async function completionsAtOffset(ast, offset, source = null) {
   if (justTypedDoubleColon(source, offset)) {
-    return withDeclaredNames([...(await tagNamespaceCompletions())], ast, offset, [TAG_NAMESPACE]);
+    return withDeclaredNames([...(await tagCompletions())], ast, offset, [TAG_SPELLING]);
   }
   const subject = typeof source === 'string' ? await subjectAt(source, offset) : null;
   if (subject !== null) {
     const reached = verbsReaching(await langRuntime(), subject.kinds);
-    const verbs = (await valueNamespaceCompletions()).filter(item => reached.has(item.label));
-    return withDeclaredNames(verbs, subject.pipeline, subject.end, [VALUE_NAMESPACE]);
+    const verbs = (await nameCompletions()).filter(item => reached.has(item.label));
+    return withDeclaredNames(verbs, subject.pipeline, subject.end, [CALL_SPELLING]);
   }
-  const everyName = [...(await valueNamespaceCompletions()), ...(await tagNamespaceCompletions())];
-  return withDeclaredNames(everyName, ast, offset, [VALUE_NAMESPACE, TAG_NAMESPACE]);
+  const everyName = [...(await nameCompletions()), ...(await tagCompletions())];
+  return withDeclaredNames(everyName, ast, offset, [CALL_SPELLING, TAG_SPELLING]);
 }
 
-function withDeclaredNames(items, ast, offset, namespaces) {
+function withDeclaredNames(items, ast, offset, spellings) {
   if (!ast) return items;
-  for (const namespace of namespaces) {
-    for (const name of bindingNamesVisibleAt(ast, offset, namespace)) {
+  for (const spelling of spellings) {
+    for (const declared of bindingNamesVisibleAt(ast, offset, spelling)) {
+      const name = spelling === TAG_SPELLING ? tagNameOf(declared) : declared;
       if (items.some(item => item.label === name)) continue;
-      items.push(namespace === TAG_NAMESPACE
-        ? { label: name, kind: 'tag', detail: 'in-document tag-binding', documentation: null }
+      items.push(spelling === TAG_SPELLING
+        ? { label: name, kind: 'tag', detail: 'in-document kind', documentation: null }
         : { label: name, kind: 'variable', detail: 'BindStep binding', documentation: null });
     }
   }
@@ -220,9 +220,8 @@ function withDeclaredNames(items, ast, offset, namespaces) {
 const KIND_OF_LITERAL = {
   NumberLit: 'number', StringLit: 'string', BooleanLit: 'boolean', NullLit: 'null',
   Keyword: 'keyword', VecLit: 'vec', MapLit: 'map', SetLit: 'set',
-  QuoteLit: 'quote', DocLit: 'doc', BareTypeKeyword: 'tag'
+  QuoteLit: 'quote', DocLit: 'doc', TagLit: 'tag'
 };
-const CONTAINER_KINDS = new Set(['vec', 'set', 'map']);
 
 // Where the name being typed before the cursor begins.
 function wordStartBefore(source, offset) {
@@ -232,22 +231,25 @@ function wordStartBefore(source, offset) {
 }
 
 // The subject of the step at the cursor, the word being typed aside: the
-// pipeline it continues after `|` or a line break, where that pipeline
-// parses and its value has kinds its declarations name; a step after `*`
-// or `!|` takes an element or an error, and has none.
+// steps before it, where the source with a step at the cursor parses, that
+// step follows `|` or a line break, and the value before it has kinds its
+// declarations name; a step after `!|` takes an error, and has none. The
+// parser tells the combinator, the grammar written once.
 async function subjectAt(source, offset) {
-  const before = source.slice(0, wordStartBefore(source, offset));
-  const continued = before.match(/\s(!\||\||\*)\s*$/) ?? before.match(/\n\s*$/);
-  if (continued === null || continued[1] === '*' || continued[1] === '!|') return null;
+  const start = wordStartBefore(source, offset);
   let pipeline;
   try {
-    pipeline = parse(before.slice(0, continued.index));
+    pipeline = parse(`${source.slice(0, start)}${STEP_AT_CURSOR}`);
   } catch {
     return null;
   }
-  const kinds = await kindsOfSteps(stepsOf(pipeline), null);
-  return kinds === null ? null : { kinds, pipeline, end: continued.index };
+  const steps = stepsOf(pipeline);
+  if (steps.length < 2 || steps[steps.length - 1].combinator === '!|') return null;
+  const kinds = await kindsOfSteps(steps.slice(0, -1), null);
+  return kinds === null ? null : { kinds, pipeline, end: start };
 }
+
+const STEP_AT_CURSOR = ' /';
 
 function stepsOf(pipelineNode) {
   if (pipelineNode.type !== 'Pipeline') return [{ combinator: '|', step: pipelineNode }];
@@ -255,15 +257,15 @@ function stepsOf(pipelineNode) {
 }
 
 // The kinds of the value the steps answer from a subject of the kinds: a
-// literal's own, the subject's through a declaration and a `!|` step, a
-// container's through `*`, and a verb's `:returns`, `/` for its
-// subject's own [D67]; null where a step answers no declared kind.
+// literal's own, the subject's through a declaration and a `!|` step, and
+// a name's the labels its answer's definition names, the subject's own
+// where that is the word's own label [D169]; null where a step answers no
+// declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
   for (const { combinator, step } of steps) {
     if (combinator === '!|') continue;
-    if (combinator === '*') kinds = CONTAINER_KINDS.has(kinds?.[0]) ? kinds : null;
-    else kinds = await kindsAfterStep(step, kinds);
+    kinds = await kindsAfterStep(step, kinds);
   }
   return kinds;
 }
@@ -272,13 +274,11 @@ async function kindsAfterStep(step, kinds) {
   if (Object.hasOwn(KIND_OF_LITERAL, step.type)) return [KIND_OF_LITERAL[step.type]];
   if (step.type === 'BindStep') return kinds;
   if (step.type === 'ParenGroup') return await kindsOfSteps(stepsOf(step.pipeline), kinds);
-  if (step.type !== 'OperandCall' || kinds === null) return null;
+  if (step.type !== 'Call' || kinds === null) return null;
   const runtime = await langRuntime();
   const reached = verbsReaching(runtime, kinds).get(step.name);
   if (reached === undefined) return null;
-  const returns = await evalQuery(`${reached.address.literal} | spec | /returns`, runtime);
-  if (isTagKeyword(returns)) return [returns.name];
-  return typeKeyword(returns).name === 'proj' ? kinds : null;
+  return answerKindsOf(runtime, nodeOf(runtime, reached.address.name), kinds);
 }
 
 // ── Hover ─────────────────────────────────────────────────────
@@ -289,10 +289,10 @@ export async function hoverAtOffset(ast, source, offset) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return null;
 
-  if (node.type === 'OperandCall') {
-    return await hoverForOperand(node, ast);
+  if (node.type === 'Call') {
+    return await hoverForCall(node, ast);
   }
-  if (node.type === 'BareTypeKeyword' || isOnTagHead(node, offset)) {
+  if (node.type === 'TagLit' || isOnTagHead(node, offset)) {
     return await hoverForTag(node);
   }
   if (node.type === 'Projection') {
@@ -308,23 +308,19 @@ export async function hoverAtOffset(ast, source, offset) {
   return null;
 }
 
-// The head a verb of the runtime declares, as its signature prints [D72].
+// The address a name of the runtime reaches and what a call of it takes,
+// the slots of a head or the parts of the args [D164].
 function signatureTextOf(runtime, name) {
-  return printQuoteSource(signatureSpecOf(verbShownFor(runtime, name)).payload);
+  const shown = shownFor(runtime, name);
+  return [shown.address.literal, ...shown.labels].join(' ');
 }
 
-async function hoverForOperand(node, documentAst) {
+async function hoverForCall(node, documentAst) {
   const runtime = await langRuntime();
-  if (runtime.has(node.name)) {
-    const descriptor = bindingValueOf(runtime.get(node.name));
+  if (shownFor(runtime, node.name) !== undefined) {
     const docContents = await fetchDocsContents(node.name);
     const prose = tidyProse(docContents.join('\n'));
-    const heading = isVerb(descriptor)
-      ? [`**${node.name}** — ${signatureTextOf(runtime, node.name)}`]
-      : [
-        `**${node.name}** — ${formatMetaValue(descriptor.get(F_CATEGORY))}`,
-        `Subject: ${formatMetaValue(descriptor.get(F_SUBJECT))}`
-      ];
+    const heading = [`**${node.name}** — ${signatureTextOf(runtime, node.name)}`];
     return {
       content: markdownHardBreaks([...heading, '', prose].join('\n')),
       startOffset: node.location.start.offset,
@@ -367,9 +363,9 @@ function isOnTagHead(node, offset) {
 
 // The page of a tag a node names or writes, over the span of its head.
 async function hoverForTag(node) {
-  const tagKey = tagBindingKey(node.tag);
+  const tagKey = tagNameOf(node.tag);
   const runtime = await langRuntime();
-  if (!runtime.has(tagKey)) return null;
+  if (nodeOf(runtime, node.tag) === null) return null;
 
   const docContents = await fetchDocsContents(tagKey);
   const headStart = node.location.start.offset;
@@ -378,7 +374,7 @@ async function hoverForTag(node) {
   const prose = tidyProse(docContents.join('\n'));
   return {
     content: markdownHardBreaks([
-      `**${tagKey}** — tag-binding`,
+      `**${tagKey}** — a name of the root`,
       '',
       prose
     ].join('\n')),
@@ -396,16 +392,6 @@ function hoverForProjection(node) {
   };
 }
 
-function formatMetaValue(value) {
-  if (value === null || value === undefined) return 'any';
-  if (typeof value === 'string') return value;
-  if (isKeyword(value)) return value.name;
-  if (Array.isArray(value)) {
-    return value.map(formatMetaValue).join(' | ');
-  }
-  return String(value);
-}
-
 // ── Go to Definition ──────────────────────────────────────────
 
 // The declaration a name, a tag name or the head of a tag a node writes
@@ -417,52 +403,48 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return null;
 
-  let name;
-  if (node.type === 'OperandCall')        name = node.name;
-  else if (node.type === 'BareTypeKeyword') name = tagBindingKey(node.tag);
-  else if (isOnTagHead(node, offset))       name = tagBindingKey(node.tag);
+  let name, address;
+  if (node.type === 'Call')        [name, address] = [node.name, node.name];
+  else if (node.type === 'TagLit') [name, address] = [tagNameOf(node.tag), node.tag];
+  else if (isOnTagHead(node, offset))       [name, address] = [tagNameOf(node.tag), node.tag];
   else return null;
 
   const localDecl = findLastVisibleDeclaration(ast, name, offset);
   if (localDecl) return localDecl;
 
-  if (catalogCtx?.index?.has(name)) {
-    return catalogCtx.index.get(name);
-  }
-
-  return null;
+  return catalogCtx ? catalogDeclarationOf(catalogCtx, address) : null;
 }
 
-// The name a declaration binds and the symbol it shows as: a tag, a verb
-// for the verb literal as its body [D67], a value otherwise.
+// The name a declaration binds and what it declares: a label, its tag,
+// for a page alone [D168], a value otherwise.
 function bindingDeclarationOf(node) {
-  if (node.type === 'BindStep') {
-    if (node.key.type === 'BareTypeKeyword') {
-      return { name: tagBindingKey(node.key.tag), kind: 'tag' };
-    }
-    if (node.key.type === 'Keyword') {
-      const kind = bindingKindForKeywordHead(node);
-      return { name: node.key.name, kind };
-    }
-    return null;
-  }
-  return null;
+  if (node.type !== 'BindStep') return null;
+  return node.body === null
+    ? { name: tagNameOf(node.key.name), kind: 'tag' }
+    : { name: node.key.name, kind: 'value' };
 }
 
-function bindingKindForKeywordHead(bindStepNode) {
-  const body = bindStepNode.body;
-  return body?.type === 'TaggedLit' && canonicalTagName(body.tag) === 'verb' ? 'verb' : 'value';
+// Whether a declaration of a value declares a word, by the core's rule: a
+// name the runtime holds as the core answers it, and one of the document
+// as `declaresWord` reads it, a quote running where a reader's
+// `::builtin{}` reaches no primitive [D73], [D169].
+function declaresWordIn({ key, body }, runtime, isLabelName) {
+  return nodeOf(runtime, key.name) !== null
+    ? isWord(runtime, key.name)
+    : declaresWord(key.name, body.type === 'QuoteLit', isLabelName);
 }
 
 // The span of the last declaration of the name that stands before the
-// cursor in a scope that encloses it, or null.
+// cursor in a scope that encloses it, or null: a call by address reaches
+// the declaration of that address, and a bare call one whose name a step
+// calls it by.
 function findLastVisibleDeclaration(ast, name, offset) {
   let lastVisible = null;
 
   walkAst(ast, (node) => {
     if (node.type === 'DocLit') return false;
     const decl = bindingDeclarationOf(node);
-    if (decl === null || decl.name !== name) return;
+    if (decl === null || (decl.name !== name && (isTagName(name) || splitAddress(decl.name)[1] !== name))) return;
     if (!node.location || node.location.end.offset > offset) return;
     if (!isVisibleAcrossForks(node, offset)) return;
     lastVisible = {
@@ -500,25 +482,28 @@ export function referencesAtOffset(ast, offset) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return [];
 
-  // A call, a declaration or the keyword of its name, and a tag name.
+  // A call, a declaration or the keyword of its name, each by the name a
+  // step calls it by, and a tag name.
   let name = null;
-  if (node.type === 'OperandCall') {
-    name = node.name;
+  if (node.type === 'Call') {
+    name = splitAddress(node.name)[1];
   } else if (node.type === 'BindStep') {
-    if (node.key.type === 'Keyword') name = node.key.name;
-    else if (node.key.type === 'BareTypeKeyword') name = tagBindingKey(node.key.tag);
+    const declared = bindingDeclarationOf(node).name;
+    name = isTagName(declared) ? declared : splitAddress(declared)[1];
   } else if (node.type === 'Keyword' && node.parent) {
     const parent = node.parent;
     if (parent.type === 'BindStep' && parent.key === node) {
-      name = node.name;
+      name = splitAddress(node.name)[1];
     }
-  } else if (node.type === 'BareTypeKeyword') {
-    name = tagBindingKey(node.tag);
+  } else if (node.type === 'TagLit') {
+    name = tagNameOf(node.tag);
   }
 
   if (!name) return [];
 
-  const occurrences = findIdentifierOccurrences(ast, name);
+  const occurrences = isTagName(name)
+    ? findIdentifierOccurrences(ast, name.slice(TAG_SIGIL.length), TAG_SPELLING)
+    : findIdentifierOccurrences(ast, name);
   return occurrences
     .filter(occ => occ.location)
     .map(occ => ({
@@ -529,8 +514,19 @@ export function referencesAtOffset(ast, offset) {
 
 // ── Document Symbols ──────────────────────────────────────────
 
-export function documentSymbols(ast) {
+// documentSymbols(ast, runtime) → the declarations of a document, each
+// shown as a label, a word or a value; a label is a name the document
+// declares by its page alone, or a label of the language the runtime
+// holds.
+export function documentSymbols(ast, runtime) {
   if (!ast) return [];
+
+  const labels = new Set();
+  walkAst(ast, (node) => {
+    if (node.type === 'DocLit') return false;
+    if (node.type === 'BindStep' && node.body === null) labels.add(node.key.name);
+  });
+  const isLabelName = name => labels.has(name) || isLabel(runtime, name);
 
   const symbols = [];
   walkAst(ast, (node) => {
@@ -540,12 +536,34 @@ export function documentSymbols(ast) {
 
     symbols.push({
       name: decl.name,
-      kind: decl.kind,
+      kind: decl.kind === 'value' && declaresWordIn(node, runtime, isLabelName) ? 'verb' : decl.kind,
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     });
   });
   return symbols;
+}
+
+// ── Folding ───────────────────────────────────────────────────
+
+// foldingRangesOf(ast, source) → the line ranges an editor folds, from
+// 0: a declaration, a doc and a quote that span lines, the line of a
+// closer that stands alone left open; a doc folds as a comment.
+const FOLDED_NODE_TYPES = new Set(['BindStep', 'DocLit', 'QuoteLit']);
+
+export function foldingRangesOf(ast, source) {
+  if (!ast) return [];
+  const lines = source.split(/\r?\n/);
+  const ranges = [];
+  walkAst(ast, (node) => {
+    if (!FOLDED_NODE_TYPES.has(node.type)) return;
+    const startLine = node.location.start.line - 1;
+    const lastLine = node.location.end.line - 1;
+    const closerAlone = /^\s*(~~\||\))\s*$/.test(lines[lastLine]);
+    const endLine = closerAlone ? lastLine - 1 : lastLine;
+    if (endLine > startLine) ranges.push({ startLine, endLine, kind: node.type === 'DocLit' ? 'comment' : 'region' });
+  });
+  return ranges;
 }
 
 // ── Signature Help ────────────────────────────────────────────
@@ -556,34 +574,32 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   const node = findAstNodeAtOffset(ast, offset);
   if (!node) return null;
 
-  const operandCall = findEnclosingOperandCall(node);
-  if (!operandCall) return null;
+  const call = findEnclosingCall(node);
+  if (!call) return null;
 
   const runtime = await langRuntime();
-  if (!runtime.has(operandCall.name)) return null;
+  const shown = shownFor(runtime, call.name);
+  if (shown === undefined) return null;
 
-  const descriptor = bindingValueOf(runtime.get(operandCall.name));
-  const modifiers = isVerb(descriptor)
-    ? slotLabelsOf(verbShownFor(runtime, operandCall.name))
-    : descriptor.get(F_MODIFIERS).map(formatMetaValue);
-  const docContents = await fetchDocsContents(operandCall.name);
+  const modifiers = shown.labels;
+  const docContents = await fetchDocsContents(call.name);
 
   // The active parameter is the modifier the cursor stands on or after:
   // one per word that ends before it.
-  const activeParameter = operandCall.args.filter(arg => arg.location.end.offset < offset).length;
+  const activeParameter = call.args.filter(arg => arg.location.end.offset < offset).length;
 
   return {
-    label: [operandCall.name, ...modifiers].join(' '),
+    label: [call.name, ...modifiers].join(' '),
     documentation: tidyProse(docContents[0] ?? ''),
     parameters: modifiers.map(mod => ({ label: mod })),
     activeParameter
   };
 }
 
-function findEnclosingOperandCall(node) {
+function findEnclosingCall(node) {
   let current = node;
   while (current) {
-    if (current.type === 'OperandCall' && current.args.length > 0) {
+    if (current.type === 'Call' && current.args.length > 0) {
       return current;
     }
     current = current.parent;
@@ -607,8 +623,8 @@ export const SEMANTIC_TOKEN_TYPES = [
 ];
 
 const KIND_TO_TYPE_INDEX = {
-  operand: 0,
-  atom:    1,
+  word:    0,
+  name:    1,
   effect:  2,
   keyword: 3,
   tag:     4,
@@ -619,18 +635,11 @@ const KIND_TO_TYPE_INDEX = {
   err:     3
 };
 
-// The names of the runtime, which `tokenize` paints as operands.
+// The names of the runtime, which `tokenize` paints as words.
 let _builtinNamesCache = null;
 async function builtinNamesForTokenize() {
   if (_builtinNamesCache) return _builtinNamesCache;
-  const runtime = await langRuntime();
-  _builtinNamesCache = new Set();
-  for (const k of runtime.keys()) {
-    if (isModuleNamespaceKey(k)) continue;
-    if (k === RUNTIME_LOCATOR_KEY) continue;
-    if (isTagBindingName(k)) continue;
-    _builtinNamesCache.add(k);
-  }
+  _builtinNamesCache = verbNames(await langRuntime());
   return _builtinNamesCache;
 }
 

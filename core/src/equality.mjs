@@ -7,7 +7,7 @@
 // are, index by index.
 
 import {
-  isKeyword, isTagKeyword, isErrorValue, TAG_HEADER_SYMBOL,
+  isKeyword, isTag, isErrorValue, TAG_HEADER_SYMBOL,
   isValueClass, isQMap
 } from './types.mjs';
 
@@ -49,8 +49,8 @@ export function deepEqual(a, b) {
   if (isKeyword(a)) {
     return isKeyword(b) && a.name === b.name;
   }
-  if (isTagKeyword(a)) {
-    return isTagKeyword(b) && a.name === b.name;
+  if (isTag(a)) {
+    return isTag(b) && a.name === b.name;
   }
   if (isErrorValue(a)) {
     return isErrorValue(b)

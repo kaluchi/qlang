@@ -9,8 +9,7 @@ import {
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
-  bindingNamesVisibleAt
-} from '../../src/walk.mjs';
+  bindingNamesVisibleAt, readsItsSubject, TAG_SPELLING } from '../../src/walk.mjs';
 
 describe('astChildrenOf', () => {
   it('yields steps for a Pipeline', () => {
@@ -19,7 +18,7 @@ describe('astChildrenOf', () => {
     const children = astChildrenOf(ast);
     expect(children).toHaveLength(2);
     expect(children[0].type).toBe('VecLit');
-    expect(children[1].type).toBe('OperandCall');
+    expect(children[1].type).toBe('Call');
     expect(children[1].name).toBe('count');
   });
 
@@ -41,12 +40,12 @@ describe('astChildrenOf', () => {
     expect(keyAndValue[0].name).toBe('name');
   });
 
-  it('yields args for a :name body OperandCall', () => {
+  it('yields args for a :name body call', () => {
     const ast = parse(':double mul 2');
     const children = astChildrenOf(ast);
     expect(children).toHaveLength(2);
     expect(children[0].type).toBe('Keyword');
-    expect(children[1].type).toBe('OperandCall');
+    expect(children[1].type).toBe('Call');
     expect(children[1].name).toBe('mul');
   });
 
@@ -72,7 +71,7 @@ describe('astChildrenOf', () => {
     expect(astChildrenOf({})).toEqual([]);
   });
 
-  it('yields args for an OperandCall and nothing for a bare ident', () => {
+  it('yields args for a call and nothing for a bare ident', () => {
     const withArgs = parse('add 2 3');
     expect(astChildrenOf(withArgs)).toHaveLength(2);
     const bare = parse('count');
@@ -88,7 +87,7 @@ describe('walkAst', () => {
     expect(visited).toContain('Pipeline');
     expect(visited).toContain('VecLit');
     expect(visited).toContain('NumberLit');
-    expect(visited).toContain('OperandCall');
+    expect(visited).toContain('Call');
   });
 
   it('skips children when visitor returns false', () => {
@@ -155,7 +154,7 @@ describe('findAstNodeAtOffset', () => {
     const ast = parse(source);
     const node = findAstNodeAtOffset(ast, 19);
     expect(node).not.toBeNull();
-    expect(node.type).toBe('OperandCall');
+    expect(node.type).toBe('Call');
     expect(node.name).toBe('gt');
   });
 
@@ -169,11 +168,11 @@ describe('findAstNodeAtOffset', () => {
 });
 
 describe('findIdentifierOccurrences', () => {
-  it('finds OperandCall occurrences of a name', () => {
+  it('finds Call occurrences of a name', () => {
     const ast = parse('count | add count');
     const refs = findIdentifierOccurrences(ast, 'count');
     expect(refs.length).toBeGreaterThanOrEqual(2);
-    expect(refs.every(n => n.type === 'OperandCall' && n.name === 'count')).toBe(true);
+    expect(refs.every(n => n.type === 'Call' && n.name === 'count')).toBe(true);
   });
 
   it('finds :name ... declaration alongside read sites', () => {
@@ -182,7 +181,7 @@ describe('findIdentifierOccurrences', () => {
     // Both the `:double …` BindStep declaration and the bare
     // `double` read site land in the result — the BindStep matches
     // because its `.key` Keyword names `double`, the read site
-    // matches as an OperandCall named `double`.
+    // matches as a call named `double`.
     expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -190,7 +189,7 @@ describe('findIdentifierOccurrences', () => {
     // `::Foo!{…}` names the tag of its content, and an error literal
     // that writes none names no tag [D86].
     const ast = parse('::Foo!{:k 1} | [::Foo[1] !{:j 2}]');
-    const refs = findIdentifierOccurrences(ast, '::Foo');
+    const refs = findIdentifierOccurrences(ast, 'Foo', TAG_SPELLING);
     expect(refs.map(ref => ref.type)).toEqual(['ErrorLit', 'TaggedLit']);
   });
 
@@ -207,25 +206,31 @@ describe('findIdentifierOccurrences', () => {
     expect(refs).toHaveLength(0);
   });
 
-  it('finds TaggedLit occurrences when name carries the :: prefix', () => {
-    const ast = parse('::verb~(count)');
-    const refs = findIdentifierOccurrences(ast, '::verb');
+  it('finds TaggedLit occurrences written as a tag', () => {
+    const ast = parse('::holds~(count)');
+    const refs = findIdentifierOccurrences(ast, 'holds', TAG_SPELLING);
     // The TaggedLit node itself plus any nested references; here
     // only the constructor invocation matches.
     expect(refs.length).toBeGreaterThanOrEqual(1);
-    expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'verb')).toBe(true);
+    expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'holds')).toBe(true);
   });
 
-  it('finds BareTypeKeyword occurrences for tag-namespace lookup', () => {
-    const ast = parse('::verb | source');
-    const refs = findIdentifierOccurrences(ast, '::verb');
-    expect(refs.some(n => n.type === 'BareTypeKeyword' && n.tag === 'verb')).toBe(true);
+  it('finds a name with a path by the name a step calls it by', () => {
+    const ast = parse(':any/double ~(mul 2) | [1 2] | map ~double | any/double');
+    const refs = findIdentifierOccurrences(ast, 'double');
+    expect(refs.map(n => n.type)).toEqual(['BindStep', 'Call', 'Call']);
   });
 
-  it('finds BindStep tag-binding declaration via :: lookup', () => {
-    const ast = parse('::Box {}');
-    const refs = findIdentifierOccurrences(ast, '::Box');
-    expect(refs.some(n => n.type === 'BindStep' && n.key.type === 'BareTypeKeyword' && n.key.tag === 'Box')).toBe(true);
+  it('finds TagLit occurrences written as a tag', () => {
+    const ast = parse('::Box | source');
+    const refs = findIdentifierOccurrences(ast, 'Box', TAG_SPELLING);
+    expect(refs.some(n => n.type === 'TagLit' && n.tag === 'Box')).toBe(true);
+  });
+
+  it('finds the declaration of a kind written as a tag', () => {
+    const ast = parse(':Box |~~ Box. ~~|');
+    const refs = findIdentifierOccurrences(ast, 'Box', TAG_SPELLING);
+    expect(refs.some(n => n.type === 'BindStep' && n.key.name === 'Box')).toBe(true);
   });
 });
 
@@ -236,6 +241,11 @@ describe('bindingNamesVisibleAt', () => {
     const visible = bindingNamesVisibleAt(ast, source.length);
     expect(visible.has('x')).toBe(true);
     expect(visible.has('y')).toBe(true);
+  });
+
+  it('offers a name with a path by the name a step calls it by', () => {
+    const source = ':any/twice ~(mul 2) | 5';
+    expect(bindingNamesVisibleAt(parse(source), source.length).has('twice')).toBe(true);
   });
 
   it('does not include bindings that are still ahead of the cursor', () => {
@@ -255,7 +265,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('a non-binding Pipeline step does not contribute names', () => {
-    // `mul(2)` is an OperandCall, not a BindStep; the
+    // `mul(2)` is a call, not a BindStep; the
     // binding-name walker skips it. With no binders in scope at the
     // cursor, the visible set stays empty.
     const source = '42 | mul 2 | here';
@@ -305,31 +315,31 @@ describe('bindingNamesVisibleAt', () => {
     expect(visible.has('outer')).toBe(true);
   });
 
-  it('TAG_NAMESPACE surfaces BareTypeKeyword BindStep declarations with `::` prefix', async () => {
-    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
-    const source = '::MyType {:impl ~(42)} | 42';
+  it('TAG_SPELLING surfaces the declarations of kinds by their names', async () => {
+    const { TAG_SPELLING } = await import('../../src/walk.mjs');
+    const source = ':MyType |~~ MyType. ~~| | :MyType/construct ~(42) | 42';
     const ast = parse(source);
-    const visible = bindingNamesVisibleAt(ast, source.length, TAG_NAMESPACE);
-    expect(visible.has('::MyType')).toBe(true);
+    const visible = bindingNamesVisibleAt(ast, source.length, TAG_SPELLING);
+    expect(visible.has('MyType')).toBe(true);
   });
 
-  it('TAG_NAMESPACE skips value-namespace BindStep declarations', async () => {
-    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
+  it('TAG_SPELLING skips the declarations of names that are no kind', async () => {
+    const { TAG_SPELLING } = await import('../../src/walk.mjs');
     const source = ':valueName 1 | 42';
     const ast = parse(source);
-    const visible = bindingNamesVisibleAt(ast, source.length, TAG_NAMESPACE);
+    const visible = bindingNamesVisibleAt(ast, source.length, TAG_SPELLING);
     expect(visible.has('valueName')).toBe(false);
     expect(visible.has(':valueName')).toBe(false);
     expect(visible.size).toBe(0);
   });
 
-  it('TAG_NAMESPACE honours fork-isolation rules', async () => {
-    const { TAG_NAMESPACE } = await import('../../src/walk.mjs');
-    const source = '(::Local {:impl ~(42)}) | here';
+  it('TAG_SPELLING honours fork-isolation rules', async () => {
+    const { TAG_SPELLING } = await import('../../src/walk.mjs');
+    const source = '(:Local |~~ Local. ~~| | :Local/construct ~(42)) | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
-    const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_NAMESPACE);
-    expect(visible.has('::Local')).toBe(false);
+    const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_SPELLING);
+    expect(visible.has('Local')).toBe(false);
   });
 });
 
@@ -356,7 +366,7 @@ describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
     const ast = parse('42 | :snapshot / | snapshot');
     const refs = findIdentifierOccurrences(ast, 'snapshot');
     // The `:snapshot /` BindStep matches by its key; bare `snapshot`
-    // matches as a read-site OperandCall.
+    // matches as a read-site Call.
     expect(refs.length).toBeGreaterThanOrEqual(2);
   });
 });
@@ -367,5 +377,44 @@ describe('astChildrenOf on a stepless Pipeline', () => {
     // without steps; the walk reports it as a leaf rather than
     // reaching for a head step that is not there.
     expect(astChildrenOf({ type: 'Pipeline', steps: [] })).toEqual([]);
+  });
+});
+
+// A query reads its subject where its first step that declares nothing
+// does, or a declaration's body before it; a host waits on the stream it
+// lifts the subject from only then [D215].
+describe('readsItsSubject', () => {
+  const readsOf = query => readsItsSubject(parse(query));
+
+  it('holds that a literal of no parts reads no subject', () => {
+    for (const query of ['1', '"s"', 'true', 'null', ':k', '::vec']) expect(readsOf(query), query).toBe(false);
+  });
+
+  it('holds that a quote reads none, its code not run', () => {
+    expect(readsOf('~(/a)')).toBe(false);
+  });
+
+  it('holds that a literal of parts reads it where a part does', () => {
+    for (const query of ['[1 2]', '#[1]', '{:a 1}', '!{:a 1}', '::Box{:k 1}', '(1 | add 1)', '|~~ see ::link~(/x) ~~|']) {
+      expect(readsOf(query), query).toBe(false);
+    }
+    for (const query of ['[/a 1]', '{:a /b}', '::Box{:k /a}', '(/a)']) expect(readsOf(query), query).toBe(true);
+  });
+
+  it('holds that a projection, a call and a blank query read it', () => {
+    for (const query of ['/a', 'doc', '']) expect(readsOf(query), query).toBe(true);
+  });
+
+  it('reads a pipeline by its first step that declares nothing', () => {
+    expect(readsOf('1 | add 1')).toBe(false);
+    expect(readsOf('::vec | doc')).toBe(false);
+    expect(readsOf('doc | [1]')).toBe(true);
+    expect(readsOf(':two 2 | [1]')).toBe(false);
+  });
+
+  it('reads a declaration whose body reads, and a query of declarations alone', () => {
+    expect(readsOf(':x /a | [1]')).toBe(true);
+    expect(readsOf(':two 2')).toBe(true);
+    expect(readsOf(':a 1 | :b 2')).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 {"name":"json-type-quote-classifies-as-map","query":"{\"type\": \"quote\", \"source\": \"hi\"} | type","expect":"::map"}
 {"name":"json-type-doc-classifies-as-map","query":"{\"type\": \"doc\", \"content\": \"c\"} | type","expect":"::map"}
 {"name":"json-type-keyword-classifies-as-map","query":"{\"type\": \"keyword\", \"name\": \"x\"} | type","expect":"::map"}
-{"name":"json-type-tagKeyword-classifies-as-map","query":"{\"type\": \"tagKeyword\", \"name\": \"X\"} | type","expect":"::map"}
+{"name":"json-type-tag-classifies-as-map","query":"{\"type\": \"tag\", \"name\": \"X\"} | type","expect":"::map"}
 {"name":"json-type-function-classifies-as-map","query":"{\"type\": \"function\"} | type","expect":"::map"}
 {"name":"json-type-error-classifies-as-map","query":"{\"type\": \"error\", \"msg\": \"boom\"} | type","expect":"::map"}
 {"name":"json-type-taggedInstance-classifies-as-map","query":"{\"type\": \"taggedInstance\"} | type","expect":"::map"}

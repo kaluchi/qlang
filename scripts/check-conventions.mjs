@@ -19,13 +19,11 @@
 //       as part of a legitimate reference, etc.) for a cheap
 //       grep — those stay under human review.
 //
-//   (3) Per-site error class `Error` suffix. Every concrete class
-//       introduced by a `declare*Error(...)` factory call or by a
-//       direct `class Foo extends QlangError` declaration across
-//       `core/src`, `cli/src`, `lsp/src` must carry the `Error`
-//       suffix, so the named-error island stays distinct from the
-//       value-class tag-bindings (`::verb`, `::qlang`,
-//       `::json`).
+//   (3) A refusal is declared by its address. Every factory of a
+//       refusal and every recording of a site takes the address as a
+//       literal, `'noun/LastNameError'`, and the constant that holds
+//       the class is the address without its slash, across `core/src`,
+//       `cli/src`, `lsp/src` [D158], [D159].
 //
 //   (4) Derivable tallies in markdown prose. A count that
 //       `npm test`, the manifest, or a grep already answers —
@@ -49,6 +47,16 @@
 //       the repository lacks is the sister project's, checked where
 //       its checkout sits beside this one.
 //
+//   (8) Who decided: a record from D155 on names in a line of its
+//       own, `Decided by.`, the maintainer or the model [D155].
+//
+//   (9) The walk of a baseline: a record of the language the audit's
+//       baseline holds is held by a case or closed by the line of its
+//       fate, no more than a working day of records waits for the next
+//       walk, and the code, the tests and the cases cite the records in
+//       force, the documents that hold the work those in force or
+//       waiting on a target [D225], [D226].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -56,6 +64,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
+import { walkOfBaseline } from './baseline-walk.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -75,6 +84,9 @@ const IGNORE_DIRS = new Set([
   'scripts/benchmark/sets',  // the data and the generators clean authors wrote [D142]
   'vscode'
 ]);
+// A report a reviewer or an outside auditor wrote, named by its date,
+// stands as it was written, and its ledger beside it is checked.
+const VERBATIM_REPORT = /^docs\/research\/(reviews|outside-audit)\/\d{4}-\d{2}-\d{2}[^/]*\.md$/;
 // Files that quote the forbidden list verbatim — exempt from the
 // forbidden-word scan, still in scope for every other check.
 const RULESET_FILES = new Set([
@@ -110,7 +122,7 @@ function* walkSourceTree(rootDir) {
       yield* walkSourceTree(entryPath);
       continue;
     }
-    if (!/\.(mjs|js|md|qlang)$/.test(entry)) continue;
+    if (!/\.(mjs|js|md|qlang)$/.test(entry) || VERBATIM_REPORT.test(relPath)) continue;
     yield entryPath;
   }
 }
@@ -144,45 +156,42 @@ function scanForbiddenWords() {
   return violations;
 }
 
-// ── (3) Per-site error class `Error` suffix convention ─────────
+// ── (3) A refusal is declared by its address ──────────────────
 //
-// Every concrete error class in `core/src/**/*.mjs` must carry the
-// `Error` suffix — the convention that distinguishes named-error
-// tag-bindings (`::FooError`) from value-class tag-bindings
-// (`::verb`, `::qlang`, `::json`). Classes are introduced two
-// ways:
-//
-//   * `declare(Subject|Modifier|Element|Comparability|Shape|Arity)
-//     Error('Foo', …)` factory call — the first string literal
-//     is the className.
-//   * `class Foo extends QlangError|QlangInvariantError|ArityError|
-//     EffectLaunderingError|Error` direct declaration.
-//
-// Abstract roots are exempt — they ARE the bases everyone extends,
-// not concrete throw sites:
+// A refusal's address is the one key the implementation and its page
+// in the catalog share [D158]: every declaration of a refusal and every
+// recording of an address outside one takes it as a literal, the path of
+// the place that refused, a marked name such as `@out` among its names,
+// and a last name ending in `Error`, `vec/sum/ElementNotNumberError`, and
+// the constant that holds the class is named by the address without its
+// slashes and marks, `VecSumElementNotNumberError`, so a grep for either
+// finds the declaration, every throw and the page [D159]. A class declared by
+// `class Foo extends …` ends in `Error`; the abstract roots are the
+// bases every site extends.
 
-const ABSTRACT_BASES = new Set([
-  'QlangError', 'QlangTypeError', 'QlangInvariantError',
-  'ArityError', 'EffectLaunderingError'
-]);
+const ABSTRACT_BASES = new Set(['QlangError', 'QlangInvariantError']);
 
-const factoryDeclRe = /declare(?:Subject|Modifier|Element|Comparability|Shape|Arity)Error\(\s*'([A-Z][A-Za-z0-9_]*)'/g;
-const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|ArityError|EffectLaunderingError|Error)\b/g;
+const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
+const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|Error)\b/g;
+const ADDRESS_RE = /^'((?:@?[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
+const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs']);
 
-// Every workspace that can declare its own host-bound errors
-// (CLI host operands via `declareSubjectError(...)` / direct
-// `class FooError extends QlangError`, LSP server-side errors,
-// future host packages) goes through the same scan. Scope sits
-// at the npm-workspace boundary so a new workspace opt's into
-// the convention by adding its `<ws>/src` here.
-const ERROR_SUFFIX_SCAN_ROOTS = [
+// The constant a refusal's class is held by: its address without the
+// slash, each name capitalised and the effect marker dropped.
+function constantOfAddress(address) {
+  return address.split('/').map(part => part.replace(/^@/, '')).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+}
+
+// Every workspace that can declare its own refusals goes through the
+// same scan, the root of its sources named here.
+const REFUSAL_SCAN_ROOTS = [
   ['core', 'src'],
   ['cli',  'src'],
   ['lsp',  'src']
 ];
 
-function* walkErrorScanRoots() {
-  for (const segments of ERROR_SUFFIX_SCAN_ROOTS) {
+function* walkRefusalScanRoots() {
+  for (const segments of REFUSAL_SCAN_ROOTS) {
     const root = join(repoRoot, ...segments);
     let st;
     try { st = statSync(root); } catch { continue; }
@@ -191,42 +200,26 @@ function* walkErrorScanRoots() {
   }
 }
 
-function errorSuffixDrift() {
+function refusalDeclarationDrift() {
   const violations = [];
-  for (const filePath of walkErrorScanRoots()) {
+  for (const filePath of walkRefusalScanRoots()) {
     const text = readFileSync(filePath, 'utf8');
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
-    const lines = text.split(/\r?\n/);
-
-    // Collect per-line classNames declared via factory or class
-    // syntax so the violation report cites the exact line.
-    for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
-      const line = lines[lineIndex];
-
-      factoryDeclRe.lastIndex = 0;
-      let fm;
-      while ((fm = factoryDeclRe.exec(line)) !== null) {
-        const className = fm[1];
-        if (className.endsWith('Error')) continue;
-        violations.push({
-          file: relFile, line: lineIndex + 1,
-          className, kind: 'factory call',
-          snippet: line.trim().slice(0, 120)
-        });
+    const lineAt = index => text.slice(0, index).split('\n').length;
+    for (const match of text.matchAll(refusalDeclarationRe)) {
+      const [, constant, factory, argument] = match;
+      if (FACTORY_DEFINITION_FILES.has(relFile) && /^[a-z]\w*$/.test(argument.trim())) continue;
+      const address = ADDRESS_RE.exec(argument.trim())?.[1];
+      const line = lineAt(match.index);
+      if (address === undefined) {
+        violations.push({ file: relFile, line, problem: `${factory} takes ${argument.trim() || 'nothing'}, where a refusal's address stands, \`'noun/LastNameError'\`` });
+      } else if (constant !== undefined && constant !== constantOfAddress(address)) {
+        violations.push({ file: relFile, line, problem: `${constant} holds ${address}, which names it ${constantOfAddress(address)}` });
       }
-
-      directClassRe.lastIndex = 0;
-      let cm;
-      while ((cm = directClassRe.exec(line)) !== null) {
-        const className = cm[1];
-        if (ABSTRACT_BASES.has(className)) continue;
-        if (className.endsWith('Error')) continue;
-        violations.push({
-          file: relFile, line: lineIndex + 1,
-          className, kind: 'class declaration',
-          snippet: line.trim().slice(0, 120)
-        });
-      }
+    }
+    for (const match of text.matchAll(directClassRe)) {
+      if (ABSTRACT_BASES.has(match[1]) || match[1].endsWith('Error')) continue;
+      violations.push({ file: relFile, line: lineAt(match.index), problem: `class ${match[1]} names a refusal without the suffix Error` });
     }
   }
   return violations;
@@ -350,7 +343,7 @@ function anchorDrift() {
 // A page of the catalog is read by a reader of the language, which
 // follows what the page names by a query; a decision of the process is
 // no page of the language, so a reference to one is a link that leads
-// nowhere, and the reason of a sentence lives with its decision [D110].
+// nowhere, and the reason of a sentence lives with its decision [D225].
 
 const CATALOG_ROOTS = ['core/lib', 'cli/lib'];
 
@@ -371,21 +364,56 @@ function decisionsInCatalog() {
   return violations;
 }
 
+// ── (8) Who decided ────────────────────────────────────────────
+//
+// A record names who took its decision, so a session tells the
+// maintainer's words, which bind it, from the model's reading, which it
+// weighs on its merits [D155].
+
+const FIRST_RECORD_NAMING_ITS_DECIDER = 155;
+const DECIDER_LINE = /^Decided by\. The (maintainer|model)\b/m;
+
+function recordsWithoutDecider() {
+  const recordsDir = join(repoRoot, 'docs', 'decisions');
+  return readdirSync(recordsDir)
+    .map(file => ({ file, number: Number(/^D(\d+)\.md$/.exec(file)?.[1]) }))
+    .filter(({ number }) => number >= FIRST_RECORD_NAMING_ITS_DECIDER)
+    .filter(({ file }) => !DECIDER_LINE.test(readFileSync(join(recordsDir, file), 'utf8')))
+    .map(({ file }) => `docs/decisions/${file}`);
+}
+
+// ── (9) The walk of a baseline ─────────────────────────────────
+//
+// The audit is held against a commit, its baseline. A record of the
+// language that the baseline's tree holds is held by a case or closed by
+// the line of its fate, and the records written since wait for the walk
+// no longer than a working day of them; the code, the tests and the
+// cases cite the records in force, and the documents that hold the work
+// those in force or waiting on a target [D225], [D226].
+
+function baselineDrift() {
+  return walkOfBaseline(repoRoot).violations;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
-const errorSuffixViolations = errorSuffixDrift();
+const refusalDeclarations = refusalDeclarationDrift();
 const proseTallies = scanProseTallies();
 const workspaceRanges = workspaceRangeDrift();
 const anchors = anchorDrift();
 const catalogDecisions = decisionsInCatalog();
+const undecided = recordsWithoutDecider();
+const unwalked = baselineDrift();
 
 if (forbidden.length === 0
-    && errorSuffixViolations.length === 0
+    && refusalDeclarations.length === 0
     && proseTallies.length === 0
     && workspaceRanges.length === 0
     && anchors.length === 0
-    && catalogDecisions.length === 0) {
+    && catalogDecisions.length === 0
+    && undecided.length === 0
+    && unwalked.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -396,13 +424,10 @@ if (forbidden.length > 0) {
     process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.snippet}\n`);
   }
 }
-if (errorSuffixViolations.length > 0) {
-  process.stdout.write(
-    `\nError-class \`Error\` suffix convention (${errorSuffixViolations.length}):\n`);
-  for (const v of errorSuffixViolations) {
-    process.stdout.write(`  ${v.file}:${v.line}  [${v.kind}: '${v.className}']  ${v.snippet}\n`);
-    process.stdout.write(`    rename to '${v.className}Error' so the catalog stays in the high-entropy ::FooError island, distinct from value-class tag-bindings (::verb / ::qlang / ::json).\n`);
-  }
+if (refusalDeclarations.length > 0) {
+  process.stdout.write(`\nRefusals not declared by their address (${refusalDeclarations.length}):\n`);
+  for (const v of refusalDeclarations) process.stdout.write(`  ${v.file}:${v.line}  ${v.problem}\n`);
+  process.stdout.write('    the address is the key the implementation and the page of the catalog share [D158], [D159].\n');
 }
 if (proseTallies.length > 0) {
   process.stdout.write(
@@ -430,6 +455,16 @@ if (anchors.length > 0) {
 if (catalogDecisions.length > 0) {
   process.stdout.write(`\nDecisions named in the catalog (${catalogDecisions.length}):\n`);
   for (const v of catalogDecisions) process.stdout.write(`  ${v.file}:${v.line}  ${v.reference}\n`);
-  process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [D110].\n');
+  process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [D225].\n');
+}
+if (undecided.length > 0) {
+  process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
+  for (const file of undecided) process.stdout.write(`  ${file}\n`);
+  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, a choice and the mechanics around it as two records [D155].\n');
+}
+if (unwalked.length > 0) {
+  process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);
+  for (const v of unwalked) process.stdout.write(`  ${v.where}  ${v.problem}\n`);
+  process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [D225], [D226].\n');
 }
 process.exit(1);

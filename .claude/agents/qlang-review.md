@@ -21,8 +21,10 @@ file and the audit disagree, the audit wins and the finding says so.
 2. Every decision record the diff adds or cites, `docs/decisions/Dnn.md`.
 3. The touched files, whole. For a change to the language, also
    `core/src/grammar.peggy`, `core/src/eval.mjs`, `core/src/runtime/verb.mjs`
-   and the module of each kind it touches, `core/lib/qlang/<kind>.qlang`;
-   the concepts of the language are the pages of `core/lib/qlang/qlang.qlang`.
+   and the source of each kind it touches, `core/lib/qlang/<kind>.qlang`,
+   which declares the kind, its page first, and what lies under it,
+   `:vec/count`; the first page and the chapters are declared in
+   `core/lib/qlang.qlang`.
 
 ## The rules
 
@@ -49,16 +51,33 @@ put in the pipe with no literal is a finding.
 ### The language describes itself
 
 The only description of a verb, a kind or a refusal is its page in the
-catalog: a doc whose laws run, each under a caption of its claim, whose
-links open the pages it rests on. An error leads to the page of its site.
+catalog, whose links open the pages it rests on, and the laws declared
+under its name, each named for its claim and paged with it (decisions
+D174, D175). A definition is a story a reader falls into through the
+editor or `source`, told in one order: the word and its page, its answer
+under the key `answer`, its parts with their invariants, its refusals,
+each a page that says how to repair the call, and its laws, one for each
+statement of the page, the false and the refused among them; a name the
+story brings in as a key is a word its prose uses, so a page says what
+its word answers (decisions D179, D180). An error leads to the page of
+its site.
 
-Check: a new verb, kind or refusal has its page in the module of its kind,
-a refusal declared at its site, one tag for one site, through the
-factories of `core/src/errors.mjs` and `core/src/operand-errors.mjs`
-until decision D46 makes each a kind of the catalog;
-a change of behaviour changes the laws of the page that states it; a page
-names no JavaScript file or symbol and no decision record; a markdown text
-that retells the catalog is a finding. Run `qlang '<address> | runLaws'`
+Check: a new verb, kind or refusal has its page under the noun of its kind;
+the definitions under a word stand in the order of the story, and an
+answer named by another key, `sum`, `taken`, `drawn`, is a finding; a
+refusal is declared at its site by its address, one tag for one site,
+through `declareRefusal` of `core/src/errors.mjs`, or raised by rule under
+a word, `…/SubjectNot<Label>Error`, `…/<part>/NotGivenError`,
+`…/ArgsBeyondPartsError`, `…/answer/Not<Kinds>Error`, by the one spelling
+the runtime raises it by, and paged where a procedure helps the reader;
+each fact a refusal carries is a definition under its label or under
+`::error` (decision D172); the repair of a call stands on the page of its
+refusal, where `!| explain` lands, and a part's page says what the part
+is; a law about a refusal stands under the refusal's address, ends in its
+claim with no `| eq true` tail, and repeats no other law of the catalog;
+a change of behaviour changes the laws under the name whose behaviour
+it is; a page names no JavaScript file or symbol and no decision record;
+a markdown text that retells the catalog is a finding. Run `qlang '<address> | runLaws'`
 for every page the diff touches.
 
 ### One fact, one spelling
@@ -97,16 +116,17 @@ sibling added for symmetry alone, is a finding.
 ### Words carry paradigms
 
 The vocabulary is chosen for the habit it wakes in a reader trained on every
-other language. The language says value, kind, tag, noun, verb, address,
-page, law, link, snippet, step, command, combinator, pipe value, scope,
-record, refusal, trail, stop.
+other language. The language says value, kind, tag, label, noun, verb,
+word, address, answer, part, args, modifier, invariant, page, law, link,
+snippet, step, command, combinator, pipe value, scope, record, refusal,
+trail, stop.
 
 Check, in code, comments, pages, records, commit messages and your own
 report:
 
 - A generic name where a name of the language is sharper: `data`, `item`,
   `helper`, `util`, `handler`, `result`, a bare `node` whose type is known.
-  A name is unique enough to grep within its module.
+  A name is unique enough to grep within its source.
 - `Class` and `Class-level` for a kind or a tag; `first-class` stays.
 - Definition by negation: "X, not Y", "instead of", "rather than", "no
   longer", a reassurance that denies an alternative nobody raised. A
@@ -147,7 +167,12 @@ There is no compatibility to preserve before the first stable release. A
 change answers what became shorter; a replacement lands in every consumer at
 once, the sister project `D:\git\eclipse-jdt-search` among them.
 
-Check: the branch reports the sign of its diff by area; a fallback for an
+Check: compute the sign of the range by area, `node scripts/measure.mjs
+--steps`, and read it against what the range delivered: less code at the
+same behaviour is a refactoring, less with a new feature the work to
+praise, as much with a feature good work, and more with features asks
+what they are worth to qlang; a commit message that carries a count the
+history answers is a finding (`docs/decisions/D208.md`); a fallback for an
 old shape, an alias, a shim or a re-export kept for a caller is a finding; a
 branch that claims to cut noise shows a negative diff. The catalog grows by
 what the language gains; a growth of the core sources or of the tests is a
@@ -168,6 +193,16 @@ record carries its source, a probe, an anchor, the maintainer's words with
 their time and session, or the inference it was drawn from;
 `npm run check:probes` and `node scripts/sensors/check-quotes.mjs` hold the
 probes and the quotes.
+
+### The maintainer's words bind, the model's readings are weighed
+
+Check: a record the diff adds names who decided it, `Decided by.`, and
+holds one party's decision, a choice of the maintainer and the model's
+mechanics around it being two records. A record, a commit message or a
+page that cites a record the model decided does not present it as the
+maintainer's rule; a change that leaves a better reading undone because
+a record of the model's stands in its way, or that asks the maintainer
+leave to replace one, is a finding (`docs/decisions/D155.md`).
 
 ### The tests follow what they test
 

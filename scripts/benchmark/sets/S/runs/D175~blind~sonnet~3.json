@@ -1,0 +1,16 @@
+{
+ "set": "S",
+ "screen": "D175",
+ "screenHash": "97d8a2dd78fc",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 3,
+ "date": "2026-10-09",
+ "commit": "401046d",
+ "result": "These queries are untested, written from the page alone. Three guesses are the riskiest.\n\n- **S4, S9, S12, S13:** I assume string keys from `groupBy` and `entries` (and the `/0` of an entry) print as plain strings in the final output.\n- **S5, S8:** I assume `round` takes the number of decimal places as `round 2`.\n- **S6:** I assume `at` on a null value answers null, so I added `coalesce {}` to be safe.\n\nS1: filter ~(and (/state | eq \"open\") (/labels * lower | contains \"bug\")) | count\nS2: filter ~(/state | eq \"open\") | filter ~(/assignee | ne null) | groupBy ~(/assignee) * count\nS3: filter ~(/state | eq \"open\") | sort ~([(at :priority | coalesce 0 | desc) /id]) | take 3 * /id\nS4: [(/dependencies | entries) (/devDependencies | entries)] | flat | filter ~(/1 | startsWith \"^\") * /0 | distinct | sort\nS5: * {:customer /customer :total (/items * (mulOf /qty /price) | sum)} | groupBy ~(/customer) * (* /total | sum) | entries * {:customer /0 :total (/1 | round 2)} | sort ~([(/total | desc)]) | take 2\nS6: /data/users | filter ~(at :profile | coalesce {} | at :city | coalesce \"\" | lower | eq \"berlin\") * (/email | lower) | sort\nS7: lines | filter ~(ne \"\") * split \" \" | filter ~(/1 | upper | eq \"ERROR\") | groupBy ~(/2) * count\nS8: lines | drop 1 | filter ~(ne \"\") * split \",\" | filter ~(/2 | ne \"\") | groupBy ~(/1 | lower) * (* (/2 | parseJson) | avg | round 1)\nS9: filter ~(/published | eq true) * (at :tags | coalesce [] * lower | distinct | sort) | flat | groupBy ~(/) * count | entries * {:tag /0 :count /1} | sort ~([(/count | desc) /tag]) | take 3\nS10: /services | filter ~(at :enabled | eq true) * (at :port)\nS11: filter ~(at :stock | coalesce 0 | gt 0) * (/category | lower) | distinct | sort\nS12: \"The cat and the Hat and THE bat sat on a mat with the cat\" | split \" \" * lower | groupBy ~(/) * count | entries * {:word /0 :count /1} | sort ~([(/count | desc) /word]) | take 3\nS13: groupBy ~(/user) | entries * {:user /0 :count (/1 | count) :first (/1 * /ts | min)} | sort ~([/user])\nS14: lines | filter ~(and (startsWith \"#\" | not) (ne \"\")) * split \"|\" | filter ~(and (/1 | lower | startsWith \"eu-\") (/2 | ne \"down\")) | sort ~([(/3 | parseJson | desc)]) * /0 | join \",\"",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 8599,
+ "outputTokens": 3944,
+ "calls": []
+}

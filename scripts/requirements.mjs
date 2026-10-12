@@ -11,48 +11,16 @@
 //
 // Usage: node scripts/requirements.mjs [D<n> ...]
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { readDecisionRecords, replacedWhole, isBeingDecided } from './decision-records.mjs';
 
 const root = join(import.meta.dirname, '..');
-const conformanceDir = join(root, 'core', 'test', 'conformance');
-const decisionsDir = join(root, 'docs', 'decisions');
 const readText = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
-// The decisions of the language and of the work on it are D1 onward,
-// those of the environment of the work E1 onward, and they list in that
-// order.
-const decisions = new Map(readdirSync(decisionsDir)
-  .map(fileName => fileName.match(/^([DE]\d+)\.md$/)?.[1])
-  .filter(Boolean)
-  .sort((left, right) => left[0].localeCompare(right[0]) || Number(left.slice(1)) - Number(right.slice(1)))
-  .map(name => {
-    const recordText = readText(join(decisionsDir, `${name}.md`));
-    const replacing = inPart => [...recordText.matchAll(new RegExp(`^Replaced ${inPart ? 'in part ' : ''}by (.+)$`, 'gm'))]
-      .flatMap(line => [...line[1].split(', under which')[0].matchAll(/[DE]\d+/g)].map(match => match[0]));
-    return [name, {
-      domain: recordText.match(/^Domain\. ([^.]+)\./m)[1].toLowerCase(),
-      replacedBy: replacing(false),
-      replacedInPartBy: replacing(true),
-      met: [],
-      targets: [],
-    }];
-  }));
-const replacedWhole = record => record.replacedBy.length > 0;
-
-for (const caseFile of readdirSync(conformanceDir, { recursive: true }).map(String).filter(name => name.endsWith('.jsonl'))) {
-  for (const line of readText(join(conformanceDir, caseFile)).split('\n')) {
-    if (line.trim() === '' || line.trim().startsWith('//')) continue;
-    const conformanceCase = JSON.parse(line);
-    for (const decision of [conformanceCase.decision ?? []].flat()) {
-      const record = decisions.get(decision);
-      if (record === undefined) {
-        throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in docs/decisions`);
-      }
-      (conformanceCase.target === true ? record.targets : record.met).push(conformanceCase.name);
-    }
-  }
-}
+// The records of the decisions and the cases that name them, D1 onward
+// and then E1 onward, those of the environment of the work.
+const decisions = readDecisionRecords(root);
 
 // Each milestone of the audit's route names, in the sentence about "the
 // targets of" its decisions, whose targets show it reached.
@@ -111,14 +79,14 @@ if (askedDecisions.length > 0) {
     .filter(([name]) => !milestoneOfTarget.has(name))
     .flatMap(([, targetDecisions]) => targetDecisions))]);
   printList('carried out', decisionsWhere(record => record.met.length > 0 && record.targets.length === 0));
-  printList('being decided', decisionsWhere(record => record.domain === 'language' && !replacedWhole(record)
-    && record.met.length + record.targets.length === 0));
+  printList('being decided', decisionsWhere(isBeingDecided));
   printList('replaced', decisionsWhere(replacedWhole));
   printList('replaced in part', decisionsWhere(record => !replacedWhole(record) && record.replacedInPartBy.length > 0));
   // A decision of any other domain, a host, the command line or the
   // tooling, is held by the tests of that domain.
   const otherDomains = new Set([...decisions.values()].map(record => record.domain)
-    .filter(domain => domain !== 'language' && domain !== 'process'));
+    .filter(domain => domain !== 'language' && domain !== 'process' && domain !== 'principle'));
   for (const domain of otherDomains) printList(`held by the tests of the ${domain}`, decisionsWhere(record => record.domain === domain));
   printList('rules of work', decisionsWhere(record => record.domain === 'process'));
+  printList('principles of the audit', decisionsWhere(record => record.domain === 'principle'));
 }

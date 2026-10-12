@@ -1,22 +1,23 @@
 // The printer of the core: the text that reads back as a value [D30], a
-// part a kind of a module prints its own way taken from that kind before
+// part a kind whose `print` is declared under it prints its own way taken from that kind before
 // the forms of the core write the rest [D96].
 
 import { printQuoteSource, docText } from '../quote.mjs';
 import {
   isVec,
   isQMap,
-  isErrorValue, ERROR_TAG,
-  describeType,
+  ERROR_TAG,
+  formOf,
   finiteNumberOrLift,
   TAG_HEADER_SYMBOL,
   canonicalKeywordLiteral
 } from '../types.mjs';
 
 // `dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs)`: the
-// handler of the value's class, which the views of `format.mjs` share.
+// handler of the value's form, `formOf`, which the views of `format.mjs`
+// share.
 export function dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs) {
-  const handler = handlers[describeType(pipeValue)];
+  const handler = handlers[formOf(pipeValue)];
   return handler ? handler(pipeValue, ...extraArgs) : fallback(pipeValue, ...extraArgs);
 }
 
@@ -37,25 +38,25 @@ const literalOfKeyword = k => k.literal;
 // `::builtin` among them [D96]; the set, the quote, the doc and the error
 // write their own brackets.
 const PRINT_HANDLERS = {
-  Null:       () => 'null',
-  Boolean:    v => String(v),
-  Number:     v => String(finiteNumberOrLift(v)),
-  String:     escapeQlangStringLiteral,
-  Keyword:    literalOfKeyword,
-  TagKeyword: literalOfKeyword,
-  Error:      printErrorValue,
-  Vec:        (v, indent, printedOf) => printListLike('[', v, indent, printedOf),
-  Map:        (m, indent, printedOf) => (m[TAG_HEADER_SYMBOL]?.literal ?? '') + printMapLike('{', m, indent, printedOf),
-  Set:        (s, indent, printedOf) => printListLike('#[', s, indent, printedOf),
-  Quote:      q => '~(' + printQuoteSource(q) + ')',
-  Doc:        d => '|~~' + docText(d) + '~~|',
-  TaggedInstance: printTaggedInstance
+  null:    () => 'null',
+  boolean: v => String(v),
+  number:  v => String(finiteNumberOrLift(v)),
+  string:  escapeQlangStringLiteral,
+  keyword: literalOfKeyword,
+  tag:     literalOfKeyword,
+  error:   printErrorValue,
+  vec:     (v, indent, printedOf) => printListLike('[', v, indent, printedOf),
+  map:     (m, indent, printedOf) => printMapLike('{', m, indent, printedOf),
+  set:     (s, indent, printedOf) => printListLike('#[', s, indent, printedOf),
+  quote:   q => '~(' + printQuoteSource(q) + ')',
+  doc:     d => '|~~' + docText(d) + '~~|',
+  underTag: printTaggedInstance
 };
 
 const printedByNoKind = () => undefined;
 
 // printValue(v, indent?, printedOf?) → the text that reads back as `v`;
-// `printedOf(part)` answers the print a kind of a module gives a part, or
+// `printedOf(part)` answers the print a kind declared under it gives a part, or
 // undefined where the forms of the core write it, and a print of several
 // lines keeps the indent of the place it stands in.
 export function printValue(v, indent = 0, printedOf = printedByNoKind) {
@@ -80,27 +81,29 @@ function printListLike(open, elements, indent, printedOf) {
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// An error writes the tag of its site before its bang, and none for the
-// kind of errors [D64]; an empty path goes unwritten, as the literal
-// leaves it [D85].
+// A failure writes its error at rest, as `!|` grounds it: the tag of its
+// site before the bang, none for the kind of errors [D64], its facts and
+// the path it flew, `:trail []` for one that flew no step, so its print
+// reads back as the error at rest, a value that stands in a vector or a
+// map; the answer of a host says above it that it was raised [D219].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
-  const payload = new Map();
-  for (const [k, v] of e.descriptor) {
-    if (k === 'trail' && v.length === 0) continue;
-    payload.set(k, v);
-  }
-  if (payload.size === 0) return tagHead + '!{}';
-  return tagHead + printMapLike('!{', payload, indent, printedOf);
+  const facts = e.descriptor.has('trail') ? e.descriptor : new Map(e.descriptor).set('trail', NO_PATH);
+  return `${tagHead}${printMapLike('!{', facts, indent, printedOf)}`;
 }
+
+const NO_PATH = Object.freeze([]);
 
 // A payload that opens with a letter, a digit or a minus stands in
 // parentheses after the tag, where it would read as the tag's name.
 const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
 
+// An error at rest writes the literal of its kind, `!{…}`, as a set
+// writes `#[…]` [D211].
 function printTaggedInstance(instance, indent, printedOf) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
   if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf);
+  if (instance instanceof Map && instance[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', instance, indent, printedOf);
   if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf);
   const payloadPrint = printValue(instance.payload, indent, printedOf);
   return TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadPrint) ? `${tagLiteral}(${payloadPrint})` : tagLiteral + payloadPrint;
@@ -110,7 +113,7 @@ function printTaggedInstance(instance, indent, printedOf) {
 // any other puts each entry on a line of its own.
 function printMapLike(open, m, indent, printedOf) {
   const entries = [...m];
-  const hasComposite = entries.some(([, v]) => isQMap(v) || isVec(v) || isErrorValue(v));
+  const hasComposite = entries.some(([, v]) => isQMap(v) || isVec(v));
   if (entries.length <= 2 && !hasComposite) {
     return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf)}`).join(' ')}}`;
   }

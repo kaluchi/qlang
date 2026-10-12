@@ -10,8 +10,8 @@
 {"name":"last-empty","query":"[] | last","expect":"null"}
 {"name":"sum","query":"[1 2 3 4 5] | sum","expect":"15"}
 {"name":"sum-empty","query":"[] | sum","expect":"0"}
-{"name":"sum-overflow-lifts-not-finite","query":"[1e308 1e308] | sum !| type","expect":"::SumResultNotFiniteError"}
-{"name":"sum-overflow-names-the-element","query":"[1e308 1e308] | sum !| /index","expect":"1"}
+{"name":"sum-overflow-lifts-not-finite","query":"[1e308 1e308] | sum !| type","expect":"::number/NotFiniteError","decision":"D169"}
+{"name":"sum-overflow-holds-its-subject-on-the-trail","query":"[1e308 1e308] | sum !| /trail/0/subject","expect":"[1e308 1e308]","decision":"D169"}
 {"name":"min","query":"[3 1 4 1 5 9 2 6] | min","expect":"1"}
 {"name":"max","query":"[3 1 4 1 5 9 2 6] | max","expect":"9"}
 {"name":"filter-gt","query":"[1 2 3 4 5] | filter ~(gt 2)","expect":"[3 4 5]"}
@@ -20,16 +20,16 @@
 {"name":"filter-set-gt","query":"#[1 2 3 4 5] | filter ~(gt 2)","expect":"#[3 4 5]"}
 {"name":"filter-set-empty-result","query":"#[1 2 3] | filter ~(gt 99)","expect":"#[]"}
 {"name":"filter-map-value-gt","query":"{:a 1 :b 2 :c 3} | filter ~(gt 1)","expect":"{:b 2 :c 3}"}
-{"name":"filter-vec-declared-verb","query":"[1 2 3 4 5] | :big ::verb~(gt 2) | filter ~(big)","expect":"[3 4 5]"}
-{"name":"filter-vec-verb-predicate","query":"[1 -2 3 -4 5] | :positive ::verb~(gt 0) | filter ~positive","expect":"[1 3 5]"}
-{"name":"filter-set-declared-verb","query":"#[1 2 3 4 5] | :big ::verb~(gt 2) | filter ~(big)","expect":"#[3 4 5]"}
-{"name":"filter-set-verb-predicate","query":"#[1 -2 3 -4 5] | :positive ::verb~(gt 0) | filter ~positive","expect":"#[1 3 5]"}
-{"name":"filter-map-declared-verb","query":"{:a 1 :b 2 :c 3} | :big ::verb~(gt 1) | filter ~(big)","expect":"{:b 2 :c 3}"}
-{"name":"filter-map-verb-predicate","query":"{:a 1 :b -2 :c 3} | :positive ::verb~(gt 0) | filter ~positive","expect":"{:a 1 :c 3}"}
-{"name":"filter-verb-predicate-with-a-slot-is-refused-by-its-name","query":"{:a 1 :b 2 :c 3} | :above ::verb~(:limit ::number | gt limit) | filter ~above !| [type /slot]","expect":"[::VerbSlotMissingError :limit]"}
+{"name":"filter-vec-declared-verb","query":"[1 2 3 4 5] | :any/big ~(gt 2) | filter ~(big)","expect":"[3 4 5]"}
+{"name":"filter-vec-verb-predicate","query":"[1 -2 3 -4 5] | :any/positive ~(gt 0) | filter ~positive","expect":"[1 3 5]"}
+{"name":"filter-set-declared-verb","query":"#[1 2 3 4 5] | :any/big ~(gt 2) | filter ~(big)","expect":"#[3 4 5]"}
+{"name":"filter-set-verb-predicate","query":"#[1 -2 3 -4 5] | :any/positive ~(gt 0) | filter ~positive","expect":"#[1 3 5]"}
+{"name":"filter-map-declared-verb","query":"{:a 1 :b 2 :c 3} | :any/big ~(gt 1) | filter ~(big)","expect":"{:b 2 :c 3}"}
+{"name":"filter-map-verb-predicate","query":"{:a 1 :b -2 :c 3} | :any/positive ~(gt 0) | filter ~positive","expect":"{:a 1 :c 3}"}
+{"name":"a-predicate-with-a-part-left-out-is-refused-by-the-part","query":"{:a 1 :b 2 :c 3} | :any/above ~(gt limit) | :any/above/limit ~(/0) | filter ~above !| type","expect":"::any/above/limit/NotGivenError","decision":"D166"}
 {"name":"filter-map-empty","query":"{} | filter ~(gt 0)","expect":"{}"}
 {"name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1)","expect":"{:c 3 :b 2}"}
-{"name":"filter-non-container-throws","query":"42 | filter ~(gt 0)","error":"typeError","expect":"::VerbWithoutBodyError!{\n  :actualType ::quote\n  :verbName :filter\n  :addresses #[::map/filter ::set/filter ::vec/filter]\n  :trail [\n    {\n      :step ~(filter ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n}"}
+{"name":"filter-non-container-throws","query":"42 | filter ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :filter\n  :addresses #[::map/filter ::set/filter ::vec/filter]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(filter ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
 {"name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort ~(/age)","expect":"[{:age 20} {:age 25} {:age 30}]"}
@@ -40,23 +40,25 @@
 {"name":"distinct-on-set","query":"#[1 2 3] | distinct","expect":"#[1 2 3]"}
 {"name":"reverse","query":"[1 2 3] | reverse","expect":"[3 2 1]"}
 {"name":"flat","query":"[[1 2] [3] [4 5]] | flat","expect":"[1 2 3 4 5]"}
-{"name":"distribute-add","query":"[1 2 3] * add 1","expect":"[2 3 4]"}
-{"name":"distribute-mul","query":"[1 2 3] * mul 10","expect":"[10 20 30]"}
+{"name":"map-multiplies-each-element","query":"[1 2 3] | map ~(mul 10)","expect":"[10 20 30]"}
 {"name":"reduce-sum","query":"[1 2 3 4 5] | reduce 0 ~(add)","expect":"15"}
 {"name":"reduce-product","query":"[1 2 3 4 5] | reduce 1 ~(mul)","expect":"120"}
 {"name":"reduce-append","query":"[\"a\" \"b\" \"c\"] | reduce \"\" ~(append)","expect":"\"abc\""}
 {"name":"reduce-union-of-sets","query":"[#[1] #[2 3]] | reduce #[] ~(union)","expect":"#[1 2 3]"}
 {"name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | [type (payload | type)]","expect":"[::Bar ::Foo]","decision":["D56","D79"]}
-{"name":"reduce-max-via-verb","query":":max2 ::verb~(:x ::number | if (gt x) ~(/) ~(x)) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
+{"name":"reduce-max-via-verb","query":":any/max2 ~(if (gt x) ~(/) ~(x)) | :any/max2/x ~(/0) | :any/max2/x/NotNumberError ::holds~(is ::number) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
 {"name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
 {"name":"reduce-over-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
 {"name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]","decision":"D43"}
-{"name":"reduce-folds-with-the-quote-of-a-bare-operand","query":"[1 2 3] | reduce 0 ~(add)","expect":"6","decision":"D43"}
+{"name":"reduce-folds-with-the-quote-of-a-bare-word","query":"[1 2 3] | reduce 0 ~(add)","expect":"6","decision":"D43"}
 {"name":"a-group-modifier-reads-against-the-subject-at-the-call","query":"{:items [1 2 3] :limit 2} | /items | take (count | sub 1)","expect":"[1 2]","decision":"D43"}
-{"name":"a-slot-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| type","expect":"::FilterPredicateNotQuoteError","decision":"D56"}
+{"name":"a-part-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| type","expect":"::vec/filter/predicate/NotQuoteError","decision":["D56","D169"]}
 {"name":"append-puts-an-element-after-a-vector","query":"[1 2] | append 3","expect":"[1 2 3]"}
 {"name":"prepend-puts-an-element-before-a-vector","query":"[2 3] | prepend 1","expect":"[1 2 3]"}
 {"name":"append-takes-a-vector-as-one-element","query":"[1] | append [2 3]","expect":"[1 [2 3]]"}
 {"name":"append-keeps-the-set-of-its-subject","query":"#[1 2] | append 3","expect":"#[1 2 3]"}
-{"name":"a-fold-of-several-steps-is-a-declared-verb","query":":step ::verb~(:el ::number | mul 2 | add el) | [1 2 3] | reduce 0 ~(step)","expect":"11","decision":"D90"}
-{"name":"a-reducer-of-several-steps-is-refused","query":"[1 2 3] | reduce 0 ~(mul 2 | add) !| type","expect":"::ReduceReducerNotBinaryError","decision":"D90"}
+{"name":"a-fold-of-several-steps-is-a-declared-verb","query":":any/step ~(mul 2 | add el) | :any/step/el ~(/0) | :any/step/el/NotNumberError ::holds~(is ::number) | [1 2 3] | reduce 0 ~(step)","expect":"11","decision":"D90"}
+{"name":"a-reducer-of-several-steps-is-refused","query":"[1 2 3] | reduce 0 ~(mul 2 | add) !| type","expect":"::vec/reduce/reducer/NotBinaryError","decision":["D90","D218"]}
+{"name":"a-reducer-names-its-word-by-its-address","query":"[1 2 3] | reduce 0 ~(number/add)","expect":"6","decision":"D224"}
+{"name":"a-reducer-of-an-address-of-no-word-is-refused","query":"[1 2 3] | reduce 0 ~(number/add/addend) !| type","expect":"::vec/reduce/reducer/NotBinaryError","decision":"D224"}
+{"name":"a-value-named-as-the-word-of-a-fold-meets-the-word","query":":add 5 | [1 2 3] | reduce 0 ~(add) !| [type /addresses]","expect":"[::call/ValueMeetsWordError #[::number/add]]","decision":["D223","D224"]}

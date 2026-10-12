@@ -24,12 +24,12 @@ describe('DocLit literal is a Vec / Set element by itself', () => {
 
 describe('a doc documents the declaration whose slot it stands in', () => {
   it('documents a declaration', async () => {
-    const result = await evalQuery(':x |~~ note ~~| 42 | :x | doc | content');
+    const result = await evalQuery(':x |~~ note ~~| 42 | ::x | doc | content');
     expect(result).toBe(' note ');
   });
 
   it('documents a freeze', async () => {
-    const result = await evalQuery('42 | :x |~~ note ~~| / | :x | doc | content');
+    const result = await evalQuery('42 | :x |~~ note ~~| / | ::x | doc | content');
     expect(result).toBe(' note ');
   });
 
@@ -47,7 +47,7 @@ describe('a doc documents the declaration whose slot it stands in', () => {
 
   it('a doc ahead of any other step chains explicitly with `|`', async () => {
     // The doc value lands as a separate pipeline step that the next
-    // operand (here `segments`) sees as its subject.
+    // word (here `segments`) sees as its subject.
     const result = await evalQuery('|~~ inline note ~~| | segments | count');
     expect(result).toBe(1);
   });

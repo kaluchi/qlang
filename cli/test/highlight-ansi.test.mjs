@@ -25,30 +25,30 @@ describe('highlightAnsi', () => {
   it('paints a ~(…) Quote with green upright delimiters and italic body', () => {
     // `~(` and `)` get the upright green `quote` escape; the body
     // sub-tokenises with each inner kind's colour combined with
-    // italic (e.g. atom `:active` → italic cyan).
+    // italic (e.g. the name `:active` → italic cyan).
     const out = highlightAnsi('~(:active)', noBuiltins);
     expect(out).toContain('\x1b[32m~(\x1b[0m');           // upright open
-    expect(out).toContain('\x1b[3;36m:active\x1b[0m');   // italic atom
+    expect(out).toContain('\x1b[3;36m:active\x1b[0m');   // italic name
     expect(out).toContain('\x1b[32m)\x1b[0m');            // upright close
   });
 
-  it('wraps a ::tag BareTypeKeyword in the bright-cyan tag escape', () => {
-    const out = highlightAnsi('::verb', noBuiltins);
-    expect(out).toBe('\x1b[96m::verb\x1b[0m');
+  it('wraps a ::tag TagLit in the bright-cyan tag escape', () => {
+    const out = highlightAnsi('::Box', noBuiltins);
+    expect(out).toBe('\x1b[96m::Box\x1b[0m');
   });
 
   it('wraps the ::tag head of a TaggedLit and descends into the payload', () => {
-    const out = highlightAnsi('::verb~(:x ::number | mul x)', noBuiltins);
-    expect(out).toContain('\x1b[96m::verb\x1b[0m');
+    const out = highlightAnsi('::Box~(mul x)', noBuiltins);
+    expect(out).toContain('\x1b[96m::Box\x1b[0m');
     // Quote payload — upright delimiters + italic body. With no
-    // builtin names supplied, `mul` falls back to the `atom`
+    // builtin names supplied, `mul` falls back to the `name`
     // colour (cyan 36) carrying the italic modifier.
     expect(out).toContain('\x1b[32m~(\x1b[0m');
     expect(out).toContain('\x1b[3;36mmul\x1b[0m');
     expect(out).toContain('\x1b[32m)\x1b[0m');
   });
 
-  it('wraps a :keyword atom in the cyan escape pair', () => {
+  it('wraps a :keyword name in the cyan escape pair', () => {
     const out = highlightAnsi(':active', noBuiltins);
     expect(out).toBe('\x1b[36m:active\x1b[0m');
   });
@@ -58,7 +58,7 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[95m@log\x1b[0m');
   });
 
-  it('wraps a builtin operand call in the bright-blue escape pair', () => {
+  it('wraps the call of a word of the language in the bright-blue escape pair', () => {
     const builtins = new Set(['count']);
     const out = highlightAnsi('count', builtins);
     expect(out).toBe('\x1b[94mcount\x1b[0m');
@@ -118,9 +118,11 @@ describe('highlightAnsi', () => {
     expect(resets.length * 2).toBe(opens.length);
   });
 
-  it('passes parseError input through without escape sequences', () => {
-    const out = highlightAnsi('[unclosed', noBuiltins);
-    expect(out).toBe('[unclosed');
-    expect(out).not.toMatch(ANY_ANSI);
+  it('paints a line cut short, as it is typed', () => {
+    expect(highlightAnsi('[unclosed', noBuiltins)).toMatch(ANY_ANSI);
+  });
+
+  it('passes a source the parser reads none of through without escape sequences', () => {
+    expect(highlightAnsi(')))', noBuiltins)).toBe(')))');
   });
 });

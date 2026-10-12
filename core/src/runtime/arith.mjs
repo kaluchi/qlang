@@ -1,77 +1,42 @@
-// Arithmetic primitives, each a plain function over the numbers the head
-// of its verb checked [D72]. The head raises the refusals of the subject
-// and of the slot, declared here at the place each guards, position 1
-// the subject and position 2 the slot; the primitive raises the
-// refusals of the magnitude.
+// Arithmetic primitives, each a plain function over the number the walk
+// served and the parts of the args its call gives [D164]. The invariants
+// of the parts hold before a primitive runs, a divisor no zero among them
+// [D166], [D172], and an answer that left the finite doubles is refused
+// as it is brought under `::number` [D169].
 //
-// The verbs live in lib/qlang/number.qlang.
+// The names live in lib/qlang/number.qlang.
 
-import { declareNumericDomainError } from '../errors.mjs';
-import { declareModifierError } from '../operand-errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
+const NumberRangeCountNotIntegerError = declareRefusal('number/range/CountNotIntegerError');
+const NumberRangeCountTooLargeError = declareRefusal('number/range/CountTooLargeError');
 
-// `div` refuses two magnitudes: a zero divisor, and a quotient past
-// the finite-double range. Both are the same repair for a reader —
-// change a value — so both ride `NumericDomainError`.
-export const DivisionByZeroError = declareNumericDomainError(
-  'DivisionByZeroError', () => 'division by zero', { operand: 'div' }
-);
+bindPrim('number/add', (augend, addend) => augend + addend);
+bindPrim('number/sub', (minuend, subtrahend) => minuend - subtrahend);
+bindPrim('number/mul', (multiplicand, multiplier) => multiplicand * multiplier);
+bindPrim('number/div', (dividend, divisor) => dividend / divisor);
 
-declareModifierError('AddLeftNotNumberError',  'add', 1, 'number');
-declareModifierError('AddRightNotNumberError', 'add', 2, 'number');
-declareModifierError('SubLeftNotNumberError',  'sub', 1, 'number');
-declareModifierError('SubRightNotNumberError', 'sub', 2, 'number');
-declareModifierError('MulLeftNotNumberError',  'mul', 1, 'number');
-declareModifierError('MulRightNotNumberError', 'mul', 2, 'number');
-declareModifierError('DivLeftNotNumberError',  'div', 1, 'number');
-declareModifierError('DivRightNotNumberError', 'div', 2, 'number');
-declareModifierError('RoundSubjectNotNumberError', 'round', 1, 'number');
-const RoundDigitsNotIntegerError = declareModifierError('RoundDigitsNotIntegerError', 'round', 2, 'integer');
+// The remainder takes the sign of the divisor, the floored remainder
+// [D194]; a zero answer is no negative zero.
+const unsignedZero = number => (number === 0 ? 0 : number);
+bindPrim('number/mod', (dividend, divisor) => unsignedZero(dividend - divisor * Math.floor(dividend / divisor)));
+bindPrim('number/abs', subject => Math.abs(subject));
+bindPrim('number/floor', subject => Math.floor(subject));
+bindPrim('number/ceil', subject => unsignedZero(Math.ceil(subject)));
 
-// A qlang Number is a finite double, as the page of `::number` says.
-// Both operands are finite by that same rule, so
-// the operation itself is the only way out of the domain, and each
-// site lifts its own class onto the fail-track — the second answer
-// `div` gives alongside `DivisionByZeroError`.
-const AddResultNotFiniteError = declareNumericDomainError('AddResultNotFiniteError',
-  ({ leftValue, rightValue }) => `add(${leftValue}, ${rightValue}) leaves the finite double range`,
-  { operand: 'add' }
-);
-const SubResultNotFiniteError = declareNumericDomainError('SubResultNotFiniteError',
-  ({ leftValue, rightValue }) => `sub(${leftValue}, ${rightValue}) leaves the finite double range`,
-  { operand: 'sub' }
-);
-const MulResultNotFiniteError = declareNumericDomainError('MulResultNotFiniteError',
-  ({ leftValue, rightValue }) => `mul(${leftValue}, ${rightValue}) leaves the finite double range`,
-  { operand: 'mul' }
-);
-const DivResultNotFiniteError = declareNumericDomainError('DivResultNotFiniteError',
-  ({ leftValue, rightValue }) => `div(${leftValue}, ${rightValue}) leaves the finite double range`,
-  { operand: 'div' }
-);
-
-// The operands ride the descriptor as `:leftValue` / `:rightValue`
-// — both finite, so the error value itself stays renderable, where
-// stamping the overflowed result would plant the very shape this
-// site refuses.
-function finiteOrLift(arithResult, leftValue, rightValue, ErrorCls) {
-  if (!Number.isFinite(arithResult)) throw new ErrorCls({ leftValue, rightValue });
-  return arithResult;
-}
-
-bindPrim('add', (augend, addend) => finiteOrLift(augend + addend, augend, addend, AddResultNotFiniteError));
-bindPrim('sub', (minuend, subtrahend) => finiteOrLift(minuend - subtrahend, minuend, subtrahend, SubResultNotFiniteError));
-bindPrim('mul', (multiplicand, multiplier) =>
-  finiteOrLift(multiplicand * multiplier, multiplicand, multiplier, MulResultNotFiniteError));
-bindPrim('div', (dividend, divisor) => {
-  if (divisor === 0) throw new DivisionByZeroError();
-  return finiteOrLift(dividend / divisor, dividend, divisor, DivResultNotFiniteError);
+// The whole numbers from zero below a whole count [D194], a count no
+// longer than the length a JavaScript array may have.
+const LONGEST_VECTOR = 2 ** 32 - 1;
+bindPrim('number/range', count => {
+  if (!Number.isInteger(count)) throw new NumberRangeCountNotIntegerError({ actualValue: count });
+  if (count > LONGEST_VECTOR) throw new NumberRangeCountTooLargeError({ longest: LONGEST_VECTOR, actualValue: count });
+  return Array.from({ length: Math.max(count, 0) }, (_, index) => index);
 });
 
 // A number rounds half away from zero to the digits after the point the
-// call gives, a negative count rounding to tens and beyond [D132].
-bindPrim('round', (subject, digits) => {
-  if (!Number.isInteger(digits)) throw new RoundDigitsNotIntegerError(digits);
+// call gives, a whole number its part holds [D218], a negative count
+// rounding to tens and beyond [D132].
+bindPrim('number/round', (subject, digits) => {
   const factor = 10 ** digits;
   const rounded = Math.sign(subject) * Math.round((Math.abs(subject) + Number.EPSILON) * factor) / factor;
   return rounded === 0 ? 0 : rounded;

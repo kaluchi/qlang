@@ -2,5 +2,6 @@
  "id": "Q",
  "author": "sonnet",
  "written": "2026-10-03",
- "seen": false
+ "seen": true,
+ "seenBy": "misses D153~blind~sonnet~2.json"
 }

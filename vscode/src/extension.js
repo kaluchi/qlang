@@ -110,9 +110,9 @@ function tokenizeWithAst(code) {
     const e = node.location.end.offset;
 
     switch (node.type) {
-      case 'OperandCall':
+      case 'Call':
         // Annotate only the name token, not the whole call expression.
-        // Effect-marked OperandCalls get a distinct class. `.effectful`
+        // Effect-marked calls get a distinct class. `.effectful`
         // is the precomputed boolean stamped by parse.mjs's post-parse
         // decorateAstWithEffectMarkers pass; read the structured field
         // rather than re-deriving the classification from node.name.

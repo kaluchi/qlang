@@ -8,8 +8,8 @@
     ".": {
       "import": "./src/main.mjs"
     },
-    "./cli-locator": {
-      "import": "./src/cli-locator.mjs"
+    "./cli-sources": {
+      "import": "./src/cli-sources.mjs"
     }
   },
   "bin": {

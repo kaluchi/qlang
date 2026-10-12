@@ -45,7 +45,7 @@ describe('vec.flat non-Vec elements', async () => {
 
 describe('setops bare form over a subject no residence takes', async () => {
   it('union bare on a number reaches the contract, which refuses it', async () => {
-    expect(await evalQuery('42 | union !| type | eq ::VerbWithoutBodyError')).toBe(true);
+    expect(await evalQuery('42 | union !| type | eq ::call/KindAnswersNoVerbError')).toBe(true);
   });
 
   it('union bare on a set folds its elements, the set being a vector', async () => {
@@ -53,33 +53,33 @@ describe('setops bare form over a subject no residence takes', async () => {
   });
 
   it('minus bare on a number reaches the contract, which refuses it', async () => {
-    expect(await evalQuery('42 | minus !| type | eq ::VerbWithoutBodyError')).toBe(true);
+    expect(await evalQuery('42 | minus !| type | eq ::call/KindAnswersNoVerbError')).toBe(true);
   });
 
   it('inter bare on a number reaches the contract, which refuses it', async () => {
-    expect(await evalQuery('42 | inter !| type | eq ::VerbWithoutBodyError')).toBe(true);
+    expect(await evalQuery('42 | inter !| type | eq ::call/KindAnswersNoVerbError')).toBe(true);
   });
 });
 
 describe('setops full form (two captured args)', async () => {
-  it('minus full form computes left minus right via two captured pipelines', async () => {
-    const result = await evalQuery('null | minus {:a 1 :b 2 :tmp 3} #[:tmp]');
+  it('minus takes the keys off the map in the pipe', async () => {
+    const result = await evalQuery('{:a 1 :b 2 :tmp 3} | minus #[:tmp]');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);
     expect(result.has('tmp')).toBe(false);
   });
 
-  it('inter full form computes left inter right via two captured pipelines', async () => {
-    const result = await evalQuery('null | inter {:a 1 :b 2 :c 3} #[:a :b]');
+  it('inter keeps the keys of the map in the pipe the set names', async () => {
+    const result = await evalQuery('{:a 1 :b 2 :c 3} | inter #[:a :b]');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);
     expect(result.has('c')).toBe(false);
   });
 
-  it('union full form computes left union right via two captured pipelines', async () => {
-    const result = await evalQuery('null | union {:a 1} {:b 2}');
+  it('union joins a map to the map in the pipe', async () => {
+    const result = await evalQuery('{:a 1} | union {:b 2}');
     expect(result).toBeInstanceOf(Map);
     expect(result.has('a')).toBe(true);
     expect(result.has('b')).toBe(true);
@@ -133,25 +133,22 @@ describe('a slot left without its modifier', async () => {
 });
 
 describe('setops bare-form empty Vec', async () => {
-  it('minus bare on empty Vec throws MinusBareEmptyError', async () => {
-    expect(isErrorValue(await evalQuery('[] | minus'))).toBe(true);
-  });
-
-  it('inter bare on empty Vec throws InterBareEmptyError', async () => {
-    expect(isErrorValue(await evalQuery('[] | inter'))).toBe(true);
-  });
-
-  it('union bare on empty Vec throws UnionBareEmptyError', async () => {
-    expect(isErrorValue(await evalQuery('[] | union'))).toBe(true);
+  it('a fold of no operands is refused by the word that folds, on a vector and on a set [D172]', async () => {
+    for (const kind of ['vec', 'set']) {
+      for (const verb of ['union', 'minus', 'inter']) {
+        const empty = kind === 'vec' ? '[]' : '#[]';
+        expect((await evalQuery(`${empty} | ${verb} !| type`)).name).toBe(`${kind}/${verb}/SubjectEmptyError`);
+      }
+    }
   });
 });
 
 describe('min/max subject type checks', async () => {
-  it('min and max on a non-container reach their contracts [D72]', async () => {
+  it('min and max on a value no kind of which answers them are refused with their addresses [D72]', async () => {
     for (const query of ['42 | min', '"hello" | max']) {
       const result = await evalQuery(query);
       expect(isErrorValue(result)).toBe(true);
-      expect(result.originalError.name).toBe('VerbWithoutBodyError');
+      expect(result.originalError.name).toBe('KindAnswersNoVerbError');
     }
   });
 });

@@ -1,12 +1,12 @@
 // The names an unresolved name was likely meant to be [D7]: the names
-// of the value namespace within an edit distance of a third of the
-// typed name's length, one at least, and of those the nearest alone,
-// in the order of their spelling. An edit is an insertion, a deletion,
-// a substitution or a swap of two neighbours, the slips of a typing
-// hand; beside them, the names one of which begins the other.
+// a step reaches, within an edit distance of a third of the typed name's
+// length, one at least, and of those the nearest alone, in the order of
+// their spelling. An edit is an insertion, a deletion, a substitution or
+// a swap of two neighbours, the slips of a typing hand; beside them, the
+// names one of which begins the other.
 
-import { keyword, makeTagKeyword } from './types.mjs';
-import { isTagBindingName, isRuntimeKey, stripTagBindingPrefix } from './env-keys.mjs';
+import { keyword, makeTag } from './types.mjs';
+import { nodeAddresses, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
 
 function editDistance(typed, known) {
   const table = Array.from({ length: typed.length + 1 }, () => new Array(known.length + 1).fill(0));
@@ -25,12 +25,6 @@ function editDistance(typed, known) {
     }
   }
   return table[typed.length][known.length];
-}
-
-// A name of the value namespace: no tag's, and none of the keys the
-// runtime keeps for itself.
-function isValueName(envKey) {
-  return !isTagBindingName(envKey) && !isRuntimeKey(envKey);
 }
 
 // One name begins the other, three letters at least: the guess of a longer
@@ -63,12 +57,31 @@ function nearestOf(names, typedName) {
   return [...new Set([...nearest, ...begun])].sort();
 }
 
-export function nearestNames(env, typedName) {
-  return Object.freeze(nearestOf([...env.keys()].filter(isValueName), typedName).map(name => keyword(name)));
+// The names a step reaches: those of the scope and the last names of the
+// verbs declared under a kind, a label of the root among them as the tag
+// that reaches it [D191].
+function namesOfSteps(env) {
+  return new Set([...scopeNamesOf(env).keys(), ...verbNames(env)]);
 }
 
-// The tags an unknown tag name was likely meant to be [D118].
+// The names near a typed one, a label of the root that is no word
+// written as its tag, and the tag first when the typed name is the
+// label's own.
+export function nearestNames(env, typedName) {
+  const words = new Set(verbNames(env));
+  const onlyItsTag = name => !env.has(name) && !words.has(name) && isLabel(env, name);
+  const near = nearestOf(namesOfSteps(env), typedName).map(name => onlyItsTag(name) ? makeTag(name) : keyword(name));
+  return Object.freeze(onlyItsTag(typedName) ? [makeTag(typedName), ...near] : near);
+}
+
+// The tags an unknown tag name was likely meant to be [D118]: the
+// addresses of the tree's nodes.
 export function nearestTagNames(env, typedName) {
-  const tagNames = [...env.keys()].filter(isTagBindingName).map(stripTagBindingPrefix);
-  return Object.freeze(nearestOf(tagNames, typedName).map(name => makeTagKeyword(name)));
+  return Object.freeze(nearestOf(new Set(nodeAddresses(env)), typedName).map(name => makeTag(name)));
+}
+
+// The keys of a map a key it lacks was likely meant to be, as a name is
+// near the names of the scope [D203].
+export function nearestKeys(map, typedKey) {
+  return Object.freeze(nearestOf(map.keys(), typedKey).map(name => keyword(name)));
 }

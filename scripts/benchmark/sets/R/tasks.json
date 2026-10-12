@@ -1,0 +1,146 @@
+[
+  {
+    "id": "R1",
+    "input": "users.json",
+    "text": "Return an array of the names of users whose \"active\" is true and whose address exists (is not null) and has a city that equals \"berlin\" ignoring case. Users without a city do not match. Sort the names ascending (plain string comparison).",
+    "expected": [
+      "Anna",
+      "Boris",
+      "Hugo"
+    ]
+  },
+  {
+    "id": "R2",
+    "input": "users.json",
+    "text": "Return the average \"age\" over users that have a numeric age (skip users whose age is null or missing), as a number rounded to 2 decimal places.",
+    "expected": 35.83
+  },
+  {
+    "id": "R3",
+    "input": "orders.json",
+    "text": "Consider only orders with status \"paid\". For each customer having at least one such order, compute the total of qty*price over all items of those orders (an order with no items contributes 0). Return an object mapping customer to total, each total rounded to 2 decimal places.",
+    "expected": {
+      "acme": 153.48,
+      "globex": 49.95,
+      "umbrella": 199.9
+    }
+  },
+  {
+    "id": "R4",
+    "input": "issues.json",
+    "text": "Count issues with state \"open\" by assignee login. An issue whose assignee is null or missing is counted under the key \"unassigned\". Return an object mapping key to count.",
+    "expected": {
+      "kim": 2,
+      "unassigned": 3,
+      "lee": 2
+    }
+  },
+  {
+    "id": "R5",
+    "input": "issues.json",
+    "text": "Among issues with state \"open\", return the \"number\" values of the top 3 by \"comments\" descending; ties are broken by \"number\" ascending. Return an array of 3 numbers.",
+    "expected": [
+      101,
+      104,
+      107
+    ]
+  },
+  {
+    "id": "R6",
+    "input": "manifest.json",
+    "text": "Look at both \"dependencies\" and \"devDependencies\". Return the distinct package names whose version string starts with \"^\" (in either section), as an array sorted ascending.",
+    "expected": [
+      "axios",
+      "eslint",
+      "express",
+      "jest"
+    ]
+  },
+  {
+    "id": "R7",
+    "input": "access.log",
+    "text": "Each line of the log is \"<timestamp> <METHOD> <path> <status> <duration>ms\". Return the distinct paths that had at least one response with status 500 or higher, as an array sorted ascending.",
+    "expected": [
+      "/api/orders"
+    ]
+  },
+  {
+    "id": "R8",
+    "input": "access.log",
+    "text": "Each line of the log is \"<timestamp> <METHOD> <path> <status> <duration>ms\". Consider only GET requests and compute the average duration in milliseconds (strip the \"ms\" suffix), rounded to the nearest integer. Return a number.",
+    "expected": 199
+  },
+  {
+    "id": "R9",
+    "input": "employees.csv",
+    "text": "The file is CSV with a header line (name,dept,salary,skills). Ignore rows with an empty salary. Return an object mapping each dept to the average salary of its remaining rows, rounded to 1 decimal place.",
+    "expected": {
+      "eng": 110000,
+      "sales": 75000,
+      "hr": 65000
+    }
+  },
+  {
+    "id": "R10",
+    "input": "employees.csv",
+    "text": "The file is CSV with a header line (name,dept,salary,skills). The skills column holds skills separated by \";\" and may be empty. Return the distinct skills across all rows, lowercased, as an array sorted ascending.",
+    "expected": [
+      "excel",
+      "go",
+      "negotiation",
+      "python",
+      "rust",
+      "sql"
+    ]
+  },
+  {
+    "id": "R11",
+    "input": "settings.env",
+    "text": "The file has KEY=VALUE lines; blank lines and lines starting with \"#\" are ignored. Split each line at the first \"=\" only, and trim whitespace around key and value. Keep only keys starting with the exact, case-sensitive prefix \"DB_\". Return an object whose keys are those keys with the \"DB_\" prefix removed and lowercased, and whose values are the value strings (not converted to numbers).",
+    "expected": {
+      "host": "localhost",
+      "port": "5432",
+      "name": "appdb",
+      "password": "p=ss=word"
+    }
+  },
+  {
+    "id": "R12",
+    "input": "config.json",
+    "text": "From \"services\", take only entries whose \"enabled\" is true (missing counts as not enabled). Return an array of objects {\"name\": <service key>, \"url\": \"<protocol>://<host>:<port>\"}; if port is missing use 80. Sort by name ascending.",
+    "expected": [
+      {
+        "name": "api",
+        "url": "https://api.example.com:8443"
+      },
+      {
+        "name": "auth",
+        "url": "https://auth.example.com:443"
+      },
+      {
+        "name": "web",
+        "url": "http://www.example.com:80"
+      }
+    ]
+  },
+  {
+    "id": "R13",
+    "input": "events.json",
+    "text": "Consider events with type exactly \"purchase\" for total and users. Return an object with keys: \"total\" = sum of meta.amount over those events (null or missing meta.amount counts as 0), rounded to 2 decimals; \"users\" = number of distinct users among those events; \"hasRefund\" = true if any event in the file has a type equal to \"refund\" ignoring case, else false.",
+    "expected": {
+      "total": 49.75,
+      "users": 4,
+      "hasRefund": true
+    }
+  },
+  {
+    "id": "R14",
+    "input": null,
+    "text": "Given this list of strings: [\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"Elder\",\"cherry\",\"fig\",\"Apple\"] — return the strings that occur more than once when compared ignoring case, each lowercased and listed once, as an array sorted ascending.",
+    "expected": [
+      "apple",
+      "banana",
+      "cherry"
+    ]
+  }
+]

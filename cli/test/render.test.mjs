@@ -1,11 +1,11 @@
 // render branch coverage. `renderCellOutcome` turns a cell entry
-// plus the script-mode context (resolvedFormat + didExplicitStdout
-// flag) into the stdoutText / stderrText / exitCode triple the
+// plus the script-mode context (the didExplicitStdout flag and the
+// colour) into the stdoutText / stderrText / exitCode triple the
 // orchestrator emits.
 
 import { describe, it, expect } from 'vitest';
 import { renderCellOutcome } from '../src/render.mjs';
-import { makeErrorValue, keyword, makeTagKeyword } from '@kaluchi/qlang-core';
+import { makeErrorValue, keyword, makeTag } from '@kaluchi/qlang-core';
 
 function makeCellEntry({ result = null, error = null } = {}) {
   return {
@@ -22,7 +22,6 @@ describe('renderCellOutcome — error paths', () => {
   it('routes a thrown setup-time JS error onto stderr with exit 1', async () => {
     const cellEntry = makeCellEntry({ error: new Error('parse blew up') });
     const cliOutcome = await renderCellOutcome(cellEntry, {
-      resolvedFormat: 'raw',
       didExplicitStdoutEffect: false,
       shouldColorize: false
     });
@@ -40,10 +39,9 @@ describe('renderCellOutcome — error paths', () => {
       ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);
     const cellEntry = makeCellEntry({
-      result: makeErrorValue(makeTagKeyword('FilterSubjectNotContainerError'), errorDescriptor)
+      result: makeErrorValue(makeTag('FilterSubjectNotContainerError'), errorDescriptor)
     });
     const cliOutcome = await renderCellOutcome(cellEntry, {
-      resolvedFormat: 'raw',
       didExplicitStdoutEffect: false,
       shouldColorize: false
     });
@@ -53,46 +51,31 @@ describe('renderCellOutcome — error paths', () => {
   });
 });
 
+// The answer is written as the language prints it, a string as its text
+// [D214].
 describe('renderCellOutcome — script-mode encoding', () => {
-  it('encodes a Map success value as pretty JSON when format is json', async () => {
-    const result = new Map([
-      ['a', 1],
-      ['b', 'two']
-    ]);
-    const cliOutcome = await renderCellOutcome(makeCellEntry({ result }), {
-      resolvedFormat: 'json',
-      didExplicitStdoutEffect: false,
-      shouldColorize: false
-    });
-    expect(cliOutcome.stdoutText).toBe('{\n  "a": 1,\n  "b": "two"\n}\n');
-    expect(cliOutcome.exitCode).toBe(0);
-  });
-
-  it('passes a String success value through raw (no quotes) when format is raw', async () => {
+  it('passes a String success value through as its text', async () => {
     const cliOutcome = await renderCellOutcome(
       makeCellEntry({ result: 'hello world' }),
-      { resolvedFormat: 'raw', didExplicitStdoutEffect: false, shouldColorize: false }
+      { didExplicitStdoutEffect: false, shouldColorize: false }
     );
     expect(cliOutcome.stdoutText).toBe('hello world\n');
   });
 
-  it('falls back to printValue for a non-String composite in raw mode', async () => {
-    // Raw input but the query produced a Map — no natural raw form;
-    // printValue renders the qlang literal so the user still sees
-    // something structural.
+  it('prints a non-String composite as its literal', async () => {
     const result = new Map([['k', 1]]);
     const cliOutcome = await renderCellOutcome(makeCellEntry({ result }), {
-      resolvedFormat: 'raw',
       didExplicitStdoutEffect: false,
       shouldColorize: false
     });
     expect(cliOutcome.stdoutText).toBe('{:k 1}\n');
+    expect(cliOutcome.exitCode).toBe(0);
   });
 
   it('suppresses the auto-encoded stdout when the query wrote to `@out`', async () => {
     const cliOutcome = await renderCellOutcome(
       makeCellEntry({ result: 'hello' }),
-      { resolvedFormat: 'raw', didExplicitStdoutEffect: true, shouldColorize: false }
+      { didExplicitStdoutEffect: true, shouldColorize: false }
     );
     expect(cliOutcome.stdoutText).toBe('');
     expect(cliOutcome.exitCode).toBe(0);
@@ -100,10 +83,10 @@ describe('renderCellOutcome — script-mode encoding', () => {
 });
 
 describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => {
-  it('wraps a printValue success output (raw format) in ANSI escapes when shouldColorize is true', async () => {
+  it('wraps a printValue success output in ANSI escapes when shouldColorize is true', async () => {
     const cliOutcome = await renderCellOutcome(
       makeCellEntry({ result: new Map([['k', 1]]) }),
-      { resolvedFormat: 'raw', didExplicitStdoutEffect: false, shouldColorize: true }
+      { didExplicitStdoutEffect: false, shouldColorize: true }
     );
     // ANSI escape pattern present
     // eslint-disable-next-line no-control-regex -- matches the literal ESC byte that ANSI escape sequences open with
@@ -113,30 +96,21 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
     expect(cliOutcome.stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('{:k 1}');
   });
 
-  it('leaves a JSON success output unpainted even when shouldColorize is true', async () => {
-    // JSON output must stay clean for `jq` / downstream readers.
-    const cliOutcome = await renderCellOutcome(
-      makeCellEntry({ result: new Map([['a', 1]]) }),
-      { resolvedFormat: 'json', didExplicitStdoutEffect: false, shouldColorize: true }
-    );
-    // eslint-disable-next-line no-control-regex -- matches the literal ESC byte that ANSI escape sequences open with
-    expect(cliOutcome.stdoutText).not.toMatch(/\x1b\[/);
-  });
-
-  it('paints a fail-track error value in ANSI when shouldColorize is true', async () => {
+  it('paints the failure of a query that does not parse in ANSI on stdout, exit 0 [D232]', async () => {
     const errorDescriptor = new Map([
       ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);
     const cellEntry = makeCellEntry({
-      result: makeErrorValue(makeTagKeyword('FilterSubjectNotContainerError'), errorDescriptor),
+      result: makeErrorValue(makeTag('FilterSubjectNotContainerError'), errorDescriptor),
       error: new Error('lifted parse failure')
     });
     const cliOutcome = await renderCellOutcome(cellEntry, {
-      resolvedFormat: 'raw',
       didExplicitStdoutEffect: false,
       shouldColorize: true
     });
     // eslint-disable-next-line no-control-regex -- matches the literal ESC byte that ANSI escape sequences open with
-    expect(cliOutcome.stderrText).toMatch(/\x1b\[/);
+    expect(cliOutcome.stdoutText).toMatch(/\x1b\[/);
+    expect(cliOutcome.stderrText).toBe('');
+    expect(cliOutcome.exitCode).toBe(0);
   });
 });

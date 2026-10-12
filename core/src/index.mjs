@@ -3,34 +3,29 @@
 // the runtime modules, which bind their primitives as they load.
 
 export { parse, ParseError } from './parse.mjs';
-export { evalQuery } from './eval.mjs';
+export { evalQuery, answerKindsOf } from './eval.mjs';
 export { langRuntime } from './runtime/index.mjs';
+export { LANGUAGE_SOURCES } from './runtime/bootstrap.mjs';
 export { createSession } from './session.mjs';
 export {
-  walkAst, findAstNodeAtOffset, findIdentifierOccurrences, writesTag,
-  bindingNamesVisibleAt, VALUE_NAMESPACE, TAG_NAMESPACE,
+  walkAst, findAstNodeAtOffset, findIdentifierOccurrences, writesTag, readsItsSubject,
+  bindingNamesVisibleAt, CALL_SPELLING, TAG_SPELLING,
   FORK_ISOLATING_AST_TYPES
 } from './walk.mjs';
+export { splitAddress } from './address.mjs';
 export { printQuoteSource } from './quote.mjs';
 export { decorateAstWithEffectMarkers } from './effect-check.mjs';
 export {
-  printValue, toPlain, fromPlain, FromPlainNumberNotFiniteError
+  printValue, toPlain, fromPlain, StringParseJsonNumberNotFiniteError
 } from './runtime/format.mjs';
 export { printAnswer } from './runtime/print.mjs';
-export { elide, elideAnswer } from './elide.mjs';
+export { elide, alertOf, elideAnswer } from './elide.mjs';
 export { tokenize } from './highlight.mjs';
 export { isNameStart, isNameContinue } from './name-chars.mjs';
-export { QlangTypeError } from './errors.mjs';
 export {
-  keyword, isKeyword, makeTagKeyword, isTagKeyword, isErrorValue,
-  isVerb, bindingValueOf, makeErrorValue, errorFromKindDescriptor,
+  keyword, isKeyword, makeTag, isTag, isErrorValue,
+  bindingValueOf, makeErrorValue,
   TAG_HEADER_SYMBOL, stampTagHeader, typeKeyword
 } from './types.mjs';
-export {
-  signatureSpecOf, slotLabelsOf, verbShownFor
-} from './runtime/verb.mjs';
-export { verbsReaching } from './runtime/nouns.mjs';
-export {
-  RUNTIME_LOCATOR_KEY, isTagBindingName, isModuleNamespaceKey,
-  tagBindingKey, canonicalTagName
-} from './env-keys.mjs';
+export { shownFor } from './runtime/verb.mjs';
+export { verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isWord, declaresWord, ruleRefusalsOf } from './runtime/nouns.mjs';

@@ -1,0 +1,19 @@
+|~ `::law`, the kind of a law, and the laws declared under it. ~|
+
+:law
+  |~~ A law is a claim about a name that runs: a query that answers
+      true, written as a quote under this tag and declared under the
+      name whose behaviour it proves, its page the sentence of the
+      claim; `:number/add/addsTheNumber` holds
+      `::law~(10 | add 3 | eq 13)`.
+
+      `laws` answers the laws of a name, each its page and its query,
+      and `runLaws` runs them, so the examples of the catalog are its
+      tests.
+      ::link~(::any/laws | doc) ::link~(::any/runLaws | doc)
+      ::link~(::qlang/hypertext | doc)
+  ~~|
+
+:law/provesItsClaim
+  |~~ A law declared under a name proves its claim when it runs. ~~|
+  ::law~(:any/k ~(5) | :any/k/answersFive |~~ k answers five. ~~| ::law~(0 | k | eq 5) | ::any/k | runLaws | map ~/ok | eq [true])

@@ -1,0 +1,126 @@
+ qlang is a pipeline language over values. A query is a subject and its steps: each step is a command on the value the step before it answered, and answers a new value; nothing changes in place, and the answer is the last value. Everything the language handles is a value with a literal that prints and reads back as itself: data, code, prose and failures alike. So the language describes itself in its own values: every name has a page, the pages grow from ::qlang, and a query reads them like any data.
+
+      Every `~(…)` on this page is a law: a query that runs and answers true. A form copied from a law is a form that works.
+
+      What a reader can rely on, the invariants every rule below follows from:
+      - A query is a function of its input: the same subject answers the same value, nothing changes in place, and nothing is read or written outside it but by the verbs of the host.
+      - The value in the pipe is the one implicit argument: every command takes it as its subject, and every modifier is computed against it.
+      - Every nested piece, an element of a literal, a group, the body of `*`, a modifier, starts from the value in the pipe of its step and the names around it and gives back only its value.
+      - Nothing is converted behind the reader: no truthiness, no number read out of a string; a part read strictly, `/k` or `/0`, fails where it is missing, and one read softly, `at`, `first`, `last`, `min`, `max` or `avg`, answers null; a value that does not fit makes its step fail, under a tag naming that step.
+      - One order ranks every value, so anything sorts, compares and dedupes.
+      - A failure is a value: it rides past `|` and `*` until `!|` opens it.
+      - Every value prints as a literal that reads back as itself: what an answer shows is the value.
+      - What exists is what the language lists: a verb missing from the list of a kind does not exist for it, and a page tells the truth about its name because its laws run.
+
+      1. The combinators. Steps are joined by combinators, each set off by spaces on both sides; they bind alike, from left to right.
+      `a | b` runs b on the value a answered.
+      `a * b` runs b on each element of a: a vector or a set answers the vector of the results, a map answers a map with the same keys. Several steps after `*` stand in a group, and a pipe written before `*` or `!|` stands for it.
+      `a !| b` runs b only when a answered a failure; any other value passes it untouched.
+      `(…)` is a group: its steps run on the value in the pipe and answer their result.
+      At the top level a line is a step, joined to the next line by `|`.
+      ::snippet~([1 2 3] * (mul 2 | add 1) | eq [3 5 7])
+      ::snippet~({:a 1 :b 2} * (mul 10) | eq {:a 10 :b 20})
+      ::snippet~([1 "x" 3] * (mul 2 !| 0) | eq [2 0 6])
+      ::snippet~(5 | (add 1 | mul 2) | eq 12)
+
+      2. The literals. A literal is a step: it replaces the value in the pipe, and every word inside it is computed against that value.
+      42, -1.5 and 1e3 are numbers, finite doubles. "text" is a string. :name and :"two words" are keywords, names that stand for themselves. null, true and false. [1 2 3] is a vector, [1, 2, 3] the same vector. {:k 1} is a map, and {"k": 1} the same map: every key of a map is a keyword. #[3 1 2] is a set. `~(add 1)` is code, a quote. |~~ text ~~| is prose, a doc. !{:reason :x} is a failure. ::Box is a tag name, a value of its own. ::Box{:a 1} is a value under the tag ::Box.
+      ::snippet~(5 | [1 2] | eq [1 2])
+      ::snippet~({"a": 1, "b": [true, null]} | eq {:a 1 :b [true null]})
+      ::snippet~([7 8] | ::Box | eq ::Box)
+      A literal is how data is reshaped: write the shape the answer takes, with its parts read from the value.
+      ::snippet~({:first "Ann" :age 30} | {:who /first :next (/age | add 1)} | eq {:who "Ann" :next 31})
+      ::snippet~([{:id 1 :tags [:a :b]}] * {:id /id :n (/tags | count)} | eq [{:id 1 :n 2}])
+
+      3. Reading parts. /k reads a key of a map, /0 an element of a vector, /-1 counts from the end, /a/b walks a path, / alone is the whole value. A part that is not there is a failure; `at` reads softly and answers null, and `coalesce` puts a fallback in its place, `at :k | coalesce 0`.
+      ::snippet~({:a {:b [10 20]}} | /a/b/-1 | eq 20)
+      ::snippet~({"first name": "Ann"} | /"first name" | eq "Ann")
+      ::snippet~({:a 1} | /b !| type | eq ::proj/KeyNotInMapError)
+      ::snippet~({:a 1} | at :b | eq null)
+      ::snippet~({:a 1} | at :b | coalesce 0 | eq 0)
+
+      4. Commands. A command is a name and its modifiers, one word each, separated by spaces: `add 1`, `split ","`, `filter ~(gt 1)`. A step sees one value, the one the step before handed it, and everything inside the step is computed from that value: what an earlier step saw is gone unless a name keeps it. So `mulOf /price /qty` multiplies two fields of one record, but after `/active |` a modifier reads the boolean, not the record; `:r /` keeps the record for the steps after. A command with modifiers, or a pipeline, inside a literal or a modifier stands in parentheses.
+      ::snippet~({:price 4 :qty 3} | mulOf /price /qty | eq 12)
+      ::snippet~({:total 10 :paid 3} | subOf /total /paid | eq 7)
+      ::snippet~({:a 1} | [(/a | add 1) /a] | eq [2 1])
+      ::snippet~({:qty 2 :price 3} | /qty | mul /price !| type | eq ::proj/SubjectNotProjectableError)
+      ::snippet~({:qty 2 :price 3} | :r / | /qty | mul (r | /price) | eq 6)
+      A modifier that is code, which a verb runs later on each element, is a quote: `~(…)`, or `~name` for one word. A value computed at the call is refused there.
+      ::snippet~([{:age 3} {:age 20}] | filter ~(/age | gte 18) | count | eq 1)
+      ::snippet~([{:n 2} {:n 1}] | sort ~/n | first | eq {:n 1})
+      ::snippet~([1 2 3] | filter (gt 1) !| type | eq ::any/filter/predicate/HoldsNotMetError)
+
+      5. Kinds and verbs. Every value has a kind, which `type` answers as a tag: ::number ::string ::keyword ::boolean ::null ::vec ::map ::set, and ::quote ::doc ::tag and others. A verb lives on the kinds it serves, and a name finds its verb through the kind of its subject; what a kind answers is listed by `::string | manifest`, and a verb outside its list does not exist for it. The verbs most queries use:
+      numbers: add sub mul div round, and gt gte lt lte to compare.
+      strings: split lines trim contains startsWith endsWith lower upper append prepend keyword, parseJson to read a number or any JSON out of text, and count take drop by characters; strings join from a vector by `join ","`.
+      containers: count first last at take drop filter every any sort reverse distinct flat sum avg min max reduce groupBy indexBy has contains, and for maps keys vals entries; union minus inter for sets and maps. The greatest by a key is `max ~(key)`, and `sort ~([(/n | desc) /name])` ranks by n descending and then by name, and `flat` splices one level of nesting.
+      every value: type eq ne print json if cond coalesce apply tag desc, and `payload` opens a value under a tag.
+      booleans: and or not.
+      ::snippet~([42 "s" :k [1] {:k 1} #[1] true null] * type | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
+      ::snippet~("a,b,c" | split "," | join "-" | eq "a-b-c")
+      ::snippet~("db_host" | [count (drop 3) (take 2)] | eq [7 "host" "db"])
+      ::snippet~(["b" "a" "b"] | groupBy * count | eq {:b 2 :a 1})
+      ::snippet~({:auth {:port 3000}} | entries * (unionOf /1 {:name (/0 | keyword)}) | eq [{:port 3000 :name "auth"}])
+      ::snippet~({:a 1} | entries | tag ::map | eq {:a 1})
+      ::snippet~(3.14159 | round 2 | ne 3.14159)
+      ::snippet~([3 1 2] | reduce 0 ~(add) | eq 6)
+
+      6. What differs from the languages a reader knows.
+      One order ranks every value: null, then booleans, numbers, strings, keywords, tag names, vectors, sets, maps; so anything sorts. A set is the vector in that order without duplicates: `distinct` and `keys` answer a set, `take`, `drop` and `filter` keep a set, and `sort` and `reverse` answer a vector.
+      ::snippet~(#[:z :x :y] | first | eq :x)
+      ::snippet~([2 3 2 1] | distinct | eq #[1 2 3])
+      ::snippet~({:y 1 :x 2} | keys | eq #[:x :y])
+      ::snippet~(#[:z :x :y] | reverse | eq [:z :y :x])
+      A map's elements are its values: `count`, `sum`, `first`, `filter`, `sort` and `*` read the values, and the keys travel with them.
+      ::snippet~({:a 1 :b 5} | filter ~(gt 2) | eq {:b 5})
+      A condition is a boolean: `if`, `filter`, `every`, `any` and `cond` refuse any other value, so nothing is truthy.
+      ::snippet~(5 | if (gt 0) ~("pos") ~("neg") | eq "pos")
+      ::snippet~(5 | if 1 ~("yes") ~("no") !| type | eq ::any/if/condition/HoldsNotMetError)
+      A string and a keyword turn into each other by `keyword`; text and code turn into each other by `parse`; `print` answers the text a value reads back from, a string.
+      ::snippet~("draft" | keyword | eq :draft)
+      ::snippet~(:draft | keyword | eq "draft")
+      ::snippet~(7 | print | eq "7")
+      A name, `:n v`, holds v for the steps after it, and the value in the pipe goes on unchanged; `:n /` names the value in the pipe. A name is declared once in a scope, and the names a group declares close with it.
+      ::snippet~(5 | :n / | [n (n | add 1)] | eq [5 6])
+      ::snippet~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
+
+      7. Failures. A step that fails answers a failure, a value: `|` and `*` pass it by, and `!|` opens it to its facts. The tag of a failure is the address of what refused: ::number/add/SubjectNotNumberError is `add` refusing its subject for not being a number, ::number/add/addend/HoldsNotMetError its part `addend` breaking a law of its page. `!| explain` shows the page of what refused.
+      ::snippet~("x" | add 1 !| type | eq ::number/add/SubjectNotNumberError)
+      ::snippet~("x" | add 1 !| /actualType | eq ::string)
+      ::snippet~(1 | add "x" !| type | eq ::number/add/addend/HoldsNotMetError)
+      ::snippet~(!{:reason :late} !| /reason | eq :late)
+      A failure is built from a map by `raise`, or written as a literal with the tag of its own kind before the bang; `!|` opens it to that map, its tag stacked over the kind ::error. Whether a value is a failure is `false !| true`, and `/trail` holds the path it took, the steps it skipped last.
+      ::snippet~({:reason :late} | raise !| [type /reason] | eq [::error :late])
+      ::snippet~(::Late!{:by 3} !| [type /by] | eq [::Late 3])
+      ::snippet~([!{:k 1} 5] * (false !| true) | eq [true false])
+      ::snippet~("x" | add 1 | mul 2 !| /trail/-1/skipped | eq ~(mul 2))
+
+      8. Code and names of your own. A quote holds steps unrun: it is the vector of its steps, `apply` runs it on a subject, and `parse` turns text into a quote and a quote into its text.
+      ::snippet~(~(add 1 | mul 2) | count | eq 2)
+      ::snippet~(5 | apply ~(add 1 | mul 2) | eq 12)
+      ::snippet~("add 1" | parse | eq ~(add 1))
+      A kind of your own is a label, a name declared by its page, whose laws, `::holds~(…)`, every value put under it keeps. A name under a label, a quote, runs on its values when mentioned. What a call gives is its object, `::Box/put[7]`, and each name under the call's address reads a part of it, `~(/0)` given or `~(at 0 d)` d by default, checked by the laws of its page and named in the body. A noun of the language takes names alike; a quote in a bare name runs by `apply`.
+      ::snippet~(:Box |~~ A parcel. ~~| | :Box/put ~(within ~(append w)) | :Box/put/w |~~ A weight. ::holds~(isA ::number) ~~| ~(/0) | ::Box[1] | [(put 7) (put "x" !| type)] | eq [::Box[1 7] ::Box/put/w/HoldsNotMetError])
+      ::snippet~(:number/plus ~(add by) | :number/plus/by ~(at 0 1) | 5 | [plus (plus 2)] | eq [6 7])
+      ::snippet~(:q ~(add 1) | 5 | apply q | eq 6)
+      A step of a quote is a record of what it computes, a command under ::call with its `:name`:
+      ::snippet~(~(add 1) | first | [type /name] | eq [::call :add])
+      Prose is a value too: |~~ text ~~| is a doc, whose `content` is its text, `segments` its prose and quotes, and `laws` the quotes that run. A comment, written |~ like this ~| or from |~| to the end of its line, is whitespace.
+      ::snippet~(|~~ a ~(eq 1) b ~~| | [(segments | count) (laws | count)] | eq [3 1])
+
+      9. Working a task. Look at the input before shaping it: `type`, `keys`, `/0`, `count`. Write the shape of the answer as a literal, and build the query one step at a time, running each. When a step fails, its tag is the address of what refused; `!| explain` reads its page, and `::vec/sort | doc` the page of a verb, with laws to copy.
+      ::snippet~([{:id 1 :tags ["a"]}] | /0 | keys | eq #[:id :tags])
+
+      10. Asking. `x | doc` answers the page of a name or of the kind of a value: its text is `content`, its laws `laws`, its links `links`. ::snippet~(env | keys) lists the names in scope, ::snippet~(::vec | manifest) the names under a kind by address, `::vec/sort | doc` the page of one, `::any/sort | doc` the page every `sort` shares and `::any/sort | manifest` the parts of its object, and `::vec/sort | runLaws` runs its laws. `x !| explain` shows the page of what refused. An answer prints whole; `x | elide 4000` bounds it, each part left out an ::elision whose `:read` continues the query to it.
+      ::snippet~(::qlang | doc | links * open | count | gt 5)
+
+      11. The chapters, in the order they rest on each other, each naming its neighbours and its kinds:
+      ::link~(::qlang/values | doc) values, kinds and tags;
+      ::link~(::qlang/pipeline | doc) the steps of a query;
+      ::link~(::qlang/names | doc) names and their records;
+      ::link~(::qlang/verbs | doc) the verbs that live on kinds;
+      ::link~(::qlang/errors | doc) the failure as a value;
+      ::link~(::qlang/code | doc) code as a value;
+      ::link~(::qlang/hypertext | doc) the pages and how to move through them;
+      ::link~(::qlang/hosts | doc) the tool the language runs in and the budget of an answer.
+  

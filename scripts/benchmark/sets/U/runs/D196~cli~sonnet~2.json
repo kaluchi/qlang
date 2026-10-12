@@ -1,0 +1,261 @@
+{
+ "set": "U",
+ "decision": "D196",
+ "screen": "D196",
+ "screenHash": "325db032481c",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-11",
+ "commit": "10e628a6",
+ "reason": null,
+ "environment": {
+  "MSYS_NO_PATHCONV": "1"
+ },
+ "modelId": "claude-sonnet-5-5",
+ "result": "All 14 queries ran and gave sensible answers. I checked a few of them by hand against the data (U7 average 94, U9 tools 16.08 and decor 14.5, and the U14 word counts).\n\n- **Output format:** U9 prints with `:tools`-style keys, because the output is qlang notation, not JSON. U8, U9, U10 and U13 used `--raw`. U14 uses a literal, so it needs no input.\n- **U2 rounding:** I round with `mul 100 | round | div 100`, because I didn't check whether `round` takes a decimals argument. It answered 69.93.\n- **U5:** The three-way tie at count 2 resolves by login ascending, giving abe, kim, lee.\n\nU1: /data/users | filter ~(allOf (at :active | eq true) (at :address | ne null)) | filter ~(/address | at :city | ne null) | filter ~(/address/city | lower | eq \"berlin\") | sort ~(/name | lower) | map ~(/name)\nU2: filter ~(/status | eq \"paid\") | map ~(at :items | coalesce [] | map ~(mulOf /qty /price) | sum) | sum | mul 100 | round | div 100\nU3: filter ~(at :items | coalesce [] | count | gt 0) | groupBy ~(/customer) | map ~(count)\nU4: :m / | [(m | /dependencies | entries) (m | /devDependencies | entries)] | flat | filter ~(/1 | startsWith \"^\") | map ~(/0 | keyword) | distinct | sort\nU5: filter ~(at :state | eq \"open\") | filter ~(at :assignee | ne null) | groupBy ~(/assignee/login) | map ~(count) | entries | map ~({:assignee (/0 | keyword) :count /1}) | sort ~([(/count | desc) /assignee]) | take 3\nU6: map ~(at :labels | coalesce []) | flat | map ~(lower) | distinct | sort\nU7: lines | filter ~(trim | ne \"\") | map ~(split \" \") | filter ~(/1 | eq \"GET\") | map ~(/4 | take (count | sub 2) | parseJson) | avg | mul 10 | round | div 10\nU8: lines | filter ~(trim | ne \"\") | map ~(split \" \" | /2) | groupBy ~(/) | map ~(count) | entries | map ~({:p (/0 | keyword) :c /1}) | sort ~([(/c | desc) /p]) | take 2 | map ~(/p)\nU9: lines | drop 1 | filter ~(trim | ne \"\") | map ~(split \",\") | filter ~(/2 | ne \"\") | groupBy ~(/1 | lower) | map ~(map ~(/2 | parseJson) | avg | mul 100 | round | div 100)\nU10: lines | drop 1 | filter ~(trim | ne \"\") | map ~(split \",\") | filter ~(/2 | ne \"\") | filter ~(/3 | parseJson | ne 0) | map ~({:n /0 :p (/2 | parseJson)}) | sort ~([(/p | desc) /n]) | take 3 | map ~(/n)\nU11: :d /defaults | /services | entries | map ~({:name (/0 | keyword) :s /1}) | map ~({:name /name :en (/s | at :enabled | coalesce (d | /enabled)) :port (/s | at :port | coalesce (d | /port))}) | filter ~(/en | ne false) | map ~({:name /name :port /port}) | sort ~(/name)\nU12: groupBy ~(/user) | map ~(sort ~(/ts) | last | /type)\nU13: lines | map ~(trim) | filter ~(ne \"\") | filter ~(startsWith \"#\" | eq false) | map ~(split \"|\" | map ~(trim)) | filter ~(/2 | lower | split \",\" | contains \"prod\") | map ~(/0 | upper) | sort | join \",\"\nU14: [\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"fig\",\"Elderberry\",\"cherry\",\"Fig\"] | map ~(lower) | distinct | :w / | {:count (w | count) :longest (w | sort ~([(count | desc) /]) | take 2)}",
+ "failed": false,
+ "requests": 14,
+ "turns": 16,
+ "inputTokens": 162738,
+ "outputTokens": 5144,
+ "calls": [
+  {
+   "command": "ls; for f in *.json; do echo \"== $f\"; head -c 600 $f; echo; done; head -5 access.log products.csv hosts.txt",
+   "answered": "value",
+   "head": "Part of this command (a variable) cannot be checked in advance"
+  },
+  {
+   "command": "ls; head -c 500 users.json; echo; head -c 500 orders.json; echo; head -c 400 manifest.json; echo; head -c 500 issues.json; echo; head -c 400 config.json; echo; head -c 400 events.json; echo; head -5 access.log products.csv hosts.txt",
+   "answered": "value",
+   "head": "access.log config.json events.json hosts.txt issues.json manifest.json orders.json products.csv users.json { \"status\": \"ok\", \"data\": { \"users\": [ { \"id\": 1, \"name\": \"Zoe\", \"active\": true, \"address\": { \"city\": \"Berlin\" } }, { \"id\": 2, \"name\""
+  },
+  {
+   "command": "qlang '[::vec ::map ::string ::number ::any] | map ~([/ manifest])' < /dev/null",
+   "answered": "value",
+   "head": "[[::vec #[::vec/PayloadNotVecError ::vec/any ::vec/append ::vec/at ::vec/avg ::vec/construct ::vec/contains ::vec/count ::vec/distinct ::vec/drop ::vec/empty ::vec/every ::vec/filter ::vec/first ::vec/flat ::vec/groupBy ::vec/has ::vec/inde"
+  },
+  {
+   "command": "qlang '/data/users | filter ~(/active | eq true)' < users.json | head -c 1500",
+   "answered": "value",
+   "head": "[ { \"id\": 1, \"name\": \"Zoe\", \"active\": true, \"address\": { \"city\": \"Berlin\" } }, { \"id\": 2, \"name\": \"adam\", \"active\": true, \"address\": { \"city\": \"berlin\" } }, { \"id\": 4, \"name\": \"Lena\", \"active\": true, \"address\": null }, { \"id\": 5, \"name\": \"I"
+  },
+  {
+   "command": "qlang '/data/users | filter ~(allOf (at :active | eq true) (at :address | ne null)) | filter ~(/address | at :city | ne null) | filter ~(/address/city | lower | eq \"berlin\") | sort ~(/name | lower) | map ~(/name)' < users.json; qlang 'null | at :a' </dev/null",
+   "answered": "value",
+   "head": "[ \"adam\", \"Bob\", \"Zoe\" ] null"
+  },
+  {
+   "command": "qlang 'filter ~(/status | eq \"paid\") | map ~(at :items | coalesce [] | map ~(mulOf /qty /price) | sum) | sum | mul 100 | round | div 100' < orders.json; qlang '[1 2]|sum|round' </dev/null;  qlang '[] | sum' </dev/null; qlang 'map ~(/customer)' < orders.json | head -30",
+   "answered": "quote/ParseError",
+   "head": "69.93 ::quote/ParseError!{ :source \"[1 2]|sum|round\" :marker \" ^ \" :message \"a combinator is set off by whitespace on both sides: write ` | `\" :location { :start { :offset 5 :line 1 :column 6 } :end { :offset 6 :line 1 :column 7 } } :uri \"c"
+  },
+  {
+   "command": "qlang 'filter ~(at :items | coalesce [] | count | gt 0) | groupBy ~(/customer) | map ~(count)' < orders.json",
+   "answered": "value",
+   "head": "{ \"ann\": 2, \"bob\": 2, \"dee\": 1 }"
+  },
+  {
+   "command": "qlang '[/dependencies /devDependencies] | map ~(vals)' < manifest.json | head -3; qlang ':m / | [(m | /dependencies | entries) (m | /devDependencies | entries)] | flat | filter ~(/1 | startsWith \"^\") | map ~(/0) | distinct | sort' < manifest.json",
+   "answered": "value",
+   "head": "[ [ \"^4.18.0\", [ \"axios\", \"eslint\", \"express\", \"jest\" ]"
+  },
+  {
+   "command": "qlang 'keys | first | type' < manifest.json; qlang '/dependencies | entries | first' < manifest.json; qlang '/ | missing' < manifest.json | head -5",
+   "answered": "cli/AnswerNotJsonError",
+   "head": "{ \"$error\": { \"$tag\": \"cli/AnswerNotJsonError\", \"facts\": { \"path\": [], \"actualType\": \"::tag\", \"printed\": \"::keyword\", \"trail\": [] } } } [ \"express\", \"^4.18.0\" ] { \"$error\": { \"$tag\": \"call/UnknownNameError\", \"facts\": { \"name\": \"missing\","
+  },
+  {
+   "command": "qlang ':m / | [(m | /dependencies | entries) (m | /devDependencies | entries)] | flat | filter ~(/1 | startsWith \"^\") | map ~(/0 | keyword) | distinct | sort' < manifest.json | tr -d '\\n'; echo\nqlang 'filter ~(at :state | eq \"open\") | filter ~(at :assignee | ne null) | groupBy ~(/assignee/login) | map ~(count) | entries | map ~({:assignee (/0 | keyword) :count /1}) | sort ~([(/count | desc) /assignee]) | take 3' < issues.json | tr -d '\\n '; echo\nqlang 'map ~(at :labels | coalesce []) | flat | map ~(lower) | distinct | sort' < issues.json | tr -d '\\n '",
+   "answered": "value",
+   "head": "[ \"axios\", \"eslint\", \"express\", \"jest\"] [{\"assignee\":\"abe\",\"count\":2},{\"assignee\":\"kim\",\"count\":2},{\"assignee\":\"lee\",\"count\":2}] [\"bug\",\"chore\",\"docs\",\"perf\",\"typo\",\"ui\",\"urgent\"]"
+  },
+  {
+   "command": "qlang --raw 'lines | filter ~(trim | ne \"\") | map ~(split \" \") | filter ~(/1 | eq \"GET\") | map ~(/4 | take (count | sub 2) | parseJson) | avg | mul 10 | round | div 10' < access.log\nqlang --raw 'lines | filter ~(trim | ne \"\") | map ~(split \" \" | /2) | groupBy ~(/) | map ~(count) | entries | map ~({:p (/0 | keyword) :c /1}) | sort ~([(/c | desc) /p]) | take 2 | map ~(/p)' < access.log | tr -d '\\n '",
+   "answered": "value",
+   "head": "94 [\"/api/items\"\"/api/users\"]"
+  },
+  {
+   "command": "cat access.log | tail -8; cat products.csv; cat hosts.txt",
+   "answered": "value",
+   "head": "2026-03-01T10:01:00Z GET /api/users 500 300ms 2026-03-01T10:01:30Z GET /api/items 404 15ms 2026-03-01T10:02:00Z DELETE /api/items 204 40ms 2026-03-01T10:02:10Z GET /health 200 5ms 2026-03-01T10:03:00Z GET /api/items 200 95ms 2026-03-01T10:0"
+  },
+  {
+   "command": "qlang --raw 'lines | drop 1 | filter ~(trim | ne \"\") | map ~(split \",\") | filter ~(/2 | ne \"\") | groupBy ~(/1 | lower) | map ~(map ~(/2 | parseJson) | avg | mul 100 | round | div 100)' < products.csv\nqlang --raw 'lines | drop 1 | filter ~(trim | ne \"\") | map ~(split \",\") | filter ~(/2 | ne \"\") | filter ~(/3 | parseJson | ne 0) | map ~({:n /0 :p (/2 | parseJson)}) | sort ~([(/p | desc) /n]) | take 3 | map ~(/n)' < products.csv\nqlang --raw 'lines | map ~(trim) | filter ~(ne \"\") | filter ~(startsWith \"#\" | eq false) | map ~(split \"|\" | map ~(trim)) | filter ~(/2 | lower | split \",\" | contains \"pr",
+   "answered": "value",
+   "head": "{ :tools 16.08 :toys 8.13 :decor 14.5 } [\"Vase\" \"Sprocket\" \"Widget\"] CACHE-01,DB-01,WEB-01,WEB-02"
+  },
+  {
+   "command": "qlang ':d /defaults | /services | entries | map ~({:name (/0 | keyword) :s /1}) | map ~({:name /name :en (/s | at :enabled | coalesce (d | /enabled)) :port (/s | at :port | coalesce (d | /port))}) | filter ~(/en | ne false) | map ~({:name /name :port /port}) | sort ~(/name)' < config.json | tr -d '\\n '; echo\nqlang ':d /defaults | /services | entries | map ~({:name (/0 | keyword) :s /1}) | map ~({:name /name :en (/s | at :enabled | coalesce (d | /enabled)) :port (/s | at :port | coalesce (d | /port))})' < config.json | tr -d '\\n '",
+   "answered": "value",
+   "head": "[{\"name\":\"api\",\"port\":8080},{\"name\":\"auth\",\"port\":9000},{\"name\":\"db\",\"port\":8080},{\"name\":\"mail\",\"port\":8080},{\"name\":\"web\",\"port\":80}] [{\"name\":\"web\",\"en\":true,\"port\":80},{\"name\":\"api\",\"en\":true,\"port\":8080},{\"name\":\"cache\",\"en\":false,\"por"
+  },
+  {
+   "command": "qlang 'groupBy ~(/user) | map ~(sort ~(/ts) | last | /type)' < events.json | tr -d '\\n '; echo\nqlang '[\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"fig\",\"Elderberry\",\"cherry\",\"Fig\"] | map ~(lower) | distinct | :w / | {:count (w | count) :longest (w | sort ~([(count | desc) /]) | take 2)}' < /dev/null | tr -d '\\n '",
+   "answered": "value",
+   "head": "{\"u1\":\"logout\",\"u2\":\"purchase\",\"u3\":\"login\"} {:count6:longest[\"elderberry\"\"banana\"]}"
+  }
+ ],
+ "score": [
+  {
+   "task": "U1",
+   "query": "/data/users | filter ~(allOf (at :active | eq true) (at :address | ne null)) | filter ~(/address | at :city | ne null) | filter ~(/address/city | lower | eq \"berlin\") | sort ~(/name | lower) | map ~(/name)",
+   "answer": [
+    "adam",
+    "Bob",
+    "Zoe"
+   ],
+   "solved": true
+  },
+  {
+   "task": "U2",
+   "query": "filter ~(/status | eq \"paid\") | map ~(at :items | coalesce [] | map ~(mulOf /qty /price) | sum) | sum | mul 100 | round | div 100",
+   "answer": 69.93,
+   "solved": true
+  },
+  {
+   "task": "U3",
+   "query": "filter ~(at :items | coalesce [] | count | gt 0) | groupBy ~(/customer) | map ~(count)",
+   "answer": {
+    "ann": 2,
+    "bob": 2,
+    "dee": 1
+   },
+   "solved": true
+  },
+  {
+   "task": "U4",
+   "query": ":m / | [(m | /dependencies | entries) (m | /devDependencies | entries)] | flat | filter ~(/1 | startsWith \"^\") | map ~(/0 | keyword) | distinct | sort",
+   "answer": [
+    "axios",
+    "eslint",
+    "express",
+    "jest"
+   ],
+   "solved": true
+  },
+  {
+   "task": "U5",
+   "query": "filter ~(at :state | eq \"open\") | filter ~(at :assignee | ne null) | groupBy ~(/assignee/login) | map ~(count) | entries | map ~({:assignee (/0 | keyword) :count /1}) | sort ~([(/count | desc) /assignee]) | take 3",
+   "answer": [
+    {
+     "assignee": "abe",
+     "count": 2
+    },
+    {
+     "assignee": "kim",
+     "count": 2
+    },
+    {
+     "assignee": "lee",
+     "count": 2
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "U6",
+   "query": "map ~(at :labels | coalesce []) | flat | map ~(lower) | distinct | sort",
+   "answer": [
+    "bug",
+    "chore",
+    "docs",
+    "perf",
+    "typo",
+    "ui",
+    "urgent"
+   ],
+   "solved": true
+  },
+  {
+   "task": "U7",
+   "query": "lines | filter ~(trim | ne \"\") | map ~(split \" \") | filter ~(/1 | eq \"GET\") | map ~(/4 | take (count | sub 2) | parseJson) | avg | mul 10 | round | div 10",
+   "answer": 94,
+   "solved": true
+  },
+  {
+   "task": "U8",
+   "query": "lines | filter ~(trim | ne \"\") | map ~(split \" \" | /2) | groupBy ~(/) | map ~(count) | entries | map ~({:p (/0 | keyword) :c /1}) | sort ~([(/c | desc) /p]) | take 2 | map ~(/p)",
+   "answer": [
+    "/api/items",
+    "/api/users"
+   ],
+   "solved": true
+  },
+  {
+   "task": "U9",
+   "query": "lines | drop 1 | filter ~(trim | ne \"\") | map ~(split \",\") | filter ~(/2 | ne \"\") | groupBy ~(/1 | lower) | map ~(map ~(/2 | parseJson) | avg | mul 100 | round | div 100)",
+   "answer": {
+    "tools": 16.08,
+    "toys": 8.13,
+    "decor": 14.5
+   },
+   "solved": true
+  },
+  {
+   "task": "U10",
+   "query": "lines | drop 1 | filter ~(trim | ne \"\") | map ~(split \",\") | filter ~(/2 | ne \"\") | filter ~(/3 | parseJson | ne 0) | map ~({:n /0 :p (/2 | parseJson)}) | sort ~([(/p | desc) /n]) | take 3 | map ~(/n)",
+   "answer": [
+    "Vase",
+    "Sprocket",
+    "Widget"
+   ],
+   "solved": true
+  },
+  {
+   "task": "U11",
+   "query": ":d /defaults | /services | entries | map ~({:name (/0 | keyword) :s /1}) | map ~({:name /name :en (/s | at :enabled | coalesce (d | /enabled)) :port (/s | at :port | coalesce (d | /port))}) | filter ~(/en | ne false) | map ~({:name /name :port /port}) | sort ~(/name)",
+   "answer": [
+    {
+     "name": "api",
+     "port": 8080
+    },
+    {
+     "name": "auth",
+     "port": 9000
+    },
+    {
+     "name": "db",
+     "port": 8080
+    },
+    {
+     "name": "mail",
+     "port": 8080
+    },
+    {
+     "name": "web",
+     "port": 80
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "U12",
+   "query": "groupBy ~(/user) | map ~(sort ~(/ts) | last | /type)",
+   "answer": {
+    "u1": "logout",
+    "u2": "purchase",
+    "u3": "login"
+   },
+   "solved": true
+  },
+  {
+   "task": "U13",
+   "query": "lines | map ~(trim) | filter ~(ne \"\") | filter ~(startsWith \"#\" | eq false) | map ~(split \"|\" | map ~(trim)) | filter ~(/2 | lower | split \",\" | contains \"prod\") | map ~(/0 | upper) | sort | join \",\"",
+   "answer": "CACHE-01,DB-01,WEB-01,WEB-02",
+   "solved": true
+  },
+  {
+   "task": "U14",
+   "query": "[\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"fig\",\"Elderberry\",\"cherry\",\"Fig\"] | map ~(lower) | distinct | :w / | {:count (w | count) :longest (w | sort ~([(count | desc) /]) | take 2)}",
+   "answer": {
+    "count": 6,
+    "longest": [
+     "elderberry",
+     "banana"
+    ]
+   },
+   "solved": true
+  }
+ ]
+}

@@ -1,21 +1,20 @@
 // A session keeps the env its cells write, so a query sees what the
-// cells before it declared [D44], [D63].
+// cells before it declared [D44], [D153].
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { rootState } from './state.mjs';
 import { isBinding, keyword, makeBinding } from './types.mjs';
-import { RUNTIME_LOCATOR_KEY, isRuntimeKey } from './env-keys.mjs';
 import { errorFromParse } from './error-convert.mjs';
+import { declareRoot } from './runtime/root.mjs';
 
 // createSession(opts?) → Session
 //
 // opts:
 //   env     — initial env Map (defaults to a fresh langRuntime())
-//   locator — async (namespaceName: string) => {source, impls?} | null,
-//             asked by `use` for a namespace the env lacks; stored
-//             under :qlang/locator in env.
+//   sources — the host's sources, `{ uri, source, impls? }` in order,
+//             which declare the root beside the language's [D153].
 //
 // Returns an object with:
 //   evalCell(source, evalOpts?) — parse and evaluate one cell, the
@@ -27,9 +26,7 @@ import { errorFromParse } from './error-convert.mjs';
 //   bind(name, value) — install a binding into env
 export async function createSession(opts = {}) {
   let env = opts.env ?? await langRuntime();
-  if (opts.locator) {
-    env = new Map(env).set(RUNTIME_LOCATOR_KEY, opts.locator);
-  }
+  if (opts.sources) env = await declareRoot(env, opts.sources);
   let cellCount = 0;
 
   return {
@@ -50,9 +47,11 @@ export async function createSession(opts = {}) {
       } catch (evalCellErr) {
         // A parse failure answers its error value beside the throw, so
         // the host prints it as it prints any error and still tells a
-        // syntactic failure by the error channel.
+        // syntactic failure by the error channel; it names the source
+        // its text came from where the host named one, a cell the
+        // session numbers itself naming none.
         if (evalCellErr instanceof ParseError) {
-          cellResult = errorFromParse(evalCellErr);
+          cellResult = errorFromParse(evalCellErr, env, evalOpts.uri ?? null);
         }
         cellError = evalCellErr;
       }
@@ -60,11 +59,9 @@ export async function createSession(opts = {}) {
     },
 
     // A host binds a value as a binding without a doc [D63], a record
-    // as the binding it is, and a key of the runtime's own as it lies.
+    // as the binding it is.
     bind(name, value) {
-      env = new Map(env).set(name, isRuntimeKey(name) || isBinding(value)
-        ? value
-        : makeBinding({ name: keyword(name), value }));
+      env = new Map(env).set(name, isBinding(value) ? value : makeBinding({ name: keyword(name), value }));
     },
 
     get env() { return env; }

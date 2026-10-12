@@ -1,0 +1,26 @@
+{"name":"at-least-one-satisfies","query":"[1 2 3] | any ~(gt 2)","expect":"true"}
+{"name":"none-satisfy","query":"[1 2 3] | any ~(gt 99)","expect":"false"}
+{"name":"first-element-satisfies","query":"[5 1 2] | any ~(gt 2)","expect":"true"}
+{"name":"vacuously-false-on-empty","query":"[] | any ~(gt 0)","expect":"false"}
+{"name":"vacuously-false-on-empty-with-arbitrary-pred","query":"[] | any ~(eq 99)","expect":"false"}
+{"name":"any-with-projection","query":"[{:active false} {:active true}] | any ~(/active)","expect":"true"}
+{"name":"any-with-projection-none","query":"[{:active false} {:active false}] | any ~(/active)","expect":"false"}
+{"name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(/role | eq :admin)","expect":"true"}
+{"name":"any-on-non-container-throws","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(any ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"any-short-circuits","query":"[1 2 99] | any ~(gt 50)","expect":"true"}
+{"name":"any-as-filter-equivalence","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
+{"name":"any-string-predicate-integration","query":"[\"alice\" \"bob\" \"alex\"] | any ~(startsWith \"al\")","expect":"true"}
+{"name":"any-set-one-matches","query":"#[1 2 3] | any ~(gt 2)","expect":"true"}
+{"name":"any-set-none-match","query":"#[1 2 3] | any ~(gt 99)","expect":"false"}
+{"name":"any-map-value-matches","query":"{:a -1 :b 0 :c 2} | any ~(gt 0)","expect":"true"}
+{"name":"any-map-no-value-matches","query":"{:a -1 :b -2 :c -3} | any ~(gt 0)","expect":"false"}
+{"name":"any-map-empty-vacuous","query":"{} | any ~(gt 0)","expect":"false"}
+{"name":"any-vec-declared-verb","query":"[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
+{"name":"any-vec-verb-predicate","query":"[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
+{"name":"any-vec-verb-predicate-false","query":"[1 2 3] | :any/huge ~(gt 99) | any ~huge","expect":"false"}
+{"name":"any-set-declared-verb","query":"#[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
+{"name":"any-set-verb-predicate","query":"#[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
+{"name":"any-map-declared-verb","query":"{:a -1 :b 2} | :any/pos ~(gt 0) | any ~(pos)","expect":"true"}
+{"name":"any-map-verb-predicate","query":"{:a -1 :b 2} | :any/positive ~(gt 0) | any ~positive","expect":"true"}
+{"name":"any-map-verb-predicate-false","query":"{:a -1 :b -2} | :any/positive ~(gt 0) | any ~positive","expect":"false"}
+{"name":"any-predicate-with-a-part-left-out-is-refused-by-the-part","query":"{:a 1 :b 2} | :any/above ~(gt limit) | :any/above/limit ~(/0) | any ~above !| type","expect":"::any/above/limit/NotGivenError","decision":"D166"}

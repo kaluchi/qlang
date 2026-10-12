@@ -1,23 +1,23 @@
 {
-  "BindStep — value": {
+  "declare a name": {
     "prefix": "bind",
     "body": [":${1:name} ${2:body}"],
-    "description": "Name the value of a body via BindStep"
+    "description": "Name what the body answers, for the steps after it"
   },
-  "BindStep — verb": {
+  "declare a word": {
     "prefix": "bindv",
-    "body": [":${1:name} ::verb~(:${2:slot} ::${3:any} | ${4:body})"],
-    "description": "Declare a verb with a slot via BindStep"
+    "body": [":${1:any}/${2:name} ~(${3:body})", ":${1:any}/${2:name}/${4:part} ~(/0)"],
+    "description": "Declare a word under the label of its subject and a part of its object"
   },
-  "BindStep — tag-binding": {
+  "declare a kind": {
     "prefix": "bindtag",
-    "body": ["::${1:Tag} {:impl ~(${2:body})}"],
-    "description": "Declare a tag-namespace binding via BindStep"
+    "body": [":${1:Kind} |~~ ${2:page} ~~|", ":${1:Kind}/construct ~(${3:body})"],
+    "description": "Declare a kind by its page, a label, and its constructor under it"
   },
-  "freeze": {
-    "prefix": "freeze",
+  "name the subject": {
+    "prefix": "name",
     "body": [":${1:name} /"],
-    "description": "Freeze pipeValue under a name via BindStep"
+    "description": "Name the value in the pipe for the steps after it"
   },
   "filter": {
     "prefix": "filter",
@@ -62,22 +62,22 @@
   "line plain comment": {
     "prefix": "|~|",
     "body": ["|~| ${1:comment}"],
-    "description": "Line plain comment (identity step)"
+    "description": "Line comment, which no step reads"
   },
   "block plain comment": {
     "prefix": "|~",
     "body": ["|~ ${1:comment} ~|"],
-    "description": "Block plain comment (identity step)"
+    "description": "Block comment, which no step reads"
   },
   "line doc comment": {
     "prefix": "|~~|",
     "body": ["|~~| ${1:doc}"],
-    "description": "Line doc comment — attaches to next BindStep / as binding"
+    "description": "Line doc, the page of the name before it or a value of its own"
   },
   "block doc comment": {
     "prefix": "|~~",
     "body": ["|~~ ${1:doc} ~~|"],
-    "description": "Block doc comment — attaches to next BindStep / as binding"
+    "description": "Block doc, the page of the name before it or a value of its own"
   },
   "coalesce": {
     "prefix": "coalesce",
@@ -103,10 +103,5 @@
     "prefix": "interb",
     "body": ["inter #[${1::key}]"],
     "description": "Select fields via bound inter"
-  },
-  "use": {
-    "prefix": "use",
-    "body": ["{${1::key ${2:value}}} | use"],
-    "description": "Import bindings into env via use"
   }
 }

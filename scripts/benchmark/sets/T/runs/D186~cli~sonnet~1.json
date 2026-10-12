@@ -1,0 +1,233 @@
+{
+ "set": "T",
+ "decision": "D186",
+ "screen": "D186",
+ "screenHash": "336a46ecd11a",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-10",
+ "commit": "ad90f5e9",
+ "reason": null,
+ "modelId": "claude-sonnet-5-5",
+ "result": "All 14 queries ran and returned sensible answers. I checked T12 and T13 by hand against the CSV, and both matched. I didn't hand-check the rest.\n\nTwo choices in the queries:\n- **T8:** the pair is named with `:p /` so `/1` can still be read after `/0` has changed the subject.\n- **T12/T13:** `parseJson` turns the CSV text into numbers.\n\nT1: /data/users | filter ~(/active | eq true) | filter ~(/email | ne null) | filter ~(/email | lower | endsWith \"@example.com\") | count\nT2: /data/users | filter ~(/roles | map ~(lower) | contains \"admin\") | map ~(/name) | sort ~(lower)\nT3: /data/users | map ~(at :profile | coalesce {} | at :country | coalesce \"unknown\") | groupBy ~(/) | map ~(count)\nT4: /data/users | map ~(at :profile | coalesce {} | at :age) | filter ~(ne null) | avg | round 2\nT5: filter ~(/state | eq \"open\") | map ~(/labels | map ~(/name | lower)) | flat | distinct | sort\nT6: sort ~([(/comments | desc) /number]) | take 3 | map ~({:number /number :assignee (at :assignee | coalesce null | at :login | coalesce null)})\nT7: filter ~(/state | eq \"open\") | map ~(at :assignee | coalesce null) | filter ~(ne null) | map ~(/login) | groupBy ~(/) | map ~(count)\nT8: :r / | /dependencies | union (r | /devDependencies) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~(:p / | /0 | keyword | append \"@\" | append (p | /1))\nT9: /services | filter ~(at :enabled | coalesce false | eq true) | filter ~(/port | gt 8000) | map ~(/name | lower) | sort | join \",\"\nT10: lines | map ~(split \" \") | filter ~(/1 | eq \"ERROR\") | groupBy ~(/2) | map ~(count)\nT11: lines | filter ~(contains \"ms=\") | map ~(split \" \" | filter ~(startsWith \"ms=\") | first | drop 3 | parseJson) | avg | round 1\nT12: lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | filter ~(/5 | lower | eq \"shipped\") | filter ~(/4 | ne \"\") | map ~({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p) | sum | round 2\nT13: lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | filter ~(/5 | lower | ne \"cancelled\") | filter ~(/4 | ne \"\") | map ~({:c /1 :t ({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p)}) | groupBy ~(/c) | map ~(map ~(/t) | sum | round 2) | entries | sort ~(/1 | desc) | take 2 | map ~({:customer (/0 | keyword) :total /1})\nT14: [\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | map ~(lower) | distinct | sort ~([(count | desc) /]) | join \"-\"",
+ "failed": false,
+ "requests": 14,
+ "turns": 16,
+ "inputTokens": 178997,
+ "outputTokens": 5537,
+ "calls": [
+  {
+   "command": "ls; head -c 600 users.json; echo; head -c 500 issues.json; echo; head -c 500 package.json; echo; head -c 400 config.json; echo; head -5 logs.txt; head -5 orders.csv",
+   "answered": "value",
+   "head": "config.json issues.json logs.txt orders.csv package.json users.json { \"status\": \"ok\", \"data\": { \"users\": [ { \"id\": 1, \"name\": \"alice\", \"email\": \"Alice@Example.com\", \"active\": true, \"roles\": [ \"admin\", \"dev\" ], \"profile\": { \"country\": \"US\", "
+  },
+  {
+   "command": "qlang '/data/users | filter ~(/active | eq true) | filter ~(/email | ne null) | filter ~(/email | lower | endsWith \"@example.com\") | count' < users.json; qlang '/data/users | map ~(/profile | at :country)' < users.json; qlang '/data/users | filter ~(/roles | map ~(lower) | contains \"admin\") | map ~(/name)' < users.json; qlang '::number | manifest' </dev/null",
+   "answered": "quote/ParseError",
+   "head": "::quote/ParseError!{ :source \"C:/Program Files/Git/data/users | filter ~(/active | eq true) | filter ~(/email | ne null) | filter ~(/email | lower | endsWith \\\"@example.com\\\") | count\" :marker \" ^ \" :expected [:\"identifier continue (letter,"
+  },
+  {
+   "command": "export MSYS_NO_PATHCONV=1; qlang '[::vec ::map ::string ::number ::any] | map ~([/ manifest])' </dev/null",
+   "answered": "denied",
+   "head": "This Bash command contains multiple operations. The following part requires approval: export MSYS_NO_PATHCONV=1"
+  },
+  {
+   "command": "export MSYS_NO_PATHCONV=1; qlang '/data/users | filter ~(/active | eq true) | filter ~(/email | ne null) | filter ~(/email | lower | endsWith \"@example.com\") | count' < users.json; qlang '/data/users | filter ~(/roles | map ~(lower) | contains \"admin\") | map ~(/name)' < users.json",
+   "answered": "denied",
+   "head": "This Bash command contains multiple operations. The following part requires approval: export MSYS_NO_PATHCONV=1"
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang '[::vec ::map ::string ::number ::any] | map ~([/ manifest])' </dev/null",
+   "answered": "value",
+   "head": "[[::vec #[::vec/PayloadNotVecError ::vec/any ::vec/append ::vec/at ::vec/avg ::vec/construct ::vec/contains ::vec/count ::vec/distinct ::vec/drop ::vec/empty ::vec/every ::vec/filter ::vec/first ::vec/flat ::vec/groupBy ::vec/has ::vec/inde"
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang '/data/users | filter ~(/active | eq true) | filter ~(/email | ne null) | filter ~(/email | lower | endsWith \"@example.com\") | count' < users.json",
+   "answered": "value",
+   "head": "4"
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang '/data/users | filter ~(/roles | map ~(lower) | contains \"admin\") | map ~(/name) | sort ~(lower)' < users.json\nMSYS_NO_PATHCONV=1 qlang '/data/users | map ~(at :profile | coalesce {} | at :country | coalesce \"unknown\") | groupBy ~(/) | map ~(count)' < users.json\nMSYS_NO_PATHCONV=1 qlang '/data/users | map ~(at :profile | coalesce {} | at :age) | filter ~(ne null) | avg | round 2' < users.json\nMSYS_NO_PATHCONV=1 qlang '/data/users | map ~(at :profile | coalesce {} | at :age) ' < users.json\nMSYS_NO_PATHCONV=1 qlang '::number/round | doc' </dev/null",
+   "answered": "value",
+   "head": "[ \"alice\", \"carol\", \"erin\", \"ivan\" ] { \"US\": 3, \"DE\": 2, \"unknown\": 2, \"FR\": 2 } 33.17 [ 34, 28, null, 45, 31, null, 22, null, 39 ] |~~ Answers the subject rounded to the digits after the point the call gives, none when it gives none: `3.14"
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang 'filter ~(/state | eq \"open\") | map ~(/labels | map ~(/name | lower)) | flat | distinct | sort' < issues.json\nMSYS_NO_PATHCONV=1 qlang 'sort ~([(/comments | desc) /number]) | take 3 | map ~({:number /number :assignee (at :assignee | coalesce null | at :login | coalesce null)})' < issues.json\nMSYS_NO_PATHCONV=1 qlang 'filter ~(/state | eq \"open\") | map ~(at :assignee | coalesce null) | filter ~(ne null) | map ~(/login) | groupBy ~(/) | map ~(count)' < issues.json\nMSYS_NO_PATHCONV=1 qlang 'count' < issues.json",
+   "answered": "value",
+   "head": "[ \"bug\", \"feature\", \"performance\", \"tests\", \"urgent\" ] [ { \"number\": 106, \"assignee\": \"carol\" }, { \"number\": 102, \"assignee\": null }, { \"number\": 108, \"assignee\": null } ] { \"alice\": 3, \"bob\": 1 } 9"
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang '/dependencies | union (/devDependencies) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~(/0 | keyword | append \"@\" | append (/1))' < package.json\nMSYS_NO_PATHCONV=1 qlang '/dependencies | union (/devDependencies) | entries | filter ~(/1 | startsWith \"^\") | map ~(/0)' < package.json\nMSYS_NO_PATHCONV=1 qlang '/services | filter ~(at :enabled | coalesce false | eq true) | filter ~(/port | gt 8000) | map ~(/name | lower) | sort | join \",\"' < config.json",
+   "answered": "proj/KeyNotInMapError",
+   "head": "{ \"$error\": { \"$tag\": \"proj/KeyNotInMapError\", \"descriptor\": { \"key\": \"devDependencies\", \"actualType\": \"::map\", \"trail\": [ { \"step\": \"~(/devDependencies)\", \"subject\": { \"express\": \"^4.18.2\", \"lodash\": \"~4.17.21\", \"zod\": \"^3.22.0\", \"chalk\": "
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang '{:a /dependencies :b /devDependencies} | /a | union (/b) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~(/0 | keyword | append \"@\" | append (/1))' < package.json",
+   "answered": "proj/KeyNotInMapError",
+   "head": "{ \"$error\": { \"$tag\": \"proj/KeyNotInMapError\", \"descriptor\": { \"key\": \"b\", \"actualType\": \"::map\", \"trail\": [ { \"step\": \"~(/b)\", \"subject\": { \"express\": \"^4.18.2\", \"lodash\": \"~4.17.21\", \"zod\": \"^3.22.0\", \"chalk\": \"5.3.0\" }, \"skipped\": \"~()\" "
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang ':r / | /dependencies | union (r | /devDependencies) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~(/0 | keyword | append \"@\" | append (/1))' < package.json",
+   "answered": "proj/SubjectNotProjectableError",
+   "head": "{ \"$error\": { \"$tag\": \"proj/SubjectNotProjectableError\", \"descriptor\": { \"key\": 1, \"actualType\": \"::string\", \"trail\": [ { \"step\": \"~(/1)\", \"subject\": \"eslint@\", \"skipped\": \"~()\" }, { \"step\": \"~((/1))\", \"subject\": \"eslint@\", \"skipped\": \"~()\""
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang ':r / | /dependencies | union (r | /devDependencies) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~(:p / | /0 | keyword | append \"@\" | append (p | /1))' < package.json",
+   "answered": "value",
+   "head": "[ \"eslint@^8.56.0\", \"express@^4.18.2\", \"jest@^29.7.0\", \"typescript@^5.3.3\", \"zod@^3.22.0\" ]"
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang --raw 'lines | map ~(split \" \") | filter ~(/1 | eq \"ERROR\") | groupBy ~(/2) | map ~(count)' < logs.txt\nMSYS_NO_PATHCONV=1 qlang --raw 'lines | filter ~(contains \"ms=\") | map ~(split \" \" | filter ~(startsWith \"ms=\") | first | drop 3 | parseJson) | avg | round 1' < logs.txt\nMSYS_NO_PATHCONV=1 qlang --raw 'lines | filter ~(contains \"ms=\") | map ~(split \" \" | filter ~(startsWith \"ms=\") | first)' < logs.txt\ncat orders.csv",
+   "answered": "value",
+   "head": "{ :db 3 :api 1 :worker 1 } 330.2 [\"ms=120\" \"ms=80\" \"ms=950\" \"ms=401\" \"ms=100\"] id,customer,product,qty,price,status 1,Acme,widget,10,2.50,shipped 2,Birch,gadget,3,19.99,Shipped 3,Acme,gizmo,1,100.00,cancelled 4,Cobalt,widget,5,,shipped 5,Bi"
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang --raw 'lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | filter ~(/5 | lower | eq \"shipped\") | filter ~(/4 | ne \"\") | map ~((/3 | parseJson) | mul (/4 | parseJson)) | sum | round 2' < orders.csv\nMSYS_NO_PATHCONV=1 qlang --raw 'lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | filter ~(/5 | lower | ne \"cancelled\") | filter ~(/4 | ne \"\") | map ~({:c /1 :t ((/3 | parseJson) | mul (/4 | parseJson))}) | groupBy ~(/c) | map ~(map ~(/t) | sum | round 2) | entries | sort ~(/1 | desc) | take 2 | map ~({:customer (/0 | keyword) :total /1})' < orders.csv\nqlang '[\"Banana\",",
+   "answered": "proj/SubjectNotProjectableError",
+   "head": "::proj/SubjectNotProjectableError!{ :key 4 :actualType ::number :trail [ { :step ~(/4) :subject 10 :skipped ~(parseJson) } { :step ~((/4 | parseJson)) :subject 10 :skipped ~() } { :step ~(mul (/4 | parseJson)) :subject 10 :skipped ~() } { :"
+  },
+  {
+   "command": "MSYS_NO_PATHCONV=1 qlang --raw 'lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | filter ~(/5 | lower | eq \"shipped\") | filter ~(/4 | ne \"\") | map ~({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p) | sum | round 2' < orders.csv\nMSYS_NO_PATHCONV=1 qlang --raw 'lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | filter ~(/5 | lower | ne \"cancelled\") | filter ~(/4 | ne \"\") | map ~({:c /1 :t ({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p)}) | groupBy ~(/c) | map ~(map ~(/t) | sum | round 2) | entries | sort ~(/1 | desc) | take 2 | map ~({:customer (/0 | keyword) :total /1})",
+   "answered": "value",
+   "head": "204.91 [{:customer \"Birch\" :total 109.97} {:customer \"Acme\" :total 104.96}]"
+  }
+ ],
+ "score": [
+  {
+   "task": "T1",
+   "query": "/data/users | filter ~(/active | eq true) | filter ~(/email | ne null) | filter ~(/email | lower | endsWith \"@example.com\") | count",
+   "answer": 4,
+   "solved": true
+  },
+  {
+   "task": "T2",
+   "query": "/data/users | filter ~(/roles | map ~(lower) | contains \"admin\") | map ~(/name) | sort ~(lower)",
+   "answer": [
+    "alice",
+    "carol",
+    "erin",
+    "ivan"
+   ],
+   "solved": true
+  },
+  {
+   "task": "T3",
+   "query": "/data/users | map ~(at :profile | coalesce {} | at :country | coalesce \"unknown\") | groupBy ~(/) | map ~(count)",
+   "answer": {
+    "US": 3,
+    "DE": 2,
+    "unknown": 2,
+    "FR": 2
+   },
+   "solved": true
+  },
+  {
+   "task": "T4",
+   "query": "/data/users | map ~(at :profile | coalesce {} | at :age) | filter ~(ne null) | avg | round 2",
+   "answer": 33.17,
+   "solved": true
+  },
+  {
+   "task": "T5",
+   "query": "filter ~(/state | eq \"open\") | map ~(/labels | map ~(/name | lower)) | flat | distinct | sort",
+   "answer": [
+    "bug",
+    "feature",
+    "performance",
+    "tests",
+    "urgent"
+   ],
+   "solved": true
+  },
+  {
+   "task": "T6",
+   "query": "sort ~([(/comments | desc) /number]) | take 3 | map ~({:number /number :assignee (at :assignee | coalesce null | at :login | coalesce null)})",
+   "answer": [
+    {
+     "number": 106,
+     "assignee": "carol"
+    },
+    {
+     "number": 102,
+     "assignee": null
+    },
+    {
+     "number": 108,
+     "assignee": null
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "T7",
+   "query": "filter ~(/state | eq \"open\") | map ~(at :assignee | coalesce null) | filter ~(ne null) | map ~(/login) | groupBy ~(/) | map ~(count)",
+   "answer": {
+    "alice": 3,
+    "bob": 1
+   },
+   "solved": true
+  },
+  {
+   "task": "T8",
+   "query": ":r / | /dependencies | union (r | /devDependencies) | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | map ~(:p / | /0 | keyword | append \"@\" | append (p | /1))",
+   "answer": [
+    "eslint@^8.56.0",
+    "express@^4.18.2",
+    "jest@^29.7.0",
+    "typescript@^5.3.3",
+    "zod@^3.22.0"
+   ],
+   "solved": true
+  },
+  {
+   "task": "T9",
+   "query": "/services | filter ~(at :enabled | coalesce false | eq true) | filter ~(/port | gt 8000) | map ~(/name | lower) | sort | join \",\"",
+   "answer": "auth,reports,search",
+   "solved": true
+  },
+  {
+   "task": "T10",
+   "query": "lines | map ~(split \" \") | filter ~(/1 | eq \"ERROR\") | groupBy ~(/2) | map ~(count)",
+   "answer": {
+    "db": 3,
+    "api": 1,
+    "worker": 1
+   },
+   "solved": true
+  },
+  {
+   "task": "T11",
+   "query": "lines | filter ~(contains \"ms=\") | map ~(split \" \" | filter ~(startsWith \"ms=\") | first | drop 3 | parseJson) | avg | round 1",
+   "answer": 330.2,
+   "solved": true
+  },
+  {
+   "task": "T12",
+   "query": "lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | filter ~(/5 | lower | eq \"shipped\") | filter ~(/4 | ne \"\") | map ~({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p) | sum | round 2",
+   "answer": 204.91,
+   "solved": true
+  },
+  {
+   "task": "T13",
+   "query": "lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | filter ~(/5 | lower | ne \"cancelled\") | filter ~(/4 | ne \"\") | map ~({:c /1 :t ({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p)}) | groupBy ~(/c) | map ~(map ~(/t) | sum | round 2) | entries | sort ~(/1 | desc) | take 2 | map ~({:customer (/0 | keyword) :total /1})",
+   "answer": [
+    {
+     "customer": "Birch",
+     "total": 109.97
+    },
+    {
+     "customer": "Acme",
+     "total": 104.96
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "T14",
+   "query": "[\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | map ~(lower) | distinct | sort ~([(count | desc) /]) | join \"-\"",
+   "answer": "elderberry-banana-cherry-apple-date-kiwi-fig",
+   "solved": true
+  }
+ ]
+}

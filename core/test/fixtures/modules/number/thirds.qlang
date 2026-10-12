@@ -1,3 +1,3 @@
-:triple
+:any/triple
   |~~ Multiplies the number by three. ~~|
-  ::verb~(mul 3)
+  ~(mul 3)

@@ -1,41 +1,41 @@
-// `manifest` answers what lies below a noun in the tree of names [D62],
-// and `runLaws` runs the laws of a page, each primitive reading the state
-// of the call [D79]; the axes of one binding live in `axis.mjs`.
+// `manifest` answers the nodes declared one name under a noun [D62],
+// `laws` the laws declared under a name and `runLaws` runs them, each
+// primitive reading the state of the call [D79]; the axes of one binding
+// live in `axis.mjs`.
 
 import { bindStateReader } from '../primitives.mjs';
-import { isErrorValue } from '../types.mjs';
-import { declareShapeError } from '../errors.mjs';
-import { declareSubjectError } from '../operand-errors.mjs';
-import { evalQuery } from '../eval.mjs';
-import { claimsOfRecord, recordReadBy } from './axis.mjs';
-import { namesUnder } from './nouns.mjs';
-import { printQuoteSource } from '../quote.mjs';
+import { isErrorValue, bindingValueOf, makeTag, errorAtRest, NULL } from '../types.mjs';
+import { declareRefusal } from '../errors.mjs';
+import { codeOf } from '../eval.mjs';
+import { recordReadBy, pageOfRecord } from './axis.mjs';
+import { namesUnder, lawsUnder } from './nouns.mjs';
 
-declareSubjectError('ManifestSubjectNotTagError', 'manifest', 'tag');
-const RunLawsBindingNotFoundError = declareShapeError('RunLawsBindingNotFoundError',
-  ({ bindingName }) =>
-    `runLaws: no binding-step found for '${bindingName}' across loaded modules`,
-  { operand: 'runLaws' });
 
-// The message of an error: a raised one's `:message`, a site's its own.
-function errorMessageOf(errorValue) {
-  if (errorValue.originalError) return errorValue.originalError.message;
-  return errorValue.descriptor.get('message');
-}
+bindStateReader('tag/manifest', (subject, state) => namesUnder(state.env, subject.name));
 
-bindStateReader('manifest', (subject, state) => namesUnder(state.env, subject.name));
+// The laws declared under the address of the record a value reads, as
+// `doc` reads it: each one's last name and the pair of its page, null for
+// a law without one, and its query, in the order of their declarations
+// [D174].
+const AnyLawsUnknownNameError = declareRefusal('any/laws/UnknownNameError');
+bindStateReader('any/laws', (subject, state) => {
+  const address = recordReadBy(subject, NULL, state, AnyLawsUnknownNameError).get('name').name;
+  return new Map(lawsUnder(state.env, address).map(([lastName, record]) =>
+    [lastName, Object.freeze([pageOfRecord(record), bindingValueOf(record).payload])]));
+});
 
-// A law runs one frame below the step in the caller's scope, the modules
-// it loaded among them, and passes when it answers true [D14]; its result
-// names the claim it proves [D124].
-async function runQuoteEntry({ law: quote, says }, callerState) {
+// A law runs as `apply` runs code, one frame below the step, and passes
+// when it answers true [D14]; its result names the law by its address and
+// the claim it proves by its page [D124], [D174], and holds the error it
+// answered at rest, as `!|` grounds it [D210], [D220].
+async function runLaw({ law, quote, says }, callerState) {
   const result = new Map();
-  result.set('law', quote);
+  result.set('law', law);
   result.set('says', says);
-  const actualValue = await evalQuery(printQuoteSource(quote), callerState.env, callerState);
+  const actualValue = await codeOf(quote, callerState)(null);
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
-    result.set('error', errorMessageOf(actualValue));
+    result.set('error', errorAtRest(actualValue.tag, new Map(actualValue.descriptor)));
     result.set('ok', false);
     return result;
   }
@@ -45,11 +45,21 @@ async function runQuoteEntry({ law: quote, says }, callerState) {
   return result;
 }
 
-// A name reads its record as the axes do, a keyword after it the member
-// it holds, `::qlang | runLaws :values` [D124].
-bindStateReader('runLaws', async (subject, anchor, state) => {
-  const claims = claimsOfRecord(recordReadBy(subject, anchor, state, RunLawsBindingNotFoundError));
-  const entries = [];
-  for (const claim of claims) entries.push(await runQuoteEntry(claim, state));
-  return entries;
-});
+// A value reads its record as the axes do, a name its own and any other
+// value its kind's, a keyword after it the member it holds, `::qlang |
+// runLaws :values` [D124]: the laws declared under its address [D174],
+// [D178].
+async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
+  const address = recordReadBy(subject, anchor, state, UnknownNameError).get('name').name;
+  const claims = lawsUnder(state.env, address).map(([lastName, lawRecord]) => ({
+    law: makeTag(`${address}/${lastName}`),
+    quote: bindingValueOf(lawRecord).payload,
+    says: pageOfRecord(lawRecord)
+  }));
+  const results = [];
+  for (const claim of claims) results.push(await runLaw(claim, state));
+  return results;
+}
+
+const AnyRunLawsUnknownNameError = declareRefusal('any/runLaws/UnknownNameError');
+bindStateReader('any/runLaws', (subject, anchor, state) => resultsOfLaws(subject, anchor, state, AnyRunLawsUnknownNameError));

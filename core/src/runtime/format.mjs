@@ -5,14 +5,13 @@
 //
 // Canonical qlang-literal printing lives next door in
 // `print-value.mjs`; `toPlain` routes through the shared
-// `dispatchQlangValue` lookup-table walker so the per-value-class
-// decision sits in one place. A rendering for a terminal is a view
+// `dispatchQlangValue` lookup-table walker so the choice of a writer
+// by the form of a value sits in one place. A rendering for a terminal is a view
 // at a host's boundary, and the command line owns its `table`.
 
 import { printQuoteSource, docText } from '../quote.mjs';
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { declareInvariantError, declarePerSiteError, declareShapeError } from '../errors.mjs';
-import { declareSubjectError } from '../operand-errors.mjs';
+import { declareRefusal, declareInvariantError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { dispatchQlangValue, printValue } from './print-value.mjs';
 
@@ -24,43 +23,32 @@ function dispatchPlainValue(v, handlers, path) {
   return handlers.scalar(v, path);
 }
 
-// `toPlain` lifts a qlang value to a JSON-serializable plain JS
-// shape (Map → object with keyword-named string keys, Vec →
-// array, Set → array, error → `{$error: …}`); `fromPlain` lifts a
-// plain JS shape back into qlang (object → Map keyed by interned
-// keywords, array → Vec, scalars pass through). Together they
-// bridge the language with any external system that speaks JSON —
-// the verbs `parseJson` and `json`, the command line's reading of
-// stdin and writing of an answer, and a host that hands values across
-// the boundary.
-//
+// `toPlain` writes a value in JSON's shape and `fromPlain` reads that
+// shape back as maps, vectors and the scalars, for `json`, `parseJson`,
+// the command line's streams and a host that hands values across.
 const TO_PLAIN_HANDLERS = {
-  Null:           () => null,
-  Number:         finiteNumberOrLift,
-  String:         v => v,
-  Boolean:        v => v,
-  Keyword:        k => k.name,
-  TagKeyword:     k => k.literal,
-  Vec:            v => v.map(toPlain),
-  Map:            qMapToPlainObject,
-  // TaggedInstance: identity rides on the JS-header
-  // TAG_HEADER_SYMBOL slot, payload shape varies (Array /
-  // Map / opaque wrap-object). The envelope carries identity
-  // through `$tag` and encodes the payload through `toPlain`
-  // recursively — mirrors the symmetric `Error` envelope.
-  TaggedInstance: t => {
+  null:    () => null,
+  number:  finiteNumberOrLift,
+  string:  v => v,
+  boolean: v => v,
+  keyword: k => k.name,
+  tag:     k => k.literal,
+  vec:     v => v.map(toPlain),
+  map:     qMapToPlainObject,
+  // A value under a tag writes its tag as `$tag` beside its payload.
+  underTag: t => {
     let inner;
     if (Array.isArray(t)) inner = [...t];
     else if (t instanceof Map) inner = new Map(t);
     else inner = t.payload;
     return { $tag: t[TAG_HEADER_SYMBOL].name, payload: toPlain(inner) };
   },
-  Quote:          q => `~(${printQuoteSource(q)})`,
-  Doc:            d => `|~~${docText(d)}~~|`,
-  Set:            s => s.map(toPlain),
-  // An error writes its tag beside its descriptor; the literal, not
+  quote:   q => `~(${printQuoteSource(q)})`,
+  doc:     d => `|~~${docText(d)}~~|`,
+  set:     s => s.map(toPlain),
+  // An error writes its tag beside its facts [D192]; the literal, not
   // JSON, is the form that reads back.
-  Error:          e => ({ $error: { $tag: e.tag.name, descriptor: toPlain(e.descriptor) } })
+  error:   e => ({ $error: { $tag: e.tag.name, facts: toPlain(e.descriptor) } })
 };
 
 export function toPlain(v) {
@@ -72,15 +60,13 @@ export function toPlain(v) {
 // is refused.
 function toPlainFallback(v) {
   if (typeof v === 'function') return `<host-fn ${v.name}>`;
-  throw new ToPlainUnencodableValueError({ actualType: typeof v, actualValue: v });
+  throw new AnyJsonValueNotEncodableError({ actualType: typeof v, actualValue: v });
 }
 
-export const ToPlainUnencodableValueError = declareInvariantError(
-  'ToPlainUnencodableValueError',
+export const AnyJsonValueNotEncodableError = declareInvariantError(
+  'any/JsonValueNotEncodableError',
   ({ actualType }) => `toPlain: JSON has no form for a ${actualType} value; ` +
-    'project around the slot',
-  { operand: 'json' }
-);
+    'project around the slot');
 
 function qMapToPlainObject(m) {
   const obj = {};
@@ -90,18 +76,9 @@ function qMapToPlainObject(m) {
   return obj;
 }
 
-// JSON carries no NaN and no infinity, but `JSON.parse` reads a
-// magnitude past the double range as one (`1e400` lifts to
-// Infinity). The lift refuses it here so a piped document cannot
-// seed the pipeline with a value the language does not admit.
-// `:path` names the keys and indices walked to reach the refused
-// scalar, so `!| /path` locates it inside a document of any depth —
-// the reading a message string cannot carry.
-export const FromPlainNumberNotFiniteError = declarePerSiteError(
-  'FromPlainNumberNotFiniteError', 'codecError',
-  () => 'fromPlain: a JSON number outside the finite-double domain cannot lift into a qlang Number',
-  { operand: 'parseJson' }
-);
+// A number of a JSON document past the doubles, which `JSON.parse` reads
+// as an infinity, is refused at the `:path` of keys and indices to it.
+export const StringParseJsonNumberNotFiniteError = declareRefusal('string/parseJson/NumberNotFiniteError');
 
 const FROM_PLAIN_HANDLERS = {
   array:  (a, path) => a.map((element, index) => liftPlainValue(element, [...path, index])),
@@ -111,7 +88,7 @@ const FROM_PLAIN_HANDLERS = {
 
 function liftPlainScalar(scalarValue, path) {
   if (typeof scalarValue === 'number' && !Number.isFinite(scalarValue)) {
-    throw new FromPlainNumberNotFiniteError({ path: Object.freeze([...path]) });
+    throw new StringParseJsonNumberNotFiniteError({ path: Object.freeze([...path]) });
   }
   return scalarValue;
 }
@@ -132,20 +109,17 @@ function plainObjectToQMap(plainObj, path) {
   return qlangMap;
 }
 
-// `json` resides on `::qlang/any` and `parseJson` on `::string`, each a
-// plain function over the value the head of its verb checked [D72].
-declareSubjectError('ParseJsonSubjectNotStringError', 'parseJson', 'string');
-const ParseJsonInvalidJsonError = declareShapeError('ParseJsonInvalidJsonError',
-  ({ message }) => `parseJson: invalid JSON — ${message}`,
-  { operand: 'parseJson' });
+// `json` resides on `::any` and `parseJson` on `::string`, each a
+// plain function over the value the walk served [D167].
+const StringParseJsonTextNotJsonError = declareRefusal('string/parseJson/TextNotJsonError');
 
-bindPrim('json', subject => JSON.stringify(toPlain(subject)));
-bindPrim('parseJson', subject => {
+bindPrim('any/json', subject => JSON.stringify(toPlain(subject)));
+bindPrim('string/parseJson', subject => {
   let parsed;
   try {
     parsed = JSON.parse(subject);
   } catch (jsParseError) {
-    throw new ParseJsonInvalidJsonError({ message: jsParseError.message });
+    throw new StringParseJsonTextNotJsonError({ message: jsParseError.message });
   }
   return fromPlain(parsed);
 });

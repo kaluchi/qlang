@@ -1,98 +1,45 @@
-// Per-site coverage for `core/src/runtime/bootstrap.mjs` —
-// `platformLocator` resolves logical names through the calling
-// package's `imports` field, `BootstrapRootMissingError` fires
-// when `#qlang/core` itself is unmapped, and `use(:ns)` without
-// a locator in env surfaces `UseNamespaceNotFoundError`.
+// Per-site coverage for `core/src/runtime/bootstrap.mjs` and the root
+// it declares: `platformLocator` resolves the sources of the language
+// through the calling package's `imports` field, a source it cannot find
+// refuses the bootstrap by `BootstrapSourceMissingError`, and a source
+// the parser refuses raises its `ParseError` [D153].
 
 import { describe, it, expect } from 'vitest';
-import {
-  platformLocator,
-  BootstrapRootMissingError,
-  BootstrapCatalogNotLoadedError
-} from '../../src/runtime/bootstrap.mjs';
-import { langRuntime, buildLangRuntime } from '../../src/runtime/index.mjs';
-import { evalQuery } from '../../src/eval.mjs';
-import { makeTagKeyword } from '../../src/types.mjs';
-import { RUNTIME_LOCATOR_KEY } from '../../src/env-keys.mjs';
+import { platformLocator, BuiltinBootstrapSourceMissingError } from '../../src/runtime/bootstrap.mjs';
+import { ParseError } from '../../src/parse.mjs';
+import { buildLangRuntime } from '../../src/runtime/index.mjs';
 
 describe('platformLocator', () => {
-  it('returns null for an unmapped namespace', async () => {
-    const result = await platformLocator('does/not/exist/anywhere');
-    expect(result).toBeNull();
+  it('returns null for an unmapped source', async () => {
+    expect(await platformLocator('does/not/exist/anywhere')).toBeNull();
   });
 
-  it('returns { source } for a mapped namespace', async () => {
-    const result = await platformLocator('qlang/core');
+  it('returns { source } for a source of the language', async () => {
+    const result = await platformLocator('qlang');
     expect(typeof result.source).toBe('string');
     expect(result.source.length).toBeGreaterThan(100);
   });
 });
 
-describe('BootstrapRootMissingError', () => {
-  it('constructs with a clear diagnostic message and stable name', () => {
-    const err = new BootstrapRootMissingError();
-    expect(err.name).toBe('BootstrapRootMissingError');
-
-    expect(err.message).toContain('#qlang/core');
+describe('BootstrapSourceMissingError', () => {
+  it('names the source it missed and where a host maps it', () => {
+    const err = new BuiltinBootstrapSourceMissingError({ uri: 'qlang/vec' });
+    expect(err.name).toBe('BootstrapSourceMissingError');
+    expect(err.message).toContain('#qlang/vec');
     expect(err.message).toContain('package.json#imports');
-    expect(err.context).toEqual({});
   });
 
-  it('fires from buildLangRuntime when the locator returns null for the root', async () => {
-    const nullLocator = async () => null;
-    await expect(buildLangRuntime(nullLocator)).rejects.toBeInstanceOf(BootstrapRootMissingError);
+  it('fires from buildLangRuntime when the locator serves no source', async () => {
+    await expect(buildLangRuntime(async () => null)).rejects.toBeInstanceOf(BuiltinBootstrapSourceMissingError);
   });
 });
 
-describe('BootstrapCatalogNotLoadedError', () => {
-  // A module of the catalog that fails to parse refuses the load of the
-  // modules the root lists.
-  const brokenModuleLocator = async (namespaceName) => {
-    if (namespaceName === 'qlang/core') return { source: '[:qlang/broken]' };
-    if (namespaceName === 'qlang/broken') return { source: ':unclosed (mul(2)' };
-    return null;
-  };
-
-  it('fires when a module the locator resolves fails to parse', async () => {
+describe('a source of the language the parser refuses', () => {
+  it('raises its parse error, which names the source', async () => {
     let thrown = null;
-    try { await buildLangRuntime(brokenModuleLocator); } catch (caught) { thrown = caught; }
-    expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
-    expect(thrown.name).toBe('BootstrapCatalogNotLoadedError');
-
-    expect(thrown.context.tagName).toBe('::ParseError');
-    expect(thrown.message).toContain('the modules of the catalog');
-  });
-
-  it('names the refusal the load met, whichever it is', async () => {
-    const missingModuleLocator = async (namespaceName) =>
-      namespaceName === 'qlang/core' ? { source: '[:qlang/absent]' } : null;
-    let thrown = null;
-    try { await buildLangRuntime(missingModuleLocator); } catch (caught) { thrown = caught; }
-    expect(thrown).toBeInstanceOf(BootstrapCatalogNotLoadedError);
-    expect(thrown.context.tagName).toBe('::UseNamespaceNotFoundError');
-  });
-});
-
-describe('a module a query loads that fails to parse', () => {
-  it('answers the parse error as the value of the step that loaded it', async () => {
-    const { createSession } = await import('../../src/session.mjs');
-    const sessionInstance = await createSession({
-      locator: async namespaceName => (namespaceName === 'tests/broken' ? { source: ':unclosed (mul(2)' } : null)
-    });
-    const cellEntry = await sessionInstance.evalCell('use :tests/broken !| type');
-    expect(cellEntry.result).toEqual(makeTagKeyword('ParseError'));
-  });
-});
-
-describe('use without a locator in env raises UseNamespaceNotFoundError', () => {
-  it('falls into the no-locator branch when env lacks the locator key', async () => {
-    // Build a minimal env: langRuntime's seed plus locator stripped.
-    // `use(:nonexistent)` then has no way to resolve, hits the
-    // explicit no-locator throw branch in resolveNamespaceEnv.
-    const env = new Map(await langRuntime());
-    env.delete(RUNTIME_LOCATOR_KEY);
-    const result = await evalQuery('use :absolutely-nonexistent-namespace !| type', env);
-    expect(result).toEqual(makeTagKeyword('UseNamespaceNotFoundError'));
+    try { await buildLangRuntime(async () => ({ source: ':unclosed (mul(2)' })); } catch (caught) { thrown = caught; }
+    expect(thrown).toBeInstanceOf(ParseError);
+    expect(thrown.uri).toBe('qlang');
   });
 });
 
@@ -104,9 +51,9 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
   // host-specific tail (`cause` for Node, `status` for Web).
 
   it('Node-shape error carries host="node" and the inner cause message', async () => {
-    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
+    const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
     const cause = new Error('EACCES: permission denied');
-    const err = new SourceLoadError({
+    const err = new BuiltinSourceLoadError({
       host: 'node',
       logicalName: '#qlang/core',
       sourceLocation: '/locked/core.qlang',
@@ -117,7 +64,7 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
     expect(err.message).toContain('#qlang/core');
     expect(err.message).toContain('/locked/core.qlang');
     expect(err.message).toContain('EACCES: permission denied');
-    expect(err.context).toEqual({
+    expect(err.facts).toEqual({
       host: 'node',
       logicalName: '#qlang/core',
       sourceLocation: '/locked/core.qlang',
@@ -127,8 +74,8 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
   });
 
   it('Web-shape error carries host="web" and the HTTP status tail', async () => {
-    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
-    const err = new SourceLoadError({
+    const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
+    const err = new BuiltinSourceLoadError({
       host: 'web',
       logicalName: '#qlang/core',
       sourceLocation: 'https://cdn.example/qlang/core.qlang',
@@ -136,13 +83,13 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
     });
     expect(err.name).toBe('SourceLoadError');
     expect(err.message).toContain('HTTP 503');
-    expect(err.context.host).toBe('web');
-    expect(err.context.status).toBe(503);
+    expect(err.facts.host).toBe('web');
+    expect(err.facts.status).toBe(503);
   });
 
   it('cause-shaped object without `.message` falls through to String(cause)', async () => {
-    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
-    const err = new SourceLoadError({
+    const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
+    const err = new BuiltinSourceLoadError({
       host: 'node',
       logicalName: '#qlang/core',
       sourceLocation: '/x.qlang',
@@ -152,8 +99,8 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
   });
 
   it('no cause and no status — message ends after the source location', async () => {
-    const { SourceLoadError } = await import('../../src/source-load-error.mjs');
-    const err = new SourceLoadError({
+    const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
+    const err = new BuiltinSourceLoadError({
       host: 'node',
       logicalName: '#qlang/core',
       sourceLocation: '/x.qlang'

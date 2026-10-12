@@ -11,41 +11,43 @@
 //
 //   'string'      String literal, including the surrounding quotes
 //   'number'      Number literal, plus boolean and null literals
-//   'comment'     Plain or doc comment, all four forms
-//   'atom'        `:name` keyword (atom) OR an OperandCall name
-//                 that resolves through a user-defined binding
-//   'effect'      `:@name` keyword OR an `@`-prefixed OperandCall
-//                 name (effectful host operand or verb)
-//   'operand'     OperandCall name that resolves to a builtin
-//                 supplied by `langRuntime` AND each key segment
-//                 of a `Projection`
-//   'keyword'     the head Keyword/TagKeyword of a BindStep
+//   'comment'     Plain comment, and the prose of a doc: the quotes a
+//                 doc holds and its spans in backticks paint as code
+//   'name'        `:name` keyword OR a call's name that resolves
+//                 through a reader's binding
+//   'effect'      `:@name` keyword OR the name of a call marked
+//                 `@`, an effectful word
+//   'word'        a call's name that resolves to a word of the
+//                 language supplied by `langRuntime` AND each key
+//                 segment of a `Projection`
+//   'keyword'     the head Keyword/tag of a BindStep
 //                 declaration
 //   'err'         `!` sigil plus its immediately-attached bracket
-//                 in `!{` / closing `}` of an `!{}` descriptor, and
-//                 the `!|` fail-track combinator — anything that
-//                 carries the fail-track semantic in qlang
+//                 in `!{` / closing `}` of an error literal, and the
+//                 `!|` fail-track combinator — an error and the track
+//                 that catches it
 //   'quote'       Quote literal `~( … )`, including the `~(`
 //                 opener and `)` closer, and the `~` of the short
 //                 form `~add` (DocLit `|~~ … ~~|` falls under
 //                 'comment')
 //   'tag'         `::tag` head of a TaggedLit, of an ErrorLit that
-//                 writes one, or a BareTypeKeyword — the
-//                 tag-namespace identifier sigil + name
+//                 writes one, or a TagLit — the
+//                 tag sigil + the address it names
 //   'set'         `#[` opener and matching `]` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
-//   'punct'       every other single-char or multi-char combinator
-//                 (`|`, `*`), the `{` / `}` of an ordinary
+//   'punct'       the pipe `|`, the `{` / `}` of an ordinary
 //                 MapLit, `(` / `)` of a group, the commas of a
 //                 JSON literal, and the `/` separator inside a
 //                 `Projection`
 //   'whitespace'  runs of whitespace between meaningful tokens, and
-//                 the entire input on a parse failure (the safe
-//                 fallback that lets live-typing scenarios render
-//                 partial source without a span until the next
-//                 keystroke makes it parseable again)
+//                 the source past where its parse stopped
+//
+// A source that does not parse paints as far as the parser reads it: a
+// source cut short, as a line being typed is, through the closers that
+// complete it [D125], and one the parser refuses up to the place of the
+// refusal, the rest as whitespace.
 
-import { parse } from './parse.mjs';
+import { closersCompleting, parse } from './parse.mjs';
 import { walkAst } from './walk.mjs';
 import { EFFECT_MARKER_PREFIX } from './effect.mjs';
 
@@ -56,14 +58,31 @@ const EFFECT_KEYWORD_PREFIX = KEYWORD_SIGIL + EFFECT_MARKER_PREFIX;
 
 export function tokenize(src, builtinNames) {
   if (src.length === 0) return [];
-  let ast;
+  const read = readOf(src);
+  if (read === null) return [{ start: 0, end: src.length, kind: 'whitespace' }];
+  const semanticSpans = collectSemanticSpans(read.source, read.ast, builtinNames)
+    .filter(span => span.start < read.end)
+    .map(span => span.end > read.end ? { ...span, end: read.end } : span);
+  const tokens = interleaveGapTokens(src.slice(0, read.end), semanticSpans);
+  if (read.end < src.length) tokens.push({ start: read.end, end: src.length, kind: 'whitespace' });
+  return tokens;
+}
+
+// The tree a source is painted from: `{ ast, source, end }`, the source
+// the tree was parsed from and how far into the painted one it reads,
+// or null when no prefix of it completes.
+function readOf(src) {
+  let refusal;
   try {
-    ast = parse(src);
-  } catch {
-    return [{ start: 0, end: src.length, kind: 'whitespace' }];
+    return { ast: parse(src), source: src, end: src.length };
+  } catch (error) {
+    refusal = error;
   }
-  const semanticSpans = collectSemanticSpans(src, ast, builtinNames);
-  return interleaveGapTokens(src, semanticSpans);
+  for (const prefix of [src, src.slice(0, refusal.location.start.offset)]) {
+    const closers = closersCompleting(prefix);
+    if (closers !== null) return { ast: parse(prefix + closers.join('')), source: prefix + closers.join(''), end: prefix.length };
+  }
+  return null;
 }
 
 // ── AST-driven semantic spans ──────────────────────────────────
@@ -83,9 +102,18 @@ function collectSemanticSpans(src, ast, builtinNames) {
     const endOffset   = node.location.end.offset;
 
     switch (node.type) {
-      case 'DocLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'comment' });
-        return false;
+      case 'DocLit': {
+        // The prose of a doc paints as a comment and the quotes it holds
+        // as the code they are, so only prose reads grey [D83].
+        let cursor = startOffset;
+        for (const segment of node.segments) {
+          if (typeof segment === 'string') continue;
+          pushProseSpans(src, cursor, segment.location.start.offset, builtinNames, spans);
+          cursor = segment.location.end.offset;
+        }
+        pushProseSpans(src, cursor, endOffset, builtinNames, spans);
+        return; // descend into the quotes
+      }
 
       case 'StringLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'string' });
@@ -99,7 +127,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
 
       case 'Keyword': {
         const keywordText = src.slice(startOffset, endOffset);
-        const kind = keywordText.startsWith(EFFECT_KEYWORD_PREFIX) ? 'effect' : 'atom';
+        const kind = keywordText.startsWith(EFFECT_KEYWORD_PREFIX) ? 'effect' : 'name';
         spans.push({ start: startOffset, end: endOffset, kind });
         return false;
       }
@@ -137,7 +165,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
       }
 
       case 'BindStep': {
-        // The binding key — Keyword `:name` or BareTypeKeyword `::Tag` —
+        // The binding key — Keyword `:name` or TagLit `::Tag` —
         // paints as 'keyword' (binding-introducer) so it is visually
         // distinct from a plain value-position `:name`; the doc literals
         // of its slot paint as every doc does [D83].
@@ -146,7 +174,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
         return; // descend into docs / body
       }
 
-      case 'BareTypeKeyword':
+      case 'TagLit':
         spans.push({ start: startOffset, end: endOffset, kind: 'tag' });
         return false;
 
@@ -171,12 +199,12 @@ function collectSemanticSpans(src, ast, builtinNames) {
         emitProjectionSpans(src, startOffset, endOffset, spans);
         return false;
 
-      case 'OperandCall': {
+      case 'Call': {
         const nameEndOffset = startOffset + node.name.length;
         spans.push({
           start: startOffset,
           end:   nameEndOffset,
-          kind:  classifyOperandName(node.name, builtinNames)
+          kind:  classifyCallName(node.name, builtinNames)
         });
         return; // descend into args
       }
@@ -186,10 +214,26 @@ function collectSemanticSpans(src, ast, builtinNames) {
   return dedupeOverlappingSpans(spans);
 }
 
-function classifyOperandName(operandName, builtinNames) {
-  if (operandName.startsWith(EFFECT_MARKER_PREFIX)) return 'effect';
-  if (builtinNames.has(operandName))                return 'operand';
-  return 'atom';
+// The prose of a doc between `start` and `end`: a comment, but for a
+// span in backticks, which names code and paints as the code it spells.
+function pushProseSpans(src, start, end, builtinNames, spans) {
+  let cursor = start;
+  for (const match of src.slice(start, end).matchAll(/`([^`\n]+)`/g)) {
+    const codeStart = start + match.index + 1;
+    const codeEnd = codeStart + match[1].length;
+    spans.push({ start: cursor, end: codeStart, kind: 'comment' });
+    for (const inner of tokenize(match[1], builtinNames)) {
+      spans.push({ ...inner, start: codeStart + inner.start, end: codeStart + inner.end });
+    }
+    cursor = codeEnd;
+  }
+  spans.push({ start: cursor, end, kind: 'comment' });
+}
+
+function classifyCallName(callName, builtinNames) {
+  if (callName.startsWith(EFFECT_MARKER_PREFIX)) return 'effect';
+  if (builtinNames.has(callName))                return 'word';
+  return 'name';
 }
 
 // Emit opener and closer spans for a literal with known bracket
@@ -219,7 +263,7 @@ function emitProjectionSpans(src, startOffset, endOffset, spans) {
     while (segEnd < projectionText.length && projectionText[segEnd] !== '/') {
       // A quoted segment (`/"a/b"`) keeps its inner `/` — skip the
       // whole `"…"` span so a slash inside it does not split the
-      // segment into two operand tokens.
+      // segment into two word tokens.
       if (projectionText[segEnd] === '"') {
         segEnd += 1;
         while (segEnd < projectionText.length && projectionText[segEnd] !== '"') {
@@ -233,14 +277,14 @@ function emitProjectionSpans(src, startOffset, endOffset, spans) {
     spans.push({
       start: startOffset + cursor,
       end:   startOffset + segEnd,
-      kind:  'operand'
+      kind:  'word'
     });
     cursor = segEnd;
   }
 }
 
 // Sort by start, then a strict cursor drops overlaps — a parent
-// OperandCall whose name range was already emitted by the child
+// Call whose name range was already emitted by the child
 // rule must not duplicate. Two distinct spans never share the
 // same start offset under the current AST shape (the per-node
 // visitor emits at most one span per node), so the comparator
@@ -303,10 +347,8 @@ function pushGapTokens(src, startOffset, endOffset, outputTokens) {
 // Resolve the kind of a single- or multi-char combinator run in a
 // gap region. `!|` is the fail-track combinator and takes the `err`
 // kind so renderers can paint it in the same palette as the `!{}`
-// descriptor brackets. `#[` is not listed here because a well-
-// formed set opener always arrives through the SetLit AST case
-// above, and an unparseable source collapses to a single
-// `whitespace` token before this scanner ever runs.
+// descriptor brackets. `#[` is not listed here because a set opener
+// always arrives through the SetLit AST case above.
 function scanPunctRun(src, startOffset) {
   const ch = src[startOffset];
   const next = src[startOffset + 1];

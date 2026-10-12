@@ -13,7 +13,7 @@
 // `parse.mjs` (→ `parse.test.mjs`), `eval.mjs unknown node / unknown
 // combinator / quoted-keyword identity` (→ `eval-smoke.test.mjs`),
 // `runtime/format.mjs structural` (→ `print-value-extras.test.mjs`),
-// `per-site error tag identity` (→ `error-operands.test.mjs`),
+// `per-site error tag identity` (→ `fail-track.test.mjs`),
 // `parser doc-comment attachment` (→ `parse.test.mjs`),
 // `errors.mjs kind-tag survey` (covered by `errors.test.mjs`),
 // `state.mjs` (→ `state.test.mjs`).
@@ -21,29 +21,21 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import {
-  ArityError,
-  QlangTypeError
-} from '../../src/errors.mjs';
-import {
   keyword,
-  describeType,
+  formOf,
   isKeyword,
   isQMap,
   isQSet,
-  isQuote,
   isVec,
   makeSet,
-  makeTagKeyword,
-  typeKeyword,
-  TAG_HEADER_SYMBOL,
-  VERB_TAG
+  makeTag,
+  typeKeyword
 } from '../../src/types.mjs';
-import { catchOriginalError, expectErrorCategory } from '../helpers/error-assertions.mjs';
-import { printQuoteSource, astOfQuote } from '../../src/quote.mjs';
+import { catchOriginalError, expectErrorThrown } from '../helpers/error-assertions.mjs';
 
 describe('types.mjs', () => {
   it('typeKeyword reads a value the language holds no literal for, a symbol of a host, as unknown', () => {
-    expect(typeKeyword(Symbol('host'))).toEqual(makeTagKeyword('unknown'));
+    expect(typeKeyword(Symbol('host'))).toEqual(makeTag('unknown'));
   });
 
   it('interns keywords', () => {
@@ -51,17 +43,17 @@ describe('types.mjs', () => {
     expect(keyword('foo')).not.toEqual(keyword('bar'));
   });
 
-  it('describeType covers every value class', () => {
-    expect(describeType(null)).toBe('Null');
-    expect(describeType(undefined)).toBe('Null');
-    expect(describeType(true)).toBe('Boolean');
-    expect(describeType(42)).toBe('Number');
-    expect(describeType('s')).toBe('String');
-    expect(describeType(keyword('k'))).toBe('Keyword');
-    expect(describeType([])).toBe('Vec');
-    expect(describeType(new Map())).toBe('Map');
-    expect(describeType(makeSet([]))).toBe('Set');
-    expect(describeType(Symbol('weird'))).toBe('Unknown');
+  it('formOf names the form of every value', () => {
+    expect(formOf(null)).toBe('null');
+    expect(formOf(undefined)).toBe('null');
+    expect(formOf(true)).toBe('boolean');
+    expect(formOf(42)).toBe('number');
+    expect(formOf('s')).toBe('string');
+    expect(formOf(keyword('k'))).toBe('keyword');
+    expect(formOf([])).toBe('vec');
+    expect(formOf(new Map())).toBe('map');
+    expect(formOf(makeSet([]))).toBe('set');
+    expect(formOf(Symbol('weird'))).toBe('unknown');
   });
 
   it('value-class predicates', () => {
@@ -71,63 +63,53 @@ describe('types.mjs', () => {
     expect(isQSet([])).toBe(false);
     expect(isVec([])).toBe(true);
   });
-
-  it('a verb is a tag over its quote, its scope on a JS-header slot', async () => {
-    const doubleVerb = await evalQuery('::verb~(mul 2)');
-    expect(doubleVerb[TAG_HEADER_SYMBOL]).toEqual(VERB_TAG);
-    expect(typeKeyword(doubleVerb)).toEqual(VERB_TAG);
-    expect(isQuote(doubleVerb.payload)).toBe(true);
-    expect(printQuoteSource(doubleVerb.payload)).toBe('mul 2');
-    expect(astOfQuote(doubleVerb.payload).type).toBe('OperandCall');
-    expect(Object.keys(doubleVerb)).toEqual(['tag', 'payload']);
-  });
 });
 
 describe('runtime/predicates.mjs ordering type errors', () => {
-  it('gt rejects heterogeneous comparison', async () => {
-    await expectErrorCategory('"a" | gt 5', 'typeError');
+  it('gt rejects heterogeneous comparison by the law of its part', async () => {
+    await expectErrorThrown('"a" | gt 5', 'string/gt/value/NotStringError');
   });
   it('lt rejects non-comparable subject', async () => {
-    await expectErrorCategory('null | lt 5', 'typeError');
+    await expectErrorThrown('null | lt 5', 'call/KindAnswersNoVerbError');
   });
 });
 
 describe('runtime/arith.mjs error paths', () => {
   it('add rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | add 1', 'typeError');
+    await expectErrorThrown('"x" | add 1', 'number/add/SubjectNotNumberError');
   });
   it('add rejects non-numeric modifier', async () => {
-    await expectErrorCategory('1 | add "x"', 'typeError');
+    await expectErrorThrown('1 | add "x"', 'number/add/addend/NotNumberError');
   });
   it('sub rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | sub 1', 'typeError');
+    await expectErrorThrown('"x" | sub 1', 'number/sub/SubjectNotNumberError');
   });
   it('mul rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | mul 1', 'typeError');
+    await expectErrorThrown('"x" | mul 1', 'number/mul/SubjectNotNumberError');
   });
   it('div rejects non-numeric subject', async () => {
-    await expectErrorCategory('"x" | div 1', 'typeError');
+    await expectErrorThrown('"x" | div 1', 'number/div/SubjectNotNumberError');
   });
 });
 
 describe('runtime/vec.mjs error paths', () => {
   it('count rejects non-Vec', async () => {
-    await expectErrorCategory('42 | count', 'typeError');
+    await expectErrorThrown('42 | count', 'call/KindAnswersNoVerbError');
   });
   it('first rejects non-Vec', async () => {
-    await expectErrorCategory('42 | first', 'typeError');
+    await expectErrorThrown('42 | first', 'call/KindAnswersNoVerbError');
   });
   it('sum rejects non-Vec', async () => {
-    await expectErrorCategory('42 | sum', 'typeError');
+    await expectErrorThrown('42 | sum', 'call/KindAnswersNoVerbError');
   });
   it('filter rejects non-Vec', async () => {
-    await expectErrorCategory('42 | filter ~(gt 1)', 'typeError');
+    await expectErrorThrown('42 | filter ~(gt 1)', 'call/KindAnswersNoVerbError');
   });
   it('take rejects non-numeric n', async () => {
-    await expectErrorCategory('[1 2 3] | take "x"', 'typeError');
+    await expectErrorThrown('[1 2 3] | take "x"', 'vec/take/count/NotNumberError');
   });
   it('drop rejects non-numeric n', async () => {
-    await expectErrorCategory('[1 2 3] | drop "x"', 'typeError');
+    await expectErrorThrown('[1 2 3] | drop "x"', 'vec/drop/count/NotNumberError');
   });
   it('sort with key', async () => {
     expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort ~(/n)'))
@@ -137,22 +119,22 @@ describe('runtime/vec.mjs error paths', () => {
 
 describe('runtime/map.mjs error paths', () => {
   it('keys rejects non-Map', async () => {
-    await expectErrorCategory('42 | keys', 'typeError');
+    await expectErrorThrown('42 | keys', 'map/keys/SubjectNotMapError');
   });
   it('vals rejects non-Map', async () => {
-    await expectErrorCategory('42 | vals', 'typeError');
+    await expectErrorThrown('42 | vals', 'map/vals/SubjectNotMapError');
   });
   it('has rejects non-Map/non-Set subject', async () => {
-    await expectErrorCategory('42 | has :foo', 'typeError');
+    await expectErrorThrown('42 | has :foo', 'call/KindAnswersNoVerbError');
   });
   it('has on Map requires keyword-or-string key', async () => {
-    await expectErrorCategory('{:k 1} | has 42', 'typeError');
+    await expectErrorThrown('{:k 1} | has 42', 'map/has/key/NotKeywordOrStringError');
   });
 });
 
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', async () => {
-    await expectErrorCategory('#[:a] | union {:b 1}', 'typeError');
+    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/other/NotSetOrNullError');
   });
   it('minus of Map by another Map (key-based)', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | minus {:b 99 :d 5}');
@@ -163,10 +145,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(evalResult).toEqual(new Map([['b', 2]]));
   });
   it('minus of Set by Map errors', async () => {
-    await expectErrorCategory('#[:a] | minus {:a 1}', 'typeError');
+    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/other/NotSetOrNullError');
   });
   it('inter of Set by Map errors', async () => {
-    await expectErrorCategory('#[:a] | inter {:a 1}', 'typeError');
+    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/other/NotSetOrNullError');
   });
 });
 
@@ -192,34 +174,29 @@ describe('runtime/predicates.mjs deepEqual', () => {
 });
 
 describe('runtime/string.mjs split and join error sites', () => {
-  it('split on non-string subject → SplitSubjectNotStringError', async () => {
-    const caughtErr = await catchOriginalError('42 | split ","');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('SplitSubjectNotStringError');
+  it('split on non-string subject is refused by the address of split', async () => {
+    await expectErrorThrown('42 | split ","', 'string/split/SubjectNotStringError');
   });
 
-  it('split with non-string separator → SplitSeparatorNotStringError', async () => {
-    const caughtErr = await catchOriginalError('"abc" | split 42');
-    expect(caughtErr.name).toBe('SplitSeparatorNotStringError');
+  it('split with non-string separator is refused by its part', async () => {
+    await expectErrorThrown('"abc" | split 42', 'string/split/separator/NotStringError');
   });
 
-  it('join on non-Vec subject → JoinSubjectNotVecError', async () => {
-    const caughtErr = await catchOriginalError('42 | join ","');
-    expect(caughtErr.name).toBe('JoinSubjectNotVecError');
+  it('join on non-Vec subject is refused by the address of join', async () => {
+    await expectErrorThrown('42 | join ","', 'vec/join/SubjectNotVecError');
   });
 
-  it('join with non-string element → JoinElementNotStringError', async () => {
+  it('join with an element of neither kind → ElementNotStringOrKeywordError', async () => {
     const caughtErr = await catchOriginalError('["a" 42 "c"] | join ","');
-    expect(caughtErr.name).toBe('JoinElementNotStringError');
-    expect(caughtErr.context.index).toBe(1);
+    expect(caughtErr.address).toBe('vec/join/ElementNotStringOrKeywordError');
+    expect(caughtErr.facts.index).toBe(1);
   });
 
-  it('join with non-string separator → JoinSeparatorNotStringError', async () => {
-    const caughtErr = await catchOriginalError('["a" "b"] | join 42');
-    expect(caughtErr.name).toBe('JoinSeparatorNotStringError');
+  it('join with non-string separator is refused by its part', async () => {
+    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/NotStringOrKeywordError');
   });
 
-  it('every split/join site has a unique class name', async () => {
+  it('every split/join site has an address of its own', async () => {
     const queries = [
       '42 | split ","',
       '"abc" | split 42',
@@ -228,7 +205,7 @@ describe('runtime/string.mjs split and join error sites', () => {
       '["a" "b"] | join 42'
     ];
     const names = new Set();
-    for (const q of queries) names.add((await catchOriginalError(q)).name);
+    for (const q of queries) names.add((await evalQuery(q)).tag.name);
     expect(names.size).toBe(queries.length);
   });
 });
@@ -249,30 +226,28 @@ describe('runtime/string.mjs lines', () => {
     expect(await evalQuery('"a\\r" | lines')).toEqual(['a\r']);
   });
 
-  it('lines on non-string subject → LinesSubjectNotStringError', async () => {
-    const caughtErr = await catchOriginalError('42 | lines');
-    expect(caughtErr).toBeInstanceOf(QlangTypeError);
-    expect(caughtErr.name).toBe('LinesSubjectNotStringError');
+  it('lines on non-string subject is refused by the address of lines', async () => {
+    await expectErrorThrown('42 | lines', 'string/lines/SubjectNotStringError');
   });
 });
 
-describe('source axis on verb / freeze / TagKeyword subjects', () => {
-  // `:name | source` returns the quote of the declaring BindStep,
-  // which `parse` prints as its text. Same axis covers value-namespace bindings
-  // (Keyword subject) and tag-namespace bindings (TagKeyword subject).
+describe('source axis on verb / freeze / tag subjects', () => {
+  // `::name | source` returns the quote of the declaring BindStep,
+  // which `parse` prints as its text. Same axis covers a name (Keyword
+  // subject) and a node of the tree (tag subject).
 
-  it('source on a verb binding name returns the whole declaration', async () => {
-    const source = await evalQuery(':double ::verb~(mul 2) | :double | source | parse');
-    expect(source).toBe(':double ::verb~(mul 2)');
+  it('source on the address of a word returns the whole declaration', async () => {
+    const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | parse');
+    expect(source).toBe(':any/double ~(mul 2)');
   });
 
-  it('source on a verb with slots captures its head', async () => {
-    const source = await evalQuery(':@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx) | :@surround | source | parse');
-    expect(source).toBe(':@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx)');
+  it('source on the address of a part returns its declaration', async () => {
+    const source = await evalQuery(':any/@surround ~(prepend pfx | append sfx) | :any/@surround/pfx ~(/0) | :any/@surround/sfx ~(/1) | ::any/@surround/sfx | source | parse');
+    expect(source).toBe(':any/@surround/sfx ~(/1)');
   });
 
   it('source on a freeze returns its declaration', async () => {
-    const source = await evalQuery('42 | :snap / | :snap | source | parse');
+    const source = await evalQuery('42 | :snap / | ::snap | source | parse');
     expect(source).toBe(':snap /');
   });
 });
@@ -287,7 +262,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if refuses a null condition', async () => {
-    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTagKeyword('IfConditionNotBooleanError'));
+    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTag('any/if/condition/NotBooleanError'));
   });
 
   it('if treats false literal as falsy', async () => {
@@ -299,8 +274,8 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if only the selected branch runs (else branch never evaluates)', async () => {
-    // The else branch contains div(0), which would raise divisionByZero
-    // if evaluated. The cond is truthy so the else branch is skipped.
+    // The else branch contains div(0), which would break the law of the
+    // divisor if evaluated. The cond is truthy so the else branch is skipped.
     expect(await evalQuery('10 | if (gt 0) ~("positive") ~(div 0)')).toBe('positive');
   });
 
@@ -345,12 +320,11 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:role :admin :name "Bob"} | if (/role | eq :admin) ~(coalesce ~(/displayName) ~(/name) ~("???")) ~("guest")')).toBe('Bob');
   });
 
-  // Per-site coalesce arityError tag identity is
-  // pinned by `error-operands.test.mjs`; the control-flow block
-  // tests the operand semantics, not the per-site wiring.
-  it('coalesce raises CoalesceNoAlternativesError on bare call', async () => {
-    const caughtErr = await catchOriginalError('{} | coalesce');
-    expect(caughtErr).toBeInstanceOf(ArityError);
+  // The refusal of a bare coalesce is pinned by
+  // `fail-track.test.mjs`; the control-flow block tests what the word
+  // does.
+  it('coalesce answers its subject first when its alternatives are values', async () => {
+    expect(await evalQuery('null | coalesce 30')).toBe(30);
   });
 
 });

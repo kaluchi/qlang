@@ -1,8 +1,11 @@
-// The primitive of `env`, which reads the state of its call [D79] and
-// answers the names the query, the session and a module's `use` wrote as
-// a map of the records of their bindings [D61], [D63].
+// `env` reads the state of its call [D79] and answers what the reader
+// declared, the cells of a session and the steps before it, by name
+// [D61], [D160]; `kinds` answers the kinds the scope reads, the root's
+// and the reader's, each by its tag.
 
 import { bindStateReader } from '../primitives.mjs';
-import { scopeBindingsOf } from './nouns.mjs';
+import { makeSet, makeTag } from '../types.mjs';
+import { kindNamesOf, readerNamesOf } from './nouns.mjs';
 
-bindStateReader('env', (subject, state) => scopeBindingsOf(state.env));
+bindStateReader('any/env', (subject, state) => readerNamesOf(state.env));
+bindStateReader('any/kinds', (subject, state) => makeSet(kindNamesOf(state.env).map(makeTag)));

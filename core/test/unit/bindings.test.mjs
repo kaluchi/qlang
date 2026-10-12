@@ -1,17 +1,17 @@
 // Binding declarations — BindStep (`:name body`), the freeze
 // `:name /` among them.
 // Every binding declaration parses through `evalBindStep` at the
-// AST level — there is no operand-call ceremony around it.
+// AST level, with no call around it.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, makeTagKeyword, describeType } from '../../src/types.mjs';
+import { isErrorValue, makeTag, formOf } from '../../src/types.mjs';
 import { docText } from '../../src/quote.mjs';
 
 describe('BindStep — docs-only form', () => {
   it('binds a Doc-value when the prefix is the only attached content', async () => {
     const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | type');
-    expect(result).toEqual(makeTagKeyword('doc'));
+    expect(result).toEqual(makeTag('doc'));
   });
 
   it('the bound value content matches the attached doc', async () => {
@@ -21,24 +21,15 @@ describe('BindStep — docs-only form', () => {
 
   it(':name |~~| short-doc-only binds the joined doc-content as a Doc value', async () => {
     const doc = await evalQuery(':forward |~~| placeholder note\n| forward');
-    expect(describeType(doc)).toBe('Doc');
+    expect(formOf(doc)).toBe('doc');
     expect(docText(doc)).toBe(' placeholder note');
   });
 
-  it('::Tag |~~ ~~| doc-only auto-forges a ::builtin{} tag-binding under the tag-namespace key', async () => {
-    // Tag-namespace doc-only BindStep (`::Tag |~~ docs ~~|`)
-    // mints an empty `::builtin{}` descriptor under the `::Tag`
-    // env key automatically — equivalent to `::Tag ::builtin{}`
-    // body-form. The BindStep production requires docs (or body
-    // or params) after the key; the doc-prefix attaches to the
-    // BindStep, evalBindStep no-body branch fires the auto-forge.
-    // Subsequent `::Tag | doc` axis lookup resolves the attached
-    // prose, and `::Tag | spec | type` surfaces the ::builtin
-    // identity through the JS-header tag slot.
-    const doc = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | doc | content');
+  it('a kind declared with a doc reads its page, the value of its record [D168]', async () => {
+    const doc = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | doc | content');
     expect(doc).toContain('short tag prose');
-    const spec = await evalQuery('::MyDocTag |~~ short tag prose ~~| | ::MyDocTag | spec | type');
-    expect(spec).toEqual(makeTagKeyword('builtin'));
+    const value = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | binding | /value | type');
+    expect(value).toEqual(makeTag('doc'));
   });
 });
 
@@ -56,8 +47,8 @@ describe('BindStep — value-body purity routing', () => {
     expect(await evalQuery(':xs [1 2 3] | xs')).toEqual([1, 2, 3]);
   });
 
-  it('impure body containing OperandCall fires the deferred body per call', async () => {
-    expect(await evalQuery(':double ::verb~(mul 2) | 5 | double')).toBe(10);
+  it('impure body containing Call fires the deferred body per call', async () => {
+    expect(await evalQuery(':any/double ~(mul 2) | 5 | double')).toBe(10);
   });
 
   it('lookup of a literal binding returns the eval-at-bind-time value', async () => {
@@ -65,18 +56,18 @@ describe('BindStep — value-body purity routing', () => {
   });
 
   it('a verb lookup runs its body against pipeValue', async () => {
-    expect(await evalQuery(':double ::verb~(mul 2) | 5 | double')).toBe(10);
+    expect(await evalQuery(':any/double ~(mul 2) | 5 | double')).toBe(10);
   });
 });
 
-describe('BindStep — a verb with slots', () => {
-  it('a verb binds its slots from the modifiers of the call', async () => {
-    expect(await evalQuery(':@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx) | "x" | @surround "[" "]"'))
+describe('BindStep — a word with parts', () => {
+  it('a word binds its parts from the modifiers of the call', async () => {
+    expect(await evalQuery(':any/@surround ~(prepend pfx | append sfx) | :any/@surround/pfx ~(/0) | :any/@surround/sfx ~(/1) | "x" | @surround "[" "]"'))
       .toBe('[x]');
   });
 
-  it(':@add1 ::verb~(:x ::any | add x) — the slot x binds the modifier', async () => {
-    expect(await evalQuery(':@add1 ::verb~(:x ::any | add x) | 5 | @add1 10')).toBe(15);
+  it('the part x binds the modifier', async () => {
+    expect(await evalQuery(':any/@add1 ~(add x) | :any/@add1/x ~(/0) | 5 | @add1 10')).toBe(15);
   });
 });
 
@@ -88,8 +79,8 @@ describe('BindStep — pipeline-transparency', () => {
 
 describe('BindStep — effectLaundering safety net', () => {
   it('rejects an effectful body under a non-@-prefixed binding name', async () => {
-    const err = await evalQuery(':safe ::verb~(@nonExistent)');
+    const err = await evalQuery(':any/safe ~(@nonExistent)');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTagKeyword('EffectLaunderingAtBindStepParseError'));
+    expect(err.tag).toEqual(makeTag('bind/EffectMarkMissingError'));
   });
 });

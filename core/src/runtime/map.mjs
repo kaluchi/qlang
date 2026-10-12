@@ -1,39 +1,16 @@
-// The verbs of the keys of a map and of membership, each a plain
-// function over the value the head of its verb checked [D72]: `keys`,
-// `vals` and `entries` reside on `::map`, and `has` on `::map`, whose key is a
-// keyword or a string, and on `::set` and `::vec`, whose element is any
-// value.
-//
-// The verbs live in lib/qlang/map.qlang and set.qlang.
+// The primitives of the keys of a map and of membership, whose words the
+// catalog declares under `::map`, `::set` and `::vec` [D167].
 
-import { keyword, isKeyword, isQMap, isQSet, makeSet } from '../types.mjs';
-import { declareSubjectError, declareModifierError } from '../operand-errors.mjs';
+import { keyword, isKeyword, makeSet } from '../types.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { compareValues } from '../ordering.mjs';
 
-// The refusals the heads raise at the places they declare; the key of
-// `has` is the map's alone, the element of a set being any value [D73].
-declareSubjectError('KeysSubjectNotMapError', 'keys', 'map');
-declareSubjectError('ValsSubjectNotMapError', 'vals', 'map');
-declareSubjectError('EntriesSubjectNotMapError', 'entries', 'map');
-declareModifierError('HasKeyNotKeywordOrStringError', '::map/has', 2, ['keyword', 'string']);
+bindPrim('map/keys', map => makeSet([...map.keys()].map(keyword)));
+bindPrim('map/vals', map => [...map.values()]);
+bindPrim('map/entries', map => [...map].map(([entryKey, entryValue]) => Object.freeze([keyword(entryKey), entryValue])));
 
-// `keys` answers a map's keys as the sorted Set of keywords [D15]
-// and `vals` its values as a Vec, in the order of the entries.
-bindPrim('keys', map => makeSet([...map.keys()].map(keyword)));
-bindPrim('vals', map => [...map.values()]);
-
-// `entries` answers a map as the vector of its pairs `[key value]` in the
-// order of the entries, the key a keyword, the way `[type payload]`
-// splits a tagged value; `::map` builds the map back [D138].
-bindPrim('entries', map => [...map].map(([entryKey, entryValue]) => Object.freeze([keyword(entryKey), entryValue])));
-
-// `has` is a boolean lookup: over a map a keyword and a string both
-// name the key as the map stores it, so the `keys | first | :k / | src |
-// has k` chain composes without a coercion; over a set, membership is a
-// binary search in the one order, which ranks two values alike exactly
-// when they are equal [D16]; over a vector, an element equal to it in
-// that order, found by a walk [D107].
+// Whether a set holds a value, by a search in the one order, which ranks
+// two values alike exactly when they are equal [D16].
 function setHas(set, value) {
   let low = 0;
   let high = set.length - 1;
@@ -47,7 +24,7 @@ function setHas(set, value) {
   return false;
 }
 
-bindPrim('has', (container, place) =>
-  isQMap(container) ? container.has(isKeyword(place) ? place.name : place)
-    : isQSet(container) ? setHas(container, place)
-      : container.some(element => compareValues(element, place) === 0));
+bindPrim(['vec/has', 'vec/contains'], (vector, element) => vector.some(held => compareValues(held, element) === 0));
+bindPrim(['set/has', 'set/contains'], (set, element) => setHas(set, element));
+// A map's key is named by a keyword or a string alike.
+bindPrim('map/has', (map, key) => map.has(isKeyword(key) ? key.name : key));

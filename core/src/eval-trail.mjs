@@ -1,30 +1,27 @@
-// The path of an error [D85]. Its `:trail` holds a stop at every step
-// that raised it or handed it on, `{:step :subject :skipped}`, from the
-// step where it arose to the step where it is read, and a step it skips
-// joins the `:skipped` of the last stop. The helpers build a new error
-// for every change; none re-enters the evaluator.
+// The path of a failure [D85], written in flight: a failure lives in the
+// pipe alone [D210], and its `:trail` holds a stop at every step that
+// raised it or handed it on, `{:step :subject :skipped}`, from the step
+// where it arose to the `!|` that catches it, and a step it skips joins
+// the `:skipped` of the last stop. The helpers build a new error for
+// every change; none re-enters the evaluator.
 //
-//   `answerOfStep(answer, stepQuoteOf, subject)` — the answer of a step
-//     of a pipeline: an error its subject was not passes a stop there,
+//   `answerOfStep(answer, stepQuoteOf, subject)` — the answer of a step of
+//     a pipeline: a failure its subject was not passes a stop there,
 //     unless its maker wrote its trail and it resumes that path.
 //   `answerOfWord(answer, wordNode, subject)` — the value a word of a
-//     literal answers: an error the word raised itself passes a stop at
-//     the word, any other waits in the container as it is.
-//   `skipping(error, skippedStep)` — the error that skipped a step.
-//   `resumingItsTrail(error)` — marks an error whose maker, an error
-//     literal or `raise`, wrote its `:trail`.
-//   `raisedBy(error, node)` — marks the error a node's own fault raised.
+//     literal answers: a failure the word raised itself passes a stop at
+//     the word, and one handed on from inside it goes on as it is.
+//   `skipping(error, skippedStep)` — the failure that skipped a step.
+//   `resumingItsTrail(error)` — marks a failure `raise` made of a map
+//     that wrote its `:trail`.
+//   `raisedBy(error, node)` — marks the failure a node's own fault raised.
 //
-// Every error the runtime makes carries a path. The one value of the
-// kind of errors that may carry none is the step of an error literal
-// whose `:trail` is no vector of stops, which its quote holds as written
-// [D53]: taken out of the quote, it waits in a container as the value it
-// is and passes the steps that skip it, having no stop to join, and a
-// step that answers it raises the refusal its literal meets when it runs.
+// A failure holds its path from its first stop, and one that flew no step,
+// a refusal of the text of a query or one that resumed an empty path,
+// holds no `:trail` [D209].
 
-import { isErrorValue, isTrail, makeErrorValue, makeQuote, typeKeyword, ErrorTrailNotVecError } from './types.mjs';
+import { isErrorValue, makeErrorValue, makeQuote } from './types.mjs';
 import { quoteOfBody } from './quote.mjs';
-import { errorFromQlang } from './error-convert.mjs';
 
 const RESUMING_THEIR_TRAIL = new WeakSet();
 const RAISED_BY = new WeakMap();
@@ -55,35 +52,24 @@ function withTrail(error, trail) {
 
 function withStop(error, stepQuote, subject) {
   const stop = Object.freeze(new Map([['step', stepQuote], ['subject', subject], ['skipped', makeQuote([])]]));
-  return withTrail(error, [...error.descriptor.get('trail'), stop]);
+  return withTrail(error, [...(error.descriptor.get('trail') ?? []), stop]);
 }
 
 export function answerOfStep(answer, stepQuoteOf, subject) {
   if (!isErrorValue(answer)) return answer;
-  if (resumesItsTrail(answer)) return withTrail(answer, answer.descriptor.get('trail'));
-  return withStop(onItsPath(answer, subject), stepQuoteOf(), subject);
-}
-
-// The error a step raises: its answer, or the refusal of the step of an
-// error literal that carries no path.
-function onItsPath(answer, subject) {
-  const trail = answer.descriptor.get('trail');
-  if (isTrail(trail)) return answer;
-  return errorFromQlang(new ErrorTrailNotVecError({ actualType: typeKeyword(trail), actualValue: trail }), subject);
+  if (resumesItsTrail(answer)) return withTrail(answer, answer.descriptor.get('trail') ?? []);
+  return withStop(answer, stepQuoteOf(), subject);
 }
 
 export function answerOfWord(answer, wordNode, subject) {
-  if (!isErrorValue(answer)) return answer;
-  if (isRaisedBy(answer, wordNode)) return withStop(answer, quoteOfBody(wordNode), subject);
-  return resumesItsTrail(answer) ? withTrail(answer, answer.descriptor.get('trail')) : answer;
+  return isErrorValue(answer) && isRaisedBy(answer, wordNode) ? withStop(answer, quoteOfBody(wordNode), subject) : answer;
 }
 
-// An error written as a value, which no step has raised or handed on,
-// holds no stop, and the steps it passes leave it as it is, as they
-// leave the step of an error literal that carries no path.
+// A failure that flew no step holds no stop to join, and the steps it
+// passes leave it as it is.
 export function skipping(error, skippedStep) {
   const trail = error.descriptor.get('trail');
-  if (!isTrail(trail) || trail.length === 0) return error;
+  if (trail === undefined) return error;
   const lastStop = trail[trail.length - 1];
   const extended = new Map(lastStop).set('skipped', makeQuote([...lastStop.get('skipped'), skippedStep]));
   return withTrail(error, [...trail.slice(0, -1), Object.freeze(extended)]);

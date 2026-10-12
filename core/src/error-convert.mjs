@@ -1,142 +1,59 @@
-import {
-  keyword, isKeyword, isQMap, isQSet, isErrorValue,
-  makeErrorValue, makeTagKeyword, PARSE_ERROR_TAG
-} from './types.mjs';
+import { keyword, makeErrorValue, makeTag, typeKeyword } from './types.mjs';
 import { locationToQlangMap } from './walk.mjs';
-import { recordThrowSiteSpec } from './errors.mjs';
-import { isTagBindingName, stripTagBindingPrefix } from './env-keys.mjs';
+import { declareInvariantError, recordRefusal } from './errors.mjs';
+import { namesDeclaredUnder } from './runtime/nouns.mjs';
 
 // The reading of text into code refuses on `::quote`, and an
 // implementation of a host that fails in a call on `::call` [D64].
-recordThrowSiteSpec('ParseError', 'parseError', { operand: '::quote' });
-recordThrowSiteSpec('ForeignFailureError', 'error', { operand: '::call' });
+recordRefusal('quote/ParseError');
+recordRefusal('call/HostFailureError');
 
-// Descriptor field-order: high-entropy first. The per-site
-// identity (the same invariant every tagged-instance value-class
-// carries — verb, binding record, qlang, json, user `::Foo[…]`)
-// rides on the error value's JS-header `tag` slot, not on the
-// descriptor Map. The per-invocation context comes first
-// (`:actualType`, `:actualValue` when it differs from the subject of
-// the step, Comparability pair-fields, `:index`, dispatch-time
-// `:operandName`), and the path of the error, `:trail`, which names
-// the step and its subject, after it [D85]. Identity is
-// surfaced through the `type` operand (`result !| type |
-// eq ::Foo`), which reads `error.tag` straight off the JS
-// header. Per-tag static facts — `:category`, `:operand`,
-// `:position`, `:expectedType` — are properties of the throw
-// site, recorded by the factory that builds the class and
-// stamped onto the tag-binding at bootstrap, and are reachable
-// through hypertext navigation via the `spec` axis: `result !|
-// type | spec | /category` reads the broad-bucket; `result !|
-// type | spec | /operand` reads the per-site origin.
-//
-// `:actualValue` lift rule: stamped only when the throw site
-// drilled below the subject of the step (multi-segment projection,
-// full-application captured-arg resolution, element-iteration).
-// Reader sees the presence-as-signal: absent → fault landed at
-// the subject the first stop of the trail names; present →
-// drill-down, look at `:actualValue` for the offending sub-value. The
-// dedup runs ref-equality against that subject inside the lift loop
-// below — no per-site code needs to know.
-const RUNTIME_FIELD_ORDER = [
-  'payloadValue', 'payloadType',
-  'actualValue', 'actualType',
-  'leftValue', 'leftType', 'rightValue', 'rightType',
-  'index',
-  'expectedType', 'operand', 'position',
-  'message'
-];
+// A refusal of the runtime that carries a fact neither its label nor the
+// kind of errors declares: the source of the refusal and the catalog
+// disagree, a defect of the runtime.
+const BuiltinRefusalFactNotDeclaredError = declareInvariantError('builtin/RefusalFactNotDeclaredError',
+  ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`);
 
-// Identifier-shaped descriptor fields carrying a `name`-like string
-// from a JS throw site — a referenced namespace / parameter /
-// operand / axis / binding. The JS→qlang boundary lifts
-// each such string to a Keyword, and the env key of a tag, `::Foo`,
-// to the tag, so the descriptor surface stays uniformly
-// identifier-typed: `printValue` prints `:name` rather than `"name"`,
-// `!| /operandName` projection reads as a Keyword, downstream
-// pattern-match against `eq :foo` or `eq ::Foo` works. Numeric and
-// non-string slots pass through unchanged (`fieldName in
-// IDENTIFIER_FIELDS` gate).
-const IDENTIFIER_FIELDS = new Set([
-  'name',
-  'operandName', 'namespaceName', 'namespace', 'paramName',
-  'effectfulName', 'bindingName',
-  'tag', 'exportName'
-]);
-function liftIdentifier(k, v) {
-  if (!IDENTIFIER_FIELDS.has(k)) return v;
-  return isTagBindingName(v) ? makeTagKeyword(stripTagBindingPrefix(v)) : keyword(v);
+const ERROR_KIND_NAME = 'error';
+
+// factsInOrder(tag, facts, env) → the facts of a refusal of the runtime in
+// the order of the definitions that describe them, each named as its fact
+// [D172]: those under the refusal's label first, then those under
+// `::error`, which every refusal shares, the path an error takes coming
+// after them as the trail joins it [D85]. A fact neither declares is a
+// defect of the runtime.
+export function factsInOrder(tag, facts, env) {
+  const ordered = new Map();
+  for (const name of [...namesDeclaredUnder(env, tag.name), ...namesDeclaredUnder(env, ERROR_KIND_NAME)]) {
+    if (facts.has(name) && !ordered.has(name)) ordered.set(name, facts.get(name));
+  }
+  for (const name of facts.keys()) {
+    if (!ordered.has(name)) throw new BuiltinRefusalFactNotDeclaredError({ address: tag, fact: keyword(name) });
+  }
+  return ordered;
 }
 
-export function errorFromQlang(qlangError, subject) {
-  const tag = makeTagKeyword(qlangError.name);
-  const d = new Map();
-
-  // Instance carries only the dynamic facts the JS context attached
-  // (`:actualType`, comparability pair-types, `:index`, dispatch-time
-  // `:operandName`, etc.). Per-tag static facts —
-  // `:category`, `:operand`, `:position`, `:expectedType` — ride the
-  // tag-binding, stamped there from the throw site, and reach the
-  // reader through hypertext navigation: `result !| type | spec`
-  // returns the stamped descriptor; `result !| type | source` walks
-  // the BindStep source; `result !| type | doc` returns the
-  // canonical prose the catalog authored.
-  //
-  // `:actualValue` ref-eq dedup against the subject — when the
-  // throw site's per-instance `actualValue` is the very pipeValue
-  // the step received (subject-shape errors on a partial application,
-  // single-segment projection on a leaf subject), the redundant lift
-  // is skipped. When the throw site drilled below the subject
-  // (multi-segment projection, full-application captured-arg, element
-  // iteration), `actualValue` is stamped — its presence is the
-  // type-level signal «drill-down happened, look here».
-  // Every QlangError carries a context bag — the root's constructor
-  // defaults it to `{}` — and `evalNode` routes anything outside the
-  // hierarchy to `errorFromForeign` instead, so the walk needs no
-  // fallback.
-  const ctx = qlangError.context;
-  const liftedFromOrder = new Set();
-  for (const k of RUNTIME_FIELD_ORDER) {
-    if (!(k in ctx) || ctx[k] === undefined) continue;
-    if (k === 'actualValue' && ctx[k] === subject) continue;
-    d.set(k, liftIdentifier(k, ctx[k]));
-    liftedFromOrder.add(k);
+// The error a refusal of the runtime raised: the facts its site handed
+// with the kind of the value refused, the value itself left out where it
+// is the subject the first stop of the trail holds, so its presence says
+// the site reached below the subject [D85], [D172].
+export function errorFromQlang(qlangError, subject, env) {
+  const tag = makeTag(qlangError.address);
+  const facts = new Map();
+  for (const [name, value] of Object.entries(qlangError.facts)) {
+    if (value === undefined || (name === 'actualValue' && value === subject)) continue;
+    facts.set(name, value);
   }
-  for (const [k, v] of Object.entries(ctx)) {
-    if (liftedFromOrder.has(k)) continue;
-    // 'actualValue' is in RUNTIME_FIELD_ORDER, so the ref-eq dedup
-    // against the subject runs in the loop above; tail-loop fields
-    // are exclusively per-site shape extras (operand-, namespace-,
-    // etc.) and never need the same gate.
-    if (RUNTIME_FIELD_ORDER.includes(k)) continue;
-    if (v === undefined) continue;
-    d.set(k, liftIdentifier(k, v));
-  }
-
-  // No `:category` stamp — the broad-bucket taxonomy rides the
-  // tag-binding, where the bootstrap put it from the throw site's
-  // recorded spec; `result !| type | spec | /category` reads it
-  // through the `spec` axis.
-  //
-  // No `:message` stamp — the structured per-site fields
-  // (`:actualType`, `:leftType`, …) carry every input the JS-side
-  // template would re-format, the tag identity TagKeyword on the
-  // error's JS-header carries the template itself, and `::Tag |
-  // docs` resolves the canonical prose via hypertext navigation.
-  return makeErrorValue(tag, d, {
+  if (qlangError.facts.actualValue !== undefined) facts.set('actualType', typeKeyword(qlangError.facts.actualValue));
+  return makeErrorValue(tag, factsInOrder(tag, facts, env), {
     location: qlangError.location,
     originalError: qlangError
   });
 }
 
-export function errorFromParse(parseError) {
-  // Field ordering — highest-information-density first. The eye lands
-  // on `:source` + `:marker` (visual pinpoint: WHERE the failure is)
-  // before consulting `:expected` / `:found` (WHAT the parser wanted
-  // vs. saw). Numeric `:location` and `:uri` trail since they are
-  // derivable / less-load-bearing for a human reading the diagnostic.
-  // The `::ParseError` tag identity rides on the error's JS-header
-  // `tag` slot.
+// The error of a text the parser refused: where it stopped and what it
+// wanted there, in the order its label declares them.
+export function errorFromParse(parseError, env, uri = parseError.uri) {
   const d = new Map();
   if (parseError.source != null && parseError.location) {
     const excerpt = excerptAroundLocation(parseError.source, parseError.location);
@@ -151,8 +68,9 @@ export function errorFromParse(parseError) {
   else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
-  if (parseError.uri) d.set('uri', parseError.uri);
-  return makeErrorValue(PARSE_ERROR_TAG, d, {
+  if (uri) d.set('uri', uri);
+  const tag = makeTag('quote/ParseError');
+  return makeErrorValue(tag, factsInOrder(tag, d, env), {
     location: parseError.location,
     originalError: parseError
   });
@@ -215,76 +133,32 @@ function excerptAroundLocation(source, location) {
   return { source: line, marker: lead + caret + tail };
 }
 
-const WELL_KNOWN_PROPS = [
-  'message', 'name', 'stack', 'code', 'errno',
-  'status', 'statusCode', 'statusText'
-];
+// The failures beneath a host's failure that its facts recount.
+const CAUSES_RECOUNTED = 8;
 
-// A JavaScript error escaping an operand is a foreign failure: it
-// carries a tag of the language and its class name as the field
-// `:name` [D7], so a port of the runtime to another host changes a
-// field and no identity a query matches.
-const FOREIGN_FAILURE_TAG = makeTagKeyword('ForeignFailureError');
-
-export function errorFromForeign(jsError, astNode) {
-  const tag = FOREIGN_FAILURE_TAG;
-  const d = new Map();
-  d.set('message', jsError.message);
-
-  for (const prop of WELL_KNOWN_PROPS) {
-    if (prop in jsError && jsError[prop] !== undefined && !d.has(prop))
-      d.set(prop, coerce(jsError[prop]));
+// A JavaScript error escaping an implementation is a failure of the
+// host: a tag of the language and the facts every host can give, its
+// account and the accounts of the failures beneath it, so a port of the
+// runtime to another language changes no fact a query reads [D7],
+// [D172]. The step that failed stands in the trail; the stack, the class
+// and the fields of the error stay with the host in `originalError`, and
+// a host that has facts to hand declares a refusal of its own.
+export function errorFromForeign(jsError, node, env) {
+  const tag = makeTag('call/HostFailureError');
+  const facts = new Map([['message', accountOf(jsError)]]);
+  const causes = [];
+  for (let cause = jsError?.cause; cause != null && causes.length < CAUSES_RECOUNTED; cause = cause?.cause) {
+    causes.push(accountOf(cause));
   }
-  for (const [k, v] of Object.entries(jsError)) {
-    if (!d.has(k))
-      d.set(k, coerce(v));
-  }
-
-  // Cause-chain entries are inert Map records that document the
-  // JS-side cause provenance for a foreign throw site, each naming
-  // its host class under `:name` as the failure itself does —
-  // `error !| /causes * /name` reads them.
-  if (jsError.cause instanceof Error) {
-    const causes = [];
-    let current = jsError.cause;
-    while (current instanceof Error && causes.length < 8) {
-      const m = new Map();
-      m.set('name', current.name);
-      m.set('message', current.message);
-      causes.push(m);
-      current = current.cause;
-    }
-    d.set('causes', causes);
-  }
-
-  d.set('operand', astNode?.text ?? null);
-
-  return makeErrorValue(tag, d, {
-    location: astNode?.location ?? null,
+  if (causes.length > 0) facts.set('causes', Object.freeze(causes));
+  return makeErrorValue(tag, factsInOrder(tag, facts, env), {
+    location: node?.location ?? null,
     originalError: jsError
   });
 }
 
-function coerce(v, depth = 0) {
-  if (depth > 4) return String(v);
-  if (v === null || v === undefined) return null;
-  const t = typeof v;
-  if (t === 'number' || t === 'string' || t === 'boolean') return v;
-  if (isKeyword(v) || isQMap(v) || isQSet(v) || isErrorValue(v)) return v;
-  if (Array.isArray(v)) return v.map(el => coerce(el, depth + 1));
-  if (v instanceof Error) {
-    // A coerced JS Error is a record of the cause chain's shape, its
-    // host class under `:name` beside `:message` [D7].
-    const m = new Map();
-    m.set('name', v.name);
-    m.set('message', v.message);
-    return m;
-  }
-  if (t === 'object') {
-    const m = new Map();
-    for (const [k, val] of Object.entries(v))
-      m.set(k, coerce(val, depth + 1));
-    return m;
-  }
-  return String(v);
+// What a thrown value says of itself: an error's message, and any other
+// value as its text, since a host may throw what it likes.
+function accountOf(thrown) {
+  return thrown instanceof Error ? thrown.message : String(thrown);
 }

@@ -1,78 +1,60 @@
-// Tests for src/errors.mjs — base error hierarchy, per-site names
-// and location propagation.
+// Tests for src/errors.mjs — the one kind of refusal, the defects of the
+// runtime, the names of the classes and location propagation.
 
 import { describe, it, expect } from 'vitest';
 import {
   QlangError,
-  QlangTypeError,
-  UnresolvedIdentifierError,
-  ArityError,
-  EvaluationDepthExceededError,
+  CallUnknownNameError,
+  CallEvaluationDepthExceededError,
   QlangInvariantError,
-  ThrowSiteSpecAlreadyRecordedError,
-  declarePerSiteError,
+  BuiltinRefusalDeclaredTwiceError,
+  declareRefusal,
   declareForeignError
 } from '../../src/errors.mjs';
-import { DivisionByZeroError } from '../../src/runtime/arith.mjs';
+import { keyword } from '../../src/types.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('QlangError base class', () => {
-  it('carries kind and location=null', () => {
-    const qlangErr = new QlangError('boom', 'custom-kind');
-    expect(qlangErr.kind).toBe('custom-kind');
+  it('carries its facts and location=null', () => {
+    const qlangErr = new QlangError('boom', { count: 5 });
+    expect(qlangErr.facts).toEqual({ count: 5 });
     expect(qlangErr.location).toBeNull();
     expect(qlangErr.message).toBe('boom');
     expect(qlangErr.name).toBe('QlangError');
     expect(qlangErr).toBeInstanceOf(Error);
   });
-
 });
 
-describe('UnresolvedIdentifierError', () => {
-  it('sets identifierName, kind and name', () => {
-    const unresolvedErr = new UnresolvedIdentifierError({ identifierName: 'foo' });
-    expect(unresolvedErr.context.identifierName).toBe('foo');
-    expect(unresolvedErr.kind).toBe('unresolvedIdentifier');
-    expect(unresolvedErr.name).toBe('UnresolvedIdentifierError');
-    expect(unresolvedErr.message).toContain('foo');
+// A refusal whose site hands no facts.
+const TestsProbeError = declareRefusal('tests/ProbeError');
+
+describe('a refusal declared by its address [D172]', () => {
+  it('carries the facts its site hands, named by the last name of its address', () => {
+    const unresolvedErr = new CallUnknownNameError({ name: keyword('foo') });
+    expect(unresolvedErr).toBeInstanceOf(QlangError);
+    expect(unresolvedErr.facts.name.name).toBe('foo');
+    expect(unresolvedErr.name).toBe('UnknownNameError');
+    expect(unresolvedErr.address).toBe('call/UnknownNameError');
   });
 
-});
-
-describe('DivisionByZeroError', () => {
-  it('has a fixed message and its name', () => {
-    const divErr = new DivisionByZeroError();
-    expect(divErr.kind).toBe('numericDomain');
-    expect(divErr.name).toBe('DivisionByZeroError');
-    expect(divErr.message).toBe('division by zero');
+  it('says its address as its message, whatever facts its site hands', () => {
+    expect(new TestsProbeError().message).toBe('::tests/ProbeError');
+    expect(new CallEvaluationDepthExceededError({ depth: 11, limit: 10 }).message).toBe('::call/EvaluationDepthExceededError');
   });
-});
 
-describe('ArityError', () => {
-  it('carries context and kind', () => {
-    const arityErr = new ArityError('too many args', { count: 5 });
-    expect(arityErr.kind).toBe('arityError');
-    expect(arityErr.context.count).toBe(5);
-  });
-});
-
-describe('EvaluationDepthExceededError', () => {
-  it('carries the refused frame and the budget under kind resourceLimit', () => {
-    const depthErr = new EvaluationDepthExceededError({ depth: 11, limit: 10 });
-    expect(depthErr).toBeInstanceOf(QlangError);
-    expect(depthErr.kind).toBe('resourceLimit');
-    expect(depthErr.name).toBe('EvaluationDepthExceededError');
-    expect(depthErr.context).toEqual({ depth: 11, limit: 10 });
-    expect(depthErr.message).toBe('evaluation depth 11 exceeds the budget of 10 nested frames');
+  it('hands no facts where its site hands none', () => {
+    const probeErr = new TestsProbeError();
+    expect(probeErr.name).toBe('ProbeError');
+    expect(probeErr.facts).toEqual({});
   });
 });
 
 describe('QlangInvariantError', () => {
   it('is constructible with message and context', () => {
     const invariantErr = new QlangInvariantError('registration failed', { site: 'X', operandName: 'foo' });
-    expect(invariantErr.kind).toBe('invariantError');
-    expect(invariantErr.context.site).toBe('X');
-    expect(invariantErr.context.operandName).toBe('foo');
+    expect(invariantErr.message).toBe('registration failed');
+    expect(invariantErr.facts.site).toBe('X');
+    expect(invariantErr.facts.operandName).toBe('foo');
     expect(invariantErr).toBeInstanceOf(QlangError);
   });
 });
@@ -82,14 +64,14 @@ describe('runtime error location propagation via evalNode', () => {
   // helper) unwraps the underlying QlangError off `.originalError`
   // so the location / name assertions below read structurally.
 
-  it('attaches a location to a runtime type error', async () => {
+  it('attaches a location to a refusal of the runtime', async () => {
     const originalErr = await catchOriginalError('42 | filter ~(gt 0)');
-    expect(originalErr).toBeInstanceOf(QlangTypeError);
+    expect(originalErr).toBeInstanceOf(QlangError);
     expect(originalErr.location).not.toBeNull();
     expect(typeof originalErr.location.start.offset).toBe('number');
   });
 
-  it('the attached location points to the failing operand call', async () => {
+  it('the attached location points to the failing call', async () => {
     const source = '[1 2 3] | filter ~(gt 0) | 99 | filter ~(gt 0)';
     //              0         1         2         3         4
     //              0123456789012345678901234567890123456789012345
@@ -110,50 +92,50 @@ describe('runtime error location propagation via evalNode', () => {
     expect(originalErr.location.start.offset).toBe(5);
   });
 
-  it('per-site name is set on type errors thrown by operands', async () => {
-    const originalErr = await catchOriginalError('"a" | add 1');
-    expect(originalErr.name).toBe('AddLeftNotNumberError');
+  it('per-site name is set on the refusals the runtime raises', async () => {
+    const originalErr = await catchOriginalError('1 | /name');
+    expect(originalErr.name).toBe('SubjectNotProjectableError');
   });
 });
 
 describe('error class branding survives Object.defineProperty (minification proxy)', () => {
-  // Per-site error classes are minification-resilient because their
-  // `.name` is set via Object.defineProperty in operand-errors.brand,
-  // which writes a string literal that bundlers do not mangle. We
-  // verify the contract here: even if we artificially shadow the
-  // class identifier, the runtime `.name` survives.
+  // A refusal's class is minification-resilient because its `.name` is
+  // set via Object.defineProperty in `brand`, which writes a string
+  // literal that bundlers do not mangle. We verify the contract here:
+  // even if we artificially shadow the class identifier, the runtime
+  // `.name` survives.
   it('class.name set by brand() persists across reassignment', async () => {
-    const originalErr = await catchOriginalError('"a" | add 1');
-    expect(originalErr.name).toBe('AddLeftNotNumberError');
+    const originalErr = await catchOriginalError('1 | /name');
+    expect(originalErr.name).toBe('SubjectNotProjectableError');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.
-    expect(originalErr.constructor.name).toBe('AddLeftNotNumberError');
+    expect(originalErr.constructor.name).toBe('SubjectNotProjectableError');
   });
 });
 
-describe('throw-site spec registry — one name, one site', () => {
-  // The registry is what the bootstrap stamps from, so a second
-  // class under one name would hand its `::Tag` binding a spec for
-  // the other site.
-  it('refuses a second recording under a name already declared', () => {
+describe('one address, one site', () => {
+  // The address is the tag a refusal answers by and the name of its
+  // page, so a second class under one address would speak for the
+  // other site.
+  it('refuses a second declaration of an address already declared', () => {
     let refusal = null;
     try {
-      declarePerSiteError('DivisionByZeroError', 'numericDomain', () => 'a second site');
+      declareRefusal('call/UnknownNameError');
     } catch (caught) {
       refusal = caught;
     }
     expect(refusal).toBeInstanceOf(QlangInvariantError);
-    expect(refusal).toBeInstanceOf(ThrowSiteSpecAlreadyRecordedError);
-    expect(refusal.name).toBe('ThrowSiteSpecAlreadyRecordedError');
-    expect(refusal.context.className).toBe('DivisionByZeroError');
-    expect(refusal.message).toContain('DivisionByZeroError');
+    expect(refusal).toBeInstanceOf(BuiltinRefusalDeclaredTwiceError);
+    expect(refusal.name).toBe('RefusalDeclaredTwiceError');
+    expect(refusal.facts.address).toBe('call/UnknownNameError');
+    expect(refusal.message).toContain('call/UnknownNameError');
   });
 });
 
 describe('declareForeignError — a failure of the embedding', () => {
   // The class stays off the QlangError hierarchy so the deflect
-  // combinators never see it, and carries the per-site identity
-  // every other factory stamps.
+  // combinators never see it, and carries the address every other
+  // declaration stamps.
   it('mints a class outside the QlangError hierarchy that still names its site', () => {
     const HostBridgeUnreachableError = declareForeignError('HostBridgeUnreachableError',
       ({ endpoint }) => `host bridge at ${endpoint} answered nothing`);
@@ -162,7 +144,7 @@ describe('declareForeignError — a failure of the embedding', () => {
     expect(foreignErr).toBeInstanceOf(Error);
     expect(foreignErr).not.toBeInstanceOf(QlangError);
     expect(foreignErr.name).toBe('HostBridgeUnreachableError');
-    expect(foreignErr.context.endpoint).toBe('ipc://bridge');
+    expect(foreignErr.facts.endpoint).toBe('ipc://bridge');
     expect(foreignErr.message).toContain('ipc://bridge');
   });
 });

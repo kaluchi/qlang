@@ -1,7 +1,8 @@
 // Conformance test runner.
 //
 // Each JSONL line has two qlang expressions: query (arbitrary) and
-// expect (must be a pure literal — no operand calls, no pipelines).
+// expect (must be a pure literal — no calls, no pipelines — or the print
+// of a failure, its error at rest raised, `!{…} | raise` [D211]).
 // Both are eval'd, results compared via deepEqual.
 //
 // The expect-is-literal guard catches test authoring mistakes where
@@ -27,7 +28,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import { walkAst } from '../../src/walk.mjs';
 import { deepEqual } from '../../src/equality.mjs';
-import { isErrorValue, isTagKeyword } from '../../src/types.mjs';
+import { isErrorValue, isTag } from '../../src/types.mjs';
 import { expectedValueOf } from '../helpers/expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -38,16 +39,17 @@ const files = readdirSync(conformanceDir, { recursive: true })
   .sort();
 
 // assertLiteralAst — walks the AST and rejects any node that performs
-// computation (OperandCall, Projection, ParenGroup with pipeline ops).
+// computation (Call, Projection, ParenGroup with pipeline ops).
 // Pipeline is allowed only as a container for compound literals
 // (the parser wraps multi-step bodies in Pipeline nodes), and a quote
 // literal is a literal whatever steps it holds.
-function assertLiteralAst(ast, testName) {
+function assertLiteralAst(parsed, testName) {
+  const ast = raisedLiteralOf(parsed) ?? parsed;
   walkAst(ast, (node) => {
     if (node.type === 'QuoteLit') return false;
-    if (node.type === 'OperandCall') {
+    if (node.type === 'Call') {
       throw new Error(
-        `expect in "${testName}" contains OperandCall "${node.name}" — ` +
+        `expect in "${testName}" contains Call "${node.name}" — ` +
         `expected values must be pure literals, not computations`
       );
     }
@@ -60,9 +62,18 @@ function assertLiteralAst(ast, testName) {
   });
 }
 
+// The error literal a failure's print raises, or null for any other
+// expectation.
+function raisedLiteralOf(ast) {
+  if (ast.type !== 'Pipeline' || ast.steps.length !== 2) return null;
+  const [literal, { combinator, step }] = ast.steps;
+  const raises = combinator === '|' && step.type === 'Call' && step.name === 'raise' && step.args.length === 0;
+  return raises ? literal : null;
+}
+
 async function answersAsPresent(queryResult, now) {
   const present = await expectedValueOf(now);
-  if (isErrorValue(queryResult) && isTagKeyword(present)) return queryResult.tag.name === present.name;
+  if (isErrorValue(queryResult) && isTag(present)) return queryResult.tag.name === present.name;
   return deepEqual(queryResult, present);
 }
 

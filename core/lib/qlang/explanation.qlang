@@ -1,36 +1,107 @@
-|~ `::explanation`, the kind of what `explain` answers, and the verbs
-   of explanations. Each resides on
-   `::qlang/explanation`, the kind of what `explain` answers: the page
-   `doc` reads for a value and the value itself. ~|
+|~ `::explanation`, the kind of what `explain` answers, the page `doc`
+   reads for a value and the value itself, and what is declared under
+   it: the words that read it. ~|
 
-::explanation
-  |~~ The kind of what `explain` answers: the page `doc` reads
-      for a value under `:page`, then the value itself under `:value`, so
-      it prints as the page above what it explains, an error
-      raised, with its bang. It is the cord from a value to its
-      procedure in one answer; `page` and `value` answer its parts.
-      ::link~(::error | doc)
-      ::link~(::qlang | doc :errors)
+:explanation
+  |~~ An explanation sets a value beside the page that explains it, the
+      answer of `explain`: the cord from what a reader holds to the page
+      that tells what it is, in one answer. A value is explained by the
+      page of its kind, a name by its own page, and a failure `!|`
+      caught by the page of its refusal, which tells how to repair the
+      call.
 
-      ~("x" | add 1 !| explain | type | eq ::explanation)
-      ~("x" | add 1 !| explain | value !| type | eq ::AddLeftNotNumberError)
+      It prints as a map under its tag, the page under `:page` above the
+      value under `:value`, `::explanation{:page … :value 42}` for
+      `42 | explain`; `page` and `value` read its parts.
+      ::link~(::any/explain | doc) ::link~(::error | doc)
+      ::link~(::qlang/errors | doc)
   ~~|
 
-:page
-  |~~ The page of what the explanation explains: of a name its own, of
-      a value the page of the kind it shows, of an error the page of its
-      site; null for a declaration without one.
+:explanation/explainsAFailure
+  |~~ An error explained is an `::explanation`. ~~|
+  ::law~("x" | add 1 !| explain | type | eq ::explanation)
 
-      ~("x" | add 1 !| explain | page | eq (::AddLeftNotNumberError | doc))
-      ~(42 | explain | page | eq (::number | doc))
+:explanation/page
+  |~~ Answers the page that explains what `explain` was asked of: of a
+      name its own page, `::vec/count | explain | page`; of a value the
+      page of its kind, `#[1] | explain | page` the page of sets; of an
+      error the page of the refusal it carries, the procedure that
+      repairs the call, `"x" | add 1 !| explain | page`, or the page of
+      what refused, the word or its part, where the refusal has none; and
+      null for a name declared without a page. The subject is an explanation, what
+      `explain` answers, so a map is refused, its key `:page` read by
+      `/page`. `value` answers what was explained.
+      ::link~(::any/explain | doc) ::link~(::explanation/value | doc)
   ~~|
-  ::verb~(:returns #[::doc ::null] | /page)
+  ~(/page)
 
-:value
-  |~~ The value the explanation explains; an error among them raised, as
-      it arrived before `!|` opened it.
+:explanation/page/answer
+  |~~ The page that explains the value, null for a name without one. ~~|
+  #[::doc ::null]
 
-      ~(42 | explain | value | eq 42)
-      ~("x" | add 1 !| explain | value !| type | eq ::AddLeftNotNumberError)
+:explanation/page/SubjectNotExplanationError
+  |~~ `page` reads what `explain` answers, `::vec/count | explain |
+      page`; the key `:page` of a map is read by `/page`.
   ~~|
-  ::verb~(/value)
+
+:explanation/page/ofANameIsItsOwn
+  |~~ The page of a name is its own. ~~|
+  ::law~(::vec/count | explain | page | eq (::vec/count | doc))
+
+:explanation/page/ofAValueIsThePageOfItsKind
+  |~~ The page of a value is the page of its kind. ~~|
+  ::law~(#[1] | explain | page | eq (::set | doc))
+
+:explanation/page/ofAnErrorIsThePageOfItsRefusal
+  |~~ The page of an error is the page of the refusal that raised it. ~~|
+  ::law~("x" | add 1 !| explain | page | eq (::number/add/SubjectNotNumberError | doc))
+
+:explanation/page/ofARefusalWithoutAPageIsThePageOfWhatRefused
+  |~~ A refusal with no page of its own is explained by the page of what refused. ~~|
+  ::law~(::a | gt !| explain | page | eq (::tag/gt/value | doc))
+
+:explanation/page/isNullForANameWithoutOne
+  |~~ A name declared without a page is explained by none. ~~|
+  ::law~(:x 1 | ::x | explain | page | eq null)
+
+:explanation/page/SubjectNotExplanationError/refusesAMap
+  |~~ A map with a key `:page` is no explanation. ~~|
+  ::law~({:page 1} | page
+    !| [type /actualType] | eq [::explanation/page/SubjectNotExplanationError ::map])
+
+:explanation/value
+  |~~ Answers the value the explanation explains, `42 | explain | value`
+      answering `42`, and of a name the name, `::vec/count | explain |
+      value` answering `::vec/count`. An error explained answers at rest,
+      as `!|` caught it, and `raise` raises it again. The subject is an
+      explanation, so a map is refused, its key `:value` read by
+      `/value`. `page` answers what explains the value.
+      ::link~(::any/explain | doc) ::link~(::explanation/page | doc)
+  ~~|
+  ~(/value)
+
+:explanation/value/answer
+  |~~ The value explained, of any kind, an error at rest among them. ~~|
+  ::any
+
+:explanation/value/SubjectNotExplanationError
+  |~~ `value` reads what `explain` answers, `42 | explain | value`; the
+      key `:value` of a map is read by `/value`.
+  ~~|
+
+:explanation/value/isTheValueExplained
+  |~~ The value is the one explained. ~~|
+  ::law~(42 | explain | value | eq 42)
+
+:explanation/value/isTheNameOfAName
+  |~~ A name explained answers the name. ~~|
+  ::law~(::vec/count | explain | value | eq ::vec/count)
+
+:explanation/value/holdsAnErrorAtRest
+  |~~ An error explained is the error at rest `!|` caught. ~~|
+  ::law~("x" | add 1 !| explain | value | /actualType | eq ::string)
+
+:explanation/value/SubjectNotExplanationError/refusesAMap
+  |~~ A map with a key `:value` is no explanation. ~~|
+  ::law~({:value 1} | value
+    !| [type /actualType] | eq [::explanation/value/SubjectNotExplanationError ::map])

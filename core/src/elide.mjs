@@ -3,24 +3,37 @@
 // gives way to a value of the kind `::elision`, a vector keeping the
 // first half of its elements and ending with a marker of the rest, a
 // string or a map giving way whole, and the top, a vector, keeping the
-// first half of its elements. A marker holds `:size`, what it stands for
-// counted, `:read`, the quote that applied to the value taken answers the
-// part left out, and for a string `:head`, its first characters.
+// first half of its elements; a part whose marker prints no shorter than
+// it stays, so a budget never lengthens a print [D217]. A
+// marker holds `:size`, what it stands for counted, `:read`, the quote
+// that applied to the value taken answers the part left out, and for a
+// string `:head`, its first characters.
+//
+// A failure a host prints is an alert [D184]: its tag and its facts, the
+// data it carries cut to what places the failure. The subject of the
+// first stop of its trail, where the failure arose, and every other fact
+// print within an excerpt each; the subject of every later stop, which
+// the failure only passed, gives way whole. Every `:read` reads its part
+// beneath `!|`.
 //
 //   elide(value, budget) → the value within the budget
-//   elideAnswer(answer, budget) → an answer within the budget, a raised
-//     error among them, whose facts give way beneath `!|`
+//   alertOf(error) → the error as an alert
+//   elideAnswer(answer, budget) → an answer as a host prints it: a value
+//     whole, or within the budget asked for; an error an alert, within
+//     the budget when one is asked for
 
 import {
-  isVec, isQMap, isQuote, isQSet, isDoc, isErrorValue, isValueClass,
-  makeTaggedInstance, makeTagKeyword, makeErrorValue, stampTagHeader, TAG_HEADER_SYMBOL,
+  isVec, isVecOfOwnKind, isQMap, isErrorValue, isValueClass,
+  makeTaggedInstance, makeTag, makeErrorValue, stampTagHeader, TAG_HEADER_SYMBOL,
   canonicalKeywordLiteral
 } from './types.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import { quoteOfSource } from './quote.mjs';
 
-const ELISION_TAG = makeTagKeyword('elision');
+const ELISION_TAG = makeTag('elision');
 const HEAD_CHARACTERS = 40;
+const EXCERPT_CHARACTERS = 300;
+const keepsNone = () => false;
 
 const printedSize = value => printValue(value).length;
 
@@ -34,7 +47,7 @@ function isMarker(value) {
 // vector or a map under a tag keeps its own, its parts giving way within.
 const isPlainVector = value => isVec(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isPlainMap = value => isQMap(value) && value[TAG_HEADER_SYMBOL] === undefined;
-const isTaggedContainer = value => (isVec(value) || isQMap(value)) && !isQuote(value) && !isQSet(value) && !isDoc(value);
+const isTaggedContainer = value => (isVec(value) || isQMap(value)) && !isVecOfOwnKind(value);
 
 // The step that reads one part of its parent: a field by its keyword, an
 // element by its index.
@@ -75,24 +88,37 @@ function partsOf(value, path, keep, parts) {
   }
 }
 
-// The marker or the shortened vector a part gives way to.
-function givenWay(part, prefix) {
+// A vector's elements before the marker that ends it, and what that
+// marker stands for.
+function vectorParts(value) {
+  const trailing = value.length > 0 && isMarker(value[value.length - 1]) ? value[value.length - 1] : null;
+  return { elements: trailing === null ? value : value.slice(0, -1), standsFor: trailing === null ? 0 : trailing.get('size') };
+}
+
+// The marker a part gives way to whole: a string's with its head, a
+// vector's standing for every element it held, a map's for its entries.
+function wholeOf(part, prefix) {
   const { path, value } = part;
   if (typeof value === 'string') {
     return marker([['size', value.length], ['read', readOf(prefix, path)], ['head', value.slice(0, Math.min(HEAD_CHARACTERS, Math.floor(value.length / 2)))]]);
   }
   if (isPlainVector(value)) {
-    const trailing = value.length > 0 && isMarker(value[value.length - 1]) ? value[value.length - 1] : null;
-    const elements = trailing === null ? value : value.slice(0, -1);
-    const kept = Math.ceil(elements.length / 2);
-    const standsFor = trailing === null ? 0 : trailing.get('size');
-    if (kept === elements.length) {
-      return marker([['size', elements.length + standsFor], ['read', readOf(prefix, path)]]);
-    }
-    const leftOut = elements.length - kept + standsFor;
-    return [...elements.slice(0, kept), marker([['size', leftOut], ['read', readOf(prefix, path, ` | drop ${kept}`)]])];
+    const { elements, standsFor } = vectorParts(value);
+    return marker([['size', elements.length + standsFor], ['read', readOf(prefix, path)]]);
   }
   return marker([['size', value.size], ['read', readOf(prefix, path)]]);
+}
+
+// The marker or the shortened vector a part gives way to: a vector keeps
+// the first half of its elements while it holds more than one.
+function givenWay(part, prefix) {
+  const { path, value } = part;
+  if (!isPlainVector(value)) return wholeOf(part, prefix);
+  const { elements, standsFor } = vectorParts(value);
+  const kept = Math.ceil(elements.length / 2);
+  if (kept === elements.length) return wholeOf(part, prefix);
+  const leftOut = elements.length - kept + standsFor;
+  return [...elements.slice(0, kept), marker([['size', leftOut], ['read', readOf(prefix, path, ` | drop ${kept}`)]])];
 }
 
 function replacedAt(value, path, replacement) {
@@ -107,12 +133,17 @@ function replacedAt(value, path, replacement) {
   return copy;
 }
 
+// While the print exceeds the budget, the largest part gives way among
+// those whose marker prints shorter than they do, so a budget never
+// lengthens a print, a vector halving on to its marker at the most; where
+// no part's marker is shorter, the view stands over the budget [D217].
 function elideWithin(value, budget, prefix, keep) {
   let view = value;
   while (printedSize(view) > budget) {
     const parts = [];
     partsOf(view, [], keep, parts);
-    const sized = parts.map(part => ({ part, size: printedSize(part.value) })).filter(({ size }) => size > 0);
+    const sized = parts.map(part => ({ part, size: printedSize(part.value) }))
+      .filter(({ part, size }) => printedSize(wholeOf(part, prefix)) < size);
     if (sized.length === 0) return view;
     const largest = sized.reduce((best, candidate) => (candidate.size > best.size ? candidate : best));
     view = replacedAt(view, largest.part.path, givenWay(largest.part, prefix));
@@ -121,16 +152,55 @@ function elideWithin(value, budget, prefix, keep) {
 }
 
 export function elide(value, budget) {
-  return elideWithin(value, budget, '', () => false);
+  return elideWithin(value, budget, '', keepsNone);
 }
 
-// A raised error gives way within its facts: its trail keeps its stops,
-// each of which may give way within, so the error stays one the core
-// builds, and every `:read` reads beneath `!|`.
+// A fact of an alert within its excerpt, beneath the read that reaches
+// it: a string past the excerpt gives way whole with its head, and any
+// other value, an error at rest among them [D210], gives way within as
+// `elide` cuts it.
+function excerptOf(value, read) {
+  if (typeof value === 'string' && value.length > EXCERPT_CHARACTERS) return wholeOf({ path: [], value }, read);
+  return elideWithin(value, EXCERPT_CHARACTERS, read, keepsNone);
+}
 
-export function elideAnswer(answer, budget) {
-  if (!isErrorValue(answer)) return elide(answer, budget);
-  const header = printValue(answer).length - printedSize(answer.descriptor);
-  const facts = elideWithin(new Map(answer.descriptor), budget - header, '!| ', path => path[0] === 'trail' && path.length <= 2);
-  return makeErrorValue(answer.tag, facts);
+// A subject the failure only passed, given way whole where its marker is
+// the shorter print: the elements, the entries or the characters it
+// stands for, and the read that reaches it.
+function passedOver(value, read) {
+  const size = isVec(value) ? value.length : isQMap(value) ? value.size : typeof value === 'string' ? value.length : printedSize(value);
+  const shown = marker([['size', size], ['read', readOf(read, [])]]);
+  return printedSize(shown) < printedSize(value) ? shown : value;
+}
+
+// The trail of an alert: each stop keeps its step and what it skipped,
+// the subject of the first within its excerpt, of every later one given
+// way whole.
+function stopsOf(trail, read) {
+  return Object.freeze(trail.map((stop, index) => {
+    const subjectRead = `${read}/${index}/subject`;
+    const subject = stop.get('subject');
+    return Object.freeze(new Map(stop).set('subject', index === 0 ? excerptOf(subject, subjectRead) : passedOver(subject, subjectRead)));
+  }));
+}
+
+export function alertOf(error) {
+  const facts = new Map();
+  for (const [name, value] of error.descriptor) {
+    const factRead = `!| ${stepOf(name)}`;
+    facts.set(name, name === 'trail' ? stopsOf(value, factRead) : excerptOf(value, factRead));
+  }
+  return makeErrorValue(error.tag, facts);
+}
+
+// Within a budget an alert gives way within its facts: its trail keeps
+// its stops, each of which may give way within, so the error stays one
+// the core builds, and every `:read` reads beneath `!|`.
+export function elideAnswer(answer, budget = null) {
+  if (!isErrorValue(answer)) return budget === null ? answer : elide(answer, budget);
+  const alert = alertOf(answer);
+  if (budget === null) return alert;
+  const header = printValue(alert).length - printedSize(alert.descriptor);
+  const facts = elideWithin(new Map(alert.descriptor), budget - header, '!| ', path => path[0] === 'trail' && path.length <= 2);
+  return makeErrorValue(alert.tag, facts);
 }

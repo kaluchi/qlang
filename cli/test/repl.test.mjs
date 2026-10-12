@@ -68,7 +68,7 @@ describe('runRepl — query evaluation', () => {
   });
 
   it('preserves bindings between cells within the same session', async () => {
-    const replHarness = captureRepl(':double ::verb~(mul 2)\n10 | double\n.exit\n');
+    const replHarness = captureRepl(':any/double ~(mul 2)\n10 | double\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
   });
@@ -89,13 +89,13 @@ describe('runRepl — query evaluation', () => {
     expect(text).toMatch(/sub/);
   });
 
-  it('writes a structured ::ParseError!{…} diagnostic on stderr for parse failures', async () => {
+  it('writes a structured ::quote/ParseError!{…} diagnostic on stderr for parse failures', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     // REPL paints output with ANSI colour codes — strip before
     // matching the structural shape.
     const text = replHarness.stderrText().replace(/\x1b\[[0-9;]*m/g, '');
-    expect(text).toContain('::ParseError!{');
+    expect(text).toContain('::quote/ParseError!{');
     expect(text).toContain(':source "[1 2"');
   });
 });
@@ -135,7 +135,7 @@ describe('runRepl — output highlighting', () => {
     await replPromise;
 
     const stderrText = stderrChunks.join('');
-    expect(stderrText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('::ParseError!{');
+    expect(stderrText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('::quote/ParseError!{');
     expect(stderrText).toMatch(/\r\n/);
   });
 
@@ -175,7 +175,7 @@ describe('runRepl — error rendering', () => {
     // The path of an error is written as it flows [D85], so the value
     // the cell answers already holds every stop and every skipped
     // step. The REPL renders the value verbatim through `printValue`.
-    const query = '!{:kind :first} | count !| union {:k 1} | raise | add 1 | mul 2';
+    const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
     const replHarness = captureRepl(query + '\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
     expect(exitCode).toBe(0);
@@ -211,7 +211,7 @@ describe('runRepl — the first cell given on the command line', () => {
 });
 
 // A cell prints within the budget a caller asked for, an error among
-// them [D120].
+// them [D120], and an error as its alert when none is [D184].
 describe('runRepl — the budget of an answer', () => {
   const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
 
@@ -219,6 +219,13 @@ describe('runRepl — the budget of an answer', () => {
     const replHarness = captureRepl(`${forty}\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80 });
     expect(stripAnsi(replHarness.stdoutText())).toContain('::elision{');
+  });
+
+  it('prints an error as its alert when no budget was asked for', async () => {
+    const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
+    const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    expect(stripAnsi(replHarness.stderrText())).toContain(':read ~(!| /trail/1/subject)');
   });
 
   it('prints an error within the budget', async () => {

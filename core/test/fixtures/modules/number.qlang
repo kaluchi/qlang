@@ -1,10 +1,10 @@
-:double
+:any/double
   |~~ Doubles the number.
 
       ~(5 | double | eq 10)
   ~~|
-  ::verb~(mul 2)
+  ~(mul 2)
 
-:halve
+:any/halve
   |~~ Halves the number. ~~|
-  ::verb~(div 2)
+  ~(div 2)

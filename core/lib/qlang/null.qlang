@@ -1,38 +1,96 @@
-|~ `::null`, the kind of the absent value, its constructor, and the
-   soft read of it. ~|
+|~ `::null`, the kind of the absent value, and what is declared under
+   it: its constructor and its refusal, and the soft read of it. ~|
 
-::null
-  |~~ The kind of null, the absence of a value; a slot a call may leave
-      empty declares `::null` among its kinds. A kind of the core is
-      named under its prefix and written short, `::qlang/null` reading as
-      `::null`, and its constructor reads a payload of the kind as the
-      value itself. ::link~(::verb | doc)
-      ::link~(::qlang | doc :values)
+:null
+  |~~ Null is the absence of a value, the one value of its kind. It
+      stands where a part is missing: `at` reads a part softly and
+      answers null where there is none, `{:a 1} | at :b` answering
+      `null`, a JSON `null` reads as it, and `coalesce` puts a fallback
+      in its place, `{:a 1} | at :b | coalesce 0` answering `0`.
 
-      ~(null | type | eq ::null)
-      ~(::qlang/null | eq ::null)
-      ~(::null(null) | eq null)
+      It is written `null`, and `::null(null)` is the same value. It
+      ranks first in the one order, before every boolean, and JSON
+      writes it as `null`. A projection, `/b`, reads strictly: a missing
+      part is a failure there, never null, so a misspelled field is
+      found where it is read.
+      ::snippet~(::null | manifest) lists its words.
+      ::link~(::any/coalesce | doc) ::link~(::proj | doc)
+      ::link~(::qlang/values | doc)
   ~~|
-  ::builtin{:impl :qlang/type/null}
 
-::NullPayloadNotNullError
+:null/isNull
+  |~~ Null is of `::null`. ~~|
+  ::law~(null | type | eq ::null)
+
+:null/buildsNull
+  |~~ The constructor of null answers null. ~~|
+  ::law~(::null(null) | eq null)
+
+:null/construct
+  |~~ Reads null as itself. ~~|
+  ::builtin{}
+
+:null/PayloadNotNullError
   |~~ `::null` reads its payload as null; a payload of another kind is
       refused.
-      ~(
-        ::null(1)
-        !| [type /actualType]
-        |  eq [::NullPayloadNotNullError ::number]
-       )
   ~~|
 
-:at
-  |~~ Null, whatever the place: a soft read of the absent value is
-      absent, so soft reads chain, `at :address | at :city`, and a
-      `coalesce` after them gives the fallback once. The strict `/k`
-      refuses null as it refuses every value without parts.
+:null/PayloadNotNullError/refusesANumber
+  |~~ A number payload is refused. ~~|
+  ::law~(::null(1) !| [type /actualType] | eq [::null/PayloadNotNullError ::number])
 
-      ~(null | at :k | eq null)
-      ~({:a null} | at :a | at :b | coalesce "none" | eq "none")
-      ~({:a {:b 1}} | at :a | at :b | eq 1)
+:null/at
+  |~~ Answers the default the call gives, null when it gives none,
+      whatever the place: null holds nothing, so a soft read of it is
+      absent, `null | at :k` answering `null` and `null | at :k "none"`
+      answering `"none"`. So soft reads chain through what is absent,
+      `at :address | at :city`, a step that misses answering null to the
+      end, and a `coalesce` after them gives the fallback once, where
+      the strict `/k` refuses null as it refuses every value without
+      parts. The place is not read, so any value stands there.
+      ::link~(::map/at | doc) ::link~(::vec/at | doc)
+      ::link~(::any/coalesce | doc)
   ~~|
-  ::verb~(:place ::any | :returns ::null | ::builtin{:impl :qlang/prim/at})
+  ::builtin{}
+
+:null/at/answer
+  |~~ The default, null when the call gives none. ~~|
+  ::any
+
+:null/at/place
+  |~~ The place the call names, any value, unread: null holds none. ~~|
+  ~(/0)
+
+:null/at/default
+  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
+  ~(at 1)
+
+:null/at/place/NotGivenError
+  |~~ `at` reads the place its call gives and answers the default, null when
+      the call gives none, `null | at :a 7` answering `7`; a call with no
+      place is refused.
+  ~~|
+
+:null/at/readsNullFromNull
+  |~~ A read of null answers null. ~~|
+  ::law~(null | at :k | eq null)
+
+:null/at/answersTheDefault
+  |~~ A read of null answers the default the call gives. ~~|
+  ::law~(null | at :k "none" | eq "none")
+
+:null/at/chainsThroughAnAbsentValue
+  |~~ Soft reads chain through an absent value. ~~|
+  ::law~({:a null} | at :a | at :b | coalesce "none" | eq "none")
+
+:null/at/chainsThroughPresentValues
+  |~~ Soft reads chain through present values to the one read. ~~|
+  ::law~({:a {:b 1}} | at :a | at :b | eq 1)
+
+:null/at/readsNoPlace
+  |~~ Any value stands as the place. ~~|
+  ::law~(null | at [1 2] | eq null)
+
+:null/at/place/NotGivenError/refusesACallWithNoPlace
+  |~~ A call with no place is refused under the part. ~~|
+  ::law~(null | at !| type | eq ::null/at/place/NotGivenError)

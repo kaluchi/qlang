@@ -1,39 +1,3 @@
-// argv parser for the qlang CLI.
-//
-// Reads the trailing slice of `process.argv` (the bin name and the
-// node binary already stripped by the caller) and returns a
-// `cliInvocation` describing the user's intent — five shapes today:
-//
-//   { kind: 'evalQuery', queryText, inputFormat, colorMode, budget }
-//   { kind: 'repl', budget, initialQuery }
-//   { kind: 'help' }
-//   { kind: 'version' }
-//   { kind: 'usageError', message }
-//
-// `inputFormat` is one of 'auto' | 'json' | 'raw' and decides how
-// piped stdin lands on the cell's initial pipeValue plus how the
-// success-track value encodes back to stdout. Default is 'auto':
-// JSON.parse stdin if it looks parseable, otherwise hand it to the
-// query as a String. `--json` forces the parse (and fails loudly
-// on malformed input); `--raw` skips parsing entirely.
-//
-// `budget` is null, an answer printing whole, or the characters every
-// answer prints within that `--budget=N` asked for [D120].
-//
-// `colorMode` is one of 'auto' | 'always' | 'never' and decides
-// whether script-mode output runs through `highlightAnsi`. Default
-// `auto` paints when stdout is a TTY and stays raw when the stream
-// is piped or redirected — same convention git / grep / ls follow.
-// `NO_COLOR` / `FORCE_COLOR` env vars feed into the resolution
-// downstream; the explicit `--color` flag wins over both.
-//
-// `VERSION_LINE` reads `@kaluchi/qlang-cli`'s own `package.json` at
-// module-load time through `createRequire` so the release script's
-// `package.json` bump propagates without a per-release source edit.
-//
-// Pure function, no side effects. main.mjs branches on `kind` to
-// dispatch into the rest of the runtime.
-
 import { createRequire } from 'node:module';
 
 const _cliPackage = createRequire(import.meta.url)('../package.json');
@@ -45,32 +9,33 @@ Usage:  qlang [--json | --raw] [--color=MODE] [--budget=N] <query>
         qlang -h | --help
         qlang -V | --version
 
-Script mode evaluates the query against piped stdin and writes the
-answer to stdout in the form the input came in. JSON input is the
-subject as values, an object a map whose keys are keywords, and the
-answer is written as JSON, a set as an array and a keyword as its
-name, where a value JSON has no form for, a quote or a tag, is refused
-as ::AnswerNotJsonError.
-Text input is a String, and the answer is written as its print;
-'| json' writes JSON text. Use -i for an interactive REPL, a query
-after it run as its first cell. Quote
-the query so the shell does not split on whitespace or pipe
-characters. qlang '::qlang | doc' reads the language, and
-qlang '::cli | doc' this command line.
+Script mode runs the query on what stdin holds and prints the answer
+as the language prints it. JSON input is the subject as values, an
+object a map whose keys are keywords, and other text a string. A
+query that reads no subject, '[1 2] | sum' or '::vec | doc', reads no
+stdin; one that reads it with nothing piped, a terminal or < /dev/null,
+runs on ::qlang. The answer is written as its literal and a string as
+its text, so '| json' writes JSON text and '!| json' a failure's; a
+failure prints as its alert, the prose of its refusal's page below it.
+Use -i for an interactive REPL, a query after it run as its first
+cell. Quote the query so the shell does not split on whitespace or
+pipe characters. qlang '::cli | doc' reads this command line, and
+qlang '::qlang | doc' the language.
 
 Input mode (script):
   (default)   auto-detect — try JSON.parse on stdin; on failure
-              hand the raw text to the query as a String
-  --json      force JSON.parse on stdin; exit 1 on parse failure
-  --raw       skip parsing — stdin is the String subject, and the
-              answer is written as its print
+              hand the raw text to the query as a string
+  --json      stdin must be JSON; exit 1 when it does not parse
+  --raw       skip parsing — stdin is the string subject
 
 Output budget:
-  (default)   an answer prints whole
+  (default)   a value prints whole, and an error as an alert: the
+              subject where it arose cut to an excerpt, each subject
+              it passed an ::elision marker whose :read continues the
+              query to it
   --budget=N  print every answer within N characters; what does not
               fit gives way to ::elision markers whose :read continues
-              the query to the part left out; under JSON an error alone
-              is cut, data answering whole. A query bounds its own
+              the query to the part left out. A query bounds its own
               answer the same way by '| elide N'.
 
 Output colour:
@@ -82,12 +47,13 @@ Output colour:
                   always (the explicit --color flag overrides both).
 
 Examples:
-  curl -s api/users | qlang '/data * /name'
-  cat data.json     | qlang '/glossary/title'
+  curl -s api/users | qlang '/data | map ~/name'
+  qlang '/glossary/title' < data.json
+  qlang '/users | filter ~(/active) | json' < data.json
   echo hi           | qlang --raw 'append " world"'
-  cat app.log       | qlang --raw 'lines | filter ~(contains "ERROR") | json'
+  qlang --raw 'lines | filter ~(contains "ERROR") | count' < app.log
   qlang '[1 2 3] | filter ~(gt 1) | count'
-  qlang -i '::qlang | doc | links * open'
+  qlang -i '::qlang | doc | links | map ~open'
 
 See https://github.com/kaluchi/qlang for the language reference.
 `;
@@ -96,7 +62,14 @@ export const VERSION_LINE = `@kaluchi/qlang-cli ${_cliPackage.version}\n`;
 
 const COLOR_MODES = new Set(['auto', 'always', 'never']);
 
-
+// parseArgv(argvSlice) → what the arguments of the command line ask for,
+// one of
+//   { kind: 'evalQuery', queryText, inputFormat, colorMode, budget }
+//   { kind: 'repl', budget, initialQuery }
+//   { kind: 'help' }, { kind: 'version' }, { kind: 'usageError', message }
+// the format of the input `auto`, `json` or `raw`, the colour `auto`,
+// `always` or `never`, and the budget null or the characters every
+// answer prints within [D120], [D184].
 export function parseArgv(argvSlice) {
   let inputFormat = 'auto';
   let colorMode = 'auto';

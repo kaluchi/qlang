@@ -1,9 +1,12 @@
 # Qlang Entrypoint
 
-This document designs the environment a session of work on qlang
+This document is a draft of the environment a session of work on qlang
 starts from: the command that computes the state of the work and
 delivers it, the points of the agent loop where it runs, the sensors
-it reads, and the records it keeps. It is a design in progress, written
+it reads, and the records it keeps. It holds ideas and no decision:
+what the process took from it stands in the decision records, the
+screen of the work in `npm run desk` [D226] and the sensors under
+`scripts/sensors/` [D231]. It was written
 down so that the agreements of 23 September 2026 survive into the
 discussion the maintainer wants to have next, «я лично ещё хотел бы
 обсудить потом entrypoint-скрипт и пообсуждать поиграться с механикой
@@ -151,6 +154,20 @@ keeps the discussion from drifting.
   of the entrypoint and its hooks are one.
 - Context engineering is the discipline of choosing what tokens enter
   the window at each step.
+- A presentation is data filtered for a question, what a command
+  answers in place of the data a host holds [D162].
+- A label is a tag as its reader meets it, «ярлык на данных»: markup
+  laid over a payload, a sticky hint of what the data beneath it is,
+  hiding nothing, as highlighting lies over the text of an editor
+  [D161].
+- A legend is the key to reading an observation, reached from its
+  printed form by one step and itself a literal of the language, so it
+  is read further the same way: its hints tell how to take out more of
+  the observation or a part of it [D162].
+- The legend of a payload is the legend a label leads to: what was
+  received, what each part of the payload means, and which verbs carry
+  the value on, the fates open to it. A tool that changes carries the
+  legends of its values inside itself, where they cannot go stale.
 
 The seed deserves a note of its own. A seed text informs a model and
 also casts it. The essay *Simulators* describes a language model as a
@@ -262,7 +279,7 @@ HOW THIS WORKS                                                       → status 
 
 The same screen is the value the hook receives; the text above is how a
 renderer would show it, and the renderer waits until the literal has
-been tried [E3]:
+been tried:
 
 ```qlang target
 > ::workflow | status
@@ -278,12 +295,12 @@ been tried [E3]:
 
 The tags are placeholders for the schema the discussion settles, and
 they are qualified by their owner, since the values a host produces
-carry their owner in the prefix [D35]. What the block
+carry their owner in the address of their tags [D153]. What the block
 fixes is that the dashboard is a literal whose parts are addressed by
 projection, `/gates`, and read in detail by a query on the part, the
 gate's page or the fact's text, under the budget and the elision of
 progressive disclosure. A gate that depends on another noun links to
-that noun's status and never contains it [E5]; the line that says how
+that noun's status and never contains it; the line that says how
 to read the screen is the host's, appended once per session.
 
 ## The mechanics in Claude Code
@@ -365,7 +382,7 @@ what no rule had caught. Two read the transcripts, the `.jsonl` files
 of the Claude Code project directory, whose record kinds the audit's
 chapter on reading names; the third runs a document's probes against
 the tree. They live in `scripts/sensors/` until they move into the
-module of the work [E2]. The two that read the transcripts run in a
+module of the work. The two that read the transcripts run in a
 session on the maintainer's machine, where the transcripts are, and find
 them from the configuration directory of Claude Code and the working
 directory, `scripts/sensors/transcripts.mjs`; the probes run wherever
@@ -662,10 +679,10 @@ qlang-литералом дашборд в духе темной кабины в
 
 Read against the audit, that sketch is the first real user of three of
 its decisions at once. `::workflow | start`, which became
-`::workflow | status` [E5], is a verb found through the subject's tag
+`::workflow | status`, is a verb found through the subject's tag
 [D34]: the verb belongs to `::workflow`. The
 dashboard is a literal of tagged records, a gate, a task, a decision, a
-case, a metric, each a tag with a schema [D6], printed as
+case, a metric, each a tag whose label declares what it holds [D169], printed as
 the cockpit wants it and read back by the next utility. And the zoom is
 a query with a tail, the gate's detail, the task's cases, the metric's
 history, under the budget and the elision of progressive disclosure
@@ -675,7 +692,7 @@ The mechanism the sketch needs: the command line finds a folder of
 modules above the working directory, as git finds its directory,
 serves them as host catalogs whose implementations are the sensors,
 reading git, the test results, the files and the transcript, loads the
-one the query asks for, and applies the verb [E1], [E2].
+one the query asks for, and applies the verb.
 The world of the work becomes a domain like the sister project's graph:
 its nouns are tags and addresses, its verbs few. The hook calls the
 same command and hands its output to the session within the cap,
@@ -719,14 +736,14 @@ decision and no record followed.
 What happens when the push misses: the fallback is a query, and the
 entrypoint's first screen has to say how to ask.
 
-[D6]: decisions/D6.md
 [D21]: decisions/D21.md
 [D34]: decisions/D34.md
-[D35]: decisions/D35.md
 [D58]: decisions/D58.md
 [D93]: decisions/D93.md
 [D96]: decisions/D96.md
-[E1]: decisions/E1.md
-[E2]: decisions/E2.md
-[E3]: decisions/E3.md
-[E5]: decisions/E5.md
+[D153]: decisions/D153.md
+[D161]: decisions/D161.md
+[D162]: decisions/D162.md
+[D169]: decisions/D169.md
+[D226]: decisions/D226.md
+[D231]: decisions/D231.md

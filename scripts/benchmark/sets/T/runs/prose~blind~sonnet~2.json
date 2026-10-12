@@ -1,0 +1,16 @@
+{
+ "set": "T",
+ "screen": "prose",
+ "screenHash": "32089878497c",
+ "mode": "blind",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-09",
+ "commit": "56d8b78",
+ "result": "These queries come from the documentation page alone and were not run. I guessed several details the page doesn't confirm:\n- `round N` takes a number of decimals.\n- `entries` yields `[key value]` pairs.\n- `groupBy` accepts keyword keys.\n- `at` on a map answers null for a null value, so `coalesce` can supply a fallback.\n\nT1: `/data/users | filter ~(allOf /active (at :email | coalesce \"\" | lower | endsWith \"@example.com\")) | count`\nT2: `/data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | sort ~(/name | lower) | * /name`\nT3: `/data/users | groupBy ~(at :profile | coalesce {} | at :country | coalesce \"unknown\" | keyword) | * count`\nT4: `/data/users | * (at :profile | coalesce {} | at :age) | filter ~(ne null) | avg | round 2`\nT5: `filter ~(/state | eq \"open\") | * (/labels * /name) | flat | * lower | distinct | sort`\nT6: `sort ~([(/comments | desc) /number]) | take 3 | * {:number /number :assignee (at :assignee | coalesce {} | at :login)}`\nT7: `filter ~(allOf (/state | eq \"open\") (at :assignee | coalesce {} | at :login | ne null)) | groupBy ~(/assignee/login | keyword) | * count`\nT8: `[/dependencies /devDependencies] | * entries | flat | filter ~(/1 | startsWith \"^\") | sort ~(/0) | * ([(/0 | keyword) \"@\" /1] | join \"\")`\nT9: `/services | filter ~(allOf (at :enabled | eq true) (/port | gt 8000)) | * (/name | lower) | sort | join \",\"`\nT10: `lines | filter ~(ne \"\") | * (split \" \") | filter ~(/1 | eq \"ERROR\") | groupBy ~(/2 | keyword) | * count`\nT11: `lines | filter ~(ne \"\") | * (split \" \" | filter ~(startsWith \"ms=\")) | filter ~(count | gt 0) | * (/0 | drop 3 | parseJson) | avg | round 1`\nT12: `lines | drop 1 | filter ~(ne \"\") | * (split \",\") | filter ~(allOf (/5 | lower | eq \"shipped\") (/4 | ne \"\")) | * ({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p) | sum | round 2`\nT13: `lines | drop 1 | filter ~(ne \"\") | * (split \",\") | filter ~(allOf (/5 | lower | ne \"cancelled\") (/4 | ne \"\")) | * {:customer /1 :t ({:q (/3 | parseJson) :p (/4 | parseJson)} | mulOf /q /p)} | groupBy ~(/customer | keyword) | * {:customer (first | /customer) :total (* /t | sum | round 2)} | vals | sort ~(/total | desc) | take 2`\nT14: `[\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | * lower | distinct | sort ~([(count | desc) /]) | join \"-\"`",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 7935,
+ "outputTokens": 4212,
+ "calls": []
+}

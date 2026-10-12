@@ -1,0 +1,62 @@
+{
+ "set": "Q",
+ "screen": "D153",
+ "screenHash": "089d6088f723",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-08",
+ "commit": "20aaba5",
+ "result": "All 14 queries ran against the input files and gave plausible answers. Q7 was the only one with no input file, and it ran with nothing piped.\n\nTwo of them rest on judgment calls:\n- **Q11:** a line with leading spaces before `DB_` would not match the prefix, because I only trim lines when checking for `#` comments. The sample file has no such line.\n- **Q14:** an endpoint whose latencies are all null would make `round` fail. That doesn't happen in this data.\n\nQ1: filter ~(/active | eq true) | filter ~(at :address | coalesce {} | at :city | coalesce \"\" | lower | eq \"berlin\") * /email | sort\nQ2: filter ~(/status | eq \"paid\") * /items | flat | * (mul /price /qty) | sum | round 2\nQ3: filter ~(/state | eq \"open\") * (/assignee | coalesce \"unassigned\") | groupBy * count\nQ4: [/dependencies /devDependencies] * entries | flat | filter ~(/1 | startsWith \"^\") * (/0 | keyword) | sort\nQ5: lines | filter ~(trim | count | gt 0) * split \" \" | filter ~(/3 | parseJson | gte 500) * /2 | distinct | sort\nQ6: lines | drop 1 | filter ~(trim | count | gt 0) * split \",\" | filter ~(/2 | count | gt 0) | groupBy ~/1 * (* (/2 | parseJson) | avg | round 1)\nQ7: [\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"Date \",\"cherry\"] * lower | distinct | count\nQ8: /services | filter ~(/enabled | eq true) * {:name /name :port (at :net | coalesce {} | at :port | coalesce 80)} | sort ~([(/port | desc) /name]) * (:r / | /name | append \":\" | append (r | /port | print))\nQ9: groupBy ~/user * count | entries * {:user (/0 | keyword) :count /1} | sort ~([(/count | desc) /user]) | take 3\nQ10: sort ~([(at :comments | coalesce 0 | desc) /id]) | take 3 * /title\nQ11: lines | filter ~(trim | count | gt 0) | filter ~(trim | startsWith \"#\" | not) | filter ~(startsWith \"DB_\") * [(split \"=\" | first | drop 3 | lower | keyword) (split \"=\" | drop 1 | join \"=\")] | tag ::map\nQ12: filter ~(/total | gt 100) | every ~(at :shipped_at | ne null)\nQ13: * (at :tags | coalesce [] | * lower) | flat | distinct | sort\nQ14: groupBy ~/endpoint | entries * (:g /1 | {:endpoint (/0 | keyword) :count (g | count) :avgMs (g * (at :latency_ms) | filter ~(ne null) | avg | round 0)}) | filter ~(/count | gte 2) | sort ~/endpoint",
+ "failed": false,
+ "turns": 10,
+ "inputTokens": 125842,
+ "outputTokens": 3804,
+ "calls": [
+  {
+   "command": "ls; head -c 600 users.json; echo; head -c 400 orders.json; echo; head -c 300 issues.json; echo; head -c 300 logs.json",
+   "answered": "value",
+   "head": "access.log app.env config.json employees.csv events.json issues.json logs.json orders.json package.json users.json [ { \"id\": 1, \"name\": \"Anna\", \"email\": \"anna@x.io\", \"active\": true, \"address\": { \"city\": \"Berlin\", \"zip\": \"10115\" }, \"tags\": ["
+  },
+  {
+   "command": "qlang 'filter ~(/active | eq true) | filter ~(at :address | coalesce {} | at :city | coalesce \"\" | lower | eq \"berlin\") * /email | sort' < users.json\nqlang 'filter ~(/status | eq \"paid\") * /items | flat | * (mul /price /qty) | sum | round 2' < orders.json\nqlang 'filter ~(/state | eq \"open\") * (/assignee | coalesce \"unassigned\") | groupBy * count' < issues.json",
+   "answered": "value",
+   "head": "[ \"anna@x.io\", \"boris@x.io\", \"hugo@x.io\" ] 197.21 { \"anna\": 2, \"unassigned\": 2, \"boris\": 1, \"clara\": 1 }"
+  },
+  {
+   "command": "head -c 500 package.json; head -3 access.log; head -4 employees.csv; cat app.env | head -20",
+   "answered": "value",
+   "head": "{ \"name\": \"demo\", \"version\": \"1.2.0\", \"dependencies\": { \"express\": \"^4.18.2\", \"lodash\": \"~4.17.21\", \"axios\": \"^1.6.0\", \"chalk\": \"5.3.0\" }, \"devDependencies\": { \"jest\": \"^29.7.0\", \"eslint\": \"^8.56.0\", \"typescript\": \"~5.3.3\" }, \"scripts\": { \""
+  },
+  {
+   "command": "qlang '(/dependencies | union /devDependencies) | entries | filter ~(/1 | startsWith \"^\") * (/0 | keyword) | sort' < package.json\nqlang --raw 'lines | filter ~(trim | count | gt 0) * split \" \" | filter ~(/3 | parseJson | gte 500) * /2 | distinct | sort' < access.log\nqlang --raw 'lines | drop 1 | filter ~(trim | count | gt 0) * split \",\" | filter ~(/2 | count | gt 0) | groupBy ~/1 * (* (/2 | parseJson) | avg | round 1)' < employees.csv",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"proj/ProjectionKeyNotInMapError\", \"descriptor\": { \"key\": \"devDependencies\", \"trail\": [ { \"step\": \"~(/devDependencies)\", \"subject\": { \"express\": \"^4.18.2\", \"lodash\": \"~4.17.21\", \"axios\": \"^1.6.0\", \"chalk\": \"5.3.0\" }, \""
+  },
+  {
+   "command": "qlang '[/dependencies /devDependencies] * entries | flat | filter ~(/1 | startsWith \"^\") * (/0 | keyword) | sort' < package.json\ncat config.json | head -c 700; head -c 200 events.json; grep -c . app.env",
+   "answered": "value",
+   "head": "[ \"axios\", \"eslint\", \"express\", \"jest\" ] { \"env\": \"prod\", \"services\": [ { \"name\": \"api\", \"enabled\": true, \"net\": { \"port\": 8080 } }, { \"name\": \"db\", \"enabled\": true, \"net\": { \"port\": 5432 } }, { \"name\": \"cache\", \"enabled\": false, \"net\": { \""
+  },
+  {
+   "command": "qlang '[\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"Date \",\"cherry\"] * lower | distinct | count' < /dev/null\nqlang '/services | filter ~(/enabled | eq true) * {:name /name :port (at :net | coalesce {} | at :port | coalesce 80)} | sort ~([(/port | desc) /name]) * (/name | append \":\" | append (/port | print))' < config.json\nqlang 'groupBy ~/user * count | entries * {:user (/0 | keyword) :count /1} | sort ~([(/count | desc) /user]) | take 3' < events.json",
+   "answered": "value",
+   "head": "5 { \"$error\": { \"$tag\": \"proj/ProjectionSubjectNotProjectableError\", \"descriptor\": { \"actualType\": \"::string\", \"key\": \"port\", \"trail\": [ { \"step\": \"~(/port)\", \"subject\": \"api:\", \"skipped\": \"~(print)\" }, { \"step\": \"~((/port | print))\", \"subj"
+  },
+  {
+   "command": "qlang '/services | filter ~(/enabled | eq true) * {:name /name :port (at :net | coalesce {} | at :port | coalesce 80)} | sort ~([(/port | desc) /name]) * (:r / | /name | append \":\" | append (r | /port | print))' < config.json\ngrep -o '\"comments\"' issues.json | wc -l; grep -c '\"id\"' issues.json\nqlang 'sort ~([(at :comments | coalesce 0 | desc) /id]) | take 3 * /title' < issues.json",
+   "answered": "value",
+   "head": "[ \"api:8080\", \"db:5432\", \"queue:80\", \"web:80\", \"mail:25\" ] 7 8 [ \"Memory leak\", \"Crash on start\", \"Slow query\" ]"
+  },
+  {
+   "command": "qlang --raw 'lines | filter ~(trim | count | gt 0) | filter ~(trim | startsWith \"#\" | not) | filter ~(startsWith \"DB_\") * {:k (split \"=\" | first | drop 3 | lower) :v (split \"=\" | drop 1 | join \"=\")} | * [(/k) /v]' < app.env\nqlang 'filter ~(/total | gt 100) | every ~(at :shipped_at | ne null)' < orders.json\nqlang '* (at :tags | coalesce [] | * lower) | flat | distinct | sort' < users.json\nqlang 'groupBy ~/endpoint | entries * {:endpoint (/0 | keyword) :n (/1)} | count' < logs.json",
+   "answered": "value",
+   "head": "[[\"host\" \"localhost\"] [\"port\" \"5432\"] [\"name\" \"my=app\"] [\"user\" \"admin\"]] false [ \"admin\", \"dev\", \"ops\", \"qa\" ] 4"
+  },
+  {
+   "command": "qlang --raw 'lines | filter ~(trim | count | gt 0) | filter ~(trim | startsWith \"#\" | not) | filter ~(startsWith \"DB_\") * [(split \"=\" | first | drop 3 | lower | keyword) (split \"=\" | drop 1 | join \"=\")] | tag ::map' < app.env\nqlang 'groupBy ~/endpoint | entries * (:g /1 | {:endpoint (/0 | keyword) :count (g | count) :avgMs (g * (at :latency_ms) | filter ~(ne null) | avg | round 0)}) | filter ~(/count | gte 2) | sort ~/endpoint' < logs.json",
+   "answered": "value",
+   "head": "{ :host \"localhost\" :port \"5432\" :name \"my=app\" :user \"admin\" } [ { \"endpoint\": \"/login\", \"count\": 2, \"avgMs\": 61 }, { \"endpoint\": \"/orders\", \"count\": 3, \"avgMs\": 601 }, { \"endpoint\": \"/users\", \"count\": 3, \"avgMs\": 80 } ]"
+  }
+ ]
+}

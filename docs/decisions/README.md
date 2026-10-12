@@ -1,10 +1,12 @@
 # Decisions
 
-One file holds one decision, written once: `Dnn.md` for a decision of the
-language and of the work on it, `En.md` for one of the environment of the
-work that `docs/qlang-entrypoint.md` designs; a record that a later one
-replaces keeps its text and gains the line that names the record replacing it
-[D58].
+One file holds one decision: `Dnn.md` for a decision of the language and of
+the work on it, `En.md` for one of the environment of the work that
+`docs/qlang-entrypoint.md` designs. A record that a later one replaces whole
+keeps its text and gains the line that names the record replacing it [D58];
+one a later record takes a part of is pruned of that part and names the
+record that took it, so a record in force is true as a whole, and git keeps
+every text a record had [D227].
 
 A record's first line names its domain, which says where its requirements
 live. A decision of the language leaves them as conformance cases that name
@@ -24,7 +26,12 @@ move a branch made on them.
 Each record states the decision, its source, what it rests on where
 that is not obvious, and the alternatives set aside with the reason.
 A decision the maintainer took is sourced by the maintainer's words; a
-decision the model took says so and names the request it answered.
+decision the model took says so and names the request it answered. From
+D155 on a record says it in a line of its own, `Decided by.`, and a
+choice the maintainer made and the mechanics the model worked out
+around it are two records; only the maintainer's words bind, and a
+record the model decided is replaced by a better reading without
+asking leave [D155].
 Several decisions of 15 September were taken by the model at the
 maintainer's request; the first version of this document records the
 request, and the maintainer's words for it were not found when the
@@ -41,3 +48,5 @@ day in another session, «почему все мое?» (2026-09-22 07:21, sessi
 
 [D58]: D58.md
 [D59]: D59.md
+[D155]: D155.md
+[D227]: D227.md

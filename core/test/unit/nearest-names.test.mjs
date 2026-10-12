@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword } from '../../src/types.mjs';
+import { keyword, makeTag } from '../../src/types.mjs';
 
 const nearestOf = query => evalQuery(`${query} !| /nearest`);
 
@@ -19,16 +19,14 @@ describe('an unresolved name names the names nearest to it', () => {
   });
 
   it('a nearer name leaves the farther ones out', async () => {
-    expect(await nearestOf(':mapper 1 | :mapped 2 | mappe')).toEqual([keyword('mapped'), keyword('mapper')]);
-    expect(await nearestOf(':mapper 1 | :mapperXY 2 | mapper2')).toEqual([keyword('mapper')]);
+    expect(await nearestOf(':mapper 1 | :mapped 2 | mappe')).toEqual([keyword('map'), keyword('mapped'), keyword('mapper')]);
+    expect(await nearestOf(':mapper 1 | :mapperXY 2 | mapper2')).toEqual([keyword('map'), keyword('mapper')]);
   });
 
-  it('the names of the session count, and tags and the keys of the runtime do not', async () => {
+  it('the names of the session count, a kind among them by its tag, and an address does not', async () => {
     expect(await nearestOf(':limit 3 | limti')).toEqual([keyword('limit')]);
-    // `::Limit` lies two edits from `XLimit`, within its reach, and
-    // `qlang/locator` one edit from `qlanglocator`.
-    expect(await nearestOf('::Limit {} | XLimit')).toEqual([]);
-    expect(await nearestOf('qlanglocator')).toEqual([]);
+    expect(await nearestOf(':Limit |~~ Limit. ~~| | XLimit')).toEqual([keyword('Limit')]);
+    expect(await nearestOf('numbe')).toEqual([makeTag('number')]);
   });
 
   it('a name with nothing near holds the empty vector', async () => {

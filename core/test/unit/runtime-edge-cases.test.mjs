@@ -2,8 +2,8 @@
 // target source file. Each `describe` block names the module and
 // the specific branch / path it exercises (right-operand checks
 // in `arith.mjs`, non-keyword key fallback in `setops.mjs`'s
-// `UseNamespaceCollisionError` site, binding-record classifier in
-// `types.mjs::describeType`,
+// `UseModuleCollisionError` site, binding-record classifier in
+// `types.mjs::formOf`,
 // `walk.mjs`'s `locationFromQlangMap(null)` path, etc.). The
 // topical test files (`error-values.test.mjs`,
 // `print-value-extras.test.mjs`, `effect-check.test.mjs`,
@@ -20,18 +20,17 @@ import { evalQuery } from '../../src/eval.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { makeSet } from '../../src/types.mjs';
 import {
-  describeType,
+  formOf,
   typeKeyword,
   keyword,
-  makeTagKeyword,
+  makeTag,
   makeBinding,
   makeErrorValue,
   isErrorValue
 } from '../../src/types.mjs';
-import { createSession } from '../../src/session.mjs';
 import { locationToQlangMap } from '../../src/walk.mjs';
 import { parse } from '../../src/parse.mjs';
-import { errorFromParse, errorFromForeign } from '../../src/error-convert.mjs';
+import { errorFromParse } from '../../src/error-convert.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 
 describe('equality.deepEqual rejection branches', async () => {
@@ -61,29 +60,22 @@ describe('equality.deepEqual rejection branches', async () => {
   });
 });
 
-describe('describeType for a verb and a binding record', async () => {
-  it('describeType reads a binding record as the tagged Map it is', async () => {
+describe('formOf of a binding record and of a vector under a tag', async () => {
+  it('formOf reads a binding record as a value under a tag, underTag', async () => {
     const record = makeBinding({ name: keyword('x'), value: 42 });
-    expect(describeType(record)).toBe('TaggedInstance');
+    expect(formOf(record)).toBe('underTag');
   });
 
-  it('describeType reads a verb as the tagged instance it is', async () => {
-    expect(describeType(await evalQuery('::verb~(mul 2)'))).toBe('TaggedInstance');
+  it('formOf answers "underTag" for a vector under a tag', async () => {
+    const { makeTaggedInstance, makeTag } = await import('../../src/types.mjs');
+    const instance = makeTaggedInstance(makeTag('Box'), [42]);
+    expect(formOf(instance)).toBe('underTag');
   });
 
-  it('describeType returns "TaggedInstance" for a tagged-instance Map', async () => {
-    const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
-    const instance = makeTaggedInstance(makeTagKeyword('Box'), [42]);
-    expect(describeType(instance)).toBe('TaggedInstance');
-  });
-
-  it('TaggedInstance toPlain on Vec payload — overlay identity, encoded payload is the Array data', async () => {
-    // Identity-overlay design: tag rides on the JS-header slot
-    // of the Array payload itself. `toPlain` encodes the
-    // underlying array as `payload`, identity rides on `$tag`.
-    const { makeTaggedInstance, makeTagKeyword } = await import('../../src/types.mjs');
+  it('toPlain writes a vector under a tag as its tag beside its payload', async () => {
+    const { makeTaggedInstance, makeTag } = await import('../../src/types.mjs');
     const { toPlain } = await import('../../src/runtime/format.mjs');
-    const tagged = makeTaggedInstance(makeTagKeyword('Box'), [42, 'inner']);
+    const tagged = makeTaggedInstance(makeTag('Box'), [42, 'inner']);
     const plainTagged = toPlain(tagged);
     expect(plainTagged.$tag).toBe('Box');
     expect(plainTagged.payload).toEqual([42, 'inner']);
@@ -96,17 +88,17 @@ describe('describeType for a verb and a binding record', async () => {
   });
 
   it('typeKeyword reads identity off the JS header, not off a `:kind` field', async () => {
-    const { makeTagKeyword, isTagKeyword, stampTagHeader } = await import('../../src/types.mjs');
+    const { makeTag, isTag, stampTagHeader } = await import('../../src/types.mjs');
     const carriesKindField = new Map([
-      ['kind', makeTagKeyword('Box')],
+      ['kind', makeTag('Box')],
       ['payload', [42, 'inner']]
     ]);
     expect(typeKeyword(carriesKindField).name).toBe('map');
 
     const stamped = new Map([['payload', [42, 'inner']]]);
-    stampTagHeader(stamped, makeTagKeyword('Box'));
+    stampTagHeader(stamped, makeTag('Box'));
     const tk = typeKeyword(stamped);
-    expect(isTagKeyword(tk)).toBe(true);
+    expect(isTag(tk)).toBe(true);
     expect(tk.name).toBe('Box');
   });
 });
@@ -115,10 +107,6 @@ describe('typeKeyword covers all value kinds', () => {
 
   it('typeKeyword returns :unknown for an unrecognized object', () => {
     expect(typeKeyword({ type: 'alien' }).name).toBe('unknown');
-  });
-
-  it('typeKeyword returns ::verb for a verb', async () => {
-    expect(typeKeyword(await evalQuery('::verb~(mul 2)')).name).toBe('verb');
   });
 
   it('typeKeyword returns ::binding for a binding record', () => {
@@ -141,73 +129,25 @@ describe('error-convert.mjs — errorFromParse without uri', async () => {
   it('omits :uri from descriptor when ParseError has no .uri', async () => {
     const parseError = Object.assign(new Error('unexpected token'), { location: null });
     // no .uri property — tests the false arm of `if (parseError.uri)`
-    const errVal = errorFromParse(parseError);
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const errVal = errorFromParse(parseError, await langRuntime());
     expect(isErrorValue(errVal)).toBe(true);
     expect(errVal.descriptor.has('uri')).toBe(false);
   });
 });
 
-describe('error-convert.mjs — coerce with QSet and errorValue', async () => {
-  it('coerce passes through a set unchanged', async () => {
-    const qset = makeSet([1, 2, 3]);
-    const err = Object.assign(new Error('foreign'), { mySet: qset });
-    const errVal = errorFromForeign(err, null);
-    expect(isErrorValue(errVal)).toBe(true);
-    expect(errVal.descriptor.get('mySet')).toBe(qset);
-  });
-
-  it('coerce passes through an errorValue unchanged', async () => {
-    const inner = makeErrorValue(makeTagKeyword('Inner'), new Map(), { originalError: new Error('inner') });
-    const err = Object.assign(new Error('foreign'), { cause: null, myErr: inner });
-    const errVal = errorFromForeign(err, null);
-    expect(isErrorValue(errVal)).toBe(true);
-    expect(errVal.descriptor.get('myErr')).toBe(inner);
-  });
-});
-
-describe('verb effectLaundering at call site', async () => {
-  it('an effectful verb called via a clean alias triggers EffectLaunderingAtCallError', async () => {
-    const s = await createSession();
-    // Declare a verb whose body calls an @-name under an @-name, then
-    // bind it under a clean name via use, triggering the runtime safety
-    // net in applyVerb.
-    await s.evalCell(':@effFn ::verb~(@callers | count)');
-    await s.evalCell('{:clean (env | /@effFn)} | use');
-    const cell = await s.evalCell('[1 2 3] | clean');
-    // EffectLaunderingAtCallError produces an error value.
-    expect(isErrorValue(cell.result)).toBe(true);
-    expect(cell.result.originalError.name).toBe('EffectLaunderingAtCallError');
-  });
-});
-
-describe('a slot takes no modifiers', async () => {
-  it('a slot holding a value refuses modifiers as any value does', async () => {
-    // Inside the body, `n` is the record of a slot holding a value, so
-    // a modifier handed to it is refused with ApplyToNonFunctionError.
-    const result = await evalQuery(':f ::verb~(:n ::any | n 42) | 0 | f 5');
+describe('a part takes no modifiers', async () => {
+  it('a part holding a value refuses modifiers as any value does', async () => {
+    // Inside the body, `n` is the record of a part holding a value, so
+    // a modifier handed to it is refused with CallValueTakesNoModifiersError.
+    const result = await evalQuery(':any/f ~(n 42) | :any/f/n ~(/0) | 0 | f 5');
     expect(isErrorValue(result)).toBe(true);
     const e = result.originalError;
-    expect(e.name).toBe('ApplyToNonFunctionError');
-    expect(e.context.name).toBe('n');
+    expect(e.name).toBe('ValueTakesNoModifiersError');
+    expect(e.facts.name.name).toBe('n');
   });
 });
 
-
-describe('importSelectiveNamespace single keyword fallback', async () => {
-  it('use(:ns, :singleKeyword) wraps keyword in array', async () => {
-    const s = await createSession();
-    const lib = new Map();
-    lib.set('x', 10);
-    lib.set('y', 20);
-    s.bind('lib', lib);
-    const r = await s.evalCell('use :lib :x | x');
-    expect(r.result).toBe(10);
-  });
-});
-
-
-
-// ── walk.mjs location view ─────────────────────────────────────
 
 describe('walk.mjs — locationToQlangMap', async () => {
   it('answers null for a declaration without a site', async () => {
@@ -218,53 +158,6 @@ describe('walk.mjs — locationToQlangMap', async () => {
     const view = locationToQlangMap(parse('42').location);
     expect(view.get('start').get('offset')).toBe(0);
     expect(view.get('end').get('column')).toBe(3);
-  });
-});
-
-// ── runtime/use.mjs uncovered branches ─────────────────────
-
-describe('use.mjs — UseNamespaceCollisionError keyword vs raw-key collisions', async () => {
-  it('keyword-keyed collision uses k.name in error context', async () => {
-    // importCollisionStrictNamespaces — collision on a keyword key.
-    // isKeyword(k) is true → k.name branch taken (existing coverage).
-    const s = await createSession();
-    s.bind('nsA', new Map([['shared', 1]]));
-    s.bind('nsB', new Map([['shared', 2]]));
-    const r = await s.evalCell('use #[:nsA :nsB]');
-    expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.name).toBe('UseNamespaceCollisionError');
-  });
-
-  it('non-keyword-keyed collision uses String(k) fallback in error context (line 138)', async () => {
-    // Namespaces with raw string keys (non-keyword). isKeyword(k) is
-    // false → String(k) branch fires on line 138.
-    const s = await createSession();
-    s.bind('nsC', new Map([['rawKey', 1]]));
-    s.bind('nsD', new Map([['rawKey', 2]]));
-    const r = await s.evalCell('use #[:nsC :nsD]');
-    expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.context.collidingName).toBe('rawKey');
-  });
-});
-
-describe('use.mjs — UseNameNotExportedError keyword vs raw-name selection', async () => {
-  it('selective use(:ns, :missing) produces an error when name is absent', async () => {
-    const s = await createSession();
-    s.bind('myNs', new Map([['x', 99]]));
-    const r = await s.evalCell('use :myNs :missing');
-    expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.name).toBe('UseNameNotExportedError');
-  });
-
-  it('non-keyword selection uses String(name) fallback in error context (line 157)', async () => {
-    // Pass a Vec with a number element as the selection — the number is
-    // not a so isKeyword(name) is false → String(name) fires.
-    const s = await createSession();
-    s.bind('myNs2', new Map([['x', 99]]));
-    // use(:myNs2, [42]) — selection Vec contains number 42, not a keyword
-    const r = await s.evalCell('use :myNs2 [42]');
-    expect(isErrorValue(r.result)).toBe(true);
-    expect(r.result.originalError.context.exportName).toBe('42');
   });
 });
 
@@ -324,15 +217,15 @@ describe('printValue — qlang literal serialization', async () => {
   });
 
   it('prints error value with tag head and descriptor', async () => {
-    const err = makeErrorValue(makeTagKeyword('Test'), new Map([['index', 1]]));
+    const err = makeErrorValue(makeTag('Test'), new Map([['index', 1]]));
     const out = printValue(err);
     expect(out).toMatch(/^::Test!\{/);
     expect(out).toContain(':index 1');
   });
 
   it('pretty-prints error with many descriptor fields', async () => {
-    const err = makeErrorValue(makeTagKeyword('Test'), new Map([
-      ['actualType', makeTagKeyword('number')],
+    const err = makeErrorValue(makeTag('Test'), new Map([
+      ['actualType', makeTag('number')],
       ['message', 'boom'],
       ['index', 1]
     ]));
@@ -425,20 +318,18 @@ describe('printValue round-trip — all composite types', async () => {
     await assertRoundTrip('{:a {:b {:c 42}}}', 'nested Map');
   });
 
-  it('Error value with TagKeyword :kind lift', async () => {
-    // `:kind` carrying a TagKeyword lifts to `error.tag` on
-    // construction; the print form leaves the kind of errors out,
-    // `!{…}` with the remaining fields, and re-parse recovers the
-    // same value.
-    await assertRoundTrip('!{:kind ::error :message "boom"}', 'Error');
+  it('Error value of its own tag', async () => {
+    // The print form writes the tag before the bang and re-parse
+    // recovers the same value [D86].
+    await assertRoundTrip('::Foo!{:message "boom"}', 'Error');
   });
 
-  it('Error value with plain-keyword :kind stays in descriptor under the kind of errors', async () => {
-    await assertRoundTrip('!{:kind :oops :message "boom"}', 'Error');
+  it('Error value with a :kind fact under the kind of errors', async () => {
+    await assertRoundTrip('!{:kind ::Foo :message "boom"}', 'Error');
   });
 
   it('Error with trail', async () => {
-    await assertRoundTrip('!{:kind ::error :trail ~(| count)}', 'Error trail');
+    await assertRoundTrip('!{:message "boom" :trail ~(| count)}', 'Error trail');
   });
 
   it('deeply nested composite', async () => {

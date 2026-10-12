@@ -1,0 +1,21 @@
+|~ `::holds`, the kind of an invariant, and the laws declared under it.
+   ~|
+
+:holds
+  |~~ An invariant is a query the values of a label keep, written as a
+      quote under this tag and declared under the name it guards, the
+      name of the refusal of a value that breaks it: after the
+      declaration `:Small/TooLargeError ::holds~(lt 10)`, a value put
+      under `::Small` is checked, and `::Small(12)` is refused under
+      `::Small/TooLargeError`.
+
+      An invariant guards a label, the args of a word, a part of them or
+      a word's answer, by where it is declared, and runs when the value
+      is built, read or answered; `is` of a kind and `every ~(is …)` are
+      the invariants of kinds.
+      ::link~(::qlang/verbs | doc)
+  ~~|
+
+:holds/refusesUnderItsName
+  |~~ A value that breaks an invariant is refused under its name. ~~|
+  ::law~(:Small |~~ Below ten. ~~| | :Small/TooLargeError ::holds~(lt 10) | [(::Small(3) | type) (::Small(12) !| type)] | eq [::Small ::Small/TooLargeError])

@@ -2,15 +2,14 @@
 // name is refused inside `evalBindStep` at eval-time when its body
 // calls an effectful name, which findFirstEffectfulIdentifier finds
 // over the verb's body; the parse-time AST decoration
-// (classifyEffect on OperandCall and Projection nodes) marks the
+// (classifyEffect on Call and Projection nodes) marks the
 // names it reads.
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 import {
-  EffectLaunderingError,
-  EffectLaunderingAtBindStepParseError,
+  BindEffectMarkMissingError,
   QlangError
 } from '../../src/errors.mjs';
 import {
@@ -47,15 +46,15 @@ describe('effect.mjs classifyEffect', () => {
 });
 
 describe('decorateAstWithEffectMarkers — boolean field stamping', () => {
-  it('OperandCall with @-prefix gets effectful=true', () => {
+  it('Call with @-prefix gets effectful=true', () => {
     const ast = parse('@callers');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.effectful).toBe(true);
   });
 
-  it('OperandCall with clean name gets effectful=false', () => {
+  it('Call with clean name gets effectful=false', () => {
     const ast = parse('count');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.effectful).toBe(false);
   });
 
@@ -88,12 +87,12 @@ describe('findFirstEffectfulIdentifier', () => {
     expect(findFirstEffectfulIdentifier(ast)).toBeNull();
   });
 
-  it('returns the @-prefixed OperandCall name', () => {
+  it('returns the @-prefixed name of a call', () => {
     const ast = parse('@callers');
     expect(findFirstEffectfulIdentifier(ast)).toBe('@callers');
   });
 
-  it('reaches into nested OperandCall arguments', () => {
+  it('reaches into nested Call arguments', () => {
     const ast = parse('filter ~(@callers | count)');
     expect(findFirstEffectfulIdentifier(ast)).toBe('@callers');
   });
@@ -115,70 +114,70 @@ describe('findFirstEffectfulIdentifier', () => {
 });
 
 describe('eval-time effect validation in evalBindStep', () => {
-  // EffectLaunderingAtBindStepParseError produces an error value
+  // BindEffectMarkMissingError produces an error value
   // (5th type). `catchOriginalError` (shared helper) unwraps the
   // originating JS-side QlangError off the ErrorValue for the
-  // `instanceof EffectLaunderingAtBindStepParseError` checks below.
+  // `instanceof BindEffectMarkMissingError` checks below.
 
-  it('rejects :foo ::verb~(@callers) — effectful body, clean name', async () => {
-    const effectErr = await catchOriginalError(':foo ::verb~(@callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+  it('rejects an effectful body under a clean name', async () => {
+    const effectErr = await catchOriginalError(':any/foo ~(@callers)');
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
   });
 
   it('accepts a quote literal whose steps name an effect — the quote is data', async () => {
-    const accepted = await evalQuery(':holdsCode ::verb~([~(@callers) /x]) | 1');
+    const accepted = await evalQuery(':any/holdsCode ~([~(@callers) /x]) | 1');
     expect(accepted).toBe(1);
   });
 
   it('rejects nested effectful body', async () => {
-    const effectErr = await catchOriginalError(':foo ::verb~(filter ~(@callers | count))');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    const effectErr = await catchOriginalError(':any/foo ~(filter ~(@callers | count))');
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
   });
 
   it('rejects projection-laundering', async () => {
-    const effectErr = await catchOriginalError(':bad ::verb~(env | /@callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    const effectErr = await catchOriginalError(':any/bad ~(env | /@callers)');
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
   });
 
-  it('accepts :@impl ::verb~(@callers) — effectful body, @-prefixed name', async () => {
+  it('accepts an effectful body under a name with the mark', async () => {
     // @callers resolves to unresolvedIdentifier in langRuntime (no host plugin),
     // but the let itself should NOT produce an effectLaundering error.
-    const effectErr = await catchOriginalError(':@impl ::verb~(@callers)');
-    expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    const effectErr = await catchOriginalError(':any/@impl ~(@callers)');
+    expect(effectErr).not.toBeInstanceOf(BindEffectMarkMissingError);
   });
 
-  it('accepts :@safe ::verb~(count) — over-approximation harmless', async () => {
-    const effectErr = await catchOriginalError(':@safe ::verb~(count)');
-    expect(effectErr).not.toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+  it('accepts a pure body under a name with the mark', async () => {
+    const effectErr = await catchOriginalError(':any/@safe ~(count)');
+    expect(effectErr).not.toBeInstanceOf(BindEffectMarkMissingError);
   });
 
-  it('accepts :foo ::verb~(count) — pure body, clean name', async () => {
-    const evalResult = await evalQuery(':foo ::verb~(count)');
+  it('accepts a pure body under a clean name', async () => {
+    const evalResult = await evalQuery(':any/foo ~(count)');
     expect(isErrorValue(evalResult)).toBe(false);
   });
 
   it('rejects transitive aliasing through a clean name', async () => {
-    const effectErr = await catchOriginalError(':@a ::verb~(count) | :b ::verb~(@a)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    const effectErr = await catchOriginalError(':any/@a ~(count) | :any/b ~(@a)');
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
   });
 
   it('error carries the offending binding name and effectful identifier', async () => {
-    const effectErr = await catchOriginalError(':foo ::verb~(@callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
-    expect(effectErr.context.bindingName).toBe('foo');
-    expect(effectErr.context.effectfulName).toBe('@callers');
+    const effectErr = await catchOriginalError(':any/foo ~(@callers)');
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
+    expect(effectErr.facts.name.name).toBe('any/foo');
+    expect(effectErr.facts.calls.name).toBe('@callers');
   });
 
   it('error has a stable per-site name', async () => {
-    const effectErr = await catchOriginalError(':foo ::verb~(@callers)');
-    expect(effectErr.name).toBe('EffectLaunderingAtBindStepParseError');
+    const effectErr = await catchOriginalError(':any/foo ~(@callers)');
+    expect(effectErr.name).toBe('EffectMarkMissingError');
   });
 
-  it('the thrown error is an EffectLaunderingError, not a ParseError', async () => {
-    const effectErr = await catchOriginalError(':foo ::verb~(@callers)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingError);
+  it('the thrown error is a refusal of bind, not a ParseError', async () => {
+    const effectErr = await catchOriginalError(':any/foo ~(@callers)');
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
     expect(effectErr).toBeInstanceOf(QlangError);
-    expect(effectErr.kind).toBe('effectLaundering');
+    expect(effectErr.address).toBe('bind/EffectMarkMissingError');
   });
 
   it('a freeze of an expression result is exempt', async () => {
@@ -188,8 +187,8 @@ describe('eval-time effect validation in evalBindStep', () => {
   });
 
   it('rejects BindStep inside a ParenGroup with effectful body', async () => {
-    const effectErr = await catchOriginalError('1 | (:bad ::verb~(@callers) | bad)');
-    expect(effectErr).toBeInstanceOf(EffectLaunderingAtBindStepParseError);
+    const effectErr = await catchOriginalError('1 | (:any/bad ~(@callers) | bad)');
+    expect(effectErr).toBeInstanceOf(BindEffectMarkMissingError);
   });
 
 });
@@ -200,22 +199,5 @@ describe('a pure call runs clean', () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('[1 2 3] | count');
     expect(cellEntry.error).toBeNull();
-  });
-});
-
-describe('the effect a verb names', () => {
-
-  it('a verb whose body calls an @-name names it as its effect', async () => {
-    const { effectfulNameOfVerb } = await import('../../src/runtime/verb.mjs');
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':@x ::verb~(@callers | count)');
-    expect(effectfulNameOfVerb(sessionInstance.env.get('@x').get('value'))).toBe('@callers');
-  });
-
-  it('a verb whose body calls clean names carries no effect', async () => {
-    const { effectfulNameOfVerb } = await import('../../src/runtime/verb.mjs');
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':foo ::verb~(count)');
-    expect(effectfulNameOfVerb(sessionInstance.env.get('foo').get('value'))).toBeNull();
   });
 });

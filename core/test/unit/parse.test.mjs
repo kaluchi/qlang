@@ -208,31 +208,31 @@ describe('parse — Projection', () => {
   });
 });
 
-describe('parse — OperandCall', () => {
+describe('parse — Call', () => {
   it('parses a bare identifier', () => {
     const ast = parse('count');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.name).toBe('count');
     expect(ast.args).toEqual([]);
   });
 
   it('parses an identifier with @ prefix', () => {
     const ast = parse('@callers');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.name).toBe('@callers');
     expect(ast.args).toEqual([]);
   });
 
   it('parses an identifier with _ prefix', () => {
     const ast = parse('_private');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.name).toBe('_private');
     expect(ast.args).toEqual([]);
   });
 
   it('parses a single-arg call', () => {
     const ast = parse('add 2');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.name).toBe('add');
     expect(ast.args).toHaveLength(1);
     expect(ast.args[0].value).toBe(2);
@@ -265,7 +265,7 @@ describe('parse — bindings: BindStep and the freeze', () => {
     expect(ast.type).toBe('BindStep');
     expect(ast.key.type).toBe('Keyword');
     expect(ast.key.name).toBe('double');
-    expect(ast.body.type).toBe('OperandCall');
+    expect(ast.body.type).toBe('Call');
     expect(ast.body.name).toBe('mul');
   });
 
@@ -278,13 +278,7 @@ describe('parse — Pipeline composition', () => {
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[0].type).toBe('VecLit');
     expect(ast.steps[1].combinator).toBe('|');
-    expect(ast.steps[1].step.type).toBe('OperandCall');
-  });
-
-  it('parses a pipeline with distribute', () => {
-    const ast = parse('[1 2 3] * add 1');
-    expect(ast.steps).toHaveLength(2);
-    expect(ast.steps[1].combinator).toBe('*');
+    expect(ast.steps[1].step.type).toBe('Call');
   });
 
   it('parses the freeze inside a pipeline', () => {
@@ -305,13 +299,13 @@ describe('parse — Pipeline composition', () => {
 
 describe('parse — ParenGroup', () => {
   it('parses a parenthesized sub-pipeline', () => {
-    const ast = parse('([1 2] * add 1)');
+    const ast = parse('([1 2] | map ~(add 1))');
     expect(ast.type).toBe('ParenGroup');
     expect(ast.pipeline.type).toBe('Pipeline');
   });
 
   it('parses paren group as a step inside an outer pipeline', () => {
-    const ast = parse('xs * (:elem / | {:k /id :v elem})');
+    const ast = parse('xs | (:elem / | {:k /id :v elem})');
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[1].step.type).toBe('ParenGroup');
   });
@@ -338,8 +332,8 @@ describe('parse — comments and whitespace', () => {
   });
 
   it('reads a comment where a word would touch another as no pipe', () => {
-    expect(parse('|~ note ~| count').type).toBe('OperandCall');
-    expect(parse('(|~ note ~| * add 1)').pipeline.leadingCombinator).toBe('*');
+    expect(parse('|~ note ~| count').type).toBe('Call');
+    expect(parse('(|~ note ~| !| 0)').pipeline.leadingCombinator).toBe('!|');
     expect(() => parse('[1] |~ note ~| count')).toThrow(ParseError);
     expect(parse('[1] | |~ note ~| count').steps[1].combinator).toBe('|');
     expect(parse('|~ note ~| :x |~~| about x\n1').type).toBe('BindStep');
@@ -361,9 +355,8 @@ describe('parse — error handling', () => {
     expect(() => parse('[1 2')).toThrow(ParseError);
   });
 
-  it('refuses a leading combinator and an explicit combinator on the first operand step after a comment head', () => {
-    expect(() => parse('!| |~ note ~| * add(1)')).toThrow(ParseError);
-    expect(() => parse('(* |~| note\n| count)')).toThrow(ParseError);
+  it('refuses a leading combinator and an explicit combinator on the first step after a comment head', () => {
+    expect(() => parse('(!| |~| note\n| count)')).toThrow(ParseError);
     expect(() => parse('!| |~ one ~| |~ two ~| | count')).toThrow(ParseError);
     expect(parse('!| |~ note ~| count').leadingCombinator).toBe('!|');
   });
@@ -589,9 +582,9 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
     expect(ast.name).toBe('пользователь-42');
   });
 
-  it('parses a Cyrillic operand-call identifier', () => {
+  it('parses the Cyrillic name of a call', () => {
     const ast = parse('посчитать(1)');
-    expect(ast.type).toBe('OperandCall');
+    expect(ast.type).toBe('Call');
     expect(ast.name).toBe('посчитать');
   });
 
@@ -643,7 +636,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('attaches one entry per doc comment, not concatenated', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~| First.\n|~~| Second.\n|~~| Third.\n42 | env | /foo | /docs * content'
+      ':foo |~~| First.\n|~~| Second.\n|~~| Third.\n42 | env | /foo | /docs | map ~content'
     );
     expect(docsResult).toEqual([' First.', ' Second.', ' Third.']);
   });
@@ -651,7 +644,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('block doc preserves internal newlines as one entry', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~ line one\nline two\nline three ~~| 42\n| env | /foo | /docs * content'
+      ':foo |~~ line one\nline two\nline three ~~| 42\n| env | /foo | /docs | map ~content'
     );
     expect(docsResult.length).toBe(1);
     expect(docsResult[0]).toContain('line one');
@@ -662,7 +655,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('mixes line and block docs preserving order', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~| line one\n|~~ block two ~~|\n|~~| line three\n42 | env | /foo | /docs * content'
+      ':foo |~~| line one\n|~~ block two ~~|\n|~~| line three\n42 | env | /foo | /docs | map ~content'
     );
     expect(docsResult.length).toBe(3);
     expect(docsResult[0]).toBe(' line one');
@@ -673,7 +666,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('shadowing redeclare overrides docs Vec', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~| Old.\n1\n| (:foo |~~| Brand new.\n|~~| With extra remark.\n2\n| env | /foo | /docs * content)'
+      ':foo |~~| Old.\n1\n| (:foo |~~| Brand new.\n|~~| With extra remark.\n2\n| env | /foo | /docs | map ~content)'
     );
     expect(docsResult).toEqual([' Brand new.', ' With extra remark.']);
   });
@@ -771,7 +764,7 @@ describe('parse — block comment nesting', () => {
     it('doc block nests doc-pair as opaque content (attached docs)', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ outer |~~ inner ~~| more ~~| 42\n| env | /foo | /docs * content'
+        ':foo |~~ outer |~~ inner ~~| more ~~| 42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' outer |~~ inner ~~| more ']);
     });
@@ -779,7 +772,7 @@ describe('parse — block comment nesting', () => {
     it('doc block adjacent nested doc pairs', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ |~~ a ~~| middle |~~ b ~~| ~~| 42\n| env | /foo | /docs * content'
+        ':foo |~~ |~~ a ~~| middle |~~ b ~~| ~~| 42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' |~~ a ~~| middle |~~ b ~~| ']);
     });
@@ -787,7 +780,7 @@ describe('parse — block comment nesting', () => {
     it('doc block nests plain pair as opaque content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ holds |~ inner plain ~| inline ~~| 42\n| env | /foo | /docs * content'
+        ':foo |~~ holds |~ inner plain ~| inline ~~| 42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' holds |~ inner plain ~| inline ']);
     });
@@ -795,7 +788,7 @@ describe('parse — block comment nesting', () => {
     it('doc block accepts bare ~| (sibling close) as content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ plain-close marker ~| mentioned ~~| 42\n| env | /foo | /docs * content'
+        ':foo |~~ plain-close marker ~| mentioned ~~| 42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' plain-close marker ~| mentioned ']);
     });
@@ -803,7 +796,7 @@ describe('parse — block comment nesting', () => {
     it('doc block collapses |~| line marker to 3-char content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ pair holds |~| line marker inline ~~| 42\n| env | /foo | /docs * content'
+        ':foo |~~ pair holds |~| line marker inline ~~| 42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' pair holds |~| line marker inline ']);
     });
@@ -811,7 +804,7 @@ describe('parse — block comment nesting', () => {
     it('doc block collapses |~~| line-doc marker to 4-char content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ pair holds |~~| line-doc marker inline ~~|\n42\n| env | /foo | /docs * content'
+        ':foo |~~ pair holds |~~| line-doc marker inline ~~|\n42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' pair holds |~~| line-doc marker inline ']);
     });
@@ -819,7 +812,7 @@ describe('parse — block comment nesting', () => {
     it('doc-attached block on BindStep keeps nested doc-pair verbatim', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ outer |~~ inner ~~| more ~~|\n42\n| env | /foo | /docs * content'
+        ':foo |~~ outer |~~ inner ~~| more ~~|\n42\n| env | /foo | /docs | map ~content'
       );
       expect(docs).toEqual([' outer |~~ inner ~~| more ']);
     });
@@ -850,8 +843,8 @@ describe('parse — block comment nesting', () => {
         '|~ User-error tag identifiers raised by the guards in this',
         '   module. Both ride the universal identity-on-JS-header invariant',
         '   that every ErrorValue carries: `error({:kind ::FooError …})`',
-        "   lifts the TagKeyword to the value's tag slot, and `result !|",
-        '   type` reads it back. The doc-only `::Tag |~~ ~~|` BindSteps',
+        "   lifts the tag to the value's tag slot, and `result !|",
+        '   type` reads it back. The doc-only `:Tag |~~ ~~|` BindSteps',
         '   below give axis-operands (`::AssertionFailedError | doc`,',
         '   `| source`, `| doc | laws`) a discoverable declaration through',
         "   the loaded module's AST, symmetric with catalog error tags. ~|",

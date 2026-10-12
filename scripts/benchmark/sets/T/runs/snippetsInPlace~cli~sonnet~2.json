@@ -1,0 +1,78 @@
+{
+ "set": "T",
+ "screen": "snippetsInPlace",
+ "screenHash": "fb6b06e03ab2",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-10",
+ "commit": "14d351e",
+ "modelId": "claude-sonnet-5-5",
+ "result": "All 14 queries ran and gave plausible answers. I checked T11, T12 and T13 by hand, and the other outputs against the data I could see. I didn't separately check T6's tie-breaking, because the output had no ties. A few notes on how the queries are written:\n- Queries over a file that start with `/` begin with `| ` to avoid the Git Bash path conversion.\n- T3, T7 and T10 answer with keyword keys such as `:db`. The task asks for an object, and the JSON output printed them as plain strings.\n- T8 and T13 convert the keyword keys back to strings with `keyword`.\n\nT1: | /data/users | filter ~(/active) | filter ~(at :email | coalesce \"\" | lower | endsWith \"@example.com\") | count\nT2: | /data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | sort ~(/name | lower) | * /name\nT3: | /data/users | groupBy ~(at :profile | at :country | coalesce \"unknown\") * count\nT4: | /data/users * (at :profile | at :age) | filter ~(ne null) | avg | round 2\nT5: | filter ~(/state | eq \"open\") | * /labels | flat | * (/name | lower) | distinct | sort\nT6: | sort ~([(/comments | desc) /number]) | take 3 * {:number /number :assignee (at :assignee | at :login)}\nT7: | filter ~(/state | eq \"open\") | filter ~(at :assignee | ne null) | groupBy ~(/assignee/login) * count\nT8: | unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | * ([(/0 | keyword) \"@\" /1] | join \"\")\nT9: | /services | filter ~(at :enabled | eq true) | filter ~(/port | gt 8000) | * (/name | lower) | sort | join \",\"\nT10: | lines | filter ~(split \" \" | /1 | eq \"ERROR\") | groupBy ~(split \" \" | /2) * count\nT11: | lines | * (split \" \" | filter ~(startsWith \"ms=\")) | filter ~(count | gt 0) | * (/0 | drop 3 | parseJson) | avg | round 1\nT12: | lines | drop 1 | filter ~(count | gt 0) * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | eq \"shipped\") | * (mulOf (/3 | parseJson) (/4 | parseJson)) | sum | round 2\nT13: | lines | drop 1 | filter ~(count | gt 0) * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | ne \"cancelled\") | groupBy ~(/1) * (* (mulOf (/3 | parseJson) (/4 | parseJson)) | sum) | entries | * {:customer (/0 | keyword) :total (/1 | round 2)} | sort ~(/total | desc) | take 2\nT14: | [\"Banana\" \"apple\" \"Cherry\" \"banana\" \"fig\" \"APPLE\" \"date\" \"kiwi\" \"Fig\" \"elderberry\"] * lower | distinct | sort ~([(count | desc) (/)]) | join \"-\"",
+ "failed": false,
+ "turns": 13,
+ "inputTokens": 172643,
+ "outputTokens": 3980,
+ "calls": [
+  {
+   "command": "ls; head -c 600 users.json; echo; head -c 500 issues.json; echo; head -c 400 package.json; echo; head -c 400 config.json; echo; head -5 logs.txt; head -4 orders.csv",
+   "answered": "value",
+   "head": "config.json issues.json logs.txt orders.csv package.json users.json { \"status\": \"ok\", \"data\": { \"users\": [ { \"id\": 1, \"name\": \"alice\", \"email\": \"Alice@Example.com\", \"active\": true, \"roles\": [ \"admin\", \"dev\" ], \"profile\": { \"country\": \"US\", "
+  },
+  {
+   "command": "qlang '/data/users | filter ~(/active) | filter ~(/email | at 0 | coalesce \"\" | lower | endsWith \"@example.com\") | count' < users.json; qlang '/data/users | filter ~(/active)' < users.json | head -c 300",
+   "answered": "value",
+   "head": "::quote/ParseError!{ :source \"C:/Program Files/Git/data/users | filter ~(/active) | filter ~(/email | at 0 | coalesce \\\"\\\" | lower | endsWith \\\"@example.com\\\") | count\" :marker \" ^ \" :expected [:\"identifier continue (letter, digit, hyphen, "
+  },
+  {
+   "command": "q(){ qlang \"$@\"; }\nqlang '| /data/users | filter ~(/active) | filter ~(/email | at 0 | coalesce \"\" | lower | endsWith \"@example.com\") | count' < users.json; qlang '| /data/users | filter ~(/active)' < users.json | head -c 300",
+   "answered": "value",
+   "head": "Contains brace with quote character (expansion obfuscation)"
+  },
+  {
+   "command": "qlang '| /data/users | filter ~(/active) | filter ~(/email | at 0 | coalesce \"\" | lower | endsWith \"@example.com\") | count' < users.json",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"call/KindAnswersNoVerbError\", \"descriptor\": { \"name\": \"at\", \"addresses\": [ \"::map/at\", \"::null/at\", \"::set/at\", \"::vec/at\" ], \"actualType\": \"::string\", \"trail\": [ { \"step\": \"~(at 0)\", \"subject\": \"Alice@Example.com\", \""
+  },
+  {
+   "command": "qlang '| /data/users | first' < users.json | head -30",
+   "answered": "value",
+   "head": "{ \"id\": 1, \"name\": \"alice\", \"email\": \"Alice@Example.com\", \"active\": true, \"roles\": [ \"admin\", \"dev\" ], \"profile\": { \"country\": \"US\", \"age\": 34 } }"
+  },
+  {
+   "command": "qlang '| /data/users | filter ~(/active) | filter ~(at :email | coalesce \"\" | lower | endsWith \"@example.com\") | count' < users.json\nqlang '| /data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | sort ~(/name | lower) | * /name' < users.json\nqlang '| /data/users | groupBy ~(/profile | at :country | coalesce \"unknown\") * count' < users.json\nqlang '| /data/users * (/profile | at :age) | filter ~(ne null) | avg | round 2' < users.json",
+   "answered": "value",
+   "head": "4 [ \"alice\", \"carol\", \"erin\", \"ivan\" ] { \"$error\": { \"$tag\": \"proj/KeyNotInMapError\", \"descriptor\": { \"key\": \"profile\", \"actualType\": \"::map\", \"trail\": [ { \"step\": \"~(/profile)\", \"subject\": { \"id\": 6, \"name\": \"Frank\", \"active\": false, \"role"
+  },
+  {
+   "command": "qlang '| /data/users | groupBy ~(at :profile | at :country | coalesce \"unknown\") * count' < users.json | head -20\nqlang '| /data/users * (at :profile | at :age) | filter ~(ne null) | avg | round 2' < users.json | head -20",
+   "answered": "value",
+   "head": "{ \"US\": 3, \"DE\": 2, \"unknown\": 2, \"FR\": 2 } 33.17"
+  },
+  {
+   "command": "qlang '| filter ~(/state | eq \"open\") | * /labels | flat | * (/name | lower) | distinct | sort' < issues.json | head -20\nqlang '| sort ~([(/comments | desc) /number]) | take 3 * {:number /number :assignee (at :assignee | at :login)}' < issues.json | head -30\nqlang '| filter ~(/state | eq \"open\") | filter ~(at :assignee | ne null) | groupBy ~(/assignee/login) * count' < issues.json | head -20",
+   "answered": "value",
+   "head": "[ \"bug\", \"feature\", \"performance\", \"tests\", \"urgent\" ] [ { \"number\": 106, \"assignee\": \"carol\" }, { \"number\": 102, \"assignee\": null }, { \"number\": 108, \"assignee\": null } ] { \"alice\": 3, \"bob\": 1 }"
+  },
+  {
+   "command": "qlang '| unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | * (/0 | append \"@\" | append (/1))' < package.json | head -20\nqlang '| /services | filter ~(at :enabled | eq true) | filter ~(/port | gt 8000) | * (/name | lower) | sort | join \",\"' < config.json | head -20\nqlang --raw '| lines | filter ~(split \" \" | /2 | eq \"ERROR\")' < logs.txt | head -5",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"call/KindAnswersNoVerbError\", \"descriptor\": { \"name\": \"append\", \"addresses\": [ \"::string/append\", \"::vec/append\" ], \"actualType\": \"::keyword\", \"trail\": [ { \"step\": \"~(append \\\"@\\\")\", \"subject\": \"eslint\", \"skipped\": \"~"
+  },
+  {
+   "command": "qlang '| unionOf /dependencies /devDependencies | entries | filter ~(/1 | startsWith \"^\") | sort ~(/0) | * ([(/0 | keyword) \"@\" /1] | join \"\")' < package.json | head -20\nqlang --raw '| lines | filter ~(split \" \" | /1 | eq \"ERROR\") | groupBy ~(split \" \" | /2) * count' < logs.txt | head -20\nqlang --raw '| lines | * (split \" \" | filter ~(startsWith \"ms=\")) | filter ~(count | gt 0) | * (/0 | drop 3 | parseJson) | avg | round 1' < logs.txt | head",
+   "answered": "value",
+   "head": "[ \"eslint@^8.56.0\", \"express@^4.18.2\", \"jest@^29.7.0\", \"typescript@^5.3.3\", \"zod@^3.22.0\" ] { :db 3 :api 1 :worker 1 } 330.2"
+  },
+  {
+   "command": "cat logs.txt; cat orders.csv",
+   "answered": "value",
+   "head": "2026-03-01T10:00:01Z INFO api request path=/users ms=120 2026-03-01T10:00:05Z ERROR db connection lost retry=1 2026-03-01T10:00:07Z INFO api request path=/orders ms=80 2026-03-01T10:01:11Z WARN api slow request path=/search ms=950 2026-03-0"
+  },
+  {
+   "command": "qlang --raw '| lines | drop 1 | filter ~(count | gt 0) * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | eq \"shipped\") | * (mulOf (/3 | parseJson) (/4 | parseJson)) | sum | round 2' < orders.csv | head\nqlang --raw '| lines | drop 1 | filter ~(count | gt 0) * split \",\" | filter ~(/4 | ne \"\") | filter ~(/5 | lower | ne \"cancelled\") | groupBy ~(/1) * (* (mulOf (/3 | parseJson) (/4 | parseJson)) | sum) | entries | * {:customer (/0 | keyword) :total (/1 | round 2)} | sort ~(/total | desc) | take 2' < orders.csv | head -20\nqlang '| [\"Banana\" \"apple\" \"Cherry\" \"banana\" \"fig\" \"APPLE\" \"date\" \"k",
+   "answered": "value",
+   "head": "204.91 [{:customer \"Birch\" :total 109.97} {:customer \"Acme\" :total 104.96}] elderberry-banana-cherry-apple-date-kiwi-fig"
+  }
+ ]
+}

@@ -34,7 +34,7 @@ describe('the package root', () => {
   });
 
   it('exports no symbol of the runtime a consumer does not read', () => {
-    for (const internal of ['evalAst', 'astChildrenOf', 'QlangError', 'classifyEffect', 'makeTaggedInstance', 'describeType', 'EVAL_DEPTH_LIMIT']) {
+    for (const internal of ['evalAst', 'astChildrenOf', 'QlangError', 'classifyEffect', 'makeTaggedInstance', 'formOf', 'EVAL_DEPTH_LIMIT']) {
       expect(core[internal], internal).toBeUndefined();
     }
   });

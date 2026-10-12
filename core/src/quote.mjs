@@ -6,10 +6,10 @@
 // that literal itself, a nested quote included, and a container literal
 // holds the steps of its elements, a pipeline element as its group;
 // where the syntax computes, the step is a record, `::call`, `::proj`,
-// `::bind` or `::construct`; the fail track, the distribute and the
-// parentheses wrap the quote of their step as `::fail`, `::each` and
-// `::group` [D47, D52]. A comment leaves no step. A command's modifier
-// is one word and is stored as its step [D10, D47].
+// `::bind` or `::construct`; the fail track and the parentheses wrap the
+// quote of their step as `::fail` and `::group` [D47]. A comment leaves no
+// step. A command's modifier is one word and is stored as its step [D10,
+// D47].
 //
 // A quote read from text keeps the parser's node on its holder and runs
 // through it; a quote assembled from data is printed and parsed the
@@ -18,19 +18,18 @@
 import { parse } from './parse.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import {
-  keyword, makeTagKeyword, makeDoc, makeQuote, makeSet,
-  makeTaggedInstance, makeErrorLiteralStep,
-  isQuote, isKeyword, isTagKeyword, isDoc, isVec, isQMap, isQSet,
-  isErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
-  CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, EACH_TAG, FAIL_TAG, GROUP_TAG,
+  keyword, makeTag, makeDoc, makeQuote, makeSet,
+  makeTaggedInstance, errorAtRest,
+  isQuote, isKeyword, isTag, isDoc, isVec, isQMap, isQSet,
+  isValueClass, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
+  CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG,
   canonicalKeywordLiteral
 } from './types.mjs';
 
-// The steps of code that stand in a pipeline alone, those that stand
-// inside a container too, and the wrappers.
-const PIPELINE_STEP_TAG_NAMES  = new Set(['each', 'fail', 'bind', 'call']);
+// The steps of code that stand in a pipeline alone and those that stand
+// inside a container too.
+const PIPELINE_STEP_TAG_NAMES  = new Set(['fail', 'bind', 'call']);
 const ELEMENT_RECORD_TAG_NAMES = new Set(['call', 'proj', 'construct', 'group']);
-const WRAPPER_TAG_NAMES        = new Set(['each', 'fail', 'group']);
 
 // ── the tree into steps ────────────────────────────────────────
 
@@ -74,7 +73,7 @@ const DOC_OF_LITERAL = new WeakMap();
 function docSegmentOfPart(part) {
   if (typeof part === 'string') return part;
   if (part.type !== 'DocTaggedQuote') return quoteOfLiteral(part);
-  return part.tags.reduceRight((inner, tagName) => makeTaggedInstance(makeTagKeyword(tagName), inner), quoteOfLiteral(part.quote));
+  return part.tags.reduceRight((inner, tagName) => makeTaggedInstance(makeTag(tagName), inner), quoteOfLiteral(part.quote));
 }
 
 export function docOfNode(node) {
@@ -99,14 +98,7 @@ export function stepOfNode(node) {
 // tagCallStepOf(tag) → the step `tag ::Tag`, the call a tagged literal
 // stands for [D86].
 export function tagCallStepOf(tag) {
-  return record(CALL_TAG, [['name', keyword('tag')], ['args', Object.freeze([tag])]]);
-}
-
-// eachStepOf(bodyNode) → the `::each` wrapper a `*` step leaves; the
-// parentheses after `*` delimit its body [D52].
-export function eachStepOf(bodyNode) {
-  const body = bodyNode.type === 'ParenGroup' ? bodyNode.pipeline : bodyNode;
-  return makeTaggedInstance(EACH_TAG, quoteOfBody(body));
+  return record(CALL_TAG, [['name', keyword('tag')], ['modifiers', Object.freeze([tag])]]);
 }
 
 function stepsOfBody(node) {
@@ -125,7 +117,6 @@ function stepsOfPipeline(node) {
 
 function stepUnderCombinator(combinator, stepNode) {
   if (combinator === '!|') return makeTaggedInstance(FAIL_TAG, makeQuote([stepOfNode(stepNode)], stepNode));
-  if (combinator === '*') return eachStepOf(stepNode);
   return stepOfNode(stepNode);
 }
 
@@ -150,13 +141,12 @@ function segmentOf(key) {
 
 function callStepOf(node) {
   const fields = [['name', keyword(node.name)]];
-  if (node.args.length > 0) fields.push(['args', Object.freeze(node.args.map(stepOfNode))]);
+  if (node.args.length > 0) fields.push(['modifiers', Object.freeze(node.args.map(stepOfNode))]);
   return record(CALL_TAG, fields);
 }
 
 function bindStepOf(node) {
-  const name = node.key.type === 'BareTypeKeyword' ? makeTagKeyword(node.key.tag) : keyword(node.key.name);
-  const fields = [['name', name]];
+  const fields = [['name', keyword(node.key.name)]];
   if (node.docs !== null) fields.push(['docs', Object.freeze(node.docs.map(stepOfNode))]);
   if (node.body !== null) fields.push(['body', stepOfNode(node.body)]);
   return record(BIND_TAG, fields);
@@ -174,16 +164,16 @@ const STEP_OF_NODE = {
   BooleanLit:      node => node.value,
   NullLit:         () => null,
   Keyword:         node => keyword(node.name),
-  BareTypeKeyword: node => makeTagKeyword(node.tag),
+  TagLit: node => makeTag(node.tag),
   QuoteLit:        quoteOfLiteral,
   DocLit:          docOfNode,
   VecLit:          node => Object.freeze(node.elements.map(stepOfNode)),
   SetLit:          setStepOf,
   MapLit:          node => new Map(entryStepsOf(node.entries)),
-  ErrorLit:        node => makeErrorLiteralStep(new Map(entryStepsOf(node.entries)), node.tag === null ? ERROR_TAG : makeTagKeyword(node.tag)),
-  TaggedLit:       node => record(CONSTRUCT_TAG, [['tag', makeTagKeyword(node.tag)], ['payload', stepOfNode(node.payload)]]),
+  ErrorLit:        node => errorAtRest(node.tag === null ? ERROR_TAG : makeTag(node.tag), new Map(entryStepsOf(node.entries))),
+  TaggedLit:       node => record(CONSTRUCT_TAG, [['tag', makeTag(node.tag)], ['payload', stepOfNode(node.payload)]]),
   Projection:      node => record(PROJ_TAG, [['path', Object.freeze(node.keys.map(segmentOf))]]),
-  OperandCall:     callStepOf,
+  Call:     callStepOf,
   BindStep:        bindStepOf,
   ParenGroup:      node => groupOf(node.pipeline),
   Pipeline:        groupOf
@@ -207,26 +197,27 @@ export function astOfQuote(quote) {
 // ── which values are steps ─────────────────────────────────────
 
 // isStep(value) — the one invariant of a quote: every element is a
-// step. The fail track, the distribute, a declaration and any call
-// stand in the quote itself; inside a container, a field or a payload a
+// step. The fail track, a declaration and any call stand in the quote
+// itself; inside a container, a field or a payload a
 // step is an element step.
 export function isStep(value) {
   return PIPELINE_STEP_TAG_NAMES.has(stepTagOf(value)) || isElementStep(value);
 }
 
 // isElementStep(value) — a literal, a quote, a doc, a container of
-// element steps, an error literal's step, of its tag or of the kind
-// `::error` [D86], a group, or a record, which counts by its tag since
+// element steps, an error literal's step, the error at rest it spells
+// [D210], a group, or a record, which counts by its tag since
 // its constructor already read it back from its own text. A declaration and a command with modifiers
 // stand in a pipeline alone: inside a container the grammar reads each
 // of their words as an element of its own.
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
-  if (isKeyword(value) || isTagKeyword(value) || isDoc(value) || isQuote(value)) return true;
-  if (isErrorValue(value)) return [...value.descriptor.values()].every(isElementStep);
+  if (isKeyword(value) || isTag(value) || isDoc(value) || isQuote(value)) return true;
+  const errorFields = errorFieldsOf(value);
+  if (errorFields !== null) return [...errorFields.values()].every(isElementStep);
   if (isQSet(value)) return value.every(isElementStep);
   const stepTag = stepTagOf(value);
-  if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && value.has('args'));
+  if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && value.has('modifiers'));
   if (isVec(value)) return value.every(isElementStep);
   return isQMap(value) && [...value.values()].every(isElementStep);
 }
@@ -267,22 +258,15 @@ function stepTagOf(step) {
   return step?.[TAG_HEADER_SYMBOL]?.name;
 }
 
+// A quote of declarations alone, the story `source` reads, prints one
+// declaration a line, each after the first led by its pipe, as the
+// catalog writes it [D193].
 function printSteps(steps) {
+  const pipe = steps.length > 1 && steps.every(step => stepTagOf(step) === 'bind') ? '\n| ' : ' | ';
   return steps.map((step, index) => {
-    const stepTag = stepTagOf(step);
-    const lead = index === 0 ? '' : ' ';
-    if (stepTag === 'fail') return `${lead}!| ${printSteps(step.payload)}`;
-    if (stepTag === 'each') return `${lead}* ${printEachBody(step.payload)}`;
-    return (index === 0 ? '' : ' | ') + printStep(step);
+    if (stepTagOf(step) === 'fail') return `${index === 0 ? '' : ' '}!| ${printSteps(step.payload)}`;
+    return (index === 0 ? '' : pipe) + printStep(step);
   }).join('');
-}
-
-// A lone step after `*` prints bare; anything else takes the
-// parentheses that delimit the body, a group inside them keeping its
-// own [D52].
-function printEachBody(quote) {
-  const bare = quote.length === 1 && !WRAPPER_TAG_NAMES.has(stepTagOf(quote[0]));
-  return bare ? printStep(quote[0]) : `(${printSteps(quote)})`;
 }
 
 function printStep(step) {
@@ -296,21 +280,19 @@ function printStep(step) {
     case 'construct': return step.get('tag').literal + printStep(step.get('payload'));
     case 'group':  return `(${printSteps(step.payload)})`;
   }
-  if (isErrorValue(step)) return `${errorHeadOf(step)}!{${printEntries([...step.descriptor].filter(([key, value]) => key !== 'trail' || !isEmptyVector(value)))}}`;
+  const errorFields = errorFieldsOf(step);
+  if (errorFields !== null) return `${isValueClass(step, 'taggedInstance') ? step.tag.literal : ''}!{${printEntries([...errorFields])}}`;
   if (isVec(step)) return `[${step.map(printStep).join(' ')}]`;
   if (isQMap(step)) return `{${printEntries([...step])}}`;
   return printValue(step);
 }
 
-// The tag an error literal writes before its bang, none for the kind of
-// errors [D86].
-function errorHeadOf(step) {
-  return step.tag.name === ERROR_TAG.name ? '' : step.tag.literal;
-}
-
-// The empty vector a literal's `:trail` is unless it writes one [D85].
-function isEmptyVector(value) {
-  return isVec(value) && !isQuote(value) && !isQSet(value) && value.length === 0;
+// The fields of the step of an error literal, a map under `::error`
+// beneath the tag the literal writes before its bang [D86], [D210]; null
+// for any other value.
+function errorFieldsOf(value) {
+  const fields = isValueClass(value, 'taggedInstance') ? value.payload : value;
+  return isQMap(fields) && fields[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name ? fields : null;
 }
 
 function printEntries(entries) {
@@ -318,7 +300,7 @@ function printEntries(entries) {
 }
 
 function printCall(call) {
-  return [call.get('name').name, ...(call.get('args') ?? []).map(printStep)].join(' ');
+  return [call.get('name').name, ...(call.get('modifiers') ?? []).map(printStep)].join(' ');
 }
 
 // A key prints bare when it reads as a bare keyword, behind a colon when

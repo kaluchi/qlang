@@ -4,12 +4,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { elide, elideAnswer } from '../../src/elide.mjs';
+import { elide, alertOf, elideAnswer } from '../../src/elide.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 import { isErrorValue, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
-const LONG = 'a long line of text to leave out for sure';
+// Long enough that the marker standing for it prints shorter than it.
+const LONG = 'a long line of text to leave out for sure, which runs on long enough that its marker prints shorter';
 const readBack = async (value, marker) => evalQuery(`${printValue(value)} | apply ${printValue(marker.get('read'))}`);
 
 describe('elide [D109]', () => {
@@ -48,14 +49,14 @@ describe('elide [D109]', () => {
   });
 
   it('keeps the tag of a map it gives way within, and reads through a tag over an atom', async () => {
-    const tagged = await evalQuery(`::Box {} | ::Box{:s "${LONG}" :n 1}`);
+    const tagged = await evalQuery(`:Box |~~ Box. ~~| | ::Box{:s "${LONG}" :n 1}`);
     expect(elide(tagged, 50)[TAG_HEADER_SYMBOL].name).toBe('Box');
     const wrapped = await evalQuery(`{:b ::Box("${LONG}") :n 1}`);
     expect(await readBack(wrapped, elide(wrapped, 50).get('b'))).toEqual(await evalQuery(`::Box("${LONG}")`));
   });
 
   it('gives way within a vector under a tag and a map beneath a stack of tags', async () => {
-    const vector = await evalQuery(`::Row {} | ::Row["${LONG}" 1]`);
+    const vector = await evalQuery(`:Row |~~ Row. ~~| | ::Row["${LONG}" 1]`);
     const vectorView = elide(vector, 50);
     expect(vectorView[TAG_HEADER_SYMBOL].name).toBe('Row');
     expect(await readBack(vector, vectorView[0])).toBe(LONG);
@@ -69,6 +70,20 @@ describe('elide [D109]', () => {
     const value = await evalQuery(`{:"a key" "${LONG}"}`);
     const marker = elide(value, 30).get('a key');
     expect(await readBack(value, marker)).toBe(LONG);
+  });
+
+  it('gives the largest part way first, the others staying once the print fits', async () => {
+    const value = await evalQuery(`{:a "${'a'.repeat(100)}" :b "${'b'.repeat(300)}" :c "${'c'.repeat(120)}"}`);
+    const view = elide(value, 400);
+    expect(view.get('b')[TAG_HEADER_SYMBOL].name).toBe('elision');
+    expect([view.get('a'), view.get('c')]).toEqual([value.get('a'), value.get('c')]);
+  });
+
+  it('keeps a part whose marker prints no shorter than it, so a budget never lengthens a print [D217]', async () => {
+    const value = await evalQuery('[[] {:n 1} "short"]');
+    expect(elide(value, 3)).toBe(value);
+    const failing = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
+    expect(printValue(elideAnswer(failing, 200)).length).toBeLessThanOrEqual(printValue(elideAnswer(failing)).length);
   });
 });
 
@@ -84,5 +99,66 @@ describe('elideAnswer [D109]', () => {
   it('elides a value that is no error as elide does', () => {
     const forty = Array.from({ length: 40 }, (_, index) => index + 1);
     expect(elideAnswer(forty, 80)).toEqual(elide(forty, 80));
+  });
+
+  it('answers a value whole and an error as its alert when no budget is asked for [D184]', async () => {
+    const forty = Array.from({ length: 40 }, (_, index) => index + 1);
+    expect(elideAnswer(forty)).toBe(forty);
+    const failing = await evalQuery(`[${forty.join(' ')}] | filter ~(nope)`);
+    expect(printValue(elideAnswer(failing))).toBe(printValue(alertOf(failing)));
+  });
+});
+
+// A failure a host prints is an alert [D184]: the subject where the
+// failure arose within an excerpt, a subject it only passed given way
+// whole, an error at rest among its facts a value cut within its excerpt
+// [D210], a value shown once, and the read of every marker continuing the
+// query beneath `!|`.
+describe('alertOf [D184]', () => {
+  const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
+  const continued = (query, marker) => evalQuery(`${query} ${printValue(marker.get('read')).slice(2, -1)}`);
+
+  it('keeps the subject where the failure arose and gives a vector it passed way whole', async () => {
+    const query = `${records} | filter ~(nope)`;
+    const [arose, passed] = alertOf(await evalQuery(query)).descriptor.get('trail');
+    expect(printValue(arose.get('subject'))).toBe('{:n 0}');
+    expect(passed.get('subject').get('size')).toBe(30);
+    expect(deepEqual(await continued(query, passed.get('subject')), await evalQuery(records))).toBe(true);
+  });
+
+  it('cuts a vector where the failure arose to its first elements, the rest read beneath !|', async () => {
+    const many = `[${Array.from({ length: 60 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
+    const query = `${many} | add 1`;
+    const subject = alertOf(await evalQuery(query)).descriptor.get('trail')[0].get('subject');
+    const rest = subject[subject.length - 1];
+    expect(deepEqual(await continued(query, rest), (await evalQuery(many)).slice(subject.length - 1))).toBe(true);
+  });
+
+  it('cuts a long string where the failure arose to its head', async () => {
+    const text = LONG.repeat(10);
+    const query = `"${text}" | add 1`;
+    const marker = alertOf(await evalQuery(query)).descriptor.get('trail')[0].get('subject');
+    expect(text.startsWith(marker.get('head'))).toBe(true);
+    expect(await continued(query, marker)).toBe(text);
+  });
+
+  it('gives a map and a string it passed way whole, and keeps what prints shorter than its marker', async () => {
+    const [, map] = alertOf(await evalQuery(`{:s "${LONG}" :t "${LONG}"} | (add 1)`)).descriptor.get('trail');
+    expect(map.get('subject').get('size')).toBe(2);
+    const text = LONG.repeat(3);
+    const [, string] = alertOf(await evalQuery(`"${text}" | (add 1)`)).descriptor.get('trail');
+    expect(string.get('subject').get('size')).toBe(text.length);
+    const [, kept] = alertOf(await evalQuery('5 | (add "x")')).descriptor.get('trail');
+    expect(kept.get('subject')).toBe(5);
+  });
+
+  it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [D210]', async () => {
+    const query = `${records} | map (/n)`;
+    const alert = alertOf(await evalQuery(query));
+    const inner = alert.descriptor.get('actualValue');
+    expect(isErrorValue(inner)).toBe(false);
+    const marker = inner.payload.get('trail');
+    expect(printValue(marker.get('read'))).toBe('~(!| /actualValue/trail)');
+    expect((await continued(query, marker)).length).toBe(2);
   });
 });

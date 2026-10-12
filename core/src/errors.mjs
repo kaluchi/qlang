@@ -1,396 +1,115 @@
-// qlang runtime errors — the category hierarchy, the throw-site
-// spec registry, and the per-site declaration over both.
+// The errors of the runtime: a refusal of a query, one kind for every
+// place that refuses, whose facts the catalog declares [D172], and the
+// defects of the runtime and of what its host handed, which never reach
+// a query as values.
 //
-// A per-site class names its throw site and nothing else: one site,
-// one class. The factories below build them, and each concrete class
-// lives next to the site that raises it — an operand impl in
-// runtime/*.mjs or a seam of the host. `operand-errors.mjs` narrows the same shape for the
-// sites that check a slot's value-class, where the operand, the
-// position and the expected type spell the diagnostic.
-//
-// The category roots this file declares:
-//
-//   QlangError                       — abstract root
-//     QlangTypeError                 — abstract typeError class
-//     NumericDomainError             — abstract numericDomain class
-//     ArityError                     — captured-arg count the site refuses
-//     QlangInvariantError            — registration-time invariant
-//     EffectLaunderingError          — @-marker laundered past a name
-//
-// Declaration order follows that hierarchy: the roots, then the
-// registry, then the factories over both, then the per-site classes
-// grouped under the root each rides. A factory call evaluates at
-// module load, so a class declared above its root would read the
-// root through the temporal dead zone.
-//
-// The fields every QlangError carries besides its per-site name:
-//   .location       — qlang source position (set by evalNode wrapper
-//                     when the error bubbles past an AST node), so an
-//                     editor squiggles the failing operand.
-//   .context        — the structured bag the throw site hands the
-//                     downstream catch. The root's constructor
-//                     defaults it to `{}` and every factory routes
-//                     through that constructor, so a reader walks it
-//                     unconditionally, as `errorFromQlang` in
-//                     error-convert.mjs does.
+// Every QlangError carries:
+//   .facts    — the facts its site hands, which the lift into an error
+//               value orders as the catalog declares them [D172];
+//   .location — the position in the query of the step that raised it,
+//               set as it bubbles past a node, so an editor marks it.
 
-// ── Category roots ─────────────────────────────────────────────
+import { splitAddress } from './address.mjs';
 
 export class QlangError extends Error {
-  constructor(message, kind, context = {}) {
+  constructor(message, facts = {}) {
     super(message);
     this.name = 'QlangError';
-    this.kind = kind;
-    this.context = context;
+    this.facts = facts;
     this.location = null;
   }
 }
 
-export class QlangTypeError extends QlangError {
-  constructor(message, context = {}) {
-    super(message, 'typeError', context);
-    this.name = 'QlangTypeError';
-  }
-}
-
-// NumericDomainError — the value's type is right and its magnitude
-// is not. `typeKeyword(Infinity)` answers `::number`, so a shape
-// check has nothing to report; what the site refuses is the
-// finite-double domain a qlang Number lives in. A zero divisor is
-// the same refusal reached from the other side, and the reader
-// repairs both the same way: by changing a value's magnitude.
-export class NumericDomainError extends QlangError {
-  constructor(message, context = {}) {
-    super(message, 'numericDomain', context);
-    this.name = 'NumericDomainError';
-  }
-}
-
-export class ArityError extends QlangError {
-  constructor(message, context = {}) {
-    super(message, 'arityError', context);
-    this.name = 'ArityError';
-  }
-}
-
-// QlangInvariantError — abstract root for registration-time invariant
-// violations raised when a runtime operand is constructed with
-// incomplete or malformed metadata. These fire when langRuntime is
-// assembled and signal that a runtime-module author forgot to
-// provide a required meta field.
-// Per-site subclasses live next to the site that enforces the invariant.
+// A defect of the runtime or of what a host handed: the table of
+// implementations, the bootstrap, the root a host's sources declare. It is
+// raised past the fail track to the host, with its message.
 export class QlangInvariantError extends QlangError {
-  constructor(message, context = {}) {
-    super(message, 'invariantError', context);
+  constructor(message, facts = {}) {
+    super(message, facts);
     this.name = 'QlangInvariantError';
   }
 }
 
-// EffectLaunderingError — abstract root for the @-prefix effect-marker
-// invariant: a BindStep declaration whose body references an
-// @-prefixed identifier (the qlang convention for side-effectful host
-// operands like @callers, @refs, @hierarchy) must itself be
-// @-prefixed, so the effect propagates through every alias. Two
-// concrete subclasses fire from two different points:
-//
-//   EffectLaunderingAtBindStepParseError — fired by `evalBindStep` when
-//     a non-@-prefixed name declares a verb whose body calls an
-//     @-prefixed OperandCall or reads an @-prefixed Projection key.
-//
-//   EffectLaunderingAtCallError — fired at runtime by
-//     eval.mjs::evalOperandCall and runtime/verb.mjs::applyVerb when
-//     a non-@-prefixed identifier resolves to an effectful function
-//     value or verb (the laundering path where the binding was
-//     installed via use, handed through a slot, or injected by the
-//     embedding host, so the declaration could not detect the
-//     effect).
-export class EffectLaunderingError extends QlangError {
-  constructor(message, context = {}) {
-    super(message, 'effectLaundering', context);
-    this.name = 'EffectLaunderingError';
-  }
+// The addresses of the errors the runtime declares, one site each, which
+// the catalog pages under the place each names [D158].
+const declaredAddresses = new Set();
+
+export function recordRefusal(address) {
+  if (declaredAddresses.has(address)) throw new BuiltinRefusalDeclaredTwiceError({ address });
+  declaredAddresses.add(address);
 }
 
-// ── Throw-site specs ──────────────────────────────────────────
-//
-// A per-site error carries four structural facts: the `:category`
-// its base names, the `:operand` that raises it, the `:position`
-// that operand checks, and the `:expectedType` it requires. Each is
-// a property of the throw site, so the site records it here and the
-// bootstrap stamps it onto the `::Tag` binding the catalog declares
-// under the same name. The catalog carries what an author writes —
-// the prose and the `~(…)` examples.
-//
-// The facts stay plain strings and numbers at this layer; the lift
-// into Keywords, TagKeywords and Vecs happens at the stamp site in
-// `descriptor-ops.mjs`, which is where the value-class factories
-// live. That keeps `errors.mjs` free of a `types.mjs` import, which
-// would close a cycle.
-
-// A category names who repairs the failure, and only the categories
-// a reader repairs reach the `:throws` of a place — the Vec answers
-// what a query can provoke there, which is the half a reader can act
-// on: a verb's slot, and a step's unresolved name, unreadable text or
-// laundered effect [D64].
-const QUERY_FAULT_CATEGORIES = new Set([
-  'typeError', 'arityError', 'numericDomain', 'unresolvedIdentifier', 'parseError', 'effectLaundering'
-]);
-
-const throwSiteSpecs = new Map();
-
-// One name, one throw site — the registry refuses a second
-// recording the way `PRIMITIVE_REGISTRY.bind` refuses a second
-// binding, and for the same reason: two classes answering to one
-// name share a catalog tag and a stamped spec, so whichever loads
-// second speaks for both.
-export function recordThrowSiteSpec(className, category, facts = {}) {
-  if (throwSiteSpecs.has(className)) {
-    throw new ThrowSiteSpecAlreadyRecordedError({ className });
-  }
-  throwSiteSpecs.set(className, Object.freeze({
-    category,
-    isQueryFault: QUERY_FAULT_CATEGORIES.has(category),
-    ...facts
-  }));
+export function declaredRefusals() {
+  return declaredAddresses.values();
 }
 
-// The `:throws` Vec of a binding, read back off the sites that name
-// it, ordered by the slot each site guards: the subject, then the
-// captured positions in order, then the refusals that guard no one
-// slot — a magnitude, a comparability, an arity. Registry insertion
-// is module-load order, which says nothing about an operand whose
-// sites are spread across modules, so the recorded `:position` is
-// what the reading rests on.
-const SUBJECT_SLOT = -1;
-const NO_SLOT = Number.MAX_SAFE_INTEGER;
-
-function slotOf(spec) {
-  if (spec.position === 'subject') return SUBJECT_SLOT;
-  if (typeof spec.position === 'number') return spec.position;
-  return NO_SLOT;
-}
-
-export function throwSiteTagsRaisedBy(bindingName) {
-  const raised = [];
-  // Every site names the place it guards, a verb, a noun or a step of
-  // the language [D64].
-  for (const [className, spec] of throwSiteSpecs) {
-    if (spec.isQueryFault && spec.operand === bindingName) raised.push([className, spec]);
-  }
-  return raised
-    .sort(([, left], [, right]) => slotOf(left) - slotOf(right))
-    .map(([className]) => className);
-}
-
-export function throwSiteSpecOf(className) {
-  return throwSiteSpecs.get(className);
-}
-
-// The classes of the sites that refuse the value at one place of a verb,
-// the subject or a slot, which the runtime raises when the head it checks
-// refuses there [D72]; each takes the value it refuses.
-const placeRefusalClasses = new Map();
-
-export function recordPlaceRefusal(className, Cls) {
-  placeRefusalClasses.set(className, Cls);
-}
-
-export function isPlaceRefusal(className) {
-  return placeRefusalClasses.has(className);
-}
-
-// placeRefusalOf(operandName, positions) → the class of the refusal the
-// site of `operandName` declares at one of `positions`, or undefined.
-export function placeRefusalOf(operandName, positions) {
-  for (const className of throwSiteTagsRaisedBy(operandName)) {
-    const Cls = placeRefusalClasses.get(className);
-    if (Cls !== undefined && positions.includes(throwSiteSpecs.get(className).position)) return Cls;
-  }
-  return undefined;
-}
-
-export function throwSiteSpecNames() {
-  return throwSiteSpecs.keys();
-}
-
-// ── Per-site declaration ───────────────────────────────────────
-//
-// One throw site, one class. Every per-site class is built by a
-// factory that names it once and records its throw-site spec from
-// the same argument, so the class name, the `.kind` the instance
-// carries and the `:category` the catalog binding gets stamped with
-// cannot drift apart. `operand-errors.mjs` narrows the same shape
-// for the four operand slot checks — subject, modifier, element,
-// comparability — where the operand and the slot spell the wording
-// as well as the spec. The factories here take a message builder
-// instead, and cover every site the slot checks leave: a custom
-// diagnostic, an arity refusal, a magnitude outside the
-// finite-double domain, a runtime invariant, an @-marker laundered
-// past a name, the primitive registry, the bootstrap, a source the host cannot read.
-
-// `name` is a non-writable own property of a class object, so a
-// class built inside a factory reports the factory's local binding
-// until redefined. Every per-site class is redefined to its declared
-// name, which is what `constructor.name`, a stack frame, and the
-// `::Tag` the catalog binds all read.
-export function brand(Cls, className) {
-  Object.defineProperty(Cls, 'name', { value: className });
+// A class answers the last name of its address as `name`, which a stack
+// frame reads, and carries the address, the tag of the error [D158].
+export function brand(Cls, address) {
+  Object.defineProperty(Cls, 'name', { value: splitAddress(address)[1] });
+  Object.defineProperty(Cls.prototype, 'address', { value: address });
   return Cls;
 }
 
-// Shared body of every factory whose base already stamps the kind
-// and keeps the context bag: the base takes `(message, context)`,
-// the per-site class adds its identity.
-function declareUnder(BaseError, category, className, buildMessage, facts) {
-  recordThrowSiteSpec(className, category, facts);
-  const Cls = class extends BaseError {
-    constructor(context = {}) {
-      super(buildMessage(context), context);
-      this.name = className;
-    }
-  };
-  return brand(Cls, className);
-}
-
-// declarePerSiteError — a site whose category names no `instanceof`
-// family of its own. The class extends `QlangError` directly and
-// stamps `category` as its kind.
-export function declarePerSiteError(className, category, buildMessage, facts = {}) {
-  recordThrowSiteSpec(className, category, facts);
+// declareRefusal(address) → the class of the refusal of one place, whose
+// instances hand the facts of the site; the address is its tag and the
+// name of its page, the procedure, and its message [D158], [D172].
+export function declareRefusal(address) {
+  recordRefusal(address);
   const Cls = class extends QlangError {
-    constructor(context = {}) {
-      super(buildMessage(context), category, context);
-      this.name = className;
+    constructor(facts = {}) {
+      super(`::${address}`, facts);
+      this.name = splitAddress(address)[1];
     }
   };
-  return brand(Cls, className);
+  return brand(Cls, address);
 }
 
-// declareShapeError — a site whose diagnostic wording the operand
-// slot-check factories in `operand-errors.mjs` cannot spell, because
-// what it refuses is a shape rather than one slot's value-class. The
-// class still carries structured context and a unique site name.
-export function declareShapeError(className, buildMessage, facts = {}) {
-  return declareUnder(QlangTypeError, 'typeError', className, buildMessage, facts);
+// declareInvariantError(address, buildMessage) → the class of a defect,
+// its message built from the facts the site hands.
+export function declareInvariantError(address, buildMessage) {
+  recordRefusal(address);
+  const Cls = class extends QlangInvariantError {
+    constructor(facts = {}) {
+      super(buildMessage(facts), facts);
+      this.name = splitAddress(address)[1];
+    }
+  };
+  return brand(Cls, address);
 }
 
-// declareNumericDomainError — a site whose subject and modifiers
-// carry the right value-class and whose result leaves the
-// finite-double domain a qlang Number lives in. Extends
-// `NumericDomainError` so `.kind` reads `numericDomain` and the
-// tag-binding's `:category` matches — a shape category would claim
-// a type violation the values do not have, since
-// `typeKeyword(Infinity)` answers `::number`.
-export function declareNumericDomainError(className, buildMessage, facts = {}) {
-  return declareUnder(NumericDomainError, 'numericDomain', className, buildMessage, facts);
-}
-
-// declareArityError — a site whose failure is the captured-arg
-// count: too few, too many, or an unsupported specific count.
-// Extends ArityError so `.kind === 'arityError'` and `instanceof
-// ArityError` both match, while the concrete per-site class still
-// identifies the throw location uniquely.
-export function declareArityError(className, buildMessage, facts = {}) {
-  return declareUnder(ArityError, 'arityError', className, buildMessage, facts);
-}
-
-// declareInvariantError — a registration-time or render-time
-// invariant the runtime itself holds. Extends `QlangInvariantError`
-// so `evalNode`'s rethrow guard keeps letting it past the deflect
-// machinery: an invariant violation is a defect in the runtime or in
-// what a host installed, never a value the fail track should carry.
-export function declareInvariantError(className, buildMessage, facts = {}) {
-  return declareUnder(QlangInvariantError, 'invariantError', className, buildMessage, facts);
-}
-
-// declareEffectLaunderingError — a site that caught an @-prefixed
-// effect reaching a name that does not carry the marker. Extends
-// `EffectLaunderingError` so a host can catch the whole family.
-export function declareEffectLaunderingError(className, buildMessage, facts = {}) {
-  return declareUnder(EffectLaunderingError, 'effectLaundering', className, buildMessage, facts);
-}
-
-// declareForeignError — a failure of the embedding rather than of
-// the query: the host could not hand the runtime something it asked
-// for. The class extends `Error`, so the deflect combinators never
-// see it and it rides out to the host that can act on it, while the
-// spec it records gives its `::Tag` the same `spec` reading every
-// other per-site error answers with.
-export function declareForeignError(className, buildMessage, facts = {}) {
-  recordThrowSiteSpec(className, 'foreignError', facts);
+// declareForeignError(address, buildMessage) → the class of a failure of
+// the embedding, which the host could not hand the runtime: it extends
+// `Error`, so the fail track never sees it and it rides out to the host.
+export function declareForeignError(address, buildMessage) {
+  recordRefusal(address);
   const Cls = class extends Error {
-    constructor(context = {}) {
-      super(buildMessage(context));
-      this.name = className;
-      this.context = context;
+    constructor(facts = {}) {
+      super(buildMessage(facts));
+      this.name = splitAddress(address)[1];
+      this.facts = facts;
     }
   };
-  return brand(Cls, className);
+  return brand(Cls, address);
 }
 
-// ── Per-site classes under QlangInvariantError ─────────────────
+// First among the classes, which `recordRefusal` reaches for on an
+// address declared twice.
+export const BuiltinRefusalDeclaredTwiceError = declareInvariantError('builtin/RefusalDeclaredTwiceError',
+  ({ address }) => `${address} is declared by two sites of the runtime, and one page names it`);
 
-// First among the per-site classes: `recordThrowSiteSpec` reaches
-// for it on a repeated name, and every later declaration in the tree
-// records after this one resolves.
-export const ThrowSiteSpecAlreadyRecordedError = declareInvariantError(
-  'ThrowSiteSpecAlreadyRecordedError',
-  ({ className }) => `${className} records a second throw-site spec; two classes under ` +
-    'one name share a catalog tag and a stamped spec',
-  { operand: '::builtin' }
-);
+export const CallUnknownNameError = declareRefusal('call/UnknownNameError');
 
-// ── Per-site classes under QlangError ──────────────────────────
+// A name with a path that no declaration names [D62], [D153].
+export const CallUnknownAddressError = declareRefusal('call/UnknownAddressError');
 
-export const UnresolvedIdentifierError = declarePerSiteError(
-  'UnresolvedIdentifierError', 'unresolvedIdentifier',
-  ({ identifierName }) => `unresolved identifier: ${identifierName}`,
-  { operand: '::call' }
-);
+// One more nested frame of evaluation past the budget, a runaway in the
+// recursion of the query (`state.mjs`).
+export const CallEvaluationDepthExceededError = declareRefusal('call/EvaluationDepthExceededError');
 
-// UnresolvedAddressError — a name with a path names no verb that lives
-// on the noun of its path [D62]. `context.address` is the address as a
-// tag name, written short.
-export const UnresolvedAddressError = declarePerSiteError(
-  'UnresolvedAddressError', 'unresolvedIdentifier',
-  ({ address }) => `no verb lives at the address ${address.literal}`,
-  { operand: '::call' }
-);
+// A declaration of a name an earlier step of its scope declared [D44],
+// [D71], or of an address the root holds [D153].
+export const BindNameDeclaredTwiceError = declareRefusal('bind/NameDeclaredTwiceError');
 
-// EvaluationDepthExceededError — `nestState` (state.mjs) refused one
-// more nested evaluation frame past `EVAL_DEPTH_LIMIT`. Kind
-// `resourceLimit`: the runaway sits in the query's recursion.
-// `context.depth` is the refused frame, `context.limit` the budget.
-export const EvaluationDepthExceededError = declarePerSiteError(
-  'EvaluationDepthExceededError', 'resourceLimit',
-  ({ depth, limit }) => `evaluation depth ${depth} exceeds the budget of ${limit} nested frames`,
-  { operand: '::call' }
-);
-
-// BindNameDeclaredTwiceError — a declaration of a name an earlier step
-// of its scope declared [D44], [D71]: `evalBindStep` refuses it where it
-// stands, and the head of a verb, which never runs, where the verb is
-// made. `context.name` is the env key the declarations share.
-export const BindNameDeclaredTwiceError = declareShapeError('BindNameDeclaredTwiceError',
-  ({ name }) => `${name} is declared once in a scope, and this declaration declares it again`,
-  { operand: '::bind' }
-);
-
-// ── Per-site classes under EffectLaunderingError ───────────────
-
-export const EffectLaunderingAtBindStepParseError = declareEffectLaunderingError(
-  'EffectLaunderingAtBindStepParseError',
-  ({ bindingName, effectfulName }) =>
-    `binding '${bindingName}' has an effectful body (references '${effectfulName}') ` +
-    `but its name is not @-prefixed; rename to '@${bindingName}' or remove the effectful reference`,
-  { operand: '::bind' }
-);
-
-export const EffectLaunderingAtCallError = declareEffectLaunderingError(
-  'EffectLaunderingAtCallError',
-  ({ bindingName, effectfulName }) =>
-    `identifier '${bindingName}' resolved to effectful function '${effectfulName}' ` +
-    `but '${bindingName}' is not @-prefixed; the binding was laundered through env, ` +
-    `use, or a slot — rename to '@${bindingName}' to mark the effect`,
-  { operand: '::call' }
-);
+// A name whose code calls a name marked `@` carries the mark itself [D69].
+export const BindEffectMarkMissingError = declareRefusal('bind/EffectMarkMissingError');

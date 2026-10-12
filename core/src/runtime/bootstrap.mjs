@@ -1,33 +1,36 @@
-// The locator of the catalog: `#qlang/<name>` resolves through the
-// `imports` field of `package.json` on Node and through the import map in
-// a browser, read by the loader the condition of `#qlang/load-source`
-// picks.
+// The sources of the language and the locator that reads them:
+// `#qlang/<name>` resolves through the `imports` field of `package.json`
+// on Node and through the import map in a browser, read by the loader the
+// condition of `#qlang/load-source` picks.
 
 import { loadSource } from '#qlang/load-source';
 import { declareInvariantError } from '../errors.mjs';
 
-export const BootstrapRootMissingError = declareInvariantError(
-  'BootstrapRootMissingError',
-  () => "qlang bootstrap: '#qlang/core' must resolve to the catalog root module — " +
-    'add an entry to package.json#imports or the import map',
-  { operand: '::builtin' }
-);
+// The sources the language declares its root by, in order [D153], each
+// the source of one noun, its page and what is declared under it [D189]:
+// `qlang` the topic of the language, its first page and chapters, and
+// each source after it a kind.
+export const LANGUAGE_SOURCES = Object.freeze([
+  'qlang',
+  'qlang/builtin', 'qlang/tag', 'qlang/null', 'qlang/boolean', 'qlang/number', 'qlang/string',
+  'qlang/keyword', 'qlang/vec', 'qlang/set', 'qlang/map', 'qlang/quote', 'qlang/doc',
+  'qlang/binding', 'qlang/error', 'qlang/elision', 'qlang/desc',
+  'qlang/link', 'qlang/snippet', 'qlang/law', 'qlang/holds',
+  'qlang/explanation', 'qlang/tagged', 'qlang/construct', 'qlang/call', 'qlang/proj', 'qlang/bind',
+  'qlang/fail', 'qlang/group', 'qlang/any'
+]);
 
-// A catalog root that answers an error left a module of the catalog
-// unloaded.
-export const BootstrapCatalogNotLoadedError = declareInvariantError(
-  'BootstrapCatalogNotLoadedError',
-  ({ tagName }) => `qlang bootstrap: the catalog root answered ${tagName}; the modules ` +
-    'of the catalog load through the sources the locator resolves for qlang/core and for ' +
-    'each namespace it uses',
-  { operand: '::builtin' }
-);
+// A source of the language the locator does not serve leaves the root
+// without the declarations it holds.
+export const BuiltinBootstrapSourceMissingError = declareInvariantError(
+  'builtin/BootstrapSourceMissingError',
+  ({ uri }) => `qlang bootstrap: '#${uri}' must resolve to a source of the language — ` +
+    'add an entry to package.json#imports or the import map');
 
-// platformLocator(namespaceName) → Promise<{ source } | null>: the
-// source of `:qlang/number` read from `#qlang/number` through the
-// `imports` field or the import map, null for a name neither maps, which
-// `use` refuses with `UseNamespaceNotFoundError`.
-export async function platformLocator(namespaceName) {
-  const source = await loadSource('#' + namespaceName);
+// platformLocator(uri) → Promise<{ source } | null>: the source `qlang/number`
+// read from `#qlang/number` through the `imports` field or the import map,
+// null for a name neither maps.
+export async function platformLocator(uri) {
+  const source = await loadSource('#' + uri);
   return source === null ? null : { source };
 }

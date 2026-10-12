@@ -1,29 +1,18 @@
-// AST traversal primitives — `astChildrenOf` plus the toolkit of
-// position-query, identifier-occurrence-search, and binding-
-// visibility-scope walkers that build on it.
-//
-// `astChildrenOf` is the single source of truth for the qlang AST
-// shape: parse.mjs's post-pass decoration (`attachAstParents`,
-// `assignAstNodeIds`), editor hover (`findAstNodeAtOffset`),
-// autocomplete (`bindingNamesVisibleAt`), and refactor lookups
-// (`findIdentifierOccurrences`) all import from here instead of
-// duplicating a `switch (node.type)` walk. A new AST node type in
-// `grammar.peggy` extends both this file and `quote.mjs`; every
-// downstream walker inherits the knowledge.
+// The walks of the parser's tree over the children `astChildrenOf` names,
+// which the decoration of a parse, the language server and the editor
+// read: the node at an offset, the occurrences of a name, and the names
+// visible at a cursor.
 
-import { TAG_BINDING_PREFIX, isTagBindingName, tagBindingKey, canonicalTagName } from './env-keys.mjs';
+import { splitAddress } from './address.mjs';
 
-// Namespace alias values used by `bindingNamesVisibleAt` to select
-// which BindStep declaration shapes count toward the result
-// Set. Kept on the export surface so callers (LSP completion,
-// editor autocomplete) pass a named constant at every call site.
-export const VALUE_NAMESPACE = 'value';
-export const TAG_NAMESPACE   = 'tag';
+// The two spellings of a name in source, which the editor passes to say
+// which occurrences and declarations count: called by its name, `count`,
+// or written as a tag, the address of a node, `::Box` [D152].
+export const CALL_SPELLING = 'call';
+export const TAG_SPELLING   = 'tag';
 
-// astChildrenOf(node) — yields the direct semantic children of an
-// AST node. "Semantic" excludes plumbing like the {combinator, step}
-// wrapper inside Pipeline.steps[i] (we yield the step itself, not
-// the wrapper). Returns an empty array for leaf node types.
+// astChildrenOf(node) → the children of a node that hold meaning, the
+// step of each unit of a pipeline among them, none for a leaf.
 export function astChildrenOf(node) {
   if (!node || typeof node !== 'object' || !('type' in node)) return [];
   const out = [];
@@ -49,7 +38,7 @@ export function astChildrenOf(node) {
       out.push(node.key);
       out.push(node.value);
       break;
-    case 'OperandCall':
+    case 'Call':
       for (const arg of node.args) out.push(arg);
       break;
     case 'TaggedLit':
@@ -70,86 +59,86 @@ export function astChildrenOf(node) {
       for (const segment of node.segments) if (typeof segment !== 'string') out.push(segment);
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // Projection, BareTypeKeyword (tag-namespace identifier) have no
+    // Projection, TagLit (a tag, the address of a node) have no
     // semantic children.
   }
   return out;
 }
 
-// isPureLiteralAst(node) — recursive purity predicate over an AST
-// subtree. Returns true when evaluation of the subtree depends on
-// neither the surrounding pipeValue nor env nor any effect, which is
-// what the head of a verb holds [D67], a group
-// around one such step among them, the payload of `::Depth(3)`; a
-// subtree with an OperandCall, a Projection or a Pipeline computes.
-export function isPureLiteralAst(node) {
-  switch (node.type) {
-    case 'NumberLit':
-    case 'StringLit':
-    case 'BooleanLit':
-    case 'NullLit':
-    case 'Keyword':
-    case 'QuoteLit':
-    case 'DocLit':
-    case 'BareTypeKeyword':
-      return true;
-    case 'VecLit':
-    case 'SetLit':
-      return node.elements.every(isPureLiteralAst);
-    case 'MapLit':
-    case 'ErrorLit':
-      return node.entries.every(e => isPureLiteralAst(e.value));
-    case 'TaggedLit':
-      return isPureLiteralAst(node.payload);
-    case 'ParenGroup':
-      return isPureLiteralAst(node.pipeline);
-    default:
-      return false;
-  }
+// The literals of no parts, which answer themselves whatever the subject,
+// and the literals whose parts run on the subject, `[/a 1]` reading it
+// where `[1 2]` does not.
+const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit']);
+const LITERALS_OF_PARTS = new Set([
+  'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry', 'TaggedLit', 'ParenGroup', 'DocLit', 'DocTaggedQuote'
+]);
+
+// readsItsSubject(node) → whether a query reads the subject it is handed,
+// which a host that lifts the subject from a stream waits on only then
+// [D215]: a pipeline where its first step that declares nothing reads
+// it, or where a declaration before that step runs a body that does; a
+// literal of no parts never, nor a quote, whose code does not run; a
+// literal of parts where one of its parts reads it; a projection, a call,
+// a declaration, which answers its subject, and a node this walk does not
+// name always.
+export function readsItsSubject(node) {
+  if (node.type === 'Pipeline') return stepsReadTheirSubject([node.steps[0], ...node.steps.slice(1).map(unit => unit.step)]);
+  if (node.type === 'QuoteLit' || LITERALS_OF_NO_PARTS.has(node.type)) return false;
+  if (LITERALS_OF_PARTS.has(node.type)) return astChildrenOf(node).some(readsItsSubject);
+  return true;
 }
 
-// walkAst(node, visit) — pre-order recursive descent over the AST.
-//   visit(node, parent) — return false to skip descending into the
-//   node's children. Any other return value (or undefined) continues
-//   normally.
+function stepsReadTheirSubject(steps) {
+  for (const step of steps) {
+    if (step.type !== 'BindStep') return readsItsSubject(step);
+    if (astChildrenOf(step).some(readsItsSubject)) return true;
+  }
+  return true;
+}
+
+// walkAst(node, visit) → a walk of the tree, each node before its
+// children, which it skips for a node `visit(node, parent)` answers false
+// for.
 export function walkAst(node, visit, parent = null) {
   if (visit(node, parent) === false) return;
   for (const child of astChildrenOf(node)) walkAst(child, visit, node);
 }
 
-// assignAstNodeIds(root) — counter-based pre-order id assignment
-// over the entire AST. Mutates the tree, returns nothing. Each node
-// receives a `.id` (number, monotonic from 0 within this call).
-// Used by parse.mjs as part of the post-parse decoration pass.
+// assignAstNodeIds(root) → each node its `.id`, counted from 0 in the
+// order of the walk.
 export function assignAstNodeIds(root) {
   let next = 0;
   walkAst(root, (n) => { n.id = next++; });
 }
 
-// attachAstParents(root) — sets `.parent` on every non-root node.
-// Mutates the tree, returns nothing. The root receives `.parent = null`.
+// attachAstParents(root) → each node its `.parent`, the root's null.
 export function attachAstParents(root) {
   walkAst(root, (n, parent) => { n.parent = parent; });
 }
 
-// moduleUriOf(node) — the uri of the source a node was read from,
-// which the root of its tree carries: a module's name, a session
+// originOf(node) — the uri of the source a node was read from, which
+// the root of its tree carries: a source of the root's name, a session
 // cell's, `inline` for a query, `quote` for code assembled from data.
-export function moduleUriOf(node) {
+export function originOf(node) {
   let root = node;
   while (root.parent) root = root.parent;
   return root.uri;
 }
 
-// declaredNameOf(bindStep) — the env key a declaration writes: the
-// name of a keyword, a tag's under the `::` prefix.
+// declaredNameOf(bindStep) — the name a declaration writes, its keyword's
+// [D152].
 export function declaredNameOf(bindStep) {
-  return bindStep.key.type === 'BareTypeKeyword' ? tagBindingKey(bindStep.key.tag) : bindStep.key.name;
+  return bindStep.key.name;
+}
+
+// declaresKind(bindStep) — whether a declaration declares a label, a name
+// by its page alone, `:Box |~~ A parcel. ~~|` [D168].
+export function declaresKind(bindStep) {
+  return bindStep.body === null;
 }
 
 // The declarations of a pipeline that repeat a name an earlier step of
-// the same scope declared: the steps share one env but a step joined by
-// `*`, which runs in a fork of each element [D71].
+// the same scope declared, the steps sharing one env [D71].
 const REPEATED_DECLARATIONS_OF_PIPELINE = new WeakMap();
 
 function repeatedDeclarationsOf(pipeline) {
@@ -158,8 +147,8 @@ function repeatedDeclarationsOf(pipeline) {
   repeated = new Set();
   const declared = new Set();
   pipeline.steps.forEach((unit, index) => {
-    const [combinator, step] = index === 0 ? [pipeline.leadingCombinator, unit] : [unit.combinator, unit.step];
-    if (step.type !== 'BindStep' || combinator === '*') return;
+    const step = index === 0 ? unit : unit.step;
+    if (step.type !== 'BindStep') return;
     const name = declaredNameOf(step);
     if (declared.has(name)) repeated.add(step);
     declared.add(name);
@@ -174,57 +163,31 @@ export function repeatsDeclarationInScope(bindStep) {
   return bindStep.parent?.type === 'Pipeline' && repeatedDeclarationsOf(bindStep.parent).has(bindStep);
 }
 
-// findAstNodeAtOffset(ast, offset) — returns the narrowest-spanning
-// AST node whose source range contains the given UTF-16 offset, or
-// null if no node contains the offset. The narrowest-wins tiebreaker
-// matches editor expectations for hover and goto-definition: clicking
-// inside `filter ~(gt 2)` lands on the inner `gt 2`, not the outer
-// `filter ~(…)` that encloses it.
+// findAstNodeAtOffset(ast, offset) → the narrowest node whose span holds
+// the UTF-16 offset, a cursor inside `filter ~(gt 2)` landing on `gt 2`,
+// or null.
 export function findAstNodeAtOffset(ast, offset) {
   let narrowest = null;
   walkAst(ast, (node) => {
     if (!node.location) return;
     const { start, end } = node.location;
-    // Parent-first traversal: a containing node visited after
-    // another one sits nested inside it, so the last match wins.
+    // A node is walked after the nodes that hold it, so the last wins.
     if (start.offset <= offset && offset < end.offset) narrowest = node;
   });
   return narrowest;
 }
 
-// findIdentifierOccurrences(ast, name) — returns every AST node
-// that names the given qlang identifier. Supports both namespaces:
-//
-//   * Value-namespace lookup (`name` is a plain identifier like
-//     `'foo'`):
-//       - OperandCall whose .name matches (read site or bare ident)
-//       - BindStep whose Keyword key names the identifier
-//         (declaration site — `:foo body` form)
-//       - Projection whose .keys contains the name (Map field read)
-//
-//   * Type-namespace lookup (`name` carries the `::` prefix, e.g.
-//     `'::Tag'`):
-//       - TaggedLit whose .tag matches (constructor invocation), and
-//         the ErrorLit that writes the tag before its bang [D86]
-//       - BareTypeKeyword whose .tag matches (identifier reference)
-//       - BindStep whose BareTypeKeyword key names the identifier
-//         (declaration site — `::Tag body`)
-//
-// Keyword literals (`:foo` value-position) stay out of the
-// result set: a `:foo` literal in value position is a keyword
-// value, addressable by `eq :foo` predicates but separate from
-// identifier resolution.
-export function findIdentifierOccurrences(ast, name) {
-  if (isTagBindingName(name)) {
-    return findTagNamespaceOccurrences(ast, name.slice(TAG_BINDING_PREFIX.length));
-  }
+// findIdentifierOccurrences(ast, name, spelling?) → the nodes that name
+// it, a keyword written as a value none of them: called, a call of the
+// name, its declaration and a projection that reads it as a key; written
+// as a tag [D152], its declaration, a tagged or an error literal that
+// writes it [D86] and the tag name alone.
+export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
+  if (spelling === TAG_SPELLING) return findTagOccurrences(ast, name);
   const occurrences = [];
   walkAst(ast, (node) => {
-    if (node.type === 'OperandCall' && node.name === name) occurrences.push(node);
-    else if (node.type === 'BindStep'
-             && node.key.type === 'Keyword' && node.key.name === name) {
-      occurrences.push(node);
-    }
+    if (node.type === 'Call' && splitAddress(node.name)[1] === name) occurrences.push(node);
+    else if (node.type === 'BindStep' && splitAddress(node.key.name)[1] === name) occurrences.push(node);
     else if (node.type === 'Projection' && node.keys.includes(name)) occurrences.push(node);
   });
   return occurrences;
@@ -237,78 +200,33 @@ export function writesTag(node) {
   return node.type === 'TaggedLit' || (node.type === 'ErrorLit' && node.tag !== null);
 }
 
-function findTagNamespaceOccurrences(ast, tagName) {
+function findTagOccurrences(ast, tagName) {
   const occurrences = [];
   walkAst(ast, (node) => {
-    if (writesTag(node) && canonicalTagName(node.tag) === tagName) occurrences.push(node);
-    else if (node.type === 'BareTypeKeyword' && canonicalTagName(node.tag) === tagName) occurrences.push(node);
-    else if (node.type === 'BindStep'
-             && node.key.type === 'BareTypeKeyword' && canonicalTagName(node.key.tag) === tagName) {
-      occurrences.push(node);
-    }
+    if (writesTag(node) && node.tag === tagName) occurrences.push(node);
+    else if (node.type === 'TagLit' && node.tag === tagName) occurrences.push(node);
+    else if (node.type === 'BindStep' && declaresKind(node) && node.key.name === tagName) occurrences.push(node);
   });
   return occurrences;
 }
 
-// Fork-isolating AST node types — those whose evaluation creates a
-// new fork via fork.mjs, so BindStep bindings declared inside
-// them stay local to the fork:
-//
-//   ParenGroup — inner pipeline runs in its own fork
-//   QuoteLit — its pipeline runs where the quote is applied, under
-//              the fork rule of `apply`
-//   VecLit, SetLit — each element is its own fork
-//   MapLit — each entry's value is its own fork
-//   MapEntry — accessor for the value-fork; isolates value from
-//              the key and from sibling entries
-//
-// Pipeline steps run sequentially in a shared env: every BindStep
-// in step k shadows visibly through step k+1 onwards, so a
-// Pipeline node propagates env writes through its successor steps.
+// The nodes whose declarations stay inside them [D84]: a group, a quote,
+// each word of a literal and each value of a map; the steps of a
+// pipeline share their scope, each seeing the declarations before it.
 export const FORK_ISOLATING_AST_TYPES = new Set([
   'ParenGroup', 'QuoteLit', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
 ]);
 
-// bindingNamesVisibleAt(ast, offset, namespace?) — returns the Set
-// of binding names lexically visible at the given UTF-16 offset.
-// This is the autocomplete primitive: "what identifiers can the
-// user type at this cursor position without an unresolved-
-// identifier error?"
-//
-// `namespace` picks which declaration shapes contribute:
-//   - `'value'` (default) — BindStep with a Keyword key (`:name body`).
-//     Names land bare (`'foo'`).
-//   - `'tag'` — BindStep with a BareTypeKeyword key (`::Tag body`).
-//     Names land with the `::Tag` prefix so the Set is directly
-//     comparable with tag-namespace identifiers from env (which
-//     all carry the `::` prefix as part of their env key).
-//
-// Visibility rules, mirroring the runtime fork semantics:
-//   1. The declaring node must already have been completed at the
-//      cursor (`location.end.offset <= offset`).
-//   2. The declaration must NOT be inside a fork-isolating AST
-//      node that has been crossed before reaching the cursor.
-//
-// Cursor containment uses the closed interval [start, end] (not
-// half-open) so that a cursor at the end of a fork still sees its
-// bindings.
-export function bindingNamesVisibleAt(ast, offset, namespace = VALUE_NAMESPACE) {
+// bindingNamesVisibleAt(ast, offset, spelling?) → the names a step may
+// call at the UTF-16 offset: the declarations that end at or before it,
+// one inside a node whose declarations stay inside it only for an offset
+// within the part of that node that holds it, its end included, and
+// under the spelling of a tag the labels alone [D168].
+export function bindingNamesVisibleAt(ast, offset, spelling = CALL_SPELLING) {
   const visible = new Set();
   walkAst(ast, (node) => {
-    let bindingName;
-    if (namespace === TAG_NAMESPACE) {
-      if (node.type === 'BindStep' && node.key.type === 'BareTypeKeyword') {
-        bindingName = tagBindingKey(node.key.tag);
-      } else {
-        return;
-      }
-    } else {
-      if (node.type === 'BindStep' && node.key.type === 'Keyword') {
-        bindingName = node.key.name;
-      } else {
-        return;
-      }
-    }
+    if (node.type !== 'BindStep' || (spelling === TAG_SPELLING && !declaresKind(node))) return;
+    const bindingName = node.key.name;
     if (!node.location || node.location.end.offset > offset) return;
     let current = node;
     let parent = current.parent;
@@ -323,14 +241,14 @@ export function bindingNamesVisibleAt(ast, offset, namespace = VALUE_NAMESPACE) 
       current = parent;
       parent = current.parent;
     }
-    visible.add(bindingName);
+    visible.add(spelling === TAG_SPELLING ? bindingName : splitAddress(bindingName)[1]);
   });
   return visible;
 }
 
-// locationToQlangMap(loc) → the qlang view of a peggy location:
-// `{:start {:offset :line :column} :end {…}}`, or null for none. The
-// `:location` of a parse error and of a declaration reads through it.
+// locationToQlangMap(loc) → the qlang view of a span,
+// `{:start {:offset :line :column} :end {…}}`, or null for none, which
+// the `:location` of a parse error and of a declaration reads through.
 export function locationToQlangMap(loc) {
   if (!loc) return null;
   return Object.freeze(new Map([['start', positionToQlangMap(loc.start)], ['end', positionToQlangMap(loc.end)]]));
@@ -339,4 +257,3 @@ export function locationToQlangMap(loc) {
 function positionToQlangMap(pos) {
   return Object.freeze(new Map([['offset', pos.offset], ['line', pos.line], ['column', pos.column]]));
 }
-

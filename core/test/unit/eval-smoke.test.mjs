@@ -100,27 +100,17 @@ describe('eval — filter', () => {
   });
 });
 
-describe('eval — distribute', () => {
-  it('[1 2 3] * add(1) → [2 3 4]', async () => {
-    expect(await evalQuery('[1 2 3] * add 1')).toEqual([2, 3, 4]);
-  });
-
-  it('[1 2 3] * mul(10) → [10 20 30]', async () => {
-    expect(await evalQuery('[1 2 3] * mul 10')).toEqual([10, 20, 30]);
-  });
-});
-
 describe('eval — Map and projection', () => {
   it('projects a Map field', async () => {
     expect(await evalQuery('{:name "Alice" :age 30} | /name')).toBe('Alice');
   });
 
-  it('strict-projection: missing key raises ProjectionKeyNotInMapError', async () => {
+  it('strict-projection: missing key raises ProjKeyNotInMapError', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const result = await evalQuery('{:name "Alice"} | /age');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.tag.name).toBe('ProjectionKeyNotInMapError');
-    expect(result.descriptor.get('key')).toBe('age');
+    expect(result.tag.name).toBe('proj/KeyNotInMapError');
+    expect(result.descriptor.get('key').name).toBe('age');
   });
 
   it('chains nested projection', async () => {
@@ -129,8 +119,8 @@ describe('eval — Map and projection', () => {
 });
 
 describe('eval — full application of mul', () => {
-  it('mul(/price, /qty) full form', async () => {
-    expect(await evalQuery('{:price 100 :qty 3} | mul /price /qty')).toBe(300);
+  it('mulOf multiplies two fields of one record', async () => {
+    expect(await evalQuery('{:price 100 :qty 3} | mulOf /price /qty')).toBe(300);
   });
 });
 
@@ -152,11 +142,11 @@ describe('eval — freeze', () => {
 
 describe('eval — BindStep declaration', () => {
   it('binds and runs a verb', async () => {
-    expect(await evalQuery(':double ::verb~(mul 2) | 10 | double')).toBe(20);
+    expect(await evalQuery(':any/double ~(mul 2) | 10 | double')).toBe(20);
   });
 });
 
-describe('eval — env operand', () => {
+describe('eval — env', () => {
   it('env returns a Map', async () => {
     const envResult = await evalQuery('env');
     expect(envResult).toBeInstanceOf(Map);
@@ -167,33 +157,12 @@ describe('eval — env operand', () => {
   });
 });
 
-describe('eval — use', () => {
-  it('use installs constants from a Map', async () => {
-    expect(await evalQuery('{:taxRate 0.07} | use | taxRate')).toBe(0.07);
-  });
-});
-
 describe('eval.mjs unknown node type', () => {
   it('throws on unknown AST node', async () => {
     const fakeNode = { type: 'BogusNode' };
     const runtimeEnv = await langRuntime();
     const state = rootState(null, runtimeEnv);
     await expect(evalAst(fakeNode, state)).rejects.toThrow(/unknown AST node type/);
-  });
-});
-
-describe('eval.mjs unknown combinator', () => {
-  it('throws on a hand-built unknown combinator', async () => {
-    const ast = {
-      type: 'Pipeline',
-      steps: [
-        { type: 'NumberLit', value: 1 },
-        { combinator: '?', step: { type: 'NumberLit', value: 2 } }
-      ]
-    };
-    const runtimeEnv = await langRuntime();
-    const state = rootState(null, runtimeEnv);
-    await expect(evalAst(ast, state)).rejects.toThrow(/unknown combinator/);
   });
 });
 
@@ -225,7 +194,7 @@ describe('quoted keywords — eval-level identity and Map interop', () => {
     expect(await evalQuery('{:"foo" 1} | keys | has :foo')).toBe(true);
   });
 
-  it('json operand emits arbitrary JSON object keys via quoted Map keys', async () => {
+  it('json emits arbitrary JSON object keys via quoted Map keys', async () => {
     const jsonOutput = await evalQuery('{:"foo bar" 1 :"$ref" "x"} | json');
     expect(jsonOutput).toContain('"foo bar"');
     expect(jsonOutput).toContain('"$ref"');
@@ -245,31 +214,60 @@ describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
   });
 });
 
+describe('the answer of a word of the host', async () => {
+  it('waits on an answer that has a then, a thenable and a promise of another realm', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const vm = await import('node:vm');
+    const s = await createSession({
+      sources: [{
+        uri: 'tests/later',
+        source: ':number/later ::builtin{}\n:number/elsewhere ::builtin{}',
+        impls: {
+          'number/later': n => ({ then(resolve) { resolve(n + 1); } }),
+          'number/elsewhere': vm.runInNewContext('(async (n) => n + 1)')
+        }
+      }]
+    });
+    expect((await s.evalCell('[(41 | later | add 1) (41 | elsewhere | add 1)]')).result).toEqual([43, 43]);
+  });
+
+  it('refuses a number past the finite doubles under several labels as under ::number alone', async () => {
+    const { createSession } = await import('../../src/session.mjs');
+    const s = await createSession({
+      sources: [{
+        uri: 'tests/past',
+        source: ':any/past ::builtin{}\n:any/past/answer #[::number ::null]',
+        impls: { 'any/past': () => Infinity }
+      }]
+    });
+    expect((await s.evalCell('1 | past !| type | eq ::number/NotFiniteError')).result).toBe(true);
+  });
+});
+
 describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
-  it('wraps a plain JS Error from an operand as a foreign error value', async () => {
+  it('wraps a plain JS Error from a word as a foreign error value', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
     // A host verb whose implementation throws a raw Error, no QlangError.
     const s = await createSession({
-      locator: async namespaceName => (namespaceName === 'tests/bomb'
-        ? {
-            source: ':bomb ::verb~(::builtin{:impl :tests/bomb/bomb})',
-            impls: { bomb: () => { throw new Error('raw boom'); } }
-          }
-        : null)
+      sources: [{
+        uri: 'tests/bomb',
+        source: ':any/bomb ::builtin{}',
+        impls: { 'any/bomb': () => { throw new Error('raw boom'); } }
+      }]
     });
-    const entry = await s.evalCell('use :tests/bomb | 42 | bomb');
+    const entry = await s.evalCell('42 | bomb');
     expect(isErrorValue(entry.result)).toBe(true);
-    expect(entry.result.tag.name).toBe('ForeignFailureError');
-    expect(entry.result.descriptor.get('name')).toBe('Error');
-    expect(entry.result.descriptor.has('category')).toBe(false);
+    expect(entry.result.tag.name).toBe('call/HostFailureError');
+    expect([...entry.result.descriptor.keys()]).toEqual(['message', 'trail']);
+    expect(entry.result.descriptor.get('message')).toBe('raw boom');
   });
 });
 
-describe('eval.mjs — OperandCall node.docs missing (synthetic AST)', async () => {
+describe('eval.mjs — Call node.docs missing (synthetic AST)', async () => {
   it('lambdas.docs falls back to [] when node has no .docs field', async () => {
-    // Synthetic OperandCall without .docs — hits the `node.docs || []` false arm
-    const ast = { type: 'OperandCall', name: 'count', args: [], location: null };
+    // Synthetic Call without .docs — hits the `node.docs || []` false arm
+    const ast = { type: 'Call', name: 'count', args: [], location: null };
     const runtimeEnv = await langRuntime();
     const state = rootState([1, 2, 3], runtimeEnv);
     const evalResult = await evalAst(ast, state);

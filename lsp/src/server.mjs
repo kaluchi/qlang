@@ -5,7 +5,7 @@
 // in features.mjs; this file only maps between LSP protocol types
 // and the feature functions.
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
@@ -21,7 +21,7 @@ import {
   ParameterInformation
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parse } from '@kaluchi/qlang-core';
+import { parse, langRuntime, LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
 import {
   parseDocument,
   buildCatalogIndex,
@@ -30,6 +30,7 @@ import {
   definitionAtOffset,
   referencesAtOffset,
   documentSymbols,
+  foldingRangesOf,
   signatureHelpAtOffset,
   semanticTokensFor,
   SEMANTIC_TOKEN_TYPES
@@ -43,37 +44,23 @@ const documentStates = new Map();
 
 // ── Catalog context ───────────────────────────────────────────
 //
-// Every module under `core/lib/qlang/` takes part in goto-definition:
-// its declarations, verbs and tags alike, merge into one `name →
-// { uri, source, range }` table, so `count` and
-// `::AddLeftNotNumberError` resolve through one lookup.
+// Every source of the language takes part in goto-definition: its
+// declarations merge into one `address → { uri, source, range }` table,
+// and the runtime answers the address a bare name reaches, so `count`
+// and `::number/add/SubjectNotNumberError` resolve through one lookup.
 
 let catalogCtx = null;
 
-function loadCatalogContext() {
-  // Monorepo layout: `lsp/` and `core/` are sibling workspaces,
-  // so catalog files sit under `../core/lib/qlang/...` relative
-  // to `lsp/src/`.
+async function loadCatalogContext() {
+  // Monorepo layout: `lsp/` and `core/` are sibling workspaces, so the
+  // sources sit under `../core/lib/` relative to `lsp/src/`.
   const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-  const libDir = join(lspSrcDir, '..', '..', 'core', 'lib', 'qlang');
+  const libDir = join(lspSrcDir, '..', '..', 'core', 'lib');
 
-  // Discovery walks lib/qlang recursively for every `.qlang` file.
-  // The namespace URI mirrors the relative path with `/` separators
-  // and the `.qlang` suffix stripped; the resolved file URI lets
+  // The sources of the language, `lib/<uri>.qlang` as
+  // `package.json#imports` maps each [D153]; the resolved file URI lets
   // goto-definition return absolute locations the editor can open.
-  const sources = [];
-  function walk(dir, prefix) {
-    for (const name of readdirSync(dir, { withFileTypes: true })) {
-      const childPath = join(dir, name.name);
-      const childUri = prefix ? prefix + '/' + name.name : name.name;
-      if (name.isDirectory()) {
-        walk(childPath, childUri);
-      } else if (name.name.endsWith('.qlang')) {
-        sources.push({ path: childPath, uri: 'qlang/' + childUri.replace(/\.qlang$/, '') });
-      }
-    }
-  }
-  walk(libDir, '');
+  const sources = LANGUAGE_SOURCES.map(uri => ({ path: join(libDir, `${uri}.qlang`), uri }));
 
   const mergedIndex = new Map();
   for (const { path, uri } of sources) {
@@ -89,13 +76,13 @@ function loadCatalogContext() {
       connection.console.warn(`catalog source ${path} not loaded: ${e.message}`);
     }
   }
-  catalogCtx = mergedIndex.size > 0 ? { index: mergedIndex } : null;
+  catalogCtx = mergedIndex.size > 0 ? { index: mergedIndex, runtime: await langRuntime() } : null;
 }
 
 // ── Initialization ────────────────────────────────────────────
 
-connection.onInitialize(() => {
-  loadCatalogContext();
+connection.onInitialize(async () => {
+  await loadCatalogContext();
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
@@ -104,6 +91,7 @@ connection.onInitialize(() => {
       definitionProvider: true,
       referencesProvider: true,
       documentSymbolProvider: true,
+      foldingRangeProvider: true,
       signatureHelpProvider: { triggerCharacters: ['(', ','] },
       semanticTokensProvider: {
         legend: { tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: [] },
@@ -265,12 +253,12 @@ const SYMBOL_KIND_MAP = {
   tag:      SymbolKind.Struct
 };
 
-connection.onDocumentSymbol((params) => {
+connection.onDocumentSymbol(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
   if (!state?.ast || !doc) return [];
 
-  const symbols = documentSymbols(state.ast);
+  const symbols = documentSymbols(state.ast, await langRuntime());
 
   return symbols.map(sym => ({
     name: sym.name,
@@ -284,6 +272,13 @@ connection.onDocumentSymbol((params) => {
       end: doc.positionAt(sym.endOffset)
     }
   }));
+});
+
+// ── Folding ───────────────────────────────────────────────────
+
+connection.onFoldingRanges((params) => {
+  const state = documentStates.get(params.textDocument.uri);
+  return state?.ast ? foldingRangesOf(state.ast, state.source) : [];
 });
 
 // ── Signature Help ────────────────────────────────────────────
@@ -317,8 +312,8 @@ connection.onSignatureHelp(async (params) => {
 // VS Code requests semantic tokens for the whole document; the
 // returned `{ data }` is a Uint32Array carrying the LSP-encoded
 // token stream (5 ints per token). The editor merges it on top of
-// the tmLanguage grammar tokens so `@`-prefixed effectful operands
-// pick up the `decorator` colour and user-bound atoms get the
+// the tmLanguage grammar tokens so `@`-prefixed effectful words
+// pick up the `decorator` colour and a reader's names get the
 // `variable` colour distinct from the `function` colour of
 // `langRuntime`-resolved built-ins.
 

@@ -1,0 +1,16 @@
+{
+ "set": "T",
+ "screen": "prose",
+ "screenHash": "32089878497c",
+ "mode": "blind",
+ "model": "haiku",
+ "run": 3,
+ "date": "2026-10-09",
+ "commit": "56d8b78",
+ "result": "Looking at the qlang documentation, I need to write queries that process JSON/text files and return the specified results. Let me work through each task:\n\n**Understanding key concepts:**\n- `|` pipes values through steps\n- `*` iterates over elements\n- `at` reads softly (returns null if missing)\n- `filter ~(...)` filters with conditions\n- `groupBy` groups by a key function\n- `!|` handles failures\n\nHere are my queries:\n\nT1: /data/users | filter ~(allOf /active (/email | ne null) (/email | lower | endsWith \"@example.com\")) | count\n\nT2: /data/users | filter ~(/roles | any ~(lower | eq \"admin\")) | sort ~(/name | lower) | * /name\n\nT3: /data/users | groupBy ~(at /profile | at /country | coalesce \"unknown\") | * count\n\nT4: /data/users | filter ~((at /profile | at /age) | ne null) | * /profile | * /age | avg | round 2\n\nT5: / | filter ~(/state | eq \"open\") | * /labels | flat | * /name | * lower | distinct\n\nT6: / | sort ~([(/comments | desc) /number]) | take 3 | * {:number /number :assignee ((at /assignee | at /login) !| null)}\n\nT7: / | filter ~(/state | eq \"open\") | * ((/assignee | at /login) !| null) | filter ~(ne null) | groupBy ~(/) | * count\n\nT8: /dependencies | union /devDependencies | entries | filter ~(/value | startsWith \"^\") | * ((/key | print) | append \"@\" | append /value) | sort\n\nT9: /services | filter ~(allOf (at /enabled | eq true) (/port | gt 8000)) | * /name | * lower | sort | join \",\"\n\nT10: / | lines | filter ~((split \" \" | /1) | eq \"ERROR\") | * (split \" \" | /2) | groupBy ~(/) | * count\n\nT11: / | lines | * (if (contains \"ms=\") (split \"ms=\" | /1 | split \" \" | /0 | parseJson) null) | filter ~(ne null) | avg | round 1\n\nT12: / | filter ~(allOf ((/status | lower) | eq \"shipped\") (/price | ne \"\")) | * ((/qty | parseJson) | mul (/price | parseJson)) | sum | round 2\n\nT13: / | filter ~(allOf ((/status | lower) | ne \"cancelled\") (/price | ne \"\")) | groupBy /customer | entries | * {:customer /key :total ((/value | * ((/qty | parseJson) | mul (/price | parseJson))) | sum | round 2)} | sort ~(/total | desc) | take 2\n\nT14: [\"Banana\",\"apple\",\"Cherry\",\"banana\",\"fig\",\"APPLE\",\"date\",\"kiwi\",\"Fig\",\"elderberry\"] | * lower | distinct | sort ~([(count | desc) /]) | join \"-\"",
+ "failed": false,
+ "turns": 1,
+ "inputTokens": 6551,
+ "outputTokens": 28777,
+ "calls": []
+}

@@ -74,7 +74,7 @@ export function parse(source, opts = {}) {
   }
   // Post-pass decoration: AST parent pointers and ids first (so the
   // root receives .parent = null and id 0), then effect-marker
-  // decoration so every OperandCall and Projection node carries a
+  // decoration so every Call and Projection node carries a
   // structured `.effectful` field that downstream consumers read
   // without re-derivation; root metadata; finally any semantic
   // validation that depends on the decorated tree.
@@ -99,12 +99,16 @@ const OPENERS_BY_CLOSER = new Map([
 ]);
 const CLOSER_DEPTH = 4;
 
-// The tree of a source, or null when it does not parse.
-function treeOf(candidate) {
+// The tree of a source, or the closers the parser expects where a source
+// cut short stops, in the order of `OPENERS_BY_CLOSER`; none where it
+// stops before its end, which no closer written after it completes.
+function attemptOf(candidate) {
   try {
-    return peggyParse(candidate, { commentTrivia: new Map() });
-  } catch {
-    return null;
+    return { tree: peggyParse(candidate, { commentTrivia: new Map() }), closers: [] };
+  } catch (refusal) {
+    if (refusal.location.start.offset !== candidate.length) return { tree: null, closers: [] };
+    const expected = new Set(refusal.expected.map(alternative => alternative.text));
+    return { tree: null, closers: [...OPENERS_BY_CLOSER.keys()].filter(closer => expected.has(closer)) };
   }
 }
 
@@ -116,18 +120,30 @@ function formMeantAt(source, location) {
     : undefined;
 }
 
-// The shortest run of closers that completes a source, with the tree the
-// completed source parses to, or null when none within CLOSER_DEPTH does.
+// The shortest run of closers that completes a source, each a closer the
+// parser expects where the source stops, with the tree the completed
+// source parses to, or null when none within CLOSER_DEPTH does.
 function completionOf(source) {
-  let runs = [[]];
-  for (let depth = 1; depth <= CLOSER_DEPTH; depth++) {
-    runs = runs.flatMap(run => [...OPENERS_BY_CLOSER.keys()].map(closer => [...run, closer]));
-    for (const run of runs) {
-      const tree = treeOf(source + run.join(''));
-      if (tree !== null) return { closers: run, tree };
+  let frontier = [{ run: [], closers: attemptOf(source).closers }];
+  for (let depth = 1; depth <= CLOSER_DEPTH && frontier.length > 0; depth++) {
+    const next = [];
+    for (const { run, closers } of frontier) {
+      for (const closer of closers) {
+        const extended = [...run, closer];
+        const attempt = attemptOf(source + extended.join(''));
+        if (attempt.tree !== null) return { closers: extended, tree: attempt.tree };
+        next.push({ run: extended, closers: attempt.closers });
+      }
     }
+    frontier = next;
   }
   return null;
+}
+
+// closersCompleting(source) → the shortest run of closers that
+// completes a source, or null.
+export function closersCompleting(source) {
+  return completionOf(source)?.closers ?? null;
 }
 
 // The innermost node that ends at `offset` and opens with one of

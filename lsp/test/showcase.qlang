@@ -30,17 +30,15 @@
 |~| Ctrl+Click on a user binding → its BindStep declaration.
 |~| Ctrl+Click on a builtin → core.qlang.
 
-|~~| Doubles a number via partial mul. ~~|
-:double ::verb~(mul 2)
+:any/double |~~ Doubles a number. ~~| ~(mul 2)
 
-|~~| Triples a number via partial mul. ~~|
-:triple ::verb~(mul 3)
+:any/triple |~~ Triples a number. ~~| ~(mul 3)
 
 |~| Ctrl+Click on double below → jumps to the BindStep above
-[1 2 3] * double
+[1 2 3] | map ~double
 
 |~| Ctrl+Click on triple below → jumps to the BindStep above
-[10 20] * triple
+[10 20] | map ~triple
 
 |~| Ctrl+Click on count below → jumps to core.qlang
 [1 2 3] | count
@@ -69,7 +67,7 @@ x
 |~| ── 5. Find References ────────────────────────────────
 |~| Shift+F12 shows all occurrences: declaration + uses.
 
-:greet ::verb~(prepend "hello ")
+:any/greet ~(prepend "hello ")
 | "world" | greet | :greeted1 /
 | "qlang" | greet | :greeted2 /
 |~| Shift+F12 on greet → 3 hits (1 decl + 2 uses)
@@ -79,10 +77,10 @@ x
 |~| Ctrl+Shift+O → BindStep bindings show as Function,
 |~| as bindings show as Variable.
 
-:votingAge ::verb~(filter ~(/age | gte 18))
+:any/votingAge ~(filter ~(/age | gte 18))
 | 42 | :answer /
-|~| Outline lists: double, triple, x, greet, greeted1,
-|~| greeted2, votingAge, answer
+|~| Outline lists: any/double, any/triple, x, any/greet, greeted1,
+|~| greeted2, any/votingAge, answer
 
 
 |~| ── 7. Signature Help ─────────────────────────────────
@@ -91,7 +89,7 @@ x
 
 [{:name "a" :age 25} {:name "b" :age 15}]
   | filter ~(/age | gte 18)
-  * /name
+  | map ~/name
 
 |~| Edit inside `add /x /y` below — the second modifier highlights
 {:x 10 :y 3} | add /x /y
@@ -102,7 +100,7 @@ x
 |~| including as and error) + user bindings
 |~| visible at the cursor position.
 
-:myHelper ::verb~(mul 10)
+:any/myHelper ~(mul 10)
 |~| Ctrl+Space here → myHelper alongside every builtin
 
 
@@ -116,12 +114,14 @@ x
 |~|   line plain, block plain, line doc, block doc.
 |~| Doc comments attach to the next BindStep / as binding.
 
-|~~| Computes the absolute value via conditional negation. ~~|
-:abs ::verb~(if (lt 0) ~(mul -1))
+:any/abs |~~ The absolute value, by a conditional negation. ~~| ~(if (lt 0) ~(mul -1))
 
-|~~ Surround a string with a prefix and suffix.
-    A verb with two slots. ~~|
-:@surround ::verb~(:pfx ::any | :sfx ::any | prepend pfx | append sfx)
+:any/@surround
+  |~~ Surround a string with a prefix and suffix, a word with two
+      parts. ~~|
+  ~(prepend pfx | append sfx)
+:any/@surround/pfx ~(/0)
+:any/@surround/sfx ~(/1)
 
 |~| Ctrl+Click on @surround → jumps to the BindStep above
 "world" | @surround "[" "]"
@@ -138,7 +138,7 @@ x
 
 [{:name "c" :age 30} {:name "a" :age 25} {:name "b" :age 25}]
   | sort ~([/age /name])
-  * /name
+  | map ~/name
 
 
 |~| ── 13. Fail-apply combinator ─────────────────────────
@@ -155,7 +155,7 @@ x
 
 |~| Leading !| prefix inside a filter predicate —
 |~| per-element dispatch into the fail-track
-[1 "x" 3] * add 10 | filter ~(!| type | eq ::AddLeftNotNumberError)
+[1 "x" 3] | map ~(add 10) | filter ~(!| type | eq ::number/add/SubjectNotNumberError)
 
 |~| Trail continuity across re-lift — | raise re-wraps the
 |~| enriched descriptor on the path it read, and a later !|

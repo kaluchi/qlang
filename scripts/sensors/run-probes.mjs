@@ -27,6 +27,7 @@ import { readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { pipeEnv } from '../pipe-env.mjs';
 
 const repoRoot = join(import.meta.dirname, '..', '..');
 const documents = process.argv.length > 2 ? process.argv.slice(2)
@@ -72,7 +73,7 @@ function probesOf(source) {
 
 function onCommandLine(query) {
   try {
-    return execFileSync(process.execPath, [join(repoRoot, 'cli', 'src', 'bin.mjs'), query], { cwd: repoRoot, encoding: 'utf8', stdio: 'pipe' });
+    return execFileSync(process.execPath, [join(repoRoot, 'cli', 'src', 'bin.mjs'), query], { cwd: repoRoot, encoding: 'utf8', stdio: 'pipe', env: pipeEnv });
   } catch (failed) {
     return `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
   }
@@ -84,7 +85,7 @@ function printedByShell(command) {
   const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs').split('\\').join('/');
   try {
     return execFileSync('bash', ['-c', `set -o pipefail\nqlang() { node "${commandLine}" "$@"; }\n${command}`],
-      { cwd: repoRoot, encoding: 'utf8', input: '', env: { ...process.env, MSYS_NO_PATHCONV: '1' } });
+      { cwd: repoRoot, encoding: 'utf8', input: '', env: { ...pipeEnv, MSYS_NO_PATHCONV: '1' } });
   } catch (failed) {
     return `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
   }
@@ -102,8 +103,9 @@ async function printedByCore(query) {
   try { return squash(printValue(await evalQuery(query))); } catch (thrown) { return `threw ${thrown.message}`; }
 }
 
-// The print of an error begins with its literal, `::Tag!{` or `!{`.
-const readsAsError = text => /^(::[\w/.-]+)?!\{/.test(text);
+// The print of an error begins with its literal, `::Tag!{` or `!{`, a
+// failure's under the line that says it was raised [D219].
+const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-]+)?!\{/.test(text);
 
 // An answer that is no literal, a raw string the command line printed,
 // compares as the text the command line prints. An answer with … holds

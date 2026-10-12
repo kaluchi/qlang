@@ -35,7 +35,7 @@ A literal is how data is reshaped: write the shape the answer takes, with its pa
 3. Reading parts. /k reads a key of a map, /0 an element of a vector, /-1 counts from the end, /a/b walks a path, / alone is the whole value. A part that is not there is a failure; `at` reads softly and answers null, and `coalesce` puts a fallback in its place, `at :k | coalesce 0`.
 ~({:a {:b [10 20]}} | /a/b/-1 | eq 20)
 ~({"first name": "Ann"} | /"first name" | eq "Ann")
-~({:a 1} | /b !| type | eq ::ProjectionKeyNotInMapError)
+~({:a 1} | /b !| type | eq ::KeyNotInMapError)
 ~({:a 1} | at :b | eq null)
 ~({:a 1} | at :b | coalesce 0 | eq 0)
 

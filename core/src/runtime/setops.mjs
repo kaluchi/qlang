@@ -1,35 +1,19 @@
 // The algebra of containers: union, minus, inter, each a plain function
-// over the values the head of its verb checked [D72]. The verbs reside
-// on `::set` and `::map`, the other operand in their slot, and on
-// `::vec`, where the subject is the vector of operands the primitive
-// folds; one primitive serves the three by the arguments it takes. A
-// pair of kinds apart can meet only inside the fold, whose refusal names
-// the pair.
+// over the subject and the parts of its args [D167], one for each word
+// of a kind [D172]. A set meets the other set its call gives, and a map
+// the other map or the keys a vector or a set names; a vector holds the
+// values it folds and takes none beside it, and a set its call leaves
+// without the other value folds the values it holds [D16], [D188].
+// Inside a fold a value of no kind of the algebra is refused at its
+// index, and the values meet in pairs, a pair the algebra has no rule for
+// refused by the word with the kinds it met.
 //
 // The verbs live in lib/qlang/set.qlang, map.qlang and vec.qlang.
 
-import { isQSet, isKeyword, isString, isVec, isQMap, makeSet, NULL } from '../types.mjs';
+import { isQSet, isKeyword, isString, isVec, isQMap, makeSet, NULL, typeKeyword } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
-import { declareComparabilityError, declareElementError } from '../operand-errors.mjs';
-import { declareShapeError } from '../errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-
-// A map minus or inter another map or a vector of keys drops or keeps
-// its entries by key [D15]: the other map's keys, or the keys the vector
-// names, a set among them (`#[:tmp]`, `[:a "c"]`), a keyword or a
-// string naming a key as `at` and `has` read it, and any other element
-// refused where it stands [D139].
-const MinusKeyNotKeywordOrStringError = declareElementError('MinusKeyNotKeywordOrStringError', '::map/minus', ['keyword', 'string']);
-const InterKeyNotKeywordOrStringError = declareElementError('InterKeyNotKeywordOrStringError', '::map/inter', ['keyword', 'string']);
-
-function keyNamesOf(keysValue, KeyError) {
-  if (isQMap(keysValue)) return keysValue;
-  return new Set(keysValue.map((keyOfEntry, index) => {
-    if (isKeyword(keyOfEntry)) return keyOfEntry.name;
-    if (isString(keyOfEntry)) return keyOfEntry;
-    throw new KeyError(index, keyOfEntry);
-  }));
-}
 
 // The algebra of two sets is a merge of their elements in the one
 // order [D16]: each operation keeps the elements of the left alone,
@@ -61,72 +45,130 @@ function mergeSets(left, right, keeps) {
   return makeSet(merged);
 }
 
-const UnionPairIncompatibleError = declareComparabilityError('UnionPairIncompatibleError', 'union');
-const MinusPairIncompatibleError = declareComparabilityError('MinusPairIncompatibleError', 'minus');
-const InterPairIncompatibleError = declareComparabilityError('InterPairIncompatibleError', 'inter');
+// The entries of both maps, the other map's value winning a key both
+// hold, in the order the keys first appear.
+function unionOfMaps(left, right) {
+  const merged = new Map(left);
+  for (const [key, value] of right) merged.set(key, value);
+  return merged;
+}
 
-const UnionBareEmptyError = declareShapeError('UnionBareEmptyError',
-  () => 'union (bare form) requires a non-empty Vec of operands',
-  { operand: 'union' }
-);
-const MinusBareEmptyError = declareShapeError('MinusBareEmptyError',
-  () => 'minus (bare form) requires a non-empty Vec of operands',
-  { operand: 'minus' }
-);
-const InterBareEmptyError = declareShapeError('InterBareEmptyError',
-  () => 'inter (bare form) requires a non-empty Vec of operands',
-  { operand: 'inter' }
-);
+// A map minus or inter another map or a vector of keys drops or keeps
+// its entries by key [D15]: the other map's keys, or the keys the vector
+// names, a set among them (`#[:tmp]`, `[:a "c"]`), a keyword or a
+// string naming a key as `at` and `has` read it, and any other element
+// refused where it stands [D139].
+function keyNamesOf(keysValue, KeyNotKeywordOrStringError) {
+  if (isQMap(keysValue)) return keysValue;
+  return new Set(keysValue.map((keyOfEntry, index) => {
+    if (isKeyword(keyOfEntry)) return keyOfEntry.name;
+    if (isString(keyOfEntry)) return keyOfEntry;
+    throw new KeyNotKeywordOrStringError({ index, actualValue: keyOfEntry });
+  }));
+}
 
-function unionPair(left, right) {
+const minusOfMap = (map, keys, KeyNotKeywordOrStringError) => {
+  const names = keyNamesOf(keys, KeyNotKeywordOrStringError);
+  return new Map([...map].filter(([key]) => !names.has(key)));
+};
+
+const interOfMap = (map, keys, KeyNotKeywordOrStringError) => {
+  const names = keyNamesOf(keys, KeyNotKeywordOrStringError);
+  return new Map([...map].filter(([key]) => names.has(key)));
+};
+
+// The pairs a fold meets: two sets merge, two maps merge, and a map
+// drops or keeps the keys a map, a vector or a set names; any other pair
+// is refused with the kinds it met.
+function mismatched(left, right, KindsMismatchedError) {
+  return new KindsMismatchedError({ leftType: typeKeyword(left), rightType: typeKeyword(right) });
+}
+
+function unionPair(left, right, { KindsMismatchedError }) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, UNION_KEEPS);
-  if (isQMap(left) && isQMap(right)) {
-    const merged = [...left];
-    const keyToIndex = new Map(merged.map(([k], i) => [k, i]));
-    for (const [k, v] of right) {
-      const existingIdx = keyToIndex.get(k);
-      if (existingIdx !== undefined) {
-        merged[existingIdx] = [k, v];
-      } else {
-        keyToIndex.set(k, merged.length);
-        merged.push([k, v]);
-      }
-    }
-    return new Map(merged);
-  }
-  throw new UnionPairIncompatibleError(left, right);
+  if (isQMap(left) && isQMap(right)) return unionOfMaps(left, right);
+  throw mismatched(left, right, KindsMismatchedError);
 }
 
-function minusPair(left, right) {
+function minusPair(left, right, { KindsMismatchedError, KeyNotKeywordOrStringError }) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, MINUS_KEEPS);
-  if (isQMap(left) && (isQMap(right) || isVec(right))) {
-    const rightNames = keyNamesOf(right, MinusKeyNotKeywordOrStringError);
-    return new Map([...left].filter(([k]) => !rightNames.has(k)));
-  }
-  throw new MinusPairIncompatibleError(left, right);
+  if (isQMap(left) && (isQMap(right) || isVec(right))) return minusOfMap(left, right, KeyNotKeywordOrStringError);
+  throw mismatched(left, right, KindsMismatchedError);
 }
 
-function interPair(left, right) {
+function interPair(left, right, { KindsMismatchedError, KeyNotKeywordOrStringError }) {
   if (isQSet(left) && isQSet(right)) return mergeSets(left, right, INTER_KEEPS);
-  if (isQMap(left) && (isQMap(right) || isVec(right))) {
-    const rightNames = keyNamesOf(right, InterKeyNotKeywordOrStringError);
-    return new Map([...left].filter(([k]) => rightNames.has(k)));
-  }
-  throw new InterPairIncompatibleError(left, right);
+  if (isQMap(left) && (isQMap(right) || isVec(right))) return interOfMap(left, right, KeyNotKeywordOrStringError);
+  throw mismatched(left, right, KindsMismatchedError);
 }
 
-// A pair's answer for the verbs of sets and maps, and the fold of a
-// non-empty vector of operands for the verb of vectors, which takes no
-// other operand, and for a set whose other operand is left out, a set
-// of sets being the vector of its elements [D16].
-function pairOrFold(pair, EmptyError) {
-  return (subject, ...other) => {
-    if (other.length === 1 && other[0] !== NULL) return pair(subject, other[0]);
-    if (subject.length === 0) throw new EmptyError();
-    return [...subject].reduce(pair);
-  };
+// The fold of the values a vector or a set holds, from the first; it
+// holds one at least, and the values it reads as sets or maps, every one
+// of a union and the first of a difference or a common part, are sets or
+// maps.
+function foldOf(values, pair, refusals, readsEvery) {
+  if (values.length === 0) throw new refusals.SubjectEmptyError();
+  (readsEvery ? values : values.slice(0, 1)).forEach((value, index) => {
+    if (!isQSet(value) && !isQMap(value)) throw new refusals.ElementNotSetOrMapError({ index, actualValue: value });
+  });
+  return [...values].reduce((left, right) => pair(left, right, refusals));
 }
 
-bindPrim('union', pairOrFold(unionPair, UnionBareEmptyError));
-bindPrim('minus', pairOrFold(minusPair, MinusBareEmptyError));
-bindPrim('inter', pairOrFold(interPair, InterBareEmptyError));
+// ── union ──────────────────────────────────────────────────────
+
+const VEC_UNION = {
+  KindsMismatchedError: declareRefusal('vec/union/KindsMismatchedError'),
+  SubjectEmptyError: declareRefusal('vec/union/SubjectEmptyError'),
+  ElementNotSetOrMapError: declareRefusal('vec/union/ElementNotSetOrMapError')
+};
+const SET_UNION = {
+  KindsMismatchedError: declareRefusal('set/union/KindsMismatchedError'),
+  SubjectEmptyError: declareRefusal('set/union/SubjectEmptyError'),
+  ElementNotSetOrMapError: declareRefusal('set/union/ElementNotSetOrMapError')
+};
+
+bindPrim('vec/union', vector => foldOf(vector, unionPair, VEC_UNION, true));
+bindPrim('set/union', (set, other) => (other === NULL ? foldOf(set, unionPair, SET_UNION, true) : mergeSets(set, other, UNION_KEEPS)));
+bindPrim('map/union', (map, other) => unionOfMaps(map, other));
+
+// ── minus ──────────────────────────────────────────────────────
+
+const MapMinusKeyNotKeywordOrStringError = declareRefusal('map/minus/KeyNotKeywordOrStringError');
+
+const VEC_MINUS = {
+  KindsMismatchedError: declareRefusal('vec/minus/KindsMismatchedError'),
+  SubjectEmptyError: declareRefusal('vec/minus/SubjectEmptyError'),
+  ElementNotSetOrMapError: declareRefusal('vec/minus/ElementNotSetOrMapError'),
+  KeyNotKeywordOrStringError: declareRefusal('vec/minus/KeyNotKeywordOrStringError')
+};
+// A set holds a vector before a map in the one order, so its fold never
+// meets a map and the keys a vector names.
+const SET_MINUS = {
+  KindsMismatchedError: declareRefusal('set/minus/KindsMismatchedError'),
+  SubjectEmptyError: declareRefusal('set/minus/SubjectEmptyError'),
+  ElementNotSetOrMapError: declareRefusal('set/minus/ElementNotSetOrMapError')
+};
+
+bindPrim('vec/minus', vector => foldOf(vector, minusPair, VEC_MINUS, false));
+bindPrim('set/minus', (set, other) => (other === NULL ? foldOf(set, minusPair, SET_MINUS, false) : mergeSets(set, other, MINUS_KEEPS)));
+bindPrim('map/minus', (map, keys) => minusOfMap(map, keys, MapMinusKeyNotKeywordOrStringError));
+
+// ── inter ──────────────────────────────────────────────────────
+
+const MapInterKeyNotKeywordOrStringError = declareRefusal('map/inter/KeyNotKeywordOrStringError');
+
+const VEC_INTER = {
+  KindsMismatchedError: declareRefusal('vec/inter/KindsMismatchedError'),
+  SubjectEmptyError: declareRefusal('vec/inter/SubjectEmptyError'),
+  ElementNotSetOrMapError: declareRefusal('vec/inter/ElementNotSetOrMapError'),
+  KeyNotKeywordOrStringError: declareRefusal('vec/inter/KeyNotKeywordOrStringError')
+};
+const SET_INTER = {
+  KindsMismatchedError: declareRefusal('set/inter/KindsMismatchedError'),
+  SubjectEmptyError: declareRefusal('set/inter/SubjectEmptyError'),
+  ElementNotSetOrMapError: declareRefusal('set/inter/ElementNotSetOrMapError')
+};
+
+bindPrim('vec/inter', vector => foldOf(vector, interPair, VEC_INTER, false));
+bindPrim('set/inter', (set, other) => (other === NULL ? foldOf(set, interPair, SET_INTER, false) : mergeSets(set, other, INTER_KEEPS)));
+bindPrim('map/inter', (map, keys) => interOfMap(map, keys, MapInterKeyNotKeywordOrStringError));

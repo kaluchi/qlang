@@ -10,7 +10,7 @@
 //   * Argv parsing wired-up correctly (the unit suite tests
 //     parseArgv in isolation; this suite tests the full path
 //     through main → script-mode / runRepl).
-//   * Piped stdin reaches `@in` operand and the format auto-detection.
+//   * Piped stdin reaches the `@in` word and the format auto-detection.
 //   * REPL bootstrap loads every lazy-imported module without
 //     throwing on the first prompt.
 
@@ -24,12 +24,14 @@ const binPath = resolve(here, '..', '..', 'src', 'bin.mjs');
 
 // runCli(args, opts?) — spawn `node cli/src/bin.mjs <args…>`,
 // optionally pipe `opts.stdin` into the child, capture stdout /
-// stderr / exitCode. Resolves once the child exits.
+// stderr / exitCode. Resolves once the child exits. The child writes
+// without colour, whatever a terminal or a harness forces through
+// `FORCE_COLOR`, which the command line reads before `NO_COLOR`.
 function runCli(args, opts = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [binPath, ...args], {
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, NO_COLOR: '1' }
+      env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' }
     });
     let stdout = '';
     let stderr = '';
@@ -72,10 +74,11 @@ describe('CLI: script mode — query argument', () => {
     expect(stdout.trim()).toBe('3');
   });
 
-  it('writes a parseError diagnostic to stderr with exit code 1', async () => {
-    const { stderr, exitCode } = await runCli(['[1 2'], { stdin: '' });
-    expect(exitCode).toBe(1);
-    expect(stderr.length).toBeGreaterThan(0);
+  it('writes a query that does not parse as its failure on stdout, with exit code 0 [D232]', async () => {
+    const { stdout, stderr, exitCode } = await runCli(['[1 2'], { stdin: '' });
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain('::quote/ParseError!{');
+    expect(stderr).toBe('');
   });
 
   it('errors on usage failure with exit code 2', async () => {
@@ -84,13 +87,13 @@ describe('CLI: script mode — query argument', () => {
     expect(stderr).toMatch(/missing query/);
   });
 
-  it('axis-operands resolve cell-local BindStep declarations through script-mode', async () => {
+  it('the axes resolve cell-local BindStep declarations through script-mode', async () => {
     // Regression pin: script-mode goes through session.evalCell,
     // which must stamp the parsed cell AST under
-    // `qlang/ast/<cellUri>` so axis-operands find the inline
+    // `qlang/ast/<cellUri>` so the axes find the inline
     // `:foo |~~ note ~~|` BindStep declared by the same query.
     const { stdout, exitCode } = await runCli(
-      [':foo |~~ note ~~| | :foo | doc | content'],
+      [':foo |~~ note ~~| | ::foo | doc | content'],
       { stdin: '' });
     expect(exitCode).toBe(0);
     expect(stdout.trim()).toBe('note');
@@ -103,7 +106,7 @@ describe('CLI: piped stdin — auto-detect JSON', () => {
       stdin: '{"name": "alice", "age": 30}'
     });
     expect(exitCode).toBe(0);
-    expect(stdout.trim()).toBe('"alice"');
+    expect(stdout.trim()).toBe('alice');
   });
 
   it('--raw treats stdin as a literal String subject', async () => {
@@ -114,12 +117,13 @@ describe('CLI: piped stdin — auto-detect JSON', () => {
     expect(stdout.trim()).toBe('hello world');
   });
 
-  it('--json with malformed input exits 1', async () => {
-    const { exitCode, stderr } = await runCli(['--json', '/name'], {
+  it('--json over malformed input answers the refusal of parseJson with exit 0 [D232]', async () => {
+    const { exitCode, stdout, stderr } = await runCli(['--json', '/name'], {
       stdin: 'not-json-at-all{'
     });
-    expect(exitCode).toBe(1);
-    expect(stderr).toMatch(/json/i);
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain('::string/parseJson/TextNotJsonError!{');
+    expect(stderr).toBe('');
   });
 });
 
@@ -147,7 +151,7 @@ describe('CLI: REPL bootstrap (`-i`) loads every lazy import', () => {
 
   it('REPL persists BindStep bindings across cells in one session', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
-      stdin: ':double ::verb~(mul 2)\n21 | double\n.exit\n'
+      stdin: ':any/double ~(mul 2)\n21 | double\n.exit\n'
     });
     expect(exitCode).toBe(0);
     expect(stdout).toMatch(/42/);

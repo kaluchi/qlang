@@ -1,0 +1,22 @@
+:Box
+  |~~ A parcel as the courier measures it.
+      ::part~(/0) the length, in centimetres
+      ::part~(/1) the width, in centimetres
+      ::part~(/2) the height, in centimetres
+      ::part~(/3) the weight of what is inside, in kilograms
+  ~~|
+  ::spec~()
+:Box/volume
+  |~~ The space inside, in cubic centimetres. ~~|
+  ::verb~(take 3 | reduce 1 ~(mul))
+:Box/density
+  |~~ Kilograms per cubic centimetre. ~~|
+  ::verb~(:v volume | /3 | div v)
+:Box/empty
+  |~~ The same box with nothing inside. ~~|
+  ::verb~(payload | take 3 | append 0 | tag ::Box)
+:Box/put
+  |~~ The same box with a weight put inside instead of what was there.
+      ::example~(::Box[1 2 3 4] | put 10)
+  ~~|
+  ::verb~(:weight ::number | payload | take 3 | append weight | tag ::Box)

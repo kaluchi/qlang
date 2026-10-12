@@ -1,0 +1,82 @@
+{
+ "set": "R",
+ "screen": "D166",
+ "screenHash": "75b79876966d",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 1,
+ "date": "2026-10-09",
+ "commit": "e22c48f",
+ "result": "All 14 queries ran and gave sensible answers on the input files. I didn't cross-check them against the data by hand. I ended R6 and R14 with `keyword` so their results are strings, not keywords. In R9 and R4 the object keys print as keywords, which is how qlang shows map keys.\n\nR1: filter ~(/active | eq true) | filter ~(at :address | if (eq null) ~(false) ~(at :city | coalesce \"\" | lower | eq \"berlin\")) * /name | sort\nR2: filter ~(at :age | type | eq ::number) * /age | avg | round 2\nR3: filter ~(/status | eq \"paid\") | groupBy ~(/customer) * (* (at :items | coalesce [] * mulOf /qty /price | sum) | sum | round 2)\nR4: filter ~(/state | eq \"open\") | groupBy ~(at :assignee | coalesce {} | at :login | coalesce \"unassigned\") * count\nR5: filter ~(/state | eq \"open\") | sort ~([(/comments | desc) /number]) | take 3 * /number\nR6: [/dependencies /devDependencies] * entries | flat | filter ~(/1 | startsWith \"^\") * (/0 | keyword) | distinct | sort\nR7: lines | filter ~(count | gt 0) * split \" \" | filter ~(/3 | parseJson | gte 500) * /2 | distinct | sort\nR8: lines | filter ~(count | gt 0) * split \" \" | filter ~(/1 | eq \"GET\") * (/4 | split \"ms\" | /0 | parseJson) | avg | round 0\nR9: lines | drop 1 | filter ~(count | gt 0) * split \",\" | filter ~(/2 | ne \"\") | groupBy ~(/1) * (* (/2 | parseJson) | avg | round 1)\nR10: lines | drop 1 | filter ~(count | gt 0) * (split \",\" | /3) | filter ~(ne \"\") * split \";\" | flat * lower | distinct | sort\nR11: lines * trim | filter ~(count | gt 0) | filter ~(startsWith \"DB_\") * (:s / | [(s | split \"=\" | /0 | trim | drop 3 | lower | keyword) (s | split \"=\" | drop 1 | join \"=\" | trim)]) | tag ::map\nR12: /services | entries | filter ~(/1 | at :enabled | eq true) * (:e / | {:name (/0 | print | drop 1) :url (e | /1 | [/protocol \"://\" /host \":\" (at :port | coalesce 80 | print)] | join \"\")}) | sort ~(/name)\nR13: :ev / | filter ~(/type | eq \"purchase\") | :p / | {:total (* (at :meta | coalesce {} | at :amount | coalesce 0) | sum | round 2) :users (* /user | distinct | count) :hasRefund (ev | any ~(/type | lower | eq \"refund\"))}\nR14: [\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"Elder\",\"cherry\",\"fig\",\"Apple\"] * lower | groupBy ~() | filter ~(count | gt 1) | keys * keyword | sort",
+ "failed": false,
+ "turns": 14,
+ "inputTokens": 183124,
+ "outputTokens": 4204,
+ "calls": [
+  {
+   "command": "ls; head -c 600 users.json; echo; head -c 500 orders.json; echo; head -c 400 issues.json; echo; head -c 500 manifest.json; echo; head -3 access.log; head -4 employees.csv; cat settings.env | head -8; head -c 600 config.json; echo; head -c 500 events.json",
+   "answered": "value",
+   "head": "access.log config.json employees.csv events.json issues.json manifest.json orders.json settings.env users.json [ { \"id\": 1, \"name\": \"Anna\", \"email\": \"anna@example.com\", \"age\": 31, \"active\": true, \"address\": { \"city\": \"Berlin\", \"country\": \"D"
+  },
+  {
+   "command": "qlang 'filter ~(/active | eq true) | filter ~(at :address | if (eq null) ~(false) ~(at :city | coalesce \"\" | lower | eq \"berlin\")) * /name | sort' < users.json; qlang 'filter ~(at :age | type | eq ::number) * /age | avg | round 2' < users.json",
+   "answered": "value",
+   "head": "[ \"Anna\", \"Boris\", \"Hugo\" ] 35.83"
+  },
+  {
+   "command": "qlang 'filter ~(/status | eq \"paid\") | groupBy ~(/customer) * (* (at :items | coalesce [] * mulOf /qty /price | sum) | sum | round 2)' < orders.json; qlang 'filter ~(/state | eq \"open\") | groupBy ~(at :assignee | coalesce {} | at :login | coalesce \"unassigned\") * count' < issues.json",
+   "answered": "value",
+   "head": "{ \"acme\": 153.48, \"globex\": 49.95, \"umbrella\": 199.9 } { \"kim\": 2, \"unassigned\": 3, \"lee\": 2 }"
+  },
+  {
+   "command": "qlang 'filter ~(/state | eq \"open\") | sort ~[(/comments | desc) /number] | take 3 * /number' < issues.json; qlang '[(/dependencies) (/devDependencies)] * entries | flat | filter ~(/1 | startsWith \"^\") * /0 | distinct | sort' < manifest.json",
+   "answered": "value",
+   "head": "Contains zsh ~[ dynamic directory syntax"
+  },
+  {
+   "command": "qlang 'filter ~(/state | eq \"open\") | sort ~([(/comments | desc) /number]) | take 3 * /number' < issues.json; qlang '[/dependencies /devDependencies] * entries | flat | filter ~(/1 | startsWith \"^\") * /0 | distinct | sort' < manifest.json",
+   "answered": "value",
+   "head": "[ 101, 104, 107 ] [ \"axios\", \"eslint\", \"express\", \"jest\" ]"
+  },
+  {
+   "command": "qlang '[/dependencies /devDependencies] * entries | flat | first | /0 | type' < manifest.json; qlang --raw 'lines | filter ~(count | gt 0) * split \" \" | filter ~(/3 | parseJson | gte 500) * /2 | distinct | sort' < access.log;  qlang --raw 'lines | filter ~(count | gt 0) * split \" \" | filter ~(/1 | eq \"GET\") * (/4 | dropEnd 2)' < access.log | head -3",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"cli/AnswerNotJsonError\", \"descriptor\": { \"path\": [], \"actualType\": \"::tag\", \"trail\": [] } } } [\"/api/orders\"] ::call/UnknownNameError!{ :identifierName \"dropEnd\" :nearest [:drop]"
+  },
+  {
+   "command": "qlang '[/dependencies /devDependencies] * entries | flat | first | /0 | print' < manifest.json; qlang --raw 'lines | filter ~(count | gt 0) * split \" \" | filter ~(/1 | eq \"GET\") * (/4 | split \"ms\" | /0 | parseJson) | avg | round 0' < access.log; wc -l access.log",
+   "answered": "value",
+   "head": "\":express\" 199 10 access.log"
+  },
+  {
+   "command": "qlang '[/dependencies /devDependencies] * entries | flat | filter ~(/1 | startsWith \"^\") * (/0 | keyword) | distinct | sort' < manifest.json; qlang --raw 'lines | drop 1 | filter ~(count | gt 0) * split \",\" | filter ~(/2 | ne \"\") | groupBy ~(/1) * (* (/2 | parseJson) | avg | round 1)' < employees.csv; qlang --raw 'lines | drop 1 | filter ~(count | gt 0) * (split \",\" | /3) | filter ~(ne \"\") * split \";\" | flat * lower | distinct | sort' < employees.csv",
+   "answered": "value",
+   "head": "[ \"axios\", \"eslint\", \"express\", \"jest\" ] { :eng 110000 :sales 75000 :hr 65000 } [\"excel\" \"go\" \"negotiation\" \"python\" \"rust\" \"sql\"]"
+  },
+  {
+   "command": "cat settings.env | tail -8; qlang --raw 'lines | map 1' < settings.env 2>&1 | head -2; qlang --raw 'lines * trim | filter ~(count | gt 0) | filter ~(startsWith \"DB_\") * (:s / | [(s | split \"=\" | /0 | trim | drop 3 | lower | keyword) (s | split \"=\" | drop 1 | join \"=\" | trim)]) | tag ::map' < settings.env",
+   "answered": "value",
+   "head": "DB_PORT=5432 DB_NAME = appdb # app APP_MODE=production db_ignored=1 DB_PASSWORD=p=ss=word LOG_LEVEL=info ::call/ValueTakesNoModifiersError!{ :actualValue ::spec~(::builtin{}) { :host \"localhost\" :port \"5432\" :name \"appdb\" :password \"p=ss=wo"
+  },
+  {
+   "command": "qlang '/services | entries | filter ~(/1 | at :enabled | eq true) * (:e /1 | {:name (e | /0 | print | drop 1) :url (e | /1 | [/protocol \"://\" /host \":\" (at :port | coalesce 80 | print)] )}) ' < config.json 2>&1 | head -20",
+   "answered": "value",
+   "head": "{ \"$error\": { \"$tag\": \"proj/KeyNotInMapError\", \"descriptor\": { \"key\": \"0\", \"trail\": [ { \"step\": \"~(/0)\", \"subject\": { \"enabled\": true, \"protocol\": \"https\", \"host\": \"api.example.com\", \"port\": 8443 }, \"skipped\": \"~(print | drop 1)\" } ] } } }"
+  },
+  {
+   "command": "qlang '/services | entries | filter ~(/1 | at :enabled | eq true) * (:e / | {:name (/0 | print | drop 1) :url (e | /1 | [/protocol \"://\" /host \":\" (at :port | coalesce 80 | print)] | join \"\")}) | sort ~(/name)' < config.json 2>&1 | head -30",
+   "answered": "value",
+   "head": "[ { \"name\": \"api\", \"url\": \"https://api.example.com:8443\" }, { \"name\": \"auth\", \"url\": \"https://auth.example.com:443\" }, { \"name\": \"web\", \"url\": \"http://www.example.com:80\" } ]"
+  },
+  {
+   "command": "qlang ':ev / | filter ~(/type | eq \"purchase\") | :p / | {:total (* (at :meta | coalesce {} | at :amount | coalesce 0) | sum | round 2) :users (* /user | distinct | count) :hasRefund (ev | any ~(/type | lower | eq \"refund\"))}' < events.json; qlang '[\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"Elder\",\"cherry\",\"fig\",\"Apple\"] * lower | groupBy ~() | filter ~(count | gt 1) | keys | sort' < /dev/null",
+   "answered": "value",
+   "head": "{ \"total\": 49.75, \"users\": 4, \"hasRefund\": true } [:apple :banana :cherry]"
+  },
+  {
+   "command": "qlang '[\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"Elder\",\"cherry\",\"fig\",\"Apple\"] * lower | groupBy ~() | filter ~(count | gt 1) | keys * keyword | sort' < /dev/null",
+   "answered": "value",
+   "head": "[\"apple\" \"banana\" \"cherry\"]"
+  }
+ ]
+}

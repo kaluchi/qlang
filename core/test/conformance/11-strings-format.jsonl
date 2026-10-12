@@ -10,7 +10,9 @@
 {"name":"json-map","query":"{:name \"Alice\" :age 30} | json","expect":"\"{\\\"name\\\":\\\"Alice\\\",\\\"age\\\":30}\""}
 {"name":"json-nested","query":"{:point {:x 1 :y 2}} | json","expect":"\"{\\\"point\\\":{\\\"x\\\":1,\\\"y\\\":2}}\""}
 {"name":"json-null","query":"null | json","expect":"\"null\""}
-{"name":"json-keyword","query":":foo | json","expect":"\"\\\"foo\\\"\""}
-{"name":"json-tag-keyword","query":"::quote/ParseError | json","expect":"\"\\\"::quote/ParseError\\\"\""}
-{"name":"json-quote-renders-as-source","query":"~(count) | json","expect":"\"\\\"~(count)\\\"\""}
-{"name":"json-doc-renders-as-source","query":"|~~ hello ~~| | json","expect":"\"\\\"|~~ hello ~~|\\\"\""}
+{"name":"json-keyword","query":":foo | json","expect":"\"\\\"foo\\\"\"","decision":"D126"}
+{"name":"json-tag-keyword","query":"::quote/ParseError | json","expect":"\"\\\"::quote/ParseError\\\"\"","decision":"D126"}
+{"name":"json-quote-renders-as-source","query":"~(count) | json","expect":"\"\\\"~(count)\\\"\"","decision":"D126"}
+{"name":"json-doc-renders-as-source","query":"|~~ hello ~~| | json","expect":"\"\\\"|~~ hello ~~|\\\"\"","decision":"D126"}
+{"name":"json-writes-a-set-as-the-array-of-its-elements","query":"#[3 1] | json","expect":"\"[1,3]\"","decision":"D126"}
+{"name":"json-writes-a-value-under-a-tag-beside-its-payload","query":"::Box(1) | json","expect":"\"{\\\"$tag\\\":\\\"Box\\\",\\\"payload\\\":1}\"","decision":"D126"}

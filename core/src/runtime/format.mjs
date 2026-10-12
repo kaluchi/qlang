@@ -46,7 +46,7 @@ const TO_PLAIN_HANDLERS = {
   quote:   q => `~(${printQuoteSource(q)})`,
   doc:     d => `|~~${docText(d)}~~|`,
   set:     s => s.map(toPlain),
-  // An error writes its tag beside its facts [D192]; the literal, not
+  // An error writes its tag beside its facts [D126]; the literal, not
   // JSON, is the form that reads back.
   error:   e => ({ $error: { $tag: e.tag.name, facts: toPlain(e.descriptor) } })
 };

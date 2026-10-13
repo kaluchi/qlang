@@ -1,13 +1,15 @@
 // The words of a path [D248]: `get` reads it strictly and `query` softly,
-// over a path, a key or a literal that holds paths; `paths` answers the
-// outline of a value; `segments` and `toPath` turn a path and its keys
-// into each other, JSON Pointer's form read with its escapes.
+// over a path, a key or a literal that holds paths; `put`, `update` and
+// `delete` write it [D250]; `paths` answers the outline of a value;
+// `segments` and `toPath` turn a path and its keys into each other, JSON
+// Pointer's form read with its escapes.
 
-import { bindPrim } from '../primitives.mjs';
+import { bindPrim, bindStateReader } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { readPath, MISSED, segmentIndex } from '../path-read.mjs';
+import { readPath, MISSED, segmentIndex, keyNotInMap, placeIn, noPartsOn } from '../path-read.mjs';
+import { mintUnderTag } from './verb.mjs';
 import {
-  isPath, makePath, isKeyword, isQMap, isQSet, isQuote, isDoc, isVec, isValueClass, keyword, makeSet,
+  isPath, makePath, isKeyword, isQMap, isQSet, isQuote, isDoc, isVec, isValueClass, isErrorValue, keyword, makeSet,
   makeTaggedInstance, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 
@@ -48,6 +50,58 @@ function readShape(subject, shape, soft, fallback) {
 
 bindPrim('any/get', (subject, object) => readObject(subject, object, false, null));
 bindPrim('any/query', (subject, object, fallback) => readObject(subject, object, true, fallback));
+
+// The subject with the part at a path written: `put` lays a value there,
+// a key the last map lacks added, `update` lays what its code answers for
+// the part there, and `delete` takes the part out, the elements after a
+// place it takes moving up. The path is followed as `get` follows it, and
+// every container on the way is built again and laid under the tags it
+// stood under, their constructors and invariants run, as `within` lays
+// its answer; an error the code answers is the answer.
+async function written(value, path, at, write, state) {
+  if (isValueClass(value, 'taggedInstance')) return await relaid(value, await written(value.payload, path, at, write, state), state);
+  const segment = path.segments[at];
+  const last = at === path.segments.length - 1;
+  let bare;
+  let slot;
+  if (isQMap(value)) {
+    if (!value.has(segment) && !(last && write.adds)) throw keyNotInMap(value, segment, path);
+    bare = new Map(value);
+    slot = segment;
+  } else if (isVec(value)) {
+    bare = [...value];
+    slot = placeIn(value, segment, path);
+  } else {
+    throw noPartsOn(value, segment, path);
+  }
+  if (last && write.removes) {
+    if (isQMap(bare)) bare.delete(slot);
+    else bare.splice(slot, 1);
+    return await relaid(value, bare, state);
+  }
+  const old = isQMap(bare) ? bare.get(slot) : bare[slot];
+  const part = last ? await write.part(old) : await written(old, path, at + 1, write, state);
+  if (isErrorValue(part)) return part;
+  if (isQMap(bare)) bare.set(slot, part);
+  else bare[slot] = part;
+  return await relaid(value, bare, state);
+}
+
+async function relaid(original, rebuilt, state) {
+  if (isErrorValue(rebuilt)) return rebuilt;
+  const tag = original[TAG_HEADER_SYMBOL];
+  if (tag === undefined) return isVec(rebuilt) ? Object.freeze(rebuilt) : rebuilt;
+  return await mintUnderTag(state, tag, rebuilt);
+}
+
+const pathOf = object => (isPath(object) ? object : pathOfKey(object));
+
+bindStateReader('any/put', (subject, object, value, state) =>
+  written(subject, pathOf(object), 0, { adds: true, removes: false, part: () => value }, state));
+bindStateReader('any/update', (subject, object, code, state) =>
+  written(subject, pathOf(object), 0, { adds: false, removes: false, part: code }, state));
+bindStateReader('any/delete', (subject, object, state) =>
+  written(subject, pathOf(object), 0, { adds: false, removes: true }, state));
 
 // `has` asks whether a path reads, beside the membership it answers for any
 // other value.

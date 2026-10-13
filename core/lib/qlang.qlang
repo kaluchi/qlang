@@ -457,7 +457,8 @@
       value of a map.
       A pipe written before `!|` stands for it.
       A path, `/k`, `/0`, `/-1`, `/a/b`, is read by `get`, and a miss is
-      an error there; `query` reads it softly.
+      an error there; `query` reads it softly, and `put`, `update` and
+      `delete` write it.
       A modifier is computed against the subject of its own step, the
       value the step before it answered, so two fields of one record are
       read in one step, and a name keeps the record for a later step.

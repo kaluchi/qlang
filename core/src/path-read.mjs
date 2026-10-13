@@ -1,5 +1,6 @@
 // Reading a path [D248]: each segment a key of a map or a place of a
-// vector, read beneath the tags stacked over the value it meets.
+// vector, read beneath the tags stacked over the value it meets; a write
+// follows a path as a read does and misses as a read misses [D250].
 
 import { declareRefusal } from './errors.mjs';
 import { isQMap, isVec, isValueClass, keyword } from './types.mjs';
@@ -40,27 +41,44 @@ export function readPath(subject, path, soft = false) {
     if (isQMap(container)) {
       if (!container.has(segment)) {
         if (soft) return MISSED;
-        throw new PathKeyNotInMapError({ key: keyword(segment), nearest: nearestKeys(container, segment), path, actualValue: current });
+        throw keyNotInMap(container, segment, path, current);
       }
       current = container.get(segment);
       continue;
     }
     if (isVec(container)) {
-      const index = segmentIndex(segment);
-      if (Number.isNaN(index)) throw new PathIndexNotIntegerError({ key: keyword(segment), path, actualValue: current });
-      const place = index < 0 ? container.length + index : index;
-      if (place < 0 || place >= container.length) {
-        if (soft) return MISSED;
-        throw new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: current });
-      }
+      const place = placeIn(container, segment, path, current, soft);
+      if (place === MISSED) return MISSED;
       current = container[place];
       continue;
     }
-    throw new PathSubjectNotProjectableError({
-      key: Number.isNaN(segmentIndex(segment)) ? keyword(segment) : segmentIndex(segment),
-      path,
-      actualValue: current
-    });
+    throw noPartsOn(current, segment, path);
   }
   return current;
+}
+
+// The refusal of a key the map lacks, with the keys near it.
+export function keyNotInMap(container, segment, path, met = container) {
+  return new PathKeyNotInMapError({ key: keyword(segment), nearest: nearestKeys(container, segment), path, actualValue: met });
+}
+
+// The place a segment names in a vector, counted from the end where it
+// is negative; a segment that names no place is refused, and a place past
+// the end too, or answers MISSED read softly.
+export function placeIn(container, segment, path, met = container, soft = false) {
+  const index = segmentIndex(segment);
+  if (Number.isNaN(index)) throw new PathIndexNotIntegerError({ key: keyword(segment), path, actualValue: met });
+  const place = index < 0 ? container.length + index : index;
+  if (place >= 0 && place < container.length) return place;
+  if (soft) return MISSED;
+  throw new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: met });
+}
+
+// The refusal of a value on the path that has no parts.
+export function noPartsOn(value, segment, path) {
+  return new PathSubjectNotProjectableError({
+    key: Number.isNaN(segmentIndex(segment)) ? keyword(segment) : segmentIndex(segment),
+    path,
+    actualValue: value
+  });
 }

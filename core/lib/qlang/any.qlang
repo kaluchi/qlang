@@ -2395,6 +2395,143 @@
   |~~ Each path of a literal is read softly. ~~|
   ::law~({:a 1} | query [/a /b] | eq [1 null])
 
+:any/put
+  |~~ Answers the subject with a value laid at the path the call gives:
+      a key the last map on the path lacks is added, and a key it holds or
+      a place a vector holds is replaced, `{:a {:b 1}} | put /a/c 2`
+      answering `{:a {:b 1 :c 2}}`. The path is followed as `get` follows
+      it, so a key or a place missing on the way is refused where the
+      path writes it, and a value under a tag on the way is laid under it
+      again, its constructor and its invariants run. A key the query
+      computes is the path of one segment, `put :a 1`, and a vector grows
+      by `append`.
+      ::link~(::any/update | doc) ::link~(::any/delete | doc)
+      ::link~(::any/get | doc)
+  ~~|
+  ::builtin{}
+
+:any/put/path
+  |~~ The path written, or a key of one segment. ~~|
+  /0
+
+:any/put/path/NotPathOrKeyError
+  |~~ The path is a path, `put /a/b 2`, or a key of one segment, a
+      keyword, a string or a whole number, `put :a 2`.
+  ~~|
+  ::holds~(is ::path ::keyword ::string ::number)
+
+:any/put/value
+  |~~ The value laid at the path. ~~|
+  /1
+
+:any/put/addsAKey
+  |~~ A key the last map lacks is added. ~~|
+  ::law~({:a {:b 1}} | put /a/c 2 | eq {:a {:b 1 :c 2}})
+
+:any/put/replacesAPlace
+  |~~ A place a vector holds is replaced. ~~|
+  ::law~([1 2 3] | put /-1 9 | eq [1 2 9])
+
+:any/put/refusesAKeyMissedOnTheWay
+  |~~ A key missing on the way is refused where the path writes it. ~~|
+  ::law~({:a 1} | put /b/c 2 !| [type (get /path)] | eq [::path/KeyNotInMapError /b/c])
+
+:any/put/refusesAPlacePastTheEnd
+  |~~ A vector grows by `append`, not by a place past its end. ~~|
+  ::law~([1 2] | put /2 3 !| type | eq ::path/IndexOutOfBoundsError)
+
+:any/put/laysTheTagsAgain
+  |~~ A value under a tag is laid under it again. ~~|
+  ::law~(::Box{:w 2} | put /w 3 | eq ::Box{:w 3})
+
+:any/put/laysEveryTagAgain
+  |~~ A value under two tags is laid under both again. ~~|
+  ::law~(::A::B{:w 2} | put /w 3 | eq ::A::B{:w 3})
+
+:any/put/refusesAValueWithoutParts
+  |~~ A value on the path that has no parts is refused, as `get` refuses it. ~~|
+  ::law~({:a 1} | put /a/b 2 !| type | eq ::path/SubjectNotProjectableError)
+
+:any/update
+  |~~ Answers the subject with the part at the path the call gives laid
+      anew by what the code the call gives answers for it,
+      `{:n 1} | update /n ~(add 1)` answering `{:n 2}`. The part must be
+      there, as for `get`, an error the code answers is the answer, and
+      the tags on the way are laid again as `put` lays them.
+      ::link~(::any/put | doc) ::link~(::tagged/within | doc)
+  ~~|
+  ::builtin{}
+
+:any/update/path
+  |~~ The path written, or a key of one segment. ~~|
+  /0
+
+:any/update/path/NotPathOrKeyError
+  |~~ The path is a path, `update /n ~(add 1)`, or a key of one segment,
+      `update :n ~(add 1)`.
+  ~~|
+  ::holds~(is ::path ::keyword ::string ::number)
+
+:any/update/code
+  |~~ The code run on the part, a quote or a path. ~~|
+  /1
+
+:any/update/code/NotQuoteError
+  |~~ The code is a quote, `update /n ~(add 1)`, or a path,
+      `update /n /value`; written without the tilde, `update /n (add 1)`,
+      it is computed once at the call and refused.
+  ~~|
+  ::holds~(is ::quote ::path)
+
+:any/update/runsTheCodeOnThePart
+  |~~ The part at the path is laid anew by what the code answers. ~~|
+  ::law~({:a {:n 1}} | update /a/n ~(add 1) | eq {:a {:n 2}})
+
+:any/update/refusesAMissedPart
+  |~~ A part that is not there is refused. ~~|
+  ::law~({:a 1} | update /b ~(add 1) !| type | eq ::path/KeyNotInMapError)
+
+:any/update/answersTheErrorOfItsCode
+  |~~ An error the code answers is the answer. ~~|
+  ::law~({:n "x"} | update /n ~(add 1) !| type | eq ::number/add/SubjectNotNumberError)
+
+:any/update/answersTheErrorBeneathTheTags
+  |~~ An error the code answers beneath a tag is the answer, laid under none. ~~|
+  ::law~(::A::B{:n "x"} | update /n ~(add 1) !| type | eq ::number/add/SubjectNotNumberError)
+
+:any/delete
+  |~~ Answers the subject without the part at the path the call gives: a
+      key taken out of a map, or a place out of a vector, the elements
+      after it moving up, `{:a 1 :b 2} | delete /b` answering `{:a 1}`.
+      The part must be there, as for `get`, so a misspelled key is found;
+      keys that may be absent leave a map by `minus`. The tags on the way
+      are laid again as `put` lays them.
+      ::link~(::any/put | doc) ::link~(::map/minus | doc)
+  ~~|
+  ::builtin{}
+
+:any/delete/path
+  |~~ The path of the part taken out, or a key of one segment. ~~|
+  /0
+
+:any/delete/path/NotPathOrKeyError
+  |~~ The path is a path, `delete /a/b`, or a key of one segment,
+      `delete :a`.
+  ~~|
+  ::holds~(is ::path ::keyword ::string ::number)
+
+:any/delete/takesAKeyOut
+  |~~ A key is taken out of the map at the path. ~~|
+  ::law~({:a {:b 1 :c 2}} | delete /a/b | eq {:a {:c 2}})
+
+:any/delete/takesAPlaceOut
+  |~~ A place is taken out of a vector, the elements after it moving up. ~~|
+  ::law~([1 2 3] | delete /0 | eq [2 3])
+
+:any/delete/refusesAMissedKey
+  |~~ A key that is not there is refused. ~~|
+  ::law~({:a 1} | delete /b !| type | eq ::path/KeyNotInMapError)
+
 :any/it
   |~~ Answers the value in the pipe, the subject itself: `:r it` names
       the record a later step reads back, `[it (count)]` holds it beside

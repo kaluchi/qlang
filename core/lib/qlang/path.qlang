@@ -9,7 +9,9 @@
       takes it reads it. `get /a/b` answers the part and refuses one
       that is not there, so a misspelled field is found where it is
       read; `query /a/b` answers null there; `has /a/b` answers whether
-      it is there; and a word that runs code takes a path as the code
+      it is there; `put /a/b 2`, `update /a/b ~(add 1)` and `delete /a/b`
+      write it, followed as `get` follows it; and a word that runs code
+      takes a path as the code
       that reads it from each element, `map /name`, `sort /age`,
       `filter /active`. A path prints as it is written and stands as
       any value does, `/items/1 | segments` answering `[:items 1]`.

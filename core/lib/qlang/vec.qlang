@@ -22,10 +22,10 @@
       tags and before sets, element by element.
 
       Its words count and cut, `count`, `first`, `last`, `take`, `drop`,
-      turn each element into another, `map ~(…)`, keep some, `filter ~(…)`, rank
-      them, `sort`, fold them, `reduce`, and sum their numbers, `sum`. A
-      long answer is read in pieces, `drop 20 | take 20`, the rest of it
-      the same query with a tail.
+      turn each element into another, `map ~(…)`, keep some,
+      `filter ~(…)`, rank them, `sort`, fold them, `reduce`, and sum
+      their numbers, `sum`. A long answer is read in pieces,
+      `drop 20 | take 20`, the rest of it the same query with a tail.
       ::snippet~(::vec | manifest) lists its words and refusals.
       ::link~(::vec/map | doc) ::link~(::set | doc)
       ::link~(::qlang/values | doc)
@@ -371,9 +371,9 @@
       of `get`, which builds the shape of each element,
       `map ~(get {:id /id :n ~(get /tags | count)})`.
       A quote written in the call reads the names of its step, a name
-      declared before the call among them, a quote held in a name reads
-      the words of the tree alone, and the names a run declares stay in
-      it. The
+      declared before the call among them; a quote held in a name runs
+      in a lane of its own, which reads the words of the tree and no
+      value a reader named; and the names a run declares stay in it. The
       first failure the code answers for an element is the answer of the
       call, the elements after it left unrun, and a code that recovers,
       `map ~(add 1 !| 0)`, keeps every element. The answers stand in a

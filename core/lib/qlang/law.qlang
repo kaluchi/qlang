@@ -10,16 +10,20 @@
       and a law of any other name, a label among them, is declared under
       it, `:Box/holdsItsWidth ::law~(::Box{:w 1} | get /w | eq 1)`. A law is
       code held as data: it reads the words of the tree and the names it
-      declares, and no value the reader named.
+      declares, and no value the reader named, and a law of a name the
+      language declares runs over the root alone.
 
       `laws` answers the laws of a name, each its page and its query,
       and `runLaws` runs them, so the examples of the catalog are its
       tests.
       ::link~(::any/laws | doc) ::link~(::any/runLaws | doc)
-      ::link~(::qlang/hypertext | doc)
+      ::link~(::qlang/hypertext | doc) ::link~(::qlang/code | doc)
   ~~|
   ::kind
     | proves :provesItsClaim
         |~~ A law declared under a name proves its claim when it runs. ~~|
         ~(:Box |~~ A box. ~~| | :Box/holdsItsWidth |~~ A box holds its width. ~~| ::law~(::Box{:w 1} | get /w | eq 1) | ::Box | runLaws | map /ok | eq [true])
+    | proves :readsNoValueOfTheReader
+        |~~ A law reads no value the reader named. ~~|
+        ~(:Box |~~ A box. ~~| | :k 5 | :Box/readsK |~~ k is five. ~~| ::law~(k | eq 5) | ::Box | runLaws | first | get /error | type | eq ::call/ValueWithheldError)
 

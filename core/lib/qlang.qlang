@@ -540,14 +540,9 @@
             `env` lists what the reader declared, `kinds` the kinds the
             scope reads, and what lies under a noun `manifest` lists. A
             name reads its record by `binding`. A name declared inside a
-            group closes with it. A quote written in a step reads the names
-            of that step wherever the word it is handed to runs it, and
-            code held as data, in a name, a field or a page, runs in a
-            lane of its own, the words, the nodes and the labels of the
-            tree and the names it declares itself, so a value the reader
-            named is withheld from it, `::call/ValueWithheldError`. A name
-            declared under a label resides on
-            it: it serves the values of the label, found by its name
+            group closes with it, and which names a quote reads the
+            chapter of code tells. A name declared under a label resides
+            on it: it serves the values of the label, found by its name
             through the walk of their tags, and refuses any other subject
             under its address; a quote taken from one label and declared
             under another resides on the second. A name is declared once
@@ -579,11 +574,6 @@
     | proves :names/closesWithItsGroup
         |~~ A name declared in a group closes with it. ~~|
         ~(1 | (:inner 2 | inner) | env | has :inner | not)
-    | proves :names/withholdsTheReadersValuesFromHeldCode
-        |~~ A quote written in a step reads its names, and one held as
-            data none the reader named.
-        ~~|
-        ~(:k 10 | :q ~(add k) | get [~(1 | apply ~(add k)) ~(1 | apply q !| type)] | eq [11 ::call/ValueWithheldError])
     | proves :names/servesTheValuesOfItsLabel
         |~~ A name under a label serves its values. ~~|
         ~(:Box |~~ A box. ~~| | :Box/twice ~(get /w | mul 2) | ::Box{:w 3} | twice | eq 6)
@@ -757,7 +747,8 @@
             the step refused. `explain` shows the page of the site above
             the error. The trail is written as the failure flies: a stop
             for each level it left, and the last stop the steps it
-            skipped, a quote ready to replay. An error at rest raised
+            skipped, a quote that runs again as held code runs. An error
+            at rest raised
             again resumes the trail it holds, and one without `:trail`
             starts it over. Whether the step before failed is
             `false !| true`.
@@ -778,6 +769,9 @@
     | proves :errors/holdsTheSkippedSteps
         |~~ The last stop holds the steps skipped. ~~|
         ~("x" | add 1 | mul 2 !| get /trail/-1/skipped | parse | eq "mul 2")
+    | proves :errors/runsTheSkippedStepsAgain
+        |~~ The steps a failure skipped run again by `apply`. ~~|
+        ~("x" | add 1 | mul 2 !| get /trail/-1/skipped | :rest it | 5 | apply rest | eq 10)
     | proves :errors/resumesItsTrail
         |~~ A map raised again resumes its trail. ~~|
         ~(!{:kind :oops} | raise | count !| raise | add 1 !| get /trail | map /step | eq [~(raise)])
@@ -790,9 +784,25 @@
             runs one on a subject, and a quote is taken apart and built
             like any vector of steps. Because code is a value, the laws of
             a name run, a page holds links that open, and the trail of an
-            error holds the steps it skipped, ready to replay. Rests on
-            values and the pipeline; the hypertext is written in it.
+            error holds the steps it skipped, a quote that runs again.
+            Rests on values and the pipeline; the hypertext is written in
+            it.
             ::link~(::quote | doc) ::link~(::qlang/hypertext | doc)
+            ::link~(::call/ValueWithheldError | doc)
+
+            A quote written in a step, what a word takes or a part of a
+            template it takes, is code of that step: the word runs it in
+            the scope of the step that wrote it, and so does a word written
+            in the language, by whatever road its recipe hands the quote
+            on, since a call keeps where each of its objects came from.
+            Any other code is held as data, a quote in a name, a field or
+            a page, a law and a snippet among them, and runs in a lane of
+            its own: the words, the nodes and the labels of the scope of
+            its step and the names it declares itself, a value that scope
+            names withheld from it and refused under its name,
+            `::call/ValueWithheldError`. A value held code needs is an
+            input of a function, `apply f [4]`, or is written into it by
+            `fill`.
         ~~|
         #[::quote]
     | proves :code/runsByApply
@@ -801,6 +811,17 @@
     | proves :code/isAVectorOfSteps
         |~~ A quote counts its steps. ~~|
         ~(~(add 1 | mul 2) | count | eq 2)
+    | proves :code/readsTheStepThatWroteIt
+        |~~ A quote written in a step reads the names of that step. ~~|
+        ~(:k 10 | 5 | apply ~(add k) | eq 15)
+    | proves :code/withholdsAValueOfTheReader
+        |~~ Held code reads no value the reader named. ~~|
+        ~(:k 10 | :q ~(add k) | 5 | apply q !| get [~(type) /name] | eq [::call/ValueWithheldError :k])
+    | proves :code/readsTheStepThroughAWordOfTheLanguage
+        |~~ A word written in the language hands a quote on from the step
+            that wrote it.
+        ~~|
+        ~(:k 10 | :vec/twice (::fn | takes :q |~~ The code. ~~| /0 ::quote | impl ~(map q | map q)) | [1 2] | twice ~(add k) | eq [21 22])
     | tells :hypertext
         |~~ The hypertext. The names are a space of addresses, `::`
             beginning an absolute one, `::vec/sort`, and a verb passes

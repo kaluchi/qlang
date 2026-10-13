@@ -317,11 +317,6 @@
     | proves :ValueWithheldError/refusesAValueOfTheReader
         |~~ A quote held in a name reads no value of the reader. ~~|
         ~(:big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(type) /name] | eq [::call/ValueWithheldError :lim])
-    | proves :ValueWithheldError/readsTheStepThatWroteTheQuote
-        |~~ A quote written in the step that hands it reads the names of
-            that step.
-        ~~|
-        ~(:lim 4 | [1 5 10] | filter ~(gt lim) | eq [5 10])
     | proves :EvaluationDepthExceededError/refusesARunawayRecursion
         |~~ A word that calls itself without end is refused past the
             budget.

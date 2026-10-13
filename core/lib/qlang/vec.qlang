@@ -384,6 +384,7 @@
       folds them into one value.
       ::link~(::vec/filter | doc) ::link~(::vec/reduce | doc)
       ::link~(::map/map | doc) ::link~(::set/map | doc)
+      ::link~(::qlang/code | doc)
   ~~|
   ::fn
     | takes :code

@@ -32,7 +32,8 @@
 
       Because code is a value, a page holds links and snippets that run,
       the laws of a name are quotes that answer true, and the trail of a
-      failure holds the steps it skipped, ready to replay.
+      failure holds the steps it skipped, a quote that runs again as held
+      code runs.
       ::link~(::call | doc) ::link~(::any/apply | doc)
       ::link~(::call/ValueWithheldError | doc) ::link~(::qlang/code | doc)
   ~~|
@@ -111,9 +112,6 @@
     | proves :filtersItsSteps
         |~~ A quote filters as the vector of its steps. ~~|
         ~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | parse | eq "mul 2")
-    | proves :readsTheNamesOfTheStepThatWroteIt
-        |~~ A quote written in a step reads the names of that step. ~~|
-        ~(:k 10 | [1 2] | map ~(add k) | eq [11 12])
     | proves :PayloadNotVecError/refusesAMap
         |~~ A map payload is refused. ~~|
         ~(::quote{:not :steps} !| get [~(type) /actualType] | eq [::quote/PayloadNotVecError ::map])
@@ -177,7 +175,7 @@
       by `apply`, `5 | apply ~(add 1)`. Text is read as a quote first by
       `parse`, `"1 | add 1" | parse | open`.
       ::link~(::any/apply | doc) ::link~(::doc/links | doc)
-      ::link~(::doc/snippets | doc)
+      ::link~(::doc/snippets | doc) ::link~(::qlang/code | doc)
   ~~|
   ::fn
     | returns |~~ What the query answers, a value of any kind. ~~| ::any

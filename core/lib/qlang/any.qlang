@@ -697,7 +697,7 @@
       function takes its arguments as a vector, as a call holds its
       objects, `5 | apply f [3]`. Its steps run in order, a
       leading `!|` routing the first through the fail track, so a
-      pipeline suffix a `:trail` records runs again as it is. Code held
+      pipeline suffix a `:trail` records runs again, as held code runs. Code held
       as the subject runs on itself by `apply it`, and text runs once
       `parse` reads it, `"10 | add 3" | parse | apply it`. The code runs
       under the fork rule: its declarations stay inside it, and only its
@@ -706,6 +706,7 @@
       answered there. The call takes one code; code of several steps is
       one quote.
       ::link~(::quote | doc) ::link~(::fn | doc) ::link~(::string/parse | doc)
+      ::link~(::qlang/code | doc)
   ~~|
   ::fn
     | takes :code

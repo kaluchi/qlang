@@ -2,16 +2,18 @@
 // chain that built it folded into data, read once for each function as
 // the roles they declare: `on` the subject its call serves, `takes` an
 // input the call reads from its args, `returns` the answer, `throws` a
-// refusal it pages and `holds` an invariant of an input or of the answer.
+// refusal it pages, `holds` an invariant of an input or of the answer, and
+// `law` a law that proves the claim its name makes.
 
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
 import { isDoc, isKeyword, isPath, isQSet, isQuote, isTag, keyword, makeDoc, makeTag, fnSignatureOf, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { placesOfSelectors, selectorOfPlace } from './nouns.mjs';
+import { elementsRefusalAddress, kindsRefusalAddress, placesOfSelectors, selectorOfPlace } from './nouns.mjs';
 
 const FnSignatureNotCommandsError = declareRefusal('fn/SignatureNotCommandsError');
 const FnNameDeclaredTwiceError = declareRefusal('fn/NameDeclaredTwiceError');
 const FnNameUnderNoInputError = declareRefusal('fn/NameUnderNoInputError');
+const FnLawUnderNoNameError = declareRefusal('fn/LawUnderNoNameError');
 
 export const ANSWER_NAME = 'answer';
 export const SUBJECT_NAME = 'subject';
@@ -35,7 +37,8 @@ const COMMANDS = new Map([
   ['takes', { taken: [isInputName, isDoc, isPlace], optional: [isInputKinds] }],
   ['returns', { taken: [isDoc, isKinds], optional: [] }],
   ['throws', { taken: [isRefusalName, isDoc], optional: [] }],
-  ['holds', { taken: [isRefusalName, isDoc, isQuote], optional: [] }]
+  ['holds', { taken: [isRefusalName, isDoc, isQuote], optional: [] }],
+  ['law', { taken: [isRefusalName, isDoc, isQuote], optional: [] }]
 ]);
 
 // The objects of a step that is one of the commands in the shapes it
@@ -57,15 +60,19 @@ function kindsOf(value) {
 
 // readSignature(quote) → the roles a quote of commands declares, in the
 // order they are written: a name is declared once, the subject and the
-// answer each by its own name, and a refusal or an invariant written with
-// a path is named under an input taken before it or under the answer.
+// answer each by its own name, a refusal or an invariant written with a
+// path is named under an input taken before it or under the answer, and a
+// law written with one under a name the signature declares before it, the
+// refusal an input's kinds name among them.
 export function readSignature(quote) {
   if (!isQuote(quote)) throw new FnSignatureNotCommandsError({ actualValue: quote });
-  const signature = { subject: null, inputs: [], answer: null, pages: new Map(), invariants: [] };
+  const signature = { subject: null, inputs: [], answer: null, pages: new Map(), invariants: [], laws: [] };
   const declared = new Set();
+  const named = new Set();
   const declare = name => {
     if (declared.has(name)) throw new FnNameDeclaredTwiceError({ name: keyword(name), actualValue: quote });
     declared.add(name);
+    named.add(name);
   };
   const underAnInput = name => {
     const [head] = name.split('/');
@@ -83,7 +90,9 @@ export function readSignature(quote) {
       case 'takes': {
         declare(first.name);
         const each = isPlainVec(fourth);
-        signature.inputs.push({ name: first, page: second, place: third, kinds: kindsOf(each ? fourth[0] : fourth), each, written: fourth ?? null, selector: selectorOfPlace(third) });
+        const kinds = kindsOf(each ? fourth[0] : fourth);
+        if (kinds !== null) named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name, kinds));
+        signature.inputs.push({ name: first, page: second, place: third, kinds, each, written: fourth ?? null, selector: selectorOfPlace(third) });
         break;
       }
       case 'returns':
@@ -95,11 +104,16 @@ export function readSignature(quote) {
         declare(first.name);
         signature.pages.set(first.name, second);
         break;
-      default:
+      case 'holds':
         if (!first.name.includes('/')) throw new FnNameUnderNoInputError({ name: first, actualValue: quote });
         underAnInput(first.name);
         declare(first.name);
         signature.invariants.push({ name: first.name, page: second, condition: third });
+        break;
+      default:
+        if (first.name.includes('/') && !named.has(first.name.slice(0, first.name.lastIndexOf('/')))) throw new FnLawUnderNoNameError({ name: first, actualValue: quote });
+        declare(first.name);
+        signature.laws.push({ name: first.name, page: second, query: third });
     }
   }
   signature.places = placesOfSelectors(signature.inputs.map(input => input.selector));

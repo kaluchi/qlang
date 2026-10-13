@@ -675,7 +675,8 @@
       outside the language is addressed bare, `::Jenkins | builds`, while
       a word of the noun's values refuses the tag name.
       A word is told as a story, in one order: the word and its page, its
-      inputs, its answer, its refusals and its recipe, then its laws; and
+      inputs, its answer, its refusals, its laws and its recipe, one chain;
+      and
       the refusal of a step as its page, which repairs the step, its facts
       and its laws. `source` reads the story of a name as it is written,
       `::vec/sort | source`.

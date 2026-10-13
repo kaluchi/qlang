@@ -1624,9 +1624,9 @@ invariant a reader declares under a word of the root changes no call
 [D202]. The declaration form stands beside the chain for a word a reader
 or a host's source writes, a second spelling of a word, and a kind is a
 label declared by its page with its `construct`, its invariants and its
-refusals named under it. Open, the declaration form of a word, the
-declaration of a kind, and the laws of a word and of a kind beside the
-chain that declares it.
+refusals named under it. The laws of a word stand in its chain before
+its recipe [D251]. Open, the declaration form of a word, and the
+declaration of a kind, its laws beside it.
 
 ```qlang
 > 5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(by | type)) [::Width(3)]

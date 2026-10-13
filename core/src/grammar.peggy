@@ -131,6 +131,10 @@
   // prose [D19].
   let docQuoteDepth = 0;
 
+  // How deep the parser is in a look ahead for a declaration that opens on
+  // a later line, which ends the modifiers of a command before it [D243].
+  let lookingAhead = 0;
+
   // Whether a step can call the name a declaration writes: a bare name,
   // and no word of a literal, which a step reads as its value, alone but
   // for a label, which its tag reaches [D152].
@@ -346,7 +350,27 @@ FirstModifierSeparator
 // that does not open a declaration [D66], [D243].
 ModifierGap
   = _h1 !Whitespace
-  / __ !BindStep
+  / __ !DeclarationOpens
+
+// Whether a declaration opens here [D243]: a keyword and its doc, or the
+// step its body opens with, any step on the line of the keyword and no
+// keyword on a later one, read no further than that opening, so each
+// declaration of a source is read once. Inside a quote of a doc, where the
+// try decides whether the span reads as code, the declaration is read
+// whole, and inside that look ahead a keyword that begins a line ends the
+// modifiers of a command, which leaves whether the declaration opens as it
+// is; the branch that reads it counts the depth on the way in and gives it
+// back on the way out, and the last fails always, after its predicate
+// gave the depth back.
+DeclarationOpens
+  = &{ return docQuoteDepth === 0; } BindName (__ DocOpen / _h1 !Whitespace StepOpens / __ !Keyword StepOpens)
+  / &{ return lookingAhead > 0; } BindName
+  / &{ return docQuoteDepth > 0; } &{ lookingAhead++; return true; } BindStep &{ lookingAhead--; return true; }
+  / &{ return docQuoteDepth > 0; } &{ lookingAhead--; return false; } "~("
+
+// A step opens here: no combinator, no closing bracket and no end.
+StepOpens
+  = !Combinator ![)\]},] .
 
 // A declaration: a keyword, then the doc literals of its slot and an
 // optional body, each of which may take a line of its own [D152]; a lone

@@ -68,39 +68,30 @@
             in the pipe, and a condition goes before it as a step, `5 | eq
             5 | not`.
         ~~|
+    | law :turnsTrueFalse
+        |~~ Not true is false. ~~| ~(true | not | eq false)
+    | law :turnsFalseTrue |~~ Not false is true. ~~| ~(false | not)
+    | law :turnsTheConditionBeforeIt
+        |~~ A condition is turned after it is asked. ~~|
+        ~([1 2] | filter ~(gt 1 | not) | eq [1])
+    | law :SubjectNotBooleanError/refusesNull
+        |~~ Null is no boolean; it is asked for by `eq null`. ~~|
+        ~(null | not !| [type (get /actualType)] | eq [::boolean/not/SubjectNotBooleanError ::null])
+    | law :SubjectNotBooleanError/refusesANumber
+        |~~ A number is no boolean, and `not` refuses it. ~~|
+        ~(0 | not !| [type (get /actualType)] | eq [::boolean/not/SubjectNotBooleanError ::number])
+    | law :SubjectNotBooleanError/refusesAConditionGivenAsAValue
+        |~~ A condition given to `not` leaves it a subject that is no
+            boolean.
+        ~~|
+        ~(5 | not (eq 5) !| type | eq ::boolean/not/SubjectNotBooleanError)
+    | law :SubjectNotBooleanError/refusesAnEmptyVector
+        |~~ An empty vector is no boolean. ~~|
+        ~([] | not !| type | eq ::boolean/not/SubjectNotBooleanError)
+    | law :ArgsBeyondPartsError/refusesAConditionGiven
+        |~~ A condition given to the call is refused under the word. ~~|
+        ~(true | not (eq 5) !| type | eq ::boolean/not/ArgsBeyondPartsError)
     | impl ::builtin{}
-
-:boolean/not/turnsTrueFalse
-  |~~ Not true is false. ~~|
-  ::law~(true | not | eq false)
-
-:boolean/not/turnsFalseTrue
-  |~~ Not false is true. ~~|
-  ::law~(false | not)
-
-:boolean/not/turnsTheConditionBeforeIt
-  |~~ A condition is turned after it is asked. ~~|
-  ::law~([1 2] | filter ~(gt 1 | not) | eq [1])
-
-:boolean/not/SubjectNotBooleanError/refusesNull
-  |~~ Null is no boolean; it is asked for by `eq null`. ~~|
-  ::law~(null | not !| [type (get /actualType)] | eq [::boolean/not/SubjectNotBooleanError ::null])
-
-:boolean/not/SubjectNotBooleanError/refusesANumber
-  |~~ A number is no boolean, and `not` refuses it. ~~|
-  ::law~(0 | not !| [type (get /actualType)] | eq [::boolean/not/SubjectNotBooleanError ::number])
-
-:boolean/not/SubjectNotBooleanError/refusesAConditionGivenAsAValue
-  |~~ A condition given to `not` leaves it a subject that is no boolean. ~~|
-  ::law~(5 | not (eq 5) !| type | eq ::boolean/not/SubjectNotBooleanError)
-
-:boolean/not/SubjectNotBooleanError/refusesAnEmptyVector
-  |~~ An empty vector is no boolean. ~~|
-  ::law~([] | not !| type | eq ::boolean/not/SubjectNotBooleanError)
-
-:boolean/not/ArgsBeyondPartsError/refusesAConditionGiven
-  |~~ A condition given to the call is refused under the word. ~~|
-  ::law~(true | not (eq 5) !| type | eq ::boolean/not/ArgsBeyondPartsError)
 
 :boolean/and
   |~~ Answers whether the subject and the boolean the call gives both
@@ -141,35 +132,28 @@
         |~~ `and` joins the subject with one boolean: three conditions or
             more hold together by `allOf`, `allOf (gt 1) (lt 9) (ne 5)`.
         ~~|
+    | law :holdsWhenBothHold
+        |~~ True and true is true. ~~| ~(true | and true)
+    | law :isFalseWhenOneIsFalse
+        |~~ True and false is false. ~~| ~(true | and false | not)
+    | law :computesTheRightAgainstTheSubject
+        |~~ The right is computed against the boolean on the left. ~~|
+        ~(true | and (eq true))
+    | law :right/NotBooleanError/refusesANumber
+        |~~ A right that is no boolean is refused under the part. ~~|
+        ~(true | and 1 !| [type (get /actualType)] | eq [::boolean/and/right/NotBooleanError ::number])
+    | law :SubjectNotBooleanError/refusesANumber
+        |~~ A subject that is no boolean is refused under the word. ~~|
+        ~(1 | and true !| [type (get /actualType)] | eq [::boolean/and/SubjectNotBooleanError ::number])
+    | law :ArgsBeyondPartsError/refusesTwoBooleans
+        |~~ A third condition is refused under the word. ~~|
+        ~(true | and true true !| type | eq ::boolean/and/ArgsBeyondPartsError)
+    | law :asksTheRightOfTheBoolean
+        |~~ The right is asked of the boolean the left answered, so a
+            comparison of the element there is refused.
+        ~~|
+        ~([1 2 3] | filter ~(gt 1 | and (lt 3)) !| [type (get /actualType)] | eq [::call/KindAnswersNoVerbError ::boolean])
     | impl ::builtin{}
-
-:boolean/and/holdsWhenBothHold
-  |~~ True and true is true. ~~|
-  ::law~(true | and true)
-
-:boolean/and/isFalseWhenOneIsFalse
-  |~~ True and false is false. ~~|
-  ::law~(true | and false | not)
-
-:boolean/and/computesTheRightAgainstTheSubject
-  |~~ The right is computed against the boolean on the left. ~~|
-  ::law~(true | and (eq true))
-
-:boolean/and/right/NotBooleanError/refusesANumber
-  |~~ A right that is no boolean is refused under the part. ~~|
-  ::law~(true | and 1 !| [type (get /actualType)] | eq [::boolean/and/right/NotBooleanError ::number])
-
-:boolean/and/SubjectNotBooleanError/refusesANumber
-  |~~ A subject that is no boolean is refused under the word. ~~|
-  ::law~(1 | and true !| [type (get /actualType)] | eq [::boolean/and/SubjectNotBooleanError ::number])
-
-:boolean/and/ArgsBeyondPartsError/refusesTwoBooleans
-  |~~ A third condition is refused under the word. ~~|
-  ::law~(true | and true true !| type | eq ::boolean/and/ArgsBeyondPartsError)
-
-:boolean/and/asksTheRightOfTheBoolean
-  |~~ The right is asked of the boolean the left answered, so a comparison of the element there is refused. ~~|
-  ::law~([1 2 3] | filter ~(gt 1 | and (lt 3)) !| [type (get /actualType)] | eq [::call/KindAnswersNoVerbError ::boolean])
 
 :boolean/or
   |~~ Answers whether the subject or the boolean the call gives holds,
@@ -208,35 +192,28 @@
             more hold by one of them through `anyOf`, `anyOf (eq 5) (eq
             10) (eq 15)`.
         ~~|
+    | law :isTrueWhenOneIsTrue
+        |~~ False or true is true. ~~| ~(false | or true)
+    | law :isFalseWhenNeitherHolds
+        |~~ False or false is false. ~~| ~(false | or false | not)
+    | law :computesTheRightAgainstTheSubject
+        |~~ The right is computed against the boolean on the left. ~~|
+        ~(false | or (not))
+    | law :right/NotBooleanError/refusesANumber
+        |~~ A right that is no boolean is refused under the part. ~~|
+        ~(false | or 1 !| [type (get /actualType)] | eq [::boolean/or/right/NotBooleanError ::number])
+    | law :SubjectNotBooleanError/refusesANumber
+        |~~ A subject that is no boolean is refused under the word. ~~|
+        ~(1 | or true !| [type (get /actualType)] | eq [::boolean/or/SubjectNotBooleanError ::number])
+    | law :ArgsBeyondPartsError/refusesTwoBooleans
+        |~~ A third condition is refused under the word. ~~|
+        ~(false | or true true !| type | eq ::boolean/or/ArgsBeyondPartsError)
+    | law :asksTheRightOfTheBoolean
+        |~~ The right is asked of the boolean the left answered, so a
+            comparison of the element there is refused.
+        ~~|
+        ~([1 2 3] | filter ~(gt 1 | or (lt 3)) !| [type (get /actualType)] | eq [::call/KindAnswersNoVerbError ::boolean])
     | impl ::builtin{}
-
-:boolean/or/isTrueWhenOneIsTrue
-  |~~ False or true is true. ~~|
-  ::law~(false | or true)
-
-:boolean/or/isFalseWhenNeitherHolds
-  |~~ False or false is false. ~~|
-  ::law~(false | or false | not)
-
-:boolean/or/computesTheRightAgainstTheSubject
-  |~~ The right is computed against the boolean on the left. ~~|
-  ::law~(false | or (not))
-
-:boolean/or/right/NotBooleanError/refusesANumber
-  |~~ A right that is no boolean is refused under the part. ~~|
-  ::law~(false | or 1 !| [type (get /actualType)] | eq [::boolean/or/right/NotBooleanError ::number])
-
-:boolean/or/SubjectNotBooleanError/refusesANumber
-  |~~ A subject that is no boolean is refused under the word. ~~|
-  ::law~(1 | or true !| [type (get /actualType)] | eq [::boolean/or/SubjectNotBooleanError ::number])
-
-:boolean/or/ArgsBeyondPartsError/refusesTwoBooleans
-  |~~ A third condition is refused under the word. ~~|
-  ::law~(false | or true true !| type | eq ::boolean/or/ArgsBeyondPartsError)
-
-:boolean/or/asksTheRightOfTheBoolean
-  |~~ The right is asked of the boolean the left answered, so a comparison of the element there is refused. ~~|
-  ::law~([1 2 3] | filter ~(gt 1 | or (lt 3)) !| [type (get /actualType)] | eq [::call/KindAnswersNoVerbError ::boolean])
 
 :boolean/toString
   |~~ Answers the literal of the boolean as a string, `true | toString`
@@ -245,11 +222,10 @@
   ~~|
   ::fn
     | returns |~~ `"true"` or `"false"`. ~~| ::string
+    | law :writesTheLiteral
+        |~~ A boolean answers its literal. ~~|
+        ~([true false] | map ~toString | eq ["true" "false"])
     | impl ::builtin{}
-
-:boolean/toString/writesTheLiteral
-  |~~ A boolean answers its literal. ~~|
-  ::law~([true false] | map ~toString | eq ["true" "false"])
 
 :boolean/toKeyword
   |~~ Answers the keyword of the boolean's literal, `true | toKeyword`
@@ -259,8 +235,10 @@
   ~~|
   ::fn
     | returns |~~ `:true` or `:false`. ~~| ::keyword
+    | law :readsTheKeyGroupByFiledItUnder
+        |~~ A boolean turns into the key `groupBy` files a condition
+            under.
+        ~~|
+        ~([1 2 3] | groupBy ~(gt 1) | query (true | toKeyword) | eq [2 3])
     | impl ::builtin{}
 
-:boolean/toKeyword/readsTheKeyGroupByFiledItUnder
-  |~~ A boolean turns into the key `groupBy` files a condition under. ~~|
-  ::law~([1 2 3] | groupBy ~(gt 1) | query (true | toKeyword) | eq [2 3])

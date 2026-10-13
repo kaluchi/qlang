@@ -193,28 +193,27 @@
             catches a failure to, `"x" | add 1 !| trail`; the key `:trail`
             of a plain map is read by `/trail`.
         ~~|
+    | law :answersNothingForAnErrorThatFlewNoStep
+        |~~ An error that flew no step holds no path. ~~|
+        ~(::error{:a 1} | trail | eq [])
+    | law :holdsTheStepThatRaised
+        |~~ The trail of an error raised at once holds the one step. ~~|
+        ~("x" | add 1 !| trail | count | eq 1)
+    | law :meetsTheSubjectOfTheStep
+        |~~ The stop holds the subject the step met. ~~|
+        ~("x" | add 1 !| trail | first | get /subject | eq "x")
+    | law :namesTheStepsSkipped
+        |~~ The stop of the step that raised names the steps skipped after
+            it.
+        ~~|
+        ~("x" | add 1 | mul 2 !| trail | first | get /skipped | eq ~(mul 2))
+    | law :readsOutward
+        |~~ The step that ran an element adds its stop after the
+            element's.
+        ~~|
+        ~([1 "x"] | map ~(mul 2) !| trail | map /step | eq [~(mul 2) ~(map ~(mul 2))])
+    | law :SubjectNotErrorError/refusesAMap
+        |~~ A map with the key `:trail` is no error. ~~|
+        ~({:trail []} | trail !| [type (get /actualType)] | eq [::error/trail/SubjectNotErrorError ::map])
     | impl ~(query /trail | coalesce [])
 
-:error/trail/answersNothingForAnErrorThatFlewNoStep
-  |~~ An error that flew no step holds no path. ~~|
-  ::law~(::error{:a 1} | trail | eq [])
-
-:error/trail/holdsTheStepThatRaised
-  |~~ The trail of an error raised at once holds the one step. ~~|
-  ::law~("x" | add 1 !| trail | count | eq 1)
-
-:error/trail/meetsTheSubjectOfTheStep
-  |~~ The stop holds the subject the step met. ~~|
-  ::law~("x" | add 1 !| trail | first | get /subject | eq "x")
-
-:error/trail/namesTheStepsSkipped
-  |~~ The stop of the step that raised names the steps skipped after it. ~~|
-  ::law~("x" | add 1 | mul 2 !| trail | first | get /skipped | eq ~(mul 2))
-
-:error/trail/readsOutward
-  |~~ The step that ran an element adds its stop after the element's. ~~|
-  ::law~([1 "x"] | map ~(mul 2) !| trail | map /step | eq [~(mul 2) ~(map ~(mul 2))])
-
-:error/trail/SubjectNotErrorError/refusesAMap
-  |~~ A map with the key `:trail` is no error. ~~|
-  ::law~({:trail []} | trail !| [type (get /actualType)] | eq [::error/trail/SubjectNotErrorError ::map])

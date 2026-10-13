@@ -414,10 +414,10 @@ async function evalBindStep(node, state) {
 // of them [D251]: the subject and each input with its page, an input's
 // place, the refusal its kinds, or those of each of its elements, name
 // with the page `throws` gives it or one that names them, the answer with
-// its page and its kinds, each refusal `throws` pages and each invariant
-// `holds` writes.
+// its page and its kinds, each refusal `throws` pages, each invariant
+// `holds` writes and each law, which `laws` and `runLaws` read.
 function nodesOfFunction(fn, address, env, origin) {
-  const { subject, inputs, answer, pages, invariants } = signatureOf(fn);
+  const { subject, inputs, answer, pages, invariants, laws } = signatureOf(fn);
   let under = env;
   const lay = (lastName, page, value) => {
     const name = `${address}/${lastName}`;
@@ -434,10 +434,12 @@ function nodesOfFunction(fn, address, env, origin) {
   if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
   for (const [name, page] of pages) if (!under.has(`${address}/${name}`)) lay(name, page, page);
   for (const { name, page, condition } of invariants) lay(name, page, makeTaggedInstance(HOLDS_TAG, condition));
+  for (const { name, page, query } of laws) lay(name, page, makeTaggedInstance(LAW_TAG, query));
   return under;
 }
 
 const HOLDS_TAG = makeTag('holds');
+const LAW_TAG = makeTag('law');
 
 // Whether a declaration among the steps of a word's body, the body itself
 // or a step of its pipeline, names what its call bound in the body's

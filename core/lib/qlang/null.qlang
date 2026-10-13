@@ -48,8 +48,9 @@
   ~~|
   ::fn
     | returns |~~ `:null`. ~~| ::keyword
+    | law :readsTheKeyGroupByFiledItUnder
+        |~~ Null turns into the key `groupBy` files an absent field under.
+        ~~|
+        ~([{:c "a"} {}] | groupBy ~(query /c) | query (null | toKeyword) | eq [{}])
     | impl ::builtin{}
 
-:null/toKeyword/readsTheKeyGroupByFiledItUnder
-  |~~ Null turns into the key `groupBy` files an absent field under. ~~|
-  ::law~([{:c "a"} {}] | groupBy ~(query /c) | query (null | toKeyword) | eq [{}])

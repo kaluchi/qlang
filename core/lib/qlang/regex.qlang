@@ -95,8 +95,10 @@
   ~~|
   ::fn
     | returns |~~ The pattern itself. ~~| ::regex
+    | law :answersItself
+        |~~ A pattern answers itself, so patterns and their sources turn
+            into patterns.
+        ~~|
+        ~([#"\d" "\\d"] | map ~toRegex | eq [#"\d" #"\d"])
     | impl ::builtin{}
 
-:regex/toRegex/answersItself
-  |~~ A pattern answers itself, so patterns and their sources turn into patterns. ~~|
-  ::law~([#"\d" "\\d"] | map ~toRegex | eq [#"\d" #"\d"])

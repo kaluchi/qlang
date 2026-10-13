@@ -101,43 +101,33 @@
             otherwise.
         ~~|
         ::boolean
+    | law :ordersByCharacters
+        |~~ The string b comes after the string a. ~~| ~("b" | gt "a")
+    | law :putsTheUpperCaseFirst
+        |~~ An upper-case letter comes before every lower-case one. ~~|
+        ~("B" | gt "a" | not)
+    | law :putsALetterBeyondAsciiAfter
+        |~~ A letter outside the ASCII letters comes after them. ~~|
+        ~("é" | gt "z")
+    | law :followsItsOwnBeginning
+        |~~ A string comes after its own beginning. ~~| ~("abc" | gt "ab")
+    | law :comparesDigitsAsCharacters
+        |~~ Digits compare as characters, not as numbers. ~~|
+        ~("10" | gt "9" | not)
+    | law :comparesTheStringUnderATag
+        |~~ A string under a tag compares as the string beneath. ~~|
+        ~(::Name("b") | gt "a")
+    | law :value/NotStringError/refusesAKeyword
+        |~~ A keyword is no string to compare with. ~~|
+        ~("a" | gt :a !| type | eq ::string/gt/value/NotStringError)
+    | law :value/NotStringError/refusesANumber
+        |~~ A number is no string to compare with. ~~|
+        ~("a" | gt 1 !| type | eq ::string/gt/value/NotStringError)
+    | law :namesTheKindsThatAnswerIt
+        |~~ Null answers no `gt`, and the refusal names the kinds that do.
+        ~~|
+        ~(null | gt "a" !| get /addresses | eq #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt])
     | impl ::builtin{}
-
-:string/gt/ordersByCharacters
-  |~~ The string b comes after the string a. ~~|
-  ::law~("b" | gt "a")
-
-:string/gt/putsTheUpperCaseFirst
-  |~~ An upper-case letter comes before every lower-case one. ~~|
-  ::law~("B" | gt "a" | not)
-
-:string/gt/putsALetterBeyondAsciiAfter
-  |~~ A letter outside the ASCII letters comes after them. ~~|
-  ::law~("é" | gt "z")
-
-:string/gt/followsItsOwnBeginning
-  |~~ A string comes after its own beginning. ~~|
-  ::law~("abc" | gt "ab")
-
-:string/gt/comparesDigitsAsCharacters
-  |~~ Digits compare as characters, not as numbers. ~~|
-  ::law~("10" | gt "9" | not)
-
-:string/gt/comparesTheStringUnderATag
-  |~~ A string under a tag compares as the string beneath. ~~|
-  ::law~(::Name("b") | gt "a")
-
-:string/gt/value/NotStringError/refusesAKeyword
-  |~~ A keyword is no string to compare with. ~~|
-  ::law~("a" | gt :a !| type | eq ::string/gt/value/NotStringError)
-
-:string/gt/value/NotStringError/refusesANumber
-  |~~ A number is no string to compare with. ~~|
-  ::law~("a" | gt 1 !| type | eq ::string/gt/value/NotStringError)
-
-:string/gt/namesTheKindsThatAnswerIt
-  |~~ Null answers no `gt`, and the refusal names the kinds that do. ~~|
-  ::law~(null | gt "a" !| get /addresses | eq #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt])
 
 :string/gte
   |~~ Answers whether the subject comes after the string the call gives
@@ -159,19 +149,15 @@
             `false` otherwise.
         ~~|
         ::boolean
+    | law :holdsOfItself
+        |~~ A string comes after or equals itself. ~~| ~("b" | gte "b")
+    | law :failsOfALaterString
+        |~~ A string does not come after a later one. ~~|
+        ~("a" | gte "b" | not)
+    | law :value/NotStringError/refusesANumber
+        |~~ A number is no string to compare with. ~~|
+        ~("a" | gte 1 !| type | eq ::string/gte/value/NotStringError)
     | impl ::builtin{}
-
-:string/gte/holdsOfItself
-  |~~ A string comes after or equals itself. ~~|
-  ::law~("b" | gte "b")
-
-:string/gte/failsOfALaterString
-  |~~ A string does not come after a later one. ~~|
-  ::law~("a" | gte "b" | not)
-
-:string/gte/value/NotStringError/refusesANumber
-  |~~ A number is no string to compare with. ~~|
-  ::law~("a" | gte 1 !| type | eq ::string/gte/value/NotStringError)
 
 :string/lt
   |~~ Answers whether the subject comes before the string the call gives,
@@ -194,23 +180,17 @@
             otherwise.
         ~~|
         ::boolean
+    | law :ordersByCharacters
+        |~~ The string a comes before the string b. ~~| ~("a" | lt "b")
+    | law :putsTheEmptyStringFirst
+        |~~ The empty string comes before every other. ~~| ~("" | lt "a")
+    | law :value/NotStringError/refusesANumber
+        |~~ A number is no string to compare with. ~~|
+        ~("a" | lt 1 !| type | eq ::string/lt/value/NotStringError)
+    | law :failsAfter
+        |~~ A string after the value is not before it. ~~|
+        ~("b" | lt "a" | not)
     | impl ::builtin{}
-
-:string/lt/ordersByCharacters
-  |~~ The string a comes before the string b. ~~|
-  ::law~("a" | lt "b")
-
-:string/lt/putsTheEmptyStringFirst
-  |~~ The empty string comes before every other. ~~|
-  ::law~("" | lt "a")
-
-:string/lt/value/NotStringError/refusesANumber
-  |~~ A number is no string to compare with. ~~|
-  ::law~("a" | lt 1 !| type | eq ::string/lt/value/NotStringError)
-
-:string/lt/failsAfter
-  |~~ A string after the value is not before it. ~~|
-  ::law~("b" | lt "a" | not)
 
 :string/lte
   |~~ Answers whether the subject comes before the string the call gives
@@ -232,19 +212,15 @@
             `false` otherwise.
         ~~|
         ::boolean
+    | law :holdsOfItself
+        |~~ A string comes before or equals itself. ~~| ~("a" | lte "a")
+    | law :failsOfAnEarlierString
+        |~~ A string does not come before an earlier one. ~~|
+        ~("b" | lte "a" | not)
+    | law :value/NotStringError/refusesANumber
+        |~~ A number is no string to compare with. ~~|
+        ~("a" | lte 1 !| type | eq ::string/lte/value/NotStringError)
     | impl ::builtin{}
-
-:string/lte/holdsOfItself
-  |~~ A string comes before or equals itself. ~~|
-  ::law~("a" | lte "a")
-
-:string/lte/failsOfAnEarlierString
-  |~~ A string does not come before an earlier one. ~~|
-  ::law~("b" | lte "a" | not)
-
-:string/lte/value/NotStringError/refusesANumber
-  |~~ A number is no string to compare with. ~~|
-  ::law~("a" | lte 1 !| type | eq ::string/lte/value/NotStringError)
 
 :string/count
   |~~ Answers how many characters the string holds, a letter of any
@@ -265,39 +241,31 @@
             value: the occurrences of a piece count by `split`, `"banana"
             | split "a" | count | sub 1` answering `3`.
         ~~|
+    | law :countsCharacters
+        |~~ Three letters count three. ~~| ~("abc" | count | eq 3)
+    | law :countsALetterOfAnyScriptOne
+        |~~ A letter of any script counts one. ~~|
+        ~("привет" | count | eq 6)
+    | law :countsNoneInTheEmptyString
+        |~~ The empty string counts none. ~~| ~("" | count | eq 0)
+    | law :countsAnEmojiOne
+        |~~ An emoji is one code point and counts one. ~~|
+        ~("😀" | count | eq 1)
+    | law :countsEachCodePointOfATonedEmoji
+        |~~ An emoji with a skin tone counts its two code points. ~~|
+        ~("\ud83d\udc4d\ud83c\udffd" | count | eq 2)
+    | law :countsACombiningAccentApart
+        |~~ A letter with a combining accent counts two. ~~|
+        ~("e\u0301" | count | eq 2)
+    | law :ArgsBeyondPartsError/refusesAPiece
+        |~~ A piece given to `count` is refused under the word. ~~|
+        ~("banana" | count "a" !| type | eq ::string/count/ArgsBeyondPartsError)
+    | law :namesTheKindsThatAnswerIt
+        |~~ A number answers no `count`, and the refusal names the kinds
+            that do.
+        ~~|
+        ~(5 | count !| get /addresses | eq #[::map/count ::set/count ::string/count ::vec/count])
     | impl ::builtin{}
-
-:string/count/countsCharacters
-  |~~ Three letters count three. ~~|
-  ::law~("abc" | count | eq 3)
-
-:string/count/countsALetterOfAnyScriptOne
-  |~~ A letter of any script counts one. ~~|
-  ::law~("привет" | count | eq 6)
-
-:string/count/countsNoneInTheEmptyString
-  |~~ The empty string counts none. ~~|
-  ::law~("" | count | eq 0)
-
-:string/count/countsAnEmojiOne
-  |~~ An emoji is one code point and counts one. ~~|
-  ::law~("😀" | count | eq 1)
-
-:string/count/countsEachCodePointOfATonedEmoji
-  |~~ An emoji with a skin tone counts its two code points. ~~|
-  ::law~("\ud83d\udc4d\ud83c\udffd" | count | eq 2)
-
-:string/count/countsACombiningAccentApart
-  |~~ A letter with a combining accent counts two. ~~|
-  ::law~("e\u0301" | count | eq 2)
-
-:string/count/ArgsBeyondPartsError/refusesAPiece
-  |~~ A piece given to `count` is refused under the word. ~~|
-  ::law~("banana" | count "a" !| type | eq ::string/count/ArgsBeyondPartsError)
-
-:string/count/namesTheKindsThatAnswerIt
-  |~~ A number answers no `count`, and the refusal names the kinds that do. ~~|
-  ::law~(5 | count !| get /addresses | eq #[::map/count ::set/count ::string/count ::vec/count])
 
 :string/take
   |~~ Answers the first characters of the string, as many as the count
@@ -329,35 +297,27 @@
             subject.
         ~~|
         ::string
+    | law :takesTheFirstCharacters
+        |~~ Two characters of a string are its first two. ~~|
+        ~("db_host" | take 2 | eq "db")
+    | law :takesNoMoreThanThereAre
+        |~~ A count past the end takes the whole string. ~~|
+        ~("ab" | take 5 | eq "ab")
+    | law :takesNoneBelowZero
+        |~~ A count below zero takes none. ~~| ~("abc" | take -1 | eq "")
+    | law :takesAnEmojiWhole
+        |~~ An emoji is one character, taken whole. ~~|
+        ~("😀x" | take 1 | eq "😀")
+    | law :answersUnderTheTagOfTheSubject
+        |~~ A string under a tag answers under the tag. ~~|
+        ~(::Name("ab") | take 1 | eq ::Name("a"))
+    | law :count/NotNumberError/refusesAString
+        |~~ A count written as a string is refused. ~~|
+        ~("abc" | take "2" !| type | eq ::string/take/count/NotNumberError)
+    | law :count/NotIntegerError/refusesAFraction
+        |~~ A fraction of a count is refused. ~~|
+        ~("abc" | take 1.5 !| type | eq ::string/take/count/NotIntegerError)
     | impl ::builtin{}
-
-:string/take/takesTheFirstCharacters
-  |~~ Two characters of a string are its first two. ~~|
-  ::law~("db_host" | take 2 | eq "db")
-
-:string/take/takesNoMoreThanThereAre
-  |~~ A count past the end takes the whole string. ~~|
-  ::law~("ab" | take 5 | eq "ab")
-
-:string/take/takesNoneBelowZero
-  |~~ A count below zero takes none. ~~|
-  ::law~("abc" | take -1 | eq "")
-
-:string/take/takesAnEmojiWhole
-  |~~ An emoji is one character, taken whole. ~~|
-  ::law~("😀x" | take 1 | eq "😀")
-
-:string/take/answersUnderTheTagOfTheSubject
-  |~~ A string under a tag answers under the tag. ~~|
-  ::law~(::Name("ab") | take 1 | eq ::Name("a"))
-
-:string/take/count/NotNumberError/refusesAString
-  |~~ A count written as a string is refused. ~~|
-  ::law~("abc" | take "2" !| type | eq ::string/take/count/NotNumberError)
-
-:string/take/count/NotIntegerError/refusesAFraction
-  |~~ A fraction of a count is refused. ~~|
-  ::law~("abc" | take 1.5 !| type | eq ::string/take/count/NotIntegerError)
 
 :string/drop
   |~~ Answers the string without its first characters, as many as the
@@ -388,35 +348,28 @@
             subject.
         ~~|
         ::string
+    | law :dropsAPrefix
+        |~~ Dropping a prefix of known length leaves the rest. ~~|
+        ~("db_host" | drop 3 | eq "host")
+    | law :leavesNothingPastTheEnd
+        |~~ A count past the end leaves the empty string. ~~|
+        ~("abc" | drop 99 | eq "")
+    | law :leavesTheWholeStringBelowZero
+        |~~ A count below zero leaves the whole string. ~~|
+        ~("abc" | drop -1 | eq "abc")
+    | law :dropsAnEmojiWhole
+        |~~ An emoji is one character, dropped whole. ~~|
+        ~("😀x" | drop 1 | eq "x")
+    | law :answersUnderTheTagOfTheSubject
+        |~~ A string under a tag answers under the tag. ~~|
+        ~(::Name("ab") | drop 1 | eq ::Name("b"))
+    | law :count/NotIntegerError/refusesAFraction
+        |~~ A fraction of a count is refused. ~~|
+        ~("abc" | drop 0.5 !| type | eq ::string/drop/count/NotIntegerError)
+    | law :count/NotNumberError/refusesAString
+        |~~ A count written as a string is refused. ~~|
+        ~("abc" | drop "1" !| type | eq ::string/drop/count/NotNumberError)
     | impl ::builtin{}
-
-:string/drop/dropsAPrefix
-  |~~ Dropping a prefix of known length leaves the rest. ~~|
-  ::law~("db_host" | drop 3 | eq "host")
-
-:string/drop/leavesNothingPastTheEnd
-  |~~ A count past the end leaves the empty string. ~~|
-  ::law~("abc" | drop 99 | eq "")
-
-:string/drop/leavesTheWholeStringBelowZero
-  |~~ A count below zero leaves the whole string. ~~|
-  ::law~("abc" | drop -1 | eq "abc")
-
-:string/drop/dropsAnEmojiWhole
-  |~~ An emoji is one character, dropped whole. ~~|
-  ::law~("😀x" | drop 1 | eq "x")
-
-:string/drop/answersUnderTheTagOfTheSubject
-  |~~ A string under a tag answers under the tag. ~~|
-  ::law~(::Name("ab") | drop 1 | eq ::Name("b"))
-
-:string/drop/count/NotIntegerError/refusesAFraction
-  |~~ A fraction of a count is refused. ~~|
-  ::law~("abc" | drop 0.5 !| type | eq ::string/drop/count/NotIntegerError)
-
-:string/drop/count/NotNumberError/refusesAString
-  |~~ A count written as a string is refused. ~~|
-  ::law~("abc" | drop "1" !| type | eq ::string/drop/count/NotNumberError)
 
 :string/split
   |~~ Answers the pieces of the string between the occurrences of the
@@ -458,67 +411,57 @@
             `map ~(split ",")`, and a number or a keyword becomes text by
             `toString`.
         ~~|
+    | law :cutsAtEveryMatchOfAPattern
+        |~~ A pattern cuts at every match, its groups left out of the
+            pieces.
+        ~~|
+        ~("a, b;c" | get [(split #"[,;]\s*") (split #"([,;])\s*")] | eq [["a" "b" "c"] ["a" "b" "c"]])
+    | law :cutsAtTheSeparator
+        |~~ The pieces between the commas. ~~|
+        ~("a,b,c" | split "," | eq ["a" "b" "c"])
+    | law :leavesAnEmptyPieceBetweenTwoSeparators
+        |~~ Two separators side by side leave an empty piece between them.
+        ~~|
+        ~("a,,b" | split "," | eq ["a" "" "b"])
+    | law :leavesAnEmptyPieceAtAnEnd
+        |~~ A separator at an end leaves an empty piece there. ~~|
+        ~("a,b," | split "," | eq ["a" "b" ""])
+    | law :cutsTheEmptyStringIntoOneEmptyPiece
+        |~~ The empty string is one empty piece. ~~|
+        ~("" | split "," | eq [""])
+    | law :leavesAStringWithoutTheSeparatorWhole
+        |~~ A separator the string lacks leaves it whole. ~~|
+        ~("a,b" | split ";" | eq ["a,b"])
+    | law :cutsAtALineBreak
+        |~~ A line break separates as any separator does. ~~|
+        ~("line1\nline2" | split "\n" | eq ["line1" "line2"])
+    | law :cutsAtASeparatorOfSeveralCharacters
+        |~~ A separator may be longer than one character. ~~|
+        ~("a::b" | split "::" | eq ["a" "b"])
+    | law :cutsEveryLetterApartAtTheEmptySeparator
+        |~~ The empty separator leaves every letter alone. ~~|
+        ~("abc" | split "" | eq ["a" "b" "c"])
+    | law :keepsAnEmojiWholeAtTheEmptySeparator
+        |~~ The empty separator keeps an emoji of one code point whole. ~~|
+        ~("😀x" | split "" | eq ["😀" "x"])
+    | law :readsBackByJoin
+        |~~ `join` writes the pieces back. ~~|
+        ~("a,b" | split "," | join "," | eq "a,b")
+    | law :splitsEachElementByMap
+        |~~ A vector of strings splits by `map`, each into a vector of its
+            own.
+        ~~|
+        ~(["a,b" "c"] | map ~(split ",") | eq [["a" "b"] ["c"]])
+    | law :SubjectNotStringError/refusesANumber
+        |~~ A number is no string to cut. ~~|
+        ~(42 | split "," !| [type (get /actualType)] | eq [::string/split/SubjectNotStringError ::number])
+    | law :separator/NotRegexOrStringError/refusesAKeyword
+        |~~ A keyword is no separator. ~~|
+        ~("abc" | split :b !| type | eq ::string/split/separator/NotRegexOrStringError)
+    | law :separator/NotGivenError/refusesACallWithNoSeparator
+        |~~ A call with no separator is refused under the part. ~~|
+        ~("abc" | split !| type | eq ::string/split/separator/NotGivenError)
     | impl ::builtin{}
-
-:string/split/cutsAtEveryMatchOfAPattern
-  |~~ A pattern cuts at every match, its groups left out of the pieces. ~~|
-  ::law~("a, b;c" | get [(split #"[,;]\s*") (split #"([,;])\s*")] | eq [["a" "b" "c"] ["a" "b" "c"]])
-
-:string/split/cutsAtTheSeparator
-  |~~ The pieces between the commas. ~~|
-  ::law~("a,b,c" | split "," | eq ["a" "b" "c"])
-
-:string/split/leavesAnEmptyPieceBetweenTwoSeparators
-  |~~ Two separators side by side leave an empty piece between them. ~~|
-  ::law~("a,,b" | split "," | eq ["a" "" "b"])
-
-:string/split/leavesAnEmptyPieceAtAnEnd
-  |~~ A separator at an end leaves an empty piece there. ~~|
-  ::law~("a,b," | split "," | eq ["a" "b" ""])
-
-:string/split/cutsTheEmptyStringIntoOneEmptyPiece
-  |~~ The empty string is one empty piece. ~~|
-  ::law~("" | split "," | eq [""])
-
-:string/split/leavesAStringWithoutTheSeparatorWhole
-  |~~ A separator the string lacks leaves it whole. ~~|
-  ::law~("a,b" | split ";" | eq ["a,b"])
-
-:string/split/cutsAtALineBreak
-  |~~ A line break separates as any separator does. ~~|
-  ::law~("line1\nline2" | split "\n" | eq ["line1" "line2"])
-
-:string/split/cutsAtASeparatorOfSeveralCharacters
-  |~~ A separator may be longer than one character. ~~|
-  ::law~("a::b" | split "::" | eq ["a" "b"])
-
-:string/split/cutsEveryLetterApartAtTheEmptySeparator
-  |~~ The empty separator leaves every letter alone. ~~|
-  ::law~("abc" | split "" | eq ["a" "b" "c"])
-
-:string/split/keepsAnEmojiWholeAtTheEmptySeparator
-  |~~ The empty separator keeps an emoji of one code point whole. ~~|
-  ::law~("😀x" | split "" | eq ["😀" "x"])
-
-:string/split/readsBackByJoin
-  |~~ `join` writes the pieces back. ~~|
-  ::law~("a,b" | split "," | join "," | eq "a,b")
-
-:string/split/splitsEachElementByMap
-  |~~ A vector of strings splits by `map`, each into a vector of its own. ~~|
-  ::law~(["a,b" "c"] | map ~(split ",") | eq [["a" "b"] ["c"]])
-
-:string/split/SubjectNotStringError/refusesANumber
-  |~~ A number is no string to cut. ~~|
-  ::law~(42 | split "," !| [type (get /actualType)] | eq [::string/split/SubjectNotStringError ::number])
-
-:string/split/separator/NotRegexOrStringError/refusesAKeyword
-  |~~ A keyword is no separator. ~~|
-  ::law~("abc" | split :b !| type | eq ::string/split/separator/NotRegexOrStringError)
-
-:string/split/separator/NotGivenError/refusesACallWithNoSeparator
-  |~~ A call with no separator is refused under the part. ~~|
-  ::law~("abc" | split !| type | eq ::string/split/separator/NotGivenError)
 
 :string/lines
   |~~ Answers the lines of the text, a vector of strings without their
@@ -547,47 +490,38 @@
         |~~ `lines` breaks a text at its line breaks alone: a text breaks
             at another separator by `split`, `split ";"`.
         ~~|
+    | law :splitsAtLineBreaks
+        |~~ Each line is a string. ~~|
+        ~("north\nsouth" | lines | eq ["north" "south"])
+    | law :takesACarriageReturnWithItsBreak
+        |~~ A carriage return before a break belongs to the ending. ~~|
+        ~("one\r\ntwo" | lines | eq ["one" "two"])
+    | law :endsNoLineAtACarriageReturnAlone
+        |~~ A carriage return alone ends no line. ~~|
+        ~("a\rb" | lines | count | eq 1)
+    | law :closesTheLastLineAtAClosingBreak
+        |~~ A break at the end opens no empty line. ~~|
+        ~("one\ntwo\n" | lines | eq ["one" "two"])
+    | law :keepsAnEmptyLine
+        |~~ An empty line between two breaks stays. ~~|
+        ~("a\n\nb" | lines | eq ["a" "" "b"])
+    | law :findsNoLineInTheEmptyString
+        |~~ The empty string holds no line. ~~| ~("" | lines | eq [])
+    | law :writesBackByJoin
+        |~~ `join "\n"` writes the lines back. ~~|
+        ~("a\nb" | lines | join "\n" | eq "a\nb")
+    | law :breaksEachTextByMap
+        |~~ A vector of texts breaks by `map`, each into a vector of its
+            own.
+        ~~|
+        ~(["a\nb" "c"] | map ~lines | eq [["a" "b"] ["c"]])
+    | law :SubjectNotStringError/refusesANumber
+        |~~ A number is no text. ~~|
+        ~(42 | lines !| [type (get /actualType)] | eq [::string/lines/SubjectNotStringError ::number])
+    | law :ArgsBeyondPartsError/refusesASeparator
+        |~~ A separator given to `lines` is refused under the word. ~~|
+        ~("a;b" | lines ";" !| type | eq ::string/lines/ArgsBeyondPartsError)
     | impl ::builtin{}
-
-:string/lines/splitsAtLineBreaks
-  |~~ Each line is a string. ~~|
-  ::law~("north\nsouth" | lines | eq ["north" "south"])
-
-:string/lines/takesACarriageReturnWithItsBreak
-  |~~ A carriage return before a break belongs to the ending. ~~|
-  ::law~("one\r\ntwo" | lines | eq ["one" "two"])
-
-:string/lines/endsNoLineAtACarriageReturnAlone
-  |~~ A carriage return alone ends no line. ~~|
-  ::law~("a\rb" | lines | count | eq 1)
-
-:string/lines/closesTheLastLineAtAClosingBreak
-  |~~ A break at the end opens no empty line. ~~|
-  ::law~("one\ntwo\n" | lines | eq ["one" "two"])
-
-:string/lines/keepsAnEmptyLine
-  |~~ An empty line between two breaks stays. ~~|
-  ::law~("a\n\nb" | lines | eq ["a" "" "b"])
-
-:string/lines/findsNoLineInTheEmptyString
-  |~~ The empty string holds no line. ~~|
-  ::law~("" | lines | eq [])
-
-:string/lines/writesBackByJoin
-  |~~ `join "\n"` writes the lines back. ~~|
-  ::law~("a\nb" | lines | join "\n" | eq "a\nb")
-
-:string/lines/breaksEachTextByMap
-  |~~ A vector of texts breaks by `map`, each into a vector of its own. ~~|
-  ::law~(["a\nb" "c"] | map ~lines | eq [["a" "b"] ["c"]])
-
-:string/lines/SubjectNotStringError/refusesANumber
-  |~~ A number is no text. ~~|
-  ::law~(42 | lines !| [type (get /actualType)] | eq [::string/lines/SubjectNotStringError ::number])
-
-:string/lines/ArgsBeyondPartsError/refusesASeparator
-  |~~ A separator given to `lines` is refused under the word. ~~|
-  ::law~("a;b" | lines ";" !| type | eq ::string/lines/ArgsBeyondPartsError)
 
 :string/lower
   |~~ Answers the string with every letter in lower case, of any script,
@@ -609,31 +543,25 @@
             `toString`, `:A | toString | lower`, and a vector of strings
             lowers by `map`, `map ~lower`.
         ~~|
+    | law :lowersEveryLetter
+        |~~ Every letter becomes lower case. ~~|
+        ~("Ann@Example.COM" | lower | eq "ann@example.com")
+    | law :lowersALetterOfAnyScript
+        |~~ A letter of any script lowers. ~~| ~("Ä" | lower | eq "ä")
+    | law :makesCaseVariantsEqual
+        |~~ Two strings that differ in case alone are equal once lowered.
+        ~~|
+        ~(["Ann" "ANN"] | map ~lower | distinct | count | eq 1)
+    | law :mayGrowTheCount
+        |~~ A letter may lower into more than one character. ~~|
+        ~("İ" | lower | count | eq 2)
+    | law :answersUnderTheTagOfTheSubject
+        |~~ A string under a tag answers under the tag. ~~|
+        ~(::Name("Ab") | lower | eq ::Name("ab"))
+    | law :SubjectNotStringError/refusesAKeyword
+        |~~ A keyword has no case to lower. ~~|
+        ~(:Ab | lower !| type | eq ::string/lower/SubjectNotStringError)
     | impl ::builtin{}
-
-:string/lower/lowersEveryLetter
-  |~~ Every letter becomes lower case. ~~|
-  ::law~("Ann@Example.COM" | lower | eq "ann@example.com")
-
-:string/lower/lowersALetterOfAnyScript
-  |~~ A letter of any script lowers. ~~|
-  ::law~("Ä" | lower | eq "ä")
-
-:string/lower/makesCaseVariantsEqual
-  |~~ Two strings that differ in case alone are equal once lowered. ~~|
-  ::law~(["Ann" "ANN"] | map ~lower | distinct | count | eq 1)
-
-:string/lower/mayGrowTheCount
-  |~~ A letter may lower into more than one character. ~~|
-  ::law~("İ" | lower | count | eq 2)
-
-:string/lower/answersUnderTheTagOfTheSubject
-  |~~ A string under a tag answers under the tag. ~~|
-  ::law~(::Name("Ab") | lower | eq ::Name("ab"))
-
-:string/lower/SubjectNotStringError/refusesAKeyword
-  |~~ A keyword has no case to lower. ~~|
-  ::law~(:Ab | lower !| type | eq ::string/lower/SubjectNotStringError)
 
 :string/upper
   |~~ Answers the string with every letter in upper case, of any script,
@@ -653,31 +581,27 @@
             `toString`, and a vector of strings raises by `map`, `map
             ~upper`.
         ~~|
+    | law :raisesEveryLetter
+        |~~ Every letter becomes upper case. ~~|
+        ~("ok, go" | upper | eq "OK, GO")
+    | law :mayGrowTheCount
+        |~~ A letter may raise into more than one character. ~~|
+        ~("Straße" | upper | eq "STRASSE")
+    | law :answersUnderTheTagOfTheSubject
+        |~~ A string under a tag answers under the tag. ~~|
+        ~(::Name("ab") | upper | eq ::Name("AB"))
+    | law :raisesEachElementByMap
+        |~~ A vector of strings raises by `map`. ~~|
+        ~(["a" "b"] | map ~upper | eq ["A" "B"])
+    | law :SubjectNotStringError/refusesAKeyword
+        |~~ A keyword has no case to raise. ~~|
+        ~(:ab | upper !| type | eq ::string/upper/SubjectNotStringError)
+    | law :SubjectNotStringError/namesTheReadOfAPath
+        |~~ A path names the read of its field the step was likely meant
+            for.
+        ~~|
+        ~(/name | upper !| get /read | eq ~(get /name | upper))
     | impl ::builtin{}
-
-:string/upper/raisesEveryLetter
-  |~~ Every letter becomes upper case. ~~|
-  ::law~("ok, go" | upper | eq "OK, GO")
-
-:string/upper/mayGrowTheCount
-  |~~ A letter may raise into more than one character. ~~|
-  ::law~("Straße" | upper | eq "STRASSE")
-
-:string/upper/answersUnderTheTagOfTheSubject
-  |~~ A string under a tag answers under the tag. ~~|
-  ::law~(::Name("ab") | upper | eq ::Name("AB"))
-
-:string/upper/raisesEachElementByMap
-  |~~ A vector of strings raises by `map`. ~~|
-  ::law~(["a" "b"] | map ~upper | eq ["A" "B"])
-
-:string/upper/SubjectNotStringError/refusesAKeyword
-  |~~ A keyword has no case to raise. ~~|
-  ::law~(:ab | upper !| type | eq ::string/upper/SubjectNotStringError)
-
-:string/upper/SubjectNotStringError/namesTheReadOfAPath
-  |~~ A path names the read of its field the step was likely meant for. ~~|
-  ::law~(/name | upper !| get /read | eq ~(get /name | upper))
 
 :string/trim
   |~~ Answers the string without the whitespace at its two ends, spaces,
@@ -698,31 +622,27 @@
             `map ~trim`, and a number or a keyword becomes text by
             `toString`.
         ~~|
+    | law :dropsTheWhitespaceAtTheEnds
+        |~~ The tab, the spaces and the break at the ends go. ~~|
+        ~("\t db_host \n" | trim | eq "db_host")
+    | law :dropsTheNoBreakSpace
+        |~~ The no-break space at the ends goes too. ~~|
+        ~("\u00a0a\u00a0" | trim | eq "a")
+    | law :keepsTheWhitespaceInside
+        |~~ The whitespace inside the string stays. ~~|
+        ~("a  b" | trim | eq "a  b")
+    | law :cleansTheFieldsOfALine
+        |~~ The fields of a line compare as the text they hold once
+            trimmed.
+        ~~|
+        ~("a, b ,c" | split "," | map ~trim | eq ["a" "b" "c"])
+    | law :answersUnderTheTagOfTheSubject
+        |~~ A string under a tag answers under the tag. ~~|
+        ~(::Name(" a ") | trim | eq ::Name("a"))
+    | law :SubjectNotStringError/refusesANumber
+        |~~ A number has no whitespace to trim. ~~|
+        ~(42 | trim !| [type (get /actualType)] | eq [::string/trim/SubjectNotStringError ::number])
     | impl ::builtin{}
-
-:string/trim/dropsTheWhitespaceAtTheEnds
-  |~~ The tab, the spaces and the break at the ends go. ~~|
-  ::law~("\t db_host \n" | trim | eq "db_host")
-
-:string/trim/dropsTheNoBreakSpace
-  |~~ The no-break space at the ends goes too. ~~|
-  ::law~("\u00a0a\u00a0" | trim | eq "a")
-
-:string/trim/keepsTheWhitespaceInside
-  |~~ The whitespace inside the string stays. ~~|
-  ::law~("a  b" | trim | eq "a  b")
-
-:string/trim/cleansTheFieldsOfALine
-  |~~ The fields of a line compare as the text they hold once trimmed. ~~|
-  ::law~("a, b ,c" | split "," | map ~trim | eq ["a" "b" "c"])
-
-:string/trim/answersUnderTheTagOfTheSubject
-  |~~ A string under a tag answers under the tag. ~~|
-  ::law~(::Name(" a ") | trim | eq ::Name("a"))
-
-:string/trim/SubjectNotStringError/refusesANumber
-  |~~ A number has no whitespace to trim. ~~|
-  ::law~(42 | trim !| [type (get /actualType)] | eq [::string/trim/SubjectNotStringError ::number])
 
 :string/contains
   |~~ Answers whether the string holds the needle the call gives as a
@@ -753,47 +673,38 @@
     | returns
         |~~ `true` when the text holds the needle, `false` otherwise. ~~|
         ::boolean
+    | law :findsAWord
+        |~~ A word of the string is found. ~~|
+        ~("hello world" | contains "world")
+    | law :findsTextInside
+        |~~ Text inside a word is found. ~~| ~("hello" | contains "ell")
+    | law :missesAbsentText
+        |~~ Text the string lacks is not found. ~~|
+        ~("hello" | contains "xyz" | not)
+    | law :holdsTheEmptyNeedle
+        |~~ Every string holds the empty needle. ~~|
+        ~("hello" | contains "")
+    | law :countsCase |~~ Case counts. ~~| ~("Hello" | contains "h" | not)
+    | law :findsAMatchOfAPattern
+        |~~ A pattern is asked whether a match stands anywhere. ~~|
+        ~(["took 12ms" "took long"] | map ~(contains #"\d+ms") | eq [true false])
+    | law :ignoresCaseAfterLower
+        |~~ Lowered first, the string holds the needle whatever its case.
+        ~~|
+        ~("Hello" | lower | contains "h")
+    | law :asksAVectorForAWholeElement
+        |~~ A vector of strings is asked for a whole element, not a piece.
+        ~~|
+        ~(["ab"] | contains "a" | not)
+    | law :needle/NotRegexOrStringError/refusesAKeyword
+        |~~ A keyword is no needle. ~~|
+        ~("hi" | contains :h !| type | eq ::string/contains/needle/NotRegexOrStringError)
+    | law :namesTheKindsThatAnswerIt
+        |~~ A map answers no `contains`, and the refusal names the kinds
+            that do.
+        ~~|
+        ~({:a 1} | contains "a" !| get /addresses | eq #[::set/contains ::string/contains ::vec/contains])
     | impl ::builtin{}
-
-:string/contains/findsAWord
-  |~~ A word of the string is found. ~~|
-  ::law~("hello world" | contains "world")
-
-:string/contains/findsTextInside
-  |~~ Text inside a word is found. ~~|
-  ::law~("hello" | contains "ell")
-
-:string/contains/missesAbsentText
-  |~~ Text the string lacks is not found. ~~|
-  ::law~("hello" | contains "xyz" | not)
-
-:string/contains/holdsTheEmptyNeedle
-  |~~ Every string holds the empty needle. ~~|
-  ::law~("hello" | contains "")
-
-:string/contains/countsCase
-  |~~ Case counts. ~~|
-  ::law~("Hello" | contains "h" | not)
-
-:string/contains/findsAMatchOfAPattern
-  |~~ A pattern is asked whether a match stands anywhere. ~~|
-  ::law~(["took 12ms" "took long"] | map ~(contains #"\d+ms") | eq [true false])
-
-:string/contains/ignoresCaseAfterLower
-  |~~ Lowered first, the string holds the needle whatever its case. ~~|
-  ::law~("Hello" | lower | contains "h")
-
-:string/contains/asksAVectorForAWholeElement
-  |~~ A vector of strings is asked for a whole element, not a piece. ~~|
-  ::law~(["ab"] | contains "a" | not)
-
-:string/contains/needle/NotRegexOrStringError/refusesAKeyword
-  |~~ A keyword is no needle. ~~|
-  ::law~("hi" | contains :h !| type | eq ::string/contains/needle/NotRegexOrStringError)
-
-:string/contains/namesTheKindsThatAnswerIt
-  |~~ A map answers no `contains`, and the refusal names the kinds that do. ~~|
-  ::law~({:a 1} | contains "a" !| get /addresses | eq #[::set/contains ::string/contains ::vec/contains])
 
 :string/startsWith
   |~~ Answers whether the string begins with the prefix the call gives,
@@ -826,39 +737,29 @@
             first, `get /name | startsWith "a"`, and a vector of strings
             asks by `map`.
         ~~|
+    | law :findsThePrefix
+        |~~ The string begins with its first word. ~~|
+        ~("hello world" | startsWith "hello")
+    | law :missesAnotherPrefix
+        |~~ Another word does not begin it. ~~|
+        ~("hello" | startsWith "world" | not)
+    | law :beginsWithTheEmptyPrefix
+        |~~ The empty prefix begins every string. ~~|
+        ~("hello" | startsWith "")
+    | law :missesALongerPrefix
+        |~~ A prefix longer than the string begins none. ~~|
+        ~("hi" | startsWith "hello" | not)
+    | law :countsCase |~~ Case counts. ~~| ~("Hello" | startsWith "h" | not)
+    | law :asksEachElementByMap
+        |~~ A vector of strings asks by `map`, each element apart. ~~|
+        ~(["ab" "ba"] | map ~(startsWith "a") | eq [true false])
+    | law :SubjectNotStringError/refusesAVector
+        |~~ A vector is no string to read the beginning of. ~~|
+        ~(["a"] | startsWith "a" !| type | eq ::string/startsWith/SubjectNotStringError)
+    | law :prefix/NotStringError/refusesAKeyword
+        |~~ A keyword is no prefix. ~~|
+        ~("hi" | startsWith :h !| type | eq ::string/startsWith/prefix/NotStringError)
     | impl ::builtin{}
-
-:string/startsWith/findsThePrefix
-  |~~ The string begins with its first word. ~~|
-  ::law~("hello world" | startsWith "hello")
-
-:string/startsWith/missesAnotherPrefix
-  |~~ Another word does not begin it. ~~|
-  ::law~("hello" | startsWith "world" | not)
-
-:string/startsWith/beginsWithTheEmptyPrefix
-  |~~ The empty prefix begins every string. ~~|
-  ::law~("hello" | startsWith "")
-
-:string/startsWith/missesALongerPrefix
-  |~~ A prefix longer than the string begins none. ~~|
-  ::law~("hi" | startsWith "hello" | not)
-
-:string/startsWith/countsCase
-  |~~ Case counts. ~~|
-  ::law~("Hello" | startsWith "h" | not)
-
-:string/startsWith/asksEachElementByMap
-  |~~ A vector of strings asks by `map`, each element apart. ~~|
-  ::law~(["ab" "ba"] | map ~(startsWith "a") | eq [true false])
-
-:string/startsWith/SubjectNotStringError/refusesAVector
-  |~~ A vector is no string to read the beginning of. ~~|
-  ::law~(["a"] | startsWith "a" !| type | eq ::string/startsWith/SubjectNotStringError)
-
-:string/startsWith/prefix/NotStringError/refusesAKeyword
-  |~~ A keyword is no prefix. ~~|
-  ::law~("hi" | startsWith :h !| type | eq ::string/startsWith/prefix/NotStringError)
 
 :string/endsWith
   |~~ Answers whether the string ends with the suffix the call gives,
@@ -889,39 +790,28 @@
             `get /file | endsWith ".json"`, and a vector of strings asks
             by `map`.
         ~~|
+    | law :findsTheSuffix
+        |~~ The string ends with its last word. ~~|
+        ~("hello world" | endsWith "world")
+    | law :missesAnotherSuffix
+        |~~ Another word does not end it. ~~|
+        ~("hello" | endsWith "xyz" | not)
+    | law :endsWithTheEmptySuffix
+        |~~ The empty suffix ends every string. ~~| ~("hello" | endsWith "")
+    | law :missesALongerSuffix
+        |~~ A suffix longer than the string ends none. ~~|
+        ~("hi" | endsWith "ohi" | not)
+    | law :countsCase |~~ Case counts. ~~| ~("Hello" | endsWith "O" | not)
+    | law :asksEachElementByMap
+        |~~ A vector of strings asks by `map`, each element apart. ~~|
+        ~(["ab" "ba"] | map ~(endsWith "a") | eq [false true])
+    | law :SubjectNotStringError/refusesAVector
+        |~~ A vector is no string to read the end of. ~~|
+        ~(["a"] | endsWith "a" !| type | eq ::string/endsWith/SubjectNotStringError)
+    | law :suffix/NotStringError/refusesAKeyword
+        |~~ A keyword is no suffix. ~~|
+        ~("hi" | endsWith :i !| type | eq ::string/endsWith/suffix/NotStringError)
     | impl ::builtin{}
-
-:string/endsWith/findsTheSuffix
-  |~~ The string ends with its last word. ~~|
-  ::law~("hello world" | endsWith "world")
-
-:string/endsWith/missesAnotherSuffix
-  |~~ Another word does not end it. ~~|
-  ::law~("hello" | endsWith "xyz" | not)
-
-:string/endsWith/endsWithTheEmptySuffix
-  |~~ The empty suffix ends every string. ~~|
-  ::law~("hello" | endsWith "")
-
-:string/endsWith/missesALongerSuffix
-  |~~ A suffix longer than the string ends none. ~~|
-  ::law~("hi" | endsWith "ohi" | not)
-
-:string/endsWith/countsCase
-  |~~ Case counts. ~~|
-  ::law~("Hello" | endsWith "O" | not)
-
-:string/endsWith/asksEachElementByMap
-  |~~ A vector of strings asks by `map`, each element apart. ~~|
-  ::law~(["ab" "ba"] | map ~(endsWith "a") | eq [false true])
-
-:string/endsWith/SubjectNotStringError/refusesAVector
-  |~~ A vector is no string to read the end of. ~~|
-  ::law~(["a"] | endsWith "a" !| type | eq ::string/endsWith/SubjectNotStringError)
-
-:string/endsWith/suffix/NotStringError/refusesAKeyword
-  |~~ A keyword is no suffix. ~~|
-  ::law~("hi" | endsWith :i !| type | eq ::string/endsWith/suffix/NotStringError)
 
 :string/prepend
   |~~ Answers the string with the prefix the call gives in front of it,
@@ -946,27 +836,22 @@
             subject.
         ~~|
         ::string
+    | law :putsThePrefixInFront
+        |~~ The prefix goes in front. ~~|
+        ~("world" | prepend "hello " | eq "hello world")
+    | law :keepsTheTag
+        |~~ A string under a tag answers under the tag. ~~|
+        ~(::Box("b") | prepend "a" | eq ::Box("ab"))
+    | law :prependsTheTextOfANumber
+        |~~ A number becomes text by `toString` before it goes in front. ~~|
+        ~("x" | prepend (42 | toString) | eq "42x")
+    | law :writesAKeywordAsItsName
+        |~~ A keyword goes in front as its name. ~~|
+        ~("x" | prepend :a | eq "ax")
+    | law :prefix/NotKeywordOrStringError/refusesANumber
+        |~~ A number prefix is refused; `toString` makes it text. ~~|
+        ~("x" | prepend 42 !| type | eq ::string/prepend/prefix/NotKeywordOrStringError)
     | impl ::builtin{}
-
-:string/prepend/putsThePrefixInFront
-  |~~ The prefix goes in front. ~~|
-  ::law~("world" | prepend "hello " | eq "hello world")
-
-:string/prepend/keepsTheTag
-  |~~ A string under a tag answers under the tag. ~~|
-  ::law~(::Box("b") | prepend "a" | eq ::Box("ab"))
-
-:string/prepend/prependsTheTextOfANumber
-  |~~ A number becomes text by `toString` before it goes in front. ~~|
-  ::law~("x" | prepend (42 | toString) | eq "42x")
-
-:string/prepend/writesAKeywordAsItsName
-  |~~ A keyword goes in front as its name. ~~|
-  ::law~("x" | prepend :a | eq "ax")
-
-:string/prepend/prefix/NotKeywordOrStringError/refusesANumber
-  |~~ A number prefix is refused; `toString` makes it text. ~~|
-  ::law~("x" | prepend 42 !| type | eq ::string/prepend/prefix/NotKeywordOrStringError)
 
 :string/append
   |~~ Answers the string with the suffix the call gives after it, `"hello"
@@ -990,27 +875,22 @@
             subject.
         ~~|
         ::string
+    | law :putsTheSuffixAfter
+        |~~ The suffix goes after. ~~|
+        ~("hello" | append " world" | eq "hello world")
+    | law :keepsTheTag
+        |~~ A string under a tag answers under the tag. ~~|
+        ~(::Box("a") | append "b" | eq ::Box("ab"))
+    | law :appendsTheTextOfANumber
+        |~~ A number becomes text by `toString` before it goes after. ~~|
+        ~("x" | append (42 | toString) | eq "x42")
+    | law :writesAKeywordAsItsName
+        |~~ A keyword goes after as its name. ~~|
+        ~("x" | append :a | eq "xa")
+    | law :suffix/NotKeywordOrStringError/refusesANumber
+        |~~ A number suffix is refused; `toString` makes it text. ~~|
+        ~("x" | append 42 !| type | eq ::string/append/suffix/NotKeywordOrStringError)
     | impl ::builtin{}
-
-:string/append/putsTheSuffixAfter
-  |~~ The suffix goes after. ~~|
-  ::law~("hello" | append " world" | eq "hello world")
-
-:string/append/keepsTheTag
-  |~~ A string under a tag answers under the tag. ~~|
-  ::law~(::Box("a") | append "b" | eq ::Box("ab"))
-
-:string/append/appendsTheTextOfANumber
-  |~~ A number becomes text by `toString` before it goes after. ~~|
-  ::law~("x" | append (42 | toString) | eq "x42")
-
-:string/append/writesAKeywordAsItsName
-  |~~ A keyword goes after as its name. ~~|
-  ::law~("x" | append :a | eq "xa")
-
-:string/append/suffix/NotKeywordOrStringError/refusesANumber
-  |~~ A number suffix is refused; `toString` makes it text. ~~|
-  ::law~("x" | append 42 !| type | eq ::string/append/suffix/NotKeywordOrStringError)
 
 :string/parseJson
   |~~ Answers the value the JSON text of the string spells, the reverse
@@ -1048,6 +928,56 @@
             and by the command line reading its input; a literal of qlang
             past the range is the parser's own refusal.
         ~~|
+    | law :readsANumber
+        |~~ A JSON number reads as a number. ~~| ~("42" | parseJson | eq 42)
+    | law :readsAString
+        |~~ A JSON string reads as a string. ~~|
+        ~("\"hello\"" | parseJson | eq "hello")
+    | law :readsAnArrayAsAVector
+        |~~ A JSON array reads as a vector. ~~|
+        ~("[1,2,3]" | parseJson | eq [1 2 3])
+    | law :readsAnObjectAsAMap
+        |~~ A JSON object reads as a map of keywords. ~~|
+        ~("{\"name\":\"alice\"}" | parseJson | eq {:name "alice"})
+    | law :quotesAKeyWithASpace
+        |~~ A key with a space reads as a quoted keyword. ~~|
+        ~("{\"first name\": 1}" | parseJson | eq {:"first name" 1})
+    | law :readsTheLiteralsAsThemselves
+        |~~ JSON true, false and null read as themselves. ~~|
+        ~("[true, false, null]" | parseJson | eq [true false null])
+    | law :readsPastTheWhitespaceAround
+        |~~ Whitespace around the text is read past. ~~|
+        ~(" 42 " | parseJson | eq 42)
+    | law :keepsTheLastOfAKeyWrittenTwice
+        |~~ A key written twice keeps its last value. ~~|
+        ~("{\"a\":1,\"a\":2}" | parseJson | eq {:a 2})
+    | law :readsBackWhatJsonWrote
+        |~~ What `json` wrote of a map of vectors reads back as it was. ~~|
+        ~({:a [1 "x"]} | json | parseJson | eq {:a [1 "x"]})
+    | law :readsASetBackAsAVector
+        |~~ What `json` wrote of a set reads back as a vector. ~~|
+        ~(#[1 2] | json | parseJson | eq [1 2])
+    | law :readsAKeywordBackAsAString
+        |~~ What `json` wrote of a keyword reads back as a string. ~~|
+        ~(:a | json | parseJson | eq "a")
+    | law :readsATagBackAsAMap
+        |~~ What `json` wrote of a value under a tag reads back as a map.
+        ~~|
+        ~(::Box("a") | json | parseJson | eq {:"$tag" "Box" :payload "a"})
+    | law :SubjectNotStringError/refusesANumber
+        |~~ A number is no text to read. ~~|
+        ~(42 | parseJson
+          !| [type (get /actualType)]
+          |  eq [::string/parseJson/SubjectNotStringError ::number])
+    | law :TextNotJsonError/refusesBrokenText
+        |~~ Text that is no JSON is refused. ~~|
+        ~("{not json" | parseJson !| type | eq ::string/parseJson/TextNotJsonError)
+    | law :NumberNotFiniteError/refusesANumberPastTheRange
+        |~~ A number past the range of doubles is refused. ~~|
+        ~("1e400" | parseJson !| type | eq ::string/parseJson/NumberNotFiniteError)
+    | law :NumberNotFiniteError/namesThePathToTheNumber
+        |~~ The refusal names the path to the number in the text. ~~|
+        ~("[1, 1e400]" | parseJson !| get /path | eq [1])
     | impl ::builtin{}
 
 :string/parseJson/TextNotJsonError/message
@@ -1057,72 +987,6 @@
 :string/parseJson/NumberNotFiniteError/path
   |~~ The path to the number in the text. ~~|
   ::vec
-
-:string/parseJson/readsANumber
-  |~~ A JSON number reads as a number. ~~|
-  ::law~("42" | parseJson | eq 42)
-
-:string/parseJson/readsAString
-  |~~ A JSON string reads as a string. ~~|
-  ::law~("\"hello\"" | parseJson | eq "hello")
-
-:string/parseJson/readsAnArrayAsAVector
-  |~~ A JSON array reads as a vector. ~~|
-  ::law~("[1,2,3]" | parseJson | eq [1 2 3])
-
-:string/parseJson/readsAnObjectAsAMap
-  |~~ A JSON object reads as a map of keywords. ~~|
-  ::law~("{\"name\":\"alice\"}" | parseJson | eq {:name "alice"})
-
-:string/parseJson/quotesAKeyWithASpace
-  |~~ A key with a space reads as a quoted keyword. ~~|
-  ::law~("{\"first name\": 1}" | parseJson | eq {:"first name" 1})
-
-:string/parseJson/readsTheLiteralsAsThemselves
-  |~~ JSON true, false and null read as themselves. ~~|
-  ::law~("[true, false, null]" | parseJson | eq [true false null])
-
-:string/parseJson/readsPastTheWhitespaceAround
-  |~~ Whitespace around the text is read past. ~~|
-  ::law~(" 42 " | parseJson | eq 42)
-
-:string/parseJson/keepsTheLastOfAKeyWrittenTwice
-  |~~ A key written twice keeps its last value. ~~|
-  ::law~("{\"a\":1,\"a\":2}" | parseJson | eq {:a 2})
-
-:string/parseJson/readsBackWhatJsonWrote
-  |~~ What `json` wrote of a map of vectors reads back as it was. ~~|
-  ::law~({:a [1 "x"]} | json | parseJson | eq {:a [1 "x"]})
-
-:string/parseJson/readsASetBackAsAVector
-  |~~ What `json` wrote of a set reads back as a vector. ~~|
-  ::law~(#[1 2] | json | parseJson | eq [1 2])
-
-:string/parseJson/readsAKeywordBackAsAString
-  |~~ What `json` wrote of a keyword reads back as a string. ~~|
-  ::law~(:a | json | parseJson | eq "a")
-
-:string/parseJson/readsATagBackAsAMap
-  |~~ What `json` wrote of a value under a tag reads back as a map. ~~|
-  ::law~(::Box("a") | json | parseJson | eq {:"$tag" "Box" :payload "a"})
-
-:string/parseJson/SubjectNotStringError/refusesANumber
-  |~~ A number is no text to read. ~~|
-  ::law~(42 | parseJson
-    !| [type (get /actualType)]
-    |  eq [::string/parseJson/SubjectNotStringError ::number])
-
-:string/parseJson/TextNotJsonError/refusesBrokenText
-  |~~ Text that is no JSON is refused. ~~|
-  ::law~("{not json" | parseJson !| type | eq ::string/parseJson/TextNotJsonError)
-
-:string/parseJson/NumberNotFiniteError/refusesANumberPastTheRange
-  |~~ A number past the range of doubles is refused. ~~|
-  ::law~("1e400" | parseJson !| type | eq ::string/parseJson/NumberNotFiniteError)
-
-:string/parseJson/NumberNotFiniteError/namesThePathToTheNumber
-  |~~ The refusal names the path to the number in the text. ~~|
-  ::law~("[1, 1e400]" | parseJson !| get /path | eq [1])
 
 :string/parse
   |~~ Answers the quote of the steps the source text spells, `"add 1 2" |
@@ -1139,39 +1003,35 @@
   ~~|
   ::fn
     | returns |~~ The quote of the steps the text spells. ~~| ::quote
+    | law :readsTheSteps
+        |~~ The source reads as its steps. ~~|
+        ~("1 | add 1" | parse | count | eq 2)
+    | law :readsTheQuote
+        |~~ The source reads as the quote it spells. ~~|
+        ~("add 1 2" | parse | eq ~(add 1 2))
+    | law :readsTheEmptyQuote
+        |~~ The empty text spells the empty quote. ~~|
+        ~("" | parse | eq ~())
+    | law :readsBackByParse
+        |~~ `parse` on the quote answers the text again. ~~|
+        ~("add 1" | parse | parse | eq "add 1")
+    | law :runsByApply
+        |~~ `apply` runs the quote on a subject. ~~|
+        ~(5 | apply ("add 1" | parse) | eq 6)
+    | law :runsASourceWithItsOwnValueByApply
+        |~~ A source that starts from a value of its own runs by `apply
+            it`.
+        ~~|
+        ~("1 | add 1" | parse | apply it | eq 2)
+    | law :refusesASourceTheParserRefuses
+        |~~ A source the parser cannot read is refused. ~~|
+        ~("add (" | parse !| type | eq ::quote/ParseError)
+    | law :namesTheTokenFound
+        |~~ The refusal names the token that stood where the parser
+            stopped.
+        ~~|
+        ~("add )" | parse !| get /found | eq ")")
     | impl ::builtin{}
-
-:string/parse/readsTheSteps
-  |~~ The source reads as its steps. ~~|
-  ::law~("1 | add 1" | parse | count | eq 2)
-
-:string/parse/readsTheQuote
-  |~~ The source reads as the quote it spells. ~~|
-  ::law~("add 1 2" | parse | eq ~(add 1 2))
-
-:string/parse/readsTheEmptyQuote
-  |~~ The empty text spells the empty quote. ~~|
-  ::law~("" | parse | eq ~())
-
-:string/parse/readsBackByParse
-  |~~ `parse` on the quote answers the text again. ~~|
-  ::law~("add 1" | parse | parse | eq "add 1")
-
-:string/parse/runsByApply
-  |~~ `apply` runs the quote on a subject. ~~|
-  ::law~(5 | apply ("add 1" | parse) | eq 6)
-
-:string/parse/runsASourceWithItsOwnValueByApply
-  |~~ A source that starts from a value of its own runs by `apply it`. ~~|
-  ::law~("1 | add 1" | parse | apply it | eq 2)
-
-:string/parse/refusesASourceTheParserRefuses
-  |~~ A source the parser cannot read is refused. ~~|
-  ::law~("add (" | parse !| type | eq ::quote/ParseError)
-
-:string/parse/namesTheTokenFound
-  |~~ The refusal names the token that stood where the parser stopped. ~~|
-  ::law~("add )" | parse !| get /found | eq ")")
 
 :string/toNumber
   |~~ Answers the number the whole text of the string writes as a
@@ -1193,19 +1053,18 @@
             around it is cut first by `trim`, `" 42" | trim | toNumber`,
             and a number among other words is taken out first by `split`.
         ~~|
+    | law :readsTheNumberItWrites
+        |~~ A string turns into the number it writes. ~~|
+        ~(["42" "-1.5" "2.5e-3"] | map ~toNumber | eq [42 -1.5 0.0025])
+    | law :readsBack
+        |~~ A number turned into its string turns back into itself. ~~|
+        ~(42 | toString | toNumber | eq 42)
+    | law :TextNotNumberError/refusesATextThatIsNoNumber
+        |~~ Text that is no number, or a number with a space around it, is
+            refused.
+        ~~|
+        ~(["4x" "" " 42"] | map ~(toNumber !| type) | eq [::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError])
     | impl ::builtin{}
-
-:string/toNumber/readsTheNumberItWrites
-  |~~ A string turns into the number it writes. ~~|
-  ::law~(["42" "-1.5" "2.5e-3"] | map ~toNumber | eq [42 -1.5 0.0025])
-
-:string/toNumber/readsBack
-  |~~ A number turned into its string turns back into itself. ~~|
-  ::law~(42 | toString | toNumber | eq 42)
-
-:string/toNumber/TextNotNumberError/refusesATextThatIsNoNumber
-  |~~ Text that is no number, or a number with a space around it, is refused. ~~|
-  ::law~(["4x" "" " 42"] | map ~(toNumber !| type) | eq [::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError])
 
 :string/toKeyword
   |~~ Answers the keyword the string names, `"draft" | toKeyword`
@@ -1218,19 +1077,18 @@
   ~~|
   ::fn
     | returns |~~ The keyword the text names. ~~| ::keyword
+    | law :namesAKeyword
+        |~~ A string names the keyword of its text, a slash and a space
+            kept.
+        ~~|
+        ~(["foo" "qlang/error" "a b"] | map ~toKeyword | eq [:foo :qlang/error :"a b"])
+    | law :readsBack
+        |~~ A string turned into a keyword turns back into itself. ~~|
+        ~("bar" | toKeyword | toString | eq "bar")
+    | law :namesTheKeywordOfATaggedString
+        |~~ A string under a tag names the keyword of its text. ~~|
+        ~(::Name("ab") | toKeyword | eq :ab)
     | impl ::builtin{}
-
-:string/toKeyword/namesAKeyword
-  |~~ A string names the keyword of its text, a slash and a space kept. ~~|
-  ::law~(["foo" "qlang/error" "a b"] | map ~toKeyword | eq [:foo :qlang/error :"a b"])
-
-:string/toKeyword/readsBack
-  |~~ A string turned into a keyword turns back into itself. ~~|
-  ::law~("bar" | toKeyword | toString | eq "bar")
-
-:string/toKeyword/namesTheKeywordOfATaggedString
-  |~~ A string under a tag names the keyword of its text. ~~|
-  ::law~(::Name("ab") | toKeyword | eq :ab)
 
 :string/toTag
   |~~ Answers the tag the string names, `"vec" | toTag` answering
@@ -1248,19 +1106,16 @@
             a space, the empty text and a name that begins with a digit
             name no tag.
         ~~|
+    | law :namesATag
+        |~~ A string names the tag of its text. ~~|
+        ~(["vec" "number/add"] | map ~toTag | eq [::vec ::number/add])
+    | law :readsBack
+        |~~ A tag turned into its name turns back into itself. ~~|
+        ~(::vec | toString | toTag | eq ::vec)
+    | law :TextNotNameError/refusesASpace
+        |~~ Text with a space names no tag. ~~|
+        ~("a b" | toTag !| type | eq ::string/toTag/TextNotNameError)
     | impl ::builtin{}
-
-:string/toTag/namesATag
-  |~~ A string names the tag of its text. ~~|
-  ::law~(["vec" "number/add"] | map ~toTag | eq [::vec ::number/add])
-
-:string/toTag/readsBack
-  |~~ A tag turned into its name turns back into itself. ~~|
-  ::law~(::vec | toString | toTag | eq ::vec)
-
-:string/toTag/TextNotNameError/refusesASpace
-  |~~ Text with a space names no tag. ~~|
-  ::law~("a b" | toTag !| type | eq ::string/toTag/TextNotNameError)
 
 :string/toString
   |~~ Answers the string itself, so `map ~toString` turns the scalars of
@@ -1275,15 +1130,17 @@
   ~~|
   ::fn
     | returns |~~ The string itself. ~~| ::string
+    | law :answersItself
+        |~~ A string answers itself, so scalars of several kinds turn into
+            strings.
+        ~~|
+        ~([42 :a "s"] | map ~toString | eq ["42" "a" "s"])
+    | law :leadsAValueOfNoStringToItsText
+        |~~ A vector is led to `print` and `json`, and a quote to `parse`
+            beside them.
+        ~~|
+        ~([([1 2] | toString !| get /nearest) (~(add 1) | toString !| get /nearest)] | eq [[:json :print] [:json :parse :print]])
     | impl ::builtin{}
-
-:string/toString/answersItself
-  |~~ A string answers itself, so scalars of several kinds turn into strings. ~~|
-  ::law~([42 :a "s"] | map ~toString | eq ["42" "a" "s"])
-
-:string/toString/leadsAValueOfNoStringToItsText
-  |~~ A vector is led to `print` and `json`, and a quote to `parse` beside them. ~~|
-  ::law~([([1 2] | toString !| get /nearest) (~(add 1) | toString !| get /nearest)] | eq [[:json :print] [:json :parse :print]])
 
 :string/match
   |~~ Answers the first match of the pattern the call gives as a vector,
@@ -1307,23 +1164,19 @@
     | returns
         |~~ The text of the match and its groups, or `null`. ~~|
         #[::vec ::null]
+    | law :readsTheFirstMatchAndItsGroups
+        |~~ The first match comes with its groups. ~~|
+        ~("took 12ms, then 7ms" | match #"(\d+)ms" | eq ["12ms" "12"])
+    | law :answersNullWhereNoneStands
+        |~~ A text with no match answers null. ~~|
+        ~("took long" | match #"\d+" | eq null)
+    | law :answersNullForAGroupThatTookNoPart
+        |~~ A group that took no part is null. ~~|
+        ~("5" | match #"(\d)(x)?" | eq ["5" "5" null])
+    | law :pattern/NotRegexError/refusesAString
+        |~~ Text is no pattern; `toRegex` reads it as one. ~~|
+        ~("a1" | match "\\d" !| type | eq ::string/match/pattern/NotRegexError)
     | impl ::builtin{}
-
-:string/match/readsTheFirstMatchAndItsGroups
-  |~~ The first match comes with its groups. ~~|
-  ::law~("took 12ms, then 7ms" | match #"(\d+)ms" | eq ["12ms" "12"])
-
-:string/match/answersNullWhereNoneStands
-  |~~ A text with no match answers null. ~~|
-  ::law~("took long" | match #"\d+" | eq null)
-
-:string/match/answersNullForAGroupThatTookNoPart
-  |~~ A group that took no part is null. ~~|
-  ::law~("5" | match #"(\d)(x)?" | eq ["5" "5" null])
-
-:string/match/pattern/NotRegexError/refusesAString
-  |~~ Text is no pattern; `toRegex` reads it as one. ~~|
-  ::law~("a1" | match "\\d" !| type | eq ::string/match/pattern/NotRegexError)
 
 :string/capture
   |~~ Answers the groups the pattern names in its first match as a map,
@@ -1349,23 +1202,19 @@
             and this pattern names none: `match` answers its groups by
             their places, `match #"(\w+)" | get /1`.
         ~~|
+    | law :turnsALineIntoARecord
+        |~~ The named groups of a line of a log are a record. ~~|
+        ~("2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+) (?<message>.*)" | eq {:date "2026-10-12" :level "ERROR" :message "db down"})
+    | law :answersNullWhereNoneStands
+        |~~ A text with no match answers null. ~~|
+        ~("" | capture #"(?<n>\d+)" | eq null)
+    | law :answersNullForAGroupThatTookNoPart
+        |~~ A named group that took no part is null. ~~|
+        ~("5" | capture #"(?<digit>\d)(?<unit>ms)?" | eq {:digit "5" :unit null})
+    | law :PatternNamesNoGroupError/refusesAPatternOfPlacesAlone
+        |~~ A pattern that names no group is refused. ~~|
+        ~("5" | capture #"(\d)" !| type | eq ::string/capture/PatternNamesNoGroupError)
     | impl ::builtin{}
-
-:string/capture/turnsALineIntoARecord
-  |~~ The named groups of a line of a log are a record. ~~|
-  ::law~("2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+) (?<message>.*)" | eq {:date "2026-10-12" :level "ERROR" :message "db down"})
-
-:string/capture/answersNullWhereNoneStands
-  |~~ A text with no match answers null. ~~|
-  ::law~("" | capture #"(?<n>\d+)" | eq null)
-
-:string/capture/answersNullForAGroupThatTookNoPart
-  |~~ A named group that took no part is null. ~~|
-  ::law~("5" | capture #"(?<digit>\d)(?<unit>ms)?" | eq {:digit "5" :unit null})
-
-:string/capture/PatternNamesNoGroupError/refusesAPatternOfPlacesAlone
-  |~~ A pattern that names no group is refused. ~~|
-  ::law~("5" | capture #"(\d)" !| type | eq ::string/capture/PatternNamesNoGroupError)
 
 :string/scan
   |~~ Answers the text of every match of the pattern, in order, `[]`
@@ -1382,15 +1231,13 @@
     | throws :pattern/NotRegexError
         |~~ The pattern is a `#"…"`; text becomes one by `toRegex`. ~~|
     | returns |~~ The text of every match, in order. ~~| ::vec
+    | law :readsEveryMatch
+        |~~ Every match comes, in order. ~~|
+        ~("took 12ms, then 7ms" | scan #"\d+" | map ~toNumber | eq [12 7])
+    | law :answersNothingWhereNoneStands
+        |~~ A text with no match answers the empty vector. ~~|
+        ~("none" | scan #"\d" | eq [])
     | impl ::builtin{}
-
-:string/scan/readsEveryMatch
-  |~~ Every match comes, in order. ~~|
-  ::law~("took 12ms, then 7ms" | scan #"\d+" | map ~toNumber | eq [12 7])
-
-:string/scan/answersNothingWhereNoneStands
-  |~~ A text with no match answers the empty vector. ~~|
-  ::law~("none" | scan #"\d" | eq [])
 
 :string/replace
   |~~ Answers the text with the replacement the call gives in the place
@@ -1429,31 +1276,29 @@
             `~(get /0 | toNumber | mul 2 | toString)`.
         ~~|
     | returns |~~ The text with every match replaced. ~~| ::string
+    | law :replacesEveryMatch
+        |~~ Every match is replaced. ~~|
+        ~("a  b   c" | replace #"\s+" " " | eq "a b c")
+    | law :namesTheGroupsOfAMatch
+        |~~ `$1` and its kin name the groups of a match. ~~|
+        ~("2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1" | eq "12.10.2026")
+    | law :replacesATextAsWritten
+        |~~ A text is looked for and replaced as written, a dollar among
+            it.
+        ~~|
+        ~("a.b.c" | replace "." "$&" | eq "a$&b$&c")
+    | law :cutsNoCharacterInHalves
+        |~~ The empty text stands between every two characters, an emoji
+            whole among them.
+        ~~|
+        ~("a😀" | get [(replace "" "-") (replace "" ~("-"))] | eq ["-a-😀-" "-a-😀-"])
+    | law :runsCodeOnEachMatch
+        |~~ Code answers the text that takes the place of each match. ~~|
+        ~("2 and 30" | replace #"\d+" ~(get /0 | toNumber | mul 2 | toString) | eq "4 and 60")
+    | law :with/AnswerNotStringError/refusesANumber
+        |~~ Code that answers no string is refused. ~~|
+        ~("2" | replace #"\d" ~(get /0 | toNumber) !| type | eq ::string/replace/with/AnswerNotStringError)
     | impl ::builtin{}
-
-:string/replace/replacesEveryMatch
-  |~~ Every match is replaced. ~~|
-  ::law~("a  b   c" | replace #"\s+" " " | eq "a b c")
-
-:string/replace/namesTheGroupsOfAMatch
-  |~~ `$1` and its kin name the groups of a match. ~~|
-  ::law~("2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1" | eq "12.10.2026")
-
-:string/replace/replacesATextAsWritten
-  |~~ A text is looked for and replaced as written, a dollar among it. ~~|
-  ::law~("a.b.c" | replace "." "$&" | eq "a$&b$&c")
-
-:string/replace/cutsNoCharacterInHalves
-  |~~ The empty text stands between every two characters, an emoji whole among them. ~~|
-  ::law~("a😀" | get [(replace "" "-") (replace "" ~("-"))] | eq ["-a-😀-" "-a-😀-"])
-
-:string/replace/runsCodeOnEachMatch
-  |~~ Code answers the text that takes the place of each match. ~~|
-  ::law~("2 and 30" | replace #"\d+" ~(get /0 | toNumber | mul 2 | toString) | eq "4 and 60")
-
-:string/replace/with/AnswerNotStringError/refusesANumber
-  |~~ Code that answers no string is refused. ~~|
-  ::law~("2" | replace #"\d" ~(get /0 | toNumber) !| type | eq ::string/replace/with/AnswerNotStringError)
 
 :string/toRegex
   |~~ Answers the pattern whose source the string holds, with the flags
@@ -1492,36 +1337,34 @@
             pattern: the literal reads back by `parse | apply it`, its
             flags among it.
         ~~|
+    | law :readsTheSource
+        |~~ A string reads as the pattern whose source it holds. ~~|
+        ~("a1" | contains ("\\d" | toRegex))
+    | law :takesTheFlags
+        |~~ The flags the call gives go with the pattern, in their order.
+        ~~|
+        ~("error" | toRegex "si" | eq #"error"is)
+    | law :flags/NotFlagsError/refusesALetterOfNoFlag
+        |~~ A letter that is no flag is refused. ~~|
+        ~("a" | toRegex "x" !| type | eq ::string/toRegex/flags/NotFlagsError)
+    | law :TextNotPatternError/refusesAnOpenGroup
+        |~~ A source the engine cannot read is refused. ~~|
+        ~("(a" | toRegex !| type | eq ::string/toRegex/TextNotPatternError)
+    | law :TextNotPatternError/namesTheFlagsAsAPart
+        |~~ Flags written inside the source are refused, the refusal
+            naming the part.
+        ~~|
+        ~("(?i)abc" | toRegex !| get /message | contains "toRegex \"i\"")
+    | law :LiteralNotSourceError/refusesALiteral
+        |~~ The literal of a pattern is refused, and `parse | apply it`
+            reads it.
+        ~~|
+        ~(#"\d+"i | json | parseJson | get [(toRegex !| type) (parse | apply it)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
     | impl ::builtin{}
 
 :string/toRegex/TextNotPatternError/message
   |~~ Why the source is no pattern, and its repair where one shows. ~~|
   ::string
-
-:string/toRegex/readsTheSource
-  |~~ A string reads as the pattern whose source it holds. ~~|
-  ::law~("a1" | contains ("\\d" | toRegex))
-
-:string/toRegex/takesTheFlags
-  |~~ The flags the call gives go with the pattern, in their order. ~~|
-  ::law~("error" | toRegex "si" | eq #"error"is)
-
-:string/toRegex/flags/NotFlagsError/refusesALetterOfNoFlag
-  |~~ A letter that is no flag is refused. ~~|
-  ::law~("a" | toRegex "x" !| type | eq ::string/toRegex/flags/NotFlagsError)
-
-:string/toRegex/TextNotPatternError/refusesAnOpenGroup
-  |~~ A source the engine cannot read is refused. ~~|
-  ::law~("(a" | toRegex !| type | eq ::string/toRegex/TextNotPatternError)
-
-:string/toRegex/TextNotPatternError/namesTheFlagsAsAPart
-  |~~ Flags written inside the source are refused, the refusal naming the part. ~~|
-  ::law~("(?i)abc" | toRegex !| get /message | contains "toRegex \"i\"")
-
-:string/toRegex/LiteralNotSourceError/refusesALiteral
-  |~~ The literal of a pattern is refused, and `parse | apply it` reads it. ~~|
-  ::law~(#"\d+"i | json | parseJson | get [(toRegex !| type) (parse | apply it)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
-
 
 :string/toPath
   |~~ Answers the path the text writes in JSON Pointer's form, a slash
@@ -1537,16 +1380,14 @@
         |~~ The text writes a path in JSON Pointer's form, a slash before
             each segment, `"/a/b"`, or a fragment of one, `"#/a/b"`.
         ~~|
+    | law :readsTheEscapes
+        |~~ `~1` is a slash and `~0` a tilde within a segment. ~~|
+        ~("/a~1b/0" | toPath | segments | eq [:"a/b" 0])
+    | law :readsAFragment
+        |~~ The `#` of a fragment before the path is read too. ~~|
+        ~("#/components/schemas" | toPath | print | eq "/components/schemas")
+    | law :NotPointerError/refusesAName
+        |~~ A text with no slash before it writes no path. ~~|
+        ~("name" | toPath !| type | eq ::string/toPath/NotPointerError)
     | impl ::builtin{}
 
-:string/toPath/readsTheEscapes
-  |~~ `~1` is a slash and `~0` a tilde within a segment. ~~|
-  ::law~("/a~1b/0" | toPath | segments | eq [:"a/b" 0])
-
-:string/toPath/readsAFragment
-  |~~ The `#` of a fragment before the path is read too. ~~|
-  ::law~("#/components/schemas" | toPath | print | eq "/components/schemas")
-
-:string/toPath/NotPointerError/refusesAName
-  |~~ A text with no slash before it writes no path. ~~|
-  ::law~("name" | toPath !| type | eq ::string/toPath/NotPointerError)

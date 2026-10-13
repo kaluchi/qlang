@@ -33,11 +33,10 @@
         |~~ `start` reads the place a span starts at, as a parse error
             holds it, `"[1" | parse !| get /location | start`.
         ~~|
+    | law :answersThePointItStartsAt
+        |~~ The start of a span is the point of its first three numbers. ~~|
+        ~(::span[0 1 1 4 1 5] | start | eq ::point[0 1 1])
     | impl ~(payload | take 3 | tag ::point)
-
-:span/start/answersThePointItStartsAt
-  |~~ The start of a span is the point of its first three numbers. ~~|
-  ::law~(::span[0 1 1 4 1 5] | start | eq ::point[0 1 1])
 
 :span/end
   |~~ Answers the point after the span's end, the offset, the line and
@@ -51,8 +50,8 @@
         |~~ `end` reads the place a span ends at, as a parse error holds
             it, `"[1" | parse !| get /location | end`.
         ~~|
+    | law :answersThePointAfterIt
+        |~~ The end of a span is the point of its last three numbers. ~~|
+        ~(::span[0 1 1 4 1 5] | end | eq ::point[4 1 5])
     | impl ~(payload | drop 3 | tag ::point)
 
-:span/end/answersThePointAfterIt
-  |~~ The end of a span is the point of its last three numbers. ~~|
-  ::law~(::span[0 1 1 4 1 5] | end | eq ::point[4 1 5])

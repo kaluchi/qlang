@@ -18,7 +18,8 @@
       and `~(query /0 1)` the first or one, and its kinds; `returns` the
       answer, its page and its kinds; `throws` a refusal and its page;
       `holds` an invariant of an input or of the answer, its refusal, its
-      page and its condition; and `impl` the recipe. An input holds the
+      page and its condition; `law` a law of the function, its page and
+      its query; and `impl` the recipe. An input holds the
       value of its kind the walk of its tags reaches, and a value of none
       is refused under the input. A word is a function named under a
       label, called by its function alone, and `apply` runs a function on
@@ -199,6 +200,16 @@
   |~~ An invariant written with no path holds of nothing. ~~|
   ::law~(::fn[~(holds :TooBigError |~~ Too big. ~~| ~(lt 10)) ~(1)] !| type | eq ::fn/NameUnderNoInputError)
 
+:fn/LawUnderNoNameError
+  |~~ A law written with a path is named under a name the function
+      declares before it: an input, a refusal, an invariant, the subject
+      or the answer, `law :by/NotNumberError/refusesAString …`.
+  ~~|
+
+:fn/LawUnderNoNameError/refusesALawUnderNoName
+  |~~ A law under a name the function does not declare is refused. ~~|
+  ::law~(::fn[~(law :x/holds |~~ An x. ~~| ~(true)) ~(1)] !| type | eq ::fn/LawUnderNoNameError)
+
 :fn/RecipeNotCodeError
   |~~ The recipe is a quote, a primitive of the host, or null for a
       contract.
@@ -251,24 +262,23 @@
     | throws :SubjectNotFnError
         |~~ `on` names the subject of the noun's function, `::fn | on …`,
             or of a function.
-        ~~|)
+        ~~|
+    | law :servesTheKindsItNames
+        |~~ A function serves a subject of the kinds `on` names and
+            refuses another under its call.
+        ~~|
+        ~(:f (::fn | on |~~ A number. ~~| ::number | impl ~(add 1))
+          | [(5 | apply f) ("x" | apply f !| type)]
+          | eq [6 ::fn/call/SubjectNotNumberError])
+    | law :pagesTheSubjectOfAWord
+        |~~ The page of the subject is the page of its node under the
+            word.
+        ~~|
+        ~(:number/inc (::fn | on |~~ The number to raise. ~~| | impl ~(add 1)) | ::number/inc/subject | doc | content | trim | eq "The number to raise.")
+    | law :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | on |~~ A number. ~~| !| type | eq ::fn/on/SubjectNotFnError))
     ::builtin{}]
-
-:fn/on/servesTheKindsItNames
-  |~~ A function serves a subject of the kinds `on` names and refuses
-      another under its call.
-  ~~|
-  ::law~(:f (::fn | on |~~ A number. ~~| ::number | impl ~(add 1))
-    | [(5 | apply f) ("x" | apply f !| type)]
-    | eq [6 ::fn/call/SubjectNotNumberError])
-
-:fn/on/pagesTheSubjectOfAWord
-  |~~ The page of the subject is the page of its node under the word. ~~|
-  ::law~(:number/inc (::fn | on |~~ The number to raise. ~~| | impl ~(add 1)) | ::number/inc/subject | doc | content | trim | eq "The number to raise.")
-
-:fn/on/SubjectNotFnError/refusesAnotherTag
-  |~~ A tag of another noun is refused. ~~|
-  ::law~(::number | on |~~ A number. ~~| !| type | eq ::fn/on/SubjectNotFnError)
 
 :fn/takes
   |~~ Adds an input to a function: its name, its page, the place of the
@@ -306,101 +316,93 @@
         |~~ The function with the input after the ones it held. ~~| ::fn
     | throws :SubjectNotFnError
         |~~ `takes` builds from the noun, `::fn | takes …`, or a function.
-        ~~|)
+        ~~|
+    | law :addsAnInput
+        |~~ An input is added by its name, its page and its place. ~~|
+        ~(::fn | takes :by |~~ How much. ~~| /0 | params | map /name | eq [:by])
+    | law :holdsTheKinds
+        |~~ An input of kinds refuses a value of none under its name. ~~|
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| type | eq ::fn/call/by/NotNumberError)
+    | law :holdsTheValueOfItsKind
+        |~~ An input holds the value of its kind beneath the tags of what
+            it is given.
+        ~~|
+        ~(:Width |~~ A width. ~~|
+          | 5
+          | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(by | type)) [::Width(3)]
+          | eq ::number)
+    | law :pagesTheRefusalOfItsKinds
+        |~~ The refusal the kinds of an input name is paged by them where
+            `throws` gives it no page.
+        ~~|
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))
+          | ::number/plus/by/NotNumberError
+          | doc
+          | content
+          | trim
+          | eq "`by` holds a value of `::number`.")
+    | law :holdsTheKindsOfEachElement
+        |~~ An input of the kinds of each element holds the value of its
+            kind of each, beneath the tags it is given under.
+        ~~|
+        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 ::Width(2)]] | eq [1 2])
+    | law :keepsASetOfElements
+        |~~ A set an input of the kinds of each element holds stays a set.
+        ~~|
+        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [#[2 1]] | eq #[1 2])
+    | law :holdsAnyElement
+        |~~ The kinds `::any` of each element ask for a vector alone. ~~|
+        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::any] | impl ~(xs)) [[1 "a"]] | eq [1 "a"])
+    | law :refusesAnElementOfNoneOfItsKinds
+        |~~ An element of none of the kinds is refused with its index. ~~|
+        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 "a"]]
+          !| [type (get /index)]
+          |  eq [::fn/call/xs/ElementNotNumberError 1])
+    | law :refusesNoVectorOfElements
+        |~~ A value that is no vector is refused where the input names the
+            kinds of each element.
+        ~~|
+        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [5] !| type | eq ::fn/call/xs/NotVecError)
+    | law :pagesTheRefusalOfTheKindsOfEachElement
+        |~~ The refusal the kinds of each element name is paged by them
+            where `throws` gives it no page.
+        ~~|
+        ~(:number/w (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))
+          | ::number/w/xs/ElementNotNumberError
+          | doc
+          | content
+          | trim
+          | eq "Each element of `xs` holds a value of `::number`.")
+    | law :readsAKeyOfAMap
+        |~~ A path into the arguments reads an input by its key. ~~|
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0/by | impl ~(add by)) [{:by 3}] | eq 8)
+    | law :givesADefault
+        |~~ A place read by `query` gives a default. ~~|
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| ~(query /0 1) | impl ~(add by)) | eq 6)
+    | law :answersTheFailureOfItsPlace
+        |~~ A place that reads the arguments by code and fails answers its
+            failure.
+        ~~|
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| ~(first | sub "x") | impl ~(add by)) [3]
+          !| type
+          |  eq ::number/sub/subtrahend/NotNumberError)
+    | law :refusesAStepWrittenForItsQuote
+        |~~ An object computed at the call that failed, where the input
+            that reads its place takes a quote, is refused under its
+            kinds.
+        ~~|
+        ~(:vec/each (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code))
+          | [1 2]
+          | each (add 1)
+          !| type
+          |  eq ::vec/each/code/NotQuoteError)
+    | law :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | takes :by |~~ How much. ~~| /0 !| type | eq ::fn/takes/SubjectNotFnError)
+    | law :name/NotKeywordError/refusesAString
+        |~~ A name written as text is refused. ~~|
+        ~(::fn | takes "by" |~~ How much. ~~| /0 !| type | eq ::fn/takes/name/NotKeywordError))
     ::builtin{}]
-
-:fn/takes/addsAnInput
-  |~~ An input is added by its name, its page and its place. ~~|
-  ::law~(::fn | takes :by |~~ How much. ~~| /0 | params | map /name | eq [:by])
-
-:fn/takes/holdsTheKinds
-  |~~ An input of kinds refuses a value of none under its name. ~~|
-  ::law~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| type | eq ::fn/call/by/NotNumberError)
-
-:fn/takes/holdsTheValueOfItsKind
-  |~~ An input holds the value of its kind beneath the tags of what it is given. ~~|
-  ::law~(:Width |~~ A width. ~~|
-    | 5
-    | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(by | type)) [::Width(3)]
-    | eq ::number)
-
-:fn/takes/pagesTheRefusalOfItsKinds
-  |~~ The refusal the kinds of an input name is paged by them where
-      `throws` gives it no page.
-  ~~|
-  ::law~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))
-    | ::number/plus/by/NotNumberError
-    | doc
-    | content
-    | trim
-    | eq "`by` holds a value of `::number`.")
-
-:fn/takes/holdsTheKindsOfEachElement
-  |~~ An input of the kinds of each element holds the value of its kind of
-      each, beneath the tags it is given under.
-  ~~|
-  ::law~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 ::Width(2)]] | eq [1 2])
-
-:fn/takes/keepsASetOfElements
-  |~~ A set an input of the kinds of each element holds stays a set. ~~|
-  ::law~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [#[2 1]] | eq #[1 2])
-
-:fn/takes/holdsAnyElement
-  |~~ The kinds `::any` of each element ask for a vector alone. ~~|
-  ::law~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::any] | impl ~(xs)) [[1 "a"]] | eq [1 "a"])
-
-:fn/takes/refusesAnElementOfNoneOfItsKinds
-  |~~ An element of none of the kinds is refused with its index. ~~|
-  ::law~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 "a"]]
-    !| [type (get /index)]
-    |  eq [::fn/call/xs/ElementNotNumberError 1])
-
-:fn/takes/refusesNoVectorOfElements
-  |~~ A value that is no vector is refused where the input names the kinds of each element. ~~|
-  ::law~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [5] !| type | eq ::fn/call/xs/NotVecError)
-
-:fn/takes/pagesTheRefusalOfTheKindsOfEachElement
-  |~~ The refusal the kinds of each element name is paged by them where
-      `throws` gives it no page.
-  ~~|
-  ::law~(:number/w (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))
-    | ::number/w/xs/ElementNotNumberError
-    | doc
-    | content
-    | trim
-    | eq "Each element of `xs` holds a value of `::number`.")
-
-:fn/takes/readsAKeyOfAMap
-  |~~ A path into the arguments reads an input by its key. ~~|
-  ::law~(5 | apply (::fn | takes :by |~~ How much. ~~| /0/by | impl ~(add by)) [{:by 3}] | eq 8)
-
-:fn/takes/givesADefault
-  |~~ A place read by `query` gives a default. ~~|
-  ::law~(5 | apply (::fn | takes :by |~~ How much. ~~| ~(query /0 1) | impl ~(add by)) | eq 6)
-
-:fn/takes/answersTheFailureOfItsPlace
-  |~~ A place that reads the arguments by code and fails answers its failure. ~~|
-  ::law~(5 | apply (::fn | takes :by |~~ How much. ~~| ~(first | sub "x") | impl ~(add by)) [3]
-    !| type
-    |  eq ::number/sub/subtrahend/NotNumberError)
-
-:fn/takes/refusesAStepWrittenForItsQuote
-  |~~ An object computed at the call that failed, where the input that
-      reads its place takes a quote, is refused under its kinds.
-  ~~|
-  ::law~(:vec/each (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code))
-    | [1 2]
-    | each (add 1)
-    !| type
-    |  eq ::vec/each/code/NotQuoteError)
-
-:fn/takes/SubjectNotFnError/refusesAnotherTag
-  |~~ A tag of another noun is refused. ~~|
-  ::law~(::number | takes :by |~~ How much. ~~| /0 !| type | eq ::fn/takes/SubjectNotFnError)
-
-:fn/takes/name/NotKeywordError/refusesAString
-  |~~ A name written as text is refused. ~~|
-  ::law~(::fn | takes "by" |~~ How much. ~~| /0 !| type | eq ::fn/takes/name/NotKeywordError)
 
 :fn/returns
   |~~ Names the answer of a function, its page and its kinds, the tag or
@@ -420,32 +422,30 @@
     | throws :SubjectNotFnError
         |~~ `returns` names the answer of the noun's function, `::fn |
             returns …`, or of a function.
-        ~~|)
+        ~~|
+    | law :bringsTheAnswerUnderItsKind
+        |~~ An answer of another kind is refused by the kind. ~~|
+        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~("x")) !| type | eq ::number/PayloadNotNumberError)
+    | law :refusesAnAnswerOfNoneOfItsKinds
+        |~~ An answer of none of several kinds is refused under the answer
+            of the call.
+        ~~|
+        ~(5 | apply (::fn | returns |~~ A number or a string. ~~| #[::number ::string] | impl ~(gt 1))
+          !| [type (get /actualValue)]
+          |  eq [::fn/call/answer/NotNumberOrStringError true])
+    | law :passesTheFailureOfTheRecipe
+        |~~ A recipe that fails answers its failure, which no kind brings.
+        ~~|
+        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~(get /nope)) !| type | eq ::path/SubjectNotProjectableError)
+    | law :namesTheAnswerOfAWord
+        |~~ The answer of a function named under a label is the answer of
+            the word.
+        ~~|
+        ~(:number/half (::fn | returns |~~ The half. ~~| ::number | impl ~(div 2)) | ::number/half | manifest | has ::number/half/answer)
+    | law :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | returns |~~ A number. ~~| ::number !| type | eq ::fn/returns/SubjectNotFnError))
     ::builtin{}]
-
-:fn/returns/bringsTheAnswerUnderItsKind
-  |~~ An answer of another kind is refused by the kind. ~~|
-  ::law~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~("x")) !| type | eq ::number/PayloadNotNumberError)
-
-:fn/returns/refusesAnAnswerOfNoneOfItsKinds
-  |~~ An answer of none of several kinds is refused under the answer of
-      the call.
-  ~~|
-  ::law~(5 | apply (::fn | returns |~~ A number or a string. ~~| #[::number ::string] | impl ~(gt 1))
-    !| [type (get /actualValue)]
-    |  eq [::fn/call/answer/NotNumberOrStringError true])
-
-:fn/returns/passesTheFailureOfTheRecipe
-  |~~ A recipe that fails answers its failure, which no kind brings. ~~|
-  ::law~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~(get /nope)) !| type | eq ::path/SubjectNotProjectableError)
-
-:fn/returns/namesTheAnswerOfAWord
-  |~~ The answer of a function named under a label is the answer of the word. ~~|
-  ::law~(:number/half (::fn | returns |~~ The half. ~~| ::number | impl ~(div 2)) | ::number/half | manifest | has ::number/half/answer)
-
-:fn/returns/SubjectNotFnError/refusesAnotherTag
-  |~~ A tag of another noun is refused. ~~|
-  ::law~(::number | returns |~~ A number. ~~| ::number !| type | eq ::fn/returns/SubjectNotFnError)
 
 :fn/throws
   |~~ Names a refusal of a function and its page,
@@ -463,28 +463,29 @@
     | throws :SubjectNotFnError
         |~~ `throws` names a refusal of the noun's function, `::fn |
             throws …`, or of a function.
-        ~~|)
+        ~~|
+    | law :declaresARefusalOfAWord
+        |~~ A refusal of a function named under a label is a refusal of
+            the word.
+        ~~|
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | throws :TooBigError |~~ A sum past a bound. ~~| | impl ~(add by))
+          | ::number/plus
+          | manifest
+          | has ::number/plus/TooBigError)
+    | law :pagesTheRefusalOfKinds
+        |~~ A refusal the kinds of an input name takes the page `throws`
+            gives it.
+        ~~|
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | throws :by/NotNumberError |~~ By is a number. ~~| | impl ~(add by))
+          | ::number/plus/by/NotNumberError
+          | doc
+          | content
+          | trim
+          | eq "By is a number.")
+    | law :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | throws :E |~~ An e. ~~| !| type | eq ::fn/throws/SubjectNotFnError))
     ::builtin{}]
-
-:fn/throws/declaresARefusalOfAWord
-  |~~ A refusal of a function named under a label is a refusal of the word. ~~|
-  ::law~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | throws :TooBigError |~~ A sum past a bound. ~~| | impl ~(add by))
-    | ::number/plus
-    | manifest
-    | has ::number/plus/TooBigError)
-
-:fn/throws/pagesTheRefusalOfKinds
-  |~~ A refusal the kinds of an input name takes the page `throws` gives it. ~~|
-  ::law~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | throws :by/NotNumberError |~~ By is a number. ~~| | impl ~(add by))
-    | ::number/plus/by/NotNumberError
-    | doc
-    | content
-    | trim
-    | eq "By is a number.")
-
-:fn/throws/SubjectNotFnError/refusesAnotherTag
-  |~~ A tag of another noun is refused. ~~|
-  ::law~(::number | throws :E |~~ An e. ~~| !| type | eq ::fn/throws/SubjectNotFnError)
 
 :fn/holds
   |~~ Writes an invariant of an input or of the answer: the refusal of a
@@ -507,24 +508,68 @@
     | throws :SubjectNotFnError
         |~~ `holds` writes an invariant of the noun's function, `::fn |
             holds …`, or of a function.
-        ~~|)
+        ~~|
+    | law :writesAnInvariantOfAWord
+        |~~ An invariant of a function named under a label is a node of
+            the word.
+        ~~|
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100) | impl ~(add by))
+          | 5
+          | plus 500
+          !| type
+          |  eq ::number/plus/by/TooBigError)
+    | law :passesAValueThatKeepsIt
+        |~~ A value that keeps every invariant of its input goes on to the
+            recipe.
+        ~~|
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100) | impl ~(add by)) [3] | eq 8)
+    | law :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | holds :x/E |~~ An e. ~~| ~(true) !| type | eq ::fn/holds/SubjectNotFnError))
     ::builtin{}]
 
-:fn/holds/writesAnInvariantOfAWord
-  |~~ An invariant of a function named under a label is a node of the word. ~~|
-  ::law~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100) | impl ~(add by))
-    | 5
-    | plus 500
-    !| type
-    |  eq ::number/plus/by/TooBigError)
-
-:fn/holds/passesAValueThatKeepsIt
-  |~~ A value that keeps every invariant of its input goes on to the recipe. ~~|
-  ::law~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100) | impl ~(add by)) [3] | eq 8)
-
-:fn/holds/SubjectNotFnError/refusesAnotherTag
-  |~~ A tag of another noun is refused. ~~|
-  ::law~(::number | holds :x/E |~~ An e. ~~| ~(true) !| type | eq ::fn/holds/SubjectNotFnError)
+:fn/law
+  |~~ Writes a law of a function, the claim its name makes, its page and
+      the query that proves it, `| law :addsBy |~~ Five and three is
+      eight. ~~| ~(5 | plus 3 | eq 8)`; under a label it is a law of the
+      word, which `laws` and `runLaws` read, and a name written with a
+      path lays it under an input, a refusal or the answer, the refusal
+      an input's kinds name among them.
+  ~~|
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
+    | takes :name |~~ The name of the law. ~~| /0 ::keyword
+    | takes :page |~~ The page of the law, the claim it proves. ~~| /1 ::doc
+    | takes :query
+        |~~ The query that proves the claim, answering `true`. ~~|
+        /2 ::quote
+    | returns |~~ The function with the law. ~~| ::fn
+    | throws :SubjectNotFnError
+        |~~ `law` writes a law of the noun's function, `::fn | law …`, or
+            of a function.
+        ~~|
+    | law :declaresALawOfAWord
+        |~~ A law of a function named under a label is a law of the word.
+        ~~|
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | law :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8) | impl ~(add by))
+          | ::number/plus
+          | runLaws
+          | map /ok
+          | eq [true])
+    | law :liesUnderTheRefusalOfAnInput
+        |~~ A law written under the refusal an input's kinds name lies
+            under it.
+        ~~|
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | law :by/NotNumberError/refusesAString |~~ A string is refused. ~~| ~(5 | plus "x" !| type | eq ::number/plus/by/NotNumberError) | impl ~(add by))
+          | ::number/plus/by/NotNumberError
+          | runLaws
+          | map /ok
+          | eq [true])
+    | law :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | law :x |~~ An x. ~~| ~(true) !| type | eq ::fn/law/SubjectNotFnError))
+    ::builtin{}]
 
 :fn/impl
   |~~ Gives a function its recipe, the code or the primitive that answers
@@ -549,20 +594,17 @@
     | throws :SubjectNotFnError
         |~~ `impl` gives the recipe of the noun's function, `::fn | impl
             …`, or of a function.
-        ~~|)
+        ~~|
+    | law :answersTheCodeOfNoCommands
+        |~~ A function of no commands is its code. ~~|
+        ~(::fn | impl ~(add 1) | eq ~(add 1))
+    | law :recipe/NotBuiltinOrQuoteError/refusesANumber
+        |~~ A number is no recipe. ~~|
+        ~(::fn | impl 5 !| type | eq ::fn/impl/recipe/NotBuiltinOrQuoteError)
+    | law :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | impl ~(add 1) !| type | eq ::fn/impl/SubjectNotFnError))
     ::builtin{}]
-
-:fn/impl/answersTheCodeOfNoCommands
-  |~~ A function of no commands is its code. ~~|
-  ::law~(::fn | impl ~(add 1) | eq ~(add 1))
-
-:fn/impl/recipe/NotBuiltinOrQuoteError/refusesANumber
-  |~~ A number is no recipe. ~~|
-  ::law~(::fn | impl 5 !| type | eq ::fn/impl/recipe/NotBuiltinOrQuoteError)
-
-:fn/impl/SubjectNotFnError/refusesAnotherTag
-  |~~ A tag of another noun is refused. ~~|
-  ::law~(::number | impl ~(add 1) !| type | eq ::fn/impl/SubjectNotFnError)
 
 :fn/fill
   |~~ Writes the arguments of a call into the head of the code of a
@@ -576,54 +618,46 @@
     | returns |~~ The code, its inputs written at its head. ~~| ::quote
     | throws :SubjectNotFnError |~~ `fill` writes into a function. ~~|
     | throws :RecipeNotCodeError
-        |~~ `fill` writes into code: a contract or a primitive has none. ~~|)
+        |~~ `fill` writes into code: a contract or a primitive has none. ~~|
+    | law :writesTheArguments
+        |~~ The value goes into the head of the code. ~~|
+        ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3 | eq ~(:by |~~ How much. ~~| 3 | add by))
+    | law :writesEachInput
+        |~~ Each input goes into the head of the code in its order. ~~|
+        ~(::fn
+          | takes :a |~~ An a. ~~| /0
+          | takes :b |~~ A b. ~~| /1
+          | impl ~(add a | add b)
+          | fill 1 2
+          | eq ~(:a |~~ An a. ~~| 1 | :b |~~ A b. ~~| 2 | add a | add b))
+    | law :writesIntoTheEmptyCode
+        |~~ Into the empty code the value goes as its one declaration. ~~|
+        ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~() | fill 3 | eq ~(:by |~~ How much. ~~| 3))
+    | law :holdsTheKinds
+        |~~ A value of none of the kinds of its input is refused. ~~|
+        ~(::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by) | fill "x" !| type | eq ::fn/call/by/NotNumberError)
+    | law :SubjectNotFnError/refusesANumber
+        |~~ A number is no function. ~~|
+        ~(5 | fill 3 !| type | eq ::fn/fill/SubjectNotFnError)
+    | law :RecipeNotCodeError/refusesAContract
+        |~~ A function with no recipe is refused. ~~|
+        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| type | eq ::fn/fill/RecipeNotCodeError))
     ::builtin{}]
-
-:fn/fill/writesTheArguments
-  |~~ The value goes into the head of the code. ~~|
-  ::law~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3 | eq ~(:by |~~ How much. ~~| 3 | add by))
-
-:fn/fill/writesEachInput
-  |~~ Each input goes into the head of the code in its order. ~~|
-  ::law~(::fn
-    | takes :a |~~ An a. ~~| /0
-    | takes :b |~~ A b. ~~| /1
-    | impl ~(add a | add b)
-    | fill 1 2
-    | eq ~(:a |~~ An a. ~~| 1 | :b |~~ A b. ~~| 2 | add a | add b))
-
-:fn/fill/writesIntoTheEmptyCode
-  |~~ Into the empty code the value goes as its one declaration. ~~|
-  ::law~(::fn | takes :by |~~ How much. ~~| /0 | impl ~() | fill 3 | eq ~(:by |~~ How much. ~~| 3))
-
-:fn/fill/holdsTheKinds
-  |~~ A value of none of the kinds of its input is refused. ~~|
-  ::law~(::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by) | fill "x" !| type | eq ::fn/call/by/NotNumberError)
-
-:fn/fill/SubjectNotFnError/refusesANumber
-  |~~ A number is no function. ~~|
-  ::law~(5 | fill 3 !| type | eq ::fn/fill/SubjectNotFnError)
-
-:fn/fill/RecipeNotCodeError/refusesAContract
-  |~~ A function with no recipe is refused. ~~|
-  ::law~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| type | eq ::fn/fill/RecipeNotCodeError)
 
 :fn/params
   |~~ Answers the inputs of a function, each a map of its name, its page,
       its place and its kinds as written, null where it names none.
   ~~|
   ::fn[~(returns |~~ The inputs, a map for each. ~~| ::vec
-    | throws :SubjectNotFnError |~~ `params` reads a function. ~~|)
+    | throws :SubjectNotFnError |~~ `params` reads a function. ~~|
+    | law :readsTheInputs
+        |~~ The inputs come out by their names. ~~|
+        ~(::fn | takes :a |~~ An a. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(a) | params | map /name | eq [:a])
+    | law :readsTheKindsAsWritten
+        |~~ The kinds of an input come out as written. ~~|
+        ~(::fn | takes :a |~~ An a. ~~| /0 ::number | takes :b |~~ A b. ~~| /1 | params | map /kinds | eq [::number null])
+    | law :SubjectNotFnError/refusesANumber
+        |~~ A number is no function. ~~|
+        ~(5 | params !| type | eq ::fn/params/SubjectNotFnError))
     ::builtin{}]
 
-:fn/params/readsTheInputs
-  |~~ The inputs come out by their names. ~~|
-  ::law~(::fn | takes :a |~~ An a. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(a) | params | map /name | eq [:a])
-
-:fn/params/readsTheKindsAsWritten
-  |~~ The kinds of an input come out as written. ~~|
-  ::law~(::fn | takes :a |~~ An a. ~~| /0 ::number | takes :b |~~ A b. ~~| /1 | params | map /kinds | eq [::number null])
-
-:fn/params/SubjectNotFnError/refusesANumber
-  |~~ A number is no function. ~~|
-  ::law~(5 | params !| type | eq ::fn/params/SubjectNotFnError)

@@ -75,15 +75,13 @@
   ~~|
   ::fn
     | returns |~~ The keys and places of the path. ~~| ::vec
+    | law :answersKeysAndPlaces
+        |~~ A key answers its keyword and a place its number. ~~|
+        ~(/items/0 | segments | eq [:items 0])
+    | law :readsBackByToPath
+        |~~ The segments build the path back. ~~|
+        ~(/a/0 | segments | toPath | print | eq "/a/0")
     | impl ::builtin{}
-
-:path/segments/answersKeysAndPlaces
-  |~~ A key answers its keyword and a place its number. ~~|
-  ::law~(/items/0 | segments | eq [:items 0])
-
-:path/segments/readsBackByToPath
-  |~~ The segments build the path back. ~~|
-  ::law~(/a/0 | segments | toPath | print | eq "/a/0")
 
 :path/IndexOutOfBoundsError
   |~~ A place reads within a vector or a set, from `/0` to the last,

@@ -1,9 +1,9 @@
 // The function [D251]: the constructor of `::fn`, which reads a function
 // from its literal, the chain that built it folded into data, and the
 // words that build one from the noun by commands, `on`, `takes`,
-// `returns`, `throws`, `holds` and `impl`, each writing its command after
-// the ones the signature holds and reading the signature back, so a
-// function holds what its print shows; `fill`, which writes the arguments
+// `returns`, `throws`, `holds`, `law` and `impl`, each writing its command after
+// the ones the signature holds, a step of the objects it was given, which
+// prints as the command and reads back as the same step; `fill`, which writes the arguments
 // of a call into the head of its code, and `params`, which reads its
 // inputs.
 
@@ -15,7 +15,7 @@ import { inputsOfFunction } from '../eval.mjs';
 import { signatureOf } from './signature.mjs';
 import {
   isQuote, isVec, isNull, isBuiltinDescriptor, isErrorValue, isFn, fnSignatureOf, fnRecipeOf,
-  makeTag, makeTaggedInstance, makeQuote, FN_TAG_NAME
+  makeTag, makeTaggedInstance, makeQuote, keyword, CALL_TAG, FN_TAG_NAME
 } from '../types.mjs';
 
 const FN_TAG = makeTag(FN_TAG_NAME);
@@ -28,6 +28,7 @@ const FnTakesSubjectNotFnError = declareRefusal('fn/takes/SubjectNotFnError');
 const FnReturnsSubjectNotFnError = declareRefusal('fn/returns/SubjectNotFnError');
 const FnThrowsSubjectNotFnError = declareRefusal('fn/throws/SubjectNotFnError');
 const FnHoldsSubjectNotFnError = declareRefusal('fn/holds/SubjectNotFnError');
+const FnLawSubjectNotFnError = declareRefusal('fn/law/SubjectNotFnError');
 const FnImplSubjectNotFnError = declareRefusal('fn/impl/SubjectNotFnError');
 const FnFillRecipeNotCodeError = declareRefusal('fn/fill/RecipeNotCodeError');
 
@@ -59,11 +60,11 @@ function functionOf(subject, SubjectError) {
 }
 
 // A function with a command written after the ones its signature holds,
-// its objects as their literals, an object left out not written.
+// a step of the call of the command on its objects, an object left out not
+// written.
 function withCommand(fn, command, objects) {
-  const text = [command, ...objects.filter(object => object !== null).map(object => printValue(object))].join(' ');
-  const before = printQuoteSource(fnSignatureOf(fn));
-  return madeFn(quoteOfSource(before === '' ? text : `${before} | ${text}`), fnRecipeOf(fn));
+  const step = makeTaggedInstance(CALL_TAG, new Map([['name', keyword(command)], ['modifiers', Object.freeze(objects.filter(object => object !== null))]]));
+  return madeFn(makeQuote([...fnSignatureOf(fn), step]), fnRecipeOf(fn));
 }
 
 // `on |~~ A number. ~~| ::number` — the subject, its page and its kinds.
@@ -89,6 +90,12 @@ bindPrim('fn/throws', (subject, name, page) =>
 // breaks it, its page and its condition.
 bindPrim('fn/holds', (subject, name, page, condition) =>
   withCommand(functionOf(subject, FnHoldsSubjectNotFnError), 'holds', [name, page, condition]));
+
+// `law :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8)` — a
+// law that proves the claim its name makes, under a name the function
+// declares where it is written with a path.
+bindPrim('fn/law', (subject, name, page, query) =>
+  withCommand(functionOf(subject, FnLawSubjectNotFnError), 'law', [name, page, query]));
 
 // `impl ~(add by)` — the recipe; a function of no commands is its code.
 bindPrim('fn/impl', (subject, recipe) => {

@@ -67,19 +67,16 @@
             turned to descend, `false` otherwise.
         ~~|
         ::boolean
+    | law :reversesTheOrder
+        |~~ Among values turned to descend, one comes after two. ~~|
+        ~(1 | desc | gt (2 | desc))
+    | law :ranksTheGreaterPayloadFirst
+        |~~ The greater payload does not come after the smaller. ~~|
+        ~(2 | desc | gt (1 | desc) | not)
+    | law :value/NotDescError/refusesANumber
+        |~~ A number given is no value turned to compare with. ~~|
+        ~(1 | desc | gt 2 !| type | eq ::desc/gt/value/NotDescError)
     | impl ::builtin{}
-
-:desc/gt/reversesTheOrder
-  |~~ Among values turned to descend, one comes after two. ~~|
-  ::law~(1 | desc | gt (2 | desc))
-
-:desc/gt/ranksTheGreaterPayloadFirst
-  |~~ The greater payload does not come after the smaller. ~~|
-  ::law~(2 | desc | gt (1 | desc) | not)
-
-:desc/gt/value/NotDescError/refusesANumber
-  |~~ A number given is no value turned to compare with. ~~|
-  ::law~(1 | desc | gt 2 !| type | eq ::desc/gt/value/NotDescError)
 
 :desc/gte
   |~~ Answers whether the subject comes after the value the call gives
@@ -103,19 +100,16 @@
             turned to descend or ranks with it, `false` otherwise.
         ~~|
         ::boolean
+    | law :equalsWithOnePayload
+        |~~ Two values turned of one payload rank together. ~~|
+        ~(2 | desc | gte (2 | desc))
+    | law :reversesTheOrder
+        |~~ Among values turned to descend, one comes after two. ~~|
+        ~(1 | desc | gte (2 | desc))
+    | law :value/NotDescError/refusesANumber
+        |~~ A number not turned to descend is refused. ~~|
+        ~(2 | desc | gte 1 !| type | eq ::desc/gte/value/NotDescError)
     | impl ::builtin{}
-
-:desc/gte/equalsWithOnePayload
-  |~~ Two values turned of one payload rank together. ~~|
-  ::law~(2 | desc | gte (2 | desc))
-
-:desc/gte/reversesTheOrder
-  |~~ Among values turned to descend, one comes after two. ~~|
-  ::law~(1 | desc | gte (2 | desc))
-
-:desc/gte/value/NotDescError/refusesANumber
-  |~~ A number not turned to descend is refused. ~~|
-  ::law~(2 | desc | gte 1 !| type | eq ::desc/gte/value/NotDescError)
 
 :desc/lt
   |~~ Answers whether the subject comes before the value the call gives
@@ -140,19 +134,16 @@
             turned to descend, `false` otherwise.
         ~~|
         ::boolean
+    | law :reversesTheOrder
+        |~~ Among values turned to descend, two comes before one. ~~|
+        ~(2 | desc | lt (1 | desc))
+    | law :keepsTheSmallerPayloadBehind
+        |~~ The smaller payload does not come before the greater. ~~|
+        ~(1 | desc | lt (2 | desc) | not)
+    | law :value/NotDescError/refusesANumber
+        |~~ A number not turned to descend is refused. ~~|
+        ~(2 | desc | lt 1 !| type | eq ::desc/lt/value/NotDescError)
     | impl ::builtin{}
-
-:desc/lt/reversesTheOrder
-  |~~ Among values turned to descend, two comes before one. ~~|
-  ::law~(2 | desc | lt (1 | desc))
-
-:desc/lt/keepsTheSmallerPayloadBehind
-  |~~ The smaller payload does not come before the greater. ~~|
-  ::law~(1 | desc | lt (2 | desc) | not)
-
-:desc/lt/value/NotDescError/refusesANumber
-  |~~ A number not turned to descend is refused. ~~|
-  ::law~(2 | desc | lt 1 !| type | eq ::desc/lt/value/NotDescError)
 
 :desc/lte
   |~~ Answers whether the subject comes before the value the call gives
@@ -175,16 +166,14 @@
             turned to descend or ranks with it, `false` otherwise.
         ~~|
         ::boolean
+    | law :equalsWithOnePayload
+        |~~ Two values turned of one payload rank together. ~~|
+        ~(2 | desc | lte (2 | desc))
+    | law :reversesTheOrder
+        |~~ Among values turned to descend, two comes before one. ~~|
+        ~(2 | desc | lte (1 | desc))
+    | law :value/NotDescError/refusesANumber
+        |~~ A number not turned to descend is refused. ~~|
+        ~(2 | desc | lte 1 !| type | eq ::desc/lte/value/NotDescError)
     | impl ::builtin{}
 
-:desc/lte/equalsWithOnePayload
-  |~~ Two values turned of one payload rank together. ~~|
-  ::law~(2 | desc | lte (2 | desc))
-
-:desc/lte/reversesTheOrder
-  |~~ Among values turned to descend, two comes before one. ~~|
-  ::law~(2 | desc | lte (1 | desc))
-
-:desc/lte/value/NotDescError/refusesANumber
-  |~~ A number not turned to descend is refused. ~~|
-  ::law~(2 | desc | lte 1 !| type | eq ::desc/lte/value/NotDescError)

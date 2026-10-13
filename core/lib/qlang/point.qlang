@@ -29,11 +29,10 @@
         |~~ `offset` reads a point, the start or the end of a span, `"[1"
             | parse !| get /location | start | offset`.
         ~~|
+    | law :readsTheFirstNumber
+        |~~ The offset is the first number of a point. ~~|
+        ~(::point[4 1 5] | offset | eq 4)
     | impl ~(get /0)
-
-:point/offset/readsTheFirstNumber
-  |~~ The offset is the first number of a point. ~~|
-  ::law~(::point[4 1 5] | offset | eq 4)
 
 :point/line
   |~~ Answers the line of the point, counted from one,
@@ -45,11 +44,10 @@
         |~~ `line` reads a point, the start or the end of a span, `"[1" |
             parse !| get /location | start | line`.
         ~~|
+    | law :readsTheSecondNumber
+        |~~ The line is the second number of a point. ~~|
+        ~(::point[4 2 1] | line | eq 2)
     | impl ~(get /1)
-
-:point/line/readsTheSecondNumber
-  |~~ The line is the second number of a point. ~~|
-  ::law~(::point[4 2 1] | line | eq 2)
 
 :point/column
   |~~ Answers the column of the point in its line, counted from one,
@@ -61,8 +59,8 @@
         |~~ `column` reads a point, the start or the end of a span, `"[1"
             | parse !| get /location | start | column`.
         ~~|
+    | law :readsTheThirdNumber
+        |~~ The column is the third number of a point. ~~|
+        ~(::point[4 1 5] | column | eq 5)
     | impl ~(get /2)
 
-:point/column/readsTheThirdNumber
-  |~~ The column is the third number of a point. ~~|
-  ::law~(::point[4 1 5] | column | eq 5)

@@ -83,28 +83,23 @@
             first, `::vec/join | doc | content`, and a name declared
             without a page has none, `doc` answering null.
         ~~|
+    | law :writesEachQuoteWhereItStands
+        |~~ The content writes each quote where it stands in the prose. ~~|
+        ~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
+    | law :writesALinkWithItsTags
+        |~~ A link is written with its tags. ~~|
+        ~(|~~ see ::link~(::vec | doc) ~~| | content | eq " see ::link~(::vec | doc) ")
+    | law :readsThePageOfAWord
+        |~~ The content of a word's page is its text. ~~|
+        ~(::vec/join | doc | content | contains "separator")
+    | law :SubjectNotDocError/refusesTheNullOfANameWithoutAPage
+        |~~ A name declared without a page has no content to read. ~~|
+        ~(:x 1 | ::x | doc | content
+          !| [type (get /actualType)] | eq [::doc/content/SubjectNotDocError ::null])
+    | law :SubjectNotDocError/refusesAString
+        |~~ A string is no doc. ~~|
+        ~("x" | content !| type | eq ::doc/content/SubjectNotDocError)
     | impl ::builtin{}
-
-:doc/content/writesEachQuoteWhereItStands
-  |~~ The content writes each quote where it stands in the prose. ~~|
-  ::law~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
-
-:doc/content/writesALinkWithItsTags
-  |~~ A link is written with its tags. ~~|
-  ::law~(|~~ see ::link~(::vec | doc) ~~| | content | eq " see ::link~(::vec | doc) ")
-
-:doc/content/readsThePageOfAWord
-  |~~ The content of a word's page is its text. ~~|
-  ::law~(::vec/join | doc | content | contains "separator")
-
-:doc/content/SubjectNotDocError/refusesTheNullOfANameWithoutAPage
-  |~~ A name declared without a page has no content to read. ~~|
-  ::law~(:x 1 | ::x | doc | content
-    !| [type (get /actualType)] | eq [::doc/content/SubjectNotDocError ::null])
-
-:doc/content/SubjectNotDocError/refusesAString
-  |~~ A string is no doc. ~~|
-  ::law~("x" | content !| type | eq ::doc/content/SubjectNotDocError)
 
 :doc/segments
   |~~ Answers the parts of the doc in their order, a vector: each run of
@@ -131,35 +126,28 @@
         |~~ `segments` reads a doc, not its text: the page of a name is
             read by `doc` first, `::vec | doc | segments`.
         ~~|
+    | law :alternatesProseAndCode
+        |~~ Prose and code alternate in the segments. ~~|
+        ~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
+    | law :keepsTheTagsOfALink
+        |~~ A link stands among the segments under its tag. ~~|
+        ~(|~~ a ::link~(1) ~~| | segments | get /1 | type | eq ::link)
+    | law :answersOneStringForProseAlone
+        |~~ A doc of prose alone is one segment of prose. ~~|
+        ~(|~~ only prose ~~| | segments | eq [" only prose "])
+    | law :keepsABrokenQuoteInProse
+        |~~ A span that does not read as code stays prose. ~~|
+        ~(|~~ a ~(1 | ) b ~~| | segments | count | eq 1)
+    | law :buildsTheDocAgainUnderItsTag
+        |~~ The segments under `::doc` are the doc again. ~~|
+        ~(|~~ a ~(add 1) b ~~| | :d it | d | segments | tag ::doc | eq d)
+    | law :refusesARoleWhosePayloadIsNoQuote
+        |~~ A quote under a tag that takes no quote refuses the doc. ~~|
+        ~(|~~ see ::number~(~(x)) ~~| !| [type (get /actualType)] | eq [::number/PayloadNotNumberError ::quote])
+    | law :SubjectNotDocError/refusesAString
+        |~~ A string is no doc. ~~|
+        ~("text" | doc/segments !| [type (get /actualType)] | eq [::doc/segments/SubjectNotDocError ::string])
     | impl ::builtin{}
-
-:doc/segments/alternatesProseAndCode
-  |~~ Prose and code alternate in the segments. ~~|
-  ::law~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
-
-:doc/segments/keepsTheTagsOfALink
-  |~~ A link stands among the segments under its tag. ~~|
-  ::law~(|~~ a ::link~(1) ~~| | segments | get /1 | type | eq ::link)
-
-:doc/segments/answersOneStringForProseAlone
-  |~~ A doc of prose alone is one segment of prose. ~~|
-  ::law~(|~~ only prose ~~| | segments | eq [" only prose "])
-
-:doc/segments/keepsABrokenQuoteInProse
-  |~~ A span that does not read as code stays prose. ~~|
-  ::law~(|~~ a ~(1 | ) b ~~| | segments | count | eq 1)
-
-:doc/segments/buildsTheDocAgainUnderItsTag
-  |~~ The segments under `::doc` are the doc again. ~~|
-  ::law~(|~~ a ~(add 1) b ~~| | :d it | d | segments | tag ::doc | eq d)
-
-:doc/segments/refusesARoleWhosePayloadIsNoQuote
-  |~~ A quote under a tag that takes no quote refuses the doc. ~~|
-  ::law~(|~~ see ::number~(~(x)) ~~| !| [type (get /actualType)] | eq [::number/PayloadNotNumberError ::quote])
-
-:doc/segments/SubjectNotDocError/refusesAString
-  |~~ A string is no doc. ~~|
-  ::law~("text" | doc/segments !| [type (get /actualType)] | eq [::doc/segments/SubjectNotDocError ::string])
 
 :doc/links
   |~~ Answers the links of the doc in their order, a vector: each a quote
@@ -181,29 +169,24 @@
         |~~ `links` reads a doc, not its text: the page of a name is read
             by `doc` first, `::vec | doc | links`.
         ~~|
+    | law :findsTheLinkInProse
+        |~~ A link inside prose is found. ~~|
+        ~(|~~ see ::link~(::vec | manifest) ~~| | links | count | eq 1)
+    | law :findsALinkUnderAHostTag
+        |~~ A link under a host's tag is a link. ~~|
+        ~(|~~ a ::Host::link~(1) b ~~| | links | count | eq 1)
+    | law :leavesTheSnippetsOut
+        |~~ A doc whose only quote is a snippet has no link. ~~|
+        ~(|~~ a ::snippet~(1) b ~~| | links | eq [])
+    | law :runsWhereItLeads
+        |~~ A link runs the query it holds. ~~|
+        ~(|~~ ::link~(::vec | manifest) ~~| | links | first
+          | :l it | (null | apply l | has ::vec/count))
+    | law :SubjectNotDocError/refusesItsText
+        |~~ The text of a page is no doc. ~~|
+        ~(::vec | doc | content | links
+          !| [type (get /actualType)] | eq [::doc/links/SubjectNotDocError ::string])
     | impl ::builtin{}
-
-:doc/links/findsTheLinkInProse
-  |~~ A link inside prose is found. ~~|
-  ::law~(|~~ see ::link~(::vec | manifest) ~~| | links | count | eq 1)
-
-:doc/links/findsALinkUnderAHostTag
-  |~~ A link under a host's tag is a link. ~~|
-  ::law~(|~~ a ::Host::link~(1) b ~~| | links | count | eq 1)
-
-:doc/links/leavesTheSnippetsOut
-  |~~ A doc whose only quote is a snippet has no link. ~~|
-  ::law~(|~~ a ::snippet~(1) b ~~| | links | eq [])
-
-:doc/links/runsWhereItLeads
-  |~~ A link runs the query it holds. ~~|
-  ::law~(|~~ ::link~(::vec | manifest) ~~| | links | first
-    | :l it | (null | apply l | has ::vec/count))
-
-:doc/links/SubjectNotDocError/refusesItsText
-  |~~ The text of a page is no doc. ~~|
-  ::law~(::vec | doc | content | links
-    !| [type (get /actualType)] | eq [::doc/links/SubjectNotDocError ::string])
 
 :doc/snippets
   |~~ Answers the snippets of the doc in their order, a vector: each a
@@ -222,20 +205,17 @@
         |~~ `snippets` reads a doc, not its text: the page of a name is
             read by `doc` first, `::tag/manifest | doc | snippets`.
         ~~|
+    | law :findsTheSnippetInProse
+        |~~ A snippet inside prose is found. ~~|
+        ~(|~~ run ::snippet~([2 1] | sort) ~~| | snippets | count | eq 1)
+    | law :leavesTheLinksOut
+        |~~ A doc whose only quote is a link has no snippet. ~~|
+        ~(|~~ a ::link~(1) b ~~| | snippets | eq [])
+    | law :opensToWhatItShows
+        |~~ A snippet opens to what it shows. ~~|
+        ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map ~open | eq [[1 2]])
+    | law :SubjectNotDocError/refusesAString
+        |~~ A string is no doc. ~~|
+        ~("text" | snippets !| [type (get /actualType)] | eq [::doc/snippets/SubjectNotDocError ::string])
     | impl ::builtin{}
 
-:doc/snippets/findsTheSnippetInProse
-  |~~ A snippet inside prose is found. ~~|
-  ::law~(|~~ run ::snippet~([2 1] | sort) ~~| | snippets | count | eq 1)
-
-:doc/snippets/leavesTheLinksOut
-  |~~ A doc whose only quote is a link has no snippet. ~~|
-  ::law~(|~~ a ::link~(1) b ~~| | snippets | eq [])
-
-:doc/snippets/opensToWhatItShows
-  |~~ A snippet opens to what it shows. ~~|
-  ::law~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map ~open | eq [[1 2]])
-
-:doc/snippets/SubjectNotDocError/refusesAString
-  |~~ A string is no doc. ~~|
-  ::law~("text" | snippets !| [type (get /actualType)] | eq [::doc/snippets/SubjectNotDocError ::string])

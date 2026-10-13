@@ -158,27 +158,22 @@
   ~~|
   ::fn
     | returns |~~ The text the quote reads back from. ~~| ::string
+    | law :answersTheSource
+        |~~ A quote parses to its source. ~~|
+        ~(~(add 1) | parse | eq "add 1")
+    | law :readsBackAsTheQuote
+        |~~ The source parsed again is the quote. ~~|
+        ~(~(add 1 | mul 2) | :q it | q | parse | parse | eq q)
+    | law :printsOneSpelling
+        |~~ The spaces the quote was written with are not kept. ~~|
+        ~(~(add   1 |   mul 2) | parse | eq "add 1 | mul 2")
+    | law :leavesTheTagsOfALink
+        |~~ A link answers the query it holds, without its tags. ~~|
+        ~(::link~(1 | add 1) | parse | eq "1 | add 1")
+    | law :answersNothingForTheEmptyQuote
+        |~~ The empty quote parses to the empty string. ~~|
+        ~(~() | parse | eq "")
     | impl ::builtin{}
-
-:quote/parse/answersTheSource
-  |~~ A quote parses to its source. ~~|
-  ::law~(~(add 1) | parse | eq "add 1")
-
-:quote/parse/readsBackAsTheQuote
-  |~~ The source parsed again is the quote. ~~|
-  ::law~(~(add 1 | mul 2) | :q it | q | parse | parse | eq q)
-
-:quote/parse/printsOneSpelling
-  |~~ The spaces the quote was written with are not kept. ~~|
-  ::law~(~(add   1 |   mul 2) | parse | eq "add 1 | mul 2")
-
-:quote/parse/leavesTheTagsOfALink
-  |~~ A link answers the query it holds, without its tags. ~~|
-  ::law~(::link~(1 | add 1) | parse | eq "1 | add 1")
-
-:quote/parse/answersNothingForTheEmptyQuote
-  |~~ The empty quote parses to the empty string. ~~|
-  ::law~(~() | parse | eq "")
 
 :quote/open
   |~~ Answers what the query the quote holds answers, run beneath
@@ -203,36 +198,28 @@
             links of a page are read by `links`, `::vec | doc | links |
             map ~open`.
         ~~|
+    | law :runsALink
+        |~~ A link opens to the answer of its query. ~~|
+        ~(|~~ ::link~(1 | add 1) ~~| | links | first | open | eq 2)
+    | law :runsASnippet
+        |~~ A snippet opens to what it shows. ~~|
+        ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
+    | law :readsTheScopeOfTheReader
+        |~~ A name bound before the quote is read inside it. ~~|
+        ~(:k 5 | ~(k) | open | eq 5)
+    | law :keepsItsNamesInside
+        |~~ A name the query binds stays inside it. ~~|
+        ~(:k 5 | ~(:k 1) | open | k | eq 5)
+    | law :runsFromNull
+        |~~ The query runs from null. ~~| ~(~(type) | open | eq ::null)
+    | law :runsTextReadByParse
+        |~~ Text read as a quote by `parse` opens. ~~|
+        ~("1 | add 1" | parse | open | eq 2)
+    | law :SubjectNotQuoteError/refusesAString
+        |~~ Text is no quote until `parse` reads it. ~~|
+        ~("1 | add 1" | open !| [type (get /actualType)] | eq [::quote/open/SubjectNotQuoteError ::string])
+    | law :refusesAQueryThatReadsASubject
+        |~~ A query that reads a subject is refused on null. ~~|
+        ~(~(add 1) | open !| type | eq ::number/add/SubjectNotNumberError)
     | impl ::builtin{}
 
-:quote/open/runsALink
-  |~~ A link opens to the answer of its query. ~~|
-  ::law~(|~~ ::link~(1 | add 1) ~~| | links | first | open | eq 2)
-
-:quote/open/runsASnippet
-  |~~ A snippet opens to what it shows. ~~|
-  ::law~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
-
-:quote/open/readsTheScopeOfTheReader
-  |~~ A name bound before the quote is read inside it. ~~|
-  ::law~(:k 5 | ~(k) | open | eq 5)
-
-:quote/open/keepsItsNamesInside
-  |~~ A name the query binds stays inside it. ~~|
-  ::law~(:k 5 | ~(:k 1) | open | k | eq 5)
-
-:quote/open/runsFromNull
-  |~~ The query runs from null. ~~|
-  ::law~(~(type) | open | eq ::null)
-
-:quote/open/runsTextReadByParse
-  |~~ Text read as a quote by `parse` opens. ~~|
-  ::law~("1 | add 1" | parse | open | eq 2)
-
-:quote/open/SubjectNotQuoteError/refusesAString
-  |~~ Text is no quote until `parse` reads it. ~~|
-  ::law~("1 | add 1" | open !| [type (get /actualType)] | eq [::quote/open/SubjectNotQuoteError ::string])
-
-:quote/open/refusesAQueryThatReadsASubject
-  |~~ A query that reads a subject is refused on null. ~~|
-  ::law~(~(add 1) | open !| type | eq ::number/add/SubjectNotNumberError)

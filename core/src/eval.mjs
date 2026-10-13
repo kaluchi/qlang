@@ -811,10 +811,20 @@ function keepOrigins(origins, value, origin, state) {
   for (const part of partsOfTemplate(value)) keepOrigins(origins, part, origin, state);
 }
 
+// Whether a value holds a quote at any depth of a template, read once for
+// each value, which never changes, since every call walks its objects.
+const HOLDERS_OF_QUOTES = new WeakMap();
+
 function holdsAQuote(value) {
   if (isQuote(value)) return true;
-  const parts = partsOfTemplate(value);
-  return parts !== null && parts.some(holdsAQuote);
+  if (typeof value !== 'object' || value === null) return false;
+  let holds = HOLDERS_OF_QUOTES.get(value);
+  if (holds === undefined) {
+    const parts = partsOfTemplate(value);
+    holds = parts !== null && parts.some(holdsAQuote);
+    HOLDERS_OF_QUOTES.set(value, holds);
+  }
+  return holds;
 }
 
 function codeOfObject(value, originOf, state) {

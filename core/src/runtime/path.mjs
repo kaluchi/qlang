@@ -4,7 +4,7 @@
 // `segments` and `toPath` turn a path and its keys into each other, JSON
 // Pointer's form read with its escapes.
 
-import { bindPrim, bindStateReader } from '../primitives.mjs';
+import { bindPrim, bindStateReader, runs } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, placeIn, noPartsOn } from '../path-read.mjs';
 import { mintUnderTag } from './verb.mjs';
@@ -99,8 +99,8 @@ const pathOf = object => (isPath(object) ? object : pathOfKey(object));
 
 bindStateReader('any/put', (subject, object, value, state) =>
   written(subject, pathOf(object), 0, { adds: true, removes: false, part: () => value }, state));
-bindStateReader('any/update', (subject, object, code, state) =>
-  written(subject, pathOf(object), 0, { adds: false, removes: false, part: code }, state));
+bindStateReader('any/update', runs(['code'], (subject, object, code, state) =>
+  written(subject, pathOf(object), 0, { adds: false, removes: false, part: code }, state)));
 bindStateReader('any/delete', (subject, object, state) =>
   written(subject, pathOf(object), 0, { adds: false, removes: true }, state));
 

@@ -79,7 +79,7 @@
       group is a modifier computed at the call: in
       `[{:n 1}] | map (get /n)` the `/n` is read from the vector itself,
       not from each element, and `map` refuses what it is handed,
-      `::vec/map/code/NotQuoteError`.
+      `::vec/map/code/NotPathOrQuoteError`.
 
       6. Building answers. An answer is reshaped by writing the shape it
       takes, a literal of paths `get` reads, each part inside it computed
@@ -241,7 +241,7 @@
 
 :qlang/refusesAValueForCode
   |~~ A value computed at the call is refused where code is wanted. ~~|
-  ::law~([1 2 3] | filter (gt 1) !| type | eq ::vec/filter/predicate/NotQuoteError)
+  ::law~([1 2 3] | filter (gt 1) !| type | eq ::vec/filter/predicate/NotPathOrQuoteError)
 
 :qlang/splitsAndJoins
   |~~ A string splits into a vector and joins back. ~~|
@@ -650,16 +650,14 @@
       `on` names its subject, `takes` an input with its page, the place of
       the call it reads and its kinds, `returns` its answer, `throws` a
       refusal and `holds` an invariant, and its call reads them from the
-      function, each input bound by its name in the recipe.
-      A name declares the parts of its args as names under it, each
-      kind's word its own, and the label its answer goes under, as the
-      words of the catalog are written; `manifest` answers them before a
-      call.
+      function, each input bound by its name in the recipe, as every word
+      of the catalog is written; `manifest` answers them before a call.
+      A word a reader or a host's source writes as declarations instead,
+      the parts of its args as names under it and the label its answer
+      goes under, is read from them, each part a name under the call's
+      address its body reads bare and declares no second time.
       An answer of the word's own label goes back under the tags the
       subject came through.
-      A reader's name under a noun takes the parts of its args after
-      it, each a name under the call's address, which its body reads bare
-      and declares no second time.
       A modifier is evaluated at the call against the subject, the value
       in the pipe, which is always the subject of the call; a form that
       combines several values of one subject is a verb of its own, which
@@ -671,15 +669,16 @@
       it has one, builds the value from the payload.
       A tag no declaration answers is a kind of identity, which checks
       nothing and lays the tag on the value.
-      A word answers under the label its `answer` names.
-      A word of a noun itself, whose `subject` names `::tag`, takes the
-      tag name as its subject, so a noun that stands for a thing outside
-      the language is addressed bare, `::Jenkins | builds`, while a word of
-      the noun's values refuses the tag name.
+      A word answers under the label its `returns` names.
+      A word of a noun itself, whose subject `on` names `::tag`, takes
+      the tag name as its subject, so a noun that stands for a thing
+      outside the language is addressed bare, `::Jenkins | builds`, while
+      a word of the noun's values refuses the tag name.
       A word is told as a story, in one order: the word and its page, its
-      answer, its parts, its refusals, its laws; and the refusal of a step
-      as its page, which repairs the step, its facts and its laws. `source`
-      reads the story of a name as it is written, `::vec/sort | source`.
+      inputs, its answer, its refusals and its recipe, then its laws; and
+      the refusal of a step as its page, which repairs the step, its facts
+      and its laws. `source` reads the story of a name as it is written,
+      `::vec/sort | source`.
   ~~|
   #[::any ::holds]
 

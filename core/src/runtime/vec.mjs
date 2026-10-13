@@ -10,7 +10,7 @@
 import { isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { bindPrim } from '../primitives.mjs';
+import { bindPrim, runs } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
 import { keywordFiledFor } from './convert.mjs';
 
@@ -134,10 +134,10 @@ async function extremeOf(items, key, pick) {
 
 const least = order => order < 0;
 const greatest = order => order > 0;
-bindPrim(['vec/min', 'set/min'], (sequence, key) => extremeOf([...sequence], key, least));
-bindPrim('map/min', (map, key) => extremeOf([...map.values()], key, least));
-bindPrim(['vec/max', 'set/max'], (sequence, key) => extremeOf([...sequence], key, greatest));
-bindPrim('map/max', (map, key) => extremeOf([...map.values()], key, greatest));
+bindPrim(['vec/min', 'set/min'], runs(['key'], (sequence, key) => extremeOf([...sequence], key, least)));
+bindPrim('map/min', runs(['key'], (map, key) => extremeOf([...map.values()], key, least)));
+bindPrim(['vec/max', 'set/max'], runs(['key'], (sequence, key) => extremeOf([...sequence], key, greatest)));
+bindPrim('map/max', runs(['key'], (map, key) => extremeOf([...map.values()], key, greatest)));
 
 // `sort` orders the elements in the one order, or by the value the key
 // answers for each, keeping equal ones in the subject's order; a map
@@ -152,14 +152,14 @@ async function sortedEntries(entries, key) {
   return ranked.map(({ entry }) => entry);
 }
 
-bindPrim(['vec/sort', 'set/sort'], async (sequence, key) => {
+bindPrim(['vec/sort', 'set/sort'], runs(['key'], async (sequence, key) => {
   const sorted = await sortedEntries([...sequence.entries()], key);
   return isErrorValue(sorted) ? sorted : sorted.map(([, element]) => element);
-});
-bindPrim('map/sort', async (map, key) => {
+}));
+bindPrim('map/sort', runs(['key'], async (map, key) => {
   const sorted = await sortedEntries([...map], key);
   return isErrorValue(sorted) ? sorted : new Map(sorted);
-});
+}));
 
 // ── code on each element ───────────────────────────────────────
 
@@ -176,11 +176,11 @@ async function answersOf(elements, code) {
   return answers;
 }
 
-bindPrim(['vec/map', 'set/map'], (sequence, code) => answersOf(sequence, code));
-bindPrim('map/map', async (map, code) => {
+bindPrim(['vec/map', 'set/map'], runs(['code'], (sequence, code) => answersOf(sequence, code)));
+bindPrim('map/map', runs(['code'], async (map, code) => {
   const answers = await answersOf(map.values(), code);
   return isErrorValue(answers) ? answers : new Map([...map.keys()].map((key, index) => [key, answers[index]]));
-});
+}));
 
 // ── predicates ─────────────────────────────────────────────────
 
@@ -218,9 +218,9 @@ async function keptEntries(map, predicate, ConditionNotBooleanError) {
 const VecFilterConditionNotBooleanError = declareRefusal('vec/filter/ConditionNotBooleanError');
 const SetFilterConditionNotBooleanError = declareRefusal('set/filter/ConditionNotBooleanError');
 const MapFilterConditionNotBooleanError = declareRefusal('map/filter/ConditionNotBooleanError');
-bindPrim('vec/filter', (vector, predicate) => keptElements(vector, predicate, VecFilterConditionNotBooleanError));
-bindPrim('set/filter', (set, predicate) => keptElements(set, predicate, SetFilterConditionNotBooleanError));
-bindPrim('map/filter', (map, predicate) => keptEntries(map, predicate, MapFilterConditionNotBooleanError));
+bindPrim('vec/filter', runs(['predicate'], (vector, predicate) => keptElements(vector, predicate, VecFilterConditionNotBooleanError)));
+bindPrim('set/filter', runs(['predicate'], (set, predicate) => keptElements(set, predicate, SetFilterConditionNotBooleanError)));
+bindPrim('map/filter', runs(['predicate'], (map, predicate) => keptEntries(map, predicate, MapFilterConditionNotBooleanError)));
 
 // Whether the predicate of every element answers true, the first false
 // answering for the call, and whether the predicate of any does, the
@@ -236,16 +236,16 @@ async function firstVerdict(places, predicate, decisive, ConditionNotBooleanErro
 const VecEveryConditionNotBooleanError = declareRefusal('vec/every/ConditionNotBooleanError');
 const SetEveryConditionNotBooleanError = declareRefusal('set/every/ConditionNotBooleanError');
 const MapEveryConditionNotBooleanError = declareRefusal('map/every/ConditionNotBooleanError');
-bindPrim('vec/every', (vector, predicate) => firstVerdict(indexed(vector), predicate, false, VecEveryConditionNotBooleanError));
-bindPrim('set/every', (set, predicate) => firstVerdict(indexed(set), predicate, false, SetEveryConditionNotBooleanError));
-bindPrim('map/every', (map, predicate) => firstVerdict(keyed(map), predicate, false, MapEveryConditionNotBooleanError));
+bindPrim('vec/every', runs(['predicate'], (vector, predicate) => firstVerdict(indexed(vector), predicate, false, VecEveryConditionNotBooleanError)));
+bindPrim('set/every', runs(['predicate'], (set, predicate) => firstVerdict(indexed(set), predicate, false, SetEveryConditionNotBooleanError)));
+bindPrim('map/every', runs(['predicate'], (map, predicate) => firstVerdict(keyed(map), predicate, false, MapEveryConditionNotBooleanError)));
 
 const VecAnyConditionNotBooleanError = declareRefusal('vec/any/ConditionNotBooleanError');
 const SetAnyConditionNotBooleanError = declareRefusal('set/any/ConditionNotBooleanError');
 const MapAnyConditionNotBooleanError = declareRefusal('map/any/ConditionNotBooleanError');
-bindPrim('vec/any', (vector, predicate) => firstVerdict(indexed(vector), predicate, true, VecAnyConditionNotBooleanError));
-bindPrim('set/any', (set, predicate) => firstVerdict(indexed(set), predicate, true, SetAnyConditionNotBooleanError));
-bindPrim('map/any', (map, predicate) => firstVerdict(keyed(map), predicate, true, MapAnyConditionNotBooleanError));
+bindPrim('vec/any', runs(['predicate'], (vector, predicate) => firstVerdict(indexed(vector), predicate, true, VecAnyConditionNotBooleanError)));
+bindPrim('set/any', runs(['predicate'], (set, predicate) => firstVerdict(indexed(set), predicate, true, SetAnyConditionNotBooleanError)));
+bindPrim('map/any', runs(['predicate'], (map, predicate) => firstVerdict(keyed(map), predicate, true, MapAnyConditionNotBooleanError)));
 
 // ── partitions ─────────────────────────────────────────────────
 
@@ -283,13 +283,13 @@ const VecGroupByKeyNotKeywordError = declareRefusal('vec/groupBy/KeyNotKeywordEr
 const VecGroupByKeyTakenError = declareRefusal('vec/groupBy/KeyTakenError');
 const SetGroupByKeyNotKeywordError = declareRefusal('set/groupBy/KeyNotKeywordError');
 const SetGroupByKeyTakenError = declareRefusal('set/groupBy/KeyTakenError');
-bindPrim('vec/groupBy', (vector, key) => bucketsOf(vector, key, VecGroupByKeyNotKeywordError, VecGroupByKeyTakenError));
+bindPrim('vec/groupBy', runs(['key'], (vector, key) => bucketsOf(vector, key, VecGroupByKeyNotKeywordError, VecGroupByKeyTakenError)));
 // A set's buckets are sets, so the uniqueness of its elements survives
 // the partition.
-bindPrim('set/groupBy', async (set, key) => {
+bindPrim('set/groupBy', runs(['key'], async (set, key) => {
   const buckets = await bucketsOf(set, key, SetGroupByKeyNotKeywordError, SetGroupByKeyTakenError);
   return isErrorValue(buckets) ? buckets : new Map([...buckets].map(([name, elements]) => [name, makeSet(elements)]));
-});
+}));
 
 // The last element filed under each keyword the key answers.
 async function indexOf(sequence, key, KeyNotKeywordError, KeyTakenError) {
@@ -307,8 +307,8 @@ const VecIndexByKeyNotKeywordError = declareRefusal('vec/indexBy/KeyNotKeywordEr
 const VecIndexByKeyTakenError = declareRefusal('vec/indexBy/KeyTakenError');
 const SetIndexByKeyNotKeywordError = declareRefusal('set/indexBy/KeyNotKeywordError');
 const SetIndexByKeyTakenError = declareRefusal('set/indexBy/KeyTakenError');
-bindPrim('vec/indexBy', (vector, key) => indexOf(vector, key, VecIndexByKeyNotKeywordError, VecIndexByKeyTakenError));
-bindPrim('set/indexBy', (set, key) => indexOf(set, key, SetIndexByKeyNotKeywordError, SetIndexByKeyTakenError));
+bindPrim('vec/indexBy', runs(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyNotKeywordError, VecIndexByKeyTakenError)));
+bindPrim('set/indexBy', runs(['key'], (set, key) => indexOf(set, key, SetIndexByKeyNotKeywordError, SetIndexByKeyTakenError)));
 
 // ── slices and lookup ──────────────────────────────────────────
 
@@ -359,5 +359,5 @@ async function foldOf(elements, seed, reducer) {
   return acc;
 }
 
-bindPrim(['vec/reduce', 'set/reduce'], (sequence, seed, reducer) => foldOf(sequence, seed, reducer));
-bindPrim('map/reduce', (map, seed, reducer) => foldOf(map.values(), seed, reducer));
+bindPrim(['vec/reduce', 'set/reduce'], runs(['reducer'], (sequence, seed, reducer) => foldOf(sequence, seed, reducer)));
+bindPrim('map/reduce', runs(['reducer'], (map, seed, reducer) => foldOf(map.values(), seed, reducer)));

@@ -23,9 +23,10 @@ import { printPath } from './runtime/print-value.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isRecipe, isUnderLabel, isWord, invariantsUnder, kindsRefusalAddress, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, selectorOf, subjectOf, subjectRefusalAddress
+  addressesOf, answerOf, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, elementsRefusalAddress, holdsAPage, isInvariant, isMemberValue, isRecipe, isUnderLabel, isWord, invariantsUnder, kindsRefusalAddress, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, selectorOf, subjectOf, subjectRefusalAddress
 } from './runtime/nouns.mjs';
 import { ANSWER_NAME, SUBJECT_NAME, invariantsOf, pageOfKindsRefusal, signatureOf } from './runtime/signature.mjs';
+import { inputsRunBy } from './primitives.mjs';
 import { splitAddress } from './address.mjs';
 import {
   runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
@@ -411,9 +412,10 @@ async function evalBindStep(node, state) {
 // The nodes a function named under a label lays under its address, what
 // `doc`, `manifest` and the tools read of the word, its call reading none
 // of them [D251]: the subject and each input with its page, an input's
-// place, the refusal its kinds name with the page `throws` gives it or
-// one that names its kinds, the answer with its page and its kinds, each
-// refusal `throws` pages and each invariant `holds` writes.
+// place, the refusal its kinds, or those of each of its elements, name
+// with the page `throws` gives it or one that names them, the answer with
+// its page and its kinds, each refusal `throws` pages and each invariant
+// `holds` writes.
 function nodesOfFunction(fn, address, env, origin) {
   const { subject, inputs, answer, pages, invariants } = signatureOf(fn);
   let under = env;
@@ -422,11 +424,11 @@ function nodesOfFunction(fn, address, env, origin) {
     under = envSet(under, name, makeBinding({ name: keyword(name), docs: [page], value, origin }));
   };
   if (subject !== null) lay(SUBJECT_NAME, subject.page, subject.written ?? subject.page);
-  for (const { name, page, place, kinds } of inputs) {
+  for (const { name, page, place, kinds, each } of inputs) {
     lay(name.name, page, place);
     if (kinds === null) continue;
-    const refusal = kindsRefusalAddress(name.name, kinds);
-    const refusalPage = pages.get(refusal) ?? pageOfKindsRefusal(name, kinds);
+    const refusal = (each ? elementsRefusalAddress : kindsRefusalAddress)(name.name, kinds);
+    const refusalPage = pages.get(refusal) ?? pageOfKindsRefusal(name, kinds, each);
     lay(refusal, refusalPage, refusalPage);
   }
   if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
@@ -721,10 +723,21 @@ function scopeOfMember(member, record, state) {
   return recipeScopeOf(state, ofTheRoot);
 }
 
+// The scope a call opens, read once for the scope it is called in, which
+// never changes once made.
+const OPENED_SCOPES = [new WeakMap(), new WeakMap()];
+
 function recipeScopeOf(state, ofTheRoot) {
-  const scope = new Map([[ROOT_KEY, rootOf(state.env)], [QUERY_KEY, queryTreeOf(state.env)]]);
+  const opened = OPENED_SCOPES[ofTheRoot ? 1 : 0];
+  let scope = opened.get(state.env);
+  if (scope === undefined) opened.set(state.env, scope = scopeOpenedIn(state.env, ofTheRoot));
+  return scope;
+}
+
+function scopeOpenedIn(env, ofTheRoot) {
+  const scope = new Map([[ROOT_KEY, rootOf(env)], [QUERY_KEY, queryTreeOf(env)]]);
   if (ofTheRoot) markRootWordScope(scope);
-  for (const [name, entry] of state.env) {
+  for (const [name, entry] of env) {
     if (typeof name !== 'string' || scope.has(name)) continue;
     if (name.includes('/') || (isBinding(entry) && holdsAPage(entry))) scope.set(name, entry);
   }
@@ -778,7 +791,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const called = await inputsOfCall(signature, address, modifiers, state, scope, body);
   if (isErrorValue(called)) return called;
   const running = body === null
-    ? runPrimitive(hostImplOf(recipe), walked.served, walked.passedTags, called.values, state)
+    ? runPrimitive(hostImplOf(recipe), walked.served, walked.passedTags, handedTo(hostImplOf(recipe), signature, called, state), state)
     : (await evalBody(body, nestState(state, state.pipeValue, called.bodyEnv))).pipeValue;
   const answer = isThenable(running) ? await running : running;
   if (isErrorValue(answer)) return answer;
@@ -786,6 +799,26 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const brought = kinds === null ? answer : await answerUnderItsLabel(answer, { address: `${address}/${ANSWER_NAME}`, kinds }, walked.byLabel ? labelName : null, walked, state);
   if (isErrorValue(brought)) return brought;
   return await invariantRefusal(invariantsOf(signature, ANSWER_NAME), address, brought, state, scope) ?? brought;
+}
+
+// The values a primitive is handed, its inputs in the order `takes` names
+// them, each it runs as code closed at the call [D4], a quote written in
+// the step in the scope of the step and any other in the tree of the query
+// [D251], a path read as `get` reads it [D248], and every element so of
+// one that holds the objects of the call whole; any other value as it is.
+function handedTo(impl, signature, { values, writtenHere }, state) {
+  const run = inputsRunBy(impl);
+  if (run === undefined) return values;
+  return values.map((value, at) => {
+    const { name, selector } = signature.inputs[at];
+    if (!run.has(name.name)) return value;
+    return selector.readsArgs ? value.map((element, place) => codeOfObject(element, writtenHere[place], state)) : codeOfObject(value, writtenHere[selector.place], state);
+  });
+}
+
+function codeOfObject(value, writtenHere, state) {
+  if (isQuote(value)) return codeOf(value, state, writtenHere === true);
+  return isPath(value) ? codeOfPath(value, state) : value;
 }
 
 // The subject a function's call serves: for a word, the value of its label
@@ -807,18 +840,21 @@ function subjectOfCall(signature, labelName, subject) {
 // their places, the values of its objects computed against the subject,
 // and, for a recipe written in steps, the scope of its body, each input
 // bound by its name and the args as `args`, names the steps of the body
-// declare no second time [D71]: args of more values than the inputs read
-// places are refused, an input the args leave out where its place reads one
-// is refused, a value of none of an input's kinds is refused, each refusal
-// named under the address, and so is a value that breaks an invariant
-// written under its input.
+// declare no second time [D71], and whether each object is a quote written
+// in the step: args of more values than the inputs read places are refused,
+// an input the args leave out where its place reads one is refused, a value
+// none of an input's kinds holds is refused, each refusal named under the
+// address, and so is a value that breaks an invariant written under its
+// input, which holds of the value as the args give it.
 async function inputsOfCall(signature, address, modifiers, state, scope, body) {
   const values = [];
+  const writtenHere = [];
   for (const [place, modifier] of modifiers.entries()) {
     const computing = modifier(state.pipeValue);
     const value = isThenable(computing) ? await computing : computing;
     if (isErrorValue(value)) return refusalOfFailedObject(signature, address, place, value, scope);
     values.push(value);
+    writtenHere.push(modifier.writtenHere === true);
   }
   let args = null;
   const argsValue = () => args ??= makeTaggedInstance(makeTag(address), values);
@@ -827,33 +863,57 @@ async function inputsOfCall(signature, address, modifiers, state, scope, body) {
     .set(CALL_BINDS_KEY, { body, names: new Set([ARGS_NAME.name, ...signature.inputs.map(({ name }) => name.name)]) });
   const overArgs = () => nestState(state, argsValue(), scope);
   const inputValues = [];
-  for (const { name, kinds, selector } of signature.inputs) {
+  for (const input of signature.inputs) {
+    const { name, selector } = input;
     const inputAddress = `${address}/${name.name}`;
     frameBelow(state);
     const reading = partOf(selector, values, overArgs);
     const read = isThenable(reading) ? await reading : reading;
     if (read === MISSED_PLACE || (isErrorValue(read) && isMissedPlace(read))) return refusalUnder(notGivenAddress(inputAddress), { actualValue: argsValue() }, scope);
     if (isErrorValue(read)) return read;
-    const reached = kinds === null ? { served: read } : walkToKinds(read, kinds);
-    if (reached === null) return refusalUnder(kindsRefusalAddress(inputAddress, kinds), { actualValue: read }, scope);
-    const refused = await invariantRefusal(invariantsOf(signature, name.name), address, reached.served, state, scope);
+    const held = heldByItsKinds(input, inputAddress, read, scope);
+    if (isErrorValue(held)) return held;
+    const refused = await invariantRefusal(invariantsOf(signature, name.name), address, read, state, scope);
     if (refused !== null) return refused;
-    inputValues.push(reached.served);
-    if (body !== null) bodyEnv = envSet(bodyEnv, name.name, makeBinding({ name, value: reached.served }));
+    inputValues.push(held);
+    if (body !== null) bodyEnv = envSet(bodyEnv, name.name, makeBinding({ name, value: held }));
   }
-  return { values: inputValues, bodyEnv };
+  return { values: inputValues, bodyEnv, writtenHere };
+}
+
+// The value an input holds: the value of its kind the walk of its tags
+// reaches, or, where it names the kinds of each element, the vector, or the
+// set, of each element's; a value of none of its kinds is refused under the
+// input, and an element of none under the input with its index.
+function heldByItsKinds({ kinds, each }, inputAddress, value, scope) {
+  if (!each) {
+    if (kinds === null) return value;
+    const reached = walkToKinds(value, kinds);
+    return reached === null ? refusalUnder(kindsRefusalAddress(inputAddress, kinds), { actualValue: value }, scope) : reached.served;
+  }
+  const elements = walkToKinds(value, ['vec']);
+  if (elements === null) return refusalUnder(kindsRefusalAddress(inputAddress, ['vec']), { actualValue: value }, scope);
+  if (kinds === null) return elements.served;
+  const refused = refusedElementOf(elements.served, kinds);
+  if (refused !== null) return refusalUnder(elementsRefusalAddress(inputAddress, kinds), { index: refused.index, actualValue: refused.element }, scope);
+  const served = Array.from(elements.served, element => walkToKinds(element, kinds).served);
+  return isQSet(elements.served) ? makeSet(served) : Object.freeze(served);
 }
 
 // An object of the call that answered an error where the input that reads
-// its place takes a quote: the step ran on the subject by mistake,
-// `each (add 1)` for `each ~(add 1)`, and the input refuses it under its
-// kinds with the error at rest as its value; anywhere else the error is
-// the answer [D13], [D67], [D167].
+// its place, or the objects of the call whole, takes a quote: the step ran
+// on the subject by mistake, `each (add 1)` for `each ~(add 1)`, and the
+// input refuses it under its kinds with the error at rest as its value, one
+// that holds each object naming its place; anywhere else the error is the
+// answer [D13], [D67], [D167].
 function refusalOfFailedObject(signature, address, place, error, scope) {
-  const reading = signature.inputs.find(({ selector }) => selector.place === place);
+  const reading = signature.inputs.find(({ selector }) => selector.place === place) ?? signature.inputs.find(({ selector }) => selector.readsArgs);
   if (!(reading?.kinds?.includes('quote') ?? false)) return error;
   const atRest = errorAtRest(error.tag, new Map(error.descriptor));
-  return refusalUnder(kindsRefusalAddress(`${address}/${reading.name.name}`, reading.kinds), { actualValue: atRest }, scope);
+  const inputAddress = `${address}/${reading.name.name}`;
+  return reading.each
+    ? refusalUnder(elementsRefusalAddress(inputAddress, reading.kinds), { index: place, actualValue: atRest }, scope)
+    : refusalUnder(kindsRefusalAddress(inputAddress, reading.kinds), { actualValue: atRest }, scope);
 }
 
 // The refusal of the first invariant written under an input or the answer

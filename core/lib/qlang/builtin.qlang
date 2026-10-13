@@ -6,12 +6,12 @@
    The decisions it exists for: [D46], [D114]. ~|
 
 :builtin
-  |~~ A builtin marks a word a host implements: the value of a name
-      whose code the host hands as a function, `::builtin{}`, where a
-      word written in steps holds a quote.
-      `::number/add | binding | get /value` answers `::builtin{}`, and a
-      kind the host declares builds its values by a `construct` that is
-      one.
+  |~~ A builtin marks a word a host implements: the recipe of a
+      function whose code the host hands, `::builtin{}`, where a word
+      written in steps holds a quote.
+      `::number/add | binding | get /value | get /1` answers
+      `::builtin{}`, and a kind the host declares builds its values by a
+      `construct` that is one.
 
       It is a map under its tag and runs nothing by itself: a name bound
       to one reads it as data, and a call of the word runs the
@@ -24,8 +24,8 @@
   ::law~(::builtin{} | :c it | get [1 2] | c | type | eq ::builtin)
 
 :builtin/endsAPrimitive
-  |~~ A primitive's value is an empty descriptor. ~~|
-  ::law~(::number/add | binding | get /value | eq ::builtin{})
+  |~~ The recipe of a word a host implements is an empty descriptor. ~~|
+  ::law~(::number/add | binding | get /value | get /1 | eq ::builtin{})
 
 :builtin/construct
   |~~ Reads a map as the descriptor, its fields flat under the tag. ~~|

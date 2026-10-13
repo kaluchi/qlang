@@ -73,11 +73,9 @@
       `toPath` builds the path back from them.
       ::link~(::vec/toPath | doc)
   ~~|
-  ::builtin{}
-
-:path/segments/answer
-  |~~ The keys and places of the path. ~~|
-  ::vec
+  ::fn
+    | returns |~~ The keys and places of the path. ~~| ::vec
+    | impl ::builtin{}
 
 :path/segments/answersKeysAndPlaces
   |~~ A key answers its keyword and a place its number. ~~|

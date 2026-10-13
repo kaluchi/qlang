@@ -254,12 +254,16 @@ function stepTagOf(step) {
 
 // A quote of declarations alone, the story `source` reads, prints one
 // declaration a line, each after the first led by its pipe, as the
-// catalog writes it [D193].
+// catalog writes it [D193], and so does a quote of several steps one of
+// which takes several lines, the commands of a signature among them
+// [D251].
 function printSteps(steps) {
-  const pipe = steps.length > 1 && steps.every(step => stepTagOf(step) === 'bind') ? '\n| ' : ' | ';
-  return steps.map((step, index) => {
-    if (stepTagOf(step) === 'fail') return `${index === 0 ? '' : ' '}!| ${printSteps(step.payload)}`;
-    return (index === 0 ? '' : pipe) + printStep(step);
+  const printed = steps.map(step => (stepTagOf(step) === 'fail' ? { fail: printSteps(step.payload) } : { step: printStep(step) }));
+  const lined = steps.length > 1 && (steps.every(step => stepTagOf(step) === 'bind') || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
+  const gap = lined ? '\n' : ' ';
+  return printed.map(({ fail, step }, index) => {
+    if (fail !== undefined) return `${index === 0 ? '' : gap}!| ${fail}`;
+    return (index === 0 ? '' : `${gap}| `) + step;
   }).join('');
 }
 

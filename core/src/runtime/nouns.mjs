@@ -392,6 +392,7 @@ export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot$
 export const argsBeyondPartsAddress = address => `${address}/ArgsBeyondPartsError`;
 export const notGivenAddress = partAddress => `${partAddress}/NotGivenError`;
 export const kindsRefusalAddress = (address, kinds) => `${address}/Not${kinds.map(capitalOf).join('Or')}Error`;
+export const elementsRefusalAddress = (address, kinds) => `${address}/ElementNot${kinds.map(capitalOf).join('Or')}Error`;
 
 const capitalOf = name => { const [, word] = splitAddress(name); return word[0].toUpperCase() + word.slice(1); };
 
@@ -417,16 +418,19 @@ export function ruleRefusalsOf(env, address) {
 
 // The refusals the call of a word that is a function raises by rule, read
 // from its signature [D251]: a subject of none of the kinds it serves,
-// named by its label, args beyond
-// the places its inputs read, an input the call leaves out where its place
-// reads one, an input of none of its kinds, and an answer of none of
-// several kinds.
+// named by its label, args beyond the places its inputs read, an input the
+// call leaves out where its place reads one and not the args whole, an
+// input of none of its kinds, or that is no vector where it names the
+// kinds of each element, and an element of none of them, and an answer of
+// none of several kinds.
 export function functionRuleRefusalsOf(signature, address, labelName) {
   const refusals = [subjectRefusalAddress(address, [labelName])];
   if (signature.places !== null) refusals.push(argsBeyondPartsAddress(address));
-  for (const { name, kinds, selector } of signature.inputs) {
-    if (selector.strict || !selector.onePlace) refusals.push(notGivenAddress(`${address}/${name.name}`));
-    if (kinds !== null) refusals.push(kindsRefusalAddress(`${address}/${name.name}`, kinds));
+  for (const { name, kinds, each, selector } of signature.inputs) {
+    const inputAddress = `${address}/${name.name}`;
+    if (!selector.readsArgs && (selector.strict || !selector.onePlace)) refusals.push(notGivenAddress(inputAddress));
+    if (each && !selector.readsArgs) refusals.push(kindsRefusalAddress(inputAddress, ['vec']));
+    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress, kinds) : kindsRefusalAddress(inputAddress, kinds));
   }
   const kinds = signature.answer?.kinds ?? null;
   if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/answer`, kinds));

@@ -67,7 +67,7 @@ describe('out — full-application form (1 captured)', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out (add 1)', io);
     expect(io.stdoutText()).toBe('');
-    expectRefusalByAddress(cellEntry, 'any/out/text/NotStringOrNullError', {
+    expectRefusalByAddress(cellEntry, 'any/out/text/NotNullOrStringError', {
       actualType: { name: 'number' }
     });
   });
@@ -76,7 +76,7 @@ describe('out — full-application form (1 captured)', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
-    expectRefusalByAddress(cellEntry, 'string/prepend/prefix/NotStringOrKeywordError', {
+    expectRefusalByAddress(cellEntry, 'string/prepend/prefix/NotKeywordOrStringError', {
       actualType: { name: 'number' }
     });
   });
@@ -112,7 +112,7 @@ describe('err — full-application form', () => {
   it('refuses a text of another kind on stderr by the law of its part', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | err (add 1)', io);
-    expectRefusalByAddress(cellEntry, 'any/err/text/NotStringOrNullError', {
+    expectRefusalByAddress(cellEntry, 'any/err/text/NotNullOrStringError', {
       actualType: { name: 'number' }
     });
   });

@@ -156,11 +156,9 @@
       the empty string.
       ::link~(::string/parse | doc) ::link~(::quote/open | doc)
   ~~|
-  ::builtin{}
-
-:quote/parse/answer
-  |~~ The text the quote reads back from. ~~|
-  ::string
+  ::fn
+    | returns |~~ The text the quote reads back from. ~~| ::string
+    | impl ::builtin{}
 
 :quote/parse/answersTheSource
   |~~ A quote parses to its source. ~~|
@@ -197,17 +195,15 @@
       ::link~(::any/apply | doc) ::link~(::doc/links | doc)
       ::link~(::doc/snippets | doc)
   ~~|
-  ::builtin{}
-
-:quote/open/answer
-  |~~ What the query answers, a value of any kind. ~~|
-  ::any
-
-:quote/open/SubjectNotQuoteError
-  |~~ `open` runs a quote, `~(1 | add 1) | open`: text is read as a
-      quote first by `parse`, `"1 | add 1" | parse | open`, and the links
-      of a page are read by `links`, `::vec | doc | links | map ~open`.
-  ~~|
+  ::fn
+    | returns |~~ What the query answers, a value of any kind. ~~| ::any
+    | throws :SubjectNotQuoteError
+        |~~ `open` runs a quote, `~(1 | add 1) | open`: text is read as a
+            quote first by `parse`, `"1 | add 1" | parse | open`, and the
+            links of a page are read by `links`, `::vec | doc | links |
+            map ~open`.
+        ~~|
+    | impl ::builtin{}
 
 :quote/open/runsALink
   |~~ A link opens to the answer of its query. ~~|

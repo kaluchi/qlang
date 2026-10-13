@@ -22,19 +22,20 @@ describe('the sources of the language', () => {
 
 describe('the verbs of the language reach their primitives', () => {
 
-  it('spot-check — :add is a name under ::number a primitive answers [D164]', async () => {
+  it('spot-check — :add is a function under ::number whose recipe a primitive answers [D164], [D251]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const { isBuiltinDescriptor, isHostDeclared } = await import('../../src/types.mjs');
+    const { isBuiltinDescriptor, isHostDeclared, isFn, fnRecipeOf } = await import('../../src/types.mjs');
     const resolved = await langRuntime();
     const add = bindingValueOf(nodeOf(resolved, 'number/add'));
-    expect(isBuiltinDescriptor(add)).toBe(true);
-    expect(isHostDeclared(add)).toBe(true);
+    expect(isFn(add)).toBe(true);
+    expect(isBuiltinDescriptor(fnRecipeOf(add))).toBe(true);
+    expect(isHostDeclared(fnRecipeOf(add))).toBe(true);
   });
 
-  it('spot-check — filter takes its predicate as a part whose law asks for a quote or a path, on each kind that answers it [D169]', async () => {
+  it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [D169], [D251]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTag('set/filter/ConditionNotBooleanError'), makeTag('set/filter/answer'), makeTag('set/filter/predicate')]));
-    expect(await evalQuery('::set/filter/predicate/NotQuoteError | binding | get /value | print')).toBe('::holds~(is ::quote ::path)');
+    expect(await evalQuery('::set/filter | binding | get /value | params | map /kinds | print')).toBe('[#[::path ::quote]]');
   });
 });
 
@@ -136,7 +137,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('apply refuses code that is not a Quote', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"not-a-quote" | apply it !| type');
-    expect(evalResult).toEqual(makeTag('any/apply/code/NotQuoteError'));
+    expect(evalResult).toEqual(makeTag('any/apply/code/NotFnOrPathOrQuoteError'));
   });
 
   it('round-trip — "source" | parse | apply(/) is equivalent to evaluating the source', async () => {

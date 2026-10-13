@@ -74,17 +74,16 @@
       ::link~(::any/doc | doc) ::link~(::doc/segments | doc)
       ::link~(::doc/links | doc)
   ~~|
-  ::builtin{}
-
-:doc/content/answer
-  |~~ The text of the doc, its quotes written where they stand. ~~|
-  ::string
-
-:doc/content/SubjectNotDocError
-  |~~ `content` reads a doc: the page of a name is read by `doc` first,
-      `::vec/join | doc | content`, and a name declared without a page
-      has none, `doc` answering null.
-  ~~|
+  ::fn
+    | returns
+        |~~ The text of the doc, its quotes written where they stand. ~~|
+        ::string
+    | throws :SubjectNotDocError
+        |~~ `content` reads a doc: the page of a name is read by `doc`
+            first, `::vec/join | doc | content`, and a name declared
+            without a page has none, `doc` answering null.
+        ~~|
+    | impl ::builtin{}
 
 :doc/content/writesEachQuoteWhereItStands
   |~~ The content writes each quote where it stands in the prose. ~~|
@@ -125,16 +124,14 @@
       ::link~(::doc/content | doc) ::link~(::doc/links | doc)
       ::link~(::doc/snippets | doc)
   ~~|
-  ::builtin{}
-
-:doc/segments/answer
-  |~~ The prose and the quotes of the doc, in their order. ~~|
-  ::vec
-
-:doc/segments/SubjectNotDocError
-  |~~ `segments` reads a doc, not its text: the page of a name is read
-      by `doc` first, `::vec | doc | segments`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The prose and the quotes of the doc, in their order. ~~| ::vec
+    | throws :SubjectNotDocError
+        |~~ `segments` reads a doc, not its text: the page of a name is
+            read by `doc` first, `::vec | doc | segments`.
+        ~~|
+    | impl ::builtin{}
 
 :doc/segments/alternatesProseAndCode
   |~~ Prose and code alternate in the segments. ~~|
@@ -175,16 +172,16 @@
       a doc, the page of a name read by `doc` first.
       ::link~(::quote/open | doc) ::link~(::doc/snippets | doc)
   ~~|
-  ::builtin{}
-
-:doc/links/answer
-  |~~ The links of the doc, each a query that answers another page. ~~|
-  ::vec
-
-:doc/links/SubjectNotDocError
-  |~~ `links` reads a doc, not its text: the page of a name is read by
-      `doc` first, `::vec | doc | links`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The links of the doc, each a query that answers another page.
+        ~~|
+        ::vec
+    | throws :SubjectNotDocError
+        |~~ `links` reads a doc, not its text: the page of a name is read
+            by `doc` first, `::vec | doc | links`.
+        ~~|
+    | impl ::builtin{}
 
 :doc/links/findsTheLinkInProse
   |~~ A link inside prose is found. ~~|
@@ -218,16 +215,14 @@
       a doc, the page of a name read by `doc` first.
       ::link~(::quote/open | doc) ::link~(::doc/links | doc)
   ~~|
-  ::builtin{}
-
-:doc/snippets/answer
-  |~~ The snippets of the doc, each a query a reader runs. ~~|
-  ::vec
-
-:doc/snippets/SubjectNotDocError
-  |~~ `snippets` reads a doc, not its text: the page of a name is read
-      by `doc` first, `::tag/manifest | doc | snippets`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The snippets of the doc, each a query a reader runs. ~~| ::vec
+    | throws :SubjectNotDocError
+        |~~ `snippets` reads a doc, not its text: the page of a name is
+            read by `doc` first, `::tag/manifest | doc | snippets`.
+        ~~|
+    | impl ::builtin{}
 
 :doc/snippets/findsTheSnippetInProse
   |~~ A snippet inside prose is found. ~~|

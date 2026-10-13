@@ -4,5 +4,5 @@
 {"name":"a-set-is-a-tagged-value-to-payload","query":"#[2 1] | payload","expect":"[1 2]","decision":"D34"}
 {"name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box","decision":"D41"}
 {"name":"a-number-is-no-tagged-value","query":"1 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError","decision":"D34"}
-{"name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/NotQuoteError","decision":"D43"}
+{"name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/NotFnOrPathOrQuoteError","decision":"D43"}
 {"name":"a-quote-that-applies-itself-exhausts-the-depth","query":":q ~(apply q) | 1 | apply q !| type","expect":"::call/EvaluationDepthExceededError","decision":"D34"}

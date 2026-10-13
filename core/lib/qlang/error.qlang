@@ -186,21 +186,18 @@
       among them.
       ::link~(::qlang/errors | doc) ::link~(::error | doc)
   ~~|
-  ~(query /trail | coalesce [])
+  ::fn
+    | returns |~~ The stops of the path the error took. ~~| ::vec
+    | throws :SubjectNotErrorError
+        |~~ `trail` reads the path of an error at rest, the value `!|`
+            catches a failure to, `"x" | add 1 !| trail`; the key `:trail`
+            of a plain map is read by `/trail`.
+        ~~|
+    | impl ~(query /trail | coalesce [])
 
 :error/trail/answersNothingForAnErrorThatFlewNoStep
   |~~ An error that flew no step holds no path. ~~|
   ::law~(::error{:a 1} | trail | eq [])
-
-:error/trail/answer
-  |~~ The stops of the path the error took. ~~|
-  ::vec
-
-:error/trail/SubjectNotErrorError
-  |~~ `trail` reads the path of an error at rest, the value `!|`
-      catches a failure to, `"x" | add 1 !| trail`; the key `:trail` of a
-      plain map is read by `/trail`.
-  ~~|
 
 :error/trail/holdsTheStepThatRaised
   |~~ The trail of an error raised at once holds the one step. ~~|

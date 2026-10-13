@@ -50,17 +50,15 @@
       payload and puts the tag back.
       ::link~(::any/tag | doc) ::link~(::tagged/within | doc)
   ~~|
-  ::builtin{}
-
-:tagged/payload/answer
-  |~~ The value beneath the tag, of any kind. ~~|
-  ::any
-
-:tagged/payload/SubjectNotTaggedError
-  |~~ `payload` opens a value under a tag, `::Box[42] | payload`; a
-      number, a string, a vector or a plain map stands under none and is
-      its own value, and the kind of a value is read by `type`.
-  ~~|
+  ::fn
+    | returns |~~ The value beneath the tag, of any kind. ~~| ::any
+    | throws :SubjectNotTaggedError
+        |~~ `payload` opens a value under a tag, `::Box[42] | payload`; a
+            number, a string, a vector or a plain map stands under none
+            and is its own value, and the kind of a value is read by
+            `type`.
+        ~~|
+    | impl ::builtin{}
 
 :tagged/payload/answersAVector
   |~~ A box of a vector answers the vector. ~~|
@@ -103,33 +101,29 @@
       refused here.
       ::link~(::any/apply | doc) ::link~(::tagged/payload | doc)
   ~~|
-  ::builtin{}
-
-:tagged/within/answer
-  |~~ The value edited beneath its tag, under the tag again. ~~|
-  ::tagged
-
-:tagged/within/code
-  |~~ The edit, a quote run against the payload. ~~|
-  /0
-
-:tagged/within/code/NotQuoteError
-  |~~ The edit `within` runs is a quote, `within ~(reverse)`; a value
-      computed at the call is refused, the error a step answered there
-      among them.
-  ~~|
-  ::holds~(is ::quote ::path)
-
-:tagged/within/code/NotGivenError
-  |~~ `within` runs the code its call gives beneath the tag, `::Box[1 2] |
-      within ~(reverse)`; a call with no code is refused.
-  ~~|
-
-:tagged/within/SubjectNotTaggedError
-  |~~ `within` edits a value beneath its tag; a value under no tag, a
-      vector or a plain map, is edited by `apply`, `[1 2] | apply
-      ~(reverse)`.
-  ~~|
+  ::fn
+    | takes :code
+        |~~ The edit, a quote run against the payload. ~~|
+        /0 #[::path ::quote]
+    | throws :code/NotPathOrQuoteError
+        |~~ The edit `within` runs is a quote, `within ~(reverse)`; a
+            value computed at the call is refused, the error a step
+            answered there among them.
+        ~~|
+    | throws :code/NotGivenError
+        |~~ `within` runs the code its call gives beneath the tag,
+            `::Box[1 2] | within ~(reverse)`; a call with no code is
+            refused.
+        ~~|
+    | returns
+        |~~ The value edited beneath its tag, under the tag again. ~~|
+        ::tagged
+    | throws :SubjectNotTaggedError
+        |~~ `within` edits a value beneath its tag; a value under no tag,
+            a vector or a plain map, is edited by `apply`, `[1 2] | apply
+            ~(reverse)`.
+        ~~|
+    | impl ::builtin{}
 
 :tagged/within/keepsTheTag
   |~~ The edit returns under the tag. ~~|
@@ -152,9 +146,9 @@
   |~~ An edit under two tags reaches the innermost payload. ~~|
   ::law~(:Box |~~ A box. ~~| | ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])
 
-:tagged/within/code/NotQuoteError/refusesANumber
+:tagged/within/code/NotPathOrQuoteError/refusesANumber
   |~~ A number computed at the call is refused. ~~|
-  ::law~(#[3 1] | within 1 !| [type (get /actualType)] | eq [::tagged/within/code/NotQuoteError ::number])
+  ::law~(#[3 1] | within 1 !| [type (get /actualType)] | eq [::tagged/within/code/NotPathOrQuoteError ::number])
 
 :tagged/within/SubjectNotTaggedError/refusesAVector
   |~~ A vector under no tag is refused. ~~|

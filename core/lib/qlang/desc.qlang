@@ -53,23 +53,21 @@
       ::link~(::desc | doc) ::link~(::any/desc | doc)
       ::link~(::desc/gte | doc) ::link~(::desc/lt | doc)
   ~~|
-  ::builtin{}
-
-:desc/gt/answer
-  |~~ `true` when the subject comes after the value among values turned
-      to descend, `false` otherwise.
-  ~~|
-  ::boolean
-
-:desc/gt/value
-  |~~ The value turned to descend the subject is compared with, computed
-      against the subject, `2 | desc | gt (3 | desc)`.
-  ~~|
-  /0
-
-:desc/gt/value/NotDescError
-  |~~ The value compared is turned to descend, a value of `::desc`. ~~|
-  ::holds~(is ::desc)
+  ::fn
+    | takes :value
+        |~~ The value turned to descend the subject is compared with,
+            computed against the subject, `2 | desc | gt (3 | desc)`.
+        ~~|
+        /0 ::desc
+    | throws :value/NotDescError
+        |~~ The value compared is turned to descend, a value of `::desc`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes after the value among values
+            turned to descend, `false` otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :desc/gt/reversesTheOrder
   |~~ Among values turned to descend, one comes after two. ~~|
@@ -91,23 +89,21 @@
       after the greater.
       ::link~(::desc/gt | doc) ::link~(::desc/lte | doc)
   ~~|
-  ::builtin{}
-
-:desc/gte/answer
-  |~~ `true` when the subject comes after the value among values turned
-      to descend or ranks with it, `false` otherwise.
-  ~~|
-  ::boolean
-
-:desc/gte/value
-  |~~ The value turned to descend the subject is compared with, computed
-      against the subject, `2 | desc | gte (3 | desc)`.
-  ~~|
-  /0
-
-:desc/gte/value/NotDescError
-  |~~ The value compared is turned to descend, a value of `::desc`. ~~|
-  ::holds~(is ::desc)
+  ::fn
+    | takes :value
+        |~~ The value turned to descend the subject is compared with,
+            computed against the subject, `2 | desc | gte (3 | desc)`.
+        ~~|
+        /0 ::desc
+    | throws :value/NotDescError
+        |~~ The value compared is turned to descend, a value of `::desc`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes after the value among values
+            turned to descend or ranks with it, `false` otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :desc/gte/equalsWithOnePayload
   |~~ Two values turned of one payload rank together. ~~|
@@ -130,23 +126,21 @@
       before the value or ranks with it.
       ::link~(::desc/gt | doc) ::link~(::desc/lte | doc)
   ~~|
-  ::builtin{}
-
-:desc/lt/answer
-  |~~ `true` when the subject comes before the value among values turned
-      to descend, `false` otherwise.
-  ~~|
-  ::boolean
-
-:desc/lt/value
-  |~~ The value turned to descend the subject is compared with, computed
-      against the subject, `2 | desc | lt (3 | desc)`.
-  ~~|
-  /0
-
-:desc/lt/value/NotDescError
-  |~~ The value compared is turned to descend, a value of `::desc`. ~~|
-  ::holds~(is ::desc)
+  ::fn
+    | takes :value
+        |~~ The value turned to descend the subject is compared with,
+            computed against the subject, `2 | desc | lt (3 | desc)`.
+        ~~|
+        /0 ::desc
+    | throws :value/NotDescError
+        |~~ The value compared is turned to descend, a value of `::desc`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes before the value among values
+            turned to descend, `false` otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :desc/lt/reversesTheOrder
   |~~ Among values turned to descend, two comes before one. ~~|
@@ -167,23 +161,21 @@
       does, a value turned with a value turned.
       ::link~(::desc/lt | doc) ::link~(::desc/gte | doc)
   ~~|
-  ::builtin{}
-
-:desc/lte/answer
-  |~~ `true` when the subject comes before the value among values turned
-      to descend or ranks with it, `false` otherwise.
-  ~~|
-  ::boolean
-
-:desc/lte/value
-  |~~ The value turned to descend the subject is compared with, computed
-      against the subject, `2 | desc | lte (3 | desc)`.
-  ~~|
-  /0
-
-:desc/lte/value/NotDescError
-  |~~ The value compared is turned to descend, a value of `::desc`. ~~|
-  ::holds~(is ::desc)
+  ::fn
+    | takes :value
+        |~~ The value turned to descend the subject is compared with,
+            computed against the subject, `2 | desc | lte (3 | desc)`.
+        ~~|
+        /0 ::desc
+    | throws :value/NotDescError
+        |~~ The value compared is turned to descend, a value of `::desc`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes before the value among values
+            turned to descend or ranks with it, `false` otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :desc/lte/equalsWithOnePayload
   |~~ Two values turned of one payload rank together. ~~|

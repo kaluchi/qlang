@@ -34,16 +34,16 @@
       `/page`. `value` answers what was explained.
       ::link~(::any/explain | doc) ::link~(::explanation/value | doc)
   ~~|
-  ~(get /page)
-
-:explanation/page/answer
-  |~~ The page that explains the value, null for a name without one. ~~|
-  #[::doc ::null]
-
-:explanation/page/SubjectNotExplanationError
-  |~~ `page` reads what `explain` answers, `::vec/count | explain |
-      page`; the key `:page` of a map is read by `/page`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The page that explains the value, null for a name without one.
+        ~~|
+        #[::doc ::null]
+    | throws :SubjectNotExplanationError
+        |~~ `page` reads what `explain` answers, `::vec/count | explain |
+            page`; the key `:page` of a map is read by `/page`.
+        ~~|
+    | impl ~(get /page)
 
 :explanation/page/ofANameIsItsOwn
   |~~ The page of a name is its own. ~~|
@@ -79,16 +79,16 @@
       `/value`. `page` answers what explains the value.
       ::link~(::any/explain | doc) ::link~(::explanation/page | doc)
   ~~|
-  ~(get /value)
-
-:explanation/value/answer
-  |~~ The value explained, of any kind, an error at rest among them. ~~|
-  ::any
-
-:explanation/value/SubjectNotExplanationError
-  |~~ `value` reads what `explain` answers, `42 | explain | value`; the
-      key `:value` of a map is read by `/value`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The value explained, of any kind, an error at rest among them.
+        ~~|
+        ::any
+    | throws :SubjectNotExplanationError
+        |~~ `value` reads what `explain` answers, `42 | explain | value`;
+            the key `:value` of a map is read by `/value`.
+        ~~|
+    | impl ~(get /value)
 
 :explanation/value/isTheValueExplained
   |~~ The value is the one explained. ~~|

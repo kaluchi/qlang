@@ -36,14 +36,14 @@
 {"name":"manifest-of-a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true","decision":"D34"}
 {"name":"manifest-lives-on-tags","query":"::tag | manifest | has ::tag/manifest","expect":"true","decision":"D34"}
 {"name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | parse | contains \"::builtin{}\"","expect":"true","decision":"D157"}
-{"name":"an-addressed-built-in-answers-its-descriptor","query":"::vec/take | binding | get /value | type","expect":"::builtin","decision":"D157"}
+{"name":"an-addressed-built-in-answers-its-descriptor","query":"::vec/take | binding | get /value | get /1 | type","expect":"::builtin","decision":"D157"}
 {"name":"every-verb-of-the-core-has-a-doc","query":"kinds | map ~(manifest) | flat | every ~(doc | content | eq \"\" | not)","expect":"true","decision":"D119"}
 {"name":"every-example-of-the-core-passes","query":"kinds | map ~(manifest) | flat | every ~(runLaws | every /ok)","expect":"true","decision":"D123"}
 {"name":"a-frozen-value-is-a-record","query":"0.07 | :taxRate it | env | get /taxRate | get /value","expect":"0.07","decision":"D5"}
 {"name":"a-binding-record-holds-its-name","query":":foo 2 | env | get /foo | get /name","expect":":foo","decision":"D5"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} | raise !| type","expect":"::error","decision":"D64"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true","decision":"D64"}
-{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | map /name | filter ~(eq :number/add/addend/NotNumberError) | count","expect":"1","decision":"D46"}
+{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | parse | contains \"throws :addend/NotNumberError\"","expect":"true","decision":"D46"}
 {"name":"a-step-lists-its-refusals-on-its-noun","query":"::path | source | map /name | filter ~(eq :path/KeyNotInMapError) | count","expect":"1","decision":"D46"}
 {"name":"a-refusal-names-the-place-it-guards","query":"blah !| type","expect":"::call/UnknownNameError","decision":"D46"}
 {"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | manifest | has ::string/gt","expect":"true","decision":"D34"}
@@ -56,7 +56,7 @@
 {"name":"an-optional-part-takes-a-modifier","query":":vec/top ~(sort | reverse | take n) | :vec/top/n ~(query /0 3) | :vec/top/n/NotNumberError ::holds~(is ::number) | [5 1 9 7] | top 2","expect":"[9 7]","decision":"D67"}
 {"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T","decision":"D67"}
 {"name":"a-contract-names-its-residences","query":"5 | count !| get /addresses","expect":"#[::map/count ::set/count ::string/count ::vec/count]","decision":"D67"}
-{"name":"a-member-answers-its-descriptor","query":"::vec/sort | binding | get /value | type","expect":"::builtin","decision":"D164"}
+{"name":"a-member-answers-its-descriptor","query":"::vec/sort | binding | get /value | get /1 | type","expect":"::builtin","decision":"D164"}
 {"name":"a-nested-error-keeps-the-stop-of-its-level","query":"5 | (!{:k 1} | raise | add 1) !| trail | map /step","expect":"[~(raise) ~((!{:k 1} | raise | add 1))]","decision":"D13"}
 {"name":"a-trail-names-the-stop-where-the-error-arose","query":"\"x\" | add 1 | mul 2 !| get /trail","expect":"[{:step ~(add 1) :subject \"x\" :skipped ~(mul 2)}]","decision":"D13"}
 {"name":"a-stop-at-every-step-that-handed-the-error-on","query":":g ~(add 2 | mul 2) | \"x\" | apply g | sub 3 !| get /trail","expect":"[{:step ~(add 2) :subject \"x\" :skipped ~(mul 2)} {:step ~(apply g) :subject \"x\" :skipped ~(sub 3)}]","decision":"D13"}
@@ -90,7 +90,7 @@
 {"name":"a-source-no-short-run-of-closers-completes-lists-the-continuations","query":"\"[[[[[ |~~ a\" | parse !| get /expected | has :any-character","expect":"true","decision":"D125"}
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map ~(mul 2) | !| 0","expect":"0","decision":"D130"}
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| get /addresses","expect":"#[::doc/content]","decision":"D46"}
-{"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter (get /a) !| [type (get /actualType)]","expect":"[::vec/filter/predicate/NotQuoteError ::path/IndexNotIntegerError]","decision":"D129"}
+{"name":"a-step-without-its-quote-is-refused-by-the-part-of-code","query":"[{:a true}] | filter (get /a) !| [type (get /actualType)]","expect":"[::vec/filter/predicate/NotPathOrQuoteError ::path/IndexNotIntegerError]","decision":"D129"}
 {"name":"a-part-of-code-of-a-reader-refuses-a-failed-modifier","query":":any/f ~(apply q) | :any/f/q /0 | :any/f/q/NotQuoteError ::holds~(is ::quote) | 1 | f (get /x) !| type","expect":"::any/f/q/NotQuoteError","decision":"D129"}
 {"name":"a-part-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take (get /x) !| type","expect":"::path/IndexNotIntegerError","decision":"D129"}
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| get /message | contains \"#[\"","expect":"true","decision":"D46"}

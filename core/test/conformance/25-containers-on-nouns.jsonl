@@ -16,10 +16,10 @@
 {"name":"a-vector-takes-no-value-beside-it","query":"[#[1]] | union #[2] !| type","expect":"::vec/union/ArgsBeyondPartsError","decision":"D74"}
 {"name":"union-of-a-number-is-refused-with-the-addresses-of-union","query":"42 | union !| get /addresses","expect":"#[::map/union ::set/union ::vec/union]","decision":"D74"}
 {"name":"a-tag-over-a-set-comes-back-on-union","query":"::Box#[1 2] | union #[3]","expect":"::Box#[1 2 3]","decision":"D74"}
-{"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| [type (get /actualType)]","expect":"[::set/union/other/NotSetOrNullError ::vec]","decision":"D74"}
+{"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| [type (get /actualType)]","expect":"[::set/union/other/NotNullOrSetError ::vec]","decision":"D74"}
 {"name":"a-map-folds-no-values","query":"{:a 1} | union !| type","expect":"::map/union/other/NotGivenError","decision":"D74"}
 {"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false","decision":"D74"}
 {"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | source | map /name | has :map/at/key/NotKeywordOrStringError","expect":"false","decision":"D46"}
-{"name":"a-place-lists-the-refusal-declared-under-it","query":"::number/add | source | map /name | filter ~(toString | endsWith \"Error\")","expect":"[:number/add/addend/NotNumberError :number/add/SubjectNotNumberError :number/add/ArgsBeyondPartsError]","decision":"D46"}
-{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/other | source | map /name | filter ~(toString | endsWith \"Error\")","expect":"[:set/union/other/NotSetOrNullError]","decision":"D46"}
+{"name":"a-place-lists-the-refusal-declared-under-it","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/NotNumberError]","decision":"D46"}
+{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/other | manifest","expect":"#[::set/union/other/NotNullOrSetError]","decision":"D46"}
 {"name":"a-noun-lists-each-refusal-once","query":"::vec | source | map /name | filter ~(eq :vec/PayloadNotVecError) | count","expect":"1","decision":"D46"}

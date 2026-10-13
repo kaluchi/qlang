@@ -54,18 +54,21 @@
       ::link~(::boolean/and | doc)
   ~~|
   ::fn
-  | returns |~~ The other boolean: `false` for `true`, `true` for `false`. ~~| ::boolean
-  | throws :SubjectNotBooleanError
-      |~~ `not` turns a boolean: a condition is asked first and turned after
-          it, `eq 5 | not`, or asked at once by `ne 5`; a value is asked
-          whether it is null by `eq null`, and a container whether it is
-          empty by `empty`.
-      ~~|
-  | throws :ArgsBeyondPartsError
-      |~~ `not` takes no value: it answers the opposite of the boolean in the
-          pipe, and a condition goes before it as a step, `5 | eq 5 | not`.
-      ~~|
-  | impl ::builtin{}
+    | returns
+        |~~ The other boolean: `false` for `true`, `true` for `false`. ~~|
+        ::boolean
+    | throws :SubjectNotBooleanError
+        |~~ `not` turns a boolean: a condition is asked first and turned
+            after it, `eq 5 | not`, or asked at once by `ne 5`; a value is
+            asked whether it is null by `eq null`, and a container whether
+            it is empty by `empty`.
+        ~~|
+    | throws :ArgsBeyondPartsError
+        |~~ `not` takes no value: it answers the opposite of the boolean
+            in the pipe, and a condition goes before it as a step, `5 | eq
+            5 | not`.
+        ~~|
+    | impl ::builtin{}
 
 :boolean/not/turnsTrueFalse
   |~~ Not true is false. ~~|
@@ -114,22 +117,31 @@
       ::link~(::any/allOf | doc) ::link~(::boolean/or | doc)
   ~~|
   ::fn
-  | takes :right |~~ The boolean joined with the subject, computed against the subject. ~~| /0 ::boolean
-  | throws :right/NotBooleanError
-      |~~ The right is a boolean, `true | and (5 | gt 3)`; the conditions of
-          one value hold together by `allOf`.
-      ~~|
-  | returns |~~ `true` when the subject and the right both hold, `false` otherwise. ~~| ::boolean
-  | throws :SubjectNotBooleanError
-      |~~ `and` joins two booleans, the subject and the right: the
-          conditions of one value hold together by `allOf (gt 1) (lt 3)`, and
-          of one record by `allOf (get /active) (get /age | gte 18)`.
-      ~~|
-  | throws :ArgsBeyondPartsError
-      |~~ `and` joins the subject with one boolean: three conditions or more
-          hold together by `allOf`, `allOf (gt 1) (lt 9) (ne 5)`.
-      ~~|
-  | impl ::builtin{}
+    | takes :right
+        |~~ The boolean joined with the subject, computed against the
+            subject.
+        ~~|
+        /0 ::boolean
+    | throws :right/NotBooleanError
+        |~~ The right is a boolean, `true | and (5 | gt 3)`; the
+            conditions of one value hold together by `allOf`.
+        ~~|
+    | returns
+        |~~ `true` when the subject and the right both hold, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | throws :SubjectNotBooleanError
+        |~~ `and` joins two booleans, the subject and the right: the
+            conditions of one value hold together by `allOf (gt 1) (lt
+            3)`, and of one record by `allOf (get /active) (get /age | gte
+            18)`.
+        ~~|
+    | throws :ArgsBeyondPartsError
+        |~~ `and` joins the subject with one boolean: three conditions or
+            more hold together by `allOf`, `allOf (gt 1) (lt 9) (ne 5)`.
+        ~~|
+    | impl ::builtin{}
 
 :boolean/and/holdsWhenBothHold
   |~~ True and true is true. ~~|
@@ -172,23 +184,31 @@
       ::link~(::any/anyOf | doc) ::link~(::boolean/and | doc)
   ~~|
   ::fn
-  | takes :right |~~ The boolean joined with the subject, computed against the subject. ~~| /0 ::boolean
-  | throws :right/NotBooleanError
-      |~~ The right is a boolean, `false | or (5 | gt 3)`; the conditions of
-          one value hold together by `anyOf`.
-      ~~|
-  | returns |~~ `true` when the subject or the right holds, `false` otherwise. ~~| ::boolean
-  | throws :SubjectNotBooleanError
-      |~~ `or` joins two booleans, the subject and the right: the conditions
-          of one value hold by one of them through `anyOf (eq 5) (eq 10)`,
-          and of one record by `anyOf (/role | eq "admin") (/role | eq
-          "owner")`.
-      ~~|
-  | throws :ArgsBeyondPartsError
-      |~~ `or` joins the subject with one boolean: three conditions or more
-          hold by one of them through `anyOf`, `anyOf (eq 5) (eq 10) (eq 15)`.
-      ~~|
-  | impl ::builtin{}
+    | takes :right
+        |~~ The boolean joined with the subject, computed against the
+            subject.
+        ~~|
+        /0 ::boolean
+    | throws :right/NotBooleanError
+        |~~ The right is a boolean, `false | or (5 | gt 3)`; the
+            conditions of one value hold together by `anyOf`.
+        ~~|
+    | returns
+        |~~ `true` when the subject or the right holds, `false` otherwise.
+        ~~|
+        ::boolean
+    | throws :SubjectNotBooleanError
+        |~~ `or` joins two booleans, the subject and the right: the
+            conditions of one value hold by one of them through `anyOf (eq
+            5) (eq 10)`, and of one record by `anyOf (/role | eq "admin")
+            (/role | eq "owner")`.
+        ~~|
+    | throws :ArgsBeyondPartsError
+        |~~ `or` joins the subject with one boolean: three conditions or
+            more hold by one of them through `anyOf`, `anyOf (eq 5) (eq
+            10) (eq 15)`.
+        ~~|
+    | impl ::builtin{}
 
 :boolean/or/isTrueWhenOneIsTrue
   |~~ False or true is true. ~~|
@@ -224,8 +244,8 @@
       ::link~(::string/toString | doc)
   ~~|
   ::fn
-  | returns |~~ `"true"` or `"false"`. ~~| ::string
-  | impl ::builtin{}
+    | returns |~~ `"true"` or `"false"`. ~~| ::string
+    | impl ::builtin{}
 
 :boolean/toString/writesTheLiteral
   |~~ A boolean answers its literal. ~~|
@@ -238,8 +258,8 @@
       ::link~(::vec/groupBy | doc)
   ~~|
   ::fn
-  | returns |~~ `:true` or `:false`. ~~| ::keyword
-  | impl ::builtin{}
+    | returns |~~ `:true` or `:false`. ~~| ::keyword
+    | impl ::builtin{}
 
 :boolean/toKeyword/readsTheKeyGroupByFiledItUnder
   |~~ A boolean turns into the key `groupBy` files a condition under. ~~|

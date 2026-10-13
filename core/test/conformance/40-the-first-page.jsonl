@@ -1,7 +1,7 @@
 {"name":"first-page-writes-a-quote-in-its-base-form","query":"::qlang | doc | content | contains \"~/\"","expect":"false","decision":"D185"}
 {"name":"a-modifier-is-computed-against-the-subject-of-its-step","query":"{:price 4 :qty 3} | mulOf /price /qty","expect":"12","decision":"D185"}
 {"name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r it | (:r | type)","expect":"::keyword","decision":"D185"}
-{"name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| [type (get /index) (get /actualType)]","expect":"[::any/allOf/conditions/ElementNotBooleanOrQuoteError 1 ::string/endsWith/SubjectNotStringError]","decision":"D197"}
+{"name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| [type (get /index) (get /actualType)]","expect":"[::any/allOf/conditions/ElementNotBooleanOrPathOrQuoteError 1 ::string/endsWith/SubjectNotStringError]","decision":"D197"}
 {"name":"all-of-runs-a-quote-in-its-turn","query":"[{:email null} {:email \"a@b.org\"}] | filter ~(allOf (get /email | ne null) ~(get /email | endsWith \".org\")) | count","expect":"1","decision":"D197"}
 {"name":"the-first-page-asks-several-kinds-for-their-words-at-once","query":"::qlang | doc | snippets | map ~(print) | first | contains \"map ~([it manifest])\"","expect":"true","decision":"D186"}
 {"name":"a-fan-out-over-kinds-answers-each-kind-beside-its-words","query":"[::vec ::any] | map ~([it manifest]) | map ~([(get /0) (get /1 | has ::vec/count)])","expect":"[[::vec true] [::any false]]","decision":"D186"}

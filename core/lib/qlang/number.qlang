@@ -79,32 +79,32 @@
       sum past the doubles is refused as no number.
       ::link~(::number/sub | doc) ::link~(::any/sumOf | doc)
   ~~|
-  ::builtin{}
-
-:number/add/answer
-  |~~ The subject and the addend added, under the tags of the subject. ~~|
-  ::number
-
-:number/add/addend
-  |~~ The number added to the subject, computed against the subject. ~~|
-  /0
-
-:number/add/addend/NotNumberError
-  |~~ The addend is a number; text that holds one is read by `toNumber`. ~~|
-  ::holds~(is ::number)
-
-:number/add/SubjectNotNumberError
-  |~~ `add` adds to a number: two fields of one record add by
-      `sumOf /x /y`, a vector adds to each element by `map`,
-      `map ~(add 1)`, a string joins by `append`, and text that holds a
-      number is read first by `toNumber`.
-  ~~|
-
-:number/add/ArgsBeyondPartsError
-  |~~ `add` adds one number to the subject: the numbers of a vector sum
-      by `sum`, `[1 2 3] | sum`, and two fields of one record add by
-      `sumOf /x /y`.
-  ~~|
+  ::fn
+    | takes :addend
+        |~~ The number added to the subject, computed against the subject.
+        ~~|
+        /0 ::number
+    | throws :addend/NotNumberError
+        |~~ The addend is a number; text that holds one is read by
+            `toNumber`.
+        ~~|
+    | returns
+        |~~ The subject and the addend added, under the tags of the
+            subject.
+        ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `add` adds to a number: two fields of one record add by `sumOf
+            /x /y`, a vector adds to each element by `map`, `map
+            ~(add 1)`, a string joins by `append`, and text that holds a
+            number is read first by `toNumber`.
+        ~~|
+    | throws :ArgsBeyondPartsError
+        |~~ `add` adds one number to the subject: the numbers of a vector
+            sum by `sum`, `[1 2 3] | sum`, and two fields of one record
+            add by `sumOf /x /y`.
+        ~~|
+    | impl ::builtin{}
 
 :number/add/addsTheNumber
   |~~ `add` answers the sum. ~~|
@@ -144,28 +144,28 @@
       `subOf /total /paid`. A number under a tag answers under the tag.
       ::link~(::number/add | doc) ::link~(::any/subOf | doc)
   ~~|
-  ::builtin{}
-
-:number/sub/answer
-  |~~ The subject less the subtrahend, under the tags of the subject. ~~|
-  ::number
-
-:number/sub/subtrahend
-  |~~ The number subtracted from the subject, computed against the subject. ~~|
-  /0
-
-:number/sub/subtrahend/NotNumberError
-  |~~ The subtrahend is a number; text that holds one is read by
-      `toNumber` first, `10 | sub ("3" | toNumber)`.
-  ~~|
-  ::holds~(is ::number)
-
-:number/sub/SubjectNotNumberError
-  |~~ `sub` subtracts from a number: two fields of one record subtract by
-      `subOf /total /paid`, a vector subtracts from each element by
-      `map`, `map ~(sub 1)`, and text that holds a number is read first by
-      `toNumber`.
-  ~~|
+  ::fn
+    | takes :subtrahend
+        |~~ The number subtracted from the subject, computed against the
+            subject.
+        ~~|
+        /0 ::number
+    | throws :subtrahend/NotNumberError
+        |~~ The subtrahend is a number; text that holds one is read by
+            `toNumber` first, `10 | sub ("3" | toNumber)`.
+        ~~|
+    | returns
+        |~~ The subject less the subtrahend, under the tags of the
+            subject.
+        ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `sub` subtracts from a number: two fields of one record
+            subtract by `subOf /total /paid`, a vector subtracts from each
+            element by `map`, `map ~(sub 1)`, and text that holds a number
+            is read first by `toNumber`.
+        ~~|
+    | impl ::builtin{}
 
 :number/sub/subtractsTheNumber
   |~~ `sub` answers the difference. ~~|
@@ -198,28 +198,28 @@
       and a product past the doubles is refused as no number.
       ::link~(::number/div | doc) ::link~(::any/mulOf | doc)
   ~~|
-  ::builtin{}
-
-:number/mul/answer
-  |~~ The subject times the multiplier, under the tags of the subject. ~~|
-  ::number
-
-:number/mul/multiplier
-  |~~ The number the subject is multiplied by, computed against the subject. ~~|
-  /0
-
-:number/mul/multiplier/NotNumberError
-  |~~ The multiplier is a number; text that holds one is read by
-      `toNumber` first, `2 | mul ("3" | toNumber)`.
-  ~~|
-  ::holds~(is ::number)
-
-:number/mul/SubjectNotNumberError
-  |~~ `mul` multiplies a number: two fields of one record multiply by
-      `mulOf /price /qty`, a vector multiplies each element by `map`,
-      `map ~(mul 2)`, and text that holds a number is read first by
-      `toNumber`.
-  ~~|
+  ::fn
+    | takes :multiplier
+        |~~ The number the subject is multiplied by, computed against the
+            subject.
+        ~~|
+        /0 ::number
+    | throws :multiplier/NotNumberError
+        |~~ The multiplier is a number; text that holds one is read by
+            `toNumber` first, `2 | mul ("3" | toNumber)`.
+        ~~|
+    | returns
+        |~~ The subject times the multiplier, under the tags of the
+            subject.
+        ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `mul` multiplies a number: two fields of one record multiply
+            by `mulOf /price /qty`, a vector multiplies each element by
+            `map`, `map ~(mul 2)`, and text that holds a number is read
+            first by `toNumber`.
+        ~~|
+    | impl ::builtin{}
 
 :number/mul/multipliesByTheNumber
   |~~ `mul` answers the product. ~~|
@@ -261,36 +261,36 @@
       under a tag answers under the tag.
       ::link~(::number/mul | doc) ::link~(::any/divOf | doc)
   ~~|
-  ::builtin{}
-
-:number/div/answer
-  |~~ The subject divided by the divisor, under the tags of the subject. ~~|
-  ::number
-
-:number/div/divisor
-  |~~ The number the subject is divided by, computed against the subject. ~~|
-  /0
-
-:number/div/divisor/NotNumberError
-  |~~ The divisor is a number; text that holds one is read by `toNumber`
-      first, `6 | div ("3" | toNumber)`.
-  ~~|
-  ::holds~(is ::number)
-
-:number/div/divisor/ZeroError
-  |~~ The divisor is not zero: a division by zero has no finite answer,
-      and a divisor that may be zero is tested before the call, as a
-      record that counts its sum tests its count, which answers `0`:
-      `{:sum 9 :count 0} | if (get /count | eq 0) ~(0) ~(divOf /sum /count)`.
-  ~~|
-  ::holds~(ne 0)
-
-:number/div/SubjectNotNumberError
-  |~~ `div` divides a number: two fields of one record divide by
-      `divOf /sum /count`, a vector divides each element by `map`,
-      `map ~(div 2)`, and text that holds a number is read first by
-      `toNumber`.
-  ~~|
+  ::fn
+    | takes :divisor
+        |~~ The number the subject is divided by, computed against the
+            subject.
+        ~~|
+        /0 ::number
+    | throws :divisor/NotNumberError
+        |~~ The divisor is a number; text that holds one is read by
+            `toNumber` first, `6 | div ("3" | toNumber)`.
+        ~~|
+    | holds :divisor/ZeroError
+        |~~ The divisor is not zero: a division by zero has no finite
+            answer, and a divisor that may be zero is tested before the
+            call, as a record that counts its sum tests its count, which
+            answers `0`: `{:sum 9 :count 0} | if (get /count | eq 0) ~(0)
+            ~(divOf /sum /count)`.
+        ~~|
+        ~(ne 0)
+    | returns
+        |~~ The subject divided by the divisor, under the tags of the
+            subject.
+        ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `div` divides a number: two fields of one record divide by
+            `divOf /sum /count`, a vector divides each element by `map`,
+            `map ~(div 2)`, and text that holds a number is read first by
+            `toNumber`.
+        ~~|
+    | impl ::builtin{}
 
 :number/div/dividesByTheNumber
   |~~ `div` answers the quotient. ~~|
@@ -325,32 +325,32 @@
       under a tag answers under the tag.
       ::link~(::number/div | doc)
   ~~|
-  ::builtin{}
-
-:number/mod/answer
-  |~~ The remainder, its sign the divisor's, under the tags of the subject. ~~|
-  ::number
-
-:number/mod/divisor
-  |~~ The number the subject is divided by, computed against the subject. ~~|
-  /0
-
-:number/mod/divisor/NotNumberError
-  |~~ The divisor is a number; text that holds one is read by `toNumber`
-      first, `7 | mod ("3" | toNumber)`.
-  ~~|
-  ::holds~(is ::number)
-
-:number/mod/divisor/ZeroError
-  |~~ The divisor is not zero: a division by zero leaves no remainder,
-      and a value that may be zero is asked first, `if (eq 0) …`.
-  ~~|
-  ::holds~(ne 0)
-
-:number/mod/SubjectNotNumberError
-  |~~ `mod` divides a number: text that holds one is read first by
-      `toNumber`, `"7" | toNumber | mod 3`.
-  ~~|
+  ::fn
+    | takes :divisor
+        |~~ The number the subject is divided by, computed against the
+            subject.
+        ~~|
+        /0 ::number
+    | throws :divisor/NotNumberError
+        |~~ The divisor is a number; text that holds one is read by
+            `toNumber` first, `7 | mod ("3" | toNumber)`.
+        ~~|
+    | holds :divisor/ZeroError
+        |~~ The divisor is not zero: a division by zero leaves no
+            remainder, and a value that may be zero is asked first, `if
+            (eq 0) …`.
+        ~~|
+        ~(ne 0)
+    | returns
+        |~~ The remainder, its sign the divisor's, under the tags of the
+            subject.
+        ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `mod` divides a number: text that holds one is read first by
+            `toNumber`, `"7" | toNumber | mod 3`.
+        ~~|
+    | impl ::builtin{}
 
 :number/mod/leavesTheRemainder
   |~~ `mod` answers what the division leaves. ~~|
@@ -389,16 +389,15 @@
       number under a tag under the tag. It takes no value.
       ::link~(::number/sub | doc)
   ~~|
-  ::builtin{}
-
-:number/abs/answer
-  |~~ The subject without its sign, under the tags of the subject. ~~|
-  ::number
-
-:number/abs/SubjectNotNumberError
-  |~~ `abs` takes the sign off a number: text that holds one is read
-      first by `toNumber`, `"-3" | toNumber | abs`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The subject without its sign, under the tags of the subject. ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `abs` takes the sign off a number: text that holds one is read
+            first by `toNumber`, `"-3" | toNumber | abs`.
+        ~~|
+    | impl ::builtin{}
 
 :number/abs/dropsTheSign
   |~~ A negative number loses its sign, and a positive one stays. ~~|
@@ -415,16 +414,17 @@
       takes no value.
       ::link~(::number/ceil | doc) ::link~(::number/round | doc)
   ~~|
-  ::builtin{}
-
-:number/floor/answer
-  |~~ The greatest whole number not above the subject, under its tags. ~~|
-  ::number
-
-:number/floor/SubjectNotNumberError
-  |~~ `floor` rounds a number down: text that holds one is read first by
-      `toNumber`, `"2.7" | toNumber | floor`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The greatest whole number not above the subject, under its
+            tags.
+        ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `floor` rounds a number down: text that holds one is read
+            first by `toNumber`, `"2.7" | toNumber | floor`.
+        ~~|
+    | impl ::builtin{}
 
 :number/floor/roundsDown
   |~~ A number rounds down, a negative one away from zero. ~~|
@@ -440,16 +440,16 @@
       the greatest not above. It takes no value.
       ::link~(::number/floor | doc) ::link~(::number/round | doc)
   ~~|
-  ::builtin{}
-
-:number/ceil/answer
-  |~~ The least whole number not below the subject, under its tags. ~~|
-  ::number
-
-:number/ceil/SubjectNotNumberError
-  |~~ `ceil` rounds a number up: text that holds one is read first by
-      `toNumber`, `"2.1" | toNumber | ceil`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The least whole number not below the subject, under its tags.
+        ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `ceil` rounds a number up: text that holds one is read first
+            by `toNumber`, `"2.1" | toNumber | ceil`.
+        ~~|
+    | impl ::builtin{}
 
 :number/ceil/roundsUp
   |~~ A number rounds up, a negative one toward zero, and prints no negative zero. ~~|
@@ -467,31 +467,27 @@
       is a whole number. It takes no value.
       ::link~(::vec/map | doc)
   ~~|
-  ::builtin{}
-
-:number/range/answer
-  |~~ The whole numbers from zero below the subject. ~~|
-  ::vec
-
-:number/range/CountNotIntegerError
-  |~~ The count of `range`, its subject, is a whole number: a fraction is
-      rounded first, `7.5 | floor | range`.
-  ~~|
-
-:number/range/CountTooLargeError
-  |~~ The count of `range` is no longer than the length a vector of the
-      host may have, which `:longest` names: a count past it makes no
-      vector, and the call has no repair but a count within it.
-  ~~|
+  ::fn
+    | returns |~~ The whole numbers from zero below the subject. ~~| ::vec
+    | throws :CountNotIntegerError
+        |~~ The count of `range`, its subject, is a whole number: a
+            fraction is rounded first, `7.5 | floor | range`.
+        ~~|
+    | throws :CountTooLargeError
+        |~~ The count of `range` is no longer than the length a vector of
+            the host may have, which `:longest` names: a count past it
+            makes no vector, and the call has no repair but a count within
+            it.
+        ~~|
+    | throws :SubjectNotNumberError
+        |~~ `range` counts up to a number: the count of a vector is read
+            first, `[:a :b] | count | range`.
+        ~~|
+    | impl ::builtin{}
 
 :number/range/CountTooLargeError/longest
   |~~ The length a vector of the host may have, the count past which `range` makes none. ~~|
   ::number
-
-:number/range/SubjectNotNumberError
-  |~~ `range` counts up to a number: the count of a vector is read first,
-      `[:a :b] | count | range`.
-  ~~|
 
 :number/range/countsFromZero
   |~~ The numbers start at zero and leave the subject out. ~~|
@@ -528,30 +524,23 @@
       is a number, and text that holds one is read first by `toNumber`.
       ::link~(::number/div | doc)
   ~~|
-  ::builtin{}
-
-:number/round/answer
-  |~~ The subject rounded to the digits. ~~|
-  ::number
-
-:number/round/digits
-  |~~ The digits after the point, a whole number, none when the call
-      gives none.
-  ~~|
-  ~(query /0 0)
-
-:number/round/digits/NotNumberError
-  |~~ The count of digits is a number, `3.14159 | round 2`. ~~|
-  ::holds~(is ::number)
-
-:number/round/digits/NotIntegerError
-  |~~ The digits of `round` are a whole number, `round 2`. ~~|
-  ::holds~(eq (floor))
-
-:number/round/SubjectNotNumberError
-  |~~ `round` rounds a number: text that holds one is read first by
-      `toNumber`, `"2.5" | toNumber | round`.
-  ~~|
+  ::fn
+    | takes :digits
+        |~~ The digits after the point, a whole number, none when the call
+            gives none.
+        ~~|
+        ~(query /0 0) ::number
+    | throws :digits/NotNumberError
+        |~~ The count of digits is a number, `3.14159 | round 2`. ~~|
+    | holds :digits/NotIntegerError
+        |~~ The digits of `round` are a whole number, `round 2`. ~~|
+        ~(eq (floor))
+    | returns |~~ The subject rounded to the digits. ~~| ::number
+    | throws :SubjectNotNumberError
+        |~~ `round` rounds a number: text that holds one is read first by
+            `toNumber`, `"2.5" | toNumber | round`.
+        ~~|
+    | impl ::builtin{}
 
 :number/round/keepsTheDigitsGiven
   |~~ Two digits keep two places after the point. ~~|
@@ -603,23 +592,22 @@
       ::link~(::number/gte | doc) ::link~(::number/lt | doc)
       ::link~(::number/lte | doc) ::link~(::desc | doc)
   ~~|
-  ::builtin{}
-
-:number/gt/answer
-  |~~ `true` when the subject comes after the value, `false` otherwise. ~~|
-  ::boolean
-
-:number/gt/value
-  |~~ The number the subject is compared with, computed against the
-      subject, `5 | gt 3`.
-  ~~|
-  /0
-
-:number/gt/value/NotNumberError
-  |~~ The value compared is a number; text that holds one is read by
-      `toNumber` first, `5 | gt ("3" | toNumber)`.
-  ~~|
-  ::holds~(is ::number)
+  ::fn
+    | takes :value
+        |~~ The number the subject is compared with, computed against the
+            subject, `5 | gt 3`.
+        ~~|
+        /0 ::number
+    | throws :value/NotNumberError
+        |~~ The value compared is a number; text that holds one is read by
+            `toNumber` first, `5 | gt ("3" | toNumber)`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes after the value, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :number/gt/comparesNumbers
   |~~ Ten is greater than five. ~~|
@@ -652,23 +640,22 @@
       answering `true`.
       ::link~(::number/gt | doc) ::link~(::number/lte | doc)
   ~~|
-  ::builtin{}
-
-:number/gte/answer
-  |~~ `true` when the subject comes after the value or equals it, `false` otherwise. ~~|
-  ::boolean
-
-:number/gte/value
-  |~~ The number the subject is compared with, computed against the
-      subject, `5 | gte 3`.
-  ~~|
-  /0
-
-:number/gte/value/NotNumberError
-  |~~ The value compared is a number; text that holds one is read by
-      `toNumber` first, `5 | gte ("3" | toNumber)`.
-  ~~|
-  ::holds~(is ::number)
+  ::fn
+    | takes :value
+        |~~ The number the subject is compared with, computed against the
+            subject, `5 | gte 3`.
+        ~~|
+        /0 ::number
+    | throws :value/NotNumberError
+        |~~ The value compared is a number; text that holds one is read by
+            `toNumber` first, `5 | gte ("3" | toNumber)`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes after the value or equals it,
+            `false` otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :number/gte/holdsOfItself
   |~~ A number is greater than or equal to itself. ~~|
@@ -692,23 +679,22 @@
       `lte` answers whether the subject is less or equal.
       ::link~(::number/gt | doc) ::link~(::number/lte | doc)
   ~~|
-  ::builtin{}
-
-:number/lt/answer
-  |~~ `true` when the subject comes before the value, `false` otherwise. ~~|
-  ::boolean
-
-:number/lt/value
-  |~~ The number the subject is compared with, computed against the
-      subject, `5 | lt 3`.
-  ~~|
-  /0
-
-:number/lt/value/NotNumberError
-  |~~ The value compared is a number; text that holds one is read by
-      `toNumber` first, `5 | lt ("3" | toNumber)`.
-  ~~|
-  ::holds~(is ::number)
+  ::fn
+    | takes :value
+        |~~ The number the subject is compared with, computed against the
+            subject, `5 | lt 3`.
+        ~~|
+        /0 ::number
+    | throws :value/NotNumberError
+        |~~ The value compared is a number; text that holds one is read by
+            `toNumber` first, `5 | lt ("3" | toNumber)`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes before the value, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :number/lt/comparesNumbers
   |~~ Five is less than ten. ~~|
@@ -728,23 +714,22 @@
       numbers.
       ::link~(::number/lt | doc) ::link~(::number/gte | doc)
   ~~|
-  ::builtin{}
-
-:number/lte/answer
-  |~~ `true` when the subject comes before the value or equals it, `false` otherwise. ~~|
-  ::boolean
-
-:number/lte/value
-  |~~ The number the subject is compared with, computed against the
-      subject, `5 | lte 3`.
-  ~~|
-  /0
-
-:number/lte/value/NotNumberError
-  |~~ The value compared is a number; text that holds one is read by
-      `toNumber` first, `5 | lte ("3" | toNumber)`.
-  ~~|
-  ::holds~(is ::number)
+  ::fn
+    | takes :value
+        |~~ The number the subject is compared with, computed against the
+            subject, `5 | lte 3`.
+        ~~|
+        /0 ::number
+    | throws :value/NotNumberError
+        |~~ The value compared is a number; text that holds one is read by
+            `toNumber` first, `5 | lte ("3" | toNumber)`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes before the value or equals it,
+            `false` otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :number/lte/holdsOfItself
   |~~ A number is less than or equal to itself. ~~|
@@ -765,11 +750,9 @@
       turns the text back into the number.
       ::link~(::string/toNumber | doc)
   ~~|
-  ::builtin{}
-
-:number/toString/answer
-  |~~ The text that writes the number. ~~|
-  ::string
+  ::fn
+    | returns |~~ The text that writes the number. ~~| ::string
+    | impl ::builtin{}
 
 :number/toString/writesTheNumber
   |~~ A number answers the text that writes it. ~~|
@@ -787,11 +770,9 @@
       into the number.
       ::link~(::keyword/toNumber | doc) ::link~(::vec/indexBy | doc)
   ~~|
-  ::builtin{}
-
-:number/toKeyword/answer
-  |~~ The keyword of the number's text. ~~|
-  ::keyword
+  ::fn
+    | returns |~~ The keyword of the number's text. ~~| ::keyword
+    | impl ::builtin{}
 
 :number/toKeyword/readsTheKeyIndexByFiledItUnder
   |~~ A number turns into the key `indexBy` files it under. ~~|
@@ -807,11 +788,9 @@
       answering `[1 2]`.
       ::link~(::string/toNumber | doc)
   ~~|
-  ::builtin{}
-
-:number/toNumber/answer
-  |~~ The number itself. ~~|
-  ::number
+  ::fn
+    | returns |~~ The number itself. ~~| ::number
+    | impl ::builtin{}
 
 :number/toNumber/answersItself
   |~~ A number answers itself, so numbers and their strings turn into numbers. ~~|

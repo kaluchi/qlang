@@ -46,11 +46,9 @@
       absent is given a text by `coalesce`.
       ::link~(::vec/groupBy | doc) ::link~(::any/coalesce | doc)
   ~~|
-  ::builtin{}
-
-:null/toKeyword/answer
-  |~~ `:null`. ~~|
-  ::keyword
+  ::fn
+    | returns |~~ `:null`. ~~| ::keyword
+    | impl ::builtin{}
 
 :null/toKeyword/readsTheKeyGroupByFiledItUnder
   |~~ Null turns into the key `groupBy` files an absent field under. ~~|

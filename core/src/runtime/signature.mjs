@@ -20,16 +20,19 @@ export const SUBJECT_NAME = 'subject';
 // where the command may leave them: an input's name is a name its recipe
 // reads as a step, of one segment, beside the names of the subject and the
 // answer and the words of a literal; a refusal's name is read as a tag;
-// and kinds are a tag or a set of tags.
+// kinds are a tag or a set of tags, and the kinds of an input a vector of
+// them besides, the kinds of each of its elements.
 const NOT_INPUT_NAMES = new Set([ANSWER_NAME, SUBJECT_NAME, 'true', 'false', 'null']);
 const isRefusalName = value => isKeyword(value) && readsAsBareKeyword(value.name);
 const isInputName = value => isRefusalName(value) && !value.name.includes('/') && !NOT_INPUT_NAMES.has(value.name);
 const isPlace = value => isPath(value) || isQuote(value);
 const isKinds = value => isTag(value) || (isQSet(value) && value.length > 0 && value.every(isTag));
+const isPlainVec = value => Array.isArray(value) && value[TAG_HEADER_SYMBOL] === undefined;
+const isInputKinds = value => isKinds(value) || (isPlainVec(value) && value.length === 1 && isKinds(value[0]));
 
 const COMMANDS = new Map([
   ['on', { taken: [isDoc], optional: [isKinds] }],
-  ['takes', { taken: [isInputName, isDoc, isPlace], optional: [isKinds] }],
+  ['takes', { taken: [isInputName, isDoc, isPlace], optional: [isInputKinds] }],
   ['returns', { taken: [isDoc, isKinds], optional: [] }],
   ['throws', { taken: [isRefusalName, isDoc], optional: [] }],
   ['holds', { taken: [isRefusalName, isDoc, isQuote], optional: [] }]
@@ -77,10 +80,12 @@ export function readSignature(quote) {
         declare(SUBJECT_NAME);
         signature.subject = { page: first, kinds: kindsOf(second), written: second ?? null };
         break;
-      case 'takes':
+      case 'takes': {
         declare(first.name);
-        signature.inputs.push({ name: first, page: second, place: third, kinds: kindsOf(fourth), written: fourth ?? null, selector: selectorOfPlace(third) });
+        const each = isPlainVec(fourth);
+        signature.inputs.push({ name: first, page: second, place: third, kinds: kindsOf(each ? fourth[0] : fourth), each, written: fourth ?? null, selector: selectorOfPlace(third) });
         break;
+      }
       case 'returns':
         declare(ANSWER_NAME);
         signature.answer = { page: first, kinds: kindsOf(second), written: second };
@@ -110,12 +115,14 @@ export function signatureOf(fn) {
   return signature;
 }
 
-// pageOfKindsRefusal(name, kinds) → the page of the refusal an input's
-// kinds name where `throws` gives it none: the input and its kinds.
-export function pageOfKindsRefusal(name, kinds) {
+// pageOfKindsRefusal(name, kinds, each) → the page of the refusal an
+// input's kinds name where `throws` gives it none: the input, or each of
+// its elements, and its kinds.
+export function pageOfKindsRefusal(name, kinds, each) {
   const literals = kinds.map(kind => `\`${makeTag(kind).literal}\``);
   const listed = literals.length === 1 ? literals[0] : `${literals.slice(0, -1).join(', ')} or ${literals.at(-1)}`;
-  return makeDoc([` \`${name.name}\` holds a value of ${listed}. `]);
+  const holder = each ? `Each element of \`${name.name}\`` : `\`${name.name}\``;
+  return makeDoc([` ${holder} holds a value of ${listed}. `]);
 }
 
 // invariantsOf(signature, name) → the invariants written under an input or

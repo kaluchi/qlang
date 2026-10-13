@@ -168,9 +168,9 @@
   |~~ Kinds are tags. ~~|
   ::law~(::fn[~(takes :by |~~ How much. ~~| /0 #[1]) ~(add by)] !| type | eq ::fn/SignatureNotCommandsError)
 
-:fn/SignatureNotCommandsError/refusesKindsInAVector
-  |~~ Several kinds stand in a set. ~~|
-  ::law~(::fn[~(takes :by |~~ How much. ~~| /0 [::number]) ~(add by)] !| type | eq ::fn/SignatureNotCommandsError)
+:fn/SignatureNotCommandsError/refusesKindsOfEachElementTwice
+  |~~ The kinds of each element stand in the vector as one tag or one set. ~~|
+  ::law~(::fn[~(takes :by |~~ How much. ~~| /0 [::number ::string]) ~(add by)] !| type | eq ::fn/SignatureNotCommandsError)
 
 :fn/SignatureNotCommandsError/refusesASignatureThatIsNoQuote
   |~~ A signature is a quote. ~~|
@@ -238,11 +238,20 @@
       serves a subject of those kinds alone, and a word serves them beside
       the values of its label, a tag for a word of the noun itself.
   ~~|
-  ::fn[~(on |~~ The noun itself, which starts the function, or a function. ~~| ::tag
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
     | takes :page |~~ The page of the subject. ~~| /0 ::doc
-    | takes :kinds |~~ The kinds of the subject, a tag or a set of tags; any value where none is given. ~~| ~(query /1 null) #[::null ::set ::tag]
+    | takes :kinds
+        |~~ The kinds of the subject, a tag or a set of tags; any value
+            where none is given.
+        ~~|
+        ~(query /1 null) #[::null ::set ::tag]
     | returns |~~ The function with its subject. ~~| ::fn
-    | throws :SubjectNotFnError |~~ `on` names the subject of the noun's function, `::fn | on …`, or of a function. ~~|)
+    | throws :SubjectNotFnError
+        |~~ `on` names the subject of the noun's function, `::fn | on …`,
+            or of a function.
+        ~~|)
     ::builtin{}]
 
 :fn/on/servesTheKindsItNames
@@ -270,16 +279,34 @@
       a map handed first, or a quote that reads them, `~(query /0 1)` the
       first or one.
   ~~|
-  ::fn[~(on |~~ The noun itself, which starts the function, or a function. ~~| ::tag
-    | takes :name |~~ The name of the input, which its recipe reads. ~~| /0 ::keyword
-    | throws :name/NotKeywordError |~~ The name of an input is a keyword, `:by`. ~~|
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
+    | takes :name
+        |~~ The name of the input, which its recipe reads. ~~| /0 ::keyword
+    | throws :name/NotKeywordError
+        |~~ The name of an input is a keyword, `:by`. ~~|
     | takes :page |~~ The page of the input. ~~| /1 ::doc
-    | throws :page/NotDocError |~~ The page of an input is a doc, `|~~ How much. ~~|`. ~~|
-    | takes :place |~~ The place of the call the input reads, a path or a quote. ~~| /2 #[::path ::quote]
-    | throws :place/NotPathOrQuoteError |~~ The place is a path, `/0`, or a quote that reads the arguments, `~(query /0 1)`. ~~|
-    | takes :kinds |~~ The kinds the input holds, a tag or a set of tags; any value where none is given. ~~| ~(query /3 null) #[::null ::set ::tag]
-    | returns |~~ The function with the input after the ones it held. ~~| ::fn
-    | throws :SubjectNotFnError |~~ `takes` builds from the noun, `::fn | takes …`, or a function. ~~|)
+    | throws :page/NotDocError
+        |~~ The page of an input is a doc, `|~~ How much. ~~|`. ~~|
+    | takes :place
+        |~~ The place of the call the input reads, a path or a quote. ~~|
+        /2 #[::path ::quote]
+    | throws :place/NotPathOrQuoteError
+        |~~ The place is a path, `/0`, or a quote that reads the
+            arguments, `~(query /0 1)`.
+        ~~|
+    | takes :kinds
+        |~~ The kinds the input holds, a tag or a set of tags, or a vector
+            of one of them for the kinds of each element; any value where
+            none is given.
+        ~~|
+        ~(query /3 null) #[::null ::set ::tag ::vec]
+    | returns
+        |~~ The function with the input after the ones it held. ~~| ::fn
+    | throws :SubjectNotFnError
+        |~~ `takes` builds from the noun, `::fn | takes …`, or a function.
+        ~~|)
     ::builtin{}]
 
 :fn/takes/addsAnInput
@@ -307,6 +334,41 @@
     | content
     | trim
     | eq "`by` holds a value of `::number`.")
+
+:fn/takes/holdsTheKindsOfEachElement
+  |~~ An input of the kinds of each element holds the value of its kind of
+      each, beneath the tags it is given under.
+  ~~|
+  ::law~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 ::Width(2)]] | eq [1 2])
+
+:fn/takes/keepsASetOfElements
+  |~~ A set an input of the kinds of each element holds stays a set. ~~|
+  ::law~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [#[2 1]] | eq #[1 2])
+
+:fn/takes/holdsAnyElement
+  |~~ The kinds `::any` of each element ask for a vector alone. ~~|
+  ::law~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::any] | impl ~(xs)) [[1 "a"]] | eq [1 "a"])
+
+:fn/takes/refusesAnElementOfNoneOfItsKinds
+  |~~ An element of none of the kinds is refused with its index. ~~|
+  ::law~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 "a"]]
+    !| [type (get /index)]
+    |  eq [::fn/call/xs/ElementNotNumberError 1])
+
+:fn/takes/refusesNoVectorOfElements
+  |~~ A value that is no vector is refused where the input names the kinds of each element. ~~|
+  ::law~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [5] !| type | eq ::fn/call/xs/NotVecError)
+
+:fn/takes/pagesTheRefusalOfTheKindsOfEachElement
+  |~~ The refusal the kinds of each element name is paged by them where
+      `throws` gives it no page.
+  ~~|
+  ::law~(:number/w (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))
+    | ::number/w/xs/ElementNotNumberError
+    | doc
+    | content
+    | trim
+    | eq "Each element of `xs` holds a value of `::number`.")
 
 :fn/takes/readsAKeyOfAMap
   |~~ A path into the arguments reads an input by its key. ~~|
@@ -347,11 +409,18 @@
       made that kind by its constructor, and one of none of several is
       refused under the answer.
   ~~|
-  ::fn[~(on |~~ The noun itself, which starts the function, or a function. ~~| ::tag
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
     | takes :page |~~ The page of the answer. ~~| /0 ::doc
-    | takes :kinds |~~ The kinds of the answer, a tag or a set of tags. ~~| /1 #[::set ::tag]
+    | takes :kinds
+        |~~ The kinds of the answer, a tag or a set of tags. ~~|
+        /1 #[::set ::tag]
     | returns |~~ The function with its answer. ~~| ::fn
-    | throws :SubjectNotFnError |~~ `returns` names the answer of the noun's function, `::fn | returns …`, or of a function. ~~|)
+    | throws :SubjectNotFnError
+        |~~ `returns` names the answer of the noun's function, `::fn |
+            returns …`, or of a function.
+        ~~|)
     ::builtin{}]
 
 :fn/returns/bringsTheAnswerUnderItsKind
@@ -385,11 +454,16 @@
       refusal the kinds of an input name among them; under a label it is a
       refusal of the word.
   ~~|
-  ::fn[~(on |~~ The noun itself, which starts the function, or a function. ~~| ::tag
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
     | takes :name |~~ The name of the refusal. ~~| /0 ::keyword
     | takes :page |~~ The page of the refusal. ~~| /1 ::doc
     | returns |~~ The function with the refusal. ~~| ::fn
-    | throws :SubjectNotFnError |~~ `throws` names a refusal of the noun's function, `::fn | throws …`, or of a function. ~~|)
+    | throws :SubjectNotFnError
+        |~~ `throws` names a refusal of the noun's function, `::fn |
+            throws …`, or of a function.
+        ~~|)
     ::builtin{}]
 
 :fn/throws/declaresARefusalOfAWord
@@ -418,12 +492,22 @@
       and the condition the value answers true to,
       `| holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100)`.
   ~~|
-  ::fn[~(on |~~ The noun itself, which starts the function, or a function. ~~| ::tag
-    | takes :name |~~ The name of the refusal of a value that breaks it, `:by/TooBigError`. ~~| /0 ::keyword
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
+    | takes :name
+        |~~ The name of the refusal of a value that breaks it,
+            `:by/TooBigError`.
+        ~~|
+        /0 ::keyword
     | takes :page |~~ The page of the refusal. ~~| /1 ::doc
-    | takes :condition |~~ The condition the value answers true to. ~~| /2 ::quote
+    | takes :condition
+        |~~ The condition the value answers true to. ~~| /2 ::quote
     | returns |~~ The function with the invariant. ~~| ::fn
-    | throws :SubjectNotFnError |~~ `holds` writes an invariant of the noun's function, `::fn | holds …`, or of a function. ~~|)
+    | throws :SubjectNotFnError
+        |~~ `holds` writes an invariant of the noun's function, `::fn |
+            holds …`, or of a function.
+        ~~|)
     ::builtin{}]
 
 :fn/holds/writesAnInvariantOfAWord
@@ -447,11 +531,25 @@
       for it, `| impl ~(add by)`; a function of no commands is its code,
       `::fn | impl ~(add 1)` answering `~(add 1)`.
   ~~|
-  ::fn[~(on |~~ The noun itself, which starts the function, or a function. ~~| ::tag
-    | takes :recipe |~~ The recipe, a quote or a primitive of the host. ~~| /0 #[::builtin ::quote]
-    | throws :recipe/NotBuiltinOrQuoteError |~~ The recipe is a quote, `~(add by)`, or a primitive, `::builtin{}`. ~~|
-    | returns |~~ The function with its recipe, or the code of one of no commands. ~~| #[::fn ::quote]
-    | throws :SubjectNotFnError |~~ `impl` gives the recipe of the noun's function, `::fn | impl …`, or of a function. ~~|)
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
+    | takes :recipe
+        |~~ The recipe, a quote or a primitive of the host. ~~|
+        /0 #[::builtin ::quote]
+    | throws :recipe/NotBuiltinOrQuoteError
+        |~~ The recipe is a quote, `~(add by)`, or a primitive,
+            `::builtin{}`.
+        ~~|
+    | returns
+        |~~ The function with its recipe, or the code of one of no
+            commands.
+        ~~|
+        #[::fn ::quote]
+    | throws :SubjectNotFnError
+        |~~ `impl` gives the recipe of the noun's function, `::fn | impl
+            …`, or of a function.
+        ~~|)
     ::builtin{}]
 
 :fn/impl/answersTheCodeOfNoCommands
@@ -473,10 +571,12 @@
       `::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3`
       answers `~(:by |~~ How much. ~~| 3 | add by)`.
   ~~|
-  ::fn[~(takes :args |~~ The arguments, as a call holds its objects. ~~| ~(it)
+  ::fn[~(takes :args
+        |~~ The arguments, as a call holds its objects. ~~| ~(it)
     | returns |~~ The code, its inputs written at its head. ~~| ::quote
     | throws :SubjectNotFnError |~~ `fill` writes into a function. ~~|
-    | throws :RecipeNotCodeError |~~ `fill` writes into code: a contract or a primitive has none. ~~|)
+    | throws :RecipeNotCodeError
+        |~~ `fill` writes into code: a contract or a primitive has none. ~~|)
     ::builtin{}]
 
 :fn/fill/writesTheArguments

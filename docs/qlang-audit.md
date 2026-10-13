@@ -1615,13 +1615,18 @@ answer by `returns`, a refusal by `throws` and an invariant by
 value of its kind the walk of its tags reaches by the kinds `takes`
 names, with no invariant `is` written [D251]. The place of an input
 stays read from its value, a path, a quote that reads one place by
-`query`, or code run over the args. The words of the catalog are
-written as declarations, the second mechanism standing beside the
-function until each is written by the chain, its laws and cases the
-measure of its move. Open, the move of the catalog's words to the chain,
-and with it the part or the invariant a reader declares under a word of
-the root, which a call of a word that is a function does not read
-[D202].
+`query`, or code run over the args. Every word of the catalog, the
+command line's among them, is written by the chain, the name of the
+refusal its kinds raise given by the kinds, `…/code/NotPathOrQuoteError`
+where `NotQuoteError` named a path taken too, and a host's primitive
+names the inputs it runs as code where it is bound [D251]; a part or an
+invariant a reader declares under a word of the root changes no call
+[D202]. The declaration form stands beside the chain for a word a reader
+or a host's source writes, a second spelling of a word, and a kind is a
+label declared by its page with its `construct`, its invariants and its
+refusals named under it. Open, the declaration form of a word, the
+declaration of a kind, and the laws of a word and of a kind beside the
+chain that declares it.
 
 ```qlang
 > 5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(by | type)) [::Width(3)]

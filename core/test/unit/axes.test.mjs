@@ -241,8 +241,8 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
 });
 
 describe('::name | binding | /value answers the value of the declaration', () => {
-  it('::vec/take reads the descriptor of its primitive, and a part its selector [D164]', async () => {
-    expect(printValue(await evalQuery('::vec/take | binding | get /value'))).toBe('::builtin{}');
+  it('::vec/take reads its function, whose recipe is the descriptor of its primitive, and an input its place [D164], [D251]', async () => {
+    expect(printValue(await evalQuery('::vec/take | binding | get /value | get /1'))).toBe('::builtin{}');
     expect(printValue(await evalQuery('::vec/take | binding :count | get /value'))).toBe('/0');
   });
 

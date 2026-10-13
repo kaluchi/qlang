@@ -9,7 +9,7 @@
 {"name":"a-number-under-a-tag-of-its-own-is-a-number-a-part-asks-for","query":"5 | add ::Width(2)","expect":"7","decision":"D167"}
 {"name":"each-value-a-law-of-each-element-asks-for-is-handed-as-its-kind","query":"{:a ::W(5) :b 2} | sumOf (get /a) /b","expect":"7","decision":"D167"}
 {"name":"a-law-of-each-value-the-call-gives-names-the-index-it-refuses","query":"{:a 1 :b \"x\"} | sumOf /a /b !| [type (get /index) (get /actualType)]","expect":"[::vec/sum/ElementNotNumberError 1 ::string]","decision":"D167"}
-{"name":"a-step-computed-where-the-part-reading-the-args-asks-for-code-is-refused-by-it","query":"5 | cond (get /nope) ~(1) !| [type (get /index)]","expect":"[::any/cond/clauses/ElementNotQuoteError 0]","decision":"D167"}
+{"name":"a-step-computed-where-the-part-reading-the-args-asks-for-code-is-refused-by-it","query":"5 | cond (get /nope) ~(1) !| [type (get /index)]","expect":"[::any/cond/clauses/ElementNotPathOrQuoteError 0]","decision":"D167"}
 {"name":"a-step-computed-where-the-alternatives-take-any-value-answers-its-error","query":"{} | coalesce (get /a) ~(1) !| type","expect":"::path/KeyNotInMapError","decision":"D167"}
 {"name":"a-step-computed-where-a-part-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError","decision":"D167"}
 {"name":"a-step-computed-where-no-part-reads-answers-its-error","query":"[1 2] | query /0 5 (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError","decision":"D167"}

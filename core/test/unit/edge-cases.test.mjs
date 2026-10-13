@@ -129,13 +129,13 @@ describe('runtime/map.mjs error paths', () => {
     await expectErrorThrown('42 | has :foo', 'call/KindAnswersNoVerbError');
   });
   it('has on Map requires keyword-or-string key', async () => {
-    await expectErrorThrown('{:k 1} | has 42', 'map/has/key/NotKeywordOrStringError');
+    await expectErrorThrown('{:k 1} | has 42', 'map/has/key/NotKeywordOrPathOrStringError');
   });
 });
 
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', async () => {
-    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/other/NotSetOrNullError');
+    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/other/NotNullOrSetError');
   });
   it('minus of Map by another Map (key-based)', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | minus {:b 99 :d 5}');
@@ -146,10 +146,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(evalResult).toEqual(new Map([['b', 2]]));
   });
   it('minus of Set by Map errors', async () => {
-    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/other/NotSetOrNullError');
+    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/other/NotNullOrSetError');
   });
   it('inter of Set by Map errors', async () => {
-    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/other/NotSetOrNullError');
+    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/other/NotNullOrSetError');
   });
 });
 
@@ -180,7 +180,7 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 
   it('split with non-string separator is refused by its part', async () => {
-    await expectErrorThrown('"abc" | split 42', 'string/split/separator/NotStringOrRegexError');
+    await expectErrorThrown('"abc" | split 42', 'string/split/separator/NotRegexOrStringError');
   });
 
   it('join on non-Vec subject is refused by the address of join', async () => {
@@ -194,7 +194,7 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 
   it('join with non-string separator is refused by its part', async () => {
-    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/NotStringOrKeywordError');
+    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/NotKeywordOrStringError');
   });
 
   it('every split/join site has an address of its own', async () => {

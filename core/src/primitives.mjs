@@ -104,3 +104,18 @@ export function readsPassedTags(impl) {
   return READERS_OF_PASSED_TAGS.has(impl);
 }
 
+// runs(names, impl) → the primitive, which runs the inputs of those names
+// as code [D251]: its call hands each as code closed at the call, each
+// element of one that holds the objects of the call whole, and any other
+// value as it is.
+const INPUTS_RUN = new WeakMap();
+
+export function runs(names, impl) {
+  INPUTS_RUN.set(impl, new Set(names));
+  return impl;
+}
+
+export function inputsRunBy(impl) {
+  return INPUTS_RUN.get(impl);
+}
+

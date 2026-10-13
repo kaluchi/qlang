@@ -93,11 +93,9 @@
       the strings that hold their sources into patterns.
       ::link~(::string/toRegex | doc)
   ~~|
-  ::builtin{}
-
-:regex/toRegex/answer
-  |~~ The pattern itself. ~~|
-  ::regex
+  ::fn
+    | returns |~~ The pattern itself. ~~| ::regex
+    | impl ::builtin{}
 
 :regex/toRegex/answersItself
   |~~ A pattern answers itself, so patterns and their sources turn into patterns. ~~|

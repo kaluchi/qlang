@@ -106,7 +106,7 @@ describe('an address reads the node its name declared', () => {
     expect(await evalQuery('::vec/count | doc | type')).toEqual(makeTag('doc'));
     expect(await evalQuery('::vec/count | source | parse | startsWith ":vec/count"')).toBe(true);
     expect(await evalQuery('::vec/count | laws | count | gt 0')).toBe(true);
-    expect(await evalQuery('::vec/count | binding | get /value | type')).toEqual(makeTag('builtin'));
+    expect(await evalQuery('::vec/count | binding | get /value | type')).toEqual(makeTag('fn'));
   });
 
   it('a verb has no address of its own, only through the noun it lives on', async () => {

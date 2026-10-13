@@ -1,5 +1,5 @@
 {"name":"a-name-under-a-kind-serves-its-values-and-refuses-another-subject","query":"[(5 | add 1) (\"x\" | add 1 !| type)]","expect":"[6 ::number/add/SubjectNotNumberError]","decision":"D34"}
-{"name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | source | map /name | filter ~(toString | endsWith \"Error\")","expect":"[:number/add/addend/NotNumberError :number/add/SubjectNotNumberError :number/add/ArgsBeyondPartsError]","decision":"D46"}
+{"name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/ArgsBeyondPartsError ::number/add/SubjectNotNumberError]","decision":"D46"}
 {"name":"a-part-of-the-args-is-the-quote-that-reads-it","query":"::number/add/addend | binding | get /value","expect":"/0","decision":"D169"}
 {"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| [type (get /actualType)]","expect":"[::number/add/SubjectNotNumberError ::string]","decision":"D72"}
 {"name":"a-part-raises-the-refusal-under-its-address","query":"1 | add \"a\" !| [type (get /actualType)]","expect":"[::number/add/addend/NotNumberError ::string]","decision":"D72"}

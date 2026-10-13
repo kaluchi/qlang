@@ -9,10 +9,10 @@
 {"name":"apply-parsed-projection","query":"\"{:name \\\"alice\\\" :age 30} | get /name\" | parse | apply it","expect":"\"alice\"","decision":"D9"}
 {"name":"apply-parsed-map","query":"\"[1 2 3] | map ~(add 10)\" | parse | apply it","expect":"[11 12 13]","decision":"D9"}
 {"name":"apply-parsed-fail-track","query":"\"\\\"hello\\\" | add 1 !| type\" | parse | apply it","expect":"::number/add/SubjectNotNumberError","decision":"D9"}
-{"name":"apply-code-not-quote","query":"42 | apply it","expect":"::any/apply/code/NotQuoteError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(apply it)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D9"}
+{"name":"apply-code-not-quote","query":"42 | apply it","expect":"::any/apply/code/NotFnOrPathOrQuoteError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(apply it)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D9"}
 {"name":"apply-quote-against-the-subject","query":"5 | apply ~(mul 2)","expect":"10","decision":"D9"}
-{"name":"apply-code-type-refusal","query":"42 | apply 1 !| [type (get /actualType)]","expect":"[::any/apply/code/NotQuoteError ::number]","decision":"D9"}
+{"name":"apply-code-type-refusal","query":"42 | apply 1 !| [type (get /actualType)]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::number]","decision":"D9"}
 {"name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::call/UnknownNameError","decision":"D9"}
-{"name":"apply-code-that-fails-is-refused-by-its-part","query":"5 | apply (get /nope) !| [type (get /actualType)]","expect":"[::any/apply/code/NotQuoteError ::path/SubjectNotProjectableError]","decision":"D129"}
+{"name":"apply-code-that-fails-is-refused-by-its-part","query":"5 | apply (get /nope) !| [type (get /actualType)]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::path/SubjectNotProjectableError]","decision":"D129"}
 {"name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12","decision":"D9"}
 {"name":"a-named-quote-is-a-value-apply-runs","query":":q ~(add 1) | 5 | apply q","expect":"6","decision":"D5"}

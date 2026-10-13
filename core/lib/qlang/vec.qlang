@@ -73,11 +73,9 @@
       ::link~(::vec/empty | doc)
       ::link~(::call/KindAnswersNoVerbError | doc)
   ~~|
-  ::builtin{}
-
-:vec/count/answer
-  |~~ How many elements the vector holds. ~~|
-  ::number
+  ::fn
+    | returns |~~ How many elements the vector holds. ~~| ::number
+    | impl ::builtin{}
 
 :vec/count/countsTheElements
   |~~ Three elements count three. ~~|
@@ -102,11 +100,11 @@
       string answers no `empty`, and text is asked `count | eq 0`.
       ::link~(::vec/count | doc)
   ~~|
-  ::builtin{}
-
-:vec/empty/answer
-  |~~ `true` when the vector holds no element, `false` otherwise. ~~|
-  ::boolean
+  ::fn
+    | returns
+        |~~ `true` when the vector holds no element, `false` otherwise. ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :vec/empty/holdsOfTheEmptyVector
   |~~ The empty vector is empty. ~~|
@@ -130,11 +128,11 @@
       first character is `take 1`.
       ::link~(::vec/last | doc) ::link~(::any/query | doc)
   ~~|
-  ::builtin{}
-
-:vec/first/answer
-  |~~ The first element, any value, null for the empty vector. ~~|
-  ::any
+  ::fn
+    | returns
+        |~~ The first element, any value, null for the empty vector. ~~|
+        ::any
+    | impl ::builtin{}
 
 :vec/first/answersTheFirst
   |~~ The first element answers. ~~|
@@ -160,11 +158,11 @@
       element and a map its last value, and a string answers no `last`.
       ::link~(::vec/first | doc)
   ~~|
-  ::builtin{}
-
-:vec/last/answer
-  |~~ The last element, any value, null for the empty vector. ~~|
-  ::any
+  ::fn
+    | returns
+        |~~ The last element, any value, null for the empty vector. ~~|
+        ::any
+    | impl ::builtin{}
 
 :vec/last/answersTheLast
   |~~ The last element answers. ~~|
@@ -188,16 +186,13 @@
       number is added to each element by `map ~(add 1)`.
       ::link~(::vec/avg | doc) ::link~(::any/sumOf | doc)
   ~~|
-  ::builtin{}
-
-:vec/sum/answer
-  |~~ The sum of the elements. ~~|
-  ::number
-
-:vec/sum/ElementNotNumberError
-  |~~ `sum` adds numbers; `:index` names the first element that is
-      none, and a field is read first, `map /amount | sum`.
-  ~~|
+  ::fn
+    | returns |~~ The sum of the elements. ~~| ::number
+    | throws :ElementNotNumberError
+        |~~ `sum` adds numbers; `:index` names the first element that is
+            none, and a field is read first, `map /amount | sum`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/sum/addsTheElements
   |~~ The sum adds every element. ~~|
@@ -239,16 +234,16 @@
       under its key. A set and a map answer `avg` by words of their own.
       ::link~(::vec/sum | doc) ::link~(::vec/groupBy | doc)
   ~~|
-  ::builtin{}
-
-:vec/avg/answer
-  |~~ The mean of the elements, null for an empty vector. ~~|
-  #[::number ::null]
-
-:vec/avg/ElementNotNumberError
-  |~~ `avg` takes the mean of numbers; `:index` names the first element
-      that is none, and a field is read first, `map /amount | avg`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The mean of the elements, null for an empty vector. ~~|
+        #[::number ::null]
+    | throws :ElementNotNumberError
+        |~~ `avg` takes the mean of numbers; `:index` names the first
+            element that is none, and a field is read first, `map /amount
+            | avg`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/avg/answersTheMean
   |~~ The mean of one to four is two and a half. ~~|
@@ -303,22 +298,21 @@
       words of their own.
       ::link~(::vec/max | doc) ::link~(::vec/sort | doc)
   ~~|
-  ::builtin{}
-
-:vec/min/answer
-  |~~ The least element, any value, null for the empty vector. ~~|
-  ::any
-
-:vec/min/key
-  |~~ The key the call gives, code run on each element, null when it gives none. ~~|
-  ~(query /0)
-
-:vec/min/key/NotQuoteOrNullError
-  |~~ The key is a quote or null: written `~(get /age)`, it runs on each
-      element, while `(get /age)` is computed once at the call, against the
-      vector, and refused with what it answered.
-  ~~|
-  ::holds~(is ::quote ::path ::null)
+  ::fn
+    | takes :key
+        |~~ The key the call gives, code run on each element, null when it
+            gives none.
+        ~~|
+        ~(query /0) #[::null ::path ::quote]
+    | throws :key/NotNullOrPathOrQuoteError
+        |~~ The key is a quote or null: written `~(get /age)`, it runs on
+            each element, while `(get /age)` is computed once at the call,
+            against the vector, and refused with what it answered.
+        ~~|
+    | returns
+        |~~ The least element, any value, null for the empty vector. ~~|
+        ::any
+    | impl ::builtin{}
 
 :vec/min/answersTheLeast
   |~~ The least element answers. ~~|
@@ -348,13 +342,13 @@
   |~~ A key that misses its field answers the error of the read. ~~|
   ::law~([{:a 1} {:b 2}] | min /a !| type | eq ::path/KeyNotInMapError)
 
-:vec/min/key/NotQuoteOrNullError/refusesAStepWithoutItsQuote
+:vec/min/key/NotNullOrPathOrQuoteError/refusesAStepWithoutItsQuote
   |~~ A step written without its quote runs on the whole subject at the
       call, and its error is refused.
   ~~|
   ::law~([3 1] | min (get /age)
     !| [type (get /actualType)]
-    |  eq [::vec/min/key/NotQuoteOrNullError ::path/IndexNotIntegerError])
+    |  eq [::vec/min/key/NotNullOrPathOrQuoteError ::path/IndexNotIntegerError])
 
 :vec/max
   |~~ Answers the greatest element in the one order of values, `[3 1 4]
@@ -366,19 +360,18 @@
       and a map answer `max` by words of their own.
       ::link~(::vec/min | doc)
   ~~|
-  ::builtin{}
-
-:vec/max/answer
-  |~~ The greatest element, any value, null for the empty vector. ~~|
-  ::any
-
-:vec/max/key
-  |~~ The key the call gives, code run on each element, null when it gives none. ~~|
-  ~(query /0)
-
-:vec/max/key/NotQuoteOrNullError
-  |~~ The key is a quote or null, `max /age`, as for `min`. ~~|
-  ::holds~(is ::quote ::path ::null)
+  ::fn
+    | takes :key
+        |~~ The key the call gives, code run on each element, null when it
+            gives none.
+        ~~|
+        ~(query /0) #[::null ::path ::quote]
+    | throws :key/NotNullOrPathOrQuoteError
+        |~~ The key is a quote or null, `max /age`, as for `min`. ~~|
+    | returns
+        |~~ The greatest element, any value, null for the empty vector. ~~|
+        ::any
+    | impl ::builtin{}
 
 :vec/max/answersTheGreatest
   |~~ The greatest element answers. ~~|
@@ -400,9 +393,9 @@
   |~~ Of elements whose keys are equal the first answers. ~~|
   ::law~([{:age 40 :n 1} {:age 40 :n 2}] | max /age | get /n | eq 1)
 
-:vec/max/key/NotQuoteOrNullError/refusesANumber
+:vec/max/key/NotNullOrPathOrQuoteError/refusesANumber
   |~~ A key that is no quote is refused under the part. ~~|
-  ::law~([1 2] | max 1 !| type | eq ::vec/max/key/NotQuoteOrNullError)
+  ::law~([1 2] | max 1 !| type | eq ::vec/max/key/NotNullOrPathOrQuoteError)
 
 :vec/map
   |~~ Answers the vector of what the code answers for each element, in
@@ -424,34 +417,29 @@
       ::link~(::vec/filter | doc) ::link~(::vec/reduce | doc)
       ::link~(::map/map | doc) ::link~(::set/map | doc)
   ~~|
-  ::builtin{}
-
-:vec/map/answer
-  |~~ What the code answered for each element, in their order, a vector
-      under no tag.
-  ~~|
-  ::any
-
-:vec/map/code
-  |~~ The code run on each element, a quote. ~~|
-  /0
-
-:vec/map/code/NotQuoteError
-  |~~ The code is a quote, `map ~(add 1)`, or a path, `map /name`;
-      written without the tilde, `map (add 1)`, it is computed once at the
-      call, against the vector, and refused with what it answered.
-  ~~|
-  ::holds~(is ::quote ::path)
-
-:vec/map/code/NotGivenError
-  |~~ `map` runs the code the call gives on each element,
-      `map ~(add 1)`; a call without it has nothing to run.
-  ~~|
-
-:vec/map/ArgsBeyondPartsError
-  |~~ `map` takes one code: several steps run in order inside one quote,
-      `map ~(mul 2 | add 1)`.
-  ~~|
+  ::fn
+    | takes :code
+        |~~ The code run on each element, a quote. ~~| /0 #[::path ::quote]
+    | throws :code/NotPathOrQuoteError
+        |~~ The code is a quote, `map ~(add 1)`, or a path, `map /name`;
+            written without the tilde, `map (add 1)`, it is computed once
+            at the call, against the vector, and refused with what it
+            answered.
+        ~~|
+    | throws :code/NotGivenError
+        |~~ `map` runs the code the call gives on each element, `map
+            ~(add 1)`; a call without it has nothing to run.
+        ~~|
+    | returns
+        |~~ What the code answered for each element, in their order, a
+            vector under no tag.
+        ~~|
+        ::any
+    | throws :ArgsBeyondPartsError
+        |~~ `map` takes one code: several steps run in order inside one
+            quote, `map ~(mul 2 | add 1)`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/map/answersWhatEachElementAnswers
   |~~ Each element is replaced by what the code answers for it. ~~|
@@ -489,9 +477,9 @@
   |~~ The empty vector answers the empty vector. ~~|
   ::law~([] | map ~(add 1) | eq [])
 
-:vec/map/code/NotQuoteError/refusesAStepComputedAtTheCall
+:vec/map/code/NotPathOrQuoteError/refusesAStepComputedAtTheCall
   |~~ A step written without its quote is refused. ~~|
-  ::law~([1 2] | map (add 1) !| type | eq ::vec/map/code/NotQuoteError)
+  ::law~([1 2] | map (add 1) !| type | eq ::vec/map/code/NotPathOrQuoteError)
 
 :vec/map/code/NotGivenError/refusesACallWithoutCode
   |~~ A call without code is refused under the part. ~~|
@@ -529,32 +517,27 @@
       words of their own.
       ::link~(::vec/every | doc) ::link~(::any/allOf | doc)
   ~~|
-  ::builtin{}
-
-:vec/filter/answer
-  |~~ The elements the predicate accepted, in order. ~~|
-  ::vec
-
-:vec/filter/predicate
-  |~~ The code each element is run through, which answers a boolean. ~~|
-  /0
-
-:vec/filter/predicate/NotQuoteError
-  |~~ The predicate is a quote, `filter ~(gt 1)`, or a path,
-      `filter /active`; written without the tilde, `filter (gt 1)`, it is
-      computed once at the call and refused.
-  ~~|
-  ::holds~(is ::quote ::path)
-
-:vec/filter/ConditionNotBooleanError
-  |~~ The predicate of `filter` answers a boolean for each element;
-      `:index` names the element whose predicate answered another kind.
-  ~~|
-
-:vec/filter/ArgsBeyondPartsError
-  |~~ `filter` takes one predicate; conditions held together are one,
-      `filter ~(allOf /active (get /age | gte 18))`.
-  ~~|
+  ::fn
+    | takes :predicate
+        |~~ The code each element is run through, which answers a boolean.
+        ~~|
+        /0 #[::path ::quote]
+    | throws :predicate/NotPathOrQuoteError
+        |~~ The predicate is a quote, `filter ~(gt 1)`, or a path, `filter
+            /active`; written without the tilde, `filter (gt 1)`, it is
+            computed once at the call and refused.
+        ~~|
+    | returns |~~ The elements the predicate accepted, in order. ~~| ::vec
+    | throws :ConditionNotBooleanError
+        |~~ The predicate of `filter` answers a boolean for each element;
+            `:index` names the element whose predicate answered another
+            kind.
+        ~~|
+    | throws :ArgsBeyondPartsError
+        |~~ `filter` takes one predicate; conditions held together are
+            one, `filter ~(allOf /active (get /age | gte 18))`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/filter/keepsWhatThePredicateHolds
   |~~ The elements past two are kept in their order. ~~|
@@ -590,19 +573,19 @@
   |~~ A quote keeps the steps that hold. ~~|
   ::law~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | eq ~(mul 2))
 
-:vec/filter/predicate/NotQuoteError/refusesABoolean
+:vec/filter/predicate/NotPathOrQuoteError/refusesABoolean
   |~~ A value computed at the call is refused, a boolean among them. ~~|
   ::law~([1 2 3] | filter (count | gt 1)
     !| [type (get /actualType)]
-    |  eq [::vec/filter/predicate/NotQuoteError ::boolean])
+    |  eq [::vec/filter/predicate/NotPathOrQuoteError ::boolean])
 
-:vec/filter/predicate/NotQuoteError/refusesAStepWithoutItsQuote
+:vec/filter/predicate/NotPathOrQuoteError/refusesAStepWithoutItsQuote
   |~~ A step written without its quote runs on the whole subject at the
       call, and its error is refused.
   ~~|
   ::law~([{:a true}] | filter (get /a)
     !| [type (get /actualType)]
-    |  eq [::vec/filter/predicate/NotQuoteError ::path/IndexNotIntegerError])
+    |  eq [::vec/filter/predicate/NotPathOrQuoteError ::path/IndexNotIntegerError])
 
 :vec/filter/ConditionNotBooleanError/refusesANumberAnswer
   |~~ A predicate that answers a number is refused at the element. ~~|
@@ -627,27 +610,27 @@
       some element holds.
       ::link~(::vec/any | doc) ::link~(::vec/filter | doc)
   ~~|
-  ::builtin{}
-
-:vec/every/answer
-  |~~ `true` when the predicate held for every element, `false` otherwise. ~~|
-  ::boolean
-
-:vec/every/predicate
-  |~~ The code each element is run through, which answers a boolean. ~~|
-  /0
-
-:vec/every/predicate/NotQuoteError
-  |~~ The predicate is a quote, `every ~(gt 0)`, or a path,
-      `every /active`; written without the tilde, `every (gt 0)`, it is
-      computed once at the call and refused.
-  ~~|
-  ::holds~(is ::quote ::path)
-
-:vec/every/ConditionNotBooleanError
-  |~~ The predicate of `every` answers a boolean for each element;
-      `:index` names the element whose predicate answered another kind.
-  ~~|
+  ::fn
+    | takes :predicate
+        |~~ The code each element is run through, which answers a boolean.
+        ~~|
+        /0 #[::path ::quote]
+    | throws :predicate/NotPathOrQuoteError
+        |~~ The predicate is a quote, `every ~(gt 0)`, or a path, `every
+            /active`; written without the tilde, `every (gt 0)`, it is
+            computed once at the call and refused.
+        ~~|
+    | returns
+        |~~ `true` when the predicate held for every element, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | throws :ConditionNotBooleanError
+        |~~ The predicate of `every` answers a boolean for each element;
+            `:index` names the element whose predicate answered another
+            kind.
+        ~~|
+    | impl ::builtin{}
 
 :vec/every/holdsOfEveryElement
   |~~ Every element is positive. ~~|
@@ -673,11 +656,11 @@
   |~~ An error the predicate answers for an element answers the call. ~~|
   ::law~([{:a 1} {:b 2}] | every ~(get /a | gt 0) !| type | eq ::path/KeyNotInMapError)
 
-:vec/every/predicate/NotQuoteError/refusesABoolean
+:vec/every/predicate/NotPathOrQuoteError/refusesABoolean
   |~~ A value computed at the call is refused, a boolean among them. ~~|
   ::law~([1 2 3] | every (count | gt 1)
     !| [type (get /actualType)]
-    |  eq [::vec/every/predicate/NotQuoteError ::boolean])
+    |  eq [::vec/every/predicate/NotPathOrQuoteError ::boolean])
 
 :vec/every/ConditionNotBooleanError/refusesANumberAnswer
   |~~ A predicate that answers a number is refused at the element. ~~|
@@ -696,27 +679,27 @@
       `every` asks whether each element holds.
       ::link~(::vec/every | doc) ::link~(::vec/filter | doc)
   ~~|
-  ::builtin{}
-
-:vec/any/answer
-  |~~ `true` when the predicate held for some element, `false` otherwise. ~~|
-  ::boolean
-
-:vec/any/predicate
-  |~~ The code each element is run through, which answers a boolean. ~~|
-  /0
-
-:vec/any/predicate/NotQuoteError
-  |~~ The predicate is a quote, `any ~(gt 2)`, or a path, `any /vip`;
-      written without the tilde, `any (gt 2)`, it is computed once at the
-      call and refused.
-  ~~|
-  ::holds~(is ::quote ::path)
-
-:vec/any/ConditionNotBooleanError
-  |~~ The predicate of `any` answers a boolean for each element;
-      `:index` names the element whose predicate answered another kind.
-  ~~|
+  ::fn
+    | takes :predicate
+        |~~ The code each element is run through, which answers a boolean.
+        ~~|
+        /0 #[::path ::quote]
+    | throws :predicate/NotPathOrQuoteError
+        |~~ The predicate is a quote, `any ~(gt 2)`, or a path, `any
+            /vip`; written without the tilde, `any (gt 2)`, it is computed
+            once at the call and refused.
+        ~~|
+    | returns
+        |~~ `true` when the predicate held for some element, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | throws :ConditionNotBooleanError
+        |~~ The predicate of `any` answers a boolean for each element;
+            `:index` names the element whose predicate answered another
+            kind.
+        ~~|
+    | impl ::builtin{}
 
 :vec/any/holdsOfSomeElement
   |~~ One element past two is enough. ~~|
@@ -738,11 +721,11 @@
   |~~ A word by its name stands where a quote would. ~~|
   ::law~([1 2 3] | :number/big ~(gt 2) | any ~big)
 
-:vec/any/predicate/NotQuoteError/refusesABoolean
+:vec/any/predicate/NotPathOrQuoteError/refusesABoolean
   |~~ A value computed at the call is refused, a boolean among them. ~~|
   ::law~([1 2 3] | any (count | gt 1)
     !| [type (get /actualType)]
-    |  eq [::vec/any/predicate/NotQuoteError ::boolean])
+    |  eq [::vec/any/predicate/NotPathOrQuoteError ::boolean])
 
 :vec/any/ConditionNotBooleanError/refusesANumberAnswer
   |~~ A predicate that answers a number is refused at the element. ~~|
@@ -761,15 +744,16 @@
       vector.
       ::link~(::vec/contains | doc) ::link~(::any/eq | doc)
   ~~|
-  ::builtin{}
-
-:vec/has/answer
-  |~~ `true` when the vector holds the element, `false` otherwise. ~~|
-  ::boolean
-
-:vec/has/element
-  |~~ The element looked for, any value, computed against the subject. ~~|
-  /0
+  ::fn
+    | takes :element
+        |~~ The element looked for, any value, computed against the
+            subject.
+        ~~|
+        /0
+    | returns
+        |~~ `true` when the vector holds the element, `false` otherwise. ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :vec/has/findsAnElement
   |~~ An element held is found. ~~|
@@ -804,15 +788,16 @@
       and a map answers no `contains` and asks `has` of its keys.
       ::link~(::vec/has | doc) ::link~(::string/contains | doc)
   ~~|
-  ::builtin{}
-
-:vec/contains/answer
-  |~~ `true` when the vector holds the element, `false` otherwise. ~~|
-  ::boolean
-
-:vec/contains/element
-  |~~ The element looked for, any value, computed against the subject. ~~|
-  /0
+  ::fn
+    | takes :element
+        |~~ The element looked for, any value, computed against the
+            subject.
+        ~~|
+        /0
+    | returns
+        |~~ `true` when the vector holds the element, `false` otherwise. ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :vec/contains/findsAnElement
   |~~ An element held is found. ~~|
@@ -844,32 +829,38 @@
       and `indexBy` keeps one element under each key.
       ::link~(::vec/indexBy | doc) ::link~(::vec/avg | doc)
   ~~|
-  ::builtin{}
-
-:vec/groupBy/answer
-  |~~ The elements filed under the keyword their key answered. ~~|
-  ::map
-
-:vec/groupBy/key
-  |~~ The code that answers the key each element is filed under, null
-      when the call gives none.
-  ~~|
-  ~(query /0)
-
-:vec/groupBy/key/NotQuoteOrNullError
-  |~~ The key is a quote or null: written `~(get /kind)`, it runs on each
-      element, while `(get /kind)` is computed once at the call, against the
-      vector, and refused with what it answered.
-  ~~|
-  ::holds~(is ::quote ::path ::null)
-
-:vec/groupBy/KeyNotKeywordError
-  |~~ The key `groupBy` files an element under is a keyword, since the
-      keys of a map are keywords: a string or a number files under the
-      keyword of its text, a boolean or null under that of its literal
-      and a tag name under that of its name; a vector, a set, a map or a
-      quote is refused, and `:index` names the element.
-  ~~|
+  ::fn
+    | takes :key
+        |~~ The code that answers the key each element is filed under,
+            null when the call gives none.
+        ~~|
+        ~(query /0) #[::null ::path ::quote]
+    | throws :key/NotNullOrPathOrQuoteError
+        |~~ The key is a quote or null: written `~(get /kind)`, it runs on
+            each element, while `(get /kind)` is computed once at the
+            call, against the vector, and refused with what it answered.
+        ~~|
+    | returns
+        |~~ The elements filed under the keyword their key answered. ~~|
+        ::map
+    | throws :KeyNotKeywordError
+        |~~ The key `groupBy` files an element under is a keyword, since
+            the keys of a map are keywords: a string or a number files
+            under the keyword of its text, a boolean or null under that of
+            its literal and a tag name under that of its name; a vector, a
+            set, a map or a quote is refused, and `:index` names the
+            element.
+        ~~|
+    | throws :KeyTakenError
+        |~~ Two values the key answers file under one keyword, `1` and
+            `"1"` both under `:"1"`, and a map holds the elements of one
+            value under a key: the second is refused, `:key` naming the
+            keyword, `:taken` the value that filed under it first and
+            `:index` the element that met it. A key that means both
+            answers one kind,
+            `~(get /id | if (type | eq ::string) ~(it) ~(print))`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/groupBy/filesUnderTheKey
   |~~ The elements file under the key they answer. ~~|
@@ -918,15 +909,6 @@
   |~~ A key that misses its field answers the error of the read. ~~|
   ::law~([{:a 1}] | groupBy /k !| type | eq ::path/KeyNotInMapError)
 
-:vec/groupBy/KeyTakenError
-  |~~ Two values the key answers file under one keyword, `1` and `"1"`
-      both under `:"1"`, and a map holds the elements of one value under a key: the second
-      is refused, `:key` naming the keyword, `:taken` the value that
-      filed under it first and `:index` the element that met it. A key
-      that means both answers one kind,
-      `~(get /id | if (type | eq ::string) ~(it) ~(print))`.
-  ~~|
-
 :vec/groupBy/KeyTakenError/key
   |~~ The keyword both values file under. ~~|
   ::keyword
@@ -939,11 +921,11 @@
   |~~ A number and a string of one text meet under one key. ~~|
   ::law~([1 "1"] | groupBy !| [type (get /key) (get /taken) (get /index)] | eq [::vec/groupBy/KeyTakenError :"1" 1 1])
 
-:vec/groupBy/key/NotQuoteOrNullError/refusesAKeyword
+:vec/groupBy/key/NotNullOrPathOrQuoteError/refusesAKeyword
   |~~ A keyword given as the key is computed at the call, and refused. ~~|
   ::law~([{:kind :a}] | groupBy :a
     !| [type (get /actualType)]
-    |  eq [::vec/groupBy/key/NotQuoteOrNullError ::keyword])
+    |  eq [::vec/groupBy/key/NotNullOrPathOrQuoteError ::keyword])
 
 :vec/groupBy/KeyNotKeywordError/refusesAVectorKey
   |~~ A vector key is refused at its element. ~~|
@@ -967,32 +949,40 @@
       `groupBy` keeps every element of a key.
       ::link~(::vec/groupBy | doc)
   ~~|
-  ::builtin{}
-
-:vec/indexBy/answer
-  |~~ Each element under the keyword its key answered, the last of alike ones. ~~|
-  ::map
-
-:vec/indexBy/key
-  |~~ The code that answers the key each element is filed under, null
-      when the call gives none.
-  ~~|
-  ~(query /0)
-
-:vec/indexBy/key/NotQuoteOrNullError
-  |~~ The key is a quote or null: written `~(get /id)`, it runs on each
-      element, while `(get /id)` is computed once at the call, against the
-      vector, and refused with what it answered.
-  ~~|
-  ::holds~(is ::quote ::path ::null)
-
-:vec/indexBy/KeyNotKeywordError
-  |~~ The key `indexBy` files an element under is a keyword, since the
-      keys of a map are keywords: a string or a number files under the
-      keyword of its text, a boolean or null under that of its literal
-      and a tag name under that of its name; a vector, a set, a map or a
-      quote is refused, and `:index` names the element.
-  ~~|
+  ::fn
+    | takes :key
+        |~~ The code that answers the key each element is filed under,
+            null when the call gives none.
+        ~~|
+        ~(query /0) #[::null ::path ::quote]
+    | throws :key/NotNullOrPathOrQuoteError
+        |~~ The key is a quote or null: written `~(get /id)`, it runs on
+            each element, while `(get /id)` is computed once at the call,
+            against the vector, and refused with what it answered.
+        ~~|
+    | returns
+        |~~ Each element under the keyword its key answered, the last of
+            alike ones.
+        ~~|
+        ::map
+    | throws :KeyNotKeywordError
+        |~~ The key `indexBy` files an element under is a keyword, since
+            the keys of a map are keywords: a string or a number files
+            under the keyword of its text, a boolean or null under that of
+            its literal and a tag name under that of its name; a vector, a
+            set, a map or a quote is refused, and `:index` names the
+            element.
+        ~~|
+    | throws :KeyTakenError
+        |~~ Two values the key answers file under one keyword, `1` and
+            `"1"` both under `:"1"`, and a map holds one element of one
+            value under a key: the second is refused, `:key` naming the
+            keyword, `:taken` the value that filed under it first and
+            `:index` the element that met it. A key that means both
+            answers one kind,
+            `~(get /id | if (type | eq ::string) ~(it) ~(print))`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/indexBy/filesEachUnderItsKey
   |~~ Each element files under its key. ~~|
@@ -1030,15 +1020,6 @@
   |~~ Without a key a keyword files under itself. ~~|
   ::law~([:x :y] | indexBy | eq {:x :x :y :y})
 
-:vec/indexBy/KeyTakenError
-  |~~ Two values the key answers file under one keyword, `1` and `"1"`
-      both under `:"1"`, and a map holds one element of one value under a key: the second
-      is refused, `:key` naming the keyword, `:taken` the value that
-      filed under it first and `:index` the element that met it. A key
-      that means both answers one kind,
-      `~(get /id | if (type | eq ::string) ~(it) ~(print))`.
-  ~~|
-
 :vec/indexBy/KeyTakenError/key
   |~~ The keyword both values file under. ~~|
   ::keyword
@@ -1051,11 +1032,11 @@
   |~~ A number and a string of one text meet under one key. ~~|
   ::law~([{:id 1} {:id "1"}] | indexBy /id !| [type (get /key) (get /taken) (get /index)] | eq [::vec/indexBy/KeyTakenError :"1" 1 1])
 
-:vec/indexBy/key/NotQuoteOrNullError/refusesAKeyword
+:vec/indexBy/key/NotNullOrPathOrQuoteError/refusesAKeyword
   |~~ A keyword given as the key is computed at the call, and refused. ~~|
   ::law~([{:id :a}] | indexBy :a
     !| [type (get /actualType)]
-    |  eq [::vec/indexBy/key/NotQuoteOrNullError ::keyword])
+    |  eq [::vec/indexBy/key/NotNullOrPathOrQuoteError ::keyword])
 
 :vec/indexBy/KeyNotKeywordError/refusesAVectorKey
   |~~ A vector key is refused at its element. ~~|
@@ -1087,27 +1068,23 @@
       keys kept, by words of their own.
       ::link~(::vec/min | doc) ::link~(::desc | doc)
   ~~|
-  ::builtin{}
-
-:vec/sort/answer
-  |~~ The elements in the order the key ranks them. ~~|
-  ::vec
-
-:vec/sort/key
-  |~~ The code that ranks each element, null when the call gives none. ~~|
-  ~(query /0)
-
-:vec/sort/key/NotQuoteOrNullError
-  |~~ The key is a quote or null: written `~(get /age)`, it runs on each
-      element, while `(get /age)` is computed once at the call, against the
-      vector, and refused with what it answered.
-  ~~|
-  ::holds~(is ::quote ::path ::null)
-
-:vec/sort/ArgsBeyondPartsError
-  |~~ `sort` takes one key; a key that ranks by several places is a
-      vector, `sort ~(get [/a /b])`.
-  ~~|
+  ::fn
+    | takes :key
+        |~~ The code that ranks each element, null when the call gives
+            none.
+        ~~|
+        ~(query /0) #[::null ::path ::quote]
+    | throws :key/NotNullOrPathOrQuoteError
+        |~~ The key is a quote or null: written `~(get /age)`, it runs on
+            each element, while `(get /age)` is computed once at the call,
+            against the vector, and refused with what it answered.
+        ~~|
+    | returns |~~ The elements in the order the key ranks them. ~~| ::vec
+    | throws :ArgsBeyondPartsError
+        |~~ `sort` takes one key; a key that ranks by several places is a
+            vector, `sort ~(get [/a /b])`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/sort/ordersNumbers
   |~~ Numbers ascend, equal ones side by side. ~~|
@@ -1170,9 +1147,9 @@
   |~~ A place of a vector key that misses its field answers the error alike. ~~|
   ::law~([{:a 2} {:b 1}] | sort ~(get [/a]) !| type | eq ::path/KeyNotInMapError)
 
-:vec/sort/key/NotQuoteOrNullError/refusesANumber
+:vec/sort/key/NotNullOrPathOrQuoteError/refusesANumber
   |~~ A number given as the key is computed at the call, and refused. ~~|
-  ::law~([3 1 2] | sort 1 !| [type (get /actualType)] | eq [::vec/sort/key/NotQuoteOrNullError ::number])
+  ::law~([3 1 2] | sort 1 !| [type (get /actualType)] | eq [::vec/sort/key/NotNullOrPathOrQuoteError ::number])
 
 :vec/sort/ArgsBeyondPartsError/refusesTwoKeys
   |~~ Two keys are refused under the word. ~~|
@@ -1190,27 +1167,19 @@
       rest, so `drop 20 | take 10` reads a slice.
       ::link~(::vec/drop | doc) ::link~(::any/query | doc)
   ~~|
-  ::builtin{}
-
-:vec/take/answer
-  |~~ The first elements, as many as the count. ~~|
-  ::vec
-
-:vec/take/count
-  |~~ How many. ~~|
-  /0
-
-:vec/take/count/NotNumberError
-  |~~ The count is a number, `[1 2 3] | take 2`; text that holds one
-      is read by `toNumber` first, `take ("2" | toNumber)`.
-  ~~|
-  ::holds~(is ::number)
-
-:vec/take/count/NotIntegerError
-  |~~ The count is a whole number, `[1 2 3] | take 2`; a fraction is
-      rounded first, `take (1.5 | round)`.
-  ~~|
-  ::holds~(eq (floor))
+  ::fn
+    | takes :count |~~ How many. ~~| /0 ::number
+    | throws :count/NotNumberError
+        |~~ The count is a number, `[1 2 3] | take 2`; text that holds one
+            is read by `toNumber` first, `take ("2" | toNumber)`.
+        ~~|
+    | holds :count/NotIntegerError
+        |~~ The count is a whole number, `[1 2 3] | take 2`; a fraction is
+            rounded first, `take (1.5 | round)`.
+        ~~|
+        ~(eq (floor))
+    | returns |~~ The first elements, as many as the count. ~~| ::vec
+    | impl ::builtin{}
 
 :vec/take/takesTheFirst
   |~~ Three of five are the first three. ~~|
@@ -1254,27 +1223,19 @@
       answer `drop` by words of their own.
       ::link~(::vec/take | doc)
   ~~|
-  ::builtin{}
-
-:vec/drop/answer
-  |~~ The elements after the ones dropped. ~~|
-  ::vec
-
-:vec/drop/count
-  |~~ How many. ~~|
-  /0
-
-:vec/drop/count/NotNumberError
-  |~~ The count is a number, `[1 2 3] | drop 2`; text that holds one
-      is read by `toNumber` first, `drop ("2" | toNumber)`.
-  ~~|
-  ::holds~(is ::number)
-
-:vec/drop/count/NotIntegerError
-  |~~ The count is a whole number, `[1 2 3] | drop 2`; a fraction is
-      rounded first, `drop (1.5 | round)`.
-  ~~|
-  ::holds~(eq (floor))
+  ::fn
+    | takes :count |~~ How many. ~~| /0 ::number
+    | throws :count/NotNumberError
+        |~~ The count is a number, `[1 2 3] | drop 2`; text that holds one
+            is read by `toNumber` first, `drop ("2" | toNumber)`.
+        ~~|
+    | holds :count/NotIntegerError
+        |~~ The count is a whole number, `[1 2 3] | drop 2`; a fraction is
+            rounded first, `drop (1.5 | round)`.
+        ~~|
+        ~(eq (floor))
+    | returns |~~ The elements after the ones dropped. ~~| ::vec
+    | impl ::builtin{}
 
 :vec/drop/dropsTheFirst
   |~~ Dropping two leaves the last three. ~~|
@@ -1312,11 +1273,10 @@
       own.
       ::link~(::set | doc) ::link~(::any/eq | doc)
   ~~|
-  ::builtin{}
-
-:vec/distinct/answer
-  |~~ The elements, each once, in the one order: a set. ~~|
-  ::vec
+  ::fn
+    | returns
+        |~~ The elements, each once, in the one order: a set. ~~| ::vec
+    | impl ::builtin{}
 
 :vec/distinct/answersASet
   |~~ The distinct elements are a set. ~~|
@@ -1350,11 +1310,9 @@
       a vector.
       ::link~(::vec/sort | doc)
   ~~|
-  ::builtin{}
-
-:vec/reverse/answer
-  |~~ The elements in reverse order. ~~|
-  ::vec
+  ::fn
+    | returns |~~ The elements in reverse order. ~~| ::vec
+    | impl ::builtin{}
 
 :vec/reverse/reversesTheOrder
   |~~ The elements come in reverse order. ~~|
@@ -1381,11 +1339,10 @@
       splices it.
       ::link~(::vec/append | doc)
   ~~|
-  ::builtin{}
-
-:vec/flat/answer
-  |~~ The elements with one level of nesting spliced in. ~~|
-  ::vec
+  ::fn
+    | returns
+        |~~ The elements with one level of nesting spliced in. ~~| ::vec
+    | impl ::builtin{}
 
 :vec/flat/splicesOneLevel
   |~~ The inner vectors splice into one. ~~|
@@ -1420,17 +1377,14 @@
       vector first, `[(get /names) (get /ages)] | zip`. It takes no value.
       ::link~(::vec/flat | doc)
   ~~|
-  ::builtin{}
-
-:vec/zip/answer
-  |~~ The elements at each index, a vector each. ~~|
-  ::vec
-
-:vec/zip/ElementNotVecError
-  |~~ `zip` reads vectors side by side; `:index` names the first element
-      that is no vector, the vectors read into one first, `get [/a /b] |
-      zip`.
-  ~~|
+  ::fn
+    | returns |~~ The elements at each index, a vector each. ~~| ::vec
+    | throws :ElementNotVecError
+        |~~ `zip` reads vectors side by side; `:index` names the first
+            element that is no vector, the vectors read into one first,
+            `get [/a /b] | zip`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/zip/pairsTheElementsAtEachIndex
   |~~ The elements at each index stand together. ~~|
@@ -1471,32 +1425,31 @@
       A set and a map answer `reduce` by words of their own.
       ::link~(::vec/sum | doc)
   ~~|
-  ::builtin{}
-
-:vec/reduce/answer
-  |~~ The value folded after the last element, any value, the seed for an empty vector. ~~|
-  ::any
-
-:vec/reduce/seed
-  |~~ The value the fold starts from, any value. ~~|
-  /0
-
-:vec/reduce/reducer
-  |~~ A quote: one word the fold calls with the element, or code it runs on the pair of the value so far and the element. ~~|
-  /1
-
-:vec/reduce/reducer/NotQuoteError
-  |~~ The reducer is a quote, `reduce 0 ~(add)`, after the seed: written
-      first, `reduce ~(add) 0`, it stands in the seed's place and hands
-      the reducer's place the seed, and written without the tilde,
-      `(add)`, it is computed once at the call; either is refused.
-  ~~|
-  ::holds~(is ::quote ::path)
-
-:vec/reduce/reducer/NotGivenError
-  |~~ `reduce` takes the seed first and the reducer after it, `reduce 0
-      ~(add)`; a call of the reducer alone reads it as the seed.
-  ~~|
+  ::fn
+    | takes :seed |~~ The value the fold starts from, any value. ~~| /0
+    | takes :reducer
+        |~~ A quote: one word the fold calls with the element, or code it
+            runs on the pair of the value so far and the element.
+        ~~|
+        /1 #[::path ::quote]
+    | throws :reducer/NotPathOrQuoteError
+        |~~ The reducer is a quote, `reduce 0 ~(add)`, after the seed:
+            written first, `reduce ~(add) 0`, it stands in the seed's
+            place and hands the reducer's place the seed, and written
+            without the tilde, `(add)`, it is computed once at the call;
+            either is refused.
+        ~~|
+    | throws :reducer/NotGivenError
+        |~~ `reduce` takes the seed first and the reducer after it,
+            `reduce 0 ~(add)`; a call of the reducer alone reads it as the
+            seed.
+        ~~|
+    | returns
+        |~~ The value folded after the last element, any value, the seed
+            for an empty vector.
+        ~~|
+        ::any
+    | impl ::builtin{}
 
 :vec/reduce/sums
   |~~ Adding from zero sums. ~~|
@@ -1553,17 +1506,17 @@
   |~~ An error the reducer answers answers the call. ~~|
   ::law~([1 "x" 3] | reduce 0 ~(add) !| type | eq ::number/add/addend/NotNumberError)
 
-:vec/reduce/reducer/NotQuoteError/refusesANumber
+:vec/reduce/reducer/NotPathOrQuoteError/refusesANumber
   |~~ A number computed at the call is refused. ~~|
   ::law~([1 2 3] | reduce 0 1
     !| [type (get /actualType)]
-    |  eq [::vec/reduce/reducer/NotQuoteError ::number])
+    |  eq [::vec/reduce/reducer/NotPathOrQuoteError ::number])
 
-:vec/reduce/reducer/NotQuoteError/refusesTheReducerFirst
+:vec/reduce/reducer/NotPathOrQuoteError/refusesTheReducerFirst
   |~~ A reducer written before the seed hands the reducer's place the seed. ~~|
   ::law~([1 2 3] | reduce ~(add) 0
     !| [type (get /actualType)]
-    |  eq [::vec/reduce/reducer/NotQuoteError ::number])
+    |  eq [::vec/reduce/reducer/NotPathOrQuoteError ::number])
 
 :vec/reduce/reducer/NotGivenError/readsALoneQuoteAsTheSeed
   |~~ A call of the reducer alone lacks the reducer. ~~|
@@ -1589,33 +1542,28 @@
       ::link~(::vec/minus | doc) ::link~(::vec/inter | doc)
       ::link~(::set/union | doc)
   ~~|
-  ::builtin{}
-
-:vec/union/answer
-  |~~ The union of the values, a set or a map. ~~|
-  #[::set ::map]
-
-:vec/union/SubjectEmptyError
-  |~~ `union` over a vector unites its values from the first, `[a b c]
-      | union`, so the vector holds one at least; two values unite as
-      `a | union b`.
-  ~~|
-
-:vec/union/ElementNotSetOrMapError
-  |~~ The values `union` unites are sets or maps; `:index` names the first
-      that is neither, and a vector of vectors unites once each is a set,
-      `map ~(distinct) | union`.
-  ~~|
-
-:vec/union/KindsMismatchedError
-  |~~ The values `union` unites are all sets or all maps; a set beside a
-      map is refused with the pair.
-  ~~|
-
-:vec/union/ArgsBeyondPartsError
-  |~~ `union` over a vector unites the values it holds and takes no value:
-      two values unite as `a | union b`, `#[1] | union #[2]`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The union of the values, a set or a map. ~~| #[::set ::map]
+    | throws :SubjectEmptyError
+        |~~ `union` over a vector unites its values from the first, `[a b
+            c] | union`, so the vector holds one at least; two values
+            unite as `a | union b`.
+        ~~|
+    | throws :ElementNotSetOrMapError
+        |~~ The values `union` unites are sets or maps; `:index` names the
+            first that is neither, and a vector of vectors unites once
+            each is a set, `map ~(distinct) | union`.
+        ~~|
+    | throws :KindsMismatchedError
+        |~~ The values `union` unites are all sets or all maps; a set
+            beside a map is refused with the pair.
+        ~~|
+    | throws :ArgsBeyondPartsError
+        |~~ `union` over a vector unites the values it holds and takes no
+            value: two values unite as `a | union b`, `#[1] | union #[2]`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/union/unitesTheValues
   |~~ The sets the vector holds unite. ~~|
@@ -1666,38 +1614,34 @@
       ::link~(::vec/union | doc) ::link~(::vec/inter | doc)
       ::link~(::set/minus | doc)
   ~~|
-  ::builtin{}
-
-:vec/minus/answer
-  |~~ The first value less the ones after it, a set or a map. ~~|
-  #[::set ::map]
-
-:vec/minus/SubjectEmptyError
-  |~~ `minus` over a vector takes from its first value the ones after it,
-      `[a b c] | minus`, so the vector holds one at least; of two values
-      `a | minus b` takes `b` from `a`.
-  ~~|
-
-:vec/minus/ElementNotSetOrMapError
-  |~~ The value `minus` takes from is a set or a map; `:index` names the
-      first value of the vector, which is neither.
-  ~~|
-
-:vec/minus/KindsMismatchedError
-  |~~ After a set `minus` takes a set, and after a map a map, a set or a
-      vector of keys; another value is refused with the pair.
-  ~~|
-
-:vec/minus/KeyNotKeywordOrStringError
-  |~~ A key `minus` takes out of a map is a keyword or a string; `:index`
-      names the first element of the vector of keys that is neither.
-  ~~|
-
-:vec/minus/ArgsBeyondPartsError
-  |~~ `minus` over a vector takes from its first value the ones after it
-      and takes no value: of two values `a | minus b` takes `b` from `a`,
-      `#[1 2] | minus #[2]`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The first value less the ones after it, a set or a map. ~~|
+        #[::set ::map]
+    | throws :SubjectEmptyError
+        |~~ `minus` over a vector takes from its first value the ones
+            after it, `[a b c] | minus`, so the vector holds one at least;
+            of two values `a | minus b` takes `b` from `a`.
+        ~~|
+    | throws :ElementNotSetOrMapError
+        |~~ The value `minus` takes from is a set or a map; `:index` names
+            the first value of the vector, which is neither.
+        ~~|
+    | throws :KindsMismatchedError
+        |~~ After a set `minus` takes a set, and after a map a map, a set
+            or a vector of keys; another value is refused with the pair.
+        ~~|
+    | throws :KeyNotKeywordOrStringError
+        |~~ A key `minus` takes out of a map is a keyword or a string;
+            `:index` names the first element of the vector of keys that is
+            neither.
+        ~~|
+    | throws :ArgsBeyondPartsError
+        |~~ `minus` over a vector takes from its first value the ones
+            after it and takes no value: of two values `a | minus b` takes
+            `b` from `a`, `#[1 2] | minus #[2]`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/minus/subtractsTheRest
   |~~ The first set loses what the next holds. ~~|
@@ -1748,38 +1692,32 @@
       ::link~(::vec/union | doc) ::link~(::vec/minus | doc)
       ::link~(::set/inter | doc)
   ~~|
-  ::builtin{}
-
-:vec/inter/answer
-  |~~ What every value holds, a set or a map. ~~|
-  #[::set ::map]
-
-:vec/inter/SubjectEmptyError
-  |~~ `inter` over a vector keeps what its values share from the first,
-      `[a b c] | inter`, so the vector holds one at least; of two values
-      `a | inter b` keeps what `a` shares with `b`.
-  ~~|
-
-:vec/inter/ElementNotSetOrMapError
-  |~~ The value `inter` keeps from is a set or a map; `:index` names the
-      first value of the vector, which is neither.
-  ~~|
-
-:vec/inter/KindsMismatchedError
-  |~~ After a set `inter` takes a set, and after a map a map, a set or a
-      vector of keys; another value is refused with the pair.
-  ~~|
-
-:vec/inter/KeyNotKeywordOrStringError
-  |~~ A key `inter` keeps of a map is a keyword or a string; `:index`
-      names the first element of the vector of keys that is neither.
-  ~~|
-
-:vec/inter/ArgsBeyondPartsError
-  |~~ `inter` over a vector keeps what its values share and takes no
-      value: of two values `a | inter b` keeps what `a` shares with `b`,
-      `#[1 2] | inter #[2]`.
-  ~~|
+  ::fn
+    | returns |~~ What every value holds, a set or a map. ~~| #[::set ::map]
+    | throws :SubjectEmptyError
+        |~~ `inter` over a vector keeps what its values share from the
+            first, `[a b c] | inter`, so the vector holds one at least; of
+            two values `a | inter b` keeps what `a` shares with `b`.
+        ~~|
+    | throws :ElementNotSetOrMapError
+        |~~ The value `inter` keeps from is a set or a map; `:index` names
+            the first value of the vector, which is neither.
+        ~~|
+    | throws :KindsMismatchedError
+        |~~ After a set `inter` takes a set, and after a map a map, a set
+            or a vector of keys; another value is refused with the pair.
+        ~~|
+    | throws :KeyNotKeywordOrStringError
+        |~~ A key `inter` keeps of a map is a keyword or a string;
+            `:index` names the first element of the vector of keys that is
+            neither.
+        ~~|
+    | throws :ArgsBeyondPartsError
+        |~~ `inter` over a vector keeps what its values share and takes no
+            value: of two values `a | inter b` keeps what `a` shares with
+            `b`, `#[1 2] | inter #[2]`.
+        ~~|
+    | impl ::builtin{}
 
 :vec/inter/keepsTheCommonElements
   |~~ The elements both sets hold stay. ~~|
@@ -1831,33 +1769,29 @@
       join ","`.
       ::link~(::string/split | doc) ::link~(::any/print | doc)
   ~~|
-  ::builtin{}
-
-:vec/join/answer
-  |~~ The elements joined into one string by the separator. ~~|
-  ::string
-
-:vec/join/separator
-  |~~ The text written between every two elements, `join ", "`. ~~|
-  /0
-
-:vec/join/separator/NotStringOrKeywordError
-  |~~ The separator is a string, `["a" "b"] | join ","`, or a keyword
-      written as its name; a number writes as text by `toString` first,
-      `join (1 | toString)`.
-  ~~|
-  ::holds~(is ::string ::keyword)
-
-:vec/join/SubjectNotVecError
-  |~~ `join` writes a vector of strings as one: a map's values are read
-      first, `vals | join ","`, and a string is taken apart by `split`.
-  ~~|
-
-:vec/join/ElementNotStringOrKeywordError
-  |~~ Every element `join` writes is a string or a keyword, written as
-      its name; `:index` names the first that is neither, and `map
-      ~print` makes each value its text first.
-  ~~|
+  ::fn
+    | takes :separator
+        |~~ The text written between every two elements, `join ", "`. ~~|
+        /0 #[::keyword ::string]
+    | throws :separator/NotKeywordOrStringError
+        |~~ The separator is a string, `["a" "b"] | join ","`, or a
+            keyword written as its name; a number writes as text by
+            `toString` first, `join (1 | toString)`.
+        ~~|
+    | returns
+        |~~ The elements joined into one string by the separator. ~~|
+        ::string
+    | throws :SubjectNotVecError
+        |~~ `join` writes a vector of strings as one: a map's values are
+            read first, `vals | join ","`, and a string is taken apart by
+            `split`.
+        ~~|
+    | throws :ElementNotStringOrKeywordError
+        |~~ Every element `join` writes is a string or a keyword, written
+            as its name; `:index` names the first that is neither, and
+            `map ~print` makes each value its text first.
+        ~~|
+    | impl ::builtin{}
 
 :vec/join/joinsWithTheSeparator
   |~~ The separator stands between the strings. ~~|
@@ -1891,11 +1825,11 @@
   |~~ The values of a map are read first. ~~|
   ::law~({:a "x" :b "y"} | vals | join "," | eq "x,y")
 
-:vec/join/separator/NotStringOrKeywordError/refusesANumber
+:vec/join/separator/NotKeywordOrStringError/refusesANumber
   |~~ A number separator is refused. ~~|
   ::law~(["a" "b"] | join 42
     !| [type (get /actualType)]
-    |  eq [::vec/join/separator/NotStringOrKeywordError ::number])
+    |  eq [::vec/join/separator/NotKeywordOrStringError ::number])
 
 :vec/join/SubjectNotVecError/refusesANumber
   |~~ A number is no vector of strings. ~~|
@@ -1922,15 +1856,10 @@
       element at the end.
       ::link~(::vec/append | doc)
   ~~|
-  ::builtin{}
-
-:vec/prepend/answer
-  |~~ The vector with the element as its first. ~~|
-  ::vec
-
-:vec/prepend/element
-  |~~ The element put at the head, any value. ~~|
-  /0
+  ::fn
+    | takes :element |~~ The element put at the head, any value. ~~| /0
+    | returns |~~ The vector with the element as its first. ~~| ::vec
+    | impl ::builtin{}
 
 :vec/prepend/putsTheElementFirst
   |~~ The element goes first. ~~|
@@ -1961,15 +1890,10 @@
       ::link~(::vec/prepend | doc) ::link~(::vec/flat | doc)
       ::link~(::doc/ElementNotSegmentError | doc)
   ~~|
-  ::builtin{}
-
-:vec/append/answer
-  |~~ The vector with the element as its last. ~~|
-  ::vec
-
-:vec/append/element
-  |~~ The element put at the end, any value. ~~|
-  /0
+  ::fn
+    | takes :element |~~ The element put at the end, any value. ~~| /0
+    | returns |~~ The vector with the element as its last. ~~| ::vec
+    | impl ::builtin{}
 
 :vec/append/putsTheElementLast
   |~~ The element goes last. ~~|
@@ -1995,11 +1919,9 @@
       ::link~(::vec/distinct | doc) ::link~(::set/toVec | doc)
       ::link~(::map/keys | doc)
   ~~|
-  ::builtin{}
-
-:vec/toSet/answer
-  |~~ The set of the elements. ~~|
-  ::set
+  ::fn
+    | returns |~~ The set of the elements. ~~| ::set
+    | impl ::builtin{}
 
 :vec/toSet/leadsAMapToItsKeys
   |~~ A map is led to its keys. ~~|
@@ -2019,22 +1941,18 @@
       ::link~(::map/entries | doc) ::link~(::string/toKeyword | doc)
       ::link~(::map | doc)
   ~~|
-  ::builtin{}
-
-:vec/toMap/answer
-  |~~ The map of the pairs. ~~|
-  ::map
-
-:vec/toMap/ElementNotPairError
-  |~~ Each element of the vector `toMap` reads is a pair `[key value]`;
-      `:index` names the first that is not.
-  ~~|
-
-:vec/toMap/KeyNotKeywordError
-  |~~ The key of a pair is a value `toKeyword` names, a keyword, a string,
-      a number, a boolean, null or a tag name; `:index` names the pair
-      whose key is another value.
-  ~~|
+  ::fn
+    | returns |~~ The map of the pairs. ~~| ::map
+    | throws :ElementNotPairError
+        |~~ Each element of the vector `toMap` reads is a pair `[key
+            value]`; `:index` names the first that is not.
+        ~~|
+    | throws :KeyNotKeywordError
+        |~~ The key of a pair is a value `toKeyword` names, a keyword, a
+            string, a number, a boolean, null or a tag name; `:index`
+            names the pair whose key is another value.
+        ~~|
+    | impl ::builtin{}
 
 :vec/toMap/readsBack
   |~~ A map turned into its pairs turns back into itself. ~~|
@@ -2069,11 +1987,9 @@
       into vectors.
       ::link~(::set/toVec | doc)
   ~~|
-  ::builtin{}
-
-:vec/toVec/answer
-  |~~ The vector itself. ~~|
-  ::vec
+  ::fn
+    | returns |~~ The vector itself. ~~| ::vec
+    | impl ::builtin{}
 
 :vec/toVec/answersItself
   |~~ A vector answers itself. ~~|
@@ -2087,21 +2003,17 @@
       apart.
       ::link~(::path/segments | doc) ::link~(::string/toPath | doc)
   ~~|
-  ::builtin{}
-
-:vec/toPath/answer
-  |~~ The path of the segments. ~~|
-  ::path
-
-:vec/toPath/ElementNotKeyError
-  |~~ Each element is a key, a keyword or a string, or a place, a whole
-      number, `[:items 0] | toPath`.
-  ~~|
-
-:vec/toPath/EmptyError
-  |~~ A path names one segment at least: the value itself is `it`, so the
-      empty vector names no path.
-  ~~|
+  ::fn
+    | returns |~~ The path of the segments. ~~| ::path
+    | throws :ElementNotKeyError
+        |~~ Each element is a key, a keyword or a string, or a place, a
+            whole number, `[:items 0] | toPath`.
+        ~~|
+    | throws :EmptyError
+        |~~ A path names one segment at least: the value itself is `it`,
+            so the empty vector names no path.
+        ~~|
+    | impl ::builtin{}
 
 :vec/toPath/buildsAPath
   |~~ Keys and places build a path. ~~|

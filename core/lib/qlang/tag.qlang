@@ -67,23 +67,22 @@
       ::link~(::tag/gte | doc) ::link~(::tag/lt | doc)
       ::link~(::tag/lte | doc) ::link~(::keyword/gt | doc)
   ~~|
-  ::builtin{}
-
-:tag/gt/answer
-  |~~ `true` when the subject comes after the value, `false` otherwise. ~~|
-  ::boolean
-
-:tag/gt/value
-  |~~ The tag name the subject is compared with, computed against the
-      subject, `::b | gt ::a`.
-  ~~|
-  /0
-
-:tag/gt/value/NotTagError
-  |~~ The value compared is a tag name, `::b | gt ::a`; a keyword
-      compares by the `gt` of keywords, `:b | gt :a`.
-  ~~|
-  ::holds~(is ::tag)
+  ::fn
+    | takes :value
+        |~~ The tag name the subject is compared with, computed against
+            the subject, `::b | gt ::a`.
+        ~~|
+        /0 ::tag
+    | throws :value/NotTagError
+        |~~ The value compared is a tag name, `::b | gt ::a`; a keyword
+            compares by the `gt` of keywords, `:b | gt :a`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes after the value, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :tag/gt/ordersByName
   |~~ `::b` comes after `::a`. ~~|
@@ -116,25 +115,22 @@
       spelled.
       ::link~(::tag/gt | doc) ::link~(::tag/lte | doc)
   ~~|
-  ::builtin{}
-
-:tag/gte/answer
-  |~~ `true` when the subject comes after the value or is the same name,
-      `false` otherwise.
-  ~~|
-  ::boolean
-
-:tag/gte/value
-  |~~ The tag name the subject is compared with, computed against the
-      subject, `::b | gte ::a`.
-  ~~|
-  /0
-
-:tag/gte/value/NotTagError
-  |~~ The value compared is a tag name, `::b | gte ::a`; a keyword
-      compares by the `gte` of keywords, `:b | gte :a`.
-  ~~|
-  ::holds~(is ::tag)
+  ::fn
+    | takes :value
+        |~~ The tag name the subject is compared with, computed against
+            the subject, `::b | gte ::a`.
+        ~~|
+        /0 ::tag
+    | throws :value/NotTagError
+        |~~ The value compared is a tag name, `::b | gte ::a`; a keyword
+            compares by the `gte` of keywords, `:b | gte :a`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes after the value or is the same
+            name, `false` otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :tag/gte/holdsOfItself
   |~~ A name comes after or is itself. ~~|
@@ -155,23 +151,22 @@
       ::a` answers `true`.
       ::link~(::tag/gt | doc) ::link~(::tag/lte | doc)
   ~~|
-  ::builtin{}
-
-:tag/lt/answer
-  |~~ `true` when the subject comes before the value, `false` otherwise. ~~|
-  ::boolean
-
-:tag/lt/value
-  |~~ The tag name the subject is compared with, computed against the
-      subject, `::b | lt ::a`.
-  ~~|
-  /0
-
-:tag/lt/value/NotTagError
-  |~~ The value compared is a tag name, `::b | lt ::a`; a keyword
-      compares by the `lt` of keywords, `:b | lt :a`.
-  ~~|
-  ::holds~(is ::tag)
+  ::fn
+    | takes :value
+        |~~ The tag name the subject is compared with, computed against
+            the subject, `::b | lt ::a`.
+        ~~|
+        /0 ::tag
+    | throws :value/NotTagError
+        |~~ The value compared is a tag name, `::b | lt ::a`; a keyword
+            compares by the `lt` of keywords, `:b | lt :a`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes before the value, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :tag/lt/ordersByName
   |~~ `::a` comes before `::b`. ~~|
@@ -195,25 +190,22 @@
       `gt` does, tag names with tag names.
       ::link~(::tag/lt | doc) ::link~(::tag/gte | doc)
   ~~|
-  ::builtin{}
-
-:tag/lte/answer
-  |~~ `true` when the subject comes before the value or is the same name,
-      `false` otherwise.
-  ~~|
-  ::boolean
-
-:tag/lte/value
-  |~~ The tag name the subject is compared with, computed against the
-      subject, `::b | lte ::a`.
-  ~~|
-  /0
-
-:tag/lte/value/NotTagError
-  |~~ The value compared is a tag name, `::b | lte ::a`; a keyword
-      compares by the `lte` of keywords, `:b | lte :a`.
-  ~~|
-  ::holds~(is ::tag)
+  ::fn
+    | takes :value
+        |~~ The tag name the subject is compared with, computed against
+            the subject, `::b | lte ::a`.
+        ~~|
+        /0 ::tag
+    | throws :value/NotTagError
+        |~~ The value compared is a tag name, `::b | lte ::a`; a keyword
+            compares by the `lte` of keywords, `:b | lte :a`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes before the value or is the same
+            name, `false` otherwise.
+        ~~|
+        ::boolean
+    | impl ::builtin{}
 
 :tag/lte/holdsOfItself
   |~~ A name comes before or is itself. ~~|
@@ -244,21 +236,19 @@
       ::link~(::any/kinds | doc) ::link~(::any/env | doc)
       ::link~(::any/source | doc)
   ~~|
-  ::builtin{}
-
-:tag/manifest/answer
-  |~~ The addresses of the names declared one name under the noun. ~~|
-  ::set
-
-:tag/manifest/SubjectNotTagError
-  |~~ `manifest` is asked of a noun by its tag name, `::number |
-      manifest`; a keyword names a binding and no noun.
-  ~~|
-
-:tag/manifest/ArgsBeyondPartsError
-  |~~ `manifest` reads the noun of the subject and takes no value: the
-      manifest of vectors is `::vec | manifest`.
-  ~~|
+  ::fn
+    | returns
+        |~~ The addresses of the names declared one name under the noun. ~~|
+        ::set
+    | throws :SubjectNotTagError
+        |~~ `manifest` is asked of a noun by its tag name, `::number |
+            manifest`; a keyword names a binding and no noun.
+        ~~|
+    | throws :ArgsBeyondPartsError
+        |~~ `manifest` reads the noun of the subject and takes no value:
+            the manifest of vectors is `::vec | manifest`.
+        ~~|
+    | impl ::builtin{}
 
 :tag/manifest/holdsAVerbOfTheNoun
   |~~ The manifest of numbers holds `add`. ~~|
@@ -302,11 +292,9 @@
       back into the tag.
       ::link~(::string/toTag | doc)
   ~~|
-  ::builtin{}
-
-:tag/toString/answer
-  |~~ The name of the tag, a string. ~~|
-  ::string
+  ::fn
+    | returns |~~ The name of the tag, a string. ~~| ::string
+    | impl ::builtin{}
 
 :tag/toString/answersTheName
   |~~ A tag answers its name. ~~|
@@ -318,11 +306,9 @@
       `toTag` turns the keyword back into the tag.
       ::link~(::keyword/toTag | doc)
   ~~|
-  ::builtin{}
-
-:tag/toKeyword/answer
-  |~~ The keyword of the tag's name. ~~|
-  ::keyword
+  ::fn
+    | returns |~~ The keyword of the tag's name. ~~| ::keyword
+    | impl ::builtin{}
 
 :tag/toKeyword/readsBack
   |~~ A tag turned into its keyword turns back into itself. ~~|
@@ -334,11 +320,9 @@
       `[::vec ::Box ::map]`.
       ::link~(::string/toTag | doc)
   ~~|
-  ::builtin{}
-
-:tag/toTag/answer
-  |~~ The tag itself. ~~|
-  ::tag
+  ::fn
+    | returns |~~ The tag itself. ~~| ::tag
+    | impl ::builtin{}
 
 :tag/toTag/answersItself
   |~~ A tag answers itself, so names and tags turn into tags. ~~|

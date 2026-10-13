@@ -23,16 +23,13 @@
   |~~ Answers the offset of the point from the start of the text,
       counted from zero, `::point[4 1 5] | offset` answering `4`.
   ~~|
-  ~(get /0)
-
-:point/offset/answer
-  |~~ The offset, from zero. ~~|
-  ::number
-
-:point/offset/SubjectNotPointError
-  |~~ `offset` reads a point, the start or the end of a span,
-      `"[1" | parse !| get /location | start | offset`.
-  ~~|
+  ::fn
+    | returns |~~ The offset, from zero. ~~| ::number
+    | throws :SubjectNotPointError
+        |~~ `offset` reads a point, the start or the end of a span, `"[1"
+            | parse !| get /location | start | offset`.
+        ~~|
+    | impl ~(get /0)
 
 :point/offset/readsTheFirstNumber
   |~~ The offset is the first number of a point. ~~|
@@ -42,16 +39,13 @@
   |~~ Answers the line of the point, counted from one,
       `::point[4 2 1] | line` answering `2`.
   ~~|
-  ~(get /1)
-
-:point/line/answer
-  |~~ The line, from one. ~~|
-  ::number
-
-:point/line/SubjectNotPointError
-  |~~ `line` reads a point, the start or the end of a span,
-      `"[1" | parse !| get /location | start | line`.
-  ~~|
+  ::fn
+    | returns |~~ The line, from one. ~~| ::number
+    | throws :SubjectNotPointError
+        |~~ `line` reads a point, the start or the end of a span, `"[1" |
+            parse !| get /location | start | line`.
+        ~~|
+    | impl ~(get /1)
 
 :point/line/readsTheSecondNumber
   |~~ The line is the second number of a point. ~~|
@@ -61,16 +55,13 @@
   |~~ Answers the column of the point in its line, counted from one,
       `::point[4 1 5] | column` answering `5`.
   ~~|
-  ~(get /2)
-
-:point/column/answer
-  |~~ The column, from one. ~~|
-  ::number
-
-:point/column/SubjectNotPointError
-  |~~ `column` reads a point, the start or the end of a span,
-      `"[1" | parse !| get /location | start | column`.
-  ~~|
+  ::fn
+    | returns |~~ The column, from one. ~~| ::number
+    | throws :SubjectNotPointError
+        |~~ `column` reads a point, the start or the end of a span, `"[1"
+            | parse !| get /location | start | column`.
+        ~~|
+    | impl ~(get /2)
 
 :point/column/readsTheThirdNumber
   |~~ The column is the third number of a point. ~~|

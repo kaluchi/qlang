@@ -3,7 +3,7 @@
 // the verbs that lay a tag over a value and take it off.
 
 import { mintUnderTag } from './verb.mjs';
-import { bindPrim, bindStateReader } from '../primitives.mjs';
+import { bindPrim, bindStateReader, runs } from '../primitives.mjs';
 import {
   isVec, isKeyword, isRegex, isPath, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
   isTag, makeSet, makeTag, makeTaggedInstance, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
@@ -119,7 +119,7 @@ function payloadOf(tagged) {
 // its subject's kind, so the answer of its edit mints back under the
 // subject's tag [D41], [D167].
 bindPrim('tagged/payload', subject => payloadOf(subject));
-bindPrim('tagged/within', async (subject, code) => await code(payloadOf(subject)));
+bindPrim('tagged/within', runs(['code'], async (subject, code) => await code(payloadOf(subject))));
 
 // `tag` resides on `::any` and reads the state of its call, whose
 // scope holds the constructor of the tag [D79]: `value | tag ::Foo` lays

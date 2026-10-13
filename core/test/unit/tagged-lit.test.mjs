@@ -378,13 +378,13 @@ describe('within edits under one tag and rewraps it', () => {
 
   it('an error the edit answers passes as it is, and one the code answers is refused by its slot', async () => {
     expect(await evalQuery('#[1 2] | within ~(!{:k 2} | raise) !| get /k')).toBe(2);
-    expect(await evalQuery('#[1 2] | within (!{:k 1} | raise) !| type')).toEqual(makeTag('tagged/within/code/NotQuoteError'));
+    expect(await evalQuery('#[1 2] | within (!{:k 1} | raise) !| type')).toEqual(makeTag('tagged/within/code/NotPathOrQuoteError'));
   });
 
   it('a subject with no tag and a code that is no quote are refused', async () => {
     expect(await evalQuery('[1 2] | within ~(reverse) !| type'))
       .toEqual(makeTag('tagged/within/SubjectNotTaggedError'));
     expect(await evalQuery('#[1 2] | within 1 !| type'))
-      .toEqual(makeTag('tagged/within/code/NotQuoteError'));
+      .toEqual(makeTag('tagged/within/code/NotPathOrQuoteError'));
   });
 });

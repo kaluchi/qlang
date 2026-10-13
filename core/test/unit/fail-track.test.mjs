@@ -145,8 +145,8 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('a prefix or a suffix of another kind is refused by the law of its part [D166]', async () => {
-    expect((await evalQuery('"x" | prepend 42')).tag.name).toBe('string/prepend/prefix/NotStringOrKeywordError');
-    expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/NotStringOrKeywordError');
+    expect((await evalQuery('"x" | prepend 42')).tag.name).toBe('string/prepend/prefix/NotKeywordOrStringError');
+    expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/NotKeywordOrStringError');
   });
 
   it('sum element non-number → VecSumElementNotNumberError, the element and its kind among the facts', async () => {
@@ -182,7 +182,7 @@ describe('per-site error classes carry unique identity', () => {
 
   it('a key of a map of another kind is refused by the law of its part [D166]', async () => {
     const refused = await evalQuery('{:a 1} | has 42');
-    expect(refused.tag.name).toBe('map/has/key/NotKeywordOrStringError');
+    expect(refused.tag.name).toBe('map/has/key/NotKeywordOrPathOrStringError');
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
@@ -266,7 +266,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | vals',         // map/vals/SubjectNotMapError
       '1 | get /name',         // path/SubjectNotProjectableError (Number subject — neither Map nor Vec)
       '[1] | get /a',          // path/IndexNotIntegerError
-      '[1 2 3] | reduce 0 1'   // vec/reduce/reducer/NotQuoteError
+      '[1 2 3] | reduce 0 1'   // vec/reduce/reducer/NotPathOrQuoteError
     ];
     for (const q of queries) {
       addresses.add((await evalQuery(q)).tag.name);

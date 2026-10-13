@@ -21,7 +21,7 @@
 {"name":"a-verb-folds-with-its-part-taking-the-element","query":":number/plus ~(add elem) | :number/plus/elem /0 | :number/plus/elem/NotNumberError ::holds~(is ::number) | [1 2 3] | reduce 0 ~plus","expect":"6","decision":"D67"}
 {"name":"a-part-carries-the-page-of-its-declaration","query":":any/m ~(x) | :any/m/x |~~ How many. ~~| /0 | ::any/m/x | doc | content","expect":"\" How many. \"","decision":"D166"}
 {"name":"the-declarations-of-a-verb-body-stay-inside-it","query":":number/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false","decision":"D67"}
-{"name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":":k 1 | :number/f ~(add k) | :any/g ~(5 | f) | :any/g/k /0 | g 100 !| type","expect":"::call/UnknownNameError","decision":"D251","target":true,"now":"6"}
+{"name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":":k 1 | :number/f ~(add k) | :any/g ~(5 | f) | :any/g/k /0 | g 100 !| type","expect":"::call/UnknownNameError","decision":"D251"}
 {"name":"a-verb-that-calls-itself-without-end-meets-the-depth-budget","query":":number/inf ~(add 1 | inf) | 0 | inf !| type","expect":"::call/EvaluationDepthExceededError","decision":"D67"}
 {"name":"a-part-of-several-kinds-refuses-a-value-of-none","query":":any/m ~(limit) | :any/m/limit ~(query /0) | :any/m/limit/NotNumberOrNullError ::holds~(is ::number ::null) | 5 | m \"a\" !| type","expect":"::any/m/limit/NotNumberOrNullError","decision":"D169"}
 {"name":"a-part-of-code-takes-a-quote-alone","query":":any/run ~(apply code) | :any/run/code /0 | :any/run/code/NotQuoteError ::holds~(is ::quote) | 5 | run 1 !| type","expect":"::any/run/code/NotQuoteError","decision":"D169"}

@@ -78,8 +78,8 @@
 {"name":"the-page-of-a-part-is-reached-by-its-name","query":":number/f ~(add n) | :number/f/n |~~ how many ~~| /0 | ::number/f | doc :n | content","expect":"\" how many \"","decision":"D88"}
 {"name":"a-name-no-member-holds-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| [type (get /name)]","expect":"[::any/doc/UnknownNameError :nosuch]","decision":"D206"}
 {"name":"a-tag-name-meets-the-names-of-its-noun","query":"::vec | count !| type","expect":"::vec/count/SubjectNotVecError","decision":"D88"}
-{"name":"a-recipe-reads-no-quote-its-query-names","query":":x 10 | :q ~(add x) | :any/t ~(apply q) | :any/t/x /0 | 2 | t 99 !| type","expect":"::call/UnknownNameError","decision":"D251","target":true,"now":"12"}
-{"name":"a-named-quote-reads-the-names-where-its-verb-stands","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big","expect":"[5 10]","decision":"D251","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-recipe-reads-no-quote-its-query-names","query":":x 10 | :q ~(add x) | :any/t ~(apply q) | :any/t/x /0 | 2 | t 99 !| get /actualValue/name","expect":":q","decision":"D251"}
+{"name":"a-named-quote-reads-the-names-where-its-verb-stands","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big","expect":"[5 10]","decision":"D251"}
 {"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":"::type | doc !| get /addresses","expect":"#[::any/type]","decision":"D46"}
 {"name":"a-parse-error-names-no-marker-of-a-comment-among-its-continuations","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| get /expected | any ~(eq \"|~~|\")","expect":"false","decision":"D7"}
 {"name":"an-unclosed-quote-names-its-closer","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| get /expected","expect":"[\")\"]","decision":"D125"}

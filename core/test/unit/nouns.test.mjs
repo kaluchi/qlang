@@ -37,13 +37,13 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('shop !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a word of a source reads a bare value of its source before a word of that name a reader or a later source declares [D200]', async () => {
+  it('a word of a source reads a bare value of the root as a reader reads it, after the words of its name, no frame of its source before them [D251]', async () => {
     const shop = { uri: 'shop', source: ':shop |~~ A shop. ~~|\n:limit 5\n:shop/capped ~(limit)' };
     const later = { uri: 'stock', source: ':stock |~~ A stock. ~~|\n:stock/limit ~(7)' };
     const alone = await createSession({ sources: [shop] });
     expect((await alone.evalCell(':vec/limit ~(99) | ::shop{} | capped')).result).toBe(5);
     const beside = await createSession({ sources: [shop, later] });
-    expect((await beside.evalCell('::shop{} | capped')).result).toBe(5);
+    expect((await beside.evalCell('::shop{} | capped !| type')).result).toEqual(makeTag('stock/limit/SubjectNotStockError'));
   });
 
   it('a label of a source is no bare name inside the words of its source [D191], [D200]', async () => {
@@ -51,7 +51,7 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('::shop{} | self !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a word of a source reads a bare value its source declares after it [D200]', async () => {
+  it('a word of a source reads a bare value its source declares after it, a node of the root [D251]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/capped ~(limit)\n:limit 5' }] });
     expect((await session.evalCell('::shop{} | capped')).result).toBe(5);
   });
@@ -174,10 +174,10 @@ describe('what a word reads and runs as data reads the tree of the query [D200]'
     expect((await session.evalCell(':x 1 | "x" | parse | :q it | null | runIt q 99')).result).toBe(1);
   });
 
-  it('a word the reader declares reads and runs as data under its own declarations, as steps inline in a group', async () => {
-    expect(await evalQuery(':x 1 | :any/names ~(:y 2 | env | get [(has :y) (has :x)]) | names | eq [true true]')).toBe(true);
-    expect(await evalQuery(':any/f ~(:loc |~~ L ~~| 1 | ::loc | doc | content) | f')).toBe(' L ');
-    expect(await evalQuery(':x 1 | :any/run ~(apply code) | :any/run/code /0 | :any/run/x /1 | "x" | parse | :q it | null | run q 99')).toBe(99);
+  it('a word the reader declares reads and runs as data the tree of the query, past its own declarations and parts, as a word of the root does [D251]', async () => {
+    expect(await evalQuery(':x 1 | :any/names ~(:y 2 | env | get [(has :y) (has :x)]) | names | eq [false true]')).toBe(true);
+    expect(await evalQuery(':any/f ~(:loc |~~ L ~~| 1 | ::loc | doc | content) | f !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
+    expect(await evalQuery(':x 1 | :any/run ~(apply code) | :any/run/code /0 | :any/run/x /1 | "x" | parse | :q it | null | run q 99')).toBe(1);
   });
 
   it('a word reads a name the query declares after the word', async () => {

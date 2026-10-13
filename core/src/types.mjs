@@ -162,31 +162,6 @@ export function makeQuote(steps, ast = undefined) {
   return Object.freeze(quote);
 }
 
-// A quote written as a modifier carries the scope of its call [D43], one
-// written as the body of a reader's declaration that of its declaration
-// [D5], and one a source of the root declared the frame of the source's
-// bare values over the root [D200], on a JS-internal slot; a quote held as
-// data carries none and runs where it is applied.
-const QUOTE_ENV_SLOT = Symbol('qlang/quoteEnv');
-
-export function quoteInEnv(quote, env) {
-  const carried = [...quote];
-  stampTagHeader(carried, QUOTE_TAG);
-  stampSlot(carried, QUOTE_AST_SLOT, quote[QUOTE_AST_SLOT]);
-  stampSlot(carried, QUOTE_ENV_SLOT, { env });
-  return Object.freeze(carried);
-}
-
-// The holder of the scope a declared quote runs in, which its declaration
-// fills and the root sets for a quote of its sources [D200].
-export function quoteEnvRef(quote) {
-  return quote[QUOTE_ENV_SLOT];
-}
-
-export function envToRun(quote, envWhereApplied) {
-  return quote[QUOTE_ENV_SLOT]?.env ?? envWhereApplied;
-}
-
 // A set is the vector in the one order without duplicates under `::set`
 // [D16], minted here alone; the order ranks two values alike exactly when
 // they are equal.

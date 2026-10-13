@@ -39,7 +39,7 @@
 {"name":"an-invariant-declared-by-a-bare-name-is-refused","query":":Box |~~ A box. ~~| ::holds~(get /w | is ::number) | :Box/area ~(mulOf /w /h) !| [type (get /name)]","expect":"[::bind/InvariantNotUnderLabelError :Box]","decision":"D229"}
 {"name":"a-value-of-the-reader-reaches-no-name-a-word-of-the-root-writes","query":":laws 7 | :k |~~ K. ~~| 1 | ::k | tutorial | get [(get /0 | content) (get /1)]","expect":"[\" K. \" {}]","decision":"D200"}
 {"name":"the-names-a-word-of-the-root-declares-stay-out-of-what-it-reads","query":"::subject | tutorial !| type","expect":"::any/doc/UnknownNameError","decision":"D200"}
-{"name":"a-word-reads-as-data-the-names-of-its-query-not-its-own","query":":x 1 | :any/names ~(:y 2 | env | get [(has :y) (has :x)]) | names","expect":"[false true]","decision":"D251","target":true,"now":"[true true]"}
+{"name":"a-word-reads-as-data-the-names-of-its-query-not-its-own","query":":x 1 | :any/names ~(:y 2 | env | get [(has :y) (has :x)]) | names","expect":"[false true]","decision":"D251"}
 {"name":"code-held-as-data-runs-in-the-tree-of-the-query","query":":any/run ~(apply code) | :any/run/code /0 | :x 5 | \"x | add 1\" | parse | :q it | (null | run q)","expect":"6","decision":"D200"}
 {"name":"the-args-of-a-call-are-a-value-under-its-word","query":":any/argsOf ~(args) | :any/argsOf/xs ~(take 99) | 5 | argsOf 1 2","expect":"::any/argsOf[1 2]","decision":"D164"}
 {"name":"an-invariant-a-bare-name-declares-is-refused","query":":Positive ::holds~(gt 0) !| type","expect":"::bind/InvariantNotUnderLabelError","decision":"D229"}

@@ -12,13 +12,12 @@
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
-import { rootState, markRootWordScope } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isErrorValue, isQuote, bindingValueOf, declareHostValue, keyword, quoteEnvRef } from '../types.mjs';
-import { splitAddress } from '../address.mjs';
+import { rootState } from '../state.mjs';
+import { isBinding, isBuiltinDescriptor, isErrorValue, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareInvariantError } from '../errors.mjs';
-import { holdsAPage, isUnderLabel } from './nouns.mjs';
+import { isUnderLabel } from './nouns.mjs';
 
 // A source of the root whose run answers an error, or that declares again
 // a name the root holds, left its declarations out of the root, `:tagName`
@@ -66,22 +65,6 @@ export async function declareRoot(env, sources) {
       }
     }
     root = new Map([...root, ...declared]);
-    runInTheRoot(declared, root);
   }
   return new Map(env).set(ROOT_KEY, root);
-}
-
-// A quote a source declared runs in a frame of the source's bare values,
-// its names of one segment that hold no page, over the root the source
-// joined, so its words read those values first, and a label is no bare
-// name [D191], [D200].
-function runInTheRoot(declared, root) {
-  const frame = markRootWordScope(new Map([[ROOT_KEY, root]]));
-  for (const [name, record] of declared) {
-    if (splitAddress(name)[0] === null && !holdsAPage(record)) frame.set(name, record);
-  }
-  for (const record of declared.values()) {
-    const value = bindingValueOf(record);
-    if (isQuote(value) && quoteEnvRef(value) !== undefined) quoteEnvRef(value).env = frame;
-  }
 }

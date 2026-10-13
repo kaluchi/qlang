@@ -16,9 +16,11 @@
    example of the catalog and every literal of the conformance cases.
    The decisions it exists for: [D42]. ~|
 
-:atomKinds
-  |~~ The kinds of the atoms. ~~|
-  #[::null ::boolean ::number ::string ::regex ::keyword ::tag ::path]
+:any/atomKinds
+  |~~ The kinds of the atoms, a word, since a recipe reads no value a
+      sentence names.
+  ~~|
+  ~(#[::null ::boolean ::number ::string ::regex ::keyword ::tag ::path])
 
 :any/groupBefore
   |~~ The step followed by the steps of the suffix, as a group, or the

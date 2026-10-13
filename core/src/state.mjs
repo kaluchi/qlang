@@ -80,16 +80,11 @@ export function queryStateOf(state) {
   return tree === state.env ? state : withEnv(state, tree);
 }
 
-// envSet(env, name, value) → a new scope, the name holding the value; in
-// the body of a word the reader declared, the tree of the query takes the
-// name too, as the steps written inline in a group would see it, and the
-// body of a word of the root keeps its own names out of it, as a word of
-// the host does [D200].
+// envSet(env, name, value) → a new scope, the name holding the value; the
+// body of a word keeps its own names out of the tree of the query, as a
+// word of the host does [D200], [D251].
 export function envSet(env, name, value) {
-  const next = asScopeOf(env, new Map(env).set(name, value));
-  const query = env.get(QUERY_KEY);
-  if (query !== undefined && !isRootWordScope(env)) next.set(QUERY_KEY, envSet(query, name, value));
-  return next;
+  return asScopeOf(env, new Map(env).set(name, value));
 }
 
 // The scopes of the words of the root, where a bare name and the

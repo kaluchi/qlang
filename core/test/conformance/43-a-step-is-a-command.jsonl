@@ -1,0 +1,55 @@
+{"name":"a-query-reads-by-get-and-its-words-take-a-path","query":"{:data {:users [{:name \"Ann\" :age 30 :active true} {:name \"Bo\" :age 15 :active false} {:name \"Cy\" :age 20 :active true}]}} | get /data/users | filter /active | sort /age | map /name","expect":"[\"Cy\" \"Ann\"]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"get-reads-a-nested-path","query":"{:a {:b [10 20]}} | get /a/b/-1","expect":"20","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"get-reads-beneath-the-tags","query":"::Box{:w 3} | get /w","expect":"3","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"get-refuses-a-missed-key-with-the-keys-near-it","query":"{:emails [] :age 3} | get /email !| get /nearest","expect":"[:emails]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"get-refuses-a-place-past-the-end","query":"[1 2] | get /5 !| type","expect":"::proj/IndexOutOfBoundsError","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"get-refuses-a-value-on-the-path-that-has-no-parts","query":"{:a 5} | get /a/b !| type","expect":"::proj/SubjectNotProjectableError","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"get-reads-a-key-the-query-computes","query":"{:k \"b\" :b 7} | get (get /k)","expect":"7","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"query-answers-null-for-a-missing-key","query":"{:a 1} | query /b","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"query-answers-null-for-a-missing-place","query":"[1] | query /5","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"query-answers-null-through-null","query":"{:a null} | query /a/b","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"query-refuses-another-kind-on-the-path","query":"{:a 5} | query /a/b !| type","expect":"::proj/SubjectNotProjectableError","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"query-and-coalesce-give-a-default","query":"{:a 1} | query /port | coalesce 8080","expect":"8080","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"has-asks-whether-a-path-reads","query":"{:a {:b 1}} | get [(has /a/b) (has /a/c)]","expect":"[true false]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"get-reads-a-tuple","query":"{:price 4 :qty 3} | get [/price /qty]","expect":"[4 3]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"get-reads-a-shape","query":"{:first \"Ann\" :tags [:a :b]} | get {:who /first :n (get /tags | count)}","expect":"{:who \"Ann\" :n 2}","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"query-reads-a-tuple-softly","query":"{:a 1} | query [/a /b]","expect":"[1 null]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"get-reads-a-shape-strictly","query":"{:a 1} | get [/a /b] !| type","expect":"::proj/KeyNotInMapError","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"map-takes-a-path","query":"[{:n 1} {:n 2}] | map /n","expect":"[1 2]","decision":"D248","target":true,"now":"::vec/map/code/NotQuoteError"}
+{"name":"sort-takes-a-path","query":"[{:n 2} {:n 1}] | sort /n","expect":"[{:n 1} {:n 2}]","decision":"D248","target":true,"now":"::vec/sort/key/NotQuoteOrNullError"}
+{"name":"groupBy-takes-a-path","query":"[{:s :x} {:s :y} {:s :x}] | groupBy /s | map ~(count)","expect":"{:x 2 :y 1}","decision":"D248","target":true,"now":"::vec/groupBy/key/NotQuoteOrNullError"}
+{"name":"filter-takes-a-path","query":"[{:a true} {:a false}] | filter /a","expect":"[{:a true}]","decision":"D248","target":true,"now":"::vec/filter/predicate/NotQuoteError"}
+{"name":"a-path-the-code-takes-reads-strictly","query":"[{:n 1} {:m 2}] | map /n !| type","expect":"::proj/KeyNotInMapError","decision":"D248","target":true,"now":"::vec/map/code/NotQuoteError"}
+{"name":"query-in-code-reads-softly","query":"[{:n 1} {:m 2}] | map ~(query /n)","expect":"[1 null]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-path-at-the-head-is-the-subject","query":"/items/1 | type","expect":"::proj","decision":"D248","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"a-path-prints-as-written","query":"/items/1 | print","expect":"\"/items/1\"","decision":"D248","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"json-writes-a-path-as-its-literal","query":"/items/1 | json","expect":"\"\\\"/items/1\\\"\"","decision":"D248","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"two-paths-are-equal-when-their-segments-are","query":"[/a/0 /a/0 /a/1] | distinct | count","expect":"2","decision":"D248","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"the-one-order-ranks-paths-by-their-segments","query":"[/b /a/c /a] | sort | map ~(print)","expect":"[\"/a\" \"/a/c\" \"/b\"]","decision":"D248","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"the-one-order-ranks-a-path-after-a-tag-name","query":"[/a ::T :k] | sort | map ~(type)","expect":"[::keyword ::tag ::proj]","decision":"D248","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"a-path-answers-its-own-words-alone","query":"/tags | count !| type","expect":"::call/KindAnswersNoVerbError","decision":"D248","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"a-part-of-a-value-refuses-a-path","query":"5 | mul /a !| type","expect":"::number/mul/multiplier/NotNumberError","decision":"D248","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"a-path-written-as-a-later-step-is-refused","query":"\"{:a 1} | /a\" | parse !| type","expect":"::quote/ParseError","decision":"D248","target":true,"now":"~({:a 1} | /a)"}
+{"name":"a-literal-written-as-a-later-step-is-refused","query":"\"5 | [1 2]\" | parse !| type","expect":"::quote/ParseError","decision":"D248","target":true,"now":"~(5 | [1 2])"}
+{"name":"a-tag-written-as-a-later-step-is-refused","query":"\"[7 8] | ::Inner\" | parse !| type","expect":"::quote/ParseError","decision":"D248","target":true,"now":"~([7 8] | ::Inner)"}
+{"name":"a-quote-written-as-a-later-step-is-refused","query":"\"5 | ~(add 1)\" | parse !| type","expect":"::quote/ParseError","decision":"D248","target":true,"now":"~(5 | ~(add 1))"}
+{"name":"a-doc-written-as-a-later-step-is-refused","query":"\"5 | |~~ note ~~|\" | parse !| type","expect":"::quote/ParseError","decision":"D248","target":true,"now":"~(5 | |~~ note ~~|)"}
+{"name":"the-quote-of-a-lone-path-is-refused","query":"\"[{:n 1}] | map ~(/n)\" | parse !| type","expect":"::quote/ParseError","decision":"D248","target":true,"now":"~([{:n 1}] | map ~(/n))"}
+{"name":"the-short-quote-of-a-path-is-refused","query":"\"[{:n 1}] | map ~/n\" | parse !| type","expect":"::quote/ParseError","decision":"D248","target":true,"now":"~([{:n 1}] | map ~(/n))"}
+{"name":"the-slash-alone-leaves-the-language","query":"\"[1 2] | :v /\" | parse !| type","expect":"::quote/ParseError","decision":"D248","target":true,"now":"~([1 2] | :v /)"}
+{"name":"it-answers-the-value-in-the-pipe","query":"5 | mul it","expect":"25","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"paths-answers-the-outline-of-a-value","query":"{:a {:b 1 :c [2 3]} :d []} | paths | map ~(print)","expect":"[\"/a/b\" \"/a/c/0\" \"/a/c/1\" \"/d\"]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"ok-asks-whether-the-step-before-stood","query":"[(5 | ok !| false) (!{:k 1} | raise | ok !| false)]","expect":"[true false]","decision":"D248","target":true,"now":"[false false]"}
+{"name":"a-selector-is-a-path","query":":number/plus ~(add by) | :number/plus/by /0 | 5 | plus 2","expect":"7","decision":"D248","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"a-selector-reads-softly-by-query","query":":number/plus ~(add by) | :number/plus/by ~(query /0 1) | 5 | plus","expect":"6","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"at-leaves-the-language","query":"{:a 1} | at :a !| type","expect":"::call/UnknownNameError","decision":"D248","target":true,"now":"1"}
+{"name":"a-path-written-after-the-catch-is-refused","query":"\"!{:k 1} | raise !| /k\" | parse !| type","expect":"::quote/ParseError","decision":"D248","target":true,"now":"~(!{:k 1} | raise !| /k)"}
+{"name":"the-catch-reads-a-fact-by-get","query":"!{:k 1} | raise !| get /k","expect":"1","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"query-holds-a-default-for-a-missing-place","query":"[] | query /0 7","expect":"7","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"query-answers-a-null-that-stands-at-the-path","query":"[null] | query /0 7","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-key-with-a-slash-is-read-by-its-keyword","query":"{:a/b 1} | get :a/b","expect":"1","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-path-parts-its-segments-at-each-slash","query":"{:a/b 1} | get /a/b !| type","expect":"::proj/KeyNotInMapError","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"segments-answers-the-keys-and-places-of-a-path","query":"/a/0 | segments","expect":"[:a 0]","decision":"D248","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"toPath-reads-a-vector-of-keys","query":"[:a 0] | toPath | print","expect":"\"/a/0\"","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"toPath-reads-json-pointer-with-its-escapes","query":"\"/a~1b/0\" | toPath | segments","expect":"[:\"a/b\" 0]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"the-words-that-combine-values-of-one-subject-read-the-paths-they-take","query":"{:total 10 :paid 3} | subOf /total /paid","expect":"7","decision":"D248"}

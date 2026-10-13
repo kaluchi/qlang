@@ -361,6 +361,20 @@ and the description of an operand are values of the language; each has
 a literal that prints and reads back. What has no literal does not
 reach the pipeline value.
 
+A literal stands as a subject. Whatever the language holds has a
+literal, a value, a kind, the address of a word, code, a page, an error
+at rest, a path, and a literal stands at the head of a pipeline, where
+the ordinary protocol asks it, `doc`, `explain`, `type`, `manifest`; a
+construct with no literal of its own can only run, never be asked, and
+is the first suspect when a reader misfires on it. So a step is a
+command, a word and its objects, and a value is the subject or an
+object, never a step the language runs by a verb nobody wrote [D248]:
+«нас обычно спасает литеральноть и SVO .. массу вопросов через них
+решили и выпутались из сложных противоречий..» (maintainer, 2026-10-11
+23:02, session 22b934f8), and «когда кусок языка может встать в позицию
+субьекта - то мы можем его колить обычным протоколом..» (2026-10-12
+22:40, session d65e4c1d).
+
 The language describes itself. The only description of an operand is
 its declaration in the catalog. Documentation is read out of the
 language, examples execute, an error leads to its document. Prose that
@@ -1368,18 +1382,29 @@ milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
 decisions leave in the conformance suite [D58]. The decisions whose
-work has begun meet their targets, the last of them the effect marker
-leaving the language [D2], so the suite carries no target unmet,
-and every other decision below writes its targets before its work:
+work began before the baseline met their targets, the last of them the
+effect marker leaving the language [D2]; the targets the suite carries
+unmet are those of the step as a command and the path as a value
+[D248], the first work of the route, with the cases of the first page
+it spells anew [D185], and every other decision below writes its
+targets before its work:
 
 ```sh
-$ grep -rhoE '"target": *true' core/test/conformance | wc -l
-0
+$ grep -rhoE '"decision": *"D[0-9]+", *"target": *true' core/test/conformance | grep -oE 'D[0-9]+' | sort -u
+D185
+D248
 ```
 
 ### Milestone 4 · One spelling
 
 Every fact has one spelling, and a kind owns what is said of its values.
+It opens with the step as a command and the path as a value [D248]: a
+path does nothing by itself, the word that takes it reads it, `get`
+strictly, `query` softly, `has` asking, and a word that takes code taking
+it as code, so the projection has one spelling where it had a step and
+the record `::proj{:path …}` inside a quote, and a value written as a
+later step is refused; its targets stand in
+`core/test/conformance/43-a-step-is-a-command.jsonl`.
 The keystone is the declaration of a kind. A kind is a label, a name declared by its page, which
 builds a value by the `construct` declared under it and checks it by
 the laws declared under it, each named by its refusal [D168], [D169],
@@ -1429,9 +1454,11 @@ on one plane, the editor's grammar is generated or reduced, and the
 screen of the work, whose first version `npm run desk` prints [D226],
 grows from the draft of the entrypoint document [D231].
 
-Its answers are the targets of [D46], [D152], [D153], [D168] and [D169]
-in the conformance suite, every one met, the step of a constructor apart
-from the kind of tagged values having landed [D8]. Beside them: no
+Its answers are the targets of [D46], [D152], [D153], [D168], [D169],
+[D185] and [D248] in the conformance suite: those of the first five met,
+the step of a constructor apart from the kind of tagged values having
+landed [D8], and those of [D248], and of [D185], whose cases [D248]
+spells anew, open. Beside them: no
 class of the JavaScript stands for a refusal; no operand contract is
 spelled outside the catalog; and the environment holds no key of the
 runtime's own.
@@ -1577,16 +1604,17 @@ serving kept for a host's primitive alone, a move of the design whose
 cases [D67] and [D167] name; or the forms as they stand. Open, the
 layer of declarations.
 
-A step that drops its subject. A step after `|` that reads nothing of
-the value it is handed, a literal of no parts, a tag name, a quote, a
-doc or a bare name that holds a value, replaces the value in silence,
-and a reader who meant another step learns nothing from the answer; a
-child of the benchmark put a vector under two tags so and met the
-second tag alone (`scripts/benchmark/runs/R7.json`, friction F3):
+A step that drops its subject. A child of the benchmark put a vector
+under two tags with a tag written as each step and met the second tag
+alone (`scripts/benchmark/runs/R7.json`, friction F3); a value written
+as a later step, a path, a literal, a tag name, a quote or a doc, is
+refused under [D248], the refusal naming the word the habit meant. What
+remains is a bare name that holds a value, which a step calls under
+[D223] and which replaces the value in silence:
 
 ```qlang
-> [7 8] | ::Inner | ::Outer
-::Outer
+> 7 | :r 5 | add 1 | r
+5
 ```
 
 The maintainer put the idea of showing it, «можем какой-то
@@ -1613,9 +1641,31 @@ and what it likely meant, as a host writes a line above a failure no
 language server shows on the step, the maintainer's first variant and
 the model's recommendation; a hidden value that stands for the new one
 and remembers the old, which has no literal of its own; or a refusal of
-the step in the language, under which `5 | false !| true` answers
-`true` and the cases of [D8], [D125] and [D235] that pipe a quote, a
-doc and a name of a quote change. Open, left to ripen.
+a name that holds a value as a later step, as [D248] refuses a value
+written there, under which a record named for a later step is read
+back at the head of a group, `(r | get /price)`, and the cases of
+[D235] that pipe a name of a quote change. Open, left to ripen.
+
+The value as a file system. A path that is a value makes any value a
+tree a query lists and reads [D248], `paths` its outline, and what that
+opens is intention, no decision. The outline with the kind at each
+path is a schema inferred from the data, against which a query writes
+the rest of its pipeline without reading the data: «оглавление -
+бесплатная выведенная схема для всего, прям уф .. .. это не заглядывая
+в данные можно смело писать дальше пайплайн..» (maintainer, 2026-10-13
+01:24, session d65e4c1d). A set of paths is a mask: `drop` blots the
+parts out, and `elide` shows a selection and leaves at the path of each
+part it left out a marker, the budget a selection the reader names, in
+characters or, once a host counts them, in tokens, «элайд как такая
+форма решейпинга/вымывания ..   хотите в символах .. а если дойдут
+когда-то руки до подключения токенайзера - то даже в токенах все можно
+посчитать и сообщить..» (01:24). An alert prints the path of the
+culprit, `:at`, where it prints an excerpt of the subject [D7]. A set of
+paths under `get` selects with the nesting kept, the selection set of
+GraphQL. The strings of the data that write JSON Pointer, `$ref` and
+`href`, are followed as links. And a path takes the wildcard, `//` and
+`..`, for which the grammar keeps signs to spare. Each waits on a task
+that asks for it.
 
 Hierarchies of tags. The walk of a verb down the subject's tags [D34]
 knows no hierarchy between tags. When a task
@@ -1968,3 +2018,4 @@ query that fails nothing.
 [D243]: decisions/D243.md
 [D244]: decisions/D244.md
 [D246]: decisions/D246.md
+[D248]: decisions/D248.md

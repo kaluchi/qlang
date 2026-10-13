@@ -540,7 +540,13 @@
             `env` lists what the reader declared, `kinds` the kinds the
             scope reads, and what lies under a noun `manifest` lists. A
             name reads its record by `binding`. A name declared inside a
-            group closes with it. A name declared under a label resides on
+            group closes with it. A quote written in a step reads the names
+            of that step wherever the word it is handed to runs it, and
+            code held as data, in a name, a field or a page, runs in a
+            lane of its own, the words, the nodes and the labels of the
+            tree and the names it declares itself, so a value the reader
+            named is withheld from it, `::call/ValueWithheldError`. A name
+            declared under a label resides on
             it: it serves the values of the label, found by its name
             through the walk of their tags, and refuses any other subject
             under its address; a quote taken from one label and declared
@@ -573,6 +579,11 @@
     | proves :names/closesWithItsGroup
         |~~ A name declared in a group closes with it. ~~|
         ~(1 | (:inner 2 | inner) | env | has :inner | not)
+    | proves :names/withholdsTheReadersValuesFromHeldCode
+        |~~ A quote written in a step reads its names, and one held as
+            data none the reader named.
+        ~~|
+        ~(:k 10 | :q ~(add k) | get [~(1 | apply ~(add k)) ~(1 | apply q !| type)] | eq [11 ::call/ValueWithheldError])
     | proves :names/servesTheValuesOfItsLabel
         |~~ A name under a label serves its values. ~~|
         ~(:Box |~~ A box. ~~| | :Box/twice ~(get /w | mul 2) | ::Box{:w 3} | twice | eq 6)

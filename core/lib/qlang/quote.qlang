@@ -11,7 +11,11 @@
       run only when something runs them. A word that runs code later
       takes a quote, `map ~(mul 2)`, `filter ~(gt 1)`, `sort /name`,
       and `apply` runs one on a subject, `5 | apply ~(add 1)` answering
-      `6`.
+      `6`. A quote written in the step that hands it to a word reads the
+      names of that step wherever the word runs it,
+      `:k 10 | [1 2] | map ~(add k)` answering `[11 12]`; one held as
+      data, in a name, a field or a page, runs in a lane of its own and
+      reads no value the reader named.
 
       It is written `~(…)` around a pipeline, and one name drops the
       parentheses, `~count`. A word that runs code takes a path bare,
@@ -30,7 +34,7 @@
       the laws of a name are quotes that answer true, and the trail of a
       failure holds the steps it skipped, ready to replay.
       ::link~(::call | doc) ::link~(::any/apply | doc)
-      ::link~(::qlang/code | doc)
+      ::link~(::call/ValueWithheldError | doc) ::link~(::qlang/code | doc)
   ~~|
   ::kind
     | wraps
@@ -107,6 +111,9 @@
     | proves :filtersItsSteps
         |~~ A quote filters as the vector of its steps. ~~|
         ~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | parse | eq "mul 2")
+    | proves :readsTheNamesOfTheStepThatWroteIt
+        |~~ A quote written in a step reads the names of that step. ~~|
+        ~(:k 10 | [1 2] | map ~(add k) | eq [11 12])
     | proves :PayloadNotVecError/refusesAMap
         |~~ A map payload is refused. ~~|
         ~(::quote{:not :steps} !| get [~(type) /actualType] | eq [::quote/PayloadNotVecError ::map])

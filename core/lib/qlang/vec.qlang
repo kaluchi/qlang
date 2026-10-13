@@ -296,8 +296,8 @@
       `[3 "a" null] | min` answers null. With a key the call gives, the
       element whose key answers least answers whole, the first of equal
       ones, `[{:age 30} {:age 20}] | min /age` answering `{:age
-      20}`. The key is code run on each element, a quote, `~(/age)` or
-      `~(get /age)`, read as `sort` reads its key, so `desc` turns it; a value
+      20}`. The key is code run on each element, a path, `/age`, or a
+      quote, `~(get /age | abs)`, read as `sort` reads its key, so `desc` turns it; a value
       computed at the call is refused, and a key that misses its field
       answers the error of the read. A set and a map answer `min` by
       words of their own.
@@ -518,13 +518,12 @@
       order, `[1 2 3 4 5] | filter ~(gt 2)` answering `[3 4 5]`. The
       predicate is code run on each element as its subject, a quote,
       `~(get /age | gte 18)`, or a word by its name, `~empty`; a value
-      computed at the call is refused, the error of a step written
-      without its quote among them, `filter (get /active)` for `filter
-      ~(/active)`. The predicate answers a boolean, since no other value
+      computed at the call is refused, the error of a read computed at
+      the call among them, `filter (get /active)` for `filter /active`. The predicate answers a boolean, since no other value
       stands for one, and an error it answers for an element answers the
-      call, so a field an element may lack is read softly, `~(at :a | eq
-      1)`. Several conditions are one predicate, `filter ~(allOf /active
-      (/age | gte 18))`. The answer keeps the kind of the subject: a
+      call, so a field an element may lack is read softly, `~(query /a |
+      eq 1)`. Several conditions are one predicate, `filter ~(allOf
+      /active (get /age | gte 18))`. The answer keeps the kind of the subject: a
       vector under a tag stays under it, a quote keeps the steps that
       hold and a doc the segments; a set and a map answer `filter` by
       words of their own.
@@ -800,7 +799,7 @@
   |~~ Answers whether the vector holds an element equal to the element
       the call gives, the membership `has` asks, under the word a string
       answers for its substrings, `["ops" "db"] | contains "ops"`
-      answering `true`; whether a value is one of several reads `:x / |
+      answering `true`; whether a value is one of several reads `:x it |
       [5 6] | contains x`. A set answers `contains` by a word of its own,
       and a map answers no `contains` and asks `has` of its keys.
       ::link~(::vec/has | doc) ::link~(::string/contains | doc)
@@ -826,7 +825,7 @@
 :vec/groupBy
   |~~ Answers the map of vectors the key files the elements into, each
       under the keyword its key answered, `[{:k :a} {:k :b} {:k :a}] |
-      groupBy ~(/k)` answering `{:a [{:k :a} {:k :a}] :b [{:k :b}]}`. A
+      groupBy /k` answering `{:a [{:k :a} {:k :a}] :b [{:k :b}]}`. A
       group keeps its elements in their order, and the empty vector
       answers the empty map. A key of a map is a keyword, so a key that
       answers a string, the field of a JSON object, or a number files
@@ -1074,8 +1073,8 @@
       letter before a lower one.
 
       With a key the call gives the elements rank by what the key answers
-      for each, a vector key place by place, so `sort ~([(/count | desc)
-      /name])` reads as `ORDER BY count DESC, name`, and a first place of
+      for each, a vector key place by place, so `sort ~([(get /count |
+      desc) (get /name)])` reads as `ORDER BY count DESC, name`, and a first place of
       `eq null` puts null last; elements the key leaves alike keep the
       order of the subject, and `desc` turns the key, or one place of it,
       to descend. The key is code run on each element, a quote, `~(get /age)`

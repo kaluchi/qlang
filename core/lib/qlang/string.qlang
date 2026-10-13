@@ -912,8 +912,8 @@
   ::holds~(is ::string)
 
 :string/endsWith/SubjectNotStringError
-  |~~ `endsWith` reads the end of a string: a field is read first, `/file
-      | endsWith ".json"`, and a vector of strings asks by `map`.
+  |~~ `endsWith` reads the end of a string: a field is read first, `get
+      /file | endsWith ".json"`, and a vector of strings asks by `map`.
   ~~|
 
 :string/endsWith/findsTheSuffix
@@ -1454,8 +1454,8 @@
       | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1"` answering `"12.10.2026"`,
       while the replacement of a text stands as written; or code, which
       runs on the vector `match` answers for each match and answers the
-      text that takes its place, `replace #"\d+" ~(/0 | toNumber | mul 2
-      | toString)` doubling every number.
+      text that takes its place, `replace #"\d+" ~(get /0 | toNumber | mul
+      2 | toString)` doubling every number.
       ::link~(::string/match | doc) ::link~(::regex | doc)
   ~~|
   ::builtin{}
@@ -1482,15 +1482,15 @@
 
 :string/replace/with/NotStringOrQuoteError
   |~~ The replacement is a string, `replace #"\s+" " "`, or code that
-      answers one from the vector of the match, `replace #"\d+" ~(/0 |
-      toNumber | mul 2 | toString)`.
+      answers one from the vector of the match, `replace #"\d+" ~(get /0
+      | toNumber | mul 2 | toString)`.
   ~~|
   ::holds~(is ::string ::quote)
 
 :string/replace/with/AnswerNotStringError
   |~~ The code of `replace` answers the text that takes the place of a
-      match: a number becomes text by `toString`, `~(/0 | toNumber | mul 2
-      | toString)`.
+      match: a number becomes text by `toString`, `~(get /0 | toNumber |
+      mul 2 | toString)`.
   ~~|
 
 :string/replace/replacesEveryMatch

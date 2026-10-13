@@ -19,12 +19,12 @@ const examples = [
   {
     tab: "name",
     file: "name with parts",
-    code: `|~| a name with the parts of its args\n> :string/surround ~(prepend pfx | append sfx)\n  | :string/surround/pfx ~(/0) | :string/surround/sfx ~(/1)\n  | "world" | surround "[" "]"\n"[world]"`,
+    code: `|~| a name with the parts of its args\n> :string/surround ~(prepend pfx | append sfx)\n  | :string/surround/pfx /0 | :string/surround/sfx /1\n  | "world" | surround "[" "]"\n"[world]"`,
   },
   {
     tab: "code-as-data",
     file: "parse | apply",
-    code: `|~| source → quote → pipeValue\n> "10 | add 3" | parse | apply /\n13`,
+    code: `|~| source → quote → pipeValue\n> "10 | add 3" | parse | apply it\n13`,
   },
 ]
 

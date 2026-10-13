@@ -94,6 +94,7 @@
 {"name":"a-part-of-code-of-a-reader-refuses-a-failed-modifier","query":":any/f ~(apply q) | :any/f/q /0 | :any/f/q/NotQuoteError ::holds~(is ::quote) | 1 | f (get /x) !| type","expect":"::any/f/q/NotQuoteError","decision":"D129"}
 {"name":"a-part-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take (get /x) !| type","expect":"::path/IndexNotIntegerError","decision":"D129"}
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| get /message | contains \"#[\"","expect":"true","decision":"D46"}
+{"name":"a-quote-written-with-braces-names-its-parentheses","query":"\"~{/age | doc}\" | parse !| get /message","expect":"\"a quote is written `~(…)`, its code in parentheses; `{…}` is a map and `[…]` a vector\"","decision":"D46"}
 {"name":"a-pipe-after-a-combinator-names-the-form-that-keeps-it","query":"\"[1] !| | count\" | parse !| get /message | contains \"write `a !| b`\"","expect":"true","decision":"D46"}
 {"name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true","decision":"D150"}
 {"name":"a-concept-page-has-an-address","query":"::qlang/pipeline | doc | type","expect":"::doc","decision":"D152"}

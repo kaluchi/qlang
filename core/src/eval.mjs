@@ -719,10 +719,10 @@ function refusalOfComputedCode(parts, place, error, scope) {
 }
 
 // The value a part's selector reads from the args: a selector of one
-// step that reads a place, `/n` or `at n default`, is the value at the
-// place, read here as `at` reads it, so the parts of `at` itself read
-// without calling it; any other selector runs as code over the args, a
-// frame below the call.
+// step that reads a place, `/n` or `query /n default`, is the value at
+// the place, read here as `get` and `query` read it, so the parts of
+// `query` itself read without calling it; any other selector runs as
+// code over the args, a frame below the call.
 function partOf({ ast, place, onePlace, strict, fallback }, values, overArgs) {
   if (!onePlace) return ast.type === 'Projection' ? pathOfArgs(makePath(ast.keys), overArgs()) : answerOfBody(ast, overArgs());
   if (place < values.length) return values[place];

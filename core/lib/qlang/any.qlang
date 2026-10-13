@@ -126,7 +126,7 @@
 
 :any/eq/ArgsBeyondPartsError
   |~~ `eq` compares the subject with one value and was given more:
-      whether the subject is one of several is `:x / | [5 6] | contains
+      whether the subject is one of several is `:x it | [5 6] | contains
       x`.
   ~~|
 
@@ -1000,7 +1000,7 @@
       scope: `::binding` with its `:name`, its `:docs`, its `:value`, its
       `:source` and its `:origin`, the source it was read from, so where
       a name was declared is read as data, `::vec/filter | binding |
-      /origin` answering `:qlang/vec`. A word by its address reads the
+      get /origin` answering `:qlang/vec`. A word by its address reads the
       record its source declared, a name of the scope the record its
       declaration wrote, and any other value the record of its kind. The
       anchor, a keyword after it, reads the record of the member the
@@ -1942,8 +1942,8 @@
       computed at the call, every one of them, or a quote that answers
       one in its turn, run on the subject once every condition before it
       held: a condition that fails where an earlier one does not hold is
-      written as such a quote, `allOf (/email | ne null) ~(/email |
-      endsWith ".org")`, and the first condition that does not hold
+      written as such a quote, `allOf (get /email | ne null) ~(get /email
+      | endsWith ".org")`, and the first condition that does not hold
       answers `false` with the quotes after it unrun; a quote that fails
       answers its error. The call gives one condition at least.
       ::link~(::any/anyOf | doc) ::link~(::vec/every | doc)
@@ -2040,13 +2040,13 @@
 
 :any/anyOf
   |~~ Answers whether some condition the call gives holds of the
-      subject: a high score passes without the flag, `anyOf /vip (/score
-      | gt 95)`. Each modifier is a condition computed at the call or a
+      subject: a high score passes without the flag, `anyOf /vip (get
+      /score | gt 95)`. Each modifier is a condition computed at the call or a
       quote that answers one in its turn, run on the subject once no
       condition before it held, as for `allOf`: the first that holds
       answers `true` with the quotes after it unrun, so a flagged record
-      passes without the field its quote reads, `anyOf /vip ~(/score |
-      gt 95)`, and a quote that fails answers its error. The call gives
+      passes without the field its quote reads, `anyOf /vip ~(get /score
+      | gt 95)`, and a quote that fails answers its error. The call gives
       one condition at least.
       ::link~(::any/allOf | doc) ::link~(::vec/any | doc)
   ~~|

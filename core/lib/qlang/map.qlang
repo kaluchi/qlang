@@ -255,7 +255,7 @@
       answering `1.5`, or null for the empty map, which has no mean, the
       mean of numbers staying among the finite doubles,
       `{:a 1e308 :b -1e308} | avg` answering `0`; it takes no value. A value that is no number is refused with its key,
-      and a field of each value is read first by `map`, `map ~/amount |
+      and a field of each value is read first by `map`, `map /amount |
       avg`. A vector and a set answer by an `avg` of their own.
       ::link~(::map/sum | doc) ::link~(::vec/avg | doc)
   ~~|

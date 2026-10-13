@@ -447,8 +447,8 @@ ParenGroup
   / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('modifiers are separated by spaces, not by commas: `f a b`'); }
 
 // A quote holds the pipeline it is written around, a leading combinator
-// included (`~(!| /trail)`); `~()` is the empty quote. A single name,
-// projection or tag name may drop the parentheses, `~add`, `~/age`.
+// included (`~(!| get /trail)`); `~()` is the empty quote. A single name
+// or tag name may drop the parentheses, `~add`, `~::T`.
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"
     &{ return docQuoteDepth === 0 || pipeline?.type !== 'Projection'; }
@@ -462,6 +462,8 @@ ShortQuoteLit
     { return node('QuoteLit', { pipeline }, span(), text()); }
   / &{ return docQuoteDepth === 0; } "~" path:Projection
     { error(`the quote of a path answers the path, which no word wants: give the path bare, \`${path.text}\``); }
+  / &{ return docQuoteDepth === 0; } "~" &[{[]
+    { error('a quote is written `~(…)`, its code in parentheses; `{…}` is a map and `[…]` a vector'); }
 
 // The balance reading of a `~(…)` span inside a comment or a doc, where
 // the span is prose: parentheses nest, and a string or a comment token

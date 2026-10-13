@@ -1,0 +1,40 @@
+{
+  "defaults": {
+    "timeout": 30,
+    "retries": 3
+  },
+  "services": {
+    "auth": {
+      "host": "auth.local",
+      "port": 8001,
+      "timeout": 10
+    },
+    "billing": {
+      "host": "bill.local",
+      "port": 8002,
+      "enabled": false,
+      "timeout": 60
+    },
+    "search": {
+      "host": "search.local",
+      "port": 8003,
+      "timeout": null
+    },
+    "mail": {
+      "host": "mail.local",
+      "port": 8004,
+      "enabled": true
+    },
+    "cache": {
+      "host": "cache.local",
+      "port": 8005,
+      "enabled": null,
+      "timeout": 5
+    },
+    "legacy": {
+      "host": "old.local",
+      "port": 8006,
+      "enabled": false
+    }
+  }
+}

@@ -31,7 +31,7 @@ export function resolveShouldColorize(colorMode, stdoutStream, env) {
 const SHELL_PATH_OF_A_QUERY = /^[A-Za-z]:\//;
 
 const SHELL_PATH_HINT = 'qlang: the shell turned a query that began with `/` into a path; '
-  + "begin it with a pipe, `| /data/users`, or run it as `MSYS_NO_PATHCONV=1 qlang '/data/users'`\n";
+  + "a part is read by `get`, `qlang 'get /data/users'`, which the shell leaves alone, or run it as `MSYS_NO_PATHCONV=1 qlang '…'`\n";
 
 // The runtime of MSYS, the shell beneath Git Bash, under the root it
 // writes a path from.

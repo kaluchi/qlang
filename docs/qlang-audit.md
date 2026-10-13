@@ -299,7 +299,7 @@ introduces a model [D28].
 First, every feature is an instance of one core concept. The core is
 small: a state pair of value and environment, a step that maps one
 state to the next, a handful of combinators, the fork rule for nested
-expressions, subject-first application, a literal as a step, naming
+expressions, subject-first application, a literal as a subject, naming
 with lexical scope, the error as a value with a trail, a tag that names
 the kind of a value, and a catalog that describes itself. A construct
 that needs another mechanism to be explained is not in the language;
@@ -469,10 +469,12 @@ element is the word `map`, whose code is a quote, and the first error an
 element answers is its answer [D116]. Parentheses, vectors, maps, sets, and error literals all obey one
 fork rule: the inner pipeline starts from the outer state and returns
 only its value, which is where every scoping rule of the page of the
-pipeline comes from. A literal is a step that replaces the value, and the values it
-builds fork against the outer value, which is what makes reshaping a
-matter of writing the shape you want. Projection walks a path with
-strict misses. Application is subject-first.
+pipeline comes from. A literal stands as a subject, at the head of a
+pipeline or under `get`, and the values it builds fork against the outer
+value, which is what makes reshaping a matter of writing the shape you
+want, `get {:who /first :n (get /tags | count)}` [D248]. `get` reads a
+path with strict misses and `query` softly. Application is
+subject-first.
 
 A literal reads by its spelling alone: a bare word is a name, a string
 is quoted, a keyword carries its colon, and nothing is typed by its
@@ -1871,11 +1873,20 @@ brings. Open, with that redesign.
 A helper of one word. [D153] let a word's helper live in the group of
 its declaration, `:f (:h 2 | ::verb~(mul h))`, which closed over it;
 since [D168] took `::verb~` out, a word is the quote it runs, and a
-quote does not close over the group it was written in:
+quote written bare does not close over the group it was written in:
 
 ```qlang
 > :any/g (:k 10 | ~(add k)) | 5 | g !| type
 ::call/UnknownNameError
+```
+
+A quote written as the body of a declaration closes over the scope of
+its declaration [D5], and nothing of that scope is in its print, so two
+quotes equal by `eq` run apart, the outside audit of 2026-10-13 found:
+
+```qlang
+> :f (:k 10 | :g ~(mul k) | g) | :k 2 | :h ~(mul k) | [(f | eq h) (3 | apply f) (3 | apply h)]
+[true 30 6]
 ```
 
 So a helper, of one word or several, is a word under a noun its

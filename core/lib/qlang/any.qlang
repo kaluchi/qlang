@@ -1966,7 +1966,8 @@
 
 :any/allOf/conditions/ElementNotBooleanOrQuoteError
   |~~ Each modifier of `allOf` is a condition computed at the call,
-      `(get /age | gte 18)`, or a quote that answers one in its turn,
+      `(get /age | gte 18)`, a path whose field answers one, `/active`,
+      or a quote that answers one in its turn,
       `~(get /email | endsWith ".org")`. A condition computed at the call is
       computed at every place, the first among them, and one that
       answered an error is refused here, the error its value: a field a
@@ -1978,9 +1979,9 @@
   ::holds~(every ~(is ::boolean ::quote ::path))
 
 :any/allOf/ConditionNotBooleanError
-  |~~ A quote among the conditions of `allOf` answers a boolean when it
-      runs; `:index` names, from zero, the condition whose quote answered
-      another kind, and a quote that reads a field compares it to answer
+  |~~ A quote or a path among the conditions of `allOf` answers a boolean
+      when it runs; `:index` names, from zero, the condition whose code
+      answered another kind, and a quote that reads a field compares it to answer
       a condition, `~(get /email | ne null)`.
   ~~|
 
@@ -2068,8 +2069,8 @@
 
 :any/anyOf/conditions/ElementNotBooleanOrQuoteError
   |~~ Each modifier of `anyOf` is a condition computed at the call,
-      `(get /score | gt 95)`, or a quote that answers one in its turn,
-      `~(get /score | gt 95)`. A condition computed at the call is computed
+      `(get /score | gt 95)`, a path whose field answers one, `/vip`, or a
+      quote that answers one in its turn, `~(get /score | gt 95)`. A condition computed at the call is computed
       at every place, the first among them, and one that answered an
       error is refused here, the error its value: a field a record may
       lack is read softly, `anyOf (query /vip | eq true)`, and a condition
@@ -2080,9 +2081,9 @@
   ::holds~(every ~(is ::boolean ::quote ::path))
 
 :any/anyOf/ConditionNotBooleanError
-  |~~ A quote among the conditions of `anyOf` answers a boolean when it
-      runs; `:index` names, from zero, the condition whose quote answered
-      another kind, and a quote that reads a field compares it to answer
+  |~~ A quote or a path among the conditions of `anyOf` answers a boolean
+      when it runs; `:index` names, from zero, the condition whose code
+      answered another kind, and a quote that reads a field compares it to answer
       a condition, `~(get /score | gt 95)`.
   ~~|
 

@@ -553,7 +553,7 @@
 
 :vec/filter/ArgsBeyondPartsError
   |~~ `filter` takes one predicate; conditions held together are one,
-      `filter ~(allOf (get /active) (get /age | gte 18))`.
+      `filter ~(allOf /active (get /age | gte 18))`.
   ~~|
 
 :vec/filter/keepsWhatThePredicateHolds
@@ -1428,7 +1428,7 @@
 
 :vec/zip/ElementNotVecError
   |~~ `zip` reads vectors side by side; `:index` names the first element
-      that is no vector, a vector put in a vector first, `[(/a) (/b)] |
+      that is no vector, the vectors read into one first, `get [/a /b] |
       zip`.
   ~~|
 

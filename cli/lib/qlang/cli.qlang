@@ -6,7 +6,7 @@
 
 :cli
   |~~ The command line runs a query on what a shell hands it and prints
-      the answer: `qlang '/users | count' < data.json` in a script, and
+      the answer: `qlang 'get /users | count' < data.json` in a script, and
       `qlang -i` a session of cells. It is the host a reader meets first,
       and the words it adds read and write the streams of the process.
 

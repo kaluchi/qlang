@@ -332,3 +332,19 @@ The tree answers by the commit that keeps this review.
 16. The consumers spelled the language again. Answered: the hover of a path reads `::path | doc`, and the editor's grammar reads a name in any script, `:данные` among them; the grammar written by hand stays the scar the route names.
 
 The tree answers by the commits that keep this review.
+
+## 2026-10-13 · the closed literal
+
+[2026-10-13-the-literal-is-closed.md](2026-10-13-the-literal-is-closed.md), at 1fc93994.
+
+1. A literal still computed in the code of a doc. Answered by 9433c3df: the code of a doc that writes one reads as prose, held by the case of D279 `a-literal-that-computes-reads-as-prose-in-the-code-of-a-doc`.
+2. The payloads a tag takes were spelled twice, in the grammar and as a pattern in the printer. Answered by 9433c3df: the refusals of parentheses after a tag match the rules of the payloads, and the printer writes `#` by the kind of the payload.
+3. A part of a literal was told as a word forked against the subject. Answered by 9433c3df: the parts are read without a fork and named parts.
+4. Scalar named a value where the rule of `#` is said of a literal. Answered by 9433c3df: the parser, the record, the pages, the law and the cases name a number, a boolean, null and a path, the rule said of the literal's first character.
+5. The pages of `::qlang` stated what the tree no longer does. Answered by 9433c3df: the first page and the chapters of values, of the pipeline and of errors tell the closed literal, its tag and its `#`, the constructor that attaches or refuses and the template of `get`, each by a law.
+6. A set's elements were said kept in the order written. Answered by 9433c3df.
+7. The core grew and the branch named no deletion. Open: the mark `writtenHere` of a template waits on D278.
+8. A template laid a tag over a payload its constructor never checked. Answered by 104405d6: a container under a tag is read and laid back through its constructors as a write of a path lays it, held by the cases of D279 `a-template-reads-under-a-tag-and-answers-a-quote-and-a-doc-as-they-are` and `a-template-lays-a-tag-back-through-its-constructor`.
+9. A kind's check was read for an error no check answers. Answered by 104405d6: the branch left.
+
+The tree answers by the commits that keep this review.

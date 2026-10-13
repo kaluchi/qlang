@@ -28,9 +28,8 @@ import {
   makeErrorValue,
   isErrorValue
 } from '../../src/types.mjs';
-import { locationToQlangMap } from '../../src/walk.mjs';
 import { parse } from '../../src/parse.mjs';
-import { errorFromParse } from '../../src/error-convert.mjs';
+import { errorFromParse, spanOfLocation } from '../../src/error-convert.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
 
 describe('equality.deepEqual rejection branches', async () => {
@@ -149,15 +148,15 @@ describe('a part takes no modifiers', async () => {
 });
 
 
-describe('walk.mjs — locationToQlangMap', async () => {
-  it('answers null for a declaration without a site', async () => {
-    expect(locationToQlangMap(null)).toBe(null);
+describe('error-convert.mjs — spanOfLocation [D249]', async () => {
+  it('answers null for a location that is none', async () => {
+    expect(spanOfLocation(null)).toBe(null);
   });
 
-  it('carries the start and the end of a location as Maps', async () => {
-    const view = locationToQlangMap(parse('42').location);
-    expect(view.get('start').get('offset')).toBe(0);
-    expect(view.get('end').get('column')).toBe(3);
+  it('writes the start and the end of a location as the six numbers of a span', async () => {
+    const span = spanOfLocation(parse('42').location);
+    expect(typeKeyword(span).name).toBe('span');
+    expect([...span]).toEqual([0, 1, 1, 2, 1, 3]);
   });
 });
 

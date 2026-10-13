@@ -1,5 +1,4 @@
-import { keyword, makeErrorValue, makeTag, typeKeyword } from './types.mjs';
-import { locationToQlangMap } from './walk.mjs';
+import { keyword, makeErrorValue, makeTag, makeTaggedInstance, typeKeyword } from './types.mjs';
 import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
 
@@ -15,6 +14,18 @@ const BuiltinRefusalFactNotDeclaredError = declareInvariantError('builtin/Refusa
   ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`);
 
 const ERROR_KIND_NAME = 'error';
+
+const SPAN_TAG = makeTag('span');
+
+// spanOfLocation(loc) → the stretch of source a location names as a span,
+// the offset from zero, the line and the column from one of its start
+// and of the point after its end, `::span[0 1 1 1 1 2]` [D249], or null
+// for none.
+export function spanOfLocation(loc) {
+  if (!loc) return null;
+  const { start, end } = loc;
+  return makeTaggedInstance(SPAN_TAG, [start.offset, start.line, start.column, end.offset, end.line, end.column]);
+}
 
 // factsInOrder(tag, facts, env) → the facts of a refusal of the runtime in
 // the order of the definitions that describe them, each named as its fact
@@ -67,7 +78,7 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
   else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
-  if (parseError.location) d.set('location', locationToQlangMap(parseError.location));
+  if (parseError.location) d.set('location', spanOfLocation(parseError.location));
   if (uri) d.set('uri', uri);
   const tag = makeTag('quote/ParseError');
   return makeErrorValue(tag, factsInOrder(tag, d, env), {

@@ -246,14 +246,3 @@ export function bindingNamesVisibleAt(ast, offset, spelling = CALL_SPELLING) {
   return visible;
 }
 
-// locationToQlangMap(loc) → the qlang view of a span,
-// `{:start {:offset :line :column} :end {…}}`, or null for none, which
-// the `:location` of a parse error and of a declaration reads through.
-export function locationToQlangMap(loc) {
-  if (!loc) return null;
-  return Object.freeze(new Map([['start', positionToQlangMap(loc.start)], ['end', positionToQlangMap(loc.end)]]));
-}
-
-function positionToQlangMap(pos) {
-  return Object.freeze(new Map([['offset', pos.offset], ['line', pos.line], ['column', pos.column]]));
-}

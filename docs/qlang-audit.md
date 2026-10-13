@@ -1000,12 +1000,13 @@ Examples live on two planes, the conformance suite and the laws of the
 catalog, with a runner for each; the catalog's own laws are the only
 plane the language can reach, each named for the claim it proves and
 paged with it [D123], [D124]. And a parse failure prints whole, every
-token the parser could have read and the place it stopped, at its start
-and at its end, where a failure of a step prints as an alert [D7]:
+token the parser could have read and the place it stopped as a span of
+its start and its end, `::span[3 1 4 4 1 5]` [D249], where a failure of
+a step prints as an alert [D7]:
 
 ```sh
-$ node cli/src/bin.mjs '::a.b' < /dev/null 2>&1 | grep -c ':offset'
-2
+$ node cli/src/bin.mjs '::a.b' < /dev/null 2>&1 | grep -c ':location ::span'
+1
 ```
 
 The repair must reduce catalog prose to what the facts do not say,
@@ -2019,3 +2020,4 @@ query that fails nothing.
 [D244]: decisions/D244.md
 [D246]: decisions/D246.md
 [D248]: decisions/D248.md
+[D249]: decisions/D249.md

@@ -1,0 +1,77 @@
+|~ `::point`, the kind of a place in source text, and what is declared
+   under it: the words that read its offset, its line and its column.
+   The decisions it exists for: [D249]. ~|
+
+:point
+  |~~ A point is a place in source text, where a span starts or ends:
+      three whole numbers under its tag, the offset from zero, the line
+      and the column from one, `::point[0 1 1]` before the first
+      character of a text. `offset`, `line` and `column` read them.
+      ::link~(::span | doc)
+  ~~|
+
+:point/PayloadNotThreeNumbersError
+  |~~ A point holds three whole numbers, its offset, its line and its
+      column. ~~|
+  ::holds~(allOf (count | eq 3) ~(every ~(is ::number)) ~(every ~(eq (floor))))
+
+:point/PayloadNotThreeNumbersError/refusesSixNumbers
+  |~~ Six numbers make a span, no point. ~~|
+  ::law~(::point[0 1 1 4 1 5] !| type | eq ::point/PayloadNotThreeNumbersError)
+
+:point/offset
+  |~~ Answers the offset of the point from the start of the text,
+      counted from zero, `::point[4 1 5] | offset` answering `4`.
+  ~~|
+  ~(get /0)
+
+:point/offset/answer
+  |~~ The offset, from zero. ~~|
+  ::number
+
+:point/offset/SubjectNotPointError
+  |~~ `offset` reads a point, the start or the end of a span,
+      `"[1" | parse !| get /location | start | offset`.
+  ~~|
+
+:point/offset/readsTheFirstNumber
+  |~~ The offset is the first number of a point. ~~|
+  ::law~(::point[4 1 5] | offset | eq 4)
+
+:point/line
+  |~~ Answers the line of the point, counted from one,
+      `::point[4 2 1] | line` answering `2`.
+  ~~|
+  ~(get /1)
+
+:point/line/answer
+  |~~ The line, from one. ~~|
+  ::number
+
+:point/line/SubjectNotPointError
+  |~~ `line` reads a point, the start or the end of a span,
+      `"[1" | parse !| get /location | start | line`.
+  ~~|
+
+:point/line/readsTheSecondNumber
+  |~~ The line is the second number of a point. ~~|
+  ::law~(::point[4 2 1] | line | eq 2)
+
+:point/column
+  |~~ Answers the column of the point in its line, counted from one,
+      `::point[4 1 5] | column` answering `5`.
+  ~~|
+  ~(get /2)
+
+:point/column/answer
+  |~~ The column, from one. ~~|
+  ::number
+
+:point/column/SubjectNotPointError
+  |~~ `column` reads a point, the start or the end of a span,
+      `"[1" | parse !| get /location | start | column`.
+  ~~|
+
+:point/column/readsTheThirdNumber
+  |~~ The column is the third number of a point. ~~|
+  ::law~(::point[4 1 5] | column | eq 5)

@@ -121,6 +121,10 @@
   ~~|
   ::quote
 
+:error/read/namesAWrittenPathAlone
+  |~~ A path a name holds is no path the step wrote, and names no read. ~~|
+  ::law~(:p /qty | 5 | mul p !| query /read | eq null)
+
 :error/path
   |~~ The path a read followed where it missed, the key or the place it
       missed named beside it.

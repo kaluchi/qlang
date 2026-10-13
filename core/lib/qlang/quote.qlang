@@ -133,8 +133,8 @@
   ::string
 
 :quote/ParseError/location
-  |~~ The place, its offsets, lines and columns. ~~|
-  ::map
+  |~~ The span of the text where the reading stopped. ~~|
+  ::span
 
 :quote/ParseError/uri
   |~~ The source the text came from. ~~|

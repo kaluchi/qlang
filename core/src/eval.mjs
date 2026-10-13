@@ -481,13 +481,13 @@ function withReadOfPath(state, node, subject, env) {
 // with the names near it. A value the scope binds and a word the subject
 // answers under one name meet, and the step is refused with the word's
 // address, which calls the word, as another name reads the value [D223].
-async function callByName(lookupName, modifiers, state, node = null) {
+async function callByName(lookupName, modifiers, state, node) {
   const reach = bareNameReach(state.env, lookupName, state.pipeValue);
   if (reach === null) {
     const addresses = addressesOf(state.env, lookupName);
     if (addresses.length > 0) {
       const nearest = nearestWords(state.env, addresses, state.pipeValue);
-      const read = node !== null && isPath(state.pipeValue) ? readOfPathSubject(state.pipeValue, node) : undefined;
+      const read = isPath(state.pipeValue) ? readOfPathSubject(state.pipeValue, node) : undefined;
       throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, read, actualValue: state.pipeValue });
     }
     throw new CallUnknownNameError({
@@ -887,7 +887,7 @@ export function resolveBinaryReducer(reducer) {
   }
   if (addressesOf(callerState.env, astNode.name).length === 0) return null;
   return async (acc, element) =>
-    (await callByName(astNode.name, item(element), withPipeValue(callerState, acc))).pipeValue;
+    (await callByName(astNode.name, item(element), withPipeValue(callerState, acc), astNode)).pipeValue;
 }
 
 // ─── ParenGroup ─────────────────────────────────────────────────

@@ -1,0 +1,6 @@
+{"name":"a-parse-refusal-holds-its-location-as-a-span","query":"\"~{\" | parse !| get /location","expect":"::span[0 1 1 1 1 2]","decision":"D249"}
+{"name":"a-span-answers-the-point-it-starts-at","query":"\"[1 2\" | parse !| get /location | start","expect":"::point[4 1 5]","decision":"D249"}
+{"name":"a-span-answers-the-point-after-its-end","query":"::span[0 1 1 4 1 5] | end","expect":"::point[4 1 5]","decision":"D249"}
+{"name":"a-point-reads-its-offset-line-and-column","query":"::point[7 2 3] | :p it | [(p | offset) (p | line) (p | column)]","expect":"[7 2 3]","decision":"D249"}
+{"name":"a-span-holds-six-whole-numbers","query":"::span[0 1 1] !| type","expect":"::span/PayloadNotSixNumbersError","decision":"D249"}
+{"name":"a-point-holds-three-whole-numbers","query":"::point[0.5 1 1] !| type","expect":"::point/PayloadNotThreeNumbersError","decision":"D249"}

@@ -13,7 +13,7 @@ import {
   isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet, makeRegex, makePath, isPath,
-  makeBinding, bindingValueOf, isBinding, makeTaggedInstance, makeTag, errorAtRest,
+  makeBinding, bindingValueOf, makeTaggedInstance, makeTag, errorAtRest,
   isFn, isKind, recipeOf, makeQuote, isQMap, stampTagHeader, TAG_HEADER_SYMBOL,
   ERROR_TAG
 } from './types.mjs';
@@ -22,7 +22,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isWord, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, residenceOnSubject, subjectRefusalAddress
+  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isWord, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress
 } from './runtime/nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, kindOf, pageOfConstructor, pageOfKindsRefusal, signatureOf } from './runtime/signature.mjs';
 import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
@@ -44,7 +44,6 @@ const BuiltinUnknownAstNodeTypeError = declareInvariantError(
 // under a label, a word, an invariant or a tag no node answers [D173].
 const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
 const CallValueMeetsWordError = declareRefusal('call/ValueMeetsWordError');
-const CallValueWithheldError = declareRefusal('call/ValueWithheldError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
 const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifiersError');
 const FnRecipeMissingError = declareRefusal('fn/RecipeMissingError');
@@ -299,11 +298,13 @@ async function evalTagLit(node, state) {
 // declaration of docs alone binding them as a page, and a body that fails
 // answering the failure, which no name holds [D13]; a name is declared
 // once in its scope [D71], a node the root holds once at all [D153], and a
-// name with a path under a noun declared before it; what the chain of a
-// kind or a function holds alone, declared by a name, is refused [D253].
+// name with a path under a noun declared before it, never a value withheld
+// from held code [D278]; what the chain of a kind or a function holds
+// alone, declared by a name, is refused [D253].
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   const [nounName] = splitAddress(name);
+  if (nounName !== null) refuseWithheld(state.env, nounName, true);
   if (repeatsDeclarationInScope(node) || declaresWhatTheCallBinds(node, state.env, name) || (nounName !== null && rootOf(state.env).has(name))) {
     throw new BindNameDeclaredTwiceError({ name: keyword(name) });
   }
@@ -473,7 +474,7 @@ function withReadOfPath(state, node, subject, env) {
 // a value of the reader withheld from held code is refused under its
 // name before a word or a value of the root answers for it [D278].
 async function callByName(lookupName, modifiers, state, node) {
-  if (!state.env.has(lookupName) && state.env.get(WITHHELD_KEY)?.has(lookupName)) throw new CallValueWithheldError({ name: keyword(lookupName) });
+  refuseWithheld(state.env, lookupName);
   const reach = bareNameReach(state.env, lookupName, state.pipeValue);
   if (reach === null) {
     const addresses = addressesOf(state.env, lookupName);
@@ -643,9 +644,16 @@ function scopeOpenedIn(env, ofTheRoot) {
   if (ofTheRoot) markRootWordScope(scope);
   for (const [name, entry] of env) {
     if (typeof name !== 'string' || scope.has(name)) continue;
-    if (name.includes('/') || (isBinding(entry) && declaresALabel(entry))) scope.set(name, entry);
+    if (isNodeOrLabel(name, entry)) scope.set(name, entry);
   }
   return scope;
+}
+
+// Whether a name of a scope is a node, a name with a path, or a label, the
+// names a recipe and code held as data read, any other a value a reader
+// named [D200], [D278].
+function isNodeOrLabel(name, record) {
+  return name.includes('/') || declaresALabel(record);
 }
 
 // ─── Names under a label ───────────────────────────────────────
@@ -909,9 +917,10 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
 // through its label [D41]: built by its kind [D252], laid over as it is
-// where no kind answers the tag [D42], [D173], and never over an error
-// [D13].
+// where no kind answers the tag [D42], [D173], never over an error [D13],
+// and never under the name of a value withheld from held code [D278].
 export async function mintTaggedInstance(tagName, payload, state) {
+  refuseWithheld(state.env, tagName, true);
   const declared = bindingValueOf(nodeOf(state.env, tagName));
   if (isKind(declared)) return await underKind(tagName, declared, payload, state);
   if (isDoc(declared)) return laidUnder(tagName, payload);
@@ -968,7 +977,7 @@ async function fieldRefusal(tagName, field, payload, invariants, state, opened) 
 // closeCode(astNode, capturedState) → (input) → value: code run against
 // the input it is handed, one frame below and in its scope, a step on the
 // success track as every step is; it keeps its tree and its state, so
-// `reduce` finds the verb a quote of one name holds [D56].
+// `reduce` finds the verb a quote of one name holds [D90].
 function closeCode(astNode, capturedState) {
   const run = async (input) => {
     const subState = nestState(capturedState, input, capturedState.env);
@@ -1033,8 +1042,8 @@ function laneOf(env) {
   lane = new Map([[ROOT_KEY, rootOf(env)], [WITHHELD_KEY, withheld]]);
   for (const [name, entry] of env) {
     if (typeof name !== 'string') continue;
-    if (name.includes('/') || (isBinding(entry) && declaresALabel(entry))) lane.set(name, entry);
-    else if (isBinding(entry)) withheld.add(name);
+    if (isNodeOrLabel(name, entry)) lane.set(name, entry);
+    else withheld.add(name);
   }
   LANES.set(env, lane);
   return lane;

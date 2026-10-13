@@ -9,11 +9,12 @@
 import {
   isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQuote, isVec, isTag, isTaggedInstance,
   isValueClass, isPath, isFn, isKind, recipeOf, makeSet, makeTag,
-  typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
+  typeKeyword, bindingValueOf, keyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf, isRootWordScope } from '../state.mjs';
 import { splitAddress } from '../address.mjs';
-import { ROOT_KEY } from '../env-keys.mjs';
+import { ROOT_KEY, WITHHELD_KEY } from '../env-keys.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { astOfQuote } from '../quote.mjs';
 import { segmentIndex } from '../path-read.mjs';
 import { ANSWER_NAME, functionOfRecipe, kindOf, signatureOf } from './signature.mjs';
@@ -38,6 +39,20 @@ export function nodeOf(env, tagName) {
   if (isBinding(rootEntry) && declaresALabel(rootEntry)) return rootEntry;
   const entry = env.get(tagName) ?? rootEntry;
   return isBinding(entry) ? entry : null;
+}
+
+// A value a reader named is withheld from the lane of held code, and a
+// read of its name there is refused under it, so no word, no value of the
+// root and no tag of identity answers for it [D278]: a step reads the
+// frame's declaration of a name before the root's and refuses it, while a
+// tag, the noun of a declaration among them, reads a label of the root
+// before any name of the reader, and the label stays.
+export const CallValueWithheldError = declareRefusal('call/ValueWithheldError');
+
+export function refuseWithheld(env, name, readByTag = false) {
+  if (env.has(name) || !env.get(WITHHELD_KEY)?.has(name)) return;
+  if (readByTag && declaresALabel(rootOf(env).get(name))) return;
+  throw new CallValueWithheldError({ name: keyword(name) });
 }
 
 // Whether a record holds a page or a kind, either of which makes its name

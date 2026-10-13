@@ -1,3 +1,0 @@
-{"name":"a-projection-before-a-word-names-the-verb","query":"\"[\\\"x\\\" \\\"\\\"] | filter ~(/ne \\\"\\\")\" | parse !| get /message","expect":"\"`/ne` is a path, a value; a verb is called by its name alone, `ne …`\"","decision":"D134"}
-{"name":"a-projection-before-a-combinator-still-reads","query":"{:a 1} | get /a !| 0","expect":"1","decision":"D134"}
-{"name":"projections-as-modifiers-still-read","query":"{:qty 2 :price 3} | mulOf /qty /price","expect":"6","decision":"D134"}

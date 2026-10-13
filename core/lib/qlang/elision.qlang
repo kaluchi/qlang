@@ -18,8 +18,9 @@
       passed such a marker.
       ::link~(::any/elide | doc) ::link~(::qlang/hosts | doc)
   ~~|
+  ::kind
+    | proves :measuresWhatItLeftOut
+        |~~ An elision holds the size of what it left out. ~~|
+        ~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it"}
+          | elide 20 | get /s | get /size | eq 98)
 
-:elision/measuresWhatItLeftOut
-  |~~ An elision holds the size of what it left out. ~~|
-  ::law~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it"}
-    | elide 20 | get /s | get /size | eq 98)

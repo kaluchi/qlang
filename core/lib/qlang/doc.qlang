@@ -25,42 +25,35 @@
       ::link~(::link | doc) ::link~(::snippet | doc)
       ::link~(::qlang/hypertext | doc)
   ~~|
-
-:doc/isThePageOfAName
-  |~~ The page of a name is a doc. ~~|
-  ::law~(::number/add | doc | type | eq ::doc)
-
-:doc/splitsIntoSegments
-  |~~ A doc of prose, code and prose has three segments. ~~|
-  ::law~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)
-
-:doc/buildsFromSegments
-  |~~ Segments under `::doc` build the doc. ~~|
-  ::law~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
-
-:doc/construct
-  |~~ The doc of a vector of prose strings and quotes. ~~|
-  ::builtin{}
-
-:doc/PayloadNotVecError
-  |~~ `::doc` builds a doc from the vector of its segments, prose
-      strings and quotes; a payload of another kind is refused.
-  ~~|
-
-:doc/PayloadNotVecError/refusesAString
-  |~~ A string payload is refused. ~~|
-  ::law~(::doc"x" !| [type (get /actualType)] | eq [::doc/PayloadNotVecError ::string])
-
-:doc/ElementNotSegmentError
-  |~~ Every element of a doc is a segment, a string of prose or a
-      quote, and another value is refused at the index it stands at; a
-      number is made prose by `toString` first,
-      `["a" (5 | toString)] | tag ::doc`.
-  ~~|
-
-:doc/ElementNotSegmentError/refusesANumberAmongTheSegments
-  |~~ A number among the segments is refused at its index. ~~|
-  ::law~(["a" 1] | tag ::doc !| [type (get /index)] | eq [::doc/ElementNotSegmentError 1])
+  ::kind
+    | wraps
+        |~~ A vector of prose strings and quotes, built into the doc. ~~|
+    | throws :PayloadNotVecError
+        |~~ `::doc` builds a doc from the vector of its segments, prose
+            strings and quotes; a payload of another kind is refused.
+        ~~|
+    | throws :ElementNotSegmentError
+        |~~ Every element of a doc is a segment, a string of prose or a
+            quote, and another value is refused at the index it stands at;
+            a number is made prose by `toString` first,
+            `["a" (5 | toString)] | tag ::doc`.
+        ~~|
+    | proves :isThePageOfAName
+        |~~ The page of a name is a doc. ~~|
+        ~(::number/add | doc | type | eq ::doc)
+    | proves :splitsIntoSegments
+        |~~ A doc of prose, code and prose has three segments. ~~|
+        ~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)
+    | proves :buildsFromSegments
+        |~~ Segments under `::doc` build the doc. ~~|
+        ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
+    | proves :PayloadNotVecError/refusesAString
+        |~~ A string payload is refused. ~~|
+        ~(::doc"x" !| [type (get /actualType)] | eq [::doc/PayloadNotVecError ::string])
+    | proves :ElementNotSegmentError/refusesANumberAmongTheSegments
+        |~~ A number among the segments is refused at its index. ~~|
+        ~(["a" 1] | tag ::doc !| [type (get /index)] | eq [::doc/ElementNotSegmentError 1])
+    | impl ::builtin{}
 
 :doc/content
   |~~ Answers the text of the doc, a string: its prose with each quote
@@ -83,20 +76,20 @@
             first, `::vec/join | doc | content`, and a name declared
             without a page has none, `doc` answering null.
         ~~|
-    | law :writesEachQuoteWhereItStands
+    | proves :writesEachQuoteWhereItStands
         |~~ The content writes each quote where it stands in the prose. ~~|
         ~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
-    | law :writesALinkWithItsTags
+    | proves :writesALinkWithItsTags
         |~~ A link is written with its tags. ~~|
         ~(|~~ see ::link~(::vec | doc) ~~| | content | eq " see ::link~(::vec | doc) ")
-    | law :readsThePageOfAWord
+    | proves :readsThePageOfAWord
         |~~ The content of a word's page is its text. ~~|
         ~(::vec/join | doc | content | contains "separator")
-    | law :SubjectNotDocError/refusesTheNullOfANameWithoutAPage
+    | proves :SubjectNotDocError/refusesTheNullOfANameWithoutAPage
         |~~ A name declared without a page has no content to read. ~~|
         ~(:x 1 | ::x | doc | content
           !| [type (get /actualType)] | eq [::doc/content/SubjectNotDocError ::null])
-    | law :SubjectNotDocError/refusesAString
+    | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("x" | content !| type | eq ::doc/content/SubjectNotDocError)
     | impl ::builtin{}
@@ -121,30 +114,31 @@
   ~~|
   ::fn
     | returns
-        |~~ The prose and the quotes of the doc, in their order. ~~| ::vec
+        |~~ The prose and the quotes of the doc, in their order. ~~|
+        ::vec
     | throws :SubjectNotDocError
         |~~ `segments` reads a doc, not its text: the page of a name is
             read by `doc` first, `::vec | doc | segments`.
         ~~|
-    | law :alternatesProseAndCode
+    | proves :alternatesProseAndCode
         |~~ Prose and code alternate in the segments. ~~|
         ~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
-    | law :keepsTheTagsOfALink
+    | proves :keepsTheTagsOfALink
         |~~ A link stands among the segments under its tag. ~~|
         ~(|~~ a ::link~(1) ~~| | segments | get /1 | type | eq ::link)
-    | law :answersOneStringForProseAlone
+    | proves :answersOneStringForProseAlone
         |~~ A doc of prose alone is one segment of prose. ~~|
         ~(|~~ only prose ~~| | segments | eq [" only prose "])
-    | law :keepsABrokenQuoteInProse
+    | proves :keepsABrokenQuoteInProse
         |~~ A span that does not read as code stays prose. ~~|
         ~(|~~ a ~(1 | ) b ~~| | segments | count | eq 1)
-    | law :buildsTheDocAgainUnderItsTag
+    | proves :buildsTheDocAgainUnderItsTag
         |~~ The segments under `::doc` are the doc again. ~~|
         ~(|~~ a ~(add 1) b ~~| | :d it | d | segments | tag ::doc | eq d)
-    | law :refusesARoleWhosePayloadIsNoQuote
+    | proves :refusesARoleWhosePayloadIsNoQuote
         |~~ A quote under a tag that takes no quote refuses the doc. ~~|
         ~(|~~ see ::number~(~(x)) ~~| !| [type (get /actualType)] | eq [::number/PayloadNotNumberError ::quote])
-    | law :SubjectNotDocError/refusesAString
+    | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("text" | doc/segments !| [type (get /actualType)] | eq [::doc/segments/SubjectNotDocError ::string])
     | impl ::builtin{}
@@ -169,20 +163,20 @@
         |~~ `links` reads a doc, not its text: the page of a name is read
             by `doc` first, `::vec | doc | links`.
         ~~|
-    | law :findsTheLinkInProse
+    | proves :findsTheLinkInProse
         |~~ A link inside prose is found. ~~|
         ~(|~~ see ::link~(::vec | manifest) ~~| | links | count | eq 1)
-    | law :findsALinkUnderAHostTag
+    | proves :findsALinkUnderAHostTag
         |~~ A link under a host's tag is a link. ~~|
         ~(|~~ a ::Host::link~(1) b ~~| | links | count | eq 1)
-    | law :leavesTheSnippetsOut
+    | proves :leavesTheSnippetsOut
         |~~ A doc whose only quote is a snippet has no link. ~~|
         ~(|~~ a ::snippet~(1) b ~~| | links | eq [])
-    | law :runsWhereItLeads
+    | proves :runsWhereItLeads
         |~~ A link runs the query it holds. ~~|
         ~(|~~ ::link~(::vec | manifest) ~~| | links | first
           | :l it | (null | apply l | has ::vec/count))
-    | law :SubjectNotDocError/refusesItsText
+    | proves :SubjectNotDocError/refusesItsText
         |~~ The text of a page is no doc. ~~|
         ~(::vec | doc | content | links
           !| [type (get /actualType)] | eq [::doc/links/SubjectNotDocError ::string])
@@ -200,21 +194,22 @@
   ~~|
   ::fn
     | returns
-        |~~ The snippets of the doc, each a query a reader runs. ~~| ::vec
+        |~~ The snippets of the doc, each a query a reader runs. ~~|
+        ::vec
     | throws :SubjectNotDocError
         |~~ `snippets` reads a doc, not its text: the page of a name is
             read by `doc` first, `::tag/manifest | doc | snippets`.
         ~~|
-    | law :findsTheSnippetInProse
+    | proves :findsTheSnippetInProse
         |~~ A snippet inside prose is found. ~~|
         ~(|~~ run ::snippet~([2 1] | sort) ~~| | snippets | count | eq 1)
-    | law :leavesTheLinksOut
+    | proves :leavesTheLinksOut
         |~~ A doc whose only quote is a link has no snippet. ~~|
         ~(|~~ a ::link~(1) b ~~| | snippets | eq [])
-    | law :opensToWhatItShows
+    | proves :opensToWhatItShows
         |~~ A snippet opens to what it shows. ~~|
         ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map ~open | eq [[1 2]])
-    | law :SubjectNotDocError/refusesAString
+    | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("text" | snippets !| [type (get /actualType)] | eq [::doc/snippets/SubjectNotDocError ::string])
     | impl ::builtin{}

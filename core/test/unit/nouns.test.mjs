@@ -56,13 +56,13 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('::shop{} | capped')).result).toBe(5);
   });
 
-  it('a body declares none of the names its call binds whatever a reader or a later source names so, and shadows every other [D71]', async () => {
-    const shop = { uri: 'shop', source: ':vec/sized ~(:n 3 | n)\n:vec/sized/n /0\n:vec/scaled ~(map ~(mul n))\n:vec/scaled/n /0\n:vec/padded ~(:n 3 | count | add n)' };
+  it('a recipe declares none of the inputs its call binds whatever a reader or a later source names so, and shadows every other [D71]', async () => {
+    const shop = { uri: 'shop', source: ':vec/sized (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 3 | n))\n:vec/scaled (::fn | takes :n |~~ N. ~~| /0 | impl ~(map ~(mul n)))\n:vec/padded ~(:n 3 | count | add n)' };
     const later = { uri: 'stock', source: ':n 9' };
     const session = await createSession({ sources: [shop, later] });
     const answers = ':n 7 | [([1] | sized 2 !| [type (get /name)]) ([1 2] | scaled 2) ([1 2] | padded)]';
     expect((await session.evalCell(`${answers} | eq [[::bind/NameDeclaredTwiceError :n] [2 4] 5]`)).result).toBe(true);
-    const reader = ':n 7 | :vec/twice ~(:n 2 | map ~(mul n)) | :vec/sum2 ~(:n 2 | sum | add n) | :vec/sum2/n /0';
+    const reader = ':n 7 | :vec/twice ~(:n 2 | map ~(mul n)) | :vec/sum2 (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 2 | sum | add n))';
     expect((await session.evalCell(`${reader} | get [([1 2] | twice) ([1 2] | sum2 5 !| [type (get /name)])] | eq [[2 4] [::bind/NameDeclaredTwiceError :n]]`)).result).toBe(true);
   });
 
@@ -141,7 +141,7 @@ describe('a name with a path calls the verb its address names', () => {
 
 describe('what a word reads and runs as data reads the tree of the query [D200]', () => {
   const pages = { uri: 'pages', source: ':pages |~~ Pages. ~~|\n:k |~~ the source\'s own ~~| 1\n:any/pageOf ~(doc | content)' };
-  const runner = { uri: 'runner', source: ':runner |~~ A runner. ~~|\n:any/runIt ~(apply code)\n:any/runIt/code /0\n:any/runIt/x /1' };
+  const runner = { uri: 'runner', source: ':runner |~~ A runner. ~~|\n:any/runIt (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code))' };
 
   it('a word of the root reads the page and the laws of a bare name the reader declares', async () => {
     expect(await evalQuery(':k |~~ Answers five. ~~| 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | tutorial | get [(get /0 | content) (get /1 | keys)] | eq [" Answers five. " #[:answersFive]]')).toBe(true);
@@ -169,19 +169,19 @@ describe('what a word reads and runs as data reads the tree of the query [D200]'
     expect((await session.evalCell(':k |~~ the reader\'s ~~| 2 | ::k | pageOf')).result).toBe(' the reader\'s ');
   });
 
-  it('code held as data runs in the tree of the query, past the parts of a word of the root', async () => {
+  it('code held as data runs in the tree of the query, past the inputs of a word of the root', async () => {
     const session = await createSession({ sources: [runner] });
     expect((await session.evalCell(':x 1 | "x" | parse | :q it | null | runIt q 99')).result).toBe(1);
   });
 
-  it('a word the reader declares reads and runs as data the tree of the query, past its own declarations and parts, as a word of the root does [D251]', async () => {
+  it('a word the reader declares reads and runs as data the tree of the query, past its own declarations and inputs, as a word of the root does [D251]', async () => {
     expect(await evalQuery(':x 1 | :any/names ~(:y 2 | env | get [(has :y) (has :x)]) | names | eq [false true]')).toBe(true);
     expect(await evalQuery(':any/f ~(:loc |~~ L ~~| 1 | ::loc | doc | content) | f !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
-    expect(await evalQuery(':x 1 | :any/run ~(apply code) | :any/run/code /0 | :any/run/x /1 | "x" | parse | :q it | null | run q 99')).toBe(1);
+    expect(await evalQuery(':x 1 | :any/run (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code)) | "x" | parse | :q it | null | run q 99')).toBe(1);
   });
 
   it('a word reads a name the query declares after the word', async () => {
     expect(await evalQuery(':any/pageOf ~(doc | content) | :k |~~ K. ~~| 1 | ::k | pageOf')).toBe(' K. ');
-    expect(await evalQuery(':any/run ~(apply code) | :any/run/code /0 | :x 5 | "x | add 1" | parse | :q it | null | run q')).toBe(6);
+    expect(await evalQuery(':any/run (::fn | takes :code |~~ The code. ~~| /0 | impl ~(apply code)) | :x 5 | "x | add 1" | parse | :q it | null | run q')).toBe(6);
   });
 });

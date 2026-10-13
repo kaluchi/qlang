@@ -14,7 +14,9 @@
       It is written `::` and a name, a slash joining names into an
       address, `::vec/count`; a tag that touches a payload puts the
       payload under it, which ::link~(::tagged | doc) tells. A kind is
-      declared by its page, and its tag is the address of that name; a
+      built from ::link~(::kind | doc) by commands and declared under a
+      name, or declared by its page alone, and its tag is the address of
+      that name; a
       tag nothing declares is a kind of identity, which checks nothing
       and lays itself over the value. Tags rank after keywords and
       before vectors, and JSON writes a tag as its literal, `"::Box"`.
@@ -22,35 +24,28 @@
       ::snippet~(::Box::Crate{:a 1} | type) answers the outer tag.
       ::link~(::qlang/values | doc)
   ~~|
-
-:tag/isATag
-  |~~ A tag name is a value of `::tag`. ~~|
-  ::law~(::Box | type | eq ::tag)
-
-:tag/namesAPage
-  |~~ The tag of a kind names its page. ~~|
-  ::law~(5 | type | doc | type | eq ::doc)
-
-:tag/namesNothingUndeclared
-  |~~ A tag no declaration answers names no record. ~~|
-  ::law~(::Unbound[1] | type | binding !| type | eq ::any/binding/UnknownNameError)
-
-:tag/construct
-  |~~ Reads a tag name as itself. ~~|
-  ::builtin{}
-
-:tag/PayloadNotTagError
-  |~~ `::tag` reads its payload as the tag name it is; a value's own
-      tag is read by `type`.
-  ~~|
-
-:tag/construct/readsATagNameAsItself
-  |~~ `::tag` over a tag name is that name. ~~|
-  ::law~(::tag::Box | eq ::Box)
-
-:tag/PayloadNotTagError/refusesAKeyword
-  |~~ A keyword payload is refused. ~~|
-  ::law~(::tag:k !| [type (get /actualType)] | eq [::tag/PayloadNotTagError ::keyword])
+  ::kind
+    | wraps |~~ A tag name, read as itself. ~~|
+    | throws :PayloadNotTagError
+        |~~ `::tag` reads its payload as the tag name it is; a value's own
+            tag is read by `type`.
+        ~~|
+    | proves :isATag
+        |~~ A tag name is a value of `::tag`. ~~|
+        ~(::Box | type | eq ::tag)
+    | proves :namesAPage
+        |~~ The tag of a kind names its page. ~~|
+        ~(5 | type | doc | type | eq ::doc)
+    | proves :namesNothingUndeclared
+        |~~ A tag no declaration answers names no record. ~~|
+        ~(::Unbound[1] | type | binding !| type | eq ::any/binding/UnknownNameError)
+    | proves :readsATagNameAsItself
+        |~~ `::tag` over a tag name is that name. ~~|
+        ~(::tag::Box | eq ::Box)
+    | proves :PayloadNotTagError/refusesAKeyword
+        |~~ A keyword payload is refused. ~~|
+        ~(::tag:k !| [type (get /actualType)] | eq [::tag/PayloadNotTagError ::keyword])
+    | impl ::builtin{}
 
 :tag/gt
   |~~ Answers whether the subject, a tag name, comes after the tag name
@@ -82,20 +77,22 @@
             otherwise.
         ~~|
         ::boolean
-    | law :ordersByName |~~ `::b` comes after `::a`. ~~| ~(::b | gt ::a)
-    | law :putsACapitalFirst
-        |~~ A capital comes before a small letter. ~~| ~(::a | gt ::B)
-    | law :putsANameBeforeTheNamesUnderIt
+    | proves :ordersByName |~~ `::b` comes after `::a`. ~~| ~(::b | gt ::a)
+    | proves :putsACapitalFirst
+        |~~ A capital comes before a small letter. ~~|
+        ~(::a | gt ::B)
+    | proves :putsANameBeforeTheNamesUnderIt
         |~~ A name comes before the names that go on under it. ~~|
         ~(::vec/count | gt ::vec)
-    | law :keepsOneNameApartFromItself
-        |~~ A name does not come after itself. ~~| ~(::a | gt ::a | not)
-    | law :ordersValuesByTheNamesOfTheirKinds
+    | proves :keepsOneNameApartFromItself
+        |~~ A name does not come after itself. ~~|
+        ~(::a | gt ::a | not)
+    | proves :ordersValuesByTheNamesOfTheirKinds
         |~~ Values sorted by `type` fall in the order of the names of
             their kinds.
         ~~|
         ~([1 "a" :k] | sort ~(type) | eq [:k 1 "a"])
-    | law :value/NotTagError/refusesAKeyword
+    | proves :value/NotTagError/refusesAKeyword
         |~~ A keyword is no tag name to compare with. ~~|
         ~(::a | gt :a !| type | eq ::tag/gt/value/NotTagError)
     | impl ::builtin{}
@@ -122,12 +119,13 @@
             name, `false` otherwise.
         ~~|
         ::boolean
-    | law :holdsOfItself
-        |~~ A name comes after or is itself. ~~| ~(::b | gte ::b)
-    | law :keepsAnEarlierNameApart
+    | proves :holdsOfItself
+        |~~ A name comes after or is itself. ~~|
+        ~(::b | gte ::b)
+    | proves :keepsAnEarlierNameApart
         |~~ An earlier name does not come after a later one. ~~|
         ~(::a | gte ::b | not)
-    | law :value/NotTagError/refusesANumber
+    | proves :value/NotTagError/refusesANumber
         |~~ A number is no tag name to compare with. ~~|
         ~(::b | gte 1 !| type | eq ::tag/gte/value/NotTagError)
     | impl ::builtin{}
@@ -135,8 +133,8 @@
 :tag/lt
   |~~ Answers whether the subject, a tag name, comes before the tag name
       the call gives, `::a | lt ::b`. It compares as `gt` does, tag names
-      with tag names, by their names as they are spelled, so `::B | lt
-      ::a` answers `true`.
+      with tag names, by their names as they are spelled, so
+      `::B | lt ::a` answers `true`.
       ::link~(::tag/gt | doc) ::link~(::tag/lte | doc)
   ~~|
   ::fn
@@ -154,12 +152,14 @@
             otherwise.
         ~~|
         ::boolean
-    | law :ordersByName |~~ `::a` comes before `::b`. ~~| ~(::a | lt ::b)
-    | law :putsACapitalFirst
-        |~~ A capital comes before a small letter. ~~| ~(::B | lt ::a)
-    | law :keepsOneNameApartFromItself
-        |~~ A name does not come before itself. ~~| ~(::a | lt ::a | not)
-    | law :value/NotTagError/refusesANumber
+    | proves :ordersByName |~~ `::a` comes before `::b`. ~~| ~(::a | lt ::b)
+    | proves :putsACapitalFirst
+        |~~ A capital comes before a small letter. ~~|
+        ~(::B | lt ::a)
+    | proves :keepsOneNameApartFromItself
+        |~~ A name does not come before itself. ~~|
+        ~(::a | lt ::a | not)
+    | proves :value/NotTagError/refusesANumber
         |~~ A number is no tag name to compare with. ~~|
         ~(::b | lt 1 !| type | eq ::tag/lt/value/NotTagError)
     | impl ::builtin{}
@@ -185,10 +185,13 @@
             name, `false` otherwise.
         ~~|
         ::boolean
-    | law :holdsOfItself
-        |~~ A name comes before or is itself. ~~| ~(::a | lte ::a)
-    | law :ordersByName |~~ `::a` comes before `::b`. ~~| ~(::a | lte ::b)
-    | law :value/NotTagError/refusesANumber
+    | proves :holdsOfItself
+        |~~ A name comes before or is itself. ~~|
+        ~(::a | lte ::a)
+    | proves :ordersByName
+        |~~ `::a` comes before `::b`. ~~|
+        ~(::a | lte ::b)
+    | proves :value/NotTagError/refusesANumber
         |~~ A number is no tag name to compare with. ~~|
         ~(::b | lte 1 !| type | eq ::tag/lte/value/NotTagError)
     | impl ::builtin{}
@@ -197,7 +200,7 @@
   |~~ Answers the set of the names declared one name under the noun the
       subject names, each by its address: `::number | manifest` the
       words and the refusals of numbers, `::vec/take | manifest` the
-      parts and the answer of `take`, `::qlang | manifest` the chapters
+      inputs and the answer of `take`, `::qlang | manifest` the chapters
       of the language. A tag name that names nothing answers the empty
       set. The laws of a name are no part of the answer, `laws` reads
       them; the kinds of the scope `kinds` lists, and what the reader
@@ -215,42 +218,42 @@
         |~~ The addresses of the names declared one name under the noun. ~~|
         ::set
     | throws :SubjectNotTagError
-        |~~ `manifest` is asked of a noun by its tag name, `::number |
-            manifest`; a keyword names a binding and no noun.
+        |~~ `manifest` is asked of a noun by its tag name,
+            `::number | manifest`; a keyword names a binding and no noun.
         ~~|
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `manifest` reads the noun of the subject and takes no value:
             the manifest of vectors is `::vec | manifest`.
         ~~|
-    | law :holdsAVerbOfTheNoun
+    | proves :holdsAVerbOfTheNoun
         |~~ The manifest of numbers holds `add`. ~~|
         ~(::number | manifest | has ::number/add)
-    | law :holdsAChapter
+    | proves :holdsAChapter
         |~~ The manifest of the first page holds its chapter on values. ~~|
         ~(::qlang | manifest | has ::qlang/values)
-    | law :holdsThePartsOfAWord
-        |~~ The manifest of a word holds its parts. ~~|
+    | proves :holdsTheInputsOfAWord
+        |~~ The manifest of a word holds its inputs. ~~|
         ~(::vec/take | manifest | has ::vec/take/count)
-    | law :holdsTheNamesOfAReader
+    | proves :holdsTheNamesOfAReader
         |~~ The manifest of a reader's noun holds the names declared under
             it.
         ~~|
         ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box | manifest | eq #[::Box/area])
-    | law :leavesTheLawsToLaws
+    | proves :leavesTheLawsToLaws
         |~~ The laws of a name are no part of its manifest. ~~|
         ~(::number/add | get [(manifest | filter ~(binding | get /value | is ::law) | count) (laws | count | gt 0)] | eq [0 true])
-    | law :answersNothingForANameThatNamesNothing
+    | proves :answersNothingForANameThatNamesNothing
         |~~ A tag name that names nothing answers the empty set. ~~|
         ~(::Nothing | manifest | eq #[])
-    | law :SubjectNotTagError/refusesANumber
+    | proves :SubjectNotTagError/refusesANumber
         |~~ A number is no noun. ~~|
         ~(5 | manifest !| [type (get /actualType)] | eq [::tag/manifest/SubjectNotTagError ::number])
-    | law :SubjectNotTagError/refusesAKeyword
+    | proves :SubjectNotTagError/refusesAKeyword
         |~~ A keyword names a binding and no noun. ~~|
         ~(:number | manifest !| type | eq ::tag/manifest/SubjectNotTagError)
-    | law :ArgsBeyondPartsError/refusesANounGivenAsAValue
+    | proves :ArgsBeyondInputsError/refusesANounGivenAsAValue
         |~~ A noun given as a value is refused; it is the subject. ~~|
-        ~(::qlang | manifest ::vec !| type | eq ::tag/manifest/ArgsBeyondPartsError)
+        ~(::qlang | manifest ::vec !| type | eq ::tag/manifest/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :tag/toString
@@ -261,7 +264,7 @@
   ~~|
   ::fn
     | returns |~~ The name of the tag, a string. ~~| ::string
-    | law :answersTheName
+    | proves :answersTheName
         |~~ A tag answers its name. ~~|
         ~([::vec ::number/add] | map ~toString | eq ["vec" "number/add"])
     | impl ::builtin{}
@@ -274,7 +277,7 @@
   ~~|
   ::fn
     | returns |~~ The keyword of the tag's name. ~~| ::keyword
-    | law :readsBack
+    | proves :readsBack
         |~~ A tag turned into its keyword turns back into itself. ~~|
         ~(::Box | toKeyword | toTag | eq ::Box)
     | impl ::builtin{}
@@ -287,7 +290,7 @@
   ~~|
   ::fn
     | returns |~~ The tag itself. ~~| ::tag
-    | law :answersItself
+    | proves :answersItself
         |~~ A tag answers itself, so names and tags turn into tags. ~~|
         ~(["vec" :Box ::map] | map ~toTag | eq [::vec ::Box ::map])
     | impl ::builtin{}

@@ -1,0 +1,12 @@
+{"decision":"D98","name":"explain-answers-an-explanation","query":"\"x\" | add 1 !| explain | type","expect":"::explanation"}
+{"decision":"D98","name":"an-explanation-holds-the-page-and-the-value","query":"\"x\" | add 1 !| explain | payload | keys","expect":"#[:page :value]"}
+{"decision":"D98","name":"an-explanation-answers-the-error-it-explains","query":"\"x\" | add 1 !| explain | value | type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D98","name":"the-error-of-an-explanation-is-at-rest","query":"\"x\" | add 1 !| explain | value | get /actualType","expect":"::string"}
+{"decision":"D13","name":"an-explanation-prints-the-error-at-rest","query":"\"x\" | add 1 !| explain | print | contains \":value ::number/add/SubjectNotNumberError!{\"","expect":"true"}
+{"decision":"D123","name":"the-laws-a-page-carried-stand-under-its-name","query":"::number/add | laws | count","expect":"4"}
+{"decision":"D98","name":"an-explanation-prints-its-page-first","query":"\"x\" | add 1 !| explain | print | contains \"::explanation{\n  :page |~~\"","expect":"true"}
+{"decision":"D98","name":"a-number-explains-by-the-page-of-its-kind","query":"42 | explain | page | eq (::number | doc)","expect":"true"}
+{"decision":"D98","name":"an-explanation-holds-the-value-it-explains","query":"42 | explain | value","expect":"42"}
+{"decision":"D98","name":"a-name-explains-by-its-own-page","query":"::number/add | explain | page | eq (::number/add | doc)","expect":"true"}
+{"decision":"D98","name":"a-tagged-value-explains-by-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box{:a 1} | explain | page | content | contains \"A box\"","expect":"true"}
+{"decision":"D13","name":"an-error-value-explains-as-it-is","query":"::error{:k 1} | explain | value | type","expect":"::error"}

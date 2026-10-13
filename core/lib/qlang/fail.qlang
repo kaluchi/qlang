@@ -12,46 +12,42 @@
       step, `~(!| get /kind) | first` answering `::fail~(get /kind)`.
       ::link~(::error | doc) ::link~(::qlang/errors | doc)
   ~~|
+  ::kind
+    | wraps |~~ The quote of a step, built into the step `!| step`. ~~|
+    | throws :PayloadNotQuoteError
+        |~~ The payload of `::fail` is the quote of the step it wraps, so
+            `~(get /kind) | tag ::fail` is the step `!| get /kind`.
+            ::link~(::fail | doc)
+        ~~|
+    | throws :ReadBackDiffersError
+        |~~ The `::fail` prints as text that reads back as another step,
+            or as none, and `:printed` is that text: it wraps one step, so
+            a pipeline prints as `!| a | b`, where `!|` takes the first
+            step alone, and an empty quote as no step. A pipeline under
+            `!|` is written as a group,
+            `~((get /kind | print)) | tag ::fail` the step
+            `!| (get /kind | print)`.
+            ::link~(::fail | doc)
+        ~~|
+    | proves :holdsItsStep
+        |~~ The fail track holds its step as a quote. ~~|
+        ~(~(!| get /kind) | first | payload | eq ~(get /kind))
+    | proves :PayloadNotQuoteError/refusesANumber
+        |~~ A number payload is refused. ~~|
+        ~(42 | tag ::fail !| [type (get /actualType)] | eq [::fail/PayloadNotQuoteError ::number])
+    | proves :PayloadNotQuoteError/buildsTheStepOfAStep
+        |~~ The quote of a step builds the step the fail track runs. ~~|
+        ~(~(get /kind) | tag ::fail | get [it] | tag ::quote | eq ~(!| get /kind))
+    | proves :ReadBackDiffersError/refusesAPipelineOutsideAGroup
+        |~~ A pipeline wrapped without a group prints as text that reads
+            back as two steps.
+        ~~|
+        ~(~(a | b) | tag ::fail !| [type (get /printed)] | eq [::fail/ReadBackDiffersError "!| a | b"])
+    | proves :ReadBackDiffersError/refusesAnEmptyQuote
+        |~~ An empty quote prints as text that reads back as no step. ~~|
+        ~(~() | tag ::fail !| [type (get /printed)] | eq [::fail/ReadBackDiffersError "!| "])
+    | proves :ReadBackDiffersError/wrapsAPipelineInAGroup
+        |~~ A pipeline in a group is the one step the fail track runs. ~~|
+        ~(~((get /kind | print)) | tag ::fail | get [it] | tag ::quote | eq ~(!| (get /kind | print)))
+    | impl ::builtin{}
 
-:fail/holdsItsStep
-  |~~ The fail track holds its step as a quote. ~~|
-  ::law~(~(!| get /kind) | first | payload | eq ~(get /kind))
-
-:fail/construct
-  |~~ The step `!| step` from the quote of its step. ~~|
-  ::builtin{}
-
-:fail/PayloadNotQuoteError
-  |~~ The payload of `::fail` is the quote of the step it wraps, so
-      `~(get /kind) | tag ::fail` is the step `!| get /kind`.
-      ::link~(::fail | doc)
-  ~~|
-
-:fail/PayloadNotQuoteError/refusesANumber
-  |~~ A number payload is refused. ~~|
-  ::law~(42 | tag ::fail !| [type (get /actualType)] | eq [::fail/PayloadNotQuoteError ::number])
-
-:fail/PayloadNotQuoteError/buildsTheStepOfAStep
-  |~~ The quote of a step builds the step the fail track runs. ~~|
-  ::law~(~(get /kind) | tag ::fail | get [it] | tag ::quote | eq ~(!| get /kind))
-
-:fail/ReadBackDiffersError
-  |~~ The `::fail` prints as text that reads back as another step, or as
-      none, and `:printed` is that text: it wraps one step, so a pipeline
-      prints as `!| a | b`, where `!|` takes the first step alone, and an
-      empty quote as no step. A pipeline under `!|` is written as a group,
-      `~((get /kind | print)) | tag ::fail` the step `!| (get /kind | print)`.
-      ::link~(::fail | doc)
-  ~~|
-
-:fail/ReadBackDiffersError/refusesAPipelineOutsideAGroup
-  |~~ A pipeline wrapped without a group prints as text that reads back as two steps. ~~|
-  ::law~(~(a | b) | tag ::fail !| [type (get /printed)] | eq [::fail/ReadBackDiffersError "!| a | b"])
-
-:fail/ReadBackDiffersError/refusesAnEmptyQuote
-  |~~ An empty quote prints as text that reads back as no step. ~~|
-  ::law~(~() | tag ::fail !| [type (get /printed)] | eq [::fail/ReadBackDiffersError "!| "])
-
-:fail/ReadBackDiffersError/wrapsAPipelineInAGroup
-  |~~ A pipeline in a group is the one step the fail track runs. ~~|
-  ::law~(~((get /kind | print)) | tag ::fail | get [it] | tag ::quote | eq ~(!| (get /kind | print)))

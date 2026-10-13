@@ -694,11 +694,18 @@ field leads nowhere and one keyword means different things in
 different records; a record that is to be enriched therefore carries a
 tag, which documents its fields, and a value shared by several kinds of
 record a tag of its own [D50]. The shape of an answer
-is read the same way, before the answer is fetched: the result of a
-word is the label its `answer` names, `:number/add/answer ::number`,
-and the definitions under that label say what its values hold [D169],
-[D180]. Last, everything prints as what it is, code included,
-because an elided and enriched page travels on.
+is read the same way, before the answer is fetched: the answer of a
+word is the kind its `returns` names, laid under its address as the
+node `answer`, and the commands of that kind say what its values hold
+[D180], [D251], [D252]:
+
+```qlang
+> ::number/add/answer | binding | get /value
+::number
+```
+
+Last, everything prints as what it is, code included, because an
+elided and enriched page travels on.
 
 The pages themselves are values of the same kind. The names are a space
 of addresses, and a verb passes from an address into one of its
@@ -710,9 +717,10 @@ quote takes its role from the tags over it: under `::link` it names a
 page and `open` reaches it, the jump from one page to another
 [D108], [D121], [D175]; under `::snippet` it is a query a reader runs to
 see what it shows [D122]; with none it is code the prose holds. The laws
-that prove a name stand under it, each a definition of `::law~(…)` that
+that prove a name stand under it, each written by `proves` in the chain
+of its word or its kind and laid as a `::law~(…)` under its name, which
 `runLaws` holds to answer true, its page the claim it proves [D123],
-[D124]; `laws` answers each as the pair of its page and its
+[D124], [D252]; `laws` answers each as the pair of its page and its
 query, and `tutorial` a name's page and its laws, the pair a reader
 learns the name from [D176], [D177]:
 
@@ -779,11 +787,14 @@ belongs to the entrypoint.
 
 The repairs since have settled most of what grew around the core. Code
 is the vector of its steps, every step a command. There is one binding
-form, a name is declared once in a scope, and a verb is a name under the
-label of its subject, a host's primitive or a quote, the parts of its
-args names under its address with their laws, its args the values a call
-gives under its tag, which read back as they print [D164], [D166],
-[D167], [D168], [D173]. A name is read by its tag, and a keyword is data
+form, a name is declared once in a scope, and a verb is a function
+named under the label of its subject, built from `::fn` by commands, its
+inputs, its answer, its refusals and its laws in its chain and its
+recipe, a quote or a host's primitive, last, its args the values a call
+gives under its tag, which read back as they print [D164], [D173],
+[D251]; a kind is built from `::kind` so, its payload, its fields, its
+invariants and its constructor in its chain, and nothing declared by
+name under a word or a label takes a role [D252], [D253]. A name is read by its tag, and a keyword is data
 that names nothing [D221]; a word of the root reads the nouns of the
 root as the root holds them, and a kind a reader declared as the reader
 wrote it, while what a word reads and runs as data, a page, a
@@ -793,10 +804,9 @@ step where it meets a word its subject answers is refused [D223], a fold
 calling its word by its name or its address [D224], and a declaration
 writes a name a step can call [D152]. Two values of a key
 that file under one keyword meet in `groupBy` and `indexBy` and are
-refused [D228], and an invariant holds of the values of a label, so one
-a bare name declares is refused where it stands [D229]; the body of a
-word runs in the scope its call opens with `args` and each part, and a
-step of the body declares none of them again [D71]. A comment is
+refused [D228]; the recipe of a word runs in the scope its call opens
+with `args` and each input, and a step of the recipe declares none of
+them again [D71]. A comment is
 whitespace, and so is a line break wherever it stands, a combinator
 joining two steps and whitespace a declaration as well [D243], and a
 doc is the literal in the slot of the declaration it documents. A value turns into another
@@ -872,7 +882,7 @@ and its graph alone declares under `::any` the words a query calls,
 lookups by kind of element, accessors of the containing element,
 enumerations by scope and the relations among them, and beside them the
 helpers of `problems`, since a word under a topic serves the topic's
-values alone [D166]. In the sister project, on 13 October 2026:
+values alone [D164]. In the sister project, on 13 October 2026:
 
 ```sh
 $ grep -oE '^:any/[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
@@ -920,15 +930,16 @@ in the chapter of open questions.
 ### Errors named by their site
 
 A refusal is named by the address of what refused: a subject of
-another kind under the word, a part that breaks an invariant under the
-invariant, whose name is the refusal, a primitive's refusal of a part's
-value or of an element of it under the part, and a primitive's refusal
-of its run under the word that ran it, which lists it among its names;
-a number is whole where it equals its floor, `eq (floor)`, the law of
-every count and of the digits of `round` [D218]. The facts an error carries
-are definitions under the label of the refusal and under `::error`, held
-in the order they are declared, the trail last, and a fact neither
-declares is a defect of the runtime [D46], [D166], [D169]:
+another kind under the word, an input of none of its kinds under the
+input, an input that breaks an invariant under the invariant, whose
+name is the refusal, a primitive's refusal of an input's value or of an
+element of it under the input, and a primitive's refusal of its run
+under the word that ran it, which lists it among its names; a number is
+whole where it equals its floor, `eq (floor)`, the law of every count
+and of the digits of `round` [D218]. The facts an error carries are
+definitions under the label of the refusal and under `::error`, held in
+the order they are declared, the trail last, and a fact neither
+declares is a defect of the runtime [D46], [D169], [D252]:
 
 ```qlang
 > "hello" | add 1 !| type
@@ -996,12 +1007,15 @@ cause, how to recover with `!|` as a runnable example, and the refusals
 it is often confused with, the text that refusals for one reason share
 written once, which is the task that would ask for a hierarchy of tags.
 
-### Self-description on two planes
+### Self-description
 
-Examples live on two planes, the conformance suite and the laws of the
-catalog, with a runner for each; the catalog's own laws are the only
-plane the language can reach, each named for the claim it proves and
-paged with it [D123], [D124]. And a parse failure prints whole, every
+Examples live on two planes, each in its role: the laws of the catalog,
+the claims of its pages, which the language runs on itself, each named
+for the claim it proves and paged with it [D123], [D124]; and the
+conformance suite, the requirements of the language held outside it, so
+a case holds a form the language does not read yet and stands through a
+change that breaks its sources, each case opening with the record that
+gates it [D254]. And a parse failure prints whole, every
 token the parser could have read and the place it stopped as a span of
 its start and its end, `::span[3 1 4 4 1 5]` [D249], where a failure of
 a step prints as an alert [D7]:
@@ -1013,11 +1027,11 @@ $ node cli/src/bin.mjs '::a.b' < /dev/null 2>&1 | grep -c ':location ::span'
 
 The repair must reduce catalog prose to what the facts do not say,
 written in the language's own vocabulary, with no name of a file, a
-symbol, a service or a section of another document in it. It must make
-examples live on one plane, and print a parse failure economically,
-with the full value reachable by projection rather than dumped. It must
-let a reader assemble from the definitions under an address the
-description a question needs, in one round trip [D168], [D169].
+symbol, a service or a section of another document in it. It must print
+a parse failure economically, with the full value reachable by
+projection rather than dumped. It must let a reader assemble from the
+definitions under an address the description a question needs, in one
+round trip [D168], [D169].
 
 ### The documents that retold the catalog
 
@@ -1153,8 +1167,9 @@ A decision is the discussion with its choice and its circumstances, and
 each lives in a file of its own under `docs/decisions/`, true as a whole
 while it is in force [D227];
 a citation of its number in this document is a link to that file, and
-the requirements it left are the conformance cases that name it [D58];
-it cites a record in force or one waiting on its target [D225]. An
+the requirements it left are the conformance cases that name it [D58],
+each opening with it [D254]; it cites a record in force or one waiting
+on its target [D225]. An
 artifact names the decision it exists for, a mark covering the block it
 stands on, so the scope of a record is every place that marks it; a
 move of the baseline reads again the records whose blocks its diff
@@ -1177,8 +1192,9 @@ Seen together, the repairs describe one language, and three
 unifications carry it.
 
 One mechanism of value. A tag names the kind of a value and stands over
-any payload; its declaration is its page, and the definitions under it
-its constructor and its invariants [D168], [D169]; a value under a tag obeys the tag's invariant, checked
+any payload; its declaration is its page and its kind, built from
+`::kind` by commands, its payload, its fields, its invariants and its
+constructor [D252]; a value under a tag obeys the tag's invariant, checked
 when the value is built and again after every transform whose
 declaration keeps the tag, `within` editing under a tag and checking
 once at the rewrap [D41]; every value comes apart into its atoms and a
@@ -1189,14 +1205,14 @@ over its segments, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
 [D32]; a kind carries the value's constructor, its order and its laws
-[D16], [D169], while one rule of the core prints every literal.
+[D16], [D252], while one rule of the core prints every literal.
 
-One mechanism of operand. An operand is a name under the label of its
-subject, the parts of its args names under its address with their
-invariants, its answer the name `answer` under it, which names the
-kinds it answers, and its doc its page, a story of what it answers, takes
-and refuses, and the runtime executes the declaration [D164], [D169],
-[D179], [D180]. A built-in, a host's operand and a
+One mechanism of operand. An operand is a function named under the
+label of its subject, built from `::fn` by commands, its inputs with
+their kinds and invariants, its answer, which `returns` names, its
+refusals and its laws, and its doc its page, a story of what it takes,
+answers and refuses, and the runtime executes the function [D179],
+[D180], [D251]. A built-in, a host's operand and a
 declared pipeline are called the same way, checked the same way,
 documented the same way, and help for all of them, completion, the verbs
 that accept a value, the next part, the refusal's wording, is derived
@@ -1216,13 +1232,13 @@ values, and a step is a command, a name and its modifiers as words, in
 parentheses inside a modifier or a literal, so parentheses mean one
 thing, a pipeline as one word. Every modifier holds a value read by its
 own form; code is a quote, `~(…)`, `~add` for a single word, which
-nothing but `apply` and a part whose invariant asks for a quote runs, and a
+nothing but `apply` and an input whose kinds take a quote runs, and a
 quote handed over sees the names of its author [D251]. There is one
 binding form, `:name value`, evaluated once at declaration and named as
-a value, a name declared once in a scope; a verb is a name under the
-label of its subject whose value is a quote, the parts of its args and
-its answer names under its address, and it runs when its name is
-mentioned, as a built-in does [D5], [D164], [D169]. Comments are
+a value, a name declared once in a scope; a verb is a function named
+under the label of its subject, its inputs and its answer in its chain,
+or a quote written alone, the function of no commands it is, and it runs
+when its name is mentioned, as a built-in does [D5], [D251], [D253]. Comments are
 whitespace; documentation is a doc literal in the binding's slot.
 
 Maps and vectors are the only containers; JSON syntax is read,
@@ -1289,8 +1305,9 @@ sentence, how to discover with `manifest`, `doc`, `source` and
 `runLaws`, how to read an error, and a few seed pipelines that a grep
 would not suggest. Every other question is answered at the point of
 need, in views sized to a budget, the cheap view first. Examples live
-in the catalog and run as its tests; the conformance suite keeps what a
-quote cannot express. Every repair in this picture rebuilds an earlier
+in the catalog and run as its tests, the claims of its pages; the
+conformance suite holds the requirements of the language outside it
+[D254]. Every repair in this picture rebuilds an earlier
 concept on the two that arrived last, quote and tag; that is why they
 compose.
 
@@ -1343,8 +1360,9 @@ order they rest on each other on the pages of `::qlang`.
 
 The tests at the finish follow what they test. The catalog's examples
 are the tests of the operands. The conformance cases, each a query and
-the literal it must answer, are the requirements of the language, and
-a case that confirms a decision names it. The round trip of printing
+the literal it must answer, are the requirements of the language, held
+outside it, each opening with the record that gates it [D254]. The
+round trip of printing
 and parsing is a property test. Unit tests remain for what stays in
 JavaScript, the parser, the printer, the loader and the evaluator's
 seams, and for nothing that a query can state. The coverage threshold
@@ -1389,7 +1407,8 @@ work began before the baseline met their targets, the last of them the
 effect marker leaving the language [D2], and the step as a command and
 the path as a value met theirs, the first work of the route [D248], and
 the quote as data and the function built by commands met theirs
-[D251]; a target shows the rule of the record that left it and holds the
+[D251], and the kind built by commands and the one spelling of the
+roles of a word and a kind theirs [D252], [D253]; a target shows the rule of the record that left it and holds the
 answer the tree gives today [D91], and every decision below writes its
 targets before its work:
 
@@ -1407,34 +1426,42 @@ strictly, `query` softly, `has` asking, and a word that takes code taking
 it as code, so the projection has one spelling where it had a step and
 the record `::path{:path …}` inside a quote, and a value written as a
 later step is refused; its cases stand in
-`core/test/conformance/43-a-step-is-a-command.jsonl`. The function joins
+`core/test/conformance/05-a-step-is-a-command.jsonl`. The function joins
 it [D251]: a quote is data with no scope, a recipe reads what its call
 hands it, and a word is a function named under a label, built from the
-noun `::fn` by `on`, `takes`, `returns`, `throws`, `holds` and `impl`, its cases in
-`core/test/conformance/46-a-function-is-built-by-commands.jsonl`.
-The keystone is the declaration of a kind. A kind is a label, a name declared by its page, which
-builds a value by the `construct` declared under it and checks it by
-the laws declared under it, each named by its refusal [D168], [D169],
-so a field of a record no law names is spelled nowhere a reader can
-rely on before the record is fetched, which is the third requirement of
-the mission:
+noun `::fn` by `on`, `takes`, `returns`, `throws`, `carries`, `holds`,
+`proves` and `impl`, its cases in
+`core/test/conformance/29-a-function-is-built-by-commands.jsonl`.
+The keystone, the declaration of a kind, has landed [D252]: a kind is
+built from the noun `::kind` by commands, `wraps` its payload, `reads`
+a field of it, `tells` a page, `holds` an invariant, `throws` and
+`carries` its refusals and their facts, `proves` its laws and `impl` its
+constructor, so a field of a record is spelled where a reader relies on
+it before the record is fetched, which is the third requirement of the
+mission; its cases stand in
+`core/test/conformance/30-a-kind-is-built-by-commands.jsonl`. And the
+form that declared the roles of a word or a kind by name has left the
+language [D253]:
 
 ```qlang
 > :P |~~ A person. ~~| | ::P{:name 5}
 ::P{:name 5}
 
-> :P |~~ A person. ~~| | :P/NameNotStringError ::holds~(get /name | is ::string) | ::P{:name 5} !| type
-::P/NameNotStringError
+> :P |~~ A person. ~~| (::kind | reads :name |~~ The name. ~~| /name ::string) | ::P{:name 5} !| type
+::P/name/NotStringError
+
+> :P |~~ A person. ~~| | :P/construct ~(tag ::P) !| type
+::bind/WrittenOutsideItsChainError
 ```
 
-The schema is the label's [D164], [D166]: what stands under a kind is
-the definitions under its address, each a name, its page and its value,
-the value saying what the definition is, a word's code, a part's
-selector, the label of a word's answer, a law under the name of its
-refusal [D168], [D169]. `::spec~(…)` and `::verb~(…)` have left the
+The schema is the kind's [D164], [D252]: what stands under a kind is
+the nodes its chain lays under its address, each a name, its page and
+its value, its payload, its fields, its pages, its refusals and their
+facts, its invariants, its laws and its constructor, and under a word
+those of its function [D251]. `::spec~(…)` and `::verb~(…)` have left the
 language: a reader's verb is a name under the label of its subject,
-`:number/inc ~(add 1)`, and a kind of the core a label whose constructor
-the host hands, `:number/construct ::builtin{}`:
+`:number/inc ~(add 1)`, and a kind of the core a kind whose constructor
+the host hands, `impl ::builtin{}` [D168]:
 
 ```qlang
 > [::spec ::verb] | map ~(doc !| type)
@@ -1453,16 +1480,16 @@ its label, values of the language [D46]:
 ```
 
 What remains on the schema is elision taking the tail of a schema
-[D21], a field being a definition under its label [D50]; what remains
-of the names is a host's, which the sister project's redesign moves
+[D21]; what remains of the names is a host's, which the sister project's redesign moves
 onto its kinds, and the questions of mounting and of one query of every
-definition of a name. Beside both, the examples come to live
-on one plane, the editor's grammar is generated or reduced, and the
+definition of a name. Beside both, the editor's grammar is generated
+or reduced, and the
 screen of the work, whose first version `npm run desk` prints [D226],
 grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168], [D169],
-[D185], [D248] and [D251] in the conformance suite, every one met, the
+[D185], [D248], [D251], [D252] and [D253] in the conformance suite,
+every one met, the
 step of a constructor apart from the kind of tagged values having
 landed [D8]. Beside them: no
 class of the JavaScript stands for a refusal; no operand contract is
@@ -1472,7 +1499,8 @@ runtime's own.
 The model's reading of what in this milestone the language needs, and
 what is the debt of its tree. The schema is the language's, since
 without it the shape of an answer cannot be known before it is fetched,
-and a host has nowhere to say what its records hold. The rule of
+and a host has nowhere to say what its records hold; it stands now as
+the commands of a kind [D252]. The rule of
 collisions is the language's as soon as a host publishes a catalog of
 its own, which the sister project does, and mounting is the language's
 for a host whose names are too many to declare. A class of the
@@ -1496,10 +1524,11 @@ subject it passed a marker [D7].
 What remains of it: the catalog's prose is reduced to what the facts
 do not say, every page telling what its name is for and the claims its
 laws prove [D124], [D212], each
-definition a story a reader falls into, the word, its answer, its
-parts, its refusals and its laws in that order [D179]; enrichment
-happens once per session; a value shared across kinds of record carries
-a tag of its own, as a field is a definition under its label [D50]; and
+definition a story a reader falls into, the word, its inputs, its
+answer, its refusals, its laws and its recipe in that order [D179],
+[D252]; enrichment happens once per session; a value shared across
+kinds of record carries a tag of its own, as a field is read by the
+chain of its kind [D50], [D252]; and
 the first screen, the pages
 of the language and of the command line, told whole in the order
 its parts rest on each other [D185], within the weight it had [D150],
@@ -1574,67 +1603,6 @@ why.
 
 What neither the tree nor the decisions answer, with the alternatives
 and their cost.
-
-The role of a definition read from the form of its value. An invariant
-written `is ::k` serves its part to the body of the word as the value
-of the kind beneath its tags, while one that computes the same truth
-another way, or none, hands the part as it was given, as the body is
-handed its subject; the place, the strictness and the default of a part
-are read from its selector, `/n` or `query /n d`; and the last names
-`answer`, `subject` and `construct` are roles:
-
-```qlang
-> :any/m ~(x | type) | :any/m/x /0 | :any/m/x/NotNumberError ::holds~(is ::number) | null | m ::Width(5)
-::number
-
-> :any/m ~(x | type) | :any/m/x /0 | :any/m/x/NotNumberError ::holds~(is ::number | eq true) | null | m ::Width(5)
-::Width
-
-> :number/t ~(type) | ::Width(5) | t
-::Width
-```
-
-The serving is what a host's primitive needs, the bare number it adds,
-and it reaches the body of a reader's word as well. Handing that body
-its parts as given, as its subject is handed, turns red the cases that
-state the serving and the laws of `is` that ask each element of a part
-and a set as a vector, and hands a part that reads the args whole the
-args under the tag of the word, the model's measurement of 12 October
-2026. All five outside audits name the second mechanism. The
-alternatives: the role declared, a signature of a word in one
-declaration that unfolds into the parts and invariants a word has, at
-the cost of a form of the grammar and of the root's reading of it; a
-role read from a form refused aloud where the form stops fitting it, a
-cheaper repair of the traps that leaves the second mechanism; the
-serving kept for a host's primitive alone, a move of the design whose
-cases [D67] and [D167] name; or the forms as they stand. A word that
-is a function holds its roles itself, each declared by the command that
-builds it, the subject by `on`, an input and its kinds by `takes`, the
-answer by `returns`, a refusal by `throws` and an invariant by
-`holds`, and its call reads them from the function: an input holds the
-value of its kind the walk of its tags reaches by the kinds `takes`
-names, with no invariant `is` written [D251]. The place of an input
-stays read from its value, a path, a quote that reads one place by
-`query`, or code run over the args. Every word of the catalog, the
-command line's among them, is written by the chain, the name of the
-refusal its kinds raise given by the kinds, `…/code/NotPathOrQuoteError`
-where `NotQuoteError` named a path taken too, and a host's primitive
-names the inputs it runs as code where it is bound [D251]; a part or an
-invariant a reader declares under a word of the root changes no call
-[D202]. The declaration form stands beside the chain for a word a reader
-or a host's source writes, a second spelling of a word, and a kind is a
-label declared by its page with its `construct`, its invariants and its
-refusals named under it. The laws of a word stand in its chain before
-its recipe [D251]. Open, the declaration form of a word, and the
-declaration of a kind, its laws beside it.
-
-```qlang
-> 5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(by | type)) [::Width(3)]
-::number
-
-> ::fn | takes :by |~~ How much. ~~| /0 ::number | params | map /kinds
-[::number]
-```
 
 A step that drops its subject. A child of the benchmark put a vector
 under two tags with a tag written as each step and met the second tag
@@ -1850,7 +1818,7 @@ constructor, so a constructor written as a quote that tags its own
 result through `tag` recurses until the depth budget refuses it:
 
 ```qlang
-> :P |~~ A person. ~~| | :P/construct ~(tag ::P) | ::P{:a 1} !| type
+> :P |~~ A person. ~~| (::kind | impl ~(tag ::P)) | ::P{:a 1} !| type
 ::call/EvaluationDepthExceededError
 ```
 
@@ -1864,8 +1832,7 @@ self-tag a recursion like any other; `tag` inside a constructor of the
 same tag stamping without running it again, which is a rule of dynamic
 scope; and a refusal that names the self-tag at its second entry, which
 is one more check on every constructor. The contracts are on the kinds
-[D168], [D169], so it waits on a constructor that needs to tag its own
-result.
+[D252], so it waits on a constructor that needs to tag its own result.
 
 The entrypoint. Where the modules of the work live, how the start
 command measures the tree, the schema of the dashboard, how hooks call
@@ -1875,9 +1842,10 @@ all of it is the draft `docs/qlang-entrypoint.md` holds, ideas and no
 decision [D231], and the maintainer wants to explore it before any of it
 is fixed.
 
-A topic is a label [D166]. A page declared as a name is a label, a
-topic among them, so a name under a topic resides on it and refuses any
-other subject by its address:
+A topic is a label [D253]. A page declared as a name is a label, a kind
+of no commands, a topic among them, and the topic of the language a
+kind that tells its chapters [D252], so a name under a topic resides on
+it and refuses any other subject by its address:
 
 ```qlang
 > :T |~~ A topic. ~~| | :T/h ~(type) | 5 | T/h !| type
@@ -2000,7 +1968,6 @@ query that fails nothing.
 [D162]: decisions/D162.md
 [D163]: decisions/D163.md
 [D164]: decisions/D164.md
-[D166]: decisions/D166.md
 [D167]: decisions/D167.md
 [D168]: decisions/D168.md
 [D169]: decisions/D169.md
@@ -2026,7 +1993,6 @@ query that fails nothing.
 [D226]: decisions/D226.md
 [D227]: decisions/D227.md
 [D228]: decisions/D228.md
-[D229]: decisions/D229.md
 [D230]: decisions/D230.md
 [D231]: decisions/D231.md
 [D235]: decisions/D235.md
@@ -2038,3 +2004,6 @@ query that fails nothing.
 [D249]: decisions/D249.md
 [D250]: decisions/D250.md
 [D251]: decisions/D251.md
+[D252]: decisions/D252.md
+[D253]: decisions/D253.md
+[D254]: decisions/D254.md

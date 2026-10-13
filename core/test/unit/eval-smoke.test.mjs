@@ -238,7 +238,7 @@ describe('the answer of a word of the host', async () => {
     const s = await createSession({
       sources: [{
         uri: 'tests/past',
-        source: ':any/past ::builtin{}\n:any/past/answer #[::number ::null]',
+        source: ':any/past (::fn | returns |~~ A number or null. ~~| #[::number ::null] | impl ::builtin{})',
         impls: { 'any/past': () => Infinity }
       }]
     });

@@ -20,15 +20,14 @@
       ::link~(::bind | doc) ::link~(::any/binding | doc)
       ::link~(::qlang/names | doc)
   ~~|
+  ::kind
+    | proves :holdsTheValue
+        |~~ The record of a name holds its value. ~~|
+        ~(:x |~~ One. ~~| 1 | env | get /x | get /value | eq 1)
+    | proves :holdsThePage
+        |~~ The record of a name holds its page. ~~|
+        ~(:x |~~ One. ~~| 1 | env | get /x | doc | content | eq " One. ")
+    | proves :holdsTheName
+        |~~ The record of a name holds the name. ~~|
+        ~(:x 1 | env | get /x | get /name | eq :x)
 
-:binding/holdsTheValue
-  |~~ The record of a name holds its value. ~~|
-  ::law~(:x |~~ One. ~~| 1 | env | get /x | get /value | eq 1)
-
-:binding/holdsThePage
-  |~~ The record of a name holds its page. ~~|
-  ::law~(:x |~~ One. ~~| 1 | env | get /x | doc | content | eq " One. ")
-
-:binding/holdsTheName
-  |~~ The record of a name holds the name. ~~|
-  ::law~(:x 1 | env | get /x | get /name | eq :x)

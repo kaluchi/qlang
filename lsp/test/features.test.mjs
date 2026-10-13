@@ -105,7 +105,7 @@ describe('completionsAtOffset', () => {
   });
 
   it('an in-document kind contributes to the completions of tags', async () => {
-    const src = ':MyTag |~~ MyTag. ~~| | :MyTag/construct ~(42)';
+    const src = ':MyTag |~~ MyTag. ~~| (::kind | impl ~(42))';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length, src);
     expect(items.some(i => i.label === '::MyTag')).toBe(true);
@@ -468,12 +468,30 @@ describe('documentSymbols', () => {
     expect(syms[1].kind).toBe('verb');
   });
 
-  it('shows a part of a word, a label of the document and its construct as the core reads them', async () => {
-    const src = ':number/add/addend /0 | :Box |~~ A box. ~~| | :Box/area ~(1) | :Box/construct ~(it) | :Ring/area ~(2)';
+  it('shows a label of the document and the words under it as the core reads them', async () => {
+    const src = ':Box |~~ A box. ~~| | :Box/area ~(1) | :Ring/area ~(2)';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast, await langRuntime());
     expect(syms.map(sym => [sym.name, sym.kind])).toEqual([
-      ['number/add/addend', 'value'], ['::Box', 'tag'], ['Box/area', 'verb'], ['Box/construct', 'value'], ['Ring/area', 'value']
+      ['::Box', 'tag'], ['Box/area', 'verb'], ['Ring/area', 'value']
+    ]);
+  });
+
+  it('shows a kind built from ::kind as a label and a function with a recipe under it as a word [D252]', async () => {
+    const src = [
+      ':Box',
+      '  |~~ A parcel. ~~|',
+      '  ::kind',
+      '    | wraps |~~ The sizes. ~~| ::map',
+      '| :Crate |~~ A crate. ~~| (::kind | wraps |~~ The goods. ~~| ::vec)',
+      '| :Box/area |~~ The area. ~~| (::fn | returns |~~ A number. ~~| ::number | impl ~(mulOf /w /h))',
+      '| :Box/rule |~~ A contract. ~~| (::fn | returns |~~ A number. ~~| ::number)',
+      '| :Crate/count |~~ The goods. ~~| ::fn[~() ~(count)]',
+      '| :f |~~ A function. ~~| (::fn | impl ~(add 1))'
+    ].join('\n');
+    const { ast } = parseDocument(src, 'test.qlang');
+    expect(documentSymbols(ast, await langRuntime()).map(sym => [sym.name, sym.kind])).toEqual([
+      ['::Box', 'tag'], ['::Crate', 'tag'], ['Box/area', 'verb'], ['Box/rule', 'value'], ['Crate/count', 'verb'], ['f', 'value']
     ]);
   });
 

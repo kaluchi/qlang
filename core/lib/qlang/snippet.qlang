@@ -14,7 +14,8 @@
       a law answers true.
       ::link~(::link | doc) ::link~(::qlang/hypertext | doc)
   ~~|
+  ::kind
+    | proves :opensToWhatItShows
+        |~~ A snippet opens to what it shows. ~~|
+        ~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | open | has ::vec/count)
 
-:snippet/opensToWhatItShows
-  |~~ A snippet opens to what it shows. ~~|
-  ::law~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | open | has ::vec/count)

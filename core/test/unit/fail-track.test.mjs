@@ -125,17 +125,17 @@ describe('per-site error classes carry unique identity', () => {
     expect(caughtErr.facts.addresses.map(address => address.name)).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
   });
 
-  it('keys on non-Map is refused under the address of keys [D166]', async () => {
+  it('keys on non-Map is refused under the address of keys [D251]', async () => {
     expect((await evalQuery('42 | keys')).tag.name).toBe('map/keys/SubjectNotMapError');
   });
 
-  it('a subject of another kind is refused under the address of the name [D166]', async () => {
+  it('a subject of another kind is refused under the address of the word [D251]', async () => {
     const refused = await evalQuery('"x" | add 1');
     expect(refused.tag.name).toBe('number/add/SubjectNotNumberError');
     expect(refused.descriptor.get('actualType').name).toBe('string');
   });
 
-  it('a part that breaks its law is refused under the address of the part [D166]', async () => {
+  it('an input that breaks its invariant is refused under the address of the input [D251]', async () => {
     expect((await evalQuery('1 | add "x"')).tag.name).toBe('number/add/addend/NotNumberError');
   });
 
@@ -144,7 +144,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(tags).toEqual(['number/sub/SubjectNotNumberError', 'number/mul/SubjectNotNumberError', 'number/div/SubjectNotNumberError']);
   });
 
-  it('a prefix or a suffix of another kind is refused by the law of its part [D166]', async () => {
+  it('a prefix or a suffix of another kind is refused by the kinds of its input [D251]', async () => {
     expect((await evalQuery('"x" | prepend 42')).tag.name).toBe('string/prepend/prefix/NotKeywordOrStringError');
     expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/NotKeywordOrStringError');
   });
@@ -157,7 +157,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualValue')).toBe('two');
   });
 
-  it('gt across kinds is refused by the law of its part, the kind it met among the facts [D166]', async () => {
+  it('gt across kinds is refused by the kinds of its input, the kind it met among the facts [D251]', async () => {
     const refused = await evalQuery('"a" | gt 5');
     expect(refused.tag.name).toBe('string/gt/value/NotStringError');
     expect(refused.descriptor.get('actualType').name).toBe('number');
@@ -180,13 +180,13 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
-  it('a key of a map of another kind is refused by the law of its part [D166]', async () => {
+  it('a key of a map of another kind is refused by the kinds of its input [D251]', async () => {
     const refused = await evalQuery('{:a 1} | has 42');
     expect(refused.tag.name).toBe('map/has/key/NotKeywordOrPathOrStringError');
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
-  it('payload on non-TaggedInstance is refused under the address of payload [D166]', async () => {
+  it('payload on non-TaggedInstance is refused under the address of payload [D251]', async () => {
     expect((await evalQuery('42 | payload')).tag.name).toBe('tagged/payload/SubjectNotTaggedError');
   });
 

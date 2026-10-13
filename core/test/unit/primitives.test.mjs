@@ -206,10 +206,10 @@ describe('PRIMITIVE_REGISTRY — the implementations of the language by address 
   it('binds one under the address of every verb and kind of the language that ends in ::builtin{}, a function whose recipe it is among them, and no other', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { ROOT_KEY } = await import('../../src/env-keys.mjs');
-    const { isBuiltinDescriptor, isFn, fnRecipeOf } = await import('../../src/types.mjs');
+    const { isBuiltinDescriptor, isFn, recipeOf } = await import('../../src/types.mjs');
     const root = (await langRuntime()).get(ROOT_KEY);
-    const recipeOf = value => (isFn(value) ? fnRecipeOf(value) : value);
-    const builtins = [...root].filter(([, record]) => isBuiltinDescriptor(recipeOf(record.get('value')))).map(([name]) => name);
+    const builtinOf = value => (isFn(value) ? recipeOf(value) : value);
+    const builtins = [...root].filter(([, record]) => isBuiltinDescriptor(builtinOf(record.get('value')))).map(([name]) => name);
     expect(builtins.every(name => PRIMITIVE_REGISTRY.has(name))).toBe(true);
     expect(PRIMITIVE_REGISTRY.size).toBe(builtins.length);
     expect(PRIMITIVE_REGISTRY.has('number/add') && PRIMITIVE_REGISTRY.has('vec/construct')).toBe(true);

@@ -131,10 +131,21 @@ export function declaredNameOf(bindStep) {
   return bindStep.key.name;
 }
 
-// declaresKind(bindStep) — whether a declaration declares a label, a name
-// by its page alone, `:Box |~~ A parcel. ~~|` [D168].
+// builtFrom(body) → the noun a body builds its value from as it is
+// written: the tag at the head of its chain of commands, in parentheses or
+// not, `::kind | wraps …`, or the tag of its literal, `::fn[~(…) ~(…)]`;
+// null for any other body [D251], [D252].
+export function builtFrom(body) {
+  const chain = body.type === 'ParenGroup' ? body.pipeline : body;
+  if (chain.type === 'TaggedLit') return chain.tag;
+  return chain.type === 'Pipeline' && chain.steps[0].type === 'TagLit' ? chain.steps[0].tag : null;
+}
+
+// declaresKind(bindStep) — whether a declaration declares a label: a name
+// by its page alone, `:Box |~~ A parcel. ~~|`, or by the chain of a kind,
+// `:Box |~~ A parcel. ~~| (::kind | wraps …)` [D252].
 export function declaresKind(bindStep) {
-  return bindStep.body === null;
+  return bindStep.body === null || builtFrom(bindStep.body) === 'kind';
 }
 
 // The declarations of a pipeline that repeat a name an earlier step of

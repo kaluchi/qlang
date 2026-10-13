@@ -29,53 +29,46 @@
       ::link~(::keyword | doc) ::link~(::path | doc)
       ::link~(::qlang/values | doc)
   ~~|
-
-:map/isAMap
-  |~~ Braces make a map. ~~|
-  ::law~({:a 1} | type | eq ::map)
-
-:map/buildsAMap
-  |~~ The constructor of a map answers it. ~~|
-  ::law~(::map{:a 1} | eq {:a 1})
-
-:map/readsJson
-  |~~ A JSON object is a map literal. ~~|
-  ::law~("{\"a\": 1, \"b\": [true, null]}" | parse | apply it | eq {:a 1 :b [true null]})
-
-:map/keepsTheLastOfAKey
-  |~~ A key written twice keeps the last value. ~~|
-  ::law~("{:a 1 :a 2}" | parse | apply it | eq {:a 2})
-
-:map/buildsBackFromEntries
-  |~~ The entries of a map build it back by `toMap`. ~~|
-  ::law~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
-
-:map/construct
-  |~~ Reads a map as itself. A map under a tag of its own gives the map
-      beneath by `payload`, and the pairs of a vector build a map by
-      `toMap`, each refused here.
-      ::link~(::map | doc) ::link~(::vec/toMap | doc)
-      ::link~(::tagged/payload | doc)
-  ~~|
-  ::builtin{}
-
-:map/PayloadNotMapError
-  |~~ `::map` reads its payload as the map it is: the pairs of a vector
-      build a map by `toMap`, `entries | toMap`, and a map under a tag of
-      its own gives the map beneath by `payload`.
-  ~~|
-
-:map/PayloadNotMapError/refusesANumber
-  |~~ A number payload is refused. ~~|
-  ::law~(::map(1) !| [type (get /actualType)] | eq [::map/PayloadNotMapError ::number])
-
-:map/PayloadNotMapError/refusesThePairsOfAVector
-  |~~ The pairs of a vector are refused; `toMap` builds them into a map. ~~|
-  ::law~([[:a 1]] | tag ::map !| [type (get /actualType)] | eq [::map/PayloadNotMapError ::vec])
-
-:map/PayloadNotMapError/refusesAMapUnderATag
-  |~~ A map under a tag of its own is refused; `payload` reads the map beneath. ~~|
-  ::law~(::map(::Box{:a 1}) !| [type (get /actualType)] | eq [::map/PayloadNotMapError ::Box])
+  ::kind
+    | wraps
+        |~~ A map, read as itself. A map under a tag of its own gives the
+            map beneath by `payload`, and the pairs of a vector build a
+            map by `toMap`, each refused here.
+            ::link~(::map | doc) ::link~(::vec/toMap | doc)
+            ::link~(::tagged/payload | doc)
+        ~~|
+    | throws :PayloadNotMapError
+        |~~ `::map` reads its payload as the map it is: the pairs of a
+            vector build a map by `toMap`, `entries | toMap`, and a map
+            under a tag of its own gives the map beneath by `payload`.
+        ~~|
+    | proves :isAMap |~~ Braces make a map. ~~| ~({:a 1} | type | eq ::map)
+    | proves :buildsAMap
+        |~~ The constructor of a map answers it. ~~|
+        ~(::map{:a 1} | eq {:a 1})
+    | proves :readsJson
+        |~~ A JSON object is a map literal. ~~|
+        ~("{\"a\": 1, \"b\": [true, null]}" | parse | apply it | eq {:a 1 :b [true null]})
+    | proves :keepsTheLastOfAKey
+        |~~ A key written twice keeps the last value. ~~|
+        ~("{:a 1 :a 2}" | parse | apply it | eq {:a 2})
+    | proves :buildsBackFromEntries
+        |~~ The entries of a map build it back by `toMap`. ~~|
+        ~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
+    | proves :PayloadNotMapError/refusesANumber
+        |~~ A number payload is refused. ~~|
+        ~(::map(1) !| [type (get /actualType)] | eq [::map/PayloadNotMapError ::number])
+    | proves :PayloadNotMapError/refusesThePairsOfAVector
+        |~~ The pairs of a vector are refused; `toMap` builds them into a
+            map.
+        ~~|
+        ~([[:a 1]] | tag ::map !| [type (get /actualType)] | eq [::map/PayloadNotMapError ::vec])
+    | proves :PayloadNotMapError/refusesAMapUnderATag
+        |~~ A map under a tag of its own is refused; `payload` reads the
+            map beneath.
+        ~~|
+        ~(::map(::Box{:a 1}) !| [type (get /actualType)] | eq [::map/PayloadNotMapError ::Box])
+    | impl ::builtin{}
 
 :map/count
   |~~ Answers how many entries the map holds, `{:a 1 :b 2} | count`
@@ -88,23 +81,24 @@
   ~~|
   ::fn
     | returns |~~ How many entries the map holds. ~~| ::number
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `count` takes no value; the entries to count are chosen before
             it, `filter ~(gt 1) | count`.
         ~~|
-    | law :countsTheEntries
+    | proves :countsTheEntries
         |~~ Three entries count three. ~~|
         ~({:x 1 :y 2 :z 3} | count | eq 3)
-    | law :countsNothingInTheEmptyMap
-        |~~ The empty map counts no entry. ~~| ~({} | count | eq 0)
-    | law :countsBeneathATag
+    | proves :countsNothingInTheEmptyMap
+        |~~ The empty map counts no entry. ~~|
+        ~({} | count | eq 0)
+    | proves :countsBeneathATag
         |~~ A map under a tag counts the entries beneath it. ~~|
         ~(::Box{:a 1 :b 2} | count | eq 2)
-    | law :ArgsBeyondPartsError/refusesAPredicate
+    | proves :ArgsBeyondInputsError/refusesAPredicate
         |~~ A predicate given to `count` is refused; `filter` chooses
             first.
         ~~|
-        ~({:a 1 :b 2} | count ~(gt 1) !| type | eq ::map/count/ArgsBeyondPartsError)
+        ~({:a 1 :b 2} | count ~(gt 1) !| type | eq ::map/count/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :map/empty
@@ -118,8 +112,10 @@
     | returns
         |~~ `true` when the map holds no entry, `false` otherwise. ~~|
         ::boolean
-    | law :holdsOfTheEmptyMap |~~ The empty map is empty. ~~| ~({} | empty)
-    | law :failsOfAKeyWithANullValue
+    | proves :holdsOfTheEmptyMap
+        |~~ The empty map is empty. ~~|
+        ~({} | empty)
+    | proves :failsOfAKeyWithANullValue
         |~~ A key held with a null value is an entry. ~~|
         ~({:a null} | empty | not)
     | impl ::builtin{}
@@ -127,34 +123,36 @@
 :map/first
   |~~ Answers the value of the first entry, in the order the map holds its
       entries, the order they were written, or null for the empty map; it
-      takes no value. The entry itself, key and value, is `entries |
-      first`, while `keys | first` answers the key first by name. The
-      first entries of a map are `take 2`. A vector and a set answer their
-      first element by a `first` of their own.
+      takes no value. The entry itself, key and value, is
+      `entries | first`, while `keys | first` answers the key first by
+      name. The first entries of a map are `take 2`. A vector and a set
+      answer their first element by a `first` of their own.
       ::link~(::map/last | doc) ::link~(::map/entries | doc)
       ::link~(::vec/first | doc)
   ~~|
   ::fn
     | returns
-        |~~ The value of the first entry, null for the empty map. ~~| ::any
-    | throws :ArgsBeyondPartsError
+        |~~ The value of the first entry, null for the empty map. ~~|
+        ::any
+    | throws :ArgsBeyondInputsError
         |~~ `first` answers one value; the first entries of a map are
             `take 2`.
         ~~|
-    | law :answersTheFirstValue
+    | proves :answersTheFirstValue
         |~~ The value of the first entry answers. ~~|
         ~({:a 1 :b 2} | first | eq 1)
-    | law :followsTheOrderWritten
+    | proves :followsTheOrderWritten
         |~~ The first entry is the first written, whatever its key. ~~|
         ~({:b 1 :a 2} | first | eq 1)
-    | law :answersNullForTheEmptyMap
-        |~~ The empty map answers null. ~~| ~({} | first | eq null)
-    | law :readsTheEntryByEntries
+    | proves :answersNullForTheEmptyMap
+        |~~ The empty map answers null. ~~|
+        ~({} | first | eq null)
+    | proves :readsTheEntryByEntries
         |~~ The first entry, key and value, is read by `entries`. ~~|
         ~({:b 1 :a 2} | entries | first | eq [:b 1])
-    | law :ArgsBeyondPartsError/refusesACount
+    | proves :ArgsBeyondInputsError/refusesACount
         |~~ A count given to `first` is refused; `take` takes it. ~~|
-        ~({:a 1 :b 2} | first 2 !| type | eq ::map/first/ArgsBeyondPartsError)
+        ~({:a 1 :b 2} | first 2 !| type | eq ::map/first/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :map/last
@@ -166,12 +164,14 @@
   ~~|
   ::fn
     | returns
-        |~~ The value of the last entry, null for the empty map. ~~| ::any
-    | law :answersTheLastValue
+        |~~ The value of the last entry, null for the empty map. ~~|
+        ::any
+    | proves :answersTheLastValue
         |~~ The value of the last entry answers. ~~|
         ~({:a 1 :b 2} | last | eq 2)
-    | law :answersNullForTheEmptyMap
-        |~~ The empty map answers null. ~~| ~({} | last | eq null)
+    | proves :answersNullForTheEmptyMap
+        |~~ The empty map answers null. ~~|
+        ~({} | last | eq null)
     | impl ::builtin{}
 
 :map/sum
@@ -188,44 +188,46 @@
     | returns |~~ The sum of the values, `0` for the empty map. ~~| ::number
     | throws :ElementNotNumberError
         |~~ `sum` adds the numbers the map holds; `:key` names the first
-            entry whose value is none, and a field is read first, `map
-            /amount | sum`.
+            entry whose value is none, and a field is read first,
+            `map /amount | sum`.
         ~~|
-    | throws :ArgsBeyondPartsError
+    | carries :ElementNotNumberError/key
+        |~~ The key of the first entry whose value is no number. ~~|
+        ::keyword
+    | throws :ArgsBeyondInputsError
         |~~ `sum` takes no value: a field of each value is read first by
             `map`, `map /amount | sum`.
         ~~|
-    | law :addsTheValues
-        |~~ The sum adds every value. ~~| ~({:a 10 :b 20} | sum | eq 30)
-    | law :answersZeroForTheEmptyMap
-        |~~ The empty map sums to zero. ~~| ~({} | sum | eq 0)
-    | law :sumsAFieldReadFirst
+    | proves :addsTheValues
+        |~~ The sum adds every value. ~~|
+        ~({:a 10 :b 20} | sum | eq 30)
+    | proves :answersZeroForTheEmptyMap
+        |~~ The empty map sums to zero. ~~|
+        ~({} | sum | eq 0)
+    | proves :sumsAFieldReadFirst
         |~~ A field of each value is read by `map` before the sum. ~~|
         ~({:a {:amount 1} :b {:amount 2}} | map /amount | sum | eq 3)
-    | law :ElementNotNumberError/refusesAString
+    | proves :ElementNotNumberError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | sum
           !| [type (get /actualType) (get /key)]
           |  eq [::map/sum/ElementNotNumberError ::string :b])
-    | law :ElementNotNumberError/refusesANull
+    | proves :ElementNotNumberError/refusesANull
         |~~ A null value is no number either. ~~|
         ~({:a null} | sum !| [type (get /key)] | eq [::map/sum/ElementNotNumberError :a])
-    | law :ArgsBeyondPartsError/refusesAField
+    | proves :ArgsBeyondInputsError/refusesAField
         |~~ A field given to `sum` is refused; `map` reads it first. ~~|
-        ~({:a 1} | sum (get /a) !| type | eq ::map/sum/ArgsBeyondPartsError)
+        ~({:a 1} | sum (get /a) !| type | eq ::map/sum/ArgsBeyondInputsError)
     | impl ::builtin{}
-
-:map/sum/ElementNotNumberError/key
-  |~~ The key of the first entry whose value is no number. ~~|
-  ::keyword
 
 :map/avg
   |~~ Answers the mean of the values, each a number, `{:a 1 :b 2} | avg`
       answering `1.5`, or null for the empty map, which has no mean, the
       mean of numbers staying among the finite doubles,
-      `{:a 1e308 :b -1e308} | avg` answering `0`; it takes no value. A value that is no number is refused with its key,
-      and a field of each value is read first by `map`, `map /amount |
-      avg`. A vector and a set answer by an `avg` of their own.
+      `{:a 1e308 :b -1e308} | avg` answering `0`; it takes no value. A
+      value that is no number is refused with its key, and a field of each
+      value is read first by `map`, `map /amount | avg`. A vector and a
+      set answer by an `avg` of their own.
       ::link~(::map/sum | doc) ::link~(::vec/avg | doc)
   ~~|
   ::fn
@@ -236,26 +238,26 @@
         |~~ `avg` takes the mean of the numbers the map holds; `:key`
             names the first entry whose value is none.
         ~~|
-    | law :answersTheMean
+    | carries :ElementNotNumberError/key
+        |~~ The key of the first entry whose value is no number. ~~|
+        ::keyword
+    | proves :answersTheMean
         |~~ The mean of one and three is two. ~~|
         ~({:a 1 :b 3} | avg | eq 2)
-    | law :answersNullForTheEmptyMap
-        |~~ The empty map has no mean. ~~| ~({} | avg | eq null)
-    | law :averagesTheOppositeEnds
+    | proves :answersNullForTheEmptyMap
+        |~~ The empty map has no mean. ~~|
+        ~({} | avg | eq null)
+    | proves :averagesTheOppositeEnds
         |~~ The mean of a number near one end of the doubles and its
             negation is zero.
         ~~|
         ~({:a 1e308 :b -1e308} | avg | eq 0)
-    | law :ElementNotNumberError/refusesAString
+    | proves :ElementNotNumberError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | avg
           !| [type (get /actualType) (get /key)]
           |  eq [::map/avg/ElementNotNumberError ::string :b])
     | impl ::builtin{}
-
-:map/avg/ElementNotNumberError/key
-  |~~ The key of the first entry whose value is no number. ~~|
-  ::keyword
 
 :map/min
   |~~ Answers the least value in the one order of values, a number before
@@ -279,23 +281,25 @@
             against the map, and refused with what it answered.
         ~~|
     | returns |~~ The least value, null for the empty map. ~~| ::any
-    | law :answersTheLeastValue
-        |~~ The least value answers. ~~| ~({:a 3 :b 1} | min | eq 1)
-    | law :ranksANumberBeforeAString
+    | proves :answersTheLeastValue
+        |~~ The least value answers. ~~|
+        ~({:a 3 :b 1} | min | eq 1)
+    | proves :ranksANumberBeforeAString
         |~~ In the one order a number comes before a string. ~~|
         ~({:a 1 :b "x"} | min | eq 1)
-    | law :ranksByTheKey
+    | proves :ranksByTheKey
         |~~ The key ranks each value. ~~|
         ~({:a {:n 2} :b {:n 1}} | min /n | eq {:n 1})
-    | law :ranksInReverseUnderDesc
+    | proves :ranksInReverseUnderDesc
         |~~ A key under `desc` ranks in reverse. ~~|
         ~({:a 3 :b 1} | min ~(desc) | eq 3)
-    | law :findsTheKeyByEntries
+    | proves :findsTheKeyByEntries
         |~~ The key of the least value is read by `entries`. ~~|
         ~({:a 3 :b 1} | entries | min /1 | get /0 | eq :b)
-    | law :answersNullForTheEmptyMap
-        |~~ The empty map has no least value. ~~| ~({} | min | eq null)
-    | law :key/NotNullOrPathOrQuoteError/refusesAKeyComputedAtTheCall
+    | proves :answersNullForTheEmptyMap
+        |~~ The empty map has no least value. ~~|
+        ~({} | min | eq null)
+    | proves :key/NotNullOrPathOrQuoteError/refusesAKeyComputedAtTheCall
         |~~ A key written without its quote is computed at the call and
             refused.
         ~~|
@@ -320,20 +324,22 @@
     | throws :key/NotNullOrPathOrQuoteError
         |~~ The key is a quote or null, `max /n`. ~~|
     | returns |~~ The greatest value, null for the empty map. ~~| ::any
-    | law :answersTheGreatestValue
-        |~~ The greatest value answers. ~~| ~({:a 3 :b 1} | max | eq 3)
-    | law :ranksAStringAfterANumber
+    | proves :answersTheGreatestValue
+        |~~ The greatest value answers. ~~|
+        ~({:a 3 :b 1} | max | eq 3)
+    | proves :ranksAStringAfterANumber
         |~~ In the one order a string comes after a number. ~~|
         ~({:a 1 :b "x"} | max | eq "x")
-    | law :findsTheKeyByEntries
+    | proves :findsTheKeyByEntries
         |~~ The key of the greatest value is read by `entries`. ~~|
         ~({:a 3 :b 1} | entries | max /1 | get /0 | eq :a)
-    | law :answersNullForTheEmptyMap
-        |~~ The empty map has no greatest value. ~~| ~({} | max | eq null)
-    | law :key/NotNullOrPathOrQuoteError/refusesANumber
-        |~~ A key that is no quote is refused under the part. ~~|
+    | proves :answersNullForTheEmptyMap
+        |~~ The empty map has no greatest value. ~~|
+        ~({} | max | eq null)
+    | proves :key/NotNullOrPathOrQuoteError/refusesANumber
+        |~~ A key that is no quote is refused under the input. ~~|
         ~({:a 1} | max 1 !| type | eq ::map/max/key/NotNullOrPathOrQuoteError)
-    | law :ranksByTheKey
+    | proves :ranksByTheKey
         |~~ The key the call gives ranks each value. ~~|
         ~({:a {:age 30} :b {:age 40}} | max /age | eq {:age 40})
     | impl ::builtin{}
@@ -341,19 +347,19 @@
 :map/map
   |~~ Answers the map of what the code answers for each value, under the
       same keys in their order, `{:a 1 :b 2} | map ~(add 1)` answering
-      `{:a 2 :b 3}`. The code is a quote run on each value as its
-      subject, not on its entry, so a key is read beside its value by
-      `entries | map ~(…)`, and the pairs build a map back by `tag
-      ::map`. The first error the code answers for a value is the
-      answer of the call, and the answers stand in a map of their own,
-      under no tag of the subject. A vector and a set answer `map` by
-      words of their own.
+      `{:a 2 :b 3}`. The code is a quote run on each value as its subject,
+      not on its entry, so a key is read beside its value by
+      `entries | map ~(…)`, and the pairs build a map back by `tag ::map`.
+      The first error the code answers for a value is the answer of the
+      call, and the answers stand in a map of their own, under no tag of
+      the subject. A vector and a set answer `map` by words of their own.
       ::link~(::map/filter | doc) ::link~(::map/entries | doc)
       ::link~(::vec/map | doc)
   ~~|
   ::fn
     | takes :code
-        |~~ The code run on each value, a quote. ~~| /0 #[::path ::quote]
+        |~~ The code run on each value, a quote. ~~|
+        /0 #[::path ::quote]
     | throws :code/NotPathOrQuoteError
         |~~ The code is a quote, `map ~(add 1)`, or a path, `map /name`;
             written without the tilde, `map (add 1)`, it is computed once
@@ -365,36 +371,36 @@
             map under no tag.
         ~~|
         ::any
-    | law :keepsTheKeys
+    | proves :keepsTheKeys
         |~~ Each value is replaced under its key. ~~|
         ~({:x 1 :y 2} | map ~(add 1) | eq {:x 2 :y 3})
-    | law :runsOnTheValue
+    | proves :runsOnTheValue
         |~~ The code runs on the value, not on its entry. ~~|
         ~({:a [1 2]} | map ~count | eq {:a 2})
-    | law :readsAKeyThroughEntries
+    | proves :readsAKeyThroughEntries
         |~~ A key is read beside its value through the entries. ~~|
         ~({:a 1} | entries | map /0 | eq [:a])
-    | law :answersTheFirstFailure
+    | proves :answersTheFirstFailure
         |~~ The first error, in the order of the keys, answers the call. ~~|
         ~({:a "x" :b "y"} | map ~(add 1) !| get /trail/0/subject | eq "x")
-    | law :answersUnderNoTag
+    | proves :answersUnderNoTag
         |~~ The answers stand under no tag of the subject. ~~|
         ~(::Box{:a 1} | map ~(add 1) | eq {:a 2})
-    | law :code/NotPathOrQuoteError/refusesAStepComputedAtTheCall
+    | proves :code/NotPathOrQuoteError/refusesAStepComputedAtTheCall
         |~~ A step written without its quote is refused. ~~|
         ~({:a 1} | map (add 1) !| type | eq ::map/map/code/NotPathOrQuoteError)
     | impl ::builtin{}
 
 :map/filter
   |~~ Answers the entries whose value the predicate answers true for,
-      their keys kept, under the tags of the map: `{:a 1 :b 2 :c 3} |
-      filter ~(gt 1)` answers `{:b 2 :c 3}`. The predicate is a quote the
-      call gives, run on each value and not on its entry, so a test of a
-      key reads the entries and builds the map back, `entries | filter
-      ~(/0 | ne :tmp) | toMap`, and a key leaves by `minus`. The
-      predicate answers a boolean; any other answer is refused with the
-      key of its entry. A vector and a set keep their elements by a
-      `filter` of their own.
+      their keys kept, under the tags of the map:
+      `{:a 1 :b 2 :c 3} | filter ~(gt 1)` answers `{:b 2 :c 3}`. The
+      predicate is a quote the call gives, run on each value and not on
+      its entry, so a test of a key reads the entries and builds the map
+      back, `entries | filter ~(get /0 | ne :tmp) | toMap`, and a key leaves
+      by `minus`. The predicate answers a boolean; any other answer is
+      refused with the key of its entry. A vector and a set keep their
+      elements by a `filter` of their own.
       ::link~(::map/every | doc) ::link~(::map/minus | doc)
       ::link~(::map/entries | doc) ::link~(::vec/filter | doc)
   ~~|
@@ -403,9 +409,9 @@
         |~~ The code each value is run through, which answers a boolean. ~~|
         /0 #[::path ::quote]
     | throws :predicate/NotPathOrQuoteError
-        |~~ The predicate is a quote, `filter ~(gt 1)`, or a path, `filter
-            /active`; written without the tilde, `filter (gt 1)`, it is
-            computed once at the call and refused.
+        |~~ The predicate is a quote, `filter ~(gt 1)`, or a path,
+            `filter /active`; written without the tilde, `filter (gt 1)`,
+            it is computed once at the call and refused.
         ~~|
     | returns
         |~~ The entries whose values the predicate accepted, under the
@@ -417,39 +423,38 @@
             each entry; `:key` names the entry whose predicate answered
             another kind.
         ~~|
-    | law :keepsTheKeys
+    | carries :ConditionNotBooleanError/key
+        |~~ The key of the entry whose predicate answered another kind. ~~|
+        ::keyword
+    | proves :keepsTheKeys
         |~~ The entries kept keep their keys. ~~|
         ~({:a 1 :b 2 :c 3} | filter ~(gt 1) | eq {:b 2 :c 3})
-    | law :keepsNothingOfTheEmptyMap
+    | proves :keepsNothingOfTheEmptyMap
         |~~ The empty map filters to itself. ~~|
         ~({} | filter ~(gt 0) | eq {})
-    | law :answersUnderTheTagOfTheMap
+    | proves :answersUnderTheTagOfTheMap
         |~~ A map under a tag answers under the tag. ~~|
         ~(::Box{:a 1 :b 2} | filter ~(gt 1) | eq ::Box{:b 2})
-    | law :runsOnTheValue
+    | proves :runsOnTheValue
         |~~ The predicate meets the value, not its entry: a number has no
             place.
         ~~|
         ~({:a 1} | filter /0 !| type | eq ::path/SubjectNotProjectableError)
-    | law :predicate/NotPathOrQuoteError/refusesAPredicateComputedAtTheCall
+    | proves :predicate/NotPathOrQuoteError/refusesAPredicateComputedAtTheCall
         |~~ A predicate written without its quote is refused. ~~|
         ~({:a 1} | filter (gt 0) !| type | eq ::map/filter/predicate/NotPathOrQuoteError)
-    | law :ConditionNotBooleanError/refusesANumberAnswer
+    | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | filter ~(1)
           !| [type (get /key) (get /actualType)]
           |  eq [::map/filter/ConditionNotBooleanError :a ::number])
     | impl ::builtin{}
 
-:map/filter/ConditionNotBooleanError/key
-  |~~ The key of the entry whose predicate answered another kind. ~~|
-  ::keyword
-
 :map/every
-  |~~ Answers whether the predicate answers true for every value, `{:a 1
-      :b 2} | every ~(gt 0)` answering `true`, and `true` for the empty
-      map, which holds no value to fail it. The predicate is a quote the
-      call gives, run on each value, and answers a boolean; any other
+  |~~ Answers whether the predicate answers true for every value,
+      `{:a 1 :b 2} | every ~(gt 0)` answering `true`, and `true` for the
+      empty map, which holds no value to fail it. The predicate is a quote
+      the call gives, run on each value, and answers a boolean; any other
       answer is refused with the key of its entry. A vector and a set ask
       their elements by an `every` of their own.
       ::link~(::map/any | doc) ::link~(::map/filter | doc)
@@ -460,8 +465,8 @@
         |~~ The code each value is run through, which answers a boolean. ~~|
         /0 #[::path ::quote]
     | throws :predicate/NotPathOrQuoteError
-        |~~ The predicate is a quote, `every ~(gt 0)`, or a path, `every
-            /active`.
+        |~~ The predicate is a quote, `every ~(gt 0)`, or a path,
+            `every /active`.
         ~~|
     | returns
         |~~ `true` when the predicate held for every value, `false`
@@ -473,38 +478,39 @@
             each entry; `:key` names the entry whose predicate answered
             another kind.
         ~~|
-    | law :holdsOfEveryValue
-        |~~ Every value is positive. ~~| ~({:a 1 :b 2 :c 3} | every ~(gt 0))
-    | law :asksTheValues
+    | carries :ConditionNotBooleanError/key
+        |~~ The key of the entry whose predicate answered another kind. ~~|
+        ::keyword
+    | proves :holdsOfEveryValue
+        |~~ Every value is positive. ~~|
+        ~({:a 1 :b 2 :c 3} | every ~(gt 0))
+    | proves :asksTheValues
         |~~ A map is asked of its values, and one that fails fails
             `every`.
         ~~|
         ~({:a 1 :b -2 :c 3} | every ~(gt 0) | not)
-    | law :holdsOfTheEmptyMap
-        |~~ The empty map holds no value to fail. ~~| ~({} | every ~(gt 0))
-    | law :ConditionNotBooleanError/refusesANumberAnswer
+    | proves :holdsOfTheEmptyMap
+        |~~ The empty map holds no value to fail. ~~|
+        ~({} | every ~(gt 0))
+    | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | every ~(1)
           !| [type (get /key) (get /actualType)]
           |  eq [::map/every/ConditionNotBooleanError :a ::number])
-    | law :predicate/NotPathOrQuoteError/refusesCodeComputedAtTheCall
+    | proves :predicate/NotPathOrQuoteError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
         ~~|
         ~({:a 1} | every (gt 0) !| type | eq ::map/every/predicate/NotPathOrQuoteError)
     | impl ::builtin{}
 
-:map/every/ConditionNotBooleanError/key
-  |~~ The key of the entry whose predicate answered another kind. ~~|
-  ::keyword
-
 :map/any
-  |~~ Answers whether the predicate answers true for some value, `{:a -1
-      :b 2} | any ~(gt 0)` answering `true`, and `false` for the empty
-      map. The predicate is a quote the call gives, run on each value, and
-      answers a boolean; any other answer is refused with the key of its
-      entry. A vector and a set ask their elements by an `any` of their
-      own.
+  |~~ Answers whether the predicate answers true for some value,
+      `{:a -1 :b 2} | any ~(gt 0)` answering `true`, and `false` for the
+      empty map. The predicate is a quote the call gives, run on each
+      value, and answers a boolean; any other answer is refused with the
+      key of its entry. A vector and a set ask their elements by an `any`
+      of their own.
       ::link~(::map/every | doc) ::link~(::map/filter | doc)
       ::link~(::vec/any | doc)
   ~~|
@@ -513,8 +519,8 @@
         |~~ The code each value is run through, which answers a boolean. ~~|
         /0 #[::path ::quote]
     | throws :predicate/NotPathOrQuoteError
-        |~~ The predicate is a quote, `any ~(gt 0)`, or a path, `any
-            /vip`.
+        |~~ The predicate is a quote, `any ~(gt 0)`, or a path,
+            `any /vip`.
         ~~|
     | returns
         |~~ `true` when the predicate held for some value, `false`
@@ -526,27 +532,26 @@
             entry; `:key` names the entry whose predicate answered another
             kind.
         ~~|
-    | law :holdsOfSomeValue
+    | carries :ConditionNotBooleanError/key
+        |~~ The key of the entry whose predicate answered another kind. ~~|
+        ::keyword
+    | proves :holdsOfSomeValue
         |~~ One positive value is enough. ~~|
         ~({:a -1 :b 0 :c 2} | any ~(gt 0))
-    | law :failsOfTheEmptyMap
+    | proves :failsOfTheEmptyMap
         |~~ The empty map holds no value to pass. ~~|
         ~({} | any ~(gt 0) | not)
-    | law :ConditionNotBooleanError/refusesANumberAnswer
+    | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | any ~(1)
           !| [type (get /key) (get /actualType)]
           |  eq [::map/any/ConditionNotBooleanError :a ::number])
-    | law :predicate/NotPathOrQuoteError/refusesCodeComputedAtTheCall
+    | proves :predicate/NotPathOrQuoteError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
         ~~|
         ~({:a 1} | any (gt 0) !| type | eq ::map/any/predicate/NotPathOrQuoteError)
     | impl ::builtin{}
-
-:map/any/ConditionNotBooleanError/key
-  |~~ The key of the entry whose predicate answered another kind. ~~|
-  ::keyword
 
 :map/sort
   |~~ Answers the entries ordered by their values in the one order, their
@@ -571,19 +576,19 @@
             the map.
         ~~|
         ::map
-    | law :ordersByValue
+    | proves :ordersByValue
         |~~ The entries order by their values. ~~|
         ~({:a 3 :b 1 :c 2} | sort | vals | eq [1 2 3])
-    | law :ordersByTheKey
+    | proves :ordersByTheKey
         |~~ The key ranks each value, and each value keeps its key. ~~|
         ~({:a {:n 2} :b {:n 1}} | sort /n | entries | map /0 | eq [:b :a])
-    | law :descendsUnderDesc
+    | proves :descendsUnderDesc
         |~~ A key under `desc` descends. ~~|
         ~({:a 1 :b 3} | sort ~(desc) | vals | eq [3 1])
-    | law :answersUnderTheTagOfTheMap
+    | proves :answersUnderTheTagOfTheMap
         |~~ A map under a tag answers under the tag. ~~|
         ~(::Box{:a 3 :b 1} | sort | eq ::Box{:b 1 :a 3})
-    | law :key/NotNullOrPathOrQuoteError/refusesANumber
+    | proves :key/NotNullOrPathOrQuoteError/refusesANumber
         |~~ A key that is no code is refused. ~~|
         ~({:a 1 :b 2} | sort 1 !| type | eq ::map/sort/key/NotNullOrPathOrQuoteError)
     | impl ::builtin{}
@@ -602,8 +607,8 @@
     | takes :count |~~ How many entries, a whole number. ~~| /0 ::number
     | throws :count/NotNumberError
         |~~ The count is a number, `{:a 1 :b 2 :c 3} | take 2`; text that
-            holds one is read by `toNumber` first, `take ("2" |
-            toNumber)`.
+            holds one is read by `toNumber` first,
+            `take ("2" | toNumber)`.
         ~~|
     | holds :count/NotIntegerError
         |~~ The count is a whole number, `{:a 1 :b 2 :c 3} | take 2`; a
@@ -611,22 +616,22 @@
         ~~|
         ~(eq (floor))
     | returns |~~ The first entries, under the tags of the map. ~~| ::map
-    | law :takesTheFirstEntries
+    | proves :takesTheFirstEntries
         |~~ Two entries of a map are its first two. ~~|
         ~({:a 1 :b 2 :c 3} | take 2 | eq {:a 1 :b 2})
-    | law :takesTheWholeMapForACountPastItsSize
+    | proves :takesTheWholeMapForACountPastItsSize
         |~~ A count past the size takes every entry. ~~|
         ~({:a 1} | take 99 | eq {:a 1})
-    | law :takesNothingForACountBelowOne
+    | proves :takesNothingForACountBelowOne
         |~~ A count below one takes no entry. ~~|
         ~({:a 1} | take -1 | eq {})
-    | law :answersUnderTheTagOfTheMap
+    | proves :answersUnderTheTagOfTheMap
         |~~ A map under a tag answers under the tag. ~~|
         ~(::Box{:a 1 :b 2} | take 1 | eq ::Box{:a 1})
-    | law :count/NotIntegerError/refusesAFraction
+    | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
         ~({:a 1} | take 1.5 !| type | eq ::map/take/count/NotIntegerError)
-    | law :count/NotNumberError/refusesAString
+    | proves :count/NotNumberError/refusesAString
         |~~ A count written as a string is refused. ~~|
         ~({:a 1} | take "1" !| type | eq ::map/take/count/NotNumberError)
     | impl ::builtin{}
@@ -646,8 +651,8 @@
     | takes :count |~~ How many entries, a whole number. ~~| /0 ::number
     | throws :count/NotNumberError
         |~~ The count is a number, `{:a 1 :b 2 :c 3} | drop 2`; text that
-            holds one is read by `toNumber` first, `drop ("2" |
-            toNumber)`.
+            holds one is read by `toNumber` first,
+            `drop ("2" | toNumber)`.
         ~~|
     | holds :count/NotIntegerError
         |~~ The count is a whole number, `{:a 1 :b 2 :c 3} | drop 2`; a
@@ -658,19 +663,19 @@
         |~~ The entries after the ones dropped, under the tags of the map.
         ~~|
         ::map
-    | law :dropsTheFirstEntries
+    | proves :dropsTheFirstEntries
         |~~ Dropping two leaves the last. ~~|
         ~({:a 1 :b 2 :c 3} | drop 2 | eq {:c 3})
-    | law :dropsNothingForACountBelowOne
+    | proves :dropsNothingForACountBelowOne
         |~~ A count below one drops no entry. ~~|
         ~({:a 1} | drop -1 | eq {:a 1})
-    | law :dropsEveryEntryForACountPastTheSize
+    | proves :dropsEveryEntryForACountPastTheSize
         |~~ A count past the size drops every entry. ~~|
         ~({:a 1} | drop 5 | eq {})
-    | law :count/NotNumberError/refusesAString
+    | proves :count/NotNumberError/refusesAString
         |~~ A count written as a string is refused. ~~|
         ~({:a 1} | drop "1" !| type | eq ::map/drop/count/NotNumberError)
-    | law :count/NotIntegerError/refusesAFraction
+    | proves :count/NotIntegerError/refusesAFraction
         |~~ A count that is no whole number is refused. ~~|
         ~({:a 1} | drop 1.5 !| type | eq ::map/drop/count/NotIntegerError)
     | impl ::builtin{}
@@ -686,10 +691,10 @@
     | returns
         |~~ The entries in reverse order, under the tags of the map. ~~|
         ::map
-    | law :reversesTheEntries
+    | proves :reversesTheEntries
         |~~ The entries come in reverse order. ~~|
         ~({:a 1 :b 2} | reverse | vals | eq [2 1])
-    | law :keepsTheKeys
+    | proves :keepsTheKeys
         |~~ Each value keeps its key. ~~|
         ~({:a 1 :b 2} | reverse | entries | first | eq [:b 2])
     | impl ::builtin{}
@@ -722,26 +727,26 @@
     | returns
         |~~ The value the fold reached, the seed for the empty map. ~~|
         ::any
-    | law :foldsTheValues
+    | proves :foldsTheValues
         |~~ The fold adds the values to the seed. ~~|
         ~({:a 1 :b 2} | reduce 0 ~(add) | eq 3)
-    | law :answersTheSeedForTheEmptyMap
+    | proves :answersTheSeedForTheEmptyMap
         |~~ The empty map answers the seed. ~~|
         ~({} | reduce 7 ~(add) | eq 7)
-    | law :foldsInTheOrderOfTheEntries
+    | proves :foldsInTheOrderOfTheEntries
         |~~ The fold meets the values in the order the map holds them. ~~|
         ~({:a "x" :b "y"} | reduce "" ~(append) | eq "xy")
-    | law :reducer/NotPathOrQuoteError/refusesAReducerComputedAtTheCall
+    | proves :reducer/NotPathOrQuoteError/refusesAReducerComputedAtTheCall
         |~~ A reducer written without its quote is refused. ~~|
         ~({:a 1} | reduce 0 (add) !| type | eq ::map/reduce/reducer/NotPathOrQuoteError)
-    | law :reducer/NotPathOrQuoteError/refusesTheReducerFirst
+    | proves :reducer/NotPathOrQuoteError/refusesTheReducerFirst
         |~~ A reducer written before the seed hands the reducer's place
             the seed.
         ~~|
         ~({:a 1} | reduce ~(add) 0
           !| [type (get /actualType)]
           |  eq [::map/reduce/reducer/NotPathOrQuoteError ::number])
-    | law :runsCodeOnThePair
+    | proves :runsCodeOnThePair
         |~~ Code of more than one word runs on the pair of the value so
             far and the value.
         ~~|
@@ -750,9 +755,9 @@
 
 :map/keys
   |~~ Answers the set of the keys, each a keyword, in the order of their
-      names and not of the entries: `{:b 1 :a 2} | keys` answers `#[:a
-      :b]`, while `first` and `entries` follow the entries. It takes no
-      value. A key written in JSON or read by `parseJson` is a keyword
+      names and not of the entries: `{:b 1 :a 2} | keys` answers
+      `#[:a :b]`, while `first` and `entries` follow the entries. It takes
+      no value. A key written in JSON or read by `parseJson` is a keyword
       too, `{"a b": 1} | keys` answering `#[:"a b"]`, and a map under a
       tag answers the keys beneath it. The keys come with their values by
       `entries`, and one key is asked for by `has`.
@@ -768,45 +773,48 @@
             by element, `map ~keys`, and a vector's own places are its
             indices, read by `/0`.
         ~~|
-    | law :answersASetOfKeys
+    | proves :answersASetOfKeys
         |~~ The keys are a set. ~~|
         ~({:name "Alice" :age 30} | keys | eq #[:age :name])
-    | law :ordersByName
+    | proves :ordersByName
         |~~ The keys sort by name, whatever the order of the entries. ~~|
         ~({:name "Alice" :age 30} | keys | first | eq :age)
-    | law :readsAKeyWrittenInJson
+    | proves :readsAKeyWrittenInJson
         |~~ A key written in JSON is a keyword. ~~|
         ~({"a b": 1} | keys | eq #[:"a b"])
-    | law :answersTheEmptySetForTheEmptyMap
-        |~~ The empty map has no keys. ~~| ~({} | keys | eq #[])
-    | law :readsTheKeysOfEachMapByMap
+    | proves :answersTheEmptySetForTheEmptyMap
+        |~~ The empty map has no keys. ~~|
+        ~({} | keys | eq #[])
+    | proves :readsTheKeysOfEachMapByMap
         |~~ A vector of maps answers their keys by `map`. ~~|
         ~([{:a 1} {:b 2}] | map ~keys | eq [#[:a] #[:b]])
-    | law :SubjectNotMapError/refusesANumber
+    | proves :SubjectNotMapError/refusesANumber
         |~~ A number has no keys. ~~|
         ~(42 | keys !| [type (get /actualType)] | eq [::map/keys/SubjectNotMapError ::number])
     | impl ::builtin{}
 
 :map/vals
-  |~~ Answers the vector of the values, in the order of the entries: `{:b
-      1 :a 2} | vals` answers `[1 2]`. It takes no value, and a map under a
-      tag answers the values beneath it. The values with their keys are
-      `entries`.
+  |~~ Answers the vector of the values, in the order of the entries:
+      `{:b 1 :a 2} | vals` answers `[1 2]`. It takes no value, and a map
+      under a tag answers the values beneath it. The values with their
+      keys are `entries`.
       ::link~(::map/keys | doc) ::link~(::map/entries | doc)
   ~~|
   ::fn
     | returns
-        |~~ The values of the map, in the order of the entries. ~~| ::vec
+        |~~ The values of the map, in the order of the entries. ~~|
+        ::vec
     | throws :SubjectNotMapError
         |~~ `vals` reads a map: a vector is its own values, and a vector
             of maps answers their values element by element, `map ~vals`.
         ~~|
-    | law :keepsTheOrderOfTheEntries
+    | proves :keepsTheOrderOfTheEntries
         |~~ The values come in the order of the entries. ~~|
         ~({:name "Alice" :age 30} | vals | eq ["Alice" 30])
-    | law :answersTheEmptyVectorForTheEmptyMap
-        |~~ The empty map has no values. ~~| ~({} | vals | eq [])
-    | law :SubjectNotMapError/refusesAVector
+    | proves :answersTheEmptyVectorForTheEmptyMap
+        |~~ The empty map has no values. ~~|
+        ~({} | vals | eq [])
+    | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no values by key. ~~|
         ~([1 2] | vals !| [type (get /actualType)] | eq [::map/vals/SubjectNotMapError ::vec])
     | impl ::builtin{}
@@ -814,12 +822,13 @@
 :map/entries
   |~~ Answers the vector of the pairs `[key value]` of the map, in the
       order of the entries, each key a keyword: the map with its keys as
-      data, for a step that reads a key beside its value, as `[type
-      payload]` reads a tagged value. `toMap` builds the map back, so a
-      test of a key is `entries | filter ~(get /0 | ne :tmp) | toMap`,
-      and a key is spelled with its value by turning it to text first,
-      `map ~(get [(get /0 | toString) "@" /1] | join "")`. It takes no value, and
-      the empty map answers `[]`.
+      data, for a step that reads a key beside its value, as
+      `[type payload]` reads a tagged value. `toMap` builds the map back,
+      so a test of a key is
+      `entries | filter ~(get /0 | ne :tmp) | toMap`, and a key is spelled
+      with its value by turning it to text first,
+      `map ~(get [(get /0 | toString) "@" /1] | join "")`. It takes no
+      value, and the empty map answers `[]`.
       ::link~(::map/keys | doc) ::link~(::vec/toMap | doc)
       ::link~(::tagged/payload | doc)
   ~~|
@@ -831,17 +840,17 @@
         |~~ `entries` reads a map: a vector of maps answers their pairs
             element by element, `map ~entries`.
         ~~|
-    | law :pairsEachKeyWithItsValue
+    | proves :pairsEachKeyWithItsValue
         |~~ Each entry is a pair of its key and its value. ~~|
         ~({:auth {:port 3000} :db {:port 5432}} | entries | first | eq [:auth {:port 3000}])
-    | law :spellsTheKeyWithTheValue
+    | proves :spellsTheKeyWithTheValue
         |~~ The key and its value spell one string. ~~|
         ~({:axios "^1.6.0"} | entries | map ~(get [(get /0 | toString) "@" /1] | join "")
           | eq ["axios@^1.6.0"])
-    | law :filtersByKeyAndBuildsBack
+    | proves :filtersByKeyAndBuildsBack
         |~~ Entries filtered by key build back into a map. ~~|
         ~({:a 1 :tmp 2} | entries | filter ~(get /0 | ne :tmp) | toMap | eq {:a 1})
-    | law :SubjectNotMapError/refusesAVector
+    | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no entries. ~~|
         ~([1 2] | entries !| [type (get /actualType)] | eq [::map/entries/SubjectNotMapError ::vec])
     | impl ::builtin{}
@@ -849,12 +858,13 @@
 :map/has
   |~~ Answers whether the map holds the key the call gives, a keyword or a
       string, both naming the key as the map stores it: `{:a 1} | has :a`
-      answers `true`. A key held with a null value is held, `{:a null} |
-      has :a` answering `true`, so `has` tells a null value from a key the
-      map lacks, where `query` answers null for both. The key is computed
-      against the subject, so it is written as the keyword that names it,
-      `has :name`. A set asks for an element and a vector for a value by
-      a `has` of their own, and a string asks for a part by `contains`.
+      answers `true`. A key held with a null value is held,
+      `{:a null} | has :a` answering `true`, so `has` tells a null value
+      from a key the map lacks, where `query` answers null for both. The
+      key is computed against the subject, so it is written as the keyword
+      that names it, `has :name`. A set asks for an element and a vector
+      for a value by a `has` of their own, and a string asks for a part by
+      `contains`.
       ::link~(::any/query | doc) ::link~(::set/has | doc)
       ::link~(::string/contains | doc)
   ~~|
@@ -873,19 +883,22 @@
     | returns
         |~~ `true` when the map holds the key, `false` otherwise. ~~|
         ::boolean
-    | law :findsAKeyword
-        |~~ A key held is found. ~~| ~({:name "Alice"} | has :name)
-    | law :findsAString
+    | proves :findsAKeyword
+        |~~ A key held is found. ~~|
+        ~({:name "Alice"} | has :name)
+    | proves :findsAString
         |~~ A string names the key as a keyword does. ~~|
         ~({:name "Alice"} | has "name")
-    | law :findsNoKeyTheMapLacks
-        |~~ A key the map lacks is not held. ~~| ~({:a 1} | has :b | not)
-    | law :holdsAKeyWithANullValue
-        |~~ A key held with a null value is held. ~~| ~({:a null} | has :a)
-    | law :readsNoPathThroughAValueWithoutParts
+    | proves :findsNoKeyTheMapLacks
+        |~~ A key the map lacks is not held. ~~|
+        ~({:a 1} | has :b | not)
+    | proves :holdsAKeyWithANullValue
+        |~~ A key held with a null value is held. ~~|
+        ~({:a null} | has :a)
+    | proves :readsNoPathThroughAValueWithoutParts
         |~~ A path through a value that has no parts does not read. ~~|
         ~({:a 1} | has /a/b | not)
-    | law :key/NotKeywordOrPathOrStringError/refusesANumber
+    | proves :key/NotKeywordOrPathOrStringError/refusesANumber
         |~~ A number key is refused. ~~|
         ~({:a 1} | has 42
           !| [type (get /actualType)]
@@ -895,10 +908,11 @@
 :map/union
   |~~ Answers the entries of the subject together with those of the map
       the call gives, which wins a key both hold, under the tags of the
-      subject: `{:a 1 :b 2} | union {:b 3 :c 4}` answers `{:a 1 :b 3 :c
-      4}`. The values are not merged deeper; a key both hold takes the
-      value of the other map whole. A set or a vector of keys unites with
-      no map; a set and a vector unite by a `union` of their own.
+      subject: `{:a 1 :b 2} | union {:b 3 :c 4}` answers
+      `{:a 1 :b 3 :c 4}`. The values are not merged deeper; a key both
+      hold takes the value of the other map whole. A set or a vector of
+      keys unites with no map; a set and a vector unite by a `union` of
+      their own.
       ::link~(::map/minus | doc) ::link~(::map/inter | doc)
       ::link~(::set/union | doc)
   ~~|
@@ -914,21 +928,21 @@
             under the tags of the subject.
         ~~|
         ::map
-    | law :letsTheOtherWin
+    | proves :letsTheOtherWin
         |~~ The other map's value wins a key both hold. ~~|
         ~({:a 1 :b 2} | union {:b 3 :c 4} | eq {:a 1 :b 3 :c 4})
-    | law :mergesTwoMaps
+    | proves :mergesTwoMaps
         |~~ The entries of both are merged. ~~|
         ~({:a 1} | union {:b 2} | eq {:a 1 :b 2})
-    | law :takesTheOtherValueWhole
+    | proves :takesTheOtherValueWhole
         |~~ A key both hold takes the other's value whole, not merged
             deeper.
         ~~|
         ~({:a {:x 1}} | union {:a {:y 2}} | eq {:a {:y 2}})
-    | law :answersUnderTheTagOfTheSubject
+    | proves :answersUnderTheTagOfTheSubject
         |~~ A map under a tag answers under the tag. ~~|
         ~(::Box{:a 1} | union {:b 2} | eq ::Box{:a 1 :b 2})
-    | law :other/NotMapError/refusesASetOfKeys
+    | proves :other/NotMapError/refusesASetOfKeys
         |~~ A set of keys unites with no map. ~~|
         ~({:a 1} | union #[:b] !| type | eq ::map/union/other/NotMapError)
     | impl ::builtin{}
@@ -962,25 +976,25 @@
             `:index` names the first element of the other value that is
             neither.
         ~~|
-    | law :leavesTheKeysOfASet
+    | proves :leavesTheKeysOfASet
         |~~ The keys a set names leave. ~~|
         ~({:a 1 :b 2 :tmp 3} | minus #[:tmp] | eq {:a 1 :b 2})
-    | law :leavesTheKeysOfAVector
+    | proves :leavesTheKeysOfAVector
         |~~ A string in a vector names a key to leave. ~~|
         ~({:a 1 :b 2} | minus ["a"] | eq {:b 2})
-    | law :leavesTheKeysOfAMap
+    | proves :leavesTheKeysOfAMap
         |~~ The keys of a map leave, whatever their values. ~~|
         ~({:a 1 :b 2} | minus {:b 9} | eq {:a 1})
-    | law :keepsTheMapForAKeyItLacks
+    | proves :keepsTheMapForAKeyItLacks
         |~~ A key the map lacks changes nothing. ~~|
         ~({:a 1} | minus [:z] | eq {:a 1})
-    | law :answersUnderTheTagOfTheMap
+    | proves :answersUnderTheTagOfTheMap
         |~~ A map under a tag answers under the tag. ~~|
         ~(::Box{:a 1 :b 2} | minus [:a] | eq ::Box{:b 2})
-    | law :keys/NotMapOrVecError/refusesASingleKey
+    | proves :keys/NotMapOrVecError/refusesASingleKey
         |~~ A key written alone is refused; a set holds it. ~~|
         ~({:a 1} | minus "a" !| type | eq ::map/minus/keys/NotMapOrVecError)
-    | law :KeyNotKeywordOrStringError/refusesANumber
+    | proves :KeyNotKeywordOrStringError/refusesANumber
         |~~ A number among the keys is refused at its index. ~~|
         ~({:a 1} | minus [:a 1]
           !| [type (get /actualType) (get /index)]
@@ -990,9 +1004,9 @@
 :map/inter
   |~~ Answers the entries of the map whose keys are among the keys the
       call gives, under the tags of the map: the keys of a map, or the
-      keys a vector or a set names, each a keyword or a string. `{:a 1 :b
-      2 :c 3} | inter #[:a :b]` answers `{:a 1 :b 2}`, and keys the map
-      lacks keep none of its entries. A set and a vector keep the
+      keys a vector or a set names, each a keyword or a string.
+      `{:a 1 :b 2 :c 3} | inter #[:a :b]` answers `{:a 1 :b 2}`, and keys
+      the map lacks keep none of its entries. A set and a vector keep the
       elements they share by an `inter` of their own.
       ::link~(::map/minus | doc) ::link~(::set/inter | doc)
   ~~|
@@ -1001,8 +1015,8 @@
         |~~ The keys to keep: a map, or a vector or a set of keys. ~~|
         /0 #[::map ::vec]
     | throws :keys/NotMapOrVecError
-        |~~ The keys are a map, or a vector or a set of keys, `inter
-            #[:a]`.
+        |~~ The keys are a map, or a vector or a set of keys,
+            `inter #[:a]`.
         ~~|
     | returns
         |~~ The entries whose keys are among the keys, under the tags of
@@ -1014,26 +1028,26 @@
             `:index` names the first element of the other value that is
             neither.
         ~~|
-    | law :keepsTheKeysOfASet
+    | proves :keepsTheKeysOfASet
         |~~ The keys a set names stay. ~~|
         ~({:a 1 :b 2 :c 3} | inter #[:a :b] | eq {:a 1 :b 2})
-    | law :keepsTheKeysOfAVector
+    | proves :keepsTheKeysOfAVector
         |~~ Strings and keywords in a vector name the keys to keep. ~~|
         ~({:a 1 :b 2 :c 3} | inter ["a" :c] | eq {:a 1 :c 3})
-    | law :keepsTheKeysOfAMap
+    | proves :keepsTheKeysOfAMap
         |~~ The keys of a map stay, whatever their values. ~~|
         ~({:a 1 :b 2} | inter {:b 9} | eq {:b 2})
-    | law :keepsNoEntryForKeysTheMapLacks
+    | proves :keepsNoEntryForKeysTheMapLacks
         |~~ Keys the map lacks keep none of its entries. ~~|
         ~({:a 1 :b 2} | inter [:z] | eq {})
-    | law :KeyNotKeywordOrStringError/refusesAVector
+    | proves :KeyNotKeywordOrStringError/refusesAVector
         |~~ A vector among the keys is refused at its index. ~~|
         ~({:a 1} | inter [[:a]]
           !| [type (get /actualType) (get /index)]
           |  eq [::map/inter/KeyNotKeywordOrStringError ::vec 0])
-    | law :keys/NotMapOrVecError/refusesANumber
+    | proves :keys/NotMapOrVecError/refusesANumber
         |~~ Keys that are no map, vector or set are refused under the
-            part.
+            input.
         ~~|
         ~({:a 1} | inter 5 !| type | eq ::map/inter/keys/NotMapOrVecError)
     | impl ::builtin{}
@@ -1053,48 +1067,49 @@
   ~~|
   ::fn
     | returns
-        |~~ The error the map is raised as, on the fail track. ~~| ::error
+        |~~ The error the map is raised as, on the fail track. ~~|
+        ::error
     | throws :SubjectNotMapError
         |~~ `raise` raises a map: a value of another kind is put in one
             first, `{:value it} | raise`, or the error is written as its
             literal, `!{:reason :late} | raise`.
         ~~|
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `raise` takes no value: what the error says is a fact of the
             map, `{:message "boom"} | raise`.
         ~~|
-    | law :raisesTheSubject
+    | proves :raisesTheSubject
         |~~ `{…} | raise` raises the subject, a map the step builds among
             them.
         ~~|
         ~({:message "boom"} | raise !| get /message | eq "boom")
-    | law :takesTheTagTheMapCarries
+    | proves :takesTheTagTheMapCarries
         |~~ The tag the map carries is the tag of the error. ~~|
         ~(::Oops{:message "boom"} | raise !| type | eq ::Oops)
-    | law :keepsEveryEntryAsAFact
+    | proves :keepsEveryEntryAsAFact
         |~~ Every entry of the map is a fact of the error, a `:kind` among
             them.
         ~~|
         ~({:kind ::Oops} | raise !| [type (get /kind)] | eq [::error ::Oops])
-    | law :raisesAnOpenedErrorAsItself
+    | proves :raisesAnOpenedErrorAsItself
         |~~ An error caught and raised again is itself. ~~|
         ~("x" | add 1 !| raise !| type | eq ::number/add/SubjectNotNumberError)
-    | law :renamesByATag
+    | proves :renamesByATag
         |~~ A step that lays a tag over an error caught renames it. ~~|
         ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)
-    | law :guardsAValue
+    | proves :guardsAValue
         |~~ A guard raises an error of its own tag when a value fails its
             check.
         ~~|
         ~(42 | if (gt 100) ~(it) ~(::TooSmall{:value it} | raise)
           !| [type (get /value)]
           |  eq [::TooSmall 42])
-    | law :SubjectNotMapError/refusesANumber
+    | proves :SubjectNotMapError/refusesANumber
         |~~ A number is no map to raise. ~~|
         ~(42 | raise !| [type (get /actualType)] | eq [::map/raise/SubjectNotMapError ::number])
-    | law :ArgsBeyondPartsError/refusesAMessage
+    | proves :ArgsBeyondInputsError/refusesAMessage
         |~~ A message given to `raise` is refused; the map holds it. ~~|
-        ~({:kind :oops} | raise "boom" !| type | eq ::map/raise/ArgsBeyondPartsError)
+        ~({:kind :oops} | raise "boom" !| type | eq ::map/raise/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :map/toMap
@@ -1104,7 +1119,8 @@
   ~~|
   ::fn
     | returns |~~ The map itself. ~~| ::map
-    | law :answersItself
-        |~~ A map answers itself. ~~| ~({:a 1} | toMap | eq {:a 1})
+    | proves :answersItself
+        |~~ A map answers itself. ~~|
+        ~({:a 1} | toMap | eq {:a 1})
     | impl ::builtin{}
 

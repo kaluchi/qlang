@@ -10,18 +10,18 @@
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { declaredRefusals } from '../../src/errors.mjs';
-import { isWord, nodeOf, ruleRefusalsOf } from '../../src/runtime/nouns.mjs';
+import { declaresALabel, isWord, nodeOf, ruleRefusalsOf } from '../../src/runtime/nouns.mjs';
 import { splitAddress } from '../../src/address.mjs';
 import { ROOT_KEY } from '../../src/env-keys.mjs';
-import { bindingValueOf, isDoc } from '../../src/types.mjs';
+import { bindingValueOf, isDoc, isKind } from '../../src/types.mjs';
 
 const session = await createSession();
 const declared = new Set(declaredRefusals());
 
-// The refusals the words of the root raise by rule, which their
-// definitions page as the declared ones are paged [D179].
+// The refusals the words and the kinds of the root raise by rule, which
+// their definitions page as the declared ones are paged [D179], [D252].
 const ruleBorn = new Set([...session.env.get(ROOT_KEY).keys()]
-  .filter(address => isWord(session.env, address))
+  .filter(address => isWord(session.env, address) || isKind(bindingValueOf(nodeOf(session.env, address))))
   .flatMap(address => ruleRefusalsOf(session.env, address)));
 
 // The refusals the root pages under a noun, `number/add/SubjectNotNumberError`.
@@ -50,6 +50,6 @@ describe('every refusal the catalog pages is declared by a site of the runtime o
 
   it('the root holds the topic of the language and its kinds', () => {
     expect(nodeOf(session.env, 'qlang')).not.toBeNull();
-    expect(isDoc(bindingValueOf(nodeOf(session.env, 'number')))).toBe(true);
+    expect(declaresALabel(nodeOf(session.env, 'number'))).toBe(true);
   });
 });

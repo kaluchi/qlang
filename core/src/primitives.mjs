@@ -78,7 +78,7 @@ export function bindPrim(addresses, impl) {
 
 // A primitive that reads the scope of its call takes the state of the
 // call after its values [D79]; every other primitive is a plain function
-// over the values of the parts of the call [D164].
+// over the values of the inputs of the call [D251].
 const STATE_READERS = new WeakSet();
 
 export function bindStateReader(addresses, impl) {

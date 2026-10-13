@@ -1,21 +1,21 @@
 // The function [D251]: the constructor of `::fn`, which reads a function
 // from its literal, the chain that built it folded into data, and the
 // words that build one from the noun by commands, `on`, `takes`,
-// `returns`, `throws`, `holds`, `law` and `impl`, each writing its command after
-// the ones the signature holds, a step of the objects it was given, which
-// prints as the command and reads back as the same step; `fill`, which writes the arguments
-// of a call into the head of its code, and `params`, which reads its
-// inputs.
+// `returns`, `throws`, `carries`, `holds`, `proves` and `impl`, each
+// writing its command after the ones the signature holds, a step of the objects it
+// was given, which prints as the command and reads back as the same step;
+// `fill`, which writes the arguments of a call into the head of its code,
+// and `params`, which reads its inputs.
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { quoteOfSource, printQuoteSource } from '../quote.mjs';
 import { printValue } from './print-value.mjs';
 import { inputsOfFunction } from '../eval.mjs';
-import { signatureOf } from './signature.mjs';
+import { commandStep, signatureOf } from './signature.mjs';
 import {
-  isQuote, isVec, isNull, isBuiltinDescriptor, isErrorValue, isFn, fnSignatureOf, fnRecipeOf,
-  makeTag, makeTaggedInstance, makeQuote, keyword, CALL_TAG, FN_TAG_NAME
+  isQuote, isVec, isNull, isBuiltinDescriptor, isErrorValue, isFn, commandsOf, recipeOf,
+  makeTag, makeTaggedInstance, makeQuote, FN_TAG_NAME
 } from '../types.mjs';
 
 const FN_TAG = makeTag(FN_TAG_NAME);
@@ -27,8 +27,9 @@ const FnOnSubjectNotFnError = declareRefusal('fn/on/SubjectNotFnError');
 const FnTakesSubjectNotFnError = declareRefusal('fn/takes/SubjectNotFnError');
 const FnReturnsSubjectNotFnError = declareRefusal('fn/returns/SubjectNotFnError');
 const FnThrowsSubjectNotFnError = declareRefusal('fn/throws/SubjectNotFnError');
+const FnCarriesSubjectNotFnError = declareRefusal('fn/carries/SubjectNotFnError');
 const FnHoldsSubjectNotFnError = declareRefusal('fn/holds/SubjectNotFnError');
-const FnLawSubjectNotFnError = declareRefusal('fn/law/SubjectNotFnError');
+const FnProvesSubjectNotFnError = declareRefusal('fn/proves/SubjectNotFnError');
 const FnImplSubjectNotFnError = declareRefusal('fn/impl/SubjectNotFnError');
 const FnFillRecipeNotCodeError = declareRefusal('fn/fill/RecipeNotCodeError');
 
@@ -59,12 +60,9 @@ function functionOf(subject, SubjectError) {
   return makeTaggedInstance(FN_TAG, Object.freeze([EMPTY_SIGNATURE, null]));
 }
 
-// A function with a command written after the ones its signature holds,
-// a step of the call of the command on its objects, an object left out not
-// written.
+// A function with a command written after the ones its signature holds.
 function withCommand(fn, command, objects) {
-  const step = makeTaggedInstance(CALL_TAG, new Map([['name', keyword(command)], ['modifiers', Object.freeze(objects.filter(object => object !== null))]]));
-  return madeFn(makeQuote([...fnSignatureOf(fn), step]), fnRecipeOf(fn));
+  return madeFn(makeQuote([...commandsOf(fn), commandStep(command, objects)]), recipeOf(fn));
 }
 
 // `on |~~ A number. ~~| ::number` — the subject, its page and its kinds.
@@ -85,29 +83,34 @@ bindPrim('fn/returns', (subject, page, kinds) =>
 bindPrim('fn/throws', (subject, name, page) =>
   withCommand(functionOf(subject, FnThrowsSubjectNotFnError), 'throws', [name, page]));
 
+// `carries :TooBigError/bound |~~ The bound. ~~| ::number` — a fact a
+// refusal carries, its page and its kinds.
+bindPrim('fn/carries', (subject, name, page, kinds) =>
+  withCommand(functionOf(subject, FnCarriesSubjectNotFnError), 'carries', [name, page, kinds]));
+
 // `holds :by/TooBigError |~~ A sum past a bound. ~~| ~(lt 100)` — an
 // invariant of an input or of the answer: the refusal of a value that
 // breaks it, its page and its condition.
 bindPrim('fn/holds', (subject, name, page, condition) =>
   withCommand(functionOf(subject, FnHoldsSubjectNotFnError), 'holds', [name, page, condition]));
 
-// `law :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8)` — a
-// law that proves the claim its name makes, under a name the function
-// declares where it is written with a path.
-bindPrim('fn/law', (subject, name, page, query) =>
-  withCommand(functionOf(subject, FnLawSubjectNotFnError), 'law', [name, page, query]));
+// `proves :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8)` —
+// a law, the claim its name makes, its page and the query that proves it,
+// under a name the function declares where it is written with a path.
+bindPrim('fn/proves', (subject, name, page, query) =>
+  withCommand(functionOf(subject, FnProvesSubjectNotFnError), 'proves', [name, page, query]));
 
 // `impl ~(add by)` — the recipe; a function of no commands is its code.
 bindPrim('fn/impl', (subject, recipe) => {
   const fn = functionOf(subject, FnImplSubjectNotFnError);
-  return fnSignatureOf(fn).length === 0 && isQuote(recipe) ? recipe : madeFn(fnSignatureOf(fn), recipe);
+  return commandsOf(fn).length === 0 && isQuote(recipe) ? recipe : madeFn(commandsOf(fn), recipe);
 });
 
 // `fill 3` — the arguments of a call written into the head of the code,
 // each input a declaration with its page of the value it reads, as its call
 // reads it; the code answers.
 bindStateReader('fn/fill', async (fn, args, state) => {
-  const recipe = fnRecipeOf(fn);
+  const recipe = recipeOf(fn);
   if (!isQuote(recipe)) throw new FnFillRecipeNotCodeError({ actualValue: fn });
   const values = await inputsOfFunction(fn, [...args], state);
   if (isErrorValue(values)) return values;

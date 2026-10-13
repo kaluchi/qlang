@@ -26,15 +26,10 @@
   |~~ The step followed by the steps of the suffix, as a group, or the
       step alone under an empty suffix.
   ~~|
-  ~(if (suffix | count | eq 0) ~() ~([[it] suffix] | flat | tag ::quote | tag ::group))
-
-:any/groupBefore/suffix
-  |~~ The steps that follow the step. ~~|
-  /0
-
-:any/groupBefore/suffix/NotVecError
-  |~~ The suffix is a vector of steps. ~~|
-  ::holds~(is ::vec)
+  ::fn
+    | takes :suffix |~~ The steps that follow the step. ~~| /0 ::vec
+    | throws :suffix/NotVecError |~~ The suffix is a vector of steps. ~~|
+    | impl ~(if (suffix | count | eq 0) ~() ~([[it] suffix] | flat | tag ::quote | tag ::group))
 
 :any/partsOf
   |~~ The parts a value that is no atom is built from, and the steps
@@ -62,12 +57,11 @@
 
 :any/numberedWith
   |~~ The atoms numbered so far, `{:next … :pairs …}`, with one more. ~~|
-  ~(:acc it
-    | {:next (acc | get /next | add 1) :pairs (acc | get /pairs | append [atom (acc | get /next)])})
-
-:any/numberedWith/atom
-  |~~ The atom numbered next. ~~|
-  /0
+  ::fn
+    | takes :atom |~~ The atom numbered next. ~~| /0
+    | impl
+        ~(:acc it
+          | {:next (acc | get /next | add 1) :pairs (acc | get /pairs | append [atom (acc | get /next)])})
 
 :any/intoShape
   |~~ The steps built so far, `{:numbered … :steps …}`, with the step of
@@ -75,29 +69,32 @@
       which `:numbered` holds under the atom's key, or the step that
       builds a value from the steps of its parts.
   ~~|
-  ~(:acc it
-    | element | :item it
-    | if (atomKinds | has (item | type))
-        ~({:numbered (acc | get /numbered)
-           :steps (acc | get /steps | append ([::call{:name :get :modifiers [([(acc | get /numbered | query (item | placeKey) | last)] | toPath)]}] | tag ::quote | tag ::group))})
-        ~(partsOf | :built it
-          | built | get /parts | reduce {:numbered (acc | get /numbered) :steps []} ~(intoShape) | :inner it
-          | {:numbered (acc | get /numbered) :steps (acc | get /steps | append (inner | get /steps | groupBefore (built | get /glue)))}))
-
-:any/intoShape/element
-  |~~ The value whose step comes next. ~~|
-  /0
+  ::fn
+    | takes :element |~~ The value whose step comes next. ~~| /0
+    | impl
+        ~(:acc it
+          | element
+          | :item it
+          | if (atomKinds | has (item | type))
+              ~({:numbered (acc | get /numbered)
+                 :steps (acc | get /steps | append ([::call{:name :get :modifiers [([(acc | get /numbered | query (item | placeKey) | last)] | toPath)]}] | tag ::quote | tag ::group))})
+              ~(partsOf | :built it
+                | built | get /parts | reduce {:numbered (acc | get /numbered) :steps []} ~(intoShape) | :inner it
+                | {:numbered (acc | get /numbered) :steps (acc | get /steps | append (inner | get /steps | groupBefore (built | get /glue)))}))
 
 :any/apart
   |~~ The atoms of the subject and its shape. ~~|
-  ~(:held [it]
-    | :atoms (held | map ~atomsOf | flat | tag ::set)
-    | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | get /pairs | indexBy ~(first | placeKey))
-    | {:atoms atoms :shape (held | reduce {:numbered numbered :steps []} ~(intoShape) | get /steps | tag ::quote)})
-
-:any/apart/takesAValueApart
-  |~~ A vector of a string, a vector and a map comes apart into four atoms and its shape. ~~|
-  ::law~(["x" [1 1] {:b :a}] | apart | eq {:atoms #[1 "x" :a :b] :shape ~([(get /1) [(get /0) (get /0)] ([[(get /3) (get /2)]] | indexBy ~(first) | map ~last)])})
+  ::fn
+    | proves :takesAValueApart
+        |~~ A vector of a string, a vector and a map comes apart into four
+            atoms and its shape.
+        ~~|
+        ~(["x" [1 1] {:b :a}] | apart | eq {:atoms #[1 "x" :a :b] :shape ~([(get /1) [(get /0) (get /0)] ([[(get /3) (get /2)]] | indexBy ~(first) | map ~last)])})
+    | impl
+        ~(:held [it]
+          | :atoms (held | map ~atomsOf | flat | tag ::set)
+          | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | get /pairs | indexBy ~(first | placeKey))
+          | {:atoms atoms :shape (held | reduce {:numbered numbered :steps []} ~(intoShape) | get /steps | tag ::quote)})
 
 :any/rebuilt
   |~~ The value the shape of the subject builds from its atoms. ~~|

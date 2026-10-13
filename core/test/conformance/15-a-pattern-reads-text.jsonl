@@ -1,0 +1,49 @@
+{"decision":"D246","name":"a-pattern-is-a-value-of-its-own-kind","query":"#\"\\d+\" | type","expect":"::regex"}
+{"decision":"D246","name":"a-pattern-prints-as-written-its-flags-in-their-order","query":"[#\"\\d+ms\" #\"a\"mi #\"\\\"q\\\"\"] | map ~print","expect":"[\"#\\\"\\\\d+ms\\\"\" \"#\\\"a\\\"im\" \"#\\\"\\\\\\\"q\\\\\\\"\\\"\"]"}
+{"decision":"D246","name":"a-pattern-reads-back-from-its-print","query":"[#\"(\\d+)\\.(\\d+)\" #\"\\\"x\\\"\"s #\"\\\\\"] | map ~(:p it | print | parse | apply it | eq p)","expect":"[true true true]"}
+{"decision":"D246","name":"a-quote-in-a-pattern-does-not-end-it","query":"\"say \\\"hi\\\"\" | contains #\"\\\"hi\\\"\"","expect":"true"}
+{"decision":"D246","name":"two-patterns-are-one-when-their-text-and-flags-are","query":"[(#\"a\" | eq #\"a\") (#\"a\" | eq #\"a\"i) (#\"a\" | eq \"a\")]","expect":"[true false false]"}
+{"decision":"D246","name":"patterns-rank-after-strings-by-text-then-flags","query":"[:k #\"b\" \"z\" #\"a\"i #\"a\" 1] | sort","expect":"[1 \"z\" #\"a\" #\"a\"i #\"b\" :k]"}
+{"decision":"D246","name":"a-pattern-the-engine-cannot-read-does-not-parse","query":"[\"#\\\"(\\\"\" \"#\\\"a\\\"x\" \"#\\\"a\\\"ii\"] | map ~(parse !| type)","expect":"[::quote/ParseError ::quote/ParseError ::quote/ParseError]"}
+{"decision":"D246","name":"a-flag-written-inside-is-refused-with-its-place","query":"\"#\\\"(?i)a\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
+{"decision":"D246","name":"a-backslash-before-a-plain-character-is-refused-with-the-reason","query":"\"#\\\"a\\\\-b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}
+{"decision":"D246","name":"a-pattern-reads-letters-of-any-script","query":"\"Ünïcödé 42 данные\" | scan #\"\\p{L}+\"","expect":"[\"Ünïcödé\" \"данные\"]"}
+{"decision":"D246","name":"contains-asks-for-a-match-anywhere-and-anchors-ask-the-whole","query":"[\"a1\" \"1\"] | map ~([(contains #\"\\d\") (contains #\"^\\d$\")])","expect":"[[true false] [true true]]"}
+{"decision":"D246","name":"match-answers-the-first-match-and-its-groups","query":"\"v1.20 and v3.4\" | match #\"v(\\d+)\\.(\\d+)(-\\w+)?\"","expect":"[\"v1.20\" \"1\" \"20\" null]"}
+{"decision":"D246","name":"match-answers-null-where-none-stands","query":"\"none\" | match #\"\\d\"","expect":"null"}
+{"decision":"D246","name":"capture-answers-the-named-groups-as-a-record","query":"\"2026-10-12T08:15 WARN disk 91%\" | capture #\"(?<date>[^T]+)T(?<time>\\S+) (?<level>\\w+) (?<message>.*)\"","expect":"{:date \"2026-10-12\" :time \"08:15\" :level \"WARN\" :message \"disk 91%\"}"}
+{"decision":"D246","name":"capture-reads-the-lines-of-a-log-into-records","query":"\"ERROR db\\nINFO up\\nERROR net\" | lines | map ~(capture #\"(?<level>\\w+) (?<what>\\w+)\") | filter ~(get /level | eq \"ERROR\") | map /what","expect":"[\"db\" \"net\"]"}
+{"decision":"D246","name":"capture-refuses-a-pattern-that-names-no-group","query":"\"a1\" | capture #\"(\\d)\" !| type","expect":"::string/capture/PatternNamesNoGroupError"}
+{"decision":"D246","name":"scan-answers-the-text-of-every-match","query":"\"took 12ms, then 7ms, then 130ms\" | scan #\"\\d+\" | map ~toNumber | sum","expect":"149"}
+{"decision":"D246","name":"scan-meets-an-empty-match-at-every-place","query":"\"ab\" | scan #\"x*\"","expect":"[\"\" \"\" \"\"]"}
+{"decision":"D246","name":"replace-names-the-groups-of-a-match","query":"[\"2026-10-12\" \"id: 7\"] | get [(get /0 | replace #\"(?<y>\\d+)-(?<m>\\d+)-(?<d>\\d+)\" \"$<d>.$<m>.$<y>\") (get /1 | replace #\"\\d+\" \"[$&]\")]","expect":"[\"12.10.2026\" \"id: [7]\"]"}
+{"decision":"D246","name":"replace-puts-a-text-as-written","query":"\"price $5\" | replace \"$5\" \"$&10\"","expect":"\"price $&10\""}
+{"decision":"D246","name":"replace-runs-code-on-the-vector-of-each-match","query":"\"3x4 and 5x6\" | replace #\"(\\d+)x(\\d+)\" ~(mulOf (get /1 | toNumber) (get /2 | toNumber) | toString)","expect":"\"12 and 30\""}
+{"decision":"D246","name":"replace-runs-code-on-each-match-of-a-text","query":"\"a.b.c\" | replace \".\" ~(:m (get /0) | m | append m)","expect":"\"a..b..c\""}
+{"decision":"D246","name":"replace-hands-on-the-failure-its-code-answers","query":"\"a1\" | replace #\"\\d\" ~(get /0 | add 1) !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D246","name":"replace-refuses-a-replacement-of-another-kind","query":"\"a\" | replace #\"a\" 5 !| type","expect":"::string/replace/with/NotQuoteOrStringError"}
+{"decision":"D246","name":"split-cuts-at-every-match-its-groups-left-out","query":"\"k1=v1; k2=v2\" | split #\"\\s*(;)\\s*\" | map ~(split \"=\")","expect":"[[\"k1\" \"v1\"] [\"k2\" \"v2\"]]"}
+{"decision":"D246","name":"split-by-an-empty-match-cuts-at-code-points","query":"\"a😀b\" | split #\"\"","expect":"[\"a\" \"😀\" \"b\"]"}
+{"decision":"D246","name":"toRegex-reads-a-pattern-kept-in-data","query":"{:rule \"^\\\\d{3}$\"} | :p (get /rule | toRegex) | get [\"123\" \"12a\"] | map ~(contains p)","expect":"[true false]"}
+{"decision":"D246","name":"toRegex-refuses-a-source-the-engine-cannot-read","query":"\"(a\" | toRegex !| [type (get /message | contains \"Invalid regular expression\")]","expect":"[::string/toRegex/TextNotPatternError false]"}
+{"decision":"D246","name":"a-pattern-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| type","expect":"::call/KindAnswersNoVerbError"}
+{"decision":"D246","name":"json-writes-a-pattern-as-its-literal","query":"{:p #\"\\d+\"i} | json | parseJson | get /p","expect":"\"#\\\"\\\\d+\\\"i\""}
+{"decision":"D246","name":"a-quote-holds-a-pattern-as-a-step","query":"\"match #\\\"\\\\d\\\"\" | parse | get [(first | get /modifiers | first | type) (print)]","expect":"[::regex \"~(match #\\\"\\\\d\\\")\"]"}
+{"decision":"D246","name":"a-name-holds-a-pattern-and-a-word-takes-it","query":":digits #\"\\d+\" | \"a1b22\" | get [(scan digits) (contains digits)]","expect":"[[\"1\" \"22\"] true]"}
+{"decision":"D246","name":"a-tag-lays-itself-over-a-pattern","query":"#\"a\" | tag ::Rule | get [type (payload | eq #\"a\")]","expect":"[::Rule true]"}
+{"decision":"D246","name":"a-group-of-flags-is-refused-where-an-engine-reads-it","query":"\"#\\\"(?i:a)b\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
+{"decision":"D246","name":"a-group-name-written-twice-is-refused","query":"\"#\\\"(?<y>a)|(?<y>b)\\\"\" | parse !| get /message | contains \"is written twice\"","expect":"true"}
+{"decision":"D246","name":"a-needless-backslash-is-told-by-the-source","query":"\"#\\\"a\\\\:b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}
+{"decision":"D246","name":"toRegex-takes-the-flags-of-the-call","query":"\"error\" | toRegex \"mi\" | eq #\"error\"im","expect":"true"}
+{"decision":"D246","name":"toRegex-refuses-a-letter-of-no-flag","query":"\"a\" | toRegex \"g\" !| type","expect":"::string/toRegex/flags/NotFlagsError"}
+{"decision":"D246","name":"toRegex-refuses-a-literal-which-parse-reads","query":"{:p #\"\\d+\"i} | json | parseJson | get /p | get [(toRegex !| type) (parse | apply it | eq #\"\\d+\"i)]","expect":"[::string/toRegex/LiteralNotSourceError true]"}
+{"decision":"D246","name":"toRegex-names-its-part-for-flags-written-inside","query":"\"(?i)abc\" | toRegex !| get /message | contains \"toRegex \\\"i\\\"\"","expect":"true"}
+{"decision":"D246","name":"replace-cuts-no-character-in-halves","query":"\"a😀\" | replace \"\" \"-\"","expect":"\"-a-😀-\""}
+{"decision":"D246","name":"a-refusal-names-no-habit-the-source-does-not-show","query":"\"(\\\\d\" | toRegex !| get /message | contains \"backslash\"","expect":"false"}
+{"decision":"D246","name":"a-group-of-flags-in-a-class-is-text","query":"\"(?i:a)\" | contains #\"[(?i:a)]\"","expect":"true"}
+{"decision":"D246","name":"an-escaped-bracket-opens-no-class-before-a-group-of-flags","query":"\"#\\\"\\\\[(?i:a)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
+{"decision":"D246","name":"a-group-of-flags-turned-off-is-refused-too","query":"\"#\\\"(?-i:a)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
+{"decision":"D246","name":"a-lookbehind-names-no-group","query":"\"ab\" | contains #\"(?<=a)b|(?<=a)c\"","expect":"true"}
+{"decision":"D246","name":"a-needed-escape-stays-where-a-needless-one-goes","query":"\"a\\\\-b\\\\(\" | toRegex !| get /message | contains \"backslash\"","expect":"true"}
+{"decision":"D246","name":"a-group-of-flags-after-a-class-is-refused","query":"\"#\\\"[a](?i:b)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
+{"decision":"D246","name":"a-lookbehind-before-a-sign-names-no-group","query":"\"a>\" | contains #\"(?<=a)>|(?<=a)>\"","expect":"true"}

@@ -7,8 +7,8 @@
 // kind it passes [D34], [D164].
 
 import {
-  isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQSet, isQuote, isVec, isTag, isTaggedInstance,
-  isValueClass, isPath, isFn, fnRecipeOf, makeSet, makeTag,
+  isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQuote, isVec, isTag, isTaggedInstance,
+  isValueClass, isPath, isFn, isKind, recipeOf, makeSet, makeTag,
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf, isRootWordScope } from '../state.mjs';
@@ -16,7 +16,7 @@ import { splitAddress } from '../address.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { astOfQuote } from '../quote.mjs';
 import { segmentIndex } from '../path-read.mjs';
-import { signatureOf } from './signature.mjs';
+import { functionOfRecipe, kindOf, signatureOf } from './signature.mjs';
 
 const ANY_KIND_NAME = 'any';
 const TAGGED_KIND_NAME = 'tagged';
@@ -34,20 +34,21 @@ function* bindingsOf(env) {
 // it, the reader's before the root's [D221].
 export function nodeOf(env, tagName) {
   const rootEntry = rootOf(env).get(tagName);
-  if (isBinding(rootEntry) && holdsAPage(rootEntry)) return rootEntry;
+  if (isBinding(rootEntry) && declaresALabel(rootEntry)) return rootEntry;
   const entry = env.get(tagName) ?? rootEntry;
   return isBinding(entry) ? entry : null;
 }
 
-// Whether a record holds a page, which makes its name a label [D166],
-// [D168].
-export function holdsAPage(record) {
-  return isDoc(bindingValueOf(record));
+// Whether a record holds a page or a kind, either of which makes its name
+// a label [D252], [D253].
+export function declaresALabel(record) {
+  const value = bindingValueOf(record);
+  return isDoc(value) || isKind(value);
 }
 
 // Whether a node is a label, a name declared by its page.
 export function isLabel(env, name) {
-  return holdsAPage(nodeOf(env, name));
+  return declaresALabel(nodeOf(env, name));
 }
 
 // Whether a name stands under a label, where a quote or a host's
@@ -59,9 +60,8 @@ export function isUnderLabel(env, name) {
 
 // declaresWord(address, runs, isLabelName) → whether a declaration at the
 // address whose value runs is a word, a name under a label but its
-// `construct`, which builds the label's values, a name under such a name
-// being a part of its args that resides nowhere [D164], [D169], for the
-// records of a scope and the declarations of a document alike.
+// `construct`, which builds the label's values, for the records of a scope
+// and the declarations of a document alike.
 export function declaresWord(address, runs, isLabelName) {
   const [labelName, lastName] = splitAddress(address);
   return runs && labelName !== null && lastName !== CONSTRUCT_NAME && isLabelName(labelName);
@@ -76,7 +76,7 @@ function residesOn(record, env) {
 }
 
 // isWord(env, address) → whether the name at the address is a word; a
-// word is the label of the args of a call of it [D169], [D173].
+// word is the label of the args of a call of it [D173].
 export function isWord(env, address) {
   const record = nodeOf(env, address);
   return record !== null && residesOn(record, env);
@@ -86,66 +86,23 @@ export function isWord(env, address) {
 // a recipe, code or a host's primitive, or a function whose recipe is one
 // [D251].
 export function isMemberValue(value) {
-  return isRecipe(value) || (isFn(value) && isRecipe(fnRecipeOf(value)));
+  return isRecipe(value) || (isFn(value) && isRecipe(recipeOf(value)));
 }
 
 export function isRecipe(value) {
   return isQuote(value) || (isBuiltinDescriptor(value) && isHostDeclared(value));
 }
 
-// answerOf(env, address) → the definition of the answer of the word at the
-// address, the name `answer` under it, whose value is a tag or a set of
-// tags, `{ address, kinds }`, or null for a word that answers any value
-// [D169], [D179].
+// answerOf(env, address) → the answer of the word at the address as the
+// node `answer` its function lays under it holds it, the kinds `returns`
+// names, `{ address, kinds }`, or null for a word that answers any value
+// [D251].
 export function answerOf(env, address) {
   const record = nodeOf(env, `${address}/${ANSWER_NAME}`);
-  const kinds = record === null ? null : kindsNamedBy(bindingValueOf(record));
-  return kinds === null ? null : { address: record.get('name').name, kinds };
+  return record === null ? null : { address: record.get('name').name, kinds: kindsNamedBy(bindingValueOf(record)) };
 }
 
 const ANSWER_NAME = 'answer';
-
-// subjectOf(env, address) → the kinds the name `subject` under the word at
-// the address names, `::tag` for a word of a noun itself, which takes a
-// tag name as its subject [D88], or null for a word of the label's values.
-export function subjectOf(env, address) {
-  const record = nodeOf(env, `${address}/${SUBJECT_NAME}`);
-  return record === null ? null : kindsNamedBy(bindingValueOf(record));
-}
-
-const SUBJECT_NAME = 'subject';
-
-// invariantsUnder(env, address) → the invariants declared under an
-// address, each a name whose value is a quote under `::holds`, with the
-// kinds it asks for when it is one step `is`, of the value or of each
-// element, `{ address, query, kinds, elementKinds }` in the order of
-// their declarations [D169].
-export function invariantsUnder(env, address) {
-  return derivedOf(namesUnderOf(env, address), INVARIANTS, under => {
-    const invariants = [];
-    for (const [, record] of under) {
-      const value = bindingValueOf(record);
-      if (!isInvariant(value)) continue;
-      const ast = astOfQuote(value.payload);
-      invariants.push({ address: record.get('name').name, query: value.payload, kinds: kindsAskedBy(ast), elementKinds: elementKindsAskedBy(ast) });
-    }
-    return invariants;
-  });
-}
-
-const INVARIANTS = new WeakMap();
-
-// The kinds an invariant of one step `is ::k …` asks for, or null.
-function kindsAskedBy(ast) {
-  if (ast.type !== 'Call' || ast.name !== 'is') return null;
-  return ast.args.every(arg => arg.type === 'TagLit') ? ast.args.map(arg => arg.tag) : null;
-}
-
-// The kinds an invariant `every ~(is ::k …)` asks of each element, or null.
-function elementKindsAskedBy(ast) {
-  const asksEach = ast.type === 'Call' && ast.name === 'every' && ast.args.length === 1 && ast.args[0].type === 'QuoteLit';
-  return asksEach ? kindsAskedBy(ast.args[0].pipeline) : null;
-}
 
 // Whether a value is an invariant, a quote under `::holds`, whose name is
 // the refusal of a value that breaks it [D168].
@@ -169,12 +126,9 @@ export function lawsUnder(env, address) {
   return [...namesUnderOf(env, address)].filter(([, record]) => isLaw(bindingValueOf(record)));
 }
 
-// The kinds a tag or a set of tags names, or null for any other value.
-function kindsNamedBy(value) {
-  if (isTag(value)) return [value.name];
-  if (isQSet(value) && value.length > 0 && value.every(isTag)) return value.map(tag => tag.name);
-  return null;
-}
+// The kinds the answer of a word names, the tag or the set of tags its
+// `returns` writes [D251].
+const kindsNamedBy = value => (isTag(value) ? [value.name] : value.map(tag => tag.name));
 
 // Whether a scope reads what a reader declared under a noun: every scope
 // does but a word's of the root, which reads a noun of the root in the
@@ -288,7 +242,7 @@ export function bareNameReach(env, name, subject) {
   if (residence !== null) return { record: residence, underKind: true };
   const residences = residencesOf(isRootWordScope(env) ? rootScopeOf(env) : env, name);
   const root = rootOf(env);
-  if (residences.length === 0 && root.has(name) && !holdsAPage(root.get(name))) return { record: root.get(name), underKind: false };
+  if (residences.length === 0 && root.has(name) && !declaresALabel(root.get(name))) return { record: root.get(name), underKind: false };
   return residences.length === 1 ? { record: residences[0][1], underKind: true } : null;
 }
 
@@ -355,25 +309,10 @@ export function verbsReaching(env, kindNames) {
   return reached;
 }
 
-// partsOfName(env, address) → the parts of the args of a call of the
-// name at the address, by their names, in the order of their places: the
-// quotes declared under it, each kind's word declaring its own [D169].
-export function partsOfName(env, address) {
-  return [...namesUnderOf(env, address)]
-    .filter(([, record]) => isQuote(bindingValueOf(record)) || isPath(bindingValueOf(record)))
-    .sort(([, a], [, b]) => orderOfPlace(selectorOf(a).place) - orderOfPlace(selectorOf(b).place));
-}
-
-const orderOfPlace = place => (Number.isNaN(place) ? Infinity : place);
-
-// The places the parts read, one past the greatest a part reads strictly
-// or softly, or null when a part reads no place, the args whole, a
-// place from its end or anything else, and so takes any number of
-// values.
-export function placesReadBy(parts) {
-  return placesOfSelectors(parts.map(([, partRecord]) => selectorOf(partRecord)));
-}
-
+// placesOfSelectors(selectors) → the places the inputs of a function read,
+// one past the greatest an input reads strictly or softly, or null when
+// one reads no place, the args whole, a place counted from its end or
+// anything else, and so takes any number of values.
 export function placesOfSelectors(selectors) {
   let places = 0;
   for (const { place } of selectors) {
@@ -384,36 +323,31 @@ export function placesOfSelectors(selectors) {
 }
 
 // The refusals the runtime raises by rule under a word, each named by the
-// address of what refused [D166], [D169]: a subject the walk of whose
-// tags reaches no value of the word's label, args of more values than the
-// parts read places, a part the call leaves out where the part reads one,
-// and an answer that reaches none of the labels its definition names.
-export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kinds.map(capitalOf).join('Or')}Error`;
-export const argsBeyondPartsAddress = address => `${address}/ArgsBeyondPartsError`;
+// address of what refused [D180], [D251]: a subject the walk of whose tags reaches
+// no value of the word's label, args of more values than its inputs read
+// places, an input the call leaves out where its place reads one, and an
+// answer that reaches none of the kinds `returns` names; and under a
+// kind, a payload of none of its kinds, or an element of none,
+// named as the catalog names the payload's refusals [D252].
+export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kindsWord(kinds)}Error`;
+export const argsBeyondInputsAddress = address => `${address}/ArgsBeyondInputsError`;
 export const notGivenAddress = partAddress => `${partAddress}/NotGivenError`;
-export const kindsRefusalAddress = (address, kinds) => `${address}/Not${kinds.map(capitalOf).join('Or')}Error`;
-export const elementsRefusalAddress = (address, kinds) => `${address}/ElementNot${kinds.map(capitalOf).join('Or')}Error`;
+export const kindsRefusalAddress = (address, kinds) => `${address}/Not${kindsWord(kinds)}Error`;
+export const elementsRefusalAddress = (address, kinds) => `${address}/ElementNot${kindsWord(kinds)}Error`;
+export const payloadRefusalName = (kinds, each) => `${each ? 'Element' : 'Payload'}Not${kindsWord(kinds)}Error`;
 
+const kindsWord = kinds => kinds.map(capitalOf).join('Or');
 const capitalOf = name => { const [, word] = splitAddress(name); return word[0].toUpperCase() + word.slice(1); };
 
-// ruleRefusalsOf(env, address) → the addresses of the refusals the word
-// at the address may raise by rule, which its definition pages [D179].
+// ruleRefusalsOf(env, address) → the addresses of the refusals a word or a
+// kind at the address may raise by rule, which its chain pages [D179]: a
+// word's read from its function, a recipe's from the function of no
+// commands it is [D253], and a kind's from its commands [D252].
 export function ruleRefusalsOf(env, address) {
   const [labelName] = splitAddress(address);
   const value = bindingValueOf(nodeOf(env, address));
-  if (isFn(value)) return functionRuleRefusalsOf(signatureOf(value), address, labelName);
-  const parts = partsOfName(env, address);
-  const refusals = [subjectRefusalAddress(address, [labelName])];
-  if (placesReadBy(parts) !== null) refusals.push(argsBeyondPartsAddress(address));
-  for (const [, partRecord] of parts) {
-    const { onePlace, strict, readsArgs } = selectorOf(partRecord);
-    if (!readsArgs && (strict || !onePlace)) refusals.push(notGivenAddress(partRecord.get('name').name));
-  }
-  const answer = answerOf(env, address);
-  if (answer !== null && answer.kinds.length > 1 && !answer.kinds.includes(ANY_KIND_NAME) && !answer.kinds.includes(labelName)) {
-    refusals.push(kindsRefusalAddress(answer.address, answer.kinds));
-  }
-  return refusals;
+  if (isKind(value)) return kindRuleRefusalsOf(kindOf(value), address);
+  return functionRuleRefusalsOf(signatureOf(isFn(value) ? value : functionOfRecipe(value)), address, labelName);
 }
 
 // The refusals the call of a word that is a function raises by rule, read
@@ -425,7 +359,7 @@ export function ruleRefusalsOf(env, address) {
 // none of several kinds.
 export function functionRuleRefusalsOf(signature, address, labelName) {
   const refusals = [subjectRefusalAddress(address, [labelName])];
-  if (signature.places !== null) refusals.push(argsBeyondPartsAddress(address));
+  if (signature.places !== null) refusals.push(argsBeyondInputsAddress(address));
   for (const { name, kinds, each, selector } of signature.inputs) {
     const inputAddress = `${address}/${name.name}`;
     if (!selector.readsArgs && (selector.strict || !selector.onePlace)) refusals.push(notGivenAddress(inputAddress));
@@ -437,14 +371,26 @@ export function functionRuleRefusalsOf(signature, address, labelName) {
   return refusals;
 }
 
-// selectorOf(partRecord) → what a part's selector reads, its place, a path
-// or a quote, read once.
-export function selectorOf(partRecord) {
-  return selectorOfPlace(bindingValueOf(partRecord));
+// The refusals a kind raises by rule as it lays its tag over a payload,
+// read from its commands [D252]: a payload of none of its kinds, or that is
+// no vector where they are the kinds of each element, and an element of
+// none; a field the payload leaves out, and a field of none of its kinds,
+// or no vector, and an element of none.
+export function kindRuleRefusalsOf({ payload, fields }, address) {
+  const refusals = [];
+  if (payload?.each) refusals.push(`${address}/${payloadRefusalName(['vec'], false)}`);
+  if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.kinds, payload.each)}`);
+  for (const { name, kinds, each } of fields) {
+    const fieldAddress = `${address}/${name.name}`;
+    refusals.push(notGivenAddress(fieldAddress));
+    if (each) refusals.push(kindsRefusalAddress(fieldAddress, ['vec']));
+    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(fieldAddress, kinds) : kindsRefusalAddress(fieldAddress, kinds));
+  }
+  return refusals;
 }
 
-// selectorOfPlace(place) → what a place reads, once per place, of a part
-// and of an input of a function alike [D251]: its tree, a path read as the
+// selectorOfPlace(place) → what the place of an input of a function reads,
+// once per place [D251]: its tree, a path read as the
 // projection it is written as [D248], the place its first step reads,
 // whether the selector is that one step, and whether it reads the args
 // whole, `~(it)`.
@@ -507,17 +453,6 @@ const NO_NAMES = new Map();
 function isOneNameUnder(name, nounName) {
   return name.length > nounName.length && name.startsWith(nounName)
     && name[nounName.length] === '/' && !name.includes('/', nounName.length + 1);
-}
-
-// What a call derives from the names under a noun, read once for each
-// map of them and frozen, since every caller holds the same.
-function derivedOf(under, derivations, derive) {
-  let derived = derivations.get(under);
-  if (derived === undefined) {
-    derived = Object.freeze(derive(under));
-    derivations.set(under, derived);
-  }
-  return derived;
 }
 
 // The names of a root by the noun each is declared under, built once for

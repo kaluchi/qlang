@@ -32,145 +32,124 @@
       ::link~(::call | doc) ::link~(::any/apply | doc)
       ::link~(::qlang/code | doc)
   ~~|
-
-:quote/countsItsSteps
-  |~~ A quote of three steps counts three. ~~|
-  ::law~(~(1 | add 1 | mul 2) | count | eq 3)
-
-:quote/printsADeclarationALine
-  |~~ A quote of declarations alone prints a declaration a line. ~~|
-  ::law~(~(:a 1 | :b 2) | parse | eq ":a 1
-| :b 2")
-
-:quote/equalsItsCopy
-  |~~ Two quotes of one code are equal. ~~|
-  ::law~(~(add 1) | eq ~(add 1))
-
-:quote/printsAPathAloneUnderItsTag
-  |~~ A quote of a path alone, built, prints under its tag. ~~|
-  ::law~("/name" | parse | print | eq "::quote[/name]")
-
-:quote/answersThePathItHoldsAlone
-  |~~ A quote of a path alone answers the path, and reads nothing. ~~|
-  ::law~({:name 1} | apply ("/name" | parse) | eq /name)
-
-:quote/buildsBackFromItsSteps
-  |~~ The steps of a quote build it back. ~~|
-  ::law~(~(add 1 | mul 2) | payload | tag ::quote | eq ~(add 1 | mul 2))
-
-:quote/filtersItsSteps
-  |~~ A quote filters as the vector of its steps. ~~|
-  ::law~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | parse | eq "mul 2")
-
-:quote/construct
-  |~~ The quote of a vector whose every element is a step. ~~|
-  ::builtin{}
-
-:quote/PayloadNotVecError
-  |~~ `::quote` builds code from the vector of its steps; a payload of
-      another kind is refused.
-      ::link~(::quote | doc)
-  ~~|
-
-:quote/PayloadNotVecError/refusesAMap
-  |~~ A map payload is refused. ~~|
-  ::law~(::quote{:not :steps} !| [type (get /actualType)] | eq [::quote/PayloadNotVecError ::map])
-
-:quote/ElementNotStepError
-  |~~ Every element of a quote is a step: a literal, a path, a quote, a
-      vector, a set or a map of steps, or a step as data, `::call`,
-      `::bind` and their kin. A value with no reading as code, a value
-      under a tag of another kind among them, is refused at the index it
-      stands at.
-      ::link~(::quote | doc)
-  ~~|
-
-:quote/ElementNotStepError/refusesAValueWithNoReading
-  |~~ A value with no reading as a step is refused at its index. ~~|
-  ::law~([::Box[1]] | tag ::quote !| [type (get /index)] | eq [::quote/ElementNotStepError 0])
-
-:quote/ReadBackDiffersError
-  |~~ The steps print as text that reads as no steps, and `:printed` is
-      that text: a value assembled after the first step prints as a value
-      written as a later step, which no pipeline holds. A value a step answers is built by a word,
-      `get [1 2]`, and a value under a tag by `tag`.
-      ::link~(::quote | doc) ::link~(::qlang/pipeline | doc)
-  ~~|
-
-:quote/ReadBackDiffersError/refusesAValueAfterTheHead
-  |~~ A value after the first step is refused, its text naming it. ~~|
-  ::law~([[1] [2]] | tag ::quote !| [type (get /printed)] | eq [::quote/ReadBackDiffersError "[1] | [2]"])
-
-:quote/ReadBackDiffersError/keepsAValueAtTheHead
-  |~~ A value at the head is the subject the steps after it run on. ~~|
-  ::law~([[1 2] (~(count) | first)] | tag ::quote | apply it | eq 2)
-
-:quote/ParseError
-  |~~ The source does not read as qlang: `:marker` points where the
-      reading stopped, `:expected` lists what could stand there, and a
-      source cut short names the bracket it left open.
-      ::link~(::quote | doc)
-  ~~|
-
-:quote/ParseError/source
-  |~~ The line of the text where the reading stopped. ~~|
-  ::string
-
-:quote/ParseError/marker
-  |~~ A caret under the place it stopped. ~~|
-  ::string
-
-:quote/ParseError/message
-  |~~ What the grammar says of the place, a bracket left open among it. ~~|
-  ::string
-
-:quote/ParseError/expected
-  |~~ What the reading could take there. ~~|
-  ::vec
-
-:quote/ParseError/found
-  |~~ What it found there. ~~|
-  ::string
-
-:quote/ParseError/location
-  |~~ The span of the text where the reading stopped. ~~|
-  ::span
-
-:quote/ParseError/uri
-  |~~ The source the text came from. ~~|
-  ::string
-
-:quote/ParseError/refusesASourceCutShort
-  |~~ A source cut short after a pipe is refused. ~~|
-  ::law~("42 |" | parse !| type | eq ::quote/ParseError)
+  ::kind
+    | wraps
+        |~~ A vector whose every element is a step, built into the quote.
+        ~~|
+    | throws :PayloadNotVecError
+        |~~ `::quote` builds code from the vector of its steps; a payload
+            of another kind is refused.
+            ::link~(::quote | doc)
+        ~~|
+    | throws :ElementNotStepError
+        |~~ Every element of a quote is a step: a literal, a path, a
+            quote, a vector, a set or a map of steps, or a step as data,
+            `::call`, `::bind` and their kin. A value with no reading as
+            code, a value under a tag of another kind among them, is
+            refused at the index it stands at.
+            ::link~(::quote | doc)
+        ~~|
+    | throws :ReadBackDiffersError
+        |~~ The steps print as text that reads as no steps, and `:printed`
+            is that text: a value assembled after the first step prints as
+            a value written as a later step, which no pipeline holds. A
+            value a step answers is built by a word, `get [1 2]`, and a
+            value under a tag by `tag`.
+            ::link~(::quote | doc) ::link~(::qlang/pipeline | doc)
+        ~~|
+    | throws :ParseError
+        |~~ The source does not read as qlang: `:marker` points where the
+            reading stopped, `:expected` lists what could stand there, and
+            a source cut short names the bracket it left open.
+            ::link~(::quote | doc)
+        ~~|
+    | carries :ParseError/source
+        |~~ The line of the text where the reading stopped. ~~|
+        ::string
+    | carries :ParseError/marker
+        |~~ A caret under the place it stopped. ~~|
+        ::string
+    | carries :ParseError/message
+        |~~ What the grammar says of the place, a bracket left open among
+            it.
+        ~~|
+        ::string
+    | carries :ParseError/expected
+        |~~ What the reading could take there. ~~|
+        ::vec
+    | carries :ParseError/found |~~ What it found there. ~~| ::string
+    | carries :ParseError/location
+        |~~ The span of the text where the reading stopped. ~~|
+        ::span
+    | carries :ParseError/uri
+        |~~ The source the text came from. ~~|
+        ::string
+    | proves :countsItsSteps
+        |~~ A quote of three steps counts three. ~~|
+        ~(~(1 | add 1 | mul 2) | count | eq 3)
+    | proves :printsADeclarationALine
+        |~~ A quote of declarations alone prints a declaration a line. ~~|
+        ~(~(:a 1 | :b 2) | parse | eq ":a 1\n| :b 2")
+    | proves :equalsItsCopy
+        |~~ Two quotes of one code are equal. ~~|
+        ~(~(add 1) | eq ~(add 1))
+    | proves :printsAPathAloneUnderItsTag
+        |~~ A quote of a path alone, built, prints under its tag. ~~|
+        ~("/name" | parse | print | eq "::quote[/name]")
+    | proves :answersThePathItHoldsAlone
+        |~~ A quote of a path alone answers the path, and reads nothing. ~~|
+        ~({:name 1} | apply ("/name" | parse) | eq /name)
+    | proves :buildsBackFromItsSteps
+        |~~ The steps of a quote build it back. ~~|
+        ~(~(add 1 | mul 2) | payload | tag ::quote | eq ~(add 1 | mul 2))
+    | proves :filtersItsSteps
+        |~~ A quote filters as the vector of its steps. ~~|
+        ~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | parse | eq "mul 2")
+    | proves :PayloadNotVecError/refusesAMap
+        |~~ A map payload is refused. ~~|
+        ~(::quote{:not :steps} !| [type (get /actualType)] | eq [::quote/PayloadNotVecError ::map])
+    | proves :ElementNotStepError/refusesAValueWithNoReading
+        |~~ A value with no reading as a step is refused at its index. ~~|
+        ~([::Box[1]] | tag ::quote !| [type (get /index)] | eq [::quote/ElementNotStepError 0])
+    | proves :ReadBackDiffersError/refusesAValueAfterTheHead
+        |~~ A value after the first step is refused, its text naming it. ~~|
+        ~([[1] [2]] | tag ::quote !| [type (get /printed)] | eq [::quote/ReadBackDiffersError "[1] | [2]"])
+    | proves :ReadBackDiffersError/keepsAValueAtTheHead
+        |~~ A value at the head is the subject the steps after it run on.
+        ~~|
+        ~([[1 2] (~(count) | first)] | tag ::quote | apply it | eq 2)
+    | proves :ParseError/refusesASourceCutShort
+        |~~ A source cut short after a pipe is refused. ~~|
+        ~("42 |" | parse !| type | eq ::quote/ParseError)
+    | impl ::builtin{}
 
 :quote/parse
-  |~~ Answers the source of the quote, a string, `~(add 1 | mul 2) |
-      parse` answering `"add 1 | mul 2"`: the reverse of `parse` on a
-      string, which reads text as a quote, so the source parsed again is
-      the quote, `~(add 1) | parse | parse` answering `~(add 1)`. The
-      source is printed in one spelling, so the spaces and the line
-      breaks the quote was written with are not kept, `~(add   1) |
-      parse` answering `"add 1"`. A link or a snippet out of a page
-      answers the query it holds, without its tags, and the empty quote
-      the empty string.
+  |~~ Answers the source of the quote, a string,
+      `~(add 1 | mul 2) | parse` answering `"add 1 | mul 2"`: the reverse
+      of `parse` on a string, which reads text as a quote, so the source
+      parsed again is the quote, `~(add 1) | parse | parse` answering
+      `~(add 1)`. The source is printed in one spelling, so the spaces and
+      the line breaks the quote was written with are not kept,
+      `~(add   1) | parse` answering `"add 1"`. A link or a snippet out of
+      a page answers the query it holds, without its tags, and the empty
+      quote the empty string.
       ::link~(::string/parse | doc) ::link~(::quote/open | doc)
   ~~|
   ::fn
     | returns |~~ The text the quote reads back from. ~~| ::string
-    | law :answersTheSource
+    | proves :answersTheSource
         |~~ A quote parses to its source. ~~|
         ~(~(add 1) | parse | eq "add 1")
-    | law :readsBackAsTheQuote
+    | proves :readsBackAsTheQuote
         |~~ The source parsed again is the quote. ~~|
         ~(~(add 1 | mul 2) | :q it | q | parse | parse | eq q)
-    | law :printsOneSpelling
+    | proves :printsOneSpelling
         |~~ The spaces the quote was written with are not kept. ~~|
         ~(~(add   1 |   mul 2) | parse | eq "add 1 | mul 2")
-    | law :leavesTheTagsOfALink
+    | proves :leavesTheTagsOfALink
         |~~ A link answers the query it holds, without its tags. ~~|
         ~(::link~(1 | add 1) | parse | eq "1 | add 1")
-    | law :answersNothingForTheEmptyQuote
+    | proves :answersNothingForTheEmptyQuote
         |~~ The empty quote parses to the empty string. ~~|
         ~(~() | parse | eq "")
     | impl ::builtin{}
@@ -195,30 +174,31 @@
     | throws :SubjectNotQuoteError
         |~~ `open` runs a quote, `~(1 | add 1) | open`: text is read as a
             quote first by `parse`, `"1 | add 1" | parse | open`, and the
-            links of a page are read by `links`, `::vec | doc | links |
-            map ~open`.
+            links of a page are read by `links`,
+            `::vec | doc | links | map ~open`.
         ~~|
-    | law :runsALink
+    | proves :runsALink
         |~~ A link opens to the answer of its query. ~~|
         ~(|~~ ::link~(1 | add 1) ~~| | links | first | open | eq 2)
-    | law :runsASnippet
+    | proves :runsASnippet
         |~~ A snippet opens to what it shows. ~~|
         ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
-    | law :readsTheScopeOfTheReader
+    | proves :readsTheScopeOfTheReader
         |~~ A name bound before the quote is read inside it. ~~|
         ~(:k 5 | ~(k) | open | eq 5)
-    | law :keepsItsNamesInside
+    | proves :keepsItsNamesInside
         |~~ A name the query binds stays inside it. ~~|
         ~(:k 5 | ~(:k 1) | open | k | eq 5)
-    | law :runsFromNull
-        |~~ The query runs from null. ~~| ~(~(type) | open | eq ::null)
-    | law :runsTextReadByParse
+    | proves :runsFromNull
+        |~~ The query runs from null. ~~|
+        ~(~(type) | open | eq ::null)
+    | proves :runsTextReadByParse
         |~~ Text read as a quote by `parse` opens. ~~|
         ~("1 | add 1" | parse | open | eq 2)
-    | law :SubjectNotQuoteError/refusesAString
+    | proves :SubjectNotQuoteError/refusesAString
         |~~ Text is no quote until `parse` reads it. ~~|
         ~("1 | add 1" | open !| [type (get /actualType)] | eq [::quote/open/SubjectNotQuoteError ::string])
-    | law :refusesAQueryThatReadsASubject
+    | proves :refusesAQueryThatReadsASubject
         |~~ A query that reads a subject is refused on null. ~~|
         ~(~(add 1) | open !| type | eq ::number/add/SubjectNotNumberError)
     | impl ::builtin{}

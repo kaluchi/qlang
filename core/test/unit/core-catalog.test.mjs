@@ -24,12 +24,12 @@ describe('the verbs of the language reach their primitives', () => {
 
   it('spot-check — :add is a function under ::number whose recipe a primitive answers [D164], [D251]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const { isBuiltinDescriptor, isHostDeclared, isFn, fnRecipeOf } = await import('../../src/types.mjs');
+    const { isBuiltinDescriptor, isHostDeclared, isFn, recipeOf } = await import('../../src/types.mjs');
     const resolved = await langRuntime();
     const add = bindingValueOf(nodeOf(resolved, 'number/add'));
     expect(isFn(add)).toBe(true);
-    expect(isBuiltinDescriptor(fnRecipeOf(add))).toBe(true);
-    expect(isHostDeclared(fnRecipeOf(add))).toBe(true);
+    expect(isBuiltinDescriptor(recipeOf(add))).toBe(true);
+    expect(isHostDeclared(recipeOf(add))).toBe(true);
   });
 
   it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [D169], [D251]', async () => {
@@ -73,9 +73,9 @@ describe('bare-name verb call', () => {
     expect(await evalQuery('[3 1 2] | sort')).toEqual([1, 2, 3]);
   });
 
-  it('bare `mul` on a number gives no multiplier and is refused under the part', async () => {
-    // The part `multiplier` reads the first place of the args, which
-    // a call without a modifier leaves empty [D166].
+  it('bare `mul` on a number gives no multiplier and is refused under the input', async () => {
+    // The input `multiplier` reads the first place of the args, which
+    // a call without a modifier leaves empty [D251].
     const { evalQuery } = await import('../../src/eval.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
     const evalResult = await evalQuery('5 | mul');

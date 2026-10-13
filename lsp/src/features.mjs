@@ -8,6 +8,8 @@ import {
   findIdentifierOccurrences,
   writesTag,
   bindingNamesVisibleAt,
+  builtFrom,
+  declaresKind,
   splitAddress,
   CALL_SPELLING,
   TAG_SPELLING,
@@ -77,7 +79,7 @@ async function pageContents(address) {
   return contents;
 }
 
-// What a call of a word shows: its address and the parts of its args.
+// What a call of a word shows: its address and the inputs of its function.
 const signatureOf = shown => [shown.address.literal, ...shown.labels].join(' ');
 
 // The kinds of the subject of the step that starts at an offset, where the
@@ -277,8 +279,8 @@ function stepsOf(pipelineNode) {
 
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, and
-// a name's the labels its answer's definition names, the subject's own
-// where that is the word's own label [D169]; null where a step answers no
+// a name's the kinds its `returns` names, the subject's own where that is
+// the word's own label [D169], [D251]; null where a step answers no
 // declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
@@ -432,22 +434,35 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 }
 
 // The name a declaration binds and what it declares: a label, its tag,
-// for a page alone [D168], a value otherwise.
+// for a page alone or for the chain or the literal of a kind [D252], a
+// value otherwise.
 function bindingDeclarationOf(node) {
   if (node.type !== 'BindStep') return null;
-  return node.body === null
+  return declaresKind(node)
     ? { name: tagNameOf(node.key.name), kind: 'tag' }
     : { name: node.key.name, kind: 'value' };
 }
 
+// Whether a body runs on the values of the label it is declared under: a
+// quote, and a function its chain gives a recipe, `| impl …`, or its
+// literal one that is no null [D251].
+function bodyRuns(body) {
+  if (body.type === 'QuoteLit') return true;
+  if (builtFrom(body) !== 'fn') return false;
+  const chain = body.type === 'ParenGroup' ? body.pipeline : body;
+  if (chain.type === 'TaggedLit') return chain.payload.type === 'VecLit' && chain.payload.elements[1]?.type !== 'NullLit';
+  return chain.type === 'Pipeline' && chain.steps.slice(1).some(({ step }) => step.type === 'Call' && step.name === 'impl');
+}
+
 // Whether a declaration of a value declares a word, by the core's rule: a
 // name the runtime holds as the core answers it, and one of the document
-// as `declaresWord` reads it, a quote running where a reader's
-// `::builtin{}` reaches no primitive [D34], [D169].
+// as `declaresWord` reads it, a quote or a function with a recipe running
+// where a reader's `::builtin{}` reaches no primitive [D34], [D251],
+// [D253].
 function declaresWordIn({ key, body }, runtime, isLabelName) {
   return nodeOf(runtime, key.name) !== null
     ? isWord(runtime, key.name)
-    : declaresWord(key.name, body.type === 'QuoteLit', isLabelName);
+    : declaresWord(key.name, bodyRuns(body), isLabelName);
 }
 
 // The span of the last declaration of the name that stands before the
@@ -540,7 +555,7 @@ export function documentSymbols(ast, runtime) {
   const labels = new Set();
   walkAst(ast, (node) => {
     if (node.type === 'DocLit') return false;
-    if (node.type === 'BindStep' && node.body === null) labels.add(node.key.name);
+    if (node.type === 'BindStep' && bindingDeclarationOf(node).kind === 'tag') labels.add(node.key.name);
   });
   const isLabelName = name => labels.has(name) || isLabel(runtime, name);
 

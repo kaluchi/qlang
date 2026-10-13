@@ -11,141 +11,131 @@
       written in steps holds a quote.
       `::number/add | binding | get /value | get /1` answers
       `::builtin{}`, and a kind the host declares builds its values by a
-      `construct` that is one.
+      recipe that is one, `| impl ::builtin{}`.
 
       It is a map under its tag and runs nothing by itself: a name bound
       to one reads it as data, and a call of the word runs the
       implementation its host handed.
       ::link~(::qlang/hosts | doc)
   ~~|
+  ::kind[~(wraps
+        |~~ A map, the descriptor, its fields flat under the tag. ~~|
+    | throws :PayloadNotMapError
+        |~~ `::builtin` holds its fields as a map, `::builtin{}` the step
+            a host's verb or kind ends with; a payload of another kind is
+            refused, and the descriptor is written `::builtin{}`.
+        ~~|
+    | throws :UnknownAstNodeTypeError
+        |~~ The evaluator met a node of the parser's tree it has no rule
+            for: a defect of the runtime, and no failure of the query,
+            raised past the fail track to the host. The query is sound as
+            it stands; the runtime is repaired, the node given its rule,
+            and the query that met it is the case that shows it.
+        ~~|
+    | throws :AddressBoundTwiceError
+        |~~ Two modules of the runtime bound an implementation under one
+            address, a defect of the runtime found as it loads. Each
+            implementation is bound under the address of the word or the
+            kind it serves, one to an address, `number/add`.
+        ~~|
+    | throws :RefusalDeclaredTwiceError
+        |~~ Two sites of the runtime declared one refusal under one
+            address, a defect of the runtime found as it loads: the
+            address is the tag the refusal answers by and the name of its
+            page, so one site would speak for both. Each site declares its
+            refusal under the address of what refused, the word or the
+            input, one site to an address.
+        ~~|
+    | throws :RefusalFactNotDeclaredError
+        |~~ A refusal of the runtime carried a fact that neither its label
+            nor `::error` declares, a defect of the runtime: the facts an
+            error holds are the definitions under the label that names it,
+            and under `::error` for those every refusal shares. The fact
+            is declared as a definition, a name, its page and the kind it
+            holds, under the label of the refusal,
+            `::path/IndexOutOfBoundsError/length` holding `::number`, or
+            under `::error` when every refusal shares it.
+        ~~|
+    | throws :AddressNotStringError
+        |~~ A module of the runtime bound an implementation under an
+            address that is no string, a defect of the runtime found as it
+            loads. The address is the text of the word's address,
+            `number/add`.
+        ~~|
+    | throws :ImplementationNotHandedError
+        |~~ A name is `::builtin{}`, or a kind ends in one, and the host
+            handed no implementation for it beside its source; `:name`
+            names it, and the root is refused as it is declared. The host
+            hands an implementation for the name beside the source, or
+            writes the name in steps, a quote, which runs without one.
+        ~~|
+    | throws :TableSealedError
+        |~~ The table of the language's implementations is sealed when the
+            bootstrap completes, and one bound after it is refused, a
+            defect of the runtime: a module of the runtime binds its
+            implementations as it loads, and a host hands its own beside
+            its sources, never to the table.
+        ~~|
+    | throws :NumberNotFiniteLeakedToPrintError
+        |~~ A number of qlang is a finite double. Source cannot mint an
+            infinity or a NaN — the parser refuses the literal and every
+            arithmetic site answers an error of its domain — so this tag
+            reports a value a host installed. The print and the JSON of
+            the boundary are where such a value shows: the print would be
+            `Infinity`, which no literal reads back, and JSON would write
+            `null`. `:actualValue` holds the magnitude as a string, the
+            one form that prints. The host keeps the numbers it hands
+            finite, its bindings and the answers of its implementations,
+            and answers an error of its own where its arithmetic leaves
+            the doubles.
+        ~~|
+    | throws :BootstrapSourceMissingError
+        |~~ A source of the language resolved to nothing, so the root
+            lacks what it declares; `:uri` names the source. The host maps
+            the source in the imports of its package or in the import map
+            of a browser, or hands the runtime a locator of its own.
+        ~~|
+    | throws :RootSourceNotDeclaredError
+        |~~ A source of the root answered an error, or declared again a
+            name the root holds, so its declarations stay out of the root;
+            `:uri` names the source and `:tagName` the refusal, for a name
+            declared again `::bind/NameDeclaredTwiceError` with `:name`
+            the name. The source is repaired by the page of that refusal,
+            and a name declared again takes a name of its own, the root's
+            left as they are.
+        ~~|
+    | throws :ImplementationNamesNoBuiltinError
+        |~~ A host handed an implementation beside a source of the root
+            for a name the source declares neither as a `::builtin{}`
+            under a label nor as a kind ending in one; `:uri` names the
+            source and `:name` the name. A verb runs its steps, a
+            `::builtin{}` among them a step, and a bare name reads its
+            value, so a host declares its primitive as the recipe of a
+            word under the label of its subject,
+            `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})`.
+            A `::builtin{}` the host hands nothing for is refused with
+            `::builtin/ImplementationNotHandedError`.
+        ~~|
+    | throws :SourceLoadError
+        |~~ The platform resolved a `#qlang/<ns>` logical name to a path
+            or URL the host could not read. The error carries `:host`
+            (`:node` / `:web`), `:logicalName`, `:sourceLocation`, and
+            either the underlying `:cause` or the HTTP `:status`. A host
+            that ships its own catalog hands the runtime a locator of the
+            sources of the language and never reaches the platform loader.
+        ~~|
+    | proves :isAValueOfItsOwn
+        |~~ An empty descriptor is a value like any other. ~~|
+        ~(::builtin{} | :c it | get [1 2] | c | type | eq ::builtin)
+    | proves :endsAPrimitive
+        |~~ The recipe of a word a host implements is an empty descriptor.
+        ~~|
+        ~(::number/add | binding | get /value | get /1 | eq ::builtin{})
+    | proves :PayloadNotMapError/refusesAString
+        |~~ A string payload is refused. ~~|
+        ~(::builtin"hello" !| [type (get /actualType)] | eq [::builtin/PayloadNotMapError ::string])
+    | proves :PayloadNotMapError/refusesAVector
+        |~~ A vector payload is refused. ~~|
+        ~(::builtin[1 2 3] !| [type (get /actualType)] | eq [::builtin/PayloadNotMapError ::vec]))
+    ::builtin{}]
 
-:builtin/isAValueOfItsOwn
-  |~~ An empty descriptor is a value like any other. ~~|
-  ::law~(::builtin{} | :c it | get [1 2] | c | type | eq ::builtin)
-
-:builtin/endsAPrimitive
-  |~~ The recipe of a word a host implements is an empty descriptor. ~~|
-  ::law~(::number/add | binding | get /value | get /1 | eq ::builtin{})
-
-:builtin/construct
-  |~~ Reads a map as the descriptor, its fields flat under the tag. ~~|
-  ::builtin{}
-
-:builtin/PayloadNotMapError
-  |~~ `::builtin` holds its fields as a map, `::builtin{}` the step a
-      host's verb or kind ends with; a payload of another kind is
-      refused, and the descriptor is written `::builtin{}`.
-  ~~|
-
-:builtin/PayloadNotMapError/refusesAString
-  |~~ A string payload is refused. ~~|
-  ::law~(::builtin"hello" !| [type (get /actualType)] | eq [::builtin/PayloadNotMapError ::string])
-
-:builtin/PayloadNotMapError/refusesAVector
-  |~~ A vector payload is refused. ~~|
-  ::law~(::builtin[1 2 3] !| [type (get /actualType)] | eq [::builtin/PayloadNotMapError ::vec])
-
-:builtin/UnknownAstNodeTypeError
-  |~~ The evaluator met a node of the parser's tree it has no rule for:
-      a defect of the runtime, and no failure of the query, raised past
-      the fail track to the host. The query is sound as it stands; the
-      runtime is repaired, the node given its rule, and the query that
-      met it is the case that shows it.
-  ~~|
-
-:builtin/AddressBoundTwiceError
-  |~~ Two modules of the runtime bound an implementation under one
-      address, a defect of the runtime found as it loads. Each
-      implementation is bound under the address of the word or the kind
-      it serves, one to an address, `number/add`.
-  ~~|
-
-:builtin/RefusalDeclaredTwiceError
-  |~~ Two sites of the runtime declared one refusal under one address,
-      a defect of the runtime found as it loads: the address is the tag
-      the refusal answers by and the name of its page, so one site would
-      speak for both. Each site declares its refusal under the address of
-      what refused, the word or the part, one site to an address.
-  ~~|
-
-:builtin/RefusalFactNotDeclaredError
-  |~~ A refusal of the runtime carried a fact that neither its label nor
-      `::error` declares, a defect of the runtime: the facts an error
-      holds are the definitions under the label that names it, and under
-      `::error` for those every refusal shares. The fact is declared as a
-      definition, a name, its page and the kind it holds, under the label
-      of the refusal, `::path/IndexOutOfBoundsError/length` holding
-      `::number`, or under `::error` when every refusal shares it.
-  ~~|
-
-:builtin/AddressNotStringError
-  |~~ A module of the runtime bound an implementation under an address
-      that is no string, a defect of the runtime found as it loads. The
-      address is the text of the word's address, `number/add`.
-  ~~|
-
-:builtin/ImplementationNotHandedError
-  |~~ A name is `::builtin{}`, or a kind ends in one, and the host
-      handed no implementation for it beside its source; `:name` names
-      it, and the root is refused as it is declared. The host hands an
-      implementation for the name beside the source, or writes the name
-      in steps, a quote, which runs without one.
-  ~~|
-
-:builtin/TableSealedError
-  |~~ The table of the language's implementations is sealed when the
-      bootstrap completes, and one bound after it is refused, a defect of
-      the runtime: a module of the runtime binds its implementations as
-      it loads, and a host hands its own beside its sources, never to the
-      table.
-  ~~|
-
-:builtin/NumberNotFiniteLeakedToPrintError
-  |~~ A number of qlang is a finite double. Source cannot mint an
-      infinity or a NaN — the parser refuses the literal and every
-      arithmetic site answers an error of its domain — so this tag
-      reports a value a host installed. The print and the JSON of the
-      boundary are where such a value shows: the print would be
-      `Infinity`, which no literal reads back, and JSON would write
-      `null`. `:actualValue` holds the magnitude as a string, the one
-      form that prints. The host keeps the numbers it hands finite, its
-      bindings and the answers of its implementations, and answers an
-      error of its own where its arithmetic leaves the doubles.
-  ~~|
-
-:builtin/BootstrapSourceMissingError
-  |~~ A source of the language resolved to nothing, so the root lacks
-      what it declares; `:uri` names the source. The host maps the source
-      in the imports of its package or in the import map of a browser, or
-      hands the runtime a locator of its own.
-  ~~|
-
-:builtin/RootSourceNotDeclaredError
-  |~~ A source of the root answered an error, or declared again a name
-      the root holds, so its declarations stay out of the root; `:uri`
-      names the source and `:tagName` the refusal, for a name declared
-      again `::bind/NameDeclaredTwiceError` with `:name` the name. The
-      source is repaired by the page of that refusal, and a name declared
-      again takes a name of its own, the root's left as they are.
-  ~~|
-
-:builtin/ImplementationNamesNoBuiltinError
-  |~~ A host handed an implementation beside a source of the root for a
-      name the source declares neither as a `::builtin{}` under a label
-      nor as a kind ending in one; `:uri` names the source and `:name` the
-      name. A verb runs its steps, a `::builtin{}` among them a step, and
-      a bare name reads its value, so a host declares its primitive as a
-      name under the label of its subject, `:any/fetch ::builtin{}`, the
-      parts of its args names under it.
-      A `::builtin{}` the host hands nothing for is refused with
-      `::builtin/ImplementationNotHandedError`.
-  ~~|
-
-:builtin/SourceLoadError
-  |~~ The platform resolved a `#qlang/<ns>` logical name to a path or
-      URL the host could not read. The error carries `:host`
-      (`:node` / `:web`), `:logicalName`, `:sourceLocation`, and either
-      the underlying `:cause` or the HTTP `:status`. A host that ships
-      its own catalog hands the runtime a locator of the sources of the
-      language and never reaches the platform loader.
-  ~~|

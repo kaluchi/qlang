@@ -21,6 +21,7 @@
 {{
   import { isNameStart, isNameContinue, readsAsBareKeyword } from '../src/name-chars.mjs';
   import { canonicalFlags, patternProblem, patternRefusal, PATTERN_FLAGS } from '../src/pattern.mjs';
+  import { builtFrom } from '../src/walk.mjs';
 
   function node(type, fields, loc, txt) {
     return { type, ...fields, location: loc, text: txt };
@@ -137,11 +138,12 @@
 
   // Whether a step can call the name a declaration writes: a bare name,
   // and no word of a literal, which a step reads as its value, alone but
-  // for a label, which its tag reaches [D152].
+  // for a label, which its tag reaches, declared by its page [D152] or by
+  // the chain that builds a kind from `::kind` [D252].
   const LITERAL_WORDS = new Set(['true', 'false', 'null']);
 
   function nameCalled(name, body) {
-    return readsAsBareKeyword(name) && (body === null || !LITERAL_WORDS.has(name));
+    return readsAsBareKeyword(name) && (body === null || builtFrom(body) === 'kind' || !LITERAL_WORDS.has(name));
   }
 
   function refuseNameNoStepCalls(key, body) {
@@ -380,6 +382,9 @@ BindStep
     & { return docs !== null || body !== null; }
     & { return docQuoteDepth === 0 || nameCalled(key.name, body); }
     { refuseNameNoStepCalls(key, body); return node('BindStep', { key, docs, body }, span(), text()); }
+  / key:BindName docs:(__ @DocSlot) body:ChainBody
+    & { return docQuoteDepth === 0 || nameCalled(key.name, body); }
+    { refuseNameNoStepCalls(key, body); return node('BindStep', { key, docs, body }, span(), text()); }
   / key:BindName docs:(__ @DocSlot)? body:Body?
     & { return docs !== null || body !== null; }
     & { return docQuoteDepth === 0 || nameCalled(key.name, body); }
@@ -409,7 +414,14 @@ BodyBreak
 // The body of a definition, a name with a path, begun on a later line is a
 // sentence, its steps joined by a combinator up to the next declaration or
 // a value that heads the sentence after it; on the line of its name it is
-// one step, as a body is [D251].
+// one step, as a body is [D251]. The body of a bare name with its page,
+// begun on a later line with a tag name, is the sentence that builds from
+// the noun it names, `:Box |~~ … ~~| ::kind | wraps …` [D252]; any other
+// body of a bare name is one step.
+ChainBody
+  = !(_h1 !Whitespace) __ !TaggedLit head:TagLit tail:BodySentenceStep*
+    { return assemblePipeline(null, head, tail, span(), text()); }
+
 DefinitionBody
   = _h1 !Whitespace body:Step { return body; }
   / __ head:Step & { return head.type !== 'Keyword'; } tail:BodySentenceStep*

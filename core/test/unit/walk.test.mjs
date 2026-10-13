@@ -317,7 +317,7 @@ describe('bindingNamesVisibleAt', () => {
 
   it('TAG_SPELLING surfaces the declarations of kinds by their names', async () => {
     const { TAG_SPELLING } = await import('../../src/walk.mjs');
-    const source = ':MyType |~~ MyType. ~~| | :MyType/construct ~(42) | 42';
+    const source = ':MyType |~~ MyType. ~~| (::kind | impl ~(42)) | 42';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length, TAG_SPELLING);
     expect(visible.has('MyType')).toBe(true);
@@ -335,7 +335,7 @@ describe('bindingNamesVisibleAt', () => {
 
   it('TAG_SPELLING honours fork-isolation rules', async () => {
     const { TAG_SPELLING } = await import('../../src/walk.mjs');
-    const source = '(:Local |~~ Local. ~~| | :Local/construct ~(42)) | here';
+    const source = '(:Local |~~ Local. ~~| (::kind | impl ~(42))) | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_SPELLING);

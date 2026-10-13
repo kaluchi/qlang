@@ -18,8 +18,8 @@ const examples = [
   },
   {
     tab: "name",
-    file: "name with parts",
-    code: `|~| a name with the parts of its args\n> :string/surround ~(prepend pfx | append sfx)\n  | :string/surround/pfx /0 | :string/surround/sfx /1\n  | "world" | surround "[" "]"\n"[world]"`,
+    file: "a word built from ::fn",
+    code: `|~| a word with the inputs of its call\n> :string/surround (::fn\n  | takes :pfx |~~ The prefix. ~~| /0 ::string\n  | takes :sfx |~~ The suffix. ~~| /1 ::string\n  | impl ~(prepend pfx | append sfx))\n  | "world" | surround "[" "]"\n"[world]"`,
   },
   {
     tab: "code-as-data",

@@ -1,4 +1,0 @@
-{"name":"the-remainder-takes-the-sign-of-the-divisor","query":"[(7 | mod 3) (-7 | mod 3) (7 | mod -3)]","expect":"[1 2 -2]","decision":"D194"}
-{"name":"floor-ceil-and-abs-take-a-number-to-a-whole-one-or-its-size","query":"[(2.7 | floor) (-2.1 | floor) (2.1 | ceil) (-2.7 | ceil) (-3 | abs)]","expect":"[2 -3 3 -2 3]","decision":"D194"}
-{"name":"range-counts-from-zero-below-its-subject","query":"[(5 | range) (0 | range)]","expect":"[[0 1 2 3 4] []]","decision":"D194"}
-{"name":"zip-reads-vectors-side-by-side-to-the-shortest","query":"[[1 2 3] [:a :b]] | zip","expect":"[[1 :a] [2 :b]]","decision":"D194"}

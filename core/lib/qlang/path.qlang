@@ -25,47 +25,138 @@
       ::link~(::any/get | doc) ::link~(::any/query | doc)
       ::link~(::qlang/pipeline | doc)
   ~~|
-
-:path/isAValue
-  |~~ A path is a value of its own kind. ~~|
-  ::law~(/items/0 | type | eq ::path)
-
-:path/printsAsWritten
-  |~~ A path prints as it is written. ~~|
-  ::law~(/items/0/"first name" | print | eq "/items/0/\"first name\"")
-
-:path/readsQuotedAndPathKeys
-  |~~ Quoted keys and keys with a path read in a path. ~~|
-  ::law~({:"foo bar" {:qlang/error 1}} | get /"foo bar"/:qlang/error | eq 1)
-
-:path/readsNestedKeys
-  |~~ A path of two keys reads nested maps. ~~|
-  ::law~({:qlang {:error 2}} | get /qlang/error | eq 2)
-
-:path/readsTheKeyOfAMapByThePlace
-  |~~ A place reads the key of a map that spells it. ~~|
-  ::law~({:"0" 5} | get /0 | eq 5)
-
-:path/printsAKeyWithASlashQuoted
-  |~~ A key with a slash that is no name of a path prints quoted. ~~|
-  ::law~({:"a b/c" 1} | paths | first | print | eq "/\"a b/c\"")
-
-:path/construct
-  |~~ Reads a path as itself; a vector of keys and places becomes one by
-      `toPath`, `[:items 0] | toPath`.
-  ~~|
-  ::builtin{}
-
-:path/PayloadNotPathError
-  |~~ `::path` reads its payload as the path it is; a payload of another
-      kind is refused, and a vector of keys and places is read as a path
-      by `toPath`.
-      ::link~(::vec/toPath | doc)
-  ~~|
-
-:path/PayloadNotPathError/refusesAVector
-  |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
-  ::law~([:a 0] | tag ::path !| [type (get /actualType)] | eq [::path/PayloadNotPathError ::vec])
+  ::kind
+    | wraps
+        |~~ A path, read as itself; a vector of keys and places becomes
+            one by `toPath`, `[:items 0] | toPath`.
+        ~~|
+    | throws :PayloadNotPathError
+        |~~ `::path` reads its payload as the path it is; a payload of
+            another kind is refused, and a vector of keys and places is
+            read as a path by `toPath`.
+            ::link~(::vec/toPath | doc)
+        ~~|
+    | throws :IndexOutOfBoundsError
+        |~~ A place reads within a vector or a set, from `/0` to the last,
+            `/-1`, a negative place counting from the end; `:index` holds
+            the place read and `:length` the length of the subject. The
+            last element is `/-1` whatever the length, a place that may
+            lie past the end is read by `query`, which answers null there,
+            and `take` and `drop` answer the part there is without
+            refusing.
+            ::link~(::path | doc) ::link~(::any/query | doc)
+        ~~|
+    | carries :IndexOutOfBoundsError/index
+        |~~ The place the path read, counted from the end when negative. ~~|
+        ::number
+    | carries :IndexOutOfBoundsError/length
+        |~~ How many elements the value holds. ~~|
+        ::number
+    | throws :KeyNotInMapError
+        |~~ A path names a key the map holds, so a misspelled field is
+            found where `get` reads it; `:key` holds the key read, and
+            `:nearest` the keys of the map it was likely meant to be, near
+            it in spelling as a name is near the names of the scope.
+            `keys` lists the keys there are, `{:a 1} | keys`, and a key
+            that may be absent is read by `query`, which answers null for
+            it or the default it is given, `query /b 0`. A path read from
+            the subject of a later step reads what that step was handed:
+            after `get /dependencies |` the subject is the dependencies,
+            so two fields of one record are read in one step,
+            `get [/dependencies /devDependencies]`.
+            ::link~(::path | doc) ::link~(::any/query | doc)
+        ~~|
+    | carries :KeyNotInMapError/key
+        |~~ The key the path read, which the map does not hold. ~~|
+        ::keyword
+    | throws :SubjectNotProjectableError
+        |~~ A path reads a part of a map, a vector or a set, one under a
+            tag among them; a number, a string or null has no parts, and
+            `:key` holds the key or the place read. A path read from the
+            subject of a later step reads what that step was handed: after
+            `get /qty |` the subject is the number, so two fields of one
+            record are read in one step, `get [/qty /price]`, or combined
+            by a form whose args they are, `mulOf /qty /price`. A value
+            that may be null is read by `query`, which answers null.
+            ::link~(::path | doc) ::link~(::any/mulOf | doc)
+        ~~|
+    | carries :SubjectNotProjectableError/key
+        |~~ The segment the path read, a key or a place. ~~|
+        #[::keyword ::number]
+    | throws :IndexNotIntegerError
+        |~~ A vector is read by a place, `/0`, and a set by the place of
+            an element in its one order; `:key` holds the field read. A
+            field of each element is read by `map`, `map /name`, and the
+            elements a field picks are found by `filter`,
+            `filter ~(get /n | gt 1)`.
+            ::link~(::path | doc) ::link~(::vec/filter | doc)
+        ~~|
+    | carries :IndexNotIntegerError/key
+        |~~ The segment the path read, which names no place. ~~|
+        ::keyword
+    | proves :isAValue
+        |~~ A path is a value of its own kind. ~~|
+        ~(/items/0 | type | eq ::path)
+    | proves :printsAsWritten
+        |~~ A path prints as it is written. ~~|
+        ~(/items/0/"first name" | print | eq "/items/0/\"first name\"")
+    | proves :readsQuotedAndPathKeys
+        |~~ Quoted keys and keys with a path read in a path. ~~|
+        ~({:"foo bar" {:qlang/error 1}} | get /"foo bar"/:qlang/error | eq 1)
+    | proves :readsNestedKeys
+        |~~ A path of two keys reads nested maps. ~~|
+        ~({:qlang {:error 2}} | get /qlang/error | eq 2)
+    | proves :readsTheKeyOfAMapByThePlace
+        |~~ A place reads the key of a map that spells it. ~~|
+        ~({:"0" 5} | get /0 | eq 5)
+    | proves :printsAKeyWithASlashQuoted
+        |~~ A key with a slash that is no name of a path prints quoted. ~~|
+        ~({:"a b/c" 1} | paths | first | print | eq "/\"a b/c\"")
+    | proves :PayloadNotPathError/refusesAVector
+        |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
+        ~([:a 0] | tag ::path !| [type (get /actualType)] | eq [::path/PayloadNotPathError ::vec])
+    | proves :IndexOutOfBoundsError/refusesAPlacePastTheEnd
+        |~~ A place past the end is refused with the length. ~~|
+        ~([10 20 30] | get /99 !| get [(type) /index /length] | eq [::path/IndexOutOfBoundsError 99 3])
+    | proves :IndexOutOfBoundsError/refusesAPlaceBeforeTheStart
+        |~~ A negative place past the start is refused as it was written.
+        ~~|
+        ~([10 20 30] | get /-4 !| get [(type) /index /length] | eq [::path/IndexOutOfBoundsError -4 3])
+    | proves :IndexOutOfBoundsError/readsTheLastFromTheEnd
+        |~~ `/-1` reads the last element whatever the length. ~~|
+        ~([10 20 30] | get /-1 | eq 30)
+    | proves :KeyNotInMapError/refusesAKeyTheMapLacks
+        |~~ A key the map lacks is refused. ~~|
+        ~({:a 1} | get /b !| get [(type) /key] | eq [::path/KeyNotInMapError :b])
+    | proves :KeyNotInMapError/namesThePathItFollowed
+        |~~ The refusal holds the path the read followed. ~~|
+        ~({:a {:b 1}} | get /a/c !| get /path | eq /a/c)
+    | proves :KeyNotInMapError/suggestsTheNearestKey
+        |~~ The keys of the map nearest in spelling are suggested. ~~|
+        ~({:emails [] :age 3} | get /email !| get /nearest | eq [:emails])
+    | proves :KeyNotInMapError/readsTwoFieldsInOneStep
+        |~~ Two fields of one record are read in one step. ~~|
+        ~({:a 1 :b 2} | get [/a /b] | eq [1 2])
+    | proves :SubjectNotProjectableError/readsTwoFieldsInOneStep
+        |~~ Two fields of one record combine in one step by `mulOf`. ~~|
+        ~({:qty 2 :price 3} | mulOf /qty /price | eq 6)
+    | proves :SubjectNotProjectableError/refusesANumber
+        |~~ A number has no fields. ~~|
+        ~(42 | get /foo
+          !| get [(type) /key /actualType] | eq [::path/SubjectNotProjectableError :foo ::number])
+    | proves :SubjectNotProjectableError/refusesNull
+        |~~ Null has no parts for `get`. ~~|
+        ~(null | get /k !| get [(type) /actualType] | eq [::path/SubjectNotProjectableError ::null])
+    | proves :IndexNotIntegerError/refusesAFieldOfAVector
+        |~~ A vector is read by a place, not a field. ~~|
+        ~([10 20 30] | get /name !| get [(type) /key] | eq [::path/IndexNotIntegerError :name])
+    | proves :IndexNotIntegerError/refusesAFieldOfASet
+        |~~ A set is read by a place, not a field. ~~|
+        ~(#[:a :b :c] | get /name !| get [(type) /key] | eq [::path/IndexNotIntegerError :name])
+    | proves :IndexNotIntegerError/readsAFieldOfEachElement
+        |~~ A field of each element is read by `map`. ~~|
+        ~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"])
+    | impl ::builtin{}
 
 :path/segments
   |~~ Answers the keys and places of the path, a place as its number and
@@ -75,127 +166,11 @@
   ~~|
   ::fn
     | returns |~~ The keys and places of the path. ~~| ::vec
-    | law :answersKeysAndPlaces
+    | proves :answersKeysAndPlaces
         |~~ A key answers its keyword and a place its number. ~~|
         ~(/items/0 | segments | eq [:items 0])
-    | law :readsBackByToPath
+    | proves :readsBackByToPath
         |~~ The segments build the path back. ~~|
         ~(/a/0 | segments | toPath | print | eq "/a/0")
     | impl ::builtin{}
 
-:path/IndexOutOfBoundsError
-  |~~ A place reads within a vector or a set, from `/0` to the last,
-      `/-1`, a negative place counting from the end; `:index` holds the
-      place read and `:length` the length of the subject. The last
-      element is `/-1` whatever the length, a place that may lie past
-      the end is read by `query`, which answers null there, and `take`
-      and `drop` answer the part there is without refusing.
-      ::link~(::path | doc) ::link~(::any/query | doc)
-  ~~|
-
-:path/IndexOutOfBoundsError/index
-  |~~ The place the path read, counted from the end when negative. ~~|
-  ::number
-
-:path/IndexOutOfBoundsError/length
-  |~~ How many elements the value holds. ~~|
-  ::number
-
-:path/IndexOutOfBoundsError/refusesAPlacePastTheEnd
-  |~~ A place past the end is refused with the length. ~~|
-  ::law~([10 20 30] | get /99 !| get [(type) /index /length] | eq [::path/IndexOutOfBoundsError 99 3])
-
-:path/IndexOutOfBoundsError/refusesAPlaceBeforeTheStart
-  |~~ A negative place past the start is refused as it was written. ~~|
-  ::law~([10 20 30] | get /-4 !| get [(type) /index /length] | eq [::path/IndexOutOfBoundsError -4 3])
-
-:path/IndexOutOfBoundsError/readsTheLastFromTheEnd
-  |~~ `/-1` reads the last element whatever the length. ~~|
-  ::law~([10 20 30] | get /-1 | eq 30)
-
-:path/KeyNotInMapError
-  |~~ A path names a key the map holds, so a misspelled field is found
-      where `get` reads it; `:key` holds the key read, and `:nearest` the
-      keys of the map it was likely meant to be, near it in spelling as a
-      name is near the names of the scope. `keys` lists the keys there
-      are, `{:a 1} | keys`, and a key that may be absent is read by
-      `query`, which answers null for it or the default it is given,
-      `query /b 0`. A path read from the subject of a later step reads
-      what that step was handed: after `get /dependencies |` the subject
-      is the dependencies, so two fields of one record are read in one
-      step, `get [/dependencies /devDependencies]`.
-      ::link~(::path | doc) ::link~(::any/query | doc)
-  ~~|
-
-:path/KeyNotInMapError/key
-  |~~ The key the path read, which the map does not hold. ~~|
-  ::keyword
-
-:path/KeyNotInMapError/refusesAKeyTheMapLacks
-  |~~ A key the map lacks is refused. ~~|
-  ::law~({:a 1} | get /b !| get [(type) /key] | eq [::path/KeyNotInMapError :b])
-
-:path/KeyNotInMapError/namesThePathItFollowed
-  |~~ The refusal holds the path the read followed. ~~|
-  ::law~({:a {:b 1}} | get /a/c !| get /path | eq /a/c)
-
-:path/KeyNotInMapError/suggestsTheNearestKey
-  |~~ The keys of the map nearest in spelling are suggested. ~~|
-  ::law~({:emails [] :age 3} | get /email !| get /nearest | eq [:emails])
-
-:path/KeyNotInMapError/readsTwoFieldsInOneStep
-  |~~ Two fields of one record are read in one step. ~~|
-  ::law~({:a 1 :b 2} | get [/a /b] | eq [1 2])
-
-:path/SubjectNotProjectableError
-  |~~ A path reads a part of a map, a vector or a set, one under a tag
-      among them; a number, a string or null has no parts, and `:key`
-      holds the key or the place read. A path read from the subject of a
-      later step reads what that step was handed: after `get /qty |` the
-      subject is the number, so two fields of one record are read in one
-      step, `get [/qty /price]`, or combined by a form whose args they
-      are, `mulOf /qty /price`. A value that may be null is read by
-      `query`, which answers null.
-      ::link~(::path | doc) ::link~(::any/mulOf | doc)
-  ~~|
-
-:path/SubjectNotProjectableError/key
-  |~~ The segment the path read, a key or a place. ~~|
-  #[::keyword ::number]
-
-:path/SubjectNotProjectableError/readsTwoFieldsInOneStep
-  |~~ Two fields of one record combine in one step by `mulOf`. ~~|
-  ::law~({:qty 2 :price 3} | mulOf /qty /price | eq 6)
-
-:path/SubjectNotProjectableError/refusesANumber
-  |~~ A number has no fields. ~~|
-  ::law~(42 | get /foo
-    !| get [(type) /key /actualType] | eq [::path/SubjectNotProjectableError :foo ::number])
-
-:path/SubjectNotProjectableError/refusesNull
-  |~~ Null has no parts for `get`. ~~|
-  ::law~(null | get /k !| get [(type) /actualType] | eq [::path/SubjectNotProjectableError ::null])
-
-:path/IndexNotIntegerError
-  |~~ A vector is read by a place, `/0`, and a set by the place of an
-      element in its one order; `:key` holds the field read. A field of
-      each element is read by `map`, `map /name`, and the elements a field
-      picks are found by `filter`, `filter ~(get /n | gt 1)`.
-      ::link~(::path | doc) ::link~(::vec/filter | doc)
-  ~~|
-
-:path/IndexNotIntegerError/key
-  |~~ The segment the path read, which names no place. ~~|
-  ::keyword
-
-:path/IndexNotIntegerError/refusesAFieldOfAVector
-  |~~ A vector is read by a place, not a field. ~~|
-  ::law~([10 20 30] | get /name !| get [(type) /key] | eq [::path/IndexNotIntegerError :name])
-
-:path/IndexNotIntegerError/refusesAFieldOfASet
-  |~~ A set is read by a place, not a field. ~~|
-  ::law~(#[:a :b :c] | get /name !| get [(type) /key] | eq [::path/IndexNotIntegerError :name])
-
-:path/IndexNotIntegerError/readsAFieldOfEachElement
-  |~~ A field of each element is read by `map`. ~~|
-  ::law~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"])

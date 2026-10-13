@@ -52,20 +52,20 @@
 
 
 |~| ── 3. A kind of your own ─────────────────────────────────
-|~| A label is a name declared by its page: a value put under it
-|~| keeps its invariants, and a word declared under it serves its
-|~| values alone, called by its name on the value. A part of a
-|~| word is a name under its address, read from the values of
-|~| the call and held to its invariant.
+|~| A kind is built from `::kind` by commands, `reads` a field of
+|~| its payload held to its kinds, and a value put under it keeps
+|~| them. A word declared under it serves its values alone, called
+|~| by its name on the value, and is built from `::fn`, `takes` an
+|~| input of the call held to its kinds.
 
-:Person |~~ A person, a name and an age. ~~|
-:Person/NameNotStringError ::holds~(get /name | is ::string)
+:Person |~~ A person, a name and an age. ~~| (::kind
+  | wraps |~~ The name and the age. ~~| ::map
+  | reads :name |~~ The name. ~~| /name ::string
+  | reads :age |~~ The age in years. ~~| /age ::number)
 :Person/adult |~~ Whether the person is of age. ~~| ~(get /age | gte 18)
-:Person/greet
-  |~~ The person's name after a greeting. ~~|
-  ~(get /name | prepend greeting)
-:Person/greet/greeting |~~ The words before the name. ~~| /0
-:Person/greet/greeting/NotStringError ::holds~(is ::string)
+:Person/greet |~~ The person's name after a greeting. ~~| (::fn
+  | takes :greeting |~~ The words before the name. ~~| /0 ::string
+  | impl ~(get /name | prepend greeting))
 
 | (::Person{:name "Ann" :age 30} | adult)
 
@@ -109,7 +109,7 @@
 
 
 |~| ── 7. Signature Help and Completion ──────────────────────
-|~| Inside a call of a word of the language the active part
+|~| Inside a call of a word of the language the active input
 |~| follows the modifier under the cursor: condition, then,
 |~| else. After `|` Ctrl+Space lists the words the kind of the
 |~| value answers and the names the file declares above.

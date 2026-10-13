@@ -1,5 +1,5 @@
 // The constructors of the kinds, each `(payload, state) → value` under
-// the address of the kind's `construct`, `number/construct` [D169], and
+// the address of the kind's `construct`, `number/construct` [D252], and
 // the verbs that lay a tag over a value and take it off.
 
 import { mintUnderTag } from './verb.mjs';
@@ -22,7 +22,7 @@ function setConstructor(payload) {
 
 bindPrim('set/construct', setConstructor);
 
-// The constructors of the core's kinds [D32], [D168]: each reads a
+// The constructors of the core's kinds [D32], [D170]: each reads a
 // payload of its kind as the value itself, so `::vec[1 2]` and `[1 2]` are
 // one value and print as the latter, and a payload of another kind is
 // refused at the site, a vector or a map under a tag of its own among
@@ -88,9 +88,9 @@ function docConstructor(payload) {
 
 bindPrim('doc/construct', docConstructor);
 
-// `::builtin{…}` — the descriptor, the value of a name under a label
-// that a primitive answers, the `construct` of a kind among them [D164],
-// [D169]; its fields stay flat under its tag.
+// `::builtin{…}` — the descriptor, the recipe of a word or of a kind that
+// a primitive answers, or the value of a name under a label alone [D251],
+// [D252], [D253]; its fields stay flat under its tag.
 const BuiltinPayloadNotMapError = declareRefusal('builtin/PayloadNotMapError');
 
 function builtinConstructor(payload) {
@@ -117,7 +117,7 @@ function payloadOf(tagged) {
 // `payload` and `within` reside on `::tagged`, each a plain function
 // over the tagged value the walk served [D34]; the page of `within` keeps
 // its subject's kind, so the answer of its edit mints back under the
-// subject's tag [D41], [D167].
+// subject's tag [D41], [D169].
 bindPrim('tagged/payload', subject => payloadOf(subject));
 bindPrim('tagged/within', runs(['code'], async (subject, code) => await code(payloadOf(subject))));
 

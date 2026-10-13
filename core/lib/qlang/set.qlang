@@ -29,37 +29,31 @@
       ::snippet~(::set | manifest) lists its words and refusals.
       ::link~(::vec | doc) ::link~(::qlang/values | doc)
   ~~|
-
-:set/dropsDuplicates
-  |~~ A set literal drops duplicates. ~~|
-  ::law~("#[3 1 3]" | parse | apply it | eq #[1 3])
-
-:set/buildsFromAVector
-  |~~ A vector under `::set` is its distinct elements. ~~|
-  ::law~([3 1 3] | tag ::set | eq ([3 1 3] | distinct))
-
-:set/reversesIntoAVector
-  |~~ A reversed set is a vector. ~~|
-  ::law~(#[3 1 2] | reverse | eq [3 2 1])
-
-:set/refusesBraces
-  |~~ `#{1}` does not parse, and its message names `#[`. ~~|
-  ::law~("#{1}" | parse !| get /message | contains "#[")
-
-:set/construct
-  |~~ The set of the elements of a vector, in the one order without
-      duplicates.
-  ~~|
-  ::builtin{}
-
-:set/PayloadNotVecError
-  |~~ `::set` builds a set from a vector, `::set[3 1 3]`; a payload of
-      another kind is refused.
-  ~~|
-
-:set/PayloadNotVecError/refusesAMap
-  |~~ A map payload is refused. ~~|
-  ::law~(::set{:not :a-vec} !| [type (get /actualType)] | eq [::set/PayloadNotVecError ::map])
+  ::kind
+    | wraps
+        |~~ A vector, built into the set of its elements in the one order
+            without duplicates.
+        ~~|
+    | throws :PayloadNotVecError
+        |~~ `::set` builds a set from a vector, `::set[3 1 3]`; a payload
+            of another kind is refused.
+        ~~|
+    | proves :dropsDuplicates
+        |~~ A set literal drops duplicates. ~~|
+        ~("#[3 1 3]" | parse | apply it | eq #[1 3])
+    | proves :buildsFromAVector
+        |~~ A vector under `::set` is its distinct elements. ~~|
+        ~([3 1 3] | tag ::set | eq ([3 1 3] | distinct))
+    | proves :reversesIntoAVector
+        |~~ A reversed set is a vector. ~~|
+        ~(#[3 1 2] | reverse | eq [3 2 1])
+    | proves :refusesBraces
+        |~~ `#{1}` does not parse, and its message names `#[`. ~~|
+        ~("#{1}" | parse !| get /message | contains "#[")
+    | proves :PayloadNotVecError/refusesAMap
+        |~~ A map payload is refused. ~~|
+        ~(::set{:not :a-vec} !| [type (get /actualType)] | eq [::set/PayloadNotVecError ::map])
+    | impl ::builtin{}
 
 :set/count
   |~~ Answers how many elements the set holds, `#[:a :b] | count`
@@ -72,33 +66,37 @@
   ~~|
   ::fn
     | returns |~~ How many elements the set holds. ~~| ::number
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `count` takes no value: whether the set holds an element is
-            `has 1`, and how many elements hold a predicate is `filter
-            ~(gt 1) | count`.
+            `has 1`, and how many elements hold a predicate is
+            `filter ~(gt 1) | count`.
         ~~|
-    | law :countsTheElements
-        |~~ Two elements count two. ~~| ~(#[:a :b] | count | eq 2)
-    | law :countsTheEmptySetZero
-        |~~ The empty set holds none. ~~| ~(#[] | count | eq 0)
-    | law :ArgsBeyondPartsError/refusesAValue
+    | proves :countsTheElements
+        |~~ Two elements count two. ~~|
+        ~(#[:a :b] | count | eq 2)
+    | proves :countsTheEmptySetZero
+        |~~ The empty set holds none. ~~|
+        ~(#[] | count | eq 0)
+    | proves :ArgsBeyondInputsError/refusesAValue
         |~~ A value given to `count` is refused under the word. ~~|
-        ~(#[:a] | count 1 !| type | eq ::set/count/ArgsBeyondPartsError)
+        ~(#[:a] | count 1 !| type | eq ::set/count/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :set/empty
   |~~ Answers whether the set holds no element, `#[] | empty` answering
       `true`. A set that holds null holds an element, `#[null] | empty`
-      answering `false`, and whether a set holds any element is `empty |
-      not`. `count` answers how many.
+      answering `false`, and whether a set holds any element is
+      `empty | not`. `count` answers how many.
       ::link~(::set/count | doc) ::link~(::vec/empty | doc)
   ~~|
   ::fn
     | returns
         |~~ `true` when the set holds no element, `false` otherwise. ~~|
         ::boolean
-    | law :holdsOfTheEmptySet |~~ The empty set is empty. ~~| ~(#[] | empty)
-    | law :failsOfASetOfNull
+    | proves :holdsOfTheEmptySet
+        |~~ The empty set is empty. ~~|
+        ~(#[] | empty)
+    | proves :failsOfASetOfNull
         |~~ A set that holds null holds an element. ~~|
         ~(#[null] | empty | not)
     | impl ::builtin{}
@@ -117,95 +115,101 @@
   ~~|
   ::fn
     | returns |~~ The least element, null for the empty set. ~~| ::any
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `first` takes no value: the least two elements are `take 2`. ~~|
-    | law :answersTheLeast
+    | proves :answersTheLeast
         |~~ The first element is the least, whatever order it was written
             in.
         ~~|
         ~(::set[:c :a :b] | first | eq :a)
-    | law :answersTheLeastWhereAVectorAnswersItsFirst
+    | proves :answersTheLeastWhereAVectorAnswersItsFirst
         |~~ A vector answers its first written, its set the least. ~~|
         ~([:c :a :b] | get [first (distinct | first)] | eq [:c :a])
-    | law :ranksAcrossKinds
+    | proves :ranksAcrossKinds
         |~~ A number comes before a string and a keyword. ~~|
         ~(#[1 "a" :k] | first | eq 1)
-    | law :answersANullItHolds
-        |~~ Null comes before all. ~~| ~(#[null 1] | first | eq null)
-    | law :answersNullForTheEmptySet
-        |~~ The empty set answers null. ~~| ~(#[] | first | eq null)
-    | law :ArgsBeyondPartsError/refusesACount
+    | proves :answersANullItHolds
+        |~~ Null comes before all. ~~|
+        ~(#[null 1] | first | eq null)
+    | proves :answersNullForTheEmptySet
+        |~~ The empty set answers null. ~~|
+        ~(#[] | first | eq null)
+    | proves :ArgsBeyondInputsError/refusesACount
         |~~ A count given to `first` is refused under the word. ~~|
-        ~(#[1 2] | first 2 !| type | eq ::set/first/ArgsBeyondPartsError)
+        ~(#[1 2] | first 2 !| type | eq ::set/first/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :set/last
   |~~ Answers the greatest element, the last in the one order whatever
-      order the elements were written in: `::set[:c :a :b] | last`
-      answers `:c`, where the vector `[:c :a :b]` answers `:b`. Across
-      kinds a keyword comes after a string and a number, `#[1 "a" :k] |
-      last` answering `:k`. The empty set answers null. `last` takes no
-      value; the greatest two elements are `drop (count | sub 2)`.
-      `first` answers the least.
+      order the elements were written in: `::set[:c :a :b] | last` answers
+      `:c`, where the vector `[:c :a :b]` answers `:b`. Across kinds a
+      keyword comes after a string and a number, `#[1 "a" :k] | last`
+      answering `:k`. The empty set answers null. `last` takes no value;
+      the greatest two elements are `drop (count | sub 2)`. `first`
+      answers the least.
       ::link~(::set/first | doc) ::link~(::set/drop | doc)
   ~~|
   ::fn
     | returns |~~ The greatest element, null for the empty set. ~~| ::any
-    | throws :ArgsBeyondPartsError
-        |~~ `last` takes no value: the greatest two elements are `drop
-            (count | sub 2)`, the count computed against the set.
+    | throws :ArgsBeyondInputsError
+        |~~ `last` takes no value: the greatest two elements are
+            `drop (count | sub 2)`, the count computed against the set.
         ~~|
-    | law :answersTheGreatest
+    | proves :answersTheGreatest
         |~~ The last element is the greatest, whatever order it was
             written in.
         ~~|
         ~(::set[:c :a :b] | last | eq :c)
-    | law :answersTheGreatestWhereAVectorAnswersItsLast
+    | proves :answersTheGreatestWhereAVectorAnswersItsLast
         |~~ A vector answers its last written, its set the greatest. ~~|
         ~([:c :a :b] | get [last (distinct | last)] | eq [:b :c])
-    | law :ranksAcrossKinds
+    | proves :ranksAcrossKinds
         |~~ A keyword comes after a number and a string. ~~|
         ~(#[1 "a" :k] | last | eq :k)
-    | law :answersNullForTheEmptySet
-        |~~ The empty set answers null. ~~| ~(#[] | last | eq null)
-    | law :ArgsBeyondPartsError/refusesACount
+    | proves :answersNullForTheEmptySet
+        |~~ The empty set answers null. ~~|
+        ~(#[] | last | eq null)
+    | proves :ArgsBeyondInputsError/refusesACount
         |~~ A count given to `last` is refused under the word. ~~|
-        ~(#[1 2] | last 2 !| type | eq ::set/last/ArgsBeyondPartsError)
+        ~(#[1 2] | last 2 !| type | eq ::set/last/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :set/sum
   |~~ Answers the sum of the elements, each a number, `#[1 2 3] | sum`
       answering `6`, and the empty set sums to `0`. A set holds each
-      element once, so the set of a vector's elements may sum to less
-      than the vector: `[1 1 2] | sum` answers `4`, and `[1 1 2] |
-      distinct | sum` answers `3`. The sum of a field of each element is
-      `map /price | sum`, where `map` answers a vector, which keeps a price
-      two elements share twice. An element that is no number is refused,
-      `:index` naming its place in the one order, not where it was
-      written.
+      element once, so the set of a vector's elements may sum to less than
+      the vector: `[1 1 2] | sum` answers `4`, and
+      `[1 1 2] | distinct | sum` answers `3`. The sum of a field of each
+      element is `map /price | sum`, where `map` answers a vector, which
+      keeps a price two elements share twice. An element that is no number
+      is refused, `:index` naming its place in the one order, not where it
+      was written.
       ::link~(::vec/sum | doc) ::link~(::set/avg | doc)
   ~~|
   ::fn
     | returns
-        |~~ The sum of the elements, `0` for the empty set. ~~| ::number
+        |~~ The sum of the elements, `0` for the empty set. ~~|
+        ::number
     | throws :ElementNotNumberError
         |~~ `sum` adds numbers; `:index` names the first element in the
             one order that is none.
         ~~|
-    | law :addsTheElements
-        |~~ The sum adds every element. ~~| ~(#[1 2 3] | sum | eq 6)
-    | law :sumsTheEmptySetToZero
-        |~~ The empty set sums to zero. ~~| ~(#[] | sum | eq 0)
-    | law :addsOnceWhatTheVectorRepeats
+    | proves :addsTheElements
+        |~~ The sum adds every element. ~~|
+        ~(#[1 2 3] | sum | eq 6)
+    | proves :sumsTheEmptySetToZero
+        |~~ The empty set sums to zero. ~~|
+        ~(#[] | sum | eq 0)
+    | proves :addsOnceWhatTheVectorRepeats
         |~~ The set of a vector's elements adds a repeated one once. ~~|
         ~([1 1 2] | get [sum (distinct | sum)] | eq [4 3])
-    | law :addsAFieldOfEachElementThroughAVector
+    | proves :addsAFieldOfEachElementThroughAVector
         |~~ A field two elements share adds twice through `map`. ~~|
         ~(#[{:p 1 :n :a} {:p 1 :n :b}] | map /p | sum | eq 2)
-    | law :ElementNotNumberError/refusesAString
+    | proves :ElementNotNumberError/refusesAString
         |~~ A string among the numbers is refused at its index. ~~|
         ~(#[1 "two"] | sum !| [type (get /index)] | eq [::set/sum/ElementNotNumberError 1])
-    | law :ElementNotNumberError/namesThePlaceInTheOneOrder
+    | proves :ElementNotNumberError/namesThePlaceInTheOneOrder
         |~~ The index is the place in the one order, not where it was
             written.
         ~~|
@@ -231,20 +235,21 @@
         |~~ `avg` takes the mean of numbers; `:index` names the first
             element in the one order that is none.
         ~~|
-    | law :answersTheMean
+    | proves :answersTheMean
         |~~ The mean of one, two and six is three. ~~|
         ~(#[1 2 6] | avg | eq 3)
-    | law :answersNullForTheEmptySet
-        |~~ The empty set has no mean. ~~| ~(#[] | avg | eq null)
-    | law :averagesTheOppositeEnds
+    | proves :answersNullForTheEmptySet
+        |~~ The empty set has no mean. ~~|
+        ~(#[] | avg | eq null)
+    | proves :averagesTheOppositeEnds
         |~~ The mean of a number near one end of the doubles and its
             negation is zero.
         ~~|
         ~(#[1e308 -1e308] | avg | eq 0)
-    | law :countsOnceWhatTheVectorRepeats
+    | proves :countsOnceWhatTheVectorRepeats
         |~~ The set of a vector's elements counts a repeated one once. ~~|
         ~([1 1 4] | get [avg (distinct | avg)] | eq [2 2.5])
-    | law :ElementNotNumberError/refusesAString
+    | proves :ElementNotNumberError/refusesAString
         |~~ A string among the numbers is refused at its index. ~~|
         ~(#[1 "two"] | avg !| [type (get /index)] | eq [::set/avg/ElementNotNumberError 1])
     | impl ::builtin{}
@@ -252,13 +257,13 @@
 :set/min
   |~~ Answers the least element, or, given a key, the element whose key
       answers the least value: `#[3 1 4] | min` answers `1`, and
-      `#[{:n 2} {:n 1}] | min /n` answers `{:n 1}`, the element and
-      not its key. Without a key the least is the first in the one order,
-      null among them, as `first` answers. The key is code, a quote run on
-      each element with the element as its subject; a value computed at
-      the call in its place, `min (desc)`, is refused under the part. A
-      key under `desc` turns the least into the greatest, `#[3 1 4] | min
-      ~(desc)` answering `4`. The empty set answers null.
+      `#[{:n 2} {:n 1}] | min /n` answers `{:n 1}`, the element and not
+      its key. Without a key the least is the first in the one order, null
+      among them, as `first` answers. The key is code, a quote run on each
+      element with the element as its subject; a value computed at the
+      call in its place, `min (desc)`, is refused under the input. A key
+      under `desc` turns the least into the greatest,
+      `#[3 1 4] | min ~(desc)` answering `4`. The empty set answers null.
       ::link~(::set/max | doc) ::link~(::set/first | doc)
       ::link~(::vec/min | doc) ::link~(::desc | doc)
   ~~|
@@ -274,23 +279,26 @@
             against the set, and refused with what it answered.
         ~~|
     | returns
-        |~~ The least element by the key, null for the empty set. ~~| ::any
-    | law :answersTheLeast
+        |~~ The least element by the key, null for the empty set. ~~|
+        ::any
+    | proves :answersTheLeast
         |~~ Without a key the least element answers. ~~|
         ~(#[3 1 4] | min | eq 1)
-    | law :turnsTheKeyByDesc
+    | proves :turnsTheKeyByDesc
         |~~ A descending key turns the least into the greatest. ~~|
         ~(#[3 1 4] | min ~(desc) | eq 4)
-    | law :answersTheElementNotItsKey
+    | proves :answersTheElementNotItsKey
         |~~ The element whose key answers the least answers, not the key.
         ~~|
         ~(#[{:n 2} {:n 1}] | min /n | eq {:n 1})
-    | law :answersANullItHolds
-        |~~ Null is the least of all. ~~| ~(#[null 1] | min | eq null)
-    | law :answersNullForTheEmptySet
-        |~~ The empty set answers null. ~~| ~(#[] | min | eq null)
-    | law :key/NotNullOrPathOrQuoteError/refusesAValueForCode
-        |~~ A key computed at the call is refused under the part. ~~|
+    | proves :answersANullItHolds
+        |~~ Null is the least of all. ~~|
+        ~(#[null 1] | min | eq null)
+    | proves :answersNullForTheEmptySet
+        |~~ The empty set answers null. ~~|
+        ~(#[] | min | eq null)
+    | proves :key/NotNullOrPathOrQuoteError/refusesAValueForCode
+        |~~ A key computed at the call is refused under the input. ~~|
         ~(#[3 1 4] | min (desc) !| type | eq ::set/min/key/NotNullOrPathOrQuoteError)
     | impl ::builtin{}
 
@@ -318,41 +326,43 @@
     | returns
         |~~ The greatest element by the key, null for the empty set. ~~|
         ::any
-    | law :answersTheGreatest
+    | proves :answersTheGreatest
         |~~ Without a key the greatest element answers. ~~|
         ~(#[3 1 4] | max | eq 4)
-    | law :turnsTheKeyByDesc
+    | proves :turnsTheKeyByDesc
         |~~ A descending key turns the greatest into the least. ~~|
         ~(#[3 1 4] | max ~(desc) | eq 1)
-    | law :answersTheElementNotItsKey
+    | proves :answersTheElementNotItsKey
         |~~ The element whose key answers the greatest answers, not the
             key.
         ~~|
         ~(#[{:n 2} {:n 1}] | max /n | eq {:n 2})
-    | law :ranksAcrossKinds
+    | proves :ranksAcrossKinds
         |~~ Without a key the last in the one order answers. ~~|
         ~(#[1 "a" :k] | max | eq :k)
-    | law :answersNullForTheEmptySet
-        |~~ The empty set answers null. ~~| ~(#[] | max | eq null)
-    | law :key/NotNullOrPathOrQuoteError/refusesAValueForCode
-        |~~ A key computed at the call is refused under the part. ~~|
+    | proves :answersNullForTheEmptySet
+        |~~ The empty set answers null. ~~|
+        ~(#[] | max | eq null)
+    | proves :key/NotNullOrPathOrQuoteError/refusesAValueForCode
+        |~~ A key computed at the call is refused under the input. ~~|
         ~(#[3 1 4] | max 4 !| type | eq ::set/max/key/NotNullOrPathOrQuoteError)
     | impl ::builtin{}
 
 :set/map
-  |~~ Answers the vector of what the code answers for each element, in
-      the one order, `::set[3 1 2] | map ~(mul 10)` answering `[10 20
-      30]`. The images of a set are no part of it, so equal images stand
-      each in its place, `#[1 2 3] | map ~(gt 1)` answering `[false true
-      true]`, and `distinct` after it makes a set of them. The code is a
-      quote run on each element as its subject, and the first error it
-      answers is the answer of the call. A vector and a map answer `map`
-      by words of their own.
+  |~~ Answers the vector of what the code answers for each element, in the
+      one order, `::set[3 1 2] | map ~(mul 10)` answering `[10 20 30]`.
+      The images of a set are no part of it, so equal images stand each in
+      its place, `#[1 2 3] | map ~(gt 1)` answering `[false true true]`,
+      and `distinct` after it makes a set of them. The code is a quote run
+      on each element as its subject, and the first error it answers is
+      the answer of the call. A vector and a map answer `map` by words of
+      their own.
       ::link~(::vec/map | doc) ::link~(::vec/distinct | doc)
   ~~|
   ::fn
     | takes :code
-        |~~ The code run on each element, a quote. ~~| /0 #[::path ::quote]
+        |~~ The code run on each element, a quote. ~~|
+        /0 #[::path ::quote]
     | throws :code/NotPathOrQuoteError
         |~~ The code is a quote, `map ~(add 1)`, or a path, `map /name`;
             written without the tilde, `map (add 1)`, it is computed once
@@ -364,16 +374,16 @@
             vector.
         ~~|
         ::vec
-    | law :answersInTheOneOrder
+    | proves :answersInTheOneOrder
         |~~ The elements run in the one order. ~~|
         ~(::set[3 1 2] | map ~(mul 10) | eq [10 20 30])
-    | law :keepsEqualImages
+    | proves :keepsEqualImages
         |~~ Equal images stand each in its place. ~~|
         ~(#[1 2 3] | map ~(gt 1) | eq [false true true])
-    | law :makesASetByDistinct
+    | proves :makesASetByDistinct
         |~~ `distinct` makes a set of the images. ~~|
         ~(#[1 2 3] | map ~(gt 1) | distinct | eq #[false true])
-    | law :code/NotPathOrQuoteError/refusesAStepComputedAtTheCall
+    | proves :code/NotPathOrQuoteError/refusesAStepComputedAtTheCall
         |~~ A step written without its quote is refused. ~~|
         ~(#[1] | map (add 1) !| type | eq ::set/map/code/NotPathOrQuoteError)
     | impl ::builtin{}
@@ -381,13 +391,13 @@
 :set/filter
   |~~ Answers the set of the elements whose predicate answers `true`, a
       set again, in the one order and under the tags of the subject:
-      `#[1 2 3 4 5] | filter ~(gt 2)` answers `#[3 4 5]`. The predicate
-      is code, a quote run on each element with the element as its
-      subject; a value computed at the call in its place, `filter (gt
-      2)`, is refused under the part, and a predicate that answers
-      anything but a boolean is refused at the element, `:index` naming
-      its place in the one order. `every` and `any` ask whether the
-      predicate holds of each element or of some.
+      `#[1 2 3 4 5] | filter ~(gt 2)` answers `#[3 4 5]`. The predicate is
+      code, a quote run on each element with the element as its subject; a
+      value computed at the call in its place, `filter (gt 2)`, is refused
+      under the input, and a predicate that answers anything but a boolean
+      is refused at the element, `:index` naming its place in the one
+      order. `every` and `any` ask whether the predicate holds of each
+      element or of some.
       ::link~(::set/every | doc) ::link~(::set/any | doc)
       ::link~(::vec/filter | doc)
   ~~|
@@ -397,9 +407,9 @@
         ~~|
         /0 #[::path ::quote]
     | throws :predicate/NotPathOrQuoteError
-        |~~ The predicate is a quote, `filter ~(gt 2)`, or a path, `filter
-            /active`; written without the tilde, `filter (gt 2)`, it is
-            computed once at the call and refused.
+        |~~ The predicate is a quote, `filter ~(gt 2)`, or a path,
+            `filter /active`; written without the tilde, `filter (gt 2)`,
+            it is computed once at the call and refused.
         ~~|
     | returns
         |~~ The elements the predicate accepted, a set under the tags of
@@ -411,16 +421,16 @@
             `:index` names the element whose predicate answered another
             kind.
         ~~|
-    | law :keepsWhatThePredicateHolds
+    | proves :keepsWhatThePredicateHolds
         |~~ The elements past two are kept. ~~|
         ~(#[1 2 3 4 5] | filter ~(gt 2) | eq #[3 4 5])
-    | law :keepsTheTagsOfTheSubject
+    | proves :keepsTheTagsOfTheSubject
         |~~ A set under a tag stays under it. ~~|
         ~(#[1 2] | tag ::Box | filter ~(gt 1) | eq ::Box#[2])
-    | law :predicate/NotPathOrQuoteError/refusesAValueForCode
-        |~~ A predicate computed at the call is refused under the part. ~~|
+    | proves :predicate/NotPathOrQuoteError/refusesAValueForCode
+        |~~ A predicate computed at the call is refused under the input. ~~|
         ~(#[1 2 3] | filter (gt 1) !| type | eq ::set/filter/predicate/NotPathOrQuoteError)
-    | law :ConditionNotBooleanError/refusesANumberAnswer
+    | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~(#[1 2] | filter ~(1) !| [type (get /index)] | eq [::set/filter/ConditionNotBooleanError 0])
     | impl ::builtin{}
@@ -431,7 +441,7 @@
       element fails it. The empty set holds no element to fail it and
       answers `true`. The predicate is code, a quote run on each element
       with the element as its subject, which answers a boolean; a value
-      computed at the call in its place is refused under the part, and
+      computed at the call in its place is refused under the input, and
       anything but a boolean the predicate answers is refused at the
       element, `:index` naming its place in the one order. `any` asks
       whether some element holds it.
@@ -443,9 +453,9 @@
         ~~|
         /0 #[::path ::quote]
     | throws :predicate/NotPathOrQuoteError
-        |~~ The predicate is a quote, `every ~(gt 0)`, or a path, `every
-            /active`; written without the tilde, `every (gt 0)`, it is
-            computed once at the call and refused.
+        |~~ The predicate is a quote, `every ~(gt 0)`, or a path,
+            `every /active`; written without the tilde, `every (gt 0)`, it
+            is computed once at the call and refused.
         ~~|
     | returns
         |~~ `true` when the predicate held for every element, `false`
@@ -457,18 +467,19 @@
             `:index` names the element whose predicate answered another
             kind.
         ~~|
-    | law :holdsOfEveryElement
+    | proves :holdsOfEveryElement
         |~~ Every element of the set is positive. ~~|
         ~(#[2 4] | every ~(gt 0))
-    | law :failsOfOneElement
+    | proves :failsOfOneElement
         |~~ One element that fails the predicate fails `every`. ~~|
         ~(#[-1 2] | every ~(gt 0) | not)
-    | law :holdsOfTheEmptySet
-        |~~ The empty set holds every predicate. ~~| ~(#[] | every ~(gt 0))
-    | law :predicate/NotPathOrQuoteError/refusesAValueForCode
-        |~~ A predicate computed at the call is refused under the part. ~~|
+    | proves :holdsOfTheEmptySet
+        |~~ The empty set holds every predicate. ~~|
+        ~(#[] | every ~(gt 0))
+    | proves :predicate/NotPathOrQuoteError/refusesAValueForCode
+        |~~ A predicate computed at the call is refused under the input. ~~|
         ~(#[1 2] | every (gt 0) !| type | eq ::set/every/predicate/NotPathOrQuoteError)
-    | law :ConditionNotBooleanError/refusesANumberAnswer
+    | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~(#[1 2] | every ~(1) !| [type (get /index)] | eq [::set/every/ConditionNotBooleanError 0])
     | impl ::builtin{}
@@ -479,7 +490,7 @@
       element holds it. The empty set holds no element to hold it and
       answers `false`. The predicate is code, a quote run on each element
       with the element as its subject, which answers a boolean; a value
-      computed at the call in its place is refused under the part, and
+      computed at the call in its place is refused under the input, and
       anything but a boolean the predicate answers is refused at the
       element, `:index` naming its place in the one order. `every` asks
       whether every element holds it.
@@ -491,9 +502,9 @@
         ~~|
         /0 #[::path ::quote]
     | throws :predicate/NotPathOrQuoteError
-        |~~ The predicate is a quote, `any ~(gt 2)`, or a path, `any
-            /vip`; written without the tilde, `any (gt 2)`, it is computed
-            once at the call and refused.
+        |~~ The predicate is a quote, `any ~(gt 2)`, or a path,
+            `any /vip`; written without the tilde, `any (gt 2)`, it is
+            computed once at the call and refused.
         ~~|
     | returns
         |~~ `true` when the predicate held for some element, `false`
@@ -505,35 +516,37 @@
             `:index` names the element whose predicate answered another
             kind.
         ~~|
-    | law :holdsOfSomeElement
-        |~~ Some element is past two. ~~| ~(#[1 2 3] | any ~(gt 2))
-    | law :failsWhenNoElementHolds
+    | proves :holdsOfSomeElement
+        |~~ Some element is past two. ~~|
+        ~(#[1 2 3] | any ~(gt 2))
+    | proves :failsWhenNoElementHolds
         |~~ No element past three fails `any`. ~~|
         ~(#[1 2 3] | any ~(gt 3) | not)
-    | law :failsOfTheEmptySet
-        |~~ The empty set holds no predicate. ~~| ~(#[] | any ~(gt 0) | not)
-    | law :predicate/NotPathOrQuoteError/refusesAValueForCode
-        |~~ A predicate computed at the call is refused under the part. ~~|
+    | proves :failsOfTheEmptySet
+        |~~ The empty set holds no predicate. ~~|
+        ~(#[] | any ~(gt 0) | not)
+    | proves :predicate/NotPathOrQuoteError/refusesAValueForCode
+        |~~ A predicate computed at the call is refused under the input. ~~|
         ~(#[1 2] | any (gt 0) !| type | eq ::set/any/predicate/NotPathOrQuoteError)
-    | law :ConditionNotBooleanError/refusesANumberAnswer
+    | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~(#[1 2] | any ~(1) !| [type (get /index)] | eq [::set/any/ConditionNotBooleanError 0])
     | impl ::builtin{}
 
 :set/groupBy
   |~~ Answers the map of the elements filed under the keyword their key
-      answers, each group a set: `#[1 2 3 4] | groupBy ~(if (gt 2)
-      ~(:big) ~(:small))` answers `{:small #[1 2] :big #[3 4]}`, where a
-      vector files into vectors, each element as often as it was
-      written. Without a key an element files under itself. A key that
-      answers a string or a number files under the keyword of its text,
-      `#[1 2] | groupBy` answering `{:"1" #[1] :"2" #[2]}`, a boolean
-      or null under the keyword of its literal and a tag name under that
-      of its name, and two values whose text is one meet and are
-      refused; a key of another kind is refused, `:index` naming the
-      element. The key is
-      code, a quote run on each element, or null: `groupBy /k`, where
-      `groupBy (get /k)` is refused under the part.
+      answers, each group a set:
+      `#[1 2 3 4] | groupBy ~(if (gt 2) ~(:big) ~(:small))` answers
+      `{:small #[1 2] :big #[3 4]}`, where a vector files into vectors,
+      each element as often as it was written. Without a key an element
+      files under itself. A key that answers a string or a number files
+      under the keyword of its text, `#[1 2] | groupBy` answering
+      `{:"1" #[1] :"2" #[2]}`, a boolean or null under the keyword of its
+      literal and a tag name under that of its name, and two values whose
+      text is one meet and are refused; a key of another kind is refused,
+      `:index` naming the element. The key is code, a quote run on each
+      element, or null: `groupBy /k`, where `groupBy (get /k)` is refused
+      under the input.
       ::link~(::set/indexBy | doc) ::link~(::vec/groupBy | doc)
   ~~|
   ::fn
@@ -568,49 +581,47 @@
             answers one kind,
             `~(get /id | if (type | eq ::string) ~(it) ~(print))`.
         ~~|
-    | law :filesIntoSets
+    | carries :KeyTakenError/key
+        |~~ The keyword both values file under. ~~|
+        ::keyword
+    | carries :KeyTakenError/taken
+        |~~ The value of the key that filed under the keyword first. ~~|
+        ::any
+    | proves :filesIntoSets
         |~~ The elements file into sets under the key they answer. ~~|
         ~(#[1 2 3] | groupBy ~(if (gt 1) ~(:big) ~(:small)) | get /big | eq #[2 3])
-    | law :filesOnceWhatTheVectorRepeats
+    | proves :filesOnceWhatTheVectorRepeats
         |~~ A vector files an element as often as it was written, its set
             once.
         ~~|
         ~([1 1] | get [groupBy (distinct | groupBy)] | eq [{:"1" [1 1]} {:"1" #[1]}])
-    | law :filesUnderItselfWithoutAKey
+    | proves :filesUnderItselfWithoutAKey
         |~~ Without a key an element files under itself. ~~|
         ~(#[:a :b] | groupBy | eq {:a #[:a] :b #[:b]})
-    | law :filesANumberUnderItsText
+    | proves :filesANumberUnderItsText
         |~~ A number files under the keyword of its text. ~~|
         ~(#[1 2] | groupBy | keys | eq #[:"1" :"2"])
-    | law :filesABooleanUnderItsLiteral
+    | proves :filesABooleanUnderItsLiteral
         |~~ A boolean files under the keyword of its literal. ~~|
         ~(#[true false] | groupBy | eq {:false #[false] :true #[true]})
-    | law :filesNullUnderItsLiteral
+    | proves :filesNullUnderItsLiteral
         |~~ A null files under `:null`. ~~|
         ~(#[null 1] | groupBy | keys | eq #[:"1" :null])
-    | law :filesATagUnderItsName
+    | proves :filesATagUnderItsName
         |~~ A tag name key files under the keyword of its name. ~~|
         ~(#[1 "a"] | groupBy ~(type) | eq {:number #[1] :string #["a"]})
-    | law :KeyTakenError/refusesTwoValuesOfOneText
+    | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
         ~(#[1 "1"] | groupBy !| [type (get /key) (get /taken)] | eq [::set/groupBy/KeyTakenError :"1" 1])
-    | law :key/NotNullOrPathOrQuoteError/refusesAKeyWithoutItsQuote
+    | proves :key/NotNullOrPathOrQuoteError/refusesAKeyWithoutItsQuote
         |~~ A key written without its quote mark is refused under the
-            part.
+            input.
         ~~|
         ~(#[{:k 1}] | groupBy (get /k) !| type | eq ::set/groupBy/key/NotNullOrPathOrQuoteError)
-    | law :KeyNotKeywordError/refusesAVectorKey
+    | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ An element that is a vector files under no key. ~~|
         ~(#[[1]] | groupBy !| [type (get /index)] | eq [::set/groupBy/KeyNotKeywordError 0])
     | impl ::builtin{}
-
-:set/groupBy/KeyTakenError/key
-  |~~ The keyword both values file under. ~~|
-  ::keyword
-
-:set/groupBy/KeyTakenError/taken
-  |~~ The value of the key that filed under the keyword first. ~~|
-  ::any
 
 :set/indexBy
   |~~ Answers the map of each element under the keyword its key answers,
@@ -622,7 +633,7 @@
       under the keyword of its literal and a tag name under that of its
       name, and two values whose text is one meet and are refused; a key
       of another kind is refused, `:index` naming the element. The key is code, a quote run on each element, or null:
-      `indexBy /id`, where `indexBy (get /id)` is refused under the part.
+      `indexBy /id`, where `indexBy (get /id)` is refused under the input.
       ::link~(::set/groupBy | doc) ::link~(::vec/indexBy | doc)
   ~~|
   ::fn
@@ -657,49 +668,47 @@
             answers one kind,
             `~(get /id | if (type | eq ::string) ~(it) ~(print))`.
         ~~|
-    | law :filesEachUnderItsKey
+    | carries :KeyTakenError/key
+        |~~ The keyword both values file under. ~~|
+        ::keyword
+    | carries :KeyTakenError/taken
+        |~~ The value of the key that filed under the keyword first. ~~|
+        ::any
+    | proves :filesEachUnderItsKey
         |~~ Each element files under its key. ~~|
         ~(#[{:id :a}] | indexBy /id | get /a | eq {:id :a})
-    | law :keepsTheLastOfAlikeKeys
+    | proves :keepsTheLastOfAlikeKeys
         |~~ Of two elements under one key, the last in the one order
             stays.
         ~~|
         ~(#[{:id :a :v 1} {:id :a :v 2}] | indexBy /id | get /a/v | eq 2)
-    | law :filesUnderItselfWithoutAKey
+    | proves :filesUnderItselfWithoutAKey
         |~~ Without a key an element files under itself. ~~|
         ~(#[:a] | indexBy | eq {:a :a})
-    | law :filesANumberUnderItsText
+    | proves :filesANumberUnderItsText
         |~~ A number files under the keyword of its text. ~~|
         ~(#[{:k 2}] | indexBy /k | keys | eq #[:"2"])
-    | law :filesABooleanUnderItsLiteral
+    | proves :filesABooleanUnderItsLiteral
         |~~ A boolean files under the keyword of its literal. ~~|
         ~(#[true false] | indexBy | eq {:false false :true true})
-    | law :filesNullUnderItsLiteral
+    | proves :filesNullUnderItsLiteral
         |~~ A null files under `:null`. ~~|
         ~(#[null] | indexBy | eq {:null null})
-    | law :filesATagUnderItsName
+    | proves :filesATagUnderItsName
         |~~ A tag name key files under the keyword of its name. ~~|
         ~(#[1 "a"] | indexBy ~(type) | eq {:number 1 :string "a"})
-    | law :KeyTakenError/refusesTwoValuesOfOneText
+    | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
         ~(#[1 "1"] | indexBy !| [type (get /key) (get /taken)] | eq [::set/indexBy/KeyTakenError :"1" 1])
-    | law :key/NotNullOrPathOrQuoteError/refusesAKeyWithoutItsQuote
+    | proves :key/NotNullOrPathOrQuoteError/refusesAKeyWithoutItsQuote
         |~~ A key written without its quote mark is refused under the
-            part.
+            input.
         ~~|
         ~(#[{:id :a}] | indexBy (get /id) !| type | eq ::set/indexBy/key/NotNullOrPathOrQuoteError)
-    | law :KeyNotKeywordError/refusesAVectorKey
+    | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ An element that is a vector files under no key. ~~|
         ~(#[[1]] | indexBy !| [type (get /index)] | eq [::set/indexBy/KeyNotKeywordError 0])
     | impl ::builtin{}
-
-:set/indexBy/KeyTakenError/key
-  |~~ The keyword both values file under. ~~|
-  ::keyword
-
-:set/indexBy/KeyTakenError/taken
-  |~~ The value of the key that filed under the keyword first. ~~|
-  ::any
 
 :set/sort
   |~~ Answers the vector of the elements in the order the key ranks them,
@@ -710,7 +719,7 @@
       `distinct` after it brings the set back in the one order. The key is
       code, a quote run on each element with the element as its subject;
       a value computed at the call in its place is refused under the
-      part.
+      input.
       ::link~(::vec/sort | doc) ::link~(::set/reverse | doc)
       ::link~(::desc | doc)
   ~~|
@@ -728,21 +737,21 @@
     | returns
         |~~ The elements in the order the key ranks them, a vector. ~~|
         ::vec
-    | law :answersAVector
+    | proves :answersAVector
         |~~ The sorted elements are a vector. ~~|
         ~(#[:y :x :z] | sort | eq [:x :y :z])
-    | law :ranksByTheKey
+    | proves :ranksByTheKey
         |~~ A key ranks the elements by what it answers. ~~|
         ~(#[{:n 2} {:n 1}] | sort /n | eq [{:n 1} {:n 2}])
-    | law :descendsByADescendingKey
+    | proves :descendsByADescendingKey
         |~~ A key under `desc` ranks from the greatest down. ~~|
         ~(#[1 2 3] | sort ~(desc) | eq [3 2 1])
-    | law :losesItsOrderToDistinct
+    | proves :losesItsOrderToDistinct
         |~~ `distinct` after a sort brings the set back in the one order.
         ~~|
         ~(#[1 2 3] | sort ~(desc) | distinct | eq #[1 2 3])
-    | law :key/NotNullOrPathOrQuoteError/refusesAValueForCode
-        |~~ A key computed at the call is refused under the part. ~~|
+    | proves :key/NotNullOrPathOrQuoteError/refusesAValueForCode
+        |~~ A key computed at the call is refused under the input. ~~|
         ~(#[3 1 2] | sort (desc) !| type | eq ::set/sort/key/NotNullOrPathOrQuoteError)
     | impl ::builtin{}
 
@@ -752,14 +761,15 @@
       takes the first it was written with, `[3 1 2] | take 2` answering
       `[3 1]`. A count past the size takes the whole set, and a negative
       count takes nothing. The count is a whole number; a string or a
-      fraction is refused under the part, and a call with no count or
+      fraction is refused under the input, and a call with no count or
       with two is refused. `drop` answers the rest, and `drop 1 | take 2`
       the two after the least.
       ::link~(::set/drop | doc) ::link~(::vec/take | doc)
   ~~|
   ::fn
     | takes :count
-        |~~ How many of the least elements the call takes. ~~| /0 ::number
+        |~~ How many of the least elements the call takes. ~~|
+        /0 ::number
     | throws :count/NotNumberError
         |~~ The count is a number, `#[1 2 3] | take 2`; text that holds
             one is read by `toNumber` first, `take ("2" | toNumber)`.
@@ -776,37 +786,37 @@
     | returns
         |~~ The least elements, a set under the tags of the subject. ~~|
         ::set
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `take` takes one count: the two elements after the least are
             `drop 1 | take 2`.
         ~~|
-    | law :takesTheLeast
+    | proves :takesTheLeast
         |~~ Two of a set are its least two. ~~|
         ~(#[:d :c :b :a] | take 2 | eq #[:a :b])
-    | law :takesTheLeastWhereAVectorTakesItsFirst
+    | proves :takesTheLeastWhereAVectorTakesItsFirst
         |~~ A vector takes the first it was written with, its set the
             least.
         ~~|
         ~([3 1 2] | get [(take 2) (distinct | take 2)] | eq [[3 1] #[1 2]])
-    | law :takesTheWholeSetPastItsSize
+    | proves :takesTheWholeSetPastItsSize
         |~~ A count past the size takes the whole set. ~~|
         ~(#[:a :b] | take 9 | eq #[:a :b])
-    | law :takesNothingByANegativeCount
+    | proves :takesNothingByANegativeCount
         |~~ A negative count takes nothing. ~~|
         ~(#[:a :b :c] | take -1 | eq #[])
-    | law :takesAfterADrop
+    | proves :takesAfterADrop
         |~~ A drop before a take answers the elements after the least. ~~|
         ~(#[1 2 3] | drop 1 | take 1 | eq #[2])
-    | law :count/NotIntegerError/refusesAFraction
-        |~~ A fraction of a count is refused under the part. ~~|
+    | proves :count/NotIntegerError/refusesAFraction
+        |~~ A fraction of a count is refused under the input. ~~|
         ~(#[:a :b :c] | take 1.5 !| type | eq ::set/take/count/NotIntegerError)
-    | law :count/NotGivenError/refusesACallWithNoCount
-        |~~ A call with no count is refused under the part. ~~|
+    | proves :count/NotGivenError/refusesACallWithNoCount
+        |~~ A call with no count is refused under the input. ~~|
         ~(#[:a :b] | take !| type | eq ::set/take/count/NotGivenError)
-    | law :ArgsBeyondPartsError/refusesTwoCounts
+    | proves :ArgsBeyondInputsError/refusesTwoCounts
         |~~ A call with two counts is refused under the word. ~~|
-        ~(#[:a :b :c] | take 1 2 !| type | eq ::set/take/ArgsBeyondPartsError)
-    | law :count/NotNumberError/refusesAString
+        ~(#[:a :b :c] | take 1 2 !| type | eq ::set/take/ArgsBeyondInputsError)
+    | proves :count/NotNumberError/refusesAString
         |~~ A count written as a string is refused. ~~|
         ~(#[1 2] | take "1" !| type | eq ::set/take/count/NotNumberError)
     | impl ::builtin{}
@@ -817,14 +827,15 @@
       a vector drops the first it was written with, `[3 1 2] | drop 2`
       answering `[2]`. A count past the size drops every element, and a
       negative count drops none. The count is a whole number; a string or
-      a fraction is refused under the part, and a call with two counts is
+      a fraction is refused under the input, and a call with two counts is
       refused. `take` answers the least, and `drop (count | sub 2)` the
       greatest two, the count computed against the set.
       ::link~(::set/take | doc) ::link~(::vec/drop | doc)
   ~~|
   ::fn
     | takes :count
-        |~~ How many of the least elements the call drops. ~~| /0 ::number
+        |~~ How many of the least elements the call drops. ~~|
+        /0 ::number
     | throws :count/NotNumberError
         |~~ The count is a number, `#[1 2 3] | drop 2`; text that holds
             one is read by `toNumber` first, `drop ("2" | toNumber)`.
@@ -839,34 +850,34 @@
             tags of the subject.
         ~~|
         ::set
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `drop` takes one count: the two elements after the least are
             `drop 1 | take 2`.
         ~~|
-    | law :dropsTheLeast
+    | proves :dropsTheLeast
         |~~ Dropping two leaves the greatest. ~~|
         ~(#[:d :c :b :a] | drop 2 | eq #[:c :d])
-    | law :dropsTheLeastWhereAVectorDropsItsFirst
+    | proves :dropsTheLeastWhereAVectorDropsItsFirst
         |~~ A vector drops the first it was written with, its set the
             least.
         ~~|
         ~([3 1 2] | get [(drop 2) (distinct | drop 2)] | eq [[2] #[3]])
-    | law :dropsEveryElementPastItsSize
+    | proves :dropsEveryElementPastItsSize
         |~~ A count past the size drops every element. ~~|
         ~(#[:a :b] | drop 9 | eq #[])
-    | law :dropsNoneByANegativeCount
+    | proves :dropsNoneByANegativeCount
         |~~ A negative count drops none. ~~|
         ~(#[:a :b :c] | drop -1 | eq #[:a :b :c])
-    | law :leavesTheGreatestByACountAgainstTheSet
+    | proves :leavesTheGreatestByACountAgainstTheSet
         |~~ A count computed against the set leaves the greatest two. ~~|
         ~(#[1 2 3] | drop (count | sub 2) | eq #[2 3])
-    | law :count/NotNumberError/refusesAString
-        |~~ A count that is no number is refused under the part. ~~|
+    | proves :count/NotNumberError/refusesAString
+        |~~ A count that is no number is refused under the input. ~~|
         ~(#[:a :b :c] | drop "2" !| type | eq ::set/drop/count/NotNumberError)
-    | law :ArgsBeyondPartsError/refusesTwoCounts
+    | proves :ArgsBeyondInputsError/refusesTwoCounts
         |~~ A call with two counts is refused under the word. ~~|
-        ~(#[:a :b :c] | drop 1 2 !| type | eq ::set/drop/ArgsBeyondPartsError)
-    | law :count/NotIntegerError/refusesAFraction
+        ~(#[:a :b :c] | drop 1 2 !| type | eq ::set/drop/ArgsBeyondInputsError)
+    | proves :count/NotIntegerError/refusesAFraction
         |~~ A count that is no whole number is refused. ~~|
         ~(#[1 2] | drop 1.5 !| type | eq ::set/drop/count/NotIntegerError)
     | impl ::builtin{}
@@ -880,7 +891,7 @@
   ~~|
   ::fn
     | returns |~~ The set itself, under its tags. ~~| ::set
-    | law :isTheSetItself
+    | proves :isTheSetItself
         |~~ A set is distinct already. ~~|
         ~(#[1 2 3] | distinct | eq #[1 2 3])
     | impl ::builtin{}
@@ -895,14 +906,14 @@
   ~~|
   ::fn
     | returns |~~ The elements from the greatest down, a vector. ~~| ::vec
-    | law :answersAVector
+    | proves :answersAVector
         |~~ The reversed elements are a vector. ~~|
         ~(#[:a :b :c] | reverse | eq [:c :b :a])
-    | law :reversesTheOneOrderNotTheVector
+    | proves :reversesTheOneOrderNotTheVector
         |~~ A vector reverses its order as written, its set the one order.
         ~~|
         ~([3 1 2] | get [reverse (distinct | reverse)] | eq [[2 1 3] [3 2 1]])
-    | law :answersAVectorThatDistinctMakesASet
+    | proves :answersAVectorThatDistinctMakesASet
         |~~ A reversed set is a set again after `distinct`. ~~|
         ~(#[3 1 2] | reverse | distinct | eq #[1 2 3])
     | impl ::builtin{}
@@ -913,8 +924,8 @@
       map stays whole, and what it splices goes into one set, so an
       element two of them held is held once: `#[#[1 2] #[2 3]] | flat`
       answers `#[1 2 3]`, the union of the sets it holds, where a vector
-      of the same keeps both, `[[1 2] [2 3]] | flat` answering `[1 2 2
-      3]`. A vector nested deeper stays whole, `#[[[1]] 2] | flat`
+      of the same keeps both, `[[1 2] [2 3]] | flat` answering
+      `[1 2 2 3]`. A vector nested deeper stays whole, `#[[[1]] 2] | flat`
       answering `#[2 [1]]`.
       ::link~(::set/union | doc) ::link~(::vec/flat | doc)
   ~~|
@@ -924,18 +935,18 @@
             a set under the tags of the subject.
         ~~|
         ::set
-    | law :unitesTheSetsItHolds
+    | proves :unitesTheSetsItHolds
         |~~ A set of sets flattens into their union. ~~|
         ~(#[#[1 2] #[2 3]] | flat | eq #[1 2 3])
-    | law :holdsOnceWhatTheVectorKeepsTwice
+    | proves :holdsOnceWhatTheVectorKeepsTwice
         |~~ A vector of vectors keeps a shared element twice, its set
             once.
         ~~|
         ~([[1 2] [2 3]] | get [flat (distinct | flat)] | eq [[1 2 2 3] #[1 2 3]])
-    | law :keepsAMapWhole
+    | proves :keepsAMapWhole
         |~~ A map among the elements stays whole. ~~|
         ~(#[{:a 1} [2]] | flat | eq #[2 {:a 1}])
-    | law :keepsADeeperVectorWhole
+    | proves :keepsADeeperVectorWhole
         |~~ A vector nested deeper stays whole. ~~|
         ~(#[[[1]] 2] | flat | eq #[2 [1]])
     | impl ::builtin{}
@@ -968,39 +979,39 @@
             either is refused.
         ~~|
     | throws :reducer/NotGivenError
-        |~~ `reduce` takes the seed and then the reducer, `reduce 0
-            ~(add)`: a call that gives the reducer alone, `reduce ~(add)`,
-            gives it as the seed and leaves the reducer out. The sum of
-            numbers is `sum`.
+        |~~ `reduce` takes the seed and then the reducer,
+            `reduce 0 ~(add)`: a call that gives the reducer alone,
+            `reduce ~(add)`, gives it as the seed and leaves the reducer
+            out. The sum of numbers is `sum`.
         ~~|
     | returns
         |~~ The value the fold reached, the seed for the empty set. ~~|
         ::any
-    | law :foldsInTheOneOrder
+    | proves :foldsInTheOneOrder
         |~~ The fold meets the elements in the one order. ~~|
         ~(#["b" "a"] | reduce "" ~(append) | eq "ab")
-    | law :foldsByTheOneOrderNotAsWritten
+    | proves :foldsByTheOneOrderNotAsWritten
         |~~ A vector folds as written, its set in the one order. ~~|
         ~(["b" "a"] | get [(reduce "" ~(append)) (distinct | reduce "" ~(append))] | eq ["ba" "ab"])
-    | law :answersTheSeedForTheEmptySet
+    | proves :answersTheSeedForTheEmptySet
         |~~ The empty set answers the seed. ~~|
         ~(#[] | reduce 7 ~(add) | eq 7)
-    | law :reducer/NotGivenError/refusesTheReducerAlone
+    | proves :reducer/NotGivenError/refusesTheReducerAlone
         |~~ A reducer given alone stands as the seed and leaves no
             reducer.
         ~~|
         ~(#[1 2] | reduce ~(add) !| type | eq ::set/reduce/reducer/NotGivenError)
-    | law :runsCodeOnThePair
+    | proves :runsCodeOnThePair
         |~~ Code of more than one word runs on the pair of the value so
             far and the element.
         ~~|
         ~(#[1 2 3] | reduce 0 ~(sumOf /0 /1) | eq 6)
-    | law :reducer/NotPathOrQuoteError/refusesCodeComputedAtTheCall
+    | proves :reducer/NotPathOrQuoteError/refusesCodeComputedAtTheCall
         |~~ A reducer written without its quote is computed at the call
             and refused.
         ~~|
         ~(#[1 2] | reduce 0 (add) !| type | eq ::set/reduce/reducer/NotPathOrQuoteError)
-    | law :reducer/NotPathOrQuoteError/refusesTheReducerFirst
+    | proves :reducer/NotPathOrQuoteError/refusesTheReducerFirst
         |~~ A reducer written before the seed hands the reducer's place
             the seed.
         ~~|
@@ -1013,14 +1024,14 @@
   |~~ Answers the set of the elements of either set, in the one order and
       under the tags of the subject: `#[:a :b] | union #[:b :c]` answers
       `#[:a :b :c]`. The other value is a set, or null; a vector or a map
-      beside a set is refused under the part. With no other set the call
-      unites the values the set holds, all sets or all maps: `#[#[1] #[2]
-      #[3]] | union` answers `#[1 2 3]`, and a set of maps answers the map
-      of their entries, the later in the one order winning a key both
-      hold. A value that is neither a set nor a map is refused at its
-      index, a set beside a map with the pair, and an empty set has
-      nothing to unite. `minus` and
-      `inter` answer the difference and the common part.
+      beside a set is refused under the input. With no other set the call
+      unites the values the set holds, all sets or all maps:
+      `#[#[1] #[2] #[3]] | union` answers `#[1 2 3]`, and a set of maps
+      answers the map of their entries, the later in the one order winning
+      a key both hold. A value that is neither a set nor a map is refused
+      at its index, a set beside a map with the pair, and an empty set has
+      nothing to unite. `minus` and `inter` answer the difference and the
+      common part.
       ::link~(::set/minus | doc) ::link~(::set/inter | doc)
       ::link~(::vec/union | doc)
   ~~|
@@ -1049,50 +1060,50 @@
         |~~ The values `union` unites inside a set are all sets or all
             maps; a set beside a map is refused with the pair.
         ~~|
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `union` unites the subject with one set: several unite one
             after another, `union #[2] | union #[3]`, or as a set of sets
             with no other value, `#[#[1] #[2] #[3]] | union`.
         ~~|
-    | law :mergesTwoSets
+    | proves :mergesTwoSets
         |~~ The union holds the elements of either. ~~|
         ~(#[:a :b] | union #[:b :c] | eq #[:a :b :c])
-    | law :unitesTheSetsItHolds
+    | proves :unitesTheSetsItHolds
         |~~ Without the other set, the union of the sets it holds. ~~|
         ~(#[#[1] #[2]] | union | eq #[1 2])
-    | law :unitesTheMapsItHolds
+    | proves :unitesTheMapsItHolds
         |~~ A set of maps answers the map of their entries. ~~|
         ~(#[{:a 1} {:b 2}] | union | eq {:a 1 :b 2})
-    | law :keepsTheLaterOfAKeyBothMapsHold
+    | proves :keepsTheLaterOfAKeyBothMapsHold
         |~~ Of a key both maps hold, the later in the one order wins. ~~|
         ~(#[{:a 1} {:a 2}] | union | eq {:a 2})
-    | law :unitesSeveralOneAfterAnother
+    | proves :unitesSeveralOneAfterAnother
         |~~ Several sets unite one after another. ~~|
         ~(#[1] | union #[2] | union #[3] | eq #[1 2 3])
-    | law :other/NotNullOrSetError/refusesAVector
-        |~~ A vector beside a set is refused under the part. ~~|
+    | proves :other/NotNullOrSetError/refusesAVector
+        |~~ A vector beside a set is refused under the input. ~~|
         ~(#[:a] | union [:b] !| type | eq ::set/union/other/NotNullOrSetError)
-    | law :SubjectEmptyError/refusesTheEmptySet
+    | proves :SubjectEmptyError/refusesTheEmptySet
         |~~ The empty set holds no value. ~~|
         ~(#[] | union !| type | eq ::set/union/SubjectEmptyError)
-    | law :KindsMismatchedError/refusesASetAndAMap
+    | proves :KindsMismatchedError/refusesASetAndAMap
         |~~ A set and a map do not unite. ~~|
         ~(#[#[:a] {:b 1}] | union !| [type (get /rightType)] | eq [::set/union/KindsMismatchedError ::map])
-    | law :ElementNotSetOrMapError/refusesANumberAtItsIndex
+    | proves :ElementNotSetOrMapError/refusesANumberAtItsIndex
         |~~ A value that is neither a set nor a map is refused at its
             index.
         ~~|
         ~(#[1 2] | union !| [type (get /index)] | eq [::set/union/ElementNotSetOrMapError 0])
-    | law :ArgsBeyondPartsError/refusesTwoSets
+    | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the word. ~~|
-        ~(#[1] | union #[2] #[3] !| type | eq ::set/union/ArgsBeyondPartsError)
+        ~(#[1] | union #[2] #[3] !| type | eq ::set/union/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :set/minus
   |~~ Answers the set of the elements of the subject the other set does
       not hold, under the tags of the subject: `#[:a :b :c] | minus #[:b]`
       answers `#[:a :c]`. The other value is a set, or null; a vector or a
-      map beside a set is refused under the part. With no other set the
+      map beside a set is refused under the input. With no other set the
       call takes the first value the set holds less each one after it,
       all sets or all maps, the first in the one order, which need not be
       the first written: `::set[#[3] #[1 3]] | minus` answers `#[1]`, and
@@ -1130,56 +1141,56 @@
         |~~ The values `minus` meets inside a set are all sets or all
             maps; a set beside a map is refused with the pair.
         ~~|
-    | throws :ArgsBeyondPartsError
-        |~~ `minus` takes one set: several go one after another, `minus
-            #[2] | minus #[3]`.
+    | throws :ArgsBeyondInputsError
+        |~~ `minus` takes one set: several go one after another,
+            `minus #[2] | minus #[3]`.
         ~~|
-    | law :removesTheOtherElements
+    | proves :removesTheOtherElements
         |~~ The elements of the other set go. ~~|
         ~(#[:a :b :c] | minus #[:b] | eq #[:a :c])
-    | law :takesTheRestFromTheFirstInTheOneOrder
+    | proves :takesTheRestFromTheFirstInTheOneOrder
         |~~ Without the other set, the first in the one order less the
             rest.
         ~~|
         ~(::set[#[3] #[1 3]] | minus | eq #[1])
-    | law :keepsTheKeysTheOtherMapsLack
+    | proves :keepsTheKeysTheOtherMapsLack
         |~~ Of maps, the entries of the first whose keys the others lack.
         ~~|
         ~(#[{:a 1 :b 2} {:b 3 :c 4}] | minus | eq {:a 1})
-    | law :takesSeveralOneAfterAnother
+    | proves :takesSeveralOneAfterAnother
         |~~ Several sets go one after another. ~~|
         ~(#[1 2 3] | minus #[2] | minus #[3] | eq #[1])
-    | law :other/NotNullOrSetError/refusesAMap
-        |~~ A map beside a set is refused under the part. ~~|
+    | proves :other/NotNullOrSetError/refusesAMap
+        |~~ A map beside a set is refused under the input. ~~|
         ~(#[:a] | minus {:a 1} !| type | eq ::set/minus/other/NotNullOrSetError)
-    | law :SubjectEmptyError/refusesTheEmptySet
+    | proves :SubjectEmptyError/refusesTheEmptySet
         |~~ The empty set holds no value. ~~|
         ~(#[] | minus !| type | eq ::set/minus/SubjectEmptyError)
-    | law :KindsMismatchedError/refusesASetAndAMap
+    | proves :KindsMismatchedError/refusesASetAndAMap
         |~~ A set beside a map is refused with the pair. ~~|
         ~(#[#[:a] {:b 1}] | minus !| [type (get /rightType)] | eq [::set/minus/KindsMismatchedError ::map])
-    | law :ElementNotSetOrMapError/refusesANumberFirst
+    | proves :ElementNotSetOrMapError/refusesANumberFirst
         |~~ A first value that is neither a set nor a map is refused at
             its index.
         ~~|
         ~(#[1 #[2]] | minus !| [type (get /index)] | eq [::set/minus/ElementNotSetOrMapError 0])
-    | law :ArgsBeyondPartsError/refusesTwoSets
+    | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the word. ~~|
-        ~(#[1 2 3] | minus #[2] #[3] !| type | eq ::set/minus/ArgsBeyondPartsError)
+        ~(#[1 2 3] | minus #[2] #[3] !| type | eq ::set/minus/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :set/inter
   |~~ Answers the set of the elements both sets hold, under the tags of
       the subject: `#[:a :b :c] | inter #[:b :d]` answers `#[:b]`, and
-      whether the set holds each of several elements is `inter #[1 2] |
-      eq #[1 2]`. The other value is a set, or null; a vector or a map
-      beside a set is refused under the part. With no other set the call
-      keeps what every value the set holds shares, all sets or all maps:
-      `#[#[1 2] #[2 3]] | inter` answers `#[2]`, and of maps it keeps the
-      entries of the first, in the one order, whose keys every other
-      holds. A first value that is neither a set nor a map is refused at
-      its index, values of two kinds with the pair, and an empty set has
-      nothing to keep.
+      whether the set holds each of several elements is
+      `inter #[1 2] | eq #[1 2]`. The other value is a set, or null; a
+      vector or a map beside a set is refused under the input. With no
+      other set the call keeps what every value the set holds shares, all
+      sets or all maps: `#[#[1 2] #[2 3]] | inter` answers `#[2]`, and of
+      maps it keeps the entries of the first, in the one order, whose keys
+      every other holds. A first value that is neither a set nor a map is
+      refused at its index, values of two kinds with the pair, and an
+      empty set has nothing to keep.
       ::link~(::set/union | doc) ::link~(::set/minus | doc)
       ::link~(::vec/inter | doc) ::link~(::set/has | doc)
   ~~|
@@ -1209,43 +1220,43 @@
         |~~ The values `inter` meets inside a set are all sets or all
             maps; a set beside a map is refused with the pair.
         ~~|
-    | throws :ArgsBeyondPartsError
-        |~~ `inter` takes one set: several cross one after another, `inter
-            #[1 2] | inter #[2 3]`.
+    | throws :ArgsBeyondInputsError
+        |~~ `inter` takes one set: several cross one after another,
+            `inter #[1 2] | inter #[2 3]`.
         ~~|
-    | law :keepsTheCommonElements
+    | proves :keepsTheCommonElements
         |~~ The elements both hold stay. ~~|
         ~(#[:a :b :c] | inter #[:b :d] | eq #[:b])
-    | law :asksForSeveralElements
+    | proves :asksForSeveralElements
         |~~ A set holds each of several when crossing with them keeps them
             all.
         ~~|
         ~(#[1 2 3] | inter #[1 2] | eq #[1 2])
-    | law :keepsWhatTheSetsItHoldsShare
+    | proves :keepsWhatTheSetsItHoldsShare
         |~~ Without the other set, what the sets it holds share. ~~|
         ~(#[#[1 2] #[2 3]] | inter | eq #[2])
-    | law :keepsTheEntriesOfTheFirstMap
+    | proves :keepsTheEntriesOfTheFirstMap
         |~~ Of maps, the entries of the first whose keys every other
             holds.
         ~~|
         ~(#[{:a 1} {:a 2 :b 3}] | inter | eq {:a 1})
-    | law :other/NotNullOrSetError/refusesAVector
-        |~~ A vector beside a set is refused under the part. ~~|
+    | proves :other/NotNullOrSetError/refusesAVector
+        |~~ A vector beside a set is refused under the input. ~~|
         ~(#[:a] | inter [:a] !| type | eq ::set/inter/other/NotNullOrSetError)
-    | law :SubjectEmptyError/refusesTheEmptySet
+    | proves :SubjectEmptyError/refusesTheEmptySet
         |~~ The empty set holds no value. ~~|
         ~(#[] | inter !| type | eq ::set/inter/SubjectEmptyError)
-    | law :KindsMismatchedError/refusesASetAndAMap
+    | proves :KindsMismatchedError/refusesASetAndAMap
         |~~ A set beside a map is refused with the pair. ~~|
         ~(#[#[:a] {:b 1}] | inter !| [type (get /rightType)] | eq [::set/inter/KindsMismatchedError ::map])
-    | law :ElementNotSetOrMapError/refusesANumberFirst
+    | proves :ElementNotSetOrMapError/refusesANumberFirst
         |~~ A first value that is neither a set nor a map is refused at
             its index.
         ~~|
         ~(#[1 #[2]] | inter !| [type (get /index)] | eq [::set/inter/ElementNotSetOrMapError 0])
-    | law :ArgsBeyondPartsError/refusesTwoSets
+    | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the word. ~~|
-        ~(#[1 2] | inter #[1] #[2] !| type | eq ::set/inter/ArgsBeyondPartsError)
+        ~(#[1 2] | inter #[1] #[2] !| type | eq ::set/inter/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :set/has
@@ -1268,29 +1279,31 @@
     | returns
         |~~ `true` when the set holds the element, `false` otherwise. ~~|
         ::boolean
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `has` asks for one element: whether the set holds each of
             several is `inter #[1 2] | eq #[1 2]`.
         ~~|
-    | law :findsAnElement
-        |~~ An element held is found. ~~| ~(#[:a :b :c] | has :b)
-    | law :keepsAKeywordApartFromItsString
+    | proves :findsAnElement
+        |~~ An element held is found. ~~|
+        ~(#[:a :b :c] | has :b)
+    | proves :keepsAKeywordApartFromItsString
         |~~ A keyword element is not found by its string. ~~|
         ~(#[:a] | has "a" | not)
-    | law :findsANumberWhateverItsDigits
-        |~~ A number is found whatever its digits. ~~| ~(#[1] | has 1.0)
-    | law :asksWhetherAPlaceReads
+    | proves :findsANumberWhateverItsDigits
+        |~~ A number is found whatever its digits. ~~|
+        ~(#[1] | has 1.0)
+    | proves :asksWhetherAPlaceReads
         |~~ A path asks whether it reads, a place of the set among them. ~~|
         ~(#[:a :b] | has /1)
-    | law :asksAVectorAsOneElement
+    | proves :asksAVectorAsOneElement
         |~~ A vector given is one element, not several. ~~|
         ~(#[1 2] | has [1 2] | not)
-    | law :element/NotGivenError/refusesACallWithNoElement
-        |~~ A call with no element is refused under the part. ~~|
+    | proves :element/NotGivenError/refusesACallWithNoElement
+        |~~ A call with no element is refused under the input. ~~|
         ~(#[1 2] | has !| type | eq ::set/has/element/NotGivenError)
-    | law :ArgsBeyondPartsError/refusesTwoElements
+    | proves :ArgsBeyondInputsError/refusesTwoElements
         |~~ A call with two elements is refused under the word. ~~|
-        ~(#[1 2] | has 1 2 !| type | eq ::set/has/ArgsBeyondPartsError)
+        ~(#[1 2] | has 1 2 !| type | eq ::set/has/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :set/contains
@@ -1307,12 +1320,13 @@
     | returns
         |~~ `true` when the set holds the element, `false` otherwise. ~~|
         ::boolean
-    | law :findsAnElement
-        |~~ An element held is found. ~~| ~(#[:a :b :c] | contains :b)
-    | law :answersAsHasAnswers
+    | proves :findsAnElement
+        |~~ An element held is found. ~~|
+        ~(#[:a :b :c] | contains :b)
+    | proves :answersAsHasAnswers
         |~~ `contains` answers what `has` answers. ~~|
         ~(#[:a] | get [(has :z) (contains :z)] | eq [false false])
-    | law :holdsOnlyWholeElements
+    | proves :holdsOnlyWholeElements
         |~~ A string holds a piece of its text, a set only whole elements.
         ~~|
         ~(["abc" #["abc"]] | map ~(contains "b") | eq [true false])
@@ -1331,12 +1345,12 @@
   ~~|
   ::fn
     | returns |~~ The vector of the elements. ~~| ::vec
-    | law :leadsAMapToItsParts
+    | proves :leadsAMapToItsParts
         |~~ A map is led to its pairs and its values, the words that
             answer a vector, and a string to `split`.
         ~~|
         ~([({:a 1} | toVec !| get /nearest) ("ab" | toVec !| get /nearest)] | eq [[:entries :vals] [:split]])
-    | law :readsBack
+    | proves :readsBack
         |~~ A set turned into a vector turns back into itself. ~~|
         ~(#[2 1] | toVec | get [it toSet] | eq [[1 2] #[1 2]])
     | impl ::builtin{}
@@ -1348,7 +1362,8 @@
   ~~|
   ::fn
     | returns |~~ The set itself. ~~| ::set
-    | law :answersItself
-        |~~ A set answers itself. ~~| ~(#[1 2] | toSet | eq #[1 2])
+    | proves :answersItself
+        |~~ A set answers itself. ~~|
+        ~(#[1 2] | toSet | eq #[1 2])
     | impl ::builtin{}
 

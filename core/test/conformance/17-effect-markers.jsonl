@@ -1,2 +1,0 @@
-{"name":"a-word-that-calls-a-word-of-a-host-takes-no-mark","query":":any/quiet ~(out) | 1","expect":"1","decision":"D2"}
-{"name":"no-name-begins-with-the-sigil","query":"\"@out\" | parse !| type","expect":"::quote/ParseError","decision":"D2"}

@@ -1,4 +1,4 @@
-// A word as the tooling reads it [D164]: what a tool shows for a name,
+// A word as the tooling reads it [D251]: what a tool shows for a name,
 // and the words a value of a kind reaches.
 
 import { describe, it, expect } from 'vitest';
@@ -6,9 +6,10 @@ import { langRuntime } from '../../src/runtime/index.mjs';
 import { shownFor } from '../../src/runtime/verb.mjs';
 import { nodeOf, verbsReaching } from '../../src/runtime/nouns.mjs';
 import { answerKindsOf } from '../../src/eval.mjs';
+import { createSession } from '../../src/session.mjs';
 
 describe('a word as the tooling reads it', () => {
-  it('shows a name under a label by its address and the parts of its object [D164]', async () => {
+  it('shows a name under a label by its address and the inputs of its function [D251]', async () => {
     const shown = shownFor(await langRuntime(), 'add');
     expect(shown.address.name).toBe('number/add');
     expect(shown.labels).toEqual(['addend']);
@@ -18,7 +19,7 @@ describe('a word as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'nothingAtAll')).toBeUndefined();
   });
 
-  it('shows the first kind\'s name of a word several kinds answer, and the parts of its object', async () => {
+  it('shows the first kind\'s name of a word several kinds answer, and the inputs of its function', async () => {
     const shown = shownFor(await langRuntime(), 'gt');
     expect(shown.address.name.endsWith('/gt')).toBe(true);
     expect(shown.labels).toEqual(['value']);
@@ -28,7 +29,7 @@ describe('a word as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'type').address.name).toBe('any/type');
   });
 
-  it('shows the word a subject of the kinds reaches, and the parts of its args [D34]', async () => {
+  it('shows the word a subject of the kinds reaches, and the inputs of its function [D34]', async () => {
     const env = await langRuntime();
     expect(shownFor(env, 'count', ['vec']).address.name).toBe('vec/count');
     expect(shownFor(env, 'count', ['map']).address.name).toBe('map/count');
@@ -39,11 +40,23 @@ describe('a word as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'add', ['string']).address.name).toBe('number/add');
   });
 
-  it('reads the kinds of the answer of a name from the definition of its answer, the subject\'s own where that is the word\'s own label [D169]', async () => {
+  it('reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the word\'s own label [D169], [D251]', async () => {
     const env = await langRuntime();
     expect(answerKindsOf(env, nodeOf(env, 'vec/filter'), ['set'])).toEqual(['set']);
     expect(answerKindsOf(env, nodeOf(env, 'vec/count'), ['vec'])).toEqual(['number']);
     expect(answerKindsOf(env, nodeOf(env, 'any/coalesce'), ['vec'])).toBeNull();
+  });
+
+  it('reads the kinds of an answer its returns names as a set [D251]', async () => {
+    const session = await createSession();
+    await session.evalCell(':Box |~~ A box. ~~| | :Box/f (::fn | returns |~~ The value. ~~| #[::number ::string] | impl ~(eq 1))');
+    expect(answerKindsOf(session.env, nodeOf(session.env, 'Box/f'), ['Box'])).toEqual(['number', 'string']);
+  });
+
+  it('shows a word written as its recipe alone, the function of no commands it is, with no inputs [D253]', async () => {
+    const session = await createSession();
+    await session.evalCell(':number/double ~(mul 2)');
+    expect(shownFor(session.env, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), labels: [] });
   });
 });
 

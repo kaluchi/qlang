@@ -3,9 +3,9 @@
 // before it left, the language's first. A source whose run answers an
 // error, or that declares again a name the root holds, is refused; each
 // name under a label a source declares is the host's, which alone
-// reaches an implementation [D34]: a name that is `::builtin{}`, the
-// `construct` of a kind among them, runs the implementation the host
-// handed beside the source under its name [D80], [D157], [D167], [D169],
+// reaches an implementation [D34]: a name whose value is `::builtin{}`,
+// or a function or a kind whose recipe is, runs the implementation the
+// host handed beside the source under its name [D80], [D157], [D167], [D252],
 // and is refused as the root is declared when it was handed none; a
 // refusal the source declares takes its address, the name it is declared
 // by, once [D64].
@@ -13,7 +13,7 @@
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, fnRecipeOf, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
+import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, recipeOf, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareInvariantError } from '../errors.mjs';
@@ -70,8 +70,9 @@ export async function declareRoot(env, sources) {
 }
 
 // The descriptor of a host's primitive a name holds, itself or as the
-// recipe of a function [D251], or null.
+// recipe of a function [D251], or null; the recipe of a kind is held by
+// the node of its constructor [D252].
 function builtinOf(value) {
-  const recipe = isFn(value) ? fnRecipeOf(value) : value;
+  const recipe = isFn(value) ? recipeOf(value) : value;
   return isBuiltinDescriptor(recipe) ? recipe : null;
 }

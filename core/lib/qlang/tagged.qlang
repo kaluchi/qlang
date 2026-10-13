@@ -28,26 +28,25 @@
       ::link~(::tag | doc) ::link~(::construct | doc)
       ::link~(::qlang/values | doc)
   ~~|
-
-:tagged/reachesPayload
-  |~~ A box answers `payload`. ~~|
-  ::law~(:Box |~~ A box. ~~| | ::Box[1 2] | payload | eq [1 2])
-
-:tagged/isNoStep
-  |~~ The step `::Box[1 2]` is a `::construct`. ~~|
-  ::law~(~(::Box[1 2]) | first | type | eq ::construct)
+  ::kind
+    | proves :reachesPayload
+        |~~ A box answers `payload`. ~~|
+        ~(:Box |~~ A box. ~~| | ::Box[1 2] | payload | eq [1 2])
+    | proves :isNoStep
+        |~~ The step `::Box[1 2]` is a `::construct`. ~~|
+        ~(~(::Box[1 2]) | first | type | eq ::construct)
 
 :tagged/payload
-  |~~ Answers the value beneath the tag of the subject, `::Box[42] |
-      payload` answering `[42]`: the reverse of `tag`, so `value | tag
-      ::Foo | payload` answers the value, whatever its kind. A value
-      under two tags opens one, `::A::B[1] | payload` answering
+  |~~ Answers the value beneath the tag of the subject,
+      `::Box[42] | payload` answering `[42]`: the reverse of `tag`, so
+      `value | tag ::Foo | payload` answers the value, whatever its kind.
+      A value under two tags opens one, `::A::B[1] | payload` answering
       `::B[1]`. A set is a vector under its tag, so its payload is the
       vector of its elements in their one order, `#[2 1] | payload`
       answering `[1 2]`, and a value turned by `desc` opens to the value
       it turned. A value under no tag, a number, a string, a vector or a
-      plain map, has no payload and is refused. `within` edits the
-      payload and puts the tag back.
+      plain map, has no payload and is refused. `within` edits the payload
+      and puts the tag back.
       ::link~(::any/tag | doc) ::link~(::tagged/within | doc)
   ~~|
   ::fn
@@ -58,22 +57,22 @@
             and is its own value, and the kind of a value is read by
             `type`.
         ~~|
-    | law :answersAVector
+    | proves :answersAVector
         |~~ A box of a vector answers the vector. ~~|
         ~(:Box |~~ A box. ~~| | ::Box[42] | payload | eq [42])
-    | law :answersAString
+    | proves :answersAString
         |~~ A note of a string answers the string. ~~|
         ~(:Note |~~ A note. ~~| | ::Note"hello" | payload | eq "hello")
-    | law :undoesTag
+    | proves :undoesTag
         |~~ A value laid under a tag is its payload. ~~|
         ~({:a 1} | tag ::Foo | payload | eq {:a 1})
-    | law :opensOneTagOfTwo
+    | proves :opensOneTagOfTwo
         |~~ A value under two tags opens one. ~~|
         ~(::A::B[1] | payload | eq ::B[1])
-    | law :answersTheVectorOfASet
+    | proves :answersTheVectorOfASet
         |~~ A set's payload is its vector in its one order. ~~|
         ~(#[2 1] | payload | eq [1 2])
-    | law :SubjectNotTaggedError/refusesANumber
+    | proves :SubjectNotTaggedError/refusesANumber
         |~~ A number under no tag has no payload. ~~|
         ~(42 | payload !| [type (get /actualType)] | eq [::tagged/payload/SubjectNotTaggedError ::number])
     | impl ::builtin{}
@@ -114,43 +113,42 @@
         ::tagged
     | throws :SubjectNotTaggedError
         |~~ `within` edits a value beneath its tag; a value under no tag,
-            a vector or a plain map, is edited by `apply`, `[1 2] | apply
-            ~(reverse)`.
+            a vector or a plain map, is edited by `apply`,
+            `[1 2] | apply ~(reverse)`.
         ~~|
-    | law :keepsTheTag
+    | proves :keepsTheTag
         |~~ The edit returns under the tag. ~~|
         ~(:Box |~~ A box. ~~| | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
-    | law :editsASetAsItsVector
+    | proves :editsASetAsItsVector
         |~~ Code runs on a set as on its vector, and its answer comes back
             a set.
         ~~|
         ~(#[3 1] | within ~(get [/0 /1 /0]) | eq #[1 3])
-    | law :runsTheConstructorOnTheAnswer
+    | proves :runsTheConstructorOnTheAnswer
         |~~ An answer the tag's invariant refuses is refused as it goes
             back under the tag.
         ~~|
-        ~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0)
-          | ::Pos(3) | within ~(sub 5) !| type | eq ::Pos/NotPositiveError)
-    | law :keepsItsNamesInside
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos(3) | within ~(sub 5) !| type | eq ::Pos/NotPositiveError)
+    | proves :keepsItsNamesInside
         |~~ A name the code binds stays inside it. ~~|
         ~(:n 7 | ::Box[1] | within ~(:n 5 | [n]) | n | eq 7)
-    | law :reachesUnderTwoTags
+    | proves :reachesUnderTwoTags
         |~~ An edit under two tags reaches the innermost payload. ~~|
         ~(:Box |~~ A box. ~~| | ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])
-    | law :code/NotPathOrQuoteError/refusesANumber
+    | proves :code/NotPathOrQuoteError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
         ~(#[3 1] | within 1 !| [type (get /actualType)] | eq [::tagged/within/code/NotPathOrQuoteError ::number])
-    | law :SubjectNotTaggedError/refusesAVector
+    | proves :SubjectNotTaggedError/refusesAVector
         |~~ A vector under no tag is refused. ~~|
         ~([1 2] | within ~(reverse)
           !| [type (get /actualType)] | eq [::tagged/within/SubjectNotTaggedError ::vec])
-    | law :code/NotGivenError/refusesACallWithNoCode
-        |~~ A call with no code is refused under the part. ~~|
+    | proves :code/NotGivenError/refusesACallWithNoCode
+        |~~ A call with no code is refused under the input. ~~|
         ~(::Box[1] | within !| type | eq ::tagged/within/code/NotGivenError)
-    | law :checksTheAnswerAlone
+    | proves :checksTheAnswerAlone
         |~~ The steps between may break the tag's invariant, and the
             answer alone is checked.
         ~~|
-        ~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0) | ::Pos(3) | within ~(sub 5 | add 10) | eq ::Pos(8))
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos(3) | within ~(sub 5 | add 10) | eq ::Pos(8))
     | impl ::builtin{}
 

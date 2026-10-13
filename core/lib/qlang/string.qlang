@@ -26,63 +26,59 @@
       ::link~(::regex | doc) ::link~(::keyword | doc)
       ::link~(::any/print | doc) ::link~(::qlang/values | doc)
   ~~|
-
-:string/isAString
-  |~~ Text in quotes is a string. ~~|
-  ::law~("x" | type | eq ::string)
-
-:string/isMadeByToString
-  |~~ A number, a keyword, a tag name and a boolean become text by `toString`. ~~|
-  ::law~([5 :a ::vec true] | map ~toString | eq ["5" "a" "vec" "true"])
-
-:string/printsTheLiteral
-  |~~ `print` writes a value as its literal, a keyword with its colon. ~~|
-  ::law~([5 :a] | map ~print | eq ["5" ":a"])
-
-:string/readsTextByAPattern
-  |~~ A pattern reads text, its match and its groups. ~~|
-  ::law~("took 12ms" | match #"(\d+)ms" | eq ["12ms" "12"])
-
-:string/buildsAString
-  |~~ The constructor of a string answers it. ~~|
-  ::law~(::string"x" | eq "x")
-
-:string/readsTheEscapesOfJson
-  |~~ A tab and a quote are written by their escapes. ~~|
-  ::law~("A\t\"" | eq "A	\"")
-
-:string/readsAUnicodeEscape
-  |~~ A unicode escape writes its letter. ~~|
-  ::law~("\u0041" | eq "A")
-
-:string/construct
-  |~~ Reads a string as itself. ~~|
-  ::builtin{}
-
-:string/PayloadNotStringError
-  |~~ `::string` reads its payload as the string it is; a number or a
-      keyword becomes text by `toString`, and any value its literal by
-      `print`.
-  ~~|
-
-:string/PayloadNotStringError/refusesANumber
-  |~~ A number payload is refused; `toString` makes text of a number. ~~|
-  ::law~(::string(1) !| [type (get /actualType)] | eq [::string/PayloadNotStringError ::number])
+  ::kind
+    | wraps |~~ A string, read as itself. ~~|
+    | throws :PayloadNotStringError
+        |~~ `::string` reads its payload as the string it is; a number or
+            a keyword becomes text by `toString`, and any value its
+            literal by `print`.
+        ~~|
+    | proves :isAString
+        |~~ Text in quotes is a string. ~~|
+        ~("x" | type | eq ::string)
+    | proves :isMadeByToString
+        |~~ A number, a keyword, a tag name and a boolean become text by
+            `toString`.
+        ~~|
+        ~([5 :a ::vec true] | map ~toString | eq ["5" "a" "vec" "true"])
+    | proves :printsTheLiteral
+        |~~ `print` writes a value as its literal, a keyword with its
+            colon.
+        ~~|
+        ~([5 :a] | map ~print | eq ["5" ":a"])
+    | proves :readsTextByAPattern
+        |~~ A pattern reads text, its match and its groups. ~~|
+        ~("took 12ms" | match #"(\d+)ms" | eq ["12ms" "12"])
+    | proves :buildsAString
+        |~~ The constructor of a string answers it. ~~|
+        ~(::string"x" | eq "x")
+    | proves :readsTheEscapesOfJson
+        |~~ A tab and a quote are written by their escapes. ~~|
+        ~("A\t\"" | eq "A	\"")
+    | proves :readsAUnicodeEscape
+        |~~ A unicode escape writes its letter. ~~|
+        ~("\u0041" | eq "A")
+    | proves :PayloadNotStringError/refusesANumber
+        |~~ A number payload is refused; `toString` makes text of a
+            number.
+        ~~|
+        ~(::string(1) !| [type (get /actualType)] | eq [::string/PayloadNotStringError ::number])
+    | impl ::builtin{}
 
 :string/gt
   |~~ Answers whether the subject comes after the string the call gives,
       the two compared code unit by code unit, `"b" | gt "a"`. So an
-      upper-case letter comes before every lower-case one, `"B" | gt
-      "a"` answering `false`; a letter outside the ASCII letters comes
-      after them, `"é" | gt "z"`; a string comes after its own beginning,
-      `"abc" | gt "ab"`; and digits compare as characters, not as
-      numbers, `"10" | gt "9"` answering `false`. A string compares with
-      a string: a number or a keyword given is refused. A keyword or a
-      number in the pipe compares by the `gt` of its own kind, and a
-      vector, a set, a map or null answers no `gt`, which the refusal of
-      the call names with the kinds that do. A string under a tag
-      compares as the string beneath. `gte` answers whether the subject
-      comes after or equals, `lt` and `lte` the reverse.
+      upper-case letter comes before every lower-case one, `"B" | gt "a"`
+      answering `false`; a letter outside the ASCII letters comes after
+      them, `"é" | gt "z"`; a string comes after its own beginning,
+      `"abc" | gt "ab"`; and digits compare as characters, not as numbers,
+      `"10" | gt "9"` answering `false`. A string compares with a string:
+      a number or a keyword given is refused. A keyword or a number in the
+      pipe compares by the `gt` of its own kind, and a vector, a set, a
+      map or null answers no `gt`, which the refusal of the call names
+      with the kinds that do. A string under a tag compares as the string
+      beneath. `gte` answers whether the subject comes after or equals,
+      `lt` and `lte` the reverse.
       ::link~(::string/gte | doc) ::link~(::string/lt | doc)
       ::link~(::string/lte | doc) ::link~(::number/gt | doc)
   ~~|
@@ -101,29 +97,31 @@
             otherwise.
         ~~|
         ::boolean
-    | law :ordersByCharacters
-        |~~ The string b comes after the string a. ~~| ~("b" | gt "a")
-    | law :putsTheUpperCaseFirst
+    | proves :ordersByCharacters
+        |~~ The string b comes after the string a. ~~|
+        ~("b" | gt "a")
+    | proves :putsTheUpperCaseFirst
         |~~ An upper-case letter comes before every lower-case one. ~~|
         ~("B" | gt "a" | not)
-    | law :putsALetterBeyondAsciiAfter
+    | proves :putsALetterBeyondAsciiAfter
         |~~ A letter outside the ASCII letters comes after them. ~~|
         ~("é" | gt "z")
-    | law :followsItsOwnBeginning
-        |~~ A string comes after its own beginning. ~~| ~("abc" | gt "ab")
-    | law :comparesDigitsAsCharacters
+    | proves :followsItsOwnBeginning
+        |~~ A string comes after its own beginning. ~~|
+        ~("abc" | gt "ab")
+    | proves :comparesDigitsAsCharacters
         |~~ Digits compare as characters, not as numbers. ~~|
         ~("10" | gt "9" | not)
-    | law :comparesTheStringUnderATag
+    | proves :comparesTheStringUnderATag
         |~~ A string under a tag compares as the string beneath. ~~|
         ~(::Name("b") | gt "a")
-    | law :value/NotStringError/refusesAKeyword
+    | proves :value/NotStringError/refusesAKeyword
         |~~ A keyword is no string to compare with. ~~|
         ~("a" | gt :a !| type | eq ::string/gt/value/NotStringError)
-    | law :value/NotStringError/refusesANumber
+    | proves :value/NotStringError/refusesANumber
         |~~ A number is no string to compare with. ~~|
         ~("a" | gt 1 !| type | eq ::string/gt/value/NotStringError)
-    | law :namesTheKindsThatAnswerIt
+    | proves :namesTheKindsThatAnswerIt
         |~~ Null answers no `gt`, and the refusal names the kinds that do.
         ~~|
         ~(null | gt "a" !| get /addresses | eq #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt])
@@ -149,12 +147,13 @@
             `false` otherwise.
         ~~|
         ::boolean
-    | law :holdsOfItself
-        |~~ A string comes after or equals itself. ~~| ~("b" | gte "b")
-    | law :failsOfALaterString
+    | proves :holdsOfItself
+        |~~ A string comes after or equals itself. ~~|
+        ~("b" | gte "b")
+    | proves :failsOfALaterString
         |~~ A string does not come after a later one. ~~|
         ~("a" | gte "b" | not)
-    | law :value/NotStringError/refusesANumber
+    | proves :value/NotStringError/refusesANumber
         |~~ A number is no string to compare with. ~~|
         ~("a" | gte 1 !| type | eq ::string/gte/value/NotStringError)
     | impl ::builtin{}
@@ -180,14 +179,16 @@
             otherwise.
         ~~|
         ::boolean
-    | law :ordersByCharacters
-        |~~ The string a comes before the string b. ~~| ~("a" | lt "b")
-    | law :putsTheEmptyStringFirst
-        |~~ The empty string comes before every other. ~~| ~("" | lt "a")
-    | law :value/NotStringError/refusesANumber
+    | proves :ordersByCharacters
+        |~~ The string a comes before the string b. ~~|
+        ~("a" | lt "b")
+    | proves :putsTheEmptyStringFirst
+        |~~ The empty string comes before every other. ~~|
+        ~("" | lt "a")
+    | proves :value/NotStringError/refusesANumber
         |~~ A number is no string to compare with. ~~|
         ~("a" | lt 1 !| type | eq ::string/lt/value/NotStringError)
-    | law :failsAfter
+    | proves :failsAfter
         |~~ A string after the value is not before it. ~~|
         ~("b" | lt "a" | not)
     | impl ::builtin{}
@@ -212,12 +213,13 @@
             `false` otherwise.
         ~~|
         ::boolean
-    | law :holdsOfItself
-        |~~ A string comes before or equals itself. ~~| ~("a" | lte "a")
-    | law :failsOfAnEarlierString
+    | proves :holdsOfItself
+        |~~ A string comes before or equals itself. ~~|
+        ~("a" | lte "a")
+    | proves :failsOfAnEarlierString
         |~~ A string does not come before an earlier one. ~~|
         ~("b" | lte "a" | not)
-    | law :value/NotStringError/refusesANumber
+    | proves :value/NotStringError/refusesANumber
         |~~ A number is no string to compare with. ~~|
         ~("a" | lte 1 !| type | eq ::string/lte/value/NotStringError)
     | impl ::builtin{}
@@ -236,31 +238,33 @@
   ~~|
   ::fn
     | returns |~~ How many characters the string holds. ~~| ::number
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `count` counts every character of the string and takes no
-            value: the occurrences of a piece count by `split`, `"banana"
-            | split "a" | count | sub 1` answering `3`.
+            value: the occurrences of a piece count by `split`,
+            `"banana" | split "a" | count | sub 1` answering `3`.
         ~~|
-    | law :countsCharacters
-        |~~ Three letters count three. ~~| ~("abc" | count | eq 3)
-    | law :countsALetterOfAnyScriptOne
+    | proves :countsCharacters
+        |~~ Three letters count three. ~~|
+        ~("abc" | count | eq 3)
+    | proves :countsALetterOfAnyScriptOne
         |~~ A letter of any script counts one. ~~|
         ~("привет" | count | eq 6)
-    | law :countsNoneInTheEmptyString
-        |~~ The empty string counts none. ~~| ~("" | count | eq 0)
-    | law :countsAnEmojiOne
+    | proves :countsNoneInTheEmptyString
+        |~~ The empty string counts none. ~~|
+        ~("" | count | eq 0)
+    | proves :countsAnEmojiOne
         |~~ An emoji is one code point and counts one. ~~|
         ~("😀" | count | eq 1)
-    | law :countsEachCodePointOfATonedEmoji
+    | proves :countsEachCodePointOfATonedEmoji
         |~~ An emoji with a skin tone counts its two code points. ~~|
         ~("\ud83d\udc4d\ud83c\udffd" | count | eq 2)
-    | law :countsACombiningAccentApart
+    | proves :countsACombiningAccentApart
         |~~ A letter with a combining accent counts two. ~~|
         ~("e\u0301" | count | eq 2)
-    | law :ArgsBeyondPartsError/refusesAPiece
+    | proves :ArgsBeyondInputsError/refusesAPiece
         |~~ A piece given to `count` is refused under the word. ~~|
-        ~("banana" | count "a" !| type | eq ::string/count/ArgsBeyondPartsError)
-    | law :namesTheKindsThatAnswerIt
+        ~("banana" | count "a" !| type | eq ::string/count/ArgsBeyondInputsError)
+    | proves :namesTheKindsThatAnswerIt
         |~~ A number answers no `count`, and the refusal names the kinds
             that do.
         ~~|
@@ -297,24 +301,25 @@
             subject.
         ~~|
         ::string
-    | law :takesTheFirstCharacters
+    | proves :takesTheFirstCharacters
         |~~ Two characters of a string are its first two. ~~|
         ~("db_host" | take 2 | eq "db")
-    | law :takesNoMoreThanThereAre
+    | proves :takesNoMoreThanThereAre
         |~~ A count past the end takes the whole string. ~~|
         ~("ab" | take 5 | eq "ab")
-    | law :takesNoneBelowZero
-        |~~ A count below zero takes none. ~~| ~("abc" | take -1 | eq "")
-    | law :takesAnEmojiWhole
+    | proves :takesNoneBelowZero
+        |~~ A count below zero takes none. ~~|
+        ~("abc" | take -1 | eq "")
+    | proves :takesAnEmojiWhole
         |~~ An emoji is one character, taken whole. ~~|
         ~("😀x" | take 1 | eq "😀")
-    | law :answersUnderTheTagOfTheSubject
+    | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
         ~(::Name("ab") | take 1 | eq ::Name("a"))
-    | law :count/NotNumberError/refusesAString
+    | proves :count/NotNumberError/refusesAString
         |~~ A count written as a string is refused. ~~|
         ~("abc" | take "2" !| type | eq ::string/take/count/NotNumberError)
-    | law :count/NotIntegerError/refusesAFraction
+    | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction of a count is refused. ~~|
         ~("abc" | take 1.5 !| type | eq ::string/take/count/NotIntegerError)
     | impl ::builtin{}
@@ -348,43 +353,43 @@
             subject.
         ~~|
         ::string
-    | law :dropsAPrefix
+    | proves :dropsAPrefix
         |~~ Dropping a prefix of known length leaves the rest. ~~|
         ~("db_host" | drop 3 | eq "host")
-    | law :leavesNothingPastTheEnd
+    | proves :leavesNothingPastTheEnd
         |~~ A count past the end leaves the empty string. ~~|
         ~("abc" | drop 99 | eq "")
-    | law :leavesTheWholeStringBelowZero
+    | proves :leavesTheWholeStringBelowZero
         |~~ A count below zero leaves the whole string. ~~|
         ~("abc" | drop -1 | eq "abc")
-    | law :dropsAnEmojiWhole
+    | proves :dropsAnEmojiWhole
         |~~ An emoji is one character, dropped whole. ~~|
         ~("😀x" | drop 1 | eq "x")
-    | law :answersUnderTheTagOfTheSubject
+    | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
         ~(::Name("ab") | drop 1 | eq ::Name("b"))
-    | law :count/NotIntegerError/refusesAFraction
+    | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction of a count is refused. ~~|
         ~("abc" | drop 0.5 !| type | eq ::string/drop/count/NotIntegerError)
-    | law :count/NotNumberError/refusesAString
+    | proves :count/NotNumberError/refusesAString
         |~~ A count written as a string is refused. ~~|
         ~("abc" | drop "1" !| type | eq ::string/drop/count/NotNumberError)
     | impl ::builtin{}
 
 :string/split
   |~~ Answers the pieces of the string between the occurrences of the
-      separator the call gives, in order, a vector of strings: `"a,b,c" |
-      split ","` answers `["a" "b" "c"]`. Two separators side by side
-      leave an empty piece between them, a separator at an end an empty
-      piece there, and the empty string is one empty piece; a separator
-      the string lacks leaves it whole, one piece. The separator is any
-      string, a line break or `"::"` among them, or a pattern, which cuts
-      at every match, `"a, b;c" | split #"[,;]\s*"` answering
+      separator the call gives, in order, a vector of strings:
+      `"a,b,c" | split ","` answers `["a" "b" "c"]`. Two separators side
+      by side leave an empty piece between them, a separator at an end an
+      empty piece there, and the empty string is one empty piece; a
+      separator the string lacks leaves it whole, one piece. The separator
+      is any string, a line break or `"::"` among them, or a pattern,
+      which cuts at every match, `"a, b;c" | split #"[,;]\s*"` answering
       `["a" "b" "c"]`, the groups it captures left out of the pieces; a
-      keyword is refused. The empty separator cuts the string into its characters,
-      as `count` counts them: a letter stands alone, and an emoji
-      of one code point stays whole. `join` writes the pieces back, and
-      `lines` breaks a text at its line breaks. A vector of strings
+      keyword is refused. The empty separator cuts the string into its
+      characters, as `count` counts them: a letter stands alone, and an
+      emoji of one code point stays whole. `join` writes the pieces back,
+      and `lines` breaks a text at its line breaks. A vector of strings
       splits by `map`, each element into a vector of its own.
       ::link~(::string/lines | doc) ::link~(::vec/join | doc)
   ~~|
@@ -411,55 +416,55 @@
             `map ~(split ",")`, and a number or a keyword becomes text by
             `toString`.
         ~~|
-    | law :cutsAtEveryMatchOfAPattern
+    | proves :cutsAtEveryMatchOfAPattern
         |~~ A pattern cuts at every match, its groups left out of the
             pieces.
         ~~|
         ~("a, b;c" | get [(split #"[,;]\s*") (split #"([,;])\s*")] | eq [["a" "b" "c"] ["a" "b" "c"]])
-    | law :cutsAtTheSeparator
+    | proves :cutsAtTheSeparator
         |~~ The pieces between the commas. ~~|
         ~("a,b,c" | split "," | eq ["a" "b" "c"])
-    | law :leavesAnEmptyPieceBetweenTwoSeparators
+    | proves :leavesAnEmptyPieceBetweenTwoSeparators
         |~~ Two separators side by side leave an empty piece between them.
         ~~|
         ~("a,,b" | split "," | eq ["a" "" "b"])
-    | law :leavesAnEmptyPieceAtAnEnd
+    | proves :leavesAnEmptyPieceAtAnEnd
         |~~ A separator at an end leaves an empty piece there. ~~|
         ~("a,b," | split "," | eq ["a" "b" ""])
-    | law :cutsTheEmptyStringIntoOneEmptyPiece
+    | proves :cutsTheEmptyStringIntoOneEmptyPiece
         |~~ The empty string is one empty piece. ~~|
         ~("" | split "," | eq [""])
-    | law :leavesAStringWithoutTheSeparatorWhole
+    | proves :leavesAStringWithoutTheSeparatorWhole
         |~~ A separator the string lacks leaves it whole. ~~|
         ~("a,b" | split ";" | eq ["a,b"])
-    | law :cutsAtALineBreak
+    | proves :cutsAtALineBreak
         |~~ A line break separates as any separator does. ~~|
         ~("line1\nline2" | split "\n" | eq ["line1" "line2"])
-    | law :cutsAtASeparatorOfSeveralCharacters
+    | proves :cutsAtASeparatorOfSeveralCharacters
         |~~ A separator may be longer than one character. ~~|
         ~("a::b" | split "::" | eq ["a" "b"])
-    | law :cutsEveryLetterApartAtTheEmptySeparator
+    | proves :cutsEveryLetterApartAtTheEmptySeparator
         |~~ The empty separator leaves every letter alone. ~~|
         ~("abc" | split "" | eq ["a" "b" "c"])
-    | law :keepsAnEmojiWholeAtTheEmptySeparator
+    | proves :keepsAnEmojiWholeAtTheEmptySeparator
         |~~ The empty separator keeps an emoji of one code point whole. ~~|
         ~("😀x" | split "" | eq ["😀" "x"])
-    | law :readsBackByJoin
+    | proves :readsBackByJoin
         |~~ `join` writes the pieces back. ~~|
         ~("a,b" | split "," | join "," | eq "a,b")
-    | law :splitsEachElementByMap
+    | proves :splitsEachElementByMap
         |~~ A vector of strings splits by `map`, each into a vector of its
             own.
         ~~|
         ~(["a,b" "c"] | map ~(split ",") | eq [["a" "b"] ["c"]])
-    | law :SubjectNotStringError/refusesANumber
+    | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no string to cut. ~~|
         ~(42 | split "," !| [type (get /actualType)] | eq [::string/split/SubjectNotStringError ::number])
-    | law :separator/NotRegexOrStringError/refusesAKeyword
+    | proves :separator/NotRegexOrStringError/refusesAKeyword
         |~~ A keyword is no separator. ~~|
         ~("abc" | split :b !| type | eq ::string/split/separator/NotRegexOrStringError)
-    | law :separator/NotGivenError/refusesACallWithNoSeparator
-        |~~ A call with no separator is refused under the part. ~~|
+    | proves :separator/NotGivenError/refusesACallWithNoSeparator
+        |~~ A call with no separator is refused under the input. ~~|
         ~("abc" | split !| type | eq ::string/split/separator/NotGivenError)
     | impl ::builtin{}
 
@@ -480,47 +485,49 @@
   ~~|
   ::fn
     | returns
-        |~~ The lines of the text in order, without their breaks. ~~| ::vec
+        |~~ The lines of the text in order, without their breaks. ~~|
+        ::vec
     | throws :SubjectNotStringError
         |~~ `lines` breaks a string: a vector of texts breaks by `map`,
             `map ~lines`, and a number or a keyword becomes text by
             `toString`.
         ~~|
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `lines` breaks a text at its line breaks alone: a text breaks
             at another separator by `split`, `split ";"`.
         ~~|
-    | law :splitsAtLineBreaks
+    | proves :splitsAtLineBreaks
         |~~ Each line is a string. ~~|
         ~("north\nsouth" | lines | eq ["north" "south"])
-    | law :takesACarriageReturnWithItsBreak
+    | proves :takesACarriageReturnWithItsBreak
         |~~ A carriage return before a break belongs to the ending. ~~|
         ~("one\r\ntwo" | lines | eq ["one" "two"])
-    | law :endsNoLineAtACarriageReturnAlone
+    | proves :endsNoLineAtACarriageReturnAlone
         |~~ A carriage return alone ends no line. ~~|
         ~("a\rb" | lines | count | eq 1)
-    | law :closesTheLastLineAtAClosingBreak
+    | proves :closesTheLastLineAtAClosingBreak
         |~~ A break at the end opens no empty line. ~~|
         ~("one\ntwo\n" | lines | eq ["one" "two"])
-    | law :keepsAnEmptyLine
+    | proves :keepsAnEmptyLine
         |~~ An empty line between two breaks stays. ~~|
         ~("a\n\nb" | lines | eq ["a" "" "b"])
-    | law :findsNoLineInTheEmptyString
-        |~~ The empty string holds no line. ~~| ~("" | lines | eq [])
-    | law :writesBackByJoin
+    | proves :findsNoLineInTheEmptyString
+        |~~ The empty string holds no line. ~~|
+        ~("" | lines | eq [])
+    | proves :writesBackByJoin
         |~~ `join "\n"` writes the lines back. ~~|
         ~("a\nb" | lines | join "\n" | eq "a\nb")
-    | law :breaksEachTextByMap
+    | proves :breaksEachTextByMap
         |~~ A vector of texts breaks by `map`, each into a vector of its
             own.
         ~~|
         ~(["a\nb" "c"] | map ~lines | eq [["a" "b"] ["c"]])
-    | law :SubjectNotStringError/refusesANumber
+    | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text. ~~|
         ~(42 | lines !| [type (get /actualType)] | eq [::string/lines/SubjectNotStringError ::number])
-    | law :ArgsBeyondPartsError/refusesASeparator
+    | proves :ArgsBeyondInputsError/refusesASeparator
         |~~ A separator given to `lines` is refused under the word. ~~|
-        ~("a;b" | lines ";" !| type | eq ::string/lines/ArgsBeyondPartsError)
+        ~("a;b" | lines ";" !| type | eq ::string/lines/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :string/lower
@@ -543,22 +550,23 @@
             `toString`, `:A | toString | lower`, and a vector of strings
             lowers by `map`, `map ~lower`.
         ~~|
-    | law :lowersEveryLetter
+    | proves :lowersEveryLetter
         |~~ Every letter becomes lower case. ~~|
         ~("Ann@Example.COM" | lower | eq "ann@example.com")
-    | law :lowersALetterOfAnyScript
-        |~~ A letter of any script lowers. ~~| ~("Ä" | lower | eq "ä")
-    | law :makesCaseVariantsEqual
+    | proves :lowersALetterOfAnyScript
+        |~~ A letter of any script lowers. ~~|
+        ~("Ä" | lower | eq "ä")
+    | proves :makesCaseVariantsEqual
         |~~ Two strings that differ in case alone are equal once lowered.
         ~~|
         ~(["Ann" "ANN"] | map ~lower | distinct | count | eq 1)
-    | law :mayGrowTheCount
+    | proves :mayGrowTheCount
         |~~ A letter may lower into more than one character. ~~|
         ~("İ" | lower | count | eq 2)
-    | law :answersUnderTheTagOfTheSubject
+    | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
         ~(::Name("Ab") | lower | eq ::Name("ab"))
-    | law :SubjectNotStringError/refusesAKeyword
+    | proves :SubjectNotStringError/refusesAKeyword
         |~~ A keyword has no case to lower. ~~|
         ~(:Ab | lower !| type | eq ::string/lower/SubjectNotStringError)
     | impl ::builtin{}
@@ -578,25 +586,25 @@
         ::string
     | throws :SubjectNotStringError
         |~~ `upper` raises a string: a keyword gives its name by
-            `toString`, and a vector of strings raises by `map`, `map
-            ~upper`.
+            `toString`, and a vector of strings raises by `map`,
+            `map ~upper`.
         ~~|
-    | law :raisesEveryLetter
+    | proves :raisesEveryLetter
         |~~ Every letter becomes upper case. ~~|
         ~("ok, go" | upper | eq "OK, GO")
-    | law :mayGrowTheCount
+    | proves :mayGrowTheCount
         |~~ A letter may raise into more than one character. ~~|
         ~("Straße" | upper | eq "STRASSE")
-    | law :answersUnderTheTagOfTheSubject
+    | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
         ~(::Name("ab") | upper | eq ::Name("AB"))
-    | law :raisesEachElementByMap
+    | proves :raisesEachElementByMap
         |~~ A vector of strings raises by `map`. ~~|
         ~(["a" "b"] | map ~upper | eq ["A" "B"])
-    | law :SubjectNotStringError/refusesAKeyword
+    | proves :SubjectNotStringError/refusesAKeyword
         |~~ A keyword has no case to raise. ~~|
         ~(:ab | upper !| type | eq ::string/upper/SubjectNotStringError)
-    | law :SubjectNotStringError/namesTheReadOfAPath
+    | proves :SubjectNotStringError/namesTheReadOfAPath
         |~~ A path names the read of its field the step was likely meant
             for.
         ~~|
@@ -622,41 +630,42 @@
             `map ~trim`, and a number or a keyword becomes text by
             `toString`.
         ~~|
-    | law :dropsTheWhitespaceAtTheEnds
+    | proves :dropsTheWhitespaceAtTheEnds
         |~~ The tab, the spaces and the break at the ends go. ~~|
         ~("\t db_host \n" | trim | eq "db_host")
-    | law :dropsTheNoBreakSpace
+    | proves :dropsTheNoBreakSpace
         |~~ The no-break space at the ends goes too. ~~|
         ~("\u00a0a\u00a0" | trim | eq "a")
-    | law :keepsTheWhitespaceInside
+    | proves :keepsTheWhitespaceInside
         |~~ The whitespace inside the string stays. ~~|
         ~("a  b" | trim | eq "a  b")
-    | law :cleansTheFieldsOfALine
+    | proves :cleansTheFieldsOfALine
         |~~ The fields of a line compare as the text they hold once
             trimmed.
         ~~|
         ~("a, b ,c" | split "," | map ~trim | eq ["a" "b" "c"])
-    | law :answersUnderTheTagOfTheSubject
+    | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
         ~(::Name(" a ") | trim | eq ::Name("a"))
-    | law :SubjectNotStringError/refusesANumber
+    | proves :SubjectNotStringError/refusesANumber
         |~~ A number has no whitespace to trim. ~~|
         ~(42 | trim !| [type (get /actualType)] | eq [::string/trim/SubjectNotStringError ::number])
     | impl ::builtin{}
 
 :string/contains
   |~~ Answers whether the string holds the needle the call gives as a
-      piece of its text, anywhere, inside a word among it: `"hello" |
-      contains "ell"` answers `true`. Every string holds the empty
-      needle. Case counts, `"Hello" | contains "h"` answering `false`;
-      where it should not, `lower` comes first, `lower | contains "h"`.
-      The needle is a text or a pattern, which asks whether a match stands
-      anywhere, `"took 12ms" | contains #"\d+ms"`, and of the whole text
-      when `^` and `$` anchor it; a keyword is refused, and `toString`
-      gives its name. The name `contains` asks a vector and a set for an
-      element, whole, so `["ab"] | contains "a"` answers `false`, and a
-      number or a map answers no `contains`, which the refusal of the
-      call names with the kinds that do.
+      piece of its text, anywhere, inside a word among it:
+      `"hello" | contains "ell"` answers `true`. Every string holds the
+      empty needle. Case counts, `"Hello" | contains "h"` answering
+      `false`; where it should not, `lower` comes first,
+      `lower | contains "h"`. The needle is a text or a pattern, which
+      asks whether a match stands anywhere,
+      `"took 12ms" | contains #"\d+ms"`, and of the whole text when `^`
+      and `$` anchor it; a keyword is refused, and `toString` gives its
+      name. The name `contains` asks a vector and a set for an element,
+      whole, so `["ab"] | contains "a"` answers `false`, and a number or a
+      map answers no `contains`, which the refusal of the call names with
+      the kinds that do.
       ::link~(::string/startsWith | doc) ::link~(::string/endsWith | doc)
       ::link~(::vec/contains | doc)
   ~~|
@@ -673,33 +682,36 @@
     | returns
         |~~ `true` when the text holds the needle, `false` otherwise. ~~|
         ::boolean
-    | law :findsAWord
+    | proves :findsAWord
         |~~ A word of the string is found. ~~|
         ~("hello world" | contains "world")
-    | law :findsTextInside
-        |~~ Text inside a word is found. ~~| ~("hello" | contains "ell")
-    | law :missesAbsentText
+    | proves :findsTextInside
+        |~~ Text inside a word is found. ~~|
+        ~("hello" | contains "ell")
+    | proves :missesAbsentText
         |~~ Text the string lacks is not found. ~~|
         ~("hello" | contains "xyz" | not)
-    | law :holdsTheEmptyNeedle
+    | proves :holdsTheEmptyNeedle
         |~~ Every string holds the empty needle. ~~|
         ~("hello" | contains "")
-    | law :countsCase |~~ Case counts. ~~| ~("Hello" | contains "h" | not)
-    | law :findsAMatchOfAPattern
+    | proves :countsCase
+        |~~ Case counts. ~~|
+        ~("Hello" | contains "h" | not)
+    | proves :findsAMatchOfAPattern
         |~~ A pattern is asked whether a match stands anywhere. ~~|
         ~(["took 12ms" "took long"] | map ~(contains #"\d+ms") | eq [true false])
-    | law :ignoresCaseAfterLower
+    | proves :ignoresCaseAfterLower
         |~~ Lowered first, the string holds the needle whatever its case.
         ~~|
         ~("Hello" | lower | contains "h")
-    | law :asksAVectorForAWholeElement
+    | proves :asksAVectorForAWholeElement
         |~~ A vector of strings is asked for a whole element, not a piece.
         ~~|
         ~(["ab"] | contains "a" | not)
-    | law :needle/NotRegexOrStringError/refusesAKeyword
+    | proves :needle/NotRegexOrStringError/refusesAKeyword
         |~~ A keyword is no needle. ~~|
         ~("hi" | contains :h !| type | eq ::string/contains/needle/NotRegexOrStringError)
-    | law :namesTheKindsThatAnswerIt
+    | proves :namesTheKindsThatAnswerIt
         |~~ A map answers no `contains`, and the refusal names the kinds
             that do.
         ~~|
@@ -723,9 +735,9 @@
         /0 ::string
     | throws :prefix/NotStringError
         |~~ The prefix is a string, `"abc" | startsWith "ab"`; a keyword
-            gives its name by `toString` first, `startsWith (:ab |
-            toString)`, and a pattern at the start of the text is asked by
-            `contains`, `contains #"^\d"`.
+            gives its name by `toString` first,
+            `startsWith (:ab | toString)`, and a pattern at the start of
+            the text is asked by `contains`, `contains #"^\d"`.
         ~~|
     | returns
         |~~ `true` when the text begins with the prefix, `false`
@@ -737,26 +749,28 @@
             first, `get /name | startsWith "a"`, and a vector of strings
             asks by `map`.
         ~~|
-    | law :findsThePrefix
+    | proves :findsThePrefix
         |~~ The string begins with its first word. ~~|
         ~("hello world" | startsWith "hello")
-    | law :missesAnotherPrefix
+    | proves :missesAnotherPrefix
         |~~ Another word does not begin it. ~~|
         ~("hello" | startsWith "world" | not)
-    | law :beginsWithTheEmptyPrefix
+    | proves :beginsWithTheEmptyPrefix
         |~~ The empty prefix begins every string. ~~|
         ~("hello" | startsWith "")
-    | law :missesALongerPrefix
+    | proves :missesALongerPrefix
         |~~ A prefix longer than the string begins none. ~~|
         ~("hi" | startsWith "hello" | not)
-    | law :countsCase |~~ Case counts. ~~| ~("Hello" | startsWith "h" | not)
-    | law :asksEachElementByMap
+    | proves :countsCase
+        |~~ Case counts. ~~|
+        ~("Hello" | startsWith "h" | not)
+    | proves :asksEachElementByMap
         |~~ A vector of strings asks by `map`, each element apart. ~~|
         ~(["ab" "ba"] | map ~(startsWith "a") | eq [true false])
-    | law :SubjectNotStringError/refusesAVector
+    | proves :SubjectNotStringError/refusesAVector
         |~~ A vector is no string to read the beginning of. ~~|
         ~(["a"] | startsWith "a" !| type | eq ::string/startsWith/SubjectNotStringError)
-    | law :prefix/NotStringError/refusesAKeyword
+    | proves :prefix/NotStringError/refusesAKeyword
         |~~ A keyword is no prefix. ~~|
         ~("hi" | startsWith :h !| type | eq ::string/startsWith/prefix/NotStringError)
     | impl ::builtin{}
@@ -777,9 +791,9 @@
         /0 ::string
     | throws :suffix/NotStringError
         |~~ The suffix is a string, `"abc" | endsWith "bc"`; a keyword
-            gives its name by `toString` first, `endsWith (:bc |
-            toString)`, and a pattern at the end of the text is asked by
-            `contains`, `contains #"\d$"`.
+            gives its name by `toString` first,
+            `endsWith (:bc | toString)`, and a pattern at the end of the
+            text is asked by `contains`, `contains #"\d$"`.
         ~~|
     | returns
         |~~ `true` when the text ends with the suffix, `false` otherwise.
@@ -790,25 +804,28 @@
             `get /file | endsWith ".json"`, and a vector of strings asks
             by `map`.
         ~~|
-    | law :findsTheSuffix
+    | proves :findsTheSuffix
         |~~ The string ends with its last word. ~~|
         ~("hello world" | endsWith "world")
-    | law :missesAnotherSuffix
+    | proves :missesAnotherSuffix
         |~~ Another word does not end it. ~~|
         ~("hello" | endsWith "xyz" | not)
-    | law :endsWithTheEmptySuffix
-        |~~ The empty suffix ends every string. ~~| ~("hello" | endsWith "")
-    | law :missesALongerSuffix
+    | proves :endsWithTheEmptySuffix
+        |~~ The empty suffix ends every string. ~~|
+        ~("hello" | endsWith "")
+    | proves :missesALongerSuffix
         |~~ A suffix longer than the string ends none. ~~|
         ~("hi" | endsWith "ohi" | not)
-    | law :countsCase |~~ Case counts. ~~| ~("Hello" | endsWith "O" | not)
-    | law :asksEachElementByMap
+    | proves :countsCase
+        |~~ Case counts. ~~|
+        ~("Hello" | endsWith "O" | not)
+    | proves :asksEachElementByMap
         |~~ A vector of strings asks by `map`, each element apart. ~~|
         ~(["ab" "ba"] | map ~(endsWith "a") | eq [false true])
-    | law :SubjectNotStringError/refusesAVector
+    | proves :SubjectNotStringError/refusesAVector
         |~~ A vector is no string to read the end of. ~~|
         ~(["a"] | endsWith "a" !| type | eq ::string/endsWith/SubjectNotStringError)
-    | law :suffix/NotStringError/refusesAKeyword
+    | proves :suffix/NotStringError/refusesAKeyword
         |~~ A keyword is no suffix. ~~|
         ~("hi" | endsWith :i !| type | eq ::string/endsWith/suffix/NotStringError)
     | impl ::builtin{}
@@ -836,30 +853,31 @@
             subject.
         ~~|
         ::string
-    | law :putsThePrefixInFront
+    | proves :putsThePrefixInFront
         |~~ The prefix goes in front. ~~|
         ~("world" | prepend "hello " | eq "hello world")
-    | law :keepsTheTag
+    | proves :keepsTheTag
         |~~ A string under a tag answers under the tag. ~~|
         ~(::Box("b") | prepend "a" | eq ::Box("ab"))
-    | law :prependsTheTextOfANumber
+    | proves :prependsTheTextOfANumber
         |~~ A number becomes text by `toString` before it goes in front. ~~|
         ~("x" | prepend (42 | toString) | eq "42x")
-    | law :writesAKeywordAsItsName
+    | proves :writesAKeywordAsItsName
         |~~ A keyword goes in front as its name. ~~|
         ~("x" | prepend :a | eq "ax")
-    | law :prefix/NotKeywordOrStringError/refusesANumber
+    | proves :prefix/NotKeywordOrStringError/refusesANumber
         |~~ A number prefix is refused; `toString` makes it text. ~~|
         ~("x" | prepend 42 !| type | eq ::string/prepend/prefix/NotKeywordOrStringError)
     | impl ::builtin{}
 
 :string/append
-  |~~ Answers the string with the suffix the call gives after it, `"hello"
-      | append " world"` answering `"hello world"`. A string under a tag
-      answers under the tag. The suffix is a string, or a keyword written
-      as its name, `"x" | append :a` answering `"xa"`; a number becomes
-      text by `toString` first, `append (n | toString)`. The name `append`
-      also puts an element after the last of a vector, `[1] | append 2`.
+  |~~ Answers the string with the suffix the call gives after it,
+      `"hello" | append " world"` answering `"hello world"`. A string
+      under a tag answers under the tag. The suffix is a string, or a
+      keyword written as its name, `"x" | append :a` answering `"xa"`; a
+      number becomes text by `toString` first, `append (n | toString)`.
+      The name `append` also puts an element after the last of a vector,
+      `[1] | append 2`.
       ::link~(::string/prepend | doc) ::link~(::vec/append | doc)
   ~~|
   ::fn
@@ -875,37 +893,37 @@
             subject.
         ~~|
         ::string
-    | law :putsTheSuffixAfter
+    | proves :putsTheSuffixAfter
         |~~ The suffix goes after. ~~|
         ~("hello" | append " world" | eq "hello world")
-    | law :keepsTheTag
+    | proves :keepsTheTag
         |~~ A string under a tag answers under the tag. ~~|
         ~(::Box("a") | append "b" | eq ::Box("ab"))
-    | law :appendsTheTextOfANumber
+    | proves :appendsTheTextOfANumber
         |~~ A number becomes text by `toString` before it goes after. ~~|
         ~("x" | append (42 | toString) | eq "x42")
-    | law :writesAKeywordAsItsName
+    | proves :writesAKeywordAsItsName
         |~~ A keyword goes after as its name. ~~|
         ~("x" | append :a | eq "xa")
-    | law :suffix/NotKeywordOrStringError/refusesANumber
+    | proves :suffix/NotKeywordOrStringError/refusesANumber
         |~~ A number suffix is refused; `toString` makes it text. ~~|
         ~("x" | append 42 !| type | eq ::string/append/suffix/NotKeywordOrStringError)
     | impl ::builtin{}
 
 :string/parseJson
-  |~~ Answers the value the JSON text of the string spells, the reverse
-      of `json`: an object is a map whose keys are keywords, a key with
-      a space among them quoted, an array a vector, and a number, a
-      string, `true`, `false` and `null` themselves; whitespace around
-      the text is read past, and a key written twice keeps its last
-      value. A string that holds a number reads as the number, `"42" |
-      parseJson`, while `toNumber` reads a number alone. JSON has no
-      form for a set, a keyword or a tag: what `json` wrote of a set
-      reads back as a vector, of a keyword as a string, and of a value
-      under a tag as a map of its `$tag` and `payload`, and of an error
-      as a map of its `$error`. Text that is no JSON is refused with the message of the
-      reader of JSON, and a number past the doubles is refused with the
-      path to it in the text.
+  |~~ Answers the value the JSON text of the string spells, the reverse of
+      `json`: an object is a map whose keys are keywords, a key with a
+      space among them quoted, an array a vector, and a number, a string,
+      `true`, `false` and `null` themselves; whitespace around the text is
+      read past, and a key written twice keeps its last value. A string
+      that holds a number reads as the number, `"42" | parseJson`, while
+      `toNumber` reads a number alone. JSON has no form for a set, a
+      keyword or a tag: what `json` wrote of a set reads back as a vector,
+      of a keyword as a string, and of a value under a tag as a map of its
+      `$tag` and `payload`, and of an error as a map of its `$error`. Text
+      that is no JSON is refused with the message of the reader of JSON,
+      and a number past the doubles is refused with the path to it in the
+      text.
       ::link~(::any/json | doc) ::link~(::string/parse | doc)
   ~~|
   ::fn
@@ -920,6 +938,9 @@
         |~~ `parseJson` could not read the subject as JSON. The message of
             the reader of JSON rides on `:message`.
         ~~|
+    | carries :TextNotJsonError/message
+        |~~ What the reader of JSON says of the text. ~~|
+        ::string
     | throws :NumberNotFiniteError
         |~~ JSON text may write a number past the range of the doubles a
             number of qlang is, `1e400`, which no number of the language
@@ -928,105 +949,101 @@
             and by the command line reading its input; a literal of qlang
             past the range is the parser's own refusal.
         ~~|
-    | law :readsANumber
-        |~~ A JSON number reads as a number. ~~| ~("42" | parseJson | eq 42)
-    | law :readsAString
+    | carries :NumberNotFiniteError/path
+        |~~ The path to the number in the text. ~~|
+        ::vec
+    | proves :readsANumber
+        |~~ A JSON number reads as a number. ~~|
+        ~("42" | parseJson | eq 42)
+    | proves :readsAString
         |~~ A JSON string reads as a string. ~~|
         ~("\"hello\"" | parseJson | eq "hello")
-    | law :readsAnArrayAsAVector
+    | proves :readsAnArrayAsAVector
         |~~ A JSON array reads as a vector. ~~|
         ~("[1,2,3]" | parseJson | eq [1 2 3])
-    | law :readsAnObjectAsAMap
+    | proves :readsAnObjectAsAMap
         |~~ A JSON object reads as a map of keywords. ~~|
         ~("{\"name\":\"alice\"}" | parseJson | eq {:name "alice"})
-    | law :quotesAKeyWithASpace
+    | proves :quotesAKeyWithASpace
         |~~ A key with a space reads as a quoted keyword. ~~|
         ~("{\"first name\": 1}" | parseJson | eq {:"first name" 1})
-    | law :readsTheLiteralsAsThemselves
+    | proves :readsTheLiteralsAsThemselves
         |~~ JSON true, false and null read as themselves. ~~|
         ~("[true, false, null]" | parseJson | eq [true false null])
-    | law :readsPastTheWhitespaceAround
+    | proves :readsPastTheWhitespaceAround
         |~~ Whitespace around the text is read past. ~~|
         ~(" 42 " | parseJson | eq 42)
-    | law :keepsTheLastOfAKeyWrittenTwice
+    | proves :keepsTheLastOfAKeyWrittenTwice
         |~~ A key written twice keeps its last value. ~~|
         ~("{\"a\":1,\"a\":2}" | parseJson | eq {:a 2})
-    | law :readsBackWhatJsonWrote
+    | proves :readsBackWhatJsonWrote
         |~~ What `json` wrote of a map of vectors reads back as it was. ~~|
         ~({:a [1 "x"]} | json | parseJson | eq {:a [1 "x"]})
-    | law :readsASetBackAsAVector
+    | proves :readsASetBackAsAVector
         |~~ What `json` wrote of a set reads back as a vector. ~~|
         ~(#[1 2] | json | parseJson | eq [1 2])
-    | law :readsAKeywordBackAsAString
+    | proves :readsAKeywordBackAsAString
         |~~ What `json` wrote of a keyword reads back as a string. ~~|
         ~(:a | json | parseJson | eq "a")
-    | law :readsATagBackAsAMap
+    | proves :readsATagBackAsAMap
         |~~ What `json` wrote of a value under a tag reads back as a map.
         ~~|
         ~(::Box("a") | json | parseJson | eq {:"$tag" "Box" :payload "a"})
-    | law :SubjectNotStringError/refusesANumber
+    | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text to read. ~~|
         ~(42 | parseJson
           !| [type (get /actualType)]
           |  eq [::string/parseJson/SubjectNotStringError ::number])
-    | law :TextNotJsonError/refusesBrokenText
+    | proves :TextNotJsonError/refusesBrokenText
         |~~ Text that is no JSON is refused. ~~|
         ~("{not json" | parseJson !| type | eq ::string/parseJson/TextNotJsonError)
-    | law :NumberNotFiniteError/refusesANumberPastTheRange
+    | proves :NumberNotFiniteError/refusesANumberPastTheRange
         |~~ A number past the range of doubles is refused. ~~|
         ~("1e400" | parseJson !| type | eq ::string/parseJson/NumberNotFiniteError)
-    | law :NumberNotFiniteError/namesThePathToTheNumber
+    | proves :NumberNotFiniteError/namesThePathToTheNumber
         |~~ The refusal names the path to the number in the text. ~~|
         ~("[1, 1e400]" | parseJson !| get /path | eq [1])
     | impl ::builtin{}
 
-:string/parseJson/TextNotJsonError/message
-  |~~ What the reader of JSON says of the text. ~~|
-  ::string
-
-:string/parseJson/NumberNotFiniteError/path
-  |~~ The path to the number in the text. ~~|
-  ::vec
-
 :string/parse
-  |~~ Answers the quote of the steps the source text spells, `"add 1 2" |
-      parse` answering `~(add 1 2)`, the reverse of `parse` on a quote,
-      which answers its text; the empty text spells the empty quote.
-      `apply` runs the quote on a subject, `5 | apply ("add 1" | parse)`,
-      and a source that starts from a value of its own runs by `apply it`,
-      so source text is evaluated without leaving the language. A source
-      the parser cannot read is refused with a `::quote/ParseError`,
-      whose `:expected` and `:location` tell what the parser wanted and
-      where, with `:found` when a token stood there, and `!|` reads it as
-      every other error.
+  |~~ Answers the quote of the steps the source text spells,
+      `"add 1 2" | parse` answering `~(add 1 2)`, the reverse of `parse`
+      on a quote, which answers its text; the empty text spells the empty
+      quote. `apply` runs the quote on a subject,
+      `5 | apply ("add 1" | parse)`, and a source that starts from a value
+      of its own runs by `apply it`, so source text is evaluated without
+      leaving the language. A source the parser cannot read is refused
+      with a `::quote/ParseError`, whose `:expected` and `:location` tell
+      what the parser wanted and where, with `:found` when a token stood
+      there, and `!|` reads it as every other error.
       ::link~(::quote/parse | doc) ::link~(::any/apply | doc)
   ~~|
   ::fn
     | returns |~~ The quote of the steps the text spells. ~~| ::quote
-    | law :readsTheSteps
+    | proves :readsTheSteps
         |~~ The source reads as its steps. ~~|
         ~("1 | add 1" | parse | count | eq 2)
-    | law :readsTheQuote
+    | proves :readsTheQuote
         |~~ The source reads as the quote it spells. ~~|
         ~("add 1 2" | parse | eq ~(add 1 2))
-    | law :readsTheEmptyQuote
+    | proves :readsTheEmptyQuote
         |~~ The empty text spells the empty quote. ~~|
         ~("" | parse | eq ~())
-    | law :readsBackByParse
+    | proves :readsBackByParse
         |~~ `parse` on the quote answers the text again. ~~|
         ~("add 1" | parse | parse | eq "add 1")
-    | law :runsByApply
+    | proves :runsByApply
         |~~ `apply` runs the quote on a subject. ~~|
         ~(5 | apply ("add 1" | parse) | eq 6)
-    | law :runsASourceWithItsOwnValueByApply
-        |~~ A source that starts from a value of its own runs by `apply
-            it`.
+    | proves :runsASourceWithItsOwnValueByApply
+        |~~ A source that starts from a value of its own runs by
+            `apply it`.
         ~~|
         ~("1 | add 1" | parse | apply it | eq 2)
-    | law :refusesASourceTheParserRefuses
+    | proves :refusesASourceTheParserRefuses
         |~~ A source the parser cannot read is refused. ~~|
         ~("add (" | parse !| type | eq ::quote/ParseError)
-    | law :namesTheTokenFound
+    | proves :namesTheTokenFound
         |~~ The refusal names the token that stood where the parser
             stopped.
         ~~|
@@ -1053,13 +1070,13 @@
             around it is cut first by `trim`, `" 42" | trim | toNumber`,
             and a number among other words is taken out first by `split`.
         ~~|
-    | law :readsTheNumberItWrites
+    | proves :readsTheNumberItWrites
         |~~ A string turns into the number it writes. ~~|
         ~(["42" "-1.5" "2.5e-3"] | map ~toNumber | eq [42 -1.5 0.0025])
-    | law :readsBack
+    | proves :readsBack
         |~~ A number turned into its string turns back into itself. ~~|
         ~(42 | toString | toNumber | eq 42)
-    | law :TextNotNumberError/refusesATextThatIsNoNumber
+    | proves :TextNotNumberError/refusesATextThatIsNoNumber
         |~~ Text that is no number, or a number with a space around it, is
             refused.
         ~~|
@@ -1077,15 +1094,15 @@
   ~~|
   ::fn
     | returns |~~ The keyword the text names. ~~| ::keyword
-    | law :namesAKeyword
+    | proves :namesAKeyword
         |~~ A string names the keyword of its text, a slash and a space
             kept.
         ~~|
         ~(["foo" "qlang/error" "a b"] | map ~toKeyword | eq [:foo :qlang/error :"a b"])
-    | law :readsBack
+    | proves :readsBack
         |~~ A string turned into a keyword turns back into itself. ~~|
         ~("bar" | toKeyword | toString | eq "bar")
-    | law :namesTheKeywordOfATaggedString
+    | proves :namesTheKeywordOfATaggedString
         |~~ A string under a tag names the keyword of its text. ~~|
         ~(::Name("ab") | toKeyword | eq :ab)
     | impl ::builtin{}
@@ -1106,13 +1123,13 @@
             a space, the empty text and a name that begins with a digit
             name no tag.
         ~~|
-    | law :namesATag
+    | proves :namesATag
         |~~ A string names the tag of its text. ~~|
         ~(["vec" "number/add"] | map ~toTag | eq [::vec ::number/add])
-    | law :readsBack
+    | proves :readsBack
         |~~ A tag turned into its name turns back into itself. ~~|
         ~(::vec | toString | toTag | eq ::vec)
-    | law :TextNotNameError/refusesASpace
+    | proves :TextNotNameError/refusesASpace
         |~~ Text with a space names no tag. ~~|
         ~("a b" | toTag !| type | eq ::string/toTag/TextNotNameError)
     | impl ::builtin{}
@@ -1130,12 +1147,12 @@
   ~~|
   ::fn
     | returns |~~ The string itself. ~~| ::string
-    | law :answersItself
+    | proves :answersItself
         |~~ A string answers itself, so scalars of several kinds turn into
             strings.
         ~~|
         ~([42 :a "s"] | map ~toString | eq ["42" "a" "s"])
-    | law :leadsAValueOfNoStringToItsText
+    | proves :leadsAValueOfNoStringToItsText
         |~~ A vector is led to `print` and `json`, and a quote to `parse`
             beside them.
         ~~|
@@ -1155,7 +1172,8 @@
   ~~|
   ::fn
     | takes :pattern
-        |~~ The pattern the text is read by, `#"(\d+)ms"`. ~~| /0 ::regex
+        |~~ The pattern the text is read by, `#"(\d+)ms"`. ~~|
+        /0 ::regex
     | throws :pattern/NotRegexError
         |~~ The pattern is a `#"…"`; text that holds one becomes a pattern
             by `toRegex`, and a text looked for as it is is asked by
@@ -1164,16 +1182,16 @@
     | returns
         |~~ The text of the match and its groups, or `null`. ~~|
         #[::vec ::null]
-    | law :readsTheFirstMatchAndItsGroups
+    | proves :readsTheFirstMatchAndItsGroups
         |~~ The first match comes with its groups. ~~|
         ~("took 12ms, then 7ms" | match #"(\d+)ms" | eq ["12ms" "12"])
-    | law :answersNullWhereNoneStands
+    | proves :answersNullWhereNoneStands
         |~~ A text with no match answers null. ~~|
         ~("took long" | match #"\d+" | eq null)
-    | law :answersNullForAGroupThatTookNoPart
+    | proves :answersNullForAGroupThatTookNoPart
         |~~ A group that took no part is null. ~~|
         ~("5" | match #"(\d)(x)?" | eq ["5" "5" null])
-    | law :pattern/NotRegexError/refusesAString
+    | proves :pattern/NotRegexError/refusesAString
         |~~ Text is no pattern; `toRegex` reads it as one. ~~|
         ~("a1" | match "\\d" !| type | eq ::string/match/pattern/NotRegexError)
     | impl ::builtin{}
@@ -1202,16 +1220,16 @@
             and this pattern names none: `match` answers its groups by
             their places, `match #"(\w+)" | get /1`.
         ~~|
-    | law :turnsALineIntoARecord
+    | proves :turnsALineIntoARecord
         |~~ The named groups of a line of a log are a record. ~~|
         ~("2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+) (?<message>.*)" | eq {:date "2026-10-12" :level "ERROR" :message "db down"})
-    | law :answersNullWhereNoneStands
+    | proves :answersNullWhereNoneStands
         |~~ A text with no match answers null. ~~|
         ~("" | capture #"(?<n>\d+)" | eq null)
-    | law :answersNullForAGroupThatTookNoPart
+    | proves :answersNullForAGroupThatTookNoPart
         |~~ A named group that took no part is null. ~~|
         ~("5" | capture #"(?<digit>\d)(?<unit>ms)?" | eq {:digit "5" :unit null})
-    | law :PatternNamesNoGroupError/refusesAPatternOfPlacesAlone
+    | proves :PatternNamesNoGroupError/refusesAPatternOfPlacesAlone
         |~~ A pattern that names no group is refused. ~~|
         ~("5" | capture #"(\d)" !| type | eq ::string/capture/PatternNamesNoGroupError)
     | impl ::builtin{}
@@ -1231,25 +1249,26 @@
     | throws :pattern/NotRegexError
         |~~ The pattern is a `#"…"`; text becomes one by `toRegex`. ~~|
     | returns |~~ The text of every match, in order. ~~| ::vec
-    | law :readsEveryMatch
+    | proves :readsEveryMatch
         |~~ Every match comes, in order. ~~|
         ~("took 12ms, then 7ms" | scan #"\d+" | map ~toNumber | eq [12 7])
-    | law :answersNothingWhereNoneStands
+    | proves :answersNothingWhereNoneStands
         |~~ A text with no match answers the empty vector. ~~|
         ~("none" | scan #"\d" | eq [])
     | impl ::builtin{}
 
 :string/replace
-  |~~ Answers the text with the replacement the call gives in the place
-      of every match of the pattern: `"a-b-c" | replace "-" "+"` answers
-      `"a+b+c"`. The pattern is a `#"…"` or a text looked for as it is. The
-      replacement is a string, in which `$1`, `$<name>` and `$&` name a
-      group, a named group and the whole match of a pattern, `"2026-10-12"
-      | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1"` answering `"12.10.2026"`,
-      while the replacement of a text stands as written; or code, which
-      runs on the vector `match` answers for each match and answers the
-      text that takes its place, `replace #"\d+" ~(get /0 | toNumber | mul
-      2 | toString)` doubling every number.
+  |~~ Answers the text with the replacement the call gives in the place of
+      every match of the pattern: `"a-b-c" | replace "-" "+"` answers
+      `"a+b+c"`. The pattern is a `#"…"` or a text looked for as it is.
+      The replacement is a string, in which `$1`, `$<name>` and `$&` name
+      a group, a named group and the whole match of a pattern,
+      `"2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1"` answering
+      `"12.10.2026"`, while the replacement of a text stands as written;
+      or code, which runs on the vector `match` answers for each match and
+      answers the text that takes its place,
+      `replace #"\d+" ~(get /0 | toNumber | mul 2 | toString)` doubling
+      every number.
       ::link~(::string/match | doc) ::link~(::regex | doc)
   ~~|
   ::fn
@@ -1267,8 +1286,8 @@
         /1 #[::quote ::string]
     | throws :with/NotQuoteOrStringError
         |~~ The replacement is a string, `replace #"\s+" " "`, or code
-            that answers one from the vector of the match, `replace #"\d+"
-            ~(get /0 | toNumber | mul 2 | toString)`.
+            that answers one from the vector of the match,
+            `replace #"\d+" ~(get /0 | toNumber | mul 2 | toString)`.
         ~~|
     | throws :with/AnswerNotStringError
         |~~ The code of `replace` answers the text that takes the place of
@@ -1276,26 +1295,26 @@
             `~(get /0 | toNumber | mul 2 | toString)`.
         ~~|
     | returns |~~ The text with every match replaced. ~~| ::string
-    | law :replacesEveryMatch
+    | proves :replacesEveryMatch
         |~~ Every match is replaced. ~~|
         ~("a  b   c" | replace #"\s+" " " | eq "a b c")
-    | law :namesTheGroupsOfAMatch
+    | proves :namesTheGroupsOfAMatch
         |~~ `$1` and its kin name the groups of a match. ~~|
         ~("2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1" | eq "12.10.2026")
-    | law :replacesATextAsWritten
+    | proves :replacesATextAsWritten
         |~~ A text is looked for and replaced as written, a dollar among
             it.
         ~~|
         ~("a.b.c" | replace "." "$&" | eq "a$&b$&c")
-    | law :cutsNoCharacterInHalves
+    | proves :cutsNoCharacterInHalves
         |~~ The empty text stands between every two characters, an emoji
             whole among them.
         ~~|
         ~("a😀" | get [(replace "" "-") (replace "" ~("-"))] | eq ["-a-😀-" "-a-😀-"])
-    | law :runsCodeOnEachMatch
+    | proves :runsCodeOnEachMatch
         |~~ Code answers the text that takes the place of each match. ~~|
         ~("2 and 30" | replace #"\d+" ~(get /0 | toNumber | mul 2 | toString) | eq "4 and 60")
-    | law :with/AnswerNotStringError/refusesANumber
+    | proves :with/AnswerNotStringError/refusesANumber
         |~~ Code that answers no string is refused. ~~|
         ~("2" | replace #"\d" ~(get /0 | toNumber) !| type | eq ::string/replace/with/AnswerNotStringError)
     | impl ::builtin{}
@@ -1331,40 +1350,40 @@
             source shows the habit of another dialect, flags written
             inside it or a backslash before a character that needs none.
         ~~|
+    | carries :TextNotPatternError/message
+        |~~ Why the source is no pattern, and its repair where one shows.
+        ~~|
+        ::string
     | throws :LiteralNotSourceError
         |~~ `toRegex` reads the source of a pattern, and this text writes
             the literal of one whole, `#"\d+"i`, as `json` writes a
             pattern: the literal reads back by `parse | apply it`, its
             flags among it.
         ~~|
-    | law :readsTheSource
+    | proves :readsTheSource
         |~~ A string reads as the pattern whose source it holds. ~~|
         ~("a1" | contains ("\\d" | toRegex))
-    | law :takesTheFlags
+    | proves :takesTheFlags
         |~~ The flags the call gives go with the pattern, in their order.
         ~~|
         ~("error" | toRegex "si" | eq #"error"is)
-    | law :flags/NotFlagsError/refusesALetterOfNoFlag
+    | proves :flags/NotFlagsError/refusesALetterOfNoFlag
         |~~ A letter that is no flag is refused. ~~|
         ~("a" | toRegex "x" !| type | eq ::string/toRegex/flags/NotFlagsError)
-    | law :TextNotPatternError/refusesAnOpenGroup
+    | proves :TextNotPatternError/refusesAnOpenGroup
         |~~ A source the engine cannot read is refused. ~~|
         ~("(a" | toRegex !| type | eq ::string/toRegex/TextNotPatternError)
-    | law :TextNotPatternError/namesTheFlagsAsAPart
+    | proves :TextNotPatternError/namesTheFlagsAsAPart
         |~~ Flags written inside the source are refused, the refusal
             naming the part.
         ~~|
         ~("(?i)abc" | toRegex !| get /message | contains "toRegex \"i\"")
-    | law :LiteralNotSourceError/refusesALiteral
+    | proves :LiteralNotSourceError/refusesALiteral
         |~~ The literal of a pattern is refused, and `parse | apply it`
             reads it.
         ~~|
         ~(#"\d+"i | json | parseJson | get [(toRegex !| type) (parse | apply it)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
     | impl ::builtin{}
-
-:string/toRegex/TextNotPatternError/message
-  |~~ Why the source is no pattern, and its repair where one shows. ~~|
-  ::string
 
 :string/toPath
   |~~ Answers the path the text writes in JSON Pointer's form, a slash
@@ -1380,13 +1399,13 @@
         |~~ The text writes a path in JSON Pointer's form, a slash before
             each segment, `"/a/b"`, or a fragment of one, `"#/a/b"`.
         ~~|
-    | law :readsTheEscapes
+    | proves :readsTheEscapes
         |~~ `~1` is a slash and `~0` a tilde within a segment. ~~|
         ~("/a~1b/0" | toPath | segments | eq [:"a/b" 0])
-    | law :readsAFragment
+    | proves :readsAFragment
         |~~ The `#` of a fragment before the path is read too. ~~|
         ~("#/components/schemas" | toPath | print | eq "/components/schemas")
-    | law :NotPointerError/refusesAName
+    | proves :NotPointerError/refusesAName
         |~~ A text with no slash before it writes no path. ~~|
         ~("name" | toPath !| type | eq ::string/toPath/NotPointerError)
     | impl ::builtin{}

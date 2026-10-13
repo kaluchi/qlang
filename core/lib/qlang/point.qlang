@@ -9,15 +9,15 @@
       character of a text. `offset`, `line` and `column` read them.
       ::link~(::span | doc)
   ~~|
-
-:point/PayloadNotThreeNumbersError
-  |~~ A point holds three whole numbers, its offset, its line and its
-      column. ~~|
-  ::holds~(allOf (count | eq 3) ~(every ~(is ::number)) ~(every ~(eq (floor))))
-
-:point/PayloadNotThreeNumbersError/refusesSixNumbers
-  |~~ Six numbers make a span, no point. ~~|
-  ::law~(::point[0 1 1 4 1 5] !| type | eq ::point/PayloadNotThreeNumbersError)
+  ::kind
+    | holds :PayloadNotThreeNumbersError
+        |~~ A point holds three whole numbers, its offset, its line and
+            its column.
+        ~~|
+        ~(allOf (count | eq 3) ~(every ~(is ::number)) ~(every ~(eq (floor))))
+    | proves :PayloadNotThreeNumbersError/refusesSixNumbers
+        |~~ Six numbers make a span, no point. ~~|
+        ~(::point[0 1 1 4 1 5] !| type | eq ::point/PayloadNotThreeNumbersError)
 
 :point/offset
   |~~ Answers the offset of the point from the start of the text,
@@ -26,10 +26,10 @@
   ::fn
     | returns |~~ The offset, from zero. ~~| ::number
     | throws :SubjectNotPointError
-        |~~ `offset` reads a point, the start or the end of a span, `"[1"
-            | parse !| get /location | start | offset`.
+        |~~ `offset` reads a point, the start or the end of a span,
+            `"[1" | parse !| get /location | start | offset`.
         ~~|
-    | law :readsTheFirstNumber
+    | proves :readsTheFirstNumber
         |~~ The offset is the first number of a point. ~~|
         ~(::point[4 1 5] | offset | eq 4)
     | impl ~(get /0)
@@ -41,10 +41,10 @@
   ::fn
     | returns |~~ The line, from one. ~~| ::number
     | throws :SubjectNotPointError
-        |~~ `line` reads a point, the start or the end of a span, `"[1" |
-            parse !| get /location | start | line`.
+        |~~ `line` reads a point, the start or the end of a span,
+            `"[1" | parse !| get /location | start | line`.
         ~~|
-    | law :readsTheSecondNumber
+    | proves :readsTheSecondNumber
         |~~ The line is the second number of a point. ~~|
         ~(::point[4 2 1] | line | eq 2)
     | impl ~(get /1)
@@ -56,10 +56,10 @@
   ::fn
     | returns |~~ The column, from one. ~~| ::number
     | throws :SubjectNotPointError
-        |~~ `column` reads a point, the start or the end of a span, `"[1"
-            | parse !| get /location | start | column`.
+        |~~ `column` reads a point, the start or the end of a span,
+            `"[1" | parse !| get /location | start | column`.
         ~~|
-    | law :readsTheThirdNumber
+    | proves :readsTheThirdNumber
         |~~ The column is the third number of a point. ~~|
         ~(::point[4 1 5] | column | eq 5)
     | impl ~(get /2)

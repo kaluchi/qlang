@@ -1,11 +1,11 @@
 // Container primitives, each a plain function over the value the walk
-// served and the parts of the call's args [D167]. Every word of a kind
+// served and the inputs of the call [D251]. Every word of a kind
 // has its own, since the walk of the subject's tags already chose the
 // word: a vector and a set, which read alike, share the one that reads
 // the elements in order [D16], a map's reads its values and keeps its
 // keys [D15], a string's reads its characters [D132], and a refusal
-// names the word that refused [D46]. A part that takes code arrives
-// closed at the call, code run on the element [D34], [D167].
+// names the word that refused [D46]. An input that takes code arrives
+// closed at the call, code run on the element [D34], [D251].
 
 import { isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';

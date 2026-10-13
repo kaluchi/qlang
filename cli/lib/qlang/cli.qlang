@@ -48,14 +48,13 @@
       ::link~(::qlang/errors | doc) ::link~(::any/elide | doc)
       ::link~(::any/tap | doc) ::link~(::qlang/hosts | doc)
   ~~|
-
-:cli/declaresTable
-  |~~ The command line declares `table` under vectors. ~~|
-  ::law~(::vec | manifest | has ::vec/table)
-
-:cli/declaresTheStreams
-  |~~ The command line declares the streams under any value. ~~|
-  ::law~(::any | manifest | has ::any/out)
+  ::kind
+    | proves :declaresTable
+        |~~ The command line declares `table` under vectors. ~~|
+        ~(::vec | manifest | has ::vec/table)
+    | proves :declaresTheStreams
+        |~~ The command line declares the streams under any value. ~~|
+        ~(::any | manifest | has ::any/out)
 
 :any/in
   |~~ Answers the text stdin holds, read to its end whatever the subject,
@@ -92,23 +91,23 @@
     | returns |~~ The subject as it came. ~~| ::any
     | throws :SubjectNotStringError
         |~~ `out` alone writes its subject, a string, as a line; another
-            value is written as the text the call computes from it, `42 |
-            out json` or `{:x 1} | out print`.
+            value is written as the text the call computes from it,
+            `42 | out json` or `{:x 1} | out print`.
         ~~|
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `out` writes its subject, or the one text its call gives,
-            `"hi" | out`; texts are joined first, `out (["a" "b"] | join
-            "")`.
+            `"hi" | out`; texts are joined first,
+            `out (["a" "b"] | join "")`.
         ~~|
-    | law :SubjectNotStringError/refusesANumber
+    | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no line `out` writes alone. ~~|
         ~(42 | out !| type | eq ::any/out/SubjectNotStringError)
-    | law :text/NotNullOrStringError/refusesANumber
+    | proves :text/NotNullOrStringError/refusesANumber
         |~~ A number is no text to write. ~~|
         ~("hi" | out 5 !| type | eq ::any/out/text/NotNullOrStringError)
-    | law :ArgsBeyondPartsError/refusesTwoTexts
+    | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the word. ~~|
-        ~("hi" | out "a" "b" !| type | eq ::any/out/ArgsBeyondPartsError)
+        ~("hi" | out "a" "b" !| type | eq ::any/out/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :any/err
@@ -134,17 +133,17 @@
             another value is written as the text the call computes from
             it, `err json` or `err print`.
         ~~|
-    | throws :ArgsBeyondPartsError
+    | throws :ArgsBeyondInputsError
         |~~ `err` writes its subject, or the one text its call gives,
-            `"hi" | err`; texts are joined first, `err (["a" "b"] | join
-            "")`.
+            `"hi" | err`; texts are joined first,
+            `err (["a" "b"] | join "")`.
         ~~|
-    | law :SubjectNotStringError/refusesANumber
+    | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no line `err` writes alone. ~~|
         ~(42 | err !| type | eq ::any/err/SubjectNotStringError)
-    | law :ArgsBeyondPartsError/refusesTwoTexts
+    | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the word. ~~|
-        ~("hi" | err "a" "b" !| type | eq ::any/err/ArgsBeyondPartsError)
+        ~("hi" | err "a" "b" !| type | eq ::any/err/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :any/tap
@@ -156,22 +155,23 @@
   ~~|
   ::fn
     | takes :label
-        |~~ The label written before the value, a keyword. ~~| /0 ::keyword
+        |~~ The label written before the value, a keyword. ~~|
+        /0 ::keyword
     | throws :label/NotKeywordError
         |~~ The label of `tap` is a keyword, `tap :before`, written before
             the value as `[tap before]`.
         ~~|
     | returns |~~ The subject as it came. ~~| ::any
-    | throws :ArgsBeyondPartsError
-        |~~ `tap` writes its subject under one label its call gives, `5 |
-            tap :n`; a call with more labels is refused.
+    | throws :ArgsBeyondInputsError
+        |~~ `tap` writes its subject under one label its call gives,
+            `5 | tap :n`; a call with more labels is refused.
         ~~|
-    | law :label/NotKeywordError/refusesAString
+    | proves :label/NotKeywordError/refusesAString
         |~~ A string is no label. ~~|
         ~(1 | tap "x" !| type | eq ::any/tap/label/NotKeywordError)
-    | law :ArgsBeyondPartsError/refusesTwoLabels
+    | proves :ArgsBeyondInputsError/refusesTwoLabels
         |~~ A call with two labels is refused under the word. ~~|
-        ~(5 | tap :a :b !| type | eq ::any/tap/ArgsBeyondPartsError)
+        ~(5 | tap :a :b !| type | eq ::any/tap/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :vec/table
@@ -193,25 +193,25 @@
         |~~ Every row of `table` is a map, its keys the columns; `:index`
             names the first that is not.
         ~~|
-    | law :drawsEachRow
+    | proves :drawsEachRow
         |~~ Each row is drawn. ~~|
         ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
-    | law :drawsANestedValueAsItsLiteral
+    | proves :drawsANestedValueAsItsLiteral
         |~~ A nested value is drawn as its literal. ~~|
         ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
-    | law :drawsNothingAsEmpty
+    | proves :drawsNothingAsEmpty
         |~~ An empty vector draws as `(empty)`. ~~|
         ~([] | table | eq "(empty)")
-    | law :drawsAMapInAVector
+    | proves :drawsAMapInAVector
         |~~ A single map is drawn in a vector. ~~|
         ~({:name "alice"} | get [it] | table | contains "alice")
-    | law :SubjectNotVecError/refusesAMap
+    | proves :SubjectNotVecError/refusesAMap
         |~~ A single map is refused under the word. ~~|
         ~({:name "alice"} | table !| [type (get /actualType)] | eq [::vec/table/SubjectNotVecError ::map])
-    | law :SubjectNotVecError/refusesANumber
+    | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of rows. ~~|
         ~(42 | table !| [type (get /actualType)] | eq [::vec/table/SubjectNotVecError ::number])
-    | law :RowNotMapError/refusesARowThatIsNoMap
+    | proves :RowNotMapError/refusesARowThatIsNoMap
         |~~ A row that is no map is refused at its index. ~~|
         ~([42 "hello"] | table !| [type (get /index) (get /actualType)]
           | eq [::vec/table/RowNotMapError 0 ::number])

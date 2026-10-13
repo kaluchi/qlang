@@ -18,27 +18,20 @@
       ::link~(::any/coalesce | doc) ::link~(::path | doc)
       ::link~(::qlang/values | doc)
   ~~|
-
-:null/isNull
-  |~~ Null is of `::null`. ~~|
-  ::law~(null | type | eq ::null)
-
-:null/buildsNull
-  |~~ The constructor of null answers null. ~~|
-  ::law~(::null(null) | eq null)
-
-:null/construct
-  |~~ Reads null as itself. ~~|
-  ::builtin{}
-
-:null/PayloadNotNullError
-  |~~ `::null` reads its payload as null; a payload of another kind is
-      refused.
-  ~~|
-
-:null/PayloadNotNullError/refusesANumber
-  |~~ A number payload is refused. ~~|
-  ::law~(::null(1) !| [type (get /actualType)] | eq [::null/PayloadNotNullError ::number])
+  ::kind
+    | wraps |~~ Null, read as itself. ~~|
+    | throws :PayloadNotNullError
+        |~~ `::null` reads its payload as null; a payload of another kind
+            is refused.
+        ~~|
+    | proves :isNull |~~ Null is of `::null`. ~~| ~(null | type | eq ::null)
+    | proves :buildsNull
+        |~~ The constructor of null answers null. ~~|
+        ~(::null(null) | eq null)
+    | proves :PayloadNotNullError/refusesANumber
+        |~~ A number payload is refused. ~~|
+        ~(::null(1) !| [type (get /actualType)] | eq [::null/PayloadNotNullError ::number])
+    | impl ::builtin{}
 
 :null/toKeyword
   |~~ Answers `:null`, the key `groupBy` files an absent field under,
@@ -48,7 +41,7 @@
   ~~|
   ::fn
     | returns |~~ `:null`. ~~| ::keyword
-    | law :readsTheKeyGroupByFiledItUnder
+    | proves :readsTheKeyGroupByFiledItUnder
         |~~ Null turns into the key `groupBy` files an absent field under.
         ~~|
         ~([{:c "a"} {}] | groupBy ~(query /c) | query (null | toKeyword) | eq [{}])

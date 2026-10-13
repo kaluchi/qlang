@@ -22,6 +22,7 @@ import './verb.mjs';
 import './env.mjs';
 import './manifest.mjs';
 import './code.mjs';
+import './kind.mjs';
 import './fn.mjs';
 import './doc.mjs';
 import './print.mjs';

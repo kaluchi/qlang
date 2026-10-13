@@ -31,7 +31,7 @@
       "begin": "\\|~~\\|",
       "end": "$",
       "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.qlang" } },
-      "patterns": [{ "include": "#doc-code" }]
+      "patterns": [{ "include": "#doc-code" }, { "include": "#doc-code-span-line" }]
     },
     "comment-block-doc": {
       "comment": "|~~ ... ~~| block doc: prose, and the code it holds painted as code, so a doc inside a quote of it closes at its own ~~| and not at the outer one.",
@@ -40,14 +40,13 @@
       "end": "~~\\|",
       "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.qlang" } },
       "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.qlang" } },
-      "patterns": [{ "include": "#doc-code" }]
+      "patterns": [{ "include": "#doc-code" }, { "include": "#doc-code-span-block" }]
     },
     "doc-code": {
-      "comment": "The code a doc holds: a quote ~( ... ), the short form ~name, and a span in backticks.",
+      "comment": "The code a doc holds: a quote ~( ... ) and the short form ~name; each doc adds its span in backticks.",
       "patterns": [
         { "include": "#doc-quote" },
-        { "include": "#doc-quote-short" },
-        { "include": "#doc-code-span" }
+        { "include": "#doc-quote-short" }
       ]
     },
     "doc-quote": {
@@ -66,13 +65,45 @@
         "2": { "name": "entity.name.function.qlang" }
       }
     },
-    "doc-code-span": {
-      "comment": "A span in backticks inside a doc names code and paints as code.",
+    "doc-code-span-line": {
+      "comment": "A span in backticks inside a line doc names code and paints as code, closed by its backtick or the end of the line.",
       "begin": "`",
       "end": "`|$",
       "beginCaptures": { "0": { "name": "punctuation.definition.code.qlang" } },
       "endCaptures":   { "0": { "name": "punctuation.definition.code.qlang" } },
-      "patterns": [{ "include": "$self" }]
+      "patterns": [{ "include": "#span-code" }]
+    },
+    "doc-code-span-block": {
+      "comment": "A span in backticks inside a block doc names code and paints as code, closed by its backtick on a later line too, as the language reads it, or at the end of the doc.",
+      "begin": "`",
+      "end": "`|(?=~~\\|)",
+      "beginCaptures": { "0": { "name": "punctuation.definition.code.qlang" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.code.qlang" } },
+      "patterns": [{ "include": "#span-code" }]
+    },
+    "span-code": {
+      "comment": "The code of a span in backticks: a string, a pattern, a quoted keyword, a comment and a doc each close before the backtick that closes the span, so a mark the prose shows alone, a quote mark or the opening of a doc, opens nothing past it.",
+      "patterns": [
+        { "name": "comment.line.documentation.qlang", "match": "\\|~~\\|[^`]*" },
+        { "name": "comment.block.documentation.qlang", "match": "\\|~~(?!\\|)[^`]*?~~\\|" },
+        { "name": "comment.line.qlang", "match": "\\|~\\|[^`]*" },
+        { "name": "comment.block.qlang", "match": "\\|~(?![|~])[^`]*?~\\|" },
+        { "name": "string.regexp.qlang", "match": "#\"(?:[^\"\\\\`]|\\\\[^`])*\"[ims]*" },
+        { "name": "string.quoted.double.qlang", "match": "\"(?:[^\"\\\\`]|\\\\[^`])*\"" },
+        { "include": "#tag" },
+        { "include": "#map-key" },
+        { "name": "constant.other.symbol.qlang", "match": ":\"(?:[^\"\\\\`]|\\\\[^`])*\"" },
+        { "name": "constant.other.symbol.qlang", "match": ":[_a-zA-Z][a-zA-Z0-9_-]*(?:/[_a-zA-Z][a-zA-Z0-9_-]*)*" },
+        { "include": "#number" },
+        { "include": "#constant" },
+        { "include": "#projection" },
+        { "include": "#set-open" },
+        { "include": "#error-lit-brackets" },
+        { "include": "#quote" },
+        { "include": "#combinator" },
+        { "include": "#identifier" },
+        { "include": "#punctuation" }
+      ]
     },
     "group": {
       "comment": "Parentheses inside a quote of a doc, balanced so the quote closes at its own parenthesis.",

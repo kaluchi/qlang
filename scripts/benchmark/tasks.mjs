@@ -61,7 +61,7 @@ export const TASKS = [
   {
     id: 'L2',
     question: 'declare a kind ::Small whose values are numbers below 10, so that building one from 10 or more fails; answer a vector of the kind of ::Small built from 3, and whether building it from 12 fails.',
-    reference: ":Small |~~ A number below ten. ~~| | :Small/TooLargeError ::holds~(lt 10) | [(::Small(3) | type) (::Small(12) | ok | not !| true)]",
+    reference: ":Small |~~ A number below ten. ~~| (::kind | holds :TooLargeError |~~ The number is below ten. ~~| ~(lt 10)) | [(::Small(3) | type) (::Small(12) | ok | not !| true)]",
     answer: "[::Small true]"
   },
   {

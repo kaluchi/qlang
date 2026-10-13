@@ -41,9 +41,9 @@ describe('depth budget — every re-entry seam', () => {
     ['apply on a self-referential Quote',           ':q ~(apply q) | apply q'],
     ['a body under map naming its own verb',         ':any/f ~([it] | map ~f | first) | 1 | f'],
     ['captured-arg lambda naming its own verb',     ':any/p ~([it] | filter ~(p)) | [1] | p'],
-    ['a verb folding through reduce',               ':any/r ~([1] | reduce 0 ~r) | :any/r/el /0 | [1] | reduce 0 ~r'],
+    ['a verb folding through reduce',               ':any/r (::fn | takes :el |~~ The element. ~~| /0 | impl ~([1] | reduce 0 ~r)) | [1] | reduce 0 ~r'],
     ['a verb predicate over a Map',                 ':any/k ~({:a 1} | filter ~k) | {:a 1} | filter ~k'],
-    ['Quote-bodied tag constructor minting itself', ':T |~~ T. ~~| | :T/construct ~(::T(it)) | ::T(1)']
+    ['Quote-bodied tag constructor minting itself', ':T |~~ T. ~~| (::kind | impl ~(::T(it))) | ::T(1)']
   ];
   for (const [seamName, query] of seams) {
     it(`terminates on ${seamName}`, async () => {

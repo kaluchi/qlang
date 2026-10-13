@@ -22,7 +22,7 @@
       tags and before sets, element by element.
 
       Its words count and cut, `count`, `first`, `last`, `take`, `drop`,
-      reshape each element, `map ~(…)`, keep some, `filter ~(…)`, rank
+      turn each element into another, `map ~(…)`, keep some, `filter ~(…)`, rank
       them, `sort`, fold them, `reduce`, and sum their numbers, `sum`. A
       long answer is read in pieces, `drop 20 | take 20`, the rest of it
       the same query with a tail.
@@ -367,8 +367,9 @@
       their order, `[1 2 3] | map ~(add 10)` answering `[11 12 13]`. The
       code is a quote run on each element as its subject: a step of one
       word or one path written short, `map /name` or `map ~count`,
-      several steps in one quote, `map ~(mul 2 | add 1)`, and a literal,
-      which reshapes each element, `map ~(get {:id /id :n ~(get /tags | count)})`.
+      several steps in one quote, `map ~(mul 2 | add 1)`, and the template
+      of `get`, which builds the shape of each element,
+      `map ~(get {:id /id :n ~(get /tags | count)})`.
       It runs in the scope of the call, so a name declared before the
       call is read inside, and the names a run declares stay in it. The
       first failure the code answers for an element is the answer of the
@@ -441,8 +442,8 @@
     | proves :ArgsBeyondInputsError/refusesTwoCodes
         |~~ Two codes are refused under the word. ~~|
         ~([1 2] | map ~(add 1) ~(mul 2) !| type | eq ::vec/map/ArgsBeyondInputsError)
-    | proves :reshapesEachElementByALiteral
-        |~~ A literal reshapes each element. ~~|
+    | proves :buildsTheShapeOfEachElementByATemplate
+        |~~ A template of `get` builds the shape of each element. ~~|
         ~([{:id 1 :tags [:a :b]}] | map ~(get {:id /id :n ~(get /tags | count)}) | eq [{:id 1 :n 2}])
     | proves :keepsTheNamesOfARunInside
         |~~ The names a run declares stay in it. ~~|

@@ -613,8 +613,8 @@ $ node cli/src/bin.mjs '::a.b' < /dev/null 2>&1 | grep -c ':location ::span'
 The repair must reduce catalog prose to what the facts do not say,
 written in the language's own vocabulary, with no name of a file, a
 symbol, a service or a section of another document in it. It must print
-a parse failure economically, with the full value reachable by
-projection rather than dumped. It must let a reader assemble from the
+a parse failure economically, with the full value reachable by a
+path rather than dumped. It must let a reader assemble from the
 definitions under an address the description a question needs, in one
 round trip [D168], [D169].
 
@@ -887,7 +887,7 @@ the name answers is refused, the word called by its address there
 ```
 
 A declaration writes into its scope the record of its binding, so the
-axes are projections of the record [D5], each reading a name by its
+axes read the record [D5], each reading a name by its
 tag, a label of the root from the root and any other name at its
 nearest declaration, while a keyword is a value that names nothing,
 `:limit | doc` the page of `::keyword` [D221]. Effect markers are
@@ -1029,7 +1029,7 @@ Every fact has one spelling, and a kind owns what is said of its values.
 It opens with the step as a command and the path as a value [D248]: a
 path does nothing by itself, the word that takes it reads it, `get`
 strictly, `query` softly, `has` asking, and a word that takes code taking
-it as code, so the projection has one spelling where it had a step and
+it as code, so the read of a path has one spelling where it had a step and
 the record `::path{:path …}` inside a quote, and a value written as a
 later step is refused; its cases stand in
 `core/test/conformance/05-a-step-is-a-command.jsonl`. The function joins

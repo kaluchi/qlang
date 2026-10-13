@@ -1,5 +1,5 @@
 // Every value prints as a literal that reads back as itself [D30]: values
-// built from a seeded walk over the literals of the language, scalars with
+// built from a seeded walk over the literals of the language, atoms with
 // their escapes, vectors and maps in both their spellings, sets with a
 // duplicate among them, values under a tag over every payload, a label
 // the source declares among the tags, the constructors of `::qlang` and

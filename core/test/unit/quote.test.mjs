@@ -75,7 +75,7 @@ describe('assembling steps by hand', () => {
     expect(await evalQuery('::bind{:name :s :body ::vec} | get [~(it)] | tag ::quote | parse')).toBe(':s ::vec');
   });
 
-  it('a scalar payload touches its tag by its sign, and reads back as itself [D279]', async () => {
+  it('a number payload touches its tag by `#`, and reads back as itself [D279]', async () => {
     expect(await evalQuery('::construct{:tag ::T :payload 42} | get [~(it)] | tag ::quote | parse')).toBe('::T#42');
   });
 

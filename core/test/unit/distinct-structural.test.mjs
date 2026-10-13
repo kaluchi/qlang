@@ -48,7 +48,7 @@ describe('distinct — structural equality', () => {
     expect(items[1]).toEqual([3, 4]);
   });
 
-  it('preserves scalar dedup (no regression on atoms)', async () => {
+  it('holds each atom once', async () => {
     expect([...await evalQuery('[1 2 1 3 2] | distinct')]).toEqual([1, 2, 3]);
     expect([...await evalQuery('["a" "b" "a"] | distinct')]).toEqual(['a', 'b']);
   });
@@ -70,7 +70,7 @@ describe('distinct — structural equality', () => {
     expect(items.map(m => m.get('id'))).toEqual([1, 2, 3]);
   });
 
-  it('heterogeneous Vec — mixed scalar and composite', async () => {
+  it('holds each of mixed atoms and containers once', async () => {
     const result = await evalQuery('[1 {:a 1} 1 {:a 1} "x" "x"] | distinct');
     expect(isQSet(result)).toBe(true);
     const items = [...result];

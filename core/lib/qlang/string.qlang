@@ -1135,7 +1135,7 @@
     | impl ::builtin{}
 
 :string/toString
-  |~~ Answers the string itself, so `map ~toString` turns the scalars of
+  |~~ Answers the string itself, so `map ~toString` turns the atoms of
       a vector into strings whatever their kinds,
       `[42 :a "s"] | map ~toString` answering `["42" "a" "s"]`. A
       vector, a set, a map, null and a pattern have no `toString`: `print`
@@ -1148,7 +1148,7 @@
   ::fn
     | returns |~~ The string itself. ~~| ::string
     | proves :answersItself
-        |~~ A string answers itself, so scalars of several kinds turn into
+        |~~ A string answers itself, so atoms of several kinds turn into
             strings.
         ~~|
         ~([42 :a "s"] | map ~toString | eq ["42" "a" "s"])

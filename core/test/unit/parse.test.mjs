@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { parse, ParseError } from '../../src/parse.mjs';
 
-describe('parse — scalar literals', () => {
+describe('parse — the literals of atoms', () => {
   it('parses an integer', () => {
     const ast = parse('42');
     expect(ast.type).toBe('NumberLit');

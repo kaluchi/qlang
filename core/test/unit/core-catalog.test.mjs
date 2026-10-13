@@ -106,7 +106,7 @@ describe('parse / apply — code read, printed and run', () => {
   // source text → data → pipeValue without leaving the language,
   // and ground the programmatic-query-construction surface.
 
-  it('parse reads a scalar literal into the quote of that one step', async () => {
+  it('parse reads the literal of an atom into the quote of that one step', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"42" | parse');
     expect(isVec(evalResult)).toBe(true);

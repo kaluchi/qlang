@@ -1,4 +1,4 @@
-{"decision":"D8","name":"quote-literal-scalar","query":"~(42)","expect":"~(42)"}
+{"decision":"D8","name":"quote-literal-atom","query":"~(42)","expect":"~(42)"}
 {"decision":"D8","name":"quote-literal-arith","query":"~(mul 2)","expect":"~(mul 2)"}
 {"decision":"D8","name":"quote-literal-pipeline","query":"~([1 2 3] | filter ~(gt 1))","expect":"~([1 2 3] | filter ~(gt 1))"}
 {"decision":"D8","name":"quote-literal-path","query":"~(get /name)","expect":"~(get /name)"}

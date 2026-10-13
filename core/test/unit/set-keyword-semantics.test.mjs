@@ -143,10 +143,8 @@ describe('setops Set×Set non-keyword elements', async () => {
 
 // Keyword / tag ordering — sort / min / max / gt / lt / gte /
 // lte pairwise comparability extends to identifier-shape pairs through
-// lexicographic `.name` compare. `checkComparable` /
-// `compareScalars` in vec.mjs and `orderingCheck` / `compareOrdering`
-// in predicates.mjs share the same contract; these tests cover the
-// keyword-and-tag-keyword branches at both sites.
+// lexicographic `.name` compare, the one order of `compareValues` in
+// `ordering.mjs`; these tests cover its keyword and tag branches.
 describe('keyword ordering — sort / min / max / gt-family', async () => {
   it('sort over a Vec of Keywords lexicographic by .name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
@@ -195,7 +193,7 @@ describe('keyword ordering — sort / min / max / gt-family', async () => {
     expect(result.map(k => k.name)).toEqual(['a', 'a', 'b']);
   });
 
-  it('eq on equal keywords through compareScalars equality path', async () => {
+  it('gte holds of a keyword and itself', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery(':a | gte :a')).toBe(true);
     expect(await evalQuery(':a | lte :a')).toBe(true);

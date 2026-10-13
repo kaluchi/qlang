@@ -39,7 +39,7 @@ describe('BindStep — value-body purity routing', () => {
   // user-observable contract is "lookup yields the eval-at-bind-time
   // value".
 
-  it('pure scalar literal lookup yields the literal value', async () => {
+  it('a name holding an atom reads back its value', async () => {
     expect(await evalQuery(':pi 3.14 | pi')).toBe(3.14);
   });
 

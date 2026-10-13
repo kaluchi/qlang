@@ -195,13 +195,13 @@
     | proves :runsAGroup
         |~~ A group runs its steps on the value in the pipe. ~~|
         ~(5 | (add 1 | mul 2) | eq 12)
-    | proves :reshapesByATemplate
-        |~~ A template of `get` reshapes data, its paths read and its
-            quotes run on the value.
+    | proves :buildsAShapeByATemplate
+        |~~ A template of `get` builds a shape from the value, its paths
+            read and its quotes run on it.
         ~~|
         ~({:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)} | eq {:who "Ann" :next 31})
-    | proves :reshapesEachElement
-        |~~ Under `map` a template reshapes each element. ~~|
+    | proves :buildsTheShapeOfEachElement
+        |~~ Under `map` a template builds the shape of each element. ~~|
         ~([{:id 1 :tags [:a :b]}] | map ~(get {:id /id :n ~(get /tags | count)}) | eq [{:id 1 :n 2}])
     | proves :walksAPath
         |~~ A path walks keys and indices, `-1` from the end. ~~|
@@ -796,14 +796,14 @@
     | tells :hypertext
         |~~ The hypertext. The names are a space of addresses, `::`
             beginning an absolute one, `::vec/sort`, and a verb passes
-            from an address into one of its projections, as a path reaches
-            a file: `doc` into its page, `binding` into its record,
-            `source` into the code written under it, and `runLaws` runs
-            the laws under it. An address holds no one entity but a set of
+            from an address along one of its axes, as a path reaches a
+            file: `doc` to its page, `binding` to its record, `source` to
+            the code written under it, and `runLaws` runs the laws under
+            it. An address holds no one entity but a set of
             values, and each passage reads one of them; the address, the
             verb and what it reaches are all values, so the pipeline goes
-            on from a projection as from any value, and a tag you declare
-            with verbs on it adds projections of its own. A keyword after
+            on from what an axis reaches as from any value, and a tag you
+            declare with verbs on it adds axes of its own. A keyword after
             `doc` is an anchor within the page of its subject,
             `::qlang/pipeline | doc`, a vector of anchors a path, a set of
             anchors several pages at once. A page is a doc, prose that

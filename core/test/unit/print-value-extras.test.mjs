@@ -148,10 +148,10 @@ describe('runtime/format.mjs structural — json round-trips', () => {
 describe('format.fromPlain — inverse of toPlain', () => {
   // `fromPlain` lifts a JSON-parsed plain JS value back into qlang:
   // plain object → Map keyed by interned keywords; plain array →
-  // Vec; scalars pass through. Used by `parseJson` and by the CLI
+  // Vec; atoms pass through. Used by `parseJson` and by the CLI
   // script-mode auto-pipe of stdin.
 
-  it('scalar values pass through unchanged', async () => {
+  it('atoms pass through unchanged', async () => {
     expect(fromPlain(42)).toBe(42);
     expect(fromPlain('hi')).toBe('hi');
     expect(fromPlain(true)).toBe(true);
@@ -253,7 +253,7 @@ describe('print — the print declared under a kind', () => {
     expect(printed.result).toBe('[\n  ok\n  {\n    :k no\n  }\n  1\n]');
   });
 
-  it('reaches a part inside an error at rest and under a tag over a scalar', async () => {
+  it('reaches a part inside an error at rest and under a tag over an atom', async () => {
     const session = await badgeSession();
     const inError = await session.evalCell('[::error{:k ::badge{:name "in"}}] | print');
     expect(inError.result).toContain(':k in');

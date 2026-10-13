@@ -947,16 +947,16 @@ function closeCode(astNode, capturedState) {
 // modifierOf(argNode, state) → the code of a modifier of a call, whose
 // subject is never an error: a quote written there the data it is, which
 // a primitive of the step runs in the scope of the step [D251], a literal
-// of a scalar its value one frame below the call, and any other modifier
+// of an atom its value one frame below the call, and any other modifier
 // the code it is.
 function modifierOf(argNode, state) {
   if (argNode.type === 'QuoteLit') return quoteWrittenHere(argNode);
   if (TEMPLATE_LITERALS.has(argNode.type)) return writtenHereAs(closeCode(argNode, state));
-  if (SCALAR_LITERALS.has(argNode.type)) return () => (frameBelow(state), AST_NODE_EVALUATORS[argNode.type](argNode, state).pipeValue);
+  if (ATOM_LITERALS.has(argNode.type)) return () => (frameBelow(state), AST_NODE_EVALUATORS[argNode.type](argNode, state).pipeValue);
   return closeCode(argNode, state);
 }
 
-const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
+const ATOM_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
 
 // The literals a template is written as, whose quotes are written in the
 // step [D279].

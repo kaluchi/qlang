@@ -161,7 +161,7 @@ describe('error-convert.mjs — spanOfLocation [D249]', async () => {
 });
 
 describe('printValue — qlang literal serialization', async () => {
-  it('prints scalars', async () => {
+  it('prints atoms', async () => {
     expect(printValue(null)).toBe('null');
     expect(printValue(undefined)).toBe('null');
     expect(printValue(true)).toBe('true');

@@ -19,7 +19,7 @@
 {"decision":"D202","name":"a-runaway-self-apply-meets-the-budget-of-frames","query":":q ~(apply q) | apply q !| type","expect":"::call/EvaluationDepthExceededError"}
 {"decision":"D248","name":"a-runaway-under-map-lifts-depth-error","query":":number/f ~(get [~(it)] | map ~f | first) | 1 | f !| type","expect":"::call/EvaluationDepthExceededError"}
 {"decision":"D202","name":"an-input-read-from-its-place-meets-the-budget-a-frame-below-its-call","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | map ~(x))))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError"}
-{"decision":"D202","name":"a-modifier-of-a-scalar-meets-the-budget-a-frame-below-its-call","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count 1)))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError"}
+{"decision":"D202","name":"a-modifier-of-an-atom-meets-the-budget-a-frame-below-its-call","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count 1)))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError"}
 {"decision":"D202","name":"a-quote-written-as-a-modifier-runs-no-frame","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count ~(x))))) | 498 | down !| type","expect":"::vec/count/ArgsBeyondInputsError"}
 {"decision":"D202","name":"each-run-of-the-code-a-verb-runs-runs-a-frame-below","query":":number/down ~(if (gt 0) ~(get [~(it)] | map ~(sub 1 | down) | first) ~(0)) | 333 | down !| type","expect":"::call/EvaluationDepthExceededError"}
 {"decision":"D2","name":"a-word-that-calls-a-word-of-a-host-takes-no-mark","query":":any/quiet ~(out) | 1","expect":"1"}

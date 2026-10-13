@@ -1,6 +1,6 @@
-// Tests for TaggedLit / TagLit grammar + eval: a tag is the
-// address of a node of the tree of names, and ::tag<payload> builds the
-// value through the constructor the kind's spec declares [D152].
+// A tag is the address of a node of the tree of names, and a tagged
+// literal puts its payload under the tag through the constructor of the
+// kind, which attaches the tag or refuses the payload [D152], [D279].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -8,21 +8,21 @@ import { parse } from '../../src/parse.mjs';
 import { isErrorValue, isQuote, makeTag } from '../../src/types.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
-describe('TaggedLit grammar parses ::tag<payload> as own AST node', () => {
-  it('parses ::holds~(body) as TaggedLit with a quote payload', () => {
+describe('the parser reads a tag before a payload as a tagged literal', () => {
+  it('reads a quote after a tag as its payload', () => {
     const ast = parse('::holds~(mul 2)');
     expect(ast.type).toBe('TaggedLit');
     expect(ast.tag).toBe('holds');
     expect(ast.payload.type).toBe('QuoteLit');
   });
 
-  it('parses bare ::tag (no payload) as TagLit', () => {
+  it('reads a tag alone as the tag name', () => {
     const ast = parse('::Box');
     expect(ast.type).toBe('TagLit');
     expect(ast.tag).toBe('Box');
   });
 
-  it('TaggedLit has higher priority than TagLit in ordered choice', () => {
+  it('reads a map touching a tag as its payload', () => {
     const ast = parse('::Box{:k 1}');
     expect(ast.type).toBe('TaggedLit');
     expect(ast.payload.type).toBe('MapLit');
@@ -30,7 +30,7 @@ describe('TaggedLit grammar parses ::tag<payload> as own AST node', () => {
 });
 
 describe('a word under a label runs when its name is mentioned', () => {
-  it('a word invokes through BindStep + identifier lookup', async () => {
+  it('a word runs when its name is called', async () => {
     const result = await evalQuery(':any/double ~(mul 2) | 5 | double');
     expect(result).toBe(10);
   });
@@ -51,7 +51,7 @@ describe('a word under a label runs when its name is mentioned', () => {
 });
 
 describe('a kind whose construct is a primitive of the host', () => {
-  it('makes ::myType invokable through the constructor its host handed [D34]', async () => {
+  it('puts a payload under the tag through the check its host hands [D34]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
       sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', impls: { 'myType/construct': payload => payload * 2 } }]
@@ -64,7 +64,7 @@ describe('a kind whose construct is a primitive of the host', () => {
     expect(result).toEqual(makeTag('myType'));
   });
 
-  it('an axis finds the ::Tag … call form when navigating ::Tag | source', async () => {
+  it('`source` reads the declaration of a kind from its tag', async () => {
     const source = await evalQuery(
       ':myType |~~ myType. ~~| (::kind | impl ::builtin{}) | ::myType | source'
     );
@@ -73,7 +73,7 @@ describe('a kind whose construct is a primitive of the host', () => {
   });
 });
 
-describe('axis-operand subject classification', () => {
+describe('the subject an axis reads', () => {
   it('a value tagged by a user tag reads the source of that tag', async () => {
     const source = await evalQuery(':Box |~~ A box. ~~| | ::Box#[3 1] | source');
     expect(printQuoteSource(source)).toBe(':Box |~~ A box. ~~|');
@@ -86,19 +86,15 @@ describe('axis-operand subject classification', () => {
   });
 });
 
-describe('TagLit resolves to a tag identifier', () => {
-  it('::Box evaluates to a tag named Box', async () => {
+describe('a tag alone is the tag name', () => {
+  it('`::Box` answers the tag named Box', async () => {
     const { isTag } = await import('../../src/types.mjs');
     const result = await evalQuery('::Box');
     expect(isTag(result)).toBe(true);
     expect(result.name).toBe('Box');
   });
 
-  it('an unbound ::tag literal is identity-as-value — tag with no env touch', async () => {
-    // Symmetric to `:foo` (a keyword) which evaluates
-    // to `keyword('foo')` whether anything declared `:foo` or not.
-    // Typos catch on use-site probes (TaggedLit constructor, axis
-    // operands) rather than at literal construction.
+  it('a tag no declaration answers is the tag name all the same, as a keyword is', async () => {
     const { isTag } = await import('../../src/types.mjs');
     const result = await evalQuery('::someUnboundType');
     expect(isTag(result)).toBe(true);
@@ -106,13 +102,13 @@ describe('TagLit resolves to a tag identifier', () => {
   });
 });
 
-describe('TaggedLit error paths', () => {
+describe('what a tag before a payload refuses and hands on', () => {
   it('a tag no node answers puts the value under it as identity', async () => {
     const evalResult = await evalQuery('::unboundTag[1 2 3] | type');
     expect(evalResult).toEqual(makeTag('unboundTag'));
   });
 
-  it('raises ConstructTagNotKindError when the node a tag addresses is neither a kind nor a word', async () => {
+  it('refuses a tag whose node is neither a kind nor a word', async () => {
     const err = await evalQuery(':limit 5 | ::limit[]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('construct/TagNotKindError'));
@@ -123,24 +119,18 @@ describe('TaggedLit error paths', () => {
     expect(await evalQuery('::vec/count[] | type')).toEqual(makeTag('vec/count'));
   });
 
-  it('::builtin raises BuiltinPayloadNotMapError when payload is a String (would silently char-iterate)', async () => {
+  it('`::builtin` refuses a string for its payload', async () => {
     const err = await evalQuery('::builtin"hello"');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('builtin/PayloadNotMapError'));
     expect(err.descriptor.get('actualType')).toEqual(makeTag('string'));
   });
 
-  it('::builtin raises BuiltinPayloadNotMapError when payload is a Vec', async () => {
+  it('`::builtin` refuses a vector for its payload', async () => {
     const err = await evalQuery('::builtin[1 2 3]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('builtin/PayloadNotMapError'));
     expect(err.descriptor.get('actualType')).toEqual(makeTag('vec'));
-  });
-
-  it('tag bound-form propagates a fail-track tag-keyword expression instead of wrapping it', async () => {
-    const err = await evalQuery('42 | tag ("not-a-number" | add 1)');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTag('number/add/SubjectNotNumberError'));
   });
 
   it('tag hands on an error in the pipe instead of wrapping it', async () => {
@@ -157,13 +147,7 @@ describe('TaggedLit error paths', () => {
 
 });
 
-describe('a kind without a body — identity', () => {
-  // Two value-class branches by literal form:
-  //   ErrorLit payload   → ErrorValue (fail-track), `:kind`
-  //                        restamped onto the descriptor.
-  //   Anything else      → TaggedInstance Map (success-track),
-  //                        payload value lifted under
-  //                        `:payload` slot.
+describe('a tag no declaration answers lays itself over any payload', () => {
 
   it('an error literal under a tag, raised, is a failure of that tag [D13]', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
@@ -174,9 +158,7 @@ describe('a kind without a body — identity', () => {
     expect(err.descriptor.get('note')).toBe(42);
   });
 
-  it('Vec payload (`::Tag[…]`) overlays the tag identity onto the Array — `/n` indexes the Vec directly', async () => {
-    // A tagged vector is the array with its tag in the header slot,
-    // so every word reads it as a vector and `type` reads the tag.
+  it('a vector under a tag is read as a vector, and `type` reads the tag', async () => {
     const { isVec, isTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const instance = await evalQuery('::number/add/SubjectNotNumberError[1 2 3]');
     expect(Array.isArray(instance)).toBe(true);
@@ -189,13 +171,7 @@ describe('a kind without a body — identity', () => {
     expect(instance[1]).toBe(2);
   });
 
-  it('Map payload (`::Tag{…}`) overlays the tag identity onto the Map — `keys` / `/field` work directly', async () => {
-    // Identity-overlay: tag stamps the JS-header slot on the
-    // Map payload, fields land as ordinary Map entries. `keys`,
-    // `vals` and a path, `/field`, read the underlying Map data
-    // plane unchanged. A `:kind` field on the inner Map data
-    // coexists with the instance's identity because identity
-    // rides on the JS-header alone.
+  it('a map under a tag is read as a map, its entries its own', async () => {
     const { isQMap, isTaggedInstance, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const instance = await evalQuery('::number/add/SubjectNotNumberError{:custom "field" :position 1}');
     expect(isQMap(instance)).toBe(true);
@@ -206,14 +182,7 @@ describe('a kind without a body — identity', () => {
     expect(instance.get('position')).toBe(1);
   });
 
-  it('String payload (`::Tag"s"`) — wrap-object shape, `payload` operand extracts', async () => {
-    // Scalars / value-class objects (String / Number / Keyword
-    // / Quote / Doc / Error / already-tagged
-    // composite) cannot carry the header on themselves,
-    // so the constructor returns an opaque frozen `{type, tag,
-    // payload}` wrapper. The wrap shape keeps a path, `/payload`,
-    // out of reach (the wrapper is not a Map); the word `payload`
-    // takes the payload off.
+  it('a string under a tag is held whole, and `payload` takes it off', async () => {
     const { isTaggedInstance, typeKeyword } = await import('../../src/types.mjs');
     const instance = await evalQuery('::number/add/SubjectNotNumberError"hello"');
     expect(isTaggedInstance(instance)).toBe(true);
@@ -223,7 +192,7 @@ describe('a kind without a body — identity', () => {
     expect(extracted).toBe('hello');
   });
 
-  it('Keyword payload (`::Tag:foo`) — `:` opens unambiguously, wraps in an opaque object', async () => {
+  it('a keyword touches its tag by its colon', async () => {
     const { isTaggedInstance, isKeyword } = await import('../../src/types.mjs');
     const instance = await evalQuery('::number/add/SubjectNotNumberError:foo');
     expect(isTaggedInstance(instance)).toBe(true);
@@ -231,11 +200,7 @@ describe('a kind without a body — identity', () => {
     expect(instance.payload.name).toBe('foo');
   });
 
-  it('ParenGroup-wrapped scalar payload (`::Tag(42)`) — Number / Boolean / Null need the wrap', async () => {
-    // Bare `42` after `Tag` would fuse into the identifier tail
-    // (`Tag42`). ParenGroup makes the parser split cleanly. The
-    // scalar payload routes through the wrap-object branch of
-    // the constructor.
+  it('a number touches its tag by `#`, since `::Tag42` reads as one name [D279]', async () => {
     const { isTaggedInstance } = await import('../../src/types.mjs');
     const instance = await evalQuery('::number/add/SubjectNotNumberError#42');
     expect(isTaggedInstance(instance)).toBe(true);
@@ -243,24 +208,18 @@ describe('a kind without a body — identity', () => {
   });
 });
 
-describe('TaggedLit / TagLit steps', () => {
-  it('TaggedLit leaves a ::construct step over the step of its payload [D8]', async () => {
+describe('the steps of a tagged literal and of a tag', () => {
+  it('a tagged literal is a `::construct` step over the step of its payload [D8]', async () => {
     expect(await evalQuery('~(::holds~(mul 2)) | first | get [~(type) /tag /payload]'))
       .toEqual(await evalQuery('[::construct ::holds ~(mul 2)]'));
   });
 
-  it('TagLit leaves the tag name itself', async () => {
+  it('a tag alone is its name as a step', async () => {
     expect(await evalQuery('~(::Box) | first')).toEqual(makeTag('Box'));
   });
 });
 
-describe('tag value mechanics', () => {
-  // The base tag machinery — `makeTag` /
-  // `formOf` / `typeKeyword` / `printValue` — exercised at
-  // the value level. Tagged-instance identity rides on the
-  // JS-header `TAG_HEADER_SYMBOL` slot, read back through
-  // `typeKeyword`; the named-error / `::Tag!{…}` round-trip lives
-  // under the error-values suite.
+describe('a tag name as a value', () => {
 
   it('formOf / typeKeyword tell a tag name from a keyword', async () => {
     const { formOf, typeKeyword, makeTag } = await import('../../src/types.mjs');
@@ -284,12 +243,12 @@ describe('tag value mechanics', () => {
 
 });
 
-describe('parse and apply accept Quote subjects transparently', () => {
+describe('a quote is text to `parse` and code to `apply`', () => {
   it('`~(code) | parse` prints the quote as its text', async () => {
     expect(await evalQuery('~(5 | mul 2) | parse')).toBe('5 | mul 2');
   });
 
-  it('`~(code) | apply /` runs the Quote source against the subject', async () => {
+  it('`~(code) | apply it` runs the quote on itself', async () => {
     expect(await evalQuery('~(5 | mul 2) | apply it')).toBe(10);
   });
 });

@@ -20,11 +20,11 @@ export { printValue };
 function dispatchPlainValue(v, handlers, path) {
   if (Array.isArray(v)) return handlers.array(v, path);
   if (v !== null && typeof v === 'object') return handlers.object(v, path);
-  return handlers.scalar(v, path);
+  return handlers.atom(v, path);
 }
 
 // `toPlain` writes a value in JSON's shape and `fromPlain` reads that
-// shape back as maps, vectors and the scalars, for `json`, `parseJson`,
+// shape back as maps, vectors and the atoms, for `json`, `parseJson`,
 // the command line's streams and a host that hands values across.
 const TO_PLAIN_HANDLERS = {
   null:    () => null,
@@ -87,14 +87,14 @@ export const StringParseJsonNumberNotFiniteError = declareRefusal('string/parseJ
 const FROM_PLAIN_HANDLERS = {
   array:  (a, path) => a.map((element, index) => liftPlainValue(element, [...path, index])),
   object: plainObjectToQMap,
-  scalar: liftPlainScalar
+  atom:   liftPlainAtom
 };
 
-function liftPlainScalar(scalarValue, path) {
-  if (typeof scalarValue === 'number' && !Number.isFinite(scalarValue)) {
+function liftPlainAtom(atom, path) {
+  if (typeof atom === 'number' && !Number.isFinite(atom)) {
     throw new StringParseJsonNumberNotFiniteError({ path: Object.freeze([...path]) });
   }
-  return scalarValue;
+  return atom;
 }
 
 function liftPlainValue(plainVal, path) {

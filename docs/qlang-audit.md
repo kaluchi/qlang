@@ -1650,14 +1650,15 @@ back at the head of a group, `(r | get /price)`, and the cases of
 [D235] that pipe a name of a quote change. Open, left to ripen.
 
 The value as a file system. A path that is a value makes any value a
-tree a query lists and reads [D248], `paths` its outline, and what that
-opens is intention, no decision. The outline with the kind at each
+tree a query lists, reads and writes [D248], [D250], `paths` its
+outline, and what that opens beyond them is intention, no decision. The outline with the kind at each
 path is a schema inferred from the data, against which a query writes
 the rest of its pipeline without reading the data: «оглавление -
 бесплатная выведенная схема для всего, прям уф .. .. это не заглядывая
 в данные можно смело писать дальше пайплайн..» (maintainer, 2026-10-13
-01:24, session d65e4c1d). A set of paths is a mask: `drop` blots the
-parts out, and `elide` shows a selection and leaves at the path of each
+01:24, session d65e4c1d). A set of paths is a mask: `delete` takes a
+part out by its path [D250], a mask of several would take them out at
+once, and `elide` shows a selection and leaves at the path of each
 part it left out a marker, the budget a selection the reader names, in
 characters or, once a host counts them, in tokens, «элайд как такая
 форма решейпинга/вымывания ..   хотите в символах .. а если дойдут
@@ -2032,3 +2033,4 @@ query that fails nothing.
 [D246]: decisions/D246.md
 [D248]: decisions/D248.md
 [D249]: decisions/D249.md
+[D250]: decisions/D250.md

@@ -370,8 +370,10 @@
       several steps in one quote, `map ~(mul 2 | add 1)`, and the template
       of `get`, which builds the shape of each element,
       `map ~(get {:id /id :n ~(get /tags | count)})`.
-      It runs in the scope of the call, so a name declared before the
-      call is read inside, and the names a run declares stay in it. The
+      A quote written in the call reads the names of its step, a name
+      declared before the call among them, a quote held in a name reads
+      the words of the tree alone, and the names a run declares stay in
+      it. The
       first failure the code answers for an element is the answer of the
       call, the elements after it left unrun, and a code that recovers,
       `map ~(add 1 !| 0)`, keeps every element. The answers stand in a

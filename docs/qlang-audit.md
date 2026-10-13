@@ -495,23 +495,6 @@ Namespaces too large to bind are the sister project's types, tens of
 thousands of names, which it reaches by lookups it declares under
 `::any`; serving them as tags is the question of mounting [D259].
 
-### The names a held quote reads
-
-The core counts naming with lexical scope among its concepts, and a
-quote held as data, in a name, an input or a page, reads its free names
-in the tree of the query where its call runs [D251], so a step around
-the call shadows a name its author saw and a name declared after the
-quote is read too:
-
-```qlang
-> get [~(:k 1 | :f ~(add k) | [5] | map ~(:k 100 | apply f)) ~(:f ~(add k) | :k 10 | 1 | apply f)]
-[[105] 11]
-```
-
-A word's recipe stays apart, no name it writes reaching a quote it is
-handed [D200]. Where a held quote reads its names is a question being
-decided [D278].
-
 ### Errors named by their site
 
 A refusal is named by the address of what refused: a subject of
@@ -835,10 +818,11 @@ sign to its closing pair, reading no name and no subject, and a shape
 computed is the template of `get`, a literal of paths and quotes
 [D279]. Every modifier holds a value read by its
 own form; code is a quote, `~(…)`, `~add` for a single word, which
-nothing but `apply` and an input whose kinds take a quote runs, and a
-quote handed over reads the names of the reader that hands it, never
-those of a word's recipe [D251], where it reads them a question being
-decided [D278]. There is one
+nothing but `apply` and an input whose kinds take a quote runs: a
+quote written in a step reads the names of that step wherever its call
+runs it, and code held as data runs in a lane of its own, the words of
+the tree and its own names, no value a reader named reaching it [D278].
+There is one
 binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a function named
 under the label of its subject, its inputs and its answer in its chain,

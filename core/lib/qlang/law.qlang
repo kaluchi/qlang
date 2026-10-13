@@ -7,8 +7,10 @@
       proves, its page the sentence of the claim. The chain of a function
       or a kind writes it by `proves`,
       `| proves :addsTheNumber |~~ Ten and three is thirteen. ~~| ~(10 | add 3 | eq 13)`,
-      and a law of any other name is declared under it,
-      `:limit/holdsTen ::law~(limit | eq 10)`.
+      and a law of any other name, a label among them, is declared under
+      it, `:Box/holdsItsWidth ::law~(::Box{:w 1} | get /w | eq 1)`. A law is
+      code held as data: it reads the words of the tree and the names it
+      declares, and no value the reader named.
 
       `laws` answers the laws of a name, each its page and its query,
       and `runLaws` runs them, so the examples of the catalog are its
@@ -19,5 +21,5 @@
   ::kind
     | proves :provesItsClaim
         |~~ A law declared under a name proves its claim when it runs. ~~|
-        ~(:k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | runLaws | map /ok | eq [true])
+        ~(:Box |~~ A box. ~~| | :Box/holdsItsWidth |~~ A box holds its width. ~~| ::law~(::Box{:w 1} | get /w | eq 1) | ::Box | runLaws | map /ok | eq [true])
 

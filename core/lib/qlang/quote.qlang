@@ -161,9 +161,10 @@
       whatever tags stand over it, `~(1 | add 1) | open` answering `2`:
       a link opens to the page it names, so `links | map ~open` reads every
       page a page names in one query, and a snippet to the answer it
-      shows. The query runs in the scope of the reader, so a name bound
-      before it is read, `:k 5 | ~(k) | open` answering `5`, and the
-      names it binds stay inside it. It runs from null, not from the
+      shows. The query is code held as data and runs in a lane of its
+      own: it reads the words of the tree and the names it binds, which
+      stay inside it, and no value the reader named,
+      `:k 5 | ~(k) | open` refused under `k`. It runs from null, not from the
       subject of `open`: a query that reads a subject, `~(add 1)`, is
       refused on null, and a quote meant for a subject runs against it
       by `apply`, `5 | apply ~(add 1)`. Text is read as a quote first by
@@ -185,9 +186,9 @@
     | proves :runsASnippet
         |~~ A snippet opens to what it shows. ~~|
         ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
-    | proves :readsTheScopeOfTheReader
-        |~~ A name bound before the quote is read inside it. ~~|
-        ~(:k 5 | ~(k) | open | eq 5)
+    | proves :withholdsAValueOfTheReader
+        |~~ A value the reader named is withheld from the query. ~~|
+        ~(:k 5 | ~(k) | open !| type | eq ::call/ValueWithheldError)
     | proves :keepsItsNamesInside
         |~~ A name the query binds stays inside it. ~~|
         ~(:k 5 | ~(:k 1) | open | k | eq 5)

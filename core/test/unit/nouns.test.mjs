@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
-import { makeTag } from '../../src/types.mjs';
+import { keyword, makeTag } from '../../src/types.mjs';
 
 describe('the names of the scope', () => {
   it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [D160], [D169]', async () => {
@@ -169,19 +169,36 @@ describe('what a word reads and runs as data reads the tree of the query [D200]'
     expect((await session.evalCell(':k |~~ the reader\'s ~~| 2 | ::k | pageOf')).result).toBe(' the reader\'s ');
   });
 
-  it('code held as data runs in the tree of the query, past the inputs of a word of the root', async () => {
+  it('code held as data reads no value of the reader, past the inputs of a word of the root [D278]', async () => {
     const session = await createSession({ sources: [runner] });
-    expect((await session.evalCell(':x 1 | "x" | parse | :q it | null | runIt q 99')).result).toBe(1);
+    expect((await session.evalCell(':x 1 | "x" | parse | :q it | null | runIt q 99 !| get [~(type) /name]')).result)
+      .toEqual([makeTag('call/ValueWithheldError'), keyword('x')]);
   });
 
-  it('a word the reader declares reads and runs as data the tree of the query, past its own declarations and inputs, as a word of the root does [D251]', async () => {
+  it('a word the reader declares reads as data the tree of the query, past its own declarations, and runs held code in a lane of its own [D251], [D278]', async () => {
     expect(await evalQuery(':x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names | eq [false true]')).toBe(true);
     expect(await evalQuery(':any/f ~(:loc |~~ L ~~| 1 | ::loc | doc | content) | f !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
-    expect(await evalQuery(':x 1 | :any/run (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code)) | "x" | parse | :q it | null | run q 99')).toBe(1);
+    expect(await evalQuery(':x 1 | :any/run (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code)) | "x" | parse | :q it | null | run q 99 !| type'))
+      .toEqual(makeTag('call/ValueWithheldError'));
   });
 
-  it('a word reads a name the query declares after the word', async () => {
+  it('a word reads as data a name the query declares after the word, and held code reads no value', async () => {
     expect(await evalQuery(':any/pageOf ~(doc | content) | :k |~~ K. ~~| 1 | ::k | pageOf')).toBe(' K. ');
-    expect(await evalQuery(':any/run (::fn | takes :code |~~ The code. ~~| /0 | impl ~(apply code)) | :x 5 | "x | add 1" | parse | :q it | null | run q')).toBe(6);
+    expect(await evalQuery(':any/run (::fn | takes :code |~~ The code. ~~| /0 | impl ~(apply code)) | :x 5 | "x | add 1" | parse | :q it | null | run q !| type'))
+      .toEqual(makeTag('call/ValueWithheldError'));
+  });
+
+  it('held code reads a word a later source declares, and the reader\'s word that shadows it [D278]', async () => {
+    const later = { uri: 'later', source: ':any/triple ~(mul 3)' };
+    const session = await createSession({ sources: [later] });
+    expect((await session.evalCell(':f ~(triple) | 2 | apply f')).result).toBe(6);
+    expect((await session.evalCell(':number/triple ~(mul 30) | :g ~(triple) | 2 | apply g')).result).toBe(60);
+  });
+
+  it('a value of the reader that shadows a value of the root is withheld from held code, which the root\'s does not answer for [D278]', async () => {
+    const host = { uri: 'host', source: ':pi 3' };
+    const session = await createSession({ sources: [host] });
+    expect((await session.evalCell(':f ~(pi) | apply f')).result).toBe(3);
+    expect((await session.evalCell(':pi 4 | :f ~(pi) | apply f !| type')).result).toEqual(makeTag('call/ValueWithheldError'));
   });
 });

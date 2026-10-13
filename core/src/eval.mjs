@@ -2,7 +2,7 @@
 // steps, each node a function `(node, state) → state`.
 
 import { parse } from './parse.mjs';
-import { ROOT_KEY, QUERY_KEY, CALL_BINDS_KEY } from './env-keys.mjs';
+import { ROOT_KEY, QUERY_KEY, CALL_BINDS_KEY, WITHHELD_KEY } from './env-keys.mjs';
 import {
   rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, markRootWordScope, isRootWordScope, queryTreeOf
 } from './state.mjs';
@@ -44,6 +44,7 @@ const BuiltinUnknownAstNodeTypeError = declareInvariantError(
 // under a label, a word, an invariant or a tag no node answers [D173].
 const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
 const CallValueMeetsWordError = declareRefusal('call/ValueMeetsWordError');
+const CallValueWithheldError = declareRefusal('call/ValueWithheldError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
 const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifiersError');
 const FnRecipeMissingError = declareRefusal('fn/RecipeMissingError');
@@ -468,8 +469,11 @@ function withReadOfPath(state, node, subject, env) {
 // addresses where the word lives [D169], and a name that reaches nothing
 // with the names near it. A value the scope binds and a word the subject
 // answers under one name meet, and the step is refused with the word's
-// address, which calls the word, as another name reads the value [D223].
+// address, which calls the word, as another name reads the value [D223];
+// a value of the reader withheld from held code is refused under its
+// name before a word or a value of the root answers for it [D278].
 async function callByName(lookupName, modifiers, state, node) {
+  if (!state.env.has(lookupName) && state.env.get(WITHHELD_KEY)?.has(lookupName)) throw new CallValueWithheldError({ name: keyword(lookupName) });
   const reach = bareNameReach(state.env, lookupName, state.pipeValue);
   if (reach === null) {
     const addresses = addressesOf(state.env, lookupName);
@@ -739,10 +743,21 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (walked === null) return refusalUnder(subjectRefusalAddress(address, labelName === null ? signature.subject.kinds : [labelName]), {}, state.env, state.pipeValue);
   const scope = recipeScopeOf(state, ofTheRoot);
   const body = isQuote(recipe) ? astOfQuote(recipe) : null;
-  const called = await inputsOfCall(signature, address, modifiers, state, scope, body);
+  const marks = [];
+  try {
+    return await answerOfCall(fn, signature, { address, labelName, walked, scope, body, marks }, modifiers, state);
+  } finally {
+    for (const copy of marks) AUTHORS.delete(copy);
+  }
+}
+
+// The answer of a call, whose marks the caller ends with it.
+async function answerOfCall(fn, signature, { address, labelName, walked, scope, body, marks }, modifiers, state) {
+  const recipe = recipeOf(fn);
+  const called = await inputsOfCall(signature, address, modifiers, state, scope, body, marks);
   if (isErrorValue(called)) return called;
   const running = body === null
-    ? runPrimitive(hostImplOf(recipe), walked.served, walked.passedTags, handedTo(hostImplOf(recipe), signature, called, state), state)
+    ? runPrimitive(hostImplOf(recipe), walked.served, walked.passedTags, handedTo(hostImplOf(recipe), signature, called.values, state), state)
     : (await evalBody(body, nestState(state, state.pipeValue, called.bodyEnv))).pipeValue;
   const answer = isThenable(running) ? await running : running;
   if (isErrorValue(answer)) return answer;
@@ -753,34 +768,56 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 }
 
 // The values a primitive is handed, its inputs in the order `takes` names
-// them, each it runs as code closed at the call [D4], a quote written in
-// the step in the scope of the step and any other in the tree of the query
-// [D251], a path read as `get` reads it [D248], and every element so of
-// one that holds the objects of the call whole; any other value as it is.
-function handedTo(impl, signature, { values, writtenHere }, state) {
+// them, each it runs as code closed at the call [D4], a quote the call
+// received written in a step in the scope of that step and any other in a
+// lane of its own [D278], a path read as `get` reads it [D248], and every
+// element so of one that holds the objects of the call whole; any other
+// value as it is.
+function handedTo(impl, signature, values, state) {
   const run = inputsRunBy(impl);
   const within = inputsRunWithin(impl);
   if (run === undefined && within === undefined) return values;
   return values.map((value, at) => {
     const { name, selector } = signature.inputs[at];
-    if (within?.has(name.name)) return quotesClosedIn(value, writtenHere[selector.place] === true, state);
+    if (within?.has(name.name)) return quotesClosedIn(value, state);
     if (!run?.has(name.name)) return value;
-    return selector.readsArgs ? value.map((element, place) => codeOfObject(element, writtenHere[place], state)) : codeOfObject(value, writtenHere[selector.place], state);
+    return selector.readsArgs ? value.map(element => codeOfObject(element, state)) : codeOfObject(value, state);
   });
 }
 
-// A template whose quotes are code closed at the call, each closed as a
-// quote written in the step or held as data, the paths and the other
-// values of it as they are, a set's elements kept in its order.
-function quotesClosedIn(value, writtenHere, state) {
-  if (isQuote(value)) return codeOf(value, state, writtenHere);
+// A template whose quotes are code closed at the call, each closed by the
+// step it was written in or held as data, the paths and the other values
+// of it as they are, a set's elements kept in its order.
+function quotesClosedIn(value, state) {
+  if (isQuote(value)) return codeOf(value, state);
   if (!holdsAQuote(value)) return value;
   const header = value[TAG_HEADER_SYMBOL];
   const closed = isQMap(value)
-    ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, writtenHere, state)]))
-    : value.map(part => quotesClosedIn(part, writtenHere, state));
+    ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, state)]))
+    : value.map(part => quotesClosedIn(part, state));
   if (header !== undefined) stampTagHeader(closed, header);
   return closed;
+}
+
+// A value a call received written in the caller's step, each quote of it
+// a fresh copy that runs in that step by whatever road the call reaches
+// it, its mark ending with the call [D278].
+const AUTHORS = new WeakMap();
+
+function markedIn(value, writtenIn, marks) {
+  if (isQuote(value)) {
+    const copy = makeQuote([...value]);
+    AUTHORS.set(copy, writtenIn);
+    marks.push(copy);
+    return copy;
+  }
+  if (!holdsAQuote(value)) return value;
+  const header = value[TAG_HEADER_SYMBOL];
+  const marked = isQMap(value)
+    ? new Map([...value].map(([key, part]) => [key, markedIn(part, writtenIn, marks)]))
+    : value.map(part => markedIn(part, writtenIn, marks));
+  if (header !== undefined) stampTagHeader(marked, header);
+  return isQMap(marked) ? marked : Object.freeze(marked);
 }
 
 function holdsAQuote(value) {
@@ -789,8 +826,8 @@ function holdsAQuote(value) {
   return parts !== null && parts.some(holdsAQuote);
 }
 
-function codeOfObject(value, writtenHere, state) {
-  if (isQuote(value)) return codeOf(value, state, writtenHere === true);
+function codeOfObject(value, state) {
+  if (isQuote(value)) return codeOf(value, state);
   return isPath(value) ? codeOfPath(value, state) : value;
 }
 
@@ -814,20 +851,18 @@ function subjectOfCall(signature, labelName, subject) {
 // and, for a recipe written in steps, the scope of its body, each input
 // bound by its name and the args as `args`, names the steps of the body
 // declare no second time [D71], and whether each object is a quote written
-// in the step: args of more values than the inputs read places are refused,
+// in the step, marked so: args of more values than the inputs read places are refused,
 // an input the args leave out where its place reads one is refused, a value
 // none of an input's kinds holds is refused, each refusal named under the
 // address, and so is a value that breaks an invariant written under its
 // input, which holds of the value as the args give it.
-async function inputsOfCall(signature, address, modifiers, state, scope, body) {
+async function inputsOfCall(signature, address, modifiers, state, scope, body, marks = null) {
   const values = [];
-  const writtenHere = [];
   for (const [place, modifier] of modifiers.entries()) {
     const computing = modifier(state.pipeValue);
     const value = isThenable(computing) ? await computing : computing;
     if (isErrorValue(value)) return refusalOfFailedObject(signature, address, place, value, scope);
-    values.push(value);
-    writtenHere.push(modifier.writtenHere === true);
+    values.push(marks === null || modifier.writtenIn === undefined ? value : markedIn(value, modifier.writtenIn, marks));
   }
   let args = null;
   const argsValue = () => args ??= makeTaggedInstance(makeTag(address), values);
@@ -851,7 +886,7 @@ async function inputsOfCall(signature, address, modifiers, state, scope, body) {
     inputValues.push(held);
     if (body !== null) bodyEnv = envSet(bodyEnv, name.name, makeBinding({ name, value: held }));
   }
-  return { values: inputValues, bodyEnv, writtenHere };
+  return { values: inputValues, bodyEnv };
 }
 
 // An object of the call that answered an error where the input that reads
@@ -946,12 +981,11 @@ function closeCode(astNode, capturedState) {
 
 // modifierOf(argNode, state) → the code of a modifier of a call, whose
 // subject is never an error: a quote written there the data it is, which
-// a primitive of the step runs in the scope of the step [D251], a literal
-// of an atom its value one frame below the call, and any other modifier
-// the code it is.
+// the call runs in the scope of the step [D278], a literal of an atom its
+// value one frame below the call, and any other modifier the code it is.
 function modifierOf(argNode, state) {
-  if (argNode.type === 'QuoteLit') return quoteWrittenHere(argNode);
-  if (TEMPLATE_LITERALS.has(argNode.type)) return writtenHereAs(closeCode(argNode, state));
+  if (argNode.type === 'QuoteLit') return writtenAt(() => quoteOfLiteral(argNode), state);
+  if (TEMPLATE_LITERALS.has(argNode.type)) return writtenAt(closeCode(argNode, state), state);
   if (ATOM_LITERALS.has(argNode.type)) return () => (frameBelow(state), AST_NODE_EVALUATORS[argNode.type](argNode, state).pipeValue);
   return closeCode(argNode, state);
 }
@@ -962,15 +996,9 @@ const ATOM_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit'
 // step [D279].
 const TEMPLATE_LITERALS = new Set(['VecLit', 'MapLit', 'SetLit']);
 
-function writtenHereAs(code) {
-  code.writtenHere = true;
+function writtenAt(code, state) {
+  code.writtenIn = state;
   return code;
-}
-
-function quoteWrittenHere(argNode) {
-  const quote = () => quoteOfLiteral(argNode);
-  quote.writtenHere = true;
-  return quote;
 }
 
 // codeOfPath(path, callState) → code that reads the path from each input
@@ -985,12 +1013,31 @@ export function codeOfPath(path, callState) {
   };
 }
 
-// codeOf(code, callState, writtenHere) → code closed at the call: a quote
-// an input of code holds, closed at the call [D4], run against each input
-// its verb hands it in the scope of the step where it is written, or, held
-// as data, in the tree of the query that made the call [D200], [D251].
-export function codeOf(code, callState, writtenHere = false) {
-  return closeCode(astOfQuote(code), writtenHere ? callState : withEnv(callState, queryTreeOf(callState.env)));
+// codeOf(code, callState) → code closed at the call [D4]: a quote a call
+// received written in a step run in the scope of that step, and code held
+// as data in a lane of its own [D278].
+export function codeOf(code, callState) {
+  return closeCode(astOfQuote(code), AUTHORS.get(code) ?? withEnv(callState, laneOf(queryTreeOf(callState.env))));
+}
+
+// The lane held code runs in [D278], a tree of its own: the root, the
+// words, the nodes and the labels of the tree it is called from, and each
+// value a reader named there withheld, so no word and no value of the
+// root answers for it.
+const LANES = new WeakMap();
+
+function laneOf(env) {
+  let lane = LANES.get(env);
+  if (lane !== undefined) return lane;
+  const withheld = new Set(env.get(WITHHELD_KEY));
+  lane = new Map([[ROOT_KEY, rootOf(env)], [WITHHELD_KEY, withheld]]);
+  for (const [name, entry] of env) {
+    if (typeof name !== 'string') continue;
+    if (name.includes('/') || (isBinding(entry) && declaresALabel(entry))) lane.set(name, entry);
+    else if (isBinding(entry)) withheld.add(name);
+  }
+  LANES.set(env, lane);
+  return lane;
 }
 
 // resolveBinaryReducer(reducer) → (acc, item) → value, or null: the

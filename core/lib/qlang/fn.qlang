@@ -647,7 +647,8 @@
 :fn/fill
   |~~ Writes the arguments of a call into the head of the code of a
       function, each input a declaration with its page of the value it
-      reads from them, as its call reads it, and answers the code:
+      reads from them, as its call reads it, a quote among them written
+      as the data it is, and answers the code:
       `::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3`
       answers `~(:by |~~ How much. ~~| 3 | add by)`.
   ~~|

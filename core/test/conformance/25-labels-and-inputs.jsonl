@@ -37,7 +37,7 @@
 {"decision":"D200","name":"a-value-of-the-reader-reaches-no-name-a-word-of-the-root-writes","query":":laws 7 | :k |~~ K. ~~| 1 | ::k | tutorial | get [~(get /0 | content) /1]","expect":"[\" K. \" {}]"}
 {"decision":"D200","name":"the-names-a-word-of-the-root-declares-stay-out-of-what-it-reads","query":"::subject | tutorial !| type","expect":"::any/doc/UnknownNameError"}
 {"decision":"D251","name":"a-word-reads-as-data-the-names-of-its-query-not-its-own","query":":x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names","expect":"[false true]"}
-{"decision":"D278","name":"code-held-as-data-reads-no-value-a-reader-names-past-a-word","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 | impl ~(apply code)) | :x 5 | \"x | add 1\" | parse | :q it | (null | run q) !| get [~(type) /name]","expect":"[::call/ValueWithheldError :x]","target":true,"now":"6"}
+{"decision":"D278","name":"code-held-as-data-reads-no-value-a-reader-names-past-a-word","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 | impl ~(apply code)) | :x 5 | \"x | add 1\" | parse | :q it | (null | run q) !| get [~(type) /name]","expect":"[::call/ValueWithheldError :x]"}
 {"decision":"D164","name":"the-args-of-a-call-are-a-value-under-its-word","query":":any/argsOf (::fn | takes :xs |~~ The xs. ~~| ~(take 99) | impl ~(args)) | 5 | argsOf 1 2","expect":"::any/argsOf[1 2]"}
 {"decision":"D253","name":"an-invariant-a-bare-name-declares-is-refused","query":":Positive ::holds~(gt 0) !| type","expect":"::bind/WrittenOutsideItsChainError"}
 {"decision":"D251","name":"a-value-the-sentence-names-reaches-no-place-of-a-word","query":":it 5 | 3 | is ::number","expect":"true"}

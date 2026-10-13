@@ -8,9 +8,9 @@
 //   `answerOfStep(answer, stepQuoteOf, subject)` — the answer of a step of
 //     a pipeline: a failure its subject was not passes a stop there,
 //     unless its maker wrote its trail and it resumes that path.
-//   `answerOfWord(answer, wordNode, subject)` — the value a word of a
-//     literal answers: a failure the word raised itself passes a stop at
-//     the word, and one handed on from inside it goes on as it is.
+//   `answerOfPart(answer, partNode, subject)` — the value a part of a
+//     literal answers: a refusal the part's constructor raised passes a
+//     stop at the part, and one handed on from inside it goes on as it is.
 //   `skipping(error, skippedStep)` — the failure that skipped a step.
 //   `resumingItsTrail(error)` — marks a failure `raise` made of a map
 //     that wrote its `:trail`.
@@ -61,8 +61,8 @@ export function answerOfStep(answer, stepQuoteOf, subject) {
   return withStop(answer, stepQuoteOf(), subject);
 }
 
-export function answerOfWord(answer, wordNode, subject) {
-  return isErrorValue(answer) && isRaisedBy(answer, wordNode) ? withStop(answer, quoteOfBody(wordNode), subject) : answer;
+export function answerOfPart(answer, partNode, subject) {
+  return isErrorValue(answer) && isRaisedBy(answer, partNode) ? withStop(answer, quoteOfBody(partNode), subject) : answer;
 }
 
 // A failure that flew no step holds no stop to join, and the steps it

@@ -31,7 +31,7 @@ import {
   runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
 } from './runtime/verb.mjs';
 import {
-  answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy
+  answerOfStep, answerOfPart, skipping, raisedBy, isRaisedBy
 } from './eval-trail.mjs';
 
 // A node or a combinator the tables below do not name is a defect of the
@@ -138,9 +138,9 @@ async function applyCombinator(kind, state, stepNode) {
   return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
 }
 
-// The fork rule: a nested pipeline, a group or a word of a literal, starts
-// from the outer state and hands back its value alone, its declarations
-// left behind, on the outer frame of the depth budget.
+// The fork rule: a nested pipeline or a group starts from the outer
+// state and hands back its value alone, its declarations left behind, on
+// the outer frame of the depth budget.
 async function fork(state, sub) {
   const innerEnd = await sub(state);
   return withPipeValue(state, innerEnd.pipeValue);
@@ -191,22 +191,23 @@ function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
 function evalRegexLit(node, state)   { return withPipeValue(state, makeRegex(node.pattern, node.flags)); }
 
-// Each element and each value of a literal is a word forked against the
-// subject, one after another in their order [D84]; a failure lives in the
-// pipe alone, so the first a word answers is the answer of the literal,
-// the words after it left unrun [D13].
+// Each element and each value of a literal is a literal, read one after
+// another in their order [D84], none reading the scope or the subject
+// [D279]; a failure lives in the pipe alone, so the first a part answers,
+// a constructor's refusal of its payload, is the answer of the literal,
+// the parts after it left unread [D13].
 async function evalVecLit(node, state) {
-  return withPipeValue(state, await wordValues(node.elements, state));
+  return withPipeValue(state, await partValues(node.elements, state));
 }
 
 async function evalMapLit(node, state) {
   return withPipeValue(state, await entryValues(node.entries, state));
 }
 
-async function wordValues(words, state) {
+async function partValues(parts, state) {
   const values = [];
-  for (const word of words) {
-    const answered = await wordAnswer(word, state);
+  for (const part of parts) {
+    const answered = await partAnswer(part, state);
     if (isErrorValue(answered)) return answered;
     values.push(answered);
   }
@@ -214,7 +215,7 @@ async function wordValues(words, state) {
 }
 
 async function entryValues(entries, state) {
-  const values = await wordValues(entries.map(entry => entry.value), state);
+  const values = await partValues(entries.map(entry => entry.value), state);
   return isErrorValue(values) ? values : new Map(entries.map((entry, index) => [entry.key.name, values[index]]));
 }
 
@@ -230,12 +231,11 @@ async function evalErrorLit(node, state) {
   return withPipeValue(state, node.tag === null ? atRest : await mintTaggedInstance(node.tag, atRest, state));
 }
 
-// The value a word of a literal answers, forked against the subject: a
-// failure the word raised passes a stop at the word, and one handed on
-// from inside it goes on as it is to the literal it fails [D13].
-async function wordAnswer(wordNode, state) {
-  const answered = await fork(state, inner => evalNode(wordNode, inner));
-  return answerOfWord(answered.pipeValue, wordNode, state.pipeValue);
+// The value a part of a literal answers: a refusal its constructor raised
+// passes a stop at the part, and one handed on from a part inside it goes
+// on as it is to the literal it fails [D13].
+async function partAnswer(partNode, state) {
+  return answerOfPart((await evalNode(partNode, state)).pipeValue, partNode, state.pipeValue);
 }
 
 function evalQuoteLit(node, state) {
@@ -261,7 +261,7 @@ async function evalDocLit(node, state) {
 // The elements run in the order they are written, and the set holds
 // them in the one order [D16].
 async function evalSetLit(node, state) {
-  const elements = await wordValues(node.elements, state);
+  const elements = await partValues(node.elements, state);
   return withPipeValue(state, isErrorValue(elements) ? elements : makeSet(elements));
 }
 
@@ -269,7 +269,7 @@ async function evalSetLit(node, state) {
 
 async function evalTaggedLit(node, state) {
   const tagName = node.tag;
-  const payload = (await fork(state, inner => evalNode(node.payload, inner))).pipeValue;
+  const payload = (await evalNode(node.payload, state)).pipeValue;
   if (isErrorValue(payload)) return withPipeValue(state, passedUntagged(payload, node, tagName));
   return withPipeValue(state, await mintTaggedInstance(tagName, payload, state));
 }
@@ -771,7 +771,7 @@ function handedTo(impl, signature, { values, writtenHere }, state) {
 
 // A template whose quotes are code closed at the call, each closed as a
 // quote written in the step or held as data, the paths and the other
-// values of it as they are, a set's elements kept in the order written.
+// values of it as they are, a set's elements kept in its order.
 function quotesClosedIn(value, writtenHere, state) {
   if (isQuote(value)) return codeOf(value, state, writtenHere);
   if (!holdsAQuote(value)) return value;

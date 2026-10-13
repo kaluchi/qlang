@@ -120,13 +120,13 @@ function printErrorValue(e, indent, printedOf) {
 
 const NO_PATH = Object.freeze([]);
 
-// A payload touches its tag by its own sign, and a scalar with no sign of
-// its own, a number, `true`, `false`, `null` or a path, by `#`, where it
-// would read as the tag's name [D279].
-const SCALAR_OF_NO_SIGN_RE = /^[\w/-]/;
+// A payload touches its tag by its own sign, and a number, a boolean,
+// null or a path, whose literal would continue the tag's name, by `#`
+// [D279].
+const KINDS_AFTER_HASH = new Set(['number', 'boolean', 'null', 'path']);
 
-export function underTagLiteral(tagLiteral, payloadPrint) {
-  return SCALAR_OF_NO_SIGN_RE.test(payloadPrint) ? `${tagLiteral}#${payloadPrint}` : tagLiteral + payloadPrint;
+export function underTagLiteral(tagLiteral, payload, payloadPrint) {
+  return KINDS_AFTER_HASH.has(formOf(payload)) ? `${tagLiteral}#${payloadPrint}` : tagLiteral + payloadPrint;
 }
 
 // An error at rest writes the literal of its kind, `!{…}`, as a set
@@ -136,8 +136,7 @@ function printTaggedInstance(instance, indent, printedOf) {
   if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf);
   if (instance instanceof Map && instance[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', instance, indent, printedOf);
   if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf);
-  const payloadPrint = printValue(instance.payload, indent, printedOf);
-  return underTagLiteral(tagLiteral, payloadPrint);
+  return underTagLiteral(tagLiteral, instance.payload, printValue(instance.payload, indent, printedOf));
 }
 
 // A map of two entries or fewer, none a container, stands on one line;

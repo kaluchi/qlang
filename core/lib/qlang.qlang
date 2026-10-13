@@ -24,17 +24,22 @@
       names. A value written as a later step is refused.
 
       2. Values. Every value has a kind, a tag that `type` answers:
-      `[1 2] | type` answers `::vec`. Numbers, ::number, are finite
-      doubles: `42`, `-1.5`. Strings, ::string: `"text"`. Keywords,
-      ::keyword, are names that stand for themselves: `:name`. Booleans
-      and null: `true`, `false`, `null`. Vectors, ::vec: `[1 2 3]`.
-      Maps, ::map, have keyword keys: `{:a 1 :b 2}`. Sets, ::set, hold
-      no duplicates and keep one order: `#[3 1 3]` answers `#[1 3]`.
-      JSON is a literal too and pastes into a query as it is, its keys
-      read as keywords: `{"a": [1, 2]}` answers `{:a [1 2]}`. A keyword
-      is not its string: `:a | eq "a"` answers `false`, and `toString`
-      and `toKeyword` turn one into the other, `:a | toString` answering
-      `"a"`.
+      `[1 2] | type` answers `::vec`. A value is written as its literal,
+      which opens with the sign of its kind and closes with its pair, and
+      everything between is literal: a literal reads no name and no
+      subject, so it is the value it writes. Numbers, ::number, are
+      finite doubles: `42`, `-1.5`. Strings, ::string: `"text"`.
+      Keywords, ::keyword, are names that stand for themselves: `:name`.
+      Booleans and null: `true`, `false`, `null`. Vectors, ::vec:
+      `[1 2 3]`. Maps, ::map, have keyword keys: `{:a 1 :b 2}`. Sets,
+      ::set, hold no duplicates and keep one order: `#[3 1 3]` answers
+      `#[1 3]`. A tag written before a literal puts the value under it,
+      `::Box{:w 2}`, a number, a boolean, null or a path touching it by
+      `#`, `::Width#5`. JSON is a literal too and pastes into a query as
+      it is, its keys read as keywords: `{"a": [1, 2]}` answers
+      `{:a [1 2]}`. A keyword is not its string: `:a | eq "a"` answers
+      `false`, and `toString` and `toKeyword` turn one into the other,
+      `:a | toString` answering `"a"`.
 
       3. Reading parts. A path, ::path, names a part of a value: `/k` a
       key, `/0` an element, `/-1` the last, `/a/b/0` a part at depth. A
@@ -82,14 +87,14 @@
       not from each element, and `map` refuses what it is handed,
       `::vec/map/code/NotPathOrQuoteError`.
 
-      6. Building answers. An answer is reshaped by writing the shape it
-      takes, a template of paths and quotes `get` reads, each path read
-      and each quote run against the subject:
+      6. Building answers. A literal computes nothing, so an answer of a
+      new shape is built by `get` over a template, a literal of paths and
+      quotes, each path read and each quote run against the subject:
       `{:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)}`
       answers `{:who "Ann" :next 31}`, and `{:a 1 :b 2} | get [/b /a]`
-      answers `[2 1]`. A literal computes nothing itself: from its
-      opening sign to its closing one it holds literals, and a group or
-      a name written inside one is refused.
+      answers `[2 1]`; `query` reads the paths of a template softly. A
+      group or a name written inside a literal is refused, and a value
+      computed goes under a tag by `tag`, `1 | add 2 | tag ::Box`.
 
       7. Names. A step sees only the value handed to it: after
       `get /qty |` the subject is a number, and the record it came from
@@ -146,9 +151,9 @@
       `::number/add/SubjectNotNumberError`. `|` passes a failure by, and
       `!|` alone catches it, its step running on the error at rest, a
       value like any other: `"x" | add 1 !| 0` answers `0`. No value
-      holds a failure, so a literal whose part fails answers it, while an
-      error at rest, written `!{:k 1}`, sits anywhere and `raise` raises
-      it. A failure carries its facts and its trail, the steps it passed
+      holds a failure, so a template whose quote fails answers the
+      failure, while an error at rest, written `!{:k 1}`, sits anywhere
+      and `raise` raises it. A failure carries its facts and its trail, the steps it passed
       with their subjects, and prints as an alert: the subject where it
       arose cut to an excerpt, and each subject it passed an ::elision,
       whose `:read` continues the query to it, `!| get /trail/1/subject`.
@@ -190,11 +195,13 @@
     | proves :runsAGroup
         |~~ A group runs its steps on the value in the pipe. ~~|
         ~(5 | (add 1 | mul 2) | eq 12)
-    | proves :reshapesByALiteral
-        |~~ A literal reshapes data, its parts read from the value. ~~|
+    | proves :reshapesByATemplate
+        |~~ A template of `get` reshapes data, its paths read and its
+            quotes run on the value.
+        ~~|
         ~({:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)} | eq {:who "Ann" :next 31})
     | proves :reshapesEachElement
-        |~~ Under `map` a literal reshapes each element. ~~|
+        |~~ Under `map` a template reshapes each element. ~~|
         ~([{:id 1 :tags [:a :b]}] | map ~(get {:id /id :n ~(get /tags | count)}) | eq [{:id 1 :n 2}])
     | proves :walksAPath
         |~~ A path walks keys and indices, `-1` from the end. ~~|
@@ -202,6 +209,9 @@
     | proves :readsAQuotedKey
         |~~ A key with a space is read quoted. ~~|
         ~({"first name": "Ann"} | get /"first name" | eq "Ann")
+    | proves :readsATemplateSoftly
+        |~~ `query` reads the paths of a template softly. ~~|
+        ~({:a 1} | query [~(get /a) /b] | eq [1 null])
     | proves :readsSoftly
         |~~ `query` reads a missing key as null. ~~|
         ~({:a 1} | query /b | eq null)
@@ -217,8 +227,8 @@
     | proves :subtractsTwoFields
         |~~ Two fields of one record subtract by `subOf`. ~~|
         ~({:total 10 :paid 3} | subOf /total /paid | eq 7)
-    | proves :groupsAPipelineInALiteral
-        |~~ A pipeline inside a literal stands in parentheses. ~~|
+    | proves :runsAPipelineInATemplate
+        |~~ A pipeline in a template stands in a quote. ~~|
         ~({:a 1} | get [~(get /a | add 1) /a] | eq [2 1])
     | proves :losesTheRecordAfterAStep
         |~~ After `get /qty |` a modifier reads the number, not the record. ~~|
@@ -353,16 +363,24 @@
             ::link~(::tag | doc)
             ::link~(::qlang/pipeline | doc)
 
-            A literal implies its kind. A tag written before a payload
-            puts it under the tag, the payload touching it by its own
-            sign, `::T{…}`, `::T[…]` or `::T"…"`, and a scalar by `#`,
-            `::T#5`, the constructor of the kind attaching the tag or
-            refusing the payload. `tag` puts the value in the pipe under a
-            tag, a value computed among them, tags stack and read from the outside
-            in, and `payload` takes one off. A step answers a new value
-            and the old one stays as it was. Every value prints as a
-            literal that reads back as itself. A value is told by how its
-            print opens: `"` a string, `:` a keyword, `::` and a name
+            A literal implies its kind: it opens with the sign of the
+            kind and closes with its pair, and everything between is
+            literal, so a literal reads neither the scope nor the value in
+            the pipe, and a group or a name written inside one is refused.
+            A tag written before a literal puts the value under the tag,
+            the literal touching it by its own sign, `::Box{:w 2}`,
+            `::P[1 2]`, `::T"s"`, `::T:k`, `::T~(add 1)`, and a literal
+            whose first character would continue the tag's name, a
+            number, `true`, `false`, `null` or a path, by `#`,
+            `::Width#5`, `::T#/a`; the constructor of the kind attaches
+            the tag to the payload or refuses it, saying why the payload
+            does not fit, and builds no other value. `tag` puts the value
+            in the pipe under a tag, a value computed among them,
+            `1 | add 2 | tag ::Box`; tags stack and read from the outside
+            in, `::A::B[1]`, and `payload` takes one off. A step answers a
+            new value and the old one stays as it was. Every value prints
+            as a literal that reads back as itself. A value is told by how
+            its print opens: `"` a string, `:` a keyword, `::` and a name
             alone a tag and with a payload touching it a value under that
             tag, `[` a vector, `#[` a set, `#"` a pattern of text, `{` a
             map, `/` a path, `~(` a quote, `|~~` a doc, `!{` an error at
@@ -377,13 +395,25 @@
         |~~ Each literal answers its kind. ~~|
         ~([42 "s" :k [1] {:k 1} #[1] true null] | map ~type | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
     | proves :values/putsAnyPayloadUnderATag
-        |~~ A payload touches its tag by its own sign, a scalar by `#`. ~~|
-        ~([::Box{:a 1} ::Box[1 2] ::Box#3 ::Box"s"] | map ~payload | eq [{:a 1} [1 2] 3 "s"])
-    | proves :values/computesNothingInsideALiteral
-        |~~ A group inside a literal is refused, and a value computed goes
-            under a tag by `tag`.
+        |~~ A literal touches its tag by its own sign, and a number, a
+            boolean, null or a path by `#`.
         ~~|
-        ~(get [~("[(1 | add 2)]" | parse !| type) ~(1 | add 2 | tag ::Box | payload)] | eq [::quote/ParseError 3])
+        ~([::Box{:a 1} ::Box[1 2] ::Box"s" ::Box:k ::Box#3 ::Box#true ::Box#null ::Box#/a]
+          | map ~payload
+          | eq [{:a 1} [1 2] "s" :k 3 true null /a])
+    | proves :values/attachesTheTagOrRefusesThePayload
+        |~~ The constructor of a kind attaches its tag to a payload or
+            refuses it.
+        ~~|
+        ~(:Pos |~~ A number above zero. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0))
+          | get [~(::Pos#3 | payload) ~(::Pos#-3 !| type)]
+          | eq [3 ::Pos/NotPositiveError])
+    | proves :values/computesNothingInsideALiteral
+        |~~ A group or a name inside a literal is refused, and a value
+            computed goes under a tag by `tag`.
+        ~~|
+        ~(get [~("[(1 | add 2)]" | parse !| type) ~(":x 1 | [x]" | parse !| type) ~(1 | add 2 | tag ::Box | payload)]
+          | eq [::quote/ParseError ::quote/ParseError 3])
     | proves :values/isToldByHowItsPrintOpens
         |~~ A string, a keyword, a tag, a vector, a set, a pattern, a map,
             a quote and an error at rest each print as their kind opens.
@@ -486,8 +516,8 @@
         |~~ Comments nest and stand where spaces stand. ~~|
         ~("|~ outer |~ inner ~| ~| [1 2] |~ a note ~| | count" | parse | apply it | eq 2)
     | proves :pipeline/seesNothingOfASibling
-        |~~ One part of a literal sees nothing of another. ~~|
-        ~(get [~(:a 1 | a) ~(a)] | get /1 !| type | eq ::call/UnknownNameError)
+        |~~ One quote of a template sees nothing of another. ~~|
+        ~(get [~(:a 1 | a) ~(a)] !| type | eq ::call/UnknownNameError)
     | tells :names
         |~~ Names. A name holds a value for the steps after it, the one
             way a query remembers: `:n v` declares it in the scope where
@@ -712,8 +742,9 @@
             passes a failure by, and `map` answers the first an element
             answers. `a !| b` alone catches a failure, running `b` on the
             error at rest, a value like any other, and recovers each
-            failure where it is read. No value holds a failure: a literal,
-            a name or a fact whose part fails answers it. The facts name
+            failure where it is read. No value holds a failure: a template
+            whose quote fails, a literal whose constructor refuses its
+            payload and a name whose body fails answer the failure. The facts name
             what refused, and the first stop of the trail holds the value
             the step refused. `explain` shows the page of the site above
             the error. The trail is written as the failure flies: a stop

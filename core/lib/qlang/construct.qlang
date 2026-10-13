@@ -5,8 +5,9 @@
 
 :construct
   |~~ The step that puts a payload under a tag, `::T[…]`, `::T{…}`,
-      `::T"…"` or a scalar by `#`, `::T#5`, through the tag's
-      constructor, which attaches the tag or refuses the payload.
+      `::T"…"`, or a number, a boolean, null or a path by `#`, `::T#5`,
+      through the tag's constructor, which attaches the tag or refuses
+      the payload.
 
       In a quote the step is a record, `~(::Box[1 2]) | first` answering
       `::construct{:tag ::Box :payload [1 2]}`: `:tag` the tag and
@@ -28,10 +29,10 @@
         ~~|
     | throws :ReadBackDiffersError
         |~~ The `::construct` prints as text that reads back as another
-            step, and `:printed` is that text: a payload is a literal, a
-            scalar touching its tag by `#`, `::Box#42`, and the step of
-            code, a call or a group, joins its tag as a name of its own or
-            as code a literal does not hold.
+            step, and `:printed` is that text: a payload is a literal,
+            touching its tag by its sign or by `#`, `::Box#42`, and the
+            step of code, a call or a group, stands after its tag in the
+            parentheses of code, which no literal holds.
             ::link~(::construct | doc)
         ~~|
     | throws :TagNotKindError
@@ -62,12 +63,12 @@
         |~~ A tag name and the step of a payload build the step. ~~|
         ~({:tag ::Box :payload [1]} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Box[1]))
     | proves :ReadBackDiffersError/refusesAPayloadOfCode
-        |~~ The step of a call as the payload prints as code after its
-            tag, which no literal holds.
+        |~~ The step of a call as the payload prints in the parentheses
+            of code after its tag, which no literal holds.
         ~~|
         ~(get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct
-          !| get [~(type) /printed] | eq [::construct/ReadBackDiffersError "::Box#x"])
-    | proves :ReadBackDiffersError/writesAScalarPayloadByAHash
+          !| get [~(type) /printed] | eq [::construct/ReadBackDiffersError "::Box(x)"])
+    | proves :ReadBackDiffersError/writesANumberPayloadByAHash
         |~~ A number payload touches its tag by `#` and reads back as
             itself.
         ~~|

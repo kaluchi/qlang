@@ -147,11 +147,13 @@
 
   // A literal holds literals: a group or a name written inside one would
   // compute, which a literal does not, and is refused naming the template
-  // of paths and quotes `get` computes a shape from [D279].
+  // of paths and quotes `get` computes a shape from, while the code of a
+  // doc that writes one reads as prose [D279].
   const COMPUTED_PARTS = new Set(['ParenGroup', 'Call']);
 
+  const readsAsLiteral = parts => docQuoteDepth === 0 || !parts.some(part => COMPUTED_PARTS.has(part.type));
+
   function refuseComputedParts(parts) {
-    if (docQuoteDepth > 0) return;
     const computed = parts.filter(part => COMPUTED_PARTS.has(part.type));
     if (computed.length === 0) return;
     const start = range().start;
@@ -161,19 +163,6 @@
       written = written.slice(0, part.location.start.offset - start) + `~(${inner})` + written.slice(part.location.end.offset - start);
     }
     error(`a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${written}\``);
-  }
-
-  // Parentheses after a tag hold code, which a literal does not run: a
-  // scalar touches its tag by `#`, a literal by its own sign, and a value
-  // computed goes under a tag by `tag` [D279].
-  const TAGGED_SCALARS = new Set(['NumberLit', 'BooleanLit', 'NullLit', 'Path']);
-  const SIGNED_LITERALS = new Set(['VecLit', 'MapLit', 'SetLit', 'StringLit', 'RegexLit', 'QuoteLit', 'Keyword', 'DocLit', 'TaggedLit', 'TagLit', 'ErrorLit']);
-
-  function refuseParenthesesAfterTag(tag, group) {
-    const inner = group.pipeline;
-    if (TAGGED_SCALARS.has(inner.type)) error(`a scalar touches its tag by \`#\`: write \`::${tag}#${inner.text}\``);
-    if (SIGNED_LITERALS.has(inner.type)) error(`a literal touches its tag by its own sign: write \`::${tag}${inner.text}\``);
-    error(`the parentheses after a tag hold code, which a literal does not run: a value computed goes under a tag by \`tag\`, write \`${inner.text} | tag ::${tag}\``);
   }
 
   function refuseNameNoStepCalls(key, body) {
@@ -507,18 +496,23 @@ CallName
   / name:Ident { return { name }; }
 
 // `::tag<payload>` puts a payload under a tag through its constructor, the
-// payload touching the tag by a sign that continues the literal, a scalar
-// with no sign of its own by `#`, `::Width#5`; parentheses after a tag,
+// payload touching the tag by a sign that continues the literal, a number,
+// a boolean, null or a path, whose literal would continue the tag's name,
+// by `#`, `::Width#5`; parentheses after a tag,
 // the sign of code, are refused [D279]. `::tag` alone is the tag name.
 TaggedLit
-  = "::" tag:TagName "#" payload:TaggedScalar
+  = "::" tag:TagName "#" payload:PayloadAfterHash
     { return node('TaggedLit', { tag, payload }, span(), text()); }
+  / &{ return docQuoteDepth === 0; } "::" tag:TagName "(" _ payload:PayloadAfterHash _ ")"
+    { error(`a number, a boolean, null or a path touches its tag by \`#\`: write \`::${tag}#${payload.text}\``); }
+  / &{ return docQuoteDepth === 0; } "::" tag:TagName "(" _ payload:TaggedPayload _ ")"
+    { error(`a literal touches its tag by its own sign: write \`::${tag}${payload.text}\``); }
   / &{ return docQuoteDepth === 0; } "::" tag:TagName group:ParenGroup
-    { refuseParenthesesAfterTag(tag, group); }
+    { error(`the parentheses after a tag hold code, which a literal does not run: a value computed goes under a tag by \`tag\`, write \`${group.pipeline.text} | tag ::${tag}\``); }
   / "::" tag:TagName payload:TaggedPayload
     { return node('TaggedLit', { tag, payload }, span(), text()); }
 
-TaggedScalar
+PayloadAfterHash
   = NumberLit
   / BooleanLit
   / NullLit
@@ -687,6 +681,7 @@ ErrorLit
   = tag:ErrorLitTag? "!{" _ "}"
     { return node('ErrorLit', { tag, entries: [] }, span(), text()); }
   / tag:ErrorLitTag? "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
+    &{ return readsAsLiteral([head, ...tail].map(entry => entry.value)); }
     { refuseComputedParts([head, ...tail].map(entry => entry.value)); return node('ErrorLit', { tag, entries: [head, ...tail] }, span(), text()); }
 
 ErrorLitTag
@@ -697,8 +692,10 @@ ErrorLitTag
 // spellings is refused.
 MapLit
   = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ "}"
+    &{ return readsAsLiteral([head, ...tail].map(entry => entry.value)); }
     { refuseComputedParts([head, ...tail].map(entry => entry.value)); return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
   / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
+    &{ return readsAsLiteral([head, ...tail].map(entry => entry.value)); }
     { refuseComputedParts([head, ...tail].map(entry => entry.value)); return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
   / "{" _ "}"
     { return node('MapLit', { entries: [] }, span(), text()); }
@@ -735,12 +732,14 @@ SetLit
   = "#[" _ "]"
     { return node('SetLit', { elements: [] }, span(), text()); }
   / "#[" _ elements:ElementList _ "]"
+    &{ return readsAsLiteral(elements); }
     { refuseComputedParts(elements); return node('SetLit', { elements }, span(), text()); }
 
 // Brackets with commas are JSON syntax for a vector; whitespace-separated
 // elements are the vector's own.
 VecLit
   = "[" _ head:Element tail:((_ "," _ @Element)+ / (LiteralGap @Element)*) _ "]"
+    &{ return readsAsLiteral([head, ...tail]); }
     { refuseComputedParts([head, ...tail]); return node('VecLit', { elements: [head, ...tail] }, span(), text()); }
   / "[" _ "]"
     { return node('VecLit', { elements: [] }, span(), text()); }

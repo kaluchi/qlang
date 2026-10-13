@@ -302,7 +302,7 @@ function printStep(step) {
   switch (stepTagOf(step)) {
     case 'call':   return printCall(step);
     case 'bind':   return printBind(step);
-    case 'construct': return underTagLiteral(step.get('tag').literal, printStep(step.get('payload')));
+    case 'construct': return printConstruct(step.get('tag').literal, step.get('payload'));
     case 'group':  return `(${printSteps(step.payload)})`;
   }
   const errorFields = errorFieldsOf(step);
@@ -310,6 +310,15 @@ function printStep(step) {
   if (isVec(step)) return `[${step.map(printStep).join(' ')}]`;
   if (isQMap(step)) return `{${printEntries([...step])}}`;
   return printValue(step);
+}
+
+// A construct step writes its payload after its tag as a tagged literal
+// does, and a payload of code in the parentheses the parser refuses after
+// a tag, so the step reads back as none [D279].
+function printConstruct(tagLiteral, payload) {
+  const kind = stepTagOf(payload);
+  if (kind === 'call' || kind === 'bind') return `${tagLiteral}(${printStep(payload)})`;
+  return underTagLiteral(tagLiteral, payload, printStep(payload));
 }
 
 // The fields of the step of an error literal, a map under `::error`

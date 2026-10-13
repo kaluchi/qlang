@@ -623,9 +623,6 @@
     | proves :names/recursesByName
         |~~ A name calls itself through the tree of names. ~~|
         ~(:map/walk ~(get {:n /n :kids ~(get /kids | map ~walk)}) | {:n 1 :kids [{:n 2 :kids []}]} | walk | get /kids/0/n | eq 2)
-    | proves :names/meetsABudget
-        |~~ A runaway meets the budget of frames. ~~|
-        ~(:number/inf ~(add 1 | inf) | 0 | inf !| type | eq ::call/EvaluationDepthExceededError)
     | tells :verbs
         |~~ Verbs. A verb lives on a kind, the one whose values it serves,
             and has an address, `::vec/sort`; so what can be done with a

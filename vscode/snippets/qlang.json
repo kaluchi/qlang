@@ -90,17 +90,17 @@
     "description": "Sort by the key a path reads"
   },
   "union an entry": {
-    "prefix": "unionb",
+    "prefix": "union",
     "body": ["union (get {${1::key} ~(${2:code})})"],
     "description": "Join to the map in the pipe an entry the template of get computes"
   },
   "minus keys": {
-    "prefix": "minusb",
+    "prefix": "minus",
     "body": ["minus #[${1::key}]"],
     "description": "Take the keys of a set off the map in the pipe"
   },
   "inter keys": {
-    "prefix": "interb",
+    "prefix": "inter",
     "body": ["inter #[${1::key}]"],
     "description": "Keep the keys of a set of the map in the pipe"
   }

@@ -133,7 +133,7 @@
 {"decision":"D13","name":"a-trail-names-the-stop-where-the-error-arose","query":"\"x\" | add 1 | mul 2 !| get /trail","expect":"[{:step ~(add 1) :subject \"x\" :skipped ~(mul 2)}]"}
 {"decision":"D13","name":"a-stop-at-every-step-that-handed-the-error-on","query":":g ~(add 2 | mul 2) | \"x\" | apply g | sub 3 !| get /trail","expect":"[{:step ~(add 2) :subject \"x\" :skipped ~(mul 2)} {:step ~(apply g) :subject \"x\" :skipped ~(sub 3)}]"}
 {"decision":"D13","name":"the-last-stop-replays-where-it-is-read","query":"(:x 1 | !{:k 1} | add x) | mul 2 !| get /trail/-1/skipped","expect":"~(mul 2)"}
-{"decision":"D13","name":"a-stop-of-an-operand-follows-the-stop-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| get /trail | map /step","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]"}
+{"decision":"D13","name":"a-stop-of-a-word-follows-the-stop-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| get /trail | map /step","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]"}
 {"decision":"D13","name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first","expect":"!{:k 1}"}
 {"decision":"D13","name":"the-fault-fields-leave-the-descriptor","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trail]"}
 {"decision":"D13","name":"a-tag-over-a-failed-payload-answers-the-failure","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::Foo[::Pos#-3] !| type","expect":"::Pos/NotPositiveError"}

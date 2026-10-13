@@ -133,7 +133,7 @@ describe('what a tag before a payload refuses and hands on', () => {
     expect(err.descriptor.get('actualType')).toEqual(makeTag('vec'));
   });
 
-  it('tag hands on an error in the pipe instead of wrapping it', async () => {
+  it('tag hands on an error in the pipe and lays no tag over it', async () => {
     const err = await evalQuery('("not-a-number" | add 1) | tag ::Box');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('number/add/SubjectNotNumberError'));

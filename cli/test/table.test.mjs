@@ -25,7 +25,7 @@ describe('table — a view for a terminal', () => {
     expect(cellEntry.result).toContain('| x |   | {:a 1 :b 2 :c 3} | [~(add 1) #[1 2]] |');
   });
 
-  it('prints a tag over a set and a tagged scalar as their literals', async () => {
+  it('prints a tag over a set and a tagged atom as their literals', async () => {
     const cellEntry = await runQuery('[{:k ::Keys#[2 1] :c ::Count#42}] | table', silentStreams);
     expect(cellEntry.result).toContain('| ::Keys#[1 2] | ::Count#42 |');
   });

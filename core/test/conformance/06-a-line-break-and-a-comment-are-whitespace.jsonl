@@ -56,7 +56,7 @@
 {"decision":"D19","name":"doc-block-nests-doc-block-pair","query":":foo |~~ outer |~~ inner ~~| more ~~| 42\n| ::foo | doc | content","expect":"\" outer |~~ inner ~~| more \""}
 {"decision":"D19","name":"doc-block-mentions-plain-pair","query":":foo |~~ holds |~ inner plain ~| inline ~~| 42\n| ::foo | doc | content","expect":"\" holds |~ inner plain ~| inline \""}
 {"decision":"D19","name":"doc-block-preserves-nested-line-doc-mention","query":":foo |~~ holds |~~| line-doc mention\n more text ~~| 42\n| ::foo | doc | content","expect":"\" holds |~~| line-doc mention\\n more text \""}
-{"decision":"D81","name":"plain-block-content-verbatim-via-quote-on-bind","query":"|~ user-error tag `::AssertionFailedError` raised by guards — doc-only `::Tag |~~ ~~|` BindSteps make axis-operands reach declarations ~|\n:foo 42\n| foo","expect":"42"}
+{"decision":"D81","name":"plain-block-content-verbatim-via-quote-on-bind","query":"|~ user-error tag `::AssertionFailedError` raised by guards — a doc alone, `::Tag |~~ ~~|`, declares a label the axes reach ~|\n:foo 42\n| foo","expect":"42"}
 {"decision":"D81","name":"plain-block-preserves-quote-mention-with-nested-plain","query":"|~ wraps ~( inner |~ q ~| pipe ) closing ~|\n| 1","expect":"1"}
 {"decision":"D19","name":"doc-attached-block-with-nested-doc-pair","query":":foo |~~ outer |~~ inner ~~| more ~~|\n42\n| ::foo | doc | content","expect":"\" outer |~~ inner ~~| more \""}
 {"decision":"D19","name":"doc-attached-block-with-mentioned-line-plain","query":":foo |~~ pair holds |~| line marker inline ~~|\n42\n| ::foo | doc | content","expect":"\" pair holds |~| line marker inline \""}

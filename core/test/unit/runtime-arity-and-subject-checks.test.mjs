@@ -11,15 +11,15 @@ import { isErrorValue } from '../../src/types.mjs';
 
 describe('the second input of the arithmetic', () => {
   it('sub refuses a subtrahend that is no number', async () => {
-    expect(isErrorValue(await evalQuery('5 | sub "x"'))).toBe(true);
+    expect((await evalQuery('5 | sub "x" !| type')).name).toBe('number/sub/subtrahend/NotNumberError');
   });
 
   it('mul refuses a multiplier that is no number', async () => {
-    expect(isErrorValue(await evalQuery('5 | mul "x"'))).toBe(true);
+    expect((await evalQuery('5 | mul "x" !| type')).name).toBe('number/mul/multiplier/NotNumberError');
   });
 
   it('div refuses a divisor that is no number', async () => {
-    expect(isErrorValue(await evalQuery('5 | div "x"'))).toBe(true);
+    expect((await evalQuery('5 | div "x" !| type')).name).toBe('number/div/divisor/NotNumberError');
   });
 });
 
@@ -92,17 +92,17 @@ describe('min and max over an empty vector', async () => {
 
 describe('sort with a key over a value that is no vector', async () => {
   it('sort with a key refuses the subject', async () => {
-    expect(isErrorValue(await evalQuery('42 | sort /x'))).toBe(true);
+    expect((await evalQuery('42 | sort /x !| type')).name).toBe('call/KindAnswersNoVerbError');
   });
 });
 
 describe('the objects a word takes', async () => {
   it('a word of no inputs refuses an object', async () => {
-    expect(isErrorValue(await evalQuery('[1 2 3] | count :foo'))).toBe(true);
+    expect((await evalQuery('[1 2 3] | count :foo !| type')).name).toBe('vec/count/ArgsBeyondInputsError');
   });
 
   it('filter without its predicate is refused', async () => {
-    expect(isErrorValue(await evalQuery('[1 2 3] | filter'))).toBe(true);
+    expect((await evalQuery('[1 2 3] | filter !| type')).name).toBe('vec/filter/predicate/NotGivenError');
   });
 });
 
@@ -114,7 +114,7 @@ describe('count over a map', async () => {
 
 describe('an input left without its object', async () => {
   it('add without its addend is refused', async () => {
-    expect(isErrorValue(await evalQuery('5 | add'))).toBe(true);
+    expect((await evalQuery('5 | add !| type')).name).toBe('number/add/addend/NotGivenError');
   });
 });
 

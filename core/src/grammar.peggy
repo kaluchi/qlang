@@ -457,7 +457,6 @@ BodySentenceStep
 Word
   = ParenGroup
   / ErrorLit
-  / RegexLit
   / SetLit
   / VecLit
   / MapLit
@@ -783,6 +782,7 @@ AtomLit
   / BooleanLit
   / NullLit
   / Keyword
+  / RegexLit
 
 StringLit
   = '"' chars:DoubleStringChar* '"'

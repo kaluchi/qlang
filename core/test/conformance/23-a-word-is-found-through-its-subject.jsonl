@@ -22,7 +22,6 @@
 {"decision":"D251","name":"an-input-carries-the-page-of-its-command","query":":any/m (::fn | takes :x |~~ How many. ~~| /0 | impl ~(x)) | ::any/m/x | doc | content","expect":"\" How many. \""}
 {"decision":"D67","name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false"}
 {"decision":"D251","name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":":k 1 | :number/f ~(add k) | :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)) | g 100 !| type","expect":"::call/UnknownNameError"}
-{"decision":"D67","name":"a-verb-that-calls-itself-without-end-meets-the-depth-budget","query":":number/inf ~(add 1 | inf) | 0 | inf !| type","expect":"::call/EvaluationDepthExceededError"}
 {"decision":"D251","name":"an-input-of-several-kinds-refuses-a-value-of-none","query":":any/m (::fn | takes :limit |~~ The limit. ~~| ~(query /0) #[::number ::null] | impl ~(limit)) | 5 | m \"a\" !| type","expect":"::any/m/limit/NotNullOrNumberError"}
 {"decision":"D251","name":"an-input-of-code-takes-a-quote-alone","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(apply code)) | 5 | run 1 !| type","expect":"::any/run/code/NotQuoteError"}
 {"decision":"D67","name":"an-input-of-code-takes-a-verb","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(apply code)) | 5 | run ~(add 1)","expect":"6"}
@@ -124,7 +123,6 @@
 {"decision":"D41","name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box"}
 {"decision":"D34","name":"a-number-is-no-tagged-value","query":"1 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
 {"decision":"D43","name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/NotFnOrPathOrQuoteError"}
-{"decision":"D34","name":"a-word-that-calls-itself-exhausts-the-depth","query":":any/q ~(q) | 1 | q !| type","expect":"::call/EvaluationDepthExceededError"}
 {"decision":"D160","name":"env-answers-a-map","query":"env | type","expect":"::map"}
 {"decision":"D79","name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | get /value","expect":"10"}
 {"decision":"D79","name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}

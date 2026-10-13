@@ -1,5 +1,5 @@
-{"name":"projection-on-number","query":"42 | get /foo","expect":"::path/SubjectNotProjectableError!{\n  :key :foo\n  :actualType ::number\n  :trail [\n    {\n      :step ~(get /foo)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
-{"name":"projection-on-set-named-key","query":"#[:a] | get /foo","expect":"::path/IndexNotIntegerError!{\n  :key :foo\n  :actualType ::set\n  :trail [\n    {\n      :step ~(get /foo)\n      :subject #[:a]\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
+{"name":"projection-on-number","query":"42 | get /foo","expect":"::path/SubjectNotProjectableError!{\n  :key :foo\n  :path /foo\n  :actualType ::number\n  :trail [\n    {\n      :step ~(get /foo)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
+{"name":"projection-on-set-named-key","query":"#[:a] | get /foo","expect":"::path/IndexNotIntegerError!{\n  :key :foo\n  :path /foo\n  :actualType ::set\n  :trail [\n    {\n      :step ~(get /foo)\n      :subject #[:a]\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
 {"name":"projection-on-set-integer-index","query":"#[:z :x :y] | get /0","expect":":x","decision":"D248"}
 {"name":"projection-on-set-negative-index","query":"#[:z :x :y] | get /-1","expect":":z","decision":"D248"}
 {"name":"projection-on-set-index-out-of-bounds","query":"#[:a :b] | get /99 !| type","expect":"::path/IndexOutOfBoundsError","decision":"D248"}

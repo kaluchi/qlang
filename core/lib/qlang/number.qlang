@@ -233,6 +233,10 @@
   |~~ A multiplier that is no number is refused under the part. ~~|
   ::law~(1 | mul "x" !| [type (get /actualType)] | eq [::number/mul/multiplier/NotNumberError ::string])
 
+:number/mul/multiplier/NotNumberError/namesTheReadOfAPath
+  |~~ A path given for the multiplier names the read of its field. ~~|
+  ::law~(5 | mul /qty !| get /read | eq ~(mul (get /qty)))
+
 :number/mul/answersUnderTheTag
   |~~ A number under a tag answers under the tag. ~~|
   ::law~(::Width(2) | mul 3 | eq ::Width(6))

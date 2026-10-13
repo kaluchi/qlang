@@ -700,6 +700,10 @@
   |~~ A keyword has no case to raise. ~~|
   ::law~(:ab | upper !| type | eq ::string/upper/SubjectNotStringError)
 
+:string/upper/SubjectNotStringError/namesTheReadOfAPath
+  |~~ A path names the read of its field the step was likely meant for. ~~|
+  ::law~(/name | upper !| get /read | eq ~(get /name | upper))
+
 :string/trim
   |~~ Answers the string without the whitespace at its two ends, spaces,
       tabs, line breaks and the no-break space, so a field cut out of a

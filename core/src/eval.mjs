@@ -18,7 +18,8 @@ import {
   ERROR_TAG
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
-import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, tagCallStepOf } from './quote.mjs';
+import { quoteOfBody, quoteOfLiteral, quoteOfSource, docOfNode, slotDocsOf, astOfQuote, stepOfNode, tagCallStepOf } from './quote.mjs';
+import { printPath } from './runtime/print-value.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
@@ -441,7 +442,37 @@ function evalProjection(node, state) {
 
 async function evalCall(node, state) {
   if (node.address !== undefined) return await callByAddress(node, state);
-  return await callByName(node.name, node.args.map(argNode => modifierOf(argNode, state)), state);
+  return withReadOfPath(await callByName(node.name, node.args.map(argNode => modifierOf(argNode, state)), state, node), node, state.pipeValue, state.env);
+}
+
+// The read a step was likely meant for where a path stands in place of
+// the value it names [D248]: a word called on a path, `/tags | count`
+// read as `get /tags | count`, and a part refusing the path a modifier
+// wrote, `mul /qty` read as `mul (get /qty)`; a refusal the call itself
+// answered, which no stop of a trail has passed yet, carries it.
+function readOfPathSubject(path, node) {
+  return quoteOfSource(`get ${printPath(path)} | ${node.text}`);
+}
+
+function readOfRefusedPath(refused, node, subject) {
+  if (!refused.descriptor.has('actualValue')) return isPath(subject) ? readOfPathSubject(subject, node) : null;
+  const value = refused.descriptor.get('actualValue');
+  if (!isPath(value)) return null;
+  const written = node.args.find(argNode => argNode.type === 'Projection'
+    && argNode.keys.length === value.segments.length && argNode.keys.every((key, at) => String(key) === value.segments[at]));
+  if (written === undefined) return null;
+  const from = written.location.start.offset - node.location.start.offset;
+  const to = written.location.end.offset - node.location.start.offset;
+  return quoteOfSource(`${node.text.slice(0, from)}(get ${written.text})${node.text.slice(to)}`);
+}
+
+function withReadOfPath(state, node, subject, env) {
+  const refused = state.pipeValue;
+  if (!isErrorValue(refused) || refused.descriptor.has('read') || refused.descriptor.has('trail')) return state;
+  const read = readOfRefusedPath(refused, node, subject);
+  if (read === null) return state;
+  const facts = factsInOrder(refused.tag, new Map(refused.descriptor).set('read', read), env);
+  return withPipeValue(state, makeErrorValue(refused.tag, facts, { location: refused.location, originalError: refused.originalError }));
 }
 
 // A bare name calls what it reaches for the subject [D34], [D153]; a
@@ -450,13 +481,14 @@ async function evalCall(node, state) {
 // with the names near it. A value the scope binds and a word the subject
 // answers under one name meet, and the step is refused with the word's
 // address, which calls the word, as another name reads the value [D223].
-async function callByName(lookupName, modifiers, state) {
+async function callByName(lookupName, modifiers, state, node = null) {
   const reach = bareNameReach(state.env, lookupName, state.pipeValue);
   if (reach === null) {
     const addresses = addressesOf(state.env, lookupName);
     if (addresses.length > 0) {
       const nearest = nearestWords(state.env, addresses, state.pipeValue);
-      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, actualValue: state.pipeValue });
+      const read = node !== null && isPath(state.pipeValue) ? readOfPathSubject(state.pipeValue, node) : undefined;
+      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, read, actualValue: state.pipeValue });
     }
     throw new CallUnknownNameError({
       name: keyword(lookupName), nearest: nearestNames(state.env, lookupName), addresses

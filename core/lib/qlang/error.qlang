@@ -113,6 +113,20 @@
   ~~|
   ::vec
 
+:error/read
+  |~~ The read the step was likely meant for, where a path stands in
+      place of the value it names: the step again with the path read by
+      `get`, `/tags | count` read as `get /tags | count` and `mul /qty` as
+      `mul (get /qty)`.
+  ~~|
+  ::quote
+
+:error/path
+  |~~ The path a read followed where it missed, the key or the place it
+      missed named beside it.
+  ~~|
+  ::path
+
 :error/index
   |~~ The place of the element refused, counted from zero. ~~|
   ::number

@@ -137,6 +137,10 @@
   |~~ A key the map lacks is refused. ~~|
   ::law~({:a 1} | get /b !| get [(type) /key] | eq [::path/KeyNotInMapError :b])
 
+:path/KeyNotInMapError/namesThePathItFollowed
+  |~~ The refusal holds the path the read followed. ~~|
+  ::law~({:a {:b 1}} | get /a/c !| get /path | eq /a/c)
+
 :path/KeyNotInMapError/suggestsTheNearestKey
   |~~ The keys of the map nearest in spelling are suggested. ~~|
   ::law~({:emails [] :age 3} | get /email !| get /nearest | eq [:emails])

@@ -29,8 +29,9 @@ function beneathTags(value) {
 
 // readPath(subject, path, soft?) → the value at the path. A miss is
 // refused with the key and the keys near it, or the place and the length,
-// and a value on the path that has no parts with the segment it met;
-// read softly, a miss answers MISSED and the refusal of a kind stands.
+// and a value on the path that has no parts with the segment it met, each
+// refusal with the path it followed; read softly, a miss answers MISSED
+// and the refusal of a kind stands.
 export function readPath(subject, path, soft = false) {
   let current = subject;
   for (const segment of path.segments) {
@@ -39,24 +40,25 @@ export function readPath(subject, path, soft = false) {
     if (isQMap(container)) {
       if (!container.has(segment)) {
         if (soft) return MISSED;
-        throw new PathKeyNotInMapError({ key: keyword(segment), nearest: nearestKeys(container, segment), actualValue: current });
+        throw new PathKeyNotInMapError({ key: keyword(segment), nearest: nearestKeys(container, segment), path, actualValue: current });
       }
       current = container.get(segment);
       continue;
     }
     if (isVec(container)) {
       const index = segmentIndex(segment);
-      if (Number.isNaN(index)) throw new PathIndexNotIntegerError({ key: keyword(segment), actualValue: current });
+      if (Number.isNaN(index)) throw new PathIndexNotIntegerError({ key: keyword(segment), path, actualValue: current });
       const place = index < 0 ? container.length + index : index;
       if (place < 0 || place >= container.length) {
         if (soft) return MISSED;
-        throw new PathIndexOutOfBoundsError({ index, length: container.length, actualValue: current });
+        throw new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: current });
       }
       current = container[place];
       continue;
     }
     throw new PathSubjectNotProjectableError({
       key: Number.isNaN(segmentIndex(segment)) ? keyword(segment) : segmentIndex(segment),
+      path,
       actualValue: current
     });
   }

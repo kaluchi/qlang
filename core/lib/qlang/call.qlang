@@ -195,6 +195,10 @@
   |~~ The refusal names the kind of the subject and where the verb lives. ~~|
   ::law~(1 | count !| [(get /actualType) (get /addresses | has ::vec/count)] | eq [::number true])
 
+:call/KindAnswersNoVerbError/namesTheReadOfAPath
+  |~~ A word called on a path names the read the step was likely meant for. ~~|
+  ::law~(/tags | count !| get /read | eq ~(get /tags | count))
+
 :call/KindAnswersNoVerbError/listsEveryKindTheVerbServes
   |~~ `:addresses` lists every kind the verb serves. ~~|
   ::law~(5 | count

@@ -1,5 +1,5 @@
 {"name":"single-key","query":"{:name \"Alice\"} | get /name","expect":"\"Alice\"","decision":"D248"}
-{"name":"missing-key","query":"{:name \"Alice\"} | get /age","expect":"::path/KeyNotInMapError!{\n  :key :age\n  :nearest []\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /age)\n      :subject {:name \"Alice\"}\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D13"}
+{"name":"missing-key","query":"{:name \"Alice\"} | get /age","expect":"::path/KeyNotInMapError!{\n  :key :age\n  :nearest []\n  :path /age\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /age)\n      :subject {:name \"Alice\"}\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D13"}
 {"name":"nested-keys","query":"{:point {:x 5 :y 7}} | get /point/x","expect":"5","decision":"D248"}
 {"name":"deeply-nested","query":"{:a {:b {:c {:d 42}}}} | get /a/b/c/d","expect":"42","decision":"D248"}
 {"name":"projection-after-filter","query":"[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter ~(get /age | gte 18) | map /name","expect":"[\"Alice\"]","decision":"D248"}
@@ -11,14 +11,14 @@
 {"name":"vec-bare-index-zero","query":"[10 20 30] | get /0","expect":"10","decision":"D248"}
 {"name":"vec-bare-index-mid","query":"[10 20 30] | get /1","expect":"20","decision":"D248"}
 {"name":"vec-bare-index-negative","query":"[10 20 30] | get /-1","expect":"30","decision":"D248"}
-{"name":"vec-bare-index-oob","query":"[10 20 30] | get /99","expect":"::path/IndexOutOfBoundsError!{\n  :index 99\n  :length 3\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(get /99)\n      :subject [10 20 30]\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
-{"name":"vec-bare-index-negative-oob","query":"[10 20 30] | get /-99","expect":"::path/IndexOutOfBoundsError!{\n  :index -99\n  :length 3\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(get /-99)\n      :subject [10 20 30]\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
-{"name":"vec-non-integer-segment-null","query":"[10 20 30] | get /name","expect":"::path/IndexNotIntegerError!{\n  :key :name\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(get /name)\n      :subject [10 20 30]\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
+{"name":"vec-bare-index-oob","query":"[10 20 30] | get /99","expect":"::path/IndexOutOfBoundsError!{\n  :index 99\n  :length 3\n  :path /99\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(get /99)\n      :subject [10 20 30]\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
+{"name":"vec-bare-index-negative-oob","query":"[10 20 30] | get /-99","expect":"::path/IndexOutOfBoundsError!{\n  :index -99\n  :length 3\n  :path /-99\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(get /-99)\n      :subject [10 20 30]\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
+{"name":"vec-non-integer-segment-null","query":"[10 20 30] | get /name","expect":"::path/IndexNotIntegerError!{\n  :key :name\n  :path /name\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(get /name)\n      :subject [10 20 30]\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
 {"name":"polymorphic-deep-path","query":"{\"items\": [{\"id\": 1} {\"id\": 2}]} | get /items/0/id","expect":"1","decision":"D248"}
 {"name":"polymorphic-negative-through-vec","query":"{\"users\": [{\"email\": \"a@x\"} {\"email\": \"b@x\"}]} | get /users/-1/email","expect":"\"b@x\"","decision":"D248"}
 {"name":"polymorphic-vec-then-map","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | get /1/name","expect":"\"bob\"","decision":"D248"}
 {"name":"map-numeric-key-vs-vec-index","query":"{\"0\": [0 1]} | get /0","expect":"[0 1]","decision":"D248"}
 {"name":"mixed-map-then-vec-bare-index","query":"{\"rows\": [[1 2] [3 4]]} | get /rows/1/0","expect":"3","decision":"D248"}
-{"name":"null-subject-strict","query":"null | get /any","expect":"::path/SubjectNotProjectableError!{\n  :key :any\n  :actualType ::null\n  :trail [\n    {\n      :step ~(get /any)\n      :subject null\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
+{"name":"null-subject-strict","query":"null | get /any","expect":"::path/SubjectNotProjectableError!{\n  :key :any\n  :path /any\n  :actualType ::null\n  :trail [\n    {\n      :step ~(get /any)\n      :subject null\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
 {"name":"a-missed-key-leads-to-the-keys-near-it","query":"{:emails [] :age 3} | get /email !| get /nearest","expect":"[:emails]","decision":"D118"}
 {"name":"a-descriptor-reads-its-field-by-projection","query":"::builtin{:note :draft} | get /note","expect":":draft","decision":"D113"}

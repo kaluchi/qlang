@@ -12,7 +12,7 @@
 {"name":"keyword-projection-two-ns-segments","query":"{:qlang/error {:retry 42}} | get /:qlang/error/:retry","expect":"42","decision":"D248"}
 {"name":"keyword-projection-deep-then-simple","query":"{:qlang/core/strings {:trim 1}} | get /:qlang/core/strings/:trim","expect":"1","decision":"D248"}
 {"name":"keyword-projection-mixed-bare-ns","query":"{:outer {:qlang/error 42}} | get /outer/:qlang/error","expect":"42","decision":"D248"}
-{"name":"keyword-projection-ns-missing","query":"{:qlang/error 42} | get /:qlang/http","expect":"::path/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /:qlang/http)\n      :subject {:qlang/error 42}\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
+{"name":"keyword-projection-ns-missing","query":"{:qlang/error 42} | get /:qlang/http","expect":"::path/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :path /:qlang/http\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /:qlang/http)\n      :subject {:qlang/error 42}\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248"}
 {"name":"bare-projection-unchanged","query":"{:a {:b {:c 42}}} | get /a/b/c","expect":"42","decision":"D248"}
 {"name":"keyword-projection-equiv-bare","query":"{:name 42} | get /:name","expect":"42","decision":"D248"}
 {"name":"keyword-projection-equiv-bare-nested","query":"{:a {:b 42}} | get /:a/:b","expect":"42","decision":"D248"}

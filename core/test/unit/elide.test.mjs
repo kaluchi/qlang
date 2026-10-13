@@ -51,8 +51,8 @@ describe('elide [D109]', () => {
   it('keeps the tag of a map it gives way within, and reads through a tag over an atom', async () => {
     const tagged = await evalQuery(`:Box |~~ Box. ~~| | ::Box{:s "${LONG}" :n 1}`);
     expect(elide(tagged, 50)[TAG_HEADER_SYMBOL].name).toBe('Box');
-    const wrapped = await evalQuery(`{:b ::Box("${LONG}") :n 1}`);
-    expect(await readBack(wrapped, elide(wrapped, 50).get('b'))).toEqual(await evalQuery(`::Box("${LONG}")`));
+    const wrapped = await evalQuery(`{:b ::Box"${LONG}" :n 1}`);
+    expect(await readBack(wrapped, elide(wrapped, 50).get('b'))).toEqual(await evalQuery(`::Box"${LONG}"`));
   });
 
   it('gives way within a vector under a tag and a map beneath a stack of tags', async () => {
@@ -66,7 +66,7 @@ describe('elide [D109]', () => {
     expect(await readBack(stacked, stackedView.payload.get('s'))).toBe(LONG);
   });
 
-  it('reads a key no projection spells by at', async () => {
+  it('reads a key with a space by a quoted path', async () => {
     const value = await evalQuery(`{:"a key" "${LONG}"}`);
     const marker = elide(value, 30).get('a key');
     expect(await readBack(value, marker)).toBe(LONG);

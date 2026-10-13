@@ -98,7 +98,7 @@ describe('::name | doc returns the page its attached prefixes make', () => {
   it('a value whose kind no binding declares is refused under its kind', async () => {
     // The fork of the parentheses drops the tag the literal declared,
     // and the value it minted leaves with the name of that kind.
-    expect(await evalQuery('(::Ghost(1)) | doc !| get /name')).toEqual(makeTag('Ghost'));
+    expect(await evalQuery('(::Ghost#1) | doc !| get /name')).toEqual(makeTag('Ghost'));
   });
 });
 
@@ -222,7 +222,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
     });
     const cellEntry = await sessionInstance.evalCell(
       ':contested |~~ from the cell ~~| 222 | ' +
-      '[contested, (::contested | source | parse), (::contested | doc | content)]');
+      'get [~(contested), ~(::contested | source | parse), ~(::contested | doc | content)]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', ' from the cell ']);
   });

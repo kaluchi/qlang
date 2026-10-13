@@ -8,13 +8,13 @@ import {
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestWords } from './nearest-names.mjs';
-import { readPath, PathIndexOutOfBoundsError, PathKeyNotInMapError } from './path-read.mjs';
+import { readPath, partsOfTemplate, PathIndexOutOfBoundsError, PathKeyNotInMapError } from './path-read.mjs';
 import {
   isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, isBinding, makeTaggedInstance, makeTag, errorAtRest,
-  isFn, isKind, recipeOf, makeQuote,
+  isFn, isKind, recipeOf, makeQuote, isQMap, stampTagHeader, TAG_HEADER_SYMBOL,
   ERROR_TAG
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
@@ -25,13 +25,13 @@ import {
   ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isWord, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, residenceOnSubject, subjectRefusalAddress
 } from './runtime/nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, kindOf, pageOfConstructor, pageOfKindsRefusal, signatureOf } from './runtime/signature.mjs';
-import { inputsRunBy } from './primitives.mjs';
+import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
 import { splitAddress } from './address.mjs';
 import {
   runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
 } from './runtime/verb.mjs';
 import {
-  answerOfStep, answerOfWord, skipping, raisedBy, isRaisedBy
+  answerOfStep, answerOfPart, skipping, raisedBy, isRaisedBy
 } from './eval-trail.mjs';
 
 // A node or a combinator the tables below do not name is a defect of the
@@ -87,7 +87,7 @@ const AST_NODE_EVALUATORS = {
   TaggedLit:         evalTaggedLit,
   TagLit:   evalTagLit,
   RegexLit:          evalRegexLit,
-  Projection:        evalProjection,
+  Path:              evalPath,
   Call:              evalCall,
   BindStep:          evalBindStep,
   ParenGroup:        evalParenGroup,
@@ -138,9 +138,9 @@ async function applyCombinator(kind, state, stepNode) {
   return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
 }
 
-// The fork rule: a nested pipeline, a group or a word of a literal, starts
-// from the outer state and hands back its value alone, its declarations
-// left behind, on the outer frame of the depth budget.
+// The fork rule: a nested pipeline or a group starts from the outer
+// state and hands back its value alone, its declarations left behind, on
+// the outer frame of the depth budget.
 async function fork(state, sub) {
   const innerEnd = await sub(state);
   return withPipeValue(state, innerEnd.pipeValue);
@@ -191,22 +191,23 @@ function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
 function evalRegexLit(node, state)   { return withPipeValue(state, makeRegex(node.pattern, node.flags)); }
 
-// Each element and each value of a literal is a word forked against the
-// subject, one after another in their order [D84]; a failure lives in the
-// pipe alone, so the first a word answers is the answer of the literal,
-// the words after it left unrun [D13].
+// Each element and each value of a literal is a literal, read one after
+// another in their order [D84], none reading the scope or the subject
+// [D279]; a failure lives in the pipe alone, so the first a part answers,
+// a constructor's refusal of its payload, is the answer of the literal,
+// the parts after it left unread [D13].
 async function evalVecLit(node, state) {
-  return withPipeValue(state, await wordValues(node.elements, state));
+  return withPipeValue(state, await partValues(node.elements, state));
 }
 
 async function evalMapLit(node, state) {
   return withPipeValue(state, await entryValues(node.entries, state));
 }
 
-async function wordValues(words, state) {
+async function partValues(parts, state) {
   const values = [];
-  for (const word of words) {
-    const answered = await wordAnswer(word, state);
+  for (const part of parts) {
+    const answered = await partAnswer(part, state);
     if (isErrorValue(answered)) return answered;
     values.push(answered);
   }
@@ -214,7 +215,7 @@ async function wordValues(words, state) {
 }
 
 async function entryValues(entries, state) {
-  const values = await wordValues(entries.map(entry => entry.value), state);
+  const values = await partValues(entries.map(entry => entry.value), state);
   return isErrorValue(values) ? values : new Map(entries.map((entry, index) => [entry.key.name, values[index]]));
 }
 
@@ -230,12 +231,11 @@ async function evalErrorLit(node, state) {
   return withPipeValue(state, node.tag === null ? atRest : await mintTaggedInstance(node.tag, atRest, state));
 }
 
-// The value a word of a literal answers, forked against the subject: a
-// failure the word raised passes a stop at the word, and one handed on
-// from inside it goes on as it is to the literal it fails [D13].
-async function wordAnswer(wordNode, state) {
-  const answered = await fork(state, inner => evalNode(wordNode, inner));
-  return answerOfWord(answered.pipeValue, wordNode, state.pipeValue);
+// The value a part of a literal answers: a refusal its constructor raised
+// passes a stop at the part, and one handed on from a part inside it goes
+// on as it is to the literal it fails [D13].
+async function partAnswer(partNode, state) {
+  return answerOfPart((await evalNode(partNode, state)).pipeValue, partNode, state.pipeValue);
 }
 
 function evalQuoteLit(node, state) {
@@ -261,7 +261,7 @@ async function evalDocLit(node, state) {
 // The elements run in the order they are written, and the set holds
 // them in the one order [D16].
 async function evalSetLit(node, state) {
-  const elements = await wordValues(node.elements, state);
+  const elements = await partValues(node.elements, state);
   return withPipeValue(state, isErrorValue(elements) ? elements : makeSet(elements));
 }
 
@@ -269,7 +269,7 @@ async function evalSetLit(node, state) {
 
 async function evalTaggedLit(node, state) {
   const tagName = node.tag;
-  const payload = (await fork(state, inner => evalNode(node.payload, inner))).pipeValue;
+  const payload = (await evalNode(node.payload, state)).pipeValue;
   if (isErrorValue(payload)) return withPipeValue(state, passedUntagged(payload, node, tagName));
   return withPipeValue(state, await mintTaggedInstance(tagName, payload, state));
 }
@@ -418,11 +418,11 @@ function declarationRecord(node, value) {
   });
 }
 
-// ─── Projection ─────────────────────────────────────────────────
+// ─── Path ─────────────────────────────────────────────────────────
 
 // A path is a value that does nothing by itself; the word that takes it
 // reads it [D248].
-function evalProjection(node, state) {
+function evalPath(node, state) {
   return withPipeValue(state, makePath(node.keys));
 }
 
@@ -446,7 +446,7 @@ function readOfRefusedPath(refused, node, subject) {
   if (!refused.descriptor.has('actualValue')) return isPath(subject) ? readOfPathSubject(subject, node) : null;
   const value = refused.descriptor.get('actualValue');
   if (!isPath(value)) return null;
-  const written = node.args.findIndex(argNode => argNode.type === 'Projection'
+  const written = node.args.findIndex(argNode => argNode.type === 'Path'
     && argNode.keys.length === value.segments.length && argNode.keys.every((key, at) => String(key) === value.segments[at]));
   if (written === -1) return null;
   const step = stepOfNode(node);
@@ -590,7 +590,7 @@ async function invariantRefusal(invariants, address, value, state, scope) {
 // without calling it; any other place runs as code over the args, a frame
 // below the call.
 function placeRead({ ast, place, onePlace, strict, fallback }, values, overArgs) {
-  if (!onePlace) return ast.type === 'Projection' ? pathOfArgs(makePath(ast.keys), overArgs()) : answerOfBody(ast, overArgs());
+  if (!onePlace) return ast.type === 'Path' ? pathOfArgs(makePath(ast.keys), overArgs()) : answerOfBody(ast, overArgs());
   if (place < values.length) return values[place];
   if (strict) return MISSED_PLACE;
   return fallback === null ? null : answerOfBody(fallback, overArgs());
@@ -759,12 +759,34 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 // one that holds the objects of the call whole; any other value as it is.
 function handedTo(impl, signature, { values, writtenHere }, state) {
   const run = inputsRunBy(impl);
-  if (run === undefined) return values;
+  const within = inputsRunWithin(impl);
+  if (run === undefined && within === undefined) return values;
   return values.map((value, at) => {
     const { name, selector } = signature.inputs[at];
-    if (!run.has(name.name)) return value;
+    if (within?.has(name.name)) return quotesClosedIn(value, writtenHere[selector.place] === true, state);
+    if (!run?.has(name.name)) return value;
     return selector.readsArgs ? value.map((element, place) => codeOfObject(element, writtenHere[place], state)) : codeOfObject(value, writtenHere[selector.place], state);
   });
+}
+
+// A template whose quotes are code closed at the call, each closed as a
+// quote written in the step or held as data, the paths and the other
+// values of it as they are, a set's elements kept in its order.
+function quotesClosedIn(value, writtenHere, state) {
+  if (isQuote(value)) return codeOf(value, state, writtenHere);
+  if (!holdsAQuote(value)) return value;
+  const header = value[TAG_HEADER_SYMBOL];
+  const closed = isQMap(value)
+    ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, writtenHere, state)]))
+    : value.map(part => quotesClosedIn(part, writtenHere, state));
+  if (header !== undefined) stampTagHeader(closed, header);
+  return closed;
+}
+
+function holdsAQuote(value) {
+  if (isQuote(value)) return true;
+  const parts = partsOfTemplate(value);
+  return parts !== null && parts.some(holdsAQuote);
 }
 
 function codeOfObject(value, writtenHere, state) {
@@ -869,9 +891,10 @@ function laidUnder(tagName, value) {
 }
 
 // A value under a kind [D252]: its payload held to its kinds, each field
-// read and held, the recipe run, and the invariants of the value held,
-// every refusal named under the label, the code running in the scope a
-// call opens.
+// read and held, the check a host hands a kind of the core run, and the
+// invariants of the value held, every refusal named under the label, the
+// code of a place or a condition running in the scope a call opens; the
+// constructor attaches the tag or refuses the payload [D279].
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = kindOf(kind);
   const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, (kinds, each) => `${tagName}/${payloadRefusalName(kinds, each)}`, payload, state.env);
@@ -882,19 +905,10 @@ async function underKind(tagName, kind, payload, state) {
     const refused = await fieldRefusal(tagName, field, held, invariants, state, opened);
     if (refused !== null) return refused;
   }
-  const recipe = recipeOf(kind);
-  const built = isRecipe(recipe) ? await builtByRecipe(recipe, held, state, opened) : held;
-  if (isErrorValue(built)) return built;
-  const labelled = laidUnder(tagName, built);
+  const check = recipeOf(kind);
+  const labelled = laidUnder(tagName, isRecipe(check) ? await hostImplOf(check)(held, state) : held);
   const ofTheValue = invariants.filter(({ field }) => field === null);
   return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, labelled, state, opened()) ?? labelled;
-}
-
-// The value a recipe of a kind builds from the payload: a quote run on it
-// in the scope its call opens, or the primitive a host handed.
-async function builtByRecipe(recipe, payload, state, opened) {
-  if (isQuote(recipe)) return (await evalBody(astOfQuote(recipe), nestState(state, payload, opened()))).pipeValue;
-  return await hostImplOf(recipe)(payload, state);
 }
 
 // The refusal of a field of the payload: a place the payload leaves out, a
@@ -937,11 +951,21 @@ function closeCode(astNode, capturedState) {
 // the code it is.
 function modifierOf(argNode, state) {
   if (argNode.type === 'QuoteLit') return quoteWrittenHere(argNode);
+  if (TEMPLATE_LITERALS.has(argNode.type)) return writtenHereAs(closeCode(argNode, state));
   if (SCALAR_LITERALS.has(argNode.type)) return () => (frameBelow(state), AST_NODE_EVALUATORS[argNode.type](argNode, state).pipeValue);
   return closeCode(argNode, state);
 }
 
 const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
+
+// The literals a template is written as, whose quotes are written in the
+// step [D279].
+const TEMPLATE_LITERALS = new Set(['VecLit', 'MapLit', 'SetLit']);
+
+function writtenHereAs(code) {
+  code.writtenHere = true;
+  return code;
+}
 
 function quoteWrittenHere(argNode) {
   const quote = () => quoteOfLiteral(argNode);

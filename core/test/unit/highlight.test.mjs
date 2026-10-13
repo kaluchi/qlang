@@ -153,7 +153,7 @@ describe('tokenize — the kind of a call\'s name', () => {
   });
 });
 
-describe('tokenize — projections', () => {
+describe('tokenize — paths', () => {
   it('renders `/name` as a `punct` slash plus a `word` key', async () => {
     expect(tokenize('/name', await builtins())).toEqual([
       { start: 0, end: 1, kind: 'punct' },
@@ -167,7 +167,7 @@ describe('tokenize — projections', () => {
     expect(tokens.filter(t => t.kind === 'word')).toHaveLength(2);
   });
 
-  it('handles a Projection nested in a pipeline', async () => {
+  it('handles a path nested in a pipeline', async () => {
     // /name follows a pipe; both the slash and the field segment
     // appear in the token stream alongside the pipeline's own
     // structural punct.
@@ -176,7 +176,7 @@ describe('tokenize — projections', () => {
   });
 
   it('keeps a quoted segment with an inner slash as one word token', async () => {
-    // `/"a/b"` is a single projection segment `a/b`; the slash inside
+    // `/"a/b"` is a single path segment `a/b`; the slash inside
     // the quotes must not split it into two word tokens.
     expect(tokenize('/"a/b"', await builtins())).toEqual([
       { start: 0, end: 1, kind: 'punct' },
@@ -300,8 +300,8 @@ describe('tokenize — coverage invariant', () => {
 
 describe('tokenize — a source that does not parse', () => {
   it('paints a source cut short through the closers that complete it [D125]', async () => {
-    expect(tokenize('[unclosed', await builtins())).toEqual([
-      { start: 0, end: 1, kind: 'vec' },
+    expect(tokenize('(unclosed', await builtins())).toEqual([
+      { start: 0, end: 1, kind: 'punct' },
       { start: 1, end: 9, kind: 'name' }
     ]);
   });

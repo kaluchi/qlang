@@ -110,14 +110,14 @@
             breaks it.
         ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100) | impl ~(add by)) [500]
-          !| [type (get /actualValue)]
+          !| get [~(type) /actualValue]
           |  eq [::fn/call/by/TooBigError 500])
     | proves :holdsTheInvariantsOfItsAnswer
         |~~ An invariant written under the answer refuses an answer that
             breaks it.
         ~~|
         ~(5 | apply (::fn | holds :answer/TooBigError |~~ A number past ten. ~~| ~(lt 10) | impl ~(add 100))
-          !| [type (get /actualValue)]
+          !| get [~(type) /actualValue]
           |  eq [::fn/call/answer/TooBigError 105])
     | proves :answersTheFailureOfACondition
         |~~ A condition that fails answers its failure. ~~|
@@ -132,7 +132,7 @@
           | :number/one (::fn | returns |~~ One. ~~| ::number | impl ~(1))
           | :number/any (::fn | takes :by |~~ How much. ~~| /0 | impl ~(by))
           | :number/bare ~(1)
-          | [(5 | plus (get /x) !| type) (5 | one (get /x) !| type) (5 | any (get /x) !| type) (5 | bare (get /x) !| type)]
+          | get [~(5 | plus (get /x) !| type) ~(5 | one (get /x) !| type) ~(5 | any (get /x) !| type) ~(5 | bare (get /x) !| type)]
           | every ~(eq ::path/SubjectNotProjectableError))
     | proves :PayloadNotPairError/refusesANumber
         |~~ A number is no pair. ~~|
@@ -253,7 +253,7 @@
             refuses another under its call.
         ~~|
         ~(:f (::fn | on |~~ A number. ~~| ::number | impl ~(add 1))
-          | [(5 | apply f) ("x" | apply f !| type)]
+          | get [~(5 | apply f) ~("x" | apply f !| type)]
           | eq [6 ::fn/call/SubjectNotNumberError])
     | proves :pagesTheSubjectOfAWord
         |~~ The page of the subject is the page of its node under the
@@ -316,7 +316,7 @@
         ~~|
         ~(:Width |~~ A width. ~~|
           | 5
-          | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(by | type)) [::Width(3)]
+          | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(by | type)) [::Width#3]
           | eq ::number)
     | proves :pagesTheRefusalOfItsKinds
         |~~ The refusal the kinds of an input name is paged by them where
@@ -332,7 +332,7 @@
         |~~ An input of the kinds of each element holds the value of its
             kind of each, beneath the tags it is given under.
         ~~|
-        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 ::Width(2)]] | eq [1 2])
+        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 ::Width#2]] | eq [1 2])
     | proves :keepsASetOfElements
         |~~ A set an input of the kinds of each element holds stays a set.
         ~~|
@@ -343,7 +343,7 @@
     | proves :refusesAnElementOfNoneOfItsKinds
         |~~ An element of none of the kinds is refused with its index. ~~|
         ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 "a"]]
-          !| [type (get /index)]
+          !| get [~(type) /index]
           |  eq [::fn/call/xs/ElementNotNumberError 1])
     | proves :refusesNoVectorOfElements
         |~~ A value that is no vector is refused where the input names the
@@ -390,7 +390,7 @@
         ~(:number/w (::fn | takes :cs |~~ Codes. ~~| ~(it) [::quote] | impl ~(1))
           | 5
           | w ~(add 1) (get /x)
-          !| [type (get /index)]
+          !| get [~(type) /index]
           | eq [::number/w/cs/ElementNotQuoteError 1])
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
@@ -427,7 +427,7 @@
             of the call.
         ~~|
         ~(5 | apply (::fn | returns |~~ A number or a string. ~~| #[::number ::string] | impl ~(gt 1))
-          !| [type (get /actualValue)]
+          !| get [~(type) /actualValue]
           |  eq [::fn/call/answer/NotNumberOrStringError true])
     | proves :passesTheFailureOfTheRecipe
         |~~ A recipe that fails answers its failure, which no kind brings.

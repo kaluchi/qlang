@@ -40,7 +40,7 @@ describe('the refusals a kind raises by rule [D252]', () => {
     const own = await createSession();
     await own.evalCell(':Nums\n  |~~ Numbers. ~~|\n  ::kind\n    | wraps |~~ The numbers. ~~| [::number]');
     expect(ruleRefusalsOf(own.env, 'Nums')).toEqual(['Nums/PayloadNotVecError', 'Nums/ElementNotNumberError']);
-    expect(printValue((await own.evalCell('::Nums(5) !| type')).result)).toBe('::Nums/PayloadNotVecError');
+    expect(printValue((await own.evalCell('::Nums#5 !| type')).result)).toBe('::Nums/PayloadNotVecError');
   });
 
   it('names no refusal of a kind of no payload and no field', async () => {
@@ -115,17 +115,17 @@ describe('the recipe of a kind its host hands', () => {
   it('lays the tag over the payload as it is until the host hands the recipe, and runs it after', async () => {
     const hosted = await createSession({ sources: [{
       uri: 'test/hosted-kind',
-      source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :Hk/early ::law~(::Hk(1) | payload | eq 1)',
+      source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :Hk/early ::law~(::Hk#1 | payload | eq 1)',
       impls: { 'Hk/construct': payload => payload + 1 }
     }] });
-    expect(printValue((await hosted.evalCell('::Hk(1) | payload')).result)).toBe('2');
+    expect(printValue((await hosted.evalCell('::Hk#1 | payload')).result)).toBe('2');
     expect(printValue((await hosted.evalCell('::Hk | runLaws | map /ok')).result)).toBe('[false]');
   });
 });
 
 describe('a command a function and a kind share, called on another tag', () => {
   it('meets the words of both nouns, each reached by its address', async () => {
-    expect(await answers('::number | holds :E |~~ An e. ~~| ~(true) !| [type (get /addresses)]'))
+    expect(await answers('::number | holds :E |~~ An e. ~~| ~(true) !| get [~(type) /addresses]'))
       .toBe('[::call/KindAnswersNoVerbError #[::fn/holds ::kind/holds]]');
   });
 });

@@ -7,7 +7,7 @@
       value in the pipe, it answers what its last step answers, and the
       names it declares stay inside. Each part of a literal is one,
       which is why a literal is the shape an answer takes,
-      `5 | get [(add 1) (mul 2)]` answering `[6 10]`, and a modifier of more
+      `5 | get [~(add 1) ~(mul 2)]` answering `[6 10]`, and a modifier of more
       than one word stands in one, `take (count | sub 1)`.
 
       In a quote the step is a record that wraps the quote of its
@@ -37,15 +37,15 @@
         ~(~((add 1 | mul 2)) | first | payload | count | eq 2)
     | proves :PayloadNotQuoteError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(42 | tag ::group !| [type (get /actualType)] | eq [::group/PayloadNotQuoteError ::number])
+        ~(42 | tag ::group !| get [~(type) /actualType] | eq [::group/PayloadNotQuoteError ::number])
     | proves :PayloadNotQuoteError/buildsTheStepOfAPipeline
         |~~ The quote of a pipeline builds the group that runs it. ~~|
-        ~(~(add 1 | mul 2) | tag ::group | get [it] | tag ::quote | eq ~((add 1 | mul 2)))
+        ~(~(add 1 | mul 2) | tag ::group | get [~(it)] | tag ::quote | eq ~((add 1 | mul 2)))
     | proves :ReadBackDiffersError/refusesAnEmptyGroup
         |~~ An empty group prints as text that reads back as none. ~~|
-        ~(~() | tag ::group !| [type (get /printed)] | eq [::group/ReadBackDiffersError "()"])
+        ~(~() | tag ::group !| get [~(type) /printed] | eq [::group/ReadBackDiffersError "()"])
     | proves :ReadBackDiffersError/keepsTheValueByTheWholeValue
         |~~ A group of `it` is a step that keeps the value. ~~|
-        ~(~(it) | tag ::group | get [it] | tag ::quote | eq ~((it)))
+        ~(~(it) | tag ::group | get [~(it)] | tag ::quote | eq ~((it)))
     | impl ::builtin{}
 

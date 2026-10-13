@@ -59,33 +59,30 @@ export function astChildrenOf(node) {
       for (const segment of node.segments) if (typeof segment !== 'string') out.push(segment);
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // RegexLit, Projection, TagLit (a tag, the address of a node) have
+    // RegexLit, Path, TagLit (a tag, the address of a node) have
     // no semantic children.
   }
   return out;
 }
 
-// The literals of no parts, which answer themselves whatever the subject,
-// a path among them [D248], and the literals whose parts run on the
-// subject, `[count 1]` reading it where `[1 2]` does not.
-const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit', 'Projection']);
-const LITERALS_OF_PARTS = new Set([
-  'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry', 'TaggedLit', 'ParenGroup', 'DocLit', 'DocTaggedQuote'
+// The literals, which answer themselves whatever the subject, their parts
+// literals [D279], a path among them [D248], a quote, whose code does not
+// run, and a doc.
+const LITERALS = new Set([
+  'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit', 'Path',
+  'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'TaggedLit', 'QuoteLit', 'DocLit', 'DocTaggedQuote'
 ]);
 
 // readsItsSubject(node) → whether a query reads the subject it is handed,
 // which a host that lifts the subject from a stream waits on only then
 // [D215]: a pipeline where its first step that declares nothing reads
 // it, or where a declaration before that step runs a body that does; a
-// literal of no parts never, nor a quote, whose code does not run; a
-// literal of parts where one of its parts reads it; a call, a
-// declaration, which answers its subject, and a node this walk does not
-// name always.
+// group where its code reads it; a literal never; a call, a declaration,
+// which answers its subject, and a node this walk does not name always.
 export function readsItsSubject(node) {
   if (node.type === 'Pipeline') return stepsReadTheirSubject([node.steps[0], ...node.steps.slice(1).map(unit => unit.step)]);
-  if (node.type === 'QuoteLit' || LITERALS_OF_NO_PARTS.has(node.type)) return false;
-  if (LITERALS_OF_PARTS.has(node.type)) return astChildrenOf(node).some(readsItsSubject);
-  return true;
+  if (node.type === 'ParenGroup') return readsItsSubject(node.pipeline);
+  return !LITERALS.has(node.type);
 }
 
 function stepsReadTheirSubject(steps) {
@@ -190,7 +187,7 @@ export function findAstNodeAtOffset(ast, offset) {
 
 // findIdentifierOccurrences(ast, name, spelling?) → the nodes that name
 // it, a keyword written as a value none of them: called, a call of the
-// name, its declaration and a projection that reads it as a key; written
+// name, its declaration and a path that reads it as a key; written
 // as a tag [D152], its declaration, a tagged or an error literal that
 // writes it [D13] and the tag name alone.
 export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
@@ -199,7 +196,7 @@ export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
   walkAst(ast, (node) => {
     if (node.type === 'Call' && splitAddress(node.name)[1] === name) occurrences.push(node);
     else if (node.type === 'BindStep' && splitAddress(node.key.name)[1] === name) occurrences.push(node);
-    else if (node.type === 'Projection' && node.keys.includes(name)) occurrences.push(node);
+    else if (node.type === 'Path' && node.keys.includes(name)) occurrences.push(node);
   });
   return occurrences;
 }

@@ -56,7 +56,7 @@ describe('a kind whose construct is a primitive of the host', () => {
     const sessionInstance = await createSession({
       sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', impls: { 'myType/construct': payload => payload * 2 } }]
     });
-    expect((await sessionInstance.evalCell('::myType(4) | get [type payload]')).result).toEqual([makeTag('myType'), 8]);
+    expect((await sessionInstance.evalCell('::myType#4 | get [~(type) ~(payload)]')).result).toEqual([makeTag('myType'), 8]);
   });
 
   it('a construct a reader declares as ::builtin{} reaches no primitive, and the tag lays over the payload [D34]', async () => {
@@ -192,7 +192,7 @@ describe('a kind without a body — identity', () => {
   it('Map payload (`::Tag{…}`) overlays the tag identity onto the Map — `keys` / `/field` work directly', async () => {
     // Identity-overlay: tag stamps the JS-header slot on the
     // Map payload, fields land as ordinary Map entries. `keys`,
-    // `vals`, `/field` projection read the underlying Map data
+    // `vals` and a path, `/field`, read the underlying Map data
     // plane unchanged. A `:kind` field on the inner Map data
     // coexists with the instance's identity because identity
     // rides on the JS-header alone.
@@ -211,9 +211,9 @@ describe('a kind without a body — identity', () => {
     // / Quote / Doc / Error / already-tagged
     // composite) cannot carry the header on themselves,
     // so the constructor returns an opaque frozen `{type, tag,
-    // payload}` wrapper. The wrap shape keeps `/payload`
-    // projection out of reach (the wrapper is not a Map);
-    // the `payload` operand is the dedicated extractor.
+    // payload}` wrapper. The wrap shape keeps a path, `/payload`,
+    // out of reach (the wrapper is not a Map); the word `payload`
+    // takes the payload off.
     const { isTaggedInstance, typeKeyword } = await import('../../src/types.mjs');
     const instance = await evalQuery('::number/add/SubjectNotNumberError"hello"');
     expect(isTaggedInstance(instance)).toBe(true);
@@ -237,7 +237,7 @@ describe('a kind without a body — identity', () => {
     // scalar payload routes through the wrap-object branch of
     // the constructor.
     const { isTaggedInstance } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/add/SubjectNotNumberError(42)');
+    const instance = await evalQuery('::number/add/SubjectNotNumberError#42');
     expect(isTaggedInstance(instance)).toBe(true);
     expect(instance.payload).toBe(42);
   });
@@ -245,7 +245,7 @@ describe('a kind without a body — identity', () => {
 
 describe('TaggedLit / TagLit steps', () => {
   it('TaggedLit leaves a ::construct step over the step of its payload [D8]', async () => {
-    expect(await evalQuery('~(::holds~(mul 2)) | first | get [type /tag /payload]'))
+    expect(await evalQuery('~(::holds~(mul 2)) | first | get [~(type) /tag /payload]'))
       .toEqual(await evalQuery('[::construct ::holds ~(mul 2)]'));
   });
 
@@ -296,58 +296,10 @@ describe('parse and apply accept Quote subjects transparently', () => {
 
 describe('a tag no node answers is a kind of identity, and declares nothing [D152]', () => {
   it('leaves no binding to read', async () => {
-    const result = await evalQuery('::Top(1) | :minted it | ::Top | binding');
+    const result = await evalQuery('::Top#1 | :minted it | ::Top | binding');
     expect(result.tag.name).toBe('any/binding/UnknownNameError');
-    expect(await evalQuery('::Zap(1) | env | has :Zap')).toBe(false);
+    expect(await evalQuery('::Zap#1 | env | has :Zap')).toBe(false);
   });
-});
-
-describe('a kind whose spec has a body of steps', () => {
-  it('applies the Quote body against payload as pipeValue, then auto-wraps with the tag', async () => {
-    const result = await evalQuery(
-      ':wrap |~~ wrap. ~~| (::kind | impl ~(prepend "[" | append "]")) | ::wrap"x" | payload'
-    );
-    expect(result).toBe('[x]');
-  });
-
-  it('the body of the spec takes the payload as its subject, read through payload after the tag', async () => {
-    const result = await evalQuery(
-      ':shout |~~ shout. ~~| (::kind | impl ~(append "!")) | ::shout"ready" | payload'
-    );
-    expect(result).toBe('ready!');
-  });
-
-  it('Quote body resolves identifiers from the invocation env', async () => {
-    const result = await evalQuery(
-      ':any/exclaim ~(append "!") | :shout |~~ shout. ~~| (::kind | impl ~(exclaim)) | ::shout"go" | payload'
-    );
-    expect(result).toBe('go!');
-  });
-
-  it('auto-wrap stamps the tag identity on the constructor result', async () => {
-    const result = await evalQuery(
-      ':wrap |~~ wrap. ~~| (::kind | impl ~(prepend "[" | append "]")) | ::wrap"x" | type'
-    );
-    expect(result).toEqual(makeTag('wrap'));
-  });
-
-  it('Quote body that already produces the same-tag TaggedInstance passes through (no double-wrap)', async () => {
-    // `tag` runs the constructor, so tagging an instance again hands
-    // the constructor an instance of its own tag.
-    const result = await evalQuery(
-      ':echo |~~ echo. ~~| (::kind | impl ~(it)) | ::echo"hi" | tag ::echo | payload'
-    );
-    expect(result).toBe('hi');
-  });
-
-  it('Quote body that fails on the fail-track propagates the error untagged', async () => {
-    const err = await evalQuery(
-      ':strictAdd |~~ strictAdd. ~~| (::kind | impl ~(add "not-a-number")) | ::strictAdd(5)'
-    );
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTag('number/add/addend/NotNumberError'));
-  });
-
 });
 
 describe('within edits under one tag and rewraps it', () => {
@@ -359,12 +311,6 @@ describe('within edits under one tag and rewraps it', () => {
 
   it('a tag of identity alone stamps its header back on the answer', async () => {
     expect(await evalQuery(':Box |~~ Box. ~~| | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1]')).toBe(true);
-  });
-
-  it('the constructor runs once, at the rewrap', async () => {
-    expect(await evalQuery(
-      ':wrap |~~ wrap. ~~| (::kind | impl ~(prepend "[" | append "]")) | ::wrap"x" | within ~(append "!") | payload'
-    )).toBe('[[x]!]');
   });
 
   it('a constructor that refuses the answer refuses the edit', async () => {

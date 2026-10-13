@@ -244,7 +244,7 @@ describe('hoverAtOffset', () => {
   });
 
   it('returns hover for TaggedLit constructor invocation', async () => {
-    const src = '::number(2) | add 1';
+    const src = '::number#2 | add 1';
     const { ast } = parseDocument(src, 'test.qlang');
     const tagOffset = src.indexOf('::number') + 4;
     const hover = await hoverAtOffset(ast, src, tagOffset);
@@ -267,7 +267,7 @@ describe('hoverAtOffset', () => {
   });
 
   it('hover on ::Tag spans only the tag head, not the payload', async () => {
-    const src = '::number(2) | add 1';
+    const src = '::number#2 | add 1';
     const { ast } = parseDocument(src, 'test.qlang');
     const tagOffset = src.indexOf('::number') + 4;
     const hover = await hoverAtOffset(ast, src, tagOffset);

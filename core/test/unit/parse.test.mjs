@@ -196,16 +196,16 @@ describe('parse — Set literal', () => {
   });
 });
 
-describe('parse — Projection', () => {
-  it('parses a single key projection', () => {
+describe('parse — Path', () => {
+  it('parses a single key path', () => {
     const ast = parse('/name');
-    expect(ast.type).toBe('Projection');
+    expect(ast.type).toBe('Path');
     expect(ast.keys).toEqual(['name']);
   });
 
-  it('parses a nested projection', () => {
+  it('parses a nested path', () => {
     const ast = parse('/team/lead/email');
-    expect(ast.type).toBe('Projection');
+    expect(ast.type).toBe('Path');
     expect(ast.keys).toEqual(['team', 'lead', 'email']);
   });
 });
@@ -243,8 +243,8 @@ describe('parse — Call', () => {
   it('parses a multi-arg call', () => {
     const ast = parse('mulOf /price /qty');
     expect(ast.args).toHaveLength(2);
-    expect(ast.args[0].type).toBe('Projection');
-    expect(ast.args[1].type).toBe('Projection');
+    expect(ast.args[0].type).toBe('Path');
+    expect(ast.args[1].type).toBe('Path');
   });
 
   it('parses a zero-arg call form', () => {
@@ -307,7 +307,7 @@ describe('parse — ParenGroup', () => {
   });
 
   it('parses paren group as a step inside an outer pipeline', () => {
-    const ast = parse('xs | (:elem it | get {:k /id :v elem})');
+    const ast = parse('xs | (:elem it | get {:k /id :v ~(elem)})');
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[1].step.type).toBe('ParenGroup');
   });
@@ -397,7 +397,7 @@ describe('parse — source-mapping metadata on AST root', () => {
   });
 });
 
-describe('parse — quoted keyword and projection segments', () => {
+describe('parse — quoted keyword and path segments', () => {
   it('parses :"name" as a Keyword whose name equals "name"', () => {
     const ast = parse(':"name"');
     expect(ast.type).toBe('Keyword');
@@ -433,19 +433,19 @@ describe('parse — quoted keyword and projection segments', () => {
     expect(parse(':name').name).toBe(parse(':"name"').name);
   });
 
-  it('parses /"foo bar" as a single-key Projection', () => {
+  it('parses /"foo bar" as a single-key path', () => {
     const ast = parse('/"foo bar"');
-    expect(ast.type).toBe('Projection');
+    expect(ast.type).toBe('Path');
     expect(ast.keys).toEqual(['foo bar']);
   });
 
-  it('parses /"a.b"/"$ref"/"123" as a multi-segment Projection', () => {
+  it('parses /"a.b"/"$ref"/"123" as a multi-segment path', () => {
     const ast = parse('/"a.b"/"$ref"/"123"');
-    expect(ast.type).toBe('Projection');
+    expect(ast.type).toBe('Path');
     expect(ast.keys).toEqual(['a.b', '$ref', '123']);
   });
 
-  it('parses a mixed projection /name/"weird key"/age', () => {
+  it('parses a mixed path /name/"weird key"/age', () => {
     const ast = parse('/name/"weird key"/age');
     expect(ast.keys).toEqual(['name', 'weird key', 'age']);
   });
@@ -481,16 +481,16 @@ describe('parse — per-node location and text', () => {
   });
 });
 
-describe('parse — projection with digit-led / hyphen-led bare segments', () => {
-  it('parses `/0` as a single-segment projection with key "0"', () => {
+describe('parse — path with digit-led / hyphen-led bare segments', () => {
+  it('parses `/0` as a single-segment path with key "0"', () => {
     const ast = parse('/0');
-    expect(ast.type).toBe('Projection');
+    expect(ast.type).toBe('Path');
     expect(ast.keys).toEqual(['0']);
   });
 
-  it('parses `/-1` as a single-segment projection with key "-1"', () => {
+  it('parses `/-1` as a single-segment path with key "-1"', () => {
     const ast = parse('/-1');
-    expect(ast.type).toBe('Projection');
+    expect(ast.type).toBe('Path');
     expect(ast.keys).toEqual(['-1']);
   });
 
@@ -504,7 +504,7 @@ describe('parse — projection with digit-led / hyphen-led bare segments', () =>
     expect(ast.keys).toEqual(['rows', '-1', '0']);
   });
 
-  it('bare digit-led segments only appear inside projections, not as keyword literals', () => {
+  it('bare digit-led segments only appear inside paths, not as keyword literals', () => {
     // `:0` remains a parse error — keyword literals still require
     // IdentStart. JSON numeric keys reach qlang as keyword values via
     // parseJson / object-literal parsing, not via `:0` source syntax.
@@ -560,21 +560,21 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
     expect(ast.name).toBe('αβγ');
   });
 
-  it('parses a Cyrillic projection segment', () => {
+  it('parses a Cyrillic path segment', () => {
     const ast = parse('/имя');
-    expect(ast.type).toBe('Projection');
+    expect(ast.type).toBe('Path');
     expect(ast.keys).toEqual(['имя']);
   });
 
-  it('parses a multi-segment Cyrillic projection', () => {
+  it('parses a multi-segment Cyrillic path', () => {
     const ast = parse('/пользователь/имя');
-    expect(ast.type).toBe('Projection');
+    expect(ast.type).toBe('Path');
     expect(ast.keys).toEqual(['пользователь', 'имя']);
   });
 
-  it('parses a mixed Cyrillic + ASCII projection', () => {
+  it('parses a mixed Cyrillic + ASCII path', () => {
     const ast = parse('/user/имя');
-    expect(ast.type).toBe('Projection');
+    expect(ast.type).toBe('Path');
     expect(ast.keys).toEqual(['user', 'имя']);
   });
 

@@ -45,7 +45,7 @@
 {"decision":"D90","name":"reduce-product","query":"[1 2 3 4 5] | reduce 1 ~(mul)","expect":"120"}
 {"decision":"D90","name":"reduce-append","query":"[\"a\" \"b\" \"c\"] | reduce \"\" ~(append)","expect":"\"abc\""}
 {"decision":"D90","name":"reduce-union-of-sets","query":"[#[1] #[2 3]] | reduce #[] ~(union)","expect":"#[1 2 3]"}
-{"decision":"D56","name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | get [type (payload | type)]","expect":"[::Bar ::Foo]"}
+{"decision":"D56","name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | get [~(type) ~(payload | type)]","expect":"[::Bar ::Foo]"}
 {"decision":"D248","name":"reduce-max-via-verb","query":":number/max2 (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(if (gt x) ~(it) ~(x))) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
 {"decision":"D90","name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
 {"decision":"D90","name":"reduce-over-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
@@ -61,7 +61,7 @@
 {"decision":"D90","name":"a-reducer-of-several-steps-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(:acc (get /0) | :el (get /1) | acc | mul 10 | add el)","expect":"123"}
 {"decision":"D224","name":"a-reducer-names-its-word-by-its-address","query":"[1 2 3] | reduce 0 ~(number/add)","expect":"6"}
 {"decision":"D90","name":"a-reducer-that-reads-the-pair-answers-what-it-reads","query":"[1 2 3] | reduce 0 /1","expect":"3"}
-{"decision":"D224","name":"a-value-named-as-the-word-of-a-fold-meets-the-word","query":":add 5 | [1 2 3] | reduce 0 ~(add) !| [type (get /addresses)]","expect":"[::call/ValueMeetsWordError #[::number/add]]"}
+{"decision":"D224","name":"a-value-named-as-the-word-of-a-fold-meets-the-word","query":":add 5 | [1 2 3] | reduce 0 ~(add) !| get [~(type) /addresses]","expect":"[::call/ValueMeetsWordError #[::number/add]]"}
 {"decision":"D90","name":"a-reducer-of-code-folds-a-field-of-each-element","query":"[{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (get /1 | get /x))","expect":"3"}
 {"decision":"D90","name":"a-reducer-that-names-the-address-of-a-value-runs-on-the-pair","query":":Box |~~ A box. ~~| | :Box/side 3 | [1 2] | reduce 0 ~(Box/side)","expect":"3"}
 {"decision":"D90","name":"a-reducer-of-code-folds-a-set","query":"#[1 2 3] | reduce 0 ~(sumOf /0 /1)","expect":"6"}
@@ -80,4 +80,4 @@
 {"decision":"D218","name":"take-refuses-a-count-that-is-no-number","query":"[1 2 3] | take \"x\" !| type","expect":"::vec/take/count/NotNumberError"}
 {"decision":"D22","name":"take-negative-on-set-clamps-to-empty","query":"#[1 2 3] | take -1 | count","expect":"0"}
 {"decision":"D22","name":"drop-negative-on-set-clamps-to-whole","query":"#[1 2 3] | drop -1 | count","expect":"3"}
-{"decision":"D218","name":"a-count-under-a-tag-is-whole-where-it-equals-its-floor","query":"[1 2 3] | take ::N(2)","expect":"[1 2]"}
+{"decision":"D218","name":"a-count-under-a-tag-is-whole-where-it-equals-its-floor","query":"[1 2 3] | take ::N#2","expect":"[1 2]"}

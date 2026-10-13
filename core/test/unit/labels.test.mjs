@@ -17,24 +17,17 @@ const BOX = lines(
   ':Box/length |~~ The length. ~~| ~(get /0)',
   ':Box/put |~~ The same box with another weight inside. ~~| (::fn | takes :weight |~~ The weight to put inside. ~~| /0 | holds :weight/NotNumberError |~~ The weight is a number. ~~| ~(type | eq ::number) | impl ~(within ~(take 1 | append weight)))',
   ':Box/scaled |~~ The length scaled. ~~| (::fn | takes :factor |~~ The factor, one less than the scale. ~~| ~(get /0 | add 1) | impl ~(length | mul (factor | add 1)))',
-  ':Box/tally |~~ The lead and the rest. ~~| (::fn | takes :lead |~~ The lead, null when left out. ~~| ~(query /0) | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ~([lead rest]))',
+  ':Box/tally |~~ The lead and the rest. ~~| (::fn | takes :lead |~~ The lead, null when left out. ~~| ~(query /0) | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ~(get [~(lead) ~(rest)]))',
   ':Box/past |~~ A place past the end. ~~| ~(get /9)',
   ''
 );
 
 describe('a kind built from ::kind', () => {
-  it('builds its payload by its recipe', async () => {
+  it('refuses a payload that breaks an invariant of its kind, the constructor attaching or refusing [D279]', async () => {
     expect(await evalQuery(lines(
-      ':Pair |~~ Two values. ~~| (::kind | impl ~([it it]))',
-      '::Pair(3) | payload'
-    ))).toEqual([3, 3]);
-  });
-
-  it('answers the error its recipe answers', async () => {
-    expect(await evalQuery(lines(
-      ':Small |~~ A number below ten. ~~| (::kind | impl ~(if (lt 10) ~(it) ~(!{:reason :big} | raise)))',
-      '::Small(12) !| get /reason'
-    ))).toEqual(await evalQuery(':big'));
+      ':Small |~~ A number below ten. ~~| (::kind | holds :TooBigError |~~ Below ten. ~~| ~(lt 10))',
+      '::Small#12 !| type'
+    ))).toEqual(makeTag('Small/TooBigError'));
   });
 
   it('answers the error the recipe of its word answers', async () => {
@@ -64,7 +57,7 @@ describe('the object of a call', () => {
   });
 
   it('reads a place softly by query, and the values after the lead by any other step', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | get [tally (tally 1 2 3)]')).toEqual(await evalQuery('[[null []] [1 [2 3]]]'));
+    expect(await evalQuery(BOX + '::Box[4 2] | get [~(tally) ~(tally 1 2 3)]')).toEqual(await evalQuery('[[null []] [1 [2 3]]]'));
   });
 
   it('reads the page of the invariant that refused, named by its refusal', async () => {
@@ -106,10 +99,10 @@ describe('a host\'s primitive under a label', () => {
         }
       }]
     });
-    expect((await session.evalCell('::Gauge(5) | payload')).result).toBe(10);
-    expect((await session.evalCell('::Gauge(5) | over ~(gt 9)')).result).toBe(true);
-    expect((await session.evalCell('::Gauge(5) | shifted 3')).result).toBe(13);
-    expect((await session.evalCell('::Dial(1) | payload')).result).toBe(2);
+    expect((await session.evalCell('::Gauge#5 | payload')).result).toBe(10);
+    expect((await session.evalCell('::Gauge#5 | over ~(gt 9)')).result).toBe(true);
+    expect((await session.evalCell('::Gauge#5 | shifted 3')).result).toBe(13);
+    expect((await session.evalCell('::Dial#1 | payload')).result).toBe(2);
   });
 
   it('computes the modifiers of a call up to the first that answers an error, and runs none after it [D167]', async () => {

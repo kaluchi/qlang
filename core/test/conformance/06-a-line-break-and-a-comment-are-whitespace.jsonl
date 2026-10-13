@@ -7,7 +7,7 @@
 {"decision":"D243","name":"steps-a-line-alone-joins-do-not-parse","query":"\"[3 1 2]\nsort\" | parse | count !| type","expect":"::quote/ParseError"}
 {"decision":"D243","name":"a-command-takes-its-modifiers-across-lines-at-the-top-level","query":"\"5 | if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\")\" | parse | apply it !| type","expect":"\"pos\""}
 {"decision":"D243","name":"a-command-takes-its-modifiers-across-lines-inside-brackets","query":"5 | apply (\"(if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\"))\" | parse)","expect":"\"pos\""}
-{"decision":"D243","name":"a-declaration-on-the-next-line-ends-a-command-body","query":"\"[1 2] | :x take 1\n:y 2\n| [x y]\" | parse | apply it","expect":"[[1] 2]"}
+{"decision":"D243","name":"a-declaration-on-the-next-line-ends-a-command-body","query":"\"[1 2] | :x take 1\n:y 2\n| get [~(x) ~(y)]\" | parse | apply it","expect":"[[1] 2]"}
 {"decision":"D81","name":"line-plain-then-step","query":"|~| pre-step note\n| 42","expect":"42"}
 {"decision":"D81","name":"line-plain-mid-pipeline-shapes-result","query":"5 |~| inline note\n| add 3","expect":"8"}
 {"decision":"D81","name":"block-plain-then-step","query":"|~ block note ~| 42","expect":"42"}

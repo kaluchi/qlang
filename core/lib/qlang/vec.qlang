@@ -54,10 +54,10 @@
         ~("[1, 2 3]" | parse !| type | eq ::quote/ParseError)
     | proves :PayloadNotVecError/refusesASet
         |~~ A set is refused; `toVec` turns it into a vector. ~~|
-        ~(#[2 1] | tag ::vec !| [type (get /actualType)] | eq [::vec/PayloadNotVecError ::set])
+        ~(#[2 1] | tag ::vec !| get [~(type) /actualType] | eq [::vec/PayloadNotVecError ::set])
     | proves :PayloadNotVecError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::vec{:a 1} !| [type (get /actualType)] | eq [::vec/PayloadNotVecError ::map])
+        ~(::vec{:a 1} !| get [~(type) /actualType] | eq [::vec/PayloadNotVecError ::map])
     | impl ::builtin{}
 
 :vec/count
@@ -133,7 +133,7 @@
         |~~ A null element and no element both answer null, and `count`
             tells them apart.
         ~~|
-        ~([[null 1] []] | map ~([(first) (count)]) | eq [[null 2] [null 0]])
+        ~([[null 1] []] | map ~(get [~(first) ~(count)]) | eq [[null 2] [null 0]])
     | proves :answersTheFirstStepOfAQuote
         |~~ A quote answers its first step. ~~|
         ~(~(add 1 | mul 2) | first | type | eq ::call)
@@ -190,16 +190,16 @@
     | proves :ElementNotNumberError/refusesAString
         |~~ A string among the numbers is refused at its index. ~~|
         ~([1 "two" 3] | sum
-          !| [type (get /actualType) (get /index)]
+          !| get [~(type) /actualType /index]
           |  eq [::vec/sum/ElementNotNumberError ::string 1])
     | proves :ElementNotNumberError/refusesARecord
         |~~ A record whose field was not read is refused at its index. ~~|
         ~([{:n 1} {:n 2}] | sum
-          !| [type (get /actualType) (get /index)]
+          !| get [~(type) /actualType /index]
           |  eq [::vec/sum/ElementNotNumberError ::map 0])
     | proves :ElementNotNumberError/refusesNull
         |~~ Null is no number to add. ~~|
-        ~([1 null] | sum !| [type (get /index)] | eq [::vec/sum/ElementNotNumberError 1])
+        ~([1 null] | sum !| get [~(type) /index] | eq [::vec/sum/ElementNotNumberError 1])
     | impl ::builtin{}
 
 :vec/avg
@@ -259,7 +259,7 @@
     | proves :ElementNotNumberError/refusesAString
         |~~ A string among the numbers is refused at its index. ~~|
         ~([1 "two" 3] | avg
-          !| [type (get /actualType) (get /index)]
+          !| get [~(type) /actualType /index]
           |  eq [::vec/avg/ElementNotNumberError ::string 1])
     | impl ::builtin{}
 
@@ -284,9 +284,9 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :key/NotNullOrPathOrQuoteError
-        |~~ The key is a quote or null: written `~(get /age)`, it runs on
-            each element, while `(get /age)` is computed once at the call,
-            against the vector, and refused with what it answered.
+        |~~ The key is a path, a quote or null: written `~(get /age)`, it
+            runs on each element, while `(get /age)` is computed once at the
+            call, against the vector, and refused with what it answered.
         ~~|
     | returns
         |~~ The least element, any value, null for the empty vector. ~~|
@@ -317,7 +317,7 @@
             the call, and its error is refused.
         ~~|
         ~([3 1] | min (get /age)
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::vec/min/key/NotNullOrPathOrQuoteError ::path/IndexNotIntegerError])
     | impl ::builtin{}
 
@@ -338,7 +338,7 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :key/NotNullOrPathOrQuoteError
-        |~~ The key is a quote or null, `max /age`, as for `min`. ~~|
+        |~~ The key is a path, a quote or null, `max /age`, as for `min`. ~~|
     | returns
         |~~ The greatest element, any value, null for the empty vector. ~~|
         ::any
@@ -368,7 +368,7 @@
       code is a quote run on each element as its subject: a step of one
       word or one path written short, `map /name` or `map ~count`,
       several steps in one quote, `map ~(mul 2 | add 1)`, and a literal,
-      which reshapes each element, `map ~(get {:id /id :n (get /tags | count)})`.
+      which reshapes each element, `map ~(get {:id /id :n ~(get /tags | count)})`.
       It runs in the scope of the call, so a name declared before the
       call is read inside, and the names a run declares stay in it. The
       first failure the code answers for an element is the answer of the
@@ -443,7 +443,7 @@
         ~([1 2] | map ~(add 1) ~(mul 2) !| type | eq ::vec/map/ArgsBeyondInputsError)
     | proves :reshapesEachElementByALiteral
         |~~ A literal reshapes each element. ~~|
-        ~([{:id 1 :tags [:a :b]}] | map ~(get {:id /id :n (get /tags | count)}) | eq [{:id 1 :n 2}])
+        ~([{:id 1 :tags [:a :b]}] | map ~(get {:id /id :n ~(get /tags | count)}) | eq [{:id 1 :n 2}])
     | proves :keepsTheNamesOfARunInside
         |~~ The names a run declares stay in it. ~~|
         ~([1 2] | map ~(:x 5 | add x) | x !| type | eq ::call/UnknownNameError)
@@ -521,19 +521,19 @@
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | filter (count | gt 1)
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::vec/filter/predicate/NotPathOrQuoteError ::boolean])
     | proves :predicate/NotPathOrQuoteError/refusesAStepWithoutItsQuote
         |~~ A step written without its quote runs on the whole subject at
             the call, and its error is refused.
         ~~|
         ~([{:a true}] | filter (get /a)
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::vec/filter/predicate/NotPathOrQuoteError ::path/IndexNotIntegerError])
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | filter ~(1)
-          !| [type (get /index) (get /actualType)]
+          !| get [~(type) /index /actualType]
           |  eq [::vec/filter/ConditionNotBooleanError 0 ::number])
     | proves :ArgsBeyondInputsError/refusesTwoPredicates
         |~~ Two predicates are refused under the word. ~~|
@@ -597,12 +597,12 @@
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | every (count | gt 1)
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::vec/every/predicate/NotPathOrQuoteError ::boolean])
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | every ~(1)
-          !| [type (get /index) (get /actualType)]
+          !| get [~(type) /index /actualType]
           |  eq [::vec/every/ConditionNotBooleanError 0 ::number])
     | impl ::builtin{}
 
@@ -656,12 +656,12 @@
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | any (count | gt 1)
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::vec/any/predicate/NotPathOrQuoteError ::boolean])
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | any ~(1)
-          !| [type (get /index) (get /actualType)]
+          !| get [~(type) /index /actualType]
           |  eq [::vec/any/ConditionNotBooleanError 0 ::number])
     | impl ::builtin{}
 
@@ -762,9 +762,9 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :key/NotNullOrPathOrQuoteError
-        |~~ The key is a quote or null: written `~(get /kind)`, it runs on
-            each element, while `(get /kind)` is computed once at the
-            call, against the vector, and refused with what it answered.
+        |~~ The key is a path, a quote or null: written `~(get /kind)`, it
+            runs on each element, while `(get /kind)` is computed once at
+            the call, against the vector, and refused with what it answered.
         ~~|
     | returns
         |~~ The elements filed under the keyword their key answered. ~~|
@@ -832,18 +832,18 @@
         ~([{:a 1}] | groupBy /k !| type | eq ::path/KeyNotInMapError)
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
-        ~([1 "1"] | groupBy !| [type (get /key) (get /taken) (get /index)] | eq [::vec/groupBy/KeyTakenError :"1" 1 1])
+        ~([1 "1"] | groupBy !| get [~(type) /key /taken /index] | eq [::vec/groupBy/KeyTakenError :"1" 1 1])
     | proves :key/NotNullOrPathOrQuoteError/refusesAKeyword
         |~~ A keyword given as the key is computed at the call, and
             refused.
         ~~|
         ~([{:kind :a}] | groupBy :a
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::vec/groupBy/key/NotNullOrPathOrQuoteError ::keyword])
     | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ A vector key is refused at its element. ~~|
         ~([{:k 2} {:k [1]}] | groupBy /k
-          !| [type (get /actualType) (get /index)]
+          !| get [~(type) /actualType /index]
           |  eq [::vec/groupBy/KeyNotKeywordError ::vec 1])
     | impl ::builtin{}
 
@@ -870,9 +870,9 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :key/NotNullOrPathOrQuoteError
-        |~~ The key is a quote or null: written `~(get /id)`, it runs on
-            each element, while `(get /id)` is computed once at the call,
-            against the vector, and refused with what it answered.
+        |~~ The key is a path, a quote or null: written `~(get /id)`, it
+            runs on each element, while `(get /id)` is computed once at the
+            call, against the vector, and refused with what it answered.
         ~~|
     | returns
         |~~ Each element under the keyword its key answered, the last of
@@ -931,18 +931,18 @@
         ~([:x :y] | indexBy | eq {:x :x :y :y})
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
-        ~([{:id 1} {:id "1"}] | indexBy /id !| [type (get /key) (get /taken) (get /index)] | eq [::vec/indexBy/KeyTakenError :"1" 1 1])
+        ~([{:id 1} {:id "1"}] | indexBy /id !| get [~(type) /key /taken /index] | eq [::vec/indexBy/KeyTakenError :"1" 1 1])
     | proves :key/NotNullOrPathOrQuoteError/refusesAKeyword
         |~~ A keyword given as the key is computed at the call, and
             refused.
         ~~|
         ~([{:id :a}] | indexBy :a
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::vec/indexBy/key/NotNullOrPathOrQuoteError ::keyword])
     | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ A vector key is refused at its element. ~~|
         ~([{:k [1]}] | indexBy /k
-          !| [type (get /actualType) (get /index)]
+          !| get [~(type) /actualType /index]
           |  eq [::vec/indexBy/KeyNotKeywordError ::vec 0])
     | impl ::builtin{}
 
@@ -957,12 +957,12 @@
 
       With a key the call gives the elements rank by what the key answers
       for each, a vector key place by place, so
-      `sort ~([(get /count | desc) (get /name)])` reads as
+      `sort ~(get [~(get /count | desc) ~(get /name)])` reads as
       `ORDER BY count DESC, name`, and a first place of `eq null` puts
       null last; elements the key leaves alike keep the order of the
       subject, and `desc` turns the key, or one place of it, to descend.
-      The key is code run on each element, a quote, `~(get /age)` or
-      `~(get /age)`; a value computed at the call is refused, one key is
+      The key is code run on each element, a path, `/age`, or a quote,
+      `~(get /name | lower)`; a value computed at the call is refused, one key is
       given, and a key that misses its field answers the error of the
       read, so a field an element may lack is read softly, `~(query /a)`.
 
@@ -978,9 +978,9 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :key/NotNullOrPathOrQuoteError
-        |~~ The key is a quote or null: written `~(get /age)`, it runs on
-            each element, while `(get /age)` is computed once at the call,
-            against the vector, and refused with what it answered.
+        |~~ The key is a path, a quote or null: written `~(get /age)`, it
+            runs on each element, while `(get /age)` is computed once at the
+            call, against the vector, and refused with what it answered.
         ~~|
     | returns |~~ The elements in the order the key ranks them. ~~| ::vec
     | throws :ArgsBeyondInputsError
@@ -1007,11 +1007,11 @@
         ~([{:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b]) | map /b | eq [9 1])
     | proves :breaksTiesByTheNextPlace
         |~~ A vector key breaks the ties of its first place by its next. ~~|
-        ~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~(get [(get /n | desc) /s]) | map /s
+        ~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~(get [~(get /n | desc) /s]) | map /s
           |  eq ["a" "c" "b"])
     | proves :putsNullLast
         |~~ A first place of `eq null` puts null last. ~~|
-        ~([3 null 1] | sort ~([(eq null) it]) | eq [1 3 null])
+        ~([3 null 1] | sort ~(get [~(eq null) ~(it)]) | eq [1 3 null])
     | proves :keepsTheOrderOfAlikeElements
         |~~ Elements the key leaves alike keep the order of the subject. ~~|
         ~([{:n 2 :s "b"} {:n 1 :s "c"} {:n 2 :s "a"}] | sort /n | map /s | eq ["c" "b" "a"])
@@ -1020,7 +1020,7 @@
         ~([{:age 30} {:age 40}] | sort ~(get /age | desc) | first | get /age | eq 40)
     | proves :turnsTheKey
         |~~ `desc` turns one place of a vector key alone. ~~|
-        ~([{:a 1 :b 1} {:a 1 :b 2}] | sort ~(get [/a (get /b | desc)]) | map /b | eq [2 1])
+        ~([{:a 1 :b 1} {:a 1 :b 2}] | sort ~(get [/a ~(get /b | desc)]) | map /b | eq [2 1])
     | proves :readsAFieldSoftly
         |~~ A field an element may lack is read softly. ~~|
         ~([{:a 2} {:b 1}] | sort ~(query /a) | eq [{:b 1} {:a 2}])
@@ -1039,7 +1039,7 @@
         |~~ A number given as the key is computed at the call, and
             refused.
         ~~|
-        ~([3 1 2] | sort 1 !| [type (get /actualType)] | eq [::vec/sort/key/NotNullOrPathOrQuoteError ::number])
+        ~([3 1 2] | sort 1 !| get [~(type) /actualType] | eq [::vec/sort/key/NotNullOrPathOrQuoteError ::number])
     | proves :ArgsBeyondInputsError/refusesTwoKeys
         |~~ Two keys are refused under the word. ~~|
         ~([{:a 1}] | sort /a /b !| type | eq ::vec/sort/ArgsBeyondInputsError)
@@ -1086,10 +1086,10 @@
         ~([1 2 3 4 5] | drop 2 | take 2 | eq [3 4])
     | proves :count/NotNumberError/refusesAString
         |~~ A string is no count. ~~|
-        ~([1 2 3] | take "2" !| [type (get /actualType)] | eq [::vec/take/count/NotNumberError ::string])
+        ~([1 2 3] | take "2" !| get [~(type) /actualType] | eq [::vec/take/count/NotNumberError ::string])
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
-        ~([1 2 3] | take 1.5 !| [type (get /actualType)] | eq [::vec/take/count/NotIntegerError ::number])
+        ~([1 2 3] | take 1.5 !| get [~(type) /actualType] | eq [::vec/take/count/NotIntegerError ::number])
     | proves :keepsTheTag
         |~~ A vector under a tag keeps its tag. ~~|
         ~(::Box[1 2 3] | take 2 | eq ::Box[1 2])
@@ -1131,7 +1131,7 @@
         ~(~(add 1 | mul 2) | drop 1 | eq ~(mul 2))
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
-        ~([1 2 3] | drop 1.5 !| [type (get /actualType)] | eq [::vec/drop/count/NotIntegerError ::number])
+        ~([1 2 3] | drop 1.5 !| get [~(type) /actualType] | eq [::vec/drop/count/NotIntegerError ::number])
     | proves :count/NotNumberError/refusesAString
         |~~ A count written as a string is refused. ~~|
         ~([1 2] | drop "1" !| type | eq ::vec/drop/count/NotNumberError)
@@ -1237,7 +1237,7 @@
       `[[1 2] [:a :b]] | zip` answers `[[1 :a] [2 :b]]`, and the empty
       vector answers `[]`. Each element is a vector, a set, a quote and a
       doc among them; a single vector is put beside the others in a
-      vector first, `[(get /names) (get /ages)] | zip`. It takes no value.
+      vector first, `get [~(get /names) ~(get /ages)] | zip`. It takes no value.
       ::link~(::vec/flat | doc)
   ~~|
   ::fn
@@ -1259,10 +1259,10 @@
     | proves :readsFieldsSideBySide
         |~~ Two fields of a record read side by side pair their elements.
         ~~|
-        ~({:names ["ann" "bob"] :ages [30 40]} | get [(get /names) (get /ages)] | zip | eq [["ann" 30] ["bob" 40]])
+        ~({:names ["ann" "bob"] :ages [30 40]} | get [/names /ages] | zip | eq [["ann" 30] ["bob" 40]])
     | proves :ElementNotVecError/refusesANumber
         |~~ An element that is no vector is refused at its index. ~~|
-        ~([[1 2] 3] | zip !| [type (get /index) (get /actualType)] | eq [::vec/zip/ElementNotVecError 1 ::number])
+        ~([[1 2] 3] | zip !| get [~(type) /index /actualType] | eq [::vec/zip/ElementNotVecError 1 ::number])
     | impl ::builtin{}
 
 :vec/reduce
@@ -1271,11 +1271,11 @@
       `[1 2 3 4 5] | reduce 0 ~(add)` answering `15`; the empty vector
       answers the seed. The seed comes first and the reducer after it, so
       `reduce ~(add)` reads the quote as the seed and is refused for the
-      reducer it lacks. The reducer is a quote. A quote of one word,
-      `~(add)` or `~add`, or of its address, `~(number/add)`, is the word
-      the fold calls with the value so far as its subject and the element
-      as its first arg; any other code runs on the pair of the value so
-      far and the element, and what it answers is the value so far after
+      reducer it lacks. The reducer is code, a path or a quote. A quote
+      of one word, `~(add)` or `~add`, or of its address,
+      `~(number/add)`, is the word the fold calls with the value so far as
+      its subject and the element as its first arg; any other code runs on
+      the pair of the value so far and the element, and what it answers is the value so far after
       that element:
       `[{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (get /1 | get /x))` answers
       `3`. A failure the reducer answers answers the call. `sum`, `count`,
@@ -1288,13 +1288,14 @@
   ::fn
     | takes :seed |~~ The value the fold starts from, any value. ~~| /0
     | takes :reducer
-        |~~ A quote: one word the fold calls with the element, or code it
-            runs on the pair of the value so far and the element.
+        |~~ Code: a quote of one word the fold calls with the element, or a
+            path or a quote it runs on the pair of the value so far and the
+            element.
         ~~|
         /1 #[::path ::quote]
     | throws :reducer/NotPathOrQuoteError
-        |~~ The reducer is a quote, `reduce 0 ~(add)`, after the seed:
-            written first, `reduce ~(add) 0`, it stands in the seed's
+        |~~ The reducer is a path or a quote, `reduce 0 ~(add)`, after the
+            seed: written first, `reduce ~(add) 0`, it stands in the seed's
             place and hands the reducer's place the seed, and written
             without the tilde, `(add)`, it is computed once at the call;
             either is refused.
@@ -1354,14 +1355,14 @@
     | proves :reducer/NotPathOrQuoteError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
         ~([1 2 3] | reduce 0 1
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::vec/reduce/reducer/NotPathOrQuoteError ::number])
     | proves :reducer/NotPathOrQuoteError/refusesTheReducerFirst
         |~~ A reducer written before the seed hands the reducer's place
             the seed.
         ~~|
         ~([1 2 3] | reduce ~(add) 0
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::vec/reduce/reducer/NotPathOrQuoteError ::number])
     | proves :reducer/NotGivenError/readsALoneQuoteAsTheSeed
         |~~ A call of the reducer alone lacks the reducer. ~~|
@@ -1422,7 +1423,7 @@
             index.
         ~~|
         ~([#[:a] 2] | union
-          !| [type (get /index) (get /actualType)]
+          !| get [~(type) /index /actualType]
           |  eq [::vec/union/ElementNotSetOrMapError 1 ::number])
     | proves :ElementNotSetOrMapError/unitesVectorsMadeSets
         |~~ A vector of vectors unites once each is a set. ~~|
@@ -1430,7 +1431,7 @@
     | proves :KindsMismatchedError/refusesASetAndAMap
         |~~ A set and a map do not unite. ~~|
         ~([#[:a] {:b 1}] | union
-          !| [type (get /leftType) (get /rightType)]
+          !| get [~(type) /leftType /rightType]
           |  eq [::vec/union/KindsMismatchedError ::set ::map])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
         |~~ A value the call gives is refused under the word. ~~|
@@ -1496,16 +1497,16 @@
         |~~ A first value that is neither a set nor a map is refused at
             its index.
         ~~|
-        ~([1 #[1]] | minus !| [type (get /index)] | eq [::vec/minus/ElementNotSetOrMapError 0])
+        ~([1 #[1]] | minus !| get [~(type) /index] | eq [::vec/minus/ElementNotSetOrMapError 0])
     | proves :KindsMismatchedError/refusesAMapAfterASet
         |~~ A map after a set is refused with the pair. ~~|
         ~([#[:a] {:b 1}] | minus
-          !| [type (get /leftType) (get /rightType)]
+          !| get [~(type) /leftType /rightType]
           |  eq [::vec/minus/KindsMismatchedError ::set ::map])
     | proves :KeyNotKeywordOrStringError/refusesANumber
         |~~ A number among the keys is refused at its index. ~~|
         ~([{:a 1} [:a 1]] | minus
-          !| [type (get /actualType) (get /index)]
+          !| get [~(type) /actualType /index]
           |  eq [::vec/minus/KeyNotKeywordOrStringError ::number 1])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
         |~~ A value the call gives is refused under the word. ~~|
@@ -1566,16 +1567,16 @@
         |~~ A first value that is neither a set nor a map is refused at
             its index.
         ~~|
-        ~([1 #[1]] | inter !| [type (get /index)] | eq [::vec/inter/ElementNotSetOrMapError 0])
+        ~([1 #[1]] | inter !| get [~(type) /index] | eq [::vec/inter/ElementNotSetOrMapError 0])
     | proves :KindsMismatchedError/refusesAMapAfterASet
         |~~ A map after a set is refused with the pair. ~~|
         ~([#[:a] {:b 1}] | inter
-          !| [type (get /leftType) (get /rightType)]
+          !| get [~(type) /leftType /rightType]
           |  eq [::vec/inter/KindsMismatchedError ::set ::map])
     | proves :KeyNotKeywordOrStringError/refusesAVector
         |~~ A vector among the keys is refused at its index. ~~|
         ~([{:a 1} [[:a]]] | inter
-          !| [type (get /actualType) (get /index)]
+          !| get [~(type) /actualType /index]
           |  eq [::vec/inter/KeyNotKeywordOrStringError ::vec 0])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
         |~~ A value the call gives is refused under the word. ~~|
@@ -1647,18 +1648,18 @@
     | proves :separator/NotKeywordOrStringError/refusesANumber
         |~~ A number separator is refused. ~~|
         ~(["a" "b"] | join 42
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::vec/join/separator/NotKeywordOrStringError ::number])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of strings. ~~|
-        ~(42 | join "," !| [type (get /actualType)] | eq [::vec/join/SubjectNotVecError ::number])
+        ~(42 | join "," !| get [~(type) /actualType] | eq [::vec/join/SubjectNotVecError ::number])
     | proves :SubjectNotVecError/refusesAMap
         |~~ A map is no vector of strings. ~~|
-        ~({:a "x"} | join "," !| [type (get /actualType)] | eq [::vec/join/SubjectNotVecError ::map])
+        ~({:a "x"} | join "," !| get [~(type) /actualType] | eq [::vec/join/SubjectNotVecError ::map])
     | proves :ElementNotStringOrKeywordError/refusesANumber
         |~~ A number among the strings is refused at its index. ~~|
         ~(["a" 42 "c"] | join ","
-          !| [type (get /actualType) (get /index)]
+          !| get [~(type) /actualType /index]
           |  eq [::vec/join/ElementNotStringOrKeywordError ::number 1])
     | impl ::builtin{}
 
@@ -1711,7 +1712,7 @@
         ~([1 2] | append 3 | eq [1 2 3])
     | proves :putsAVectorInAsOneElement
         |~~ A vector given is one element, which `flat` splices. ~~|
-        ~([1] | append [2 3] | get [it (flat)] | eq [[1 [2 3]] [1 2 3]])
+        ~([1] | append [2 3] | get [~(it) ~(flat)] | eq [[1 [2 3]] [1 2 3]])
     | proves :keepsTheTagOfTheSubject
         |~~ A vector under a tag takes the element under it. ~~|
         ~(::Box[1 2] | append 3 | eq ::Box[1 2 3])
@@ -1735,7 +1736,7 @@
         ~({:a 1} | toSet !| get /nearest | eq [:keys])
     | proves :answersTheSetDistinctAnswers
         |~~ `toSet` answers what `distinct` answers. ~~|
-        ~([2 1 2] | get [toSet distinct] | eq [#[1 2] #[1 2]])
+        ~([2 1 2] | get [~(toSet) ~(distinct)] | eq [#[1 2] #[1 2]])
     | impl ::builtin{}
 
 :vec/toMap
@@ -1775,13 +1776,13 @@
         |~~ An element of one place is no pair, and is refused at its
             index.
         ~~|
-        ~([[:a 1] [:b]] | toMap !| [type (get /index)] | eq [::vec/toMap/ElementNotPairError 1])
+        ~([[:a 1] [:b]] | toMap !| get [~(type) /index] | eq [::vec/toMap/ElementNotPairError 1])
     | proves :ElementNotPairError/refusesAPairOfThree
         |~~ An element of three places is no pair either. ~~|
-        ~([[:a 1 2]] | toMap !| [type (get /index)] | eq [::vec/toMap/ElementNotPairError 0])
+        ~([[:a 1 2]] | toMap !| get [~(type) /index] | eq [::vec/toMap/ElementNotPairError 0])
     | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ A vector names no key, and is refused at its pair. ~~|
-        ~([[[1] 2]] | toMap !| [type (get /actualType) (get /index)] | eq [::vec/toMap/KeyNotKeywordError ::vec 0])
+        ~([[[1] 2]] | toMap !| get [~(type) /actualType /index] | eq [::vec/toMap/KeyNotKeywordError ::vec 0])
     | impl ::builtin{}
 
 :vec/toVec
@@ -1821,6 +1822,6 @@
         ~([] | toPath !| type | eq ::vec/toPath/EmptyError)
     | proves :ElementNotKeyError/refusesAFraction
         |~~ A fraction is no place, and is refused at its index. ~~|
-        ~([:a 0.5] | toPath !| get [(type) /index] | eq [::vec/toPath/ElementNotKeyError 1])
+        ~([:a 0.5] | toPath !| get [~(type) /index] | eq [::vec/toPath/ElementNotKeyError 1])
     | impl ::builtin{}
 

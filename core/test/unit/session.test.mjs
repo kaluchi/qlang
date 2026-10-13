@@ -145,7 +145,7 @@ describe('the sources a host hands [D153]', () => {
 
   it('answers a host name as the function whose recipe is its descriptor, its answer the kind it returns', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('::any/fetch | binding | get /value | get [type (get /1 | type)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
+    expect((await sessionInstance.evalCell('::any/fetch | binding | get /value | get [~(type) ~(get /1 | type)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
     expect((await sessionInstance.evalCell('fetch | type')).result).toEqual(makeTag('string'));
   });
 

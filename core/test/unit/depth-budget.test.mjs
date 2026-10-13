@@ -39,11 +39,11 @@ describe('depth budget — self-calling verb', () => {
 describe('depth budget — every re-entry seam', () => {
   const seams = [
     ['apply on a self-referential Quote',           ':q ~(apply q) | apply q'],
-    ['a body under map naming its own verb',         ':any/f ~([it] | map ~f | first) | 1 | f'],
-    ['captured-arg lambda naming its own verb',     ':any/p ~([it] | filter ~(p)) | [1] | p'],
+    ['a body under map naming its own verb',         ':any/f ~(get [~(it)] | map ~f | first) | 1 | f'],
+    ['captured-arg lambda naming its own verb',     ':any/p ~(get [~(it)] | filter ~(p)) | [1] | p'],
     ['a verb folding through reduce',               ':any/r (::fn | takes :el |~~ The element. ~~| /0 | impl ~([1] | reduce 0 ~r)) | [1] | reduce 0 ~r'],
     ['a verb predicate over a Map',                 ':any/k ~({:a 1} | filter ~k) | {:a 1} | filter ~k'],
-    ['Quote-bodied tag constructor minting itself', ':T |~~ T. ~~| (::kind | impl ~(::T(it))) | ::T(1)']
+    ['an invariant of a kind minting its own tag',   ':T |~~ T. ~~| (::kind | holds :E |~~ e ~~| ~(::T#1 | payload | eq 1)) | ::T#1']
   ];
   for (const [seamName, query] of seams) {
     it(`terminates on ${seamName}`, async () => {

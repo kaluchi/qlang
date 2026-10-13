@@ -76,7 +76,7 @@
             subject of a later step reads what that step was handed: after
             `get /qty |` the subject is the number, so two fields of one
             record are read in one step, `get [/qty /price]`, or combined
-            by a form whose args they are, `mulOf /qty /price`. A value
+            by a word that reads each from its args, `mulOf /qty /price`. A value
             that may be null is read by `query`, which answers null.
             ::link~(::path | doc) ::link~(::any/mulOf | doc)
         ~~|
@@ -114,20 +114,20 @@
         ~({:"a b/c" 1} | paths | first | print | eq "/\"a b/c\"")
     | proves :PayloadNotPathError/refusesAVector
         |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
-        ~([:a 0] | tag ::path !| [type (get /actualType)] | eq [::path/PayloadNotPathError ::vec])
+        ~([:a 0] | tag ::path !| get [~(type) /actualType] | eq [::path/PayloadNotPathError ::vec])
     | proves :IndexOutOfBoundsError/refusesAPlacePastTheEnd
         |~~ A place past the end is refused with the length. ~~|
-        ~([10 20 30] | get /99 !| get [(type) /index /length] | eq [::path/IndexOutOfBoundsError 99 3])
+        ~([10 20 30] | get /99 !| get [~(type) /index /length] | eq [::path/IndexOutOfBoundsError 99 3])
     | proves :IndexOutOfBoundsError/refusesAPlaceBeforeTheStart
         |~~ A negative place past the start is refused as it was written.
         ~~|
-        ~([10 20 30] | get /-4 !| get [(type) /index /length] | eq [::path/IndexOutOfBoundsError -4 3])
+        ~([10 20 30] | get /-4 !| get [~(type) /index /length] | eq [::path/IndexOutOfBoundsError -4 3])
     | proves :IndexOutOfBoundsError/readsTheLastFromTheEnd
         |~~ `/-1` reads the last element whatever the length. ~~|
         ~([10 20 30] | get /-1 | eq 30)
     | proves :KeyNotInMapError/refusesAKeyTheMapLacks
         |~~ A key the map lacks is refused. ~~|
-        ~({:a 1} | get /b !| get [(type) /key] | eq [::path/KeyNotInMapError :b])
+        ~({:a 1} | get /b !| get [~(type) /key] | eq [::path/KeyNotInMapError :b])
     | proves :KeyNotInMapError/namesThePathItFollowed
         |~~ The refusal holds the path the read followed. ~~|
         ~({:a {:b 1}} | get /a/c !| get /path | eq /a/c)
@@ -143,16 +143,16 @@
     | proves :SubjectNotProjectableError/refusesANumber
         |~~ A number has no fields. ~~|
         ~(42 | get /foo
-          !| get [(type) /key /actualType] | eq [::path/SubjectNotProjectableError :foo ::number])
+          !| get [~(type) /key /actualType] | eq [::path/SubjectNotProjectableError :foo ::number])
     | proves :SubjectNotProjectableError/refusesNull
         |~~ Null has no parts for `get`. ~~|
-        ~(null | get /k !| get [(type) /actualType] | eq [::path/SubjectNotProjectableError ::null])
+        ~(null | get /k !| get [~(type) /actualType] | eq [::path/SubjectNotProjectableError ::null])
     | proves :IndexNotIntegerError/refusesAFieldOfAVector
         |~~ A vector is read by a place, not a field. ~~|
-        ~([10 20 30] | get /name !| get [(type) /key] | eq [::path/IndexNotIntegerError :name])
+        ~([10 20 30] | get /name !| get [~(type) /key] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/refusesAFieldOfASet
         |~~ A set is read by a place, not a field. ~~|
-        ~(#[:a :b :c] | get /name !| get [(type) /key] | eq [::path/IndexNotIntegerError :name])
+        ~(#[:a :b :c] | get /name !| get [~(type) /key] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/readsAFieldOfEachElement
         |~~ A field of each element is read by `map`. ~~|
         ~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"])

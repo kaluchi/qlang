@@ -178,31 +178,31 @@
         ~(~(count) | first | get /name | eq :count)
     | proves :buildsAStep
         |~~ A map under `::call` builds the step. ~~|
-        ~({:name :filter :modifiers [~(gt 1)]} | tag ::call | get [it] | tag ::quote | eq ~(filter ~(gt 1)))
+        ~({:name :filter :modifiers [~(gt 1)]} | tag ::call | get [~(it)] | tag ::quote | eq ~(filter ~(gt 1)))
     | proves :PayloadNotSchemaError/refusesANameThatIsNoKeyword
         |~~ A `:name` that is no keyword is refused, `:field` naming it. ~~|
-        ~(::call{:name 42} !| [type (get /field)] | eq [::call/PayloadNotSchemaError :name])
+        ~(::call{:name 42} !| get [~(type) /field] | eq [::call/PayloadNotSchemaError :name])
     | proves :PayloadNotSchemaError/buildsTheStepOfACall
         |~~ A keyword and a vector of steps build the step of the call. ~~|
-        ~({:name :take :modifiers [2]} | tag ::call | get [it] | tag ::quote | eq ~(take 2))
+        ~({:name :take :modifiers [2]} | tag ::call | get [~(it)] | tag ::quote | eq ~(take 2))
     | proves :ReadBackDiffersError/refusesANameOfTwoWords
         |~~ A name with a space prints as two words, which read back as
             another step.
         ~~|
-        ~(::call{:name :"a b"} !| [type (get /printed)] | eq [::call/ReadBackDiffersError "a b"])
+        ~(::call{:name :"a b"} !| get [~(type) /printed] | eq [::call/ReadBackDiffersError "a b"])
     | proves :ReadBackDiffersError/refusesANameThatReadsAsANumber
         |~~ A name that reads as a number prints as the number. ~~|
-        ~(::call{:name :"1"} !| [type (get /printed)] | eq [::call/ReadBackDiffersError "1"])
+        ~(::call{:name :"1"} !| get [~(type) /printed] | eq [::call/ReadBackDiffersError "1"])
     | proves :ReadBackDiffersError/refusesAnEmptyVectorOfModifiers
         |~~ An empty vector of modifiers prints as a call that gives none.
         ~~|
         ~(::call{:name :count :modifiers []}
-          !| [type (get /printed)] | eq [::call/ReadBackDiffersError "count"])
+          !| get [~(type) /printed] | eq [::call/ReadBackDiffersError "count"])
     | proves :ValueMeetsWordError/refusesAValueAndAWordThatMeet
         |~~ A value and a word that meet at a step are refused with the
             word's address.
         ~~|
-        ~(:count 5 | [1 2] | count !| [type (get /addresses)] | eq [::call/ValueMeetsWordError #[::vec/count]])
+        ~(:count 5 | [1 2] | count !| get [~(type) /addresses] | eq [::call/ValueMeetsWordError #[::vec/count]])
     | proves :ValueMeetsWordError/readsTheValueWhereNoWordAnswers
         |~~ On a subject no word of the name answers, the value is read. ~~|
         ~(:count 5 | 7 | count | eq 5)
@@ -213,18 +213,18 @@
         |~~ A value named as the word of a fold meets it there, and the
             address calls the word.
         ~~|
-        ~(:add 5 | [1 2 3] | get [(reduce 0 ~(add) !| type) (reduce 0 ~(number/add))] | eq [::call/ValueMeetsWordError 6])
+        ~(:add 5 | [1 2 3] | get [~(reduce 0 ~(add) !| type) ~(reduce 0 ~(number/add))] | eq [::call/ValueMeetsWordError 6])
     | proves :ValueMeetsWordError/meetsAnInputInTheBodyOfAWord
         |~~ An input named as a word meets the word in the body that reads
             it.
         ~~|
-        ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0 | impl ~([count (take count)])) | [1 2 3] | firstN 2 !| [type (get /name)] | eq [::call/ValueMeetsWordError :count])
+        ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0 | impl ~(get [~(count) ~(take count)])) | [1 2 3] | firstN 2 !| get [~(type) /name] | eq [::call/ValueMeetsWordError :count])
     | proves :ValueTakesNoModifiersError/refusesModifiersOnAValue
         |~~ A name that holds a value refuses the modifiers a call gives
             it.
         ~~|
         ~(5 | :five it | five 42
-          !| [type (get /name) (get /actualType)] | eq [::call/ValueTakesNoModifiersError :five ::number])
+          !| get [~(type) /name /actualType] | eq [::call/ValueTakesNoModifiersError :five ::number])
     | proves :ValueTakesNoModifiersError/namesTheVerbTheValueShadows
         |~~ The refusal names where the word the value shadows lives. ~~|
         ~(:five 5 | :number/five ~(add 5) | 3 | five 42 !| get /addresses | eq #[::number/five])
@@ -235,7 +235,7 @@
         |~~ The refusal names the kind of the subject and where the verb
             lives.
         ~~|
-        ~(1 | count !| [(get /actualType) (get /addresses | has ::vec/count)] | eq [::number true])
+        ~(1 | count !| get [/actualType ~(get /addresses | has ::vec/count)] | eq [::number true])
     | proves :KindAnswersNoVerbError/namesTheReadOfAPath
         |~~ A word called on a path names the read the step was likely
             meant for.
@@ -244,7 +244,7 @@
     | proves :KindAnswersNoVerbError/listsEveryKindTheVerbServes
         |~~ `:addresses` lists every kind the verb serves. ~~|
         ~(5 | count
-          !| [type (get /addresses)]
+          !| get [~(type) /addresses]
           |  eq [::call/KindAnswersNoVerbError #[::map/count ::set/count ::string/count ::vec/count]])
     | proves :KindAnswersNoVerbError/namesTheWordsOfAReadersNouns
         |~~ The words of the name under a reader's nouns are named by
@@ -253,7 +253,7 @@
         ~(:Box |~~ A box. ~~| | :Ring |~~ A ring. ~~|
           | :Box/area ~(1) | :Ring/area ~(2)
           | 5 | area
-          !| [type (get /addresses)]
+          !| get [~(type) /addresses]
           |  eq [::call/KindAnswersNoVerbError #[::Box/area ::Ring/area]])
     | proves :KindAnswersNoVerbError/namesTheWordsItsPagesLeadTo
         |~~ `:nearest` names the words the pages of the verbs lead to that
@@ -268,7 +268,7 @@
         ~(:host | toString | append ":80" | eq "host:80")
     | proves :UnknownNameError/refusesANameNothingDeclares
         |~~ A name nothing declares is refused, with no addresses. ~~|
-        ~(thisIsNotDefined !| [type (get /addresses)] | eq [::call/UnknownNameError #[]])
+        ~(thisIsNotDefined !| get [~(type) /addresses] | eq [::call/UnknownNameError #[]])
     | proves :UnknownNameError/suggestsTheNearestName
         |~~ The names nearest in spelling are suggested. ~~|
         ~(fist !| get /nearest | eq [:first])
@@ -288,13 +288,13 @@
         ~(x | :x 5 !| type | eq ::call/UnknownNameError)
     | proves :UnknownNameError/pointsAKindToItsTag
         |~~ The name of a kind points to its tag. ~~|
-        ~(5 | string !| [type (get /nearest)] | eq [::call/UnknownNameError [::string]])
+        ~(5 | string !| get [~(type) /nearest] | eq [::call/UnknownNameError [::string]])
     | proves :UnknownNameError/readsNoFactAsAWord
         |~~ A fact of a record called as a word names nothing. ~~|
-        ~(~(take 2) | first | name !| [type (get /name)] | eq [::call/UnknownNameError :name])
+        ~(~(take 2) | first | name !| get [~(type) /name] | eq [::call/UnknownNameError :name])
     | proves :UnknownAddressError/refusesAnAddressNothingDeclares
         |~~ An address no declaration wrote is refused. ~~|
-        ~([1 2 3] | vec/nothing !| [type (get /address)] | eq [::call/UnknownAddressError ::vec/nothing])
+        ~([1 2 3] | vec/nothing !| get [~(type) /address] | eq [::call/UnknownAddressError ::vec/nothing])
     | proves :UnknownAddressError/suggestsTheNearestAddress
         |~~ The addresses nearest in spelling are suggested. ~~|
         ~([1] | vec/countt !| get /nearest | has ::vec/count)

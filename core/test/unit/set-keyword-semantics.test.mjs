@@ -4,7 +4,7 @@
 // `deepEqual` Set comparator that all rely on the same
 // name-based keyword identity. Plus an adjacent fixture: the
 // `canonicalKeywordLiteral` printer that mints the bare-vs-quoted
-// form `printValue` and projection round-trip rely on.
+// form `printValue` and a path read back rely on.
 //
 // Grouping principle: every test here pins the
 // `name`-equality-not-reference-equality invariant on the

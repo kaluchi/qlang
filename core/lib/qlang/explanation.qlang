@@ -66,7 +66,7 @@
     | proves :SubjectNotExplanationError/refusesAMap
         |~~ A map with a key `:page` is no explanation. ~~|
         ~({:page 1} | page
-          !| [type (get /actualType)] | eq [::explanation/page/SubjectNotExplanationError ::map])
+          !| get [~(type) /actualType] | eq [::explanation/page/SubjectNotExplanationError ::map])
     | impl ~(get /page)
 
 :explanation/value
@@ -99,6 +99,6 @@
     | proves :SubjectNotExplanationError/refusesAMap
         |~~ A map with a key `:value` is no explanation. ~~|
         ~({:value 1} | value
-          !| [type (get /actualType)] | eq [::explanation/value/SubjectNotExplanationError ::map])
+          !| get [~(type) /actualType] | eq [::explanation/value/SubjectNotExplanationError ::map])
     | impl ~(get /value)
 

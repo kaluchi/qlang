@@ -7,10 +7,9 @@
 :kind
   |~~ A kind: the payload its tag is laid over, the fields it reads of the
       payload, the refusals it pages and the facts they carry, the
-      invariants its values hold, its laws, and the recipe that builds its
-      values from a payload, code or a primitive of the host. It is built
-      from the noun by commands, each a verb the kind so far is the subject
-      of, the recipe last:
+      invariants its values hold, its laws, and for a kind of the core the
+      check its host hands. It is built from the noun by commands, each a
+      verb the kind so far is the subject of:
       `::kind | wraps |~~ The sizes. ~~| ::map | reads :w |~~ The width. ~~| /w ::number`.
       `wraps` names the payload, its page and its kinds; `reads` a field,
       its name, its page, the place of the payload it reads, `/w` the key
@@ -19,25 +18,27 @@
       invariant of the value or of a field, its refusal, its page and its
       condition; `throws` a refusal and its page; `carries` a fact a
       refusal carries, its page and its kinds; `proves` a law, its page and
-      its query; and `impl` the recipe. A value put under a kind holds the
-      value of the kinds of its payload, each field read and held, the
-      recipe run, and the invariants of the value, each refusal named
-      under the kind, `::Box/w/NotNumberError`. A kind declared under a
+      its query; and `impl ::builtin{}` the check of a kind of the core. A
+      value put under a kind holds the value of the kinds of its payload,
+      each field read and held, and the invariants of the value, each
+      refusal named under the kind, `::Box/w/NotNumberError`: the
+      constructor attaches the tag to the payload or refuses it, and
+      builds no other value. A kind declared under a
       name is a label, its words functions named under it: the payload,
       each field, each refusal, fact, invariant and law lie under it for
       `doc` and `manifest`, and a label declared by its page alone is a
       kind of no commands. It prints as its literal, its commands in a
-      quote and its recipe after it, and reads back from it.
+      quote and the check of the host or null after it, and reads back
+      from it.
       ::link~(::fn | doc) ::link~(::tag | doc)
   ~~|
   ::kind[~(wraps
-        |~~ The literal of a kind: the quote of its commands and its
-            recipe, a quote, a primitive of the host, or null for a kind
-            that lays its tag over the payload as it is.
+        |~~ The literal of a kind: the quote of its commands and the check
+            a host hands a kind of the core, `::builtin{}`, or null.
         ~~|
     | throws :PayloadNotPairError
         |~~ The literal of a kind is a pair, the commands that declare it
-            and its recipe:
+            and the check of the host or null:
             `::kind[~(wraps |~~ The sizes. ~~| ::map) null]`.
         ~~|
     | throws :SignatureNotCommandsError
@@ -71,9 +72,11 @@
             declares before it, the refusal that carries it,
             `carries :TooWideError/w …`.
         ~~|
-    | throws :RecipeNotCodeError
-        |~~ The recipe is a quote, a primitive of the host, or null for a
-            kind that lays its tag over the payload as it is.
+    | throws :RecipeNotBuiltinError
+        |~~ The second of the pair is the check a host hands a kind of the
+            core, `::builtin{}`, or null: a kind attaches its tag by its
+            commands, and a recipe that would build another value from the
+            payload has no place in it.
         ~~|
     | proves :isBuiltByCommands
         |~~ A kind is built from the noun. ~~|
@@ -88,7 +91,7 @@
         |~~ A value put under a kind is the payload under its tag. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map)
           | ::Box{:w 1}
-          | get [type /w]
+          | get [~(type) /w]
           | eq [::Box 1])
     | proves :isALabel
         |~~ A kind declared under a name is a label the scope reads. ~~|
@@ -97,20 +100,20 @@
         |~~ A payload of none of the kinds `wraps` names is refused under
             the kind.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map) | ::Box(5) !| type | eq ::Box/PayloadNotMapError)
+        ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map) | ::Box#5 !| type | eq ::Box/PayloadNotMapError)
     | proves :refusesAnElementOfNoneOfItsKinds
         |~~ Where `wraps` names the kinds of each element, an element of
             none is refused with its index.
         ~~|
         ~(:Nums |~~ Numbers. ~~| (::kind | wraps |~~ The numbers. ~~| [::number])
           | ::Nums[1 "a"]
-          !| [type (get /index)]
+          !| get [~(type) /index]
           |  eq [::Nums/ElementNotNumberError 1])
     | proves :holdsThePayloadOfItsKind
         |~~ The payload is the value of its kind beneath the tags it is
             given under.
         ~~|
-        ~(:Count |~~ A count. ~~| (::kind | wraps |~~ The number. ~~| ::number) | ::Count(::Width(3)) | payload | eq 3)
+        ~(:Count |~~ A count. ~~| (::kind | wraps |~~ The number. ~~| ::number) | ::Count::Width#3 | payload | eq 3)
     | proves :readsAField
         |~~ A field of none of its kinds is refused under the field. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)
@@ -147,7 +150,7 @@
         ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| ~(get /w) ::number)
           | ::Box{:w 1}
-          | get [(w !| type) /w]
+          | get [~(w !| type) /w]
           | eq [::call/UnknownNameError 1])
     | proves :holdsTheInvariantsOfItsValue
         |~~ A value that breaks an invariant of the kind is refused under
@@ -165,17 +168,6 @@
           | ::Box{:w -1}
           !| type
           |  eq ::Box/w/NegativeError)
-    | proves :buildsByItsRecipe
-        |~~ The recipe builds the value from the payload. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | impl ~({:w it})) | ::Box(3) | get [type /w] | eq [::Box 3])
-    | proves :readsTheFieldsOfThePayloadItIsGiven
-        |~~ The fields are read of the payload, before the recipe builds
-            the value.
-        ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| ~(it) ::number | impl ~({:w it}))
-          | ::Box(3)
-          | get /w
-          | eq 3)
     | proves :PayloadNotPairError/refusesANumber
         |~~ A number is no pair. ~~|
         ~(::kind[1] !| type | eq ::kind/PayloadNotPairError)
@@ -212,9 +204,12 @@
     | proves :FactUnderNoNameError/refusesAFactUnderNoName
         |~~ A fact under a name the kind does not declare is refused. ~~|
         ~(::kind[~(carries :x/y |~~ A y. ~~|) null] !| type | eq ::kind/FactUnderNoNameError)
-    | proves :RecipeNotCodeError/refusesANumber
-        |~~ A number is no recipe. ~~|
-        ~(::kind[~() 5] !| type | eq ::kind/RecipeNotCodeError))
+    | proves :RecipeNotBuiltinError/refusesANumber
+        |~~ A number is no check of a host. ~~|
+        ~(::kind[~() 5] !| type | eq ::kind/RecipeNotBuiltinError)
+    | proves :RecipeNotBuiltinError/refusesARecipe
+        |~~ A recipe that would build another value is refused. ~~|
+        ~(::kind[~() ~(add 1)] !| type | eq ::kind/RecipeNotBuiltinError))
     ::builtin{}]
 
 :kind/wraps
@@ -288,7 +283,7 @@
         ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :xs |~~ Values. ~~| /xs [::number])
           | ::Box{:xs [1 "a"]}
-          !| [type (get /index)]
+          !| get [~(type) /index]
           |  eq [::Box/xs/ElementNotNumberError 1])
     | proves :readsAPathAtDepth
         |~~ A path reads a field at depth. ~~|
@@ -326,7 +321,7 @@
             value.
         ~~|
         ~(:Guide |~~ A guide. ~~| (::kind | tells :start |~~ Where to start. ~~| #[::vec])
-          | [(::Guide/start | doc | content | trim) (::Guide/start | binding | get /value)]
+          | get [~(::Guide/start | doc | content | trim) ~(::Guide/start | binding | get /value)]
           | eq ["Where to start." #[::vec]])
     | proves :holdsTheLawsUnderItsName
         |~~ A law written under the name of a page lies under it. ~~|
@@ -464,31 +459,36 @@
     ::builtin{}]
 
 :kind/impl
-  |~~ Gives a kind its recipe, the code or the primitive that builds its
-      values from a payload, `| impl ~({:w it})`, its constructor, which
-      lies under it as `construct`; a kind of no recipe lays its tag over
-      the payload as it is.
+  |~~ Gives a kind of the core the check its host hands,
+      `| impl ::builtin{}`, its constructor, which lies under it as
+      `construct` and attaches the tag to a payload or refuses it; any
+      other kind attaches its tag by its commands, and a recipe that would
+      build another value from the payload is refused.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :recipe
-        |~~ The recipe, a quote or a primitive of the host. ~~|
-        /0 #[::builtin ::quote]
-    | throws :recipe/NotBuiltinOrQuoteError
-        |~~ The recipe is a quote, `~({:w it})`, or a primitive,
-            `::builtin{}`.
+        |~~ The check, a primitive of the host. ~~|
+        /0 ::builtin
+    | throws :recipe/NotBuiltinError
+        |~~ The check of a kind is the host's, `::builtin{}`: a kind of
+            yours attaches its tag by `wraps`, `reads` and `holds`, and a
+            recipe that would build another value has no place in it.
         ~~|
-    | returns |~~ The kind with its recipe. ~~| ::kind
+    | returns |~~ The kind with its check. ~~| ::kind
     | throws :SubjectNotKindError
-        |~~ `impl` gives the recipe of the noun's kind, `::kind | impl …`,
+        |~~ `impl` gives the check of the noun's kind, `::kind | impl …`,
             or of a kind.
         ~~|
     | proves :liesUnderTheKindAsItsConstructor
-        |~~ The recipe lies under the kind as its constructor. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | impl ~({:w it})) | ::Box/construct | binding | get /value | eq ~({:w it}))
-    | proves :recipe/NotBuiltinOrQuoteError/refusesANumber
-        |~~ A number is no recipe. ~~|
-        ~(::kind | impl 5 !| type | eq ::kind/impl/recipe/NotBuiltinOrQuoteError)
+        |~~ The check lies under the kind as its constructor. ~~|
+        ~(:Box |~~ A parcel. ~~| (::kind | impl ::builtin{}) | ::Box/construct | binding | get /value | eq ::builtin{})
+    | proves :recipe/NotBuiltinError/refusesANumber
+        |~~ A number is no check. ~~|
+        ~(::kind | impl 5 !| type | eq ::kind/impl/recipe/NotBuiltinError)
+    | proves :recipe/NotBuiltinError/refusesAQuote
+        |~~ A recipe that would build another value is refused. ~~|
+        ~(::kind | impl ~(add 1) !| type | eq ::kind/impl/recipe/NotBuiltinError)
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/impl ~(it) !| type | eq ::kind/impl/SubjectNotKindError))
+        ~(::number | kind/impl ::builtin{} !| type | eq ::kind/impl/SubjectNotKindError))
     ::builtin{}]

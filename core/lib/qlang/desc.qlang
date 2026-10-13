@@ -9,10 +9,10 @@
       `desc` ranks the greater first, whatever the kind it ranks,
       `[{:n 1} {:n 2}] | sort ~(get /n | desc)` answering `[{:n 2} {:n 1}]`.
       A place of a vector key descends alone,
-      `sort ~(get [(get /n | desc) /name])` ranking by n descending, then by
+      `sort ~(get [~(get /n | desc) /name])` ranking by n descending, then by
       name.
 
-      It is a value under its tag, `::desc(5)`, which `desc` lays over
+      It is a value under its tag, `::desc#5`, which `desc` lays over
       any value and `payload` opens. Every comparison agrees with it,
       `gt` and `lt` as `sort` and `max`.
       ::snippet~(::desc | manifest) lists its words.
@@ -25,7 +25,7 @@
         ~(5 | desc | payload | eq 5)
     | proves :buildsByItsConstructor
         |~~ The constructor turns as `desc` does. ~~|
-        ~(::desc(5) | eq (5 | desc))
+        ~(::desc#5 | eq (5 | desc))
     | proves :sortsInReverse
         |~~ Turned values sort in reverse. ~~|
         ~([2 1 3] | map ~desc | sort | map ~payload | eq [3 2 1])

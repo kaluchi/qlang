@@ -27,7 +27,7 @@
             that does not fit: a tag is no name a declaration binds, and
             the body is the step a quote holds, so the declaration
             `:inc add 1` is
-            `{:name :inc :body (~(add 1) | first)} | tag ::bind`.
+            `get {:name :inc :body ~(~(add 1) | first)} | tag ::bind`.
             ::link~(::bind | doc)
         ~~|
     | throws :ReadBackDiffersError
@@ -107,23 +107,23 @@
         |~~ Docs that are no vector of docs are refused, `:field` naming
             them.
         ~~|
-        ~(::bind{:name :inc :docs [1]} !| [type (get /field)] | eq [::bind/PayloadNotSchemaError :docs])
+        ~(::bind{:name :inc :docs [1]} !| get [~(type) /field] | eq [::bind/PayloadNotSchemaError :docs])
     | proves :PayloadNotSchemaError/refusesATagForAName
         |~~ A tag is no name a declaration binds. ~~|
         ~({:name ::Box :body 1} | tag ::bind
-          !| [type (get /field)] | eq [::bind/PayloadNotSchemaError :name])
+          !| get [~(type) /field] | eq [::bind/PayloadNotSchemaError :name])
     | proves :PayloadNotSchemaError/buildsTheDeclarationOfABody
         |~~ A keyword and the step a quote holds build the declaration. ~~|
-        ~({:name :inc :body (~(add 1) | first)} | tag ::bind
-          | get [it] | tag ::quote | eq ~(:inc add 1))
+        ~(get {:name :inc :body ~(~(add 1) | first)} | tag ::bind
+          | get [~(it)] | tag ::quote | eq ~(:inc add 1))
     | proves :ReadBackDiffersError/refusesABindOfNothing
         |~~ A bind with neither a body nor docs prints as a bare name,
             which reads back as another step.
         ~~|
-        ~(::bind{:name :inc} !| [type (get /printed)] | eq [::bind/ReadBackDiffersError ":inc"])
+        ~(::bind{:name :inc} !| get [~(type) /printed] | eq [::bind/ReadBackDiffersError ":inc"])
     | proves :ReadBackDiffersError/refusesABodyThatIsADoc
         |~~ A doc as the body reads back as the page of the declaration. ~~|
-        ~({:name :k :body (~(|~~ x ~~|) | first)} | tag ::bind
+        ~(get {:name :k :body ~(~(|~~ x ~~|) | first)} | tag ::bind
           !| type | eq ::bind/ReadBackDiffersError)
     | proves :ReadBackDiffersError/bindsADocInAGroup
         |~~ A doc in a group is the value a declaration binds. ~~|
@@ -132,7 +132,7 @@
         |~~ A name under a noun no declaration made is refused, naming the
             noun.
         ~~|
-        ~(:Box/area ~(1) !| [type (get /noun)] | eq [::bind/NounNotDeclaredError ::Box])
+        ~(:Box/area ~(1) !| get [~(type) /noun] | eq [::bind/NounNotDeclaredError ::Box])
     | proves :NounNotDeclaredError/takesANameUnderADeclaredNoun
         |~~ A name under a noun declared before it runs on the noun's
             values.
@@ -140,13 +140,13 @@
         ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box{} | area | eq 1)
     | proves :WrittenOutsideItsChainError/refusesAnInvariantDeclaredBare
         |~~ An invariant declared by a bare name holds of no value. ~~|
-        ~(:Positive ::holds~(gt 0) !| [type (get /name)] | eq [::bind/WrittenOutsideItsChainError :Positive])
+        ~(:Positive ::holds~(gt 0) !| get [~(type) /name] | eq [::bind/WrittenOutsideItsChainError :Positive])
     | proves :WrittenOutsideItsChainError/refusesAnInvariantUnderALabel
         |~~ An invariant declared by a name under a label is refused; the
             chain of the kind writes it.
         ~~|
         ~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0)
-          !| [type (get /name) (get /noun)]
+          !| get [~(type) /name /noun]
           |  eq [::bind/WrittenOutsideItsChainError :Pos/NotPositiveError ::Pos])
     | proves :WrittenOutsideItsChainError/refusesAConstructorUnderALabel
         |~~ A constructor declared by a name under a label is refused. ~~|
@@ -163,14 +163,14 @@
         |~~ A page and a law are declared by a name under a kind. ~~|
         ~(:Pos |~~ A positive number. ~~| (::kind | wraps |~~ The number. ~~| ::number)
           | :Pos/note |~~ A note. ~~|
-          | :Pos/holdsFive ::law~(::Pos(5) | payload | eq 5)
+          | :Pos/holdsFive ::law~(::Pos#5 | payload | eq 5)
           | ::Pos
           | runLaws
           | map /ok
           | eq [true])
     | proves :NameDeclaredTwiceError/refusesASecondDeclaration
         |~~ A name declared again in its scope is refused. ~~|
-        ~(:k 1 | :k 2 !| [type (get /name)] | eq [::bind/NameDeclaredTwiceError :k])
+        ~(:k 1 | :k 2 !| get [~(type) /name] | eq [::bind/NameDeclaredTwiceError :k])
     | proves :NameDeclaredTwiceError/letsAGroupDeclareAgain
         |~~ A group declares in a scope of its own, so it may name a name
             again.
@@ -178,7 +178,7 @@
         ~(:k 1 | (:k 2 | k) | eq 2)
     | proves :NameDeclaredTwiceError/letsAnElementDeclareAgain
         |~~ A declaration inside an element stays in it. ~~|
-        ~(:k 1 | [(:k 2 | k) k] | eq [2 1])
+        ~(:k 1 | get [~(:k 2 | k) ~(k)] | eq [2 1])
     | proves :NameDeclaredTwiceError/letsAModifierDeclareAgain
         |~~ A declaration inside a modifier stays in it. ~~|
         ~(:k 1 | 5 | add (:k 2 | k) | eq 7)
@@ -187,7 +187,7 @@
         ~(:k 1 | apply ~(:k 2 | k) | eq 2)
     | proves :NameDeclaredTwiceError/refusesAnInputDeclaredInTheRecipe
         |~~ The recipe of a word declares none of its inputs again. ~~|
-        ~(:number/m (::fn | takes :x |~~ How much. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| [type (get /name)] | eq [::bind/NameDeclaredTwiceError :x])
+        ~(:number/m (::fn | takes :x |~~ How much. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(type) /name] | eq [::bind/NameDeclaredTwiceError :x])
     | proves :NameDeclaredTwiceError/refusesANameTheRootHolds
         |~~ A reader declares no name the root holds. ~~|
         ~(:vec/count ~(0) !| type | eq ::bind/NameDeclaredTwiceError)

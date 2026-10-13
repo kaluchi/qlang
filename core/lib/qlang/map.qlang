@@ -57,17 +57,17 @@
         ~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
     | proves :PayloadNotMapError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::map(1) !| [type (get /actualType)] | eq [::map/PayloadNotMapError ::number])
+        ~(::map#1 !| get [~(type) /actualType] | eq [::map/PayloadNotMapError ::number])
     | proves :PayloadNotMapError/refusesThePairsOfAVector
         |~~ The pairs of a vector are refused; `toMap` builds them into a
             map.
         ~~|
-        ~([[:a 1]] | tag ::map !| [type (get /actualType)] | eq [::map/PayloadNotMapError ::vec])
+        ~([[:a 1]] | tag ::map !| get [~(type) /actualType] | eq [::map/PayloadNotMapError ::vec])
     | proves :PayloadNotMapError/refusesAMapUnderATag
         |~~ A map under a tag of its own is refused; `payload` reads the
             map beneath.
         ~~|
-        ~(::map(::Box{:a 1}) !| [type (get /actualType)] | eq [::map/PayloadNotMapError ::Box])
+        ~(::map::Box{:a 1} !| get [~(type) /actualType] | eq [::map/PayloadNotMapError ::Box])
     | impl ::builtin{}
 
 :map/count
@@ -210,11 +210,11 @@
     | proves :ElementNotNumberError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | sum
-          !| [type (get /actualType) (get /key)]
+          !| get [~(type) /actualType /key]
           |  eq [::map/sum/ElementNotNumberError ::string :b])
     | proves :ElementNotNumberError/refusesANull
         |~~ A null value is no number either. ~~|
-        ~({:a null} | sum !| [type (get /key)] | eq [::map/sum/ElementNotNumberError :a])
+        ~({:a null} | sum !| get [~(type) /key] | eq [::map/sum/ElementNotNumberError :a])
     | proves :ArgsBeyondInputsError/refusesAField
         |~~ A field given to `sum` is refused; `map` reads it first. ~~|
         ~({:a 1} | sum (get /a) !| type | eq ::map/sum/ArgsBeyondInputsError)
@@ -255,7 +255,7 @@
     | proves :ElementNotNumberError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | avg
-          !| [type (get /actualType) (get /key)]
+          !| get [~(type) /actualType /key]
           |  eq [::map/avg/ElementNotNumberError ::string :b])
     | impl ::builtin{}
 
@@ -276,8 +276,8 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :key/NotNullOrPathOrQuoteError
-        |~~ The key is a quote or null: written `~(get /n)`, it runs on
-            each value, while `(get /n)` is computed once at the call,
+        |~~ The key is a path, a quote or null: written `~(get /n)`, it runs
+            on each value, while `(get /n)` is computed once at the call,
             against the map, and refused with what it answered.
         ~~|
     | returns |~~ The least value, null for the empty map. ~~| ::any
@@ -304,7 +304,7 @@
             refused.
         ~~|
         ~({:a {:n 1}} | min (get /n)
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::map/min/key/NotNullOrPathOrQuoteError ::path/KeyNotInMapError])
     | impl ::builtin{}
 
@@ -322,7 +322,7 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :key/NotNullOrPathOrQuoteError
-        |~~ The key is a quote or null, `max /n`. ~~|
+        |~~ The key is a path, a quote or null, `max /n`. ~~|
     | returns |~~ The greatest value, null for the empty map. ~~| ::any
     | proves :answersTheGreatestValue
         |~~ The greatest value answers. ~~|
@@ -446,7 +446,7 @@
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | filter ~(1)
-          !| [type (get /key) (get /actualType)]
+          !| get [~(type) /key /actualType]
           |  eq [::map/filter/ConditionNotBooleanError :a ::number])
     | impl ::builtin{}
 
@@ -495,7 +495,7 @@
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | every ~(1)
-          !| [type (get /key) (get /actualType)]
+          !| get [~(type) /key /actualType]
           |  eq [::map/every/ConditionNotBooleanError :a ::number])
     | proves :predicate/NotPathOrQuoteError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
@@ -544,7 +544,7 @@
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | any ~(1)
-          !| [type (get /key) (get /actualType)]
+          !| get [~(type) /key /actualType]
           |  eq [::map/any/ConditionNotBooleanError :a ::number])
     | proves :predicate/NotPathOrQuoteError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
@@ -570,7 +570,7 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :key/NotNullOrPathOrQuoteError
-        |~~ The key is a quote or null, `sort /n`. ~~|
+        |~~ The key is a path, a quote or null, `sort /n`. ~~|
     | returns
         |~~ The entries in the order the key ranks them, under the tags of
             the map.
@@ -702,8 +702,8 @@
 :map/reduce
   |~~ Answers the seed folded over the values by the reducer, in the order
       the map holds them: `{:a 1 :b 2} | reduce 0 ~(add)` answers `3`, and
-      the empty map answers the seed. The reducer is a quote of one word,
-      by its name or its address, which the fold calls with the value so
+      the empty map answers the seed. The reducer is code: a quote of one
+      word, by its name or its address, which the fold calls with the value so
       far as its subject and each value as its first arg, or any other
       code, which the fold runs on the pair of the value so far and the
       value, as a vector's fold does. A vector and a set fold by a
@@ -713,13 +713,14 @@
   ::fn
     | takes :seed |~~ The value the fold starts from. ~~| /0
     | takes :reducer
-        |~~ A quote: one word the fold calls with a value, or code it runs
-            on the pair of the value so far and the value.
+        |~~ Code: a quote of one word the fold calls with a value, or a path
+            or a quote it runs on the pair of the value so far and the
+            value.
         ~~|
         /1 #[::path ::quote]
     | throws :reducer/NotPathOrQuoteError
-        |~~ The reducer is a quote, `reduce 0 ~(add)`, after the seed:
-            written first, `reduce ~(add) 0`, it stands in the seed's
+        |~~ The reducer is a path or a quote, `reduce 0 ~(add)`, after the
+            seed: written first, `reduce ~(add) 0`, it stands in the seed's
             place and hands the reducer's place the seed, and written
             without the tilde, `(add)`, it is computed once at the call;
             either is refused.
@@ -744,7 +745,7 @@
             the seed.
         ~~|
         ~({:a 1} | reduce ~(add) 0
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::map/reduce/reducer/NotPathOrQuoteError ::number])
     | proves :runsCodeOnThePair
         |~~ Code of more than one word runs on the pair of the value so
@@ -790,7 +791,7 @@
         ~([{:a 1} {:b 2}] | map ~keys | eq [#[:a] #[:b]])
     | proves :SubjectNotMapError/refusesANumber
         |~~ A number has no keys. ~~|
-        ~(42 | keys !| [type (get /actualType)] | eq [::map/keys/SubjectNotMapError ::number])
+        ~(42 | keys !| get [~(type) /actualType] | eq [::map/keys/SubjectNotMapError ::number])
     | impl ::builtin{}
 
 :map/vals
@@ -816,18 +817,18 @@
         ~({} | vals | eq [])
     | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no values by key. ~~|
-        ~([1 2] | vals !| [type (get /actualType)] | eq [::map/vals/SubjectNotMapError ::vec])
+        ~([1 2] | vals !| get [~(type) /actualType] | eq [::map/vals/SubjectNotMapError ::vec])
     | impl ::builtin{}
 
 :map/entries
   |~~ Answers the vector of the pairs `[key value]` of the map, in the
       order of the entries, each key a keyword: the map with its keys as
       data, for a step that reads a key beside its value, as
-      `[type payload]` reads a tagged value. `toMap` builds the map back,
+      `get [~(type) ~(payload)]` reads a tagged value. `toMap` builds the map back,
       so a test of a key is
       `entries | filter ~(get /0 | ne :tmp) | toMap`, and a key is spelled
       with its value by turning it to text first,
-      `map ~(get [(get /0 | toString) "@" /1] | join "")`. It takes no
+      `map ~(get [~(get /0 | toString) "@" /1] | join "")`. It takes no
       value, and the empty map answers `[]`.
       ::link~(::map/keys | doc) ::link~(::vec/toMap | doc)
       ::link~(::tagged/payload | doc)
@@ -845,14 +846,14 @@
         ~({:auth {:port 3000} :db {:port 5432}} | entries | first | eq [:auth {:port 3000}])
     | proves :spellsTheKeyWithTheValue
         |~~ The key and its value spell one string. ~~|
-        ~({:axios "^1.6.0"} | entries | map ~(get [(get /0 | toString) "@" /1] | join "")
+        ~({:axios "^1.6.0"} | entries | map ~(get [~(get /0 | toString) "@" /1] | join "")
           | eq ["axios@^1.6.0"])
     | proves :filtersByKeyAndBuildsBack
         |~~ Entries filtered by key build back into a map. ~~|
         ~({:a 1 :tmp 2} | entries | filter ~(get /0 | ne :tmp) | toMap | eq {:a 1})
     | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no entries. ~~|
-        ~([1 2] | entries !| [type (get /actualType)] | eq [::map/entries/SubjectNotMapError ::vec])
+        ~([1 2] | entries !| get [~(type) /actualType] | eq [::map/entries/SubjectNotMapError ::vec])
     | impl ::builtin{}
 
 :map/has
@@ -901,7 +902,7 @@
     | proves :key/NotKeywordOrPathOrStringError/refusesANumber
         |~~ A number key is refused. ~~|
         ~({:a 1} | has 42
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::map/has/key/NotKeywordOrPathOrStringError ::number])
     | impl ::builtin{}
 
@@ -997,7 +998,7 @@
     | proves :KeyNotKeywordOrStringError/refusesANumber
         |~~ A number among the keys is refused at its index. ~~|
         ~({:a 1} | minus [:a 1]
-          !| [type (get /actualType) (get /index)]
+          !| get [~(type) /actualType /index]
           |  eq [::map/minus/KeyNotKeywordOrStringError ::number 1])
     | impl ::builtin{}
 
@@ -1043,7 +1044,7 @@
     | proves :KeyNotKeywordOrStringError/refusesAVector
         |~~ A vector among the keys is refused at its index. ~~|
         ~({:a 1} | inter [[:a]]
-          !| [type (get /actualType) (get /index)]
+          !| get [~(type) /actualType /index]
           |  eq [::map/inter/KeyNotKeywordOrStringError ::vec 0])
     | proves :keys/NotMapOrVecError/refusesANumber
         |~~ Keys that are no map, vector or set are refused under the
@@ -1062,7 +1063,7 @@
       steps around the failure, writing its trail, and `!|` catches it
       to its facts. It takes no value: what the error says is a fact of
       the map. A value of another kind is put in a map first,
-      `{:value it} | raise`.
+      `get {:value ~(it)} | raise`.
       ::link~(::error | doc) ::link~(::fail | doc)
   ~~|
   ::fn
@@ -1071,7 +1072,7 @@
         ::error
     | throws :SubjectNotMapError
         |~~ `raise` raises a map: a value of another kind is put in one
-            first, `{:value it} | raise`, or the error is written as its
+            first, `get {:value ~(it)} | raise`, or the error is written as its
             literal, `!{:reason :late} | raise`.
         ~~|
     | throws :ArgsBeyondInputsError
@@ -1090,7 +1091,7 @@
         |~~ Every entry of the map is a fact of the error, a `:kind` among
             them.
         ~~|
-        ~({:kind ::Oops} | raise !| [type (get /kind)] | eq [::error ::Oops])
+        ~({:kind ::Oops} | raise !| get [~(type) /kind] | eq [::error ::Oops])
     | proves :raisesAnOpenedErrorAsItself
         |~~ An error caught and raised again is itself. ~~|
         ~("x" | add 1 !| raise !| type | eq ::number/add/SubjectNotNumberError)
@@ -1101,12 +1102,12 @@
         |~~ A guard raises an error of its own tag when a value fails its
             check.
         ~~|
-        ~(42 | if (gt 100) ~(it) ~(::TooSmall{:value it} | raise)
-          !| [type (get /value)]
+        ~(42 | if (gt 100) ~(it) ~(get {:value ~(it)} | tag ::TooSmall | raise)
+          !| get [~(type) /value]
           |  eq [::TooSmall 42])
     | proves :SubjectNotMapError/refusesANumber
         |~~ A number is no map to raise. ~~|
-        ~(42 | raise !| [type (get /actualType)] | eq [::map/raise/SubjectNotMapError ::number])
+        ~(42 | raise !| get [~(type) /actualType] | eq [::map/raise/SubjectNotMapError ::number])
     | proves :ArgsBeyondInputsError/refusesAMessage
         |~~ A message given to `raise` is refused; the map holds it. ~~|
         ~({:kind :oops} | raise "boom" !| type | eq ::map/raise/ArgsBeyondInputsError)

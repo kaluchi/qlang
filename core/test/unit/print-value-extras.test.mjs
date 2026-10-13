@@ -257,13 +257,13 @@ describe('print — the print declared under a kind', () => {
     const session = await badgeSession();
     const inError = await session.evalCell('[::error{:k ::badge{:name "in"}}] | print');
     expect(inError.result).toContain(':k in');
-    const underTag = await session.evalCell(':Box |~~ a box ~~| | [::Box(5) :kw] | print');
-    expect(underTag.result).toBe('[::Box(5) :kw]');
+    const underTag = await session.evalCell(':Box |~~ a box ~~| | [::Box#5 :kw] | print');
+    expect(underTag.result).toBe('[::Box#5 :kw]');
   });
 
   it('prints what a kind answers that is no string as the value it is', async () => {
     const session = await badgeSession();
-    const printed = await session.evalCell('[(5 | tag ::badge)] | print');
+    const printed = await session.evalCell('get [~(5 | tag ::badge)] | print');
     expect(printed.result).toContain('::path/SubjectNotProjectableError!{');
   });
 });

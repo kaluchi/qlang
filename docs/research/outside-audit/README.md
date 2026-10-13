@@ -2,63 +2,80 @@
 
 Each audit stands as a clean outside reader wrote it: `claude -p --model
 opus` started from an empty directory, with no CLAUDE.md, no memory and
-no MCP server, prompted by [prompt.txt](prompt.txt). Below each, its
-findings in its order, one line each, and the fate of each: the commit
-or the decision that answered it, the question of the audit it is, or
-the decision it stands by. A finding not yet settled says open.
+no MCP server, prompted by [prompt.txt](prompt.txt), which
+`node scripts/outside-audit.mjs` runs and writes under its date and tree
+[D277]. Below each, its findings in its order, one line each, and the
+fate of each: the commit or the decision that answered it, the question
+of the audit it is, or the decision it stands by. A finding not yet
+settled says open.
 
 The audits are run with one prompt from time to time, and the work
 takes from each what it takes, or goes its own way; the next audit,
 compared with the ones before, shows how the reading of the language,
-its strengths and its problems, drifts. The five so far are named
-below by their trees, 401046d, 68af9ab5, 6f8c9422, 7fe783f6 and
-3495de5d.
+its strengths and its problems, drifts. The six so far are named below
+by their trees, 401046d, 68af9ab5, 6f8c9422, 7fe783f6, 3495de5d and
+cbaaeb2d.
 
 ## The drift of the assessment
 
 The strengths, theme by theme, and the audits that named each:
 
 - The failure as a value under the address of its site, with its trail,
-  and the two tracks, `|` and `!|`: all five.
+  and the two tracks, `|` and `!|`: all six.
 - The literal as the shape of the answer: all five; a step of its own in
   the first four, at the head and under `get` since D248.
 - A grammar that teaches, its refusals naming the habit of another
-  language: all five, the fifth with the read a refusal names, `:read`.
+  language: all six, the fifth with the read a refusal names, `:read`,
+  the sixth with `query` for `/a?`.
 - Strictness: no truthiness, no text read as a number, a number a finite
-  double: 401046d, 6f8c9422, 7fe783f6, 3495de5d, and 68af9ab5 as the
-  early refusal of a value where code is wanted.
+  double: 401046d, 6f8c9422, 7fe783f6, 3495de5d, cbaaeb2d, and 68af9ab5
+  as the early refusal of a value where code is wanted.
 - One order of every value, a set as the ordered vector: 401046d,
-  68af9ab5, 7fe783f6, 3495de5d.
+  68af9ab5, 7fe783f6, 3495de5d, cbaaeb2d.
 - Code as data that prints and reads back: 401046d, 68af9ab5, 7fe783f6,
-  3495de5d.
+  3495de5d, cbaaeb2d, the sixth with a literal for everything the
+  language holds.
 - The catalog as an executable specification, its laws run: 68af9ab5,
-  6f8c9422, 7fe783f6, 3495de5d, and 401046d as the cases of query and
-  expectation.
+  6f8c9422, 7fe783f6, 3495de5d, cbaaeb2d, and 401046d as the cases of
+  query and expectation; the sixth with one protocol, `doc`, `manifest`,
+  `laws` and `source`, for a word, a kind and a topic.
 - The budget of an answer, an elision whose `:read` continues the
   query: 401046d, 68af9ab5, 6f8c9422, 3495de5d.
 - The path as a value the word that takes it reads, strictly by `get`,
   softly by `query`: 3495de5d.
 - Tags kept through a computation, `::Width(2) | add 3`: 68af9ab5,
-  7fe783f6.
+  7fe783f6, cbaaeb2d, the sixth with the dispatch by the kind of the
+  subject.
+- The conformance suite outside the language, each case bound to its
+  decision, a specification that outlives a rewrite of the core:
+  cbaaeb2d.
 
 The problems, theme by theme, the audits that named each, and what
 became of it:
 
-- The role of a definition read from the form of its value: all five,
+- The role of a definition read from the form of its value: all six,
   first or third, the fifth with the short form of `reduce` and the
-  selectors of parts; open, the layer of declarations.
+  selectors of parts; answered for a declaration by D251, D252 and
+  D253, a word and a kind built by their chains, and the sixth names
+  what stays, code read by its form: the one word of `reduce`, the
+  places `~(query /n d)` and `~(it)`, open as D274, and the failed object
+  an input of code refuses.
 - Two inputs, the family `…Of` and a fold of one word: all five, the
   first named as a lack of user abstraction and gaps of expression; the
   fold answered by D233, which runs code of any shape on the pair of the
   value so far and the element, the family `…Of` open, the fifth
   proposing one word of two fields in its place.
-- The process eats the design: all five; answered in part by D225, D226
-  and D227, which the fourth reads as more accounting and the fifth as
-  the artifact that grows fastest.
+- The process eats the design: all six; answered in part by D225, D226
+  and D227, which the fourth reads as more accounting, the fifth as the
+  artifact that grows fastest and the sixth as a measure taken too
+  seldom beside the records.
 - Scars of older models in names, prose written for its author: all
-  five, shrinking from whole kinds of names to the names of cases; the
+  six, shrinking from whole kinds of names to the names of cases; the
   fifth names the traces D248 left, cleaned by f9d4b9f5, and the
-  register of the prose.
+  register of the prose, and the sixth the form, the args and the
+  projection of the pages, the pages of a key and a reducer that left
+  out the path, and the editor's snippets, answered on the branch of
+  its reading.
 - The weight of the implementation, `async` on every node and the cold
   start: 401046d, 6f8c9422, 7fe783f6, 3495de5d; open.
 - `::any` as the place of the reader's words: 68af9ab5, a verb declared
@@ -70,11 +87,16 @@ became of it:
   subject open.
 - The marker `@`: 68af9ab5, 6f8c9422, 7fe783f6; answered by D234, which takes it out of the language and meets the target of D2.
 - One fact in one spelling broken, in the catalog and then in the
-  grammar: 401046d, 6f8c9422, 7fe783f6, 3495de5d; open.
+  grammar: 401046d, 6f8c9422, 7fe783f6, 3495de5d, cbaaeb2d, the sixth
+  with the catalogs of a vector, a set and a map written thrice and five
+  spellings of one read; open.
 - Each word deciding code or value on its own: 6f8c9422, 7fe783f6,
-  3495de5d, the fifth with `get` reading the paths a template computed;
-  stands, each by its reading.
-- The vocabulary of the concepts: 6f8c9422, 7fe783f6, 3495de5d; open.
+  3495de5d, cbaaeb2d, the fifth with `get` reading the paths a template
+  computed, the sixth with the failed object an input of code refuses
+  and another passes; stands, each by its reading.
+- The vocabulary of the concepts: 6f8c9422, 7fe783f6, 3495de5d,
+  cbaaeb2d, the sixth with the modifier, the object, the args and the
+  input of one call; open, D276.
 - A value named by a word of the vocabulary banned: 68af9ab5, 6f8c9422;
   answered by D223, not named again.
 - A silent trap against the language's own rules, a literal holding a
@@ -95,6 +117,12 @@ became of it:
   both a step and a separator, a query of a path alone over an input
   answering the path in silence, names of refusals that say quote where
   a path is taken, and no bridge from the words of other languages.
+- New with cbaaeb2d: a quote held as data reading its names where it
+  runs, open as D278; the names of refusals made from the kinds an input
+  takes, a public name that moves with a signature; the stop of a group
+  on a trail, an empty `:skipped` in every stop and no `:index` in the
+  failures of `map`; and a grammar the audit's own fifth condition
+  measures and its scars did not name, a scar since.
 
 ## 2026-10-10 · 401046d
 
@@ -182,3 +210,18 @@ Its proposals, the fifth section, and its disagreements with the audit, the sixt
 8. Complexity: the refusals of the grammar; a quote of a doc that does not parse read as prose, which the test `no quote of a page is read as prose` catches for the catalog and nothing for a span in backquotes; the weight of the catalog; the kinds of steps; the process. Open.
 
 Its proposals and its disagreements are open, but for the sentences of the project's audit on a literal as a step and on a quote that does not close, answered by f9d4b9f5.
+
+## 2026-10-13 · cbaaeb2d
+
+[2026-10-13-cbaaeb2d.md](2026-10-13-cbaaeb2d.md), and the model's reading of it, [2026-10-13-cbaaeb2d-reading.md](2026-10-13-cbaaeb2d-reading.md). The problems, its third section:
+
+1. Code held as data reads its names where it runs, `:k 1 | :f ~(add k) | [5] | map ~(:k 100 | apply f)` answering `[105]`. Open as D278; the audit's finish names whose names a handed quote reads and asks where, and a scar of its own holds the probe.
+2. Code read by its form: the one word of `reduce`, the places `~(query /n d)` and `~(it)`, the failed object an input of code refuses, the read a refusal names. The places are open as D274; `reduce 0 ~(add)` stands as the maintainer's canonical call (D233); the failed object stands by D129; the read is a hint the refusal carries, which runs nothing.
+3. Exceptions to a step as a command. A value after a declaration: answered, the first page names the head after a declaration. The line breaks around a declaration: told by the page of the pipeline since 68255c84. The grammar's counters: a scar of the audit's. A quote of a doc that does not read as code stays prose by D19, the pages of the catalog held by the test `no quote of a page is read as prose`.
+4. Traces of older paradigms. The form and the args on the pages of `path` and of the verbs: answered. The projection: answered, the parser's node of a path named `Path` and the editor's grammar saying path. The pages of a key and of a reducer that left out the path: answered across the catalogs of a vector, a set and a map. The editor's snippets: answered. The vocabulary of a call: open as D276. The screens of the benchmark stand as the runs read them.
+5. The names of refusals made from the kinds an input takes, a public name that moves with a signature. Stands by D180 and D251, which name a refusal by rule; the cost is the reading's question to the maintainer.
+6. Noise and gaps in the errors. The page of `::quote/ParseError` says where `:expected` stands: answered. The stop of a group, the empty `:skipped`, the `:index` of a failure in `map` and a hint that reads one example: open.
+7. Discoverability. The first page says what `manifest` answers, the words of a kind, its refusals and the roles of its chain: answered. Words of other languages: open since 3495de5d. The reads of a key by a keyword or a string stand by D139 and D248.
+8. Complexity: the catalogs of a vector, a set and a map written thrice, the register of the prose, the process. Open.
+
+Its proposals, the fifth section, are open but for the snippets and the promise of `:expected`, answered. Its disagreements, the sixth: the scope is D278 and a scar; the grammar a scar; the consumers answered where it named them; the pattern of code read by its form, the catalog the seventh condition leaves out, the priorities and the process are the reading's questions to the maintainer.

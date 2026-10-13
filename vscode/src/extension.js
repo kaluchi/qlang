@@ -128,7 +128,7 @@ function tokenizeWithAst(code) {
       case 'StringLit':
         annotations.push({ start: s, end: e, cls: 'hljs-string' });
         break;
-      case 'Projection':
+      case 'Path':
         annotations.push({ start: s, end: e, cls: 'hljs-attr' });
         break;
     }

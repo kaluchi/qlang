@@ -119,3 +119,17 @@ export function inputsRunBy(impl) {
   return INPUTS_RUN.get(impl);
 }
 
+// runsWithin(names, impl) → the primitive, which runs the quotes a template
+// of those inputs holds, at any depth of it, as code closed at the call,
+// its paths and its other values handed as they are [D279].
+const INPUTS_RUN_WITHIN = new WeakMap();
+
+export function runsWithin(names, impl) {
+  INPUTS_RUN_WITHIN.set(impl, new Set(names));
+  return impl;
+}
+
+export function inputsRunWithin(impl) {
+  return INPUTS_RUN_WITHIN.get(impl);
+}
+

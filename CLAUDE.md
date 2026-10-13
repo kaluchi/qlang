@@ -254,6 +254,13 @@ as a signal at milestones rather than a gate: apply a finding that
 names a real defect, and reject a proposed fallback or defensive check
 with a sentence in the commit body.
 
+`node scripts/outside-audit.mjs` runs the outside audit [D277]: a clean
+Opus reads the tree at HEAD from an empty directory, with no CLAUDE.md,
+no memory and no MCP server, and its report lands in
+`docs/research/outside-audit/` under its date and tree; the session
+writes its reading beside it and the fate of each finding in the README
+there.
+
 ## Sister project
 
 `D:\git\eclipse-jdt-search` consumes qlang and breaks first when the

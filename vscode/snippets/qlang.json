@@ -6,17 +6,17 @@
   },
   "declare a word": {
     "prefix": "bindv",
-    "body": [":${1:any}/${2:name} ~(${3:body})", ":${1:any}/${2:name}/${4:part} ~(/0)"],
-    "description": "Declare a word under the label of its subject and a part of its object"
+    "body": [":${1:vec}/${2:name}", "  |~~ ${3:What it answers.} ~~|", "  ::fn", "    | takes :${4:input} |~~ ${5:What it takes.} ~~| /0", "    | impl ~(${6:recipe})"],
+    "description": "Declare a word under the label of its subject, the chain of its function"
   },
   "declare a kind": {
     "prefix": "bindtag",
-    "body": [":${1:Kind} |~~ ${2:page} ~~|", ":${1:Kind}/construct ~(${3:body})"],
-    "description": "Declare a kind by its page, a label, and its constructor under it"
+    "body": [":${1:Kind}", "  |~~ ${2:What its values are.} ~~|", "  ::kind", "    | reads :${3:field} |~~ ${4:What it holds.} ~~| /${3:field}"],
+    "description": "Declare a kind by its page and the chain of its commands"
   },
   "name the subject": {
     "prefix": "name",
-    "body": [":${1:name} /"],
+    "body": [":${1:name} it"],
     "description": "Name the value in the pipe for the steps after it"
   },
   "filter": {
@@ -51,12 +51,12 @@
   },
   "groupBy": {
     "prefix": "groupBy",
-    "body": ["groupBy ~(${1:/field})"],
+    "body": ["groupBy ${1:/field}"],
     "description": "Partition Vec into Map keyed by classifier"
   },
   "indexBy": {
     "prefix": "indexBy",
-    "body": ["indexBy ~(${1:/field})"],
+    "body": ["indexBy ${1:/field}"],
     "description": "Collapse Vec into Map, last-wins on collision"
   },
   "line plain comment": {
@@ -86,7 +86,7 @@
   },
   "sort by key": {
     "prefix": "sortk",
-    "body": ["sort ~(${1:/field})"],
+    "body": ["sort ${1:/field}"],
     "description": "Sort by key sub-pipeline"
   },
   "union bound": {

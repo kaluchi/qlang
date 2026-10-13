@@ -194,7 +194,7 @@ const STEP_OF_NODE = {
   MapLit:          node => new Map(entryStepsOf(node.entries)),
   ErrorLit:        node => errorAtRest(node.tag === null ? ERROR_TAG : makeTag(node.tag), new Map(entryStepsOf(node.entries))),
   TaggedLit:       node => record(CONSTRUCT_TAG, [['tag', makeTag(node.tag)], ['payload', stepOfNode(node.payload)]]),
-  Projection:      node => makePath(node.keys),
+  Path:            node => makePath(node.keys),
   Call:     callStepOf,
   BindStep:        bindStepOf,
   ParenGroup:      node => groupOf(node.pipeline),

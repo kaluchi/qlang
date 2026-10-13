@@ -260,7 +260,7 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
   it('type answers :null for null alone', async () => {
     expect(await evalQuery('null | type | eq ::null')).toBe(true);
     // A Map entry whose value is the explicit `null` is the only
-    // post-strict-projection path to null-via-projection. A missing
+    // a strict path or null by a soft one. A missing
     // key now errors (::path/KeyNotInMapError) instead of silently
     // returning null.
     expect(await evalQuery('{:nothing null} | get /nothing | type | eq ::null')).toBe(true);

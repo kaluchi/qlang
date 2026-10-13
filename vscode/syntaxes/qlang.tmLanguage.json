@@ -15,7 +15,7 @@
     { "include": "#keyword" },
     { "include": "#number" },
     { "include": "#constant" },
-    { "include": "#projection" },
+    { "include": "#path" },
     { "include": "#set-open" },
     { "include": "#error-lit-brackets" },
     { "include": "#quote" },
@@ -58,8 +58,8 @@
       "patterns": [{ "include": "#group" }, { "include": "$self" }]
     },
     "doc-quote-short": {
-      "comment": "The short form of a quote inside a doc: ~name, ~/path, ~::tag.",
-      "match": "(~)((?:::|/)?[_\\p{L}][\\p{L}\\p{N}_/-]*)",
+      "comment": "The short form of a quote inside a doc: ~name, ~::tag.",
+      "match": "(~)((?:::)?[_\\p{L}][\\p{L}\\p{N}_/-]*)",
       "captures": {
         "1": { "name": "keyword.operator.quote.qlang" },
         "2": { "name": "entity.name.function.qlang" }
@@ -96,7 +96,7 @@
         { "name": "constant.other.symbol.qlang", "match": ":[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*" },
         { "include": "#number" },
         { "include": "#constant" },
-        { "include": "#projection" },
+        { "include": "#path" },
         { "include": "#set-open" },
         { "include": "#error-lit-brackets" },
         { "include": "#quote" },
@@ -217,20 +217,20 @@
       ]
     },
 
-    "projection": {
-      "comment": "Path projection: /field or /\"quoted key\". Each /segment matched individually.",
+    "path": {
+      "comment": "A path: /field or /\"quoted key\", each segment matched apart.",
       "patterns": [
         {
           "match": "(/)(\"(?:[^\\\\\"]|\\\\.)*\")",
           "captures": {
-            "1": { "name": "keyword.operator.projection.qlang" },
+            "1": { "name": "keyword.operator.path.qlang" },
             "2": { "name": "variable.other.member.qlang" }
           }
         },
         {
           "match": "(/)([_\\p{L}][\\p{L}\\p{N}_-]*)",
           "captures": {
-            "1": { "name": "keyword.operator.projection.qlang" },
+            "1": { "name": "keyword.operator.path.qlang" },
             "2": { "name": "variable.other.member.qlang" }
           }
         }
@@ -250,9 +250,9 @@
     },
 
     "quote": {
-      "comment": "A quote: ~( opens one, and a ~ before a name, a projection or a tag name is its short form.",
+      "comment": "A quote: ~( opens one, and a ~ before a name or a tag name is its short form.",
       "name": "keyword.operator.quote.qlang",
-      "match": "~(?=[(/:_a-zA-Z])"
+      "match": "~(?=[(:_\\p{L}])"
     },
 
     "combinator": {

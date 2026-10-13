@@ -192,7 +192,7 @@ describe('a kind without a body — identity', () => {
   it('Map payload (`::Tag{…}`) overlays the tag identity onto the Map — `keys` / `/field` work directly', async () => {
     // Identity-overlay: tag stamps the JS-header slot on the
     // Map payload, fields land as ordinary Map entries. `keys`,
-    // `vals`, `/field` projection read the underlying Map data
+    // `vals` and a path, `/field`, read the underlying Map data
     // plane unchanged. A `:kind` field on the inner Map data
     // coexists with the instance's identity because identity
     // rides on the JS-header alone.
@@ -211,9 +211,9 @@ describe('a kind without a body — identity', () => {
     // / Quote / Doc / Error / already-tagged
     // composite) cannot carry the header on themselves,
     // so the constructor returns an opaque frozen `{type, tag,
-    // payload}` wrapper. The wrap shape keeps `/payload`
-    // projection out of reach (the wrapper is not a Map);
-    // the `payload` operand is the dedicated extractor.
+    // payload}` wrapper. The wrap shape keeps a path, `/payload`,
+    // out of reach (the wrapper is not a Map); the word `payload`
+    // takes the payload off.
     const { isTaggedInstance, typeKeyword } = await import('../../src/types.mjs');
     const instance = await evalQuery('::number/add/SubjectNotNumberError"hello"');
     expect(isTaggedInstance(instance)).toBe(true);

@@ -59,8 +59,10 @@
         ~~|
     | throws :ParseError
         |~~ The source does not read as qlang: `:marker` points where the
-            reading stopped, `:expected` lists what could stand there, and
-            a source cut short names the bracket it left open.
+            reading stopped, `:message` names the habit a form of another
+            language wrote, and where none does `:expected` lists what
+            could stand there and a source cut short names the bracket it
+            left open.
             ::link~(::quote | doc)
         ~~|
     | carries :ParseError/source

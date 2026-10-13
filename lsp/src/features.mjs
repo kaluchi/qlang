@@ -316,8 +316,8 @@ export async function hoverAtOffset(ast, source, offset) {
   if (node.type === 'TagLit' || isOnTagHead(node, offset)) {
     return await hoverForTag(node);
   }
-  if (node.type === 'Projection') {
-    return await hoverForProjection(node);
+  if (node.type === 'Path') {
+    return await hoverForPath(node);
   }
   if (node.type === 'Keyword') {
     return {
@@ -403,7 +403,7 @@ async function hoverForTag(node) {
 }
 
 // A path shows its literal over the page of the kind of paths.
-async function hoverForProjection(node) {
+async function hoverForPath(node) {
   const prose = tidyProse((await pageContents('::path')).join('\n'));
   return {
     content: markdownHardBreaks([`path \`${node.text}\``, '', prose].join('\n')),

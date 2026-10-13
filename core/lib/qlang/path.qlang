@@ -76,7 +76,7 @@
             subject of a later step reads what that step was handed: after
             `get /qty |` the subject is the number, so two fields of one
             record are read in one step, `get [/qty /price]`, or combined
-            by a form whose args they are, `mulOf /qty /price`. A value
+            by a word that reads each from its args, `mulOf /qty /price`. A value
             that may be null is read by `query`, which answers null.
             ::link~(::path | doc) ::link~(::any/mulOf | doc)
         ~~|

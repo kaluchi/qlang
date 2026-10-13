@@ -495,6 +495,23 @@ Namespaces too large to bind are the sister project's types, tens of
 thousands of names, which it reaches by lookups it declares under
 `::any`; serving them as tags is the question of mounting [D259].
 
+### The names a held quote reads
+
+The core counts naming with lexical scope among its concepts, and a
+quote held as data, in a name, an input or a page, reads its free names
+in the tree of the query where its call runs [D251], so a step around
+the call shadows a name its author saw and a name declared after the
+quote is read too:
+
+```qlang
+> [(:k 1 | :f ~(add k) | [5] | map ~(:k 100 | apply f)) (:f ~(add k) | :k 10 | 1 | apply f)]
+[[105] 11]
+```
+
+A word's recipe stays apart, no name it writes reaching a quote it is
+handed [D200]. Where a held quote reads its names is a question being
+decided [D278].
+
 ### Errors named by their site
 
 A refusal is named by the address of what refused: a subject of
@@ -631,6 +648,19 @@ docs/research/reviews/
 
 What remains of the scar is the editor's hand-written TextMate grammar,
 a second spelling of the grammar beside the parser.
+
+### The grammar
+
+The fifth condition asks a grammar proportional to the language, its
+comments handled in a few lines. `core/src/grammar.peggy` holds the
+comment and doc forms nesting in each other and in quotes; the refusals
+that name a habit of another language as productions with their
+messages, `SpacingRefusal`, `TagDeclarationRefusal` and
+`PathBeforeWord` among them; a line break that tells where a
+declaration ends [D243], [D251]; and two counters its predicates raise
+and give back, `docQuoteDepth` and `lookingAhead`. The repair is the
+grammar of the finish, comments as whitespace in a few lines and one
+pipeline production.
 
 ### Host concerns inside the core
 
@@ -803,7 +833,9 @@ parentheses inside a modifier or a literal, so parentheses mean one
 thing, a pipeline as one word. Every modifier holds a value read by its
 own form; code is a quote, `~(…)`, `~add` for a single word, which
 nothing but `apply` and an input whose kinds take a quote runs, and a
-quote handed over sees the names of its author [D251]. There is one
+quote handed over reads the names of the reader that hands it, never
+those of a word's recipe [D251], where it reads them a question being
+decided [D278]. There is one
 binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a function named
 under the label of its subject, its inputs and its answer in its chain,
@@ -1299,3 +1331,4 @@ those being decided.
 [D274]: decisions/D274.md
 [D275]: decisions/D275.md
 [D276]: decisions/D276.md
+[D278]: decisions/D278.md

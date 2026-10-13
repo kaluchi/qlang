@@ -83,10 +83,10 @@
   // after a declaration, where it is the subject, and a value written as
   // a later step is refused, a path after `!|` as well, each refusal
   // naming the word the habit meant [D248].
-  const VALUE_STEPS = new Set(['Projection', 'VecLit', 'MapLit', 'SetLit', 'ErrorLit', 'TaggedLit', 'TagLit', 'QuoteLit', 'DocLit', 'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
+  const VALUE_STEPS = new Set(['Path', 'VecLit', 'MapLit', 'SetLit', 'ErrorLit', 'TaggedLit', 'TagLit', 'QuoteLit', 'DocLit', 'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
 
   function refuseValueStep(step) {
-    if (step.type === 'Projection') error(`a path is a value, which the word that takes it reads: write \`get ${step.text}\``, step.location);
+    if (step.type === 'Path') error(`a path is a value, which the word that takes it reads: write \`get ${step.text}\``, step.location);
     if (step.type === 'TagLit') error(`a tag goes over the value in the pipe by \`tag\`: write \`tag ${step.text}\``, step.location);
     if (step.type === 'QuoteLit') error('code runs on the value in the pipe by `apply`: write `apply ~(…)`', step.location);
     if (step.type === 'VecLit' || step.type === 'MapLit' || step.type === 'SetLit' || step.type === 'TaggedLit') error('a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`', step.location);
@@ -95,11 +95,11 @@
 
   function refuseValueSteps(leadingComb, head, tail) {
     if (docQuoteDepth > 0) return;
-    if (leadingComb !== null && leadingComb[0] === '!|' && head.type === 'Projection') refuseValueStep(head);
+    if (leadingComb !== null && leadingComb[0] === '!|' && head.type === 'Path') refuseValueStep(head);
     let afterDeclaration = head.type === 'BindStep';
     for (const { combinator, step } of tail) {
       if (combinator === '!|') {
-        if (step.type === 'Projection') refuseValueStep(step);
+        if (step.type === 'Path') refuseValueStep(step);
       } else if (VALUE_STEPS.has(step.type) && !afterDeclaration) {
         refuseValueStep(step);
       }
@@ -221,8 +221,8 @@ PipedCombinator
 // A combinator written against its neighbour, a pipe written against a
 // tilde, which opens a comment, a word written against the word before
 // it, and a step that follows a step with no combinator between them;
-// a slash written against a word is the dangling segment of a
-// projection, which the parser names by the key it expected.
+// a slash written against a word is the dangling segment of a path,
+// which the parser names by the key it expected.
 SpacingRefusal
   = &{ return docQuoteDepth === 0; }
     ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
@@ -327,13 +327,13 @@ BlockDocContent
 // without modifiers.
 Step
   = Command
-  / ProjectionBeforeWord
+  / PathBeforeWord
   / Word
   / DocLit
 
 // A path written before a word, the method call of other languages,
 // `/ne ""`: a verb is called by its name alone.
-ProjectionBeforeWord
+PathBeforeWord
   = &{ return docQuoteDepth === 0; } "/" name:KeywordName &(_h1 !Combinator !"!|" Word)
     { error('`/' + name + '` is a path, a value; a verb is called by its name alone, `' + name + ' …`'); }
 
@@ -431,7 +431,7 @@ BodySentenceStep
 
 // ── Words ──────────────────────────────────────────────────────────
 //
-// A word is a literal, a projection, a name, a quote or a pipeline in
+// A word is a literal, a path, a name, a quote or a pipeline in
 // parentheses. Inside a literal every element is a word, so a command
 // with modifiers stands there in parentheses.
 
@@ -446,7 +446,7 @@ Word
   / ShortQuoteLit
   / TaggedLit
   / TagLit
-  / Projection
+  / Path
   / Name
   / Scalar
 
@@ -503,16 +503,16 @@ ParenGroup
 // or tag name may drop the parentheses, `~add`, `~::T`.
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"
-    &{ return docQuoteDepth === 0 || pipeline?.type !== 'Projection'; }
+    &{ return docQuoteDepth === 0 || pipeline?.type !== 'Path'; }
     {
-      if (pipeline?.type === 'Projection') error(`the quote of a path answers the path, which no word wants: give the path bare, \`${pipeline.text}\``);
+      if (pipeline?.type === 'Path') error(`the quote of a path answers the path, which no word wants: give the path bare, \`${pipeline.text}\``);
       return node('QuoteLit', { pipeline }, span(), text());
     }
 
 ShortQuoteLit
   = "~" pipeline:(TagLit / Name)
     { return node('QuoteLit', { pipeline }, span(), text()); }
-  / &{ return docQuoteDepth === 0; } "~" path:Projection
+  / &{ return docQuoteDepth === 0; } "~" path:Path
     { error(`the quote of a path answers the path, which no word wants: give the path bare, \`${path.text}\``); }
   / &{ return docQuoteDepth === 0; } "~" &[{[]
     { error('a quote is written `~(…)`, its code in parentheses; `{…}` is a map and `[…]` a vector'); }
@@ -704,11 +704,11 @@ LiteralGap
 // key, a namespaced keyword after `:`, or an index; the slash alone names
 // no path, the value itself being `it`, and a question mark after a
 // segment, the habit of a read that may miss, leads to `query`.
-Projection
+Path
   = &{ return docQuoteDepth === 0; } written:$("/" KeySegment ("?"? "/" KeySegment)* "?"?) &{ return written.includes('?'); }
     { error(`a part that may be missing is read by \`query\`, which answers null where it misses: write \`query ${written.replaceAll('?', '')}\``); }
   / "/" first:KeySegment rest:("/" @KeySegment)*
-    { return node('Projection', { keys: [first, ...rest] }, span(), text()); }
+    { return node('Path', { keys: [first, ...rest] }, span(), text()); }
   / &{ return docQuoteDepth === 0; } "/" !KeySegment
     { error('the slash alone names no path: the value itself is `it`'); }
 

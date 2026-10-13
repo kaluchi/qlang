@@ -262,7 +262,7 @@ describe('error-convert coercion edge cases', () => {
   });
 
   it('actualValue distinct from the subject is preserved on lift (drill-down signal)', async () => {
-    // Drill-down case (multi-segment projection, element iteration,
+    // Drill-down case (multi-segment path, element iteration,
     // full-application captured-arg): actualValue is a different
     // reference. Lift proceeds so the presence-of-actualValue
     // surfaces «look here for the offending sub-value».

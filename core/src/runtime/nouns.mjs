@@ -391,21 +391,20 @@ export function kindRuleRefusalsOf({ payload, fields }, address) {
 }
 
 // selectorOfPlace(place) → what the place of an input of a function reads,
-// once per place [D251]: its tree, a path read as the
-// projection it is written as [D248], the place its first step reads,
-// whether the selector is that one step, and whether it reads the args
-// whole, `~(it)`.
+// once per place [D251]: its tree, a path read as it is written [D248],
+// the place its first step reads, whether the selector is that one step,
+// and whether it reads the args whole, `~(it)`.
 const SELECTORS = new WeakMap();
 
 export function selectorOfPlace(value) {
   let selector = SELECTORS.get(value);
   if (selector === undefined) {
-    const ast = isPath(value) ? { type: 'Projection', keys: value.segments } : astOfQuote(value);
+    const ast = isPath(value) ? { type: 'Path', keys: value.segments } : astOfQuote(value);
     const place = placeReadBy(ast);
     const onePlace = readsOnePlace(ast, place);
     selector = {
       ast, place, onePlace,
-      strict: onePlace && ast.type === 'Projection',
+      strict: onePlace && ast.type === 'Path',
       fallback: onePlace && ast.type === 'Call' && ast.args.length === 2 ? ast.args[1] : null,
       readsArgs: ast.type === 'Call' && ast.name === 'it' && ast.args.length === 0
     };
@@ -419,8 +418,8 @@ export function selectorOfPlace(value) {
 // place counted from its end or anything else.
 function placeReadBy(ast) {
   const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
-  const place = head.type === 'Projection' ? segmentIndex(head.keys[0])
-    : head.type === 'Call' && head.name === 'query' && head.args[0]?.type === 'Projection' && head.args[0].keys.length === 1 ? segmentIndex(head.args[0].keys[0])
+  const place = head.type === 'Path' ? segmentIndex(head.keys[0])
+    : head.type === 'Call' && head.name === 'query' && head.args[0]?.type === 'Path' && head.args[0].keys.length === 1 ? segmentIndex(head.args[0].keys[0])
     : NaN;
   return Number.isInteger(place) && place >= 0 ? place : NaN;
 }
@@ -429,7 +428,7 @@ function placeReadBy(ast) {
 // `query /n` with a default or none.
 function readsOnePlace(ast, place) {
   if (!Number.isInteger(place) || ast.type === 'Pipeline') return false;
-  return ast.type === 'Projection' ? ast.keys.length === 1 : ast.args.length <= 2;
+  return ast.type === 'Path' ? ast.keys.length === 1 : ast.args.length <= 2;
 }
 
 // The nodes declared one name under a noun, by their last names: the

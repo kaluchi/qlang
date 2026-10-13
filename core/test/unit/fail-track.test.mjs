@@ -163,7 +163,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
-  it('projection on non-Map → PathSubjectNotProjectableError', async () => {
+  it('a path on a value with no parts → PathSubjectNotProjectableError', async () => {
     const refused = await evalQuery('42 | get /name');
     expect(refused.originalError.name).toBe('SubjectNotProjectableError');
     expect(refused.descriptor.get('key').name).toBe('name');

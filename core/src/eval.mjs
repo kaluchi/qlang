@@ -87,7 +87,7 @@ const AST_NODE_EVALUATORS = {
   TaggedLit:         evalTaggedLit,
   TagLit:   evalTagLit,
   RegexLit:          evalRegexLit,
-  Projection:        evalProjection,
+  Path:              evalPath,
   Call:              evalCall,
   BindStep:          evalBindStep,
   ParenGroup:        evalParenGroup,
@@ -418,11 +418,11 @@ function declarationRecord(node, value) {
   });
 }
 
-// ─── Projection ─────────────────────────────────────────────────
+// ─── Path ─────────────────────────────────────────────────────────
 
 // A path is a value that does nothing by itself; the word that takes it
 // reads it [D248].
-function evalProjection(node, state) {
+function evalPath(node, state) {
   return withPipeValue(state, makePath(node.keys));
 }
 
@@ -446,7 +446,7 @@ function readOfRefusedPath(refused, node, subject) {
   if (!refused.descriptor.has('actualValue')) return isPath(subject) ? readOfPathSubject(subject, node) : null;
   const value = refused.descriptor.get('actualValue');
   if (!isPath(value)) return null;
-  const written = node.args.findIndex(argNode => argNode.type === 'Projection'
+  const written = node.args.findIndex(argNode => argNode.type === 'Path'
     && argNode.keys.length === value.segments.length && argNode.keys.every((key, at) => String(key) === value.segments[at]));
   if (written === -1) return null;
   const step = stepOfNode(node);
@@ -590,7 +590,7 @@ async function invariantRefusal(invariants, address, value, state, scope) {
 // without calling it; any other place runs as code over the args, a frame
 // below the call.
 function placeRead({ ast, place, onePlace, strict, fallback }, values, overArgs) {
-  if (!onePlace) return ast.type === 'Projection' ? pathOfArgs(makePath(ast.keys), overArgs()) : answerOfBody(ast, overArgs());
+  if (!onePlace) return ast.type === 'Path' ? pathOfArgs(makePath(ast.keys), overArgs()) : answerOfBody(ast, overArgs());
   if (place < values.length) return values[place];
   if (strict) return MISSED_PLACE;
   return fallback === null ? null : answerOfBody(fallback, overArgs());

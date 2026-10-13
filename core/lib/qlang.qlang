@@ -17,7 +17,8 @@
       1. The pipe. `a | b` runs b on the value a answered, its subject:
       `[3 1 2] | sort | first` answers `1`. Each step is a command, a
       word and what it takes, and a value stands where it is the
-      subject, at the head, or as what a word takes:
+      subject, at the head or after a declaration, or as what a word
+      takes:
       `get /users | filter /active | sort /age | map /name` reads the
       users, keeps the active ones, ranks them by age and answers their
       names. A value written as a later step is refused.
@@ -152,8 +153,9 @@
       `!| explain` answers the page of what refused above the failure,
       the page saying how to repair the call.
 
-      12. Asking. `::vec | manifest` answers the words of a kind, and
-      `map` asks several kinds at once, each beside its words:
+      12. Asking. `::vec | manifest` answers what lies under a kind, its
+      words, its refusals and the roles of its chain, and `map` asks
+      several kinds at once, each beside its own:
       ::snippet~([::vec ::map ::string ::number ::any] | map ~([it manifest]))
       lists the words most queries use. `::vec/sort | doc` answers the
       page of a word, and `::vec/sort | laws` the laws of a word by
@@ -604,9 +606,9 @@
             answer of the word's own label goes back under the tags the
             subject came through. A modifier is evaluated at the call
             against the subject, the value in the pipe, which is always
-            the subject of the call; a form that combines several values
-            of one subject is a verb of its own, which reads each from its
-            args, `mulOf /price /qty`; an input that runs code later takes
+            the subject of the call; a word that combines several values
+            of one subject reads each from its args, `mulOf /price /qty`;
+            an input that runs code later takes
             a quote, `~name` or `~(get /path)` the quote of one step, and
             a condition is a boolean. A kind is a label built from
             `::kind` by commands and declared under a name,

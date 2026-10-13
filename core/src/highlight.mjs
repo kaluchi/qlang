@@ -18,7 +18,7 @@
 //                 through a reader's binding
 //   'word'        a call's name that resolves to a word of the
 //                 language supplied by `langRuntime` AND each key
-//                 segment of a `Projection`
+//                 segment of a `Path`
 //   'keyword'     the head Keyword/tag of a BindStep
 //                 declaration
 //   'err'         `!` sigil plus its immediately-attached bracket
@@ -37,7 +37,7 @@
 //   'punct'       the pipe `|`, the `{` / `}` of an ordinary
 //                 MapLit, `(` / `)` of a group, the commas of a
 //                 JSON literal, and the `/` separator inside a
-//                 `Projection`
+//                 `Path`
 //   'whitespace'  runs of whitespace between meaningful tokens, and
 //                 the source past where its parse stopped
 //
@@ -191,8 +191,8 @@ function collectSemanticSpans(src, ast, builtinNames) {
         emitBracketSpans(startOffset, endOffset, 1, 1, 'vec', spans);
         return;
 
-      case 'Projection':
-        emitProjectionSpans(src, startOffset, endOffset, spans);
+      case 'Path':
+        emitPathSpans(src, startOffset, endOffset, spans);
         return false;
 
       case 'Call': {
@@ -240,13 +240,13 @@ function emitBracketSpans(startOffset, endOffset, openerLen, closerLen, kind, sp
   spans.push({ start: endOffset - closerLen, end: endOffset, kind });
 }
 
-function emitProjectionSpans(src, startOffset, endOffset, spans) {
-  const projectionText = src.slice(startOffset, endOffset);
+function emitPathSpans(src, startOffset, endOffset, spans) {
+  const pathText = src.slice(startOffset, endOffset);
   let cursor = 0;
-  // The grammar spells a Projection as `/` KeySeg (`/` KeySeg)*, so
+  // The grammar spells a path as `/` KeySeg (`/` KeySeg)*, so
   // every iteration opens on a `/` and every segment it scans runs
   // at least one character wide.
-  while (cursor < projectionText.length) {
+  while (cursor < pathText.length) {
     spans.push({
       start: startOffset + cursor,
       end:   startOffset + cursor + 1,
@@ -254,16 +254,16 @@ function emitProjectionSpans(src, startOffset, endOffset, spans) {
     });
     cursor += 1;
     let segEnd = cursor;
-    while (segEnd < projectionText.length && projectionText[segEnd] !== '/') {
+    while (segEnd < pathText.length && pathText[segEnd] !== '/') {
       // A quoted segment (`/"a/b"`) keeps its inner `/` — skip the
       // whole `"…"` span so a slash inside it does not split the
       // segment into two word tokens.
-      if (projectionText[segEnd] === '"') {
+      if (pathText[segEnd] === '"') {
         segEnd += 1;
-        while (segEnd < projectionText.length && projectionText[segEnd] !== '"') {
+        while (segEnd < pathText.length && pathText[segEnd] !== '"') {
           // A backslash escapes the next char (including `\"`), so
           // step over both; every other char advances by one.
-          segEnd += projectionText[segEnd] === '\\' ? 2 : 1;
+          segEnd += pathText[segEnd] === '\\' ? 2 : 1;
         }
       }
       segEnd += 1;

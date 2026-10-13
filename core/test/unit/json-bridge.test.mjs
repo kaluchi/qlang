@@ -35,7 +35,7 @@ describe('a map whose data key "type" collides with a value-class name', () => {
   // `"type"` is ordinary data, never a value-class discriminator. The
   // discriminator rides on the VALUE_CLASS_TAG symbol that only the
   // real value-class factories stamp, so a document carrying
-  // `"type":"quote"` stays a map through classification, projection,
+  // `"type":"quote"` stays a map through classification, a read by a path,
   // equality, and the lossy and lossless JSON codecs.
 
   it('classifies as a map regardless of the "type" data value', async () => {

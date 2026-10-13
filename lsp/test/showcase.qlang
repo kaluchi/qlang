@@ -3,7 +3,7 @@
 
    Open this file in VS Code with the qlang extension active
    to exercise the language server:
-     1. Hover — the page of a word, a projection, a keyword
+     1. Hover — the page of a word, a path, a keyword
      2. Ctrl+Click — Go to Definition
      3. Shift+F12 — Find References
      4. Ctrl+Shift+O — Outline

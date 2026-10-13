@@ -60,7 +60,7 @@ describe('astChildrenOf', () => {
     expect(astChildrenOf({ type: 'NumberLit', value: 42 })).toEqual([]);
     expect(astChildrenOf({ type: 'StringLit', value: 's' })).toEqual([]);
     expect(astChildrenOf({ type: 'Keyword', name: 'k' })).toEqual([]);
-    expect(astChildrenOf({ type: 'Projection', keys: ['a'] })).toEqual([]);
+    expect(astChildrenOf({ type: 'Path', keys: ['a'] })).toEqual([]);
     expect(astChildrenOf({ type: 'Keyword', name: 'x' })).toEqual([]);
   });
 
@@ -193,11 +193,11 @@ describe('findIdentifierOccurrences', () => {
     expect(refs.map(ref => ref.type)).toEqual(['ErrorLit', 'TaggedLit']);
   });
 
-  it('finds Projection segments by name', () => {
+  it('finds the segments of a path by name', () => {
     const ast = parse('get /foo/bar | count');
     const refs = findIdentifierOccurrences(ast, 'foo');
     expect(refs.length).toBeGreaterThanOrEqual(1);
-    expect(refs[0].type).toBe('Projection');
+    expect(refs[0].type).toBe('Path');
   });
 
   it('does not include keyword literals', () => {

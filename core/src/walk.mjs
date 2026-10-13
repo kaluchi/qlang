@@ -59,7 +59,7 @@ export function astChildrenOf(node) {
       for (const segment of node.segments) if (typeof segment !== 'string') out.push(segment);
       break;
     // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // RegexLit, Projection, TagLit (a tag, the address of a node) have
+    // RegexLit, Path, TagLit (a tag, the address of a node) have
     // no semantic children.
   }
   return out;
@@ -68,7 +68,7 @@ export function astChildrenOf(node) {
 // The literals of no parts, which answer themselves whatever the subject,
 // a path among them [D248], and the literals whose parts run on the
 // subject, `[count 1]` reading it where `[1 2]` does not.
-const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit', 'Projection']);
+const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit', 'Path']);
 const LITERALS_OF_PARTS = new Set([
   'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry', 'TaggedLit', 'ParenGroup', 'DocLit', 'DocTaggedQuote'
 ]);
@@ -190,7 +190,7 @@ export function findAstNodeAtOffset(ast, offset) {
 
 // findIdentifierOccurrences(ast, name, spelling?) → the nodes that name
 // it, a keyword written as a value none of them: called, a call of the
-// name, its declaration and a projection that reads it as a key; written
+// name, its declaration and a path that reads it as a key; written
 // as a tag [D152], its declaration, a tagged or an error literal that
 // writes it [D13] and the tag name alone.
 export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
@@ -199,7 +199,7 @@ export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
   walkAst(ast, (node) => {
     if (node.type === 'Call' && splitAddress(node.name)[1] === name) occurrences.push(node);
     else if (node.type === 'BindStep' && splitAddress(node.key.name)[1] === name) occurrences.push(node);
-    else if (node.type === 'Projection' && node.keys.includes(name)) occurrences.push(node);
+    else if (node.type === 'Path' && node.keys.includes(name)) occurrences.push(node);
   });
   return occurrences;
 }

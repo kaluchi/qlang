@@ -66,7 +66,7 @@ describe('elide [D109]', () => {
     expect(await readBack(stacked, stackedView.payload.get('s'))).toBe(LONG);
   });
 
-  it('reads a key no projection spells by at', async () => {
+  it('reads a key with a space by a quoted path', async () => {
     const value = await evalQuery(`{:"a key" "${LONG}"}`);
     const marker = elide(value, 30).get('a key');
     expect(await readBack(value, marker)).toBe(LONG);

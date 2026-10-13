@@ -102,12 +102,12 @@ describe('eval — filter', () => {
   });
 });
 
-describe('eval — Map and projection', () => {
+describe('eval — Map and path', () => {
   it('projects a Map field', async () => {
     expect(await evalQuery('{:name "Alice" :age 30} | get /name')).toBe('Alice');
   });
 
-  it('strict-projection: missing key raises PathKeyNotInMapError', async () => {
+  it('a strict path: a missing key raises PathKeyNotInMapError', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const result = await evalQuery('{:name "Alice"} | get /age');
     expect(isErrorValue(result)).toBe(true);
@@ -115,7 +115,7 @@ describe('eval — Map and projection', () => {
     expect(result.descriptor.get('key').name).toBe('age');
   });
 
-  it('chains nested projection', async () => {
+  it('reads a nested path', async () => {
     expect(await evalQuery('{:point {:x 5 :y 7}} | get /point/x')).toBe(5);
   });
 });
@@ -185,7 +185,7 @@ describe('quoted keywords — eval-level identity and Map interop', () => {
     expect(await evalQuery('{:"" "empty key value"} | get /""')).toBe('empty key value');
   });
 
-  it('digit-leading keys are reachable through quoted projection', async () => {
+  it('digit-leading keys are reachable through a quoted path', async () => {
     expect(await evalQuery('{:"123" "digit"} | get /"123"')).toBe('digit');
   });
 

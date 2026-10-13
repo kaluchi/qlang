@@ -269,13 +269,9 @@ async function evalSetLit(node, state) {
 // ─── TaggedLit / TagLit ────────────────────────────────
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
-// through its label, a value a verb returns under its subject's tag among
-// them [D41]: a kind builds it by its commands [D252], and a label declared
-// by its page alone, a kind of no commands, lays its tag over it; a tag no
-// node answers, the tag of a word over the args of a call of it, which the
-// call checks as it reads them, and the tag of an invariant over the facts
-// a reader raises again lay themselves over the payload as they are [D42],
-// [D173], and no constructor meets an error [D13].
+// through its label [D41]: built by its kind [D252], laid over as it is
+// where no kind answers the tag [D42], [D173], and never over an error
+// [D13].
 export async function mintTaggedInstance(tagName, payload, state) {
   const declared = bindingValueOf(nodeOf(state.env, tagName));
   if (isKind(declared)) return await underKind(tagName, declared, payload, state);
@@ -290,16 +286,10 @@ function laidUnder(tagName, value) {
   return typeKeyword(value).name === tagName ? value : makeTaggedInstance(makeTag(tagName), value);
 }
 
-// A label that is a kind lays its tag over a payload by its kind alone
-// [D252]: the payload holds the value of its kinds the walk of its tags
-// reaches, or of each element's, as an input does, and a payload of none is
-// refused; each field reads its place of the payload, a path as `get`
-// reads it and a quote run on it, and holds its kinds and the invariants
-// written under it; the recipe builds the value from the payload where the
-// kind has one, and the value under the label holds the invariants of the
-// kind, every refusal named under the label. The code of a field, of an
-// invariant and of a quote recipe runs in the scope a call opens, opened
-// only where a kind runs code.
+// A value under a kind [D252]: its payload held to its kinds, each field
+// read and held, the recipe run, and the invariants of the value held,
+// every refusal named under the label, the code running in the scope a
+// call opens.
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = kindOf(kind);
   const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, (kinds, each) => `${tagName}/${payloadRefusalName(kinds, each)}`, payload, state.env);
@@ -410,11 +400,8 @@ async function evalBindStep(node, state) {
   return withEnv(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
 }
 
-// Whether a declaration writes by a name what the chain of a kind or of a
-// function holds alone, which nothing would read [D253]: an invariant
-// wherever it stands, a constructor under a label, and an input, a place
-// of the call as a path or a quote, the answer and the subject under a
-// word.
+// Whether a declaration writes by name a role the chain of a kind or of a
+// function holds alone [D253].
 function writesOutsideItsChain(env, nounName, lastName, value) {
   if (isInvariant(value)) return true;
   if (nounName === null) return false;
@@ -422,15 +409,9 @@ function writesOutsideItsChain(env, nounName, lastName, value) {
   return isWord(env, nounName) && (isPath(value) || isQuote(value) || lastName === ANSWER_NAME || lastName === SUBJECT_NAME);
 }
 
-// The nodes a kind lays under its address, what `doc`, `manifest` and the
-// tools read of it, its values reading none of them [D252]: its payload
-// with its page and its kinds, each field with its page and its kinds as
-// written, the refusals the kinds of each name with the page `throws`
-// gives them or one that names them, each page `tells` writes with the
-// kinds it tells of, its constructor with its recipe, each refusal
-// `throws` pages, each fact with its page and its kinds, each invariant
-// `holds` writes and each law. A field is no word: its node holds
-// what it is, and the kind reads its place.
+// The nodes a kind lays under its address for `doc`, `manifest` and the
+// tools, each role of its chain with its page, which its values never
+// read [D252].
 function nodesOfKind(kind, address, env, origin) {
   const { payload, fields, tells, pages, facts, invariants, laws } = kindOf(kind);
   let under = env;
@@ -462,14 +443,9 @@ function nodesOfKind(kind, address, env, origin) {
   return under;
 }
 
-// The nodes a function named under a label lays under its address, what
-// `doc`, `manifest` and the tools read of the word, its call reading none
-// of them [D251]: the subject and each input with its page, an input's
-// place, the refusal its kinds, or those of each of its elements, name
-// with the page `throws` gives it or one that names them, the answer with
-// its page and its kinds, each refusal `throws` pages, each fact with its
-// page and its kinds, each invariant `holds` writes and each law, which
-// `laws` and `runLaws` read.
+// The nodes a function named under a label lays under its address for
+// `doc`, `manifest`, `laws` and the tools, each role of its chain with its
+// page, which its call never reads [D251].
 function nodesOfFunction(fn, address, env, origin) {
   const { subject, inputs, answer, pages, facts, invariants, laws } = signatureOf(fn);
   let under = env;

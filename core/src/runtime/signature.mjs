@@ -1,14 +1,6 @@
-// The commands of a function [D251] and of a kind [D252]: the quote its
-// literal holds, the chain that built it folded into data, read once for
-// each value as the roles they declare, each command a verb its value is
-// the subject of. A function's: `on` the subject its call serves, `takes`
-// an input the call reads from its args, `returns` the answer, `throws` a
-// refusal it pages, `carries` a fact a refusal carries, `holds` an
-// invariant of an input or of the answer, and `proves` a law, the claim its
-// name makes and the query that proves it. A kind's: `wraps` the payload
-// its tag is laid over, `reads` a field of the payload, `tells` a page of
-// the kind on a name, a chapter of a topic among them, `carries`, `holds`
-// an invariant of its value or of a field, `throws` and `proves`.
+// The commands of a function [D251] and of a kind [D252], the chain that
+// built it folded into the quote its literal holds, read once for each
+// value as the roles they declare.
 
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
@@ -31,12 +23,7 @@ export const SUBJECT_NAME = 'subject';
 export const PAYLOAD_NAME = 'payload';
 
 // The objects each command takes, in their order, the last ones left out
-// where the command may leave them: an input's name is a name its recipe
-// reads as a step, of one segment, beside the names of the subject and the
-// answer and the words of a literal, and a field's and a page's beside
-// `payload` and `construct`; a refusal's name is read as a tag; kinds are
-// a tag or a set of tags, and the kinds of an input, of a payload or of a
-// field a vector of them besides, the kinds of each of its elements.
+// where the command may leave them.
 const LITERAL_WORDS = new Set(['true', 'false', 'null']);
 const isRefusalName = value => isKeyword(value) && readsAsBareKeyword(value.name);
 const isNameOfOneSegment = value => isRefusalName(value) && !value.name.includes('/') && !LITERAL_WORDS.has(value.name);
@@ -110,12 +97,8 @@ function namesOf(quote, DeclaredTwiceError) {
 }
 
 // readSignature(quote) → the roles a quote of commands declares, in the
-// order they are written: a name is declared once, the subject and the
-// answer each by its own name, a refusal or an invariant written with a
-// path is named under an input taken before it or under the answer, and a
-// law or a fact written with one under a name the signature declares
-// before it, the refusal an input's kinds name among them; a fact is
-// written with a path.
+// order they are written, each name declared once and a name with a path
+// under one declared before it.
 export function readSignature(quote) {
   if (!isQuote(quote)) throw new FnSignatureNotCommandsError({ actualValue: quote });
   const signature = { subject: null, inputs: [], answer: null, pages: new Map(), facts: [], invariants: [], laws: [] };
@@ -171,13 +154,8 @@ export function readSignature(quote) {
 }
 
 // readKindSignature(quote) → the roles a quote of the commands of a kind
-// declares, in the order they are written [D252]: a name is declared once,
-// the payload by its own name and a field and a page `tells` writes by
-// theirs; a refusal or an invariant written with a path is named under a
-// field declared before it, and a law or a fact written with one under a
-// name declared before it, the refusals the kinds of the payload and of a
-// field name and the one of a field the payload leaves out among them; a
-// fact written with none is a fact of the payload.
+// declares, in the order they are written, each name declared once and a
+// name with a path under one declared before it [D252].
 export function readKindSignature(quote) {
   if (!isQuote(quote)) throw new KindSignatureNotCommandsError({ actualValue: quote });
   const kind = { payload: null, fields: [], tells: [], pages: new Map(), facts: [], invariants: [], laws: [] };

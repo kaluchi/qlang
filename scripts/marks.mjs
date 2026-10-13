@@ -141,7 +141,7 @@ const beyondCitations = text => text.replace(CITATIONS, '').replace(/"decision":
 // `Replaces in part` and the lines that continue it among them, and a link
 // leave it as it was.
 const STATEMENT_OF_FATE = /^(Replaces|Pruned of what|Replaced by|Merged into|Replaced in part by) /;
-const FIELD_OPENS = new RegExp(`^(Domain|Decided by|Decision|Source|Set aside|Requirements)\\.|${LINK_DEFINITION.source}`);
+const FIELD_OPENS = new RegExp(`^(Domain|Decided by|Decision|Question|Source|Alternatives|Set aside|Requirements)\\.|${LINK_DEFINITION.source}`);
 function decisionOf(lines) {
   let inFate = false;
   return beyondCitations(lines.filter(line => {

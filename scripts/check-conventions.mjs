@@ -66,7 +66,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { walkOfBaseline } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
-import { readDecisionRecords, replacedWhole, statementsOf } from './decision-records.mjs';
+import { isOpenText, readDecisionRecords, replacedWhole, statementsOf } from './decision-records.mjs';
 import { execFileSync } from 'node:child_process';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -376,16 +376,24 @@ function decisionsInCatalog() {
 //
 // A record names who took its decision, so a session tells the
 // maintainer's words, which bind it, from the model's reading, which it
-// weighs on its merits [D155].
+// weighs on its merits [D155]; an open record names none until it is
+// decided, and holds its question, its source and its alternatives
+// [D255].
 
 const FIRST_RECORD_NAMING_ITS_DECIDER = 155;
 const DECIDER_LINE = /^Decided by\. The (maintainer|model)\b/m;
+const holdsField = (text, field) => new RegExp(`^${field}\\. `, 'm').test(text);
+const OPEN_RECORD_FIELDS = ['Question', 'Source', 'Alternatives'];
+const DECIDED_RECORD_FIELDS = ['Decided by', 'Decision'];
+const outOfForm = text => (isOpenText(text)
+  ? !OPEN_RECORD_FIELDS.every(field => holdsField(text, field)) || DECIDED_RECORD_FIELDS.some(field => holdsField(text, field))
+  : !DECIDER_LINE.test(text));
 
 function recordsWithoutDecider() {
   return ['docs/decisions', 'docs/decisions/replaced'].flatMap(folder => readdirSync(join(repoRoot, folder))
     .map(file => ({ file: `${folder}/${file}`, number: Number(/^D(\d+)\.md$/.exec(file)?.[1]) }))
     .filter(({ number }) => number >= FIRST_RECORD_NAMING_ITS_DECIDER)
-    .filter(({ file }) => !DECIDER_LINE.test(readFileSync(join(repoRoot, file), 'utf8')))
+    .filter(({ file }) => outOfForm(readFileSync(join(repoRoot, file), 'utf8')))
     .map(({ file }) => file));
 }
 
@@ -566,7 +574,7 @@ if (catalogDecisions.length > 0) {
 if (undecided.length > 0) {
   process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
   for (const file of undecided) process.stdout.write(`  ${file}\n`);
-  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, a choice and the mechanics around it as two records [D155].\n');
+  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, a choice and the mechanics around it as two records [D155]; an open record holds `Question.`, `Source.` and `Alternatives.`, and neither of those until it is decided [D255].\n');
 }
 if (unmarked.length > 0) {
   process.stdout.write(`\nArtifacts that name no decision (${unmarked.length}):\n`);

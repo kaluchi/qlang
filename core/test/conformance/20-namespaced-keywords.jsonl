@@ -3,16 +3,16 @@
 {"name":"namespaced-keyword-in-map-and-has","query":"{:qlang/error 42} | has :qlang/error","expect":"true"}
 {"name":"namespaced-keyword-equality","query":":qlang/error | eq :qlang/error","expect":"true"}
 {"name":"namespaced-keyword-not-equal","query":":qlang/error | eq :qlang/http","expect":"false"}
-{"name":"projection-still-multi-segment","query":"{:a {:b 99}} | /a/b","expect":"99"}
+{"name":"projection-still-multi-segment","query":"{:a {:b 99}} | get /a/b","expect":"99","decision":"D248","target":true,"now":"::call/UnknownNameError"}
 {"name":"namespaced-in-set","query":"#[:qlang/a :qlang/b] | count","expect":"2"}
 {"name":"namespaced-in-has","query":"#[:qlang/error :qlang/http] | has :qlang/error","expect":"true"}
-{"name":"keyword-projection-simple","query":"{:name \"alice\"} | /:name","expect":"\"alice\""}
-{"name":"keyword-projection-namespaced","query":"{:qlang/error 42} | /:qlang/error","expect":"42"}
-{"name":"keyword-projection-deep-ns","query":"{:qlang/core/strings 99} | /:qlang/core/strings","expect":"99"}
-{"name":"keyword-projection-two-ns-segments","query":"{:qlang/error {:retry 42}} | /:qlang/error/:retry","expect":"42"}
-{"name":"keyword-projection-deep-then-simple","query":"{:qlang/core/strings {:trim 1}} | /:qlang/core/strings/:trim","expect":"1"}
-{"name":"keyword-projection-mixed-bare-ns","query":"{:outer {:qlang/error 42}} | /outer/:qlang/error","expect":"42"}
-{"name":"keyword-projection-ns-missing","query":"{:qlang/error 42} | /:qlang/http","expect":"::proj/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :actualType ::map\n  :trail [\n    {\n      :step ~(/:qlang/http)\n      :subject {:qlang/error 42}\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"bare-projection-unchanged","query":"{:a {:b {:c 42}}} | /a/b/c","expect":"42"}
-{"name":"keyword-projection-equiv-bare","query":"{:name 42} | /:name","expect":"42"}
-{"name":"keyword-projection-equiv-bare-nested","query":"{:a {:b 42}} | /:a/:b","expect":"42"}
+{"name":"keyword-projection-simple","query":"{:name \"alice\"} | get /:name","expect":"\"alice\"","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"keyword-projection-namespaced","query":"{:qlang/error 42} | get /:qlang/error","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"keyword-projection-deep-ns","query":"{:qlang/core/strings 99} | get /:qlang/core/strings","expect":"99","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"keyword-projection-two-ns-segments","query":"{:qlang/error {:retry 42}} | get /:qlang/error/:retry","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"keyword-projection-deep-then-simple","query":"{:qlang/core/strings {:trim 1}} | get /:qlang/core/strings/:trim","expect":"1","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"keyword-projection-mixed-bare-ns","query":"{:outer {:qlang/error 42}} | get /outer/:qlang/error","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"keyword-projection-ns-missing","query":"{:qlang/error 42} | get /:qlang/http","expect":"::proj/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /:qlang/http)\n      :subject {:qlang/error 42}\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"bare-projection-unchanged","query":"{:a {:b {:c 42}}} | get /a/b/c","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"keyword-projection-equiv-bare","query":"{:name 42} | get /:name","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"keyword-projection-equiv-bare-nested","query":"{:a {:b 42}} | get /:a/:b","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}

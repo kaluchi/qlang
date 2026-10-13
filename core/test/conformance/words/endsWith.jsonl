@@ -8,4 +8,4 @@
 {"name":"subject-not-string-throws","query":"42 | endsWith \"x\"","expect":"::string/endsWith/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(endsWith \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"suffix-not-string-throws","query":"\"hi\" | endsWith 42","expect":"::string/endsWith/suffix/NotStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(endsWith 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"filter-vec-by-suffix","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter ~(endsWith \".txt\")","expect":"[\"alice.txt\" \"alex.txt\"]"}
-{"name":"filter-by-projection-suffix","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter ~(/file | endsWith \".qlang\") | map ~/file","expect":"[\"a.qlang\" \"c.qlang\"]"}
+{"name":"filter-by-projection-suffix","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter ~(get /file | endsWith \".qlang\") | map /file","expect":"[\"a.qlang\" \"c.qlang\"]","decision":"D248","target":true,"now":"::call/UnknownNameError"}

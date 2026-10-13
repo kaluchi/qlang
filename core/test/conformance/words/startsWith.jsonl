@@ -8,4 +8,4 @@
 {"name":"subject-not-string-throws","query":"42 | startsWith \"x\"","expect":"::string/startsWith/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(startsWith \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"prefix-not-string-throws","query":"\"hi\" | startsWith 42","expect":"::string/startsWith/prefix/NotStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(startsWith 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"filter-vec-by-prefix","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(startsWith \"al\")","expect":"[\"alice\" \"alex\"]"}
-{"name":"filter-by-projection-prefix","query":"[{:path \"/usr/bin\"} {:path \"/etc/hosts\"} {:path \"/usr/lib\"}] | filter ~(/path | startsWith \"/usr\") | map ~/path","expect":"[\"/usr/bin\" \"/usr/lib\"]"}
+{"name":"filter-by-projection-prefix","query":"[{:path \"/usr/bin\"} {:path \"/etc/hosts\"} {:path \"/usr/lib\"}] | filter ~(get /path | startsWith \"/usr\") | map /path","expect":"[\"/usr/bin\" \"/usr/lib\"]","decision":"D248","target":true,"now":"::call/UnknownNameError"}

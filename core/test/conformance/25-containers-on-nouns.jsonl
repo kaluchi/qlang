@@ -1,26 +1,25 @@
-{"name":"a-key-of-a-map-is-refused-by-its-residence","query":"{:a 1} | at 42 !| [type /actualType]","expect":"[::map/at/key/NotKeywordOrStringError ::number]","decision":"D34"}
-{"name":"an-index-of-a-vector-is-refused-by-its-part","query":"[1 2] | at \"a\" !| type","expect":"::vec/at/index/NotNumberError","decision":"D169"}
-{"name":"the-contract-of-filter-names-its-residences","query":"42 | filter ~(gt 0) !| /addresses","expect":"#[::map/filter ::set/filter ::vec/filter]","decision":"D72"}
+{"name":"an-index-of-a-vector-is-refused-by-its-part","query":"[1 2] | query /a !| type","expect":"::proj/IndexNotIntegerError","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"the-contract-of-filter-names-its-residences","query":"42 | filter ~(gt 0) !| get /addresses","expect":"#[::map/filter ::set/filter ::vec/filter]","decision":"D72","target":true,"now":"::call/UnknownNameError"}
 {"name":"a-tagged-map-keeps-its-tag-through-filter","query":"::T{:a 1 :b 2} | filter ~(eq 1) | type","expect":"::T","decision":"D41"}
 {"name":"a-set-reverses-into-a-vector","query":"#[3 1 2] | reverse","expect":"[3 2 1]","decision":"D34"}
 {"name":"a-tag-over-a-set-comes-back-on-take","query":"::Box#[1 2] | take 1","expect":"::Box#[1]","decision":"D41"}
 {"name":"a-set-is-a-vector-to-a-verb-of-vectors","query":"#[1 2] | vec/count","expect":"2","decision":"D72"}
 {"name":"a-builtin-step-in-a-declared-verb-is-a-step","query":":any/c ~(::builtin{}) | 42 | c | type","expect":"::builtin","decision":"D34"}
-{"name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | :c / | [1 2 3] | c | type","expect":"::builtin","decision":"D34"}
-{"name":"a-part-of-code-closes-over-its-call","query":":k :b | [{:b 2} {:b 1}] | sort ~(at k)","expect":"[{:b 1} {:b 2}]","decision":"D43"}
+{"name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | :c it | get [1 2 3] | c | type","expect":"::builtin","decision":"D34","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-part-of-code-closes-over-its-call","query":":k :b | [{:b 2} {:b 1}] | sort ~(query k)","expect":"[{:b 1} {:b 2}]","decision":"D43","target":true,"now":"::call/UnknownNameError"}
 {"name":"an-address-reaches-a-word-not-moved-onto-its-noun","query":"\"x\" | any/type","expect":"::string","decision":"D34"}
 {"name":"a-tag-over-a-name-passes-to-manifest","query":"::Box(::vec) | manifest | type","expect":"::set","decision":"D34"}
 {"name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6","decision":"D43"}
 {"name":"append-keeps-the-tag-of-its-vector","query":"::Box[1 2] | append 3","expect":"::Box[1 2 3]","decision":"D41"}
-{"name":"append-reruns-the-constructor-of-its-tag","query":":P |~~ P. ~~| | :P/construct ~(/) | ::P[1 2] | append 3 | type","expect":"::P","decision":"D41"}
+{"name":"append-reruns-the-constructor-of-its-tag","query":":P |~~ P. ~~| | :P/construct ~(it) | ::P[1 2] | append 3 | type","expect":"::P","decision":"D41","target":true,"now":"::call/UnknownNameError"}
 {"name":"a-tag-over-a-string-comes-back-on-append","query":"::Box(\"ab\") | append \"c\"","expect":"::Box\"abc\"","decision":"D41"}
 {"name":"a-vector-takes-no-value-beside-it","query":"[#[1]] | union #[2] !| type","expect":"::vec/union/ArgsBeyondPartsError","decision":"D74"}
-{"name":"union-of-a-number-is-refused-with-the-addresses-of-union","query":"42 | union !| /addresses","expect":"#[::map/union ::set/union ::vec/union]","decision":"D74"}
+{"name":"union-of-a-number-is-refused-with-the-addresses-of-union","query":"42 | union !| get /addresses","expect":"#[::map/union ::set/union ::vec/union]","decision":"D74","target":true,"now":"::call/UnknownNameError"}
 {"name":"a-tag-over-a-set-comes-back-on-union","query":"::Box#[1 2] | union #[3]","expect":"::Box#[1 2 3]","decision":"D74"}
-{"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| [type /actualType]","expect":"[::set/union/other/NotSetOrNullError ::vec]","decision":"D74"}
+{"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| [type (get /actualType)]","expect":"[::set/union/other/NotSetOrNullError ::vec]","decision":"D74","target":true,"now":"::call/UnknownNameError"}
 {"name":"a-map-folds-no-values","query":"{:a 1} | union !| type","expect":"::map/union/other/NotGivenError","decision":"D74"}
 {"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false","decision":"D74"}
-{"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | source | map ~/name | has :map/at/key/NotKeywordOrStringError","expect":"false","decision":"D46"}
-{"name":"a-place-lists-the-refusal-declared-under-it","query":"::map/at | source | map ~/name | filter ~(toString | endsWith \"Error\")","expect":"[:map/at/key/NotGivenError :map/at/key/NotKeywordOrStringError]","decision":"D46"}
-{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/other | source | map ~/name | filter ~(toString | endsWith \"Error\")","expect":"[:set/union/other/NotSetOrNullError]","decision":"D46"}
-{"name":"a-noun-lists-each-refusal-once","query":"::vec | source | map ~/name | filter ~(eq :vec/PayloadNotVecError) | count","expect":"1","decision":"D46"}
+{"name":"the-refusal-of-a-key-stays-off-a-set","query":"::set/has | source | map /name | has :map/at/key/NotKeywordOrStringError","expect":"false","decision":"D46","target":true,"now":"::vec/map/code/NotQuoteError"}
+{"name":"a-place-lists-the-refusal-declared-under-it","query":"::map/at | source | map /name | filter ~(toString | endsWith \"Error\")","expect":"[:map/at/key/NotGivenError :map/at/key/NotKeywordOrStringError]","decision":"D46","target":true,"now":"::vec/map/code/NotQuoteError"}
+{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/other | source | map /name | filter ~(toString | endsWith \"Error\")","expect":"[:set/union/other/NotSetOrNullError]","decision":"D46","target":true,"now":"::vec/map/code/NotQuoteError"}
+{"name":"a-noun-lists-each-refusal-once","query":"::vec | source | map /name | filter ~(eq :vec/PayloadNotVecError) | count","expect":"1","decision":"D46","target":true,"now":"::vec/map/code/NotQuoteError"}

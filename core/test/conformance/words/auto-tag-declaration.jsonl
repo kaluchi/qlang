@@ -8,12 +8,12 @@
 {"name":"auto-decl-scalar-payload-wraps","query":"::AutoScalar(42) | type","expect":"::AutoScalar"}
 {"name":"auto-decl-scalar-payload-roundtrip","query":"::AutoScalar(42) | payload","expect":"42"}
 {"name":"auto-decl-jsonarray-payload-composite","query":"::AutoJson(::json[1 2 3]) | type","expect":"::AutoJson"}
-{"name":"an-implicit-kind-declares-no-node","query":"::AutoFoo[1] | ::AutoFoo[2] | ::AutoFoo | binding !| type","expect":"::any/binding/UnknownNameError","decision":"D152"}
+{"name":"an-implicit-kind-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError","decision":"D152"}
 {"name":"auto-decl-bare-tag-keyword-does-not-trigger","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
 {"name":"auto-decl-bare-tag-keyword-yields-tag-keyword-value","query":"::AutoBareOnly | type","expect":"::tag"}
-{"name":"a-declared-kind-is-a-label","query":":ExplicitFirst |~~ ExplicitFirst. ~~| | ::ExplicitFirst[1 2] | ::ExplicitFirst | binding | /value | type","expect":"::doc","decision":"D168"}
+{"name":"a-declared-kind-is-a-label","query":":ExplicitFirst |~~ ExplicitFirst. ~~| | ::ExplicitFirst[1 2] | (::ExplicitFirst | binding | get /value | type)","expect":"::doc","decision":"D168","target":true,"now":"::call/UnknownNameError"}
 {"name":"explicit-impl-decl-runs-constructor","query":":AutoAdd10 |~~ AutoAdd10. ~~| | :AutoAdd10/construct ~(add 10) | ::AutoAdd10(5) | payload","expect":"15"}
-{"name":"auto-decl-then-explicit-redecl-overwrites","query":"::AutoLater[5] | :AutoLater |~~ AutoLater. ~~| | :AutoLater/construct ~(add 100) | ::AutoLater(7) | payload","expect":"107"}
+{"name":"auto-decl-then-explicit-redecl-overwrites","query":"::AutoLater[5] | :AutoLater |~~ AutoLater. ~~| | :AutoLater/construct ~(add 100) | (::AutoLater(7) | payload)","expect":"107"}
 {"name":"auto-decl-filter-preserves-tag","query":"::AutoFilter[1 2 3 4] | filter ~(gt 2) | type","expect":"::AutoFilter"}
 {"name":"auto-decl-sort-preserves-tag","query":"::AutoSort[3 1 2] | sort | type","expect":"::AutoSort"}
 {"name":"auto-decl-distinct-flips-to-tagged-set","query":"::AutoDist[1 2 1 3] | distinct | type","expect":"::AutoDist"}

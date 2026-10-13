@@ -1385,14 +1385,14 @@ decisions leave in the conformance suite [D58]. The decisions whose
 work began before the baseline met their targets, the last of them the
 effect marker leaving the language [D2]; the targets the suite carries
 unmet are those of the step as a command and the path as a value
-[D248], the first work of the route, with the cases of the first page
-it spells anew [D185], and every other decision below writes its
-targets before its work:
+[D248], the first work of the route, and the cases of the suite it
+spells anew, each a target of the record whose rule it shows and each
+holding the answer the tree gives today [D91], and every other decision
+below writes its targets before its work:
 
 ```sh
-$ grep -rhoE '"decision": *"D[0-9]+", *"target": *true' core/test/conformance | grep -oE 'D[0-9]+' | sort -u
-D185
-D248
+$ grep -rh '"target": *true' core/test/conformance | grep -vc '"now"'
+0
 ```
 
 ### Milestone 4 · One spelling

@@ -1,7 +1,7 @@
 {"name":"explain-answers-an-explanation","query":"\"x\" | add 1 !| explain | type","expect":"::explanation","decision":"D98"}
 {"name":"an-explanation-holds-the-page-and-the-value","query":"\"x\" | add 1 !| explain | payload | keys","expect":"#[:page :value]","decision":"D98"}
 {"name":"an-explanation-answers-the-error-it-explains","query":"\"x\" | add 1 !| explain | value | type","expect":"::number/add/SubjectNotNumberError","decision":"D98"}
-{"name":"the-error-of-an-explanation-is-at-rest","query":"\"x\" | add 1 !| explain | value | /actualType","expect":"::string","decision":"D98"}
+{"name":"the-error-of-an-explanation-is-at-rest","query":"\"x\" | add 1 !| explain | value | get /actualType","expect":"::string","decision":"D98","target":true,"now":"::call/UnknownNameError"}
 {"name":"an-explanation-prints-the-error-at-rest","query":"\"x\" | add 1 !| explain | print | contains \":value ::number/add/SubjectNotNumberError!{\"","expect":"true","decision":"D13"}
 {"name":"the-laws-a-page-carried-stand-under-its-name","query":"::number/add | laws | count","expect":"4","decision":"D123"}
 {"name":"an-explanation-prints-its-page-first","query":"\"x\" | add 1 !| explain | print | contains \"::explanation{\n  :page |~~\"","expect":"true","decision":"D98"}

@@ -1,5 +1,5 @@
-{"name":"a-call-of-a-word-no-kind-answers-names-where-it-lives","query":"42 | toTag !| /addresses","expect":"#[::keyword/toTag ::string/toTag ::tag/toTag]","decision":"D34"}
-{"name":"the-contract-of-parse-names-its-residences","query":"42 | parse !| /addresses","expect":"#[::quote/parse ::string/parse]","decision":"D34"}
+{"name":"a-call-of-a-word-no-kind-answers-names-where-it-lives","query":"42 | toTag !| get /addresses","expect":"#[::keyword/toTag ::string/toTag ::tag/toTag]","decision":"D34","target":true,"now":"::call/UnknownNameError"}
+{"name":"the-contract-of-parse-names-its-residences","query":"42 | parse !| get /addresses","expect":"#[::quote/parse ::string/parse]","decision":"D34","target":true,"now":"::call/UnknownNameError"}
 {"name":"payload-resides-on-the-tagged","query":"5 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError","decision":"D34"}
 {"name":"a-set-is-a-tagged-value-to-payload","query":"#[2 1] | payload","expect":"[1 2]","decision":"D34"}
 {"name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box","decision":"D41"}

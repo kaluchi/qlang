@@ -11,6 +11,6 @@
 {"name":"sub-overflow-lifts-not-finite","query":"-1e308 | sub 1e308 !| type","expect":"::number/NotFiniteError","decision":"D169"}
 {"name":"mul-overflow-lifts-not-finite","query":"1e308 | mul 10 !| type","expect":"::number/NotFiniteError","decision":"D169"}
 {"name":"div-overflow-lifts-not-finite","query":"1e308 | div 0.0001 !| type","expect":"::number/NotFiniteError","decision":"D169"}
-{"name":"an-overflow-holds-its-subject-on-the-trail","query":"1e308 | mul 10 !| /trail/0/subject","expect":"1e308","decision":"D169"}
+{"name":"an-overflow-holds-its-subject-on-the-trail","query":"1e308 | mul 10 !| get /trail/0/subject","expect":"1e308","decision":"D169","target":true,"now":"::call/UnknownNameError"}
 {"name":"finite-arithmetic-pays-no-toll","query":"[1 2 3] | sum | add 4 | mul 2 | div 4 | sub 1","expect":"4"}
 {"name":"the-digits-of-round-are-refused-under-the-part","query":"2.5 | round 0.5 !| type","expect":"::number/round/digits/NotIntegerError","decision":"D218"}

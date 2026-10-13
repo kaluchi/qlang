@@ -1,9 +1,9 @@
-{"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| [type /index /actualType]","expect":"[::vec/filter/ConditionNotBooleanError 0 ::number]","decision":"D14"}
-{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(/) !| /key","expect":":b","decision":"D46"}
-{"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(/) !| [type /index]","expect":"[::vec/every/ConditionNotBooleanError 1]","decision":"D14"}
-{"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(/)","expect":"false","decision":"D14"}
-{"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(/) !| [type /index]","expect":"[::vec/any/ConditionNotBooleanError 1]","decision":"D14"}
-{"name":"if-refuses-a-null-condition","query":"null | if (/) ~(1) ~(2) !| type","expect":"::any/if/condition/NotBooleanError","decision":"D14"}
+{"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| [type (get /index) (get /actualType)]","expect":"[::vec/filter/ConditionNotBooleanError 0 ::number]","decision":"D14","target":true,"now":"::call/UnknownNameError"}
+{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| get /key","expect":":b","decision":"D46","target":true,"now":"::call/UnknownNameError"}
+{"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(it) !| [type (get /index)]","expect":"[::vec/every/ConditionNotBooleanError 1]","decision":"D14","target":true,"now":"::call/UnknownNameError"}
+{"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(it)","expect":"false","decision":"D14","target":true,"now":"::call/UnknownNameError"}
+{"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(it) !| [type (get /index)]","expect":"[::vec/any/ConditionNotBooleanError 1]","decision":"D14","target":true,"now":"::call/UnknownNameError"}
+{"name":"if-refuses-a-null-condition","query":"null | if (it) ~(1) ~(2) !| type","expect":"::any/if/condition/NotBooleanError","decision":"D14","target":true,"now":"::call/UnknownNameError"}
 {"name":"if-with-an-identity-branch-runs-the-branch","query":"5 | if (gt 0) ~(add 100) ~()","expect":"105","decision":"D14"}
 {"name":"if-with-an-identity-branch-leaves-the-subject","query":"-5 | if (gt 0) ~(add 100) ~()","expect":"-5","decision":"D14"}
 {"name":"cond-hands-on-the-error-of-a-predicate","query":"\"x\" | cond ~(noSuchName) ~(1) !| type","expect":"::call/UnknownNameError","decision":"D14"}
@@ -11,7 +11,7 @@
 {"name":"or-refuses-a-right-condition-of-another-kind","query":"true | or 1 !| type","expect":"::boolean/or/right/NotBooleanError","decision":"D14"}
 {"name":"not-negates-a-boolean","query":"false | not","expect":"true","decision":"D14"}
 {"name":"the-test-for-null-is-eq-null","query":"[null 1] | filter ~(eq null)","expect":"[null]","decision":"D14"}
-{"name":"runExamples-fails-an-example-that-answers-no-boolean","query":":x 1 | :x/one ::law~(1) | ::x | runLaws | first | /ok","expect":"false","decision":"D14"}
-{"name":"runExamples-passes-an-example-that-answers-true","query":":x 1 | :x/holds ::law~(true) | ::x | runLaws | first | /ok","expect":"true","decision":"D123"}
+{"name":"runExamples-fails-an-example-that-answers-no-boolean","query":":x 1 | :x/one ::law~(1) | ::x | runLaws | first | get /ok","expect":"false","decision":"D14","target":true,"now":"::call/UnknownNameError"}
+{"name":"runExamples-passes-an-example-that-answers-true","query":":x 1 | :x/holds ::law~(true) | ::x | runLaws | first | get /ok","expect":"true","decision":"D123","target":true,"now":"::call/UnknownNameError"}
 {"name":"when-left-the-catalog","query":"5 | when true ~(1) !| type","expect":"::call/UnknownNameError","decision":"D14"}
 {"name":"a-predicate-may-name-a-word","query":"[true false] | filter ~(not)","expect":"[false]","decision":"D14"}

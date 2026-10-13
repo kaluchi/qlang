@@ -14,8 +14,8 @@ chapters tell, `::qlang | doc`; and the chapters this document carried
 on the core, on the hypertext and on how the project got here stand as
 written in `docs/archive/the-audit-chapters.md`. It was first written in
 September 2026, and each version since holds the text against the tree
-the repairs of the one before left. This, the fourteenth, holds it
-against commit `68255c84`, its baseline: a scar the tree no longer shows
+the repairs of the one before left. This, the fifteenth, holds it
+against commit `037e99a7`, its baseline: a scar the tree no longer shows
 has left the document, what remains of a scar is stated as it stands,
 the route starts from the baseline, and every probe answers as the tree
 answered on the day this version was written.
@@ -435,7 +435,7 @@ The rest of the audit walks the scars in the order in which their
 repairs depend on each other. Each section states the problem, shows it
 running, and names what its repair must achieve; the decisions that fix
 the direction are cited by number. Every probe can be reproduced from a
-shell with the `qlang` command or in its REPL, and on 13 October 2026
+shell with the `qlang` command or in its REPL, and on 14 October 2026
 every probe of this chapter answered as its block records.
 
 ### Refusals a host builds from the runtime
@@ -631,8 +631,8 @@ the concepts on the pages of `::qlang` in the order they rest on each
 other; the embedding API is the page of the package, `core/README.md`.
 The documents left are the measure, the decisions, the research of a
 design whose work has begun, which its records absorb as the work lands
-[D164], the audits of a clean outside reader of the tree and the
-reviews of the catalog, each kept as its writer wrote it beside the
+[D164], the audits of a clean outside reader of the tree, run by one
+command [D277], and the reviews of the catalog, each kept as its writer wrote it beside the
 fate of each finding, and the chapters this document left, as they were
 written [D255]:
 
@@ -829,8 +829,11 @@ lossy codec of the boundary and nothing else.
 
 Around those three the language reads as follows. A pipeline carries
 values, and a step is a command, a name and its modifiers as words, in
-parentheses inside a modifier or a literal, so parentheses mean one
-thing, a pipeline as one word. Every modifier holds a value read by its
+parentheses inside a modifier, so parentheses mean one thing, a
+pipeline as one word. A literal holds literals alone from its opening
+sign to its closing pair, reading no name and no subject, and a shape
+computed is the template of `get`, a literal of paths and quotes
+[D279]. Every modifier holds a value read by its
 own form; code is a quote, `~(…)`, `~add` for a single word, which
 nothing but `apply` and an input whose kinds take a quote runs, and a
 quote handed over reads the names of the reader that hands it, never
@@ -999,7 +1002,7 @@ to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `68255c84`, and the finish
+The start is the tree of the baseline, commit `037e99a7`, and the finish
 is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
@@ -1010,7 +1013,8 @@ effect marker leaving the language [D2], and the step as a command and
 the path as a value met theirs, the first work of the route [D248], and
 the quote as data and the function built by commands met theirs
 [D251], and the kind built by commands and the one spelling of the
-roles of a word and a kind theirs [D252], [D253]; a target shows the rule of the record that left it and holds the
+roles of a word and a kind theirs [D252], [D253], and the closed
+literal theirs [D279]; a target shows the rule of the record that left it and holds the
 answer the tree gives today [D91], and every decision below writes its
 targets before its work:
 
@@ -1056,6 +1060,26 @@ language [D253]:
 ::bind/WrittenOutsideItsChainError
 ```
 
+And a literal is closed [D279]: from its opening sign to its closing
+pair it holds literals, so a group or a name inside one is refused and
+a shape computed is the template of `get`, its paths read and its
+quotes run against the subject; a literal whose first character would
+continue a tag's name touches the tag by `#`; and a kind attaches its
+tag by its commands and the check its host hands, building no other
+value. Its cases stand in
+`core/test/conformance/01-a-literal-is-a-value-of-its-kind.jsonl`:
+
+```qlang
+> {:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)}
+{:who "Ann" :next 31}
+
+> "[(5 | add 1) 2]" | parse !| type
+::quote/ParseError
+
+> ::Width#5 | add 3
+::Width#8
+```
+
 The schema is the kind's [D164], [D252]: what stands under a kind is
 the nodes its chain lays under its address, each a name, its page and
 its value, its payload, its fields, its pages, its refusals and their
@@ -1096,7 +1120,7 @@ screen of the work, whose first version `npm run desk` prints [D226],
 grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168], [D169],
-[D185], [D248], [D251], [D252] and [D253] in the conformance suite,
+[D185], [D248], [D251], [D252], [D253] and [D279] in the conformance suite,
 every one met, the
 step of a constructor apart from the kind of tagged values having
 landed [D8]. Beside them: no
@@ -1331,4 +1355,6 @@ those being decided.
 [D274]: decisions/D274.md
 [D275]: decisions/D275.md
 [D276]: decisions/D276.md
+[D277]: decisions/D277.md
 [D278]: decisions/D278.md
+[D279]: decisions/D279.md

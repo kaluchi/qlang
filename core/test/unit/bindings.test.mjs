@@ -1,7 +1,5 @@
-// Binding declarations — BindStep (`:name body`), the freeze
-// `:name it` among them.
-// Every binding declaration parses through `evalBindStep` at the
-// AST level, with no call around it.
+// A declaration, `:name body`, binds the value its body answers, `:name it`
+// the value in the pipe, and the steps after it read the name.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

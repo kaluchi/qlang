@@ -1,5 +1,5 @@
-// The axes — `source`, `doc`, `binding` project the record a
-// declaration wrote into its scope [D5].
+// The axes, `source`, `doc` and `binding`, read the record a declaration
+// wrote into its scope [D5].
 
 import { describe, it, expect } from 'vitest';
 import { printValue } from '../../src/index.mjs';

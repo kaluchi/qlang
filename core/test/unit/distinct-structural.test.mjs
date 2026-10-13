@@ -1,19 +1,6 @@
-// Regression: `distinct` must deduplicate by structural equality,
-// not JS reference identity. Two Maps carrying the same :key value
-// content are "duplicate" by the same axiom that drives `eq` — if
-// `x | eq(y)` is true, `get [~(x), ~(y)] | distinct` must collapse to one.
-//
-// distinct returns a set — the value carrying the uniqueness
-// invariant onto the type plane, the vector in the one order without
-// duplicates [D16]; its elements come back in that order.
-//
-// The bug this fixture pins down: when two distinct JS Map objects
-// carry identical content (the common shape produced by any graph
-// walk that reaches the same logical node via multiple paths —
-// diamond interface hierarchies, fan-in references), the old
-// reference-equality `distinct` left both in the result. That
-// broke downstream `count`, `filter`, `sort`, and anything else
-// consuming the "unique" sequence.
+// `distinct` holds each value once by the equality `eq` holds, two maps of
+// the same entries one value however they were built, and answers a set,
+// the vector in the one order without duplicates [D16].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

@@ -1,8 +1,7 @@
-// tokenize coverage. The function backs every renderer (HTML for
-// the docs site, ANSI for the CLI REPL, eventually LSP semantic
-// tokens) so the contract is exercised here at the value level —
-// kind classification, gap interleaving, parseError fallback, and
-// the [0, src.length] coverage invariant.
+// `tokenize` backs every painter of source, the site's, the command line's
+// and the language server's: each token its kind, the gaps between them
+// whitespace, a source that does not parse painted up to the refusal, and
+// every character of the source covered once.
 
 import { describe, it, expect } from 'vitest';
 import { tokenize } from '../../src/highlight.mjs';

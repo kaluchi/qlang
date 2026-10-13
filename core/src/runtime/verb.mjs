@@ -7,7 +7,7 @@
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { queryStateOf } from '../state.mjs';
 import { mintTaggedInstance } from '../eval.mjs';
-import { bareNameReach, isMemberValue, nodeOf, residencesOf, verbsReaching } from './nouns.mjs';
+import { ANY_KIND_NAME, TAGGED_KIND_NAME, bareNameReach, isMemberValue, nodeOf, residencesOf, verbsReaching } from './nouns.mjs';
 import { signatureOf } from './signature.mjs';
 import { declareRefusal } from '../errors.mjs';
 import {
@@ -31,11 +31,11 @@ export const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerb
 // map; a number is a finite double [D169].
 function isOfKind(value, kindName) {
   switch (kindName) {
-    case 'any':   return true;
+    case ANY_KIND_NAME: return true;
     case 'number': return Number.isFinite(value);
     case 'vec':   return isVec(value);
     case 'map':   return isQMap(value);
-    case 'tagged': return isTaggedInstance(value);
+    case TAGGED_KIND_NAME: return isTaggedInstance(value);
     default:      return typeKeyword(value).name === kindName;
   }
 }
@@ -90,7 +90,7 @@ export function runPrimitive(primitive, served, passedTags, inputValues, state) 
 }
 
 // shownFor(env, name, kindNames?) → what a tool shows for a name,
-// `{ address, labels }`: the word a subject of the kinds reaches [D34], or,
+// `{ address, inputs }`: the word a subject of the kinds reaches [D34], or,
 // where the tool knows no kinds or they reach none, the address the name
 // reaches with no subject, or the first word of a name several kinds
 // answer, and the names of the inputs its function takes [D251];
@@ -102,6 +102,6 @@ export function shownFor(env, name, kindNames = null) {
     : nodeOf(env, reached.address.name);
   const value = bindingValueOf(record);
   if (!isMemberValue(value)) return undefined;
-  const labels = isFn(value) ? signatureOf(value).inputs.map(({ name: input }) => input.name) : [];
-  return { address: makeTag(record.get('name').name), labels };
+  const inputs = isFn(value) ? signatureOf(value).inputs.map(({ name: input }) => input.name) : [];
+  return { address: makeTag(record.get('name').name), inputs };
 }

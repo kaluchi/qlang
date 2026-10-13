@@ -80,7 +80,7 @@ async function pageContents(address) {
 }
 
 // What a call of a word shows: its address and the inputs of its function.
-const signatureOf = shown => [shown.address.literal, ...shown.labels].join(' ');
+const signatureOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
 
 // The kinds of the subject of the step that starts at an offset, where the
 // steps before it name them, or null [D169].
@@ -317,7 +317,7 @@ export async function hoverAtOffset(ast, source, offset) {
     return await hoverForTag(node);
   }
   if (node.type === 'Projection') {
-    return hoverForProjection(node);
+    return await hoverForProjection(node);
   }
   if (node.type === 'Keyword') {
     return {
@@ -402,9 +402,11 @@ async function hoverForTag(node) {
   };
 }
 
-function hoverForProjection(node) {
+// A path shows its literal over the page of the kind of paths.
+async function hoverForProjection(node) {
+  const prose = tidyProse((await pageContents('::path')).join('\n'));
   return {
-    content: `path \`${node.text}\` — a value that names a part, which the word that takes it reads: \`get\` answers the part`,
+    content: markdownHardBreaks([`path \`${node.text}\``, '', prose].join('\n')),
     startOffset: node.location.start.offset,
     endOffset: node.location.end.offset
   };
@@ -612,7 +614,7 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   const shown = shownFor(runtime, call.name, await subjectKindsAt(source, call.location.start.offset));
   if (shown === undefined) return null;
 
-  const modifiers = shown.labels;
+  const modifiers = shown.inputs;
   const docContents = await pageContents(shown.address.literal);
 
   // The active parameter is the modifier the cursor stands on or after:

@@ -10,5 +10,6 @@
 {"decision":"D250","name":"delete-takes-a-place-out","query":"[1 2 3] | delete /1","expect":"[1 3]"}
 {"decision":"D250","name":"delete-refuses-a-key-that-is-not-there","query":"{:a 1} | delete /b !| type","expect":"::path/KeyNotInMapError"}
 {"decision":"D250","name":"a-write-lays-the-tags-on-the-way-again","query":"{:box ::Box{:w 2}} | put /box/w 3 | get /box | type","expect":"::Box"}
-{"decision":"D250","name":"a-write-runs-the-invariants-of-a-tag","query":"::span[0 1 1 1 1 2] | put /0 \"x\" !| type","expect":"::span/PayloadNotSixNumbersError"}
+{"decision":"D250","name":"a-write-runs-the-invariants-of-a-tag","query":"::span[0 1 1 1 1 2] | put /0 0.5 !| type","expect":"::span/PayloadNotSixNumbersError"}
 {"decision":"D250","name":"a-write-of-a-set-orders-it-again","query":"#[1 2 3] | put /0 9","expect":"#[2 3 9]"}
+{"decision":"D248","name":"a-question-mark-after-a-path-leads-to-query","query":"[(\"get /age?\" | parse !| get /message) (\"get /a?/b\" | parse !| get /message)]","expect":"[\"a part that may be missing is read by `query`, which answers null where it misses: write `query /age`\" \"a part that may be missing is read by `query`, which answers null where it misses: write `query /a/b`\"]"}

@@ -3,9 +3,9 @@
 // value as the roles they declare.
 
 import { declareRefusal } from '../errors.mjs';
-import { readsAsBareKeyword } from '../name-chars.mjs';
-import { isDoc, isKeyword, isPath, isQSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTaggedInstance, commandsOf, CALL_TAG, FN_TAG_NAME, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { CONSTRUCT_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName, placesOfSelectors, selectorOfPlace } from './nouns.mjs';
+import { readsAsBareKeyword, LITERAL_WORDS } from '../name-chars.mjs';
+import { isDoc, isKeyword, isPath, isQSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTaggedInstance, commandsOf, FN_TAG_NAME, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { ANY_KIND_NAME, CONSTRUCT_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName, placesOfSelectors, selectorOfPlace } from './nouns.mjs';
 
 const FnSignatureNotCommandsError = declareRefusal('fn/SignatureNotCommandsError');
 const FnNameDeclaredTwiceError = declareRefusal('fn/NameDeclaredTwiceError');
@@ -22,9 +22,6 @@ export const ANSWER_NAME = 'answer';
 export const SUBJECT_NAME = 'subject';
 export const PAYLOAD_NAME = 'payload';
 
-// The objects each command takes, in their order, the last ones left out
-// where the command may leave them.
-const LITERAL_WORDS = new Set(['true', 'false', 'null']);
 const isRefusalName = value => isKeyword(value) && readsAsBareKeyword(value.name);
 const isNameOfOneSegment = value => isRefusalName(value) && !value.name.includes('/') && !LITERAL_WORDS.has(value.name);
 const isInputName = value => isNameOfOneSegment(value) && value.name !== ANSWER_NAME && value.name !== SUBJECT_NAME;
@@ -34,6 +31,8 @@ const isKinds = value => isTag(value) || (isQSet(value) && value.length > 0 && v
 const isPlainVec = value => Array.isArray(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isKindsOfEach = value => isKinds(value) || (isPlainVec(value) && value.length === 1 && isKinds(value[0]));
 
+// The objects each command takes, in their order, the last ones left out
+// where the command may leave them.
 const COMMANDS = new Map([
   ['on', { taken: [isDoc], optional: [isKinds] }],
   ['takes', { taken: [isInputName, isDoc, isPlace], optional: [isKindsOfEach] }],
@@ -68,7 +67,7 @@ function objectsOf(step, commands) {
 // value, which names no kind or names `::any`.
 function kindsOf(value) {
   const names = value === undefined ? [] : isTag(value) ? [value.name] : value.map(tag => tag.name);
-  return names.length === 0 || names.includes('any') ? null : names;
+  return names.length === 0 || names.includes(ANY_KIND_NAME) ? null : names;
 }
 
 // The kinds of a value or of each of its elements, as `takes`, `wraps` and
@@ -214,13 +213,6 @@ export function readKindSignature(quote) {
     }
   }
   return Object.freeze(kind);
-}
-
-// commandStep(command, objects) → the step of a command of a function or
-// of a kind on its objects, an object left out not written, which prints as
-// the command and reads back as the same step.
-export function commandStep(command, objects) {
-  return makeTaggedInstance(CALL_TAG, new Map([['name', keyword(command)], ['modifiers', Object.freeze(objects.filter(object => object !== null))]]));
 }
 
 // signatureOf(fn) → the roles of a function's signature, read once.

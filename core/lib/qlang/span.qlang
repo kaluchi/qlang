@@ -12,14 +12,21 @@
       ::link~(::point | doc) ::link~(::quote/ParseError | doc)
   ~~|
   ::kind
+    | wraps |~~ The six numbers, the start and the end. ~~| [::number]
     | holds :PayloadNotSixNumbersError
         |~~ A span holds six whole numbers, the offset, the line and the
             column of its start and of its end.
         ~~|
-        ~(allOf (count | eq 6) ~(every ~(is ::number)) ~(every ~(eq (floor))))
+        ~(allOf ~(count | eq 6) ~(every ~(eq (floor))))
     | proves :PayloadNotSixNumbersError/refusesThreeNumbers
         |~~ Three numbers make a point, no span. ~~|
         ~(::span[0 1 1] !| type | eq ::span/PayloadNotSixNumbersError)
+    | proves :PayloadNotVecError/refusesText
+        |~~ Text is no vector of numbers. ~~|
+        ~(::span"abcdef" !| type | eq ::span/PayloadNotVecError)
+    | proves :ElementNotNumberError/namesTheElement
+        |~~ An element that is no number is refused by its index. ~~|
+        ~(::span[0 1 "x" 1 1 2] !| get /index | eq 2)
 
 :span/start
   |~~ Answers the point the span starts at, the offset, the line and the

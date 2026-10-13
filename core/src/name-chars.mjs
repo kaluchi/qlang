@@ -1,12 +1,14 @@
-// The letters of a name, one predicate for the grammar, which reads a
-// name by them, and for the printer, which writes a keyword bare when
-// its name reads back so: UAX #31 `ID_Start` and `ID_Continue`, with `_`
-// starting a name and `_` and `-` continuing one, a character being a
-// code unit as the parser reads it.
+// The letters of a name, read by the grammar and by the printer, which
+// writes a keyword bare where its name reads back so: UAX #31 `ID_Start`
+// and `ID_Continue`, `_` starting a name and `_` and `-` continuing one,
+// a character a code unit as the parser reads it.
 // The decisions it exists for: [D2].
 
 const NAME_START = /^[_\p{ID_Start}]$/u;
 const NAME_CONTINUE = /^[\p{ID_Continue}_-]$/u;
+
+// The words of the literals, which no name takes.
+export const LITERAL_WORDS = new Set(['true', 'false', 'null']);
 
 export const isNameStart = character => NAME_START.test(character);
 export const isNameContinue = character => NAME_CONTINUE.test(character);

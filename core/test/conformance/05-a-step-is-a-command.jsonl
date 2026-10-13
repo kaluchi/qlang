@@ -51,7 +51,7 @@
 {"decision":"D248","name":"a-path-parts-its-segments-at-each-slash","query":"{:a/b 1} | get /a/b !| type","expect":"::path/KeyNotInMapError"}
 {"decision":"D248","name":"segments-answers-the-keys-and-places-of-a-path","query":"/a/0 | segments","expect":"[:a 0]"}
 {"decision":"D248","name":"a-word-called-on-a-path-names-its-read","query":"/tags | count !| get /read","expect":"~(get /tags | count)"}
-{"decision":"D248","name":"a-part-given-a-path-names-its-read","query":"5 | mul /qty !| get /read","expect":"~(mul (get /qty))"}
+{"decision":"D248","name":"an-input-given-a-path-names-its-read","query":"5 | mul /qty !| get /read","expect":"~(mul (get /qty))"}
 {"decision":"D248","name":"a-read-that-misses-names-the-path-it-followed","query":"{:a {:b 1}} | get /a/c !| get /path","expect":"/a/c"}
 {"decision":"D248","name":"toPath-reads-a-vector-of-keys","query":"[:a 0] | toPath | print","expect":"\"/a/0\""}
 {"decision":"D248","name":"toPath-reads-json-pointer-with-its-escapes","query":"\"/a~1b/0\" | toPath | segments","expect":"[:\"a/b\" 0]"}

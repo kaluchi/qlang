@@ -6,7 +6,8 @@
 
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { commandStep, kindOf } from './signature.mjs';
+import { kindOf } from './signature.mjs';
+import { commandStep } from '../quote.mjs';
 import {
   isQuote, isVec, isNull, isBuiltinDescriptor, isKind, commandsOf, recipeOf,
   makeTag, makeTaggedInstance, makeQuote, KIND_TAG_NAME
@@ -57,7 +58,7 @@ function kindFrom(subject, SubjectError) {
 // A kind with a command written after the ones it holds.
 function withCommand(subject, SubjectError, command, objects) {
   const kind = kindFrom(subject, SubjectError);
-  return madeKind(makeQuote([...commandsOf(kind), commandStep(command, objects)]), recipeOf(kind));
+  return madeKind(makeQuote([...commandsOf(kind), commandStep(command, objects.filter(object => object !== null))]), recipeOf(kind));
 }
 
 // `wraps |~~ The sizes. ~~| ::map` — the payload, its page and its kinds.

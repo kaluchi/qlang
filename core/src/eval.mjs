@@ -8,22 +8,21 @@ import {
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestWords } from './nearest-names.mjs';
-import { readPath } from './path-read.mjs';
+import { readPath, PathIndexOutOfBoundsError, PathKeyNotInMapError } from './path-read.mjs';
 import {
   isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, isBinding, makeTaggedInstance, makeTag, errorAtRest,
-  isFn, isKind, recipeOf,
+  isFn, isKind, recipeOf, makeQuote,
   ERROR_TAG
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
-import { quoteOfBody, quoteOfLiteral, quoteOfSource, docOfNode, slotDocsOf, astOfQuote, stepOfNode, tagCallStepOf } from './quote.mjs';
-import { printPath } from './runtime/print-value.mjs';
+import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, tagCallStepOf, commandStep, groupStep } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isWord, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, residenceOnSubject, subjectRefusalAddress
+  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isWord, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, residenceOnSubject, subjectRefusalAddress
 } from './runtime/nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, kindOf, pageOfConstructor, pageOfKindsRefusal, signatureOf } from './runtime/signature.mjs';
 import { inputsRunBy } from './primitives.mjs';
@@ -268,80 +267,6 @@ async function evalSetLit(node, state) {
 
 // ─── TaggedLit / TagLit ────────────────────────────────
 
-// mintTaggedInstance(tagName, payload, state) → the payload under the tag
-// through its label [D41]: built by its kind [D252], laid over as it is
-// where no kind answers the tag [D42], [D173], and never over an error
-// [D13].
-export async function mintTaggedInstance(tagName, payload, state) {
-  const declared = bindingValueOf(nodeOf(state.env, tagName));
-  if (isKind(declared)) return await underKind(tagName, declared, payload, state);
-  if (isDoc(declared)) return laidUnder(tagName, payload);
-  if (declared === null || isWord(state.env, tagName) || isInvariant(declared)) return makeTaggedInstance(makeTag(tagName), payload);
-  throw new ConstructTagNotKindError({ tag: makeTag(tagName), actualValue: declared });
-}
-
-// A value under the tag of a label, a value of the label's own kind staying
-// as it is.
-function laidUnder(tagName, value) {
-  return typeKeyword(value).name === tagName ? value : makeTaggedInstance(makeTag(tagName), value);
-}
-
-// A value under a kind [D252]: its payload held to its kinds, each field
-// read and held, the recipe run, and the invariants of the value held,
-// every refusal named under the label, the code running in the scope a
-// call opens.
-async function underKind(tagName, kind, payload, state) {
-  const { payload: payloadRole, fields, invariants } = kindOf(kind);
-  const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, (kinds, each) => `${tagName}/${payloadRefusalName(kinds, each)}`, payload, state.env);
-  if (isErrorValue(held)) return held;
-  let scope;
-  const opened = () => scope ??= recipeScopeOf(state, rootOf(state.env).get(tagName) === nodeOf(state.env, tagName));
-  for (const field of fields) {
-    const refused = await fieldRefusal(tagName, field, held, invariants, state, opened);
-    if (refused !== null) return refused;
-  }
-  const recipe = recipeOf(kind);
-  const built = isRecipe(recipe) ? await builtByRecipe(recipe, held, state, opened) : held;
-  if (isErrorValue(built)) return built;
-  const labelled = laidUnder(tagName, built);
-  const ofTheValue = invariants.filter(({ field }) => field === null);
-  return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, labelled, state, opened()) ?? labelled;
-}
-
-// The value a recipe of a kind builds from the payload: a quote run on it
-// in the scope its call opens, or the primitive a host handed.
-async function builtByRecipe(recipe, payload, state, opened) {
-  if (isQuote(recipe)) return (await evalBody(astOfQuote(recipe), nestState(state, payload, opened()))).pipeValue;
-  return await hostImplOf(recipe)(payload, state);
-}
-
-// The refusal of a field of the payload: a place the payload leaves out, a
-// value of none of its kinds, or one that breaks an invariant written under
-// the field, which holds of the value as the payload gives it; the failure
-// of a quote that reads it; or null.
-async function fieldRefusal(tagName, field, payload, invariants, state, opened) {
-  const fieldAddress = `${tagName}/${field.name.name}`;
-  const read = isPath(field.place)
-    ? pathOfArgs(field.place, withPipeValue(state, payload))
-    : await answerOfBody(astOfQuote(field.place), nestState(state, payload, opened()));
-  if (isErrorValue(read) && isMissedPlace(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.env);
-  if (isErrorValue(read)) return read;
-  const held = heldByItsKinds(field, refusalsUnder(fieldAddress), read, state.env);
-  if (isErrorValue(held)) return held;
-  const ofTheField = invariants.filter(({ field: under }) => under === field.name.name);
-  return ofTheField.length === 0 ? null : await invariantRefusal(ofTheField, tagName, read, state, opened());
-}
-
-// A refusal named by the address of what refused [D46], [D251], its facts
-// with the kind of the value refused in the order the catalog declares
-// them [D46]; the value itself rides the facts where the trail does not
-// hold it, an input or the args, and leaves them for the subject, which the
-// trail's first stop holds [D13].
-function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
-  const tag = makeTag(tagName);
-  return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeKeyword(refused)), env));
-}
-
 async function evalTaggedLit(node, state) {
   const tagName = node.tag;
   const payload = (await fork(state, inner => evalNode(node.payload, inner))).pipeValue;
@@ -409,20 +334,38 @@ function writesOutsideItsChain(env, nounName, lastName, value) {
   return isWord(env, nounName) && (isPath(value) || isQuote(value) || lastName === ANSWER_NAME || lastName === SUBJECT_NAME);
 }
 
-// The nodes a kind lays under its address for `doc`, `manifest` and the
-// tools, each role of its chain with its page, which its values never
-// read [D252].
-function nodesOfKind(kind, address, env, origin) {
-  const { payload, fields, tells, pages, facts, invariants, laws } = kindOf(kind);
+// The nodes a chain lays under an address for `doc`, `manifest`, `laws`
+// and the tools, each a name, its page and its value: the refusal of the
+// kinds a role names under the page `throws` gives it or its own, and the
+// pages, facts, invariants and laws of the chain last.
+function layerOf(env, address, origin, pages) {
   let under = env;
   const lay = (lastName, page, value) => {
     const name = `${address}/${lastName}`;
     under = envSet(under, name, makeBinding({ name: keyword(name), docs: [page], value, origin }));
   };
-  const layKindsRefusal = (refusal, holder, kinds, each) => {
-    const page = pages.get(refusal) ?? pageOfKindsRefusal(holder, kinds, each);
-    lay(refusal, page, page);
+  return {
+    lay,
+    layKindsRefusal(refusal, holder, kinds, each) {
+      const page = pages.get(refusal) ?? pageOfKindsRefusal(holder, kinds, each);
+      lay(refusal, page, page);
+    },
+    layRest({ facts, invariants, laws }) {
+      for (const [name, page] of pages) if (!under.has(`${address}/${name}`)) lay(name, page, page);
+      for (const { name, page, written } of facts) lay(name, page, written ?? page);
+      for (const { name, page, condition } of invariants) lay(name, page, makeTaggedInstance(INVARIANT_TAG, condition));
+      for (const { name, page, query } of laws) lay(name, page, makeTaggedInstance(LAW_TAG, query));
+      return under;
+    }
   };
+}
+
+// The nodes a kind lays under its address, each role of its chain with its
+// page, which its values never read [D252].
+function nodesOfKind(kind, address, env, origin) {
+  const roles = kindOf(kind);
+  const { payload, fields, tells } = roles;
+  const { lay, layKindsRefusal, layRest } = layerOf(env, address, origin, roles.pages);
   if (payload !== null) {
     const holder = keyword(PAYLOAD_NAME);
     lay(PAYLOAD_NAME, payload.page, payload.written ?? payload.page);
@@ -436,41 +379,23 @@ function nodesOfKind(kind, address, env, origin) {
   }
   for (const { name, page, written } of tells) lay(name, page, written ?? page);
   if (recipeOf(kind) !== null) lay(CONSTRUCT_NAME, pageOfConstructor(address), recipeOf(kind));
-  for (const [name, page] of pages) if (!under.has(`${address}/${name}`)) lay(name, page, page);
-  for (const { name, page, written } of facts) lay(name, page, written ?? page);
-  for (const { name, page, condition } of invariants) lay(name, page, makeTaggedInstance(HOLDS_TAG, condition));
-  for (const { name, page, query } of laws) lay(name, page, makeTaggedInstance(LAW_TAG, query));
-  return under;
+  return layRest(roles);
 }
 
-// The nodes a function named under a label lays under its address for
-// `doc`, `manifest`, `laws` and the tools, each role of its chain with its
-// page, which its call never reads [D251].
+// The nodes a function named under a label lays under its address, each
+// role of its chain with its page, which its call never reads [D251].
 function nodesOfFunction(fn, address, env, origin) {
-  const { subject, inputs, answer, pages, facts, invariants, laws } = signatureOf(fn);
-  let under = env;
-  const lay = (lastName, page, value) => {
-    const name = `${address}/${lastName}`;
-    under = envSet(under, name, makeBinding({ name: keyword(name), docs: [page], value, origin }));
-  };
+  const signature = signatureOf(fn);
+  const { subject, inputs, answer } = signature;
+  const { lay, layKindsRefusal, layRest } = layerOf(env, address, origin, signature.pages);
   if (subject !== null) lay(SUBJECT_NAME, subject.page, subject.written ?? subject.page);
   for (const { name, page, place, kinds, each } of inputs) {
     lay(name.name, page, place);
-    if (kinds === null) continue;
-    const refusal = (each ? elementsRefusalAddress : kindsRefusalAddress)(name.name, kinds);
-    const refusalPage = pages.get(refusal) ?? pageOfKindsRefusal(name, kinds, each);
-    lay(refusal, refusalPage, refusalPage);
+    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name, kinds), name, kinds, each);
   }
   if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
-  for (const [name, page] of pages) if (!under.has(`${address}/${name}`)) lay(name, page, page);
-  for (const { name, page, written } of facts) lay(name, page, written ?? page);
-  for (const { name, page, condition } of invariants) lay(name, page, makeTaggedInstance(HOLDS_TAG, condition));
-  for (const { name, page, query } of laws) lay(name, page, makeTaggedInstance(LAW_TAG, query));
-  return under;
+  return layRest(signature);
 }
-
-const HOLDS_TAG = makeTag('holds');
-const LAW_TAG = makeTag('law');
 
 // Whether a declaration among the steps of a word's body, the body itself
 // or a step of its pipeline, names what its call bound in the body's
@@ -514,19 +439,19 @@ async function evalCall(node, state) {
 // wrote, `mul /qty` read as `mul (get /qty)`; a refusal the call itself
 // answered, which no stop of a trail has passed yet, carries it.
 function readOfPathSubject(path, node) {
-  return quoteOfSource(`get ${printPath(path)} | ${node.text}`);
+  return makeQuote([commandStep('get', [path]), stepOfNode(node)]);
 }
 
 function readOfRefusedPath(refused, node, subject) {
   if (!refused.descriptor.has('actualValue')) return isPath(subject) ? readOfPathSubject(subject, node) : null;
   const value = refused.descriptor.get('actualValue');
   if (!isPath(value)) return null;
-  const written = node.args.find(argNode => argNode.type === 'Projection'
+  const written = node.args.findIndex(argNode => argNode.type === 'Projection'
     && argNode.keys.length === value.segments.length && argNode.keys.every((key, at) => String(key) === value.segments[at]));
-  if (written === undefined) return null;
-  const from = written.location.start.offset - node.location.start.offset;
-  const to = written.location.end.offset - node.location.start.offset;
-  return quoteOfSource(`${node.text.slice(0, from)}(get ${written.text})${node.text.slice(to)}`);
+  if (written === -1) return null;
+  const step = stepOfNode(node);
+  const modifiers = step.get('modifiers').map((modifier, at) => (at === written ? groupStep([commandStep('get', [modifier])]) : modifier));
+  return makeQuote([commandStep(step.get('name').name, modifiers)]);
 }
 
 function withReadOfPath(state, node, subject, env) {
@@ -598,9 +523,130 @@ async function callByAddress(node, state) {
   return await applyBinding(record, splitAddress(node.name)[1], modifiers, state);
 }
 
+// ─── A value held to its kinds ──────────────────────────────────
+
+// A refusal named by the address of what refused [D46], [D251], its facts
+// with the kind of the value refused in the order the catalog declares
+// them [D46]; the value itself rides the facts where the trail does not
+// hold it, an input or the args, and leaves them for the subject, which the
+// trail's first stop holds [D13].
+function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
+  const tag = makeTag(tagName);
+  return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeKeyword(refused)), env));
+}
+
+// The value an input, a payload or a field holds: the value of its kind the
+// walk of its tags reaches, or, where it names the kinds of each element,
+// the vector, or the set, of each element's, a quote and a doc, whose
+// elements are steps and segments, as they are; a value of none of its kinds
+// is refused, a value that is no vector where they are the kinds of each
+// element is refused as of no `::vec`, and an element of none is refused
+// with its index, each refusal named as the holder names the refusal of
+// its kinds, or of each element's.
+function heldByItsKinds({ kinds, each }, refusalOf, value, env) {
+  if (!each) {
+    if (kinds === null) return value;
+    const reached = walkToKinds(value, kinds);
+    return reached === null ? refusalUnder(refusalOf(kinds, false), { actualValue: value }, env) : reached.served;
+  }
+  const elements = walkToKinds(value, ['vec']);
+  if (elements === null) return refusalUnder(refusalOf(['vec'], false), { actualValue: value }, env);
+  if (kinds === null) return elements.served;
+  const refused = refusedElementOf(elements.served, kinds);
+  if (refused !== null) return refusalUnder(refusalOf(kinds, true), { index: refused.index, actualValue: refused.element }, env);
+  if (isQuote(elements.served) || isDoc(elements.served)) return elements.served;
+  const served = Array.from(elements.served, element => walkToKinds(element, kinds).served);
+  return isQSet(elements.served) ? makeSet(served) : Object.freeze(served);
+}
+
+// The names of the refusals of the kinds of an input or a field under its
+// address, or of each of its elements'.
+const refusalsUnder = address => (kinds, each) => (each ? elementsRefusalAddress : kindsRefusalAddress)(address, kinds);
+
+// The first element the walk of whose tags reaches none of the kinds,
+// with its index from zero, or null when every one does.
+function refusedElementOf(elements, kinds) {
+  const index = elements.findIndex(element => walkToKinds(element, kinds) === null);
+  return index === -1 ? null : { index, element: elements[index] };
+}
+
+// The refusal of the first invariant written under an input or the answer
+// whose condition the value does not answer true to, named under the
+// address, the error a condition answered handed on as it is, or null.
+async function invariantRefusal(invariants, address, value, state, scope) {
+  for (const { name, condition } of invariants) {
+    const answer = (await evalBody(astOfQuote(condition), nestState(state, value, scope))).pipeValue;
+    if (isErrorValue(answer)) return answer;
+    if (answer !== true) return refusalUnder(`${address}/${name}`, { actualValue: value }, scope);
+  }
+  return null;
+}
+
+// ─── The places of the args ─────────────────────────────────────
+
+// The value an input reads from the args by its place: a place of one
+// step, `/n` or `query /n default`, is the value there, read here as
+// `get` and `query` read it, so the inputs of `query` itself read
+// without calling it; any other place runs as code over the args, a frame
+// below the call.
+function placeRead({ ast, place, onePlace, strict, fallback }, values, overArgs) {
+  if (!onePlace) return ast.type === 'Projection' ? pathOfArgs(makePath(ast.keys), overArgs()) : answerOfBody(ast, overArgs());
+  if (place < values.length) return values[place];
+  if (strict) return MISSED_PLACE;
+  return fallback === null ? null : answerOfBody(fallback, overArgs());
+}
+
+// A selector that is a path of more than one place reads it from the
+// args as `get` does, a place the args do not hold the place the call
+// left out [D248].
+function pathOfArgs(path, state) {
+  try {
+    return readPath(state.pipeValue, path);
+  } catch (refusal) {
+    return errorFromQlang(refusal, state.pipeValue, state.env);
+  }
+}
+
+async function answerOfBody(ast, state) {
+  return (await evalBody(ast, state)).pipeValue;
+}
+
+// A strict read of a place past the values of the args.
+const MISSED_PLACE = Symbol('missedPlace');
+
+// A strict read of a place the args do not hold.
+const MISSED_PLACE_ADDRESSES = new Set([PathIndexOutOfBoundsError.prototype.address, PathKeyNotInMapError.prototype.address]);
+
+function isMissedPlace(error) {
+  return MISSED_PLACE_ADDRESSES.has(error.tag.name);
+}
+
+// ─── The scope a call opens ─────────────────────────────────────
+
+// The scope a call opens, read once for the scope it is called in, which
+// never changes once made.
+const OPENED_SCOPES = [new WeakMap(), new WeakMap()];
+
+function recipeScopeOf(state, ofTheRoot) {
+  const opened = OPENED_SCOPES[ofTheRoot ? 1 : 0];
+  let scope = opened.get(state.env);
+  if (scope === undefined) opened.set(state.env, scope = scopeOpenedIn(state.env, ofTheRoot));
+  return scope;
+}
+
+function scopeOpenedIn(env, ofTheRoot) {
+  const scope = new Map([[ROOT_KEY, rootOf(env)], [QUERY_KEY, queryTreeOf(env)]]);
+  if (ofTheRoot) markRootWordScope(scope);
+  for (const [name, entry] of env) {
+    if (typeof name !== 'string' || scope.has(name)) continue;
+    if (name.includes('/') || (isBinding(entry) && declaresALabel(entry))) scope.set(name, entry);
+  }
+  return scope;
+}
+
 // ─── Names under a label ───────────────────────────────────────
 
-// The name a word's body reads its whole args by [D173].
+// The name a recipe reads the args of its call by [D173].
 const ARGS_NAME = keyword('args');
 
 // A word runs by its function [D251], a recipe written as the value of a
@@ -632,8 +678,6 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
   return refusalUnder(kindsRefusalAddress(address, kinds), { actualValue: answer }, state.env);
 }
 
-const ANY_KIND = 'any';
-
 // callMemberOn(record, subject, state) → the answer of the name under a
 // label the record holds, run on the subject with no modifiers, the
 // print a kind answers among them [D96].
@@ -648,29 +692,8 @@ export async function callMemberOn(record, subject, state) {
 export function answerKindsOf(env, record, subjectKinds) {
   const address = record.get('name').name;
   const answerDefinition = answerOf(env, address);
-  if (answerDefinition === null || answerDefinition.kinds.includes(ANY_KIND)) return null;
+  if (answerDefinition === null || answerDefinition.kinds.includes(ANY_KIND_NAME)) return null;
   return answerDefinition.kinds.includes(splitAddress(address)[0]) ? subjectKinds : answerDefinition.kinds;
-}
-
-// The scope a call opens, read once for the scope it is called in, which
-// never changes once made.
-const OPENED_SCOPES = [new WeakMap(), new WeakMap()];
-
-function recipeScopeOf(state, ofTheRoot) {
-  const opened = OPENED_SCOPES[ofTheRoot ? 1 : 0];
-  let scope = opened.get(state.env);
-  if (scope === undefined) opened.set(state.env, scope = scopeOpenedIn(state.env, ofTheRoot));
-  return scope;
-}
-
-function scopeOpenedIn(env, ofTheRoot) {
-  const scope = new Map([[ROOT_KEY, rootOf(env)], [QUERY_KEY, queryTreeOf(env)]]);
-  if (ofTheRoot) markRootWordScope(scope);
-  for (const [name, entry] of env) {
-    if (typeof name !== 'string' || scope.has(name)) continue;
-    if (name.includes('/') || (isBinding(entry) && declaresALabel(entry))) scope.set(name, entry);
-  }
-  return scope;
 }
 
 // ─── Functions ──────────────────────────────────────────────────
@@ -809,34 +832,6 @@ async function inputsOfCall(signature, address, modifiers, state, scope, body) {
   return { values: inputValues, bodyEnv, writtenHere };
 }
 
-// The value an input, a payload or a field holds: the value of its kind the
-// walk of its tags reaches, or, where it names the kinds of each element,
-// the vector, or the set, of each element's, a quote and a doc, whose
-// elements are steps and segments, as they are; a value of none of its kinds
-// is refused, a value that is no vector where they are the kinds of each
-// element is refused as of no `::vec`, and an element of none is refused
-// with its index, each refusal named as the holder names the refusal of
-// its kinds, or of each element's.
-function heldByItsKinds({ kinds, each }, refusalOf, value, env) {
-  if (!each) {
-    if (kinds === null) return value;
-    const reached = walkToKinds(value, kinds);
-    return reached === null ? refusalUnder(refusalOf(kinds, false), { actualValue: value }, env) : reached.served;
-  }
-  const elements = walkToKinds(value, ['vec']);
-  if (elements === null) return refusalUnder(refusalOf(['vec'], false), { actualValue: value }, env);
-  if (kinds === null) return elements.served;
-  const refused = refusedElementOf(elements.served, kinds);
-  if (refused !== null) return refusalUnder(refusalOf(kinds, true), { index: refused.index, actualValue: refused.element }, env);
-  if (isQuote(elements.served) || isDoc(elements.served)) return elements.served;
-  const served = Array.from(elements.served, element => walkToKinds(element, kinds).served);
-  return isQSet(elements.served) ? makeSet(served) : Object.freeze(served);
-}
-
-// The names of the refusals of the kinds of an input or a field under its
-// address, or of each of its elements'.
-const refusalsUnder = address => (kinds, each) => (each ? elementsRefusalAddress : kindsRefusalAddress)(address, kinds);
-
 // An object of the call that answered an error where the input that reads
 // its place, or the objects of the call whole, takes a quote: the step ran
 // on the subject by mistake, `each (add 1)` for `each ~(add 1)`, and the
@@ -853,59 +848,73 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
     : refusalUnder(kindsRefusalAddress(inputAddress, reading.kinds), { actualValue: atRest }, scope);
 }
 
-// The refusal of the first invariant written under an input or the answer
-// whose condition the value does not answer true to, named under the
-// address, the error a condition answered handed on as it is, or null.
-async function invariantRefusal(invariants, address, value, state, scope) {
-  for (const { name, condition } of invariants) {
-    const answer = (await evalBody(astOfQuote(condition), nestState(state, value, scope))).pipeValue;
-    if (isErrorValue(answer)) return answer;
-    if (answer !== true) return refusalUnder(`${address}/${name}`, { actualValue: value }, scope);
+// ─── A value under a kind ───────────────────────────────────────
+
+// mintTaggedInstance(tagName, payload, state) → the payload under the tag
+// through its label [D41]: built by its kind [D252], laid over as it is
+// where no kind answers the tag [D42], [D173], and never over an error
+// [D13].
+export async function mintTaggedInstance(tagName, payload, state) {
+  const declared = bindingValueOf(nodeOf(state.env, tagName));
+  if (isKind(declared)) return await underKind(tagName, declared, payload, state);
+  if (isDoc(declared)) return laidUnder(tagName, payload);
+  if (declared === null || isWord(state.env, tagName) || isInvariant(declared)) return makeTaggedInstance(makeTag(tagName), payload);
+  throw new ConstructTagNotKindError({ tag: makeTag(tagName), actualValue: declared });
+}
+
+// A value under the tag of a label, a value of the label's own kind staying
+// as it is.
+function laidUnder(tagName, value) {
+  return typeKeyword(value).name === tagName ? value : makeTaggedInstance(makeTag(tagName), value);
+}
+
+// A value under a kind [D252]: its payload held to its kinds, each field
+// read and held, the recipe run, and the invariants of the value held,
+// every refusal named under the label, the code running in the scope a
+// call opens.
+async function underKind(tagName, kind, payload, state) {
+  const { payload: payloadRole, fields, invariants } = kindOf(kind);
+  const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, (kinds, each) => `${tagName}/${payloadRefusalName(kinds, each)}`, payload, state.env);
+  if (isErrorValue(held)) return held;
+  let scope;
+  const opened = () => scope ??= recipeScopeOf(state, rootOf(state.env).get(tagName) === nodeOf(state.env, tagName));
+  for (const field of fields) {
+    const refused = await fieldRefusal(tagName, field, held, invariants, state, opened);
+    if (refused !== null) return refused;
   }
-  return null;
+  const recipe = recipeOf(kind);
+  const built = isRecipe(recipe) ? await builtByRecipe(recipe, held, state, opened) : held;
+  if (isErrorValue(built)) return built;
+  const labelled = laidUnder(tagName, built);
+  const ofTheValue = invariants.filter(({ field }) => field === null);
+  return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, labelled, state, opened()) ?? labelled;
 }
 
-// The value an input reads from the args by its place: a place of one
-// step, `/n` or `query /n default`, is the value there, read here as
-// `get` and `query` read it, so the inputs of `query` itself read
-// without calling it; any other place runs as code over the args, a frame
-// below the call.
-function placeRead({ ast, place, onePlace, strict, fallback }, values, overArgs) {
-  if (!onePlace) return ast.type === 'Projection' ? pathOfArgs(makePath(ast.keys), overArgs()) : answerOfBody(ast, overArgs());
-  if (place < values.length) return values[place];
-  if (strict) return MISSED_PLACE;
-  return fallback === null ? null : answerOfBody(fallback, overArgs());
+// The value a recipe of a kind builds from the payload: a quote run on it
+// in the scope its call opens, or the primitive a host handed.
+async function builtByRecipe(recipe, payload, state, opened) {
+  if (isQuote(recipe)) return (await evalBody(astOfQuote(recipe), nestState(state, payload, opened()))).pipeValue;
+  return await hostImplOf(recipe)(payload, state);
 }
 
-// A selector that is a path of more than one place reads it from the
-// args as `get` does, a place the args do not hold the place the call
-// left out [D248].
-function pathOfArgs(path, state) {
-  try {
-    return readPath(state.pipeValue, path);
-  } catch (refusal) {
-    return errorFromQlang(refusal, state.pipeValue, state.env);
-  }
+// The refusal of a field of the payload: a place the payload leaves out, a
+// value of none of its kinds, or one that breaks an invariant written under
+// the field, which holds of the value as the payload gives it; the failure
+// of a quote that reads it; or null.
+async function fieldRefusal(tagName, field, payload, invariants, state, opened) {
+  const fieldAddress = `${tagName}/${field.name.name}`;
+  const read = isPath(field.place)
+    ? pathOfArgs(field.place, withPipeValue(state, payload))
+    : await answerOfBody(astOfQuote(field.place), nestState(state, payload, opened()));
+  if (isErrorValue(read) && isMissedPlace(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.env);
+  if (isErrorValue(read)) return read;
+  const held = heldByItsKinds(field, refusalsUnder(fieldAddress), read, state.env);
+  if (isErrorValue(held)) return held;
+  const ofTheField = invariants.filter(({ field: under }) => under === field.name.name);
+  return ofTheField.length === 0 ? null : await invariantRefusal(ofTheField, tagName, read, state, opened());
 }
 
-async function answerOfBody(ast, state) {
-  return (await evalBody(ast, state)).pipeValue;
-}
-
-// A strict read of a place past the values of the args.
-const MISSED_PLACE = Symbol('missedPlace');
-
-// The first element the walk of whose tags reaches none of the kinds,
-// with its index from zero, or null when every one does.
-function refusedElementOf(elements, kinds) {
-  const index = elements.findIndex(element => walkToKinds(element, kinds) === null);
-  return index === -1 ? null : { index, element: elements[index] };
-}
-
-// A strict read of a place the args do not hold.
-function isMissedPlace(error) {
-  return error.tag.name === 'path/IndexOutOfBoundsError' || error.tag.name === 'path/KeyNotInMapError';
-}
+// ─── Code closed at a call ──────────────────────────────────────
 
 // closeCode(astNode, capturedState) → (input) → value: code run against
 // the input it is handed, one frame below and in its scope, a step on the
@@ -953,7 +962,7 @@ export function codeOfPath(path, callState) {
 }
 
 // codeOf(code, callState, writtenHere) → code closed at the call: a quote
-// a part of code holds, closed at the call [D4], run against each input
+// an input of code holds, closed at the call [D4], run against each input
 // its verb hands it in the scope of the step where it is written, or, held
 // as data, in the tree of the query that made the call [D200], [D251].
 export function codeOf(code, callState, writtenHere = false) {

@@ -1069,8 +1069,8 @@ runtime's own.
 The model's reading of what in this milestone the language needs, and
 what is the debt of its tree. The schema is the language's, since
 without it the shape of an answer cannot be known before it is fetched,
-and a host has nowhere to say what its records hold; it stands now as
-the commands of a kind [D252]. The rule of
+and a host has nowhere to say what its records hold; it stands as the
+commands of a kind [D252]. The rule of
 collisions is the language's as soon as a host publishes a catalog of
 its own, which the sister project does, and mounting is the language's
 for a host whose names are too many to declare. A class of the

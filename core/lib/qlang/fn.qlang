@@ -131,7 +131,8 @@
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))
           | :number/one (::fn | returns |~~ One. ~~| ::number | impl ~(1))
           | :number/any (::fn | takes :by |~~ How much. ~~| /0 | impl ~(by))
-          | [(5 | plus (get /x) !| type) (5 | one (get /x) !| type) (5 | any (get /x) !| type)]
+          | :number/bare ~(1)
+          | [(5 | plus (get /x) !| type) (5 | one (get /x) !| type) (5 | any (get /x) !| type) (5 | bare (get /x) !| type)]
           | every ~(eq ::path/SubjectNotProjectableError))
     | proves :PayloadNotPairError/refusesANumber
         |~~ A number is no pair. ~~|
@@ -382,6 +383,15 @@
           | each (add 1)
           !| type
           |  eq ::vec/each/code/NotQuoteError)
+    | proves :refusesAStepWrittenForAQuoteOfTheArgsByItsPlace
+        |~~ Where the input that reads the args whole takes quotes, an
+            object that failed is refused by its place.
+        ~~|
+        ~(:number/w (::fn | takes :cs |~~ Codes. ~~| ~(it) [::quote] | impl ~(1))
+          | 5
+          | w ~(add 1) (get /x)
+          !| [type (get /index)]
+          | eq [::number/w/cs/ElementNotQuoteError 1])
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | takes :by |~~ How much. ~~| /0 !| type | eq ::fn/takes/SubjectNotFnError)
@@ -662,6 +672,12 @@
     | proves :writesIntoTheEmptyCode
         |~~ Into the empty code the value goes as its one declaration. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~() | fill 3 | eq ~(:by |~~ How much. ~~| 3))
+    | proves :writesADocAsTheValue
+        |~~ A doc goes into the head of the code in parentheses, the value
+            of its input.
+        ~~|
+        ~(::fn | takes :d |~~ A doc. ~~| /0 | impl ~(d | content) | fill |~~ x ~~|
+          | eq ~(:d |~~ A doc. ~~| (|~~ x ~~|) | d | content))
     | proves :holdsTheKinds
         |~~ A value of none of the kinds of its input is refused. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by) | fill "x" !| type | eq ::fn/call/by/NotNumberError)

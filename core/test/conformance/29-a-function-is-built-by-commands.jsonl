@@ -20,3 +20,11 @@
 {"decision":"D251","name":"a-recipe-of-a-function-reads-its-input-past-a-value-of-the-sentence","query":":by 99 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | 5 | plus 3","expect":"8"}
 {"decision":"D251","name":"a-recipe-of-a-function-reads-a-word-declared-after-it","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1","expect":"12"}
 {"decision":"D251","name":"a-value-of-the-sentence-shadows-no-word-the-recipe-of-a-function-calls","query":":twice 7 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1","expect":"12"}
+{"decision":"D67","name":"a-word-reads-its-input-by-its-name","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(mul 10 | add x)) | 2 | m it","expect":"22"}
+{"decision":"D67","name":"a-word-recurses-through-its-input","query":":number/fact (::fn | takes :n |~~ The n. ~~| /0 ::number | impl ~(if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1))))) | 5 | fact it","expect":"120"}
+{"decision":"D251","name":"a-handed-quote-sees-the-names-of-its-author","query":":x 10 | :any/t (::fn | takes :q |~~ The q. ~~| /0 ::quote | takes :x |~~ The x. ~~| /1 | impl ~(apply q)) | 2 | t ~(add x) 99","expect":"12"}
+{"decision":"D67","name":"a-verb-takes-an-input-by-its-declaration","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(mul 10 | add x)) | 2 | m 3","expect":"23"}
+{"decision":"D67","name":"an-optional-input-takes-its-default","query":":vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 9 7] | top","expect":"[9 7 5]"}
+{"decision":"D67","name":"an-optional-input-takes-a-modifier","query":":vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 9 7] | top 2","expect":"[9 7]"}
+{"decision":"D251","name":"the-recipe-of-a-word-of-the-host-is-its-descriptor","query":"::vec/sort | binding | get /value | get /1 | type","expect":"::builtin"}
+{"decision":"D251","name":"a-recipe-reads-no-quote-its-query-names","query":":x 10 | :q ~(add x) | :any/t (::fn | takes :x |~~ The x. ~~| /0 | impl ~(apply q)) | 2 | t 99 !| get /actualValue/name","expect":":q"}

@@ -87,11 +87,8 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
   });
 }
 
-// Peggy `expected` is a Vec of {type, ...} alternatives with
-// heavy duplication (the same literal is reachable through several
-// productions). Deduplicate by canonical shape and lower each
-// element to its qlang surface form: a String for `literal`, a
-// Keyword for the named char-class / `end-of-input`.
+// The continuations a parse failure lists, each once: a literal as its
+// text, and the end, any character and a named rule as keywords.
 function liftExpectedAlternatives(expected) {
   const seen = new Set();
   const out = [];
@@ -120,23 +117,15 @@ function classKeyword() {
   return keyword('char-class');
 }
 
-// Build the source line + caret marker pair. Stamped as two
-// top-level descriptor entries `:source` / `:marker` — both
-// 7-character keys, so `printMapLike`'s shared prefix lines the
-// strings up column-for-column and the caret sits exactly under
-// the offending char. The marker is trailing-space-padded to the
-// source length so both strings end at the same column (visual
-// rectangle, no ragged right edge). Canonical numeric position
-// lives in `:location.start`; this pair carries only the visual.
+// The line where a reading stopped and its marker, a caret under the
+// start of the span and tildes to its end, padded so the two strings
+// end in one column; `:location` holds the span itself [D249].
 function excerptAroundLocation(source, location) {
   const lineNumber = location.start.line;
   const line = source.split('\n')[lineNumber - 1];
   const startCol = location.start.column;
-  // Peggy always emits `end.line === start.line` for qlang grammar
-  // failures — the failure span is always within one source line —
-  // so the marker width is `end.column - start.column` clamped to
-  // at least 1 so a zero-width position (end-of-input failure)
-  // still produces a single caret.
+  // A reading stops within one line, and a span of no width takes one
+  // caret.
   const markerWidth = Math.max(1, location.end.column - startCol);
   const lead = ' '.repeat(Math.max(0, startCol - 1));
   const caret = '^' + '~'.repeat(Math.max(0, markerWidth - 1));

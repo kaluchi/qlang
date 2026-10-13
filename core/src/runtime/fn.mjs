@@ -9,10 +9,9 @@
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { quoteOfSource, printQuoteSource } from '../quote.mjs';
-import { printValue } from './print-value.mjs';
+import { commandStep, declarationStep } from '../quote.mjs';
 import { inputsOfFunction } from '../eval.mjs';
-import { commandStep, signatureOf } from './signature.mjs';
+import { signatureOf } from './signature.mjs';
 import {
   isQuote, isVec, isNull, isBuiltinDescriptor, isErrorValue, isFn, commandsOf, recipeOf,
   makeTag, makeTaggedInstance, makeQuote, FN_TAG_NAME
@@ -62,7 +61,7 @@ function functionOf(subject, SubjectError) {
 
 // A function with a command written after the ones its signature holds.
 function withCommand(fn, command, objects) {
-  return madeFn(makeQuote([...commandsOf(fn), commandStep(command, objects)]), recipeOf(fn));
+  return madeFn(makeQuote([...commandsOf(fn), commandStep(command, objects.filter(object => object !== null))]), recipeOf(fn));
 }
 
 // `on |~~ A number. ~~| ::number` — the subject, its page and its kinds.
@@ -114,8 +113,7 @@ bindStateReader('fn/fill', async (fn, args, state) => {
   if (!isQuote(recipe)) throw new FnFillRecipeNotCodeError({ actualValue: fn });
   const values = await inputsOfFunction(fn, [...args], state);
   if (isErrorValue(values)) return values;
-  const heads = signatureOf(fn).inputs.map(({ name, page }, at) => `${name.literal} ${printValue(page)} ${printValue(values[at])}`);
-  return quoteOfSource([...heads, printQuoteSource(recipe)].filter(text => text !== '').join(' | '));
+  return makeQuote([...signatureOf(fn).inputs.map(({ name, page }, at) => declarationStep(name.name, [page], values[at])), ...recipe]);
 });
 
 // `params` — the inputs, each a map of its name, its page, its place and

@@ -1,11 +1,12 @@
 // PEG grammar for the qlang expression language.
 //
 // A step is a command, a name followed by its modifiers, each one word
-// [D10]. A line break is whitespace wherever whitespace stands, so a
-// combinator joins two steps and whitespace a declaration as well, and a
-// keyword that begins a line opens a declaration of its own, which ends
-// the modifiers of a command before it [D243]. Every combinator is set off
-// by whitespace on both sides.
+// [D10]. A line break is whitespace, and around a declaration it tells
+// where the declaration ends: a keyword that begins a line opens a
+// declaration of its own, which ends the modifiers of a command before it
+// [D243], and the body of a name with a path begun on a later line runs on
+// to the next declaration [D251]. Every combinator is set off by
+// whitespace on both sides.
 //
 // Every node carries `.location`, its span, the offsets, lines and
 // columns `span()` reads, and `.text`, the source it matched; the pass
@@ -19,7 +20,7 @@
 // declaration whose slot it stands in [D83].
 
 {{
-  import { isNameStart, isNameContinue, readsAsBareKeyword } from '../src/name-chars.mjs';
+  import { isNameStart, isNameContinue, readsAsBareKeyword, LITERAL_WORDS } from '../src/name-chars.mjs';
   import { canonicalFlags, patternProblem, patternRefusal, PATTERN_FLAGS } from '../src/pattern.mjs';
   import { builtFrom } from '../src/walk.mjs';
 
@@ -140,8 +141,6 @@
   // and no word of a literal, which a step reads as its value, alone but
   // for a label, which its tag reaches, declared by its page [D152] or by
   // the chain that builds a kind from `::kind` [D252].
-  const LITERAL_WORDS = new Set(['true', 'false', 'null']);
-
   function nameCalled(name, body) {
     return readsAsBareKeyword(name) && (body === null || builtFrom(body) === 'kind' || !LITERAL_WORDS.has(name));
   }
@@ -354,16 +353,11 @@ ModifierGap
   = _h1 !Whitespace
   / __ !DeclarationOpens
 
-// Whether a declaration opens here [D243]: a keyword and its doc, or the
-// step its body opens with, any step on the line of the keyword and no
-// keyword on a later one, read no further than that opening, so each
-// declaration of a source is read once. Inside a quote of a doc, where the
-// try decides whether the span reads as code, the declaration is read
-// whole, and inside that look ahead a keyword that begins a line ends the
-// modifiers of a command, which leaves whether the declaration opens as it
-// is; the branch that reads it counts the depth on the way in and gives it
-// back on the way out, and the last fails always, after its predicate
-// gave the depth back.
+// Whether a declaration opens here [D243]: a keyword with its doc or with
+// the step its body opens with, read no further than that opening; inside
+// a quote of a doc a declaration is read whole, within which a keyword
+// alone opens one, and the depth `lookingAhead` counts is given back
+// whether the declaration is read or not.
 DeclarationOpens
   = &{ return docQuoteDepth === 0; } BindName (__ DocOpen / _h1 !Whitespace StepOpens / __ !Keyword StepOpens)
   / &{ return lookingAhead > 0; } BindName
@@ -618,9 +612,8 @@ BlockDocPart
   / !"~~|" c:. { return c; }
 
 // A quote of a doc, under the stack of tags written before it, which
-// gives it its role [D108]: the try counts its depth on the way in and
-// gives it back on the way out, having read a quote or not; the second
-// branch fails always, after its predicate gave the depth back.
+// gives it its role [D108], the depth `docQuoteDepth` counts given back
+// whether a quote is read or not.
 DocQuote
   = &{ docQuoteDepth++; return true; } tags:DocQuoteTag* quote:QuoteLit &{ docQuoteDepth--; return true; }
     { return tags.length === 0 ? quote : node('DocTaggedQuote', { tags, quote }, span(), text()); }
@@ -709,9 +702,12 @@ LiteralGap
 
 // A path, a value of its own [D248]: a segment is a bare key, a quoted
 // key, a namespaced keyword after `:`, or an index; the slash alone names
-// no path, the value itself being `it`.
+// no path, the value itself being `it`, and a question mark after a
+// segment, the habit of a read that may miss, leads to `query`.
 Projection
-  = "/" first:KeySegment rest:("/" @KeySegment)*
+  = &{ return docQuoteDepth === 0; } written:$("/" KeySegment ("?"? "/" KeySegment)* "?"?) &{ return written.includes('?'); }
+    { error(`a part that may be missing is read by \`query\`, which answers null where it misses: write \`query ${written.replaceAll('?', '')}\``); }
+  / "/" first:KeySegment rest:("/" @KeySegment)*
     { return node('Projection', { keys: [first, ...rest] }, span(), text()); }
   / &{ return docQuoteDepth === 0; } "/" !KeySegment
     { error('the slash alone names no path: the value itself is `it`'); }

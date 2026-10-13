@@ -86,10 +86,10 @@
             where it stands, `:name` the name. A group, an element, a
             modifier and a quote open scopes of their own, where a name of
             the scope around them is shadowed, so a second value takes
-            another name or a group of its own, `(:k 2 | k)`. The body of
-            a word runs in a scope its call opens with `args` and each
-            input, so a step of the body declares none of them again: the
-            body reads an input by its name, and a value of its own takes
+            another name or a group of its own, `(:k 2 | k)`. The recipe
+            of a word runs in a scope its call opens with `args` and each
+            input, so a step of the recipe declares none of them again: the
+            recipe reads an input by its name, and a value of its own takes
             another. An address the root holds is declared once at all: a
             reader extends a noun of the root by a name of its own,
             `:vec/second ~(get /1)`, and replaces none of its names, and a
@@ -185,7 +185,7 @@
     | proves :NameDeclaredTwiceError/letsAQuoteDeclareAgain
         |~~ A quote declares in a scope of its own. ~~|
         ~(:k 1 | apply ~(:k 2 | k) | eq 2)
-    | proves :NameDeclaredTwiceError/refusesAPartDeclaredInTheBody
+    | proves :NameDeclaredTwiceError/refusesAnInputDeclaredInTheRecipe
         |~~ The recipe of a word declares none of its inputs again. ~~|
         ~(:number/m (::fn | takes :x |~~ How much. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| [type (get /name)] | eq [::bind/NameDeclaredTwiceError :x])
     | proves :NameDeclaredTwiceError/refusesANameTheRootHolds

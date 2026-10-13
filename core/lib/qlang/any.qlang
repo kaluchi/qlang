@@ -958,7 +958,7 @@
       the declaration of its kind. A binding no step declared, a value a
       host bound, answers null. Given a name, it reads the name the
       subject holds under it: for a tag name the name under its address,
-      a part of the args of a word among them, and for any other subject
+      an input of a word among them, and for any other subject
       the word the name calls after it. A name nothing declares is
       refused, with the addresses where a word of that name lives.
       ::link~(::any/doc | doc) ::link~(::any/binding | doc)
@@ -1907,12 +1907,10 @@
       several kinds, it answers whether the subject is of one of them,
       and given none, false. A kind no tag of the walk names is not
       reached, so a misspelt kind, `is ::Numbr`, answers false and is
-      not refused. A part of the args whose invariant asks `is` is
-      handed to its name as the value of the kind the walk reached, and
-      one whose invariant asks `every ~(is …)` as the vector, or the set,
-      of each element's, a quote and a doc as they are, an element the
-      walk refuses named by its index from zero.
+      not refused. It answers and holds nothing: an input of a word is
+      held to its kinds by the `takes` that declares it.
       ::link~(::any/type | doc) ::link~(::any/tag | doc)
+      ::link~(::fn/takes | doc)
   ~~|
   ::fn
     | takes :kinds

@@ -59,7 +59,7 @@
     },
     "doc-quote-short": {
       "comment": "The short form of a quote inside a doc: ~name, ~/path, ~::tag.",
-      "match": "(~)((?:::|/)?[_a-zA-Z][a-zA-Z0-9_/-]*)",
+      "match": "(~)((?:::|/)?[_\\p{L}][\\p{L}\\p{N}_/-]*)",
       "captures": {
         "1": { "name": "keyword.operator.quote.qlang" },
         "2": { "name": "entity.name.function.qlang" }
@@ -93,7 +93,7 @@
         { "include": "#tag" },
         { "include": "#map-key" },
         { "name": "constant.other.symbol.qlang", "match": ":\"(?:[^\"\\\\`]|\\\\[^`])*\"" },
-        { "name": "constant.other.symbol.qlang", "match": ":[_a-zA-Z][a-zA-Z0-9_-]*(?:/[_a-zA-Z][a-zA-Z0-9_-]*)*" },
+        { "name": "constant.other.symbol.qlang", "match": ":[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*" },
         { "include": "#number" },
         { "include": "#constant" },
         { "include": "#projection" },
@@ -154,7 +154,7 @@
     "tag": {
       "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/add/SubjectNotNumberError!{...}`) and a TagLit reference (`::vec/count | doc`). Tried before map-key / keyword so leading `::` does not split into two keyword sigils.",
       "name": "entity.name.type.qlang",
-      "match": "::[_a-zA-Z][a-zA-Z0-9_-]*(?:/[_a-zA-Z][a-zA-Z0-9_-]*)*"
+      "match": "::[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*"
     },
 
     "map-key": {
@@ -169,7 +169,7 @@
         },
         {
           "comment": "bare map key :ident followed by whitespace",
-          "match": "(:[_a-zA-Z][a-zA-Z0-9_-]*(?:/[_a-zA-Z][a-zA-Z0-9_-]*)*)(?=[ \\t])",
+          "match": "(:[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*)(?=[ \\t])",
           "captures": {
             "1": { "name": "support.type.property-name.qlang" }
           }
@@ -194,25 +194,25 @@
         {
           "comment": "bare keyword :name",
           "name": "constant.other.symbol.qlang",
-          "match": ":[_a-zA-Z][a-zA-Z0-9_-]*(?:/[_a-zA-Z][a-zA-Z0-9_-]*)*"
+          "match": ":[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*"
         }
       ]
     },
 
     "number": {
       "name": "constant.numeric.qlang",
-      "match": "(?<![a-zA-Z0-9_-])-?[0-9]+(?:\\.[0-9]+)?"
+      "match": "(?<![\\p{L}\\p{N}_-])-?[0-9]+(?:\\.[0-9]+)?"
     },
 
     "constant": {
       "patterns": [
         {
           "name": "constant.language.boolean.qlang",
-          "match": "\\b(true|false)(?![a-zA-Z0-9_-])"
+          "match": "\\b(true|false)(?![\\p{L}\\p{N}_-])"
         },
         {
           "name": "constant.language.null.qlang",
-          "match": "\\bnull(?![a-zA-Z0-9_-])"
+          "match": "\\bnull(?![\\p{L}\\p{N}_-])"
         }
       ]
     },
@@ -228,7 +228,7 @@
           }
         },
         {
-          "match": "(/)([_a-zA-Z][a-zA-Z0-9_-]*)",
+          "match": "(/)([_\\p{L}][\\p{L}\\p{N}_-]*)",
           "captures": {
             "1": { "name": "keyword.operator.projection.qlang" },
             "2": { "name": "variable.other.member.qlang" }
@@ -266,7 +266,7 @@
     "identifier": {
       "comment": "Names called as words, and addresses of words.",
       "name": "entity.name.function.qlang",
-      "match": "[_a-zA-Z][a-zA-Z0-9_-]*(?:/[_a-zA-Z][a-zA-Z0-9_-]*)*"
+      "match": "[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*"
     },
 
     "punctuation": {

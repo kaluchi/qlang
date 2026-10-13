@@ -84,24 +84,6 @@ describe('a host\'s word written as the chain of its function [D251]', () => {
     expect((await hosted.evalCell('5 | each ~(add 1) 7')).result).toEqual([6, 7]);
   });
 
-  it('refuses an object that failed where the input that reads its place takes a quote, one that reads the args whole naming its place', async () => {
-    const answers = await Promise.all([
-      ':number/w (::fn | takes :c |~~ Code. ~~| /0 ::quote | impl ~(1)) | 5 | w (get /x) !| type',
-      ':number/w (::fn | takes :cs |~~ Codes. ~~| ~(it) [::quote] | impl ~(1)) | 5 | w ~(add 1) (get /x) !| [type (get /index)]'
-    ].map(async query => (await (await createSession()).evalCell(query)).result));
-    expect(answers[0].name).toBe('number/w/c/NotQuoteError');
-    expect(answers[1].map(fact => fact.name ?? fact)).toEqual(['number/w/cs/ElementNotQuoteError', 1]);
-  });
-
-  it('answers the failure of an object no input that takes a quote reads', async () => {
-    const answers = await Promise.all([
-      ':number/w ~(1) | 5 | w (get /x) !| type',
-      ':number/w (::fn | takes :by |~~ By. ~~| /0 | impl ~(by)) | 5 | w (get /x) !| type',
-      ':number/w (::fn | takes :by |~~ By. ~~| /0 ::number | impl ~(by)) | 5 | w (get /x) !| type'
-    ].map(async query => (await (await createSession()).evalCell(query)).result));
-    expect(answers.every(answer => answer.name === 'path/SubjectNotProjectableError')).toBe(true);
-  });
-
   it('names the refusals of a word written as its recipe alone, the function of no commands it is [D253]', async () => {
     const own = await createSession();
     await own.evalCell(':number/v ~(1)');

@@ -2,5 +2,6 @@
  "id": "V",
  "author": "sonnet",
  "written": "2026-10-13",
- "seen": false
+ "seen": true,
+ "seenBy": "frictions"
 }

@@ -16,10 +16,11 @@ import { splitAddress } from '../address.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { astOfQuote } from '../quote.mjs';
 import { segmentIndex } from '../path-read.mjs';
-import { functionOfRecipe, kindOf, signatureOf } from './signature.mjs';
+import { ANSWER_NAME, functionOfRecipe, kindOf, signatureOf } from './signature.mjs';
 
-const ANY_KIND_NAME = 'any';
-const TAGGED_KIND_NAME = 'tagged';
+// The kind every value answers, and the kind of every value under a tag.
+export const ANY_KIND_NAME = 'any';
+export const TAGGED_KIND_NAME = 'tagged';
 
 // The bindings of a scope by name: the root's a name of the frame does
 // not stand over, then the frame's.
@@ -102,15 +103,14 @@ export function answerOf(env, address) {
   return record === null ? null : { address: record.get('name').name, kinds: kindsNamedBy(bindingValueOf(record)) };
 }
 
-const ANSWER_NAME = 'answer';
-
 // Whether a value is an invariant, a quote under `::holds`, whose name is
 // the refusal of a value that breaks it [D168].
 export function isInvariant(value) {
   return isValueClass(value, 'taggedInstance') && value.tag.name === INVARIANT_TAG_NAME && isQuote(value.payload);
 }
 
-const INVARIANT_TAG_NAME = 'holds';
+export const INVARIANT_TAG = makeTag('holds');
+const INVARIANT_TAG_NAME = INVARIANT_TAG.name;
 
 // Whether a value is a law, a quote under `::law`, which proves the
 // claim its name makes [D123].
@@ -118,7 +118,8 @@ export function isLaw(value) {
   return isValueClass(value, 'taggedInstance') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload);
 }
 
-const LAW_TAG_NAME = 'law';
+export const LAW_TAG = makeTag('law');
+const LAW_TAG_NAME = LAW_TAG.name;
 
 // lawsUnder(env, address) → the laws declared one name under an address,
 // each `[lastName, record]` in the order of their declarations [D123].
@@ -331,7 +332,7 @@ export function placesOfSelectors(selectors) {
 // named as the catalog names the payload's refusals [D252].
 export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kindsWord(kinds)}Error`;
 export const argsBeyondInputsAddress = address => `${address}/ArgsBeyondInputsError`;
-export const notGivenAddress = partAddress => `${partAddress}/NotGivenError`;
+export const notGivenAddress = holderAddress => `${holderAddress}/NotGivenError`;
 export const kindsRefusalAddress = (address, kinds) => `${address}/Not${kindsWord(kinds)}Error`;
 export const elementsRefusalAddress = (address, kinds) => `${address}/ElementNot${kindsWord(kinds)}Error`;
 export const payloadRefusalName = (kinds, each) => `${each ? 'Element' : 'Payload'}Not${kindsWord(kinds)}Error`;
@@ -367,7 +368,7 @@ export function functionRuleRefusalsOf(signature, address, labelName) {
     if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress, kinds) : kindsRefusalAddress(inputAddress, kinds));
   }
   const kinds = signature.answer?.kinds ?? null;
-  if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/answer`, kinds));
+  if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`, kinds));
   return refusals;
 }
 

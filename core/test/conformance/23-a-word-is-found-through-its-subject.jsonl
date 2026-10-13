@@ -3,51 +3,51 @@
 {"decision":"D251","name":"a-word-refuses-modifiers-beyond-its-places","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(add x)) | 5 | m 1 2 3 !| [type (get /places)]","expect":"[::number/m/ArgsBeyondInputsError 1]"}
 {"decision":"D251","name":"an-input-is-held-to-its-kinds","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(add x)) | 5 | m \"a\" !| type","expect":"::number/m/x/NotNumberError"}
 {"decision":"D67","name":"an-input-takes-the-value-of-its-kind-beneath-the-tags","query":":any/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(x)) | null | m ::Width(5)","expect":"5"}
-{"decision":"D67","name":"a-part-whose-kinds-hold-null-may-be-left-out","query":":any/m (::fn | takes :limit |~~ The limit. ~~| ~(query /0) #[::number ::null] | impl ~(limit)) | 5 | m","expect":"null"}
-{"decision":"D67","name":"a-part-of-several-kinds-takes-any-of-them","query":":any/m (::fn | takes :v |~~ The v. ~~| /0 #[::number ::string] | impl ~(v)) | null | m \"a\"","expect":"\"a\""}
+{"decision":"D67","name":"an-input-whose-kinds-hold-null-may-be-left-out","query":":any/m (::fn | takes :limit |~~ The limit. ~~| ~(query /0) #[::number ::null] | impl ~(limit)) | 5 | m","expect":"null"}
+{"decision":"D67","name":"an-input-of-several-kinds-takes-any-of-them","query":":any/m (::fn | takes :v |~~ The v. ~~| /0 #[::number ::string] | impl ~(v)) | null | m \"a\"","expect":"\"a\""}
 {"decision":"D251","name":"an-input-read-softly-is-held-to-its-kinds","query":":vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(take n)) | [1 2 3 4] | top \"a\" !| type","expect":"::vec/top/n/NotNumberError"}
-{"decision":"D67","name":"a-rest-part-gathers-the-modifiers-that-remain","query":":any/all (::fn | takes :head |~~ The head. ~~| /0 | takes :tail |~~ The tail. ~~| ~(drop 1) [::number] | impl ~([head tail])) | null | all :a 1 2","expect":"[:a [1 2]]"}
+{"decision":"D67","name":"an-input-of-the-args-after-the-first-gathers-the-modifiers-that-remain","query":":any/all (::fn | takes :head |~~ The head. ~~| /0 | takes :tail |~~ The tail. ~~| ~(drop 1) [::number] | impl ~([head tail])) | null | all :a 1 2","expect":"[:a [1 2]]"}
 {"decision":"D251","name":"an-input-of-the-whole-args-holds-the-kinds-of-each-element","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) [::number] | impl ~(xs)) | null | all 1 \"b\" !| type","expect":"::any/all/xs/ElementNotNumberError"}
-{"decision":"D67","name":"a-rest-part-without-modifiers-holds-the-empty-vector","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) [::number] | impl ~(xs)) | null | all","expect":"[]"}
+{"decision":"D67","name":"an-input-of-the-args-whole-without-modifiers-holds-the-empty-vector","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) [::number] | impl ~(xs)) | null | all","expect":"[]"}
 {"decision":"D34","name":"a-name-under-a-label-refuses-a-subject-of-another-kind","query":":number/inc ~(add 1) | \"a\" | inc !| type","expect":"::number/inc/SubjectNotNumberError"}
 {"decision":"D169","name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width(5) | inc","expect":"::Width(6)"}
 {"decision":"D67","name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":number/inc (::fn | returns |~~ The answer. ~~| ::number | impl ~(add 1)) | ::Width(5) | inc | get [type payload]","expect":"[::Width 6]"}
 {"decision":"D67","name":"a-verb-that-returns-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T"}
 {"decision":"D67","name":"a-verb-that-returns-a-kind-checks-its-answer","query":":vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)) | [1 2] | n !| type","expect":"::string/PayloadNotStringError"}
-{"decision":"D146","name":"a-verb-without-a-body-names-the-residences-of-its-name","query":"5 | count !| [type (get /addresses)]","expect":"[::call/KindAnswersNoVerbError #[::map/count ::set/count ::string/count ::vec/count]]"}
+{"decision":"D146","name":"a-word-no-kind-of-the-subject-answers-names-the-residences-of-its-name","query":"5 | count !| [type (get /addresses)]","expect":"[::call/KindAnswersNoVerbError #[::map/count ::set/count ::string/count ::vec/count]]"}
 {"decision":"D67","name":"a-verb-handed-on-in-a-quote-runs-where-the-quote-is-applied","query":":number/big ~(gt 2) | [1 2 3] | filter ~big","expect":"[3]"}
 {"decision":"D67","name":"code-a-word-runs-names-a-value-in-its-steps","query":"[1 2 3] | filter ~(:n 2 | gt n)","expect":"[3]"}
 {"decision":"D67","name":"apply-runs-a-verb-with-its-defaults","query":"5 | apply ~(:n 1 | add n)","expect":"6"}
-{"decision":"D67","name":"a-verb-folds-with-its-part-taking-the-element","query":":number/plus (::fn | takes :elem |~~ The elem. ~~| /0 ::number | impl ~(add elem)) | [1 2 3] | reduce 0 ~plus","expect":"6"}
+{"decision":"D67","name":"a-verb-folds-with-its-input-taking-the-element","query":":number/plus (::fn | takes :elem |~~ The elem. ~~| /0 ::number | impl ~(add elem)) | [1 2 3] | reduce 0 ~plus","expect":"6"}
 {"decision":"D251","name":"an-input-carries-the-page-of-its-command","query":":any/m (::fn | takes :x |~~ How many. ~~| /0 | impl ~(x)) | ::any/m/x | doc | content","expect":"\" How many. \""}
-{"decision":"D67","name":"the-declarations-of-a-verb-body-stay-inside-it","query":":number/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false"}
+{"decision":"D67","name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false"}
 {"decision":"D251","name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":":k 1 | :number/f ~(add k) | :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)) | g 100 !| type","expect":"::call/UnknownNameError"}
 {"decision":"D67","name":"a-verb-that-calls-itself-without-end-meets-the-depth-budget","query":":number/inf ~(add 1 | inf) | 0 | inf !| type","expect":"::call/EvaluationDepthExceededError"}
 {"decision":"D251","name":"an-input-of-several-kinds-refuses-a-value-of-none","query":":any/m (::fn | takes :limit |~~ The limit. ~~| ~(query /0) #[::number ::null] | impl ~(limit)) | 5 | m \"a\" !| type","expect":"::any/m/limit/NotNullOrNumberError"}
 {"decision":"D251","name":"an-input-of-code-takes-a-quote-alone","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(apply code)) | 5 | run 1 !| type","expect":"::any/run/code/NotQuoteError"}
 {"decision":"D67","name":"an-input-of-code-takes-a-verb","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(apply code)) | 5 | run ~(add 1)","expect":"6"}
-{"decision":"D67","name":"a-part-of-vectors-reads-a-set-as-one","query":":any/m (::fn | takes :xs |~~ The xs. ~~| /0 ::vec | impl ~(xs | count)) | null | m #[1 2]","expect":"2"}
-{"decision":"D67","name":"a-part-of-maps-reads-a-tagged-map-as-one","query":":any/m (::fn | takes :fields |~~ The fields. ~~| /0 ::map | impl ~(fields | count)) | null | m ::T{:a 1}","expect":"1"}
+{"decision":"D67","name":"an-input-of-vectors-reads-a-set-as-one","query":":any/m (::fn | takes :xs |~~ The xs. ~~| /0 ::vec | impl ~(xs | count)) | null | m #[1 2]","expect":"2"}
+{"decision":"D67","name":"an-input-of-maps-reads-a-tagged-map-as-one","query":":any/m (::fn | takes :fields |~~ The fields. ~~| /0 ::map | impl ~(fields | count)) | null | m ::T{:a 1}","expect":"1"}
 {"decision":"D67","name":"a-set-that-names-no-kind-is-a-default","query":":any/m (::fn | takes :s |~~ The s. ~~| ~(query /0 #[1 2]) ::set | impl ~(s)) | null | m","expect":"#[1 2]"}
 {"decision":"D67","name":"the-empty-set-is-a-default","query":":any/m (::fn | takes :s |~~ The s. ~~| ~(query /0 #[]) ::set | impl ~(s)) | null | m #[3]","expect":"#[3]"}
-{"decision":"D67","name":"a-body-may-open-with-a-combinator","query":":vec/m (::fn | takes :n |~~ The n. ~~| ~(query /0 1) ::number | impl ~(map ~(add n))) | [1 2] | m","expect":"[2 3]"}
+{"decision":"D67","name":"a-recipe-may-open-with-a-combinator","query":":vec/m (::fn | takes :n |~~ The n. ~~| ~(query /0 1) ::number | impl ~(map ~(add n))) | [1 2] | m","expect":"[2 3]"}
 {"decision":"D67","name":"a-comment-in-the-head-is-layout","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(add x)) | 1 | m 2","expect":"3"}
 {"decision":"D67","name":"a-declaration-on-the-fail-track-ends-the-head","query":":number/m (::fn | takes :n |~~ The n. ~~| ~(query /0 1) ::number | impl ~(!| :k 2 | add n)) | 5 | m","expect":"6"}
 {"decision":"D67","name":"a-modifier-that-answers-an-error-answers-the-call","query":":any/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(x)) | 5 | m (!{:k 1} | raise) !| get /k","expect":"1"}
 {"decision":"D67","name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) | impl ~(xs)) | null | all 1 (!{:k 2} | raise) !| get /k","expect":"2"}
-{"decision":"D67","name":"an-error-the-body-answers-passes-the-kind-it-returns","query":":number/f (::fn | returns |~~ The answer. ~~| ::number | impl ~(add \"a\")) | 1 | f !| type","expect":"::number/add/addend/NotNumberError"}
+{"decision":"D67","name":"an-error-the-recipe-answers-passes-the-kind-it-returns","query":":number/f (::fn | returns |~~ The answer. ~~| ::number | impl ~(add \"a\")) | 1 | f !| type","expect":"::number/add/addend/NotNumberError"}
 {"decision":"D34","name":"a-subject-is-taken-by-the-walk-of-its-tags","query":":Pos |~~ Pos. ~~| (::kind | impl ~(if (gt 0) ~(it) ~(!{:reason :not-positive} | raise))) | :Pos/f ~(payload) | [(::Pos(5) | f) (5 | f !| type) (::Pos(0) !| get /reason)]","expect":"[5 ::Pos/f/SubjectNotPosError :not-positive]"}
 {"decision":"D67","name":"an-answer-its-kind-refuses-passes-the-tags-it-would-keep","query":":Pos |~~ Pos. ~~| (::kind | impl ~(if (gt 0) ~(it) ~(!{:reason :not-positive} | raise))) | :Pos/dec (::fn | returns |~~ The answer. ~~| ::Pos | impl ~(payload | sub 1)) | ::Box(::Pos(1)) | dec !| type","expect":"::error"}
-{"decision":"D2","name":"a-word-whose-body-calls-a-word-runs-as-any-word","query":":any/io ~(1) | :any/f ~(io) | f","expect":"1"}
+{"decision":"D2","name":"a-word-whose-recipe-calls-a-word-runs-as-any-word","query":":any/io ~(1) | :any/f ~(io) | f","expect":"1"}
 {"decision":"D67","name":"within-runs-a-verb-under-the-tag","query":"::Box[1 2] | within ~(append 3)","expect":"::Box[1 2 3]"}
 {"decision":"D67","name":"an-input-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":any/twice (::fn | takes :f |~~ The f. ~~| /0 ::quote | impl ~(apply f | apply f)) | 1 | get [(twice ~(add 1)) (twice ~(add 1))]","expect":"[3 3]"}
 {"decision":"D67","name":"an-optional-input-takes-a-map-by-default","query":":any/m (::fn | takes :opts |~~ The opts. ~~| ~(query /0 {:limit 2}) ::map | impl ~(opts | get /limit)) | null | m","expect":"2"}
 {"decision":"D5","name":"a-literal-that-computes-inside-begins-the-body","query":":vec/m ~(:opts {:n (count)} | opts) | [1 2] | m","expect":"{:n 2}"}
-{"decision":"D5","name":"a-body-names-a-value-derived-from-a-part","query":":vec/m (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:limit (k | mul 2) | take limit)) | [1 2 3 4 5] | m 2","expect":"[1 2 3 4]"}
+{"decision":"D5","name":"a-recipe-names-a-value-derived-from-an-input","query":":vec/m (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:limit (k | mul 2) | take limit)) | [1 2 3 4 5] | m 2","expect":"[1 2 3 4]"}
 {"decision":"D67","name":"an-optional-input-takes-a-vector-by-default","query":":any/m (::fn | takes :xs |~~ The xs. ~~| ~(query /0 [1 2]) ::vec | impl ~(xs | count)) | null | get [m (m [5])]","expect":"[2 1]"}
 {"decision":"D5","name":"a-verb-names-its-subject-by-a-freeze","query":":any/pair ~(:self it | [self self]) | 5 | pair","expect":"[5 5]"}
-{"decision":"D5","name":"a-body-names-its-subject-before-a-step","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:self it | mul k | add self)) | 5 | scale 2","expect":"15"}
-{"decision":"D71","name":"a-verb-body-shadows-a-name-of-its-scope","query":":n 1 | :any/f (::fn | takes :n |~~ The n. ~~| ~(query /0 2) ::number | impl ~(n)) | null | get [f n]","expect":"[2 1]"}
+{"decision":"D5","name":"a-recipe-names-its-subject-before-a-step","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:self it | mul k | add self)) | 5 | scale 2","expect":"15"}
+{"decision":"D71","name":"a-recipe-shadows-a-name-of-its-scope","query":":n 1 | :any/f (::fn | takes :n |~~ The n. ~~| ~(query /0 2) ::number | impl ~(n)) | null | get [f n]","expect":"[2 1]"}
 {"decision":"D12","name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~([a b])) | 5 | pair (add 1) (mul 2)","expect":"[6 10]"}
 {"decision":"D12","name":"a-modifier-sees-no-name-another-declared","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~([a b])) | 5 | pair (:y 1 | y) y !| type","expect":"::call/UnknownNameError"}
 {"decision":"D12","name":"a-modifier-of-a-built-in-forks-against-the-subject","query":"10 | add (sub 3)","expect":"17"}
@@ -55,7 +55,7 @@
 {"decision":"D46","name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}
 {"decision":"D251","name":"the-node-of-an-input-holds-its-place","query":"::number/add/addend | binding | get /value","expect":"/0"}
 {"decision":"D72","name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| [type (get /actualType)]","expect":"[::number/add/SubjectNotNumberError ::string]"}
-{"decision":"D72","name":"a-part-raises-the-refusal-under-its-address","query":"1 | add \"a\" !| [type (get /actualType)]","expect":"[::number/add/addend/NotNumberError ::string]"}
+{"decision":"D72","name":"an-input-raises-the-refusal-under-its-address","query":"1 | add \"a\" !| [type (get /actualType)]","expect":"[::number/add/addend/NotNumberError ::string]"}
 {"decision":"D165","name":"a-call-on-a-subject-of-another-kind-names-the-form-that-fits","query":"{:price 100 :qty 3} | mul (get /price) (get /qty) !| [type (explain | page | content | contains \"mulOf\")]","expect":"[::number/mul/SubjectNotNumberError true]"}
 {"decision":"D72","name":"a-full-application-checks-its-subject-by-the-head","query":"add \"a\" 1 !| type","expect":"::number/add/SubjectNotNumberError"}
 {"decision":"D251","name":"a-word-refuses-a-modifier-beyond-its-places","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | scale 5 2 !| type","expect":"::number/scale/ArgsBeyondInputsError"}
@@ -63,7 +63,7 @@
 {"decision":"D34","name":"a-comparison-of-strings-resides-on-strings","query":"\"b\" | gt \"a\"","expect":"true"}
 {"decision":"D34","name":"a-comparison-of-keywords-resides-on-keywords","query":":b | lt :a","expect":"false"}
 {"decision":"D34","name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true"}
-{"decision":"D34","name":"a-comparison-refuses-a-part-of-another-kind-by-its-law","query":"1 | gt \"x\" !| type","expect":"::number/gt/value/NotNumberError"}
+{"decision":"D34","name":"a-comparison-refuses-an-input-of-another-kind-by-its-law","query":"1 | gt \"x\" !| type","expect":"::number/gt/value/NotNumberError"}
 {"decision":"D34","name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| get /addresses","expect":"#[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]"}
 {"decision":"D165","name":"two-fields-compare-by-the-subject-in-the-pipe","query":"{:a 2 :b 1} | gt (get /a) (get /b) !| type","expect":"::call/KindAnswersNoVerbError"}
 {"decision":"D72","name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true"}
@@ -75,7 +75,7 @@
 {"decision":"D72","name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1} | raise) 2 !| get /k","expect":"1"}
 {"decision":"D251","name":"args-of-more-values-than-places-are-refused","query":"5 | add \"a\" 1 !| type","expect":"::number/add/ArgsBeyondInputsError"}
 {"decision":"D251","name":"an-error-among-the-modifiers-answers-before-the-places-are-counted","query":":number/s (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | s (!{:k 1} | raise) 2 !| type","expect":"::error"}
-{"decision":"D72","name":"a-builtin-body-without-a-handle-is-a-step","query":":any/v ~(::builtin{:a 1}) | null | v | type","expect":"::builtin"}
+{"decision":"D72","name":"a-builtin-written-in-a-recipe-is-a-value","query":":any/v ~(::builtin{:a 1}) | null | v | type","expect":"::builtin"}
 {"decision":"D248","name":"an-index-of-a-vector-is-refused-by-its-input","query":"[1 2] | query /a !| type","expect":"::path/IndexNotIntegerError"}
 {"decision":"D72","name":"the-contract-of-filter-names-its-residences","query":"42 | filter ~(gt 0) !| get /addresses","expect":"#[::map/filter ::set/filter ::vec/filter]"}
 {"decision":"D41","name":"a-tagged-map-keeps-its-tag-through-filter","query":"::T{:a 1 :b 2} | filter ~(eq 1) | type","expect":"::T"}
@@ -133,7 +133,7 @@
 {"decision":"D178","name":"a-value-runs-the-laws-of-its-kind","query":"42 | runLaws | map /ok | distinct","expect":"#[true]"}
 {"decision":"D79","name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| [type (get /actualType)]","expect":"[::any/tag/PairTagNotTagError ::keyword]"}
 {"decision":"D206","name":"a-name-a-value-holds-no-member-under-is-refused-with-no-address","query":"5 | doc :nosuch !| [type (get /name) (get /addresses)]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
-{"decision":"D206","name":"a-name-a-member-declares-no-part-under-is-refused","query":"::vec/take | doc :nosuch !| [type (get /name) (get /addresses)]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
+{"decision":"D206","name":"a-name-a-member-declares-no-input-under-is-refused","query":"::vec/take | doc :nosuch !| [type (get /name) (get /addresses)]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
 {"decision":"D88","name":"the-verbs-of-tag-names-come-before-the-verbs-of-the-noun-a-tag-names","query":"::number | gt ::A","expect":"true"}
 {"decision":"D88","name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | get [(manifest | has ::vec/count) (doc :count | eq (::vec/count | doc))]","expect":"[true true]"}
 {"decision":"D206","name":"an-unknown-name-under-a-word-is-named-by-the-keyword-asked","query":"::vec/take | doc :\"a b\" !| [type (get /name)]","expect":"[::any/doc/UnknownNameError :\"a b\"]"}
@@ -150,3 +150,13 @@
 {"decision":"D46","name":"reading-text-as-code-is-refused-under-quote","query":"::quote/ParseError | binding | get /origin","expect":":qlang/quote"}
 {"decision":"D46","name":"an-invariant-of-the-kernel-sits-under-builtin","query":"::builtin/UnknownAstNodeTypeError | binding | get /origin","expect":":qlang/builtin"}
 {"decision":"D114","name":"a-kind-names-the-source-of-its-noun","query":"::vec | binding | entries | filter ~(first | eq :origin) | first | last","expect":":qlang/vec"}
+{"decision":"D4","name":"a-declaration-refuses-a-subject-of-another-kind","query":"{:a 1} | vec/count !| true","expect":"true"}
+{"decision":"D34","name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2"}
+{"decision":"D41","name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~(get [/0 /0 /1])","expect":"#[1 2]"}
+{"decision":"D41","name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]"}
+{"decision":"D34","name":"a-name-with-a-path-calls-by-address","query":"[1 2 3] | vec/count","expect":"3"}
+{"decision":"D34","name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | manifest | has ::string/gt","expect":"true"}
+{"decision":"D34","name":"a-comparison-refuses-two-kinds","query":"1 | gt \"x\" !| true","expect":"true"}
+{"decision":"D67","name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T"}
+{"decision":"D67","name":"a-contract-names-its-residences","query":"5 | count !| get /addresses","expect":"#[::map/count ::set/count ::string/count ::vec/count]"}
+{"decision":"D88","name":"a-tag-name-meets-the-names-of-its-noun","query":"::vec | count !| type","expect":"::vec/count/SubjectNotVecError"}

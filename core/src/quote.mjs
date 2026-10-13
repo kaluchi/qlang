@@ -95,10 +95,38 @@ export function stepOfNode(node) {
   return STEP_OF_NODE[node.type](node);
 }
 
+// commandStep(name, modifiers) → the step of a command, its name and its
+// modifiers, which a quote assembled from data holds as a quote read from
+// text holds it.
+export function commandStep(name, modifiers = []) {
+  const fields = [['name', keyword(name)]];
+  if (modifiers.length > 0) fields.push(['modifiers', Object.freeze([...modifiers])]);
+  return record(CALL_TAG, fields);
+}
+
 // tagCallStepOf(tag) → the step `tag ::Tag`, the call a tagged literal
 // stands for [D13].
 export function tagCallStepOf(tag) {
-  return record(CALL_TAG, [['name', keyword('tag')], ['modifiers', Object.freeze([tag])]]);
+  return commandStep('tag', [tag]);
+}
+
+// groupStep(steps) → the step of steps in parentheses.
+export function groupStep(steps) {
+  return makeTaggedInstance(GROUP_TAG, makeQuote(steps));
+}
+
+// stepOfValue(value) → the step that answers a value where it stands, the
+// literal the value prints as.
+export function stepOfValue(value) {
+  return quoteOfSource(printValue(value))[0];
+}
+
+// declarationStep(name, docs, value) → the step of a declaration that binds
+// a value under its docs, a doc in parentheses, since a doc after the name
+// is a page of the declaration.
+export function declarationStep(name, docs, value) {
+  const body = isDoc(value) ? groupStep([value]) : stepOfValue(value);
+  return record(BIND_TAG, [['name', keyword(name)], ['docs', Object.freeze([...docs])], ['body', body]]);
 }
 
 function stepsOfBody(node) {

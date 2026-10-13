@@ -5,6 +5,7 @@
 import { printQuoteSource, docText } from '../quote.mjs';
 import { patternLiteral } from '../pattern.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
+import { segmentIndex } from '../path-read.mjs';
 import {
   isVec,
   isQMap,
@@ -47,7 +48,7 @@ export const printPath = path => '/' + path.segments.map(printPathSegment).join(
 
 function printPathSegment(segment) {
   if (segment.includes('/')) return segment.split('/').every(readsAsBareKeyword) ? ':' + segment : JSON.stringify(segment);
-  if (/^-?\d+$/.test(segment) || readsAsBareKeyword(segment)) return segment;
+  if (Number.isInteger(segmentIndex(segment)) || readsAsBareKeyword(segment)) return segment;
   return JSON.stringify(segment);
 }
 

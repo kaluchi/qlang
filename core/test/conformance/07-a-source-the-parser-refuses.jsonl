@@ -21,3 +21,14 @@
 {"decision":"D51","name":"the-flatten-combinator-is-no-token","query":"\"[[1]] >> count\" | parse !| type","expect":"::quote/ParseError"}
 {"decision":"D46","name":"a-pipe-after-the-catch-keeps-the-catch","query":"\"[1] !| | count\" | parse !| get /message","expect":"\"`|` written after `!|` is the habit of a pipe before every step: write `a !| b`\""}
 {"decision":"D46","name":"a-catch-after-the-catch-stands-once","query":"\"[1] !| !| count\" | parse !| get /message","expect":"\"`!|` written after `!|`: a combinator stands once between two steps, write `a !| b`\""}
+{"decision":"D7","name":"a-parse-error-names-no-marker-of-a-comment-among-its-continuations","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| get /expected | any ~(eq \"|~~|\")","expect":"false"}
+{"decision":"D125","name":"an-unclosed-quote-names-its-closer","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| get /expected","expect":"[\")\"]"}
+{"decision":"D125","name":"an-unclosed-bracket-names-where-it-opened","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| get /message | contains \"line 1, column 18\"","expect":"true"}
+{"decision":"D125","name":"an-unclosed-map-names-its-closer","query":"\"{:a 1\" | parse !| get /expected","expect":"[\"}\"]"}
+{"decision":"D125","name":"a-flush-combinator-is-no-continuation","query":"\"(1 | add(2\" | parse !| get /expected","expect":"[\")\"]"}
+{"decision":"D125","name":"a-doc-after-a-step-is-refused","query":"\"[5] |~~ why ~~|\" | parse !| get /message | contains \"|~ … ~|\"","expect":"true"}
+{"decision":"D125","name":"a-source-no-short-run-of-closers-completes-lists-the-continuations","query":"\"[[[[[ |~~ a\" | parse !| get /expected | has :any-character","expect":"true"}
+{"decision":"D46","name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| get /message | contains \"#[\"","expect":"true"}
+{"decision":"D46","name":"a-quote-written-with-braces-names-its-parentheses","query":"\"~{/age | doc}\" | parse !| get /message","expect":"\"a quote is written `~(…)`, its code in parentheses; `{…}` is a map and `[…]` a vector\""}
+{"decision":"D46","name":"a-pipe-after-a-combinator-names-the-form-that-keeps-it","query":"\"[1] !| | count\" | parse !| get /message | contains \"write `a !| b`\"","expect":"true"}
+{"decision":"D152","name":"a-tag-in-the-place-of-a-name-declares-nothing","query":"\"::Box [] | 1\" | parse !| type","expect":"::quote/ParseError"}

@@ -12,7 +12,7 @@ describe('a word as the tooling reads it', () => {
   it('shows a name under a label by its address and the inputs of its function [D251]', async () => {
     const shown = shownFor(await langRuntime(), 'add');
     expect(shown.address.name).toBe('number/add');
-    expect(shown.labels).toEqual(['addend']);
+    expect(shown.inputs).toEqual(['addend']);
   });
 
   it('shows nothing for a name that reaches neither a verb nor a name under a label', async () => {
@@ -22,7 +22,7 @@ describe('a word as the tooling reads it', () => {
   it('shows the first kind\'s name of a word several kinds answer, and the inputs of its function', async () => {
     const shown = shownFor(await langRuntime(), 'gt');
     expect(shown.address.name.endsWith('/gt')).toBe(true);
-    expect(shown.labels).toEqual(['value']);
+    expect(shown.inputs).toEqual(['value']);
   });
 
   it('shows the name any value answers', async () => {
@@ -33,7 +33,7 @@ describe('a word as the tooling reads it', () => {
     const env = await langRuntime();
     expect(shownFor(env, 'count', ['vec']).address.name).toBe('vec/count');
     expect(shownFor(env, 'count', ['map']).address.name).toBe('map/count');
-    expect(shownFor(env, 'take', ['string'])).toEqual({ address: expect.objectContaining({ name: 'string/take' }), labels: ['count'] });
+    expect(shownFor(env, 'take', ['string'])).toEqual({ address: expect.objectContaining({ name: 'string/take' }), inputs: ['count'] });
   });
 
   it('shows the word a name reaches with no subject where the kinds reach none', async () => {
@@ -56,7 +56,7 @@ describe('a word as the tooling reads it', () => {
   it('shows a word written as its recipe alone, the function of no commands it is, with no inputs [D253]', async () => {
     const session = await createSession();
     await session.evalCell(':number/double ~(mul 2)');
-    expect(shownFor(session.env, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), labels: [] });
+    expect(shownFor(session.env, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
   });
 });
 

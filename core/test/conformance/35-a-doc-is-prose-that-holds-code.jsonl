@@ -70,3 +70,8 @@
 {"decision":"D119","name":"docs-not-found-names-the-docs-axis","query":"::nosuchbinding | doc !| type","expect":"::any/doc/UnknownNameError"}
 {"decision":"D123","name":"examples-leaves-for-the-laws-of-a-page","query":":count | examples | type !| type","expect":"::call/UnknownNameError"}
 {"decision":"D248","name":"not-found-carries-the-binding-name","query":"::nosuchbinding | source !| get /name","expect":"::nosuchbinding"}
+{"decision":"D19","name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | doc | segments | first | type","expect":"::string"}
+{"decision":"D61","name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true"}
+{"decision":"D61","name":"a-tagged-vector-reads-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box#[3 1] | doc | content","expect":"\" A box. \""}
+{"decision":"D61","name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | doc | content | eq (::map | doc | content)","expect":"true"}
+{"decision":"D152","name":"an-undeclared-tag-answers-one-page-whatever-asked-first","query":"[(::Late | doc !| type) (::Late{:a 1} | doc !| type)] | distinct | count","expect":"1"}

@@ -10,14 +10,18 @@
       ::link~(::span | doc)
   ~~|
   ::kind
+    | wraps |~~ The three numbers, the offset, the line and the column. ~~| [::number]
     | holds :PayloadNotThreeNumbersError
         |~~ A point holds three whole numbers, its offset, its line and
             its column.
         ~~|
-        ~(allOf (count | eq 3) ~(every ~(is ::number)) ~(every ~(eq (floor))))
+        ~(allOf ~(count | eq 3) ~(every ~(eq (floor))))
     | proves :PayloadNotThreeNumbersError/refusesSixNumbers
         |~~ Six numbers make a span, no point. ~~|
         ~(::point[0 1 1 4 1 5] !| type | eq ::point/PayloadNotThreeNumbersError)
+    | proves :PayloadNotVecError/refusesAMap
+        |~~ A map is no vector of numbers. ~~|
+        ~(::point{:a 1 :b 2 :c 3} !| type | eq ::point/PayloadNotVecError)
 
 :point/offset
   |~~ Answers the offset of the point from the start of the text,

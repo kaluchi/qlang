@@ -78,3 +78,6 @@
 {"decision":"D34","name":"a-stack-of-tags-comes-back-from-the-innermost-out","query":"::A(::B[1 2 3]) | filter ~(gt 1)","expect":"::A::B[2 3]"}
 {"decision":"D252","name":"a-fact-of-no-kinds-holds-its-page","query":":Box |~~ A box. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| | carries :TooWideError/note |~~ A note. ~~|) | ::Box/TooWideError/note | binding | get /value | type","expect":"::doc"}
 {"decision":"D252","name":"a-fact-of-a-function-of-no-kinds-holds-its-page","query":":number/f (::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/note |~~ A note. ~~| | impl ~(it)) | ::number/f/TooBigError/note | binding | get /value | type","expect":"::doc"}
+{"decision":"D152","name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\" A box. \""}
+{"decision":"D152","name":"the-recipe-of-a-kind-is-its-constructor","query":":Small |~~ Small. ~~| (::kind | impl ~(if (lt 10) ~(it) ~(!{:reason :big} | raise))) | ::Small(12) !| get /reason","expect":":big"}
+{"decision":"D252","name":"a-kind-of-the-core-is-built-by-its-chain-with-a-construct","query":"::keyword | get [(binding | get /value | type) (::keyword/construct | binding | get /value | type)]","expect":"[::kind ::builtin]"}

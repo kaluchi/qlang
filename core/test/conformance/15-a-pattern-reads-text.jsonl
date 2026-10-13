@@ -37,7 +37,7 @@
 {"decision":"D246","name":"toRegex-takes-the-flags-of-the-call","query":"\"error\" | toRegex \"mi\" | eq #\"error\"im","expect":"true"}
 {"decision":"D246","name":"toRegex-refuses-a-letter-of-no-flag","query":"\"a\" | toRegex \"g\" !| type","expect":"::string/toRegex/flags/NotFlagsError"}
 {"decision":"D246","name":"toRegex-refuses-a-literal-which-parse-reads","query":"{:p #\"\\d+\"i} | json | parseJson | get /p | get [(toRegex !| type) (parse | apply it | eq #\"\\d+\"i)]","expect":"[::string/toRegex/LiteralNotSourceError true]"}
-{"decision":"D246","name":"toRegex-names-its-part-for-flags-written-inside","query":"\"(?i)abc\" | toRegex !| get /message | contains \"toRegex \\\"i\\\"\"","expect":"true"}
+{"decision":"D246","name":"toRegex-names-its-input-for-flags-written-inside","query":"\"(?i)abc\" | toRegex !| get /message | contains \"toRegex \\\"i\\\"\"","expect":"true"}
 {"decision":"D246","name":"replace-cuts-no-character-in-halves","query":"\"a😀\" | replace \"\" \"-\"","expect":"\"-a-😀-\""}
 {"decision":"D246","name":"a-refusal-names-no-habit-the-source-does-not-show","query":"\"(\\\\d\" | toRegex !| get /message | contains \"backslash\"","expect":"false"}
 {"decision":"D246","name":"a-group-of-flags-in-a-class-is-text","query":"\"(?i:a)\" | contains #\"[(?i:a)]\"","expect":"true"}

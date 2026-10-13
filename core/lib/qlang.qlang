@@ -208,7 +208,7 @@
         |~~ Two fields of one record multiply by `mulOf`. ~~|
         ~({:price 4 :qty 3} | mulOf /price /qty | eq 12)
     | proves :readsAModifierFromTheSubjectOfItsStep
-        |~~ After `/price |` a modifier is read from the price. ~~|
+        |~~ After `get /price |` a modifier is read from the price. ~~|
         ~({:price 4 :qty 3} | get /price | mul (get /qty) !| type | eq ::path/SubjectNotProjectableError)
     | proves :subtractsTwoFields
         |~~ Two fields of one record subtract by `subOf`. ~~|
@@ -217,7 +217,7 @@
         |~~ A pipeline inside a literal stands in parentheses. ~~|
         ~({:a 1} | get [(get /a | add 1) /a] | eq [2 1])
     | proves :losesTheRecordAfterAStep
-        |~~ After `/qty |` a modifier reads the number, not the record. ~~|
+        |~~ After `get /qty |` a modifier reads the number, not the record. ~~|
         ~({:qty 2 :price 3} | get /qty | mul (get /price) !| type | eq ::path/SubjectNotProjectableError)
     | proves :takesCodeAsAQuote
         |~~ Code a verb runs on each element is a quote. ~~|
@@ -420,9 +420,14 @@
             in one step, and a name keeps the record for a later step. A
             name holds the value in the pipe for the steps after it, and
             steps in parentheses run on the value in the pipe and answer
-            what their last step answers. A line break is a space wherever
-            it stands, so a step on the next line joins by `|`, written at
-            the end of a line or at the start of the next; a comment,
+            what their last step answers. A line break is a space, so a
+            step on the next line joins by `|`, written at the end of a
+            line or at the start of the next, and around a declaration it
+            tells where the declaration ends: a keyword that begins a line
+            opens a declaration of its own, and the body of a name with a
+            path begun on the line after the name runs on through the
+            steps joined to it up to the next declaration, so a body of one
+            step is written on the line of its name. A comment,
             `|~ … ~|`, nesting, or `|~|` to the end of its line, is
             whitespace too. `|` and `!|` bind alike, from left to right.
             Each part of a literal and a group is a fork: it starts from
@@ -460,6 +465,11 @@
     | proves :pipeline/joinsNoStepsByALine
         |~~ A line break is a space, and joins no steps. ~~|
         ~("[3 1 2]\nsort" | parse !| type | eq ::quote/ParseError)
+    | proves :pipeline/runsADefinitionBegunOnTheNextLineOn
+        |~~ The body of a name with a path begun on the line after it runs
+            on through the steps joined to it, and the subject passes on.
+        ~~|
+        ~("[1 2 3] | :vec/f\n  ~(get /1) | count" | parse | apply it | eq [1 2 3])
     | proves :pipeline/nestsComments
         |~~ Comments nest and stand where spaces stand. ~~|
         ~("|~ outer |~ inner ~| ~| [1 2] |~ a note ~| | count" | parse | apply it | eq 2)
@@ -589,8 +599,8 @@
             recipe, a name the recipe declares no second time; `manifest`
             answers them before a call. A recipe written alone under a
             label, `:number/double ~(mul 2)`, is the function of no
-            commands it is, its args read by `args`; an input, an answer,
-            a subject and an invariant are written in the chain alone. An
+            commands it is, which takes no object; an input, an answer, a
+            subject and an invariant are written in the chain alone. An
             answer of the word's own label goes back under the tags the
             subject came through. A modifier is evaluated at the call
             against the subject, the value in the pipe, which is always
@@ -640,6 +650,9 @@
     | proves :verbs/isAFunctionNamedUnderALabel
         |~~ A word is a function named under a label. ~~|
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | 5 | plus 2 | eq 7)
+    | proves :verbs/takesNoObjectForARecipeWrittenAlone
+        |~~ A recipe written alone takes no object. ~~|
+        ~(:number/double ~(mul 2) | 5 | get [double (double 3 !| type)] | eq [10 ::number/double/ArgsBeyondInputsError])
     | proves :verbs/combinesValuesOfOneSubject
         |~~ A word that combines several values of one subject reads each
             from its args.

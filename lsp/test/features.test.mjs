@@ -208,6 +208,7 @@ describe('hoverAtOffset', () => {
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/path/);
     expect(hover.content).toMatch(/\/name/);
+    expect(hover.content).toMatch(/names a part of another/);
   });
 
   it('returns hover for a keyword literal', async () => {

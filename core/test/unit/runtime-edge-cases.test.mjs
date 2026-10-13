@@ -1,19 +1,6 @@
-// Edge-case branch coverage for runtime modules, grouped per
-// target source file. Each `describe` block names the module and
-// the specific branch / path it exercises (right-operand checks
-// in `arith.mjs`, non-keyword key fallback in `setops.mjs`'s
-// `UseModuleCollisionError` site, binding-record classifier in
-// `types.mjs::formOf`,
-// `walk.mjs`'s `locationFromQlangMap(null)` path, etc.). The
-// topical test files (`error-values.test.mjs`,
-// `print-value-extras.test.mjs`, `effect-check.test.mjs`,
-// `setops.test.mjs`, …) cover the happy-path semantics; this
-// file fills the per-branch tails the language-spec walkthrough
-// does not name on its own.
-//
-// Adding a new edge case: place its `describe` block alongside
-// the ones already targeting the same source module so the
-// per-module grouping stays derivable top-to-bottom.
+// The branches of equality, of the forms of values, of the reading of a
+// parse failure and of the printer that the laws of the catalog leave
+// out, a `describe` for each.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

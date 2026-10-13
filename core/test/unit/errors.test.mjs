@@ -51,10 +51,10 @@ describe('a refusal declared by its address [D46]', () => {
 
 describe('QlangInvariantError', () => {
   it('is constructible with message and context', () => {
-    const invariantErr = new QlangInvariantError('registration failed', { site: 'X', operandName: 'foo' });
+    const invariantErr = new QlangInvariantError('registration failed', { site: 'X', word: 'foo' });
     expect(invariantErr.message).toBe('registration failed');
     expect(invariantErr.facts.site).toBe('X');
-    expect(invariantErr.facts.operandName).toBe('foo');
+    expect(invariantErr.facts.word).toBe('foo');
     expect(invariantErr).toBeInstanceOf(QlangError);
   });
 });

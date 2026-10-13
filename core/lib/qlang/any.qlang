@@ -1973,18 +1973,23 @@
       with the keys near it, so a misspelled field is found where it is
       read, `{:a {:b 1}} | get /a/b` answering `1`. A key the query
       computes is read as the path of one segment, a keyword, a string or
-      a whole number, `get (get /k)`. Over a literal that holds paths it
-      answers the literal with each path read in its place, the answer
-      written in the shape it takes:
+      a whole number, `get (get /k)`. Over a template, a literal of paths
+      and quotes, it answers the template with each path read and each
+      quote run against the subject in its place, the answer written in
+      the shape the template takes:
       `{:price 4 :qty 3} | get [/price /qty]` answers `[4 3]`, and
-      `get {:who /first :n ~(get /tags | count)}` builds a map. A part that
-      may be missing is read by `query`.
+      `get {:who /first :n ~(get /tags | count)}` builds a map. A vector, a
+      map or a set under a tag in a template is read and laid back under
+      its tag through its constructor, and any other value of it is
+      answered as it is. A literal computes nothing, so a shape computed
+      is written as a template. A part that may be missing is read by
+      `query`.
       ::link~(::any/query | doc) ::link~(::path | doc)
   ~~|
   ::fn
     | takes :path
-        |~~ The path read, a key of one segment, or a literal that holds
-            paths, computed against the subject.
+        |~~ The path read, a key of one segment, or a template of paths
+            and quotes.
         ~~|
         /0
     | proves :readsANestedPart
@@ -1999,9 +2004,14 @@
     | proves :readsATuple
         |~~ Two fields of one record are read in one step. ~~|
         ~({:price 4 :qty 3} | get [/price /qty] | eq [4 3])
-    | proves :readsAShape
-        |~~ A literal of paths builds the answer in its shape. ~~|
+    | proves :buildsTheShapeOfItsTemplate
+        |~~ A template of paths and quotes builds the answer in its shape. ~~|
         ~({:first "Ann" :tags [:a :b]} | get {:who /first :n ~(get /tags | count)} | eq {:who "Ann" :n 2})
+    | proves :readsUnderATagOfTheTemplate
+        |~~ A vector under a tag in a template is read and laid back under
+            its tag.
+        ~~|
+        ~({:a 1} | get [::Box[/a]] | eq [::Box[1]])
     | proves :readsBeneathTheTags
         |~~ A path reads beneath the tags over the subject. ~~|
         ~(::Box{:w 3} | get /w | eq 3)
@@ -2014,14 +2024,14 @@
       answering `0`, while a null that stands at the path is answered as
       it stands. A value on the path that has no parts is refused as
       `get` refuses it, so a path read from the wrong subject is found.
-      Over a literal that holds paths it answers the literal with each
-      path read, `{:a 1} | query [/a /b]` answering `[1 null]`.
+      Over a template it answers the template with each path read softly
+      and each quote run, `{:a 1} | query [/a /b]` answering `[1 null]`.
       ::link~(::any/get | doc) ::link~(::any/coalesce | doc)
   ~~|
   ::fn
     | takes :path
-        |~~ The path read, a key of one segment, or a literal that holds
-            paths, computed against the subject.
+        |~~ The path read, a key of one segment, or a template of paths
+            and quotes.
         ~~|
         /0
     | takes :default
@@ -2045,7 +2055,7 @@
         |~~ A value on the path that has no parts is refused. ~~|
         ~({:a 5} | query /a/b !| type | eq ::path/SubjectNotProjectableError)
     | proves :readsATupleSoftly
-        |~~ Each path of a literal is read softly. ~~|
+        |~~ Each path of a template is read softly. ~~|
         ~({:a 1} | query [/a /b] | eq [1 null])
     | impl ::builtin{}
 

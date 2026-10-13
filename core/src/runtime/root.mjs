@@ -70,8 +70,8 @@ export async function declareRoot(env, sources) {
 }
 
 // The descriptor of a host's primitive a name holds, itself or as the
-// recipe of a function [D251], or null; the recipe of a kind is held by
-// the node of its constructor [D252].
+// recipe of a function [D251], or null; the check a host hands a kind is
+// held by the node of its constructor [D252].
 function builtinOf(value) {
   const recipe = isFn(value) ? recipeOf(value) : value;
   return isBuiltinDescriptor(recipe) ? recipe : null;

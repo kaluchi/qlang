@@ -111,7 +111,7 @@ describe('a declaration under a label that the chain of its kind holds alone [D2
   });
 });
 
-describe('the recipe of a kind its host hands', () => {
+describe('the check a host hands a kind', () => {
   it('lays the tag over the payload as it is until the host hands the recipe, and runs it after', async () => {
     const hosted = await createSession({ sources: [{
       uri: 'test/hosted-kind',

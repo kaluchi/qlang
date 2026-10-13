@@ -322,7 +322,7 @@ bindPrim('string/drop', (text, count) => Array.from(text).slice(Math.max(0, coun
 bindPrim(['vec/drop', 'set/drop'], (sequence, count) => sequence.slice(Math.max(0, count)));
 bindPrim('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count))));
 
-// ── reshaping ──────────────────────────────────────────────────
+// ── order and nesting ──────────────────────────────────────────
 
 // `desc` lays `::desc` over a value, which reverses its place in the one
 // order among the values under that tag [D140].

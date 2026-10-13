@@ -1,22 +1,8 @@
-// Edge-case unit tests covering error paths and rare branches
-// that the conformance suite alone does not exercise. The goal is
-// to push coverage to ≥95% on every src module.
-//
-// What lives here vs in per-source test files: edge-cases stays a
-// staging ground for tests whose source module has no dedicated
-// `<module>.test.mjs` (`types.mjs`,
-// `runtime/arith.mjs`, `runtime/vec.mjs`, `runtime/map.mjs`,
-// `runtime/set.mjs`, `runtime/setops.mjs`, `runtime/predicates.mjs`,
-// `runtime/string.mjs`, `runtime/control.mjs`, `runtime/manifest.mjs`,
-// dispatch helpers). When a `<module>.test.mjs` lands, its
-// describe block migrates out of here. Blocks already migrated:
-// `parse.mjs` (→ `parse.test.mjs`), `eval.mjs unknown node / unknown
-// combinator / quoted-keyword identity` (→ `eval-smoke.test.mjs`),
-// `runtime/format.mjs structural` (→ `print-value-extras.test.mjs`),
-// `per-site error tag identity` (→ `fail-track.test.mjs`),
-// `parser doc-comment attachment` (→ `parse.test.mjs`),
-// `errors.mjs kind-tag survey` (covered by `errors.test.mjs`),
-// `state.mjs` (→ `state.test.mjs`).
+// The refusals and the rare branches of the runtime's modules that the
+// laws of the catalog and the conformance cases leave out, a `describe`
+// for each module: the values, the one order, the arithmetic, vectors,
+// maps, the algebra of containers, text, `source` and the words of
+// control.
 // The decisions it exists for: [D239].
 
 import { describe, it, expect } from 'vitest';

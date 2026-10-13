@@ -1,49 +1,35 @@
-// Per-site arity and subject-type checks across the runtime
-// catalog. Each `describe` block names one runtime module and the
-// specific arity / subject / shape branch it pins:
-//
-//   * arith.mjs — right-operand type checks for `sub` / `mul` /
-//     `div` (left-operand path is covered by the per-site error
-//     factory tests; this file pins the right-operand sibling).
-//   * vec.mjs — flat / min / max / sort behaviour on edge subjects
-//     (empty Vec, non-Vec subject, non-Vec elements alongside Vec
-//     elements, singleton Vec).
-//   * setops.mjs — the bare form over a subject no residence
-//     takes, over a set of sets, and the full form (two captured
-//     args) for `union` / `minus` / `inter`.
-//   * the heads of verbs — a modifier beyond the slots, and a slot
-//     of code left without its modifier.
-//
-// Topical happy-path semantics live in the per-operand test files
-// (`arith.test.mjs`, `vec.test.mjs`, `setops.test.mjs`,
-// `dispatch.test.mjs`, …). This file fills per-branch tails the
-// language-spec walkthrough does not name on its own.
+// The refusals of a subject or an input of another kind at the sites the
+// laws of the catalog leave out: the second input of `sub`, `mul` and
+// `div`, `flat`, `min`, `max` and `sort` over an empty vector or a value
+// that is none, `union`, `minus` and `inter` with and without their
+// object, a modifier beyond the inputs of a word, and an input left
+// without its object.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isErrorValue } from '../../src/types.mjs';
 
-describe('arith right-operand type checks', () => {
-  it('sub with non-numeric right operand throws', async () => {
+describe('the second input of the arithmetic', () => {
+  it('sub refuses a subtrahend that is no number', async () => {
     expect(isErrorValue(await evalQuery('5 | sub "x"'))).toBe(true);
   });
 
-  it('mul with non-numeric right operand throws', async () => {
+  it('mul refuses a multiplier that is no number', async () => {
     expect(isErrorValue(await evalQuery('5 | mul "x"'))).toBe(true);
   });
 
-  it('div with non-numeric right operand throws', async () => {
+  it('div refuses a divisor that is no number', async () => {
     expect(isErrorValue(await evalQuery('5 | div "x"'))).toBe(true);
   });
 });
 
-describe('vec.flat non-Vec elements', async () => {
-  it('flat preserves non-Vec elements alongside Vec elements', async () => {
+describe('flat over elements of several kinds', async () => {
+  it('flat keeps an element that is no vector beside the vectors it opens', async () => {
     expect(await evalQuery('[1 [2 3] 4] | flat')).toEqual([1, 2, 3, 4]);
   });
 });
 
-describe('setops bare form over a subject no residence takes', async () => {
+describe('union, minus and inter without their object', async () => {
   it('union bare on a number reaches the contract, which refuses it', async () => {
     expect(await evalQuery('42 | union !| type | eq ::call/KindAnswersNoVerbError')).toBe(true);
   });
@@ -61,7 +47,7 @@ describe('setops bare form over a subject no residence takes', async () => {
   });
 });
 
-describe('setops full form (two captured args)', async () => {
+describe('union, minus and inter with their object', async () => {
   it('minus takes the keys off the map in the pipe', async () => {
     const result = await evalQuery('{:a 1 :b 2 :tmp 3} | minus #[:tmp]');
     expect(result).toBeInstanceOf(Map);
@@ -86,32 +72,32 @@ describe('setops full form (two captured args)', async () => {
   });
 });
 
-describe('vec.min and vec.max on empty Vec', async () => {
-  it('min on empty Vec returns null', async () => {
+describe('min and max over an empty vector', async () => {
+  it('min over an empty vector answers null', async () => {
     expect(await evalQuery('[] | min')).toBeNull();
   });
 
-  it('max on empty Vec returns null', async () => {
+  it('max over an empty vector answers null', async () => {
     expect(await evalQuery('[] | max')).toBeNull();
   });
 
-  it('min on singleton Vec returns the only element', async () => {
+  it('min over one element answers it', async () => {
     expect(await evalQuery('[42] | min')).toBe(42);
   });
 
-  it('max on singleton Vec returns the only element', async () => {
+  it('max over one element answers it', async () => {
     expect(await evalQuery('[42] | max')).toBe(42);
   });
 });
 
-describe('vec.sort with key on non-Vec subject', async () => {
-  it('sort with key throws SortByKeySubjectNotSequenceError', async () => {
+describe('sort with a key over a value that is no vector', async () => {
+  it('sort with a key refuses the subject', async () => {
     expect(isErrorValue(await evalQuery('42 | sort /x'))).toBe(true);
   });
 });
 
-describe('arity refusals of verbs', async () => {
-  it('a verb without slots refuses a modifier past its subject', async () => {
+describe('the objects a word takes', async () => {
+  it('a word of no inputs refuses an object', async () => {
     expect(isErrorValue(await evalQuery('[1 2 3] | count :foo'))).toBe(true);
   });
 
@@ -120,20 +106,20 @@ describe('arity refusals of verbs', async () => {
   });
 });
 
-describe('count and friends on a Map subject', async () => {
-  it('count on a Map returns its size', async () => {
+describe('count over a map', async () => {
+  it('count answers the count of the entries', async () => {
     expect(await evalQuery('{:a 1 :b 2 :c 3} | count')).toBe(3);
   });
 });
 
-describe('a slot left without its modifier', async () => {
+describe('an input left without its object', async () => {
   it('add without its addend is refused', async () => {
     expect(isErrorValue(await evalQuery('5 | add'))).toBe(true);
   });
 });
 
-describe('setops bare-form empty Vec', async () => {
-  it('a fold of no operands is refused by the word that folds, on a vector and on a set [D46]', async () => {
+describe('union, minus and inter over an empty vector', async () => {
+  it('a fold of no values is refused by the word that folds, over a vector and over a set [D46]', async () => {
     for (const kind of ['vec', 'set']) {
       for (const verb of ['union', 'minus', 'inter']) {
         const empty = kind === 'vec' ? '[]' : '#[]';
@@ -143,7 +129,7 @@ describe('setops bare-form empty Vec', async () => {
   });
 });
 
-describe('min/max subject type checks', async () => {
+describe('the subject of min and max', async () => {
   it('min and max on a value no kind of which answers them are refused with their addresses [D72]', async () => {
     for (const query of ['42 | min', '"hello" | max']) {
       const result = await evalQuery(query);

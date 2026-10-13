@@ -1,17 +1,7 @@
-// Keyword-aware Set semantics across `evalSetLit`, the setops
-// family (`union` / `minus` / `inter` Set×Set, Map×Set), the
-// `has` operand on Sets with non-keyword members, and the
-// `deepEqual` Set comparator that all rely on the same
-// name-based keyword identity. Plus an adjacent fixture: the
-// `canonicalKeywordLiteral` printer that mints the bare-vs-quoted
-// form `printValue` and a path read back rely on.
-//
-// Grouping principle: every test here pins the
-// `name`-equality-not-reference-equality invariant on the
-// keyword identity surface — a freshly constructed
-// `keyword('foo')` and an interned one must collapse to a single
-// Set member, be findable by `has(:foo)`, and survive setops
-// across heterogeneous-Set composition.
+// A keyword equals every keyword of its name, made fresh or read from a
+// literal: a set holds it once, `has` finds it, the algebra of sets and
+// maps, equality, the one order, `groupBy` and `query` over a set read
+// it so, and the printer writes it bare or quoted as it reads back.
 
 import { describe, it, expect } from 'vitest';
 
@@ -35,7 +25,7 @@ describe('types.mjs — canonicalKeywordLiteral', async () => {
   });
 });
 
-describe('evalSetLit keyword dedup', async () => {
+describe('a set literal holds a keyword once', async () => {
   it('deduplicates keywords by name in Set literals', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('#[:a :b :a]');
@@ -43,7 +33,7 @@ describe('evalSetLit keyword dedup', async () => {
   });
 });
 
-describe('setops Set×Set keyword-aware operations', async () => {
+describe('the algebra of two sets of keywords', async () => {
   it('union deduplicates keywords across Sets', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[#[:a :b] #[:b :c]] | union');
@@ -63,7 +53,7 @@ describe('setops Set×Set keyword-aware operations', async () => {
   });
 });
 
-describe('Set keyword membership without interning', async () => {
+describe('a keyword made fresh is a member of a set', async () => {
   it('has(:key) on Set finds keyword by name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('#[:a :b :c] | has :b')).toBe(true);
@@ -95,7 +85,7 @@ describe('Set keyword membership without interning', async () => {
   });
 });
 
-describe('has on Set with non-keyword values', async () => {
+describe('has over a set of values that are no keywords', async () => {
   it('finds number in Set', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('#[1 2 3] | has 2')).toBe(true);
@@ -103,7 +93,7 @@ describe('has on Set with non-keyword values', async () => {
   });
 });
 
-describe('deepEqual Set keyword mismatch', async () => {
+describe('two sets of different keywords are unequal', async () => {
   it('returns false when keyword names differ between Sets', async () => {
     const { keyword, makeSet } = await import('../../src/types.mjs');
     const { deepEqual } = await import('../../src/equality.mjs');
@@ -113,7 +103,7 @@ describe('deepEqual Set keyword mismatch', async () => {
   });
 });
 
-describe('setops keyword-aware minus/inter with mixed Set members', async () => {
+describe('minus and inter over a set of keywords and other values', async () => {
   it('Map×Set minus refuses a member that names no key, under the word of the fold [D46], [D139]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2}, #[:a 42]] | minus !| type');
@@ -127,7 +117,7 @@ describe('setops keyword-aware minus/inter with mixed Set members', async () => 
   });
 });
 
-describe('setops Set×Set non-keyword elements', async () => {
+describe('the algebra of two sets of values that are no keywords', async () => {
   it('minus of number Sets', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[#[1 2 3], #[2]] | minus');
@@ -145,7 +135,7 @@ describe('setops Set×Set non-keyword elements', async () => {
 // lte pairwise comparability extends to identifier-shape pairs through
 // lexicographic `.name` compare, the one order of `compareValues` in
 // `ordering.mjs`; these tests cover its keyword and tag branches.
-describe('keyword ordering — sort / min / max / gt-family', async () => {
+describe('the one order over keywords and tags', async () => {
   it('sort over a Vec of Keywords lexicographic by .name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[:y :a :m] | sort');
@@ -203,7 +193,7 @@ describe('keyword ordering — sort / min / max / gt-family', async () => {
 // `groupBy` on a Set subject mints Set-typed buckets — the
 // subject's uniqueness invariant carries into each bucket so the
 // value-class signal survives partitioning.
-describe('groupBy on a Set subject yields Set buckets', async () => {
+describe('groupBy over a set files sets', async () => {
   it('partitions a Set into Set buckets keyed by the classifier', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const { isQSet } = await import('../../src/types.mjs');
@@ -217,7 +207,7 @@ describe('groupBy on a Set subject yields Set buckets', async () => {
 
 // `query` on a Set subject — a place in the one order, which a key
 // names none of [D248].
-describe('query on a Set subject', async () => {
+describe('query over a set', async () => {
   it('positive index returns the n-th-added element', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect((await evalQuery('#[:a :b :c] | query /0')).name).toBe('a');

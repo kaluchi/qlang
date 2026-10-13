@@ -217,7 +217,7 @@ describe('per-site error classes carry unique identity', () => {
     // over a set stacks on it and answers the set, a set answers its
     // vector, and a tagged Map returns a fresh Map without header.
     // The tagged vector and the tag over an atom are covered above via
-    // the per-shape identity-overlay tests.
+    // the tests of a tag over each kind of payload.
     const { isTaggedInstance, isQSet } = await import('../../src/types.mjs');
     const setResult = await evalQuery(':Tags |~~ Tags. ~~| | ::Tags#[:b :a] | payload');
     expect(isQSet(setResult)).toBe(true);

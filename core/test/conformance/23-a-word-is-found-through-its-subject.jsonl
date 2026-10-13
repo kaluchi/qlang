@@ -124,7 +124,7 @@
 {"decision":"D41","name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box"}
 {"decision":"D34","name":"a-number-is-no-tagged-value","query":"1 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
 {"decision":"D43","name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/NotFnOrPathOrQuoteError"}
-{"decision":"D34","name":"a-quote-that-applies-itself-exhausts-the-depth","query":":q ~(apply q) | 1 | apply q !| type","expect":"::call/EvaluationDepthExceededError"}
+{"decision":"D34","name":"a-word-that-calls-itself-exhausts-the-depth","query":":any/q ~(q) | 1 | q !| type","expect":"::call/EvaluationDepthExceededError"}
 {"decision":"D160","name":"env-answers-a-map","query":"env | type","expect":"::map"}
 {"decision":"D79","name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | get /value","expect":"10"}
 {"decision":"D79","name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}

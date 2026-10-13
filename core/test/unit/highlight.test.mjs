@@ -300,8 +300,8 @@ describe('tokenize — coverage invariant', () => {
 
 describe('tokenize — a source that does not parse', () => {
   it('paints a source cut short through the closers that complete it [D125]', async () => {
-    expect(tokenize('[unclosed', await builtins())).toEqual([
-      { start: 0, end: 1, kind: 'vec' },
+    expect(tokenize('(unclosed', await builtins())).toEqual([
+      { start: 0, end: 1, kind: 'punct' },
       { start: 1, end: 9, kind: 'name' }
     ]);
   });

@@ -74,4 +74,4 @@
 {"decision":"D61","name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true"}
 {"decision":"D61","name":"a-tagged-vector-reads-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box#[3 1] | doc | content","expect":"\" A box. \""}
 {"decision":"D61","name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | doc | content | eq (::map | doc | content)","expect":"true"}
-{"decision":"D152","name":"an-undeclared-tag-answers-one-page-whatever-asked-first","query":"[(::Late | doc !| type) (::Late{:a 1} | doc !| type)] | distinct | count","expect":"1"}
+{"decision":"D152","name":"an-undeclared-tag-answers-one-page-whatever-asked-first","query":"get [~(::Late | doc !| type) ~(::Late{:a 1} | doc !| type)] | distinct | count","expect":"1"}

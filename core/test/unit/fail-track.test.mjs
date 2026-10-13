@@ -99,7 +99,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
 
 describe('json on errors at rest inside containers', () => {
   it('renders an error at rest as the value under its tags [D13]', async () => {
-    const evalResult = await evalQuery('[11 ("x" | add 10 !| it) 13] | json');
+    const evalResult = await evalQuery('get [11 ~("x" | add 10 !| it) 13] | json');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('"$tag":"number/add/SubjectNotNumberError"');
   });

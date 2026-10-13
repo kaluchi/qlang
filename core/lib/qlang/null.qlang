@@ -9,7 +9,7 @@
       `null`, a JSON `null` reads as it, and `coalesce` puts a fallback
       in its place, `{:a 1} | query /b | coalesce 0` answering `0`.
 
-      It is written `null`, and `::null(null)` is the same value. It
+      It is written `null`, and `::null#null` is the same value. It
       ranks first in the one order, before every boolean, and JSON
       writes it as `null`. `get /b` reads strictly: a missing part is a
       failure there, never null, so a misspelled field is
@@ -27,10 +27,10 @@
     | proves :isNull |~~ Null is of `::null`. ~~| ~(null | type | eq ::null)
     | proves :buildsNull
         |~~ The constructor of null answers null. ~~|
-        ~(::null(null) | eq null)
+        ~(::null#null | eq null)
     | proves :PayloadNotNullError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::null(1) !| [type (get /actualType)] | eq [::null/PayloadNotNullError ::number])
+        ~(::null#1 !| get [~(type) /actualType] | eq [::null/PayloadNotNullError ::number])
     | impl ::builtin{}
 
 :null/toKeyword

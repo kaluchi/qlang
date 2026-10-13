@@ -26,7 +26,7 @@
 {"decision":"D118","name":"an-unknown-name-inside-filter-is-refused","query":"[1 2 3] | filter ~(thisIsNotDefined) !| type","expect":"::call/UnknownNameError"}
 {"decision":"D169","name":"reduce-on-number","query":"42 | reduce 0 ~(add)","expect":"::call/KindAnswersNoVerbError!{\n  :name :reduce\n  :addresses #[::map/reduce ::set/reduce ::vec/reduce]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(reduce 0 ~(add))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D90","name":"a-reducer-of-a-literal-answers-it","query":"[1 2 3] | reduce 0 ~(42)","expect":"42"}
-{"decision":"D90","name":"a-reducer-that-gives-its-word-an-arg-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add 1) !| [type (get /actualType)]","expect":"[::number/add/SubjectNotNumberError ::vec]"}
+{"decision":"D90","name":"a-reducer-that-gives-its-word-an-arg-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add 1) !| get [~(type) /actualType]","expect":"[::number/add/SubjectNotNumberError ::vec]"}
 {"decision":"D90","name":"a-reducer-of-an-unknown-name-fails-on-the-pair","query":"[1 2 3] | reduce 0 ~(nope) !| type","expect":"::call/UnknownNameError"}
 {"decision":"D251","name":"a-reducer-with-a-second-input-left-out-is-refused-by-the-input","query":":number/bad2 (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(a)) | [1 2 3] | reduce 0 ~bad2 !| type","expect":"::number/bad2/b/NotGivenError"}
 {"decision":"D90","name":"a-reducer-of-a-value-name-answers-the-value","query":"5 | :five it | get [1 2 3] | reduce 0 ~(five)","expect":"5"}

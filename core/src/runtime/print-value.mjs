@@ -120,9 +120,14 @@ function printErrorValue(e, indent, printedOf) {
 
 const NO_PATH = Object.freeze([]);
 
-// A payload that opens with a letter, a digit, a minus or a slash stands
-// in parentheses after the tag, where it would read as the tag's name.
-const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w/-]/;
+// A payload touches its tag by its own sign, and a scalar with no sign of
+// its own, a number, `true`, `false`, `null` or a path, by `#`, where it
+// would read as the tag's name [D279].
+const SCALAR_OF_NO_SIGN_RE = /^[\w/-]/;
+
+export function underTagLiteral(tagLiteral, payloadPrint) {
+  return SCALAR_OF_NO_SIGN_RE.test(payloadPrint) ? `${tagLiteral}#${payloadPrint}` : tagLiteral + payloadPrint;
+}
 
 // An error at rest writes the literal of its kind, `!{…}`, as a set
 // writes `#[…]` [D13].
@@ -132,7 +137,7 @@ function printTaggedInstance(instance, indent, printedOf) {
   if (instance instanceof Map && instance[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', instance, indent, printedOf);
   if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf);
   const payloadPrint = printValue(instance.payload, indent, printedOf);
-  return TAG_PAYLOAD_NEEDS_PAREN_RE.test(payloadPrint) ? `${tagLiteral}(${payloadPrint})` : tagLiteral + payloadPrint;
+  return underTagLiteral(tagLiteral, payloadPrint);
 }
 
 // A map of two entries or fewer, none a container, stands on one line;

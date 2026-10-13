@@ -36,7 +36,7 @@
         |~~ Every element of a doc is a segment, a string of prose or a
             quote, and another value is refused at the index it stands at;
             a number is made prose by `toString` first,
-            `["a" (5 | toString)] | tag ::doc`.
+            `get ["a" ~(5 | toString)] | tag ::doc`.
         ~~|
     | proves :isThePageOfAName
         |~~ The page of a name is a doc. ~~|
@@ -49,10 +49,10 @@
         ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
     | proves :PayloadNotVecError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::doc"x" !| [type (get /actualType)] | eq [::doc/PayloadNotVecError ::string])
+        ~(::doc"x" !| get [~(type) /actualType] | eq [::doc/PayloadNotVecError ::string])
     | proves :ElementNotSegmentError/refusesANumberAmongTheSegments
         |~~ A number among the segments is refused at its index. ~~|
-        ~(["a" 1] | tag ::doc !| [type (get /index)] | eq [::doc/ElementNotSegmentError 1])
+        ~(["a" 1] | tag ::doc !| get [~(type) /index] | eq [::doc/ElementNotSegmentError 1])
     | impl ::builtin{}
 
 :doc/content
@@ -88,7 +88,7 @@
     | proves :SubjectNotDocError/refusesTheNullOfANameWithoutAPage
         |~~ A name declared without a page has no content to read. ~~|
         ~(:x 1 | ::x | doc | content
-          !| [type (get /actualType)] | eq [::doc/content/SubjectNotDocError ::null])
+          !| get [~(type) /actualType] | eq [::doc/content/SubjectNotDocError ::null])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("x" | content !| type | eq ::doc/content/SubjectNotDocError)
@@ -137,10 +137,10 @@
         ~(|~~ a ~(add 1) b ~~| | :d it | d | segments | tag ::doc | eq d)
     | proves :refusesARoleWhosePayloadIsNoQuote
         |~~ A quote under a tag that takes no quote refuses the doc. ~~|
-        ~(|~~ see ::number~(~(x)) ~~| !| [type (get /actualType)] | eq [::number/PayloadNotNumberError ::quote])
+        ~(|~~ see ::number~(~(x)) ~~| !| get [~(type) /actualType] | eq [::number/PayloadNotNumberError ::quote])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
-        ~("text" | doc/segments !| [type (get /actualType)] | eq [::doc/segments/SubjectNotDocError ::string])
+        ~("text" | doc/segments !| get [~(type) /actualType] | eq [::doc/segments/SubjectNotDocError ::string])
     | impl ::builtin{}
 
 :doc/links
@@ -179,7 +179,7 @@
     | proves :SubjectNotDocError/refusesItsText
         |~~ The text of a page is no doc. ~~|
         ~(::vec | doc | content | links
-          !| [type (get /actualType)] | eq [::doc/links/SubjectNotDocError ::string])
+          !| get [~(type) /actualType] | eq [::doc/links/SubjectNotDocError ::string])
     | impl ::builtin{}
 
 :doc/snippets
@@ -211,6 +211,6 @@
         ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map ~open | eq [[1 2]])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
-        ~("text" | snippets !| [type (get /actualType)] | eq [::doc/snippets/SubjectNotDocError ::string])
+        ~("text" | snippets !| get [~(type) /actualType] | eq [::doc/snippets/SubjectNotDocError ::string])
     | impl ::builtin{}
 

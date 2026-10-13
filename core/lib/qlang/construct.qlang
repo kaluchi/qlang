@@ -5,8 +5,8 @@
 
 :construct
   |~~ The step that puts a payload under a tag, `::T[…]`, `::T{…}`,
-      `::T(…)` or `::T"…"`, through the tag's constructor, which checks
-      or builds the value.
+      `::T"…"` or a scalar by `#`, `::T#5`, through the tag's
+      constructor, which attaches the tag or refuses the payload.
 
       In a quote the step is a record, `~(::Box[1 2]) | first` answering
       `::construct{:tag ::Box :payload [1 2]}`: `:tag` the tag and
@@ -28,11 +28,10 @@
         ~~|
     | throws :ReadBackDiffersError
         |~~ The `::construct` prints as text that reads back as another
-            step, and `:printed` is that text: a payload that opens with a
-            name, a digit or a slash joins its tag, `::Box42` a name of
-            its own. Such a payload is written as a group, the step
-            `::Box(42)`, whose record holds the group,
-            `{:tag ::Box :payload (~((42)) | first)}`.
+            step, and `:printed` is that text: a payload is a literal, a
+            scalar touching its tag by `#`, `::Box#42`, and the step of
+            code, a call or a group, joins its tag as a name of its own or
+            as code a literal does not hold.
             ::link~(::construct | doc)
         ~~|
     | throws :TagNotKindError
@@ -41,8 +40,8 @@
             itself over, `::vec/take[2]`, or no declaration at all; a tag
             that addresses a name holding a value of its own names nothing
             to build by, and `:tag` is that tag. The value is read by its
-            name, `limit`, and is put under a tag of its own,
-            `::Limit(limit)`.
+            name, `limit`, and is put under a tag of its own by `tag`,
+            `limit | tag ::Limit`.
             ::link~(::construct | doc)
         ~~|
     | carries :TagNotKindError/tag
@@ -54,33 +53,34 @@
     | proves :PayloadNotSchemaError/refusesATagThatIsAKeyword
         |~~ A `:tag` that is a keyword is refused, `:field` naming it. ~~|
         ~(::construct{:tag :Box :payload [1]}
-          !| [type (get /field)] | eq [::construct/PayloadNotSchemaError :tag])
+          !| get [~(type) /field] | eq [::construct/PayloadNotSchemaError :tag])
     | proves :PayloadNotSchemaError/refusesARecordWithoutAPayload
         |~~ A record without its payload is refused, `:field` naming it. ~~|
         ~({:tag ::Box} | tag ::construct
-          !| [type (get /field)] | eq [::construct/PayloadNotSchemaError :payload])
+          !| get [~(type) /field] | eq [::construct/PayloadNotSchemaError :payload])
     | proves :PayloadNotSchemaError/buildsTheStepOfATag
         |~~ A tag name and the step of a payload build the step. ~~|
-        ~({:tag ::Box :payload [1]} | tag ::construct | get [it] | tag ::quote | eq ~(::Box[1]))
-    | proves :ReadBackDiffersError/refusesAPayloadThatJoinsItsTag
-        |~~ A number payload prints joined to its tag, which reads back as
-            another name.
+        ~({:tag ::Box :payload [1]} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Box[1]))
+    | proves :ReadBackDiffersError/refusesAPayloadOfCode
+        |~~ The step of a call as the payload prints as code after its
+            tag, which no literal holds.
         ~~|
-        ~(::construct{:tag ::Box :payload 42}
-          !| [type (get /printed)] | eq [::construct/ReadBackDiffersError "::Box42"])
-    | proves :ReadBackDiffersError/writesThePayloadAsAGroup
-        |~~ A payload in a group reads back as itself. ~~|
-        ~({:tag ::Box :payload (~((42)) | first)} | tag ::construct
-          | get [it] | tag ::quote | eq ~(::Box(42)))
+        ~(get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct
+          !| get [~(type) /printed] | eq [::construct/ReadBackDiffersError "::Box#x"])
+    | proves :ReadBackDiffersError/writesAScalarPayloadByAHash
+        |~~ A number payload touches its tag by `#` and reads back as
+            itself.
+        ~~|
+        ~(::construct{:tag ::Box :payload 42} | get [~(it)] | tag ::quote | eq ~(::Box#42))
     | proves :TagNotKindError/refusesTheTagOfAValue
         |~~ The tag of a name that holds a value builds nothing. ~~|
         ~(:limit 5 | ::limit[1]
-          !| [type (get /tag) (get /actualType)] | eq [::construct/TagNotKindError ::limit ::number])
+          !| get [~(type) /tag /actualType] | eq [::construct/TagNotKindError ::limit ::number])
     | proves :TagNotKindError/laysAWordsTagOverItsArgs
         |~~ The tag of a word lays itself over its args. ~~|
         ~(::vec/take[2] | type | eq ::vec/take)
     | proves :TagNotKindError/putsTheValueUnderATagOfItsOwn
         |~~ The value of a name is put under a tag of its own. ~~|
-        ~(:limit 5 | ::Limit(limit) | payload | eq 5)
+        ~(:limit 5 | limit | tag ::Limit | payload | eq 5)
     | impl ::builtin{}
 

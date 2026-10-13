@@ -44,7 +44,7 @@
         ~(::tag::Box | eq ::Box)
     | proves :PayloadNotTagError/refusesAKeyword
         |~~ A keyword payload is refused. ~~|
-        ~(::tag:k !| [type (get /actualType)] | eq [::tag/PayloadNotTagError ::keyword])
+        ~(::tag:k !| get [~(type) /actualType] | eq [::tag/PayloadNotTagError ::keyword])
     | impl ::builtin{}
 
 :tag/gt
@@ -241,13 +241,13 @@
         ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box | manifest | eq #[::Box/area])
     | proves :leavesTheLawsToLaws
         |~~ The laws of a name are no part of its manifest. ~~|
-        ~(::number/add | get [(manifest | filter ~(binding | get /value | is ::law) | count) (laws | count | gt 0)] | eq [0 true])
+        ~(::number/add | get [~(manifest | filter ~(binding | get /value | is ::law) | count) ~(laws | count | gt 0)] | eq [0 true])
     | proves :answersNothingForANameThatNamesNothing
         |~~ A tag name that names nothing answers the empty set. ~~|
         ~(::Nothing | manifest | eq #[])
     | proves :SubjectNotTagError/refusesANumber
         |~~ A number is no noun. ~~|
-        ~(5 | manifest !| [type (get /actualType)] | eq [::tag/manifest/SubjectNotTagError ::number])
+        ~(5 | manifest !| get [~(type) /actualType] | eq [::tag/manifest/SubjectNotTagError ::number])
     | proves :SubjectNotTagError/refusesAKeyword
         |~~ A keyword names a binding and no noun. ~~|
         ~(:number | manifest !| type | eq ::tag/manifest/SubjectNotTagError)

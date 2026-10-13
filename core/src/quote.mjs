@@ -16,7 +16,7 @@
 // first time it runs (`astOfQuote`).
 
 import { parse } from './parse.mjs';
-import { printValue } from './runtime/print-value.mjs';
+import { printValue, underTagLiteral } from './runtime/print-value.mjs';
 import {
   keyword, makeTag, makeDoc, makeQuote, makeSet, makeRegex, makePath,
   makeTaggedInstance, errorAtRest,
@@ -302,7 +302,7 @@ function printStep(step) {
   switch (stepTagOf(step)) {
     case 'call':   return printCall(step);
     case 'bind':   return printBind(step);
-    case 'construct': return step.get('tag').literal + printStep(step.get('payload'));
+    case 'construct': return underTagLiteral(step.get('tag').literal, printStep(step.get('payload')));
     case 'group':  return `(${printSteps(step.payload)})`;
   }
   const errorFields = errorFieldsOf(step);

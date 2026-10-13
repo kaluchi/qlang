@@ -46,7 +46,7 @@
         |~~ A string payload is refused; `toKeyword` turns a string into
             one.
         ~~|
-        ~(::keyword"k" !| [type (get /actualType)] | eq [::keyword/PayloadNotKeywordError ::string])
+        ~(::keyword"k" !| get [~(type) /actualType] | eq [::keyword/PayloadNotKeywordError ::string])
     | impl ::builtin{}
 
 :keyword/gt
@@ -188,7 +188,7 @@
 :keyword/toString
   |~~ Answers the name of the keyword as a string, `:foo | toString`
       answering `"foo"`, the text JSON writes for it, so a key joins text,
-      `{:a "x"} | entries | map ~(get [(get /0 | toString) "=" /1] | join "")`. A
+      `{:a "x"} | entries | map ~(get [~(get /0 | toString) "=" /1] | join "")`. A
       quoted name and a name with a path answer their text as written,
       `:"foo bar"` the string `"foo bar"`. `toKeyword` turns the string
       back into the keyword.

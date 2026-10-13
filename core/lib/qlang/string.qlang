@@ -62,7 +62,7 @@
         |~~ A number payload is refused; `toString` makes text of a
             number.
         ~~|
-        ~(::string(1) !| [type (get /actualType)] | eq [::string/PayloadNotStringError ::number])
+        ~(::string#1 !| get [~(type) /actualType] | eq [::string/PayloadNotStringError ::number])
     | impl ::builtin{}
 
 :string/gt
@@ -114,7 +114,7 @@
         ~("10" | gt "9" | not)
     | proves :comparesTheStringUnderATag
         |~~ A string under a tag compares as the string beneath. ~~|
-        ~(::Name("b") | gt "a")
+        ~(::Name"b" | gt "a")
     | proves :value/NotStringError/refusesAKeyword
         |~~ A keyword is no string to compare with. ~~|
         ~("a" | gt :a !| type | eq ::string/gt/value/NotStringError)
@@ -315,7 +315,7 @@
         ~("😀x" | take 1 | eq "😀")
     | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
-        ~(::Name("ab") | take 1 | eq ::Name("a"))
+        ~(::Name"ab" | take 1 | eq ::Name"a")
     | proves :count/NotNumberError/refusesAString
         |~~ A count written as a string is refused. ~~|
         ~("abc" | take "2" !| type | eq ::string/take/count/NotNumberError)
@@ -367,7 +367,7 @@
         ~("😀x" | drop 1 | eq "x")
     | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
-        ~(::Name("ab") | drop 1 | eq ::Name("b"))
+        ~(::Name"ab" | drop 1 | eq ::Name"b")
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction of a count is refused. ~~|
         ~("abc" | drop 0.5 !| type | eq ::string/drop/count/NotIntegerError)
@@ -420,7 +420,7 @@
         |~~ A pattern cuts at every match, its groups left out of the
             pieces.
         ~~|
-        ~("a, b;c" | get [(split #"[,;]\s*") (split #"([,;])\s*")] | eq [["a" "b" "c"] ["a" "b" "c"]])
+        ~("a, b;c" | get [~(split #"[,;]\s*") ~(split #"([,;])\s*")] | eq [["a" "b" "c"] ["a" "b" "c"]])
     | proves :cutsAtTheSeparator
         |~~ The pieces between the commas. ~~|
         ~("a,b,c" | split "," | eq ["a" "b" "c"])
@@ -459,7 +459,7 @@
         ~(["a,b" "c"] | map ~(split ",") | eq [["a" "b"] ["c"]])
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no string to cut. ~~|
-        ~(42 | split "," !| [type (get /actualType)] | eq [::string/split/SubjectNotStringError ::number])
+        ~(42 | split "," !| get [~(type) /actualType] | eq [::string/split/SubjectNotStringError ::number])
     | proves :separator/NotRegexOrStringError/refusesAKeyword
         |~~ A keyword is no separator. ~~|
         ~("abc" | split :b !| type | eq ::string/split/separator/NotRegexOrStringError)
@@ -524,7 +524,7 @@
         ~(["a\nb" "c"] | map ~lines | eq [["a" "b"] ["c"]])
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text. ~~|
-        ~(42 | lines !| [type (get /actualType)] | eq [::string/lines/SubjectNotStringError ::number])
+        ~(42 | lines !| get [~(type) /actualType] | eq [::string/lines/SubjectNotStringError ::number])
     | proves :ArgsBeyondInputsError/refusesASeparator
         |~~ A separator given to `lines` is refused under the word. ~~|
         ~("a;b" | lines ";" !| type | eq ::string/lines/ArgsBeyondInputsError)
@@ -565,7 +565,7 @@
         ~("İ" | lower | count | eq 2)
     | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
-        ~(::Name("Ab") | lower | eq ::Name("ab"))
+        ~(::Name"Ab" | lower | eq ::Name"ab")
     | proves :SubjectNotStringError/refusesAKeyword
         |~~ A keyword has no case to lower. ~~|
         ~(:Ab | lower !| type | eq ::string/lower/SubjectNotStringError)
@@ -597,7 +597,7 @@
         ~("Straße" | upper | eq "STRASSE")
     | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
-        ~(::Name("ab") | upper | eq ::Name("AB"))
+        ~(::Name"ab" | upper | eq ::Name"AB")
     | proves :raisesEachElementByMap
         |~~ A vector of strings raises by `map`. ~~|
         ~(["a" "b"] | map ~upper | eq ["A" "B"])
@@ -646,10 +646,10 @@
         ~("a, b ,c" | split "," | map ~trim | eq ["a" "b" "c"])
     | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
-        ~(::Name(" a ") | trim | eq ::Name("a"))
+        ~(::Name" a " | trim | eq ::Name"a")
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number has no whitespace to trim. ~~|
-        ~(42 | trim !| [type (get /actualType)] | eq [::string/trim/SubjectNotStringError ::number])
+        ~(42 | trim !| get [~(type) /actualType] | eq [::string/trim/SubjectNotStringError ::number])
     | impl ::builtin{}
 
 :string/contains
@@ -858,7 +858,7 @@
         ~("world" | prepend "hello " | eq "hello world")
     | proves :keepsTheTag
         |~~ A string under a tag answers under the tag. ~~|
-        ~(::Box("b") | prepend "a" | eq ::Box("ab"))
+        ~(::Box"b" | prepend "a" | eq ::Box"ab")
     | proves :prependsTheTextOfANumber
         |~~ A number becomes text by `toString` before it goes in front. ~~|
         ~("x" | prepend (42 | toString) | eq "42x")
@@ -898,7 +898,7 @@
         ~("hello" | append " world" | eq "hello world")
     | proves :keepsTheTag
         |~~ A string under a tag answers under the tag. ~~|
-        ~(::Box("a") | append "b" | eq ::Box("ab"))
+        ~(::Box"a" | append "b" | eq ::Box"ab")
     | proves :appendsTheTextOfANumber
         |~~ A number becomes text by `toString` before it goes after. ~~|
         ~("x" | append (42 | toString) | eq "x42")
@@ -988,11 +988,11 @@
     | proves :readsATagBackAsAMap
         |~~ What `json` wrote of a value under a tag reads back as a map.
         ~~|
-        ~(::Box("a") | json | parseJson | eq {:"$tag" "Box" :payload "a"})
+        ~(::Box"a" | json | parseJson | eq {:"$tag" "Box" :payload "a"})
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text to read. ~~|
         ~(42 | parseJson
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::string/parseJson/SubjectNotStringError ::number])
     | proves :TextNotJsonError/refusesBrokenText
         |~~ Text that is no JSON is refused. ~~|
@@ -1104,7 +1104,7 @@
         ~("bar" | toKeyword | toString | eq "bar")
     | proves :namesTheKeywordOfATaggedString
         |~~ A string under a tag names the keyword of its text. ~~|
-        ~(::Name("ab") | toKeyword | eq :ab)
+        ~(::Name"ab" | toKeyword | eq :ab)
     | impl ::builtin{}
 
 :string/toTag
@@ -1156,7 +1156,7 @@
         |~~ A vector is led to `print` and `json`, and a quote to `parse`
             beside them.
         ~~|
-        ~([([1 2] | toString !| get /nearest) (~(add 1) | toString !| get /nearest)] | eq [[:json :print] [:json :parse :print]])
+        ~(get [~([1 2] | toString !| get /nearest) ~(~(add 1) | toString !| get /nearest)] | eq [[:json :print] [:json :parse :print]])
     | impl ::builtin{}
 
 :string/match
@@ -1310,7 +1310,7 @@
         |~~ The empty text stands between every two characters, an emoji
             whole among them.
         ~~|
-        ~("a😀" | get [(replace "" "-") (replace "" ~("-"))] | eq ["-a-😀-" "-a-😀-"])
+        ~("a😀" | get [~(replace "" "-") ~(replace "" ~("-"))] | eq ["-a-😀-" "-a-😀-"])
     | proves :runsCodeOnEachMatch
         |~~ Code answers the text that takes the place of each match. ~~|
         ~("2 and 30" | replace #"\d+" ~(get /0 | toNumber | mul 2 | toString) | eq "4 and 60")
@@ -1382,7 +1382,7 @@
         |~~ The literal of a pattern is refused, and `parse | apply it`
             reads it.
         ~~|
-        ~(#"\d+"i | json | parseJson | get [(toRegex !| type) (parse | apply it)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
+        ~(#"\d+"i | json | parseJson | get [~(toRegex !| type) ~(parse | apply it)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
     | impl ::builtin{}
 
 :string/toPath

@@ -292,7 +292,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('hides bindings inside one Vec element from a sibling element', () => {
-    const source = '[:x 1 x]';
+    const source = 'get [:x 1 ~(x)]';
     const ast = parse(source);
     const cursorAtSecondX = source.lastIndexOf('x');
     const visible = bindingNamesVisibleAt(ast, cursorAtSecondX);
@@ -300,7 +300,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('hides bindings inside one Map entry value from a sibling entry value', () => {
-    const source = '{:a (:x 1 | x) :b x}';
+    const source = 'get {:a ~(:x 1 | x) :b ~(x)}';
     const ast = parse(source);
     const cursorAtSecondX = source.lastIndexOf('x');
     const visible = bindingNamesVisibleAt(ast, cursorAtSecondX);
@@ -308,7 +308,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('top-level binding remains visible inside any number of nested forks', () => {
-    const source = ':outer 1 | (([{:k outer}]))';
+    const source = ':outer 1 | ((get [{:k ~(outer)}]))';
     const ast = parse(source);
     const cursorAtInnerOuter = source.lastIndexOf('outer');
     const visible = bindingNamesVisibleAt(ast, cursorAtInnerOuter);
@@ -394,11 +394,11 @@ describe('readsItsSubject', () => {
     expect(readsOf('~(get /a)')).toBe(false);
   });
 
-  it('holds that a literal of parts reads it where a part does', () => {
-    for (const query of ['[1 2]', '#[1]', '{:a 1}', '!{:a 1}', '::Box{:k 1}', '(1 | add 1)', '|~~ see ::link~(get /x) ~~|', '[/a 1]', '{:a /b}']) {
+  it('holds that a literal of parts reads none, its parts literals, and a group reads it where its code does [D279]', () => {
+    for (const query of ['[1 2]', '#[1]', '{:a 1}', '!{:a 1}', '::Box{:k 1}', '::Width#5', '[~(get /a) 1]', '{:a ~(get /b)}', '(1 | add 1)', '|~~ see ::link~(get /x) ~~|', '[/a 1]', '{:a /b}']) {
       expect(readsOf(query), query).toBe(false);
     }
-    for (const query of ['[(get /a) 1]', '{:a (get /b)}', '::Box{:k (get /a)}', '(get /a)']) expect(readsOf(query), query).toBe(true);
+    for (const query of ['get [/a 1]', 'get {:a /b}', '(get /a)', '((get /a) | count)']) expect(readsOf(query), query).toBe(true);
   });
 
   it('holds that a call and a blank query read it', () => {

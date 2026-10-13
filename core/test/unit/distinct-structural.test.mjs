@@ -1,7 +1,7 @@
 // Regression: `distinct` must deduplicate by structural equality,
 // not JS reference identity. Two Maps carrying the same :key value
 // content are "duplicate" by the same axiom that drives `eq` — if
-// `x | eq(y)` is true, `[x, y] | distinct` must collapse to one.
+// `x | eq(y)` is true, `get [~(x), ~(y)] | distinct` must collapse to one.
 //
 // distinct returns a set — the value carrying the uniqueness
 // invariant onto the type plane, the vector in the one order without

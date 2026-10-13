@@ -504,7 +504,7 @@ the call shadows a name its author saw and a name declared after the
 quote is read too:
 
 ```qlang
-> [(:k 1 | :f ~(add k) | [5] | map ~(:k 100 | apply f)) (:f ~(add k) | :k 10 | 1 | apply f)]
+> get [~(:k 1 | :f ~(add k) | [5] | map ~(:k 100 | apply f)) ~(:f ~(add k) | :k 10 | 1 | apply f)]
 [[105] 11]
 ```
 
@@ -530,10 +530,10 @@ declares is a defect of the runtime [D46], [D169], [D252]:
 > "hello" | add 1 !| type
 ::number/add/SubjectNotNumberError
 
-> 1 | add "x" !| [type (get /actualType)]
+> 1 | add "x" !| get [~(type) /actualType]
 [::number/add/addend/NotNumberError ::string]
 
-> [1 "x"] | sum !| [type (get /index)]
+> [1 "x"] | sum !| get [~(type) /index]
 [::vec/sum/ElementNotNumberError 1]
 
 > 2.5 | round 0.5 !| type
@@ -851,7 +851,7 @@ value]`, and `toMap` builds a map back from them [D138], [D244], a
 string naming a key wherever a key is taken [D139]:
 
 ```qlang
-> {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 {:name (get /0 | toString)}) | sort /port
+> {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 (get {:name ~(get /0 | toString)})) | sort /port
 [{:port 3000 :name "auth"} {:port 5432 :name "db"}]
 ```
 
@@ -879,7 +879,7 @@ the name answers is refused, the word called by its address there
 [D223]:
 
 ```qlang
-> :count 5 | [(7 | count) ([1 2] | count !| type) ([1 2] | vec/count)]
+> :count 5 | get [~(7 | count) ~([1 2] | count !| type) ~([1 2] | vec/count)]
 [5 ::call/ValueMeetsWordError 2]
 ```
 

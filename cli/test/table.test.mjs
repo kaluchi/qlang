@@ -26,8 +26,8 @@ describe('table — a view for a terminal', () => {
   });
 
   it('prints a tag over a set and a tagged scalar as their literals', async () => {
-    const cellEntry = await runQuery('[{:k ::Keys#[2 1] :c ::Count(42)}] | table', silentStreams);
-    expect(cellEntry.result).toContain('| ::Keys#[1 2] | ::Count(42) |');
+    const cellEntry = await runQuery('[{:k ::Keys#[2 1] :c ::Count#42}] | table', silentStreams);
+    expect(cellEntry.result).toContain('| ::Keys#[1 2] | ::Count#42 |');
   });
 
   it('prints composite cells as literals on one line and a null cell empty', async () => {

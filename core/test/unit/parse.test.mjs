@@ -307,7 +307,7 @@ describe('parse — ParenGroup', () => {
   });
 
   it('parses paren group as a step inside an outer pipeline', () => {
-    const ast = parse('xs | (:elem it | get {:k /id :v elem})');
+    const ast = parse('xs | (:elem it | get {:k /id :v ~(elem)})');
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[1].step.type).toBe('ParenGroup');
   });

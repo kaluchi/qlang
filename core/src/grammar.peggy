@@ -145,6 +145,37 @@
     return readsAsBareKeyword(name) && (body === null || builtFrom(body) === 'kind' || !LITERAL_WORDS.has(name));
   }
 
+  // A literal holds literals: a group or a name written inside one would
+  // compute, which a literal does not, and is refused naming the template
+  // of paths and quotes `get` computes a shape from [D279].
+  const COMPUTED_PARTS = new Set(['ParenGroup', 'Call']);
+
+  function refuseComputedParts(parts) {
+    if (docQuoteDepth > 0) return;
+    const computed = parts.filter(part => COMPUTED_PARTS.has(part.type));
+    if (computed.length === 0) return;
+    const start = range().start;
+    let written = text();
+    for (const part of computed.reverse()) {
+      const inner = part.type === 'ParenGroup' ? part.pipeline.text : part.text;
+      written = written.slice(0, part.location.start.offset - start) + `~(${inner})` + written.slice(part.location.end.offset - start);
+    }
+    error(`a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${written}\``);
+  }
+
+  // Parentheses after a tag hold code, which a literal does not run: a
+  // scalar touches its tag by `#`, a literal by its own sign, and a value
+  // computed goes under a tag by `tag` [D279].
+  const TAGGED_SCALARS = new Set(['NumberLit', 'BooleanLit', 'NullLit', 'Path']);
+  const SIGNED_LITERALS = new Set(['VecLit', 'MapLit', 'SetLit', 'StringLit', 'RegexLit', 'QuoteLit', 'Keyword', 'DocLit', 'TaggedLit', 'TagLit', 'ErrorLit']);
+
+  function refuseParenthesesAfterTag(tag, group) {
+    const inner = group.pipeline;
+    if (TAGGED_SCALARS.has(inner.type)) error(`a scalar touches its tag by \`#\`: write \`::${tag}#${inner.text}\``);
+    if (SIGNED_LITERALS.has(inner.type)) error(`a literal touches its tag by its own sign: write \`::${tag}${inner.text}\``);
+    error(`the parentheses after a tag hold code, which a literal does not run: a value computed goes under a tag by \`tag\`, write \`${inner.text} | tag ::${tag}\``);
+  }
+
   function refuseNameNoStepCalls(key, body) {
     if (!readsAsBareKeyword(key.name)) {
       error(`\`${key.text}\` names nothing a step can call: a name begins with a letter or \`_\`, \`:first_name 5\``, key.location);
@@ -432,8 +463,7 @@ BodySentenceStep
 // ── Words ──────────────────────────────────────────────────────────
 //
 // A word is a literal, a path, a name, a quote or a pipeline in
-// parentheses. Inside a literal every element is a word, so a command
-// with modifiers stands there in parentheses.
+// parentheses; every part of a literal is a literal [D279].
 
 Word
   = ParenGroup
@@ -476,11 +506,37 @@ CallName
     }
   / name:Ident { return { name }; }
 
-// `::tag<payload>` constructs a value through the tag's constructor,
-// the payload touching the name; `::tag` alone is the tag name itself.
+// `::tag<payload>` puts a payload under a tag through its constructor, the
+// payload touching the tag by a sign that continues the literal, a scalar
+// with no sign of its own by `#`, `::Width#5`; parentheses after a tag,
+// the sign of code, are refused [D279]. `::tag` alone is the tag name.
 TaggedLit
-  = "::" tag:TagName payload:Element
+  = "::" tag:TagName "#" payload:TaggedScalar
     { return node('TaggedLit', { tag, payload }, span(), text()); }
+  / &{ return docQuoteDepth === 0; } "::" tag:TagName group:ParenGroup
+    { refuseParenthesesAfterTag(tag, group); }
+  / "::" tag:TagName payload:TaggedPayload
+    { return node('TaggedLit', { tag, payload }, span(), text()); }
+
+TaggedScalar
+  = NumberLit
+  / BooleanLit
+  / NullLit
+  / Path
+
+TaggedPayload
+  = ErrorLit
+  / RegexLit
+  / SetLit
+  / VecLit
+  / MapLit
+  / QuoteLit
+  / ShortQuoteLit
+  / TaggedLit
+  / TagLit
+  / StringLit
+  / Keyword
+  / DocLit
 
 TagLit
   = "::" tag:TagName
@@ -631,7 +687,7 @@ ErrorLit
   = tag:ErrorLitTag? "!{" _ "}"
     { return node('ErrorLit', { tag, entries: [] }, span(), text()); }
   / tag:ErrorLitTag? "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
-    { return node('ErrorLit', { tag, entries: [head, ...tail] }, span(), text()); }
+    { refuseComputedParts([head, ...tail].map(entry => entry.value)); return node('ErrorLit', { tag, entries: [head, ...tail] }, span(), text()); }
 
 ErrorLitTag
   = "::" @TagName
@@ -641,13 +697,13 @@ ErrorLitTag
 // spellings is refused.
 MapLit
   = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ "}"
-    { return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
+    { refuseComputedParts([head, ...tail].map(entry => entry.value)); return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
   / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
-    { return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
+    { refuseComputedParts([head, ...tail].map(entry => entry.value)); return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
   / "{" _ "}"
     { return node('MapLit', { entries: [] }, span(), text()); }
   / &{ return docQuoteDepth === 0; } "{" _ QlangMapEntry (_ QlangMapEntry)* _ !"}" !Keyword Element
-    { error('a map entry holds one word; a command with modifiers or a pipeline stands in parentheses there: `{:k (f x)}`'); }
+    { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`'); }
 
 JsonMapEntry
   = key:StringLit _ ":" _ value:Element
@@ -679,13 +735,13 @@ SetLit
   = "#[" _ "]"
     { return node('SetLit', { elements: [] }, span(), text()); }
   / "#[" _ elements:ElementList _ "]"
-    { return node('SetLit', { elements }, span(), text()); }
+    { refuseComputedParts(elements); return node('SetLit', { elements }, span(), text()); }
 
 // Brackets with commas are JSON syntax for a vector; whitespace-separated
 // elements are the vector's own.
 VecLit
   = "[" _ head:Element tail:((_ "," _ @Element)+ / (LiteralGap @Element)*) _ "]"
-    { return node('VecLit', { elements: [head, ...tail] }, span(), text()); }
+    { refuseComputedParts([head, ...tail]); return node('VecLit', { elements: [head, ...tail] }, span(), text()); }
   / "[" _ "]"
     { return node('VecLit', { elements: [] }, span(), text()); }
 
@@ -698,7 +754,7 @@ ElementList
 // as two elements.
 LiteralGap
   = __
-  / &{ return docQuoteDepth === 0; } &(!"/" Element) Element { error('the words of a literal are set off by whitespace, and a command with modifiers stands there in parentheses, `[(f x)]`'); }
+  / &{ return docQuoteDepth === 0; } &(!"/" Element) Element { error('the words of a literal are set off by whitespace: `[1 2]`'); }
 
 // A path, a value of its own [D248]: a segment is a bare key, a quoted
 // key, a namespaced keyword after `:`, or an index; the slash alone names

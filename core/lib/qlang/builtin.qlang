@@ -133,9 +133,9 @@
         ~(::number/add | binding | get /value | get /1 | eq ::builtin{})
     | proves :PayloadNotMapError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::builtin"hello" !| [type (get /actualType)] | eq [::builtin/PayloadNotMapError ::string])
+        ~(::builtin"hello" !| get [~(type) /actualType] | eq [::builtin/PayloadNotMapError ::string])
     | proves :PayloadNotMapError/refusesAVector
         |~~ A vector payload is refused. ~~|
-        ~(::builtin[1 2 3] !| [type (get /actualType)] | eq [::builtin/PayloadNotMapError ::vec]))
+        ~(::builtin[1 2 3] !| get [~(type) /actualType] | eq [::builtin/PayloadNotMapError ::vec]))
     ::builtin{}]
 

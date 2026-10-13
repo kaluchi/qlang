@@ -109,17 +109,17 @@
         ~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | parse | eq "mul 2")
     | proves :PayloadNotVecError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::quote{:not :steps} !| [type (get /actualType)] | eq [::quote/PayloadNotVecError ::map])
+        ~(::quote{:not :steps} !| get [~(type) /actualType] | eq [::quote/PayloadNotVecError ::map])
     | proves :ElementNotStepError/refusesAValueWithNoReading
         |~~ A value with no reading as a step is refused at its index. ~~|
-        ~([::Box[1]] | tag ::quote !| [type (get /index)] | eq [::quote/ElementNotStepError 0])
+        ~([::Box[1]] | tag ::quote !| get [~(type) /index] | eq [::quote/ElementNotStepError 0])
     | proves :ReadBackDiffersError/refusesAValueAfterTheHead
         |~~ A value after the first step is refused, its text naming it. ~~|
-        ~([[1] [2]] | tag ::quote !| [type (get /printed)] | eq [::quote/ReadBackDiffersError "[1] | [2]"])
+        ~([[1] [2]] | tag ::quote !| get [~(type) /printed] | eq [::quote/ReadBackDiffersError "[1] | [2]"])
     | proves :ReadBackDiffersError/keepsAValueAtTheHead
         |~~ A value at the head is the subject the steps after it run on.
         ~~|
-        ~([[1 2] (~(count) | first)] | tag ::quote | apply it | eq 2)
+        ~(get [[1 2] ~(~(count) | first)] | tag ::quote | apply it | eq 2)
     | proves :ParseError/refusesASourceCutShort
         |~~ A source cut short after a pipe is refused. ~~|
         ~("42 |" | parse !| type | eq ::quote/ParseError)
@@ -199,7 +199,7 @@
         ~("1 | add 1" | parse | open | eq 2)
     | proves :SubjectNotQuoteError/refusesAString
         |~~ Text is no quote until `parse` reads it. ~~|
-        ~("1 | add 1" | open !| [type (get /actualType)] | eq [::quote/open/SubjectNotQuoteError ::string])
+        ~("1 | add 1" | open !| get [~(type) /actualType] | eq [::quote/open/SubjectNotQuoteError ::string])
     | proves :refusesAQueryThatReadsASubject
         |~~ A query that reads a subject is refused on null. ~~|
         ~(~(add 1) | open !| type | eq ::number/add/SubjectNotNumberError)

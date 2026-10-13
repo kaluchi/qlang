@@ -5,7 +5,7 @@
 
 :tagged
   |~~ A value under a tag is a payload read by the kind its tag names,
-      `::Box[1 2]`, `::Box{:a 1}`, `::Box(5)`, `::Box"s"`: the tag says
+      `::Box[1 2]`, `::Box{:a 1}`, `::Box#5`, `::Box"s"`: the tag says
       how to read the data beneath, and the data keeps its shape, so the
       words of the payload's kind still serve it, `::Box[1 2] | count`
       answering `2`. Tags stack and read from the outside in,
@@ -74,7 +74,7 @@
         ~(#[2 1] | payload | eq [1 2])
     | proves :SubjectNotTaggedError/refusesANumber
         |~~ A number under no tag has no payload. ~~|
-        ~(42 | payload !| [type (get /actualType)] | eq [::tagged/payload/SubjectNotTaggedError ::number])
+        ~(42 | payload !| get [~(type) /actualType] | eq [::tagged/payload/SubjectNotTaggedError ::number])
     | impl ::builtin{}
 
 :tagged/within
@@ -128,20 +128,20 @@
         |~~ An answer the tag's invariant refuses is refused as it goes
             back under the tag.
         ~~|
-        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos(3) | within ~(sub 5) !| type | eq ::Pos/NotPositiveError)
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos#3 | within ~(sub 5) !| type | eq ::Pos/NotPositiveError)
     | proves :keepsItsNamesInside
         |~~ A name the code binds stays inside it. ~~|
-        ~(:n 7 | ::Box[1] | within ~(:n 5 | [n]) | n | eq 7)
+        ~(:n 7 | ::Box[1] | within ~(:n 5 | get [~(n)]) | n | eq 7)
     | proves :reachesUnderTwoTags
         |~~ An edit under two tags reaches the innermost payload. ~~|
         ~(:Box |~~ A box. ~~| | ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])
     | proves :code/NotPathOrQuoteError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
-        ~(#[3 1] | within 1 !| [type (get /actualType)] | eq [::tagged/within/code/NotPathOrQuoteError ::number])
+        ~(#[3 1] | within 1 !| get [~(type) /actualType] | eq [::tagged/within/code/NotPathOrQuoteError ::number])
     | proves :SubjectNotTaggedError/refusesAVector
         |~~ A vector under no tag is refused. ~~|
         ~([1 2] | within ~(reverse)
-          !| [type (get /actualType)] | eq [::tagged/within/SubjectNotTaggedError ::vec])
+          !| get [~(type) /actualType] | eq [::tagged/within/SubjectNotTaggedError ::vec])
     | proves :code/NotGivenError/refusesACallWithNoCode
         |~~ A call with no code is refused under the input. ~~|
         ~(::Box[1] | within !| type | eq ::tagged/within/code/NotGivenError)
@@ -149,6 +149,6 @@
         |~~ The steps between may break the tag's invariant, and the
             answer alone is checked.
         ~~|
-        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos(3) | within ~(sub 5 | add 10) | eq ::Pos(8))
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos#3 | within ~(sub 5 | add 10) | eq ::Pos#8)
     | impl ::builtin{}
 

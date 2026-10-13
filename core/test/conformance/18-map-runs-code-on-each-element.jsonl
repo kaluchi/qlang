@@ -6,5 +6,5 @@
 {"decision":"D116","name":"map-answers-under-no-tag-of-the-subject","query":"::Box[1 2] | map ~(add 1)","expect":"[2 3]"}
 {"decision":"D116","name":"map-refuses-code-written-without-its-quote","query":"[1 2] | map (add 1) !| type","expect":"::vec/map/code/NotPathOrQuoteError"}
 {"decision":"D116","name":"map-on-a-value-of-no-kind-of-it-names-where-it-lives","query":"5 | map ~(add 1) !| get /addresses","expect":"#[::map/map ::set/map ::vec/map]"}
-{"decision":"D116","name":"map-passes-a-failed-element-by-code-of-one-value","query":"[1 (\"x\" | add 1)] | map ~(0) !| type","expect":"::number/add/SubjectNotNumberError"}
-{"decision":"D116","name":"map-passes-a-failed-element-by-code-of-one-quote","query":"[1 (\"x\" | add 1)] | map ~(~(x)) !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D116","name":"map-passes-a-failed-element-by-code-of-one-value","query":"get [1 ~(\"x\" | add 1)] | map ~(0) !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D116","name":"map-passes-a-failed-element-by-code-of-one-quote","query":"get [1 ~(\"x\" | add 1)] | map ~(~(x)) !| type","expect":"::number/add/SubjectNotNumberError"}

@@ -34,20 +34,20 @@
         ~(~(!| get /kind) | first | payload | eq ~(get /kind))
     | proves :PayloadNotQuoteError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(42 | tag ::fail !| [type (get /actualType)] | eq [::fail/PayloadNotQuoteError ::number])
+        ~(42 | tag ::fail !| get [~(type) /actualType] | eq [::fail/PayloadNotQuoteError ::number])
     | proves :PayloadNotQuoteError/buildsTheStepOfAStep
         |~~ The quote of a step builds the step the fail track runs. ~~|
-        ~(~(get /kind) | tag ::fail | get [it] | tag ::quote | eq ~(!| get /kind))
+        ~(~(get /kind) | tag ::fail | get [~(it)] | tag ::quote | eq ~(!| get /kind))
     | proves :ReadBackDiffersError/refusesAPipelineOutsideAGroup
         |~~ A pipeline wrapped without a group prints as text that reads
             back as two steps.
         ~~|
-        ~(~(a | b) | tag ::fail !| [type (get /printed)] | eq [::fail/ReadBackDiffersError "!| a | b"])
+        ~(~(a | b) | tag ::fail !| get [~(type) /printed] | eq [::fail/ReadBackDiffersError "!| a | b"])
     | proves :ReadBackDiffersError/refusesAnEmptyQuote
         |~~ An empty quote prints as text that reads back as no step. ~~|
-        ~(~() | tag ::fail !| [type (get /printed)] | eq [::fail/ReadBackDiffersError "!| "])
+        ~(~() | tag ::fail !| get [~(type) /printed] | eq [::fail/ReadBackDiffersError "!| "])
     | proves :ReadBackDiffersError/wrapsAPipelineInAGroup
         |~~ A pipeline in a group is the one step the fail track runs. ~~|
-        ~(~((get /kind | print)) | tag ::fail | get [it] | tag ::quote | eq ~(!| (get /kind | print)))
+        ~(~((get /kind | print)) | tag ::fail | get [~(it)] | tag ::quote | eq ~(!| (get /kind | print)))
     | impl ::builtin{}
 

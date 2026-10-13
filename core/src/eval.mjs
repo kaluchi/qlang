@@ -14,7 +14,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, isBinding, makeTaggedInstance, makeTag, errorAtRest,
-  isFn, isKind, recipeOf, makeQuote,
+  isFn, isKind, recipeOf, makeQuote, isQMap, isValueClass, stampTagHeader, TAG_HEADER_SYMBOL,
   ERROR_TAG
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
@@ -25,7 +25,7 @@ import {
   ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isWord, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, residenceOnSubject, subjectRefusalAddress
 } from './runtime/nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, kindOf, pageOfConstructor, pageOfKindsRefusal, signatureOf } from './runtime/signature.mjs';
-import { inputsRunBy } from './primitives.mjs';
+import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
 import { splitAddress } from './address.mjs';
 import {
   runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
@@ -759,12 +759,35 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 // one that holds the objects of the call whole; any other value as it is.
 function handedTo(impl, signature, { values, writtenHere }, state) {
   const run = inputsRunBy(impl);
-  if (run === undefined) return values;
+  const within = inputsRunWithin(impl);
+  if (run === undefined && within === undefined) return values;
   return values.map((value, at) => {
     const { name, selector } = signature.inputs[at];
-    if (!run.has(name.name)) return value;
+    if (within?.has(name.name)) return quotesClosedIn(value, writtenHere[selector.place] === true, state);
+    if (!run?.has(name.name)) return value;
     return selector.readsArgs ? value.map((element, place) => codeOfObject(element, writtenHere[place], state)) : codeOfObject(value, writtenHere[selector.place], state);
   });
+}
+
+// A template whose quotes are code closed at the call, each closed as a
+// quote written in the step or held as data, the paths and the other
+// values of it as they are, a set's elements kept in the order written.
+function quotesClosedIn(value, writtenHere, state) {
+  if (isQuote(value)) return codeOf(value, state, writtenHere);
+  if (!holdsAQuote(value)) return value;
+  const header = value[TAG_HEADER_SYMBOL];
+  const closed = isQMap(value)
+    ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, writtenHere, state)]))
+    : value.map(part => quotesClosedIn(part, writtenHere, state));
+  if (header !== undefined) stampTagHeader(closed, header);
+  return closed;
+}
+
+function holdsAQuote(value) {
+  if (isQuote(value)) return true;
+  if (isDoc(value) || isValueClass(value, 'taggedInstance')) return false;
+  if (isQMap(value)) return [...value.values()].some(holdsAQuote);
+  return Array.isArray(value) && value.some(holdsAQuote);
 }
 
 function codeOfObject(value, writtenHere, state) {
@@ -869,9 +892,10 @@ function laidUnder(tagName, value) {
 }
 
 // A value under a kind [D252]: its payload held to its kinds, each field
-// read and held, the recipe run, and the invariants of the value held,
-// every refusal named under the label, the code running in the scope a
-// call opens.
+// read and held, the check a host hands a kind of the core run, and the
+// invariants of the value held, every refusal named under the label, the
+// code of a place or a condition running in the scope a call opens; the
+// constructor attaches the tag or refuses the payload [D279].
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = kindOf(kind);
   const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, (kinds, each) => `${tagName}/${payloadRefusalName(kinds, each)}`, payload, state.env);
@@ -882,19 +906,12 @@ async function underKind(tagName, kind, payload, state) {
     const refused = await fieldRefusal(tagName, field, held, invariants, state, opened);
     if (refused !== null) return refused;
   }
-  const recipe = recipeOf(kind);
-  const built = isRecipe(recipe) ? await builtByRecipe(recipe, held, state, opened) : held;
+  const check = recipeOf(kind);
+  const built = isRecipe(check) ? await hostImplOf(check)(held, state) : held;
   if (isErrorValue(built)) return built;
   const labelled = laidUnder(tagName, built);
   const ofTheValue = invariants.filter(({ field }) => field === null);
   return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, labelled, state, opened()) ?? labelled;
-}
-
-// The value a recipe of a kind builds from the payload: a quote run on it
-// in the scope its call opens, or the primitive a host handed.
-async function builtByRecipe(recipe, payload, state, opened) {
-  if (isQuote(recipe)) return (await evalBody(astOfQuote(recipe), nestState(state, payload, opened()))).pipeValue;
-  return await hostImplOf(recipe)(payload, state);
 }
 
 // The refusal of a field of the payload: a place the payload leaves out, a
@@ -937,11 +954,21 @@ function closeCode(astNode, capturedState) {
 // the code it is.
 function modifierOf(argNode, state) {
   if (argNode.type === 'QuoteLit') return quoteWrittenHere(argNode);
+  if (TEMPLATE_LITERALS.has(argNode.type)) return writtenHereAs(closeCode(argNode, state));
   if (SCALAR_LITERALS.has(argNode.type)) return () => (frameBelow(state), AST_NODE_EVALUATORS[argNode.type](argNode, state).pipeValue);
   return closeCode(argNode, state);
 }
 
 const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
+
+// The literals a template is written as, whose quotes are written in the
+// step [D279].
+const TEMPLATE_LITERALS = new Set(['VecLit', 'MapLit', 'SetLit']);
+
+function writtenHereAs(code) {
+  code.writtenHere = true;
+  return code;
+}
 
 function quoteWrittenHere(argNode) {
   const quote = () => quoteOfLiteral(argNode);

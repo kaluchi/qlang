@@ -13,7 +13,7 @@
 {"decision":"D251","name":"a-doc-is-the-object-of-a-command","query":"[1] | append |~~ A note. ~~| | count","expect":"2"}
 {"decision":"D251","name":"the-words-that-build-a-function-are-functions","query":"::fn/takes | binding | get /value | type","expect":"::fn"}
 {"decision":"D251","name":"fn-is-a-kind-with-a-page","query":"::fn | doc | type","expect":"::doc"}
-{"decision":"D251","name":"a-quote-holds-no-scope","query":":f (:k 10 | :g ~(mul k) | g) | :k 2 | :h ~(mul k) | [(f | eq h) (3 | apply f) (3 | apply h)]","expect":"[true 6 6]"}
+{"decision":"D251","name":"a-quote-holds-no-scope","query":":f (:k 10 | :g ~(mul k) | g) | :k 2 | :h ~(mul k) | get [~(f | eq h) ~(3 | apply f) ~(3 | apply h)]","expect":"[true 6 6]"}
 {"decision":"D251","name":"a-recipe-reads-no-value-of-a-sentence","query":":n 3 | :number/times ~(mul n) | 5 | times !| type","expect":"::call/UnknownNameError"}
 {"decision":"D251","name":"a-quote-written-in-its-step-reads-that-step","query":":vec/addAll (::fn | takes :by |~~ The by. ~~| /0 | impl ~(map ~(add by))) | [1 2] | addAll 10","expect":"[11 12]"}
 {"decision":"D251","name":"a-named-quote-recurses-through-the-names-of-its-query","query":":fact ~(if (lte 1) ~(1) ~(:n it | sub 1 | apply fact | mul n)) | 5 | apply fact","expect":"120"}

@@ -38,7 +38,7 @@ export async function ringSession() {
 export async function unbuiltOf(session, valuesBySource) {
   const unbuilt = [];
   for (const [source, value] of valuesBySource) {
-    const rebuilding = isErrorValue(value) ? '!| union {:trail (trail)} | rebuilt | raise' : 'rebuilt';
+    const rebuilding = isErrorValue(value) ? '!| union (get {:trail ~(trail)}) | rebuilt | raise' : 'rebuilt';
     if (!deepEqual((await session.evalCell(rebuilding, { initialPipeValue: value })).result, value)) unbuilt.push(source);
   }
   return unbuilt;

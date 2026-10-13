@@ -4,12 +4,12 @@
 // `segments` and `toPath` turn a path and its keys into each other, JSON
 // Pointer's form read with its escapes.
 
-import { bindPrim, bindStateReader, runs } from '../primitives.mjs';
+import { bindPrim, bindStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, placeIn, noPartsOn } from '../path-read.mjs';
 import { mintUnderTag } from './verb.mjs';
 import {
-  isPath, makePath, isKeyword, isQMap, isQSet, isQuote, isDoc, isVec, isValueClass, isErrorValue, keyword, makeSet,
+  isPath, makePath, isKeyword, isQMap, isQuote, isDoc, isVec, isValueClass, isErrorValue, keyword, makeSet,
   makeTaggedInstance, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 
@@ -24,8 +24,10 @@ function pathOfKey(key) {
 
 const isKey = value => isKeyword(value) || typeof value === 'string' || typeof value === 'number';
 
-// A path or a key read from the subject; any other value a shape whose
-// paths are read in their places, its other values kept.
+// A path or a key read from the subject; any other value a template whose
+// paths are read and whose quotes, closed at the call, are run against the
+// subject in their places, its other values kept, the first failure of a
+// quote the answer [D279].
 function readObject(subject, object, soft, fallback) {
   if (isPath(object) || isKey(object)) {
     const read = readPath(subject, isPath(object) ? object : pathOfKey(object), soft);
@@ -34,23 +36,43 @@ function readObject(subject, object, soft, fallback) {
   return readShape(subject, object, soft, fallback);
 }
 
-function readShape(subject, shape, soft, fallback) {
+async function readShape(subject, shape, soft, fallback) {
+  if (typeof shape === 'function') return await shape(subject);
   if (isPath(shape)) {
     const read = readPath(subject, shape, soft);
     return read === MISSED ? fallback : read;
   }
   if (isValueClass(shape, 'taggedInstance') || isQuote(shape) || isDoc(shape)) return shape;
-  if (isQSet(shape)) return makeSet(shape.map(element => readShape(subject, element, soft, fallback)));
   const tag = shape?.[TAG_HEADER_SYMBOL];
-  let read;
-  if (isVec(shape)) read = shape.map(element => readShape(subject, element, soft, fallback));
-  else if (isQMap(shape)) read = new Map([...shape].map(([key, value]) => [key, readShape(subject, value, soft, fallback)]));
-  else return shape;
-  return tag === undefined ? (isVec(read) ? Object.freeze(read) : read) : makeTaggedInstance(tag, read);
+  if (isVec(shape)) {
+    const parts = await readParts(subject, [...shape], soft, fallback);
+    if (isErrorValue(parts)) return parts;
+    if (tag?.name === 'set') return makeSet(parts);
+    return tag === undefined ? Object.freeze(parts) : makeTaggedInstance(tag, parts);
+  }
+  if (isQMap(shape)) {
+    const parts = await readParts(subject, [...shape.values()], soft, fallback);
+    if (isErrorValue(parts)) return parts;
+    const read = new Map([...shape.keys()].map((key, at) => [key, parts[at]]));
+    return tag === undefined ? read : makeTaggedInstance(tag, read);
+  }
+  return shape;
 }
 
-bindPrim('any/get', (subject, object) => readObject(subject, object, false, null));
-bindPrim('any/query', (subject, object, fallback) => readObject(subject, object, true, fallback));
+// The parts of a template read one after another, the first failure the
+// answer.
+async function readParts(subject, shapes, soft, fallback) {
+  const parts = [];
+  for (const shape of shapes) {
+    const part = await readShape(subject, shape, soft, fallback);
+    if (isErrorValue(part)) return part;
+    parts.push(part);
+  }
+  return parts;
+}
+
+bindPrim('any/get', runsWithin(['path'], (subject, object) => readObject(subject, object, false, null)));
+bindPrim('any/query', runsWithin(['path'], (subject, object, fallback) => readObject(subject, object, true, fallback)));
 
 // The subject with the part at a path written: `put` lays a value there,
 // a key the last map lacks added, `update` lays what its code answers for

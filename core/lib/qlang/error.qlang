@@ -131,7 +131,7 @@
         ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::number/add/SubjectNotNumberError)
     | proves :TrailNotVecError/refusesANumberForATrail
         |~~ A number given as a trail is refused. ~~|
-        ~(!{:kind :oops :trail 5} | raise !| [type (get /actualType)] | eq [::error/TrailNotVecError ::number])
+        ~(!{:kind :oops :trail 5} | raise !| get [~(type) /actualType] | eq [::error/TrailNotVecError ::number])
     | proves :TrailNotVecError/refusesATrailLaidOverAFailure
         |~~ A trail of a number laid over an error is refused when it is
             raised.
@@ -144,7 +144,7 @@
           !| get /trail | map /step | eq [~(raise)])
     | proves :TrailNotVecError/refusesASetAQuoteAndADoc
         |~~ A set, a quote and a doc are no plain vector of stops. ~~|
-        ~([#[1] ~(a) |~~ d ~~|] | map ~({:trail it} | raise !| type) | eq [::error/TrailNotVecError ::error/TrailNotVecError ::error/TrailNotVecError])
+        ~([#[1] ~(a) |~~ d ~~|] | map ~(get {:trail ~(it)} | raise !| type) | eq [::error/TrailNotVecError ::error/TrailNotVecError ::error/TrailNotVecError])
     | proves :read/namesAWrittenPathAlone
         |~~ A path a name holds is no path the step wrote, and names no
             read.
@@ -196,6 +196,6 @@
         ~([1 "x"] | map ~(mul 2) !| trail | map /step | eq [~(mul 2) ~(map ~(mul 2))])
     | proves :SubjectNotErrorError/refusesAMap
         |~~ A map with the key `:trail` is no error. ~~|
-        ~({:trail []} | trail !| [type (get /actualType)] | eq [::error/trail/SubjectNotErrorError ::map])
+        ~({:trail []} | trail !| get [~(type) /actualType] | eq [::error/trail/SubjectNotErrorError ::map])
     | impl ~(query /trail | coalesce [])
 

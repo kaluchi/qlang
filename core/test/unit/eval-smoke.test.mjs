@@ -137,7 +137,7 @@ describe('eval — freeze', () => {
         | :allScores it
         | filter ~(gte 70)
         | :passingScores it
-        | [(allScores | count), (passingScores | count)]
+        | get [~(allScores | count), ~(passingScores | count)]
     `)).toEqual([7, 4]);
   });
 });
@@ -230,7 +230,7 @@ describe('the answer of a word of the host', async () => {
         }
       }]
     });
-    expect((await s.evalCell('[(41 | later | add 1) (41 | elsewhere | add 1)]')).result).toEqual([43, 43]);
+    expect((await s.evalCell('get [~(41 | later | add 1) ~(41 | elsewhere | add 1)]')).result).toEqual([43, 43]);
   });
 
   it('refuses a number past the finite doubles under several labels as under ::number alone', async () => {

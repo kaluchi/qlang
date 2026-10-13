@@ -120,7 +120,7 @@ describe('highlightAnsi', () => {
   });
 
   it('paints a line cut short, as it is typed', () => {
-    expect(highlightAnsi('[unclosed', noBuiltins)).toMatch(ANY_ANSI);
+    expect(highlightAnsi('(unclosed', noBuiltins)).toMatch(ANY_ANSI);
   });
 
   it('passes a source the parser reads none of through without escape sequences', () => {

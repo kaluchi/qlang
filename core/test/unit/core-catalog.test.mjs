@@ -91,7 +91,7 @@ describe('the root of the language', () => {
   // exists. This pin fails on a silent shrink of the root's nouns; a
   // tally belongs in test code, which CI re-verifies, and never in prose.
   it('the root holds the kinds of the language and its topic', async () => {
-    expect(await evalQuery('[(kinds | has ::number) (::qlang | doc | type)]')).toEqual(await evalQuery('[true ::doc]'));
+    expect(await evalQuery('get [~(kinds | has ::number) ~(::qlang | doc | type)]')).toEqual(await evalQuery('[true ::doc]'));
   });
 
   it('no kind of the root is left a descriptor [D113]', async () => {

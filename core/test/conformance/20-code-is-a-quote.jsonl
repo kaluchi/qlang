@@ -13,13 +13,13 @@
 {"decision":"D8","name":"quote-projects-its-steps-by-index","query":"~(mul 2) | get /0 | get /name","expect":":mul"}
 {"decision":"D8","name":"quote-step-carries-no-kind","query":"~(mul 2) | first | has :kind","expect":"false"}
 {"decision":"D8","name":"quote-step-of-a-call-is-a-call-record","query":"~(mul 2) | first | type","expect":"::call"}
-{"decision":"D116","name":"a-step-on-each-element-is-a-call","query":"~(map ~inc | sort) | first | get [type /name]","expect":"[::call :map]"}
+{"decision":"D116","name":"a-step-on-each-element-is-a-call","query":"~(map ~inc | sort) | first | get [~(type) /name]","expect":"[::call :map]"}
 {"decision":"D8","name":"quote-comment-leaves-no-step","query":"~(|~ note ~| count) | count","expect":"1"}
 {"decision":"D8","name":"quote-filter-keeps-a-quote","query":"~(add 1 | mul 2) | filter ~(get /name | eq :mul)","expect":"~(mul 2)"}
 {"decision":"D8","name":"map-over-a-quote-drops-the-tag","query":"~(add 1 | mul 2) | map /name","expect":"[:add :mul]"}
 {"decision":"D8","name":"quote-tag-refuses-a-non-step","query":"[::Box[1]] | tag ::quote !| type","expect":"::quote/ElementNotStepError"}
 {"decision":"D8","name":"quote-assembled-from-steps","query":"[[1 2] ::call{:name :count}] | tag ::quote | parse","expect":"\"[1 2] | count\""}
-{"decision":"D8","name":"call-record-that-reads-back-as-no-code-is-refused","query":"::call{:name :\"a b\"} !| [type (get /printed)]","expect":"[::call/ReadBackDiffersError \"a b\"]"}
+{"decision":"D8","name":"call-record-that-reads-back-as-no-code-is-refused","query":"::call{:name :\"a b\"} !| get [~(type) /printed]","expect":"[::call/ReadBackDiffersError \"a b\"]"}
 {"decision":"D8","name":"quote-type-answers-quote","query":"~(mul 2) | type | eq ::quote","expect":"true"}
 {"decision":"D8","name":"string-type-is-not-quote","query":"\"mul 2\" | type | eq ::quote","expect":"false"}
 {"decision":"D8","name":"type-quote-number-false","query":"42 | type | eq ::quote","expect":"false"}
@@ -73,13 +73,13 @@
 {"decision":"D9","name":"apply-parsed-fail-track","query":"\"\\\"hello\\\" | add 1 !| type\" | parse | apply it","expect":"::number/add/SubjectNotNumberError"}
 {"decision":"D9","name":"apply-code-not-quote","query":"42 | apply it","expect":"::any/apply/code/NotFnOrPathOrQuoteError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(apply it)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D9","name":"apply-quote-against-the-subject","query":"5 | apply ~(mul 2)","expect":"10"}
-{"decision":"D9","name":"apply-code-type-refusal","query":"42 | apply 1 !| [type (get /actualType)]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::number]"}
+{"decision":"D9","name":"apply-code-type-refusal","query":"42 | apply 1 !| get [~(type) /actualType]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::number]"}
 {"decision":"D9","name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::call/UnknownNameError"}
-{"decision":"D129","name":"apply-code-that-fails-is-refused-by-its-input","query":"5 | apply (get /nope) !| [type (get /actualType)]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::path/SubjectNotProjectableError]"}
+{"decision":"D129","name":"apply-code-that-fails-is-refused-by-its-input","query":"5 | apply (get /nope) !| get [~(type) /actualType]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::path/SubjectNotProjectableError]"}
 {"decision":"D9","name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12"}
 {"decision":"D5","name":"a-named-quote-is-a-value-apply-runs","query":":q ~(add 1) | 5 | apply q","expect":"6"}
 {"decision":"D67","name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)"}
 {"decision":"D251","name":"a-named-quote-reads-the-names-where-its-verb-stands","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big","expect":"[5 10]"}
-{"decision":"D129","name":"a-step-without-its-quote-is-refused-by-the-input-of-code","query":"[{:a true}] | filter (get /a) !| [type (get /actualType)]","expect":"[::vec/filter/predicate/NotPathOrQuoteError ::path/IndexNotIntegerError]"}
+{"decision":"D129","name":"a-step-without-its-quote-is-refused-by-the-input-of-code","query":"[{:a true}] | filter (get /a) !| get [~(type) /actualType]","expect":"[::vec/filter/predicate/NotPathOrQuoteError ::path/IndexNotIntegerError]"}
 {"decision":"D129","name":"an-input-of-code-of-a-reader-refuses-a-failed-modifier","query":":any/f (::fn | takes :q |~~ The q. ~~| /0 ::quote | impl ~(apply q)) | 1 | f (get /x) !| type","expect":"::any/f/q/NotQuoteError"}
 {"decision":"D129","name":"an-input-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take (get /x) !| type","expect":"::path/IndexNotIntegerError"}

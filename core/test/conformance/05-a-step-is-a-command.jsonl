@@ -10,9 +10,9 @@
 {"decision":"D248","name":"query-answers-null-through-null","query":"{:a null} | query /a/b","expect":"null"}
 {"decision":"D248","name":"query-refuses-another-kind-on-the-path","query":"{:a 5} | query /a/b !| type","expect":"::path/SubjectNotProjectableError"}
 {"decision":"D248","name":"query-and-coalesce-give-a-default","query":"{:a 1} | query /port | coalesce 8080","expect":"8080"}
-{"decision":"D248","name":"has-asks-whether-a-path-reads","query":"{:a {:b 1}} | get [(has /a/b) (has /a/c)]","expect":"[true false]"}
+{"decision":"D248","name":"has-asks-whether-a-path-reads","query":"{:a {:b 1}} | get [~(has /a/b) ~(has /a/c)]","expect":"[true false]"}
 {"decision":"D248","name":"get-reads-a-tuple","query":"{:price 4 :qty 3} | get [/price /qty]","expect":"[4 3]"}
-{"decision":"D248","name":"get-reads-a-shape","query":"{:first \"Ann\" :tags [:a :b]} | get {:who /first :n (get /tags | count)}","expect":"{:who \"Ann\" :n 2}"}
+{"decision":"D248","name":"get-reads-a-shape","query":"{:first \"Ann\" :tags [:a :b]} | get {:who /first :n ~(get /tags | count)}","expect":"{:who \"Ann\" :n 2}"}
 {"decision":"D248","name":"query-reads-a-tuple-softly","query":"{:a 1} | query [/a /b]","expect":"[1 null]"}
 {"decision":"D248","name":"get-reads-a-shape-strictly","query":"{:a 1} | get [/a /b] !| type","expect":"::path/KeyNotInMapError"}
 {"decision":"D248","name":"map-takes-a-path","query":"[{:n 1} {:n 2}] | map /n","expect":"[1 2]"}
@@ -39,7 +39,7 @@
 {"decision":"D248","name":"the-slash-alone-leaves-the-language","query":"\"[1 2] | :v /\" | parse !| type","expect":"::quote/ParseError"}
 {"decision":"D248","name":"it-answers-the-value-in-the-pipe","query":"5 | mul it","expect":"25"}
 {"decision":"D248","name":"paths-answers-the-outline-of-a-value","query":"{:a {:b 1 :c [2 3]} :d []} | paths | map ~(print)","expect":"[\"/a/b\" \"/a/c/0\" \"/a/c/1\" \"/d\"]"}
-{"decision":"D248","name":"ok-asks-whether-the-step-before-stood","query":"[(5 | ok !| false) (!{:k 1} | raise | ok !| false)]","expect":"[true false]"}
+{"decision":"D248","name":"ok-asks-whether-the-step-before-stood","query":"get [~(5 | ok !| false) ~(!{:k 1} | raise | ok !| false)]","expect":"[true false]"}
 {"decision":"D248","name":"a-place-is-a-path","query":":number/plus (::fn | takes :by |~~ The by. ~~| /0 | impl ~(add by)) | 5 | plus 2","expect":"7"}
 {"decision":"D248","name":"a-place-reads-softly-by-query","query":":number/plus (::fn | takes :by |~~ The by. ~~| ~(query /0 1) | impl ~(add by)) | 5 | plus","expect":"6"}
 {"decision":"D248","name":"query-leaves-the-language","query":"{:a 1} | at :a !| type","expect":"::call/UnknownNameError"}

@@ -9,14 +9,14 @@ import { declareRefusal } from '../errors.mjs';
 import { kindOf } from './signature.mjs';
 import { commandStep } from '../quote.mjs';
 import {
-  isQuote, isVec, isNull, isBuiltinDescriptor, isKind, commandsOf, recipeOf,
+  isVec, isNull, isBuiltinDescriptor, isKind, commandsOf, recipeOf,
   makeTag, makeTaggedInstance, makeQuote, KIND_TAG_NAME
 } from '../types.mjs';
 
 const KIND_TAG = makeTag(KIND_TAG_NAME);
 
 const KindPayloadNotPairError = declareRefusal('kind/PayloadNotPairError');
-const KindRecipeNotCodeError = declareRefusal('kind/RecipeNotCodeError');
+const KindRecipeNotBuiltinError = declareRefusal('kind/RecipeNotBuiltinError');
 const KindWrapsSubjectNotKindError = declareRefusal('kind/wraps/SubjectNotKindError');
 const KindReadsSubjectNotKindError = declareRefusal('kind/reads/SubjectNotKindError');
 const KindTellsSubjectNotKindError = declareRefusal('kind/tells/SubjectNotKindError');
@@ -34,13 +34,13 @@ function madeKind(commands, recipe) {
   return kind;
 }
 
-// `::kind[commands recipe]` — a kind from its literal: the quote of its
-// commands, and its recipe, a quote, a host's primitive, or null for a kind
-// that lays its tag over the payload as it is.
+// `::kind[commands check]` — a kind from its literal: the quote of its
+// commands, and the check a host hands a kind of the core, or null for a
+// kind that attaches its tag by its commands alone [D279].
 bindPrim('kind/construct', payload => {
   if (!isVec(payload) || payload.length !== 2) throw new KindPayloadNotPairError({ actualValue: payload });
   const [commands, recipe] = payload;
-  if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new KindRecipeNotCodeError({ actualValue: recipe });
+  if (!(isNull(recipe) || isBuiltinDescriptor(recipe))) throw new KindRecipeNotBuiltinError({ actualValue: recipe });
   return madeKind(commands, recipe);
 });
 
@@ -88,6 +88,6 @@ bindPrim('kind/throws', (subject, name, page) => withCommand(subject, KindThrows
 // name makes, its page and the query that proves it.
 bindPrim('kind/proves', (subject, name, page, query) => withCommand(subject, KindProvesSubjectNotKindError, 'proves', [name, page, query]));
 
-// `impl ::builtin{}` — the recipe that builds the kind's values from a
-// payload, its constructor.
+// `impl ::builtin{}` — the check a host hands a kind of the core, its
+// constructor [D279].
 bindPrim('kind/impl', (subject, recipe) => madeKind(commandsOf(kindFrom(subject, KindImplSubjectNotKindError)), recipe));

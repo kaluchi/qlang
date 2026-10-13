@@ -3,30 +3,30 @@
 {"decision":"D153","name":"a-reader-extends-a-kind-of-the-root","query":":vec/second ~(get /1) | [7 8 9] | second","expect":"8"}
 {"decision":"D153","name":"an-address-the-root-holds-is-declared-once","query":":vec/count ~(0) !| type","expect":"::bind/NameDeclaredTwiceError"}
 {"decision":"D153","name":"a-bare-name-of-the-reader-shadows-the-root","query":":vec 5 | vec","expect":"5"}
-{"decision":"D191","name":"a-kind-of-the-root-is-no-bare-name","query":"qlang !| [type (get /nearest)]","expect":"[::call/UnknownNameError [::qlang]]"}
+{"decision":"D191","name":"a-kind-of-the-root-is-no-bare-name","query":"qlang !| get [~(type) /nearest]","expect":"[::call/UnknownNameError [::qlang]]"}
 {"decision":"D191","name":"a-reader-reads-a-doc-it-named","query":"|~~ note ~~| | :d it | d | content","expect":"\" note \""}
-{"decision":"D191","name":"the-name-of-a-kind-reads-no-page","query":"[(\"5\" | number !| type) (5 | string !| type)]","expect":"[::call/UnknownNameError ::call/UnknownNameError]"}
+{"decision":"D191","name":"the-name-of-a-kind-reads-no-page","query":"get [~(\"5\" | number !| type) ~(5 | string !| type)]","expect":"[::call/UnknownNameError ::call/UnknownNameError]"}
 {"decision":"D34","name":"the-walk-of-the-subject-comes-before-the-root","query":"[1 2] | doc | type","expect":"::doc"}
 {"decision":"D153","name":"the-address-of-a-name-is-the-name-as-declared","query":"::vec/count | source | parse | startsWith \":vec/count\"","expect":"true"}
 {"decision":"D153","name":"no-prefix-stands-for-the-language","query":"::qlang/number | doc !| type","expect":"::any/doc/UnknownNameError"}
 {"decision":"D153","name":"the-chapters-are-members-of-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
 {"decision":"D153","name":"a-tag-of-a-word-no-name-declares-is-identity","query":"::code{:a 1} | type","expect":"::code"}
-{"decision":"D36","name":"env-answers-what-the-reader-declared","query":":x 1 | :Box {} | :Box/y 2 | env | get [(has :x) (has :Box/y) (has :vec) (has :count)]","expect":"[true true false false]"}
-{"decision":"D160","name":"kinds-answers-the-labels-the-scope-reads","query":":Box |~~ Box. ~~| | kinds | get [(has ::vec) (has ::Box) (has ::qlang)]","expect":"[true true true]"}
+{"decision":"D36","name":"env-answers-what-the-reader-declared","query":":x 1 | :Box {} | :Box/y 2 | env | get [~(has :x) ~(has :Box/y) ~(has :vec) ~(has :count)]","expect":"[true true false false]"}
+{"decision":"D160","name":"kinds-answers-the-labels-the-scope-reads","query":":Box |~~ Box. ~~| | kinds | get [~(has ::vec) ~(has ::Box) ~(has ::qlang)]","expect":"[true true true]"}
 {"decision":"D153","name":"a-binding-records-its-origin","query":"::number/add | binding | get /origin","expect":":qlang/number"}
 {"decision":"D153","name":"a-helper-in-a-group-closes-with-it","query":":f (:h 2 | ~(mul h)) | env | has :h","expect":"false"}
 {"decision":"D153","name":"use-left-the-language","query":"{:x 1} | use !| type","expect":"::call/UnknownNameError"}
 {"decision":"D153","name":"a-word-is-called-by-the-last-name-of-its-address","query":":any/x ~(1) | 5 | x","expect":"1"}
 {"decision":"D153","name":"a-verb-a-body-computes-under-a-kind-serves-the-kind","query":":Box |~~ Box. ~~| | :Box/h (~(type)) | ::Box{} | h","expect":"::Box"}
-{"decision":"D153","name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":":vec 5 | [vec (env | get /vec | get /value) (::vec[1] | eq [1]) ([1] | doc | type)]","expect":"[5 5 true ::doc]"}
+{"decision":"D153","name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":":vec 5 | get [~(vec) ~(env | get /vec | get /value) ~(::vec[1] | eq [1]) ~([1] | doc | type)]","expect":"[5 5 true ::doc]"}
 {"decision":"D153","name":"an-address-reads-a-value","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side","expect":"3"}
 {"decision":"D153","name":"a-name-several-kinds-declare-is-refused-with-their-addresses","query":":Box |~~ Box. ~~| | :Circle |~~ Circle. ~~| | :Box/area ~(1) | :Circle/area ~(2) | 5 | area !| get /addresses","expect":"#[::Box/area ::Circle/area]"}
-{"decision":"D153","name":"a-path-names-a-noun-declared-before-it","query":":Box/area ~(1) !| [type (get /noun)]","expect":"[::bind/NounNotDeclaredError ::Box]"}
-{"decision":"D164","name":"a-name-resides-under-the-label-it-is-declared-under","query":":T |~~ T ~~| | :T/tk (::vec/take | binding | get /value) | [(::T[1 2 3] | tk 2) ([1 2 3] | T/tk 2 !| type)]","expect":"[[1 2] ::T/tk/SubjectNotTError]"}
-{"decision":"D34","name":"a-residence-takes-its-subject-by-the-walk-of-its-tags","query":":Box |~~ Box. ~~| | :Box/w2 ~(get /w | mul 2) | [(::Box{:w 3} | Box/w2) ({:w 3} | Box/w2 !| type)]","expect":"[6 ::Box/w2/SubjectNotBoxError]"}
+{"decision":"D153","name":"a-path-names-a-noun-declared-before-it","query":":Box/area ~(1) !| get [~(type) /noun]","expect":"[::bind/NounNotDeclaredError ::Box]"}
+{"decision":"D164","name":"a-name-resides-under-the-label-it-is-declared-under","query":":T |~~ T ~~| | :T/tk (::vec/take | binding | get /value) | get [~(::T[1 2 3] | tk 2) ~([1 2 3] | T/tk 2 !| type)]","expect":"[[1 2] ::T/tk/SubjectNotTError]"}
+{"decision":"D34","name":"a-residence-takes-its-subject-by-the-walk-of-its-tags","query":":Box |~~ Box. ~~| | :Box/w2 ~(get /w | mul 2) | get [~(::Box{:w 3} | Box/w2) ~({:w 3} | Box/w2 !| type)]","expect":"[6 ::Box/w2/SubjectNotBoxError]"}
 {"decision":"D34","name":"a-reader-kind-of-a-builtin-step-runs-it-as-a-step","query":":B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1] | type","expect":"::B"}
-{"decision":"D153","name":"a-declaration-writes-into-no-verb-it-was-handed","query":":A |~~ A. ~~| | :B |~~ B. ~~| | ~(:returns ::number | 1) | get [(:A/f (it) | ::A{} | f) (:B/f (it) | ::B{} | f)]","expect":"[1 1]"}
-{"decision":"D160","name":"kinds-reads-a-kind-of-the-root-a-reader-stands-over","query":":vec 5 | [(kinds | has ::vec) (env | get /vec | get /value)]","expect":"[true 5]"}
+{"decision":"D153","name":"a-declaration-writes-into-no-verb-it-was-handed","query":":A |~~ A. ~~| | :B |~~ B. ~~| | ~(:returns ::number | 1) | get [~(:A/f (it) | ::A{} | f) ~(:B/f (it) | ::B{} | f)]","expect":"[1 1]"}
+{"decision":"D160","name":"kinds-reads-a-kind-of-the-root-a-reader-stands-over","query":":vec 5 | get [~(kinds | has ::vec) ~(env | get /vec | get /value)]","expect":"[true 5]"}
 {"decision":"D118","name":"a-name-a-reader-stands-over-is-near-once","query":":vec 5 | vex !| get /nearest","expect":"[:vec]"}
 {"decision":"D221","name":"a-label-of-the-root-stays-the-roots-under-a-name-of-the-reader","query":":page (::vec | doc) | :vec 5 | ::vec | doc | eq page","expect":"true"}
 {"decision":"D117","name":"a-law-of-a-name-applied-binds-in-its-readers-scope","query":"::qlang/pipeline | laws | map ~(get /1 | apply it) | every ~(it)","expect":"true"}

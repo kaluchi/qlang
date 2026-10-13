@@ -52,7 +52,7 @@
         ~("#{1}" | parse !| get /message | contains "#[")
     | proves :PayloadNotVecError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::set{:not :a-vec} !| [type (get /actualType)] | eq [::set/PayloadNotVecError ::map])
+        ~(::set{:not :a-vec} !| get [~(type) /actualType] | eq [::set/PayloadNotVecError ::map])
     | impl ::builtin{}
 
 :set/count
@@ -124,7 +124,7 @@
         ~(::set[:c :a :b] | first | eq :a)
     | proves :answersTheLeastWhereAVectorAnswersItsFirst
         |~~ A vector answers its first written, its set the least. ~~|
-        ~([:c :a :b] | get [first (distinct | first)] | eq [:c :a])
+        ~([:c :a :b] | get [~(first) ~(distinct | first)] | eq [:c :a])
     | proves :ranksAcrossKinds
         |~~ A number comes before a string and a keyword. ~~|
         ~(#[1 "a" :k] | first | eq 1)
@@ -162,7 +162,7 @@
         ~(::set[:c :a :b] | last | eq :c)
     | proves :answersTheGreatestWhereAVectorAnswersItsLast
         |~~ A vector answers its last written, its set the greatest. ~~|
-        ~([:c :a :b] | get [last (distinct | last)] | eq [:b :c])
+        ~([:c :a :b] | get [~(last) ~(distinct | last)] | eq [:b :c])
     | proves :ranksAcrossKinds
         |~~ A keyword comes after a number and a string. ~~|
         ~(#[1 "a" :k] | last | eq :k)
@@ -202,13 +202,13 @@
         ~(#[] | sum | eq 0)
     | proves :addsOnceWhatTheVectorRepeats
         |~~ The set of a vector's elements adds a repeated one once. ~~|
-        ~([1 1 2] | get [sum (distinct | sum)] | eq [4 3])
+        ~([1 1 2] | get [~(sum) ~(distinct | sum)] | eq [4 3])
     | proves :addsAFieldOfEachElementThroughAVector
         |~~ A field two elements share adds twice through `map`. ~~|
         ~(#[{:p 1 :n :a} {:p 1 :n :b}] | map /p | sum | eq 2)
     | proves :ElementNotNumberError/refusesAString
         |~~ A string among the numbers is refused at its index. ~~|
-        ~(#[1 "two"] | sum !| [type (get /index)] | eq [::set/sum/ElementNotNumberError 1])
+        ~(#[1 "two"] | sum !| get [~(type) /index] | eq [::set/sum/ElementNotNumberError 1])
     | proves :ElementNotNumberError/namesThePlaceInTheOneOrder
         |~~ The index is the place in the one order, not where it was
             written.
@@ -248,10 +248,10 @@
         ~(#[1e308 -1e308] | avg | eq 0)
     | proves :countsOnceWhatTheVectorRepeats
         |~~ The set of a vector's elements counts a repeated one once. ~~|
-        ~([1 1 4] | get [avg (distinct | avg)] | eq [2 2.5])
+        ~([1 1 4] | get [~(avg) ~(distinct | avg)] | eq [2 2.5])
     | proves :ElementNotNumberError/refusesAString
         |~~ A string among the numbers is refused at its index. ~~|
-        ~(#[1 "two"] | avg !| [type (get /index)] | eq [::set/avg/ElementNotNumberError 1])
+        ~(#[1 "two"] | avg !| get [~(type) /index] | eq [::set/avg/ElementNotNumberError 1])
     | impl ::builtin{}
 
 :set/min
@@ -432,7 +432,7 @@
         ~(#[1 2 3] | filter (gt 1) !| type | eq ::set/filter/predicate/NotPathOrQuoteError)
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
-        ~(#[1 2] | filter ~(1) !| [type (get /index)] | eq [::set/filter/ConditionNotBooleanError 0])
+        ~(#[1 2] | filter ~(1) !| get [~(type) /index] | eq [::set/filter/ConditionNotBooleanError 0])
     | impl ::builtin{}
 
 :set/every
@@ -481,7 +481,7 @@
         ~(#[1 2] | every (gt 0) !| type | eq ::set/every/predicate/NotPathOrQuoteError)
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
-        ~(#[1 2] | every ~(1) !| [type (get /index)] | eq [::set/every/ConditionNotBooleanError 0])
+        ~(#[1 2] | every ~(1) !| get [~(type) /index] | eq [::set/every/ConditionNotBooleanError 0])
     | impl ::builtin{}
 
 :set/any
@@ -530,7 +530,7 @@
         ~(#[1 2] | any (gt 0) !| type | eq ::set/any/predicate/NotPathOrQuoteError)
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
-        ~(#[1 2] | any ~(1) !| [type (get /index)] | eq [::set/any/ConditionNotBooleanError 0])
+        ~(#[1 2] | any ~(1) !| get [~(type) /index] | eq [::set/any/ConditionNotBooleanError 0])
     | impl ::builtin{}
 
 :set/groupBy
@@ -594,7 +594,7 @@
         |~~ A vector files an element as often as it was written, its set
             once.
         ~~|
-        ~([1 1] | get [groupBy (distinct | groupBy)] | eq [{:"1" [1 1]} {:"1" #[1]}])
+        ~([1 1] | get [~(groupBy) ~(distinct | groupBy)] | eq [{:"1" [1 1]} {:"1" #[1]}])
     | proves :filesUnderItselfWithoutAKey
         |~~ Without a key an element files under itself. ~~|
         ~(#[:a :b] | groupBy | eq {:a #[:a] :b #[:b]})
@@ -612,7 +612,7 @@
         ~(#[1 "a"] | groupBy ~(type) | eq {:number #[1] :string #["a"]})
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
-        ~(#[1 "1"] | groupBy !| [type (get /key) (get /taken)] | eq [::set/groupBy/KeyTakenError :"1" 1])
+        ~(#[1 "1"] | groupBy !| get [~(type) /key /taken] | eq [::set/groupBy/KeyTakenError :"1" 1])
     | proves :key/NotNullOrPathOrQuoteError/refusesAKeyWithoutItsQuote
         |~~ A key written without its quote mark is refused under the
             input.
@@ -620,7 +620,7 @@
         ~(#[{:k 1}] | groupBy (get /k) !| type | eq ::set/groupBy/key/NotNullOrPathOrQuoteError)
     | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ An element that is a vector files under no key. ~~|
-        ~(#[[1]] | groupBy !| [type (get /index)] | eq [::set/groupBy/KeyNotKeywordError 0])
+        ~(#[[1]] | groupBy !| get [~(type) /index] | eq [::set/groupBy/KeyNotKeywordError 0])
     | impl ::builtin{}
 
 :set/indexBy
@@ -699,7 +699,7 @@
         ~(#[1 "a"] | indexBy ~(type) | eq {:number 1 :string "a"})
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
-        ~(#[1 "1"] | indexBy !| [type (get /key) (get /taken)] | eq [::set/indexBy/KeyTakenError :"1" 1])
+        ~(#[1 "1"] | indexBy !| get [~(type) /key /taken] | eq [::set/indexBy/KeyTakenError :"1" 1])
     | proves :key/NotNullOrPathOrQuoteError/refusesAKeyWithoutItsQuote
         |~~ A key written without its quote mark is refused under the
             input.
@@ -707,7 +707,7 @@
         ~(#[{:id :a}] | indexBy (get /id) !| type | eq ::set/indexBy/key/NotNullOrPathOrQuoteError)
     | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ An element that is a vector files under no key. ~~|
-        ~(#[[1]] | indexBy !| [type (get /index)] | eq [::set/indexBy/KeyNotKeywordError 0])
+        ~(#[[1]] | indexBy !| get [~(type) /index] | eq [::set/indexBy/KeyNotKeywordError 0])
     | impl ::builtin{}
 
 :set/sort
@@ -797,7 +797,7 @@
         |~~ A vector takes the first it was written with, its set the
             least.
         ~~|
-        ~([3 1 2] | get [(take 2) (distinct | take 2)] | eq [[3 1] #[1 2]])
+        ~([3 1 2] | get [~(take 2) ~(distinct | take 2)] | eq [[3 1] #[1 2]])
     | proves :takesTheWholeSetPastItsSize
         |~~ A count past the size takes the whole set. ~~|
         ~(#[:a :b] | take 9 | eq #[:a :b])
@@ -861,7 +861,7 @@
         |~~ A vector drops the first it was written with, its set the
             least.
         ~~|
-        ~([3 1 2] | get [(drop 2) (distinct | drop 2)] | eq [[2] #[3]])
+        ~([3 1 2] | get [~(drop 2) ~(distinct | drop 2)] | eq [[2] #[3]])
     | proves :dropsEveryElementPastItsSize
         |~~ A count past the size drops every element. ~~|
         ~(#[:a :b] | drop 9 | eq #[])
@@ -912,7 +912,7 @@
     | proves :reversesTheOneOrderNotTheVector
         |~~ A vector reverses its order as written, its set the one order.
         ~~|
-        ~([3 1 2] | get [reverse (distinct | reverse)] | eq [[2 1 3] [3 2 1]])
+        ~([3 1 2] | get [~(reverse) ~(distinct | reverse)] | eq [[2 1 3] [3 2 1]])
     | proves :answersAVectorThatDistinctMakesASet
         |~~ A reversed set is a set again after `distinct`. ~~|
         ~(#[3 1 2] | reverse | distinct | eq #[1 2 3])
@@ -942,7 +942,7 @@
         |~~ A vector of vectors keeps a shared element twice, its set
             once.
         ~~|
-        ~([[1 2] [2 3]] | get [flat (distinct | flat)] | eq [[1 2 2 3] #[1 2 3]])
+        ~([[1 2] [2 3]] | get [~(flat) ~(distinct | flat)] | eq [[1 2 2 3] #[1 2 3]])
     | proves :keepsAMapWhole
         |~~ A map among the elements stays whole. ~~|
         ~(#[{:a 1} [2]] | flat | eq #[2 {:a 1}])
@@ -992,7 +992,7 @@
         ~(#["b" "a"] | reduce "" ~(append) | eq "ab")
     | proves :foldsByTheOneOrderNotAsWritten
         |~~ A vector folds as written, its set in the one order. ~~|
-        ~(["b" "a"] | get [(reduce "" ~(append)) (distinct | reduce "" ~(append))] | eq ["ba" "ab"])
+        ~(["b" "a"] | get [~(reduce "" ~(append)) ~(distinct | reduce "" ~(append))] | eq ["ba" "ab"])
     | proves :answersTheSeedForTheEmptySet
         |~~ The empty set answers the seed. ~~|
         ~(#[] | reduce 7 ~(add) | eq 7)
@@ -1016,7 +1016,7 @@
             the seed.
         ~~|
         ~(#[1 2] | reduce ~(add) 0
-          !| [type (get /actualType)]
+          !| get [~(type) /actualType]
           |  eq [::set/reduce/reducer/NotPathOrQuoteError ::number])
     | impl ::builtin{}
 
@@ -1088,12 +1088,12 @@
         ~(#[] | union !| type | eq ::set/union/SubjectEmptyError)
     | proves :KindsMismatchedError/refusesASetAndAMap
         |~~ A set and a map do not unite. ~~|
-        ~(#[#[:a] {:b 1}] | union !| [type (get /rightType)] | eq [::set/union/KindsMismatchedError ::map])
+        ~(#[#[:a] {:b 1}] | union !| get [~(type) /rightType] | eq [::set/union/KindsMismatchedError ::map])
     | proves :ElementNotSetOrMapError/refusesANumberAtItsIndex
         |~~ A value that is neither a set nor a map is refused at its
             index.
         ~~|
-        ~(#[1 2] | union !| [type (get /index)] | eq [::set/union/ElementNotSetOrMapError 0])
+        ~(#[1 2] | union !| get [~(type) /index] | eq [::set/union/ElementNotSetOrMapError 0])
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the word. ~~|
         ~(#[1] | union #[2] #[3] !| type | eq ::set/union/ArgsBeyondInputsError)
@@ -1168,12 +1168,12 @@
         ~(#[] | minus !| type | eq ::set/minus/SubjectEmptyError)
     | proves :KindsMismatchedError/refusesASetAndAMap
         |~~ A set beside a map is refused with the pair. ~~|
-        ~(#[#[:a] {:b 1}] | minus !| [type (get /rightType)] | eq [::set/minus/KindsMismatchedError ::map])
+        ~(#[#[:a] {:b 1}] | minus !| get [~(type) /rightType] | eq [::set/minus/KindsMismatchedError ::map])
     | proves :ElementNotSetOrMapError/refusesANumberFirst
         |~~ A first value that is neither a set nor a map is refused at
             its index.
         ~~|
-        ~(#[1 #[2]] | minus !| [type (get /index)] | eq [::set/minus/ElementNotSetOrMapError 0])
+        ~(#[1 #[2]] | minus !| get [~(type) /index] | eq [::set/minus/ElementNotSetOrMapError 0])
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the word. ~~|
         ~(#[1 2 3] | minus #[2] #[3] !| type | eq ::set/minus/ArgsBeyondInputsError)
@@ -1248,12 +1248,12 @@
         ~(#[] | inter !| type | eq ::set/inter/SubjectEmptyError)
     | proves :KindsMismatchedError/refusesASetAndAMap
         |~~ A set beside a map is refused with the pair. ~~|
-        ~(#[#[:a] {:b 1}] | inter !| [type (get /rightType)] | eq [::set/inter/KindsMismatchedError ::map])
+        ~(#[#[:a] {:b 1}] | inter !| get [~(type) /rightType] | eq [::set/inter/KindsMismatchedError ::map])
     | proves :ElementNotSetOrMapError/refusesANumberFirst
         |~~ A first value that is neither a set nor a map is refused at
             its index.
         ~~|
-        ~(#[1 #[2]] | inter !| [type (get /index)] | eq [::set/inter/ElementNotSetOrMapError 0])
+        ~(#[1 #[2]] | inter !| get [~(type) /index] | eq [::set/inter/ElementNotSetOrMapError 0])
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the word. ~~|
         ~(#[1 2] | inter #[1] #[2] !| type | eq ::set/inter/ArgsBeyondInputsError)
@@ -1325,7 +1325,7 @@
         ~(#[:a :b :c] | contains :b)
     | proves :answersAsHasAnswers
         |~~ `contains` answers what `has` answers. ~~|
-        ~(#[:a] | get [(has :z) (contains :z)] | eq [false false])
+        ~(#[:a] | get [~(has :z) ~(contains :z)] | eq [false false])
     | proves :holdsOnlyWholeElements
         |~~ A string holds a piece of its text, a set only whole elements.
         ~~|
@@ -1349,10 +1349,10 @@
         |~~ A map is led to its pairs and its values, the words that
             answer a vector, and a string to `split`.
         ~~|
-        ~([({:a 1} | toVec !| get /nearest) ("ab" | toVec !| get /nearest)] | eq [[:entries :vals] [:split]])
+        ~(get [~({:a 1} | toVec !| get /nearest) ~("ab" | toVec !| get /nearest)] | eq [[:entries :vals] [:split]])
     | proves :readsBack
         |~~ A set turned into a vector turns back into itself. ~~|
-        ~(#[2 1] | toVec | get [it toSet] | eq [[1 2] #[1 2]])
+        ~(#[2 1] | toVec | get [~(it) ~(toSet)] | eq [[1 2] #[1 2]])
     | impl ::builtin{}
 
 :set/toSet

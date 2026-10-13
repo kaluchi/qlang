@@ -52,7 +52,7 @@
         |~~ The flags follow the closing quote and change how the engine
             reads.
         ~~|
-        ~(["ERROR here" "a\nerror"] | get [(get /0 | contains #"error"i) (get /1 | contains #"^error"m)] | eq [true true])
+        ~(["ERROR here" "a\nerror"] | get [~(get /0 | contains #"error"i) ~(get /1 | contains #"^error"m)] | eq [true true])
     | proves :readsLettersOfAnyScript
         |~~ A pattern reads text by code points, a class of Unicode among
             it.
@@ -80,7 +80,7 @@
         |~~ A pattern is no string, so a text cuts at a dot and a pattern
             at any mark.
         ~~|
-        ~("a.b,c" | get [(split ".") (split #"[.,]")] | eq [["a" "b,c"] ["a" "b" "c"]])
+        ~("a.b,c" | get [~(split ".") ~(split #"[.,]")] | eq [["a" "b,c"] ["a" "b" "c"]])
     | proves :ranksAfterStrings
         |~~ Patterns rank after strings and before keywords, by their
             text.
@@ -90,7 +90,7 @@
         |~~ A string payload is refused; `toRegex` reads text as a
             pattern.
         ~~|
-        ~(::regex"a" !| [type (get /actualType)] | eq [::regex/PayloadNotRegexError ::string])
+        ~(::regex"a" !| get [~(type) /actualType] | eq [::regex/PayloadNotRegexError ::string])
     | impl ::builtin{}
 
 :regex/toRegex

@@ -8,13 +8,13 @@ import {
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestWords } from './nearest-names.mjs';
-import { readPath, PathIndexOutOfBoundsError, PathKeyNotInMapError } from './path-read.mjs';
+import { readPath, partsOfTemplate, PathIndexOutOfBoundsError, PathKeyNotInMapError } from './path-read.mjs';
 import {
   isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, isBinding, makeTaggedInstance, makeTag, errorAtRest,
-  isFn, isKind, recipeOf, makeQuote, isQMap, isValueClass, stampTagHeader, TAG_HEADER_SYMBOL,
+  isFn, isKind, recipeOf, makeQuote, isQMap, stampTagHeader, TAG_HEADER_SYMBOL,
   ERROR_TAG
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
@@ -785,9 +785,8 @@ function quotesClosedIn(value, writtenHere, state) {
 
 function holdsAQuote(value) {
   if (isQuote(value)) return true;
-  if (isDoc(value) || isValueClass(value, 'taggedInstance')) return false;
-  if (isQMap(value)) return [...value.values()].some(holdsAQuote);
-  return Array.isArray(value) && value.some(holdsAQuote);
+  const parts = partsOfTemplate(value);
+  return parts !== null && parts.some(holdsAQuote);
 }
 
 function codeOfObject(value, writtenHere, state) {
@@ -907,9 +906,7 @@ async function underKind(tagName, kind, payload, state) {
     if (refused !== null) return refused;
   }
   const check = recipeOf(kind);
-  const built = isRecipe(check) ? await hostImplOf(check)(held, state) : held;
-  if (isErrorValue(built)) return built;
-  const labelled = laidUnder(tagName, built);
+  const labelled = laidUnder(tagName, isRecipe(check) ? await hostImplOf(check)(held, state) : held);
   const ofTheValue = invariants.filter(({ field }) => field === null);
   return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, labelled, state, opened()) ?? labelled;
 }

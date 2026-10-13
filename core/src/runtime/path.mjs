@@ -6,11 +6,11 @@
 
 import { bindPrim, bindStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { readPath, MISSED, segmentIndex, keyNotInMap, placeIn, noPartsOn } from '../path-read.mjs';
+import { readPath, MISSED, segmentIndex, keyNotInMap, placeIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
 import { mintUnderTag } from './verb.mjs';
 import {
-  isPath, makePath, isKeyword, isQMap, isQuote, isDoc, isVec, isValueClass, isErrorValue, keyword, makeSet,
-  makeTaggedInstance, TAG_HEADER_SYMBOL
+  isPath, makePath, isKeyword, isQMap, isVec, isValueClass, isErrorValue, keyword, makeSet,
+  TAG_HEADER_SYMBOL
 } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
@@ -26,53 +26,43 @@ const isKey = value => isKeyword(value) || typeof value === 'string' || typeof v
 
 // A path or a key read from the subject; any other value a template whose
 // paths are read and whose quotes, closed at the call, are run against the
-// subject in their places, its other values kept, the first failure of a
-// quote the answer [D279].
-function readObject(subject, object, soft, fallback) {
+// subject in their places, its other values kept, each container laid back
+// under its tags as a write lays it, the first failure the answer [D279].
+function readObject(subject, object, soft, fallback, state) {
   if (isPath(object) || isKey(object)) {
     const read = readPath(subject, isPath(object) ? object : pathOfKey(object), soft);
     return read === MISSED ? fallback : read;
   }
-  return readShape(subject, object, soft, fallback);
+  return readShape(subject, object, soft, fallback, state);
 }
 
-async function readShape(subject, shape, soft, fallback) {
+async function readShape(subject, shape, soft, fallback, state) {
   if (typeof shape === 'function') return await shape(subject);
   if (isPath(shape)) {
     const read = readPath(subject, shape, soft);
     return read === MISSED ? fallback : read;
   }
-  if (isValueClass(shape, 'taggedInstance') || isQuote(shape) || isDoc(shape)) return shape;
-  const tag = shape?.[TAG_HEADER_SYMBOL];
-  if (isVec(shape)) {
-    const parts = await readParts(subject, [...shape], soft, fallback);
-    if (isErrorValue(parts)) return parts;
-    if (tag?.name === 'set') return makeSet(parts);
-    return tag === undefined ? Object.freeze(parts) : makeTaggedInstance(tag, parts);
-  }
-  if (isQMap(shape)) {
-    const parts = await readParts(subject, [...shape.values()], soft, fallback);
-    if (isErrorValue(parts)) return parts;
-    const read = new Map([...shape.keys()].map((key, at) => [key, parts[at]]));
-    return tag === undefined ? read : makeTaggedInstance(tag, read);
-  }
-  return shape;
+  const parts = partsOfTemplate(shape);
+  if (parts === null) return shape;
+  const read = await readParts(subject, [...parts], soft, fallback, state);
+  if (isErrorValue(read)) return read;
+  return await relaid(shape, isQMap(shape) ? new Map([...shape.keys()].map((key, at) => [key, read[at]])) : read, state);
 }
 
 // The parts of a template read one after another, the first failure the
 // answer.
-async function readParts(subject, shapes, soft, fallback) {
+async function readParts(subject, shapes, soft, fallback, state) {
   const parts = [];
   for (const shape of shapes) {
-    const part = await readShape(subject, shape, soft, fallback);
+    const part = await readShape(subject, shape, soft, fallback, state);
     if (isErrorValue(part)) return part;
     parts.push(part);
   }
   return parts;
 }
 
-bindPrim('any/get', runsWithin(['path'], (subject, object) => readObject(subject, object, false, null)));
-bindPrim('any/query', runsWithin(['path'], (subject, object, fallback) => readObject(subject, object, true, fallback)));
+bindStateReader('any/get', runsWithin(['path'], (subject, object, state) => readObject(subject, object, false, null, state)));
+bindStateReader('any/query', runsWithin(['path'], (subject, object, fallback, state) => readObject(subject, object, true, fallback, state)));
 
 // The subject with the part at a path written: `put` lays a value there,
 // a key the last map lacks added, `update` lays what its code answers for

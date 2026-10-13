@@ -3,7 +3,7 @@
 // follows a path as a read does and misses as a read misses [D250].
 
 import { declareRefusal } from './errors.mjs';
-import { isQMap, isVec, isValueClass, keyword } from './types.mjs';
+import { isDoc, isQMap, isQuote, isVec, isValueClass, keyword } from './types.mjs';
 import { nearestKeys } from './nearest-names.mjs';
 
 export const PathSubjectNotProjectableError = declareRefusal('path/SubjectNotProjectableError');
@@ -14,6 +14,16 @@ export const PathIndexNotIntegerError = declareRefusal('path/IndexNotIntegerErro
 // What a soft read answers where the path misses, a key or a place
 // missing or null standing before its last segment.
 export const MISSED = Symbol('qlang/missed');
+
+// partsOfTemplate(value) → the parts a template of `get` reads in their
+// places, the elements of a vector or a set and the values of a map, under
+// a tag or none; null for any other value, which the template answers as
+// it is, a quote and a doc among them [D279].
+export function partsOfTemplate(value) {
+  if (isQuote(value) || isDoc(value)) return null;
+  if (isVec(value)) return value;
+  return isQMap(value) ? [...value.values()] : null;
+}
 
 // segmentIndex(segment) → the place a segment names, a whole number or one
 // counted from the end, or NaN for a segment that names no place, `1e0`

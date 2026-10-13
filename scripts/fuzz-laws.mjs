@@ -26,7 +26,7 @@ const MUTATORS = [
     ['0', '-1', '1', '2', '-0.5', '1e308', '-1e308', '0.1', '1e-308', '9007199254740993', '1000000', '-0', '3.7']],
   [/"(?:[^"\\]|\\.)*"/g, ['""', '"é\u{1F600}"', '"a,b"', '" "', '"\\n"', '"42"', '"[1]"', '":k"']],
   [/\[(?:[^[\]"]|"(?:[^"\\]|\\.)*")*\]/g, ['[]', '[0]', '[1e308 -1e308]', '[[1] [2]]', '[null]', '["a" 1]', '[:a :b]', '#[]', '{}']],
-  [/~\((?:[^()]|\([^()]*\))*\)/g, ['~()', '~(0)', '~(/)', '~(add 1)', '~(~(x))', '~(!| 0)', '~(gt 0)', '~(count)', '~(/a)', '~(eq null)']],
+  [/~\((?:[^()]|\([^()]*\))*\)/g, ['~()', '~(0)', '~(it)', '~(add 1)', '~(~(x))', '~(!| 0)', '~(gt 0)', '~(count)', '~(get /a)', '~(eq null)']],
   [/(?<![:\w])(:[a-z]\w*)(?![\w/])/g, [':zz', ':"a b"', ':a', ':n', ':0']],
   [/::[A-Za-z][\w/]*/g, ['::number', '::vec', '::map', '::string', '::error', '::Oops', '::any']],
 ];
@@ -69,7 +69,7 @@ async function breakOf(text) {
 // law reaches.
 const laws = [];
 for (const name of env.get(ROOT_KEY).keys()) {
-  const quotes = await evalQuery(`::${name} | laws | entries | map ~(/1 | /1 | print)`, env);
+  const quotes = await evalQuery(`::${name} | laws | entries | map ~(get /1 | get /1 | print)`, env);
   if (Array.isArray(quotes)) for (const quote of quotes) laws.push(quote.slice(2, -1).replace(/\s+\|\s+eq\s[^|]*$/, ''));
 }
 

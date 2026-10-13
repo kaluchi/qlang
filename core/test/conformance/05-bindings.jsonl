@@ -1,37 +1,37 @@
-{"name":"a-name-holds-the-value-in-the-pipe","query":"42 | :answer it | answer","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-name-holds-the-value-for-the-steps-after","query":"[1 2 3] | :nums it | nums | count","expect":"3","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"names-hold-the-values-of-several-stages","query":"[85 92 47 78 68 95 52] | :allScores it | filter ~(gte 70) | :passingScores it | get [(allScores | count), (passingScores | count)]","expect":"[7 4]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-name-holds-the-value-in-the-pipe","query":"42 | :answer it | answer","expect":"42","decision":"D248"}
+{"name":"a-name-holds-the-value-for-the-steps-after","query":"[1 2 3] | :nums it | nums | count","expect":"3","decision":"D248"}
+{"name":"names-hold-the-values-of-several-stages","query":"[85 92 47 78 68 95 52] | :allScores it | filter ~(gte 70) | :passingScores it | get [(allScores | count), (passingScores | count)]","expect":"[7 4]","decision":"D248"}
 {"name":"bind-double","query":":number/double ~(mul 2) | 10 | double","expect":"20"}
 {"name":"a-declared-word-runs-under-map","query":":number/plus10 ~(add 10) | [1 2 3] | map ~plus10","expect":"[11 12 13]"}
-{"name":"wrap-with-original","query":"[{:id 1 :name \"a\"}] | map ~(:item it | get {:key /id :record item})","expect":"[{:key 1 :record {:id 1 :name \"a\"}}]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"wrap-with-original","query":"[{:id 1 :name \"a\"}] | map ~(:item it | get {:key /id :record item})","expect":"[{:key 1 :record {:id 1 :name \"a\"}}]","decision":"D248"}
 {"name":"a-reader-declares-a-word-named-use","query":":number/use ~(mul 2) | 5 | use","expect":"10"}
-{"name":"a-reader-names-a-value-use","query":"42 | :use it | use","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-reader-names-a-value-use","query":"42 | :use it | use","expect":"42","decision":"D248"}
 {"name":"a-binding-holds-what-the-word-its-body-calls-answers","query":":any/two ~(2) | :n two | n","expect":"2","decision":"D69"}
 {"name":"a-vector-after-a-name-is-its-body","query":":xs [1 2] | xs","expect":"[1 2]","decision":"D69"}
 {"name":"as-is-no-word","query":"42 | as :x !| type","expect":"::call/UnknownNameError","decision":"D5"}
-{"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :k]","decision":"D71","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| get /trail/0/step","expect":"~(:k 2)","decision":"D71","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-tag-is-declared-once-in-a-scope","query":":T |~~ T. ~~| | :T |~~ T. ~~| !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :T]","decision":"D71","target":true,"now":"::call/UnknownNameError"}
-{"name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | raise {:k 1} !| :x 2 !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-body-declares-no-part-of-its-word-again","query":":number/m ~(:x 3 | add x) | :number/m/x /0 | 1 | m 2 !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-body-of-one-step-declares-no-part-again","query":":number/m ~(:x 3) | :number/m/x /0 | 1 | m 2 !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-body-declares-no-args-of-its-call-again","query":":number/m ~(:args 5 | add args) | 1 | m !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :args]","decision":"D71","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-group-in-a-body-shadows-a-part-as-any-scope-of-its-own","query":":number/m ~((:x 3 | x) | add x) | :number/m/x /0 | 1 | m 2","expect":"5","decision":"D71","target":true,"now":"::proj/SubjectNotProjectableError"}
-{"name":"a-body-declares-a-name-its-call-binds-not","query":":number/m ~(:y 3 | add x | add y) | :number/m/x /0 | 1 | m 2","expect":"6","decision":"D71","target":true,"now":"::proj/SubjectNotProjectableError"}
-{"name":"a-later-step-of-a-body-declares-no-part-again","query":":number/m ~(add 1 | :x 3 | add x) | :number/m/x /0 | 1 | m 2 !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71","target":true,"now":"::call/UnknownNameError"}
-{"name":"the-fail-track-of-a-body-declares-no-part-again","query":":number/m ~({} | raise !| :x 3 | add x) | :number/m/x /0 | 1 | m 2 !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-body-declares-no-part-its-call-leaves-to-the-default","query":":number/plus ~(:by 3 | add by) | :number/plus/by ~(query /0 1) | 5 | plus !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :by]","decision":"D71","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-quote-a-body-runs-declares-a-part-in-its-own-scope","query":":vec/m ~(map ~(:x 3 | add x)) | :vec/m/x /0 | [1 2] | m 5","expect":"[4 5]","decision":"D71","target":true,"now":"::proj/SubjectNotProjectableError"}
-{"name":"a-body-of-one-group-declares-a-part-in-the-group-s-scope","query":":number/m ~((:x 3)) | :number/m/x /0 | 1 | m 2","expect":"1","decision":"D71","target":true,"now":"::proj/SubjectNotProjectableError"}
+{"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :k]","decision":"D71"}
+{"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| get /trail/0/step","expect":"~(:k 2)","decision":"D71"}
+{"name":"a-tag-is-declared-once-in-a-scope","query":":T |~~ T. ~~| | :T |~~ T. ~~| !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :T]","decision":"D71"}
+{"name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | raise {:k 1} !| :x 2 !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71"}
+{"name":"a-body-declares-no-part-of-its-word-again","query":":number/m ~(:x 3 | add x) | :number/m/x /0 | 1 | m 2 !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71"}
+{"name":"a-body-of-one-step-declares-no-part-again","query":":number/m ~(:x 3) | :number/m/x /0 | 1 | m 2 !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71"}
+{"name":"a-body-declares-no-args-of-its-call-again","query":":number/m ~(:args 5 | add args) | 1 | m !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :args]","decision":"D71"}
+{"name":"a-group-in-a-body-shadows-a-part-as-any-scope-of-its-own","query":":number/m ~((:x 3 | x) | add x) | :number/m/x /0 | 1 | m 2","expect":"5","decision":"D71"}
+{"name":"a-body-declares-a-name-its-call-binds-not","query":":number/m ~(:y 3 | add x | add y) | :number/m/x /0 | 1 | m 2","expect":"6","decision":"D71"}
+{"name":"a-later-step-of-a-body-declares-no-part-again","query":":number/m ~(add 1 | :x 3 | add x) | :number/m/x /0 | 1 | m 2 !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71"}
+{"name":"the-fail-track-of-a-body-declares-no-part-again","query":":number/m ~({} | raise !| :x 3 | add x) | :number/m/x /0 | 1 | m 2 !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :x]","decision":"D71"}
+{"name":"a-body-declares-no-part-its-call-leaves-to-the-default","query":":number/plus ~(:by 3 | add by) | :number/plus/by ~(query /0 1) | 5 | plus !| [type (get /name)]","expect":"[::bind/NameDeclaredTwiceError :by]","decision":"D71"}
+{"name":"a-quote-a-body-runs-declares-a-part-in-its-own-scope","query":":vec/m ~(map ~(:x 3 | add x)) | :vec/m/x /0 | [1 2] | m 5","expect":"[4 5]","decision":"D71"}
+{"name":"a-body-of-one-group-declares-a-part-in-the-group-s-scope","query":":number/m ~((:x 3)) | :number/m/x /0 | 1 | m 2","expect":"1","decision":"D71"}
 {"name":"a-group-opens-a-scope-of-its-own","query":":k 1 | (:k 2 | k)","expect":"2","decision":"D71"}
-{"name":"a-step-under-map-declares-in-each-element","query":":x 1 | [2 3] | map ~(:x it) | x","expect":"1","decision":"D71","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-step-under-map-declares-in-each-element","query":":x 1 | [2 3] | map ~(:x it) | x","expect":"1","decision":"D71"}
 {"name":"an-element-opens-a-scope-of-its-own","query":":k 1 | [(:k 2 | k) k]","expect":"[2 1]","decision":"D71"}
 {"name":"a-value-of-the-reader-named-as-a-word-is-read-where-no-word-answers-the-subject","query":":count 5 | count","expect":"5","decision":"D223"}
 {"name":"code-under-a-bare-name-runs-by-apply","query":":double ~(mul 2) | 5 | apply double","expect":"10","decision":"D235"}
 {"name":"code-under-a-bare-name-goes-bare-into-a-word-that-takes-code","query":":double ~(mul 2) | [1 2 3] | map double","expect":"[2 4 6]","decision":"D235"}
 {"name":"a-bare-name-alone-reads-its-quote","query":":double ~(mul 2) | 5 | double","expect":"~(mul 2)","decision":"D235"}
-{"name":"a-name-in-quotes-a-step-cannot-call-declares-nothing","query":"\":\\\"1\\\" 5 | 7\" | parse !| get /message","expect":"\"`:\\\"1\\\"` names nothing a step can call: a name begins with a letter or `_`, `:first_name 5`\"","decision":"D152","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-bare-name-in-quotes-declares-the-name","query":"\":\\\"foo\\\" 5 | foo\" | parse | apply it","expect":"5","decision":"D152","target":true,"now":"::any/apply/code/NotQuoteError"}
-{"name":"the-word-of-a-literal-declares-no-value","query":"\":true 5 | 7\" | parse !| get /message","expect":"\"`:true` is the word of a literal, which a step reads as the value: declare another name\"","decision":"D152","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-name-in-quotes-a-step-cannot-call-declares-nothing","query":"\":\\\"1\\\" 5 | 7\" | parse !| get /message","expect":"\"`:\\\"1\\\"` names nothing a step can call: a name begins with a letter or `_`, `:first_name 5`\"","decision":"D152"}
+{"name":"a-bare-name-in-quotes-declares-the-name","query":"\":\\\"foo\\\" 5 | foo\" | parse | apply it","expect":"5","decision":"D152"}
+{"name":"the-word-of-a-literal-declares-no-value","query":"\":true 5 | 7\" | parse !| get /message","expect":"\"`:true` is the word of a literal, which a step reads as the value: declare another name\"","decision":"D152"}
 {"name":"the-word-of-a-literal-names-a-label","query":"\":null |~~ A thing. ~~| | 1\" | parse | count","expect":"2","decision":"D152"}
 {"name":"a-name-under-a-noun-may-end-in-the-word-of-a-literal","query":":number/null ~(1) | 5 | number/null","expect":"1","decision":"D152"}

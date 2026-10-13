@@ -7,9 +7,9 @@
   |~~ A desc turns a value to descend: among values of this kind the one
       order runs in reverse, so a key of `sort`, `min` or `max` under
       `desc` ranks the greater first, whatever the kind it ranks,
-      `[{:n 1} {:n 2}] | sort ~(/n | desc)` answering `[{:n 2} {:n 1}]`.
+      `[{:n 1} {:n 2}] | sort ~(get /n | desc)` answering `[{:n 2} {:n 1}]`.
       A place of a vector key descends alone,
-      `sort ~([(/n | desc) /name])` ranking by n descending, then by
+      `sort ~(get [(get /n | desc) /name])` ranking by n descending, then by
       name.
 
       It is a value under its tag, `::desc(5)`, which `desc` lays over
@@ -65,7 +65,7 @@
   |~~ The value turned to descend the subject is compared with, computed
       against the subject, `2 | desc | gt (3 | desc)`.
   ~~|
-  ~(/0)
+  /0
 
 :desc/gt/value/NotDescError
   |~~ The value compared is turned to descend, a value of `::desc`. ~~|
@@ -103,7 +103,7 @@
   |~~ The value turned to descend the subject is compared with, computed
       against the subject, `2 | desc | gte (3 | desc)`.
   ~~|
-  ~(/0)
+  /0
 
 :desc/gte/value/NotDescError
   |~~ The value compared is turned to descend, a value of `::desc`. ~~|
@@ -142,7 +142,7 @@
   |~~ The value turned to descend the subject is compared with, computed
       against the subject, `2 | desc | lt (3 | desc)`.
   ~~|
-  ~(/0)
+  /0
 
 :desc/lt/value/NotDescError
   |~~ The value compared is turned to descend, a value of `::desc`. ~~|
@@ -179,7 +179,7 @@
   |~~ The value turned to descend the subject is compared with, computed
       against the subject, `2 | desc | lte (3 | desc)`.
   ~~|
-  ~(/0)
+  /0
 
 :desc/lte/value/NotDescError
   |~~ The value compared is turned to descend, a value of `::desc`. ~~|

@@ -7,7 +7,7 @@
 // names the word that refused [D46]. A part that takes code arrives
 // closed at the call, code run on the element [D34], [D167].
 
-import { isKeyword, isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
+import { isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
@@ -321,22 +321,6 @@ bindPrim('map/take', (map, count) => new Map([...map].slice(0, Math.max(0, count
 bindPrim('string/drop', (text, count) => Array.from(text).slice(Math.max(0, count)).join(''));
 bindPrim(['vec/drop', 'set/drop'], (sequence, count) => sequence.slice(Math.max(0, count)));
 bindPrim('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count))));
-
-// `at` — indexed access with Array.prototype.at-style negative indices
-// on a sequence, a set indexing in its one order, and a soft lookup by
-// a keyword or a string on a map; a miss answers the default the call
-// gives, null when it gives none, where the strict `/key` projection
-// refuses, and a soft read of null answers it too, so soft reads chain
-// [D145], [D166].
-bindPrim('null/at', (subject, place, fallback) => fallback);
-bindPrim(['vec/at', 'set/at'], (sequence, index, fallback) => {
-  const resolvedIndex = index < 0 ? sequence.length + index : index;
-  return (resolvedIndex >= 0 && resolvedIndex < sequence.length) ? sequence[resolvedIndex] : fallback;
-});
-bindPrim('map/at', (map, key, fallback) => {
-  const lookupKey = isKeyword(key) ? key.name : key;
-  return map.has(lookupKey) ? map.get(lookupKey) : fallback;
-});
 
 // ── reshaping ──────────────────────────────────────────────────
 

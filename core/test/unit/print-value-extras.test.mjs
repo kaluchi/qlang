@@ -70,7 +70,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     const env = await langRuntime();
     const failure = await evalQuery('"x" | add 1');
     expect(await printAnswer(failure, env)).toBe(`|~| raised, and no !| caught it\n${printValue(failure)}`);
-    const atRest = await evalQuery('"x" | add 1 !| /');
+    const atRest = await evalQuery('"x" | add 1 !| it');
     expect(await printAnswer(atRest, env)).toBe(printValue(atRest));
   });
 
@@ -239,7 +239,7 @@ describe('print — the print declared under a kind', () => {
     ':badge |~~ A badge. ~~|',
     ':badge/print',
     '  |~~ A badge as its name. ~~|',
-    '  ~(:returns ::string | /name)'
+    '  ~(:returns ::string | get /name)'
   ].join('\n');
 
   async function badgeSession() {
@@ -264,7 +264,7 @@ describe('print — the print declared under a kind', () => {
   it('prints what a kind answers that is no string as the value it is', async () => {
     const session = await badgeSession();
     const printed = await session.evalCell('[(5 | tag ::badge)] | print');
-    expect(printed.result).toContain('::proj/SubjectNotProjectableError!{');
+    expect(printed.result).toContain('::path/SubjectNotProjectableError!{');
   });
 });
 

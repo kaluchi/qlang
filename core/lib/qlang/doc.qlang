@@ -49,7 +49,7 @@
 
 :doc/PayloadNotVecError/refusesAString
   |~~ A string payload is refused. ~~|
-  ::law~(::doc"x" !| [type /actualType] | eq [::doc/PayloadNotVecError ::string])
+  ::law~(::doc"x" !| [type (get /actualType)] | eq [::doc/PayloadNotVecError ::string])
 
 :doc/ElementNotSegmentError
   |~~ Every element of a doc is a segment, a string of prose or a
@@ -60,7 +60,7 @@
 
 :doc/ElementNotSegmentError/refusesANumberAmongTheSegments
   |~~ A number among the segments is refused at its index. ~~|
-  ::law~(["a" 1] | tag ::doc !| [type /index] | eq [::doc/ElementNotSegmentError 1])
+  ::law~(["a" 1] | tag ::doc !| [type (get /index)] | eq [::doc/ElementNotSegmentError 1])
 
 :doc/content
   |~~ Answers the text of the doc, a string: its prose with each quote
@@ -101,7 +101,7 @@
 :doc/content/SubjectNotDocError/refusesTheNullOfANameWithoutAPage
   |~~ A name declared without a page has no content to read. ~~|
   ::law~(:x 1 | ::x | doc | content
-    !| [type /actualType] | eq [::doc/content/SubjectNotDocError ::null])
+    !| [type (get /actualType)] | eq [::doc/content/SubjectNotDocError ::null])
 
 :doc/content/SubjectNotDocError/refusesAString
   |~~ A string is no doc. ~~|
@@ -142,7 +142,7 @@
 
 :doc/segments/keepsTheTagsOfALink
   |~~ A link stands among the segments under its tag. ~~|
-  ::law~(|~~ a ::link~(1) ~~| | segments | /1 | type | eq ::link)
+  ::law~(|~~ a ::link~(1) ~~| | segments | get /1 | type | eq ::link)
 
 :doc/segments/answersOneStringForProseAlone
   |~~ A doc of prose alone is one segment of prose. ~~|
@@ -154,15 +154,15 @@
 
 :doc/segments/buildsTheDocAgainUnderItsTag
   |~~ The segments under `::doc` are the doc again. ~~|
-  ::law~(|~~ a ~(add 1) b ~~| | :d / | d | segments | tag ::doc | eq d)
+  ::law~(|~~ a ~(add 1) b ~~| | :d it | d | segments | tag ::doc | eq d)
 
 :doc/segments/refusesARoleWhosePayloadIsNoQuote
   |~~ A quote under a tag that takes no quote refuses the doc. ~~|
-  ::law~(|~~ see ::number~(~(x)) ~~| !| [type /actualType] | eq [::number/PayloadNotNumberError ::quote])
+  ::law~(|~~ see ::number~(~(x)) ~~| !| [type (get /actualType)] | eq [::number/PayloadNotNumberError ::quote])
 
 :doc/segments/SubjectNotDocError/refusesAString
   |~~ A string is no doc. ~~|
-  ::law~("text" | segments !| [type /actualType] | eq [::doc/segments/SubjectNotDocError ::string])
+  ::law~("text" | doc/segments !| [type (get /actualType)] | eq [::doc/segments/SubjectNotDocError ::string])
 
 :doc/links
   |~~ Answers the links of the doc in their order, a vector: each a quote
@@ -201,12 +201,12 @@
 :doc/links/runsWhereItLeads
   |~~ A link runs the query it holds. ~~|
   ::law~(|~~ ::link~(::vec | manifest) ~~| | links | first
-    | :l / | null | apply l | has ::vec/count)
+    | :l it | (null | apply l | has ::vec/count))
 
 :doc/links/SubjectNotDocError/refusesItsText
   |~~ The text of a page is no doc. ~~|
   ::law~(::vec | doc | content | links
-    !| [type /actualType] | eq [::doc/links/SubjectNotDocError ::string])
+    !| [type (get /actualType)] | eq [::doc/links/SubjectNotDocError ::string])
 
 :doc/snippets
   |~~ Answers the snippets of the doc in their order, a vector: each a
@@ -243,4 +243,4 @@
 
 :doc/snippets/SubjectNotDocError/refusesAString
   |~~ A string is no doc. ~~|
-  ::law~("text" | snippets !| [type /actualType] | eq [::doc/snippets/SubjectNotDocError ::string])
+  ::law~("text" | snippets !| [type (get /actualType)] | eq [::doc/snippets/SubjectNotDocError ::string])

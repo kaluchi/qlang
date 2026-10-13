@@ -3,9 +3,9 @@
 {"name":"first-element-fails","query":"[-1 4 6 8] | every ~(gt 0)","expect":"false"}
 {"name":"vacuously-true-on-empty","query":"[] | every ~(gt 0)","expect":"true"}
 {"name":"vacuously-true-on-empty-with-arbitrary-pred","query":"[] | every ~(eq 99)","expect":"true"}
-{"name":"every-with-projection","query":"[{:active true} {:active true}] | every /active","expect":"true","decision":"D248","target":true,"now":"::vec/every/predicate/NotQuoteError"}
-{"name":"every-with-projection-fails","query":"[{:active true} {:active false}] | every /active","expect":"false","decision":"D248","target":true,"now":"::vec/every/predicate/NotQuoteError"}
-{"name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true","decision":"D248","target":true,"now":"::any/allOf/conditions/ElementNotBooleanOrQuoteError"}
+{"name":"every-with-projection","query":"[{:active true} {:active true}] | every /active","expect":"true","decision":"D248"}
+{"name":"every-with-projection-fails","query":"[{:active true} {:active false}] | every /active","expect":"false","decision":"D248"}
+{"name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true","decision":"D248"}
 {"name":"every-on-non-container-throws","query":"42 | every ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :every\n  :addresses #[::map/every ::set/every ::vec/every]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(every ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"every-short-circuits","query":"[1 0 2] | every ~(gt 0)","expect":"false"}
 {"name":"every-as-filter-equivalence","query":":xs [1 2 3 4 5] | xs | filter ~(gt 0) | count | eq (xs | count) | eq (xs | every ~(gt 0))","expect":"true"}
@@ -22,4 +22,4 @@
 {"name":"every-map-declared-verb","query":"{:a 1 :b 2} | :any/big ~(gt 0) | every ~(big)","expect":"true"}
 {"name":"every-map-verb-predicate","query":"{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive","expect":"true"}
 {"name":"every-map-verb-predicate-fails","query":"{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive","expect":"false"}
-{"name":"every-predicate-with-a-part-left-out-is-refused-by-the-part","query":"{:a 1 :b 2} | :any/above ~(gt limit) | :any/above/limit /0 | every ~above !| type","expect":"::any/above/limit/NotGivenError","decision":"D166","target":true,"now":"::proj/KeyNotInMapError"}
+{"name":"every-predicate-with-a-part-left-out-is-refused-by-the-part","query":"{:a 1 :b 2} | :any/above ~(gt limit) | :any/above/limit /0 | every ~above !| type","expect":"::any/above/limit/NotGivenError","decision":"D166"}

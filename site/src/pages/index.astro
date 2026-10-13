@@ -248,8 +248,8 @@ const features = [
             }
         }
     }
-} | /glossary/title`,
-      '{:name "alice" :age 30} | /age | mul 2',
+} | get /glossary/title`,
+      '{:name "alice" :age 30} | get /age | mul 2',
     ];
     for (const src of demos) {
       history.appendChild(makeEntry(src, await evalQuery(src, env)));

@@ -10,6 +10,6 @@
 {"name":"subject-not-string-by-address-throws","query":"42 | string/contains \"x\"","expect":"::string/contains/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(string/contains \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"needle-not-string-throws","query":"\"hi\" | contains 42","expect":"::string/contains/needle/NotStringOrRegexError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(contains 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"filter-vec-by-substring","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(contains \"al\")","expect":"[\"alice\" \"alex\"]"}
-{"name":"filter-by-projection-and-contains","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(get /name | contains \"al\") | map /name","expect":"[\"alice\" \"alex\"]","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"filter-by-projection-and-contains","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(get /name | contains \"al\") | map /name","expect":"[\"alice\" \"alex\"]","decision":"D248"}
 {"name":"a-vector-contains-its-elements","query":"[\"ops\" \"db\"] | contains \"ops\"","expect":"true","decision":"D130"}
-{"name":"a-value-no-kind-of-contains-serves-names-its-addresses","query":"42 | contains \"x\" !| get /addresses","expect":"#[::set/contains ::string/contains ::vec/contains]","decision":"D130","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-value-no-kind-of-contains-serves-names-its-addresses","query":"42 | contains \"x\" !| get /addresses","expect":"#[::set/contains ::string/contains ::vec/contains]","decision":"D130"}

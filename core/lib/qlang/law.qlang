@@ -17,4 +17,4 @@
 
 :law/provesItsClaim
   |~~ A law declared under a name proves its claim when it runs. ~~|
-  ::law~(:k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | runLaws | map ~/ok | eq [true])
+  ::law~(:k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | runLaws | map /ok | eq [true])

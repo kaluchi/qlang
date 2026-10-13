@@ -4,9 +4,11 @@
 
 import { printQuoteSource, docText } from '../quote.mjs';
 import { patternLiteral } from '../pattern.mjs';
+import { readsAsBareKeyword } from '../name-chars.mjs';
 import {
   isVec,
   isQMap,
+  isPath,
   ERROR_TAG,
   formOf,
   finiteNumberOrLift,
@@ -38,6 +40,17 @@ const literalOfKeyword = k => k.literal;
 // A pattern writes its literal, its flags after it [D246].
 export const printRegex = r => patternLiteral(r.source, r.flags);
 
+// A path writes its segments as it is written [D248]: a place as its
+// digits, a key as its bare name, behind a colon where its name carries a
+// slash, and quoted otherwise.
+export const printPath = path => '/' + path.segments.map(printPathSegment).join('/');
+
+function printPathSegment(segment) {
+  if (segment.includes('/')) return segment.split('/').every(readsAsBareKeyword) ? ':' + segment : JSON.stringify(segment);
+  if (/^-?\d+$/.test(segment) || readsAsBareKeyword(segment)) return segment;
+  return JSON.stringify(segment);
+}
+
 // A value under a tag writes its tag before its payload, a descriptor's
 // `::builtin` among them [D96]; the set, the quote, the doc and the error
 // write their own brackets.
@@ -49,14 +62,21 @@ const PRINT_HANDLERS = {
   keyword: literalOfKeyword,
   tag:     literalOfKeyword,
   regex:   printRegex,
+  path:    printPath,
   error:   printErrorValue,
   vec:     (v, indent, printedOf) => printListLike('[', v, indent, printedOf),
   map:     (m, indent, printedOf) => printMapLike('{', m, indent, printedOf),
   set:     (s, indent, printedOf) => printListLike('#[', s, indent, printedOf),
-  quote:   q => '~(' + printQuoteSource(q) + ')',
+  quote:   printQuote,
   doc:     d => '|~~' + docText(d) + '~~|',
   underTag: printTaggedInstance
 };
+
+// A quote writes its steps in `~(…)`, and one whose code is a path alone,
+// which `~(…)` refuses where it is written, under its tag [D248].
+function printQuote(quote) {
+  return quote.length === 1 && isPath(quote[0]) ? `::quote[${printPath(quote[0])}]` : '~(' + printQuoteSource(quote) + ')';
+}
 
 const printedByNoKind = () => undefined;
 
@@ -99,9 +119,9 @@ function printErrorValue(e, indent, printedOf) {
 
 const NO_PATH = Object.freeze([]);
 
-// A payload that opens with a letter, a digit or a minus stands in
-// parentheses after the tag, where it would read as the tag's name.
-const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w-]/;
+// A payload that opens with a letter, a digit, a minus or a slash stands
+// in parentheses after the tag, where it would read as the tag's name.
+const TAG_PAYLOAD_NEEDS_PAREN_RE = /^[\w/-]/;
 
 // An error at rest writes the literal of its kind, `!{…}`, as a set
 // writes `#[…]` [D13].

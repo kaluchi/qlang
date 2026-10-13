@@ -8,13 +8,14 @@
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQSet, isQuote, isVec, isTag, isTaggedInstance,
-  isValueClass, makeSet, makeTag,
+  isValueClass, isPath, makeSet, makeTag,
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf, isRootWordScope } from '../state.mjs';
 import { splitAddress } from '../address.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { astOfQuote } from '../quote.mjs';
+import { segmentIndex } from '../path-read.mjs';
 
 const ANY_KIND_NAME = 'any';
 const TAGGED_KIND_NAME = 'tagged';
@@ -352,7 +353,7 @@ export function verbsReaching(env, kindNames) {
 // quotes declared under it, each kind's word declaring its own [D169].
 export function partsOfName(env, address) {
   return [...namesUnderOf(env, address)]
-    .filter(([, record]) => isQuote(bindingValueOf(record)))
+    .filter(([, record]) => isQuote(bindingValueOf(record)) || isPath(bindingValueOf(record)))
     .sort(([, a], [, b]) => orderOfPlace(selectorOf(a).place) - orderOfPlace(selectorOf(b).place));
 }
 
@@ -403,47 +404,42 @@ export function ruleRefusalsOf(env, address) {
 }
 
 // selectorOf(partRecord) → what a part's selector reads, once per part:
-// its tree, the place its first step reads, whether the selector is that
-// one step, and whether it reads the args whole, `~(/)`.
+// its tree, a path read as the projection it is written as [D248], the
+// place its first step reads, whether the selector is that one step, and
+// whether it reads the args whole, `~(it)`.
 const SELECTORS = new WeakMap();
 
 export function selectorOf(partRecord) {
   let selector = SELECTORS.get(partRecord);
   if (selector === undefined) {
-    const ast = astOfQuote(bindingValueOf(partRecord));
+    const value = bindingValueOf(partRecord);
+    const ast = isPath(value) ? { type: 'Projection', keys: value.segments } : astOfQuote(value);
     const place = placeReadBy(ast);
     const onePlace = readsOnePlace(ast, place);
     selector = {
       ast, place, onePlace,
       strict: onePlace && ast.type === 'Projection',
       fallback: onePlace && ast.type === 'Call' && ast.args.length === 2 ? ast.args[1] : null,
-      readsArgs: ast.type === 'Projection' && ast.keys.length === 0
+      readsArgs: ast.type === 'Call' && ast.name === 'it' && ast.args.length === 0
     };
     SELECTORS.set(partRecord, selector);
   }
   return selector;
 }
 
-// The place a selector's first step reads, by a projection or by `at`, a
+// The place a selector's first step reads, by a path or by `query`, a
 // whole number, or none for a selector that reads the args whole, a
 // place counted from its end or anything else.
 function placeReadBy(ast) {
   const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
   const place = head.type === 'Projection' ? segmentIndex(head.keys[0])
-    : head.type === 'Call' && head.name === 'at' && head.args[0]?.type === 'NumberLit' ? head.args[0].value
+    : head.type === 'Call' && head.name === 'query' && head.args[0]?.type === 'Projection' && head.args[0].keys.length === 1 ? segmentIndex(head.args[0].keys[0])
     : NaN;
   return Number.isInteger(place) && place >= 0 ? place : NaN;
 }
 
-// segmentIndex(key) → the index a segment of a projection names, a whole
-// number or one counted from the end, or none for a key that names no
-// index, `1e0` among them.
-export function segmentIndex(key) {
-  return /^-?\d+$/.test(String(key)) ? parseInt(key, 10) : NaN;
-}
-
-// Whether a selector is one step that reads one place, `/n` or `at n`
-// with a default or none.
+// Whether a selector is one step that reads one place, `/n` or
+// `query /n` with a default or none.
 function readsOnePlace(ast, place) {
   if (!Number.isInteger(place) || ast.type === 'Pipeline') return false;
   return ast.type === 'Projection' ? ast.keys.length === 1 : ast.args.length <= 2;

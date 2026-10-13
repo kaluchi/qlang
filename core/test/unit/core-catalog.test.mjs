@@ -31,10 +31,10 @@ describe('the verbs of the language reach their primitives', () => {
     expect(isHostDeclared(add)).toBe(true);
   });
 
-  it('spot-check — filter takes its predicate as a part whose law asks for a quote, on each kind that answers it [D169]', async () => {
+  it('spot-check — filter takes its predicate as a part whose law asks for a quote or a path, on each kind that answers it [D169]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTag('set/filter/ConditionNotBooleanError'), makeTag('set/filter/answer'), makeTag('set/filter/predicate')]));
-    expect(await evalQuery('::set/filter/predicate/NotQuoteError | binding | /value | print')).toBe('::holds~(is ::quote)');
+    expect(await evalQuery('::set/filter/predicate/NotQuoteError | binding | get /value | print')).toBe('::holds~(is ::quote ::path)');
   });
 });
 
@@ -94,7 +94,7 @@ describe('the root of the language', () => {
   });
 
   it('no kind of the root is left a descriptor [D113]', async () => {
-    expect(await evalQuery('kinds | map ~(binding | /value | type) | has ::builtin')).toBe(false);
+    expect(await evalQuery('kinds | map ~(binding | get /value | type) | has ::builtin')).toBe(false);
   });
 });
 
@@ -129,31 +129,31 @@ describe('parse / apply — code read, printed and run', () => {
 
   it('apply runs a quote assembled from its steps', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('[42 ::call{:name :add :modifiers [1]}] | tag ::quote | apply /');
+    const evalResult = await evalQuery('[42 ::call{:name :add :modifiers [1]}] | tag ::quote | apply it');
     expect(evalResult).toBe(43);
   });
 
   it('apply refuses code that is not a Quote', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"not-a-quote" | apply / !| type');
+    const evalResult = await evalQuery('"not-a-quote" | apply it !| type');
     expect(evalResult).toEqual(makeTag('any/apply/code/NotQuoteError'));
   });
 
   it('round-trip — "source" | parse | apply(/) is equivalent to evaluating the source', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('"42" | parse | apply /')).toBe(42);
-    expect(await evalQuery('"10 | add 3" | parse | apply /')).toBe(13);
-    expect(await evalQuery('"[1 2 3] | filter ~(gt 1) | count" | parse | apply /')).toBe(2);
+    expect(await evalQuery('"42" | parse | apply it')).toBe(42);
+    expect(await evalQuery('"10 | add 3" | parse | apply it')).toBe(13);
+    expect(await evalQuery('"[1 2 3] | filter ~(gt 1) | count" | parse | apply it')).toBe(2);
   });
 
-  it('round-trip preserves projections and Map literals', async () => {
+  it('round-trip preserves paths and Map literals', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('"{:a 1 :b 2} | /a" | parse | apply /')).toBe(1);
+    expect(await evalQuery('"{:a 1 :b 2} | get /a" | parse | apply it')).toBe(1);
   });
 
-  it('error values round-trip through parse | apply(/)', async () => {
+  it('error values round-trip through parse | apply(it)', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"!{:kind :oops} | raise !| /kind" | parse | apply /');
+    const evalResult = await evalQuery('"!{:kind :oops} | raise !| get /kind" | parse | apply it');
     expect(evalResult).toEqual(keyword('oops'));
   });
 

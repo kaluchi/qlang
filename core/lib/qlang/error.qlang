@@ -19,7 +19,7 @@
       tag of its site before the bang, `::Late!{:by 3}`; it is
       `::error{…}` under that tag, and prints with its bang, as a set
       prints with its hash. It is a value like any other: a container
-      holds it, its facts read as fields, `!{:reason :late} | /reason`
+      holds it, its facts read as fields, `!{:reason :late} | get /reason`
       answering `:late`, and JSON writes it as a value under its tag.
 
       Raised by `raise`, an error is a failure, which lives in the pipe
@@ -46,11 +46,11 @@
 
 :error/readsItsFacts
   |~~ An error's facts read as fields. ~~|
-  ::law~(::error{:k 1} | /k | eq 1)
+  ::law~(::error{:k 1} | get /k | eq 1)
 
 :error/takesAFactOnTheWay
   |~~ A fact added on the fail track rides on. ~~|
-  ::law~("x" | add 1 !| union {:request "r-1"} | raise !| /request | eq "r-1")
+  ::law~("x" | add 1 !| union {:request "r-1"} | raise !| get /request | eq "r-1")
 
 :error/recoversByItsType
   |~~ A failure of a known type recovers. ~~|
@@ -74,7 +74,7 @@
 
 :error/TrailNotVecError/refusesANumberForATrail
   |~~ A number given as a trail is refused. ~~|
-  ::law~(!{:kind :oops :trail 5} | raise !| [type /actualType] | eq [::error/TrailNotVecError ::number])
+  ::law~(!{:kind :oops :trail 5} | raise !| [type (get /actualType)] | eq [::error/TrailNotVecError ::number])
 
 :error/TrailNotVecError/refusesATrailLaidOverAFailure
   |~~ A trail of a number laid over an error is refused when it is raised. ~~|
@@ -83,11 +83,11 @@
 :error/TrailNotVecError/startsATrailAtTheRaise
   |~~ An error raised without a trail starts its trail at the raise. ~~|
   ::law~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1
-    !| /trail | map ~/step | eq [~(raise)])
+    !| get /trail | map /step | eq [~(raise)])
 
 :error/TrailNotVecError/refusesASetAQuoteAndADoc
   |~~ A set, a quote and a doc are no plain vector of stops. ~~|
-  ::law~([#[1] ~(a) |~~ d ~~|] | map ~({:trail /} | raise !| type) | eq [::error/TrailNotVecError ::error/TrailNotVecError ::error/TrailNotVecError])
+  ::law~([#[1] ~(a) |~~ d ~~|] | map ~({:trail it} | raise !| type) | eq [::error/TrailNotVecError ::error/TrailNotVecError ::error/TrailNotVecError])
 
 :error/name
   |~~ The name a reader asked for, a keyword or a tag, where nothing answers it. ~~|
@@ -159,7 +159,7 @@
       `add 1`, which met `"x"` and skipped `mul 2`. A step that ran the
       step that raised adds its stop after it, the `map` that ran an
       element among them, so the path reads outward:
-      `[1 "x"] | map ~(mul 2) !| trail | map ~/step` answers
+      `[1 "x"] | map ~(mul 2) !| trail | map /step` answers
       `[~(mul 2) ~(map ~(mul 2))]`. An error at rest that flew no step
       holds no `:trail` and answers `[]`, `::error{:a 1} | trail`. The
       subject is an error at rest, the value `!|` catches a failure to:
@@ -168,7 +168,7 @@
       among them.
       ::link~(::qlang/errors | doc) ::link~(::error | doc)
   ~~|
-  ~(at :trail | coalesce [])
+  ~(query /trail | coalesce [])
 
 :error/trail/answersNothingForAnErrorThatFlewNoStep
   |~~ An error that flew no step holds no path. ~~|
@@ -190,16 +190,16 @@
 
 :error/trail/meetsTheSubjectOfTheStep
   |~~ The stop holds the subject the step met. ~~|
-  ::law~("x" | add 1 !| trail | first | /subject | eq "x")
+  ::law~("x" | add 1 !| trail | first | get /subject | eq "x")
 
 :error/trail/namesTheStepsSkipped
   |~~ The stop of the step that raised names the steps skipped after it. ~~|
-  ::law~("x" | add 1 | mul 2 !| trail | first | /skipped | eq ~(mul 2))
+  ::law~("x" | add 1 | mul 2 !| trail | first | get /skipped | eq ~(mul 2))
 
 :error/trail/readsOutward
   |~~ The step that ran an element adds its stop after the element's. ~~|
-  ::law~([1 "x"] | map ~(mul 2) !| trail | map ~/step | eq [~(mul 2) ~(map ~(mul 2))])
+  ::law~([1 "x"] | map ~(mul 2) !| trail | map /step | eq [~(mul 2) ~(map ~(mul 2))])
 
 :error/trail/SubjectNotErrorError/refusesAMap
   |~~ A map with the key `:trail` is no error. ~~|
-  ::law~({:trail []} | trail !| [type /actualType] | eq [::error/trail/SubjectNotErrorError ::map])
+  ::law~({:trail []} | trail !| [type (get /actualType)] | eq [::error/trail/SubjectNotErrorError ::map])

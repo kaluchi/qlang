@@ -77,8 +77,37 @@
     commentTrivia.set(loc.start.offset, { type, content, location: loc, text: text() });
   }
 
+  // A step is a command: a value stands at the head of a pipeline and
+  // after a declaration, where it is the subject, and a value written as
+  // a later step is refused, a path after `!|` as well, each refusal
+  // naming the word the habit meant [D248].
+  const VALUE_STEPS = new Set(['Projection', 'VecLit', 'MapLit', 'SetLit', 'ErrorLit', 'TaggedLit', 'TagLit', 'QuoteLit', 'DocLit', 'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
+
+  function refuseValueStep(step) {
+    if (step.type === 'Projection') error(`a path is a value, which the word that takes it reads: write \`get ${step.text}\``, step.location);
+    if (step.type === 'TagLit') error(`a tag goes over the value in the pipe by \`tag\`: write \`tag ${step.text}\``, step.location);
+    if (step.type === 'QuoteLit') error('code runs on the value in the pipe by `apply`: write `apply ~(…)`', step.location);
+    if (step.type === 'VecLit' || step.type === 'MapLit' || step.type === 'SetLit' || step.type === 'TaggedLit') error('a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`', step.location);
+    error('a step is a command: a value stands at the head, where it is the subject, or as what a word takes', step.location);
+  }
+
+  function refuseValueSteps(leadingComb, head, tail) {
+    if (docQuoteDepth > 0) return;
+    if (leadingComb !== null && leadingComb[0] === '!|' && head.type === 'Projection') refuseValueStep(head);
+    let afterDeclaration = head.type === 'BindStep';
+    for (const { combinator, step } of tail) {
+      if (combinator === '!|') {
+        if (step.type === 'Projection') refuseValueStep(step);
+      } else if (VALUE_STEPS.has(step.type) && !afterDeclaration) {
+        refuseValueStep(step);
+      }
+      afterDeclaration = step.type === 'BindStep';
+    }
+  }
+
   function assemblePipeline(leadingComb, head, tail, loc, txt) {
     const hasLeadingComb = leadingComb !== null;
+    refuseValueSteps(leadingComb, head, tail);
     if (tail.length === 0 && !hasLeadingComb) return head;
     const fields = { steps: [head, ...tail] };
     if (hasLeadingComb) fields.leadingCombinator = leadingComb[0];
@@ -214,11 +243,11 @@ DocBeforeDeclaration
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 // A doc written after a step with no combinator is refused: a note in a
-// pipeline is a comment, which is whitespace, and a doc as a value is
-// piped to [D125].
+// pipeline is a comment, which is whitespace, and a doc as a value stands
+// at the head or where a word takes it [D248].
 DocAfterStep
   = &{ return docQuoteDepth === 0; } &DocOpen DocOpen
-    { error('a doc after a step is a value, piped to as `| |~~ … ~~|`; a note inside a pipeline is a comment, `|~ … ~|`'); }
+    { error('a doc is a value, which stands at the head or where a word takes it; a note inside a pipeline is a comment, `|~ … ~|`'); }
 
 DocOpen
   = LineDocOpen / BlockDocOpen
@@ -297,11 +326,11 @@ Step
   / Word
   / DocLit
 
-// A projection written before a word, the method call of other
-// languages, `/ne ""`: a verb is called by its name alone.
+// A path written before a word, the method call of other languages,
+// `/ne ""`: a verb is called by its name alone.
 ProjectionBeforeWord
   = &{ return docQuoteDepth === 0; } "/" name:KeywordName &(_h1 !Combinator !"!|" Word)
-    { error('`/' + name + '` reads the key ' + name + '; a verb is called by its name alone, `' + name + ' …`'); }
+    { error('`/' + name + '` is a path, a value; a verb is called by its name alone, `' + name + ' …`'); }
 
 // A command's modifiers are words; the first may touch the name when
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
@@ -422,11 +451,17 @@ ParenGroup
 // projection or tag name may drop the parentheses, `~add`, `~/age`.
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"
-    { return node('QuoteLit', { pipeline }, span(), text()); }
+    &{ return docQuoteDepth === 0 || pipeline?.type !== 'Projection'; }
+    {
+      if (pipeline?.type === 'Projection') error(`the quote of a path answers the path, which no word wants: give the path bare, \`${pipeline.text}\``);
+      return node('QuoteLit', { pipeline }, span(), text());
+    }
 
 ShortQuoteLit
-  = "~" pipeline:(Projection / TagLit / Name)
+  = "~" pipeline:(TagLit / Name)
     { return node('QuoteLit', { pipeline }, span(), text()); }
+  / &{ return docQuoteDepth === 0; } "~" path:Projection
+    { error(`the quote of a path answers the path, which no word wants: give the path bare, \`${path.text}\``); }
 
 // The balance reading of a `~(…)` span inside a comment or a doc, where
 // the span is prose: parentheses nest, and a string or a comment token
@@ -612,13 +647,14 @@ LiteralGap
   = __
   / &{ return docQuoteDepth === 0; } &(!"/" Element) Element { error('the words of a literal are set off by whitespace, and a command with modifiers stands there in parentheses, `[(f x)]`'); }
 
-// `/` alone is the identity projection; a segment is a bare key, a
-// quoted key, a namespaced keyword after `:`, or an index.
+// A path, a value of its own [D248]: a segment is a bare key, a quoted
+// key, a namespaced keyword after `:`, or an index; the slash alone names
+// no path, the value itself being `it`.
 Projection
   = "/" first:KeySegment rest:("/" @KeySegment)*
     { return node('Projection', { keys: [first, ...rest] }, span(), text()); }
-  / "/"
-    { return node('Projection', { keys: [] }, span(), text()); }
+  / &{ return docQuoteDepth === 0; } "/" !KeySegment
+    { error('the slash alone names no path: the value itself is `it`'); }
 
 KeySegment
   = ":" name:NamespacedName { return name; }

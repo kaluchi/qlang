@@ -10,16 +10,16 @@
 {"name":"quote-empty-prints-as-nothing","query":"~() | parse","expect":"\"\"","decision":"D8"}
 {"name":"quote-count-counts-steps","query":"~(1 | add 1 | mul 2) | count","expect":"3","decision":"D8"}
 {"name":"quote-payload-is-its-steps","query":"~(filter ~(gt 1)) | payload","expect":"[::call{:name :filter :modifiers [~(gt 1)]}]","decision":"D8"}
-{"name":"quote-projects-its-steps-by-index","query":"~(mul 2) | get /0 | get /name","expect":":mul","decision":"D8","target":true,"now":"::call/UnknownNameError"}
+{"name":"quote-projects-its-steps-by-index","query":"~(mul 2) | get /0 | get /name","expect":":mul","decision":"D8"}
 {"name":"quote-step-carries-no-kind","query":"~(mul 2) | first | has :kind","expect":"false","decision":"D8"}
 {"name":"quote-step-of-a-call-is-a-call-record","query":"~(mul 2) | first | type","expect":"::call","decision":"D8"}
-{"name":"a-step-on-each-element-is-a-call","query":"~(map ~inc | sort) | first | get [type /name]","expect":"[::call :map]","decision":"D116","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-step-on-each-element-is-a-call","query":"~(map ~inc | sort) | first | get [type /name]","expect":"[::call :map]","decision":"D116"}
 {"name":"quote-comment-leaves-no-step","query":"~(|~ note ~| count) | count","expect":"1","decision":"D8"}
-{"name":"quote-filter-keeps-a-quote","query":"~(add 1 | mul 2) | filter ~(get /name | eq :mul)","expect":"~(mul 2)","decision":"D8","target":true,"now":"::call/UnknownNameError"}
-{"name":"map-over-a-quote-drops-the-tag","query":"~(add 1 | mul 2) | map /name","expect":"[:add :mul]","decision":"D8","target":true,"now":"::vec/map/code/NotQuoteError"}
+{"name":"quote-filter-keeps-a-quote","query":"~(add 1 | mul 2) | filter ~(get /name | eq :mul)","expect":"~(mul 2)","decision":"D8"}
+{"name":"map-over-a-quote-drops-the-tag","query":"~(add 1 | mul 2) | map /name","expect":"[:add :mul]","decision":"D8"}
 {"name":"quote-tag-refuses-a-non-step","query":"[::Box[1]] | tag ::quote !| type","expect":"::quote/ElementNotStepError","decision":"D8"}
 {"name":"quote-assembled-from-steps","query":"[[1 2] ::call{:name :count}] | tag ::quote | parse","expect":"\"[1 2] | count\"","decision":"D8"}
-{"name":"call-record-that-reads-back-as-no-code-is-refused","query":"::call{:name :\"a b\"} !| [type (get /printed)]","expect":"[::call/ReadBackDiffersError \"a b\"]","decision":"D8","target":true,"now":"::call/UnknownNameError"}
+{"name":"call-record-that-reads-back-as-no-code-is-refused","query":"::call{:name :\"a b\"} !| [type (get /printed)]","expect":"[::call/ReadBackDiffersError \"a b\"]","decision":"D8"}
 {"name":"quote-type-answers-quote","query":"~(mul 2) | type | eq ::quote","expect":"true","decision":"D8"}
 {"name":"string-type-is-not-quote","query":"\"mul 2\" | type | eq ::quote","expect":"false","decision":"D8"}
 {"name":"type-quote-number-false","query":"42 | type | eq ::quote","expect":"false","decision":"D8"}
@@ -34,7 +34,7 @@
 {"name":"quote-equality-cross-type-string","query":"~(mul 2) | eq \"mul 2\"","expect":"false","decision":"D8"}
 {"name":"quote-in-vec","query":"[~(a) ~(b) ~(c)] | count","expect":"3","decision":"D8"}
 {"name":"quote-in-vec-prints","query":"[~(a) ~(b) ~(c)] | first | parse","expect":"\"a\"","decision":"D8"}
-{"name":"quote-in-map","query":"{:body ~(mul 2)} | get /body | parse","expect":"\"mul 2\"","decision":"D8","target":true,"now":"::call/UnknownNameError"}
+{"name":"quote-in-map","query":"{:body ~(mul 2)} | get /body | parse","expect":"\"mul 2\"","decision":"D8"}
 {"name":"quote-in-set","query":"#[~(a) ~(b)] | count","expect":"2","decision":"D8"}
 {"name":"quote-type-is-not-map","query":"~(x) | type | eq ::map","expect":"false","decision":"D8"}
 {"name":"quote-with-pipe-operator","query":"~(a | b) | parse","expect":"\"a | b\"","decision":"D8"}

@@ -1,25 +1,24 @@
-{"name":"at-positive-index","query":"[10 20 30] | query /0","expect":"10","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-mid-index","query":"[10 20 30] | query /1","expect":"20","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-last-via-positive","query":"[10 20 30] | query /2","expect":"30","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-negative-last","query":"[10 20 30] | query /-1","expect":"30","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-negative-second-last","query":"[10 20 30] | query /-2","expect":"20","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-negative-first","query":"[10 20 30] | query /-3","expect":"10","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-negative-equivalent-to-last","query":"[10 20 30] | query /-1 | eq ([10 20 30] | last)","expect":"true","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-out-of-range-positive","query":"[10 20 30] | query /99","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-out-of-range-negative","query":"[10 20 30] | query /-99","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-on-empty","query":"[] | query /0","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-preserves-element-type","query":"[{:id 1} {:id 2}] | query /0","expect":"{:id 1}","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-chained-with-projection","query":"[{:name \"alice\"} {:name \"bob\"}] | query /1 | get /name","expect":"\"bob\"","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-on-a-number-reaches-its-contract","query":"42 | at 0","expect":"::call/KindAnswersNoVerbError!{\n  :name :at\n  :addresses #[::map/at ::null/at ::set/at ::vec/at]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(at 0)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise","decision":"D145"}
-{"name":"at-on-map-via-vals","query":"{:a 10 :b 20 :c 30} | vals | query /1","expect":"20","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-index-not-integer-error","query":"[1 2 3] | query 0.5 !| type","expect":"::proj/IndexNotIntegerError","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-qlangmap-keyword-key","query":"{:a 1 :b 2 :c 3} | query /b","expect":"2","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-qlangmap-string-key","query":"{:a 1 :b 2 :c 3} | query /b","expect":"2","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-qlangmap-missing-key","query":"{:a 1} | query /z","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-qlangmap-dynamic-keyword-key","query":"{:x 42} | :m it | (:x | :k it | m | query k)","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-qlangmap-dynamic-string-key","query":"{:x 42} | :m it | (\"x\" | :k it | m | query k)","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-qlangmap-non-key-shape-errors","query":"{:a 1} | query /42 !| type","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-jsonobject-string-key","query":"::json{:a 1 :b 2 :c 3} | query /b","expect":"2","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-jsonobject-keyword-key","query":"::json{:a 1 :b 2 :c 3} | query /b","expect":"2","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-jsonobject-missing-key","query":"::json{:a 1} | query /z","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"at-jsonobject-non-key-shape-errors","query":"::json{:a 1} | query /42 !| type","expect":"null","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"at-positive-index","query":"[10 20 30] | query /0","expect":"10","decision":"D248"}
+{"name":"at-mid-index","query":"[10 20 30] | query /1","expect":"20","decision":"D248"}
+{"name":"at-last-via-positive","query":"[10 20 30] | query /2","expect":"30","decision":"D248"}
+{"name":"at-negative-last","query":"[10 20 30] | query /-1","expect":"30","decision":"D248"}
+{"name":"at-negative-second-last","query":"[10 20 30] | query /-2","expect":"20","decision":"D248"}
+{"name":"at-negative-first","query":"[10 20 30] | query /-3","expect":"10","decision":"D248"}
+{"name":"at-negative-equivalent-to-last","query":"[10 20 30] | query /-1 | eq ([10 20 30] | last)","expect":"true","decision":"D248"}
+{"name":"at-out-of-range-positive","query":"[10 20 30] | query /99","expect":"null","decision":"D248"}
+{"name":"at-out-of-range-negative","query":"[10 20 30] | query /-99","expect":"null","decision":"D248"}
+{"name":"at-on-empty","query":"[] | query /0","expect":"null","decision":"D248"}
+{"name":"at-preserves-element-type","query":"[{:id 1} {:id 2}] | query /0","expect":"{:id 1}","decision":"D248"}
+{"name":"at-chained-with-projection","query":"[{:name \"alice\"} {:name \"bob\"}] | query /1 | get /name","expect":"\"bob\"","decision":"D248"}
+{"name":"at-on-map-via-vals","query":"{:a 10 :b 20 :c 30} | vals | query /1","expect":"20","decision":"D248"}
+{"name":"at-index-not-integer-error","query":"[1 2 3] | query 0.5 !| type","expect":"::path/IndexNotIntegerError","decision":"D248"}
+{"name":"at-qlangmap-keyword-key","query":"{:a 1 :b 2 :c 3} | query /b","expect":"2","decision":"D248"}
+{"name":"at-qlangmap-string-key","query":"{:a 1 :b 2 :c 3} | query /b","expect":"2","decision":"D248"}
+{"name":"at-qlangmap-missing-key","query":"{:a 1} | query /z","expect":"null","decision":"D248"}
+{"name":"at-qlangmap-dynamic-keyword-key","query":"{:x 42} | :m it | (:x | :k it | m | query k)","expect":"42","decision":"D248"}
+{"name":"at-qlangmap-dynamic-string-key","query":"{:x 42} | :m it | (\"x\" | :k it | m | query k)","expect":"42","decision":"D248"}
+{"name":"at-qlangmap-non-key-shape-errors","query":"{:a 1} | query /42 !| type","expect":"null","decision":"D248"}
+{"name":"at-jsonobject-string-key","query":"::json{:a 1 :b 2 :c 3} | query /b","expect":"2","decision":"D248"}
+{"name":"at-jsonobject-keyword-key","query":"::json{:a 1 :b 2 :c 3} | query /b","expect":"2","decision":"D248"}
+{"name":"at-jsonobject-missing-key","query":"::json{:a 1} | query /z","expect":"null","decision":"D248"}
+{"name":"at-jsonobject-non-key-shape-errors","query":"::json{:a 1} | query /42 !| type","expect":"null","decision":"D248"}

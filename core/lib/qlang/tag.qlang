@@ -50,7 +50,7 @@
 
 :tag/PayloadNotTagError/refusesAKeyword
   |~~ A keyword payload is refused. ~~|
-  ::law~(::tag:k !| [type /actualType] | eq [::tag/PayloadNotTagError ::keyword])
+  ::law~(::tag:k !| [type (get /actualType)] | eq [::tag/PayloadNotTagError ::keyword])
 
 :tag/gt
   |~~ Answers whether the subject, a tag name, comes after the tag name
@@ -77,7 +77,7 @@
   |~~ The tag name the subject is compared with, computed against the
       subject, `::b | gt ::a`.
   ~~|
-  ~(/0)
+  /0
 
 :tag/gt/value/NotTagError
   |~~ The value compared is a tag name, `::b | gt ::a`; a keyword
@@ -128,7 +128,7 @@
   |~~ The tag name the subject is compared with, computed against the
       subject, `::b | gte ::a`.
   ~~|
-  ~(/0)
+  /0
 
 :tag/gte/value/NotTagError
   |~~ The value compared is a tag name, `::b | gte ::a`; a keyword
@@ -165,7 +165,7 @@
   |~~ The tag name the subject is compared with, computed against the
       subject, `::b | lt ::a`.
   ~~|
-  ~(/0)
+  /0
 
 :tag/lt/value/NotTagError
   |~~ The value compared is a tag name, `::b | lt ::a`; a keyword
@@ -207,7 +207,7 @@
   |~~ The tag name the subject is compared with, computed against the
       subject, `::b | lte ::a`.
   ~~|
-  ~(/0)
+  /0
 
 :tag/lte/value/NotTagError
   |~~ The value compared is a tag name, `::b | lte ::a`; a keyword
@@ -278,7 +278,7 @@
 
 :tag/manifest/leavesTheLawsToLaws
   |~~ The laws of a name are no part of its manifest. ~~|
-  ::law~(::number/add | [(manifest | filter ~(binding | /value | is ::law) | count) (laws | count | gt 0)] | eq [0 true])
+  ::law~(::number/add | get [(manifest | filter ~(binding | get /value | is ::law) | count) (laws | count | gt 0)] | eq [0 true])
 
 :tag/manifest/answersNothingForANameThatNamesNothing
   |~~ A tag name that names nothing answers the empty set. ~~|
@@ -286,7 +286,7 @@
 
 :tag/manifest/SubjectNotTagError/refusesANumber
   |~~ A number is no noun. ~~|
-  ::law~(5 | manifest !| [type /actualType] | eq [::tag/manifest/SubjectNotTagError ::number])
+  ::law~(5 | manifest !| [type (get /actualType)] | eq [::tag/manifest/SubjectNotTagError ::number])
 
 :tag/manifest/SubjectNotTagError/refusesAKeyword
   |~~ A keyword names a binding and no noun. ~~|

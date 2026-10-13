@@ -29,7 +29,7 @@ describe('depth budget — self-calling verb', () => {
 
   it('leaves the budget intact for recursion that terminates', async () => {
     const nodeCount = await evalQuery(
-      ':any/total ~(sumOf 1 (/children | map ~total | sum)) '
+      ':any/total ~(sumOf 1 (get /children | map ~total | sum)) '
       + '| {:children [{:children [{:children []}]} {:children []}]} | total'
     );
     expect(nodeCount).toBe(4);
@@ -39,11 +39,11 @@ describe('depth budget — self-calling verb', () => {
 describe('depth budget — every re-entry seam', () => {
   const seams = [
     ['apply on a self-referential Quote',           ':q ~(apply q) | apply q'],
-    ['a body under map naming its own verb',         ':any/f ~([/] | map ~f | first) | 1 | f'],
-    ['captured-arg lambda naming its own verb',     ':any/p ~([/] | filter ~(p)) | [1] | p'],
-    ['a verb folding through reduce',               ':any/r ~([1] | reduce 0 ~r) | :any/r/el ~(/0) | [1] | reduce 0 ~r'],
+    ['a body under map naming its own verb',         ':any/f ~([it] | map ~f | first) | 1 | f'],
+    ['captured-arg lambda naming its own verb',     ':any/p ~([it] | filter ~(p)) | [1] | p'],
+    ['a verb folding through reduce',               ':any/r ~([1] | reduce 0 ~r) | :any/r/el /0 | [1] | reduce 0 ~r'],
     ['a verb predicate over a Map',                 ':any/k ~({:a 1} | filter ~k) | {:a 1} | filter ~k'],
-    ['Quote-bodied tag constructor minting itself', ':T |~~ T. ~~| | :T/construct ~(::T(/)) | ::T(1)']
+    ['Quote-bodied tag constructor minting itself', ':T |~~ T. ~~| | :T/construct ~(::T(it)) | ::T(1)']
   ];
   for (const [seamName, query] of seams) {
     it(`terminates on ${seamName}`, async () => {

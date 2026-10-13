@@ -89,7 +89,7 @@ describe('highlightAnsi', () => {
   });
 
   it('wraps the `!|` fail-track combinator in bright red', () => {
-    const out = highlightAnsi('1 !| /k', new Set());
+    const out = highlightAnsi('1 !| get /k', new Set());
     expect(out).toMatch('\x1b[91m!|\x1b[0m');
   });
 

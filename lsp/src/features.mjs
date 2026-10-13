@@ -268,7 +268,7 @@ async function subjectAt(source, offset) {
   return kinds === null ? null : { kinds, pipeline, end: start };
 }
 
-const STEP_AT_CURSOR = ' /';
+const STEP_AT_CURSOR = ' it';
 
 function stepsOf(pipelineNode) {
   if (pipelineNode.type !== 'Pipeline') return [{ combinator: '|', step: pipelineNode }];
@@ -401,9 +401,8 @@ async function hoverForTag(node) {
 }
 
 function hoverForProjection(node) {
-  const pathStr = '/' + node.keys.join('/');
   return {
-    content: `projection \`${pathStr}\` — extracts value from Map`,
+    content: `path \`${node.text}\` — a value that names a part, which the word that takes it reads: \`get\` answers the part`,
     startOffset: node.location.start.offset,
     endOffset: node.location.end.offset
   };

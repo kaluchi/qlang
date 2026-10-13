@@ -4,4 +4,4 @@
 {"name":"ne-is-the-negation-of-eq","query":"[1 null 2] | filter ~(ne null)","expect":"[1 2]","decision":"D132"}
 {"name":"round-rounds-half-away-from-zero","query":"[2.5 -2.5 3.4] | map ~round","expect":"[3 -3 3]","decision":"D132"}
 {"name":"round-keeps-the-digits-the-call-gives","query":"3.14159 | round 2","expect":"3.14","decision":"D132"}
-{"name":"a-step-after-a-piped-combinator-names-its-own-fault","query":"\"[1 2] | !| {:a (/x | mul) /y}\" | parse !| get /message | contains \"map entry\"","expect":"true","decision":"D132","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-step-after-a-piped-combinator-names-its-own-fault","query":"\"[1 2] | !| {:a (/x | mul) /y}\" | parse !| get /message | contains \"map entry\"","expect":"true","decision":"D132"}

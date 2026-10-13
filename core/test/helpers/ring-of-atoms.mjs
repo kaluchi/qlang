@@ -46,7 +46,7 @@ export async function unbuiltOf(session, valuesBySource) {
 
 export async function catalogExamples() {
   const addresses = rootAddressesOf(await langRuntime());
-  const laws = [...await evalQuery(`[${addresses.join(' ')}] | map ~(laws | vals | map ~/1) | flat`)];
+  const laws = [...await evalQuery(`[${addresses.join(' ')}] | map ~(laws | vals | map /1) | flat`)];
   return new Map(laws.map(law => [printValue(law), law]));
 }
 

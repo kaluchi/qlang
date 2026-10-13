@@ -23,7 +23,7 @@ describe('parseJson — happy path', () => {
 
   it('preserves nested objects and arrays through recursive lift', async () => {
     const cellEntry = await runQuery(
-      '"{\\"items\\":[{\\"k\\":1},{\\"k\\":2}]}" | parseJson | /items | map ~/k',
+      '"{\\"items\\":[{\\"k\\":1},{\\"k\\":2}]}" | parseJson | get /items | map /k',
       silentStreams);
     expect(cellEntry.result).toEqual([1, 2]);
   });

@@ -29,7 +29,7 @@ describe('a doc documents the declaration whose slot it stands in', () => {
   });
 
   it('documents a freeze', async () => {
-    const result = await evalQuery('42 | :x |~~ note ~~| / | ::x | doc | content');
+    const result = await evalQuery('42 | :x |~~ note ~~| it | ::x | doc | content');
     expect(result).toBe(' note ');
   });
 

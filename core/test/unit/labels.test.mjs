@@ -13,17 +13,17 @@ const lines = (...steps) => steps.join('\n| ');
 
 const BOX = lines(
   ':Box |~~ A parcel. ~~|',
-  ':Box/LengthNotPositiveError |~~ A box has a length. ~~| ::holds~(/0 | gt 0)',
-  ':Box/length |~~ The length. ~~| ~(/0)',
+  ':Box/LengthNotPositiveError |~~ A box has a length. ~~| ::holds~(get /0 | gt 0)',
+  ':Box/length |~~ The length. ~~| ~(get /0)',
   ':Box/put |~~ The same box with another weight inside. ~~| ~(within ~(take 1 | append weight))',
-  ':Box/put/weight |~~ The weight to put inside. ~~| ~(/0)',
+  ':Box/put/weight |~~ The weight to put inside. ~~| /0',
   ':Box/put/weight/NotNumberError |~~ The weight is a number. ~~| ::holds~(type | eq ::number)',
   ':Box/scaled |~~ The length scaled. ~~| ~(length | mul (factor | add 1))',
-  ':Box/scaled/factor |~~ The factor, one less than the scale. ~~| ~(/0 | add 1)',
+  ':Box/scaled/factor |~~ The factor, one less than the scale. ~~| ~(get /0 | add 1)',
   ':Box/tally |~~ The lead and the rest. ~~| ~([lead rest])',
-  ':Box/tally/lead |~~ The lead, null when left out. ~~| ~(at 0)',
+  ':Box/tally/lead |~~ The lead, null when left out. ~~| ~(query /0)',
   ':Box/tally/rest |~~ The values after the lead. ~~| ~(drop 1)',
-  ':Box/past |~~ A place past the end. ~~| ~(/9)',
+  ':Box/past |~~ A place past the end. ~~| ~(get /9)',
   ''
 );
 
@@ -31,7 +31,7 @@ describe('a label declared by its page', () => {
   it('builds its payload by the construct declared under it', async () => {
     expect(await evalQuery(lines(
       ':Pair |~~ Two values. ~~|',
-      ':Pair/construct |~~ The pair of a value. ~~| ~([/ /])',
+      ':Pair/construct |~~ The pair of a value. ~~| ~([it it])',
       '::Pair(3) | payload'
     ))).toEqual([3, 3]);
   });
@@ -39,13 +39,13 @@ describe('a label declared by its page', () => {
   it('answers the error its construct answers', async () => {
     expect(await evalQuery(lines(
       ':Small |~~ A number below ten. ~~|',
-      ':Small/construct |~~ The number, if below ten. ~~| ~(if (lt 10) ~(/) ~(!{:reason :big} | raise))',
-      '::Small(12) !| /reason'
+      ':Small/construct |~~ The number, if below ten. ~~| ~(if (lt 10) ~(it) ~(!{:reason :big} | raise))',
+      '::Small(12) !| get /reason'
     ))).toEqual(await evalQuery(':big'));
   });
 
   it('answers the error its body answers', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | past !| type')).toEqual(makeTag('proj/IndexOutOfBoundsError'));
+    expect(await evalQuery(BOX + '::Box[4 2] | past !| type')).toEqual(makeTag('path/IndexOutOfBoundsError'));
   });
 
   it('calls a name under it by its address', async () => {
@@ -67,11 +67,11 @@ describe('the object of a call', () => {
   });
 
   it('hands on the error a modifier answers', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | put (/missing) !| type')).toEqual(makeTag('proj/IndexNotIntegerError'));
+    expect(await evalQuery(BOX + '::Box[4 2] | put (get /missing) !| type')).toEqual(makeTag('path/IndexNotIntegerError'));
   });
 
   it('reads a place softly by at, and the values after the lead by any other step', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | [tally (tally 1 2 3)]')).toEqual(await evalQuery('[[null []] [1 [2 3]]]'));
+    expect(await evalQuery(BOX + '::Box[4 2] | get [tally (tally 1 2 3)]')).toEqual(await evalQuery('[[null []] [1 [2 3]]]'));
   });
 
   it('reads the page of the law that refused, named by its refusal [D169]', async () => {
@@ -82,7 +82,7 @@ describe('the object of a call', () => {
   it('lets a name under a label fold as a reducer', async () => {
     expect(await evalQuery(lines(
       ':number/addTo |~~ The sum with n. ~~| ~(add n)',
-      ':number/addTo/n |~~ The number added. ~~| ~(/0)',
+      ':number/addTo/n |~~ The number added. ~~| /0',
       '[1 2 3] | reduce 0 ~(addTo)'
     ))).toBe(6);
   });
@@ -104,10 +104,10 @@ describe('a host\'s primitive under a label', () => {
           ':Gauge |~~ A reading. ~~|',
           ':Gauge/construct |~~ The reading as a number. ~~| ::builtin{}',
           ':Gauge/over |~~ Whether the reading passes the test. ~~| ::builtin{}',
-          ':Gauge/over/test |~~ The test. ~~| ~(/0)',
+          ':Gauge/over/test |~~ The test. ~~| /0',
           ':Gauge/over/test/NotQuoteError |~~ The test is code. ~~| ::holds~(is ::quote)',
           ':Gauge/shifted |~~ The reading shifted. ~~| ::builtin{}',
-          ':Gauge/shifted/by |~~ The shift. ~~| ~(/0)',
+          ':Gauge/shifted/by |~~ The shift. ~~| /0',
           ':Dial |~~ A reading of a dial. ~~|',
           ':Dial/construct |~~ The reading under the label already. ~~| ::builtin{}'
         ),
@@ -130,7 +130,7 @@ describe('a host\'s primitive under a label', () => {
     const session = await createSession({
       sources: [{ uri: 'probe/note', source: ':any/note ::builtin{}', impls: { 'any/note': subject => { noted += 1; return subject; } } }]
     });
-    expect((await session.evalCell('[1 2] | at /nope ("ran" | note) !| type')).result).toEqual(makeTag('proj/IndexNotIntegerError'));
+    expect((await session.evalCell('[1 2] | query (get /nope) ("ran" | note) !| type')).result).toEqual(makeTag('path/IndexNotIntegerError'));
     expect(noted).toBe(0);
   });
 
@@ -141,7 +141,7 @@ describe('a host\'s primitive under a label', () => {
         source: lines(
           ':vec/zap ::builtin{}',
           ':vec/zap/rest |~~ The values after the lead. ~~| ~(drop 1)',
-          ':vec/zap/lead |~~ The lead. ~~| ~(/0)'
+          ':vec/zap/lead |~~ The lead. ~~| /0'
         ),
         impls: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
       }]
@@ -153,7 +153,7 @@ describe('a host\'s primitive under a label', () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/pair',
-        source: lines(':vec/pair2 ::builtin{}', ':vec/pair2/b |~~ The second. ~~| ~(/1)', ':vec/pair2/a |~~ The first. ~~| ~(/0)'),
+        source: lines(':vec/pair2 ::builtin{}', ':vec/pair2/b |~~ The second. ~~| /1', ':vec/pair2/a |~~ The first. ~~| /0'),
         impls: { 'vec/pair2': (subject, a, b) => [a, b] }
       }]
     });

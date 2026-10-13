@@ -5,11 +5,11 @@
 {"name":"json-type-function-classifies-as-map","query":"{\"type\": \"function\"} | type","expect":"::map"}
 {"name":"json-type-error-classifies-as-map","query":"{\"type\": \"error\", \"msg\": \"boom\"} | type","expect":"::map"}
 {"name":"json-type-taggedInstance-classifies-as-map","query":"{\"type\": \"taggedInstance\"} | type","expect":"::map"}
-{"name":"json-type-quote-projects-data-key","query":"{\"type\": \"quote\", \"x\": 5} | get /x","expect":"5","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"json-type-doc-projects-data-key","query":"{\"type\": \"doc\", \"z\": 1} | get /z","expect":"1","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"json-type-quote-projects-data-key","query":"{\"type\": \"quote\", \"x\": 5} | get /x","expect":"5","decision":"D248"}
+{"name":"json-type-doc-projects-data-key","query":"{\"type\": \"doc\", \"z\": 1} | get /z","expect":"1","decision":"D248"}
 {"name":"json-type-quote-answers-map","query":"{\"type\": \"quote\"} | type | eq ::map","expect":"true"}
 {"name":"json-type-quote-is-not-quote","query":"{\"type\": \"quote\"} | type | eq ::quote","expect":"false"}
-{"name":"json-type-error-rides-success-track","query":"{\"type\": \"error\"} | ok !| false","expect":"true","decision":"D248","target":true,"now":"false"}
-{"name":"json-type-discriminator-record-filter","query":"[{\"type\":\"doc\",\"id\":1} {\"type\":\"vec\",\"id\":2}] | filter ~(get /id | gt 0) | count","expect":"2","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"json-type-error-rides-success-track","query":"{\"type\": \"error\"} | ok !| false","expect":"true","decision":"D248"}
+{"name":"json-type-discriminator-record-filter","query":"[{\"type\":\"doc\",\"id\":1} {\"type\":\"vec\",\"id\":2}] | filter ~(get /id | gt 0) | count","expect":"2","decision":"D248"}
 {"name":"json-type-taggedInstance-eq-no-crash","query":"{\"type\":\"taggedInstance\"} | eq {\"type\":\"taggedInstance\"}","expect":"true"}
 {"name":"json-type-keyword-eq-distinguishes-real-keyword","query":"{\"type\": \"keyword\", \"name\": \"x\"} | eq :x","expect":"false"}

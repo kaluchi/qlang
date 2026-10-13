@@ -101,8 +101,8 @@ describe('CLI: script mode — query argument', () => {
 });
 
 describe('CLI: piped stdin — auto-detect JSON', () => {
-  it('auto-detects JSON input and projects through `/name`', async () => {
-    const { stdout, exitCode } = await runCli(['/name'], {
+  it('auto-detects JSON input and reads it by `get /name`', async () => {
+    const { stdout, exitCode } = await runCli(['get /name'], {
       stdin: '{"name": "alice", "age": 30}'
     });
     expect(exitCode).toBe(0);
@@ -118,7 +118,7 @@ describe('CLI: piped stdin — auto-detect JSON', () => {
   });
 
   it('--json over malformed input answers the refusal of parseJson with exit 0 [D7]', async () => {
-    const { exitCode, stdout, stderr } = await runCli(['--json', '/name'], {
+    const { exitCode, stdout, stderr } = await runCli(['--json', 'get /name'], {
       stdin: 'not-json-at-all{'
     });
     expect(exitCode).toBe(0);

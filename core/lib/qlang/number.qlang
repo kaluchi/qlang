@@ -53,7 +53,7 @@
 
 :number/PayloadNotNumberError/refusesAString
   |~~ A string payload is refused; `toNumber` reads a number from text. ~~|
-  ::law~(::number"5" !| [type /actualType] | eq [::number/PayloadNotNumberError ::string])
+  ::law~(::number"5" !| [type (get /actualType)] | eq [::number/PayloadNotNumberError ::string])
 
 :number/NotFiniteError
   |~~ A number is a finite double: an answer brought under `::number`
@@ -64,7 +64,7 @@
 
 :number/NotFiniteError/refusesAProductPastTheRange
   |~~ A product past the range of doubles is refused at the step that made it. ~~|
-  ::law~(1e308 | mul 10 | add 1 !| [type (/trail | map ~/step)]
+  ::law~(1e308 | mul 10 | add 1 !| [type (get /trail | map /step)]
     | eq [::number/NotFiniteError [~(mul 10)]])
 
 :number/add
@@ -87,7 +87,7 @@
 
 :number/add/addend
   |~~ The number added to the subject, computed against the subject. ~~|
-  ~(/0)
+  /0
 
 :number/add/addend/NotNumberError
   |~~ The addend is a number; text that holds one is read by `toNumber`. ~~|
@@ -120,11 +120,11 @@
 
 :number/add/SubjectNotNumberError/refusesAString
   |~~ A subject that is no number is refused under the word. ~~|
-  ::law~("hello" | add 1 !| [type /actualType] | eq [::number/add/SubjectNotNumberError ::string])
+  ::law~("hello" | add 1 !| [type (get /actualType)] | eq [::number/add/SubjectNotNumberError ::string])
 
 :number/add/addend/NotNumberError/refusesAString
   |~~ An addend that is no number is refused under the part. ~~|
-  ::law~(1 | add "x" !| [type /actualType] | eq [::number/add/addend/NotNumberError ::string])
+  ::law~(1 | add "x" !| [type (get /actualType)] | eq [::number/add/addend/NotNumberError ::string])
 
 :number/add/ArgsBeyondPartsError/refusesTwoNumbers
   |~~ Args of two numbers are refused under the word. ~~|
@@ -152,7 +152,7 @@
 
 :number/sub/subtrahend
   |~~ The number subtracted from the subject, computed against the subject. ~~|
-  ~(/0)
+  /0
 
 :number/sub/subtrahend/NotNumberError
   |~~ The subtrahend is a number; text that holds one is read by
@@ -177,11 +177,11 @@
 
 :number/sub/SubjectNotNumberError/refusesAString
   |~~ A subject that is no number is refused under the word. ~~|
-  ::law~("hello" | sub 1 !| [type /actualType] | eq [::number/sub/SubjectNotNumberError ::string])
+  ::law~("hello" | sub 1 !| [type (get /actualType)] | eq [::number/sub/SubjectNotNumberError ::string])
 
 :number/sub/subtrahend/NotNumberError/refusesAString
   |~~ A subtrahend that is no number is refused under the part. ~~|
-  ::law~(1 | sub "x" !| [type /actualType] | eq [::number/sub/subtrahend/NotNumberError ::string])
+  ::law~(1 | sub "x" !| [type (get /actualType)] | eq [::number/sub/subtrahend/NotNumberError ::string])
 
 :number/sub/answersUnderTheTag
   |~~ A number under a tag answers under the tag. ~~|
@@ -193,7 +193,7 @@
       is a number: a vector multiplies each of its elements by `map`,
       `map ~(mul 2)`, and text that holds a number is read first by
       `toNumber`. The multiplier is computed against the subject, so
-      `5 | mul /` squares it, and two fields of one record multiply by
+      `5 | mul it` squares it, and two fields of one record multiply by
       `mulOf /price /qty`. A number under a tag answers under the tag,
       and a product past the doubles is refused as no number.
       ::link~(::number/div | doc) ::link~(::any/mulOf | doc)
@@ -206,7 +206,7 @@
 
 :number/mul/multiplier
   |~~ The number the subject is multiplied by, computed against the subject. ~~|
-  ~(/0)
+  /0
 
 :number/mul/multiplier/NotNumberError
   |~~ The multiplier is a number; text that holds one is read by
@@ -227,11 +227,11 @@
 
 :number/mul/SubjectNotNumberError/refusesAString
   |~~ A subject that is no number is refused under the word. ~~|
-  ::law~("hello" | mul 2 !| [type /actualType] | eq [::number/mul/SubjectNotNumberError ::string])
+  ::law~("hello" | mul 2 !| [type (get /actualType)] | eq [::number/mul/SubjectNotNumberError ::string])
 
 :number/mul/multiplier/NotNumberError/refusesAString
   |~~ A multiplier that is no number is refused under the part. ~~|
-  ::law~(1 | mul "x" !| [type /actualType] | eq [::number/mul/multiplier/NotNumberError ::string])
+  ::law~(1 | mul "x" !| [type (get /actualType)] | eq [::number/mul/multiplier/NotNumberError ::string])
 
 :number/mul/answersUnderTheTag
   |~~ A number under a tag answers under the tag. ~~|
@@ -243,14 +243,14 @@
 
 :number/mul/computesTheMultiplierAgainstTheSubject
   |~~ The multiplier is computed against the subject. ~~|
-  ::law~(5 | mul / | eq 25)
+  ::law~(5 | mul it | eq 25)
 
 :number/div
   |~~ Answers the subject, the dividend, divided by the number the call
       gives, a fraction where the division leaves one, `7 | div 2`
       answering `3.5`. A divisor of zero is refused, so a divisor that
       may be zero is tested first,
-      `if (/count | eq 0) ~(0) ~(divOf /sum /count)`. The subject is a
+      `if (get /count | eq 0) ~(0) ~(divOf /sum /count)`. The subject is a
       number: a vector divides each of its elements by `map`,
       `map ~(div 2)`. The divisor is computed against the subject, and
       two fields of one record divide by `divOf /sum /count`. A number
@@ -265,7 +265,7 @@
 
 :number/div/divisor
   |~~ The number the subject is divided by, computed against the subject. ~~|
-  ~(/0)
+  /0
 
 :number/div/divisor/NotNumberError
   |~~ The divisor is a number; text that holds one is read by `toNumber`
@@ -277,7 +277,7 @@
   |~~ The divisor is not zero: a division by zero has no finite answer,
       and a divisor that may be zero is tested before the call, as a
       record that counts its sum tests its count, which answers `0`:
-      `{:sum 9 :count 0} | if (/count | eq 0) ~(0) ~(divOf /sum /count)`.
+      `{:sum 9 :count 0} | if (get /count | eq 0) ~(0) ~(divOf /sum /count)`.
   ~~|
   ::holds~(ne 0)
 
@@ -298,11 +298,11 @@
 
 :number/div/SubjectNotNumberError/refusesAString
   |~~ A subject that is no number is refused under the word. ~~|
-  ::law~("hello" | div 2 !| [type /actualType] | eq [::number/div/SubjectNotNumberError ::string])
+  ::law~("hello" | div 2 !| [type (get /actualType)] | eq [::number/div/SubjectNotNumberError ::string])
 
 :number/div/divisor/NotNumberError/refusesAString
   |~~ A divisor that is no number is refused under the part. ~~|
-  ::law~(1 | div "x" !| [type /actualType] | eq [::number/div/divisor/NotNumberError ::string])
+  ::law~(1 | div "x" !| [type (get /actualType)] | eq [::number/div/divisor/NotNumberError ::string])
 
 :number/div/divisor/ZeroError/refusesZero
   |~~ A division by zero is refused under the divisor. ~~|
@@ -329,7 +329,7 @@
 
 :number/mod/divisor
   |~~ The number the subject is divided by, computed against the subject. ~~|
-  ~(/0)
+  /0
 
 :number/mod/divisor/NotNumberError
   |~~ The divisor is a number; text that holds one is read by `toNumber`
@@ -370,11 +370,11 @@
 
 :number/mod/SubjectNotNumberError/refusesAString
   |~~ A subject that is no number is refused under the word. ~~|
-  ::law~("7" | mod 3 !| [type /actualType] | eq [::number/mod/SubjectNotNumberError ::string])
+  ::law~("7" | mod 3 !| [type (get /actualType)] | eq [::number/mod/SubjectNotNumberError ::string])
 
 :number/mod/divisor/NotNumberError/refusesAString
   |~~ A divisor that is no number is refused under the part. ~~|
-  ::law~(7 | mod "3" !| [type /actualType] | eq [::number/mod/divisor/NotNumberError ::string])
+  ::law~(7 | mod "3" !| [type (get /actualType)] | eq [::number/mod/divisor/NotNumberError ::string])
 
 :number/mod/divisor/ZeroError/refusesZero
   |~~ A remainder of a division by zero is refused under the divisor. ~~|
@@ -402,7 +402,7 @@
 
 :number/abs/SubjectNotNumberError/refusesAString
   |~~ A subject that is no number is refused under the word. ~~|
-  ::law~("-3" | abs !| [type /actualType] | eq [::number/abs/SubjectNotNumberError ::string])
+  ::law~("-3" | abs !| [type (get /actualType)] | eq [::number/abs/SubjectNotNumberError ::string])
 
 :number/floor
   |~~ Answers the greatest whole number not above the subject,
@@ -428,7 +428,7 @@
 
 :number/floor/SubjectNotNumberError/refusesAString
   |~~ A subject that is no number is refused under the word. ~~|
-  ::law~("2.7" | floor !| [type /actualType] | eq [::number/floor/SubjectNotNumberError ::string])
+  ::law~("2.7" | floor !| [type (get /actualType)] | eq [::number/floor/SubjectNotNumberError ::string])
 
 :number/ceil
   |~~ Answers the least whole number not below the subject, `2.1 | ceil`
@@ -453,7 +453,7 @@
 
 :number/ceil/SubjectNotNumberError/refusesAString
   |~~ A subject that is no number is refused under the word. ~~|
-  ::law~("2.1" | ceil !| [type /actualType] | eq [::number/ceil/SubjectNotNumberError ::string])
+  ::law~("2.1" | ceil !| [type (get /actualType)] | eq [::number/ceil/SubjectNotNumberError ::string])
 
 :number/range
   |~~ Answers the whole numbers from zero up to the subject, the subject
@@ -503,15 +503,15 @@
 
 :number/range/CountNotIntegerError/refusesAFraction
   |~~ A fraction is no count. ~~|
-  ::law~(2.5 | range !| [type /actualType] | eq [::number/range/CountNotIntegerError ::number])
+  ::law~(2.5 | range !| [type (get /actualType)] | eq [::number/range/CountNotIntegerError ::number])
 
 :number/range/CountTooLargeError/refusesACountPastTheLongest
   |~~ A count past the length `:longest` names is refused. ~~|
-  ::law~(1e10 | range !| [type (/longest | lt 1e10)] | eq [::number/range/CountTooLargeError true])
+  ::law~(1e10 | range !| [type (get /longest | lt 1e10)] | eq [::number/range/CountTooLargeError true])
 
 :number/range/SubjectNotNumberError/refusesAVector
   |~~ A vector is counted first. ~~|
-  ::law~([:a :b] | range !| [type /actualType] | eq [::number/range/SubjectNotNumberError ::vec])
+  ::law~([:a :b] | range !| [type (get /actualType)] | eq [::number/range/SubjectNotNumberError ::vec])
 
 :number/round
   |~~ Answers the subject rounded to the digits after the point the call
@@ -534,7 +534,7 @@
   |~~ The digits after the point, a whole number, none when the call
       gives none.
   ~~|
-  ~(at 0 0)
+  ~(query /0 0)
 
 :number/round/digits/NotNumberError
   |~~ The count of digits is a number, `3.14159 | round 2`. ~~|
@@ -575,11 +575,11 @@
 
 :number/round/SubjectNotNumberError/refusesAString
   |~~ A string is no number to round. ~~|
-  ::law~("2.5" | round !| [type /actualType] | eq [::number/round/SubjectNotNumberError ::string])
+  ::law~("2.5" | round !| [type (get /actualType)] | eq [::number/round/SubjectNotNumberError ::string])
 
 :number/round/digits/NotIntegerError/refusesAFraction
   |~~ Half a digit is refused. ~~|
-  ::law~(2.5 | round 0.5 !| [type /actualType] | eq [::number/round/digits/NotIntegerError ::number])
+  ::law~(2.5 | round 0.5 !| [type (get /actualType)] | eq [::number/round/digits/NotIntegerError ::number])
 
 :number/round/digits/NotNumberError/refusesAString
   |~~ A count of digits that is no number is refused under the part. ~~|
@@ -609,7 +609,7 @@
   |~~ The number the subject is compared with, computed against the
       subject, `5 | gt 3`.
   ~~|
-  ~(/0)
+  /0
 
 :number/gt/value/NotNumberError
   |~~ The value compared is a number; text that holds one is read by
@@ -639,7 +639,7 @@
 
 :number/gt/namesTheKindsThatAnswerIt
   |~~ A vector answers no `gt`, and the refusal names the kinds that do. ~~|
-  ::law~([1] | gt [0] !| /addresses | eq #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt])
+  ::law~([1] | gt [0] !| get /addresses | eq #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt])
 
 :number/gte
   |~~ Answers whether the subject is greater than or equal to the number
@@ -658,7 +658,7 @@
   |~~ The number the subject is compared with, computed against the
       subject, `5 | gte 3`.
   ~~|
-  ~(/0)
+  /0
 
 :number/gte/value/NotNumberError
   |~~ The value compared is a number; text that holds one is read by
@@ -698,7 +698,7 @@
   |~~ The number the subject is compared with, computed against the
       subject, `5 | lt 3`.
   ~~|
-  ~(/0)
+  /0
 
 :number/lt/value/NotNumberError
   |~~ The value compared is a number; text that holds one is read by
@@ -734,7 +734,7 @@
   |~~ The number the subject is compared with, computed against the
       subject, `5 | lte 3`.
   ~~|
-  ~(/0)
+  /0
 
 :number/lte/value/NotNumberError
   |~~ The value compared is a number; text that holds one is read by
@@ -773,13 +773,13 @@
 
 :number/toString/readsBack
   |~~ A number turned into its string turns back into itself. ~~|
-  ::law~(0.1 | add 0.2 | :n / | toString | toNumber | eq n)
+  ::law~(0.1 | add 0.2 | :n it | toString | toNumber | eq n)
 
 :number/toKeyword
   |~~ Answers the keyword a number files under as a key, `1 | toKeyword`
       answering `:"1"`, as `groupBy` and `indexBy` file it, so a record a
       number names is read from the map they build,
-      `byId | at (/uid | toKeyword)`. `toNumber` turns the keyword back
+      `byId | query (get /uid | toKeyword)`. `toNumber` turns the keyword back
       into the number.
       ::link~(::keyword/toNumber | doc) ::link~(::vec/indexBy | doc)
   ~~|
@@ -791,7 +791,7 @@
 
 :number/toKeyword/readsTheKeyIndexByFiledItUnder
   |~~ A number turns into the key `indexBy` files it under. ~~|
-  ::law~([{:id 1 :n "Ann"}] | indexBy ~(/id) | at (1 | toKeyword) | /n | eq "Ann")
+  ::law~([{:id 1 :n "Ann"}] | indexBy /id | query (1 | toKeyword) | get /n | eq "Ann")
 
 :number/toKeyword/readsBack
   |~~ A number turned into its keyword turns back into itself. ~~|

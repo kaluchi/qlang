@@ -5,7 +5,7 @@
 import { mintUnderTag } from './verb.mjs';
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import {
-  isVec, isKeyword, isRegex, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
+  isVec, isKeyword, isRegex, isPath, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
   isTag, makeSet, makeTag, makeTaggedInstance, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
 } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -34,6 +34,7 @@ const NumberPayloadNotNumberError   = declareRefusal('number/PayloadNotNumberErr
 const StringPayloadNotStringError   = declareRefusal('string/PayloadNotStringError');
 const KeywordPayloadNotKeywordError = declareRefusal('keyword/PayloadNotKeywordError');
 const RegexPayloadNotRegexError = declareRefusal('regex/PayloadNotRegexError');
+const PathPayloadNotPathError       = declareRefusal('path/PayloadNotPathError');
 const TagPayloadNotTagError         = declareRefusal('tag/PayloadNotTagError');
 const VecPayloadNotVecError         = declareRefusal('vec/PayloadNotVecError');
 const MapPayloadNotMapError         = declareRefusal('map/PayloadNotMapError');
@@ -62,6 +63,7 @@ bindPrim('number/construct', payload => {
 bindPrim('string/construct',  coreKindConstructor(isString, StringPayloadNotStringError));
 bindPrim('keyword/construct', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
 bindPrim('regex/construct',   coreKindConstructor(isRegex, RegexPayloadNotRegexError));
+bindPrim('path/construct',    coreKindConstructor(isPath, PathPayloadNotPathError));
 bindPrim('tag/construct',     coreKindConstructor(isTag, TagPayloadNotTagError));
 bindPrim('vec/construct',     coreKindConstructor(isBareVec, VecPayloadNotVecError));
 bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadNotMapError));

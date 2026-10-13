@@ -16,7 +16,7 @@ const commandLine = join(benchDir, '..', '..', 'cli', 'src', 'bin.mjs');
 // The first screen the tree prints, the pages of the language and the
 // command line, or what another query prints, a screen a run tries
 // against it.
-export function firstScreen(query = '[::qlang ::cli] | map ~([/ doc])') {
+export function firstScreen(query = '[::qlang ::cli] | map ~([it doc])') {
   return execFileSync(process.execPath, [commandLine, query], { input: '', encoding: 'utf8', env: pipeEnv });
 }
 

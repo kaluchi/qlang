@@ -27,4 +27,4 @@ const ERROR_KIND = 'error';
 // snippets aside, which the command line writes below the failure so a
 // reader repairs the call where it failed [D7]; null for a refusal
 // with no page.
-const PROSE_OF_THE_PAGE = '!| explain | /page | segments | filter ~(type | eq ::string) | join "" !| null';
+const PROSE_OF_THE_PAGE = '!| explain | get /page | segments | filter ~(type | eq ::string) | join "" !| null';

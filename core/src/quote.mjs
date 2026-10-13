@@ -5,7 +5,7 @@
 // and steps back into text. Where the syntax is a literal, the step is
 // that literal itself, a nested quote included, and a container literal
 // holds the steps of its elements, a pipeline element as its group;
-// where the syntax computes, the step is a record, `::call`, `::proj`,
+// where the syntax computes, the step is a record, `::call`, `::path`,
 // `::bind` or `::construct`; the fail track and the parentheses wrap the
 // quote of their step as `::fail` and `::group` [D8]. A comment leaves no
 // step. A command's modifier is one word and is stored as its step [D10,
@@ -18,18 +18,18 @@
 import { parse } from './parse.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import {
-  keyword, makeTag, makeDoc, makeQuote, makeSet, makeRegex,
+  keyword, makeTag, makeDoc, makeQuote, makeSet, makeRegex, makePath,
   makeTaggedInstance, errorAtRest,
-  isQuote, isKeyword, isTag, isRegex, isDoc, isVec, isQMap, isQSet,
+  isQuote, isKeyword, isTag, isRegex, isPath, isDoc, isVec, isQMap, isQSet,
   isValueClass, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
-  CALL_TAG, PROJ_TAG, BIND_TAG, CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG,
+  CALL_TAG, BIND_TAG, CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG,
   canonicalKeywordLiteral
 } from './types.mjs';
 
 // The steps of code that stand in a pipeline alone and those that stand
 // inside a container too.
 const PIPELINE_STEP_TAG_NAMES  = new Set(['fail', 'bind', 'call']);
-const ELEMENT_RECORD_TAG_NAMES = new Set(['call', 'proj', 'construct', 'group']);
+const ELEMENT_RECORD_TAG_NAMES = new Set(['call', 'construct', 'group']);
 
 // ── the tree into steps ────────────────────────────────────────
 
@@ -132,13 +132,6 @@ function entryStepsOf(entries) {
   return entries.map(entry => [entry.key.name, stepOfNode(entry.value)]);
 }
 
-// A path segment reads as an index when the parser saw a canonical
-// integer, and as a key otherwise.
-function segmentOf(key) {
-  const asNumber = Number(key);
-  return Number.isInteger(asNumber) && String(asNumber) === key ? asNumber : keyword(key);
-}
-
 function callStepOf(node) {
   const fields = [['name', keyword(node.name)]];
   if (node.args.length > 0) fields.push(['modifiers', Object.freeze(node.args.map(stepOfNode))]);
@@ -173,7 +166,7 @@ const STEP_OF_NODE = {
   MapLit:          node => new Map(entryStepsOf(node.entries)),
   ErrorLit:        node => errorAtRest(node.tag === null ? ERROR_TAG : makeTag(node.tag), new Map(entryStepsOf(node.entries))),
   TaggedLit:       node => record(CONSTRUCT_TAG, [['tag', makeTag(node.tag)], ['payload', stepOfNode(node.payload)]]),
-  Projection:      node => record(PROJ_TAG, [['path', Object.freeze(node.keys.map(segmentOf))]]),
+  Projection:      node => makePath(node.keys),
   Call:     callStepOf,
   BindStep:        bindStepOf,
   ParenGroup:      node => groupOf(node.pipeline),
@@ -186,11 +179,11 @@ const STEP_OF_NODE = {
 //
 // The tree the quote was read from, or, for a quote assembled from
 // data, the tree of its printed text, parsed once and kept. The empty
-// quote runs as the identity step `/`.
+// quote runs as the identity, as `it` does.
 export function astOfQuote(quote) {
   const holder = quote[QUOTE_AST_SLOT];
   if (holder.ast === undefined) {
-    holder.ast = parse(quote.length === 0 ? '/' : printQuoteSource(quote), { uri: 'quote' });
+    holder.ast = parse(quote.length === 0 ? '' : printQuoteSource(quote), { uri: 'quote' });
   }
   return holder.ast;
 }
@@ -213,7 +206,7 @@ export function isStep(value) {
 // of their words as an element of its own.
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
-  if (isKeyword(value) || isTag(value) || isRegex(value) || isDoc(value) || isQuote(value)) return true;
+  if (isKeyword(value) || isTag(value) || isRegex(value) || isPath(value) || isDoc(value) || isQuote(value)) return true;
   const errorFields = errorFieldsOf(value);
   if (errorFields !== null) return [...errorFields.values()].every(isElementStep);
   if (isQSet(value)) return value.every(isElementStep);
@@ -276,7 +269,6 @@ function printStep(step) {
   if (isQSet(step)) return `#[${step.map(printStep).join(' ')}]`;
   switch (stepTagOf(step)) {
     case 'call':   return printCall(step);
-    case 'proj':   return printProj(step);
     case 'bind':   return printBind(step);
     case 'construct': return step.get('tag').literal + printStep(step.get('payload'));
     case 'group':  return `(${printSteps(step.payload)})`;
@@ -302,19 +294,6 @@ function printEntries(entries) {
 
 function printCall(call) {
   return [call.get('name').name, ...(call.get('modifiers') ?? []).map(printStep)].join(' ');
-}
-
-// A key prints bare when it reads as a bare keyword, behind a colon when
-// its name carries a slash, and quoted otherwise; an index prints as
-// its digits.
-function printSegment(segment) {
-  if (typeof segment === 'number') return String(segment);
-  if (segment.literal.startsWith(':"')) return segment.literal.slice(1);
-  return segment.name.includes('/') ? segment.literal : segment.name;
-}
-
-function printProj(proj) {
-  return '/' + proj.get('path').map(printSegment).join('/');
 }
 
 function printBind(bind) {

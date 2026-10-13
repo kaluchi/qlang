@@ -5,7 +5,7 @@
 :bind
   |~~ A declaration, `:name body`, names a value for the steps after it,
       in the scope where it stands:
-      `{:qty 2 :price 3} | :r / | /qty | mul (r | /price)` keeps the
+      `{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)` keeps the
       record for a later step and answers `6`. The value in the pipe
       passes on unchanged; a group, a part of a literal and a quote a
       word runs each close the names declared inside, and a name is
@@ -19,7 +19,7 @@
 
 :bind/holdsTheNameAndTheBody
   |~~ A declaration holds its name and its body. ~~|
-  ::law~(~(:inc add 1) | first | [/name /body/name] | eq [:inc :add])
+  ::law~(~(:inc add 1) | first | get [/name /body/name] | eq [:inc :add])
 
 :bind/construct
   |~~ The step of a declaration from its record, `:name`, `:docs` and
@@ -38,17 +38,17 @@
 
 :bind/PayloadNotSchemaError/refusesDocsThatAreNoDocs
   |~~ Docs that are no vector of docs are refused, `:field` naming them. ~~|
-  ::law~(::bind{:name :inc :docs [1]} !| [type /field] | eq [::bind/PayloadNotSchemaError :docs])
+  ::law~(::bind{:name :inc :docs [1]} !| [type (get /field)] | eq [::bind/PayloadNotSchemaError :docs])
 
 :bind/PayloadNotSchemaError/refusesATagForAName
   |~~ A tag is no name a declaration binds. ~~|
   ::law~({:name ::Box :body 1} | tag ::bind
-    !| [type /field] | eq [::bind/PayloadNotSchemaError :name])
+    !| [type (get /field)] | eq [::bind/PayloadNotSchemaError :name])
 
 :bind/PayloadNotSchemaError/buildsTheDeclarationOfABody
   |~~ A keyword and the step a quote holds build the declaration. ~~|
   ::law~({:name :inc :body (~(add 1) | first)} | tag ::bind
-    | [/] | tag ::quote | eq ~(:inc add 1))
+    | get [it] | tag ::quote | eq ~(:inc add 1))
 
 :bind/ReadBackDiffersError
   |~~ The `::bind` prints as text that reads back as another step, and
@@ -64,7 +64,7 @@
   |~~ A bind with neither a body nor docs prints as a bare name, which
       reads back as another step.
   ~~|
-  ::law~(::bind{:name :inc} !| [type /printed] | eq [::bind/ReadBackDiffersError ":inc"])
+  ::law~(::bind{:name :inc} !| [type (get /printed)] | eq [::bind/ReadBackDiffersError ":inc"])
 
 :bind/ReadBackDiffersError/refusesABodyThatIsADoc
   |~~ A doc as the body reads back as the page of the declaration. ~~|
@@ -95,7 +95,7 @@
 
 :bind/NounNotDeclaredError/refusesANameUnderNoNoun
   |~~ A name under a noun no declaration made is refused, naming the noun. ~~|
-  ::law~(:Box/area ~(1) !| [type /noun] | eq [::bind/NounNotDeclaredError ::Box])
+  ::law~(:Box/area ~(1) !| [type (get /noun)] | eq [::bind/NounNotDeclaredError ::Box])
 
 :bind/NounNotDeclaredError/takesANameUnderADeclaredNoun
   |~~ A name under a noun declared before it runs on the noun's values. ~~|
@@ -104,7 +104,7 @@
 :bind/InvariantNotUnderLabelError
   |~~ An invariant holds of the values of the label it is declared under,
       named by its refusal: `:Box |~~ A box. ~~|` declares the label by
-      its page alone, and `:Box/WNotNumberError ::holds~(/w | is ::number)`
+      its page alone, and `:Box/WNotNumberError ::holds~(get /w | is ::number)`
       an invariant of its values. Declared by a bare name an invariant
       holds of no value, and a page beside it makes no label, so the
       declaration is refused, `:name` naming it.
@@ -113,11 +113,11 @@
 
 :bind/InvariantNotUnderLabelError/refusesAnInvariantDeclaredBare
   |~~ An invariant declared by a bare name is refused, a page beside it or none. ~~|
-  ::law~(:Box |~~ A box. ~~| ::holds~(/w | is ::number) !| [type /name] | eq [::bind/InvariantNotUnderLabelError :Box])
+  ::law~(:Box |~~ A box. ~~| ::holds~(get /w | is ::number) !| [type (get /name)] | eq [::bind/InvariantNotUnderLabelError :Box])
 
 :bind/InvariantNotUnderLabelError/takesAnInvariantUnderItsLabel
   |~~ An invariant under its label holds of the label's values. ~~|
-  ::law~(:Box |~~ A box. ~~| | :Box/WNotNumberError ::holds~(/w | is ::number) | ::Box{:w "x"} !| type | eq ::Box/WNotNumberError)
+  ::law~(:Box |~~ A box. ~~| | :Box/WNotNumberError ::holds~(get /w | is ::number) | ::Box{:w "x"} !| type | eq ::Box/WNotNumberError)
 
 :bind/NameDeclaredTwiceError
   |~~ A name is declared once in a scope: the steps of a pipeline that
@@ -131,7 +131,7 @@
       the body declares none of them again: the body reads a part by its
       name, and a value of its own takes another. An address the root
       holds is declared once at all: a reader extends a noun of the root
-      by a name of its own, `:vec/second ~(/1)`, and replaces none of its
+      by a name of its own, `:vec/second ~(get /1)`, and replaces none of its
       names, and a source of the root that declares a name the root holds
       is refused.
       ::link~(::bind | doc)
@@ -143,7 +143,7 @@
 
 :bind/NameDeclaredTwiceError/refusesASecondDeclaration
   |~~ A name declared again in its scope is refused. ~~|
-  ::law~(:k 1 | :k 2 !| [type /name] | eq [::bind/NameDeclaredTwiceError :k])
+  ::law~(:k 1 | :k 2 !| [type (get /name)] | eq [::bind/NameDeclaredTwiceError :k])
 
 :bind/NameDeclaredTwiceError/letsAGroupDeclareAgain
   |~~ A group declares in a scope of its own, so it may name a name again. ~~|
@@ -163,7 +163,7 @@
 
 :bind/NameDeclaredTwiceError/refusesAPartDeclaredInTheBody
   |~~ The body of a word declares none of its parts again. ~~|
-  ::law~(:number/m ~(:x 3 | add x) | :number/m/x ~(/0) | 1 | m 2 !| [type /name] | eq [::bind/NameDeclaredTwiceError :x])
+  ::law~(:number/m ~(:x 3 | add x) | :number/m/x /0 | 1 | m 2 !| [type (get /name)] | eq [::bind/NameDeclaredTwiceError :x])
 
 :bind/NameDeclaredTwiceError/refusesANameTheRootHolds
   |~~ A reader declares no name the root holds. ~~|
@@ -171,4 +171,4 @@
 
 :bind/NameDeclaredTwiceError/extendsANounOfTheRoot
   |~~ A reader extends a noun of the root by a name of its own. ~~|
-  ::law~(:vec/second ~(/1) | [1 2] | second | eq 2)
+  ::law~(:vec/second ~(get /1) | [1 2] | second | eq 2)

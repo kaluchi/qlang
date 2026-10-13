@@ -16,18 +16,28 @@ import { deepEqual } from '../equality.mjs';
 import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource } from '../quote.mjs';
 import {
   keyword, isQMap, isQuote, isKeyword, isTag,
-  isDoc, makeQuote, makeTaggedInstance, CALL_TAG, PROJ_TAG, BIND_TAG,
+  isDoc, makeQuote, makeTaggedInstance, CALL_TAG, BIND_TAG,
   CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG, isVec
 } from '../types.mjs';
 
 const QuotePayloadNotVecError = declareRefusal('quote/PayloadNotVecError');
 const QuoteElementNotStepError = declareRefusal('quote/ElementNotStepError');
+const QuoteReadBackDiffersError = declareRefusal('quote/ReadBackDiffersError');
 
+// The steps read as the text they print as, each a step that reads back
+// by itself, so a value assembled after the head, which a step is not
+// [D248], is refused where it is made.
 function quoteConstructor(payload) {
   if (!isVec(payload)) throw new QuotePayloadNotVecError({ actualValue: payload });
   payload.forEach((element, index) => {
     if (!isStep(element)) throw new QuoteElementNotStepError({ index, actualValue: element });
   });
+  const printed = printQuoteSource(payload);
+  try {
+    quoteOfSource(printed, 'quote-read-back');
+  } catch {
+    throw new QuoteReadBackDiffersError({ printed });
+  }
   return makeQuote(payload);
 }
 
@@ -50,7 +60,6 @@ function readBackOrRefuse(step, ReadBackDiffersError) {
 // ── records ────────────────────────────────────────────────────
 
 const vecOf = isElement => value => isVec(value) && value.every(isElement);
-const isSegment = segment => isKeyword(segment) || Number.isInteger(segment);
 const isBodyStep = step => isElementStep(step) || isCommandStep(step);
 
 // A record's payload is a Map whose fields each fit the schema, the
@@ -80,11 +89,6 @@ bindPrim('call/construct', recordConstructor(CALL_TAG,
   { name: isKeyword, modifiers: vecOf(isElementStep) }, ['name'],
   declareRefusal('call/PayloadNotSchemaError'),
   declareRefusal('call/ReadBackDiffersError')));
-
-bindPrim('proj/construct', recordConstructor(PROJ_TAG,
-  { path: vecOf(isSegment) }, ['path'],
-  declareRefusal('proj/PayloadNotSchemaError'),
-  declareRefusal('proj/ReadBackDiffersError')));
 
 bindPrim('bind/construct', recordConstructor(BIND_TAG,
   { name: isKeyword, docs: vecOf(isDoc), body: isBodyStep }, ['name'],

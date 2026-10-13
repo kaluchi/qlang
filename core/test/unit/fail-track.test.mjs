@@ -11,7 +11,7 @@ import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('raise', () => {
   it('bare form wraps pipeValue Map', async () => {
-    const evalResult = await evalQuery('{:kind :oops} | raise !| /kind');
+    const evalResult = await evalQuery('{:kind :oops} | raise !| get /kind');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
@@ -30,12 +30,12 @@ describe('raise', () => {
 
 describe('fail-apply deflect on non-error', () => {
   it('null deflects through !|', async () => {
-    const evalResult = await evalQuery('null !| /kind');
+    const evalResult = await evalQuery('null !| get /kind');
     expect(evalResult).toBeNull();
   });
 
   it('Map deflects through !|', async () => {
-    const evalResult = await evalQuery('{:a 1} !| /kind');
+    const evalResult = await evalQuery('{:a 1} !| get /kind');
     expect(evalResult instanceof Map).toBe(true);
     expect(evalResult.get('a')).toBe(1);
   });
@@ -45,12 +45,12 @@ describe('fail-apply deflect on non-error', () => {
 
 describe('fail-track dispatch through ParenGroup and verb', () => {
   it('fail-apply fires into a ParenGroup step', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} | raise !| (/kind)');
+    const evalResult = await evalQuery('!{:kind :oops} | raise !| (get /kind)');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
   it('a verb body first step sees exposed descriptor when called via !|', async () => {
-    const evalResult = await evalQuery(':any/handler ~(/kind) | !{:kind :oops} | raise !| handler');
+    const evalResult = await evalQuery(':any/handler ~(get /kind) | !{:kind :oops} | raise !| handler');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
@@ -58,12 +58,12 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
     // The last stop of the trail holds the steps the error skipped.
     // `evalPipeline` steps over plain comments on both tracks, so only
     // the step that calls a word (`count`) joins them [D13].
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| /trail/-1/skipped | parse');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| get /trail/-1/skipped | parse');
     expect(evalResult).toBe('count');
   });
 
   it('the steps skipped past a plain comment replay through apply as the bare call after it', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| /trail/-1/skipped | :t / | 42 | apply t !| type');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| get /trail/-1/skipped | :t it | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
   });
 });
@@ -93,13 +93,13 @@ describe('source axis prints the declaration for rare body shapes', () => {
     // BindStep body is a single Primary, so a `!|` leading
     // Pipeline-step is wrapped in a ParenGroup at the source level,
     // and the group keeps its parentheses in print.
-    expect(await evalQuery(':handler (!| /kind) | ::handler | source | parse')).toBe(':handler (!| /kind)');
+    expect(await evalQuery(':handler (!| get /kind) | ::handler | source | parse')).toBe(':handler (!| get /kind)');
   });
 });
 
 describe('json on errors at rest inside containers', () => {
   it('renders an error at rest as the value under its tags [D13]', async () => {
-    const evalResult = await evalQuery('[11 ("x" | add 10 !| /) 13] | json');
+    const evalResult = await evalQuery('[11 ("x" | add 10 !| it) 13] | json');
     expect(typeof evalResult).toBe('string');
     expect(evalResult).toContain('"$tag":"number/add/SubjectNotNumberError"');
   });
@@ -163,8 +163,8 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
-  it('projection on non-Map → ProjSubjectNotProjectableError', async () => {
-    const refused = await evalQuery('42 | /name');
+  it('projection on non-Map → PathSubjectNotProjectableError', async () => {
+    const refused = await evalQuery('42 | get /name');
     expect(refused.originalError.name).toBe('SubjectNotProjectableError');
     expect(refused.descriptor.get('key').name).toBe('name');
     expect(refused.descriptor.get('actualType').name).toBe('number');
@@ -174,18 +174,16 @@ describe('per-site error classes carry unique identity', () => {
     // Freeze a raw value, not a verb. Its record holds a
     // non-function, so captured args trigger CallValueTakesNoModifiersError on
     // the value the record holds.
-    const refused = await evalQuery('5 | :five / | five 42');
+    const refused = await evalQuery('5 | :five it | five 42');
     expect(refused.originalError.name).toBe('ValueTakesNoModifiersError');
     expect(refused.descriptor.get('name').name).toBe('five');
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
   it('a key of a map of another kind is refused by the law of its part [D166]', async () => {
-    for (const [query, address] of [['{:a 1} | at 42', 'map/at/key/NotKeywordOrStringError'], ['{:a 1} | has 42', 'map/has/key/NotKeywordOrStringError']]) {
-      const refused = await evalQuery(query);
-      expect(refused.tag.name).toBe(address);
-      expect(refused.descriptor.get('actualType').name).toBe('number');
-    }
+    const refused = await evalQuery('{:a 1} | has 42');
+    expect(refused.tag.name).toBe('map/has/key/NotKeywordOrStringError');
+    expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
   it('payload on non-TaggedInstance is refused under the address of payload [D166]', async () => {
@@ -202,7 +200,7 @@ describe('per-site error classes carry unique identity', () => {
   it('a value and a tag one vector holds meet by a name that keeps the vector', async () => {
     // The subject of a call is the value in the pipe [D165], so the
     // pair is named before its value takes the tag it holds.
-    const r = await evalQuery('[42 ::Box] | :pair / | /0 | tag (pair | /1) | type');
+    const r = await evalQuery('[42 ::Box] | :pair it | get /0 | tag (pair | get /1) | type');
     expect(r).toEqual(makeTag('Box'));
   });
 
@@ -248,9 +246,9 @@ describe('per-site error classes carry unique identity', () => {
     const queries = [
       '42 | count',
       '[1 "two"] | sum',
-      '42 | /name',
+      '42 | get /name',
       '42 | map ~(add 1)',
-      '5 | :five / | five 42',
+      '5 | :five it | five 42',
       '42 | reduce 0 ~(add)'
     ];
     for (const q of queries) {
@@ -266,8 +264,8 @@ describe('per-site error classes carry unique identity', () => {
       '42 | count',        // call/KindAnswersNoVerbError, the contract of count
       '42 | keys',         // map/keys/SubjectNotMapError
       '42 | vals',         // map/vals/SubjectNotMapError
-      '1 | /name',         // proj/SubjectNotProjectableError (Number subject — neither Map nor Vec)
-      '[1] | /a',          // proj/IndexNotIntegerError
+      '1 | get /name',         // path/SubjectNotProjectableError (Number subject — neither Map nor Vec)
+      '[1] | get /a',          // path/IndexNotIntegerError
       '[1 2 3] | reduce 0 1'   // vec/reduce/reducer/NotQuoteError
     ];
     for (const q of queries) {
@@ -281,7 +279,7 @@ describe('coalesce refuses a call with no alternatives by the law of its part', 
   it('coalesce with no args breaks the law of its alternatives, the args it was given among its facts [D46], [D173]', async () => {
     const refused = await evalQuery('{} | coalesce');
     expect(refused.tag.name).toBe('any/coalesce/alternatives/EmptyError');
-    expect(await evalQuery('{} | coalesce !| /actualValue | eq ::any/coalesce[]')).toBe(true);
+    expect(await evalQuery('{} | coalesce !| get /actualValue | eq ::any/coalesce[]')).toBe(true);
   });
 });
 

@@ -10,7 +10,7 @@
 // values of one kind [D34], [D72].
 
 import {
-  isKeyword, isTag, isRegex, isDoc, isValueClass,
+  isKeyword, isTag, isRegex, isPath, isDoc, isValueClass,
   TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME
 } from './types.mjs';
 
@@ -22,6 +22,8 @@ const STRING_KIND   = 3;
 const REGEX_KIND    = 4;
 const KEYWORD_KIND  = 5;
 const TAG_NAME_KIND = 6;
+// A path ranks after the tag names [D248].
+const PATH_KIND     = 6.5;
 const VECTOR_KIND   = 7;
 const SET_KIND      = 8;
 const MAP_KIND      = 9;
@@ -42,6 +44,7 @@ function kindOf(value) {
   if (isRegex(value)) return REGEX_KIND;
   if (isKeyword(value)) return KEYWORD_KIND;
   if (isTag(value)) return TAG_NAME_KIND;
+  if (isPath(value)) return PATH_KIND;
   if (isDoc(value)) return DOC_KIND;
   const headerTag = value[TAG_HEADER_SYMBOL];
   if (headerTag === undefined) return shapeKindOf(value);
@@ -65,6 +68,16 @@ function compareCodeUnits(left, right) {
 }
 
 // compareValues(a, b) → -1 / 0 / 1 — the one order.
+// Two paths rank segment by segment, a shorter one first where one
+// begins the other.
+function compareSegments(left, right) {
+  for (let index = 0; index < Math.min(left.length, right.length); index++) {
+    const bySegment = compareCodeUnits(left[index], right[index]);
+    if (bySegment !== 0) return bySegment;
+  }
+  return left.length === right.length ? 0 : (left.length < right.length ? -1 : 1);
+}
+
 export function compareValues(a, b) {
   return compareKinded(kindOf(a), a, kindOf(b), b);
 }
@@ -86,6 +99,8 @@ function compareKinded(leftKind, left, rightKind, right) {
     case KEYWORD_KIND:
     case TAG_NAME_KIND:
       return compareCodeUnits(left.name, right.name);
+    case PATH_KIND:
+      return compareSegments(left.segments, right.segments);
     case VECTOR_KIND:
     case SET_KIND:
     case QUOTE_KIND:

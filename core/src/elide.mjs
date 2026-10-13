@@ -24,10 +24,9 @@
 
 import {
   isVec, isVecOfOwnKind, isQMap, isErrorValue, isValueClass,
-  makeTaggedInstance, makeTag, makeErrorValue, stampTagHeader, TAG_HEADER_SYMBOL,
-  canonicalKeywordLiteral
+  makeTaggedInstance, makeTag, makeErrorValue, makePath, stampTagHeader, TAG_HEADER_SYMBOL
 } from './types.mjs';
-import { printValue } from './runtime/print-value.mjs';
+import { printValue, printPath } from './runtime/print-value.mjs';
 import { quoteOfSource } from './quote.mjs';
 
 const ELISION_TAG = makeTag('elision');
@@ -49,18 +48,20 @@ const isPlainVector = value => isVec(value) && value[TAG_HEADER_SYMBOL] === unde
 const isPlainMap = value => isQMap(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isTaggedContainer = value => (isVec(value) || isQMap(value)) && !isVecOfOwnKind(value);
 
-// The step that reads one part of its parent: a field by its keyword, an
-// element by its index.
+// The segment of a path that reads one part of its parent: a field by its
+// key, an element by its index.
 function stepOf(key) {
-  if (typeof key === 'number') return `/${key}`;
-  const literal = canonicalKeywordLiteral(key);
-  return /^:[^"]/.test(literal) ? `/${literal}` : ` | at ${literal}`;
+  return printPath(makePath([String(key)]));
 }
 
+// The read of a part: `get` with the path to it, beneath `!|` for a fact
+// of an alert, the tail after it, and `it` where the path is empty
+// [D248].
 function readOf(prefix, path, tail = '') {
-  const steps = path.map(stepOf).join('');
-  const body = `${prefix}${steps}${tail}`.replace(/^ \| /, '').trim();
-  return quoteOfSource(body === '' ? '/' : body);
+  const [, caught = '', from = ''] = /^(!\| )?(.*)$/.exec(prefix);
+  const pathText = `${from}${path.map(stepOf).join('')}`;
+  const read = pathText === '' ? (tail === '' ? 'it' : tail.replace(/^ \| /, '')) : `get ${pathText}${tail}`;
+  return quoteOfSource(`${caught}${read}`);
 }
 
 function marker(fields) {

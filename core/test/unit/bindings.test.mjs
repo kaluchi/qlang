@@ -1,5 +1,5 @@
 // Binding declarations — BindStep (`:name body`), the freeze
-// `:name /` among them.
+// `:name it` among them.
 // Every binding declaration parses through `evalBindStep` at the
 // AST level, with no call around it.
 
@@ -28,7 +28,7 @@ describe('BindStep — docs-only form', () => {
   it('a kind declared with a doc reads its page, the value of its record [D168]', async () => {
     const doc = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | doc | content');
     expect(doc).toContain('short tag prose');
-    const value = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | binding | /value | type');
+    const value = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | binding | get /value | type');
     expect(value).toEqual(makeTag('doc'));
   });
 });
@@ -62,12 +62,12 @@ describe('BindStep — value-body purity routing', () => {
 
 describe('BindStep — a word with parts', () => {
   it('a word binds its parts from the modifiers of the call', async () => {
-    expect(await evalQuery(':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx ~(/0) | :any/surround/sfx ~(/1) | "x" | surround "[" "]"'))
+    expect(await evalQuery(':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx /0 | :any/surround/sfx /1 | "x" | surround "[" "]"'))
       .toBe('[x]');
   });
 
   it('the part x binds the modifier', async () => {
-    expect(await evalQuery(':any/add1 ~(add x) | :any/add1/x ~(/0) | 5 | add1 10')).toBe(15);
+    expect(await evalQuery(':any/add1 ~(add x) | :any/add1/x /0 | 5 | add1 10')).toBe(15);
   });
 });
 

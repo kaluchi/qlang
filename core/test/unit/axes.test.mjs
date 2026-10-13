@@ -98,7 +98,7 @@ describe('::name | doc returns the page its attached prefixes make', () => {
   it('a value whose kind no binding declares is refused under its kind', async () => {
     // The fork of the parentheses drops the tag the literal declared,
     // and the value it minted leaves with the name of that kind.
-    expect(await evalQuery('(::Ghost(1)) | doc !| /name')).toEqual(makeTag('Ghost'));
+    expect(await evalQuery('(::Ghost(1)) | doc !| get /name')).toEqual(makeTag('Ghost'));
   });
 });
 
@@ -119,7 +119,7 @@ describe('the axes read the node a tag addresses', () => {
   });
 
   it('a tag naming a word of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
-    expect([...await evalQuery('::count | doc !| /addresses')])
+    expect([...await evalQuery('::count | doc !| get /addresses')])
       .toEqual([makeTag('map/count'), makeTag('set/count'), makeTag('string/count'), makeTag('vec/count')]);
   });
 
@@ -143,7 +143,7 @@ describe('the axes read the node a tag addresses', () => {
   // A tag is the address of a name, so it reads the nearest declaration
   // of that name whatever its value holds [D153].
   it('::Tag | source reads the declaration of its name', async () => {
-    expect(await evalQuery('42 | :Foo / | ::Foo | source | parse')).toBe(':Foo /');
+    expect(await evalQuery('42 | :Foo it | ::Foo | source | parse')).toBe(':Foo it');
   });
 
   it('a tag no declaration names is refused by its address', async () => {
@@ -242,13 +242,13 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
 
 describe('::name | binding | /value answers the value of the declaration', () => {
   it('::vec/take reads the descriptor of its primitive, and a part its selector [D164]', async () => {
-    expect(printValue(await evalQuery('::vec/take | binding | /value'))).toBe('::builtin{}');
-    expect(printValue(await evalQuery('::vec/take | binding :count | /value'))).toBe('~(/0)');
+    expect(printValue(await evalQuery('::vec/take | binding | get /value'))).toBe('::builtin{}');
+    expect(printValue(await evalQuery('::vec/take | binding :count | get /value'))).toBe('/0');
   });
 
   it('the record of a freeze holds the value', async () => {
-    // `:name /` writes the record of a binding under :name in env
+    // `:name it` writes the record of a binding under :name in env
     // [D5], which `binding` reads.
-    expect(await evalQuery('42 | :answer / | ::answer | binding | /value')).toBe(42);
+    expect(await evalQuery('42 | :answer it | ::answer | binding | get /value')).toBe(42);
   });
 });

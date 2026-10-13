@@ -7,7 +7,7 @@
 // are, index by index.
 
 import {
-  isKeyword, isTag, isRegex, isErrorValue, TAG_HEADER_SYMBOL,
+  isKeyword, isTag, isRegex, isPath, isErrorValue, TAG_HEADER_SYMBOL,
   isValueClass, isQMap
 } from './types.mjs';
 
@@ -55,6 +55,10 @@ export function deepEqual(a, b) {
   // Two patterns are one when their text and their flags are [D246].
   if (isRegex(a)) {
     return isRegex(b) && a.source === b.source && a.flags === b.flags;
+  }
+  // Two paths are one when their segments are [D248].
+  if (isPath(a)) {
+    return isPath(b) && a.segments.length === b.segments.length && a.segments.every((segment, index) => segment === b.segments[index]);
   }
   if (isErrorValue(a)) {
     return isErrorValue(b)

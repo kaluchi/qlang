@@ -7,7 +7,7 @@
       page, its value and where it came from, so what is named can be
       listed and asked like data. `env` answers the bindings a reader
       declared, and `binding` the record of a name,
-      `::vec/count | binding | /origin` answering `:qlang/vec`.
+      `::vec/count | binding | get /origin` answering `:qlang/vec`.
 
       It prints as a map under its tag; in the command line the record
       of `:x 5` is
@@ -23,12 +23,12 @@
 
 :binding/holdsTheValue
   |~~ The record of a name holds its value. ~~|
-  ::law~(:x |~~ One. ~~| 1 | env | /x | /value | eq 1)
+  ::law~(:x |~~ One. ~~| 1 | env | get /x | get /value | eq 1)
 
 :binding/holdsThePage
   |~~ The record of a name holds its page. ~~|
-  ::law~(:x |~~ One. ~~| 1 | env | /x | doc | content | eq " One. ")
+  ::law~(:x |~~ One. ~~| 1 | env | get /x | doc | content | eq " One. ")
 
 :binding/holdsTheName
   |~~ The record of a name holds the name. ~~|
-  ::law~(:x 1 | env | /x | /name | eq :x)
+  ::law~(:x 1 | env | get /x | get /name | eq :x)

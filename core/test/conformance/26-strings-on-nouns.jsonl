@@ -1,4 +1,4 @@
-{"name":"the-contract-of-prepend-names-its-residences","query":"42 | prepend \"x\" !| get /addresses","expect":"#[::string/prepend ::vec/prepend]","decision":"D34","target":true,"now":"::call/UnknownNameError"}
+{"name":"the-contract-of-prepend-names-its-residences","query":"42 | prepend \"x\" !| get /addresses","expect":"#[::string/prepend ::vec/prepend]","decision":"D34"}
 {"name":"an-address-of-a-verb-of-strings-checks-its-subject","query":"[1] | string/prepend 0 !| type","expect":"::string/prepend/SubjectNotStringError","decision":"D34"}
 {"name":"a-tag-over-a-string-comes-back-on-prepend","query":"::Box(\"b\") | prepend \"a\"","expect":"::Box\"ab\"","decision":"D34"}
 {"name":"a-verb-of-one-residence-refuses-its-subject-by-its-site","query":"[1] | split \",\" !| type","expect":"::string/split/SubjectNotStringError","decision":"D34"}

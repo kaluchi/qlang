@@ -25,7 +25,7 @@
 
 [1 2 3 4 5] | count
 
-| {:name "Ann" :age 30} | /name
+| ({:name "Ann" :age 30} | get /name)
 
 
 |~| ── 2. Code ──────────────────────────────────────────────
@@ -36,19 +36,19 @@
 |~| quote itself. Ctrl+Click double to jump to its declaration;
 |~| Shift+F12 finds the declaration and its uses.
 
-| 5 | apply ~(add 1 | mul 2)
+| (5 | apply ~(add 1 | mul 2))
 
-| [1 2 3] | map ~(mul 2)
+| ([1 2 3] | map ~(mul 2))
 
-| [1 2 3] | filter ~(gt 1)
+| ([1 2 3] | filter ~(gt 1))
 
 :double |~~ Doubles a number. ~~| ~(mul 2)
 
-| 5 | apply double
+| (5 | apply double)
 
-| [1 2 3] | map double
+| ([1 2 3] | map double)
 
-| 5 | double
+| (5 | double)
 
 
 |~| ── 3. A kind of your own ─────────────────────────────────
@@ -59,23 +59,23 @@
 |~| the call and held to its invariant.
 
 :Person |~~ A person, a name and an age. ~~|
-:Person/NameNotStringError ::holds~(/name | is ::string)
-:Person/adult |~~ Whether the person is of age. ~~| ~(/age | gte 18)
+:Person/NameNotStringError ::holds~(get /name | is ::string)
+:Person/adult |~~ Whether the person is of age. ~~| ~(get /age | gte 18)
 :Person/greet
   |~~ The person's name after a greeting. ~~|
-  ~(/name | prepend greeting)
-:Person/greet/greeting |~~ The words before the name. ~~| ~(/0)
+  ~(get /name | prepend greeting)
+:Person/greet/greeting |~~ The words before the name. ~~| /0
 :Person/greet/greeting/NotStringError ::holds~(is ::string)
 
-| ::Person{:name "Ann" :age 30} | adult
+| (::Person{:name "Ann" :age 30} | adult)
 
-| ::Person{:name "Ann" :age 30} | greet "hello "
+| (::Person{:name "Ann" :age 30} | greet "hello ")
 
-| ::Person{:name "Ann" :age 30} | greet 1 !| type
+| (::Person{:name "Ann" :age 30} | greet 1 !| type)
 
-| ::Person{:name 7 :age 30} !| type
+| (::Person{:name 7 :age 30} !| type)
 
-| {:name "Bo" :age 15} | adult !| type
+| ({:name "Bo" :age 15} | adult !| type)
 
 
 |~| ── 4. Two fields of one record ───────────────────────────
@@ -83,9 +83,9 @@
 |~| so two fields meet in one step, or a name keeps the record
 |~| for a later one.
 
-| {:price 4 :qty 3} | mulOf /price /qty
+| ({:price 4 :qty 3} | mulOf /price /qty)
 
-| {:price 4 :qty 3} | :r / | /qty | mul (r | /price)
+| ({:price 4 :qty 3} | :r it | get /qty | mul (r | get /price))
 
 
 |~| ── 5. A fold ─────────────────────────────────────────────
@@ -93,9 +93,9 @@
 |~| code of several steps runs on the pair of the value so far
 |~| and the element.
 
-| [1 2 3] | reduce 0 ~(add)
+| ([1 2 3] | reduce 0 ~(add))
 
-| [{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (/1 | /x))
+| ([{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (get /1 | get /x)))
 
 
 |~| ── 6. Names and their scope ──────────────────────────────
@@ -104,7 +104,7 @@
 
 :x 1
 :y (x | add 1)
-| (42 | :inner / | inner)
+| (42 | :inner it | inner)
 | y
 
 
@@ -114,20 +114,20 @@
 |~| else. After `|` Ctrl+Space lists the words the kind of the
 |~| value answers and the names the file declares above.
 
-| 5 | if (gt 0) ~("pos") ~("neg")
+| (5 | if (gt 0) ~("pos") ~("neg"))
 
-| "text" | upper
+| ("text" | upper)
 
 
 |~| ── 8. Failures ───────────────────────────────────────────
 |~| `|` passes a failure by and `!|` catches it; `explain`
 |~| answers the page of what refused, which tells the repair.
 
-| "hello" | add 1 !| type
+| ("hello" | add 1 !| type)
 
-| [1 "x" 3] | map ~(add 10 !| 0)
+| ([1 "x" 3] | map ~(add 10 !| 0))
 
-| "hello" | add 1 !| explain
+| ("hello" | add 1 !| explain)
 
 
 |~| ── 9. Comments ───────────────────────────────────────────

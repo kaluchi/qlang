@@ -715,7 +715,7 @@ query, and `tutorial` a name's page and its laws, the pair a reader
 learns the name from [D176], [D177]:
 
 ```qlang
-> ::vec/take | tutorial | [(/0 | type) (/1 | keys | count | gt 0)]
+> ::vec/take | tutorial | get [(get /0 | type) (get /1 | keys | count | gt 0)]
 [::doc true]
 ```
 
@@ -903,10 +903,10 @@ the meeting of a value and a word [D223] settled:
   word of the name serves lists the addresses where its words live.
 
 ```qlang
-> [1 2] | binding :count | /name
+> [1 2] | binding :count | get /name
 :vec/count
 
-> 5 | binding :count !| /addresses
+> 5 | binding :count !| get /addresses
 #[::map/count ::set/count ::string/count ::vec/count]
 ```
 
@@ -932,10 +932,10 @@ declares is a defect of the runtime [D46], [D166], [D169]:
 > "hello" | add 1 !| type
 ::number/add/SubjectNotNumberError
 
-> 1 | add "x" !| [type /actualType]
+> 1 | add "x" !| [type (get /actualType)]
 [::number/add/addend/NotNumberError ::string]
 
-> [1 "x"] | sum !| [type /index]
+> [1 "x"] | sum !| [type (get /index)]
 [::vec/sum/ElementNotNumberError 1]
 
 > 2.5 | round 0.5 !| type
@@ -953,10 +953,10 @@ subject of every level it left [D13], so the same failure one verb
 deeper carries it twice:
 
 ```qlang
-> ::vec | doc | add 1 !| /trail | map ~/subject | map ~(eq (::vec | doc))
+> ::vec | doc | add 1 !| get /trail | map /subject | map ~(eq (::vec | doc))
 [true]
 
-> :any/g ~(add 1) | ::vec | doc | g !| /trail | map ~/subject | map ~(eq (::vec | doc))
+> :any/g ~(add 1) | ::vec | doc | g !| get /trail | map /subject | map ~(eq (::vec | doc))
 [true true]
 ```
 
@@ -974,13 +974,13 @@ its refusal's page as line comments, the repair a reader acts on
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| print | count" < /dev/null
 1336
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -v '^|~|' | wc -c
-317
+321
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep '^|~|'
 |~| raised, and no !| caught it
 |~| The addend is a number; text that holds one is read by `toNumber`.
-$ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -c ':read ~(!| /trail/1/subject)'
+$ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -c ':read ~(!| get /trail/1/subject)'
 1
-$ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| /trail/1/subject | count" < /dev/null
+$ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| get /trail/1/subject | count" < /dev/null
 300
 ```
 
@@ -1230,7 +1230,7 @@ value]`, and `toMap` builds a map back from them [D138], [D244], a
 string naming a key wherever a key is taken [D139]:
 
 ```qlang
-> {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 {:name (/0 | toString)}) | sort ~(/port)
+> {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 {:name (get /0 | toString)}) | sort /port
 [{:port 3000 :name "auth"} {:port 5432 :name "db"}]
 ```
 
@@ -1402,7 +1402,7 @@ It opens with the step as a command and the path as a value [D248]: a
 path does nothing by itself, the word that takes it reads it, `get`
 strictly, `query` softly, `has` asking, and a word that takes code taking
 it as code, so the projection has one spelling where it had a step and
-the record `::proj{:path …}` inside a quote, and a value written as a
+the record `::path{:path …}` inside a quote, and a value written as a
 later step is refused; its targets stand in
 `core/test/conformance/43-a-step-is-a-command.jsonl`.
 The keystone is the declaration of a kind. A kind is a label, a name declared by its page, which
@@ -1416,7 +1416,7 @@ the mission:
 > :P |~~ A person. ~~| | ::P{:name 5}
 ::P{:name 5}
 
-> :P |~~ A person. ~~| | :P/NameNotStringError ::holds~(/name | is ::string) | ::P{:name 5} !| type
+> :P |~~ A person. ~~| | :P/NameNotStringError ::holds~(get /name | is ::string) | ::P{:name 5} !| type
 ::P/NameNotStringError
 ```
 
@@ -1441,7 +1441,7 @@ its label, values of the language [D46]:
 ```qlang
 > 1 | add "x" !| entries | map ~first
 [:actualType :actualValue :trail]
-> 1 | add "x" !| /actualType
+> 1 | add "x" !| get /actualType
 ::string
 ```
 
@@ -1574,14 +1574,14 @@ written `is ::k` serves its part to the body of the word as the value
 of the kind beneath its tags, while one that computes the same truth
 another way, or none, hands the part as it was given, as the body is
 handed its subject; the place, the strictness and the default of a part
-are read from its selector, `/n` or `at n d`; and the last names
+are read from its selector, `/n` or `query /n d`; and the last names
 `answer`, `subject` and `construct` are roles:
 
 ```qlang
-> :any/m ~(x | type) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number) | null | m ::Width(5)
+> :any/m ~(x | type) | :any/m/x /0 | :any/m/x/NotNumberError ::holds~(is ::number) | null | m ::Width(5)
 ::number
 
-> :any/m ~(x | type) | :any/m/x ~(/0) | :any/m/x/NotNumberError ::holds~(is ::number | eq true) | null | m ::Width(5)
+> :any/m ~(x | type) | :any/m/x /0 | :any/m/x/NotNumberError ::holds~(is ::number | eq true) | null | m ::Width(5)
 ::Width
 
 > :number/t ~(type) | ::Width(5) | t

@@ -140,7 +140,7 @@ describe('a part takes no modifiers', async () => {
   it('a part holding a value refuses modifiers as any value does', async () => {
     // Inside the body, `n` is the record of a part holding a value, so
     // a modifier handed to it is refused with CallValueTakesNoModifiersError.
-    const result = await evalQuery(':any/f ~(n 42) | :any/f/n ~(/0) | 0 | f 5');
+    const result = await evalQuery(':any/f ~(n 42) | :any/f/n /0 | 0 | f 5');
     expect(isErrorValue(result)).toBe(true);
     const e = result.originalError;
     expect(e.name).toBe('ValueTakesNoModifiersError');

@@ -9,7 +9,7 @@
   |~~ A builtin marks a word a host implements: the value of a name
       whose code the host hands as a function, `::builtin{}`, where a
       word written in steps holds a quote.
-      `::number/add | binding | /value` answers `::builtin{}`, and a
+      `::number/add | binding | get /value` answers `::builtin{}`, and a
       kind the host declares builds its values by a `construct` that is
       one.
 
@@ -21,11 +21,11 @@
 
 :builtin/isAValueOfItsOwn
   |~~ An empty descriptor is a value like any other. ~~|
-  ::law~(::builtin{} | :c / | [1 2] | c | type | eq ::builtin)
+  ::law~(::builtin{} | :c it | get [1 2] | c | type | eq ::builtin)
 
 :builtin/endsAPrimitive
   |~~ A primitive's value is an empty descriptor. ~~|
-  ::law~(::number/add | binding | /value | eq ::builtin{})
+  ::law~(::number/add | binding | get /value | eq ::builtin{})
 
 :builtin/construct
   |~~ Reads a map as the descriptor, its fields flat under the tag. ~~|
@@ -39,11 +39,11 @@
 
 :builtin/PayloadNotMapError/refusesAString
   |~~ A string payload is refused. ~~|
-  ::law~(::builtin"hello" !| [type /actualType] | eq [::builtin/PayloadNotMapError ::string])
+  ::law~(::builtin"hello" !| [type (get /actualType)] | eq [::builtin/PayloadNotMapError ::string])
 
 :builtin/PayloadNotMapError/refusesAVector
   |~~ A vector payload is refused. ~~|
-  ::law~(::builtin[1 2 3] !| [type /actualType] | eq [::builtin/PayloadNotMapError ::vec])
+  ::law~(::builtin[1 2 3] !| [type (get /actualType)] | eq [::builtin/PayloadNotMapError ::vec])
 
 :builtin/UnknownAstNodeTypeError
   |~~ The evaluator met a node of the parser's tree it has no rule for:
@@ -74,7 +74,7 @@
       holds are the definitions under the label that names it, and under
       `::error` for those every refusal shares. The fact is declared as a
       definition, a name, its page and the kind it holds, under the label
-      of the refusal, `::proj/IndexOutOfBoundsError/length` holding
+      of the refusal, `::path/IndexOutOfBoundsError/length` holding
       `::number`, or under `::error` when every refusal shares it.
   ~~|
 

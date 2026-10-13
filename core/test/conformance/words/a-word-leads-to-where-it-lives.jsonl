@@ -1,2 +1,2 @@
-{"name":"a-refusal-of-a-word-leads-to-where-it-lives","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::set/reduce ::vec/reduce]","decision":"D46","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-refusal-of-a-word-leads-to-where-it-lives","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::set/reduce ::vec/reduce]","decision":"D46"}
 {"name":"the-page-of-a-kinds-word-is-read-by-its-address","query":"::vec/reduce | doc | type","expect":"::doc","decision":"D46"}

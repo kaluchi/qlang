@@ -66,9 +66,9 @@ export function astChildrenOf(node) {
 }
 
 // The literals of no parts, which answer themselves whatever the subject,
-// and the literals whose parts run on the subject, `[/a 1]` reading it
-// where `[1 2]` does not.
-const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit']);
+// a path among them [D248], and the literals whose parts run on the
+// subject, `[count 1]` reading it where `[1 2]` does not.
+const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit', 'Projection']);
 const LITERALS_OF_PARTS = new Set([
   'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry', 'TaggedLit', 'ParenGroup', 'DocLit', 'DocTaggedQuote'
 ]);
@@ -78,8 +78,8 @@ const LITERALS_OF_PARTS = new Set([
 // [D215]: a pipeline where its first step that declares nothing reads
 // it, or where a declaration before that step runs a body that does; a
 // literal of no parts never, nor a quote, whose code does not run; a
-// literal of parts where one of its parts reads it; a projection, a call,
-// a declaration, which answers its subject, and a node this walk does not
+// literal of parts where one of its parts reads it; a call, a
+// declaration, which answers its subject, and a node this walk does not
 // name always.
 export function readsItsSubject(node) {
   if (node.type === 'Pipeline') return stepsReadTheirSubject([node.steps[0], ...node.steps.slice(1).map(unit => unit.step)]);

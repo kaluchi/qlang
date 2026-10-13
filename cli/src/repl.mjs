@@ -46,10 +46,10 @@ Editing:
 Pasting multi-line text from the clipboard arrives as one cell
 with its structure preserved — the editor redraws the pasted
 block across as many rows as the content needs, so an appended
-projection like \`| /key\` can land on the same cell as the paste.
+step like \`| get /key\` can land on the same cell as the paste.
 
 Bindings introduced via BindStep (\`:name body\`, the freeze
-\`:name /\` among them) persist across cells within the same REPL
+\`:name it\` among them) persist across cells within the same REPL
 session.
 `;
 

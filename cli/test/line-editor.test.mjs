@@ -529,15 +529,15 @@ describe('createLineEditor — TTY paste fast-path', () => {
   it('inserts a multi-line chunk into the buffer without auto-submitting', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, '{\n  "a": 1\n} | /a');
+    feed(stdinStream, '{\n  "a": 1\n} | get /a');
     expect(capture.lines).toEqual([]);
   });
 
   it('preserves newlines through paste + submit', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, '{\n  "a": 1\n} | /a', SUBMIT);
-    expect(capture.lines).toEqual(['{\n  "a": 1\n} | /a']);
+    feed(stdinStream, '{\n  "a": 1\n} | get /a', SUBMIT);
+    expect(capture.lines).toEqual(['{\n  "a": 1\n} | get /a']);
   });
 
   it('gathers a paste the host hands over in several chunks into one paste [D204]', () => {
@@ -712,8 +712,8 @@ describe('createLineEditor — TTY paste fast-path', () => {
   it('lets the user append further text to a pasted block before submit', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, '{\n  "a": 1\n}', ' | /a', SUBMIT);
-    expect(capture.lines).toEqual(['{\n  "a": 1\n} | /a']);
+    feed(stdinStream, '{\n  "a": 1\n}', ' | get /a', SUBMIT);
+    expect(capture.lines).toEqual(['{\n  "a": 1\n} | get /a']);
   });
 
   it('strips BPM markers from a single-chunk wrapped paste', () => {

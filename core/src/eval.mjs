@@ -7,13 +7,14 @@ import {
   rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, asScopeOf, queryTreeOf
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
-import { nearestKeys, nearestNames, nearestTagNames, nearestWords } from './nearest-names.mjs';
+import { nearestNames, nearestTagNames, nearestWords } from './nearest-names.mjs';
+import { readPath } from './path-read.mjs';
 import {
-  isVec, isQMap, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
+  isVec, isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
-  makeDoc, makeSet, makeRegex,
+  makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, isBinding, makeTaggedInstance, makeTag, isTag, errorAtRest,
-  isValueClass, quoteInEnv, quoteEnvRef, envToRun,
+  quoteInEnv, quoteEnvRef, envToRun,
   ERROR_TAG
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
@@ -21,7 +22,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, segmentIndex, selectorOf, subjectOf, subjectRefusalAddress
+  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, selectorOf, subjectOf, subjectRefusalAddress
 } from './runtime/nouns.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -37,10 +38,6 @@ const BuiltinUnknownAstNodeTypeError = declareInvariantError(
   'builtin/UnknownAstNodeTypeError',
   ({ nodeType }) => `unknown AST node type: ${nodeType}`);
 
-const ProjSubjectNotProjectableError = declareRefusal('proj/SubjectNotProjectableError');
-const ProjKeyNotInMapError = declareRefusal('proj/KeyNotInMapError');
-const ProjIndexOutOfBoundsError = declareRefusal('proj/IndexOutOfBoundsError');
-const ProjIndexNotIntegerError = declareRefusal('proj/IndexNotIntegerError');
 // The tag of a name that holds data puts no value under it: a value goes
 // under a label, a word, an invariant or a tag no node answers [D173].
 const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
@@ -158,14 +155,6 @@ async function applySuccessTrack(state, stepNode) {
 // whose head rides `|` like every other step.
 function evalBody(node, state) {
   return node.type === 'Pipeline' ? evalNode(node, state) : applySuccessTrack(state, node);
-}
-
-// The container beneath every tag stacked over a value, which a
-// projection reads as the walk hands a verb the value it serves [D34].
-function containerBeneathTags(value) {
-  let beneath = value;
-  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
-  return beneath;
 }
 
 // `!|` alone catches a failure, its step running on the error at rest, the
@@ -386,7 +375,7 @@ async function evalTagLit(node, state) {
 
 // The one binding form: the value passes on, and a fresh scope holds the
 // record of the binding, whose value is the body evaluated once at
-// declaration against the current value, `42 | :x / | add 1 | x`
+// declaration against the current value, `42 | :x it | add 1 | x`
 // answering 42, a declaration of docs alone binding them as a page, and a
 // quote written as the body resolving in the scope the declaration
 // writes, its own name among it [D5], and a body that fails answering the
@@ -442,39 +431,10 @@ function declarationRecord(node, value) {
 
 // ─── Projection ─────────────────────────────────────────────────
 
-// A projection walks its path segment by segment: a map by key, a vector,
-// a quote and a doc among them, by an index counted from the end when
-// negative; a miss is a refusal that names its `:key`, where `at`
-// answers null.
+// A path is a value that does nothing by itself; the word that takes it
+// reads it [D248].
 function evalProjection(node, state) {
-  let projectionCurrent = state.pipeValue;
-  for (const projKey of node.keys) projectionCurrent = projectSegment(projectionCurrent, projKey);
-  return withPipeValue(state, projectionCurrent);
-}
-
-// A projection reads the map or the vector beneath the tags stacked over
-// its subject, so the facts of an opened error read by name [D13].
-function projectSegment(subject, projKey) {
-  const projected = containerBeneathTags(subject);
-  if (isQMap(projected)) {
-    if (!projected.has(projKey)) throw new ProjKeyNotInMapError({ key: keyword(projKey), nearest: nearestKeys(projected, projKey), actualValue: subject });
-    return projected.get(projKey);
-  }
-  if (isVec(projected)) {
-    const index = segmentIndex(projKey);
-    if (Number.isNaN(index)) {
-      throw new ProjIndexNotIntegerError({ key: keyword(projKey), actualValue: subject });
-    }
-    const resolvedIndex = index < 0 ? projected.length + index : index;
-    if (resolvedIndex < 0 || resolvedIndex >= projected.length) {
-      throw new ProjIndexOutOfBoundsError({ index, length: projected.length, actualValue: subject });
-    }
-    return projected[resolvedIndex];
-  }
-  throw new ProjSubjectNotProjectableError({
-    key: Number.isNaN(segmentIndex(projKey)) ? keyword(projKey) : segmentIndex(projKey),
-    actualValue: subject
-  });
+  return withPipeValue(state, makePath(node.keys));
 }
 
 // ─── Identifier lookup ─────────────────────────────────────────
@@ -508,7 +468,7 @@ async function callByName(lookupName, modifiers, state) {
   return await applyBinding(reach.record, lookupName, modifiers, state);
 }
 
-// A name reads the value its record holds, so `:x / | x` sees the raw
+// A name reads the value its record holds, so `:x it | x` sees the raw
 // data, a quote among it, which `apply` runs [D5].
 async function applyBinding(entry, lookupName, modifiers, state) {
   const resolved = bindingValueOf(entry);
@@ -744,7 +704,7 @@ async function argsOf(definition, modifiers, state, scope, body) {
 // A value the call computed that answered an error where a part that
 // asks for code reads, by an invariant `is` of a quote or, for the part
 // that reads the args whole, `every ~(is …)` of one: the step ran on the
-// subject by mistake, `filter /active` for `filter ~(/active)`, and the
+// subject by mistake, `filter (get /active)` for `filter /active`, and the
 // part's invariant refuses it with the error at rest as its value, the
 // part that reads the args naming the place, from zero; anywhere else the
 // error is the answer [D13], [D67], [D167], [D169].
@@ -764,10 +724,21 @@ function refusalOfComputedCode(parts, place, error, scope) {
 // without calling it; any other selector runs as code over the args, a
 // frame below the call.
 function partOf({ ast, place, onePlace, strict, fallback }, values, overArgs) {
-  if (!onePlace) return answerOfBody(ast, overArgs());
+  if (!onePlace) return ast.type === 'Projection' ? pathOfArgs(makePath(ast.keys), overArgs()) : answerOfBody(ast, overArgs());
   if (place < values.length) return values[place];
   if (strict) return MISSED_PLACE;
   return fallback === null ? null : answerOfBody(fallback, overArgs());
+}
+
+// A selector that is a path of more than one place reads it from the
+// args as `get` does, a place the args do not hold the place the call
+// left out [D248].
+function pathOfArgs(path, state) {
+  try {
+    return readPath(state.pipeValue, path);
+  } catch (refusal) {
+    return errorFromQlang(refusal, state.pipeValue, state.env);
+  }
 }
 
 async function answerOfBody(ast, state) {
@@ -802,7 +773,7 @@ function refusedElementOf(elements, kinds) {
 
 // A strict read of a place the args do not hold.
 function isMissedPlace(error) {
-  return error.tag.name === 'proj/IndexOutOfBoundsError' || error.tag.name === 'proj/KeyNotInMapError';
+  return error.tag.name === 'path/IndexOutOfBoundsError' || error.tag.name === 'path/KeyNotInMapError';
 }
 
 // A primitive runs over the value the walk served and the values of the
@@ -812,7 +783,7 @@ function isMissedPlace(error) {
 function runHostMember(member, walked, called, state) {
   const handed = called.values.map((value, index) => {
     const { readsArgs, code } = called.taken[index];
-    const takenBy = element => (code && isQuote(element) ? codeOf(element, state) : element);
+    const takenBy = element => (!code ? element : isQuote(element) ? codeOf(element, state) : isPath(element) ? codeOfPath(element, state) : element);
     const served = readsArgs ? walkToKinds(value, ['vec'])?.served : undefined;
     return isVec(served) ? served.map(takenBy) : takenBy(value);
   });
@@ -845,6 +816,18 @@ function modifierOf(argNode, state) {
 
 const SCALAR_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
 
+// codeOfPath(path, callState) → code that reads the path from each input
+// it is handed, as `get` reads it, a refusal its answer [D248].
+export function codeOfPath(path, callState) {
+  return async input => {
+    try {
+      return readPath(input, path);
+    } catch (refusal) {
+      return errorFromQlang(refusal, input, callState.env);
+    }
+  };
+}
+
 // codeOf(code, callState) → code closed at the call: a quote a part of code holds, closed
 // at the call [D4], run against each input its verb hands it in the scope
 // the quote carries, or for a quote held as data in the tree of the query
@@ -863,7 +846,7 @@ export function codeOf(code, callState) {
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
   const astNode = reducer.astNode;
-  if (astNode.type !== 'Call' || astNode.args.length !== 0) return null;
+  if (astNode?.type !== 'Call' || astNode.args.length !== 0) return null;
   const item = element => [async () => element];
   if (astNode.address !== undefined) {
     if (!isWord(callerState.env, astNode.name)) return null;

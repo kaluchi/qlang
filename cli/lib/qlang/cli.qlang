@@ -88,7 +88,7 @@
   |~~ The text written, computed against the subject, null when the call
       gives none.
   ~~|
-  ~(at 0)
+  ~(query /0)
 
 :any/out/text/NotStringOrNullError
   |~~ The text `out` writes is a string: a value of another kind is made
@@ -136,7 +136,7 @@
   |~~ The text written, computed against the subject, null when the call
       gives none.
   ~~|
-  ~(at 0)
+  ~(query /0)
 
 :any/err/text/NotStringOrNullError
   |~~ The text `err` writes is a string: a value of another kind is made
@@ -167,7 +167,7 @@
   |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
       answers the subject as it came, a look at a value halfway through a
       query:
-      ::snippet~([{:on true} {:on false}] | tap :before | filter ~(/on) | tap :after | count)
+      ::snippet~([{:on true} {:on false}] | tap :before | filter /on | tap :after | count)
       shows both vectors and answers 1.
   ~~|
   ::builtin{}
@@ -178,7 +178,7 @@
 
 :any/tap/label
   |~~ The label written before the value, a keyword. ~~|
-  ~(/0)
+  /0
 
 :any/tap/label/NotKeywordError
   |~~ The label of `tap` is a keyword, `tap :before`, written before
@@ -205,7 +205,7 @@
       first occur across the rows, and a key a row lacks draws an empty
       cell; a string cell prints bare, null as an empty cell, and every
       other value as its literal on one line. The empty vector draws as
-      `(empty)`. A single map goes in a vector first, `[/] | table`, and
+      `(empty)`. A single map goes in a vector first, `[it] | table`, and
       the call takes no value.
   ~~|
   ::builtin{}
@@ -216,7 +216,7 @@
 
 :vec/table/SubjectNotVecError
   |~~ `table` draws a vector of maps; a single map goes in a vector
-      first, `{:name "alice"} | [/] | table`.
+      first, `{:name "alice"} | get [it] | table`.
   ~~|
 
 :vec/table/RowNotMapError
@@ -238,17 +238,17 @@
 
 :vec/table/drawsAMapInAVector
   |~~ A single map is drawn in a vector. ~~|
-  ::law~({:name "alice"} | [/] | table | contains "alice")
+  ::law~({:name "alice"} | get [it] | table | contains "alice")
 
 :vec/table/SubjectNotVecError/refusesAMap
   |~~ A single map is refused under the word. ~~|
-  ::law~({:name "alice"} | table !| [type /actualType] | eq [::vec/table/SubjectNotVecError ::map])
+  ::law~({:name "alice"} | table !| [type (get /actualType)] | eq [::vec/table/SubjectNotVecError ::map])
 
 :vec/table/SubjectNotVecError/refusesANumber
   |~~ A number is no vector of rows. ~~|
-  ::law~(42 | table !| [type /actualType] | eq [::vec/table/SubjectNotVecError ::number])
+  ::law~(42 | table !| [type (get /actualType)] | eq [::vec/table/SubjectNotVecError ::number])
 
 :vec/table/RowNotMapError/refusesARowThatIsNoMap
   |~~ A row that is no map is refused at its index. ~~|
-  ::law~([42 "hello"] | table !| [type /index /actualType]
+  ::law~([42 "hello"] | table !| [type (get /index) (get /actualType)]
     | eq [::vec/table/RowNotMapError 0 ::number])

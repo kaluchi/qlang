@@ -16,7 +16,7 @@
 
 :construct/holdsTheTagAndThePayload
   |~~ The step holds its tag and its payload. ~~|
-  ::law~(~(::Box[1 2]) | first | [/tag /payload] | eq [::Box [1 2]])
+  ::law~(~(::Box[1 2]) | first | get [/tag /payload] | eq [::Box [1 2]])
 
 :construct/construct
   |~~ The step of a constructor invocation from its record, `:tag` and
@@ -35,16 +35,16 @@
 :construct/PayloadNotSchemaError/refusesATagThatIsAKeyword
   |~~ A `:tag` that is a keyword is refused, `:field` naming it. ~~|
   ::law~(::construct{:tag :Box :payload [1]}
-    !| [type /field] | eq [::construct/PayloadNotSchemaError :tag])
+    !| [type (get /field)] | eq [::construct/PayloadNotSchemaError :tag])
 
 :construct/PayloadNotSchemaError/refusesARecordWithoutAPayload
   |~~ A record without its payload is refused, `:field` naming it. ~~|
   ::law~({:tag ::Box} | tag ::construct
-    !| [type /field] | eq [::construct/PayloadNotSchemaError :payload])
+    !| [type (get /field)] | eq [::construct/PayloadNotSchemaError :payload])
 
 :construct/PayloadNotSchemaError/buildsTheStepOfATag
   |~~ A tag name and the step of a payload build the step. ~~|
-  ::law~({:tag ::Box :payload [1]} | tag ::construct | [/] | tag ::quote | eq ~(::Box[1]))
+  ::law~({:tag ::Box :payload [1]} | tag ::construct | get [it] | tag ::quote | eq ~(::Box[1]))
 
 :construct/ReadBackDiffersError
   |~~ The `::construct` prints as text that reads back as another step,
@@ -58,12 +58,12 @@
 :construct/ReadBackDiffersError/refusesAPayloadThatJoinsItsTag
   |~~ A number payload prints joined to its tag, which reads back as another name. ~~|
   ::law~(::construct{:tag ::Box :payload 42}
-    !| [type /printed] | eq [::construct/ReadBackDiffersError "::Box42"])
+    !| [type (get /printed)] | eq [::construct/ReadBackDiffersError "::Box42"])
 
 :construct/ReadBackDiffersError/writesThePayloadAsAGroup
   |~~ A payload in a group reads back as itself. ~~|
   ::law~({:tag ::Box :payload (~((42)) | first)} | tag ::construct
-    | [/] | tag ::quote | eq ~(::Box(42)))
+    | get [it] | tag ::quote | eq ~(::Box(42)))
 
 :construct/TagNotKindError
   |~~ The tag before a payload addresses a kind, a label, a name declared
@@ -82,7 +82,7 @@
 :construct/TagNotKindError/refusesTheTagOfAValue
   |~~ The tag of a name that holds a value builds nothing. ~~|
   ::law~(:limit 5 | ::limit[1]
-    !| [type /tag /actualType] | eq [::construct/TagNotKindError ::limit ::number])
+    !| [type (get /tag) (get /actualType)] | eq [::construct/TagNotKindError ::limit ::number])
 
 :construct/TagNotKindError/laysAWordsTagOverItsArgs
   |~~ The tag of a word lays itself over its args. ~~|

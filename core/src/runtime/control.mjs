@@ -36,12 +36,12 @@ bindPrim('any/allOf', (subject, conditions) => verdictOfConditions(subject, cond
 bindPrim('any/anyOf', (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionNotBooleanError));
 
 // The first alternative that answers neither null nor an error value: a
-// strict projection's miss, `/missing` on a map without the key, is an
-// error, and the walk skips it as it skips null, so `coalesce ~(/a)
-// ~(/b) ~("default")` reads the first value defined. An alternative
-// that is no quote answers itself, and a call of such alternatives
-// alone reads the subject first, `/timeout | coalesce 30` [D133]; the
-// invariant of the alternatives holds one at least.
+// strict read's miss, `get /missing` on a map without the key, is an
+// error, and the walk skips it as it skips null, so `coalesce /a /b
+// ~("default")` reads the first value defined. An alternative that is
+// no code answers itself, and a call of such alternatives alone reads
+// the subject first, `get /timeout | coalesce 30` [D133]; the invariant
+// of the alternatives holds one at least.
 bindPrim('any/coalesce', async (subject, alternatives) => {
   const isCode = alternative => typeof alternative === 'function';
   const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];

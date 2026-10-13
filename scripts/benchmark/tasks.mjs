@@ -10,25 +10,25 @@ export const TASKS = [
   {
     id: 'T1', input: 'users.json',
     question: 'the names of the users whose role is "admin", oldest first. Expected shape: a JSON array of strings.',
-    reference: '/data | filter ~(/role | eq "admin") | sort ~(/age) | reverse | map ~/name',
+    reference: 'get /data | filter ~(get /role | eq "admin") | sort /age | reverse | map /name',
     answer: '["Cid","Ann"]'
   },
   {
     id: 'T2', input: 'users.json',
     question: 'how many distinct email addresses there are when compared case-insensitively. Expected shape: a number.',
-    reference: '/data | map ~(/email | lower) | distinct | count',
+    reference: 'get /data | map ~(get /email | lower) | distinct | count',
     answer: '4'
   },
   {
     id: 'T3', input: 'orders.json',
     question: 'the number of orders per status. Expected shape: a JSON object status → count.',
-    reference: 'groupBy ~(/status | toKeyword) | map ~count',
+    reference: 'groupBy ~(get /status | toKeyword) | map ~count',
     answer: '{"paid":3,"pending":2,"cancelled":1}'
   },
   {
     id: 'T4', input: 'orders.json',
     question: 'the total amount of the "paid" orders per customer. Expected shape: a JSON object customer → sum.',
-    reference: 'filter ~(/status | eq "paid") | groupBy ~(/customer | toKeyword) | map ~(map ~/amount | sum)',
+    reference: 'filter ~(get /status | eq "paid") | groupBy ~(get /customer | toKeyword) | map ~(map /amount | sum)',
     answer: '{"acme":160.5,"globex":300}'
   },
   {
@@ -40,13 +40,13 @@ export const TASKS = [
   {
     id: 'T6', input: 'users.json',
     question: 'for each user an object with its id and the number of its tags, keys "id" and "tagCount". Expected shape: array of objects.',
-    reference: '/data | map ~({:id /id :tagCount (/tags | count)})',
+    reference: 'get /data | map ~(get {:id /id :tagCount (get /tags | count)})',
     answer: '[{"id":1,"tagCount":2},{"id":2,"tagCount":1},{"id":3,"tagCount":1},{"id":4,"tagCount":0},{"id":5,"tagCount":2}]'
   },
   {
     id: 'T7', input: 'users.json',
     question: 'the emails of the users having the tag "ops". Expected shape: array of strings.',
-    reference: '/data | filter ~(/tags | any ~(eq "ops")) | map ~/email',
+    reference: 'get /data | filter ~(get /tags | any ~(eq "ops")) | map /email',
     answer: '["Ann@Example.com","eve@example.com"]'
   },
   // The language itself: its literals, its own verbs and tags, code as a
@@ -61,19 +61,19 @@ export const TASKS = [
   {
     id: 'L2',
     question: 'declare a kind ::Small whose values are numbers below 10, so that building one from 10 or more fails; answer a vector of the kind of ::Small built from 3, and whether building it from 12 fails.',
-    reference: ":Small |~~ A number below ten. ~~| | :Small/TooLargeError ::holds~(lt 10) | [(::Small(3) | type) (::Small(12) | false !| true)]",
+    reference: ":Small |~~ A number below ten. ~~| | :Small/TooLargeError ::holds~(lt 10) | [(::Small(3) | type) (::Small(12) | ok | not !| true)]",
     answer: "[::Small true]"
   },
   {
     id: 'L3',
     question: 'hold the code "subtract 3, then multiply by 4" as a value, and answer a vector of the number of its steps and what it answers when run on 10.',
-    reference: "~(sub 3 | mul 4) | :q / | [(q | count) (10 | apply q)]",
+    reference: "~(sub 3 | mul 4) | :q it | [(q | count) (10 | apply q)]",
     answer: "[2 28]"
   },
   {
     id: 'L4',
     question: 'multiplying the string "a" by 2 fails; answer a vector of the name of that failure and the kind of the value it names as the culprit.',
-    reference: "\"a\" | mul 2 !| [type /actualType]",
+    reference: "\"a\" | mul 2 !| [type (get /actualType)]",
     answer: "[::number/mul/SubjectNotNumberError ::string]"
   },
   {
@@ -85,7 +85,7 @@ export const TASKS = [
   {
     id: 'L6',
     question: 'put the vector [7 8] under the tag ::Inner and that under the tag ::Outer, and answer a vector of the kind of the result and its second element.',
-    reference: "::Outer::Inner[7 8] | [type /1]",
+    reference: "::Outer::Inner[7 8] | get [type /1]",
     answer: "[::Outer 8]"
   },
   {
@@ -103,7 +103,7 @@ export const TASKS = [
   {
     id: 'L9',
     question: 'run the laws of the page of the verb that groups the elements of a vector by a key, and answer whether every one of them holds.',
-    reference: "::vec/groupBy | runLaws | map ~/ok | every ~(eq true)",
+    reference: "::vec/groupBy | runLaws | map /ok | every ~(eq true)",
     answer: "true"
   },
   {
@@ -123,8 +123,8 @@ export const TASKS = [
   {
     id: 'N2',
     question: 'in one query, a vector of pairs, the address of each verb of strings and the text of its page.',
-    reference: '::string | manifest | filter ~(binding | /value | type | eq ::verb) | sort | map ~([/ (doc | content)])',
-    answer: '::string | manifest | filter ~(binding | /value | type | eq ::verb) | sort | map ~([/ (doc | content)])'
+    reference: '::string | manifest | filter ~(binding | get /value | type | eq ::verb) | sort | map ~([it (doc | content)])',
+    answer: '::string | manifest | filter ~(binding | get /value | type | eq ::verb) | sort | map ~([it (doc | content)])'
   },
   {
     id: 'N3',
@@ -135,7 +135,7 @@ export const TASKS = [
   {
     id: 'N4',
     question: 'in one query, how many laws the pages of the verbs of vectors hold in all.',
-    reference: '::vec | manifest | filter ~(binding | /value | type | eq ::verb) | sort | map ~(runLaws | count) | sum',
-    answer: '::vec | manifest | filter ~(binding | /value | type | eq ::verb) | sort | map ~(doc | laws | count) | sum'
+    reference: '::vec | manifest | filter ~(binding | get /value | type | eq ::verb) | sort | map ~(runLaws | count) | sum',
+    answer: '::vec | manifest | filter ~(binding | get /value | type | eq ::verb) | sort | map ~(doc | laws | count) | sum'
   }
 ];

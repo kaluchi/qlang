@@ -241,7 +241,7 @@ describe('parse — Call', () => {
   });
 
   it('parses a multi-arg call', () => {
-    const ast = parse('mul /price /qty');
+    const ast = parse('mulOf /price /qty');
     expect(ast.args).toHaveLength(2);
     expect(ast.args[0].type).toBe('Projection');
     expect(ast.args[1].type).toBe('Projection');
@@ -254,12 +254,12 @@ describe('parse — Call', () => {
 });
 
 describe('parse — bindings: BindStep and the freeze', () => {
-  it('parses the freeze :name / as a BindStep over the empty projection', () => {
-    const ast = parse(':roster /');
+  it('parses the freeze :name it as a BindStep over the word it', () => {
+    const ast = parse(':roster it');
     expect(ast.type).toBe('BindStep');
     expect(ast.key.name).toBe('roster');
-    expect(ast.body.type).toBe('Projection');
-    expect(ast.body.keys).toEqual([]);
+    expect(ast.body.type).toBe('Call');
+    expect(ast.body.name).toBe('it');
   });
 
   it('parses :name body as a BindStep', () => {
@@ -284,7 +284,7 @@ describe('parse — Pipeline composition', () => {
   });
 
   it('parses the freeze inside a pipeline', () => {
-    const ast = parse('foo | :snapshot / | bar');
+    const ast = parse('foo | :snapshot it | bar');
     expect(ast.steps).toHaveLength(3);
     expect(ast.steps[1].step.type).toBe('BindStep');
     expect(ast.steps[1].step.key.name).toBe('snapshot');
@@ -307,7 +307,7 @@ describe('parse — ParenGroup', () => {
   });
 
   it('parses paren group as a step inside an outer pipeline', () => {
-    const ast = parse('xs | (:elem / | {:k /id :v elem})');
+    const ast = parse('xs | (:elem it | get {:k /id :v elem})');
     expect(ast.steps).toHaveLength(2);
     expect(ast.steps[1].step.type).toBe('ParenGroup');
   });
@@ -638,7 +638,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('attaches one entry per doc comment, not concatenated', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~| First.\n|~~| Second.\n|~~| Third.\n42 | env | /foo | /docs | map ~content'
+      ':foo |~~| First.\n|~~| Second.\n|~~| Third.\n42 | env | get /foo | get /docs | map ~content'
     );
     expect(docsResult).toEqual([' First.', ' Second.', ' Third.']);
   });
@@ -646,7 +646,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('block doc preserves internal newlines as one entry', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~ line one\nline two\nline three ~~| 42\n| env | /foo | /docs | map ~content'
+      ':foo |~~ line one\nline two\nline three ~~| 42\n| env | get /foo | get /docs | map ~content'
     );
     expect(docsResult.length).toBe(1);
     expect(docsResult[0]).toContain('line one');
@@ -657,7 +657,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('mixes line and block docs preserving order', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~| line one\n|~~ block two ~~|\n|~~| line three\n42 | env | /foo | /docs | map ~content'
+      ':foo |~~| line one\n|~~ block two ~~|\n|~~| line three\n42 | env | get /foo | get /docs | map ~content'
     );
     expect(docsResult.length).toBe(3);
     expect(docsResult[0]).toBe(' line one');
@@ -668,7 +668,7 @@ describe('parser doc-comment attachment Vec semantics', () => {
   it('shadowing redeclare overrides docs Vec', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(
-      ':foo |~~| Old.\n1\n| (:foo |~~| Brand new.\n|~~| With extra remark.\n2\n| env | /foo | /docs | map ~content)'
+      ':foo |~~| Old.\n1\n| (:foo |~~| Brand new.\n|~~| With extra remark.\n2\n| env | get /foo | get /docs | map ~content)'
     );
     expect(docsResult).toEqual([' Brand new.', ' With extra remark.']);
   });
@@ -754,7 +754,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('plain block empty body', () => {
-      const step = parse('|~~|\n| 1').steps[0];
+      const step = parse('|~~|\n| count').steps[0];
       expect(step.type).toBe('DocLit');
     });
 
@@ -766,7 +766,7 @@ describe('parse — block comment nesting', () => {
     it('doc block nests doc-pair as opaque content (attached docs)', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ outer |~~ inner ~~| more ~~| 42\n| env | /foo | /docs | map ~content'
+        ':foo |~~ outer |~~ inner ~~| more ~~| 42\n| env | get /foo | get /docs | map ~content'
       );
       expect(docs).toEqual([' outer |~~ inner ~~| more ']);
     });
@@ -774,7 +774,7 @@ describe('parse — block comment nesting', () => {
     it('doc block adjacent nested doc pairs', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ |~~ a ~~| middle |~~ b ~~| ~~| 42\n| env | /foo | /docs | map ~content'
+        ':foo |~~ |~~ a ~~| middle |~~ b ~~| ~~| 42\n| env | get /foo | get /docs | map ~content'
       );
       expect(docs).toEqual([' |~~ a ~~| middle |~~ b ~~| ']);
     });
@@ -782,7 +782,7 @@ describe('parse — block comment nesting', () => {
     it('doc block nests plain pair as opaque content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ holds |~ inner plain ~| inline ~~| 42\n| env | /foo | /docs | map ~content'
+        ':foo |~~ holds |~ inner plain ~| inline ~~| 42\n| env | get /foo | get /docs | map ~content'
       );
       expect(docs).toEqual([' holds |~ inner plain ~| inline ']);
     });
@@ -790,7 +790,7 @@ describe('parse — block comment nesting', () => {
     it('doc block accepts bare ~| (sibling close) as content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ plain-close marker ~| mentioned ~~| 42\n| env | /foo | /docs | map ~content'
+        ':foo |~~ plain-close marker ~| mentioned ~~| 42\n| env | get /foo | get /docs | map ~content'
       );
       expect(docs).toEqual([' plain-close marker ~| mentioned ']);
     });
@@ -798,7 +798,7 @@ describe('parse — block comment nesting', () => {
     it('doc block collapses |~| line marker to 3-char content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ pair holds |~| line marker inline ~~| 42\n| env | /foo | /docs | map ~content'
+        ':foo |~~ pair holds |~| line marker inline ~~| 42\n| env | get /foo | get /docs | map ~content'
       );
       expect(docs).toEqual([' pair holds |~| line marker inline ']);
     });
@@ -806,7 +806,7 @@ describe('parse — block comment nesting', () => {
     it('doc block collapses |~~| line-doc marker to 4-char content', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ pair holds |~~| line-doc marker inline ~~|\n42\n| env | /foo | /docs | map ~content'
+        ':foo |~~ pair holds |~~| line-doc marker inline ~~|\n42\n| env | get /foo | get /docs | map ~content'
       );
       expect(docs).toEqual([' pair holds |~~| line-doc marker inline ']);
     });
@@ -814,7 +814,7 @@ describe('parse — block comment nesting', () => {
     it('doc-attached block on BindStep keeps nested doc-pair verbatim', async () => {
       const { evalQuery } = await import('../../src/eval.mjs');
       const docs = await evalQuery(
-        ':foo |~~ outer |~~ inner ~~| more ~~|\n42\n| env | /foo | /docs | map ~content'
+        ':foo |~~ outer |~~ inner ~~| more ~~|\n42\n| env | get /foo | get /docs | map ~content'
       );
       expect(docs).toEqual([' outer |~~ inner ~~| more ']);
     });
@@ -925,7 +925,7 @@ describe('parse — block comment nesting', () => {
     ];
 
     it.each(cases)('reproduces .content from source slice — %s', (src) => {
-      const ast = parse(src + '\n| 0');
+      const ast = parse(src + '\n| count');
       const step = src.startsWith('|~~') ? ast.steps[0] : ast.comments[0];
       const opener = src.startsWith('|~~') ? '|~~' : '|~';
       const closer = src.startsWith('|~~') ? '~~|' : '~|';

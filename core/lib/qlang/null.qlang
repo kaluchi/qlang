@@ -4,18 +4,18 @@
 
 :null
   |~~ Null is the absence of a value, the one value of its kind. It
-      stands where a part is missing: `at` reads a part softly and
-      answers null where there is none, `{:a 1} | at :b` answering
+      stands where a part is missing: `query` reads a part softly and
+      answers null where there is none, `{:a 1} | query /b` answering
       `null`, a JSON `null` reads as it, and `coalesce` puts a fallback
-      in its place, `{:a 1} | at :b | coalesce 0` answering `0`.
+      in its place, `{:a 1} | query /b | coalesce 0` answering `0`.
 
       It is written `null`, and `::null(null)` is the same value. It
       ranks first in the one order, before every boolean, and JSON
-      writes it as `null`. A projection, `/b`, reads strictly: a missing
-      part is a failure there, never null, so a misspelled field is
+      writes it as `null`. `get /b` reads strictly: a missing part is a
+      failure there, never null, so a misspelled field is
       found where it is read.
       ::snippet~(::null | manifest) lists its words.
-      ::link~(::any/coalesce | doc) ::link~(::proj | doc)
+      ::link~(::any/coalesce | doc) ::link~(::path | doc)
       ::link~(::qlang/values | doc)
   ~~|
 
@@ -38,67 +38,11 @@
 
 :null/PayloadNotNullError/refusesANumber
   |~~ A number payload is refused. ~~|
-  ::law~(::null(1) !| [type /actualType] | eq [::null/PayloadNotNullError ::number])
-
-:null/at
-  |~~ Answers the default the call gives, null when it gives none,
-      whatever the place: null holds nothing, so a soft read of it is
-      absent, `null | at :k` answering `null` and `null | at :k "none"`
-      answering `"none"`. So soft reads chain through what is absent,
-      `at :address | at :city`, a step that misses answering null to the
-      end, and a `coalesce` after them gives the fallback once, where
-      the strict `/k` refuses null as it refuses every value without
-      parts. The place is not read, so any value stands there.
-      ::link~(::map/at | doc) ::link~(::vec/at | doc)
-      ::link~(::any/coalesce | doc)
-  ~~|
-  ::builtin{}
-
-:null/at/answer
-  |~~ The default, null when the call gives none. ~~|
-  ::any
-
-:null/at/place
-  |~~ The place the call names, any value, unread: null holds none. ~~|
-  ~(/0)
-
-:null/at/default
-  |~~ The value answered for a place the subject does not hold, null when it gives none. ~~|
-  ~(at 1)
-
-:null/at/place/NotGivenError
-  |~~ `at` reads the place its call gives and answers the default, null when
-      the call gives none, `null | at :a 7` answering `7`; a call with no
-      place is refused.
-  ~~|
-
-:null/at/readsNullFromNull
-  |~~ A read of null answers null. ~~|
-  ::law~(null | at :k | eq null)
-
-:null/at/answersTheDefault
-  |~~ A read of null answers the default the call gives. ~~|
-  ::law~(null | at :k "none" | eq "none")
-
-:null/at/chainsThroughAnAbsentValue
-  |~~ Soft reads chain through an absent value. ~~|
-  ::law~({:a null} | at :a | at :b | coalesce "none" | eq "none")
-
-:null/at/chainsThroughPresentValues
-  |~~ Soft reads chain through present values to the one read. ~~|
-  ::law~({:a {:b 1}} | at :a | at :b | eq 1)
-
-:null/at/readsNoPlace
-  |~~ Any value stands as the place. ~~|
-  ::law~(null | at [1 2] | eq null)
-
-:null/at/place/NotGivenError/refusesACallWithNoPlace
-  |~~ A call with no place is refused under the part. ~~|
-  ::law~(null | at !| type | eq ::null/at/place/NotGivenError)
+  ::law~(::null(1) !| [type (get /actualType)] | eq [::null/PayloadNotNullError ::number])
 
 :null/toKeyword
   |~~ Answers `:null`, the key `groupBy` files an absent field under,
-      `groupBy ~(at :country)`. Null has no string: a field that may be
+      `groupBy ~(query /country)`. Null has no string: a field that may be
       absent is given a text by `coalesce`.
       ::link~(::vec/groupBy | doc) ::link~(::any/coalesce | doc)
   ~~|
@@ -110,4 +54,4 @@
 
 :null/toKeyword/readsTheKeyGroupByFiledItUnder
   |~~ Null turns into the key `groupBy` files an absent field under. ~~|
-  ::law~([{:c "a"} {}] | groupBy ~(at :c) | at (null | toKeyword) | eq [{}])
+  ::law~([{:c "a"} {}] | groupBy ~(query /c) | query (null | toKeyword) | eq [{}])

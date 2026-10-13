@@ -10,7 +10,7 @@ import { createSession } from '../../src/session.mjs';
 
 describe('runLaws reads a name as laws does', () => {
   it('address subject — ::vec/count | runLaws', async () => {
-    const result = await evalQuery('::vec/count | runLaws | map ~/ok | distinct');
+    const result = await evalQuery('::vec/count | runLaws | map /ok | distinct');
     expect(isQSet(result)).toBe(true);
     expect([...result]).toEqual([true]);
   });
@@ -32,12 +32,12 @@ describe('runLaws reads a name as laws does', () => {
   });
 
   it('the keyword of a verb a provider keeps hands on its addresses', async () => {
-    const addresses = await evalQuery('::count | runLaws !| /addresses');
+    const addresses = await evalQuery('::count | runLaws !| get /addresses');
     expect([...addresses].map(address => address.name).sort()).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
   });
 
   it('a tag name that names nothing is refused under the tag it read', async () => {
-    const bindingName = await evalQuery('::Nonexistent | runLaws !| /name');
+    const bindingName = await evalQuery('::Nonexistent | runLaws !| get /name');
     expect(bindingName).toEqual(makeTag('Nonexistent'));
   });
 
@@ -78,7 +78,7 @@ describe('runLaws Quote-as-test outcomes', () => {
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
-    const cellEntry = await session.evalCell('::demo | runLaws | first | /ok');
+    const cellEntry = await session.evalCell('::demo | runLaws | first | get /ok');
     expect(cellEntry.result).toBe(true);
   });
 
@@ -98,7 +98,7 @@ describe('runLaws Quote-as-test outcomes', () => {
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
     const cellEntry = await session.evalCell(
-      '::fortytwo | runLaws | first | /ok');
+      '::fortytwo | runLaws | first | get /ok');
     expect(cellEntry.result).toBe(true);
   });
 
@@ -112,7 +112,7 @@ describe('runLaws Quote-as-test outcomes', () => {
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
     const cellRun = await session.evalCell(
-      '::writer | runLaws | first | /ok');
+      '::writer | runLaws | first | get /ok');
     expect(cellRun.result).toBe(true);
     const cellProbe = await session.evalCell('scratch');
     expect(isErrorValue(cellProbe.result)).toBe(true);

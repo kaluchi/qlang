@@ -129,6 +129,17 @@ export function isRegex(v) {
   return isValueClass(v, 'regex');
 }
 
+// A path, the value of `/a/b/0` [D248]: the text of each segment, a key
+// of a map or a place of a vector, which the word that takes the path
+// reads.
+export function makePath(segments) {
+  return Object.freeze(brandValueClass({ segments: Object.freeze(segments.map(String)) }, 'path'));
+}
+
+export function isPath(v) {
+  return isValueClass(v, 'path');
+}
+
 // A value under a tag of its own.
 export function isTaggedInstance(v) {
   return v !== null && typeof v === 'object' && v[TAG_HEADER_SYMBOL] !== undefined;
@@ -265,6 +276,7 @@ export const CORE_KIND = Object.freeze({
   string:  makeTag('string'),
   regex:   makeTag('regex'),
   keyword: makeTag('keyword'),
+  path:    makeTag('path'),
   tag:     makeTag('tag'),
   vec:     makeTag('vec'),
   map:     makeTag('map'),
@@ -276,7 +288,6 @@ export const CORE_KIND = Object.freeze({
 // The tags of a quote's steps [D8]: the records of what computes,
 // and the wrappers a step takes on the fail track or in parentheses.
 export const CALL_TAG   = makeTag('call');
-export const PROJ_TAG   = makeTag('proj');
 export const BIND_TAG   = makeTag('bind');
 export const CONSTRUCT_TAG = makeTag('construct');
 export const FAIL_TAG   = makeTag('fail');
@@ -377,6 +388,7 @@ export function typeKeyword(v) {
   if (isKeyword(v)) return CORE_KIND.keyword;
   if (isTag(v)) return CORE_KIND.tag;
   if (isRegex(v)) return CORE_KIND.regex;
+  if (isPath(v)) return CORE_KIND.path;
   if (v !== null && typeof v === 'object') {
     const headerTag = v[TAG_HEADER_SYMBOL];
     if (headerTag !== undefined) return headerTag;

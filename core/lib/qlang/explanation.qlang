@@ -34,7 +34,7 @@
       `/page`. `value` answers what was explained.
       ::link~(::any/explain | doc) ::link~(::explanation/value | doc)
   ~~|
-  ~(/page)
+  ~(get /page)
 
 :explanation/page/answer
   |~~ The page that explains the value, null for a name without one. ~~|
@@ -68,7 +68,7 @@
 :explanation/page/SubjectNotExplanationError/refusesAMap
   |~~ A map with a key `:page` is no explanation. ~~|
   ::law~({:page 1} | page
-    !| [type /actualType] | eq [::explanation/page/SubjectNotExplanationError ::map])
+    !| [type (get /actualType)] | eq [::explanation/page/SubjectNotExplanationError ::map])
 
 :explanation/value
   |~~ Answers the value the explanation explains, `42 | explain | value`
@@ -79,7 +79,7 @@
       `/value`. `page` answers what explains the value.
       ::link~(::any/explain | doc) ::link~(::explanation/page | doc)
   ~~|
-  ~(/value)
+  ~(get /value)
 
 :explanation/value/answer
   |~~ The value explained, of any kind, an error at rest among them. ~~|
@@ -100,9 +100,9 @@
 
 :explanation/value/holdsAnErrorAtRest
   |~~ An error explained is the error at rest `!|` caught. ~~|
-  ::law~("x" | add 1 !| explain | value | /actualType | eq ::string)
+  ::law~("x" | add 1 !| explain | value | get /actualType | eq ::string)
 
 :explanation/value/SubjectNotExplanationError/refusesAMap
   |~~ A map with a key `:value` is no explanation. ~~|
   ::law~({:value 1} | value
-    !| [type /actualType] | eq [::explanation/value/SubjectNotExplanationError ::map])
+    !| [type (get /actualType)] | eq [::explanation/value/SubjectNotExplanationError ::map])

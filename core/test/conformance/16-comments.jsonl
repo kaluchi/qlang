@@ -12,11 +12,11 @@
 {"name":"three-line-docs-as-vec","query":":foo |~~| First.\n|~~| Second.\n|~~| Third.\n42\n| ::foo | doc | content | lines | count","expect":"3","decision":["D119"]}
 {"name":"mixed-line-and-block-docs","query":":foo |~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\n42\n| ::foo | doc | content | lines | count","expect":"3","decision":["D119"]}
 {"name":"doc-block-preserves-newlines","query":":foo |~~ line one\nline two ~~| 42\n| ::foo | doc | content","expect":"\" line one\\nline two \"","decision":"D83"}
-{"name":"doc-on-a-freeze","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\" Captured value.\"","decision":"D83","target":true,"now":"::call/UnknownNameError"}
+{"name":"doc-on-a-freeze","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\" Captured value.\"","decision":"D83"}
 {"name":"doc-survives-shadowing-redeclare","query":":foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content)","expect":"\" New doc.\\n With second remark.\"","decision":"D83"}
 {"name":"comment-step-is-identity-on-pipevalue","query":"[1 2 3]\n|~| this comment doesn't change pipeValue\n| count","expect":"3"}
 {"name":"doc-on-bind-succeeds","query":":foo |~~| doc\n42\n| foo","expect":"42"}
-{"name":"doc-on-a-freeze-succeeds","query":"42\n:x |~~| captured\nit\n| x","expect":"42","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"doc-on-a-freeze-succeeds","query":"42\n:x |~~| captured\nit\n| x","expect":"42","decision":"D248"}
 {"name":"interleaved-plain-between-doc-and-body","query":":foo |~~| doc\n|~ rationale ~| 42\n| ::foo | doc | content","expect":"\" doc\"","decision":"D81"}
 {"name":"interleaved-plain-between-two-docs","query":":foo |~~| doc one\n|~ separator ~|\n|~~| doc two\n42\n| ::foo | doc | content","expect":"\" doc one\\n doc two\"","decision":"D81"}
 {"name":"interleaved-plain-before-the-declaration","query":"|~ leading ~|\n:foo |~~| doc\n42\n| ::foo | doc | content","expect":"\" doc\"","decision":"D81"}
@@ -33,8 +33,8 @@
 {"name":"inline-plain-comment-between-map-entries","query":"{:a 1 |~ divider ~| :b 2 |~ divider ~| :c 3}","expect":"{:a 1 :b 2 :c 3}"}
 {"name":"inline-plain-comment-in-empty-map","query":"{|~ only ~|}","expect":"{}"}
 {"name":"inline-line-plain-comment-between-map-entries","query":"{:a 1\n|~| section divider\n:b 2}","expect":"{:a 1 :b 2}"}
-{"name":"inline-plain-divider-before-entry","query":"{|~ section ~| :k 1} | get /k","expect":"1","decision":"D248","target":true,"now":"::call/UnknownNameError"}
-{"name":"inline-plain-divider-after-entry","query":"{:k 1 |~ note ~|} | get /k","expect":"1","decision":"D248","target":true,"now":"::call/UnknownNameError"}
+{"name":"inline-plain-divider-before-entry","query":"{|~ section ~| :k 1} | get /k","expect":"1","decision":"D248"}
+{"name":"inline-plain-divider-after-entry","query":"{:k 1 |~ note ~|} | get /k","expect":"1","decision":"D248"}
 {"name":"plain-comment-around-nested-map-entry","query":":wrap |~~ module doc ~~| {:a {|~ inner section ~| :x 1}}\n| ::wrap | doc | content","expect":"\" module doc \"","decision":"D81"}
 {"name":"plain-block-nests-plain-block-pair","query":"|~ outer |~ inner ~| more ~|\n| 42","expect":"42"}
 {"name":"plain-block-nests-three-deep","query":"|~ A |~ B |~ C ~| D ~| E ~|\n| 1","expect":"1"}
@@ -51,9 +51,9 @@
 {"name":"doc-attached-block-with-nested-doc-pair","query":":foo |~~ outer |~~ inner ~~| more ~~|\n42\n| ::foo | doc | content","expect":"\" outer |~~ inner ~~| more \"","decision":"D19"}
 {"name":"doc-attached-block-with-mentioned-line-plain","query":":foo |~~ pair holds |~| line marker inline ~~|\n42\n| ::foo | doc | content","expect":"\" pair holds |~| line marker inline \"","decision":"D19"}
 {"name":"standalone-doc-lit-with-mention","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | content","expect":"\" mentions |~~ inner pair ~~| inside \"","decision":"D19"}
-{"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | raise |~| note\n | count !| get /trail/-1/skipped","expect":"~(count)","decision":"D13","target":true,"now":"::call/UnknownNameError"}
-{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | raise | |~ note ~| count !| get /trail/-1/skipped","expect":"~(count)","decision":"D81","target":true,"now":"::call/UnknownNameError"}
-{"name":"a-skipped-step-past-a-comment-replays-through-apply","query":"!{:kind :oops} | raise |~| note\n | count !| :t (get /trail/-1/skipped) | (42 | apply t) !| type","expect":"::call/KindAnswersNoVerbError","decision":"D13","target":true,"now":"::call/UnknownNameError"}
+{"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | raise |~| note\n | count !| get /trail/-1/skipped","expect":"~(count)","decision":"D13"}
+{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | raise | |~ note ~| count !| get /trail/-1/skipped","expect":"~(count)","decision":"D81"}
+{"name":"a-skipped-step-past-a-comment-replays-through-apply","query":"!{:kind :oops} | raise |~| note\n | count !| :t (get /trail/-1/skipped) | (42 | apply t) !| type","expect":"::call/KindAnswersNoVerbError","decision":"D13"}
 {"name":"a-source-of-comments-alone-is-the-blank-pipeline","query":"|~ only a note ~|","expect":"null","decision":"D81"}
 {"name":"comment-head-keeps-leading-fail-apply","query":"~(!| |~ note ~| get /kind) | first | type","expect":"::fail"}
 {"name":"comment-head-hands-the-head-to-the-first-step","query":"42 | apply ~(|~ note ~| type)","expect":"::number"}
@@ -69,6 +69,6 @@
 {"name":"a-line-break-inside-a-comment-ends-no-line","query":"5 | add |~ one\ntwo ~| 1","expect":"6","decision":"D81"}
 {"name":"a-blank-source-is-the-empty-pipeline","query":"\"|~ x ~|\" | parse | eq ~()","expect":"true","decision":"D81"}
 {"name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":":foo |~ why ~| |~~| the doc\n42\n| ::foo | doc | content","expect":"\" the doc\"","decision":"D81"}
-{"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| it) | first | get /docs | first | type","expect":"::doc","decision":"D83","target":true,"now":"::call/UnknownNameError"}
+{"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| it) | first | get /docs | first | type","expect":"::doc","decision":"D83"}
 {"name":"a-doc-before-a-declaration-is-refused","query":"\"|~~ note ~~| :x 42\" | parse !| type","expect":"::quote/ParseError","decision":"D83"}
 {"name":"a-doc-in-the-slot-documents-the-declaration","query":":x |~~ note ~~| 42 | ::x | doc | content","expect":"\" note \"","decision":"D83"}

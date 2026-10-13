@@ -113,7 +113,7 @@ describe('runtime/vec.mjs error paths', () => {
     await expectErrorThrown('[1 2 3] | drop "x"', 'vec/drop/count/NotNumberError');
   });
   it('sort with key', async () => {
-    expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort ~(/n)'))
+    expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort /n'))
       .toEqual([new Map([['n', 1]]), new Map([['n', 2]]), new Map([['n', 3]])]);
   });
 });
@@ -243,13 +243,13 @@ describe('source axis on verb / freeze / tag subjects', () => {
   });
 
   it('source on the address of a part returns its declaration', async () => {
-    const source = await evalQuery(':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx ~(/0) | :any/surround/sfx ~(/1) | ::any/surround/sfx | source | parse');
-    expect(source).toBe(':any/surround/sfx ~(/1)');
+    const source = await evalQuery(':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx /0 | :any/surround/sfx /1 | ::any/surround/sfx | source | parse');
+    expect(source).toBe(':any/surround/sfx /1');
   });
 
   it('source on a freeze returns its declaration', async () => {
-    const source = await evalQuery('42 | :snap / | ::snap | source | parse');
-    expect(source).toBe(':snap /');
+    const source = await evalQuery('42 | :snap it | ::snap | source | parse');
+    expect(source).toBe(':snap it');
   });
 });
 
@@ -281,7 +281,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if branches re-project from pipeValue, not from cond result', async () => {
-    expect(await evalQuery('{:active true :salary 100} | if /active ~(/salary | mul 11 | div 10) ~(/salary)')).toBe(110);
+    expect(await evalQuery('{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary')).toBe(110);
   });
 
   it('if can be nested for multi-way dispatch', async () => {
@@ -289,36 +289,36 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('coalesce returns first non-null alternative', async () => {
-    expect(await evalQuery('{:firstName "Alice"} | coalesce ~(/preferredName) ~(/firstName) ~("Anon")')).toBe('Alice');
+    expect(await evalQuery('{:firstName "Alice"} | coalesce /preferredName /firstName ~("Anon")')).toBe('Alice');
   });
 
   it('coalesce returns null when all alternatives are null', async () => {
-    expect(await evalQuery('{} | coalesce ~(/a) ~(/b) ~(/c)')).toBe(null);
+    expect(await evalQuery('{} | coalesce /a /b /c')).toBe(null);
   });
 
   it('coalesce treats 0 as non-null', async () => {
-    expect(await evalQuery('{:zero 0} | coalesce ~(/missing) ~(/zero) ~("default")')).toBe(0);
+    expect(await evalQuery('{:zero 0} | coalesce /missing /zero ~("default")')).toBe(0);
   });
 
   it('coalesce treats false as non-null', async () => {
-    expect(await evalQuery('{:flag false} | coalesce ~(/missing) ~(/flag) ~(true)')).toBe(false);
+    expect(await evalQuery('{:flag false} | coalesce /missing /flag ~(true)')).toBe(false);
   });
 
   it('coalesce treats empty string as non-null', async () => {
-    expect(await evalQuery('{:s ""} | coalesce ~(/missing) ~(/s) ~("default")')).toBe('');
+    expect(await evalQuery('{:s ""} | coalesce /missing /s ~("default")')).toBe('');
   });
 
   it('coalesce short-circuits after first non-null (does not evaluate later alts)', async () => {
     // div(0) would raise; coalesce never reaches it because /a is non-null
-    expect(await evalQuery('{:a 1} | coalesce ~(/a) ~(div 0)')).toBe(1);
+    expect(await evalQuery('{:a 1} | coalesce /a ~(div 0)')).toBe(1);
   });
 
   it('coalesce keeps false as a value', async () => {
-    expect(await evalQuery('{:a false :b 2} | coalesce ~(/a) ~(/b)')).toBe(false);
+    expect(await evalQuery('{:a false :b 2} | coalesce /a /b')).toBe(false);
   });
 
   it('if and coalesce compose for guarded defaulting', async () => {
-    expect(await evalQuery('{:role :admin :name "Bob"} | if (/role | eq :admin) ~(coalesce ~(/displayName) ~(/name) ~("???")) ~("guest")')).toBe('Bob');
+    expect(await evalQuery('{:role :admin :name "Bob"} | if (get /role | eq :admin) ~(coalesce /displayName /name ~("???")) ~("guest")')).toBe('Bob');
   });
 
   // The refusal of a bare coalesce is pinned by

@@ -50,7 +50,7 @@
 
 :keyword/PayloadNotKeywordError/refusesAString
   |~~ A string payload is refused; `toKeyword` turns a string into one. ~~|
-  ::law~(::keyword"k" !| [type /actualType] | eq [::keyword/PayloadNotKeywordError ::string])
+  ::law~(::keyword"k" !| [type (get /actualType)] | eq [::keyword/PayloadNotKeywordError ::string])
 
 :keyword/gt
   |~~ Answers whether the subject, a keyword, comes after the keyword the
@@ -75,7 +75,7 @@
   |~~ The keyword the subject is compared with, computed against the
       subject, `:b | gt :a`.
   ~~|
-  ~(/0)
+  /0
 
 :keyword/gt/value/NotKeywordError
   |~~ The value compared is a keyword, `:b | gt :a`; a string is
@@ -121,7 +121,7 @@
   |~~ The keyword the subject is compared with, computed against the
       subject, `:b | gte :a`.
   ~~|
-  ~(/0)
+  /0
 
 :keyword/gte/value/NotKeywordError
   |~~ The value compared is a keyword, `:b | gte :a`; a string is
@@ -157,7 +157,7 @@
   |~~ The keyword the subject is compared with, computed against the
       subject, `:b | lt :a`.
   ~~|
-  ~(/0)
+  /0
 
 :keyword/lt/value/NotKeywordError
   |~~ The value compared is a keyword, `:b | lt :a`; a string is
@@ -199,7 +199,7 @@
   |~~ The keyword the subject is compared with, computed against the
       subject, `:b | lte :a`.
   ~~|
-  ~(/0)
+  /0
 
 :keyword/lte/value/NotKeywordError
   |~~ The value compared is a keyword, `:b | lte :a`; a string is
@@ -222,7 +222,7 @@
 :keyword/toString
   |~~ Answers the name of the keyword as a string, `:foo | toString`
       answering `"foo"`, the text JSON writes for it, so a key joins text,
-      `{:a "x"} | entries | map ~([(/0 | toString) "=" /1] | join "")`. A
+      `{:a "x"} | entries | map ~(get [(get /0 | toString) "=" /1] | join "")`. A
       quoted name and a name with a path answer their text as written,
       `:"foo bar"` the string `"foo bar"`. `toKeyword` turns the string
       back into the keyword.
@@ -246,7 +246,7 @@
   |~~ Answers the number the name of the keyword writes,
       `:"1" | toNumber` answering `1`, so a key that `groupBy` filed a
       number under turns back into the number,
-      `groupBy ~(/year) | keys | toVec | map ~toNumber`. A name that
+      `groupBy /year | keys | toVec | map ~toNumber`. A name that
       writes no number is refused.
       ::link~(::number/toKeyword | doc) ::link~(::string/toNumber | doc)
   ~~|
@@ -264,7 +264,7 @@
 
 :keyword/toNumber/readsTheNumberOfAKey
   |~~ A key filed from a number turns back into it. ~~|
-  ::law~([{:y 2020} {:y 2021}] | groupBy ~(/y) | keys | toVec | map ~toNumber | eq [2020 2021])
+  ::law~([{:y 2020} {:y 2021}] | groupBy /y | keys | toVec | map ~toNumber | eq [2020 2021])
 
 :keyword/toNumber/NameNotNumberError/refusesAName
   |~~ A name that writes no number is refused. ~~|

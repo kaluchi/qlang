@@ -9,4 +9,4 @@
 {"name":"the-map-kind-refuses-a-map-under-a-tag-whose-map-payload-reads","query":"[(::map::Box{:a 1} !| type) (::Box{:a 1} | payload | type)]","expect":"[::map/PayloadNotMapError ::map]","decision":"D244"}
 {"name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::number/PayloadNotNumberError","decision":"D32"}
 {"name":"the-kind-of-a-value-has-its-page","query":"5 | type | doc | type | eq ::doc","expect":"true","decision":"D119"}
-{"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string","decision":"D32","target":true,"now":"::call/UnknownNameError"}
+{"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string","decision":"D32"}

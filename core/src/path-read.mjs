@@ -3,7 +3,7 @@
 // follows a path as a read does and misses as a read misses [D250].
 
 import { declareRefusal } from './errors.mjs';
-import { isDoc, isQMap, isQuote, isVec, isValueClass, keyword } from './types.mjs';
+import { isDoc, isFn, isKind, isQMap, isQuote, isVec, isValueClass, keyword } from './types.mjs';
 import { nearestKeys } from './nearest-names.mjs';
 
 export const PathSubjectNotProjectableError = declareRefusal('path/SubjectNotProjectableError');
@@ -18,9 +18,10 @@ export const MISSED = Symbol('qlang/missed');
 // partsOfTemplate(value) → the parts a template of `get` reads in their
 // places, the elements of a vector or a set and the values of a map, under
 // a tag or none; null for any other value, which the template answers as
-// it is, a quote and a doc among them [D279].
+// it is, a quote, a doc, a function and a kind among them, each a vector
+// of code or prose [D279].
 export function partsOfTemplate(value) {
-  if (isQuote(value) || isDoc(value)) return null;
+  if (isQuote(value) || isDoc(value) || isFn(value) || isKind(value)) return null;
   if (isVec(value)) return value;
   return isQMap(value) ? [...value.values()] : null;
 }

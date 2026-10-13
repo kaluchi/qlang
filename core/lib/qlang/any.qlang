@@ -1981,7 +1981,7 @@
       `get {:who /first :n ~(get /tags | count)}` builds a map. A vector, a
       map or a set under a tag in a template is read and laid back under
       its tag through its constructor, and any other value of it is
-      answered as it is. A literal computes nothing, so a shape computed
+      answered as it is, a quote, a doc, a function and a kind among them. A literal computes nothing, so a shape computed
       is written as a template. A part that may be missing is read by
       `query`.
       ::link~(::any/query | doc) ::link~(::path | doc)
@@ -2012,6 +2012,9 @@
             its tag.
         ~~|
         ~({:a 1} | get [::Box[/a]] | eq [::Box[1]])
+    | proves :answersAFunctionOfTheTemplateAsItIs
+        |~~ A function in a template is answered as it is. ~~|
+        ~(get [::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]] | first | type | eq ::fn)
     | proves :readsBeneathTheTags
         |~~ A path reads beneath the tags over the subject. ~~|
         ~(::Box{:w 3} | get /w | eq 3)

@@ -107,5 +107,5 @@
 {"decision":"D279","name":"a-template-reads-under-a-tag-and-answers-a-quote-and-a-doc-as-they-are","query":"{:a 1} | get [/a ::Box[/a] ::Box#5 |~~ x ~~| ~(get /a) #[/a 2]]","expect":"[1 ::Box[1] ::Box#5 |~~ x ~~| 1 #[1 2]]"}
 {"decision":"D279","name":"a-template-lays-a-tag-back-through-its-constructor","query":":P |~~ P. ~~| (::kind | holds :HasNumberError |~~ No number. ~~| ~(every ~(type | ne ::number))) | {:a 1} | get [::P[/a]] !| type","expect":"::P/HasNumberError"}
 {"decision":"D279","name":"a-kind-takes-no-recipe-but-the-hosts","query":"::kind | impl ~(get {:s ~(it)}) !| type","expect":"::kind/impl/recipe/NotBuiltinError"}
-{"decision":"D279","name":"a-template-answers-a-function-as-it-is","query":"get [::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]] | first | type !| type","expect":"::fn","target":true,"now":"::fn/takes/SubjectNotFnError"}
-{"decision":"D279","name":"a-template-answers-a-kind-as-it-is","query":"get [::kind[~(wraps |~~ A number. ~~| ::number) null]] | first | type !| type","expect":"::kind","target":true,"now":"::kind/wraps/SubjectNotKindError"}
+{"decision":"D279","name":"a-template-answers-a-function-as-it-is","query":"get [::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]] | first | type !| type","expect":"::fn"}
+{"decision":"D279","name":"a-template-answers-a-kind-as-it-is","query":"get [::kind[~(wraps |~~ A number. ~~| ::number) null]] | first | type !| type","expect":"::kind"}

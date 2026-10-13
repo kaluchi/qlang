@@ -27,8 +27,8 @@ query that reads no subject, `[1 2 3] | sum`, reads no stdin.
 `qlang -h` tells the flags.
 
 ```
-curl -s api/users | qlang '/data | map ~/name'
-qlang '/users | filter ~(/active) | json' < data.json
+curl -s api/users | qlang 'get /data | map /name'
+qlang 'get /users | filter /active | json' < data.json
 printf hi         | qlang --raw 'append " world"'
 qlang '[1 2 3] | filter ~(gt 1) | count'
 qlang -i '::qlang | doc | links | map ~open'

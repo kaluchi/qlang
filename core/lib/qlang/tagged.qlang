@@ -28,63 +28,54 @@
       ::link~(::tag | doc) ::link~(::construct | doc)
       ::link~(::qlang/values | doc)
   ~~|
-
-:tagged/reachesPayload
-  |~~ A box answers `payload`. ~~|
-  ::law~(:Box |~~ A box. ~~| | ::Box[1 2] | payload | eq [1 2])
-
-:tagged/isNoStep
-  |~~ The step `::Box[1 2]` is a `::construct`. ~~|
-  ::law~(~(::Box[1 2]) | first | type | eq ::construct)
+  ::kind
+    | proves :reachesPayload
+        |~~ A box answers `payload`. ~~|
+        ~(:Box |~~ A box. ~~| | ::Box[1 2] | payload | eq [1 2])
+    | proves :isNoStep
+        |~~ The step `::Box[1 2]` is a `::construct`. ~~|
+        ~(~(::Box[1 2]) | first | type | eq ::construct)
 
 :tagged/payload
-  |~~ Answers the value beneath the tag of the subject, `::Box[42] |
-      payload` answering `[42]`: the reverse of `tag`, so `value | tag
-      ::Foo | payload` answers the value, whatever its kind. A value
-      under two tags opens one, `::A::B[1] | payload` answering
+  |~~ Answers the value beneath the tag of the subject,
+      `::Box[42] | payload` answering `[42]`: the reverse of `tag`, so
+      `value | tag ::Foo | payload` answers the value, whatever its kind.
+      A value under two tags opens one, `::A::B[1] | payload` answering
       `::B[1]`. A set is a vector under its tag, so its payload is the
       vector of its elements in their one order, `#[2 1] | payload`
       answering `[1 2]`, and a value turned by `desc` opens to the value
       it turned. A value under no tag, a number, a string, a vector or a
-      plain map, has no payload and is refused. `within` edits the
-      payload and puts the tag back.
+      plain map, has no payload and is refused. `within` edits the payload
+      and puts the tag back.
       ::link~(::any/tag | doc) ::link~(::tagged/within | doc)
   ~~|
-  ::builtin{}
-
-:tagged/payload/answer
-  |~~ The value beneath the tag, of any kind. ~~|
-  ::any
-
-:tagged/payload/SubjectNotTaggedError
-  |~~ `payload` opens a value under a tag, `::Box[42] | payload`; a
-      number, a string, a vector or a plain map stands under none and is
-      its own value, and the kind of a value is read by `type`.
-  ~~|
-
-:tagged/payload/answersAVector
-  |~~ A box of a vector answers the vector. ~~|
-  ::law~(:Box |~~ A box. ~~| | ::Box[42] | payload | eq [42])
-
-:tagged/payload/answersAString
-  |~~ A note of a string answers the string. ~~|
-  ::law~(:Note |~~ A note. ~~| | ::Note"hello" | payload | eq "hello")
-
-:tagged/payload/undoesTag
-  |~~ A value laid under a tag is its payload. ~~|
-  ::law~({:a 1} | tag ::Foo | payload | eq {:a 1})
-
-:tagged/payload/opensOneTagOfTwo
-  |~~ A value under two tags opens one. ~~|
-  ::law~(::A::B[1] | payload | eq ::B[1])
-
-:tagged/payload/answersTheVectorOfASet
-  |~~ A set's payload is its vector in its one order. ~~|
-  ::law~(#[2 1] | payload | eq [1 2])
-
-:tagged/payload/SubjectNotTaggedError/refusesANumber
-  |~~ A number under no tag has no payload. ~~|
-  ::law~(42 | payload !| [type /actualType] | eq [::tagged/payload/SubjectNotTaggedError ::number])
+  ::fn
+    | returns |~~ The value beneath the tag, of any kind. ~~| ::any
+    | throws :SubjectNotTaggedError
+        |~~ `payload` opens a value under a tag, `::Box[42] | payload`; a
+            number, a string, a vector or a plain map stands under none
+            and is its own value, and the kind of a value is read by
+            `type`.
+        ~~|
+    | proves :answersAVector
+        |~~ A box of a vector answers the vector. ~~|
+        ~(:Box |~~ A box. ~~| | ::Box[42] | payload | eq [42])
+    | proves :answersAString
+        |~~ A note of a string answers the string. ~~|
+        ~(:Note |~~ A note. ~~| | ::Note"hello" | payload | eq "hello")
+    | proves :undoesTag
+        |~~ A value laid under a tag is its payload. ~~|
+        ~({:a 1} | tag ::Foo | payload | eq {:a 1})
+    | proves :opensOneTagOfTwo
+        |~~ A value under two tags opens one. ~~|
+        ~(::A::B[1] | payload | eq ::B[1])
+    | proves :answersTheVectorOfASet
+        |~~ A set's payload is its vector in its one order. ~~|
+        ~(#[2 1] | payload | eq [1 2])
+    | proves :SubjectNotTaggedError/refusesANumber
+        |~~ A number under no tag has no payload. ~~|
+        ~(42 | payload !| [type (get /actualType)] | eq [::tagged/payload/SubjectNotTaggedError ::number])
+    | impl ::builtin{}
 
 :tagged/within
   |~~ Answers the subject with code run beneath its tag: the quote the
@@ -93,7 +84,7 @@
       `::Box[2 1]`. The tag's constructor runs once, on the answer of the
       code, so the steps between may break what the tag holds of its
       payload: a set's constructor puts the vector the code answered in
-      order, `#[3 1] | within ~([/0 /1 /0])` answering `#[1 3]`, and a
+      order, `#[3 1] | within ~(get [/0 /1 /0])` answering `#[1 3]`, and a
       tag whose invariant the answer breaks refuses it. The names the
       code binds stay inside it. Under two tags the code runs beneath the
       outer one, and the value beneath both is reached by nesting
@@ -103,68 +94,61 @@
       refused here.
       ::link~(::any/apply | doc) ::link~(::tagged/payload | doc)
   ~~|
-  ::builtin{}
+  ::fn
+    | takes :code
+        |~~ The edit, a quote run against the payload. ~~|
+        /0 #[::path ::quote]
+    | throws :code/NotPathOrQuoteError
+        |~~ The edit `within` runs is a quote, `within ~(reverse)`; a
+            value computed at the call is refused, the error a step
+            answered there among them.
+        ~~|
+    | throws :code/NotGivenError
+        |~~ `within` runs the code its call gives beneath the tag,
+            `::Box[1 2] | within ~(reverse)`; a call with no code is
+            refused.
+        ~~|
+    | returns
+        |~~ The value edited beneath its tag, under the tag again. ~~|
+        ::tagged
+    | throws :SubjectNotTaggedError
+        |~~ `within` edits a value beneath its tag; a value under no tag,
+            a vector or a plain map, is edited by `apply`,
+            `[1 2] | apply ~(reverse)`.
+        ~~|
+    | proves :keepsTheTag
+        |~~ The edit returns under the tag. ~~|
+        ~(:Box |~~ A box. ~~| | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
+    | proves :editsASetAsItsVector
+        |~~ Code runs on a set as on its vector, and its answer comes back
+            a set.
+        ~~|
+        ~(#[3 1] | within ~(get [/0 /1 /0]) | eq #[1 3])
+    | proves :runsTheConstructorOnTheAnswer
+        |~~ An answer the tag's invariant refuses is refused as it goes
+            back under the tag.
+        ~~|
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos(3) | within ~(sub 5) !| type | eq ::Pos/NotPositiveError)
+    | proves :keepsItsNamesInside
+        |~~ A name the code binds stays inside it. ~~|
+        ~(:n 7 | ::Box[1] | within ~(:n 5 | [n]) | n | eq 7)
+    | proves :reachesUnderTwoTags
+        |~~ An edit under two tags reaches the innermost payload. ~~|
+        ~(:Box |~~ A box. ~~| | ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])
+    | proves :code/NotPathOrQuoteError/refusesANumber
+        |~~ A number computed at the call is refused. ~~|
+        ~(#[3 1] | within 1 !| [type (get /actualType)] | eq [::tagged/within/code/NotPathOrQuoteError ::number])
+    | proves :SubjectNotTaggedError/refusesAVector
+        |~~ A vector under no tag is refused. ~~|
+        ~([1 2] | within ~(reverse)
+          !| [type (get /actualType)] | eq [::tagged/within/SubjectNotTaggedError ::vec])
+    | proves :code/NotGivenError/refusesACallWithNoCode
+        |~~ A call with no code is refused under the input. ~~|
+        ~(::Box[1] | within !| type | eq ::tagged/within/code/NotGivenError)
+    | proves :checksTheAnswerAlone
+        |~~ The steps between may break the tag's invariant, and the
+            answer alone is checked.
+        ~~|
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos(3) | within ~(sub 5 | add 10) | eq ::Pos(8))
+    | impl ::builtin{}
 
-:tagged/within/answer
-  |~~ The value edited beneath its tag, under the tag again. ~~|
-  ::tagged
-
-:tagged/within/code
-  |~~ The edit, a quote run against the payload. ~~|
-  ~(/0)
-
-:tagged/within/code/NotQuoteError
-  |~~ The edit `within` runs is a quote, `within ~(reverse)`; a value
-      computed at the call is refused, the error a step answered there
-      among them.
-  ~~|
-  ::holds~(is ::quote)
-
-:tagged/within/code/NotGivenError
-  |~~ `within` runs the code its call gives beneath the tag, `::Box[1 2] |
-      within ~(reverse)`; a call with no code is refused.
-  ~~|
-
-:tagged/within/SubjectNotTaggedError
-  |~~ `within` edits a value beneath its tag; a value under no tag, a
-      vector or a plain map, is edited by `apply`, `[1 2] | apply
-      ~(reverse)`.
-  ~~|
-
-:tagged/within/keepsTheTag
-  |~~ The edit returns under the tag. ~~|
-  ::law~(:Box |~~ A box. ~~| | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
-
-:tagged/within/editsASetAsItsVector
-  |~~ Code runs on a set as on its vector, and its answer comes back a set. ~~|
-  ::law~(#[3 1] | within ~([/0 /1 /0]) | eq #[1 3])
-
-:tagged/within/runsTheConstructorOnTheAnswer
-  |~~ An answer the tag's invariant refuses is refused as it goes back under the tag. ~~|
-  ::law~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0)
-    | ::Pos(3) | within ~(sub 5) !| type | eq ::Pos/NotPositiveError)
-
-:tagged/within/keepsItsNamesInside
-  |~~ A name the code binds stays inside it. ~~|
-  ::law~(:n 7 | ::Box[1] | within ~(:n 5 | [n]) | n | eq 7)
-
-:tagged/within/reachesUnderTwoTags
-  |~~ An edit under two tags reaches the innermost payload. ~~|
-  ::law~(:Box |~~ A box. ~~| | ::Box#[3 1] | within ~(within ~([/1 /0 2])) | eq ::Box#[1 2 3])
-
-:tagged/within/code/NotQuoteError/refusesANumber
-  |~~ A number computed at the call is refused. ~~|
-  ::law~(#[3 1] | within 1 !| [type /actualType] | eq [::tagged/within/code/NotQuoteError ::number])
-
-:tagged/within/SubjectNotTaggedError/refusesAVector
-  |~~ A vector under no tag is refused. ~~|
-  ::law~([1 2] | within ~(reverse)
-    !| [type /actualType] | eq [::tagged/within/SubjectNotTaggedError ::vec])
-
-:tagged/within/code/NotGivenError/refusesACallWithNoCode
-  |~~ A call with no code is refused under the part. ~~|
-  ::law~(::Box[1] | within !| type | eq ::tagged/within/code/NotGivenError)
-
-:tagged/within/checksTheAnswerAlone
-  |~~ The steps between may break the tag's invariant, and the answer alone is checked. ~~|
-  ::law~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0) | ::Pos(3) | within ~(sub 5 | add 10) | eq ::Pos(8))

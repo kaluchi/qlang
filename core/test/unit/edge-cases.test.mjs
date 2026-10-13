@@ -113,7 +113,7 @@ describe('runtime/vec.mjs error paths', () => {
     await expectErrorThrown('[1 2 3] | drop "x"', 'vec/drop/count/NotNumberError');
   });
   it('sort with key', async () => {
-    expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort ~(/n)'))
+    expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort /n'))
       .toEqual([new Map([['n', 1]]), new Map([['n', 2]]), new Map([['n', 3]])]);
   });
 });
@@ -129,13 +129,13 @@ describe('runtime/map.mjs error paths', () => {
     await expectErrorThrown('42 | has :foo', 'call/KindAnswersNoVerbError');
   });
   it('has on Map requires keyword-or-string key', async () => {
-    await expectErrorThrown('{:k 1} | has 42', 'map/has/key/NotKeywordOrStringError');
+    await expectErrorThrown('{:k 1} | has 42', 'map/has/key/NotKeywordOrPathOrStringError');
   });
 });
 
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', async () => {
-    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/other/NotSetOrNullError');
+    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/other/NotNullOrSetError');
   });
   it('minus of Map by another Map (key-based)', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | minus {:b 99 :d 5}');
@@ -146,10 +146,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(evalResult).toEqual(new Map([['b', 2]]));
   });
   it('minus of Set by Map errors', async () => {
-    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/other/NotSetOrNullError');
+    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/other/NotNullOrSetError');
   });
   it('inter of Set by Map errors', async () => {
-    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/other/NotSetOrNullError');
+    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/other/NotNullOrSetError');
   });
 });
 
@@ -180,7 +180,7 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 
   it('split with non-string separator is refused by its part', async () => {
-    await expectErrorThrown('"abc" | split 42', 'string/split/separator/NotStringOrRegexError');
+    await expectErrorThrown('"abc" | split 42', 'string/split/separator/NotRegexOrStringError');
   });
 
   it('join on non-Vec subject is refused by the address of join', async () => {
@@ -194,7 +194,7 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 
   it('join with non-string separator is refused by its part', async () => {
-    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/NotStringOrKeywordError');
+    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/NotKeywordOrStringError');
   });
 
   it('every split/join site has an address of its own', async () => {
@@ -242,14 +242,9 @@ describe('source axis on verb / freeze / tag subjects', () => {
     expect(source).toBe(':any/double ~(mul 2)');
   });
 
-  it('source on the address of a part returns its declaration', async () => {
-    const source = await evalQuery(':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx ~(/0) | :any/surround/sfx ~(/1) | ::any/surround/sfx | source | parse');
-    expect(source).toBe(':any/surround/sfx ~(/1)');
-  });
-
   it('source on a freeze returns its declaration', async () => {
-    const source = await evalQuery('42 | :snap / | ::snap | source | parse');
-    expect(source).toBe(':snap /');
+    const source = await evalQuery('42 | :snap it | ::snap | source | parse');
+    expect(source).toBe(':snap it');
   });
 });
 
@@ -281,7 +276,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if branches re-project from pipeValue, not from cond result', async () => {
-    expect(await evalQuery('{:active true :salary 100} | if /active ~(/salary | mul 11 | div 10) ~(/salary)')).toBe(110);
+    expect(await evalQuery('{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary')).toBe(110);
   });
 
   it('if can be nested for multi-way dispatch', async () => {
@@ -289,36 +284,36 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('coalesce returns first non-null alternative', async () => {
-    expect(await evalQuery('{:firstName "Alice"} | coalesce ~(/preferredName) ~(/firstName) ~("Anon")')).toBe('Alice');
+    expect(await evalQuery('{:firstName "Alice"} | coalesce /preferredName /firstName ~("Anon")')).toBe('Alice');
   });
 
   it('coalesce returns null when all alternatives are null', async () => {
-    expect(await evalQuery('{} | coalesce ~(/a) ~(/b) ~(/c)')).toBe(null);
+    expect(await evalQuery('{} | coalesce /a /b /c')).toBe(null);
   });
 
   it('coalesce treats 0 as non-null', async () => {
-    expect(await evalQuery('{:zero 0} | coalesce ~(/missing) ~(/zero) ~("default")')).toBe(0);
+    expect(await evalQuery('{:zero 0} | coalesce /missing /zero ~("default")')).toBe(0);
   });
 
   it('coalesce treats false as non-null', async () => {
-    expect(await evalQuery('{:flag false} | coalesce ~(/missing) ~(/flag) ~(true)')).toBe(false);
+    expect(await evalQuery('{:flag false} | coalesce /missing /flag ~(true)')).toBe(false);
   });
 
   it('coalesce treats empty string as non-null', async () => {
-    expect(await evalQuery('{:s ""} | coalesce ~(/missing) ~(/s) ~("default")')).toBe('');
+    expect(await evalQuery('{:s ""} | coalesce /missing /s ~("default")')).toBe('');
   });
 
   it('coalesce short-circuits after first non-null (does not evaluate later alts)', async () => {
     // div(0) would raise; coalesce never reaches it because /a is non-null
-    expect(await evalQuery('{:a 1} | coalesce ~(/a) ~(div 0)')).toBe(1);
+    expect(await evalQuery('{:a 1} | coalesce /a ~(div 0)')).toBe(1);
   });
 
   it('coalesce keeps false as a value', async () => {
-    expect(await evalQuery('{:a false :b 2} | coalesce ~(/a) ~(/b)')).toBe(false);
+    expect(await evalQuery('{:a false :b 2} | coalesce /a /b')).toBe(false);
   });
 
   it('if and coalesce compose for guarded defaulting', async () => {
-    expect(await evalQuery('{:role :admin :name "Bob"} | if (/role | eq :admin) ~(coalesce ~(/displayName) ~(/name) ~("???")) ~("guest")')).toBe('Bob');
+    expect(await evalQuery('{:role :admin :name "Bob"} | if (get /role | eq :admin) ~(coalesce /displayName /name ~("???")) ~("guest")')).toBe('Bob');
   });
 
   // The refusal of a bare coalesce is pinned by

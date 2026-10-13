@@ -13,81 +13,74 @@
       `:payload` the step of its payload.
       ::link~(::tagged | doc) ::link~(::qlang/pipeline | doc)
   ~~|
+  ::kind
+    | wraps
+        |~~ The record of a constructor invocation, `:tag` and `:payload`,
+            built into its step, which reads back as itself.
+        ~~|
+    | throws :PayloadNotSchemaError
+        |~~ A `::construct` is a map of `:tag`, a tag name, and
+            `:payload`, a step, both given, and `:field` names the field
+            that does not fit: the tag is written with its two colons, so
+            the step `::Box[1]` is
+            `{:tag ::Box :payload [1]} | tag ::construct`.
+            ::link~(::construct | doc)
+        ~~|
+    | throws :ReadBackDiffersError
+        |~~ The `::construct` prints as text that reads back as another
+            step, and `:printed` is that text: a payload that opens with a
+            name, a digit or a slash joins its tag, `::Box42` a name of
+            its own. Such a payload is written as a group, the step
+            `::Box(42)`, whose record holds the group,
+            `{:tag ::Box :payload (~((42)) | first)}`.
+            ::link~(::construct | doc)
+        ~~|
+    | throws :TagNotKindError
+        |~~ The tag before a payload addresses a kind, a label declared by
+            its chain or by its page alone, a word, whose args it lays
+            itself over, `::vec/take[2]`, or no declaration at all; a tag
+            that addresses a name holding a value of its own names nothing
+            to build by, and `:tag` is that tag. The value is read by its
+            name, `limit`, and is put under a tag of its own,
+            `::Limit(limit)`.
+            ::link~(::construct | doc)
+        ~~|
+    | carries :TagNotKindError/tag
+        |~~ The tag, whose node is neither a label nor a word. ~~|
+        ::tag
+    | proves :holdsTheTagAndThePayload
+        |~~ The step holds its tag and its payload. ~~|
+        ~(~(::Box[1 2]) | first | get [/tag /payload] | eq [::Box [1 2]])
+    | proves :PayloadNotSchemaError/refusesATagThatIsAKeyword
+        |~~ A `:tag` that is a keyword is refused, `:field` naming it. ~~|
+        ~(::construct{:tag :Box :payload [1]}
+          !| [type (get /field)] | eq [::construct/PayloadNotSchemaError :tag])
+    | proves :PayloadNotSchemaError/refusesARecordWithoutAPayload
+        |~~ A record without its payload is refused, `:field` naming it. ~~|
+        ~({:tag ::Box} | tag ::construct
+          !| [type (get /field)] | eq [::construct/PayloadNotSchemaError :payload])
+    | proves :PayloadNotSchemaError/buildsTheStepOfATag
+        |~~ A tag name and the step of a payload build the step. ~~|
+        ~({:tag ::Box :payload [1]} | tag ::construct | get [it] | tag ::quote | eq ~(::Box[1]))
+    | proves :ReadBackDiffersError/refusesAPayloadThatJoinsItsTag
+        |~~ A number payload prints joined to its tag, which reads back as
+            another name.
+        ~~|
+        ~(::construct{:tag ::Box :payload 42}
+          !| [type (get /printed)] | eq [::construct/ReadBackDiffersError "::Box42"])
+    | proves :ReadBackDiffersError/writesThePayloadAsAGroup
+        |~~ A payload in a group reads back as itself. ~~|
+        ~({:tag ::Box :payload (~((42)) | first)} | tag ::construct
+          | get [it] | tag ::quote | eq ~(::Box(42)))
+    | proves :TagNotKindError/refusesTheTagOfAValue
+        |~~ The tag of a name that holds a value builds nothing. ~~|
+        ~(:limit 5 | ::limit[1]
+          !| [type (get /tag) (get /actualType)] | eq [::construct/TagNotKindError ::limit ::number])
+    | proves :TagNotKindError/laysAWordsTagOverItsArgs
+        |~~ The tag of a word lays itself over its args. ~~|
+        ~(::vec/take[2] | type | eq ::vec/take)
+    | proves :TagNotKindError/putsTheValueUnderATagOfItsOwn
+        |~~ The value of a name is put under a tag of its own. ~~|
+        ~(:limit 5 | ::Limit(limit) | payload | eq 5)
+    | impl ::builtin{}
 
-:construct/holdsTheTagAndThePayload
-  |~~ The step holds its tag and its payload. ~~|
-  ::law~(~(::Box[1 2]) | first | [/tag /payload] | eq [::Box [1 2]])
-
-:construct/construct
-  |~~ The step of a constructor invocation from its record, `:tag` and
-      `:payload`, which reads back as itself.
-  ~~|
-  ::builtin{}
-
-:construct/PayloadNotSchemaError
-  |~~ A `::construct` is a map of `:tag`, a tag name, and `:payload`, a
-      step, both given, and `:field` names the field that does not fit:
-      the tag is written with its two colons, so the step `::Box[1]` is
-      `{:tag ::Box :payload [1]} | tag ::construct`.
-      ::link~(::construct | doc)
-  ~~|
-
-:construct/PayloadNotSchemaError/refusesATagThatIsAKeyword
-  |~~ A `:tag` that is a keyword is refused, `:field` naming it. ~~|
-  ::law~(::construct{:tag :Box :payload [1]}
-    !| [type /field] | eq [::construct/PayloadNotSchemaError :tag])
-
-:construct/PayloadNotSchemaError/refusesARecordWithoutAPayload
-  |~~ A record without its payload is refused, `:field` naming it. ~~|
-  ::law~({:tag ::Box} | tag ::construct
-    !| [type /field] | eq [::construct/PayloadNotSchemaError :payload])
-
-:construct/PayloadNotSchemaError/buildsTheStepOfATag
-  |~~ A tag name and the step of a payload build the step. ~~|
-  ::law~({:tag ::Box :payload [1]} | tag ::construct | [/] | tag ::quote | eq ~(::Box[1]))
-
-:construct/ReadBackDiffersError
-  |~~ The `::construct` prints as text that reads back as another step,
-      and `:printed` is that text: a payload that opens with a name, a
-      digit or a slash joins its tag, `::Box42` a name of its own. Such a
-      payload is written as a group, the step `::Box(42)`, whose record
-      holds the group, `{:tag ::Box :payload (~((42)) | first)}`.
-      ::link~(::construct | doc)
-  ~~|
-
-:construct/ReadBackDiffersError/refusesAPayloadThatJoinsItsTag
-  |~~ A number payload prints joined to its tag, which reads back as another name. ~~|
-  ::law~(::construct{:tag ::Box :payload 42}
-    !| [type /printed] | eq [::construct/ReadBackDiffersError "::Box42"])
-
-:construct/ReadBackDiffersError/writesThePayloadAsAGroup
-  |~~ A payload in a group reads back as itself. ~~|
-  ::law~({:tag ::Box :payload (~((42)) | first)} | tag ::construct
-    | [/] | tag ::quote | eq ~(::Box(42)))
-
-:construct/TagNotKindError
-  |~~ The tag before a payload addresses a kind, a label, a name declared
-      by its page or a word, whose args it lays itself over,
-      `::vec/take[2]`, or no declaration at all; a tag that addresses a
-      name holding a value of its own names nothing to build by, and
-      `:tag` is that tag. The value is read by its name, `limit`, and is
-      put under a tag of its own, `::Limit(limit)`.
-      ::link~(::construct | doc)
-  ~~|
-
-:construct/TagNotKindError/tag
-  |~~ The tag, whose node is neither a label nor a word. ~~|
-  ::tag
-
-:construct/TagNotKindError/refusesTheTagOfAValue
-  |~~ The tag of a name that holds a value builds nothing. ~~|
-  ::law~(:limit 5 | ::limit[1]
-    !| [type /tag /actualType] | eq [::construct/TagNotKindError ::limit ::number])
-
-:construct/TagNotKindError/laysAWordsTagOverItsArgs
-  |~~ The tag of a word lays itself over its args. ~~|
-  ::law~(::vec/take[2] | type | eq ::vec/take)
-
-:construct/TagNotKindError/putsTheValueUnderATagOfItsOwn
-  |~~ The value of a name is put under a tag of its own. ~~|
-  ::law~(:limit 5 | ::Limit(limit) | payload | eq 5)

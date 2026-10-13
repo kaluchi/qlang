@@ -22,35 +22,32 @@
       ::link~(::map | doc) ::link~(::string | doc)
       ::link~(::qlang/values | doc)
   ~~|
-
-:keyword/isAKeyword
-  |~~ `:k` is a keyword. ~~|
-  ::law~(:k | type | eq ::keyword)
-
-:keyword/buildsAKeyword
-  |~~ The constructor of a keyword answers it. ~~|
-  ::law~(::keyword:k | eq :k)
-
-:keyword/takesThreeForms
-  |~~ A name of any script, a name with a path and a quoted name are keywords alike. ~~|
-  ::law~([:данные :domain/user :"$ref"] | map ~toString | eq ["данные" "domain/user" "$ref"])
-
-:keyword/quotesABareName
-  |~~ A bare name quoted is the same keyword. ~~|
-  ::law~(:"foo" | eq :foo)
-
-:keyword/construct
-  |~~ Reads a keyword as itself. ~~|
-  ::builtin{}
-
-:keyword/PayloadNotKeywordError
-  |~~ `::keyword` reads its payload as the keyword it is; a string
-      becomes one by `toKeyword`.
-  ~~|
-
-:keyword/PayloadNotKeywordError/refusesAString
-  |~~ A string payload is refused; `toKeyword` turns a string into one. ~~|
-  ::law~(::keyword"k" !| [type /actualType] | eq [::keyword/PayloadNotKeywordError ::string])
+  ::kind
+    | wraps |~~ A keyword, read as itself. ~~|
+    | throws :PayloadNotKeywordError
+        |~~ `::keyword` reads its payload as the keyword it is; a string
+            becomes one by `toKeyword`.
+        ~~|
+    | proves :isAKeyword
+        |~~ `:k` is a keyword. ~~|
+        ~(:k | type | eq ::keyword)
+    | proves :buildsAKeyword
+        |~~ The constructor of a keyword answers it. ~~|
+        ~(::keyword:k | eq :k)
+    | proves :takesThreeForms
+        |~~ A name of any script, a name with a path and a quoted name are
+            keywords alike.
+        ~~|
+        ~([:данные :domain/user :"$ref"] | map ~toString | eq ["данные" "domain/user" "$ref"])
+    | proves :quotesABareName
+        |~~ A bare name quoted is the same keyword. ~~|
+        ~(:"foo" | eq :foo)
+    | proves :PayloadNotKeywordError/refusesAString
+        |~~ A string payload is refused; `toKeyword` turns a string into
+            one.
+        ~~|
+        ~(::keyword"k" !| [type (get /actualType)] | eq [::keyword/PayloadNotKeywordError ::string])
+    | impl ::builtin{}
 
 :keyword/gt
   |~~ Answers whether the subject, a keyword, comes after the keyword the
@@ -65,43 +62,35 @@
       ::link~(::keyword/gte | doc) ::link~(::keyword/lt | doc)
       ::link~(::keyword/lte | doc) ::link~(::string/toKeyword | doc)
   ~~|
-  ::builtin{}
-
-:keyword/gt/answer
-  |~~ `true` when the subject comes after the value, `false` otherwise. ~~|
-  ::boolean
-
-:keyword/gt/value
-  |~~ The keyword the subject is compared with, computed against the
-      subject, `:b | gt :a`.
-  ~~|
-  ~(/0)
-
-:keyword/gt/value/NotKeywordError
-  |~~ The value compared is a keyword, `:b | gt :a`; a string is
-      turned by `toKeyword` first, `:b | gt ("a" | toKeyword)`.
-  ~~|
-  ::holds~(is ::keyword)
-
-:keyword/gt/ordersByName
-  |~~ `:b` comes after `:a`. ~~|
-  ::law~(:b | gt :a)
-
-:keyword/gt/putsACapitalFirst
-  |~~ A capital comes before a small letter. ~~|
-  ::law~(:a | gt :B)
-
-:keyword/gt/keepsOneKeywordApartFromItself
-  |~~ A keyword does not come after itself. ~~|
-  ::law~(:a | gt :a | not)
-
-:keyword/gt/comparesTextTurnedIntoAKeyword
-  |~~ Text turned by `toKeyword` compares with a keyword. ~~|
-  ::law~("b" | toKeyword | gt :a)
-
-:keyword/gt/value/NotKeywordError/refusesAString
-  |~~ A string is no keyword to compare with. ~~|
-  ::law~(:a | gt "a" !| type | eq ::keyword/gt/value/NotKeywordError)
+  ::fn
+    | takes :value
+        |~~ The keyword the subject is compared with, computed against the
+            subject, `:b | gt :a`.
+        ~~|
+        /0 ::keyword
+    | throws :value/NotKeywordError
+        |~~ The value compared is a keyword, `:b | gt :a`; a string is
+            turned by `toKeyword` first, `:b | gt ("a" | toKeyword)`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes after the value, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | proves :ordersByName |~~ `:b` comes after `:a`. ~~| ~(:b | gt :a)
+    | proves :putsACapitalFirst
+        |~~ A capital comes before a small letter. ~~|
+        ~(:a | gt :B)
+    | proves :keepsOneKeywordApartFromItself
+        |~~ A keyword does not come after itself. ~~|
+        ~(:a | gt :a | not)
+    | proves :comparesTextTurnedIntoAKeyword
+        |~~ Text turned by `toKeyword` compares with a keyword. ~~|
+        ~("b" | toKeyword | gt :a)
+    | proves :value/NotKeywordError/refusesAString
+        |~~ A string is no keyword to compare with. ~~|
+        ~(:a | gt "a" !| type | eq ::keyword/gt/value/NotKeywordError)
+    | impl ::builtin{}
 
 :keyword/gte
   |~~ Answers whether the subject, a keyword, comes after the keyword the
@@ -109,37 +98,29 @@
       `gt` does, keywords with keywords.
       ::link~(::keyword/gt | doc) ::link~(::keyword/lte | doc)
   ~~|
-  ::builtin{}
-
-:keyword/gte/answer
-  |~~ `true` when the subject comes after the value or is the same
-      keyword, `false` otherwise.
-  ~~|
-  ::boolean
-
-:keyword/gte/value
-  |~~ The keyword the subject is compared with, computed against the
-      subject, `:b | gte :a`.
-  ~~|
-  ~(/0)
-
-:keyword/gte/value/NotKeywordError
-  |~~ The value compared is a keyword, `:b | gte :a`; a string is
-      turned by `toKeyword` first, `:b | gte ("a" | toKeyword)`.
-  ~~|
-  ::holds~(is ::keyword)
-
-:keyword/gte/holdsOfItself
-  |~~ A keyword comes after or is itself. ~~|
-  ::law~(:b | gte :b)
-
-:keyword/gte/ordersByName
-  |~~ `:b` comes after `:a`. ~~|
-  ::law~(:b | gte :a)
-
-:keyword/gte/value/NotKeywordError/refusesANumber
-  |~~ A number is no keyword to compare with. ~~|
-  ::law~(:b | gte 1 !| type | eq ::keyword/gte/value/NotKeywordError)
+  ::fn
+    | takes :value
+        |~~ The keyword the subject is compared with, computed against the
+            subject, `:b | gte :a`.
+        ~~|
+        /0 ::keyword
+    | throws :value/NotKeywordError
+        |~~ The value compared is a keyword, `:b | gte :a`; a string is
+            turned by `toKeyword` first, `:b | gte ("a" | toKeyword)`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes after the value or is the same
+            keyword, `false` otherwise.
+        ~~|
+        ::boolean
+    | proves :holdsOfItself
+        |~~ A keyword comes after or is itself. ~~|
+        ~(:b | gte :b)
+    | proves :ordersByName |~~ `:b` comes after `:a`. ~~| ~(:b | gte :a)
+    | proves :value/NotKeywordError/refusesANumber
+        |~~ A number is no keyword to compare with. ~~|
+        ~(:b | gte 1 !| type | eq ::keyword/gte/value/NotKeywordError)
+    | impl ::builtin{}
 
 :keyword/lt
   |~~ Answers whether the subject, a keyword, comes before the keyword the
@@ -147,39 +128,32 @@
       keywords, a capital before a small letter, `:B | lt :a`.
       ::link~(::keyword/gt | doc) ::link~(::keyword/lte | doc)
   ~~|
-  ::builtin{}
-
-:keyword/lt/answer
-  |~~ `true` when the subject comes before the value, `false` otherwise. ~~|
-  ::boolean
-
-:keyword/lt/value
-  |~~ The keyword the subject is compared with, computed against the
-      subject, `:b | lt :a`.
-  ~~|
-  ~(/0)
-
-:keyword/lt/value/NotKeywordError
-  |~~ The value compared is a keyword, `:b | lt :a`; a string is
-      turned by `toKeyword` first, `:b | lt ("a" | toKeyword)`.
-  ~~|
-  ::holds~(is ::keyword)
-
-:keyword/lt/ordersByName
-  |~~ `:a` comes before `:b`. ~~|
-  ::law~(:a | lt :b)
-
-:keyword/lt/putsACapitalFirst
-  |~~ A capital comes before a small letter. ~~|
-  ::law~(:B | lt :a)
-
-:keyword/lt/keepsOneKeywordApartFromItself
-  |~~ A keyword does not come before itself. ~~|
-  ::law~(:a | lt :a | not)
-
-:keyword/lt/value/NotKeywordError/refusesANumber
-  |~~ A number is no keyword to compare with. ~~|
-  ::law~(:b | lt 1 !| type | eq ::keyword/lt/value/NotKeywordError)
+  ::fn
+    | takes :value
+        |~~ The keyword the subject is compared with, computed against the
+            subject, `:b | lt :a`.
+        ~~|
+        /0 ::keyword
+    | throws :value/NotKeywordError
+        |~~ The value compared is a keyword, `:b | lt :a`; a string is
+            turned by `toKeyword` first, `:b | lt ("a" | toKeyword)`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes before the value, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | proves :ordersByName |~~ `:a` comes before `:b`. ~~| ~(:a | lt :b)
+    | proves :putsACapitalFirst
+        |~~ A capital comes before a small letter. ~~|
+        ~(:B | lt :a)
+    | proves :keepsOneKeywordApartFromItself
+        |~~ A keyword does not come before itself. ~~|
+        ~(:a | lt :a | not)
+    | proves :value/NotKeywordError/refusesANumber
+        |~~ A number is no keyword to compare with. ~~|
+        ~(:b | lt 1 !| type | eq ::keyword/lt/value/NotKeywordError)
+    | impl ::builtin{}
 
 :keyword/lte
   |~~ Answers whether the subject, a keyword, comes before the keyword the
@@ -187,88 +161,71 @@
       `gt` does, keywords with keywords.
       ::link~(::keyword/lt | doc) ::link~(::keyword/gte | doc)
   ~~|
-  ::builtin{}
-
-:keyword/lte/answer
-  |~~ `true` when the subject comes before the value or is the same
-      keyword, `false` otherwise.
-  ~~|
-  ::boolean
-
-:keyword/lte/value
-  |~~ The keyword the subject is compared with, computed against the
-      subject, `:b | lte :a`.
-  ~~|
-  ~(/0)
-
-:keyword/lte/value/NotKeywordError
-  |~~ The value compared is a keyword, `:b | lte :a`; a string is
-      turned by `toKeyword` first, `:b | lte ("a" | toKeyword)`.
-  ~~|
-  ::holds~(is ::keyword)
-
-:keyword/lte/holdsOfItself
-  |~~ A keyword comes before or is itself. ~~|
-  ::law~(:a | lte :a)
-
-:keyword/lte/ordersByName
-  |~~ `:a` comes before `:b`. ~~|
-  ::law~(:a | lte :b)
-
-:keyword/lte/value/NotKeywordError/refusesANumber
-  |~~ A number is no keyword to compare with. ~~|
-  ::law~(:b | lte 1 !| type | eq ::keyword/lte/value/NotKeywordError)
+  ::fn
+    | takes :value
+        |~~ The keyword the subject is compared with, computed against the
+            subject, `:b | lte :a`.
+        ~~|
+        /0 ::keyword
+    | throws :value/NotKeywordError
+        |~~ The value compared is a keyword, `:b | lte :a`; a string is
+            turned by `toKeyword` first, `:b | lte ("a" | toKeyword)`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes before the value or is the same
+            keyword, `false` otherwise.
+        ~~|
+        ::boolean
+    | proves :holdsOfItself
+        |~~ A keyword comes before or is itself. ~~|
+        ~(:a | lte :a)
+    | proves :ordersByName |~~ `:a` comes before `:b`. ~~| ~(:a | lte :b)
+    | proves :value/NotKeywordError/refusesANumber
+        |~~ A number is no keyword to compare with. ~~|
+        ~(:b | lte 1 !| type | eq ::keyword/lte/value/NotKeywordError)
+    | impl ::builtin{}
 
 :keyword/toString
   |~~ Answers the name of the keyword as a string, `:foo | toString`
       answering `"foo"`, the text JSON writes for it, so a key joins text,
-      `{:a "x"} | entries | map ~([(/0 | toString) "=" /1] | join "")`. A
+      `{:a "x"} | entries | map ~(get [(get /0 | toString) "=" /1] | join "")`. A
       quoted name and a name with a path answer their text as written,
       `:"foo bar"` the string `"foo bar"`. `toKeyword` turns the string
       back into the keyword.
       ::link~(::string/toKeyword | doc) ::link~(::keyword | doc)
   ~~|
-  ::builtin{}
-
-:keyword/toString/answer
-  |~~ The name of the keyword, a string. ~~|
-  ::string
-
-:keyword/toString/answersTheName
-  |~~ A keyword answers its name as written. ~~|
-  ::law~([:foo :"foo bar" :domain/user] | map ~toString | eq ["foo" "foo bar" "domain/user"])
-
-:keyword/toString/readsBack
-  |~~ A keyword turned into its name turns back into itself. ~~|
-  ::law~(:baz | toString | toKeyword | eq :baz)
+  ::fn
+    | returns |~~ The name of the keyword, a string. ~~| ::string
+    | proves :answersTheName
+        |~~ A keyword answers its name as written. ~~|
+        ~([:foo :"foo bar" :domain/user] | map ~toString | eq ["foo" "foo bar" "domain/user"])
+    | proves :readsBack
+        |~~ A keyword turned into its name turns back into itself. ~~|
+        ~(:baz | toString | toKeyword | eq :baz)
+    | impl ::builtin{}
 
 :keyword/toNumber
   |~~ Answers the number the name of the keyword writes,
       `:"1" | toNumber` answering `1`, so a key that `groupBy` filed a
       number under turns back into the number,
-      `groupBy ~(/year) | keys | toVec | map ~toNumber`. A name that
+      `groupBy /year | keys | toVec | map ~toNumber`. A name that
       writes no number is refused.
       ::link~(::number/toKeyword | doc) ::link~(::string/toNumber | doc)
   ~~|
-  ::builtin{}
-
-:keyword/toNumber/answer
-  |~~ The number the name writes. ~~|
-  ::number
-
-:keyword/toNumber/NameNotNumberError
-  |~~ `toNumber` reads the name of the keyword as the literal of a
-      number, as a key that `groupBy` filed a number under writes it,
-      `:"1"`; a name such as `:a` writes none.
-  ~~|
-
-:keyword/toNumber/readsTheNumberOfAKey
-  |~~ A key filed from a number turns back into it. ~~|
-  ::law~([{:y 2020} {:y 2021}] | groupBy ~(/y) | keys | toVec | map ~toNumber | eq [2020 2021])
-
-:keyword/toNumber/NameNotNumberError/refusesAName
-  |~~ A name that writes no number is refused. ~~|
-  ::law~(:a | toNumber !| type | eq ::keyword/toNumber/NameNotNumberError)
+  ::fn
+    | returns |~~ The number the name writes. ~~| ::number
+    | throws :NameNotNumberError
+        |~~ `toNumber` reads the name of the keyword as the literal of a
+            number, as a key that `groupBy` filed a number under writes
+            it, `:"1"`; a name such as `:a` writes none.
+        ~~|
+    | proves :readsTheNumberOfAKey
+        |~~ A key filed from a number turns back into it. ~~|
+        ~([{:y 2020} {:y 2021}] | groupBy /y | keys | toVec | map ~toNumber | eq [2020 2021])
+    | proves :NameNotNumberError/refusesAName
+        |~~ A name that writes no number is refused. ~~|
+        ~(:a | toNumber !| type | eq ::keyword/toNumber/NameNotNumberError)
+    | impl ::builtin{}
 
 :keyword/toTag
   |~~ Answers the tag the keyword names, `:Box | toTag` answering
@@ -276,24 +233,19 @@
       turns the tag back into the keyword.
       ::link~(::string/toTag | doc) ::link~(::tag/toKeyword | doc)
   ~~|
-  ::builtin{}
-
-:keyword/toTag/answer
-  |~~ The tag the keyword names. ~~|
-  ::tag
-
-:keyword/toTag/NameNotNameError
-  |~~ `toTag` reads the name of the keyword as the name of a tag; a
-      quoted name with a space, `:"a b"`, names none.
-  ~~|
-
-:keyword/toTag/namesATag
-  |~~ A keyword names the tag of its name. ~~|
-  ::law~(:Box | toTag | eq ::Box)
-
-:keyword/toTag/NameNotNameError/refusesASpace
-  |~~ A name with a space names no tag. ~~|
-  ::law~(:"a b" | toTag !| type | eq ::keyword/toTag/NameNotNameError)
+  ::fn
+    | returns |~~ The tag the keyword names. ~~| ::tag
+    | throws :NameNotNameError
+        |~~ `toTag` reads the name of the keyword as the name of a tag; a
+            quoted name with a space, `:"a b"`, names none.
+        ~~|
+    | proves :namesATag
+        |~~ A keyword names the tag of its name. ~~|
+        ~(:Box | toTag | eq ::Box)
+    | proves :NameNotNameError/refusesASpace
+        |~~ A name with a space names no tag. ~~|
+        ~(:"a b" | toTag !| type | eq ::keyword/toTag/NameNotNameError)
+    | impl ::builtin{}
 
 :keyword/toKeyword
   |~~ Answers the keyword itself, so `map ~toKeyword` turns names,
@@ -301,12 +253,12 @@
       answering `[:a :b :"1"]`.
       ::link~(::string/toKeyword | doc) ::link~(::number/toKeyword | doc)
   ~~|
-  ::builtin{}
+  ::fn
+    | returns |~~ The keyword itself. ~~| ::keyword
+    | proves :answersItself
+        |~~ A keyword answers itself, so names, strings and numbers turn
+            into keys.
+        ~~|
+        ~(["a" :b 1] | map ~toKeyword | eq [:a :b :"1"])
+    | impl ::builtin{}
 
-:keyword/toKeyword/answer
-  |~~ The keyword itself. ~~|
-  ::keyword
-
-:keyword/toKeyword/answersItself
-  |~~ A keyword answers itself, so names, strings and numbers turn into keys. ~~|
-  ::law~(["a" :b 1] | map ~toKeyword | eq [:a :b :"1"])

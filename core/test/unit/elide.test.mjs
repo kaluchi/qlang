@@ -93,7 +93,7 @@ describe('elideAnswer [D109]', () => {
     const view = elideAnswer(failing, 300);
     expect(isErrorValue(view)).toBe(true);
     expect(view.tag).toBe(failing.tag);
-    expect(printValue(view)).toContain(':read ~(!| /trail/');
+    expect(printValue(view)).toContain(':read ~(!| get /trail/');
   });
 
   it('elides a value that is no error as elide does', () => {
@@ -153,12 +153,12 @@ describe('alertOf [D7]', () => {
   });
 
   it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [D13]', async () => {
-    const query = `${records} | map (/n)`;
+    const query = `${records} | map (get /n)`;
     const alert = alertOf(await evalQuery(query));
     const inner = alert.descriptor.get('actualValue');
     expect(isErrorValue(inner)).toBe(false);
     const marker = inner.payload.get('trail');
-    expect(printValue(marker.get('read'))).toBe('~(!| /actualValue/trail)');
+    expect(printValue(marker.get('read'))).toBe('~(!| get /actualValue/trail)');
     expect((await continued(query, marker)).length).toBe(2);
   });
 });

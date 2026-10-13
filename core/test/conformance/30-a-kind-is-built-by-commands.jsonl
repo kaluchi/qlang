@@ -1,0 +1,83 @@
+{"decision":"D252","name":"a-kind-is-built-from-its-noun-by-commands","query":"::kind | wraps |~~ The sizes. ~~| ::map | type","expect":"::kind"}
+{"decision":"D252","name":"a-kind-prints-as-its-literal","query":"::kind | wraps |~~ The sizes. ~~| ::map | print","expect":"\"::kind[~(wraps |~~ The sizes. ~~| ::map) null]\""}
+{"decision":"D252","name":"the-literal-of-a-kind-reads-back","query":":Box |~~ A box. ~~| ::kind[~(wraps |~~ The sizes. ~~| ::map) null] | ::Box\"x\" !| type","expect":"::Box/PayloadNotMapError"}
+{"decision":"D252","name":"the-kinds-of-the-payload-name-its-refusal","query":":Box |~~ A box. ~~| (::kind | wraps |~~ The sizes. ~~| ::map) | [(::Box{:w 1} | type) (::Box\"x\" !| type)]","expect":"[::Box ::Box/PayloadNotMapError]"}
+{"decision":"D252","name":"the-kinds-of-each-element-of-the-payload-name-their-refusals","query":":Row |~~ A row. ~~| (::kind | wraps |~~ The cells. ~~| [::number]) | [(::Row\"x\" !| type) (::Row[1 \"a\"] !| [type (get /index)])]","expect":"[::Row/PayloadNotVecError [::Row/ElementNotNumberError 1]]"}
+{"decision":"D252","name":"a-field-the-payload-leaves-out-is-refused-under-it","query":":Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box{:h 1} !| type","expect":"::Box/w/NotGivenError"}
+{"decision":"D252","name":"a-field-of-none-of-its-kinds-is-refused-under-it","query":":Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box{:w \"x\"} !| [type (get /actualType)]","expect":"[::Box/w/NotNumberError ::string]"}
+{"decision":"D252","name":"a-field-read-softly-holds-its-default","query":":Box |~~ A box. ~~| (::kind | reads :h |~~ The height, one where none. ~~| ~(query /h 1) ::number) | [(::Box{} | type) (::Box{:h \"x\"} !| type)]","expect":"[::Box ::Box/h/NotNumberError]"}
+{"decision":"D252","name":"an-invariant-of-a-field-holds-of-its-read","query":":Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | holds :w/NegativeError |~~ No width below zero. ~~| ~(gte 0)) | ::Box{:w -1} !| type","expect":"::Box/w/NegativeError"}
+{"decision":"D252","name":"an-invariant-of-the-value-is-refused-under-its-name","query":":Box |~~ A box. ~~| (::kind | wraps |~~ The sizes. ~~| ::map | holds :TooWideError |~~ No wider than high. ~~| ~(subOf /h /w | gte 0)) | [(::Box{:w 1 :h 2} | type) (::Box{:w 3 :h 2} !| type)]","expect":"[::Box ::Box/TooWideError]"}
+{"decision":"D252","name":"the-recipe-of-a-kind-builds-the-value-from-the-payload","query":":d |~~ A d. ~~| (::kind | impl ~({:s it})) | ::d(10)","expect":"::d{:s 10}"}
+{"decision":"D252","name":"a-kind-lays-its-nodes-under-its-address","query":":Box |~~ A box. ~~| (::kind | wraps |~~ The sizes. ~~| ::map | reads :w |~~ The width. ~~| /w ::number | impl ~(it)) | ::Box | manifest","expect":"#[::Box/PayloadNotMapError ::Box/construct ::Box/payload ::Box/w]"}
+{"decision":"D252","name":"a-field-is-no-word-of-the-values-of-its-kind","query":":Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box{:w 2} | get [(get /w) (w !| type)]","expect":"[2 ::call/UnknownNameError]"}
+{"decision":"D252","name":"tells-lays-a-page-under-the-kind","query":":Guide |~~ A guide. ~~| (::kind | tells :start |~~ Where to start. ~~| #[::vec]) | [(::Guide/start | doc | content | trim) (::Guide/start | binding | get /value)]","expect":"[\"Where to start.\" #[::vec]]"}
+{"decision":"D252","name":"proves-writes-a-law-of-the-kind","query":":Guide |~~ A guide. ~~| (::kind | proves :holds |~~ It holds. ~~| ~(true)) | ::Guide | runLaws | map /ok","expect":"[true]"}
+{"decision":"D252","name":"carries-writes-a-fact-of-a-refusal-of-the-kind","query":":Box |~~ A box. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| | carries :TooWideError/w |~~ The width refused. ~~| ::number) | ::Box/TooWideError/w | binding | get /value","expect":"::number"}
+{"decision":"D252","name":"a-name-of-a-kind-is-declared-once","query":"::kind | reads :w |~~ The width. ~~| /w | tells :w |~~ A page. ~~| !| type","expect":"::kind/NameDeclaredTwiceError"}
+{"decision":"D252","name":"an-invariant-with-a-path-names-a-field-read-before-it","query":"::kind | holds :w/NegativeError |~~ No width below zero. ~~| ~(gte 0) !| type","expect":"::kind/NameUnderNoFieldError"}
+{"decision":"D252","name":"a-law-with-a-path-names-a-name-declared-before-it","query":"::kind | proves :x/y |~~ An x. ~~| ~(true) !| type","expect":"::kind/LawUnderNoNameError"}
+{"decision":"D252","name":"the-chain-of-a-kind-is-the-body-of-a-bare-name-with-its-page","query":":Box\n  |~~ A box. ~~|\n  ::kind\n    | wraps |~~ The sizes. ~~| ::map\n| ::Box\"x\" !| type","expect":"::Box/PayloadNotMapError"}
+{"decision":"D252","name":"a-word-of-a-literal-is-declared-by-the-chain-of-a-kind","query":"::null | binding | get /value | type","expect":"::kind"}
+{"decision":"D252","name":"a-function-proves-its-laws-in-its-chain","query":":number/twice (::fn | proves :doubles |~~ Two is four. ~~| ~(2 | twice | eq 4) | impl ~(mul 2)) | ::number/twice | runLaws | map /ok","expect":"[true]"}
+{"decision":"D252","name":"a-function-carries-a-fact-of-a-refusal-under-its-name","query":"[(::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/limit |~~ The limit. ~~| ::number | type) (::fn | carries :limit |~~ The limit. ~~| !| type)]","expect":"[::fn ::fn/FactUnderNoNameError]"}
+{"decision":"D252","name":"the-topic-of-the-language-tells-its-chapters","query":"::qlang/values | binding | get /value | has ::vec","expect":"true"}
+{"decision":"D152","name":"an-undeclared-tag-lays-itself-over-its-payload","query":"::AutoBox[1 2 3] | type","expect":"::AutoBox"}
+{"decision":"D152","name":"an-undeclared-tag-keeps-its-payload","query":"::AutoBox[1 2 3] | payload","expect":"[1 2 3]"}
+{"decision":"D152","name":"an-undeclared-tag-keeps-a-vector-a-vector","query":"::AutoBox[1 2 3] | payload | type","expect":"::vec"}
+{"decision":"D152","name":"an-undeclared-tag-over-a-set-answers-its-tag","query":"::AutoSet#[1 2 3] | type","expect":"::AutoSet"}
+{"decision":"D152","name":"an-undeclared-tag-keeps-a-set-a-set","query":"::AutoSet#[1 2 3] | payload | type","expect":"::set"}
+{"decision":"D152","name":"an-undeclared-tag-over-a-map-answers-its-tag","query":"::AutoMap{:k 1} | type","expect":"::AutoMap"}
+{"decision":"D152","name":"an-undeclared-tag-keeps-a-map-a-map","query":"::AutoMap{:k 1} | payload | type","expect":"::map"}
+{"decision":"D152","name":"an-undeclared-tag-over-a-number-answers-its-tag","query":"::AutoScalar(42) | type","expect":"::AutoScalar"}
+{"decision":"D152","name":"an-undeclared-tag-keeps-a-number-a-number","query":"::AutoScalar(42) | payload","expect":"42"}
+{"decision":"D152","name":"an-undeclared-tag-over-a-tagged-value-answers-its-tag","query":"::AutoJson(::json[1 2 3]) | type","expect":"::AutoJson"}
+{"decision":"D152","name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError"}
+{"decision":"D152","name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
+{"decision":"D152","name":"an-undeclared-tag-alone-is-a-tag","query":"::AutoBareOnly | type","expect":"::tag"}
+{"decision":"D253","name":"a-label-declared-by-its-page-alone-holds-its-page","query":":ExplicitFirst |~~ ExplicitFirst. ~~| | ::ExplicitFirst[1 2] | (::ExplicitFirst | binding | get /value | type)","expect":"::doc"}
+{"decision":"D252","name":"the-recipe-of-a-kind-builds-its-value","query":":AutoAdd10 |~~ AutoAdd10. ~~| (::kind | impl ~(add 10)) | ::AutoAdd10(5) | payload","expect":"15"}
+{"decision":"D252","name":"a-tag-used-before-its-kind-builds-by-the-kind-after","query":"::AutoLater[5] | :AutoLater |~~ AutoLater. ~~| (::kind | impl ~(add 100)) | (::AutoLater(7) | payload)","expect":"107"}
+{"decision":"D41","name":"filter-keeps-an-undeclared-tag","query":"::AutoFilter[1 2 3 4] | filter ~(gt 2) | type","expect":"::AutoFilter"}
+{"decision":"D41","name":"sort-keeps-an-undeclared-tag","query":"::AutoSort[3 1 2] | sort | type","expect":"::AutoSort"}
+{"decision":"D41","name":"distinct-answers-a-set-under-an-undeclared-tag","query":"::AutoDist[1 2 1 3] | distinct | type","expect":"::AutoDist"}
+{"decision":"D41","name":"the-recipe-of-a-kind-runs-again-after-reverse","query":":Sorted |~~ Sorted. ~~| (::kind | impl ~(sort)) | ::Sorted[3 1 2] | reverse | payload","expect":"[1 2 3]"}
+{"decision":"D41","name":"the-recipe-of-a-kind-runs-again-after-filter","query":":Sorted |~~ Sorted. ~~| (::kind | impl ~(sort)) | ::Sorted[5 3 1 2] | filter ~(gt 1) | payload","expect":"[2 3 5]"}
+{"decision":"D248","name":"the-recipe-of-a-kind-checks-again-passes-on-valid-subset","query":":Positive |~~ Positive. ~~| (::kind | impl ~(:s it | every ~(gt 0) | if not ~(raise {:kind :InvalidPositive}) ~() | s)) | ::Positive[1 2 3] | filter ~(gt 1) | payload","expect":"[2 3]"}
+{"decision":"D13","name":"the-recipe-of-a-kind-checks-again-fires-on-violation","query":":Positive |~~ Positive. ~~| (::kind | impl ~(:s it | every ~(gt 0) | if not ~(::InvalidPositive{} | raise) ~() | s)) | ::Positive[1 2 -3] !| type","expect":"::InvalidPositive"}
+{"decision":"D248","name":"the-recipe-of-a-kind-checks-again-tag-on-success","query":":Positive |~~ Positive. ~~| (::kind | impl ~(:s it | every ~(gt 0) | if not ~(raise {:kind :InvalidPositive}) ~() | s)) | ::Positive[1 2 3] | filter ~(gt 0) | type","expect":"::Positive"}
+{"decision":"D41","name":"a-kind-of-no-recipe-keeps-its-tag-after-filter","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
+{"decision":"D41","name":"a-kind-of-no-recipe-keeps-its-tag-after-distinct","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3] | distinct | type","expect":"::Box"}
+{"decision":"D41","name":"a-kind-of-no-recipe-keeps-its-tag-after-sort","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | type","expect":"::Box"}
+{"decision":"D41","name":"the-recipe-of-a-kind-runs-again-after-take","query":":Sorted |~~ Sorted. ~~| (::kind | impl ~(sort)) | ::Sorted[5 3 1 2] | take 2 | payload","expect":"[1 2]"}
+{"decision":"D41","name":"the-recipe-of-a-kind-runs-again-after-drop","query":":Sorted |~~ Sorted. ~~| (::kind | impl ~(sort)) | ::Sorted[5 3 1 2] | drop 2 | payload","expect":"[3 5]"}
+{"decision":"D41","name":"the-recipe-of-a-kind-runs-again-after-flat","query":":Sorted |~~ Sorted. ~~| (::kind | impl ~(sort)) | ::Sorted[2 3 1] | flat | payload","expect":"[1 2 3]"}
+{"decision":"D41","name":"count-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | count","expect":"3"}
+{"decision":"D41","name":"sum-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | sum","expect":"6"}
+{"decision":"D41","name":"first-of-a-tagged-vector-answers-the-element","query":":Box |~~ Box. ~~| | ::Box[42 100] | first","expect":"42"}
+{"decision":"D41","name":"filter-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
+{"decision":"D20","name":"a-tag-over-a-set-stacks-on-it","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | payload","expect":"#[1 2 3]"}
+{"decision":"D34","name":"filter-over-a-tag-stacked-on-a-set-keeps-the-tag","query":":Box |~~ Box. ~~| | ::Box#[1 2 3 4] | filter ~(gt 2)","expect":"::Box#[3 4]"}
+{"decision":"D41","name":"sort-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | type","expect":"::Box"}
+{"decision":"D248","name":"sort-keyed-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[{:k 2} {:k 1}] | sort /k | type","expect":"::Box"}
+{"decision":"D41","name":"take-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | take 2 | type","expect":"::Box"}
+{"decision":"D41","name":"drop-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | drop 2 | type","expect":"::Box"}
+{"decision":"D41","name":"reverse-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | reverse | type","expect":"::Box"}
+{"decision":"D41","name":"flat-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[[1] [2 3]] | flat | type","expect":"::Box"}
+{"decision":"D41","name":"distinct-tagged-vec-yields-tagged-set","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3] | distinct | type","expect":"::Box"}
+{"decision":"D41","name":"filter-tagged-vec-elements-unchanged","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | sum","expect":"7"}
+{"decision":"D41","name":"sort-tagged-vec-elements-sorted","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | first","expect":"1"}
+{"decision":"D41","name":"distinct-tagged-vec-dedup-correct","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3 2] | distinct | payload | count","expect":"3"}
+{"decision":"D64","name":"a-predicate-error-passes-a-tagged-vector-as-it-is","query":":Box |~~ Box. ~~| | ::Box[1 2] | filter ~(!{:x 1} | raise) !| type","expect":"::error"}
+{"decision":"D64","name":"a-predicate-error-passes-a-quote-as-it-is","query":"~(a | b) | filter ~(!{:x 1} | raise) !| type","expect":"::error"}
+{"decision":"D248","name":"a-predicate-error-passes-a-set-as-it-is","query":"#[1 2] | filter ~(!{:x 1} | raise) !| get /x","expect":"1"}
+{"decision":"D34","name":"count-over-a-tag-stacked-on-a-set-counts-the-set","query":":Box |~~ Box. ~~| | ::Box#[3 1] | count","expect":"2"}
+{"decision":"D34","name":"a-predicate-error-passes-a-tag-stacked-on-a-set-as-it-is","query":":Box |~~ Box. ~~| | ::Box#[1 2 3] | filter ~(!{:x 1} | raise) !| get /x","expect":"1"}
+{"decision":"D169","name":"a-verb-of-numbers-reaches-the-number-beneath-a-tag-and-keeps-it","query":"::Box(5) | add 1","expect":"::Box(6)"}
+{"decision":"D67","name":"sort-over-a-tag-stacked-on-a-set-answers-the-bare-vector","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | sort","expect":"[1 2 3]"}
+{"decision":"D34","name":"a-stack-of-tags-comes-back-from-the-innermost-out","query":"::A(::B[1 2 3]) | filter ~(gt 1)","expect":"::A::B[2 3]"}
+{"decision":"D252","name":"a-fact-of-no-kinds-holds-its-page","query":":Box |~~ A box. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| | carries :TooWideError/note |~~ A note. ~~|) | ::Box/TooWideError/note | binding | get /value | type","expect":"::doc"}
+{"decision":"D252","name":"a-fact-of-a-function-of-no-kinds-holds-its-page","query":":number/f (::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/note |~~ A note. ~~| | impl ~(it)) | ::number/f/TooBigError/note | binding | get /value | type","expect":"::doc"}
+{"decision":"D152","name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\" A box. \""}
+{"decision":"D152","name":"the-recipe-of-a-kind-is-its-constructor","query":":Small |~~ Small. ~~| (::kind | impl ~(if (lt 10) ~(it) ~(!{:reason :big} | raise))) | ::Small(12) !| get /reason","expect":":big"}
+{"decision":"D252","name":"a-kind-of-the-core-is-built-by-its-chain-with-a-construct","query":"::keyword | get [(binding | get /value | type) (::keyword/construct | binding | get /value | type)]","expect":"[::kind ::builtin]"}

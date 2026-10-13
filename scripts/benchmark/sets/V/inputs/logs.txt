@@ -1,0 +1,12 @@
+2026-03-01T10:00:01Z INFO api request served req=r1 duration=120ms
+2026-03-01T10:00:02Z ERROR db connection lost retrying
+2026-03-01T10:00:03Z INFO api request served req=r2 duration=45ms
+2026-03-01T10:00:04Z ERROR api upstream error code=502
+2026-03-01T10:00:05Z WARN db slow query error rate rising
+2026-03-01T10:00:06Z INFO web page rendered req=r3 duration=980ms
+2026-03-01T10:00:07Z ERROR db deadlock detected
+2026-03-01T10:00:08Z INFO api request served req=r4 duration=300ms
+2026-03-01T10:00:09Z ERROR web template missing
+2026-03-01T10:00:10Z INFO web page rendered req=r5 duration=75ms
+2026-03-01T10:00:11Z INFO db query ok req=r6 duration=610ms
+2026-03-01T10:00:12Z ERROR db disk full

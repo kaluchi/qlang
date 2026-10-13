@@ -15,15 +15,14 @@
       ::snippet~(::qlang | doc | links) lists the links of the first page.
       ::link~(::snippet | doc) ::link~(::qlang/hypertext | doc)
   ~~|
+  ::kind
+    | proves :isALink
+        |~~ A link a doc holds is a `::link`. ~~|
+        ~(|~~ ::link~(::qlang/values | doc) ~~| | links | first | type | eq ::link)
+    | proves :opensToPages
+        |~~ The links of the first page open to pages. ~~|
+        ~(::qlang | doc | links | map ~open | every ~(type | eq ::doc))
+    | proves :holdsUnderAStackOfTags
+        |~~ A quote under a stack of tags holding `::link` is a link. ~~|
+        ~(|~~ ::Host::link~(1) ~~| | links | count | eq 1)
 
-:link/isALink
-  |~~ A link a doc holds is a `::link`. ~~|
-  ::law~(|~~ ::link~(::qlang/values | doc) ~~| | links | first | type | eq ::link)
-
-:link/opensToPages
-  |~~ The links of the first page open to pages. ~~|
-  ::law~(::qlang | doc | links | map ~open | every ~(type | eq ::doc))
-
-:link/holdsUnderAStackOfTags
-  |~~ A quote under a stack of tags holding `::link` is a link. ~~|
-  ::law~(|~~ ::Host::link~(1) ~~| | links | count | eq 1)

@@ -62,7 +62,7 @@ describe('the words of the command line — every throw site has its kind in the
       expect(refusalAddresses.has(address),
         `${file} throws ${address} and the source of the command line declares no kind of it`
       ).toBe(true);
-      expect(await ask(`::${address} | binding | /value | type`)).toEqual(await evalQuery('::doc'));
+      expect(await ask(`::${address} | binding | get /value | type`)).toEqual(await evalQuery('::doc'));
     });
   }
 });

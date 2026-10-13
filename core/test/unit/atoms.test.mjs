@@ -15,7 +15,7 @@ beforeAll(async () => {
 
 describe('the ring of atoms [D42]', () => {
   it('keeps the examples of its own verbs true', async () => {
-    expect((await ringSessionOfFile.evalCell('::any/apart | runLaws | map ~/ok')).result).toEqual([true]);
+    expect((await ringSessionOfFile.evalCell('::any/apart | runLaws | map /ok')).result).toEqual([true]);
   });
 
   it('builds every literal of the conformance cases back from its atoms', async () => {

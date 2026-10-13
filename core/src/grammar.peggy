@@ -1,11 +1,12 @@
 // PEG grammar for the qlang expression language.
 //
 // A step is a command, a name followed by its modifiers, each one word
-// [D10]. A line break is whitespace wherever whitespace stands, so a
-// combinator joins two steps and whitespace a declaration as well, and a
-// keyword that begins a line opens a declaration of its own, which ends
-// the modifiers of a command before it [D243]. Every combinator is set off
-// by whitespace on both sides.
+// [D10]. A line break is whitespace, and around a declaration it tells
+// where the declaration ends: a keyword that begins a line opens a
+// declaration of its own, which ends the modifiers of a command before it
+// [D243], and the body of a name with a path begun on a later line runs on
+// to the next declaration [D251]. Every combinator is set off by
+// whitespace on both sides.
 //
 // Every node carries `.location`, its span, the offsets, lines and
 // columns `span()` reads, and `.text`, the source it matched; the pass
@@ -19,8 +20,9 @@
 // declaration whose slot it stands in [D83].
 
 {{
-  import { isNameStart, isNameContinue, readsAsBareKeyword } from '../src/name-chars.mjs';
+  import { isNameStart, isNameContinue, readsAsBareKeyword, LITERAL_WORDS } from '../src/name-chars.mjs';
   import { canonicalFlags, patternProblem, patternRefusal, PATTERN_FLAGS } from '../src/pattern.mjs';
+  import { builtFrom } from '../src/walk.mjs';
 
   function node(type, fields, loc, txt) {
     return { type, ...fields, location: loc, text: txt };
@@ -77,8 +79,37 @@
     commentTrivia.set(loc.start.offset, { type, content, location: loc, text: text() });
   }
 
+  // A step is a command: a value stands at the head of a pipeline and
+  // after a declaration, where it is the subject, and a value written as
+  // a later step is refused, a path after `!|` as well, each refusal
+  // naming the word the habit meant [D248].
+  const VALUE_STEPS = new Set(['Projection', 'VecLit', 'MapLit', 'SetLit', 'ErrorLit', 'TaggedLit', 'TagLit', 'QuoteLit', 'DocLit', 'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
+
+  function refuseValueStep(step) {
+    if (step.type === 'Projection') error(`a path is a value, which the word that takes it reads: write \`get ${step.text}\``, step.location);
+    if (step.type === 'TagLit') error(`a tag goes over the value in the pipe by \`tag\`: write \`tag ${step.text}\``, step.location);
+    if (step.type === 'QuoteLit') error('code runs on the value in the pipe by `apply`: write `apply ~(…)`', step.location);
+    if (step.type === 'VecLit' || step.type === 'MapLit' || step.type === 'SetLit' || step.type === 'TaggedLit') error('a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`', step.location);
+    error('a step is a command: a value stands at the head, where it is the subject, or as what a word takes', step.location);
+  }
+
+  function refuseValueSteps(leadingComb, head, tail) {
+    if (docQuoteDepth > 0) return;
+    if (leadingComb !== null && leadingComb[0] === '!|' && head.type === 'Projection') refuseValueStep(head);
+    let afterDeclaration = head.type === 'BindStep';
+    for (const { combinator, step } of tail) {
+      if (combinator === '!|') {
+        if (step.type === 'Projection') refuseValueStep(step);
+      } else if (VALUE_STEPS.has(step.type) && !afterDeclaration) {
+        refuseValueStep(step);
+      }
+      afterDeclaration = step.type === 'BindStep';
+    }
+  }
+
   function assemblePipeline(leadingComb, head, tail, loc, txt) {
     const hasLeadingComb = leadingComb !== null;
+    refuseValueSteps(leadingComb, head, tail);
     if (tail.length === 0 && !hasLeadingComb) return head;
     const fields = { steps: [head, ...tail] };
     if (hasLeadingComb) fields.leadingCombinator = leadingComb[0];
@@ -102,13 +133,16 @@
   // prose [D19].
   let docQuoteDepth = 0;
 
+  // How deep the parser is in a look ahead for a declaration that opens on
+  // a later line, which ends the modifiers of a command before it [D243].
+  let lookingAhead = 0;
+
   // Whether a step can call the name a declaration writes: a bare name,
   // and no word of a literal, which a step reads as its value, alone but
-  // for a label, which its tag reaches [D152].
-  const LITERAL_WORDS = new Set(['true', 'false', 'null']);
-
+  // for a label, which its tag reaches, declared by its page [D152] or by
+  // the chain that builds a kind from `::kind` [D252].
   function nameCalled(name, body) {
-    return readsAsBareKeyword(name) && (body === null || !LITERAL_WORDS.has(name));
+    return readsAsBareKeyword(name) && (body === null || builtFrom(body) === 'kind' || !LITERAL_WORDS.has(name));
   }
 
   function refuseNameNoStepCalls(key, body) {
@@ -214,11 +248,11 @@ DocBeforeDeclaration
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 // A doc written after a step with no combinator is refused: a note in a
-// pipeline is a comment, which is whitespace, and a doc as a value is
-// piped to [D125].
+// pipeline is a comment, which is whitespace, and a doc as a value stands
+// at the head or where a word takes it [D248].
 DocAfterStep
   = &{ return docQuoteDepth === 0; } &DocOpen DocOpen
-    { error('a doc after a step is a value, piped to as `| |~~ … ~~|`; a note inside a pipeline is a comment, `|~ … ~|`'); }
+    { error('a doc is a value, which stands at the head or where a word takes it; a note inside a pipeline is a comment, `|~ … ~|`'); }
 
 DocOpen
   = LineDocOpen / BlockDocOpen
@@ -297,11 +331,11 @@ Step
   / Word
   / DocLit
 
-// A projection written before a word, the method call of other
-// languages, `/ne ""`: a verb is called by its name alone.
+// A path written before a word, the method call of other languages,
+// `/ne ""`: a verb is called by its name alone.
 ProjectionBeforeWord
   = &{ return docQuoteDepth === 0; } "/" name:KeywordName &(_h1 !Combinator !"!|" Word)
-    { error('`/' + name + '` reads the key ' + name + '; a verb is called by its name alone, `' + name + ' …`'); }
+    { error('`/' + name + '` is a path, a value; a verb is called by its name alone, `' + name + ' …`'); }
 
 // A command's modifiers are words; the first may touch the name when
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
@@ -317,13 +351,35 @@ FirstModifierSeparator
 // that does not open a declaration [D66], [D243].
 ModifierGap
   = _h1 !Whitespace
-  / __ !BindStep
+  / __ !DeclarationOpens
+
+// Whether a declaration opens here [D243]: a keyword with its doc or with
+// the step its body opens with, read no further than that opening; inside
+// a quote of a doc a declaration is read whole, within which a keyword
+// alone opens one, and the depth `lookingAhead` counts is given back
+// whether the declaration is read or not.
+DeclarationOpens
+  = &{ return docQuoteDepth === 0; } BindName (__ DocOpen / _h1 !Whitespace StepOpens / __ !Keyword StepOpens)
+  / &{ return lookingAhead > 0; } BindName
+  / &{ return docQuoteDepth > 0; } &{ lookingAhead++; return true; } BindStep &{ lookingAhead--; return true; }
+  / &{ return docQuoteDepth > 0; } &{ lookingAhead--; return false; } "~("
+
+// A step opens here: no combinator, no closing bracket and no end.
+StepOpens
+  = !Combinator ![)\]},] .
 
 // A declaration: a keyword, then the doc literals of its slot and an
 // optional body, each of which may take a line of its own [D152]; a lone
 // `:foo` is a keyword. The name it writes is one a step can call [D152].
 BindStep
-  = key:BindName docs:(__ @DocSlot)? body:Body?
+  = key:BindName & { return key.name.includes('/'); } docs:(__ @DocSlot)? body:DefinitionBody?
+    & { return docs !== null || body !== null; }
+    & { return docQuoteDepth === 0 || nameCalled(key.name, body); }
+    { refuseNameNoStepCalls(key, body); return node('BindStep', { key, docs, body }, span(), text()); }
+  / key:BindName docs:(__ @DocSlot) body:ChainBody
+    & { return docQuoteDepth === 0 || nameCalled(key.name, body); }
+    { refuseNameNoStepCalls(key, body); return node('BindStep', { key, docs, body }, span(), text()); }
+  / key:BindName docs:(__ @DocSlot)? body:Body?
     & { return docs !== null || body !== null; }
     & { return docQuoteDepth === 0 || nameCalled(key.name, body); }
     { refuseNameNoStepCalls(key, body); return node('BindStep', { key, docs, body }, span(), text()); }
@@ -349,6 +405,30 @@ BodyBreak
   = _h1 !Whitespace { return false; }
   / __ { return true; }
 
+// The body of a definition, a name with a path, begun on a later line is a
+// sentence, its steps joined by a combinator up to the next declaration or
+// a value that heads the sentence after it; on the line of its name it is
+// one step, as a body is [D251]. The body of a bare name with its page,
+// begun on a later line with a tag name, is the sentence that builds from
+// the noun it names, `:Box |~~ … ~~| ::kind | wraps …` [D252]; any other
+// body of a bare name is one step.
+ChainBody
+  = !(_h1 !Whitespace) __ !TaggedLit head:TagLit tail:BodySentenceStep*
+    { return assemblePipeline(null, head, tail, span(), text()); }
+
+DefinitionBody
+  = _h1 !Whitespace body:Step { return body; }
+  / __ head:Step & { return head.type !== 'Keyword'; } tail:BodySentenceStep*
+    { return assemblePipeline(null, head, tail, span(), text()); }
+
+// A later step of a body begun on a later line: a command, or after `!|`
+// the recovery, a value among them.
+BodySentenceStep
+  = __ c:Combinator __ !BindStep step:Step & { return c === '!|' || !VALUE_STEPS.has(step.type); }
+    { return { combinator: c, step }; }
+  / __ c:PipedCombinator __ !BindStep step:Step
+    { return { combinator: c, step }; }
+
 // ── Words ──────────────────────────────────────────────────────────
 //
 // A word is a literal, a projection, a name, a quote or a pipeline in
@@ -370,14 +450,15 @@ Word
   / Name
   / Scalar
 
-// The element of a literal, which a doc value may be too; a doc after
-// a command is the next step, never its modifier.
+// The element of a literal and the object of a command, which a doc value
+// may be too [D251].
 Element
   = Word
   / DocLit
 
 ModifierWord
   = Word
+  / DocLit
 
 Name
   = callName:CallName
@@ -418,15 +499,23 @@ ParenGroup
   / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('modifiers are separated by spaces, not by commas: `f a b`'); }
 
 // A quote holds the pipeline it is written around, a leading combinator
-// included (`~(!| /trail)`); `~()` is the empty quote. A single name,
-// projection or tag name may drop the parentheses, `~add`, `~/age`.
+// included (`~(!| get /trail)`); `~()` is the empty quote. A single name
+// or tag name may drop the parentheses, `~add`, `~::T`.
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"
-    { return node('QuoteLit', { pipeline }, span(), text()); }
+    &{ return docQuoteDepth === 0 || pipeline?.type !== 'Projection'; }
+    {
+      if (pipeline?.type === 'Projection') error(`the quote of a path answers the path, which no word wants: give the path bare, \`${pipeline.text}\``);
+      return node('QuoteLit', { pipeline }, span(), text());
+    }
 
 ShortQuoteLit
-  = "~" pipeline:(Projection / TagLit / Name)
+  = "~" pipeline:(TagLit / Name)
     { return node('QuoteLit', { pipeline }, span(), text()); }
+  / &{ return docQuoteDepth === 0; } "~" path:Projection
+    { error(`the quote of a path answers the path, which no word wants: give the path bare, \`${path.text}\``); }
+  / &{ return docQuoteDepth === 0; } "~" &[{[]
+    { error('a quote is written `~(…)`, its code in parentheses; `{…}` is a map and `[…]` a vector'); }
 
 // The balance reading of a `~(…)` span inside a comment or a doc, where
 // the span is prose: parentheses nest, and a string or a comment token
@@ -523,9 +612,8 @@ BlockDocPart
   / !"~~|" c:. { return c; }
 
 // A quote of a doc, under the stack of tags written before it, which
-// gives it its role [D108]: the try counts its depth on the way in and
-// gives it back on the way out, having read a quote or not; the second
-// branch fails always, after its predicate gave the depth back.
+// gives it its role [D108], the depth `docQuoteDepth` counts given back
+// whether a quote is read or not.
 DocQuote
   = &{ docQuoteDepth++; return true; } tags:DocQuoteTag* quote:QuoteLit &{ docQuoteDepth--; return true; }
     { return tags.length === 0 ? quote : node('DocTaggedQuote', { tags, quote }, span(), text()); }
@@ -612,13 +700,17 @@ LiteralGap
   = __
   / &{ return docQuoteDepth === 0; } &(!"/" Element) Element { error('the words of a literal are set off by whitespace, and a command with modifiers stands there in parentheses, `[(f x)]`'); }
 
-// `/` alone is the identity projection; a segment is a bare key, a
-// quoted key, a namespaced keyword after `:`, or an index.
+// A path, a value of its own [D248]: a segment is a bare key, a quoted
+// key, a namespaced keyword after `:`, or an index; the slash alone names
+// no path, the value itself being `it`, and a question mark after a
+// segment, the habit of a read that may miss, leads to `query`.
 Projection
-  = "/" first:KeySegment rest:("/" @KeySegment)*
+  = &{ return docQuoteDepth === 0; } written:$("/" KeySegment ("?"? "/" KeySegment)* "?"?) &{ return written.includes('?'); }
+    { error(`a part that may be missing is read by \`query\`, which answers null where it misses: write \`query ${written.replaceAll('?', '')}\``); }
+  / "/" first:KeySegment rest:("/" @KeySegment)*
     { return node('Projection', { keys: [first, ...rest] }, span(), text()); }
-  / "/"
-    { return node('Projection', { keys: [] }, span(), text()); }
+  / &{ return docQuoteDepth === 0; } "/" !KeySegment
+    { error('the slash alone names no path: the value itself is `it`'); }
 
 KeySegment
   = ":" name:NamespacedName { return name; }

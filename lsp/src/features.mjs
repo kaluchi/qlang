@@ -8,6 +8,8 @@ import {
   findIdentifierOccurrences,
   writesTag,
   bindingNamesVisibleAt,
+  builtFrom,
+  declaresKind,
   splitAddress,
   CALL_SPELLING,
   TAG_SPELLING,
@@ -77,8 +79,8 @@ async function pageContents(address) {
   return contents;
 }
 
-// What a call of a word shows: its address and the parts of its args.
-const signatureOf = shown => [shown.address.literal, ...shown.labels].join(' ');
+// What a call of a word shows: its address and the inputs of its function.
+const signatureOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
 
 // The kinds of the subject of the step that starts at an offset, where the
 // steps before it name them, or null [D169].
@@ -268,7 +270,7 @@ async function subjectAt(source, offset) {
   return kinds === null ? null : { kinds, pipeline, end: start };
 }
 
-const STEP_AT_CURSOR = ' /';
+const STEP_AT_CURSOR = ' it';
 
 function stepsOf(pipelineNode) {
   if (pipelineNode.type !== 'Pipeline') return [{ combinator: '|', step: pipelineNode }];
@@ -277,8 +279,8 @@ function stepsOf(pipelineNode) {
 
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, and
-// a name's the labels its answer's definition names, the subject's own
-// where that is the word's own label [D169]; null where a step answers no
+// a name's the kinds its `returns` names, the subject's own where that is
+// the word's own label [D169], [D251]; null where a step answers no
 // declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
@@ -315,7 +317,7 @@ export async function hoverAtOffset(ast, source, offset) {
     return await hoverForTag(node);
   }
   if (node.type === 'Projection') {
-    return hoverForProjection(node);
+    return await hoverForProjection(node);
   }
   if (node.type === 'Keyword') {
     return {
@@ -400,10 +402,11 @@ async function hoverForTag(node) {
   };
 }
 
-function hoverForProjection(node) {
-  const pathStr = '/' + node.keys.join('/');
+// A path shows its literal over the page of the kind of paths.
+async function hoverForProjection(node) {
+  const prose = tidyProse((await pageContents('::path')).join('\n'));
   return {
-    content: `projection \`${pathStr}\` — extracts value from Map`,
+    content: markdownHardBreaks([`path \`${node.text}\``, '', prose].join('\n')),
     startOffset: node.location.start.offset,
     endOffset: node.location.end.offset
   };
@@ -433,22 +436,35 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 }
 
 // The name a declaration binds and what it declares: a label, its tag,
-// for a page alone [D168], a value otherwise.
+// for a page alone or for the chain or the literal of a kind [D252], a
+// value otherwise.
 function bindingDeclarationOf(node) {
   if (node.type !== 'BindStep') return null;
-  return node.body === null
+  return declaresKind(node)
     ? { name: tagNameOf(node.key.name), kind: 'tag' }
     : { name: node.key.name, kind: 'value' };
 }
 
+// Whether a body runs on the values of the label it is declared under: a
+// quote, and a function its chain gives a recipe, `| impl …`, or its
+// literal one that is no null [D251].
+function bodyRuns(body) {
+  if (body.type === 'QuoteLit') return true;
+  if (builtFrom(body) !== 'fn') return false;
+  const chain = body.type === 'ParenGroup' ? body.pipeline : body;
+  if (chain.type === 'TaggedLit') return chain.payload.type === 'VecLit' && chain.payload.elements[1]?.type !== 'NullLit';
+  return chain.type === 'Pipeline' && chain.steps.slice(1).some(({ step }) => step.type === 'Call' && step.name === 'impl');
+}
+
 // Whether a declaration of a value declares a word, by the core's rule: a
 // name the runtime holds as the core answers it, and one of the document
-// as `declaresWord` reads it, a quote running where a reader's
-// `::builtin{}` reaches no primitive [D34], [D169].
+// as `declaresWord` reads it, a quote or a function with a recipe running
+// where a reader's `::builtin{}` reaches no primitive [D34], [D251],
+// [D253].
 function declaresWordIn({ key, body }, runtime, isLabelName) {
   return nodeOf(runtime, key.name) !== null
     ? isWord(runtime, key.name)
-    : declaresWord(key.name, body.type === 'QuoteLit', isLabelName);
+    : declaresWord(key.name, bodyRuns(body), isLabelName);
 }
 
 // The span of the last declaration of the name that stands before the
@@ -541,7 +557,7 @@ export function documentSymbols(ast, runtime) {
   const labels = new Set();
   walkAst(ast, (node) => {
     if (node.type === 'DocLit') return false;
-    if (node.type === 'BindStep' && node.body === null) labels.add(node.key.name);
+    if (node.type === 'BindStep' && bindingDeclarationOf(node).kind === 'tag') labels.add(node.key.name);
   });
   const isLabelName = name => labels.has(name) || isLabel(runtime, name);
 
@@ -598,7 +614,7 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   const shown = shownFor(runtime, call.name, await subjectKindsAt(source, call.location.start.offset));
   if (shown === undefined) return null;
 
-  const modifiers = shown.labels;
+  const modifiers = shown.inputs;
   const docContents = await pageContents(shown.address.literal);
 
   // The active parameter is the modifier the cursor stands on or after:

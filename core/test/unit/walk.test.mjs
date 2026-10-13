@@ -188,13 +188,13 @@ describe('findIdentifierOccurrences', () => {
   it('finds the tag an error literal writes before its bang beside a tagged literal', () => {
     // `::Foo!{…}` names the tag of its content, and an error literal
     // that writes none names no tag [D13].
-    const ast = parse('::Foo!{:k 1} | [::Foo[1] !{:j 2}]');
+    const ast = parse('::Foo!{:k 1} | get [::Foo[1] !{:j 2}]');
     const refs = findIdentifierOccurrences(ast, 'Foo', TAG_SPELLING);
     expect(refs.map(ref => ref.type)).toEqual(['ErrorLit', 'TaggedLit']);
   });
 
   it('finds Projection segments by name', () => {
-    const ast = parse('/foo/bar | count');
+    const ast = parse('get /foo/bar | count');
     const refs = findIdentifierOccurrences(ast, 'foo');
     expect(refs.length).toBeGreaterThanOrEqual(1);
     expect(refs[0].type).toBe('Projection');
@@ -258,7 +258,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('includes freeze bindings', () => {
-    const source = '42 | :answer / | answer';
+    const source = '42 | :answer it | answer';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length);
     expect(visible.has('answer')).toBe(true);
@@ -317,7 +317,7 @@ describe('bindingNamesVisibleAt', () => {
 
   it('TAG_SPELLING surfaces the declarations of kinds by their names', async () => {
     const { TAG_SPELLING } = await import('../../src/walk.mjs');
-    const source = ':MyType |~~ MyType. ~~| | :MyType/construct ~(42) | 42';
+    const source = ':MyType |~~ MyType. ~~| (::kind | impl ~(42)) | 42';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length, TAG_SPELLING);
     expect(visible.has('MyType')).toBe(true);
@@ -335,7 +335,7 @@ describe('bindingNamesVisibleAt', () => {
 
   it('TAG_SPELLING honours fork-isolation rules', async () => {
     const { TAG_SPELLING } = await import('../../src/walk.mjs');
-    const source = '(:Local |~~ Local. ~~| | :Local/construct ~(42)) | here';
+    const source = '(:Local |~~ Local. ~~| (::kind | impl ~(42))) | here';
     const ast = parse(source);
     const cursorAtHere = source.indexOf('here');
     const visible = bindingNamesVisibleAt(ast, cursorAtHere, TAG_SPELLING);
@@ -363,9 +363,9 @@ describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
   });
 
   it('findIdentifierOccurrences finds a freeze declaration', () => {
-    const ast = parse('42 | :snapshot / | snapshot');
+    const ast = parse('42 | :snapshot it | snapshot');
     const refs = findIdentifierOccurrences(ast, 'snapshot');
-    // The `:snapshot /` BindStep matches by its key; bare `snapshot`
+    // The `:snapshot it` BindStep matches by its key; bare `snapshot`
     // matches as a read-site Call.
     expect(refs.length).toBeGreaterThanOrEqual(2);
   });
@@ -386,34 +386,34 @@ describe('astChildrenOf on a stepless Pipeline', () => {
 describe('readsItsSubject', () => {
   const readsOf = query => readsItsSubject(parse(query));
 
-  it('holds that a literal of no parts reads no subject', () => {
-    for (const query of ['1', '"s"', 'true', 'null', ':k', '::vec']) expect(readsOf(query), query).toBe(false);
+  it('holds that a literal of no parts reads no subject, a path among them [D248]', () => {
+    for (const query of ['1', '"s"', 'true', 'null', ':k', '::vec', '/a', '/a/0 | segments']) expect(readsOf(query), query).toBe(false);
   });
 
   it('holds that a quote reads none, its code not run', () => {
-    expect(readsOf('~(/a)')).toBe(false);
+    expect(readsOf('~(get /a)')).toBe(false);
   });
 
   it('holds that a literal of parts reads it where a part does', () => {
-    for (const query of ['[1 2]', '#[1]', '{:a 1}', '!{:a 1}', '::Box{:k 1}', '(1 | add 1)', '|~~ see ::link~(/x) ~~|']) {
+    for (const query of ['[1 2]', '#[1]', '{:a 1}', '!{:a 1}', '::Box{:k 1}', '(1 | add 1)', '|~~ see ::link~(get /x) ~~|', '[/a 1]', '{:a /b}']) {
       expect(readsOf(query), query).toBe(false);
     }
-    for (const query of ['[/a 1]', '{:a /b}', '::Box{:k /a}', '(/a)']) expect(readsOf(query), query).toBe(true);
+    for (const query of ['[(get /a) 1]', '{:a (get /b)}', '::Box{:k (get /a)}', '(get /a)']) expect(readsOf(query), query).toBe(true);
   });
 
-  it('holds that a projection, a call and a blank query read it', () => {
-    for (const query of ['/a', 'doc', '']) expect(readsOf(query), query).toBe(true);
+  it('holds that a call and a blank query read it', () => {
+    for (const query of ['get /a', 'doc', '']) expect(readsOf(query), query).toBe(true);
   });
 
   it('reads a pipeline by its first step that declares nothing', () => {
     expect(readsOf('1 | add 1')).toBe(false);
     expect(readsOf('::vec | doc')).toBe(false);
-    expect(readsOf('doc | [1]')).toBe(true);
+    expect(readsOf('doc | get [1]')).toBe(true);
     expect(readsOf(':two 2 | [1]')).toBe(false);
   });
 
   it('reads a declaration whose body reads, and a query of declarations alone', () => {
-    expect(readsOf(':x /a | [1]')).toBe(true);
+    expect(readsOf(':x (get /a) | [1]')).toBe(true);
     expect(readsOf(':two 2')).toBe(true);
     expect(readsOf(':a 1 | :b 2')).toBe(true);
   });

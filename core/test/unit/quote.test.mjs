@@ -23,10 +23,15 @@ describe('the empty quote', () => {
 });
 
 describe('isStep — the invariant of a quote', () => {
-  it('takes literals, containers of steps, docs, quotes and error literals', async () => {
-    const assembled = await evalQuery(
-      '[:k ::T |~~ d ~~| ~(x) ::error{:k 1} [1] #[2] {:a 3} [1, 2] {"j": 4}] | tag ::quote | count');
-    expect(assembled).toBe(10);
+  it('takes literals, containers of steps, docs, quotes and error literals, each a step at the head', async () => {
+    for (const element of [':k', '::T', '|~~ d ~~|', '~(x)', '::error{:k 1}', '[1]', '#[2]', '{:a 3}', '[1, 2]', '{"j": 4}', '/a/0']) {
+      expect(await evalQuery(`[${element}] | tag ::quote | count`), element).toBe(1);
+    }
+  });
+
+  it('refuses a value after the head, which reads back as no step [D248]', async () => {
+    expect(await evalQuery('[[1] [2]] | tag ::quote !| [type (get /printed)]'))
+      .toEqual(await evalQuery('[::quote/ReadBackDiffersError "[1] | [2]"]'));
   });
 
   it('refuses a container holding a value with no reading as code', async () => {
@@ -42,7 +47,7 @@ describe('assembling steps by hand', () => {
   const tagOf = name => evalQuery(name);
 
   it('a record assembled from its fields reads back as itself', async () => {
-    expect(await evalQuery('{:name :filter :modifiers [~(gt 1)]} | tag ::call | [/] | tag ::quote | parse'))
+    expect(await evalQuery('{:name :filter :modifiers [~(gt 1)]} | tag ::call | get [it] | tag ::quote | parse'))
       .toBe('filter ~(gt 1)');
   });
 
@@ -61,21 +66,21 @@ describe('assembling steps by hand', () => {
   });
 
   it('the body of a declaration may be a command with its modifiers', async () => {
-    expect(await evalQuery('::bind{:name :six :body ::call{:name :add :modifiers [1]}} | [/] | tag ::quote | parse'))
+    expect(await evalQuery('::bind{:name :six :body ::call{:name :add :modifiers [1]}} | get [it] | tag ::quote | parse'))
       .toBe(':six add 1');
   });
 
   it('a keyword or a tag name is the body of its declaration [D66]', async () => {
-    expect(await evalQuery('::bind{:name :s :body :active} | [/] | tag ::quote | parse')).toBe(':s :active');
-    expect(await evalQuery('::bind{:name :s :body ::vec} | [/] | tag ::quote | parse')).toBe(':s ::vec');
+    expect(await evalQuery('::bind{:name :s :body :active} | get [it] | tag ::quote | parse')).toBe(':s :active');
+    expect(await evalQuery('::bind{:name :s :body ::vec} | get [it] | tag ::quote | parse')).toBe(':s ::vec');
   });
 
   it('a payload that opens with a digit reads back into the tag name', async () => {
-    expect(await evalQuery('::construct{:tag ::T :payload 42} !| /printed')).toBe('::T42');
+    expect(await evalQuery('::construct{:tag ::T :payload 42} !| get /printed')).toBe('::T42');
   });
 
   it('a value of another tag is no step', async () => {
-    expect(await evalQuery('::construct{:tag ::T :payload ::Box[1]} !| [type /field]'))
+    expect(await evalQuery('::construct{:tag ::T :payload ::Box[1]} !| [type (get /field)]'))
       .toEqual(await evalQuery('[::construct/PayloadNotSchemaError :payload]'));
   });
 
@@ -83,35 +88,35 @@ describe('assembling steps by hand', () => {
     // The tag an error literal writes before its bang is the tag of the
     // error at rest it spells, so an error of any tag stands in a quote
     // [D13].
-    expect(await evalQuery('[("x" | add 1 !| /)] | tag ::quote | parse'))
+    expect(await evalQuery('[("x" | add 1 !| it)] | tag ::quote | parse'))
       .toBe('::number/add/SubjectNotNumberError!{:actualType ::string :trail [{:step ~(add 1) :subject "x" :skipped ~()}]}');
   });
 
   it('a required field left out does not fit the schema', async () => {
-    expect(await evalQuery('::call{:modifiers []} !| [type /field /actualType]'))
+    expect(await evalQuery('::call{:modifiers []} !| [type (get /field) (get /actualType)]'))
       .toEqual(await evalQuery('[::call/PayloadNotSchemaError :name ::null]'));
   });
 
-  it('an index, a tag name and calls and projections inside a container are steps', async () => {
-    expect(await evalQuery('::proj{:path [:items 0]} | [/] | tag ::quote | parse')).toBe('/items/0');
-    expect(await evalQuery('::bind{:name :point :body {:x 0}} | [/] | tag ::quote | parse')).toBe(':point {:x 0}');
-    expect(await evalQuery('~([count /a]) | filter ~(true) | parse')).toBe('[count /a]');
+  it('an index, a tag name and calls and paths inside a container are steps', async () => {
+    expect(await evalQuery('[[/items/0]] | tag ::quote | parse')).toBe('[/items/0]');
+    expect(await evalQuery('::bind{:name :point :body {:x 0}} | get [it] | tag ::quote | parse')).toBe(':point {:x 0}');
+    expect(await evalQuery('~(get [count /a]) | filter ~(true) | parse')).toBe('get [count /a]');
   });
 
   it('a payload that is no Map names no field', async () => {
-    expect(await evalQuery('[1] | tag ::proj !| [type /field]'))
-      .toEqual(await evalQuery('[::proj/PayloadNotSchemaError null]'));
+    expect(await evalQuery('[1] | tag ::call !| [type (get /field)]'))
+      .toEqual(await evalQuery('[::call/PayloadNotSchemaError null]'));
   });
 });
 
 describe('printing steps read from text', () => {
   it('a doc in the slot of a declaration prints in its slot', async () => {
-    expect(await evalQuery('~(:x |~~ note ~~| /) | parse')).toBe(':x |~~ note ~~| /');
+    expect(await evalQuery('~(:x |~~ note ~~| it) | parse')).toBe(':x |~~ note ~~| it');
   });
 
   it('a key that is no bare name prints quoted, a namespaced one behind a colon', async () => {
-    expect(await evalQuery('~(/"a b") | parse')).toBe('/"a b"');
-    expect(await evalQuery('~(/:ns/name) | parse')).toBe('/:ns/name');
+    expect(await evalQuery('~(get /"a b") | parse')).toBe('get /"a b"');
+    expect(await evalQuery('~(get /:ns/name) | parse')).toBe('get /:ns/name');
   });
 
   it('a quote read from text keeps the tree it was read from', () => {

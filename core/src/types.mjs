@@ -129,6 +129,17 @@ export function isRegex(v) {
   return isValueClass(v, 'regex');
 }
 
+// A path, the value of `/a/b/0` [D248]: the text of each segment, a key
+// of a map or a place of a vector, which the word that takes the path
+// reads.
+export function makePath(segments) {
+  return Object.freeze(brandValueClass({ segments: Object.freeze(segments.map(String)) }, 'path'));
+}
+
+export function isPath(v) {
+  return isValueClass(v, 'path');
+}
+
 // A value under a tag of its own.
 export function isTaggedInstance(v) {
   return v !== null && typeof v === 'object' && v[TAG_HEADER_SYMBOL] !== undefined;
@@ -151,29 +162,34 @@ export function makeQuote(steps, ast = undefined) {
   return Object.freeze(quote);
 }
 
-// A quote written as a modifier carries the scope of its call [D43], one
-// written as the body of a reader's declaration that of its declaration
-// [D5], and one a source of the root declared the frame of the source's
-// bare values over the root [D200], on a JS-internal slot; a quote held as
-// data carries none and runs where it is applied.
-const QUOTE_ENV_SLOT = Symbol('qlang/quoteEnv');
+// A function, a value of `::fn`: the commands that declare the inputs it
+// takes, its answer and its refusals, a quote, and its recipe, code or a
+// host's primitive, or none for a contract [D251].
+export const FN_TAG_NAME = 'fn';
 
-export function quoteInEnv(quote, env) {
-  const carried = [...quote];
-  stampTagHeader(carried, QUOTE_TAG);
-  stampSlot(carried, QUOTE_AST_SLOT, quote[QUOTE_AST_SLOT]);
-  stampSlot(carried, QUOTE_ENV_SLOT, { env });
-  return Object.freeze(carried);
+export function isFn(v) {
+  return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === FN_TAG_NAME;
 }
 
-// The holder of the scope a declared quote runs in, which its declaration
-// fills and the root sets for a quote of its sources [D200].
-export function quoteEnvRef(quote) {
-  return quote[QUOTE_ENV_SLOT];
+// A kind, a value of `::kind`: the commands that declare its payload, its
+// fields, its refusals, its invariants and its laws, a quote, and the
+// recipe that builds its values from a payload, code or a host's
+// primitive, or none for a kind that lays its tag over the payload as it
+// is [D252].
+export const KIND_TAG_NAME = 'kind';
+
+export function isKind(v) {
+  return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === KIND_TAG_NAME;
 }
 
-export function envToRun(quote, envWhereApplied) {
-  return quote[QUOTE_ENV_SLOT]?.env ?? envWhereApplied;
+// The commands of a function or of a kind, the chain that built it folded
+// into a quote, and its recipe.
+export function commandsOf(built) {
+  return built[0];
+}
+
+export function recipeOf(built) {
+  return built[1];
 }
 
 // A set is the vector in the one order without duplicates under `::set`
@@ -265,6 +281,7 @@ export const CORE_KIND = Object.freeze({
   string:  makeTag('string'),
   regex:   makeTag('regex'),
   keyword: makeTag('keyword'),
+  path:    makeTag('path'),
   tag:     makeTag('tag'),
   vec:     makeTag('vec'),
   map:     makeTag('map'),
@@ -276,7 +293,6 @@ export const CORE_KIND = Object.freeze({
 // The tags of a quote's steps [D8]: the records of what computes,
 // and the wrappers a step takes on the fail track or in parentheses.
 export const CALL_TAG   = makeTag('call');
-export const PROJ_TAG   = makeTag('proj');
 export const BIND_TAG   = makeTag('bind');
 export const CONSTRUCT_TAG = makeTag('construct');
 export const FAIL_TAG   = makeTag('fail');
@@ -303,15 +319,16 @@ export function makeTaggedInstance(tag, payload) {
 }
 
 // The descriptor of an implementation a host hands, `::builtin{}`, the
-// value of a name under a label that a primitive answers [D164].
+// recipe of a word or of a kind that a primitive answers, or the value of
+// a name under a label alone [D251], [D252], [D253].
 export function isBuiltinDescriptor(v) {
   return isQMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
 
 // A name under a label a host's source declared, which alone reaches a
 // primitive [D34], with the implementation the host handed beside that
-// source, a plain function over the values of the parts of the call's
-// args [D4], [D80].
+// source, a plain function over the values of the inputs of the call
+// [D4], [D80].
 const HOST_IMPLS = new WeakMap();
 
 export function isHostDeclared(value) {
@@ -377,6 +394,7 @@ export function typeKeyword(v) {
   if (isKeyword(v)) return CORE_KIND.keyword;
   if (isTag(v)) return CORE_KIND.tag;
   if (isRegex(v)) return CORE_KIND.regex;
+  if (isPath(v)) return CORE_KIND.path;
   if (v !== null && typeof v === 'object') {
     const headerTag = v[TAG_HEADER_SYMBOL];
     if (headerTag !== undefined) return headerTag;

@@ -13,7 +13,7 @@ import { printQuoteSource, docText } from '../quote.mjs';
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareRefusal, declareInvariantError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
-import { dispatchQlangValue, printValue, printRegex } from './print-value.mjs';
+import { dispatchQlangValue, printValue, printRegex, printPath } from './print-value.mjs';
 
 export { printValue };
 
@@ -35,6 +35,8 @@ const TO_PLAIN_HANDLERS = {
   tag:     k => k.literal,
   // A pattern writes its literal, which JSON has no form for [D246].
   regex:   printRegex,
+  // A path writes its literal, JSON Pointer's form [D248].
+  path:    printPath,
   vec:     v => v.map(toPlain),
   map:     qMapToPlainObject,
   // A value under a tag writes its tag as `$tag` beside its payload.

@@ -1,16 +1,17 @@
 // What a call reads of the kinds: the walk of a value's tags to a kind a
 // name serves, the value put under a tag through its label
-// [D168], the answer kept as its subject's kind under the tags the walk
+// [D252], the answer kept as its subject's kind under the tags the walk
 // passed [D41], and the primitive a host handed run over the value the
 // walk served [D34].
 
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { queryStateOf } from '../state.mjs';
 import { mintTaggedInstance } from '../eval.mjs';
-import { bareNameReach, isMemberValue, nodeOf, partsOfName, residencesOf, verbsReaching } from './nouns.mjs';
+import { ANY_KIND_NAME, TAGGED_KIND_NAME, bareNameReach, isMemberValue, nodeOf, residencesOf, verbsReaching } from './nouns.mjs';
+import { signatureOf } from './signature.mjs';
 import { declareRefusal } from '../errors.mjs';
 import {
-  bindingValueOf, isVec, isQMap, isTaggedInstance, isValueClass,
+  bindingValueOf, isFn, isVec, isQMap, isTaggedInstance, isValueClass,
   makeTag, typeKeyword
 } from '../types.mjs';
 
@@ -30,11 +31,11 @@ export const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerb
 // map; a number is a finite double [D169].
 function isOfKind(value, kindName) {
   switch (kindName) {
-    case 'any':   return true;
+    case ANY_KIND_NAME: return true;
     case 'number': return Number.isFinite(value);
     case 'vec':   return isVec(value);
     case 'map':   return isQMap(value);
-    case 'tagged': return isTaggedInstance(value);
+    case TAGGED_KIND_NAME: return isTaggedInstance(value);
     default:      return typeKeyword(value).name === kindName;
   }
 }
@@ -63,7 +64,7 @@ async function underTags(value, tags, state) {
 
 // The answer of the subject's own kind, minted by its constructor, a
 // set's, a tag's or a quote's among them, under the tags the walk passed
-// [D41], [D166], and at once where it is of the kind and the walk passed
+// [D41], [D169], and at once where it is of the kind and the walk passed
 // no tag.
 export function keptAsSubject(answer, served, passedTags, state) {
   const ownKind = typeKeyword(served).name;
@@ -78,29 +79,29 @@ async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
 }
 
 // A primitive runs over the value the walk served and the values of the
-// parts of the call's args, a reader of the scope over the state of
-// the call after them, its scope the tree of the query, wherever it is
+// inputs of the call, a reader of the scope over the state of the call
+// after them, its scope the tree of the query, wherever it is
 // called [D79], [D200], and a reader of the tags its subject stood
 // beneath over the tags the walk passed [D13].
-export function runPrimitive(primitive, served, passedTags, partValues, state) {
-  if (readsState(primitive)) return primitive(served, ...partValues, queryStateOf(state));
-  if (readsPassedTags(primitive)) return primitive(served, ...partValues, passedTags);
-  return primitive(served, ...partValues);
+export function runPrimitive(primitive, served, passedTags, inputValues, state) {
+  if (readsState(primitive)) return primitive(served, ...inputValues, queryStateOf(state));
+  if (readsPassedTags(primitive)) return primitive(served, ...inputValues, passedTags);
+  return primitive(served, ...inputValues);
 }
 
 // shownFor(env, name, kindNames?) → what a tool shows for a name,
-// `{ address, labels }`: the word a subject of the kinds reaches [D34], or,
+// `{ address, inputs }`: the word a subject of the kinds reaches [D34], or,
 // where the tool knows no kinds or they reach none, the address the name
 // reaches with no subject, or the first word of a name several kinds
-// answer, and the parts of the args of a call of it [D164], [D169];
+// answer, and the names of the inputs its function takes [D251];
 // undefined for a name that reaches no name under a label.
 export function shownFor(env, name, kindNames = null) {
   const reached = kindNames === null ? undefined : verbsReaching(env, kindNames).get(name);
   const record = reached === undefined
     ? bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1]
     : nodeOf(env, reached.address.name);
-  if (!isMemberValue(bindingValueOf(record))) return undefined;
-  const address = record.get('name').name;
-  const labels = partsOfName(env, address).map(([partName]) => partName);
-  return { address: makeTag(address), labels };
+  const value = bindingValueOf(record);
+  if (!isMemberValue(value)) return undefined;
+  const inputs = isFn(value) ? signatureOf(value).inputs.map(({ name: input }) => input.name) : [];
+  return { address: makeTag(record.get('name').name), inputs };
 }

@@ -66,9 +66,9 @@ export function astChildrenOf(node) {
 }
 
 // The literals of no parts, which answer themselves whatever the subject,
-// and the literals whose parts run on the subject, `[/a 1]` reading it
-// where `[1 2]` does not.
-const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit']);
+// a path among them [D248], and the literals whose parts run on the
+// subject, `[count 1]` reading it where `[1 2]` does not.
+const LITERALS_OF_NO_PARTS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit', 'Projection']);
 const LITERALS_OF_PARTS = new Set([
   'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry', 'TaggedLit', 'ParenGroup', 'DocLit', 'DocTaggedQuote'
 ]);
@@ -78,8 +78,8 @@ const LITERALS_OF_PARTS = new Set([
 // [D215]: a pipeline where its first step that declares nothing reads
 // it, or where a declaration before that step runs a body that does; a
 // literal of no parts never, nor a quote, whose code does not run; a
-// literal of parts where one of its parts reads it; a projection, a call,
-// a declaration, which answers its subject, and a node this walk does not
+// literal of parts where one of its parts reads it; a call, a
+// declaration, which answers its subject, and a node this walk does not
 // name always.
 export function readsItsSubject(node) {
   if (node.type === 'Pipeline') return stepsReadTheirSubject([node.steps[0], ...node.steps.slice(1).map(unit => unit.step)]);
@@ -131,10 +131,21 @@ export function declaredNameOf(bindStep) {
   return bindStep.key.name;
 }
 
-// declaresKind(bindStep) — whether a declaration declares a label, a name
-// by its page alone, `:Box |~~ A parcel. ~~|` [D168].
+// builtFrom(body) → the noun a body builds its value from as it is
+// written: the tag at the head of its chain of commands, in parentheses or
+// not, `::kind | wraps …`, or the tag of its literal, `::fn[~(…) ~(…)]`;
+// null for any other body [D251], [D252].
+export function builtFrom(body) {
+  const chain = body.type === 'ParenGroup' ? body.pipeline : body;
+  if (chain.type === 'TaggedLit') return chain.tag;
+  return chain.type === 'Pipeline' && chain.steps[0].type === 'TagLit' ? chain.steps[0].tag : null;
+}
+
+// declaresKind(bindStep) — whether a declaration declares a label: a name
+// by its page alone, `:Box |~~ A parcel. ~~|`, or by the chain of a kind,
+// `:Box |~~ A parcel. ~~| (::kind | wraps …)` [D252].
 export function declaresKind(bindStep) {
-  return bindStep.body === null;
+  return bindStep.body === null || builtFrom(bindStep.body) === 'kind';
 }
 
 // The declarations of a pipeline that repeat a name an earlier step of
@@ -246,14 +257,3 @@ export function bindingNamesVisibleAt(ast, offset, spelling = CALL_SPELLING) {
   return visible;
 }
 
-// locationToQlangMap(loc) → the qlang view of a span,
-// `{:start {:offset :line :column} :end {…}}`, or null for none, which
-// the `:location` of a parse error and of a declaration reads through.
-export function locationToQlangMap(loc) {
-  if (!loc) return null;
-  return Object.freeze(new Map([['start', positionToQlangMap(loc.start)], ['end', positionToQlangMap(loc.end)]]));
-}
-
-function positionToQlangMap(pos) {
-  return Object.freeze(new Map([['offset', pos.offset], ['line', pos.line], ['column', pos.column]]));
-}

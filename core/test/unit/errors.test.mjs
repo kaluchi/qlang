@@ -72,12 +72,12 @@ describe('runtime error location propagation via evalNode', () => {
   });
 
   it('the attached location points to the failing call', async () => {
-    const source = '[1 2 3] | filter ~(gt 0) | 99 | filter ~(gt 0)';
+    const source = '[1 2 3] | filter ~(gt 0) | count | filter ~(gt 0)';
     //              0         1         2         3         4
-    //              0123456789012345678901234567890123456789012345
+    //              0123456789012345678901234567890123456789012345678
     const originalErr = await catchOriginalError(source);
     expect(originalErr).not.toBeNull();
-    // The second filter is at offset 31 (`filter` after the `99 | `)
+    // The second filter is at offset 34 (`filter` after the `count | `)
     expect(originalErr.location.start.offset).toBe(source.indexOf('filter', 25));
   });
 
@@ -93,7 +93,7 @@ describe('runtime error location propagation via evalNode', () => {
   });
 
   it('per-site name is set on the refusals the runtime raises', async () => {
-    const originalErr = await catchOriginalError('1 | /name');
+    const originalErr = await catchOriginalError('1 | get /name');
     expect(originalErr.name).toBe('SubjectNotProjectableError');
   });
 });
@@ -105,7 +105,7 @@ describe('error class branding survives Object.defineProperty (minification prox
   // even if we artificially shadow the class identifier, the runtime
   // `.name` survives.
   it('class.name set by brand() persists across reassignment', async () => {
-    const originalErr = await catchOriginalError('1 | /name');
+    const originalErr = await catchOriginalError('1 | get /name');
     expect(originalErr.name).toBe('SubjectNotProjectableError');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.

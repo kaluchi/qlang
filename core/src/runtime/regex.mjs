@@ -4,7 +4,7 @@
 // between the matches.
 // The decisions it exists for: [D246].
 
-import { bindPrim } from '../primitives.mjs';
+import { bindPrim, runs } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { isRegex, isErrorValue } from '../types.mjs';
 import { engineOf } from '../pattern.mjs';
@@ -71,8 +71,8 @@ async function replacedByCode(text, engine, code) {
 // A pattern's replacement names the parts of a match, `$1`, `$<name>`,
 // `$&`; a text's stands as written. A text is looked for by code points
 // as a pattern is, so the empty text cuts no character in halves.
-bindPrim('string/replace', (text, pattern, replacement) => {
+bindPrim('string/replace', runs(['with'], (text, pattern, replacement) => {
   const engine = isRegex(pattern) ? engineFor(pattern, 'g') : engineOfText(pattern);
   if (typeof replacement === 'function') return replacedByCode(text, engine, replacement);
   return text.replace(engine, isRegex(pattern) ? replacement : () => replacement);
-});
+}));

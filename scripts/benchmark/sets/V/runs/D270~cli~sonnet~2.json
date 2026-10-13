@@ -1,0 +1,218 @@
+{
+ "set": "V",
+ "decision": "D270",
+ "screen": "D270",
+ "screenHash": "18ea9777f9f6",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-13",
+ "commit": "e7df7905",
+ "reason": null,
+ "environment": {
+  "MSYS_NO_PATHCONV": "1"
+ },
+ "modelId": "claude-sonnet-5-5",
+ "result": "All 14 queries ran against the input files and gave sensible answers. I didn't check V1–V5 or V9–V12 against the data by hand, and I never checked V11's null-assignee test against an issue with no `assignee` key.\n\n- **V1:** the total comes out as 165.48.\n- **V6:** the tags on at least 2 lines are core, io, net, parser and util.\n- **V13:** the top two regions are east (140) and south (77.47).\n- **V14:** the result is `ANN|CY|DORA|FRED`.\n\nV13 reads the CSV by splitting each line on commas, so it would break on quoted fields. The sample file has none.\n\nV1: get /data/orders | filter ~(get /status | lower | eq \"paid\") | map ~(get /items | map ~(mulOf /qty /price) | sum) | sum | mul 100 | round | div 100\nV2: get /data/orders | groupBy ~(coalesce /customer/country \"unknown\") | map ~(count)\nV3: filter ~(allOf (get /active | eq true) ~(get /roles | map ~(lower) | contains \"admin\")) | sort ~(get /name | lower) | map ~(get /name)\nV4: map ~(coalesce /age null) | filter ~(ne null) | avg | mul 10 | round | div 10\nV5: map ~(coalesce /address/city null) | filter ~(ne null) | map ~(lower) | toSet | sort\nV6: lines | filter ~(trim | ne \"\") | map ~(split \":\" | drop 1 | join \":\" | split \",\" | map ~(trim | lower) | filter ~(ne \"\") | distinct) | flat | groupBy | map ~(count) | filter ~(gte 2) | keys | map ~(toString) | sort\nV7: lines | filter ~(trim | ne \"\") | map ~(split \" \" | get [/1 /2]) | filter ~(get /0 | eq \"ERROR\") | map ~(get /1) | groupBy | map ~(count)\nV8: lines | filter ~(contains \"req=\") | filter ~(contains \"duration=\") | map ~(get {:r (capture #\"req=(?<r>\\S+)\" | get /r) :d (capture #\"duration=(?<d>\\d+)ms\" | get /d | toNumber)}) | sort ~(get /d | desc) | take 3 | map ~(get /r)\nV9: get [/dependencies /devDependencies] | reduce {} ~(union) | entries | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | sort | join \",\"\nV10: filter ~(get /state | eq \"open\") | groupBy ~(coalesce /assignee/login \"unassigned\") | map ~(map ~(get /number) | sort)\nV11: any ~(allOf (get /state | eq \"closed\") ~(get /assignee | eq null) ~(get /labels | map ~(get /name | lower) | contains \"bug\"))\nV12: :d (get /defaults/timeout) | get /services | filter ~(coalesce /enabled null | ne false) | map ~(coalesce /timeout d)\nV13: lines | drop 1 | filter ~(trim | ne \"\") | map ~(split \",\" | get {:region /0 :u (get /3 | if (eq \"\") ~(0) ~(toNumber)) :p (get /4 | toNumber)} | get {:region /region :rev (mulOf /u /p)}) | groupBy ~(get /region) | map ~(map ~(get /rev) | sum | mul 100 | round | div 100) | entries | map ~(get {:region (get /0 | toString) :revenue /1}) | sort ~(get /revenue | desc) | take 2\nV14: \"1:ann:82;2:Bob:69;3:cy:70;4:dora:91;5:Ed:55;6:fred:70\" | split \";\" | map ~(split \":\" | get [/1 /2]) | filter ~(get /1 | toNumber | gte 70) | map ~(get /0 | upper) | sort | join \"|\"",
+ "failed": false,
+ "requests": 11,
+ "turns": 12,
+ "inputTokens": 148538,
+ "outputTokens": 4499,
+ "calls": [
+  {
+   "command": "ls; head -c 600 orders.json; echo; head -c 400 users.json; echo; head -5 tags.txt logs.txt; head -3 sales.csv",
+   "answered": "value",
+   "head": "config.json issues.json logs.txt orders.json package.json sales.csv tags.txt users.json { \"status\": \"ok\", \"data\": { \"orders\": [ { \"id\": 1, \"status\": \"paid\", \"customer\": { \"name\": \"Ann\", \"country\": \"DE\" }, \"discount\": null, \"items\": [ { \"sku"
+  },
+  {
+   "command": "qlang 'get /data/orders | filter ~(get /status | lower | eq \"paid\") | map ~(get /items | map ~(mulOf /qty /price) | sum) | sum | mul 100 | round | div 100' < orders.json; qlang '::string | manifest' ; qlang '::number | manifest'; qlang '::vec | manifest'; qlang '::any | manifest'; qlang '::map | manifest'",
+   "answered": "value",
+   "head": "165.48 #[::string/PayloadNotStringError ::string/append ::string/capture ::string/construct ::string/contains ::string/count ::string/drop ::string/endsWith ::string/gt ::string/gte ::string/lines ::string/lower ::string/lt ::string/lte ::s"
+  },
+  {
+   "command": "qlang 'get /data/orders | groupBy ~(query /customer/country \"unknown\") | map ~(count)' < orders.json; qlang 'get /data/orders | map ~(query /customer/country \"unknown\")' < orders.json\nqlang '[{:a null}{}] | map ~(query /a \"u\")'",
+   "answered": "quote/ParseError",
+   "head": "{ :DE 2 :US 2 :unknown 2 :FR 2 } [\"DE\" \"US\" \"US\" \"unknown\" \"FR\" \"unknown\" \"DE\" \"FR\"] |~| raised, and no !| caught it ::quote/ParseError!{ :source \"[{:a null}{}] | map ~(query /a \\\"u\\\")\" :marker \" ^~ \" :message \"the words of a literal are se"
+  },
+  {
+   "command": "qlang '::any/coalesce | doc'",
+   "answered": "value",
+   "head": "|~~ Answers the first answer of the alternatives the call gives, run in order against the subject, that is neither null nor an error: `{:nickname null :name \"alice\"} | coalesce /nickname /name` answers `\"alice\"`. Every other value ends the "
+  },
+  {
+   "command": "qlang 'get /data/orders | groupBy ~(coalesce /customer/country \"unknown\") | map ~(count)' < orders.json\nqlang 'filter ~(allOf (get /active | eq true) ~(get /roles | map ~(lower) | contains \"admin\")) | sort ~(get /name | lower) | map ~(get /name)' < users.json\nqlang 'filter ~(get /age? | ne null)' < users.json | head -3\nqlang 'map ~(coalesce /age null) | filter ~(ne null) | avg | mul 10 | round | div 10' < users.json\nqlang 'map ~(coalesce /address/city null) | filter ~(ne null) | map ~(lower) | toSet | sort' < users.json",
+   "answered": "quote/ParseError",
+   "head": "{ :DE 2 :US 2 :unknown 2 :FR 2 } [\"Carl\" \"Egor\" \"zoe\"] |~| raised, and no !| caught it ::quote/ParseError!{ :source \"filter ~(get /age? | ne null)\" 35.2 [\"berlin\" \"paris\" \"rome\"]"
+  },
+  {
+   "command": "qlang --raw 'lines | filter ~(trim | ne \"\") | map ~(split \":\" | drop 1 | join \":\" | split \",\" | map ~(trim | lower) | filter ~(ne \"\") | toSet) | reduce [] ~(append) | groupBy | filter ~(gte 2) | keys' < tags.txt\nqlang --raw 'lines | filter ~(trim | ne \"\") | map ~(split \":\" | drop 1 | join \":\" | split \",\" | map ~(trim | lower) | filter ~(ne \"\") | distinct) | flat | groupBy | map ~(count) | filter ~(gte 2) | keys | sort' < tags.txt",
+   "answered": "vec/groupBy/KeyNotKeywordError",
+   "head": "|~| raised, and no !| caught it ::vec/groupBy/KeyNotKeywordError!{ :index 0 :actualType ::set :actualValue #[\"core\" \"parser\" \"util\"] :trail [ { :step ~(groupBy) :subject [#[\"core\" \"parser\" \"util\"] #[\"core\" \"io\"] #[\"parser\" \"util\"] #[] #[\"co"
+  },
+  {
+   "command": "qlang --raw 'lines | filter ~(trim | ne \"\") | map ~(split \":\" | drop 1 | join \":\" | split \",\" | map ~(trim | lower) | filter ~(ne \"\") | distinct) | flat | groupBy | map ~(count) | filter ~(gte 2) | keys | map ~(toString) | sort' < tags.txt\nqlang --raw 'lines | filter ~(trim | ne \"\") | map ~(split \" \" | get [/1 /2]) | filter ~(get /0 | eq \"ERROR\") | map ~(get /1) | groupBy | map ~(count)' < logs.txt\nqlang --raw 'lines | filter ~(contains \"req=\") | filter ~(contains \"duration=\") | map ~(get {:r (capture #\"req=(?<r>\\S+)\" | get /r) :d (capture #\"duration=(?<d>\\d+)ms\" | get /d | toNumber)}) | sort ",
+   "answered": "value",
+   "head": "[\"core\" \"io\" \"net\" \"parser\" \"util\"] { :db 3 :api 1 :web 1 } [\"r3\" \"r6\" \"r4\"]"
+  },
+  {
+   "command": "cat package.json | head -30; qlang 'keys' < issues.json; qlang 'get /0' < issues.json | head -30; qlang 'get /services/0' < config.json; qlang 'get /defaults' < config.json",
+   "answered": "map/keys/SubjectNotMapError",
+   "head": "{ \"name\": \"demo-app\", \"version\": \"1.2.0\", \"private\": true, \"scripts\": { \"build\": \"tsc\", \"test\": \"jest\" }, \"dependencies\": { \"express\": \"^4.18.2\", \"lodash\": \"~4.17.21\", \"zod\": \"^3.22.0\", \"chalk\": \"5.3.0\", \"axios\": \"^1.6.0\", \"left-pad\": \"*\" }"
+  },
+  {
+   "command": "qlang 'get [/dependencies /devDependencies] | reduce {} ~(union) | entries | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | sort | join \",\"' < package.json\nqlang 'filter ~(get /state | eq \"open\") | groupBy ~(coalesce /assignee/login \"unassigned\") | map ~(map ~(get /number) | sort)' < issues.json\nqlang 'any ~(allOf (get /state | eq \"closed\") ~(get /assignee | eq null) ~(get /labels | map ~(get /name | lower) | contains \"bug\"))' < issues.json\nqlang ':d (get /defaults/timeout) | get /services | filter ~(coalesce /enabled null | ne false) | map ~(coalesce /timeout d)' < config.json",
+   "answered": "value",
+   "head": "axios,eslint,express,jest,zod { :mia [101 106] :unassigned [102 107] :leo [104] } true { :auth 10 :search 30 :mail 30 :cache 5 }"
+  },
+  {
+   "command": "cat sales.csv; qlang --raw 'lines | drop 1 | filter ~(trim | ne \"\") | map ~(split \",\" | :f it | get {:region /0 :rev (mulOf /3 /4)}) ' < sales.csv | head -20",
+   "answered": "number/mul/multiplier/NotNumberError",
+   "head": "region,rep,product,units,price north,amy,widget,10,2.50 south,ben,gadget,3,19.99 north,cat,gadget,,19.99 east,dan,widget,20,2.50 south,eve,widget,7,2.50 east,fil,gizmo,2,45.00 west,gus,gizmo,1,45.00 north,amy,gizmo,1,45.00 |~| raised, and n"
+  },
+  {
+   "command": "qlang --raw 'lines | drop 1 | filter ~(trim | ne \"\") | map ~(split \",\" | get {:region /0 :u (get /3 | if (eq \"\") ~(0) ~(toNumber)) :p (get /4 | toNumber)} | get {:region /region :rev (mulOf /u /p)}) | groupBy ~(get /region) | map ~(map ~(get /rev) | sum | mul 100 | round | div 100) | entries | map ~(get {:region (get /0 | toString) :revenue /1}) | sort ~(get /revenue | desc) | take 2' < sales.csv\nqlang '\"1:ann:82;2:Bob:69;3:cy:70;4:dora:91;5:Ed:55;6:fred:70\" | split \";\" | map ~(split \":\" | get [/1 /2]) | filter ~(get /1 | toNumber | gte 70) | map ~(get /0 | upper) | sort | join \"|\"'",
+   "answered": "value",
+   "head": "[{:region \"east\" :revenue 140} {:region \"south\" :revenue 77.47}] ANN|CY|DORA|FRED"
+  }
+ ],
+ "score": [
+  {
+   "task": "V1",
+   "query": "get /data/orders | filter ~(get /status | lower | eq \"paid\") | map ~(get /items | map ~(mulOf /qty /price) | sum) | sum | mul 100 | round | div 100",
+   "answer": 165.48,
+   "solved": true
+  },
+  {
+   "task": "V2",
+   "query": "get /data/orders | groupBy ~(coalesce /customer/country \"unknown\") | map ~(count)",
+   "answer": {
+    "DE": 2,
+    "US": 2,
+    "unknown": 2,
+    "FR": 2
+   },
+   "solved": true
+  },
+  {
+   "task": "V3",
+   "query": "filter ~(allOf (get /active | eq true) ~(get /roles | map ~(lower) | contains \"admin\")) | sort ~(get /name | lower) | map ~(get /name)",
+   "answer": [
+    "Carl",
+    "Egor",
+    "zoe"
+   ],
+   "solved": true
+  },
+  {
+   "task": "V4",
+   "query": "map ~(coalesce /age null) | filter ~(ne null) | avg | mul 10 | round | div 10",
+   "answer": 35.2,
+   "solved": true
+  },
+  {
+   "task": "V5",
+   "query": "map ~(coalesce /address/city null) | filter ~(ne null) | map ~(lower) | toSet | sort",
+   "answer": [
+    "berlin",
+    "paris",
+    "rome"
+   ],
+   "solved": true
+  },
+  {
+   "task": "V6",
+   "query": "lines | filter ~(trim | ne \"\") | map ~(split \":\" | drop 1 | join \":\" | split \",\" | map ~(trim | lower) | filter ~(ne \"\") | distinct) | flat | groupBy | map ~(count) | filter ~(gte 2) | keys | map ~(toString) | sort",
+   "answer": [
+    "core",
+    "io",
+    "net",
+    "parser",
+    "util"
+   ],
+   "solved": true
+  },
+  {
+   "task": "V7",
+   "query": "lines | filter ~(trim | ne \"\") | map ~(split \" \" | get [/1 /2]) | filter ~(get /0 | eq \"ERROR\") | map ~(get /1) | groupBy | map ~(count)",
+   "answer": {
+    "db": 3,
+    "api": 1,
+    "web": 1
+   },
+   "solved": true
+  },
+  {
+   "task": "V8",
+   "query": "lines | filter ~(contains \"req=\") | filter ~(contains \"duration=\") | map ~(get {:r (capture #\"req=(?<r>\\S+)\" | get /r) :d (capture #\"duration=(?<d>\\d+)ms\" | get /d | toNumber)}) | sort ~(get /d | desc) | take 3 | map ~(get /r)",
+   "answer": [
+    "r3",
+    "r6",
+    "r4"
+   ],
+   "solved": true
+  },
+  {
+   "task": "V9",
+   "query": "get [/dependencies /devDependencies] | reduce {} ~(union) | entries | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | sort | join \",\"",
+   "answer": "axios,eslint,express,jest,zod",
+   "solved": true
+  },
+  {
+   "task": "V10",
+   "query": "filter ~(get /state | eq \"open\") | groupBy ~(coalesce /assignee/login \"unassigned\") | map ~(map ~(get /number) | sort)",
+   "answer": {
+    "mia": [
+     101,
+     106
+    ],
+    "unassigned": [
+     102,
+     107
+    ],
+    "leo": [
+     104
+    ]
+   },
+   "solved": true
+  },
+  {
+   "task": "V11",
+   "query": "any ~(allOf (get /state | eq \"closed\") ~(get /assignee | eq null) ~(get /labels | map ~(get /name | lower) | contains \"bug\"))",
+   "answer": true,
+   "solved": true
+  },
+  {
+   "task": "V12",
+   "query": ":d (get /defaults/timeout) | get /services | filter ~(coalesce /enabled null | ne false) | map ~(coalesce /timeout d)",
+   "answer": {
+    "auth": 10,
+    "search": 30,
+    "mail": 30,
+    "cache": 5
+   },
+   "solved": true
+  },
+  {
+   "task": "V13",
+   "query": "lines | drop 1 | filter ~(trim | ne \"\") | map ~(split \",\" | get {:region /0 :u (get /3 | if (eq \"\") ~(0) ~(toNumber)) :p (get /4 | toNumber)} | get {:region /region :rev (mulOf /u /p)}) | groupBy ~(get /region) | map ~(map ~(get /rev) | sum | mul 100 | round | div 100) | entries | map ~(get {:region (get /0 | toString) :revenue /1}) | sort ~(get /revenue | desc) | take 2",
+   "answer": [
+    {
+     "region": "east",
+     "revenue": 140
+    },
+    {
+     "region": "south",
+     "revenue": 77.47
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "V14",
+   "query": "\"1:ann:82;2:Bob:69;3:cy:70;4:dora:91;5:Ed:55;6:fred:70\" | split \";\" | map ~(split \":\" | get [/1 /2]) | filter ~(get /1 | toNumber | gte 70) | map ~(get /0 | upper) | sort | join \"|\"",
+   "answer": "ANN|CY|DORA|FRED",
+   "solved": true
+  }
+ ]
+}

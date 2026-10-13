@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { keyword, makeTag } from '../../src/types.mjs';
 
-const nearestOf = query => evalQuery(`${query} !| /nearest`);
+const nearestOf = query => evalQuery(`${query} !| get /nearest`);
 
 describe('an unresolved name names the names nearest to it', () => {
   it('a missing letter and a swap of two neighbours are one edit each', async () => {
@@ -30,7 +30,7 @@ describe('an unresolved name names the names nearest to it', () => {
   });
 
   it('a name that begins with a word and goes on in a capitalised tail names the words its page links that end in the tail [D118]', async () => {
-    expect(await nearestOf('{:x 1} | addOf /x /x')).toEqual([keyword('add'), keyword('sumOf')]);
+    expect(await nearestOf('{:x 1} | addOf (get /x) (get /x)')).toEqual([keyword('add'), keyword('sumOf')]);
   });
 
   it('follows the links of a page alone, by the tag a link opens with, past a capitalised tail', async () => {

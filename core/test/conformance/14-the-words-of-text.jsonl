@@ -1,0 +1,129 @@
+{"decision":"D198","name":"prepend","query":"\"world\" | prepend \"hello \"","expect":"\"hello world\""}
+{"decision":"D198","name":"append","query":"\"hello\" | append \" world\"","expect":"\"hello world\""}
+{"decision":"D198","name":"prepend-empty","query":"\"x\" | prepend \"\"","expect":"\"x\""}
+{"decision":"D198","name":"append-empty","query":"\"x\" | append \"\"","expect":"\"x\""}
+{"decision":"D169","name":"prepend-non-string","query":"42 | prepend \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D169","name":"append-non-string","query":"42 | append \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D126","name":"json-number","query":"42 | json","expect":"\"42\""}
+{"decision":"D126","name":"json-string","query":"\"hello\" | json","expect":"\"\\\"hello\\\"\""}
+{"decision":"D126","name":"json-vec","query":"[1 2 3] | json","expect":"\"[1,2,3]\""}
+{"decision":"D126","name":"json-map","query":"{:name \"Alice\" :age 30} | json","expect":"\"{\\\"name\\\":\\\"Alice\\\",\\\"age\\\":30}\""}
+{"decision":"D126","name":"json-nested","query":"{:point {:x 1 :y 2}} | json","expect":"\"{\\\"point\\\":{\\\"x\\\":1,\\\"y\\\":2}}\""}
+{"decision":"D126","name":"json-null","query":"null | json","expect":"\"null\""}
+{"decision":"D126","name":"json-keyword","query":":foo | json","expect":"\"\\\"foo\\\"\""}
+{"decision":"D126","name":"json-tag-keyword","query":"::quote/ParseError | json","expect":"\"\\\"::quote/ParseError\\\"\""}
+{"decision":"D126","name":"json-quote-renders-as-source","query":"~(count) | json","expect":"\"\\\"~(count)\\\"\""}
+{"decision":"D126","name":"json-doc-renders-as-source","query":"|~~ hello ~~| | json","expect":"\"\\\"|~~ hello ~~|\\\"\""}
+{"decision":"D126","name":"json-writes-a-set-as-the-array-of-its-elements","query":"#[3 1] | json","expect":"\"[1,3]\""}
+{"decision":"D126","name":"json-writes-a-value-under-a-tag-beside-its-payload","query":"::Box(1) | json","expect":"\"{\\\"$tag\\\":\\\"Box\\\",\\\"payload\\\":1}\""}
+{"decision":"D22","name":"needle-found-mid","query":"\"hello world\" | contains \"lo wor\"","expect":"true"}
+{"decision":"D22","name":"needle-found-at-start","query":"\"hello world\" | contains \"hello\"","expect":"true"}
+{"decision":"D22","name":"needle-found-at-end","query":"\"hello world\" | contains \"world\"","expect":"true"}
+{"decision":"D22","name":"needle-not-found","query":"\"hello\" | contains \"xyz\"","expect":"false"}
+{"decision":"D22","name":"empty-needle-always-contained","query":"\"anything\" | contains \"\"","expect":"true"}
+{"decision":"D22","name":"empty-subject-only-contains-empty","query":"\"\" | contains \"\"","expect":"true"}
+{"decision":"D22","name":"empty-subject-not-contains-non-empty","query":"\"\" | contains \"x\"","expect":"false"}
+{"decision":"D22","name":"case-sensitive","query":"\"Hello\" | contains \"hello\"","expect":"false"}
+{"decision":"D22","name":"needle-equals-subject","query":"\"foo\" | contains \"foo\"","expect":"true"}
+{"decision":"D251","name":"a-subject-that-is-no-string-is-refused-by-the-address","query":"42 | string/contains \"x\"","expect":"::string/contains/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(string/contains \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"a-needle-that-is-no-text-is-refused","query":"\"hi\" | contains 42","expect":"::string/contains/needle/NotRegexOrStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(contains 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D22","name":"filter-vec-by-substring","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(contains \"al\")","expect":"[\"alice\" \"alex\"]"}
+{"decision":"D248","name":"filter-by-path-and-contains","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(get /name | contains \"al\") | map /name","expect":"[\"alice\" \"alex\"]"}
+{"decision":"D130","name":"a-vector-contains-its-elements","query":"[\"ops\" \"db\"] | contains \"ops\"","expect":"true"}
+{"decision":"D130","name":"a-value-no-kind-of-contains-serves-names-its-addresses","query":"42 | contains \"x\" !| get /addresses","expect":"#[::set/contains ::string/contains ::vec/contains]"}
+{"decision":"D22","name":"prefix-matches","query":"\"hello world\" | startsWith \"hello\"","expect":"true"}
+{"decision":"D22","name":"prefix-equals-subject","query":"\"hello\" | startsWith \"hello\"","expect":"true"}
+{"decision":"D22","name":"prefix-not-matching","query":"\"hello\" | startsWith \"world\"","expect":"false"}
+{"decision":"D22","name":"prefix-longer-than-subject","query":"\"hi\" | startsWith \"hello\"","expect":"false"}
+{"decision":"D22","name":"empty-prefix-always-true","query":"\"anything\" | startsWith \"\"","expect":"true"}
+{"decision":"D22","name":"empty-subject-empty-prefix","query":"\"\" | startsWith \"\"","expect":"true"}
+{"decision":"D22","name":"startsWith-case-sensitive","query":"\"Hello\" | startsWith \"hello\"","expect":"false"}
+{"decision":"D251","name":"a-subject-that-is-no-string-is-refused","query":"42 | startsWith \"x\"","expect":"::string/startsWith/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(startsWith \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"a-prefix-that-is-no-text-is-refused","query":"\"hi\" | startsWith 42","expect":"::string/startsWith/prefix/NotStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(startsWith 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D22","name":"filter-vec-by-prefix","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(startsWith \"al\")","expect":"[\"alice\" \"alex\"]"}
+{"decision":"D248","name":"filter-by-path-prefix","query":"[{:path \"/usr/bin\"} {:path \"/etc/hosts\"} {:path \"/usr/lib\"}] | filter ~(get /path | startsWith \"/usr\") | map /path","expect":"[\"/usr/bin\" \"/usr/lib\"]"}
+{"decision":"D22","name":"suffix-matches","query":"\"hello world\" | endsWith \"world\"","expect":"true"}
+{"decision":"D22","name":"suffix-equals-subject","query":"\"hello\" | endsWith \"hello\"","expect":"true"}
+{"decision":"D22","name":"suffix-not-matching","query":"\"hello\" | endsWith \"world\"","expect":"false"}
+{"decision":"D22","name":"suffix-longer-than-subject","query":"\"hi\" | endsWith \"hello\"","expect":"false"}
+{"decision":"D22","name":"empty-suffix-always-true","query":"\"anything\" | endsWith \"\"","expect":"true"}
+{"decision":"D22","name":"empty-subject-empty-suffix","query":"\"\" | endsWith \"\"","expect":"true"}
+{"decision":"D22","name":"endsWith-case-sensitive","query":"\"hello\" | endsWith \"World\"","expect":"false"}
+{"decision":"D251","name":"endsWith-a-subject-that-is-no-string-is-refused","query":"42 | endsWith \"x\"","expect":"::string/endsWith/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(endsWith \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"a-suffix-that-is-no-text-is-refused","query":"\"hi\" | endsWith 42","expect":"::string/endsWith/suffix/NotStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(endsWith 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D22","name":"filter-vec-by-suffix","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter ~(endsWith \".txt\")","expect":"[\"alice.txt\" \"alex.txt\"]"}
+{"decision":"D248","name":"filter-by-path-suffix","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter ~(get /file | endsWith \".qlang\") | map /file","expect":"[\"a.qlang\" \"c.qlang\"]"}
+{"decision":"D22","name":"comma-separator","query":"\"a,b,c\" | split \",\"","expect":"[\"a\" \"b\" \"c\"]"}
+{"decision":"D22","name":"newline-separator","query":"\"line1\\nline2\\nline3\" | split \"\\n\"","expect":"[\"line1\" \"line2\" \"line3\"]"}
+{"decision":"D22","name":"semicolon-separator","query":"\"x;y;z\" | split \";\"","expect":"[\"x\" \"y\" \"z\"]"}
+{"decision":"D22","name":"space-separator","query":"\"hello world foo\" | split \" \"","expect":"[\"hello\" \"world\" \"foo\"]"}
+{"decision":"D22","name":"tab-separator","query":"\"col1\\tcol2\\tcol3\" | split \"\\t\"","expect":"[\"col1\" \"col2\" \"col3\"]"}
+{"decision":"D22","name":"multi-char-separator-double-colon","query":"\"a::b::c\" | split \"::\"","expect":"[\"a\" \"b\" \"c\"]"}
+{"decision":"D22","name":"multi-char-separator-arrow","query":"\"a -> b -> c\" | split \" -> \"","expect":"[\"a\" \"b\" \"c\"]"}
+{"decision":"D22","name":"empty-subject","query":"\"\" | split \",\"","expect":"[\"\"]"}
+{"decision":"D22","name":"no-occurrences","query":"\"abc\" | split \",\"","expect":"[\"abc\"]"}
+{"decision":"D22","name":"single-occurrence","query":"\"key=value\" | split \"=\"","expect":"[\"key\" \"value\"]"}
+{"decision":"D22","name":"trailing-separator-leaves-empty","query":"\"a,b,\" | split \",\"","expect":"[\"a\" \"b\" \"\"]"}
+{"decision":"D22","name":"leading-separator-leaves-empty","query":"\",a,b\" | split \",\"","expect":"[\"\" \"a\" \"b\"]"}
+{"decision":"D22","name":"consecutive-separators-leave-empties","query":"\"a,,b\" | split \",\"","expect":"[\"a\" \"\" \"b\"]"}
+{"decision":"D22","name":"all-separators","query":"\",,,\" | split \",\"","expect":"[\"\" \"\" \"\" \"\"]"}
+{"decision":"D22","name":"long-string-many-elements","query":"\"1,2,3,4,5,6,7,8,9,10\" | split \",\" | count","expect":"10"}
+{"decision":"D22","name":"split-then-count","query":"\"a,b,c,d\" | split \",\" | count","expect":"4"}
+{"decision":"D22","name":"split-then-first","query":"\"a,b,c\" | split \",\" | first","expect":"\"a\""}
+{"decision":"D22","name":"split-then-last","query":"\"a,b,c\" | split \",\" | last","expect":"\"c\""}
+{"decision":"D22","name":"split-then-distinct","query":"\"a,b,a,c,b\" | split \",\" | distinct","expect":"#[\"a\" \"b\" \"c\"]"}
+{"decision":"D22","name":"split-then-filter","query":"\"a,b,c,d\" | split \",\" | filter ~(allOf (eq \"a\" | not) (eq \"c\" | not))","expect":"[\"b\" \"d\"]"}
+{"decision":"D22","name":"split-then-map","query":"\"1,2,3\" | split \",\" | map ~(append \"!\")","expect":"[\"1!\" \"2!\" \"3!\"]"}
+{"decision":"D22","name":"split-roundtrip-with-join","query":"\"a,b,c\" | split \",\" | join \",\"","expect":"\"a,b,c\""}
+{"decision":"D22","name":"split-then-join-different-separator","query":"\"a,b,c\" | split \",\" | join \";\"","expect":"\"a;b;c\""}
+{"decision":"D22","name":"split-csv-line","query":"\"alice,30,engineer\" | split \",\"","expect":"[\"alice\" \"30\" \"engineer\"]"}
+{"decision":"D251","name":"split-error-non-string-subject","query":"42 | split \",\"","expect":"::string/split/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(split \",\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"split-error-vec-subject","query":"[1 2] | split \",\"","expect":"::string/split/SubjectNotStringError!{\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(split \",\")\n      :subject [1 2]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"split-error-null-subject","query":"null | split \",\"","expect":"::string/split/SubjectNotStringError!{\n  :actualType ::null\n  :trail [\n    {\n      :step ~(split \",\")\n      :subject null\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"split-error-non-string-separator","query":"\"abc\" | split 42","expect":"::string/split/separator/NotRegexOrStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(split 42)\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"split-error-keyword-separator","query":"\"abc\" | split :foo","expect":"::string/split/separator/NotRegexOrStringError!{\n  :actualValue :foo\n  :actualType ::keyword\n  :trail [\n    {\n      :step ~(split :foo)\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"split-error-vec-separator","query":"\"abc\" | split []","expect":"::string/split/separator/NotRegexOrStringError!{\n  :actualValue []\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(split [])\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D22","name":"join-comma-separator","query":"[\"a\" \"b\" \"c\"] | join \",\"","expect":"\"a,b,c\""}
+{"decision":"D22","name":"join-newline-separator","query":"[\"line1\" \"line2\" \"line3\"] | join \"\\n\"","expect":"\"line1\\nline2\\nline3\""}
+{"decision":"D22","name":"join-semicolon-separator","query":"[\"x\" \"y\" \"z\"] | join \";\"","expect":"\"x;y;z\""}
+{"decision":"D22","name":"join-space-separator","query":"[\"hello\" \"world\"] | join \" \"","expect":"\"hello world\""}
+{"decision":"D22","name":"empty-separator-concatenates","query":"[\"x\" \"y\" \"z\"] | join \"\"","expect":"\"xyz\""}
+{"decision":"D22","name":"join-multi-char-separator-double-colon","query":"[\"a\" \"b\" \"c\"] | join \"::\"","expect":"\"a::b::c\""}
+{"decision":"D22","name":"join-multi-char-separator-arrow","query":"[\"a\" \"b\" \"c\"] | join \" -> \"","expect":"\"a -> b -> c\""}
+{"decision":"D22","name":"empty-vec-yields-empty-string","query":"[] | join \",\"","expect":"\"\""}
+{"decision":"D22","name":"empty-vec-with-empty-separator","query":"[] | join \"\"","expect":"\"\""}
+{"decision":"D22","name":"singleton-vec","query":"[\"only\"] | join \",\"","expect":"\"only\""}
+{"decision":"D22","name":"singleton-vec-empty-string","query":"[\"\"] | join \",\"","expect":"\"\""}
+{"decision":"D22","name":"vec-with-empty-strings","query":"[\"\" \"\" \"\"] | join \",\"","expect":"\",,\""}
+{"decision":"D22","name":"vec-with-empty-and-non-empty","query":"[\"a\" \"\" \"b\"] | join \",\"","expect":"\"a,,b\""}
+{"decision":"D22","name":"two-elements","query":"[\"first\" \"second\"] | join \" \"","expect":"\"first second\""}
+{"decision":"D22","name":"many-elements","query":"[\"a\" \"b\" \"c\" \"d\" \"e\" \"f\" \"g\" \"h\" \"i\" \"j\"] | join \"\"","expect":"\"abcdefghij\""}
+{"decision":"D22","name":"join-after-split-roundtrip","query":"[\"a\" \"b\" \"c\"] | join \",\" | split \",\"","expect":"[\"a\" \"b\" \"c\"]"}
+{"decision":"D22","name":"join-after-filter","query":"[\"\" \"a\" \"\" \"b\"] | filter ~(eq \"\" | not) | join \",\"","expect":"\"a,b\""}
+{"decision":"D22","name":"join-after-sort","query":"[\"c\" \"a\" \"b\"] | sort | join \",\"","expect":"\"a,b,c\""}
+{"decision":"D22","name":"join-after-take","query":"[\"a\" \"b\" \"c\" \"d\"] | take 2 | join \",\"","expect":"\"a,b\""}
+{"decision":"D22","name":"join-after-reverse","query":"[\"a\" \"b\" \"c\"] | reverse | join \",\"","expect":"\"c,b,a\""}
+{"decision":"D22","name":"join-after-map","query":"[\"a\" \"b\" \"c\"] | map ~(append \"!\") | join \",\"","expect":"\"a!,b!,c!\""}
+{"decision":"D19","name":"join-error-non-vec-subject","query":"42 | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D19","name":"join-error-string-subject","query":"\"abc\" | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D16","name":"join-set-subject-joins-in-its-order","query":"#[\"b\" \"a\"] | join \",\"","expect":"\"a,b\""}
+{"decision":"D19","name":"join-error-map-subject","query":"{:a 1} | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::map\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject {:a 1}\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"join-error-element-not-string","query":"[\"a\" 42 \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue 42\n  :actualType ::number\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" 42 \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"join-error-element-null","query":"[\"a\" null \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue null\n  :actualType ::null\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" null \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"join-error-element-vec","query":"[\"a\" [:tag] \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue [:tag]\n  :actualType ::vec\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" [:tag] \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D251","name":"join-error-non-string-separator","query":"[\"a\" \"b\"] | join 42","expect":"::vec/join/separator/NotKeywordOrStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(join 42)\n      :subject [\"a\" \"b\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D198","name":"join-keyword-separator-written-as-its-name","query":"[\"a\" \"b\"] | join :foo","expect":"\"afoob\""}
+{"decision":"D107","name":"lower-folds-the-case-of-a-string","query":"\"Ann@Example.COM\" | lower","expect":"\"ann@example.com\""}
+{"decision":"D107","name":"upper-raises-the-case-of-a-string","query":"\"ok, go\" | upper","expect":"\"OK, GO\""}
+{"decision":"D107","name":"strings-that-differ-in-case-alone-meet-once-lowered","query":"[\"Ann\" \"ANN\" \"bob\"] | map ~lower | distinct | count","expect":"2"}
+{"decision":"D107","name":"lower-refuses-a-subject-that-is-no-string","query":"42 | lower !| type","expect":"::string/lower/SubjectNotStringError"}
+{"decision":"D107","name":"a-vector-has-an-element-equal-to-one","query":"[\"ops\" \"db\"] | has \"ops\"","expect":"true"}
+{"decision":"D107","name":"a-vector-lacks-an-element-it-does-not-hold","query":"[1 [2]] | has [3]","expect":"false"}
+{"decision":"D132","name":"a-string-counts-its-characters","query":"\"привет\" | count","expect":"6"}
+{"decision":"D132","name":"a-string-takes-its-first-characters","query":"\"db_host\" | take 2","expect":"\"db\""}
+{"decision":"D132","name":"a-string-drops-its-first-characters","query":"\"db_host\" | drop 3","expect":"\"host\""}
+{"decision":"D132","name":"ne-is-the-negation-of-eq","query":"[1 null 2] | filter ~(ne null)","expect":"[1 2]"}
+{"decision":"D132","name":"round-rounds-half-away-from-zero","query":"[2.5 -2.5 3.4] | map ~round","expect":"[3 -3 3]"}
+{"decision":"D132","name":"round-keeps-the-digits-the-call-gives","query":"3.14159 | round 2","expect":"3.14"}
+{"decision":"D132","name":"a-step-after-a-piped-combinator-names-its-own-fault","query":"\"[1 2] | !| {:a (/x | mul) /y}\" | parse !| get /message | contains \"map entry\"","expect":"true"}
+{"decision":"D22","name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]"}

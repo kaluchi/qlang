@@ -44,9 +44,14 @@ export function* recordsOf(transcriptPath) {
 // or a report a subagent handed back, or a message queued while the model
 // worked.
 export function* typedByMaintainer(record) {
-  if (record.type === 'queue-operation' && record.operation === 'enqueue') yield record.content;
+  if (record.type === 'queue-operation' && record.operation === 'enqueue') yield typedAfterPaste(record.content);
   if (record.type !== 'user' || record.isCompactSummary || record.isMeta) return;
   const content = record.message?.content;
-  if (typeof content === 'string') yield content;
-  else for (const part of content ?? []) if (part.type === 'text') yield part.text;
+  if (typeof content === 'string') yield typedAfterPaste(content);
+  else for (const part of content ?? []) if (part.type === 'text') yield typedAfterPaste(part.text);
 }
+
+// The words a message holds after the pastes that open it, which the
+// maintainer handed and did not type.
+const LEADING_PASTES = /^\s*(?:<pasted_content id="[^"]*">[\s\S]*?<\/pasted_content id="[^"]*">\s*)+/;
+const typedAfterPaste = text => (typeof text === 'string' ? text.replace(LEADING_PASTES, '') : text);

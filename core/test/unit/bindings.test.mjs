@@ -1,5 +1,5 @@
 // Binding declarations — BindStep (`:name body`), the freeze
-// `:name /` among them.
+// `:name it` among them.
 // Every binding declaration parses through `evalBindStep` at the
 // AST level, with no call around it.
 
@@ -25,10 +25,10 @@ describe('BindStep — docs-only form', () => {
     expect(docText(doc)).toBe(' placeholder note');
   });
 
-  it('a kind declared with a doc reads its page, the value of its record [D168]', async () => {
+  it('a label declared by its page alone reads its page, the value of its record [D253]', async () => {
     const doc = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | doc | content');
     expect(doc).toContain('short tag prose');
-    const value = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | binding | /value | type');
+    const value = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | binding | get /value | type');
     expect(value).toEqual(makeTag('doc'));
   });
 });
@@ -60,14 +60,14 @@ describe('BindStep — value-body purity routing', () => {
   });
 });
 
-describe('BindStep — a word with parts', () => {
-  it('a word binds its parts from the modifiers of the call', async () => {
-    expect(await evalQuery(':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx ~(/0) | :any/surround/sfx ~(/1) | "x" | surround "[" "]"'))
+describe('BindStep — a word with inputs', () => {
+  it('a word binds its inputs from the modifiers of the call', async () => {
+    expect(await evalQuery(':any/surround (::fn | takes :pfx |~~ The prefix. ~~| /0 | takes :sfx |~~ The suffix. ~~| /1 | impl ~(prepend pfx | append sfx)) | "x" | surround "[" "]"'))
       .toBe('[x]');
   });
 
-  it('the part x binds the modifier', async () => {
-    expect(await evalQuery(':any/add1 ~(add x) | :any/add1/x ~(/0) | 5 | add1 10')).toBe(15);
+  it('the input x binds the modifier', async () => {
+    expect(await evalQuery(':any/add1 (::fn | takes :x |~~ How much. ~~| /0 | impl ~(add x)) | 5 | add1 10')).toBe(15);
   });
 });
 

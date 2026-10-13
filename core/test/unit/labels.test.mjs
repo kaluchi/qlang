@@ -1,88 +1,80 @@
-// Names under a label [D164], [D166]: a label declared by its page, the
-// names declared under it running on its values, a call's object and its
-// parts, a host's primitive under a label, and the refusals named by the
-// address of what refused.
+// Words and kinds under a label [D251], [D252]: a kind its chain builds,
+// the words declared under it running on its values, the inputs a call's
+// object holds, a host's primitive under a label, and the refusals named
+// by the address of what refused.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
+import { runs } from '../../src/primitives.mjs';
 import { makeTag, makeTaggedInstance } from '../../src/types.mjs';
 
 // The steps of a query a line each, joined by `|` [D243].
 const lines = (...steps) => steps.join('\n| ');
 
 const BOX = lines(
-  ':Box |~~ A parcel. ~~|',
-  ':Box/LengthNotPositiveError |~~ A box has a length. ~~| ::holds~(/0 | gt 0)',
-  ':Box/length |~~ The length. ~~| ~(/0)',
-  ':Box/put |~~ The same box with another weight inside. ~~| ~(within ~(take 1 | append weight))',
-  ':Box/put/weight |~~ The weight to put inside. ~~| ~(/0)',
-  ':Box/put/weight/NotNumberError |~~ The weight is a number. ~~| ::holds~(type | eq ::number)',
-  ':Box/scaled |~~ The length scaled. ~~| ~(length | mul (factor | add 1))',
-  ':Box/scaled/factor |~~ The factor, one less than the scale. ~~| ~(/0 | add 1)',
-  ':Box/tally |~~ The lead and the rest. ~~| ~([lead rest])',
-  ':Box/tally/lead |~~ The lead, null when left out. ~~| ~(at 0)',
-  ':Box/tally/rest |~~ The values after the lead. ~~| ~(drop 1)',
-  ':Box/past |~~ A place past the end. ~~| ~(/9)',
+  ':Box |~~ A parcel. ~~| (::kind | holds :LengthNotPositiveError |~~ A box has a length. ~~| ~(get /0 | gt 0))',
+  ':Box/length |~~ The length. ~~| ~(get /0)',
+  ':Box/put |~~ The same box with another weight inside. ~~| (::fn | takes :weight |~~ The weight to put inside. ~~| /0 | holds :weight/NotNumberError |~~ The weight is a number. ~~| ~(type | eq ::number) | impl ~(within ~(take 1 | append weight)))',
+  ':Box/scaled |~~ The length scaled. ~~| (::fn | takes :factor |~~ The factor, one less than the scale. ~~| ~(get /0 | add 1) | impl ~(length | mul (factor | add 1)))',
+  ':Box/tally |~~ The lead and the rest. ~~| (::fn | takes :lead |~~ The lead, null when left out. ~~| ~(query /0) | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ~([lead rest]))',
+  ':Box/past |~~ A place past the end. ~~| ~(get /9)',
   ''
 );
 
-describe('a label declared by its page', () => {
-  it('builds its payload by the construct declared under it', async () => {
+describe('a kind built from ::kind', () => {
+  it('builds its payload by its recipe', async () => {
     expect(await evalQuery(lines(
-      ':Pair |~~ Two values. ~~|',
-      ':Pair/construct |~~ The pair of a value. ~~| ~([/ /])',
+      ':Pair |~~ Two values. ~~| (::kind | impl ~([it it]))',
       '::Pair(3) | payload'
     ))).toEqual([3, 3]);
   });
 
-  it('answers the error its construct answers', async () => {
+  it('answers the error its recipe answers', async () => {
     expect(await evalQuery(lines(
-      ':Small |~~ A number below ten. ~~|',
-      ':Small/construct |~~ The number, if below ten. ~~| ~(if (lt 10) ~(/) ~(!{:reason :big} | raise))',
-      '::Small(12) !| /reason'
+      ':Small |~~ A number below ten. ~~| (::kind | impl ~(if (lt 10) ~(it) ~(!{:reason :big} | raise)))',
+      '::Small(12) !| get /reason'
     ))).toEqual(await evalQuery(':big'));
   });
 
-  it('answers the error its body answers', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | past !| type')).toEqual(makeTag('proj/IndexOutOfBoundsError'));
+  it('answers the error the recipe of its word answers', async () => {
+    expect(await evalQuery(BOX + '::Box[4 2] | past !| type')).toEqual(makeTag('path/IndexOutOfBoundsError'));
   });
 
-  it('calls a name under it by its address', async () => {
+  it('calls a word under it by its address', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | Box/length')).toBe(4);
   });
 
-  it('refuses under the name a subject the walk of whose tags reaches no value of the label', async () => {
+  it('refuses under the word a subject the walk of whose tags reaches no value of the label', async () => {
     expect(await evalQuery(BOX + '5 | Box/length !| type')).toEqual(makeTag('Box/length/SubjectNotBoxError'));
   });
 });
 
 describe('the object of a call', () => {
-  it('refuses under the part a place the object does not hold', async () => {
+  it('refuses under the input a place the object does not hold', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | put !| type')).toEqual(makeTag('Box/put/weight/NotGivenError'));
   });
 
-  it('hands on the error a part answers for a place it holds', async () => {
+  it('hands on the error an input answers for a place it holds', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | scaled "x" !| type')).toEqual(makeTag('number/add/SubjectNotNumberError'));
   });
 
   it('hands on the error a modifier answers', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | put (/missing) !| type')).toEqual(makeTag('proj/IndexNotIntegerError'));
+    expect(await evalQuery(BOX + '::Box[4 2] | put (get /missing) !| type')).toEqual(makeTag('path/IndexNotIntegerError'));
   });
 
-  it('reads a place softly by at, and the values after the lead by any other step', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | [tally (tally 1 2 3)]')).toEqual(await evalQuery('[[null []] [1 [2 3]]]'));
+  it('reads a place softly by query, and the values after the lead by any other step', async () => {
+    expect(await evalQuery(BOX + '::Box[4 2] | get [tally (tally 1 2 3)]')).toEqual(await evalQuery('[[null []] [1 [2 3]]]'));
   });
 
-  it('reads the page of the law that refused, named by its refusal [D169]', async () => {
+  it('reads the page of the invariant that refused, named by its refusal', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | put "x" !| explain | page | content'))
       .toBe(' The weight is a number. ');
   });
 
-  it('lets a name under a label fold as a reducer', async () => {
+  it('lets a word under a label fold as a reducer', async () => {
     expect(await evalQuery(lines(
-      ':number/addTo |~~ The sum with n. ~~| ~(add n)',
-      ':number/addTo/n |~~ The number added. ~~| ~(/0)',
+      ':number/addTo |~~ The sum with n. ~~| (::fn | takes :n |~~ The number added. ~~| /0 | impl ~(add n))',
       '[1 2 3] | reduce 0 ~(addTo)'
     ))).toBe(6);
   });
@@ -96,24 +88,19 @@ describe('the object of a call', () => {
 });
 
 describe('a host\'s primitive under a label', () => {
-  it('runs over the served value and the parts of the object, a quote closed at the call where the part asks for one', async () => {
+  it('runs over the served value and the inputs of the object, a quote closed at the call where the input is run', async () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/gauge',
         source: lines(
-          ':Gauge |~~ A reading. ~~|',
-          ':Gauge/construct |~~ The reading as a number. ~~| ::builtin{}',
-          ':Gauge/over |~~ Whether the reading passes the test. ~~| ::builtin{}',
-          ':Gauge/over/test |~~ The test. ~~| ~(/0)',
-          ':Gauge/over/test/NotQuoteError |~~ The test is code. ~~| ::holds~(is ::quote)',
-          ':Gauge/shifted |~~ The reading shifted. ~~| ::builtin{}',
-          ':Gauge/shifted/by |~~ The shift. ~~| ~(/0)',
-          ':Dial |~~ A reading of a dial. ~~|',
-          ':Dial/construct |~~ The reading under the label already. ~~| ::builtin{}'
+          ':Gauge |~~ A reading. ~~| (::kind | impl ::builtin{})',
+          ':Gauge/over |~~ Whether the reading passes the test. ~~| (::fn | takes :test |~~ The test. ~~| /0 ::quote | impl ::builtin{})',
+          ':Gauge/shifted |~~ The reading shifted. ~~| (::fn | takes :by |~~ The shift. ~~| /0 | impl ::builtin{})',
+          ':Dial |~~ A reading of a dial. ~~| (::kind | impl ::builtin{})'
         ),
         impls: {
           'Gauge/construct': payload => payload * 2,
-          'Gauge/over': async (reading, test) => test(reading),
+          'Gauge/over': runs(['test'], async (reading, test) => test(reading)),
           'Gauge/shifted': (reading, by) => reading.payload + by,
           'Dial/construct': payload => makeTaggedInstance(makeTag('Dial'), payload + 1)
         }
@@ -130,31 +117,27 @@ describe('a host\'s primitive under a label', () => {
     const session = await createSession({
       sources: [{ uri: 'probe/note', source: ':any/note ::builtin{}', impls: { 'any/note': subject => { noted += 1; return subject; } } }]
     });
-    expect((await session.evalCell('[1 2] | at /nope ("ran" | note) !| type')).result).toEqual(makeTag('proj/IndexNotIntegerError'));
+    expect((await session.evalCell('[1 2] | query (get /nope) ("ran" | note) !| type')).result).toEqual(makeTag('path/IndexNotIntegerError'));
     expect(noted).toBe(0);
   });
 
-  it('reads the values after a primitive\'s lead by code over the object, its parts in the order of their places [D167], [D169]', async () => {
+  it('reads the values after a primitive\'s lead by code over the object', async () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/zap',
-        source: lines(
-          ':vec/zap ::builtin{}',
-          ':vec/zap/rest |~~ The values after the lead. ~~| ~(drop 1)',
-          ':vec/zap/lead |~~ The lead. ~~| ~(/0)'
-        ),
+        source: ':vec/zap (::fn | takes :lead |~~ The lead. ~~| /0 | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ::builtin{})',
         impls: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
       }]
     });
     expect((await session.evalCell('[9] | zap 1 2 3')).result).toEqual([1, 2]);
   });
 
-  it('hands a primitive its parts in the order of their places, whatever the order of their declarations [D167]', async () => {
+  it('hands a primitive its inputs in the order its chain takes them, whatever their places', async () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/pair',
-        source: lines(':vec/pair2 ::builtin{}', ':vec/pair2/b |~~ The second. ~~| ~(/1)', ':vec/pair2/a |~~ The first. ~~| ~(/0)'),
-        impls: { 'vec/pair2': (subject, a, b) => [a, b] }
+        source: ':vec/pair2 (::fn | takes :b |~~ The second. ~~| /1 | takes :a |~~ The first. ~~| /0 | impl ::builtin{})',
+        impls: { 'vec/pair2': (subject, b, a) => [a, b] }
       }]
     });
     expect((await session.evalCell('[0] | pair2 1 2')).result).toEqual([1, 2]);

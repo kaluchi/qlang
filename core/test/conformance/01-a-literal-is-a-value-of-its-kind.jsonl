@@ -1,0 +1,95 @@
+{"decision":"D32","name":"integer","query":"42","expect":"42"}
+{"decision":"D32","name":"negative-integer","query":"-7","expect":"-7"}
+{"decision":"D32","name":"decimal","query":"3.14","expect":"3.14"}
+{"decision":"D32","name":"string","query":"\"hello\"","expect":"\"hello\""}
+{"decision":"D32","name":"empty-string","query":"\"\"","expect":"\"\""}
+{"decision":"D32","name":"true","query":"true","expect":"true"}
+{"decision":"D32","name":"false","query":"false","expect":"false"}
+{"decision":"D32","name":"null","query":"null","expect":"null"}
+{"decision":"D32","name":"empty-vec","query":"[]","expect":"[]"}
+{"decision":"D32","name":"single-element-vec","query":"[1]","expect":"[1]"}
+{"decision":"D32","name":"multi-element-vec","query":"[1 2 3 4 5]","expect":"[1 2 3 4 5]"}
+{"decision":"D32","name":"vec-of-strings","query":"[\"a\" \"b\" \"c\"]","expect":"[\"a\" \"b\" \"c\"]"}
+{"decision":"D32","name":"nested-vec","query":"[[1 2] [3 4]]","expect":"[[1 2] [3 4]]"}
+{"decision":"D32","name":"empty-set","query":"#[]","expect":"#[]"}
+{"decision":"D32","name":"empty-map","query":"{}","expect":"{}"}
+{"decision":"D32","name":"quoted-keyword-with-space","query":":\"foo bar\"","expect":":\"foo bar\""}
+{"decision":"D32","name":"quoted-keyword-empty-string","query":":\"\"","expect":":\"\""}
+{"decision":"D32","name":"quoted-keyword-leading-digit","query":":\"123\"","expect":":\"123\""}
+{"decision":"D32","name":"quoted-keyword-sigil-prefix","query":":\"$ref\"","expect":":\"$ref\""}
+{"decision":"D32","name":"quoted-keyword-equals-bare-form","query":":\"name\" | eq :name","expect":"true"}
+{"decision":"D1","name":"quoted-keyword-with-newline-escape","query":":\"line1\\nline2\" | eq :\"line1\\nline2\"","expect":"true"}
+{"decision":"D248","name":"map-with-quoted-key-path","query":"{:\"weird key\" 42} | get /\"weird key\"","expect":"42"}
+{"decision":"D248","name":"map-with-quoted-empty-key","query":"{:\"\" \"value-of-empty\"} | get /\"\"","expect":"\"value-of-empty\""}
+{"decision":"D248","name":"map-with-mixed-bare-and-quoted-keys","query":"{:foo 1 :\"bar baz\" 2} | get /\"bar baz\"","expect":"2"}
+{"decision":"D1","name":"unicode-escape-basic","query":"\"\\u0041\"","expect":"\"A\""}
+{"decision":"D1","name":"unicode-escape-multibyte","query":"\"\\u00e9\"","expect":"\"\\u00e9\""}
+{"decision":"D1","name":"unicode-escape-in-string","query":"\"hello\\u0020world\"","expect":"\"hello world\""}
+{"decision":"D1","name":"unicode-escape-equality","query":"\"\\u0041\" | eq \"A\"","expect":"true"}
+{"decision":"D1","name":"solidus-escape","query":"\"\\/\"","expect":"\"/\""}
+{"decision":"D1","name":"backspace-escape","query":"\"a\\bb\" | contains \"a\"","expect":"true"}
+{"decision":"D1","name":"formfeed-escape","query":"\"a\\fb\" | contains \"a\"","expect":"true"}
+{"decision":"D248","name":"json-object-with-unicode-key","query":"{\"k\\u0065y\": 42} | get /key","expect":"42"}
+{"decision":"D1","name":"all-json-escapes-in-one","query":"\"\\\"\\\\\\/_\\n\\t\\r\\b\\f\" | contains \"_\"","expect":"true"}
+{"decision":"D32","name":"a-vector-has-the-kind-its-brackets-imply","query":"[1 2] | type","expect":"::vec"}
+{"decision":"D32","name":"null-has-a-kind-of-its-own","query":"null | type","expect":"::null"}
+{"decision":"D32","name":"a-tag-name-has-the-kind-tag","query":"::foo | type","expect":"::tag"}
+{"decision":"D32","name":"a-reserved-word-names-a-kind-after-the-tag-sigil","query":"::null","expect":"::null"}
+{"decision":"D32","name":"a-reserved-word-is-a-segment-of-a-namespaced-keyword","query":":qlang/type/null","expect":":qlang/type/null"}
+{"decision":"D32","name":"the-constructor-of-a-kind-reads-its-payload-as-the-value","query":"::vec[1 2]","expect":"[1 2]"}
+{"decision":"D244","name":"the-vector-kind-refuses-a-set-which-toVec-turns","query":"[(::vec#[2 1] !| type) (#[2 1] | toVec)]","expect":"[::vec/PayloadNotVecError [1 2]]"}
+{"decision":"D244","name":"the-vector-kind-refuses-a-quote-whose-steps-payload-reads","query":"[(::vec~(a | b) !| type) (~(a | b) | payload | type)]","expect":"[::vec/PayloadNotVecError ::vec]"}
+{"decision":"D244","name":"the-map-kind-refuses-a-map-under-a-tag-whose-map-payload-reads","query":"[(::map::Box{:a 1} !| type) (::Box{:a 1} | payload | type)]","expect":"[::map/PayloadNotMapError ::map]"}
+{"decision":"D32","name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::number/PayloadNotNumberError"}
+{"decision":"D119","name":"the-kind-of-a-value-has-its-page","query":"5 | type | doc | type | eq ::doc","expect":"true"}
+{"decision":"D32","name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string"}
+{"decision":"D32","name":"type-null","query":"null | type","expect":"::null"}
+{"decision":"D32","name":"type-boolean-true","query":"true | type","expect":"::boolean"}
+{"decision":"D32","name":"type-boolean-false","query":"false | type","expect":"::boolean"}
+{"decision":"D32","name":"type-number-integer","query":"42 | type","expect":"::number"}
+{"decision":"D32","name":"type-number-decimal","query":"3.14 | type","expect":"::number"}
+{"decision":"D32","name":"type-number-negative","query":"-7 | type","expect":"::number"}
+{"decision":"D32","name":"type-number-zero","query":"0 | type","expect":"::number"}
+{"decision":"D32","name":"type-string","query":"\"hello\" | type","expect":"::string"}
+{"decision":"D32","name":"type-string-empty","query":"\"\" | type","expect":"::string"}
+{"decision":"D32","name":"type-keyword","query":":name | type","expect":"::keyword"}
+{"decision":"D32","name":"type-tag-keyword","query":"::Foo | type","expect":"::tag"}
+{"decision":"D20","name":"type-of-a-value-under-a-tag-is-the-tag","query":"::AutoBox[1 2 3] | type","expect":"::AutoBox"}
+{"decision":"D1","name":"type-json-array-syntax-reads-as-a-vector","query":"[1, 2] | type","expect":"::vec"}
+{"decision":"D1","name":"type-json-object-syntax-reads-as-a-map","query":"{\"k\": 1} | type","expect":"::map"}
+{"decision":"D32","name":"type-vec","query":"[1 2 3] | type","expect":"::vec"}
+{"decision":"D32","name":"type-vec-empty","query":"[] | type","expect":"::vec"}
+{"decision":"D32","name":"type-quote","query":"~(mul 2) | type","expect":"::quote"}
+{"decision":"D32","name":"type-doc","query":"|~~ note ~~| | type","expect":"::doc"}
+{"decision":"D32","name":"type-map","query":"{:a 1} | type","expect":"::map"}
+{"decision":"D32","name":"type-map-empty","query":"{} | type","expect":"::map"}
+{"decision":"D32","name":"type-of-a-map-carrying-a-kind-field-is-map","query":"{:kind ::Foo :a 1} | type","expect":"::map"}
+{"decision":"D32","name":"type-set","query":"#[1 2] | type","expect":"::set"}
+{"decision":"D32","name":"type-set-empty","query":"#[] | type","expect":"::set"}
+{"decision":"D46","name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D20","name":"type-of-the-payload-reads-past-its-tag","query":"::AutoBox[1 2 3] | payload | type","expect":"::vec"}
+{"decision":"D248","name":"classify-strict-path-flushes-the-pending-trail","query":"{} | get /missing | type | eq ::null","expect":"::path/KeyNotInMapError!{\n  :key :missing\n  :nearest []\n  :path /missing\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /missing)\n      :subject {}\n      :skipped ~(type | eq ::null)\n    }\n  ]\n} | raise"}
+{"decision":"D32","name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
+{"decision":"D32","name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
+{"decision":"D32","name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}
+{"decision":"D20","name":"tags-stack-over-a-payload-and-read-from-the-outside-in","query":"::A::B{} | get [type (payload | type)]","expect":"[::A ::B]"}
+{"decision":"D20","name":"a-tag-stacks-over-a-scalar-as-over-a-container","query":"::A(1) | get [type payload]","expect":"[::A 1]"}
+{"decision":"D20","name":"a-tag-taken-as-a-value-is-the-kind-as-a-subject","query":"::vec | manifest | has ::vec/count","expect":"true"}
+{"decision":"D221","name":"namespaced-keyword-parse","query":":qlang/error","expect":":qlang/error"}
+{"decision":"D221","name":"namespaced-keyword-hierarchical","query":":qlang/core/strings","expect":":qlang/core/strings"}
+{"decision":"D221","name":"namespaced-keyword-in-map-and-has","query":"{:qlang/error 42} | has :qlang/error","expect":"true"}
+{"decision":"D221","name":"namespaced-keyword-equality","query":":qlang/error | eq :qlang/error","expect":"true"}
+{"decision":"D221","name":"namespaced-keyword-not-equal","query":":qlang/error | eq :qlang/http","expect":"false"}
+{"decision":"D248","name":"path-still-multi-segment","query":"{:a {:b 99}} | get /a/b","expect":"99"}
+{"decision":"D221","name":"namespaced-in-set","query":"#[:qlang/a :qlang/b] | count","expect":"2"}
+{"decision":"D221","name":"namespaced-in-has","query":"#[:qlang/error :qlang/http] | has :qlang/error","expect":"true"}
+{"decision":"D248","name":"keyword-path-simple","query":"{:name \"alice\"} | get /:name","expect":"\"alice\""}
+{"decision":"D248","name":"keyword-path-namespaced","query":"{:qlang/error 42} | get /:qlang/error","expect":"42"}
+{"decision":"D248","name":"keyword-path-deep-ns","query":"{:qlang/core/strings 99} | get /:qlang/core/strings","expect":"99"}
+{"decision":"D248","name":"keyword-path-two-ns-segments","query":"{:qlang/error {:retry 42}} | get /:qlang/error/:retry","expect":"42"}
+{"decision":"D248","name":"keyword-path-deep-then-simple","query":"{:qlang/core/strings {:trim 1}} | get /:qlang/core/strings/:trim","expect":"1"}
+{"decision":"D248","name":"keyword-path-mixed-bare-ns","query":"{:outer {:qlang/error 42}} | get /outer/:qlang/error","expect":"42"}
+{"decision":"D248","name":"keyword-path-ns-missing","query":"{:qlang/error 42} | get /:qlang/http","expect":"::path/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :path /:qlang/http\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /:qlang/http)\n      :subject {:qlang/error 42}\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D248","name":"bare-path-unchanged","query":"{:a {:b {:c 42}}} | get /a/b/c","expect":"42"}
+{"decision":"D248","name":"keyword-path-equiv-bare","query":"{:name 42} | get /:name","expect":"42"}
+{"decision":"D248","name":"keyword-path-equiv-bare-nested","query":"{:a {:b 42}} | get /:a/:b","expect":"42"}

@@ -10,46 +10,57 @@ the decision it stands by. A finding not yet settled says open.
 The audits are run with one prompt from time to time, and the work
 takes from each what it takes, or goes its own way; the next audit,
 compared with the ones before, shows how the reading of the language,
-its strengths and its problems, drifts. The four so far are named
-below by their trees, 401046d, 68af9ab5, 6f8c9422 and 7fe783f6.
+its strengths and its problems, drifts. The five so far are named
+below by their trees, 401046d, 68af9ab5, 6f8c9422, 7fe783f6 and
+3495de5d.
 
 ## The drift of the assessment
 
 The strengths, theme by theme, and the audits that named each:
 
 - The failure as a value under the address of its site, with its trail,
-  and the two tracks, `|` and `!|`: all four.
-- The literal as the shape of the answer, a step of its own: all four.
+  and the two tracks, `|` and `!|`: all five.
+- The literal as the shape of the answer: all five; a step of its own in
+  the first four, at the head and under `get` since D248.
 - A grammar that teaches, its refusals naming the habit of another
-  language: all four.
+  language: all five, the fifth with the read a refusal names, `:read`.
 - Strictness: no truthiness, no text read as a number, a number a finite
-  double: 401046d, 6f8c9422, 7fe783f6, and 68af9ab5 as the early refusal
-  of a value where code is wanted.
+  double: 401046d, 6f8c9422, 7fe783f6, 3495de5d, and 68af9ab5 as the
+  early refusal of a value where code is wanted.
 - One order of every value, a set as the ordered vector: 401046d,
-  68af9ab5, 7fe783f6.
-- Code as data that prints and reads back: 401046d, 68af9ab5, 7fe783f6.
+  68af9ab5, 7fe783f6, 3495de5d.
+- Code as data that prints and reads back: 401046d, 68af9ab5, 7fe783f6,
+  3495de5d.
 - The catalog as an executable specification, its laws run: 68af9ab5,
-  6f8c9422, 7fe783f6, and 401046d as the cases of query and expectation.
+  6f8c9422, 7fe783f6, 3495de5d, and 401046d as the cases of query and
+  expectation.
 - The budget of an answer, an elision whose `:read` continues the
-  query: 401046d, 68af9ab5, 6f8c9422.
+  query: 401046d, 68af9ab5, 6f8c9422, 3495de5d.
+- The path as a value the word that takes it reads, strictly by `get`,
+  softly by `query`: 3495de5d.
 - Tags kept through a computation, `::Width(2) | add 3`: 68af9ab5,
   7fe783f6.
 
 The problems, theme by theme, the audits that named each, and what
 became of it:
 
-- The role of a definition read from the form of its value: all four,
-  first or third; open, the layer of declarations.
-- Two inputs, the family `…Of` and a fold of one word: all four, the
+- The role of a definition read from the form of its value: all five,
+  first or third, the fifth with the short form of `reduce` and the
+  selectors of parts; open, the layer of declarations.
+- Two inputs, the family `…Of` and a fold of one word: all five, the
   first named as a lack of user abstraction and gaps of expression; the
   fold answered by D233, which runs code of any shape on the pair of the
-  value so far and the element, the family `…Of` open.
-- The process eats the design: all four; answered in part by D225, D226
-  and D227, which the fourth reads as more accounting.
+  value so far and the element, the family `…Of` open, the fifth
+  proposing one word of two fields in its place.
+- The process eats the design: all five; answered in part by D225, D226
+  and D227, which the fourth reads as more accounting and the fifth as
+  the artifact that grows fastest.
 - Scars of older models in names, prose written for its author: all
-  four, shrinking from whole kinds of names to the names of cases.
+  five, shrinking from whole kinds of names to the names of cases; the
+  fifth names the traces D248 left, cleaned by f9d4b9f5, and the
+  register of the prose.
 - The weight of the implementation, `async` on every node and the cold
-  start: 401046d, 6f8c9422, 7fe783f6; open.
+  start: 401046d, 6f8c9422, 7fe783f6, 3495de5d; open.
 - `::any` as the place of the reader's words: 68af9ab5, a verb declared
   there for want of an abstraction; 6f8c9422, words that read no
   subject; 7fe783f6, a common dump, the first page showing no
@@ -59,10 +70,11 @@ became of it:
   subject open.
 - The marker `@`: 68af9ab5, 6f8c9422, 7fe783f6; answered by D234, which takes it out of the language and meets the target of D2.
 - One fact in one spelling broken, in the catalog and then in the
-  grammar: 401046d, 6f8c9422, 7fe783f6; open.
-- Each word deciding code or value on its own: 6f8c9422, 7fe783f6;
+  grammar: 401046d, 6f8c9422, 7fe783f6, 3495de5d; open.
+- Each word deciding code or value on its own: 6f8c9422, 7fe783f6,
+  3495de5d, the fifth with `get` reading the paths a template computed;
   stands, each by its reading.
-- The vocabulary of the concepts: 6f8c9422, 7fe783f6; open.
+- The vocabulary of the concepts: 6f8c9422, 7fe783f6, 3495de5d; open.
 - A value named by a word of the vocabulary banned: 68af9ab5, 6f8c9422;
   answered by D223, not named again.
 - A silent trap against the language's own rules, a literal holding a
@@ -78,6 +90,11 @@ became of it:
 - New with 7fe783f6: a quote under a bare name answering itself, a
   number as the key of `at`, `runLaws` that stops at a word, an
   undeclared tag taken silently.
+- New with 3495de5d: a quote written as the body of a declaration
+  closing over its scope where its print does not show it, a declaration
+  both a step and a separator, a query of a path alone over an input
+  answering the path in silence, names of refusals that say quote where
+  a path is taken, and no bridge from the words of other languages.
 
 ## 2026-10-10 · 401046d
 
@@ -150,3 +167,18 @@ Its proposals and its disagreements are open, but for the page of a parse refusa
 11. The process eats the design: half of the last forty commits prune records, and the comments of the code cite records. The walk of this shift is a debt paid once, the lines that replace a record in part falling from 173 at the baseline to the three of E1, E2 and E3, which the ratchet keeps from growing; a citation of a record in force in the code stands by D225; its rule that a finding open in the ledger closes by code is open, a matter of the process.
 
 Its proposals, the fifth section, and its disagreements with the audit, the sixth, are open.
+
+## 2026-10-13 · 3495de5d
+
+[2026-10-13-3495de5d.md](2026-10-13-3495de5d.md), and the model's reading of it, [2026-10-13-3495de5d-reading.md](2026-10-13-3495de5d-reading.md). The problems, its third section:
+
+1. A quote carries a hidden scope: one written as the body of a declaration closes over that scope where its print does not show it, so two quotes `eq` holds equal run apart, `:f (:k 10 | :g ~(mul k) | g) | :k 2 | :h ~(mul k) | [(f | eq h) (3 | apply f) (3 | apply h)]` answering `[true 30 6]`. The fact stands in the open question of a helper of one word (f9d4b9f5), whose sentence that a quote does not close held of a bare quote alone; printing the names a quote closes over as declarations at its head, the audit's proposal, waits on the maintainer's word. Open.
+2. Meaning read from the form of the syntax: the short form of `reduce` for one word, an invariant of the form `is ::k` that serves a part beneath its tags, the selectors of parts. Open, the layer of declarations.
+3. Each word its own model of arguments: the branches of `if` quotes alone, and `get` reading the paths a template computed, `:p ([:b] | toPath) | {:b 7} | get [p (get /b)]` answering `[7 7]`. `get` stands by D248, a modifier computed at the call and every path of the value read; the rest stands, each word by its reading, open with the layer of declarations.
+4. Names: one space of values and words, resolved by the kind of the subject, stands by D223; a declaration both a step and a separator, `:x 5 | 7 | add x` answering `12`, the head after a declaration of D248, the model's part, waits on the maintainer's word; a subject a name replaces in silence, `7 | :r 5 | add 1 | r`, is the open question of a step that drops its subject; `[1 2] :x 3 | x` stands by D243, a keyword on the line of a command being its modifier and one after a literal a declaration.
+5. The traces of D248's move: the first example of `::cli`, the note for a query the shell turned into a path, the example of `zip`, two spellings of `allOf` and pages of `allOf` and `anyOf` naming a quote alone, answered by f9d4b9f5. A query of a path alone over an input answering the path in silence, `echo '[10,20]' | qlang '/0'`, the names of refusals that say quote where a path is taken, `…/NotQuoteError`, and the vocabulary of modifiers, args, parts and places, open.
+6. The register of the prose and the citations of records in the comments. Open; a citation of a record in force in the code stands by D225.
+7. Discoverability: no bridge from `select`, `length` or `.users[0].name`; the manifest of a kind listing its refusals beside its words; `::runLaws | doc` refused with `:nearest []`. Open.
+8. Complexity: the refusals of the grammar; a quote of a doc that does not parse read as prose, which the test `no quote of a page is read as prose` catches for the catalog and nothing for a span in backquotes; the weight of the catalog; the kinds of steps; the process. Open.
+
+Its proposals and its disagreements are open, but for the sentences of the project's audit on a literal as a step and on a quote that does not close, answered by f9d4b9f5.

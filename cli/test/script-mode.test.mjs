@@ -85,7 +85,7 @@ describe('answerText — the budget of the answer', () => {
 
   it('cuts an error within the budget', async () => {
     const failing = await evalQuery(`[{:n 1 :text "${'x'.repeat(200)}"} {:n 2}] | filter ~(nope)`);
-    expect(await answerText(failing, await langRuntime(), budget)).toContain(':read ~(!| /trail/0/subject)');
+    expect(await answerText(failing, await langRuntime(), budget)).toContain(':read ~(!| get /trail/0/subject)');
   });
 
   it('writes the answer whole when no budget was asked for', async () => {
@@ -95,6 +95,6 @@ describe('answerText — the budget of the answer', () => {
 
   it('writes an error as its alert when no budget was asked for', async () => {
     const failing = await evalQuery(`[${forty.map(index => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
-    expect(await answerText(failing, await langRuntime(), null)).toContain(':read ~(!| /trail/1/subject)');
+    expect(await answerText(failing, await langRuntime(), null)).toContain(':read ~(!| get /trail/1/subject)');
   });
 });

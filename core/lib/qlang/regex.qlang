@@ -28,77 +28,82 @@
       `split #"[.,;]"` at any of three marks. Text becomes a pattern by
       `toRegex`, its flags the part of the call, `"error" | toRegex "i"`,
       and a pattern prints as its literal, which `print` writes. JSON
-      writes that literal as a string, which `parse | apply /` reads back,
+      writes that literal as a string, which `parse | apply it` reads back,
       and patterns rank after strings, by their text and then their flags.
       ::snippet~(::string | manifest)
       ::link~(::string/match | doc) ::link~(::string/capture | doc)
       ::link~(::string | doc) ::link~(::qlang/values | doc)
   ~~|
-
-:regex/isAPattern
-  |~~ `#"\d+"` is a pattern. ~~|
-  ::law~(#"\d+" | type | eq ::regex)
-
-:regex/readsAsWritten
-  |~~ A backslash reaches the engine as written, and `\"` writes a quote. ~~|
-  ::law~(["12" "a.b" "say \"hi\""] | map ~(contains #"\d|\.|\"hi\"") | eq [true true true])
-
-:regex/takesItsFlagsAfterItsQuote
-  |~~ The flags follow the closing quote and change how the engine reads. ~~|
-  ::law~(["ERROR here" "a\nerror"] | [(/0 | contains #"error"i) (/1 | contains #"^error"m)] | eq [true true])
-
-:regex/readsLettersOfAnyScript
-  |~~ A pattern reads text by code points, a class of Unicode among it. ~~|
-  ::law~("данные 42" | match #"\p{L}+" | eq ["данные"])
-
-:regex/holdsOneDialect
-  |~~ A group of flags and a group name written twice do not parse, on every host. ~~|
-  ::law~(["#\"(?i:a)b\"" "#\"(?<y>a)|(?<y>b)\""] | map ~(parse !| type) | eq [::quote/ParseError ::quote/ParseError])
-
-:regex/namesTheRepairOfAHabit
-  |~~ The refusal of a needless backslash names where a backslash stands. ~~|
-  ::law~("#\"a\\:b\"" | parse !| /message | contains "a backslash stands before")
-
-:regex/readsBackFromJson
-  |~~ JSON writes a pattern as its literal, which `parse | apply /` reads back. ~~|
-  ::law~(#"\d+"i | :p / | json | parseJson | parse | apply / | eq p)
-
-:regex/printsAsItsLiteral
-  |~~ A pattern prints as its literal and reads back as itself. ~~|
-  ::law~(#"\"(\d+)\""i | :p / | print | parse | apply / | eq p)
-
-:regex/isNoString
-  |~~ A pattern is no string, so a text cuts at a dot and a pattern at any mark. ~~|
-  ::law~("a.b,c" | [(split ".") (split #"[.,]")] | eq [["a" "b,c"] ["a" "b" "c"]])
-
-:regex/ranksAfterStrings
-  |~~ Patterns rank after strings and before keywords, by their text. ~~|
-  ::law~([:k #"b" "z" #"a"] | sort | eq ["z" #"a" #"b" :k])
-
-:regex/construct
-  |~~ Reads a pattern as itself. ~~|
-  ::builtin{}
-
-:regex/PayloadNotRegexError
-  |~~ `::regex` reads its payload as the pattern it is; text becomes one
-      by `toRegex`, `"\\d+" | toRegex`.
-  ~~|
-
-:regex/PayloadNotRegexError/refusesAString
-  |~~ A string payload is refused; `toRegex` reads text as a pattern. ~~|
-  ::law~(::regex"a" !| [type /actualType] | eq [::regex/PayloadNotRegexError ::string])
+  ::kind
+    | wraps |~~ A pattern, read as itself. ~~|
+    | throws :PayloadNotRegexError
+        |~~ `::regex` reads its payload as the pattern it is; text becomes
+            one by `toRegex`, `"\\d+" | toRegex`.
+        ~~|
+    | proves :isAPattern
+        |~~ `#"\d+"` is a pattern. ~~|
+        ~(#"\d+" | type | eq ::regex)
+    | proves :readsAsWritten
+        |~~ A backslash reaches the engine as written, and `\"` writes a
+            quote.
+        ~~|
+        ~(["12" "a.b" "say \"hi\""] | map ~(contains #"\d|\.|\"hi\"") | eq [true true true])
+    | proves :takesItsFlagsAfterItsQuote
+        |~~ The flags follow the closing quote and change how the engine
+            reads.
+        ~~|
+        ~(["ERROR here" "a\nerror"] | get [(get /0 | contains #"error"i) (get /1 | contains #"^error"m)] | eq [true true])
+    | proves :readsLettersOfAnyScript
+        |~~ A pattern reads text by code points, a class of Unicode among
+            it.
+        ~~|
+        ~("данные 42" | match #"\p{L}+" | eq ["данные"])
+    | proves :holdsOneDialect
+        |~~ A group of flags and a group name written twice do not parse,
+            on every host.
+        ~~|
+        ~(["#\"(?i:a)b\"" "#\"(?<y>a)|(?<y>b)\""] | map ~(parse !| type) | eq [::quote/ParseError ::quote/ParseError])
+    | proves :namesTheRepairOfAHabit
+        |~~ The refusal of a needless backslash names where a backslash
+            stands.
+        ~~|
+        ~("#\"a\\:b\"" | parse !| get /message | contains "a backslash stands before")
+    | proves :readsBackFromJson
+        |~~ JSON writes a pattern as its literal, which `parse | apply it`
+            reads back.
+        ~~|
+        ~(#"\d+"i | :p it | json | parseJson | parse | apply it | eq p)
+    | proves :printsAsItsLiteral
+        |~~ A pattern prints as its literal and reads back as itself. ~~|
+        ~(#"\"(\d+)\""i | :p it | print | parse | apply it | eq p)
+    | proves :isNoString
+        |~~ A pattern is no string, so a text cuts at a dot and a pattern
+            at any mark.
+        ~~|
+        ~("a.b,c" | get [(split ".") (split #"[.,]")] | eq [["a" "b,c"] ["a" "b" "c"]])
+    | proves :ranksAfterStrings
+        |~~ Patterns rank after strings and before keywords, by their
+            text.
+        ~~|
+        ~([:k #"b" "z" #"a"] | sort | eq ["z" #"a" #"b" :k])
+    | proves :PayloadNotRegexError/refusesAString
+        |~~ A string payload is refused; `toRegex` reads text as a
+            pattern.
+        ~~|
+        ~(::regex"a" !| [type (get /actualType)] | eq [::regex/PayloadNotRegexError ::string])
+    | impl ::builtin{}
 
 :regex/toRegex
   |~~ Answers the pattern itself, so `map ~toRegex` turns patterns and
       the strings that hold their sources into patterns.
       ::link~(::string/toRegex | doc)
   ~~|
-  ::builtin{}
+  ::fn
+    | returns |~~ The pattern itself. ~~| ::regex
+    | proves :answersItself
+        |~~ A pattern answers itself, so patterns and their sources turn
+            into patterns.
+        ~~|
+        ~([#"\d" "\\d"] | map ~toRegex | eq [#"\d" #"\d"])
+    | impl ::builtin{}
 
-:regex/toRegex/answer
-  |~~ The pattern itself. ~~|
-  ::regex
-
-:regex/toRegex/answersItself
-  |~~ A pattern answers itself, so patterns and their sources turn into patterns. ~~|
-  ::law~([#"\d" "\\d"] | map ~toRegex | eq [#"\d" #"\d"])

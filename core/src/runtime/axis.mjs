@@ -14,8 +14,8 @@
 //            source and origin, the source it was read from [D153].
 //
 // Given a name, each axis reads the member the subject holds under it
-// [D88]: for a tag name the name under its address, a part of the args
-// of a word among them, `::vec/take | doc :count`, and for any other
+// [D88]: for a tag name the name under its address, an input of a word
+// among them, `::vec/take | doc :count`, and for any other
 // subject the word the name calls after it, `::map | doc :minus` the
 // page of `::map/minus`.
 
@@ -77,7 +77,7 @@ export function declaringRecordOf(env, subject) {
 }
 
 // The node a refusal named by the address of what refused reads its page
-// from, that address, when no node of its own declares it [D166].
+// from, that address, when no node of its own declares it [D180].
 function nodeOfRefused(env, name) {
   const [refusedName] = splitAddress(name);
   return refusedName !== null && name.endsWith('Error') ? nodeOf(env, refusedName) : null;

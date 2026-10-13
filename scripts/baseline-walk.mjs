@@ -76,7 +76,7 @@ export function walkOfBaseline(repoRoot) {
   const atBaseline = new Set(listed.split('\n').map(path => /([DE]\d+)\.md$/.exec(path)?.[1]).filter(Boolean));
   const records = readDecisionRecords(repoRoot);
   for (const [name, record] of records) {
-    if (atBaseline.has(name) && isBeingDecided(record)) {
+    if (atBaseline.has(name) && isBeingDecided(record) && !record.open) {
       walk.violations.push({ where: `docs/decisions/${name}.md`, problem: `outlived the baseline ${baseline}: no case names it and no line gives its fate` });
     }
   }
@@ -115,7 +115,7 @@ export function walkOfBaseline(repoRoot) {
   for (const file of CITING_DOCUMENTS.filter(path => existsSync(join(repoRoot, path)))) {
     for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {
       const record = records.get(name);
-      if (record !== undefined && !notClosed(record)) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
+      if (record !== undefined && !notClosed(record) && !record.open) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
     }
   }
   return walk;

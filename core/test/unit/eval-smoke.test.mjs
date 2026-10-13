@@ -104,19 +104,19 @@ describe('eval — filter', () => {
 
 describe('eval — Map and projection', () => {
   it('projects a Map field', async () => {
-    expect(await evalQuery('{:name "Alice" :age 30} | /name')).toBe('Alice');
+    expect(await evalQuery('{:name "Alice" :age 30} | get /name')).toBe('Alice');
   });
 
-  it('strict-projection: missing key raises ProjKeyNotInMapError', async () => {
+  it('strict-projection: missing key raises PathKeyNotInMapError', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
-    const result = await evalQuery('{:name "Alice"} | /age');
+    const result = await evalQuery('{:name "Alice"} | get /age');
     expect(isErrorValue(result)).toBe(true);
-    expect(result.tag.name).toBe('proj/KeyNotInMapError');
+    expect(result.tag.name).toBe('path/KeyNotInMapError');
     expect(result.descriptor.get('key').name).toBe('age');
   });
 
   it('chains nested projection', async () => {
-    expect(await evalQuery('{:point {:x 5 :y 7}} | /point/x')).toBe(5);
+    expect(await evalQuery('{:point {:x 5 :y 7}} | get /point/x')).toBe(5);
   });
 });
 
@@ -128,15 +128,15 @@ describe('eval — full application of mul', () => {
 
 describe('eval — freeze', () => {
   it('captures and references via a freeze', async () => {
-    expect(await evalQuery('[1 2 3] | :nums / | nums | count')).toBe(3);
+    expect(await evalQuery('[1 2 3] | :nums it | nums | count')).toBe(3);
   });
 
   it('multi-stage freezes', async () => {
     expect(await evalQuery(`
       [85 92 47 78 68 95 52]
-        | :allScores /
+        | :allScores it
         | filter ~(gte 70)
-        | :passingScores /
+        | :passingScores it
         | [(allScores | count), (passingScores | count)]
     `)).toEqual([7, 4]);
   });
@@ -169,12 +169,12 @@ describe('eval.mjs unknown node type', () => {
 });
 
 describe('quoted keywords — eval-level identity and Map interop', () => {
-  it(':"name" interns to the same keyword :name /', async () => {
+  it(':"name" interns to the same keyword :name', async () => {
     expect(await evalQuery(':"name" | eq :name')).toBe(true);
   });
 
-  it('Map literal with a quoted-key entry is queryable via /"key"', async () => {
-    expect(await evalQuery('{:"weird key" 42} | /"weird key"')).toBe(42);
+  it('Map literal with a quoted-key entry is read by get /"key"', async () => {
+    expect(await evalQuery('{:"weird key" 42} | get /"weird key"')).toBe(42);
   });
 
   it('Map literal with a quoted key is queryable via has(:"weird key")', async () => {
@@ -182,11 +182,11 @@ describe('quoted keywords — eval-level identity and Map interop', () => {
   });
 
   it('the empty-string keyword survives a Map round-trip', async () => {
-    expect(await evalQuery('{:"" "empty key value"} | /""')).toBe('empty key value');
+    expect(await evalQuery('{:"" "empty key value"} | get /""')).toBe('empty key value');
   });
 
   it('digit-leading keys are reachable through quoted projection', async () => {
-    expect(await evalQuery('{:"123" "digit"} | /"123"')).toBe('digit');
+    expect(await evalQuery('{:"123" "digit"} | get /"123"')).toBe('digit');
   });
 
   it('keys returns interned keywords regardless of declaration form', async () => {
@@ -238,7 +238,7 @@ describe('the answer of a word of the host', async () => {
     const s = await createSession({
       sources: [{
         uri: 'tests/past',
-        source: ':any/past ::builtin{}\n:any/past/answer #[::number ::null]',
+        source: ':any/past (::fn | returns |~~ A number or null. ~~| #[::number ::null] | impl ::builtin{})',
         impls: { 'any/past': () => Infinity }
       }]
     });

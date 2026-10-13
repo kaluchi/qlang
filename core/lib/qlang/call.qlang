@@ -18,320 +18,299 @@
       checks each field, prints the step and reads it back.
       ::link~(::quote | doc) ::link~(::qlang/verbs | doc)
   ~~|
+  ::kind
+    | wraps
+        |~~ The record of a command, `:name` and `:modifiers`, built into
+            its step, which reads back as itself.
+        ~~|
+    | throws :PayloadNotSchemaError
+        |~~ A `::call` is a map of `:name`, a keyword, and `:modifiers`, a
+            vector of steps, and `:field` names the field that does not
+            fit: `{:name :take :modifiers [2]} | tag ::call` is the step
+            `take 2`.
+            ::link~(::call | doc)
+        ~~|
+    | throws :ReadBackDiffersError
+        |~~ The `::call` prints as text that reads back as another step,
+            or as none, and `:printed` is that text: a name of two words,
+            `:"a b"`, prints as two calls, a name that reads as a number,
+            `:"1"`, as the number, and an empty vector of modifiers as a
+            call that gives none. The name of a call is one word,
+            `:count`, and a call that gives no modifiers holds no
+            `:modifiers`.
+            ::link~(::call | doc)
+        ~~|
+    | throws :HostFailureError
+        |~~ A failure of the host's implementation: an error of the
+            language the runtime is written in escaped a verb, which is a
+            defect of that verb's host. `:message` carries the host's
+            account of it and `:causes` the accounts of the failures
+            beneath it, the facts every host can give, so a port of the
+            runtime to another language changes no fact a query reads; the
+            stack, the class and the fields of the host's error stay with
+            the host. The step and the input are those of any error;
+            recovery is a `!|` step, and the repair belongs to the host,
+            which declares a refusal of its own where it has facts to
+            hand.
+            ::link~(::call | doc)
+        ~~|
+    | carries :HostFailureError/message
+        |~~ The host's account of the failure. ~~|
+        ::string
+    | carries :HostFailureError/causes
+        |~~ The accounts of the failures beneath it, outermost first. ~~|
+        ::vec
+    | throws :ValueTakesNoModifiersError
+        |~~ A name the scope binds to a value takes no modifiers: the
+            value is read bare, `:five 5 | five`, and `:name` holds the
+            name. A word declared under a name a value of the scope
+            already holds is shadowed by the value, `:addresses` naming
+            where the word lives, and a call by its address reaches it,
+            `any/five`.
+            ::link~(::call | doc)
+        ~~|
+    | carries :ValueTakesNoModifiersError/name
+        |~~ The name, which holds a value and no word. ~~|
+        ::keyword
+    | throws :ValueMeetsWordError
+        |~~ A name the scope binds to a value is the name of a word the
+            subject answers, and the step does not choose between them:
+            `:count 5 | [1 2] | count` meets `::vec/count`. A name of the
+            reader's takes any name, and meets a word only where a step
+            calls the name on a subject the word answers,
+            `:count 5 | 7 | count` answering `5`; there the word is called
+            by its address, `[1 2] | vec/count`, or the value takes
+            another name, `:limit 5`. `:name` holds the name, and
+            `:addresses` the word the subject answers.
+            ::link~(::call | doc) ::link~(::bind | doc)
+        ~~|
+    | carries :ValueMeetsWordError/name
+        |~~ The name, which holds a value and names a word of the subject.
+        ~~|
+        ::keyword
+    | carries :ValueMeetsWordError/addresses
+        |~~ The address of the word the subject answers under the name. ~~|
+        ::set
+    | carries :ValueTakesNoModifiersError/addresses
+        |~~ The addresses where a word of that name lives, one a
+            declaration shadows among them.
+        ~~|
+        ::set
+    | throws :KindAnswersNoVerbError
+        |~~ The kind of the subject has no verb of the name while other
+            kinds have one: `:name` holds the name, `:actualType` the kind
+            of the subject, and `:addresses` the verbs of the name and the
+            kinds they serve, and `:nearest`, where a page leads to one,
+            the words the pages of those verbs lead to that the subject
+            answers and that answer a kind the verbs answer, the act its
+            kind keeps under another name, `[1 2] | toString` led to
+            `print` and `json`. The subject is turned into one of those
+            kinds first, a soft read that answered null given its
+            fallback, `query /items | coalesce [] | count`, a keyword its
+            name by `toString`, `:host | toString | append ":80"`, or a
+            verb of another name was meant, which `:nearest` names where a
+            page leads to it.
+            ::link~(::call | doc) ::link~(::any/coalesce | doc)
+            ::link~(::keyword/toString | doc)
+        ~~|
+    | carries :KindAnswersNoVerbError/name
+        |~~ The word the step called. ~~|
+        ::keyword
+    | throws :UnknownNameError
+        |~~ A step called a name nothing declares, no name of the scope
+            and no word of any kind: `:nearest` holds the names it was
+            likely meant to be, and `:name` the name as typed. A name is
+            declared before the steps that read it, `:x 5 | x`; a field of
+            a record is no word but a key, read by a path, `get /name`;
+            and a kind is no word either: its tag reaches it, which
+            `:nearest` names first, `5 | string` pointing to `::string`,
+            whose page says how a value becomes text. A name the words of
+            other kinds answer is refused by
+            `::call/KindAnswersNoVerbError`, which names where they live,
+            so `:addresses` holds none here.
+            ::link~(::call | doc) ::link~(::call/KindAnswersNoVerbError | doc)
+            ::link~(::error/nearest | doc)
+        ~~|
+    | carries :UnknownNameError/name
+        |~~ The name the step called. ~~|
+        ::keyword
+    | throws :UnknownAddressError
+        |~~ A name with a path names nothing: no declaration wrote that
+            address. `:address` holds the address as a tag name, which the
+            axes read, and `:nearest` the addresses it was likely meant to
+            be, and `manifest` lists the names a noun holds,
+            `::vec | manifest`. An address that names a value reads it, as
+            a bare name does.
+            ::link~(::call | doc) ::link~(::tag/manifest | doc)
+        ~~|
+    | carries :UnknownAddressError/address
+        |~~ The address the step called. ~~|
+        ::tag
+    | carries :UnknownAddressError/nearest
+        |~~ The addresses nearest to it in spelling. ~~|
+        ::vec
+    | throws :EvaluationDepthExceededError
+        |~~ A call too deep: the body of a verb, a modifier computed at
+            the call, `apply`, a constructor of a tag and each run of the
+            code a verb runs, `map ~(…)`, run one frame below the step
+            that called them, an input read from its place meets the budget
+            at that frame, a quote written as a modifier is a value at the
+            call, and the frame past the budget refuses, `:depth` the
+            refused frame and `:limit` the budget. A recursion without a
+            base case, a quote that applies itself or a word that calls
+            itself, is refused here, on the fail track, while the host's
+            memory stays bounded: the case that ends the recursion is
+            tested first,
+            `:down ~(if (eq 0) ~(0) ~(sub 1 | apply down)) | 5 | apply down`.
+            ::link~(::call | doc) ::link~(::any/if | doc)
+        ~~|
+    | carries :EvaluationDepthExceededError/depth
+        |~~ The frame the budget refused. ~~|
+        ::number
+    | carries :EvaluationDepthExceededError/limit
+        |~~ The budget, the frames one evaluation may nest. ~~|
+        ::number
+    | proves :holdsTheNameAndTheModifiers
+        |~~ A command is a call of its name and its modifiers. ~~|
+        ~(~(filter ~(gt 1)) | payload | eq [::call{:name :filter :modifiers [~(gt 1)]}])
+    | proves :readsTheName
+        |~~ The name of the call is a keyword. ~~|
+        ~(~(count) | first | get /name | eq :count)
+    | proves :buildsAStep
+        |~~ A map under `::call` builds the step. ~~|
+        ~({:name :filter :modifiers [~(gt 1)]} | tag ::call | get [it] | tag ::quote | eq ~(filter ~(gt 1)))
+    | proves :PayloadNotSchemaError/refusesANameThatIsNoKeyword
+        |~~ A `:name` that is no keyword is refused, `:field` naming it. ~~|
+        ~(::call{:name 42} !| [type (get /field)] | eq [::call/PayloadNotSchemaError :name])
+    | proves :PayloadNotSchemaError/buildsTheStepOfACall
+        |~~ A keyword and a vector of steps build the step of the call. ~~|
+        ~({:name :take :modifiers [2]} | tag ::call | get [it] | tag ::quote | eq ~(take 2))
+    | proves :ReadBackDiffersError/refusesANameOfTwoWords
+        |~~ A name with a space prints as two words, which read back as
+            another step.
+        ~~|
+        ~(::call{:name :"a b"} !| [type (get /printed)] | eq [::call/ReadBackDiffersError "a b"])
+    | proves :ReadBackDiffersError/refusesANameThatReadsAsANumber
+        |~~ A name that reads as a number prints as the number. ~~|
+        ~(::call{:name :"1"} !| [type (get /printed)] | eq [::call/ReadBackDiffersError "1"])
+    | proves :ReadBackDiffersError/refusesAnEmptyVectorOfModifiers
+        |~~ An empty vector of modifiers prints as a call that gives none.
+        ~~|
+        ~(::call{:name :count :modifiers []}
+          !| [type (get /printed)] | eq [::call/ReadBackDiffersError "count"])
+    | proves :ValueMeetsWordError/refusesAValueAndAWordThatMeet
+        |~~ A value and a word that meet at a step are refused with the
+            word's address.
+        ~~|
+        ~(:count 5 | [1 2] | count !| [type (get /addresses)] | eq [::call/ValueMeetsWordError #[::vec/count]])
+    | proves :ValueMeetsWordError/readsTheValueWhereNoWordAnswers
+        |~~ On a subject no word of the name answers, the value is read. ~~|
+        ~(:count 5 | 7 | count | eq 5)
+    | proves :ValueMeetsWordError/callsTheWordByItsAddress
+        |~~ The word is called by its address beside the value. ~~|
+        ~(:count 5 | [1 2] | vec/count | eq 2)
+    | proves :ValueMeetsWordError/meetsTheWordOfAFold
+        |~~ A value named as the word of a fold meets it there, and the
+            address calls the word.
+        ~~|
+        ~(:add 5 | [1 2 3] | get [(reduce 0 ~(add) !| type) (reduce 0 ~(number/add))] | eq [::call/ValueMeetsWordError 6])
+    | proves :ValueMeetsWordError/meetsAnInputInTheBodyOfAWord
+        |~~ An input named as a word meets the word in the body that reads
+            it.
+        ~~|
+        ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0 | impl ~([count (take count)])) | [1 2 3] | firstN 2 !| [type (get /name)] | eq [::call/ValueMeetsWordError :count])
+    | proves :ValueTakesNoModifiersError/refusesModifiersOnAValue
+        |~~ A name that holds a value refuses the modifiers a call gives
+            it.
+        ~~|
+        ~(5 | :five it | five 42
+          !| [type (get /name) (get /actualType)] | eq [::call/ValueTakesNoModifiersError :five ::number])
+    | proves :ValueTakesNoModifiersError/namesTheVerbTheValueShadows
+        |~~ The refusal names where the word the value shadows lives. ~~|
+        ~(:five 5 | :number/five ~(add 5) | 3 | five 42 !| get /addresses | eq #[::number/five])
+    | proves :ValueTakesNoModifiersError/reachesTheShadowedWordByItsAddress
+        |~~ A call by its address reaches the word a value shadows. ~~|
+        ~(:five 5 | :number/five ~(add 5) | 3 | number/five | eq 8)
+    | proves :KindAnswersNoVerbError/namesTheKindAndTheVerbs
+        |~~ The refusal names the kind of the subject and where the verb
+            lives.
+        ~~|
+        ~(1 | count !| [(get /actualType) (get /addresses | has ::vec/count)] | eq [::number true])
+    | proves :KindAnswersNoVerbError/namesTheReadOfAPath
+        |~~ A word called on a path names the read the step was likely
+            meant for.
+        ~~|
+        ~(/tags | count !| get /read | eq ~(get /tags | count))
+    | proves :KindAnswersNoVerbError/listsEveryKindTheVerbServes
+        |~~ `:addresses` lists every kind the verb serves. ~~|
+        ~(5 | count
+          !| [type (get /addresses)]
+          |  eq [::call/KindAnswersNoVerbError #[::map/count ::set/count ::string/count ::vec/count]])
+    | proves :KindAnswersNoVerbError/namesTheWordsOfAReadersNouns
+        |~~ The words of the name under a reader's nouns are named by
+            their addresses.
+        ~~|
+        ~(:Box |~~ A box. ~~| | :Ring |~~ A ring. ~~|
+          | :Box/area ~(1) | :Ring/area ~(2)
+          | 5 | area
+          !| [type (get /addresses)]
+          |  eq [::call/KindAnswersNoVerbError #[::Box/area ::Ring/area]])
+    | proves :KindAnswersNoVerbError/namesTheWordsItsPagesLeadTo
+        |~~ `:nearest` names the words the pages of the verbs lead to that
+            the subject answers.
+        ~~|
+        ~({:a 1} | toVec !| get /nearest | eq [:entries :vals])
+    | proves :KindAnswersNoVerbError/turnsTheSubjectFirst
+        |~~ A soft read that answered null is given its fallback first. ~~|
+        ~({} | query /items | coalesce [] | count | eq 0)
+    | proves :KindAnswersNoVerbError/turnsAKeywordIntoItsName
+        |~~ A keyword turned into its name takes the verbs of strings. ~~|
+        ~(:host | toString | append ":80" | eq "host:80")
+    | proves :UnknownNameError/refusesANameNothingDeclares
+        |~~ A name nothing declares is refused, with no addresses. ~~|
+        ~(thisIsNotDefined !| [type (get /addresses)] | eq [::call/UnknownNameError #[]])
+    | proves :UnknownNameError/suggestsTheNearestName
+        |~~ The names nearest in spelling are suggested. ~~|
+        ~(fist !| get /nearest | eq [:first])
+    | proves :UnknownNameError/suggestsTheReadersNames
+        |~~ A reader's own names are suggested too. ~~|
+        ~(:limit 3 | limti !| get /nearest | eq [:limit])
+    | proves :UnknownNameError/suggestsAWordThePageOfItsBeginningLinks
+        |~~ A name that goes on past a word is led where the page of that
+            word links.
+        ~~|
+        ~({:x 1} | addOf (get /x) (get /x) !| get /nearest | eq [:add :sumOf])
+    | proves :UnknownNameError/suggestsNothingFarAway
+        |~~ A name near nothing suggests nothing. ~~|
+        ~(zzzzqqq !| get /nearest | eq [])
+    | proves :UnknownNameError/refusesANameReadBeforeItsDeclaration
+        |~~ A name read before its declaration names nothing yet. ~~|
+        ~(x | :x 5 !| type | eq ::call/UnknownNameError)
+    | proves :UnknownNameError/pointsAKindToItsTag
+        |~~ The name of a kind points to its tag. ~~|
+        ~(5 | string !| [type (get /nearest)] | eq [::call/UnknownNameError [::string]])
+    | proves :UnknownNameError/readsNoFactAsAWord
+        |~~ A fact of a record called as a word names nothing. ~~|
+        ~(~(take 2) | first | name !| [type (get /name)] | eq [::call/UnknownNameError :name])
+    | proves :UnknownAddressError/refusesAnAddressNothingDeclares
+        |~~ An address no declaration wrote is refused. ~~|
+        ~([1 2 3] | vec/nothing !| [type (get /address)] | eq [::call/UnknownAddressError ::vec/nothing])
+    | proves :UnknownAddressError/suggestsTheNearestAddress
+        |~~ The addresses nearest in spelling are suggested. ~~|
+        ~([1] | vec/countt !| get /nearest | has ::vec/count)
+    | proves :UnknownAddressError/readsAValueByItsAddress
+        |~~ A value under a label is read by its address. ~~|
+        ~(:Box |~~ A box. ~~| | :Box/side 3 | Box/side | eq 3)
+    | proves :EvaluationDepthExceededError/refusesARunawayRecursion
+        |~~ A quote that applies itself without end is refused past the
+            budget.
+        ~~|
+        ~(:inf ~(add 1 | apply inf) | 0 | apply inf !| type | eq ::call/EvaluationDepthExceededError)
+    | proves :EvaluationDepthExceededError/namesADepthPastTheLimit
+        |~~ The depth refused lies past the limit. ~~|
+        ~(:q ~(apply q) | apply q !| :e it | get /depth | gt (e | get /limit))
+    | proves :EvaluationDepthExceededError/endsARecursionByItsBaseCase
+        |~~ A recursion that tests its base case first ends. ~~|
+        ~(:down ~(if (eq 0) ~(0) ~(sub 1 | apply down)) | 5 | apply down | eq 0)
+    | impl ::builtin{}
 
-:call/holdsTheNameAndTheModifiers
-  |~~ A command is a call of its name and its modifiers. ~~|
-  ::law~(~(filter ~(gt 1)) | payload | eq [::call{:name :filter :modifiers [~(gt 1)]}])
-
-:call/readsTheName
-  |~~ The name of the call is a keyword. ~~|
-  ::law~(~(count) | first | /name | eq :count)
-
-:call/buildsAStep
-  |~~ A map under `::call` builds the step. ~~|
-  ::law~({:name :filter :modifiers [~(gt 1)]} | tag ::call | [/] | tag ::quote | eq ~(filter ~(gt 1)))
-
-:call/construct
-  |~~ The step of a command from its record, `:name` and `:modifiers`,
-      which reads back as itself.
-  ~~|
-  ::builtin{}
-
-:call/PayloadNotSchemaError
-  |~~ A `::call` is a map of `:name`, a keyword, and `:modifiers`, a
-      vector of steps, and `:field` names the field that does not fit:
-      `{:name :take :modifiers [2]} | tag ::call` is the step `take 2`.
-      ::link~(::call | doc)
-  ~~|
-
-:call/PayloadNotSchemaError/refusesANameThatIsNoKeyword
-  |~~ A `:name` that is no keyword is refused, `:field` naming it. ~~|
-  ::law~(::call{:name 42} !| [type /field] | eq [::call/PayloadNotSchemaError :name])
-
-:call/PayloadNotSchemaError/buildsTheStepOfACall
-  |~~ A keyword and a vector of steps build the step of the call. ~~|
-  ::law~({:name :take :modifiers [2]} | tag ::call | [/] | tag ::quote | eq ~(take 2))
-
-:call/ReadBackDiffersError
-  |~~ The `::call` prints as text that reads back as another step, or as
-      none, and `:printed` is that text: a name of two words, `:"a b"`,
-      prints as two calls, a name that reads as a number, `:"1"`, as the
-      number, and an empty vector of modifiers as a call that gives none.
-      The name of a call is one word, `:count`, and a call that gives no
-      modifiers holds no `:modifiers`.
-      ::link~(::call | doc)
-  ~~|
-
-:call/ReadBackDiffersError/refusesANameOfTwoWords
-  |~~ A name with a space prints as two words, which read back as another step. ~~|
-  ::law~(::call{:name :"a b"} !| [type /printed] | eq [::call/ReadBackDiffersError "a b"])
-
-:call/ReadBackDiffersError/refusesANameThatReadsAsANumber
-  |~~ A name that reads as a number prints as the number. ~~|
-  ::law~(::call{:name :"1"} !| [type /printed] | eq [::call/ReadBackDiffersError "1"])
-
-:call/ReadBackDiffersError/refusesAnEmptyVectorOfModifiers
-  |~~ An empty vector of modifiers prints as a call that gives none. ~~|
-  ::law~(::call{:name :count :modifiers []}
-    !| [type /printed] | eq [::call/ReadBackDiffersError "count"])
-
-:call/HostFailureError
-  |~~ A failure of the host's implementation: an error of the language
-      the runtime is written in escaped a verb, which is a defect of
-      that verb's host. `:message` carries the host's account of it and
-      `:causes` the accounts of the failures beneath it, the facts every
-      host can give, so a port of the runtime to another language
-      changes no fact a query reads; the stack, the class and the fields
-      of the host's error stay with the host. The step and the input
-      are those of any error; recovery is a `!|` step, and the repair
-      belongs to the host, which declares a refusal of its own where it
-      has facts to hand.
-      ::link~(::call | doc)
-  ~~|
-
-:call/HostFailureError/message
-  |~~ The host's account of the failure. ~~|
-  ::string
-
-:call/HostFailureError/causes
-  |~~ The accounts of the failures beneath it, outermost first. ~~|
-  ::vec
-
-:call/ValueTakesNoModifiersError
-  |~~ A name the scope binds to a value takes no modifiers: the value is
-      read bare, `:five 5 | five`, and `:name` holds the name. A word
-      declared under a name a value of the scope already holds is
-      shadowed by the value, `:addresses` naming where the word lives, and
-      a call by its address reaches it, `any/five`.
-      ::link~(::call | doc)
-  ~~|
-
-:call/ValueTakesNoModifiersError/name
-  |~~ The name, which holds a value and no word. ~~|
-  ::keyword
-
-:call/ValueMeetsWordError
-  |~~ A name the scope binds to a value is the name of a word the
-      subject answers, and the step does not choose between them:
-      `:count 5 | [1 2] | count` meets `::vec/count`. A name of the
-      reader's takes any name, and meets a word only where a step calls
-      the name on a subject the word answers, `:count 5 | 7 | count`
-      answering `5`; there the word is called by its address,
-      `[1 2] | vec/count`, or the value takes another name, `:limit 5`.
-      `:name` holds the name, and `:addresses` the word the subject
-      answers.
-      ::link~(::call | doc) ::link~(::bind | doc)
-  ~~|
-
-:call/ValueMeetsWordError/name
-  |~~ The name, which holds a value and names a word of the subject. ~~|
-  ::keyword
-
-:call/ValueMeetsWordError/addresses
-  |~~ The address of the word the subject answers under the name. ~~|
-  ::set
-
-:call/ValueMeetsWordError/refusesAValueAndAWordThatMeet
-  |~~ A value and a word that meet at a step are refused with the word's address. ~~|
-  ::law~(:count 5 | [1 2] | count !| [type /addresses] | eq [::call/ValueMeetsWordError #[::vec/count]])
-
-:call/ValueMeetsWordError/readsTheValueWhereNoWordAnswers
-  |~~ On a subject no word of the name answers, the value is read. ~~|
-  ::law~(:count 5 | 7 | count | eq 5)
-
-:call/ValueMeetsWordError/callsTheWordByItsAddress
-  |~~ The word is called by its address beside the value. ~~|
-  ::law~(:count 5 | [1 2] | vec/count | eq 2)
-
-:call/ValueMeetsWordError/meetsTheWordOfAFold
-  |~~ A value named as the word of a fold meets it there, and the address calls the word. ~~|
-  ::law~(:add 5 | [1 2 3] | [(reduce 0 ~(add) !| type) (reduce 0 ~(number/add))] | eq [::call/ValueMeetsWordError 6])
-
-:call/ValueMeetsWordError/meetsAPartInTheBodyOfAWord
-  |~~ A part named as a word meets the word in the body that reads it. ~~|
-  ::law~(:vec/firstN ~([count (take count)]) | :vec/firstN/count ~(/0)
-    | [1 2 3] | firstN 2 !| [type /name] | eq [::call/ValueMeetsWordError :count])
-
-:call/ValueTakesNoModifiersError/addresses
-  |~~ The addresses where a word of that name lives, one a declaration shadows among them. ~~|
-  ::set
-
-:call/ValueTakesNoModifiersError/refusesModifiersOnAValue
-  |~~ A name that holds a value refuses the modifiers a call gives it. ~~|
-  ::law~(5 | :five / | five 42
-    !| [type /name /actualType] | eq [::call/ValueTakesNoModifiersError :five ::number])
-
-:call/ValueTakesNoModifiersError/namesTheVerbTheValueShadows
-  |~~ The refusal names where the word the value shadows lives. ~~|
-  ::law~(:five 5 | :number/five ~(add 5) | 3 | five 42 !| /addresses | eq #[::number/five])
-
-:call/ValueTakesNoModifiersError/reachesTheShadowedWordByItsAddress
-  |~~ A call by its address reaches the word a value shadows. ~~|
-  ::law~(:five 5 | :number/five ~(add 5) | 3 | number/five | eq 8)
-
-:call/KindAnswersNoVerbError
-  |~~ The kind of the subject has no verb of the name while other kinds
-      have one: `:name` holds the name, `:actualType` the kind of the
-      subject, and `:addresses` the verbs of the name and the kinds they
-      serve, and `:nearest`, where a page leads to one, the words the
-      pages of those verbs lead to that the subject answers and that
-      answer a kind the verbs answer, the act its kind keeps under another
-      name, `[1 2] | toString` led to `print`
-      and `json`. The subject is turned
-      into one of those kinds first, a soft read that answered null given
-      its fallback, `at :items | coalesce [] | count`, a keyword its name
-      by `toString`, `:host | toString | append ":80"`, or a verb of
-      another name was meant, which `:nearest` names where a page leads
-      to it.
-      ::link~(::call | doc) ::link~(::any/coalesce | doc)
-      ::link~(::keyword/toString | doc)
-  ~~|
-
-:call/KindAnswersNoVerbError/name
-  |~~ The word the step called. ~~|
-  ::keyword
-
-:call/KindAnswersNoVerbError/namesTheKindAndTheVerbs
-  |~~ The refusal names the kind of the subject and where the verb lives. ~~|
-  ::law~(1 | count !| [/actualType (/addresses | has ::vec/count)] | eq [::number true])
-
-:call/KindAnswersNoVerbError/listsEveryKindTheVerbServes
-  |~~ `:addresses` lists every kind the verb serves. ~~|
-  ::law~(5 | count
-    !| [type /addresses]
-    |  eq [::call/KindAnswersNoVerbError #[::map/count ::set/count ::string/count ::vec/count]])
-
-:call/KindAnswersNoVerbError/namesTheWordsOfAReadersNouns
-  |~~ The words of the name under a reader's nouns are named by their addresses. ~~|
-  ::law~(:Box |~~ A box. ~~| | :Ring |~~ A ring. ~~|
-    | :Box/area ~(1) | :Ring/area ~(2)
-    | 5 | area
-    !| [type /addresses]
-    |  eq [::call/KindAnswersNoVerbError #[::Box/area ::Ring/area]])
-
-:call/KindAnswersNoVerbError/namesTheWordsItsPagesLeadTo
-  |~~ `:nearest` names the words the pages of the verbs lead to that the subject answers. ~~|
-  ::law~({:a 1} | toVec !| /nearest | eq [:entries :vals])
-
-:call/KindAnswersNoVerbError/turnsTheSubjectFirst
-  |~~ A soft read that answered null is given its fallback first. ~~|
-  ::law~({} | at :items | coalesce [] | count | eq 0)
-
-:call/KindAnswersNoVerbError/turnsAKeywordIntoItsName
-  |~~ A keyword turned into its name takes the verbs of strings. ~~|
-  ::law~(:host | toString | append ":80" | eq "host:80")
-
-:call/UnknownNameError
-  |~~ A step called a name nothing declares, no name of the scope and no
-      word of any kind: `:nearest` holds the names it was likely meant to
-      be, and `:name` the name as typed. A name is declared before the
-      steps that read it, `:x 5 | x`; a field of a record is no word but a
-      key, read by projection, `/name`; and a kind is no word either: its
-      tag reaches it, which `:nearest` names first, `5 | string` pointing
-      to `::string`, whose page says how a value becomes text. A name the
-      words of other kinds answer is refused by
-      `::call/KindAnswersNoVerbError`, which names where they live, so
-      `:addresses` holds none here.
-      ::link~(::call | doc) ::link~(::call/KindAnswersNoVerbError | doc)
-      ::link~(::error/nearest | doc)
-  ~~|
-
-:call/UnknownNameError/name
-  |~~ The name the step called. ~~|
-  ::keyword
-
-:call/UnknownNameError/refusesANameNothingDeclares
-  |~~ A name nothing declares is refused, with no addresses. ~~|
-  ::law~(thisIsNotDefined !| [type /addresses] | eq [::call/UnknownNameError #[]])
-
-:call/UnknownNameError/suggestsTheNearestName
-  |~~ The names nearest in spelling are suggested. ~~|
-  ::law~(fist !| /nearest | eq [:first])
-
-:call/UnknownNameError/suggestsTheReadersNames
-  |~~ A reader's own names are suggested too. ~~|
-  ::law~(:limit 3 | limti !| /nearest | eq [:limit])
-
-:call/UnknownNameError/suggestsAWordThePageOfItsBeginningLinks
-  |~~ A name that goes on past a word is led where the page of that word links. ~~|
-  ::law~({:x 1} | addOf /x /x !| /nearest | eq [:add :sumOf])
-
-:call/UnknownNameError/suggestsNothingFarAway
-  |~~ A name near nothing suggests nothing. ~~|
-  ::law~(zzzzqqq !| /nearest | eq [])
-
-:call/UnknownNameError/refusesANameReadBeforeItsDeclaration
-  |~~ A name read before its declaration names nothing yet. ~~|
-  ::law~(x | :x 5 !| type | eq ::call/UnknownNameError)
-
-:call/UnknownNameError/pointsAKindToItsTag
-  |~~ The name of a kind points to its tag. ~~|
-  ::law~(5 | string !| [type /nearest] | eq [::call/UnknownNameError [::string]])
-
-:call/UnknownNameError/readsNoFactAsAWord
-  |~~ A fact of a record called as a word names nothing. ~~|
-  ::law~(~(take 2) | first | name !| [type /name] | eq [::call/UnknownNameError :name])
-
-:call/UnknownAddressError
-  |~~ A name with a path names nothing: no declaration wrote that
-      address. `:address` holds the address as a tag name, which the
-      axes read, and `:nearest` the addresses it was likely meant to be,
-      and `manifest` lists the names a noun holds, `::vec | manifest`. An
-      address that names a value reads it, as a bare name does.
-      ::link~(::call | doc) ::link~(::tag/manifest | doc)
-  ~~|
-
-:call/UnknownAddressError/address
-  |~~ The address the step called. ~~|
-  ::tag
-
-:call/UnknownAddressError/nearest
-  |~~ The addresses nearest to it in spelling. ~~|
-  ::vec
-
-:call/UnknownAddressError/refusesAnAddressNothingDeclares
-  |~~ An address no declaration wrote is refused. ~~|
-  ::law~([1 2 3] | vec/nothing !| [type /address] | eq [::call/UnknownAddressError ::vec/nothing])
-
-:call/UnknownAddressError/suggestsTheNearestAddress
-  |~~ The addresses nearest in spelling are suggested. ~~|
-  ::law~([1] | vec/countt !| /nearest | has ::vec/count)
-
-:call/UnknownAddressError/readsAValueByItsAddress
-  |~~ A value under a label is read by its address. ~~|
-  ::law~(:Box |~~ A box. ~~| | :Box/side 3 | Box/side | eq 3)
-
-:call/EvaluationDepthExceededError
-  |~~ A call too deep: the body of a verb, a modifier computed at the
-      call, `apply`, a constructor of a tag and each run of the code a
-      verb runs, `map ~(…)`, run one frame below the step that called
-      them, a part read from its place meets the budget at that frame, a
-      quote written as a modifier is a value at the call, and the frame
-      past the budget refuses, `:depth` the refused frame and `:limit`
-      the budget. A recursion without a base case, a quote that applies
-      itself or a word that calls itself, is refused here, on the fail
-      track, while the host's memory stays bounded: the case that ends the
-      recursion is tested first,
-      `:down ~(if (eq 0) ~(0) ~(sub 1 | apply down)) | 5 | apply down`.
-      ::link~(::call | doc) ::link~(::any/if | doc)
-  ~~|
-
-:call/EvaluationDepthExceededError/depth
-  |~~ The frame the budget refused. ~~|
-  ::number
-
-:call/EvaluationDepthExceededError/limit
-  |~~ The budget, the frames one evaluation may nest. ~~|
-  ::number
-
-:call/EvaluationDepthExceededError/refusesARunawayRecursion
-  |~~ A quote that applies itself without end is refused past the budget. ~~|
-  ::law~(:inf ~(add 1 | apply inf) | 0 | apply inf !| type | eq ::call/EvaluationDepthExceededError)
-
-:call/EvaluationDepthExceededError/namesADepthPastTheLimit
-  |~~ The depth refused lies past the limit. ~~|
-  ::law~(:q ~(apply q) | apply q !| :e / | /depth | gt (e | /limit))
-
-:call/EvaluationDepthExceededError/endsARecursionByItsBaseCase
-  |~~ A recursion that tests its base case first ends. ~~|
-  ::law~(:down ~(if (eq 0) ~(0) ~(sub 1 | apply down)) | 5 | apply down | eq 0)

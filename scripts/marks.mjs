@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { baselineOf } from './baseline-walk.mjs';
-import { LINK_DEFINITION } from './decision-records.mjs';
+import { FATE, FIELD_OPENS, LINK_DEFINITION } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 1 << 28 });
@@ -140,13 +140,12 @@ const beyondCitations = text => text.replace(CITATIONS, '').replace(/"decision":
 // The lines of a record's hunk that are its decision: a statement of fate,
 // `Replaces in part` and the lines that continue it among them, and a link
 // leave it as it was.
-const STATEMENT_OF_FATE = /^(Replaces|Pruned of what|Replaced by|Merged into|Replaced in part by) /;
-const FIELD_OPENS = new RegExp(`^(Domain|Decided by|Decision|Source|Set aside|Requirements)\\.|${LINK_DEFINITION.source}`);
+const FIELD_OR_LINK = new RegExp(`${FIELD_OPENS.source}|${LINK_DEFINITION.source}`);
 function decisionOf(lines) {
   let inFate = false;
   return beyondCitations(lines.filter(line => {
-    if (STATEMENT_OF_FATE.test(line)) inFate = true;
-    else if (FIELD_OPENS.test(line) || line.trim() === '') inFate = false;
+    if (FATE.test(line)) inFate = true;
+    else if (FIELD_OR_LINK.test(line) || line.trim() === '') inFate = false;
     return !inFate && !LINK_OR_FATE.test(line);
   }).join(' '));
 }

@@ -1,5 +1,0 @@
-{"name":"env-has-unknown","query":"env | has :thisNameDoesNotExist","expect":"false"}
-{"name":"env-after-a-freeze","query":"42 | :answer / | env | has :answer","expect":"true"}
-{"name":"env-after-bind","query":":double ~(mul 2) | env | has :double","expect":"true"}
-{"name":"env-operator-ignores-pipeValue","query":":x 1 | [1 2 3] | env | has :x","expect":"true"}
-{"name":"a-descriptor-a-query-assembles-is-a-value","query":"::builtin{:note :draft} | :u / | {:x 1} | u | type","expect":"::builtin","decision":"D113"}

@@ -1,0 +1,8 @@
+{"decision":"D118","name":"a-longer-guess-meets-the-name-it-begins-with","query":"5 | multiply 2 !| get /nearest | has :mul","expect":"true"}
+{"decision":"D118","name":"a-slip-of-the-hand-meets-its-name","query":"5 | ad 2 !| get /nearest | has :add","expect":"true"}
+{"decision":"D118","name":"an-axis-refusal-names-the-tags-near-its-name","query":"::str | binding !| get /nearest | has ::string","expect":"true"}
+{"decision":"D118","name":"a-docs-refusal-names-the-tags-near-its-name","query":"::strng | doc !| get /nearest | has ::string","expect":"true"}
+{"decision":"D118","name":"a-name-is-no-guess-for-itself","query":"::pipeline | doc !| get /nearest","expect":"[]"}
+{"decision":"D34","name":"an-address-on-a-kind-the-verb-skips-names-it-on-any-value","query":"::vec/type | doc !| get /addresses","expect":"#[::any/type]"}
+{"decision":"D7","name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| get /nearest","expect":"[:filter]"}
+{"decision":"D118","name":"a-call-of-addof-names-sumof-among-the-names-near-it","query":"{:x 1} | addOf (get /x) (get /x) !| get /nearest | has :sumOf","expect":"true"}

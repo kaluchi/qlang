@@ -7,7 +7,7 @@
 // the typed name begins with links [D118].
 
 import { keyword, makeTag } from './types.mjs';
-import { addressesOf, answerOf, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
+import { ANY_KIND_NAME, addressesOf, answerOf, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
 import { linkedAddressesOf } from './runtime/doc.mjs';
 import { splitAddress } from './address.mjs';
 
@@ -111,7 +111,7 @@ export function nearestKeys(map, typedKey) {
 }
 
 // The kinds the words at the addresses answer, a word of any value aside.
-const answeredKinds = (env, addresses) => new Set(addresses.flatMap(address => answerOf(env, address)?.kinds ?? []).filter(kind => kind !== 'any'));
+const answeredKinds = (env, addresses) => new Set(addresses.flatMap(address => answerOf(env, address)?.kinds ?? []).filter(kind => kind !== ANY_KIND_NAME));
 
 // nearestWords(env, addresses, subject) → the names the pages of the words
 // at the addresses link whose words the subject answers, each a word that

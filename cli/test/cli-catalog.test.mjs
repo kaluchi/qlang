@@ -21,7 +21,7 @@ let cliNames;
 beforeAll(async () => {
   session = await createSession({ sources: cliSources(silentStreams) });
   names = nodeAddresses(session.env).map(name => `::${name}`);
-  cliNames = await answerOf(`[${names.join(' ')}] | filter ~(binding | /origin | eq :cli) | map ~print`);
+  cliNames = await answerOf(`[${names.join(' ')}] | filter ~(binding | get /origin | eq :cli) | map ~print`);
 }, 120_000);
 
 describe('the catalog of the command line', () => {

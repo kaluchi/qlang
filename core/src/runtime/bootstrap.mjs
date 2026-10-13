@@ -8,15 +8,15 @@ import { declareInvariantError } from '../errors.mjs';
 
 // The sources the language declares its root by, in order [D153], each
 // the source of one noun, its page and what is declared under it [D114]:
-// `qlang` the topic of the language, its first page and chapters, and
-// each source after it a kind.
+// the kinds whose literals build the others first, `builtin`, `kind` and
+// `fn`, then `qlang` the topic of the language, its first page and
+// chapters, and each source after it a kind.
 export const LANGUAGE_SOURCES = Object.freeze([
-  'qlang',
-  'qlang/builtin', 'qlang/tag', 'qlang/null', 'qlang/boolean', 'qlang/number', 'qlang/string',
+  'qlang/builtin', 'qlang/kind', 'qlang/fn', 'qlang', 'qlang/tag', 'qlang/null', 'qlang/boolean', 'qlang/number', 'qlang/string',
   'qlang/keyword', 'qlang/regex', 'qlang/vec', 'qlang/set', 'qlang/map', 'qlang/quote', 'qlang/doc',
   'qlang/binding', 'qlang/error', 'qlang/elision', 'qlang/desc',
   'qlang/link', 'qlang/snippet', 'qlang/law', 'qlang/holds',
-  'qlang/explanation', 'qlang/tagged', 'qlang/construct', 'qlang/call', 'qlang/proj', 'qlang/bind',
+  'qlang/explanation', 'qlang/tagged', 'qlang/construct', 'qlang/call', 'qlang/path', 'qlang/span', 'qlang/point', 'qlang/bind',
   'qlang/fail', 'qlang/group', 'qlang/any'
 ]);
 

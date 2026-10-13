@@ -19,7 +19,7 @@
       tag of its site before the bang, `::Late!{:by 3}`; it is
       `::error{…}` under that tag, and prints with its bang, as a set
       prints with its hash. It is a value like any other: a container
-      holds it, its facts read as fields, `!{:reason :late} | /reason`
+      holds it, its facts read as fields, `!{:reason :late} | get /reason`
       answering `:late`, and JSON writes it as a value under its tag.
 
       Raised by `raise`, an error is a failure, which lives in the pipe
@@ -35,121 +35,121 @@
       ::link~(::explanation | doc) ::link~(::fail | doc)
       ::link~(::qlang/errors | doc)
   ~~|
-
-:error/writesAnErrorAtRestByItsBang
-  |~~ The bang writes an error at rest of the kind of errors. ~~|
-  ::law~(!{:detail "boom"} | type | eq ::error)
-
-:error/standsOverItsKind
-  |~~ Beneath the site's tag lies an `::error`. ~~|
-  ::law~("x" | add 1 !| payload | type | eq ::error)
-
-:error/readsItsFacts
-  |~~ An error's facts read as fields. ~~|
-  ::law~(::error{:k 1} | /k | eq 1)
-
-:error/takesAFactOnTheWay
-  |~~ A fact added on the fail track rides on. ~~|
-  ::law~("x" | add 1 !| union {:request "r-1"} | raise !| /request | eq "r-1")
-
-:error/recoversByItsType
-  |~~ A failure of a known type recovers. ~~|
-  ::law~("x" | add 1 !| if (type | eq ::number/add/SubjectNotNumberError) ~(0) ~(raise) | eq 0)
-
-:error/raisesAgainOtherwise
-  |~~ A failure of another type raises again as itself. ~~|
-  ::law~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::number/add/SubjectNotNumberError)
-
-:error/TrailNotVecError
-  |~~ `:trail` among the facts of an error is its path, a
-      vector of stops the runtime writes, `{:step :subject :skipped}`,
-      from the step where it arose to the step where it is read.
-      A `raise` of a map that writes a value that is no plain vector
-      under `:trail`, a set, a quote and a doc among them, is refused as
-      it makes the error. A `raise`
-      that writes the `:trail` it read goes on with that path, and one
-      that leaves it out starts a path at its own step.
-      ::link~(::error | doc)
-  ~~|
-
-:error/TrailNotVecError/refusesANumberForATrail
-  |~~ A number given as a trail is refused. ~~|
-  ::law~(!{:kind :oops :trail 5} | raise !| [type /actualType] | eq [::error/TrailNotVecError ::number])
-
-:error/TrailNotVecError/refusesATrailLaidOverAFailure
-  |~~ A trail of a number laid over an error is refused when it is raised. ~~|
-  ::law~(!{:kind :oops} | raise | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotVecError)
-
-:error/TrailNotVecError/startsATrailAtTheRaise
-  |~~ An error raised without a trail starts its trail at the raise. ~~|
-  ::law~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1
-    !| /trail | map ~/step | eq [~(raise)])
-
-:error/TrailNotVecError/refusesASetAQuoteAndADoc
-  |~~ A set, a quote and a doc are no plain vector of stops. ~~|
-  ::law~([#[1] ~(a) |~~ d ~~|] | map ~({:trail /} | raise !| type) | eq [::error/TrailNotVecError ::error/TrailNotVecError ::error/TrailNotVecError])
-
-:error/name
-  |~~ The name a reader asked for, a keyword or a tag, where nothing answers it. ~~|
-  #[::keyword ::tag]
-
-:error/addresses
-  |~~ The addresses where a word of that name lives, one for each kind that answers it. ~~|
-  ::set
-
-:error/nearest
-  |~~ The names a step could have meant where it missed. For a name, a
-      key or a tag nothing declares, those nearest in spelling: within a
-      slip of the typing hand, an insertion, a deletion, a substitution or
-      a swap of two neighbours, up to a third of its length and one at
-      least, the nearest of them alone; beside them a name that begins it
-      or that it begins, three letters at least, `multiply` for `mul`; and
-      the words the page of a word it begins with links whose names end as
-      it goes on, `sumOf` for `addOf`. For a word the kind of the subject
-      lacks, the words the pages of the word lead to that the subject
-      answers and that answer a kind the word answers, `print` and `json`
-      for the `toString` of a vector. In the
-      order of their spelling, and `[]` where none is near.
-  ~~|
-  ::vec
-
-:error/index
-  |~~ The place of the element refused, counted from zero. ~~|
-  ::number
-
-:error/actualType
-  |~~ The kind of the value refused. ~~|
-  ::tag
-
-:error/places
-  |~~ How many places the parts of the word read, where the call gave
-      more values.
-  ~~|
-  ::number
-
-:error/actualValue
-  |~~ The value refused, where it is not the subject that the first stop
-      of the trail holds.
-  ~~|
-  ::any
-
-:error/leftType
-  |~~ The kind of the value on the left. ~~|
-  ::tag
-
-:error/rightType
-  |~~ The kind of the value on the right. ~~|
-  ::tag
-
-:error/field
-  |~~ The field that does not fit, null when the payload is no map. ~~|
-  #[::keyword ::null]
-
-:error/printed
-  |~~ The text a value prints as, its literal: a step that reads back as
-      another step or as none, or an answer the JSON channel has no form for.
-  ~~|
-  ::string
+  ::kind
+    | throws :TrailNotVecError
+        |~~ `:trail` among the facts of an error is its path, a vector of
+            stops the runtime writes, `{:step :subject :skipped}`, from
+            the step where it arose to the step where it is read. A
+            `raise` of a map that writes a value that is no plain vector
+            under `:trail`, a set, a quote and a doc among them, is
+            refused as it makes the error. A `raise` that writes the
+            `:trail` it read goes on with that path, and one that leaves
+            it out starts a path at its own step.
+            ::link~(::error | doc)
+        ~~|
+    | carries :name
+        |~~ The name a reader asked for, a keyword or a tag, where nothing
+            answers it.
+        ~~|
+        #[::keyword ::tag]
+    | carries :addresses
+        |~~ The addresses where a word of that name lives, one for each
+            kind that answers it.
+        ~~|
+        ::set
+    | carries :nearest
+        |~~ The names a step could have meant where it missed. For a name,
+            a key or a tag nothing declares, those nearest in spelling:
+            within a slip of the typing hand, an insertion, a deletion, a
+            substitution or a swap of two neighbours, up to a third of its
+            length and one at least, the nearest of them alone; beside
+            them a name that begins it or that it begins, three letters at
+            least, `multiply` for `mul`; and the words the page of a word
+            it begins with links whose names end as it goes on, `sumOf`
+            for `addOf`. For a word the kind of the subject lacks, the
+            words the pages of the word lead to that the subject answers
+            and that answer a kind the word answers, `print` and `json`
+            for the `toString` of a vector. In the order of their
+            spelling, and `[]` where none is near.
+        ~~|
+        ::vec
+    | carries :read
+        |~~ The read the step was likely meant for, where a path stands in
+            place of the value it names: the step again with the path read
+            by `get`, `/tags | count` read as `get /tags | count` and
+            `mul /qty` as `mul (get /qty)`.
+        ~~|
+        ::quote
+    | carries :path
+        |~~ The path a read followed where it missed, the key or the place
+            it missed named beside it.
+        ~~|
+        ::path
+    | carries :index
+        |~~ The place of the element refused, counted from zero. ~~|
+        ::number
+    | carries :actualType |~~ The kind of the value refused. ~~| ::tag
+    | carries :places
+        |~~ How many places the inputs of the word read, where the call
+            gave more values.
+        ~~|
+        ::number
+    | carries :actualValue
+        |~~ The value refused, where it is not the subject that the first
+            stop of the trail holds.
+        ~~|
+        ::any
+    | carries :leftType |~~ The kind of the value on the left. ~~| ::tag
+    | carries :rightType |~~ The kind of the value on the right. ~~| ::tag
+    | carries :field
+        |~~ The field that does not fit, null when the payload is no map.
+        ~~|
+        #[::keyword ::null]
+    | carries :printed
+        |~~ The text a value prints as, its literal: a step that reads
+            back as another step or as none, or an answer the JSON channel
+            has no form for.
+        ~~|
+        ::string
+    | proves :writesAnErrorAtRestByItsBang
+        |~~ The bang writes an error at rest of the kind of errors. ~~|
+        ~(!{:detail "boom"} | type | eq ::error)
+    | proves :standsOverItsKind
+        |~~ Beneath the site's tag lies an `::error`. ~~|
+        ~("x" | add 1 !| payload | type | eq ::error)
+    | proves :readsItsFacts
+        |~~ An error's facts read as fields. ~~|
+        ~(::error{:k 1} | get /k | eq 1)
+    | proves :takesAFactOnTheWay
+        |~~ A fact added on the fail track rides on. ~~|
+        ~("x" | add 1 !| union {:request "r-1"} | raise !| get /request | eq "r-1")
+    | proves :recoversByItsType
+        |~~ A failure of a known type recovers. ~~|
+        ~("x" | add 1 !| if (type | eq ::number/add/SubjectNotNumberError) ~(0) ~(raise) | eq 0)
+    | proves :raisesAgainOtherwise
+        |~~ A failure of another type raises again as itself. ~~|
+        ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::number/add/SubjectNotNumberError)
+    | proves :TrailNotVecError/refusesANumberForATrail
+        |~~ A number given as a trail is refused. ~~|
+        ~(!{:kind :oops :trail 5} | raise !| [type (get /actualType)] | eq [::error/TrailNotVecError ::number])
+    | proves :TrailNotVecError/refusesATrailLaidOverAFailure
+        |~~ A trail of a number laid over an error is refused when it is
+            raised.
+        ~~|
+        ~(!{:kind :oops} | raise | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotVecError)
+    | proves :TrailNotVecError/startsATrailAtTheRaise
+        |~~ An error raised without a trail starts its trail at the raise.
+        ~~|
+        ~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1
+          !| get /trail | map /step | eq [~(raise)])
+    | proves :TrailNotVecError/refusesASetAQuoteAndADoc
+        |~~ A set, a quote and a doc are no plain vector of stops. ~~|
+        ~([#[1] ~(a) |~~ d ~~|] | map ~({:trail it} | raise !| type) | eq [::error/TrailNotVecError ::error/TrailNotVecError ::error/TrailNotVecError])
+    | proves :read/namesAWrittenPathAlone
+        |~~ A path a name holds is no path the step wrote, and names no
+            read.
+        ~~|
+        ~(:p /qty | 5 | mul p !| query /read | eq null)
 
 :error/trail
   |~~ Answers the path of the error, a vector of stops from the step
@@ -159,7 +159,7 @@
       `add 1`, which met `"x"` and skipped `mul 2`. A step that ran the
       step that raised adds its stop after it, the `map` that ran an
       element among them, so the path reads outward:
-      `[1 "x"] | map ~(mul 2) !| trail | map ~/step` answers
+      `[1 "x"] | map ~(mul 2) !| trail | map /step` answers
       `[~(mul 2) ~(map ~(mul 2))]`. An error at rest that flew no step
       holds no `:trail` and answers `[]`, `::error{:a 1} | trail`. The
       subject is an error at rest, the value `!|` catches a failure to:
@@ -168,38 +168,34 @@
       among them.
       ::link~(::qlang/errors | doc) ::link~(::error | doc)
   ~~|
-  ~(at :trail | coalesce [])
+  ::fn
+    | returns |~~ The stops of the path the error took. ~~| ::vec
+    | throws :SubjectNotErrorError
+        |~~ `trail` reads the path of an error at rest, the value `!|`
+            catches a failure to, `"x" | add 1 !| trail`; the key `:trail`
+            of a plain map is read by `/trail`.
+        ~~|
+    | proves :answersNothingForAnErrorThatFlewNoStep
+        |~~ An error that flew no step holds no path. ~~|
+        ~(::error{:a 1} | trail | eq [])
+    | proves :holdsTheStepThatRaised
+        |~~ The trail of an error raised at once holds the one step. ~~|
+        ~("x" | add 1 !| trail | count | eq 1)
+    | proves :meetsTheSubjectOfTheStep
+        |~~ The stop holds the subject the step met. ~~|
+        ~("x" | add 1 !| trail | first | get /subject | eq "x")
+    | proves :namesTheStepsSkipped
+        |~~ The stop of the step that raised names the steps skipped after
+            it.
+        ~~|
+        ~("x" | add 1 | mul 2 !| trail | first | get /skipped | eq ~(mul 2))
+    | proves :readsOutward
+        |~~ The step that ran an element adds its stop after the
+            element's.
+        ~~|
+        ~([1 "x"] | map ~(mul 2) !| trail | map /step | eq [~(mul 2) ~(map ~(mul 2))])
+    | proves :SubjectNotErrorError/refusesAMap
+        |~~ A map with the key `:trail` is no error. ~~|
+        ~({:trail []} | trail !| [type (get /actualType)] | eq [::error/trail/SubjectNotErrorError ::map])
+    | impl ~(query /trail | coalesce [])
 
-:error/trail/answersNothingForAnErrorThatFlewNoStep
-  |~~ An error that flew no step holds no path. ~~|
-  ::law~(::error{:a 1} | trail | eq [])
-
-:error/trail/answer
-  |~~ The stops of the path the error took. ~~|
-  ::vec
-
-:error/trail/SubjectNotErrorError
-  |~~ `trail` reads the path of an error at rest, the value `!|`
-      catches a failure to, `"x" | add 1 !| trail`; the key `:trail` of a
-      plain map is read by `/trail`.
-  ~~|
-
-:error/trail/holdsTheStepThatRaised
-  |~~ The trail of an error raised at once holds the one step. ~~|
-  ::law~("x" | add 1 !| trail | count | eq 1)
-
-:error/trail/meetsTheSubjectOfTheStep
-  |~~ The stop holds the subject the step met. ~~|
-  ::law~("x" | add 1 !| trail | first | /subject | eq "x")
-
-:error/trail/namesTheStepsSkipped
-  |~~ The stop of the step that raised names the steps skipped after it. ~~|
-  ::law~("x" | add 1 | mul 2 !| trail | first | /skipped | eq ~(mul 2))
-
-:error/trail/readsOutward
-  |~~ The step that ran an element adds its stop after the element's. ~~|
-  ::law~([1 "x"] | map ~(mul 2) !| trail | map ~/step | eq [~(mul 2) ~(map ~(mul 2))])
-
-:error/trail/SubjectNotErrorError/refusesAMap
-  |~~ A map with the key `:trail` is no error. ~~|
-  ::law~({:trail []} | trail !| [type /actualType] | eq [::error/trail/SubjectNotErrorError ::map])

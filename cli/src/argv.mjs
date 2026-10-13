@@ -48,9 +48,9 @@ Output colour:
                   always (the explicit --color flag overrides both).
 
 Examples:
-  curl -s api/users | qlang '/data | map ~/name'
-  qlang '/glossary/title' < data.json
-  qlang '/users | filter ~(/active) | json' < data.json
+  curl -s api/users | qlang 'get /data | map /name'
+  qlang 'get /glossary/title' < data.json
+  qlang 'get /users | filter /active | json' < data.json
   echo hi           | qlang --raw 'append " world"'
   qlang --raw 'lines | filter ~(contains "ERROR") | count' < app.log
   qlang '[1 2 3] | filter ~(gt 1) | count'

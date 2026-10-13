@@ -9,16 +9,15 @@
 // the expected side accidentally computes instead of declaring a
 // static value.
 //
-// A case may name the decision that left it as a requirement,
-// `"decision": "D14"` or a vector of them, and a requirement the tree
-// does not meet yet is a target, `"target": true`, which answers its
+// A case opens with the one record in force that gates it, the record
+// whose rule it shows, `"decision": "D14"` [D254], and a requirement the
+// tree does not meet yet is a target, `"target": true`, which answers its
 // present, `"now"`, an error by its tag and any other value as its
 // literal: a target that answers as expected fails until the branch
 // that met it drops the mark [D58], and one that answers neither fails
 // until a reader tells a repair from a broken case [D91]. The
 // requirements agree with each other in the one form a runner can see:
-// no two cases hold one query to different answers, and every decision
-// a case names has its record.
+// no two cases hold one query to different answers.
 
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -39,8 +38,8 @@ const files = readdirSync(conformanceDir, { recursive: true })
   .sort();
 
 // assertLiteralAst — walks the AST and rejects any node that performs
-// computation (Call, Projection, ParenGroup with pipeline ops).
-// Pipeline is allowed only as a container for compound literals
+// computation (Call, ParenGroup with pipeline ops); a path is a value
+// [D248]. Pipeline is allowed only as a container for compound literals
 // (the parser wraps multi-step bodies in Pipeline nodes), and a quote
 // literal is a literal whatever steps it holds.
 function assertLiteralAst(parsed, testName) {
@@ -51,12 +50,6 @@ function assertLiteralAst(parsed, testName) {
       throw new Error(
         `expect in "${testName}" contains Call "${node.name}" — ` +
         `expected values must be pure literals, not computations`
-      );
-    }
-    if (node.type === 'Projection') {
-      throw new Error(
-        `expect in "${testName}" contains Projection — ` +
-        `expected values must be pure literals`
       );
     }
   });
@@ -101,12 +94,12 @@ describe('conformance: the requirements agree', () => {
     expect(contradictions).toEqual([]);
   });
 
-  it('names only decisions in force, whose records stand in the root of the records [D237]', () => {
+  it('opens each case with the one record in force that gates it, whose record stands in the root of the records [D237], [D254]', () => {
     const decisionsDir = join(here, '..', '..', '..', 'docs', 'decisions');
-    const unrecorded = allCases.flatMap(test => [test.decision ?? []].flat()
-      .filter(decision => !existsSync(join(decisionsDir, `${decision}.md`)))
-      .map(decision => `${test.file}#${test.name}: ${decision}`));
-    expect(unrecorded).toEqual([]);
+    const ungated = allCases.filter(({ file: _file, ...test }) => typeof test.decision !== 'string' || Object.keys(test)[0] !== 'decision'
+      || !existsSync(join(decisionsDir, `${test.decision}.md`)))
+      .map(test => `${test.file}#${test.name}: ${JSON.stringify(test.decision ?? null)}`);
+    expect(ungated).toEqual([]);
   });
 });
 

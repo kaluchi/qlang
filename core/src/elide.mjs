@@ -24,11 +24,10 @@
 
 import {
   isVec, isVecOfOwnKind, isQMap, isErrorValue, isValueClass,
-  makeTaggedInstance, makeTag, makeErrorValue, stampTagHeader, TAG_HEADER_SYMBOL,
-  canonicalKeywordLiteral
+  makeTaggedInstance, makeTag, makeErrorValue, makePath, makeQuote, stampTagHeader, TAG_HEADER_SYMBOL, FAIL_TAG
 } from './types.mjs';
 import { printValue } from './runtime/print-value.mjs';
-import { quoteOfSource } from './quote.mjs';
+import { commandStep } from './quote.mjs';
 
 const ELISION_TAG = makeTag('elision');
 const HEAD_CHARACTERS = 40;
@@ -49,18 +48,23 @@ const isPlainVector = value => isVec(value) && value[TAG_HEADER_SYMBOL] === unde
 const isPlainMap = value => isQMap(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isTaggedContainer = value => (isVec(value) || isQMap(value)) && !isVecOfOwnKind(value);
 
-// The step that reads one part of its parent: a field by its keyword, an
-// element by its index.
-function stepOf(key) {
-  if (typeof key === 'number') return `/${key}`;
-  const literal = canonicalKeywordLiteral(key);
-  return /^:[^"]/.test(literal) ? `/${literal}` : ` | at ${literal}`;
-}
+// Where the reads of a value start: the value itself, or beneath `!|` the
+// facts of an alert, each read from the path `from` names.
+const OF_THE_VALUE = { caught: false, from: [] };
+const OF_THE_FACTS = { caught: true, from: [] };
 
-function readOf(prefix, path, tail = '') {
-  const steps = path.map(stepOf).join('');
-  const body = `${prefix}${steps}${tail}`.replace(/^ \| /, '').trim();
-  return quoteOfSource(body === '' ? '/' : body);
+const readBelow = ({ caught, from }, segments) => ({ caught, from: [...from, ...segments] });
+
+// The read of a part: `get` with the path to it, `drop` after it where a
+// vector keeps its first elements, and `it` where the path is empty,
+// beneath `!|` for a fact of an alert [D248].
+function readOf(start, path, kept = null) {
+  const segments = [...start.from, ...path].map(String);
+  const steps = segments.length === 0 ? [] : [commandStep('get', [makePath(segments)])];
+  if (kept !== null) steps.push(commandStep('drop', [kept]));
+  if (steps.length === 0) steps.push(commandStep('it'));
+  if (start.caught) steps[0] = makeTaggedInstance(FAIL_TAG, makeQuote([steps[0]]));
+  return makeQuote(steps);
 }
 
 function marker(fields) {
@@ -97,28 +101,28 @@ function vectorParts(value) {
 
 // The marker a part gives way to whole: a string's with its head, a
 // vector's standing for every element it held, a map's for its entries.
-function wholeOf(part, prefix) {
+function wholeOf(part, start) {
   const { path, value } = part;
   if (typeof value === 'string') {
-    return marker([['size', value.length], ['read', readOf(prefix, path)], ['head', value.slice(0, Math.min(HEAD_CHARACTERS, Math.floor(value.length / 2)))]]);
+    return marker([['size', value.length], ['read', readOf(start, path)], ['head', value.slice(0, Math.min(HEAD_CHARACTERS, Math.floor(value.length / 2)))]]);
   }
   if (isPlainVector(value)) {
     const { elements, standsFor } = vectorParts(value);
-    return marker([['size', elements.length + standsFor], ['read', readOf(prefix, path)]]);
+    return marker([['size', elements.length + standsFor], ['read', readOf(start, path)]]);
   }
-  return marker([['size', value.size], ['read', readOf(prefix, path)]]);
+  return marker([['size', value.size], ['read', readOf(start, path)]]);
 }
 
 // The marker or the shortened vector a part gives way to: a vector keeps
 // the first half of its elements while it holds more than one.
-function givenWay(part, prefix) {
+function givenWay(part, start) {
   const { path, value } = part;
-  if (!isPlainVector(value)) return wholeOf(part, prefix);
+  if (!isPlainVector(value)) return wholeOf(part, start);
   const { elements, standsFor } = vectorParts(value);
   const kept = Math.ceil(elements.length / 2);
-  if (kept === elements.length) return wholeOf(part, prefix);
+  if (kept === elements.length) return wholeOf(part, start);
   const leftOut = elements.length - kept + standsFor;
-  return [...elements.slice(0, kept), marker([['size', leftOut], ['read', readOf(prefix, path, ` | drop ${kept}`)]])];
+  return [...elements.slice(0, kept), marker([['size', leftOut], ['read', readOf(start, path, kept)]])];
 }
 
 function replacedAt(value, path, replacement) {
@@ -137,22 +141,22 @@ function replacedAt(value, path, replacement) {
 // those whose marker prints shorter than they do, so a budget never
 // lengthens a print, a vector halving on to its marker at the most; where
 // no part's marker is shorter, the view stands over the budget [D217].
-function elideWithin(value, budget, prefix, keep) {
+function elideWithin(value, budget, start, keep) {
   let view = value;
   while (printedSize(view) > budget) {
     const parts = [];
     partsOf(view, [], keep, parts);
     const sized = parts.map(part => ({ part, size: printedSize(part.value) }))
-      .filter(({ part, size }) => printedSize(wholeOf(part, prefix)) < size);
+      .filter(({ part, size }) => printedSize(wholeOf(part, start)) < size);
     if (sized.length === 0) return view;
     const largest = sized.reduce((best, candidate) => (candidate.size > best.size ? candidate : best));
-    view = replacedAt(view, largest.part.path, givenWay(largest.part, prefix));
+    view = replacedAt(view, largest.part.path, givenWay(largest.part, start));
   }
   return view;
 }
 
 export function elide(value, budget) {
-  return elideWithin(value, budget, '', keepsNone);
+  return elideWithin(value, budget, OF_THE_VALUE, keepsNone);
 }
 
 // A fact of an alert within its excerpt, beneath the read that reaches
@@ -178,7 +182,7 @@ function passedOver(value, read) {
 // way whole.
 function stopsOf(trail, read) {
   return Object.freeze(trail.map((stop, index) => {
-    const subjectRead = `${read}/${index}/subject`;
+    const subjectRead = readBelow(read, [index, 'subject']);
     const subject = stop.get('subject');
     return Object.freeze(new Map(stop).set('subject', index === 0 ? excerptOf(subject, subjectRead) : passedOver(subject, subjectRead)));
   }));
@@ -187,7 +191,7 @@ function stopsOf(trail, read) {
 export function alertOf(error) {
   const facts = new Map();
   for (const [name, value] of error.descriptor) {
-    const factRead = `!| ${stepOf(name)}`;
+    const factRead = readBelow(OF_THE_FACTS, [name]);
     facts.set(name, name === 'trail' ? stopsOf(value, factRead) : excerptOf(value, factRead));
   }
   return makeErrorValue(error.tag, facts);
@@ -201,6 +205,6 @@ export function elideAnswer(answer, budget = null) {
   const alert = alertOf(answer);
   if (budget === null) return alert;
   const header = printValue(alert).length - printedSize(alert.descriptor);
-  const facts = elideWithin(new Map(alert.descriptor), budget - header, '!| ', path => path[0] === 'trail' && path.length <= 2);
+  const facts = elideWithin(new Map(alert.descriptor), budget - header, OF_THE_FACTS, path => path[0] === 'trail' && path.length <= 2);
   return makeErrorValue(alert.tag, facts);
 }

@@ -1,0 +1,24 @@
+{"decision":"D123","name":"the-laws-of-a-name-are-the-laws-declared-under-it-by-their-names","query":":k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | laws | keys","expect":"#[:answersFive]"}
+{"decision":"D123","name":"run-laws-names-each-law-by-its-address-and-its-claim-by-its-page","query":":k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | runLaws | first | get [/law /says /ok]","expect":"[::k/answersFive |~~ k answers five. ~~| true]"}
+{"decision":"D123","name":"a-law-without-a-page-claims-nothing-it-says","query":":k 5 | :k/answersFive ::law~(k | eq 5) | ::k | runLaws | first | get [/says /ok]","expect":"[null true]"}
+{"decision":"D123","name":"a-law-that-answers-false-fails","query":":k 5 | :k/wrong |~~ One is two. ~~| ::law~(1 | eq 2) | ::k | runLaws | first | get /ok","expect":"false"}
+{"decision":"D123","name":"a-name-with-no-laws-has-none","query":":k 5 | ::k | laws","expect":"{}"}
+{"decision":"D123","name":"the-manifest-of-a-name-leaves-its-laws-to-laws","query":":k 5 | :k/answersFive ::law~(k | eq 5) | :k/n ~(get /0) | ::k | manifest","expect":"#[::k/n]"}
+{"decision":"D176","name":"a-law-reads-as-the-pair-of-its-page-and-its-query","query":":k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | laws | get /answersFive | get [(get /0 | content) /1]","expect":"[\" k answers five. \" ~(k | eq 5)]"}
+{"decision":"D176","name":"the-tutorial-of-a-name-is-its-page-and-its-laws","query":":k |~~ Answers five. ~~| 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | tutorial | get [(get /0 | content) (get /1 | keys)]","expect":"[\" Answers five. \" #[:answersFive]]"}
+{"decision":"D177","name":"the-tutorial-of-a-name-nothing-declares-is-refused-as-doc-refuses-it","query":"::nothere | tutorial !| type","expect":"::any/doc/UnknownNameError"}
+{"decision":"D123","name":"run-laws-answers-an-outcome-for-each-law","query":":three 3 | :three/isThree ::law~(3 | eq 3) | :three/exceedsTwo ::law~(3 | gt 2) | ::three | runLaws | first | get /ok","expect":"true"}
+{"decision":"D123","name":"each-outcome-names-its-law","query":":three 3 | :three/isThree ::law~(3 | eq 3) | :three/exceedsTwo ::law~(3 | gt 2) | ::three | runLaws | first | get /law","expect":"::three/isThree"}
+{"decision":"D123","name":"each-outcome-says-whether-its-law-held","query":":three 3 | :three/isThree ::law~(3 | eq 3) | :three/exceedsTwo ::law~(3 | gt 2) | ::three | runLaws | map /ok | distinct","expect":"#[true]"}
+{"decision":"D123","name":"a-law-that-holds-carries-no-error","query":":three 3 | :three/isThree ::law~(3 | eq 3) | :three/exceedsTwo ::law~(3 | gt 2) | ::three | runLaws | first | get /error","expect":"null"}
+{"decision":"D123","name":"a-law-that-holds-answers-true","query":":three 3 | :three/isThree ::law~(3 | eq 3) | :three/exceedsTwo ::law~(3 | gt 2) | ::three | runLaws | first | get /actual","expect":"true"}
+{"decision":"D123","name":"one-outcome-for-each-law","query":":three 3 | :three/isThree ::law~(3 | eq 3) | :three/exceedsTwo ::law~(3 | gt 2) | ::three | runLaws | count | eq (::three | laws | count)","expect":"true"}
+{"decision":"D178","name":"a-number-runs-the-laws-of-its-kind","query":"42 | runLaws | count | eq (::number | runLaws | count)","expect":"true"}
+{"decision":"D178","name":"a-map-runs-the-laws-of-its-kind","query":"{:kind :builtin} | runLaws | count | eq (::map | runLaws | count)","expect":"true"}
+{"decision":"D124","name":"every-law-of-sort-says-its-claim","query":"::vec/sort | runLaws | every ~(get /says | eq null | not)","expect":"true"}
+{"decision":"D123","name":"the-laws-of-a-concept-run-through-its-noun","query":"::qlang | runLaws :errors | map /says | first","expect":"|~~ The error's tag names its site. ~~|"}
+{"decision":"D124","name":"a-page-holds-the-laws-of-its-claims","query":"::vec/sort | laws | count | gt 0","expect":"true"}
+{"decision":"D149","name":"a-doc-shows-its-quote-as-written","query":"|~~ x ~({\"a\": 1} | eq {:a 1}) ~~| | content","expect":"\" x ~({\\\"a\\\": 1} | eq {:a 1}) \""}
+{"decision":"D149","name":"a-quote-assembled-from-data-is-printed","query":"~(add 1 | mul 2) | take 1 | :q it | get [q] | tag ::doc | content","expect":"\"~(add 1)\""}
+{"decision":"D149","name":"a-law-of-a-spelled-form-shows-the-form","query":"::map | laws | get /readsJson | get /1 | print","expect":"\"~(\\\"{\\\\\\\"a\\\\\\\": 1, \\\\\\\"b\\\\\\\": [true, null]}\\\" | parse | apply it | eq {:a 1 :b [true null]})\""}
+{"decision":"D123","name":"every-example-of-the-core-passes","query":"kinds | map ~(manifest) | flat | every ~(runLaws | every /ok)","expect":"true"}

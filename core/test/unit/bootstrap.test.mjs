@@ -39,7 +39,7 @@ describe('a source of the language the parser refuses', () => {
     let thrown = null;
     try { await buildLangRuntime(async () => ({ source: ':unclosed (mul(2)' })); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(ParseError);
-    expect(thrown.uri).toBe('qlang');
+    expect(thrown.uri).toBe('qlang/builtin');
   });
 });
 

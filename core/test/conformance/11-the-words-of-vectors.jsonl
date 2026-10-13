@@ -1,0 +1,83 @@
+{"decision":"D22","name":"count","query":"[1 2 3 4 5] | count","expect":"5"}
+{"decision":"D22","name":"count-empty","query":"[] | count","expect":"0"}
+{"decision":"D22","name":"empty-true","query":"[] | empty","expect":"true"}
+{"decision":"D22","name":"empty-false","query":"[1] | empty","expect":"false"}
+{"decision":"D22","name":"first","query":"[10 20 30] | first","expect":"10"}
+{"decision":"D22","name":"first-empty","query":"[] | first","expect":"null"}
+{"decision":"D16","name":"first-set","query":"#[10 20 30] | first","expect":"10"}
+{"decision":"D16","name":"first-set-empty","query":"#[] | first","expect":"null"}
+{"decision":"D22","name":"last","query":"[10 20 30] | last","expect":"30"}
+{"decision":"D22","name":"last-empty","query":"[] | last","expect":"null"}
+{"decision":"D22","name":"sum","query":"[1 2 3 4 5] | sum","expect":"15"}
+{"decision":"D22","name":"sum-empty","query":"[] | sum","expect":"0"}
+{"decision":"D169","name":"sum-overflow-lifts-not-finite","query":"[1e308 1e308] | sum !| type","expect":"::number/NotFiniteError"}
+{"decision":"D169","name":"sum-overflow-holds-its-subject-on-the-trail","query":"[1e308 1e308] | sum !| get /trail/0/subject","expect":"[1e308 1e308]"}
+{"decision":"D22","name":"min","query":"[3 1 4 1 5 9 2 6] | min","expect":"1"}
+{"decision":"D22","name":"max","query":"[3 1 4 1 5 9 2 6] | max","expect":"9"}
+{"decision":"D22","name":"filter-gt","query":"[1 2 3 4 5] | filter ~(gt 2)","expect":"[3 4 5]"}
+{"decision":"D22","name":"filter-lt","query":"[1 2 3 4 5] | filter ~(lt 3)","expect":"[1 2]"}
+{"decision":"D22","name":"filter-then-count","query":"[1 2 3 4 5] | filter ~(gt 3) | count","expect":"2"}
+{"decision":"D16","name":"filter-set-gt","query":"#[1 2 3 4 5] | filter ~(gt 2)","expect":"#[3 4 5]"}
+{"decision":"D16","name":"filter-set-empty-result","query":"#[1 2 3] | filter ~(gt 99)","expect":"#[]"}
+{"decision":"D15","name":"filter-map-value-gt","query":"{:a 1 :b 2 :c 3} | filter ~(gt 1)","expect":"{:b 2 :c 3}"}
+{"decision":"D5","name":"filter-vec-declared-verb","query":"[1 2 3 4 5] | :number/big ~(gt 2) | filter ~(big)","expect":"[3 4 5]"}
+{"decision":"D5","name":"filter-vec-verb-predicate","query":"[1 -2 3 -4 5] | :number/positive ~(gt 0) | filter ~positive","expect":"[1 3 5]"}
+{"decision":"D5","name":"filter-set-declared-verb","query":"#[1 2 3 4 5] | :number/big ~(gt 2) | filter ~(big)","expect":"#[3 4 5]"}
+{"decision":"D5","name":"filter-set-verb-predicate","query":"#[1 -2 3 -4 5] | :number/positive ~(gt 0) | filter ~positive","expect":"#[1 3 5]"}
+{"decision":"D5","name":"filter-map-declared-verb","query":"{:a 1 :b 2 :c 3} | :number/big ~(gt 1) | filter ~(big)","expect":"{:b 2 :c 3}"}
+{"decision":"D5","name":"filter-map-verb-predicate","query":"{:a 1 :b -2 :c 3} | :number/positive ~(gt 0) | filter ~positive","expect":"{:a 1 :c 3}"}
+{"decision":"D251","name":"a-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2 :c 3} | :number/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | filter ~above !| type","expect":"::number/above/limit/NotGivenError"}
+{"decision":"D15","name":"filter-map-empty","query":"{} | filter ~(gt 0)","expect":"{}"}
+{"decision":"D15","name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1)","expect":"{:c 3 :b 2}"}
+{"decision":"D169","name":"filter-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | filter ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :filter\n  :addresses #[::map/filter ::set/filter ::vec/filter]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(filter ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D16","name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
+{"decision":"D16","name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
+{"decision":"D248","name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort /age","expect":"[{:age 20} {:age 25} {:age 30}]"}
+{"decision":"D248","name":"sort-by-string-key","query":"[{:name \"Bob\"} {:name \"Alice\"}] | sort /name","expect":"[{:name \"Alice\"} {:name \"Bob\"}]"}
+{"decision":"D22","name":"take","query":"[1 2 3 4 5] | take 3","expect":"[1 2 3]"}
+{"decision":"D22","name":"drop","query":"[1 2 3 4 5] | drop 2","expect":"[3 4 5]"}
+{"decision":"D16","name":"distinct","query":"[1 2 1 3 2 4] | distinct","expect":"#[1 2 3 4]"}
+{"decision":"D16","name":"distinct-on-set","query":"#[1 2 3] | distinct","expect":"#[1 2 3]"}
+{"decision":"D22","name":"reverse","query":"[1 2 3] | reverse","expect":"[3 2 1]"}
+{"decision":"D22","name":"flat","query":"[[1 2] [3] [4 5]] | flat","expect":"[1 2 3 4 5]"}
+{"decision":"D116","name":"map-multiplies-each-element","query":"[1 2 3] | map ~(mul 10)","expect":"[10 20 30]"}
+{"decision":"D90","name":"reduce-sum","query":"[1 2 3 4 5] | reduce 0 ~(add)","expect":"15"}
+{"decision":"D90","name":"reduce-product","query":"[1 2 3 4 5] | reduce 1 ~(mul)","expect":"120"}
+{"decision":"D90","name":"reduce-append","query":"[\"a\" \"b\" \"c\"] | reduce \"\" ~(append)","expect":"\"abc\""}
+{"decision":"D90","name":"reduce-union-of-sets","query":"[#[1] #[2 3]] | reduce #[] ~(union)","expect":"#[1 2 3]"}
+{"decision":"D56","name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | get [type (payload | type)]","expect":"[::Bar ::Foo]"}
+{"decision":"D248","name":"reduce-max-via-verb","query":":number/max2 (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(if (gt x) ~(it) ~(x))) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
+{"decision":"D90","name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
+{"decision":"D90","name":"reduce-over-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
+{"decision":"D43","name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]"}
+{"decision":"D43","name":"reduce-folds-with-the-quote-of-a-bare-word","query":"[1 2 3] | reduce 0 ~(add)","expect":"6"}
+{"decision":"D43","name":"a-group-modifier-reads-against-the-subject-at-the-call","query":"{:items [1 2 3] :limit 2} | get /items | take (count | sub 1)","expect":"[1 2]"}
+{"decision":"D251","name":"an-input-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| type","expect":"::vec/filter/predicate/NotPathOrQuoteError"}
+{"decision":"D22","name":"append-puts-an-element-after-a-vector","query":"[1 2] | append 3","expect":"[1 2 3]"}
+{"decision":"D22","name":"prepend-puts-an-element-before-a-vector","query":"[2 3] | prepend 1","expect":"[1 2 3]"}
+{"decision":"D22","name":"append-takes-a-vector-as-one-element","query":"[1] | append [2 3]","expect":"[1 [2 3]]"}
+{"decision":"D41","name":"append-keeps-the-set-of-its-subject","query":"#[1 2] | append 3","expect":"#[1 2 3]"}
+{"decision":"D90","name":"a-fold-of-several-steps-is-a-declared-verb","query":":number/step (::fn | takes :el |~~ The el. ~~| /0 ::number | impl ~(mul 2 | add el)) | [1 2 3] | reduce 0 ~(step)","expect":"11"}
+{"decision":"D90","name":"a-reducer-of-several-steps-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(:acc (get /0) | :el (get /1) | acc | mul 10 | add el)","expect":"123"}
+{"decision":"D224","name":"a-reducer-names-its-word-by-its-address","query":"[1 2 3] | reduce 0 ~(number/add)","expect":"6"}
+{"decision":"D90","name":"a-reducer-that-reads-the-pair-answers-what-it-reads","query":"[1 2 3] | reduce 0 /1","expect":"3"}
+{"decision":"D224","name":"a-value-named-as-the-word-of-a-fold-meets-the-word","query":":add 5 | [1 2 3] | reduce 0 ~(add) !| [type (get /addresses)]","expect":"[::call/ValueMeetsWordError #[::number/add]]"}
+{"decision":"D90","name":"a-reducer-of-code-folds-a-field-of-each-element","query":"[{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (get /1 | get /x))","expect":"3"}
+{"decision":"D90","name":"a-reducer-that-names-the-address-of-a-value-runs-on-the-pair","query":":Box |~~ A box. ~~| | :Box/side 3 | [1 2] | reduce 0 ~(Box/side)","expect":"3"}
+{"decision":"D90","name":"a-reducer-of-code-folds-a-set","query":"#[1 2 3] | reduce 0 ~(sumOf /0 /1)","expect":"6"}
+{"decision":"D90","name":"a-reducer-of-code-folds-the-values-of-a-map","query":"{:a 1 :b 2} | reduce 0 ~(sumOf /0 /1)","expect":"3"}
+{"decision":"D90","name":"a-reducer-of-code-that-fails-answers-the-failure","query":"[1 \"x\" 3] | reduce 0 ~(sumOf /0 /1) !| type","expect":"::vec/sum/ElementNotNumberError"}
+{"decision":"D90","name":"a-reducer-of-one-word-keeps-its-short-form","query":"[1 2 3] | reduce 0 ~(add)","expect":"6"}
+{"decision":"D56","name":"a-reducer-of-one-word-folds-a-tag-over-the-seed","query":"[::Foo ::Bar] | reduce 1 ~(tag) | type","expect":"::Bar"}
+{"decision":"D22","name":"take-negative-clamps-to-empty","query":"[1 2 3] | take -1","expect":"[]"}
+{"decision":"D22","name":"take-negative-large-clamps-to-empty","query":"[1 2 3] | take -5","expect":"[]"}
+{"decision":"D22","name":"drop-negative-clamps-to-whole","query":"[1 2 3] | drop -1","expect":"[1 2 3]"}
+{"decision":"D22","name":"drop-negative-large-clamps-to-whole","query":"[1 2 3] | drop -5","expect":"[1 2 3]"}
+{"decision":"D22","name":"take-over-length-returns-whole","query":"[1 2 3] | take 5","expect":"[1 2 3]"}
+{"decision":"D22","name":"drop-over-length-returns-empty","query":"[1 2 3] | drop 5","expect":"[]"}
+{"decision":"D218","name":"take-refuses-a-fractional-count","query":"[1 2 3] | take 0.5 !| type","expect":"::vec/take/count/NotIntegerError"}
+{"decision":"D218","name":"drop-refuses-a-fractional-count","query":"[1 2 3] | drop 1.5 !| type","expect":"::vec/drop/count/NotIntegerError"}
+{"decision":"D218","name":"take-refuses-a-count-that-is-no-number","query":"[1 2 3] | take \"x\" !| type","expect":"::vec/take/count/NotNumberError"}
+{"decision":"D22","name":"take-negative-on-set-clamps-to-empty","query":"#[1 2 3] | take -1 | count","expect":"0"}
+{"decision":"D22","name":"drop-negative-on-set-clamps-to-whole","query":"#[1 2 3] | drop -1 | count","expect":"3"}
+{"decision":"D218","name":"a-count-under-a-tag-is-whole-where-it-equals-its-floor","query":"[1 2 3] | take ::N(2)","expect":"[1 2]"}

@@ -7,16 +7,11 @@
 // are, index by index.
 
 import {
-  isKeyword, isTag, isRegex, isErrorValue, TAG_HEADER_SYMBOL,
+  isKeyword, isTag, isRegex, isPath, isErrorValue, TAG_HEADER_SYMBOL,
   isValueClass, isQMap
 } from './types.mjs';
 
-// Tag identity comparator — Array/Map carry their identity
-// on the JS-header `TAG_HEADER_SYMBOL` slot, so two collections
-// with same elements but different (or absent) headers are not
-// equal. `tagA?.name === tagB?.name` handles all three cases:
-// both untagged (both undefined), both tagged identically, or
-// tagged vs untagged / tagged differently.
+// Two vectors or two maps are equal under one tag or under none.
 function tagHeadersEqual(a, b) {
   return a[TAG_HEADER_SYMBOL]?.name === b[TAG_HEADER_SYMBOL]?.name;
 }
@@ -25,9 +20,8 @@ export function deepEqual(a, b) {
   if (a === b) return true;
   if (a === null || b === null) return false;
   if (typeof a !== typeof b) return false;
-  // Opaque TaggedInstance wrap object — checked before generic
-  // object branches so its `.payload` recurses through the right
-  // value-class path.
+  // A value under a tag's wrapper equals one under the same tag over an
+  // equal payload.
   if (isValueClass(a, 'taggedInstance')) {
     return isValueClass(b, 'taggedInstance')
       && a.tag.name === b.tag.name
@@ -55,6 +49,10 @@ export function deepEqual(a, b) {
   // Two patterns are one when their text and their flags are [D246].
   if (isRegex(a)) {
     return isRegex(b) && a.source === b.source && a.flags === b.flags;
+  }
+  // Two paths are one when their segments are [D248].
+  if (isPath(a)) {
+    return isPath(b) && a.segments.length === b.segments.length && a.segments.every((segment, index) => segment === b.segments[index]);
   }
   if (isErrorValue(a)) {
     return isErrorValue(b)

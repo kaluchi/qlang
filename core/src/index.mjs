@@ -10,7 +10,7 @@ export { LANGUAGE_SOURCES } from './runtime/bootstrap.mjs';
 export { createSession } from './session.mjs';
 export {
   walkAst, findAstNodeAtOffset, findIdentifierOccurrences, writesTag, readsItsSubject,
-  bindingNamesVisibleAt, CALL_SPELLING, TAG_SPELLING,
+  bindingNamesVisibleAt, builtFrom, declaresKind, CALL_SPELLING, TAG_SPELLING,
   FORK_ISOLATING_AST_TYPES
 } from './walk.mjs';
 export { splitAddress } from './address.mjs';

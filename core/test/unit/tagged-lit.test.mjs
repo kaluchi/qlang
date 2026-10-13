@@ -35,9 +35,9 @@ describe('a word under a label runs when its name is mentioned', () => {
     expect(result).toBe(10);
   });
 
-  it('a word binds its parts from the modifiers', async () => {
+  it('a word binds its inputs from the modifiers', async () => {
     const result = await evalQuery(
-      ':any/surround ~(prepend pfx | append sfx) | :any/surround/pfx ~(/0) | :any/surround/pfx/NotStringError ::holds~(is ::string) | :any/surround/sfx ~(/1) | :any/surround/sfx/NotStringError ::holds~(is ::string) | "x" | surround "[" "]"'
+      ':any/surround (::fn | takes :pfx |~~ The prefix. ~~| /0 ::string | takes :sfx |~~ The suffix. ~~| /1 ::string | impl ~(prepend pfx | append sfx)) | "x" | surround "[" "]"'
     );
     expect(result).toBe('[x]');
   });
@@ -54,19 +54,19 @@ describe('a kind whose construct is a primitive of the host', () => {
   it('makes ::myType invokable through the constructor its host handed [D34]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
-      sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| | :myType/construct ::builtin{}', impls: { 'myType/construct': payload => payload * 2 } }]
+      sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', impls: { 'myType/construct': payload => payload * 2 } }]
     });
-    expect((await sessionInstance.evalCell('::myType(4) | [type payload]')).result).toEqual([makeTag('myType'), 8]);
+    expect((await sessionInstance.evalCell('::myType(4) | get [type payload]')).result).toEqual([makeTag('myType'), 8]);
   });
 
   it('a construct a reader declares as ::builtin{} reaches no primitive, and the tag lays over the payload [D34]', async () => {
-    const result = await evalQuery(':myType |~~ myType. ~~| | :myType/construct ::builtin{} | ::myType~(add 1) | type');
+    const result = await evalQuery(':myType |~~ myType. ~~| (::kind | impl ::builtin{}) | ::myType~(add 1) | type');
     expect(result).toEqual(makeTag('myType'));
   });
 
   it('an axis finds the ::Tag … call form when navigating ::Tag | source', async () => {
     const source = await evalQuery(
-      ':myType |~~ myType. ~~| | :myType/construct ::builtin{} | ::myType | source'
+      ':myType |~~ myType. ~~| (::kind | impl ::builtin{}) | ::myType | source'
     );
     expect(isQuote(source)).toBe(true);
     expect(printQuoteSource(source)).toContain(':myType');
@@ -81,7 +81,7 @@ describe('axis-operand subject classification', () => {
 
   it('a map holding a tag in its :kind field reads ::map, since a field names nothing', async () => {
     expect(await evalQuery(
-      ':myType |~~ myType. ~~| | :myType/construct ::builtin{} | {:kind ::myType :payload []} | source | eq (::map | source)'
+      ':myType |~~ myType. ~~| (::kind | impl ::builtin{}) | {:kind ::myType :payload []} | source | eq (::map | source)'
     )).toBe(true);
   });
 });
@@ -119,7 +119,7 @@ describe('TaggedLit error paths', () => {
   });
 
   it('lays the tag of a word over the args of a call of it, which read back [D173]', async () => {
-    expect(await evalQuery('1 | add 1 2 !| /actualValue | eq ::number/add[1 2]')).toBe(true);
+    expect(await evalQuery('1 | add 1 2 !| get /actualValue | eq ::number/add[1 2]')).toBe(true);
     expect(await evalQuery('::vec/count[] | type')).toEqual(makeTag('vec/count'));
   });
 
@@ -245,7 +245,7 @@ describe('a kind without a body — identity', () => {
 
 describe('TaggedLit / TagLit steps', () => {
   it('TaggedLit leaves a ::construct step over the step of its payload [D8]', async () => {
-    expect(await evalQuery('~(::holds~(mul 2)) | first | [type /tag /payload]'))
+    expect(await evalQuery('~(::holds~(mul 2)) | first | get [type /tag /payload]'))
       .toEqual(await evalQuery('[::construct ::holds ~(mul 2)]'));
   });
 
@@ -290,13 +290,13 @@ describe('parse and apply accept Quote subjects transparently', () => {
   });
 
   it('`~(code) | apply /` runs the Quote source against the subject', async () => {
-    expect(await evalQuery('~(5 | mul 2) | apply /')).toBe(10);
+    expect(await evalQuery('~(5 | mul 2) | apply it')).toBe(10);
   });
 });
 
 describe('a tag no node answers is a kind of identity, and declares nothing [D152]', () => {
   it('leaves no binding to read', async () => {
-    const result = await evalQuery('::Top(1) | ::Top | binding');
+    const result = await evalQuery('::Top(1) | :minted it | ::Top | binding');
     expect(result.tag.name).toBe('any/binding/UnknownNameError');
     expect(await evalQuery('::Zap(1) | env | has :Zap')).toBe(false);
   });
@@ -305,28 +305,28 @@ describe('a tag no node answers is a kind of identity, and declares nothing [D15
 describe('a kind whose spec has a body of steps', () => {
   it('applies the Quote body against payload as pipeValue, then auto-wraps with the tag', async () => {
     const result = await evalQuery(
-      ':wrap |~~ wrap. ~~| | :wrap/construct ~(prepend "[" | append "]") | "x" | ::wrap"x" | payload'
+      ':wrap |~~ wrap. ~~| (::kind | impl ~(prepend "[" | append "]")) | ::wrap"x" | payload'
     );
     expect(result).toBe('[x]');
   });
 
   it('the body of the spec takes the payload as its subject, read through payload after the tag', async () => {
     const result = await evalQuery(
-      ':shout |~~ shout. ~~| | :shout/construct ~(append "!") | ::shout"ready" | payload'
+      ':shout |~~ shout. ~~| (::kind | impl ~(append "!")) | ::shout"ready" | payload'
     );
     expect(result).toBe('ready!');
   });
 
   it('Quote body resolves identifiers from the invocation env', async () => {
     const result = await evalQuery(
-      ':any/exclaim ~(append "!") | :shout |~~ shout. ~~| | :shout/construct ~(exclaim) | ::shout"go" | payload'
+      ':any/exclaim ~(append "!") | :shout |~~ shout. ~~| (::kind | impl ~(exclaim)) | ::shout"go" | payload'
     );
     expect(result).toBe('go!');
   });
 
   it('auto-wrap stamps the tag identity on the constructor result', async () => {
     const result = await evalQuery(
-      ':wrap |~~ wrap. ~~| | :wrap/construct ~(prepend "[" | append "]") | ::wrap"x" | type'
+      ':wrap |~~ wrap. ~~| (::kind | impl ~(prepend "[" | append "]")) | ::wrap"x" | type'
     );
     expect(result).toEqual(makeTag('wrap'));
   });
@@ -335,14 +335,14 @@ describe('a kind whose spec has a body of steps', () => {
     // `tag` runs the constructor, so tagging an instance again hands
     // the constructor an instance of its own tag.
     const result = await evalQuery(
-      ':echo |~~ echo. ~~| | :echo/construct ~(/) | ::echo"hi" | tag ::echo | payload'
+      ':echo |~~ echo. ~~| (::kind | impl ~(it)) | ::echo"hi" | tag ::echo | payload'
     );
     expect(result).toBe('hi');
   });
 
   it('Quote body that fails on the fail-track propagates the error untagged', async () => {
     const err = await evalQuery(
-      ':strictAdd |~~ strictAdd. ~~| | :strictAdd/construct ~(add "not-a-number") | ::strictAdd(5)'
+      ':strictAdd |~~ strictAdd. ~~| (::kind | impl ~(add "not-a-number")) | ::strictAdd(5)'
     );
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('number/add/addend/NotNumberError'));
@@ -354,7 +354,7 @@ describe('within edits under one tag and rewraps it', () => {
   // The payload runs through the quote as a fork and mints back under
   // the subject's tag, whose constructor runs once, at the rewrap [D41].
   it('a set normalizes the vector the edit answers', async () => {
-    expect(await evalQuery('#[1 2] | within ~([/0 /0 /1]) | eq #[1 2]')).toBe(true);
+    expect(await evalQuery('#[1 2] | within ~(get [/0 /0 /1]) | eq #[1 2]')).toBe(true);
   });
 
   it('a tag of identity alone stamps its header back on the answer', async () => {
@@ -363,7 +363,7 @@ describe('within edits under one tag and rewraps it', () => {
 
   it('the constructor runs once, at the rewrap', async () => {
     expect(await evalQuery(
-      ':wrap |~~ wrap. ~~| | :wrap/construct ~(prepend "[" | append "]") | ::wrap"x" | within ~(append "!") | payload'
+      ':wrap |~~ wrap. ~~| (::kind | impl ~(prepend "[" | append "]")) | ::wrap"x" | within ~(append "!") | payload'
     )).toBe('[[x]!]');
   });
 
@@ -373,18 +373,18 @@ describe('within edits under one tag and rewraps it', () => {
   });
 
   it('the declarations of the edit stay inside it', async () => {
-    expect(await evalQuery('#[1 2] | within ~(:k 5 | [/0 /1]) | env | has :k')).toBe(false);
+    expect(await evalQuery('#[1 2] | within ~(:k 5 | get [/0 /1]) | env | has :k')).toBe(false);
   });
 
   it('an error the edit answers passes as it is, and one the code answers is refused by its slot', async () => {
-    expect(await evalQuery('#[1 2] | within ~(!{:k 2} | raise) !| /k')).toBe(2);
-    expect(await evalQuery('#[1 2] | within (!{:k 1} | raise) !| type')).toEqual(makeTag('tagged/within/code/NotQuoteError'));
+    expect(await evalQuery('#[1 2] | within ~(!{:k 2} | raise) !| get /k')).toBe(2);
+    expect(await evalQuery('#[1 2] | within (!{:k 1} | raise) !| type')).toEqual(makeTag('tagged/within/code/NotPathOrQuoteError'));
   });
 
   it('a subject with no tag and a code that is no quote are refused', async () => {
     expect(await evalQuery('[1 2] | within ~(reverse) !| type'))
       .toEqual(makeTag('tagged/within/SubjectNotTaggedError'));
     expect(await evalQuery('#[1 2] | within 1 !| type'))
-      .toEqual(makeTag('tagged/within/code/NotQuoteError'));
+      .toEqual(makeTag('tagged/within/code/NotPathOrQuoteError'));
   });
 });

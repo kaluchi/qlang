@@ -26,7 +26,7 @@ describe('filter — container polymorphism', () => {
   });
 
   it('Vec field predicate on Map elements', async () => {
-    const result = await evalQuery('[{:age 25} {:age 15} {:age 30}] | filter ~(/age | gte 18)');
+    const result = await evalQuery('[{:age 25} {:age 15} {:age 30}] | filter ~(get /age | gte 18)');
     expect(result).toHaveLength(2);
     expect(result[0].get('age')).toBe(25);
     expect(result[1].get('age')).toBe(30);
@@ -58,7 +58,7 @@ describe('filter — container polymorphism', () => {
   it('Map with a verb predicate reading a field of the value', async () => {
     const mapResult = await evalQuery(
       '{:a {:tier :a} :b {:tier :b} :c {:tier :x}} '
-      + '| :any/tiered ~(/tier | eq :x | not) '
+      + '| :any/tiered ~(get /tier | eq :x | not) '
       + '| filter ~tiered'
     );
     expect(isQMap(mapResult)).toBe(true);
@@ -76,7 +76,7 @@ describe('filter — container polymorphism', () => {
   it('Map with a value bound for pred — every entry passes', async () => {
     // The quote names a boolean, the value of its record, which
     // replaces the element — every entry survives.
-    const count = await evalQuery('true | :n / | {:a 1 :b 2} | filter ~(n) | count');
+    const count = await evalQuery('true | :n it | {:a 1 :b 2} | filter ~(n) | count');
     expect(count).toBe(2);
   });
 
@@ -231,8 +231,8 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
   });
 
   it('type answers ::binding, not ::map, for the record of a name', async () => {
-    expect(await evalQuery(':double ~(mul 2) | env | /double | type | eq ::map')).toBe(false);
-    expect(await evalQuery(':double ~(mul 2) | env | /double | type | eq ::binding')).toBe(true);
+    expect(await evalQuery(':double ~(mul 2) | env | get /double | type | eq ::map')).toBe(false);
+    expect(await evalQuery(':double ~(mul 2) | env | get /double | type | eq ::binding')).toBe(true);
   });
 
   it('type answers ::set for Set subjects', async () => {
@@ -261,9 +261,9 @@ describe('classification through `type | eq(:kind)` — string / number / vec / 
     expect(await evalQuery('null | type | eq ::null')).toBe(true);
     // A Map entry whose value is the explicit `null` is the only
     // post-strict-projection path to null-via-projection. A missing
-    // key now errors (::proj/KeyNotInMapError) instead of silently
+    // key now errors (::path/KeyNotInMapError) instead of silently
     // returning null.
-    expect(await evalQuery('{:nothing null} | /nothing | type | eq ::null')).toBe(true);
+    expect(await evalQuery('{:nothing null} | get /nothing | type | eq ::null')).toBe(true);
     expect(await evalQuery('0 | type | eq ::null')).toBe(false);
     expect(await evalQuery('"" | type | eq ::null')).toBe(false);
     expect(await evalQuery('false | type | eq ::null')).toBe(false);
@@ -318,22 +318,22 @@ describe('filter — verb portability across containers', () => {
 
 describe('filter/every/any — predicate returning error value propagates on fail-track', () => {
   it('filter over Set — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('#[1 2] | filter ~(!{:kind :pred-failed} | raise) !| /kind');
+    const errorValue = await evalQuery('#[1 2] | filter ~(!{:kind :pred-failed} | raise) !| get /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('filter over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1 :b 2} | filter ~(!{:kind :pred-failed} | raise) !| /kind');
+    const errorValue = await evalQuery('{:a 1 :b 2} | filter ~(!{:kind :pred-failed} | raise) !| get /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('every over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1} | every ~(!{:kind :pred-failed} | raise) !| /kind');
+    const errorValue = await evalQuery('{:a 1} | every ~(!{:kind :pred-failed} | raise) !| get /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 
   it('any over Map — predicate ErrorLit propagates', async () => {
-    const errorValue = await evalQuery('{:a 1} | any ~(!{:kind :pred-failed} | raise) !| /kind');
+    const errorValue = await evalQuery('{:a 1} | any ~(!{:kind :pred-failed} | raise) !| get /kind');
     expect(errorValue).toEqual(keyword('pred-failed'));
   });
 });

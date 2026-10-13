@@ -145,7 +145,7 @@ describe('main — script mode auto-pipe', () => {
   it('feeds piped JSON as the initial pipeValue and writes a string answer as its text [D214]', async () => {
     const s = captureStreams('{"user": {"name": "alice"}}');
     const exitCode = await main(
-      ['/user/name'],
+      ['get /user/name'],
       s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
@@ -153,10 +153,10 @@ describe('main — script mode auto-pipe', () => {
     expect(s.stderrText()).toBe('');
   });
 
-  it('prints a map projection of a JSON input as its literal [D214]', async () => {
+  it('prints a map read from a JSON input as its literal [D214]', async () => {
     const s = captureStreams('{"a": {"b": 1, "c": 2}}');
     const exitCode = await main(
-      ['/a'],
+      ['get /a'],
       s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
@@ -171,7 +171,7 @@ describe('main — script mode auto-pipe', () => {
 
   it('writes JSON text for a query that ends in `| json` [D214]', async () => {
     const s = captureStreams('{"a": [1, 2]}');
-    await main(['/a | json'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    await main(['get /a | json'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('[1,2]\n');
   });
 
@@ -209,7 +209,7 @@ describe('main — script mode auto-pipe', () => {
   it('answers --json over malformed stdin with the refusal of parseJson, on stdout with exit 0 [D7]', async () => {
     const s = captureStreams('not-json');
     const exitCode = await main(
-      ['--json', '/x'],
+      ['--json', 'get /x'],
       s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
@@ -311,19 +311,19 @@ describe('main — error paths', () => {
 
   it('writes a failure with the prose of its refusal\'s page below it, as line comments [D7]', async () => {
     const s = captureStreams();
-    await main(['{:a 1} | /b'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    await main(['{:a 1} | get /b'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     const commentLines = s.stdoutText().split('\n').filter(line => line.startsWith('|~| '));
     expect(commentLines.length).toBeGreaterThan(1);
     expect(commentLines.every(line => line.length <= 72)).toBe(true);
-    expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `at`');
+    expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `query`');
   });
 
   it('writes a failure on a JSON input as its alert with the prose of its page [D214]', async () => {
     const s = captureStreams('{"a": 1}');
-    await main(['| /b'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(s.stdoutText()).toMatch(/^\|~\| raised, and no !\| caught it\n::proj\/KeyNotInMapError!\{/);
+    await main(['| get /b'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect(s.stdoutText()).toMatch(/^\|~\| raised, and no !\| caught it\n::path\/KeyNotInMapError!\{/);
     const commentLines = s.stdoutText().split('\n').filter(line => line.startsWith('|~| '));
-    expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `at`');
+    expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `query`');
   });
 
   it('writes a query that does not parse with the prose of its refusal\'s page below it, as any failure [D7]', async () => {
@@ -355,7 +355,7 @@ describe('main — a query the shell turned into a path', () => {
   const ROOT_OF_GIT = path => path === 'C:/Program Files/Git/usr/bin/msys-2.0.dll';
 
   it('reads a query from the slash after the root of MSYS, which the shell wrote before it [D199]', () => {
-    expect(queryAsWritten('C:/Program Files/Git/data/users | count', UNDER_MSYS, ROOT_OF_GIT)).toBe('/data/users | count');
+    expect(queryAsWritten('C:/Program Files/Git/data/users | segments', UNDER_MSYS, ROOT_OF_GIT)).toBe('/data/users | segments');
   });
 
   it('leaves a query a shell other than MSYS handed as it came [D199]', () => {

@@ -54,26 +54,34 @@ The only description of a verb, a kind or a refusal is its page in the
 catalog, whose links open the pages it rests on, and the laws declared
 under its name, each named for its claim and paged with it (decisions
 D174, D175). A definition is a story a reader falls into through the
-editor or `source`, told in one order: the word and its page, its answer
-under the key `answer`, its parts with their invariants, its refusals,
-each a page that says how to repair the call, and its laws, one for each
-statement of the page, the false and the refused among them; a name the
-story brings in as a key is a word its prose uses, so a page says what
-its word answers (decisions D179, D180). An error leads to the page of
-its site.
+editor or `source`, the chain of the word or the kind told in one
+order: the word and its page, its inputs with their kinds and
+invariants, its answer, which `returns` names, its refusals, each a
+page that says how to repair the call, and the facts they carry, its
+laws, one for each statement of the page, the false and the refused
+among them, and its recipe last; a kind's its payload, its fields, its
+pages, its refusals, its invariants, its laws and its constructor; a
+name the story brings in is a word its prose uses, so a page says what
+its word answers (decisions D179, D180, D251, D252). A word and a kind
+are written by their chains alone, and a role declared by name under a
+word or a label is refused (decision D253). An error leads to the page
+of its site.
 
 Check: a new verb, kind or refusal has its page under the noun of its kind;
-the definitions under a word stand in the order of the story, and an
-answer named by another key, `sum`, `taken`, `drawn`, is a finding; a
+the commands of a chain stand in the order of the story, one command a
+line, a command that does not fit its line on three, its head, its page
+and its objects each on a line of its own, and an input, an answer, an
+invariant or a constructor written by name outside the chain is a
+finding; a
 refusal is declared at its site by its address, one tag for one site,
 through `declareRefusal` of `core/src/errors.mjs`, or raised by rule under
-a word, `…/SubjectNot<Label>Error`, `…/<part>/NotGivenError`,
-`…/ArgsBeyondPartsError`, `…/answer/Not<Kinds>Error`, by the one spelling
+a word, `…/SubjectNot<Label>Error`, `…/<input>/NotGivenError`,
+`…/ArgsBeyondInputsError`, `…/answer/Not<Kinds>Error`, by the one spelling
 the runtime raises it by, and paged where a procedure helps the reader;
 each fact a refusal carries is a definition under its label or under
 `::error` (decision D46); the repair of a call stands on the page of its
-refusal, where `!| explain` lands, and a part's page says what the part
-is; a law about a refusal stands under the refusal's address, ends in its
+refusal, where `!| explain` lands, and an input's page says what the
+input is; a law about a refusal stands under the refusal's address, ends in its
 claim with no `| eq true` tail, and repeats no other law of the catalog;
 a change of behaviour changes the laws under the name whose behaviour
 it is; a page names no JavaScript file or symbol and no decision record;
@@ -117,7 +125,7 @@ sibling added for symmetry alone, is a finding.
 
 The vocabulary is chosen for the habit it wakes in a reader trained on every
 other language. The language says value, kind, tag, label, noun, verb,
-word, address, answer, part, args, modifier, invariant, page, law, link,
+word, address, answer, input, args, modifier, invariant, page, law, link,
 snippet, step, command, combinator, pipe value, scope, record, refusal,
 trail, stop.
 

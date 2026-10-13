@@ -106,7 +106,7 @@ describe('vec.min and vec.max on empty Vec', async () => {
 
 describe('vec.sort with key on non-Vec subject', async () => {
   it('sort with key throws SortByKeySubjectNotSequenceError', async () => {
-    expect(isErrorValue(await evalQuery('42 | sort ~(/x)'))).toBe(true);
+    expect(isErrorValue(await evalQuery('42 | sort /x'))).toBe(true);
   });
 });
 

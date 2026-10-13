@@ -23,7 +23,7 @@ describe('the verbs of the command line [D153]', () => {
   });
 
   it('declares its topic beside the names a reader declares', async () => {
-    expect(await evalInCli(':x 1 | env | [(has :x) (has :cli) (has :table)]')).toEqual([true, false, false]);
+    expect(await evalInCli(':x 1 | env | get [(has :x) (has :cli) (has :table)]')).toEqual([true, false, false]);
     expect(await evalInCli('::cli | doc | type')).toEqual(await evalInCli('::doc'));
   });
 

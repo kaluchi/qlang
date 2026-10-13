@@ -171,7 +171,7 @@ describe('tokenize — projections', () => {
     // /name follows a pipe; both the slash and the field segment
     // appear in the token stream alongside the pipeline's own
     // structural punct.
-    const tokens = tokenize('{:name "x"} | /name', await builtins());
+    const tokens = tokenize('{:name "x"} | get /name', await builtins());
     expect(tokens.find(t => t.kind === 'word' && t.end - t.start === 4)).toBeDefined();
   });
 
@@ -210,9 +210,9 @@ describe('tokenize — comments', () => {
   });
 
   it('paints a doc literal as `comment`', async () => {
-    const src = '42 | |~~ a doc ~~|';
+    const src = '|~~ a doc ~~|';
     const tokens = tokenize(src, await builtins());
-    expect(tokens.at(-1)).toEqual({ start: 5, end: src.length, kind: 'comment' });
+    expect(tokens.at(-1)).toEqual({ start: 0, end: src.length, kind: 'comment' });
   });
 
   it('classifies a block plain comment as `comment`', async () => {
@@ -250,7 +250,7 @@ describe('tokenize — gap interleaving', () => {
   });
 
   it('labels the `!|` fail-track combinator with kind `err`', async () => {
-    const fail = tokenize('1 !| /k', await builtins());
+    const fail = tokenize('1 !| get /k', await builtins());
     expect(fail.find(t => t.kind === 'err' && t.end - t.start === 2)).toBeDefined();
   });
 

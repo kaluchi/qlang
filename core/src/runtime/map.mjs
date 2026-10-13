@@ -1,7 +1,8 @@
 // The primitives of the keys of a map and of membership, whose words the
 // catalog declares under `::map`, `::set` and `::vec` [D167].
 
-import { keyword, isKeyword, makeSet } from '../types.mjs';
+import { keyword, isKeyword, isPath, makeSet } from '../types.mjs';
+import { pathReads } from './path.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { compareValues } from '../ordering.mjs';
 
@@ -24,7 +25,12 @@ function setHas(set, value) {
   return false;
 }
 
-bindPrim(['vec/has', 'vec/contains'], (vector, element) => vector.some(held => compareValues(held, element) === 0));
-bindPrim(['set/has', 'set/contains'], (set, element) => setHas(set, element));
+// `has` asks whether a path reads, and of any other value whether it is
+// held [D248]; `contains` asks the membership alone.
+const vecHolds = (vector, element) => vector.some(held => compareValues(held, element) === 0);
+bindPrim('vec/has', (vector, element) => (isPath(element) ? pathReads(vector, element) : vecHolds(vector, element)));
+bindPrim('vec/contains', vecHolds);
+bindPrim('set/has', (set, element) => (isPath(element) ? pathReads(set, element) : setHas(set, element)));
+bindPrim('set/contains', (set, element) => setHas(set, element));
 // A map's key is named by a keyword or a string alike.
-bindPrim('map/has', (map, key) => map.has(isKeyword(key) ? key.name : key));
+bindPrim('map/has', (map, key) => (isPath(key) ? pathReads(map, key) : map.has(isKeyword(key) ? key.name : key)));

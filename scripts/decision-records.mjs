@@ -19,8 +19,13 @@ const recordFolders = root => [join(root, 'docs', 'decisions'), join(root, 'docs
 // blank line or the next field. A statement of fate, which says what
 // replaced or took a part of what, is history the record keeps [D227],
 // [D237].
-const FIELD = /^(Domain|Decided by|Decision|Source|Set aside|Requirements)\.|^(Replaces|Pruned of what|Replaced by|Replaced in part by|Merged into) /;
-export const FATE = /^(Replaces|Pruned of what|Replaced by|Replaced in part by|Merged into) /;
+export const FIELD_NAMES = ['Domain', 'Decided by', 'Decision', 'Question', 'Source', 'Alternatives', 'Set aside', 'Requirements'];
+export const OPEN_RECORD_FIELDS = ['Question', 'Source', 'Alternatives'];
+export const DECIDED_RECORD_FIELDS = ['Decided by', 'Decision'];
+const FATES = ['Replaces', 'Pruned of what', 'Replaced by', 'Replaced in part by', 'Merged into'];
+export const FIELD_OPENS = new RegExp(`^(${FIELD_NAMES.join('|')})\\.`);
+export const FATE = new RegExp(`^(${FATES.join('|')}) `);
+const FIELD = new RegExp(`${FIELD_OPENS.source}|${FATE.source}`);
 // The definition of a link to a record, `[D19]: D19.md`, and no line of
 // prose that opens with a citation and a colon.
 export const LINK_DEFINITION = /^\[([DE]\d+)\]: \S+\.md$/;
@@ -67,6 +72,7 @@ export function readDecisionRecords(root) {
         replacedBy: replacing(false),
         replacedInPartBy: replacing(true),
         mergedInto: [...recordText.matchAll(/^Merged into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/[DE]\d+/g)].map(match => match[0])),
+        open: isOpenText(recordText),
         met: [],
         targets: [],
       }];
@@ -90,10 +96,14 @@ export function readDecisionRecords(root) {
 
 export const replacedWhole = record => record.replacedBy.length > 0 || record.mergedInto.length > 0;
 
-// Whether a record of the language waits on a case: no case names it and
-// no record replaces it whole.
-export const isBeingDecided = record => record.domain === 'language' && !replacedWhole(record)
-  && record.met.length + record.targets.length === 0;
+// Whether the text of a record holds a question no decision answers yet,
+// an open record [D255].
+export const isOpenText = text => /^Question\. /m.test(text);
+
+// Whether a record waits on its decision: an open record, or one of the
+// language that no case names and no record replaces whole [D255].
+export const isBeingDecided = record => !replacedWhole(record)
+  && (record.open || (record.domain === 'language' && record.met.length + record.targets.length === 0));
 
 // Whether the tree holds a record: one of the language a case it meets
 // names, or one of another domain, which the tests of its domain hold,

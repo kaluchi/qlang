@@ -231,12 +231,12 @@ describe('runRepl — the budget of an answer', () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| /trail/1/subject)');
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trail/1/subject)');
   });
 
   it('prints an error within the budget', async () => {
     const replHarness = captureRepl(`${forty} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 200 });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| /trail/');
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trail/');
   });
 });

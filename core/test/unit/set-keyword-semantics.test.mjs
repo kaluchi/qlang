@@ -209,7 +209,7 @@ describe('groupBy on a Set subject yields Set buckets', async () => {
   it('partitions a Set into Set buckets keyed by the classifier', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const { isQSet } = await import('../../src/types.mjs');
-    const result = await evalQuery('#[{:dept :eng :id 1} {:dept :sales :id 2} {:dept :eng :id 3}] | groupBy ~(/dept)');
+    const result = await evalQuery('#[{:dept :eng :id 1} {:dept :sales :id 2} {:dept :eng :id 3}] | groupBy /dept');
     expect(result).toBeInstanceOf(Map);
     const engBucket = result.get('eng');
     expect(isQSet(engBucket)).toBe(true);
@@ -217,28 +217,28 @@ describe('groupBy on a Set subject yields Set buckets', async () => {
   });
 });
 
-// `at` on a Set subject — indexing in the one order, its index a
-// whole number by the law of its part [D46].
-describe('at on a Set subject', async () => {
+// `query` on a Set subject — a place in the one order, which a key
+// names none of [D248].
+describe('query on a Set subject', async () => {
   it('positive index returns the n-th-added element', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect((await evalQuery('#[:a :b :c] | at 0')).name).toBe('a');
-    expect((await evalQuery('#[:a :b :c] | at 2')).name).toBe('c');
+    expect((await evalQuery('#[:a :b :c] | query /0')).name).toBe('a');
+    expect((await evalQuery('#[:a :b :c] | query /2')).name).toBe('c');
   });
 
   it('negative index counts from the end', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect((await evalQuery('#[:a :b :c] | at -1')).name).toBe('c');
+    expect((await evalQuery('#[:a :b :c] | query /-1')).name).toBe('c');
   });
 
   it('out-of-range index returns null', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('#[:a :b :c] | at 99')).toBe(null);
+    expect(await evalQuery('#[:a :b :c] | query /99')).toBe(null);
   });
 
-  it('a non-integer index breaks the law of the index of set/at', async () => {
+  it('a key names no place of a set, and is refused read softly too', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const err = await evalQuery('#[:a :b] | at 0.5');
-    expect(err.tag.name).toBe('set/at/index/NotIntegerError');
+    const err = await evalQuery('#[:a :b] | query /x');
+    expect(err.tag.name).toBe('path/IndexNotIntegerError');
   });
 });

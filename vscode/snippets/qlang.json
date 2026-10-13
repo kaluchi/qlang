@@ -87,21 +87,21 @@
   "sort by key": {
     "prefix": "sortk",
     "body": ["sort ${1:/field}"],
-    "description": "Sort by key sub-pipeline"
+    "description": "Sort by the key a path reads"
   },
-  "union bound": {
+  "union an entry": {
     "prefix": "unionb",
-    "body": ["union {${1::key ${2:expr}}}"],
-    "description": "Enrich Map via bound union"
+    "body": ["union (get {${1::key} ~(${2:code})})"],
+    "description": "Join to the map in the pipe an entry the template of get computes"
   },
-  "minus bound": {
+  "minus keys": {
     "prefix": "minusb",
     "body": ["minus #[${1::key}]"],
-    "description": "Drop fields via bound minus"
+    "description": "Take the keys of a set off the map in the pipe"
   },
-  "inter bound": {
+  "inter keys": {
     "prefix": "interb",
     "body": ["inter #[${1::key}]"],
-    "description": "Select fields via bound inter"
+    "description": "Keep the keys of a set of the map in the pipe"
   }
 }

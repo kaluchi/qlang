@@ -81,6 +81,12 @@ describe('runtime error location propagation via evalNode', () => {
     expect(originalErr.location.start.offset).toBe(source.indexOf('filter', 25));
   });
 
+  it('the location of a refusal inside a quote a step hands a word points into the source of the query', async () => {
+    const source = '[1 2] | map ~(add 1 | nope 2)';
+    const originalErr = await catchOriginalError(source);
+    expect(originalErr.location.start.offset).toBe(source.indexOf('nope'));
+  });
+
   it('does not overwrite a location set by a deeper frame', async () => {
     // An error in an inner step carries its location through the pipeline.
     // The outer step (mul) is never reached — the error value propagates.

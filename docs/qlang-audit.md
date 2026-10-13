@@ -1217,7 +1217,7 @@ parentheses inside a modifier or a literal, so parentheses mean one
 thing, a pipeline as one word. Every modifier holds a value read by its
 own form; code is a quote, `~(…)`, `~add` for a single word, which
 nothing but `apply` and a part whose invariant asks for a quote runs, and a
-quote handed over sees the names of its author [D43]. There is one
+quote handed over sees the names of its author [D251]. There is one
 binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a name under the
 label of its subject whose value is a quote, the parts of its args and
@@ -1386,12 +1386,12 @@ Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
 decisions leave in the conformance suite [D58]. The decisions whose
 work began before the baseline met their targets, the last of them the
-effect marker leaving the language [D2]; the targets the suite carries
-unmet are those of the step as a command and the path as a value
-[D248], the first work of the route, and the cases of the suite it
-spells anew, each a target of the record whose rule it shows and each
-holding the answer the tree gives today [D91], and every other decision
-below writes its targets before its work:
+effect marker leaving the language [D2], and the step as a command and
+the path as a value met theirs, the first work of the route [D248]; the
+targets the suite carries unmet are those of the quote as data and the
+function built by commands [D251], each a target of the record whose
+rule it shows and each holding the answer the tree gives today [D91],
+and every other decision below writes its targets before its work:
 
 ```sh
 $ grep -rh '"target": *true' core/test/conformance | grep -vc '"now"'
@@ -1406,8 +1406,12 @@ path does nothing by itself, the word that takes it reads it, `get`
 strictly, `query` softly, `has` asking, and a word that takes code taking
 it as code, so the projection has one spelling where it had a step and
 the record `::path{:path …}` inside a quote, and a value written as a
-later step is refused; its targets stand in
-`core/test/conformance/43-a-step-is-a-command.jsonl`.
+later step is refused; its cases stand in
+`core/test/conformance/43-a-step-is-a-command.jsonl`. The function joins
+it [D251]: a quote is data with no scope, a recipe reads what its call
+hands it, and a word is a function named under a label, built from the
+noun `::fn` by `takes`, `returns`, `throws` and `impl`, its targets in
+`core/test/conformance/46-a-function-is-built-by-commands.jsonl`.
 The keystone is the declaration of a kind. A kind is a label, a name declared by its page, which
 builds a value by the `construct` declared under it and checks it by
 the laws declared under it, each named by its refusal [D168], [D169],
@@ -1458,10 +1462,9 @@ screen of the work, whose first version `npm run desk` prints [D226],
 grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168], [D169],
-[D185] and [D248] in the conformance suite: those of the first five met,
-the step of a constructor apart from the kind of tagged values having
-landed [D8], and those of [D248], and of [D185], whose cases [D248]
-spells anew, open. Beside them: no
+[D185], [D248] and [D251] in the conformance suite: those of the first
+seven met, the step of a constructor apart from the kind of tagged
+values having landed [D8], and those of [D251] open. Beside them: no
 class of the JavaScript stands for a refusal; no operand contract is
 spelled outside the catalog; and the environment holds no key of the
 runtime's own.
@@ -1597,15 +1600,19 @@ its parts as given, as its subject is handed, turns red the cases that
 state the serving and the laws of `is` that ask each element of a part
 and a set as a vector, and hands a part that reads the args whole the
 args under the tag of the word, the model's measurement of 12 October
-2026. All four outside audits name the second mechanism. The
+2026. All five outside audits name the second mechanism. The
 alternatives: the role declared, a signature of a word in one
 declaration that unfolds into the parts and invariants a word has, at
 the cost of a form of the grammar and of the root's reading of it; a
 role read from a form refused aloud where the form stops fitting it, a
 cheaper repair of the traps that leaves the second mechanism; the
 serving kept for a host's primitive alone, a move of the design whose
-cases [D67] and [D167] name; or the forms as they stand. Open, the
-layer of declarations.
+cases [D67] and [D167] name; or the forms as they stand. The commands
+that build a word take the kind of an input and the answer out of the
+forms, `takes :by |~~ How much. ~~| /0 ::number` and `returns` [D251];
+the place, the strictness and the default of an input stay read from its
+value, `/0` or `~(query /0 1)`, and `subject` and `construct` stay roles
+by name. Open, the rest of the layer of declarations.
 
 A step that drops its subject. A child of the benchmark put a vector
 under two tags with a tag written as each step and met the second tag
@@ -1871,32 +1878,6 @@ the tag of the node it serves [D34]; the helpers move onto those tags
 when the sister project's nodes carry their kinds, which its redesign
 brings. Open, with that redesign.
 
-A helper of one word. [D153] let a word's helper live in the group of
-its declaration, `:f (:h 2 | ::verb~(mul h))`, which closed over it;
-since [D168] took `::verb~` out, a word is the quote it runs, and a
-quote written bare does not close over the group it was written in:
-
-```qlang
-> :any/g (:k 10 | ~(add k)) | 5 | g !| type
-::call/UnknownNameError
-```
-
-A quote written as the body of a declaration closes over the scope of
-its declaration [D5], and nothing of that scope is in its print, so two
-quotes equal by `eq` run apart, the outside audit of 2026-10-13 found:
-
-```qlang
-> :f (:k 10 | :g ~(mul k) | g) | :k 2 | :h ~(mul k) | [(f | eq h) (3 | apply f) (3 | apply h)]
-[true 30 6]
-```
-
-So a helper, of one word or several, is a word under a noun its
-readers see, as the sister project's are. The alternatives are a quote
-that closes over the scope it was written in, as `::verb~` did, which
-makes what a word's names mean depend on where it was declared and
-costs a closure each quote carries; and the helper as a word, as it
-stands, which costs a name on a noun for every helper.
-
 The boot of the root, and a lazy one. The command line boots the whole
 root in each process, its sources parsed and their declarations run.
 On 11 October 2026, on the maintainer's machine, a run of `qlang '1'`
@@ -2034,3 +2015,4 @@ query that fails nothing.
 [D248]: decisions/D248.md
 [D249]: decisions/D249.md
 [D250]: decisions/D250.md
+[D251]: decisions/D251.md

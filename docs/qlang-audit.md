@@ -14,8 +14,8 @@ chapters tell, `::qlang | doc`; and the chapters this document carried
 on the core, on the hypertext and on how the project got here stand as
 written in `docs/archive/the-audit-chapters.md`. It was first written in
 September 2026, and each version since holds the text against the tree
-the repairs of the one before left. This, the thirteenth, holds it
-against commit `4d753971`, its baseline: a scar the tree no longer shows
+the repairs of the one before left. This, the fourteenth, holds it
+against commit `68255c84`, its baseline: a scar the tree no longer shows
 has left the document, what remains of a scar is stated as it stands,
 the route starts from the baseline, and every probe answers as the tree
 answered on the day this version was written.
@@ -305,7 +305,7 @@ every session begins from it. This document is where it lives, and the
 other conditions are reachable because this one holds.
 
 Seventh, the revision as a whole deletes more than it adds. Measured
-against the baseline of the version at hand, commit `4dc957d` for this
+against the baseline of the version at hand, commit `68255c84` for this
 one, the diff of the work ahead is negative in the core sources, in the
 documents, and in the tests; the September 2026 master, commit
 `f5e8ec8`, stays the origin the history measures from. The catalog
@@ -967,7 +967,7 @@ to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `4dc957d`, and the finish
+The start is the tree of the baseline, commit `68255c84`, and the finish
 is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
@@ -1052,8 +1052,14 @@ its label, values of the language [D46]:
 What remains on the schema is elision taking the tail of a schema
 [D21]; what remains of the names is a host's, which the sister project's redesign moves
 onto its kinds, and the questions of mounting [D259] and of the
-collisions of a host's names [D269]. Beside both, the editor's grammar is generated
-or reduced, and the
+collisions of a host's names [D269]. The function and the kind built by
+commands leave second spellings the next branch deletes: the objects of
+each command in a table of the runtime beside the words of the commands
+[D272], the roles of a declaration the tools read from its form [D273],
+two forms of a place read by their form [D274], and the refusal of
+another noun's tag declared by hand in the builders [D275]; and the word
+for what a command takes is chosen once [D276]. Beside both, the
+editor's grammar is generated or reduced, and the
 screen of the work, whose first version `npm run desk` prints [D226],
 grows from the draft of the entrypoint document [D231].
 
@@ -1288,3 +1294,8 @@ those being decided.
 [D255]: decisions/D255.md
 [D259]: decisions/D259.md
 [D269]: decisions/D269.md
+[D272]: decisions/D272.md
+[D273]: decisions/D273.md
+[D274]: decisions/D274.md
+[D275]: decisions/D275.md
+[D276]: decisions/D276.md

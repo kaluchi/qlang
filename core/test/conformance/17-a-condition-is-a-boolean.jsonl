@@ -62,7 +62,7 @@
 {"decision":"D43","name":"if-under-map-numbers","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(\"big\") ~(\"small\"))","expect":"[\"small\" \"small\" \"big\" \"big\" \"big\"]"}
 {"decision":"D43","name":"if-under-map-doubles-some","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(mul 10) ~(add 0))","expect":"[1 2 30 40 50]"}
 {"decision":"D43","name":"if-answers-a-boolean-filter-reads","query":"[1 2 3 4] | filter ~(if (gt 2) ~(true) ~(false))","expect":"[3 4]"}
-{"decision":"D248","name":"if-inside-reshape","query":"[{:n 5} {:n 15}] | map ~(get {:value /n :tier ~(if (get /n | gt 10) ~(\"high\") ~(\"low\"))})","expect":"[{:value 5 :tier \"low\"} {:value 15 :tier \"high\"}]"}
+{"decision":"D248","name":"if-inside-a-template","query":"[{:n 5} {:n 15}] | map ~(get {:value /n :tier ~(if (get /n | gt 10) ~(\"high\") ~(\"low\"))})","expect":"[{:value 5 :tier \"low\"} {:value 15 :tier \"high\"}]"}
 {"decision":"D248","name":"if-with-coalesce","query":"{:role :admin :name \"Bob\"} | if (get /role | eq :admin) ~(coalesce /displayName /name ~(\"???\")) ~(\"guest\")","expect":"\"Bob\""}
 {"decision":"D248","name":"if-cond-on-eq-keyword","query":"{:status :ok} | if (get /status | eq :ok) ~(200) ~(500)","expect":"200"}
 {"decision":"D248","name":"if-cond-on-eq-keyword-failing","query":"{:status :error} | if (get /status | eq :ok) ~(200) ~(500)","expect":"500"}

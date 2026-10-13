@@ -5,7 +5,7 @@
 {"decision":"D13","name":"error-lit-empty","query":"!{}","expect":"!{}"}
 {"decision":"D13","name":"raise-makes-an-error-of-a-map","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D13","name":"raise-raises-the-map-in-the-pipe","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D13","name":"error-test-in-a-literal","query":"get [~(!{:kind :oops} | raise | ok !| false) ~(42 | ok !| false)]","expect":"[false true]"}
+{"decision":"D13","name":"error-test-in-a-template","query":"get [~(!{:kind :oops} | raise | ok !| false) ~(42 | ok !| false)]","expect":"[false true]"}
 {"decision":"D13","name":"a-catch-passes-a-map-by","query":"{:kind :oops} !| get /kind","expect":"{:kind :oops}"}
 {"decision":"D13","name":"a-catch-passes-null-by","query":"null !| get /kind","expect":"null"}
 {"decision":"D248","name":"fail-apply-projects-kind","query":"!{:kind :oops :message \"boom\"} | raise !| get /kind","expect":":oops"}
@@ -48,7 +48,7 @@
 {"decision":"D13","name":"an-input-of-any-hands-an-error-on","query":"[1] | append (!{:k 1} | raise) !| type","expect":"::error"}
 {"decision":"D13","name":"an-input-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f (::fn | takes :x |~~ The x. ~~| /0 | impl ~(get [~(x)])) | 1 | f (!{:k 1} | raise) !| get /trail | map /step","expect":"[~(raise) ~((!{:k 1} | raise)) ~(f (!{:k 1} | raise))]"}
 {"decision":"D13","name":"sort-ranks-an-error-at-rest","query":"[2 ::error{:k 1} 1] | sort","expect":"[1 2 ::error{:k 1}]"}
-{"decision":"D13","name":"a-literal-answers-the-failure-a-word-answers","query":"get [1 ~(\"x\" | add 1)] | count !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D13","name":"a-template-answers-the-failure-a-quote-answers","query":"get [1 ~(\"x\" | add 1)] | count !| type","expect":"::number/add/SubjectNotNumberError"}
 {"decision":"D103","name":"map-over-a-map-answers-its-first-failure","query":"{:a 1 :b \"x\"} | map ~(add 10) !| get [~(type) ~(get /trail | map /step)]","expect":"[::number/add/SubjectNotNumberError [~(add 10) ~(map ~(add 10))]]"}
 {"decision":"D46","name":"an-error-holds-its-facts-in-the-order-the-catalog-declares-them","query":"1 | add 1 2 !| entries | map ~first","expect":"[:actualType :places :actualValue :trail]"}
 {"decision":"D46","name":"the-name-a-step-read-is-a-keyword","query":"blah !| get /name","expect":":blah"}
@@ -91,11 +91,10 @@
 {"decision":"D13","name":"a-raised-error-holds-its-path","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trail]"}
 {"decision":"D13","name":"an-error-literal-that-writes-an-empty-trail-holds-none","query":"::Oops!{:a 1 :trail []} | raise !| keys","expect":"#[:a]"}
 {"decision":"D13","name":"a-map-raised-that-writes-an-empty-trail-holds-none","query":"{:a 1 :trail []} | raise !| keys","expect":"#[:a]"}
-{"decision":"D13","name":"a-literal-answers-the-first-failure-in-the-order-written","query":"get [~(1 | div 0) ~(\"x\" | add 1)] !| type","expect":"::number/div/divisor/ZeroError"}
-{"decision":"D13","name":"the-failure-of-a-word-flies-from-the-word-through-its-literal","query":"get [1 ~(1 | div 0)] !| trail | map /step","expect":"[~(div 0) ~(get [1 ~(1 | div 0)])]"}
-{"decision":"D13","name":"a-map-literal-answers-the-failure-a-value-answers","query":"get {:a 1 :b ~(\"x\" | add 1)} !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D13","name":"a-template-answers-the-first-failure-in-the-order-written","query":"get [~(1 | div 0) ~(\"x\" | add 1)] !| type","expect":"::number/div/divisor/ZeroError"}
+{"decision":"D13","name":"the-failure-of-a-quote-flies-from-it-through-its-template","query":"get [1 ~(1 | div 0)] !| trail | map /step","expect":"[~(div 0) ~(get [1 ~(1 | div 0)])]"}
+{"decision":"D13","name":"a-map-template-answers-the-failure-a-quote-answers","query":"get {:a 1 :b ~(\"x\" | add 1)} !| type","expect":"::number/add/SubjectNotNumberError"}
 {"decision":"D13","name":"a-set-literal-answers-the-refusal-of-an-element","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | #[1 ::Pos#-3] !| type","expect":"::Pos/NotPositiveError"}
-{"decision":"D13","name":"a-template-answers-the-first-failure-a-quote-answers","query":"get [1 ~(1 | add \"x\") ~(2 | add \"y\")] !| get /actualValue","expect":"\"x\""}
 {"decision":"D13","name":"an-error-literal-answers-the-refusal-of-a-fact","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | !{:a ::Pos#-3} !| type","expect":"::Pos/NotPositiveError"}
 {"decision":"D13","name":"a-declaration-whose-body-fails-answers-the-failure","query":":x (1 | div 0) | 5 !| trail | map /step","expect":"[~(div 0) ~(:x (1 | div 0))]"}
 {"decision":"D13","name":"a-declaration-whose-body-fails-binds-nothing","query":":x (1 | div 0) !| env | has :x","expect":"false"}

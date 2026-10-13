@@ -65,23 +65,14 @@
       ::link~(::keyword/gte | doc) ::link~(::keyword/lt | doc)
       ::link~(::keyword/lte | doc) ::link~(::string/toKeyword | doc)
   ~~|
-  ::builtin{}
-
-:keyword/gt/answer
-  |~~ `true` when the subject comes after the value, `false` otherwise. ~~|
-  ::boolean
-
-:keyword/gt/value
-  |~~ The keyword the subject is compared with, computed against the
-      subject, `:b | gt :a`.
-  ~~|
-  /0
-
-:keyword/gt/value/NotKeywordError
-  |~~ The value compared is a keyword, `:b | gt :a`; a string is
-      turned by `toKeyword` first, `:b | gt ("a" | toKeyword)`.
-  ~~|
-  ::holds~(is ::keyword)
+  ::fn
+  | takes :value |~~ The keyword the subject is compared with, computed against the subject, `:b | gt :a`. ~~| /0 ::keyword
+  | throws :value/NotKeywordError
+      |~~ The value compared is a keyword, `:b | gt :a`; a string is
+          turned by `toKeyword` first, `:b | gt ("a" | toKeyword)`.
+      ~~|
+  | returns |~~ `true` when the subject comes after the value, `false` otherwise. ~~| ::boolean
+  | impl ::builtin{}
 
 :keyword/gt/ordersByName
   |~~ `:b` comes after `:a`. ~~|
@@ -109,25 +100,18 @@
       `gt` does, keywords with keywords.
       ::link~(::keyword/gt | doc) ::link~(::keyword/lte | doc)
   ~~|
-  ::builtin{}
-
-:keyword/gte/answer
-  |~~ `true` when the subject comes after the value or is the same
-      keyword, `false` otherwise.
-  ~~|
-  ::boolean
-
-:keyword/gte/value
-  |~~ The keyword the subject is compared with, computed against the
-      subject, `:b | gte :a`.
-  ~~|
-  /0
-
-:keyword/gte/value/NotKeywordError
-  |~~ The value compared is a keyword, `:b | gte :a`; a string is
-      turned by `toKeyword` first, `:b | gte ("a" | toKeyword)`.
-  ~~|
-  ::holds~(is ::keyword)
+  ::fn
+  | takes :value |~~ The keyword the subject is compared with, computed against the subject, `:b | gte :a`. ~~| /0 ::keyword
+  | throws :value/NotKeywordError
+      |~~ The value compared is a keyword, `:b | gte :a`; a string is
+          turned by `toKeyword` first, `:b | gte ("a" | toKeyword)`.
+      ~~|
+  | returns
+      |~~ `true` when the subject comes after the value or is the same
+          keyword, `false` otherwise.
+      ~~|
+      ::boolean
+  | impl ::builtin{}
 
 :keyword/gte/holdsOfItself
   |~~ A keyword comes after or is itself. ~~|
@@ -147,23 +131,14 @@
       keywords, a capital before a small letter, `:B | lt :a`.
       ::link~(::keyword/gt | doc) ::link~(::keyword/lte | doc)
   ~~|
-  ::builtin{}
-
-:keyword/lt/answer
-  |~~ `true` when the subject comes before the value, `false` otherwise. ~~|
-  ::boolean
-
-:keyword/lt/value
-  |~~ The keyword the subject is compared with, computed against the
-      subject, `:b | lt :a`.
-  ~~|
-  /0
-
-:keyword/lt/value/NotKeywordError
-  |~~ The value compared is a keyword, `:b | lt :a`; a string is
-      turned by `toKeyword` first, `:b | lt ("a" | toKeyword)`.
-  ~~|
-  ::holds~(is ::keyword)
+  ::fn
+  | takes :value |~~ The keyword the subject is compared with, computed against the subject, `:b | lt :a`. ~~| /0 ::keyword
+  | throws :value/NotKeywordError
+      |~~ The value compared is a keyword, `:b | lt :a`; a string is
+          turned by `toKeyword` first, `:b | lt ("a" | toKeyword)`.
+      ~~|
+  | returns |~~ `true` when the subject comes before the value, `false` otherwise. ~~| ::boolean
+  | impl ::builtin{}
 
 :keyword/lt/ordersByName
   |~~ `:a` comes before `:b`. ~~|
@@ -187,25 +162,18 @@
       `gt` does, keywords with keywords.
       ::link~(::keyword/lt | doc) ::link~(::keyword/gte | doc)
   ~~|
-  ::builtin{}
-
-:keyword/lte/answer
-  |~~ `true` when the subject comes before the value or is the same
-      keyword, `false` otherwise.
-  ~~|
-  ::boolean
-
-:keyword/lte/value
-  |~~ The keyword the subject is compared with, computed against the
-      subject, `:b | lte :a`.
-  ~~|
-  /0
-
-:keyword/lte/value/NotKeywordError
-  |~~ The value compared is a keyword, `:b | lte :a`; a string is
-      turned by `toKeyword` first, `:b | lte ("a" | toKeyword)`.
-  ~~|
-  ::holds~(is ::keyword)
+  ::fn
+  | takes :value |~~ The keyword the subject is compared with, computed against the subject, `:b | lte :a`. ~~| /0 ::keyword
+  | throws :value/NotKeywordError
+      |~~ The value compared is a keyword, `:b | lte :a`; a string is
+          turned by `toKeyword` first, `:b | lte ("a" | toKeyword)`.
+      ~~|
+  | returns
+      |~~ `true` when the subject comes before the value or is the same
+          keyword, `false` otherwise.
+      ~~|
+      ::boolean
+  | impl ::builtin{}
 
 :keyword/lte/holdsOfItself
   |~~ A keyword comes before or is itself. ~~|
@@ -228,11 +196,9 @@
       back into the keyword.
       ::link~(::string/toKeyword | doc) ::link~(::keyword | doc)
   ~~|
-  ::builtin{}
-
-:keyword/toString/answer
-  |~~ The name of the keyword, a string. ~~|
-  ::string
+  ::fn
+  | returns |~~ The name of the keyword, a string. ~~| ::string
+  | impl ::builtin{}
 
 :keyword/toString/answersTheName
   |~~ A keyword answers its name as written. ~~|
@@ -250,17 +216,14 @@
       writes no number is refused.
       ::link~(::number/toKeyword | doc) ::link~(::string/toNumber | doc)
   ~~|
-  ::builtin{}
-
-:keyword/toNumber/answer
-  |~~ The number the name writes. ~~|
-  ::number
-
-:keyword/toNumber/NameNotNumberError
-  |~~ `toNumber` reads the name of the keyword as the literal of a
-      number, as a key that `groupBy` filed a number under writes it,
-      `:"1"`; a name such as `:a` writes none.
-  ~~|
+  ::fn
+  | returns |~~ The number the name writes. ~~| ::number
+  | throws :NameNotNumberError
+      |~~ `toNumber` reads the name of the keyword as the literal of a
+          number, as a key that `groupBy` filed a number under writes it,
+          `:"1"`; a name such as `:a` writes none.
+      ~~|
+  | impl ::builtin{}
 
 :keyword/toNumber/readsTheNumberOfAKey
   |~~ A key filed from a number turns back into it. ~~|
@@ -276,16 +239,13 @@
       turns the tag back into the keyword.
       ::link~(::string/toTag | doc) ::link~(::tag/toKeyword | doc)
   ~~|
-  ::builtin{}
-
-:keyword/toTag/answer
-  |~~ The tag the keyword names. ~~|
-  ::tag
-
-:keyword/toTag/NameNotNameError
-  |~~ `toTag` reads the name of the keyword as the name of a tag; a
-      quoted name with a space, `:"a b"`, names none.
-  ~~|
+  ::fn
+  | returns |~~ The tag the keyword names. ~~| ::tag
+  | throws :NameNotNameError
+      |~~ `toTag` reads the name of the keyword as the name of a tag; a
+          quoted name with a space, `:"a b"`, names none.
+      ~~|
+  | impl ::builtin{}
 
 :keyword/toTag/namesATag
   |~~ A keyword names the tag of its name. ~~|
@@ -301,11 +261,9 @@
       answering `[:a :b :"1"]`.
       ::link~(::string/toKeyword | doc) ::link~(::number/toKeyword | doc)
   ~~|
-  ::builtin{}
-
-:keyword/toKeyword/answer
-  |~~ The keyword itself. ~~|
-  ::keyword
+  ::fn
+  | returns |~~ The keyword itself. ~~| ::keyword
+  | impl ::builtin{}
 
 :keyword/toKeyword/answersItself
   |~~ A keyword answers itself, so names, strings and numbers turn into keys. ~~|

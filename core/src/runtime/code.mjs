@@ -1,12 +1,17 @@
 // The primitives of code as a value: `parse`, which reads source text
 // into a quote and prints a quote as its text, `apply`, which runs a
-// quote against the subject [D43], [D72], and `open`, which runs the
+// quote or a path against the subject [D43], [D72], and a function with a
+// vector of arguments, as a call holds its objects [D251], and `open`, which runs the
 // query a quote holds in the scope of its reader [D111], [D122].
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import { quoteOfSource, printQuoteSource } from '../quote.mjs';
 import { errorFromParse } from '../error-convert.mjs';
-import { codeOf } from '../eval.mjs';
+import { declareRefusal } from '../errors.mjs';
+import { isFn } from '../types.mjs';
+import { codeOf, applyFunction } from '../eval.mjs';
+
+const AnyApplyArgsNotTakenError = declareRefusal('any/apply/args/NotTakenError');
 
 // A source the parser refuses answers the `::quote/ParseError` with
 // the location and the excerpt of the source; a quote answers the
@@ -20,7 +25,13 @@ bindStateReader('string/parse', (source, state) => {
 });
 bindPrim('quote/parse', quote => printQuoteSource(quote));
 
-bindPrim('any/apply', async (subject, code) => await code(subject));
+// A function takes the arguments its inputs read, and a quote and a path
+// take none.
+bindStateReader('any/apply', async (subject, code, args, state) => {
+  if (isFn(code)) return await applyFunction(code, subject, args, state);
+  if (args.length > 0) throw new AnyApplyArgsNotTakenError({ actualValue: args });
+  return await code(subject);
+});
 
 // A quote opens to the answer of its query, run in the scope of the
 // reader that opens it; the walk of its subject hands the quote beneath

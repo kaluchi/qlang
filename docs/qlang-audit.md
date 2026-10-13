@@ -1387,11 +1387,11 @@ and the answers that show a milestone reached are the targets its
 decisions leave in the conformance suite [D58]. The decisions whose
 work began before the baseline met their targets, the last of them the
 effect marker leaving the language [D2], and the step as a command and
-the path as a value met theirs, the first work of the route [D248]; the
-targets the suite carries unmet are those of the quote as data and the
-function built by commands [D251], each a target of the record whose
-rule it shows and each holding the answer the tree gives today [D91],
-and every other decision below writes its targets before its work:
+the path as a value met theirs, the first work of the route [D248], and
+the quote as data and the function built by commands met theirs
+[D251]; a target shows the rule of the record that left it and holds the
+answer the tree gives today [D91], and every decision below writes its
+targets before its work:
 
 ```sh
 $ grep -rh '"target": *true' core/test/conformance | grep -vc '"now"'
@@ -1410,7 +1410,7 @@ later step is refused; its cases stand in
 `core/test/conformance/43-a-step-is-a-command.jsonl`. The function joins
 it [D251]: a quote is data with no scope, a recipe reads what its call
 hands it, and a word is a function named under a label, built from the
-noun `::fn` by `takes`, `returns`, `throws` and `impl`, its targets in
+noun `::fn` by `on`, `takes`, `returns`, `throws`, `holds` and `impl`, its cases in
 `core/test/conformance/46-a-function-is-built-by-commands.jsonl`.
 The keystone is the declaration of a kind. A kind is a label, a name declared by its page, which
 builds a value by the `construct` declared under it and checks it by
@@ -1462,9 +1462,9 @@ screen of the work, whose first version `npm run desk` prints [D226],
 grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168], [D169],
-[D185], [D248] and [D251] in the conformance suite: those of the first
-seven met, the step of a constructor apart from the kind of tagged
-values having landed [D8], and those of [D251] open. Beside them: no
+[D185], [D248] and [D251] in the conformance suite, every one met, the
+step of a constructor apart from the kind of tagged values having
+landed [D8]. Beside them: no
 class of the JavaScript stands for a refusal; no operand contract is
 spelled outside the catalog; and the environment holds no key of the
 runtime's own.
@@ -1607,12 +1607,29 @@ the cost of a form of the grammar and of the root's reading of it; a
 role read from a form refused aloud where the form stops fitting it, a
 cheaper repair of the traps that leaves the second mechanism; the
 serving kept for a host's primitive alone, a move of the design whose
-cases [D67] and [D167] name; or the forms as they stand. The commands
-that build a word take the kind of an input and the answer out of the
-forms, `takes :by |~~ How much. ~~| /0 ::number` and `returns` [D251];
-the place, the strictness and the default of an input stay read from its
-value, `/0` or `~(query /0 1)`, and `subject` and `construct` stay roles
-by name. Open, the rest of the layer of declarations.
+cases [D67] and [D167] name; or the forms as they stand. A word that
+is a function holds its roles itself, each declared by the command that
+builds it, the subject by `on`, an input and its kinds by `takes`, the
+answer by `returns`, a refusal by `throws` and an invariant by
+`holds`, and its call reads them from the function: an input holds the
+value of its kind the walk of its tags reaches by the kinds `takes`
+names, with no invariant `is` written [D251]. The place of an input
+stays read from its value, a path, a quote that reads one place by
+`query`, or code run over the args. The words of the catalog are
+written as declarations, the second mechanism standing beside the
+function until each is written by the chain, its laws and cases the
+measure of its move. Open, the move of the catalog's words to the chain,
+and with it the part or the invariant a reader declares under a word of
+the root, which a call of a word that is a function does not read
+[D202].
+
+```qlang
+> 5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(by | type)) [::Width(3)]
+::number
+
+> ::fn | takes :by |~~ How much. ~~| /0 ::number | params | map /kinds
+[::number]
+```
 
 A step that drops its subject. A child of the benchmark put a vector
 under two tags with a tag written as each step and met the second tag

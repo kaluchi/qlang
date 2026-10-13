@@ -162,6 +162,23 @@ export function makeQuote(steps, ast = undefined) {
   return Object.freeze(quote);
 }
 
+// A function, a value of `::fn`: the declarations of the inputs it takes,
+// its answer and its refusals, a quote, and its recipe, code or a host's
+// primitive, or none for a contract [D251].
+export const FN_TAG_NAME = 'fn';
+
+export function isFn(v) {
+  return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === FN_TAG_NAME;
+}
+
+export function fnSignatureOf(fn) {
+  return fn[0];
+}
+
+export function fnRecipeOf(fn) {
+  return fn[1];
+}
+
 // A set is the vector in the one order without duplicates under `::set`
 // [D16], minted here alone; the order ranks two values alike exactly when
 // they are equal.

@@ -4,7 +4,7 @@
 import { parse } from './parse.mjs';
 import { ROOT_KEY, QUERY_KEY, CALL_BINDS_KEY } from './env-keys.mjs';
 import {
-  rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, markRootWordScope, queryTreeOf
+  rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, markRootWordScope, isRootWordScope, queryTreeOf
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestWords } from './nearest-names.mjs';
@@ -14,6 +14,7 @@ import {
   typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, isBinding, makeTaggedInstance, makeTag, isTag, errorAtRest,
+  isFn, fnRecipeOf,
   ERROR_TAG
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
@@ -22,8 +23,9 @@ import { printPath } from './runtime/print-value.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  addressesOf, answerOf, answerRefusalAddress, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isUnderLabel, isWord, invariantsUnder, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, selectorOf, subjectOf, subjectRefusalAddress
+  addressesOf, answerOf, argsBeyondPartsAddress, bareNameReach, CONSTRUCT_NAME, holdsAPage, isInvariant, isMemberValue, isRecipe, isUnderLabel, isWord, invariantsUnder, kindsRefusalAddress, nodeOf, notGivenAddress, onceForRoot, partsOfName, pathNamesOf, placesReadBy, readsTheReaderUnder, residenceOnSubject, rootScopeOf, selectorOf, subjectOf, subjectRefusalAddress
 } from './runtime/nouns.mjs';
+import { ANSWER_NAME, SUBJECT_NAME, invariantsOf, pageOfKindsRefusal, signatureOf } from './runtime/signature.mjs';
 import { splitAddress } from './address.mjs';
 import {
   runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
@@ -45,6 +47,7 @@ const CallValueMeetsWordError = declareRefusal('call/ValueMeetsWordError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
 const BindInvariantNotUnderLabelError = declareRefusal('bind/InvariantNotUnderLabelError');
 const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifiersError');
+const FnRecipeMissingError = declareRefusal('fn/RecipeMissingError');
 
 // evalQuery(source, env?) → the value a query answers from null, in the
 // scope of the runtime unless `env` is given.
@@ -401,8 +404,38 @@ async function evalBindStep(node, state) {
   const answered = (await evalNode(node.body, state)).pipeValue;
   if (isErrorValue(answered)) return withPipeValue(state, answered);
   if (nounName === null && isInvariant(answered)) throw new BindInvariantNotUnderLabelError({ name: keyword(name) });
-  return withEnv(state, envSet(state.env, name, declarationRecord(node, answered)));
+  const declared = envSet(state.env, name, declarationRecord(node, answered));
+  return withEnv(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, keyword(originOf(node))) : declared);
 }
+
+// The nodes a function named under a label lays under its address, what
+// `doc`, `manifest` and the tools read of the word, its call reading none
+// of them [D251]: the subject and each input with its page, an input's
+// place, the refusal its kinds name with the page `throws` gives it or
+// one that names its kinds, the answer with its page and its kinds, each
+// refusal `throws` pages and each invariant `holds` writes.
+function nodesOfFunction(fn, address, env, origin) {
+  const { subject, inputs, answer, pages, invariants } = signatureOf(fn);
+  let under = env;
+  const lay = (lastName, page, value) => {
+    const name = `${address}/${lastName}`;
+    under = envSet(under, name, makeBinding({ name: keyword(name), docs: [page], value, origin }));
+  };
+  if (subject !== null) lay(SUBJECT_NAME, subject.page, subject.written ?? subject.page);
+  for (const { name, page, place, kinds } of inputs) {
+    lay(name.name, page, place);
+    if (kinds === null) continue;
+    const refusal = kindsRefusalAddress(name.name, kinds);
+    const refusalPage = pages.get(refusal) ?? pageOfKindsRefusal(name, kinds);
+    lay(refusal, refusalPage, refusalPage);
+  }
+  if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
+  for (const [name, page] of pages) if (!under.has(`${address}/${name}`)) lay(name, page, page);
+  for (const { name, page, condition } of invariants) lay(name, page, makeTaggedInstance(HOLDS_TAG, condition));
+  return under;
+}
+
+const HOLDS_TAG = makeTag('holds');
 
 // Whether a declaration among the steps of a word's body, the body itself
 // or a step of its pipeline, names what its call bound in the body's
@@ -489,7 +522,7 @@ async function callByName(lookupName, modifiers, state, node) {
       name: keyword(lookupName), nearest: nearestNames(state.env, lookupName), addresses
     });
   }
-  if (reach.underKind) return await applyMember(reach.record, modifiers, state);
+  if (reach.underKind) return await applyWord(reach.record, modifiers, state);
   const word = residenceOnSubject(state.env, lookupName, state.pipeValue);
   if (word !== null) throw new CallValueMeetsWordError({ name: keyword(lookupName), addresses: makeSet([makeTag(word.get('name').name)]) });
   return await applyBinding(reach.record, lookupName, modifiers, state);
@@ -525,7 +558,7 @@ async function callByAddress(node, state) {
   }
   const modifiers = node.args.map(argNode => modifierOf(argNode, state));
   if (isMemberValue(bindingValueOf(record)) && isUnderLabel(state.env, node.name)) {
-    return await applyMember(record, modifiers, state);
+    return await applyWord(record, modifiers, state);
   }
   return await applyBinding(record, splitAddress(node.name)[1], modifiers, state);
 }
@@ -534,6 +567,12 @@ async function callByAddress(node, state) {
 
 // The name a word's body reads its whole args by [D173].
 const ARGS_NAME = keyword('args');
+
+// A word runs by its function where it is one [D251], and otherwise by the
+// definitions under its address.
+async function applyWord(record, modifiers, state) {
+  return isFn(bindingValueOf(record)) ? await applyFunctionWord(record, modifiers, state) : await applyMember(record, modifiers, state);
+}
 
 // A name under a label runs on a value of the label [D164], a quote in the
 // scope it carries [D5], [D200] over the root as it stands and the
@@ -546,7 +585,7 @@ async function applyMember(record, modifiers, state) {
   const member = bindingValueOf(record);
   const [labelName] = splitAddress(address);
   const walked = subjectServed(state.env, address, labelName, state.pipeValue);
-  if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.env, state.pipeValue));
+  if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, [labelName]), {}, state.env, state.pipeValue));
   const scope = scopeOfMember(member, record, state);
   const definition = definitionOf(scope, address);
   const called = await argsOf(definition, modifiers, state, scope, isQuote(member) ? astOfQuote(member) : null);
@@ -644,7 +683,7 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
   if (kinds.includes(labelName)) return keptAsSubject(answer, walked.served, walked.passedTags, state);
   const constructing = kinds.length === 1 ? kinds[0] : kinds.find(kind => kind === typeKeyword(answer).name);
   if (constructing !== undefined) return mintUnderTag(state, makeTag(constructing), answer);
-  return refusalUnder(answerRefusalAddress(address, kinds), { actualValue: answer }, state.env);
+  return refusalUnder(kindsRefusalAddress(address, kinds), { actualValue: answer }, state.env);
 }
 
 const ANY_KIND = 'any';
@@ -653,7 +692,7 @@ const ANY_KIND = 'any';
 // label the record holds, run on the subject with no modifiers, the
 // print a kind answers among them [D96].
 export async function callMemberOn(record, subject, state) {
-  return (await applyMember(record, [], withPipeValue(state, subject))).pipeValue;
+  return (await applyWord(record, [], withPipeValue(state, subject))).pipeValue;
 }
 
 // answerKindsOf(env, record, subjectKinds) → the kinds of the answer a
@@ -667,24 +706,166 @@ export function answerKindsOf(env, record, subjectKinds) {
   return answerDefinition.kinds.includes(splitAddress(address)[0]) ? subjectKinds : answerDefinition.kinds;
 }
 
-// The scope the recipe of a name under a label runs in, the one its call
-// opens [D251]: the root, and every name with a path the steps before the
-// call declared and every label the reader declared, so the names under a
-// label see each other whatever their order and a value of a kind the
-// reader declared finds its page, while no value a sentence names reaches
-// it; it holds the tree of the query that called the word, which what the
-// body reads and runs as data reads, as a primitive reads the call's, and
-// a word of the root's is marked as the root's [D200].
+// The scope the definition of a name under a label and its recipe run in,
+// the one its call opens [D251]: the root, and every name with a path the
+// steps before the call declared and every label the reader declared, so
+// the names under a label see each other whatever their order and a value
+// of a kind the reader declared finds its page, while no value a sentence
+// names reaches the code of its selectors, its invariants or its recipe;
+// it holds the tree of the query that called the word, which what the
+// body reads and runs as data reads, as a primitive reads the call's; a
+// word of the root's written in steps is marked as the root's, and a
+// primitive keeps the mark of the scope it is called in [D200].
 function scopeOfMember(member, record, state) {
-  if (!isQuote(member)) return state.env;
-  const root = rootOf(state.env);
-  const scope = new Map([[ROOT_KEY, root], [QUERY_KEY, queryTreeOf(state.env)]]);
-  if (root.get(record.get('name').name) === record) markRootWordScope(scope);
+  const ofTheRoot = isQuote(member) ? rootOf(state.env).get(record.get('name').name) === record : isRootWordScope(state.env);
+  return recipeScopeOf(state, ofTheRoot);
+}
+
+function recipeScopeOf(state, ofTheRoot) {
+  const scope = new Map([[ROOT_KEY, rootOf(state.env)], [QUERY_KEY, queryTreeOf(state.env)]]);
+  if (ofTheRoot) markRootWordScope(scope);
   for (const [name, entry] of state.env) {
     if (typeof name !== 'string' || scope.has(name)) continue;
     if (name.includes('/') || (isBinding(entry) && holdsAPage(entry))) scope.set(name, entry);
   }
   return scope;
+}
+
+// ─── Functions ──────────────────────────────────────────────────
+
+// A word that is a function is called by its function alone [D251]: its
+// subject served by its label or by the kinds `on` names, its inputs read
+// from the args by their places and held to their kinds and invariants, its
+// recipe run in the scope its call opens, a recipe written in steps of a
+// word of the root's marked as the root's and a primitive keeping the mark
+// of the scope it is called in, and its answer brought to the kinds
+// `returns` names, every refusal named under the word's address.
+async function applyFunctionWord(record, modifiers, state) {
+  const address = record.get('name').name;
+  const fn = bindingValueOf(record);
+  const ofTheRoot = isQuote(fnRecipeOf(fn)) ? rootOf(state.env).get(address) === record : isRootWordScope(state.env);
+  return withPipeValue(state, await callFunction(fn, { address, labelName: splitAddress(address)[0], ofTheRoot }, modifiers, state));
+}
+
+// applyFunction(fn, subject, args, state) → the answer of a function `apply`
+// runs on a subject, the values of a vector its args, every refusal named
+// under the call of a function, `fn/call`, since no word names it; a
+// function with no recipe, a contract, runs nothing.
+const FN_CALL_ADDRESS = 'fn/call';
+
+export async function applyFunction(fn, subject, args, state) {
+  const recipe = fnRecipeOf(fn);
+  if (!isRecipe(recipe)) throw new FnRecipeMissingError({ actualValue: fn });
+  const at = { address: FN_CALL_ADDRESS, labelName: null, ofTheRoot: !isQuote(recipe) && isRootWordScope(state.env) };
+  return await callFunction(fn, at, args.map(value => () => value), withPipeValue(state, subject));
+}
+
+// inputsOfFunction(fn, args, state) → the values the inputs of a function
+// read from the values of a vector, as its call reads them, or the refusal
+// its call would answer.
+export async function inputsOfFunction(fn, args, state) {
+  const called = await inputsOfCall(signatureOf(fn), FN_CALL_ADDRESS, args.map(value => () => value), state, recipeScopeOf(state, false), null);
+  return isErrorValue(called) ? called : called.values;
+}
+
+async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, state) {
+  const signature = signatureOf(fn);
+  const recipe = fnRecipeOf(fn);
+  const walked = subjectOfCall(signature, labelName, state.pipeValue);
+  if (walked === null) return refusalUnder(subjectRefusalAddress(address, labelName === null ? signature.subject.kinds : [labelName]), {}, state.env, state.pipeValue);
+  const scope = recipeScopeOf(state, ofTheRoot);
+  const body = isQuote(recipe) ? astOfQuote(recipe) : null;
+  const called = await inputsOfCall(signature, address, modifiers, state, scope, body);
+  if (isErrorValue(called)) return called;
+  const running = body === null
+    ? runPrimitive(hostImplOf(recipe), walked.served, walked.passedTags, called.values, state)
+    : (await evalBody(body, nestState(state, state.pipeValue, called.bodyEnv))).pipeValue;
+  const answer = isThenable(running) ? await running : running;
+  if (isErrorValue(answer)) return answer;
+  const kinds = signature.answer?.kinds ?? null;
+  const brought = kinds === null ? answer : await answerUnderItsLabel(answer, { address: `${address}/${ANSWER_NAME}`, kinds }, walked.byLabel ? labelName : null, walked, state);
+  if (isErrorValue(brought)) return brought;
+  return await invariantRefusal(invariantsOf(signature, ANSWER_NAME), address, brought, state, scope) ?? brought;
+}
+
+// The subject a function's call serves: for a word, the value of its label
+// the walk of the subject's tags reaches, or of a kind `on` names beside
+// it, a tag for a word of a noun itself [D88]; for a function `apply` runs,
+// a value of the kinds `on` names, or the subject as it is; null where the
+// walk reaches none.
+function subjectOfCall(signature, labelName, subject) {
+  const onKinds = signature.subject?.kinds ?? null;
+  if (labelName !== null) {
+    const byLabel = walkToKinds(subject, [labelName]);
+    if (byLabel !== null) return { ...byLabel, byLabel: true };
+  }
+  if (onKinds === null) return labelName === null ? { served: subject, passedTags: [] } : null;
+  return walkToKinds(subject, onKinds);
+}
+
+// The values of the inputs of a function's call, read from its args by
+// their places, the values of its objects computed against the subject,
+// and, for a recipe written in steps, the scope of its body, each input
+// bound by its name and the args as `args`, names the steps of the body
+// declare no second time [D71]: args of more values than the inputs read
+// places are refused, an input the args leave out where its place reads one
+// is refused, a value of none of an input's kinds is refused, each refusal
+// named under the address, and so is a value that breaks an invariant
+// written under its input.
+async function inputsOfCall(signature, address, modifiers, state, scope, body) {
+  const values = [];
+  for (const [place, modifier] of modifiers.entries()) {
+    const computing = modifier(state.pipeValue);
+    const value = isThenable(computing) ? await computing : computing;
+    if (isErrorValue(value)) return refusalOfFailedObject(signature, address, place, value, scope);
+    values.push(value);
+  }
+  let args = null;
+  const argsValue = () => args ??= makeTaggedInstance(makeTag(address), values);
+  if (signature.places !== null && values.length > signature.places) return refusalUnder(argsBeyondPartsAddress(address), { places: signature.places, actualValue: argsValue() }, scope);
+  let bodyEnv = body === null ? null : envSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() }))
+    .set(CALL_BINDS_KEY, { body, names: new Set([ARGS_NAME.name, ...signature.inputs.map(({ name }) => name.name)]) });
+  const overArgs = () => nestState(state, argsValue(), scope);
+  const inputValues = [];
+  for (const { name, kinds, selector } of signature.inputs) {
+    const inputAddress = `${address}/${name.name}`;
+    frameBelow(state);
+    const reading = partOf(selector, values, overArgs);
+    const read = isThenable(reading) ? await reading : reading;
+    if (read === MISSED_PLACE || (isErrorValue(read) && isMissedPlace(read))) return refusalUnder(notGivenAddress(inputAddress), { actualValue: argsValue() }, scope);
+    if (isErrorValue(read)) return read;
+    const reached = kinds === null ? { served: read } : walkToKinds(read, kinds);
+    if (reached === null) return refusalUnder(kindsRefusalAddress(inputAddress, kinds), { actualValue: read }, scope);
+    const refused = await invariantRefusal(invariantsOf(signature, name.name), address, reached.served, state, scope);
+    if (refused !== null) return refused;
+    inputValues.push(reached.served);
+    if (body !== null) bodyEnv = envSet(bodyEnv, name.name, makeBinding({ name, value: reached.served }));
+  }
+  return { values: inputValues, bodyEnv };
+}
+
+// An object of the call that answered an error where the input that reads
+// its place takes a quote: the step ran on the subject by mistake,
+// `each (add 1)` for `each ~(add 1)`, and the input refuses it under its
+// kinds with the error at rest as its value; anywhere else the error is
+// the answer [D13], [D67], [D167].
+function refusalOfFailedObject(signature, address, place, error, scope) {
+  const reading = signature.inputs.find(({ selector }) => selector.place === place);
+  if (!(reading?.kinds?.includes('quote') ?? false)) return error;
+  const atRest = errorAtRest(error.tag, new Map(error.descriptor));
+  return refusalUnder(kindsRefusalAddress(`${address}/${reading.name.name}`, reading.kinds), { actualValue: atRest }, scope);
+}
+
+// The refusal of the first invariant written under an input or the answer
+// whose condition the value does not answer true to, named under the
+// address, the error a condition answered handed on as it is, or null.
+async function invariantRefusal(invariants, address, value, state, scope) {
+  for (const { name, condition } of invariants) {
+    const answer = (await evalBody(astOfQuote(condition), nestState(state, value, scope))).pipeValue;
+    if (isErrorValue(answer)) return answer;
+    if (answer !== true) return refusalUnder(`${address}/${name}`, { actualValue: value }, scope);
+  }
+  return null;
 }
 
 // The values of the parts of a call in their order, read from its args,
@@ -887,7 +1068,7 @@ export function resolveBinaryReducer(reducer) {
   if (astNode.address !== undefined) {
     if (!isWord(callerState.env, astNode.name)) return null;
     const record = nodeOf(callerState.env, astNode.name);
-    return async (acc, element) => (await applyMember(record, item(element), withPipeValue(callerState, acc))).pipeValue;
+    return async (acc, element) => (await applyWord(record, item(element), withPipeValue(callerState, acc))).pipeValue;
   }
   if (addressesOf(callerState.env, astNode.name).length === 0) return null;
   return async (acc, element) =>

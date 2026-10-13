@@ -8,7 +8,7 @@
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQSet, isQuote, isVec, isTag, isTaggedInstance,
-  isValueClass, isPath, makeSet, makeTag,
+  isValueClass, isPath, isFn, fnRecipeOf, makeSet, makeTag,
   typeKeyword, bindingValueOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { rootOf, isRootWordScope } from '../state.mjs';
@@ -16,6 +16,7 @@ import { splitAddress } from '../address.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { astOfQuote } from '../quote.mjs';
 import { segmentIndex } from '../path-read.mjs';
+import { signatureOf } from './signature.mjs';
 
 const ANY_KIND_NAME = 'any';
 const TAGGED_KIND_NAME = 'tagged';
@@ -81,8 +82,14 @@ export function isWord(env, address) {
   return record !== null && residesOn(record, env);
 }
 
-// A value a name under a label holds when it runs on the label's values.
+// A value a name under a label holds when it runs on the label's values:
+// a recipe, code or a host's primitive, or a function whose recipe is one
+// [D251].
 export function isMemberValue(value) {
+  return isRecipe(value) || (isFn(value) && isRecipe(fnRecipeOf(value)));
+}
+
+export function isRecipe(value) {
   return isQuote(value) || (isBuiltinDescriptor(value) && isHostDeclared(value));
 }
 
@@ -364,9 +371,12 @@ const orderOfPlace = place => (Number.isNaN(place) ? Infinity : place);
 // place from its end or anything else, and so takes any number of
 // values.
 export function placesReadBy(parts) {
+  return placesOfSelectors(parts.map(([, partRecord]) => selectorOf(partRecord)));
+}
+
+export function placesOfSelectors(selectors) {
   let places = 0;
-  for (const [, partRecord] of parts) {
-    const { place } = selectorOf(partRecord);
+  for (const { place } of selectors) {
     if (!Number.isInteger(place)) return null;
     places = Math.max(places, place + 1);
   }
@@ -378,10 +388,10 @@ export function placesReadBy(parts) {
 // tags reaches no value of the word's label, args of more values than the
 // parts read places, a part the call leaves out where the part reads one,
 // and an answer that reaches none of the labels its definition names.
-export const subjectRefusalAddress = (address, labelName) => `${address}/SubjectNot${capitalOf(labelName)}Error`;
+export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kinds.map(capitalOf).join('Or')}Error`;
 export const argsBeyondPartsAddress = address => `${address}/ArgsBeyondPartsError`;
 export const notGivenAddress = partAddress => `${partAddress}/NotGivenError`;
-export const answerRefusalAddress = (answerAddress, kinds) => `${answerAddress}/Not${kinds.map(capitalOf).join('Or')}Error`;
+export const kindsRefusalAddress = (address, kinds) => `${address}/Not${kinds.map(capitalOf).join('Or')}Error`;
 
 const capitalOf = name => { const [, word] = splitAddress(name); return word[0].toUpperCase() + word.slice(1); };
 
@@ -389,8 +399,10 @@ const capitalOf = name => { const [, word] = splitAddress(name); return word[0].
 // at the address may raise by rule, which its definition pages [D179].
 export function ruleRefusalsOf(env, address) {
   const [labelName] = splitAddress(address);
+  const value = bindingValueOf(nodeOf(env, address));
+  if (isFn(value)) return functionRuleRefusalsOf(signatureOf(value), address, labelName);
   const parts = partsOfName(env, address);
-  const refusals = [subjectRefusalAddress(address, labelName)];
+  const refusals = [subjectRefusalAddress(address, [labelName])];
   if (placesReadBy(parts) !== null) refusals.push(argsBeyondPartsAddress(address));
   for (const [, partRecord] of parts) {
     const { onePlace, strict, readsArgs } = selectorOf(partRecord);
@@ -398,21 +410,45 @@ export function ruleRefusalsOf(env, address) {
   }
   const answer = answerOf(env, address);
   if (answer !== null && answer.kinds.length > 1 && !answer.kinds.includes(ANY_KIND_NAME) && !answer.kinds.includes(labelName)) {
-    refusals.push(answerRefusalAddress(answer.address, answer.kinds));
+    refusals.push(kindsRefusalAddress(answer.address, answer.kinds));
   }
   return refusals;
 }
 
-// selectorOf(partRecord) → what a part's selector reads, once per part:
-// its tree, a path read as the projection it is written as [D248], the
-// place its first step reads, whether the selector is that one step, and
-// whether it reads the args whole, `~(it)`.
+// The refusals the call of a word that is a function raises by rule, read
+// from its signature [D251]: a subject of none of the kinds it serves,
+// named by its label, args beyond
+// the places its inputs read, an input the call leaves out where its place
+// reads one, an input of none of its kinds, and an answer of none of
+// several kinds.
+export function functionRuleRefusalsOf(signature, address, labelName) {
+  const refusals = [subjectRefusalAddress(address, [labelName])];
+  if (signature.places !== null) refusals.push(argsBeyondPartsAddress(address));
+  for (const { name, kinds, selector } of signature.inputs) {
+    if (selector.strict || !selector.onePlace) refusals.push(notGivenAddress(`${address}/${name.name}`));
+    if (kinds !== null) refusals.push(kindsRefusalAddress(`${address}/${name.name}`, kinds));
+  }
+  const kinds = signature.answer?.kinds ?? null;
+  if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/answer`, kinds));
+  return refusals;
+}
+
+// selectorOf(partRecord) → what a part's selector reads, its place, a path
+// or a quote, read once.
+export function selectorOf(partRecord) {
+  return selectorOfPlace(bindingValueOf(partRecord));
+}
+
+// selectorOfPlace(place) → what a place reads, once per place, of a part
+// and of an input of a function alike [D251]: its tree, a path read as the
+// projection it is written as [D248], the place its first step reads,
+// whether the selector is that one step, and whether it reads the args
+// whole, `~(it)`.
 const SELECTORS = new WeakMap();
 
-export function selectorOf(partRecord) {
-  let selector = SELECTORS.get(partRecord);
+export function selectorOfPlace(value) {
+  let selector = SELECTORS.get(value);
   if (selector === undefined) {
-    const value = bindingValueOf(partRecord);
     const ast = isPath(value) ? { type: 'Projection', keys: value.segments } : astOfQuote(value);
     const place = placeReadBy(ast);
     const onePlace = readsOnePlace(ast, place);
@@ -422,7 +458,7 @@ export function selectorOf(partRecord) {
       fallback: onePlace && ast.type === 'Call' && ast.args.length === 2 ? ast.args[1] : null,
       readsArgs: ast.type === 'Call' && ast.name === 'it' && ast.args.length === 0
     };
-    SELECTORS.set(partRecord, selector);
+    SELECTORS.set(value, selector);
   }
   return selector;
 }

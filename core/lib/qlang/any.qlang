@@ -807,8 +807,10 @@
 
 :any/apply
   |~~ Answers the code the call gives run against the subject,
-      `5 | apply ~(add 1)` answering `6`. The code is a quote or a name
-      that holds one, `apply double`, and its steps run in order, a
+      `5 | apply ~(add 1)` answering `6`. The code is a quote, a path or
+      a function, or a name that holds one, `apply double`, and a
+      function takes its arguments as a vector, as a call holds its
+      objects, `5 | apply f [3]`. Its steps run in order, a
       leading `!|` routing the first through the fail track, so a
       pipeline suffix a `:trail` records runs again as it is. Code held
       as the subject runs on itself by `apply it`, and text runs once
@@ -818,7 +820,7 @@
       call, so `apply (add 1)` is refused, as is the error a step
       answered there. The call takes one code; code of several steps is
       one quote.
-      ::link~(::quote | doc) ::link~(::string/parse | doc)
+      ::link~(::quote | doc) ::link~(::fn | doc) ::link~(::string/parse | doc)
   ~~|
   ::builtin{}
 
@@ -827,15 +829,31 @@
   ::any
 
 :any/apply/code
-  |~~ The code the call runs, a quote or a name that holds one. ~~|
+  |~~ The code the call runs, a quote, a path or a function, or a name that holds one. ~~|
   /0
 
-:any/apply/code/NotQuoteError
-  |~~ The code is a quote, `apply ~(add 1)`, or a path, `apply /a`: a
-      step written without its quote runs at the call, and its answer, an
-      error among them, is no code.
+:any/apply/args
+  |~~ The arguments of a function, a vector, as a call holds its objects. ~~|
+  ~(query /1 [])
+
+:any/apply/args/NotVecError
+  |~~ The arguments of a function are a vector, `apply f [3]`, as a call
+      holds its objects.
   ~~|
-  ::holds~(is ::quote ::path)
+  ::holds~(is ::vec)
+
+:any/apply/args/NotTakenError
+  |~~ A quote and a path take no arguments: steps run in order inside one
+      quote, `apply ~(add 1 | mul 2)`, and arguments go to a function,
+      `apply f [3]`.
+  ~~|
+
+:any/apply/code/NotQuoteError
+  |~~ The code is a quote, `apply ~(add 1)`, a path, `apply /a`, or a
+      function: a step written without its quote runs at the call, and its
+      answer, an error among them, is no code.
+  ~~|
+  ::holds~(is ::quote ::path ::fn)
 
 :any/apply/code/NotGivenError
   |~~ `apply` runs the code the call gives, `apply ~(add 1)`; code held
@@ -843,8 +861,8 @@
   ~~|
 
 :any/apply/ArgsBeyondPartsError
-  |~~ `apply` runs one code: steps run in order inside one quote,
-      `apply ~(add 1 | mul 2)`.
+  |~~ `apply` takes the code and the arguments of a function, one vector,
+      `apply f [3]`.
   ~~|
 
 :any/apply/runsTheCode
@@ -881,9 +899,21 @@
   |~~ A call with no code is refused under the part. ~~|
   ::law~(~(add 1) | apply !| type | eq ::any/apply/code/NotGivenError)
 
-:any/apply/ArgsBeyondPartsError/refusesTwoCodes
-  |~~ A call with two codes is refused under the word. ~~|
-  ::law~(5 | apply ~(add 1) ~(mul 2) !| type | eq ::any/apply/ArgsBeyondPartsError)
+:any/apply/ArgsBeyondPartsError/refusesAThirdObject
+  |~~ A call with an object after the arguments is refused under the word. ~~|
+  ::law~(5 | apply ~(add 1) [] [] !| type | eq ::any/apply/ArgsBeyondPartsError)
+
+:any/apply/args/NotTakenError/refusesTheArgumentsOfAQuote
+  |~~ A second quote is no argument of the first. ~~|
+  ::law~(5 | apply ~(add 1) ~(mul 2) !| type | eq ::any/apply/args/NotTakenError)
+
+:any/apply/args/NotVecError/refusesANumber
+  |~~ A number is no vector of arguments. ~~|
+  ::law~(5 | apply ~(add 1) 3 !| type | eq ::any/apply/args/NotVecError)
+
+:any/apply/runsAFunctionOnItsArguments
+  |~~ A function runs on the subject with its arguments. ~~|
+  ::law~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [3] | eq 8)
 
 :any/apply/passesAValueByALeadingFailStep
   |~~ A leading `!|` passes a value on. ~~|

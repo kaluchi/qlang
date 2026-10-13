@@ -352,7 +352,11 @@ ModifierGap
 // optional body, each of which may take a line of its own [D152]; a lone
 // `:foo` is a keyword. The name it writes is one a step can call [D152].
 BindStep
-  = key:BindName docs:(__ @DocSlot)? body:Body?
+  = key:BindName & { return key.name.includes('/'); } docs:(__ @DocSlot)? body:DefinitionBody?
+    & { return docs !== null || body !== null; }
+    & { return docQuoteDepth === 0 || nameCalled(key.name, body); }
+    { refuseNameNoStepCalls(key, body); return node('BindStep', { key, docs, body }, span(), text()); }
+  / key:BindName docs:(__ @DocSlot)? body:Body?
     & { return docs !== null || body !== null; }
     & { return docQuoteDepth === 0 || nameCalled(key.name, body); }
     { refuseNameNoStepCalls(key, body); return node('BindStep', { key, docs, body }, span(), text()); }
@@ -378,6 +382,23 @@ BodyBreak
   = _h1 !Whitespace { return false; }
   / __ { return true; }
 
+// The body of a definition, a name with a path, begun on a later line is a
+// sentence, its steps joined by a combinator up to the next declaration or
+// a value that heads the sentence after it; on the line of its name it is
+// one step, as a body is [D251].
+DefinitionBody
+  = _h1 !Whitespace body:Step { return body; }
+  / __ head:Step & { return head.type !== 'Keyword'; } tail:BodySentenceStep*
+    { return assemblePipeline(null, head, tail, span(), text()); }
+
+// A later step of a body begun on a later line: a command, or after `!|`
+// the recovery, a value among them.
+BodySentenceStep
+  = __ c:Combinator __ !BindStep step:Step & { return c === '!|' || !VALUE_STEPS.has(step.type); }
+    { return { combinator: c, step }; }
+  / __ c:PipedCombinator __ !BindStep step:Step
+    { return { combinator: c, step }; }
+
 // ── Words ──────────────────────────────────────────────────────────
 //
 // A word is a literal, a projection, a name, a quote or a pipeline in
@@ -399,14 +420,15 @@ Word
   / Name
   / Scalar
 
-// The element of a literal, which a doc value may be too; a doc after
-// a command is the next step, never its modifier.
+// The element of a literal and the object of a command, which a doc value
+// may be too [D251].
 Element
   = Word
   / DocLit
 
 ModifierWord
   = Word
+  / DocLit
 
 Name
   = callName:CallName

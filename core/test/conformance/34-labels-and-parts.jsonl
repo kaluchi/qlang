@@ -43,3 +43,5 @@
 {"name":"code-held-as-data-runs-in-the-tree-of-the-query","query":":any/run ~(apply code) | :any/run/code /0 | :x 5 | \"x | add 1\" | parse | :q it | (null | run q)","expect":"6","decision":"D200"}
 {"name":"the-args-of-a-call-are-a-value-under-its-word","query":":any/argsOf ~(args) | :any/argsOf/xs ~(take 99) | 5 | argsOf 1 2","expect":"::any/argsOf[1 2]","decision":"D164"}
 {"name":"an-invariant-a-bare-name-declares-is-refused","query":":Positive ::holds~(gt 0) !| type","expect":"::bind/InvariantNotUnderLabelError","decision":"D229"}
+{"name":"a-value-the-sentence-names-reaches-no-selector-of-a-word","query":":it 5 | 3 | is ::number","expect":"true","decision":"D251"}
+{"name":"a-value-the-sentence-names-reaches-no-invariant-of-a-word","query":":floor 3 | [1 2 3] | drop 1","expect":"[2 3]","decision":"D251"}

@@ -644,9 +644,17 @@
       from the outside in, then the shape beneath them, then the verbs
       every value answers, on `::any`; a verb of vectors reaches a
       vector under a tag and keeps the tag.
+      A word is a function named under a label, built from `::fn` by
+      commands with its recipe last,
+      `:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))`:
+      `on` names its subject, `takes` an input with its page, the place of
+      the call it reads and its kinds, `returns` its answer, `throws` a
+      refusal and `holds` an invariant, and its call reads them from the
+      function, each input bound by its name in the recipe.
       A name declares the parts of its args as names under it, each
-      kind's word its own, and the label its answer goes under; `manifest`
-      answers them before a call.
+      kind's word its own, and the label its answer goes under, as the
+      words of the catalog are written; `manifest` answers them before a
+      call.
       An answer of the word's own label goes back under the tags the
       subject came through.
       A reader's name under a noun takes the parts of its args after
@@ -690,6 +698,10 @@
 :qlang/verbs/answersUnderTheTags
   |~~ A sum goes back under the tag the subject came through. ~~|
   ::law~(::Width(2) | add 3 | eq ::Width(5))
+
+:qlang/verbs/isAFunctionNamedUnderALabel
+  |~~ A word is a function named under a label. ~~|
+  ::law~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | 5 | plus 2 | eq 7)
 
 :qlang/verbs/takesAReadersPart
   |~~ A reader's word reads its part of the args. ~~|

@@ -2098,9 +2098,18 @@
       number, `[:items 0] | toPath`.
   ~~|
 
+:vec/toPath/EmptyError
+  |~~ A path names one segment at least: the value itself is `it`, so the
+      empty vector names no path.
+  ~~|
+
 :vec/toPath/buildsAPath
   |~~ Keys and places build a path. ~~|
   ::law~([:items 0] | toPath | print | eq "/items/0")
+
+:vec/toPath/EmptyError/refusesTheEmptyVector
+  |~~ The empty vector names no path. ~~|
+  ::law~([] | toPath !| type | eq ::vec/toPath/EmptyError)
 
 :vec/toPath/ElementNotKeyError/refusesAFraction
   |~~ A fraction is no place, and is refused at its index. ~~|

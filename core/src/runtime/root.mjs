@@ -13,7 +13,7 @@
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isErrorValue, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
+import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, fnRecipeOf, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareInvariantError } from '../errors.mjs';
@@ -54,17 +54,24 @@ export async function declareRoot(env, sources) {
     const again = [...declared.keys()].find(name => root.has(name));
     if (again !== undefined) throw new BuiltinRootSourceNotDeclaredError({ uri, tagName: DECLARED_TWICE, name: keyword(again) });
     for (const [name, record] of declared) {
-      const value = bindingValueOf(record);
-      if (!isBuiltinDescriptor(value)) continue;
+      const builtin = builtinOf(bindingValueOf(record));
+      if (builtin === null) continue;
       if (impls[name] === undefined) throw new BuiltinImplementationNotHandedError({ name });
-      declareHostValue(value, impls[name]);
+      declareHostValue(builtin, impls[name]);
     }
     for (const implName of Object.keys(impls)) {
-      if (!isBuiltinDescriptor(bindingValueOf(declared.get(implName))) || !isUnderLabel(answered.env, implName)) {
+      if (builtinOf(bindingValueOf(declared.get(implName))) === null || !isUnderLabel(answered.env, implName)) {
         throw new BuiltinImplementationNamesNoBuiltinError({ uri, name: keyword(implName) });
       }
     }
     root = new Map([...root, ...declared]);
   }
   return new Map(env).set(ROOT_KEY, root);
+}
+
+// The descriptor of a host's primitive a name holds, itself or as the
+// recipe of a function [D251], or null.
+function builtinOf(value) {
+  const recipe = isFn(value) ? fnRecipeOf(value) : value;
+  return isBuiltinDescriptor(recipe) ? recipe : null;
 }

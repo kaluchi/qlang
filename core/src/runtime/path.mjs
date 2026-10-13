@@ -15,6 +15,7 @@ import {
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
 const VecToPathElementNotKeyError = declareRefusal('vec/toPath/ElementNotKeyError');
+const VecToPathEmptyError = declareRefusal('vec/toPath/EmptyError');
 
 // The path a key names, a keyword, a string or a number, of one segment.
 function pathOfKey(key) {
@@ -138,12 +139,16 @@ bindPrim('path/segments', path => Object.freeze(path.segments.map(segment => {
   return Number.isNaN(place) ? keyword(segment) : place;
 })));
 
-bindPrim('vec/toPath', keys => makePath(keys.map((key, index) => {
-  if (!isKey(key) || (typeof key === 'number' && !Number.isInteger(key))) {
-    throw new VecToPathElementNotKeyError({ index, actualValue: key });
-  }
-  return isKeyword(key) ? key.name : String(key);
-})));
+// A path names one segment at least, the value itself being `it` [D248].
+bindPrim('vec/toPath', keys => {
+  if (keys.length === 0) throw new VecToPathEmptyError({ actualValue: keys });
+  return makePath(keys.map((key, index) => {
+    if (!isKey(key) || (typeof key === 'number' && !Number.isInteger(key))) {
+      throw new VecToPathElementNotKeyError({ index, actualValue: key });
+    }
+    return isKeyword(key) ? key.name : String(key);
+  }));
+});
 
 // A string in JSON Pointer's form, a fragment's `#` before it read too,
 // `~1` a slash and `~0` a tilde within a segment.

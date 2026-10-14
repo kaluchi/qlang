@@ -10,9 +10,9 @@
 {"decision":"D1","name":"json-object-pipeline","query":"{\"scores\": [85 92 78]} | get /scores | count","expect":"3"}
 {"decision":"D1","name":"json-object-quoted-key-sigil","query":"{\"$ref\": \"x\"} | get /\"$ref\"","expect":"\"x\""}
 {"decision":"D1","name":"json-string-key-equals-keyword","query":"{\"name\": 1} | get /name","expect":"1"}
-{"decision":"D32","name":"keyword-reserved-word-bare","query":":null","expect":":null"}
-{"decision":"D32","name":"keyword-false-bare","query":":false","expect":":false"}
-{"decision":"D32","name":"keyword-true-bare","query":":true","expect":":true"}
+{"decision":"D20","name":"keyword-reserved-word-bare","query":":null","expect":":null"}
+{"decision":"D20","name":"keyword-false-bare","query":":false","expect":":false"}
+{"decision":"D20","name":"keyword-true-bare","query":":true","expect":":true"}
 {"decision":"D248","name":"path-reserved-word","query":"{:null 42} | get /null","expect":"42"}
 {"decision":"D1","name":"json-form-keys-only","query":"{\"a\": 1, \"b\": 2} | get [/a /b]","expect":"[1 2]"}
 {"decision":"D1","name":"scientific-integer-exp","query":"1e10","expect":"10000000000"}

@@ -537,7 +537,7 @@ TagLit
 
 // A tag's name lives apart from the values, so a name after `::` may be
 // a reserved word, as after `:` and `/`: `::null` is the kind of null
-// [D32].
+// [D20].
 TagName
   = NamespacedName
   / KeywordName

@@ -787,7 +787,7 @@ the doc, a host's record and the elision marker are all this one thing:
 over its segments, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
-[D32]; a kind carries the value's constructor, its order and its laws
+[D20]; a kind carries the value's constructor, its order and its laws
 [D16], [D252], while one rule of the core prints every literal.
 
 One mechanism of word. A word is a function named under the
@@ -1239,7 +1239,6 @@ those being decided.
 [D29]: decisions/D29.md
 [D30]: decisions/D30.md
 [D31]: decisions/D31.md
-[D32]: decisions/D32.md
 [D34]: decisions/D34.md
 [D37]: decisions/D37.md
 [D38]: decisions/D38.md

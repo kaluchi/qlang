@@ -237,7 +237,7 @@ function withDeclaredNames(items, ast, offset, spellings) {
   return items;
 }
 
-// The kind of the value a literal step answers [D32].
+// The kind of the value a literal step answers [D20].
 const KIND_OF_LITERAL = {
   NumberLit: 'number', StringLit: 'string', RegexLit: 'regex', BooleanLit: 'boolean', NullLit: 'null',
   Keyword: 'keyword', VecLit: 'vec', MapLit: 'map', SetLit: 'set',

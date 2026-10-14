@@ -54,7 +54,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // slot — `::error`, the kind of errors, for user `!{}` with no tag
     // before its bang. The brackets imply that kind, so the
     // printer leaves it out, as it does a vector's, and the
-    // round-trip recovers the same identity [D32], [D64].
+    // round-trip recovers the same identity [D20], [D64].
     const err = makeErrorValue(makeTag('error'), new Map());
     expect(printValue(err)).toBe('!{\n  :trail []\n}');
   });

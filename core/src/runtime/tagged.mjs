@@ -22,7 +22,7 @@ function setConstructor(payload) {
 
 bindPrim('set/construct', setConstructor);
 
-// The constructors of the core's kinds [D32], [D168]: each reads a
+// The constructors of the core's kinds [D20], [D168]: each reads a
 // payload of its kind as the value itself, so `::vec[1 2]` and `[1 2]` are
 // one value and print as the latter, and a payload of another kind is
 // refused at the site, a vector or a map under a tag of its own among

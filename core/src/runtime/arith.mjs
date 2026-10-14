@@ -34,7 +34,7 @@ bindPrim('number/range', count => {
 });
 
 // A number rounds half away from zero to the digits after the point the
-// call gives, a whole number its part holds [D218], a negative count
+// call gives, a whole number its part holds [D46], a negative count
 // rounding to tens and beyond [D132].
 bindPrim('number/round', (subject, digits) => {
   const factor = 10 ** digits;

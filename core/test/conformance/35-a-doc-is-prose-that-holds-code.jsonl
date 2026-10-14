@@ -64,7 +64,7 @@
 {"decision":"D119","name":"docs-leaves-for-doc","query":"5 | docs | type !| type","expect":"::call/UnknownNameError"}
 {"decision":"D121","name":"every-link-of-the-first-screen-opens-a-page","query":"::qlang | doc | links | map ~open | every ~(type | eq ::doc)","expect":"true"}
 {"decision":"D119","name":"the-empty-path-reads-the-page-of-the-subject","query":"::qlang | doc [] | eq (::qlang | doc)","expect":"true"}
-{"decision":"D218","name":"an-anchor-of-a-set-that-is-no-keyword-is-refused","query":"::qlang | doc #[1] !| type","expect":"::any/doc/anchor/ElementNotKeywordError"}
+{"decision":"D46","name":"an-anchor-of-a-set-that-is-no-keyword-is-refused","query":"::qlang | doc #[1] !| type","expect":"::any/doc/anchor/ElementNotKeywordError"}
 {"decision":"D122","name":"a-value-that-is-no-quote-opens-nothing","query":"5 | open !| type","expect":"::quote/open/SubjectNotQuoteError"}
 {"decision":"D168","name":"the-source-of-an-unknown-name-is-refused","query":"::nosuchbinding | source !| type","expect":"::any/source/UnknownNameError"}
 {"decision":"D119","name":"docs-not-found-names-the-docs-axis","query":"::nosuchbinding | doc !| type","expect":"::any/doc/UnknownNameError"}

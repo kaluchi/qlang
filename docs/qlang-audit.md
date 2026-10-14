@@ -504,7 +504,7 @@ name is the refusal, a primitive's refusal of an input's value or of an
 element of it under the input, and a primitive's refusal of its run
 under the word that ran it, which lists it among its names; a number is
 whole where it equals its floor, `eq (floor)`, the law of every count
-and of the digits of `round` [D218]. The facts an error carries are
+and of the digits of `round` [D46]. The facts an error carries are
 definitions under the label of the refusal and under `::error`, held in
 the order they are declared, the trail last, and a fact neither
 declares is a defect of the runtime [D46], [D169], [D252]:
@@ -1307,7 +1307,6 @@ those being decided.
 [D208]: decisions/D208.md
 [D212]: decisions/D212.md
 [D214]: decisions/D214.md
-[D218]: decisions/D218.md
 [D221]: decisions/D221.md
 [D223]: decisions/D223.md
 [D225]: decisions/D225.md

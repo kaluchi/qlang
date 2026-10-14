@@ -13,8 +13,10 @@ wins and this file is what changes.
    It carries the mission, the satisfactory state, the principles, the
    scars, the finish, and the route of milestones. Each numbered
    decision is a file under `docs/decisions/`, opened where the audit
-   cites it, and `node scripts/requirements.mjs` lists the
-   requirements every decision left and which the tree meets.
+   cites it; one under `docs/decisions/replaced/` is history, and its
+   paths read in the tree its line `Left at` names [D282]. `node
+   scripts/requirements.mjs` lists the requirements every decision left
+   and which the tree meets.
    `docs/qlang-entrypoint.md` is a draft of the computed context a
    session starts from, ideas and no decision [D231]. The sensors live
    in `scripts/sensors/`: the probes run wherever the checkout is, and

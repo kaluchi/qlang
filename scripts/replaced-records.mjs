@@ -31,7 +31,7 @@ for (const name of moving) {
   const body = firstLink === -1 ? lines : lines.slice(0, firstLink);
   const links = firstLink === -1 ? [] : lines.slice(firstLink);
   while (body.at(-1) === '') body.pop();
-  if (!body.some(line => line.startsWith('Left at '))) body.push(`Left at ${head}.`);
+  if (!body.some(line => line.startsWith('Left at '))) body.push(`Left at ${head}, the tree this text was last true of: a path, a case or a`, `probe it names reads there, \`git show ${head}:<path>\`, not in today's.`);
   writeFileSync(path, [...body, ...(links.length > 0 ? ['', ...links] : []), ''].join(eol));
   git('mv', `docs/decisions/${name}`, `docs/decisions/replaced/${name}`);
 }

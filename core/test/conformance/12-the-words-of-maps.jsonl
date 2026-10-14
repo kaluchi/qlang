@@ -21,9 +21,9 @@
 {"decision":"D116","name":"map-reaches-the-set-beneath-a-tag","query":"::Box#[1 2] | map ~(add 1)","expect":"[2 3]"}
 {"decision":"D34","name":"map-reaches-the-vector-beneath-two-tags","query":"::A::B[1 2] | map ~(add 1)","expect":"[2 3]"}
 {"decision":"D8","name":"map-reaches-the-quote-beneath-a-tag","query":"::Box~(add 1 | mul 2) | map ~type","expect":"[::call ::call]"}
-{"decision":"D18","name":"map-duplicate-key-keeps-last-value-in-first-position","query":"{:a 1 :b 2 :a 3} | vals","expect":"[3 2]"}
-{"decision":"D18","name":"json-duplicate-key-reads-as-json-parse-reads-it","query":"{\"a\": 1, \"b\": 2, \"a\": 3} | vals","expect":"[3 2]"}
-{"decision":"D18","name":"map-duplicate-key-equals-its-last-binding","query":"{:a 1 :b 2 :a 3} | eq {:a 3 :b 2}","expect":"true"}
+{"decision":"D1","name":"map-duplicate-key-keeps-last-value-in-first-position","query":"{:a 1 :b 2 :a 3} | vals","expect":"[3 2]"}
+{"decision":"D1","name":"json-duplicate-key-reads-as-json-parse-reads-it","query":"{\"a\": 1, \"b\": 2, \"a\": 3} | vals","expect":"[3 2]"}
+{"decision":"D1","name":"map-duplicate-key-equals-its-last-binding","query":"{:a 1 :b 2 :a 3} | eq {:a 3 :b 2}","expect":"true"}
 {"decision":"D116","name":"a-sum-over-a-listing-of-the-catalog-counts-every-element","query":"::vec | manifest | map ~(laws | count) | sum | eq (::vec | manifest | sort | map ~(laws | count) | sum)","expect":"true"}
 {"decision":"D15","name":"vals-map-yields-vec","query":"{:a 1 :b 2} | vals | type","expect":"::vec"}
 {"decision":"D16","name":"keys-map-yields-set","query":"{:a 1 :b 2} | keys | type","expect":"::set"}

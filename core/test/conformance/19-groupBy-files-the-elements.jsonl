@@ -19,7 +19,7 @@
 {"decision":"D135","name":"two-values-filed-under-one-keyword-meet-aloud","query":"[1 \"1\"] | groupBy !| type","expect":"::vec/groupBy/KeyTakenError"}
 {"decision":"D135","name":"single-element-single-key","query":"[{:id :a :name \"alice\"}] | indexBy /id | get /a/name","expect":"\"alice\""}
 {"decision":"D135","name":"unique-keys-form-a-lookup-map","query":"[{:id :a :name \"alice\"} {:id :b :name \"bob\"}] | indexBy /id | get /b/name","expect":"\"bob\""}
-{"decision":"D18","name":"duplicate-keys-last-wins","query":"[{:id :a :v 1} {:id :a :v 2}] | indexBy /id | get /a/v","expect":"2"}
+{"decision":"D1","name":"duplicate-keys-last-wins","query":"[{:id :a :v 1} {:id :a :v 2}] | indexBy /id | get /a/v","expect":"2"}
 {"decision":"D135","name":"indexBy-empty-vec-yields-empty-map","query":"[] | indexBy /k | empty","expect":"true"}
 {"decision":"D168","name":"indexBy-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | indexBy /k","expect":"::call/KindAnswersNoVerbError!{\n  :name :indexBy\n  :addresses #[::set/indexBy ::vec/indexBy]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(indexBy /k)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D135","name":"indexBy-key-of-another-kind-is-refused","query":"[{:k [1]}] | indexBy /k","expect":"::vec/indexBy/KeyNotKeywordError!{\n  :index 0\n  :actualType ::vec\n  :actualValue [1]\n  :trail [\n    {\n      :step ~(indexBy /k)\n      :subject [\n        {\n          :k [1]\n        }\n      ]\n      :skipped ~()\n    }\n  ]\n} | raise"}

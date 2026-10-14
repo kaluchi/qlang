@@ -16,7 +16,7 @@ import {
   makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTag, errorAtRest,
   isFn, isKind, recipeOf, makeQuote, isQMap, stampTagHeader, TAG_HEADER_SYMBOL,
-  ERROR_TAG, isValueClass
+  ERROR_TAG, isValueClass, isTag
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, tagCallStepOf, commandStep, groupStep } from './quote.mjs';
@@ -834,17 +834,17 @@ function codeOfObject(value, originOf, state) {
 
 // The subject a function's call serves: for a word, the value of its label
 // the walk of the subject's tags reaches, or of a kind `on` names beside
-// it, a tag for a word of a noun itself [D88]; for a function `apply` runs,
-// a value of the kinds `on` names, or the subject as it is; null where the
-// walk reaches none.
+// it, the noun's own tag name for a word of the noun itself, since the walk
+// of a tag name passes the noun it names and no other [D88], [D275]; for a
+// function `apply` runs, a value of the kinds `on` names, or the subject as
+// it is; null where the walk reaches none.
 function subjectOfCall(signature, labelName, subject) {
   const onKinds = signature.subject?.kinds ?? null;
-  if (labelName !== null) {
-    const byLabel = walkToKinds(subject, [labelName]);
-    if (byLabel !== null) return { ...byLabel, byLabel: true };
-  }
-  if (onKinds === null) return labelName === null ? { served: subject, passedTags: [] } : null;
-  return walkToKinds(subject, onKinds);
+  if (labelName === null) return onKinds === null ? { served: subject, passedTags: [] } : walkToKinds(subject, onKinds);
+  const byLabel = walkToKinds(subject, [labelName]);
+  if (byLabel !== null) return { ...byLabel, byLabel: true };
+  const byKinds = onKinds === null ? null : walkToKinds(subject, onKinds);
+  return byKinds !== null && isTag(byKinds.served) && byKinds.served.name !== labelName ? null : byKinds;
 }
 
 // The values of the inputs of a function's call, read from its args by

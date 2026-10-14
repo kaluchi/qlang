@@ -232,7 +232,8 @@
   |~~ Names the subject of a function, its page and the kinds it serves,
       `::fn | on |~~ A number. ~~| ::number`: a function `apply` runs
       serves a subject of those kinds alone, and a word serves them beside
-      the values of its label, a tag for a word of the noun itself.
+      the values of its label, the noun's own tag name for a word of the
+      noun itself.
   ~~|
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|

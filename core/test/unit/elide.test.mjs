@@ -79,7 +79,7 @@ describe('elide [D109]', () => {
     expect([view.get('a'), view.get('c')]).toEqual([value.get('a'), value.get('c')]);
   });
 
-  it('keeps a part whose marker prints no shorter than it, so a budget never lengthens a print [D217]', async () => {
+  it('keeps a part whose marker prints no shorter than it, so a budget never lengthens a print [D109]', async () => {
     const value = await evalQuery('[[] {:n 1} "short"]');
     expect(elide(value, 3)).toBe(value);
     const failing = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);

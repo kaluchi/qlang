@@ -4,7 +4,7 @@
 // first half of its elements and ending with a marker of the rest, a
 // string or a map giving way whole, and the top, a vector, keeping the
 // first half of its elements; a part whose marker prints no shorter than
-// it stays, so a budget never lengthens a print [D217]. A
+// it stays, so a budget never lengthens a print [D109]. A
 // marker holds `:size`, what it stands for counted, `:read`, the quote
 // that applied to the value taken answers the part left out, and for a
 // string `:head`, its first characters.
@@ -140,7 +140,7 @@ function replacedAt(value, path, replacement) {
 // While the print exceeds the budget, the largest part gives way among
 // those whose marker prints shorter than they do, so a budget never
 // lengthens a print, a vector halving on to its marker at the most; where
-// no part's marker is shorter, the view stands over the budget [D217].
+// no part's marker is shorter, the view stands over the budget [D109].
 function elideWithin(value, budget, start, keep) {
   let view = value;
   while (printedSize(view) > budget) {

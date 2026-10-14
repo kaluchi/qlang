@@ -426,7 +426,7 @@ those repairs left is what the scars below describe.
 [D180]: ../decisions/D180.md
 [D185]: ../decisions/D185.md
 [D200]: ../decisions/D200.md
-[D217]: ../decisions/D217.md
+[D217]: ../decisions/replaced/D217.md
 [D221]: ../decisions/D221.md
 [D223]: ../decisions/D223.md
 [D224]: ../decisions/D224.md

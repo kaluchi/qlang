@@ -5,10 +5,9 @@
 // query answers no error. Answers compare as the printer writes them,
 // because a probe records what was printed: a literal answer is read
 // and printed again, an answer with … matches piece by piece in order,
-// and a query that names an `@` operand runs on the command line, then
-// in the core, which answers an `@` operand the query declares. A
-// literal answer that prints alike and is another value is lossy: the
-// printer dropped something the value had. A probe whose line begins
+// and a string, which prints raw, compares as the command line prints
+// it. A literal answer that prints alike and is another value is lossy:
+// the printer dropped something the value had. A probe whose line begins
 // with `$` is a shell command. One that names the sister project, the
 // sensors, which read the transcripts of a machine, or the environment
 // is listed as `machine` and left to be run by hand; any other reads the
@@ -130,9 +129,6 @@ async function answersAsRecorded({ query, answer }) {
     }
     return true;
   }
-  // An `@` operand the core lacks is the command line's; one a query
-  // declares, `:@surround …`, the core answers as any other.
-  if (/(^|\W)@\w/.test(query) && squash(onCommandLine(query)) === answer) return true;
   // A string prints raw, and its text may read as words of the command form.
   if (typeof await evalQuery(query) === 'string' && squash(onCommandLine(query)) === answer) return true;
   try { parse(answer); } catch { return squash(onCommandLine(query)) === answer; }

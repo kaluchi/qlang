@@ -1,6 +1,6 @@
 // The primitives of equality, of the comparisons, of the booleans and of
 // the kinds, whose words the catalog declares under `::any`, `::boolean`
-// and the kinds they compare [D14], [D32], [D34], [D167].
+// and the kinds they compare [D14], [D20], [D34], [D167].
 
 import { typeKeyword } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';

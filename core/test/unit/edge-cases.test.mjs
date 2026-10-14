@@ -218,7 +218,7 @@ describe('runtime/string.mjs lines', () => {
   });
 });
 
-describe('source axis on verb / freeze / tag subjects', () => {
+describe('source on a word, a declaration of it and a tag', () => {
   // `::name | source` returns the quote of the declaring BindStep,
   // which `parse` prints as its text. Same axis covers a name (Keyword
   // subject) and a node of the tree (tag subject).
@@ -228,7 +228,7 @@ describe('source axis on verb / freeze / tag subjects', () => {
     expect(source).toBe(':any/double ~(mul 2)');
   });
 
-  it('source on a freeze returns its declaration', async () => {
+  it('source on a declaration of it answers the declaration', async () => {
     const source = await evalQuery('42 | :snap it | ::snap | source | parse');
     expect(source).toBe(':snap it');
   });

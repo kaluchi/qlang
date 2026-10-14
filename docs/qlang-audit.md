@@ -14,8 +14,8 @@ chapters tell, `::qlang | doc`; and the chapters this document carried
 on the core, on the hypertext and on how the project got here stand as
 written in `docs/archive/the-audit-chapters.md`. It was first written in
 September 2026, and each version since holds the text against the tree
-the repairs of the one before left. This, the sixteenth, holds it
-against commit `f0db2ec3`, its baseline: a scar the tree no longer shows
+the repairs of the one before left. This, the seventeenth, holds it
+against commit `8ce2b5be`, its baseline: a scar the tree no longer shows
 has left the document, what remains of a scar is stated as it stands,
 the route starts from the baseline, and every probe answers as the tree
 answered on the day this version was written.
@@ -25,7 +25,7 @@ the commit that wrote each tells why.
 A draft of the session entrypoint, the computed context a session
 starts from, lives in `docs/qlang-entrypoint.md`, ideas and no
 decision; what the process took from it stands in the records, the
-screen of the work a session runs first, `npm run desk` [D226], and
+screen of the work a session runs first, `npm run desk` [D225], and
 the sensors [D231]. This document treats the language and the work on
 it; that one treats the environment the work happens in.
 
@@ -50,23 +50,23 @@ stops being true and only then, and it reads what the sentence names in
 a way that fails when that is gone; `npm run ci` runs every probe, and
 the branch that changed an answer replaces the sentence with the new
 fact and its new probe [D93]. A target, the answer a repair must
-produce, is a conformance case that names its decision [D58]; a block
+produce, is a conformance case that names its decision [D31]; a block
 fenced as `qlang target` holds one whose answer no literal states yet.
 An anchor names a file and a symbol; line numbers drift and are avoided.
 
 A decision is a record of its own, `docs/decisions/Dnn.md`, cited here
 by its number, a link to its file: what was decided, who decided it,
 the source, what it rests on, and the alternatives set aside with the
-reason [D31], [D58], [D155]. The maintainer's words stand in «…»,
+reason [D31], [D155]. The maintainer's words stand in «…»,
 quoted verbatim in the language they were written in with the time in
 UTC and the prefix of the session, and words quoted from the tree stand
 in “…” beside their anchor, so a script holds the first against the
 transcripts and a grep the second against the tree. A record in force
 says only what holds, a newer record pruning the part of an older one
 it takes [D227], and the walk of each new baseline gives every record of
-the language a case or a fate [D225], [D226]; the baseline moves at the
+the language a case or a fate [D225]; the baseline moves at the
 end of every shift that wrote records, before an outside audit and when
-a branch lands on master [D230], and the code, the tests, the cases and
+a branch lands on master [D227], and the code, the tests, the cases and
 this document cite the records in force.
 
 An inference is the model's reasoning from named facts. Where an
@@ -205,7 +205,7 @@ at the host. The pipeline cuts what arrived, a literal, to any depth.
 A command has one output, a value under its tag, and the kinds of its
 refusals; its input is the part of the question that moves into the
 host, which is why the input asks for a description of its own and the
-output for a legend [D162].
+output for a legend [D161].
 
 What a reader holds after a call is a printed value, however strange
 it looks, and its explanation starts there. The tag on it is a label,
@@ -222,7 +222,7 @@ no value to annotate, and the peek is assembled in one round trip from
 the definitions under the label's address; the legend of a value is a
 task of its own, one of the two resting on what the other provides
 [D168]. A tool that changes carries its legend inside itself, where it
-cannot go stale behind the tool's back [D161], [D162]. The same holds for the
+cannot go stale behind the tool's back [D161]. The same holds for the
 seed of a session, the instruction file, which is a table of contents
 of what the repository does not hold and no summary of what it does
 [D163].
@@ -305,7 +305,7 @@ every session begins from it. This document is where it lives, and the
 other conditions are reachable because this one holds.
 
 Seventh, the revision as a whole deletes more than it adds. Measured
-against the baseline of the version at hand, commit `f0db2ec3` for this
+against the baseline of the version at hand, commit `8ce2b5be` for this
 one, the diff of the work ahead is negative in the core sources, in the
 documents, and in the tests; the September 2026 master, commit
 `f5e8ec8`, stays the origin the history measures from. The catalog
@@ -459,7 +459,7 @@ a cell's stand in a session [D153]: what it declares bare is a name of
 every reader's scope, and what it declares with a path a node under a
 noun, so the verbs of the core, the command line's and the sister
 project's live under the kinds of their subjects and none lands among a
-client's own names [D72], [D80]. A kind a source declares bare reaches
+client's own names [D72]. A kind a source declares bare reaches
 every reader the same way, and the sister project's kinds, `JdtType`
 and its kin, and its refusals stand bare in the root.
 
@@ -504,10 +504,10 @@ name is the refusal, a primitive's refusal of an input's value or of an
 element of it under the input, and a primitive's refusal of its run
 under the word that ran it, which lists it among its names; a number is
 whole where it equals its floor, `eq (floor)`, the law of every count
-and of the digits of `round` [D218]. The facts an error carries are
+and of the digits of `round` [D46]. The facts an error carries are
 definitions under the label of the refusal and under `::error`, held in
 the order they are declared, the trail last, and a fact neither
-declares is a defect of the runtime [D46], [D169], [D252]:
+declares is a defect of the runtime [D46], [D168], [D252]:
 
 ```qlang
 > "hello" | add 1 !| type
@@ -579,7 +579,7 @@ written once, which is the task that would ask for a hierarchy of tags.
 
 Examples live on two planes, each in its role: the laws of the catalog,
 the claims of its pages, which the language runs on itself, each named
-for the claim it proves and paged with it [D123], [D124]; and the
+for the claim it proves and paged with it [D123]; and the
 conformance suite, the requirements of the language held outside it, so
 a case holds a form the language does not read yet and stands through a
 change that breaks its sources, each case opening with the record that
@@ -599,7 +599,7 @@ symbol, a service or a section of another document in it. It must print
 a parse failure economically, with the full value reachable by a
 path rather than dumped. It must let a reader assemble from the
 definitions under an address the description a question needs, in one
-round trip [D168], [D169].
+round trip [D168].
 
 ### The documents that retold the catalog
 
@@ -750,7 +750,7 @@ A decision is the discussion with its choice and its circumstances, and
 each lives in a file of its own under `docs/decisions/`, true as a whole
 while it is in force [D227];
 a citation of its number in this document is a link to that file, and
-the requirements it left are the conformance cases that name it [D58],
+the requirements it left are the conformance cases that name it [D31],
 each opening with it [D254]; it cites a record in force or one waiting
 on its target [D225]. An
 artifact names the decision it exists for, a mark covering the block it
@@ -787,7 +787,7 @@ the doc, a host's record and the elision marker are all this one thing:
 over its segments, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
-[D32]; a kind carries the value's constructor, its order and its laws
+[D20]; a kind carries the value's constructor, its order and its laws
 [D16], [D252], while one rule of the core prints every literal.
 
 One mechanism of word. A word is a function named under the
@@ -795,7 +795,7 @@ label of its subject, built from `::fn` by commands, its inputs with
 their kinds and invariants, its answer, which `returns` names, its
 refusals and its laws, and its doc its page, a story of what it takes,
 answers and refuses, and the runtime executes the function [D179],
-[D180], [D251]. A word of the core, a host's word and a word a
+[D251]. A word of the core, a host's word and a word a
 reader declares are called the same way, checked the same way,
 documented the same way, and help for all of them, completion, the verbs
 that accept a value, the next part, the refusal's wording, is derived
@@ -962,10 +962,10 @@ The consumers at the finish carry no language of their own. The
 command line is a thin host: standard input lifted only when it
 carries bytes, the default subject otherwise [D37], and read only for a
 query that reads its subject, so a pipe left open never holds a query
-that reads none [D215]; the answer written as its literal whatever the
+that reads none [D37]; the answer written as its literal whatever the
 input was, a string as its text, and converted by the query, `| json`
 [D214]; the budget at the end of the pipe, and its renderings, `table`
-among them, words of its own [D49]:
+among them, words of its own [D22]:
 
 ```sh
 $ sleep 4 | timeout 2 node cli/src/bin.mjs '1 | add 1'
@@ -987,19 +987,20 @@ to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `f0db2ec3`, and the finish
+The start is the tree of the baseline, commit `8ce2b5be`, and the finish
 is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
-decisions leave in the conformance suite [D58]. The decisions whose
+decisions leave in the conformance suite [D31]. The decisions whose
 work began before the baseline met their targets, the last of them the
 effect marker leaving the language [D2], and the step as a command and
 the path as a value met theirs, the first work of the route [D248], and
 the quote as data and the function built by commands met theirs
 [D251], and the kind built by commands and the one spelling of the
 roles of a word and a kind theirs [D252], [D253], and the closed
-literal theirs [D279], and the lane of held code theirs [D278]; a target shows the rule of the record that left it and holds the
+literal theirs [D279], and the lane of held code theirs [D278],
+and a word of a noun that serves its own tag alone theirs [D275]; a target shows the rule of the record that left it and holds the
 answer the tree gives today [D91], and every decision below writes its
 targets before its work:
 
@@ -1097,14 +1098,13 @@ collisions of a host's names [D269]. The function and the kind built by
 commands leave second spellings the next branch deletes: the objects of
 each command in a table of the runtime beside the words of the commands
 [D272], the roles of a declaration the tools read from its form [D273],
-two forms of a place read by their form [D274], and the refusal of
-another noun's tag declared by hand in the builders [D275]; and the word
+and two forms of a place read by their form [D274]; and the word
 for what a command takes is chosen once [D276]. Beside both, the
 editor's grammar is generated or reduced, and the
-screen of the work, whose first version `npm run desk` prints [D226],
+screen of the work, whose first version `npm run desk` prints [D225],
 grows from the draft of the entrypoint document [D231].
 
-Its answers are the targets of [D46], [D152], [D153], [D168], [D169],
+Its answers are the targets of [D46], [D152], [D153], [D168],
 [D185], [D248], [D251], [D252], [D253], [D278] and [D279] in the conformance suite,
 every one met, the
 step of a constructor apart from the kind of tagged values having
@@ -1127,9 +1127,9 @@ meets the tag and the facts.
 ### Milestone 5 · Front door
 
 The measure can be taken as the mission states it. Its answers in the
-conformance suite are the targets of [D2], [D7], [D46], [D107], [D108],
-[D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124],
-[D125], [D129] and [D150]: the effect marker leaving the language,
+conformance suite are the targets of [D2], [D7],
+[D27], [D46], [D107], [D108], [D109], [D111], [D117], [D118], [D119],
+[D123], [D125] and [D129]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs, each run recorded with the frictions it met, each
 measurement on a set of tasks a clean author wrote, which measures once
@@ -1140,7 +1140,7 @@ subject it passed a marker [D7].
 
 What remains of it: the catalog's prose is reduced to what the facts
 do not say, every page telling what its name is for and the claims its
-laws prove [D124], [D212], each
+laws prove [D123], [D212], each
 definition a story a reader falls into, the word, its inputs, its
 answer, its refusals, its laws and its recipe in that order [D179],
 [D252]; enrichment happens once per session; a value shared across
@@ -1148,7 +1148,7 @@ kinds of record carries a tag of its own, as a field is read by the
 chain of its kind [D50], [D252]; and
 the first screen, the pages
 of the language and of the command line, told whole in the order
-its parts rest on each other [D185], within the weight it had [D150],
+its parts rest on each other [D185], within the weight it had [D27],
 is measured on a set of tasks no reader has seen [D26], [D131].
 
 The largest part of the milestone is the sister project's. It builds
@@ -1234,29 +1234,25 @@ those being decided.
 [D21]: decisions/D21.md
 [D22]: decisions/D22.md
 [D26]: decisions/D26.md
+[D27]: decisions/D27.md
 [D28]: decisions/D28.md
 [D29]: decisions/D29.md
 [D30]: decisions/D30.md
 [D31]: decisions/D31.md
-[D32]: decisions/D32.md
 [D34]: decisions/D34.md
 [D37]: decisions/D37.md
 [D38]: decisions/D38.md
 [D39]: decisions/D39.md
 [D41]: decisions/D41.md
 [D42]: decisions/D42.md
-[D43]: decisions/D43.md
 [D46]: decisions/D46.md
-[D49]: decisions/D49.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md
-[D58]: decisions/D58.md
 [D59]: decisions/D59.md
 [D61]: decisions/D61.md
 [D67]: decisions/D67.md
 [D71]: decisions/D71.md
 [D72]: decisions/D72.md
-[D80]: decisions/D80.md
 [D84]: decisions/D84.md
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md
@@ -1271,10 +1267,7 @@ those being decided.
 [D118]: decisions/D118.md
 [D119]: decisions/D119.md
 [D120]: decisions/D120.md
-[D121]: decisions/D121.md
-[D122]: decisions/D122.md
 [D123]: decisions/D123.md
-[D124]: decisions/D124.md
 [D125]: decisions/D125.md
 [D128]: decisions/D128.md
 [D129]: decisions/D129.md
@@ -1284,41 +1277,28 @@ those being decided.
 [D138]: decisions/D138.md
 [D139]: decisions/D139.md
 [D140]: decisions/D140.md
-[D150]: decisions/D150.md
 [D151]: decisions/D151.md
 [D152]: decisions/D152.md
 [D153]: decisions/D153.md
 [D155]: decisions/D155.md
 [D161]: decisions/D161.md
-[D162]: decisions/D162.md
 [D163]: decisions/D163.md
 [D164]: decisions/D164.md
 [D167]: decisions/D167.md
 [D168]: decisions/D168.md
-[D169]: decisions/D169.md
-[D173]: decisions/D173.md
 [D175]: decisions/D175.md
 [D176]: decisions/D176.md
-[D177]: decisions/D177.md
 [D178]: decisions/D178.md
 [D179]: decisions/D179.md
-[D180]: decisions/D180.md
 [D185]: decisions/D185.md
 [D200]: decisions/D200.md
 [D208]: decisions/D208.md
 [D212]: decisions/D212.md
 [D214]: decisions/D214.md
-[D215]: decisions/D215.md
-[D217]: decisions/D217.md
-[D218]: decisions/D218.md
 [D221]: decisions/D221.md
 [D223]: decisions/D223.md
-[D224]: decisions/D224.md
 [D225]: decisions/D225.md
-[D226]: decisions/D226.md
 [D227]: decisions/D227.md
-[D228]: decisions/D228.md
-[D230]: decisions/D230.md
 [D231]: decisions/D231.md
 [D235]: decisions/D235.md
 [D237]: decisions/D237.md

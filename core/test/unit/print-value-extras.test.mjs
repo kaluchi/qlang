@@ -54,7 +54,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // slot — `::error`, the kind of errors, for user `!{}` with no tag
     // before its bang. The brackets imply that kind, so the
     // printer leaves it out, as it does a vector's, and the
-    // round-trip recovers the same identity [D32], [D64].
+    // round-trip recovers the same identity [D20], [D64].
     const err = makeErrorValue(makeTag('error'), new Map());
     expect(printValue(err)).toBe('!{\n  :trail []\n}');
   });
@@ -261,7 +261,7 @@ describe('print — the print declared under a kind', () => {
   it('prints what a kind answers that is no string as the value it is', async () => {
     const session = await badgeSession();
     const printed = await session.evalCell('get [~(5 | tag ::badge)] | print');
-    expect(printed.result).toContain('::path/SubjectNotProjectableError!{');
+    expect(printed.result).toContain('::path/SubjectHasNoPartsError!{');
   });
 });
 

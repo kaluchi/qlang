@@ -41,7 +41,7 @@ const MSYS_RUNTIME = 'usr/bin/msys-2.0.dll';
 // wrote it: under MSYS, whose `MSYSTEM` names it, a query that begins
 // with the root of the shell, the nearest directory of its path that
 // holds the runtime, is read from the slash after the root, which the
-// shell wrote the root before [D199]; any other query as it came.
+// shell wrote the root before [D144]; any other query as it came.
 export function queryAsWritten(queryText, env, exists = existsSync) {
   if (env.MSYSTEM === undefined || !SHELL_PATH_OF_A_QUERY.test(queryText)) return queryText;
   for (let slash = queryText.indexOf('/'); slash !== -1; slash = queryText.indexOf('/', slash + 1)) {
@@ -50,7 +50,7 @@ export function queryAsWritten(queryText, env, exists = existsSync) {
   return queryText;
 }
 
-// Whether a query reads the subject standard input lifts to [D215]; a
+// Whether a query reads the subject standard input lifts to [D37]; a
 // query that does not parse reads none, its refusal written at once.
 function queryReadsInput(queryText) {
   let ast;
@@ -62,7 +62,7 @@ function queryReadsInput(queryText) {
   return readsItsSubject(ast);
 }
 
-export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env = process.env) {
+export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env) {
   const stdoutWrite = (text) => stdoutStream.write(text);
   const stderrWrite = (text) => stderrStream.write(text);
 
@@ -81,12 +81,16 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return 2;
   }
   if (cliInvocation.kind === 'repl') {
-    return await runRepl(stdinStream, stdoutWrite, stderrWrite, { budget: cliInvocation.budget, initialQuery: queryAsWritten(cliInvocation.initialQuery, env) });
+    return await runRepl(stdinStream, stdoutWrite, stderrWrite, {
+      budget: cliInvocation.budget,
+      initialQuery: queryAsWritten(cliInvocation.initialQuery, env),
+      terminal: stdoutStream
+    });
   }
 
   // A query that reads no subject, `[1 2] | sum` or `::vec | doc`, runs
   // without waiting on standard input, which a shell may hand open with
-  // nothing piped [D215].
+  // nothing piped [D37].
   const queryText = queryAsWritten(cliInvocation.queryText, env);
   const readsInput = queryReadsInput(queryText);
   const stdinText = readsInput ? await readStdinToString(stdinStream) : '';

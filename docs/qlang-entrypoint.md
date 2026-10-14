@@ -5,7 +5,7 @@ starts from: the command that computes the state of the work and
 delivers it, the points of the agent loop where it runs, the sensors
 it reads, and the records it keeps. It holds ideas and no decision:
 what the process took from it stands in the decision records, the
-screen of the work in `npm run desk` [D226] and the sensors under
+screen of the work in `npm run desk` [D225] and the sensors under
 `scripts/sensors/` [D231]. It was written
 down so that the agreements of 23 September 2026 survive into the
 discussion the maintainer wants to have next, «я лично ещё хотел бы
@@ -155,7 +155,7 @@ keeps the discussion from drifting.
 - Context engineering is the discipline of choosing what tokens enter
   the window at each step.
 - A presentation is data filtered for a question, what a command
-  answers in place of the data a host holds [D162].
+  answers in place of the data a host holds [D161].
 - A label is a tag as its reader meets it, «ярлык на данных»: markup
   laid over a payload, a sticky hint of what the data beneath it is,
   hiding nothing, as highlighting lies over the text of an editor
@@ -163,7 +163,7 @@ keeps the discussion from drifting.
 - A legend is the key to reading an observation, reached from its
   printed form by one step and itself a literal of the language, so it
   is read further the same way: its hints tell how to take out more of
-  the observation or a part of it [D162].
+  the observation or a part of it [D161].
 - The legend of a payload is the legend a label leads to: what was
   received, what each part of the payload means, and which verbs carry
   the value on, the fates open to it. A tool that changes carries the
@@ -330,7 +330,7 @@ September `sed -n '60,115p' scripts/check-conventions.mjs` read a file
 without the reading sensor seeing it, and permissions on the shell are
 prefixes, `Bash(node:*)` in the maintainer's local settings allowing
 anything. A query is data: a `PreToolUse` hook on `qlang '…'` can parse
-it with the language's own parser and know which host operands it will
+it with the language's own parser and know which words of the host it will
 call, which files and which git commands, since the language has no
 effects of its own, and the host can record what the query read. The
 model keeps the economy of the shell, many probes in one call as the
@@ -445,8 +445,8 @@ line after `>` a query and the lines under it the answer, with the two
 readings the audit's notation asks for: a fence marked `target` inverts
 the verdict, and answers compare as the printer writes them, since a
 probe records what was printed. An answer with …
-matches piece by piece, and a query that names an `@` operand runs on
-the command line.
+matches piece by piece, and a string, which prints raw, as the command
+line prints it.
 
 The sensor is `scripts/sensors/run-probes.mjs`, and without an
 argument it reads the audit and this document. `npm run ci` and the
@@ -468,7 +468,7 @@ reported as lossy. A string prints raw on the command line, and its
 text may read as words of the command form, so the runner holds a
 string's answer against its raw print first. Every target that a
 literal can state is a conformance case naming its decision, which the
-runner of the suite holds [D58].
+runner of the suite holds [D31].
 
 The fourth lists what reached the window besides the conversation. A
 text the harness adds to a turn is a record of kind `attachment` that
@@ -682,7 +682,7 @@ its decisions at once. `::workflow | start`, which became
 `::workflow | status`, is a verb found through the subject's tag [D34]:
 the verb belongs to `::workflow`. The
 dashboard is a literal of tagged records, a gate, a task, a decision, a
-case, a metric, each a tag whose label declares what it holds [D169], printed as
+case, a metric, each a tag whose label declares what it holds [D168], printed as
 the cockpit wants it and read back by the next utility. And the zoom is
 a query with a tail, the gate's detail, the task's cases, the metric's
 history, under the budget and the elision of progressive disclosure
@@ -702,9 +702,9 @@ become the benchmark's first domain with real expected values.
 
 ## Decisions
 
-The decisions of this document are numbered E1 onward, since they treat
-the environment of the work, and live one to a file beside the audit's,
-`docs/decisions/En.md` [D58].
+This document decides nothing: what the work took from it stands in the
+records under `docs/decisions/`, numbered as every decision is [D31],
+[D231].
 
 ## Open questions
 
@@ -737,13 +737,12 @@ What happens when the push misses: the fallback is a query, and the
 entrypoint's first screen has to say how to ask.
 
 [D21]: decisions/D21.md
+[D31]: decisions/D31.md
 [D34]: decisions/D34.md
-[D58]: decisions/D58.md
 [D93]: decisions/D93.md
 [D96]: decisions/D96.md
 [D153]: decisions/D153.md
 [D161]: decisions/D161.md
-[D162]: decisions/D162.md
-[D169]: decisions/D169.md
-[D226]: decisions/D226.md
+[D168]: decisions/D168.md
+[D225]: decisions/D225.md
 [D231]: decisions/D231.md

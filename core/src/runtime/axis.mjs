@@ -28,7 +28,7 @@ import {
   addressesOf, declarationsUnder, nodeOf, refuseWithheld, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { nearestTagNames } from '../nearest-names.mjs';
+import { nearestTagNames, nearestMembers } from '../nearest-names.mjs';
 import { splitAddress } from '../address.mjs';
 
 // `name` is the name an axis read, a keyword or a tag.
@@ -79,7 +79,7 @@ export function declaringRecordOf(env, subject) {
 }
 
 // The node a refusal named by the address of what refused reads its page
-// from, that address, when no node of its own declares it [D180].
+// from, that address, when no node of its own declares it [D179].
 function nodeOfRefused(env, name) {
   const [refusedName] = splitAddress(name);
   return refusedName !== null && name.endsWith('Error') ? nodeOf(env, refusedName) : null;
@@ -95,22 +95,24 @@ function memberRecordOf(env, subject, memberName) {
 }
 
 // What the refusal of a member holds: the name the reader asked, a
-// keyword, and where the words of that name live [D206].
-function memberRefusalOf(env, memberName) {
+// keyword, where the words of that name live [D206], and the members of
+// the subject near it [D118].
+function memberRefusalOf(env, subject, memberName) {
   return {
     name: keyword(memberName),
-    addresses: addressesOf(env, memberName)
+    addresses: addressesOf(env, memberName),
+    nearest: nearestMembers(env, subject, memberName)
   };
 }
 
 // The record the subject names in the scope of the call, or the member
 // it holds under a name, or the refusal of the axis that read it; each
 // axis resides on `::any`, and its primitive reads the state of
-// the call [D79].
+// the call [D72].
 export function recordReadBy(subject, memberName, state, NotFoundError) {
   if (!isNull(memberName)) {
     const member = memberRecordOf(state.env, subject, memberName.name);
-    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, memberName.name));
+    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, subject, memberName.name));
     return member;
   }
   const record = declaringRecordOf(state.env, subject);

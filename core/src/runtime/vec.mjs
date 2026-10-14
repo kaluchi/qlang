@@ -40,7 +40,7 @@ bindPrim('map/last', map => lastOf([...map.values()]));
 // ── side by side ───────────────────────────────────────────────
 // The elements at each index of the vectors a vector holds, as long as
 // the shortest, an element that is no vector refused at its index
-// [D194].
+// [D132].
 const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
 bindPrim('vec/zip', vectors => {
   vectors.forEach((element, index) => {
@@ -72,7 +72,7 @@ bindPrim('map/sum', map => totalOf(keyed(map), MapSumElementNotNumberError));
 
 // The mean of the numbers, a running mean whose every step stays among
 // the finite doubles; an empty container has none, and answers null as
-// `min` and `max` do [D147].
+// `min` and `max` do [D132].
 function meanOf(places, ElementNotNumberError) {
   if (places.length === 0) return NULL;
   let mean = 0;
@@ -250,10 +250,10 @@ bindPrim('map/any', runs(['predicate'], (map, predicate) => firstVerdict(keyed(m
 // ── partitions ─────────────────────────────────────────────────
 
 // The keyword the key of `groupBy` or `indexBy` answers for an element,
-// the one `toKeyword` turns it into [D201], [D244], or the error it
+// the one `toKeyword` turns it into [D135], [D244], or the error it
 // answered; without a key the element is its own [D135]. Two values of
 // the key that file under one keyword meet, `1` and `"1"` under `:"1"`,
-// and the second is refused [D228].
+// and the second is refused [D135].
 async function keywordOf(key, element, index, KeyNotKeywordError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return answer;
@@ -345,7 +345,7 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 
 // `reduce seed ~(reducer)` — the universal left-fold: a quote of one word
 // is the word called as the pipe calls it, `acc | add element`, the
-// element the first of its args [D224]; any other code runs
+// element the first of its args [D90]; any other code runs
 // on the pair of the value so far and the element, and its answer is the
 // value so far after it [D90]. `seed` answers for an empty subject, and
 // a failure of the reducer stops the fold.

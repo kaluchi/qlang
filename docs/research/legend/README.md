@@ -487,4 +487,4 @@ shows stalled. Both readings are withdrawn.
 [D153]: ../../decisions/D153.md
 [D156]: ../../decisions/replaced/D156.md
 [D161]: ../../decisions/D161.md
-[D162]: ../../decisions/D162.md
+[D162]: ../../decisions/replaced/D162.md

@@ -21,9 +21,10 @@
   ::kind[~(wraps
         |~~ A map, the descriptor, its fields flat under the tag. ~~|
     | throws :PayloadNotMapError
-        |~~ `::builtin` holds its fields as a map, `::builtin{}` the step
-            a host's verb or kind ends with; a payload of another kind is
-            refused, and the descriptor is written `::builtin{}`.
+        |~~ `::builtin` holds its fields as a map, `::builtin{}` the recipe
+            a host's word ends with and the check a kind of the core takes,
+            `impl ::builtin{}`; a payload of another kind is refused, and
+            the descriptor is written `::builtin{}`.
         ~~|
     | throws :UnknownAstNodeTypeError
         |~~ The evaluator met a node of the parser's tree it has no rule
@@ -89,6 +90,13 @@
             and answers an error of its own where its arithmetic leaves
             the doubles.
         ~~|
+    | throws :JsonValueNotEncodableError
+        |~~ A value a host put in the scope that is of none of the kinds
+            of qlang has no form in JSON. `json` writes such a value that
+            runs as `<host-fn name>`, and any other is thrown to the host,
+            past the fail track, out of reach of `!|`; the host keeps its
+            values to the kinds of the language.
+        ~~|
     | throws :BootstrapSourceMissingError
         |~~ A source of the language resolved to nothing, so the root
             lacks what it declares; `:uri` names the source. The host maps
@@ -108,10 +116,10 @@
         |~~ A host handed an implementation beside a source of the root
             for a name the source declares neither as a `::builtin{}`
             under a label nor as a kind ending in one; `:uri` names the
-            source and `:name` the name. A verb runs its steps, a
-            `::builtin{}` among them a step, and a bare name reads its
-            value, so a host declares its primitive as the recipe of a
-            word under the label of its subject,
+            source and `:name` the name. A word written in steps runs
+            them, a `::builtin{}` written among them the value it is, and a
+            bare name reads its value, so a host declares its primitive as
+            the recipe of a word under the label of its subject,
             `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})`.
             A `::builtin{}` the host hands nothing for is refused with
             `::builtin/ImplementationNotHandedError`.

@@ -439,7 +439,7 @@
         |~~ The predicate meets the value, not its entry: a number has no
             place.
         ~~|
-        ~({:a 1} | filter /0 !| type | eq ::path/SubjectNotProjectableError)
+        ~({:a 1} | filter /0 !| type | eq ::path/SubjectHasNoPartsError)
     | proves :predicate/NotPathOrQuoteError/refusesAPredicateComputedAtTheCall
         |~~ A predicate written without its quote is refused. ~~|
         ~({:a 1} | filter (gt 0) !| type | eq ::map/filter/predicate/NotPathOrQuoteError)

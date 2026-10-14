@@ -31,6 +31,7 @@
       It prints as its literal, the chain folded into data, its commands in
       a quote and its recipe after it, and reads back from it.
       ::link~(::any/apply | doc) ::link~(::quote | doc)
+      ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
     | wraps
@@ -123,7 +124,7 @@
         |~~ A condition that fails answers its failure. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(get /nope) | impl ~(add by)) [3]
           !| type
-          |  eq ::path/SubjectNotProjectableError)
+          |  eq ::path/SubjectHasNoPartsError)
     | proves :answersTheFailureOfAnObject
         |~~ An object computed at the call that failed is the answer,
             where no input that reads its place takes a quote.
@@ -133,7 +134,7 @@
           | :number/any (::fn | takes :by |~~ How much. ~~| /0 | impl ~(by))
           | :number/bare ~(1)
           | get [~(5 | plus (get /x) !| type) ~(5 | one (get /x) !| type) ~(5 | any (get /x) !| type) ~(5 | bare (get /x) !| type)]
-          | every ~(eq ::path/SubjectNotProjectableError))
+          | every ~(eq ::path/SubjectHasNoPartsError))
     | proves :PayloadNotPairError/refusesANumber
         |~~ A number is no pair. ~~|
         ~(::fn[1] !| type | eq ::fn/PayloadNotPairError)
@@ -232,7 +233,8 @@
   |~~ Names the subject of a function, its page and the kinds it serves,
       `::fn | on |~~ A number. ~~| ::number`: a function `apply` runs
       serves a subject of those kinds alone, and a word serves them beside
-      the values of its label, a tag for a word of the noun itself.
+      the values of its label, the noun's own tag name for a word of the
+      noun itself.
   ~~|
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
@@ -432,7 +434,7 @@
     | proves :passesTheFailureOfTheRecipe
         |~~ A recipe that fails answers its failure, which no kind brings.
         ~~|
-        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~(get /nope)) !| type | eq ::path/SubjectNotProjectableError)
+        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~(get /nope)) !| type | eq ::path/SubjectHasNoPartsError)
     | proves :namesTheAnswerOfAWord
         |~~ The answer of a function named under a label is the answer of
             the word.

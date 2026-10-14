@@ -31,6 +31,13 @@ if (recordPath(survivor) !== `docs/decisions/${survivor}.md`) {
   console.error(`${survivor} is not in force, and a record merges into one in force [D237]`);
   process.exit(2);
 }
+// A survivor that names no decider takes none of a merged record's by
+// itself: its author writes the line, the parts of each record named [D155].
+const decides = name => /^Decided by\./m.test(readFileSync(join(repoRoot, recordPath(name)), 'utf8'));
+if (!decides(survivor) && merged.some(decides)) {
+  console.error(`${survivor} names no decider while a record merged into it does: write its \`Decided by.\` line first [D155]`);
+  process.exit(2);
+}
 const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 26 });
 const tracked = git('ls-files').split('\n').filter(Boolean);
 const rewrite = (path, change) => {
@@ -147,7 +154,7 @@ for (const path of tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/
 // A mark of an artifact, a citation of a document of the work and one of a
 // record in force name the survivor.
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\//;
-// The documents the walk holds to the records in force [D226].
+// The documents the walk holds to the records in force [D225].
 const isDocument = path => CITING_DOCUMENTS.includes(path);
 const RECORD_IN_FORCE = /^docs\/decisions\/[DE]\d+\.md$/;
 const isRecordMerged = path => [survivor, ...merged].some(name => path === `docs/decisions/${name}.md`);

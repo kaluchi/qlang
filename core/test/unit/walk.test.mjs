@@ -257,7 +257,7 @@ describe('bindingNamesVisibleAt', () => {
     expect(visible.has('late')).toBe(false);
   });
 
-  it('includes freeze bindings', () => {
+  it('includes the declarations of it', () => {
     const source = '42 | :answer it | answer';
     const ast = parse(source);
     const visible = bindingNamesVisibleAt(ast, source.length);
@@ -362,7 +362,7 @@ describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
     expect(node).toBe(realChild);
   });
 
-  it('findIdentifierOccurrences finds a freeze declaration', () => {
+  it('findIdentifierOccurrences finds a declaration of it', () => {
     const ast = parse('42 | :snapshot it | snapshot');
     const refs = findIdentifierOccurrences(ast, 'snapshot');
     // The `:snapshot it` BindStep matches by its key; bare `snapshot`
@@ -382,7 +382,7 @@ describe('astChildrenOf on a stepless Pipeline', () => {
 
 // A query reads its subject where its first step that declares nothing
 // does, or a declaration's body before it; a host waits on the stream it
-// lifts the subject from only then [D215].
+// lifts the subject from only then [D37].
 describe('readsItsSubject', () => {
   const readsOf = query => readsItsSubject(parse(query));
 

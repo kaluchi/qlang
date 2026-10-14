@@ -246,7 +246,7 @@ describe('::name | binding | /value answers the value of the declaration', () =>
     expect(printValue(await evalQuery('::vec/take | binding :count | get /value'))).toBe('/0');
   });
 
-  it('the record of a freeze holds the value', async () => {
+  it('the record of a declaration of it holds the value', async () => {
     // `:name it` writes the record of a binding under :name in env
     // [D5], which `binding` reads.
     expect(await evalQuery('42 | :answer it | ::answer | binding | get /value')).toBe(42);

@@ -34,13 +34,13 @@ function captureRepl(scriptedInput) {
 describe('runRepl — meta commands', () => {
   it('closes on `.exit` and resolves to exit code 0', async () => {
     const replHarness = captureRepl('.exit\n');
-    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
   });
 
   it('writes the help banner on `.help` and stays open until EOF', async () => {
     const replHarness = captureRepl('.help\n');
-    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
     expect(replHarness.stdoutText()).toMatch(/Meta commands:/);
     expect(replHarness.stdoutText()).toMatch(/\.exit/);
@@ -48,7 +48,7 @@ describe('runRepl — meta commands', () => {
 
   it('skips empty lines and reprompts without evaluating', async () => {
     const replHarness = captureRepl('\n\n.exit\n');
-    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
     expect(replHarness.stderrText()).toBe('');
   });
@@ -57,25 +57,25 @@ describe('runRepl — meta commands', () => {
 describe('runRepl — query evaluation', () => {
   it('auto-prints the success-track value of a single cell', async () => {
     const replHarness = captureRepl('[1 2 3] | count\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/3/);
   });
 
   it('starts every cell from the default subject', async () => {
     const replHarness = captureRepl('type\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/::tag/);
   });
 
   it('preserves bindings between cells within the same session', async () => {
     const replHarness = captureRepl(':any/double ~(mul 2)\n10 | double\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
   });
 
   it('prints a failed cell on stdout as every answer, exit 0 on close [D7]', async () => {
     const replHarness = captureRepl('[1 2 3] | add 1\n.exit\n');
-    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/!\{/);
     expect(replHarness.stderrText()).toBe('');
@@ -83,7 +83,7 @@ describe('runRepl — query evaluation', () => {
 
   it('prints the path of an error in its display without explicit !|', async () => {
     const replHarness = captureRepl('"hello" | add 1 | mul 2 | sub 3\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const text = stripAnsi(replHarness.stdoutText());
     expect(text).toMatch(/:trail/);
     expect(text).toMatch(/mul/);
@@ -92,7 +92,7 @@ describe('runRepl — query evaluation', () => {
 
   it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout [D7]', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // REPL paints output with ANSI colour codes — strip before
     // matching the structural shape.
     const text = replHarness.stdoutText().replace(/\x1b\[[0-9;]*m/g, '');
@@ -105,14 +105,14 @@ describe('runRepl — query evaluation', () => {
 describe('runRepl — output highlighting', () => {
   it('paints the printed result with ANSI escape sequences', async () => {
     const replHarness = captureRepl('[1 2 3]\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // Numbers render under the yellow escape; brackets under punct.
     expect(replHarness.stdoutText()).toMatch(/\x1b\[33m/);
   });
 
   it('paints the prompt with bright-white name + bold-cyan angle on every line', async () => {
     const replHarness = captureRepl('.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(replHarness.stdoutText()).toMatch(/\x1b\[1;97mqlang/);
     expect(replHarness.stdoutText()).toMatch(/\x1b\[1;36m>/);
   });
@@ -127,7 +127,7 @@ describe('runRepl — output highlighting', () => {
     const stdoutWrite = (text) => stdoutChunks.push(text);
     const stderrWrite = (text) => stderrChunks.push(text);
 
-    const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
+    const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite, { terminal: ttyStdin });
     // A bare `[1 2` is a parse failure, an answer the REPL prints on
     // stdout, and `err` writes its text on stderr. Enter (CR) is the
     // submit keystroke in the multi-line editor; Ctrl+Enter (LF) would
@@ -161,7 +161,7 @@ describe('runRepl — output highlighting', () => {
     const stdoutWrite = (text) => stdoutChunks.push(text);
     const stderrWrite = (text) => stderrChunks.push(text);
 
-    const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite);
+    const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite, { terminal: ttyStdin });
     // Type "42", which should redraw with the yellow escape, then
     // submit with Enter (CR), then close on Ctrl+D from an empty
     // buffer.
@@ -183,7 +183,7 @@ describe('runRepl — error rendering', () => {
     // step. The REPL renders the value verbatim through `printValue`.
     const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
     const replHarness = captureRepl(query + '\n.exit\n');
-    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
     const out = stripAnsi(replHarness.stdoutText());
     expect(out).toMatch(/count/);
@@ -195,7 +195,7 @@ describe('runRepl — error rendering', () => {
 describe('runRepl — in / out behaviour', () => {
   it('binds `in` to return the empty String so the cell does not deadlock against the prompt', async () => {
     const replHarness = captureRepl('in | print | out\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // `in` resolves to ''. print renders it as the qlang String
     // literal `""`. out writes that to stdout, then the REPL
     // auto-prints the cell's success-track value (also `""`). The
@@ -209,7 +209,7 @@ describe('runRepl — in / out behaviour', () => {
 describe('runRepl — the first cell given on the command line', () => {
   it('runs the query before the typed cells, in the same session', async () => {
     const replHarness = captureRepl('x | add 1\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':x 41' });
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':x 41', terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());
     expect(printed).toContain('qlang> :x 41');
     expect(printed).toContain('42');
@@ -223,20 +223,20 @@ describe('runRepl — the budget of an answer', () => {
 
   it('prints a value past its budget with a marker that reads the rest', async () => {
     const replHarness = captureRepl(`${forty}\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80 });
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toContain('::elision{');
   });
 
   it('prints an error as its alert when no budget was asked for', async () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trail/1/subject)');
   });
 
   it('prints an error within the budget', async () => {
     const replHarness = captureRepl(`${forty} | filter ~(nope)\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 200 });
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 200, terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trail/');
   });
 });

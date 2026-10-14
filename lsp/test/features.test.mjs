@@ -510,7 +510,7 @@ describe('documentSymbols', () => {
     expect(syms[0].kind).toBe('value');
   });
 
-  it('collects a freeze as a value symbol', async () => {
+  it('collects a declaration of it as a value symbol', async () => {
     const src = '42 | :answer it';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast, await langRuntime());

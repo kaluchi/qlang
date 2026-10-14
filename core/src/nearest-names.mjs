@@ -6,8 +6,8 @@
 // names one of which begins the other, and the words the page of a word
 // the typed name begins with links [D118].
 
-import { keyword, makeTag } from './types.mjs';
-import { ANY_KIND_NAME, addressesOf, answerOf, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
+import { keyword, makeTag, isTag } from './types.mjs';
+import { ANY_KIND_NAME, addressesOf, answerOf, kindsOfWalk, namesDeclaredUnder, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, verbsReaching, isLabel } from './runtime/nouns.mjs';
 import { linkedAddressesOf } from './runtime/doc.mjs';
 import { splitAddress } from './address.mjs';
 
@@ -62,7 +62,7 @@ function nearestOf(names, typedName) {
 
 // The names a step reaches: those of the scope and the last names of the
 // verbs declared under a kind, a label of the root among them as the tag
-// that reaches it [D191].
+// that reaches it [D153].
 function namesOfSteps(env) {
   return new Set([...scopeNamesOf(env).keys(), ...verbNames(env)]);
 }
@@ -99,9 +99,23 @@ export function nearestNames(env, typedName) {
 }
 
 // The tags an unknown tag name was likely meant to be [D118]: the
-// addresses of the tree's nodes.
+// addresses of the tree's nodes as deep as the typed name, so a guess at
+// a noun meets the nouns, `::str` meeting `::string`, and a guess at a
+// word the words, none of the nodes beneath them.
 export function nearestTagNames(env, typedName) {
-  return Object.freeze(nearestOf(new Set(nodeAddresses(env)), typedName).map(name => makeTag(name)));
+  const depth = typedName.split('/').length;
+  const atItsDepth = [...nodeAddresses(env)].filter(address => address.split('/').length === depth);
+  return Object.freeze(nearestOf(new Set(atItsDepth), typedName).map(name => makeTag(name)));
+}
+
+// The members a subject holds near a name it lacks [D118], read where an
+// axis reads a member: the names declared under a tag name's address,
+// `::qlang | doc :pipelin` meeting `:pipeline`, and the words the walk of
+// the subject reaches.
+export function nearestMembers(env, subject, memberName) {
+  const declared = isTag(subject) ? namesDeclaredUnder(env, subject.name) : [];
+  const reached = verbsReaching(env, [...kindsOfWalk(subject)]).keys();
+  return Object.freeze(nearestOf(new Set([...declared, ...reached]), memberName).map(name => keyword(name)));
 }
 
 // The keys of a map a key it lacks was likely meant to be, as a name is

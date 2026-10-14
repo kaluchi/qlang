@@ -48,7 +48,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(10);
   });
 
-  it('evalCell persists freezes across subsequent cells', async () => {
+  it('evalCell keeps the names a cell declares for the cells after it', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell('42 | :answer it');
     const cellEntry = await sessionInstance.evalCell('answer | mul 2');
@@ -120,7 +120,7 @@ describe('createSession lifecycle', () => {
 
 describe('the sources a host hands [D153]', () => {
   // A source of the host declares a word under the label of its subject,
-  // with the implementation the host hands beside it [D80], [D251].
+  // with the implementation the host hands beside it [D72], [D251].
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [

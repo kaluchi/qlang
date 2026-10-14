@@ -10,6 +10,7 @@
       `start` and `end` answer its ends as points.
       ::snippet~("~{" | parse !| get /location)
       ::link~(::point | doc) ::link~(::quote/ParseError | doc)
+      ::link~(::qlang/errors | doc)
   ~~|
   ::kind
     | wraps |~~ The six numbers, the start and the end. ~~| [::number]

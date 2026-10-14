@@ -369,3 +369,19 @@ The tree answers by the commits that keep this review.
 14. The template of `get` entered a function's literal. Answered by 59f46b7e, a function and a kind answered as they are, held by the cases of D279 its targets wrote in 37f2d280.
 
 The tree answers by the commits that keep this review.
+
+[2026-10-14-the-records-held-to-the-tree.md](2026-10-14-the-records-held-to-the-tree.md), at 0739dfe4.
+
+1. The members near a miss were read apart from the reach the axis reads. Answered: `nearestMembers` reads the names declared under a tag and the words the walk of the subject reaches, `kindsOfWalk` and `verbsReaching`, so a name it offers is one the axis answers; `1 | doc :and` names `:add` alone and `::vec | doc :manifst` names `:manifest`, the two cases of D118 the review asked.
+2. The page of the axes' refusal said nothing of `:nearest`. Answered: the page of `::any/binding/UnknownNameError`, which the others link, names it, and the law `::any/doc/UnknownNameError/namesTheMembersNear` holds it.
+3. The rule of D275 stood as a filter after a second walk. Answered: `subjectOfCall` reads the walk of the tag name `kindsOfWalk` spells, the label among the kinds it passes; `walkToKinds` still serves the kinds `on` names, which the walk of a tag reaches as `::tag`.
+4. The REPL named a stream `width` and kept a default for the tests. Answered: the input is `terminal`, with no default, and every test hands its stream.
+5. Two definitions by negation. Answered: argv.mjs and D176 state what holds.
+6. The editor spelled the letters of a name in ASCII. Answered: the word pattern and the folding marker read a letter of any script, `\p{L}` with the flag `u`, as the grammar of the editor does.
+7. Statements of pages with no law. Answered: the laws `::kind/listsItsNamesButItsLaws`, `::kind/laysTheTagOfALabelOfItsPageAlone` and `::vec/join/joinsValuesWrittenAsLiterals`, and the line rewrapped.
+8. D153 named no decider. Answered: its `Decided by.` line names the maintainer's choices and the model's parts, and `merge-records.mjs` refuses to merge a record that names its decider into a survivor that names none, cut in the session's worktree to watch the merge go through without it.
+9. Decision lines that narrated. Answered: D4 says `eval` is no word and every word is called one way, D72 sets the wrappers aside and names no count, and D185 drops the measure with no probe.
+10. Words of an earlier paradigm. Answered in part: D88 names the chain's `on ::tag`, D153 says `use` is no word, and D280 says the slot of an input. The slot of a declaration, where its docs stand, is the grammar's word for that place [D83] and stays.
+11. Cases the walk rebound. Answered: the cases of a string key read the key by a string under D139, the cases one query and one answer held twice keep the first, the examples of the first page aside, which D185 holds whole, and the keys of any script name D2, which now states the letters of a name.
+
+The tree answers by the commit that keeps this review.

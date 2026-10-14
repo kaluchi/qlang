@@ -245,7 +245,7 @@ PipedCombinator
 // which the parser names by the key it expected.
 SpacingRefusal
   = &{ return docQuoteDepth === 0; }
-    ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; a pipe before a quote is written `| ~(…)`'); }
+    ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a word, `| apply ~(…)`'); }
     / __ !PipedCombinator &(Combinator __ Combinator) first:Combinator __ second:Combinator { refuseCombinatorAfterCombinator(first, second); }
     / &Combinator c:Combinator { refuseCombinatorSpacing(c); }
     / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
@@ -537,7 +537,7 @@ TagLit
 
 // A tag's name lives apart from the values, so a name after `::` may be
 // a reserved word, as after `:` and `/`: `::null` is the kind of null
-// [D32].
+// [D20].
 TagName
   = NamespacedName
   / KeywordName
@@ -616,7 +616,7 @@ QuoteChar
 
 // A doc value, in a line form and a block form, read as its segments: a
 // `~(…)` that reads as code is a quote, a span between backquotes is
-// prose whole, and the rest is prose [D19], [D43]; a line doc's quote
+// prose whole, and the rest is prose [D4], [D19]; a line doc's quote
 // stays on its line. The printer writes the block form. A parse error
 // names its opening `doc` among the continuations, where its markers
 // would read as a comment's [D7].

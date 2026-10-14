@@ -22,7 +22,7 @@ wins and this file is what changes.
    machine.
 2. `npm run desk`, the screen of the work: the branch against master,
    the walk of the audit's baseline, the targets open, the stashes and
-   the sister project's branch [D226]. Then `npm test` at the repo root,
+   the sister project's branch [D237]. Then `npm test` at the repo root,
    in the background while reading. The git snapshot the harness
    injects at the start of a session goes stale; the screen you run is
    the truth.
@@ -33,7 +33,7 @@ wins and this file is what changes.
    cases of the conformance suite. A decision that survives only in a
    conversation is lost. Then walk the baseline: every record no case
    names gets its fate, the audit moves to the tree the session leaves,
-   and the next shift starts at a clean desk [D226].
+   and the next shift starts at a clean desk [D225].
 
 After a compaction the summary is a map and no source: reread Tier 1
 whole, and the conversation from its transcript,
@@ -55,8 +55,7 @@ argued or the audit is touched: `core/src/grammar.peggy` for the syntax,
 for application, `core/src/types.mjs` for the values, and
 `core/lib/qlang.qlang`, the topic of the language, its first page and
 chapters, with one source of a noun such as
-`core/lib/qlang/number.qlang`, which declares the kind `:number` and
-what lies under it, `:number/add`, for the shape of the catalog.
+`core/lib/qlang/number.qlang` for the shape of the catalog.
 Read source with the file-reading tool, whole; the persistence limit
 below applies to shell output, so a large file is never `cat`-ed.
 
@@ -105,13 +104,13 @@ pitches, no talk of commits or pull requests.
 Verify before asserting. Any claim about behaviour is run with
 `qlang '…'` in script mode or in `qlang -i`; in Git Bash a query that
 begins with `/` arrives as a path, which the command line reads back
-[D199]. A long tool output is persisted with a short preview; filter it
+[D144]. A long tool output is persisted with a short preview; filter it
 instead of reading it back whole.
 
 ## Workspaces
 
-The folder name is the suffix of the npm package name under the
-`@kaluchi/` scope. `core/` is the language core: pure JavaScript, no
+The folder name is the suffix of the package name, the npm packages
+under the `@kaluchi/` scope. `core/` is the language core: pure JavaScript, no
 runtime dependencies, and no `node:*` import anywhere under
 `core/src/`, because the core ships to browser, Deno, and Bun; the
 catalog under `core/lib/qlang/` loads at runtime through
@@ -157,7 +156,7 @@ followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
 literal or held by a constant the address does not name
-(`MapElementNotPairError` for `map/ElementNotPairError`) [D46],
+(`VecToMapElementNotPairError` for `vec/toMap/ElementNotPairError`) [D46],
 on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [D155], and
 on a path the audit, the entrypoint document or this file names that
@@ -166,7 +165,7 @@ longer holds, and on the walk of a baseline: a record of the language
 the audit's baseline holds that no case and no line of its fate does,
 more than twenty records since the baseline, and a citation of a record
 not in force, which the code, the tests and the cases never make and the
-documents make only of one waiting on its target [D226]. `npm run check:probes` runs every probe of the audit and the
+documents make only of one waiting on its target [D225]. `npm run check:probes` runs every probe of the audit and the
 entrypoint document, the shell ones that read the repository alone
 included, and fails on one whose answer changed, which the branch that
 changed it answers by rewriting the sentence with its probe [D93]; a
@@ -185,7 +184,7 @@ it; where a rule and the audit disagree, the audit wins.
 - A branch is a shift: it takes the scars of its shift, is named after
   them, and lands on master at every move of the baseline by a merge
   commit, made locally with no question asked where no pull request is
-  open, so master is the clean desk [D227], [D230]. Never
+  open, so master is the clean desk [D227]. Never
   commit code on master; a change to documents alone lands without a
   branch. A branch states in its description what it shows when it
   lands. The sign of its diff by

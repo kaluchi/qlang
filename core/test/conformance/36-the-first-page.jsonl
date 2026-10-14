@@ -3,19 +3,19 @@
 {"decision":"D185","name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r it | (:r | type)","expect":"::keyword"}
 {"decision":"D197","name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| get [~(type) /index /actualType]","expect":"[::any/allOf/conditions/ElementNotBooleanOrPathOrQuoteError 1 ::string/endsWith/SubjectNotStringError]"}
 {"decision":"D197","name":"all-of-runs-a-quote-in-its-turn","query":"[{:email null} {:email \"a@b.org\"}] | filter ~(allOf (get /email | ne null) ~(get /email | endsWith \".org\")) | count","expect":"1"}
-{"decision":"D186","name":"the-first-page-asks-several-kinds-for-their-words-at-once","query":"::qlang | doc | snippets | map ~(print) | first | contains \"map ~(get [~(it) ~(manifest)])\"","expect":"true"}
-{"decision":"D186","name":"a-fan-out-over-kinds-answers-each-kind-beside-its-words","query":"[::vec ::any] | map ~(get [~(it) ~(manifest)]) | map ~(get [/0 ~(get /1 | has ::vec/count)])","expect":"[[::vec true] [::any false]]"}
-{"decision":"D196","name":"a-modifier-is-read-from-the-subject-of-its-step","query":"{:price 4 :qty 3} | get /price | mul (get /qty) !| get [~(type) /key]","expect":"[::path/SubjectNotProjectableError :qty]"}
+{"decision":"D185","name":"the-first-page-asks-several-kinds-for-their-words-at-once","query":"::qlang | doc | snippets | map ~(print) | first | contains \"map ~(get [~(it) ~(manifest)])\"","expect":"true"}
+{"decision":"D185","name":"a-fan-out-over-kinds-answers-each-kind-beside-its-words","query":"[::vec ::any] | map ~(get [~(it) ~(manifest)]) | map ~(get [/0 ~(get /1 | has ::vec/count)])","expect":"[[::vec true] [::any false]]"}
+{"decision":"D185","name":"a-modifier-is-read-from-the-subject-of-its-step","query":"{:price 4 :qty 3} | get /price | mul (get /qty) !| get [~(type) /key]","expect":"[::path/SubjectHasNoPartsError :qty]"}
 {"decision":"D185","name":"code-written-without-its-quote-is-read-from-the-whole-subject","query":"[{:n 1}] | map (get /n) !| get /actualValue | type","expect":"::path/IndexNotIntegerError"}
 {"decision":"D185","name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)","expect":"6"}
 {"decision":"D197","name":"a-condition-of-allOf-is-a-value-or-a-quote","query":"5 | allOf (gt 1) ~(lt 10)","expect":"true"}
 {"decision":"D146","name":"a-call-on-a-kind-without-the-verb-names-the-kind","query":"1 | count !| get [/actualType ~(get /addresses | has ::vec/count)]","expect":"[::number true]"}
 {"decision":"D146","name":"a-soft-read-of-an-empty-container-is-null","query":"get [~([] | first) ~([] | max)]","expect":"[null null]"}
-{"decision":"D147","name":"avg-is-the-mean","query":"[1 2 3 4] | avg","expect":"2.5"}
-{"decision":"D147","name":"avg-of-nothing-is-null","query":"[] | avg","expect":"null"}
-{"decision":"D147","name":"avg-of-a-group","query":"[{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy /d | map ~(map /n | avg)","expect":"{:a 2 :b 5}"}
-{"decision":"D147","name":"avg-refuses-an-element-that-is-no-number","query":"[1 \"x\"] | avg !| get [~(type) /index]","expect":"[::vec/avg/ElementNotNumberError 1]"}
+{"decision":"D132","name":"avg-is-the-mean","query":"[1 2 3 4] | avg","expect":"2.5"}
+{"decision":"D132","name":"avg-of-nothing-is-null","query":"[] | avg","expect":"null"}
+{"decision":"D132","name":"avg-of-a-group","query":"[{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy /d | map ~(map /n | avg)","expect":"{:a 2 :b 5}"}
+{"decision":"D132","name":"avg-refuses-an-element-that-is-no-number","query":"[1 \"x\"] | avg !| get [~(type) /index]","expect":"[::vec/avg/ElementNotNumberError 1]"}
 {"decision":"D119","name":"the-language-is-a-noun-with-a-page","query":"::qlang | doc | type","expect":"::doc"}
-{"decision":"D150","name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true"}
+{"decision":"D27","name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true"}
 {"decision":"D152","name":"a-concept-page-has-an-address","query":"::qlang/pipeline | doc | type","expect":"::doc"}
 {"decision":"D152","name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true"}

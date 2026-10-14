@@ -272,7 +272,7 @@ export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTag(SET_TAG_NAME);
 
 // The kind of every value without a tag of its own, the one its literal
-// implies, which `type` answers [D32].
+// implies, which `type` answers [D20].
 export const CORE_KIND = Object.freeze({
   null:    makeTag('null'),
   boolean: makeTag('boolean'),
@@ -327,7 +327,7 @@ export function isBuiltinDescriptor(v) {
 // A name under a label a host's source declared, which alone reaches a
 // primitive [D34], with the implementation the host handed beside that
 // source, a plain function over the values of the inputs of the call
-// [D4], [D80].
+// [D4], [D72].
 const HOST_IMPLS = new WeakMap();
 
 export function isHostDeclared(value) {
@@ -383,7 +383,7 @@ export function formOf(v) {
   return Object.hasOwn(CORE_KIND, kind.name) ? kind.name : 'underTag';
 }
 
-// typeKeyword(v) — the kind of a value [D32]: its outermost tag, or
+// typeKeyword(v) — the kind of a value [D20]: its outermost tag, or
 // the kind of the core its literal implies.
 export function typeKeyword(v) {
   if (isNull(v)) return CORE_KIND.null;

@@ -87,7 +87,7 @@ describe('filter — container polymorphism', () => {
     expect(orderedKeys).toEqual(['c', 'b']);
   });
 
-  it('a non-container subject is refused where filter is looked up, on the fail-track [D169]', async () => {
+  it('a non-container subject is refused where filter is looked up, on the fail-track [D168]', async () => {
     const errorValue = await expectErrorThrown('42 | filter ~(gt 0)', 'call/KindAnswersNoVerbError');
     const originalErr = expectOriginalError(errorValue, QlangError);
     expect(originalErr.name).toBe('KindAnswersNoVerbError');
@@ -143,7 +143,7 @@ describe('every — container polymorphism', () => {
     expect(await evalQuery('{} | every ~(gt 0)')).toBe(true);
   });
 
-  it('a non-container subject is refused where every is looked up, on the fail-track [D169]', async () => {
+  it('a non-container subject is refused where every is looked up, on the fail-track [D168]', async () => {
     const errorValue = await expectErrorThrown('42 | every ~(gt 0)', 'call/KindAnswersNoVerbError');
     const originalErr = expectOriginalError(errorValue, QlangError);
     expect(originalErr.name).toBe('KindAnswersNoVerbError');
@@ -187,7 +187,7 @@ describe('any — container polymorphism', () => {
     expect(await evalQuery('{} | any ~(gt 0)')).toBe(false);
   });
 
-  it('a non-container subject is refused where any is looked up, on the fail-track [D169]', async () => {
+  it('a non-container subject is refused where any is looked up, on the fail-track [D168]', async () => {
     const errorValue = await expectErrorThrown('42 | any ~(gt 0)', 'call/KindAnswersNoVerbError');
     const originalErr = expectOriginalError(errorValue, QlangError);
     expect(originalErr.name).toBe('KindAnswersNoVerbError');

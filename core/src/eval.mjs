@@ -16,14 +16,14 @@ import {
   makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTag, errorAtRest,
   isFn, isKind, recipeOf, makeQuote, isQMap, stampTagHeader, TAG_HEADER_SYMBOL,
-  ERROR_TAG, isValueClass
+  ERROR_TAG, isValueClass, isTag
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, tagCallStepOf, commandStep, groupStep } from './quote.mjs';
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isWord, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError
+  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isWord, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError, kindsOfWalk
 } from './runtime/nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, kindOf, pageOfConstructor, pageOfKindsRefusal, signatureOf } from './runtime/signature.mjs';
 import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
@@ -42,7 +42,7 @@ const BuiltinUnknownAstNodeTypeError = declareInvariantError(
   ({ nodeType }) => `unknown AST node type: ${nodeType}`);
 
 // The tag of a name that holds data puts no value under it: a value goes
-// under a label, a word, an invariant or a tag no node answers [D173].
+// under a label, a word, an invariant or a tag no node answers [D164].
 const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
 const CallValueMeetsWordError = declareRefusal('call/ValueMeetsWordError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
@@ -468,7 +468,7 @@ function withReadOfPath(state, node, subject, env) {
 
 // A bare name calls what it reaches for the subject [D34], [D153]; a
 // word the kind of the subject does not answer is refused with the
-// addresses where the word lives [D169], and a name that reaches nothing
+// addresses where the word lives [D168], and a name that reaches nothing
 // with the names near it. A value the scope binds and a word the subject
 // answers under one name meet, and the step is refused with the word's
 // address, which calls the word, as another name reads the value [D223];
@@ -659,7 +659,7 @@ function isNodeOrLabel(name, record) {
 
 // ─── Names under a label ───────────────────────────────────────
 
-// The name a recipe reads the args of its call by [D173].
+// The name a recipe reads the args of its call by [D164].
 const ARGS_NAME = keyword('args');
 
 // A word runs by its function [D251], a recipe written as the value of a
@@ -674,7 +674,7 @@ async function applyWord(record, modifiers, state) {
 const isThenable = value => typeof value?.then === 'function';
 
 // The answer brought to the kinds `returns` names, a word that names
-// `::any` bringing none [D169], [D251]: one that reaches another of the
+// `::any` bringing none [D168], [D251]: one that reaches another of the
 // kinds is the value it reaches; one of the word's own label goes back under the tags
 // the walk passed, as the subject's kind; one kind alone makes the value
 // by its constructor and invariants, and so does a kind of the answer's
@@ -701,7 +701,7 @@ export async function callMemberOn(record, subject, state) {
 // answerKindsOf(env, record, subjectKinds) → the kinds of the answer a
 // name under a label gives, for a tool: the subject's own where the
 // answer's kind is the word's own label, the kinds `returns` names, or
-// null for a word that answers any value [D169], [D251].
+// null for a word that answers any value [D168], [D251].
 export function answerKindsOf(env, record, subjectKinds) {
   const address = record.get('name').name;
   const answerDefinition = answerOf(env, address);
@@ -834,17 +834,17 @@ function codeOfObject(value, originOf, state) {
 
 // The subject a function's call serves: for a word, the value of its label
 // the walk of the subject's tags reaches, or of a kind `on` names beside
-// it, a tag for a word of a noun itself [D88]; for a function `apply` runs,
-// a value of the kinds `on` names, or the subject as it is; null where the
-// walk reaches none.
+// it, the noun's own tag name for a word of the noun itself, since the walk
+// of a tag name passes the noun it names and no other [D88], [D275]; for a
+// function `apply` runs, a value of the kinds `on` names, or the subject as
+// it is; null where the walk reaches none.
 function subjectOfCall(signature, labelName, subject) {
   const onKinds = signature.subject?.kinds ?? null;
-  if (labelName !== null) {
-    const byLabel = walkToKinds(subject, [labelName]);
-    if (byLabel !== null) return { ...byLabel, byLabel: true };
-  }
-  if (onKinds === null) return labelName === null ? { served: subject, passedTags: [] } : null;
-  return walkToKinds(subject, onKinds);
+  if (labelName === null) return onKinds === null ? { served: subject, passedTags: [] } : walkToKinds(subject, onKinds);
+  const byLabel = walkToKinds(subject, [labelName]);
+  if (byLabel !== null) return { ...byLabel, byLabel: true };
+  const byKinds = onKinds === null ? null : walkToKinds(subject, onKinds);
+  return byKinds !== null && isTag(byKinds.served) && ![...kindsOfWalk(byKinds.served)].includes(labelName) ? null : byKinds;
 }
 
 // The values of the inputs of a function's call, read from its args by
@@ -916,7 +916,7 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
 // through its label [D41]: built by its kind [D252], laid over as it is
-// where no kind answers the tag [D42], [D173], never over an error [D13],
+// where no kind answers the tag [D42], [D164], never over an error [D13],
 // and never under the name of a value withheld from held code [D278].
 export async function mintTaggedInstance(tagName, payload, state) {
   refuseWithheld(state.env, tagName, true);
@@ -1067,7 +1067,7 @@ function laneOf(env) {
 // word a reducer's quote names by one word, its name or its address,
 // called as the pipe calls it, `acc | add item`, the word residing on the
 // accumulator among them [D72], and a value of the scope under the name
-// meeting the word there [D223], [D224]; null for code of any other shape
+// meeting the word there [D90], [D223]; null for code of any other shape
 // or a name of no word, which `reduce` runs on the pair of the value so
 // far and the element [D90].
 export function resolveBinaryReducer(reducer) {

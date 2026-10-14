@@ -55,7 +55,7 @@
 //       fate, no more than a working day of records waits for the next
 //       walk, and the code, the tests and the cases cite the records in
 //       force, the documents that hold the work those in force or
-//       waiting on a target [D225], [D226].
+//       waiting on a target [D225].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -164,10 +164,10 @@ function scanForbiddenWords() {
 // A refusal's address is the one key the implementation and its page
 // in the catalog share: every declaration of a refusal and every
 // recording of an address outside one takes it as a literal, the path of
-// the place that refused, a marked name such as `@out` among its names,
-// and a last name ending in `Error`, `vec/sum/ElementNotNumberError`, and
-// the constant that holds the class is named by the address without its
-// slashes and marks, `VecSumElementNotNumberError`, so a grep for either
+// the place that refused and a last name ending in `Error`,
+// `vec/sum/ElementNotNumberError`, and the constant that holds the class
+// is named by the address without its slashes,
+// `VecSumElementNotNumberError`, so a grep for either
 // finds the declaration, every throw and the page [D46]. A class declared by
 // `class Foo extends …` ends in `Error`; the abstract roots are the
 // bases every site extends.
@@ -417,7 +417,7 @@ function misplacedRecords() {
 // the line of its fate, and the records written since wait for the walk
 // no longer than a working day of them; the code, the tests and the
 // cases cite the records in force, and the documents that hold the work
-// those in force or waiting on a target [D225], [D226].
+// those in force or waiting on a target [D225].
 
 function baselineDrift() {
   return walkOfBaseline(repoRoot).violations;
@@ -427,7 +427,7 @@ function baselineDrift() {
 //
 // A link of a document to a file of markdown, its definition `[Dnn]:
 // Dnn.md` or its inline form, leads to a file the tree holds, so the graph
-// of the records walks from any document into the past [D58], [D237].
+// of the records walks from any document into the past [D31], [D237].
 
 const MARKDOWN_LINK = /(?:\]:[ \t]*|\]\()([^)\s]+\.md)(?=[)\s#]|$)/gm;
 
@@ -572,7 +572,7 @@ if (catalogDecisions.length > 0) {
 if (undecided.length > 0) {
   process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
   for (const file of undecided) process.stdout.write(`  ${file}\n`);
-  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, a choice and the mechanics around it as two records [D155]; an open record holds `Question.`, `Source.` and `Alternatives.`, and no `Decided by.` or `Decision.` until it is decided [D255].\n');
+  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, the line naming the parts of the model beside the choice of the maintainer [D155]; an open record holds `Question.`, `Source.` and `Alternatives.`, and no `Decided by.` or `Decision.` until it is decided [D255].\n');
 }
 if (unmarked.length > 0) {
   process.stdout.write(`\nArtifacts that name no decision (${unmarked.length}):\n`);
@@ -587,7 +587,7 @@ if (misplaced.length > 0) {
 if (broken.length > 0) {
   process.stdout.write(`\nLinks that lead nowhere (${broken.length}):\n`);
   for (const { path, line, target } of broken) process.stdout.write(`  ${path}:${line}  ${target}\n`);
-  process.stdout.write('    a link of a document leads to a file the tree holds; `node scripts/replaced-records.mjs` writes the links to a record it moves [D58], [D237].\n');
+  process.stdout.write('    a link of a document leads to a file the tree holds; `node scripts/replaced-records.mjs` writes the links to a record it moves [D31], [D237].\n');
 }
 if (outOfStep.length > 0) {
   process.stdout.write(`\nFates out of step (${outOfStep.length}):\n`);
@@ -597,6 +597,6 @@ if (outOfStep.length > 0) {
 if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);
   for (const v of unwalked) process.stdout.write(`  ${v.where}  ${v.problem}\n`);
-  process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [D225], [D226].\n');
+  process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [D225].\n');
 }
 process.exit(1);

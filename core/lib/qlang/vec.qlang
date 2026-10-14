@@ -1595,9 +1595,10 @@
       Every element is a string or a keyword, written as its name, so the
       pairs of a map of strings join as they stand,
       `{:host "x"} | entries | map ~(join "=")` answering `["host=x"]`;
-      another value is refused at its index, and values are made text
-      first, `map ~print | join "+"`. A set joins its elements in the one
-      order; a map, a string or a number is refused under the word, and a
+      another value is refused at its index, a number made text first by
+      `toString`, `["a" 2] | map ~toString | join "+"` answering
+      `"a+2"`, and any value written as its literal by `print`. A set
+      joins its elements in the one order; a map, a string or a number is refused under the word, and a
       map's values are read first, `vals | join ","`.
       ::link~(::string/split | doc) ::link~(::any/print | doc)
   ~~|
@@ -1621,7 +1622,8 @@
     | throws :ElementNotStringOrKeywordError
         |~~ Every element `join` writes is a string or a keyword, written
             as its name; `:index` names the first that is neither, and
-            `map ~print` makes each value its text first.
+            `map ~toString` makes a number its text first, `map ~print`
+            writing any value as its literal.
         ~~|
     | proves :joinsWithTheSeparator
         |~~ The separator stands between the strings. ~~|
@@ -1642,7 +1644,12 @@
         ~(["a" "b"] | join :x | eq "axb")
     | proves :joinsValuesMadeText
         |~~ Values made text first join. ~~|
-        ~([1 2] | map ~print | join "+" | eq "1+2")
+        ~(["a" 2] | map ~toString | join "+" | eq "a+2")
+    | proves :joinsValuesWrittenAsLiterals
+        |~~ Values written as their literals join, a keyword with its
+            colon.
+        ~~|
+        ~([1 :a] | map ~(print) | join "+" | eq "1+:a")
     | proves :joinsASetInTheOneOrder
         |~~ A set joins its elements in the one order. ~~|
         ~(#["b" "a"] | join "," | eq "a,b")

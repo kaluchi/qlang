@@ -2,7 +2,7 @@
 // a test walks and a query answered where they live, the root of the
 // language or the session of a host: the laws of each name answer true
 // [D123], every link of a page leads to the page of another name [D108],
-// [D121], and no quote of a page falls to its prose, where a link a change
+// [D108], and no quote of a page falls to its prose, where a link a change
 // of the grammar breaks would go stale in silence [D19].
 
 import { printQuoteSource } from '../../src/quote.mjs';

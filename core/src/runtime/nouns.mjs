@@ -92,7 +92,7 @@ function residesOn(record, env) {
 }
 
 // isWord(env, address) → whether the name at the address is a word; a
-// word is the label of the args of a call of it [D173].
+// word is the label of the args of a call of it [D164].
 export function isWord(env, address) {
   const record = nodeOf(env, address);
   return record !== null && residesOn(record, env);
@@ -212,7 +212,7 @@ const PATH_NAMES = new WeakMap();
 // beneath a tag over a value, the kind of a vector or a map
 // beneath a tag of its own, and, after the kind of tag names, the noun a
 // tag name names [D88].
-function* kindsOfWalk(subject) {
+export function* kindsOfWalk(subject) {
   let value = subject;
   for (;;) {
     yield typeKeyword(value).name;
@@ -248,8 +248,8 @@ export function residenceOnSubject(env, verbName, subject) {
 // first [D153]: the reader's declaration, the word residing on a kind the
 // walk of the subject reaches, the one word of the name residing on a
 // kind, which refuses a subject of another kind [D34], and for a
-// name no kind answers the root's declaration [D169], but for a label of
-// the root, a kind or a topic, which its tag alone reaches [D191];
+// name no kind answers the root's declaration [D168], but for a label of
+// the root, a kind or a topic, which its tag alone reaches [D153];
 // `{ record, underKind }`, or null when no record answers or words of
 // several kinds do.
 export function bareNameReach(env, name, subject) {
@@ -295,7 +295,7 @@ export function readerNamesOf(env) {
 }
 
 // kindNamesOf(env) → the labels of one segment, a topic among them, the
-// root's first, as a tag reads them, then the reader's [D169].
+// root's first, as a tag reads them, then the reader's [D168].
 export function kindNamesOf(env) {
   const names = [...rootOf(env).keys(), ...[...env.keys()].filter(name => !rootOf(env).has(name))];
   return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isLabel(env, name));
@@ -303,7 +303,7 @@ export function kindNamesOf(env) {
 
 // The addresses where the words of a name live, one for each kind that
 // answers it, any value among them, which a refusal of the name hands on
-// [D34], [D169].
+// [D34], [D168].
 export function addressesOf(env, verbName) {
   const addresses = residencesOf(env, verbName).map(([kindName]) => makeTag(`${kindName}/${verbName}`));
   if (residenceOf(env, ANY_KIND_NAME, verbName) !== null) addresses.push(makeTag(`${ANY_KIND_NAME}/${verbName}`));
@@ -339,7 +339,7 @@ export function placesOfSelectors(selectors) {
 }
 
 // The refusals the runtime raises by rule under a word, each named by the
-// address of what refused [D180], [D251]: a subject the walk of whose tags reaches
+// address of what refused [D179], [D251]: a subject the walk of whose tags reaches
 // no value of the word's label, args of more values than its inputs read
 // places, an input the call leaves out where its place reads one, and an
 // answer that reaches none of the kinds `returns` names; and under a

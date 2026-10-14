@@ -26,11 +26,13 @@
       builds no other value. A kind declared under a
       name is a label, its words functions named under it: the payload,
       each field, each refusal, fact, invariant and law lie under it for
-      `doc` and `manifest`, and a label declared by its page alone is a
-      kind of no commands. It prints as its literal, its commands in a
+      `doc`, and `manifest` lists them but the laws, which `laws` reads;
+      a label declared by its page alone holds its page and lays its tag
+      as a kind of no commands does. It prints as its literal, its commands in a
       quote and the check of the host or null after it, and reads back
       from it.
       ::link~(::fn | doc) ::link~(::tag | doc)
+      ::link~(::qlang/verbs | doc)
   ~~|
   ::kind[~(wraps
         |~~ The literal of a kind: the quote of its commands and the check
@@ -84,6 +86,17 @@
     | proves :printsAsItsLiteral
         |~~ A kind prints as its commands and its recipe. ~~|
         ~(::kind | wraps |~~ The sizes. ~~| ::map | print | eq "::kind[~(wraps |~~ The sizes. ~~| ::map) null]")
+    | proves :listsItsNamesButItsLaws
+        |~~ `manifest` lists what lies under a kind but its laws, which
+            `laws` reads.
+        ~~|
+        ~(:Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | proves :holds |~~ It holds. ~~| ~(true))
+          | ::Box
+          | get [~(manifest) ~(laws | keys)]
+          | eq [#[::Box/w] #[:holds]])
+    | proves :laysTheTagOfALabelOfItsPageAlone
+        |~~ A label declared by its page alone lays its tag. ~~|
+        ~(:Shop |~~ A shop. ~~| | ::Shop{:a 1} | type | eq ::Shop)
     | proves :readsBackFromItsPrint
         |~~ The print of a kind reads back as the kind. ~~|
         ~(::kind | wraps |~~ The sizes. ~~| ::map | :k it | print | parse | apply it | eq k)

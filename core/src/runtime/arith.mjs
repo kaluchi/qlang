@@ -2,7 +2,7 @@
 // served and the inputs its call reads [D251]. The invariants of the
 // inputs hold before a primitive runs, a divisor no zero among them
 // [D46], [D251], and an answer that left the finite doubles is refused
-// as it is brought under `::number` [D169].
+// as it is brought under `::number` [D168].
 //
 // The names live in lib/qlang/number.qlang.
 
@@ -17,14 +17,14 @@ bindPrim('number/mul', (multiplicand, multiplier) => multiplicand * multiplier);
 bindPrim('number/div', (dividend, divisor) => dividend / divisor);
 
 // The remainder takes the sign of the divisor, the floored remainder
-// [D194]; a zero answer is no negative zero.
+// [D132]; a zero answer is no negative zero.
 const unsignedZero = number => (number === 0 ? 0 : number);
 bindPrim('number/mod', (dividend, divisor) => unsignedZero(dividend - divisor * Math.floor(dividend / divisor)));
 bindPrim('number/abs', subject => Math.abs(subject));
 bindPrim('number/floor', subject => Math.floor(subject));
 bindPrim('number/ceil', subject => unsignedZero(Math.ceil(subject)));
 
-// The whole numbers from zero below a whole count [D194], a count no
+// The whole numbers from zero below a whole count [D132], a count no
 // longer than the length a JavaScript array may have.
 const LONGEST_VECTOR = 2 ** 32 - 1;
 bindPrim('number/range', count => {
@@ -34,7 +34,7 @@ bindPrim('number/range', count => {
 });
 
 // A number rounds half away from zero to the digits after the point the
-// call gives, a whole number its part holds [D218], a negative count
+// call gives, a whole number its part holds [D46], a negative count
 // rounding to tens and beyond [D132].
 bindPrim('number/round', (subject, digits) => {
   const factor = 10 ** digits;

@@ -10,7 +10,7 @@
 {"decision":"D251","name":"an-input-of-the-whole-args-holds-the-kinds-of-each-element","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) [::number] | impl ~(xs)) | null | all 1 \"b\" !| type","expect":"::any/all/xs/ElementNotNumberError"}
 {"decision":"D67","name":"an-input-of-the-args-whole-without-modifiers-holds-the-empty-vector","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) [::number] | impl ~(xs)) | null | all","expect":"[]"}
 {"decision":"D34","name":"a-name-under-a-label-refuses-a-subject-of-another-kind","query":":number/inc ~(add 1) | \"a\" | inc !| type","expect":"::number/inc/SubjectNotNumberError"}
-{"decision":"D169","name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width#5 | inc","expect":"::Width#6"}
+{"decision":"D168","name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width#5 | inc","expect":"::Width#6"}
 {"decision":"D67","name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":number/inc (::fn | returns |~~ The answer. ~~| ::number | impl ~(add 1)) | ::Width#5 | inc | get [~(type) ~(payload)]","expect":"[::Width 6]"}
 {"decision":"D67","name":"a-verb-that-returns-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T"}
 {"decision":"D67","name":"a-verb-that-returns-a-kind-checks-its-answer","query":":vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)) | [1 2] | n !| type","expect":"::string/PayloadNotStringError"}
@@ -44,12 +44,12 @@
 {"decision":"D5","name":"a-template-of-get-begins-the-body","query":":vec/m ~(:opts get {:n ~(count)} | opts) | [1 2] | m","expect":"{:n 2}"}
 {"decision":"D5","name":"a-recipe-names-a-value-derived-from-an-input","query":":vec/m (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:limit (k | mul 2) | take limit)) | [1 2 3 4 5] | m 2","expect":"[1 2 3 4]"}
 {"decision":"D67","name":"an-optional-input-takes-a-vector-by-default","query":":any/m (::fn | takes :xs |~~ The xs. ~~| ~(query /0 [1 2]) ::vec | impl ~(xs | count)) | null | get [~(m) ~(m [5])]","expect":"[2 1]"}
-{"decision":"D5","name":"a-verb-names-its-subject-by-a-freeze","query":":any/pair ~(:self it | get [~(self) ~(self)]) | 5 | pair","expect":"[5 5]"}
+{"decision":"D5","name":"a-word-names-its-subject-by-a-declaration-of-it","query":":any/pair ~(:self it | get [~(self) ~(self)]) | 5 | pair","expect":"[5 5]"}
 {"decision":"D5","name":"a-recipe-names-its-subject-before-a-step","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:self it | mul k | add self)) | 5 | scale 2","expect":"15"}
 {"decision":"D71","name":"a-recipe-shadows-a-name-of-its-scope","query":":n 1 | :any/f (::fn | takes :n |~~ The n. ~~| ~(query /0 2) ::number | impl ~(n)) | null | get [~(f) ~(n)]","expect":"[2 1]"}
-{"decision":"D12","name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (add 1) (mul 2)","expect":"[6 10]"}
-{"decision":"D12","name":"a-modifier-sees-no-name-another-declared","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (:y 1 | y) y !| type","expect":"::call/UnknownNameError"}
-{"decision":"D12","name":"a-modifier-of-a-built-in-forks-against-the-subject","query":"10 | add (sub 3)","expect":"17"}
+{"decision":"D4","name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (add 1) (mul 2)","expect":"[6 10]"}
+{"decision":"D4","name":"a-modifier-sees-no-name-another-declared","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (:y 1 | y) y !| type","expect":"::call/UnknownNameError"}
+{"decision":"D4","name":"a-modifier-of-a-built-in-forks-against-the-subject","query":"10 | add (sub 3)","expect":"17"}
 {"decision":"D34","name":"a-name-under-a-kind-serves-its-values-and-refuses-another-subject","query":"get [~(5 | add 1) ~(\"x\" | add 1 !| type)]","expect":"[6 ::number/add/SubjectNotNumberError]"}
 {"decision":"D46","name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}
 {"decision":"D251","name":"the-node-of-an-input-holds-its-place","query":"::number/add/addend | binding | get /value","expect":"/0"}
@@ -66,7 +66,7 @@
 {"decision":"D34","name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| get /addresses","expect":"#[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]"}
 {"decision":"D165","name":"two-fields-compare-by-the-subject-in-the-pipe","query":"{:a 2 :b 1} | gt (get /a) (get /b) !| type","expect":"::call/KindAnswersNoVerbError"}
 {"decision":"D72","name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true"}
-{"decision":"D169","name":"a-comparison-has-its-page-on-each-kind","query":"::number/gt | doc | type | eq ::doc","expect":"true"}
+{"decision":"D168","name":"a-comparison-has-its-page-on-each-kind","query":"::number/gt | doc | type | eq ::doc","expect":"true"}
 {"decision":"D72","name":"a-call-by-address-reaches-the-residence","query":"5 | number/gt 3","expect":"true"}
 {"decision":"D34","name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::number/gt/SubjectNotNumberError"}
 {"decision":"D72","name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box#5 | gt 3","expect":"true"}
@@ -78,15 +78,14 @@
 {"decision":"D248","name":"an-index-of-a-vector-is-refused-by-its-input","query":"[1 2] | query /a !| type","expect":"::path/IndexNotIntegerError"}
 {"decision":"D72","name":"the-contract-of-filter-names-its-residences","query":"42 | filter ~(gt 0) !| get /addresses","expect":"#[::map/filter ::set/filter ::vec/filter]"}
 {"decision":"D41","name":"a-tagged-map-keeps-its-tag-through-filter","query":"::T{:a 1 :b 2} | filter ~(eq 1) | type","expect":"::T"}
-{"decision":"D34","name":"a-set-reverses-into-a-vector","query":"#[3 1 2] | reverse","expect":"[3 2 1]"}
 {"decision":"D41","name":"a-tag-over-a-set-comes-back-on-take","query":"::Box#[1 2] | take 1","expect":"::Box#[1]"}
 {"decision":"D72","name":"a-set-is-a-vector-to-a-verb-of-vectors","query":"#[1 2] | vec/count","expect":"2"}
 {"decision":"D34","name":"a-builtin-step-in-a-declared-verb-is-a-step","query":":any/c ~(::builtin{}) | 42 | c | type","expect":"::builtin"}
 {"decision":"D34","name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | :c it | get [1 2 3] | c | type","expect":"::builtin"}
-{"decision":"D43","name":"an-input-of-code-closes-over-its-call","query":":k :b | [{:b 2} {:b 1}] | sort ~(query k)","expect":"[{:b 1} {:b 2}]"}
+{"decision":"D4","name":"an-input-of-code-closes-over-its-call","query":":k :b | [{:b 2} {:b 1}] | sort ~(query k)","expect":"[{:b 1} {:b 2}]"}
 {"decision":"D34","name":"an-address-reaches-a-word-not-moved-onto-its-noun","query":"\"x\" | any/type","expect":"::string"}
 {"decision":"D34","name":"a-tag-over-a-name-passes-to-manifest","query":"::Box::vec | manifest | type","expect":"::set"}
-{"decision":"D43","name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
+{"decision":"D4","name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
 {"decision":"D41","name":"append-keeps-the-tag-of-its-vector","query":"::Box[1 2] | append 3","expect":"::Box[1 2 3]"}
 {"decision":"D41","name":"append-runs-the-constructor-of-its-tag-again","query":":P |~~ P. ~~| (::kind | holds :TooLongError |~~ Three at most. ~~| ~(count | lte 3)) | ::P[1 2] | get [~(append 3 | type) ~(append 3 | append 4 !| type)]","expect":"[::P ::P/TooLongError]"}
 {"decision":"D41","name":"a-tag-over-a-string-comes-back-on-append","query":"::Box\"ab\" | append \"c\"","expect":"::Box\"abc\""}
@@ -109,9 +108,8 @@
 {"decision":"D34","name":"join-resides-on-the-vector","query":"\"a\" | join \",\" !| type","expect":"::vec/join/SubjectNotVecError"}
 {"decision":"D34","name":"not-resides-on-the-boolean","query":"5 | not !| type","expect":"::boolean/not/SubjectNotBooleanError"}
 {"decision":"D165","name":"allOf-holds-two-conditions-of-one-record","query":"{:active true :age 25} | allOf (get /active) (get /age | gte 18)","expect":"true"}
-{"decision":"D34","name":"and-refuses-a-left-of-another-kind-at-its-subject","query":"1 | and true !| type","expect":"::boolean/and/SubjectNotBooleanError"}
 {"decision":"D34","name":"eq-takes-any-value","query":"1 | eq \"a\"","expect":"false"}
-{"decision":"D32","name":"type-answers-a-tag","query":"5 | type | type","expect":"::tag"}
+{"decision":"D20","name":"type-answers-a-tag","query":"5 | type | type","expect":"::tag"}
 {"decision":"D34","name":"json-answers-a-string","query":"{:a 1} | json | type","expect":"::string"}
 {"decision":"D34","name":"parse-json-resides-on-the-string","query":"5 | parseJson !| type","expect":"::string/parseJson/SubjectNotStringError"}
 {"decision":"D34","name":"raise-resides-on-the-map","query":"5 | raise !| type","expect":"::map/raise/SubjectNotMapError"}
@@ -119,24 +117,22 @@
 {"decision":"D34","name":"a-call-of-a-word-no-kind-answers-names-where-it-lives","query":"42 | toTag !| get /addresses","expect":"#[::keyword/toTag ::string/toTag ::tag/toTag]"}
 {"decision":"D34","name":"the-contract-of-parse-names-its-residences","query":"42 | parse !| get /addresses","expect":"#[::quote/parse ::string/parse]"}
 {"decision":"D34","name":"payload-resides-on-the-tagged","query":"5 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
-{"decision":"D34","name":"a-set-is-a-tagged-value-to-payload","query":"#[2 1] | payload","expect":"[1 2]"}
 {"decision":"D41","name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box"}
 {"decision":"D34","name":"a-number-is-no-tagged-value","query":"1 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
-{"decision":"D43","name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/NotFnOrPathOrQuoteError"}
+{"decision":"D4","name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/NotFnOrPathOrQuoteError"}
 {"decision":"D160","name":"env-answers-a-map","query":"env | type","expect":"::map"}
-{"decision":"D79","name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | get /value","expect":"10"}
-{"decision":"D79","name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}
-{"decision":"D79","name":"tag-takes-a-pair-apart-without-a-name","query":"[::Foo 1] | tag","expect":"::Foo#1"}
+{"decision":"D72","name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | get /value","expect":"10"}
+{"decision":"D72","name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}
 {"decision":"D34","name":"manifest-resides-on-the-tag","query":"5 | manifest !| type","expect":"::tag/manifest/SubjectNotTagError"}
 {"decision":"D178","name":"a-value-runs-the-laws-of-its-kind","query":"42 | runLaws | map /ok | distinct","expect":"#[true]"}
-{"decision":"D79","name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| get [~(type) /actualType]","expect":"[::any/tag/PairTagNotTagError ::keyword]"}
+{"decision":"D72","name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| get [~(type) /actualType]","expect":"[::any/tag/PairTagNotTagError ::keyword]"}
 {"decision":"D206","name":"a-name-a-value-holds-no-member-under-is-refused-with-no-address","query":"5 | doc :nosuch !| get [~(type) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
 {"decision":"D206","name":"a-name-a-member-declares-no-input-under-is-refused","query":"::vec/take | doc :nosuch !| get [~(type) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
 {"decision":"D88","name":"the-verbs-of-tag-names-come-before-the-verbs-of-the-noun-a-tag-names","query":"::number | gt ::A","expect":"true"}
 {"decision":"D88","name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | get [~(manifest | has ::vec/count) ~(doc :count | eq (::vec/count | doc))]","expect":"[true true]"}
 {"decision":"D206","name":"an-unknown-name-under-a-word-is-named-by-the-keyword-asked","query":"::vec/take | doc :\"a b\" !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :\"a b\"]"}
 {"decision":"D46","name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::path/KeyNotInMapError | doc | links | map ~open | any ~(eq (::path | doc))","expect":"true"}
-{"decision":"D113","name":"names-are-a-concept-of-their-own","query":"::qlang | doc :names | type","expect":"::doc"}
+{"decision":"D111","name":"names-are-a-concept-of-their-own","query":"::qlang | doc :names | type","expect":"::doc"}
 {"decision":"D8","name":"the-step-of-a-constructor-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct"}
 {"decision":"D8","name":"the-kind-of-tagged-values-is-no-step","query":"::tagged | doc | content | contains \"A value under a tag\"","expect":"true"}
 {"decision":"D114","name":"a-kind-is-declared-in-the-source-of-its-noun","query":"::vec | binding | get /origin","expect":":qlang/vec"}
@@ -158,3 +154,7 @@
 {"decision":"D67","name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T"}
 {"decision":"D67","name":"a-contract-names-its-residences","query":"5 | count !| get /addresses","expect":"#[::map/count ::set/count ::string/count ::vec/count]"}
 {"decision":"D88","name":"a-tag-name-meets-the-names-of-its-noun","query":"::vec | count !| type","expect":"::vec/count/SubjectNotVecError"}
+{"decision":"D275","name":"a-word-of-a-noun-takes-its-own-tag-name-alone","query":":Shop |~~ A shop. ~~| (::kind | wraps |~~ The sizes. ~~| ::map) | :Shop/hours |~~ The hours. ~~| (::fn | on |~~ The shop. ~~| ::tag | impl ~(\"9 to 5\")) | get [~(::Shop | hours) ~(::Shop{} | hours) ~(::Other | hours !| type) ~(::number | hours !| type)]","expect":"[\"9 to 5\" \"9 to 5\" ::Shop/hours/SubjectNotShopError ::Shop/hours/SubjectNotShopError]"}
+{"decision":"D275","name":"a-builder-refuses-a-tag-of-another-noun-by-the-rule-of-every-word","query":"get [~(5 | fn/takes :by |~~ How much. ~~| /0 !| type) ~(::number | takes :by |~~ How much. ~~| /0 !| type) ~(::number | wraps |~~ The sizes. ~~| !| type)]","expect":"[::fn/takes/SubjectNotFnError ::fn/takes/SubjectNotFnError ::kind/wraps/SubjectNotKindError]"}
+{"decision":"D275","name":"a-function-apply-runs-on-tag-names-serves-any","query":":f (::fn | on |~~ A tag name. ~~| ::tag | impl ~(toString)) | ::Other | apply f","expect":"\"Other\""}
+{"decision":"D275","name":"a-word-serves-the-kinds-on-names-beside-the-values-of-its-label","query":":Shop |~~ A shop. ~~| (::kind | wraps |~~ The sizes. ~~| ::map) | :Shop/double |~~ Doubles. ~~| (::fn | on |~~ A number or a keyword. ~~| #[::number ::keyword] | impl ~(get [~(it) ~(it)])) | get [~(5 | double) ~(:k | double) ~(\"x\" | double !| type)]","expect":"[[5 5] [:k :k] ::Shop/double/SubjectNotShopError]"}

@@ -22,14 +22,6 @@ const EMPTY_SIGNATURE = makeQuote([]);
 
 const FnPayloadNotPairError = declareRefusal('fn/PayloadNotPairError');
 const FnRecipeNotCodeError = declareRefusal('fn/RecipeNotCodeError');
-const FnOnSubjectNotFnError = declareRefusal('fn/on/SubjectNotFnError');
-const FnTakesSubjectNotFnError = declareRefusal('fn/takes/SubjectNotFnError');
-const FnReturnsSubjectNotFnError = declareRefusal('fn/returns/SubjectNotFnError');
-const FnThrowsSubjectNotFnError = declareRefusal('fn/throws/SubjectNotFnError');
-const FnCarriesSubjectNotFnError = declareRefusal('fn/carries/SubjectNotFnError');
-const FnHoldsSubjectNotFnError = declareRefusal('fn/holds/SubjectNotFnError');
-const FnProvesSubjectNotFnError = declareRefusal('fn/proves/SubjectNotFnError');
-const FnImplSubjectNotFnError = declareRefusal('fn/impl/SubjectNotFnError');
 const FnFillRecipeNotCodeError = declareRefusal('fn/fill/RecipeNotCodeError');
 
 // A function of a signature and a recipe, its signature read here, so one
@@ -51,12 +43,10 @@ bindPrim('fn/construct', payload => {
 });
 
 // The function a builder runs on: a function, or the noun itself, which
-// starts the one of no commands and no recipe; a tag of another noun, which
-// the builder's subject takes beside the function, is refused.
-function functionOf(subject, SubjectError) {
-  if (isFn(subject)) return subject;
-  if (subject.name !== FN_TAG_NAME) throw new SubjectError({ actualValue: subject });
-  return makeTaggedInstance(FN_TAG, Object.freeze([EMPTY_SIGNATURE, null]));
+// starts the one of no commands and no recipe; the call refuses a tag of
+// another noun before the builder runs [D275].
+function functionOf(subject) {
+  return isFn(subject) ? subject : makeTaggedInstance(FN_TAG, Object.freeze([EMPTY_SIGNATURE, null]));
 }
 
 // A function with a command written after the ones its signature holds.
@@ -66,42 +56,42 @@ function withCommand(fn, command, objects) {
 
 // `on |~~ A number. ~~| ::number` — the subject, its page and its kinds.
 bindPrim('fn/on', (subject, page, kinds) =>
-  withCommand(functionOf(subject, FnOnSubjectNotFnError), 'on', [page, kinds]));
+  withCommand(functionOf(subject), 'on', [page, kinds]));
 
 // `takes :by |~~ How much. ~~| /0 ::number` — an input, its page, the place
 // of the call it reads and its kinds.
 bindPrim('fn/takes', (subject, name, page, place, kinds) =>
-  withCommand(functionOf(subject, FnTakesSubjectNotFnError), 'takes', [name, page, place, kinds]));
+  withCommand(functionOf(subject), 'takes', [name, page, place, kinds]));
 
 // `returns |~~ The sum. ~~| ::number` — the answer, its page and its kinds.
 bindPrim('fn/returns', (subject, page, kinds) =>
-  withCommand(functionOf(subject, FnReturnsSubjectNotFnError), 'returns', [page, kinds]));
+  withCommand(functionOf(subject), 'returns', [page, kinds]));
 
 // `throws :TooBigError |~~ A sum past a bound. ~~|` — a refusal and its
 // page.
 bindPrim('fn/throws', (subject, name, page) =>
-  withCommand(functionOf(subject, FnThrowsSubjectNotFnError), 'throws', [name, page]));
+  withCommand(functionOf(subject), 'throws', [name, page]));
 
 // `carries :TooBigError/bound |~~ The bound. ~~| ::number` — a fact a
 // refusal carries, its page and its kinds.
 bindPrim('fn/carries', (subject, name, page, kinds) =>
-  withCommand(functionOf(subject, FnCarriesSubjectNotFnError), 'carries', [name, page, kinds]));
+  withCommand(functionOf(subject), 'carries', [name, page, kinds]));
 
 // `holds :by/TooBigError |~~ A sum past a bound. ~~| ~(lt 100)` — an
 // invariant of an input or of the answer: the refusal of a value that
 // breaks it, its page and its condition.
 bindPrim('fn/holds', (subject, name, page, condition) =>
-  withCommand(functionOf(subject, FnHoldsSubjectNotFnError), 'holds', [name, page, condition]));
+  withCommand(functionOf(subject), 'holds', [name, page, condition]));
 
 // `proves :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8)` —
 // a law, the claim its name makes, its page and the query that proves it,
 // under a name the function declares where it is written with a path.
 bindPrim('fn/proves', (subject, name, page, query) =>
-  withCommand(functionOf(subject, FnProvesSubjectNotFnError), 'proves', [name, page, query]));
+  withCommand(functionOf(subject), 'proves', [name, page, query]));
 
 // `impl ~(add by)` — the recipe; a function of no commands is its code.
 bindPrim('fn/impl', (subject, recipe) => {
-  const fn = functionOf(subject, FnImplSubjectNotFnError);
+  const fn = functionOf(subject);
   return commandsOf(fn).length === 0 && isQuote(recipe) ? recipe : madeFn(commandsOf(fn), recipe);
 });
 

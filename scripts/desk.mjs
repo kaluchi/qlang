@@ -1,4 +1,4 @@
-// The screen of the work a shift starts from [D226], [D227]: the branch
+// The screen of the work a shift starts from [D225], [D237]: the branch
 // and how far it stands from master, what the tree leaves uncommitted,
 // the walk of the audit's baseline, the targets the route holds open, the
 // artifacts that name no decision and the records whose scope changed
@@ -37,7 +37,7 @@ const span = walk.since.length === 0 ? 'none' : walk.since.length === 1 ? walk.s
 lines.push(`  baseline ${walk.baseline} · ${walk.since.length} of ${RECORDS_A_WALK_TAKES} records since, ${span} · ${walk.partialNow} lines replace in part, ${walk.partialThen} at the baseline`);
 if (walk.violations.length === 0) lines.push('  the walk holds');
 else {
-  lines.push(`  the walk breaks ${walk.violations.length} times [D226]:`);
+  lines.push(`  the walk breaks ${walk.violations.length} times [D225]:`);
   for (const { where, problem } of walk.violations.slice(0, 8)) lines.push(`    ${where}  ${problem}`);
 }
 

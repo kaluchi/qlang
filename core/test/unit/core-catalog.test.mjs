@@ -32,7 +32,7 @@ describe('the verbs of the language reach their primitives', () => {
     expect(isHostDeclared(recipeOf(add))).toBe(true);
   });
 
-  it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [D169], [D251]', async () => {
+  it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [D168], [D251]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTag('set/filter/ConditionNotBooleanError'), makeTag('set/filter/answer'), makeTag('set/filter/predicate')]));
     expect(await evalQuery('::set/filter | binding | get /value | params | map /kinds | print')).toBe('[#[::path ::quote]]');
@@ -94,7 +94,7 @@ describe('the root of the language', () => {
     expect(await evalQuery('get [~(kinds | has ::number) ~(::qlang | doc | type)]')).toEqual(await evalQuery('[true ::doc]'));
   });
 
-  it('no kind of the root is left a descriptor [D113]', async () => {
+  it('no kind of the root is left a descriptor [D111]', async () => {
     expect(await evalQuery('kinds | map ~(binding | get /value | type) | has ::builtin')).toBe(false);
   });
 });

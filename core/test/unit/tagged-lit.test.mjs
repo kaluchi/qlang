@@ -114,7 +114,7 @@ describe('what a tag before a payload refuses and hands on', () => {
     expect(err.tag).toEqual(makeTag('construct/TagNotKindError'));
   });
 
-  it('lays the tag of a word over the args of a call of it, which read back [D173]', async () => {
+  it('lays the tag of a word over the args of a call of it, which read back [D164]', async () => {
     expect(await evalQuery('1 | add 1 2 !| get /actualValue | eq ::number/add[1 2]')).toBe(true);
     expect(await evalQuery('::vec/count[] | type')).toEqual(makeTag('vec/count'));
   });
@@ -281,7 +281,7 @@ describe('within edits under one tag and rewraps it', () => {
     expect(await evalQuery('#[1 2] | within ~(:k 5 | get [/0 /1]) | env | has :k')).toBe(false);
   });
 
-  it('an error the edit answers passes as it is, and one the code answers is refused by its slot', async () => {
+  it('an error the edit answers passes as it is, and one the code answers is refused by its input', async () => {
     expect(await evalQuery('#[1 2] | within ~(!{:k 2} | raise) !| get /k')).toBe(2);
     expect(await evalQuery('#[1 2] | within (!{:k 1} | raise) !| type')).toEqual(makeTag('tagged/within/code/NotPathOrQuoteError'));
   });

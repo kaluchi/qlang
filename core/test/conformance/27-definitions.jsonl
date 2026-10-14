@@ -3,22 +3,22 @@
 {"decision":"D168","name":"the-source-of-an-address-holds-every-declaration-under-it","query":":Box |~~ A parcel. ~~| | :Box/put |~~ Puts a weight in. ~~| (::fn | takes :w |~~ The weight. ~~| /0 | impl ~(append w)) | ::Box | source | map /name","expect":"[:Box :Box/put]"}
 {"decision":"D168","name":"the-page-of-a-kind-holds-no-page-of-its-words","query":"::vec | doc | content | contains \"The first count elements\"","expect":"false"}
 {"decision":"D168","name":"is-asks-whether-the-walk-reaches-a-kind","query":"::Width#2 | is ::number","expect":"true"}
-{"decision":"D169","name":"an-answer-of-the-words-own-label-keeps-the-subjects-tags","query":"::Width#2 | add 3","expect":"::Width#5"}
+{"decision":"D168","name":"an-answer-of-the-words-own-label-keeps-the-subjects-tags","query":"::Width#2 | add 3","expect":"::Width#5"}
 {"decision":"D251","name":"the-kinds-of-an-input-refuse-under-its-name","query":"1 | add \"x\" !| type","expect":"::number/add/addend/NotNumberError"}
 {"decision":"D251","name":"the-answer-of-a-word-is-a-node-under-it","query":"::number/add | manifest | has ::number/add/answer","expect":"true"}
 {"decision":"D252","name":"an-invariant-of-a-kind-refuses-under-its-name","query":":Box |~~ A parcel. ~~| (::kind | holds :LengthNotPositiveError |~~ A box has a length. ~~| ~(get /0 | gt 0)) | ::Box[0] !| type","expect":"::Box/LengthNotPositiveError"}
-{"decision":"D169","name":"a-call-no-kind-of-its-subject-answers-names-the-kinds-that-do","query":"5 | take 2 !| get [~(type) /addresses]","expect":"[::call/KindAnswersNoVerbError #[::map/take ::set/take ::string/take ::vec/take]]"}
-{"decision":"D169","name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
-{"decision":"D169","name":"an-answer-of-none-of-its-kinds-is-refused-under-the-answer","query":":Box |~~ A box. ~~| | :Box/f (::fn | returns |~~ The value. ~~| #[::number ::string] | impl ~(eq 1)) | ::Box[1] | f !| get [~(type) /actualValue]","expect":"[::Box/f/answer/NotNumberOrStringError false]"}
+{"decision":"D168","name":"a-call-no-kind-of-its-subject-answers-names-the-kinds-that-do","query":"5 | take 2 !| get [~(type) /addresses]","expect":"[::call/KindAnswersNoVerbError #[::map/take ::set/take ::string/take ::vec/take]]"}
+{"decision":"D168","name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
+{"decision":"D168","name":"an-answer-of-none-of-its-kinds-is-refused-under-the-answer","query":":Box |~~ A box. ~~| | :Box/f (::fn | returns |~~ The value. ~~| #[::number ::string] | impl ~(eq 1)) | ::Box[1] | f !| get [~(type) /actualValue]","expect":"[::Box/f/answer/NotNumberOrStringError false]"}
 {"decision":"D251","name":"an-answer-of-any-value-goes-on-as-it-is","query":":any/twice (::fn | returns |~~ The value twice. ~~| ::any | impl ~(get [~(it) ~(it)])) | 5 | twice","expect":"[5 5]"}
 {"decision":"D251","name":"an-invariant-of-an-input-that-reads-the-args-whole-holds-them","query":":Box |~~ B ~~| | :Box/pick (::fn | takes :n |~~ N ~~| ~(query /0 1) | takes :xs |~~ The values the call gives. ~~| ~(it) | holds :xs/NothingGivenError |~~ The call gives a value. ~~| ~(count | gt 0) | impl ~(n)) | ::Box[1] | get [~(pick 5) ~(pick !| type)]","expect":"[5 ::Box/pick/xs/NothingGivenError]"}
-{"decision":"D170","name":"a-construct-is-no-word-of-the-values-of-its-label","query":":Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}) | ::Pos#5 | construct !| type","expect":"::call/UnknownNameError"}
-{"decision":"D180","name":"the-answer-of-a-word-stands-under-answer","query":"::any/eq | manifest | has ::any/eq/answer","expect":"true"}
+{"decision":"D168","name":"a-construct-is-no-word-of-the-values-of-its-label","query":":Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}) | ::Pos#5 | construct !| type","expect":"::call/UnknownNameError"}
+{"decision":"D179","name":"the-answer-of-a-word-stands-under-answer","query":"::any/eq | manifest | has ::any/eq/answer","expect":"true"}
 {"decision":"D179","name":"a-refusal-raised-by-rule-pages-how-to-repair-it","query":"5 | eq !| explain | page | content | contains \"with no value\"","expect":"true"}
 {"decision":"D179","name":"a-call-of-more-values-reads-the-page-of-its-refusal","query":"5 | eq 5 6 !| explain | page | content | contains \"one of several\"","expect":"true"}
 {"decision":"D179","name":"eq-keeps-a-keyword-apart-from-its-string","query":":a | eq \"a\"","expect":"false"}
 {"decision":"D253","name":"a-tag-a-reader-declares-under-a-word-changes-no-call","query":":any/k ~(5) | :any/k/out |~~ Text. ~~| ::string | 0 | k","expect":"5"}
-{"decision":"D180","name":"a-word-of-a-noun-itself-takes-the-tag-name","query":":Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk itself. ~~| ::tag | impl ~(\"9 to 5\")) | ::Desk | hours","expect":"\"9 to 5\""}
+{"decision":"D179","name":"a-word-of-a-noun-itself-takes-the-tag-name","query":":Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk itself. ~~| ::tag | impl ~(\"9 to 5\")) | ::Desk | hours","expect":"\"9 to 5\""}
 {"decision":"D88","name":"a-word-of-the-values-of-a-noun-refuses-the-tag-name","query":":Desk |~~ A help desk. ~~| | :Desk/size ~(count) | ::Desk | size !| type","expect":"::Desk/size/SubjectNotDeskError"}
-{"decision":"D180","name":"a-word-of-a-noun-itself-refuses-a-value-that-is-no-tag","query":":Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk itself. ~~| ::tag | impl ~(\"9 to 5\")) | 5 | Desk/hours !| type","expect":"::Desk/hours/SubjectNotDeskError"}
-{"decision":"D180","name":"a-refusal-raised-by-rule-with-no-page-reads-the-page-of-what-refused","query":"5 | gte !| get [~(type) ~(explain | page | content | contains \"compared with\")]","expect":"[::number/gte/value/NotGivenError true]"}
+{"decision":"D179","name":"a-word-of-a-noun-itself-refuses-a-value-that-is-no-tag","query":":Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk itself. ~~| ::tag | impl ~(\"9 to 5\")) | 5 | Desk/hours !| type","expect":"::Desk/hours/SubjectNotDeskError"}
+{"decision":"D179","name":"a-refusal-raised-by-rule-with-no-page-reads-the-page-of-what-refused","query":"5 | gte !| get [~(type) ~(explain | page | content | contains \"compared with\")]","expect":"[::number/gte/value/NotGivenError true]"}

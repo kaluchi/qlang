@@ -109,7 +109,7 @@ describe('main — flag dispatch', () => {
 });
 
 // A query that reads no subject runs without waiting on standard input,
-// which a shell may hand open with nothing piped [D215].
+// which a shell may hand open with nothing piped [D37].
 describe('main — standard input read for a query that reads its subject', () => {
   const openStdin = () => Object.assign(new Readable({ read() {} }), { isTTY: false });
 
@@ -354,19 +354,19 @@ describe('main — a query the shell turned into a path', () => {
   const UNDER_MSYS = { MSYSTEM: 'MINGW64' };
   const ROOT_OF_GIT = path => path === 'C:/Program Files/Git/usr/bin/msys-2.0.dll';
 
-  it('reads a query from the slash after the root of MSYS, which the shell wrote before it [D199]', () => {
+  it('reads a query from the slash after the root of MSYS, which the shell wrote before it [D144]', () => {
     expect(queryAsWritten('C:/Program Files/Git/data/users | segments', UNDER_MSYS, ROOT_OF_GIT)).toBe('/data/users | segments');
   });
 
-  it('leaves a query a shell other than MSYS handed as it came [D199]', () => {
+  it('leaves a query a shell other than MSYS handed as it came [D144]', () => {
     expect(queryAsWritten('C:/Program Files/Git/data/users', {}, ROOT_OF_GIT)).toBe('C:/Program Files/Git/data/users');
   });
 
-  it('leaves a path with no runtime of MSYS on its way as it came [D199]', () => {
+  it('leaves a path with no runtime of MSYS on its way as it came [D144]', () => {
     expect(queryAsWritten('C:/data/users', UNDER_MSYS, () => false)).toBe('C:/data/users');
   });
 
-  it('leaves a query of the language and the absent query of a REPL as they came [D199]', () => {
+  it('leaves a query of the language and the absent query of a REPL as they came [D144]', () => {
     expect(queryAsWritten('/data/users', UNDER_MSYS, () => true)).toBe('/data/users');
     expect(queryAsWritten(null, UNDER_MSYS, () => true)).toBe(null);
   });

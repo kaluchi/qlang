@@ -1,4 +1,4 @@
-// The plain-JSON codec both ways [D49], `json` rendering a value and
+// The plain-JSON codec both ways [D22], `json` rendering a value and
 // `parseJson` reading one, over the lossy value codec pair `toPlain` /
 // `fromPlain` that bridges qlang runtime values with ordinary JS data
 // structures.
@@ -64,13 +64,12 @@ export function toPlain(v) {
 // is refused.
 function toPlainFallback(v) {
   if (typeof v === 'function') return `<host-fn ${v.name}>`;
-  throw new AnyJsonValueNotEncodableError({ actualType: typeof v, actualValue: v });
+  throw new BuiltinJsonValueNotEncodableError({ actualType: typeof v, actualValue: v });
 }
 
-export const AnyJsonValueNotEncodableError = declareInvariantError(
-  'any/JsonValueNotEncodableError',
-  ({ actualType }) => `toPlain: JSON has no form for a ${actualType} value; ` +
-    'project around the slot');
+export const BuiltinJsonValueNotEncodableError = declareInvariantError(
+  'builtin/JsonValueNotEncodableError',
+  ({ actualType }) => `toPlain: JSON has no form for a ${actualType} value a host put in the scope`);
 
 function qMapToPlainObject(m) {
   const obj = {};

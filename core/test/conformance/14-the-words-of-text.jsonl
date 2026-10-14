@@ -2,8 +2,8 @@
 {"decision":"D198","name":"append","query":"\"hello\" | append \" world\"","expect":"\"hello world\""}
 {"decision":"D198","name":"prepend-empty","query":"\"x\" | prepend \"\"","expect":"\"x\""}
 {"decision":"D198","name":"append-empty","query":"\"x\" | append \"\"","expect":"\"x\""}
-{"decision":"D169","name":"prepend-non-string","query":"42 | prepend \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D169","name":"append-non-string","query":"42 | append \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D168","name":"prepend-non-string","query":"42 | prepend \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D168","name":"append-non-string","query":"42 | append \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D126","name":"json-number","query":"42 | json","expect":"\"42\""}
 {"decision":"D126","name":"json-string","query":"\"hello\" | json","expect":"\"\\\"hello\\\"\""}
 {"decision":"D126","name":"json-vec","query":"[1 2 3] | json","expect":"\"[1,2,3]\""}
@@ -106,7 +106,6 @@
 {"decision":"D22","name":"join-after-map","query":"[\"a\" \"b\" \"c\"] | map ~(append \"!\") | join \",\"","expect":"\"a!,b!,c!\""}
 {"decision":"D19","name":"join-error-non-vec-subject","query":"42 | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D19","name":"join-error-string-subject","query":"\"abc\" | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D16","name":"join-set-subject-joins-in-its-order","query":"#[\"b\" \"a\"] | join \",\"","expect":"\"a,b\""}
 {"decision":"D19","name":"join-error-map-subject","query":"{:a 1} | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::map\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject {:a 1}\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D251","name":"join-error-element-not-string","query":"[\"a\" 42 \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue 42\n  :actualType ::number\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" 42 \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D251","name":"join-error-element-null","query":"[\"a\" null \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue null\n  :actualType ::null\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" null \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}

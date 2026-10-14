@@ -48,12 +48,11 @@ with its structure preserved — the editor redraws the pasted
 block across as many rows as the content needs, so an appended
 step like \`| get /key\` can land on the same cell as the paste.
 
-Bindings introduced via BindStep (\`:name body\`, the freeze
-\`:name it\` among them) persist across cells within the same REPL
-session.
+Names a cell declares, \`:name body\` and \`:name it\` among them,
+persist across the cells of one REPL session.
 `;
 
-export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null, initialQuery = null } = {}) {
+export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null, initialQuery = null, terminal } = {}) {
   const builtinNames = verbNames(await langRuntime());
 
   // A terminal in raw mode moves the cursor down at `\n` without
@@ -77,7 +76,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
   const lineEditor = createLineEditor(stdinStream, stdoutWrite, {
     prompt: PROMPT,
     render: (bufferText) => highlightAnsi(bufferText, builtinNames),
-    columns: () => (stdinStream.columns || process.stdout.columns || 80)
+    columns: () => terminal.columns || 80
   });
 
   // The cells run one after another, and the REPL closes once the last

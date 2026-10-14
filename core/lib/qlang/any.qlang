@@ -16,13 +16,6 @@
       ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | throws :JsonValueNotEncodableError
-        |~~ A defect of a host, which no query meets: a value the host put
-            in the scope that is of none of the kinds of qlang has no form
-            in JSON. `json` writes such a value that runs as
-            `<host-fn name>`, and any other is thrown to the host, past
-            the fail track, out of reach of `!|`.
-        ~~|
     | proves :holdsType
         |~~ `type` lives on `::any`. ~~|
         ~(::any | manifest | has ::any/type)
@@ -247,8 +240,8 @@
         |~~ A value under tags answers the outermost. ~~|
         ~(::Width#5 | type | eq ::Width)
     | proves :readsAnErrorOnceOpened
-        |~~ An error passes over `type`, and its descriptor answers the
-            tag of its refusal.
+        |~~ An error passes over `type`, and the error at rest answers
+            the tag of its refusal.
         ~~|
         ~("x" | add 1 | type !| type | eq ::number/add/SubjectNotNumberError)
     | proves :ArgsBeyondInputsError/refusesAKind
@@ -764,7 +757,7 @@
         |~~ The error a step answered at the call is refused as no code. ~~|
         ~(5 | apply (get /nope)
           !| get [~(type) /actualType]
-          |  eq [::any/apply/code/NotFnOrPathOrQuoteError ::path/SubjectNotProjectableError])
+          |  eq [::any/apply/code/NotFnOrPathOrQuoteError ::path/SubjectHasNoPartsError])
     | proves :code/NotGivenError/refusesACallWithNoCode
         |~~ A call with no code is refused under the input. ~~|
         ~(~(add 1) | apply !| type | eq ::any/apply/code/NotGivenError)
@@ -910,7 +903,9 @@
             `::vec/filter | binding`. `source`, `doc`, `explain`, `laws`
             and `runLaws` read a name as `binding` does, and each is
             refused under a tag of its own, so the tag says which of them
-            read it.
+            read it. `:nearest` holds the names near the one it missed,
+            the tags as deep as a tag it read, and for a member the subject
+            lacks the members it holds and the words its walk reaches.
         ~~|
     | proves :answersABinding
         |~~ The record is a `::binding`. ~~|
@@ -1136,6 +1131,9 @@
         |~~ An anchor no member answers is refused with the name it read.
         ~~|
         ~(::vec/take | doc :nope !| get [~(type) /name] | eq [::any/doc/UnknownNameError :nope])
+    | proves :UnknownNameError/namesTheMembersNear
+        |~~ A member a page lacks names the members near it. ~~|
+        ~(::qlang | doc :pipelin !| get /nearest | eq [:pipeline])
     | proves :anchor/ElementNotKeywordError/refusesANumberInThePath
         |~~ A number in the path is refused at its index. ~~|
         ~(::vec | doc [:take 1] !| get [~(type) /index] | eq [::any/doc/anchor/ElementNotKeywordError 1])
@@ -2057,7 +2055,7 @@
         ~({:a null} | query /a/b | eq null)
     | proves :refusesAnotherKind
         |~~ A value on the path that has no parts is refused. ~~|
-        ~({:a 5} | query /a/b !| type | eq ::path/SubjectNotProjectableError)
+        ~({:a 5} | query /a/b !| type | eq ::path/SubjectHasNoPartsError)
     | proves :readsATupleSoftly
         |~~ Each path of a template is read softly. ~~|
         ~({:a 1} | query [/a /b] | eq [1 null])
@@ -2108,7 +2106,7 @@
         |~~ A value on the path that has no parts is refused, as `get`
             refuses it.
         ~~|
-        ~({:a 1} | put /a/b 2 !| type | eq ::path/SubjectNotProjectableError)
+        ~({:a 1} | put /a/b 2 !| type | eq ::path/SubjectHasNoPartsError)
     | impl ::builtin{}
 
 :any/update

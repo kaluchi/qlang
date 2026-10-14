@@ -5,7 +5,7 @@
 // name under a label a source declares is the host's, which alone
 // reaches an implementation [D34]: a name whose value is `::builtin{}`,
 // or a function or a kind whose recipe is, runs the implementation the
-// host handed beside the source under its name [D80], [D157], [D167], [D252],
+// host handed beside the source under its name [D72], [D167], [D252],
 // and is refused as the root is declared when it was handed none; a
 // refusal the source declares takes its address, the name it is declared
 // by, once [D64].
@@ -27,7 +27,7 @@ export const BuiltinRootSourceNotDeclaredError = declareInvariantError('builtin/
   ({ uri, tagName, name }) => `qlang root: the source ${uri} is refused with ${tagName}${name === undefined ? '' : ` for ${name.literal}`}, and its declarations stay out of the root`);
 
 // A name a source of the root declares as `::builtin{}` that its host
-// handed no implementation for has nothing to run [D157].
+// handed no implementation for has nothing to run [D72].
 export const BuiltinImplementationNotHandedError = declareInvariantError('builtin/ImplementationNotHandedError',
   ({ name }) => `qlang root: no implementation is handed for ${name}, which its source declares as ::builtin{}`);
 

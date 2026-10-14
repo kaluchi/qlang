@@ -163,9 +163,9 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
-  it('a path on a value with no parts → PathSubjectNotProjectableError', async () => {
+  it('a path on a value with no parts → PathSubjectHasNoPartsError', async () => {
     const refused = await evalQuery('42 | get /name');
-    expect(refused.originalError.name).toBe('SubjectNotProjectableError');
+    expect(refused.originalError.name).toBe('SubjectHasNoPartsError');
     expect(refused.descriptor.get('key').name).toBe('name');
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
@@ -264,7 +264,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | count',        // call/KindAnswersNoVerbError, the contract of count
       '42 | keys',         // map/keys/SubjectNotMapError
       '42 | vals',         // map/vals/SubjectNotMapError
-      '1 | get /name',         // path/SubjectNotProjectableError (Number subject — neither Map nor Vec)
+      '1 | get /name',         // path/SubjectHasNoPartsError (Number subject — neither Map nor Vec)
       '[1] | get /a',          // path/IndexNotIntegerError
       '[1 2 3] | reduce 0 1'   // vec/reduce/reducer/NotPathOrQuoteError
     ];
@@ -276,7 +276,7 @@ describe('per-site error classes carry unique identity', () => {
 });
 
 describe('coalesce refuses a call with no alternatives by the law of its part', () => {
-  it('coalesce with no args breaks the law of its alternatives, the args it was given among its facts [D46], [D173]', async () => {
+  it('coalesce with no args breaks the law of its alternatives, the args it was given among its facts [D46], [D164]', async () => {
     const refused = await evalQuery('{} | coalesce');
     expect(refused.tag.name).toBe('any/coalesce/alternatives/EmptyError');
     expect(await evalQuery('{} | coalesce !| get /actualValue | eq ::any/coalesce[]')).toBe(true);

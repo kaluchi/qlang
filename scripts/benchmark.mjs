@@ -84,7 +84,7 @@ RULES (strict):
 - Use ONLY the Bash tool, and ONLY to run the \`qlang\` command, from the directory ${inputsDir.replace(/\\/g, '/')}.
 - Do NOT read, list, grep or open any file outside that directory, and no documentation, source or README of qlang. Do not use web search.
 - You may \`cat\` the input files of that directory to see the data.
-- Always pass stdin: either \`< file\` or \`< /dev/null\`. Use \`qlang --raw '<query>' < app.log\` for the text file.
+- Always pass stdin: either \`< file\` or \`< /dev/null\`. Use \`qlang --raw '<query>' < app.log\` for the text file. In Git Bash prefix a query that begins with \`/\` with MSYS_NO_PATHCONV=1.
 - Start with \`qlang --help < /dev/null\` and \`qlang '::qlang | doc | content' < /dev/null\`, the language's own first screen, then explore the language by asking it.
 
 TASKS (each answer is a single qlang query printing exactly the requested answer; a task with no input runs with \`< /dev/null\`):

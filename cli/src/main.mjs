@@ -41,7 +41,7 @@ const MSYS_RUNTIME = 'usr/bin/msys-2.0.dll';
 // wrote it: under MSYS, whose `MSYSTEM` names it, a query that begins
 // with the root of the shell, the nearest directory of its path that
 // holds the runtime, is read from the slash after the root, which the
-// shell wrote the root before [D199]; any other query as it came.
+// shell wrote the root before [D144]; any other query as it came.
 export function queryAsWritten(queryText, env, exists = existsSync) {
   if (env.MSYSTEM === undefined || !SHELL_PATH_OF_A_QUERY.test(queryText)) return queryText;
   for (let slash = queryText.indexOf('/'); slash !== -1; slash = queryText.indexOf('/', slash + 1)) {

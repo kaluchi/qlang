@@ -105,7 +105,7 @@ pitches, no talk of commits or pull requests.
 Verify before asserting. Any claim about behaviour is run with
 `qlang '…'` in script mode or in `qlang -i`; in Git Bash a query that
 begins with `/` arrives as a path, which the command line reads back
-[D199]. A long tool output is persisted with a short preview; filter it
+[D144]. A long tool output is persisted with a short preview; filter it
 instead of reading it back whole.
 
 ## Workspaces

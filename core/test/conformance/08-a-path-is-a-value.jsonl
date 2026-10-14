@@ -21,7 +21,7 @@
 {"decision":"D248","name":"mixed-map-then-vec-bare-index","query":"{\"rows\": [[1 2] [3 4]]} | get /rows/1/0","expect":"3"}
 {"decision":"D248","name":"null-subject-strict","query":"null | get /any","expect":"::path/SubjectNotProjectableError!{\n  :key :any\n  :path /any\n  :actualType ::null\n  :trail [\n    {\n      :step ~(get /any)\n      :subject null\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D118","name":"a-missed-key-leads-to-the-keys-near-it","query":"{:emails [] :age 3} | get /email !| get /nearest","expect":"[:emails]"}
-{"decision":"D113","name":"a-descriptor-reads-its-field-by-path","query":"::builtin{:note :draft} | get /note","expect":":draft"}
+{"decision":"D248","name":"a-descriptor-reads-its-field-by-path","query":"::builtin{:note :draft} | get /note","expect":":draft"}
 {"decision":"D248","name":"query-positive-index","query":"[10 20 30] | query /0","expect":"10"}
 {"decision":"D248","name":"query-mid-index","query":"[10 20 30] | query /1","expect":"20"}
 {"decision":"D248","name":"query-last-via-positive","query":"[10 20 30] | query /2","expect":"30"}

@@ -136,7 +136,7 @@
 {"decision":"D88","name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | get [~(manifest | has ::vec/count) ~(doc :count | eq (::vec/count | doc))]","expect":"[true true]"}
 {"decision":"D206","name":"an-unknown-name-under-a-word-is-named-by-the-keyword-asked","query":"::vec/take | doc :\"a b\" !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :\"a b\"]"}
 {"decision":"D46","name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::path/KeyNotInMapError | doc | links | map ~open | any ~(eq (::path | doc))","expect":"true"}
-{"decision":"D113","name":"names-are-a-concept-of-their-own","query":"::qlang | doc :names | type","expect":"::doc"}
+{"decision":"D111","name":"names-are-a-concept-of-their-own","query":"::qlang | doc :names | type","expect":"::doc"}
 {"decision":"D8","name":"the-step-of-a-constructor-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct"}
 {"decision":"D8","name":"the-kind-of-tagged-values-is-no-step","query":"::tagged | doc | content | contains \"A value under a tag\"","expect":"true"}
 {"decision":"D114","name":"a-kind-is-declared-in-the-source-of-its-noun","query":"::vec | binding | get /origin","expect":":qlang/vec"}

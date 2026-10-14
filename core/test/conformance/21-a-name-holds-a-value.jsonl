@@ -39,7 +39,7 @@
 {"decision":"D248","name":"env-after-a-freeze","query":"42 | :answer it | env | has :answer","expect":"true"}
 {"decision":"D160","name":"env-after-bind","query":":double ~(mul 2) | env | has :double","expect":"true"}
 {"decision":"D160","name":"env-answers-whatever-the-subject","query":":x 1 | [1 2 3] | env | has :x","expect":"true"}
-{"decision":"D113","name":"a-descriptor-a-query-assembles-is-a-value","query":"::builtin{:note :draft} | :u it | get {:x 1} | u | type","expect":"::builtin"}
+{"decision":"D5","name":"a-descriptor-a-query-assembles-is-a-value","query":"::builtin{:note :draft} | :u it | get {:x 1} | u | type","expect":"::builtin"}
 {"decision":"D248","name":"tree-sum-leaf","query":":map/totalSize ~(sumOf /size (get /children | map ~totalSize | sum)) | {:size 100 :children []} | totalSize","expect":"100"}
 {"decision":"D248","name":"tree-sum-flat","query":":map/totalSize ~(sumOf /size (get /children | map ~totalSize | sum)) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize","expect":"300"}
 {"decision":"D248","name":"tree-sum-nested-directories","query":":map/totalSize ~(sumOf /size (get /children | map ~totalSize | sum)) | {:label \"root\" :size 0 :children [{:label \"README.md\" :size 2048 :children []} {:label \"src\" :size 0 :children [{:label \"main.c\" :size 512 :children []} {:label \"util.c\" :size 256 :children []}]}]} | totalSize","expect":"2816"}

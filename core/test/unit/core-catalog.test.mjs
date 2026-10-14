@@ -94,7 +94,7 @@ describe('the root of the language', () => {
     expect(await evalQuery('get [~(kinds | has ::number) ~(::qlang | doc | type)]')).toEqual(await evalQuery('[true ::doc]'));
   });
 
-  it('no kind of the root is left a descriptor [D113]', async () => {
+  it('no kind of the root is left a descriptor [D111]', async () => {
     expect(await evalQuery('kinds | map ~(binding | get /value | type) | has ::builtin')).toBe(false);
   });
 });

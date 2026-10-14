@@ -497,9 +497,12 @@ function fatesOutOfStep() {
 // no record of the journal, speaks none of the journal's words, tells no
 // history of a form, and says nothing of what it leaves out [D283]. The
 // prose is read outside its fenced blocks, whose probes may hold any text.
+// The chapter of the work states how the journal moves, so it speaks its
+// words and its paths, and cites no record as no chapter does [QSWRK#spec].
 const SPEC_INTRUSIONS = [
-  { rule: 'a record of the journal', regex: /\[[DE]\d+\]|\bdecisions? [DE]\d+\b|docs\/decisions/ },
-  { rule: 'a word of the journal', regex: /\b(journal|records? in (force|transit)|baselines?|dissolves?|dissolved|in transit|replaced\/)\b/i },
+  { rule: 'a record of the journal', regex: /\[[DE]\d+\]|\bdecisions? [DE]\d+\b/ },
+  { rule: 'a record of the journal', regex: /docs\/decisions/, besides: 'QSWRK' },
+  { rule: 'a word of the journal', regex: /\b(journal|records? in (force|transit)|baselines?|dissolves?|dissolved|in transit|replaced\/)\b/i, besides: 'QSWRK' },
   { rule: 'the history of a form', regex: /\b(left|leaves|leave) the language\b|\bno longer\b|\bused to\b|\bformerly\b|\banymore\b/i },
   { rule: 'what the text leaves out', regex: /\bnothing else\b|\bno history\b/i },
 ];
@@ -512,7 +515,8 @@ function specIntrusions() {
     readFileSync(join(specDir, name), 'utf8').split(/\r?\n/).forEach((line, index) => {
       if (line.startsWith('```')) { fenced = !fenced; return; }
       if (fenced) return;
-      for (const { rule, regex } of SPEC_INTRUSIONS) {
+      for (const { rule, regex, besides } of SPEC_INTRUSIONS) {
+        if (besides !== undefined && name.startsWith(besides)) continue;
         const match = regex.exec(line);
         if (match) found.push({ file: `docs/spec/${name}`, line: index + 1, rule, text: match[0] });
       }

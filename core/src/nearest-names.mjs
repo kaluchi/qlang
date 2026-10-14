@@ -62,7 +62,7 @@ function nearestOf(names, typedName) {
 
 // The names a step reaches: those of the scope and the last names of the
 // verbs declared under a kind, a label of the root among them as the tag
-// that reaches it [D191].
+// that reaches it [D153].
 function namesOfSteps(env) {
   return new Set([...scopeNamesOf(env).keys(), ...verbNames(env)]);
 }

@@ -28,7 +28,7 @@ describe('the names of the scope', () => {
     expect([...await evalQuery('::qlang/values | manifest')]).toEqual([]);
   });
 
-  it('a bare name reads a value a source of the root declares, and no label of the root [D191]', async () => {
+  it('a bare name reads a value a source of the root declares, and no label of the root [D153]', async () => {
     const session = await createSession({ sources: [{
       uri: 'shop',
       source: ':shop |~~ A shop. ~~|\n:limit 5'
@@ -46,7 +46,7 @@ describe('the names of the scope', () => {
     expect((await beside.evalCell('::shop{} | capped !| type')).result).toEqual(makeTag('stock/limit/SubjectNotStockError'));
   });
 
-  it('a label of a source is no bare name inside the words of its source [D191], [D200]', async () => {
+  it('a label of a source is no bare name inside the words of its source [D153], [D200]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/self ~(shop)' }] });
     expect((await session.evalCell('::shop{} | self !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });

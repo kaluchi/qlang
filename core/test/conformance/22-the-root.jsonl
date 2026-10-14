@@ -3,9 +3,9 @@
 {"decision":"D153","name":"a-reader-extends-a-kind-of-the-root","query":":vec/second ~(get /1) | [7 8 9] | second","expect":"8"}
 {"decision":"D153","name":"an-address-the-root-holds-is-declared-once","query":":vec/count ~(0) !| type","expect":"::bind/NameDeclaredTwiceError"}
 {"decision":"D153","name":"a-bare-name-of-the-reader-shadows-the-root","query":":vec 5 | vec","expect":"5"}
-{"decision":"D191","name":"a-kind-of-the-root-is-no-bare-name","query":"qlang !| get [~(type) /nearest]","expect":"[::call/UnknownNameError [::qlang]]"}
-{"decision":"D191","name":"a-reader-reads-a-doc-it-named","query":"|~~ note ~~| | :d it | d | content","expect":"\" note \""}
-{"decision":"D191","name":"the-name-of-a-kind-reads-no-page","query":"get [~(\"5\" | number !| type) ~(5 | string !| type)]","expect":"[::call/UnknownNameError ::call/UnknownNameError]"}
+{"decision":"D153","name":"a-kind-of-the-root-is-no-bare-name","query":"qlang !| get [~(type) /nearest]","expect":"[::call/UnknownNameError [::qlang]]"}
+{"decision":"D153","name":"a-reader-reads-a-doc-it-named","query":"|~~ note ~~| | :d it | d | content","expect":"\" note \""}
+{"decision":"D153","name":"the-name-of-a-kind-reads-no-page","query":"get [~(\"5\" | number !| type) ~(5 | string !| type)]","expect":"[::call/UnknownNameError ::call/UnknownNameError]"}
 {"decision":"D34","name":"the-walk-of-the-subject-comes-before-the-root","query":"[1 2] | doc | type","expect":"::doc"}
 {"decision":"D153","name":"the-address-of-a-name-is-the-name-as-declared","query":"::vec/count | source | parse | startsWith \":vec/count\"","expect":"true"}
 {"decision":"D153","name":"no-prefix-stands-for-the-language","query":"::qlang/number | doc !| type","expect":"::any/doc/UnknownNameError"}

@@ -736,10 +736,10 @@ decision and no record followed.
 What happens when the push misses: the fallback is a query, and the
 entrypoint's first screen has to say how to ask.
 
-[QSWRK#journal]: decisions/replaced/D31.md
-[QSWRK#probe]: decisions/replaced/D93.md
-[QSWRK#baseline]: decisions/replaced/D225.md
-[QSWRK#documents]: decisions/replaced/D231.md
+[QSWRK#journal]: spec/QSWRK-the-work.md#journal
+[QSWRK#probe]: spec/QSWRK-the-work.md#probe
+[QSWRK#baseline]: spec/QSWRK-the-work.md#baseline
+[QSWRK#documents]: spec/QSWRK-the-work.md#documents
 [QSSLF#catalog]: spec/QSSLF-the-language-describes-itself.md#catalog
 [QSDSP#residence]: spec/QSDSP-a-word-found-through-its-subject.md#residence
 [QSPRN#print]: spec/QSPRN-printing-and-codecs.md#print

@@ -14,14 +14,16 @@ wins and this file is what changes.
    scars, the finish, and the route of milestones. Each numbered
    decision is a file under `docs/decisions/`, opened where the audit
    cites it; one under `docs/decisions/replaced/` is history, and its
-   paths read in the tree its line `Left at` names [QSWRK#baseline]. What holds at
-   the baseline is stated by topic in `docs/spec/`, a chapter per topic
-   cited by section, `[QSNAM#scope]`, its cases under
+   paths read in the tree its line `Left at` names [QSWRK#journal]. What
+   holds at the baseline is stated by topic in `docs/spec/`, a chapter
+   per topic cited by section, `[QSNAM#scope]`, its cases under
    `core/test/conformance/QSNAM/`; a decision is the change in transit,
-   which dissolves into the chapters at the move of the baseline [QSWRK#spec],
-   and a topic no chapter holds yet keeps its rules in the records in
-   force. `node scripts/requirements.mjs` lists the requirements every
-   decision left and which the tree meets.
+   which dissolves into the chapters at the move of the baseline
+   [QSWRK#spec]. How the work moves, the records, the cases, the
+   baseline, the branch and the measures, is the chapter of the work,
+   `docs/spec/QSWRK-the-work.md`, read whole before the first change.
+   `node scripts/requirements.mjs` lists the records being decided and
+   where each change in transit stands.
    `docs/qlang-entrypoint.md` is a draft of the computed context a
    session starts from, ideas and no decision [QSWRK#documents]. The sensors live
    in `scripts/sensors/`: the probes run wherever the checkout is, and

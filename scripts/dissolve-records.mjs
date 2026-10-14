@@ -13,7 +13,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { CITING_DOCUMENTS, recordsInTransit } from './baseline-walk.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
@@ -31,6 +31,20 @@ const rewrite = (path, change) => {
   if (written !== text) writeFileSync(join(repoRoot, path), written.split('\n').join(eol));
   return written !== text;
 };
+
+// A citation of the record names its section, and the definition of its
+// link leads to the chapter from the document that holds it, once.
+function sectionCited(path, text, name, section) {
+  const [chapter, anchor] = section.split('#');
+  const target = relative(dirname(join(repoRoot, path)), join(repoRoot, 'docs', 'spec', specOf(chapter))).split('\\').join('/');
+  const definition = `[${section}]: ${target}${anchor === undefined ? '' : `#${anchor}`}`;
+  const defined = text.split('\n').some(line => line.startsWith(`[${section}]: `));
+  const lines = text.split('\n').flatMap(line => {
+    if (!line.startsWith(`[${name}]: `)) return [line];
+    return defined ? [] : [definition];
+  });
+  return lines.join('\n').replaceAll(`[${name}]`, `[${section}]`);
+}
 
 const caseFiles = tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/.test(path));
 for (const name of names) {
@@ -57,7 +71,7 @@ for (const name of names) {
   for (const path of citing) {
     rewrite(path, text => {
       if (!text.includes(`[${name}]`)) return text;
-      if (sections.length === 1) return text.replaceAll(`[${name}]`, `[${sections[0]}]`);
+      if (sections.length === 1) return sectionCited(path, text, name, sections[0]);
       text.split('\n').forEach((line, index) => { if (line.includes(`[${name}]`)) left.push(`${path}:${index + 1}`); });
       return text;
     });

@@ -16,13 +16,6 @@
       ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | throws :JsonValueNotEncodableError
-        |~~ A defect of a host, which no query meets: a value the host put
-            in the scope that is of none of the kinds of qlang has no form
-            in JSON. `json` writes such a value that runs as
-            `<host-fn name>`, and any other is thrown to the host, past
-            the fail track, out of reach of `!|`.
-        ~~|
     | proves :holdsType
         |~~ `type` lives on `::any`. ~~|
         ~(::any | manifest | has ::any/type)

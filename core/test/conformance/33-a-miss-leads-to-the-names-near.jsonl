@@ -6,3 +6,7 @@
 {"decision":"D34","name":"an-address-on-a-kind-the-verb-skips-names-it-on-any-value","query":"::vec/type | doc !| get /addresses","expect":"#[::any/type]"}
 {"decision":"D7","name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| get /nearest","expect":"[:filter]"}
 {"decision":"D118","name":"a-call-of-addof-names-sumof-among-the-names-near-it","query":"{:x 1} | addOf (get /x) (get /x) !| get /nearest | has :sumOf","expect":"true"}
+{"decision":"D118","name":"the-names-near-a-tag-stand-at-its-depth","query":"::str | doc !| get /nearest","expect":"[::string]"}
+{"decision":"D118","name":"the-names-near-an-address-stand-at-its-depth","query":"vec/srot !| get /nearest","expect":"[::vec/sort]"}
+{"decision":"D118","name":"an-anchor-a-page-lacks-names-the-members-near","query":"::qlang | doc :pipelin !| get /nearest","expect":"[:pipeline]"}
+{"decision":"D118","name":"a-member-a-value-lacks-names-the-words-near","query":"[1] | doc :tke !| get /nearest","expect":"[:take]"}

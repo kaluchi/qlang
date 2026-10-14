@@ -47,15 +47,12 @@ describe('parseArgv', () => {
     });
   });
 
-  it('treats trailing argv elements as inert when the first positional is the query', () => {
-    const cliInvocation = parseArgv(['1 | add 2', '--unused']);
-    expect(cliInvocation).toEqual({
-      kind: 'evalQuery',
-      queryText: '1 | add 2',
-      inputFormat: 'auto',
-      colorMode: 'auto',
-      budget: null
+  it('refuses an argument after the query, a flag written there among them, which nothing would read [D120]', () => {
+    expect(parseArgv(['1 | add 2', '--budget=10'])).toEqual({
+      kind: 'usageError',
+      message: "qlang: '--budget=10' after the query is read by nothing: the flags stand before the query, which is one argument, `qlang [flags] '<query>'`\n"
     });
+    expect(parseArgv(['-i', '1 | add 2', '2']).kind).toBe('usageError');
   });
 
   it('parses --json as the JSON input mode preceding the query', () => {

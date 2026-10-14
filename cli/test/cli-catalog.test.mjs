@@ -2,8 +2,7 @@
 // checks [D19], [D108], [D123]: the laws of every name its source
 // declares answer true, every link of its pages leads to the page of
 // another name, and no quote of a page falls to its prose, where a link
-// whose quote does not parse, `::link~(::any/@tap | doc)`, would go stale
-// in silence.
+// whose quote does not parse would go stale in silence.
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { cliSources } from '../src/cli-sources.mjs';

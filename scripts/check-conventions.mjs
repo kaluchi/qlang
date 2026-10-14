@@ -164,10 +164,10 @@ function scanForbiddenWords() {
 // A refusal's address is the one key the implementation and its page
 // in the catalog share: every declaration of a refusal and every
 // recording of an address outside one takes it as a literal, the path of
-// the place that refused, a marked name such as `@out` among its names,
-// and a last name ending in `Error`, `vec/sum/ElementNotNumberError`, and
-// the constant that holds the class is named by the address without its
-// slashes and marks, `VecSumElementNotNumberError`, so a grep for either
+// the place that refused and a last name ending in `Error`,
+// `vec/sum/ElementNotNumberError`, and the constant that holds the class
+// is named by the address without its slashes,
+// `VecSumElementNotNumberError`, so a grep for either
 // finds the declaration, every throw and the page [D46]. A class declared by
 // `class Foo extends …` ends in `Error`; the abstract roots are the
 // bases every site extends.

@@ -6,7 +6,7 @@
 // names one of which begins the other, and the words the page of a word
 // the typed name begins with links [D118].
 
-import { keyword, makeTag } from './types.mjs';
+import { keyword, makeTag, isTag } from './types.mjs';
 import { ANY_KIND_NAME, addressesOf, answerOf, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
 import { linkedAddressesOf } from './runtime/doc.mjs';
 import { splitAddress } from './address.mjs';
@@ -99,9 +99,25 @@ export function nearestNames(env, typedName) {
 }
 
 // The tags an unknown tag name was likely meant to be [D118]: the
-// addresses of the tree's nodes.
+// addresses of the tree's nodes as deep as the typed name, so a guess at
+// a noun meets the nouns, `::str` meeting `::string`, and a guess at a
+// word the words, none of the nodes beneath them.
 export function nearestTagNames(env, typedName) {
-  return Object.freeze(nearestOf(new Set(nodeAddresses(env)), typedName).map(name => makeTag(name)));
+  const depth = typedName.split('/').length;
+  const atItsDepth = [...nodeAddresses(env)].filter(address => address.split('/').length === depth);
+  return Object.freeze(nearestOf(new Set(atItsDepth), typedName).map(name => makeTag(name)));
+}
+
+// The members a subject holds near a name it lacks [D118]: the last names
+// of the nodes one level under a tag name's address, `::qlang | doc
+// :pipelin` meeting `:pipeline`, and for any other value the names a step
+// reaches, the words its walk may find among them.
+export function nearestMembers(env, subject, memberName) {
+  const under = isTag(subject) ? `${subject.name}/` : null;
+  const names = under === null
+    ? namesOfSteps(env)
+    : new Set([...nodeAddresses(env)].filter(address => address.startsWith(under)).map(address => address.slice(under.length)).filter(name => !name.includes('/')));
+  return Object.freeze(nearestOf(names, memberName).map(name => keyword(name)));
 }
 
 // The keys of a map a key it lacks was likely meant to be, as a name is

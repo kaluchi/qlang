@@ -55,8 +55,7 @@ argued or the audit is touched: `core/src/grammar.peggy` for the syntax,
 for application, `core/src/types.mjs` for the values, and
 `core/lib/qlang.qlang`, the topic of the language, its first page and
 chapters, with one source of a noun such as
-`core/lib/qlang/number.qlang`, which declares the kind `:number` and
-what lies under it, `:number/add`, for the shape of the catalog.
+`core/lib/qlang/number.qlang` for the shape of the catalog.
 Read source with the file-reading tool, whole; the persistence limit
 below applies to shell output, so a large file is never `cat`-ed.
 
@@ -110,8 +109,8 @@ instead of reading it back whole.
 
 ## Workspaces
 
-The folder name is the suffix of the npm package name under the
-`@kaluchi/` scope. `core/` is the language core: pure JavaScript, no
+The folder name is the suffix of the package name, the npm packages
+under the `@kaluchi/` scope. `core/` is the language core: pure JavaScript, no
 runtime dependencies, and no `node:*` import anywhere under
 `core/src/`, because the core ships to browser, Deno, and Bun; the
 catalog under `core/lib/qlang/` loads at runtime through
@@ -157,7 +156,7 @@ followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
 literal or held by a constant the address does not name
-(`MapElementNotPairError` for `map/ElementNotPairError`) [D46],
+(`VecToMapElementNotPairError` for `vec/toMap/ElementNotPairError`) [D46],
 on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [D155], and
 on a path the audit, the entrypoint document or this file names that

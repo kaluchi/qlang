@@ -31,6 +31,7 @@
       It prints as its literal, the chain folded into data, its commands in
       a quote and its recipe after it, and reads back from it.
       ::link~(::any/apply | doc) ::link~(::quote | doc)
+      ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
     | wraps

@@ -160,9 +160,6 @@
     | carries :UnknownAddressError/address
         |~~ The address the step called. ~~|
         ::tag
-    | carries :UnknownAddressError/nearest
-        |~~ The addresses nearest to it in spelling. ~~|
-        ::vec
     | throws :EvaluationDepthExceededError
         |~~ A call too deep: the body of a verb, a modifier computed at
             the call, `apply`, a constructor of a tag and each run of the

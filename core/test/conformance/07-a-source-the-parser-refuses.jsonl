@@ -32,3 +32,4 @@
 {"decision":"D46","name":"a-quote-written-with-braces-names-its-parentheses","query":"\"~{/age | doc}\" | parse !| get /message","expect":"\"a quote is written `~(…)`, its code in parentheses; `{…}` is a map and `[…]` a vector\""}
 {"decision":"D46","name":"a-pipe-after-a-combinator-names-the-form-that-keeps-it","query":"\"[1] !| | count\" | parse !| get /message | contains \"write `a !| b`\"","expect":"true"}
 {"decision":"D152","name":"a-tag-in-the-place-of-a-name-declares-nothing","query":"\"::Box [] | 1\" | parse !| type","expect":"::quote/ParseError"}
+{"decision":"D4","name":"a-comment-opener-against-a-pipe-names-the-word-that-runs-code","query":"\"[1 2] |~(add)\" | parse !| get /message","expect":"\"`|~` opens a comment that is never closed; code runs on the value in the pipe by a word, `| apply ~(…)`\""}

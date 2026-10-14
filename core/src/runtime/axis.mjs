@@ -28,7 +28,7 @@ import {
   addressesOf, declarationsUnder, nodeOf, refuseWithheld, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { nearestTagNames } from '../nearest-names.mjs';
+import { nearestTagNames, nearestMembers } from '../nearest-names.mjs';
 import { splitAddress } from '../address.mjs';
 
 // `name` is the name an axis read, a keyword or a tag.
@@ -95,11 +95,13 @@ function memberRecordOf(env, subject, memberName) {
 }
 
 // What the refusal of a member holds: the name the reader asked, a
-// keyword, and where the words of that name live [D206].
-function memberRefusalOf(env, memberName) {
+// keyword, where the words of that name live [D206], and the members of
+// the subject near it [D118].
+function memberRefusalOf(env, subject, memberName) {
   return {
     name: keyword(memberName),
-    addresses: addressesOf(env, memberName)
+    addresses: addressesOf(env, memberName),
+    nearest: nearestMembers(env, subject, memberName)
   };
 }
 
@@ -110,7 +112,7 @@ function memberRefusalOf(env, memberName) {
 export function recordReadBy(subject, memberName, state, NotFoundError) {
   if (!isNull(memberName)) {
     const member = memberRecordOf(state.env, subject, memberName.name);
-    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, memberName.name));
+    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, subject, memberName.name));
     return member;
   }
   const record = declaringRecordOf(state.env, subject);

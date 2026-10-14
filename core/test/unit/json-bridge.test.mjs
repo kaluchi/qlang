@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isQMap, isVec, formOf, typeKeyword, makeTag } from '../../src/types.mjs';
-import { fromPlain, toPlain, AnyJsonValueNotEncodableError } from '../../src/runtime/format.mjs';
+import { fromPlain, toPlain, BuiltinJsonValueNotEncodableError } from '../../src/runtime/format.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
   it('an object literal is a map keyed by the keywords of its strings', async () => {
@@ -100,7 +100,7 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
 
 describe('toPlain refuses a value JSON has no form for', () => {
   it('refuses a raw object of the host', () => {
-    expect(() => toPlain(new Date())).toThrow(AnyJsonValueNotEncodableError);
+    expect(() => toPlain(new Date())).toThrow(BuiltinJsonValueNotEncodableError);
   });
 
   it('names the JavaScript type of what it refused', () => {

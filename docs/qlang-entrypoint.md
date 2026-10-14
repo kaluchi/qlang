@@ -702,9 +702,9 @@ become the benchmark's first domain with real expected values.
 
 ## Decisions
 
-The decisions of this document are numbered E1 onward, since they treat
-the environment of the work, and live one to a file beside the audit's,
-`docs/decisions/En.md` [D31].
+This document decides nothing: what the work took from it stands in the
+records under `docs/decisions/`, numbered as every decision is [D31],
+[D231].
 
 ## Open questions
 

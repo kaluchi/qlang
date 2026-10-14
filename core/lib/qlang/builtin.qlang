@@ -90,6 +90,13 @@
             and answers an error of its own where its arithmetic leaves
             the doubles.
         ~~|
+    | throws :JsonValueNotEncodableError
+        |~~ A value a host put in the scope that is of none of the kinds
+            of qlang has no form in JSON. `json` writes such a value that
+            runs as `<host-fn name>`, and any other is thrown to the host,
+            past the fail track, out of reach of `!|`; the host keeps its
+            values to the kinds of the language.
+        ~~|
     | throws :BootstrapSourceMissingError
         |~~ A source of the language resolved to nothing, so the root
             lacks what it declares; `:uri` names the source. The host maps

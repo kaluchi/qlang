@@ -7,7 +7,7 @@
       three whole numbers under its tag, the offset from zero, the line
       and the column from one, `::point[0 1 1]` before the first
       character of a text. `offset`, `line` and `column` read them.
-      ::link~(::span | doc)
+      ::link~(::span | doc) ::link~(::qlang/errors | doc)
   ~~|
   ::kind
     | wraps |~~ The three numbers, the offset, the line and the column. ~~| [::number]

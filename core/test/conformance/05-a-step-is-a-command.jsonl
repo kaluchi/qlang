@@ -60,6 +60,6 @@
 {"decision":"D134","name":"a-path-before-a-word-names-the-verb","query":"\"[\\\"x\\\" \\\"\\\"] | filter ~(/ne \\\"\\\")\" | parse !| get /message","expect":"\"`/ne` is a path, a value; a verb is called by its name alone, `ne …`\""}
 {"decision":"D134","name":"a-path-before-a-combinator-still-reads","query":"{:a 1} | get /a !| 0","expect":"1"}
 {"decision":"D134","name":"paths-as-modifiers-still-read","query":"{:qty 2 :price 3} | mulOf /qty /price","expect":"6"}
-{"decision":"D141","name":"trim-cuts-the-whitespace-at-both-ends","query":"\"  db_host \n\" | trim","expect":"\"db_host\""}
-{"decision":"D141","name":"a-modifier-reads-the-subject-of-its-own-step","query":"{:qty 2 :price 3} | get /qty | mul (get /price) !| type","expect":"::path/SubjectNotProjectableError"}
-{"decision":"D141","name":"query-of-a-path-hands-the-value-as-the-key","query":"{:email {:home \"a@b\"}} | query (get /email) !| get /actualValue","expect":"{:home \"a@b\"}"}
+{"decision":"D132","name":"trim-cuts-the-whitespace-at-both-ends","query":"\"  db_host \n\" | trim","expect":"\"db_host\""}
+{"decision":"D132","name":"a-modifier-reads-the-subject-of-its-own-step","query":"{:qty 2 :price 3} | get /qty | mul (get /price) !| type","expect":"::path/SubjectNotProjectableError"}
+{"decision":"D132","name":"query-of-a-path-hands-the-value-as-the-key","query":"{:email {:home \"a@b\"}} | query (get /email) !| get /actualValue","expect":"{:home \"a@b\"}"}

@@ -40,7 +40,7 @@ bindPrim('map/last', map => lastOf([...map.values()]));
 // ── side by side ───────────────────────────────────────────────
 // The elements at each index of the vectors a vector holds, as long as
 // the shortest, an element that is no vector refused at its index
-// [D194].
+// [D132].
 const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
 bindPrim('vec/zip', vectors => {
   vectors.forEach((element, index) => {
@@ -72,7 +72,7 @@ bindPrim('map/sum', map => totalOf(keyed(map), MapSumElementNotNumberError));
 
 // The mean of the numbers, a running mean whose every step stays among
 // the finite doubles; an empty container has none, and answers null as
-// `min` and `max` do [D147].
+// `min` and `max` do [D132].
 function meanOf(places, ElementNotNumberError) {
   if (places.length === 0) return NULL;
   let mean = 0;

@@ -17,14 +17,14 @@ bindPrim('number/mul', (multiplicand, multiplier) => multiplicand * multiplier);
 bindPrim('number/div', (dividend, divisor) => dividend / divisor);
 
 // The remainder takes the sign of the divisor, the floored remainder
-// [D194]; a zero answer is no negative zero.
+// [D132]; a zero answer is no negative zero.
 const unsignedZero = number => (number === 0 ? 0 : number);
 bindPrim('number/mod', (dividend, divisor) => unsignedZero(dividend - divisor * Math.floor(dividend / divisor)));
 bindPrim('number/abs', subject => Math.abs(subject));
 bindPrim('number/floor', subject => Math.floor(subject));
 bindPrim('number/ceil', subject => unsignedZero(Math.ceil(subject)));
 
-// The whole numbers from zero below a whole count [D194], a count no
+// The whole numbers from zero below a whole count [D132], a count no
 // longer than the length a JavaScript array may have.
 const LONGEST_VECTOR = 2 ** 32 - 1;
 bindPrim('number/range', count => {

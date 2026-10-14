@@ -47,7 +47,7 @@ bindPrim('string/lower', subject => subject.toLowerCase());
 bindPrim('string/upper', subject => subject.toUpperCase());
 
 // The text without the whitespace at its two ends, a line break among it
-// [D141].
+// [D132].
 bindPrim('string/trim', subject => subject.trim());
 
 bindPrim('string/contains',   (subject, needle) => (isRegex(needle) ? containsMatch(subject, needle) : subject.includes(needle)));

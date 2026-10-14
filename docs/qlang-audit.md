@@ -205,7 +205,7 @@ at the host. The pipeline cuts what arrived, a literal, to any depth.
 A command has one output, a value under its tag, and the kinds of its
 refusals; its input is the part of the question that moves into the
 host, which is why the input asks for a description of its own and the
-output for a legend [D162].
+output for a legend [D161].
 
 What a reader holds after a call is a printed value, however strange
 it looks, and its explanation starts there. The tag on it is a label,
@@ -222,7 +222,7 @@ no value to annotate, and the peek is assembled in one round trip from
 the definitions under the label's address; the legend of a value is a
 task of its own, one of the two resting on what the other provides
 [D168]. A tool that changes carries its legend inside itself, where it
-cannot go stale behind the tool's back [D161], [D162]. The same holds for the
+cannot go stale behind the tool's back [D161]. The same holds for the
 seed of a session, the instruction file, which is a table of contents
 of what the repository does not hold and no summary of what it does
 [D163].
@@ -1285,7 +1285,6 @@ those being decided.
 [D153]: decisions/D153.md
 [D155]: decisions/D155.md
 [D161]: decisions/D161.md
-[D162]: decisions/D162.md
 [D163]: decisions/D163.md
 [D164]: decisions/D164.md
 [D167]: decisions/D167.md

@@ -155,7 +155,7 @@ keeps the discussion from drifting.
 - Context engineering is the discipline of choosing what tokens enter
   the window at each step.
 - A presentation is data filtered for a question, what a command
-  answers in place of the data a host holds [D162].
+  answers in place of the data a host holds [D161].
 - A label is a tag as its reader meets it, «ярлык на данных»: markup
   laid over a payload, a sticky hint of what the data beneath it is,
   hiding nothing, as highlighting lies over the text of an editor
@@ -163,7 +163,7 @@ keeps the discussion from drifting.
 - A legend is the key to reading an observation, reached from its
   printed form by one step and itself a literal of the language, so it
   is read further the same way: its hints tell how to take out more of
-  the observation or a part of it [D162].
+  the observation or a part of it [D161].
 - The legend of a payload is the legend a label leads to: what was
   received, what each part of the payload means, and which verbs carry
   the value on, the fates open to it. A tool that changes carries the
@@ -743,7 +743,6 @@ entrypoint's first screen has to say how to ask.
 [D96]: decisions/D96.md
 [D153]: decisions/D153.md
 [D161]: decisions/D161.md
-[D162]: decisions/D162.md
 [D169]: decisions/D169.md
 [D225]: decisions/D225.md
 [D231]: decisions/D231.md

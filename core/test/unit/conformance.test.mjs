@@ -70,6 +70,10 @@ async function answersAsPresent(queryResult, now) {
   return deepEqual(queryResult, present);
 }
 
+// The chapter of the specification a file stands under, `QSNAM` for
+// `QSNAM/scope.jsonl`, or null for a file outside the chapters.
+const chapterOf = file => /^(QS[A-Z]{3})\//.exec(file)?.[1] ?? null;
+
 const casesByFile = files.map(file => ({
   file,
   cases: readFileSync(join(conformanceDir, file), 'utf8')
@@ -94,12 +98,26 @@ describe('conformance: the requirements agree', () => {
     expect(contradictions).toEqual([]);
   });
 
+  // A case under the folder of a chapter of the specification is gated
+  // by its section, the file it stands in, and names a record only while
+  // the record's change is in transit over it; a case outside the
+  // chapters opens with the one record in force that gates it [D283].
   it('opens each case with the one record in force that gates it, whose record stands in the root of the records [D237], [D254]', () => {
     const decisionsDir = join(here, '..', '..', '..', 'docs', 'decisions');
-    const ungated = allCases.filter(({ file: _file, ...test }) => typeof test.decision !== 'string' || Object.keys(test)[0] !== 'decision'
-      || !existsSync(join(decisionsDir, `${test.decision}.md`)))
+    const ungated = allCases.filter(({ file, ...test }) => (chapterOf(file) === null || test.decision !== undefined)
+      && (typeof test.decision !== 'string' || Object.keys(test)[0] !== 'decision' || !existsSync(join(decisionsDir, `${test.decision}.md`))))
       .map(test => `${test.file}#${test.name}: ${JSON.stringify(test.decision ?? null)}`);
     expect(ungated).toEqual([]);
+  });
+
+  it('stands each file of a chapter as a section of its specification [D283]', () => {
+    const specDir = join(here, '..', '..', '..', 'docs', 'spec');
+    const homeless = files.filter(file => chapterOf(file) !== null).filter(file => {
+      const [chapter, section] = [chapterOf(file), file.split('/').pop().replace(/\.jsonl$/, '')];
+      const spec = existsSync(specDir) ? readdirSync(specDir).find(name => name.startsWith(`${chapter}-`)) : undefined;
+      return spec === undefined || !readFileSync(join(specDir, spec), 'utf8').split(/\r?\n/).includes(`## ${section}`);
+    });
+    expect(homeless).toEqual([]);
   });
 });
 

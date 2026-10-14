@@ -8,7 +8,7 @@ import { createSession } from '../../src/session.mjs';
 import { keyword, makeTag } from '../../src/types.mjs';
 
 describe('the names of the scope', () => {
-  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [D160], [D168]', async () => {
+  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [QSNAM#binding], [D168]', async () => {
     expect(await evalQuery('env | eq {}')).toBe(true);
     expect(await evalQuery('kinds | get [~(has ::number) ~(has ::qlang) ~(has ::number/add/SubjectNotNumberError)]'))
       .toEqual([true, true, false]);
@@ -46,7 +46,7 @@ describe('the names of the scope', () => {
     expect((await beside.evalCell('::shop{} | capped !| type')).result).toEqual(makeTag('stock/limit/SubjectNotStockError'));
   });
 
-  it('a label of a source is no bare name inside the words of its source [D153], [D200]', async () => {
+  it('a label of a source is no bare name inside the words of its source [D153], [QSNAM#owner]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/self ~(shop)' }] });
     expect((await session.evalCell('::shop{} | self !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
@@ -56,7 +56,7 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('::shop{} | capped')).result).toBe(5);
   });
 
-  it('a recipe declares none of the inputs its call binds whatever a reader or a later source names so, and shadows every other [D71]', async () => {
+  it('a recipe declares none of the inputs its call binds whatever a reader or a later source names so, and shadows every other [QSNAM#scope]', async () => {
     const shop = { uri: 'shop', source: ':vec/sized (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 3 | n))\n:vec/scaled (::fn | takes :n |~~ N. ~~| /0 | impl ~(map ~(mul n)))\n:vec/padded ~(:n 3 | count | add n)' };
     const later = { uri: 'stock', source: ':n 9' };
     const session = await createSession({ sources: [shop, later] });
@@ -66,7 +66,7 @@ describe('the names of the scope', () => {
     expect((await session.evalCell(`${reader} | get [~([1 2] | twice) ~([1 2] | sum2 5 !| get [~(type) /name])] | eq [[2 4] [::bind/NameDeclaredTwiceError :n]]`)).result).toBe(true);
   });
 
-  it('a value of the reader meets a word a later source declares, where the subject answers the word alone [D223]', async () => {
+  it('a value of the reader meets a word a later source declares, where the subject answers the word alone [QSNAM#reach]', async () => {
     const later = { uri: 'stock', source: ':vec/tally ~(count)' };
     const alone = await createSession({ sources: [] });
     expect((await alone.evalCell(':tally 5 | [1 2] | tally')).result).toBe(5);
@@ -139,7 +139,7 @@ describe('a name with a path calls the verb its address names', () => {
   });
 });
 
-describe('what a word reads and runs as data reads the tree of the query [D200]', () => {
+describe('what a word reads and runs as data reads the tree of the query [QSNAM#owner]', () => {
   const pages = { uri: 'pages', source: ':pages |~~ Pages. ~~|\n:k |~~ the source\'s own ~~| 1\n:any/pageOf ~(doc | content)' };
   const runner = { uri: 'runner', source: ':runner |~~ A runner. ~~|\n:any/runIt (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code))' };
 

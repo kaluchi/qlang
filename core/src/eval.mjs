@@ -298,10 +298,10 @@ async function evalTagLit(node, state) {
 // answering 42, a quote among them as the data it is [D251], a
 // declaration of docs alone binding them as a page, and a body that fails
 // answering the failure, which no name holds [D13]; a name is declared
-// once in its scope [D71], a node the root holds once at all [D153], and a
-// name with a path under a noun declared before it, never a value withheld
-// from held code [D278]; what the chain of a kind or a function holds
-// alone, declared by a name, is refused [D253].
+// once in its scope [QSNAM#scope], a node the root holds once at all and
+// a name with a path under a noun declared before it [QSNAM#address],
+// never a value withheld from held code [D278]; what the chain of a
+// kind or a function holds alone, declared by a name, is refused [D253].
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   const [nounName] = splitAddress(name);
@@ -403,14 +403,14 @@ function nodesOfFunction(fn, address, env, origin) {
 // Whether a declaration among the steps of a word's body, the body itself
 // or a step of its pipeline, names what its call bound in the body's
 // scope, `args` or an input; a group of one step the parser leaves as the
-// body is a scope of its own [D71].
+// body is a scope of its own [QSNAM#scope].
 function declaresWhatTheCallBinds(bindStep, env, name) {
   const binds = env.get(CALL_BINDS_KEY);
   return binds !== undefined && (bindStep === binds.body || (binds.body.type === 'Pipeline' && bindStep.parent === binds.body)) && binds.names.has(name);
 }
 
 // The record a declaration writes: its name, the docs of its slot, the
-// value, the quote of its step and its origin [D5], [D153].
+// value, the quote of its step and its origin [QSNAM#binding], [D153].
 function declarationRecord(node, value) {
   return makeBinding({
     name: keyword(node.key.name),
@@ -471,7 +471,7 @@ function withReadOfPath(state, node, subject, env) {
 // addresses where the word lives [D168], and a name that reaches nothing
 // with the names near it. A value the scope binds and a word the subject
 // answers under one name meet, and the step is refused with the word's
-// address, which calls the word, as another name reads the value [D223];
+// address, which calls the word, as another name reads the value [QSNAM#reach];
 // a value of the reader withheld from held code is refused under its
 // name before a word or a value of the root answers for it [D278].
 async function callByName(lookupName, modifiers, state, node) {
@@ -495,7 +495,7 @@ async function callByName(lookupName, modifiers, state, node) {
 }
 
 // A name reads the value its record holds, so `:x it | x` sees the raw
-// data, a quote among it, which `apply` runs [D5].
+// data, a quote among it, which `apply` runs [QSNAM#value].
 async function applyBinding(entry, lookupName, modifiers, state) {
   const resolved = bindingValueOf(entry);
 
@@ -652,7 +652,7 @@ function scopeOpenedIn(env, ofTheRoot) {
 
 // Whether a name of a scope is a node, a name with a path, or a label, the
 // names a recipe and code held as data read, any other a value a reader
-// named [D200], [D278].
+// named [QSNAM#owner], [D278].
 function isNodeOrLabel(name, record) {
   return name.includes('/') || declaresALabel(record);
 }
@@ -851,7 +851,7 @@ function subjectOfCall(signature, labelName, subject) {
 // their places, the values of its objects computed against the subject,
 // and, for a recipe written in steps, the scope of its body, each input
 // bound by its name and the args as `args`, names the steps of the body
-// declare no second time [D71], and the state of the call's run, which
+// declare no second time [QSNAM#scope], and the state of the call's run, which
 // keeps the origin of each quote its objects hold [D278]: args of more
 // values than the inputs read places are refused, an input the args leave
 // out where its place reads one is refused, a value none of an input's
@@ -1067,7 +1067,7 @@ function laneOf(env) {
 // word a reducer's quote names by one word, its name or its address,
 // called as the pipe calls it, `acc | add item`, the word residing on the
 // accumulator among them [D72], and a value of the scope under the name
-// meeting the word there [D90], [D223]; null for code of any other shape
+// meeting the word there [D90], [QSNAM#reach]; null for code of any other shape
 // or a name of no word, which `reduce` runs on the pair of the value so
 // far and the element [D90].
 export function resolveBinaryReducer(reducer) {

@@ -17,7 +17,7 @@ describe('runLaws reads a name as laws does', () => {
 
   it('a binding without a doc runs no law, its page null', async () => {
     // A host-installed binding (via `session.bind`) is the record of a
-    // binding without a doc [D5].
+    // binding without a doc [QSNAM#binding].
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInjected', 42);
     const cellEntry = await sessionInstance.evalCell('::hostInjected | runLaws');

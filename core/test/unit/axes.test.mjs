@@ -1,5 +1,5 @@
 // The axes, `source`, `doc` and `binding`, read the record a declaration
-// wrote into its scope [D5].
+// wrote into its scope [QSNAM#binding].
 
 import { describe, it, expect } from 'vitest';
 import { printValue } from '../../src/index.mjs';
@@ -197,7 +197,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
   // The axes project the one record the scope holds under an address, so
   // a word the reader declares reads as itself, the case the hypertext
   // chain exists for. A value of the reader's named as a word meets the
-  // word at a step whose subject the word answers [D223].
+  // word at a step whose subject the word answers [QSNAM#reach].
   const shadowed = ':any/hundredfold ~(mul 100) | ';
 
   it('a value of the reader named as a word meets the word where the subject answers it', async () => {
@@ -229,7 +229,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
 
   it('a host binding is a record with no source and no docs', async () => {
     // `session.bind` writes the record of a binding without a
-    // declaration behind it [D5], which the axes project.
+    // declaration behind it [QSNAM#binding], which the axes project.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInstalled', null);
@@ -248,7 +248,7 @@ describe('::name | binding | /value answers the value of the declaration', () =>
 
   it('the record of a declaration of it holds the value', async () => {
     // `:name it` writes the record of a binding under :name in env
-    // [D5], which `binding` reads.
+    // [QSNAM#binding], which `binding` reads.
     expect(await evalQuery('42 | :answer it | ::answer | binding | get /value')).toBe(42);
   });
 });

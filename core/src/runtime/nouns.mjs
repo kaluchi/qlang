@@ -150,7 +150,7 @@ const kindsNamedBy = value => (isTag(value) ? [value.name] : value.map(tag => ta
 // does but a word's of the root, which reads a noun of the root in the
 // root alone, a reader's extension of it staying in the reader's queries,
 // and a noun the reader declared, whose values carry it, as the reader
-// wrote it [D200].
+// wrote it [QSNAM#owner].
 export function readsTheReaderUnder(env, nounName) {
   return !isRootWordScope(env) || !rootOf(env).has(nounName);
 }
@@ -287,7 +287,7 @@ export function scopeNamesOf(env) {
 }
 
 // readerNamesOf(env) → what the reader declared, by name, the root apart
-// [D160].
+// [QSNAM#binding].
 export function readerNamesOf(env) {
   const readerNames = new Map();
   for (const [name, entry] of env) if (isBinding(entry)) readerNames.set(name, entry);

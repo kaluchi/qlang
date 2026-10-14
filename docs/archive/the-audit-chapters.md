@@ -388,7 +388,7 @@ query that does not parse and an input that does not read among those, a
 defect of the runtime alone stopping the calls beside it [D7]. What
 those repairs left is what the scars below describe.
 
-[D5]: ../decisions/D5.md
+[D5]: ../decisions/replaced/D5.md
 [D7]: ../decisions/D7.md
 [D8]: ../decisions/D8.md
 [D13]: ../decisions/D13.md
@@ -400,7 +400,7 @@ those repairs left is what the scars below describe.
 [D46]: ../decisions/D46.md
 [D50]: ../decisions/D50.md
 [D51]: ../decisions/D51.md
-[D71]: ../decisions/D71.md
+[D71]: ../decisions/replaced/D71.md
 [D108]: ../decisions/D108.md
 [D116]: ../decisions/D116.md
 [D118]: ../decisions/D118.md
@@ -425,10 +425,10 @@ those repairs left is what the scars below describe.
 [D178]: ../decisions/D178.md
 [D180]: ../decisions/replaced/D180.md
 [D185]: ../decisions/D185.md
-[D200]: ../decisions/D200.md
+[D200]: ../decisions/replaced/D200.md
 [D217]: ../decisions/replaced/D217.md
 [D221]: ../decisions/D221.md
-[D223]: ../decisions/D223.md
+[D223]: ../decisions/replaced/D223.md
 [D224]: ../decisions/replaced/D224.md
 [D228]: ../decisions/replaced/D228.md
 [D243]: ../decisions/D243.md

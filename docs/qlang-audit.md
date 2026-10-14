@@ -467,8 +467,8 @@ And names collide, which the maintainer has named as the one worry the
 design never resolved: «стремительно растущий зоопарк операндов меня
 все время беспокоил и конфликты имен .. последнее так и осталось
 неразрешенным до сих пор» (maintainer, 2026-09-23 07:02, session
-86982eb5). The rule is decided [D34], [D153], [D200], [D223],
-and a host still publishes names without a prefix. The sister project's names would
+86982eb5). The rule is decided [D34], [D153], [QSNAM#owner],
+[QSNAM#reach], and a host still publishes names without a prefix. The sister project's names would
 meet the core's on `type` and on `source`, which it names `typeNamed`
 and `sourceText` until it declares them under kinds of its own [D2],
 and its graph alone declares under `::any` the words a query calls,
@@ -489,8 +489,8 @@ a host's catalog should grow the same way.
 What remains of the rule of collisions, who may join a verb and a kind,
 whose the names without a prefix are and how one query shows every
 definition of a name, the surface and the loading [D153], the reading
-of a name [D221], the rule of the owner [D200] and the meeting of a
-value and a word [D223] settled, is a question being decided [D269].
+of a name [D221], the rule of the owner [QSNAM#owner] and the meeting
+of a value and a word [QSNAM#reach] settled, is a question being decided [D269].
 Namespaces too large to bind are the sister project's types, tens of
 thousands of names, which it reaches by lookups it declares under
 `::any`; serving them as tags is the question of mounting [D259].
@@ -612,21 +612,23 @@ narrated in the project's own text; the reference was «это не
 and what they said that the catalog did not stands as laws of its names,
 the concepts on the pages of `::qlang` in the order they rest on each
 other; the embedding API is the page of the package, `core/README.md`.
-The documents left are the measure, the decisions, the research of a
-design whose work has begun, which its records absorb as the work lands
-[D164], the audits of a clean outside reader of the tree, run by one
+The documents left are the measure, the decisions, the specification
+by topic, into which the decisions dissolve at the move of the baseline
+[D283], the research of a design whose work has begun, which its
+records absorb as the work lands [D164], the audits of a clean outside reader of the tree, run by one
 command [D277], the reviews of the catalog a record in force cites,
 each kept as its writer wrote it beside the fate of each finding [D282],
 and the chapters this document left, as they were written [D255]:
 
 ```sh
-$ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions | sed -E 's#^(docs/research/[^/]+)/.*#\1/#' | sort -u
+$ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions | sed -E 's#^(docs/(research/[^/]+|spec))/.*#\1/#' | sort -u
 docs/archive/the-audit-chapters.md
 docs/qlang-audit.md
 docs/qlang-entrypoint.md
 docs/research/legend/
 docs/research/outside-audit/
 docs/research/reviews/
+docs/spec/
 ```
 
 What remains of the scar is the editor's hand-written TextMate grammar,
@@ -656,7 +658,7 @@ catalog the first sentence of the page of each word it shows first.
 
 The effect marker left the language [D2]: no name begins with
 `@`, and a word of a host is named as any word is, under the rule of
-collisions [D200], [D223]. A host whose word reads an index or throws
+collisions [QSNAM#owner], [QSNAM#reach]. A host whose word reads an index or throws
 dice marks the provenance of the value it returns with a tag, and a tag
 can describe an effect as well, a write the host is to perform, which
 an explicit step at the host boundary performs and nothing else, as the
@@ -828,7 +830,8 @@ binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a function named
 under the label of its subject, its inputs and its answer in its chain,
 or a quote written alone, the function of no commands it is, and it runs
-when its name is mentioned, as a built-in does [D5], [D251], [D253]. Comments are
+when its name is mentioned, as a built-in does [QSNAM#word], [D251],
+[D253]. Comments are
 whitespace; documentation is a doc literal in the binding's slot.
 
 Maps and vectors are the only containers; JSON syntax is read,
@@ -864,7 +867,7 @@ it names [D88]; a host sets up a query by its sources and the first
 value of its pipe and nothing else [D37], [D153]. A value the reader
 names takes any name, and a step that calls it on a subject a word of
 the name answers is refused, the word called by its address there
-[D223]:
+[QSNAM#reach]:
 
 ```qlang
 > :count 5 | get [~(7 | count) ~([1 2] | count !| type) ~([1 2] | vec/count)]
@@ -872,7 +875,7 @@ the name answers is refused, the word called by its address there
 ```
 
 A declaration writes into its scope the record of its binding, so the
-axes read the record [D5], each reading a name by its
+axes read the record [QSNAM#binding], each reading a name by its
 tag, a label of the root from the root and any other name at its
 nearest declaration, while a keyword is a value that names nothing,
 `:limit | doc` the page of `::keyword` [D221]. Effect markers are
@@ -1224,7 +1227,6 @@ when a decision answers it [D255]; `node scripts/requirements.mjs` lists
 those being decided.
 
 [D2]: decisions/D2.md
-[D5]: decisions/D5.md
 [D7]: decisions/D7.md
 [D8]: decisions/D8.md
 [D13]: decisions/D13.md
@@ -1251,7 +1253,6 @@ those being decided.
 [D59]: decisions/D59.md
 [D61]: decisions/D61.md
 [D67]: decisions/D67.md
-[D71]: decisions/D71.md
 [D72]: decisions/D72.md
 [D84]: decisions/D84.md
 [D88]: decisions/D88.md
@@ -1291,12 +1292,10 @@ those being decided.
 [D178]: decisions/D178.md
 [D179]: decisions/D179.md
 [D185]: decisions/D185.md
-[D200]: decisions/D200.md
 [D208]: decisions/D208.md
 [D212]: decisions/D212.md
 [D214]: decisions/D214.md
 [D221]: decisions/D221.md
-[D223]: decisions/D223.md
 [D225]: decisions/D225.md
 [D227]: decisions/D227.md
 [D231]: decisions/D231.md
@@ -1324,3 +1323,8 @@ those being decided.
 [D278]: decisions/D278.md
 [D279]: decisions/D279.md
 [D282]: decisions/D282.md
+[D283]: decisions/D283.md
+[QSNAM#binding]: spec/QSNAM-names-and-scope.md#binding
+[QSNAM#owner]: spec/QSNAM-names-and-scope.md#owner
+[QSNAM#reach]: spec/QSNAM-names-and-scope.md#reach
+[QSNAM#word]: spec/QSNAM-names-and-scope.md#word

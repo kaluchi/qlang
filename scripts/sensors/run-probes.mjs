@@ -20,8 +20,10 @@
 // run, which `npm run ci` and the checks of a push make [D93].
 //
 // Usage: node scripts/sensors/run-probes.mjs [document ...]
-// Without documents it reads the audit, the entrypoint and the open
-// records, whose questions hold probes as the audit does [D255].
+// Without documents it reads the audit, the entrypoint, the open
+// records, whose questions hold probes as the audit does [D255], and the
+// chapters of the specification, whose sections show their rules by
+// probes [D283].
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -34,8 +36,10 @@ const repoRoot = join(import.meta.dirname, '..', '..');
 const recordsDir = join(repoRoot, 'docs', 'decisions');
 const openRecords = readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).map(name => join(recordsDir, name))
   .filter(path => isOpenText(readFileSync(path, 'utf8')));
+const specDir = join(repoRoot, 'docs', 'spec');
+const chapters = readdirSync(specDir).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name)).map(name => join(specDir, name));
 const documents = process.argv.length > 2 ? process.argv.slice(2)
-  : [join(repoRoot, 'docs', 'qlang-audit.md'), join(repoRoot, 'docs', 'qlang-entrypoint.md'), ...openRecords];
+  : [join(repoRoot, 'docs', 'qlang-audit.md'), join(repoRoot, 'docs', 'qlang-entrypoint.md'), ...openRecords, ...chapters];
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery } = await core('eval.mjs');
 const { printValue } = await core('index.mjs');

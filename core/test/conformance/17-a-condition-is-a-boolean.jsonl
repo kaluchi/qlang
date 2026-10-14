@@ -98,9 +98,6 @@
 {"decision":"D15","name":"any-map-value-matches","query":"{:a -1 :b 0 :c 2} | any ~(gt 0)","expect":"true"}
 {"decision":"D15","name":"any-map-no-value-matches","query":"{:a -1 :b -2 :c -3} | any ~(gt 0)","expect":"false"}
 {"decision":"D15","name":"any-map-empty-vacuous","query":"{} | any ~(gt 0)","expect":"false"}
-{"decision":"D5","name":"any-vec-declared-verb","query":"[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
-{"decision":"D5","name":"any-vec-verb-predicate","query":"[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
-{"decision":"D5","name":"any-vec-verb-predicate-false","query":"[1 2 3] | :any/huge ~(gt 99) | any ~huge","expect":"false"}
 {"decision":"D16","name":"any-set-declared-verb","query":"#[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
 {"decision":"D16","name":"any-set-verb-predicate","query":"#[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
 {"decision":"D15","name":"any-map-declared-verb","query":"{:a -1 :b 2} | :any/pos ~(gt 0) | any ~(pos)","expect":"true"}
@@ -123,9 +120,6 @@
 {"decision":"D15","name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every ~(gt 0)","expect":"true"}
 {"decision":"D15","name":"every-map-one-value-fails","query":"{:a 1 :b -2 :c 3} | every ~(gt 0)","expect":"false"}
 {"decision":"D15","name":"every-map-empty-vacuous","query":"{} | every ~(gt 0)","expect":"true"}
-{"decision":"D5","name":"every-vec-declared-verb","query":"[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
-{"decision":"D5","name":"every-vec-verb-predicate","query":"[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
-{"decision":"D5","name":"every-vec-verb-predicate-fails","query":"[2 4 -1] | :any/positive ~(gt 0) | every ~positive","expect":"false"}
 {"decision":"D16","name":"every-set-declared-verb","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
 {"decision":"D16","name":"every-set-verb-predicate","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
 {"decision":"D15","name":"every-map-declared-verb","query":"{:a 1 :b 2} | :any/big ~(gt 0) | every ~(big)","expect":"true"}

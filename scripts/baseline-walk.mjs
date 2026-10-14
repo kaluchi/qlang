@@ -44,6 +44,7 @@ function citationsIn(text) {
 
 function stateOf(record) {
   if (record.mergedInto.length > 0) return `merged into ${record.mergedInto.join(', ')}`;
+  if (record.dissolvedInto.length > 0) return `dissolved into ${record.dissolvedInto.join(', ')}`;
   if (replacedWhole(record)) return `closed by ${record.replacedBy.join(', ')}`;
   return isBeingDecided(record) ? 'which no case holds' : 'which a target alone holds';
 }
@@ -118,12 +119,36 @@ export function walkOfBaseline(repoRoot) {
       if (record !== undefined && !notClosed(record) && !record.open) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
     }
   }
+  for (const { where, problem } of unresolvedSections(repoRoot)) walk.violations.push({ where, problem });
   for (const path of uncitedDocuments(repoRoot)) {
     if (git(repoRoot, 'ls-tree', '--name-only', baseline, '--', path).trim() !== '') {
       walk.violations.push({ where: path, problem: 'no record in force and no document of the work cites it: node scripts/drop-documents.mjs [D282]' });
     }
   }
   return walk;
+}
+
+// A citation of the specification, `[QSNAM#scope]` or `[QSNAM]`, names a
+// chapter under `docs/spec/` and a section it holds as a heading of its
+// own, `## scope` [D283].
+const SECTION_CITATION = /\[(QS[A-Z]{3})(?:#([a-z][a-z-]*))?\]/g;
+export function unresolvedSections(repoRoot) {
+  const specDir = join(repoRoot, 'docs', 'spec');
+  const chapters = new Map((existsSync(specDir) ? readdirSync(specDir) : []).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name))
+    .map(name => [name.slice(0, 5), new Set(readFileSync(join(specDir, name), 'utf8').split(/\r?\n/).filter(line => line.startsWith('## ')).map(line => line.slice(3).trim()))]));
+  const citing = [...CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE)), ...filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/),
+    ...CITING_DOCUMENTS, ...filesUnder(repoRoot, 'docs/decisions', /\.md$/), ...filesUnder(repoRoot, 'docs/spec', /\.md$/)];
+  const unresolved = [];
+  for (const file of citing.filter(path => existsSync(join(repoRoot, path)))) {
+    readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
+      for (const [whole, chapter, section] of line.matchAll(SECTION_CITATION)) {
+        const sections = chapters.get(chapter);
+        if (sections === undefined) unresolved.push({ where: `${file}:${index + 1}`, problem: `cites ${whole}, a chapter docs/spec does not hold` });
+        else if (section !== undefined && !sections.has(section)) unresolved.push({ where: `${file}:${index + 1}`, problem: `cites ${whole}, a section ${chapter} does not hold` });
+      }
+    });
+  }
+  return unresolved;
 }
 
 // The documents of the research that stay while something in force cites

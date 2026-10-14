@@ -146,7 +146,7 @@ export function declaresKind(bindStep) {
 }
 
 // The declarations of a pipeline that repeat a name an earlier step of
-// the same scope declared, the steps sharing one env [D71].
+// the same scope declared, the steps sharing one env [QSNAM#scope].
 const REPEATED_DECLARATIONS_OF_PIPELINE = new WeakMap();
 
 function repeatedDeclarationsOf(pipeline) {
@@ -166,7 +166,7 @@ function repeatedDeclarationsOf(pipeline) {
 }
 
 // repeatsDeclarationInScope(bindStep) — whether an earlier step of the
-// declaration's scope declares its name [D5], [D71].
+// declaration's scope declares its name [QSNAM#scope].
 export function repeatsDeclarationInScope(bindStep) {
   return bindStep.parent?.type === 'Pipeline' && repeatedDeclarationsOf(bindStep.parent).has(bindStep);
 }

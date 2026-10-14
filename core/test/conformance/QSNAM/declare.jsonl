@@ -1,0 +1,10 @@
+{"name":"a-name-holds-the-value-in-the-pipe","query":"42 | :answer it | answer","expect":"42"}
+{"name":"a-name-holds-the-value-for-the-steps-after","query":"[1 2 3] | :nums it | nums | count","expect":"3"}
+{"name":"names-hold-the-values-of-several-stages","query":"[85 92 47 78 68 95 52] | :allScores it | filter ~(gte 70) | :passingScores it | get [~(allScores | count), ~(passingScores | count)]","expect":"[7 4]"}
+{"name":"a-binding-holds-what-the-word-its-body-calls-answers","query":":any/two ~(2) | :n two | n","expect":"2"}
+{"name":"a-vector-after-a-name-is-its-body","query":":xs [1 2] | xs","expect":"[1 2]"}
+{"name":"a-binding-names-the-value-at-its-declaration","query":"42 | :x it | add 1 | x","expect":"42"}
+{"name":"a-declaration-names-a-kind","query":":s ::vec | env | get /s | get /value","expect":"::vec"}
+{"name":"a-declaration-names-a-keyword","query":":status :active | env | get /status | get /value","expect":":active"}
+{"name":"a-declaration-that-computes-begins-the-body","query":":vec/total ~(:n (count) | sum | add n) | [1 2 3] | total","expect":"9"}
+{"name":"a-template-of-get-begins-the-body","query":":vec/m ~(:opts get {:n ~(count)} | opts) | [1 2] | m","expect":"{:n 2}"}

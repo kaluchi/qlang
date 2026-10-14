@@ -19,12 +19,6 @@
 {"decision":"D16","name":"filter-set-gt","query":"#[1 2 3 4 5] | filter ~(gt 2)","expect":"#[3 4 5]"}
 {"decision":"D16","name":"filter-set-empty-result","query":"#[1 2 3] | filter ~(gt 99)","expect":"#[]"}
 {"decision":"D15","name":"filter-map-value-gt","query":"{:a 1 :b 2 :c 3} | filter ~(gt 1)","expect":"{:b 2 :c 3}"}
-{"decision":"D5","name":"filter-vec-declared-verb","query":"[1 2 3 4 5] | :number/big ~(gt 2) | filter ~(big)","expect":"[3 4 5]"}
-{"decision":"D5","name":"filter-vec-verb-predicate","query":"[1 -2 3 -4 5] | :number/positive ~(gt 0) | filter ~positive","expect":"[1 3 5]"}
-{"decision":"D5","name":"filter-set-declared-verb","query":"#[1 2 3 4 5] | :number/big ~(gt 2) | filter ~(big)","expect":"#[3 4 5]"}
-{"decision":"D5","name":"filter-set-verb-predicate","query":"#[1 -2 3 -4 5] | :number/positive ~(gt 0) | filter ~positive","expect":"#[1 3 5]"}
-{"decision":"D5","name":"filter-map-declared-verb","query":"{:a 1 :b 2 :c 3} | :number/big ~(gt 1) | filter ~(big)","expect":"{:b 2 :c 3}"}
-{"decision":"D5","name":"filter-map-verb-predicate","query":"{:a 1 :b -2 :c 3} | :number/positive ~(gt 0) | filter ~positive","expect":"{:a 1 :c 3}"}
 {"decision":"D251","name":"a-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2 :c 3} | :number/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | filter ~above !| type","expect":"::number/above/limit/NotGivenError"}
 {"decision":"D15","name":"filter-map-empty","query":"{} | filter ~(gt 0)","expect":"{}"}
 {"decision":"D15","name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1)","expect":"{:c 3 :b 2}"}

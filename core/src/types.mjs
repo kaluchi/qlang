@@ -93,7 +93,7 @@ export function isTag(v) {
 
 // ── binding / quote predicates ────────────────────────────────
 
-// The record a declaration writes into its scope [D5]: the name, the
+// The record a declaration writes into its scope [QSNAM#binding]: the name, the
 // docs of its slot, the value, the quote of the declaring step and its
 // origin, the source or the cell it was read from [D153], under the kind
 // `::binding`. A binding with no declaration behind it, a value a host

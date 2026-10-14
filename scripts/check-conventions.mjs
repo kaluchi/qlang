@@ -402,7 +402,7 @@ function recordsWithoutDecider() {
 // [D237].
 
 function misplacedRecords() {
-  const replacedWhole = path => /^(Replaced by|Merged into) /m.test(readFileSync(join(repoRoot, path), 'utf8'));
+  const replacedWhole = path => /^(Replaced by|Merged into|Dissolved into) /m.test(readFileSync(join(repoRoot, path), 'utf8'));
   const inFolder = folder => readdirSync(join(repoRoot, folder)).filter(file => /^[DE]\d+\.md$/.test(file)).map(file => `${folder}/${file}`);
   return [
     ...inFolder('docs/decisions').filter(replacedWhole).map(path => ({ path, problem: 'is replaced whole: move it by `node scripts/replaced-records.mjs`' })),

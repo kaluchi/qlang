@@ -22,7 +22,7 @@ const recordFolders = root => [join(root, 'docs', 'decisions'), join(root, 'docs
 export const FIELD_NAMES = ['Domain', 'Decided by', 'Decision', 'Question', 'Source', 'Alternatives', 'Set aside', 'Requirements'];
 export const OPEN_RECORD_FIELDS = ['Question', 'Source', 'Alternatives'];
 export const DECIDED_RECORD_FIELDS = ['Decided by', 'Decision'];
-const FATES = ['Replaces', 'Pruned of what', 'Replaced by', 'Replaced in part by', 'Merged into', 'Left at'];
+const FATES = ['Replaces', 'Pruned of what', 'Replaced by', 'Replaced in part by', 'Merged into', 'Dissolved into', 'Left at'];
 export const FIELD_OPENS = new RegExp(`^(${FIELD_NAMES.join('|')})\\.`);
 export const FATE = new RegExp(`^(${FATES.join('|')}) `);
 const FIELD = new RegExp(`${FIELD_OPENS.source}|${FATE.source}`);
@@ -72,6 +72,9 @@ export function readDecisionRecords(root) {
         replacedBy: replacing(false),
         replacedInPartBy: replacing(true),
         mergedInto: [...recordText.matchAll(/^Merged into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/[DE]\d+/g)].map(match => match[0])),
+        // The sections of the specification a record of the journal
+        // dissolved into, its change made the order of the baseline [D283].
+        dissolvedInto: [...recordText.matchAll(/^Dissolved into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/QS[A-Z]{3}(?:#[a-z-]+)?/g)].map(match => match[0])),
         open: isOpenText(recordText),
         met: [],
         targets: [],
@@ -94,7 +97,7 @@ export function readDecisionRecords(root) {
   return records;
 }
 
-export const replacedWhole = record => record.replacedBy.length > 0 || record.mergedInto.length > 0;
+export const replacedWhole = record => record.replacedBy.length > 0 || record.mergedInto.length > 0 || record.dissolvedInto.length > 0;
 
 // Whether the text of a record holds a question no decision answers yet,
 // an open record [D255].

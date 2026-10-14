@@ -14,9 +14,14 @@ wins and this file is what changes.
    scars, the finish, and the route of milestones. Each numbered
    decision is a file under `docs/decisions/`, opened where the audit
    cites it; one under `docs/decisions/replaced/` is history, and its
-   paths read in the tree its line `Left at` names [D282]. `node
-   scripts/requirements.mjs` lists the requirements every decision left
-   and which the tree meets.
+   paths read in the tree its line `Left at` names [D282]. What holds at
+   the baseline is stated by topic in `docs/spec/`, a chapter per topic
+   cited by section, `[QSNAM#scope]`, its cases under
+   `core/test/conformance/QSNAM/`; a decision is the change in transit,
+   which dissolves into the chapters at the move of the baseline [D283],
+   and a topic no chapter holds yet keeps its rules in the records in
+   force. `node scripts/requirements.mjs` lists the requirements every
+   decision left and which the tree meets.
    `docs/qlang-entrypoint.md` is a draft of the computed context a
    session starts from, ideas and no decision [D231]. The sensors live
    in `scripts/sensors/`: the probes run wherever the checkout is, and
@@ -66,7 +71,8 @@ Tier 2, by topic, only the files the topic names:
 - arguments and dispatch: `core/src/runtime/nouns.mjs` for the walk
   from a subject's tags to the verb a name calls, and
   `core/lib/qlang/any.qlang` for the words every value answers
-- names, scope, the root, sessions: `core/src/state.mjs`,
+- names, scope, the root, sessions: `docs/spec/QSNAM-names-and-scope.md`
+  first, then `core/src/state.mjs`,
   `core/src/env-keys.mjs`,
   `core/src/runtime/root.mjs`, `core/src/runtime/env.mjs`,
   `core/src/session.mjs`

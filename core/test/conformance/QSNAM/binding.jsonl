@@ -1,0 +1,14 @@
+{"name":"env-has-unknown","query":"env | has :thisNameDoesNotExist","expect":"false"}
+{"name":"env-after-a-declaration-of-it","query":"42 | :answer it | env | has :answer","expect":"true"}
+{"name":"env-after-bind","query":":double ~(mul 2) | env | has :double","expect":"true"}
+{"name":"env-answers-whatever-the-subject","query":":x 1 | [1 2 3] | env | has :x","expect":"true"}
+{"name":"env-answers-the-names-of-the-scope","query":":x 1 | env | get [~(has :x) ~(has :vec) ~(has :count)]","expect":"[true false false]"}
+{"name":"a-declaration-produces-a-binding-record","query":":x |~~ One. ~~| 1 | env | get /x | get /value","expect":"1"}
+{"name":"a-binding-record-answers-its-doc","query":":x |~~ One. ~~| 1 | env | get /x | doc | content","expect":"\" One. \""}
+{"name":"a-group-exposes-the-record-of-a-name-it-declares","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | get /x | type","expect":"::binding"}
+{"name":"a-group-exposes-the-value-its-declaration-computed","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | get /x | get /value","expect":"2"}
+{"name":"a-value-is-held-in-its-record","query":"0.07 | :taxRate it | env | get /taxRate | get /value","expect":"0.07"}
+{"name":"a-binding-record-holds-its-name","query":":foo 2 | env | get /foo | get /name","expect":":foo"}
+{"name":"env-answers-what-the-reader-declared","query":":x 1 | :Box {} | :Box/y 2 | env | get [~(has :x) ~(has :Box/y) ~(has :vec) ~(has :count)]","expect":"[true true false false]"}
+{"name":"env-answers-a-map","query":"env | type","expect":"::map"}
+{"name":"a-member-of-a-noun-stays-out-of-the-scope","query":"env | has :pipeline","expect":"false"}

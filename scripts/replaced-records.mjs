@@ -15,7 +15,7 @@ const repoRoot = resolve(import.meta.dirname, '..');
 const recordsDir = join(repoRoot, 'docs', 'decisions');
 const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' });
 
-const replacedWhole = text => /^(Replaced by|Merged into) /m.test(text);
+const replacedWhole = text => /^(Replaced by|Merged into|Dissolved into) /m.test(text);
 const moving = readdirSync(recordsDir)
   .filter(name => /^[DE]\d+\.md$/.test(name) && replacedWhole(readFileSync(join(recordsDir, name), 'utf8')));
 mkdirSync(join(recordsDir, 'replaced'), { recursive: true });

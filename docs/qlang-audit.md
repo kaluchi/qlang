@@ -14,8 +14,8 @@ chapters tell, `::qlang | doc`; and the chapters this document carried
 on the core, on the hypertext and on how the project got here stand as
 written in `docs/archive/the-audit-chapters.md`. It was first written in
 September 2026, and each version since holds the text against the tree
-the repairs of the one before left. This, the fifteenth, holds it
-against commit `037e99a7`, its baseline: a scar the tree no longer shows
+the repairs of the one before left. This, the sixteenth, holds it
+against commit `f0db2ec3`, its baseline: a scar the tree no longer shows
 has left the document, what remains of a scar is stated as it stands,
 the route starts from the baseline, and every probe answers as the tree
 answered on the day this version was written.
@@ -141,11 +141,11 @@ Some rules for whoever edits the document, each learnt at a cost:
 
 qlang exists for a model working under the pressure of a task in a
 session that remembers nothing. Such a session meets JSON-shaped data
-from sources it has never seen, has to collect and reshape it
+from sources it has never seen, has to collect and shape it
 correctly, and cannot afford to learn a language first. qlang is the
 pipeline language for that situation, and it carries one commitment
 that ordinary query languages do not: it teaches its user from inside
-itself. The catalog of operands is written in qlang, every binding
+itself. The catalog of words is written in qlang, every binding
 carries its own prose and runnable examples, and an error leads to the
 document that explains it. A model does not need a manual delivered in
 advance; it needs a protocol for asking at the point of need.
@@ -163,7 +163,7 @@ rebuilds the graph inside the context, the most expensive place there
 is.
 
 qlang's place is inside a tool that already holds such a graph or such
-data. The tool embeds the language and exposes its domain as operands,
+data. The tool embeds the language and exposes its domain as words,
 and a session asks one question where it would have made many calls:
 the query names the shape of the answer, so nothing arrives that was
 not asked for and nothing needed is missing; the intermediate data
@@ -184,12 +184,12 @@ because knowledge about a tool that has been copied out of it is a
 liability. Nothing is delivered as a sheet: the caller controls the
 shape and the detail of what it receives. And the shape of an answer
 can be known before the answer is fetched, from the tool itself, since
-a query that reshapes blind cannot be written. The last requirement was
+a query that shapes blind cannot be written. The last requirement was
 learned from the attempt to write every schema and example into the
 tool's help: the share of such a sheet that bears on the task at hand
 falls toward nothing, because the shape a session needs is that of the
-one answer it is about to reshape, and that shape belongs to the
-operand it is about to call.
+one answer it is about to shape, and that shape belongs to the
+word it is about to call.
 
 An answer is a presentation, data filtered for a question, never the
 data a host holds. The sister project's first answers were formatted
@@ -305,7 +305,7 @@ every session begins from it. This document is where it lives, and the
 other conditions are reachable because this one holds.
 
 Seventh, the revision as a whole deletes more than it adds. Measured
-against the baseline of the version at hand, commit `68255c84` for this
+against the baseline of the version at hand, commit `f0db2ec3` for this
 one, the diff of the work ahead is negative in the core sources, in the
 documents, and in the tests; the September 2026 master, commit
 `f5e8ec8`, stays the origin the history measures from. The catalog
@@ -330,7 +330,7 @@ and a combinator between steps. A construction that needs another
 mechanism to be explained does not enter.
 
 Everything is a value. Code, documentation, an error, the environment,
-and the description of an operand are values of the language; each has
+and the description of a word are values of the language; each has
 a literal that prints and reads back. What has no literal does not
 reach the pipeline value.
 
@@ -348,7 +348,7 @@ object, never a step the language runs by a verb nobody wrote [D248]:
 субьекта - то мы можем его колить обычным протоколом..» (2026-10-12
 22:40, session d65e4c1d).
 
-The language describes itself. The only description of an operand is
+The language describes itself. The only description of a word is
 its declaration in the catalog. Documentation is read out of the
 language, examples execute, an error leads to its document. Prose that
 retells the catalog is either generated from it or deleted.
@@ -450,7 +450,7 @@ and carries two copies of `fromPlain` of its own, each named
 `cli/lib/jdt/graph.impl.mjs`).
 
 The repair must make the refusals of a host kinds its catalog declares,
-so that nothing of the runtime is exported for building operands [D46].
+so that nothing of the runtime is exported for building words [D46].
 
 ### Names in one root
 
@@ -790,13 +790,13 @@ a literal without a tag has one of the core's, which its brackets imply
 [D32]; a kind carries the value's constructor, its order and its laws
 [D16], [D252], while one rule of the core prints every literal.
 
-One mechanism of operand. An operand is a function named under the
+One mechanism of word. A word is a function named under the
 label of its subject, built from `::fn` by commands, its inputs with
 their kinds and invariants, its answer, which `returns` names, its
 refusals and its laws, and its doc its page, a story of what it takes,
 answers and refuses, and the runtime executes the function [D179],
-[D180], [D251]. A built-in, a host's operand and a
-declared pipeline are called the same way, checked the same way,
+[D180], [D251]. A word of the core, a host's word and a word a
+reader declares are called the same way, checked the same way,
 documented the same way, and help for all of them, completion, the verbs
 that accept a value, the next part, the refusal's wording, is derived
 from the same record. A verb is found by walking the subject's tags from the outside
@@ -820,8 +820,9 @@ computed is the template of `get`, a literal of paths and quotes
 own form; code is a quote, `~(…)`, `~add` for a single word, which
 nothing but `apply` and an input whose kinds take a quote runs: a
 quote written in a step reads the names of that step wherever its call
-runs it, and code held as data runs in a lane of its own, the words of
-the tree and its own names, no value a reader named reaching it [D278].
+runs it, the call keeping where each of its objects came from, and code
+held as data runs in a lane of its own, the words of the scope of its
+step and its own names, no value that scope named reaching it [D278].
 There is one
 binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a function named
@@ -847,7 +848,7 @@ vector in that order without duplicates. A predicate answers a boolean
 or fails at its part. An error carries the address of what refused,
 its facts the definitions under that label in the order a reader needs
 them, and the tag leads to its procedure; a nested evaluation that
-fails yields its error as a value, which every operand treats by one
+fails yields its error as a value, which every word treats by one
 rule.
 
 A name is declared by its keyword, a name with a path a node under the
@@ -927,10 +928,10 @@ them may name them otherwise.
   the implementations plain functions over checked values; the parser, the
   printer and the JSON codec; the points where a host applies its
   budget, elision and enrichment.
-- The catalog, in qlang: operands with declarations that are true
+- The catalog, in qlang: words with declarations that are true
   because they are executed, the tag of every refusing site as a kind
   with its schema and its procedure, other tags with schemas, and the
-  root doc. The implementations of the operands are plain functions
+  root doc. The implementations of the words are plain functions
   beside it.
 - The tool views: the walker of the parser's tree and the tokenizer
   for highlighting, derived from the grammar, for the language server,
@@ -948,7 +949,7 @@ language says the rest of itself in its catalog, the concepts in the
 order they rest on each other on the pages of `::qlang`.
 
 The tests at the finish follow what they test. The catalog's examples
-are the tests of the operands. The conformance cases, each a query and
+are the tests of the words. The conformance cases, each a query and
 the literal it must answer, are the requirements of the language, held
 outside it, each opening with the record that gates it [D254]. The
 round trip of printing
@@ -986,7 +987,7 @@ to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `037e99a7`, and the finish
+The start is the tree of the baseline, commit `f0db2ec3`, and the finish
 is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
@@ -998,7 +999,7 @@ the path as a value met theirs, the first work of the route [D248], and
 the quote as data and the function built by commands met theirs
 [D251], and the kind built by commands and the one spelling of the
 roles of a word and a kind theirs [D252], [D253], and the closed
-literal theirs [D279]; a target shows the rule of the record that left it and holds the
+literal theirs [D279], and the lane of held code theirs [D278]; a target shows the rule of the record that left it and holds the
 answer the tree gives today [D91], and every decision below writes its
 targets before its work:
 
@@ -1104,11 +1105,11 @@ screen of the work, whose first version `npm run desk` prints [D226],
 grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168], [D169],
-[D185], [D248], [D251], [D252], [D253] and [D279] in the conformance suite,
+[D185], [D248], [D251], [D252], [D253], [D278] and [D279] in the conformance suite,
 every one met, the
 step of a constructor apart from the kind of tagged values having
 landed [D8]. Beside them: no
-class of the JavaScript stands for a refusal; no operand contract is
+class of the JavaScript stands for a refusal; no contract of a word is
 spelled outside the catalog; and the environment holds no key of the
 runtime's own.
 

@@ -965,7 +965,7 @@ query that reads its subject, so a pipe left open never holds a query
 that reads none [D37]; the answer written as its literal whatever the
 input was, a string as its text, and converted by the query, `| json`
 [D214]; the budget at the end of the pipe, and its renderings, `table`
-among them, words of its own [D49]:
+among them, words of its own [D22]:
 
 ```sh
 $ sleep 4 | timeout 2 node cli/src/bin.mjs '1 | add 1'
@@ -1248,7 +1248,6 @@ those being decided.
 [D42]: decisions/D42.md
 [D43]: decisions/D43.md
 [D46]: decisions/D46.md
-[D49]: decisions/D49.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md
 [D59]: decisions/D59.md

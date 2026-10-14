@@ -1,4 +1,4 @@
-// The plain-JSON codec both ways [D49], `json` rendering a value and
+// The plain-JSON codec both ways [D22], `json` rendering a value and
 // `parseJson` reading one, over the lossy value codec pair `toPlain` /
 // `fromPlain` that bridges qlang runtime values with ordinary JS data
 // structures.

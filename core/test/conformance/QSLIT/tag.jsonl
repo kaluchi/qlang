@@ -9,3 +9,5 @@
 {"name":"a-number-a-boolean-null-and-a-path-under-a-tag-print-by-a-hash","query":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\" | parse | apply it | print","expect":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\""}
 {"name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(type) ~(payload)]\" | parse | apply it","expect":"[::Width 8]"}
 {"name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| type) ~(#[2 1] | tag ::vec !| type)]","expect":"[::map/PayloadNotMapError ::vec/PayloadNotVecError]"}
+{"name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
+{"name":"the-subject-of-tag-alone-is-a-pair","query":"[[:foo 42] 5] | map ~(tag !| type)","expect":"[::any/tag/PairTagNotTagError ::any/tag/SubjectNotPairError]"}

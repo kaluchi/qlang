@@ -1,11 +1,11 @@
 // The errors of the runtime: a refusal of a query, one kind for every
-// place that refuses, whose facts the catalog declares [D46], and the
+// place that refuses, whose facts the catalog declares [QSERR#site], and the
 // defects of the runtime and of what its host handed, which never reach
 // a query as values.
 //
 // Every QlangError carries:
 //   .facts    — the facts its site hands, which the lift into an error
-//               value orders as the catalog declares them [D46];
+//               value orders as the catalog declares them [QSERR#site];
 //   .location — the position in the query of the step that raised it,
 //               set as it bubbles past a node, so an editor marks it.
 
@@ -31,7 +31,7 @@ export class QlangInvariantError extends QlangError {
 }
 
 // The addresses of the errors the runtime declares, one site each, which
-// the catalog pages under the place each names [D46].
+// the catalog pages under the place each names [QSERR#site].
 const declaredAddresses = new Set();
 
 export function recordRefusal(address) {
@@ -44,7 +44,7 @@ export function declaredRefusals() {
 }
 
 // A class answers the last name of its address as `name`, which a stack
-// frame reads, and carries the address, the tag of the error [D46].
+// frame reads, and carries the address, the tag of the error [QSERR#site].
 export function brand(Cls, address) {
   Object.defineProperty(Cls, 'name', { value: splitAddress(address)[1] });
   Object.defineProperty(Cls.prototype, 'address', { value: address });
@@ -53,7 +53,7 @@ export function brand(Cls, address) {
 
 // declareRefusal(address) → the class of the refusal of one place, whose
 // instances hand the facts of the site; the address is its tag and the
-// name of its page, the procedure, and its message [D46].
+// name of its page, the procedure, and its message [QSERR#site].
 export function declareRefusal(address) {
   recordRefusal(address);
   const Cls = class extends QlangError {
@@ -100,7 +100,8 @@ export const BuiltinRefusalDeclaredTwiceError = declareInvariantError('builtin/R
 
 export const CallUnknownNameError = declareRefusal('call/UnknownNameError');
 
-// A name with a path that no declaration names [D34], [D153].
+// A name with a path that no declaration names [QSDSP#walk],
+// [QSDSP#residence].
 export const CallUnknownAddressError = declareRefusal('call/UnknownAddressError');
 
 // One more nested frame of evaluation past the budget, a runaway in the

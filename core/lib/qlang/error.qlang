@@ -5,7 +5,7 @@
    of the site that refused stacked over it, and its walk passes
    `::error` on its way to the map, so a word declared here reaches every
    error.
-   The decisions it exists for: [D114]. ~|
+   The decisions it exists for: [QSDSP#residence]. ~|
 
 :error
   |~~ An error is the facts of a failure as a value: what refused, on

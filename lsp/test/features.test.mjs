@@ -256,7 +256,7 @@ describe('hoverAtOffset', () => {
   it('returns hover for the tag an error literal writes before its bang', async () => {
     // `::Tag!{…}` is one literal, the error whose content carries the
     // tag, so its head resolves like every tag head, and its braces,
-    // which the literal owns, show no tag [D13].
+    // which the literal owns, show no tag [QSERR#rest].
     const src = '::number/NotFiniteError!{:step 1}';
     const { ast } = parseDocument(src, 'test.qlang');
     const hover = await hoverAtOffset(ast, src, 5);
@@ -478,7 +478,7 @@ describe('documentSymbols', () => {
     ]);
   });
 
-  it('shows a kind built from ::kind as a label and a function with a recipe under it as a word [D252]', async () => {
+  it('shows a kind built from ::kind as a label and a function with a recipe under it as a word [QSBLD#kind]', async () => {
     const src = [
       ':Box',
       '  |~~ A parcel. ~~|',

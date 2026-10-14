@@ -100,7 +100,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
     switch (node.type) {
       case 'DocLit': {
         // The prose of a doc paints as a comment and the quotes it holds
-        // as the code they are, so only prose reads grey [D83].
+        // as the code they are, so only prose reads grey [QSSYN#doc].
         let cursor = startOffset;
         for (const segment of node.segments) {
           if (typeof segment === 'string') continue;
@@ -131,7 +131,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
 
       case 'ErrorLit': {
         // The tag an error literal writes before its bang paints as
-        // every tag head does, then the `!{` / `}` of the error [D13].
+        // every tag head does, then the `!{` / `}` of the error [QSERR#rest].
         const bangOffset = node.tag === null ? startOffset : startOffset + 2 + node.tag.length;
         if (node.tag !== null) spans.push({ start: startOffset, end: bangOffset, kind: 'tag' });
         emitBracketSpans(bangOffset, endOffset, 2, 1, 'err', spans);
@@ -165,7 +165,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
         // The binding key — Keyword `:name` or TagLit `::Tag` —
         // paints as 'keyword' (binding-introducer) so it is visually
         // distinct from a plain value-position `:name`; the doc literals
-        // of its slot paint as every doc does [D83].
+        // of its slot paint as every doc does [QSSYN#doc].
         const key = node.key;
         spans.push({ start: key.location.start.offset, end: key.location.end.offset, kind: 'keyword' });
         return; // descend into docs / body

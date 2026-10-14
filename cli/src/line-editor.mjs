@@ -440,7 +440,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
 
   // A paste a host hands over in several chunks gathers here, each chunk
   // of text arriving within the window after the last joining it, and
-  // lands at the cursor as one paste [D204].
+  // lands at the cursor as one paste [QSHST#repl].
   let pasteAccumBuffer = '';
   let pasteAccumTimer  = null;
   const PASTE_FLUSH_MS = 50;
@@ -464,7 +464,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   }
 
   function onData(chunk) {
-    // The text of the chunk, a code point split across chunks completed by the next.
+    // The text of the chunk, a code point split across chunks completed by the
+    // next.
     const chunkText = utf8Decoder.write(chunk);
     if (chunkText.length === 0) return;
 

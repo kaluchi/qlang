@@ -155,15 +155,15 @@ keeps the discussion from drifting.
 - Context engineering is the discipline of choosing what tokens enter
   the window at each step.
 - A presentation is data filtered for a question, what a command
-  answers in place of the data a host holds [D161].
+  answers in place of the data a host holds [QSSLF#catalog].
 - A label is a tag as its reader meets it, «ярлык на данных»: markup
   laid over a payload, a sticky hint of what the data beneath it is,
   hiding nothing, as highlighting lies over the text of an editor
-  [D161].
+  [QSSLF#catalog].
 - A legend is the key to reading an observation, reached from its
   printed form by one step and itself a literal of the language, so it
   is read further the same way: its hints tell how to take out more of
-  the observation or a part of it [D161].
+  the observation or a part of it [QSSLF#catalog].
 - The legend of a payload is the legend a label leads to: what was
   received, what each part of the payload means, and which verbs carry
   the value on, the fates open to it. A tool that changes carries the
@@ -295,7 +295,7 @@ been tried:
 
 The tags are placeholders for the schema the discussion settles, and
 they are qualified by their owner, since the values a host produces
-carry their owner in the address of their tags [D153]. What the block
+carry their owner in the address of their tags [QSDSP#residence]. What the block
 fixes is that the dashboard is a literal whose parts are addressed by
 projection, `/gates`, and read in detail by a query on the part, the
 gate's page or the fact's text, under the budget and the elision of
@@ -462,7 +462,7 @@ moved reads as a failure and never as a repair.
 Its first version compared by value, as the compliance test does, and
 disagreed with a probe whose print agreed: a descriptor of the catalog
 printed without its `::builtin` tag and read back as another value,
-until the print of a value wrote the tag [D96]. The runner keeps both
+until the print of a value wrote the tag [QSPRN#print]. The runner keeps both
 comparisons, so a probe that prints alike and is another value is
 reported as lossy. A string prints raw on the command line, and its
 text may read as words of the command form, so the runner holds a
@@ -679,14 +679,14 @@ qlang-литералом дашборд в духе темной кабины в
 
 Read against the audit, that sketch is the first real user of three of
 its decisions at once. `::workflow | start`, which became
-`::workflow | status`, is a verb found through the subject's tag [D34]:
+`::workflow | status`, is a verb found through the subject's tag [QSDSP#walk]:
 the verb belongs to `::workflow`. The
 dashboard is a literal of tagged records, a gate, a task, a decision, a
-case, a metric, each a tag whose label declares what it holds [D168], printed as
+case, a metric, each a tag whose label declares what it holds [QSSLF#catalog], printed as
 the cockpit wants it and read back by the next utility. And the zoom is
 a query with a tail, the gate's detail, the task's cases, the metric's
 history, under the budget and the elision of progressive disclosure
-[D21].
+[QSPRN#elide].
 
 The mechanism the sketch needs: the command line finds a folder of
 modules above the working directory, as git finds its directory,
@@ -736,13 +736,12 @@ decision and no record followed.
 What happens when the push misses: the fallback is a query, and the
 entrypoint's first screen has to say how to ask.
 
-[D21]: decisions/D21.md
 [D31]: decisions/D31.md
-[D34]: decisions/D34.md
 [D93]: decisions/D93.md
-[D96]: decisions/D96.md
-[D153]: decisions/D153.md
-[D161]: decisions/D161.md
-[D168]: decisions/D168.md
 [D225]: decisions/D225.md
 [D231]: decisions/D231.md
+[QSSLF#catalog]: spec/QSSLF-the-language-describes-itself.md#catalog
+[QSDSP#residence]: spec/QSDSP-a-word-found-through-its-subject.md#residence
+[QSPRN#print]: spec/QSPRN-printing-and-codecs.md#print
+[QSDSP#walk]: spec/QSDSP-a-word-found-through-its-subject.md#walk
+[QSPRN#elide]: spec/QSPRN-printing-and-codecs.md#elide

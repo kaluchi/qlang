@@ -1,0 +1,19 @@
+{"name":"a-residence-takes-its-subject-by-the-walk-of-its-tags","query":":Box |~~ Box. ~~| | :Box/w2 ~(get /w | mul 2) | get [~(::Box{:w 3} | Box/w2) ~({:w 3} | Box/w2 !| type)]","expect":"[6 ::Box/w2/SubjectNotBoxError]"}
+{"name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":number/inc (::fn | returns |~~ The answer. ~~| ::number | impl ~(add 1)) | ::Width#5 | inc | get [~(type) ~(payload)]","expect":"[::Width 6]"}
+{"name":"a-subject-is-taken-by-the-walk-of-its-tags","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | :Pos/f ~(payload) | get [~(::Pos#5 | f) ~(5 | f !| type) ~(::Pos#0 !| type)]","expect":"[5 ::Pos/f/SubjectNotPosError ::Pos/NotPositiveError]"}
+{"name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true"}
+{"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box#5 | gt 3","expect":"true"}
+{"name":"a-tagged-map-keeps-its-tag-through-filter","query":"::T{:a 1 :b 2} | filter ~(eq 1) | type","expect":"::T"}
+{"name":"a-tag-over-a-set-comes-back-on-take","query":"::Box#[1 2] | take 1","expect":"::Box#[1]"}
+{"name":"append-keeps-the-tag-of-its-vector","query":"::Box[1 2] | append 3","expect":"::Box[1 2 3]"}
+{"name":"append-runs-the-constructor-of-its-tag-again","query":":P |~~ P. ~~| (::kind | holds :TooLongError |~~ Three at most. ~~| ~(count | lte 3)) | ::P[1 2] | get [~(append 3 | type) ~(append 3 | append 4 !| type)]","expect":"[::P ::P/TooLongError]"}
+{"name":"a-tag-over-a-string-comes-back-on-append","query":"::Box\"ab\" | append \"c\"","expect":"::Box\"abc\""}
+{"name":"a-tag-over-a-string-comes-back-on-prepend","query":"::Box\"b\" | prepend \"a\"","expect":"::Box\"ab\""}
+{"name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box"}
+{"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2"}
+{"name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~(get [/0 /0 /1])","expect":"#[1 2]"}
+{"name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]"}
+{"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T"}
+{"name":"an-answer-of-the-words-own-label-keeps-the-subjects-tags","query":"::Width#2 | add 3","expect":"::Width#5"}
+{"name":"filter-over-a-tag-stacked-on-a-set-keeps-the-tag","query":":Box |~~ Box. ~~| | ::Box#[1 2 3 4] | filter ~(gt 2)","expect":"::Box#[3 4]"}
+{"name":"a-stack-of-tags-comes-back-from-the-innermost-out","query":"::A::B[1 2 3] | filter ~(gt 1)","expect":"::A::B[2 3]"}

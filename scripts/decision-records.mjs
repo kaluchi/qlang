@@ -26,7 +26,7 @@ const FATES = ['Replaces', 'Pruned of what', 'Replaced by', 'Replaced in part by
 export const FIELD_OPENS = new RegExp(`^(${FIELD_NAMES.join('|')})\\.`);
 export const FATE = new RegExp(`^(${FATES.join('|')}) `);
 const FIELD = new RegExp(`${FIELD_OPENS.source}|${FATE.source}`);
-// The definition of a link to a record, `[D19]: D19.md`, and no line of
+// The definition of a link to a record, `[QSSLF#doc]: D19.md`, and no line of
 // prose that opens with a citation and a colon.
 export const LINK_DEFINITION = /^\[([DE]\d+)\]: \S+\.md$/;
 

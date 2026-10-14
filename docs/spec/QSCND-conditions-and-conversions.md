@@ -84,7 +84,8 @@ true
 alternative is code, a quote or a path, which runs against the subject,
 or a value, which answers itself; a call whose alternatives are all
 values puts the subject first, so `query /timeout | coalesce 30` reads
-the timeout, else 30. A failing alternative after the one that answers
+the timeout, else 30. An alternative that answers a failure is taken as
+no value, as null is. A failing alternative after the one that answers
 is never run.
 
 ```qlang

@@ -1,5 +1,5 @@
 // The constructors of the kinds, each `(payload, state) → value` under
-// the address of the kind's `construct`, `number/construct` [D252], and
+// the address of the kind's `construct`, `number/construct` [QSBLD#kind], and
 // the verbs that lay a tag over a value and take it off.
 
 import { mintUnderTag } from './verb.mjs';
@@ -22,12 +22,12 @@ function setConstructor(payload) {
 
 bindPrim('set/construct', setConstructor);
 
-// The constructors of the core's kinds [D20], [D168]: each reads a
-// payload of its kind as the value itself, so `::vec[1 2]` and `[1 2]` are
-// one value and print as the latter, and a payload of another kind is
-// refused at the site, a vector or a map under a tag of its own among
-// them, a set's and a quote's too: `payload` reads what stands beneath a
-// tag, and a word `toX` turns a value into another kind [QSCND#convert].
+// The constructors of the core's kinds [QSLIT#kind], [QSSLF#catalog]: each
+// reads a payload of its kind as the value itself, so `::vec[1 2]` and `[1 2]`
+// are one value and print as the latter, and a payload of another kind is
+// refused at the site, a vector or a map under a tag of its own among them, a
+// set's and a quote's too: `payload` reads what stands beneath a tag, and a
+// word `toX` turns a value into another kind [QSCND#convert].
 const NullPayloadNotNullError       = declareRefusal('null/PayloadNotNullError');
 const BooleanPayloadNotBooleanError = declareRefusal('boolean/PayloadNotBooleanError');
 const NumberPayloadNotNumberError   = declareRefusal('number/PayloadNotNumberError');
@@ -51,8 +51,8 @@ const isBareMap = payload => isQMap(payload) && payload[TAG_HEADER_SYMBOL] === u
 
 bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadNotNullError));
 bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
-// A number is a finite double: an answer brought under `::number` that
-// left the doubles' range is refused here, once for every word [D168].
+// A number is a finite double: an answer brought under `::number` that left
+// the doubles' range is refused here, once for every word [QSSLF#catalog].
 const NumberNotFiniteError = declareRefusal('number/NotFiniteError');
 const finiteNumber = coreKindConstructor(isNumber, NumberPayloadNotNumberError);
 bindPrim('number/construct', payload => {
@@ -73,7 +73,7 @@ bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadNotMapErr
 const DESC_TAG = makeTag('desc');
 bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
 
-// `::doc[…]` — the doc of a vector of prose strings and quotes [D19], so
+// `::doc[…]` — the doc of a vector of prose strings and quotes [QSSLF#doc], so
 // a doc comes apart into its segments and back by `tag`.
 const DocPayloadNotVecError     = declareRefusal('doc/PayloadNotVecError');
 const DocElementNotSegmentError = declareRefusal('doc/ElementNotSegmentError');
@@ -89,8 +89,8 @@ function docConstructor(payload) {
 bindPrim('doc/construct', docConstructor);
 
 // `::builtin{…}` — the descriptor, the recipe of a word or of a kind that
-// a primitive answers, or the value of a name under a label alone [D251],
-// [D252], [D253]; its fields stay flat under its tag.
+// a primitive answers, or the value of a name under a label alone [QSBLD#fn],
+// [QSBLD#kind], [QSBLD#chain]; its fields stay flat under its tag.
 const BuiltinPayloadNotMapError = declareRefusal('builtin/PayloadNotMapError');
 
 function builtinConstructor(payload) {
@@ -114,17 +114,17 @@ function payloadOf(tagged) {
   return tagged.payload;
 }
 
-// `payload` and `within` reside on `::tagged`, each a plain function
-// over the tagged value the walk served [D34]; the page of `within` keeps
-// its subject's kind, so the answer of its edit mints back under the
-// subject's tag [D41], [D168].
+// `payload` and `within` reside on `::tagged`, each a plain function over the
+// tagged value the walk served [QSDSP#walk]; the page of `within` keeps its
+// subject's kind, so the answer of its edit mints back under the subject's tag
+// [QSDSP#answer], [QSSLF#catalog].
 bindPrim('tagged/payload', subject => payloadOf(subject));
 bindPrim('tagged/within', runs(['code'], async (subject, code) => await code(payloadOf(subject))));
 
-// `tag` resides on `::any` and reads the state of its call, whose
-// scope holds the constructor of the tag [D72]: `value | tag ::Foo` lays
-// the tag over the subject, and `[::Foo value] | tag` over the second
-// element of the pair it takes apart.
+// `tag` resides on `::any` and reads the state of its call, whose scope holds
+// the constructor of the tag [QSDSP#residence]: `value | tag ::Foo` lays the
+// tag over the subject, and `[::Foo value] | tag` over the second element of
+// the pair it takes apart.
 async function mintPair(pair, state) {
   if (!isVec(pair) || pair.length !== 2) {
     throw new AnyTagSubjectNotPairError({

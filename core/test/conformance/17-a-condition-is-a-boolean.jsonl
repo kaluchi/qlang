@@ -1,2 +1,0 @@
-{"decision":"D14","name":"runExamples-fails-an-example-that-answers-no-boolean","query":":x 1 | :x/one ::law~(1) | ::x | runLaws | first | get /ok","expect":"false"}
-{"decision":"D123","name":"runExamples-passes-an-example-that-answers-true","query":":x 1 | :x/holds ::law~(true) | ::x | runLaws | first | get /ok","expect":"true"}

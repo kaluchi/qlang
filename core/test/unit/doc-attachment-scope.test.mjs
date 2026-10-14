@@ -2,7 +2,7 @@
 //   1. Inside a literal body (Map / Vec / Set entries) — parse error.
 //   2. In the slot of a declaration, between its name and its body, it
 //      documents the declaration; before a declaration it is refused
-//      [D83].
+//      [QSSYN#doc].
 //   3. MapEntry AST node carries no .docs field.
 
 import { describe, it, expect } from 'vitest';

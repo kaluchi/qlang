@@ -1,20 +1,18 @@
-// The view of a value within a budget of characters of its print [D109]:
-// while the print exceeds the budget, the largest part beneath the top
-// gives way to a value of the kind `::elision`, a vector keeping the
-// first half of its elements and ending with a marker of the rest, a
-// string or a map giving way whole, and the top, a vector, keeping the
-// first half of its elements; a part whose marker prints no shorter than
-// it stays, so a budget never lengthens a print [D109]. A
-// marker holds `:size`, what it stands for counted, `:read`, the quote
-// that applied to the value taken answers the part left out, and for a
-// string `:head`, its first characters.
+// The view of a value within a budget of characters of its print
+// [QSPRN#elide]: while the print exceeds the budget, the largest part beneath
+// the top gives way to a value of the kind `::elision`, a vector keeping the
+// first half of its elements and ending with a marker of the rest, a string or
+// a map giving way whole, and the top, a vector, keeping the first half of its
+// elements; a part whose marker prints no shorter than it stays, so a budget
+// never lengthens a print [QSPRN#elide]. A marker holds `:size`, what it
+// stands for counted, `:read`, the quote that applied to the value taken
+// answers the part left out, and for a string `:head`, its first characters.
 //
-// A failure a host prints is an alert [D7]: its tag and its facts, the
-// data it carries cut to what places the failure. The subject of the
-// first stop of its trail, where the failure arose, and every other fact
-// print within an excerpt each; the subject of every later stop, which
-// the failure only passed, gives way whole. Every `:read` reads its part
-// beneath `!|`.
+// A failure a host prints is an alert [QSHST#answer]: its tag and its facts,
+// the data it carries cut to what places the failure. The subject of the first
+// stop of its trail, where the failure arose, and every other fact print
+// within an excerpt each; the subject of every later stop, which the failure
+// only passed, gives way whole. Every `:read` reads its part beneath `!|`.
 //
 //   elide(value, budget) → the value within the budget
 //   alertOf(error) → the error as an alert
@@ -57,7 +55,7 @@ const readBelow = ({ caught, from }, segments) => ({ caught, from: [...from, ...
 
 // The read of a part: `get` with the path to it, `drop` after it where a
 // vector keeps its first elements, and `it` where the path is empty,
-// beneath `!|` for a fact of an alert [D248].
+// beneath `!|` for a fact of an alert [QSPTH#value].
 function readOf(start, path, kept = null) {
   const segments = [...start.from, ...path].map(String);
   const steps = segments.length === 0 ? [] : [commandStep('get', [makePath(segments)])];
@@ -140,7 +138,7 @@ function replacedAt(value, path, replacement) {
 // While the print exceeds the budget, the largest part gives way among
 // those whose marker prints shorter than they do, so a budget never
 // lengthens a print, a vector halving on to its marker at the most; where
-// no part's marker is shorter, the view stands over the budget [D109].
+// no part's marker is shorter, the view stands over the budget [QSPRN#elide].
 function elideWithin(value, budget, start, keep) {
   let view = value;
   while (printedSize(view) > budget) {
@@ -161,7 +159,7 @@ export function elide(value, budget) {
 
 // A fact of an alert within its excerpt, beneath the read that reaches
 // it: a string past the excerpt gives way whole with its head, and any
-// other value, an error at rest among them [D13], gives way within as
+// other value, an error at rest among them [QSERR#rest], gives way within as
 // `elide` cuts it.
 function excerptOf(value, read) {
   if (typeof value === 'string' && value.length > EXCERPT_CHARACTERS) return wholeOf({ path: [], value }, read);

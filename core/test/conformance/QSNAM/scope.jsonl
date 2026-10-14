@@ -22,3 +22,4 @@
 {"name":"a-recipe-names-its-subject-before-a-step","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:self it | mul k | add self)) | 5 | scale 2","expect":"15"}
 {"name":"a-recipe-shadows-a-name-of-its-scope","query":":n 1 | :any/f (::fn | takes :n |~~ The n. ~~| ~(query /0 2) ::number | impl ~(n)) | null | get [~(f) ~(n)]","expect":"[2 1]"}
 {"name":"a-name-declared-in-a-recipe-stays-inside-it","query":":number/f (::fn | takes :n |~~ The n. ~~| /0 | impl ~(n | :captured it | captured | add n)) | 0 | f 3 | env | has :captured","expect":"false"}
+{"name":"code-a-word-runs-names-a-value-in-its-steps","query":"[1 2 3] | filter ~(:n 2 | gt n)","expect":"[3]"}

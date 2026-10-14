@@ -2,7 +2,7 @@
 // writes a keyword bare where its name reads back so: UAX #31 `ID_Start`
 // and `ID_Continue`, `_` starting a name and `_` and `-` continuing one,
 // a character a code unit as the parser reads it.
-// The decisions it exists for: [D2].
+// The decisions it exists for: [QSNAM#letters].
 
 const NAME_START = /^[_\p{ID_Start}]$/u;
 const NAME_CONTINUE = /^[\p{ID_Continue}_-]$/u;

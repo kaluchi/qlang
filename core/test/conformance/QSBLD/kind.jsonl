@@ -1,0 +1,14 @@
+{"name":"a-kind-is-built-from-its-noun-by-commands","query":"::kind | wraps |~~ The sizes. ~~| ::map | type","expect":"::kind"}
+{"name":"a-kind-prints-as-its-literal","query":"::kind | wraps |~~ The sizes. ~~| ::map | print","expect":"\"::kind[~(wraps |~~ The sizes. ~~| ::map) null]\""}
+{"name":"tells-lays-a-page-under-the-kind","query":":Guide |~~ A guide. ~~| (::kind | tells :start |~~ Where to start. ~~| #[::vec]) | get [~(::Guide/start | doc | content | trim) ~(::Guide/start | binding | get /value)]","expect":"[\"Where to start.\" #[::vec]]"}
+{"name":"proves-writes-a-law-of-the-kind","query":":Guide |~~ A guide. ~~| (::kind | proves :holds |~~ It holds. ~~| ~(true)) | ::Guide | runLaws | map /ok","expect":"[true]"}
+{"name":"carries-writes-a-fact-of-a-refusal-of-the-kind","query":":Box |~~ A box. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| | carries :TooWideError/w |~~ The width refused. ~~| ::number) | ::Box/TooWideError/w | binding | get /value","expect":"::number"}
+{"name":"a-name-of-a-kind-is-declared-once","query":"::kind | reads :w |~~ The width. ~~| /w | tells :w |~~ A page. ~~| !| type","expect":"::kind/NameDeclaredTwiceError"}
+{"name":"an-invariant-with-a-path-names-a-field-read-before-it","query":"::kind | holds :w/NegativeError |~~ No width below zero. ~~| ~(gte 0) !| type","expect":"::kind/NameUnderNoFieldError"}
+{"name":"a-law-with-a-path-names-a-name-declared-before-it","query":"::kind | proves :x/y |~~ An x. ~~| ~(true) !| type","expect":"::kind/LawUnderNoNameError"}
+{"name":"a-word-of-a-literal-is-declared-by-the-chain-of-a-kind","query":"::null | binding | get /value | type","expect":"::kind"}
+{"name":"a-function-carries-a-fact-of-a-refusal-under-its-name","query":"get [~(::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/limit |~~ The limit. ~~| ::number | type) ~(::fn | carries :limit |~~ The limit. ~~| !| type)]","expect":"[::fn ::fn/FactUnderNoNameError]"}
+{"name":"a-fact-of-no-kinds-holds-its-page","query":":Box |~~ A box. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| | carries :TooWideError/note |~~ A note. ~~|) | ::Box/TooWideError/note | binding | get /value | type","expect":"::doc"}
+{"name":"a-fact-of-a-function-of-no-kinds-holds-its-page","query":":number/f (::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/note |~~ A note. ~~| | impl ~(it)) | ::number/f/TooBigError/note | binding | get /value | type","expect":"::doc"}
+{"name":"a-kind-of-the-core-is-built-by-its-chain-with-a-construct","query":"::keyword | get [~(binding | get /value | type) ~(::keyword/construct | binding | get /value | type)]","expect":"[::kind ::builtin]"}
+{"name":"a-kind-takes-no-recipe-but-the-hosts","query":"::kind | impl ~(get {:s ~(it)}) !| type","expect":"::kind/impl/recipe/NotBuiltinError"}

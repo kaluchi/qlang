@@ -39,3 +39,4 @@
 {"name":"path-on-set-integer-index","query":"#[:z :x :y] | get /0","expect":":x"}
 {"name":"path-on-set-negative-index","query":"#[:z :x :y] | get /-1","expect":":z"}
 {"name":"path-on-set-index-out-of-bounds","query":"#[:a :b] | get /99 !| type","expect":"::path/IndexOutOfBoundsError"}
+{"name":"a-set-answered-by-a-word-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]"}

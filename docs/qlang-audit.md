@@ -205,7 +205,7 @@ at the host. The pipeline cuts what arrived, a literal, to any depth.
 A command has one output, a value under its tag, and the kinds of its
 refusals; its input is the part of the question that moves into the
 host, which is why the input asks for a description of its own and the
-output for a legend [D161].
+output for a legend [QSSLF#catalog].
 
 What a reader holds after a call is a printed value, however strange
 it looks, and its explanation starts there. The tag on it is a label,
@@ -221,8 +221,8 @@ A reader that met a tag in a printed value peeks into its label with
 no value to annotate, and the peek is assembled in one round trip from
 the definitions under the label's address; the legend of a value is a
 task of its own, one of the two resting on what the other provides
-[D168]. A tool that changes carries its legend inside itself, where it
-cannot go stale behind the tool's back [D161]. The same holds for the
+[QSSLF#catalog]. A tool that changes carries its legend inside itself, where it
+cannot go stale behind the tool's back [QSSLF#catalog]. The same holds for the
 seed of a session, the instruction file, which is a table of contents
 of what the repository does not hold and no summary of what it does
 [D163].
@@ -341,7 +341,7 @@ the ordinary protocol asks it, `doc`, `explain`, `type`, `manifest`; a
 construct with no literal of its own can only run, never be asked, and
 is the first suspect when a reader misfires on it. So a step is a
 command, a word and its objects, and a value is the subject or an
-object, never a step the language runs by a verb nobody wrote [D248]:
+object, never a step the language runs by a verb nobody wrote [QSPTH#value]:
 «нас обычно спасает литеральноть и SVO .. массу вопросов через них
 решили и выпутались из сложных противоречий..» (maintainer, 2026-10-11
 23:02, session 22b934f8), and «когда кусок языка может встать в позицию
@@ -443,23 +443,23 @@ every probe of this chapter answered as its block records.
 A host declares its refusals by their addresses with `declareRefusal`,
 imported through the `errors` subpath of the core
 (`cli/src/streams.mjs`), and declares their facts under their
-labels in its catalog [D46], so the declaration stays an interface of
+labels in its catalog [QSERR#site], so the declaration stays an interface of
 the runtime a host builds on. The sister project imports none of them,
 and carries two copies of `fromPlain` of its own, each named
 `jsonToQlang` (`cli/lib/jdt/coverage.impl.mjs`,
 `cli/lib/jdt/graph.impl.mjs`).
 
 The repair must make the refusals of a host kinds its catalog declares,
-so that nothing of the runtime is exported for building words [D46].
+so that nothing of the runtime is exported for building words [QSERR#site].
 
 ### Names in one root
 
 A source of the root is a cell whose declarations stand in the root as
-a cell's stand in a session [D153]: what it declares bare is a name of
+a cell's stand in a session [QSDSP#residence]: what it declares bare is a name of
 every reader's scope, and what it declares with a path a node under a
 noun, so the verbs of the core, the command line's and the sister
 project's live under the kinds of their subjects and none lands among a
-client's own names [D72]. A kind a source declares bare reaches
+client's own names [QSDSP#residence]. A kind a source declares bare reaches
 every reader the same way, and the sister project's kinds, `JdtType`
 and its kin, and its refusals stand bare in the root.
 
@@ -467,15 +467,15 @@ And names collide, which the maintainer has named as the one worry the
 design never resolved: «стремительно растущий зоопарк операндов меня
 все время беспокоил и конфликты имен .. последнее так и осталось
 неразрешенным до сих пор» (maintainer, 2026-09-23 07:02, session
-86982eb5). The rule is decided [D34], [D153], [QSNAM#owner],
+86982eb5). The rule is decided [QSDSP#walk], [QSDSP#residence], [QSNAM#owner],
 [QSNAM#reach], and a host still publishes names without a prefix. The sister project's names would
 meet the core's on `type` and on `source`, which it names `typeNamed`
-and `sourceText` until it declares them under kinds of its own [D2],
+and `sourceText` until it declares them under kinds of its own [QSNAM#letters],
 and its graph alone declares under `::any` the words a query calls,
 lookups by kind of element, accessors of the containing element,
 enumerations by scope and the relations among them, and beside them the
 helpers of `problems`, since a word under a topic serves the topic's
-values alone [D164]. In the sister project, on 13 October 2026:
+values alone [QSBLD#input]. In the sister project, on 13 October 2026:
 
 ```sh
 $ grep -oE '^:any/[A-Za-z]+' cli/lib/jdt/graph.qlang | sort -u | wc -l
@@ -488,8 +488,8 @@ a host's catalog should grow the same way.
 
 What remains of the rule of collisions, who may join a verb and a kind,
 whose the names without a prefix are and how one query shows every
-definition of a name, the surface and the loading [D153], the reading
-of a name [D221], the rule of the owner [QSNAM#owner] and the meeting
+definition of a name, the surface and the loading [QSDSP#residence], the reading
+of a name [QSLIT#keyword], the rule of the owner [QSNAM#owner] and the meeting
 of a value and a word [QSNAM#reach] settled, is a question being decided [D269].
 Namespaces too large to bind are the sister project's types, tens of
 thousands of names, which it reaches by lookups it declares under
@@ -504,10 +504,10 @@ name is the refusal, a primitive's refusal of an input's value or of an
 element of it under the input, and a primitive's refusal of its run
 under the word that ran it, which lists it among its names; a number is
 whole where it equals its floor, `eq (floor)`, the law of every count
-and of the digits of `round` [D46]. The facts an error carries are
+and of the digits of `round` [QSERR#site]. The facts an error carries are
 definitions under the label of the refusal and under `::error`, held in
 the order they are declared, the trail last, and a fact neither
-declares is a defect of the runtime [D46], [D168], [D252]:
+declares is a defect of the runtime [QSERR#site], [QSSLF#catalog], [QSBLD#kind]:
 
 ```qlang
 > "hello" | add 1 !| type
@@ -530,7 +530,7 @@ true
 ```
 
 An error carries its whole input, and the path of an error carries the
-subject of every level it left [D13], so the same failure one verb
+subject of every level it left [QSERR#rest], so the same failure one verb
 deeper carries it twice:
 
 ```qlang
@@ -541,15 +541,15 @@ deeper carries it twice:
 [true true]
 ```
 
-The host shows such an error as an alert, [D7], its tag and its
+The host shows such an error as an alert, [QSHST#answer], its tag and its
 facts, the subject where it arose cut to an excerpt, and each subject
 it passed an `::elision` whose `:read` continues the query beneath
 `!|`, the error itself staying whole. Over the failing final queries
-the runs of [D116] recorded on set T, the alerts print about a third of
+the runs of [QSCOL#each] recorded on set T, the alerts print about a third of
 what the errors printed whole, and the command line writes above an
-alert the line that says it was raised [D13] and below it the prose of
+alert the line that says it was raised [QSERR#rest] and below it the prose of
 its refusal's page as line comments, the repair a reader acts on
-[D7]:
+[QSHST#answer]:
 
 ```sh
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| print | count" < /dev/null
@@ -567,7 +567,7 @@ $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| get /trail/1
 
 And a refusal of the runtime is still a class of the JavaScript for
 each address, which the runtime declares and a test holds against its
-page [D46].
+page [QSERR#site].
 
 The repair must make the page behind each refusal a procedure: what the
 refusal means in one sentence, which fact names the culprit, the usual
@@ -579,14 +579,14 @@ written once, which is the task that would ask for a hierarchy of tags.
 
 Examples live on two planes, each in its role: the laws of the catalog,
 the claims of its pages, which the language runs on itself, each named
-for the claim it proves and paged with it [D123]; and the
+for the claim it proves and paged with it [QSSLF#laws]; and the
 conformance suite, the requirements of the language held outside it, so
 a case holds a form the language does not read yet and stands through a
 change that breaks its sources, each case opening with the record that
 gates it [D254]. And a parse failure prints whole, every
 token the parser could have read and the place it stopped as a span of
-its start and its end, `::span[3 1 4 4 1 5]` [D249], where a failure of
-a step prints as an alert [D7]:
+its start and its end, `::span[3 1 4 4 1 5]` [QSPRN#span], where a failure of
+a step prints as an alert [QSHST#answer]:
 
 ```sh
 $ node cli/src/bin.mjs '::a.b' < /dev/null 2>&1 | grep -c ':location ::span'
@@ -599,7 +599,7 @@ symbol, a service or a section of another document in it. It must print
 a parse failure economically, with the full value reachable by a
 path rather than dumped. It must let a reader assemble from the
 definitions under an address the description a question needs, in one
-round trip [D168].
+round trip [QSSLF#catalog].
 
 ### The documents that retold the catalog
 
@@ -615,7 +615,7 @@ other; the embedding API is the page of the package, `core/README.md`.
 The documents left are the measure, the decisions, the specification
 by topic, into which the decisions dissolve at the move of the baseline
 [D283], the research of a design whose work has begun, which its
-records absorb as the work lands [D164], the audits of a clean outside reader of the tree, run by one
+records absorb as the work lands [QSBLD#input], the audits of a clean outside reader of the tree, run by one
 command [D277], the reviews of the catalog a record in force cites,
 each kept as its writer wrote it beside the fate of each finding [D282],
 and the chapters this document left, as they were written [D255]:
@@ -642,7 +642,7 @@ comment and doc forms nesting in each other and in quotes; the refusals
 that name a habit of another language as productions with their
 messages, `SpacingRefusal`, `TagDeclarationRefusal` and
 `PathBeforeWord` among them; a line break that tells where a
-declaration ends [QSSYN#line], [D251]; and two counters its predicates raise
+declaration ends [QSSYN#line], [QSBLD#fn]; and two counters its predicates raise
 and give back, `docQuoteDepth` and `lookingAhead`. The repair is the
 grammar of the finish, comments as whitespace in a few lines and one
 pipeline production.
@@ -652,11 +652,11 @@ pipeline production.
 A raw-mode line editor and its tests are the largest single piece of
 the command-line workspace, and the REPL it serves cannot save a
 session, which is to save as the source of its declarations [D30]. The noun of a project's
-`.qlang/` folder waits for the sources a project ships [D37]. The sister project
+`.qlang/` folder waits for the sources a project ships [QSHST#input]. The sister project
 onboards its user with a guide written by hand, which reads from its
 catalog the first sentence of the page of each word it shows first.
 
-The effect marker left the language [D2]: no name begins with
+The effect marker left the language [QSNAM#letters]: no name begins with
 `@`, and a word of a host is named as any word is, under the rule of
 collisions [QSNAM#owner], [QSNAM#reach]. A host whose word reads an index or throws
 dice marks the provenance of the value it returns with a tag, and a tag
@@ -666,8 +666,8 @@ lesson of YAML's `load` taught: a tag's constructor is pure, and reading
 or constructing a literal performs nothing. The sister project names
 its two words that would meet `::any/type` and `::any/source`, which the
 root holds once, `typeNamed` and `sourceText`, until it declares them
-under kinds of its own [D153], the walk of a subject's tags selecting
-them [D34]. Whether an
+under kinds of its own [QSDSP#residence], the walk of a subject's tags selecting
+them [QSDSP#walk]. Whether an
 effect deserves to become a value of its own, an action awaiting the
 host the way a quote awaits `apply`, is a question for a later branch
 that would have to show a task no plainer construct solves. The repair
@@ -728,7 +728,7 @@ falls.
 
 The review rules are written from the principles, each a principle and
 the check that enforces it (`.claude/agents/qlang-review.md`), one of
-them the distinct class at every throw site that [D46] replaces. The
+them the distinct class at every throw site that [QSERR#site] replaces. The
 coverage threshold of one hundred percent on every axis has
 produced a test corpus heavier than the code it covers, and most of it
 tests the mechanism rather than the language: almost every unit test
@@ -779,33 +779,33 @@ unifications carry it.
 One mechanism of value. A tag names the kind of a value and stands over
 any payload; its declaration is its page and its kind, built from
 `::kind` by commands, its payload, its fields, its invariants and its
-constructor [D252]; a value under a tag obeys the tag's invariant, checked
+constructor [QSBLD#kind]; a value under a tag obeys the tag's invariant, checked
 when the value is built and again after every transform whose
 declaration keeps the tag, `within` editing under a tag and checking
-once at the rewrap [D41]; every value comes apart into its atoms and a
+once at the rewrap [QSDSP#answer]; every value comes apart into its atoms and a
 shape and is built back from them [QSLIT#atoms]. The set, the error, the quote,
 the doc, a host's record and the elision marker are all this one thing:
 `#[…]` spells the set, `!{…}` an error, `~(…)` code, `|~~ … ~~|` a doc
 over its segments, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
-[D20]; a kind carries the value's constructor, its order and its laws
-[QSORD#order], [D252], while one rule of the core prints every literal.
+[QSLIT#kind]; a kind carries the value's constructor, its order and its laws
+[QSORD#order], [QSBLD#kind], while one rule of the core prints every literal.
 
 One mechanism of word. A word is a function named under the
 label of its subject, built from `::fn` by commands, its inputs with
 their kinds and invariants, its answer, which `returns` names, its
 refusals and its laws, and its doc its page, a story of what it takes,
-answers and refuses, and the runtime executes the function [D179],
-[D251]. A word of the core, a host's word and a word a
+answers and refuses, and the runtime executes the function [QSSLF#catalog],
+[QSBLD#fn]. A word of the core, a host's word and a word a
 reader declares are called the same way, checked the same way,
 documented the same way, and help for all of them, completion, the verbs
 that accept a value, the next part, the refusal's wording, is derived
 from the same record. A verb is found by walking the subject's tags from the outside
-in, down to the core's kind [D34]; a host's verbs sit on the tags it
+in, down to the core's kind [QSDSP#walk]; a host's verbs sit on the tags it
 owns, and a verb and a kind are joined by whoever owns one of them. A
 query reads, and what writes stays a command of its host whose result
-the query reads [D39].
+the query reads [QSHST#effect].
 
 One format. The literal is how a value prints, how it reads back, how
 it travels between utilities, how a session is saved, how an example
@@ -818,7 +818,7 @@ parentheses inside a modifier, so parentheses mean one thing, a
 pipeline as one word. A literal holds literals alone from its opening
 sign to its closing pair, reading no name and no subject, and a shape
 computed is the template of `get`, a literal of paths and quotes
-[D279]. Every modifier holds a value read by its
+[QSLIT#tag]. Every modifier holds a value read by its
 own form; code is a quote, `~(…)`, `~add` for a single word, which
 nothing but `apply` and an input whose kinds take a quote runs: a
 quote written in a step reads the names of that step wherever its call
@@ -830,8 +830,8 @@ binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a function named
 under the label of its subject, its inputs and its answer in its chain,
 or a quote written alone, the function of no commands it is, and it runs
-when its name is mentioned, as a built-in does [QSNAM#word], [D251],
-[D253]. Comments are
+when its name is mentioned, as a built-in does [QSNAM#word], [QSBLD#fn],
+[QSBLD#chain]. Comments are
 whitespace; documentation is a doc literal in the binding's slot.
 
 Maps and vectors are the only containers; JSON syntax is read,
@@ -857,14 +857,14 @@ rule.
 A name is declared by its keyword, a name with a path a node under the
 noun its path names, whose address its tag is, and a name under a label
 resides on it, taking a subject the walk of its tags brings to the
-label [D34], [D152], [D153], [D164]. The root is the scope a host's
+label [QSDSP#walk], [QSNAM#address], [QSDSP#residence], [QSBLD#input]. The root is the scope a host's
 sources declare as cells before a reader's first step, a source, a cell
 and a query written alike. A name typed bare resolves
 nearest first, the reader's declarations, then the verbs of its
 subject, the root's names last, and a name with a path calls by address
-[D34]; a tag in the subject position is dispatched to the noun
-it names [D88]; a host sets up a query by its sources and the first
-value of its pipe and nothing else [D37], [D153]. A value the reader
+[QSDSP#walk]; a tag in the subject position is dispatched to the noun
+it names [QSDSP#tagname]; a host sets up a query by its sources and the first
+value of its pipe and nothing else [QSHST#input], [QSDSP#residence]. A value the reader
 names takes any name, and a step that calls it on a subject a word of
 the name answers is refused, the word called by its address there
 [QSNAM#reach]:
@@ -878,7 +878,7 @@ A declaration writes into its scope the record of its binding, so the
 axes read the record [QSNAM#binding], each reading a name by its
 tag, a label of the root from the root and any other name at its
 nearest declaration, while a keyword is a value that names nothing,
-`:limit | doc` the page of `::keyword` [D221]. Effect markers are
+`:limit | doc` the page of `::keyword` [QSLIT#keyword]. Effect markers are
 gone; a host that wants provenance visible tags the value, and an
 effect described by a value is performed at the boundary and nowhere
 else.
@@ -888,7 +888,7 @@ elision and its enrichment belong to hosts; the language computes whole
 values, every part of which has a size, an address and a slice, so what
 a host left out is the same query with a tail. A record a host wants
 explained carries a tag whose declaration documents its fields, and a
-value shared across kinds a tag of its own [D50]. Code is the quote, a
+value shared across kinds a tag of its own [QSSLF#catalog]. Code is the quote, a
 vector of steps with an involution to and from its text, so a query
 reads, transforms and assembles code without leaving the language.
 
@@ -963,11 +963,11 @@ applies to the core alone.
 
 The consumers at the finish carry no language of their own. The
 command line is a thin host: standard input lifted only when it
-carries bytes, the default subject otherwise [D37], and read only for a
+carries bytes, the default subject otherwise [QSHST#input], and read only for a
 query that reads its subject, so a pipe left open never holds a query
-that reads none [D37]; the answer written as its literal whatever the
+that reads none [QSHST#input]; the answer written as its literal whatever the
 input was, a string as its text, and converted by the query, `| json`
-[D214]; the budget at the end of the pipe, and its renderings, `table`
+[QSHST#answer]; the budget at the end of the pipe, and its renderings, `table`
 among them, words of its own [D22]:
 
 ```sh
@@ -984,7 +984,7 @@ renders the root doc and the catalog or is reduced to the playground.
 The sister project builds on the workspace copy, generates its guide
 from the catalog, tags its nodes, mounts its types and its workspaces
 [D38], and speaks through about a dozen verbs on its own tags, its
-writing commands staying commands [D39]. And the entrypoint of the work
+writing commands staying commands [QSHST#effect]. And the entrypoint of the work
 on qlang is a consumer like the others, built on the language it helps
 to build.
 
@@ -997,13 +997,13 @@ Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
 decisions leave in the conformance suite [D31]. The decisions whose
 work began before the baseline met their targets, the last of them the
-effect marker leaving the language [D2], and the step as a command and
-the path as a value met theirs, the first work of the route [D248], and
+effect marker leaving the language [QSNAM#letters], and the step as a command and
+the path as a value met theirs, the first work of the route [QSPTH#value], and
 the quote as data and the function built by commands met theirs
-[D251], and the kind built by commands and the one spelling of the
-roles of a word and a kind theirs [D252], [D253], and the closed
-literal theirs [D279], and the lane of held code theirs [QSQUO#held],
-and a word of a noun that serves its own tag alone theirs [D275]; a target shows the rule of the record that left it and holds the
+[QSBLD#fn], and the kind built by commands and the one spelling of the
+roles of a word and a kind theirs [QSBLD#kind], [QSBLD#chain], and the closed
+literal theirs [QSLIT#tag], and the lane of held code theirs [QSQUO#held],
+and a word of a noun that serves its own tag alone theirs [QSDSP#tagname]; a target shows the rule of the record that left it and holds the
 answer the tree gives today [D91], and every decision below writes its
 targets before its work:
 
@@ -1015,28 +1015,29 @@ $ grep -rh '"target": *true' core/test/conformance | grep -vc '"now"'
 ### Milestone 4 · One spelling
 
 Every fact has one spelling, and a kind owns what is said of its values.
-It opens with the step as a command and the path as a value [D248]: a
+It opens with the step as a command and the path as a value [QSPTH#value]: a
 path does nothing by itself, the word that takes it reads it, `get`
 strictly, `query` softly, `has` asking, and a word that takes code taking
 it as code, so the read of a path has one spelling where it had a step and
 the record `::path{:path …}` inside a quote, and a value written as a
 later step is refused; its cases stand in
-`core/test/conformance/05-a-step-is-a-command.jsonl`. The function joins
-it [D251]: a quote is data with no scope, a recipe reads what its call
+`core/test/conformance/QSPTH/` and `core/test/conformance/QSSYN/step.jsonl`.
+The function joins
+it [QSBLD#fn]: a quote is data with no scope, a recipe reads what its call
 hands it, and a word is a function named under a label, built from the
 noun `::fn` by `on`, `takes`, `returns`, `throws`, `carries`, `holds`,
 `proves` and `impl`, its cases in
-`core/test/conformance/29-a-function-is-built-by-commands.jsonl`.
-The keystone, the declaration of a kind, has landed [D252]: a kind is
+`core/test/conformance/QSBLD/fn.jsonl`.
+The keystone, the declaration of a kind, has landed [QSBLD#kind]: a kind is
 built from the noun `::kind` by commands, `wraps` its payload, `reads`
 a field of it, `tells` a page, `holds` an invariant, `throws` and
 `carries` its refusals and their facts, `proves` its laws and `impl` its
 constructor, so a field of a record is spelled where a reader relies on
 it before the record is fetched, which is the third requirement of the
 mission; its cases stand in
-`core/test/conformance/30-a-kind-is-built-by-commands.jsonl`. And the
+`core/test/conformance/QSBLD/kind.jsonl`. And the
 form that declared the roles of a word or a kind by name has left the
-language [D253]:
+language [QSBLD#chain]:
 
 ```qlang
 > :P |~~ A person. ~~| | ::P{:name 5}
@@ -1049,14 +1050,14 @@ language [D253]:
 ::bind/WrittenOutsideItsChainError
 ```
 
-And a literal is closed [D279]: from its opening sign to its closing
+And a literal is closed [QSLIT#tag]: from its opening sign to its closing
 pair it holds literals, so a group or a name inside one is refused and
 a shape computed is the template of `get`, its paths read and its
 quotes run against the subject; a literal whose first character would
 continue a tag's name touches the tag by `#`; and a kind attaches its
 tag by its commands and the check its host hands, building no other
 value. Its cases stand in
-`core/test/conformance/01-a-literal-is-a-value-of-its-kind.jsonl`:
+`core/test/conformance/QSLIT/closed.jsonl`:
 
 ```qlang
 > {:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)}
@@ -1069,14 +1070,14 @@ value. Its cases stand in
 ::Width#8
 ```
 
-The schema is the kind's [D164], [D252]: what stands under a kind is
+The schema is the kind's [QSBLD#input], [QSBLD#kind]: what stands under a kind is
 the nodes its chain lays under its address, each a name, its page and
 its value, its payload, its fields, its pages, its refusals and their
 facts, its invariants, its laws and its constructor, and under a word
-those of its function [D251]. `::spec~(…)` and `::verb~(…)` have left the
+those of its function [QSBLD#fn]. `::spec~(…)` and `::verb~(…)` have left the
 language: a reader's verb is a name under the label of its subject,
 `:number/inc ~(add 1)`, and a kind of the core a kind whose constructor
-the host hands, `impl ::builtin{}` [D168]:
+the host hands, `impl ::builtin{}` [QSSLF#catalog]:
 
 ```qlang
 > [::spec ::verb] | map ~(doc !| type)
@@ -1085,7 +1086,7 @@ the host hands, `impl ::builtin{}` [D168]:
 
 The refusals rest on the schema as well: a refusal is named by the
 address of the word that refused, and its facts are definitions under
-its label, values of the language [D46]:
+its label, values of the language [QSERR#site]:
 
 ```qlang
 > 1 | add "x" !| entries | map ~first
@@ -1095,7 +1096,7 @@ its label, values of the language [D46]:
 ```
 
 What remains on the schema is elision taking the tail of a schema
-[D21]; what remains of the names is a host's, which the sister project's redesign moves
+[QSPRN#elide]; what remains of the names is a host's, which the sister project's redesign moves
 onto its kinds, and the questions of mounting [D259] and of the
 collisions of a host's names [D269]. The function and the kind built by
 commands leave second spellings the next branch deletes: the objects of
@@ -1107,11 +1108,11 @@ editor's grammar is generated or reduced, and the
 screen of the work, whose first version `npm run desk` prints [D225],
 grows from the draft of the entrypoint document [D231].
 
-Its answers are the targets of [D46], [D152], [D153], [D168],
-[D185], [D248], [D251], [D252], [D253], [QSQUO#held] and [D279] in the conformance suite,
+Its answers are the targets of [QSERR#site], [QSNAM#address], [QSDSP#residence], [QSSLF#catalog],
+[QSSLF#page], [QSPTH#value], [QSBLD#fn], [QSBLD#kind], [QSBLD#chain], [QSQUO#held] and [QSLIT#tag] in the conformance suite,
 every one met, the
 step of a constructor apart from the kind of tagged values having
-landed [D8]. Beside them: no
+landed [QSQUO#step]. Beside them: no
 class of the JavaScript stands for a refusal; no contract of a word is
 spelled outside the catalog; and the environment holds no key of the
 runtime's own.
@@ -1120,7 +1121,7 @@ The model's reading of what in this milestone the language needs, and
 what is the debt of its tree. The schema is the language's, since
 without it the shape of an answer cannot be known before it is fetched,
 and a host has nowhere to say what its records hold; it stands as the
-commands of a kind [D252]. The rule of
+commands of a kind [QSBLD#kind]. The rule of
 collisions is the language's as soon as a host publishes a catalog of
 its own, which the sister project does, and mounting is the language's
 for a host whose names are too many to declare. A class of the
@@ -1130,42 +1131,42 @@ meets the tag and the facts.
 ### Milestone 5 · Front door
 
 The measure can be taken as the mission states it. Its answers in the
-conformance suite are the targets of [D2], [D7],
-[D27], [D46], [QSTXT#string], [D108], [D109], [D111], [D117], [D118], [D119],
-[D123], [QSSYN#refusal] and [QSQUO#modifier]: the effect marker leaving the language,
+conformance suite are the targets of [QSNAM#letters], [QSHST#answer],
+[QSSLF#page], [QSERR#site], [QSTXT#string], [QSSLF#doc], [QSPRN#elide], [QSSLF#page], [QSSLF#near], [QSSLF#axis],
+[QSSLF#laws], [QSSYN#refusal] and [QSQUO#modifier]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs, each run recorded with the frictions it met, each
 measurement on a set of tasks a clean author wrote, which measures once
 and serves the work once its misses are read, its children running the
 command line from the pages of the language and the command line [D26]. An error a host
 prints is an alert, the subject where it arose an excerpt and each
-subject it passed a marker [D7].
+subject it passed a marker [QSHST#answer].
 
 What remains of it: the catalog's prose is reduced to what the facts
 do not say, every page telling what its name is for and the claims its
-laws prove [D123], [D212], each
+laws prove [QSSLF#laws], [QSSLF#catalog], each
 definition a story a reader falls into, the word, its inputs, its
-answer, its refusals, its laws and its recipe in that order [D179],
-[D252]; enrichment happens once per session; a value shared across
+answer, its refusals, its laws and its recipe in that order [QSSLF#catalog],
+[QSBLD#kind]; enrichment happens once per session; a value shared across
 kinds of record carries a tag of its own, as a field is read by the
-chain of its kind [D50], [D252]; and
+chain of its kind [QSSLF#catalog], [QSBLD#kind]; and
 the first screen, the pages
 of the language and of the command line, told whole in the order
-its parts rest on each other [D185], within the weight it had [D27],
+its parts rest on each other [QSSLF#page], within the weight it had [QSSLF#page],
 is measured on a set of tasks no reader has seen [D26], [D131].
 
 The largest part of the milestone is the sister project's. It builds
 on the workspace copy, its suite passing against it, on a branch that
 stands ahead of its remote since 29 September, and its redesign has not
 begun: its nodes carry their kind as a tag, its verbs
-move onto its tags and its noun [D34], the noun's own verbs
-taking its name as their subject [D88], its types are mounted, its verbs
+move onto its tags and its noun [QSDSP#walk], the noun's own verbs
+taking its name as their subject [QSDSP#tagname], its types are mounted, its verbs
 shrink to about a dozen, and its guide is generated from the catalog;
-the effect marker leaves the language with them [D2], since
+the effect marker leaves the language with them [QSNAM#letters], since
 without it a host's names meet the core's in the root, which refuses a
-second declaration of a name [D153]; its workspaces become nouns and its answers
+second declaration of a name [QSDSP#residence]; its workspaces become nouns and its answers
 name the workspace they came from [D38]; and a host's command is the
-language's with its noun as the first value [D37].
+language's with its noun as the first value [QSHST#input].
 
 The others stand beside the suite: one start command returns the root
 doc; a renderer loads the pages of the tags an answer carries that the
@@ -1226,76 +1227,26 @@ its question, its alternatives and their cost, written again in place
 when a decision answers it [D255]; `node scripts/requirements.mjs` lists
 those being decided.
 
-[D2]: decisions/D2.md
-[D7]: decisions/D7.md
-[D8]: decisions/D8.md
-[D13]: decisions/D13.md
-[D19]: decisions/D19.md
-[D20]: decisions/D20.md
-[D21]: decisions/D21.md
 [D22]: decisions/D22.md
 [D26]: decisions/D26.md
-[D27]: decisions/D27.md
 [D28]: decisions/D28.md
 [D29]: decisions/D29.md
 [D30]: decisions/D30.md
 [D31]: decisions/D31.md
-[D34]: decisions/D34.md
-[D37]: decisions/D37.md
 [D38]: decisions/D38.md
-[D39]: decisions/D39.md
-[D41]: decisions/D41.md
-[D46]: decisions/D46.md
-[D50]: decisions/D50.md
 [D59]: decisions/D59.md
-[D61]: decisions/D61.md
-[D67]: decisions/D67.md
-[D72]: decisions/D72.md
-[D84]: decisions/D84.md
-[D88]: decisions/D88.md
 [D89]: decisions/D89.md
 [D93]: decisions/D93.md
-[D96]: decisions/D96.md
-[D108]: decisions/D108.md
-[D109]: decisions/D109.md
-[D111]: decisions/D111.md
-[D116]: decisions/D116.md
-[D117]: decisions/D117.md
-[D118]: decisions/D118.md
-[D119]: decisions/D119.md
-[D120]: decisions/D120.md
-[D123]: decisions/D123.md
 [D128]: decisions/D128.md
 [D131]: decisions/D131.md
-[D132]: decisions/D132.md
 [D151]: decisions/D151.md
-[D152]: decisions/D152.md
-[D153]: decisions/D153.md
 [D155]: decisions/D155.md
-[D161]: decisions/D161.md
 [D163]: decisions/D163.md
-[D164]: decisions/D164.md
-[D167]: decisions/D167.md
-[D168]: decisions/D168.md
-[D175]: decisions/D175.md
-[D176]: decisions/D176.md
-[D178]: decisions/D178.md
-[D179]: decisions/D179.md
-[D185]: decisions/D185.md
 [D208]: decisions/D208.md
-[D212]: decisions/D212.md
-[D214]: decisions/D214.md
-[D221]: decisions/D221.md
 [D225]: decisions/D225.md
 [D227]: decisions/D227.md
 [D231]: decisions/D231.md
-[D235]: decisions/D235.md
 [D237]: decisions/D237.md
-[D248]: decisions/D248.md
-[D249]: decisions/D249.md
-[D251]: decisions/D251.md
-[D252]: decisions/D252.md
-[D253]: decisions/D253.md
 [D254]: decisions/D254.md
 [D255]: decisions/D255.md
 [D259]: decisions/D259.md
@@ -1303,10 +1254,8 @@ those being decided.
 [D272]: decisions/D272.md
 [D273]: decisions/D273.md
 [D274]: decisions/D274.md
-[D275]: decisions/D275.md
 [D276]: decisions/D276.md
 [D277]: decisions/D277.md
-[D279]: decisions/D279.md
 [D282]: decisions/D282.md
 [D283]: decisions/D283.md
 [QSNAM#binding]: spec/QSNAM-names-and-scope.md#binding
@@ -1323,3 +1272,32 @@ those being decided.
 [QSCOL#map]: spec/QSCOL-collections.md#map
 [QSCND#convert]: spec/QSCND-conditions-and-conversions.md#convert
 [QSTXT#string]: spec/QSTXT-text.md#string
+[QSSLF#catalog]: spec/QSSLF-the-language-describes-itself.md#catalog
+[QSPTH#value]: spec/QSPTH-paths.md#value
+[QSERR#site]: spec/QSERR-errors.md#site
+[QSDSP#residence]: spec/QSDSP-a-word-found-through-its-subject.md#residence
+[QSDSP#walk]: spec/QSDSP-a-word-found-through-its-subject.md#walk
+[QSNAM#letters]: spec/QSNAM-names-and-scope.md#letters
+[QSBLD#input]: spec/QSBLD-functions-and-kinds.md#input
+[QSLIT#keyword]: spec/QSLIT-values-and-literals.md#keyword
+[QSBLD#kind]: spec/QSBLD-functions-and-kinds.md#kind
+[QSERR#rest]: spec/QSERR-errors.md#rest
+[QSHST#answer]: spec/QSHST-hosts-and-the-command-line.md#answer
+[QSCOL#each]: spec/QSCOL-collections.md#each
+[QSSLF#laws]: spec/QSSLF-the-language-describes-itself.md#laws
+[QSPRN#span]: spec/QSPRN-printing-and-codecs.md#span
+[QSBLD#fn]: spec/QSBLD-functions-and-kinds.md#fn
+[QSHST#input]: spec/QSHST-hosts-and-the-command-line.md#input
+[QSDSP#answer]: spec/QSDSP-a-word-found-through-its-subject.md#answer
+[QSLIT#kind]: spec/QSLIT-values-and-literals.md#kind
+[QSHST#effect]: spec/QSHST-hosts-and-the-command-line.md#effect
+[QSLIT#tag]: spec/QSLIT-values-and-literals.md#tag
+[QSBLD#chain]: spec/QSBLD-functions-and-kinds.md#chain
+[QSNAM#address]: spec/QSNAM-names-and-scope.md#address
+[QSDSP#tagname]: spec/QSDSP-a-word-found-through-its-subject.md#tagname
+[QSPRN#elide]: spec/QSPRN-printing-and-codecs.md#elide
+[QSSLF#page]: spec/QSSLF-the-language-describes-itself.md#page
+[QSQUO#step]: spec/QSQUO-code-as-data.md#step
+[QSSLF#doc]: spec/QSSLF-the-language-describes-itself.md#doc
+[QSSLF#near]: spec/QSSLF-the-language-describes-itself.md#near
+[QSSLF#axis]: spec/QSSLF-the-language-describes-itself.md#axis

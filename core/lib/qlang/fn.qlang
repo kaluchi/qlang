@@ -4,7 +4,7 @@
    as their literal, the chain that builds a function folded into data,
    since none of them stands while the source runs; the chain builds every
    other word.
-   The decisions it exists for: [D251], [D252]. ~|
+   The decisions it exists for: [QSBLD#fn], [QSBLD#kind]. ~|
 
 :fn
   |~~ A function: the subject it runs on, the inputs it takes, the answer

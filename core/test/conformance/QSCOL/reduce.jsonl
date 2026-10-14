@@ -18,3 +18,7 @@
 {"name":"a-reducer-of-code-folds-the-values-of-a-map","query":"{:a 1 :b 2} | reduce 0 ~(sumOf /0 /1)","expect":"3"}
 {"name":"a-reducer-of-code-that-fails-answers-the-failure","query":"[1 \"x\" 3] | reduce 0 ~(sumOf /0 /1) !| type","expect":"::vec/sum/ElementNotNumberError"}
 {"name":"reduce-folds-the-values","query":"{:a 1 :b 2} | reduce 0 ~(add)","expect":"3"}
+{"name":"a-reducer-of-a-literal-answers-it","query":"[1 2 3] | reduce 0 ~(42)","expect":"42"}
+{"name":"a-reducer-that-gives-its-word-an-arg-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add 1) !| get [~(type) /actualType]","expect":"[::number/add/SubjectNotNumberError ::vec]"}
+{"name":"a-reducer-of-an-unknown-name-fails-on-the-pair","query":"[1 2 3] | reduce 0 ~(nope) !| type","expect":"::call/UnknownNameError"}
+{"name":"a-reducer-of-a-value-name-answers-the-value","query":"5 | :five it | get [1 2 3] | reduce 0 ~(five)","expect":"5"}

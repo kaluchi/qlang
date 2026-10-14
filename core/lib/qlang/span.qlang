@@ -1,6 +1,6 @@
 |~ `::span`, the kind of a stretch of source text, and what is declared
    under it: the words that read its ends.
-   The decisions it exists for: [D249]. ~|
+   The decisions it exists for: [QSPRN#span]. ~|
 
 :span
   |~~ A span is a stretch of source text, the place where a reading

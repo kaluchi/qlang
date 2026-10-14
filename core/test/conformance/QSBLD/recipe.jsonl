@@ -1,0 +1,10 @@
+{"name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width#5 | inc","expect":"::Width#6"}
+{"name":"a-verb-that-returns-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T"}
+{"name":"a-verb-handed-on-in-a-quote-runs-where-the-quote-is-applied","query":":number/big ~(gt 2) | [1 2 3] | filter ~big","expect":"[3]"}
+{"name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false"}
+{"name":"a-verb-without-modifiers-runs-at-each-mention","query":":number/inc ~(add 1) | 5 | inc | inc","expect":"7"}
+{"name":"a-word-of-a-noun-itself-takes-the-tag-name","query":":Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk itself. ~~| ::tag | impl ~(\"9 to 5\")) | ::Desk | hours","expect":"\"9 to 5\""}
+{"name":"a-word-of-a-noun-itself-refuses-a-value-that-is-no-tag","query":":Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk itself. ~~| ::tag | impl ~(\"9 to 5\")) | 5 | Desk/hours !| type","expect":"::Desk/hours/SubjectNotDeskError"}
+{"name":"a-recipe-reads-no-value-of-a-sentence","query":":n 3 | :number/times ~(mul n) | 5 | times !| type","expect":"::call/UnknownNameError"}
+{"name":"a-word-recurses-through-the-tree","query":":number/fact ~(if (lte 1) ~(1) ~(:n it | sub 1 | fact | mul n)) | 5 | fact","expect":"120"}
+{"name":"the-recipe-of-a-word-of-the-host-is-its-descriptor","query":"::vec/sort | binding | get /value | get /1 | type","expect":"::builtin"}

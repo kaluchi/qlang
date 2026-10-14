@@ -19,7 +19,7 @@ const SPAN_TAG = makeTag('span');
 
 // spanOfLocation(loc) → the stretch of source a location names as a span,
 // the offset from zero, the line and the column from one of its start
-// and of the point after its end, `::span[0 1 1 1 1 2]` [D249], or null
+// and of the point after its end, `::span[0 1 1 1 1 2]` [QSPRN#span], or null
 // for none.
 export function spanOfLocation(loc) {
   if (!loc) return null;
@@ -29,9 +29,9 @@ export function spanOfLocation(loc) {
 
 // factsInOrder(tag, facts, env) → the facts of a refusal of the runtime in
 // the order of the definitions that describe them, each named as its fact
-// [D46]: those under the refusal's label first, then those under
+// [QSERR#site]: those under the refusal's label first, then those under
 // `::error`, which every refusal shares, the path an error takes coming
-// after them as the trail joins it [D13]. A fact neither declares is a
+// after them as the trail joins it [QSERR#rest]. A fact neither declares is a
 // defect of the runtime.
 export function factsInOrder(tag, facts, env) {
   const ordered = new Map();
@@ -47,7 +47,7 @@ export function factsInOrder(tag, facts, env) {
 // The error a refusal of the runtime raised: the facts its site handed
 // with the kind of the value refused, the value itself left out where it
 // is the subject the first stop of the trail holds, so its presence says
-// the site reached below the subject [D13], [D46].
+// the site reached below the subject [QSERR#rest], [QSERR#site].
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTag(qlangError.address);
   const facts = new Map();
@@ -119,7 +119,7 @@ function classKeyword() {
 
 // The line where a reading stopped and its marker, a caret under the
 // start of the span and tildes to its end, padded so the two strings
-// end in one column; `:location` holds the span itself [D249].
+// end in one column; `:location` holds the span itself [QSPRN#span].
 function excerptAroundLocation(source, location) {
   const lineNumber = location.start.line;
   const line = source.split('\n')[lineNumber - 1];
@@ -139,8 +139,8 @@ const CAUSES_RECOUNTED = 8;
 // A JavaScript error escaping an implementation is a failure of the
 // host: a tag of the language and the facts every host can give, its
 // account and the accounts of the failures beneath it, so a port of the
-// runtime to another language changes no fact a query reads [D7],
-// [D46]. The step that failed stands in the trail; the stack, the class
+// runtime to another language changes no fact a query reads [QSHST#answer],
+// [QSERR#site]. The step that failed stands in the trail; the stack, the class
 // and the fields of the error stay with the host in `originalError`, and
 // a host that has facts to hand declares a refusal of its own.
 export function errorFromForeign(jsError, node, env) {

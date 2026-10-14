@@ -1,16 +1,16 @@
 // Every value prints as a literal that reads back as itself [D30]: values
-// built from a seeded walk over the literals of the language, atoms with
-// their escapes, vectors and maps in both their spellings, sets with a
-// duplicate among them, values under a tag over every payload, a label
-// the source declares among the tags, the constructors of `::qlang` and
-// `::json`, quotes, a quote of a path alone among them [D248], docs,
-// errors at rest inside a vector [D13], one with a stop on its trail among
-// them, and functions and kinds built by their chains, pages over several
-// lines, inputs, fields, invariants, refusals, facts and laws among them
-// [D251], [D252], each printed, parsed and applied, and held equal to
-// itself by `eq`. A part computed goes into a container by the template of
-// `get`, each part of it a quote that answers it, and under a tag by
-// `tag`, since a literal computes nothing [D279].
+// built from a seeded walk over the literals of the language, atoms with their
+// escapes, vectors and maps in both their spellings, sets with a duplicate
+// among them, values under a tag over every payload, a label the source
+// declares among the tags, the constructors of `::qlang` and `::json`, quotes,
+// a quote of a path alone among them [QSPTH#value], docs, errors at rest
+// inside a vector [QSERR#rest], one with a stop on its trail among them, and
+// functions and kinds built by their chains, pages over several lines, inputs,
+// fields, invariants, refusals, facts and laws among them [QSBLD#fn],
+// [QSBLD#kind], each printed, parsed and applied, and held equal to itself by
+// `eq`. A part computed goes into a container by the template of `get`, each
+// part of it a quote that answers it, and under a tag by `tag`, since a
+// literal computes nothing [QSLIT#tag].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

@@ -114,7 +114,7 @@ describe('::name | laws reads the laws declared under a name', () => {
 });
 
 describe('the axes read the node a tag addresses', () => {
-  it('a keyword is a value and names nothing: it reads the source of its kind [D221]', async () => {
+  it('a keyword is a value and names nothing: it reads the source of its kind [QSLIT#keyword]', async () => {
     expect(await evalQuery(':"::vec" | source')).toEqual(await evalQuery('::keyword | source'));
   });
 
@@ -141,7 +141,7 @@ describe('the axes read the node a tag addresses', () => {
   });
 
   // A tag is the address of a name, so it reads the nearest declaration
-  // of that name whatever its value holds [D153].
+  // of that name whatever its value holds [QSDSP#residence].
   it('::Tag | source reads the declaration of its name', async () => {
     expect(await evalQuery('42 | :Foo it | ::Foo | source | parse')).toBe(':Foo it');
   });
@@ -183,7 +183,7 @@ describe('the axes read what a source of the root declared', () => {
 });
 
 describe('a value that is no name reads the declaration of its kind', () => {
-  // The kind `type` answers names the declaration [D61]: an error
+  // The kind `type` answers names the declaration [QSSLF#axis]: an error
   // reads the page of its tag, and a `manifest` entry, a map, reads
   // the page of `::map` whatever its `:kind` field holds.
   it('a materialized error reaches its own tag docs', async () => {
@@ -214,7 +214,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
   });
 
   // The reader's declaration of a name the root holds stands over it
-  // [D34], [D153].
+  // [QSDSP#walk], [QSDSP#residence].
   it('a cell declaration of a name the root holds is the one the axes read', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
@@ -241,7 +241,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
 });
 
 describe('::name | binding | /value answers the value of the declaration', () => {
-  it('::vec/take reads its function, whose recipe is the descriptor of its primitive, and an input its place [D164], [D251]', async () => {
+  it('::vec/take reads its function, whose recipe is the descriptor of its primitive, and an input its place [QSBLD#input], [QSBLD#fn]', async () => {
     expect(printValue(await evalQuery('::vec/take | binding | get /value | get /1'))).toBe('::builtin{}');
     expect(printValue(await evalQuery('::vec/take | binding :count | get /value'))).toBe('/0');
   });

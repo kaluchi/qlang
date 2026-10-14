@@ -23,7 +23,7 @@ describe('BindStep — docs-only form', () => {
     expect(docText(doc)).toBe(' placeholder note');
   });
 
-  it('a label declared by its page alone reads its page, the value of its record [D253]', async () => {
+  it('a label declared by its page alone reads its page, the value of its record [QSBLD#chain]', async () => {
     const doc = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | doc | content');
     expect(doc).toContain('short tag prose');
     const value = await evalQuery(':MyDocTag |~~ short tag prose ~~| | ::MyDocTag | binding | get /value | type');

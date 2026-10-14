@@ -10,3 +10,5 @@
 {"name":"an-input-of-a-quote-under-a-label-named-as-a-word-meets-it-in-the-recipe","query":":vec/firstN (::fn | takes :count |~~ The count. ~~| /0 | impl ~(get [~(count) ~(take count)])) | [1 2 3] | firstN 2 !| get [~(type) /name]","expect":"[::call/ValueMeetsWordError :count]"}
 {"name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":":sort 5 | [3 1] | sort /a !| get /addresses","expect":"#[::vec/sort]"}
 {"name":"a-label-of-the-root-stays-the-roots-under-a-name-of-the-reader","query":":page (::vec | doc) | :vec 5 | ::vec | doc | eq page","expect":"true"}
+{"name":"an-unknown-name-is-refused","query":"thisIsNotDefined !| type","expect":"::call/UnknownNameError"}
+{"name":"an-unknown-name-inside-filter-is-refused","query":"[1 2 3] | filter ~(thisIsNotDefined) !| type","expect":"::call/UnknownNameError"}

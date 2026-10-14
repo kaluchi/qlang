@@ -1,7 +1,7 @@
-// Words and kinds under a label [D251], [D252]: a kind its chain builds,
-// the words declared under it running on its values, the inputs a call's
-// object holds, a host's primitive under a label, and the refusals named
-// by the address of what refused.
+// Words and kinds under a label [QSBLD#fn], [QSBLD#kind]: a kind its chain
+// builds, the words declared under it running on its values, the inputs a
+// call's object holds, a host's primitive under a label, and the refusals
+// named by the address of what refused.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -23,7 +23,7 @@ const BOX = lines(
 );
 
 describe('a kind built from ::kind', () => {
-  it('refuses a payload that breaks an invariant of its kind, the constructor attaching or refusing [D279]', async () => {
+  it('refuses a payload that breaks an invariant of its kind, the constructor attaching or refusing [QSLIT#tag]', async () => {
     expect(await evalQuery(lines(
       ':Small |~~ A number below ten. ~~| (::kind | holds :TooBigError |~~ Below ten. ~~| ~(lt 10))',
       '::Small#12 !| type'
@@ -105,7 +105,7 @@ describe('a host\'s primitive under a label', () => {
     expect((await session.evalCell('::Dial#1 | payload')).result).toBe(2);
   });
 
-  it('computes the modifiers of a call up to the first that answers an error, and runs none after it [D167]', async () => {
+  it('computes the modifiers of a call up to the first that answers an error, and runs none after it [QSQUO#modifier]', async () => {
     let noted = 0;
     const session = await createSession({
       sources: [{ uri: 'probe/note', source: ':any/note ::builtin{}', impls: { 'any/note': subject => { noted += 1; return subject; } } }]

@@ -1,15 +1,14 @@
 // Code as data — the steps of a quote.
 //
-// A quote is a vector of steps under the code tag `::quote` [D8], and
-// this module is the one place that turns the parser's tree into steps
-// and steps back into text. Where the syntax is a literal, the step is
-// that literal itself, a nested quote included, and a container literal
-// holds the steps of its elements, a pipeline element as its group;
-// where the syntax computes, the step is a record, `::call`, `::path`,
-// `::bind` or `::construct`; the fail track and the parentheses wrap the
-// quote of their step as `::fail` and `::group` [D8]. A comment leaves no
-// step. A command's modifier is one word and is stored as its step [D10,
-// D47].
+// A quote is a vector of steps under the code tag `::quote` [QSQUO#step], and
+// this module is the one place that turns the parser's tree into steps and
+// steps back into text. Where the syntax is a literal, the step is that
+// literal itself, a nested quote included, and a container literal holds the
+// steps of its elements, a pipeline element as its group; where the syntax
+// computes, the step is a record, `::call`, `::path`, `::bind` or
+// `::construct`; the fail track and the parentheses wrap the quote of their
+// step as `::fail` and `::group` [QSQUO#step]. A comment leaves no step. A
+// command's modifier is one word and is stored as its step [QSQUO#step].
 //
 // A quote read from text keeps the parser's node on its holder and runs
 // through it; a quote assembled from data is printed and parsed the
@@ -65,11 +64,11 @@ export function quoteOfLiteral(node) {
 }
 
 // A doc literal's value, the prose the parser read and a quote for each
-// span of it that read as code [D19], read once per node as a quote is.
+// span of it that read as code [QSSLF#doc], read once per node as a quote is.
 const DOC_OF_LITERAL = new WeakMap();
 
 // The segment a part of a doc literal is: its prose, a quote, or a quote
-// under the stack of tags written before it, held as data [D108].
+// under the stack of tags written before it, held as data [QSSLF#doc].
 function docSegmentOfPart(part) {
   if (typeof part === 'string') return part;
   if (part.type !== 'DocTaggedQuote') return quoteOfLiteral(part);
@@ -85,7 +84,7 @@ export function docOfNode(node) {
   return doc;
 }
 
-// The docs a declaration writes in the slot before its body [D83].
+// The docs a declaration writes in the slot before its body [QSSYN#doc].
 export function slotDocsOf(bindStep) {
   return (bindStep.docs ?? []).map(docOfNode);
 }
@@ -105,7 +104,7 @@ export function commandStep(name, modifiers = []) {
 }
 
 // tagCallStepOf(tag) → the step `tag ::Tag`, the call a tagged literal
-// stands for [D13].
+// stands for [QSERR#rest].
 export function tagCallStepOf(tag) {
   return commandStep('tag', [tag]);
 }
@@ -227,11 +226,11 @@ export function isStep(value) {
 }
 
 // isElementStep(value) — a literal, a quote, a doc, a container of element
-// steps, an error literal's step, the error at rest it spells [D13], a group,
-// or a record, which counts by its tag since its constructor already read it
-// back from its own text. A declaration and a command with modifiers stand in
-// a pipeline alone: inside a container the grammar reads each of their words
-// as an element of its own.
+// steps, an error literal's step, the error at rest it spells [QSERR#rest], a
+// group, or a record, which counts by its tag since its constructor already
+// read it back from its own text. A declaration and a command with modifiers
+// stand in a pipeline alone: inside a container the grammar reads each of
+// their words as an element of its own.
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
   if (isKeyword(value) || isTag(value) || isRegex(value) || isPath(value) || isDoc(value) || isQuote(value)) return true;
@@ -262,7 +261,7 @@ export function printQuoteSource(quote) {
 
 // The text a quote of a doc was written in, the source its literal
 // spelled, which reads back as the same steps; a quote assembled from
-// data, which has no source, is printed [D149].
+// data, which has no source, is printed [QSSLF#doc].
 function writtenSourceOf(quote) {
   const writtenText = quote[QUOTE_AST_SLOT]?.ast?.text;
   return typeof writtenText === 'string' ? writtenText : printQuoteSource(quote);
@@ -270,7 +269,7 @@ function writtenSourceOf(quote) {
 
 // docText(doc) → its prose with each quote written where it stands as its
 // author wrote it, a quote under tags with its stack before it, the text
-// a doc's `content` answers [D19], [D108], [D149].
+// a doc's `content` answers [QSSLF#doc].
 export function docText(doc) {
   return doc.map(segment => typeof segment === 'string' ? segment
     : isQuote(segment) ? `~(${writtenSourceOf(segment)})` : printValue(segment)).join('');
@@ -284,7 +283,7 @@ function stepTagOf(step) {
 // declaration a line, each after the first led by its pipe, as the
 // catalog writes it [QSQUO#parse], and so does a quote of several steps one of
 // which takes several lines, the commands of a signature among them
-// [D251].
+// [QSBLD#fn].
 function printSteps(steps) {
   const printed = steps.map(step => (stepTagOf(step) === 'fail' ? { fail: printSteps(step.payload) } : { step: printStep(step) }));
   const lined = steps.length > 1 && (steps.every(step => stepTagOf(step) === 'bind') || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
@@ -314,7 +313,7 @@ function printStep(step) {
 
 // A construct step writes its payload after its tag as a tagged literal
 // does, and a payload of code in the parentheses the parser refuses after
-// a tag, so the step reads back as none [D279].
+// a tag, so the step reads back as none [QSLIT#tag].
 function printConstruct(tagLiteral, payload) {
   const kind = stepTagOf(payload);
   if (kind === 'call' || kind === 'bind') return `${tagLiteral}(${printStep(payload)})`;
@@ -322,7 +321,7 @@ function printConstruct(tagLiteral, payload) {
 }
 
 // The fields of the step of an error literal, a map under `::error`
-// beneath the tag the literal writes before its bang [D13]; null
+// beneath the tag the literal writes before its bang [QSERR#rest]; null
 // for any other value.
 function errorFieldsOf(value) {
   const fields = isValueClass(value, 'taggedInstance') ? value.payload : value;

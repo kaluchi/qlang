@@ -480,11 +480,11 @@ mirror spelled nested structure inline, against D50, and duplicated
 what aspects say by name; the head is the concept the chronology above
 shows stalled. Both readings are withdrawn.
 
-[D2]: ../../decisions/D2.md
+[D2]: ../../decisions/replaced/D2.md
 [D40]: ../../decisions/replaced/D40.md
-[D50]: ../../decisions/D50.md
-[D61]: ../../decisions/D61.md
-[D153]: ../../decisions/D153.md
+[D50]: ../../decisions/replaced/D50.md
+[D61]: ../../decisions/replaced/D61.md
+[D153]: ../../decisions/replaced/D153.md
 [D156]: ../../decisions/replaced/D156.md
-[D161]: ../../decisions/D161.md
+[D161]: ../../decisions/replaced/D161.md
 [D162]: ../../decisions/replaced/D162.md

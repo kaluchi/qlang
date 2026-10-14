@@ -1,4 +1,4 @@
-// Constructors of a quote and of its steps [D8].
+// Constructors of a quote and of its steps [QSQUO#step].
 //
 // `::quote[…]` holds a vector every element of which is a step, and
 // runs wherever a vector comes under the tag, `tag ::quote` and every
@@ -26,7 +26,7 @@ const QuoteReadBackDiffersError = declareRefusal('quote/ReadBackDiffersError');
 
 // The steps read as the text they print as, each a step that reads back
 // by itself, so a value assembled after the head, which a step is not
-// [D248], is refused where it is made.
+// [QSPTH#value], is refused where it is made.
 function quoteConstructor(payload) {
   if (!isVec(payload)) throw new QuotePayloadNotVecError({ actualValue: payload });
   payload.forEach((element, index) => {

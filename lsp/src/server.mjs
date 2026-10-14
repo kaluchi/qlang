@@ -57,9 +57,9 @@ async function loadCatalogContext() {
   const lspSrcDir = dirname(fileURLToPath(import.meta.url));
   const libDir = join(lspSrcDir, '..', '..', 'core', 'lib');
 
-  // The sources of the language, `lib/<uri>.qlang` as
-  // `package.json#imports` maps each [D153]; the resolved file URI lets
-  // goto-definition return absolute locations the editor can open.
+  // The sources of the language, `lib/<uri>.qlang` as `package.json#imports`
+  // maps each [QSDSP#residence]; the resolved file URI lets goto-definition
+  // return absolute locations the editor can open.
   const sources = LANGUAGE_SOURCES.map(uri => ({ path: join(libDir, `${uri}.qlang`), uri }));
 
   const mergedIndex = new Map();

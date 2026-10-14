@@ -112,7 +112,7 @@ async function printedByCore(query) {
 }
 
 // The print of an error begins with its literal, `::Tag!{` or `!{`, a
-// failure's under the line that says it was raised [D13].
+// failure's under the line that says it was raised [QSERR#rest].
 const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-]+)?!\{/.test(text);
 
 // An answer that is no literal, a raw string the command line printed,

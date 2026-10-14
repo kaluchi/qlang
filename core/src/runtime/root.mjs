@@ -1,14 +1,14 @@
-// The root [D153]: the scope a host's sources declare before the reader's
-// first step, each source a cell run in a frame over the root the sources
-// before it left, the language's first. A source whose run answers an
-// error, or that declares again a name the root holds, is refused; each
-// name under a label a source declares is the host's, which alone
-// reaches an implementation [D34]: a name whose value is `::builtin{}`,
-// or a function or a kind whose recipe is, runs the implementation the
-// host handed beside the source under its name [D72], [D167], [D252],
-// and is refused as the root is declared when it was handed none; a
-// refusal the source declares takes its address, the name it is declared
-// by, once [QSERR#rest].
+// The root [QSDSP#residence]: the scope a host's sources declare before the
+// reader's first step, each source a cell run in a frame over the root the
+// sources before it left, the language's first. A source whose run answers an
+// error, or that declares again a name the root holds, is refused; each name
+// under a label a source declares is the host's, which alone reaches an
+// implementation [QSDSP#walk]: a name whose value is `::builtin{}`, or a
+// function or a kind whose recipe is, runs the implementation the host handed
+// beside the source under its name [QSDSP#residence], [QSQUO#modifier],
+// [QSBLD#kind], and is refused as the root is declared when it was handed
+// none; a refusal the source declares takes its address, the name it is
+// declared by, once [QSERR#rest].
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
@@ -27,13 +27,14 @@ export const BuiltinRootSourceNotDeclaredError = declareInvariantError('builtin/
   ({ uri, tagName, name }) => `qlang root: the source ${uri} is refused with ${tagName}${name === undefined ? '' : ` for ${name.literal}`}, and its declarations stay out of the root`);
 
 // A name a source of the root declares as `::builtin{}` that its host
-// handed no implementation for has nothing to run [D72].
+// handed no implementation for has nothing to run [QSDSP#residence].
 export const BuiltinImplementationNotHandedError = declareInvariantError('builtin/ImplementationNotHandedError',
   ({ name }) => `qlang root: no implementation is handed for ${name}, which its source declares as ::builtin{}`);
 
 // An implementation a host hands for a name its source declares as no
-// `::builtin{}` under a label has nothing to run under: a name written
-// in steps runs them, and a bare name reads its value [D34], [D167].
+// `::builtin{}` under a label has nothing to run under: a name written in
+// steps runs them, and a bare name reads its value [QSDSP#walk],
+// [QSQUO#modifier].
 export const BuiltinImplementationNamesNoBuiltinError = declareInvariantError('builtin/ImplementationNamesNoBuiltinError',
   ({ uri, name }) => `qlang root: the source ${uri} is handed an implementation for ${name.literal}, which it declares as no ::builtin{} under a label`);
 
@@ -70,8 +71,8 @@ export async function declareRoot(env, sources) {
 }
 
 // The descriptor of a host's primitive a name holds, itself or as the
-// recipe of a function [D251], or null; the check a host hands a kind is
-// held by the node of its constructor [D252].
+// recipe of a function [QSBLD#fn], or null; the check a host hands a kind is
+// held by the node of its constructor [QSBLD#kind].
 function builtinOf(value) {
   const recipe = isFn(value) ? recipeOf(value) : value;
   return isBuiltinDescriptor(recipe) ? recipe : null;

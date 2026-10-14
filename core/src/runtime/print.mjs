@@ -1,6 +1,6 @@
-// The primitives of `print`, the text that reads back as any value, the
-// print a kind answers of its own taken for each part of that kind
-// [D96], and of `elide`, the value within a budget of its print [D120].
+// The primitives of `print`, the text that reads back as any value, the print
+// a kind answers of its own taken for each part of that kind [QSPRN#print],
+// and of `elide`, the value within a budget of its print [QSHST#answer].
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import { TAG_HEADER_SYMBOL, isErrorValue } from '../types.mjs';
@@ -15,7 +15,7 @@ import { callMemberOn } from '../eval.mjs';
 // forms of the core print the rest. An answer that is a failure, which a
 // host meets alone since a step skips it, prints as its error at rest
 // under a line comment that says it was raised, which a reading of the
-// literal passes over [D13].
+// literal passes over [QSERR#rest].
 export async function printAnswer(value, env, state = rootState(value, env)) {
   const printedByKind = new Map();
   await collectPrintsOfKinds(value, env, state, nodeOf(env, 'any/print'), printedByKind);

@@ -1,9 +1,9 @@
-// The environment every query starts from: the root the language's
-// sources declare [D153], each read by the host's locator, with nothing
+// The environment every query starts from: the root the language's sources
+// declare [QSDSP#residence], each read by the host's locator, with nothing
 // seeded before them.
 
 // Each module binds the implementations of the language's verbs and
-// kinds into PRIMITIVE_REGISTRY, by address, as it loads [D72].
+// kinds into PRIMITIVE_REGISTRY, by address, as it loads [QSDSP#residence].
 import './vec.mjs';
 import './map.mjs';
 import './setops.mjs';
@@ -52,7 +52,7 @@ export async function langRuntime(opts = {}) {
 }
 
 // The noun a source of the language declares, the last name of its uri:
-// `qlang/number` declares `number`, and `qlang` the topic [D114].
+// `qlang/number` declares `number`, and `qlang` the topic [QSDSP#residence].
 function nounOfSource(uri) {
   return uri.slice(uri.lastIndexOf('/') + 1);
 }

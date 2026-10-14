@@ -23,7 +23,7 @@
 //       refusal and every recording of a site takes the address as a
 //       literal, `'noun/LastNameError'`, and the constant that holds
 //       the class is the address without its slash, across `core/src`,
-//       `cli/src`, `lsp/src` [D46].
+//       `cli/src`, `lsp/src` [QSERR#site].
 //
 //   (4) Derivable tallies in markdown prose. A count that
 //       `npm test`, the manifest, or a grep already answers —
@@ -161,16 +161,15 @@ function scanForbiddenWords() {
 
 // ── (3) A refusal is declared by its address ──────────────────
 //
-// A refusal's address is the one key the implementation and its page
-// in the catalog share: every declaration of a refusal and every
-// recording of an address outside one takes it as a literal, the path of
-// the place that refused and a last name ending in `Error`,
-// `vec/sum/ElementNotNumberError`, and the constant that holds the class
-// is named by the address without its slashes,
-// `VecSumElementNotNumberError`, so a grep for either
-// finds the declaration, every throw and the page [D46]. A class declared by
-// `class Foo extends …` ends in `Error`; the abstract roots are the
-// bases every site extends.
+// A refusal's address is the one key the implementation and its page in the
+// catalog share: every declaration of a refusal and every recording of an
+// address outside one takes it as a literal, the path of the place that
+// refused and a last name ending in `Error`, `vec/sum/ElementNotNumberError`,
+// and the constant that holds the class is named by the address without its
+// slashes, `VecSumElementNotNumberError`, so a grep for either finds the
+// declaration, every throw and the page [QSERR#site]. A class declared by
+// `class Foo extends …` ends in `Error`; the abstract roots are the bases
+// every site extends.
 
 const ABSTRACT_BASES = new Set(['QlangError', 'QlangInvariantError']);
 
@@ -539,7 +538,7 @@ if (forbidden.length > 0) {
 if (refusalDeclarations.length > 0) {
   process.stdout.write(`\nRefusals not declared by their address (${refusalDeclarations.length}):\n`);
   for (const v of refusalDeclarations) process.stdout.write(`  ${v.file}:${v.line}  ${v.problem}\n`);
-  process.stdout.write('    the address is the key the implementation and the page of the catalog share [D46].\n');
+  process.stdout.write('    the address is the key the implementation and the page of the catalog share [QSERR#site].\n');
 }
 if (proseTallies.length > 0) {
   process.stdout.write(

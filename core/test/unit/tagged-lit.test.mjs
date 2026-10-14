@@ -1,6 +1,6 @@
-// A tag is the address of a node of the tree of names, and a tagged
-// literal puts its payload under the tag through the constructor of the
-// kind, which attaches the tag or refuses the payload [D152], [D279].
+// A tag is the address of a node of the tree of names, and a tagged literal
+// puts its payload under the tag through the constructor of the kind, which
+// attaches the tag or refuses the payload [QSNAM#address], [QSLIT#tag].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -51,7 +51,7 @@ describe('a word under a label runs when its name is mentioned', () => {
 });
 
 describe('a kind whose construct is a primitive of the host', () => {
-  it('puts a payload under the tag through the check its host hands [D34]', async () => {
+  it('puts a payload under the tag through the check its host hands [QSDSP#walk]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
       sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', impls: { 'myType/construct': payload => payload * 2 } }]
@@ -59,7 +59,7 @@ describe('a kind whose construct is a primitive of the host', () => {
     expect((await sessionInstance.evalCell('::myType#4 | get [~(type) ~(payload)]')).result).toEqual([makeTag('myType'), 8]);
   });
 
-  it('a construct a reader declares as ::builtin{} reaches no primitive, and the tag lays over the payload [D34]', async () => {
+  it('a construct a reader declares as ::builtin{} reaches no primitive, and the tag lays over the payload [QSDSP#walk]', async () => {
     const result = await evalQuery(':myType |~~ myType. ~~| (::kind | impl ::builtin{}) | ::myType~(add 1) | type');
     expect(result).toEqual(makeTag('myType'));
   });
@@ -114,7 +114,7 @@ describe('what a tag before a payload refuses and hands on', () => {
     expect(err.tag).toEqual(makeTag('construct/TagNotKindError'));
   });
 
-  it('lays the tag of a word over the args of a call of it, which read back [D164]', async () => {
+  it('lays the tag of a word over the args of a call of it, which read back [QSBLD#input]', async () => {
     expect(await evalQuery('1 | add 1 2 !| get /actualValue | eq ::number/add[1 2]')).toBe(true);
     expect(await evalQuery('::vec/count[] | type')).toEqual(makeTag('vec/count'));
   });
@@ -149,7 +149,7 @@ describe('what a tag before a payload refuses and hands on', () => {
 
 describe('a tag no declaration answers lays itself over any payload', () => {
 
-  it('an error literal under a tag, raised, is a failure of that tag [D13]', async () => {
+  it('an error literal under a tag, raised, is a failure of that tag [QSERR#rest]', async () => {
     const { isErrorValue } = await import('../../src/types.mjs');
     const err = await evalQuery('::number/add/SubjectNotNumberError!{:custom "field" :note 42} | raise');
     expect(isErrorValue(err)).toBe(true);
@@ -200,7 +200,7 @@ describe('a tag no declaration answers lays itself over any payload', () => {
     expect(instance.payload.name).toBe('foo');
   });
 
-  it('a number touches its tag by `#`, since `::Tag42` reads as one name [D279]', async () => {
+  it('a number touches its tag by `#`, since `::Tag42` reads as one name [QSLIT#tag]', async () => {
     const { isTaggedInstance } = await import('../../src/types.mjs');
     const instance = await evalQuery('::number/add/SubjectNotNumberError#42');
     expect(isTaggedInstance(instance)).toBe(true);
@@ -209,7 +209,7 @@ describe('a tag no declaration answers lays itself over any payload', () => {
 });
 
 describe('the steps of a tagged literal and of a tag', () => {
-  it('a tagged literal is a `::construct` step over the step of its payload [D8]', async () => {
+  it('a tagged literal is a `::construct` step over the step of its payload [QSQUO#step]', async () => {
     expect(await evalQuery('~(::holds~(mul 2)) | first | get [~(type) /tag /payload]'))
       .toEqual(await evalQuery('[::construct ::holds ~(mul 2)]'));
   });
@@ -253,7 +253,7 @@ describe('a quote is text to `parse` and code to `apply`', () => {
   });
 });
 
-describe('a tag no node answers is a kind of identity, and declares nothing [D152]', () => {
+describe('a tag no node answers is a kind of identity, and declares nothing [QSNAM#address]', () => {
   it('leaves no binding to read', async () => {
     const result = await evalQuery('::Top#1 | :minted it | ::Top | binding');
     expect(result.tag.name).toBe('any/binding/UnknownNameError');
@@ -262,8 +262,8 @@ describe('a tag no node answers is a kind of identity, and declares nothing [D15
 });
 
 describe('within edits under one tag and rewraps it', () => {
-  // The payload runs through the quote as a fork and mints back under
-  // the subject's tag, whose constructor runs once, at the rewrap [D41].
+  // The payload runs through the quote as a fork and mints back under the
+  // subject's tag, whose constructor runs once, at the rewrap [QSDSP#answer].
   it('a set normalizes the vector the edit answers', async () => {
     expect(await evalQuery('#[1 2] | within ~(get [/0 /0 /1]) | eq #[1 2]')).toBe(true);
   });

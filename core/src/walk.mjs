@@ -7,7 +7,7 @@ import { splitAddress } from './address.mjs';
 
 // The two spellings of a name in source, which the editor passes to say
 // which occurrences and declarations count: called by its name, `count`,
-// or written as a tag, the address of a node, `::Box` [D152].
+// or written as a tag, the address of a node, `::Box` [QSNAM#address].
 export const CALL_SPELLING = 'call';
 export const TAG_SPELLING   = 'tag';
 
@@ -66,8 +66,8 @@ export function astChildrenOf(node) {
 }
 
 // The literals, which answer themselves whatever the subject, their parts
-// literals [D279], a path among them [D248], a quote, whose code does not
-// run, and a doc.
+// literals [QSLIT#tag], a path among them [QSPTH#value], a quote, whose code
+// does not run, and a doc.
 const LITERALS = new Set([
   'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit', 'Path',
   'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'TaggedLit', 'QuoteLit', 'DocLit', 'DocTaggedQuote'
@@ -75,7 +75,7 @@ const LITERALS = new Set([
 
 // readsItsSubject(node) → whether a query reads the subject it is handed,
 // which a host that lifts the subject from a stream waits on only then
-// [D37]: a pipeline where its first step that declares nothing reads
+// [QSHST#input]: a pipeline where its first step that declares nothing reads
 // it, or where a declaration before that step runs a body that does; a
 // group where its code reads it; a literal never; a call, a declaration,
 // which answers its subject, and a node this walk does not name always.
@@ -123,7 +123,7 @@ export function originOf(node) {
 }
 
 // declaredNameOf(bindStep) — the name a declaration writes, its keyword's
-// [D152].
+// [QSNAM#address].
 export function declaredNameOf(bindStep) {
   return bindStep.key.name;
 }
@@ -131,7 +131,7 @@ export function declaredNameOf(bindStep) {
 // builtFrom(body) → the noun a body builds its value from as it is
 // written: the tag at the head of its chain of commands, in parentheses or
 // not, `::kind | wraps …`, or the tag of its literal, `::fn[~(…) ~(…)]`;
-// null for any other body [D251], [D252].
+// null for any other body [QSBLD#fn], [QSBLD#kind].
 export function builtFrom(body) {
   const chain = body.type === 'ParenGroup' ? body.pipeline : body;
   if (chain.type === 'TaggedLit') return chain.tag;
@@ -140,7 +140,7 @@ export function builtFrom(body) {
 
 // declaresKind(bindStep) — whether a declaration declares a label: a name
 // by its page alone, `:Box |~~ A parcel. ~~|`, or by the chain of a kind,
-// `:Box |~~ A parcel. ~~| (::kind | wraps …)` [D252].
+// `:Box |~~ A parcel. ~~| (::kind | wraps …)` [QSBLD#kind].
 export function declaresKind(bindStep) {
   return bindStep.body === null || builtFrom(bindStep.body) === 'kind';
 }
@@ -188,8 +188,8 @@ export function findAstNodeAtOffset(ast, offset) {
 // findIdentifierOccurrences(ast, name, spelling?) → the nodes that name
 // it, a keyword written as a value none of them: called, a call of the
 // name, its declaration and a path that reads it as a key; written
-// as a tag [D152], its declaration, a tagged or an error literal that
-// writes it [D13] and the tag name alone.
+// as a tag [QSNAM#address], its declaration, a tagged or an error literal that
+// writes it [QSERR#rest] and the tag name alone.
 export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
   if (spelling === TAG_SPELLING) return findTagOccurrences(ast, name);
   const occurrences = [];
@@ -203,7 +203,7 @@ export function findIdentifierOccurrences(ast, name, spelling = CALL_SPELLING) {
 
 // writesTag(node) — a node whose head is a tag it writes: a tagged
 // literal, `::Tag(…)`, or an error literal that writes the tag of its
-// content before its bang, `::Tag!{…}` [D13].
+// content before its bang, `::Tag!{…}` [QSERR#rest].
 export function writesTag(node) {
   return node.type === 'TaggedLit' || (node.type === 'ErrorLit' && node.tag !== null);
 }
@@ -218,8 +218,8 @@ function findTagOccurrences(ast, tagName) {
   return occurrences;
 }
 
-// The nodes whose declarations stay inside them [D84]: a group, a quote,
-// each word of a literal and each value of a map; the steps of a
+// The nodes whose declarations stay inside them [QSQUO#modifier]: a group, a
+// quote, each word of a literal and each value of a map; the steps of a
 // pipeline share their scope, each seeing the declarations before it.
 export const FORK_ISOLATING_AST_TYPES = new Set([
   'ParenGroup', 'QuoteLit', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
@@ -229,7 +229,7 @@ export const FORK_ISOLATING_AST_TYPES = new Set([
 // call at the UTF-16 offset: the declarations that end at or before it,
 // one inside a node whose declarations stay inside it only for an offset
 // within the part of that node that holds it, its end included, and
-// under the spelling of a tag the labels alone [D168].
+// under the spelling of a tag the labels alone [QSSLF#catalog].
 export function bindingNamesVisibleAt(ast, offset, spelling = CALL_SPELLING) {
   const visible = new Set();
   walkAst(ast, (node) => {

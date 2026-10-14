@@ -112,7 +112,7 @@ pitches, no talk of commits or pull requests.
 Verify before asserting. Any claim about behaviour is run with
 `qlang '…'` in script mode or in `qlang -i`; in Git Bash a query that
 begins with `/` arrives as a path, which the command line reads back
-[D144]. A long tool output is persisted with a short preview; filter it
+[QSHST#shell]. A long tool output is persisted with a short preview; filter it
 instead of reading it back whole.
 
 ## Workspaces
@@ -167,7 +167,7 @@ followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
 literal or held by a constant the address does not name
-(`VecToMapElementNotPairError` for `vec/toMap/ElementNotPairError`) [D46],
+(`VecToMapElementNotPairError` for `vec/toMap/ElementNotPairError`) [QSERR#site],
 on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [D155], and
 on a path the audit, the entrypoint document or this file names that

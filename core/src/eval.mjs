@@ -42,7 +42,7 @@ const BuiltinUnknownAstNodeTypeError = declareInvariantError(
   ({ nodeType }) => `unknown AST node type: ${nodeType}`);
 
 // The tag of a name that holds data puts no value under it: a value goes
-// under a label, a word, an invariant or a tag no node answers [D164].
+// under a label, a word, an invariant or a tag no node answers [QSBLD#input].
 const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
 const CallValueMeetsWordError = declareRefusal('call/ValueMeetsWordError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
@@ -109,7 +109,7 @@ async function evalNode(node, state) {
     return await evaluator(node, state);
   } catch (caughtError) {
     // The error the node raised; the step that ran the node writes its
-    // stop [D13].
+    // stop [QSERR#rest].
     return withPipeValue(state, raisedBy(errorOfThrow(caughtError, node, state.pipeValue, state.env), node));
   }
 }
@@ -133,8 +133,8 @@ async function evalPipeline(node, state) {
 }
 
 // The tracks live in the combinators alone: `|` steps around an error, the
-// step joining the skipped steps of its last stop [D13], and `!|` fires on an
-// error alone [QSSYN#combinator]; the parser writes no other combinator.
+// step joining the skipped steps of its last stop [QSERR#rest], and `!|` fires
+// on an error alone [QSSYN#combinator]; the parser writes no other combinator.
 async function applyCombinator(kind, state, stepNode) {
   return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
 }
@@ -165,9 +165,9 @@ function evalBody(node, state) {
 // map of its facts, `:trail` among them, under `::error` and the tag of
 // the site that refused laid through its label as a tagged literal lays
 // it, so `!| type` reads the site and a verb of `::error` reaches every
-// error [D206], a value passing, a label's refusal answering for the
+// error [QSSLF#doc], a value passing, a label's refusal answering for the
 // catch, and a raise that writes the `:trail` it read resuming that path
-// [D13].
+// [QSERR#rest].
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
@@ -193,10 +193,10 @@ function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.
 function evalRegexLit(node, state)   { return withPipeValue(state, makeRegex(node.pattern, node.flags)); }
 
 // Each element and each value of a literal is a literal, read one after
-// another in their order [D84], none reading the scope or the subject
-// [D279]; a failure lives in the pipe alone, so the first a part answers,
-// a constructor's refusal of its payload, is the answer of the literal,
-// the parts after it left unread [D13].
+// another in their order [QSQUO#modifier], none reading the scope or the
+// subject [QSLIT#tag]; a failure lives in the pipe alone, so the first a part
+// answers, a constructor's refusal of its payload, is the answer of the
+// literal, the parts after it left unread [QSERR#rest].
 async function evalVecLit(node, state) {
   return withPipeValue(state, await partValues(node.elements, state));
 }
@@ -224,7 +224,8 @@ async function entryValues(entries, state) {
 // set's: `!{…}` is `::error{…}`, an error at rest, and `::Foo!{…}` is
 // `::Foo::error{…}`, laid through the label of its tag as a tagged literal
 // lays a payload, a refusal of the label answering for the literal; every
-// entry is a fact, `:kind` among them, and `raise` raises the error [D13].
+// entry is a fact, `:kind` among them, and `raise` raises the error
+// [QSERR#rest].
 async function evalErrorLit(node, state) {
   const facts = await entryValues(node.entries, state);
   if (isErrorValue(facts)) return withPipeValue(state, facts);
@@ -234,7 +235,7 @@ async function evalErrorLit(node, state) {
 
 // The value a part of a literal answers: a refusal its constructor raised
 // passes a stop at the part, and one handed on from a part inside it goes
-// on as it is to the literal it fails [D13].
+// on as it is to the literal it fails [QSERR#rest].
 async function partAnswer(partNode, state) {
   return answerOfPart((await evalNode(partNode, state)).pipeValue, partNode, state.pipeValue);
 }
@@ -243,10 +244,10 @@ function evalQuoteLit(node, state) {
   return withPipeValue(state, quoteOfLiteral(node));
 }
 
-// A doc's quote takes the role the tags written before it give [D108],
+// A doc's quote takes the role the tags written before it give [QSSLF#doc],
 // each laid over the quote through its label as a tagged literal lays a
 // payload, so a tag whose label takes no quote refuses the doc,
-// `|~~ see ::number~(~(x)) ~~|` as `::number~(~(x))` does [D206].
+// `|~~ see ::number~(~(x)) ~~|` as `::number~(~(x))` does [QSSLF#doc].
 async function evalDocLit(node, state) {
   for (const part of node.segments) {
     if (part.type !== 'DocTaggedQuote') continue;
@@ -277,7 +278,7 @@ async function evalTaggedLit(node, state) {
 
 // The error a tagged literal's payload answered, passed by the tag as an
 // error passes every step, the tag's step joining the skipped steps of
-// its last stop [D13], and the literal's own raise where the payload
+// its last stop [QSERR#rest], and the literal's own raise where the payload
 // raised it.
 function passedUntagged(payloadError, node, tagName) {
   const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)));
@@ -285,7 +286,7 @@ function passedUntagged(payloadError, node, tagName) {
   return passed;
 }
 
-// A tag name is a value of its own, read without the scope [D20].
+// A tag name is a value of its own, read without the scope [QSLIT#kind].
 async function evalTagLit(node, state) {
   return withPipeValue(state, makeTag(node.tag));
 }
@@ -293,15 +294,15 @@ async function evalTagLit(node, state) {
 // ─── BindStep ───────────────────────────────────────────────────
 
 // The one binding form: the value passes on, and a fresh scope holds the
-// record of the binding, whose value is the body evaluated once at
-// declaration against the current value, `42 | :x it | add 1 | x`
-// answering 42, a quote among them as the data it is [D251], a
-// declaration of docs alone binding them as a page, and a body that fails
-// answering the failure, which no name holds [D13]; a name is declared
-// once in its scope [QSNAM#scope], a node the root holds once at all and
-// a name with a path under a noun declared before it [QSNAM#address],
-// never a value withheld from held code [QSQUO#held]; what the chain of a
-// kind or a function holds alone, declared by a name, is refused [D253].
+// record of the binding, whose value is the body evaluated once at declaration
+// against the current value, `42 | :x it | add 1 | x` answering 42, a quote
+// among them as the data it is [QSBLD#fn], a declaration of docs alone binding
+// them as a page, and a body that fails answering the failure, which no name
+// holds [QSERR#rest]; a name is declared once in its scope [QSNAM#scope], a
+// node the root holds once at all and a name with a path under a noun declared
+// before it [QSNAM#address], never a value withheld from held code
+// [QSQUO#held]; what the chain of a kind or a function holds alone, declared
+// by a name, is refused [QSBLD#chain].
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
   const [nounName] = splitAddress(name);
@@ -329,7 +330,7 @@ async function evalBindStep(node, state) {
 }
 
 // Whether a declaration writes by name a role the chain of a kind or of a
-// function holds alone [D253].
+// function holds alone [QSBLD#chain].
 function writesOutsideItsChain(env, nounName, lastName, value) {
   if (isInvariant(value)) return true;
   if (nounName === null) return false;
@@ -364,7 +365,7 @@ function layerOf(env, address, origin, pages) {
 }
 
 // The nodes a kind lays under its address, each role of its chain with its
-// page, which its values never read [D252].
+// page, which its values never read [QSBLD#kind].
 function nodesOfKind(kind, address, env, origin) {
   const roles = kindOf(kind);
   const { payload, fields, tells } = roles;
@@ -386,7 +387,7 @@ function nodesOfKind(kind, address, env, origin) {
 }
 
 // The nodes a function named under a label lays under its address, each
-// role of its chain with its page, which its call never reads [D251].
+// role of its chain with its page, which its call never reads [QSBLD#fn].
 function nodesOfFunction(fn, address, env, origin) {
   const signature = signatureOf(fn);
   const { subject, inputs, answer } = signature;
@@ -409,8 +410,8 @@ function declaresWhatTheCallBinds(bindStep, env, name) {
   return binds !== undefined && (bindStep === binds.body || (binds.body.type === 'Pipeline' && bindStep.parent === binds.body)) && binds.names.has(name);
 }
 
-// The record a declaration writes: its name, the docs of its slot, the
-// value, the quote of its step and its origin [QSNAM#binding], [D153].
+// The record a declaration writes: its name, the docs of its slot, the value,
+// the quote of its step and its origin [QSNAM#binding], [QSDSP#residence].
 function declarationRecord(node, value) {
   return makeBinding({
     name: keyword(node.key.name),
@@ -424,7 +425,7 @@ function declarationRecord(node, value) {
 // ─── Path ─────────────────────────────────────────────────────────
 
 // A path is a value that does nothing by itself; the word that takes it
-// reads it [D248].
+// reads it [QSPTH#value].
 function evalPath(node, state) {
   return withPipeValue(state, makePath(node.keys));
 }
@@ -437,7 +438,7 @@ async function evalCall(node, state) {
 }
 
 // The read a step was likely meant for where a path stands in place of
-// the value it names [D248]: a word called on a path, `/tags | count`
+// the value it names [QSPTH#value]: a word called on a path, `/tags | count`
 // read as `get /tags | count`, and an input refusing the path a modifier
 // wrote, `mul /qty` read as `mul (get /qty)`; a refusal the call itself
 // answered, which no stop of a trail has passed yet, carries it.
@@ -466,14 +467,15 @@ function withReadOfPath(state, node, subject, env) {
   return withPipeValue(state, makeErrorValue(refused.tag, facts, { location: refused.location, originalError: refused.originalError }));
 }
 
-// A bare name calls what it reaches for the subject [D34], [D153]; a word the
-// kind of the subject does not answer is refused with the addresses where the
-// word lives [D168], and a name that reaches nothing with the names near it. A
-// value the scope binds and a word the subject answers under one name meet,
-// and the step is refused with the word's address, which calls the word, as
-// another name reads the value [QSNAM#reach]; a value of the reader withheld
-// from held code is refused under its name before a word or a value of the
-// root answers for it [QSQUO#held].
+// A bare name calls what it reaches for the subject [QSDSP#walk],
+// [QSDSP#residence]; a word the kind of the subject does not answer is refused
+// with the addresses where the word lives [QSSLF#catalog], and a name that
+// reaches nothing with the names near it. A value the scope binds and a word
+// the subject answers under one name meet, and the step is refused with the
+// word's address, which calls the word, as another name reads the value
+// [QSNAM#reach]; a value of the reader withheld from held code is refused
+// under its name before a word or a value of the root answers for it
+// [QSQUO#held].
 async function callByName(lookupName, modifiers, state, node) {
   refuseWithheld(state.env, lookupName);
   const reach = bareNameReach(state.env, lookupName, state.pipeValue);
@@ -500,7 +502,7 @@ async function applyBinding(entry, lookupName, modifiers, state) {
   const resolved = bindingValueOf(entry);
 
   // A value takes no modifiers; its refusal names where a word of the
-  // name lives, one a declaration shadows among them [D34].
+  // name lives, one a declaration shadows among them [QSDSP#walk].
   if (modifiers.length > 0) {
     throw new CallValueTakesNoModifiersError({
       name: keyword(lookupName),
@@ -513,8 +515,8 @@ async function applyBinding(entry, lookupName, modifiers, state) {
 
 // A name with a path reads what its address declared, past every bare
 // name of the scope, a name under a label run and any other value
-// itself, so a word a declaration shadows stays one address away [D34],
-// [D153]:
+// itself, so a word a declaration shadows stays one address away [QSDSP#walk],
+// [QSDSP#residence]:
 // `[1 2 3] | vec/filter ~(gt 1)` calls the `filter` of vectors whatever
 // the scope binds as `filter`.
 async function callByAddress(node, state) {
@@ -531,11 +533,11 @@ async function callByAddress(node, state) {
 
 // ─── A value held to its kinds ──────────────────────────────────
 
-// A refusal named by the address of what refused [D46], [D251], its facts
-// with the kind of the value refused in the order the catalog declares
-// them [D46]; the value itself rides the facts where the trail does not
+// A refusal named by the address of what refused [QSERR#site], [QSBLD#fn], its
+// facts with the kind of the value refused in the order the catalog declares
+// them [QSERR#site]; the value itself rides the facts where the trail does not
 // hold it, an input or the args, and leaves them for the subject, which the
-// trail's first stop holds [D13].
+// trail's first stop holds [QSERR#rest].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
   const tag = makeTag(tagName);
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeKeyword(refused)), env));
@@ -604,7 +606,7 @@ function placeRead({ ast, place, onePlace, strict, fallback }, values, overArgs)
 
 // A selector that is a path of more than one place reads it from the
 // args as `get` does, a place the args do not hold the place the call
-// left out [D248].
+// left out [QSPTH#value].
 function pathOfArgs(path, state) {
   try {
     return readPath(state.pipeValue, path);
@@ -659,11 +661,11 @@ function isNodeOrLabel(name, record) {
 
 // ─── Names under a label ───────────────────────────────────────
 
-// The name a recipe reads the args of its call by [D164].
+// The name a recipe reads the args of its call by [QSBLD#input].
 const ARGS_NAME = keyword('args');
 
-// A word runs by its function [D251], a recipe written as the value of a
-// name under a label the function of no commands it is [D253].
+// A word runs by its function [QSBLD#fn], a recipe written as the value of a
+// name under a label the function of no commands it is [QSBLD#chain].
 async function applyWord(record, modifiers, state) {
   const value = bindingValueOf(record);
   return await applyFunctionWord(record, isFn(value) ? value : functionOfRecipe(value), modifiers, state);
@@ -674,13 +676,13 @@ async function applyWord(record, modifiers, state) {
 const isThenable = value => typeof value?.then === 'function';
 
 // The answer brought to the kinds `returns` names, a word that names `::any`
-// bringing none [D168], [D251]: one that reaches another of the kinds is the
-// value it reaches; one of the word's own label goes back under the tags the
-// walk passed, as the subject's kind; one kind alone makes the value by its
-// constructor and invariants, and so does a kind of the answer's own kind the
-// walk passed by, a number past the finite doubles refused there as under
-// `::number` alone; an answer of none of several kinds is refused under the
-// answer's address.
+// bringing none [QSSLF#catalog], [QSBLD#fn]: one that reaches another of the
+// kinds is the value it reaches; one of the word's own label goes back under
+// the tags the walk passed, as the subject's kind; one kind alone makes the
+// value by its constructor and invariants, and so does a kind of the answer's
+// own kind the walk passed by, a number past the finite doubles refused there
+// as under `::number` alone; an answer of none of several kinds is refused
+// under the answer's address.
 function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
   const others = kinds.filter(kind => kind !== labelName);
   const reached = others.length === 0 ? null : walkToKinds(answer, others);
@@ -693,7 +695,7 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
 
 // callMemberOn(record, subject, state) → the answer of the name under a
 // label the record holds, run on the subject with no modifiers, the
-// print a kind answers among them [D96].
+// print a kind answers among them [QSPRN#print].
 export async function callMemberOn(record, subject, state) {
   return (await applyWord(record, [], withPipeValue(state, subject))).pipeValue;
 }
@@ -701,7 +703,7 @@ export async function callMemberOn(record, subject, state) {
 // answerKindsOf(env, record, subjectKinds) → the kinds of the answer a
 // name under a label gives, for a tool: the subject's own where the
 // answer's kind is the word's own label, the kinds `returns` names, or
-// null for a word that answers any value [D168], [D251].
+// null for a word that answers any value [QSSLF#catalog], [QSBLD#fn].
 export function answerKindsOf(env, record, subjectKinds) {
   const address = record.get('name').name;
   const answerDefinition = answerOf(env, address);
@@ -711,7 +713,7 @@ export function answerKindsOf(env, record, subjectKinds) {
 
 // ─── Functions ──────────────────────────────────────────────────
 
-// A word that is a function is called by its function alone [D251]: its
+// A word that is a function is called by its function alone [QSBLD#fn]: its
 // subject served by its label or by the kinds `on` names, its inputs read
 // from the args by their places and held to their kinds and invariants, its
 // recipe run in the scope its call opens, a recipe written in steps of a
@@ -766,10 +768,10 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 }
 
 // The values a primitive is handed, its inputs in the order `takes` names
-// them, each it runs as code closed at the call [D4] where the call keeps
-// that the quote came from [QSQUO#held], a path read as `get` reads it [D248],
-// and every element so of one that holds the objects of the call whole;
-// any other value as it is.
+// them, each it runs as code closed at the call [QSQUO#literal] where the call
+// keeps that the quote came from [QSQUO#held], a path read as `get` reads it
+// [QSPTH#value], and every element so of one that holds the objects of the
+// call whole; any other value as it is.
 function handedTo(impl, signature, { values, origins }, state) {
   const run = inputsRunBy(impl);
   const within = inputsRunWithin(impl);
@@ -835,7 +837,7 @@ function codeOfObject(value, originOf, state) {
 // The subject a function's call serves: for a word, the value of its label
 // the walk of the subject's tags reaches, or of a kind `on` names beside
 // it, the noun's own tag name for a word of the noun itself, since the walk
-// of a tag name passes the noun it names and no other [D88], [D275]; for a
+// of a tag name passes the noun it names and no other [QSDSP#tagname]; for a
 // function `apply` runs, a value of the kinds `on` names, or the subject as
 // it is; null where the walk reaches none.
 function subjectOfCall(signature, labelName, subject) {
@@ -899,8 +901,8 @@ async function inputsOfCall(signature, address, modifiers, state, scope, body) {
 // on the subject by mistake, `each (add 1)` for `each ~(add 1)`, and the
 // input refuses it under its kinds with the error at rest as its value, one
 // that holds each object naming its place; a name withheld from held code,
-// which ran no step, and anywhere else the error is the answer [D13],
-// [D67], [D251], [QSQUO#held].
+// which ran no step, and anywhere else the error is the answer [QSERR#rest],
+// [QSBLD#input], [QSBLD#fn], [QSQUO#held].
 function refusalOfFailedObject(signature, address, place, error, scope) {
   if (error.tag.name === CallValueWithheldError.prototype.address) return error;
   const reading = signature.inputs.find(({ selector }) => selector.place === place) ?? signature.inputs.find(({ selector }) => selector.readsArgs);
@@ -915,10 +917,10 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 // ─── A value under a kind ───────────────────────────────────────
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
-// through its label [D41]: built by its kind [D252], laid over as it is
-// where no kind answers the tag [QSLIT#tag], [D164], never over an
-// error [D13], and never under the name of a value withheld from held
-// code [QSQUO#held].
+// through its label [QSDSP#answer]: built by its kind [QSBLD#kind], laid over
+// as it is where no kind answers the tag [QSLIT#tag], [QSBLD#input], never
+// over an error [QSERR#rest], and never under the name of a value withheld
+// from held code [QSQUO#held].
 export async function mintTaggedInstance(tagName, payload, state) {
   refuseWithheld(state.env, tagName, true);
   const declared = bindingValueOf(nodeOf(state.env, tagName));
@@ -934,11 +936,11 @@ function laidUnder(tagName, value) {
   return typeKeyword(value).name === tagName ? value : makeTaggedInstance(makeTag(tagName), value);
 }
 
-// A value under a kind [D252]: its payload held to its kinds, each field
+// A value under a kind [QSBLD#kind]: its payload held to its kinds, each field
 // read and held, the check a host hands a kind of the core run, and the
 // invariants of the value held, every refusal named under the label, the
 // code of a place or a condition running in the scope a call opens; the
-// constructor attaches the tag or refuses the payload [D279].
+// constructor attaches the tag or refuses the payload [QSLIT#tag].
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = kindOf(kind);
   const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, (kinds, each) => `${tagName}/${payloadRefusalName(kinds, each)}`, payload, state.env);
@@ -977,7 +979,7 @@ async function fieldRefusal(tagName, field, payload, invariants, state, opened) 
 // closeCode(astNode, capturedState) → (input) → value: code run against
 // the input it is handed, one frame below and in its scope, a step on the
 // success track as every step is; it keeps its tree and its state, so
-// `reduce` finds the verb a quote of one name holds [D90].
+// `reduce` finds the verb a quote of one name holds [QSCOL#reduce].
 function closeCode(astNode, capturedState) {
   const run = async (input) => {
     const subState = nestState(capturedState, input, capturedState.env);
@@ -1004,7 +1006,7 @@ function modifierOf(argNode, state) {
 const ATOM_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
 
 // The literals a template is written as, a value under a tag among them,
-// whose quotes are written in the step [QSQUO#held], [D279].
+// whose quotes are written in the step [QSQUO#held], [QSLIT#tag].
 const WRITTEN_LITERALS = new Set(['VecLit', 'MapLit', 'SetLit', 'TaggedLit']);
 
 function withOrigin(code, origin) {
@@ -1019,7 +1021,7 @@ function heldIn(state) {
 }
 
 // codeOfPath(path, callState) → code that reads the path from each input
-// it is handed, as `get` reads it, a refusal its answer [D248].
+// it is handed, as `get` reads it, a refusal its answer [QSPTH#value].
 export function codeOfPath(path, callState) {
   return async input => {
     try {
@@ -1030,8 +1032,8 @@ export function codeOfPath(path, callState) {
   };
 }
 
-// codeOf(code, callState) → code closed at the call [D4] where a call
-// around keeps that it came from, or else held as data in the lane of the
+// codeOf(code, callState) → code closed at the call [QSQUO#literal] where a
+// call around keeps that it came from, or else held as data in the lane of the
 // call's own step [QSQUO#held].
 export function codeOf(code, callState) {
   return codeFrom(code, originIn(callState, code) ?? heldIn(callState));
@@ -1067,9 +1069,10 @@ function laneOf(env) {
 // resolveBinaryReducer(reducer) → (acc, item) → value, or null: the word a
 // reducer's quote names by one word, its name or its address, called as the
 // pipe calls it, `acc | add item`, the word residing on the accumulator among
-// them [D72], and a value of the scope under the name meeting the word there
-// [D90], [QSNAM#reach]; null for code of any other shape or a name of no word,
-// which `reduce` runs on the pair of the value so far and the element [D90].
+// them [QSDSP#residence], and a value of the scope under the name meeting the
+// word there [QSCOL#reduce], [QSNAM#reach]; null for code of any other shape
+// or a name of no word, which `reduce` runs on the pair of the value so far
+// and the element [QSCOL#reduce].
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
   const astNode = reducer.astNode;

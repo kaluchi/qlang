@@ -95,9 +95,9 @@ export function isTag(v) {
 
 // The record a declaration writes into its scope [QSNAM#binding]: the name,
 // the docs of its slot, the value, the quote of the declaring step and its
-// origin, the source or the cell it was read from [D153], under the kind
-// `::binding`. A binding with no declaration behind it, a value a host bound,
-// holds no source.
+// origin, the source or the cell it was read from [QSDSP#residence], under the
+// kind `::binding`. A binding with no declaration behind it, a value a host
+// bound, holds no source.
 export function isBinding(v) {
   return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === BINDING_TAG_NAME;
 }
@@ -129,7 +129,7 @@ export function isRegex(v) {
   return isValueClass(v, 'regex');
 }
 
-// A path, the value of `/a/b/0` [D248]: the text of each segment, a key
+// A path, the value of `/a/b/0` [QSPTH#value]: the text of each segment, a key
 // of a map or a place of a vector, which the word that takes the path
 // reads.
 export function makePath(segments) {
@@ -149,9 +149,9 @@ export function isQuote(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === QUOTE_TAG_NAME;
 }
 
-// A quote is a vector of steps under `::quote` [D8], minted here alone,
-// with a holder of the tree it runs through, the parser's for a quote read
-// from text and filled at its first run for one assembled from data.
+// A quote is a vector of steps under `::quote` [QSQUO#step], minted here
+// alone, with a holder of the tree it runs through, the parser's for a quote
+// read from text and filled at its first run for one assembled from data.
 export const QUOTE_TAG_NAME = 'quote';
 export const QUOTE_AST_SLOT = Symbol('qlang/quoteAst');
 
@@ -164,7 +164,7 @@ export function makeQuote(steps, ast = undefined) {
 
 // A function, a value of `::fn`: the commands that declare the inputs it
 // takes, its answer and its refusals, a quote, and its recipe, code or a
-// host's primitive, or none for a contract [D251].
+// host's primitive, or none for a contract [QSBLD#fn].
 export const FN_TAG_NAME = 'fn';
 
 export function isFn(v) {
@@ -174,7 +174,7 @@ export function isFn(v) {
 // A kind, a value of `::kind`: the commands that declare its payload, its
 // fields, its refusals, its invariants and its laws, a quote, and the
 // check a host hands a kind of the core, or none for a kind that lays its
-// tag over the payload as it is [D252], [D279].
+// tag over the payload as it is [QSBLD#kind], [QSLIT#tag].
 export const KIND_TAG_NAME = 'kind';
 
 export function isKind(v) {
@@ -207,14 +207,14 @@ export function makeSet(elements) {
 
 // An error at rest, a value like any other: its facts under `::error` and
 // the tag of its site over them, none for the kind of errors, what `!|`
-// opens a failure to and `raise` raises [D13].
+// opens a failure to and `raise` raises [QSERR#rest].
 export function errorAtRest(tag, facts) {
   const ofKind = makeTaggedInstance(ERROR_TAG, facts);
   return tag.name === ERROR_TAG.name ? ofKind : makeTaggedInstance(tag, ofKind);
 }
 
 // A doc is the vector of its prose strings and quotes under `::doc`
-// [D19], each run of prose one string that reads a line break as
+// [QSSLF#doc], each run of prose one string that reads a line break as
 // one whatever bytes the source wrote.
 export const DOC_TAG_NAME = 'doc';
 
@@ -230,7 +230,7 @@ export function isVecOfOwnKind(v) {
 }
 
 // A segment of a doc: a run of its prose, a quote, or a quote under a
-// stack of tags, which gives the quote its role [D108].
+// stack of tags, which gives the quote its role [QSSLF#doc].
 export function isDocSegment(v) {
   let beneath = v;
   while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
@@ -272,7 +272,7 @@ export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTag(SET_TAG_NAME);
 
 // The kind of every value without a tag of its own, the one its literal
-// implies, which `type` answers [D20].
+// implies, which `type` answers [QSLIT#kind].
 export const CORE_KIND = Object.freeze({
   null:    makeTag('null'),
   boolean: makeTag('boolean'),
@@ -289,7 +289,7 @@ export const CORE_KIND = Object.freeze({
   doc:     DOC_TAG
 });
 
-// The tags of a quote's steps [D8]: the records of what computes,
+// The tags of a quote's steps [QSQUO#step]: the records of what computes,
 // and the wrappers a step takes on the fail track or in parentheses.
 export const CALL_TAG   = makeTag('call');
 export const BIND_TAG   = makeTag('bind');
@@ -319,15 +319,15 @@ export function makeTaggedInstance(tag, payload) {
 
 // The descriptor of an implementation a host hands, `::builtin{}`, the
 // recipe of a word or of a kind that a primitive answers, or the value of
-// a name under a label alone [D251], [D252], [D253].
+// a name under a label alone [QSBLD#fn], [QSBLD#kind], [QSBLD#chain].
 export function isBuiltinDescriptor(v) {
   return isQMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
 
 // A name under a label a host's source declared, which alone reaches a
-// primitive [D34], with the implementation the host handed beside that
+// primitive [QSDSP#walk], with the implementation the host handed beside that
 // source, a plain function over the values of the inputs of the call
-// [D4], [D72].
+// [QSQUO#literal], [QSDSP#residence].
 const HOST_IMPLS = new WeakMap();
 
 export function isHostDeclared(value) {
@@ -344,12 +344,12 @@ export function declareHostValue(value, impl) {
 
 // An error carries its tag, the kind of errors for a literal that names none
 // [QSERR#rest], and a descriptor of the facts of its site with its `:trail`,
-// the path it took [D13], a vector of stops that `eval-trail.mjs` writes; a
-// `:trail` of another shape is refused where the error is made.
+// the path it took [QSERR#rest], a vector of stops that `eval-trail.mjs`
+// writes; a `:trail` of another shape is refused where the error is made.
 export const ErrorTrailNotVecError = declareRefusal('error/TrailNotVecError');
 
 // A trail is a vector of stops, each a map whose `:skipped` is the quote
-// of the steps the error skipped after it [D13].
+// of the steps the error skipped after it [QSERR#rest].
 export function isTrail(value) {
   return isVec(value) && !isVecOfOwnKind(value)
     && value.every(stop => isQMap(stop) && isQuote(stop.get('skipped')));
@@ -357,7 +357,7 @@ export function isTrail(value) {
 
 // An error holds the facts of its site and, once a step raised it or
 // handed it on, its path, `:trail`; one whose path is empty holds no
-// `:trail` [D13].
+// `:trail` [QSERR#rest].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {
@@ -373,7 +373,7 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
 
 // formOf(v) → the form a writer of the core reads a value by: `error`,
 // `underTag` for a value under a tag, a quote's data written under the
-// tag of a kind among them [D206], the kind of the core `typeKeyword`
+// tag of a kind among them [QSSLF#doc], the kind of the core `typeKeyword`
 // answers, or `unknown` for a host's raw object.
 export function formOf(v) {
   if (isErrorValue(v)) return 'error';
@@ -383,7 +383,7 @@ export function formOf(v) {
   return Object.hasOwn(CORE_KIND, kind.name) ? kind.name : 'underTag';
 }
 
-// typeKeyword(v) — the kind of a value [D20]: its outermost tag, or
+// typeKeyword(v) — the kind of a value [QSLIT#kind]: its outermost tag, or
 // the kind of the core its literal implies.
 export function typeKeyword(v) {
   if (isNull(v)) return CORE_KIND.null;

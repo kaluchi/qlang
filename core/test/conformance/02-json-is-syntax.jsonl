@@ -1,2 +1,0 @@
-{"decision":"D126","name":"codec-writes-a-keyword-value-bare","query":"{:k :v} | json","expect":"\"{\\\"k\\\":\\\"v\\\"}\""}
-{"decision":"D126","name":"codec-writes-keywords-in-a-vector-bare","query":"[:foo :bar] | json","expect":"\"[\\\"foo\\\",\\\"bar\\\"]\""}

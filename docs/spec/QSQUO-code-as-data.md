@@ -100,7 +100,11 @@ are forks against the subject, results by position, none seeing
 another. An input that takes code takes a quote, a path or a function,
 and refuses what the call computed in its place, the error a modifier
 answered among it, under the input's own address; an input whose kinds
-hold no quote passes the error of its modifier as it is.
+hold no quote passes the error of its modifier as it is. A call computes
+its modifiers in their order up to the first that answers a failure and
+computes none after it, and the forks of every sequence run in its
+order: the elements a word runs over, the parts of a template, the
+modifiers of a command, the keys of `sort` and the laws `runLaws` runs.
 
 ```qlang
 > [1 2 3] | take count

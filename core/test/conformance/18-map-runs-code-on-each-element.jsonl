@@ -1,1 +1,0 @@
-{"decision":"D116","name":"map-on-a-value-of-no-kind-of-it-names-where-it-lives","query":"5 | map ~(add 1) !| get /addresses","expect":"#[::map/map ::set/map ::vec/map]"}

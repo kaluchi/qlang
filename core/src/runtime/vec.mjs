@@ -1,11 +1,11 @@
-// Container primitives, each a plain function over the value the walk
-// served and the inputs of the call [D251]. Every word of a kind
-// has its own, since the walk of the subject's tags already chose the
-// word: a vector and a set, which read alike, share the one that reads
-// the elements in order [QSORD#order], a map's reads its values and keeps its
-// keys [QSCOL#map], a string's reads its characters [D132], and a refusal
-// names the word that refused [D46]. An input that takes code arrives
-// closed at the call, code run on the element [D34], [D251].
+// Container primitives, each a plain function over the value the walk served
+// and the inputs of the call [QSBLD#fn]. Every word of a kind has its own,
+// since the walk of the subject's tags already chose the word: a vector and a
+// set, which read alike, share the one that reads the elements in order
+// [QSORD#order], a map's reads its values and keeps its keys [QSCOL#map], a
+// string's reads its characters [QSTXT#string], and a refusal names the word
+// that refused [QSERR#site]. An input that takes code arrives closed at the
+// call, code run on the element [QSDSP#walk], [QSBLD#fn].
 
 import { isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
@@ -40,7 +40,7 @@ bindPrim('map/last', map => lastOf([...map.values()]));
 // ── side by side ───────────────────────────────────────────────
 // The elements at each index of the vectors a vector holds, as long as
 // the shortest, an element that is no vector refused at its index
-// [D132].
+// [QSTXT#string].
 const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
 bindPrim('vec/zip', vectors => {
   vectors.forEach((element, index) => {
@@ -72,7 +72,7 @@ bindPrim('map/sum', map => totalOf(keyed(map), MapSumElementNotNumberError));
 
 // The mean of the numbers, a running mean whose every step stays among
 // the finite doubles; an empty container has none, and answers null as
-// `min` and `max` do [D132].
+// `min` and `max` do [QSTXT#string].
 function meanOf(places, ElementNotNumberError) {
   if (places.length === 0) return NULL;
   let mean = 0;
@@ -94,7 +94,7 @@ bindPrim('map/avg', map => meanOf(keyed(map), MapAvgElementNotNumberError));
 // ── ranking ────────────────────────────────────────────────────
 
 // The error a key answered for an element, the key itself or a part of
-// the vector it answered, or null [D13], [QSORD#sort].
+// the vector it answered, or null [QSERR#rest], [QSORD#sort].
 function errorOfKey(rankKey) {
   if (isErrorValue(rankKey)) return rankKey;
   return isVec(rankKey) ? rankKey.find(isErrorValue) ?? null : null;
@@ -139,12 +139,12 @@ bindPrim('map/min', runs(['key'], (map, key) => extremeOf([...map.values()], key
 bindPrim(['vec/max', 'set/max'], runs(['key'], (sequence, key) => extremeOf([...sequence], key, greatest)));
 bindPrim('map/max', runs(['key'], (map, key) => extremeOf([...map.values()], key, greatest)));
 
-// `sort` orders the elements in the one order, or by the value the key
-// answers for each, keeping equal ones in the subject's order; a map
-// orders its entries by their values and keeps the keys. A vector the key
-// answers ranks element by element, and `desc` reverses a place of it.
-// A key that answers an error answers the call, as the key of `groupBy`
-// does, and so does one whose vector holds an error [D13], [QSORD#sort].
+// `sort` orders the elements in the one order, or by the value the key answers
+// for each, keeping equal ones in the subject's order; a map orders its
+// entries by their values and keeps the keys. A vector the key answers ranks
+// element by element, and `desc` reverses a place of it. A key that answers an
+// error answers the call, as the key of `groupBy` does, and so does one whose
+// vector holds an error [QSERR#rest], [QSORD#sort].
 async function sortedEntries(entries, key) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
@@ -165,7 +165,7 @@ bindPrim('map/sort', runs(['key'], async (map, key) => {
 
 // `map` runs its code on each element in order and answers what each
 // answered, the first error the code answers answering for the call, the
-// elements after it left unrun [D116]; a map keeps its keys.
+// elements after it left unrun [QSCOL#each]; a map keeps its keys.
 async function answersOf(elements, code) {
   const answers = [];
   for (const element of elements) {
@@ -184,7 +184,7 @@ bindPrim('map/map', runs(['code'], async (map, code) => {
 
 // ── predicates ─────────────────────────────────────────────────
 
-// A predicate answers a boolean for each element or fails [D14]: the
+// A predicate answers a boolean for each element or fails [QSCND#boolean]: the
 // error it answered is handed on, and another answer is refused where
 // the element stands.
 async function verdictOf(predicate, place, element, ConditionNotBooleanError) {
@@ -312,8 +312,8 @@ bindPrim('set/indexBy', runs(['key'], (set, key) => indexOf(set, key, SetIndexBy
 
 // ── slices and lookup ──────────────────────────────────────────
 
-// A count is a whole number by the invariant of its part [D46]; a negative
-// one clamps to 0, the same graceful out-of-range handling an
+// A count is a whole number by the invariant of its part [QSERR#site]; a
+// negative one clamps to 0, the same graceful out-of-range handling an
 // over-length one gets (`take 99` → the whole container).
 bindPrim('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));
 bindPrim(['vec/take', 'set/take'], (sequence, count) => sequence.slice(0, Math.max(0, count)));
@@ -343,12 +343,12 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 
 // ── the fold ───────────────────────────────────────────────────
 
-// `reduce seed ~(reducer)` — the universal left-fold: a quote of one word
-// is the word called as the pipe calls it, `acc | add element`, the
-// element the first of its args [D90]; any other code runs
-// on the pair of the value so far and the element, and its answer is the
-// value so far after it [D90]. `seed` answers for an empty subject, and
-// a failure of the reducer stops the fold.
+// `reduce seed ~(reducer)` — the universal left-fold: a quote of one word is
+// the word called as the pipe calls it, `acc | add element`, the element the
+// first of its args [QSCOL#reduce]; any other code runs on the pair of the
+// value so far and the element, and its answer is the value so far after it
+// [QSCOL#reduce]. `seed` answers for an empty subject, and a failure of the
+// reducer stops the fold.
 async function foldOf(elements, seed, reducer) {
   const combine = resolveBinaryReducer(reducer) ?? ((acc, element) => reducer([acc, element]));
   let acc = seed;

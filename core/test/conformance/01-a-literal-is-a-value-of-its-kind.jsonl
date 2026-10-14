@@ -1,3 +1,0 @@
-{"decision":"D119","name":"the-kind-of-a-value-has-its-page","query":"5 | type | doc | type | eq ::doc","expect":"true"}
-{"decision":"D20","name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string"}
-{"decision":"D279","name":"a-kind-takes-no-recipe-but-the-hosts","query":"::kind | impl ~(get {:s ~(it)}) !| type","expect":"::kind/impl/recipe/NotBuiltinError"}

@@ -1,13 +1,12 @@
 // The refusals of the command line and their pages in its source.
 //
-// The core suite pins the same contract for `core/src` against the
-// language's root; this file pins the host half, the source of the
-// command line [D153]. A refusal of a host's word is declared by its
-// address where its site raises it, and the source pages it under the
-// noun of the place it guards, with the prose and the laws
-// a reader reaches through `doc`. The two halves drift silently: a
-// renamed class leaves `result !| type | doc` answering a refusal of its
-// own.
+// The core suite pins the same contract for `core/src` against the language's
+// root; this file pins the host half, the source of the command line
+// [QSDSP#residence]. A refusal of a host's word is declared by its address
+// where its site raises it, and the source pages it under the noun of the
+// place it guards, with the prose and the laws a reader reaches through `doc`.
+// The two halves drift silently: a renamed class leaves `result !| type | doc`
+// answering a refusal of its own.
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -25,7 +24,7 @@ const isLaw = value => typeKeyword(value).name === 'holds';
 const srcDir = join(here, '..', 'src');
 
 // Every form that declares a refusal opens with its address as a string
-// literal [D46].
+// literal [QSERR#site].
 const DECLARATION_RE = /(?:declareRefusal|recordRefusal)\(\s*'([A-Za-z0-9@/]+)'/g;
 
 const throwSites = new Map();
@@ -43,14 +42,14 @@ const session = await createSession({
   })
 });
 // The refusals the source of the command line declares, by address; a
-// law, whose name is its refusal, is raised by the runtime [D168].
+// law, whose name is its refusal, is raised by the runtime [QSSLF#catalog].
 const refusalAddresses = new Set();
 for (const address of nodeAddresses(session.env)) {
   const record = nodeOf(session.env, address);
   if (record.get('origin')?.name === 'cli' && address.endsWith('Error') && !isLaw(record.get('value'))) refusalAddresses.add(address);
 }
 // The refusals the words of the command line raise by rule, which the
-// runtime raises and the source pages where a repair helps [D179].
+// runtime raises and the source pages where a repair helps [QSSLF#catalog].
 const ruleBorn = new Set([...nodeAddresses(session.env)]
   .filter(address => isWord(session.env, address))
   .flatMap(address => ruleRefusalsOf(session.env, address)));

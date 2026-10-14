@@ -119,7 +119,7 @@ describe('an input left without its object', async () => {
 });
 
 describe('union, minus and inter over an empty vector', async () => {
-  it('a fold of no values is refused by the word that folds, over a vector and over a set [D46]', async () => {
+  it('a fold of no values is refused by the word that folds, over a vector and over a set [QSERR#site]', async () => {
     for (const kind of ['vec', 'set']) {
       for (const verb of ['union', 'minus', 'inter']) {
         const empty = kind === 'vec' ? '[]' : '#[]';
@@ -130,7 +130,7 @@ describe('union, minus and inter over an empty vector', async () => {
 });
 
 describe('the subject of min and max', async () => {
-  it('min and max on a value no kind of which answers them are refused with their addresses [D72]', async () => {
+  it('min and max on a value no kind of which answers them are refused with their addresses [QSDSP#residence]', async () => {
     for (const query of ['42 | min', '"hello" | max']) {
       const result = await evalQuery(query);
       expect(isErrorValue(result)).toBe(true);

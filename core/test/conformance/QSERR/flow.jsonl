@@ -29,3 +29,4 @@
 {"name":"a-predicate-error-passes-a-tagged-vector-as-it-is","query":":Box |~~ Box. ~~| | ::Box[1 2] | filter ~(!{:x 1} | raise) !| type","expect":"::error"}
 {"name":"a-predicate-error-passes-a-quote-as-it-is","query":"~(a | b) | filter ~(!{:x 1} | raise) !| type","expect":"::error"}
 {"name":"a-predicate-error-passes-a-set-as-it-is","query":"#[1 2] | filter ~(!{:x 1} | raise) !| get /x","expect":"1"}
+{"name":"the-constructor-of-a-kind-refuses-a-payload-that-breaks-it","query":":Positive |~~ Positive. ~~| (::kind | holds :NotPositiveError |~~ Each above zero. ~~| ~(every ~(gt 0))) | ::Positive[1 2 -3] !| type","expect":"::Positive/NotPositiveError"}

@@ -1,5 +1,5 @@
 // The primitives of the keys of a map and of membership, whose words the
-// catalog declares under `::map`, `::set` and `::vec` [D167].
+// catalog declares under `::map`, `::set` and `::vec` [QSQUO#modifier].
 
 import { keyword, isKeyword, isPath, makeSet } from '../types.mjs';
 import { pathReads } from './path.mjs';
@@ -26,7 +26,7 @@ function setHas(set, value) {
 }
 
 // `has` asks whether a path reads, and of any other value whether it is
-// held [D248]; `contains` asks the membership alone.
+// held [QSPTH#value]; `contains` asks the membership alone.
 const vecHolds = (vector, element) => vector.some(held => compareValues(held, element) === 0);
 bindPrim('vec/has', (vector, element) => (isPath(element) ? pathReads(vector, element) : vecHolds(vector, element)));
 bindPrim('vec/contains', vecHolds);

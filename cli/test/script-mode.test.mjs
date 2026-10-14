@@ -1,7 +1,7 @@
 // script-mode coverage. `liftStdinToPipeValue` resolves the `auto` /
 // `json` / `raw` flag into the query's first value, and `answerText`
 // writes the answer as the language prints it, whatever the input was
-// [D214].
+// [QSHST#answer].
 
 import { describe, it, expect } from 'vitest';
 import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
@@ -47,7 +47,7 @@ describe('liftStdinToPipeValue — explicit formats', () => {
 
 // The answer is written as the language prints it whatever the input was,
 // a string as its text, so a query converts it where a reader wants
-// another format [D214].
+// another format [QSHST#answer].
 describe('answerText — the answer as the language prints it', () => {
   it('prints a keyword, a set, a tag and a quote as their literals', async () => {
     expect(await answerText(await evalQuery('[:v #[2 1] ::vec ~(add 1) "s"]'), await langRuntime()))
@@ -63,7 +63,7 @@ describe('answerText — the answer as the language prints it', () => {
     expect(await answerText(await evalQuery('{:a [1 :k #[2]]} | json'), await langRuntime())).toBe('{"a":[1,"k",[2]]}');
   });
 
-  it('writes a failure as its error at rest under the line that says it was raised, and `!| json` as JSON text [D13]', async () => {
+  it('writes a failure as its error at rest under the line that says it was raised, and `!| json` as JSON text [QSERR#rest]', async () => {
     const env = await langRuntime();
     expect(await answerText(await evalQuery('"x" | add 1'), env)).toMatch(/^\|~\| raised, and no !\| caught it\n::number\/add\/SubjectNotNumberError!\{[\s\S]*\}$/);
     expect(JSON.parse(await answerText(await evalQuery('"x" | add 1 !| json'), env)).$tag).toBe('number/add/SubjectNotNumberError');
@@ -71,8 +71,8 @@ describe('answerText — the answer as the language prints it', () => {
 });
 
 
-// An answer prints within the budget a caller asked for [D120]; an error
-// prints as its alert [D7].
+// An answer prints within the budget a caller asked for [QSHST#answer]; an
+// error prints as its alert [QSHST#answer].
 describe('answerText — the budget of the answer', () => {
   const budget = 200;
   const forty = Array.from({ length: 40 }, (_, index) => index + 1);

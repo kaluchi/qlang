@@ -1,6 +1,6 @@
 // The primitives of strings, and `join`, `prepend` and `append` of
 // vectors, whose words the catalog declares under `::string` and `::vec`
-// [D167].
+// [QSQUO#modifier].
 
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -8,7 +8,7 @@ import { isKeyword, isRegex } from '../types.mjs';
 import { containsMatch, piecesBetweenMatches } from './regex.mjs';
 
 // A value a word writes into text: a string as it is and a keyword as
-// its name, as the JSON channel writes it [D126], [D198].
+// its name, as the JSON channel writes it [QSPRN#json], [QSTXT#string].
 const writtenAsText = value => (isKeyword(value) ? value.name : value);
 
 // An element `join` writes is a string or a keyword.
@@ -47,7 +47,7 @@ bindPrim('string/lower', subject => subject.toLowerCase());
 bindPrim('string/upper', subject => subject.toUpperCase());
 
 // The text without the whitespace at its two ends, a line break among it
-// [D132].
+// [QSTXT#string].
 bindPrim('string/trim', subject => subject.trim());
 
 bindPrim('string/contains',   (subject, needle) => (isRegex(needle) ? containsMatch(subject, needle) : subject.includes(needle)));

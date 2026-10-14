@@ -1,13 +1,13 @@
 // The streams of the command line: standard input lifts to the query's
 // first value, a JSON document as its value and any other text as a
-// string [D37], and the answer is written as the language prints it,
+// string [QSHST#input], and the answer is written as the language prints it,
 // whatever the input was, a query converting it where a reader wants
-// another format, `| json` [D214].
+// another format, `| json` [QSHST#answer].
 
 import { fromPlain, printAnswer, makeTag, elideAnswer } from '@kaluchi/qlang-core';
 
 // The noun the command line starts from when standard input carries no
-// bytes, outside any project [D37]; the noun of the nearest `.qlang/`
+// bytes, outside any project [QSHST#input]; the noun of the nearest `.qlang/`
 // folder comes with the sources a project ships.
 export const DEFAULT_SUBJECT = makeTag('qlang');
 
@@ -44,12 +44,12 @@ function liftParsedDocument(parsed) {
   }
 }
 
-// answerText(value, env, budget, page) → the text the command line writes
-// for an answer [D214]: a string as it is, so `| json` writes JSON text
-// and `| table` a table, and any other value as its print, whole unless
-// the caller asked for a budget [D120], an error as its alert, a failure
-// carrying the prose of its refusal's page below it as line comments a
-// reading of the literal passes over [D7].
+// answerText(value, env, budget, page) → the text the command line writes for
+// an answer [QSHST#answer]: a string as it is, so `| json` writes JSON text
+// and `| table` a table, and any other value as its print, whole unless the
+// caller asked for a budget [QSHST#answer], an error as its alert, a failure
+// carrying the prose of its refusal's page below it as line comments a reading
+// of the literal passes over [QSHST#answer].
 export async function answerText(value, env, budget = null, page = null) {
   if (typeof value === 'string') return value;
   const printed = await printAnswer(elideAnswer(value, budget), env);

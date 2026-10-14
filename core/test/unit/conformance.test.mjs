@@ -2,7 +2,7 @@
 //
 // Each JSONL line has two qlang expressions: query (arbitrary) and
 // expect (must be a pure literal — no calls, no pipelines — or the print
-// of a failure, its error at rest raised, `!{…} | raise` [D13]).
+// of a failure, its error at rest raised, `!{…} | raise` [QSERR#rest]).
 // Both are eval'd, results compared via deepEqual.
 //
 // The expect-is-literal guard catches test authoring mistakes where
@@ -39,7 +39,7 @@ const files = readdirSync(conformanceDir, { recursive: true })
 
 // assertLiteralAst — walks the AST and rejects any node that performs
 // computation (Call, ParenGroup with pipeline ops); a path is a value
-// [D248]. Pipeline is allowed only as a container for compound literals
+// [QSPTH#value]. Pipeline is allowed only as a container for compound literals
 // (the parser wraps multi-step bodies in Pipeline nodes), and a quote
 // literal is a literal whatever steps it holds.
 function assertLiteralAst(parsed, testName) {

@@ -1,5 +1,5 @@
 // A session keeps the env its cells write, so a query sees what the
-// cells before it declared [QSNAM#root], [D153].
+// cells before it declared [QSNAM#root], [QSDSP#residence].
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst } from './eval.mjs';
@@ -14,7 +14,7 @@ import { declareRoot } from './runtime/root.mjs';
 // opts:
 //   env     — initial env Map (defaults to a fresh langRuntime())
 //   sources — the host's sources, `{ uri, source, impls? }` in order,
-//             which declare the root beside the language's [D153].
+//             which declare the root beside the language's [QSDSP#residence].
 //
 // Returns an object with:
 //   evalCell(source, evalOpts?) — parse and evaluate one cell, the
@@ -58,8 +58,8 @@ export async function createSession(opts = {}) {
       return { source, uri: cellUri, ast: cellAst, result: cellResult, error: cellError, envAfterCell: env };
     },
 
-    // A host binds a value as a binding without a doc [QSNAM#binding], a record
-    // as the binding it is.
+    // A host binds a value as a binding without a doc [QSNAM#binding], a
+    // record as the binding it is.
     bind(name, value) {
       env = new Map(env).set(name, isBinding(value) ? value : makeBinding({ name: keyword(name), value }));
     },

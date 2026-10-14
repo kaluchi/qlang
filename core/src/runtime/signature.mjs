@@ -1,5 +1,5 @@
-// The commands of a function [D251] and of a kind [D252], the chain that
-// built it folded into the quote its literal holds, read once for each
+// The commands of a function [QSBLD#fn] and of a kind [QSBLD#kind], the chain
+// that built it folded into the quote its literal holds, read once for each
 // value as the roles they declare.
 
 import { declareRefusal } from '../errors.mjs';
@@ -154,7 +154,7 @@ export function readSignature(quote) {
 
 // readKindSignature(quote) → the roles a quote of the commands of a kind
 // declares, in the order they are written, each name declared once and a
-// name with a path under one declared before it [D252].
+// name with a path under one declared before it [QSBLD#kind].
 export function readKindSignature(quote) {
   if (!isQuote(quote)) throw new KindSignatureNotCommandsError({ actualValue: quote });
   const kind = { payload: null, fields: [], tells: [], pages: new Map(), facts: [], invariants: [], laws: [] };
@@ -224,8 +224,8 @@ export function signatureOf(fn) {
   return signature;
 }
 
-// functionOfRecipe(recipe) → the function of no commands a recipe is, a
-// quote or a host's primitive written as the value of a word [D253], made
+// functionOfRecipe(recipe) → the function of no commands a recipe is, a quote
+// or a host's primitive written as the value of a word [QSBLD#chain], made
 // once for the recipe.
 const FUNCTIONS_OF_RECIPES = new WeakMap();
 const NO_COMMANDS = makeQuote([]);

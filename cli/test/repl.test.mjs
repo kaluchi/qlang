@@ -73,7 +73,7 @@ describe('runRepl — query evaluation', () => {
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
   });
 
-  it('prints a failed cell on stdout as every answer, exit 0 on close [D7]', async () => {
+  it('prints a failed cell on stdout as every answer, exit 0 on close [QSHST#answer]', async () => {
     const replHarness = captureRepl('[1 2 3] | add 1\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
@@ -90,7 +90,7 @@ describe('runRepl — query evaluation', () => {
     expect(text).toMatch(/sub/);
   });
 
-  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout [D7]', async () => {
+  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout [QSHST#answer]', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // REPL paints output with ANSI colour codes — strip before
@@ -178,7 +178,7 @@ describe('runRepl — output highlighting', () => {
 
 describe('runRepl — error rendering', () => {
   it('renders an error value with its path through the same printValue path as success values', async () => {
-    // The path of an error is written as it flows [D13], so the value
+    // The path of an error is written as it flows [QSERR#rest], so the value
     // the cell answers already holds every stop and every skipped
     // step. The REPL renders the value verbatim through `printValue`.
     const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
@@ -205,7 +205,7 @@ describe('runRepl — in / out behaviour', () => {
 });
 
 // A query given after `-i` runs as the first cell, its bindings staying
-// for the cells after it [D120].
+// for the cells after it [QSHST#answer].
 describe('runRepl — the first cell given on the command line', () => {
   it('runs the query before the typed cells, in the same session', async () => {
     const replHarness = captureRepl('x | add 1\n.exit\n');
@@ -217,7 +217,7 @@ describe('runRepl — the first cell given on the command line', () => {
 });
 
 // A cell prints within the budget a caller asked for, an error among
-// them [D120], and an error as its alert when none is [D7].
+// them [QSHST#answer], and an error as its alert when none is [QSHST#answer].
 describe('runRepl — the budget of an answer', () => {
   const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
 

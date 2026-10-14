@@ -1,12 +1,12 @@
-// The algebra of containers: union, minus, inter, each a plain function
-// over the subject and the inputs of its call [D251], one for each word
-// of a kind [D46]. A set meets the other set its call gives, and a map
-// the other map or the keys a vector or a set names; a vector holds the
-// values it folds and takes none beside it, and a set its call leaves
-// without the other value folds the values it holds [QSORD#order], [D74].
-// Inside a fold a value of no kind of the algebra is refused at its
-// index, and the values meet in pairs, a pair the algebra has no rule for
-// refused by the word with the kinds it met.
+// The algebra of containers: union, minus, inter, each a plain function over
+// the subject and the inputs of its call [QSBLD#fn], one for each word of a
+// kind [QSERR#site]. A set meets the other set its call gives, and a map the
+// other map or the keys a vector or a set names; a vector holds the values it
+// folds and takes none beside it, and a set its call leaves without the other
+// value folds the values it holds [QSORD#order], [QSCOL#algebra]. Inside a
+// fold a value of no kind of the algebra is refused at its index, and the
+// values meet in pairs, a pair the algebra has no rule for refused by the word
+// with the kinds it met.
 //
 // The verbs live in lib/qlang/set.qlang, map.qlang and vec.qlang.
 

@@ -2,7 +2,7 @@
 // it declares: `platformLocator` resolves the sources of the language
 // through the calling package's `imports` field, a source it cannot find
 // refuses the bootstrap by `BootstrapSourceMissingError`, and a source
-// the parser refuses raises its `ParseError` [D153].
+// the parser refuses raises its `ParseError` [QSDSP#residence].
 
 import { describe, it, expect } from 'vitest';
 import { platformLocator, BuiltinBootstrapSourceMissingError } from '../../src/runtime/bootstrap.mjs';

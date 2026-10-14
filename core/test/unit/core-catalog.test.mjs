@@ -1,8 +1,8 @@
-// The catalog the language declares its root by [D153], each source the
-// page of one noun and what is declared under it [D114]: `lib/qlang.qlang`
-// the topic of the language, and each source under `lib/qlang/` a kind.
-// `langRuntime()` runs them once at startup and seals the registry of
-// primitives the verbs name.
+// The catalog the language declares its root by [QSDSP#residence], each source
+// the page of one noun and what is declared under it [QSDSP#residence]:
+// `lib/qlang.qlang` the topic of the language, and each source under
+// `lib/qlang/` a kind. `langRuntime()` runs them once at startup and seals the
+// registry of primitives the verbs name.
 
 import { describe, it, expect } from 'vitest';
 import { nodeOf } from '../../src/runtime/nouns.mjs';
@@ -22,7 +22,7 @@ describe('the sources of the language', () => {
 
 describe('the verbs of the language reach their primitives', () => {
 
-  it('spot-check — :add is a function under ::number whose recipe a primitive answers [D164], [D251]', async () => {
+  it('spot-check — :add is a function under ::number whose recipe a primitive answers [QSBLD#input], [QSBLD#fn]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { isBuiltinDescriptor, isHostDeclared, isFn, recipeOf } = await import('../../src/types.mjs');
     const resolved = await langRuntime();
@@ -32,7 +32,7 @@ describe('the verbs of the language reach their primitives', () => {
     expect(isHostDeclared(recipeOf(add))).toBe(true);
   });
 
-  it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [D168], [D251]', async () => {
+  it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [QSSLF#catalog], [QSBLD#fn]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTag('set/filter/ConditionNotBooleanError'), makeTag('set/filter/answer'), makeTag('set/filter/predicate')]));
     expect(await evalQuery('::set/filter | binding | get /value | params | map /kinds | print')).toBe('[#[::path ::quote]]');
@@ -75,7 +75,7 @@ describe('bare-name verb call', () => {
 
   it('bare `mul` on a number gives no multiplier and is refused under the input', async () => {
     // The input `multiplier` reads the first place of the args, which
-    // a call without a modifier leaves empty [D251].
+    // a call without a modifier leaves empty [QSBLD#fn].
     const { evalQuery } = await import('../../src/eval.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
     const evalResult = await evalQuery('5 | mul');
@@ -94,7 +94,7 @@ describe('the root of the language', () => {
     expect(await evalQuery('get [~(kinds | has ::number) ~(::qlang | doc | type)]')).toEqual(await evalQuery('[true ::doc]'));
   });
 
-  it('no kind of the root is left a descriptor [D111]', async () => {
+  it('no kind of the root is left a descriptor [QSSLF#page]', async () => {
     expect(await evalQuery('kinds | map ~(binding | get /value | type) | has ::builtin')).toBe(false);
   });
 });

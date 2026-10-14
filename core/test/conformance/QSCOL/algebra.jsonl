@@ -24,3 +24,9 @@
 {"name":"a-union-of-nothing-is-refused","query":"[] | union","expect":"::vec/union/SubjectEmptyError!{\n  :trail [\n    {\n      :step ~(union)\n      :subject []\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"bare-union-singleton","query":"[#[:only]] | union","expect":"#[:only]"}
 {"name":"unionOf-merges-the-maps-the-call-gives","query":"{:anchor true} | unionOf {:name \"Alice\"} {:age 30}","expect":"{:name \"Alice\" :age 30}"}
+{"name":"a-vector-takes-no-value-beside-it","query":"[#[1]] | union #[2] !| type","expect":"::vec/union/ArgsBeyondInputsError"}
+{"name":"union-of-a-number-is-refused-with-the-addresses-of-union","query":"42 | union !| get /addresses","expect":"#[::map/union ::set/union ::vec/union]"}
+{"name":"a-tag-over-a-set-comes-back-on-union","query":"::Box#[1 2] | union #[3]","expect":"::Box#[1 2 3]"}
+{"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| get [~(type) /actualType]","expect":"[::set/union/other/NotNullOrSetError ::vec]"}
+{"name":"a-map-folds-no-values","query":"{:a 1} | union !| type","expect":"::map/union/other/NotGivenError"}
+{"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false"}

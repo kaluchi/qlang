@@ -187,7 +187,7 @@ describe('findIdentifierOccurrences', () => {
 
   it('finds the tag an error literal writes before its bang beside a tagged literal', () => {
     // `::Foo!{…}` names the tag of its content, and an error literal
-    // that writes none names no tag [D13].
+    // that writes none names no tag [QSERR#rest].
     const ast = parse('::Foo!{:k 1} | get [::Foo[1] !{:j 2}]');
     const refs = findIdentifierOccurrences(ast, 'Foo', TAG_SPELLING);
     expect(refs.map(ref => ref.type)).toEqual(['ErrorLit', 'TaggedLit']);
@@ -382,11 +382,11 @@ describe('astChildrenOf on a stepless Pipeline', () => {
 
 // A query reads its subject where its first step that declares nothing
 // does, or a declaration's body before it; a host waits on the stream it
-// lifts the subject from only then [D37].
+// lifts the subject from only then [QSHST#input].
 describe('readsItsSubject', () => {
   const readsOf = query => readsItsSubject(parse(query));
 
-  it('holds that a literal of no parts reads no subject, a path among them [D248]', () => {
+  it('holds that a literal of no parts reads no subject, a path among them [QSPTH#value]', () => {
     for (const query of ['1', '"s"', 'true', 'null', ':k', '::vec', '/a', '/a/0 | segments']) expect(readsOf(query), query).toBe(false);
   });
 
@@ -394,7 +394,7 @@ describe('readsItsSubject', () => {
     expect(readsOf('~(get /a)')).toBe(false);
   });
 
-  it('holds that a literal of parts reads none, its parts literals, and a group reads it where its code does [D279]', () => {
+  it('holds that a literal of parts reads none, its parts literals, and a group reads it where its code does [QSLIT#tag]', () => {
     for (const query of ['[1 2]', '#[1]', '{:a 1}', '!{:a 1}', '::Box{:k 1}', '::Width#5', '[~(get /a) 1]', '{:a ~(get /b)}', '(1 | add 1)', '|~~ see ::link~(get /x) ~~|', '[/a 1]', '{:a /b}']) {
       expect(readsOf(query), query).toBe(false);
     }

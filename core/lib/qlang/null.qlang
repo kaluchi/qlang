@@ -1,6 +1,6 @@
 |~ `::null`, the kind of the absent value, and what is declared under
    it: its constructor and its refusal, and the soft read of it.
-   The decisions it exists for: [D114]. ~|
+   The decisions it exists for: [QSDSP#residence]. ~|
 
 :null
   |~~ Null is the absence of a value, the one value of its kind. It

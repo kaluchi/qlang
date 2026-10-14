@@ -53,8 +53,10 @@ A failure lives in the pipe alone: `|` passes it by, and `!|` alone
 catches it, its step running on the error at rest, a value from then
 on. `!|` passes a value by. A value written after `!|` is the recovery
 the catch answers. A pipe written before `!|`, `a | !| b`, stands for the
-combinator after it. `ok` answers `true`, so `ok !| false` asks whether
-the step before stood.
+combinator after it. `!|` opens an error under its tag through the
+tag's label, so a label whose payload takes no facts refuses it there.
+`ok` answers `true`, so `ok !| false` asks whether the step before
+stood.
 
 ```qlang
 > "x" | add 1 !| 0
@@ -132,6 +134,8 @@ of that step, `::path`, `::call`, `::bind`, `::construct`, `::quote` and
 `::error`. Its facts are declared under it in the order the catalog
 writes them, those every refusal shares, `:actualType`, `:actualValue`,
 under `::error`; a name a step read and a key a path read are keywords.
+What no query reaches, the table of primitives or a node the evaluator
+does not know, is an invariant of the implementation under `::builtin`.
 
 ```qlang
 > "hello" | add 1 !| type

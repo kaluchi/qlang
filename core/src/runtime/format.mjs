@@ -35,7 +35,7 @@ const TO_PLAIN_HANDLERS = {
   tag:     k => k.literal,
   // A pattern writes its literal, which JSON has no form for [QSTXT#pattern].
   regex:   printRegex,
-  // A path writes its literal, JSON Pointer's form [D248].
+  // A path writes its literal, JSON Pointer's form [QSPTH#value].
   path:    printPath,
   vec:     v => v.map(toPlain),
   map:     qMapToPlainObject,
@@ -50,7 +50,7 @@ const TO_PLAIN_HANDLERS = {
   quote:   q => `~(${printQuoteSource(q)})`,
   doc:     d => `|~~${docText(d)}~~|`,
   set:     s => s.map(toPlain),
-  // An error writes its tag beside its facts [D126]; the literal, not
+  // An error writes its tag beside its facts [QSPRN#json]; the literal, not
   // JSON, is the form that reads back.
   error:   e => ({ $error: { $tag: e.tag.name, facts: toPlain(e.descriptor) } })
 };
@@ -113,7 +113,7 @@ function plainObjectToQMap(plainObj, path) {
 }
 
 // `json` resides on `::any` and `parseJson` on `::string`, each a
-// plain function over the value the walk served [D167].
+// plain function over the value the walk served [QSQUO#modifier].
 const StringParseJsonTextNotJsonError = declareRefusal('string/parseJson/TextNotJsonError');
 
 bindPrim('any/json', subject => JSON.stringify(toPlain(subject)));

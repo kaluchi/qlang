@@ -50,7 +50,7 @@ export function deepEqual(a, b) {
   if (isRegex(a)) {
     return isRegex(b) && a.source === b.source && a.flags === b.flags;
   }
-  // Two paths are one when their segments are [D248].
+  // Two paths are one when their segments are [QSPTH#value].
   if (isPath(a)) {
     return isPath(b) && a.segments.length === b.segments.length && a.segments.every((segment, index) => segment === b.segments[index]);
   }

@@ -4,7 +4,7 @@
 // state it started from; the scope maps the names a reader declared to
 // their records, the frame, over the root the host's sources declared,
 // under a key no name spells, a lookup reading the frame and then the
-// root [D153].
+// root [QSDSP#residence].
 
 import { CallEvaluationDepthExceededError } from './errors.mjs';
 import { ROOT_KEY, QUERY_KEY } from './env-keys.mjs';
@@ -108,7 +108,7 @@ export function queryStateOf(state) {
 
 // envSet(env, name, value) → a new scope, the name holding the value; the
 // body of a word keeps its own names out of the tree of the query, as a
-// word of the host does [QSNAM#owner], [D251].
+// word of the host does [QSNAM#owner], [QSBLD#fn].
 export function envSet(env, name, value) {
   return asScopeOf(env, new Map(env).set(name, value));
 }

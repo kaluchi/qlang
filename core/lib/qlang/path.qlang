@@ -1,6 +1,6 @@
 |~ `::path`, the kind of a path, and what is declared under it: its
    word and the refusals of a read that misses.
-   The decisions it exists for: [D114], [D248]. ~|
+   The decisions it exists for: [QSDSP#residence], [QSPTH#value]. ~|
 
 :path
   |~~ A path, `/a/0/b`, is a value that names a part of another: a key

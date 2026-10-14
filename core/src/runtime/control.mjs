@@ -1,9 +1,9 @@
-// The names of control, residing on `::any`, each a plain function over
-// the subject and the inputs of its call [D251]: a branch, a clause, an
-// alternative and a quote among the conditions of `allOf` and `anyOf`
-// is code the name runs only when it is chosen, closed at the call [D4],
-// [D34], and the condition of `if` is a boolean computed at the call
-// [D14].
+// The names of control, residing on `::any`, each a plain function over the
+// subject and the inputs of its call [QSBLD#fn]: a branch, a clause, an
+// alternative and a quote among the conditions of `allOf` and `anyOf` is code
+// the name runs only when it is chosen, closed at the call [QSQUO#literal],
+// [QSDSP#walk], and the condition of `if` is a boolean computed at the call
+// [QSCND#boolean].
 //
 // The verbs live in lib/qlang/any.qlang.
 
@@ -21,7 +21,7 @@ bindPrim('any/if', runs(['then', 'else'], async (subject, condition, thenCode, e
 // Whether every condition holds of the subject, and whether some does:
 // a condition computed at the call is the boolean it answered, a quote
 // answers one in its turn, and the first condition that decides answers
-// with the quotes after it unrun [D197].
+// with the quotes after it unrun [QSCND#boolean].
 async function verdictOfConditions(subject, conditions, decisive, ConditionNotBooleanError) {
   for (const [index, condition] of conditions.entries()) {
     const verdict = typeof condition === 'function' ? await condition(subject) : condition;

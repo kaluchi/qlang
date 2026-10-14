@@ -1,6 +1,6 @@
 |~ `::elision`, the kind of the marker of what a view left out, and the
    laws declared under it.
-   The decisions it exists for: [D114]. ~|
+   The decisions it exists for: [QSDSP#residence]. ~|
 
 :elision
   |~~ An elision marks a part of an answer that a budget left out, and

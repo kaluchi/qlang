@@ -3,7 +3,7 @@
    kernel no reader reaches by a query, the table of primitives, the
    tree the evaluator does not know, the session, the printer and the
    sources of the root.
-   The decisions it exists for: [D46], [D114]. ~|
+   The decisions it exists for: [QSERR#site], [QSDSP#residence]. ~|
 
 :builtin
   |~~ A builtin marks a word a host implements: the recipe of a

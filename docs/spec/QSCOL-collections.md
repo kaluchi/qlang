@@ -112,7 +112,8 @@ their input, and on vectors, which fold the sets or maps they hold. A
 map's `minus` and `inter` take the keys a map, a vector or a set names;
 `union` of maps lets the later value of a key stand. A value that is no
 set or map is refused at its index, a set beside a map as a pair the
-algebra has no rule for, and a fold of nothing as empty. The answer
+algebra has no rule for, `KindsMismatchedError` with `:leftType` and
+`:rightType`, and a fold of nothing as `SubjectEmptyError`. The answer
 keeps the subject's tags. `unionOf` unites the maps its call computes
 from one subject.
 

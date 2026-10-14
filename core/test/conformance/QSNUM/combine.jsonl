@@ -4,3 +4,5 @@
 {"name":"divOf-divides-the-first-field-by-the-second","query":"{:x 20 :y 4} | divOf /x /y","expect":"5"}
 {"name":"a-call-takes-the-subject-in-the-pipe","query":"1 | add 1 2 !| get [~(type) ~(explain | page | content | contains \"sumOf\")]","expect":"[::number/add/ArgsBeyondInputsError true]"}
 {"name":"mulOf-multiplies-the-args-it-is-given","query":"{:price 4 :qty 3} | mulOf /price /qty","expect":"12"}
+{"name":"a-call-on-a-subject-of-another-kind-names-the-form-that-fits","query":"{:price 100 :qty 3} | mul (get /price) (get /qty) !| get [~(type) ~(explain | page | content | contains \"mulOf\")]","expect":"[::number/mul/SubjectNotNumberError true]"}
+{"name":"two-fields-compare-by-the-subject-in-the-pipe","query":"{:a 2 :b 1} | gt (get /a) (get /b) !| type","expect":"::call/KindAnswersNoVerbError"}

@@ -1,5 +1,5 @@
-// The names of a scope [D153]: the nouns of the root and the reader's
-// own, the nodes a name with a path declares under its noun, and the
+// The names of a scope [QSDSP#residence]: the nouns of the root and the
+// reader's own, the nodes a name with a path declares under its noun, and the
 // address that reads one.
 
 import { describe, it, expect } from 'vitest';
@@ -8,7 +8,7 @@ import { createSession } from '../../src/session.mjs';
 import { keyword, makeTag } from '../../src/types.mjs';
 
 describe('the names of the scope', () => {
-  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [QSNAM#binding], [D168]', async () => {
+  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [QSNAM#binding], [QSSLF#catalog]', async () => {
     expect(await evalQuery('env | eq {}')).toBe(true);
     expect(await evalQuery('kinds | get [~(has ::number) ~(has ::qlang) ~(has ::number/add/SubjectNotNumberError)]'))
       .toEqual([true, true, false]);
@@ -28,7 +28,7 @@ describe('the names of the scope', () => {
     expect([...await evalQuery('::qlang/values | manifest')]).toEqual([]);
   });
 
-  it('a bare name reads a value a source of the root declares, and no label of the root [D153]', async () => {
+  it('a bare name reads a value a source of the root declares, and no label of the root [QSDSP#residence]', async () => {
     const session = await createSession({ sources: [{
       uri: 'shop',
       source: ':shop |~~ A shop. ~~|\n:limit 5'
@@ -37,7 +37,7 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('shop !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a word of a source reads a bare value of the root as a reader reads it, after the words of its name, no frame of its source before them [D251]', async () => {
+  it('a word of a source reads a bare value of the root as a reader reads it, after the words of its name, no frame of its source before them [QSBLD#fn]', async () => {
     const shop = { uri: 'shop', source: ':shop |~~ A shop. ~~|\n:limit 5\n:shop/capped ~(limit)' };
     const later = { uri: 'stock', source: ':stock |~~ A stock. ~~|\n:stock/limit ~(7)' };
     const alone = await createSession({ sources: [shop] });
@@ -46,12 +46,12 @@ describe('the names of the scope', () => {
     expect((await beside.evalCell('::shop{} | capped !| type')).result).toEqual(makeTag('stock/limit/SubjectNotStockError'));
   });
 
-  it('a label of a source is no bare name inside the words of its source [D153], [QSNAM#owner]', async () => {
+  it('a label of a source is no bare name inside the words of its source [QSDSP#residence], [QSNAM#owner]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/self ~(shop)' }] });
     expect((await session.evalCell('::shop{} | self !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a word of a source reads a bare value its source declares after it, a node of the root [D251]', async () => {
+  it('a word of a source reads a bare value its source declares after it, a node of the root [QSBLD#fn]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/capped ~(limit)\n:limit 5' }] });
     expect((await session.evalCell('::shop{} | capped')).result).toBe(5);
   });
@@ -175,7 +175,7 @@ describe('what a word reads and runs as data reads the tree of the query [QSNAM#
       .toEqual([makeTag('call/ValueWithheldError'), keyword('x')]);
   });
 
-  it('a word the reader declares reads as data the tree of the query, past its own declarations, and runs held code in a lane of its own [D251], [QSQUO#held]', async () => {
+  it('a word the reader declares reads as data the tree of the query, past its own declarations, and runs held code in a lane of its own [QSBLD#fn], [QSQUO#held]', async () => {
     expect(await evalQuery(':x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names | eq [false true]')).toBe(true);
     expect(await evalQuery(':any/f ~(:loc |~~ L ~~| 1 | ::loc | doc | content) | f !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
     expect(await evalQuery(':x 1 | :any/run (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code)) | "x" | parse | :q it | null | run q 99 !| type'))

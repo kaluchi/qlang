@@ -2,7 +2,7 @@
    words that build it from the noun, their refusals and their laws. The
    kind of kinds and its words are written as their literals, since none of
    them stands while the source runs; the chain builds every other kind.
-   The decisions it exists for: [D252]. ~|
+   The decisions it exists for: [QSBLD#kind]. ~|
 
 :kind
   |~~ A kind: the payload its tag is laid over, the fields it reads of the

@@ -1,0 +1,66 @@
+{"name":"a-required-input-left-out-is-refused-by-its-name","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(add x)) | 5 | m !| type","expect":"::number/m/x/NotGivenError"}
+{"name":"a-word-refuses-modifiers-beyond-its-places","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(add x)) | 5 | m 1 2 3 !| get [~(type) /places]","expect":"[::number/m/ArgsBeyondInputsError 1]"}
+{"name":"an-input-is-held-to-its-kinds","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(add x)) | 5 | m \"a\" !| type","expect":"::number/m/x/NotNumberError"}
+{"name":"an-input-takes-the-value-of-its-kind-beneath-the-tags","query":":any/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(x)) | null | m ::Width#5","expect":"5"}
+{"name":"an-input-whose-kinds-hold-null-may-be-left-out","query":":any/m (::fn | takes :limit |~~ The limit. ~~| ~(query /0) #[::number ::null] | impl ~(limit)) | 5 | m","expect":"null"}
+{"name":"an-input-of-several-kinds-takes-any-of-them","query":":any/m (::fn | takes :v |~~ The v. ~~| /0 #[::number ::string] | impl ~(v)) | null | m \"a\"","expect":"\"a\""}
+{"name":"an-input-read-softly-is-held-to-its-kinds","query":":vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(take n)) | [1 2 3 4] | top \"a\" !| type","expect":"::vec/top/n/NotNumberError"}
+{"name":"an-input-of-the-args-after-the-first-gathers-the-modifiers-that-remain","query":":any/all (::fn | takes :head |~~ The head. ~~| /0 | takes :tail |~~ The tail. ~~| ~(drop 1) [::number] | impl ~(get [~(head) ~(tail)])) | null | all :a 1 2","expect":"[:a [1 2]]"}
+{"name":"an-input-of-the-whole-args-holds-the-kinds-of-each-element","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) [::number] | impl ~(xs)) | null | all 1 \"b\" !| type","expect":"::any/all/xs/ElementNotNumberError"}
+{"name":"an-input-of-the-args-whole-without-modifiers-holds-the-empty-vector","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) [::number] | impl ~(xs)) | null | all","expect":"[]"}
+{"name":"a-verb-folds-with-its-input-taking-the-element","query":":number/plus (::fn | takes :elem |~~ The elem. ~~| /0 ::number | impl ~(add elem)) | [1 2 3] | reduce 0 ~plus","expect":"6"}
+{"name":"an-input-of-several-kinds-refuses-a-value-of-none","query":":any/m (::fn | takes :limit |~~ The limit. ~~| ~(query /0) #[::number ::null] | impl ~(limit)) | 5 | m \"a\" !| type","expect":"::any/m/limit/NotNullOrNumberError"}
+{"name":"an-input-of-code-takes-a-quote-alone","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(apply code)) | 5 | run 1 !| type","expect":"::any/run/code/NotQuoteError"}
+{"name":"an-input-of-code-takes-a-verb","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(apply code)) | 5 | run ~(add 1)","expect":"6"}
+{"name":"an-input-of-vectors-reads-a-set-as-one","query":":any/m (::fn | takes :xs |~~ The xs. ~~| /0 ::vec | impl ~(xs | count)) | null | m #[1 2]","expect":"2"}
+{"name":"an-input-of-maps-reads-a-tagged-map-as-one","query":":any/m (::fn | takes :fields |~~ The fields. ~~| /0 ::map | impl ~(fields | count)) | null | m ::T{:a 1}","expect":"1"}
+{"name":"a-set-that-names-no-kind-is-a-default","query":":any/m (::fn | takes :s |~~ The s. ~~| ~(query /0 #[1 2]) ::set | impl ~(s)) | null | m","expect":"#[1 2]"}
+{"name":"the-empty-set-is-a-default","query":":any/m (::fn | takes :s |~~ The s. ~~| ~(query /0 #[]) ::set | impl ~(s)) | null | m #[3]","expect":"#[3]"}
+{"name":"a-recipe-may-open-with-a-combinator","query":":vec/m (::fn | takes :n |~~ The n. ~~| ~(query /0 1) ::number | impl ~(map ~(add n))) | [1 2] | m","expect":"[2 3]"}
+{"name":"a-comment-in-the-head-is-layout","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(add x)) | 1 | m 2","expect":"3"}
+{"name":"a-declaration-on-the-fail-track-ends-the-head","query":":number/m (::fn | takes :n |~~ The n. ~~| ~(query /0 1) ::number | impl ~(!| :k 2 | add n)) | 5 | m","expect":"6"}
+{"name":"a-modifier-that-answers-an-error-answers-the-call","query":":any/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(x)) | 5 | m (!{:k 1} | raise) !| get /k","expect":"1"}
+{"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) | impl ~(xs)) | null | all 1 (!{:k 2} | raise) !| get /k","expect":"2"}
+{"name":"an-input-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":any/twice (::fn | takes :f |~~ The f. ~~| /0 ::quote | impl ~(apply f | apply f)) | 1 | get [~(twice ~(add 1)) ~(twice ~(add 1))]","expect":"[3 3]"}
+{"name":"an-optional-input-takes-a-map-by-default","query":":any/m (::fn | takes :opts |~~ The opts. ~~| ~(query /0 {:limit 2}) ::map | impl ~(opts | get /limit)) | null | m","expect":"2"}
+{"name":"an-optional-input-takes-a-vector-by-default","query":":any/m (::fn | takes :xs |~~ The xs. ~~| ~(query /0 [1 2]) ::vec | impl ~(xs | count)) | null | get [~(m) ~(m [5])]","expect":"[2 1]"}
+{"name":"the-node-of-an-input-holds-its-place","query":"::number/add/addend | binding | get /value","expect":"/0"}
+{"name":"a-word-refuses-a-modifier-beyond-its-places","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | scale 5 2 !| type","expect":"::number/scale/ArgsBeyondInputsError"}
+{"name":"a-call-of-more-values-than-places-is-refused","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | scale 5 2 3 !| type","expect":"::number/scale/ArgsBeyondInputsError"}
+{"name":"args-of-more-values-than-places-are-refused","query":"5 | add \"a\" 1 !| type","expect":"::number/add/ArgsBeyondInputsError"}
+{"name":"an-error-among-the-modifiers-answers-before-the-places-are-counted","query":":number/s (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | s (!{:k 1} | raise) 2 !| type","expect":"::error"}
+{"name":"a-declared-verb-with-one-input","query":":number/addN (::fn | takes :n |~~ The n. ~~| /0 | impl ~(add n)) | 5 | addN 3","expect":"8"}
+{"name":"a-declared-verb-with-two-inputs","query":":string/surround (::fn | takes :pfx |~~ The pfx. ~~| /0 | takes :sfx |~~ The sfx. ~~| /1 | impl ~(prepend pfx | append sfx)) | \"world\" | surround \"[\" \"]\"","expect":"\"[world]\""}
+{"name":"an-input-of-code-keys-a-sort","query":":vec/topBy (::fn | takes :keyFn |~~ The keyFn. ~~| /0 | takes :n |~~ The n. ~~| /1 ::number | holds :keyFn/NotQuoteError |~~ NotQuoteError. ~~| ~(is ::quote ::path) | impl ~(sort keyFn | reverse | take n)) | [{:v 1} {:v 3} {:v 2}] | topBy /v 2 | map /v","expect":"[3 2]"}
+{"name":"an-input-of-code-filters","query":":vec/matching (::fn | takes :pred |~~ The pred. ~~| /0 ::quote | impl ~(filter pred)) | [1 2 3 4 5] | matching ~(gt 3)","expect":"[4 5]"}
+{"name":"fractal-composition-three-levels","query":":vec/topBy (::fn | takes :keyFn |~~ The keyFn. ~~| /0 | takes :n |~~ The n. ~~| /1 ::number | holds :keyFn/NotQuoteError |~~ NotQuoteError. ~~| ~(is ::quote ::path) | impl ~(sort keyFn | reverse | take n)) | :vec/topNByV (::fn | takes :n |~~ The n. ~~| /0 ::number | impl ~(topBy /v n)) | :vec/top2ByV ~(topNByV 2) | [{:v 10} {:v 30} {:v 20}] | top2ByV | map /v","expect":"[30 20]"}
+{"name":"a-declared-verb-recurses-with-its-input-of-code","query":":map/treeMap (::fn | takes :fn |~~ The fn. ~~| /0 ::quote | impl ~(get {:label ~(get /label | apply fn) :children ~(get /children | map ~(treeMap fn))})) | {:label \"a\" :children [{:label \"b\" :children []}]} | treeMap ~(append \"!\") | get /label","expect":"\"a!\""}
+{"name":"a-word-refuses-an-input-left-out","query":":number/f (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(add a b)) | 0 | f 1","expect":"::number/f/b/NotGivenError!{\n  :actualValue ::number/f[1]\n  :actualType ::number/f\n  :trail [\n    {\n      :step ~(f 1)\n      :subject 0\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"a-word-refuses-args-beyond-its-inputs","query":":number/f (::fn | takes :a |~~ The a. ~~| /0 | impl ~(add a)) | 5 | f 1 2 3","expect":"::number/f/ArgsBeyondInputsError!{\n  :places 1\n  :actualValue ::number/f[1 2 3]\n  :actualType ::number/f\n  :trail [\n    {\n      :step ~(f 1 2 3)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"an-input-takes-its-modifier-at-each-call","query":":map/pluck (::fn | takes :proj |~~ The proj. ~~| /0 | impl ~(proj)) | [{:a 1} {:a 2} {:a 3}] | map ~(pluck (get /a))","expect":"[1 2 3]"}
+{"name":"the-args-a-refusal-holds-read-back-as-they-print","query":"1 | add 1 2 !| get /actualValue | eq ::number/add[1 2]","expect":"true"}
+{"name":"an-invariant-of-an-input-that-reads-the-args-whole-refuses-them","query":"{} | coalesce !| get [~(type) /actualValue]","expect":"[::any/coalesce/alternatives/EmptyError ::any/coalesce[]]"}
+{"name":"a-word-of-no-inputs-reads-its-args","query":":any/n ~(args | count) | 5 | n","expect":"0"}
+{"name":"the-args-of-a-call-are-a-value-under-its-word","query":":any/argsOf (::fn | takes :xs |~~ The xs. ~~| ~(take 99) | impl ~(args)) | 5 | argsOf 1 2","expect":"::any/argsOf[1 2]"}
+{"name":"the-kinds-of-an-input-refuse-under-its-name","query":"1 | add \"x\" !| type","expect":"::number/add/addend/NotNumberError"}
+{"name":"the-kind-of-an-input-names-its-refusal","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | 5 | plus \"x\" !| type","expect":"::number/plus/by/NotNumberError"}
+{"name":"a-word-reads-the-pages-of-its-inputs","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | ::number/plus/by | doc | content | trim","expect":"\"How much.\""}
+{"name":"a-body-begun-on-a-later-line-is-a-sentence","query":":number/plus |~~ Adds by. ~~|\n  ::fn\n  | takes :by |~~ How much. ~~| /0\n  | impl ~(add by)\n| 5 | plus 3","expect":"8"}
+{"name":"a-quote-written-in-its-step-reads-that-step","query":":vec/addAll (::fn | takes :by |~~ The by. ~~| /0 | impl ~(map ~(add by))) | [1 2] | addAll 10","expect":"[11 12]"}
+{"name":"a-recipe-of-a-function-reads-a-word-declared-after-it","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1","expect":"12"}
+{"name":"a-word-reads-its-input-by-its-name","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(mul 10 | add x)) | 2 | m it","expect":"22"}
+{"name":"a-word-recurses-through-its-input","query":":number/fact (::fn | takes :n |~~ The n. ~~| /0 ::number | impl ~(if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1))))) | 5 | fact it","expect":"120"}
+{"name":"a-verb-takes-an-input-by-its-declaration","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(mul 10 | add x)) | 2 | m 3","expect":"23"}
+{"name":"an-optional-input-takes-its-default","query":":vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 9 7] | top","expect":"[9 7 5]"}
+{"name":"an-optional-input-takes-a-modifier","query":":vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 9 7] | top 2","expect":"[9 7]"}
+{"name":"a-key-of-a-sort-is-code-a-host-runs","query":"[{:a 2} {:a 1}] | sort /a | first | get /a","expect":"1"}
+{"name":"a-number-under-a-tag-of-its-own-is-a-number-an-input-takes","query":"5 | add ::Width#2","expect":"7"}
+{"name":"each-value-an-input-of-each-element-takes-is-handed-as-its-kind","query":"{:a ::W#5 :b 2} | sumOf (get /a) /b","expect":"7"}
+{"name":"each-value-the-call-gives-is-refused-with-its-index","query":"{:a 1 :b \"x\"} | sumOf /a /b !| get [~(type) /index /actualType]","expect":"[::vec/sum/ElementNotNumberError 1 ::string]"}
+{"name":"a-step-computed-where-the-input-reading-the-args-takes-code-is-refused-by-it","query":"5 | cond (get /nope) ~(1) !| get [~(type) /index]","expect":"[::any/cond/clauses/ElementNotPathOrQuoteError 0]"}
+{"name":"a-step-computed-where-the-alternatives-take-any-value-answers-its-error","query":"{} | coalesce (get /a) ~(1) !| type","expect":"::path/KeyNotInMapError"}
+{"name":"a-step-computed-where-an-input-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError"}
+{"name":"a-step-computed-where-no-input-reads-answers-its-error","query":"[1 2] | query /0 5 (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError"}
+{"name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| get [~(type) /index /actualType]","expect":"[::any/is/kinds/ElementNotTagError 0 ::keyword]"}
+{"name":"an-input-refuses-under-the-address-of-its-kinds-word","query":"get [~(\"ab\" | take \"x\" !| type) ~([1] | take \"x\" !| type)]","expect":"[::string/take/count/NotNumberError ::vec/take/count/NotNumberError]"}
+{"name":"a-condition-of-cond-is-named-by-its-place-from-zero","query":"get [~(5 | cond ~(1) ~(\"yes\") !| get [~(type) /index]) ~(5 | cond ~(false) ~(1) ~(2) ~(3) !| get [~(type) /index])]","expect":"[[::any/cond/ConditionNotBooleanError 0] [::any/cond/ConditionNotBooleanError 2]]"}

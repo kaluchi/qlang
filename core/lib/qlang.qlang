@@ -59,7 +59,7 @@
       subject of a step is what the step before it answered, so in
       `{:price 4 :qty 3} | get /price | mul (get /qty)` the `/qty` is
       read from the price, a number with no parts, and the call is
-      refused, `::path/SubjectNotProjectableError`: two values of one
+      refused, `::path/SubjectHasNoPartsError`: two values of one
       record are read in one step, `get [/price /qty]`, or combined by a
       word that reads them, `{:price 4 :qty 3} | mulOf /price /qty`
       answering `12`. A modifier of more than one word stands in
@@ -223,7 +223,7 @@
         ~({:price 4 :qty 3} | mulOf /price /qty | eq 12)
     | proves :readsAModifierFromTheSubjectOfItsStep
         |~~ After `get /price |` a modifier is read from the price. ~~|
-        ~({:price 4 :qty 3} | get /price | mul (get /qty) !| type | eq ::path/SubjectNotProjectableError)
+        ~({:price 4 :qty 3} | get /price | mul (get /qty) !| type | eq ::path/SubjectHasNoPartsError)
     | proves :subtractsTwoFields
         |~~ Two fields of one record subtract by `subOf`. ~~|
         ~({:total 10 :paid 3} | subOf /total /paid | eq 7)
@@ -232,7 +232,7 @@
         ~({:a 1} | get [~(get /a | add 1) /a] | eq [2 1])
     | proves :losesTheRecordAfterAStep
         |~~ After `get /qty |` a modifier reads the number, not the record. ~~|
-        ~({:qty 2 :price 3} | get /qty | mul (get /price) !| type | eq ::path/SubjectNotProjectableError)
+        ~({:qty 2 :price 3} | get /qty | mul (get /price) !| type | eq ::path/SubjectHasNoPartsError)
     | proves :takesCodeAsAQuote
         |~~ Code a verb runs on each element is a quote. ~~|
         ~([{:age 3} {:age 20}] | filter ~(get /age | gte 18) | count | eq 1)

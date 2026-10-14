@@ -69,7 +69,7 @@
     | carries :KeyNotInMapError/key
         |~~ The key the path read, which the map does not hold. ~~|
         ::keyword
-    | throws :SubjectNotProjectableError
+    | throws :SubjectHasNoPartsError
         |~~ A path reads a part of a map, a vector or a set, one under a
             tag among them; a number, a string or null has no parts, and
             `:key` holds the key or the place read. A path read from the
@@ -80,7 +80,7 @@
             that may be null is read by `query`, which answers null.
             ::link~(::path | doc) ::link~(::any/mulOf | doc)
         ~~|
-    | carries :SubjectNotProjectableError/key
+    | carries :SubjectHasNoPartsError/key
         |~~ The segment the path read, a key or a place. ~~|
         #[::keyword ::number]
     | throws :IndexNotIntegerError
@@ -137,16 +137,16 @@
     | proves :KeyNotInMapError/readsTwoFieldsInOneStep
         |~~ Two fields of one record are read in one step. ~~|
         ~({:a 1 :b 2} | get [/a /b] | eq [1 2])
-    | proves :SubjectNotProjectableError/readsTwoFieldsInOneStep
+    | proves :SubjectHasNoPartsError/readsTwoFieldsInOneStep
         |~~ Two fields of one record combine in one step by `mulOf`. ~~|
         ~({:qty 2 :price 3} | mulOf /qty /price | eq 6)
-    | proves :SubjectNotProjectableError/refusesANumber
+    | proves :SubjectHasNoPartsError/refusesANumber
         |~~ A number has no fields. ~~|
         ~(42 | get /foo
-          !| get [~(type) /key /actualType] | eq [::path/SubjectNotProjectableError :foo ::number])
-    | proves :SubjectNotProjectableError/refusesNull
+          !| get [~(type) /key /actualType] | eq [::path/SubjectHasNoPartsError :foo ::number])
+    | proves :SubjectHasNoPartsError/refusesNull
         |~~ Null has no parts for `get`. ~~|
-        ~(null | get /k !| get [~(type) /actualType] | eq [::path/SubjectNotProjectableError ::null])
+        ~(null | get /k !| get [~(type) /actualType] | eq [::path/SubjectHasNoPartsError ::null])
     | proves :IndexNotIntegerError/refusesAFieldOfAVector
         |~~ A vector is read by a place, not a field. ~~|
         ~([10 20 30] | get /name !| get [~(type) /key] | eq [::path/IndexNotIntegerError :name])

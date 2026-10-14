@@ -3,12 +3,12 @@
 {"decision":"D13","name":"get-reads-beneath-the-tags","query":"::Box{:w 3} | get /w","expect":"3"}
 {"decision":"D248","name":"get-refuses-a-missed-key-with-the-keys-near-it","query":"{:emails [] :age 3} | get /email !| get /nearest","expect":"[:emails]"}
 {"decision":"D248","name":"get-refuses-a-place-past-the-end","query":"[1 2] | get /5 !| type","expect":"::path/IndexOutOfBoundsError"}
-{"decision":"D248","name":"get-refuses-a-value-on-the-path-that-has-no-parts","query":"{:a 5} | get /a/b !| type","expect":"::path/SubjectNotProjectableError"}
+{"decision":"D248","name":"get-refuses-a-value-on-the-path-that-has-no-parts","query":"{:a 5} | get /a/b !| type","expect":"::path/SubjectHasNoPartsError"}
 {"decision":"D248","name":"get-reads-a-key-the-query-computes","query":"{:k \"b\" :b 7} | get (get /k)","expect":"7"}
 {"decision":"D248","name":"query-answers-null-for-a-missing-key","query":"{:a 1} | query /b","expect":"null"}
 {"decision":"D248","name":"query-answers-null-for-a-missing-place","query":"[1] | query /5","expect":"null"}
 {"decision":"D248","name":"query-answers-null-through-null","query":"{:a null} | query /a/b","expect":"null"}
-{"decision":"D248","name":"query-refuses-another-kind-on-the-path","query":"{:a 5} | query /a/b !| type","expect":"::path/SubjectNotProjectableError"}
+{"decision":"D248","name":"query-refuses-another-kind-on-the-path","query":"{:a 5} | query /a/b !| type","expect":"::path/SubjectHasNoPartsError"}
 {"decision":"D133","name":"query-and-coalesce-give-a-default","query":"{:a 1} | query /port | coalesce 8080","expect":"8080"}
 {"decision":"D248","name":"has-asks-whether-a-path-reads","query":"{:a {:b 1}} | get [~(has /a/b) ~(has /a/c)]","expect":"[true false]"}
 {"decision":"D248","name":"get-reads-a-tuple","query":"{:price 4 :qty 3} | get [/price /qty]","expect":"[4 3]"}
@@ -61,5 +61,5 @@
 {"decision":"D134","name":"a-path-before-a-combinator-still-reads","query":"{:a 1} | get /a !| 0","expect":"1"}
 {"decision":"D134","name":"paths-as-modifiers-still-read","query":"{:qty 2 :price 3} | mulOf /qty /price","expect":"6"}
 {"decision":"D132","name":"trim-cuts-the-whitespace-at-both-ends","query":"\"  db_host \n\" | trim","expect":"\"db_host\""}
-{"decision":"D132","name":"a-modifier-reads-the-subject-of-its-own-step","query":"{:qty 2 :price 3} | get /qty | mul (get /price) !| type","expect":"::path/SubjectNotProjectableError"}
+{"decision":"D132","name":"a-modifier-reads-the-subject-of-its-own-step","query":"{:qty 2 :price 3} | get /qty | mul (get /price) !| type","expect":"::path/SubjectHasNoPartsError"}
 {"decision":"D132","name":"query-of-a-path-hands-the-value-as-the-key","query":"{:email {:home \"a@b\"}} | query (get /email) !| get /actualValue","expect":"{:home \"a@b\"}"}

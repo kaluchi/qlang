@@ -17,7 +17,7 @@
 {"decision":"D19","name":"doc-eq-doc-vs-quote","query":"(|~~ x ~~|) | eq ~(x)","expect":"false"}
 {"decision":"D19","name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | type | eq ::doc","expect":"true"}
 {"decision":"D19","name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
-{"decision":"D19","name":"doc-not-projectable-other-key","query":"|~~ x ~~| | get /unknownKey","expect":"::path/IndexNotIntegerError!{\n  :key :unknownKey\n  :path /unknownKey\n  :actualType ::doc\n  :trail [\n    {\n      :step ~(get /unknownKey)\n      :subject |~~ x ~~|\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D19","name":"a-doc-is-read-by-places-as-a-vector-is","query":"|~~ x ~~| | get /unknownKey","expect":"::path/IndexNotIntegerError!{\n  :key :unknownKey\n  :path /unknownKey\n  :actualType ::doc\n  :trail [\n    {\n      :step ~(get /unknownKey)\n      :subject |~~ x ~~|\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D19","name":"doc-type-is-not-vec","query":"|~~ x ~~| | type | eq ::vec","expect":"false"}
 {"decision":"D19","name":"doc-type-is-not-map","query":"|~~ x ~~| | type | eq ::map","expect":"false"}
 {"decision":"D19","name":"doc-type-is-not-string","query":"|~~ x ~~| | type | eq ::string","expect":"false"}

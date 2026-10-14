@@ -100,7 +100,7 @@ describe('runtime error location propagation via evalNode', () => {
 
   it('per-site name is set on the refusals the runtime raises', async () => {
     const originalErr = await catchOriginalError('1 | get /name');
-    expect(originalErr.name).toBe('SubjectNotProjectableError');
+    expect(originalErr.name).toBe('SubjectHasNoPartsError');
   });
 });
 
@@ -112,10 +112,10 @@ describe('error class branding survives Object.defineProperty (minification prox
   // `.name` survives.
   it('class.name set by brand() persists across reassignment', async () => {
     const originalErr = await catchOriginalError('1 | get /name');
-    expect(originalErr.name).toBe('SubjectNotProjectableError');
+    expect(originalErr.name).toBe('SubjectHasNoPartsError');
     // Constructor.name is the same string regardless of caller-side
     // identifier mangling.
-    expect(originalErr.constructor.name).toBe('SubjectNotProjectableError');
+    expect(originalErr.constructor.name).toBe('SubjectHasNoPartsError');
   });
 });
 

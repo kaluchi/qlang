@@ -6,7 +6,7 @@ import { declareRefusal } from './errors.mjs';
 import { isDoc, isFn, isKind, isQMap, isQuote, isVec, isValueClass, keyword } from './types.mjs';
 import { nearestKeys } from './nearest-names.mjs';
 
-export const PathSubjectNotProjectableError = declareRefusal('path/SubjectNotProjectableError');
+export const PathSubjectHasNoPartsError = declareRefusal('path/SubjectHasNoPartsError');
 export const PathKeyNotInMapError = declareRefusal('path/KeyNotInMapError');
 export const PathIndexOutOfBoundsError = declareRefusal('path/IndexOutOfBoundsError');
 export const PathIndexNotIntegerError = declareRefusal('path/IndexNotIntegerError');
@@ -87,7 +87,7 @@ export function placeIn(container, segment, path, met = container, soft = false)
 
 // The refusal of a value on the path that has no parts.
 export function noPartsOn(value, segment, path) {
-  return new PathSubjectNotProjectableError({
+  return new PathSubjectHasNoPartsError({
     key: Number.isNaN(segmentIndex(segment)) ? keyword(segment) : segmentIndex(segment),
     path,
     actualValue: value

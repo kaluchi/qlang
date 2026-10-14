@@ -764,7 +764,7 @@
         |~~ The error a step answered at the call is refused as no code. ~~|
         ~(5 | apply (get /nope)
           !| get [~(type) /actualType]
-          |  eq [::any/apply/code/NotFnOrPathOrQuoteError ::path/SubjectNotProjectableError])
+          |  eq [::any/apply/code/NotFnOrPathOrQuoteError ::path/SubjectHasNoPartsError])
     | proves :code/NotGivenError/refusesACallWithNoCode
         |~~ A call with no code is refused under the input. ~~|
         ~(~(add 1) | apply !| type | eq ::any/apply/code/NotGivenError)
@@ -2057,7 +2057,7 @@
         ~({:a null} | query /a/b | eq null)
     | proves :refusesAnotherKind
         |~~ A value on the path that has no parts is refused. ~~|
-        ~({:a 5} | query /a/b !| type | eq ::path/SubjectNotProjectableError)
+        ~({:a 5} | query /a/b !| type | eq ::path/SubjectHasNoPartsError)
     | proves :readsATupleSoftly
         |~~ Each path of a template is read softly. ~~|
         ~({:a 1} | query [/a /b] | eq [1 null])
@@ -2108,7 +2108,7 @@
         |~~ A value on the path that has no parts is refused, as `get`
             refuses it.
         ~~|
-        ~({:a 1} | put /a/b 2 !| type | eq ::path/SubjectNotProjectableError)
+        ~({:a 1} | put /a/b 2 !| type | eq ::path/SubjectHasNoPartsError)
     | impl ::builtin{}
 
 :any/update

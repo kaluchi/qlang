@@ -75,7 +75,7 @@
 {"decision":"D4","name":"apply-quote-against-the-subject","query":"5 | apply ~(mul 2)","expect":"10"}
 {"decision":"D4","name":"apply-code-type-refusal","query":"42 | apply 1 !| get [~(type) /actualType]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::number]"}
 {"decision":"D4","name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::call/UnknownNameError"}
-{"decision":"D129","name":"apply-code-that-fails-is-refused-by-its-input","query":"5 | apply (get /nope) !| get [~(type) /actualType]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::path/SubjectNotProjectableError]"}
+{"decision":"D129","name":"apply-code-that-fails-is-refused-by-its-input","query":"5 | apply (get /nope) !| get [~(type) /actualType]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::path/SubjectHasNoPartsError]"}
 {"decision":"D4","name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12"}
 {"decision":"D5","name":"a-named-quote-is-a-value-apply-runs","query":":q ~(add 1) | 5 | apply q","expect":"6"}
 {"decision":"D67","name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)"}

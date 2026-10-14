@@ -962,7 +962,7 @@ The consumers at the finish carry no language of their own. The
 command line is a thin host: standard input lifted only when it
 carries bytes, the default subject otherwise [D37], and read only for a
 query that reads its subject, so a pipe left open never holds a query
-that reads none [D215]; the answer written as its literal whatever the
+that reads none [D37]; the answer written as its literal whatever the
 input was, a string as its text, and converted by the query, `| json`
 [D214]; the budget at the end of the pipe, and its renderings, `table`
 among them, words of its own [D49]:
@@ -1308,7 +1308,6 @@ those being decided.
 [D208]: decisions/D208.md
 [D212]: decisions/D212.md
 [D214]: decisions/D214.md
-[D215]: decisions/D215.md
 [D218]: decisions/D218.md
 [D221]: decisions/D221.md
 [D223]: decisions/D223.md

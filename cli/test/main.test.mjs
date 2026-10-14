@@ -109,7 +109,7 @@ describe('main — flag dispatch', () => {
 });
 
 // A query that reads no subject runs without waiting on standard input,
-// which a shell may hand open with nothing piped [D215].
+// which a shell may hand open with nothing piped [D37].
 describe('main — standard input read for a query that reads its subject', () => {
   const openStdin = () => Object.assign(new Readable({ read() {} }), { isTTY: false });
 

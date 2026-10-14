@@ -75,7 +75,7 @@ const LITERALS = new Set([
 
 // readsItsSubject(node) → whether a query reads the subject it is handed,
 // which a host that lifts the subject from a stream waits on only then
-// [D215]: a pipeline where its first step that declares nothing reads
+// [D37]: a pipeline where its first step that declares nothing reads
 // it, or where a declaration before that step runs a body that does; a
 // group where its code reads it; a literal never; a call, a declaration,
 // which answers its subject, and a node this walk does not name always.

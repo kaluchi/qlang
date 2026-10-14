@@ -62,7 +62,7 @@ laws, one for each statement of the page, the false and the refused
 among them, and its recipe last; a kind's its payload, its fields, its
 pages, its refusals, its invariants, its laws and its constructor; a
 name the story brings in is a word its prose uses, so a page says what
-its word answers (decisions D179, D180, D251, D252). A word and a kind
+its word answers (decisions D179, D251 and D252). A word and a kind
 are written by their chains alone, and a role declared by name under a
 word or a label is refused (decision D253). An error leads to the page
 of its site.

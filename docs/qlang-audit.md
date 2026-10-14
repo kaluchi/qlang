@@ -795,7 +795,7 @@ label of its subject, built from `::fn` by commands, its inputs with
 their kinds and invariants, its answer, which `returns` names, its
 refusals and its laws, and its doc its page, a story of what it takes,
 answers and refuses, and the runtime executes the function [D179],
-[D180], [D251]. A word of the core, a host's word and a word a
+[D251]. A word of the core, a host's word and a word a
 reader declares are called the same way, checked the same way,
 documented the same way, and help for all of them, completion, the verbs
 that accept a value, the next part, the refusal's wording, is derived
@@ -1298,7 +1298,6 @@ those being decided.
 [D176]: decisions/D176.md
 [D178]: decisions/D178.md
 [D179]: decisions/D179.md
-[D180]: decisions/D180.md
 [D185]: decisions/D185.md
 [D200]: decisions/D200.md
 [D208]: decisions/D208.md

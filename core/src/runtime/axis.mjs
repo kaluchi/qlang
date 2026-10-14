@@ -79,7 +79,7 @@ export function declaringRecordOf(env, subject) {
 }
 
 // The node a refusal named by the address of what refused reads its page
-// from, that address, when no node of its own declares it [D180].
+// from, that address, when no node of its own declares it [D179].
 function nodeOfRefused(env, name) {
   const [refusedName] = splitAddress(name);
   return refusedName !== null && name.endsWith('Error') ? nodeOf(env, refusedName) : null;

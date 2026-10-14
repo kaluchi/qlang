@@ -339,7 +339,7 @@ export function placesOfSelectors(selectors) {
 }
 
 // The refusals the runtime raises by rule under a word, each named by the
-// address of what refused [D180], [D251]: a subject the walk of whose tags reaches
+// address of what refused [D179], [D251]: a subject the walk of whose tags reaches
 // no value of the word's label, args of more values than its inputs read
 // places, an input the call leaves out where its place reads one, and an
 // answer that reaches none of the kinds `returns` names; and under a

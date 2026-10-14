@@ -1,15 +1,14 @@
 // Drops documents of the research that nothing in force cites [D282]:
 // each leaves the tree, which git keeps, with its part of the ledger of
-// its folder; a record replaced that names it names it at the commit that
-// last held it, so its history still leads there; and the lines of its
-// part of the ledger that say open are printed, for the author to carry
-// under the document's name and that commit. A document something in
-// force cites is refused.
+// its folder, a record replaced reading it at the commit the record left
+// at; and the lines of its part of the ledger that say open are printed,
+// for the author to carry under the document's name and the commit that
+// last held it. A document something in force cites is refused.
 //
 // Usage: node scripts/drop-documents.mjs <path>...   (no path: the uncited)
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
 import { isReadme, textsInForce, unitOf, uncitedDocuments } from './baseline-walk.mjs';
 
@@ -33,19 +32,9 @@ const rewrite = (path, change) => {
   if (written !== text) writeFileSync(join(repoRoot, path), written.split('\n').join(eol));
   return written !== text;
 };
-const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 for (const path of paths) {
   const name = posix.basename(path);
-  // A record replaced: a link to the document, or its path in code, names
-  // the path at the commit.
-  for (const record of readdirSync(join(repoRoot, 'docs', 'decisions', 'replaced')).map(file => `docs/decisions/replaced/${file}`)) {
-    if (rewrite(record, text => text
-      .replace(new RegExp(`\\[([^\\]]*)\\]\\([^)]*${escape(name)}\\)`, 'g'), () => `\`${path}\` at ${commit}`)
-      .replace(new RegExp(`\`(?:[^\`]*/)?${escape(name)}\`(?! at )`, 'g'), () => `\`${path}\` at ${commit}`))) {
-      console.log(`  ${record} names ${path} at ${commit}`);
-    }
-  }
   // The ledger of the folder: the part that opens with the document's
   // link, from its header or its link to the next of either.
   const ledger = `${posix.dirname(path)}/README.md`;

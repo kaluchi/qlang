@@ -1,8 +1,9 @@
 // The records replaced whole leave the root of the records for
 // `docs/decisions/replaced/`, once, and every link of a document to a
 // record is written again from the document's place to the record's
-// [D237]. Run where a record gains its line `Replaced by` or `Merged
-// into`; a record moved once is never moved again.
+// [D237], each naming the commit it left at [D282]. Run where a record
+// gains its line `Replaced by` or `Merged into`; a record moved once is
+// never moved again.
 //
 // Usage: node scripts/replaced-records.mjs
 
@@ -18,7 +19,22 @@ const replacedWhole = text => /^(Replaced by|Merged into) /m.test(text);
 const moving = readdirSync(recordsDir)
   .filter(name => /^[DE]\d+\.md$/.test(name) && replacedWhole(readFileSync(join(recordsDir, name), 'utf8')));
 mkdirSync(join(recordsDir, 'replaced'), { recursive: true });
-for (const name of moving) git('mv', `docs/decisions/${name}`, `docs/decisions/replaced/${name}`);
+// A record leaving names the commit its text was last true at, `Left at`,
+// so a path or a probe it holds reads there, by `git show` [D282].
+const head = git('rev-parse', '--short=8', 'HEAD').trim();
+for (const name of moving) {
+  const path = join(recordsDir, name);
+  const raw = readFileSync(path, 'utf8');
+  const eol = raw.includes('\r\n') ? '\r\n' : '\n';
+  const lines = raw.split('\r\n').join('\n').replace(/\n+$/, '').split('\n');
+  const firstLink = lines.findIndex(line => /^\[[DE]\d+\]: \S+\.md$/.test(line));
+  const body = firstLink === -1 ? lines : lines.slice(0, firstLink);
+  const links = firstLink === -1 ? [] : lines.slice(firstLink);
+  while (body.at(-1) === '') body.pop();
+  if (!body.some(line => line.startsWith('Left at '))) body.push(`Left at ${head}.`);
+  writeFileSync(path, [...body, ...(links.length > 0 ? ['', ...links] : []), ''].join(eol));
+  git('mv', `docs/decisions/${name}`, `docs/decisions/replaced/${name}`);
+}
 
 // A record under `replaced/` never moves again, so a link to the root's
 // place of it, from a move this run or a merge that wrote the link

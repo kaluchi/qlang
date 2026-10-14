@@ -22,8 +22,8 @@ wins and this file is what changes.
    [QSWRK#spec]. How the work moves, the records, the cases, the
    baseline, the branch and the measures, is the chapter of the work,
    `docs/spec/QSWRK-the-work.md`, read whole before the first change.
-   `node scripts/requirements.mjs` lists the records being decided and
-   where each change in transit stands.
+   `node scripts/requirements.mjs` shows where every record stands,
+   those being decided among them.
    `docs/qlang-entrypoint.md` is a draft of the computed context a
    session starts from, ideas and no decision [QSWRK#documents]. The sensors live
    in `scripts/sensors/`: the probes run wherever the checkout is, and
@@ -31,7 +31,7 @@ wins and this file is what changes.
    machine.
 2. `npm run desk`, the screen of the work: the branch against master,
    the walk of the audit's baseline, the targets open, the stashes and
-   the sister project's branch [QSWRK#marks]. Then `npm test` at the repo root,
+   the sister project's branch [QSWRK#baseline]. Then `npm test` at the repo root,
    in the background while reading. The git snapshot the harness
    injects at the start of a session goes stale; the screen you run is
    the truth.
@@ -126,7 +126,9 @@ runtime dependencies, and no `node:*` import anywhere under
 catalog under `core/lib/qlang/` loads at runtime through
 `package.json#imports`. `cli/` is the Node command line and REPL.
 `lsp/` is the language server. `site/` is the Astro site, private.
-`vscode/` is the editor extension, published to the Marketplace. `npm
+`vscode/` is the editor extension, unpublished, which runs the
+language server of the checkout; npm carries the core and the command
+line, and the Eclipse Marketplace the artifacts of the sister project. `npm
 install` at the root links the workspaces; the Node floor is the
 `engines.node` field of each workspace.
 
@@ -184,9 +186,9 @@ the baseline that no record in transit over its section claims, a
 chapter that cites a record, speaks of the journal or tells a history
 [QSWRK#spec],
 and a citation of a record not in force, which the code, the tests and the cases never make and the
-documents make only of one waiting on its target [QSWRK#baseline]. `npm run check:probes` runs every probe of the audit and the
-entrypoint document, the shell ones that read the repository alone
-included, and fails on one whose answer changed, which the branch that
+documents make only of one waiting on its target [QSWRK#baseline]. `npm run check:probes` runs every probe of the audit, the
+entrypoint document, the open records and the specification, the shell
+ones that read the repository alone included, and fails on one whose answer changed, which the branch that
 changed it answers by rewriting the sentence with its probe [QSWRK#probe]; a
 target case records the answer the tree gives today, so the suite
 tells a repair from a broken case [QSWRK#target].
@@ -249,7 +251,7 @@ it; where a rule and the audit disagree, the audit wins.
   nothing that boots the language, no probe, no sensor and no child of
   the benchmark, since a second boot starves the coverage run.
 - A review's report is kept as its writer wrote it, each finding with
-  the fate it met, while a record in force cites it [QSWRK#baseline].
+  the fate it met, while a record in force cites it [QSWRK#review].
 
 ## Release
 

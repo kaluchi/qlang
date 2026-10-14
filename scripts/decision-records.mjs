@@ -10,15 +10,15 @@ import { join } from 'node:path';
 const readText = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
 // The folders of the records: the root holds those in force, and
-// `replaced/` those replaced whole, each moved there once [QSWRK#marks].
+// `replaced/` those replaced whole, each moved there once [QSWRK#journal].
 const recordFolders = root => [join(root, 'docs', 'decisions'), join(root, 'docs', 'decisions', 'replaced')];
 
 // statementsOf(text) → the statements of a record, each `{ text, from, to }`
 // over the indices of its lines: a line that opens a field, `Source.` or
 // `Replaces in part`, opens one, and the lines after it continue it to a
 // blank line or the next field. A statement of fate, which says what
-// replaced or took a part of what, is history the record keeps [QSWRK#journal],
-// [QSWRK#marks].
+// replaced or took a part of what, is history the record keeps [QSWRK#journal].
+
 export const FIELD_NAMES = ['Domain', 'Decided by', 'Decision', 'Question', 'Source', 'Alternatives', 'Set aside', 'Requirements'];
 export const OPEN_RECORD_FIELDS = ['Question', 'Source', 'Alternatives'];
 export const DECIDED_RECORD_FIELDS = ['Decided by', 'Decision'];
@@ -51,7 +51,7 @@ export function recordPathOf(root, name) {
 // onward, those of the environment of the work, each
 // `{ path, domain, replacedBy, replacedInPartBy, mergedInto, met, targets }`;
 // a record merged into the earliest record of its axis is closed whole
-// as one replaced is [QSWRK#marks].
+// as one replaced is [QSWRK#journal].
 export function readDecisionRecords(root) {
   const records = new Map(recordFolders(root)
     .flatMap(folder => (existsSync(folder) ? readdirSync(folder) : [])

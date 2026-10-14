@@ -345,7 +345,7 @@ function anchorDrift() {
 // A page of the catalog is read by a reader of the language, which
 // follows what the page names by a query; a decision of the process is
 // no page of the language, so a reference to one is a link that leads
-// nowhere, and the reason of a sentence lives with its decision [QSWRK#baseline].
+// nowhere, and the reason of a sentence lives with its decision [QSWRK#marks].
 
 const CATALOG_ROOTS = ['core/lib', 'cli/lib'];
 
@@ -398,7 +398,7 @@ function recordsWithoutDecider() {
 //
 // The root of the records holds those in force, and `replaced/` those
 // replaced whole, each moved there once by `scripts/replaced-records.mjs`
-// [QSWRK#marks].
+// [QSWRK#journal].
 
 function misplacedRecords() {
   const replacedWhole = path => /^(Replaced by|Merged into|Dissolved into) /m.test(readFileSync(join(repoRoot, path), 'utf8'));
@@ -452,7 +452,7 @@ function brokenLinks() {
 // the records that carry it out, older ones among them; and a record in
 // force a newer one says it took a part of names that record in its own
 // line of fate, unless the newer one merged into it and gave the part
-// back [QSWRK#journal], [QSWRK#marks].
+// back [QSWRK#journal].
 
 // The records a clause of a fate names, those before what it says of them.
 const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[0].matchAll(/\[([DE]\d+)\]/g)].map(match => match[1]);
@@ -579,7 +579,7 @@ if (proseTallies.length > 0) {
     `\nDerivable tallies in prose (${proseTallies.length}):\n`);
   for (const v of proseTallies) {
     process.stdout.write(`  ${v.file}:${v.line}  [tally: '${v.tally}']  ${v.snippet}\n`);
-    process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose [QSWRK#diff].\n');
+    process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose [QSWRK#tooling].\n');
   }
 }
 if (workspaceRanges.length > 0) {
@@ -595,12 +595,12 @@ if (anchors.length > 0) {
   for (const v of anchors) {
     process.stdout.write(`  ${v.file}  \`${v.anchor}\` ${v.problem}\n`);
   }
-  process.stdout.write('    replace the sentence with the fact of the tree and its new anchor [QSWRK#branch].\n');
+  process.stdout.write('    replace the sentence with the fact of the tree and its new anchor [QSWRK#probe].\n');
 }
 if (catalogDecisions.length > 0) {
   process.stdout.write(`\nDecisions named in the catalog (${catalogDecisions.length}):\n`);
   for (const v of catalogDecisions) process.stdout.write(`  ${v.file}:${v.line}  ${v.reference}\n`);
-  process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [QSWRK#baseline].\n');
+  process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [QSWRK#marks].\n');
 }
 if (undecided.length > 0) {
   process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
@@ -615,7 +615,7 @@ if (unmarked.length > 0) {
 if (misplaced.length > 0) {
   process.stdout.write(`\nRecords in the wrong folder (${misplaced.length}):\n`);
   for (const { path, problem } of misplaced) process.stdout.write(`  ${path}  ${problem}\n`);
-  process.stdout.write('    the root of the records holds those in force, and `replaced/` those replaced whole, moved once [QSWRK#marks].\n');
+  process.stdout.write('    the root of the records holds those in force, and `replaced/` those replaced whole, moved once [QSWRK#journal].\n');
 }
 if (broken.length > 0) {
   process.stdout.write(`\nLinks that lead nowhere (${broken.length}):\n`);
@@ -625,7 +625,7 @@ if (broken.length > 0) {
 if (outOfStep.length > 0) {
   process.stdout.write(`\nFates out of step (${outOfStep.length}):\n`);
   for (const { name, problem } of outOfStep) process.stdout.write(`  ${name}  ${problem}\n`);
-  process.stdout.write('    a line of fate names a record written after it, and a record a newer one took a part of names that record [QSWRK#journal], [QSWRK#marks].\n');
+  process.stdout.write('    a line of fate names a record written after it, and a record a newer one took a part of names that record [QSWRK#journal].\n');
 }
 if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);

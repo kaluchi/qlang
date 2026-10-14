@@ -14,9 +14,9 @@ import { join } from 'node:path';
 import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld } from './decision-records.mjs';
 
 export const RECORDS_A_WALK_TAKES = 20;
-const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/test/unit', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'scripts'];
+const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'scripts'];
 export const CITING_DOCUMENTS = ['docs/qlang-audit.md', 'docs/qlang-entrypoint.md', 'CLAUDE.md', '.claude/agents/qlang-review.md', 'README.md', 'core/README.md', 'cli/README.md', 'lsp/README.md', 'vscode/README.md', 'site/README.md'];
-const CODE_FILE = /\.(mjs|js|ts|astro|peggy)$/;
+const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang)$/;
 const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
 // A citation a document writes in words, `decision Dnn` or `decisions Dnn
 // and Dnn`, and one in brackets, `[Dnn, Dnn]`.

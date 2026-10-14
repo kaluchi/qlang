@@ -14,7 +14,7 @@ import { isErrorValue, isQSet } from '../../src/types.mjs';
 
 // The readers of the catalog's laws: the address of every name the root
 // holds, `::number`, `::vec/count` and `::qlang/values`, each read by
-// `runLaws` [D124].
+// `runLaws` [D123].
 async function catalogReaders() {
   return rootAddressesOf(await langRuntime());
 }

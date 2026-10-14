@@ -49,7 +49,7 @@ describe('runLaws reads a name as laws does', () => {
 });
 
 describe('runLaws Quote-as-test outcomes', () => {
-  it('a law that lifts an error → ok:false with the error at rest [D220]', async () => {
+  it('a law that lifts an error → ok:false with the error at rest [D123]', async () => {
     const moduleSource = ':demo 1\n:demo/broken |~~ A broken law. ~~| ::law~("x" | prepend 42 | eq 42)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
@@ -120,7 +120,7 @@ describe('runLaws Quote-as-test outcomes', () => {
       .toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a law that lifts a user-built error → :error holds it at rest, its :message among its facts [D220]', async () => {
+  it('a law that lifts a user-built error → :error holds it at rest, its :message among its facts [D123]', async () => {
     // A map raised is an error of the kind of errors, and the law's
     // result holds it at rest as `!|` grounds it, every entry of the
     // map a fact.

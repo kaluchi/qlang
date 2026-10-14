@@ -29,8 +29,8 @@ bindStateReader('any/laws', (subject, state) => {
 // a name the root declares in a lane over the root alone, as a word of the
 // root runs in the root's scope [D278], and passes when it answers true
 // [D14]; its result names the law by its address and
-// the claim it proves by its page [D123], [D124], and holds the error it
-// answered at rest, as `!|` grounds it [D13], [D220].
+// the claim it proves by its page [D123], and holds the error it
+// answered at rest, as `!|` grounds it [D13], [D123].
 async function runLaw({ law, quote, says }, callerState) {
   const result = new Map();
   result.set('law', law);
@@ -50,7 +50,7 @@ async function runLaw({ law, quote, says }, callerState) {
 
 // A value reads its record as the axes do, a name its own and any other
 // value its kind's, a keyword after it the member it holds, `::qlang |
-// runLaws :values` [D124]: the laws declared under its address [D123],
+// runLaws :values` [D123]: the laws declared under its address [D123],
 // [D178].
 async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   const address = recordReadBy(subject, anchor, state, UnknownNameError).get('name').name;

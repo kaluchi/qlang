@@ -579,7 +579,7 @@ written once, which is the task that would ask for a hierarchy of tags.
 
 Examples live on two planes, each in its role: the laws of the catalog,
 the claims of its pages, which the language runs on itself, each named
-for the claim it proves and paged with it [D123], [D124]; and the
+for the claim it proves and paged with it [D123]; and the
 conformance suite, the requirements of the language held outside it, so
 a case holds a form the language does not read yet and stands through a
 change that breaks its sources, each case opening with the record that
@@ -1127,8 +1127,8 @@ meets the tag and the facts.
 ### Milestone 5 · Front door
 
 The measure can be taken as the mission states it. Its answers in the
-conformance suite are the targets of [D2], [D7], [D46], [D107], [D108],
-[D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123], [D124],
+conformance suite are the targets of [D2], [D7], [D46], [D107],
+[D108], [D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123],
 [D125], [D129] and [D150]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs, each run recorded with the frictions it met, each
@@ -1140,7 +1140,7 @@ subject it passed a marker [D7].
 
 What remains of it: the catalog's prose is reduced to what the facts
 do not say, every page telling what its name is for and the claims its
-laws prove [D124], [D212], each
+laws prove [D123], [D212], each
 definition a story a reader falls into, the word, its inputs, its
 answer, its refusals, its laws and its recipe in that order [D179],
 [D252]; enrichment happens once per session; a value shared across
@@ -1274,7 +1274,6 @@ those being decided.
 [D121]: decisions/D121.md
 [D122]: decisions/D122.md
 [D123]: decisions/D123.md
-[D124]: decisions/D124.md
 [D125]: decisions/D125.md
 [D128]: decisions/D128.md
 [D129]: decisions/D129.md

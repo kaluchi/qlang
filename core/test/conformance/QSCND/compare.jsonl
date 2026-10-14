@@ -12,3 +12,8 @@
 {"name":"lte-equal","query":"10 | lte 10","expect":"true"}
 {"name":"the-test-for-null-is-eq-null","query":"[null 1] | filter ~(eq null)","expect":"[null]"}
 {"name":"eq-keeps-a-keyword-apart-from-its-string","query":":a | eq \"a\"","expect":"false"}
+{"name":"doc-eq-same-content","query":"(|~~ a ~~|) | eq (|~~ a ~~|)","expect":"true"}
+{"name":"doc-eq-different-content","query":"(|~~ a ~~|) | eq (|~~ b ~~|)","expect":"false"}
+{"name":"doc-eq-doc-vs-string","query":"(|~~ x ~~|) | eq \"x\"","expect":"false"}
+{"name":"doc-eq-doc-vs-quote","query":"(|~~ x ~~|) | eq ~(x)","expect":"false"}
+{"name":"doc-eq-self","query":"|~~ same ~~| | :d it | eq d","expect":"true"}

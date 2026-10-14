@@ -26,3 +26,4 @@
 {"name":"groupBy-without-a-key-files-an-element-under-itself","query":"[\"b\" \"a\" \"b\"] | groupBy | map ~count","expect":"{:b 2 :a 1}"}
 {"name":"indexBy-without-a-key-files-an-element-under-itself","query":"[:x :y] | indexBy","expect":"{:x :x :y :y}"}
 {"name":"groupBy-without-a-key-refuses-an-element-of-no-text","query":"[{:k 1}] | groupBy !| type","expect":"::vec/groupBy/KeyNotKeywordError"}
+{"name":"groupBy-over-a-set-answers-set-buckets","query":"#[{:k :b :v 2} {:k :a :v 1} {:k :b :v 1}] | groupBy /k | get /b","expect":"#[{:k :b :v 1} {:k :b :v 2}]"}

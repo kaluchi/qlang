@@ -24,3 +24,4 @@
 {"name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError"}
 {"name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
 {"name":"an-undeclared-tag-alone-is-a-tag","query":"::AutoBareOnly | type","expect":"::tag"}
+{"name":"a-tag-lays-itself-over-a-pattern","query":"#\"a\" | tag ::Rule | get [~(type) ~(payload | eq #\"a\")]","expect":"[::Rule true]"}

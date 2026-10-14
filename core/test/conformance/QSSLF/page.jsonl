@@ -1,18 +1,13 @@
 {"name":"names-are-a-concept-of-their-own","query":"::qlang | doc :names | type","expect":"::doc"}
-{"name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true"}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
 {"name":"the-topic-of-the-language-tells-its-chapters","query":"::qlang/values | binding | get /value | has ::vec","expect":"true"}
 {"name":"a-concept-is-a-member-of-the-root-noun","query":"::qlang | doc :pipeline | type","expect":"::doc"}
 {"name":"the-first-screen-opens-every-page-it-names-in-one-query","query":"::qlang | doc | links | map ~open | every ~(false !| true | not)","expect":"true"}
 {"name":"the-first-screen-names-the-concepts","query":"::qlang | doc | links | map ~open | filter ~(type | eq ::doc) | count | gt 5","expect":"true"}
 {"name":"a-member-of-a-noun-is-no-name-a-query-calls","query":"5 | pipeline !| type","expect":"::call/UnknownNameError"}
-{"name":"a-set-of-anchors-reads-several-pages","query":"::qlang | doc #[:pipeline :errors] | count","expect":"2"}
 {"name":"every-link-of-the-first-screen-opens-a-page","query":"::qlang | doc | links | map ~open | every ~(type | eq ::doc)","expect":"true"}
-{"name":"the-empty-path-reads-the-page-of-the-subject","query":"::qlang | doc [] | eq (::qlang | doc)","expect":"true"}
-{"name":"an-anchor-of-a-set-that-is-no-keyword-is-refused","query":"::qlang | doc #[1] !| type","expect":"::any/doc/anchor/ElementNotKeywordError"}
 {"name":"the-first-page-asks-several-kinds-for-their-words-at-once","query":"::qlang | doc | snippets | map ~(print) | first | contains \"map ~(get [~(it) ~(manifest)])\"","expect":"true"}
 {"name":"the-language-is-a-noun-with-a-page","query":"::qlang | doc | type","expect":"::doc"}
 {"name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true"}
 {"name":"a-concept-page-has-an-address","query":"::qlang/pipeline | doc | type","expect":"::doc"}
-{"name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true"}
-{"name":"the-chapters-are-members-of-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
+{"name":"every-verb-of-the-core-has-a-doc","query":"kinds | map ~(manifest) | flat | every ~(doc | content | eq \"\" | not)","expect":"true"}

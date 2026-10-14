@@ -43,12 +43,9 @@
 {"name":"avg-of-nothing-is-null","query":"[] | avg","expect":"null"}
 {"name":"avg-of-a-group","query":"[{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy /d | map ~(map /n | avg)","expect":"{:a 2 :b 5}"}
 {"name":"avg-refuses-an-element-that-is-no-number","query":"[1 \"x\"] | avg !| get [~(type) /index]","expect":"[::vec/avg/ElementNotNumberError 1]"}
-{"name":"any-set-one-matches","query":"#[1 2 3] | any ~(gt 2)","expect":"true"}
-{"name":"any-set-none-match","query":"#[1 2 3] | any ~(gt 99)","expect":"false"}
-{"name":"any-set-declared-verb","query":"#[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
-{"name":"any-set-verb-predicate","query":"#[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
-{"name":"every-set-all-match","query":"#[2 4 6] | every ~(gt 0)","expect":"true"}
-{"name":"every-set-one-fails","query":"#[2 4 -1] | every ~(gt 0)","expect":"false"}
-{"name":"every-set-declared-verb","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
-{"name":"every-set-verb-predicate","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
 {"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false"}
+{"name":"flat-of-sets-is-their-union","query":"#[#[3 1] #[2 1]] | flat","expect":"#[1 2 3]"}
+{"name":"first-of-an-empty-set-is-null","query":"#[] | first","expect":"null"}
+{"name":"first-set","query":"#[10 20 30] | first","expect":"10"}
+{"name":"has-finds-a-composite-member","query":"#[{:a 2} [1] \"x\" 3] | has [1]","expect":"true"}
+{"name":"has-misses-a-value-between-two-members","query":"#[1 3 5] | has 4","expect":"false"}

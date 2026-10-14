@@ -22,9 +22,8 @@
 {"name":"not-found-carries-the-binding-name","query":"::nosuchbinding | source !| get /name","expect":"::nosuchbinding"}
 {"name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true"}
 {"name":"an-undeclared-tag-answers-one-page-whatever-asked-first","query":"get [~(::Late | doc !| type) ~(::Late{:a 1} | doc !| type)] | distinct | count","expect":"1"}
-{"name":"the-kind-of-tagged-values-is-no-step","query":"::tagged | doc | content | contains \"A value under a tag\"","expect":"true"}
+{"name":"the-page-of-tagged-values-tells-a-value-under-a-tag","query":"::tagged | doc | content | contains \"A value under a tag\"","expect":"true"}
 {"name":"a-word-reads-the-pages-of-its-inputs","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | ::number/plus/by | doc | content | trim","expect":"\"How much.\""}
-{"name":"the-recipe-of-a-word-of-the-host-is-its-descriptor","query":"::vec/sort | binding | get /value | get /1 | type","expect":"::builtin"}
 {"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\" A box. \""}
 {"name":"a-refusal-of-a-word-leads-to-where-it-lives","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::set/reduce ::vec/reduce]"}
 {"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":"::type | doc !| get /addresses","expect":"#[::any/type]"}
@@ -38,3 +37,6 @@
 {"name":"the-source-of-an-address-holds-every-declaration-under-it","query":":Box |~~ A parcel. ~~| | :Box/put |~~ Puts a weight in. ~~| (::fn | takes :w |~~ The weight. ~~| /0 | impl ~(append w)) | ::Box | source | map /name","expect":"[:Box :Box/put]"}
 {"name":"a-tagged-vector-reads-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box#[3 1] | doc | content","expect":"\" A box. \""}
 {"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | doc | content | eq (::map | doc | content)","expect":"true"}
+{"name":"a-set-of-anchors-reads-several-pages","query":"::qlang | doc #[:pipeline :errors] | count","expect":"2"}
+{"name":"the-empty-path-reads-the-page-of-the-subject","query":"::qlang | doc [] | eq (::qlang | doc)","expect":"true"}
+{"name":"an-anchor-of-a-set-that-is-no-keyword-is-refused","query":"::qlang | doc #[1] !| type","expect":"::any/doc/anchor/ElementNotKeywordError"}

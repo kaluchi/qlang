@@ -11,8 +11,9 @@ subject and one number as their object; `mod` answers the remainder with
 the sign of the divisor; `floor`, `ceil` and `abs` take a number to a
 whole one or its size, and `round` to the digits its call gives, none by
 default, half away from zero. Every answer is a finite double: one past
-the doubles is refused as `::number/NotFiniteError`, and a division or a
-remainder by zero under the divisor, `::number/div/divisor/ZeroError`.
+the doubles is refused as `::number/NotFiniteError`, a division by zero
+under the divisor of `div`, `::number/div/divisor/ZeroError`, and a
+remainder by zero under that of `mod`, `::number/mod/divisor/ZeroError`.
 `range` answers the whole numbers from zero below its subject, `[]` from
 zero and below, a fraction refused as no count.
 

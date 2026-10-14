@@ -1,7 +1,7 @@
-{"name":"path-still-multi-segment","query":"{:a {:b 99}} | get /a/b","expect":"99"}
+{"name":"a-path-reads-two-segments","query":"{:a {:b 99}} | get /a/b","expect":"99"}
 {"name":"keyword-path-ns-missing","query":"{:qlang/error 42} | get /:qlang/http","expect":"::path/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :path /:qlang/http\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /:qlang/http)\n      :subject {:qlang/error 42}\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"bare-path-unchanged","query":"{:a {:b {:c 42}}} | get /a/b/c","expect":"42"}
-{"name":"json-null-missing-key","query":"{:a 1} | get /b","expect":"::path/KeyNotInMapError!{\n  :key :b\n  :nearest [:a]\n  :path /b\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /b)\n      :subject {:a 1}\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"a-path-of-bare-keys-reads-three","query":"{:a {:b {:c 42}}} | get /a/b/c","expect":"42"}
+{"name":"a-key-json-lacks-is-refused","query":"{:a 1} | get /b","expect":"::path/KeyNotInMapError!{\n  :key :b\n  :nearest [:a]\n  :path /b\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /b)\n      :subject {:a 1}\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"get-reads-a-nested-path","query":"{:a {:b [10 20]}} | get /a/b/-1","expect":"20"}
 {"name":"get-refuses-a-missed-key-with-the-keys-near-it","query":"{:emails [] :age 3} | get /email !| get /nearest","expect":"[:emails]"}
 {"name":"get-refuses-a-place-past-the-end","query":"[1 2] | get /5 !| type","expect":"::path/IndexOutOfBoundsError"}
@@ -16,7 +16,7 @@
 {"name":"vec-bare-index-negative","query":"[10 20 30] | get /-1","expect":"30"}
 {"name":"vec-bare-index-oob","query":"[10 20 30] | get /99","expect":"::path/IndexOutOfBoundsError!{\n  :index 99\n  :length 3\n  :path /99\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(get /99)\n      :subject [10 20 30]\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"vec-bare-index-negative-oob","query":"[10 20 30] | get /-99","expect":"::path/IndexOutOfBoundsError!{\n  :index -99\n  :length 3\n  :path /-99\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(get /-99)\n      :subject [10 20 30]\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"vec-non-integer-segment-null","query":"[10 20 30] | get /name","expect":"::path/IndexNotIntegerError!{\n  :key :name\n  :path /name\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(get /name)\n      :subject [10 20 30]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"a-name-segment-on-a-vector-is-refused","query":"[10 20 30] | get /name","expect":"::path/IndexNotIntegerError!{\n  :key :name\n  :path /name\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(get /name)\n      :subject [10 20 30]\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"polymorphic-deep-path","query":"{\"items\": [{\"id\": 1} {\"id\": 2}]} | get /items/0/id","expect":"1"}
 {"name":"polymorphic-negative-through-vec","query":"{\"users\": [{\"email\": \"a@x\"} {\"email\": \"b@x\"}]} | get /users/-1/email","expect":"\"b@x\""}
 {"name":"polymorphic-vec-then-map","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | get /1/name","expect":"\"bob\""}
@@ -28,3 +28,7 @@
 {"name":"get-reads-beneath-the-tags","query":"::Box{:w 3} | get /w","expect":"3"}
 {"name":"a-path-reads-beneath-the-tags-stacked-over-a-map","query":"::Box::Crate{:a 1} | get /a","expect":"1"}
 {"name":"a-doc-is-read-by-places-as-a-vector-is","query":"|~~ x ~~| | get /unknownKey","expect":"::path/IndexNotIntegerError!{\n  :key :unknownKey\n  :path /unknownKey\n  :actualType ::doc\n  :trail [\n    {\n      :step ~(get /unknownKey)\n      :subject |~~ x ~~|\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"path-on-set-named-key","query":"#[:a] | get /foo","expect":"::path/IndexNotIntegerError!{\n  :key :foo\n  :path /foo\n  :actualType ::set\n  :trail [\n    {\n      :step ~(get /foo)\n      :subject #[:a]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"path-on-set-integer-index","query":"#[:z :x :y] | get /0","expect":":x"}
+{"name":"path-on-set-negative-index","query":"#[:z :x :y] | get /-1","expect":":z"}
+{"name":"path-on-set-index-out-of-bounds","query":"#[:a :b] | get /99 !| type","expect":"::path/IndexOutOfBoundsError"}

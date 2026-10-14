@@ -32,7 +32,8 @@ run once every condition before it held for `allOf` and once none did
 for `anyOf`, the first that decides answering with the quotes after it
 unrun; a quote that answers another kind is refused at its index,
 `::any/allOf/ConditionNotBooleanError`, and a condition of another kind
-than a boolean, a path or a quote as `ElementNotBooleanOrPathOrQuoteError`.
+than a boolean, a path or a quote, an error computed at the call among
+it, as `ElementNotBooleanOrPathOrQuoteError` at the first such index.
 
 ```qlang
 > 5 | if 1 ~(1) ~(2) !| type
@@ -51,11 +52,11 @@ false
 ## branch
 
 `if` takes its condition as a value, computed at the call, and its two
-branches as quotes, running one of them on the subject; an identity
-branch, `~()`, leaves the subject. `cond` takes its clauses as quotes,
-pairs of a predicate and a branch run in order, an odd last clause the
-default, null where none matches and no default stands; a call with no
-pair is refused.
+branches as quotes or paths, running one of them on the subject; an
+identity branch, `~()`, leaves the subject. `cond` takes its clauses as
+quotes or paths, pairs of a predicate and a branch run in order, an odd
+last clause the default, null where none matches and no default stands;
+a call with no pair is refused.
 
 ```qlang
 > 75 | if (gte 60) ~("pass") ~("fail")
@@ -105,16 +106,16 @@ is never run.
 
 A value turns into another kind by a word of its own kind named `to`
 and the kind it answers, a kind answering its own word as itself.
-`toString` writes a number as JSON writes it and a keyword and a tag
-name by their names; `toNumber` reads a string whose whole text is a
-number's literal, and a keyword whose name is one; `toKeyword` files a
-value as `groupBy` files a key; `toTag` reads a string or a keyword that
-names a tag; `toVec` and `toSet` answer the one order without
-duplicates; `toMap` reads pairs, the last pair of a key holding, an
-element that is no pair and a key no keyword names refused at its index.
-A value turned into a wider kind and back is itself. A container's
-texts are `print` and `json`, and a map's parts are read by `entries`,
-`keys` and `vals`.
+`toString` writes a number as JSON writes it, a keyword and a tag name by
+their names and a boolean by its literal; `toNumber` reads a string whose
+whole text is a number's literal, and a keyword whose name is one;
+`toKeyword` files a value as `groupBy` files a key; `toTag` reads a
+string or a keyword that names a tag; `toVec` and `toSet` answer the one
+order without duplicates; `toMap` reads pairs, the last pair of a key
+holding, an element that is no pair and a key no keyword names refused at
+its index. A value turned into a wider kind and back is itself. A
+container's texts are `print` and `json`, and a map's parts are read by
+`entries`, `keys` and `vals`.
 
 ```qlang
 > "42" | toNumber

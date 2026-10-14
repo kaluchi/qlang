@@ -8,3 +8,6 @@
 {"name":"an-input-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| type","expect":"::vec/filter/predicate/NotPathOrQuoteError"}
 {"name":"filter-keeps-the-entries-whose-value-passes","query":"{:a 1 :b 2} | filter ~(gt 1)","expect":"{:b 2}"}
 {"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| get [~(type) /index /actualType]","expect":"[::vec/filter/ConditionNotBooleanError 0 ::number]"}
+{"name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
+{"name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
+{"name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}

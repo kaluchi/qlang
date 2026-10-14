@@ -25,9 +25,6 @@
 {"name":"type-set","query":"#[1 2] | type","expect":"::set"}
 {"name":"type-set-empty","query":"#[] | type","expect":"::set"}
 {"name":"type-of-the-payload-reads-past-its-tag","query":"::AutoBox[1 2 3] | payload | type","expect":"::vec"}
-{"name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
-{"name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
-{"name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}
 {"name":"tags-stack-over-a-payload-and-read-from-the-outside-in","query":"::A::B{} | get [~(type) ~(payload | type)]","expect":"[::A ::B]"}
 {"name":"a-tag-stacks-over-an-atom-as-over-a-container","query":"::A#1 | get [~(type) ~(payload)]","expect":"[::A 1]"}
 {"name":"type-answers-a-tag","query":"5 | type | type","expect":"::tag"}

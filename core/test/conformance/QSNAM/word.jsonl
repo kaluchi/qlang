@@ -30,6 +30,5 @@
 {"name":"a-modifier-of-an-atom-meets-the-budget-a-frame-below-its-call","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count 1)))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError"}
 {"name":"a-quote-written-as-a-modifier-runs-no-frame","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count ~(x))))) | 498 | down !| type","expect":"::vec/count/ArgsBeyondInputsError"}
 {"name":"each-run-of-the-code-a-verb-runs-runs-a-frame-below","query":":number/down ~(if (gt 0) ~(get [~(it)] | map ~(sub 1 | down) | first) ~(0)) | 333 | down !| type","expect":"::call/EvaluationDepthExceededError"}
-{"name":"a-verb-moved-left-answers-as-inline","query":":vec/most ~(count | sub 1) | {:items [1 2 3] :limit 2} | get /items | take most","expect":"[1 2]"}
 {"name":"a-verb-handed-on-in-a-quote-runs-where-the-quote-is-applied","query":":number/big ~(gt 2) | [1 2 3] | filter ~big","expect":"[3]"}
 {"name":"a-verb-without-modifiers-runs-at-each-mention","query":":number/inc ~(add 1) | 5 | inc | inc","expect":"7"}

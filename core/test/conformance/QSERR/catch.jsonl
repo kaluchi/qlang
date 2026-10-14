@@ -13,3 +13,5 @@
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map ~(mul 2) | !| 0","expect":"0"}
 {"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| get /kind","expect":":inner"}
 {"name":"a-path-reads-before-a-combinator","query":"{:a 1} | get /a !| 0","expect":"1"}
+{"name":"a-catch-whose-label-refuses-passes-a-stop-at-its-step","query":"~(::number!{:a 1}) | first | raise !| it | count !| trail | map ~(get [/step /skipped])","expect":"[[~(it) ~(count)]]"}
+{"name":"a-catch-whose-label-invariant-refuses-passes-a-stop-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it | count !| trail | map ~(get [/step /skipped])","expect":"[[~(it) ~(count)]]"}

@@ -61,16 +61,17 @@ false
 
 ## sort
 
-`sort` orders a vector, a set or a map's values by the one order, equal
-values keeping the order they stood in, a map keeping its keys; `min`
-and `max` answer the first and the last value in it, null for an empty
-container. Each takes a key, a quote or a path, and ranks by what the
-key answers, a vector key ranking place by place, the first place first
-and each later one among the elements the places before it leave alike;
-`min` and `max` with a key answer the element, the first of equal ones.
-A key that fails answers the call, and an error at rest a key answers
-ranks as the one order ranks it, as an error among the elements does
-where no key is given.
+`sort` orders a vector, a set or a map by the one order of its values,
+equal values keeping the order they stood in, a map's entries ordered by
+their values, each value keeping its key; `min` and `max` answer the
+first and the last value in it, null for an empty container. Each takes
+a key, a quote or a path, and ranks by what the key answers, a vector
+key ranking place by place, the first place first and each later one
+among the elements the places before it leave alike; `min` and `max`
+with a key answer the element, the first of equal ones. A key that fails
+answers the call, and an error at rest a key answers ranks as the one
+order ranks it, as an error among the elements does where no key is
+given.
 
 ```qlang
 > [{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b]) | map /b

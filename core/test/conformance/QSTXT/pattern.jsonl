@@ -8,7 +8,6 @@
 {"name":"a-backslash-before-a-plain-character-is-refused-with-the-reason","query":"\"#\\\"a\\\\-b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}
 {"name":"a-pattern-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| type","expect":"::call/KindAnswersNoVerbError"}
 {"name":"json-writes-a-pattern-as-its-literal","query":"{:p #\"\\d+\"i} | json | parseJson | get /p","expect":"\"#\\\"\\\\d+\\\"i\""}
-{"name":"a-tag-lays-itself-over-a-pattern","query":"#\"a\" | tag ::Rule | get [~(type) ~(payload | eq #\"a\")]","expect":"[::Rule true]"}
 {"name":"a-group-of-flags-is-refused-where-an-engine-reads-it","query":"\"#\\\"(?i:a)b\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
 {"name":"a-group-name-written-twice-is-refused","query":"\"#\\\"(?<y>a)|(?<y>b)\\\"\" | parse !| get /message | contains \"is written twice\"","expect":"true"}
 {"name":"a-needless-backslash-is-told-by-the-source","query":"\"#\\\"a\\\\:b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}
@@ -18,4 +17,5 @@
 {"name":"a-group-of-flags-in-a-class-is-text","query":"\"(?i:a)\" | contains #\"[(?i:a)]\"","expect":"true"}
 {"name":"a-lookbehind-names-no-group","query":"\"ab\" | contains #\"(?<=a)b|(?<=a)c\"","expect":"true"}
 {"name":"a-lookbehind-before-a-sign-names-no-group","query":"\"a>\" | contains #\"(?<=a)>|(?<=a)>\"","expect":"true"}
-{"name":"a-quote-holds-a-pattern-as-a-step","query":"\"match #\\\"\\\\d\\\"\" | parse | get [~(first | get /modifiers | first | type) ~(print)]","expect":"[::regex \"~(match #\\\"\\\\d\\\")\"]"}
+{"name":"a-quote-in-a-pattern-does-not-end-it","query":"\"say \\\"hi\\\"\" | contains #\"\\\"hi\\\"\"","expect":"true"}
+{"name":"a-pattern-reads-letters-of-any-script","query":"\"Ünïcödé 42 данные\" | scan #\"\\p{L}+\"","expect":"[\"Ünïcödé\" \"данные\"]"}

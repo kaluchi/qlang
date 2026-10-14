@@ -38,12 +38,13 @@ track under `::fail`; a group as its quote under `::group`; an error
 literal as the error at rest it writes; any other literal as itself.
 `::fail` and a declaration stand in a pipeline alone, so inside a
 container, a field or a payload a step is an element step. The
-constructor of each record checks the fields the printer reads, prints
-the step and reads the text back, so an assembly that reads back as
-another step is refused where it is made, `::call/ReadBackDiffersError`.
-`tag ::quote` builds a quote from a vector of steps, and a quote built
-over a path alone prints under its tag, `::quote[/age]`, and reads back
-as it.
+constructor of each record checks the fields the printer reads against
+its schema, `::call/PayloadNotSchemaError`, prints the step and reads the
+text back, so an assembly that reads back as another step is refused
+where it is made, `::call/ReadBackDiffersError`. `tag ::quote` builds a
+quote from a vector of steps, an element that is no step refused as
+`::quote/ElementNotStepError`, and a quote built over a path alone
+prints under its tag, `::quote[/age]`, and reads back as it.
 
 ```qlang
 > ~(filter ~(gt 1)) | payload
@@ -87,7 +88,8 @@ same quote.
 `apply` runs code against its subject: a quote, a path, which reads, or
 a function. Code a quote declares stays inside its run. A value of
 another kind is refused as `::any/apply/code/NotFnOrPathOrQuoteError`.
-`open` runs a quote beneath whatever tags stand over it.
+`open`, a word of `::quote`, runs a quote from null, beneath whatever
+tags stand over it.
 
 ```qlang
 > 5 | apply ~(add 1 | mul 2)
@@ -112,13 +114,15 @@ the elements a word runs over, the parts of a template, the modifiers
 of a command, the keys of `sort` and the laws `runLaws` runs.
 
 A word that runs a part per element, in its own order, or only when the
-part is chosen takes a quote there: `filter ~(gt 1)`, `reduce 0 ~(add)`,
-the branches of `if` and the clauses of `cond`, while the condition of
-`if`, which always runs, is a value. An input that takes code takes a
-quote, a path or a function, and refuses what the call computed in its
-place, a failure among it, under its own address with the error at
-rest; an input of a value hands the failure of its modifier on as the
-answer of the call.
+part is chosen takes a quote or a path there: `filter ~(gt 1)`,
+`reduce 0 ~(add)`, the branches of `if` and the clauses of `cond`, while
+the condition of `if`, which always runs, is a value. An input that
+takes code takes a quote, a path or a function, a group that computes a
+quote among them, and refuses a value computed at the call that none of
+its kinds takes, a failure among it, under its own address, the value
+its `:actualValue` and its tag its `:actualType`; the page of that
+refusal names the tilde. An input of a value hands the failure of its
+modifier on as the answer of the call.
 
 ```qlang
 > [1 2 3] | take count
@@ -134,7 +138,8 @@ Code a verb runs is code of a step or code held as data. A quote written
 in a step, an object of a call or a part of a template, a quote or a
 template under a tag among them, is code of that step: the call runs it
 in the scope of the step that wrote it, by whatever road it takes inside
-the call, and a word's own inputs shadow nothing in it.
+the call. A quote stays the value its print shows, and the meaning of
+held code is its text and the vocabulary.
 
 Any other code runs in a lane of its own: a quote held in a name, a
 field or a page, a law and a snippet among them, a quote a call
@@ -145,14 +150,12 @@ nodes and the labels of that step's scope, and the names the code
 declares itself, which `doc` and `binding` read there. A value that
 scope names is withheld: read by a step, by a tag or as the noun of a
 declaration, it is refused under its name as `::call/ValueWithheldError`,
-while a tag reads a label of the root before any name of the reader. A
-step around the call shadows nothing held code reads, and a name
-declared after it is read by none. The scope of a word's body is its
-own, so code a word holds reads no value of its reader and is refused
-under a value its body names; a law of a name the root declares runs in
-a lane over the root alone. A value held code needs is an input of a
-function, `apply f [4]`, or written into its code by `fill`, and code
-that calls itself is a word.
+while a tag reads a label of the root before any name of the reader. The
+scope of a word's body is its own, so code a word holds is refused under
+a value its body names; a law the root declares runs in a lane over the
+root alone. A value held code needs is an input of a function,
+`apply f [4]`, or written into its code by `fill`, and code that calls
+itself is a word.
 
 ```qlang
 > :k 10 | [1 2] | map ~(add k)

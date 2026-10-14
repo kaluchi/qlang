@@ -11,8 +11,6 @@
 {"name":"if-reads-the-empty-string-by-a-comparison","query":"\"\" | if (eq \"\") ~(\"empty\") ~(\"non\")","expect":"\"empty\""}
 {"name":"if-reads-the-empty-vector-by-empty","query":"[] | if (empty | not) ~(\"non-empty\") ~(\"empty\")","expect":"\"empty\""}
 {"name":"if-reads-the-empty-map-by-a-comparison","query":"{} | if (eq {}) ~(\"empty-map\") ~(\"other\")","expect":"\"empty-map\""}
-{"name":"cond-using-and","query":"{:active true :verified true} | if (allOf (get /active) (get /verified)) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
-{"name":"cond-using-or","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
 {"name":"if-takes-a-condition-turned-by-not","query":"true | if not ~(\"truthy\") ~(\"falsy\")","expect":"\"falsy\""}
 {"name":"then-uses-pipevalue-via-path","query":"{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"110"}
 {"name":"then-arithmetic","query":"10 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"20"}

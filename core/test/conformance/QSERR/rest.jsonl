@@ -1,7 +1,6 @@
 {"name":"a-kind-in-an-error-literal-is-a-fact","query":"!{:kind ::Foo} | raise !| get [~(type) /kind]","expect":"[::error ::Foo]"}
 {"name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{:kind :oops :message \"boom\"}"}
 {"name":"error-lit-empty","query":"!{}","expect":"!{}"}
-{"name":"a-tagged-error-literal-that-writes-its-path-resumes-it-when-raised","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| get /trail | map ~(get [~(get /step | parse) ~(get /skipped | parse)])","expect":"[[\"pre\" \"\"]]"}
 {"name":"an-error-literal-under-the-tag-of-a-kind-answers-the-refusal-of-the-kind","query":"::number!{:a 1} !| type","expect":"::number/PayloadNotNumberError"}
 {"name":"the-error-literal-under-the-tag-of-a-kind-opens-to-a-value-that-prints","query":"::number!{:a 1} !| it | print | startsWith \"::number/PayloadNotNumberError!{\"","expect":"true"}
 {"name":"the-refusal-of-the-kind-holds-the-facts-it-refused","query":"::number!{:a 1} !| get /actualValue","expect":"!{:a 1}"}

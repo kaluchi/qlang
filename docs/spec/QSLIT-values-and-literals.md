@@ -13,10 +13,11 @@ with no tag of its own, the kind of the core its literal implies. `[…]`
 implies the vector, `{…}` the map, `#[…]` the set, `#"…"` the pattern,
 `~(…)` the quote, `|~~ … ~~|` the doc, `!{…}` the error, `/a` the path,
 and a number, a string, a keyword, a tag name, a boolean and null each
-have their own. `type` answers the kind of any value, and the kind's
-page is one step away. A tag is the name of an interpretation: tags
-stack over any payload and read from the outside in, `payload` reading
-what stands beneath the outermost; behaviour lives in the catalog and is
+have their own; a host's value carries its tags above one of them.
+`type` answers the kind of any value, never `::any`, and the kind's page
+is one step away. A tag is the name of an interpretation: tags stack
+over any payload and read from the outside in, `payload` reading what
+stands beneath the outermost; behaviour lives in the catalog and is
 found through the tag.
 
 ```qlang
@@ -35,9 +36,10 @@ found through the tag.
 
 ## number
 
-A number is a finite double, written as JSON writes one: an integer, a
-decimal, a sign, an exponent, `1e10`, `2.5e-3`, `1.5E+6`. A literal
-past the doubles, `1e400`, is refused by the parser.
+A number is a finite double, written as an integer, a decimal, a minus
+sign and an exponent, `1e10`, `2.5e-3`, `1.5E+6`; a leading zero reads
+as the number it writes, `01` as `1`. A literal past the doubles,
+`1e400`, is refused by the parser.
 
 ```qlang
 > -2.5e3
@@ -63,9 +65,9 @@ digits.
 
 ## keyword
 
-A keyword is a value and names nothing: `:name`. A name of any other
-letters is written in quotes, `:"foo bar"`, `:""`, `:"123"`, and quotes
-around a bare name change nothing. Names joined by `/` make one keyword,
+A keyword is data, a key: `:name`. A name of any other letters is
+written in quotes, `:"foo bar"`, `:""`, `:"123"`, and a bare name in
+quotes is that name. Names joined by `/` make one keyword,
 `:qlang/core/strings`, and the words of the literals are keywords after
 the colon, `:null`.
 
@@ -99,10 +101,11 @@ entries of one key, the last value stands in the first entry's place.
 ## json
 
 JSON is syntax: an object, an array, `true`, `false` and `null` read as
-the values they write, commas between elements read as whitespace, and
-an object's keys read as keywords, quoted where the key is no bare name.
-A map is a map whatever its keys say, a key named `type` among them, and
-a duplicate key reads as `JSON.parse` reads it.
+the values they write, one comma between two elements reading as
+whitespace, and an object's keys read as keywords, quoted where the key
+is no bare name. A map is a map whatever its keys say, a key named
+`type` among them, and a duplicate key reads as `JSON.parse` reads it,
+at the boundary as in a query [QSPRN#json].
 
 ```qlang
 > {"name": "alice", "age": 30}
@@ -159,12 +162,12 @@ it takes apart, through the tag's constructor.
 
 ## closed
 
-A literal is closed from its opening to its closing pair: nothing
-inside reads the scope or the value in the pipe. A group or a name
-written inside a container is refused by the parser, which names `get`
-[QSPTH#template]; parentheses after a tag hold code and are refused,
-naming `tag` for a value computed. In the code of a doc, a literal that
-computes reads as prose.
+A literal is closed from its opening to its closing pair: its parts are
+literals, fixed by its text alone. A group or a name written inside a
+container is refused by the parser, which names `get` [QSPTH#template];
+parentheses after a tag hold code and are refused, naming `tag` for a
+value computed. In the code of a doc, a literal that computes reads as
+prose.
 
 ```qlang
 > "[(5 | add 1) 2]" | parse !| get /message

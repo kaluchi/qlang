@@ -2,3 +2,4 @@
 {"name":"desc-descends-strings","query":"[\"b\" \"c\" \"a\"] | sort ~(desc)","expect":"[\"c\" \"b\" \"a\"]"}
 {"name":"every-comparison-agrees-on-desc","query":"get [~(1 | desc | gt (2 | desc)) ~([1 2] | map ~desc | max | payload)]","expect":"[true 1]"}
 {"name":"desc-lays-its-kind","query":"5 | desc | get [~(type) ~(payload)]","expect":"[::desc 5]"}
+{"name":"a-map-sorts-by-a-descending-key-and-keeps-its-keys","query":"{:a 1 :b 3 :c 2} | sort ~(desc) | vals","expect":"[3 2 1]"}

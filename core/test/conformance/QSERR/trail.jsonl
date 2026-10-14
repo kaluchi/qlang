@@ -26,10 +26,8 @@
 {"name":"a-raised-error-holds-its-path","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trail]"}
 {"name":"an-error-literal-that-writes-an-empty-trail-holds-none","query":"::Oops!{:a 1 :trail []} | raise !| keys","expect":"#[:a]"}
 {"name":"a-map-raised-that-writes-an-empty-trail-holds-none","query":"{:a 1 :trail []} | raise !| keys","expect":"#[:a]"}
-{"name":"a-catch-whose-label-refuses-passes-a-stop-at-its-step","query":"~(::number!{:a 1}) | first | raise !| it | count !| trail | map ~(get [/step /skipped])","expect":"[[~(it) ~(count)]]"}
 {"name":"a-failure-a-word-resumes-flies-on-through-its-literal","query":"get [~(!{:a 1 :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise)] !| trail | map /step","expect":"[~(pre) ~(get [~(!{:a 1 :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise)])]"}
 {"name":"a-failure-a-word-raises-on-an-empty-written-path-flies-on-from-its-literal","query":"get [~(!{:a 1 :trail []} | raise)] !| trail | map /step","expect":"[~(get [~(!{:a 1 :trail []} | raise)])]"}
-{"name":"a-catch-whose-label-invariant-refuses-passes-a-stop-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it | count !| trail | map ~(get [/step /skipped])","expect":"[[~(it) ~(count)]]"}
 {"name":"a-tagged-literal-whose-payload-raises-itself-passes-a-stop-at-its-word","query":"[::Foo::number\"x\"] !| trail | map /step","expect":"[~(::Foo::number\"x\") ~([::Foo::number\"x\"])]"}
 {"name":"a-failure-that-flew-no-step-leaves-the-steps-it-skips-as-they-are","query":"{:a 1 :trail []} | raise | count !| trail","expect":"[]"}
 {"name":"every-error-answers-its-trail","query":"\"x\" | add 1 !| trail | count","expect":"1"}
@@ -41,5 +39,5 @@
 {"name":"a-stop-of-a-word-follows-the-stop-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| get /trail | map /step","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]"}
 {"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"::Foo!{:trail 5} | raise !| type","expect":"::error/TrailNotVecError"}
 {"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| get /trail/0/step | first | get /name","expect":":thisIsNotDefined"}
-{"name":"classify-strict-path-flushes-the-pending-trail","query":"{} | get /missing | type | eq ::null","expect":"::path/KeyNotInMapError!{\n  :key :missing\n  :nearest []\n  :path /missing\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /missing)\n      :subject {}\n      :skipped ~(type | eq ::null)\n    }\n  ]\n} | raise"}
 {"name":"a-doc-is-no-trail","query":"get [~(!{:trail |~~~~|} | raise !| type) ~(!{:trail []} | raise !| type)]","expect":"[::error/TrailNotVecError ::error]"}
+{"name":"a-tagged-error-literal-that-writes-its-path-resumes-it-when-raised","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| get /trail | map ~(get [~(get /step | parse) ~(get /skipped | parse)])","expect":"[[\"pre\" \"\"]]"}

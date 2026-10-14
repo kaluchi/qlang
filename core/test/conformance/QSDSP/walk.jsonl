@@ -1,4 +1,5 @@
 {"name":"payload-resides-on-the-tagged","query":"5 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
-{"name":"a-number-is-no-tagged-value","query":"1 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
+{"name":"payload-refuses-a-vector-under-no-tag","query":"[1] | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
 {"name":"is-asks-whether-the-walk-reaches-a-kind","query":"::Width#2 | is ::number","expect":"true"}
 {"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box#5 | gt 3","expect":"true"}
+{"name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| get [~(type) /index /actualType]","expect":"[::any/is/kinds/ElementNotTagError 0 ::keyword]"}

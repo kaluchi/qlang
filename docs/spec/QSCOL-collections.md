@@ -8,16 +8,17 @@ maps. The requirements of each section are the cases of its file under
 ## sequence
 
 A vector and a set answer `count`, `empty`, `first` and `last`, `take`
-and `drop` a count of elements, clamped to what there is, `reverse` and
-`flat`, `sum`, and `min` and `max` in the one order [QSORD#sort], null
-over an empty container where it reads one. `avg` answers the mean,
-null over nothing, kept as a running mean, an element that is no number
-refused at its index. `has` asks whether an element equal to one
-stands. `append` and `prepend` put one element at an end, a vector given
-among them, and a set takes it into its order. `zip` reads vectors side
-by side, as long as the shortest, an element that is no vector refused
-at its index. The answer of a word keeps or leaves the tags of its
-subject as its kind says [QSDSP#answer].
+and `drop` a count of elements, clamped to what there is, a count whole
+where it equals its floor, `reverse` and `flat`, `sum`, and `min` and
+`max` in the one order [QSORD#sort], null over an empty container where
+it reads one. `avg` answers the mean, null over nothing, kept as a
+running mean, an element that is no number refused at its index. `has`
+asks whether an element equal to one stands. `append` and `prepend` put
+one element at an end, a vector given among them, and a set takes it
+into its order. `zip` reads vectors side by side, as long as the
+shortest, an element that is no vector refused at its index. The answer
+of a word keeps or leaves the tags of its subject as its kind says
+[QSDSP#answer].
 
 ```qlang
 > [1 2 3] | take -1
@@ -47,8 +48,8 @@ values, and its keys are the shape that travels with them: `map`,
 keep the keys, the reducers, `min` and `max` read the values, and a
 predicate sees the value alone. `keys` answers the set of its keys,
 `vals` the vector of its values, `entries` the vector of its pairs
-`[key value]`, the step that makes a key data, and `has` whether a key
-stands [QSPTH#has].
+`[key value]` in the order of its entries, the step that makes a key
+data, and `has` whether a key stands [QSPTH#has].
 
 ```qlang
 > {:b 2 :a 1} | map ~(add 1)
@@ -125,9 +126,10 @@ map's `minus` and `inter` take the keys a map, a vector or a set names;
 `union` of maps lets the later value of a key stand. A value that is no
 set or map is refused at its index, a set beside a map as a pair the
 algebra has no rule for, `KindsMismatchedError` with `:leftType` and
-`:rightType`, and a fold of nothing as `SubjectEmptyError`. The answer
-keeps the subject's tags. `unionOf` unites the maps its call computes
-from one subject.
+`:rightType`, and a fold of nothing as `SubjectEmptyError`. The words of
+sets and of maps answer under the subject's tags; a vector's fold
+answers a set or a map of its own. `unionOf` unites the maps its call
+computes from one subject.
 
 ```qlang
 > {:age 20} | union {:age 30}

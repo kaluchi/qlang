@@ -11,12 +11,14 @@ What a host loads and what a source declares are two things, and the
 language knows only the second. A host hands its sources, each
 `{ uri, source, impls }`: the source declares its nouns into the root
 as a cell [QSNAM#root], and `impls` binds, for each address the source
-declares with the recipe `::builtin{}`, a plain function over the values
-its inputs checked, the subject first and the inputs in their order.
-The root refuses, as it is declared, a `::builtin{}` the host handed
-nothing for and an implementation handed for a name the source declares
-as no word. A `::builtin{}` written in the recipe of a word a reader
-declares is the value it is.
+declares with the recipe `::builtin{}` under a label, a plain function
+over the values its inputs checked, the subject first and the inputs in
+their order; a primitive names the inputs it runs as code, each handed
+to it as code closed at the call. The root refuses, as it is declared, a
+`::builtin{}` the host handed nothing for and an implementation handed
+for any name declared otherwise. A `::builtin{}` written in the recipe
+of a word a reader declares is the value it is. A host makes an error
+of a tag by `makeErrorValue`.
 
 Each source is the source of one noun, its page first and what is
 declared under it after, so a kind lives whole in the source of its
@@ -49,14 +51,17 @@ process, each an explicit step performed when it runs: the command
 line's `in` reads standard input when it is called, `out` writes a
 string as a line of standard output, `err` as a line of standard error,
 and `tap` shows a value on standard error halfway through a query. What
-changes the world is a command of its host, and its result a noun that
-queries read. A tag may describe an effect a host is to perform, and
-such a value is performed by an explicit step at the boundary; a
-constructor is pure, and reading or constructing a literal performs
-nothing. The forks of a sequence run in its order, so a word of a host
-with an effect meets the elements in their order, and a host whose word
-is better served by calls at once takes the whole vector and bounds its
-own calls.
+changes the world is a command of its host, addressing the same names
+the queries read, and its result a noun that queries read. A command
+has one output, a value under its tag, and the kinds of its refusals;
+what it answers is the data its input chose, filtered for the question.
+A tag may describe an effect a host is to perform, and such a value is
+performed by an explicit step at the boundary; a host that wants the
+provenance of a value seen tags the value. A constructor is pure, and
+reading or constructing a literal performs nothing. The forks of a
+sequence run in its order, so a word of a host with an effect meets the
+elements in their order, and a host whose word is better served by
+calls at once takes the whole vector and bounds its own calls.
 
 ```qlang
 > :any/quiet ~(out) | 1
@@ -68,9 +73,10 @@ own calls.
 The command line writes every answer as the language prints it,
 whatever its input was, a string as its text, and whole: a budget is
 asked for, `| elide N` in the query or `--budget=N` before it, which
-prints every answer within N characters. A reader who wants JSON
-converts the answer in the query, `| json`. `-i` opens the REPL, a query
-after it its first cell.
+prints every answer as `elide` cuts it [QSPRN#elide], a part giving way
+where its marker prints shorter. A reader who wants JSON converts the
+answer in the query, `| json`. `-i` opens the REPL, a query after it its
+first cell.
 
 A failure is an answer, written to standard output with the exit code 0
 as its alert: its tag and its facts in the order the catalog declares
@@ -112,14 +118,16 @@ end, waiting on a slow producer as every reader of a pipe does, and
 ## shell
 
 Under MSYS, the shell beneath Git Bash, which `MSYSTEM` names, the shell
-writes a query that begins with `/` as a path under its root, the
-nearest directory that holds `usr/bin/msys-2.0.dll`. The command line
-reads such a query from the slash after that root, the initial query of
-the REPL alike. A query it cannot read back and that fails gets a line
-on standard error naming the two ways around it, a read begun with its
-word and `MSYS_NO_PATHCONV=1`. The reading is the command line's, at the
-boundary where the shell hands its arguments, and the core reads paths
-of the language alone.
+writes a query that begins with `/` and a first segment of two letters
+or more as a path under its root, the nearest directory that holds
+`usr/bin/msys-2.0.dll`, and one whose first segment is a single letter
+as a drive. The command line reads a query written under the root from
+the slash after that root, the initial query of the REPL alike. A query
+it cannot read back and that fails gets a line on standard error naming
+the two ways around it, a read begun with its word and
+`MSYS_NO_PATHCONV=1`. The reading is the command line's, at the boundary
+where the shell hands its arguments, and the core reads paths of the
+language alone.
 
 ## repl
 
@@ -127,13 +135,15 @@ The REPL runs a cell at a time in one session, each cell a scope of its
 own [QSNAM#scope], and prints each answer, a failure as its alert. Its
 line editor reads a chunk of one character, or one that begins with an
 escape, as keys, and any other chunk as text. A paste a host hands over
-in several chunks is gathered and lands at the cursor as one, its line
-breaks kept, waiting for a submit; a bracketed paste is read to its end
+in several chunks is gathered and lands at the cursor as one, its
+bracket markers taken out, its line breaks kept and the trailing ones
+dropped, waiting for a submit; a bracketed paste is read to its end
 marker. Enter submits, Alt+Enter submits a paste in both its spellings,
-ESC then CR and ESC then LF, an Escape alone does nothing, and Alt with
-an arrow reads as the arrow. Its colour is a layer over the core's
-tokens, where the name of a call that reaches a word of the language is
-a `word`, and a keyword or a reader's name a `name`.
+ESC then CR and ESC then LF, an Escape alone does nothing, an escape
+before `[` opens a sequence however its chunks split it, and Alt with an
+arrow reads as the arrow. Its colour is a layer over the core's tokens,
+where the name of a call that reaches a word of the language is a
+`word`, and a keyword or a reader's name a `name`.
 
 ## tools
 

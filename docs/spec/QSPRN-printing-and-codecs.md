@@ -36,7 +36,8 @@ is written as the array of its elements in the one order, a keyword as
 its name, a path and a pattern as their literals, a quote, a doc and a
 tag name as their prints, and a value under a tag, an error among them,
 as its tag beside its payload. `parseJson` refuses a text that is no
-JSON with the reason, and a number past the doubles with its `:path`.
+JSON with the reason, and a number past the doubles with its `:path`; a
+duplicate key reads as `JSON.parse` reads it.
 
 ```qlang
 > #[3 1] | json

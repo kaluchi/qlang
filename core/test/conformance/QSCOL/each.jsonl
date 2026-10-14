@@ -4,7 +4,6 @@
 {"name":"map-over-a-set-keeps-an-image-per-element","query":"#[1 2 3] | map ~(mul 0)","expect":"[0 0 0]"}
 {"name":"map-reaches-the-set-beneath-a-tag","query":"::Box#[1 2] | map ~(add 1)","expect":"[2 3]"}
 {"name":"map-reaches-the-vector-beneath-two-tags","query":"::A::B[1 2] | map ~(add 1)","expect":"[2 3]"}
-{"name":"a-sum-over-a-listing-of-the-catalog-counts-every-element","query":"::vec | manifest | map ~(laws | count) | sum | eq (::vec | manifest | sort | map ~(laws | count) | sum)","expect":"true"}
 {"name":"map-keeps-the-order-of-the-keys","query":"{:b 2 :a 1} | map ~(add 1) | vals","expect":"[3 2]"}
 {"name":"map-answers-what-each-element-answers","query":"[1 2 3] | map ~(add 1)","expect":"[2 3 4]"}
 {"name":"map-keeps-the-keys-of-a-map","query":"{:a 1 :b 2} | map ~(add 1)","expect":"{:a 2 :b 3}"}

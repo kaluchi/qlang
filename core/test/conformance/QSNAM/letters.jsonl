@@ -3,11 +3,3 @@
 {"name":"the-word-of-a-literal-declares-no-value","query":"\":true 5 | 7\" | parse !| get /message","expect":"\"`:true` is the word of a literal, which a step reads as the value: declare another name\""}
 {"name":"the-word-of-a-literal-names-a-label","query":"\":null |~~ A thing. ~~| | 1\" | parse | count","expect":"2"}
 {"name":"a-name-under-a-noun-may-end-in-the-word-of-a-literal","query":":number/null ~(1) | 5 | number/null","expect":"1"}
-{"name":"unicode-cyrillic-bare-key","query":"{\"имя\": \"Алиса\"} | get /имя","expect":"\"Алиса\""}
-{"name":"unicode-cyrillic-nested-path","query":"{\"пользователь\": {\"имя\": \"Боб\"}} | get /пользователь/имя","expect":"\"Боб\""}
-{"name":"unicode-cyrillic-vec-path","query":"[{\"имя\": \"Алиса\"}, {\"имя\": \"Боб\"}] | map /имя","expect":"[\"Алиса\" \"Боб\"]"}
-{"name":"unicode-cjk-bare-key","query":"{\"元素\": 42} | get /元素","expect":"42"}
-{"name":"unicode-greek-bare-key","query":"{\"αβγ\": \"ok\"} | get /αβγ","expect":"\"ok\""}
-{"name":"unicode-mixed-cyrillic-and-latin","query":"{\"user\": {\"имя\": \"Алиса\"}} | get /user/имя","expect":"\"Алиса\""}
-{"name":"unicode-cyrillic-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | get [/пункт1, /пункт2]","expect":"[10 20]"}
-{"name":"unicode-cyrillic-kebab-case","query":"{\"имя-пользователя\": \"alice\"} | get /имя-пользователя","expect":"\"alice\""}

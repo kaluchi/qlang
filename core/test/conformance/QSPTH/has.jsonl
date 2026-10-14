@@ -1,1 +1,6 @@
 {"name":"has-asks-whether-a-path-reads","query":"{:a {:b 1}} | get [~(has /a/b) ~(has /a/c)]","expect":"[true false]"}
+{"name":"has-map-true","query":"{:name \"Alice\"} | has :name","expect":"true"}
+{"name":"has-map-false","query":"{:name \"Alice\"} | has :age","expect":"false"}
+{"name":"has-map-by-keyword-key","query":"{:a 1 :b 2} | has :a","expect":"true"}
+{"name":"keys-then-has-roundtrip-map","query":":src {:a 1 :b 2} | src | keys | first | :k it | src | has k","expect":"true"}
+{"name":"has-refuses-a-number-on-a-map","query":"{:\"1\" 5} | has 1 !| type","expect":"::map/has/key/NotKeywordOrPathOrStringError"}

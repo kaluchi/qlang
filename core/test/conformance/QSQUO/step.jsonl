@@ -4,7 +4,6 @@
 {"name":"quote-projects-its-steps-by-index","query":"~(mul 2) | get /0 | get /name","expect":":mul"}
 {"name":"quote-step-of-a-call-is-a-call-record","query":"~(mul 2) | first | type","expect":"::call"}
 {"name":"a-step-on-each-element-is-a-call","query":"~(map ~inc | sort) | first | get [~(type) /name]","expect":"[::call :map]"}
-{"name":"quote-comment-leaves-no-step","query":"~(|~ note ~| count) | count","expect":"1"}
 {"name":"quote-filter-keeps-a-quote","query":"~(add 1 | mul 2) | filter ~(get /name | eq :mul)","expect":"~(mul 2)"}
 {"name":"map-over-a-quote-drops-the-tag","query":"~(add 1 | mul 2) | map /name","expect":"[:add :mul]"}
 {"name":"quote-tag-refuses-a-non-step","query":"[::Box[1]] | tag ::quote !| type","expect":"::quote/ElementNotStepError"}
@@ -14,3 +13,4 @@
 {"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::construct/ReadBackDiffersError"}
 {"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| it) | first | get /docs | first | type","expect":"::doc"}
 {"name":"the-step-of-an-error-literal-maps-as-the-map-of-its-fields","query":"~(!{:kind :oops :trail 5}) | map ~count","expect":"[2]"}
+{"name":"a-quote-holds-a-pattern-as-a-step","query":"\"match #\\\"\\\\d\\\"\" | parse | get [~(first | get /modifiers | first | type) ~(print)]","expect":"[::regex \"~(match #\\\"\\\\d\\\")\"]"}

@@ -32,3 +32,11 @@
 {"name":"every-map-declared-verb","query":"{:a 1 :b 2} | :any/big ~(gt 0) | every ~(big)","expect":"true"}
 {"name":"every-map-verb-predicate","query":"{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive","expect":"true"}
 {"name":"every-map-verb-predicate-fails","query":"{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive","expect":"false"}
+{"name":"any-set-one-matches","query":"#[1 2 3] | any ~(gt 2)","expect":"true"}
+{"name":"any-set-none-match","query":"#[1 2 3] | any ~(gt 99)","expect":"false"}
+{"name":"any-set-declared-verb","query":"#[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
+{"name":"any-set-verb-predicate","query":"#[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
+{"name":"every-set-all-match","query":"#[2 4 6] | every ~(gt 0)","expect":"true"}
+{"name":"every-set-one-fails","query":"#[2 4 -1] | every ~(gt 0)","expect":"false"}
+{"name":"every-set-declared-verb","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
+{"name":"every-set-verb-predicate","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}

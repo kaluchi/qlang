@@ -1,5 +1,3 @@
-{"name":"a-quote-in-a-pattern-does-not-end-it","query":"\"say \\\"hi\\\"\" | contains #\"\\\"hi\\\"\"","expect":"true"}
-{"name":"a-pattern-reads-letters-of-any-script","query":"\"Ünïcödé 42 данные\" | scan #\"\\p{L}+\"","expect":"[\"Ünïcödé\" \"данные\"]"}
 {"name":"contains-asks-for-a-match-anywhere-and-anchors-ask-the-whole","query":"[\"a1\" \"1\"] | map ~(get [~(contains #\"\\d\") ~(contains #\"^\\d$\")])","expect":"[[true false] [true true]]"}
 {"name":"match-answers-the-first-match-and-its-groups","query":"\"v1.20 and v3.4\" | match #\"v(\\d+)\\.(\\d+)(-\\w+)?\"","expect":"[\"v1.20\" \"1\" \"20\" null]"}
 {"name":"match-answers-null-where-none-stands","query":"\"none\" | match #\"\\d\"","expect":"null"}

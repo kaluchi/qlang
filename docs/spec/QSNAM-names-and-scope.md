@@ -43,12 +43,11 @@ computed where it is declared, follows the subject there.
 A name a step can call begins with a letter of any script or `_` and
 goes on with letters, digits, `_` and `-`, and a key of a path and a tag
 are written in the same letters; names joined by `/` make a name with a
-path [QSNAM#address]. Quotes around such a name change
-nothing, and a name in quotes that is not one is refused by the parser
-at the keyword. The words of the literals, `true`, `false` and `null`,
-declare no value alone, since a step reads them as the literals; each
-names a label, which its tag reaches, and a last name under a noun,
-which its address calls.
+path [QSNAM#address]. A bare name in quotes declares that name, and a
+name in quotes that a step cannot call is refused by the parser at the
+keyword. The words of the literals, `true`, `false` and `null`, are read
+by a step as the literals, so each declares a label, which its tag
+reaches, or a last name under a noun, which its address calls.
 
 ```qlang
 > :имя 5 | имя
@@ -152,8 +151,7 @@ scope; a word residing on a label the walk of the subject's tags
 reaches; the one word of that name, which refuses a subject the walk
 does not bring to its label; the bare name of the root that is no
 label. A name that reaches nothing is refused as
-`::call/UnknownNameError`, with the addresses where words of the name
-live and the names near it.
+`::call/UnknownNameError`, with the names near it.
 
 A label, a kind or a topic, is reached by its tag alone, `::string`, as
 it is written wherever it is meant; its name written bare reaches
@@ -162,10 +160,11 @@ stands over a bare name of the root, while the tag of a label of the
 root stays the root's.
 
 A value and a word meet aloud: a bare step that reaches a value the
-scope binds, where a word of the same name answers the subject, is
-refused as `::call/ValueMeetsWordError`, whose `:addresses` hold the
-word's; where no word answers the subject the value is read, and the
-word is called beside the value by its address.
+scope binds, an input and the call's `args` among them, where a word of
+the same name answers the subject, is refused as
+`::call/ValueMeetsWordError`, whose `:addresses` hold the word's; where
+no word answers the subject the value is read, and the word is called
+beside the value by its address.
 
 ```qlang
 > 5 | string !| get /nearest
@@ -193,8 +192,10 @@ with a path declares a node under the noun its path names before its
 last name, a noun declared before it, else `::bind/NounNotDeclaredError`;
 the tag of a name is its address, the name as it was declared. Written
 as a step, an address reads what it declared, a word run and any other
-value itself. A tag no declaration names lays itself over a payload as
-it is.
+value itself. Under a word lie its inputs, its answer, its refusals and
+its laws, so what a word is is the set of declarations under its
+address; a helper several words share is a node under their noun. A tag
+no declaration names lays itself over a payload as it is.
 
 The root holds the nodes of the language and of its hosts. A reader
 extends a noun of the root with nodes of its own and declares none the
@@ -236,8 +237,8 @@ labels the scope reads, the language's, the hosts' and the reader's.
 A declaration writes into its scope a record, `::binding`: the name,
 the docs of its page, the value, the source of the declaration and its
 origin. `env` answers the declarations of the reader where the step
-stands, each by its name with its record, and nothing the language or a
-host declared. The axes read the record: `binding` the record itself,
+stands, each by its name with its record, `{}` where the reader
+declared nothing. The axes read the record: `binding` the record itself,
 `source` its source and `doc` its page.
 
 ```qlang
@@ -255,19 +256,21 @@ host declared. The axes read the record: `binding` the record itself,
 
 A word of the root runs in a scope marked as the root's. There a name
 under a noun of the root reads the root alone, so a word a reader
-declared under it answers the reader's own calls and none a word of the
-root makes; a name under a noun the reader declared reads as the reader
-wrote it, and the reader's labels go with the reader's values into the
-word. A word joined to a kind by the kind's owner goes where the kind's
-values go; an extension of a kind of another owner stays where it was
-written.
+declared under it answers the reader's own calls; a name under a noun
+the reader declared reads as the reader wrote it, and the reader's
+labels go with the reader's values into the word. A word joined to a
+kind by the kind's owner goes where the kind's values go; an extension
+of a kind of another owner stays where it was written.
 
+A word written in the language and a word of the host answer alike.
 Inside the body of a word, the names the body writes resolve in the
 word's own scope, and what the body reads as data, `env`, a page, a
-binding, reads the tree of names of the query that called the word. The
-body keeps its own names out of that tree, so no input and no name its
-steps declare answers for a name the reader hands, and a value of the
-reader reaches no name the body writes.
+binding, reads the tree of names of the query that called the word, as a
+word of the host that reads the state of its call reads that tree
+wherever it is called; the tree carries down through every word the
+body calls. The body's own names, its inputs and the names its steps
+declare, stay in its scope, and a value of the reader reaches the body
+as data alone.
 
 ```qlang
 > :vec/doc ~("a reader page") | [1 2] | doc

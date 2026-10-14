@@ -13,8 +13,7 @@ colon, `/:a/b`, and a key that is no bare name in quotes,
 `/"first name"`. A path prints as it is written and reads back as
 itself, JSON writes its literal as a string, two paths are equal when
 their segments are, and the one order ranks paths by their segments
-[QSORD#order]. A path does nothing by itself: the word that takes it
-reads it.
+[QSORD#order]. The word that takes a path reads it.
 
 ```qlang
 > /items/1 | type
@@ -36,8 +35,9 @@ reads it.
 holding the path it followed as `:path`: a key a map lacks,
 `::path/KeyNotInMapError` with the keys near it as `:nearest`; a place
 past the end, `::path/IndexOutOfBoundsError`; a segment that is no whole
-number on a vector, `::path/IndexNotIntegerError`; a value on the path
-that has no parts, `::path/SubjectHasNoPartsError`.
+number on a vector, a set or a doc, which read by place,
+`::path/IndexNotIntegerError`; a value on the path that has no parts,
+`::path/SubjectHasNoPartsError`.
 
 ```qlang
 > {:a {:b [10 20]}} | get /a/b/-1
@@ -55,10 +55,8 @@ that has no parts, `::path/SubjectHasNoPartsError`.
 `query` reads a path as `get` does and answers `null` where a key or a
 place is missing or `null` stands on the path; another kind on the path
 it refuses as `get` does, a segment that is no whole number on a vector
-among it. Over a map a number segment names the key of its digits. Its
-second input is a default, a value it holds and never runs, answered
-where the path misses; a `null` that stands at the path is answered as
-it stands.
+among it. Its second input is a default, answered as it is where the
+path misses; a `null` that stands at the path is answered as it stands.
 
 ```qlang
 > {:a null} | query /a/b
@@ -76,10 +74,11 @@ null
 
 ## has
 
-`has` on a map takes a key, a keyword, a string or a path, and answers
-whether `get` reads it; a number is refused, its page naming
-`toKeyword`, `has (get /uid | toKeyword)`. On a vector and a set `has`
-asks whether an element equal to one stands [QSCOL#sequence].
+`has` on a map takes a keyword, a string or a path, and answers whether
+`get` reads it; a number, which `get` reads as the key of its digits,
+`has` refuses, its page naming `toKeyword`, `has (get /uid | toKeyword)`.
+On a vector and a set `has` asks whether an element equal to one stands
+[QSCOL#sequence].
 
 ```qlang
 > {:a {:b 1}} | get [~(has /a/b) ~(has /a/c)]
@@ -93,12 +92,13 @@ asks whether an element equal to one stands [QSCOL#sequence].
 
 A key alone is the path of one segment where `get`, `query` and the
 words that write take a path: a keyword, a whole number, or a string,
-which names the key of its text, so a key the query computes is read.
-Every place that takes a key of a map reads a string so: `minus` and
-`inter` on a map take a vector or a set of keys, each a keyword or a
-string, an element of another kind refused at its index,
-`::map/minus/KeyNotKeywordOrStringError`. Inside a keyword the slash is
-a letter of the one name, `get :a/b` reading the key `:a/b`; in a path
+which names the key of its text, so a key the query computes is read;
+over a map a number names the key of its digits. Every place that takes
+a key of a map reads a string so: `minus` and `inter` on a map take a
+vector or a set of keys, each a keyword or a string, an element of
+another kind refused at its index, `::map/minus/KeyNotKeywordOrStringError`
+and `::map/inter/KeyNotKeywordOrStringError`. Inside a keyword the slash
+is a letter of the one name, `get :a/b` reading the key `:a/b`; in a path
 it parts the segments, `get /a/b` reading `:b` under `:a`.
 
 ```qlang

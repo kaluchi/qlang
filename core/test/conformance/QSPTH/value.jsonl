@@ -19,4 +19,17 @@
 {"name":"nested-quoted-path","query":"{:\"a.b\" {:\"$ref\" 99}} | get /\"a.b\"/\"$ref\"","expect":"99"}
 {"name":"mixed-quoted-and-bare-path","query":"{:outer {:\"inner key\" 7}} | get /outer/\"inner key\"","expect":"7"}
 {"name":"quoted-path-empty-key","query":"{:\"\" 5} | get /\"\"","expect":"5"}
-{"name":"a-map-takes-no-number-for-a-key","query":"{:\"1\" 5} | get /1","expect":"5"}
+{"name":"a-map-reads-a-number-as-the-key-of-its-digits","query":"{:\"1\" 5} | get /1","expect":"5"}
+{"name":"unicode-cyrillic-bare-key","query":"{\"имя\": \"Алиса\"} | get /имя","expect":"\"Алиса\""}
+{"name":"unicode-cyrillic-nested-path","query":"{\"пользователь\": {\"имя\": \"Боб\"}} | get /пользователь/имя","expect":"\"Боб\""}
+{"name":"unicode-cyrillic-vec-path","query":"[{\"имя\": \"Алиса\"}, {\"имя\": \"Боб\"}] | map /имя","expect":"[\"Алиса\" \"Боб\"]"}
+{"name":"unicode-cjk-bare-key","query":"{\"元素\": 42} | get /元素","expect":"42"}
+{"name":"unicode-greek-bare-key","query":"{\"αβγ\": \"ok\"} | get /αβγ","expect":"\"ok\""}
+{"name":"unicode-mixed-cyrillic-and-latin","query":"{\"user\": {\"имя\": \"Алиса\"}} | get /user/имя","expect":"\"Алиса\""}
+{"name":"unicode-cyrillic-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | get [/пункт1, /пункт2]","expect":"[10 20]"}
+{"name":"unicode-cyrillic-kebab-case","query":"{\"имя-пользователя\": \"alice\"} | get /имя-пользователя","expect":"\"alice\""}
+{"name":"json-reserved-key-null","query":"{\"null\": 42} | get /null","expect":"42"}
+{"name":"json-reserved-key-true","query":"{\"true\": 1} | get /true","expect":"1"}
+{"name":"json-reserved-key-false","query":"{\"false\": 0} | get /false","expect":"0"}
+{"name":"json-numeric-string-key","query":"{\"42\": \"answer\"} | get /\"42\"","expect":"\"answer\""}
+{"name":"json-kebab-string-key","query":"{\"foo-bar\": 99} | get /\"foo-bar\"","expect":"99"}

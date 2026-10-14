@@ -15,3 +15,5 @@
 {"name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| get [~(type) /index /actualType]","expect":"[::any/allOf/conditions/ElementNotBooleanOrPathOrQuoteError 1 ::string/endsWith/SubjectNotStringError]"}
 {"name":"all-of-runs-a-quote-in-its-turn","query":"[{:email null} {:email \"a@b.org\"}] | filter ~(allOf (get /email | ne null) ~(get /email | endsWith \".org\")) | count","expect":"1"}
 {"name":"a-condition-of-allOf-is-a-value-or-a-quote","query":"5 | allOf (gt 1) ~(lt 10)","expect":"true"}
+{"name":"if-holds-two-conditions-by-allOf","query":"{:active true :verified true} | if (allOf (get /active) (get /verified)) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
+{"name":"if-takes-either-condition-by-anyOf","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}

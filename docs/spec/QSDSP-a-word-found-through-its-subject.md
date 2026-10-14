@@ -13,9 +13,11 @@ every kind lies `::any`, where every walk ends and the words of any value
 live: `type`, `eq`, `apply`, `if`, `cond`, `coalesce`, `json`, `env`,
 and the axes. A tagged value reaches `::tagged` after its own tag and
 before its payload, where `payload` and `within` live, so a tag over a
-value passes to the words of its payload. A word on a narrower label
-stands over one of the same name on a broader one. `is` answers whether
-the walk of a value's tags reaches one of the kinds it is given.
+value passes to the words of its payload. A word means one act wherever
+it resolves, each kind that answers it implementing that act, and a word
+on a narrower label stands over one of the same name on a broader one.
+`is` answers whether the walk of a value's tags reaches one of the kinds
+it is given, `::any` among them.
 
 ```qlang
 > ::Box#1 | payload
@@ -33,18 +35,18 @@ true
 
 ## residence
 
-A word resides on the kind its subject names, declared in the source of
-that noun, and a name several kinds answer is declared on each,
-`::vec/count`, `::set/count`, `::map/count`, `::string/count`, one
-primitive serving several where they share it. A word serves the values
-the walk of their tags brings to its label and, beside them, a value of
-the kinds its `on` names; any other subject is refused under the word's
-own address. A refinement a word wants checked is written where the
-value is made, `x | tag ::Pos | f`, its constructor answering there. A
-word is called by its name or by its address, which checks the subject
-by that residence; a set is a vector to a word of vectors. The
-comparisons reside on each kind whose values they compare, an input of
-another kind refused.
+A word resides on the label its address names, whoever declared it, a
+reader extending a noun of the root among them, and a name several kinds
+answer is declared on each, `::vec/count`, `::set/count`, `::map/count`,
+`::string/count`, one primitive serving several where they share it. A
+word serves the values the walk of their tags brings to its label and,
+beside them, a value of the kinds its `on` names; a word that is the one
+word of its name refuses any other subject under its own address. A
+refinement a word wants checked is written where the value is made,
+`x | tag ::Pos | f`, its constructor answering there. A word is called by
+its name or by its address, which checks the subject by that residence;
+a set is a vector to a word of vectors. The comparisons reside on each
+kind whose values they compare, an input of another kind refused.
 
 ```qlang
 > :Pos |~~ Pos. ~~| | :Pos/f ~(1) | -1 | f !| type
@@ -62,11 +64,11 @@ true
 
 ## refusal
 
-A name no kind of the subject answers is refused as
-`::call/KindAnswersNoVerbError`, with the kind as `:actualType`, the
-addresses of the words of that name as `:addresses`, and, where the pages
-of those words lead to one, `:nearest`, the words they link that the
-subject answers.
+A name whose words reside on several kinds, none of which the walk of
+the subject reaches, is refused as `::call/KindAnswersNoVerbError`, with
+the kind as `:actualType`, the addresses of the words of that name as
+`:addresses`, and, where the pages of those words lead to one,
+`:nearest`, the words they link that the subject answers.
 
 ```qlang
 > 5 | count !| get [~(type) /actualType /addresses]

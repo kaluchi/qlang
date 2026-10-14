@@ -4,4 +4,3 @@
 {"name":"a-catch-after-the-catch-stands-once","query":"\"[1] !| !| count\" | parse !| get /message","expect":"\"`!|` written after `!|`: a combinator stands once between two steps, write `a !| b`\""}
 {"name":"a-pipe-after-a-combinator-names-the-form-that-keeps-it","query":"\"[1] !| | count\" | parse !| get /message | contains \"write `a !| b`\"","expect":"true"}
 {"name":"a-comment-opener-against-a-pipe-names-the-word-that-runs-code","query":"\"[1 2] |~(add)\" | parse !| get /message","expect":"\"`|~` opens a comment that is never closed; code runs on the value in the pipe by a word, `| apply ~(…)`\""}
-{"name":"a-step-after-a-piped-combinator-names-its-own-fault","query":"\"[1 2] | !| {:a (/x | mul) /y}\" | parse !| get /message | contains \"map entry\"","expect":"true"}

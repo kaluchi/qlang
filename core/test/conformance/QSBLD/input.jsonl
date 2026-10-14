@@ -17,8 +17,6 @@
 {"name":"a-set-that-names-no-kind-is-a-default","query":":any/m (::fn | takes :s |~~ The s. ~~| ~(query /0 #[1 2]) ::set | impl ~(s)) | null | m","expect":"#[1 2]"}
 {"name":"the-empty-set-is-a-default","query":":any/m (::fn | takes :s |~~ The s. ~~| ~(query /0 #[]) ::set | impl ~(s)) | null | m #[3]","expect":"#[3]"}
 {"name":"a-comment-in-the-head-is-layout","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(add x)) | 1 | m 2","expect":"3"}
-{"name":"a-modifier-that-answers-an-error-answers-the-call","query":":any/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(x)) | 5 | m (!{:k 1} | raise) !| get /k","expect":"1"}
-{"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) | impl ~(xs)) | null | all 1 (!{:k 2} | raise) !| get /k","expect":"2"}
 {"name":"an-input-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":any/twice (::fn | takes :f |~~ The f. ~~| /0 ::quote | impl ~(apply f | apply f)) | 1 | get [~(twice ~(add 1)) ~(twice ~(add 1))]","expect":"[3 3]"}
 {"name":"an-optional-input-takes-a-map-by-default","query":":any/m (::fn | takes :opts |~~ The opts. ~~| ~(query /0 {:limit 2}) ::map | impl ~(opts | get /limit)) | null | m","expect":"2"}
 {"name":"an-optional-input-takes-a-vector-by-default","query":":any/m (::fn | takes :xs |~~ The xs. ~~| ~(query /0 [1 2]) ::vec | impl ~(xs | count)) | null | get [~(m) ~(m [5])]","expect":"[2 1]"}
@@ -26,7 +24,6 @@
 {"name":"a-word-refuses-a-modifier-beyond-its-places","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | scale 5 2 !| type","expect":"::number/scale/ArgsBeyondInputsError"}
 {"name":"a-call-of-more-values-than-places-is-refused","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | scale 5 2 3 !| type","expect":"::number/scale/ArgsBeyondInputsError"}
 {"name":"args-of-more-values-than-places-are-refused","query":"5 | add \"a\" 1 !| type","expect":"::number/add/ArgsBeyondInputsError"}
-{"name":"an-error-among-the-modifiers-answers-before-the-places-are-counted","query":":number/s (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | s (!{:k 1} | raise) 2 !| type","expect":"::error"}
 {"name":"a-declared-verb-with-one-input","query":":number/addN (::fn | takes :n |~~ The n. ~~| /0 | impl ~(add n)) | 5 | addN 3","expect":"8"}
 {"name":"a-declared-verb-with-two-inputs","query":":string/surround (::fn | takes :pfx |~~ The pfx. ~~| /0 | takes :sfx |~~ The sfx. ~~| /1 | impl ~(prepend pfx | append sfx)) | \"world\" | surround \"[\" \"]\"","expect":"\"[world]\""}
 {"name":"an-input-of-code-keys-a-sort","query":":vec/topBy (::fn | takes :keyFn |~~ The keyFn. ~~| /0 | takes :n |~~ The n. ~~| /1 ::number | holds :keyFn/NotQuoteError |~~ NotQuoteError. ~~| ~(is ::quote ::path) | impl ~(sort keyFn | reverse | take n)) | [{:v 1} {:v 3} {:v 2}] | topBy /v 2 | map /v","expect":"[3 2]"}
@@ -49,12 +46,6 @@
 {"name":"a-number-under-a-tag-of-its-own-is-a-number-an-input-takes","query":"5 | add ::Width#2","expect":"7"}
 {"name":"each-value-an-input-of-each-element-takes-is-handed-as-its-kind","query":"{:a ::W#5 :b 2} | sumOf (get /a) /b","expect":"7"}
 {"name":"each-value-the-call-gives-is-refused-with-its-index","query":"{:a 1 :b \"x\"} | sumOf /a /b !| get [~(type) /index /actualType]","expect":"[::vec/sum/ElementNotNumberError 1 ::string]"}
-{"name":"a-step-computed-where-the-input-reading-the-args-takes-code-is-refused-by-it","query":"5 | cond (get /nope) ~(1) !| get [~(type) /index]","expect":"[::any/cond/clauses/ElementNotPathOrQuoteError 0]"}
-{"name":"a-step-computed-where-the-alternatives-take-any-value-answers-its-error","query":"{} | coalesce (get /a) ~(1) !| type","expect":"::path/KeyNotInMapError"}
-{"name":"a-step-computed-where-an-input-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError"}
-{"name":"a-step-computed-where-no-input-reads-answers-its-error","query":"[1 2] | query /0 5 (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError"}
-{"name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| get [~(type) /index /actualType]","expect":"[::any/is/kinds/ElementNotTagError 0 ::keyword]"}
-{"name":"an-input-refuses-under-the-address-of-its-kinds-word","query":"get [~(\"ab\" | take \"x\" !| type) ~([1] | take \"x\" !| type)]","expect":"[::string/take/count/NotNumberError ::vec/take/count/NotNumberError]"}
 {"name":"a-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2 :c 3} | :number/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | filter ~above !| type","expect":"::number/above/limit/NotGivenError"}
 {"name":"a-predicate-of-two-inputs-is-refused-on-a-map","query":"{:a 1 :b 2} | :any/kv (::fn | takes :k |~~ The k. ~~| /0 | takes :v |~~ The v. ~~| /1 | impl ~(v | gt 1)) | filter ~kv !| type","expect":"::any/kv/k/NotGivenError"}
 {"name":"any-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2} | :any/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | any ~above !| type","expect":"::any/above/limit/NotGivenError"}
@@ -81,3 +72,4 @@
 {"name":"an-input-of-each-element-hands-a-set-as-the-set-of-their-values","query":":Box |~~ B ~~| | :Box/kindOf (::fn | takes :m |~~ M ~~| /0 [::number] | impl ~(get [~(m | type) ~(m | map ~type)])) | ::Box[1] | get [~(kindOf #[::N#1 2]) ~(kindOf ::T#[1 2]) ~(kindOf [::N#1 2])]","expect":"[[::set [::number ::number]] [::set [::number ::number]] [::vec [::number ::number]]]"}
 {"name":"an-input-of-each-element-hands-a-quote-and-a-doc-as-they-are","query":":Box |~~ B ~~| | :Box/kindOf (::fn | takes :m |~~ M ~~| /0 [::string] | impl ~(m | type)) | ::Box[1] | get [~(kindOf ~(\"a\")) ~(kindOf (|~~ a ~~|))]","expect":"[::quote ::doc]"}
 {"name":"an-input-of-each-element-hands-a-quote-or-a-doc-under-a-tag-as-it-is","query":":Box |~~ B ~~| | :Box/kindOf (::fn | takes :m |~~ M ~~| /0 [::string] | impl ~(m | type)) | ::Box[1] | get [~(kindOf ::T~(\"a\")) ~(kindOf ::T|~~ a ~~|)]","expect":"[::quote ::doc]"}
+{"name":"a-call-hands-its-modifiers-as-one-value-under-its-name","query":":Box |~~ A parcel. ~~| (::kind | holds :LengthNotPositiveError |~~ A box has a length. ~~| ~(get /0 | gt 0)) | :Box/length |~~ The length. ~~| ~(get /0) | :Box/put |~~ The same box with another weight inside. ~~| (::fn | takes :weight |~~ The weight to put inside. ~~| /0 | holds :weight/NotNumberError |~~ The weight is a number. ~~| ~(type | eq ::number) | impl ~(within ~(take 1 | append weight))) | :Box/given |~~ The args of the call. ~~| (::fn | takes :values |~~ The values of the call. ~~| ~(it) | impl ~(args)) | ::Box[4 2] | given 10 :w","expect":"::Box/given[10 :w]"}

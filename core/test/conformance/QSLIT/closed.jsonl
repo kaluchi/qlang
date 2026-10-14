@@ -3,3 +3,4 @@
 {"name":"a-group-inside-a-literal-is-refused","query":"\"[(5 | add 1) 2]\" | parse !| get /message","expect":"\"a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(5 | add 1) 2]`\""}
 {"name":"a-name-inside-a-literal-is-refused","query":"\":x 1 | [x]\" | parse !| get /message","expect":"\"a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(x)]`\""}
 {"name":"a-literal-that-computes-reads-as-prose-in-the-code-of-a-doc","query":"|~~ ::snippet~([(1 | add 1)]) ::snippet~(get [~(count)]) ~~| | snippets","expect":"[::snippet~(get [~(count)])]"}
+{"name":"a-step-after-a-piped-combinator-names-its-own-fault","query":"\"[1 2] | !| {:a (/x | mul) /y}\" | parse !| get /message | contains \"map entry\"","expect":"true"}

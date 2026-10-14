@@ -14,15 +14,10 @@
 {"name":"json-form-keys-only","query":"{\"a\": 1, \"b\": 2} | get [/a /b]","expect":"[1 2]"}
 {"name":"scientific-in-json-object","query":"{\"v\": 1e10, \"e\": 2.5e-3} | get [/v, /e]","expect":"[10000000000 0.0025]"}
 {"name":"scientific-in-pipeline","query":"{\"rate\": 1.5e-2} | get /rate","expect":"0.015"}
-{"name":"json-reserved-key-null","query":"{\"null\": 42} | get /null","expect":"42"}
-{"name":"json-reserved-key-true","query":"{\"true\": 1} | get /true","expect":"1"}
-{"name":"json-reserved-key-false","query":"{\"false\": 0} | get /false","expect":"0"}
 {"name":"json-deep-nesting","query":"{\"a\": {\"b\": {\"c\": 42}}} | get /a/b/c","expect":"42"}
 {"name":"json-boolean-values","query":"{\"x\": true, \"y\": false} | get [/x, /y]","expect":"[true false]"}
 {"name":"json-null-value","query":"{\"x\": null} | get /x","expect":"null"}
 {"name":"json-array-value-sum","query":"{\"items\": [1 2 3]} | get /items | sum","expect":"6"}
-{"name":"json-numeric-string-key","query":"{\"42\": \"answer\"} | get /\"42\"","expect":"\"answer\""}
-{"name":"json-kebab-string-key","query":"{\"foo-bar\": 99} | get /\"foo-bar\"","expect":"99"}
 {"name":"json-full-roundtrip","query":"{\"name\": \"alice\", \"age\": 30, \"active\": true, \"score\": null} | get [/name, /age, /active, /score]","expect":"[\"alice\" 30 true null]"}
 {"name":"json-objects-in-vec-project-count","query":"[{\"v\": 1e3}, {\"v\": 2e3}, {\"v\": 3e3}] | map /v","expect":"[1000 2000 3000]"}
 {"name":"json-mixed-types-in-array","query":"[1, \"two\", true, null, 3.14]","expect":"[1 \"two\" true null 3.14]"}

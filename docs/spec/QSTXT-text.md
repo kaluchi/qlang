@@ -107,12 +107,15 @@ A word that reads text tells a pattern from a text by its kind.
 `match` answers the first match as the vector of its text and groups, a
 group that took no part `null`, or null where none stands; `capture` the
 named groups of the first match as a map, or null, refusing a pattern
-that names no group; `scan` the text of every match, `[]` where none
-stands; `replace` puts a text, or what code answers on each match's
-vector, in the place of every match, a replacement string naming the
-parts of a match of a pattern by `$1`, `$<name>` and `$&`, and standing
-as written where a text is replaced. `toRegex` reads a string as the
-source of a pattern, its flags the call's, and refuses a string that
+that names no group; `scan` the text of every match, an empty match met
+at every place, `[]` where none stands; `replace` puts a text, or what
+code answers on each match's vector, in the place of every match, read
+by code points, a replacement string naming the parts of a match of a
+pattern by `$1`, `$<name>` and `$&`, and standing as written where a text
+is replaced. `toRegex` reads a string as the source of a pattern, its
+flags the call's: a source the engine cannot read is refused with the
+engine's reason, a letter of no flag as `::string/toRegex/flags/NotFlagsError`,
+flags written inside with the repair `toRegex "i"`, and a string that
 writes a whole literal, which `parse | apply it` reads.
 
 ```qlang

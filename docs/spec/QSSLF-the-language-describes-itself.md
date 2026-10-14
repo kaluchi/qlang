@@ -60,13 +60,14 @@ A law is a query that answers `true`, a value of `::law`, declared under
 the name whose claim it proves, its page the claim. `laws` answers the
 laws under a name by their names in the order of their declarations,
 each the pair of its page and its query; `runLaws` runs each in
-isolation and answers an outcome per law, `{:law :says :actual :ok
-:error}`, `:says` null for a law without a page, a law passing only
-where it answers `true` and a law that answers a failure holding it at
-rest under `:error`; a value runs the laws of its kind, and a name
-nothing declares is refused as `::any/runLaws/UnknownNameError`.
-`tutorial` answers the page of a name and its laws. Every law of the
-core passes.
+isolation, the laws of a member when it is given its anchor,
+`::qlang | runLaws :errors`, and answers an outcome per law, `{:law :says
+:actual :ok :error}`, `:says` null for a law without a page, a law
+passing only where it answers `true` and a law that answers a failure
+holding it at rest under `:error`; a value runs the laws of its kind, and
+a name nothing declares is refused as `::any/runLaws/UnknownNameError`.
+`tutorial` answers the pair of a name's page and its laws, a name nothing
+declares refused as `doc` refuses it. Every law of the core passes.
 
 ```qlang
 > :three 3 | :three/isThree ::law~(3 | eq 3) | ::three | runLaws | map /ok
@@ -112,8 +113,12 @@ value of the kind `::explanation`: the page `doc` reads for it under
 `:page`, then the value under `:value`, which the words `page` and
 `value` read. A name reads its own page, a value the page of the kind it
 shows, and an error `!|` opened the page of its site, its value the
-error at rest that `raise` raises again. An explanation prints the page
-above the value. `trail` is a word of errors, `42 | trail` refused.
+error at rest that `raise` raises again; a refusal the runtime raises by
+rule under a word, with no page of its own, reads the page of what
+refused. The page of a refusal says what failed, which fact names the
+culprit and how the call is repaired, and its laws hold the recovery
+through `!|`. An explanation prints the page above the value. `trail` is
+a word of errors, `42 | trail` refused.
 
 ```qlang
 > "x" | add 1 !| explain | payload | keys
@@ -133,18 +138,17 @@ prose strings and quotes, under `::doc`. The parser reads the segments:
 a `~(…)` whose text reads as code is a quote, under the tags written
 before it, a span between backquotes and an unclosed quote are prose,
 and each run of prose is one string. `content` answers the text, each
-quote and its tags where it stands, `segments` the parts, and `tag
-::doc` builds a doc from strings and quotes. A tag gives a quote a role:
-`::link`, which `links` answers and `open` follows to a page, and
-`::snippet`, which `snippets` answers and `open` runs to what it shows.
-`open`, a word of `::quote`, runs a quote beneath its tags. The tags of
-a stack over a quote are read from the outside in, each giving its role;
-`::link` and `::snippet` are kinds of the core with a page, and a role
-that asks a check of its own comes as a kind of its own. A span between
-backquotes holds a fragment that is no query. `content`
-writes each quote as its literal spelled it and prints only a quote
-assembled from data. A doc lays each tag of a quote's role through the
-tag's label, so a tag that takes no quote refuses the doc.
+quote and its tags where it stands, written as its literal spelled it, a
+quote assembled from data printed; `segments` answers the parts, and
+`tag ::doc` builds a doc from strings and quotes, an element of another
+kind refused as `::doc/ElementNotSegmentError`. A tag gives a quote a
+role, the tags of a stack read from the outside in: `::link`, which
+`links` answers and `open` follows to a page, and `::snippet`, which
+`snippets` answers and `open` runs to what it shows; each is a kind of
+the core with a page, and a role that asks a check of its own comes as a
+kind of its own. A span between backquotes holds a fragment of the
+language that is no query to run. A doc lays each tag of a quote's role
+through the tag's label, so a tag that takes no quote refuses the doc.
 
 ```qlang
 > |~~ a ~(add 1) b ~~| | segments
@@ -159,10 +163,12 @@ tag's label, so a tag that takes no quote refuses the doc.
 `::qlang` is the topic of the language: its page is the first page,
 its members are its chapters, the concepts the first page names, each a
 page by its address, `::qlang/pipeline`, read through the noun,
-`::qlang | doc :pipeline`. A member of a noun is no name of a reader's
-scope, neither a word a query calls nor a name `env` lists. Every link
-of every page of the catalog opens a doc, every word of the core has a
-page, and the first page prints within 13664 characters.
+`::qlang | doc :pipeline`. A concept's page tells the concept, what it
+rests on, what rests on it and the kinds that are it, by links. A member
+of a noun is read through its noun or at its address. The first page
+tells how to ask for a budget before an answer meets a marker. Every
+link of every page of the catalog opens a doc, every word of the core
+has a page, and the first page prints within 13664 characters.
 
 ```qlang
 > ::qlang | doc | links | map ~open | every ~(type | eq ::doc)

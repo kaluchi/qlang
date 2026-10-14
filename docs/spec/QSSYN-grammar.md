@@ -12,21 +12,25 @@ modifiers, separated by whitespace, `take 2`, `if (gt 0) ~("pos") ~("neg")`.
 Parentheses hold a pipeline taken as one value, a group. The first
 modifier of a command may touch its name where it opens with a
 parenthesis, so `filter(gt(1))` reads as `filter` with the group
-`(gt(1))`; every other word is set off from the one before it, and a
-comma inside the parentheses of a call is refused, naming the command
-form.
+`(gt(1))`, a call written by habit that runs where its input takes a
+value and is refused where it takes code; every other word is set off
+from the one before it, and a comma inside the parentheses of a call is
+refused, naming the command form.
 
-A value stands at the head of a query, of a group and of a quote, after
-a declaration, and as a modifier. A value written as a later step on the
-success track is refused by the parser, which names the word the habit
-meant: `get` for a path and for a literal of a container, `tag` for a
-tag name, `apply` for code; after `!|` a value is the recovery the
-catch answers, and a path, which the habit wrote there to read a fact of
-the error, is refused as after `|`. A question mark after a segment of
-a path is refused, naming `query`. A quote whose code is a path alone is
-refused, the path given bare in its place, and a path followed by a word
-is refused naming the verb it meant, `/ne ""` naming `ne`. A tag name in
-the place of a declaration's name is refused.
+A step sees one value, the one the step before handed it, and
+everything inside the step, its modifiers among them, is computed from
+that value; what an earlier step saw a name keeps. A value stands at the
+head of a query, of a group and of a quote, after a declaration, and as
+a modifier. A value written as a later step on the success track is
+refused by the parser, which names the word the habit meant: `get` for a
+path and for a literal of a container, `tag` for a tag name, `apply` for
+code; after `!|` a value is the recovery the catch answers, and a path,
+which the habit wrote there to read a fact of the error, is refused as
+after `|`. A question mark after a segment of a path is refused, naming
+`query`. A quote whose code is a path alone is refused, the path given
+bare in its place, and a path followed by a word is refused naming the
+verb it meant, `/ne ""` naming `ne`. A tag name in the place of a
+declaration's name is refused.
 
 ```qlang
 > "{:a 1} | /a" | parse !| get /message
@@ -49,10 +53,14 @@ passes a failure by, and `!|`, which carries a failure and passes a
 value by [QSERR#catch]. A combinator is set off by whitespace on both
 sides, a line break counting as whitespace and an opening bracket or the
 start of the text standing for the space before it, so `|~`, `|~|`,
-`|~~` and `|~~|` written together open a comment or a doc. A combinator
-stands once between two steps; one written against its neighbour is
-refused with a message that names the space, and `|~` written against
-code names the word that runs code after a pipe, `| apply ~(…)`.
+`|~~` and `|~~|` written together open a comment or a doc. One
+combinator stands between two steps, and a pipe written before `!|`
+stands for the combinator after it; a pipe or a catch written after
+`!|` is refused, one written against its neighbour is refused with a
+message that names the space, and `|~` written against code names the
+word that runs code after a pipe, `| apply ~(…)`. A pipeline, a group
+and a quote may open with a combinator: a leading `|` adds no step, and
+a leading `!|` opens a step of the fail track.
 
 ```qlang
 > "[1] || count" | parse !| get /message
@@ -68,8 +76,11 @@ A line break is whitespace wherever whitespace stands, at the top level
 as inside brackets. A combinator joins steps, written at the end of a
 line or at the start of the next; the modifiers of a command and the
 elements of a literal run on across lines. A keyword that begins a line
-opens a declaration of its own, so the body before it ends there, while
-a tag name on a later line is the body of the declaration above.
+opens a declaration of its own, so the body before it ends there. The
+body of a name with a path, or of a bare name with its page, begun on a
+later line is a sentence: its steps run on, joined by `|`, to the next
+declaration; any other body is one step, and a tag name on a later line
+is the body of the declaration above.
 
 ```qlang
 > "[3 1 2] sort" | parse !| get /message
@@ -80,11 +91,11 @@ a tag name on a later line is the body of the declaration above.
 
 A comment, `|~| …` to the end of its line or `|~ … ~|`, which nests, is
 whitespace wherever whitespace stands: between steps, between the
-modifiers of a command, inside a literal and inside a quote. A comment
-carries no combinator, so a pipe is written beside it. A source of
-whitespace and comments alone is the empty pipeline, which answers the
-value it is handed and reads as the empty quote. Comments live beside
-the tree the parser reads, where the tools paint them.
+modifiers of a command, inside a literal and inside a quote. A pipe is
+written beside a comment. A source of whitespace and comments alone is
+the empty pipeline, which answers the value it is handed and reads as
+the empty quote. Comments live beside the tree the parser reads, where
+the tools paint them.
 
 ```qlang
 > 5 | |~ why ~| add 3
@@ -104,10 +115,11 @@ nests, are one literal, the doc. A declaration's page is the doc
 literals in its slot, between its name and its body, joined in the
 order they are written; a comment among them is whitespace. A doc
 written before a declaration is refused, naming the slot; a doc that
-opens a query is the doc value it is; a doc after a step is refused, a
-note inside a pipeline being a comment. Inside a doc, a span between backquotes
-is prose, as markdown reads it, and only a `~(…)` outside one, under
-the tags written before it, is a segment of code.
+opens a query is the doc value it is; a doc after a command is its next
+modifier, and one after a step that is no command is refused, a note
+inside a pipeline being a comment. Inside a doc, a span between
+backquotes is prose, as markdown reads it, and only a `~(…)` outside
+one, under the tags written before it, is a segment of code.
 
 ```qlang
 > :foo |~~ one ~~| |~ why ~| |~~ two ~~| 42 | ::foo | doc | content

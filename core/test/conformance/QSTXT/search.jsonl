@@ -7,7 +7,6 @@
 {"name":"empty-subject-not-contains-non-empty","query":"\"\" | contains \"x\"","expect":"false"}
 {"name":"case-sensitive","query":"\"Hello\" | contains \"hello\"","expect":"false"}
 {"name":"needle-equals-subject","query":"\"foo\" | contains \"foo\"","expect":"true"}
-{"name":"a-subject-that-is-no-string-is-refused-by-the-address","query":"42 | string/contains \"x\"","expect":"::string/contains/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(string/contains \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"a-needle-that-is-no-text-is-refused","query":"\"hi\" | contains 42","expect":"::string/contains/needle/NotRegexOrStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(contains 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"filter-vec-by-substring","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(contains \"al\")","expect":"[\"alice\" \"alex\"]"}
 {"name":"filter-by-path-and-contains","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(get /name | contains \"al\") | map /name","expect":"[\"alice\" \"alex\"]"}

@@ -13,14 +13,18 @@ after the ones before it and the recipe last: `on` names its subject's
 kinds, `takes` an input, `returns` its answer, `throws` a refusal,
 `holds` an invariant of an input or of the answer, `proves` a law,
 `carries` a fact of a refusal, and `impl` its recipe, code or a host's
-`::builtin{}`. A name of the signature is declared once, each written
-with its page. A function prints as its literal, the chain folded into a
-quote and its recipe after it, which the constructor of `::fn` reads
-back; one of no commands is its code. `apply` hands a function a vector
-of arguments, refused under `::fn/call/…` as a call of the function, and
-a quote or a path takes none, `::any/apply/args/NotTakenError`; `fill`
-writes the arguments into the head of its code, and `params` answers its
-inputs.
+`::builtin{}`. Each name is written with its page and declared once,
+an input's of one segment beside the names `answer` and `subject`, which
+the chain lays itself, `::fn/SignatureNotCommandsError` refusing one
+written otherwise; a refusal or an invariant written with a path stands
+under an input taken before it or under the answer,
+`::fn/NameUnderNoInputError` refusing one under no input. A function
+prints as its literal, the chain folded into a quote and its recipe after
+it, which the constructor of `::fn` reads back; one of no commands is its
+code. `apply` hands a function a vector of arguments, refused under
+`::fn/call/…` as a call of the function, and a quote or a path takes
+none, `::any/apply/args/NotTakenError`; `fill` writes the arguments into
+the head of its code, and `params` answers its inputs.
 
 ```qlang
 > ::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | print
@@ -61,8 +65,7 @@ under the invariant's name. Kinds written as a vector of one tag or of
 one set are the kinds of each element: the input holds a vector, or a
 set, of the value of its kind of each, a quote and a doc as they are, a
 value that is no vector refused as `…/NotVecError` and an element of
-none as `…/ElementNotNumberError` with its `:index`. A count is whole
-where it equals its floor.
+none as `…/ElementNotNumberError` with its `:index`.
 
 ```qlang
 > :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(5 | plus 2) ~(5 | plus "x" !| type) ~(5 | plus !| type) ~(5 | plus 1 2 !| type)]
@@ -91,12 +94,11 @@ of none refused under the answer's label; a word whose answer is
 
 A recipe runs in the scope its call opens: its inputs by their names
 and the args as `args`, the names its steps declare, and the tree, the
-words and the nodes of the root and of the query. A value a sentence
-names is no name there: a value a recipe needs is an input, and the
-places and invariants of the inputs read the args alone. A word calls
-itself by its name. A recipe written alone under a label is the function
-of no commands it is: it takes no object and hands its answer on as it
-is.
+words and the nodes of the root and of the query. A value a recipe needs
+is an input, and the places and invariants of the inputs read the args
+alone. A word calls itself by its name. A recipe written alone under a
+label is the function of no commands it is: it takes no object and
+hands its answer on as it is.
 
 ```qlang
 > :n 3 | :number/times ~(mul n) | 5 | times !| type
@@ -114,8 +116,12 @@ name, its page, its place in the payload and its kinds, `tells` a page
 of the kind on a name, `holds` an invariant of the value or of a field,
 `throws` a refusal, `carries` a fact, `proves` a law, and `impl
 ::builtin{}` the check a host hands a kind of the core. A name is
-declared once. A kind prints as its literal, which the constructor of
-`::kind` reads back.
+declared once, a field's and a page's of one segment beside `payload`
+and `construct`; a refusal or an invariant written with a path stands
+under a field read before it, and a law or a fact under a name declared
+before it, `NameUnderNoFieldError`, `LawUnderNoNameError` and
+`FactUnderNoNameError` refusing one under none. A kind prints as its
+literal, which the constructor of `::kind` reads back.
 
 ```qlang
 > ::kind | wraps |~~ The sizes. ~~| ::map | print
@@ -129,12 +135,12 @@ refused under the kind where it holds none, `…/PayloadNotMapError`, and
 where its kinds are of each element a payload that is no vector as
 `…/PayloadNotVecError` and an element of none with its `:index`. Each
 field reads its place of the payload, a place left out refused under the
-field as `NotGiven` and a value of none of its kinds under the field.
-The invariants hold of the value, each refused under its name, the
-value that broke it its `:actualValue`, and an invariant that answers an
-error hands it on. A field is no word: `get` reads its place. An
-invariant runs on the value under the label, so code in it that keeps
-the tag reads the payload first, `~(payload | eq (sort))`.
+field as `…/NotGivenError` and a value of none of its kinds under the
+field. The invariants hold of the value, each refused under its name,
+the value that broke it its `:actualValue`, and an invariant that
+answers an error hands it on. `get` reads a field's place. An invariant
+runs on the value under the label, so code in it that keeps the tag
+reads the payload first, `~(payload | eq (sort))`.
 
 ```qlang
 > :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | holds :TooWideError |~~ At most ten. ~~| ~(get /w | lte 10)) | get [~(::Box{:w 3} | type) ~(::Box{} !| type) ~(::Box{:w "x"} !| type) ~(::Box{:w 20} !| type)]
@@ -149,14 +155,15 @@ the tag reads the payload first, `~(payload | eq (sort))`.
 A kind declared under a name is a label: its words are functions named
 under it, its names stand in a namespace of its own, and its nodes lie
 under its address for `doc`, `manifest` and the tools, its laws for
-`laws`, its constructor `construct` where `impl` gives it the check of
-its host, a node no value answers as a word. A word of a literal,
-`::null`, is declared by the chain of a kind. A label declared by its
-page alone lays its tag over a payload as it is, as a kind of no
-commands does, and a tag a kind declared later checks a value laid
-before it. A word that keeps its subject's kind runs the constructors of
-its tags again, so an edit that breaks an invariant is refused. The tag
-of a name that holds a value is refused as `::construct/TagNotKindError`.
+`laws`, and its constructor `construct` where `impl` gives it the check
+of its host, which runs where its tag is laid, as a literal or by `tag`.
+A word of a literal, `::null`, is declared by the chain of a kind. A
+label declared by its page alone lays its tag over a payload as it is,
+as a kind of no commands does, and a tag a kind declared later checks a
+value laid before it. A word that keeps its subject's kind runs the
+constructors of its tags again, so an edit that breaks an invariant is
+refused. The tag of a name that holds a value is refused as
+`::construct/TagNotKindError`.
 
 ```qlang
 > :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(payload | eq (sort))) | ::Sorted[1 2 3] | reverse !| type
@@ -171,12 +178,12 @@ of a name that holds a value is refused as `::construct/TagNotKindError`.
 
 ## chain
 
-What a chain holds alone is written in the chain: a declaration that
-writes by name an invariant, a constructor, or under a word an input,
-its answer or its subject is refused where it stands as
+What a chain holds is written in the chain: a declaration that writes
+by name an invariant, a constructor, or under a word an input, its
+answer or its subject is refused where it stands as
 `::bind/WrittenOutsideItsChainError`. A page, a law and any other value
 a reader declares by name under a word or a label lie there for `doc`,
-`manifest` and `runLaws`, and change no call and no value.
+`manifest` and `runLaws`.
 
 ```qlang
 > :Positive ::holds~(gt 0) !| type

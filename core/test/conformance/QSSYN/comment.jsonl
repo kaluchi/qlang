@@ -6,10 +6,7 @@
 {"name":"block-plain-mid-pipeline","query":"5 | mul 2 |~ identity rationale ~| | add 1","expect":"11"}
 {"name":"a-comment-between-steps-is-whitespace","query":"[1 2 3]\n|~| this comment doesn't change pipeValue\n| count","expect":"3"}
 {"name":"interleaved-plain-between-doc-and-body","query":":foo |~~| doc\n|~ rationale ~| 42\n| ::foo | doc | content","expect":"\" doc\""}
-{"name":"interleaved-plain-between-two-docs","query":":foo |~~| doc one\n|~ separator ~|\n|~~| doc two\n42\n| ::foo | doc | content","expect":"\" doc one\\n doc two\""}
 {"name":"interleaved-plain-before-the-declaration","query":"|~ leading ~|\n:foo |~~| doc\n42\n| ::foo | doc | content","expect":"\" doc\""}
-{"name":"multiple-interleaved-plains-among-docs","query":":foo |~~| a\n|~ p1 ~|\n|~~| b\n|~ p2 ~|\n|~~| c\n42\n| ::foo | doc | content","expect":"\" a\\n b\\n c\""}
-{"name":"block-doc-then-plain-then-line-doc","query":":bar |~~ block doc ~~|\n|~ plain ~|\n|~~| line doc\n99\n| ::bar | doc | content","expect":"\" block doc \\n line doc\""}
 {"name":"consecutive-plain-block-comments-before-binding","query":"|~ one ~|\n|~ two ~|\n:foo 42\n| foo","expect":"42"}
 {"name":"inline-plain-comment-before-vec-element","query":"[|~ section ~| 1 2 3]","expect":"[1 2 3]"}
 {"name":"inline-plain-comment-between-vec-elements","query":"[1 |~ middle ~| 2 3]","expect":"[1 2 3]"}
@@ -47,4 +44,5 @@
 {"name":"a-comment-sets-off-the-modifiers-of-a-command","query":"5 | add |~ the addend ~| 1","expect":"6"}
 {"name":"a-line-break-inside-a-comment-ends-no-line","query":"5 | add |~ one\ntwo ~| 1","expect":"6"}
 {"name":"a-blank-source-is-the-empty-pipeline","query":"\"|~ x ~|\" | parse | eq ~()","expect":"true"}
-{"name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":":foo |~ why ~| |~~| the doc\n42\n| ::foo | doc | content","expect":"\" the doc\""}
+{"name":"with-line-comments","query":"|~| compute the sum\n| [1 2 3]\n  | sum |~| final reduction","expect":"6"}
+{"name":"quote-comment-leaves-no-step","query":"~(|~ note ~| count) | count","expect":"1"}

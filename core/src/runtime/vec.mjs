@@ -250,10 +250,10 @@ bindPrim('map/any', runs(['predicate'], (map, predicate) => firstVerdict(keyed(m
 // ── partitions ─────────────────────────────────────────────────
 
 // The keyword the key of `groupBy` or `indexBy` answers for an element,
-// the one `toKeyword` turns it into [D201], [D244], or the error it
+// the one `toKeyword` turns it into [D135], [D244], or the error it
 // answered; without a key the element is its own [D135]. Two values of
 // the key that file under one keyword meet, `1` and `"1"` under `:"1"`,
-// and the second is refused [D228].
+// and the second is refused [D135].
 async function keywordOf(key, element, index, KeyNotKeywordError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return answer;

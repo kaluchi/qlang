@@ -14,7 +14,7 @@ import { parse } from '../parse.mjs';
 // keywordFiledFor(value) → the keyword a value files under as a key, or
 // null for a value no key names: a keyword itself, a string or a number
 // by its text, a boolean or null by its literal and a tag name by its
-// name, as `groupBy` and `indexBy` file a key [D201].
+// name, as `groupBy` and `indexBy` file a key [D135].
 export function keywordFiledFor(value) {
   if (isKeyword(value)) return value;
   if (isString(value) || isNumber(value) || isBoolean(value) || value === NULL) return keyword(String(value));

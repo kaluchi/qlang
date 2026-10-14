@@ -62,7 +62,7 @@ function queryReadsInput(queryText) {
   return readsItsSubject(ast);
 }
 
-export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env = process.env) {
+export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env) {
   const stdoutWrite = (text) => stdoutStream.write(text);
   const stderrWrite = (text) => stderrStream.write(text);
 
@@ -81,7 +81,11 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return 2;
   }
   if (cliInvocation.kind === 'repl') {
-    return await runRepl(stdinStream, stdoutWrite, stderrWrite, { budget: cliInvocation.budget, initialQuery: queryAsWritten(cliInvocation.initialQuery, env) });
+    return await runRepl(stdinStream, stdoutWrite, stderrWrite, {
+      budget: cliInvocation.budget,
+      initialQuery: queryAsWritten(cliInvocation.initialQuery, env),
+      width: stdoutStream
+    });
   }
 
   // A query that reads no subject, `[1 2] | sum` or `::vec | doc`, runs

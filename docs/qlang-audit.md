@@ -14,8 +14,8 @@ chapters tell, `::qlang | doc`; and the chapters this document carried
 on the core, on the hypertext and on how the project got here stand as
 written in `docs/archive/the-audit-chapters.md`. It was first written in
 September 2026, and each version since holds the text against the tree
-the repairs of the one before left. This, the sixteenth, holds it
-against commit `f0db2ec3`, its baseline: a scar the tree no longer shows
+the repairs of the one before left. This, the seventeenth, holds it
+against commit `8ce2b5be`, its baseline: a scar the tree no longer shows
 has left the document, what remains of a scar is stated as it stands,
 the route starts from the baseline, and every probe answers as the tree
 answered on the day this version was written.
@@ -305,7 +305,7 @@ every session begins from it. This document is where it lives, and the
 other conditions are reachable because this one holds.
 
 Seventh, the revision as a whole deletes more than it adds. Measured
-against the baseline of the version at hand, commit `f0db2ec3` for this
+against the baseline of the version at hand, commit `8ce2b5be` for this
 one, the diff of the work ahead is negative in the core sources, in the
 documents, and in the tests; the September 2026 master, commit
 `f5e8ec8`, stays the origin the history measures from. The catalog
@@ -987,7 +987,7 @@ to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `f0db2ec3`, and the finish
+The start is the tree of the baseline, commit `8ce2b5be`, and the finish
 is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
@@ -999,7 +999,8 @@ the path as a value met theirs, the first work of the route [D248], and
 the quote as data and the function built by commands met theirs
 [D251], and the kind built by commands and the one spelling of the
 roles of a word and a kind theirs [D252], [D253], and the closed
-literal theirs [D279], and the lane of held code theirs [D278]; a target shows the rule of the record that left it and holds the
+literal theirs [D279], and the lane of held code theirs [D278],
+and a word of a noun that serves its own tag alone theirs [D275]; a target shows the rule of the record that left it and holds the
 answer the tree gives today [D91], and every decision below writes its
 targets before its work:
 
@@ -1097,8 +1098,7 @@ collisions of a host's names [D269]. The function and the kind built by
 commands leave second spellings the next branch deletes: the objects of
 each command in a table of the runtime beside the words of the commands
 [D272], the roles of a declaration the tools read from its form [D273],
-two forms of a place read by their form [D274], and the refusal of
-another noun's tag declared by hand in the builders [D275]; and the word
+and two forms of a place read by their form [D274]; and the word
 for what a command takes is chosen once [D276]. Beside both, the
 editor's grammar is generated or reduced, and the
 screen of the work, whose first version `npm run desk` prints [D225],

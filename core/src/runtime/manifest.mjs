@@ -27,7 +27,7 @@ bindStateReader('any/laws', (subject, state) => {
 
 // A law runs as `apply` runs held code, one frame below the step, a law of
 // a name the root declares in a lane over the root alone, as a word of the
-// root runs in the root's scope [D278], and passes when it answers true
+// root runs in the root's scope [QSQUO#held], and passes when it answers true
 // [D14]; its result names the law by its address and
 // the claim it proves by its page [D123], and holds the error it
 // answered at rest, as `!|` grounds it [D13], [D123].

@@ -1,16 +1,4 @@
 {"decision":"D248","name":"a-query-reads-by-get-and-its-words-take-a-path","query":"{:data {:users [{:name \"Ann\" :age 30 :active true} {:name \"Bo\" :age 15 :active false} {:name \"Cy\" :age 20 :active true}]}} | get /data/users | filter /active | sort /age | map /name","expect":"[\"Cy\" \"Ann\"]"}
-{"decision":"D248","name":"a-path-written-as-a-later-step-is-refused","query":"\"{:a 1} | /a\" | parse !| type","expect":"::quote/ParseError"}
-{"decision":"D248","name":"a-literal-written-as-a-later-step-is-refused","query":"\"5 | [1 2]\" | parse !| type","expect":"::quote/ParseError"}
-{"decision":"D248","name":"a-tag-written-as-a-later-step-is-refused","query":"\"[7 8] | ::Inner\" | parse !| type","expect":"::quote/ParseError"}
-{"decision":"D248","name":"a-quote-written-as-a-later-step-is-refused","query":"\"5 | ~(add 1)\" | parse !| type","expect":"::quote/ParseError"}
-{"decision":"D248","name":"a-doc-written-as-a-later-step-is-refused","query":"\"5 | |~~ note ~~|\" | parse !| type","expect":"::quote/ParseError"}
-{"decision":"D248","name":"the-quote-of-a-lone-path-is-refused","query":"\"[{:n 1}] | map ~(/n)\" | parse !| type","expect":"::quote/ParseError"}
-{"decision":"D248","name":"the-short-quote-of-a-path-is-refused","query":"\"[{:n 1}] | map ~/n\" | parse !| type","expect":"::quote/ParseError"}
-{"decision":"D248","name":"ok-asks-whether-the-step-before-stood","query":"get [~(5 | ok !| false) ~(!{:k 1} | raise | ok !| false)]","expect":"[true false]"}
 {"decision":"D251","name":"a-place-is-a-path","query":":number/plus (::fn | takes :by |~~ The by. ~~| /0 | impl ~(add by)) | 5 | plus 2","expect":"7"}
 {"decision":"D251","name":"a-place-reads-softly-by-query","query":":number/plus (::fn | takes :by |~~ The by. ~~| ~(query /0 1) | impl ~(add by)) | 5 | plus","expect":"6"}
-{"decision":"D248","name":"a-path-written-after-the-catch-is-refused","query":"\"!{:k 1} | raise !| /k\" | parse !| type","expect":"::quote/ParseError"}
-{"decision":"D248","name":"the-catch-reads-a-fact-by-get","query":"!{:k 1} | raise !| get /k","expect":"1"}
-{"decision":"D134","name":"a-path-before-a-word-names-the-verb","query":"\"[\\\"x\\\" \\\"\\\"] | filter ~(/ne \\\"\\\")\" | parse !| get /message","expect":"\"`/ne` is a path, a value; a verb is called by its name alone, `ne …`\""}
 {"decision":"D132","name":"trim-cuts-the-whitespace-at-both-ends","query":"\"  db_host \n\" | trim","expect":"\"db_host\""}
-{"decision":"D132","name":"a-modifier-reads-the-subject-of-its-own-step","query":"{:qty 2 :price 3} | get /qty | mul (get /price) !| type","expect":"::path/SubjectHasNoPartsError"}

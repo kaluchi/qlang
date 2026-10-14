@@ -41,10 +41,10 @@
 //   'whitespace'  runs of whitespace between meaningful tokens, and
 //                 the source past where its parse stopped
 //
-// A source that does not parse paints as far as the parser reads it: a
-// source cut short, as a line being typed is, through the closers that
-// complete it [D125], and one the parser refuses up to the place of the
-// refusal, the rest as whitespace.
+// A source that does not parse paints as far as the parser reads it: a source
+// cut short, as a line being typed is, through the closers that complete it
+// [QSSYN#refusal], and one the parser refuses up to the place of the refusal,
+// the rest as whitespace.
 
 import { closersCompleting, parse } from './parse.mjs';
 import { walkAst } from './walk.mjs';
@@ -88,7 +88,8 @@ function readOf(src) {
 // emit nothing here — their structural punctuation shows up via
 // the gap-interleaving pass below.
 function collectSemanticSpans(src, ast, builtinNames) {
-  // A plain comment is whitespace the parser keeps on the side [D81].
+  // A plain comment is whitespace the parser keeps on the side
+  // [QSSYN#comment].
   const spans = ast.comments.map(comment =>
     ({ start: comment.location.start.offset, end: comment.location.end.offset, kind: 'comment' }));
 

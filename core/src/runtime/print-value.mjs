@@ -1,6 +1,6 @@
-// The printer of the core: the text that reads back as a value [D30], a
-// part a kind whose `print` is declared under it prints its own way taken from that kind before
-// the forms of the core write the rest [D96].
+// The printer of the core: the text that reads back as a value [D30], a part a
+// kind whose `print` is declared under it prints its own way taken from that
+// kind before the forms of the core write the rest [D96].
 
 import { printQuoteSource, docText } from '../quote.mjs';
 import { patternLiteral } from '../pattern.mjs';
@@ -82,8 +82,8 @@ function printQuote(quote) {
 const printedByNoKind = () => undefined;
 
 // printValue(v, indent?, printedOf?) → the text that reads back as `v`;
-// `printedOf(part)` answers the print a kind declared under it gives a part, or
-// undefined where the forms of the core write it, and a print of several
+// `printedOf(part)` answers the print a kind declared under it gives a part,
+// or undefined where the forms of the core write it, and a print of several
 // lines keeps the indent of the place it stands in.
 export function printValue(v, indent = 0, printedOf = printedByNoKind) {
   const printed = printedOf(v);
@@ -107,11 +107,11 @@ function printListLike(open, elements, indent, printedOf) {
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// A failure writes its error at rest, as `!|` grounds it: the tag of its
-// site before the bang, none for the kind of errors [D64], its facts and
-// the path it flew, `:trail []` for one that flew no step, so its print
-// reads back as the error at rest, a value that stands in a vector or a
-// map; the answer of a host says above it that it was raised [D13].
+// A failure writes its error at rest, as `!|` grounds it: the tag of its site
+// before the bang, none for the kind of errors [QSERR#rest], its facts and the
+// path it flew, `:trail []` for one that flew no step, so its print reads back
+// as the error at rest, a value that stands in a vector or a map; the answer
+// of a host says above it that it was raised [D13].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   const facts = e.descriptor.has('trail') ? e.descriptor : new Map(e.descriptor).set('trail', NO_PATH);

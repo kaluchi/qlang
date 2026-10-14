@@ -297,7 +297,7 @@ describe('main — error paths', () => {
 
   it('encodes a fail-track error value as data on stdout, exit 0', async () => {
     // A failure is an answer and travels on the channel of every answer
-    // with exit 0 [D7], [D103]; a nonzero exit is kept for what is no
+    // with exit 0 [D7]; a nonzero exit is kept for what is no
     // answer, a defect of the runtime or a call with no query.
     const s = captureStreams();
     const exitCode = await main(

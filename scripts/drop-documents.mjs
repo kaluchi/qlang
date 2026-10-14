@@ -46,7 +46,7 @@ for (const path of paths) {
       const from = /^## /.test(lines[link - 2] ?? '') ? link - 2 : link;
       let to = link + 1;
       while (to < lines.length && !/^## /.test(lines[to]) && !/^\[\d{4}-\d{2}-\d{2}/.test(lines[to])) to += 1;
-      const open = lines.slice(from, to).filter(line => /\bopen\b/i.test(line));
+      const open = lines.slice(from, to).filter(line => /\b[Oo]pen[.,;]/.test(line));
       if (open.length > 0) console.log(`  ${ledger}, open under ${name}, to carry at ${commit}:\n${open.map(line => `    ${line}`).join('\n')}`);
       lines.splice(from, to - from);
       return lines.join('\n').replace(/\n{3,}/g, '\n\n');

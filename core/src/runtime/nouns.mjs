@@ -43,7 +43,7 @@ export function nodeOf(env, tagName) {
 
 // A value a reader named is withheld from the lane of held code, and a
 // read of its name there is refused under it, so no word, no value of the
-// root and no tag of identity answers for it [D278]: a step reads the
+// root and no tag of identity answers for it [QSQUO#held]: a step reads the
 // frame's declaration of a name before the root's and refuses it, while a
 // tag, the noun of a declaration among them, reads a label of the root
 // before any name of the reader, and the label stays.
@@ -339,12 +339,12 @@ export function placesOfSelectors(selectors) {
 }
 
 // The refusals the runtime raises by rule under a word, each named by the
-// address of what refused [D179], [D251]: a subject the walk of whose tags reaches
-// no value of the word's label, args of more values than its inputs read
-// places, an input the call leaves out where its place reads one, and an
-// answer that reaches none of the kinds `returns` names; and under a
-// kind, a payload of none of its kinds, or an element of none,
-// named as the catalog names the payload's refusals [D252].
+// address of what refused [D179], [D251]: a subject the walk of whose tags
+// reaches no value of the word's label, args of more values than its inputs
+// read places, an input the call leaves out where its place reads one, and an
+// answer that reaches none of the kinds `returns` names; and under a kind, a
+// payload of none of its kinds, or an element of none, named as the catalog
+// names the payload's refusals [D252].
 export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kindsWord(kinds)}Error`;
 export const argsBeyondInputsAddress = address => `${address}/ArgsBeyondInputsError`;
 export const notGivenAddress = holderAddress => `${holderAddress}/NotGivenError`;

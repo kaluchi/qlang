@@ -1,0 +1,51 @@
+{"name":"line-plain-then-step","query":"|~| pre-step note\n| 42","expect":"42"}
+{"name":"line-plain-mid-pipeline-shapes-result","query":"5 |~| inline note\n| add 3","expect":"8"}
+{"name":"block-plain-then-step","query":"|~ block note ~| 42","expect":"42"}
+{"name":"a-block-comment-stands-between-a-pipe-and-its-step","query":"5 | |~ rationale ~| add 3","expect":"8"}
+{"name":"line-plain-mid-pipeline","query":"5 | mul 2\n|~| this comment is identity\n| add 1","expect":"11"}
+{"name":"block-plain-mid-pipeline","query":"5 | mul 2 |~ identity rationale ~| | add 1","expect":"11"}
+{"name":"a-comment-between-steps-is-whitespace","query":"[1 2 3]\n|~| this comment doesn't change pipeValue\n| count","expect":"3"}
+{"name":"interleaved-plain-between-doc-and-body","query":":foo |~~| doc\n|~ rationale ~| 42\n| ::foo | doc | content","expect":"\" doc\""}
+{"name":"interleaved-plain-between-two-docs","query":":foo |~~| doc one\n|~ separator ~|\n|~~| doc two\n42\n| ::foo | doc | content","expect":"\" doc one\\n doc two\""}
+{"name":"interleaved-plain-before-the-declaration","query":"|~ leading ~|\n:foo |~~| doc\n42\n| ::foo | doc | content","expect":"\" doc\""}
+{"name":"multiple-interleaved-plains-among-docs","query":":foo |~~| a\n|~ p1 ~|\n|~~| b\n|~ p2 ~|\n|~~| c\n42\n| ::foo | doc | content","expect":"\" a\\n b\\n c\""}
+{"name":"block-doc-then-plain-then-line-doc","query":":bar |~~ block doc ~~|\n|~ plain ~|\n|~~| line doc\n99\n| ::bar | doc | content","expect":"\" block doc \\n line doc\""}
+{"name":"consecutive-plain-block-comments-before-binding","query":"|~ one ~|\n|~ two ~|\n:foo 42\n| foo","expect":"42"}
+{"name":"inline-plain-comment-before-vec-element","query":"[|~ section ~| 1 2 3]","expect":"[1 2 3]"}
+{"name":"inline-plain-comment-between-vec-elements","query":"[1 |~ middle ~| 2 3]","expect":"[1 2 3]"}
+{"name":"inline-plain-comment-at-end-of-vec","query":"[1 2 3 |~ trailing ~|]","expect":"[1 2 3]"}
+{"name":"inline-plain-comment-in-empty-vec","query":"[|~ only ~|]","expect":"[]"}
+{"name":"inline-plain-comment-before-set-element","query":"#[|~ header ~| :a :b :c]","expect":"#[:a :b :c]"}
+{"name":"inline-plain-comment-in-empty-set","query":"#[|~ only ~|]","expect":"#[]"}
+{"name":"inline-plain-comment-before-map-entry","query":"{|~ header ~| :a 1 :b 2}","expect":"{:a 1 :b 2}"}
+{"name":"inline-plain-comment-between-map-entries","query":"{:a 1 |~ divider ~| :b 2 |~ divider ~| :c 3}","expect":"{:a 1 :b 2 :c 3}"}
+{"name":"inline-plain-comment-in-empty-map","query":"{|~ only ~|}","expect":"{}"}
+{"name":"inline-line-plain-comment-between-map-entries","query":"{:a 1\n|~| section divider\n:b 2}","expect":"{:a 1 :b 2}"}
+{"name":"inline-plain-divider-before-entry","query":"{|~ section ~| :k 1} | get /k","expect":"1"}
+{"name":"inline-plain-divider-after-entry","query":"{:k 1 |~ note ~|} | get /k","expect":"1"}
+{"name":"plain-comment-around-nested-map-entry","query":":wrap |~~ module doc ~~| {:a {|~ inner section ~| :x 1}}\n| ::wrap | doc | content","expect":"\" module doc \""}
+{"name":"plain-block-nests-plain-block-pair","query":"|~ outer |~ inner ~| more ~|\n| 42","expect":"42"}
+{"name":"plain-block-nests-three-deep","query":"|~ A |~ B |~ C ~| D ~| E ~|\n| 1","expect":"1"}
+{"name":"plain-block-with-bare-doc-close-marker-as-content","query":"|~ doc-close marker ~~| mentioned here ~|\n| 99","expect":"99"}
+{"name":"plain-block-mentions-line-plain-marker","query":"|~ holds a |~| line marker mention here ~|\n| 7","expect":"7"}
+{"name":"plain-block-mentions-line-doc-marker","query":"|~ holds a |~~| line-doc marker mention here ~|\n| 7","expect":"7"}
+{"name":"plain-block-mentions-doc-pair","query":"|~ mentions |~~ inner doc ~~| inline ~|\n| 0","expect":"0"}
+{"name":"plain-block-content-verbatim-via-quote-on-bind","query":"|~ user-error tag `::AssertionFailedError` raised by guards — a doc alone, `::Tag |~~ ~~|`, declares a label the axes reach ~|\n:foo 42\n| foo","expect":"42"}
+{"name":"plain-block-preserves-quote-mention-with-nested-plain","query":"|~ wraps ~( inner |~ q ~| pipe ) closing ~|\n| 1","expect":"1"}
+{"name":"line-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | raise |~| note\n | count !| get /trail/-1/skipped","expect":"~(count)"}
+{"name":"block-plain-comment-stays-out-of-trail","query":"!{:kind :oops} | raise | |~ note ~| count !| get /trail/-1/skipped","expect":"~(count)"}
+{"name":"a-skipped-step-past-a-comment-replays-through-apply","query":"!{:kind :oops} | raise |~| note\n | count !| :t (get /trail/-1/skipped) | (42 | apply t) !| type","expect":"::call/KindAnswersNoVerbError"}
+{"name":"a-source-of-comments-alone-is-the-blank-pipeline","query":"|~ only a note ~|","expect":"null"}
+{"name":"a-comment-at-the-head-keeps-a-leading-catch","query":"~(!| |~ note ~| get /kind) | first | type","expect":"::fail"}
+{"name":"comment-head-hands-the-head-to-the-first-step","query":"42 | apply ~(|~ note ~| type)","expect":"::number"}
+{"name":"comment-head-of-a-group","query":"[1 2] | (|~ note ~| map ~(add 1))","expect":"[2 3]"}
+{"name":"a-comment-at-the-head-before-a-catch-keeps-it","query":"~(|~ note ~| !| get /kind) | first | type","expect":"::fail"}
+{"name":"comment-head-explicit-pipe-rides-the-pipe","query":"~(|~ note ~| | type) | first | type","expect":"::call"}
+{"name":"line-comment-head-of-a-group","query":"[1 2] | (|~| note\nmap ~(add 1))","expect":"[2 3]"}
+{"name":"comment-mid-pipeline","query":"[1 2] |~ note ~| | map ~(add 1)","expect":"[2 3]"}
+{"name":"comment-head-keeps-leading-pipe","query":"~(| |~ note ~| count) | first | type","expect":"::call"}
+{"name":"comment-head-without-leading-combinator-rides-pipe","query":"~(|~ note ~| count) | first | type","expect":"::call"}
+{"name":"a-comment-sets-off-the-modifiers-of-a-command","query":"5 | add |~ the addend ~| 1","expect":"6"}
+{"name":"a-line-break-inside-a-comment-ends-no-line","query":"5 | add |~ one\ntwo ~| 1","expect":"6"}
+{"name":"a-blank-source-is-the-empty-pipeline","query":"\"|~ x ~|\" | parse | eq ~()","expect":"true"}
+{"name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":":foo |~ why ~| |~~| the doc\n42\n| ::foo | doc | content","expect":"\" the doc\""}

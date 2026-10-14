@@ -1,0 +1,43 @@
+{"name":"a-kind-in-an-error-literal-is-a-fact","query":"!{:kind ::Foo} | raise !| get [~(type) /kind]","expect":"[::error ::Foo]"}
+{"name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{:kind :oops :message \"boom\"}"}
+{"name":"error-lit-empty","query":"!{}","expect":"!{}"}
+{"name":"the-step-of-an-error-literal-maps-as-the-map-of-its-fields","query":"~(!{:kind :oops :trail 5}) | map ~count","expect":"[2]"}
+{"name":"a-tagged-error-literal-that-writes-its-path-resumes-it-when-raised","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| get /trail | map ~(get [~(get /step | parse) ~(get /skipped | parse)])","expect":"[[\"pre\" \"\"]]"}
+{"name":"sort-ranks-an-error-at-rest","query":"[2 ::error{:k 1} 1] | sort","expect":"[1 2 ::error{:k 1}]"}
+{"name":"an-error-literal-under-the-tag-of-a-kind-answers-the-refusal-of-the-kind","query":"::number!{:a 1} !| type","expect":"::number/PayloadNotNumberError"}
+{"name":"the-error-literal-under-the-tag-of-a-kind-opens-to-a-value-that-prints","query":"::number!{:a 1} !| it | print | startsWith \"::number/PayloadNotNumberError!{\"","expect":"true"}
+{"name":"the-refusal-of-the-kind-holds-the-facts-it-refused","query":"::number!{:a 1} !| get /actualValue","expect":"!{:a 1}"}
+{"name":"an-error-literal-under-the-tag-of-a-kind-in-a-vector-holds-the-refusal","query":"[::number!{:a 1}] | first !| type","expect":"::number/PayloadNotNumberError"}
+{"name":"an-error-literal-under-the-tag-of-vectors-answers-their-refusal","query":"::vec!{:a 1} !| type","expect":"::vec/PayloadNotVecError"}
+{"name":"the-error-literal-under-the-tag-of-maps-is-refused-by-their-label","query":"::map!{:a 1} !| get [~(type) /actualType]","expect":"[::map/PayloadNotMapError ::error]"}
+{"name":"an-error-literal-under-a-tag-no-node-answers-keeps-the-tag","query":"::Oops!{:a 1} | raise !| type","expect":"::Oops"}
+{"name":"an-error-literal-under-a-label-meets-the-label-s-invariants","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ::Box!{:a 1} !| type","expect":"::Box/k"}
+{"name":"an-error-literal-under-a-label-whose-invariants-hold-keeps-the-tag","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ::Box!{:a 9} | raise !| type","expect":"::Box"}
+{"name":"an-error-literal-under-the-address-of-a-refusal-keeps-it","query":"::number/add/SubjectNotNumberError!{:actualType ::string} | raise !| type","expect":"::number/add/SubjectNotNumberError"}
+{"name":"a-doc-s-quote-under-a-tag-that-takes-no-quote-refuses-the-doc","query":"|~~ see ::number~(~(x)) ~~| !| get [~(type) /actualType]","expect":"[::number/PayloadNotNumberError ::quote]"}
+{"name":"the-refusal-of-a-doc-s-quote-opens-to-a-value-that-prints","query":"|~~ see ::number~(~(x)) ~~| !| it | print | startsWith \"::number/PayloadNotNumberError!{\"","expect":"true"}
+{"name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| type","expect":"::map/PayloadNotMapError"}
+{"name":"a-doc-s-quote-under-the-tag-of-vectors-is-refused-by-their-label","query":"|~~ see ::vec~(::vec | doc) ~~| !| type","expect":"::vec/PayloadNotVecError"}
+{"name":"a-doc-s-quote-under-a-role-reads-under-it","query":"|~~ see ::link~(::vec | doc) ~~| | segments | get /1 | type","expect":"::link"}
+{"name":"a-quote-holds-a-doc-under-the-tag-of-a-kind-as-written","query":"~(|~~ see ::number~(~(x)) ~~|) | print","expect":"\"~(|~~ see ::number~(~(x)) ~~|)\""}
+{"name":"a-doc-a-quote-holds-writes-its-text-as-written","query":"~(|~~ see ::vec~(x) ~~|) | first | content","expect":"\" see ::vec~(x) \""}
+{"name":"an-error-at-rest-a-quote-holds-under-the-tag-of-a-kind-raised-is-caught-by-the-refusal-of-the-kind","query":"~(::number!{:a 1}) | first | raise !| it !| get [~(type) /actualType]","expect":"[::number/PayloadNotNumberError ::error]"}
+{"name":"a-doc-s-quote-under-a-label-whose-invariant-refuses-the-quote-refuses-the-doc","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| type","expect":"::Role/k"}
+{"name":"a-doc-s-quote-under-a-label-whose-invariant-holds-takes-its-role","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 0)) | |~~ see ::Role~(x) ~~| | segments | get /1 | type","expect":"::Role"}
+{"name":"an-error-at-rest-a-quote-holds-under-a-label-raised-is-caught-by-the-refusal-of-its-invariant","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it !| type","expect":"::Box/k"}
+{"name":"an-error-at-rest-prints-its-facts-as-it-holds-them","query":"::error{:a 1} | print","expect":"\"!{:a 1}\""}
+{"name":"an-error-at-rest-in-a-container-prints-as-it-is","query":"[::error{:a 1}] | print","expect":"\"[!{:a 1}]\""}
+{"name":"an-error-at-rest-holds-its-facts-alone","query":"::error{:a 1} | keys","expect":"#[:a]"}
+{"name":"a-read-of-an-error-at-rest-raises-nothing","query":"[::error{:a 1}] | get /0 | get /a","expect":"1"}
+{"name":"the-step-of-an-error-literal-is-the-error-at-rest-it-spells","query":"~(!{:a 1}) | first","expect":"::error{:a 1}"}
+{"name":"the-bang-writes-an-error-at-rest-a-container-holds","query":"[!{:a 1}] | get /0","expect":"!{:a 1}"}
+{"name":"an-error-at-rest-a-container-holds-reads-its-facts","query":"[!{:a 1}] | get /0 | get /a","expect":"1"}
+{"name":"the-bang-is-the-literal-of-the-kind-of-errors","query":"!{:a 1} | eq ::error{:a 1}","expect":"true"}
+{"name":"the-tag-before-the-bang-is-the-tag-over-the-error","query":"::Oops!{:a 1} | eq ::Oops::error{:a 1}","expect":"true"}
+{"name":"an-error-at-rest-prints-with-its-bang","query":"::Oops!{:a 1} | print","expect":"\"::Oops!{:a 1}\""}
+{"name":"a-path-reads-beneath-the-tags-stacked-over-a-map","query":"::Box::Crate{:a 1} | get /a","expect":"1"}
+{"name":"an-error-value-is-no-raised-error","query":"::error{:k 1} | count","expect":"1"}
+{"name":"the-kind-of-a-bare-error-is-error","query":"!{} | raise !| type","expect":"::error"}
+{"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true"}
+{"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first","expect":"!{:k 1}"}
+{"name":"the-step-of-a-tagged-error-literal-is-the-error-at-rest-it-spells","query":"~(::Foo!{:k 1}) | first | get [~(type) /k]","expect":"[::Foo 1]"}

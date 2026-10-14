@@ -36,7 +36,8 @@ found through the tag, never in the value.
 ## number
 
 A number is a finite double, written as JSON writes one: an integer, a
-decimal, a sign, an exponent, `1e10`, `2.5e-3`, `1.5E+6`.
+decimal, a sign, an exponent, `1e10`, `2.5e-3`, `1.5E+6`. A literal
+past the doubles, `1e400`, is refused by the parser.
 
 ```qlang
 > -2.5e3

@@ -8,3 +8,4 @@
 {"name":"a-declaration-names-a-keyword","query":":status :active | env | get /status | get /value","expect":":active"}
 {"name":"a-declaration-that-computes-begins-the-body","query":":vec/total ~(:n (count) | sum | add n) | [1 2 3] | total","expect":"9"}
 {"name":"a-template-of-get-begins-the-body","query":":vec/m ~(:opts get {:n ~(count)} | opts) | [1 2] | m","expect":"{:n 2}"}
+{"name":"a-tag-in-the-place-of-a-name-declares-nothing","query":"\"::Box [] | 1\" | parse !| type","expect":"::quote/ParseError"}

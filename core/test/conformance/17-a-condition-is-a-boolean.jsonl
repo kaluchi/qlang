@@ -20,7 +20,6 @@
 {"decision":"D14","name":"not-empty-string-is-refused","query":"\"\" | not !| type","expect":"::boolean/not/SubjectNotBooleanError"}
 {"decision":"D165","name":"filter-with-and","query":"[{:active true :age 25} {:active true :age 15} {:active false :age 30}] | filter ~(allOf (get /active) (get /age | gte 18))","expect":"[{:active true :age 25}]"}
 {"decision":"D14","name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| get [~(type) /index /actualType]","expect":"[::vec/filter/ConditionNotBooleanError 0 ::number]"}
-{"decision":"D46","name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| get /key","expect":":b"}
 {"decision":"D14","name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(it) !| get [~(type) /index]","expect":"[::vec/every/ConditionNotBooleanError 1]"}
 {"decision":"D14","name":"every-stops-at-the-first-false","query":"[false 1] | every ~(it)","expect":"false"}
 {"decision":"D14","name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(it) !| get [~(type) /index]","expect":"[::vec/any/ConditionNotBooleanError 1]"}
@@ -149,5 +148,4 @@
 {"decision":"D251","name":"a-clause-of-another-kind-names-its-index","query":"5 | cond true ~(\"yes\") !| get [~(type) /index /actualType]","expect":"[::any/cond/clauses/ElementNotPathOrQuoteError 0 ::boolean]"}
 {"decision":"D133","name":"an-alternative-that-is-no-quote-answers-itself","query":"{:a 1} | coalesce /b (get /a)","expect":"1"}
 {"decision":"D67","name":"a-verb-in-a-rest-of-code-runs-as-code","query":"{:a 1} | coalesce /a","expect":"1"}
-{"decision":"D13","name":"a-condition-that-answers-an-error-answers-the-call","query":"{} | if (get /missing) ~(1) ~(2) !| type","expect":"::path/KeyNotInMapError"}
 {"decision":"D251","name":"if-refuses-a-missing-branch","query":"true | if true ~(1) !| type","expect":"::any/if/else/NotGivenError"}

@@ -223,24 +223,3 @@ The tree answers by the commit that keeps this review.
 16. The consumers spelled the language again. Answered: the hover of a path reads `::path | doc`, and the editor's grammar reads a name in any script, `:данные` among them; the grammar written by hand stays the scar the route names.
 
 The tree answers by the commits that keep this review.
-
-## 2026-10-14 · the names a held quote reads
-
-[2026-10-14-the-names-a-held-quote-reads.md](2026-10-14-the-names-a-held-quote-reads.md), at 19eeeaa9.
-
-1. The mark of the step was a scope a copy of the quote carried, against the maintainer's word on a hidden env in a quote. Answered by acbef9d9 and f091cdf3: a call keeps the origin of each quote its objects hold for the whole of its run, the nearest call first, and the quote stays the value its print shows; the probe still answers apart, the object written in the step against the value of a name, a fact of the call as at the reader's own step. The origin held by an input alone, which the review's repair leads to, was checked by a second model, which found every road but the input's name lost, and D278 sets it aside; the trade needs no word of the maintainer, since the call's fact keeps both his word on the quote and D200.
-2. The copy dropped the tree the parser read. Answered by f091cdf3: no copy is made, a refusal inside a quote a step hands a word points into the source of the query, held by a test in `errors.test.mjs`, and the review's query runs at the master's time.
-3. One fact spelled twice and clauses no case held. Answered by 7162be64, the scope of a recipe and the lane read by `isNodeOrLabel` and the guard of a record gone, and by f091cdf3, where `markedIn`, its walk, `marks` and the frozen copy left with the copy; each clause the new code adds was cut in a worktree of the session's own and failed a case the runner names, the road of `open` held by a case 3f1d4096 wrote, and the clauses no case reached, which the coverage of the gate and the cuts named, left in dabb4e2d and 3f1d4096.
-4. Four roads read a withheld value without its refusal. Answered by 839f63a9 and 7162be64 for a tag, an axis and the noun of a declaration, by cbff5805 and 279f8781 for a name withheld as the code of a word and a quote that applies itself by its name, and by acbef9d9, which names a quote a group computes held, held by `a-quote-a-group-computes-is-held`.
-5. The lane withheld the reader's values from code the root and a word hold. Answered by acbef9d9 and f091cdf3: held code runs in the lane of its step's own scope, a word of the host that reads the tree of the query keeping its own scope beside it, and a law of the root runs over the root, the three probes cases of D278.
-6. D251 said two equal quotes answer alike wherever they run, and two cases named a replaced rule. Answered by 42e74021 and 167884c9.
-7. Comments said what the tree does not do, and a line ran past its page. Answered by f091cdf3 for the evaluator, the state and `open`, and by 790d3da5 for the page of the vector.
-8. The two codes had no page, and the replay of a trail was promised whole. Answered by 42e74021: the chapter of code tells them with its laws, the pages of `open`, `::law`, `map` and `apply` link it, a law holds that a law reads no value of the reader, and the steps a trail skipped run again as held code runs, held by `:qlang/errors/runsTheSkippedStepsAgain`; 790d3da5 corrected alone on the page of `map`.
-9. Laws and cases repeated each other. Answered by 134cb5ea and 42e74021, the law under the refusal's address kept; cbff5805 holds the quote that applies itself by its name.
-10. The core grew and the branch named nothing the next deletes. Answered: the second spellings left (7162be64, f091cdf3), and the merge names what the lane leaves to ask, whether the tree of the query has a reader left beside the words of the host that read it as data.
-11. Words of another paradigm. Answered by 134cb5ea; `AUTHORS` left with the copy (f091cdf3), and the grammar's atoms hold the pattern as the evaluator's do.
-12. Tests asserted no tag, and a law's page claimed what it did not prove. Answered by 134cb5ea.
-13. Sources: a link cited nowhere, insights with no anchor, a header that left a refusal out, and counts in commit messages. Answered by acbef9d9, 42e74021 and 134cb5ea; the messages stand, since a commit is never amended.
-14. The template of `get` entered a function's literal. Answered by 59f46b7e, a function and a kind answered as they are, held by the cases of D279 its targets wrote in 37f2d280.
-
-The tree answers by the commits that keep this review.

@@ -1,0 +1,1 @@
+{"name":"a-failure-prints-as-its-error-at-rest-raised","query":"\"hello\" | add 1","expect":"::number/add/SubjectNotNumberError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(add 1)\n      :subject \"hello\"\n      :skipped ~()\n    }\n  ]\n} | raise"}

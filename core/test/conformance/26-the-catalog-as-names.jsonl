@@ -33,7 +33,6 @@
 {"decision":"D2","name":"a-quote-under-a-name-of-data-takes-no-mark","query":":Box |~~ B ~~| | :Box/limit 5 | :Box/limit/n ~(out) | 1","expect":"1"}
 {"decision":"D251","name":"a-place-reads-an-index-as-get-reads-it","query":":Box |~~ B ~~| | :Box/q (::fn | takes :x |~~ The x. ~~| /1e0 | impl ~(x)) | ::Box[1] | get [~(q 5 6 !| type) ~([5 6] | get /1e0 !| type)]","expect":"[::path/IndexNotIntegerError ::path/IndexNotIntegerError]"}
 {"decision":"D251","name":"a-condition-of-cond-is-named-by-its-place-from-zero","query":"get [~(5 | cond ~(1) ~(\"yes\") !| get [~(type) /index]) ~(5 | cond ~(false) ~(1) ~(2) ~(3) !| get [~(type) /index])]","expect":"[[::any/cond/ConditionNotBooleanError 0] [::any/cond/ConditionNotBooleanError 2]]"}
-{"decision":"D13","name":"a-doc-is-no-trail","query":"get [~(!{:trail |~~~~|} | raise !| type) ~(!{:trail []} | raise !| type)]","expect":"[::error/TrailNotVecError ::error]"}
 {"decision":"D123","name":"runLaws-holds-the-error-of-a-law-at-rest","query":":d 1 | :d/addsToAString ::law~(\"x\" | add 1) | ::d | runLaws | first | entries | filter ~(first | eq :error) | first | last | type","expect":"::number/add/SubjectNotNumberError"}
 {"decision":"D119","name":"an-address-reads-its-page-whatever-the-scope-binds","query":":limit 5 | ::vec/filter | doc | type","expect":"::doc"}
 {"decision":"D61","name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true"}

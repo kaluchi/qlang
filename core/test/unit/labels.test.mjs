@@ -9,7 +9,7 @@ import { createSession } from '../../src/session.mjs';
 import { runs } from '../../src/primitives.mjs';
 import { makeTag, makeTaggedInstance } from '../../src/types.mjs';
 
-// The steps of a query a line each, joined by `|` [D243].
+// The steps of a query a line each, joined by `|` [QSSYN#line].
 const lines = (...steps) => steps.join('\n| ');
 
 const BOX = lines(

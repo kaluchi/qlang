@@ -35,7 +35,6 @@
 {"decision":"D90","name":"reduce-over-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
 {"decision":"D4","name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]"}
 {"decision":"D4","name":"reduce-folds-with-the-quote-of-a-bare-word","query":"[1 2 3] | reduce 0 ~(add)","expect":"6"}
-{"decision":"D4","name":"a-group-modifier-reads-against-the-subject-at-the-call","query":"{:items [1 2 3] :limit 2} | get /items | take (count | sub 1)","expect":"[1 2]"}
 {"decision":"D251","name":"an-input-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| type","expect":"::vec/filter/predicate/NotPathOrQuoteError"}
 {"decision":"D22","name":"append-puts-an-element-after-a-vector","query":"[1 2] | append 3","expect":"[1 2 3]"}
 {"decision":"D22","name":"prepend-puts-an-element-before-a-vector","query":"[2 3] | prepend 1","expect":"[1 2 3]"}
@@ -57,9 +56,5 @@
 {"decision":"D22","name":"drop-negative-large-clamps-to-whole","query":"[1 2 3] | drop -5","expect":"[1 2 3]"}
 {"decision":"D22","name":"take-over-length-returns-whole","query":"[1 2 3] | take 5","expect":"[1 2 3]"}
 {"decision":"D22","name":"drop-over-length-returns-empty","query":"[1 2 3] | drop 5","expect":"[]"}
-{"decision":"D46","name":"take-refuses-a-fractional-count","query":"[1 2 3] | take 0.5 !| type","expect":"::vec/take/count/NotIntegerError"}
-{"decision":"D46","name":"drop-refuses-a-fractional-count","query":"[1 2 3] | drop 1.5 !| type","expect":"::vec/drop/count/NotIntegerError"}
-{"decision":"D46","name":"take-refuses-a-count-that-is-no-number","query":"[1 2 3] | take \"x\" !| type","expect":"::vec/take/count/NotNumberError"}
 {"decision":"D22","name":"take-negative-on-set-clamps-to-empty","query":"#[1 2 3] | take -1 | count","expect":"0"}
 {"decision":"D22","name":"drop-negative-on-set-clamps-to-whole","query":"#[1 2 3] | drop -1 | count","expect":"3"}
-{"decision":"D46","name":"a-count-under-a-tag-is-whole-where-it-equals-its-floor","query":"[1 2 3] | take ::N#2","expect":"[1 2]"}

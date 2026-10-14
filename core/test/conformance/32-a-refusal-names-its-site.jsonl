@@ -1,5 +1,4 @@
 {"decision":"D168","name":"a-division-by-zero-is-refused-under-its-divisor","query":"10 | div 0","expect":"::number/div/divisor/ZeroError!{\n  :actualType ::number\n  :actualValue 0\n  :trail [\n    {\n      :step ~(div 0)\n      :subject 10\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D46","name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :index 1\n  :actualType ::string\n  :actualValue \"two\"\n  :trail [\n    {\n      :step ~(sum)\n      :subject [1 \"two\" 3]\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D168","name":"count-on-number","query":"42 | count","expect":"::call/KindAnswersNoVerbError!{\n  :name :count\n  :addresses #[::map/count ::set/count ::string/count ::vec/count]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(count)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D168","name":"empty-on-number","query":"42 | empty","expect":"::call/KindAnswersNoVerbError!{\n  :name :empty\n  :addresses #[::map/empty ::set/empty ::vec/empty]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(empty)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D168","name":"first-on-number","query":"42 | first","expect":"::call/KindAnswersNoVerbError!{\n  :name :first\n  :addresses #[::map/first ::set/first ::vec/first]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(first)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
@@ -15,7 +14,6 @@
 {"decision":"D198","name":"prepend-modifier-not-string","query":"\"x\" | prepend 42","expect":"::string/prepend/prefix/NotKeywordOrStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D198","name":"append-modifier-not-string","query":"\"x\" | append 42","expect":"::string/append/suffix/NotKeywordOrStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D118","name":"an-unknown-name-is-refused","query":"thisIsNotDefined !| type","expect":"::call/UnknownNameError"}
-{"decision":"D13","name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| get /trail/0/step | first | get /name","expect":":thisIsNotDefined"}
 {"decision":"D118","name":"an-unknown-name-inside-filter-is-refused","query":"[1 2 3] | filter ~(thisIsNotDefined) !| type","expect":"::call/UnknownNameError"}
 {"decision":"D168","name":"reduce-on-number","query":"42 | reduce 0 ~(add)","expect":"::call/KindAnswersNoVerbError!{\n  :name :reduce\n  :addresses #[::map/reduce ::set/reduce ::vec/reduce]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(reduce 0 ~(add))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D90","name":"a-reducer-of-a-literal-answers-it","query":"[1 2 3] | reduce 0 ~(42)","expect":"42"}
@@ -23,15 +21,4 @@
 {"decision":"D90","name":"a-reducer-of-an-unknown-name-fails-on-the-pair","query":"[1 2 3] | reduce 0 ~(nope) !| type","expect":"::call/UnknownNameError"}
 {"decision":"D251","name":"a-reducer-with-a-second-input-left-out-is-refused-by-the-input","query":":number/bad2 (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(a)) | [1 2 3] | reduce 0 ~bad2 !| type","expect":"::number/bad2/b/NotGivenError"}
 {"decision":"D90","name":"a-reducer-of-a-value-name-answers-the-value","query":"5 | :five it | get [1 2 3] | reduce 0 ~(five)","expect":"5"}
-{"decision":"D64","name":"reduce-seed-error-shortcircuits","query":"[1 2 3] | reduce (!{:kind :oops} | raise) ~(add) !| type","expect":"::error"}
-{"decision":"D64","name":"reduce-reducer-error-shortcircuits","query":":any/r (::fn | takes :x |~~ The x. ~~| /0 | impl ~(!{:kind :stop} | raise)) | [1 2 3] | reduce 0 ~r !| type","expect":"::error"}
-{"decision":"D46","name":"a-refusal-is-tagged-by-its-address-its-noun-said-once","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
-{"decision":"D102","name":"the-library-of-error-pipelines-left-the-package","query":"1 | mapError !| type","expect":"::call/UnknownNameError"}
-{"decision":"D46","name":"a-refusal-of-a-word-leads-to-where-it-lives","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::set/reduce ::vec/reduce]"}
-{"decision":"D46","name":"the-page-of-a-kinds-word-is-read-by-its-address","query":"::vec/reduce | doc | type","expect":"::doc"}
-{"decision":"D46","name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | parse | contains \"throws :addend/NotNumberError\"","expect":"true"}
-{"decision":"D46","name":"a-step-lists-its-refusals-on-its-noun","query":"::path | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :KeyNotInMapError) | count","expect":"1"}
-{"decision":"D46","name":"a-refusal-names-the-place-it-guards","query":"blah !| type","expect":"::call/UnknownNameError"}
-{"decision":"D46","name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":"::type | doc !| get /addresses","expect":"#[::any/type]"}
-{"decision":"D46","name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| get /addresses","expect":"#[::doc/content]"}
 {"decision":"D152","name":"a-refusal-reads-its-page-by-its-address","query":"::number/add/SubjectNotNumberError | doc | type","expect":"::doc"}

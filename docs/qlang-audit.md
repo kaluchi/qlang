@@ -642,7 +642,7 @@ comment and doc forms nesting in each other and in quotes; the refusals
 that name a habit of another language as productions with their
 messages, `SpacingRefusal`, `TagDeclarationRefusal` and
 `PathBeforeWord` among them; a line break that tells where a
-declaration ends [D243], [D251]; and two counters its predicates raise
+declaration ends [QSSYN#line], [D251]; and two counters its predicates raise
 and give back, `docQuoteDepth` and `lookingAhead`. The repair is the
 grammar of the finish, comments as whitespace in a few lines and one
 pipeline production.
@@ -824,7 +824,7 @@ nothing but `apply` and an input whose kinds take a quote runs: a
 quote written in a step reads the names of that step wherever its call
 runs it, the call keeping where each of its objects came from, and code
 held as data runs in a lane of its own, the words of the scope of its
-step and its own names, no value that scope named reaching it [D278].
+step and its own names, no value that scope named reaching it [QSQUO#held].
 There is one
 binding form, `:name value`, evaluated once at declaration and named as
 a value, a name declared once in a scope; a verb is a function named
@@ -1002,7 +1002,7 @@ the path as a value met theirs, the first work of the route [D248], and
 the quote as data and the function built by commands met theirs
 [D251], and the kind built by commands and the one spelling of the
 roles of a word and a kind theirs [D252], [D253], and the closed
-literal theirs [D279], and the lane of held code theirs [D278],
+literal theirs [D279], and the lane of held code theirs [QSQUO#held],
 and a word of a noun that serves its own tag alone theirs [D275]; a target shows the rule of the record that left it and holds the
 answer the tree gives today [D91], and every decision below writes its
 targets before its work:
@@ -1108,7 +1108,7 @@ screen of the work, whose first version `npm run desk` prints [D225],
 grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168],
-[D185], [D248], [D251], [D252], [D253], [D278] and [D279] in the conformance suite,
+[D185], [D248], [D251], [D252], [D253], [QSQUO#held] and [D279] in the conformance suite,
 every one met, the
 step of a constructor apart from the kind of tagged values having
 landed [D8]. Beside them: no
@@ -1132,7 +1132,7 @@ meets the tag and the facts.
 The measure can be taken as the mission states it. Its answers in the
 conformance suite are the targets of [D2], [D7],
 [D27], [D46], [D107], [D108], [D109], [D111], [D117], [D118], [D119],
-[D123], [D125] and [D129]: the effect marker leaving the language,
+[D123], [QSSYN#refusal] and [QSQUO#modifier]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs, each run recorded with the frictions it met, each
 measurement on a set of tasks a clean author wrote, which measures once
@@ -1248,7 +1248,6 @@ those being decided.
 [D41]: decisions/D41.md
 [D46]: decisions/D46.md
 [D50]: decisions/D50.md
-[D51]: decisions/D51.md
 [D59]: decisions/D59.md
 [D61]: decisions/D61.md
 [D67]: decisions/D67.md
@@ -1268,9 +1267,7 @@ those being decided.
 [D119]: decisions/D119.md
 [D120]: decisions/D120.md
 [D123]: decisions/D123.md
-[D125]: decisions/D125.md
 [D128]: decisions/D128.md
-[D129]: decisions/D129.md
 [D131]: decisions/D131.md
 [D132]: decisions/D132.md
 [D133]: decisions/D133.md
@@ -1298,7 +1295,6 @@ those being decided.
 [D231]: decisions/D231.md
 [D235]: decisions/D235.md
 [D237]: decisions/D237.md
-[D243]: decisions/D243.md
 [D244]: decisions/D244.md
 [D246]: decisions/D246.md
 [D248]: decisions/D248.md
@@ -1316,7 +1312,6 @@ those being decided.
 [D275]: decisions/D275.md
 [D276]: decisions/D276.md
 [D277]: decisions/D277.md
-[D278]: decisions/D278.md
 [D279]: decisions/D279.md
 [D282]: decisions/D282.md
 [D283]: decisions/D283.md
@@ -1326,3 +1321,7 @@ those being decided.
 [QSNAM#word]: spec/QSNAM-names-and-scope.md#word
 [QSLIT#atoms]: spec/QSLIT-values-and-literals.md#atoms
 [QSPTH#key]: spec/QSPTH-paths.md#key
+[QSSYN#line]: spec/QSSYN-grammar.md#line
+[QSQUO#held]: spec/QSQUO-code-as-data.md#held
+[QSSYN#refusal]: spec/QSSYN-grammar.md#refusal
+[QSQUO#modifier]: spec/QSQUO-code-as-data.md#modifier

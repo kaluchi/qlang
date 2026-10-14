@@ -93,11 +93,11 @@ export function isTag(v) {
 
 // ── binding / quote predicates ────────────────────────────────
 
-// The record a declaration writes into its scope [QSNAM#binding]: the name, the
-// docs of its slot, the value, the quote of the declaring step and its
+// The record a declaration writes into its scope [QSNAM#binding]: the name,
+// the docs of its slot, the value, the quote of the declaring step and its
 // origin, the source or the cell it was read from [D153], under the kind
-// `::binding`. A binding with no declaration behind it, a value a host
-// bound, holds no source.
+// `::binding`. A binding with no declaration behind it, a value a host bound,
+// holds no source.
 export function isBinding(v) {
   return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === BINDING_TAG_NAME;
 }
@@ -342,10 +342,10 @@ export function declareHostValue(value, impl) {
   HOST_IMPLS.set(value, impl);
 }
 
-// An error carries its tag, the kind of errors for a literal that names
-// none [D64], and a descriptor of the facts of its site with its `:trail`,
-// the path it took [D13], a vector of stops that `eval-trail.mjs` writes;
-// a `:trail` of another shape is refused where the error is made.
+// An error carries its tag, the kind of errors for a literal that names none
+// [QSERR#rest], and a descriptor of the facts of its site with its `:trail`,
+// the path it took [D13], a vector of stops that `eval-trail.mjs` writes; a
+// `:trail` of another shape is refused where the error is made.
 export const ErrorTrailNotVecError = declareRefusal('error/TrailNotVecError');
 
 // A trail is a vector of stops, each a map whose `:skipped` is the quote

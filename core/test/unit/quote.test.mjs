@@ -70,7 +70,7 @@ describe('assembling steps by hand', () => {
       .toBe(':six add 1');
   });
 
-  it('a keyword or a tag name is the body of its declaration [D66]', async () => {
+  it('a keyword or a tag name is the body of its declaration [QSSYN#line]', async () => {
     expect(await evalQuery('::bind{:name :s :body :active} | get [~(it)] | tag ::quote | parse')).toBe(':s :active');
     expect(await evalQuery('::bind{:name :s :body ::vec} | get [~(it)] | tag ::quote | parse')).toBe(':s ::vec');
   });

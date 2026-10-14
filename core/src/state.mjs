@@ -16,7 +16,7 @@ export const EVAL_DEPTH_LIMIT = 1000;
 
 // The calls a state runs within keep the origin of each quote they
 // received, the nearest first, and a state a word of the host reads keeps
-// beside the tree of the query the scope of its own step [D278].
+// beside the tree of the query the scope of its own step [QSQUO#held].
 function makeState(pipeValue, env, depth, calls = null, own = null) {
   return Object.freeze({ pipeValue, env, depth, calls, own });
 }
@@ -55,13 +55,13 @@ export function nestState(state, pipeValue, env) {
 
 // withCall(state, origins) → the state of the run of a call, which keeps
 // the origin of each quote the call received for the code run within it,
-// before those of the calls around it [D278].
+// before those of the calls around it [QSQUO#held].
 export function withCall(state, origins) {
   return makeState(state.pipeValue, state.env, state.depth, { origins, around: state.calls }, state.own);
 }
 
 // originIn(state, quote) → the origin the nearest call around a state keeps
-// for a quote, or undefined [D278].
+// for a quote, or undefined [QSQUO#held].
 export function originIn(state, quote) {
   for (let call = state.calls; call !== null; call = call.around) {
     const origin = call.origins.get(quote);
@@ -71,7 +71,7 @@ export function originIn(state, quote) {
 }
 
 // ownScopeOf(state) → the scope of the step a state runs, its own where a
-// word of the host reads the tree of the query [QSNAM#owner], [D278].
+// word of the host reads the tree of the query [QSNAM#owner], [QSQUO#held].
 export function ownScopeOf(state) {
   return state.own ?? state.env;
 }

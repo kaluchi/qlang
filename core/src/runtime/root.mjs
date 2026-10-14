@@ -8,7 +8,7 @@
 // host handed beside the source under its name [D72], [D167], [D252],
 // and is refused as the root is declared when it was handed none; a
 // refusal the source declares takes its address, the name it is declared
-// by, once [D64].
+// by, once [QSERR#rest].
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';

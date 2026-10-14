@@ -43,8 +43,8 @@ export function quoteOfBody(node) {
   return makeQuote(stepsOfBody(node), node);
 }
 
-// quoteOfSource(source, uri) → quote — reads text as a quote; blank
-// text, comments among it, is the empty quote [D81]. A ParseError rides
+// quoteOfSource(source, uri) → quote — reads text as a quote; blank text,
+// comments among it, is the empty quote [QSSYN#comment]. A ParseError rides
 // out to the caller.
 export function quoteOfSource(source, uri = 'quote') {
   const ast = parse(source, { uri });
@@ -226,12 +226,12 @@ export function isStep(value) {
   return PIPELINE_STEP_TAG_NAMES.has(stepTagOf(value)) || isElementStep(value);
 }
 
-// isElementStep(value) — a literal, a quote, a doc, a container of
-// element steps, an error literal's step, the error at rest it spells
-// [D13], a group, or a record, which counts by its tag since
-// its constructor already read it back from its own text. A declaration and a command with modifiers
-// stand in a pipeline alone: inside a container the grammar reads each
-// of their words as an element of its own.
+// isElementStep(value) — a literal, a quote, a doc, a container of element
+// steps, an error literal's step, the error at rest it spells [D13], a group,
+// or a record, which counts by its tag since its constructor already read it
+// back from its own text. A declaration and a command with modifiers stand in
+// a pipeline alone: inside a container the grammar reads each of their words
+// as an element of its own.
 export function isElementStep(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return true;
   if (isKeyword(value) || isTag(value) || isRegex(value) || isPath(value) || isDoc(value) || isQuote(value)) return true;
@@ -282,7 +282,7 @@ function stepTagOf(step) {
 
 // A quote of declarations alone, the story `source` reads, prints one
 // declaration a line, each after the first led by its pipe, as the
-// catalog writes it [D193], and so does a quote of several steps one of
+// catalog writes it [QSQUO#parse], and so does a quote of several steps one of
 // which takes several lines, the commands of a signature among them
 // [D251].
 function printSteps(steps) {

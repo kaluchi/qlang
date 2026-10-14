@@ -12,8 +12,6 @@
 {"decision":"D135","name":"groupBy-vec-subject-bucket-stays-vec","query":"[1 2 3 4 5] | groupBy ~(if (gt 2) ~(:big) ~(:small)) | get /big | type","expect":"::vec"}
 {"decision":"D130","name":"groupBy-files-a-string-under-its-keyword","query":"[{:s \"a\"} {:s \"b\"} {:s \"a\"}] | groupBy /s | map ~count","expect":"{:a 2 :b 1}"}
 {"decision":"D130","name":"groupBy-files-a-number-under-the-keyword-of-its-text","query":"[{:k 1} {:k 2} {:k 1}] | groupBy /k | keys","expect":"#[:\"1\" :\"2\"]"}
-{"decision":"D13","name":"a-key-that-answers-an-error-answers-it","query":"[{:a 1}] | groupBy /b !| type","expect":"::path/KeyNotInMapError"}
-{"decision":"D13","name":"a-key-that-answers-an-error-answers-it-over-a-set","query":"#[{:a 1}] | groupBy /b !| type","expect":"::path/KeyNotInMapError"}
 {"decision":"D135","name":"two-values-of-one-text-meet-under-one-key","query":"[1 \"1\"] | groupBy !| get [~(type) /key /taken]","expect":"[::vec/groupBy/KeyTakenError :\"1\" 1]"}
 {"decision":"D135","name":"groupBy-files-a-boolean-and-null","query":"[true 2 null] | groupBy | keys","expect":"#[:\"2\" :null :true]"}
 {"decision":"D135","name":"two-values-filed-under-one-keyword-meet-aloud","query":"[1 \"1\"] | groupBy !| type","expect":"::vec/groupBy/KeyTakenError"}
@@ -27,7 +25,6 @@
 {"decision":"D135","name":"indexBy-keys-set","query":"[{:id :a} {:id :b} {:id :c}] | indexBy /id | keys | count","expect":"3"}
 {"decision":"D15","name":"indexBy-builds-a-map-whose-key-is-an-atom","query":"[1 :a] | get [{:k /1 :v /0}] | indexBy /k | map /v","expect":"{:a 1}"}
 {"decision":"D130","name":"indexBy-files-a-number-under-the-keyword-of-its-text","query":"[{:id 7 :n \"ann\"}] | indexBy /id | get /7/n","expect":"\"ann\""}
-{"decision":"D13","name":"indexBy-a-key-that-answers-an-error-answers-it","query":"[{:a 1}] | indexBy /b !| type","expect":"::path/KeyNotInMapError"}
 {"decision":"D135","name":"groupBy-without-a-key-files-an-element-under-itself","query":"[\"b\" \"a\" \"b\"] | groupBy | map ~count","expect":"{:b 2 :a 1}"}
 {"decision":"D135","name":"indexBy-without-a-key-files-an-element-under-itself","query":"[:x :y] | indexBy","expect":"{:x :x :y :y}"}
 {"decision":"D135","name":"groupBy-without-a-key-refuses-an-element-of-no-text","query":"[{:k 1}] | groupBy !| type","expect":"::vec/groupBy/KeyNotKeywordError"}

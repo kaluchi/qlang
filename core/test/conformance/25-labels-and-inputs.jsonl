@@ -25,6 +25,5 @@
 {"decision":"D253","name":"an-input-a-reader-declares-under-a-word-is-refused","query":":number/add/extra |~~ More. ~~| /1 !| get [~(type) /name]","expect":"[::bind/WrittenOutsideItsChainError :number/add/extra]"}
 {"decision":"D50","name":"a-field-of-a-label-is-a-definition-under-it-with-its-page","query":":Box |~~ A box. ~~| | :Box/w |~~ The width. ~~| ::number | get [~(::Box | manifest) ~(::Box/w | doc | content | contains \"width\")]","expect":"[#[::Box/w] true]"}
 {"decision":"D253","name":"an-invariant-declared-by-a-bare-name-is-refused","query":":Box |~~ A box. ~~| ::holds~(get /w | is ::number) | :Box/area ~(mulOf /w /h) !| get [~(type) /name]","expect":"[::bind/WrittenOutsideItsChainError :Box]"}
-{"decision":"D278","name":"code-held-as-data-reads-no-value-a-reader-names-past-a-word","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 | impl ~(apply code)) | :x 5 | \"x | add 1\" | parse | :q it | (null | run q) !| get [~(type) /name]","expect":"[::call/ValueWithheldError :x]"}
 {"decision":"D164","name":"the-args-of-a-call-are-a-value-under-its-word","query":":any/argsOf (::fn | takes :xs |~~ The xs. ~~| ~(take 99) | impl ~(args)) | 5 | argsOf 1 2","expect":"::any/argsOf[1 2]"}
 {"decision":"D253","name":"an-invariant-a-bare-name-declares-is-refused","query":":Positive ::holds~(gt 0) !| type","expect":"::bind/WrittenOutsideItsChainError"}

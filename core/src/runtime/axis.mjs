@@ -70,7 +70,7 @@ function nearestOfSubject(env, subject) {
 // `runLaws` read, or null when it names none: a name by its tag, the
 // address of its node, and any other value, a keyword among them, by its
 // kind [D221]; a value a host bound under a name is no record, and a tag
-// of a value withheld from held code is refused [D278].
+// of a value withheld from held code is refused [QSQUO#held].
 export function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
   if (isTag(subject)) refuseWithheld(env, subject.name, true);

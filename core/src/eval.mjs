@@ -96,7 +96,7 @@ const AST_NODE_EVALUATORS = {
 };
 
 // A blank source, comments among it, answers the value it is handed
-// [D81].
+// [QSSYN#comment].
 function evalBlank(_node, state) {
   return state;
 }
@@ -132,9 +132,9 @@ async function evalPipeline(node, state) {
   return current;
 }
 
-// The tracks live in the combinators alone: `|` steps around an error,
-// the step joining the skipped steps of its last stop [D13], and `!|`
-// fires on an error alone [D51]; the parser writes no other combinator.
+// The tracks live in the combinators alone: `|` steps around an error, the
+// step joining the skipped steps of its last stop [D13], and `!|` fires on an
+// error alone [QSSYN#combinator]; the parser writes no other combinator.
 async function applyCombinator(kind, state, stepNode) {
   return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
 }
@@ -300,7 +300,7 @@ async function evalTagLit(node, state) {
 // answering the failure, which no name holds [D13]; a name is declared
 // once in its scope [QSNAM#scope], a node the root holds once at all and
 // a name with a path under a noun declared before it [QSNAM#address],
-// never a value withheld from held code [D278]; what the chain of a
+// never a value withheld from held code [QSQUO#held]; what the chain of a
 // kind or a function holds alone, declared by a name, is refused [D253].
 async function evalBindStep(node, state) {
   const name = declaredNameOf(node);
@@ -466,14 +466,14 @@ function withReadOfPath(state, node, subject, env) {
   return withPipeValue(state, makeErrorValue(refused.tag, facts, { location: refused.location, originalError: refused.originalError }));
 }
 
-// A bare name calls what it reaches for the subject [D34], [D153]; a
-// word the kind of the subject does not answer is refused with the
-// addresses where the word lives [D168], and a name that reaches nothing
-// with the names near it. A value the scope binds and a word the subject
-// answers under one name meet, and the step is refused with the word's
-// address, which calls the word, as another name reads the value [QSNAM#reach];
-// a value of the reader withheld from held code is refused under its
-// name before a word or a value of the root answers for it [D278].
+// A bare name calls what it reaches for the subject [D34], [D153]; a word the
+// kind of the subject does not answer is refused with the addresses where the
+// word lives [D168], and a name that reaches nothing with the names near it. A
+// value the scope binds and a word the subject answers under one name meet,
+// and the step is refused with the word's address, which calls the word, as
+// another name reads the value [QSNAM#reach]; a value of the reader withheld
+// from held code is refused under its name before a word or a value of the
+// root answers for it [QSQUO#held].
 async function callByName(lookupName, modifiers, state, node) {
   refuseWithheld(state.env, lookupName);
   const reach = bareNameReach(state.env, lookupName, state.pipeValue);
@@ -652,7 +652,7 @@ function scopeOpenedIn(env, ofTheRoot) {
 
 // Whether a name of a scope is a node, a name with a path, or a label, the
 // names a recipe and code held as data read, any other a value a reader
-// named [QSNAM#owner], [D278].
+// named [QSNAM#owner], [QSQUO#held].
 function isNodeOrLabel(name, record) {
   return name.includes('/') || declaresALabel(record);
 }
@@ -673,14 +673,14 @@ async function applyWord(record, modifiers, state) {
 // promise of another realm and a thenable resolve as the core's own do.
 const isThenable = value => typeof value?.then === 'function';
 
-// The answer brought to the kinds `returns` names, a word that names
-// `::any` bringing none [D168], [D251]: one that reaches another of the
-// kinds is the value it reaches; one of the word's own label goes back under the tags
-// the walk passed, as the subject's kind; one kind alone makes the value
-// by its constructor and invariants, and so does a kind of the answer's
-// own kind the walk passed by, a number past the finite doubles refused
-// there as under `::number` alone; an answer of none of several kinds is
-// refused under the answer's address.
+// The answer brought to the kinds `returns` names, a word that names `::any`
+// bringing none [D168], [D251]: one that reaches another of the kinds is the
+// value it reaches; one of the word's own label goes back under the tags the
+// walk passed, as the subject's kind; one kind alone makes the value by its
+// constructor and invariants, and so does a kind of the answer's own kind the
+// walk passed by, a number past the finite doubles refused there as under
+// `::number` alone; an answer of none of several kinds is refused under the
+// answer's address.
 function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
   const others = kinds.filter(kind => kind !== labelName);
   const reached = others.length === 0 ? null : walkToKinds(answer, others);
@@ -767,7 +767,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 
 // The values a primitive is handed, its inputs in the order `takes` names
 // them, each it runs as code closed at the call [D4] where the call keeps
-// that the quote came from [D278], a path read as `get` reads it [D248],
+// that the quote came from [QSQUO#held], a path read as `get` reads it [D248],
 // and every element so of one that holds the objects of the call whole;
 // any other value as it is.
 function handedTo(impl, signature, { values, origins }, state) {
@@ -798,7 +798,7 @@ function quotesClosedIn(value, originOf) {
 }
 
 // The origin a call keeps of each quote an object holds, at any depth of a
-// template or beneath a tag [D278]: a quote written in the step is that
+// template or beneath a tag [QSQUO#held]: a quote written in the step is that
 // step's, and any other the origin a call around keeps for it, the
 // nearest, or else the object's, a value of the step.
 function keepOrigins(origins, value, origin, state) {
@@ -852,7 +852,7 @@ function subjectOfCall(signature, labelName, subject) {
 // and, for a recipe written in steps, the scope of its body, each input
 // bound by its name and the args as `args`, names the steps of the body
 // declare no second time [QSNAM#scope], and the state of the call's run, which
-// keeps the origin of each quote its objects hold [D278]: args of more
+// keeps the origin of each quote its objects hold [QSQUO#held]: args of more
 // values than the inputs read places are refused, an input the args leave
 // out where its place reads one is refused, a value none of an input's
 // kinds holds is refused, each refusal named under the address, and so is
@@ -900,7 +900,7 @@ async function inputsOfCall(signature, address, modifiers, state, scope, body) {
 // input refuses it under its kinds with the error at rest as its value, one
 // that holds each object naming its place; a name withheld from held code,
 // which ran no step, and anywhere else the error is the answer [D13],
-// [D67], [D251], [D278].
+// [D67], [D251], [QSQUO#held].
 function refusalOfFailedObject(signature, address, place, error, scope) {
   if (error.tag.name === CallValueWithheldError.prototype.address) return error;
   const reading = signature.inputs.find(({ selector }) => selector.place === place) ?? signature.inputs.find(({ selector }) => selector.readsArgs);
@@ -918,7 +918,7 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 // through its label [D41]: built by its kind [D252], laid over as it is
 // where no kind answers the tag [QSLIT#tag], [D164], never over an
 // error [D13], and never under the name of a value withheld from held
-// code [D278].
+// code [QSQUO#held].
 export async function mintTaggedInstance(tagName, payload, state) {
   refuseWithheld(state.env, tagName, true);
   const declared = bindingValueOf(nodeOf(state.env, tagName));
@@ -991,7 +991,7 @@ function closeCode(astNode, capturedState) {
 // modifierOf(argNode, state) → the code of a modifier of a call, whose
 // subject is never an error: a quote written there the data it is and a
 // template or a tagged literal written there the code that builds it, each
-// written in the step, which the call runs it in [D278]; a literal of an
+// written in the step, which the call runs it in [QSQUO#held]; a literal of an
 // atom its value one frame below the call; and any other modifier the code
 // it is, whose value the call keeps as a value of the step.
 function modifierOf(argNode, state) {
@@ -1004,7 +1004,7 @@ function modifierOf(argNode, state) {
 const ATOM_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
 
 // The literals a template is written as, a value under a tag among them,
-// whose quotes are written in the step [D278], [D279].
+// whose quotes are written in the step [QSQUO#held], [D279].
 const WRITTEN_LITERALS = new Set(['VecLit', 'MapLit', 'SetLit', 'TaggedLit']);
 
 function withOrigin(code, origin) {
@@ -1013,7 +1013,7 @@ function withOrigin(code, origin) {
 }
 
 // The origin of a value of a step, whose code is held as data and runs in
-// the lane of the step [D278].
+// the lane of the step [QSQUO#held].
 function heldIn(state) {
   return { step: state, written: false };
 }
@@ -1032,19 +1032,19 @@ export function codeOfPath(path, callState) {
 
 // codeOf(code, callState) → code closed at the call [D4] where a call
 // around keeps that it came from, or else held as data in the lane of the
-// call's own step [D278].
+// call's own step [QSQUO#held].
 export function codeOf(code, callState) {
   return codeFrom(code, originIn(callState, code) ?? heldIn(callState));
 }
 
 // The code of a quote closed where it came from: written in a step, in the
 // scope of that step, and a value of a step, in the lane of the step's own
-// scope [D278].
+// scope [QSQUO#held].
 function codeFrom(code, { step, written }) {
   return closeCode(astOfQuote(code), written ? step : withEnv(step, laneOf(ownScopeOf(step))));
 }
 
-// The lane held code runs in [D278], a tree of its own: the root, the
+// The lane held code runs in [QSQUO#held], a tree of its own: the root, the
 // words, the nodes and the labels of the scope of its step, and each value
 // that scope names withheld, so no word and no value of the root answers
 // for it.
@@ -1064,13 +1064,12 @@ function laneOf(env) {
   return lane;
 }
 
-// resolveBinaryReducer(reducer) → (acc, item) → value, or null: the
-// word a reducer's quote names by one word, its name or its address,
-// called as the pipe calls it, `acc | add item`, the word residing on the
-// accumulator among them [D72], and a value of the scope under the name
-// meeting the word there [D90], [QSNAM#reach]; null for code of any other shape
-// or a name of no word, which `reduce` runs on the pair of the value so
-// far and the element [D90].
+// resolveBinaryReducer(reducer) → (acc, item) → value, or null: the word a
+// reducer's quote names by one word, its name or its address, called as the
+// pipe calls it, `acc | add item`, the word residing on the accumulator among
+// them [D72], and a value of the scope under the name meeting the word there
+// [D90], [QSNAM#reach]; null for code of any other shape or a name of no word,
+// which `reduce` runs on the pair of the value so far and the element [D90].
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
   const astNode = reducer.astNode;

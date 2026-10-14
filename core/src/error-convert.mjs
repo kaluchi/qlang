@@ -3,7 +3,7 @@ import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
 
 // The reading of text into code refuses on `::quote`, and an
-// implementation of a host that fails in a call on `::call` [D64].
+// implementation of a host that fails in a call on `::call` [QSERR#site].
 recordRefusal('quote/ParseError');
 recordRefusal('call/HostFailureError');
 
@@ -73,7 +73,7 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
   }
   // A refusal the grammar names itself carries its sentence, which says
   // the fix, and a bracket left open its sentence beside its closers
-  // [D125]; any other failure lists what the parser expected there.
+  // [QSSYN#refusal]; any other failure lists what the parser expected there.
   if (parseError.sentence) d.set('message', parseError.sentence);
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
   else d.set('message', parseError.message);
@@ -112,7 +112,7 @@ function liftExpectedAlternative(alt) {
 
 // A peggy char-class reads as `:char-class`: the classes a reader would
 // name stand under named rules of the grammar, whitespace among them
-// [D81].
+// [QSSYN#comment].
 function classKeyword() {
   return keyword('char-class');
 }

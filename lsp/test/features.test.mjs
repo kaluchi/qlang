@@ -156,7 +156,7 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('add');
   });
 
-  it('reads a line break as a space, the step on the next line joined by `|` [D243]', async () => {
+  it('reads a line break as a space, the step on the next line joined by `|` [QSSYN#line]', async () => {
     const piped = await labelsAt('[1 2 3]\n| ');
     expect(piped).toContain('count');
     expect(piped).not.toContain('add');

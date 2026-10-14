@@ -3,10 +3,10 @@
 // A step is a command, a name followed by its modifiers, each one word
 // [D10]. A line break is whitespace, and around a declaration it tells
 // where the declaration ends: a keyword that begins a line opens a
-// declaration of its own, which ends the modifiers of a command before it
-// [D243], and the body of a name with a path begun on a later line runs on
-// to the next declaration [D251]. Every combinator is set off by
-// whitespace on both sides.
+// declaration of its own, which ends the modifiers of a command before
+// it [QSSYN#line], and the body of a name with a path begun on a later
+// line runs on to the next declaration [D251]. Every combinator is set
+// off by whitespace on both sides.
 //
 // Every node carries `.location`, its span, the offsets, lines and
 // columns `span()` reads, and `.text`, the source it matched; the pass
@@ -14,10 +14,10 @@
 // and `.source`, `.uri` and `.comments` on the root.
 //
 // A plain comment, `|~| …` to the end of its line or `|~ … ~|`, is
-// whitespace wherever whitespace stands [D81]; the parser records each on
-// the side, `options.commentTrivia`, for the tools. The doc forms,
-// `|~~| …` and `|~~ … ~~|`, are the doc literal, which documents the
-// declaration whose slot it stands in [D83].
+// whitespace wherever whitespace stands [QSSYN#comment]; the parser
+// records each on the side, `options.commentTrivia`, for the tools. The
+// doc forms, `|~~| …` and `|~~ … ~~|`, are the doc literal, which
+// documents the declaration whose slot it stands in [D83].
 
 {{
   import { isNameStart, isNameContinue, readsAsBareKeyword, LITERAL_WORDS } from '../src/name-chars.mjs';
@@ -134,7 +134,7 @@
   let docQuoteDepth = 0;
 
   // How deep the parser is in a look ahead for a declaration that opens on
-  // a later line, which ends the modifiers of a command before it [D243].
+  // a later line, which ends the modifiers of a command before it [QSSYN#line].
   let lookingAhead = 0;
 
   // Whether a step can call the name a declaration writes: a bare name,
@@ -191,7 +191,7 @@
 
 // A source of whitespace alone, comments among it, is the empty
 // pipeline, which answers the value it is handed, as the empty quote
-// does [D81].
+// does [QSSYN#comment].
 Query
   = _ p:Pipeline _ { return p; }
   / _ { return node('Blank', {}, span(), text()); }
@@ -368,12 +368,12 @@ FirstModifierSeparator
   = ModifierGap / &"("
 
 // The whitespace before a modifier: on the same line, or on a later one
-// that does not open a declaration [D66], [D243].
+// that does not open a declaration [QSSYN#line].
 ModifierGap
   = _h1 !Whitespace
   / __ !DeclarationOpens
 
-// Whether a declaration opens here [D243]: a keyword with its doc or with
+// Whether a declaration opens here [QSSYN#line]: a keyword with its doc or with
 // the step its body opens with, read no further than that opening; inside
 // a quote of a doc a declaration is read whole, within which a keyword
 // alone opens one, and the depth `lookingAhead` counts is given back
@@ -414,7 +414,7 @@ DocSlot
 // A body is a step read once after the whitespace before it: a keyword is
 // a body on the line of its declaration's name or doc, since on a later
 // line it opens a declaration of its own, and a tag name, which opens
-// none [D152], is the body on a later line too [D66].
+// none [D152], is the body on a later line too [QSSYN#line].
 Body
   = later:BodyBreak body:Step
     & { return body.type !== 'Keyword' || !later; }
@@ -859,8 +859,8 @@ IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
 //
 // `_` is optional whitespace, `__` required whitespace, and `_h1`
 // whitespace within a line, which tells a body or a modifier on the line
-// of its name from a declaration that opens a later line [D66]; a plain
-// comment is whitespace [D81].
+// of its name from a declaration that opens a later line [QSSYN#line]; a plain
+// comment is whitespace [QSSYN#comment].
 
 _   = Whitespace*
 __  = Whitespace+

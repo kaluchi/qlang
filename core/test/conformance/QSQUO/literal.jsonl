@@ -1,0 +1,19 @@
+{"name":"quote-literal-atom","query":"~(42)","expect":"~(42)"}
+{"name":"quote-literal-arith","query":"~(mul 2)","expect":"~(mul 2)"}
+{"name":"quote-literal-pipeline","query":"~([1 2 3] | filter ~(gt 1))","expect":"~([1 2 3] | filter ~(gt 1))"}
+{"name":"quote-literal-path","query":"~(get /name)","expect":"~(get /name)"}
+{"name":"quote-literal-empty","query":"~()","expect":"~()"}
+{"name":"quote-literal-keyword","query":"~(:foo)","expect":"~(:foo)"}
+{"name":"quote-literal-multiline","query":"~({\n  :a 1\n  :b 2\n})","expect":"~({\n  :a 1\n  :b 2\n})"}
+{"name":"quote-literal-holds-code","query":"\"~( , )\" | parse !| type","expect":"::quote/ParseError"}
+{"name":"quote-type-answers-quote","query":"~(mul 2) | type | eq ::quote","expect":"true"}
+{"name":"quote-equality-same-source","query":"~(mul 2) | eq ~(mul 2)","expect":"true"}
+{"name":"quote-equality-different-source","query":"~(mul 2) | eq ~(mul 3)","expect":"false"}
+{"name":"quote-equality-ignores-spacing","query":"~(mul 2) | eq ~(mul  2)","expect":"true"}
+{"name":"quote-equality-ignores-comments","query":"~(mul 2 |~ note ~|) | eq ~(mul 2)","expect":"true"}
+{"name":"quote-equality-cross-type-string","query":"~(mul 2) | eq \"mul 2\"","expect":"false"}
+{"name":"quote-in-vec","query":"[~(a) ~(b) ~(c)] | count","expect":"3"}
+{"name":"quote-in-vec-prints","query":"[~(a) ~(b) ~(c)] | first | parse","expect":"\"a\""}
+{"name":"quote-in-map","query":"{:body ~(mul 2)} | get /body | parse","expect":"\"mul 2\""}
+{"name":"quote-in-set","query":"#[~(a) ~(b)] | count","expect":"2"}
+{"name":"a-short-quote-is-the-quote-of-its-word","query":"~add","expect":"~(add)"}

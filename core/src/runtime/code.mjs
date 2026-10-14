@@ -3,7 +3,7 @@
 // quote or a path against the subject [D43], [D72], and a function with a
 // vector of arguments, as a call holds its objects [D251], and `open`, which
 // runs the query a quote holds as held code, in a lane of its own [D111],
-// [D122], [D278].
+// [D108], [D278].
 
 import { bindPrim, bindStateReader, runs } from '../primitives.mjs';
 import { quoteOfSource, printQuoteSource } from '../quote.mjs';
@@ -37,5 +37,5 @@ bindStateReader('any/apply', runs(['code'], async (subject, code, args, state) =
 // A quote opens to the answer of its query, run as held code in the lane
 // of the step that opens it; the walk of its subject hands the quote
 // beneath the tags of a link or a snippet, so a page names the words and
-// the labels its reader's scope holds [D111], [D122], [D278].
+// the labels its reader's scope holds [D108], [D111], [D278].
 bindStateReader('quote/open', async (query, state) => await codeOf(query, state)(null));

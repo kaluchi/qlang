@@ -1,5 +1,5 @@
 // Every link of every page of the catalog leads to the page of another
-// name of the language [D108], [D121], [D175]: a link is a query a page
+// name of the language [D108], [D175]: a link is a query a page
 // names for its reader to follow, its payload applied answers a `::doc`,
 // and that doc is a page some name of the root declares, not the page the
 // link stands on. A verb renamed, a tag removed or an anchor misspelt under

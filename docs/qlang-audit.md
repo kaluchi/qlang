@@ -1127,8 +1127,8 @@ meets the tag and the facts.
 ### Milestone 5 · Front door
 
 The measure can be taken as the mission states it. Its answers in the
-conformance suite are the targets of [D2], [D7], [D46], [D107],
-[D108], [D109], [D111], [D117], [D118], [D119], [D121], [D122], [D123],
+conformance suite are the targets of [D2], [D7],
+[D46], [D107], [D108], [D109], [D111], [D117], [D118], [D119], [D123],
 [D125], [D129] and [D150]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs, each run recorded with the frictions it met, each
@@ -1271,8 +1271,6 @@ those being decided.
 [D118]: decisions/D118.md
 [D119]: decisions/D119.md
 [D120]: decisions/D120.md
-[D121]: decisions/D121.md
-[D122]: decisions/D122.md
 [D123]: decisions/D123.md
 [D125]: decisions/D125.md
 [D128]: decisions/D128.md

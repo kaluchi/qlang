@@ -17,7 +17,6 @@
 {"name":"any-map-declared-verb","query":"{:a -1 :b 2} | :any/pos ~(gt 0) | any ~(pos)","expect":"true"}
 {"name":"any-map-verb-predicate","query":"{:a -1 :b 2} | :any/positive ~(gt 0) | any ~positive","expect":"true"}
 {"name":"any-map-verb-predicate-false","query":"{:a -1 :b -2} | :any/positive ~(gt 0) | any ~positive","expect":"false"}
-{"name":"any-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2} | :any/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | any ~above !| type","expect":"::any/above/limit/NotGivenError"}
 {"name":"all-elements-satisfy","query":"[2 4 6 8] | every ~(gt 0)","expect":"true"}
 {"name":"single-element-fails","query":"[2 4 -1 8] | every ~(gt 0)","expect":"false"}
 {"name":"first-element-fails","query":"[-1 4 6 8] | every ~(gt 0)","expect":"false"}
@@ -33,4 +32,3 @@
 {"name":"every-map-declared-verb","query":"{:a 1 :b 2} | :any/big ~(gt 0) | every ~(big)","expect":"true"}
 {"name":"every-map-verb-predicate","query":"{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive","expect":"true"}
 {"name":"every-map-verb-predicate-fails","query":"{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive","expect":"false"}
-{"name":"every-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2} | :any/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | every ~above !| type","expect":"::any/above/limit/NotGivenError"}

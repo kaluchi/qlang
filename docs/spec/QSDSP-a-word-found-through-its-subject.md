@@ -14,7 +14,8 @@ live: `type`, `eq`, `apply`, `if`, `cond`, `coalesce`, `json`, `env`,
 and the axes. A tagged value reaches `::tagged` after its own tag and
 before its payload, where `payload` and `within` live, so a tag over a
 value passes to the words of its payload. A word on a narrower label
-stands over one of the same name on a broader one.
+stands over one of the same name on a broader one. `is` answers whether
+the walk of a value's tags reaches one of the kinds it is given.
 
 ```qlang
 > ::Box#1 | payload
@@ -25,6 +26,9 @@ true
 
 > :number/type ~("mine") | 5 | type
 "mine"
+
+> 5 | is ::number
+true
 ```
 
 ## residence
@@ -32,13 +36,15 @@ true
 A word resides on the kind its subject names, declared in the source of
 that noun, and a name several kinds answer is declared on each,
 `::vec/count`, `::set/count`, `::map/count`, `::string/count`, one
-primitive serving several where they share it. A word takes as its
-subject a value the walk of its tags brings to its label and refuses any
-other under its own address; no constructor turns the value in the pipe
-into the kind a word serves. A word is called by its name or by its
-address, which checks the subject by that residence; a set is a vector
-to a word of vectors. The comparisons reside on each kind whose values
-they compare, an input of another kind refused.
+primitive serving several where they share it. A word serves the values
+the walk of their tags brings to its label and, beside them, a value of
+the kinds its `on` names; any other subject is refused under the word's
+own address. A refinement a word wants checked is written where the
+value is made, `x | tag ::Pos | f`, its constructor answering there. A
+word is called by its name or by its address, which checks the subject
+by that residence; a set is a vector to a word of vectors. The
+comparisons reside on each kind whose values they compare, an input of
+another kind refused.
 
 ```qlang
 > :Pos |~~ Pos. ~~| | :Pos/f ~(1) | -1 | f !| type
@@ -57,12 +63,17 @@ true
 ## refusal
 
 A name no kind of the subject answers is refused as
-`::call/KindAnswersNoVerbError`, with the kind as `:actualType` and the
-addresses of the words of that name as `:addresses`.
+`::call/KindAnswersNoVerbError`, with the kind as `:actualType`, the
+addresses of the words of that name as `:addresses`, and, where the pages
+of those words lead to one, `:nearest`, the words they link that the
+subject answers.
 
 ```qlang
 > 5 | count !| get [~(type) /actualType /addresses]
 [::call/KindAnswersNoVerbError ::number #[::map/count ::set/count ::string/count ::vec/count]]
+
+> [1 2] | toString !| get /nearest
+[:json :print]
 ```
 
 ## answer
@@ -88,9 +99,15 @@ whose function names its answer's kinds checks the answer against them.
 
 A tag name in the subject position walks the kind of tag names, then the
 noun the tag names, then `::any`, so a bare name after it finds the
-tag's own words first, then the noun's. A word of the noun itself, whose
-function names `::tag` by `on`, serves the noun's own tag name alone; a
-word of the noun's values refuses a tag name under the word.
+tag's own words first, then the noun's, each step resolving by its own
+subject; a fan-out over the noun is a template of `get` whose quotes run
+against the tag name. A word of the noun itself, whose function names
+`::tag` by `on`, serves the noun's own tag name alone; a word of the
+noun's values refuses a tag name under the word; and a function `apply`
+runs, which has no label, serves any tag name where its `on` names
+`::tag`. The builders of a function and of a kind, `on`, `takes`,
+`wraps`, `reads` and the rest, are words of their nouns, so a tag of
+another noun is refused by them as by every word.
 
 ```qlang
 > ::number | gt ::A
@@ -101,4 +118,7 @@ true
 
 > :Shop |~~ A shop. ~~| | :Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5")) | get [~(::Shop | hours) ~(::Other | hours !| type)]
 ["9 to 5" ::Shop/hours/SubjectNotShopError]
+
+> ::number | takes :by |~~ b ~~| /0 !| type
+::fn/takes/SubjectNotFnError
 ```

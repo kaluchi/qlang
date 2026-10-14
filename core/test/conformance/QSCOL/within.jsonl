@@ -1,1 +1,3 @@
 {"name":"within-runs-a-verb-under-the-tag","query":"::Box[1 2] | within ~(append 3)","expect":"::Box[1 2 3]"}
+{"name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~(get [/0 /0 /1])","expect":"#[1 2]"}
+{"name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]"}

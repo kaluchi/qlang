@@ -244,13 +244,13 @@ export function residenceOnSubject(env, verbName, subject) {
   return residenceOf(env, ANY_KIND_NAME, verbName);
 }
 
-// bareNameReach(env, name, subject?) → what a bare name reaches, nearest first
-// [QSDSP#residence]: the reader's declaration, the word residing on a kind the
-// walk of the subject reaches, the one word of the name residing on a kind,
-// which refuses a subject of another kind [QSDSP#walk], and for a name no kind
-// answers the root's declaration [QSSLF#catalog], but for a label of the root,
-// a kind or a topic, which its tag alone reaches [QSDSP#residence]; `{ record,
-// underKind }`, or null when no record answers or words of several kinds do.
+// bareNameReach(env, name, subject?) → what a bare name reaches, nearest
+// first [QSNAM#reach]: the reader's declaration, the word residing on a kind
+// the walk of the subject reaches, the one word of the name residing on a
+// kind, which refuses a subject of another kind, and for a name no kind
+// answers the root's declaration, but for a label of the root, a kind or a
+// topic, which its tag alone reaches; `{ record, underKind }`, or null when no
+// record answers or words of several kinds do.
 export function bareNameReach(env, name, subject) {
   if (env.has(name) && isBinding(env.get(name))) return { record: env.get(name), underKind: false };
   const residence = residenceOnSubject(env, name, subject);

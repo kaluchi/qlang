@@ -17,7 +17,7 @@ have their own. `type` answers the kind of any value, and the kind's
 page is one step away. A tag is the name of an interpretation: tags
 stack over any payload and read from the outside in, `payload` reading
 what stands beneath the outermost; behaviour lives in the catalog and is
-found through the tag, never in the value.
+found through the tag.
 
 ```qlang
 > [1 2] | type
@@ -133,10 +133,12 @@ whose first character would continue the tag's name, take `#`:
 names after `::`, `::null`.
 
 The constructor of the tag's kind attaches the tag to the payload the
-literal writes, or refuses it naming why the payload does not fit; it
-builds no other value from it. A kind of the core reads a payload of its
-own kind alone, so `::number"5"` is refused, and a tag no declaration
-names lays itself over a payload as it is [QSNAM#address].
+literal writes, or refuses it naming why the payload does not fit. A
+kind of the core reads a payload of its own kind alone, so `::number"5"`
+is refused, and a tag no declaration names lays itself over a payload as
+it is, with no page and no node [QSNAM#address]. `tag` lays a tag over
+the value in the pipe, `5 | tag ::Foo`, or over the pair `[tag payload]`
+it takes apart, through the tag's constructor.
 
 ```qlang
 > ::Width#5 | add 3 | get [~(type) ~(payload)]
@@ -150,6 +152,9 @@ names lays itself over a payload as it is [QSNAM#address].
 
 > #[2 1] | tag ::vec !| type
 ::vec/PayloadNotVecError
+
+> [::Foo 5] | tag
+::Foo#5
 ```
 
 ## closed
@@ -181,9 +186,8 @@ other leaves are. The shape is a quote that reads the value back by
 its place in the set, a vector as the vector of its elements' reads, a
 map from the pairs of its keys and values by `indexBy`, and a tagged
 value, a set, a quote, a doc and an error at rest among them, from its
-tag and its payload by `tag`. Both ways are written in the language in the test
-tree, and the test of the ring runs them over every example of the
-catalog and every literal a case expects.
+tag and its payload by `tag`. Every value comes back so, each example of
+the catalog and each literal a case expects among them.
 
 ```qlang
 > #[1 "x" :a :b] | apply ~(get [/1 [/0 /0] ~(get [[/3 /2]] | indexBy ~(first) | map ~last)])

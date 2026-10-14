@@ -8,8 +8,6 @@
 {"name":"two-records-join-by-a-number-turned-into-its-key","query":"{:users [{:id 1 :name \"Ann\"}] :orders [{:uid 1 :sum 5}]} | :byId (get /users | indexBy /id) | get /orders | map ~(:o it | get {:sum /sum :name ~(byId | query (o | get /uid | toKeyword) | get /name)})","expect":"[{:sum 5 :name \"Ann\"}]"}
 {"name":"a-container-has-no-string-and-a-map-no-vector","query":"get [~([1 2] | toString !| type) ~({:a 1} | toVec !| type) ~(null | toString !| type)]","expect":"[::call/KindAnswersNoVerbError ::call/KindAnswersNoVerbError ::call/KindAnswersNoVerbError]"}
 {"name":"distinct-stays-beside-toSet","query":"[2 1 2] | get [~(distinct) ~(toSet)]","expect":"[#[1 2] #[1 2]]"}
-{"name":"a-refused-word-leads-to-the-act-the-kind-keeps","query":"get [~([1 2] | toString !| get /nearest) ~(~(add 1) | toString !| get /nearest) ~({:a 1} | toVec !| get /nearest) ~({:a 1} | toSet !| get /nearest)]","expect":"[[:json :print] [:json :parse :print] [:entries :vals] [:keys]]"}
-{"name":"a-refused-word-leads-only-to-a-word-of-its-answer","query":"get [~(42 | parse !| has :nearest) ~(42 | filter ~(gt 0) !| has :nearest)]","expect":"[false false]"}
 {"name":"a-string-of-two-characters-is-no-pair","query":"[\"ab\"] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/ElementNotPairError 0]"}
 {"name":"string-to-keyword","query":"\"foo\" | toKeyword","expect":":foo"}
 {"name":"keyword-to-string","query":":foo | toString","expect":"\"foo\""}

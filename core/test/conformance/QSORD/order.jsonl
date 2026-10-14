@@ -20,3 +20,4 @@
 {"name":"the-one-order-ranks-a-path-after-a-tag-name","query":"[/a ::T :k] | sort | map ~(type)","expect":"[::keyword ::tag ::path]"}
 {"name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
+{"name":"sort-ranks-an-error-at-rest","query":"[2 ::error{:k 1} 1] | sort","expect":"[1 2 ::error{:k 1}]"}

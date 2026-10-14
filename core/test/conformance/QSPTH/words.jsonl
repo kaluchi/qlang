@@ -4,3 +4,4 @@
 {"name":"a-word-called-on-a-path-names-its-read","query":"/tags | count !| get /read","expect":"~(get /tags | count)"}
 {"name":"toPath-reads-a-vector-of-keys","query":"[:a 0] | toPath | print","expect":"\"/a/0\""}
 {"name":"toPath-reads-json-pointer-with-its-escapes","query":"\"/a~1b/0\" | toPath | segments","expect":"[:\"a/b\" 0]"}
+{"name":"parse-path-path","query":"\"/a/b/0\" | parse | first | segments","expect":"[:a :b 0]"}

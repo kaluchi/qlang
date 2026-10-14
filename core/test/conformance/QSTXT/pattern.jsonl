@@ -15,3 +15,7 @@
 {"name":"an-escaped-bracket-opens-no-class-before-a-group-of-flags","query":"\"#\\\"\\\\[(?i:a)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
 {"name":"a-group-of-flags-turned-off-is-refused-too","query":"\"#\\\"(?-i:a)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
 {"name":"a-group-of-flags-after-a-class-is-refused","query":"\"#\\\"[a](?i:b)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
+{"name":"a-group-of-flags-in-a-class-is-text","query":"\"(?i:a)\" | contains #\"[(?i:a)]\"","expect":"true"}
+{"name":"a-lookbehind-names-no-group","query":"\"ab\" | contains #\"(?<=a)b|(?<=a)c\"","expect":"true"}
+{"name":"a-lookbehind-before-a-sign-names-no-group","query":"\"a>\" | contains #\"(?<=a)>|(?<=a)>\"","expect":"true"}
+{"name":"a-quote-holds-a-pattern-as-a-step","query":"\"match #\\\"\\\\d\\\"\" | parse | get [~(first | get /modifiers | first | type) ~(print)]","expect":"[::regex \"~(match #\\\"\\\\d\\\")\"]"}

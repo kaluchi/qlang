@@ -21,7 +21,8 @@ by the tag or the keyword asked, with the addresses of words of the
 name and the names near it. A name declared without a page answers null.
 A field of a map names nothing, so `{:kind ::set} | doc` is the page of
 maps, and a label may declare a `doc` of its own, which its values
-answer before the word of every value.
+answer before the word of every value. A reader adds an axis of its
+own by laying a tag over values and declaring words on the tag.
 
 ```qlang
 > 5 | doc | eq (::number | doc)
@@ -57,13 +58,15 @@ true
 
 A law is a query that answers `true`, a value of `::law`, declared under
 the name whose claim it proves, its page the claim. `laws` answers the
-laws under a name by their names, each the pair of its page and its
-query; `runLaws` runs each in isolation and answers an outcome per law,
-`{:law :says :actual :ok :error}`, a law passing only where it answers
-`true` and a law that answers a failure holding it at rest under
-`:error`; a value runs the laws of its kind, and a name nothing declares
-is refused as `::any/runLaws/UnknownNameError`. `tutorial` answers the page
-of a name and its laws. Every law of the core passes.
+laws under a name by their names in the order of their declarations,
+each the pair of its page and its query; `runLaws` runs each in
+isolation and answers an outcome per law, `{:law :says :actual :ok
+:error}`, `:says` null for a law without a page, a law passing only
+where it answers `true` and a law that answers a failure holding it at
+rest under `:error`; a value runs the laws of its kind, and a name
+nothing declares is refused as `::any/runLaws/UnknownNameError`.
+`tutorial` answers the page of a name and its laws. Every law of the
+core passes.
 
 ```qlang
 > :three 3 | :three/isThree ::law~(3 | eq 3) | ::three | runLaws | map /ok
@@ -76,11 +79,17 @@ of a name and its laws. Every law of the core passes.
 ## near
 
 A name that reaches nothing, a tag nothing declares and a member a page
-lacks are refused with `:nearest`, the names near the one written: a
-slip of the hand, a longer guess that begins with a name, among the
+lacks are refused with `:nearest`, the names near the one written, in
+the order of their spelling: the names within a slip of the hand, an
+insertion, a deletion, a substitution or a swap of two neighbours, up to
+a third of its length and one at least, the nearest of them alone;
+beside them the names one of which begins the other, three letters at
+least; and the words the page of a word it begins with links whose
+names end as it goes on, `addOf` meeting `sumOf`. Each stands among the
 names the step could reach at the depth of the one written, a tag among
 tags, an address among addresses, a member among the members the axis
-reads. A name is no guess for itself.
+reads, a key among the keys of the map a path missed. A name is no
+guess for itself.
 
 ```qlang
 > 5 | ad 2 !| get /nearest
@@ -91,16 +100,20 @@ reads. A name is no guess for itself.
 
 > ::qlang | doc :pipelin !| get /nearest
 [:pipeline]
+
+> {:a 1 :b 2} | addOf /a /b !| get /nearest
+[:add :sumOf]
 ```
 
 ## explain
 
 `explain`, a word of `::any`, answers the explanation of any value, a
 value of the kind `::explanation`: the page `doc` reads for it under
-`:page`, then the value under `:value`. A name reads its own page, a
-value the page of the kind it shows, and an error `!|` opened the page
-of its site, its value the error at rest that `raise` raises again. An
-explanation prints the page above the value.
+`:page`, then the value under `:value`, which the words `page` and
+`value` read. A name reads its own page, a value the page of the kind it
+shows, and an error `!|` opened the page of its site, its value the
+error at rest that `raise` raises again. An explanation prints the page
+above the value. `trail` is a word of errors, `42 | trail` refused.
 
 ```qlang
 > "x" | add 1 !| explain | payload | keys
@@ -108,6 +121,9 @@ explanation prints the page above the value.
 
 > 42 | explain | value
 42
+
+> 42 | trail !| type
+::error/trail/SubjectNotErrorError
 ```
 
 ## doc
@@ -121,7 +137,11 @@ quote and its tags where it stands, `segments` the parts, and `tag
 ::doc` builds a doc from strings and quotes. A tag gives a quote a role:
 `::link`, which `links` answers and `open` follows to a page, and
 `::snippet`, which `snippets` answers and `open` runs to what it shows.
-`open`, a word of `::quote`, runs a quote beneath its tags. `content`
+`open`, a word of `::quote`, runs a quote beneath its tags. The tags of
+a stack over a quote are read from the outside in, each giving its role;
+`::link` and `::snippet` are kinds of the core with a page, and a role
+that asks a check of its own comes as a kind of its own. A span between
+backquotes holds a fragment that is no query. `content`
 writes each quote as its literal spelled it and prints only a quote
 assembled from data. A doc lays each tag of a quote's role through the
 tag's label, so a tag that takes no quote refuses the doc.
@@ -138,10 +158,11 @@ tag's label, so a tag that takes no quote refuses the doc.
 
 `::qlang` is the topic of the language: its page is the first page,
 its members are its chapters, the concepts the first page names, each a
-page by its address, `::qlang/pipeline`, and a member of a noun is no
-name a query calls. Every link of the first page opens a page, every
-word of the core has a page, and the first page holds the weight it has,
-13664 characters at the most.
+page by its address, `::qlang/pipeline`, read through the noun,
+`::qlang | doc :pipeline`. A member of a noun is no name of a reader's
+scope, neither a word a query calls nor a name `env` lists. Every link
+of every page of the catalog opens a doc, every word of the core has a
+page, and the first page prints within 13664 characters.
 
 ```qlang
 > ::qlang | doc | links | map ~open | every ~(type | eq ::doc)
@@ -172,7 +193,11 @@ one is read and made, its words, where it stands at the borders, and
 the links that go deeper. The page of a tag is the legend of its
 payload: what the data beneath it is, what each part means and which
 words carry it on; a field names its kinds and stops there, a value
-shared by several kinds carrying a tag of its own. The first page tells
+shared by several kinds carrying a tag of its own, and a key is short,
+its meaning given by the field. The page of a kind names the concept it
+serves. A chain is laid out a command a line, its pipe under the `f` of
+`::fn` or the `k` of `::kind`, a command too long for its line standing
+on three, its head, its page and its objects. The first page tells
 the language whole in the order its parts rest on each other, each rule
 once with an example whose answer it states, in base forms. An
 example holds code under a bare name and runs it by `apply`, or hands

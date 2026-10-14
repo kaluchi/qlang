@@ -10,9 +10,13 @@ section are the cases of its file under `core/test/conformance/QSPRN/`.
 subject: an atom as its literal, a vector and a map by their brackets
 around the print of each element, the set, the quote, the doc and the
 error by their own brackets, and any other value under a tag as its tag
-before the print of its payload. A kind answers `print` under its own
-label, and the print of a value finds the `print` of each part by the
-walk of that part. Every host prints an answer through `print`.
+before the print of its payload, every tag but the kind the brackets
+imply, so `::vec[1 2]` prints `[1 2]`. A kind answers `print` under its
+own label, and the print of a value finds the `print` of each part by
+the walk of that part; a compact print a host gives reads back through
+the constructor of its tag. What a host leaves out of an answer stands
+as an `::elision` before the print, so the print holds all it is given.
+Every host prints an answer through `print`.
 
 ```qlang
 > {:a [1 "x" :k]} | :v it | print | parse | apply it | eq v
@@ -20,16 +24,19 @@ true
 
 > #[2 1] | print
 "#[1 2]"
+
+> :Box |~~ B ~~| | :Box/print ~("box") | [::Box#1] | print
+"[box]"
 ```
 
 ## json
 
-`json` writes the JSON text of a value and `parseJson` reads one, a text
-that is no JSON refused with the reason. A set is written as the array
-of its elements in the one order, a keyword as its name, a path and a
-pattern as their literals, a quote, a doc and a tag name as their
-prints, a value under a tag as its tag beside its payload, and a failure
-under `$error`; a number past the doubles is refused with its path.
+`json` writes the JSON text of a value and `parseJson` reads one. A set
+is written as the array of its elements in the one order, a keyword as
+its name, a path and a pattern as their literals, a quote, a doc and a
+tag name as their prints, and a value under a tag, an error among them,
+as its tag beside its payload. `parseJson` refuses a text that is no
+JSON with the reason, and a number past the doubles with its `:path`.
 
 ```qlang
 > #[3 1] | json
@@ -40,6 +47,9 @@ under `$error`; a number past the doubles is refused with its path.
 
 > "[1, 2" | parseJson !| type
 ::string/parseJson/TextNotJsonError
+
+> "[1e400]" | parseJson !| get [~(type) /path]
+[::string/parseJson/NumberNotFiniteError [0]]
 ```
 
 ## elide
@@ -67,7 +77,12 @@ The place a reading of text stopped is a span: six whole numbers under
 `::span`, the offset from zero, the line and the column from one of its
 start and then of the point after its end. `start` and `end` answer its
 ends as points, three whole numbers under `::point`, read by `offset`,
-`line` and `column`. A payload of another shape is refused by the kind.
+`line` and `column`. A payload that is no vector is refused as
+`…/PayloadNotVecError`, an element that is no number as
+`…/ElementNotNumberError` with its `:index`, and a vector of another
+length or with a fraction by the invariant of the kind,
+`::span/PayloadNotSixNumbersError` and
+`::point/PayloadNotThreeNumbersError`.
 
 ```qlang
 > "[1 2" | parse !| get /location | start
@@ -75,4 +90,7 @@ ends as points, three whole numbers under `::point`, read by `offset`,
 
 > ::span[0 1 1] !| type
 ::span/PayloadNotSixNumbersError
+
+> ::span[0 1 "x" 1 1 2] !| get [~(type) /index]
+[::span/ElementNotNumberError 2]
 ```

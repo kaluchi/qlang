@@ -12,3 +12,4 @@
 {"name":"a-fact-of-a-function-of-no-kinds-holds-its-page","query":":number/f (::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/note |~~ A note. ~~| | impl ~(it)) | ::number/f/TooBigError/note | binding | get /value | type","expect":"::doc"}
 {"name":"a-kind-of-the-core-is-built-by-its-chain-with-a-construct","query":"::keyword | get [~(binding | get /value | type) ~(::keyword/construct | binding | get /value | type)]","expect":"[::kind ::builtin]"}
 {"name":"a-kind-takes-no-recipe-but-the-hosts","query":"::kind | impl ~(get {:s ~(it)}) !| type","expect":"::kind/impl/recipe/NotBuiltinError"}
+{"name":"the-literal-of-a-kind-reads-back","query":":Box |~~ A box. ~~| ::kind[~(wraps |~~ The sizes. ~~| ::map) null] | ::Box\"x\" !| type","expect":"::Box/PayloadNotMapError"}

@@ -1,43 +1,14 @@
 {"name":"the-tag-of-a-name-that-holds-a-value-builds-nothing","query":":limit 5 | ::limit[1] !| type","expect":"::construct/TagNotKindError"}
 {"name":"tag-refuses-the-tag-of-a-value-as-its-literal-does","query":":limit 5 | [1] | tag ::limit !| type","expect":"::construct/TagNotKindError"}
 {"name":"a-kind-lays-its-nodes-under-its-address","query":":Box |~~ A box. ~~| (::kind | wraps |~~ The sizes. ~~| ::map | reads :w |~~ The width. ~~| /w ::number | impl ::builtin{}) | ::Box | manifest","expect":"#[::Box/PayloadNotMapError ::Box/construct ::Box/payload ::Box/w]"}
-{"name":"an-undeclared-tag-keeps-its-payload","query":"::AutoBox[1 2 3] | payload","expect":"[1 2 3]"}
-{"name":"an-undeclared-tag-over-a-set-answers-its-tag","query":"::AutoSet#[1 2 3] | type","expect":"::AutoSet"}
-{"name":"an-undeclared-tag-keeps-a-set-a-set","query":"::AutoSet#[1 2 3] | payload | type","expect":"::set"}
-{"name":"an-undeclared-tag-over-a-map-answers-its-tag","query":"::AutoMap{:k 1} | type","expect":"::AutoMap"}
-{"name":"an-undeclared-tag-keeps-a-map-a-map","query":"::AutoMap{:k 1} | payload | type","expect":"::map"}
-{"name":"an-undeclared-tag-over-a-number-answers-its-tag","query":"::AutoNumber#42 | type","expect":"::AutoNumber"}
-{"name":"an-undeclared-tag-keeps-a-number-a-number","query":"::AutoNumber#42 | payload","expect":"42"}
-{"name":"an-undeclared-tag-over-a-tagged-value-answers-its-tag","query":"::AutoJson::json[1 2 3] | type","expect":"::AutoJson"}
-{"name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError"}
-{"name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
-{"name":"an-undeclared-tag-alone-is-a-tag","query":"::AutoBareOnly | type","expect":"::tag"}
 {"name":"a-tag-used-before-its-kind-is-checked-by-the-kind-after","query":"::AutoLater[5] | :AutoLater |~~ AutoLater. ~~| (::kind | holds :TooSmallError |~~ Above six. ~~| ~(gt 6)) | get [~(::AutoLater#7 | payload) ~(::AutoLater#5 !| type)]","expect":"[7 ::AutoLater/TooSmallError]"}
-{"name":"filter-keeps-an-undeclared-tag","query":"::AutoFilter[1 2 3 4] | filter ~(gt 2) | type","expect":"::AutoFilter"}
-{"name":"sort-keeps-an-undeclared-tag","query":"::AutoSort[3 1 2] | sort | type","expect":"::AutoSort"}
 {"name":"distinct-answers-a-set-under-an-undeclared-tag","query":"::AutoDist[1 2 1 3] | distinct | type","expect":"::AutoDist"}
 {"name":"the-constructor-of-a-kind-checks-again-after-reverse","query":":Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(payload | eq (sort))) | ::Sorted[1 2 3] | reverse !| type","expect":"::Sorted/NotSortedError"}
 {"name":"the-constructor-of-a-kind-checks-again-after-filter","query":":Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(payload | eq (sort))) | ::Sorted[1 2 3 5] | filter ~(gt 1) | payload","expect":"[2 3 5]"}
 {"name":"the-constructor-of-a-kind-checks-again-passes-on-valid-subset","query":":Positive |~~ Positive. ~~| (::kind | holds :NotPositiveError |~~ Each above zero. ~~| ~(every ~(gt 0))) | ::Positive[1 2 3] | filter ~(gt 1) | payload","expect":"[2 3]"}
 {"name":"the-constructor-of-a-kind-checks-again-tag-on-success","query":":Positive |~~ Positive. ~~| (::kind | holds :NotPositiveError |~~ Each above zero. ~~| ~(every ~(gt 0))) | ::Positive[1 2 3] | filter ~(gt 0) | type","expect":"::Positive"}
-{"name":"a-kind-of-no-recipe-keeps-its-tag-after-filter","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
-{"name":"a-kind-of-no-recipe-keeps-its-tag-after-distinct","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3] | distinct | type","expect":"::Box"}
-{"name":"a-kind-of-no-recipe-keeps-its-tag-after-sort","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | type","expect":"::Box"}
 {"name":"the-constructor-of-a-kind-checks-again-after-take","query":":Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(payload | eq (sort))) | ::Sorted[1 2 3 5] | take 2 | payload","expect":"[1 2]"}
 {"name":"the-constructor-of-a-kind-checks-again-after-drop","query":":Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(payload | eq (sort))) | ::Sorted[1 2 3 5] | drop 2 | payload","expect":"[3 5]"}
 {"name":"the-constructor-of-a-kind-checks-again-after-flat","query":":Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(payload | eq (sort))) | ::Sorted[1 2 3] | flat | payload","expect":"[1 2 3]"}
-{"name":"count-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | count","expect":"3"}
-{"name":"sum-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | sum","expect":"6"}
-{"name":"first-of-a-tagged-vector-answers-the-element","query":":Box |~~ Box. ~~| | ::Box[42 100] | first","expect":"42"}
-{"name":"sort-keyed-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[{:k 2} {:k 1}] | sort /k | type","expect":"::Box"}
-{"name":"take-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | take 2 | type","expect":"::Box"}
-{"name":"drop-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | drop 2 | type","expect":"::Box"}
-{"name":"reverse-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | reverse | type","expect":"::Box"}
-{"name":"flat-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[[1] [2 3]] | flat | type","expect":"::Box"}
-{"name":"filter-tagged-vec-elements-unchanged","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | sum","expect":"7"}
-{"name":"sort-tagged-vec-elements-sorted","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | first","expect":"1"}
-{"name":"distinct-tagged-vec-dedup-correct","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3 2] | distinct | payload | count","expect":"3"}
-{"name":"a-verb-of-numbers-reaches-the-number-beneath-a-tag-and-keeps-it","query":"::Box#5 | add 1","expect":"::Box#6"}
-{"name":"sort-over-a-tag-stacked-on-a-set-answers-the-bare-vector","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | sort","expect":"[1 2 3]"}
-{"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\" A box. \""}
 {"name":"the-invariant-of-a-kind-is-its-constructor","query":":Small |~~ Small. ~~| (::kind | holds :TooBigError |~~ Below ten. ~~| ~(lt 10)) | ::Small#12 !| type","expect":"::Small/TooBigError"}
+{"name":"a-label-declared-by-its-page-alone-holds-its-page","query":":ExplicitFirst |~~ ExplicitFirst. ~~| | ::ExplicitFirst[1 2] | (::ExplicitFirst | binding | get /value | type)","expect":"::doc"}

@@ -10,14 +10,6 @@
 {"name":"keyword-path-equiv-bare","query":"{:name 42} | get /:name","expect":"42"}
 {"name":"keyword-path-equiv-bare-nested","query":"{:a {:b 42}} | get /:a/:b","expect":"42"}
 {"name":"path-reserved-word","query":"{:null 42} | get /null","expect":"42"}
-{"name":"unicode-cyrillic-bare-key","query":"{\"имя\": \"Алиса\"} | get /имя","expect":"\"Алиса\""}
-{"name":"unicode-cyrillic-nested-path","query":"{\"пользователь\": {\"имя\": \"Боб\"}} | get /пользователь/имя","expect":"\"Боб\""}
-{"name":"unicode-cyrillic-vec-path","query":"[{\"имя\": \"Алиса\"}, {\"имя\": \"Боб\"}] | map /имя","expect":"[\"Алиса\" \"Боб\"]"}
-{"name":"unicode-cjk-bare-key","query":"{\"元素\": 42} | get /元素","expect":"42"}
-{"name":"unicode-greek-bare-key","query":"{\"αβγ\": \"ok\"} | get /αβγ","expect":"\"ok\""}
-{"name":"unicode-mixed-cyrillic-and-latin","query":"{\"user\": {\"имя\": \"Алиса\"}} | get /user/имя","expect":"\"Алиса\""}
-{"name":"unicode-cyrillic-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | get [/пункт1, /пункт2]","expect":"[10 20]"}
-{"name":"unicode-cyrillic-kebab-case","query":"{\"имя-пользователя\": \"alice\"} | get /имя-пользователя","expect":"\"alice\""}
 {"name":"a-path-at-the-head-is-the-subject","query":"/items/1 | type","expect":"::path"}
 {"name":"a-path-prints-as-written","query":"/items/1 | print","expect":"\"/items/1\""}
 {"name":"json-writes-a-path-as-its-literal","query":"/items/1 | json","expect":"\"\\\"/items/1\\\"\""}

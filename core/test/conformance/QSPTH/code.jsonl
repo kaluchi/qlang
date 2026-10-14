@@ -8,8 +8,6 @@
 {"name":"an-input-given-a-path-among-other-objects-names-its-read","query":"\"abc\" | replace /x \"y\" !| get /read","expect":"~(replace (get /x) \"y\")"}
 {"name":"the-words-that-combine-values-of-one-subject-read-the-paths-they-take","query":"{:total 10 :paid 3} | subOf /total /paid","expect":"7"}
 {"name":"path-after-filter","query":"[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter ~(get /age | gte 18) | map /name","expect":"[\"Alice\"]"}
-{"name":"else-uses-pipevalue-via-path","query":"{:active false :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"100"}
-{"name":"cond-with-path-default","query":"{:role :user :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"100"}
 {"name":"any-with-path","query":"[{:active false} {:active true}] | any /active","expect":"true"}
 {"name":"any-with-path-none","query":"[{:active false} {:active false}] | any /active","expect":"false"}
 {"name":"every-with-path","query":"[{:active true} {:active true}] | every /active","expect":"true"}

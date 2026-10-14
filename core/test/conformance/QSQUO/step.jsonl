@@ -12,4 +12,5 @@
 {"name":"call-record-that-reads-back-as-no-code-is-refused","query":"::call{:name :\"a b\"} !| get [~(type) /printed]","expect":"[::call/ReadBackDiffersError \"a b\"]"}
 {"name":"the-step-of-a-constructor-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct"}
 {"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::construct/ReadBackDiffersError"}
-{"name":"the-kind-of-tagged-values-is-no-step","query":"::tagged | doc | content | contains \"A value under a tag\"","expect":"true"}
+{"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| it) | first | get /docs | first | type","expect":"::doc"}
+{"name":"the-step-of-an-error-literal-maps-as-the-map-of-its-fields","query":"~(!{:kind :oops :trail 5}) | map ~count","expect":"[2]"}

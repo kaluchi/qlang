@@ -8,4 +8,6 @@
 {"name":"a-declaration-names-a-keyword","query":":status :active | env | get /status | get /value","expect":":active"}
 {"name":"a-declaration-that-computes-begins-the-body","query":":vec/total ~(:n (count) | sum | add n) | [1 2 3] | total","expect":"9"}
 {"name":"a-template-of-get-begins-the-body","query":":vec/m ~(:opts get {:n ~(count)} | opts) | [1 2] | m","expect":"{:n 2}"}
-{"name":"a-tag-in-the-place-of-a-name-declares-nothing","query":"\"::Box [] | 1\" | parse !| type","expect":"::quote/ParseError"}
+{"name":"doc-survives-shadowing-redeclare","query":":foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content)","expect":"\" New doc.\\n With second remark.\""}
+{"name":"doc-on-a-declaration-of-it","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\" Captured value.\""}
+{"name":"doc-on-a-declaration-of-it-hands-the-value-on","query":"42\n:x |~~| captured\nit\n| x","expect":"42"}

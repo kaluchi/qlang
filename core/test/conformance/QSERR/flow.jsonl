@@ -21,7 +21,6 @@
 {"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort /a !| get [~(type) ~(get /trail | map /step)]","expect":"[::path/KeyNotInMapError [~(sort /a)]]"}
 {"name":"reduce-seed-error-shortcircuits","query":"[1 2 3] | reduce (!{:kind :oops} | raise) ~(add) !| type","expect":"::error"}
 {"name":"reduce-reducer-error-shortcircuits","query":":any/r (::fn | takes :x |~~ The x. ~~| /0 | impl ~(!{:kind :stop} | raise)) | [1 2 3] | reduce 0 ~r !| type","expect":"::error"}
-{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| get /key","expect":":b"}
 {"name":"a-condition-that-answers-an-error-answers-the-call","query":"{} | if (get /missing) ~(1) ~(2) !| type","expect":"::path/KeyNotInMapError"}
 {"name":"a-key-that-answers-an-error-answers-it","query":"[{:a 1}] | groupBy /b !| type","expect":"::path/KeyNotInMapError"}
 {"name":"a-key-that-answers-an-error-answers-it-over-a-set","query":"#[{:a 1}] | groupBy /b !| type","expect":"::path/KeyNotInMapError"}
@@ -29,4 +28,5 @@
 {"name":"a-predicate-error-passes-a-tagged-vector-as-it-is","query":":Box |~~ Box. ~~| | ::Box[1 2] | filter ~(!{:x 1} | raise) !| type","expect":"::error"}
 {"name":"a-predicate-error-passes-a-quote-as-it-is","query":"~(a | b) | filter ~(!{:x 1} | raise) !| type","expect":"::error"}
 {"name":"a-predicate-error-passes-a-set-as-it-is","query":"#[1 2] | filter ~(!{:x 1} | raise) !| get /x","expect":"1"}
-{"name":"the-constructor-of-a-kind-refuses-a-payload-that-breaks-it","query":":Positive |~~ Positive. ~~| (::kind | holds :NotPositiveError |~~ Each above zero. ~~| ~(every ~(gt 0))) | ::Positive[1 2 -3] !| type","expect":"::Positive/NotPositiveError"}
+{"name":"a-full-application-whose-subject-is-an-error-answers-it","query":"5 | mul (!{:k 1} | raise) 2 !| get /k","expect":"1"}
+{"name":"a-predicate-error-passes-a-tag-stacked-on-a-set-as-it-is","query":":Box |~~ Box. ~~| | ::Box#[1 2 3] | filter ~(!{:x 1} | raise) !| get /x","expect":"1"}

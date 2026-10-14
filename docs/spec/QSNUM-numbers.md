@@ -8,12 +8,13 @@ file under `core/test/conformance/QSNUM/`.
 
 `add`, `sub`, `mul` and `div` take the number in the pipe as their
 subject and one number as their object; `mod` answers the remainder with
-the sign of the divisor; `floor`, `ceil`, `abs` and `round`, with a
-count of digits, take a number to a whole one, its size or its rounding.
-Every answer is a finite double: one past the doubles is refused as
-`::number/NotFiniteError`, and a division by zero under the divisor,
-`::number/div/divisor/ZeroError`. `range` answers the whole numbers from
-zero below its subject.
+the sign of the divisor; `floor`, `ceil` and `abs` take a number to a
+whole one or its size, and `round` to the digits its call gives, none by
+default, half away from zero. Every answer is a finite double: one past
+the doubles is refused as `::number/NotFiniteError`, and a division or a
+remainder by zero under the divisor, `::number/div/divisor/ZeroError`.
+`range` answers the whole numbers from zero below its subject, `[]` from
+zero and below, a fraction refused as no count.
 
 ```qlang
 > 10 | add 5 | mul 2 | sub 10
@@ -37,8 +38,7 @@ zero below its subject.
 
 ## combine
 
-The subject of a call is the value in the pipe, always: no count of
-modifiers turns the first of them into the subject, and a call that
+The subject of a call is the value in the pipe, always, and a call that
 gives more objects than its word reads is refused, its refusal naming
 what fits. Values one subject computes are combined by a word that
 serves any value, `sumOf`, `subOf`, `mulOf` and `divOf`, its objects all

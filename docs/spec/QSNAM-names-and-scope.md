@@ -14,8 +14,12 @@ so the binding is a branch to the side.
 
 The body is a step: a literal, `it` for the value in the pipe, a group
 for what the group computes, a call of a word, a quote, which is held as
-the value it is, a keyword or a tag name. A page written between the
-name and the body is the name's page.
+the value it is, a keyword or a tag name, and a word after a keyword or
+a tag name is a step of its own, joined by a combinator. A page written
+between the name and the body is the name's page. Code moved into a
+declaration further left answers as it did inline or is refused: a quote
+or a word means the same wherever its names mean the same, and a value,
+computed where it is declared, follows the subject there.
 
 ```qlang
 > 42 | :answer it | add 1 | answer
@@ -29,6 +33,9 @@ name and the body is the name's page.
 
 > :s ::vec | s
 ::vec
+
+> ":s ::vec it" | parse !| get /message
+"steps are joined by `|`: write `a | b`"
 ```
 
 ## letters
@@ -81,9 +88,13 @@ A name with a path under the label of the values it serves declares a
 word, `:number/double ~(mul 2)`: its body runs on the subject at each
 mention, the last name of its address calls it, and so does the address
 written as a step. `~double` hands the word on as code. A word reads the
-names of its body where it is called, so a word calls itself by its
-name, and a call that recurses without end meets the budget of frames,
-`::call/EvaluationDepthExceededError` with its `:depth` and `:limit`.
+words and the nodes of the tree as the tree stands where it is called,
+so a word calls itself by its name. Each call runs a frame: an input
+read from its place, a modifier that is the literal of an atom and each
+run of the code a verb runs meet the budget of frames one below the
+call, a quote written as a modifier running no frame, and a call that
+recurses without end is refused as `::call/EvaluationDepthExceededError`
+with its `:depth` and `:limit`.
 
 ```qlang
 > :number/double ~(mul 2) | 5 | double
@@ -114,10 +125,11 @@ there stays there.
 The body of a word runs in the scope its call opens with `args` and each
 input of the word. A step of the body's pipeline that declares one of
 them is refused as a second declaration; a group of the body and a quote
-it runs are scopes of their own, where an input may be shadowed. What
-the body declares stays in it. A source is the scope of its text, and a
-cell of a session is a scope of its own, so a cell after another
-declares a name or a node under the reader's own noun again.
+it runs are scopes of their own, where an input may be shadowed, and a
+word the body calls runs in a scope its own call opens anew. What the
+body declares stays in it. A source is the scope of its text, and a cell
+of a session is a scope of its own, so a cell after another declares a
+name or a node under the reader's own noun again.
 
 ```qlang
 > :k 1 | :k 2 | k !| get [~(type) /name]

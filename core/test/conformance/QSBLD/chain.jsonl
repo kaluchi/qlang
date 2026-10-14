@@ -3,4 +3,4 @@
 {"name":"an-invariant-declared-by-a-bare-name-is-refused","query":":Box |~~ A box. ~~| ::holds~(get /w | is ::number) | :Box/area ~(mulOf /w /h) !| get [~(type) /name]","expect":"[::bind/WrittenOutsideItsChainError :Box]"}
 {"name":"an-invariant-a-bare-name-declares-is-refused","query":":Positive ::holds~(gt 0) !| type","expect":"::bind/WrittenOutsideItsChainError"}
 {"name":"a-tag-a-reader-declares-under-a-word-changes-no-call","query":":any/k ~(5) | :any/k/out |~~ Text. ~~| ::string | 0 | k","expect":"5"}
-{"name":"a-label-declared-by-its-page-alone-holds-its-page","query":":ExplicitFirst |~~ ExplicitFirst. ~~| | ::ExplicitFirst[1 2] | (::ExplicitFirst | binding | get /value | type)","expect":"::doc"}
+{"name":"a-name-under-a-label-outside-its-chain-lies-there-with-its-page","query":":Box |~~ A box. ~~| | :Box/w |~~ The width. ~~| ::number | get [~(::Box | manifest) ~(::Box/w | doc | content | contains \"width\")]","expect":"[#[::Box/w] true]"}

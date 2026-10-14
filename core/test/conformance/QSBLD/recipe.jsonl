@@ -1,10 +1,16 @@
-{"name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width#5 | inc","expect":"::Width#6"}
-{"name":"a-verb-that-returns-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T"}
-{"name":"a-verb-handed-on-in-a-quote-runs-where-the-quote-is-applied","query":":number/big ~(gt 2) | [1 2 3] | filter ~big","expect":"[3]"}
 {"name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false"}
-{"name":"a-verb-without-modifiers-runs-at-each-mention","query":":number/inc ~(add 1) | 5 | inc | inc","expect":"7"}
 {"name":"a-word-of-a-noun-itself-takes-the-tag-name","query":":Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk itself. ~~| ::tag | impl ~(\"9 to 5\")) | ::Desk | hours","expect":"\"9 to 5\""}
 {"name":"a-word-of-a-noun-itself-refuses-a-value-that-is-no-tag","query":":Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk itself. ~~| ::tag | impl ~(\"9 to 5\")) | 5 | Desk/hours !| type","expect":"::Desk/hours/SubjectNotDeskError"}
 {"name":"a-recipe-reads-no-value-of-a-sentence","query":":n 3 | :number/times ~(mul n) | 5 | times !| type","expect":"::call/UnknownNameError"}
 {"name":"a-word-recurses-through-the-tree","query":":number/fact ~(if (lte 1) ~(1) ~(:n it | sub 1 | fact | mul n)) | 5 | fact","expect":"120"}
-{"name":"the-recipe-of-a-word-of-the-host-is-its-descriptor","query":"::vec/sort | binding | get /value | get /1 | type","expect":"::builtin"}
+{"name":"a-value-the-sentence-names-reaches-no-place-of-a-word","query":":it 5 | 3 | is ::number","expect":"true"}
+{"name":"a-value-the-sentence-names-reaches-no-invariant-of-a-word","query":":floor 3 | [1 2 3] | drop 1","expect":"[2 3]"}
+{"name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":":k 1 | :number/f ~(add k) | :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)) | g 100 !| type","expect":"::call/UnknownNameError"}
+{"name":"a-recipe-of-a-function-reads-its-input-past-a-value-of-the-sentence","query":":by 99 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | 5 | plus 3","expect":"8"}
+{"name":"a-value-of-the-sentence-shadows-no-word-the-recipe-of-a-function-calls","query":":twice 7 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1","expect":"12"}
+{"name":"a-recipe-reads-no-quote-its-query-names","query":":x 10 | :q ~(add x) | :any/t (::fn | takes :x |~~ The x. ~~| /0 | impl ~(apply q)) | 2 | t 99 !| get /actualValue/name","expect":":q"}
+{"name":"a-quote-written-in-its-step-reads-that-step","query":":vec/addAll (::fn | takes :by |~~ The by. ~~| /0 | impl ~(map ~(add by))) | [1 2] | addAll 10","expect":"[11 12]"}
+{"name":"a-recipe-of-a-function-reads-a-word-declared-after-it","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1","expect":"12"}
+{"name":"a-word-reads-its-input-by-its-name","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(mul 10 | add x)) | 2 | m it","expect":"22"}
+{"name":"a-word-recurses-through-its-input","query":":number/fact (::fn | takes :n |~~ The n. ~~| /0 ::number | impl ~(if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1))))) | 5 | fact it","expect":"120"}
+{"name":"a-recipe-under-a-label-reads-no-input-of-the-word-it-shadows","query":":Box |~~ B ~~| | :Box/take ~([7 8 9] | count) | ::Box[1 2 3] | take","expect":"3"}

@@ -7,10 +7,6 @@
 {"name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (add 1) (mul 2)","expect":"[6 10]"}
 {"name":"a-modifier-sees-no-name-another-declared","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (:y 1 | y) y !| type","expect":"::call/UnknownNameError"}
 {"name":"a-modifier-of-a-built-in-forks-against-the-subject","query":"10 | add (sub 3)","expect":"17"}
-{"name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
-{"name":"a-declaration-refuses-a-subject-of-another-kind","query":"{:a 1} | vec/count !| true","expect":"true"}
 {"name":"a-modifier-is-computed-against-the-subject-of-its-step","query":"{:price 4 :qty 3} | mulOf /price /qty","expect":"12"}
-{"name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r it | (:r | type)","expect":"::keyword"}
 {"name":"a-modifier-is-read-from-the-subject-of-its-step","query":"{:price 4 :qty 3} | get /price | mul (get /qty) !| get [~(type) /key]","expect":"[::path/SubjectHasNoPartsError :qty]"}
 {"name":"code-written-without-its-quote-is-read-from-the-whole-subject","query":"[{:n 1}] | map (get /n) !| get /actualValue | type","expect":"::path/IndexNotIntegerError"}
-{"name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)","expect":"6"}

@@ -49,3 +49,7 @@
 {"name":"if-resides-on-any","query":"\"x\" | if true ~(1) ~(2)","expect":"1"}
 {"name":"a-clause-of-another-kind-names-its-index","query":"5 | cond true ~(\"yes\") !| get [~(type) /index /actualType]","expect":"[::any/cond/clauses/ElementNotPathOrQuoteError 0 ::boolean]"}
 {"name":"if-refuses-a-missing-branch","query":"true | if true ~(1) !| type","expect":"::any/if/else/NotGivenError"}
+{"name":"else-uses-pipevalue-via-path","query":"{:active false :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"100"}
+{"name":"cond-with-path-default","query":"{:role :user :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"100"}
+{"name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
+{"name":"a-condition-of-cond-is-named-by-its-place-from-zero","query":"get [~(5 | cond ~(1) ~(\"yes\") !| get [~(type) /index]) ~(5 | cond ~(false) ~(1) ~(2) ~(3) !| get [~(type) /index])]","expect":"[[::any/cond/ConditionNotBooleanError 0] [::any/cond/ConditionNotBooleanError 2]]"}

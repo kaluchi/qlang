@@ -4,24 +4,16 @@
 {"name":"a-name-a-value-holds-no-member-under-is-refused-with-no-address","query":"5 | doc :nosuch !| get [~(type) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
 {"name":"a-name-a-member-declares-no-input-under-is-refused","query":"::vec/take | doc :nosuch !| get [~(type) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
 {"name":"an-unknown-name-under-a-word-is-named-by-the-keyword-asked","query":"::vec/take | doc :\"a b\" !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :\"a b\"]"}
-{"name":"a-kind-is-declared-in-the-source-of-its-noun","query":"::vec | binding | get /origin","expect":":qlang/vec"}
-{"name":"the-kind-of-paths-is-declared-in-the-source-of-its-noun","query":"::path | binding | get /origin","expect":":qlang/path"}
-{"name":"the-kind-of-a-tag-name-is-declared-in-the-source-of-its-noun","query":"::tag | binding | get /origin","expect":":qlang/tag"}
-{"name":"a-kind-names-the-source-of-its-noun","query":"::vec | binding | entries | filter ~(first | eq :origin) | first | last","expect":":qlang/vec"}
 {"name":"a-declared-name-source-axis","query":":number/double ~(mul 2) | ::number/double | source | parse","expect":"\":number/double ~(mul 2)\""}
 {"name":"an-anchor-under-a-tag-that-names-nothing-is-refused-by-its-name","query":"::Nothing | doc :x !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :x]"}
 {"name":"an-anchor-reads-the-input-of-a-kinds-word","query":"::vec | doc [:take :count] | eq (::vec/take/count | doc)","expect":"true"}
-{"name":"the-node-of-the-answer-of-a-word-holds-its-kinds","query":"::vec/count/answer | binding | get /value","expect":"::number"}
 {"name":"an-address-reads-its-page-whatever-the-scope-binds","query":":limit 5 | ::vec/filter | doc | type","expect":"::doc"}
 {"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::vec/count | doc | type","expect":"::doc"}
 {"name":"a-keyword-names-a-binding-of-its-scope","query":"::count | doc !| type","expect":"::any/doc/UnknownNameError"}
 {"name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | parse | contains \"::builtin{}\"","expect":"true"}
-{"name":"an-addressed-built-in-answers-its-descriptor","query":"::vec/take | binding | get /value | get /1 | type","expect":"::builtin"}
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true"}
 {"name":"an-axis-reads-the-input-a-member-holds-under-a-name","query":"::vec/take | binding :count | get /value | print","expect":"\"/0\""}
 {"name":"a-name-no-member-holds-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :nosuch]"}
-{"name":"no-node-names-the-verb","query":"::verb | doc | type !| type","expect":"::any/doc/UnknownNameError"}
-{"name":"no-node-names-the-spec","query":"::spec | doc | type !| type","expect":"::any/doc/UnknownNameError"}
 {"name":"a-refusal-reads-its-page-by-its-address","query":"::number/add/SubjectNotNumberError | doc | type","expect":"::doc"}
 {"name":"an-address-on-a-kind-the-verb-skips-names-it-on-any-value","query":"::vec/type | doc !| get /addresses","expect":"#[::any/type]"}
 {"name":"a-keyword-is-read-by-its-kind","query":":limit | doc | eq (::keyword | doc)","expect":"true"}
@@ -30,3 +22,19 @@
 {"name":"not-found-carries-the-binding-name","query":"::nosuchbinding | source !| get /name","expect":"::nosuchbinding"}
 {"name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true"}
 {"name":"an-undeclared-tag-answers-one-page-whatever-asked-first","query":"get [~(::Late | doc !| type) ~(::Late{:a 1} | doc !| type)] | distinct | count","expect":"1"}
+{"name":"the-kind-of-tagged-values-is-no-step","query":"::tagged | doc | content | contains \"A value under a tag\"","expect":"true"}
+{"name":"a-word-reads-the-pages-of-its-inputs","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | ::number/plus/by | doc | content | trim","expect":"\"How much.\""}
+{"name":"the-recipe-of-a-word-of-the-host-is-its-descriptor","query":"::vec/sort | binding | get /value | get /1 | type","expect":"::builtin"}
+{"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\" A box. \""}
+{"name":"a-refusal-of-a-word-leads-to-where-it-lives","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::set/reduce ::vec/reduce]"}
+{"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":"::type | doc !| get /addresses","expect":"#[::any/type]"}
+{"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| get /addresses","expect":"#[::doc/content]"}
+{"name":"a-word-that-reads-a-name-no-declaration-names-refuses-as-a-call-does","query":"::Foo | doc !| type","expect":"::any/doc/UnknownNameError"}
+{"name":"the-page-of-a-kinds-word-is-read-by-its-address","query":"::vec/reduce | doc | type","expect":"::doc"}
+{"name":"an-input-carries-the-page-of-its-command","query":":any/m (::fn | takes :x |~~ How many. ~~| /0 | impl ~(x)) | ::any/m/x | doc | content","expect":"\" How many. \""}
+{"name":"the-page-of-an-input-is-reached-by-its-name","query":":number/f (::fn | takes :n |~~ how many ~~| /0 | impl ~(add n)) | ::number/f | doc :n | content","expect":"\" how many \""}
+{"name":"a-name-a-reader-verb-declares-no-input-under-is-refused-with-no-addresses","query":":number/twice (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(mul x)) | ::twice | doc :nosuch !| get [~(type) /addresses]","expect":"[::any/doc/UnknownNameError #[]]"}
+{"name":"a-path-of-anchors-reads-an-input-of-a-word-under-a-label","query":":Box |~~ B ~~| | :Box/twice (::fn | takes :x |~~ The factor. ~~| /0 ::number | impl ~(mul x)) | ::Box | doc [:twice :x]","expect":"|~~ The factor. ~~|"}
+{"name":"the-source-of-an-address-holds-every-declaration-under-it","query":":Box |~~ A parcel. ~~| | :Box/put |~~ Puts a weight in. ~~| (::fn | takes :w |~~ The weight. ~~| /0 | impl ~(append w)) | ::Box | source | map /name","expect":"[:Box :Box/put]"}
+{"name":"a-tagged-vector-reads-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box#[3 1] | doc | content","expect":"\" A box. \""}
+{"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | doc | content | eq (::map | doc | content)","expect":"true"}

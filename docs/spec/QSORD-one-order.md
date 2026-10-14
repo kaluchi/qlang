@@ -13,10 +13,11 @@ the kinds of hosts among them. Within a kind, numbers order by value,
 `false` before `true`, strings by their code units, patterns by their
 text and then their flags, paths segment by segment, vectors element by
 element, a shorter before a longer it begins, a set as its vector, maps
-by their keys and then their values, a desc by the reverse of its
-payload's place, and a value under another tag by its payload. The part
-JSON has is the order of jq, so a reader trained on jq meets no
-surprise; a kind JSON lacks stands beside the one it resembles.
+by their keys and then their values, a quote by its steps, a doc by its
+text, an elision by its payload, a desc by the reverse of its payload's
+place, an error by its tag and then its facts, and a value under another
+tag by its payload. The part JSON has is the order of jq; a kind JSON
+lacks stands beside the one it resembles.
 
 ```qlang
 > [{:a 1} #[1] [1] ::t :k "s" 1 true null] | sort
@@ -36,10 +37,10 @@ A set is the vector in the one order without duplicates, under the tag
 its payload is that vector. Its constructor orders what it is given and
 holds each element once, so `tag ::set` and a write lay the set anew. A
 set reads by place as its vector does, two sets are equal by their
-elements, and a set is no vector. A word over a set answers a set where
-the set is its own kind's answer, `filter` among them, and a vector
-where it answers an order of its own, `sort` and `reverse`, or the
-images of the elements, `map`.
+elements, and a set is unequal to the vector of its elements. A word
+over a set answers a set where the set is its own kind's answer,
+`filter` among them, and a vector where it answers an order of its own,
+`sort` and `reverse`, or the images of the elements, `map`.
 
 ```qlang
 > [2 1 2] | distinct
@@ -61,13 +62,15 @@ false
 ## sort
 
 `sort` orders a vector, a set or a map's values by the one order, equal
-values keeping the order they stood in; `min` and `max` answer the first
-and the last value in it. Each takes a key, a quote or a path, and ranks
-by what the key answers, a vector key ranking place by place, the first
-place first and each later one among the elements the places before it
-leave alike; `min` and `max` with a key answer the element, the first of
-equal ones. A key that answers an error answers the call. A map sorted
-keeps its keys.
+values keeping the order they stood in, a map keeping its keys; `min`
+and `max` answer the first and the last value in it, null for an empty
+container. Each takes a key, a quote or a path, and ranks by what the
+key answers, a vector key ranking place by place, the first place first
+and each later one among the elements the places before it leave alike;
+`min` and `max` with a key answer the element, the first of equal ones.
+A key that fails answers the call, and an error at rest a key answers
+ranks as the one order ranks it, as an error among the elements does
+where no key is given.
 
 ```qlang
 > [{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b]) | map /b
@@ -78,6 +81,9 @@ keeps its keys.
 
 > [{:k 1 :i 0} {:k 0 :i 1} {:k 1 :i 2}] | sort /k | map /i
 [1 0 2]
+
+> [!{:k 1} 1 null] | sort
+[null 1 !{:k 1}]
 ```
 
 ## desc

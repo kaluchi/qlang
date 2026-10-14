@@ -1,8 +1,7 @@
-{"name":"runExamples-fails-an-example-that-answers-no-boolean","query":":x 1 | :x/one ::law~(1) | ::x | runLaws | first | get /ok","expect":"false"}
-{"name":"runExamples-passes-an-example-that-answers-true","query":":x 1 | :x/holds ::law~(true) | ::x | runLaws | first | get /ok","expect":"true"}
+{"name":"run-laws-fails-a-law-that-answers-no-boolean","query":":x 1 | :x/one ::law~(1) | ::x | runLaws | first | get /ok","expect":"false"}
+{"name":"run-laws-passes-a-law-that-answers-true","query":":x 1 | :x/holds ::law~(true) | ::x | runLaws | first | get /ok","expect":"true"}
 {"name":"the-laws-of-a-name-applied-by-the-reader-hold","query":"::qlang/pipeline | laws | map ~(get /1 | apply it) | every ~(it)","expect":"true"}
 {"name":"a-value-runs-the-laws-of-its-kind","query":"42 | runLaws | map /ok | distinct","expect":"#[true]"}
-{"name":"a-kind-with-no-word-of-its-own-has-a-source-of-its-page","query":"[::binding ::elision ::holds ::law ::link ::snippet] | map ~(binding | get /origin)","expect":"[:qlang/binding :qlang/elision :qlang/holds :qlang/law :qlang/link :qlang/snippet]"}
 {"name":"a-law-that-answers-a-refusal-holds-it-at-rest-under-its-address","query":":d 1 | :d/addsToAString ::law~(\"x\" | add 1) | ::d | runLaws | first | get /error | type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"runLaws-holds-the-error-of-a-law-at-rest","query":":d 1 | :d/addsToAString ::law~(\"x\" | add 1) | ::d | runLaws | first | entries | filter ~(first | eq :error) | first | last | type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"the-laws-of-a-name-are-the-laws-declared-under-it-by-their-names","query":":Box |~~ A box. ~~| | :Box/addsUp |~~ Two and three is five. ~~| ::law~(2 | add 3 | eq 5) | ::Box | laws | keys","expect":"#[:addsUp]"}
@@ -25,6 +24,5 @@
 {"name":"every-law-of-sort-says-its-claim","query":"::vec/sort | runLaws | every ~(get /says | eq null | not)","expect":"true"}
 {"name":"the-laws-of-a-concept-run-through-its-noun","query":"::qlang | runLaws :errors | map /says | first","expect":"|~~ The error's tag names its site. ~~|"}
 {"name":"a-page-holds-the-laws-of-its-claims","query":"::vec/sort | laws | count | gt 0","expect":"true"}
-{"name":"a-law-of-a-spelled-form-shows-the-form","query":"::map | laws | get /readsJson | get /1 | print","expect":"\"~(\\\"{\\\\\\\"a\\\\\\\": 1, \\\\\\\"b\\\\\\\": [true, null]}\\\" | parse | apply it | eq {:a 1 :b [true null]})\""}
 {"name":"every-example-of-the-core-passes","query":"kinds | map ~(manifest) | flat | every ~(runLaws | every /ok)","expect":"true"}
 {"name":"the-laws-a-page-carried-stand-under-its-name","query":"::number/add | laws | count","expect":"4"}

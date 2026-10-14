@@ -26,4 +26,5 @@
 {"name":"a-descriptor-reads-its-field-by-path","query":"::builtin{:note :draft} | get /note","expect":":draft"}
 {"name":"path-on-number","query":"42 | get /foo","expect":"::path/SubjectHasNoPartsError!{\n  :key :foo\n  :path /foo\n  :actualType ::number\n  :trail [\n    {\n      :step ~(get /foo)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"get-reads-beneath-the-tags","query":"::Box{:w 3} | get /w","expect":"3"}
-{"name":"a-path-reads-before-a-combinator","query":"{:a 1} | get /a !| 0","expect":"1"}
+{"name":"a-path-reads-beneath-the-tags-stacked-over-a-map","query":"::Box::Crate{:a 1} | get /a","expect":"1"}
+{"name":"a-doc-is-read-by-places-as-a-vector-is","query":"|~~ x ~~| | get /unknownKey","expect":"::path/IndexNotIntegerError!{\n  :key :unknownKey\n  :path /unknownKey\n  :actualType ::doc\n  :trail [\n    {\n      :step ~(get /unknownKey)\n      :subject |~~ x ~~|\n      :skipped ~()\n    }\n  ]\n} | raise"}

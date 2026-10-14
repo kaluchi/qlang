@@ -12,3 +12,4 @@
 {"name":"env-answers-what-the-reader-declared","query":":x 1 | :Box {} | :Box/y 2 | env | get [~(has :x) ~(has :Box/y) ~(has :vec) ~(has :count)]","expect":"[true true false false]"}
 {"name":"env-answers-a-map","query":"env | type","expect":"::map"}
 {"name":"a-member-of-a-noun-stays-out-of-the-scope","query":"env | has :pipeline","expect":"false"}
+{"name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | get /value","expect":"10"}

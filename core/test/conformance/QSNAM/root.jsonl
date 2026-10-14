@@ -1,5 +1,4 @@
 {"name":"a-binding-names-the-source-it-came-from","query":"::vec/filter | binding | get /origin","expect":":qlang/vec"}
-{"name":"the-chapters-are-members-of-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
 {"name":"kinds-answers-the-labels-the-scope-reads","query":":Box |~~ Box. ~~| | kinds | get [~(has ::vec) ~(has ::Box) ~(has ::qlang)]","expect":"[true true true]"}
 {"name":"a-binding-records-its-origin","query":"::number/add | binding | get /origin","expect":":qlang/number"}
 {"name":"kinds-reads-a-kind-of-the-root-a-reader-stands-over","query":":vec 5 | get [~(kinds | has ::vec) ~(env | get /vec | get /value)]","expect":"[true 5]"}

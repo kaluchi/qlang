@@ -1,9 +1,9 @@
 # QSHST · Hosts and the command line
 
 What a host hands the language and what the language leaves to it, and
-how the command line reads a query and writes its answer. The tests of
-`cli/` and `lsp/` and the unit tests of the core's host hold its
-sections.
+how the command line reads a query and writes its answer. The cases of
+`core/test/conformance/QSHST/`, the tests of `cli/` and `lsp/` and the
+unit tests of the core's host hold its sections.
 
 ## source
 
@@ -15,17 +15,29 @@ declares with the recipe `::builtin{}`, a plain function over the values
 its inputs checked, the subject first and the inputs in their order.
 The root refuses, as it is declared, a `::builtin{}` the host handed
 nothing for and an implementation handed for a name the source declares
-as no word. The core is such a host of its own sources, listed once in
-`LANGUAGE_SOURCES`, each read whole when the runtime starts. The kernel
-is the evaluator with its table of primitives and the shapes it reads,
-`::fn`, `::kind` and `::builtin{}`, which the catalog documents rather
-than defines. A primitive that reads the scope of its call, `doc`,
-`env`, `get`, `apply` and their kin, takes the state of the call after
-the values of its inputs were checked; every other primitive is a plain
-function. A host's setting is the first value of its pipe and nothing
-else in the environment.
+as no word. A `::builtin{}` written in the recipe of a word a reader
+declares is the value it is.
+
+Each source is the source of one noun, its page first and what is
+declared under it after, so a kind lives whole in the source of its
+noun, and a kind with no word of its own has a source of its page and
+its laws; the source `qlang` holds the topic of the language, and a
+binding's `:origin` names the source of its noun. The core is a host of
+its own sources, listed once in `LANGUAGE_SOURCES`, each read whole when
+the runtime starts. The kernel is the evaluator with its table of
+primitives and the shapes it reads, `::fn`, `::kind` and `::builtin{}`,
+whose pages the catalog holds. A primitive that reads the scope of its
+call, `doc`, `env`, `get`, `apply` and their kin, takes the state of the
+call after the values of its inputs were checked; every other primitive
+is a plain function. A call waits on an answer that has a `then`, a
+host's thenable and its promise of another realm among them. A host's
+setting is the first value of its pipe, and a host's command starts
+from its own noun.
 
 ```qlang
+> ::vec | binding | get /origin
+:qlang/vec
+
 > ::vec/count | source | parse | contains "::builtin{}"
 true
 ```
@@ -34,15 +46,17 @@ true
 
 A query reads, and writes only by a host's words for the streams of its
 process, each an explicit step performed when it runs: the command
-line's `in` reads standard input, `out` writes a string as a line of
-standard output, `err` as a line of standard error, and `tap` shows a
-value on standard error halfway through a query. What changes the world
-stays a command of its host, and its result a noun that queries read.
-A tag may describe an effect a host is to perform, and such a value is
-performed only by an explicit step at the boundary; a constructor is
-pure, and reading or constructing a literal performs nothing. The forks
-of a sequence run in its order, so a word of a host with an effect meets
-the elements in their order.
+line's `in` reads standard input when it is called, `out` writes a
+string as a line of standard output, `err` as a line of standard error,
+and `tap` shows a value on standard error halfway through a query. What
+changes the world is a command of its host, and its result a noun that
+queries read. A tag may describe an effect a host is to perform, and
+such a value is performed by an explicit step at the boundary; a
+constructor is pure, and reading or constructing a literal performs
+nothing. The forks of a sequence run in its order, so a word of a host
+with an effect meets the elements in their order, and a host whose word
+is better served by calls at once takes the whole vector and bounds its
+own calls.
 
 ```qlang
 > :any/quiet ~(out) | 1
@@ -54,15 +68,28 @@ the elements in their order.
 The command line writes every answer as the language prints it,
 whatever its input was, a string as its text, and whole: a budget is
 asked for, `| elide N` in the query or `--budget=N` before it, which
-prints every answer within N characters. A failure is an answer: it goes
-to standard output with the exit code 0, as its alert, its tag and its
-facts with the data it carries cut to what places the failure, and the
-prose of its refusal's page below it as line comments. Standard error
-and a nonzero code stay for what is no answer: a defect raised past the
-fail track and a call with no query. A reader who wants JSON converts
-the answer in the query, `| json`. An argument after the query is
-refused with a usage line that names where the flags stand. `-i` opens
-the REPL, a query after it its first cell.
+prints every answer within N characters. A reader who wants JSON
+converts the answer in the query, `| json`. `-i` opens the REPL, a query
+after it its first cell.
+
+A failure is an answer, written to standard output with the exit code 0
+as its alert: its tag and its facts in the order the catalog declares
+them, the subject where it arose and every other fact cut to an excerpt
+of three hundred characters, a string past the excerpt giving way whole
+with its `:head`, the subject of each later stop giving way to an
+`::elision` marker where the marker prints shorter, and a value the
+alert already shows giving way the second time; each marker's `:read`
+continues the query beneath `!|`. Below the alert stands the prose of
+its refusal's page as line comments, the repair it tells; a refusal with
+no page is written without prose, and the REPL prints its cells without
+it. A query that does not parse answers `::quote/ParseError`, and an
+input that does not read answers as `parseJson` refuses it.
+
+Standard error and a nonzero code are for what is no answer: a defect
+raised past the fail track, a call with no query, and an argument after
+the query, refused with a usage line that names where the flags stand,
+with the code 2. The note on a query the shell made a path of goes to
+standard error beside the answer.
 
 ```qlang
 > {:a 1} | json
@@ -72,30 +99,41 @@ the REPL, a query after it its first cell.
 ## input
 
 The command line starts from standard input when the query reads its
-subject and the input carries bytes, read as the values its JSON writes
-under `--json` or as text, and otherwise from `::qlang`, the noun of the
-language. A query whose first step that declares nothing is a literal
-runs at once; one that reads its subject reads standard input to its
-end, waiting on a slow producer as every reader of a pipe does.
+subject and the input carries bytes, and otherwise from `::qlang`, the
+noun of the language. It reads the input as JSON and, where the text is
+no JSON, as the string it is; `--json` reads it as JSON alone, refused
+as `parseJson` refuses it, and `--raw` as text alone. A query whose
+first step that declares nothing is a literal runs at once, and a node
+of the query the reading does not name counts as one that reads its
+subject. A query that reads its subject reads standard input to its
+end, waiting on a slow producer as every reader of a pipe does, and
+`< /dev/null` ends the wait.
 
 ## shell
 
-Under MSYS, the shell beneath Git Bash, a query that begins with a drive
-and a slash and with the root of the shell arrived as a path the shell
-made of a query that began with `/`, and is read from the slash after
-that root. A query the command line cannot read back and that fails
-gets a line on standard error that names the two ways around it, a read
-begun with its word and `MSYS_NO_PATHCONV=1`.
+Under MSYS, the shell beneath Git Bash, which `MSYSTEM` names, the shell
+writes a query that begins with `/` as a path under its root, the
+nearest directory that holds `usr/bin/msys-2.0.dll`. The command line
+reads such a query from the slash after that root, the initial query of
+the REPL alike. A query it cannot read back and that fails gets a line
+on standard error naming the two ways around it, a read begun with its
+word and `MSYS_NO_PATHCONV=1`. The reading is the command line's, at the
+boundary where the shell hands its arguments, and the core reads paths
+of the language alone.
 
 ## repl
 
 The REPL runs a cell at a time in one session, each cell a scope of its
 own [QSNAM#scope], and prints each answer, a failure as its alert. Its
 line editor reads a chunk of one character, or one that begins with an
-escape, as keys and any other chunk as text: a paste a host hands over
-in several chunks is gathered and lands at the cursor as one, waiting
-for a submit, and Alt+Enter, in both its spellings, submits. Its colour
-is a layer over the core's tokens.
+escape, as keys, and any other chunk as text. A paste a host hands over
+in several chunks is gathered and lands at the cursor as one, its line
+breaks kept, waiting for a submit; a bracketed paste is read to its end
+marker. Enter submits, Alt+Enter submits a paste in both its spellings,
+ESC then CR and ESC then LF, an Escape alone does nothing, and Alt with
+an arrow reads as the arrow. Its colour is a layer over the core's
+tokens, where the name of a call that reaches a word of the language is
+a `word`, and a keyword or a reader's name a `name`.
 
 ## tools
 

@@ -5,7 +5,6 @@
 {"name":"the-bare-form-folds-a-set-of-sets","query":"#[#[1] #[2]] | union","expect":"#[1 2]"}
 {"name":"inter-selects-by-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | inter [:a :c]","expect":"{:a 1 :c 3}"}
 {"name":"minus-removes-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | minus [:a :c]","expect":"{:b 2}"}
-{"name":"a-key-stands-beside-its-value-in-a-record","query":"{:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 (get {:name ~(get /0 | toString)})) | sort /port","expect":"[{:port 3000 :name \"auth\"} {:port 5432 :name \"db\"}]"}
 {"name":"set-union","query":"#[:a :b :c] | union #[:b :d]","expect":"#[:a :b :c :d]"}
 {"name":"set-minus","query":"#[:a :b :c] | minus #[:b :d]","expect":"#[:a :c]"}
 {"name":"set-inter","query":"#[:a :b :c] | inter #[:b :d]","expect":"#[:b]"}
@@ -29,4 +28,4 @@
 {"name":"a-tag-over-a-set-comes-back-on-union","query":"::Box#[1 2] | union #[3]","expect":"::Box#[1 2 3]"}
 {"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| get [~(type) /actualType]","expect":"[::set/union/other/NotNullOrSetError ::vec]"}
 {"name":"a-map-folds-no-values","query":"{:a 1} | union !| type","expect":"::map/union/other/NotGivenError"}
-{"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false"}
+{"name":"a-fold-of-no-values-is-refused-by-the-word-that-folds","query":"#[] | union !| type","expect":"::set/union/SubjectEmptyError"}

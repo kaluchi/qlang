@@ -54,9 +54,11 @@ that has no parts, `::path/SubjectHasNoPartsError`.
 
 `query` reads a path as `get` does and answers `null` where a key or a
 place is missing or `null` stands on the path; another kind on the path
-it refuses as `get` does. Its second input is a default, a value it holds
-and never runs, answered where the path misses; a `null` that stands at
-the path is answered as it stands.
+it refuses as `get` does, a segment that is no whole number on a vector
+among it. Over a map a number segment names the key of its digits. Its
+second input is a default, a value it holds and never runs, answered
+where the path misses; a `null` that stands at the path is answered as
+it stands.
 
 ```qlang
 > {:a null} | query /a/b
@@ -67,26 +69,37 @@ null
 
 > [null] | query /0 7
 null
+
+> [1 2] | query /a !| type
+::path/IndexNotIntegerError
 ```
 
 ## has
 
-`has` with a path answers whether `get` reads it.
+`has` on a map takes a key, a keyword, a string or a path, and answers
+whether `get` reads it; a number is refused, its page naming
+`toKeyword`, `has (get /uid | toKeyword)`. On a vector and a set `has`
+asks whether an element equal to one stands [QSCOL#sequence].
 
 ```qlang
 > {:a {:b 1}} | get [~(has /a/b) ~(has /a/c)]
 [true false]
+
+> {:"1" 5} | has 1 !| type
+::map/has/key/NotKeywordOrPathOrStringError
 ```
 
 ## key
 
-A key alone is the path of one segment wherever a path is taken: a
-keyword, a whole number, or a string, which names the key of its text,
-so a key the query computes is read. Every place that takes a key of a
-map reads a string so, `minus` and `inter` among them. Inside a keyword
-the slash is a letter of the one name, `get :a/b` reading the key
-`:a/b`; in a path it parts the segments, `get /a/b` reading `:b` under
-`:a`.
+A key alone is the path of one segment where `get`, `query` and the
+words that write take a path: a keyword, a whole number, or a string,
+which names the key of its text, so a key the query computes is read.
+Every place that takes a key of a map reads a string so: `minus` and
+`inter` on a map take a vector or a set of keys, each a keyword or a
+string, an element of another kind refused at its index,
+`::map/minus/KeyNotKeywordOrStringError`. Inside a keyword the slash is
+a letter of the one name, `get :a/b` reading the key `:a/b`; in a path
+it parts the segments, `get /a/b` reading `:b` under `:a`.
 
 ```qlang
 > {:k "b" :b 7} | get (get /k)
@@ -105,10 +118,12 @@ the slash is a letter of the one name, `get :a/b` reading the key
 depth of its vectors, maps and sets, answer the template with each path
 read and each quote run against the subject in its place, any other
 value of it as it is. A container under a tag in the template is read
-and laid back under its tags through their constructors; a quote, a doc,
-a function and a kind are answered as they are. A template held in a
-name builds the same shape wherever it is applied, and a value computed
-goes under a tag after the read, `get {:w /w} | tag ::Box`.
+and laid back under its tags through their constructors, which check the
+template as its literal writes it and then the payload read, so a kind
+whose field takes a number refuses a path written at that field, and
+such a value is built by `get` and then `tag`, `get {:w /w} | tag ::Box`.
+A quote, a doc, a function and a kind are answered as they are, and a
+template held in a name builds the same shape wherever it is applied.
 
 ```qlang
 > {:price 4 :qty 3} | get [/price /qty]
@@ -148,8 +163,8 @@ A path answers the words of `::path` alone; a word of another kind
 called on one is refused, the refusal naming as `:read` the read the
 step was likely meant for. `segments` answers the keys and places of a
 path, `toPath` reads a path from a vector of them and from a string in
-the form of JSON Pointer, its escapes read, and `paths` answers the
-paths at which a value holds no parts, the outline of any value.
+the form of JSON Pointer, its escapes read, and `paths` answers the set
+of the paths at which a value holds no parts, the outline of any value.
 
 ```qlang
 > /tags | count !| get /read
@@ -169,14 +184,14 @@ paths at which a value holds no parts, the outline of any value.
 
 `put` lays a value at a path, adding a key the last map lacks and
 replacing a key it holds or a place a vector holds; `update` lays anew
-the part at a path by what its code, a quote or a path, answers for it;
-`delete` takes the part out, the elements after it moving up. Each
-follows the path as `get` does, a key or a place missing on the way
-refused there, and for `update` and `delete` the part itself must be
-there; a key is the path of one segment. Every container on the way is
-built again under the tags it stood under, their constructors and
-invariants run, so a set is ordered again and a value that breaks the
-invariant of its tag is refused.
+the part at a path by what its code, a quote or a path, answers for it,
+an error the code answers being the answer; `delete` takes the part out,
+the elements after it moving up. Each follows the path as `get` does, a
+key or a place missing on the way refused there, and for `update` and
+`delete` the part itself must be there; a key is the path of one
+segment. Every container on the way is built again under the tags it
+stood under, their constructors and invariants run, so a set is ordered
+again and a value that breaks the invariant of its tag is refused.
 
 ```qlang
 > {:a {:b 1}} | put /a/c 2

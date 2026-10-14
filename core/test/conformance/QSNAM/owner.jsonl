@@ -8,5 +8,3 @@
 {"name":"a-value-of-the-reader-reaches-no-name-a-word-of-the-root-writes","query":":laws 7 | :k |~~ K. ~~| 1 | ::k | tutorial | get [~(get /0 | content) /1]","expect":"[\" K. \" {}]"}
 {"name":"the-names-a-word-of-the-root-declares-stay-out-of-what-it-reads","query":"::subject | tutorial !| type","expect":"::any/doc/UnknownNameError"}
 {"name":"a-word-reads-as-data-the-names-of-its-query-not-its-own","query":":x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names","expect":"[false true]"}
-{"name":"a-value-the-sentence-names-reaches-no-place-of-a-word","query":":it 5 | 3 | is ::number","expect":"true"}
-{"name":"a-value-the-sentence-names-reaches-no-invariant-of-a-word","query":":floor 3 | [1 2 3] | drop 1","expect":"[2 3]"}

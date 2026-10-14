@@ -21,3 +21,6 @@
 {"name":"keys-answers-the-sorted-set-of-keys","query":"{:b 1 :a 2} | keys | first","expect":":a"}
 {"name":"first-of-an-empty-map-is-null","query":"{} | first","expect":"null"}
 {"name":"entries-answers-the-pairs-of-a-map","query":"{:a 1 :b 2} | entries","expect":"[[:a 1] [:b 2]]"}
+{"name":"a-key-stands-beside-its-value-in-a-record","query":"{:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 (get {:name ~(get /0 | toString)})) | sort /port","expect":"[{:port 3000 :name \"auth\"} {:port 5432 :name \"db\"}]"}
+{"name":"map-empty-keys","query":"{} | keys","expect":"#[]"}
+{"name":"map-empty-vals","query":"{} | vals","expect":"[]"}

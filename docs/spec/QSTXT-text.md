@@ -33,9 +33,11 @@ strings refuses a subject of another kind.
 ## search
 
 `contains`, `startsWith` and `endsWith` ask a string for a text, case
-and all, and the empty text stands in every string. `contains` asks a
-vector and a set for an element, as `has` does; a value of no kind it
-serves is refused with the addresses that serve it.
+and all, a pattern for `contains` among them [QSTXT#match], and the
+empty text stands in every string; a word that reads text refuses a
+keyword for its text. `contains` asks a vector and a set for an element,
+as `has` does; a value of no kind it serves is refused with the
+addresses that serve it.
 
 ```qlang
 > "Hello" | contains "hello"
@@ -46,6 +48,9 @@ true
 
 > "anything" | startsWith ""
 true
+
+> "abc" | contains :a !| type
+::string/contains/needle/NotRegexOrStringError
 ```
 
 ## split
@@ -82,8 +87,7 @@ of another dialect's habit where the source shows one: flags written
 inside, or a backslash before a character that needs none. A pattern
 prints as its literal and reads back, JSON writing that literal as a
 string, and two are equal when their text and flags are. A pattern whose
-matching backtracks without end runs as long: the language bounds no
-match.
+matching backtracks without end runs as long as its matching does.
 
 ```qlang
 > #"\d+ms" | type
@@ -100,12 +104,16 @@ true
 
 A word that reads text tells a pattern from a text by its kind.
 `contains` asks for a match anywhere, `^` and `$` asking it of the whole;
-`match` answers the first match as the vector of its text and groups, or
-null; `capture` the named groups of the first match as a map, or null,
-refusing a pattern that names no group; `scan` the text of every match;
-`replace` puts a text, or what code answers on each match's vector, in
-the place of every match; `toRegex` reads a string as the source of a
-pattern, its flags the call's.
+`match` answers the first match as the vector of its text and groups, a
+group that took no part `null`, or null where none stands; `capture` the
+named groups of the first match as a map, or null, refusing a pattern
+that names no group; `scan` the text of every match, `[]` where none
+stands; `replace` puts a text, or what code answers on each match's
+vector, in the place of every match, a replacement string naming the
+parts of a match of a pattern by `$1`, `$<name>` and `$&`, and standing
+as written where a text is replaced. `toRegex` reads a string as the
+source of a pattern, its flags the call's, and refuses a string that
+writes a whole literal, which `parse | apply it` reads.
 
 ```qlang
 > "v1.20 and v3.4" | match #"v(\d+)\.(\d+)"
@@ -116,6 +124,9 @@ pattern, its flags the call's.
 
 > "took 12ms, then 7ms" | scan #"\d+"
 ["12" "7"]
+
+> "a" | match #"(b)?a"
+["a" null]
 
 > "error" | toRegex "mi"
 #"error"im

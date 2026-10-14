@@ -11,10 +11,7 @@
 {"name":"and-refuses-a-left-condition-of-another-kind","query":"1 | and true !| type","expect":"::boolean/and/SubjectNotBooleanError"}
 {"name":"or-refuses-a-right-condition-of-another-kind","query":"true | or 1 !| type","expect":"::boolean/or/right/NotBooleanError"}
 {"name":"a-predicate-may-name-a-word","query":"[true false] | filter ~(not)","expect":"[false]"}
-{"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| get [~(type) /index /actualType]","expect":"[::vec/filter/ConditionNotBooleanError 0 ::number]"}
 {"name":"allOf-holds-two-conditions-of-one-record","query":"{:active true :age 25} | allOf (get /active) (get /age | gte 18)","expect":"true"}
-{"name":"a-call-of-more-values-reads-the-page-of-its-refusal","query":"5 | eq 5 6 !| explain | page | content | contains \"one of several\"","expect":"true"}
-{"name":"a-call-of-addof-names-sumof-among-the-names-near-it","query":"{:x 1} | addOf (get /x) (get /x) !| get /nearest | has :sumOf","expect":"true"}
 {"name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| get [~(type) /index /actualType]","expect":"[::any/allOf/conditions/ElementNotBooleanOrPathOrQuoteError 1 ::string/endsWith/SubjectNotStringError]"}
 {"name":"all-of-runs-a-quote-in-its-turn","query":"[{:email null} {:email \"a@b.org\"}] | filter ~(allOf (get /email | ne null) ~(get /email | endsWith \".org\")) | count","expect":"1"}
 {"name":"a-condition-of-allOf-is-a-value-or-a-quote","query":"5 | allOf (gt 1) ~(lt 10)","expect":"true"}

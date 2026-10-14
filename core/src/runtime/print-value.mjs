@@ -38,7 +38,7 @@ function escapeQlangStringLiteral(s) {
 
 const literalOfKeyword = k => k.literal;
 
-// A pattern writes its literal, its flags after it [D246].
+// A pattern writes its literal, its flags after it [QSTXT#pattern].
 export const printRegex = r => patternLiteral(r.source, r.flags);
 
 // A path writes its segments as it is written [D248]: a place as its

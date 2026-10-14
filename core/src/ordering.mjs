@@ -1,8 +1,8 @@
-// One order ranks every value [D16]: first by kind, null,
+// One order ranks every value [QSORD#order]: first by kind, null,
 // boolean, number, string, pattern, keyword, tag name, vector, set, map,
 // quote, doc, elision and desc, then every other tag by its name; within
 // a kind numbers by value, strings by their code units, patterns by their
-// text and then their flags [D246], vectors element
+// text and then their flags [QSTXT#pattern], vectors element
 // by element, a set as its vector, maps by their keys and then their
 // values, a desc by the reverse of its payload's place [QSORD#order], and a
 // tagged value by its payload. `sort`, `min` and `max`

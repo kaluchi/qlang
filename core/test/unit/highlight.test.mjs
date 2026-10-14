@@ -51,7 +51,7 @@ describe('tokenize — atomic literal kinds', () => {
     ]);
   });
 
-  it('classifies a pattern literal, its quote escape and its flags among it [D246]', async () => {
+  it('classifies a pattern literal, its quote escape and its flags among it [QSTXT#pattern]', async () => {
     const src = 'contains #"\\"\\d+"i';
     const tokens = tokenize(src, await builtins());
     expect(tokens.at(-1)).toEqual({ start: 9, end: src.length, kind: 'regex' });

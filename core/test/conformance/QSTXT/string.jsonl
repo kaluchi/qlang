@@ -1,0 +1,14 @@
+{"name":"prepend","query":"\"world\" | prepend \"hello \"","expect":"\"hello world\""}
+{"name":"append","query":"\"hello\" | append \" world\"","expect":"\"hello world\""}
+{"name":"prepend-empty","query":"\"x\" | prepend \"\"","expect":"\"x\""}
+{"name":"append-empty","query":"\"x\" | append \"\"","expect":"\"x\""}
+{"name":"prepend-non-string","query":"42 | prepend \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"append-non-string","query":"42 | append \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"lower-folds-the-case-of-a-string","query":"\"Ann@Example.COM\" | lower","expect":"\"ann@example.com\""}
+{"name":"upper-raises-the-case-of-a-string","query":"\"ok, go\" | upper","expect":"\"OK, GO\""}
+{"name":"strings-that-differ-in-case-alone-meet-once-lowered","query":"[\"Ann\" \"ANN\" \"bob\"] | map ~lower | distinct | count","expect":"2"}
+{"name":"lower-refuses-a-subject-that-is-no-string","query":"42 | lower !| type","expect":"::string/lower/SubjectNotStringError"}
+{"name":"a-string-counts-its-characters","query":"\"привет\" | count","expect":"6"}
+{"name":"a-string-takes-its-first-characters","query":"\"db_host\" | take 2","expect":"\"db\""}
+{"name":"a-string-drops-its-first-characters","query":"\"db_host\" | drop 3","expect":"\"host\""}
+{"name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]"}

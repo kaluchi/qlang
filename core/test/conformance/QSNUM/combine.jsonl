@@ -1,0 +1,6 @@
+{"name":"sumOf-adds-two-fields-of-one-map","query":"{:x 10 :y 5} | sumOf /x /y","expect":"15"}
+{"name":"subOf-subtracts-the-second-field-from-the-first","query":"{:x 10 :y 3} | subOf /x /y","expect":"7"}
+{"name":"mulOf-multiplies-two-fields-of-one-map","query":"{:x 5 :y 4} | mulOf /x /y","expect":"20"}
+{"name":"divOf-divides-the-first-field-by-the-second","query":"{:x 20 :y 4} | divOf /x /y","expect":"5"}
+{"name":"a-call-takes-the-subject-in-the-pipe","query":"1 | add 1 2 !| get [~(type) ~(explain | page | content | contains \"sumOf\")]","expect":"[::number/add/ArgsBeyondInputsError true]"}
+{"name":"mulOf-multiplies-the-args-it-is-given","query":"{:price 4 :qty 3} | mulOf /price /qty","expect":"12"}

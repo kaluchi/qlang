@@ -790,7 +790,7 @@ over its segments, and each keeps its own token in the editor while the
 runtime holds one mechanism behind all four. Every value has a kind, and
 a literal without a tag has one of the core's, which its brackets imply
 [D20]; a kind carries the value's constructor, its order and its laws
-[D16], [D252], while one rule of the core prints every literal.
+[QSORD#order], [D252], while one rule of the core prints every literal.
 
 One mechanism of word. A word is a function named under the
 label of its subject, built from `::fn` by commands, its inputs with
@@ -838,7 +838,7 @@ Maps and vectors are the only containers; JSON syntax is read,
 normalized, and forgotten until the codec at the boundary writes it
 back. A map's elements are its values and its keys are the shape that
 travels with them; `entries` makes the keys data as the pairs `[key
-value]`, and `toMap` builds a map back from them [D138], [D244], a
+value]`, and `toMap` builds a map back from them [QSCOL#map], [QSCND#convert], a
 string naming a key wherever a key is taken [QSPTH#key]:
 
 ```qlang
@@ -1131,7 +1131,7 @@ meets the tag and the facts.
 
 The measure can be taken as the mission states it. Its answers in the
 conformance suite are the targets of [D2], [D7],
-[D27], [D46], [D107], [D108], [D109], [D111], [D117], [D118], [D119],
+[D27], [D46], [QSTXT#string], [D108], [D109], [D111], [D117], [D118], [D119],
 [D123], [QSSYN#refusal] and [QSQUO#modifier]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs, each run recorded with the frictions it met, each
@@ -1230,7 +1230,6 @@ those being decided.
 [D7]: decisions/D7.md
 [D8]: decisions/D8.md
 [D13]: decisions/D13.md
-[D16]: decisions/D16.md
 [D19]: decisions/D19.md
 [D20]: decisions/D20.md
 [D21]: decisions/D21.md
@@ -1257,7 +1256,6 @@ those being decided.
 [D89]: decisions/D89.md
 [D93]: decisions/D93.md
 [D96]: decisions/D96.md
-[D107]: decisions/D107.md
 [D108]: decisions/D108.md
 [D109]: decisions/D109.md
 [D111]: decisions/D111.md
@@ -1270,8 +1268,6 @@ those being decided.
 [D128]: decisions/D128.md
 [D131]: decisions/D131.md
 [D132]: decisions/D132.md
-[D133]: decisions/D133.md
-[D138]: decisions/D138.md
 [D151]: decisions/D151.md
 [D152]: decisions/D152.md
 [D153]: decisions/D153.md
@@ -1295,8 +1291,6 @@ those being decided.
 [D231]: decisions/D231.md
 [D235]: decisions/D235.md
 [D237]: decisions/D237.md
-[D244]: decisions/D244.md
-[D246]: decisions/D246.md
 [D248]: decisions/D248.md
 [D249]: decisions/D249.md
 [D251]: decisions/D251.md
@@ -1325,3 +1319,7 @@ those being decided.
 [QSQUO#held]: spec/QSQUO-code-as-data.md#held
 [QSSYN#refusal]: spec/QSSYN-grammar.md#refusal
 [QSQUO#modifier]: spec/QSQUO-code-as-data.md#modifier
+[QSORD#order]: spec/QSORD-one-order.md#order
+[QSCOL#map]: spec/QSCOL-collections.md#map
+[QSCND#convert]: spec/QSCND-conditions-and-conversions.md#convert
+[QSTXT#string]: spec/QSTXT-text.md#string

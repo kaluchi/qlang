@@ -3,7 +3,7 @@
 // of a kind [D46]. A set meets the other set its call gives, and a map
 // the other map or the keys a vector or a set names; a vector holds the
 // values it folds and takes none beside it, and a set its call leaves
-// without the other value folds the values it holds [D16], [D74].
+// without the other value folds the values it holds [QSORD#order], [D74].
 // Inside a fold a value of no kind of the algebra is refused at its
 // index, and the values meet in pairs, a pair the algebra has no rule for
 // refused by the word with the kinds it met.
@@ -16,7 +16,7 @@ import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
 
 // The algebra of two sets is a merge of their elements in the one
-// order [D16]: each operation keeps the elements of the left alone,
+// order [QSORD#order]: each operation keeps the elements of the left alone,
 // of both, or of the right alone.
 const UNION_KEEPS = { leftAlone: true,  both: true,  rightAlone: true  };
 const MINUS_KEEPS = { leftAlone: true,  both: false, rightAlone: false };
@@ -54,7 +54,7 @@ function unionOfMaps(left, right) {
 }
 
 // A map minus or inter another map or a vector of keys drops or keeps
-// its entries by key [D15]: the other map's keys, or the keys the vector
+// its entries by key [QSCOL#map]: the other map's keys, or the keys the vector
 // names, a set among them (`#[:tmp]`, `[:a "c"]`), a keyword or a
 // string naming a key as `at` and `has` read it, and any other element
 // refused where it stands [QSPTH#key].

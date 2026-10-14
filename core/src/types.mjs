@@ -50,7 +50,7 @@ export function isQMap(v) {
   return v instanceof Map;
 }
 // The set is the vector in the one order without duplicates, under
-// the `::set` tag [D16], so every verb that reads a vector reads a
+// the `::set` tag [QSORD#order], so every verb that reads a vector reads a
 // set: `isVec` holds for it, and this predicate tells it apart.
 export function isQSet(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === SET_TAG_NAME;
@@ -120,7 +120,7 @@ export function bindingValueOf(entry) {
 }
 
 // A pattern of text, the value of a `#"…"` literal: its source as written
-// and its flags, which `pattern.mjs` hands to the engine [D246].
+// and its flags, which `pattern.mjs` hands to the engine [QSTXT#pattern].
 export function makeRegex(source, flags) {
   return Object.freeze(brandValueClass({ source, flags }, 'regex'));
 }
@@ -192,8 +192,8 @@ export function recipeOf(built) {
 }
 
 // A set is the vector in the one order without duplicates under `::set`
-// [D16], minted here alone; the order ranks two values alike exactly when
-// they are equal.
+// [QSORD#order], minted here alone; the order ranks two values alike exactly
+// when they are equal.
 export const SET_TAG_NAME = 'set';
 export const BINDING_TAG_NAME = 'binding';
 const BUILTIN_TAG_NAME = 'builtin';

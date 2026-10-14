@@ -1,4 +1,4 @@
-// The decisions it exists for: [D10], [QSSYN#line].
+// The decisions it exists for: [QSSYN#step], [QSSYN#line].
 
 import { describe, it, expect } from 'vitest';
 import { parse, ParseError } from '../../src/parse.mjs';

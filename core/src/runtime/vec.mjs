@@ -2,8 +2,8 @@
 // served and the inputs of the call [D251]. Every word of a kind
 // has its own, since the walk of the subject's tags already chose the
 // word: a vector and a set, which read alike, share the one that reads
-// the elements in order [D16], a map's reads its values and keeps its
-// keys [D15], a string's reads its characters [D132], and a refusal
+// the elements in order [QSORD#order], a map's reads its values and keeps its
+// keys [QSCOL#map], a string's reads its characters [D132], and a refusal
 // names the word that refused [D46]. An input that takes code arrives
 // closed at the call, code run on the element [D34], [D251].
 
@@ -249,11 +249,11 @@ bindPrim('map/any', runs(['predicate'], (map, predicate) => firstVerdict(keyed(m
 
 // ── partitions ─────────────────────────────────────────────────
 
-// The keyword the key of `groupBy` or `indexBy` answers for an element,
-// the one `toKeyword` turns it into [D135], [D244], or the error it
-// answered; without a key the element is its own [D135]. Two values of
-// the key that file under one keyword meet, `1` and `"1"` under `:"1"`,
-// and the second is refused [D135].
+// The keyword the key of `groupBy` or `indexBy` answers for an element, the
+// one `toKeyword` turns it into [QSCOL#group], [QSCND#convert], or the error
+// it answered; without a key the element is its own [QSCOL#group]. Two values
+// of the key that file under one keyword meet, `1` and `"1"` under `:"1"`, and
+// the second is refused [QSCOL#group].
 async function keywordOf(key, element, index, KeyNotKeywordError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return answer;
@@ -328,7 +328,7 @@ bindPrim('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count)))
 // order among the values under that tag [QSORD#sort].
 bindPrim('any/desc', value => makeTaggedInstance(DESC_TAG, value));
 
-// `distinct` is the constructor of the set [D16]: the elements of a
+// `distinct` is the constructor of the set [QSORD#order]: the elements of a
 // vector in the one order without duplicates, and a set as it is.
 bindPrim('vec/distinct', vector => makeSet(vector));
 bindPrim('set/distinct', set => set);

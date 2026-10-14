@@ -3,11 +3,11 @@
 // `fromPlain` that bridges qlang runtime values with ordinary JS data
 // structures.
 //
-// Canonical qlang-literal printing lives next door in
-// `print-value.mjs`; `toPlain` routes through the shared
-// `dispatchQlangValue` lookup-table walker so the choice of a writer
-// by the form of a value sits in one place. A rendering for a terminal is a view
-// at a host's boundary, and the command line owns its `table`.
+// Canonical qlang-literal printing lives next door in `print-value.mjs`;
+// `toPlain` routes through the shared `dispatchQlangValue` lookup-table walker
+// so the choice of a writer by the form of a value sits in one place. A
+// rendering for a terminal is a view at a host's boundary, and the command
+// line owns its `table`.
 
 import { printQuoteSource, docText } from '../quote.mjs';
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
@@ -33,7 +33,7 @@ const TO_PLAIN_HANDLERS = {
   boolean: v => v,
   keyword: k => k.name,
   tag:     k => k.literal,
-  // A pattern writes its literal, which JSON has no form for [D246].
+  // A pattern writes its literal, which JSON has no form for [QSTXT#pattern].
   regex:   printRegex,
   // A path writes its literal, JSON Pointer's form [D248].
   path:    printPath,

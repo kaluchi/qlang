@@ -11,7 +11,7 @@ import {
 import { declareRefusal } from '../errors.mjs';
 
 // `::set[…]` — the set of a vector's elements, the one `distinct`
-// mints [D16], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
+// mints [QSORD#order], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
 // are one value.
 const SetPayloadNotVecError = declareRefusal('set/PayloadNotVecError');
 
@@ -27,7 +27,7 @@ bindPrim('set/construct', setConstructor);
 // one value and print as the latter, and a payload of another kind is
 // refused at the site, a vector or a map under a tag of its own among
 // them, a set's and a quote's too: `payload` reads what stands beneath a
-// tag, and a word `toX` turns a value into another kind [D244].
+// tag, and a word `toX` turns a value into another kind [QSCND#convert].
 const NullPayloadNotNullError       = declareRefusal('null/PayloadNotNullError');
 const BooleanPayloadNotBooleanError = declareRefusal('boolean/PayloadNotBooleanError');
 const NumberPayloadNotNumberError   = declareRefusal('number/PayloadNotNumberError');

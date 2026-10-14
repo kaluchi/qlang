@@ -1,0 +1,30 @@
+{"name":"a-string-turns-into-the-number-it-writes","query":"\"42\" | toNumber","expect":"42"}
+{"name":"a-text-that-is-no-number-is-refused-whole","query":"[\"4x\" \"\" \" 42\"] | map ~(toNumber !| type)","expect":"[::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError]"}
+{"name":"an-atom-turns-into-its-string","query":"[42 :a ::vec true \"s\"] | map ~toString","expect":"[\"42\" \"a\" \"vec\" \"true\" \"s\"]"}
+{"name":"an-atom-turns-into-the-keyword-groupBy-files-it-under","query":"[\"a\" 1 true null ::Box :k] | map ~toKeyword","expect":"[:a :\"1\" :true :null :Box :k]"}
+{"name":"a-name-turns-into-its-tag","query":"[\"vec\" :Box] | map ~toTag","expect":"[::vec ::Box]"}
+{"name":"a-container-turns-into-another","query":"get [~(#[2 1] | toVec) ~([2 1 2] | toSet) ~([[:a 1]] | toMap)]","expect":"[[1 2] #[1 2] {:a 1}]"}
+{"name":"a-value-turned-wider-and-back-is-itself","query":"get [~(42 | toString | toNumber) ~(:a | toString | toKeyword) ~(1 | toKeyword | toNumber) ~(#[1 2] | toVec | toSet)]","expect":"[42 :a 1 #[1 2]]"}
+{"name":"two-records-join-by-a-number-turned-into-its-key","query":"{:users [{:id 1 :name \"Ann\"}] :orders [{:uid 1 :sum 5}]} | :byId (get /users | indexBy /id) | get /orders | map ~(:o it | get {:sum /sum :name ~(byId | query (o | get /uid | toKeyword) | get /name)})","expect":"[{:sum 5 :name \"Ann\"}]"}
+{"name":"a-container-has-no-string-and-a-map-no-vector","query":"get [~([1 2] | toString !| type) ~({:a 1} | toVec !| type) ~(null | toString !| type)]","expect":"[::call/KindAnswersNoVerbError ::call/KindAnswersNoVerbError ::call/KindAnswersNoVerbError]"}
+{"name":"distinct-stays-beside-toSet","query":"[2 1 2] | get [~(distinct) ~(toSet)]","expect":"[#[1 2] #[1 2]]"}
+{"name":"a-refused-word-leads-to-the-act-the-kind-keeps","query":"get [~([1 2] | toString !| get /nearest) ~(~(add 1) | toString !| get /nearest) ~({:a 1} | toVec !| get /nearest) ~({:a 1} | toSet !| get /nearest)]","expect":"[[:json :print] [:json :parse :print] [:entries :vals] [:keys]]"}
+{"name":"a-refused-word-leads-only-to-a-word-of-its-answer","query":"get [~(42 | parse !| has :nearest) ~(42 | filter ~(gt 0) !| has :nearest)]","expect":"[false false]"}
+{"name":"a-string-of-two-characters-is-no-pair","query":"[\"ab\"] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/ElementNotPairError 0]"}
+{"name":"string-to-keyword","query":"\"foo\" | toKeyword","expect":":foo"}
+{"name":"keyword-to-string","query":":foo | toString","expect":"\"foo\""}
+{"name":"round-trip-string","query":"\"bar\" | toKeyword | toString","expect":"\"bar\""}
+{"name":"round-trip-keyword","query":":baz | toString | toKeyword","expect":":baz"}
+{"name":"namespaced-string-to-keyword","query":"\"qlang/error\" | toKeyword","expect":":qlang/error"}
+{"name":"namespaced-keyword-to-string","query":":qlang/error | toString","expect":"\"qlang/error\""}
+{"name":"quoted-keyword-to-string","query":":\"foo bar\" | toString","expect":"\"foo bar\""}
+{"name":"string-to-quoted-keyword","query":"\"foo bar\" | toKeyword","expect":":\"foo bar\""}
+{"name":"empty-string-to-keyword","query":"\"\" | toKeyword","expect":":\"\""}
+{"name":"empty-keyword-to-string","query":":\"\" | toString","expect":"\"\""}
+{"name":"a-number-turns-into-the-keyword-of-its-text","query":"42 | toKeyword","expect":":\"42\""}
+{"name":"a-vector-has-no-keyword","query":"[1] | toKeyword !| type","expect":"::call/KindAnswersNoVerbError"}
+{"name":"toMap-builds-a-map-from-pairs","query":"[[:a 1] [\"b\" 2] [3 4]] | toMap","expect":"{:a 1 :b 2 :\"3\" 4}"}
+{"name":"entries-and-toMap-round-trip","query":"{:a 1 :b [2]} | entries | toMap | eq {:a 1 :b [2]}","expect":"true"}
+{"name":"the-last-pair-of-a-key-wins","query":"[[:a 1] [:a 2]] | toMap","expect":"{:a 2}"}
+{"name":"a-pair-of-another-shape-is-refused","query":"[[:a 1] [:b]] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/ElementNotPairError 1]"}
+{"name":"a-key-of-another-kind-is-refused","query":"[[[1] 2]] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/KeyNotKeywordError 0]"}

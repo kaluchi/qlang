@@ -102,7 +102,9 @@ literals in its slot, between its name and its body, joined in the
 order they are written; a comment among them is whitespace. A doc
 written before a declaration is refused, naming the slot; a doc that
 opens a query is the doc value it is; a doc after a step is refused, a
-note inside a pipeline being a comment.
+note inside a pipeline being a comment. Inside a doc, a span between backquotes
+is prose, as markdown reads it, and only a `~(…)` outside one, under
+the tags written before it, is a segment of code.
 
 ```qlang
 > :foo |~~ one ~~| |~ why ~| |~~ two ~~| 42 | ::foo | doc | content

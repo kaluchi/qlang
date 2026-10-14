@@ -1,0 +1,36 @@
+{"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(it) !| get [~(type) /index]","expect":"[::vec/every/ConditionNotBooleanError 1]"}
+{"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(it)","expect":"false"}
+{"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(it) !| get [~(type) /index]","expect":"[::vec/any/ConditionNotBooleanError 1]"}
+{"name":"at-least-one-satisfies","query":"[1 2 3] | any ~(gt 2)","expect":"true"}
+{"name":"none-satisfy","query":"[1 2 3] | any ~(gt 99)","expect":"false"}
+{"name":"first-element-satisfies","query":"[5 1 2] | any ~(gt 2)","expect":"true"}
+{"name":"vacuously-false-on-empty","query":"[] | any ~(gt 0)","expect":"false"}
+{"name":"vacuously-false-on-empty-with-arbitrary-pred","query":"[] | any ~(eq 99)","expect":"false"}
+{"name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
+{"name":"any-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(any ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"any-short-circuits","query":"[1 2 99] | any ~(gt 50)","expect":"true"}
+{"name":"any-as-filter-equivalence","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
+{"name":"any-string-predicate-integration","query":"[\"alice\" \"bob\" \"alex\"] | any ~(startsWith \"al\")","expect":"true"}
+{"name":"any-map-value-matches","query":"{:a -1 :b 0 :c 2} | any ~(gt 0)","expect":"true"}
+{"name":"any-map-no-value-matches","query":"{:a -1 :b -2 :c -3} | any ~(gt 0)","expect":"false"}
+{"name":"any-map-empty-vacuous","query":"{} | any ~(gt 0)","expect":"false"}
+{"name":"any-map-declared-verb","query":"{:a -1 :b 2} | :any/pos ~(gt 0) | any ~(pos)","expect":"true"}
+{"name":"any-map-verb-predicate","query":"{:a -1 :b 2} | :any/positive ~(gt 0) | any ~positive","expect":"true"}
+{"name":"any-map-verb-predicate-false","query":"{:a -1 :b -2} | :any/positive ~(gt 0) | any ~positive","expect":"false"}
+{"name":"any-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2} | :any/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | any ~above !| type","expect":"::any/above/limit/NotGivenError"}
+{"name":"all-elements-satisfy","query":"[2 4 6 8] | every ~(gt 0)","expect":"true"}
+{"name":"single-element-fails","query":"[2 4 -1 8] | every ~(gt 0)","expect":"false"}
+{"name":"first-element-fails","query":"[-1 4 6 8] | every ~(gt 0)","expect":"false"}
+{"name":"vacuously-true-on-empty","query":"[] | every ~(gt 0)","expect":"true"}
+{"name":"vacuously-true-on-empty-with-arbitrary-pred","query":"[] | every ~(eq 99)","expect":"true"}
+{"name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true"}
+{"name":"every-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | every ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :every\n  :addresses #[::map/every ::set/every ::vec/every]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(every ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"every-short-circuits","query":"[1 0 2] | every ~(gt 0)","expect":"false"}
+{"name":"every-as-filter-equivalence","query":":xs [1 2 3 4 5] | xs | filter ~(gt 0) | count | eq (xs | count) | eq (xs | every ~(gt 0))","expect":"true"}
+{"name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every ~(gt 0)","expect":"true"}
+{"name":"every-map-one-value-fails","query":"{:a 1 :b -2 :c 3} | every ~(gt 0)","expect":"false"}
+{"name":"every-map-empty-vacuous","query":"{} | every ~(gt 0)","expect":"true"}
+{"name":"every-map-declared-verb","query":"{:a 1 :b 2} | :any/big ~(gt 0) | every ~(big)","expect":"true"}
+{"name":"every-map-verb-predicate","query":"{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive","expect":"true"}
+{"name":"every-map-verb-predicate-fails","query":"{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive","expect":"false"}
+{"name":"every-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2} | :any/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | every ~above !| type","expect":"::any/above/limit/NotGivenError"}

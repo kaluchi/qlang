@@ -2,7 +2,7 @@
 // source kind named for the kind it answers, `toNumber`, a plain function
 // over the subject the walk served: a kind answers its own word as
 // itself, and what a word cannot read whole it refuses under its address
-// [D244].
+// [QSCND#convert].
 
 import { keyword, makeTag, makeSet, makeRegex, isString, isNumber, isBoolean, isKeyword, isTag, isVec, NULL } from '../types.mjs';
 import { canonicalFlags, patternProblem, textRefusal } from '../pattern.mjs';
@@ -14,7 +14,7 @@ import { parse } from '../parse.mjs';
 // keywordFiledFor(value) → the keyword a value files under as a key, or
 // null for a value no key names: a keyword itself, a string or a number
 // by its text, a boolean or null by its literal and a tag name by its
-// name, as `groupBy` and `indexBy` file a key [D135].
+// name, as `groupBy` and `indexBy` file a key [QSCOL#group].
 export function keywordFiledFor(value) {
   if (isKeyword(value)) return value;
   if (isString(value) || isNumber(value) || isBoolean(value) || value === NULL) return keyword(String(value));
@@ -69,9 +69,9 @@ bindPrim('keyword/toTag', key => {
   return makeTag(key.name);
 });
 
-// A string reads as the source of a pattern with the flags the call
-// gives, none by default, and a text that writes the literal of a pattern
-// whole, as JSON writes one, is refused, its reading being `parse` [D246].
+// A string reads as the source of a pattern with the flags the call gives,
+// none by default, and a text that writes the literal of a pattern whole, as
+// JSON writes one, is refused, its reading being `parse` [QSTXT#pattern].
 const StringToRegexTextNotPatternError = declareRefusal('string/toRegex/TextNotPatternError');
 const StringToRegexLiteralNotSourceError = declareRefusal('string/toRegex/LiteralNotSourceError');
 const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/flags/NotFlagsError');
@@ -91,7 +91,7 @@ bindPrim('set/toSet', set => set);
 bindPrim('vec/toSet', vector => makeSet(vector));
 // The map a vector's pairs `[key value]` write, the reverse of `entries`:
 // each key named as `toKeyword` names it, and of two pairs with one key
-// the last holds [D138].
+// the last holds [QSCOL#map].
 const VecToMapElementNotPairError = declareRefusal('vec/toMap/ElementNotPairError');
 const VecToMapKeyNotKeywordError = declareRefusal('vec/toMap/KeyNotKeywordError');
 

@@ -11,7 +11,7 @@ bindPrim('map/vals', map => [...map.values()]);
 bindPrim('map/entries', map => [...map].map(([entryKey, entryValue]) => Object.freeze([keyword(entryKey), entryValue])));
 
 // Whether a set holds a value, by a search in the one order, which ranks
-// two values alike exactly when they are equal [D16].
+// two values alike exactly when they are equal [QSORD#order].
 function setHas(set, value) {
   let low = 0;
   let high = set.length - 1;

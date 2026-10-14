@@ -1,0 +1,11 @@
+{"name":"filter-gt","query":"[1 2 3 4 5] | filter ~(gt 2)","expect":"[3 4 5]"}
+{"name":"filter-lt","query":"[1 2 3 4 5] | filter ~(lt 3)","expect":"[1 2]"}
+{"name":"filter-then-count","query":"[1 2 3 4 5] | filter ~(gt 3) | count","expect":"2"}
+{"name":"filter-map-value-gt","query":"{:a 1 :b 2 :c 3} | filter ~(gt 1)","expect":"{:b 2 :c 3}"}
+{"name":"a-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2 :c 3} | :number/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | filter ~above !| type","expect":"::number/above/limit/NotGivenError"}
+{"name":"filter-map-empty","query":"{} | filter ~(gt 0)","expect":"{}"}
+{"name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1)","expect":"{:c 3 :b 2}"}
+{"name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]"}
+{"name":"an-input-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| type","expect":"::vec/filter/predicate/NotPathOrQuoteError"}
+{"name":"filter-keeps-the-entries-whose-value-passes","query":"{:a 1 :b 2} | filter ~(gt 1)","expect":"{:b 2}"}
+{"name":"a-predicate-of-two-inputs-is-refused-on-a-map","query":"{:a 1 :b 2} | :any/kv (::fn | takes :k |~~ The k. ~~| /0 | takes :v |~~ The v. ~~| /1 | impl ~(v | gt 1)) | filter ~kv !| type","expect":"::any/kv/k/NotGivenError"}

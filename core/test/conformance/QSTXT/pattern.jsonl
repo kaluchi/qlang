@@ -1,0 +1,17 @@
+{"name":"a-pattern-is-a-value-of-its-own-kind","query":"#\"\\d+\" | type","expect":"::regex"}
+{"name":"a-pattern-prints-as-written-its-flags-in-their-order","query":"[#\"\\d+ms\" #\"a\"mi #\"\\\"q\\\"\"] | map ~print","expect":"[\"#\\\"\\\\d+ms\\\"\" \"#\\\"a\\\"im\" \"#\\\"\\\\\\\"q\\\\\\\"\\\"\"]"}
+{"name":"a-pattern-reads-back-from-its-print","query":"[#\"(\\d+)\\.(\\d+)\" #\"\\\"x\\\"\"s #\"\\\\\"] | map ~(:p it | print | parse | apply it | eq p)","expect":"[true true true]"}
+{"name":"two-patterns-are-one-when-their-text-and-flags-are","query":"get [~(#\"a\" | eq #\"a\") ~(#\"a\" | eq #\"a\"i) ~(#\"a\" | eq \"a\")]","expect":"[true false false]"}
+{"name":"patterns-rank-after-strings-by-text-then-flags","query":"[:k #\"b\" \"z\" #\"a\"i #\"a\" 1] | sort","expect":"[1 \"z\" #\"a\" #\"a\"i #\"b\" :k]"}
+{"name":"a-pattern-the-engine-cannot-read-does-not-parse","query":"[\"#\\\"(\\\"\" \"#\\\"a\\\"x\" \"#\\\"a\\\"ii\"] | map ~(parse !| type)","expect":"[::quote/ParseError ::quote/ParseError ::quote/ParseError]"}
+{"name":"a-flag-written-inside-is-refused-with-its-place","query":"\"#\\\"(?i)a\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
+{"name":"a-backslash-before-a-plain-character-is-refused-with-the-reason","query":"\"#\\\"a\\\\-b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}
+{"name":"a-pattern-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| type","expect":"::call/KindAnswersNoVerbError"}
+{"name":"json-writes-a-pattern-as-its-literal","query":"{:p #\"\\d+\"i} | json | parseJson | get /p","expect":"\"#\\\"\\\\d+\\\"i\""}
+{"name":"a-tag-lays-itself-over-a-pattern","query":"#\"a\" | tag ::Rule | get [~(type) ~(payload | eq #\"a\")]","expect":"[::Rule true]"}
+{"name":"a-group-of-flags-is-refused-where-an-engine-reads-it","query":"\"#\\\"(?i:a)b\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
+{"name":"a-group-name-written-twice-is-refused","query":"\"#\\\"(?<y>a)|(?<y>b)\\\"\" | parse !| get /message | contains \"is written twice\"","expect":"true"}
+{"name":"a-needless-backslash-is-told-by-the-source","query":"\"#\\\"a\\\\:b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}
+{"name":"an-escaped-bracket-opens-no-class-before-a-group-of-flags","query":"\"#\\\"\\\\[(?i:a)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
+{"name":"a-group-of-flags-turned-off-is-refused-too","query":"\"#\\\"(?-i:a)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
+{"name":"a-group-of-flags-after-a-class-is-refused","query":"\"#\\\"[a](?i:b)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}

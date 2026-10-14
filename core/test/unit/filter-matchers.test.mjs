@@ -1,8 +1,8 @@
-// `filter`, `every` and `any` over a vector, a set and a map. A predicate
-// is code applied to each element, a map's value being its element [D15]:
-// a quote runs against the element as its subject, and so does a word it
-// names or a word handed in its place [D67]. A refusal is asserted by its
-// tag and its facts.
+// `filter`, `every` and `any` over a vector, a set and a map. A predicate is
+// code applied to each element, a map's value being its element [QSCOL#map]: a
+// quote runs against the element as its subject, and so does a word it names
+// or a word handed in its place [D67]. A refusal is asserted by its tag and
+// its facts.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

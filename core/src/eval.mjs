@@ -260,7 +260,7 @@ async function evalDocLit(node, state) {
 }
 
 // The elements run in the order they are written, and the set holds
-// them in the one order [D16].
+// them in the one order [QSORD#order].
 async function evalSetLit(node, state) {
   const elements = await partValues(node.elements, state);
   return withPipeValue(state, isErrorValue(elements) ? elements : makeSet(elements));

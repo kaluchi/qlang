@@ -1,7 +1,7 @@
 // PEG grammar for the qlang expression language.
 //
 // A step is a command, a name followed by its modifiers, each one word
-// [D10]. A line break is whitespace, and around a declaration it tells
+// [QSSYN#step]. A line break is whitespace, and around a declaration it tells
 // where the declaration ends: a keyword that begins a line opens a
 // declaration of its own, which ends the modifiers of a command before
 // it [QSSYN#line], and the body of a name with a path begun on a later
@@ -175,7 +175,7 @@
   }
 
   // Whether the engine reads a pattern a literal writes with its flags
-  // [D246].
+  // [QSTXT#pattern].
   function patternRead(source, written) {
     const flags = canonicalFlags(written);
     return flags !== null && patternProblem(source, flags) === null;
@@ -234,7 +234,7 @@ ContinuationUnit
   / SpacingRefusal
 
 // A pipe written before `!|`, the habit of a pipe before every step,
-// stands for it [D130].
+// stands for it [QSERR#catch].
 PipedCombinator
   = "|" __ "!|" { return '!|'; }
 
@@ -712,7 +712,7 @@ QlangMapEntry
 // A pattern of text, read as written: a backslash passes to the engine
 // with the character after it, but for `\"`, a quote in the pattern that
 // does not end it, and the flags may follow the closing quote,
-// `#"error"i` [D246].
+// `#"error"i` [QSTXT#pattern].
 RegexLit
   = "#\"" chars:RegexChar* "\"" written:$[a-zA-Z]*
     &{ return docQuoteDepth === 0 || patternRead(chars.join(''), written); }

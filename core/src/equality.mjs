@@ -3,7 +3,7 @@
 // A quote is a tagged vector of steps, so two quotes are equal when
 // their steps are: the spacing and the comments of the text they were
 // read from leave no step. A set is the vector in the one order
-// without duplicates [D16], so two sets are equal when their elements
+// without duplicates [QSORD#order], so two sets are equal when their elements
 // are, index by index.
 
 import {
@@ -46,7 +46,7 @@ export function deepEqual(a, b) {
   if (isTag(a)) {
     return isTag(b) && a.name === b.name;
   }
-  // Two patterns are one when their text and their flags are [D246].
+  // Two patterns are one when their text and their flags are [QSTXT#pattern].
   if (isRegex(a)) {
     return isRegex(b) && a.source === b.source && a.flags === b.flags;
   }

@@ -1,7 +1,7 @@
 |~ `::regex` and what is declared under it: its constructor and its
    refusal, and `toRegex`, which answers the pattern itself. The words
    that read text by a pattern live under `::string`.
-   The decisions it exists for: [D246]. ~|
+   The decisions it exists for: [QSTXT#pattern]. ~|
 
 :regex
   |~~ A pattern of text, `#"\d+ms"`, which the words of a string read text

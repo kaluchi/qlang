@@ -174,7 +174,7 @@ function bindStepOf(node) {
 }
 
 // A set literal leaves the set of its elements' steps, in the one
-// order like every set [D16].
+// order like every set [QSORD#order].
 function setStepOf(node) {
   return makeSet(node.elements.map(stepOfNode));
 }

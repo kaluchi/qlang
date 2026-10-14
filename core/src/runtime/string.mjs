@@ -21,7 +21,7 @@ bindPrim('vec/append', (vector, element) => [...vector, element]);
 
 // The empty separator cuts the text into its characters, the code points
 // `count` counts, so no character falls in halves, and a pattern cuts it at
-// every match [D246].
+// every match [QSTXT#pattern].
 bindPrim('string/split', (subject, separator) => {
   if (isRegex(separator)) return piecesBetweenMatches(subject, separator);
   return separator === '' ? Array.from(subject) : subject.split(separator);
@@ -41,8 +41,8 @@ bindPrim('vec/join', (subject, separator) => {
   return subject.map(writtenAsText).join(writtenAsText(separator));
 });
 
-// The case of a text, folded letter by letter as Unicode maps it, so
-// two texts that differ in case alone compare equal once folded [D107].
+// The case of a text, folded letter by letter as Unicode maps it, so two texts
+// that differ in case alone compare equal once folded [QSTXT#string].
 bindPrim('string/lower', subject => subject.toLowerCase());
 bindPrim('string/upper', subject => subject.toUpperCase());
 

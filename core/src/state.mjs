@@ -30,7 +30,7 @@ export function rootState(pipeValue, env) {
 // withPipeValue(state, nextPipeValue) → a state at the same depth holding
 // the value.
 export function withPipeValue(state, nextPipeValue) {
-  return makeState(nextPipeValue, state.env, state.depth, state.calls, state.own);
+  return makeState(nextPipeValue, state.env, state.depth, state.calls);
 }
 
 // withEnv(state, nextEnv) → a state at the same depth holding the scope.

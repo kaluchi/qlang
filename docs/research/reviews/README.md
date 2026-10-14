@@ -5,6 +5,25 @@ its order, one line each, and the fate of each: the commit that answered
 it, the question of the audit it became, or the reason it was set aside.
 A finding not yet settled says open.
 
+A report stays here while a record in force cites it; one no record
+cites leaves the tree, which git keeps, and its findings still open
+stand below under it (D282).
+
+## Open findings of the reports git keeps
+
+From `2026-10-10-first-page-any-number-string.md`, at c583f568:
+
+- Laws that nearly repeat each other.
+- Pages of kinds that repeat the pages of words.
+- Pages of words that repeat the repair their refusals' pages give.
+- The order of the words of `any.qlang`, which does not follow what rests on what.
+
+The other findings those reports left open the tree has closed: the
+parts of numbers, strings, tags and keywords name `value`, the step
+records whose fields a schema stated twice left with the kinds of
+steps, and the language server reads no answer of `map` whose
+precision a finding could ask.
+
 ## 2026-10-10 · vectors, sets and maps
 
 [2026-10-10-vec-set-map.md](2026-10-10-vec-set-map.md), at 1c0758e3.
@@ -14,7 +33,7 @@ A finding not yet settled says open.
 3. The page of a law of `map/raise` calls `map` as a word it is no longer. Answered by edac4969.
 4. The pages of the three kinds say a word answers under the subject's tags, which `map` does not. Answered by 621a5b54: the headers say which answers go back under the subject's tags, by the label each word's answer names.
 5. `vec/sort` says a map sorts by its keys; it sorts by its values. Answered by edac4969.
-6. `map/at` says null answers null; it answers the default, and the pages do not lead to `::null/at`. Answered by edac4969, the law repeating `null/at` gone; `vec/at` still leads nowhere, open.
+6. `map/at` says null answers null; it answers the default, and the pages do not lead to `::null/at`. Answered by edac4969, the law repeating `null/at` gone; `at` left every kind with the path a value (D248), `query` reading the place.
 7. `union`, `minus` and `inter` over a container of values that are neither sets nor maps refuse with a page that does not fit. Answered by 621a5b54 (D188): a value of no kind of the algebra is refused at its index by `ElementNotSetOrMapError`, a set beside a map with the pair.
 8. The part `with` of the algebra of vectors names a value nothing is joined with. Answered by 621a5b54 (D188): a vector's word takes no value, refused beyond its parts with a page of `a | union b`, and the part of sets and maps is `other`.
 9. The algebra says join, the name of the word that writes strings together. Answered by 621a5b54: the pages say unite, take from and keep what values share.
@@ -29,68 +48,6 @@ A finding not yet settled says open.
 18. The fold of a set of sets keeps the tag, the others do not. Set aside by D188: the rule of the answer's label decides, and a set's fold answers a set, under the subject's tags as every word whose answer names its own label.
 19. The order of the words in the three files does not follow what rests on what. Open.
 20. Words of time and of mutation: already, instead, was called. Answered by 610b05d4.
-
-## 2026-10-10 · the first page, any value, numbers and strings
-
-[2026-10-10-first-page-any-number-string.md](2026-10-10-first-page-any-number-string.md), at 1c0758e3.
-
-1. The page of `::boolean` says `if` takes a quote that answers a boolean; it takes the boolean. Answered by edac4969.
-2. A page of `if` and its law speak of a subject of each element, the reading of `*`. Answered by edac4969.
-3. `parseJson` says an error reads back as a map of `$tag` and `payload`; it reads back under `$error`. Answered by edac4969, with a sentence and a law on `json`.
-4. The page of `::builtin` names `::vec` among the values `::builtin{}`. Answered by edac4969.
-5. Laws of the first page repeating the laws of the chapters word for word, and `:qlang/rounds`. Answered by acbb73a2 from the other side: the first page of D185 shows its examples in its prose, which a test runs, so its copies leave and the chapters and words keep theirs; the sentences the page repeated left with the page of D185.
-6. Laws that nearly repeat each other. The laws that repeat each other query for query left with acbb73a2 and 0a6cdfd0, none left now; the near repeats, open.
-7. Pages of kinds that repeat the pages of words. Answered by f3ebc9f4 for the twice told range of `::number`; the rest, open.
-8. Pages of words that repeat the repair their refusals' pages give. Open.
-9. Refusal pages with no law under their address. Answered by cf359631 and e35d202c: every refusal of a part has its law; the refusals of `builtin` and `call/HostFailureError` are defects of a host, raised past the fail track, which no law can raise.
-10. Refusal pages that do not say how to repair the call. Answered by cf359631 and e35d202c: every refusal page shows the call that works.
-11. Pages that do not say what a call with no value or with more values does. Answered by faf4c8cd for the comparisons of numbers and strings, whose parts show their call; the other words, whose refusal by rule names the part a call lacks, stay as they are.
-12. Claims with no law under their name. Answered by 68af9ab5: each claim holds by a law under its word, the law of the order of keys under `eq`, and the false cases of `gte`, `lte` and `lt` stand.
-13. `runLaws` does not say what `:error` holds, and `:actual` is wrong for a law that answered an error. Answered by 24c66f1e: the page says `:actual` is null where a law answered an error, which `:error` names, with the law `failsALawThatAnswersAFailure`, named so that no law ends in `Error`.
-14. `:any/apply/runsADistribute` and laws named after `*`. Answered by 1389eb66.
-15. Laws that prove nothing of their page. Answered by 24c66f1e: the two laws are gone; the invariants and `construct` of a label stand under the chapter of verbs, and `::tag::Box` under the constructor of tag names, whose page makes the claim.
-16. Negations standing for definitions. Answered by f3ebc9f4: the law of `::error` defined by what a refusal is not leaves, the chapter of errors proving the site, and the page of a number past the doubles says what it is; the address that held no one entity had left with an earlier rewrite.
-17. Words of mutation: edits, has become, is replaced. Answered by edac4969 for has become and by 610b05d4 for edits and is replaced.
-18. A guardian with no payload, a word the language does not have. Answered by 610b05d4: a noun that stands for a thing outside the language.
-19. The order of the kinds in `qlang.qlang` and of the words of `any.qlang`. Answered in part by D189: the kinds left `qlang.qlang`, which holds the topic and its chapters alone; the order of the kinds is the list of the sources, a step of its own, and the order of the words of `any.qlang` stays open.
-20. Pages of kinds that lead nowhere, and kinds in no chapter. Answered by 24c66f1e: every page of a kind leads on; `::desc` and `::tagged` stand in the chapter of values, `::holds` in that of verbs, `::law` in that of hypertext and `::builtin` in that of hosts, which says so, and the chapter of errors links that of code.
-21. Strings say an emoji counts one; a modifier or a flag counts each code point. Answered by edac4969, with a law.
-22. `lines` and `join "\n"` do not write back a closing break; commas between elements. Answered by edac4969, with a law on commas.
-23. Law literals whose characters the page cannot tell apart. Answered by 24c66f1e: the laws write `"e\u0301"` and `"\u00a0a\u00a0"`.
-24. Generic words: schema, result, implicit argument, pages about tests. Answered by 610b05d4 for schema and by f3ebc9f4 for result, the pages of the suite and the parts of `sumOf`; implicit argument left with the page of D185 and the part named X with an earlier rewrite; the part `value` that number and string pages do not name, open.
-25. `:any/JsonValueNotEncodableError` told inside `json`, which no query meets. Answered by 24c66f1e: the refusal stands first under `::any`, and its page says it is a defect of the host thrown past the fail track, which no query meets.
-26. Headers of the sources that repeat the order of a story. Answered by cf359631 for the laws named as refusals are, and by 24c66f1e for the headers, which say what each source holds, the order of a story told once in the chapter of verbs, where `source` reads it.
-
-The first page itself was written anew by D185 and D186 after this
-review; findings 5 and 6 still stand for the laws declared under
-`::qlang`.
-
-## 2026-10-10 · small kinds, step kinds, the command line, the core around `map`
-
-[2026-10-10-small-kinds-steps-cli-map-core.md](2026-10-10-small-kinds-steps-cli-map-core.md), at c9c43bdb and 1c0758e3.
-
-1. The site's first page taught `*`. Answered by 08f332a5.
-2. Cases of comments that lost their comment, a case of a group with no comment, a case of a pipe before `*`. Answered by 08f332a5.
-3. Two target cases walked an empty set, `::qlang | manifest` naming chapters with nothing under them. Answered by 08f332a5: they walk `kinds | map ~(manifest) | flat`.
-4. Duplicates among cases and unit tests. Answered by 08f332a5, the copy naming the decision staying.
-5. A test of the wrapper built under `::each`, a tag nothing answers. Answered by 08f332a5.
-6. Names of cases and tests after `*`. Answered by 08f332a5 for the tests and by 1389eb66 for the catalog.
-7. The language server matches the combinators by its own expressions, a second spelling of the grammar. Answered by 64908015: it reads the combinator from the parse of the source with a step at the cursor.
-8. The fields of the step records stand in a schema and again in prose, and differ. Open, a decision.
-9. `error.qlang` says a stop for each step passed; `doc.qlang` says `segments` answers one string. Answered by edac4969.
-10. Rule refusals with no page and no repair. Answered by faf4c8cd where a repair helps: the compared value of every comparison shows its call on its part's page, which `!| explain` reads for a call with no value, and `at`, `within`, `not` and the streams page their refusal by rule with a law; the other refusals by rule stay without a page, their address naming what the call lacks.
-11. Invariant refusal pages that say what must hold and not how to repair the call. Answered by e35d202c: the pages of tags, keywords, descents and booleans show the call that works, and every comparison has its law.
-12. The sister project still writes `*`. Answered by the port of the sister project onto D196, «ладно, jdt никуда не пуши, просто подтяни до актуального кода qlang и доработай проект если надо» (maintainer, 2026-10-11 02:52, session 22b934f8), its commits c04ba19 and 880b9fc on its local branch `feature/status-guide-newcomer-flow`.
-13. Laws standing before the refusal they prove; `vec/table` with no page of its refusal. Answered by 24c66f1e: the law of `ParseError` stands after its facts, the laws of `:cli` after its refusal, and `table` pages `SubjectNotVecError` with its repair and its two laws under it.
-14. Claims with no law. Answered by 68af9ab5: each claim holds by a law under its word or its refusal.
-15. Laws that repeat laws; the facts `printed` and `field` declared again under each step kind. Answered by 1827f51b for `printed` and `field` and by 0a6cdfd0 for the laws of `doc` and `tag`; the law under `proj` no longer repeats one of vectors; the two laws of `call` stay apart, the addresses of the core and of a reader being two claims.
-16. Generic words: env, descriptor, rewrap, constructor invocation, edit, still. Answered by 610b05d4 for env, descriptor, rewrap, constructor invocation and edit, and by f3ebc9f4 for still and the two comments; the part `value` the pages of tags and keywords do not name, open.
-17. The page of `::explanation` misses the case of a refusal with no page. Answered by edac4969, with a law.
-18. D181 replaced D52 only in part, a claim without its source, no case naming D181 for `map`. Answered by 08f332a5.
-19. A refusal of an unknown combinator the parser cannot produce; `fork.mjs` holding one function; broken comment lines. Answered by 4622ace2, the comment of the language server by 64908015.
-
-The question of the language server's precision after `map`, whose
-answer D182 declares `::any`: open.
 
 ## 2026-10-11 · the autonomous series, D197 to D201
 
@@ -112,26 +69,6 @@ answer D182 declares `::any`: open.
 14. A prefix of the map's writer that is always empty. Answered by cae66823.
 15. The ledger of the outside audits closed questions the audit holds open. Answered by 49830b60: both items say open and cite the audit's question of a helper of one word.
 16. The series named no deletion. Answered by cae66823, which names its deletions: the second walk of the kinds and the prefix of the map's writer.
-
-## 2026-10-11 · the repair of the series
-
-[2026-10-11-repair-of-the-series.md](2026-10-11-repair-of-the-series.md), at 1327c652, over cae66823~1..1327c652.
-
-Its check of the fates of the review of the series found some answered in part, and each part left open is one of its findings below.
-
-1. No test held that a label of a source is no bare name inside its words. Answered by a077e3ef, a test of the names of the scope holding it, `::shop{} | self` refused where `:shop/self ~(shop)`, and by 9b3e058f, D200's Requirements naming it.
-2. The frame of the root wrote again whether a record holds a page. Answered by a077e3ef: `nouns.mjs` exports `holdsAPage`, which `isLabel` and the frame read.
-3. D200 said the audit's lexical extension holds, that a call copies no frame, and that the tests of the scope hold a reader's frame. Answered by 9b3e058f: D200 says the extension stays unmet with the probe of `:vec/doc` inside `tutorial`, that a call copies the frame of its source's bare values alone, in the ledger of the outside audits too, cites the cases of D44, and says scope.
-4. The pages of the conditions' refusals called a condition a quote. Answered by 6750f841: a condition that fails where an earlier one decides is written as a quote that answers it in its turn.
-5. D197 set the composition aside by a reading of the principle the audit does not hold. Answered by 9b3e058f: no word of the catalog raises a refusal of its own, its error literals standing in laws and pages alone, so the word's own refusal at an index needs a site in the host.
-6. The property test of the round trip took no error, and the example test beside it makes the same claim. Answered in part by a077e3ef: the walk takes an error and a named error inside a vector, and its comment names the examples as the pins of the forms the walk does not take, the forms of JSON, every payload of a tag, declared tags, a leading combinator; deleting the suites the walk reaches is the work of the branch that grows its pools to those forms. Answered by ec0d6254 for the forms of JSON, the payloads under a tag no node answers and a leading combinator, the examples' file left and its suites the round trip does not reach moved to the files of their topics, and by 188bb5f7 for the two forms the third review found unpinned: an error with a stop on its trail, and a label the source declares.
-7. Comments of the codec and titles of the edge cases in the words of an older model. Answered by a077e3ef.
-8. Comparisons of two states in D199, D197 and the commits of the repair. Answered by 9b3e058f for the records; the commits of this repair say what holds.
-9. D199's counts in words and D200's figures with no command. Answered by 9b3e058f: D199 names the grep, and D200 the command whose time it measured.
-10. The repairs the refusal pages of the conditions state had no law, and a law's page of `join` said a map's entries. Answered by 6750f841.
-11. The ledger answered a finding at the maintainer's word without his words, and gave a disposition no record holds. Answered by 791c3a99: the ledger quotes his word with its time and session, and the count that outgrows the host's memory says open.
-
-The sister project's `problemsInRangeOf`, which the review noted reads a marker's start line strictly, stands a marker without one outside the range by d58c903 there.
 
 ## 2026-10-11 · the plans, the grammar and the tests
 
@@ -240,52 +177,6 @@ The fates of the eighth review it found holding in part stand in its findings be
 
 The gatherings with a second marker, which the review found left out of a summary, stand in the last paragraph of the eighth review's fates.
 
-## 2026-10-11 · the mean at the ends
-
-[2026-10-11-the-mean-at-the-ends.md](2026-10-11-the-mean-at-the-ends.md), at 7ae8d5c6, over e129cd54..7ae8d5c6.
-
-1. The step of the mean rounded three times, so `avg` answered other last digits on ordinary numbers. Answered by 62d138f6: the step divides the gap where the gap stays finite and divides first where it does not, answering the digits of e129cd54 wherever its mean was finite, and `:vec/avg/answersTheSumOverTheCount` fails on the step of 7ae8d5c6.
-2. The comment of the mean defined it by two values it never forms, one of them false. Answered by 62d138f6: every step stays among the finite doubles.
-3. The laws of the ends settled a question no page asked, named `1e308` an end, and left the set and the map without one. Answered by 62d138f6: each page of `avg` says the mean of finite numbers stays among the doubles, the laws name numbers near the opposite ends, and `:set/avg` and `:map/avg` hold them too.
-4. 7ae8d5c6 told a count of mutants no script in the tree prints. The message stands, since a commit is never amended; the scripts of the fuzz stay in the session's scratch folder, and the messages after it tell no count of them.
-5. The constructor step of an answer stood twice. Answered by 62d138f6: one statement names the label.
-
-Outside the commit, `::number!{:a 1} !| /` lays a kind's tag over the opened facts of an error without its constructor, and the command line exits printing it; it stands unrepaired, a question of which tags an error literal may carry.
-
-## 2026-10-11 · the digits of the running mean
-
-[2026-10-11-the-digits-of-the-running-mean.md](2026-10-11-the-digits-of-the-running-mean.md), at 5269315e, over 7ae8d5c6..5269315e.
-
-The fate of the tenth review it found true to the tree but untrue of the mean stands in its findings below.
-
-1. A law said the mean of numbers whose sum stays among the doubles is their sum over their count, which the running mean is not, `[0 1 6 1] | avg` answering `1.9999999999999998`. The law is named for its instance, `:vec/avg/averagesZeroOneAndFour`, and the page of `:vec/avg` says the last digit is the running mean's, with `:vec/avg/keepsTheLastDigitOfTheRunningMean`.
-2. The laws of the ends spoke of any two numbers near the opposite ends, and the pages of the doubles where the language says the finite doubles. The laws speak of a number and its negation, and the pages of the finite doubles.
-3. No law held the divisor of the step past the ends. `:vec/avg/dividesPastTheEndsByTheCount` holds `[1e308 1e308 1e308 -1e308] | avg` answering `5e307`.
-4. The opened error under a kind's tag stood in a fate alone. The audit's chapter of open questions asks it, with its probe, its alternatives and their cost.
-
-The catalog answers by ef006452, and the audit and this ledger by the commit that keeps the review.
-
-## 2026-10-12 · the catalog of the command line and the records merged by axis
-
-[2026-10-12-the-cli-catalog-and-the-records-merged-by-axis.md](2026-10-12-the-cli-catalog-and-the-records-merged-by-axis.md), at ef5acaaa, over master..ef5acaaa.
-
-1. A body of one group was refused as a step of the body's pipeline. Answered by 9554c9d4: the parent is read only of a body that is a pipeline, and the case `a-body-of-one-group-declares-a-part-in-the-group-s-scope` holds it.
-2. The test of the command line's catalog spelt the core's checks again. Answered by d2d38158: the checks stand in one module, `core/test/helpers/catalog-pages.mjs`, and the streams that do nothing in one helper of the command line's tests.
-3. The merge script spelt the citation in words again, its example was written anew by the script itself, and an object stood for a pattern. Answered by 70f2458c: the walk exports the pattern, the comment names no record, and a predicate names the documents.
-4. D200 said the lexical extension stays unmet, which the tree contradicts. Answered by 70f2458c: the sentence left.
-5. The REPL wrote a failed cell on standard error while D7 has every failure an answer on stdout. Answered by f20a1d22: the REPL prints it on stdout, and D7 says so for both modes.
-6. The decider lines of the merged records held a choice of the maintainer beside the model's mechanics. Answered by c12dd033, under which such a line names the model's parts, and by 9554c9d4 for D71's line.
-7. D71 set aside a scope kept on the state while the change keeps a mark on the body's scope. Answered by 9554c9d4: D71 tells the mark and why a fork resets nothing of it.
-8. Words of time and a bare name of a known type. Answered by d2d38158 for the test's comments, 48323e7a for D46, 70f2458c for D13 and 9554c9d4 for `bindStep`; the message of 598511eb stands, since a commit is never amended.
-9. The merges dropped claims the code cites the survivors for. Answered by 48323e7a for D46's invariants of the parts and the dispatch a primitive keeps none of, and by 70f2458c for D13's step of a tag on a failure's trail.
-10. Counts written in words in the sources of the merged records. Answered by f20a1d22, 48323e7a and 70f2458c.
-11. Pruned lines named records merged into their survivor. Answered by f20a1d22 for D7, 48323e7a for D46 and 70f2458c for D13 and D200; D34's line was written anew by 69b2a3ec.
-12. A link's definition was read by a pattern that took a line of prose. Answered by 70f2458c: one pattern anchored on the file it links, and D138's line reflowed.
-13. D237 kept the fate of a record as history and not its source. Answered by 70f2458c.
-14. The order of the evaluator's names and of the laws of a refusal. Answered by 9554c9d4 for the check beside the declaration, the name of the args before its use and spelt once, and by 70f2458c for the laws.
-15. A sentence cited one record more than once. Answered by 9554c9d4 and 70f2458c, the other such sentences of the tree found by a search and written so.
-16. The help's test held the old text gone, and the refusal of a pipe after a combinator dropped the catch. Answered by 70f2458c for the test and by 48323e7a for the refusal, which names `a !| b`.
-
 ## 2026-10-13 · the open questions walked
 
 [2026-10-13-the-open-questions-walked.md](2026-10-13-the-open-questions-walked.md), at 5ddc5d45, over master..5ddc5d45.
@@ -333,22 +224,6 @@ The tree answers by the commit that keeps this review.
 
 The tree answers by the commits that keep this review.
 
-## 2026-10-13 · the closed literal
-
-[2026-10-13-the-literal-is-closed.md](2026-10-13-the-literal-is-closed.md), at 1fc93994.
-
-1. A literal still computed in the code of a doc. Answered by 9433c3df: the code of a doc that writes one reads as prose, held by the case of D279 `a-literal-that-computes-reads-as-prose-in-the-code-of-a-doc`.
-2. The payloads a tag takes were spelled twice, in the grammar and as a pattern in the printer. Answered by 9433c3df: the refusals of parentheses after a tag match the rules of the payloads, and the printer writes `#` by the kind of the payload.
-3. A part of a literal was told as a word forked against the subject. Answered by 9433c3df: the parts are read without a fork and named parts.
-4. Scalar named a value where the rule of `#` is said of a literal. Answered by 9433c3df: the parser, the record, the pages, the law and the cases name a number, a boolean, null and a path, the rule said of the literal's first character.
-5. The pages of `::qlang` stated what the tree no longer does. Answered by 9433c3df: the first page and the chapters of values, of the pipeline and of errors tell the closed literal, its tag and its `#`, the constructor that attaches or refuses and the template of `get`, each by a law.
-6. A set's elements were said kept in the order written. Answered by 9433c3df.
-7. The core grew and the branch named no deletion. Answered by f091cdf3: the mark `writtenHere` of a template left with the origins a call keeps of every quote its objects hold, a template's among them.
-8. A template laid a tag over a payload its constructor never checked. Answered by 104405d6: a container under a tag is read and laid back through its constructors as a write of a path lays it, held by the cases of D279 `a-template-reads-under-a-tag-and-answers-a-quote-and-a-doc-as-they-are` and `a-template-lays-a-tag-back-through-its-constructor`.
-9. A kind's check was read for an error no check answers. Answered by 104405d6: the branch left.
-
-The tree answers by the commits that keep this review.
-
 ## 2026-10-14 · the names a held quote reads
 
 [2026-10-14-the-names-a-held-quote-reads.md](2026-10-14-the-names-a-held-quote-reads.md), at 19eeeaa9.
@@ -369,19 +244,3 @@ The tree answers by the commits that keep this review.
 14. The template of `get` entered a function's literal. Answered by 59f46b7e, a function and a kind answered as they are, held by the cases of D279 its targets wrote in 37f2d280.
 
 The tree answers by the commits that keep this review.
-
-[2026-10-14-the-records-held-to-the-tree.md](2026-10-14-the-records-held-to-the-tree.md), at 0739dfe4.
-
-1. The members near a miss were read apart from the reach the axis reads. Answered: `nearestMembers` reads the names declared under a tag and the words the walk of the subject reaches, `kindsOfWalk` and `verbsReaching`, so a name it offers is one the axis answers; `1 | doc :and` names `:add` alone and `::vec | doc :manifst` names `:manifest`, the two cases of D118 the review asked.
-2. The page of the axes' refusal said nothing of `:nearest`. Answered: the page of `::any/binding/UnknownNameError`, which the others link, names it, and the law `::any/doc/UnknownNameError/namesTheMembersNear` holds it.
-3. The rule of D275 stood as a filter after a second walk. Answered: `subjectOfCall` reads the walk of the tag name `kindsOfWalk` spells, the label among the kinds it passes; `walkToKinds` still serves the kinds `on` names, which the walk of a tag reaches as `::tag`.
-4. The REPL named a stream `width` and kept a default for the tests. Answered: the input is `terminal`, with no default, and every test hands its stream.
-5. Two definitions by negation. Answered: argv.mjs and D176 state what holds.
-6. The editor spelled the letters of a name in ASCII. Answered: the word pattern and the folding marker read a letter of any script, `\p{L}` with the flag `u`, as the grammar of the editor does.
-7. Statements of pages with no law. Answered: the laws `::kind/listsItsNamesButItsLaws`, `::kind/laysTheTagOfALabelOfItsPageAlone` and `::vec/join/joinsValuesWrittenAsLiterals`, and the line rewrapped.
-8. D153 named no decider. Answered: its `Decided by.` line names the maintainer's choices and the model's parts, and `merge-records.mjs` refuses to merge a record that names its decider into a survivor that names none, cut in the session's worktree to watch the merge go through without it.
-9. Decision lines that narrated. Answered: D4 says `eval` is no word and every word is called one way, D72 sets the wrappers aside and names no count, and D185 drops the measure with no probe.
-10. Words of an earlier paradigm. Answered in part: D88 names the chain's `on ::tag`, D153 says `use` is no word, and D280 says the slot of an input. The slot of a declaration, where its docs stand, is the grammar's word for that place [D83] and stays.
-11. Cases the walk rebound. Answered: the cases of a string key read the key by a string under D139, the cases one query and one answer held twice keep the first, the examples of the first page aside, which D185 holds whole, and the keys of any script name D2, which now states the letters of a name.
-
-The tree answers by the commit that keeps this review.

@@ -230,7 +230,7 @@ it; where a rule and the audit disagree, the audit wins.
   nothing that boots the language, no probe, no sensor and no child of
   the benchmark, since a second boot starves the coverage run.
 - A review's report is kept as its writer wrote it, each finding with
-  the fate it met.
+  the fate it met, while a record in force cites it [D282].
 
 ## Release
 

@@ -615,9 +615,9 @@ other; the embedding API is the page of the package, `core/README.md`.
 The documents left are the measure, the decisions, the research of a
 design whose work has begun, which its records absorb as the work lands
 [D164], the audits of a clean outside reader of the tree, run by one
-command [D277], and the reviews of the catalog, each kept as its writer wrote it beside the
-fate of each finding, and the chapters this document left, as they were
-written [D255]:
+command [D277], the reviews of the catalog a record in force cites,
+each kept as its writer wrote it beside the fate of each finding [D282],
+and the chapters this document left, as they were written [D255]:
 
 ```sh
 $ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions | sed -E 's#^(docs/research/[^/]+)/.*#\1/#' | sort -u
@@ -1323,3 +1323,4 @@ those being decided.
 [D277]: decisions/D277.md
 [D278]: decisions/D278.md
 [D279]: decisions/D279.md
+[D282]: decisions/D282.md

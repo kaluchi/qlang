@@ -1296,7 +1296,6 @@ those being decided.
 [D173]: decisions/D173.md
 [D175]: decisions/D175.md
 [D176]: decisions/D176.md
-[D177]: decisions/D177.md
 [D178]: decisions/D178.md
 [D179]: decisions/D179.md
 [D180]: decisions/D180.md

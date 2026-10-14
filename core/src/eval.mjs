@@ -774,7 +774,7 @@ function handedTo(impl, signature, { values, origins }, state) {
   const run = inputsRunBy(impl);
   const within = inputsRunWithin(impl);
   if (run === undefined && within === undefined) return values;
-  const originOf = quote => origins.get(quote) ?? heldIn(state);
+  const originOf = quote => origins.get(quote);
   return values.map((value, at) => {
     const { name, selector } = signature.inputs[at];
     if (within?.has(name.name)) return quotesClosedIn(value, originOf);
@@ -803,7 +803,7 @@ function quotesClosedIn(value, originOf) {
 // nearest, or else the object's, a value of the step.
 function keepOrigins(origins, value, origin, state) {
   if (isQuote(value)) {
-    if (!origins.has(value)) origins.set(value, origin.written ? origin : originIn(state, value) ?? origin);
+    origins.set(value, origin.written ? origin : originIn(state, value) ?? origin);
     return;
   }
   if (isValueClass(value, 'taggedInstance')) return keepOrigins(origins, value.payload, origin, state);

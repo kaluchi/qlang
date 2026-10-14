@@ -120,6 +120,7 @@ export function walkOfBaseline(repoRoot) {
     }
   }
   for (const { where, problem } of unresolvedSections(repoRoot)) walk.violations.push({ where, problem });
+  for (const { where, problem } of casesTouchedUnclaimed(repoRoot, baseline)) walk.violations.push({ where, problem });
   for (const path of uncitedDocuments(repoRoot)) {
     if (git(repoRoot, 'ls-tree', '--name-only', baseline, '--', path).trim() !== '') {
       walk.violations.push({ where: path, problem: 'no record in force and no document of the work cites it: node scripts/drop-documents.mjs [D282]' });
@@ -149,6 +150,56 @@ export function unresolvedSections(repoRoot) {
     });
   }
   return unresolved;
+}
+
+// The records in transit, each with the sections it overrides: a record
+// in force with a line `Overrides [QSNAM#scope], [QSNAM#reach]` [D283].
+export function recordsInTransit(repoRoot) {
+  const recordsDir = join(repoRoot, 'docs', 'decisions');
+  return new Map(readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).flatMap(name => {
+    const line = readFileSync(join(recordsDir, name), 'utf8').match(/^Overrides ((?:.|\r?\n(?!\r?\n))+)/m)?.[1];
+    return line === undefined ? [] : [[name.slice(0, -3), [...line.matchAll(/\[(QS[A-Z]{3}(?:#[a-z][a-z-]*)?)\]/g)].map(match => match[1])]];
+  }));
+}
+
+// The cases of a chapter that the baseline's chapter held otherwise, or
+// lacked, or that are gone from it, each claimed by a record in transit
+// over its section: a case added or rewritten names the record, and a
+// case taken away is named in the record's text; and a case under a
+// chapter names no record but one in transit over its section [D283].
+// A chapter the baseline did not hold is the work of the move that wrote
+// it, read from the next baseline on.
+export function casesTouchedUnclaimed(repoRoot, baseline) {
+  const conformance = 'core/test/conformance';
+  const transit = recordsInTransit(repoRoot);
+  const overrides = (record, chapter, section) => (transit.get(record) ?? []).some(cited => cited === chapter || cited === `${chapter}#${section}`);
+  const casesOf = text => new Map(text.split(/\r?\n/).filter(line => line.trim() !== '' && !line.startsWith('//')).map(line => JSON.parse(line)).map(test => [test.name, test]));
+  const unclaimed = [];
+  for (const file of filesUnder(repoRoot, conformance, /\.jsonl$/).filter(path => /\/QS[A-Z]{3}\/[^/]+\.jsonl$/.test(path))) {
+    const [chapter, section] = file.split('/').slice(-2).map(part => part.replace(/\.jsonl$/, ''));
+    const now = casesOf(readFileSync(join(repoRoot, file), 'utf8'));
+    const chapterThen = git(repoRoot, 'ls-tree', '--name-only', baseline, '--', `${conformance}/${chapter}/`).trim() !== '';
+    let then = null;
+    if (chapterThen) {
+      try {
+        then = casesOf(git(repoRoot, 'show', `${baseline}:${file}`));
+      } catch {
+        then = new Map();
+      }
+    }
+    for (const [name, test] of now) {
+      if (test.decision !== undefined && !overrides(test.decision, chapter, section)) unclaimed.push({ where: `${file}#${name}`, problem: `names ${test.decision}, which overrides no section ${chapter}#${section}` });
+      if (then === null) continue;
+      const before = then.get(name);
+      const touched = before === undefined || before.query !== test.query || before.expect !== test.expect || before.target !== test.target || before.now !== test.now;
+      if (touched && test.decision === undefined) unclaimed.push({ where: `${file}#${name}`, problem: `changed since the baseline ${baseline} and names no record in transit over ${chapter}#${section}` });
+    }
+    for (const name of then === null ? [] : [...then.keys()].filter(name => !now.has(name))) {
+      const claimed = [...transit.keys()].some(record => overrides(record, chapter, section) && readFileSync(join(repoRoot, 'docs', 'decisions', `${record}.md`), 'utf8').includes(name));
+      if (!claimed) unclaimed.push({ where: `${file}#${name}`, problem: `gone since the baseline ${baseline}, and no record in transit over ${chapter}#${section} names it` });
+    }
+  }
+  return unclaimed;
 }
 
 // The documents of the research that stay while something in force cites

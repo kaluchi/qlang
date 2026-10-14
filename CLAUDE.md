@@ -152,6 +152,9 @@ install` at the root links the workspaces; the Node floor is the
   defaults; other counts and seeds after a change to a primitive, the
   evaluator, the printer or the grammar.
 - `npm run test:coverage`: the coverage thresholds on the core.
+- `node scripts/dissolve-records.mjs Dnn`: at the move of the baseline,
+  a record in transit dissolves into the sections it overrides, once
+  they are written anew [D283].
 - `npm run build`: regenerate the parser from `core/src/grammar.peggy`.
 - `npm test -w @kaluchi/qlang-cli`: one workspace.
 
@@ -173,8 +176,10 @@ longer holds, and on the walk of a baseline: a record of the language
 the audit's baseline holds that no case and no line of its fate does,
 more than twenty records since the baseline, a document of the research
 the baseline holds that nothing in force cites, which
-`node scripts/drop-documents.mjs` drops [D282], and a citation of a record
-not in force, which the code, the tests and the cases never make and the
+`node scripts/drop-documents.mjs` drops [D282], a citation of a section of
+the specification its chapter lacks, a case of a chapter changed since
+the baseline that no record in transit over its section claims [D283],
+and a citation of a record not in force, which the code, the tests and the cases never make and the
 documents make only of one waiting on its target [D225]. `npm run check:probes` runs every probe of the audit and the
 entrypoint document, the shell ones that read the repository alone
 included, and fails on one whose answer changed, which the branch that

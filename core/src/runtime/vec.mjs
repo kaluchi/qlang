@@ -345,7 +345,7 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 
 // `reduce seed ~(reducer)` — the universal left-fold: a quote of one word
 // is the word called as the pipe calls it, `acc | add element`, the
-// element the first of its args [D224]; any other code runs
+// element the first of its args [D90]; any other code runs
 // on the pair of the value so far and the element, and its answer is the
 // value so far after it [D90]. `seed` answers for an empty subject, and
 // a failure of the reducer stops the fold.

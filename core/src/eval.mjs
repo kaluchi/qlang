@@ -1067,7 +1067,7 @@ function laneOf(env) {
 // word a reducer's quote names by one word, its name or its address,
 // called as the pipe calls it, `acc | add item`, the word residing on the
 // accumulator among them [D72], and a value of the scope under the name
-// meeting the word there [D223], [D224]; null for code of any other shape
+// meeting the word there [D90], [D223]; null for code of any other shape
 // or a name of no word, which `reduce` runs on the pair of the value so
 // far and the element [D90].
 export function resolveBinaryReducer(reducer) {

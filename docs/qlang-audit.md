@@ -1310,7 +1310,6 @@ those being decided.
 [D218]: decisions/D218.md
 [D221]: decisions/D221.md
 [D223]: decisions/D223.md
-[D224]: decisions/D224.md
 [D225]: decisions/D225.md
 [D227]: decisions/D227.md
 [D228]: decisions/D228.md

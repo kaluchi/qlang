@@ -1128,8 +1128,8 @@ meets the tag and the facts.
 
 The measure can be taken as the mission states it. Its answers in the
 conformance suite are the targets of [D2], [D7],
-[D46], [D107], [D108], [D109], [D111], [D117], [D118], [D119], [D123],
-[D125], [D129] and [D150]: the effect marker leaving the language,
+[D27], [D46], [D107], [D108], [D109], [D111], [D117], [D118], [D119],
+[D123], [D125] and [D129]: the effect marker leaving the language,
 and the first screen and the hypertext it opens, every one met. The
 benchmark runs, each run recorded with the frictions it met, each
 measurement on a set of tasks a clean author wrote, which measures once
@@ -1148,7 +1148,7 @@ kinds of record carries a tag of its own, as a field is read by the
 chain of its kind [D50], [D252]; and
 the first screen, the pages
 of the language and of the command line, told whole in the order
-its parts rest on each other [D185], within the weight it had [D150],
+its parts rest on each other [D185], within the weight it had [D27],
 is measured on a set of tasks no reader has seen [D26], [D131].
 
 The largest part of the milestone is the sister project's. It builds
@@ -1234,6 +1234,7 @@ those being decided.
 [D21]: decisions/D21.md
 [D22]: decisions/D22.md
 [D26]: decisions/D26.md
+[D27]: decisions/D27.md
 [D28]: decisions/D28.md
 [D29]: decisions/D29.md
 [D30]: decisions/D30.md
@@ -1281,7 +1282,6 @@ those being decided.
 [D138]: decisions/D138.md
 [D139]: decisions/D139.md
 [D140]: decisions/D140.md
-[D150]: decisions/D150.md
 [D151]: decisions/D151.md
 [D152]: decisions/D152.md
 [D153]: decisions/D153.md

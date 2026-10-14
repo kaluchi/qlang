@@ -48,14 +48,14 @@
 //       its checkout sits beside this one.
 //
 //   (8) Who decided: a record from D155 on names in a line of its
-//       own, `Decided by.`, the maintainer or the model [D155].
+//       own, `Decided by.`, the maintainer or the model [QSWRK#journal].
 //
 //   (9) The walk of a baseline: a record of the language the audit's
 //       baseline holds is held by a case or closed by the line of its
 //       fate, no more than a working day of records waits for the next
 //       walk, and the code, the tests and the cases cite the records in
 //       force, the documents that hold the work those in force or
-//       waiting on a target [D225].
+//       waiting on a target [QSWRK#baseline].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -84,7 +84,7 @@ const IGNORE_DIRS = new Set([
   'coverage',  // repo-root coverage/ from a top-level npm run test:coverage
   'cli/coverage', 'core/coverage', 'lsp/coverage', 'site/coverage',
   'site/dist', 'site/public',
-  'scripts/benchmark/sets',  // the data and the generators clean authors wrote [D26]
+  'scripts/benchmark/sets',  // the data and the generators clean authors wrote [QSWRK#measure]
   'vscode'
 ]);
 // A report a reviewer or an outside auditor wrote, named by its date,
@@ -345,7 +345,7 @@ function anchorDrift() {
 // A page of the catalog is read by a reader of the language, which
 // follows what the page names by a query; a decision of the process is
 // no page of the language, so a reference to one is a link that leads
-// nowhere, and the reason of a sentence lives with its decision [D225].
+// nowhere, and the reason of a sentence lives with its decision [QSWRK#baseline].
 
 const CATALOG_ROOTS = ['core/lib', 'cli/lib'];
 
@@ -356,7 +356,7 @@ function catalogFiles(dir) {
 }
 
 // The comment at the head of a source, `|~ … ~|`, is no page a reader
-// reads: it marks the decisions the source exists for [D237].
+// reads: it marks the decisions the source exists for [QSWRK#marks].
 function decisionsInCatalog() {
   const violations = [];
   for (const file of CATALOG_ROOTS.flatMap(catalogFiles)) {
@@ -375,9 +375,9 @@ function decisionsInCatalog() {
 //
 // A record names who took its decision, so a session tells the
 // maintainer's words, which bind it, from the model's reading, which it
-// weighs on its merits [D155]; an open record names none until it is
+// weighs on its merits [QSWRK#journal]; an open record names none until it is
 // decided, and holds its question, its source and its alternatives
-// [D255].
+// [QSWRK#journal].
 
 const FIRST_RECORD_NAMING_ITS_DECIDER = 155;
 const DECIDER_LINE = /^Decided by\. The (maintainer|model)\b/m;
@@ -398,7 +398,7 @@ function recordsWithoutDecider() {
 //
 // The root of the records holds those in force, and `replaced/` those
 // replaced whole, each moved there once by `scripts/replaced-records.mjs`
-// [D237].
+// [QSWRK#marks].
 
 function misplacedRecords() {
   const replacedWhole = path => /^(Replaced by|Merged into|Dissolved into) /m.test(readFileSync(join(repoRoot, path), 'utf8'));
@@ -416,7 +416,7 @@ function misplacedRecords() {
 // the line of its fate, and the records written since wait for the walk
 // no longer than a working day of them; the code, the tests and the
 // cases cite the records in force, and the documents that hold the work
-// those in force or waiting on a target [D225].
+// those in force or waiting on a target [QSWRK#baseline].
 
 function baselineDrift() {
   return walkOfBaseline(repoRoot).violations;
@@ -426,7 +426,7 @@ function baselineDrift() {
 //
 // A link of a document to a file of markdown, its definition `[Dnn]:
 // Dnn.md` or its inline form, leads to a file the tree holds, so the graph
-// of the records walks from any document into the past [D31], [D237].
+// of the records walks from any document into the past [QSWRK#journal], [QSWRK#marks].
 
 const MARKDOWN_LINK = /(?:\]:[ \t]*|\]\()([^)\s]+\.md)(?=[)\s#]|$)/gm;
 
@@ -452,7 +452,7 @@ function brokenLinks() {
 // the records that carry it out, older ones among them; and a record in
 // force a newer one says it took a part of names that record in its own
 // line of fate, unless the newer one merged into it and gave the part
-// back [D227], [D237].
+// back [QSWRK#journal], [QSWRK#marks].
 
 // The records a clause of a fate names, those before what it says of them.
 const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[0].matchAll(/\[([DE]\d+)\]/g)].map(match => match[1]);
@@ -491,11 +491,11 @@ function fatesOutOfStep() {
 //
 // Every module, script, test file, source of qlang and workflow names
 // the decision it exists for, so the scope of a decision is found by its
-// marks and an artifact no decision explains is seen [D237].
+// marks and an artifact no decision explains is seen [QSWRK#marks].
 
 // A chapter of the specification states what the language is: it cites
 // no record of the journal, speaks none of the journal's words, tells no
-// history of a form, and says nothing of what it leaves out [D283]. The
+// history of a form, and says nothing of what it leaves out [QSWRK#spec]. The
 // prose is read outside its fenced blocks, whose probes may hold any text.
 // The chapter of the work states how the journal moves, so it speaks its
 // words and its paths, and cites no record as no chapter does [QSWRK#spec].
@@ -567,7 +567,7 @@ if (forbidden.length > 0) {
   for (const v of forbidden) {
     process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.snippet}\n`);
   }
-  process.stdout.write('    a text says what holds, not when it changed, and leaves no marker of work undone [D239].\n');
+  process.stdout.write('    a text says what holds, not when it changed, and leaves no marker of work undone [QSWRK#tooling].\n');
 }
 if (refusalDeclarations.length > 0) {
   process.stdout.write(`\nRefusals not declared by their address (${refusalDeclarations.length}):\n`);
@@ -579,7 +579,7 @@ if (proseTallies.length > 0) {
     `\nDerivable tallies in prose (${proseTallies.length}):\n`);
   for (const v of proseTallies) {
     process.stdout.write(`  ${v.file}:${v.line}  [tally: '${v.tally}']  ${v.snippet}\n`);
-    process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose [D208].\n');
+    process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose [QSWRK#diff].\n');
   }
 }
 if (workspaceRanges.length > 0) {
@@ -587,7 +587,7 @@ if (workspaceRanges.length > 0) {
     `\nInternal workspace dependency ranges (${workspaceRanges.length}):\n`);
   for (const v of workspaceRanges) {
     process.stdout.write(`  ${v.file}  ${v.dependencyMap}.${v.depName}: '${v.declaredRange}' — expected '${v.expectedRange}'\n`);
-    process.stdout.write('    the published manifest carries this range verbatim; name the sibling version this release ships with so a consumer resolves one core instance, not two [D238].\n');
+    process.stdout.write('    the published manifest carries this range verbatim; name the sibling version this release ships with so a consumer resolves one core instance, not two [QSWRK#tooling].\n');
   }
 }
 if (anchors.length > 0) {
@@ -595,46 +595,46 @@ if (anchors.length > 0) {
   for (const v of anchors) {
     process.stdout.write(`  ${v.file}  \`${v.anchor}\` ${v.problem}\n`);
   }
-  process.stdout.write('    replace the sentence with the fact of the tree and its new anchor [D89].\n');
+  process.stdout.write('    replace the sentence with the fact of the tree and its new anchor [QSWRK#branch].\n');
 }
 if (catalogDecisions.length > 0) {
   process.stdout.write(`\nDecisions named in the catalog (${catalogDecisions.length}):\n`);
   for (const v of catalogDecisions) process.stdout.write(`  ${v.file}:${v.line}  ${v.reference}\n`);
-  process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [D225].\n');
+  process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [QSWRK#baseline].\n');
 }
 if (undecided.length > 0) {
   process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
   for (const file of undecided) process.stdout.write(`  ${file}\n`);
-  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, the line naming the parts of the model beside the choice of the maintainer [D155]; an open record holds `Question.`, `Source.` and `Alternatives.`, and no `Decided by.` or `Decision.` until it is decided [D255].\n');
+  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, the line naming the parts of the model beside the choice of the maintainer [QSWRK#journal]; an open record holds `Question.`, `Source.` and `Alternatives.`, and no `Decided by.` or `Decision.` until it is decided [QSWRK#journal].\n');
 }
 if (unmarked.length > 0) {
   process.stdout.write(`\nArtifacts that name no decision (${unmarked.length}):\n`);
   for (const path of unmarked) process.stdout.write(`  ${path}\n`);
-  process.stdout.write('    name the decision the artifact exists for at its head, or let it go [D237].\n');
+  process.stdout.write('    name the decision the artifact exists for at its head, or let it go [QSWRK#marks].\n');
 }
 if (misplaced.length > 0) {
   process.stdout.write(`\nRecords in the wrong folder (${misplaced.length}):\n`);
   for (const { path, problem } of misplaced) process.stdout.write(`  ${path}  ${problem}\n`);
-  process.stdout.write('    the root of the records holds those in force, and `replaced/` those replaced whole, moved once [D237].\n');
+  process.stdout.write('    the root of the records holds those in force, and `replaced/` those replaced whole, moved once [QSWRK#marks].\n');
 }
 if (broken.length > 0) {
   process.stdout.write(`\nLinks that lead nowhere (${broken.length}):\n`);
   for (const { path, line, target } of broken) process.stdout.write(`  ${path}:${line}  ${target}\n`);
-  process.stdout.write('    a link of a document leads to a file the tree holds; `node scripts/replaced-records.mjs` writes the links to a record it moves [D31], [D237].\n');
+  process.stdout.write('    a link of a document leads to a file the tree holds; `node scripts/replaced-records.mjs` writes the links to a record it moves [QSWRK#journal], [QSWRK#marks].\n');
 }
 if (outOfStep.length > 0) {
   process.stdout.write(`\nFates out of step (${outOfStep.length}):\n`);
   for (const { name, problem } of outOfStep) process.stdout.write(`  ${name}  ${problem}\n`);
-  process.stdout.write('    a line of fate names a record written after it, and a record a newer one took a part of names that record [D227], [D237].\n');
+  process.stdout.write('    a line of fate names a record written after it, and a record a newer one took a part of names that record [QSWRK#journal], [QSWRK#marks].\n');
 }
 if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);
   for (const v of unwalked) process.stdout.write(`  ${v.where}  ${v.problem}\n`);
-  process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [D225].\n');
+  process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [QSWRK#baseline].\n');
 }
 if (intrusions.length > 0) {
   process.stdout.write(`\nThe specification speaks of the work (${intrusions.length}):\n`);
   for (const v of intrusions) process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.text}\n`);
-  process.stdout.write('    a chapter states what the language is; the change, its records and its history belong to the journal [D283].\n');
+  process.stdout.write('    a chapter states what the language is; the change, its records and its history belong to the journal [QSWRK#spec].\n');
 }
 process.exit(1);

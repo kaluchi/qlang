@@ -1,5 +1,5 @@
 // Dissolves records in transit into the sections they override, at the
-// move of the baseline [D283]: the author has written the sections anew
+// move of the baseline [QSWRK#spec]: the author has written the sections anew
 // in the present, and the run does the rest. A case under a chapter that
 // names the record drops the name; a citation of the record in the code,
 // the tests and the documents of the work names its section where the
@@ -35,7 +35,7 @@ const rewrite = (path, change) => {
 const caseFiles = tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/.test(path));
 for (const name of names) {
   const sections = transit.get(name);
-  if (sections === undefined || sections.length === 0) { console.error(`${name} overrides no section: it is no record in transit [D283]`); process.exit(2); }
+  if (sections === undefined || sections.length === 0) { console.error(`${name} overrides no section: it is no record in transit [QSWRK#spec]`); process.exit(2); }
   const homeless = caseFiles.filter(path => !/\/QS[A-Z]{3}\//.test(path))
     .flatMap(path => readFileSync(join(repoRoot, path), 'utf8').split(/\r?\n/).filter(line => line.includes(`"decision":"${name}"`)).map(line => `${path}#${JSON.parse(line).name}`));
   if (homeless.length > 0) { console.error(`${name} gates cases outside the chapters, which have no section to rest in:\n  ${homeless.join('\n  ')}`); process.exit(2); }

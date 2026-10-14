@@ -1,4 +1,4 @@
-// Drops documents of the research that nothing in force cites [D282]:
+// Drops documents of the research that nothing in force cites [QSWRK#baseline]:
 // each leaves the tree, which git keeps, with its part of the ledger of
 // its folder, a record replaced reading it at the commit the record left
 // at; and the lines of its part of the ledger that say open are printed,
@@ -19,7 +19,7 @@ if (paths.length === 0) { console.log('every document of the research is cited b
 const texts = textsInForce(repoRoot);
 for (const path of paths) {
   const citing = texts.filter(({ text }) => text.includes(unitOf(path))).map(({ path: citer }) => citer);
-  if (citing.length > 0) { console.error(`${path} is cited by ${citing.join(', ')} [D282]`); process.exit(2); }
+  if (citing.length > 0) { console.error(`${path} is cited by ${citing.join(', ')} [QSWRK#baseline]`); process.exit(2); }
   if (isReadme(path) || !existsSync(join(repoRoot, path))) { console.error(`${path} is no document to drop`); process.exit(2); }
 }
 const commit = git('rev-parse', '--short=8', 'HEAD');

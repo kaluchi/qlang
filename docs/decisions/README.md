@@ -60,8 +60,8 @@ day in another session, «почему все мое?» (2026-09-22 07:21, sessi
 86982eb5).
 
 [D58]: replaced/D58.md
-[D59]: D59.md
-[D155]: D155.md
-[D227]: D227.md
-[D237]: D237.md
-[D282]: D282.md
+[D59]: replaced/D59.md
+[D155]: replaced/D155.md
+[D227]: replaced/D227.md
+[D237]: replaced/D237.md
+[D282]: replaced/D282.md

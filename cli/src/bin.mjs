@@ -3,7 +3,7 @@
 // touches `process.*` directly. main.mjs holds every branch worth
 // covering; this file forwards the arguments, the streams and the
 // environment and exits with the resolved code.
-// The decisions it exists for: [D241].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { main } from './main.mjs';
 

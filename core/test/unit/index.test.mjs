@@ -1,6 +1,6 @@
 // The surface of the package root: what a host, the command line, the
 // language server and the site build on.
-// The decisions it exists for: [D238].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
 import * as core from '../../src/index.mjs';

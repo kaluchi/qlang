@@ -5,7 +5,7 @@
 // build artifacts never share a directory with hand-written source
 // files. gen/ is gitignored and included in the npm publish tarball
 // via the `files` array in package.json.
-// The decisions it exists for: [D238].
+// The decisions it exists for: [QSWRK#tooling].
 
 import peggy from 'peggy';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';

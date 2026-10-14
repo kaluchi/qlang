@@ -1,9 +1,9 @@
-// The screen of the work a shift starts from [D225], [D237]: the branch
+// The screen of the work a shift starts from [QSWRK#baseline], [QSWRK#marks]: the branch
 // and how far it stands from master, what the tree leaves uncommitted,
 // the walk of the audit's baseline, the targets the route holds open, the
 // artifacts that name no decision and the records whose scope changed
-// since they were described [D237], the stashes, the branches and the
-// worktrees a merge leaves [D282], and the sister project's
+// since they were described [QSWRK#marks], the stashes, the branches and the
+// worktrees a merge leaves [QSWRK#baseline], and the sister project's
 // branch against its remote.
 //
 // Usage: node scripts/desk.mjs
@@ -38,7 +38,7 @@ const span = walk.since.length === 0 ? 'none' : walk.since.length === 1 ? walk.s
 lines.push(`  baseline ${walk.baseline} · ${walk.since.length} of ${RECORDS_A_WALK_TAKES} records since, ${span} · ${walk.partialNow} lines replace in part, ${walk.partialThen} at the baseline`);
 if (walk.violations.length === 0) lines.push('  the walk holds');
 else {
-  lines.push(`  the walk breaks ${walk.violations.length} times [D225]:`);
+  lines.push(`  the walk breaks ${walk.violations.length} times [QSWRK#baseline]:`);
   for (const { where, problem } of walk.violations.slice(0, 8)) lines.push(`    ${where}  ${problem}`);
 }
 
@@ -56,7 +56,7 @@ const touched = touchedRecords(root);
 const shown = touched.slice(0, 16).map(({ name }) => name).join(' ');
 lines.push(touched.length === 0 ? '  no record touched since the baseline read it' : `  touched ${touched.length} records since the baseline read them, ${shown}${touched.length > 16 ? ' …' : ''}: node scripts/marks.mjs --touched`);
 // The debt shows while the baseline is older than the marks: the records
-// no move read again before the marks were set, read again once [D237].
+// no move read again before the marks were set, read again once [QSWRK#marks].
 const marksSince = linesOf(git(root, 'log', '--diff-filter=A', '--format=%H', '--', 'scripts/marks.mjs')).at(-1);
 if (marksSince !== undefined && git(root, 'merge-base', '--is-ancestor', walk.baseline, marksSince) !== null) {
   lines.push(`  debt ${touchedRecords(root, { debt: true }).length} records touched since they were described, which the first move after the marks reads again: node scripts/marks.mjs --touched --debt`);
@@ -65,7 +65,7 @@ if (marksSince !== undefined && git(root, 'merge-base', '--is-ancestor', walk.ba
 const stashes = linesOf(git(root, 'stash', 'list')).length;
 if (stashes > 0) lines.push(`  stashes ${stashes}`);
 // What a merge leaves behind it, which the move of the baseline clears
-// [D282]: the branches beside master and this one, and the worktrees.
+// [QSWRK#baseline]: the branches beside master and this one, and the worktrees.
 const branches = linesOf(git(root, 'branch', '--format=%(refname:short)')).filter(name => name !== 'master' && name !== branch);
 if (branches.length > 0) lines.push(`  branches besides master and this one: ${branches.join(' ')}`);
 const worktrees = linesOf(git(root, 'worktree', 'list', '--porcelain')).filter(line => line.startsWith('worktree ')).length - 1;

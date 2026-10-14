@@ -1,4 +1,4 @@
-// The outside audit [D277]: a clean Opus reads the tree at HEAD from a
+// The outside audit [QSWRK#review]: a clean Opus reads the tree at HEAD from a
 // directory of its own, with no CLAUDE.md, no memory and no MCP server,
 // runs `qlang`, and answers the prompt kept beside the audits; its report
 // is written there as `<date>-<tree>.md` under a line that says how it was

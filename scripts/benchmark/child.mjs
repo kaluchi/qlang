@@ -1,8 +1,8 @@
-// A clean child [D26]: `claude -p` started from a directory of its own,
+// A clean child [QSWRK#measure]: `claude -p` started from a directory of its own,
 // with no settings, no memory, no MCP server and a one-line system
 // prompt, so its context is the prompt it is handed and nothing the
 // session that runs it knows. It runs `qlang` alone, on the input files
-// copied beside it [D26], and its record keeps every call it made and
+// copied beside it [QSWRK#measure], and its record keeps every call it made and
 // what the language answered, the frictions a reading of the run looks
 // for.
 

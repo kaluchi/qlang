@@ -1,5 +1,5 @@
-{"decision":"D287","name":"payload-resides-on-the-tagged","query":"5 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
+{"name":"payload-resides-on-the-tagged","query":"5 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
 {"name":"payload-refuses-a-vector-under-no-tag","query":"[1] | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
-{"decision":"D287","name":"is-asks-whether-the-walk-reaches-a-kind","query":"::Width#2 | is ::number","expect":"true"}
-{"decision":"D287","name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box#5 | gt 3","expect":"true"}
-{"decision":"D287","name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| get [~(type) /index /actualType]","expect":"[::any/is/kinds/ElementKindNotTakenError 0 ::keyword]"}
+{"name":"is-asks-whether-the-walk-reaches-a-kind","query":"::Width#2 | is ::number","expect":"true"}
+{"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box#5 | gt 3","expect":"true"}
+{"name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| get [~(type) /index /actualType]","expect":"[::any/is/kinds/ElementKindNotTakenError 0 ::keyword]"}

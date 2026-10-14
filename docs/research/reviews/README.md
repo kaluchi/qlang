@@ -23,36 +23,18 @@ From `2026-10-11-autonomous-series.md`, at 95a0454d:
 - A count below the bound of `range` that outgrows the host's memory,
   which no refusal names.
 
+From `2026-10-10-vec-set-map.md`, at 80a499d9:
+
+- One fact told in different words across the pages of a vector, a set
+  and a map.
+- The order of the words in the three files, which does not follow what
+  rests on what.
+
 The other findings those reports left open the tree has closed: the
 parts of numbers, strings, tags and keywords name `value`, the step
 records whose fields a schema stated twice left with the kinds of
 steps, and the language server reads no answer of `map` whose
 precision a finding could ask.
-
-## 2026-10-10 · vectors, sets and maps
-
-[2026-10-10-vec-set-map.md](2026-10-10-vec-set-map.md), at 1c0758e3.
-
-1. `leftType`, `rightType` and `key` declared again under each word, where D172 puts shared facts under `::error`. Answered by 1827f51b for `leftType` and `rightType`; `key` stays under each refusal, which names its own key, the first entry whose value is no number, the key a map lacks, the segment a projection read.
-2. Laws named after `*`, `readsAFieldUnderStar` and `readsTheKeysOfEachMapUnderStar`, and five in `string.qlang`. Answered by 1389eb66.
-3. The page of a law of `map/raise` calls `map` as a word it is no longer. Answered by edac4969.
-4. The pages of the three kinds say a word answers under the subject's tags, which `map` does not. Answered by 621a5b54: the headers say which answers go back under the subject's tags, by the label each word's answer names.
-5. `vec/sort` says a map sorts by its keys; it sorts by its values. Answered by edac4969.
-6. `map/at` says null answers null; it answers the default, and the pages do not lead to `::null/at`. Answered by edac4969, the law repeating `null/at` gone; `at` left every kind with the path a value (D248), `query` reading the place.
-7. `union`, `minus` and `inter` over a container of values that are neither sets nor maps refuse with a page that does not fit. Answered by 621a5b54 (D188): a value of no kind of the algebra is refused at its index by `ElementNotSetOrMapError`, a set beside a map with the pair.
-8. The part `with` of the algebra of vectors names a value nothing is joined with. Answered by 621a5b54 (D188): a vector's word takes no value, refused beyond its parts with a page of `a | union b`, and the part of sets and maps is `other`.
-9. The algebra says join, the name of the word that writes strings together. Answered by 621a5b54: the pages say unite, take from and keep what values share.
-10. Refusal pages that do not say how to repair the call. Answered by cf359631: every refusal page of the three kinds shows the call that works.
-11. Generic words where the language has its own: listing, container, bucket, pipeline. Answered by 610b05d4 for bucket and the laws named after a pipeline and by f3ebc9f4 for the listing; listing and container had left the vectors with their rewrite.
-12. Law names that do not say what their queries prove. Answered by 24c66f1e: each law named by its claim and proving it; the law of a reversed set made a set by `distinct` stands under `reverse`, the law of `drop` that called `minus` is gone, and the page of `entries` says what its law proves.
-13. Laws that prove one claim twice. Answered by 0a6cdfd0; the pair of `reduce` stays, each law the claim of its own page, the word's and the repair its refusal gives.
-14. One fact told in different words across the three kinds. Open.
-15. A refusal with a page under one kind and none under the others. Answered by faf4c8cd for `at` with no index or key, of vectors, maps and null; the rest stays as the rule refusals of finding ten of the third review stay.
-16. Claims of the pages with no law. Answered by 68af9ab5: each claim holds by a law under its word, the page of `flat` says the subject's tag stays, and the page of `has` no longer names the search of the runtime.
-17. `minus` and `inter` over a vector take sets too, which their pages do not say. Answered by 621a5b54: their pages name a map, a set or a vector of keys, and union's page says sets or maps of any count.
-18. The fold of a set of sets keeps the tag, the others do not. Set aside by D188: the rule of the answer's label decides, and a set's fold answers a set, under the subject's tags as every word whose answer names its own label.
-19. The order of the words in the three files does not follow what rests on what. Open.
-20. Words of time and of mutation: already, instead, was called. Answered by 610b05d4.
 
 ## 2026-10-13 · the path is a value
 

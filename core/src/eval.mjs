@@ -582,7 +582,7 @@ function refusedElementOf(elements, kinds) {
 // whose condition the value does not answer true to, named under the
 // address, the error a condition answered handed on as it is, or null; an
 // invariant of a kind's value runs on the payload beneath the tag and its
-// refusal holds the value under the tag [D286].
+// refusal holds the value under the tag [QSBLD#value].
 async function invariantRefusal(invariants, address, value, state, scope, held = value) {
   for (const { name, condition } of invariants) {
     const answer = (await evalBody(astOfQuote(condition), nestState(state, value, scope))).pipeValue;

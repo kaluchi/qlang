@@ -1,4 +1,4 @@
-// The decisions it exists for: [D241].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { langRuntime, verbNames } from '@kaluchi/qlang-core';

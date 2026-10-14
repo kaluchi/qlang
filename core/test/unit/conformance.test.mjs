@@ -10,12 +10,12 @@
 // static value.
 //
 // A case opens with the one record in force that gates it, the record
-// whose rule it shows, `"decision": "D14"` [D254], and a requirement the
+// whose rule it shows, `"decision": "D14"` [QSWRK#cases], and a requirement the
 // tree does not meet yet is a target, `"target": true`, which answers its
 // present, `"now"`, an error by its tag and any other value as its
 // literal: a target that answers as expected fails until the branch
-// that met it drops the mark [D31], and one that answers neither fails
-// until a reader tells a repair from a broken case [D91]. The
+// that met it drops the mark [QSWRK#journal], and one that answers neither fails
+// until a reader tells a repair from a broken case [QSWRK#target]. The
 // requirements agree with each other in the one form a runner can see:
 // no two cases hold one query to different answers.
 
@@ -101,8 +101,8 @@ describe('conformance: the requirements agree', () => {
   // A case under the folder of a chapter of the specification is gated
   // by its section, the file it stands in, and names a record only while
   // the record's change is in transit over it; a case outside the
-  // chapters opens with the one record in force that gates it [D283].
-  it('opens each case with the one record in force that gates it, whose record stands in the root of the records [D237], [D254]', () => {
+  // chapters opens with the one record in force that gates it [QSWRK#spec].
+  it('opens each case with the one record in force that gates it, whose record stands in the root of the records [QSWRK#marks], [QSWRK#cases]', () => {
     const decisionsDir = join(here, '..', '..', '..', 'docs', 'decisions');
     const ungated = allCases.filter(({ file, ...test }) => (chapterOf(file) === null || test.decision !== undefined)
       && (typeof test.decision !== 'string' || Object.keys(test)[0] !== 'decision' || !existsSync(join(decisionsDir, `${test.decision}.md`))))
@@ -110,7 +110,7 @@ describe('conformance: the requirements agree', () => {
     expect(ungated).toEqual([]);
   });
 
-  it('stands each file of a chapter as a section of its specification [D283]', () => {
+  it('stands each file of a chapter as a section of its specification [QSWRK#spec]', () => {
     const specDir = join(here, '..', '..', '..', 'docs', 'spec');
     const homeless = files.filter(file => chapterOf(file) !== null).filter(file => {
       const [chapter, section] = [chapterOf(file), file.split('/').pop().replace(/\.jsonl$/, '')];

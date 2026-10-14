@@ -3,7 +3,7 @@
 // for each module: the values, the one order, the arithmetic, vectors,
 // maps, the algebra of containers, text, `source` and the words of
 // control.
-// The decisions it exists for: [D239].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -114,7 +114,7 @@ describe('runtime/map.mjs error paths', () => {
   it('has rejects non-Map/non-Set subject', async () => {
     await expectErrorThrown('42 | has :foo', 'call/KindAnswersNoVerbError');
   });
-  it('has on a map takes a key as get takes one [D284]', async () => {
+  it('has on a map takes a key as get takes one [QSPTH#has]', async () => {
     await expectErrorThrown('{:k 1} | has [42]', 'map/has/key/KindNotTakenError');
   });
 });

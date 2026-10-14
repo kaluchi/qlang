@@ -14,7 +14,7 @@
 //                startup and reuses it across every highlighted
 //                snippet. Pass null to treat the name of every call
 //                as user-defined.
-// The decisions it exists for: [D241].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 

@@ -28,4 +28,4 @@ The chapters, in the order the concepts rest on each other:
 | [QSSLF](QSSLF-the-language-describes-itself.md) | the language describes itself: axes, laws, docs, the first page, the catalog |
 | [QSPRN](QSPRN-printing-and-codecs.md) | printing, codecs, elision, a place in text |
 | [QSHST](QSHST-hosts-and-the-command-line.md) | hosts and the command line |
-| [QSWRK](QSWRK-the-work.md) | the work: the journal, the specification, the cases, the baseline, the branch, the measures and the tooling |
+| [QSWRK](QSWRK-the-work.md) | the work: the records of decisions, the specification, the cases, the branch, the measures and the tooling |

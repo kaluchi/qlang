@@ -8,7 +8,7 @@
 // Usage:
 //   node scripts/measure.mjs <fromRef> <toRef>
 //   node scripts/measure.mjs --steps <ref> <ref> [<ref>...]
-// The decisions it exists for: [D208].
+// The decisions it exists for: [QSWRK#diff].
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 

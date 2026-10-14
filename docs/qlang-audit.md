@@ -7,7 +7,7 @@ also be the maintainer alone, checking whether the work still points
 where it should. It holds what no other text of the work holds: what the
 language is for, what state would count as satisfactory, the principles
 the code is held to, the scars the tree still shows against them, where
-the work ends and by which route it gets there [D255]. A decision is its
+the work ends and by which route it gets there [QSWRK#journal]. A decision is its
 record under `docs/decisions/`, a question no decision answers yet an
 open record among them; the language is what its first page and its
 chapters tell, `::qlang | doc`; and the chapters this document carried
@@ -25,8 +25,8 @@ the commit that wrote each tells why.
 A draft of the session entrypoint, the computed context a session
 starts from, lives in `docs/qlang-entrypoint.md`, ideas and no
 decision; what the process took from it stands in the records, the
-screen of the work a session runs first, `npm run desk` [D225], and
-the sensors [D231]. This document treats the language and the work on
+screen of the work a session runs first, `npm run desk` [QSWRK#baseline], and
+the sensors [QSWRK#documents]. This document treats the language and the work on
 it; that one treats the environment the work happens in.
 
 ## How to read and maintain this document
@@ -49,24 +49,24 @@ the sentence it stands under, so its answer changes when the sentence
 stops being true and only then, and it reads what the sentence names in
 a way that fails when that is gone; `npm run ci` runs every probe, and
 the branch that changed an answer replaces the sentence with the new
-fact and its new probe [D93]. A target, the answer a repair must
-produce, is a conformance case that names its decision [D31]; a block
+fact and its new probe [QSWRK#probe]. A target, the answer a repair must
+produce, is a conformance case that names its decision [QSWRK#journal]; a block
 fenced as `qlang target` holds one whose answer no literal states yet.
 An anchor names a file and a symbol; line numbers drift and are avoided.
 
 A decision is a record of its own, `docs/decisions/Dnn.md`, cited here
 by its number, a link to its file: what was decided, who decided it,
 the source, what it rests on, and the alternatives set aside with the
-reason [D31], [D155]. The maintainer's words stand in «…»,
+reason [QSWRK#journal], [QSWRK#journal]. The maintainer's words stand in «…»,
 quoted verbatim in the language they were written in with the time in
 UTC and the prefix of the session, and words quoted from the tree stand
 in “…” beside their anchor, so a script holds the first against the
 transcripts and a grep the second against the tree. A record in force
 says only what holds, a newer record pruning the part of an older one
-it takes [D227], and the walk of each new baseline gives every record of
-the language a case or a fate [D225]; the baseline moves at the
+it takes [QSWRK#journal], and the walk of each new baseline gives every record of
+the language a case or a fate [QSWRK#baseline]; the baseline moves at the
 end of every shift that wrote records, before an outside audit and when
-a branch lands on master [D227], and the code, the tests, the cases and
+a branch lands on master [QSWRK#journal], and the code, the tests, the cases and
 this document cite the records in force.
 
 An inference is the model's reasoning from named facts. Where an
@@ -76,7 +76,7 @@ a reader knows it can be re-derived and where to look.
 A question is what neither the tree nor the decisions answer: an open
 record, its question with its probes, its source and its alternatives
 with their cost, written again in place when a decision answers it
-[D255]. `node scripts/requirements.mjs` lists the questions being
+[QSWRK#journal]. `node scripts/requirements.mjs` lists the questions being
 decided, and a scar cites the open record its repair waits on.
 
 The weight of a statement is what rests on it. A sentence with a
@@ -96,7 +96,7 @@ Some rules for whoever edits the document, each learnt at a cost:
   stale the week after, as the weight of `manifest` did. A probe prints
   it to the precision the sentence needs, a sign, a ratio to a tenth,
   or the list it counts, since a count that moves with every commit
-  fails the checks of every branch while the sentence stays true [D93].
+  fails the checks of every branch while the sentence stays true [QSWRK#probe].
 - The maintainer's words are quoted, never paraphrased. A paraphrase
   replaces the maintainer's intention with the model's reading of it,
   and the next session cannot tell the two apart.
@@ -109,7 +109,7 @@ Some rules for whoever edits the document, each learnt at a cost:
   asking leave, and is never named to the maintainer as a rule the
   maintainer set. A question goes to the maintainer where the
   maintainer's quoted words are at stake or the merits leave the
-  choice open [D155].
+  choice open [QSWRK#journal].
 - A rule is written as a rule, not as the minutes of the conversation
   that produced it. The date and the source belong in the record's
   source line, not in the narrative.
@@ -225,7 +225,7 @@ task of its own, one of the two resting on what the other provides
 cannot go stale behind the tool's back [QSSLF#catalog]. The same holds for the
 seed of a session, the instruction file, which is a table of contents
 of what the repository does not hold and no summary of what it does
-[D163].
+[QSWRK#documents].
 
 The sister project's code is no measure of what the language needs. It
 was written under the scars this document names, so a construct it never
@@ -267,7 +267,7 @@ real tasks.
 The project is in a satisfactory state when seven things hold at once.
 When two of them conflict, the earlier in this list wins; the sixth
 competes with none, and the seventh yields only to a branch that
-introduces a model [D28].
+introduces a model [QSWRK#audit].
 
 First, every feature is an instance of one core concept. The core is
 small: a state pair of value and environment, a step that maps one
@@ -310,12 +310,12 @@ one, the diff of the work ahead is negative in the core sources, in the
 documents, and in the tests; the September 2026 master, commit
 `f5e8ec8`, stays the origin the history measures from. The catalog
 stands outside that count, since a language grows its catalog by the
-commands a task asks for, each under the rule of the catalog [D22], and
+commands a task asks for, each under the rule of the catalog [QSWRK#catalog], and
 by the pages that tell them, and so do this document and the
 entrypoint document, which are the measure, not what is measured. A
 growth of the core or of its tests is what the condition watches: it
 comes from a crooked part of the language, an old scar, or a concept
-that does not compose with the rest [D151]. A branch that
+that does not compose with the rest [QSWRK#diff]. A branch that
 claims to remove noise and lands with a positive diff has moved noise,
 not removed it.
 
@@ -405,11 +405,11 @@ The sign by area, which the history answers, is read over a piece of
 work against what it delivered: less code at the same behaviour is a
 refactoring, less with a new feature the work to praise, as much with a
 feature good work, and more with features asks what they are worth to
-qlang [D208].
+qlang [QSWRK#diff].
 
 The hierarchy of texts. This audit and its principles come first, then
 the catalog and the conformance cases, which are the reference of the
-language [D128], then the tools, then the process. A lower text does not contradict a
+language [QSWRK#documents], then the tools, then the process. A lower text does not contradict a
 higher one; when they conflict, the lower one changes. Process does not
 introduce entities into the language.
 
@@ -583,7 +583,7 @@ for the claim it proves and paged with it [QSSLF#laws]; and the
 conformance suite, the requirements of the language held outside it, so
 a case holds a form the language does not read yet and stands through a
 change that breaks its sources, each case opening with the record that
-gates it [D254]. And a parse failure prints whole, every
+gates it [QSWRK#cases]. And a parse failure prints whole, every
 token the parser could have read and the place it stopped as a span of
 its start and its end, `::span[3 1 4 4 1 5]` [QSPRN#span], where a failure of
 a step prints as an alert [QSHST#answer]:
@@ -608,17 +608,17 @@ their REPL pairs true because a runner executed them and their prose
 false in places because nothing did, the argument for executable over
 narrated in the project's own text; the reference was «это не
 спецификация, а скорее референс, туториал» (maintainer, 2026-09-23
-00:47, session 86982eb5). Both left the tree with their runner [D128],
+00:47, session 86982eb5). Both left the tree with their runner [QSWRK#documents],
 and what they said that the catalog did not stands as laws of its names,
 the concepts on the pages of `::qlang` in the order they rest on each
 other; the embedding API is the page of the package, `core/README.md`.
 The documents left are the measure, the decisions, the specification
 by topic, into which the decisions dissolve at the move of the baseline
-[D283], the research of a design whose work has begun, which its
+[QSWRK#spec], the research of a design whose work has begun, which its
 records absorb as the work lands [QSBLD#input], the audits of a clean outside reader of the tree, run by one
-command [D277], the reviews of the catalog a record in force cites,
-each kept as its writer wrote it beside the fate of each finding [D282],
-and the chapters this document left, as they were written [D255]:
+command [QSWRK#review], the reviews of the catalog a record in force cites,
+each kept as its writer wrote it beside the fate of each finding [QSWRK#baseline],
+and the chapters this document left, as they were written [QSWRK#journal]:
 
 ```sh
 $ git ls-files --error-unmatch 'docs/*.md' | grep -v decisions | sed -E 's#^(docs/(research/[^/]+|spec))/.*#\1/#' | sort -u
@@ -651,7 +651,7 @@ pipeline production.
 
 A raw-mode line editor and its tests are the largest single piece of
 the command-line workspace, and the REPL it serves cannot save a
-session, which is to save as the source of its declarations [D30]. The noun of a project's
+session, which is to save as the source of its declarations [QSWRK#code]. The noun of a project's
 `.qlang/` folder waits for the sources a project ships [QSHST#input]. The sister project
 onboards its user with a guide written by hand, which reads from its
 catalog the first sentence of the page of each word it shows first.
@@ -686,7 +686,7 @@ $ git ls-tree -r --name-only f5e8ec8 | grep -E '^(core|cli|lsp)/src/.*\.mjs$' | 
 0.6
 ```
 
-[D30] asks the ratio to fall, and it has begun to fall from the September
+[QSWRK#code] asks the ratio to fall, and it has begun to fall from the September
 master.
 
 No module of the core carries more comment than code:
@@ -710,7 +710,7 @@ $ node -p "Object.keys(require('./core/package.json').exports).filter(path => /e
 ./errors
 ```
 
-The repair is a property of every branch [D30]. A branch leaves every
+The repair is a property of every branch [QSWRK#code]. A branch leaves every
 file it touches with comments that state what holds in one sentence,
 moves every reason it finds in a comment into the record of the
 decision it belongs to or deletes it with the compromise it excuses,
@@ -750,17 +750,17 @@ each guard together with the duplicate it guards.
 
 A decision is the discussion with its choice and its circumstances, and
 each lives in a file of its own under `docs/decisions/`, true as a whole
-while it is in force [D227];
+while it is in force [QSWRK#journal];
 a citation of its number in this document is a link to that file, and
-the requirements it left are the conformance cases that name it [D31],
-each opening with it [D254]; it cites a record in force or one waiting
-on its target [D225]. An
+the requirements it left are the conformance cases that name it [QSWRK#journal],
+each opening with it [QSWRK#cases]; it cites a record in force or one waiting
+on its target [QSWRK#baseline]. An
 artifact names the decision it exists for, a mark covering the block it
 stands on, so the scope of a record is every place that marks it; a
 move of the baseline reads again the records whose blocks its diff
 touched, records of one axis merge into the earliest of them, whose
 number stays the address of the axis, and a case names the one record
-whose rule it shows [D237].
+whose rule it shows [QSWRK#marks].
 How the records are sourced is the subject of the folder's
 `README.md`.
 
@@ -900,7 +900,7 @@ would not suggest. Every other question is answered at the point of
 need, in views sized to a budget, the cheap view first. Examples live
 in the catalog and run as its tests, the claims of its pages; the
 conformance suite holds the requirements of the language outside it
-[D254]. Every repair in this picture rebuilds an earlier
+[QSWRK#cases]. Every repair in this picture rebuilds an earlier
 concept on the two that arrived last, quote and tag; that is why they
 compose.
 
@@ -954,7 +954,7 @@ order they rest on each other on the pages of `::qlang`.
 The tests at the finish follow what they test. The catalog's examples
 are the tests of the words. The conformance cases, each a query and
 the literal it must answer, are the requirements of the language, held
-outside it, each opening with the record that gates it [D254]. The
+outside it, each opening with the record that gates it [QSWRK#cases]. The
 round trip of printing
 and parsing is a property test. Unit tests remain for what stays in
 JavaScript, the parser, the printer, the loader and the evaluator's
@@ -968,7 +968,7 @@ query that reads its subject, so a pipe left open never holds a query
 that reads none [QSHST#input]; the answer written as its literal whatever the
 input was, a string as its text, and converted by the query, `| json`
 [QSHST#answer]; the budget at the end of the pipe, and its renderings, `table`
-among them, words of its own [D22]:
+among them, words of its own [QSWRK#catalog]:
 
 ```sh
 $ sleep 4 | timeout 2 node cli/src/bin.mjs '1 | add 1'
@@ -992,10 +992,10 @@ to build.
 
 The start is the tree of the baseline, commit `8ce2b5be`, and the finish
 is the tree the previous chapter describes. Between them lie two
-milestones, each a state of the language followed by a release [D29].
+milestones, each a state of the language followed by a release [QSWRK#audit].
 Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
-decisions leave in the conformance suite [D31]. The decisions whose
+decisions leave in the conformance suite [QSWRK#journal]. The decisions whose
 work began before the baseline met their targets, the last of them the
 effect marker leaving the language [QSNAM#letters], and the step as a command and
 the path as a value met theirs, the first work of the route [QSPTH#value], and
@@ -1004,7 +1004,7 @@ the quote as data and the function built by commands met theirs
 roles of a word and a kind theirs [QSBLD#kind], [QSBLD#chain], and the closed
 literal theirs [QSLIT#tag], and the lane of held code theirs [QSQUO#held],
 and a word of a noun that serves its own tag alone theirs [QSDSP#tagname]; a target shows the rule of the record that left it and holds the
-answer the tree gives today [D91], and every decision below writes its
+answer the tree gives today [QSWRK#target], and every decision below writes its
 targets before its work:
 
 ```sh
@@ -1107,8 +1107,8 @@ each command in a table of the runtime beside the words of the commands
 and two forms of a place read by their form [D274]; and the word
 for what a command takes is chosen once [D276]. Beside both, the
 editor's grammar is generated or reduced, and the
-screen of the work, whose first version `npm run desk` prints [D225],
-grows from the draft of the entrypoint document [D231].
+screen of the work, whose first version `npm run desk` prints [QSWRK#baseline],
+grows from the draft of the entrypoint document [QSWRK#documents].
 
 Its answers are the targets of [QSERR#site], [QSNAM#address], [QSDSP#residence], [QSSLF#catalog],
 [QSSLF#page], [QSPTH#value], [QSBLD#fn], [QSBLD#kind], [QSBLD#chain], [QSQUO#held] and [QSLIT#tag] in the conformance suite,
@@ -1140,7 +1140,7 @@ and the first screen and the hypertext it opens, every one met. The
 benchmark runs, each run recorded with the frictions it met, each
 measurement on a set of tasks a clean author wrote, which measures once
 and serves the work once its misses are read, its children running the
-command line from the pages of the language and the command line [D26]. An error a host
+command line from the pages of the language and the command line [QSWRK#measure]. An error a host
 prints is an alert, the subject where it arose an excerpt and each
 subject it passed a marker [QSHST#answer].
 
@@ -1155,7 +1155,7 @@ chain of its kind [QSSLF#catalog], [QSBLD#kind]; and
 the first screen, the pages
 of the language and of the command line, told whole in the order
 its parts rest on each other [QSSLF#page], within the weight it had [QSSLF#page],
-is measured on a set of tasks no reader has seen [D26], [D131].
+is measured on a set of tasks no reader has seen [QSWRK#measure], [QSWRK#measure].
 
 The largest part of the milestone is the sister project's. It builds
 on the workspace copy, its suite passing against it, on a branch that
@@ -1188,17 +1188,17 @@ shows, found by search rather than by memory, and its first commits
 delete; the cases that confirm it are written before its code, red, and
 it ends when they are green and nothing else turned red. Its diff is
 negative in the core sources, the documents and the tests it touches,
-its catalog growing only by what the language gains [D151], or it
+its catalog growing only by what the language gains [QSWRK#diff], or it
 introduces a model and says what the next branch deletes because of
 it, and the files it touches leave with comments that state what holds
-in one sentence [D30]. A branch that works targets leaves the records,
+in one sentence [QSWRK#code]. A branch that works targets leaves the records,
 the cases and the gates as it found them and drops only the mark of a
-target it met [D59]. A design question that appears during a branch is
+target it met [QSWRK#target]. A design question that appears during a branch is
 decided in this document before the branch goes on, since a decision
 taken in code is a decision no one will find; what confuses a session
 on the way is settled where it is met, fixed when the decisions already
 choose the fix and otherwise recorded with its probe as a target, a
-decision or a question [D89]. The sister project receives every
+decision or a question [QSWRK#branch]. The sister project receives every
 breaking change in the same move.
 
 A session is one of three kinds. A design session talks, decides, and
@@ -1226,40 +1226,40 @@ why.
 
 A question neither the tree nor the decisions answer is an open record,
 its question, its alternatives and their cost, written again in place
-when a decision answers it [D255]; `node scripts/requirements.mjs` lists
+when a decision answers it [QSWRK#journal]; `node scripts/requirements.mjs` lists
 those being decided.
 
-[D22]: decisions/D22.md
-[D26]: decisions/D26.md
-[D28]: decisions/D28.md
-[D29]: decisions/D29.md
-[D30]: decisions/D30.md
-[D31]: decisions/D31.md
+[QSWRK#catalog]: decisions/replaced/D22.md
+[QSWRK#measure]: decisions/replaced/D26.md
+[QSWRK#audit]: decisions/replaced/D28.md
+[QSWRK#audit]: decisions/replaced/D29.md
+[QSWRK#code]: decisions/replaced/D30.md
+[QSWRK#journal]: decisions/replaced/D31.md
 [D38]: decisions/D38.md
-[D59]: decisions/D59.md
-[D89]: decisions/D89.md
-[D93]: decisions/D93.md
-[D128]: decisions/D128.md
-[D131]: decisions/D131.md
-[D151]: decisions/D151.md
-[D155]: decisions/D155.md
-[D163]: decisions/D163.md
-[D208]: decisions/D208.md
-[D225]: decisions/D225.md
-[D227]: decisions/D227.md
-[D231]: decisions/D231.md
-[D237]: decisions/D237.md
-[D254]: decisions/D254.md
-[D255]: decisions/D255.md
+[QSWRK#target]: decisions/replaced/D59.md
+[QSWRK#branch]: decisions/replaced/D89.md
+[QSWRK#probe]: decisions/replaced/D93.md
+[QSWRK#documents]: decisions/replaced/D128.md
+[QSWRK#measure]: decisions/replaced/D131.md
+[QSWRK#diff]: decisions/replaced/D151.md
+[QSWRK#journal]: decisions/replaced/D155.md
+[QSWRK#documents]: decisions/replaced/D163.md
+[QSWRK#diff]: decisions/replaced/D208.md
+[QSWRK#baseline]: decisions/replaced/D225.md
+[QSWRK#journal]: decisions/replaced/D227.md
+[QSWRK#documents]: decisions/replaced/D231.md
+[QSWRK#marks]: decisions/replaced/D237.md
+[QSWRK#cases]: decisions/replaced/D254.md
+[QSWRK#journal]: decisions/replaced/D255.md
 [D259]: decisions/D259.md
 [D269]: decisions/D269.md
 [D272]: decisions/D272.md
 [D273]: decisions/D273.md
 [D274]: decisions/D274.md
 [D276]: decisions/D276.md
-[D277]: decisions/D277.md
-[D282]: decisions/D282.md
-[D283]: decisions/D283.md
+[QSWRK#review]: decisions/replaced/D277.md
+[QSWRK#baseline]: decisions/replaced/D282.md
+[QSWRK#spec]: decisions/replaced/D283.md
 [QSNAM#binding]: spec/QSNAM-names-and-scope.md#binding
 [QSNAM#owner]: spec/QSNAM-names-and-scope.md#owner
 [QSNAM#reach]: spec/QSNAM-names-and-scope.md#reach

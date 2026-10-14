@@ -1,4 +1,4 @@
-// The decisions it exists for: [D241].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';

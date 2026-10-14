@@ -1,27 +1,27 @@
-{"decision":"D287","name":"a-reserved-word-names-a-kind-after-the-tag-sigil","query":"::null","expect":"::null"}
-{"decision":"D287","name":"the-constructor-of-a-kind-reads-its-payload-as-the-value","query":"::vec[1 2]","expect":"[1 2]"}
-{"decision":"D287","name":"the-vector-kind-refuses-a-set-which-toVec-turns","query":"get [~(::vec#[2 1] !| type) ~(#[2 1] | toVec)]","expect":"[::vec/PayloadKindNotTakenError [1 2]]"}
-{"decision":"D287","name":"the-vector-kind-refuses-a-quote-whose-steps-payload-reads","query":"get [~(::vec~(a | b) !| type) ~(~(a | b) | payload | type)]","expect":"[::vec/PayloadKindNotTakenError ::vec]"}
-{"decision":"D287","name":"the-map-kind-refuses-a-map-under-a-tag-whose-map-payload-reads","query":"get [~(::map::Box{:a 1} !| type) ~(::Box{:a 1} | payload | type)]","expect":"[::map/PayloadKindNotTakenError ::map]"}
-{"decision":"D287","name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::number/PayloadKindNotTakenError"}
-{"decision":"D287","name":"a-tag-taken-as-a-value-is-the-kind-as-a-subject","query":"::vec | manifest | has ::vec/count","expect":"true"}
-{"decision":"D287","name":"a-number-under-a-tag-touches-it-by-a-hash","query":"\"::Width#5 | payload\" | parse | apply it","expect":"5"}
-{"decision":"D287","name":"a-number-a-boolean-null-and-a-path-under-a-tag-print-by-a-hash","query":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\" | parse | apply it | print","expect":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\""}
-{"decision":"D287","name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(type) ~(payload)]\" | parse | apply it","expect":"[::Width 8]"}
-{"decision":"D287","name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| type) ~(#[2 1] | tag ::vec !| type)]","expect":"[::map/PayloadKindNotTakenError ::vec/PayloadKindNotTakenError]"}
-{"decision":"D287","name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
-{"decision":"D287","name":"the-subject-of-tag-alone-is-a-pair","query":"[[:foo 42] 5] | map ~(tag !| type)","expect":"[::any/tag/PairTagNotTagError ::any/tag/SubjectNotPairError]"}
-{"decision":"D287","name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}
-{"decision":"D287","name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| get [~(type) /actualType]","expect":"[::any/tag/PairTagNotTagError ::keyword]"}
-{"decision":"D287","name":"an-undeclared-tag-keeps-its-payload","query":"::AutoBox[1 2 3] | payload","expect":"[1 2 3]"}
-{"decision":"D287","name":"an-undeclared-tag-over-a-set-answers-its-tag","query":"::AutoSet#[1 2 3] | type","expect":"::AutoSet"}
-{"decision":"D287","name":"an-undeclared-tag-keeps-a-set-a-set","query":"::AutoSet#[1 2 3] | payload | type","expect":"::set"}
-{"decision":"D287","name":"an-undeclared-tag-over-a-map-answers-its-tag","query":"::AutoMap{:k 1} | type","expect":"::AutoMap"}
-{"decision":"D287","name":"an-undeclared-tag-keeps-a-map-a-map","query":"::AutoMap{:k 1} | payload | type","expect":"::map"}
-{"decision":"D287","name":"an-undeclared-tag-over-a-number-answers-its-tag","query":"::AutoNumber#42 | type","expect":"::AutoNumber"}
-{"decision":"D287","name":"an-undeclared-tag-keeps-a-number-a-number","query":"::AutoNumber#42 | payload","expect":"42"}
-{"decision":"D287","name":"an-undeclared-tag-over-a-tagged-value-answers-its-tag","query":"::AutoJson::json[1 2 3] | type","expect":"::AutoJson"}
-{"decision":"D287","name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError"}
-{"decision":"D287","name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
-{"decision":"D287","name":"an-undeclared-tag-alone-is-a-tag","query":"::AutoBareOnly | type","expect":"::tag"}
-{"decision":"D287","name":"a-tag-lays-itself-over-a-pattern","query":"#\"a\" | tag ::Rule | get [~(type) ~(payload | eq #\"a\")]","expect":"[::Rule true]"}
+{"name":"a-reserved-word-names-a-kind-after-the-tag-sigil","query":"::null","expect":"::null"}
+{"name":"the-constructor-of-a-kind-reads-its-payload-as-the-value","query":"::vec[1 2]","expect":"[1 2]"}
+{"name":"the-vector-kind-refuses-a-set-which-toVec-turns","query":"get [~(::vec#[2 1] !| type) ~(#[2 1] | toVec)]","expect":"[::vec/PayloadKindNotTakenError [1 2]]"}
+{"name":"the-vector-kind-refuses-a-quote-whose-steps-payload-reads","query":"get [~(::vec~(a | b) !| type) ~(~(a | b) | payload | type)]","expect":"[::vec/PayloadKindNotTakenError ::vec]"}
+{"name":"the-map-kind-refuses-a-map-under-a-tag-whose-map-payload-reads","query":"get [~(::map::Box{:a 1} !| type) ~(::Box{:a 1} | payload | type)]","expect":"[::map/PayloadKindNotTakenError ::map]"}
+{"name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::number/PayloadKindNotTakenError"}
+{"name":"a-tag-taken-as-a-value-is-the-kind-as-a-subject","query":"::vec | manifest | has ::vec/count","expect":"true"}
+{"name":"a-number-under-a-tag-touches-it-by-a-hash","query":"\"::Width#5 | payload\" | parse | apply it","expect":"5"}
+{"name":"a-number-a-boolean-null-and-a-path-under-a-tag-print-by-a-hash","query":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\" | parse | apply it | print","expect":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\""}
+{"name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(type) ~(payload)]\" | parse | apply it","expect":"[::Width 8]"}
+{"name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| type) ~(#[2 1] | tag ::vec !| type)]","expect":"[::map/PayloadKindNotTakenError ::vec/PayloadKindNotTakenError]"}
+{"name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
+{"name":"the-subject-of-tag-alone-is-a-pair","query":"[[:foo 42] 5] | map ~(tag !| type)","expect":"[::any/tag/PairTagNotTagError ::any/tag/SubjectNotPairError]"}
+{"name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}
+{"name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| get [~(type) /actualType]","expect":"[::any/tag/PairTagNotTagError ::keyword]"}
+{"name":"an-undeclared-tag-keeps-its-payload","query":"::AutoBox[1 2 3] | payload","expect":"[1 2 3]"}
+{"name":"an-undeclared-tag-over-a-set-answers-its-tag","query":"::AutoSet#[1 2 3] | type","expect":"::AutoSet"}
+{"name":"an-undeclared-tag-keeps-a-set-a-set","query":"::AutoSet#[1 2 3] | payload | type","expect":"::set"}
+{"name":"an-undeclared-tag-over-a-map-answers-its-tag","query":"::AutoMap{:k 1} | type","expect":"::AutoMap"}
+{"name":"an-undeclared-tag-keeps-a-map-a-map","query":"::AutoMap{:k 1} | payload | type","expect":"::map"}
+{"name":"an-undeclared-tag-over-a-number-answers-its-tag","query":"::AutoNumber#42 | type","expect":"::AutoNumber"}
+{"name":"an-undeclared-tag-keeps-a-number-a-number","query":"::AutoNumber#42 | payload","expect":"42"}
+{"name":"an-undeclared-tag-over-a-tagged-value-answers-its-tag","query":"::AutoJson::json[1 2 3] | type","expect":"::AutoJson"}
+{"name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError"}
+{"name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
+{"name":"an-undeclared-tag-alone-is-a-tag","query":"::AutoBareOnly | type","expect":"::tag"}
+{"name":"a-tag-lays-itself-over-a-pattern","query":"#\"a\" | tag ::Rule | get [~(type) ~(payload | eq #\"a\")]","expect":"[::Rule true]"}

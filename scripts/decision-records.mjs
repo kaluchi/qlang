@@ -1,8 +1,8 @@
-// The records of the decisions [D31], read once for the scripts that
+// The records of the decisions [QSWRK#journal], read once for the scripts that
 // weigh them: each record with its domain, the records that replace it
 // whole or in part, and the cases of the conformance suite that name it,
 // met or open. A record of the language that no case names and no record
-// replaces whole is still being decided [D225].
+// replaces whole is still being decided [QSWRK#baseline].
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,15 +10,15 @@ import { join } from 'node:path';
 const readText = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
 // The folders of the records: the root holds those in force, and
-// `replaced/` those replaced whole, each moved there once [D237].
+// `replaced/` those replaced whole, each moved there once [QSWRK#marks].
 const recordFolders = root => [join(root, 'docs', 'decisions'), join(root, 'docs', 'decisions', 'replaced')];
 
 // statementsOf(text) → the statements of a record, each `{ text, from, to }`
 // over the indices of its lines: a line that opens a field, `Source.` or
 // `Replaces in part`, opens one, and the lines after it continue it to a
 // blank line or the next field. A statement of fate, which says what
-// replaced or took a part of what, is history the record keeps [D227],
-// [D237].
+// replaced or took a part of what, is history the record keeps [QSWRK#journal],
+// [QSWRK#marks].
 export const FIELD_NAMES = ['Domain', 'Decided by', 'Decision', 'Question', 'Source', 'Alternatives', 'Set aside', 'Requirements'];
 export const OPEN_RECORD_FIELDS = ['Question', 'Source', 'Alternatives'];
 export const DECIDED_RECORD_FIELDS = ['Decided by', 'Decision'];
@@ -51,7 +51,7 @@ export function recordPathOf(root, name) {
 // onward, those of the environment of the work, each
 // `{ path, domain, replacedBy, replacedInPartBy, mergedInto, met, targets }`;
 // a record merged into the earliest record of its axis is closed whole
-// as one replaced is [D237].
+// as one replaced is [QSWRK#marks].
 export function readDecisionRecords(root) {
   const records = new Map(recordFolders(root)
     .flatMap(folder => (existsSync(folder) ? readdirSync(folder) : [])
@@ -64,7 +64,7 @@ export function readDecisionRecords(root) {
       const replacing = inPart => [...recordText.matchAll(new RegExp(`^Replaced ${inPart ? 'in part ' : ''}by (.+)$`, 'gm'))]
         .flatMap(line => [...line[1].split(', under which')[0].matchAll(/[DE]\d+/g)].map(match => match[0]));
       // A walk files a principle and a rule of the tooling under their
-      // domain, which holds them where no case can [D225].
+      // domain, which holds them where no case can [QSWRK#baseline].
       const filedUnder = recordText.match(/^Filed under the (principles|tooling) by \[D\d+\]/m)?.[1];
       return [name, {
         path,
@@ -73,7 +73,7 @@ export function readDecisionRecords(root) {
         replacedInPartBy: replacing(true),
         mergedInto: [...recordText.matchAll(/^Merged into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/[DE]\d+/g)].map(match => match[0])),
         // The sections of the specification a record of the journal
-        // dissolved into, its change made the order of the baseline [D283].
+        // dissolved into, its change made the order of the baseline [QSWRK#spec].
         dissolvedInto: [...recordText.matchAll(/^Dissolved into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/QS[A-Z]{3}(?:#[a-z-]+)?/g)].map(match => match[0])),
         open: isOpenText(recordText),
         met: [],
@@ -88,7 +88,7 @@ export function readDecisionRecords(root) {
       for (const decision of [conformanceCase.decision ?? []].flat()) {
         const record = records.get(decision);
         if (record === undefined) {
-          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in docs/decisions: a case names the record it holds [D31]`);
+          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in docs/decisions: a case names the record it holds [QSWRK#journal]`);
         }
         (conformanceCase.target === true ? record.targets : record.met).push(conformanceCase.name);
       }
@@ -100,16 +100,16 @@ export function readDecisionRecords(root) {
 export const replacedWhole = record => record.replacedBy.length > 0 || record.mergedInto.length > 0 || record.dissolvedInto.length > 0;
 
 // Whether the text of a record holds a question no decision answers yet,
-// an open record [D255].
+// an open record [QSWRK#journal].
 export const isOpenText = text => /^Question\. /m.test(text);
 
 // Whether a record waits on its decision: an open record, or one of the
-// language that no case names and no record replaces whole [D255].
+// language that no case names and no record replaces whole [QSWRK#journal].
 export const isBeingDecided = record => !replacedWhole(record)
   && (record.open || (record.domain === 'language' && record.met.length + record.targets.length === 0));
 
 // Whether the tree holds a record: one of the language a case it meets
 // names, or one of another domain, which the tests of its domain hold,
-// and neither replaced whole [D225].
+// and neither replaced whole [QSWRK#baseline].
 export const isHeld = record => !replacedWhole(record)
   && (record.domain === 'language' ? record.met.length > 0 : true);

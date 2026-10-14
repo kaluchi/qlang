@@ -1,4 +1,4 @@
-// The verdict of a measurement [D26]: the runs of a decision beside the
+// The verdict of a measurement [QSWRK#measure]: the runs of a decision beside the
 // runs of a baseline in one set, from what each run fixed when it ran,
 // computing nothing again. Runs compare within one mode and one model.
 

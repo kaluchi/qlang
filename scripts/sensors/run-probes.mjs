@@ -17,13 +17,13 @@
 // it reads as a failure and never as a repair. A block indented inside
 // an item of a list is read as it stands. A probe whose answer changed,
 // a target the tree meets, and a list of files without the flag fail the
-// run, which `npm run ci` and the checks of a push make [D93].
+// run, which `npm run ci` and the checks of a push make [QSWRK#probe].
 //
 // Usage: node scripts/sensors/run-probes.mjs [document ...]
 // Without documents it reads the audit, the entrypoint, the open
-// records, whose questions hold probes as the audit does [D255], and the
+// records, whose questions hold probes as the audit does [QSWRK#journal], and the
 // chapters of the specification, whose sections show their rules by
-// probes [D283].
+// probes [QSWRK#spec].
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -119,7 +119,7 @@ const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-
 // compares as the text the command line prints. An answer with … holds
 // only where the print is an error exactly when the answer is one, so
 // the words of a page do not match inside the error that carries the
-// page as its subject [D93].
+// page as its subject [QSWRK#probe].
 async function answersAsRecorded({ query, answer }) {
   if (answer === '') return !isErrorValue(await evalQuery(query));
   if (answer.includes('…')) {
@@ -153,4 +153,4 @@ for (const documentPath of documents) {
     if (['STALE', 'MET', 'UNGUARDED'].includes(verdict)) process.exitCode = 1;
   }
 }
-if (process.exitCode === 1) console.log('a probe whose answer changed rewrites its sentence with the probe, a met target drops its mark, and a probe that lists files fails where one is missing [D93], [D59]');
+if (process.exitCode === 1) console.log('a probe whose answer changed rewrites its sentence with the probe, a met target drops its mark, and a probe that lists files fails where one is missing [QSWRK#probe], [QSWRK#target]');

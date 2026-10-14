@@ -1,4 +1,4 @@
-// The walk of the audit's baseline [D225], [D227], read once for
+// The walk of the audit's baseline [QSWRK#baseline], [QSWRK#journal], read once for
 // the conventions, which fail on what it finds, and for the screen of the
 // work, which shows it. The audit is held against a commit, its
 // baseline. A record of the language that the baseline's tree holds is
@@ -123,7 +123,7 @@ export function walkOfBaseline(repoRoot) {
   for (const { where, problem } of casesTouchedUnclaimed(repoRoot, baseline)) walk.violations.push({ where, problem });
   for (const path of uncitedDocuments(repoRoot)) {
     if (git(repoRoot, 'ls-tree', '--name-only', baseline, '--', path).trim() !== '') {
-      walk.violations.push({ where: path, problem: 'no record in force and no document of the work cites it: node scripts/drop-documents.mjs [D282]' });
+      walk.violations.push({ where: path, problem: 'no record in force and no document of the work cites it: node scripts/drop-documents.mjs [QSWRK#baseline]' });
     }
   }
   return walk;
@@ -131,7 +131,7 @@ export function walkOfBaseline(repoRoot) {
 
 // A citation of the specification, `[QSNAM#scope]` or `[QSNAM]`, names a
 // chapter under `docs/spec/` and a section it holds as a heading of its
-// own, `## scope` [D283].
+// own, `## scope` [QSWRK#spec].
 const SECTION_CITATION = /\[(QS[A-Z]{3})(?:#([a-z][a-z-]*))?\]/g;
 export function unresolvedSections(repoRoot) {
   const specDir = join(repoRoot, 'docs', 'spec');
@@ -153,7 +153,7 @@ export function unresolvedSections(repoRoot) {
 }
 
 // The records in transit, each with the sections it overrides: a record
-// in force with a line `Overrides [QSNAM#scope], [QSNAM#reach]` [D283].
+// in force with a line `Overrides [QSNAM#scope], [QSNAM#reach]` [QSWRK#spec].
 export function recordsInTransit(repoRoot) {
   const recordsDir = join(repoRoot, 'docs', 'decisions');
   return new Map(readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).flatMap(name => {
@@ -166,7 +166,7 @@ export function recordsInTransit(repoRoot) {
 // lacked, or that are gone from it, each claimed by a record in transit
 // over its section: a case added or rewritten names the record, and a
 // case taken away is named in the record's text; and a case under a
-// chapter names no record but one in transit over its section [D283].
+// chapter names no record but one in transit over its section [QSWRK#spec].
 // A chapter the baseline did not hold is the work of the move that wrote
 // it, read from the next baseline on.
 export function casesTouchedUnclaimed(repoRoot, baseline) {
@@ -203,7 +203,7 @@ export function casesTouchedUnclaimed(repoRoot, baseline) {
 }
 
 // The documents of the research that stay while something in force cites
-// them [D282]. A review is a unit of its own, and so is a chapter the
+// them [QSWRK#baseline]. A review is a unit of its own, and so is a chapter the
 // audit left; a folder of any other research, a design with its runs, is
 // one unit, held by a citation of any of it. The outside audits are a
 // series the next one is read against, and the ledger of a folder, its

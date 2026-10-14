@@ -5,8 +5,8 @@ starts from: the command that computes the state of the work and
 delivers it, the points of the agent loop where it runs, the sensors
 it reads, and the records it keeps. It holds ideas and no decision:
 what the process took from it stands in the decision records, the
-screen of the work in `npm run desk` [D225] and the sensors under
-`scripts/sensors/` [D231]. It was written
+screen of the work in `npm run desk` [QSWRK#baseline] and the sensors under
+`scripts/sensors/` [QSWRK#documents]. It was written
 down so that the agreements of 23 September 2026 survive into the
 discussion the maintainer wants to have next, «я лично ещё хотел бы
 обсудить потом entrypoint-скрипт и пообсуждать поиграться с механикой
@@ -452,7 +452,7 @@ The sensor is `scripts/sensors/run-probes.mjs`, and without an
 argument it reads the audit and this document. `npm run ci` and the
 checks of every push run it, so a probe whose answer changed, or a
 target the tree now answers, fails them, and the branch that moved the
-answer rewrites the sentence around it [D93]. A probe whose line begins
+answer rewrites the sentence around it [QSWRK#probe]. A probe whose line begins
 with `$` runs in a shell unless it names the sister project, the
 sensors or the environment, which make it a probe of a machine, left to
 be run by hand; its pipeline fails where any command of it fails, and
@@ -468,7 +468,7 @@ reported as lossy. A string prints raw on the command line, and its
 text may read as words of the command form, so the runner holds a
 string's answer against its raw print first. Every target that a
 literal can state is a conformance case naming its decision, which the
-runner of the suite holds [D31].
+runner of the suite holds [QSWRK#journal].
 
 The fourth lists what reached the window besides the conversation. A
 text the harness adds to a turn is a record of kind `attachment` that
@@ -703,8 +703,8 @@ become the benchmark's first domain with real expected values.
 ## Decisions
 
 This document decides nothing: what the work took from it stands in the
-records under `docs/decisions/`, numbered as every decision is [D31],
-[D231].
+records under `docs/decisions/`, numbered as every decision is [QSWRK#journal],
+[QSWRK#documents].
 
 ## Open questions
 
@@ -736,10 +736,10 @@ decision and no record followed.
 What happens when the push misses: the fallback is a query, and the
 entrypoint's first screen has to say how to ask.
 
-[D31]: decisions/D31.md
-[D93]: decisions/D93.md
-[D225]: decisions/D225.md
-[D231]: decisions/D231.md
+[QSWRK#journal]: decisions/replaced/D31.md
+[QSWRK#probe]: decisions/replaced/D93.md
+[QSWRK#baseline]: decisions/replaced/D225.md
+[QSWRK#documents]: decisions/replaced/D231.md
 [QSSLF#catalog]: spec/QSSLF-the-language-describes-itself.md#catalog
 [QSDSP#residence]: spec/QSDSP-a-word-found-through-its-subject.md#residence
 [QSPRN#print]: spec/QSPRN-printing-and-codecs.md#print

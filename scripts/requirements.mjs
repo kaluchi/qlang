@@ -1,5 +1,5 @@
 // Computes where the work stands from the requirements the decisions
-// left [D58]. A conformance case names the decision that left it, and a
+// left [D31]. A conformance case names the decision that left it, and a
 // requirement the tree does not meet yet is a target. Without an
 // argument it prints the focus, the open targets of the first milestone
 // of the route that has any, then the milestones after it, the
@@ -37,7 +37,7 @@ const askedDecisions = process.argv.slice(2);
 if (askedDecisions.length > 0) {
   for (const decision of askedDecisions) {
     const record = decisions.get(decision);
-    if (record === undefined) throw new Error(`${decision} has no file in docs/decisions: a case names the record it holds [D58]`);
+    if (record === undefined) throw new Error(`${decision} has no file in docs/decisions: a case names the record it holds [D31]`);
     console.log(`${decision} · ${record.domain}`);
     const replaces = inPart => [...decisions].filter(([, other]) => (inPart ? other.replacedInPartBy : other.replacedBy).includes(decision))
       .map(([other]) => other);

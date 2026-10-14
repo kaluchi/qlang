@@ -427,7 +427,7 @@ function baselineDrift() {
 //
 // A link of a document to a file of markdown, its definition `[Dnn]:
 // Dnn.md` or its inline form, leads to a file the tree holds, so the graph
-// of the records walks from any document into the past [D58], [D237].
+// of the records walks from any document into the past [D31], [D237].
 
 const MARKDOWN_LINK = /(?:\]:[ \t]*|\]\()([^)\s]+\.md)(?=[)\s#]|$)/gm;
 
@@ -587,7 +587,7 @@ if (misplaced.length > 0) {
 if (broken.length > 0) {
   process.stdout.write(`\nLinks that lead nowhere (${broken.length}):\n`);
   for (const { path, line, target } of broken) process.stdout.write(`  ${path}:${line}  ${target}\n`);
-  process.stdout.write('    a link of a document leads to a file the tree holds; `node scripts/replaced-records.mjs` writes the links to a record it moves [D58], [D237].\n');
+  process.stdout.write('    a link of a document leads to a file the tree holds; `node scripts/replaced-records.mjs` writes the links to a record it moves [D31], [D237].\n');
 }
 if (outOfStep.length > 0) {
   process.stdout.write(`\nFates out of step (${outOfStep.length}):\n`);

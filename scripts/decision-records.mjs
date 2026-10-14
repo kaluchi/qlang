@@ -1,4 +1,4 @@
-// The records of the decisions [D58], read once for the scripts that
+// The records of the decisions [D31], read once for the scripts that
 // weigh them: each record with its domain, the records that replace it
 // whole or in part, and the cases of the conformance suite that name it,
 // met or open. A record of the language that no case names and no record
@@ -85,7 +85,7 @@ export function readDecisionRecords(root) {
       for (const decision of [conformanceCase.decision ?? []].flat()) {
         const record = records.get(decision);
         if (record === undefined) {
-          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in docs/decisions: a case names the record it holds [D58]`);
+          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in docs/decisions: a case names the record it holds [D31]`);
         }
         (conformanceCase.target === true ? record.targets : record.met).push(conformanceCase.name);
       }

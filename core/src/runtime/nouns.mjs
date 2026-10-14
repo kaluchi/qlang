@@ -92,7 +92,7 @@ function residesOn(record, env) {
 }
 
 // isWord(env, address) → whether the name at the address is a word; a
-// word is the label of the args of a call of it [D173].
+// word is the label of the args of a call of it [D164].
 export function isWord(env, address) {
   const record = nodeOf(env, address);
   return record !== null && residesOn(record, env);

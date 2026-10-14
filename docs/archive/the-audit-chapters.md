@@ -418,7 +418,7 @@ those repairs left is what the scars below describe.
 [D152]: ../decisions/D152.md
 [D161]: ../decisions/D161.md
 [D164]: ../decisions/D164.md
-[D173]: ../decisions/D173.md
+[D173]: ../decisions/replaced/D173.md
 [D175]: ../decisions/D175.md
 [D176]: ../decisions/D176.md
 [D177]: ../decisions/replaced/D177.md

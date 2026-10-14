@@ -1293,7 +1293,6 @@ those being decided.
 [D167]: decisions/D167.md
 [D168]: decisions/D168.md
 [D169]: decisions/D169.md
-[D173]: decisions/D173.md
 [D175]: decisions/D175.md
 [D176]: decisions/D176.md
 [D178]: decisions/D178.md

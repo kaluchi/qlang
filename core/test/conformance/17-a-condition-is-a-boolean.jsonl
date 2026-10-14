@@ -79,7 +79,7 @@
 {"decision":"D43","name":"cond-only-evaluates-matching-branch","query":"5 | cond ~(eq 5) ~(\"safe\") ~(\"never\" | div 0)","expect":"\"safe\""}
 {"decision":"D248","name":"cond-with-path-predicate","query":"{:role :admin :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"150"}
 {"decision":"D248","name":"cond-with-path-default","query":"{:role :user :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"100"}
-{"decision":"D173","name":"cond-with-no-clauses-is-refused","query":"5 | cond","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualType ::any/cond\n  :actualValue ::any/cond[]\n  :trail [\n    {\n      :step ~(cond)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D164","name":"cond-with-no-clauses-is-refused","query":"5 | cond","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualType ::any/cond\n  :actualValue ::any/cond[]\n  :trail [\n    {\n      :step ~(cond)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D43","name":"cond-with-one-clause-is-refused","query":"5 | cond ~(eq 5)","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualType ::any/cond\n  :actualValue ::any/cond[~(eq 5)]\n  :trail [\n    {\n      :step ~(cond ~(eq 5))\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D43","name":"cond-replaces-nested-if-equivalence","query":"75 | cond ~(gte 90) ~(\"A\") ~(gte 70) ~(\"B\") ~(\"C\") | eq (75 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\")))","expect":"true"}
 {"decision":"D22","name":"at-least-one-satisfies","query":"[1 2 3] | any ~(gt 2)","expect":"true"}
@@ -158,7 +158,7 @@
 {"decision":"D133","name":"short-circuit-skips-failing-after-match","query":"{:a 1} | coalesce /a ~(div 0)","expect":"1"}
 {"decision":"D248","name":"short-circuit-skips-multiple-after-match","query":"{:b 99} | coalesce /a /b ~(div 0) ~(\"unreached\")","expect":"99"}
 {"decision":"D248","name":"evaluates-failing-when-needed","query":"{} | coalesce /missing ~(\"safe\")","expect":"\"safe\""}
-{"decision":"D173","name":"coalesce-with-no-alternative-is-refused","query":"{} | coalesce","expect":"::any/coalesce/alternatives/EmptyError!{\n  :actualType ::any/coalesce\n  :actualValue ::any/coalesce[]\n  :trail [\n    {\n      :step ~(coalesce)\n      :subject {}\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D164","name":"coalesce-with-no-alternative-is-refused","query":"{} | coalesce","expect":"::any/coalesce/alternatives/EmptyError!{\n  :actualType ::any/coalesce\n  :actualValue ::any/coalesce[]\n  :trail [\n    {\n      :step ~(coalesce)\n      :subject {}\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D248","name":"with-path-chain","query":"{:user {:name \"Alice\"}} | coalesce /admin /user/name ~(\"Unknown\")","expect":"\"Alice\""}
 {"decision":"D133","name":"cascade-from-deepest","query":"{:a {:b {:c 42}}} | coalesce /a/b/c /a/b /a ~(0)","expect":"42"}
 {"decision":"D248","name":"if-and-coalesce-combined","query":"{:active true :name \"Bob\"} | if (get /active) ~(coalesce /preferredName /name ~(\"???\")) ~(\"inactive\")","expect":"\"Bob\""}

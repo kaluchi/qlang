@@ -42,7 +42,7 @@ const BuiltinUnknownAstNodeTypeError = declareInvariantError(
   ({ nodeType }) => `unknown AST node type: ${nodeType}`);
 
 // The tag of a name that holds data puts no value under it: a value goes
-// under a label, a word, an invariant or a tag no node answers [D173].
+// under a label, a word, an invariant or a tag no node answers [D164].
 const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
 const CallValueMeetsWordError = declareRefusal('call/ValueMeetsWordError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
@@ -659,7 +659,7 @@ function isNodeOrLabel(name, record) {
 
 // ─── Names under a label ───────────────────────────────────────
 
-// The name a recipe reads the args of its call by [D173].
+// The name a recipe reads the args of its call by [D164].
 const ARGS_NAME = keyword('args');
 
 // A word runs by its function [D251], a recipe written as the value of a
@@ -916,7 +916,7 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
 // through its label [D41]: built by its kind [D252], laid over as it is
-// where no kind answers the tag [D42], [D173], never over an error [D13],
+// where no kind answers the tag [D42], [D164], never over an error [D13],
 // and never under the name of a value withheld from held code [D278].
 export async function mintTaggedInstance(tagName, payload, state) {
   refuseWithheld(state.env, tagName, true);

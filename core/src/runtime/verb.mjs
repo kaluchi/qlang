@@ -16,7 +16,7 @@ import {
 } from '../types.mjs';
 
 // The value under a tag as its literal puts it there, for the verbs that
-// keep a kind and for `tag` [D173].
+// keep a kind and for `tag` [D164].
 export async function mintUnderTag(state, tag, value) {
   return await mintTaggedInstance(tag.name, value, state);
 }

@@ -163,7 +163,9 @@ on a path the audit, the entrypoint document or this file names that
 the tree lacks or on words they quote from the tree that their file no
 longer holds, and on the walk of a baseline: a record of the language
 the audit's baseline holds that no case and no line of its fate does,
-more than twenty records since the baseline, and a citation of a record
+more than twenty records since the baseline, a document of the research
+the baseline holds that nothing in force cites, which
+`node scripts/drop-documents.mjs` drops [D282], and a citation of a record
 not in force, which the code, the tests and the cases never make and the
 documents make only of one waiting on its target [D225]. `npm run check:probes` runs every probe of the audit and the
 entrypoint document, the shell ones that read the repository alone

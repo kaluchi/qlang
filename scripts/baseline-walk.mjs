@@ -118,5 +118,41 @@ export function walkOfBaseline(repoRoot) {
       if (record !== undefined && !notClosed(record) && !record.open) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
     }
   }
+  for (const path of uncitedDocuments(repoRoot)) {
+    if (git(repoRoot, 'ls-tree', '--name-only', baseline, '--', path).trim() !== '') {
+      walk.violations.push({ where: path, problem: 'no record in force and no document of the work cites it: node scripts/drop-documents.mjs [D282]' });
+    }
+  }
   return walk;
+}
+
+// The documents of the research that stay while something in force cites
+// them [D282]. A review is a unit of its own, and so is a chapter the
+// audit left; a folder of any other research, a design with its runs, is
+// one unit, held by a citation of any of it. The outside audits are a
+// series the next one is read against, and the ledger of a folder, its
+// README, lists what the folder holds and holds none of it.
+const RESEARCH = /^docs\/(research\/(?!outside-audit\/)[^/]+|archive)\/.+/;
+const REPORTS = /^docs\/(research\/reviews|archive)\//;
+export const isReadme = path => /(^|\/)README\.md$/.test(path);
+
+// The texts in force that may cite a document: the records in force and
+// the documents of the work.
+export function textsInForce(repoRoot) {
+  const records = readdirSync(join(repoRoot, 'docs', 'decisions')).filter(name => /^[DE]\d+\.md$/.test(name)).map(name => `docs/decisions/${name}`);
+  return [...records, ...CITING_DOCUMENTS].filter(path => existsSync(join(repoRoot, path))).map(path => ({ path, text: readFileSync(join(repoRoot, path), 'utf8') }));
+}
+
+// unitOf(path) → what a citation must name to hold the document: a
+// review by its folder and name, `reviews/2026-10-10-vec-set-map.md`, any
+// other research by its folder, `research/legend/`.
+export const unitOf = path => (REPORTS.test(path) ? path.split('/').slice(-2).join('/') : `${path.split('/').slice(1, 3).join('/')}/`);
+
+// uncitedDocuments(repoRoot) → the documents of the research nothing in
+// force cites.
+export function uncitedDocuments(repoRoot) {
+  const texts = textsInForce(repoRoot);
+  return git(repoRoot, 'ls-files', 'docs/research', 'docs/archive').split('\n')
+    .filter(path => RESEARCH.test(path) && !isReadme(path))
+    .filter(path => !texts.some(({ text }) => text.includes(unitOf(path))));
 }

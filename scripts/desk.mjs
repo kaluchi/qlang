@@ -2,7 +2,8 @@
 // and how far it stands from master, what the tree leaves uncommitted,
 // the walk of the audit's baseline, the targets the route holds open, the
 // artifacts that name no decision and the records whose scope changed
-// since they were described [D237], the stashes, and the sister project's
+// since they were described [D237], the stashes, the branches and the
+// worktrees a merge leaves [D282], and the sister project's
 // branch against its remote.
 //
 // Usage: node scripts/desk.mjs
@@ -63,6 +64,12 @@ if (marksSince !== undefined && git(root, 'merge-base', '--is-ancestor', walk.ba
 
 const stashes = linesOf(git(root, 'stash', 'list')).length;
 if (stashes > 0) lines.push(`  stashes ${stashes}`);
+// What a merge leaves behind it, which the move of the baseline clears
+// [D282]: the branches beside master and this one, and the worktrees.
+const branches = linesOf(git(root, 'branch', '--format=%(refname:short)')).filter(name => name !== 'master' && name !== branch);
+if (branches.length > 0) lines.push(`  branches besides master and this one: ${branches.join(' ')}`);
+const worktrees = linesOf(git(root, 'worktree', 'list', '--porcelain')).filter(line => line.startsWith('worktree ')).length - 1;
+if (worktrees > 0) lines.push(`  worktrees ${worktrees} besides the checkout: git worktree list`);
 
 if (existsSync(sister)) {
   const sisterBranch = git(sister, 'branch', '--show-current');

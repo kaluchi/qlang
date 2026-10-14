@@ -12,7 +12,7 @@
 {"decision":"D71","name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :k]"}
 {"decision":"D71","name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| get /trail/0/step","expect":"~(:k 2)"}
 {"decision":"D71","name":"a-tag-is-declared-once-in-a-scope","query":":T |~~ T. ~~| | :T |~~ T. ~~| !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :T]"}
-{"decision":"D71","name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | raise {:k 1} !| :x 2 !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :x]"}
+{"decision":"D71","name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | {:k 1} | raise !| :x 2 !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :x]"}
 {"decision":"D71","name":"a-recipe-declares-no-input-of-its-word-again","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :x]"}
 {"decision":"D71","name":"a-recipe-of-one-step-declares-no-input-again","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3)) | 1 | m 2 !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :x]"}
 {"decision":"D71","name":"a-recipe-declares-no-args-of-its-call-again","query":":number/m ~(:args 5 | add args) | 1 | m !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :args]"}

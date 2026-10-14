@@ -1,7 +1,7 @@
 {"decision":"D244","name":"a-string-turns-into-the-number-it-writes","query":"\"42\" | toNumber","expect":"42"}
 {"decision":"D244","name":"a-text-that-is-no-number-is-refused-whole","query":"[\"4x\" \"\" \" 42\"] | map ~(toNumber !| type)","expect":"[::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError]"}
-{"decision":"D244","name":"a-scalar-turns-into-its-string","query":"[42 :a ::vec true \"s\"] | map ~toString","expect":"[\"42\" \"a\" \"vec\" \"true\" \"s\"]"}
-{"decision":"D244","name":"a-scalar-turns-into-the-keyword-groupBy-files-it-under","query":"[\"a\" 1 true null ::Box :k] | map ~toKeyword","expect":"[:a :\"1\" :true :null :Box :k]"}
+{"decision":"D244","name":"an-atom-turns-into-its-string","query":"[42 :a ::vec true \"s\"] | map ~toString","expect":"[\"42\" \"a\" \"vec\" \"true\" \"s\"]"}
+{"decision":"D244","name":"an-atom-turns-into-the-keyword-groupBy-files-it-under","query":"[\"a\" 1 true null ::Box :k] | map ~toKeyword","expect":"[:a :\"1\" :true :null :Box :k]"}
 {"decision":"D244","name":"a-name-turns-into-its-tag","query":"[\"vec\" :Box] | map ~toTag","expect":"[::vec ::Box]"}
 {"decision":"D244","name":"a-container-turns-into-another","query":"get [~(#[2 1] | toVec) ~([2 1 2] | toSet) ~([[:a 1]] | toMap)]","expect":"[[1 2] #[1 2] {:a 1}]"}
 {"decision":"D244","name":"a-value-turned-wider-and-back-is-itself","query":"get [~(42 | toString | toNumber) ~(:a | toString | toKeyword) ~(1 | toKeyword | toNumber) ~(#[1 2] | toVec | toSet)]","expect":"[42 :a 1 #[1 2]]"}

@@ -1,7 +1,7 @@
-{"decision":"D123","name":"the-laws-of-a-name-are-the-laws-declared-under-it-by-their-names","query":":k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | laws | keys","expect":"#[:answersFive]"}
-{"decision":"D123","name":"run-laws-names-each-law-by-its-address-and-its-claim-by-its-page","query":":k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | runLaws | first | get [/law /says /ok]","expect":"[::k/answersFive |~~ k answers five. ~~| true]"}
-{"decision":"D123","name":"a-law-without-a-page-claims-nothing-it-says","query":":k 5 | :k/answersFive ::law~(k | eq 5) | ::k | runLaws | first | get [/says /ok]","expect":"[null true]"}
-{"decision":"D123","name":"a-law-that-answers-false-fails","query":":k 5 | :k/wrong |~~ One is two. ~~| ::law~(1 | eq 2) | ::k | runLaws | first | get /ok","expect":"false"}
+{"decision":"D123","name":"the-laws-of-a-name-are-the-laws-declared-under-it-by-their-names","query":":Box |~~ A box. ~~| | :Box/addsUp |~~ Two and three is five. ~~| ::law~(2 | add 3 | eq 5) | ::Box | laws | keys","expect":"#[:addsUp]"}
+{"decision":"D123","name":"run-laws-names-each-law-by-its-address-and-its-claim-by-its-page","query":":Box |~~ A box. ~~| | :Box/addsUp |~~ Two and three is five. ~~| ::law~(2 | add 3 | eq 5) | ::Box | runLaws | first | get [/law /says /ok]","expect":"[::Box/addsUp |~~ Two and three is five. ~~| true]"}
+{"decision":"D123","name":"a-law-without-a-page-claims-nothing-it-says","query":":Box |~~ A box. ~~| | :Box/addsUp ::law~(2 | add 3 | eq 5) | ::Box | runLaws | first | get [/says /ok]","expect":"[null true]"}
+{"decision":"D123","name":"a-law-that-answers-false-fails","query":":Box |~~ A box. ~~| | :Box/wrong |~~ One is two. ~~| ::law~(1 | eq 2) | ::Box | runLaws | first | get /ok","expect":"false"}
 {"decision":"D123","name":"a-name-with-no-laws-has-none","query":":k 5 | ::k | laws","expect":"{}"}
 {"decision":"D123","name":"the-manifest-of-a-name-leaves-its-laws-to-laws","query":":k 5 | :k/answersFive ::law~(k | eq 5) | :k/n ~(get /0) | ::k | manifest","expect":"#[::k/n]"}
 {"decision":"D176","name":"a-law-reads-as-the-pair-of-its-page-and-its-query","query":":k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | laws | get /answersFive | get [~(get /0 | content) /1]","expect":"[\" k answers five. \" ~(k | eq 5)]"}

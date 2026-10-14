@@ -28,7 +28,7 @@ describe('parseJson — happy path', () => {
     expect(cellEntry.result).toEqual([1, 2]);
   });
 
-  it('passes scalar JSON through unchanged', async () => {
+  it('passes the JSON of an atom through unchanged', async () => {
     const cellEntry = await runQuery('"42" | parseJson', silentStreams);
     expect(cellEntry.result).toBe(42);
   });

@@ -25,7 +25,7 @@ import {
   makeTag, makeQuote, makeDoc, NULL
 } from '../types.mjs';
 import {
-  addressesOf, declarationsUnder, nodeOf, residenceOnSubject
+  addressesOf, declarationsUnder, nodeOf, refuseWithheld, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { nearestTagNames } from '../nearest-names.mjs';
@@ -69,9 +69,11 @@ function nearestOfSubject(env, subject) {
 // The record a subject names, the one record every axis and
 // `runLaws` read, or null when it names none: a name by its tag, the
 // address of its node, and any other value, a keyword among them, by its
-// kind [D221]; a value a host bound under a name is no record.
+// kind [D221]; a value a host bound under a name is no record, and a tag
+// of a value withheld from held code is refused [D278].
 export function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
+  if (isTag(subject)) refuseWithheld(env, subject.name, true);
   const name = isTag(subject) ? subject.name : typeKeyword(subject).name;
   return nodeOf(env, name) ?? nodeOfRefused(env, name);
 }

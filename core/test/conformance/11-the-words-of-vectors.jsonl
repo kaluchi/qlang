@@ -45,7 +45,7 @@
 {"decision":"D90","name":"reduce-product","query":"[1 2 3 4 5] | reduce 1 ~(mul)","expect":"120"}
 {"decision":"D90","name":"reduce-append","query":"[\"a\" \"b\" \"c\"] | reduce \"\" ~(append)","expect":"\"abc\""}
 {"decision":"D90","name":"reduce-union-of-sets","query":"[#[1] #[2 3]] | reduce #[] ~(union)","expect":"#[1 2 3]"}
-{"decision":"D56","name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | get [~(type) ~(payload | type)]","expect":"[::Bar ::Foo]"}
+{"decision":"D90","name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | get [~(type) ~(payload | type)]","expect":"[::Bar ::Foo]"}
 {"decision":"D248","name":"reduce-max-via-verb","query":":number/max2 (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(if (gt x) ~(it) ~(x))) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
 {"decision":"D90","name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
 {"decision":"D90","name":"reduce-over-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
@@ -68,7 +68,6 @@
 {"decision":"D90","name":"a-reducer-of-code-folds-the-values-of-a-map","query":"{:a 1 :b 2} | reduce 0 ~(sumOf /0 /1)","expect":"3"}
 {"decision":"D90","name":"a-reducer-of-code-that-fails-answers-the-failure","query":"[1 \"x\" 3] | reduce 0 ~(sumOf /0 /1) !| type","expect":"::vec/sum/ElementNotNumberError"}
 {"decision":"D90","name":"a-reducer-of-one-word-keeps-its-short-form","query":"[1 2 3] | reduce 0 ~(add)","expect":"6"}
-{"decision":"D56","name":"a-reducer-of-one-word-folds-a-tag-over-the-seed","query":"[::Foo ::Bar] | reduce 1 ~(tag) | type","expect":"::Bar"}
 {"decision":"D22","name":"take-negative-clamps-to-empty","query":"[1 2 3] | take -1","expect":"[]"}
 {"decision":"D22","name":"take-negative-large-clamps-to-empty","query":"[1 2 3] | take -5","expect":"[]"}
 {"decision":"D22","name":"drop-negative-clamps-to-whole","query":"[1 2 3] | drop -1","expect":"[1 2 3]"}

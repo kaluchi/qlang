@@ -51,10 +51,10 @@ describe('a refusal declared by its address [D46]', () => {
 
 describe('QlangInvariantError', () => {
   it('is constructible with message and context', () => {
-    const invariantErr = new QlangInvariantError('registration failed', { site: 'X', operandName: 'foo' });
+    const invariantErr = new QlangInvariantError('registration failed', { site: 'X', word: 'foo' });
     expect(invariantErr.message).toBe('registration failed');
     expect(invariantErr.facts.site).toBe('X');
-    expect(invariantErr.facts.operandName).toBe('foo');
+    expect(invariantErr.facts.word).toBe('foo');
     expect(invariantErr).toBeInstanceOf(QlangError);
   });
 });
@@ -79,6 +79,12 @@ describe('runtime error location propagation via evalNode', () => {
     expect(originalErr).not.toBeNull();
     // The second filter is at offset 34 (`filter` after the `count | `)
     expect(originalErr.location.start.offset).toBe(source.indexOf('filter', 25));
+  });
+
+  it('the location of a refusal inside a quote a step hands a word points into the source of the query', async () => {
+    const source = '[1 2] | map ~(add 1 | nope 2)';
+    const originalErr = await catchOriginalError(source);
+    expect(originalErr.location.start.offset).toBe(source.indexOf('nope'));
   });
 
   it('does not overwrite a location set by a deeper frame', async () => {

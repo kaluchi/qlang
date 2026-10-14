@@ -1,4 +1,4 @@
-{"decision":"D8","name":"quote-literal-scalar","query":"~(42)","expect":"~(42)"}
+{"decision":"D8","name":"quote-literal-atom","query":"~(42)","expect":"~(42)"}
 {"decision":"D8","name":"quote-literal-arith","query":"~(mul 2)","expect":"~(mul 2)"}
 {"decision":"D8","name":"quote-literal-pipeline","query":"~([1 2 3] | filter ~(gt 1))","expect":"~([1 2 3] | filter ~(gt 1))"}
 {"decision":"D8","name":"quote-literal-path","query":"~(get /name)","expect":"~(get /name)"}
@@ -79,7 +79,42 @@
 {"decision":"D9","name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12"}
 {"decision":"D5","name":"a-named-quote-is-a-value-apply-runs","query":":q ~(add 1) | 5 | apply q","expect":"6"}
 {"decision":"D67","name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)"}
-{"decision":"D251","name":"a-named-quote-reads-the-names-where-its-verb-stands","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big","expect":"[5 10]"}
 {"decision":"D129","name":"a-step-without-its-quote-is-refused-by-the-input-of-code","query":"[{:a true}] | filter (get /a) !| get [~(type) /actualType]","expect":"[::vec/filter/predicate/NotPathOrQuoteError ::path/IndexNotIntegerError]"}
 {"decision":"D129","name":"an-input-of-code-of-a-reader-refuses-a-failed-modifier","query":":any/f (::fn | takes :q |~~ The q. ~~| /0 ::quote | impl ~(apply q)) | 1 | f (get /x) !| type","expect":"::any/f/q/NotQuoteError"}
 {"decision":"D129","name":"an-input-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take (get /x) !| type","expect":"::path/IndexNotIntegerError"}
+{"decision":"D278","name":"a-held-quote-reads-no-value-a-reader-names","query":":big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(type) /name]","expect":"[::call/ValueWithheldError :lim]"}
+{"decision":"D278","name":"a-held-quote-withholds-a-value-named-as-a-word","query":":count 2 | :f ~(take count) | [1 2 3] | apply f !| type","expect":"::call/ValueWithheldError"}
+{"decision":"D278","name":"a-step-around-the-call-of-a-held-quote-shadows-nothing-it-reads","query":":f ~(add k) | :k 100 | [5] | map ~(apply f) !| type","expect":"::call/ValueWithheldError"}
+{"decision":"D278","name":"a-quote-handed-to-a-word-reads-the-step-that-wrote-it-by-every-road","query":":k 10 | :any/w (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(:c q | get [~(map c) ~(map (args | first))])) | [1 2] | w ~(add k)","expect":"[[11 12] [11 12]]"}
+{"decision":"D278","name":"a-quote-handed-to-a-word-shadows-no-input-of-the-word","query":":any/inner (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(apply q)) | :any/outer (::fn | takes :by |~~ By. ~~| /0 | impl ~(inner ~(add by))) | :by 100 | 1 | outer 5","expect":"6"}
+{"decision":"D278","name":"a-quote-a-call-answers-is-held-again","query":":any/keep (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(q)) | :k 1 | :h (keep ~(add k)) | 5 | apply h !| type","expect":"::call/ValueWithheldError"}
+{"decision":"D278","name":"the-objects-apply-hands-a-function-read-the-step-that-wrote-them","query":":k 10 | :g (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(map q)) | [1] | apply g [~(add k)]","expect":"[11]"}
+{"decision":"D278","name":"held-code-reads-its-own-declarations","query":":f ~(:Box |~~ A box. ~~| | ::Box | doc | content) | 1 | apply f","expect":"\" A box. \""}
+{"decision":"D278","name":"held-code-reads-a-name-it-declares-itself","query":":k 1 | :f ~(:k 2 | add k) | 5 | apply f","expect":"7"}
+{"decision":"D278","name":"a-value-withheld-from-held-code-is-withheld-from-the-code-it-holds","query":":count 2 | :f ~(:g ~(take count) | [1 2 3] | apply g) | apply f !| type","expect":"::call/ValueWithheldError"}
+{"decision":"D278","name":"held-code-reads-a-word-the-reader-declares","query":":number/double ~(mul 2) | :f ~(double) | 5 | apply f","expect":"10"}
+{"decision":"D278","name":"a-tag-in-held-code-reads-no-value-of-the-reader","query":":k 5 | :f ~(::k[1]) | apply f !| get [~(type) /name]","expect":"[::call/ValueWithheldError :k]"}
+{"decision":"D278","name":"an-axis-in-held-code-reads-no-value-of-the-reader","query":":k |~~ The k. ~~| 5 | :f ~(::k | doc) | apply f !| get [~(type) /name]","expect":"[::call/ValueWithheldError :k]"}
+{"decision":"D278","name":"held-code-declares-nothing-under-a-value-of-the-reader","query":":k 5 | :f ~(:k/x 1 | k/x) | apply f !| get [~(type) /name]","expect":"[::call/ValueWithheldError :k]"}
+{"decision":"D278","name":"a-tag-in-held-code-lays-a-tag-no-name-declares","query":":f ~(::Small#12 | payload) | apply f","expect":"12"}
+{"decision":"D278","name":"a-tag-in-held-code-reads-a-name-the-code-declares-itself","query":":k 5 | :f ~(:k |~~ Mine. ~~| 6 | ::k | binding | get /value) | apply f","expect":"6"}
+{"decision":"D278","name":"a-tag-in-held-code-reads-the-root-label-a-value-of-the-reader-is-named-after","query":":vec 5 | :f ~(::vec | doc | type) | apply f","expect":"::doc"}
+{"decision":"D278","name":"a-step-in-held-code-reads-no-value-of-the-reader-named-after-a-root-label","query":":vec 5 | :f ~(vec) | apply f !| get [~(type) /name]","expect":"[::call/ValueWithheldError :vec]"}
+{"decision":"D278","name":"a-name-withheld-as-the-code-of-a-word-is-refused-under-its-name","query":":f ~(add 1) | :g ~([1 2] | map f) | apply g !| query [~(type) /name]","expect":"[::call/ValueWithheldError :f]"}
+{"decision":"D278","name":"a-held-quote-that-applies-itself-by-its-name-is-refused-under-it","query":":q ~(apply q) | apply q !| query [~(type) /name]","expect":"[::call/ValueWithheldError :q]"}
+{"decision":"D278","name":"a-law-of-the-root-runs-over-the-root","query":":first 5 | ::vec/first | runLaws | map /ok | distinct","expect":"#[true]"}
+{"decision":"D278","name":"code-a-word-holds-reads-no-value-of-its-reader","query":":vec/w ~(:q ~(first) | apply q) | :first 5 | [1 2 3] | w !| type","expect":"1"}
+{"decision":"D278","name":"code-a-word-holds-is-refused-under-a-value-of-its-own","query":":vec/w ~(:count 7 | :q ~(count) | apply q) | [1 2 3] | w !| query [~(type) /name]","expect":"[::call/ValueWithheldError :count]"}
+{"decision":"D278","name":"a-quote-a-word-opens-reads-no-value-of-its-reader","query":":vec/w ~(~([4 5] | first) | open) | :first 5 | [1] | w !| type","expect":"4"}
+{"decision":"D278","name":"a-quote-a-word-opens-is-refused-under-a-value-of-its-own","query":":vec/w ~(:count 7 | ~([1 2 3] | count) | open) | [1] | w !| query [~(type) /name]","expect":"[::call/ValueWithheldError :count]"}
+{"decision":"D278","name":"a-template-under-a-tag-written-as-the-object-reads-the-step","query":":k 10 | 1 | get ::P[~(add k)] !| type","expect":"::P[11]"}
+{"decision":"D278","name":"a-quote-under-a-tag-written-as-the-object-reads-the-step","query":":k 10 | [1 2] | map ::P~(add k) !| type","expect":"[11 12]"}
+{"decision":"D278","name":"a-held-quote-a-body-names-anew-is-refused-under-the-readers-value","query":":first 2 | :big ~(take first | count | eq 2) | :vec/keep (::fn | takes :p |~~ P. ~~| /0 ::quote | impl ~(:c p | filter c)) | [[3 1 2] [1 9]] | keep big !| query [~(type) /name]","expect":"[::call/ValueWithheldError :first]"}
+{"decision":"D278","name":"a-word-that-reads-its-args-whole-runs-the-readers-quote-in-its-step","query":":k 5 | {:a {:x 1}} | unionOf /a ~(get {:y ~(k)})","expect":"{:x 1 :y 5}"}
+{"decision":"D278","name":"a-group-of-the-body-hands-the-quote-on-from-its-step","query":":k 10 | :vec/w (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(map (q))) | [1 2] | w ~(add k)","expect":"[11 12]"}
+{"decision":"D278","name":"an-invariant-of-an-input-runs-the-quote-in-the-step-that-wrote-it","query":":k 10 | :any/w (::fn | takes :q |~~ Q. ~~| /0 ::quote | holds :q/NotPositiveError |~~ Positive on one. ~~| ~(:c it | 1 | apply c | gt 0) | impl ~(1 | apply q)) | 0 | w ~(add k)","expect":"11"}
+{"decision":"D278","name":"a-quote-a-group-computes-is-held","query":":k 10 | [1 2] | map (~(add k)) !| query [~(type) /name]","expect":"[::call/ValueWithheldError :k]"}
+{"decision":"D278","name":"a-word-that-hands-itself-its-own-quote-reads-the-step-that-wrote-it-last","query":":number/r (::fn | takes :q |~~ Q. ~~| /0 ::quote | takes :k |~~ K. ~~| /1 ::number | impl ~(if (k | eq 0) ~(apply q) ~(r ~(add k) (k | sub 1)))) | 10 | r ~(add 1) 2","expect":"11"}
+{"decision":"D278","name":"a-law-the-reader-declares-under-a-name-of-the-root-runs-in-the-readers-lane","query":":vec/second ~(get /1) | :vec/first/mine |~~ Mine. ~~| ::law~([1 2] | second | eq 2) | ::vec/first | runLaws | map /ok | distinct","expect":"#[true]"}
+{"decision":"D278","name":"a-quote-a-word-of-the-language-opens-reads-the-step-that-wrote-it","query":":k 10 | :vec/o (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(q | open)) | [1] | o ~(k)","expect":"10"}
+{"decision":"D278","name":"a-held-quote-a-word-of-the-language-opens-reads-no-value-of-the-reader","query":":k 10 | :f ~(k) | :vec/o (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(q | open)) | [1] | o f !| query [~(type) /name]","expect":"[::call/ValueWithheldError :k]"}

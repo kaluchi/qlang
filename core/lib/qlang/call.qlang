@@ -1,7 +1,8 @@
 |~ `::call`, the step that calls a name, and what is declared under it:
    its constructor and the refusals of a call, a name that names
    nothing, a kind that answers no verb of the name, a value given
-   modifiers, a call too deep and a failure of a host's implementation.
+   modifiers, a value that meets a word, a value withheld from held code,
+   a call too deep and a failure of a host's implementation.
 
    The decisions it exists for: [D114]. ~|
 
@@ -91,6 +92,19 @@
     | carries :ValueMeetsWordError/addresses
         |~~ The address of the word the subject answers under the name. ~~|
         ::set
+    | throws :ValueWithheldError
+        |~~ Code held as data, a quote in a name, a field or a page, runs
+            in a lane of its own, the words of the tree and the names it
+            declares itself, and reads no value the reader named: `:name`
+            holds the name it read. The quote is written in the step that
+            hands it to a word, `filter ~(gt lim)`, which reads the names
+            of that step, the value goes to a function as an input,
+            `apply f [4]`, or `fill` writes it into the code.
+            ::link~(::call | doc) ::link~(::fn/fill | doc)
+        ~~|
+    | carries :ValueWithheldError/name
+        |~~ The name of the reader's value the held code read. ~~|
+        ::keyword
     | carries :ValueTakesNoModifiersError/addresses
         |~~ The addresses where a word of that name lives, one a
             declaration shadows among them.
@@ -157,11 +171,10 @@
             at that frame, a quote written as a modifier is a value at the
             call, and the frame past the budget refuses, `:depth` the
             refused frame and `:limit` the budget. A recursion without a
-            base case, a quote that applies itself or a word that calls
-            itself, is refused here, on the fail track, while the host's
-            memory stays bounded: the case that ends the recursion is
-            tested first,
-            `:down ~(if (eq 0) ~(0) ~(sub 1 | apply down)) | 5 | apply down`.
+            base case, a word that calls itself, is refused here, on the
+            fail track, while the host's memory stays bounded: the case
+            that ends the recursion is tested first,
+            `:number/down ~(if (eq 0) ~(0) ~(sub 1 | down)) | 5 | down`.
             ::link~(::call | doc) ::link~(::any/if | doc)
         ~~|
     | carries :EvaluationDepthExceededError/depth
@@ -301,16 +314,19 @@
     | proves :UnknownAddressError/readsAValueByItsAddress
         |~~ A value under a label is read by its address. ~~|
         ~(:Box |~~ A box. ~~| | :Box/side 3 | Box/side | eq 3)
+    | proves :ValueWithheldError/refusesAValueOfTheReader
+        |~~ A quote held in a name reads no value of the reader. ~~|
+        ~(:big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(type) /name] | eq [::call/ValueWithheldError :lim])
     | proves :EvaluationDepthExceededError/refusesARunawayRecursion
-        |~~ A quote that applies itself without end is refused past the
+        |~~ A word that calls itself without end is refused past the
             budget.
         ~~|
-        ~(:inf ~(add 1 | apply inf) | 0 | apply inf !| type | eq ::call/EvaluationDepthExceededError)
+        ~(:number/inf ~(add 1 | inf) | 0 | inf !| type | eq ::call/EvaluationDepthExceededError)
     | proves :EvaluationDepthExceededError/namesADepthPastTheLimit
         |~~ The depth refused lies past the limit. ~~|
-        ~(:q ~(apply q) | apply q !| :e it | get /depth | gt (e | get /limit))
+        ~(:any/q ~(q) | q !| :e it | get /depth | gt (e | get /limit))
     | proves :EvaluationDepthExceededError/endsARecursionByItsBaseCase
         |~~ A recursion that tests its base case first ends. ~~|
-        ~(:down ~(if (eq 0) ~(0) ~(sub 1 | apply down)) | 5 | apply down | eq 0)
+        ~(:number/down ~(if (eq 0) ~(0) ~(sub 1 | down)) | 5 | down | eq 0)
     | impl ::builtin{}
 

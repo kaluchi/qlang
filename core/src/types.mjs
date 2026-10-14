@@ -173,9 +173,8 @@ export function isFn(v) {
 
 // A kind, a value of `::kind`: the commands that declare its payload, its
 // fields, its refusals, its invariants and its laws, a quote, and the
-// recipe that builds its values from a payload, code or a host's
-// primitive, or none for a kind that lays its tag over the payload as it
-// is [D252].
+// check a host hands a kind of the core, or none for a kind that lays its
+// tag over the payload as it is [D252], [D279].
 export const KIND_TAG_NAME = 'kind';
 
 export function isKind(v) {

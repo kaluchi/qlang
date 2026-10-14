@@ -1,7 +1,7 @@
 // The kind built from `::kind` by commands [D252]: the refusals it raises by
 // rule, which the catalog's drift test holds against the pages of the
 // root's kinds, the reading of its chain as the body of a bare name, the
-// declarations under it its chain holds alone, and a recipe its host has
+// declarations under it its chain holds alone, and a check its host has
 // not yet handed.
 
 import { describe, it, expect } from 'vitest';
@@ -111,7 +111,7 @@ describe('a declaration under a label that the chain of its kind holds alone [D2
   });
 });
 
-describe('the recipe of a kind its host hands', () => {
+describe('the check a host hands a kind', () => {
   it('lays the tag over the payload as it is until the host hands the recipe, and runs it after', async () => {
     const hosted = await createSession({ sources: [{
       uri: 'test/hosted-kind',

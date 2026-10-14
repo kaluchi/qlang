@@ -33,28 +33,28 @@ function readObject(subject, object, soft, fallback, state) {
     const read = readPath(subject, isPath(object) ? object : pathOfKey(object), soft);
     return read === MISSED ? fallback : read;
   }
-  return readShape(subject, object, soft, fallback, state);
+  return readTemplate(subject, object, soft, fallback, state);
 }
 
-async function readShape(subject, shape, soft, fallback, state) {
-  if (typeof shape === 'function') return await shape(subject);
-  if (isPath(shape)) {
-    const read = readPath(subject, shape, soft);
+async function readTemplate(subject, template, soft, fallback, state) {
+  if (typeof template === 'function') return await template(subject);
+  if (isPath(template)) {
+    const read = readPath(subject, template, soft);
     return read === MISSED ? fallback : read;
   }
-  const parts = partsOfTemplate(shape);
-  if (parts === null) return shape;
+  const parts = partsOfTemplate(template);
+  if (parts === null) return template;
   const read = await readParts(subject, [...parts], soft, fallback, state);
   if (isErrorValue(read)) return read;
-  return await relaid(shape, isQMap(shape) ? new Map([...shape.keys()].map((key, at) => [key, read[at]])) : read, state);
+  return await relaid(template, isQMap(template) ? new Map([...template.keys()].map((key, at) => [key, read[at]])) : read, state);
 }
 
 // The parts of a template read one after another, the first failure the
 // answer.
-async function readParts(subject, shapes, soft, fallback, state) {
+async function readParts(subject, templates, soft, fallback, state) {
   const parts = [];
-  for (const shape of shapes) {
-    const part = await readShape(subject, shape, soft, fallback, state);
+  for (const template of templates) {
+    const part = await readTemplate(subject, template, soft, fallback, state);
     if (isErrorValue(part)) return part;
     parts.push(part);
   }

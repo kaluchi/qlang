@@ -150,7 +150,7 @@ function compareMaps(leftMap, rightMap) {
 }
 
 // A tagged container's payload is the container itself read by its
-// shape; a tagged scalar or value class wraps its payload.
+// shape; a tag over an atom or a value class wraps its payload.
 function comparePayloads(leftTagged, rightTagged) {
   const [leftPayload, leftKind] = payloadOf(leftTagged);
   const [rightPayload, rightKind] = payloadOf(rightTagged);

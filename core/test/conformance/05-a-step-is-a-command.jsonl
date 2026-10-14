@@ -12,9 +12,9 @@
 {"decision":"D248","name":"query-and-coalesce-give-a-default","query":"{:a 1} | query /port | coalesce 8080","expect":"8080"}
 {"decision":"D248","name":"has-asks-whether-a-path-reads","query":"{:a {:b 1}} | get [~(has /a/b) ~(has /a/c)]","expect":"[true false]"}
 {"decision":"D248","name":"get-reads-a-tuple","query":"{:price 4 :qty 3} | get [/price /qty]","expect":"[4 3]"}
-{"decision":"D248","name":"get-reads-a-shape","query":"{:first \"Ann\" :tags [:a :b]} | get {:who /first :n ~(get /tags | count)}","expect":"{:who \"Ann\" :n 2}"}
+{"decision":"D248","name":"get-reads-a-template","query":"{:first \"Ann\" :tags [:a :b]} | get {:who /first :n ~(get /tags | count)}","expect":"{:who \"Ann\" :n 2}"}
 {"decision":"D248","name":"query-reads-a-tuple-softly","query":"{:a 1} | query [/a /b]","expect":"[1 null]"}
-{"decision":"D248","name":"get-reads-a-shape-strictly","query":"{:a 1} | get [/a /b] !| type","expect":"::path/KeyNotInMapError"}
+{"decision":"D248","name":"get-reads-a-template-strictly","query":"{:a 1} | get [/a /b] !| type","expect":"::path/KeyNotInMapError"}
 {"decision":"D248","name":"map-takes-a-path","query":"[{:n 1} {:n 2}] | map /n","expect":"[1 2]"}
 {"decision":"D248","name":"sort-takes-a-path","query":"[{:n 2} {:n 1}] | sort /n","expect":"[{:n 1} {:n 2}]"}
 {"decision":"D248","name":"groupBy-takes-a-path","query":"[{:s :x} {:s :y} {:s :x}] | groupBy /s | map ~(count)","expect":"{:x 2 :y 1}"}

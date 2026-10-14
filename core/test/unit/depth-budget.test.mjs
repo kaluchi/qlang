@@ -1,7 +1,7 @@
 // The evaluation depth budget across every re-entry seam: a
 // runaway recursion through any seam the evaluator descends —
 // verb body, captured-arg lambda, a verb run as code or as a fold,
-// `apply`, Quote-bodied tag constructor, `runLaws` — terminates on
+// `apply`, an invariant of a kind that mints its own tag, `runLaws` — terminates on
 // the fail-track as `::call/EvaluationDepthExceededError` with `:depth`
 // and `:limit`.
 // The decisions it exists for: [D202].
@@ -38,7 +38,6 @@ describe('depth budget — self-calling verb', () => {
 
 describe('depth budget — every re-entry seam', () => {
   const seams = [
-    ['apply on a self-referential Quote',           ':q ~(apply q) | apply q'],
     ['a body under map naming its own verb',         ':any/f ~(get [~(it)] | map ~f | first) | 1 | f'],
     ['captured-arg lambda naming its own verb',     ':any/p ~(get [~(it)] | filter ~(p)) | [1] | p'],
     ['a verb folding through reduce',               ':any/r (::fn | takes :el |~~ The element. ~~| /0 | impl ~([1] | reduce 0 ~r)) | [1] | reduce 0 ~r'],
@@ -71,7 +70,7 @@ describe('depth budget — host seams', () => {
       }]
     });
     const cellEntry = await sessionInstance.evalCell(
-      ':x 1 | :x/runsItself ::law~(::x | runLaws | tallyFrame | count | eq 1) | ::x | runLaws | tallyFrame'
+      ':X |~~ X. ~~| | :X/runsItself ::law~(::X | runLaws | tallyFrame | count | eq 1) | ::X | runLaws | tallyFrame'
     );
     expect(cellEntry.result).toHaveLength(1);
     expect(cellEntry.result[0].get('ok')).toBe(true);

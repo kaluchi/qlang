@@ -1,19 +1,6 @@
-// Regression: `distinct` must deduplicate by structural equality,
-// not JS reference identity. Two Maps carrying the same :key value
-// content are "duplicate" by the same axiom that drives `eq` — if
-// `x | eq(y)` is true, `get [~(x), ~(y)] | distinct` must collapse to one.
-//
-// distinct returns a set — the value carrying the uniqueness
-// invariant onto the type plane, the vector in the one order without
-// duplicates [D16]; its elements come back in that order.
-//
-// The bug this fixture pins down: when two distinct JS Map objects
-// carry identical content (the common shape produced by any graph
-// walk that reaches the same logical node via multiple paths —
-// diamond interface hierarchies, fan-in references), the old
-// reference-equality `distinct` left both in the result. That
-// broke downstream `count`, `filter`, `sort`, and anything else
-// consuming the "unique" sequence.
+// `distinct` holds each value once by the equality `eq` holds, two maps of
+// the same entries one value however they were built, and answers a set,
+// the vector in the one order without duplicates [D16].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -48,7 +35,7 @@ describe('distinct — structural equality', () => {
     expect(items[1]).toEqual([3, 4]);
   });
 
-  it('preserves scalar dedup (no regression on atoms)', async () => {
+  it('holds each atom once', async () => {
     expect([...await evalQuery('[1 2 1 3 2] | distinct')]).toEqual([1, 2, 3]);
     expect([...await evalQuery('["a" "b" "a"] | distinct')]).toEqual(['a', 'b']);
   });
@@ -70,7 +57,7 @@ describe('distinct — structural equality', () => {
     expect(items.map(m => m.get('id'))).toEqual([1, 2, 3]);
   });
 
-  it('heterogeneous Vec — mixed scalar and composite', async () => {
+  it('holds each of mixed atoms and containers once', async () => {
     const result = await evalQuery('[1 {:a 1} 1 {:a 1} "x" "x"] | distinct');
     expect(isQSet(result)).toBe(true);
     const items = [...result];

@@ -457,7 +457,6 @@ BodySentenceStep
 Word
   = ParenGroup
   / ErrorLit
-  / RegexLit
   / SetLit
   / VecLit
   / MapLit
@@ -467,7 +466,7 @@ Word
   / TagLit
   / Path
   / Name
-  / Scalar
+  / AtomLit
 
 // The element of a literal and the object of a command, which a doc value
 // may be too [D251].
@@ -777,12 +776,13 @@ KeySegment
 RelaxedKeyName
   = chars:IdentTail+ { return chars.join(''); }
 
-Scalar
+AtomLit
   = StringLit
   / NumberLit
   / BooleanLit
   / NullLit
   / Keyword
+  / RegexLit
 
 StringLit
   = '"' chars:DoubleStringChar* '"'

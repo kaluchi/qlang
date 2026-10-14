@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { parse, ParseError } from '../../src/parse.mjs';
 
-describe('parse — scalar literals', () => {
+describe('parse — the literals of atoms', () => {
   it('parses an integer', () => {
     const ast = parse('42');
     expect(ast.type).toBe('NumberLit');
@@ -839,17 +839,13 @@ describe('parse — block comment nesting', () => {
     });
   });
 
-  describe('positive — guards.qlang author header pattern', () => {
-    it('parses the production guards.qlang header verbatim', () => {
+  describe('positive — a block comment that holds a doc marker and code', () => {
+    it('reads the comment whole', () => {
       const src = [
-        '|~ User-error tag identifiers raised by the guards in this',
-        '   module. Both ride the universal identity-on-JS-header invariant',
-        '   that every ErrorValue carries: `error({:kind ::FooError …})`',
-        "   lifts the tag to the value's tag slot, and `result !|",
-        '   type` reads it back. The doc-only `:Tag |~~ ~~|` BindSteps',
-        '   below give axis-operands (`::AssertionFailedError | doc`,',
-        '   `| source`, `| doc | laws`) a discoverable declaration through',
-        "   the loaded module's AST, symmetric with catalog error tags. ~|",
+        '|~ The refusals the guards of this source raise. Each is a tag',
+        '   a doc names, `:FooError |~~ ~~|`, so the axes read it,',
+        '   `::AssertionFailedError | doc`, `| source` and `| doc | laws`,',
+        '   and `result !| type` reads the tag of a failure back. ~|',
         '| 42'
       ].join('\n');
       const step = blockStep(src);

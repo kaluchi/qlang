@@ -22,7 +22,6 @@
 {"decision":"D251","name":"an-input-carries-the-page-of-its-command","query":":any/m (::fn | takes :x |~~ How many. ~~| /0 | impl ~(x)) | ::any/m/x | doc | content","expect":"\" How many. \""}
 {"decision":"D67","name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false"}
 {"decision":"D251","name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":":k 1 | :number/f ~(add k) | :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)) | g 100 !| type","expect":"::call/UnknownNameError"}
-{"decision":"D67","name":"a-verb-that-calls-itself-without-end-meets-the-depth-budget","query":":number/inf ~(add 1 | inf) | 0 | inf !| type","expect":"::call/EvaluationDepthExceededError"}
 {"decision":"D251","name":"an-input-of-several-kinds-refuses-a-value-of-none","query":":any/m (::fn | takes :limit |~~ The limit. ~~| ~(query /0) #[::number ::null] | impl ~(limit)) | 5 | m \"a\" !| type","expect":"::any/m/limit/NotNullOrNumberError"}
 {"decision":"D251","name":"an-input-of-code-takes-a-quote-alone","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(apply code)) | 5 | run 1 !| type","expect":"::any/run/code/NotQuoteError"}
 {"decision":"D67","name":"an-input-of-code-takes-a-verb","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(apply code)) | 5 | run ~(add 1)","expect":"6"}
@@ -42,7 +41,7 @@
 {"decision":"D67","name":"within-runs-a-verb-under-the-tag","query":"::Box[1 2] | within ~(append 3)","expect":"::Box[1 2 3]"}
 {"decision":"D67","name":"an-input-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":any/twice (::fn | takes :f |~~ The f. ~~| /0 ::quote | impl ~(apply f | apply f)) | 1 | get [~(twice ~(add 1)) ~(twice ~(add 1))]","expect":"[3 3]"}
 {"decision":"D67","name":"an-optional-input-takes-a-map-by-default","query":":any/m (::fn | takes :opts |~~ The opts. ~~| ~(query /0 {:limit 2}) ::map | impl ~(opts | get /limit)) | null | m","expect":"2"}
-{"decision":"D5","name":"a-literal-that-computes-inside-begins-the-body","query":":vec/m ~(:opts get {:n ~(count)} | opts) | [1 2] | m","expect":"{:n 2}"}
+{"decision":"D5","name":"a-template-of-get-begins-the-body","query":":vec/m ~(:opts get {:n ~(count)} | opts) | [1 2] | m","expect":"{:n 2}"}
 {"decision":"D5","name":"a-recipe-names-a-value-derived-from-an-input","query":":vec/m (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:limit (k | mul 2) | take limit)) | [1 2 3 4 5] | m 2","expect":"[1 2 3 4]"}
 {"decision":"D67","name":"an-optional-input-takes-a-vector-by-default","query":":any/m (::fn | takes :xs |~~ The xs. ~~| ~(query /0 [1 2]) ::vec | impl ~(xs | count)) | null | get [~(m) ~(m [5])]","expect":"[2 1]"}
 {"decision":"D5","name":"a-verb-names-its-subject-by-a-freeze","query":":any/pair ~(:self it | get [~(self) ~(self)]) | 5 | pair","expect":"[5 5]"}
@@ -124,7 +123,6 @@
 {"decision":"D41","name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box"}
 {"decision":"D34","name":"a-number-is-no-tagged-value","query":"1 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
 {"decision":"D43","name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/NotFnOrPathOrQuoteError"}
-{"decision":"D34","name":"a-quote-that-applies-itself-exhausts-the-depth","query":":q ~(apply q) | 1 | apply q !| type","expect":"::call/EvaluationDepthExceededError"}
 {"decision":"D160","name":"env-answers-a-map","query":"env | type","expect":"::map"}
 {"decision":"D79","name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | get /value","expect":"10"}
 {"decision":"D79","name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}

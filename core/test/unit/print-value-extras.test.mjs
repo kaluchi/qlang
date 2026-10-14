@@ -106,11 +106,8 @@ describe('toPlain encodes a failure', () => {
 });
 
 describe('toPlain encodes every TaggedInstance shape through the $tag envelope', () => {
-  it('Set / Map / wrap-object payload shapes each encode their inner data plane', async () => {
-    // The TaggedInstance `toPlain` handler routes by payload
-    // shape — a tag over a set, a Map and an opaque wrap-object are
-    // exercised here; the Array branch is covered through the
-    // earlier `Box[42]` test.
+  it('a tag over a set, a map and an atom writes its payload in JSON', async () => {
+    // A tag over a vector is held by the earlier `Box[42]` test.
     const { makeTaggedInstance, makeTag: makeTag, makeSet } = await import('../../src/types.mjs');
     const taggedSet = makeTaggedInstance(makeTag('Keys'), makeSet([2, 1]));
     const plainSet = toPlain(taggedSet);
@@ -148,10 +145,10 @@ describe('runtime/format.mjs structural — json round-trips', () => {
 describe('format.fromPlain — inverse of toPlain', () => {
   // `fromPlain` lifts a JSON-parsed plain JS value back into qlang:
   // plain object → Map keyed by interned keywords; plain array →
-  // Vec; scalars pass through. Used by `parseJson` and by the CLI
+  // Vec; atoms pass through. Used by `parseJson` and by the CLI
   // script-mode auto-pipe of stdin.
 
-  it('scalar values pass through unchanged', async () => {
+  it('atoms pass through unchanged', async () => {
     expect(fromPlain(42)).toBe(42);
     expect(fromPlain('hi')).toBe('hi');
     expect(fromPlain(true)).toBe(true);
@@ -253,7 +250,7 @@ describe('print — the print declared under a kind', () => {
     expect(printed.result).toBe('[\n  ok\n  {\n    :k no\n  }\n  1\n]');
   });
 
-  it('reaches a part inside an error at rest and under a tag over a scalar', async () => {
+  it('reaches a part inside an error at rest and under a tag over an atom', async () => {
     const session = await badgeSession();
     const inError = await session.evalCell('[::error{:k ::badge{:name "in"}}] | print');
     expect(inError.result).toContain(':k in');

@@ -1,5 +1,5 @@
-// The axes — `source`, `doc`, `binding` project the record a
-// declaration wrote into its scope [D5].
+// The axes, `source`, `doc` and `binding`, read the record a declaration
+// wrote into its scope [D5].
 
 import { describe, it, expect } from 'vitest';
 import { printValue } from '../../src/index.mjs';
@@ -17,7 +17,7 @@ describe('::name | source returns the BindStep source as Quote', () => {
 
   it('a source of the root that declares nothing writes no record to read', async () => {
     const { createSession } = await import('../../src/session.mjs');
-    const session = await createSession({ sources: [{ uri: 'tests/scalar-only', source: '42' }] });
+    const session = await createSession({ sources: [{ uri: 'tests/atom-only', source: '42' }] });
     const cellEntry = await session.evalCell('::missing | source !| type');
     expect(cellEntry.result).toEqual(makeTag('any/source/UnknownNameError'));
   });

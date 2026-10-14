@@ -28,8 +28,8 @@
 {"decision":"D152","name":"an-undeclared-tag-keeps-a-set-a-set","query":"::AutoSet#[1 2 3] | payload | type","expect":"::set"}
 {"decision":"D152","name":"an-undeclared-tag-over-a-map-answers-its-tag","query":"::AutoMap{:k 1} | type","expect":"::AutoMap"}
 {"decision":"D152","name":"an-undeclared-tag-keeps-a-map-a-map","query":"::AutoMap{:k 1} | payload | type","expect":"::map"}
-{"decision":"D152","name":"an-undeclared-tag-over-a-number-answers-its-tag","query":"::AutoScalar#42 | type","expect":"::AutoScalar"}
-{"decision":"D152","name":"an-undeclared-tag-keeps-a-number-a-number","query":"::AutoScalar#42 | payload","expect":"42"}
+{"decision":"D152","name":"an-undeclared-tag-over-a-number-answers-its-tag","query":"::AutoNumber#42 | type","expect":"::AutoNumber"}
+{"decision":"D152","name":"an-undeclared-tag-keeps-a-number-a-number","query":"::AutoNumber#42 | payload","expect":"42"}
 {"decision":"D152","name":"an-undeclared-tag-over-a-tagged-value-answers-its-tag","query":"::AutoJson::json[1 2 3] | type","expect":"::AutoJson"}
 {"decision":"D152","name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError"}
 {"decision":"D152","name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}

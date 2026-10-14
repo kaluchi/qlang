@@ -29,5 +29,5 @@
 {"decision":"D160","name":"kinds-reads-a-kind-of-the-root-a-reader-stands-over","query":":vec 5 | get [~(kinds | has ::vec) ~(env | get /vec | get /value)]","expect":"[true 5]"}
 {"decision":"D118","name":"a-name-a-reader-stands-over-is-near-once","query":":vec 5 | vex !| get /nearest","expect":"[:vec]"}
 {"decision":"D221","name":"a-label-of-the-root-stays-the-roots-under-a-name-of-the-reader","query":":page (::vec | doc) | :vec 5 | ::vec | doc | eq page","expect":"true"}
-{"decision":"D117","name":"a-law-of-a-name-applied-binds-in-its-readers-scope","query":"::qlang/pipeline | laws | map ~(get /1 | apply it) | every ~(it)","expect":"true"}
+{"decision":"D117","name":"the-laws-of-a-name-applied-by-the-reader-hold","query":"::qlang/pipeline | laws | map ~(get /1 | apply it) | every ~(it)","expect":"true"}
 {"decision":"D117","name":"a-member-of-a-noun-stays-out-of-the-scope","query":"env | has :pipeline","expect":"false"}

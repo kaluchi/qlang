@@ -1,7 +1,5 @@
-// Binding declarations — BindStep (`:name body`), the freeze
-// `:name it` among them.
-// Every binding declaration parses through `evalBindStep` at the
-// AST level, with no call around it.
+// A declaration, `:name body`, binds the value its body answers, `:name it`
+// the value in the pipe, and the steps after it read the name.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -39,7 +37,7 @@ describe('BindStep — value-body purity routing', () => {
   // user-observable contract is "lookup yields the eval-at-bind-time
   // value".
 
-  it('pure scalar literal lookup yields the literal value', async () => {
+  it('a name holding an atom reads back its value', async () => {
     expect(await evalQuery(':pi 3.14 | pi')).toBe(3.14);
   });
 

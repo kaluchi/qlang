@@ -195,13 +195,13 @@
     | proves :runsAGroup
         |~~ A group runs its steps on the value in the pipe. ~~|
         ~(5 | (add 1 | mul 2) | eq 12)
-    | proves :reshapesByATemplate
-        |~~ A template of `get` reshapes data, its paths read and its
-            quotes run on the value.
+    | proves :buildsAShapeByATemplate
+        |~~ A template of `get` builds a shape from the value, its paths
+            read and its quotes run on it.
         ~~|
         ~({:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)} | eq {:who "Ann" :next 31})
-    | proves :reshapesEachElement
-        |~~ Under `map` a template reshapes each element. ~~|
+    | proves :buildsTheShapeOfEachElement
+        |~~ Under `map` a template builds the shape of each element. ~~|
         ~([{:id 1 :tags [:a :b]}] | map ~(get {:id /id :n ~(get /tags | count)}) | eq [{:id 1 :n 2}])
     | proves :walksAPath
         |~~ A path walks keys and indices, `-1` from the end. ~~|
@@ -540,8 +540,9 @@
             `env` lists what the reader declared, `kinds` the kinds the
             scope reads, and what lies under a noun `manifest` lists. A
             name reads its record by `binding`. A name declared inside a
-            group closes with it. A name declared under a label resides on
-            it: it serves the values of the label, found by its name
+            group closes with it, and which names a quote reads the
+            chapter of code tells. A name declared under a label resides
+            on it: it serves the values of the label, found by its name
             through the walk of their tags, and refuses any other subject
             under its address; a quote taken from one label and declared
             under another resides on the second. A name is declared once
@@ -612,9 +613,6 @@
     | proves :names/recursesByName
         |~~ A name calls itself through the tree of names. ~~|
         ~(:map/walk ~(get {:n /n :kids ~(get /kids | map ~walk)}) | {:n 1 :kids [{:n 2 :kids []}]} | walk | get /kids/0/n | eq 2)
-    | proves :names/meetsABudget
-        |~~ A runaway meets the budget of frames. ~~|
-        ~(:number/inf ~(add 1 | inf) | 0 | inf !| type | eq ::call/EvaluationDepthExceededError)
     | tells :verbs
         |~~ Verbs. A verb lives on a kind, the one whose values it serves,
             and has an address, `::vec/sort`; so what can be done with a
@@ -749,7 +747,8 @@
             the step refused. `explain` shows the page of the site above
             the error. The trail is written as the failure flies: a stop
             for each level it left, and the last stop the steps it
-            skipped, a quote ready to replay. An error at rest raised
+            skipped, a quote that runs again as held code runs. An error
+            at rest raised
             again resumes the trail it holds, and one without `:trail`
             starts it over. Whether the step before failed is
             `false !| true`.
@@ -770,6 +769,9 @@
     | proves :errors/holdsTheSkippedSteps
         |~~ The last stop holds the steps skipped. ~~|
         ~("x" | add 1 | mul 2 !| get /trail/-1/skipped | parse | eq "mul 2")
+    | proves :errors/runsTheSkippedStepsAgain
+        |~~ The steps a failure skipped run again by `apply`. ~~|
+        ~("x" | add 1 | mul 2 !| get /trail/-1/skipped | :rest it | 5 | apply rest | eq 10)
     | proves :errors/resumesItsTrail
         |~~ A map raised again resumes its trail. ~~|
         ~(!{:kind :oops} | raise | count !| raise | add 1 !| get /trail | map /step | eq [~(raise)])
@@ -782,9 +784,25 @@
             runs one on a subject, and a quote is taken apart and built
             like any vector of steps. Because code is a value, the laws of
             a name run, a page holds links that open, and the trail of an
-            error holds the steps it skipped, ready to replay. Rests on
-            values and the pipeline; the hypertext is written in it.
+            error holds the steps it skipped, a quote that runs again.
+            Rests on values and the pipeline; the hypertext is written in
+            it.
             ::link~(::quote | doc) ::link~(::qlang/hypertext | doc)
+            ::link~(::call/ValueWithheldError | doc)
+
+            A quote written in a step, what a word takes or a part of a
+            template it takes, is code of that step: the word runs it in
+            the scope of the step that wrote it, and so does a word written
+            in the language, by whatever road its recipe hands the quote
+            on, since a call keeps where each of its objects came from.
+            Any other code is held as data, a quote in a name, a field or
+            a page, a law and a snippet among them, and runs in a lane of
+            its own: the words, the nodes and the labels of the scope of
+            its step and the names it declares itself, a value that scope
+            names withheld from it and refused under its name,
+            `::call/ValueWithheldError`. A value held code needs is an
+            input of a function, `apply f [4]`, or is written into it by
+            `fill`.
         ~~|
         #[::quote]
     | proves :code/runsByApply
@@ -793,17 +811,28 @@
     | proves :code/isAVectorOfSteps
         |~~ A quote counts its steps. ~~|
         ~(~(add 1 | mul 2) | count | eq 2)
+    | proves :code/readsTheStepThatWroteIt
+        |~~ A quote written in a step reads the names of that step. ~~|
+        ~(:k 10 | 5 | apply ~(add k) | eq 15)
+    | proves :code/withholdsAValueOfTheReader
+        |~~ Held code reads no value the reader named. ~~|
+        ~(:k 10 | :q ~(add k) | 5 | apply q !| get [~(type) /name] | eq [::call/ValueWithheldError :k])
+    | proves :code/readsTheStepThroughAWordOfTheLanguage
+        |~~ A word written in the language hands a quote on from the step
+            that wrote it.
+        ~~|
+        ~(:k 10 | :vec/twice (::fn | takes :q |~~ The code. ~~| /0 ::quote | impl ~(map q | map q)) | [1 2] | twice ~(add k) | eq [21 22])
     | tells :hypertext
         |~~ The hypertext. The names are a space of addresses, `::`
             beginning an absolute one, `::vec/sort`, and a verb passes
-            from an address into one of its projections, as a path reaches
-            a file: `doc` into its page, `binding` into its record,
-            `source` into the code written under it, and `runLaws` runs
-            the laws under it. An address holds no one entity but a set of
+            from an address along one of its axes, as a path reaches a
+            file: `doc` to its page, `binding` to its record, `source` to
+            the code written under it, and `runLaws` runs the laws under
+            it. An address holds no one entity but a set of
             values, and each passage reads one of them; the address, the
             verb and what it reaches are all values, so the pipeline goes
-            on from a projection as from any value, and a tag you declare
-            with verbs on it adds projections of its own. A keyword after
+            on from what an axis reaches as from any value, and a tag you
+            declare with verbs on it adds axes of its own. A keyword after
             `doc` is an anchor within the page of its subject,
             `::qlang/pipeline | doc`, a vector of anchors a path, a set of
             anchors several pages at once. A page is a doc, prose that

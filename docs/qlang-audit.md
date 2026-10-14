@@ -50,14 +50,14 @@ stops being true and only then, and it reads what the sentence names in
 a way that fails when that is gone; `npm run ci` runs every probe, and
 the branch that changed an answer replaces the sentence with the new
 fact and its new probe [D93]. A target, the answer a repair must
-produce, is a conformance case that names its decision [D58]; a block
+produce, is a conformance case that names its decision [D31]; a block
 fenced as `qlang target` holds one whose answer no literal states yet.
 An anchor names a file and a symbol; line numbers drift and are avoided.
 
 A decision is a record of its own, `docs/decisions/Dnn.md`, cited here
 by its number, a link to its file: what was decided, who decided it,
 the source, what it rests on, and the alternatives set aside with the
-reason [D31], [D58], [D155]. The maintainer's words stand in «…»,
+reason [D31], [D155]. The maintainer's words stand in «…»,
 quoted verbatim in the language they were written in with the time in
 UTC and the prefix of the session, and words quoted from the tree stand
 in “…” beside their anchor, so a script holds the first against the
@@ -750,7 +750,7 @@ A decision is the discussion with its choice and its circumstances, and
 each lives in a file of its own under `docs/decisions/`, true as a whole
 while it is in force [D227];
 a citation of its number in this document is a link to that file, and
-the requirements it left are the conformance cases that name it [D58],
+the requirements it left are the conformance cases that name it [D31],
 each opening with it [D254]; it cites a record in force or one waiting
 on its target [D225]. An
 artifact names the decision it exists for, a mark covering the block it
@@ -992,7 +992,7 @@ is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release [D29].
 Under each the work is named in the order its parts rest on each other,
 and the answers that show a milestone reached are the targets its
-decisions leave in the conformance suite [D58]. The decisions whose
+decisions leave in the conformance suite [D31]. The decisions whose
 work began before the baseline met their targets, the last of them the
 effect marker leaving the language [D2], and the step as a command and
 the path as a value met theirs, the first work of the route [D248], and
@@ -1251,7 +1251,6 @@ those being decided.
 [D49]: decisions/D49.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md
-[D58]: decisions/D58.md
 [D59]: decisions/D59.md
 [D61]: decisions/D61.md
 [D67]: decisions/D67.md

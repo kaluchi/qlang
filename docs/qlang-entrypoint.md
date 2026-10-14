@@ -468,7 +468,7 @@ reported as lossy. A string prints raw on the command line, and its
 text may read as words of the command form, so the runner holds a
 string's answer against its raw print first. Every target that a
 literal can state is a conformance case naming its decision, which the
-runner of the suite holds [D58].
+runner of the suite holds [D31].
 
 The fourth lists what reached the window besides the conversation. A
 text the harness adds to a turn is a record of kind `attachment` that
@@ -704,7 +704,7 @@ become the benchmark's first domain with real expected values.
 
 The decisions of this document are numbered E1 onward, since they treat
 the environment of the work, and live one to a file beside the audit's,
-`docs/decisions/En.md` [D58].
+`docs/decisions/En.md` [D31].
 
 ## Open questions
 
@@ -737,8 +737,8 @@ What happens when the push misses: the fallback is a query, and the
 entrypoint's first screen has to say how to ask.
 
 [D21]: decisions/D21.md
+[D31]: decisions/D31.md
 [D34]: decisions/D34.md
-[D58]: decisions/D58.md
 [D93]: decisions/D93.md
 [D96]: decisions/D96.md
 [D153]: decisions/D153.md

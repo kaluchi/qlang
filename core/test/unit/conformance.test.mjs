@@ -14,7 +14,7 @@
 // tree does not meet yet is a target, `"target": true`, which answers its
 // present, `"now"`, an error by its tag and any other value as its
 // literal: a target that answers as expected fails until the branch
-// that met it drops the mark [D58], and one that answers neither fails
+// that met it drops the mark [D31], and one that answers neither fails
 // until a reader tells a repair from a broken case [D91]. The
 // requirements agree with each other in the one form a runner can see:
 // no two cases hold one query to different answers.

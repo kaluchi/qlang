@@ -57,7 +57,7 @@ fell to the maintainer at all:
 day in another session, «почему все мое?» (2026-09-22 07:21, session
 86982eb5).
 
-[D58]: D58.md
+[D58]: replaced/D58.md
 [D59]: D59.md
 [D155]: D155.md
 [D227]: D227.md

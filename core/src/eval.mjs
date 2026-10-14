@@ -916,8 +916,9 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
 // through its label [D41]: built by its kind [D252], laid over as it is
-// where no kind answers the tag [D42], [D164], never over an error [D13],
-// and never under the name of a value withheld from held code [D278].
+// where no kind answers the tag [QSLIT#tag], [D164], never over an
+// error [D13], and never under the name of a value withheld from held
+// code [D278].
 export async function mintTaggedInstance(tagName, payload, state) {
   refuseWithheld(state.env, tagName, true);
   const declared = bindingValueOf(nodeOf(state.env, tagName));

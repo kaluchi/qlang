@@ -51,7 +51,6 @@
 {"decision":"D41","name":"count-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | count","expect":"3"}
 {"decision":"D41","name":"sum-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | sum","expect":"6"}
 {"decision":"D41","name":"first-of-a-tagged-vector-answers-the-element","query":":Box |~~ Box. ~~| | ::Box[42 100] | first","expect":"42"}
-{"decision":"D20","name":"a-tag-over-a-set-stacks-on-it","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | payload","expect":"#[1 2 3]"}
 {"decision":"D34","name":"filter-over-a-tag-stacked-on-a-set-keeps-the-tag","query":":Box |~~ Box. ~~| | ::Box#[1 2 3 4] | filter ~(gt 2)","expect":"::Box#[3 4]"}
 {"decision":"D41","name":"sort-keyed-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[{:k 2} {:k 1}] | sort /k | type","expect":"::Box"}
 {"decision":"D41","name":"take-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | take 2 | type","expect":"::Box"}

@@ -104,13 +104,13 @@ describe('two sets of different keywords are unequal', async () => {
 });
 
 describe('minus and inter over a set of keywords and other values', async () => {
-  it('Map×Set minus refuses a member that names no key, under the word of the fold [D46], [D139]', async () => {
+  it('Map×Set minus refuses a member that names no key, under the word of the fold [D46], [QSPTH#key]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2}, #[:a 42]] | minus !| type');
     expect(result.name).toBe('vec/minus/KeyNotKeywordOrStringError');
   });
 
-  it('Map×Set inter refuses a member that names no key, under the word of the fold [D46], [D139]', async () => {
+  it('Map×Set inter refuses a member that names no key, under the word of the fold [D46], [QSPTH#key]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2 :c 3}, #[:b 99]] | inter !| type');
     expect(result.name).toBe('vec/inter/KeyNotKeywordOrStringError');

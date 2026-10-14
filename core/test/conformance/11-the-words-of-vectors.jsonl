@@ -4,7 +4,6 @@
 {"decision":"D22","name":"empty-false","query":"[1] | empty","expect":"false"}
 {"decision":"D22","name":"first","query":"[10 20 30] | first","expect":"10"}
 {"decision":"D22","name":"first-empty","query":"[] | first","expect":"null"}
-{"decision":"D16","name":"first-set","query":"#[10 20 30] | first","expect":"10"}
 {"decision":"D22","name":"last","query":"[10 20 30] | last","expect":"30"}
 {"decision":"D22","name":"last-empty","query":"[] | last","expect":"null"}
 {"decision":"D22","name":"sum","query":"[1 2 3 4 5] | sum","expect":"15"}
@@ -16,21 +15,13 @@
 {"decision":"D22","name":"filter-gt","query":"[1 2 3 4 5] | filter ~(gt 2)","expect":"[3 4 5]"}
 {"decision":"D22","name":"filter-lt","query":"[1 2 3 4 5] | filter ~(lt 3)","expect":"[1 2]"}
 {"decision":"D22","name":"filter-then-count","query":"[1 2 3 4 5] | filter ~(gt 3) | count","expect":"2"}
-{"decision":"D16","name":"filter-set-gt","query":"#[1 2 3 4 5] | filter ~(gt 2)","expect":"#[3 4 5]"}
-{"decision":"D16","name":"filter-set-empty-result","query":"#[1 2 3] | filter ~(gt 99)","expect":"#[]"}
 {"decision":"D15","name":"filter-map-value-gt","query":"{:a 1 :b 2 :c 3} | filter ~(gt 1)","expect":"{:b 2 :c 3}"}
 {"decision":"D251","name":"a-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2 :c 3} | :number/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | filter ~above !| type","expect":"::number/above/limit/NotGivenError"}
 {"decision":"D15","name":"filter-map-empty","query":"{} | filter ~(gt 0)","expect":"{}"}
 {"decision":"D15","name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1)","expect":"{:c 3 :b 2}"}
 {"decision":"D168","name":"filter-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | filter ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :filter\n  :addresses #[::map/filter ::set/filter ::vec/filter]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(filter ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D16","name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
-{"decision":"D16","name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
-{"decision":"D140","name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort /age","expect":"[{:age 20} {:age 25} {:age 30}]"}
-{"decision":"D140","name":"sort-by-string-key","query":"[{:name \"Bob\"} {:name \"Alice\"}] | sort /name","expect":"[{:name \"Alice\"} {:name \"Bob\"}]"}
 {"decision":"D22","name":"take","query":"[1 2 3 4 5] | take 3","expect":"[1 2 3]"}
 {"decision":"D22","name":"drop","query":"[1 2 3 4 5] | drop 2","expect":"[3 4 5]"}
-{"decision":"D16","name":"distinct","query":"[1 2 1 3 2 4] | distinct","expect":"#[1 2 3 4]"}
-{"decision":"D16","name":"distinct-on-set","query":"#[1 2 3] | distinct","expect":"#[1 2 3]"}
 {"decision":"D22","name":"reverse","query":"[1 2 3] | reverse","expect":"[3 2 1]"}
 {"decision":"D22","name":"flat","query":"[[1 2] [3] [4 5]] | flat","expect":"[1 2 3 4 5]"}
 {"decision":"D116","name":"map-multiplies-each-element","query":"[1 2 3] | map ~(mul 10)","expect":"[10 20 30]"}

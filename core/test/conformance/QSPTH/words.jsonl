@@ -1,0 +1,6 @@
+{"name":"a-path-answers-its-own-words-alone","query":"/tags | count !| type","expect":"::call/KindAnswersNoVerbError"}
+{"name":"paths-answers-the-outline-of-a-value","query":"{:a {:b 1 :c [2 3]} :d []} | paths | map ~(print)","expect":"[\"/a/b\" \"/a/c/0\" \"/a/c/1\" \"/d\"]"}
+{"name":"segments-answers-the-keys-and-places-of-a-path","query":"/a/0 | segments","expect":"[:a 0]"}
+{"name":"a-word-called-on-a-path-names-its-read","query":"/tags | count !| get /read","expect":"~(get /tags | count)"}
+{"name":"toPath-reads-a-vector-of-keys","query":"[:a 0] | toPath | print","expect":"\"/a/0\""}
+{"name":"toPath-reads-json-pointer-with-its-escapes","query":"\"/a~1b/0\" | toPath | segments","expect":"[:\"a/b\" 0]"}

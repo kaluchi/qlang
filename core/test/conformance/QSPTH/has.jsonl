@@ -1,0 +1,1 @@
+{"name":"has-asks-whether-a-path-reads","query":"{:a {:b 1}} | get [~(has /a/b) ~(has /a/c)]","expect":"[true false]"}

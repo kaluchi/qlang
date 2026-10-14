@@ -1,0 +1,1 @@
+{"name":"it-answers-the-value-in-the-pipe","query":"5 | mul it","expect":"25"}

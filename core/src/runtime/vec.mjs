@@ -94,7 +94,7 @@ bindPrim('map/avg', map => meanOf(keyed(map), MapAvgElementNotNumberError));
 // ── ranking ────────────────────────────────────────────────────
 
 // The error a key answered for an element, the key itself or a part of
-// the vector it answered, or null [D13], [D140].
+// the vector it answered, or null [D13], [QSORD#sort].
 function errorOfKey(rankKey) {
   if (isErrorValue(rankKey)) return rankKey;
   return isVec(rankKey) ? rankKey.find(isErrorValue) ?? null : null;
@@ -120,7 +120,7 @@ async function keyedEntries(entries, key) {
 
 // The least or the greatest element in the one order, or by the value
 // the key answers for each, `pick` naming which side wins a comparison,
-// the first of equal ones staying [D140].
+// the first of equal ones staying [QSORD#sort].
 async function extremeOf(items, key, pick) {
   const ranked = await keyedEntries(items.map(item => [null, item]), key);
   if (isErrorValue(ranked)) return ranked;
@@ -144,7 +144,7 @@ bindPrim('map/max', runs(['key'], (map, key) => extremeOf([...map.values()], key
 // orders its entries by their values and keeps the keys. A vector the key
 // answers ranks element by element, and `desc` reverses a place of it.
 // A key that answers an error answers the call, as the key of `groupBy`
-// does, and so does one whose vector holds an error [D13], [D140].
+// does, and so does one whose vector holds an error [D13], [QSORD#sort].
 async function sortedEntries(entries, key) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
@@ -325,7 +325,7 @@ bindPrim('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count)))
 // ── order and nesting ──────────────────────────────────────────
 
 // `desc` lays `::desc` over a value, which reverses its place in the one
-// order among the values under that tag [D140].
+// order among the values under that tag [QSORD#sort].
 bindPrim('any/desc', value => makeTaggedInstance(DESC_TAG, value));
 
 // `distinct` is the constructor of the set [D16]: the elements of a

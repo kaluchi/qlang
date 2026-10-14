@@ -32,7 +32,9 @@ const RUN_OUTPUT = /^scripts\/benchmark\/(runs|sets)\//;
 const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !RUN_OUTPUT.test(path);
 const CASES = /^core\/test\/conformance\/.*\.jsonl$/;
 
-const MARK = /\[((?:[DE]\d+)(?:,\s*[DE]\d+)*)\]/g;
+// A mark names a record or a section of the specification, `[QSNAM#scope]`
+// [D283].
+const MARK = /\[((?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)(?:,\s*(?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?))*)\]/g;
 
 // The data of the benchmark names the decision it measures in the name of
 // its file, where no text of its own can bear a mark: a screen,
@@ -49,7 +51,7 @@ function marksOfText(text, pattern) {
   const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
     for (const match of line.matchAll(pattern)) {
-      for (const name of match[1].split(/,\s*/)) marks.push({ name: name.startsWith('D') || name.startsWith('E') ? name : `D${name}`, line: index + 1 });
+      for (const name of match[1].split(/,\s*/)) marks.push({ name: /^(D|E|QS)/.test(name) ? name : `D${name}`, line: index + 1 });
     }
   });
   return marks;
@@ -116,7 +118,10 @@ export function marksOfTree(root = repoRoot) {
       continue;
     }
     if (CASES.test(path)) {
-      const found = marksOfCases(readFileSync(join(root, path), 'utf8'));
+      // A file of a chapter marks its section, and a case in it the record
+      // in transit over it [D283].
+      const section = /\/(QS[A-Z]{3})\/([^/]+)\.jsonl$/.exec(path);
+      const found = [...(section === null ? [] : [{ name: `${section[1]}#${section[2]}`, line: 1 }]), ...marksOfCases(readFileSync(join(root, path), 'utf8'))];
       marks.push(...found.map(mark => ({ path, ...mark })));
       blocks.set(path, found.map(({ name, line }) => ({ from: line, to: line, names: new Set([name]) })));
       continue;

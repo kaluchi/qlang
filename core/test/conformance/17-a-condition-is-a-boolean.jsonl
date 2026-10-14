@@ -48,7 +48,6 @@
 {"decision":"D197","name":"cond-using-or","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
 {"decision":"D14","name":"if-takes-a-condition-turned-by-not","query":"true | if not ~(\"truthy\") ~(\"falsy\")","expect":"\"falsy\""}
 {"decision":"D4","name":"then-uses-pipevalue-via-path","query":"{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"110"}
-{"decision":"D248","name":"else-uses-pipevalue-via-path","query":"{:active false :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"100"}
 {"decision":"D4","name":"then-arithmetic","query":"10 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"20"}
 {"decision":"D4","name":"else-arithmetic","query":"3 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"0"}
 {"decision":"D4","name":"then-literal-string","query":"1 | if true ~(\"hello\") ~(\"goodbye\")","expect":"\"hello\""}
@@ -61,7 +60,6 @@
 {"decision":"D4","name":"if-under-map-numbers","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(\"big\") ~(\"small\"))","expect":"[\"small\" \"small\" \"big\" \"big\" \"big\"]"}
 {"decision":"D4","name":"if-under-map-doubles-some","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(mul 10) ~(add 0))","expect":"[1 2 30 40 50]"}
 {"decision":"D4","name":"if-answers-a-boolean-filter-reads","query":"[1 2 3 4] | filter ~(if (gt 2) ~(true) ~(false))","expect":"[3 4]"}
-{"decision":"D279","name":"if-inside-a-template","query":"[{:n 5} {:n 15}] | map ~(get {:value /n :tier ~(if (get /n | gt 10) ~(\"high\") ~(\"low\"))})","expect":"[{:value 5 :tier \"low\"} {:value 15 :tier \"high\"}]"}
 {"decision":"D4","name":"if-with-coalesce","query":"{:role :admin :name \"Bob\"} | if (get /role | eq :admin) ~(coalesce /displayName /name ~(\"???\")) ~(\"guest\")","expect":"\"Bob\""}
 {"decision":"D4","name":"if-cond-on-eq-keyword","query":"{:status :ok} | if (get /status | eq :ok) ~(200) ~(500)","expect":"200"}
 {"decision":"D4","name":"if-cond-on-eq-keyword-failing","query":"{:status :error} | if (get /status | eq :ok) ~(200) ~(500)","expect":"500"}
@@ -77,7 +75,6 @@
 {"decision":"D4","name":"cond-grade-letters-top","query":"95 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"A\""}
 {"decision":"D4","name":"cond-only-evaluates-matching-branch","query":"5 | cond ~(eq 5) ~(\"safe\") ~(\"never\" | div 0)","expect":"\"safe\""}
 {"decision":"D4","name":"cond-with-path-predicate","query":"{:role :admin :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"150"}
-{"decision":"D248","name":"cond-with-path-default","query":"{:role :user :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"100"}
 {"decision":"D164","name":"cond-with-no-clauses-is-refused","query":"5 | cond","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualType ::any/cond\n  :actualValue ::any/cond[]\n  :trail [\n    {\n      :step ~(cond)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D4","name":"cond-with-one-clause-is-refused","query":"5 | cond ~(eq 5)","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualType ::any/cond\n  :actualValue ::any/cond[~(eq 5)]\n  :trail [\n    {\n      :step ~(cond ~(eq 5))\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D4","name":"cond-replaces-nested-if-equivalence","query":"75 | cond ~(gte 90) ~(\"A\") ~(gte 70) ~(\"B\") ~(\"C\") | eq (75 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\")))","expect":"true"}
@@ -86,20 +83,14 @@
 {"decision":"D22","name":"first-element-satisfies","query":"[5 1 2] | any ~(gt 2)","expect":"true"}
 {"decision":"D22","name":"vacuously-false-on-empty","query":"[] | any ~(gt 0)","expect":"false"}
 {"decision":"D22","name":"vacuously-false-on-empty-with-arbitrary-pred","query":"[] | any ~(eq 99)","expect":"false"}
-{"decision":"D248","name":"any-with-path","query":"[{:active false} {:active true}] | any /active","expect":"true"}
-{"decision":"D248","name":"any-with-path-none","query":"[{:active false} {:active false}] | any /active","expect":"false"}
 {"decision":"D4","name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
 {"decision":"D168","name":"any-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(any ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D22","name":"any-short-circuits","query":"[1 2 99] | any ~(gt 50)","expect":"true"}
 {"decision":"D22","name":"any-as-filter-equivalence","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
 {"decision":"D22","name":"any-string-predicate-integration","query":"[\"alice\" \"bob\" \"alex\"] | any ~(startsWith \"al\")","expect":"true"}
-{"decision":"D16","name":"any-set-one-matches","query":"#[1 2 3] | any ~(gt 2)","expect":"true"}
-{"decision":"D16","name":"any-set-none-match","query":"#[1 2 3] | any ~(gt 99)","expect":"false"}
 {"decision":"D15","name":"any-map-value-matches","query":"{:a -1 :b 0 :c 2} | any ~(gt 0)","expect":"true"}
 {"decision":"D15","name":"any-map-no-value-matches","query":"{:a -1 :b -2 :c -3} | any ~(gt 0)","expect":"false"}
 {"decision":"D15","name":"any-map-empty-vacuous","query":"{} | any ~(gt 0)","expect":"false"}
-{"decision":"D16","name":"any-set-declared-verb","query":"#[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
-{"decision":"D16","name":"any-set-verb-predicate","query":"#[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
 {"decision":"D15","name":"any-map-declared-verb","query":"{:a -1 :b 2} | :any/pos ~(gt 0) | any ~(pos)","expect":"true"}
 {"decision":"D15","name":"any-map-verb-predicate","query":"{:a -1 :b 2} | :any/positive ~(gt 0) | any ~positive","expect":"true"}
 {"decision":"D15","name":"any-map-verb-predicate-false","query":"{:a -1 :b -2} | :any/positive ~(gt 0) | any ~positive","expect":"false"}
@@ -109,19 +100,13 @@
 {"decision":"D22","name":"first-element-fails","query":"[-1 4 6 8] | every ~(gt 0)","expect":"false"}
 {"decision":"D22","name":"vacuously-true-on-empty","query":"[] | every ~(gt 0)","expect":"true"}
 {"decision":"D22","name":"vacuously-true-on-empty-with-arbitrary-pred","query":"[] | every ~(eq 99)","expect":"true"}
-{"decision":"D248","name":"every-with-path","query":"[{:active true} {:active true}] | every /active","expect":"true"}
-{"decision":"D248","name":"every-with-path-fails","query":"[{:active true} {:active false}] | every /active","expect":"false"}
 {"decision":"D197","name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true"}
 {"decision":"D168","name":"every-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | every ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :every\n  :addresses #[::map/every ::set/every ::vec/every]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(every ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D22","name":"every-short-circuits","query":"[1 0 2] | every ~(gt 0)","expect":"false"}
 {"decision":"D22","name":"every-as-filter-equivalence","query":":xs [1 2 3 4 5] | xs | filter ~(gt 0) | count | eq (xs | count) | eq (xs | every ~(gt 0))","expect":"true"}
-{"decision":"D16","name":"every-set-all-match","query":"#[2 4 6] | every ~(gt 0)","expect":"true"}
-{"decision":"D16","name":"every-set-one-fails","query":"#[2 4 -1] | every ~(gt 0)","expect":"false"}
 {"decision":"D15","name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every ~(gt 0)","expect":"true"}
 {"decision":"D15","name":"every-map-one-value-fails","query":"{:a 1 :b -2 :c 3} | every ~(gt 0)","expect":"false"}
 {"decision":"D15","name":"every-map-empty-vacuous","query":"{} | every ~(gt 0)","expect":"true"}
-{"decision":"D16","name":"every-set-declared-verb","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
-{"decision":"D16","name":"every-set-verb-predicate","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
 {"decision":"D15","name":"every-map-declared-verb","query":"{:a 1 :b 2} | :any/big ~(gt 0) | every ~(big)","expect":"true"}
 {"decision":"D15","name":"every-map-verb-predicate","query":"{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive","expect":"true"}
 {"decision":"D15","name":"every-map-verb-predicate-fails","query":"{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive","expect":"false"}

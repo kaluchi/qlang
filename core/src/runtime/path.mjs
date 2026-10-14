@@ -1,6 +1,6 @@
 // The words of a path [D248]: `get` reads it strictly and `query` softly,
 // over a path, a key or a literal that holds paths; `put`, `update` and
-// `delete` write it [D250]; `paths` answers the outline of a value;
+// `delete` write it [QSPTH#write]; `paths` answers the outline of a value;
 // `segments` and `toPath` turn a path and its keys into each other, JSON
 // Pointer's form read with its escapes.
 

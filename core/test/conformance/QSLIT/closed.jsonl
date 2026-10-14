@@ -1,0 +1,5 @@
+{"name":"parentheses-after-a-tag-are-refused","query":"\"::Box(1 | add 2)\" | parse !| get /message","expect":"\"the parentheses after a tag hold code, which a literal does not run: a value computed goes under a tag by `tag`, write `1 | add 2 | tag ::Box`\""}
+{"name":"a-number-in-parentheses-after-a-tag-is-refused","query":"\"::Width(5)\" | parse !| get /message","expect":"\"a number, a boolean, null or a path touches its tag by `#`: write `::Width#5`\""}
+{"name":"a-group-inside-a-literal-is-refused","query":"\"[(5 | add 1) 2]\" | parse !| get /message","expect":"\"a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(5 | add 1) 2]`\""}
+{"name":"a-name-inside-a-literal-is-refused","query":"\":x 1 | [x]\" | parse !| get /message","expect":"\"a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(x)]`\""}
+{"name":"a-literal-that-computes-reads-as-prose-in-the-code-of-a-doc","query":"|~~ ::snippet~([(1 | add 1)]) ::snippet~(get [~(count)]) ~~| | snippets","expect":"[::snippet~(get [~(count)])]"}

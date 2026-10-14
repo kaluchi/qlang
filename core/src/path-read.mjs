@@ -1,6 +1,6 @@
 // Reading a path [D248]: each segment a key of a map or a place of a
 // vector, read beneath the tags stacked over the value it meets; a write
-// follows a path as a read does and misses as a read misses [D250].
+// follows a path as a read does and misses as a read misses [QSPTH#write].
 
 import { declareRefusal } from './errors.mjs';
 import { isDoc, isFn, isKind, isQMap, isQuote, isVec, isValueClass, keyword } from './types.mjs';

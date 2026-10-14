@@ -4,7 +4,7 @@
 // a kind numbers by value, strings by their code units, patterns by their
 // text and then their flags [D246], vectors element
 // by element, a set as its vector, maps by their keys and then their
-// values, a desc by the reverse of its payload's place [D140], and a
+// values, a desc by the reverse of its payload's place [QSORD#order], and a
 // tagged value by its payload. `sort`, `min` and `max`
 // order by it, and so do the ordering predicates, whose heads admit two
 // values of one kind [D34], [D72].

@@ -57,7 +57,7 @@ function unionOfMaps(left, right) {
 // its entries by key [D15]: the other map's keys, or the keys the vector
 // names, a set among them (`#[:tmp]`, `[:a "c"]`), a keyword or a
 // string naming a key as `at` and `has` read it, and any other element
-// refused where it stands [D139].
+// refused where it stands [QSPTH#key].
 function keyNamesOf(keysValue, KeyNotKeywordOrStringError) {
   if (isQMap(keysValue)) return keysValue;
   return new Set(keysValue.map((keyOfEntry, index) => {

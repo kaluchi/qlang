@@ -414,7 +414,7 @@ those repairs left is what the scars below describe.
 [D132]: ../decisions/D132.md
 [D133]: ../decisions/D133.md
 [D138]: ../decisions/D138.md
-[D140]: ../decisions/D140.md
+[D140]: ../decisions/replaced/D140.md
 [D152]: ../decisions/D152.md
 [D161]: ../decisions/D161.md
 [D164]: ../decisions/D164.md

@@ -783,7 +783,7 @@ constructor [D252]; a value under a tag obeys the tag's invariant, checked
 when the value is built and again after every transform whose
 declaration keeps the tag, `within` editing under a tag and checking
 once at the rewrap [D41]; every value comes apart into its atoms and a
-shape and is built back from them [D42]. The set, the error, the quote,
+shape and is built back from them [QSLIT#atoms]. The set, the error, the quote,
 the doc, a host's record and the elision marker are all this one thing:
 `#[…]` spells the set, `!{…}` an error, `~(…)` code, `|~~ … ~~|` a doc
 over its segments, and each keeps its own token in the editor while the
@@ -839,7 +839,7 @@ normalized, and forgotten until the codec at the boundary writes it
 back. A map's elements are its values and its keys are the shape that
 travels with them; `entries` makes the keys data as the pairs `[key
 value]`, and `toMap` builds a map back from them [D138], [D244], a
-string naming a key wherever a key is taken [D139]:
+string naming a key wherever a key is taken [QSPTH#key]:
 
 ```qlang
 > {:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 (get {:name ~(get /0 | toString)})) | sort /port
@@ -1246,7 +1246,6 @@ those being decided.
 [D38]: decisions/D38.md
 [D39]: decisions/D39.md
 [D41]: decisions/D41.md
-[D42]: decisions/D42.md
 [D46]: decisions/D46.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md
@@ -1276,8 +1275,6 @@ those being decided.
 [D132]: decisions/D132.md
 [D133]: decisions/D133.md
 [D138]: decisions/D138.md
-[D139]: decisions/D139.md
-[D140]: decisions/D140.md
 [D151]: decisions/D151.md
 [D152]: decisions/D152.md
 [D153]: decisions/D153.md
@@ -1306,7 +1303,6 @@ those being decided.
 [D246]: decisions/D246.md
 [D248]: decisions/D248.md
 [D249]: decisions/D249.md
-[D250]: decisions/D250.md
 [D251]: decisions/D251.md
 [D252]: decisions/D252.md
 [D253]: decisions/D253.md
@@ -1328,3 +1324,5 @@ those being decided.
 [QSNAM#owner]: spec/QSNAM-names-and-scope.md#owner
 [QSNAM#reach]: spec/QSNAM-names-and-scope.md#reach
 [QSNAM#word]: spec/QSNAM-names-and-scope.md#word
+[QSLIT#atoms]: spec/QSLIT-values-and-literals.md#atoms
+[QSPTH#key]: spec/QSPTH-paths.md#key

@@ -69,7 +69,7 @@ bindPrim('vec/construct',     coreKindConstructor(isBareVec, VecPayloadNotVecErr
 bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadNotMapError));
 
 // `::desc(…)` — any value turned to descend, its place in the one order
-// the reverse of its payload's [D140].
+// the reverse of its payload's [QSORD#desc].
 const DESC_TAG = makeTag('desc');
 bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
 

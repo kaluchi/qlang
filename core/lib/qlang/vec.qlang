@@ -1597,8 +1597,8 @@
       `{:host "x"} | entries | map ~(join "=")` answering `["host=x"]`;
       another value is refused at its index, a number made text first by
       `toString`, `["a" 2] | map ~toString | join "+"` answering
-      `"a+2"`, and any value written as its literal by `print`. A set joins its elements in the one
-      order; a map, a string or a number is refused under the word, and a
+      `"a+2"`, and any value written as its literal by `print`. A set
+      joins its elements in the one order; a map, a string or a number is refused under the word, and a
       map's values are read first, `vals | join ","`.
       ::link~(::string/split | doc) ::link~(::any/print | doc)
   ~~|
@@ -1645,6 +1645,11 @@
     | proves :joinsValuesMadeText
         |~~ Values made text first join. ~~|
         ~(["a" 2] | map ~toString | join "+" | eq "a+2")
+    | proves :joinsValuesWrittenAsLiterals
+        |~~ Values written as their literals join, a keyword with its
+            colon.
+        ~~|
+        ~([1 :a] | map ~(print) | join "+" | eq "1+:a")
     | proves :joinsASetInTheOneOrder
         |~~ A set joins its elements in the one order. ~~|
         ~(#["b" "a"] | join "," | eq "a,b")

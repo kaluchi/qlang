@@ -84,7 +84,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
     return await runRepl(stdinStream, stdoutWrite, stderrWrite, {
       budget: cliInvocation.budget,
       initialQuery: queryAsWritten(cliInvocation.initialQuery, env),
-      width: stdoutStream
+      terminal: stdoutStream
     });
   }
 

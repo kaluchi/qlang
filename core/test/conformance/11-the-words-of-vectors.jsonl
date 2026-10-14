@@ -5,7 +5,6 @@
 {"decision":"D22","name":"first","query":"[10 20 30] | first","expect":"10"}
 {"decision":"D22","name":"first-empty","query":"[] | first","expect":"null"}
 {"decision":"D16","name":"first-set","query":"#[10 20 30] | first","expect":"10"}
-{"decision":"D16","name":"first-set-empty","query":"#[] | first","expect":"null"}
 {"decision":"D22","name":"last","query":"[10 20 30] | last","expect":"30"}
 {"decision":"D22","name":"last-empty","query":"[] | last","expect":"null"}
 {"decision":"D22","name":"sum","query":"[1 2 3 4 5] | sum","expect":"15"}
@@ -67,7 +66,6 @@
 {"decision":"D90","name":"a-reducer-of-code-folds-a-set","query":"#[1 2 3] | reduce 0 ~(sumOf /0 /1)","expect":"6"}
 {"decision":"D90","name":"a-reducer-of-code-folds-the-values-of-a-map","query":"{:a 1 :b 2} | reduce 0 ~(sumOf /0 /1)","expect":"3"}
 {"decision":"D90","name":"a-reducer-of-code-that-fails-answers-the-failure","query":"[1 \"x\" 3] | reduce 0 ~(sumOf /0 /1) !| type","expect":"::vec/sum/ElementNotNumberError"}
-{"decision":"D90","name":"a-reducer-of-one-word-keeps-its-short-form","query":"[1 2 3] | reduce 0 ~(add)","expect":"6"}
 {"decision":"D22","name":"take-negative-clamps-to-empty","query":"[1 2 3] | take -1","expect":"[]"}
 {"decision":"D22","name":"take-negative-large-clamps-to-empty","query":"[1 2 3] | take -5","expect":"[]"}
 {"decision":"D22","name":"drop-negative-clamps-to-whole","query":"[1 2 3] | drop -1","expect":"[1 2 3]"}

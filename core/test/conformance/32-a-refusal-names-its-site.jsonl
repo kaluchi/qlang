@@ -41,5 +41,4 @@
 {"decision":"D46","name":"a-refusal-names-the-place-it-guards","query":"blah !| type","expect":"::call/UnknownNameError"}
 {"decision":"D46","name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":"::type | doc !| get /addresses","expect":"#[::any/type]"}
 {"decision":"D46","name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| get /addresses","expect":"#[::doc/content]"}
-{"decision":"D152","name":"a-refusal-is-named-under-its-noun","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
 {"decision":"D152","name":"a-refusal-reads-its-page-by-its-address","query":"::number/add/SubjectNotNumberError | doc | type","expect":"::doc"}

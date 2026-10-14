@@ -63,8 +63,8 @@ export const VERSION_LINE = `@kaluchi/qlang-cli ${_cliPackage.version}\n`;
 
 const COLOR_MODES = new Set(['auto', 'always', 'never']);
 
-// An argument after the query is read by nothing, so a flag written there,
-// `--budget=10`, is refused rather than left unread [D120].
+// An argument after the query is read by nothing and is refused, a flag
+// written there, `--budget=10`, among them [D120].
 const argumentAfterTheQuery = argument => ({
   kind: 'usageError',
   message: `qlang: '${argument}' after the query is read by nothing: the flags stand before the query, which is one argument, \`qlang [flags] '<query>'\`\n`

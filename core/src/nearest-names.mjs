@@ -7,7 +7,7 @@
 // the typed name begins with links [D118].
 
 import { keyword, makeTag, isTag } from './types.mjs';
-import { ANY_KIND_NAME, addressesOf, answerOf, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, isLabel } from './runtime/nouns.mjs';
+import { ANY_KIND_NAME, addressesOf, answerOf, kindsOfWalk, namesDeclaredUnder, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, verbsReaching, isLabel } from './runtime/nouns.mjs';
 import { linkedAddressesOf } from './runtime/doc.mjs';
 import { splitAddress } from './address.mjs';
 
@@ -108,16 +108,14 @@ export function nearestTagNames(env, typedName) {
   return Object.freeze(nearestOf(new Set(atItsDepth), typedName).map(name => makeTag(name)));
 }
 
-// The members a subject holds near a name it lacks [D118]: the last names
-// of the nodes one level under a tag name's address, `::qlang | doc
-// :pipelin` meeting `:pipeline`, and for any other value the names a step
-// reaches, the words its walk may find among them.
+// The members a subject holds near a name it lacks [D118], read where an
+// axis reads a member: the names declared under a tag name's address,
+// `::qlang | doc :pipelin` meeting `:pipeline`, and the words the walk of
+// the subject reaches.
 export function nearestMembers(env, subject, memberName) {
-  const under = isTag(subject) ? `${subject.name}/` : null;
-  const names = under === null
-    ? namesOfSteps(env)
-    : new Set([...nodeAddresses(env)].filter(address => address.startsWith(under)).map(address => address.slice(under.length)).filter(name => !name.includes('/')));
-  return Object.freeze(nearestOf(names, memberName).map(name => keyword(name)));
+  const declared = isTag(subject) ? namesDeclaredUnder(env, subject.name) : [];
+  const reached = verbsReaching(env, [...kindsOfWalk(subject)]).keys();
+  return Object.freeze(nearestOf(new Set([...declared, ...reached]), memberName).map(name => keyword(name)));
 }
 
 // The keys of a map a key it lacks was likely meant to be, as a name is

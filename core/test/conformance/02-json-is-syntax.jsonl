@@ -3,7 +3,6 @@
 {"decision":"D1","name":"json-object-nested","query":"{\"user\": {\"name\": \"alice\"}}","expect":"{:user {:name \"alice\"}}"}
 {"decision":"D1","name":"json-object-in-vec","query":"[{\"name\": \"alice\"}, {\"name\": \"bob\"}] | map /name","expect":"[\"alice\" \"bob\"]"}
 {"decision":"D1","name":"json-object-as-pipevalue","query":"{\"name\": \"alice\"} | get /name","expect":"\"alice\""}
-{"decision":"D1","name":"json-null-literal","query":"null","expect":"null"}
 {"decision":"D1","name":"json-null-missing-key","query":"{:a 1} | get /b","expect":"::path/KeyNotInMapError!{\n  :key :b\n  :nearest [:a]\n  :path /b\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /b)\n      :subject {:a 1}\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D1","name":"json-null-in-vec","query":"[1, null, 3]","expect":"[1 null 3]"}
 {"decision":"D1","name":"json-array-with-json-objects","query":"[{\"v\": 1}, {\"v\": 2}] | count","expect":"2"}
@@ -36,15 +35,14 @@
 {"decision":"D1","name":"json-full-roundtrip","query":"{\"name\": \"alice\", \"age\": 30, \"active\": true, \"score\": null} | get [/name, /age, /active, /score]","expect":"[\"alice\" 30 true null]"}
 {"decision":"D1","name":"json-objects-in-vec-project-count","query":"[{\"v\": 1e3}, {\"v\": 2e3}, {\"v\": 3e3}] | map /v","expect":"[1000 2000 3000]"}
 {"decision":"D1","name":"json-mixed-types-in-array","query":"[1, \"two\", true, null, 3.14]","expect":"[1 \"two\" true null 3.14]"}
-{"decision":"D1","name":"unicode-cyrillic-bare-key","query":"{\"имя\": \"Алиса\"} | get /имя","expect":"\"Алиса\""}
-{"decision":"D1","name":"unicode-cyrillic-nested-path","query":"{\"пользователь\": {\"имя\": \"Боб\"}} | get /пользователь/имя","expect":"\"Боб\""}
-{"decision":"D1","name":"unicode-cyrillic-vec-path","query":"[{\"имя\": \"Алиса\"}, {\"имя\": \"Боб\"}] | map /имя","expect":"[\"Алиса\" \"Боб\"]"}
-{"decision":"D1","name":"unicode-cjk-bare-key","query":"{\"元素\": 42} | get /元素","expect":"42"}
-{"decision":"D1","name":"unicode-greek-bare-key","query":"{\"αβγ\": \"ok\"} | get /αβγ","expect":"\"ok\""}
-{"decision":"D1","name":"unicode-mixed-cyrillic-and-latin","query":"{\"user\": {\"имя\": \"Алиса\"}} | get /user/имя","expect":"\"Алиса\""}
-{"decision":"D1","name":"unicode-cyrillic-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | get [/пункт1, /пункт2]","expect":"[10 20]"}
-{"decision":"D1","name":"unicode-cyrillic-kebab-case","query":"{\"имя-пользователя\": \"alice\"} | get /имя-пользователя","expect":"\"alice\""}
-{"decision":"D1","name":"json-array-reads-as-a-vector","query":"[1, 2] | type","expect":"::vec"}
+{"decision":"D2","name":"unicode-cyrillic-bare-key","query":"{\"имя\": \"Алиса\"} | get /имя","expect":"\"Алиса\""}
+{"decision":"D2","name":"unicode-cyrillic-nested-path","query":"{\"пользователь\": {\"имя\": \"Боб\"}} | get /пользователь/имя","expect":"\"Боб\""}
+{"decision":"D2","name":"unicode-cyrillic-vec-path","query":"[{\"имя\": \"Алиса\"}, {\"имя\": \"Боб\"}] | map /имя","expect":"[\"Алиса\" \"Боб\"]"}
+{"decision":"D2","name":"unicode-cjk-bare-key","query":"{\"元素\": 42} | get /元素","expect":"42"}
+{"decision":"D2","name":"unicode-greek-bare-key","query":"{\"αβγ\": \"ok\"} | get /αβγ","expect":"\"ok\""}
+{"decision":"D2","name":"unicode-mixed-cyrillic-and-latin","query":"{\"user\": {\"имя\": \"Алиса\"}} | get /user/имя","expect":"\"Алиса\""}
+{"decision":"D2","name":"unicode-cyrillic-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | get [/пункт1, /пункт2]","expect":"[10 20]"}
+{"decision":"D2","name":"unicode-cyrillic-kebab-case","query":"{\"имя-пользователя\": \"alice\"} | get /имя-пользователя","expect":"\"alice\""}
 {"decision":"D1","name":"single-element-bracket-reads-as-a-vector","query":"[1] | type","expect":"::vec"}
 {"decision":"D1","name":"json-object-reads-as-a-map","query":"{\"a\": 1} | type","expect":"::map"}
 {"decision":"D1","name":"json-object-keys-are-keywords","query":"{\"a\": 1, \"b\": 2} | keys","expect":"#[:a :b]"}

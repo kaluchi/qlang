@@ -86,6 +86,17 @@
     | proves :printsAsItsLiteral
         |~~ A kind prints as its commands and its recipe. ~~|
         ~(::kind | wraps |~~ The sizes. ~~| ::map | print | eq "::kind[~(wraps |~~ The sizes. ~~| ::map) null]")
+    | proves :listsItsNamesButItsLaws
+        |~~ `manifest` lists what lies under a kind but its laws, which
+            `laws` reads.
+        ~~|
+        ~(:Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | proves :holds |~~ It holds. ~~| ~(true))
+          | ::Box
+          | get [~(manifest) ~(laws | keys)]
+          | eq [#[::Box/w] #[:holds]])
+    | proves :laysTheTagOfALabelOfItsPageAlone
+        |~~ A label declared by its page alone lays its tag. ~~|
+        ~(:Shop |~~ A shop. ~~| | ::Shop{:a 1} | type | eq ::Shop)
     | proves :readsBackFromItsPrint
         |~~ The print of a kind reads back as the kind. ~~|
         ~(::kind | wraps |~~ The sizes. ~~| ::map | :k it | print | parse | apply it | eq k)

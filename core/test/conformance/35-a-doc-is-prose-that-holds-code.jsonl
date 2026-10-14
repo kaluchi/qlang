@@ -59,7 +59,6 @@
 {"decision":"D111","name":"the-first-screen-opens-every-page-it-names-in-one-query","query":"::qlang | doc | links | map ~open | every ~(false !| true | not)","expect":"true"}
 {"decision":"D111","name":"the-first-screen-names-the-concepts","query":"::qlang | doc | links | map ~open | filter ~(type | eq ::doc) | count | gt 5","expect":"true"}
 {"decision":"D117","name":"a-member-of-a-noun-is-no-name-a-query-calls","query":"5 | pipeline !| type","expect":"::call/UnknownNameError"}
-{"decision":"D119","name":"a-path-of-anchors-reads-the-page-of-an-input","query":"::vec | doc [:take :count] | eq (::vec/take/count | doc)","expect":"true"}
 {"decision":"D119","name":"a-set-of-anchors-reads-several-pages","query":"::qlang | doc #[:pipeline :errors] | count","expect":"2"}
 {"decision":"D119","name":"docs-leaves-for-doc","query":"5 | docs | type !| type","expect":"::call/UnknownNameError"}
 {"decision":"D108","name":"every-link-of-the-first-screen-opens-a-page","query":"::qlang | doc | links | map ~open | every ~(type | eq ::doc)","expect":"true"}

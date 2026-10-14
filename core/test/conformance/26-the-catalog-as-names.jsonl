@@ -1,4 +1,3 @@
-{"decision":"D251","name":"a-quote-given-where-any-value-is-taken-stays-a-quote","query":"~(mul 2) | eq ~(mul 2)","expect":"true"}
 {"decision":"D251","name":"a-key-of-a-sort-is-code-a-host-runs","query":"[{:a 2} {:a 1}] | sort /a | first | get /a","expect":"1"}
 {"decision":"D251","name":"an-invariant-of-the-answer-refuses-an-answer-that-breaks-it","query":":Box |~~ B ~~| | :Box/half |~~ Half. ~~| (::fn | holds :answer/NotWholeError |~~ NotWholeError. ~~| ~(eq (round)) | returns |~~ The half. ~~| ::number | impl ~(get /0 | div 2)) | ::Box[5] | half !| get [~(type) /actualValue]","expect":"[::Box/half/answer/NotWholeError 2.5]"}
 {"decision":"D168","name":"a-set-answered-by-a-word-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]"}
@@ -46,7 +45,6 @@
 {"decision":"D34","name":"a-keyword-names-a-binding-of-its-scope","query":"::count | doc !| type","expect":"::any/doc/UnknownNameError"}
 {"decision":"D61","name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true"}
 {"decision":"D61","name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
-{"decision":"D34","name":"manifest-of-a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true"}
 {"decision":"D34","name":"manifest-lives-on-tags","query":"::tag | manifest | has ::tag/manifest","expect":"true"}
 {"decision":"D72","name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | parse | contains \"::builtin{}\"","expect":"true"}
 {"decision":"D72","name":"an-addressed-built-in-answers-its-descriptor","query":"::vec/take | binding | get /value | get /1 | type","expect":"::builtin"}

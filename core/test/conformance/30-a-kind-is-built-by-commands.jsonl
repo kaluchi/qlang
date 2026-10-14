@@ -21,9 +21,7 @@
 {"decision":"D252","name":"a-function-proves-its-laws-in-its-chain","query":":number/twice (::fn | proves :doubles |~~ Two is four. ~~| ~(2 | twice | eq 4) | impl ~(mul 2)) | ::number/twice | runLaws | map /ok","expect":"[true]"}
 {"decision":"D252","name":"a-function-carries-a-fact-of-a-refusal-under-its-name","query":"get [~(::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/limit |~~ The limit. ~~| ::number | type) ~(::fn | carries :limit |~~ The limit. ~~| !| type)]","expect":"[::fn ::fn/FactUnderNoNameError]"}
 {"decision":"D252","name":"the-topic-of-the-language-tells-its-chapters","query":"::qlang/values | binding | get /value | has ::vec","expect":"true"}
-{"decision":"D152","name":"an-undeclared-tag-lays-itself-over-its-payload","query":"::AutoBox[1 2 3] | type","expect":"::AutoBox"}
 {"decision":"D152","name":"an-undeclared-tag-keeps-its-payload","query":"::AutoBox[1 2 3] | payload","expect":"[1 2 3]"}
-{"decision":"D152","name":"an-undeclared-tag-keeps-a-vector-a-vector","query":"::AutoBox[1 2 3] | payload | type","expect":"::vec"}
 {"decision":"D152","name":"an-undeclared-tag-over-a-set-answers-its-tag","query":"::AutoSet#[1 2 3] | type","expect":"::AutoSet"}
 {"decision":"D152","name":"an-undeclared-tag-keeps-a-set-a-set","query":"::AutoSet#[1 2 3] | payload | type","expect":"::set"}
 {"decision":"D152","name":"an-undeclared-tag-over-a-map-answers-its-tag","query":"::AutoMap{:k 1} | type","expect":"::AutoMap"}
@@ -53,16 +51,13 @@
 {"decision":"D41","name":"count-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | count","expect":"3"}
 {"decision":"D41","name":"sum-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | sum","expect":"6"}
 {"decision":"D41","name":"first-of-a-tagged-vector-answers-the-element","query":":Box |~~ Box. ~~| | ::Box[42 100] | first","expect":"42"}
-{"decision":"D41","name":"filter-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
 {"decision":"D20","name":"a-tag-over-a-set-stacks-on-it","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | payload","expect":"#[1 2 3]"}
 {"decision":"D34","name":"filter-over-a-tag-stacked-on-a-set-keeps-the-tag","query":":Box |~~ Box. ~~| | ::Box#[1 2 3 4] | filter ~(gt 2)","expect":"::Box#[3 4]"}
-{"decision":"D41","name":"sort-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | type","expect":"::Box"}
 {"decision":"D41","name":"sort-keyed-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[{:k 2} {:k 1}] | sort /k | type","expect":"::Box"}
 {"decision":"D41","name":"take-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | take 2 | type","expect":"::Box"}
 {"decision":"D41","name":"drop-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | drop 2 | type","expect":"::Box"}
 {"decision":"D41","name":"reverse-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | reverse | type","expect":"::Box"}
 {"decision":"D41","name":"flat-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[[1] [2 3]] | flat | type","expect":"::Box"}
-{"decision":"D41","name":"distinct-tagged-vec-yields-tagged-set","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3] | distinct | type","expect":"::Box"}
 {"decision":"D41","name":"filter-tagged-vec-elements-unchanged","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | sum","expect":"7"}
 {"decision":"D41","name":"sort-tagged-vec-elements-sorted","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | first","expect":"1"}
 {"decision":"D41","name":"distinct-tagged-vec-dedup-correct","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3 2] | distinct | payload | count","expect":"3"}

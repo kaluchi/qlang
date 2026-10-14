@@ -52,7 +52,7 @@ Names a cell declares, \`:name body\` and \`:name it\` among them,
 persist across the cells of one REPL session.
 `;
 
-export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null, initialQuery = null, width = stdinStream } = {}) {
+export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null, initialQuery = null, terminal } = {}) {
   const builtinNames = verbNames(await langRuntime());
 
   // A terminal in raw mode moves the cursor down at `\n` without
@@ -76,7 +76,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
   const lineEditor = createLineEditor(stdinStream, stdoutWrite, {
     prompt: PROMPT,
     render: (bufferText) => highlightAnsi(bufferText, builtinNames),
-    columns: () => width.columns || 80
+    columns: () => terminal.columns || 80
   });
 
   // The cells run one after another, and the REPL closes once the last

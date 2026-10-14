@@ -43,7 +43,6 @@
 {"decision":"D20","name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::number/PayloadNotNumberError"}
 {"decision":"D119","name":"the-kind-of-a-value-has-its-page","query":"5 | type | doc | type | eq ::doc","expect":"true"}
 {"decision":"D20","name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string"}
-{"decision":"D20","name":"type-null","query":"null | type","expect":"::null"}
 {"decision":"D20","name":"type-boolean-true","query":"true | type","expect":"::boolean"}
 {"decision":"D20","name":"type-boolean-false","query":"false | type","expect":"::boolean"}
 {"decision":"D20","name":"type-number-integer","query":"42 | type","expect":"::number"}

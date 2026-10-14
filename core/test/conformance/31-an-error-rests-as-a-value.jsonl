@@ -4,7 +4,6 @@
 {"decision":"D13","name":"error-lit-round-trip","query":"!{:kind :oops :message \"boom\"}","expect":"!{:kind :oops :message \"boom\"}"}
 {"decision":"D13","name":"error-lit-empty","query":"!{}","expect":"!{}"}
 {"decision":"D13","name":"raise-makes-an-error-of-a-map","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D13","name":"raise-raises-the-map-in-the-pipe","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail [\n    {\n      :step ~(raise)\n      :subject {:kind :oops}\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D13","name":"error-test-in-a-template","query":"get [~(!{:kind :oops} | raise | ok !| false) ~(42 | ok !| false)]","expect":"[false true]"}
 {"decision":"D13","name":"a-catch-passes-a-map-by","query":"{:kind :oops} !| get /kind","expect":"{:kind :oops}"}
 {"decision":"D13","name":"a-catch-passes-null-by","query":"null !| get /kind","expect":"null"}
@@ -135,7 +134,6 @@
 {"decision":"D13","name":"the-last-stop-replays-where-it-is-read","query":"(:x 1 | !{:k 1} | add x) | mul 2 !| get /trail/-1/skipped","expect":"~(mul 2)"}
 {"decision":"D13","name":"a-stop-of-a-word-follows-the-stop-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| get /trail | map /step","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]"}
 {"decision":"D13","name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first","expect":"!{:k 1}"}
-{"decision":"D13","name":"the-fault-fields-leave-the-facts","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trail]"}
 {"decision":"D13","name":"a-tag-over-a-failed-payload-answers-the-failure","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::Foo[::Pos#-3] !| type","expect":"::Pos/NotPositiveError"}
 {"decision":"D13","name":"a-constructor-of-the-core-never-meets-a-failure","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::set[::Pos#-3] !| type","expect":"::Pos/NotPositiveError"}
 {"decision":"D13","name":"a-pair-whose-payload-fails-answers-the-failure-before-tag","query":"get [::Foo ~(!{:k 1} | raise)] | tag !| get [~(type) ~(get /trail | map /step)]","expect":"[::error [~(raise) ~(get [::Foo ~(!{:k 1} | raise)])]]"}

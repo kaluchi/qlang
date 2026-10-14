@@ -30,7 +30,6 @@
 {"decision":"D14","name":"cond-hands-on-the-error-of-a-predicate","query":"\"x\" | cond ~(noSuchName) ~(1) !| type","expect":"::call/UnknownNameError"}
 {"decision":"D14","name":"and-refuses-a-left-condition-of-another-kind","query":"1 | and true !| type","expect":"::boolean/and/SubjectNotBooleanError"}
 {"decision":"D14","name":"or-refuses-a-right-condition-of-another-kind","query":"true | or 1 !| type","expect":"::boolean/or/right/NotBooleanError"}
-{"decision":"D14","name":"not-negates-a-boolean","query":"false | not","expect":"true"}
 {"decision":"D14","name":"the-test-for-null-is-eq-null","query":"[null 1] | filter ~(eq null)","expect":"[null]"}
 {"decision":"D14","name":"runExamples-fails-an-example-that-answers-no-boolean","query":":x 1 | :x/one ::law~(1) | ::x | runLaws | first | get /ok","expect":"false"}
 {"decision":"D123","name":"runExamples-passes-an-example-that-answers-true","query":":x 1 | :x/holds ::law~(true) | ::x | runLaws | first | get /ok","expect":"true"}

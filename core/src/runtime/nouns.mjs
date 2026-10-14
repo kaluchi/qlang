@@ -212,7 +212,7 @@ const PATH_NAMES = new WeakMap();
 // beneath a tag over a value, the kind of a vector or a map
 // beneath a tag of its own, and, after the kind of tag names, the noun a
 // tag name names [D88].
-function* kindsOfWalk(subject) {
+export function* kindsOfWalk(subject) {
   let value = subject;
   for (;;) {
     yield typeKeyword(value).name;

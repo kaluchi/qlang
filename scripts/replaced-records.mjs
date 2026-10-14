@@ -19,20 +19,30 @@ const replacedWhole = text => /^(Replaced by|Merged into) /m.test(text);
 const moving = readdirSync(recordsDir)
   .filter(name => /^[DE]\d+\.md$/.test(name) && replacedWhole(readFileSync(join(recordsDir, name), 'utf8')));
 mkdirSync(join(recordsDir, 'replaced'), { recursive: true });
-// A record leaving names the commit its text was last true at, `Left at`,
-// so a path or a probe it holds reads there, by `git show` [D282].
+// A record leaving names, under its title, the commit its text was last
+// true of, `Left at`, and each path of the tree it names in backticks
+// reads as `git show` at that commit, so nothing it names leads into
+// today's tree [D282].
 const head = git('rev-parse', '--short=8', 'HEAD').trim();
+const TREE_PATH = /`((?:core|cli|lsp|vscode|site|scripts|docs|\.claude|\.github)\/[A-Za-z0-9_./-]+)`/g;
+const atHead = path => {
+  try {
+    git('cat-file', '-e', `${head}:${path.replace(/\/$/, '')}`);
+    return true;
+  } catch {
+    return false;
+  }
+};
 for (const name of moving) {
   const path = join(recordsDir, name);
   const raw = readFileSync(path, 'utf8');
   const eol = raw.includes('\r\n') ? '\r\n' : '\n';
   const lines = raw.split('\r\n').join('\n').replace(/\n+$/, '').split('\n');
-  const firstLink = lines.findIndex(line => /^\[[DE]\d+\]: \S+\.md$/.test(line));
-  const body = firstLink === -1 ? lines : lines.slice(0, firstLink);
-  const links = firstLink === -1 ? [] : lines.slice(firstLink);
-  while (body.at(-1) === '') body.pop();
-  if (!body.some(line => line.startsWith('Left at '))) body.push(`Left at ${head}, the tree this text was last true of: a path, a case or a`, `probe it names reads there, \`git show ${head}:<path>\`, not in today's.`);
-  writeFileSync(path, [...body, ...(links.length > 0 ? ['', ...links] : []), ''].join(eol));
+  if (!lines.some(line => line.startsWith('Left at '))) {
+    lines.splice(1, 0, '', `Left at ${head}, the tree this text was last true of: a path, a case or a`, `probe it names reads there, \`git show ${head}:<path>\`, not in today's.`);
+  }
+  const pinned = lines.join('\n').replace(TREE_PATH, (whole, named) => (named.startsWith('docs/decisions/') || !atHead(named) ? whole : `\`git show ${head}:${named}\``));
+  writeFileSync(path, `${pinned}\n`.split('\n').join(eol));
   git('mv', `docs/decisions/${name}`, `docs/decisions/replaced/${name}`);
 }
 

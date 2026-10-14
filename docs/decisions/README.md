@@ -6,9 +6,9 @@ the work on it, `En.md` for one of the environment of the work that
 records in force. A record that a later one replaces whole keeps its text
 and gains the line that names the record replacing it [D58], and moves to
 `replaced/` once, by `node scripts/replaced-records.mjs`, which writes
-every link to it again and gives it its last line, `Left at` the commit
-its text was last true of, where a path it names reads by `git show`
-[D282]; nothing moves it after [D237]. A record on the
+every link to it again, names under its title the commit its text was
+last true of, `Left at`, and writes each path it names as `git show` at
+that commit [D282]; nothing moves it after [D237]. A record on the
 axis of an earlier one merges into it: the earliest, written anew,
 holds what both decided, and the later gains the line `Merged into` it
 and moves to `replaced/` by `node scripts/merge-records.mjs`, which

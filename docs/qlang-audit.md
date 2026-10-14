@@ -459,7 +459,7 @@ a cell's stand in a session [D153]: what it declares bare is a name of
 every reader's scope, and what it declares with a path a node under a
 noun, so the verbs of the core, the command line's and the sister
 project's live under the kinds of their subjects and none lands among a
-client's own names [D72], [D80]. A kind a source declares bare reaches
+client's own names [D72]. A kind a source declares bare reaches
 every reader the same way, and the sister project's kinds, `JdtType`
 and its kin, and its refusals stand bare in the root.
 
@@ -1254,7 +1254,6 @@ those being decided.
 [D67]: decisions/D67.md
 [D71]: decisions/D71.md
 [D72]: decisions/D72.md
-[D80]: decisions/D80.md
 [D84]: decisions/D84.md
 [D88]: decisions/D88.md
 [D89]: decisions/D89.md

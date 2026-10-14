@@ -1,7 +1,7 @@
 // The implementations of the language by the address of the verb or the
-// kind each serves, `number/add`, `vec` [D157]: each runtime module binds
+// kind each serves, `number/add`, `vec` [D72]: each runtime module binds
 // its own as it loads, the bootstrap hands each source of the language
-// those under its noun as a host hands its own [D80], and seals the
+// those under its noun as a host hands its own [D72], and seals the
 // table.
 
 import { declareInvariantError } from './errors.mjs';
@@ -77,7 +77,7 @@ export function bindPrim(addresses, impl) {
 }
 
 // A primitive that reads the scope of its call takes the state of the
-// call after its values [D79]; every other primitive is a plain function
+// call after its values [D72]; every other primitive is a plain function
 // over the values of the inputs of the call [D251].
 const STATE_READERS = new WeakSet();
 

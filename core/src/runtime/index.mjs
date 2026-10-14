@@ -3,7 +3,7 @@
 // seeded before them.
 
 // Each module binds the implementations of the language's verbs and
-// kinds into PRIMITIVE_REGISTRY, by address, as it loads [D157].
+// kinds into PRIMITIVE_REGISTRY, by address, as it loads [D72].
 import './vec.mjs';
 import './map.mjs';
 import './setops.mjs';

@@ -1,5 +1,5 @@
 // The source the command line declares the root by beside the language's,
-// with the primitives of its verbs [D80], [D153].
+// with the primitives of its verbs [D72], [D153].
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

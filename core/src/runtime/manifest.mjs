@@ -1,6 +1,6 @@
 // `manifest` answers the nodes declared one name under a noun [D34],
 // `laws` the laws declared under a name and `runLaws` runs them, each
-// primitive reading the state of the call [D79]; the axes of one binding
+// primitive reading the state of the call [D72]; the axes of one binding
 // live in `axis.mjs`.
 
 import { bindStateReader } from '../primitives.mjs';

@@ -28,7 +28,7 @@
 {"decision":"D251","name":"an-input-that-reads-from-the-end-reads-the-last-object","query":":any/runAll (::fn | takes :steps |~~ The steps. ~~| /-1 [::quote] | impl ~(steps | count)) | 5 | get [~(runAll (get /nope) [~(1)] !| type) ~(runAll 7 [~(1)])]","expect":"[::path/SubjectNotProjectableError 1]"}
 {"decision":"D251","name":"an-input-of-each-element-keeps-a-set-a-set","query":":Box |~~ B ~~| | :Box/kindOf (::fn | takes :m |~~ M ~~| /0 [::number] | impl ~(m | type)) | ::Box[1] | get [~(kindOf #[1 2]) ~(kindOf [1 2])]","expect":"[::set ::vec]"}
 {"decision":"D251","name":"an-element-of-a-value-is-counted-from-zero","query":":Box |~~ B ~~| | :Box/m (::fn | takes :xs |~~ X ~~| /0 [::number] | impl ~(xs)) | ::Box[1] | m [1 \"a\"] !| get [~(type) /index]","expect":"[::Box/m/xs/ElementNotNumberError 1]"}
-{"decision":"D79","name":"the-subject-of-tag-alone-is-a-pair","query":"[[:foo 42] 5] | map ~(tag !| type)","expect":"[::any/tag/PairTagNotTagError ::any/tag/SubjectNotPairError]"}
+{"decision":"D72","name":"the-subject-of-tag-alone-is-a-pair","query":"[[:foo 42] 5] | map ~(tag !| type)","expect":"[::any/tag/PairTagNotTagError ::any/tag/SubjectNotPairError]"}
 {"decision":"D251","name":"an-input-of-each-element-hands-a-set-as-the-set-of-their-values","query":":Box |~~ B ~~| | :Box/kindOf (::fn | takes :m |~~ M ~~| /0 [::number] | impl ~(get [~(m | type) ~(m | map ~type)])) | ::Box[1] | get [~(kindOf #[::N#1 2]) ~(kindOf ::T#[1 2]) ~(kindOf [::N#1 2])]","expect":"[[::set [::number ::number]] [::set [::number ::number]] [::vec [::number ::number]]]"}
 {"decision":"D251","name":"an-input-of-each-element-hands-a-quote-and-a-doc-as-they-are","query":":Box |~~ B ~~| | :Box/kindOf (::fn | takes :m |~~ M ~~| /0 [::string] | impl ~(m | type)) | ::Box[1] | get [~(kindOf ~(\"a\")) ~(kindOf (|~~ a ~~|))]","expect":"[::quote ::doc]"}
 {"decision":"D251","name":"an-input-of-each-element-hands-a-quote-or-a-doc-under-a-tag-as-it-is","query":":Box |~~ B ~~| | :Box/kindOf (::fn | takes :m |~~ M ~~| /0 [::string] | impl ~(m | type)) | ::Box[1] | get [~(kindOf ::T~(\"a\")) ~(kindOf ::T|~~ a ~~|)]","expect":"[::quote ::doc]"}
@@ -48,8 +48,8 @@
 {"decision":"D61","name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
 {"decision":"D34","name":"manifest-of-a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true"}
 {"decision":"D34","name":"manifest-lives-on-tags","query":"::tag | manifest | has ::tag/manifest","expect":"true"}
-{"decision":"D157","name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | parse | contains \"::builtin{}\"","expect":"true"}
-{"decision":"D157","name":"an-addressed-built-in-answers-its-descriptor","query":"::vec/take | binding | get /value | get /1 | type","expect":"::builtin"}
+{"decision":"D72","name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | parse | contains \"::builtin{}\"","expect":"true"}
+{"decision":"D72","name":"an-addressed-built-in-answers-its-descriptor","query":"::vec/take | binding | get /value | get /1 | type","expect":"::builtin"}
 {"decision":"D119","name":"every-verb-of-the-core-has-a-doc","query":"kinds | map ~(manifest) | flat | every ~(doc | content | eq \"\" | not)","expect":"true"}
 {"decision":"D88","name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true"}
 {"decision":"D88","name":"an-axis-reads-the-input-a-member-holds-under-a-name","query":"::vec/take | binding :count | get /value | print","expect":"\"/0\""}

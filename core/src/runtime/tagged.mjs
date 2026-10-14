@@ -122,7 +122,7 @@ bindPrim('tagged/payload', subject => payloadOf(subject));
 bindPrim('tagged/within', runs(['code'], async (subject, code) => await code(payloadOf(subject))));
 
 // `tag` resides on `::any` and reads the state of its call, whose
-// scope holds the constructor of the tag [D79]: `value | tag ::Foo` lays
+// scope holds the constructor of the tag [D72]: `value | tag ::Foo` lays
 // the tag over the subject, and `[::Foo value] | tag` over the second
 // element of the pair it takes apart.
 async function mintPair(pair, state) {

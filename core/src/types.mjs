@@ -327,7 +327,7 @@ export function isBuiltinDescriptor(v) {
 // A name under a label a host's source declared, which alone reaches a
 // primitive [D34], with the implementation the host handed beside that
 // source, a plain function over the values of the inputs of the call
-// [D4], [D80].
+// [D4], [D72].
 const HOST_IMPLS = new WeakMap();
 
 export function isHostDeclared(value) {

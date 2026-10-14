@@ -106,7 +106,7 @@ function memberRefusalOf(env, memberName) {
 // The record the subject names in the scope of the call, or the member
 // it holds under a name, or the refusal of the axis that read it; each
 // axis resides on `::any`, and its primitive reads the state of
-// the call [D79].
+// the call [D72].
 export function recordReadBy(subject, memberName, state, NotFoundError) {
   if (!isNull(memberName)) {
     const member = memberRecordOf(state.env, subject, memberName.name);

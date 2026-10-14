@@ -1,6 +1,6 @@
 // The primitive of `table`, the renderer of the command line, a name its
 // source declares under `::vec` [D153] and a plain function over the
-// vector the walk served [D80], [D167].
+// vector the walk served [D72], [D167].
 
 import { printValue } from '@kaluchi/qlang-core';
 import { declareRefusal } from '@kaluchi/qlang-core/errors';

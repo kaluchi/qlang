@@ -81,7 +81,7 @@ async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
 // A primitive runs over the value the walk served and the values of the
 // inputs of the call, a reader of the scope over the state of the call
 // after them, its scope the tree of the query, wherever it is
-// called [D79], [D200], and a reader of the tags its subject stood
+// called [D72], [D200], and a reader of the tags its subject stood
 // beneath over the tags the walk passed [D13].
 export function runPrimitive(primitive, served, passedTags, inputValues, state) {
   if (readsState(primitive)) return primitive(served, ...inputValues, queryStateOf(state));

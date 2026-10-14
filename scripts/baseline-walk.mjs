@@ -1,4 +1,4 @@
-// The walk of the audit's baseline [D225], [D226], [D227], read once for
+// The walk of the audit's baseline [D225], [D227], read once for
 // the conventions, which fail on what it finds, and for the screen of the
 // work, which shows it. The audit is held against a commit, its
 // baseline. A record of the language that the baseline's tree holds is

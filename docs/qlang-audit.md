@@ -25,7 +25,7 @@ the commit that wrote each tells why.
 A draft of the session entrypoint, the computed context a session
 starts from, lives in `docs/qlang-entrypoint.md`, ideas and no
 decision; what the process took from it stands in the records, the
-screen of the work a session runs first, `npm run desk` [D226], and
+screen of the work a session runs first, `npm run desk` [D225], and
 the sensors [D231]. This document treats the language and the work on
 it; that one treats the environment the work happens in.
 
@@ -64,7 +64,7 @@ in “…” beside their anchor, so a script holds the first against the
 transcripts and a grep the second against the tree. A record in force
 says only what holds, a newer record pruning the part of an older one
 it takes [D227], and the walk of each new baseline gives every record of
-the language a case or a fate [D225], [D226]; the baseline moves at the
+the language a case or a fate [D225]; the baseline moves at the
 end of every shift that wrote records, before an outside audit and when
 a branch lands on master [D227], and the code, the tests, the cases and
 this document cite the records in force.
@@ -1101,7 +1101,7 @@ two forms of a place read by their form [D274], and the refusal of
 another noun's tag declared by hand in the builders [D275]; and the word
 for what a command takes is chosen once [D276]. Beside both, the
 editor's grammar is generated or reduced, and the
-screen of the work, whose first version `npm run desk` prints [D226],
+screen of the work, whose first version `npm run desk` prints [D225],
 grows from the draft of the entrypoint document [D231].
 
 Its answers are the targets of [D46], [D152], [D153], [D168], [D169],
@@ -1312,7 +1312,6 @@ those being decided.
 [D223]: decisions/D223.md
 [D224]: decisions/D224.md
 [D225]: decisions/D225.md
-[D226]: decisions/D226.md
 [D227]: decisions/D227.md
 [D228]: decisions/D228.md
 [D231]: decisions/D231.md

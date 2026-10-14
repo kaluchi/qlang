@@ -5,7 +5,7 @@ starts from: the command that computes the state of the work and
 delivers it, the points of the agent loop where it runs, the sensors
 it reads, and the records it keeps. It holds ideas and no decision:
 what the process took from it stands in the decision records, the
-screen of the work in `npm run desk` [D226] and the sensors under
+screen of the work in `npm run desk` [D225] and the sensors under
 `scripts/sensors/` [D231]. It was written
 down so that the agreements of 23 September 2026 survive into the
 discussion the maintainer wants to have next, «я лично ещё хотел бы
@@ -745,5 +745,5 @@ entrypoint's first screen has to say how to ask.
 [D161]: decisions/D161.md
 [D162]: decisions/D162.md
 [D169]: decisions/D169.md
-[D226]: decisions/D226.md
+[D225]: decisions/D225.md
 [D231]: decisions/D231.md

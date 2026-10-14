@@ -55,7 +55,7 @@
 //       fate, no more than a working day of records waits for the next
 //       walk, and the code, the tests and the cases cite the records in
 //       force, the documents that hold the work those in force or
-//       waiting on a target [D225], [D226].
+//       waiting on a target [D225].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -417,7 +417,7 @@ function misplacedRecords() {
 // the line of its fate, and the records written since wait for the walk
 // no longer than a working day of them; the code, the tests and the
 // cases cite the records in force, and the documents that hold the work
-// those in force or waiting on a target [D225], [D226].
+// those in force or waiting on a target [D225].
 
 function baselineDrift() {
   return walkOfBaseline(repoRoot).violations;
@@ -597,6 +597,6 @@ if (outOfStep.length > 0) {
 if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);
   for (const v of unwalked) process.stdout.write(`  ${v.where}  ${v.problem}\n`);
-  process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [D225], [D226].\n');
+  process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [D225].\n');
 }
 process.exit(1);

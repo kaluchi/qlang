@@ -22,7 +22,7 @@ wins and this file is what changes.
    machine.
 2. `npm run desk`, the screen of the work: the branch against master,
    the walk of the audit's baseline, the targets open, the stashes and
-   the sister project's branch [D226]. Then `npm test` at the repo root,
+   the sister project's branch [D237]. Then `npm test` at the repo root,
    in the background while reading. The git snapshot the harness
    injects at the start of a session goes stale; the screen you run is
    the truth.
@@ -33,7 +33,7 @@ wins and this file is what changes.
    cases of the conformance suite. A decision that survives only in a
    conversation is lost. Then walk the baseline: every record no case
    names gets its fate, the audit moves to the tree the session leaves,
-   and the next shift starts at a clean desk [D226].
+   and the next shift starts at a clean desk [D225].
 
 After a compaction the summary is a map and no source: reread Tier 1
 whole, and the conversation from its transcript,
@@ -166,7 +166,7 @@ longer holds, and on the walk of a baseline: a record of the language
 the audit's baseline holds that no case and no line of its fate does,
 more than twenty records since the baseline, and a citation of a record
 not in force, which the code, the tests and the cases never make and the
-documents make only of one waiting on its target [D226]. `npm run check:probes` runs every probe of the audit and the
+documents make only of one waiting on its target [D225]. `npm run check:probes` runs every probe of the audit and the
 entrypoint document, the shell ones that read the repository alone
 included, and fails on one whose answer changed, which the branch that
 changed it answers by rewriting the sentence with its probe [D93]; a

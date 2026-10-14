@@ -616,7 +616,7 @@ QuoteChar
 
 // A doc value, in a line form and a block form, read as its segments: a
 // `~(…)` that reads as code is a quote, a span between backquotes is
-// prose whole, and the rest is prose [D19], [D43]; a line doc's quote
+// prose whole, and the rest is prose [D4], [D19]; a line doc's quote
 // stays on its line. The printer writes the block form. A parse error
 // names its opening `doc` among the continuations, where its markers
 // would read as a comment's [D7].

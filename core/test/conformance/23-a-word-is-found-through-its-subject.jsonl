@@ -47,9 +47,9 @@
 {"decision":"D5","name":"a-verb-names-its-subject-by-a-freeze","query":":any/pair ~(:self it | get [~(self) ~(self)]) | 5 | pair","expect":"[5 5]"}
 {"decision":"D5","name":"a-recipe-names-its-subject-before-a-step","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:self it | mul k | add self)) | 5 | scale 2","expect":"15"}
 {"decision":"D71","name":"a-recipe-shadows-a-name-of-its-scope","query":":n 1 | :any/f (::fn | takes :n |~~ The n. ~~| ~(query /0 2) ::number | impl ~(n)) | null | get [~(f) ~(n)]","expect":"[2 1]"}
-{"decision":"D12","name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (add 1) (mul 2)","expect":"[6 10]"}
-{"decision":"D12","name":"a-modifier-sees-no-name-another-declared","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (:y 1 | y) y !| type","expect":"::call/UnknownNameError"}
-{"decision":"D12","name":"a-modifier-of-a-built-in-forks-against-the-subject","query":"10 | add (sub 3)","expect":"17"}
+{"decision":"D4","name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (add 1) (mul 2)","expect":"[6 10]"}
+{"decision":"D4","name":"a-modifier-sees-no-name-another-declared","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (:y 1 | y) y !| type","expect":"::call/UnknownNameError"}
+{"decision":"D4","name":"a-modifier-of-a-built-in-forks-against-the-subject","query":"10 | add (sub 3)","expect":"17"}
 {"decision":"D34","name":"a-name-under-a-kind-serves-its-values-and-refuses-another-subject","query":"get [~(5 | add 1) ~(\"x\" | add 1 !| type)]","expect":"[6 ::number/add/SubjectNotNumberError]"}
 {"decision":"D46","name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}
 {"decision":"D251","name":"the-node-of-an-input-holds-its-place","query":"::number/add/addend | binding | get /value","expect":"/0"}
@@ -83,10 +83,10 @@
 {"decision":"D72","name":"a-set-is-a-vector-to-a-verb-of-vectors","query":"#[1 2] | vec/count","expect":"2"}
 {"decision":"D34","name":"a-builtin-step-in-a-declared-verb-is-a-step","query":":any/c ~(::builtin{}) | 42 | c | type","expect":"::builtin"}
 {"decision":"D34","name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | :c it | get [1 2 3] | c | type","expect":"::builtin"}
-{"decision":"D43","name":"an-input-of-code-closes-over-its-call","query":":k :b | [{:b 2} {:b 1}] | sort ~(query k)","expect":"[{:b 1} {:b 2}]"}
+{"decision":"D4","name":"an-input-of-code-closes-over-its-call","query":":k :b | [{:b 2} {:b 1}] | sort ~(query k)","expect":"[{:b 1} {:b 2}]"}
 {"decision":"D34","name":"an-address-reaches-a-word-not-moved-onto-its-noun","query":"\"x\" | any/type","expect":"::string"}
 {"decision":"D34","name":"a-tag-over-a-name-passes-to-manifest","query":"::Box::vec | manifest | type","expect":"::set"}
-{"decision":"D43","name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
+{"decision":"D4","name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
 {"decision":"D41","name":"append-keeps-the-tag-of-its-vector","query":"::Box[1 2] | append 3","expect":"::Box[1 2 3]"}
 {"decision":"D41","name":"append-runs-the-constructor-of-its-tag-again","query":":P |~~ P. ~~| (::kind | holds :TooLongError |~~ Three at most. ~~| ~(count | lte 3)) | ::P[1 2] | get [~(append 3 | type) ~(append 3 | append 4 !| type)]","expect":"[::P ::P/TooLongError]"}
 {"decision":"D41","name":"a-tag-over-a-string-comes-back-on-append","query":"::Box\"ab\" | append \"c\"","expect":"::Box\"abc\""}
@@ -122,7 +122,7 @@
 {"decision":"D34","name":"a-set-is-a-tagged-value-to-payload","query":"#[2 1] | payload","expect":"[1 2]"}
 {"decision":"D41","name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box"}
 {"decision":"D34","name":"a-number-is-no-tagged-value","query":"1 | payload !| type","expect":"::tagged/payload/SubjectNotTaggedError"}
-{"decision":"D43","name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/NotFnOrPathOrQuoteError"}
+{"decision":"D4","name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/NotFnOrPathOrQuoteError"}
 {"decision":"D160","name":"env-answers-a-map","query":"env | type","expect":"::map"}
 {"decision":"D79","name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | get /value","expect":"10"}
 {"decision":"D79","name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}

@@ -1246,7 +1246,6 @@ those being decided.
 [D39]: decisions/D39.md
 [D41]: decisions/D41.md
 [D42]: decisions/D42.md
-[D43]: decisions/D43.md
 [D46]: decisions/D46.md
 [D50]: decisions/D50.md
 [D51]: decisions/D51.md

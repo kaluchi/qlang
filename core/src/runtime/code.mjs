@@ -1,6 +1,6 @@
 // The primitives of code as a value: `parse`, which reads source text
 // into a quote and prints a quote as its text, `apply`, which runs a
-// quote or a path against the subject [D43], [D72], and a function with a
+// quote or a path against the subject [D4], [D72], and a function with a
 // vector of arguments, as a call holds its objects [D251], and `open`, which
 // runs the query a quote holds as held code, in a lane of its own [D111],
 // [D108], [D278].

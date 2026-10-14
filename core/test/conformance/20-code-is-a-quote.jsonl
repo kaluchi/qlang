@@ -40,7 +40,7 @@
 {"decision":"D8","name":"quote-with-pipe-operator","query":"~(a | b) | parse","expect":"\"a | b\""}
 {"decision":"D8","name":"quote-with-leading-combinator-trail-style","query":"~(!| 0 | sort) | parse","expect":"\"!| 0 | sort\""}
 {"decision":"D8","name":"quote-parse-twice-is-identity","query":"~(mul 2) | parse | parse","expect":"~(mul 2)"}
-{"decision":"D43","name":"a-short-quote-is-the-quote-of-its-word","query":"~add","expect":"~(add)"}
+{"decision":"D4","name":"a-short-quote-is-the-quote-of-its-word","query":"~add","expect":"~(add)"}
 {"decision":"D193","name":"a-quote-of-declarations-prints-a-declaration-a-line","query":"~(:a 1 | :b 2) | parse","expect":"\":a 1\n| :b 2\""}
 {"decision":"D193","name":"a-quote-of-other-steps-prints-on-one-line","query":"~(:a 1 | a) | parse","expect":"\":a 1 | a\""}
 {"decision":"D193","name":"a-story-printed-reads-back-as-itself","query":"::number | source | print | parse | first | eq (::number | source)","expect":"true"}
@@ -60,23 +60,23 @@
 {"decision":"D8","name":"parse-is-an-involution","query":"\"5 |  mul   2\" | parse | parse","expect":"\"5 | mul 2\""}
 {"decision":"D81","name":"parse-blank-source-is-the-empty-quote","query":"\" \" | parse","expect":"~()"}
 {"decision":"D125","name":"parse-refuses-a-malformed-source","query":"\"this is bad [\" | parse !| type","expect":"::quote/ParseError"}
-{"decision":"D9","name":"apply-parsed-number-literal","query":"\"42\" | parse | apply it","expect":"42"}
-{"decision":"D9","name":"apply-parsed-string-literal","query":"\"\\\"hello\\\"\" | parse | apply it","expect":"\"hello\""}
-{"decision":"D9","name":"apply-parsed-keyword-literal","query":"\":foo\" | parse | apply it","expect":":foo"}
-{"decision":"D9","name":"apply-parsed-vec-literal","query":"\"[1 2 3]\" | parse | apply it","expect":"[1 2 3]"}
-{"decision":"D9","name":"apply-parsed-map-literal","query":"\"{:a 1 :b 2}\" | parse | apply it","expect":"{:a 1 :b 2}"}
-{"decision":"D9","name":"apply-parsed-set-literal","query":"\"#[1 2 3]\" | parse | apply it","expect":"#[1 2 3]"}
-{"decision":"D9","name":"apply-parsed-arithmetic-pipeline","query":"\"10 | add 5\" | parse | apply it","expect":"15"}
-{"decision":"D9","name":"apply-parsed-vec-reducer","query":"\"[1 2 3 4 5] | filter ~(gt 2) | count\" | parse | apply it","expect":"3"}
-{"decision":"D9","name":"apply-parsed-path","query":"\"{:name \\\"alice\\\" :age 30} | get /name\" | parse | apply it","expect":"\"alice\""}
-{"decision":"D9","name":"apply-parsed-map","query":"\"[1 2 3] | map ~(add 10)\" | parse | apply it","expect":"[11 12 13]"}
-{"decision":"D9","name":"apply-parsed-fail-track","query":"\"\\\"hello\\\" | add 1 !| type\" | parse | apply it","expect":"::number/add/SubjectNotNumberError"}
-{"decision":"D9","name":"apply-code-not-quote","query":"42 | apply it","expect":"::any/apply/code/NotFnOrPathOrQuoteError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(apply it)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D9","name":"apply-quote-against-the-subject","query":"5 | apply ~(mul 2)","expect":"10"}
-{"decision":"D9","name":"apply-code-type-refusal","query":"42 | apply 1 !| get [~(type) /actualType]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::number]"}
-{"decision":"D9","name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::call/UnknownNameError"}
+{"decision":"D4","name":"apply-parsed-number-literal","query":"\"42\" | parse | apply it","expect":"42"}
+{"decision":"D4","name":"apply-parsed-string-literal","query":"\"\\\"hello\\\"\" | parse | apply it","expect":"\"hello\""}
+{"decision":"D4","name":"apply-parsed-keyword-literal","query":"\":foo\" | parse | apply it","expect":":foo"}
+{"decision":"D4","name":"apply-parsed-vec-literal","query":"\"[1 2 3]\" | parse | apply it","expect":"[1 2 3]"}
+{"decision":"D4","name":"apply-parsed-map-literal","query":"\"{:a 1 :b 2}\" | parse | apply it","expect":"{:a 1 :b 2}"}
+{"decision":"D4","name":"apply-parsed-set-literal","query":"\"#[1 2 3]\" | parse | apply it","expect":"#[1 2 3]"}
+{"decision":"D4","name":"apply-parsed-arithmetic-pipeline","query":"\"10 | add 5\" | parse | apply it","expect":"15"}
+{"decision":"D4","name":"apply-parsed-vec-reducer","query":"\"[1 2 3 4 5] | filter ~(gt 2) | count\" | parse | apply it","expect":"3"}
+{"decision":"D4","name":"apply-parsed-path","query":"\"{:name \\\"alice\\\" :age 30} | get /name\" | parse | apply it","expect":"\"alice\""}
+{"decision":"D4","name":"apply-parsed-map","query":"\"[1 2 3] | map ~(add 10)\" | parse | apply it","expect":"[11 12 13]"}
+{"decision":"D4","name":"apply-parsed-fail-track","query":"\"\\\"hello\\\" | add 1 !| type\" | parse | apply it","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D4","name":"apply-code-not-quote","query":"42 | apply it","expect":"::any/apply/code/NotFnOrPathOrQuoteError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(apply it)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D4","name":"apply-quote-against-the-subject","query":"5 | apply ~(mul 2)","expect":"10"}
+{"decision":"D4","name":"apply-code-type-refusal","query":"42 | apply 1 !| get [~(type) /actualType]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::number]"}
+{"decision":"D4","name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::call/UnknownNameError"}
 {"decision":"D129","name":"apply-code-that-fails-is-refused-by-its-input","query":"5 | apply (get /nope) !| get [~(type) /actualType]","expect":"[::any/apply/code/NotFnOrPathOrQuoteError ::path/SubjectNotProjectableError]"}
-{"decision":"D9","name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12"}
+{"decision":"D4","name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12"}
 {"decision":"D5","name":"a-named-quote-is-a-value-apply-runs","query":":q ~(add 1) | 5 | apply q","expect":"6"}
 {"decision":"D67","name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)"}
 {"decision":"D129","name":"a-step-without-its-quote-is-refused-by-the-input-of-code","query":"[{:a true}] | filter (get /a) !| get [~(type) /actualType]","expect":"[::vec/filter/predicate/NotPathOrQuoteError ::path/IndexNotIntegerError]"}

@@ -36,8 +36,8 @@
 {"decision":"D123","name":"runExamples-passes-an-example-that-answers-true","query":":x 1 | :x/holds ::law~(true) | ::x | runLaws | first | get /ok","expect":"true"}
 {"decision":"D14","name":"when-left-the-catalog","query":"5 | when true ~(1) !| type","expect":"::call/UnknownNameError"}
 {"decision":"D14","name":"a-predicate-may-name-a-word","query":"[true false] | filter ~(not)","expect":"[false]"}
-{"decision":"D43","name":"if-runs-then-when-the-condition-holds","query":"75 | if (gte 60) ~(\"pass\") ~(\"fail\")","expect":"\"pass\""}
-{"decision":"D43","name":"if-runs-else-when-the-condition-fails","query":"5 | if (gte 60) ~(\"pass\") ~(\"fail\")","expect":"\"fail\""}
+{"decision":"D4","name":"if-runs-then-when-the-condition-holds","query":"75 | if (gte 60) ~(\"pass\") ~(\"fail\")","expect":"\"pass\""}
+{"decision":"D4","name":"if-runs-else-when-the-condition-fails","query":"5 | if (gte 60) ~(\"pass\") ~(\"fail\")","expect":"\"fail\""}
 {"decision":"D14","name":"if-takes-true","query":"42 | if true ~(\"yes\") ~(\"no\")","expect":"\"yes\""}
 {"decision":"D14","name":"if-takes-false","query":"42 | if false ~(\"yes\") ~(\"no\")","expect":"\"no\""}
 {"decision":"D14","name":"a-null-condition-is-refused","query":"{:no \"data\"} | if null ~(\"yes\") ~(\"no\") !| get [~(type) /actualType]","expect":"[::any/if/condition/NotBooleanError ::null]"}
@@ -48,40 +48,40 @@
 {"decision":"D197","name":"cond-using-and","query":"{:active true :verified true} | if (allOf (get /active) (get /verified)) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
 {"decision":"D197","name":"cond-using-or","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
 {"decision":"D14","name":"if-takes-a-condition-turned-by-not","query":"true | if not ~(\"truthy\") ~(\"falsy\")","expect":"\"falsy\""}
-{"decision":"D43","name":"then-uses-pipevalue-via-path","query":"{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"110"}
+{"decision":"D4","name":"then-uses-pipevalue-via-path","query":"{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"110"}
 {"decision":"D248","name":"else-uses-pipevalue-via-path","query":"{:active false :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"100"}
-{"decision":"D43","name":"then-arithmetic","query":"10 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"20"}
-{"decision":"D43","name":"else-arithmetic","query":"3 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"0"}
-{"decision":"D43","name":"then-literal-string","query":"1 | if true ~(\"hello\") ~(\"goodbye\")","expect":"\"hello\""}
-{"decision":"D43","name":"else-literal-string","query":"1 | if false ~(\"hello\") ~(\"goodbye\")","expect":"\"goodbye\""}
-{"decision":"D43","name":"if-runs-no-else-when-the-condition-holds","query":"10 | if (gt 0) ~(\"positive\") ~(div 0)","expect":"\"positive\""}
-{"decision":"D43","name":"if-runs-no-then-when-the-condition-fails","query":"10 | if (lt 0) ~(div 0) ~(\"non-negative\")","expect":"\"non-negative\""}
-{"decision":"D43","name":"nested-if-three-way","query":"75 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\"))","expect":"\"B\""}
-{"decision":"D43","name":"nested-if-A-grade","query":"95 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\"))","expect":"\"A\""}
-{"decision":"D43","name":"nested-if-C-grade","query":"55 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\"))","expect":"\"C\""}
-{"decision":"D43","name":"if-under-map-numbers","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(\"big\") ~(\"small\"))","expect":"[\"small\" \"small\" \"big\" \"big\" \"big\"]"}
-{"decision":"D43","name":"if-under-map-doubles-some","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(mul 10) ~(add 0))","expect":"[1 2 30 40 50]"}
-{"decision":"D43","name":"if-answers-a-boolean-filter-reads","query":"[1 2 3 4] | filter ~(if (gt 2) ~(true) ~(false))","expect":"[3 4]"}
+{"decision":"D4","name":"then-arithmetic","query":"10 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"20"}
+{"decision":"D4","name":"else-arithmetic","query":"3 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"0"}
+{"decision":"D4","name":"then-literal-string","query":"1 | if true ~(\"hello\") ~(\"goodbye\")","expect":"\"hello\""}
+{"decision":"D4","name":"else-literal-string","query":"1 | if false ~(\"hello\") ~(\"goodbye\")","expect":"\"goodbye\""}
+{"decision":"D4","name":"if-runs-no-else-when-the-condition-holds","query":"10 | if (gt 0) ~(\"positive\") ~(div 0)","expect":"\"positive\""}
+{"decision":"D4","name":"if-runs-no-then-when-the-condition-fails","query":"10 | if (lt 0) ~(div 0) ~(\"non-negative\")","expect":"\"non-negative\""}
+{"decision":"D4","name":"nested-if-three-way","query":"75 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\"))","expect":"\"B\""}
+{"decision":"D4","name":"nested-if-A-grade","query":"95 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\"))","expect":"\"A\""}
+{"decision":"D4","name":"nested-if-C-grade","query":"55 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\"))","expect":"\"C\""}
+{"decision":"D4","name":"if-under-map-numbers","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(\"big\") ~(\"small\"))","expect":"[\"small\" \"small\" \"big\" \"big\" \"big\"]"}
+{"decision":"D4","name":"if-under-map-doubles-some","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(mul 10) ~(add 0))","expect":"[1 2 30 40 50]"}
+{"decision":"D4","name":"if-answers-a-boolean-filter-reads","query":"[1 2 3 4] | filter ~(if (gt 2) ~(true) ~(false))","expect":"[3 4]"}
 {"decision":"D279","name":"if-inside-a-template","query":"[{:n 5} {:n 15}] | map ~(get {:value /n :tier ~(if (get /n | gt 10) ~(\"high\") ~(\"low\"))})","expect":"[{:value 5 :tier \"low\"} {:value 15 :tier \"high\"}]"}
-{"decision":"D43","name":"if-with-coalesce","query":"{:role :admin :name \"Bob\"} | if (get /role | eq :admin) ~(coalesce /displayName /name ~(\"???\")) ~(\"guest\")","expect":"\"Bob\""}
-{"decision":"D43","name":"if-cond-on-eq-keyword","query":"{:status :ok} | if (get /status | eq :ok) ~(200) ~(500)","expect":"200"}
-{"decision":"D43","name":"if-cond-on-eq-keyword-failing","query":"{:status :error} | if (get /status | eq :ok) ~(200) ~(500)","expect":"500"}
-{"decision":"D43","name":"if-with-deeply-nested-cond","query":"{:a {:b {:c true}}} | if (get /a/b/c) ~(\"deep-yes\") ~(\"deep-no\")","expect":"\"deep-yes\""}
-{"decision":"D43","name":"first-pair-matches","query":"5 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"\"five\""}
-{"decision":"D43","name":"second-pair-matches","query":"6 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"\"six\""}
-{"decision":"D43","name":"no-pair-matches-no-default-yields-null","query":"7 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"null"}
-{"decision":"D43","name":"no-pair-matches-with-default-yields-default","query":"7 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\") ~(\"other\")","expect":"\"other\""}
-{"decision":"D43","name":"first-pair-default-skipped","query":"5 | cond ~(eq 5) ~(\"five\") ~(\"other\")","expect":"\"five\""}
-{"decision":"D43","name":"default-only-fires-when-no-predicates-match","query":"0 | cond ~(gt 10) ~(\"big\") ~(gt 5) ~(\"medium\") ~(\"small\")","expect":"\"small\""}
-{"decision":"D43","name":"cond-grade-letters","query":"75 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"C\""}
-{"decision":"D43","name":"cond-grade-letters-fail","query":"55 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"F\""}
-{"decision":"D43","name":"cond-grade-letters-top","query":"95 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"A\""}
-{"decision":"D43","name":"cond-only-evaluates-matching-branch","query":"5 | cond ~(eq 5) ~(\"safe\") ~(\"never\" | div 0)","expect":"\"safe\""}
-{"decision":"D43","name":"cond-with-path-predicate","query":"{:role :admin :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"150"}
+{"decision":"D4","name":"if-with-coalesce","query":"{:role :admin :name \"Bob\"} | if (get /role | eq :admin) ~(coalesce /displayName /name ~(\"???\")) ~(\"guest\")","expect":"\"Bob\""}
+{"decision":"D4","name":"if-cond-on-eq-keyword","query":"{:status :ok} | if (get /status | eq :ok) ~(200) ~(500)","expect":"200"}
+{"decision":"D4","name":"if-cond-on-eq-keyword-failing","query":"{:status :error} | if (get /status | eq :ok) ~(200) ~(500)","expect":"500"}
+{"decision":"D4","name":"if-with-deeply-nested-cond","query":"{:a {:b {:c true}}} | if (get /a/b/c) ~(\"deep-yes\") ~(\"deep-no\")","expect":"\"deep-yes\""}
+{"decision":"D4","name":"first-pair-matches","query":"5 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"\"five\""}
+{"decision":"D4","name":"second-pair-matches","query":"6 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"\"six\""}
+{"decision":"D4","name":"no-pair-matches-no-default-yields-null","query":"7 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"null"}
+{"decision":"D4","name":"no-pair-matches-with-default-yields-default","query":"7 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\") ~(\"other\")","expect":"\"other\""}
+{"decision":"D4","name":"first-pair-default-skipped","query":"5 | cond ~(eq 5) ~(\"five\") ~(\"other\")","expect":"\"five\""}
+{"decision":"D4","name":"default-only-fires-when-no-predicates-match","query":"0 | cond ~(gt 10) ~(\"big\") ~(gt 5) ~(\"medium\") ~(\"small\")","expect":"\"small\""}
+{"decision":"D4","name":"cond-grade-letters","query":"75 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"C\""}
+{"decision":"D4","name":"cond-grade-letters-fail","query":"55 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"F\""}
+{"decision":"D4","name":"cond-grade-letters-top","query":"95 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"A\""}
+{"decision":"D4","name":"cond-only-evaluates-matching-branch","query":"5 | cond ~(eq 5) ~(\"safe\") ~(\"never\" | div 0)","expect":"\"safe\""}
+{"decision":"D4","name":"cond-with-path-predicate","query":"{:role :admin :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"150"}
 {"decision":"D248","name":"cond-with-path-default","query":"{:role :user :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"100"}
 {"decision":"D164","name":"cond-with-no-clauses-is-refused","query":"5 | cond","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualType ::any/cond\n  :actualValue ::any/cond[]\n  :trail [\n    {\n      :step ~(cond)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D43","name":"cond-with-one-clause-is-refused","query":"5 | cond ~(eq 5)","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualType ::any/cond\n  :actualValue ::any/cond[~(eq 5)]\n  :trail [\n    {\n      :step ~(cond ~(eq 5))\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D43","name":"cond-replaces-nested-if-equivalence","query":"75 | cond ~(gte 90) ~(\"A\") ~(gte 70) ~(\"B\") ~(\"C\") | eq (75 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\")))","expect":"true"}
+{"decision":"D4","name":"cond-with-one-clause-is-refused","query":"5 | cond ~(eq 5)","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualType ::any/cond\n  :actualValue ::any/cond[~(eq 5)]\n  :trail [\n    {\n      :step ~(cond ~(eq 5))\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D4","name":"cond-replaces-nested-if-equivalence","query":"75 | cond ~(gte 90) ~(\"A\") ~(gte 70) ~(\"B\") ~(\"C\") | eq (75 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\")))","expect":"true"}
 {"decision":"D22","name":"at-least-one-satisfies","query":"[1 2 3] | any ~(gt 2)","expect":"true"}
 {"decision":"D22","name":"none-satisfy","query":"[1 2 3] | any ~(gt 99)","expect":"false"}
 {"decision":"D22","name":"first-element-satisfies","query":"[5 1 2] | any ~(gt 2)","expect":"true"}
@@ -89,7 +89,7 @@
 {"decision":"D22","name":"vacuously-false-on-empty-with-arbitrary-pred","query":"[] | any ~(eq 99)","expect":"false"}
 {"decision":"D248","name":"any-with-path","query":"[{:active false} {:active true}] | any /active","expect":"true"}
 {"decision":"D248","name":"any-with-path-none","query":"[{:active false} {:active false}] | any /active","expect":"false"}
-{"decision":"D43","name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
+{"decision":"D4","name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
 {"decision":"D168","name":"any-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(any ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D22","name":"any-short-circuits","query":"[1 2 99] | any ~(gt 50)","expect":"true"}
 {"decision":"D22","name":"any-as-filter-equivalence","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
@@ -161,7 +161,7 @@
 {"decision":"D164","name":"coalesce-with-no-alternative-is-refused","query":"{} | coalesce","expect":"::any/coalesce/alternatives/EmptyError!{\n  :actualType ::any/coalesce\n  :actualValue ::any/coalesce[]\n  :trail [\n    {\n      :step ~(coalesce)\n      :subject {}\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D133","name":"with-path-chain","query":"{:user {:name \"Alice\"}} | coalesce /admin /user/name ~(\"Unknown\")","expect":"\"Alice\""}
 {"decision":"D133","name":"cascade-from-deepest","query":"{:a {:b {:c 42}}} | coalesce /a/b/c /a/b /a ~(0)","expect":"42"}
-{"decision":"D43","name":"if-and-coalesce-combined","query":"{:active true :name \"Bob\"} | if (get /active) ~(coalesce /preferredName /name ~(\"???\")) ~(\"inactive\")","expect":"\"Bob\""}
+{"decision":"D4","name":"if-and-coalesce-combined","query":"{:active true :name \"Bob\"} | if (get /active) ~(coalesce /preferredName /name ~(\"???\")) ~(\"inactive\")","expect":"\"Bob\""}
 {"decision":"D13","name":"coalesce-passes-a-missing-field-to-the-next-alternative","query":"{:a 1} | coalesce /b /a","expect":"1"}
 {"decision":"D133","name":"coalesce-of-values-reads-the-subject-first","query":"[{:t 45} {:t null} {}] | map ~(query /t | coalesce 30)","expect":"[45 30 30]"}
 {"decision":"D133","name":"coalesce-keeps-a-subject-that-is-a-value","query":"[1] | coalesce []","expect":"[1]"}

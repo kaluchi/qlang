@@ -64,7 +64,7 @@ function dedent(text) {
 
 // The contents of the page at an address, `::vec/count`, once per
 // address; a word's is read at the address the tool shows for it, so its
-// signature and its page name one word [D169].
+// signature and its page name one word [D168].
 const docsCache = new Map();
 async function pageContents(address) {
   if (docsCache.has(address)) return docsCache.get(address);
@@ -83,7 +83,7 @@ async function pageContents(address) {
 const signatureOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
 
 // The kinds of the subject of the step that starts at an offset, where the
-// steps before it name them, or null [D169].
+// steps before it name them, or null [D168].
 async function subjectKindsAt(source, offset) {
   return (await subjectAt(source, offset))?.kinds ?? null;
 }
@@ -136,7 +136,7 @@ export function buildCatalogIndex(catalogAst) {
 
 // The catalog's declaration of what a name reaches with no subject [D34],
 // [D153]: the one word of the name, or of a word several kinds answer the
-// first the catalog declares [D169]; for an address the node it names.
+// first the catalog declares [D168]; for an address the node it names.
 function catalogDeclarationOf({ index, runtime }, name) {
   const reach = bareNameReach(runtime, name);
   if (reach !== null) return index.get(reach.record.get('name').name) ?? null;
@@ -280,7 +280,7 @@ function stepsOf(pipelineNode) {
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, and
 // a name's the kinds its `returns` names, the subject's own where that is
-// the word's own label [D169], [D251]; null where a step answers no
+// the word's own label [D168], [D251]; null where a step answers no
 // declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;

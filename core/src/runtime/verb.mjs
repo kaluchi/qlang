@@ -22,13 +22,13 @@ export async function mintUnderTag(state, tag, value) {
 }
 
 // A call no kind of whose subject answers its word names what the reader
-// needs: where the word lives [D146], [D169].
+// needs: where the word lives [D146], [D168].
 export const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
 
 // ── kinds ──────────────────────────────────────────────────────
 
 // A vector, a set and a quote are read as vectors and a tagged map as a
-// map; a number is a finite double [D169].
+// map; a number is a finite double [D168].
 function isOfKind(value, kindName) {
   switch (kindName) {
     case ANY_KIND_NAME: return true;
@@ -64,7 +64,7 @@ async function underTags(value, tags, state) {
 
 // The answer of the subject's own kind, minted by its constructor, a
 // set's, a tag's or a quote's among them, under the tags the walk passed
-// [D41], [D169], and at once where it is of the kind and the walk passed
+// [D41], [D168], and at once where it is of the kind and the walk passed
 // no tag.
 export function keptAsSubject(answer, served, passedTags, state) {
   const ownKind = typeKeyword(served).name;

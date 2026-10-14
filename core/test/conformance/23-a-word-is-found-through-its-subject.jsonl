@@ -10,7 +10,7 @@
 {"decision":"D251","name":"an-input-of-the-whole-args-holds-the-kinds-of-each-element","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) [::number] | impl ~(xs)) | null | all 1 \"b\" !| type","expect":"::any/all/xs/ElementNotNumberError"}
 {"decision":"D67","name":"an-input-of-the-args-whole-without-modifiers-holds-the-empty-vector","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) [::number] | impl ~(xs)) | null | all","expect":"[]"}
 {"decision":"D34","name":"a-name-under-a-label-refuses-a-subject-of-another-kind","query":":number/inc ~(add 1) | \"a\" | inc !| type","expect":"::number/inc/SubjectNotNumberError"}
-{"decision":"D169","name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width#5 | inc","expect":"::Width#6"}
+{"decision":"D168","name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width#5 | inc","expect":"::Width#6"}
 {"decision":"D67","name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":number/inc (::fn | returns |~~ The answer. ~~| ::number | impl ~(add 1)) | ::Width#5 | inc | get [~(type) ~(payload)]","expect":"[::Width 6]"}
 {"decision":"D67","name":"a-verb-that-returns-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T"}
 {"decision":"D67","name":"a-verb-that-returns-a-kind-checks-its-answer","query":":vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)) | [1 2] | n !| type","expect":"::string/PayloadNotStringError"}
@@ -66,7 +66,7 @@
 {"decision":"D34","name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| get /addresses","expect":"#[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]"}
 {"decision":"D165","name":"two-fields-compare-by-the-subject-in-the-pipe","query":"{:a 2 :b 1} | gt (get /a) (get /b) !| type","expect":"::call/KindAnswersNoVerbError"}
 {"decision":"D72","name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true"}
-{"decision":"D169","name":"a-comparison-has-its-page-on-each-kind","query":"::number/gt | doc | type | eq ::doc","expect":"true"}
+{"decision":"D168","name":"a-comparison-has-its-page-on-each-kind","query":"::number/gt | doc | type | eq ::doc","expect":"true"}
 {"decision":"D72","name":"a-call-by-address-reaches-the-residence","query":"5 | number/gt 3","expect":"true"}
 {"decision":"D34","name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::number/gt/SubjectNotNumberError"}
 {"decision":"D72","name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box#5 | gt 3","expect":"true"}

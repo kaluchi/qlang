@@ -682,7 +682,7 @@ its decisions at once. `::workflow | start`, which became
 `::workflow | status`, is a verb found through the subject's tag [D34]:
 the verb belongs to `::workflow`. The
 dashboard is a literal of tagged records, a gate, a task, a decision, a
-case, a metric, each a tag whose label declares what it holds [D169], printed as
+case, a metric, each a tag whose label declares what it holds [D168], printed as
 the cockpit wants it and read back by the next utility. And the zoom is
 a query with a tail, the gate's detail, the task's cases, the metric's
 history, under the budget and the elision of progressive disclosure
@@ -743,6 +743,6 @@ entrypoint's first screen has to say how to ask.
 [D96]: decisions/D96.md
 [D153]: decisions/D153.md
 [D161]: decisions/D161.md
-[D169]: decisions/D169.md
+[D168]: decisions/D168.md
 [D225]: decisions/D225.md
 [D231]: decisions/D231.md

@@ -507,7 +507,7 @@ whole where it equals its floor, `eq (floor)`, the law of every count
 and of the digits of `round` [D46]. The facts an error carries are
 definitions under the label of the refusal and under `::error`, held in
 the order they are declared, the trail last, and a fact neither
-declares is a defect of the runtime [D46], [D169], [D252]:
+declares is a defect of the runtime [D46], [D168], [D252]:
 
 ```qlang
 > "hello" | add 1 !| type
@@ -599,7 +599,7 @@ symbol, a service or a section of another document in it. It must print
 a parse failure economically, with the full value reachable by a
 path rather than dumped. It must let a reader assemble from the
 definitions under an address the description a question needs, in one
-round trip [D168], [D169].
+round trip [D168].
 
 ### The documents that retold the catalog
 
@@ -1104,7 +1104,7 @@ editor's grammar is generated or reduced, and the
 screen of the work, whose first version `npm run desk` prints [D225],
 grows from the draft of the entrypoint document [D231].
 
-Its answers are the targets of [D46], [D152], [D153], [D168], [D169],
+Its answers are the targets of [D46], [D152], [D153], [D168],
 [D185], [D248], [D251], [D252], [D253], [D278] and [D279] in the conformance suite,
 every one met, the
 step of a constructor apart from the kind of tagged values having
@@ -1289,7 +1289,6 @@ those being decided.
 [D164]: decisions/D164.md
 [D167]: decisions/D167.md
 [D168]: decisions/D168.md
-[D169]: decisions/D169.md
 [D175]: decisions/D175.md
 [D176]: decisions/D176.md
 [D178]: decisions/D178.md

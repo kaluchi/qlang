@@ -2,7 +2,7 @@
 // served and the inputs its call reads [D251]. The invariants of the
 // inputs hold before a primitive runs, a divisor no zero among them
 // [D46], [D251], and an answer that left the finite doubles is refused
-// as it is brought under `::number` [D169].
+// as it is brought under `::number` [D168].
 //
 // The names live in lib/qlang/number.qlang.
 

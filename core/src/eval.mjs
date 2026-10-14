@@ -468,7 +468,7 @@ function withReadOfPath(state, node, subject, env) {
 
 // A bare name calls what it reaches for the subject [D34], [D153]; a
 // word the kind of the subject does not answer is refused with the
-// addresses where the word lives [D169], and a name that reaches nothing
+// addresses where the word lives [D168], and a name that reaches nothing
 // with the names near it. A value the scope binds and a word the subject
 // answers under one name meet, and the step is refused with the word's
 // address, which calls the word, as another name reads the value [D223];
@@ -674,7 +674,7 @@ async function applyWord(record, modifiers, state) {
 const isThenable = value => typeof value?.then === 'function';
 
 // The answer brought to the kinds `returns` names, a word that names
-// `::any` bringing none [D169], [D251]: one that reaches another of the
+// `::any` bringing none [D168], [D251]: one that reaches another of the
 // kinds is the value it reaches; one of the word's own label goes back under the tags
 // the walk passed, as the subject's kind; one kind alone makes the value
 // by its constructor and invariants, and so does a kind of the answer's
@@ -701,7 +701,7 @@ export async function callMemberOn(record, subject, state) {
 // answerKindsOf(env, record, subjectKinds) → the kinds of the answer a
 // name under a label gives, for a tool: the subject's own where the
 // answer's kind is the word's own label, the kinds `returns` names, or
-// null for a word that answers any value [D169], [D251].
+// null for a word that answers any value [D168], [D251].
 export function answerKindsOf(env, record, subjectKinds) {
   const address = record.get('name').name;
   const answerDefinition = answerOf(env, address);

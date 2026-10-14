@@ -22,7 +22,7 @@ function setConstructor(payload) {
 
 bindPrim('set/construct', setConstructor);
 
-// The constructors of the core's kinds [D32], [D170]: each reads a
+// The constructors of the core's kinds [D32], [D168]: each reads a
 // payload of its kind as the value itself, so `::vec[1 2]` and `[1 2]` are
 // one value and print as the latter, and a payload of another kind is
 // refused at the site, a vector or a map under a tag of its own among
@@ -52,7 +52,7 @@ const isBareMap = payload => isQMap(payload) && payload[TAG_HEADER_SYMBOL] === u
 bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadNotNullError));
 bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
 // A number is a finite double: an answer brought under `::number` that
-// left the doubles' range is refused here, once for every word [D169].
+// left the doubles' range is refused here, once for every word [D168].
 const NumberNotFiniteError = declareRefusal('number/NotFiniteError');
 const finiteNumber = coreKindConstructor(isNumber, NumberPayloadNotNumberError);
 bindPrim('number/construct', payload => {
@@ -117,7 +117,7 @@ function payloadOf(tagged) {
 // `payload` and `within` reside on `::tagged`, each a plain function
 // over the tagged value the walk served [D34]; the page of `within` keeps
 // its subject's kind, so the answer of its edit mints back under the
-// subject's tag [D41], [D169].
+// subject's tag [D41], [D168].
 bindPrim('tagged/payload', subject => payloadOf(subject));
 bindPrim('tagged/within', runs(['code'], async (subject, code) => await code(payloadOf(subject))));
 

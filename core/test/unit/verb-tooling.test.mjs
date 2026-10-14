@@ -40,7 +40,7 @@ describe('a word as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'add', ['string']).address.name).toBe('number/add');
   });
 
-  it('reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the word\'s own label [D169], [D251]', async () => {
+  it('reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the word\'s own label [D168], [D251]', async () => {
     const env = await langRuntime();
     expect(answerKindsOf(env, nodeOf(env, 'vec/filter'), ['set'])).toEqual(['set']);
     expect(answerKindsOf(env, nodeOf(env, 'vec/count'), ['vec'])).toEqual(['number']);

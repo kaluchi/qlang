@@ -2,8 +2,8 @@
 {"decision":"D198","name":"append","query":"\"hello\" | append \" world\"","expect":"\"hello world\""}
 {"decision":"D198","name":"prepend-empty","query":"\"x\" | prepend \"\"","expect":"\"x\""}
 {"decision":"D198","name":"append-empty","query":"\"x\" | append \"\"","expect":"\"x\""}
-{"decision":"D169","name":"prepend-non-string","query":"42 | prepend \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D169","name":"append-non-string","query":"42 | append \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D168","name":"prepend-non-string","query":"42 | prepend \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D168","name":"append-non-string","query":"42 | append \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D126","name":"json-number","query":"42 | json","expect":"\"42\""}
 {"decision":"D126","name":"json-string","query":"\"hello\" | json","expect":"\"\\\"hello\\\"\""}
 {"decision":"D126","name":"json-vec","query":"[1 2 3] | json","expect":"\"[1,2,3]\""}

@@ -43,7 +43,7 @@ const session = await createSession({
   })
 });
 // The refusals the source of the command line declares, by address; a
-// law, whose name is its refusal, is raised by the runtime [D169].
+// law, whose name is its refusal, is raised by the runtime [D168].
 const refusalAddresses = new Set();
 for (const address of nodeAddresses(session.env)) {
   const record = nodeOf(session.env, address);

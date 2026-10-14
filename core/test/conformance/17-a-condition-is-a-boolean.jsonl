@@ -90,7 +90,7 @@
 {"decision":"D248","name":"any-with-path","query":"[{:active false} {:active true}] | any /active","expect":"true"}
 {"decision":"D248","name":"any-with-path-none","query":"[{:active false} {:active false}] | any /active","expect":"false"}
 {"decision":"D248","name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
-{"decision":"D169","name":"any-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(any ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D168","name":"any-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(any ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D22","name":"any-short-circuits","query":"[1 2 99] | any ~(gt 50)","expect":"true"}
 {"decision":"D22","name":"any-as-filter-equivalence","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
 {"decision":"D22","name":"any-string-predicate-integration","query":"[\"alice\" \"bob\" \"alex\"] | any ~(startsWith \"al\")","expect":"true"}
@@ -116,7 +116,7 @@
 {"decision":"D248","name":"every-with-path","query":"[{:active true} {:active true}] | every /active","expect":"true"}
 {"decision":"D248","name":"every-with-path-fails","query":"[{:active true} {:active false}] | every /active","expect":"false"}
 {"decision":"D248","name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true"}
-{"decision":"D169","name":"every-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | every ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :every\n  :addresses #[::map/every ::set/every ::vec/every]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(every ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D168","name":"every-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | every ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :every\n  :addresses #[::map/every ::set/every ::vec/every]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(every ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D22","name":"every-short-circuits","query":"[1 0 2] | every ~(gt 0)","expect":"false"}
 {"decision":"D22","name":"every-as-filter-equivalence","query":":xs [1 2 3 4 5] | xs | filter ~(gt 0) | count | eq (xs | count) | eq (xs | every ~(gt 0))","expect":"true"}
 {"decision":"D16","name":"every-set-all-match","query":"#[2 4 6] | every ~(gt 0)","expect":"true"}

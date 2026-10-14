@@ -10,8 +10,8 @@
 {"decision":"D22","name":"last-empty","query":"[] | last","expect":"null"}
 {"decision":"D22","name":"sum","query":"[1 2 3 4 5] | sum","expect":"15"}
 {"decision":"D22","name":"sum-empty","query":"[] | sum","expect":"0"}
-{"decision":"D169","name":"sum-overflow-lifts-not-finite","query":"[1e308 1e308] | sum !| type","expect":"::number/NotFiniteError"}
-{"decision":"D169","name":"sum-overflow-holds-its-subject-on-the-trail","query":"[1e308 1e308] | sum !| get /trail/0/subject","expect":"[1e308 1e308]"}
+{"decision":"D168","name":"sum-overflow-lifts-not-finite","query":"[1e308 1e308] | sum !| type","expect":"::number/NotFiniteError"}
+{"decision":"D168","name":"sum-overflow-holds-its-subject-on-the-trail","query":"[1e308 1e308] | sum !| get /trail/0/subject","expect":"[1e308 1e308]"}
 {"decision":"D22","name":"min","query":"[3 1 4 1 5 9 2 6] | min","expect":"1"}
 {"decision":"D22","name":"max","query":"[3 1 4 1 5 9 2 6] | max","expect":"9"}
 {"decision":"D22","name":"filter-gt","query":"[1 2 3 4 5] | filter ~(gt 2)","expect":"[3 4 5]"}
@@ -29,7 +29,7 @@
 {"decision":"D251","name":"a-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2 :c 3} | :number/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | filter ~above !| type","expect":"::number/above/limit/NotGivenError"}
 {"decision":"D15","name":"filter-map-empty","query":"{} | filter ~(gt 0)","expect":"{}"}
 {"decision":"D15","name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1)","expect":"{:c 3 :b 2}"}
-{"decision":"D169","name":"filter-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | filter ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :filter\n  :addresses #[::map/filter ::set/filter ::vec/filter]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(filter ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D168","name":"filter-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | filter ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :filter\n  :addresses #[::map/filter ::set/filter ::vec/filter]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(filter ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D16","name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"decision":"D16","name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
 {"decision":"D248","name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort /age","expect":"[{:age 20} {:age 25} {:age 30}]"}

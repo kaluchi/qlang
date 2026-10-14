@@ -32,7 +32,7 @@ describe('the verbs of the language reach their primitives', () => {
     expect(isHostDeclared(recipeOf(add))).toBe(true);
   });
 
-  it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [D169], [D251]', async () => {
+  it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [D168], [D251]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTag('set/filter/ConditionNotBooleanError'), makeTag('set/filter/answer'), makeTag('set/filter/predicate')]));
     expect(await evalQuery('::set/filter | binding | get /value | params | map /kinds | print')).toBe('[#[::path ::quote]]');

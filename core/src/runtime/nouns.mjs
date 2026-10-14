@@ -248,7 +248,7 @@ export function residenceOnSubject(env, verbName, subject) {
 // first [D153]: the reader's declaration, the word residing on a kind the
 // walk of the subject reaches, the one word of the name residing on a
 // kind, which refuses a subject of another kind [D34], and for a
-// name no kind answers the root's declaration [D169], but for a label of
+// name no kind answers the root's declaration [D168], but for a label of
 // the root, a kind or a topic, which its tag alone reaches [D153];
 // `{ record, underKind }`, or null when no record answers or words of
 // several kinds do.
@@ -295,7 +295,7 @@ export function readerNamesOf(env) {
 }
 
 // kindNamesOf(env) → the labels of one segment, a topic among them, the
-// root's first, as a tag reads them, then the reader's [D169].
+// root's first, as a tag reads them, then the reader's [D168].
 export function kindNamesOf(env) {
   const names = [...rootOf(env).keys(), ...[...env.keys()].filter(name => !rootOf(env).has(name))];
   return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isLabel(env, name));
@@ -303,7 +303,7 @@ export function kindNamesOf(env) {
 
 // The addresses where the words of a name live, one for each kind that
 // answers it, any value among them, which a refusal of the name hands on
-// [D34], [D169].
+// [D34], [D168].
 export function addressesOf(env, verbName) {
   const addresses = residencesOf(env, verbName).map(([kindName]) => makeTag(`${kindName}/${verbName}`));
   if (residenceOf(env, ANY_KIND_NAME, verbName) !== null) addresses.push(makeTag(`${ANY_KIND_NAME}/${verbName}`));

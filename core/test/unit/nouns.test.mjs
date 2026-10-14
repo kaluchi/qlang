@@ -8,7 +8,7 @@ import { createSession } from '../../src/session.mjs';
 import { keyword, makeTag } from '../../src/types.mjs';
 
 describe('the names of the scope', () => {
-  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [D160], [D169]', async () => {
+  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [D160], [D168]', async () => {
     expect(await evalQuery('env | eq {}')).toBe(true);
     expect(await evalQuery('kinds | get [~(has ::number) ~(has ::qlang) ~(has ::number/add/SubjectNotNumberError)]'))
       .toEqual([true, true, false]);

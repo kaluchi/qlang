@@ -55,7 +55,7 @@
 {"decision":"D248","name":"parse-path-path","query":"\"/a/b/0\" | parse | first | segments","expect":"[:a :b 0]"}
 {"decision":"D8","name":"parse-pipeline-is-a-quote","query":"\"42 | add 1\" | parse | type","expect":"::quote"}
 {"decision":"D8","name":"parse-pipeline-step-count","query":"\"42 | add 1 | mul 2\" | parse | count","expect":"3"}
-{"decision":"D169","name":"parse-non-string-subject","query":"42 | parse","expect":"::call/KindAnswersNoVerbError!{\n  :name :parse\n  :addresses #[::quote/parse ::string/parse]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(parse)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D168","name":"parse-non-string-subject","query":"42 | parse","expect":"::call/KindAnswersNoVerbError!{\n  :name :parse\n  :addresses #[::quote/parse ::string/parse]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(parse)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D8","name":"parse-quote-subject-prints-its-text","query":"~(5 | mul 2) | parse","expect":"\"5 | mul 2\""}
 {"decision":"D8","name":"parse-is-an-involution","query":"\"5 |  mul   2\" | parse | parse","expect":"\"5 | mul 2\""}
 {"decision":"D81","name":"parse-blank-source-is-the-empty-quote","query":"\" \" | parse","expect":"~()"}

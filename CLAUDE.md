@@ -185,7 +185,7 @@ it; where a rule and the audit disagree, the audit wins.
 - A branch is a shift: it takes the scars of its shift, is named after
   them, and lands on master at every move of the baseline by a merge
   commit, made locally with no question asked where no pull request is
-  open, so master is the clean desk [D227], [D230]. Never
+  open, so master is the clean desk [D227]. Never
   commit code on master; a change to documents alone lands without a
   branch. A branch states in its description what it shows when it
   lands. The sign of its diff by

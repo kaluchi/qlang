@@ -66,7 +66,7 @@ says only what holds, a newer record pruning the part of an older one
 it takes [D227], and the walk of each new baseline gives every record of
 the language a case or a fate [D225], [D226]; the baseline moves at the
 end of every shift that wrote records, before an outside audit and when
-a branch lands on master [D230], and the code, the tests, the cases and
+a branch lands on master [D227], and the code, the tests, the cases and
 this document cite the records in force.
 
 An inference is the model's reasoning from named facts. Where an
@@ -1315,7 +1315,6 @@ those being decided.
 [D226]: decisions/D226.md
 [D227]: decisions/D227.md
 [D228]: decisions/D228.md
-[D230]: decisions/D230.md
 [D231]: decisions/D231.md
 [D235]: decisions/D235.md
 [D237]: decisions/D237.md

@@ -1,8 +1,8 @@
 {"decision":"D248","name":"path-on-number","query":"42 | get /foo","expect":"::path/SubjectNotProjectableError!{\n  :key :foo\n  :path /foo\n  :actualType ::number\n  :trail [\n    {\n      :step ~(get /foo)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D248","name":"path-on-set-named-key","query":"#[:a] | get /foo","expect":"::path/IndexNotIntegerError!{\n  :key :foo\n  :path /foo\n  :actualType ::set\n  :trail [\n    {\n      :step ~(get /foo)\n      :subject #[:a]\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D248","name":"path-on-set-integer-index","query":"#[:z :x :y] | get /0","expect":":x"}
-{"decision":"D248","name":"path-on-set-negative-index","query":"#[:z :x :y] | get /-1","expect":":z"}
-{"decision":"D248","name":"path-on-set-index-out-of-bounds","query":"#[:a :b] | get /99 !| type","expect":"::path/IndexOutOfBoundsError"}
+{"decision":"D16","name":"path-on-set-named-key","query":"#[:a] | get /foo","expect":"::path/IndexNotIntegerError!{\n  :key :foo\n  :path /foo\n  :actualType ::set\n  :trail [\n    {\n      :step ~(get /foo)\n      :subject #[:a]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D16","name":"path-on-set-integer-index","query":"#[:z :x :y] | get /0","expect":":x"}
+{"decision":"D16","name":"path-on-set-negative-index","query":"#[:z :x :y] | get /-1","expect":":z"}
+{"decision":"D16","name":"path-on-set-index-out-of-bounds","query":"#[:a :b] | get /99 !| type","expect":"::path/IndexOutOfBoundsError"}
 {"decision":"D168","name":"a-division-by-zero-is-refused-under-its-divisor","query":"10 | div 0","expect":"::number/div/divisor/ZeroError!{\n  :actualType ::number\n  :actualValue 0\n  :trail [\n    {\n      :step ~(div 0)\n      :subject 10\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D46","name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :index 1\n  :actualType ::string\n  :actualValue \"two\"\n  :trail [\n    {\n      :step ~(sum)\n      :subject [1 \"two\" 3]\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D168","name":"count-on-number","query":"42 | count","expect":"::call/KindAnswersNoVerbError!{\n  :name :count\n  :addresses #[::map/count ::set/count ::string/count ::vec/count]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(count)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
@@ -19,8 +19,8 @@
 {"decision":"D168","name":"vals-on-vec","query":"[1 2] | vals","expect":"::map/vals/SubjectNotMapError!{\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(vals)\n      :subject [1 2]\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D198","name":"prepend-modifier-not-string","query":"\"x\" | prepend 42","expect":"::string/prepend/prefix/NotKeywordOrStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D198","name":"append-modifier-not-string","query":"\"x\" | append 42","expect":"::string/append/suffix/NotKeywordOrStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D248","name":"cannot-apply-args-to-value","query":"5 | :five it | five 42","expect":"::call/ValueTakesNoModifiersError!{\n  :actualType ::number\n  :name :five\n  :addresses #[]\n  :trail [\n    {\n      :step ~(five 42)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D248","name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":":sort 5 | [3 1] | sort /a !| get /addresses","expect":"#[::vec/sort]"}
+{"decision":"D5","name":"cannot-apply-args-to-value","query":"5 | :five it | five 42","expect":"::call/ValueTakesNoModifiersError!{\n  :actualType ::number\n  :name :five\n  :addresses #[]\n  :trail [\n    {\n      :step ~(five 42)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D223","name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":":sort 5 | [3 1] | sort /a !| get /addresses","expect":"#[::vec/sort]"}
 {"decision":"D118","name":"an-unknown-name-is-refused","query":"thisIsNotDefined !| type","expect":"::call/UnknownNameError"}
 {"decision":"D13","name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| get /trail/0/step | first | get /name","expect":":thisIsNotDefined"}
 {"decision":"D118","name":"an-unknown-name-inside-filter-is-refused","query":"[1 2 3] | filter ~(thisIsNotDefined) !| type","expect":"::call/UnknownNameError"}

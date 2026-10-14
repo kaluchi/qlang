@@ -8,19 +8,19 @@
 {"decision":"D13","name":"error-test-in-a-template","query":"get [~(!{:kind :oops} | raise | ok !| false) ~(42 | ok !| false)]","expect":"[false true]"}
 {"decision":"D13","name":"a-catch-passes-a-map-by","query":"{:kind :oops} !| get /kind","expect":"{:kind :oops}"}
 {"decision":"D13","name":"a-catch-passes-null-by","query":"null !| get /kind","expect":"null"}
-{"decision":"D248","name":"fail-apply-projects-kind","query":"!{:kind :oops :message \"boom\"} | raise !| get /kind","expect":":oops"}
-{"decision":"D248","name":"fail-apply-projects-message","query":"!{:kind :oops :message \"boom\"} | raise !| get /message","expect":"\"boom\""}
+{"decision":"D13","name":"fail-apply-projects-kind","query":"!{:kind :oops :message \"boom\"} | raise !| get /kind","expect":":oops"}
+{"decision":"D13","name":"fail-apply-projects-message","query":"!{:kind :oops :message \"boom\"} | raise !| get /message","expect":"\"boom\""}
 {"decision":"D13","name":"a-catch-passes-a-number-by","query":"42 !| get /kind","expect":"42"}
 {"decision":"D13","name":"a-catch-passes-a-string-by","query":"\"hello\" !| get /kind","expect":"\"hello\""}
 {"decision":"D13","name":"a-catch-passes-a-vector-by","query":"[1 2 3] !| get /kind","expect":"[1 2 3]"}
-{"decision":"D248","name":"fail-apply-into-paren-group","query":"!{:kind :oops} | raise !| (get /kind)","expect":":oops"}
+{"decision":"D13","name":"fail-apply-into-paren-group","query":"!{:kind :oops} | raise !| (get /kind)","expect":":oops"}
 {"decision":"D13","name":"deflect-count-into-trail","query":"!{:kind :oops} | raise | count !| get /trail/-1/skipped | parse","expect":"\"count\""}
 {"decision":"D13","name":"deflect-add-into-trail","query":"!{:kind :oops} | raise | add 1 !| get /trail/-1/skipped | parse","expect":"\"add 1\""}
 {"decision":"D13","name":"deflect-path-into-trail","query":"!{:kind :oops} | raise | get /name !| get /trail/-1/skipped | parse","expect":"\"get /name\""}
 {"decision":"D13","name":"deflect-three-steps-into-trail","query":"!{:kind :oops} | raise | count | add 1 | mul 2 !| get /trail/-1/skipped | parse","expect":"\"count | add 1 | mul 2\""}
 {"decision":"D13","name":"deflect-entry-is-a-call-step","query":"!{:kind :oops} | raise | add 1 !| get /trail/-1/skipped | first | type","expect":"::call"}
 {"decision":"D13","name":"deflect-entry-has-structured-name","query":"!{:kind :oops} | raise | add 1 !| get /trail/-1/skipped | first | get /name","expect":":add"}
-{"decision":"D248","name":"deflect-entry-carries-no-location","query":"!{:kind :oops} | add 1 !| get /trail | first | has :location","expect":"false"}
+{"decision":"D13","name":"deflect-entry-carries-no-location","query":"!{:kind :oops} | add 1 !| get /trail | first | has :location","expect":"false"}
 {"decision":"D13","name":"a-stop-without-a-skipped-step-holds-the-empty-quote","query":"!{:kind :oops} | raise !| get /trail/-1/skipped","expect":"~()"}
 {"decision":"D13","name":"a-stop-holds-the-step-it-skipped","query":"\"1\" | add 1 | mul 3 !| get /trail/-1/skipped","expect":"~(mul 3)"}
 {"decision":"D13","name":"a-stop-holds-the-steps-it-skipped-in-order","query":"\"x\" | add 1 | mul 3 | count !| get /trail/-1/skipped","expect":"~(mul 3 | count)"}

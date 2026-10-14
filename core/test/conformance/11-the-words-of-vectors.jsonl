@@ -32,8 +32,8 @@
 {"decision":"D168","name":"filter-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | filter ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :filter\n  :addresses #[::map/filter ::set/filter ::vec/filter]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(filter ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D16","name":"sort-natural","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"decision":"D16","name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
-{"decision":"D248","name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort /age","expect":"[{:age 20} {:age 25} {:age 30}]"}
-{"decision":"D248","name":"sort-by-string-key","query":"[{:name \"Bob\"} {:name \"Alice\"}] | sort /name","expect":"[{:name \"Alice\"} {:name \"Bob\"}]"}
+{"decision":"D140","name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort /age","expect":"[{:age 20} {:age 25} {:age 30}]"}
+{"decision":"D140","name":"sort-by-string-key","query":"[{:name \"Bob\"} {:name \"Alice\"}] | sort /name","expect":"[{:name \"Alice\"} {:name \"Bob\"}]"}
 {"decision":"D22","name":"take","query":"[1 2 3 4 5] | take 3","expect":"[1 2 3]"}
 {"decision":"D22","name":"drop","query":"[1 2 3 4 5] | drop 2","expect":"[3 4 5]"}
 {"decision":"D16","name":"distinct","query":"[1 2 1 3 2 4] | distinct","expect":"#[1 2 3 4]"}
@@ -46,7 +46,7 @@
 {"decision":"D90","name":"reduce-append","query":"[\"a\" \"b\" \"c\"] | reduce \"\" ~(append)","expect":"\"abc\""}
 {"decision":"D90","name":"reduce-union-of-sets","query":"[#[1] #[2 3]] | reduce #[] ~(union)","expect":"#[1 2 3]"}
 {"decision":"D90","name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | get [~(type) ~(payload | type)]","expect":"[::Bar ::Foo]"}
-{"decision":"D248","name":"reduce-max-via-verb","query":":number/max2 (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(if (gt x) ~(it) ~(x))) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
+{"decision":"D90","name":"reduce-max-via-verb","query":":number/max2 (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(if (gt x) ~(it) ~(x))) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
 {"decision":"D90","name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
 {"decision":"D90","name":"reduce-over-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
 {"decision":"D43","name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]"}

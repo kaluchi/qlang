@@ -26,7 +26,7 @@
 {"decision":"D83","name":"doc-survives-shadowing-redeclare","query":":foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content)","expect":"\" New doc.\\n With second remark.\""}
 {"decision":"D81","name":"a-comment-between-steps-is-whitespace","query":"[1 2 3]\n|~| this comment doesn't change pipeValue\n| count","expect":"3"}
 {"decision":"D83","name":"doc-on-bind-succeeds","query":":foo |~~| doc\n42\n| foo","expect":"42"}
-{"decision":"D248","name":"doc-on-a-freeze-succeeds","query":"42\n:x |~~| captured\nit\n| x","expect":"42"}
+{"decision":"D83","name":"doc-on-a-freeze-succeeds","query":"42\n:x |~~| captured\nit\n| x","expect":"42"}
 {"decision":"D81","name":"interleaved-plain-between-doc-and-body","query":":foo |~~| doc\n|~ rationale ~| 42\n| ::foo | doc | content","expect":"\" doc\""}
 {"decision":"D81","name":"interleaved-plain-between-two-docs","query":":foo |~~| doc one\n|~ separator ~|\n|~~| doc two\n42\n| ::foo | doc | content","expect":"\" doc one\\n doc two\""}
 {"decision":"D81","name":"interleaved-plain-before-the-declaration","query":"|~ leading ~|\n:foo |~~| doc\n42\n| ::foo | doc | content","expect":"\" doc\""}
@@ -43,8 +43,8 @@
 {"decision":"D81","name":"inline-plain-comment-between-map-entries","query":"{:a 1 |~ divider ~| :b 2 |~ divider ~| :c 3}","expect":"{:a 1 :b 2 :c 3}"}
 {"decision":"D81","name":"inline-plain-comment-in-empty-map","query":"{|~ only ~|}","expect":"{}"}
 {"decision":"D81","name":"inline-line-plain-comment-between-map-entries","query":"{:a 1\n|~| section divider\n:b 2}","expect":"{:a 1 :b 2}"}
-{"decision":"D248","name":"inline-plain-divider-before-entry","query":"{|~ section ~| :k 1} | get /k","expect":"1"}
-{"decision":"D248","name":"inline-plain-divider-after-entry","query":"{:k 1 |~ note ~|} | get /k","expect":"1"}
+{"decision":"D81","name":"inline-plain-divider-before-entry","query":"{|~ section ~| :k 1} | get /k","expect":"1"}
+{"decision":"D81","name":"inline-plain-divider-after-entry","query":"{:k 1 |~ note ~|} | get /k","expect":"1"}
 {"decision":"D81","name":"plain-comment-around-nested-map-entry","query":":wrap |~~ module doc ~~| {:a {|~ inner section ~| :x 1}}\n| ::wrap | doc | content","expect":"\" module doc \""}
 {"decision":"D81","name":"plain-block-nests-plain-block-pair","query":"|~ outer |~ inner ~| more ~|\n| 42","expect":"42"}
 {"decision":"D81","name":"plain-block-nests-three-deep","query":"|~ A |~ B |~ C ~| D ~| E ~|\n| 1","expect":"1"}

@@ -15,7 +15,7 @@
 {"decision":"D14","name":"or-both-false","query":"false | or false","expect":"false"}
 {"decision":"D14","name":"not-true","query":"true | not","expect":"false"}
 {"decision":"D14","name":"not-false","query":"false | not","expect":"true"}
-{"decision":"D248","name":"not-null-is-refused","query":"null | not !| get [~(type) /actualType]","expect":"[::boolean/not/SubjectNotBooleanError ::null]"}
+{"decision":"D14","name":"not-null-is-refused","query":"null | not !| get [~(type) /actualType]","expect":"[::boolean/not/SubjectNotBooleanError ::null]"}
 {"decision":"D14","name":"not-zero-is-refused","query":"0 | not !| type","expect":"::boolean/not/SubjectNotBooleanError"}
 {"decision":"D14","name":"not-empty-string-is-refused","query":"\"\" | not !| type","expect":"::boolean/not/SubjectNotBooleanError"}
 {"decision":"D165","name":"filter-with-and","query":"[{:active true :age 25} {:active true :age 15} {:active false :age 30}] | filter ~(allOf (get /active) (get /age | gte 18))","expect":"[{:active true :age 25}]"}
@@ -40,15 +40,15 @@
 {"decision":"D43","name":"if-runs-else-when-the-condition-fails","query":"5 | if (gte 60) ~(\"pass\") ~(\"fail\")","expect":"\"fail\""}
 {"decision":"D14","name":"if-takes-true","query":"42 | if true ~(\"yes\") ~(\"no\")","expect":"\"yes\""}
 {"decision":"D14","name":"if-takes-false","query":"42 | if false ~(\"yes\") ~(\"no\")","expect":"\"no\""}
-{"decision":"D248","name":"a-null-condition-is-refused","query":"{:no \"data\"} | if null ~(\"yes\") ~(\"no\") !| get [~(type) /actualType]","expect":"[::any/if/condition/NotBooleanError ::null]"}
+{"decision":"D14","name":"a-null-condition-is-refused","query":"{:no \"data\"} | if null ~(\"yes\") ~(\"no\") !| get [~(type) /actualType]","expect":"[::any/if/condition/NotBooleanError ::null]"}
 {"decision":"D14","name":"if-reads-zero-by-a-comparison","query":"5 | if (eq 0) ~(\"is-zero\") ~(\"non-zero\")","expect":"\"non-zero\""}
 {"decision":"D14","name":"if-reads-the-empty-string-by-a-comparison","query":"\"\" | if (eq \"\") ~(\"empty\") ~(\"non\")","expect":"\"empty\""}
 {"decision":"D14","name":"if-reads-the-empty-vector-by-empty","query":"[] | if (empty | not) ~(\"non-empty\") ~(\"empty\")","expect":"\"empty\""}
 {"decision":"D14","name":"if-reads-the-empty-map-by-a-comparison","query":"{} | if (eq {}) ~(\"empty-map\") ~(\"other\")","expect":"\"empty-map\""}
-{"decision":"D248","name":"cond-using-and","query":"{:active true :verified true} | if (allOf (get /active) (get /verified)) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
-{"decision":"D248","name":"cond-using-or","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
+{"decision":"D197","name":"cond-using-and","query":"{:active true :verified true} | if (allOf (get /active) (get /verified)) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
+{"decision":"D197","name":"cond-using-or","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
 {"decision":"D14","name":"if-takes-a-condition-turned-by-not","query":"true | if not ~(\"truthy\") ~(\"falsy\")","expect":"\"falsy\""}
-{"decision":"D248","name":"then-uses-pipevalue-via-path","query":"{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"110"}
+{"decision":"D43","name":"then-uses-pipevalue-via-path","query":"{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"110"}
 {"decision":"D248","name":"else-uses-pipevalue-via-path","query":"{:active false :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"100"}
 {"decision":"D43","name":"then-arithmetic","query":"10 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"20"}
 {"decision":"D43","name":"else-arithmetic","query":"3 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"0"}
@@ -62,11 +62,11 @@
 {"decision":"D43","name":"if-under-map-numbers","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(\"big\") ~(\"small\"))","expect":"[\"small\" \"small\" \"big\" \"big\" \"big\"]"}
 {"decision":"D43","name":"if-under-map-doubles-some","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(mul 10) ~(add 0))","expect":"[1 2 30 40 50]"}
 {"decision":"D43","name":"if-answers-a-boolean-filter-reads","query":"[1 2 3 4] | filter ~(if (gt 2) ~(true) ~(false))","expect":"[3 4]"}
-{"decision":"D248","name":"if-inside-a-template","query":"[{:n 5} {:n 15}] | map ~(get {:value /n :tier ~(if (get /n | gt 10) ~(\"high\") ~(\"low\"))})","expect":"[{:value 5 :tier \"low\"} {:value 15 :tier \"high\"}]"}
-{"decision":"D248","name":"if-with-coalesce","query":"{:role :admin :name \"Bob\"} | if (get /role | eq :admin) ~(coalesce /displayName /name ~(\"???\")) ~(\"guest\")","expect":"\"Bob\""}
-{"decision":"D248","name":"if-cond-on-eq-keyword","query":"{:status :ok} | if (get /status | eq :ok) ~(200) ~(500)","expect":"200"}
-{"decision":"D248","name":"if-cond-on-eq-keyword-failing","query":"{:status :error} | if (get /status | eq :ok) ~(200) ~(500)","expect":"500"}
-{"decision":"D248","name":"if-with-deeply-nested-cond","query":"{:a {:b {:c true}}} | if (get /a/b/c) ~(\"deep-yes\") ~(\"deep-no\")","expect":"\"deep-yes\""}
+{"decision":"D279","name":"if-inside-a-template","query":"[{:n 5} {:n 15}] | map ~(get {:value /n :tier ~(if (get /n | gt 10) ~(\"high\") ~(\"low\"))})","expect":"[{:value 5 :tier \"low\"} {:value 15 :tier \"high\"}]"}
+{"decision":"D43","name":"if-with-coalesce","query":"{:role :admin :name \"Bob\"} | if (get /role | eq :admin) ~(coalesce /displayName /name ~(\"???\")) ~(\"guest\")","expect":"\"Bob\""}
+{"decision":"D43","name":"if-cond-on-eq-keyword","query":"{:status :ok} | if (get /status | eq :ok) ~(200) ~(500)","expect":"200"}
+{"decision":"D43","name":"if-cond-on-eq-keyword-failing","query":"{:status :error} | if (get /status | eq :ok) ~(200) ~(500)","expect":"500"}
+{"decision":"D43","name":"if-with-deeply-nested-cond","query":"{:a {:b {:c true}}} | if (get /a/b/c) ~(\"deep-yes\") ~(\"deep-no\")","expect":"\"deep-yes\""}
 {"decision":"D43","name":"first-pair-matches","query":"5 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"\"five\""}
 {"decision":"D43","name":"second-pair-matches","query":"6 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"\"six\""}
 {"decision":"D43","name":"no-pair-matches-no-default-yields-null","query":"7 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"null"}
@@ -77,7 +77,7 @@
 {"decision":"D43","name":"cond-grade-letters-fail","query":"55 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"F\""}
 {"decision":"D43","name":"cond-grade-letters-top","query":"95 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"A\""}
 {"decision":"D43","name":"cond-only-evaluates-matching-branch","query":"5 | cond ~(eq 5) ~(\"safe\") ~(\"never\" | div 0)","expect":"\"safe\""}
-{"decision":"D248","name":"cond-with-path-predicate","query":"{:role :admin :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"150"}
+{"decision":"D43","name":"cond-with-path-predicate","query":"{:role :admin :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"150"}
 {"decision":"D248","name":"cond-with-path-default","query":"{:role :user :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"100"}
 {"decision":"D164","name":"cond-with-no-clauses-is-refused","query":"5 | cond","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualType ::any/cond\n  :actualValue ::any/cond[]\n  :trail [\n    {\n      :step ~(cond)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D43","name":"cond-with-one-clause-is-refused","query":"5 | cond ~(eq 5)","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualType ::any/cond\n  :actualValue ::any/cond[~(eq 5)]\n  :trail [\n    {\n      :step ~(cond ~(eq 5))\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
@@ -89,7 +89,7 @@
 {"decision":"D22","name":"vacuously-false-on-empty-with-arbitrary-pred","query":"[] | any ~(eq 99)","expect":"false"}
 {"decision":"D248","name":"any-with-path","query":"[{:active false} {:active true}] | any /active","expect":"true"}
 {"decision":"D248","name":"any-with-path-none","query":"[{:active false} {:active false}] | any /active","expect":"false"}
-{"decision":"D248","name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
+{"decision":"D43","name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
 {"decision":"D168","name":"any-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(any ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D22","name":"any-short-circuits","query":"[1 2 99] | any ~(gt 50)","expect":"true"}
 {"decision":"D22","name":"any-as-filter-equivalence","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
@@ -115,7 +115,7 @@
 {"decision":"D22","name":"vacuously-true-on-empty-with-arbitrary-pred","query":"[] | every ~(eq 99)","expect":"true"}
 {"decision":"D248","name":"every-with-path","query":"[{:active true} {:active true}] | every /active","expect":"true"}
 {"decision":"D248","name":"every-with-path-fails","query":"[{:active true} {:active false}] | every /active","expect":"false"}
-{"decision":"D248","name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true"}
+{"decision":"D197","name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true"}
 {"decision":"D168","name":"every-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | every ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :every\n  :addresses #[::map/every ::set/every ::vec/every]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(every ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"decision":"D22","name":"every-short-circuits","query":"[1 0 2] | every ~(gt 0)","expect":"false"}
 {"decision":"D22","name":"every-as-filter-equivalence","query":":xs [1 2 3 4 5] | xs | filter ~(gt 0) | count | eq (xs | count) | eq (xs | every ~(gt 0))","expect":"true"}
@@ -133,35 +133,35 @@
 {"decision":"D15","name":"every-map-verb-predicate","query":"{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive","expect":"true"}
 {"decision":"D15","name":"every-map-verb-predicate-fails","query":"{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive","expect":"false"}
 {"decision":"D251","name":"every-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2} | :any/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | every ~above !| type","expect":"::any/above/limit/NotGivenError"}
-{"decision":"D248","name":"single-arg-non-null","query":"{:x 42} | coalesce /x","expect":"42"}
-{"decision":"D248","name":"single-arg-null","query":"{} | coalesce /missing","expect":"null"}
-{"decision":"D248","name":"two-args-first-non-null","query":"{:a 1} | coalesce /a /b","expect":"1"}
-{"decision":"D248","name":"two-args-second-non-null","query":"{:b 2} | coalesce /a /b","expect":"2"}
-{"decision":"D248","name":"two-args-both-null","query":"{} | coalesce /a /b","expect":"null"}
-{"decision":"D248","name":"three-args-first-non-null","query":"{:firstName \"Alice\"} | coalesce /preferredName /firstName ~(\"Anon\")","expect":"\"Alice\""}
-{"decision":"D248","name":"three-args-second-non-null","query":"{:firstName \"Alice\"} | coalesce /missing /firstName ~(\"Anon\")","expect":"\"Alice\""}
-{"decision":"D248","name":"three-args-third-default","query":"{} | coalesce /preferredName /firstName ~(\"Anon\")","expect":"\"Anon\""}
-{"decision":"D248","name":"many-args-first-found","query":"{:e 5} | coalesce /a /b /c /d /e /f","expect":"5"}
-{"decision":"D248","name":"many-args-all-null","query":"{} | coalesce /a /b /c /d /e","expect":"null"}
-{"decision":"D248","name":"zero-is-non-null","query":"{:zero 0} | coalesce /missing /zero ~(\"default\")","expect":"0"}
-{"decision":"D248","name":"false-is-non-null","query":"{:flag false} | coalesce /missing /flag ~(true)","expect":"false"}
-{"decision":"D248","name":"empty-string-is-non-null","query":"{:s \"\"} | coalesce /missing /s ~(\"default\")","expect":"\"\""}
-{"decision":"D248","name":"empty-vec-is-non-null","query":"{:list []} | coalesce /missing /list ~(\"default\")","expect":"[]"}
-{"decision":"D248","name":"empty-map-is-non-null","query":"{:obj {}} | coalesce /missing /obj ~(\"default\")","expect":"{}"}
-{"decision":"D248","name":"empty-set-is-non-null","query":"{:tags #[]} | coalesce /missing /tags ~(\"default\")","expect":"#[]"}
-{"decision":"D248","name":"keyword-is-non-null","query":"{:k :foo} | coalesce /missing /k","expect":":foo"}
-{"decision":"D248","name":"literal-default-string","query":"{} | coalesce /missing ~(\"fallback\")","expect":"\"fallback\""}
-{"decision":"D248","name":"literal-default-number","query":"{} | coalesce /missing ~(42)","expect":"42"}
-{"decision":"D248","name":"literal-default-vec","query":"{} | coalesce /missing ~([1 2 3])","expect":"[1 2 3]"}
-{"decision":"D248","name":"literal-default-null","query":"{} | coalesce /missing ~(null)","expect":"null"}
-{"decision":"D248","name":"computed-default-via-add","query":"{} | coalesce /missing ~(sumOf 1 2)","expect":"3"}
+{"decision":"D133","name":"single-arg-non-null","query":"{:x 42} | coalesce /x","expect":"42"}
+{"decision":"D13","name":"single-arg-null","query":"{} | coalesce /missing","expect":"null"}
+{"decision":"D133","name":"two-args-first-non-null","query":"{:a 1} | coalesce /a /b","expect":"1"}
+{"decision":"D13","name":"two-args-second-non-null","query":"{:b 2} | coalesce /a /b","expect":"2"}
+{"decision":"D13","name":"two-args-both-null","query":"{} | coalesce /a /b","expect":"null"}
+{"decision":"D13","name":"three-args-first-non-null","query":"{:firstName \"Alice\"} | coalesce /preferredName /firstName ~(\"Anon\")","expect":"\"Alice\""}
+{"decision":"D13","name":"three-args-second-non-null","query":"{:firstName \"Alice\"} | coalesce /missing /firstName ~(\"Anon\")","expect":"\"Alice\""}
+{"decision":"D133","name":"three-args-third-default","query":"{} | coalesce /preferredName /firstName ~(\"Anon\")","expect":"\"Anon\""}
+{"decision":"D13","name":"many-args-first-found","query":"{:e 5} | coalesce /a /b /c /d /e /f","expect":"5"}
+{"decision":"D13","name":"many-args-all-null","query":"{} | coalesce /a /b /c /d /e","expect":"null"}
+{"decision":"D13","name":"zero-is-non-null","query":"{:zero 0} | coalesce /missing /zero ~(\"default\")","expect":"0"}
+{"decision":"D13","name":"false-is-non-null","query":"{:flag false} | coalesce /missing /flag ~(true)","expect":"false"}
+{"decision":"D13","name":"empty-string-is-non-null","query":"{:s \"\"} | coalesce /missing /s ~(\"default\")","expect":"\"\""}
+{"decision":"D13","name":"empty-vec-is-non-null","query":"{:list []} | coalesce /missing /list ~(\"default\")","expect":"[]"}
+{"decision":"D13","name":"empty-map-is-non-null","query":"{:obj {}} | coalesce /missing /obj ~(\"default\")","expect":"{}"}
+{"decision":"D13","name":"empty-set-is-non-null","query":"{:tags #[]} | coalesce /missing /tags ~(\"default\")","expect":"#[]"}
+{"decision":"D13","name":"keyword-is-non-null","query":"{:k :foo} | coalesce /missing /k","expect":":foo"}
+{"decision":"D133","name":"literal-default-string","query":"{} | coalesce /missing ~(\"fallback\")","expect":"\"fallback\""}
+{"decision":"D133","name":"literal-default-number","query":"{} | coalesce /missing ~(42)","expect":"42"}
+{"decision":"D133","name":"literal-default-vec","query":"{} | coalesce /missing ~([1 2 3])","expect":"[1 2 3]"}
+{"decision":"D133","name":"literal-default-null","query":"{} | coalesce /missing ~(null)","expect":"null"}
+{"decision":"D133","name":"computed-default-via-add","query":"{} | coalesce /missing ~(sumOf 1 2)","expect":"3"}
 {"decision":"D133","name":"short-circuit-skips-failing-after-match","query":"{:a 1} | coalesce /a ~(div 0)","expect":"1"}
-{"decision":"D248","name":"short-circuit-skips-multiple-after-match","query":"{:b 99} | coalesce /a /b ~(div 0) ~(\"unreached\")","expect":"99"}
-{"decision":"D248","name":"evaluates-failing-when-needed","query":"{} | coalesce /missing ~(\"safe\")","expect":"\"safe\""}
+{"decision":"D133","name":"short-circuit-skips-multiple-after-match","query":"{:b 99} | coalesce /a /b ~(div 0) ~(\"unreached\")","expect":"99"}
+{"decision":"D133","name":"evaluates-failing-when-needed","query":"{} | coalesce /missing ~(\"safe\")","expect":"\"safe\""}
 {"decision":"D164","name":"coalesce-with-no-alternative-is-refused","query":"{} | coalesce","expect":"::any/coalesce/alternatives/EmptyError!{\n  :actualType ::any/coalesce\n  :actualValue ::any/coalesce[]\n  :trail [\n    {\n      :step ~(coalesce)\n      :subject {}\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"decision":"D248","name":"with-path-chain","query":"{:user {:name \"Alice\"}} | coalesce /admin /user/name ~(\"Unknown\")","expect":"\"Alice\""}
+{"decision":"D133","name":"with-path-chain","query":"{:user {:name \"Alice\"}} | coalesce /admin /user/name ~(\"Unknown\")","expect":"\"Alice\""}
 {"decision":"D133","name":"cascade-from-deepest","query":"{:a {:b {:c 42}}} | coalesce /a/b/c /a/b /a ~(0)","expect":"42"}
-{"decision":"D248","name":"if-and-coalesce-combined","query":"{:active true :name \"Bob\"} | if (get /active) ~(coalesce /preferredName /name ~(\"???\")) ~(\"inactive\")","expect":"\"Bob\""}
+{"decision":"D43","name":"if-and-coalesce-combined","query":"{:active true :name \"Bob\"} | if (get /active) ~(coalesce /preferredName /name ~(\"???\")) ~(\"inactive\")","expect":"\"Bob\""}
 {"decision":"D13","name":"coalesce-passes-a-missing-field-to-the-next-alternative","query":"{:a 1} | coalesce /b /a","expect":"1"}
 {"decision":"D133","name":"coalesce-of-values-reads-the-subject-first","query":"[{:t 45} {:t null} {}] | map ~(query /t | coalesce 30)","expect":"[45 30 30]"}
 {"decision":"D133","name":"coalesce-keeps-a-subject-that-is-a-value","query":"[1] | coalesce []","expect":"[1]"}

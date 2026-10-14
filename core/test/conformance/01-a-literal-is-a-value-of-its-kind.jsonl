@@ -29,7 +29,7 @@
 {"decision":"D1","name":"solidus-escape","query":"\"\\/\"","expect":"\"/\""}
 {"decision":"D1","name":"backspace-escape","query":"\"a\\bb\" | contains \"a\"","expect":"true"}
 {"decision":"D1","name":"formfeed-escape","query":"\"a\\fb\" | contains \"a\"","expect":"true"}
-{"decision":"D248","name":"json-object-with-unicode-key","query":"{\"k\\u0065y\": 42} | get /key","expect":"42"}
+{"decision":"D1","name":"json-object-with-unicode-key","query":"{\"k\\u0065y\": 42} | get /key","expect":"42"}
 {"decision":"D1","name":"all-json-escapes-in-one","query":"\"\\\"\\\\\\/_\\n\\t\\r\\b\\f\" | contains \"_\"","expect":"true"}
 {"decision":"D32","name":"a-vector-has-the-kind-its-brackets-imply","query":"[1 2] | type","expect":"::vec"}
 {"decision":"D32","name":"null-has-a-kind-of-its-own","query":"null | type","expect":"::null"}
@@ -68,7 +68,7 @@
 {"decision":"D32","name":"type-set-empty","query":"#[] | type","expect":"::set"}
 {"decision":"D46","name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
 {"decision":"D20","name":"type-of-the-payload-reads-past-its-tag","query":"::AutoBox[1 2 3] | payload | type","expect":"::vec"}
-{"decision":"D248","name":"classify-strict-path-flushes-the-pending-trail","query":"{} | get /missing | type | eq ::null","expect":"::path/KeyNotInMapError!{\n  :key :missing\n  :nearest []\n  :path /missing\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /missing)\n      :subject {}\n      :skipped ~(type | eq ::null)\n    }\n  ]\n} | raise"}
+{"decision":"D13","name":"classify-strict-path-flushes-the-pending-trail","query":"{} | get /missing | type | eq ::null","expect":"::path/KeyNotInMapError!{\n  :key :missing\n  :nearest []\n  :path /missing\n  :actualType ::map\n  :trail [\n    {\n      :step ~(get /missing)\n      :subject {}\n      :skipped ~(type | eq ::null)\n    }\n  ]\n} | raise"}
 {"decision":"D32","name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
 {"decision":"D32","name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
 {"decision":"D32","name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}

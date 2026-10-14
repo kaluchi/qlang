@@ -24,7 +24,7 @@
 {"decision":"D19","name":"doc-type-null-false","query":"|~~ x ~~| | type | eq ::null","expect":"false"}
 {"decision":"D19","name":"doc-line-type-answers-doc","query":"|~~| line content\n  | type | eq ::doc","expect":"true"}
 {"decision":"D19","name":"doc-with-backticks-in-content","query":"|~~ see ~(mul 2) for ref ~~|","expect":"|~~ see ~(mul 2) for ref ~~|"}
-{"decision":"D248","name":"doc-eq-self","query":"|~~ same ~~| | :d it | eq d","expect":"true"}
+{"decision":"D19","name":"doc-eq-self","query":"|~~ same ~~| | :d it | eq d","expect":"true"}
 {"decision":"D19","name":"doc-bound-by-a-freeze","query":"|~~ note ~~| | :n it | n | content","expect":"\" note \""}
 {"decision":"D221","name":"keyword-naming-a-binding-type-is-not-doc","query":":isDoc | type | eq ::doc","expect":"false"}
 {"decision":"D19","name":"a-doc-counts-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | count","expect":"3"}
@@ -69,7 +69,7 @@
 {"decision":"D168","name":"the-source-of-an-unknown-name-is-refused","query":"::nosuchbinding | source !| type","expect":"::any/source/UnknownNameError"}
 {"decision":"D119","name":"docs-not-found-names-the-docs-axis","query":"::nosuchbinding | doc !| type","expect":"::any/doc/UnknownNameError"}
 {"decision":"D123","name":"examples-leaves-for-the-laws-of-a-page","query":":count | examples | type !| type","expect":"::call/UnknownNameError"}
-{"decision":"D248","name":"not-found-carries-the-binding-name","query":"::nosuchbinding | source !| get /name","expect":"::nosuchbinding"}
+{"decision":"D221","name":"not-found-carries-the-binding-name","query":"::nosuchbinding | source !| get /name","expect":"::nosuchbinding"}
 {"decision":"D19","name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | doc | segments | first | type","expect":"::string"}
 {"decision":"D61","name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true"}
 {"decision":"D61","name":"a-tagged-vector-reads-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box#[3 1] | doc | content","expect":"\" A box. \""}

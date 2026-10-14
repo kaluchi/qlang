@@ -182,9 +182,9 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('a key of a map of another kind is refused by the kinds of its input [QSBLD#fn]', async () => {
-    const refused = await evalQuery('{:a 1} | has 42');
-    expect(refused.tag.name).toBe('map/has/key/NotKeywordOrPathOrStringError');
-    expect(refused.descriptor.get('actualType').name).toBe('number');
+    const refused = await evalQuery('{:a 1} | has [42]');
+    expect(refused.tag.name).toBe('map/has/key/NotKeywordOrNumberOrPathOrStringError');
+    expect(refused.descriptor.get('actualType').name).toBe('vec');
   });
 
   it('payload on non-TaggedInstance is refused under the address of payload [QSBLD#fn]', async () => {

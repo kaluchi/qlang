@@ -580,12 +580,14 @@ function refusedElementOf(elements, kinds) {
 
 // The refusal of the first invariant written under an input or the answer
 // whose condition the value does not answer true to, named under the
-// address, the error a condition answered handed on as it is, or null.
-async function invariantRefusal(invariants, address, value, state, scope) {
+// address, the error a condition answered handed on as it is, or null; an
+// invariant of a kind's value runs on the payload beneath the tag and its
+// refusal holds the value under the tag [D286].
+async function invariantRefusal(invariants, address, value, state, scope, held = value) {
   for (const { name, condition } of invariants) {
     const answer = (await evalBody(astOfQuote(condition), nestState(state, value, scope))).pipeValue;
     if (isErrorValue(answer)) return answer;
-    if (answer !== true) return refusalUnder(`${address}/${name}`, { actualValue: value }, scope);
+    if (answer !== true) return refusalUnder(`${address}/${name}`, { actualValue: held }, scope);
   }
   return null;
 }
@@ -952,9 +954,10 @@ async function underKind(tagName, kind, payload, state) {
     if (refused !== null) return refused;
   }
   const check = recipeOf(kind);
-  const labelled = laidUnder(tagName, isRecipe(check) ? await hostImplOf(check)(held, state) : held);
+  const checked = isRecipe(check) ? await hostImplOf(check)(held, state) : held;
+  const labelled = laidUnder(tagName, checked);
   const ofTheValue = invariants.filter(({ field }) => field === null);
-  return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, labelled, state, opened()) ?? labelled;
+  return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, checked, state, opened(), labelled) ?? labelled;
 }
 
 // The refusal of a field of the payload: a place the payload leaves out, a

@@ -136,11 +136,11 @@ where its kinds are of each element a payload that is no vector as
 `…/PayloadNotVecError` and an element of none with its `:index`. Each
 field reads its place of the payload, a place left out refused under the
 field as `…/NotGivenError` and a value of none of its kinds under the
-field. The invariants hold of the value, each refused under its name,
-the value that broke it its `:actualValue`, and an invariant that
-answers an error hands it on. `get` reads a field's place. An invariant
-runs on the value under the label, so code in it that keeps the tag
-reads the payload first, `~(payload | eq (sort))`.
+field. The invariants of the value hold of the payload beneath the tag,
+the data its page tells of, so a word in one that keeps its subject's
+kind runs over no tag: each is refused under its name, the value under
+the tag that broke it its `:actualValue`, and an invariant that answers
+an error hands it on. `get` reads a field's place.
 
 ```qlang
 > :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | holds :TooWideError |~~ At most ten. ~~| ~(get /w | lte 10)) | get [~(::Box{:w 3} | type) ~(::Box{} !| type) ~(::Box{:w "x"} !| type) ~(::Box{:w 20} !| type)]
@@ -148,6 +148,9 @@ reads the payload first, `~(payload | eq (sort))`.
 
 > :Box |~~ B. ~~| (::kind | holds :NegError |~~ Above zero. ~~| ~(get /0 | gt 0)) | ::Box[-1] !| keys
 #[:actualType :actualValue :trail]
+
+> :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| get /actualValue)]
+[[1 2] ::Sorted[2 1]]
 ```
 
 ## label
@@ -166,7 +169,7 @@ refused. The tag of a name that holds a value is refused as
 `::construct/TagNotKindError`.
 
 ```qlang
-> :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(payload | eq (sort))) | ::Sorted[1 2 3] | reverse !| type
+> :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | ::Sorted[1 2 3] | reverse !| type
 ::Sorted/NotSortedError
 
 > :limit 5 | ::limit[1] !| type

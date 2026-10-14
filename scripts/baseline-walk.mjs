@@ -157,7 +157,7 @@ export function unresolvedSections(repoRoot) {
 export function recordsInTransit(repoRoot) {
   const recordsDir = join(repoRoot, 'docs', 'decisions');
   return new Map(readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).flatMap(name => {
-    const line = readFileSync(join(recordsDir, name), 'utf8').match(/^Overrides ((?:.|\r?\n(?!\r?\n))+)/m)?.[1];
+    const line = readFileSync(join(recordsDir, name), 'utf8').match(/^Overrides ((?:[^\r\n]|\r?\n(?=\[QS))+)/m)?.[1];
     return line === undefined ? [] : [[name.slice(0, -3), [...line.matchAll(/\[(QS[A-Z]{3}(?:#[a-z][a-z-]*)?)\]/g)].map(match => match[1])]];
   }));
 }

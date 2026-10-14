@@ -32,5 +32,6 @@ bindPrim('vec/has', (vector, element) => (isPath(element) ? pathReads(vector, el
 bindPrim('vec/contains', vecHolds);
 bindPrim('set/has', (set, element) => (isPath(element) ? pathReads(set, element) : setHas(set, element)));
 bindPrim('set/contains', (set, element) => setHas(set, element));
-// A map's key is named by a keyword or a string alike.
-bindPrim('map/has', (map, key) => (isPath(key) ? pathReads(map, key) : map.has(isKeyword(key) ? key.name : key)));
+// A map's key is named by a keyword, a string or a number alike, the
+// number by its text, as `get` reads it [D284].
+bindPrim('map/has', (map, key) => (isPath(key) ? pathReads(map, key) : map.has(isKeyword(key) ? key.name : String(key))));

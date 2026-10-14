@@ -37,8 +37,9 @@ found through the tag.
 ## number
 
 A number is a finite double, written as an integer, a decimal, a minus
-sign and an exponent, `1e10`, `2.5e-3`, `1.5E+6`; a leading zero reads
-as the number it writes, `01` as `1`. A literal past the doubles,
+sign and an exponent, `1e10`, `2.5e-3`, `1.5E+6`, its whole part
+written as JSON writes it, a zero alone or digits opening with another,
+`01` refused by the parser with the form `1`. A literal past the doubles,
 `1e400`, is refused by the parser.
 
 ```qlang

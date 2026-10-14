@@ -74,18 +74,18 @@ null
 
 ## has
 
-`has` on a map takes a keyword, a string or a path, and answers whether
-`get` reads it; a number, which `get` reads as the key of its digits,
-`has` refuses, its page naming `toKeyword`, `has (get /uid | toKeyword)`.
-On a vector and a set `has` asks whether an element equal to one stands
-[QSCOL#sequence].
+`has` on a map takes a key as `get` takes one, a keyword, a string, a
+number or a path, and answers whether `get` reads it, a number naming
+the key of its text; a key of another kind is refused as
+`::map/has/key/NotKeywordOrNumberOrPathOrStringError`. On a vector and a
+set `has` asks whether an element equal to one stands [QSCOL#sequence].
 
 ```qlang
 > {:a {:b 1}} | get [~(has /a/b) ~(has /a/c)]
 [true false]
 
-> {:"1" 5} | has 1 !| type
-::map/has/key/NotKeywordOrPathOrStringError
+> {:"1" 5} | get [~(has 1) ~(has 2)]
+[true false]
 ```
 
 ## key

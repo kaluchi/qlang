@@ -38,6 +38,10 @@
             trail names the step and the subject it ran on.
         ~~|
     | proves :isANumber |~~ Five is a number. ~~| ~(5 | type | eq ::number)
+    | proves :refusesALeadingZero
+        |~~ A number is written without a leading zero, as JSON writes it.
+        ~~|
+        ~("[01]" | parse !| get /message | contains "write `1`")
     | proves :refusesALiteralPastTheRange
         |~~ The literal 1e400 does not parse. ~~|
         ~("1e400" | parse !| type | eq ::quote/ParseError)

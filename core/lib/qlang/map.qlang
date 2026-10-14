@@ -857,9 +857,9 @@
     | impl ::builtin{}
 
 :map/has
-  |~~ Answers whether the map holds the key the call gives, a keyword or a
-      string, both naming the key as the map stores it: `{:a 1} | has :a`
-      answers `true`. A key held with a null value is held,
+  |~~ Answers whether the map holds the key the call gives, a keyword, a
+      string or a number, each naming the key as `get` reads it, a number
+      by its text: `{:a 1} | has :a` answers `true`. A key held with a null value is held,
       `{:a null} | has :a` answering `true`, so `has` tells a null value
       from a key the map lacks, where `query` answers null for both. The
       key is computed against the subject, so it is written as the keyword
@@ -871,15 +871,15 @@
   ~~|
   ::fn
     | takes :key
-        |~~ The key the call gives, a keyword, a string or a path,
-            computed against the subject.
+        |~~ The key the call gives, a keyword, a number, a path or a
+            string, computed against the subject.
         ~~|
-        /0 #[::keyword ::path ::string]
-    | throws :key/NotKeywordOrPathOrStringError
+        /0 #[::keyword ::number ::path ::string]
+    | throws :key/NotKeywordOrNumberOrPathOrStringError
         |~~ The key is a keyword or a string, written as the keyword that
-            names it, `has :name`, or a path, which asks whether it reads,
-            `has /a/b`; a number that `indexBy` filed a record under is
-            asked by its keyword, `has (get /uid | toKeyword)`.
+            names it, `has :name`, a number, which names the key of its
+            text as `get` reads it, or a path, which asks whether it reads,
+            `has /a/b`.
         ~~|
     | returns
         |~~ `true` when the map holds the key, `false` otherwise. ~~|
@@ -899,11 +899,14 @@
     | proves :readsNoPathThroughAValueWithoutParts
         |~~ A path through a value that has no parts does not read. ~~|
         ~({:a 1} | has /a/b | not)
-    | proves :key/NotKeywordOrPathOrStringError/refusesANumber
-        |~~ A number key is refused. ~~|
-        ~({:a 1} | has 42
+    | proves :findsTheKeyOfANumber
+        |~~ A number names the key of its text, as `get` reads it. ~~|
+        ~({:"1" 5} | has 1)
+    | proves :key/NotKeywordOrNumberOrPathOrStringError/refusesAVector
+        |~~ A vector key is refused. ~~|
+        ~({:a 1} | has [1]
           !| get [~(type) /actualType]
-          |  eq [::map/has/key/NotKeywordOrPathOrStringError ::number])
+          |  eq [::map/has/key/NotKeywordOrNumberOrPathOrStringError ::vec])
     | impl ::builtin{}
 
 :map/union

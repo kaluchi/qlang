@@ -383,8 +383,8 @@
 
 :kind/holds
   |~~ Writes an invariant of a kind: the refusal of a value that breaks it,
-      its page, and the condition the value answers true to,
-      `| holds :TooWideError |~~ No wider than high. ~~| ~(subOf /h /w | gte 0)`;
+      its page, and the condition the payload beneath the tag answers true
+      to, `| holds :TooWideError |~~ No wider than high. ~~| ~(subOf /h /w | gte 0)`;
       written with a path it holds of a field, `:w/NegativeError`, the
       value the payload gives the field.
   ~~|

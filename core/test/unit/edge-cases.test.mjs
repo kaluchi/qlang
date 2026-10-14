@@ -114,8 +114,8 @@ describe('runtime/map.mjs error paths', () => {
   it('has rejects non-Map/non-Set subject', async () => {
     await expectErrorThrown('42 | has :foo', 'call/KindAnswersNoVerbError');
   });
-  it('has on Map requires keyword-or-string key', async () => {
-    await expectErrorThrown('{:k 1} | has 42', 'map/has/key/NotKeywordOrPathOrStringError');
+  it('has on a map takes a key as get takes one [D284]', async () => {
+    await expectErrorThrown('{:k 1} | has [42]', 'map/has/key/NotKeywordOrNumberOrPathOrStringError');
   });
 });
 

@@ -572,7 +572,7 @@ if (catalogDecisions.length > 0) {
 if (undecided.length > 0) {
   process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
   for (const file of undecided) process.stdout.write(`  ${file}\n`);
-  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, a choice and the mechanics around it as two records [D155]; an open record holds `Question.`, `Source.` and `Alternatives.`, and no `Decided by.` or `Decision.` until it is decided [D255].\n');
+  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, the line naming the parts of the model beside the choice of the maintainer [D155]; an open record holds `Question.`, `Source.` and `Alternatives.`, and no `Decided by.` or `Decision.` until it is decided [D255].\n');
 }
 if (unmarked.length > 0) {
   process.stdout.write(`\nArtifacts that name no decision (${unmarked.length}):\n`);

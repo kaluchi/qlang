@@ -493,6 +493,34 @@ function fatesOutOfStep() {
 // the decision it exists for, so the scope of a decision is found by its
 // marks and an artifact no decision explains is seen [D237].
 
+// A chapter of the specification states what the language is: it cites
+// no record of the journal, speaks none of the journal's words, tells no
+// history of a form, and says nothing of what it leaves out [D283]. The
+// prose is read outside its fenced blocks, whose probes may hold any text.
+const SPEC_INTRUSIONS = [
+  { rule: 'a record of the journal', regex: /\[[DE]\d+\]|\bdecisions? [DE]\d+\b|docs\/decisions/ },
+  { rule: 'a word of the journal', regex: /\b(journal|records? in (force|transit)|baselines?|dissolves?|dissolved|in transit|replaced\/)\b/i },
+  { rule: 'the history of a form', regex: /\b(left|leaves|leave) the language\b|\bno longer\b|\bused to\b|\bformerly\b|\banymore\b/i },
+  { rule: 'what the text leaves out', regex: /\bnothing else\b|\bno history\b/i },
+];
+function specIntrusions() {
+  const specDir = join(repoRoot, 'docs', 'spec');
+  if (!existsSync(specDir)) return [];
+  const found = [];
+  for (const name of readdirSync(specDir).filter(file => file.endsWith('.md'))) {
+    let fenced = false;
+    readFileSync(join(specDir, name), 'utf8').split(/\r?\n/).forEach((line, index) => {
+      if (line.startsWith('```')) { fenced = !fenced; return; }
+      if (fenced) return;
+      for (const { rule, regex } of SPEC_INTRUSIONS) {
+        const match = regex.exec(line);
+        if (match) found.push({ file: `docs/spec/${name}`, line: index + 1, rule, text: match[0] });
+      }
+    });
+  }
+  return found;
+}
+
 function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;
 }
@@ -511,6 +539,7 @@ const unmarked = unmarkedArtifacts();
 const misplaced = misplacedRecords();
 const broken = brokenLinks();
 const outOfStep = fatesOutOfStep();
+const intrusions = specIntrusions();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -523,7 +552,8 @@ if (forbidden.length === 0
     && unmarked.length === 0
     && misplaced.length === 0
     && broken.length === 0
-    && outOfStep.length === 0) {
+    && outOfStep.length === 0
+    && intrusions.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -597,5 +627,10 @@ if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);
   for (const v of unwalked) process.stdout.write(`  ${v.where}  ${v.problem}\n`);
   process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [D225].\n');
+}
+if (intrusions.length > 0) {
+  process.stdout.write(`\nThe specification speaks of the work (${intrusions.length}):\n`);
+  for (const v of intrusions) process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.text}\n`);
+  process.stdout.write('    a chapter states what the language is; the change, its records and its history belong to the journal [D283].\n');
 }
 process.exit(1);

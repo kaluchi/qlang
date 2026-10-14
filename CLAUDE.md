@@ -178,7 +178,9 @@ more than twenty records since the baseline, a document of the research
 the baseline holds that nothing in force cites, which
 `node scripts/drop-documents.mjs` drops [D282], a citation of a section of
 the specification its chapter lacks, a case of a chapter changed since
-the baseline that no record in transit over its section claims [D283],
+the baseline that no record in transit over its section claims, a
+chapter that cites a record, speaks of the journal or tells a history
+[D283],
 and a citation of a record not in force, which the code, the tests and the cases never make and the
 documents make only of one waiting on its target [D225]. `npm run check:probes` runs every probe of the audit and the
 entrypoint document, the shell ones that read the repository alone

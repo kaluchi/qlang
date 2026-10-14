@@ -38,7 +38,7 @@
             refused here.
             ::link~(::set/toVec | doc) ::link~(::tagged/payload | doc)
         ~~|
-    | throws :PayloadNotVecError
+    | throws :PayloadKindNotTakenError
         |~~ `::vec` reads its payload as the vector it is: a set turns
             into a vector by `toVec`, `#[2 1] | toVec`, and a vector under
             a tag of its own, a quote and a doc among them, gives the
@@ -52,12 +52,12 @@
             none.
         ~~|
         ~("[1, 2 3]" | parse !| type | eq ::quote/ParseError)
-    | proves :PayloadNotVecError/refusesASet
+    | proves :PayloadKindNotTakenError/refusesASet
         |~~ A set is refused; `toVec` turns it into a vector. ~~|
-        ~(#[2 1] | tag ::vec !| get [~(type) /actualType] | eq [::vec/PayloadNotVecError ::set])
-    | proves :PayloadNotVecError/refusesAMap
+        ~(#[2 1] | tag ::vec !| get [~(type) /actualType] | eq [::vec/PayloadKindNotTakenError ::set])
+    | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::vec{:a 1} !| get [~(type) /actualType] | eq [::vec/PayloadNotVecError ::map])
+        ~(::vec{:a 1} !| get [~(type) /actualType] | eq [::vec/PayloadKindNotTakenError ::map])
     | impl ::builtin{}
 
 :vec/count
@@ -283,7 +283,7 @@
             gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /age)`, it
             runs on each element, while `(get /age)` is computed once at the
             call, against the vector, and refused with what it answered.
@@ -312,13 +312,13 @@
     | proves :answersTheErrorOfTheKey
         |~~ A key that misses its field answers the error of the read. ~~|
         ~([{:a 1} {:b 2}] | min /a !| type | eq ::path/KeyNotInMapError)
-    | proves :key/NotNullOrPathOrQuoteError/refusesAStepWithoutItsQuote
+    | proves :key/KindNotTakenError/refusesAStepWithoutItsQuote
         |~~ A step written without its quote runs on the whole subject at
             the call, and its error is refused.
         ~~|
         ~([3 1] | min (get /age)
           !| get [~(type) /actualType]
-          |  eq [::vec/min/key/NotNullOrPathOrQuoteError ::path/IndexNotIntegerError])
+          |  eq [::vec/min/key/KindNotTakenError ::path/IndexNotIntegerError])
     | impl ::builtin{}
 
 :vec/max
@@ -337,7 +337,7 @@
             gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null, `max /age`, as for `min`. ~~|
     | returns
         |~~ The greatest element, any value, null for the empty vector. ~~|
@@ -357,9 +357,9 @@
     | proves :answersTheFirstOfEqualKeys
         |~~ Of elements whose keys are equal the first answers. ~~|
         ~([{:age 40 :n 1} {:age 40 :n 2}] | max /age | get /n | eq 1)
-    | proves :key/NotNullOrPathOrQuoteError/refusesANumber
+    | proves :key/KindNotTakenError/refusesANumber
         |~~ A key that is no quote is refused under the input. ~~|
-        ~([1 2] | max 1 !| type | eq ::vec/max/key/NotNullOrPathOrQuoteError)
+        ~([1 2] | max 1 !| type | eq ::vec/max/key/KindNotTakenError)
     | impl ::builtin{}
 
 :vec/map
@@ -390,7 +390,7 @@
     | takes :code
         |~~ The code run on each element, a quote. ~~|
         /0 #[::path ::quote]
-    | throws :code/NotPathOrQuoteError
+    | throws :code/KindNotTakenError
         |~~ The code is a quote, `map ~(add 1)`, or a path, `map /name`;
             written without the tilde, `map (add 1)`, it is computed once
             at the call, against the vector, and refused with what it
@@ -436,9 +436,9 @@
     | proves :answersTheEmptyVector
         |~~ The empty vector answers the empty vector. ~~|
         ~([] | map ~(add 1) | eq [])
-    | proves :code/NotPathOrQuoteError/refusesAStepComputedAtTheCall
+    | proves :code/KindNotTakenError/refusesAStepComputedAtTheCall
         |~~ A step written without its quote is refused. ~~|
-        ~([1 2] | map (add 1) !| type | eq ::vec/map/code/NotPathOrQuoteError)
+        ~([1 2] | map (add 1) !| type | eq ::vec/map/code/KindNotTakenError)
     | proves :code/NotGivenError/refusesACallWithoutCode
         |~~ A call without code is refused under the input. ~~|
         ~([1 2] | map !| type | eq ::vec/map/code/NotGivenError)
@@ -478,7 +478,7 @@
         |~~ The code each element is run through, which answers a boolean.
         ~~|
         /0 #[::path ::quote]
-    | throws :predicate/NotPathOrQuoteError
+    | throws :predicate/KindNotTakenError
         |~~ The predicate is a quote, `filter ~(gt 1)`, or a path,
             `filter /active`; written without the tilde, `filter (gt 1)`,
             it is computed once at the call and refused.
@@ -521,19 +521,19 @@
     | proves :keepsAQuoteAQuote
         |~~ A quote keeps the steps that hold. ~~|
         ~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | eq ~(mul 2))
-    | proves :predicate/NotPathOrQuoteError/refusesABoolean
+    | proves :predicate/KindNotTakenError/refusesABoolean
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | filter (count | gt 1)
           !| get [~(type) /actualType]
-          |  eq [::vec/filter/predicate/NotPathOrQuoteError ::boolean])
-    | proves :predicate/NotPathOrQuoteError/refusesAStepWithoutItsQuote
+          |  eq [::vec/filter/predicate/KindNotTakenError ::boolean])
+    | proves :predicate/KindNotTakenError/refusesAStepWithoutItsQuote
         |~~ A step written without its quote runs on the whole subject at
             the call, and its error is refused.
         ~~|
         ~([{:a true}] | filter (get /a)
           !| get [~(type) /actualType]
-          |  eq [::vec/filter/predicate/NotPathOrQuoteError ::path/IndexNotIntegerError])
+          |  eq [::vec/filter/predicate/KindNotTakenError ::path/IndexNotIntegerError])
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | filter ~(1)
@@ -562,7 +562,7 @@
         |~~ The code each element is run through, which answers a boolean.
         ~~|
         /0 #[::path ::quote]
-    | throws :predicate/NotPathOrQuoteError
+    | throws :predicate/KindNotTakenError
         |~~ The predicate is a quote, `every ~(gt 0)`, or a path,
             `every /active`; written without the tilde, `every (gt 0)`, it
             is computed once at the call and refused.
@@ -597,12 +597,12 @@
             call.
         ~~|
         ~([{:a 1} {:b 2}] | every ~(get /a | gt 0) !| type | eq ::path/KeyNotInMapError)
-    | proves :predicate/NotPathOrQuoteError/refusesABoolean
+    | proves :predicate/KindNotTakenError/refusesABoolean
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | every (count | gt 1)
           !| get [~(type) /actualType]
-          |  eq [::vec/every/predicate/NotPathOrQuoteError ::boolean])
+          |  eq [::vec/every/predicate/KindNotTakenError ::boolean])
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | every ~(1)
@@ -626,7 +626,7 @@
         |~~ The code each element is run through, which answers a boolean.
         ~~|
         /0 #[::path ::quote]
-    | throws :predicate/NotPathOrQuoteError
+    | throws :predicate/KindNotTakenError
         |~~ The predicate is a quote, `any ~(gt 2)`, or a path,
             `any /vip`; written without the tilde, `any (gt 2)`, it is
             computed once at the call and refused.
@@ -656,12 +656,12 @@
     | proves :takesAWordByItsName
         |~~ A word by its name stands where a quote would. ~~|
         ~([1 2 3] | :number/big ~(gt 2) | any ~big)
-    | proves :predicate/NotPathOrQuoteError/refusesABoolean
+    | proves :predicate/KindNotTakenError/refusesABoolean
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | any (count | gt 1)
           !| get [~(type) /actualType]
-          |  eq [::vec/any/predicate/NotPathOrQuoteError ::boolean])
+          |  eq [::vec/any/predicate/KindNotTakenError ::boolean])
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | any ~(1)
@@ -765,7 +765,7 @@
             null when the call gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /kind)`, it
             runs on each element, while `(get /kind)` is computed once at
             the call, against the vector, and refused with what it answered.
@@ -837,13 +837,13 @@
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
         ~([1 "1"] | groupBy !| get [~(type) /key /taken /index] | eq [::vec/groupBy/KeyTakenError :"1" 1 1])
-    | proves :key/NotNullOrPathOrQuoteError/refusesAKeyword
+    | proves :key/KindNotTakenError/refusesAKeyword
         |~~ A keyword given as the key is computed at the call, and
             refused.
         ~~|
         ~([{:kind :a}] | groupBy :a
           !| get [~(type) /actualType]
-          |  eq [::vec/groupBy/key/NotNullOrPathOrQuoteError ::keyword])
+          |  eq [::vec/groupBy/key/KindNotTakenError ::keyword])
     | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ A vector key is refused at its element. ~~|
         ~([{:k 2} {:k [1]}] | groupBy /k
@@ -873,7 +873,7 @@
             null when the call gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /id)`, it
             runs on each element, while `(get /id)` is computed once at the
             call, against the vector, and refused with what it answered.
@@ -936,13 +936,13 @@
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
         ~([{:id 1} {:id "1"}] | indexBy /id !| get [~(type) /key /taken /index] | eq [::vec/indexBy/KeyTakenError :"1" 1 1])
-    | proves :key/NotNullOrPathOrQuoteError/refusesAKeyword
+    | proves :key/KindNotTakenError/refusesAKeyword
         |~~ A keyword given as the key is computed at the call, and
             refused.
         ~~|
         ~([{:id :a}] | indexBy :a
           !| get [~(type) /actualType]
-          |  eq [::vec/indexBy/key/NotNullOrPathOrQuoteError ::keyword])
+          |  eq [::vec/indexBy/key/KindNotTakenError ::keyword])
     | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ A vector key is refused at its element. ~~|
         ~([{:k [1]}] | indexBy /k
@@ -981,7 +981,7 @@
             none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /age)`, it
             runs on each element, while `(get /age)` is computed once at the
             call, against the vector, and refused with what it answered.
@@ -1039,11 +1039,11 @@
             error alike.
         ~~|
         ~([{:a 2} {:b 1}] | sort ~(get [/a]) !| type | eq ::path/KeyNotInMapError)
-    | proves :key/NotNullOrPathOrQuoteError/refusesANumber
+    | proves :key/KindNotTakenError/refusesANumber
         |~~ A number given as the key is computed at the call, and
             refused.
         ~~|
-        ~([3 1 2] | sort 1 !| get [~(type) /actualType] | eq [::vec/sort/key/NotNullOrPathOrQuoteError ::number])
+        ~([3 1 2] | sort 1 !| get [~(type) /actualType] | eq [::vec/sort/key/KindNotTakenError ::number])
     | proves :ArgsBeyondInputsError/refusesTwoKeys
         |~~ Two keys are refused under the word. ~~|
         ~([{:a 1}] | sort /a /b !| type | eq ::vec/sort/ArgsBeyondInputsError)
@@ -1063,7 +1063,7 @@
   ~~|
   ::fn
     | takes :count |~~ How many. ~~| /0 ::number
-    | throws :count/NotNumberError
+    | throws :count/KindNotTakenError
         |~~ The count is a number, `[1 2 3] | take 2`; text that holds one
             is read by `toNumber` first, `take ("2" | toNumber)`.
         ~~|
@@ -1088,9 +1088,9 @@
     | proves :readsASliceAfterADrop
         |~~ A drop and then a take read a slice. ~~|
         ~([1 2 3 4 5] | drop 2 | take 2 | eq [3 4])
-    | proves :count/NotNumberError/refusesAString
+    | proves :count/KindNotTakenError/refusesAString
         |~~ A string is no count. ~~|
-        ~([1 2 3] | take "2" !| get [~(type) /actualType] | eq [::vec/take/count/NotNumberError ::string])
+        ~([1 2 3] | take "2" !| get [~(type) /actualType] | eq [::vec/take/count/KindNotTakenError ::string])
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
         ~([1 2 3] | take 1.5 !| get [~(type) /actualType] | eq [::vec/take/count/NotIntegerError ::number])
@@ -1111,7 +1111,7 @@
   ~~|
   ::fn
     | takes :count |~~ How many. ~~| /0 ::number
-    | throws :count/NotNumberError
+    | throws :count/KindNotTakenError
         |~~ The count is a number, `[1 2 3] | drop 2`; text that holds one
             is read by `toNumber` first, `drop ("2" | toNumber)`.
         ~~|
@@ -1136,9 +1136,9 @@
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
         ~([1 2 3] | drop 1.5 !| get [~(type) /actualType] | eq [::vec/drop/count/NotIntegerError ::number])
-    | proves :count/NotNumberError/refusesAString
+    | proves :count/KindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
-        ~([1 2] | drop "1" !| type | eq ::vec/drop/count/NotNumberError)
+        ~([1 2] | drop "1" !| type | eq ::vec/drop/count/KindNotTakenError)
     | impl ::builtin{}
 
 :vec/distinct
@@ -1297,7 +1297,7 @@
             element.
         ~~|
         /1 #[::path ::quote]
-    | throws :reducer/NotPathOrQuoteError
+    | throws :reducer/KindNotTakenError
         |~~ The reducer is a path or a quote, `reduce 0 ~(add)`, after the
             seed: written first, `reduce ~(add) 0`, it stands in the seed's
             place and hands the reducer's place the seed, and written
@@ -1355,19 +1355,19 @@
         ~([] | reduce 42 ~(add) | eq 42)
     | proves :answersTheErrorOfTheReducer
         |~~ An error the reducer answers answers the call. ~~|
-        ~([1 "x" 3] | reduce 0 ~(add) !| type | eq ::number/add/addend/NotNumberError)
-    | proves :reducer/NotPathOrQuoteError/refusesANumber
+        ~([1 "x" 3] | reduce 0 ~(add) !| type | eq ::number/add/addend/KindNotTakenError)
+    | proves :reducer/KindNotTakenError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
         ~([1 2 3] | reduce 0 1
           !| get [~(type) /actualType]
-          |  eq [::vec/reduce/reducer/NotPathOrQuoteError ::number])
-    | proves :reducer/NotPathOrQuoteError/refusesTheReducerFirst
+          |  eq [::vec/reduce/reducer/KindNotTakenError ::number])
+    | proves :reducer/KindNotTakenError/refusesTheReducerFirst
         |~~ A reducer written before the seed hands the reducer's place
             the seed.
         ~~|
         ~([1 2 3] | reduce ~(add) 0
           !| get [~(type) /actualType]
-          |  eq [::vec/reduce/reducer/NotPathOrQuoteError ::number])
+          |  eq [::vec/reduce/reducer/KindNotTakenError ::number])
     | proves :reducer/NotGivenError/readsALoneQuoteAsTheSeed
         |~~ A call of the reducer alone lacks the reducer. ~~|
         ~([1 2 3] | reduce ~(add) !| type | eq ::vec/reduce/reducer/NotGivenError)
@@ -1606,7 +1606,7 @@
     | takes :separator
         |~~ The text written between every two elements, `join ", "`. ~~|
         /0 #[::keyword ::string]
-    | throws :separator/NotKeywordOrStringError
+    | throws :separator/KindNotTakenError
         |~~ The separator is a string, `["a" "b"] | join ","`, or a
             keyword written as its name; a number writes as text by
             `toString` first, `join (1 | toString)`.
@@ -1656,11 +1656,11 @@
     | proves :joinsTheValuesOfAMap
         |~~ The values of a map are read first. ~~|
         ~({:a "x" :b "y"} | vals | join "," | eq "x,y")
-    | proves :separator/NotKeywordOrStringError/refusesANumber
+    | proves :separator/KindNotTakenError/refusesANumber
         |~~ A number separator is refused. ~~|
         ~(["a" "b"] | join 42
           !| get [~(type) /actualType]
-          |  eq [::vec/join/separator/NotKeywordOrStringError ::number])
+          |  eq [::vec/join/separator/KindNotTakenError ::number])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of strings. ~~|
         ~(42 | join "," !| get [~(type) /actualType] | eq [::vec/join/SubjectNotVecError ::number])

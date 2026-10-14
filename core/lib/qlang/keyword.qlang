@@ -24,7 +24,7 @@
   ~~|
   ::kind
     | wraps |~~ A keyword, read as itself. ~~|
-    | throws :PayloadNotKeywordError
+    | throws :PayloadKindNotTakenError
         |~~ `::keyword` reads its payload as the keyword it is; a string
             becomes one by `toKeyword`.
         ~~|
@@ -42,11 +42,11 @@
     | proves :quotesABareName
         |~~ A bare name quoted is the same keyword. ~~|
         ~(:"foo" | eq :foo)
-    | proves :PayloadNotKeywordError/refusesAString
+    | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused; `toKeyword` turns a string into
             one.
         ~~|
-        ~(::keyword"k" !| get [~(type) /actualType] | eq [::keyword/PayloadNotKeywordError ::string])
+        ~(::keyword"k" !| get [~(type) /actualType] | eq [::keyword/PayloadKindNotTakenError ::string])
     | impl ::builtin{}
 
 :keyword/gt
@@ -68,7 +68,7 @@
             subject, `:b | gt :a`.
         ~~|
         /0 ::keyword
-    | throws :value/NotKeywordError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a keyword, `:b | gt :a`; a string is
             turned by `toKeyword` first, `:b | gt ("a" | toKeyword)`.
         ~~|
@@ -87,9 +87,9 @@
     | proves :comparesTextTurnedIntoAKeyword
         |~~ Text turned by `toKeyword` compares with a keyword. ~~|
         ~("b" | toKeyword | gt :a)
-    | proves :value/NotKeywordError/refusesAString
+    | proves :value/KindNotTakenError/refusesAString
         |~~ A string is no keyword to compare with. ~~|
-        ~(:a | gt "a" !| type | eq ::keyword/gt/value/NotKeywordError)
+        ~(:a | gt "a" !| type | eq ::keyword/gt/value/KindNotTakenError)
     | impl ::builtin{}
 
 :keyword/gte
@@ -104,7 +104,7 @@
             subject, `:b | gte :a`.
         ~~|
         /0 ::keyword
-    | throws :value/NotKeywordError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a keyword, `:b | gte :a`; a string is
             turned by `toKeyword` first, `:b | gte ("a" | toKeyword)`.
         ~~|
@@ -117,9 +117,9 @@
         |~~ A keyword comes after or is itself. ~~|
         ~(:b | gte :b)
     | proves :ordersByName |~~ `:b` comes after `:a`. ~~| ~(:b | gte :a)
-    | proves :value/NotKeywordError/refusesANumber
+    | proves :value/KindNotTakenError/refusesANumber
         |~~ A number is no keyword to compare with. ~~|
-        ~(:b | gte 1 !| type | eq ::keyword/gte/value/NotKeywordError)
+        ~(:b | gte 1 !| type | eq ::keyword/gte/value/KindNotTakenError)
     | impl ::builtin{}
 
 :keyword/lt
@@ -134,7 +134,7 @@
             subject, `:b | lt :a`.
         ~~|
         /0 ::keyword
-    | throws :value/NotKeywordError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a keyword, `:b | lt :a`; a string is
             turned by `toKeyword` first, `:b | lt ("a" | toKeyword)`.
         ~~|
@@ -150,9 +150,9 @@
     | proves :keepsOneKeywordApartFromItself
         |~~ A keyword does not come before itself. ~~|
         ~(:a | lt :a | not)
-    | proves :value/NotKeywordError/refusesANumber
+    | proves :value/KindNotTakenError/refusesANumber
         |~~ A number is no keyword to compare with. ~~|
-        ~(:b | lt 1 !| type | eq ::keyword/lt/value/NotKeywordError)
+        ~(:b | lt 1 !| type | eq ::keyword/lt/value/KindNotTakenError)
     | impl ::builtin{}
 
 :keyword/lte
@@ -167,7 +167,7 @@
             subject, `:b | lte :a`.
         ~~|
         /0 ::keyword
-    | throws :value/NotKeywordError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a keyword, `:b | lte :a`; a string is
             turned by `toKeyword` first, `:b | lte ("a" | toKeyword)`.
         ~~|
@@ -180,9 +180,9 @@
         |~~ A keyword comes before or is itself. ~~|
         ~(:a | lte :a)
     | proves :ordersByName |~~ `:a` comes before `:b`. ~~| ~(:a | lte :b)
-    | proves :value/NotKeywordError/refusesANumber
+    | proves :value/KindNotTakenError/refusesANumber
         |~~ A number is no keyword to compare with. ~~|
-        ~(:b | lte 1 !| type | eq ::keyword/lte/value/NotKeywordError)
+        ~(:b | lte 1 !| type | eq ::keyword/lte/value/KindNotTakenError)
     | impl ::builtin{}
 
 :keyword/toString

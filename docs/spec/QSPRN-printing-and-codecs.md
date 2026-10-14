@@ -79,8 +79,8 @@ The place a reading of text stopped is a span: six whole numbers under
 start and then of the point after its end. `start` and `end` answer its
 ends as points, three whole numbers under `::point`, read by `offset`,
 `line` and `column`. A payload that is no vector is refused as
-`…/PayloadNotVecError`, an element that is no number as
-`…/ElementNotNumberError` with its `:index`, and a vector of another
+`…/PayloadKindNotTakenError`, an element that is no number as
+`…/ElementKindNotTakenError` with its `:index`, and a vector of another
 length or with a fraction by the invariant of the kind,
 `::span/PayloadNotSixNumbersError` and
 `::point/PayloadNotThreeNumbersError`.
@@ -93,5 +93,5 @@ length or with a fraction by the invariant of the kind,
 ::span/PayloadNotSixNumbersError
 
 > ::span[0 1 "x" 1 1 2] !| get [~(type) /index]
-[::span/ElementNotNumberError 2]
+[::span/ElementKindNotTakenError 2]
 ```

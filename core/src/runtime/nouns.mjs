@@ -342,14 +342,14 @@ export function placesOfSelectors(selectors) {
 // whose tags reaches no value of the word's label, args of more values than
 // its inputs read places, an input the call leaves out where its place reads
 // one, and an answer that reaches none of the kinds `returns` names; and under
-// a kind, a payload of none of its kinds, or an element of none, named as the
-// catalog names the payload's refusals [QSBLD#kind].
+// a kind, a payload of none of its kinds, or an element of none, a refusal of
+// kinds named by the role of its holder alone [D287].
 export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kindsWord(kinds)}Error`;
 export const argsBeyondInputsAddress = address => `${address}/ArgsBeyondInputsError`;
 export const notGivenAddress = holderAddress => `${holderAddress}/NotGivenError`;
-export const kindsRefusalAddress = (address, kinds) => `${address}/Not${kindsWord(kinds)}Error`;
-export const elementsRefusalAddress = (address, kinds) => `${address}/ElementNot${kindsWord(kinds)}Error`;
-export const payloadRefusalName = (kinds, each) => `${each ? 'Element' : 'Payload'}Not${kindsWord(kinds)}Error`;
+export const kindsRefusalAddress = address => `${address}/KindNotTakenError`;
+export const elementsRefusalAddress = address => `${address}/ElementKindNotTakenError`;
+export const payloadRefusalName = each => `${each ? 'Element' : 'Payload'}KindNotTakenError`;
 
 const kindsWord = kinds => kinds.map(capitalOf).join('Or');
 const capitalOf = name => { const [, word] = splitAddress(name); return word[0].toUpperCase() + word.slice(1); };
@@ -379,11 +379,11 @@ export function functionRuleRefusalsOf(signature, address, labelName) {
   for (const { name, kinds, each, selector } of signature.inputs) {
     const inputAddress = `${address}/${name.name}`;
     if (!selector.readsArgs && (selector.strict || !selector.onePlace)) refusals.push(notGivenAddress(inputAddress));
-    if (each && !selector.readsArgs) refusals.push(kindsRefusalAddress(inputAddress, ['vec']));
-    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress, kinds) : kindsRefusalAddress(inputAddress, kinds));
+    if (each && !selector.readsArgs) refusals.push(kindsRefusalAddress(inputAddress));
+    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress));
   }
   const kinds = signature.answer?.kinds ?? null;
-  if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`, kinds));
+  if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`));
   return refusals;
 }
 
@@ -394,13 +394,13 @@ export function functionRuleRefusalsOf(signature, address, labelName) {
 // vector, and an element of none.
 export function kindRuleRefusalsOf({ payload, fields }, address) {
   const refusals = [];
-  if (payload?.each) refusals.push(`${address}/${payloadRefusalName(['vec'], false)}`);
-  if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.kinds, payload.each)}`);
+  if (payload?.each) refusals.push(`${address}/${payloadRefusalName(false)}`);
+  if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.each)}`);
   for (const { name, kinds, each } of fields) {
     const fieldAddress = `${address}/${name.name}`;
     refusals.push(notGivenAddress(fieldAddress));
-    if (each) refusals.push(kindsRefusalAddress(fieldAddress, ['vec']));
-    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(fieldAddress, kinds) : kindsRefusalAddress(fieldAddress, kinds));
+    if (each) refusals.push(kindsRefusalAddress(fieldAddress));
+    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(fieldAddress) : kindsRefusalAddress(fieldAddress));
   }
   return refusals;
 }

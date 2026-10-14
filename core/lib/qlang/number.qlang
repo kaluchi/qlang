@@ -27,7 +27,7 @@
   ~~|
   ::kind
     | wraps |~~ A number, read as itself, a finite double. ~~|
-    | throws :PayloadNotNumberError
+    | throws :PayloadKindNotTakenError
         |~~ `::number` reads its payload as the number it is; a payload of
             another kind is refused, and text is read by `toNumber`.
         ~~|
@@ -51,11 +51,11 @@
     | proves :roundsAsADouble
         |~~ A tenth and two tenths add as doubles add. ~~|
         ~(get [-1 2.5e-3 ~(0.1 | add 0.2)] | eq [-1 0.0025 0.30000000000000004])
-    | proves :PayloadNotNumberError/refusesAString
+    | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused; `toNumber` reads a number from
             text.
         ~~|
-        ~(::number"5" !| get [~(type) /actualType] | eq [::number/PayloadNotNumberError ::string])
+        ~(::number"5" !| get [~(type) /actualType] | eq [::number/PayloadKindNotTakenError ::string])
     | proves :NotFiniteError/refusesAProductPastTheRange
         |~~ A product past the range of doubles is refused at the step
             that made it.
@@ -81,7 +81,7 @@
         |~~ The number added to the subject, computed against the subject.
         ~~|
         /0 ::number
-    | throws :addend/NotNumberError
+    | throws :addend/KindNotTakenError
         |~~ The addend is a number; text that holds one is read by
             `toNumber`.
         ~~|
@@ -113,9 +113,9 @@
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the word. ~~|
         ~("hello" | add 1 !| get [~(type) /actualType] | eq [::number/add/SubjectNotNumberError ::string])
-    | proves :addend/NotNumberError/refusesAString
+    | proves :addend/KindNotTakenError/refusesAString
         |~~ An addend that is no number is refused under the input. ~~|
-        ~(1 | add "x" !| get [~(type) /actualType] | eq [::number/add/addend/NotNumberError ::string])
+        ~(1 | add "x" !| get [~(type) /actualType] | eq [::number/add/addend/KindNotTakenError ::string])
     | proves :ArgsBeyondInputsError/refusesTwoNumbers
         |~~ Args of two numbers are refused under the word. ~~|
         ~(1 | add 1 2 !| type | eq ::number/add/ArgsBeyondInputsError)
@@ -140,7 +140,7 @@
             subject.
         ~~|
         /0 ::number
-    | throws :subtrahend/NotNumberError
+    | throws :subtrahend/KindNotTakenError
         |~~ The subtrahend is a number; text that holds one is read by
             `toNumber` first, `10 | sub ("3" | toNumber)`.
         ~~|
@@ -164,9 +164,9 @@
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the word. ~~|
         ~("hello" | sub 1 !| get [~(type) /actualType] | eq [::number/sub/SubjectNotNumberError ::string])
-    | proves :subtrahend/NotNumberError/refusesAString
+    | proves :subtrahend/KindNotTakenError/refusesAString
         |~~ A subtrahend that is no number is refused under the input. ~~|
-        ~(1 | sub "x" !| get [~(type) /actualType] | eq [::number/sub/subtrahend/NotNumberError ::string])
+        ~(1 | sub "x" !| get [~(type) /actualType] | eq [::number/sub/subtrahend/KindNotTakenError ::string])
     | proves :answersUnderTheTag
         |~~ A number under a tag answers under the tag. ~~|
         ~(::Width#5 | sub 3 | eq ::Width#2)
@@ -189,7 +189,7 @@
             subject.
         ~~|
         /0 ::number
-    | throws :multiplier/NotNumberError
+    | throws :multiplier/KindNotTakenError
         |~~ The multiplier is a number; text that holds one is read by
             `toNumber` first, `2 | mul ("3" | toNumber)`.
         ~~|
@@ -210,10 +210,10 @@
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the word. ~~|
         ~("hello" | mul 2 !| get [~(type) /actualType] | eq [::number/mul/SubjectNotNumberError ::string])
-    | proves :multiplier/NotNumberError/refusesAString
+    | proves :multiplier/KindNotTakenError/refusesAString
         |~~ A multiplier that is no number is refused under the input. ~~|
-        ~(1 | mul "x" !| get [~(type) /actualType] | eq [::number/mul/multiplier/NotNumberError ::string])
-    | proves :multiplier/NotNumberError/namesTheReadOfAPath
+        ~(1 | mul "x" !| get [~(type) /actualType] | eq [::number/mul/multiplier/KindNotTakenError ::string])
+    | proves :multiplier/KindNotTakenError/namesTheReadOfAPath
         |~~ A path given for the multiplier names the read of its field. ~~|
         ~(5 | mul /qty !| get /read | eq ~(mul (get /qty)))
     | proves :answersUnderTheTag
@@ -245,7 +245,7 @@
             subject.
         ~~|
         /0 ::number
-    | throws :divisor/NotNumberError
+    | throws :divisor/KindNotTakenError
         |~~ The divisor is a number; text that holds one is read by
             `toNumber` first, `6 | div ("3" | toNumber)`.
         ~~|
@@ -277,9 +277,9 @@
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the word. ~~|
         ~("hello" | div 2 !| get [~(type) /actualType] | eq [::number/div/SubjectNotNumberError ::string])
-    | proves :divisor/NotNumberError/refusesAString
+    | proves :divisor/KindNotTakenError/refusesAString
         |~~ A divisor that is no number is refused under the input. ~~|
-        ~(1 | div "x" !| get [~(type) /actualType] | eq [::number/div/divisor/NotNumberError ::string])
+        ~(1 | div "x" !| get [~(type) /actualType] | eq [::number/div/divisor/KindNotTakenError ::string])
     | proves :divisor/ZeroError/refusesZero
         |~~ A division by zero is refused under the divisor. ~~|
         ~(10 | div 0 !| type | eq ::number/div/divisor/ZeroError)
@@ -303,7 +303,7 @@
             subject.
         ~~|
         /0 ::number
-    | throws :divisor/NotNumberError
+    | throws :divisor/KindNotTakenError
         |~~ The divisor is a number; text that holds one is read by
             `toNumber` first, `7 | mod ("3" | toNumber)`.
         ~~|
@@ -340,9 +340,9 @@
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the word. ~~|
         ~("7" | mod 3 !| get [~(type) /actualType] | eq [::number/mod/SubjectNotNumberError ::string])
-    | proves :divisor/NotNumberError/refusesAString
+    | proves :divisor/KindNotTakenError/refusesAString
         |~~ A divisor that is no number is refused under the input. ~~|
-        ~(7 | mod "3" !| get [~(type) /actualType] | eq [::number/mod/divisor/NotNumberError ::string])
+        ~(7 | mod "3" !| get [~(type) /actualType] | eq [::number/mod/divisor/KindNotTakenError ::string])
     | proves :divisor/ZeroError/refusesZero
         |~~ A remainder of a division by zero is refused under the
             divisor.
@@ -487,7 +487,7 @@
             gives none.
         ~~|
         ~(query /0 0) ::number
-    | throws :digits/NotNumberError
+    | throws :digits/KindNotTakenError
         |~~ The count of digits is a number, `3.14159 | round 2`. ~~|
     | holds :digits/NotIntegerError
         |~~ The digits of `round` are a whole number, `round 2`. ~~|
@@ -521,11 +521,11 @@
     | proves :digits/NotIntegerError/refusesAFraction
         |~~ Half a digit is refused. ~~|
         ~(2.5 | round 0.5 !| get [~(type) /actualType] | eq [::number/round/digits/NotIntegerError ::number])
-    | proves :digits/NotNumberError/refusesAString
+    | proves :digits/KindNotTakenError/refusesAString
         |~~ A count of digits that is no number is refused under the
             input.
         ~~|
-        ~(3.14 | round "2" !| type | eq ::number/round/digits/NotNumberError)
+        ~(3.14 | round "2" !| type | eq ::number/round/digits/KindNotTakenError)
     | impl ::builtin{}
 
 :number/gt
@@ -548,7 +548,7 @@
             subject, `5 | gt 3`.
         ~~|
         /0 ::number
-    | throws :value/NotNumberError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a number; text that holds one is read by
             `toNumber` first, `5 | gt ("3" | toNumber)`.
         ~~|
@@ -567,9 +567,9 @@
     | proves :filtersByTheElement
         |~~ In a condition the subject is the element. ~~|
         ~([1 2 3] | filter ~(gt 1) | eq [2 3])
-    | proves :value/NotNumberError/refusesAString
+    | proves :value/KindNotTakenError/refusesAString
         |~~ A string is no number to compare with. ~~|
-        ~(5 | gt "a" !| type | eq ::number/gt/value/NotNumberError)
+        ~(5 | gt "a" !| type | eq ::number/gt/value/KindNotTakenError)
     | proves :namesTheKindsThatAnswerIt
         |~~ A vector answers no `gt`, and the refusal names the kinds that
             do.
@@ -590,7 +590,7 @@
             subject, `5 | gte 3`.
         ~~|
         /0 ::number
-    | throws :value/NotNumberError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a number; text that holds one is read by
             `toNumber` first, `5 | gte ("3" | toNumber)`.
         ~~|
@@ -605,9 +605,9 @@
     | proves :holdsOfItsDecimal
         |~~ A whole number equals its decimal. ~~|
         ~(5 | gte 5.0)
-    | proves :value/NotNumberError/refusesAString
+    | proves :value/KindNotTakenError/refusesAString
         |~~ A string is no number to compare with. ~~|
-        ~(5 | gte "3" !| type | eq ::number/gte/value/NotNumberError)
+        ~(5 | gte "3" !| type | eq ::number/gte/value/KindNotTakenError)
     | proves :failsBelow
         |~~ A smaller number is not at least the value. ~~|
         ~(2 | gte 3 | not)
@@ -625,7 +625,7 @@
             subject, `5 | lt 3`.
         ~~|
         /0 ::number
-    | throws :value/NotNumberError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a number; text that holds one is read by
             `toNumber` first, `5 | lt ("3" | toNumber)`.
         ~~|
@@ -638,9 +638,9 @@
     | proves :keepsOneNumberApartFromItself
         |~~ A number is not less than itself. ~~|
         ~(5 | lt 5 | not)
-    | proves :value/NotNumberError/refusesAString
+    | proves :value/KindNotTakenError/refusesAString
         |~~ A string is no number to compare with. ~~|
-        ~(5 | lt "3" !| type | eq ::number/lt/value/NotNumberError)
+        ~(5 | lt "3" !| type | eq ::number/lt/value/KindNotTakenError)
     | impl ::builtin{}
 
 :number/lte
@@ -655,7 +655,7 @@
             subject, `5 | lte 3`.
         ~~|
         /0 ::number
-    | throws :value/NotNumberError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a number; text that holds one is read by
             `toNumber` first, `5 | lte ("3" | toNumber)`.
         ~~|
@@ -667,9 +667,9 @@
     | proves :holdsOfItself
         |~~ A number is less than or equal to itself. ~~|
         ~(10 | lte 10)
-    | proves :value/NotNumberError/refusesAString
+    | proves :value/KindNotTakenError/refusesAString
         |~~ A string is no number to compare with. ~~|
-        ~(5 | lte "3" !| type | eq ::number/lte/value/NotNumberError)
+        ~(5 | lte "3" !| type | eq ::number/lte/value/KindNotTakenError)
     | proves :failsAbove
         |~~ A greater number is not at most the value. ~~|
         ~(2 | lte 1 | not)

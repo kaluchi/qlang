@@ -118,7 +118,7 @@ export function readSignature(quote) {
       case 'takes': {
         names.declare(first.name);
         const { each, kinds, written } = kindsWritten(fourth);
-        if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name, kinds));
+        if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
         signature.inputs.push({ name: first, page: second, place: third, kinds, each, written, selector: selectorOfPlace(third) });
         break;
       }
@@ -172,8 +172,8 @@ export function readKindSignature(quote) {
       case 'wraps': {
         names.declare(PAYLOAD_NAME);
         const { each, kinds, written } = kindsWritten(second);
-        if (kinds !== null) names.named.add(payloadRefusalName(kinds, each));
-        if (each) names.named.add(payloadRefusalName(['vec'], false));
+        if (kinds !== null) names.named.add(payloadRefusalName(each));
+        if (each) names.named.add(payloadRefusalName(false));
         kind.payload = { page: first, kinds, each, written };
         break;
       }
@@ -181,8 +181,8 @@ export function readKindSignature(quote) {
         names.declare(first.name);
         const { each, kinds, written } = kindsWritten(fourth);
         names.named.add(notGivenAddress(first.name));
-        if (each) names.named.add(kindsRefusalAddress(first.name, ['vec']));
-        if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name, kinds));
+        if (each) names.named.add(kindsRefusalAddress(first.name));
+        if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
         kind.fields.push({ name: first, page: second, place: third, kinds, each, written });
         break;
       }

@@ -41,7 +41,7 @@
     | wraps
         |~~ A vector whose every element is a step, built into the quote.
         ~~|
-    | throws :PayloadNotVecError
+    | throws :PayloadKindNotTakenError
         |~~ `::quote` builds code from the vector of its steps; a payload
             of another kind is refused.
             ::link~(::quote | doc)
@@ -112,9 +112,9 @@
     | proves :filtersItsSteps
         |~~ A quote filters as the vector of its steps. ~~|
         ~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | parse | eq "mul 2")
-    | proves :PayloadNotVecError/refusesAMap
+    | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::quote{:not :steps} !| get [~(type) /actualType] | eq [::quote/PayloadNotVecError ::map])
+        ~(::quote{:not :steps} !| get [~(type) /actualType] | eq [::quote/PayloadKindNotTakenError ::map])
     | proves :ElementNotStepError/refusesAValueWithNoReading
         |~~ A value with no reading as a step is refused at its index. ~~|
         ~([::Box[1]] | tag ::quote !| get [~(type) /index] | eq [::quote/ElementNotStepError 0])

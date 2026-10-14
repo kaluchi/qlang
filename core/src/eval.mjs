@@ -16,7 +16,7 @@ import {
   makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, makeTaggedInstance, makeTag, errorAtRest,
   isFn, isKind, recipeOf, makeQuote, isQMap, stampTagHeader, TAG_HEADER_SYMBOL,
-  ERROR_TAG, isValueClass, isTag
+  ERROR_TAG, isValueClass, isTag, kindsExpected
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, tagCallStepOf, commandStep, groupStep } from './quote.mjs';
@@ -373,13 +373,13 @@ function nodesOfKind(kind, address, env, origin) {
   if (payload !== null) {
     const holder = keyword(PAYLOAD_NAME);
     lay(PAYLOAD_NAME, payload.page, payload.written ?? payload.page);
-    if (payload.each) layKindsRefusal(payloadRefusalName(['vec'], false), holder, ['vec'], false);
-    if (payload.kinds !== null) layKindsRefusal(payloadRefusalName(payload.kinds, payload.each), holder, payload.kinds, payload.each);
+    if (payload.each) layKindsRefusal(payloadRefusalName(false), holder, ['vec'], false);
+    if (payload.kinds !== null) layKindsRefusal(payloadRefusalName(payload.each), holder, payload.kinds, payload.each);
   }
   for (const { name, page, kinds, each, written } of fields) {
     lay(name.name, page, written ?? page);
-    if (each) layKindsRefusal(kindsRefusalAddress(name.name, ['vec']), name, ['vec'], false);
-    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name, kinds), name, kinds, each);
+    if (each) layKindsRefusal(kindsRefusalAddress(name.name), name, ['vec'], false);
+    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
   }
   for (const { name, page, written } of tells) lay(name, page, written ?? page);
   if (recipeOf(kind) !== null) lay(CONSTRUCT_NAME, pageOfConstructor(address), recipeOf(kind));
@@ -395,7 +395,7 @@ function nodesOfFunction(fn, address, env, origin) {
   if (subject !== null) lay(SUBJECT_NAME, subject.page, subject.written ?? subject.page);
   for (const { name, page, place, kinds, each } of inputs) {
     lay(name.name, page, place);
-    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name, kinds), name, kinds, each);
+    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
   }
   if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
   return layRest(signature);
@@ -555,13 +555,13 @@ function heldByItsKinds({ kinds, each }, refusalOf, value, env) {
   if (!each) {
     if (kinds === null) return value;
     const reached = walkToKinds(value, kinds);
-    return reached === null ? refusalUnder(refusalOf(kinds, false), { actualValue: value }, env) : reached.served;
+    return reached === null ? refusalUnder(refusalOf(kinds, false), { expected: kindsExpected(...kinds), actualValue: value }, env) : reached.served;
   }
   const elements = walkToKinds(value, ['vec']);
-  if (elements === null) return refusalUnder(refusalOf(['vec'], false), { actualValue: value }, env);
+  if (elements === null) return refusalUnder(refusalOf(['vec'], false), { expected: kindsExpected('vec'), actualValue: value }, env);
   if (kinds === null) return elements.served;
   const refused = refusedElementOf(elements.served, kinds);
-  if (refused !== null) return refusalUnder(refusalOf(kinds, true), { index: refused.index, actualValue: refused.element }, env);
+  if (refused !== null) return refusalUnder(refusalOf(kinds, true), { index: refused.index, expected: kindsExpected(...kinds), actualValue: refused.element }, env);
   if (isQuote(elements.served) || isDoc(elements.served)) return elements.served;
   const served = Array.from(elements.served, element => walkToKinds(element, kinds).served);
   return isQSet(elements.served) ? makeSet(served) : Object.freeze(served);
@@ -569,7 +569,7 @@ function heldByItsKinds({ kinds, each }, refusalOf, value, env) {
 
 // The names of the refusals of the kinds of an input or a field under its
 // address, or of each of its elements'.
-const refusalsUnder = address => (kinds, each) => (each ? elementsRefusalAddress : kindsRefusalAddress)(address, kinds);
+const refusalsUnder = address => (_kinds, each) => (each ? elementsRefusalAddress : kindsRefusalAddress)(address);
 
 // The first element the walk of whose tags reaches none of the kinds,
 // with its index from zero, or null when every one does.
@@ -692,7 +692,7 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
   if (kinds.includes(labelName)) return keptAsSubject(answer, walked.served, walked.passedTags, state);
   const constructing = kinds.length === 1 ? kinds[0] : kinds.find(kind => kind === typeKeyword(answer).name);
   if (constructing !== undefined) return mintUnderTag(state, makeTag(constructing), answer);
-  return refusalUnder(kindsRefusalAddress(address, kinds), { actualValue: answer }, state.env);
+  return refusalUnder(kindsRefusalAddress(address), { expected: kindsExpected(...kinds), actualValue: answer }, state.env);
 }
 
 // callMemberOn(record, subject, state) → the answer of the name under a
@@ -912,8 +912,8 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
   const atRest = errorAtRest(error.tag, new Map(error.descriptor));
   const inputAddress = `${address}/${reading.name.name}`;
   return reading.each
-    ? refusalUnder(elementsRefusalAddress(inputAddress, reading.kinds), { index: place, actualValue: atRest }, scope)
-    : refusalUnder(kindsRefusalAddress(inputAddress, reading.kinds), { actualValue: atRest }, scope);
+    ? refusalUnder(elementsRefusalAddress(inputAddress), { index: place, expected: kindsExpected(...reading.kinds), actualValue: atRest }, scope)
+    : refusalUnder(kindsRefusalAddress(inputAddress), { expected: kindsExpected(...reading.kinds), actualValue: atRest }, scope);
 }
 
 // ─── A value under a kind ───────────────────────────────────────
@@ -945,7 +945,7 @@ function laidUnder(tagName, value) {
 // constructor attaches the tag or refuses the payload [QSLIT#tag].
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = kindOf(kind);
-  const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, (kinds, each) => `${tagName}/${payloadRefusalName(kinds, each)}`, payload, state.env);
+  const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, (_kinds, each) => `${tagName}/${payloadRefusalName(each)}`, payload, state.env);
   if (isErrorValue(held)) return held;
   let scope;
   const opened = () => scope ??= recipeScopeOf(state, rootOf(state.env).get(tagName) === nodeOf(state.env, tagName));

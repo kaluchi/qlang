@@ -514,7 +514,7 @@ declares is a defect of the runtime [QSERR#site], [QSSLF#catalog], [QSBLD#kind]:
 ::number/add/SubjectNotNumberError
 
 > 1 | add "x" !| get [~(type) /actualType]
-[::number/add/addend/NotNumberError ::string]
+[::number/add/addend/KindNotTakenError ::string]
 
 > [1 "x"] | sum !| get [~(type) /index]
 [::vec/sum/ElementNotNumberError 1]
@@ -553,9 +553,9 @@ its refusal's page as line comments, the repair a reader acts on
 
 ```sh
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\") !| print | count" < /dev/null
-1336
+1363
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep -v '^|~|' | wc -c
-321
+348
 $ node cli/src/bin.mjs "[$(seq -s ' ' 1 300)] | map ~(add \"x\")" < /dev/null | grep '^|~|'
 |~| raised, and no !| caught it
 |~| The addend is a number; text that holds one is read by `toNumber`.
@@ -1044,7 +1044,7 @@ language [QSBLD#chain]:
 ::P{:name 5}
 
 > :P |~~ A person. ~~| (::kind | reads :name |~~ The name. ~~| /name ::string) | ::P{:name 5} !| type
-::P/name/NotStringError
+::P/name/KindNotTakenError
 
 > :P |~~ A person. ~~| | :P/construct ~(tag ::P) !| type
 ::bind/WrittenOutsideItsChainError
@@ -1085,12 +1085,14 @@ the host hands, `impl ::builtin{}` [QSSLF#catalog]:
 ```
 
 The refusals rest on the schema as well: a refusal is named by the
-address of the word that refused, and its facts are definitions under
-its label, values of the language [QSERR#site]:
+address of the word that refused, a value of none of a holder's kinds
+by the holder's role with the kinds it takes as `:expected`, and its
+facts are definitions under its label, values of the language
+[QSERR#site]:
 
 ```qlang
 > 1 | add "x" !| entries | map ~first
-[:actualType :actualValue :trail]
+[:expected :actualType :actualValue :trail]
 > 1 | add "x" !| get /actualType
 ::string
 ```

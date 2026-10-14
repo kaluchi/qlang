@@ -122,14 +122,14 @@ describe('what a tag before a payload refuses and hands on', () => {
   it('`::builtin` refuses a string for its payload', async () => {
     const err = await evalQuery('::builtin"hello"');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTag('builtin/PayloadNotMapError'));
+    expect(err.tag).toEqual(makeTag('builtin/PayloadKindNotTakenError'));
     expect(err.descriptor.get('actualType')).toEqual(makeTag('string'));
   });
 
   it('`::builtin` refuses a vector for its payload', async () => {
     const err = await evalQuery('::builtin[1 2 3]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTag('builtin/PayloadNotMapError'));
+    expect(err.tag).toEqual(makeTag('builtin/PayloadKindNotTakenError'));
     expect(err.descriptor.get('actualType')).toEqual(makeTag('vec'));
   });
 
@@ -274,7 +274,7 @@ describe('within edits under one tag and rewraps it', () => {
 
   it('a constructor that refuses the answer refuses the edit', async () => {
     expect(await evalQuery('#[1 2] | within ~(count) !| type'))
-      .toEqual(makeTag('set/PayloadNotVecError'));
+      .toEqual(makeTag('set/PayloadKindNotTakenError'));
   });
 
   it('the declarations of the edit stay inside it', async () => {
@@ -283,13 +283,13 @@ describe('within edits under one tag and rewraps it', () => {
 
   it('an error the edit answers passes as it is, and one the code answers is refused by its input', async () => {
     expect(await evalQuery('#[1 2] | within ~(!{:k 2} | raise) !| get /k')).toBe(2);
-    expect(await evalQuery('#[1 2] | within (!{:k 1} | raise) !| type')).toEqual(makeTag('tagged/within/code/NotPathOrQuoteError'));
+    expect(await evalQuery('#[1 2] | within (!{:k 1} | raise) !| type')).toEqual(makeTag('tagged/within/code/KindNotTakenError'));
   });
 
   it('a subject with no tag and a code that is no quote are refused', async () => {
     expect(await evalQuery('[1 2] | within ~(reverse) !| type'))
       .toEqual(makeTag('tagged/within/SubjectNotTaggedError'));
     expect(await evalQuery('#[1 2] | within 1 !| type'))
-      .toEqual(makeTag('tagged/within/code/NotPathOrQuoteError'));
+      .toEqual(makeTag('tagged/within/code/KindNotTakenError'));
   });
 });

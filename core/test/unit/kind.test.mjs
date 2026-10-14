@@ -26,12 +26,12 @@ describe('the refusals a kind raises by rule [QSBLD#kind]', () => {
       '    | reads :note |~~ A note. ~~| /note'
     ].join('\n'));
     expect(ruleRefusalsOf(own.env, 'Box')).toEqual([
-      'Box/PayloadNotMapError',
+      'Box/PayloadKindNotTakenError',
       'Box/w/NotGivenError',
-      'Box/w/NotNumberError',
+      'Box/w/KindNotTakenError',
       'Box/tags/NotGivenError',
-      'Box/tags/NotVecError',
-      'Box/tags/ElementNotKeywordError',
+      'Box/tags/KindNotTakenError',
+      'Box/tags/ElementKindNotTakenError',
       'Box/note/NotGivenError'
     ]);
   });
@@ -39,8 +39,8 @@ describe('the refusals a kind raises by rule [QSBLD#kind]', () => {
   it('names a payload that is no vector where it names the kinds of each element', async () => {
     const own = await createSession();
     await own.evalCell(':Nums\n  |~~ Numbers. ~~|\n  ::kind\n    | wraps |~~ The numbers. ~~| [::number]');
-    expect(ruleRefusalsOf(own.env, 'Nums')).toEqual(['Nums/PayloadNotVecError', 'Nums/ElementNotNumberError']);
-    expect(printValue((await own.evalCell('::Nums#5 !| type')).result)).toBe('::Nums/PayloadNotVecError');
+    expect(ruleRefusalsOf(own.env, 'Nums')).toEqual(['Nums/PayloadKindNotTakenError', 'Nums/ElementKindNotTakenError']);
+    expect(printValue((await own.evalCell('::Nums#5 !| type')).result)).toBe('::Nums/PayloadKindNotTakenError');
   });
 
   it('names no refusal of a kind of no payload and no field', async () => {
@@ -53,12 +53,12 @@ describe('the refusals a kind raises by rule [QSBLD#kind]', () => {
 describe('a field of a kind', () => {
   it('refuses a value that is no vector where it names the kinds of each element', async () => {
     expect(await answers(':Box |~~ A parcel. ~~| (::kind | reads :xs |~~ Values. ~~| /xs [::number]) | ::Box{:xs 5} !| type'))
-      .toBe('::Box/xs/NotVecError');
+      .toBe('::Box/xs/KindNotTakenError');
   });
 
   it('answers the failure of a quote that reads it, past a place it leaves out', async () => {
     expect(await answers(':Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| ~(get /w | add "x")) | ::Box{:w 1} !| type'))
-      .toBe('::number/add/addend/NotNumberError');
+      .toBe('::number/add/addend/KindNotTakenError');
   });
 
   it('refuses a place a quote reads that the payload leaves out as left out', async () => {

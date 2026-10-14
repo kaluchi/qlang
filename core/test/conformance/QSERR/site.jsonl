@@ -1,25 +1,25 @@
-{"name":"a-failure-is-named-by-its-site","query":"\"hello\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
-{"name":"an-error-holds-its-facts-in-the-order-the-catalog-declares-them","query":"1 | add 1 2 !| entries | map ~first","expect":"[:actualType :places :actualValue :trail]"}
-{"name":"the-name-a-step-read-is-a-keyword","query":"blah !| get /name","expect":":blah"}
-{"name":"the-key-a-path-read-is-a-keyword","query":"{:a 1} | get /b !| get /key","expect":":b"}
-{"name":"the-facts-every-refusal-shares-are-declared-on-error","query":"::error | manifest | has ::error/actualType","expect":"true"}
-{"name":"a-refusal-of-a-primitive-sits-under-the-word-that-ran-it","query":"[1 \"x\"] | sum !| type","expect":"::vec/sum/ElementNotNumberError"}
-{"name":"a-count-that-is-no-whole-number-breaks-the-law-of-its-input","query":"\"ab\" | take 1.5 !| type","expect":"::string/take/count/NotIntegerError"}
-{"name":"the-segment-a-path-read-as-an-index-is-a-number","query":"42 | get /0 !| get /key","expect":"0"}
-{"name":"a-refusal-over-a-map-names-the-entry-by-its-key","query":"{:a 1 :b \"x\"} | sum !| get /key","expect":":b"}
-{"name":"a-refusal-is-an-error-under-the-tag-of-its-site","query":"\"x\" | add 1 !| payload | type","expect":"::error"}
-{"name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :index 1\n  :actualType ::string\n  :actualValue \"two\"\n  :trail [\n    {\n      :step ~(sum)\n      :subject [1 \"two\" 3]\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"a-refusal-is-tagged-by-its-address-its-noun-said-once","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
-{"name":"a-refusal-names-the-place-it-guards","query":"blah !| type","expect":"::call/UnknownNameError"}
-{"name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
-{"name":"the-digits-of-round-are-refused-under-the-input","query":"2.5 | round 0.5 !| type","expect":"::number/round/digits/NotIntegerError"}
-{"name":"take-refuses-a-fractional-count","query":"[1 2 3] | take 0.5 !| type","expect":"::vec/take/count/NotIntegerError"}
-{"name":"drop-refuses-a-fractional-count","query":"[1 2 3] | drop 1.5 !| type","expect":"::vec/drop/count/NotIntegerError"}
-{"name":"take-refuses-a-count-that-is-no-number","query":"[1 2 3] | take \"x\" !| type","expect":"::vec/take/count/NotNumberError"}
-{"name":"a-count-under-a-tag-is-whole-where-it-equals-its-floor","query":"[1 2 3] | take ::N#2","expect":"[1 2]"}
-{"name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::path/KeyNotInMapError | doc | links | map ~open | any ~(eq (::path | doc))","expect":"true"}
-{"name":"a-refusal-is-declared-in-the-source-of-its-place","query":"::path/KeyNotInMapError | binding | get /origin","expect":":qlang/path"}
-{"name":"reading-text-as-code-is-refused-under-quote","query":"::quote/ParseError | binding | get /origin","expect":":qlang/quote"}
-{"name":"an-invariant-of-the-kernel-sits-under-builtin","query":"::builtin/UnknownAstNodeTypeError | binding | get /origin","expect":":qlang/builtin"}
-{"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string"}
-{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| get /key","expect":":b"}
+{"decision":"D287","name":"a-failure-is-named-by-its-site","query":"\"hello\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D287","name":"an-error-holds-its-facts-in-the-order-the-catalog-declares-them","query":"1 | add 1 2 !| entries | map ~first","expect":"[:actualType :places :actualValue :trail]"}
+{"decision":"D287","name":"the-name-a-step-read-is-a-keyword","query":"blah !| get /name","expect":":blah"}
+{"decision":"D287","name":"the-key-a-path-read-is-a-keyword","query":"{:a 1} | get /b !| get /key","expect":":b"}
+{"decision":"D287","name":"the-facts-every-refusal-shares-are-declared-on-error","query":"::error | manifest | has ::error/actualType","expect":"true"}
+{"decision":"D287","name":"a-refusal-of-a-primitive-sits-under-the-word-that-ran-it","query":"[1 \"x\"] | sum !| type","expect":"::vec/sum/ElementNotNumberError"}
+{"decision":"D287","name":"a-count-that-is-no-whole-number-breaks-the-law-of-its-input","query":"\"ab\" | take 1.5 !| type","expect":"::string/take/count/NotIntegerError"}
+{"decision":"D287","name":"the-segment-a-path-read-as-an-index-is-a-number","query":"42 | get /0 !| get /key","expect":"0"}
+{"decision":"D287","name":"a-refusal-over-a-map-names-the-entry-by-its-key","query":"{:a 1 :b \"x\"} | sum !| get /key","expect":":b"}
+{"decision":"D287","name":"a-refusal-is-an-error-under-the-tag-of-its-site","query":"\"x\" | add 1 !| payload | type","expect":"::error"}
+{"decision":"D287","name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :index 1\n  :actualType ::string\n  :actualValue \"two\"\n  :trail [\n    {\n      :step ~(sum)\n      :subject [1 \"two\" 3]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"a-refusal-is-tagged-by-its-address-its-noun-said-once","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D287","name":"a-refusal-names-the-place-it-guards","query":"blah !| type","expect":"::call/UnknownNameError"}
+{"decision":"D287","name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D287","name":"the-digits-of-round-are-refused-under-the-input","query":"2.5 | round 0.5 !| type","expect":"::number/round/digits/NotIntegerError"}
+{"decision":"D287","name":"take-refuses-a-fractional-count","query":"[1 2 3] | take 0.5 !| type","expect":"::vec/take/count/NotIntegerError"}
+{"decision":"D287","name":"drop-refuses-a-fractional-count","query":"[1 2 3] | drop 1.5 !| type","expect":"::vec/drop/count/NotIntegerError"}
+{"decision":"D287","name":"take-refuses-a-count-that-is-no-number","query":"[1 2 3] | take \"x\" !| type","expect":"::vec/take/count/KindNotTakenError"}
+{"decision":"D287","name":"a-count-under-a-tag-is-whole-where-it-equals-its-floor","query":"[1 2 3] | take ::N#2","expect":"[1 2]"}
+{"decision":"D287","name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::path/KeyNotInMapError | doc | links | map ~open | any ~(eq (::path | doc))","expect":"true"}
+{"decision":"D287","name":"a-refusal-is-declared-in-the-source-of-its-place","query":"::path/KeyNotInMapError | binding | get /origin","expect":":qlang/path"}
+{"decision":"D287","name":"reading-text-as-code-is-refused-under-quote","query":"::quote/ParseError | binding | get /origin","expect":":qlang/quote"}
+{"decision":"D287","name":"an-invariant-of-the-kernel-sits-under-builtin","query":"::builtin/UnknownAstNodeTypeError | binding | get /origin","expect":":qlang/builtin"}
+{"decision":"D287","name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string"}
+{"decision":"D287","name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| get /key","expect":":b"}

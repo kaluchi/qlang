@@ -19,9 +19,9 @@
     | proves :PayloadNotThreeNumbersError/refusesSixNumbers
         |~~ Six numbers make a span, no point. ~~|
         ~(::point[0 1 1 4 1 5] !| type | eq ::point/PayloadNotThreeNumbersError)
-    | proves :PayloadNotVecError/refusesAMap
+    | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map is no vector of numbers. ~~|
-        ~(::point{:a 1 :b 2 :c 3} !| type | eq ::point/PayloadNotVecError)
+        ~(::point{:a 1 :b 2 :c 3} !| type | eq ::point/PayloadKindNotTakenError)
 
 :point/offset
   |~~ Answers the offset of the point from the start of the text,

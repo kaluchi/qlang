@@ -1,62 +1,62 @@
-{"name":"comma-separator","query":"\"a,b,c\" | split \",\"","expect":"[\"a\" \"b\" \"c\"]"}
-{"name":"newline-separator","query":"\"line1\\nline2\\nline3\" | split \"\\n\"","expect":"[\"line1\" \"line2\" \"line3\"]"}
-{"name":"semicolon-separator","query":"\"x;y;z\" | split \";\"","expect":"[\"x\" \"y\" \"z\"]"}
-{"name":"space-separator","query":"\"hello world foo\" | split \" \"","expect":"[\"hello\" \"world\" \"foo\"]"}
-{"name":"tab-separator","query":"\"col1\\tcol2\\tcol3\" | split \"\\t\"","expect":"[\"col1\" \"col2\" \"col3\"]"}
-{"name":"multi-char-separator-double-colon","query":"\"a::b::c\" | split \"::\"","expect":"[\"a\" \"b\" \"c\"]"}
-{"name":"multi-char-separator-arrow","query":"\"a -> b -> c\" | split \" -> \"","expect":"[\"a\" \"b\" \"c\"]"}
-{"name":"empty-subject","query":"\"\" | split \",\"","expect":"[\"\"]"}
-{"name":"no-occurrences","query":"\"abc\" | split \",\"","expect":"[\"abc\"]"}
-{"name":"single-occurrence","query":"\"key=value\" | split \"=\"","expect":"[\"key\" \"value\"]"}
-{"name":"trailing-separator-leaves-empty","query":"\"a,b,\" | split \",\"","expect":"[\"a\" \"b\" \"\"]"}
-{"name":"leading-separator-leaves-empty","query":"\",a,b\" | split \",\"","expect":"[\"\" \"a\" \"b\"]"}
-{"name":"consecutive-separators-leave-empties","query":"\"a,,b\" | split \",\"","expect":"[\"a\" \"\" \"b\"]"}
-{"name":"all-separators","query":"\",,,\" | split \",\"","expect":"[\"\" \"\" \"\" \"\"]"}
-{"name":"long-string-many-elements","query":"\"1,2,3,4,5,6,7,8,9,10\" | split \",\" | count","expect":"10"}
-{"name":"split-then-count","query":"\"a,b,c,d\" | split \",\" | count","expect":"4"}
-{"name":"split-then-first","query":"\"a,b,c\" | split \",\" | first","expect":"\"a\""}
-{"name":"split-then-last","query":"\"a,b,c\" | split \",\" | last","expect":"\"c\""}
-{"name":"split-then-distinct","query":"\"a,b,a,c,b\" | split \",\" | distinct","expect":"#[\"a\" \"b\" \"c\"]"}
-{"name":"split-then-filter","query":"\"a,b,c,d\" | split \",\" | filter ~(allOf (eq \"a\" | not) (eq \"c\" | not))","expect":"[\"b\" \"d\"]"}
-{"name":"split-then-map","query":"\"1,2,3\" | split \",\" | map ~(append \"!\")","expect":"[\"1!\" \"2!\" \"3!\"]"}
-{"name":"split-roundtrip-with-join","query":"\"a,b,c\" | split \",\" | join \",\"","expect":"\"a,b,c\""}
-{"name":"split-then-join-different-separator","query":"\"a,b,c\" | split \",\" | join \";\"","expect":"\"a;b;c\""}
-{"name":"split-csv-line","query":"\"alice,30,engineer\" | split \",\"","expect":"[\"alice\" \"30\" \"engineer\"]"}
-{"name":"split-error-non-string-subject","query":"42 | split \",\"","expect":"::string/split/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(split \",\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"split-error-vec-subject","query":"[1 2] | split \",\"","expect":"::string/split/SubjectNotStringError!{\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(split \",\")\n      :subject [1 2]\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"split-error-null-subject","query":"null | split \",\"","expect":"::string/split/SubjectNotStringError!{\n  :actualType ::null\n  :trail [\n    {\n      :step ~(split \",\")\n      :subject null\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"split-error-non-string-separator","query":"\"abc\" | split 42","expect":"::string/split/separator/NotRegexOrStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(split 42)\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"split-error-keyword-separator","query":"\"abc\" | split :foo","expect":"::string/split/separator/NotRegexOrStringError!{\n  :actualValue :foo\n  :actualType ::keyword\n  :trail [\n    {\n      :step ~(split :foo)\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"split-error-vec-separator","query":"\"abc\" | split []","expect":"::string/split/separator/NotRegexOrStringError!{\n  :actualValue []\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(split [])\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"join-comma-separator","query":"[\"a\" \"b\" \"c\"] | join \",\"","expect":"\"a,b,c\""}
-{"name":"join-newline-separator","query":"[\"line1\" \"line2\" \"line3\"] | join \"\\n\"","expect":"\"line1\\nline2\\nline3\""}
-{"name":"join-semicolon-separator","query":"[\"x\" \"y\" \"z\"] | join \";\"","expect":"\"x;y;z\""}
-{"name":"join-space-separator","query":"[\"hello\" \"world\"] | join \" \"","expect":"\"hello world\""}
-{"name":"empty-separator-concatenates","query":"[\"x\" \"y\" \"z\"] | join \"\"","expect":"\"xyz\""}
-{"name":"join-multi-char-separator-double-colon","query":"[\"a\" \"b\" \"c\"] | join \"::\"","expect":"\"a::b::c\""}
-{"name":"join-multi-char-separator-arrow","query":"[\"a\" \"b\" \"c\"] | join \" -> \"","expect":"\"a -> b -> c\""}
-{"name":"empty-vec-yields-empty-string","query":"[] | join \",\"","expect":"\"\""}
-{"name":"empty-vec-with-empty-separator","query":"[] | join \"\"","expect":"\"\""}
-{"name":"singleton-vec","query":"[\"only\"] | join \",\"","expect":"\"only\""}
-{"name":"singleton-vec-empty-string","query":"[\"\"] | join \",\"","expect":"\"\""}
-{"name":"vec-with-empty-strings","query":"[\"\" \"\" \"\"] | join \",\"","expect":"\",,\""}
-{"name":"vec-with-empty-and-non-empty","query":"[\"a\" \"\" \"b\"] | join \",\"","expect":"\"a,,b\""}
-{"name":"two-elements","query":"[\"first\" \"second\"] | join \" \"","expect":"\"first second\""}
-{"name":"many-elements","query":"[\"a\" \"b\" \"c\" \"d\" \"e\" \"f\" \"g\" \"h\" \"i\" \"j\"] | join \"\"","expect":"\"abcdefghij\""}
-{"name":"join-after-split-roundtrip","query":"[\"a\" \"b\" \"c\"] | join \",\" | split \",\"","expect":"[\"a\" \"b\" \"c\"]"}
-{"name":"join-after-filter","query":"[\"\" \"a\" \"\" \"b\"] | filter ~(eq \"\" | not) | join \",\"","expect":"\"a,b\""}
-{"name":"join-after-sort","query":"[\"c\" \"a\" \"b\"] | sort | join \",\"","expect":"\"a,b,c\""}
-{"name":"join-after-take","query":"[\"a\" \"b\" \"c\" \"d\"] | take 2 | join \",\"","expect":"\"a,b\""}
-{"name":"join-after-reverse","query":"[\"a\" \"b\" \"c\"] | reverse | join \",\"","expect":"\"c,b,a\""}
-{"name":"join-after-map","query":"[\"a\" \"b\" \"c\"] | map ~(append \"!\") | join \",\"","expect":"\"a!,b!,c!\""}
-{"name":"join-error-non-vec-subject","query":"42 | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"join-error-string-subject","query":"\"abc\" | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"join-error-map-subject","query":"{:a 1} | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::map\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject {:a 1}\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"join-error-element-not-string","query":"[\"a\" 42 \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue 42\n  :actualType ::number\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" 42 \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"join-error-element-null","query":"[\"a\" null \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue null\n  :actualType ::null\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" null \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"join-error-element-vec","query":"[\"a\" [:tag] \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue [:tag]\n  :actualType ::vec\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" [:tag] \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"join-error-non-string-separator","query":"[\"a\" \"b\"] | join 42","expect":"::vec/join/separator/NotKeywordOrStringError!{\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(join 42)\n      :subject [\"a\" \"b\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"join-keyword-separator-written-as-its-name","query":"[\"a\" \"b\"] | join :foo","expect":"\"afoob\""}
-{"name":"split-cuts-at-every-match-its-groups-left-out","query":"\"k1=v1; k2=v2\" | split #\"\\s*(;)\\s*\" | map ~(split \"=\")","expect":"[[\"k1\" \"v1\"] [\"k2\" \"v2\"]]"}
-{"name":"split-by-an-empty-match-cuts-at-code-points","query":"\"a😀b\" | split #\"\"","expect":"[\"a\" \"😀\" \"b\"]"}
-{"name":"a-set-joins-as-the-vector-it-is","query":"#[\"b\" \"a\"] | join \",\"","expect":"\"a,b\""}
+{"decision":"D287","name":"comma-separator","query":"\"a,b,c\" | split \",\"","expect":"[\"a\" \"b\" \"c\"]"}
+{"decision":"D287","name":"newline-separator","query":"\"line1\\nline2\\nline3\" | split \"\\n\"","expect":"[\"line1\" \"line2\" \"line3\"]"}
+{"decision":"D287","name":"semicolon-separator","query":"\"x;y;z\" | split \";\"","expect":"[\"x\" \"y\" \"z\"]"}
+{"decision":"D287","name":"space-separator","query":"\"hello world foo\" | split \" \"","expect":"[\"hello\" \"world\" \"foo\"]"}
+{"decision":"D287","name":"tab-separator","query":"\"col1\\tcol2\\tcol3\" | split \"\\t\"","expect":"[\"col1\" \"col2\" \"col3\"]"}
+{"decision":"D287","name":"multi-char-separator-double-colon","query":"\"a::b::c\" | split \"::\"","expect":"[\"a\" \"b\" \"c\"]"}
+{"decision":"D287","name":"multi-char-separator-arrow","query":"\"a -> b -> c\" | split \" -> \"","expect":"[\"a\" \"b\" \"c\"]"}
+{"decision":"D287","name":"empty-subject","query":"\"\" | split \",\"","expect":"[\"\"]"}
+{"decision":"D287","name":"no-occurrences","query":"\"abc\" | split \",\"","expect":"[\"abc\"]"}
+{"decision":"D287","name":"single-occurrence","query":"\"key=value\" | split \"=\"","expect":"[\"key\" \"value\"]"}
+{"decision":"D287","name":"trailing-separator-leaves-empty","query":"\"a,b,\" | split \",\"","expect":"[\"a\" \"b\" \"\"]"}
+{"decision":"D287","name":"leading-separator-leaves-empty","query":"\",a,b\" | split \",\"","expect":"[\"\" \"a\" \"b\"]"}
+{"decision":"D287","name":"consecutive-separators-leave-empties","query":"\"a,,b\" | split \",\"","expect":"[\"a\" \"\" \"b\"]"}
+{"decision":"D287","name":"all-separators","query":"\",,,\" | split \",\"","expect":"[\"\" \"\" \"\" \"\"]"}
+{"decision":"D287","name":"long-string-many-elements","query":"\"1,2,3,4,5,6,7,8,9,10\" | split \",\" | count","expect":"10"}
+{"decision":"D287","name":"split-then-count","query":"\"a,b,c,d\" | split \",\" | count","expect":"4"}
+{"decision":"D287","name":"split-then-first","query":"\"a,b,c\" | split \",\" | first","expect":"\"a\""}
+{"decision":"D287","name":"split-then-last","query":"\"a,b,c\" | split \",\" | last","expect":"\"c\""}
+{"decision":"D287","name":"split-then-distinct","query":"\"a,b,a,c,b\" | split \",\" | distinct","expect":"#[\"a\" \"b\" \"c\"]"}
+{"decision":"D287","name":"split-then-filter","query":"\"a,b,c,d\" | split \",\" | filter ~(allOf (eq \"a\" | not) (eq \"c\" | not))","expect":"[\"b\" \"d\"]"}
+{"decision":"D287","name":"split-then-map","query":"\"1,2,3\" | split \",\" | map ~(append \"!\")","expect":"[\"1!\" \"2!\" \"3!\"]"}
+{"decision":"D287","name":"split-roundtrip-with-join","query":"\"a,b,c\" | split \",\" | join \",\"","expect":"\"a,b,c\""}
+{"decision":"D287","name":"split-then-join-different-separator","query":"\"a,b,c\" | split \",\" | join \";\"","expect":"\"a;b;c\""}
+{"decision":"D287","name":"split-csv-line","query":"\"alice,30,engineer\" | split \",\"","expect":"[\"alice\" \"30\" \"engineer\"]"}
+{"decision":"D287","name":"split-error-non-string-subject","query":"42 | split \",\"","expect":"::string/split/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(split \",\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"split-error-vec-subject","query":"[1 2] | split \",\"","expect":"::string/split/SubjectNotStringError!{\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(split \",\")\n      :subject [1 2]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"split-error-null-subject","query":"null | split \",\"","expect":"::string/split/SubjectNotStringError!{\n  :actualType ::null\n  :trail [\n    {\n      :step ~(split \",\")\n      :subject null\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"split-error-non-string-separator","query":"\"abc\" | split 42","expect":"::string/split/separator/KindNotTakenError!{\n  :expected #[::regex ::string]\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(split 42)\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"split-error-keyword-separator","query":"\"abc\" | split :foo","expect":"::string/split/separator/KindNotTakenError!{\n  :expected #[::regex ::string]\n  :actualValue :foo\n  :actualType ::keyword\n  :trail [\n    {\n      :step ~(split :foo)\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"split-error-vec-separator","query":"\"abc\" | split []","expect":"::string/split/separator/KindNotTakenError!{\n  :expected #[::regex ::string]\n  :actualValue []\n  :actualType ::vec\n  :trail [\n    {\n      :step ~(split [])\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"join-comma-separator","query":"[\"a\" \"b\" \"c\"] | join \",\"","expect":"\"a,b,c\""}
+{"decision":"D287","name":"join-newline-separator","query":"[\"line1\" \"line2\" \"line3\"] | join \"\\n\"","expect":"\"line1\\nline2\\nline3\""}
+{"decision":"D287","name":"join-semicolon-separator","query":"[\"x\" \"y\" \"z\"] | join \";\"","expect":"\"x;y;z\""}
+{"decision":"D287","name":"join-space-separator","query":"[\"hello\" \"world\"] | join \" \"","expect":"\"hello world\""}
+{"decision":"D287","name":"empty-separator-concatenates","query":"[\"x\" \"y\" \"z\"] | join \"\"","expect":"\"xyz\""}
+{"decision":"D287","name":"join-multi-char-separator-double-colon","query":"[\"a\" \"b\" \"c\"] | join \"::\"","expect":"\"a::b::c\""}
+{"decision":"D287","name":"join-multi-char-separator-arrow","query":"[\"a\" \"b\" \"c\"] | join \" -> \"","expect":"\"a -> b -> c\""}
+{"decision":"D287","name":"empty-vec-yields-empty-string","query":"[] | join \",\"","expect":"\"\""}
+{"decision":"D287","name":"empty-vec-with-empty-separator","query":"[] | join \"\"","expect":"\"\""}
+{"decision":"D287","name":"singleton-vec","query":"[\"only\"] | join \",\"","expect":"\"only\""}
+{"decision":"D287","name":"singleton-vec-empty-string","query":"[\"\"] | join \",\"","expect":"\"\""}
+{"decision":"D287","name":"vec-with-empty-strings","query":"[\"\" \"\" \"\"] | join \",\"","expect":"\",,\""}
+{"decision":"D287","name":"vec-with-empty-and-non-empty","query":"[\"a\" \"\" \"b\"] | join \",\"","expect":"\"a,,b\""}
+{"decision":"D287","name":"two-elements","query":"[\"first\" \"second\"] | join \" \"","expect":"\"first second\""}
+{"decision":"D287","name":"many-elements","query":"[\"a\" \"b\" \"c\" \"d\" \"e\" \"f\" \"g\" \"h\" \"i\" \"j\"] | join \"\"","expect":"\"abcdefghij\""}
+{"decision":"D287","name":"join-after-split-roundtrip","query":"[\"a\" \"b\" \"c\"] | join \",\" | split \",\"","expect":"[\"a\" \"b\" \"c\"]"}
+{"decision":"D287","name":"join-after-filter","query":"[\"\" \"a\" \"\" \"b\"] | filter ~(eq \"\" | not) | join \",\"","expect":"\"a,b\""}
+{"decision":"D287","name":"join-after-sort","query":"[\"c\" \"a\" \"b\"] | sort | join \",\"","expect":"\"a,b,c\""}
+{"decision":"D287","name":"join-after-take","query":"[\"a\" \"b\" \"c\" \"d\"] | take 2 | join \",\"","expect":"\"a,b\""}
+{"decision":"D287","name":"join-after-reverse","query":"[\"a\" \"b\" \"c\"] | reverse | join \",\"","expect":"\"c,b,a\""}
+{"decision":"D287","name":"join-after-map","query":"[\"a\" \"b\" \"c\"] | map ~(append \"!\") | join \",\"","expect":"\"a!,b!,c!\""}
+{"decision":"D287","name":"join-error-non-vec-subject","query":"42 | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"join-error-string-subject","query":"\"abc\" | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::string\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject \"abc\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"join-error-map-subject","query":"{:a 1} | join \",\"","expect":"::vec/join/SubjectNotVecError!{\n  :actualType ::map\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject {:a 1}\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"join-error-element-not-string","query":"[\"a\" 42 \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue 42\n  :actualType ::number\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" 42 \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"join-error-element-null","query":"[\"a\" null \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue null\n  :actualType ::null\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" null \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"join-error-element-vec","query":"[\"a\" [:tag] \"c\"] | join \",\"","expect":"::vec/join/ElementNotStringOrKeywordError!{\n  :actualValue [:tag]\n  :actualType ::vec\n  :index 1\n  :trail [\n    {\n      :step ~(join \",\")\n      :subject [\"a\" [:tag] \"c\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"join-error-non-string-separator","query":"[\"a\" \"b\"] | join 42","expect":"::vec/join/separator/KindNotTakenError!{\n  :expected #[::keyword ::string]\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(join 42)\n      :subject [\"a\" \"b\"]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D287","name":"join-keyword-separator-written-as-its-name","query":"[\"a\" \"b\"] | join :foo","expect":"\"afoob\""}
+{"decision":"D287","name":"split-cuts-at-every-match-its-groups-left-out","query":"\"k1=v1; k2=v2\" | split #\"\\s*(;)\\s*\" | map ~(split \"=\")","expect":"[[\"k1\" \"v1\"] [\"k2\" \"v2\"]]"}
+{"decision":"D287","name":"split-by-an-empty-match-cuts-at-code-points","query":"\"a😀b\" | split #\"\"","expect":"[\"a\" \"😀\" \"b\"]"}
+{"decision":"D287","name":"a-set-joins-as-the-vector-it-is","query":"#[\"b\" \"a\"] | join \",\"","expect":"\"a,b\""}

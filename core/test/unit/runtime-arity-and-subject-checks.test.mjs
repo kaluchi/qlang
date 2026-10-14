@@ -11,15 +11,15 @@ import { isErrorValue } from '../../src/types.mjs';
 
 describe('the second input of the arithmetic', () => {
   it('sub refuses a subtrahend that is no number', async () => {
-    expect((await evalQuery('5 | sub "x" !| type')).name).toBe('number/sub/subtrahend/NotNumberError');
+    expect((await evalQuery('5 | sub "x" !| type')).name).toBe('number/sub/subtrahend/KindNotTakenError');
   });
 
   it('mul refuses a multiplier that is no number', async () => {
-    expect((await evalQuery('5 | mul "x" !| type')).name).toBe('number/mul/multiplier/NotNumberError');
+    expect((await evalQuery('5 | mul "x" !| type')).name).toBe('number/mul/multiplier/KindNotTakenError');
   });
 
   it('div refuses a divisor that is no number', async () => {
-    expect((await evalQuery('5 | div "x" !| type')).name).toBe('number/div/divisor/NotNumberError');
+    expect((await evalQuery('5 | div "x" !| type')).name).toBe('number/div/divisor/KindNotTakenError');
   });
 });
 

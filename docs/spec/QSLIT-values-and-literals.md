@@ -152,10 +152,10 @@ it takes apart, through the tag's constructor.
 [::Pos#-3 ::T#true ::T#null ::T#/a]
 
 > ::number"5" !| type
-::number/PayloadNotNumberError
+::number/PayloadKindNotTakenError
 
 > #[2 1] | tag ::vec !| type
-::vec/PayloadNotVecError
+::vec/PayloadKindNotTakenError
 
 > [::Foo 5] | tag
 ::Foo#5

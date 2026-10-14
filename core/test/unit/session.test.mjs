@@ -124,7 +124,7 @@ describe('the sources a host hands [QSDSP#residence]', () => {
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [
-      ':number/less |~~ The subject less the input. ~~| (::fn | takes :by |~~ How much less. ~~| /0 ::number | throws :by/NotNumberError |~~ The amount is a number. ~~| | impl ::builtin{})',
+      ':number/less |~~ The subject less the input. ~~| (::fn | takes :by |~~ How much less. ~~| /0 ::number | throws :by/KindNotTakenError |~~ The amount is a number. ~~| | impl ::builtin{})',
       ':any/fetch |~~ The text fetched. ~~| (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})',
       ':any/doubled ~(fetch | append fetch)'
     ].join('\n'),
@@ -135,7 +135,7 @@ describe('the sources a host hands [QSDSP#residence]', () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
     expect((await sessionInstance.evalCell('7 | less "a" !| type')).result)
-      .toEqual(makeTag('number/less/by/NotNumberError'));
+      .toEqual(makeTag('number/less/by/KindNotTakenError'));
   });
 
   it('runs a name of steps the source declares over the host\'s own', async () => {
@@ -161,7 +161,7 @@ describe('the sources a host hands [QSDSP#residence]', () => {
       impls: { 'any/twice': (subject, by) => subject * by }
     }] });
     expect((await sessionInstance.evalCell('3 | twice 2')).result).toBe(6);
-    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTag('any/twice/by/NotNumberError'));
+    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTag('any/twice/by/KindNotTakenError'));
   });
 
   it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [QSDSP#walk]', async () => {

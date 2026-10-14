@@ -198,6 +198,12 @@ export const SET_TAG_NAME = 'set';
 export const BINDING_TAG_NAME = 'binding';
 const BUILTIN_TAG_NAME = 'builtin';
 
+// The kinds a holder takes, the set of their tags a refusal of a value of
+// none of them holds as `:expected` [D287].
+export function kindsExpected(...kindNames) {
+  return makeSet(kindNames.map(makeTag));
+}
+
 export function makeSet(elements) {
   const ordered = [...elements].sort(compareValues);
   const set = ordered.filter((element, index) => index === 0 || compareValues(ordered[index - 1], element) !== 0);

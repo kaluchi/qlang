@@ -50,7 +50,7 @@ true
 true
 
 > "abc" | contains :a !| type
-::string/contains/needle/NotRegexOrStringError
+::string/contains/needle/KindNotTakenError
 ```
 
 ## split

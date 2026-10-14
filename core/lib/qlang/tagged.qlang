@@ -98,7 +98,7 @@
     | takes :code
         |~~ The edit, a quote run against the payload. ~~|
         /0 #[::path ::quote]
-    | throws :code/NotPathOrQuoteError
+    | throws :code/KindNotTakenError
         |~~ The edit `within` runs is a quote, `within ~(reverse)`; a
             value computed at the call is refused, the error a step
             answered there among them.
@@ -135,9 +135,9 @@
     | proves :reachesUnderTwoTags
         |~~ An edit under two tags reaches the innermost payload. ~~|
         ~(:Box |~~ A box. ~~| | ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])
-    | proves :code/NotPathOrQuoteError/refusesANumber
+    | proves :code/KindNotTakenError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
-        ~(#[3 1] | within 1 !| get [~(type) /actualType] | eq [::tagged/within/code/NotPathOrQuoteError ::number])
+        ~(#[3 1] | within 1 !| get [~(type) /actualType] | eq [::tagged/within/code/KindNotTakenError ::number])
     | proves :SubjectNotTaggedError/refusesAVector
         |~~ A vector under no tag is refused. ~~|
         ~([1 2] | within ~(reverse)

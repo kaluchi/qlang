@@ -20,8 +20,8 @@ describe('the refusals a word that is a function raises by rule [QSBLD#fn]', () 
       'number/pick/SubjectNotNumberError',
       'number/pick/ArgsBeyondInputsError',
       'number/pick/by/NotGivenError',
-      'number/pick/by/NotNumberError',
-      'number/pick/answer/NotBooleanOrStringError'
+      'number/pick/by/KindNotTakenError',
+      'number/pick/answer/KindNotTakenError'
     ]);
   });
 
@@ -42,8 +42,8 @@ describe('the refusals by rule of an input that names the kinds of each element 
       'number/each/SubjectNotNumberError',
       'number/each/ArgsBeyondInputsError',
       'number/each/xs/NotGivenError',
-      'number/each/xs/NotVecError',
-      'number/each/xs/ElementNotNumberError'
+      'number/each/xs/KindNotTakenError',
+      'number/each/xs/ElementKindNotTakenError'
     ]);
   });
 });

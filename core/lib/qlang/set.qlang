@@ -34,7 +34,7 @@
         |~~ A vector, built into the set of its elements in the one order
             without duplicates.
         ~~|
-    | throws :PayloadNotVecError
+    | throws :PayloadKindNotTakenError
         |~~ `::set` builds a set from a vector, `::set[3 1 3]`; a payload
             of another kind is refused.
         ~~|
@@ -50,9 +50,9 @@
     | proves :refusesBraces
         |~~ `#{1}` does not parse, and its message names `#[`. ~~|
         ~("#{1}" | parse !| get /message | contains "#[")
-    | proves :PayloadNotVecError/refusesAMap
+    | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::set{:not :a-vec} !| get [~(type) /actualType] | eq [::set/PayloadNotVecError ::map])
+        ~(::set{:not :a-vec} !| get [~(type) /actualType] | eq [::set/PayloadKindNotTakenError ::map])
     | impl ::builtin{}
 
 :set/count
@@ -273,7 +273,7 @@
             none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /n)`, it runs
             on each element, while `(get /n)` is computed once at the call,
             against the set, and refused with what it answered.
@@ -297,9 +297,9 @@
     | proves :answersNullForTheEmptySet
         |~~ The empty set answers null. ~~|
         ~(#[] | min | eq null)
-    | proves :key/NotNullOrPathOrQuoteError/refusesAValueForCode
+    | proves :key/KindNotTakenError/refusesAValueForCode
         |~~ A key computed at the call is refused under the input. ~~|
-        ~(#[3 1 4] | min (desc) !| type | eq ::set/min/key/NotNullOrPathOrQuoteError)
+        ~(#[3 1 4] | min (desc) !| type | eq ::set/min/key/KindNotTakenError)
     | impl ::builtin{}
 
 :set/max
@@ -321,7 +321,7 @@
             none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null, `max /n`, as for `min`. ~~|
     | returns
         |~~ The greatest element by the key, null for the empty set. ~~|
@@ -343,9 +343,9 @@
     | proves :answersNullForTheEmptySet
         |~~ The empty set answers null. ~~|
         ~(#[] | max | eq null)
-    | proves :key/NotNullOrPathOrQuoteError/refusesAValueForCode
+    | proves :key/KindNotTakenError/refusesAValueForCode
         |~~ A key computed at the call is refused under the input. ~~|
-        ~(#[3 1 4] | max 4 !| type | eq ::set/max/key/NotNullOrPathOrQuoteError)
+        ~(#[3 1 4] | max 4 !| type | eq ::set/max/key/KindNotTakenError)
     | impl ::builtin{}
 
 :set/map
@@ -363,7 +363,7 @@
     | takes :code
         |~~ The code run on each element, a quote. ~~|
         /0 #[::path ::quote]
-    | throws :code/NotPathOrQuoteError
+    | throws :code/KindNotTakenError
         |~~ The code is a quote, `map ~(add 1)`, or a path, `map /name`;
             written without the tilde, `map (add 1)`, it is computed once
             at the call, against the set, and refused with what it
@@ -383,9 +383,9 @@
     | proves :makesASetByDistinct
         |~~ `distinct` makes a set of the images. ~~|
         ~(#[1 2 3] | map ~(gt 1) | distinct | eq #[false true])
-    | proves :code/NotPathOrQuoteError/refusesAStepComputedAtTheCall
+    | proves :code/KindNotTakenError/refusesAStepComputedAtTheCall
         |~~ A step written without its quote is refused. ~~|
-        ~(#[1] | map (add 1) !| type | eq ::set/map/code/NotPathOrQuoteError)
+        ~(#[1] | map (add 1) !| type | eq ::set/map/code/KindNotTakenError)
     | impl ::builtin{}
 
 :set/filter
@@ -406,7 +406,7 @@
         |~~ The code each element is run through, which answers a boolean.
         ~~|
         /0 #[::path ::quote]
-    | throws :predicate/NotPathOrQuoteError
+    | throws :predicate/KindNotTakenError
         |~~ The predicate is a quote, `filter ~(gt 2)`, or a path,
             `filter /active`; written without the tilde, `filter (gt 2)`,
             it is computed once at the call and refused.
@@ -427,9 +427,9 @@
     | proves :keepsTheTagsOfTheSubject
         |~~ A set under a tag stays under it. ~~|
         ~(#[1 2] | tag ::Box | filter ~(gt 1) | eq ::Box#[2])
-    | proves :predicate/NotPathOrQuoteError/refusesAValueForCode
+    | proves :predicate/KindNotTakenError/refusesAValueForCode
         |~~ A predicate computed at the call is refused under the input. ~~|
-        ~(#[1 2 3] | filter (gt 1) !| type | eq ::set/filter/predicate/NotPathOrQuoteError)
+        ~(#[1 2 3] | filter (gt 1) !| type | eq ::set/filter/predicate/KindNotTakenError)
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~(#[1 2] | filter ~(1) !| get [~(type) /index] | eq [::set/filter/ConditionNotBooleanError 0])
@@ -452,7 +452,7 @@
         |~~ The code each element is run through, which answers a boolean.
         ~~|
         /0 #[::path ::quote]
-    | throws :predicate/NotPathOrQuoteError
+    | throws :predicate/KindNotTakenError
         |~~ The predicate is a quote, `every ~(gt 0)`, or a path,
             `every /active`; written without the tilde, `every (gt 0)`, it
             is computed once at the call and refused.
@@ -476,9 +476,9 @@
     | proves :holdsOfTheEmptySet
         |~~ The empty set holds every predicate. ~~|
         ~(#[] | every ~(gt 0))
-    | proves :predicate/NotPathOrQuoteError/refusesAValueForCode
+    | proves :predicate/KindNotTakenError/refusesAValueForCode
         |~~ A predicate computed at the call is refused under the input. ~~|
-        ~(#[1 2] | every (gt 0) !| type | eq ::set/every/predicate/NotPathOrQuoteError)
+        ~(#[1 2] | every (gt 0) !| type | eq ::set/every/predicate/KindNotTakenError)
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~(#[1 2] | every ~(1) !| get [~(type) /index] | eq [::set/every/ConditionNotBooleanError 0])
@@ -501,7 +501,7 @@
         |~~ The code each element is run through, which answers a boolean.
         ~~|
         /0 #[::path ::quote]
-    | throws :predicate/NotPathOrQuoteError
+    | throws :predicate/KindNotTakenError
         |~~ The predicate is a quote, `any ~(gt 2)`, or a path,
             `any /vip`; written without the tilde, `any (gt 2)`, it is
             computed once at the call and refused.
@@ -525,9 +525,9 @@
     | proves :failsOfTheEmptySet
         |~~ The empty set holds no predicate. ~~|
         ~(#[] | any ~(gt 0) | not)
-    | proves :predicate/NotPathOrQuoteError/refusesAValueForCode
+    | proves :predicate/KindNotTakenError/refusesAValueForCode
         |~~ A predicate computed at the call is refused under the input. ~~|
-        ~(#[1 2] | any (gt 0) !| type | eq ::set/any/predicate/NotPathOrQuoteError)
+        ~(#[1 2] | any (gt 0) !| type | eq ::set/any/predicate/KindNotTakenError)
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~(#[1 2] | any ~(1) !| get [~(type) /index] | eq [::set/any/ConditionNotBooleanError 0])
@@ -555,7 +555,7 @@
             none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /k)`, it runs
             on each element, while `(get /k)` is computed once at the call,
             against the set, and refused with what it answered.
@@ -613,11 +613,11 @@
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
         ~(#[1 "1"] | groupBy !| get [~(type) /key /taken] | eq [::set/groupBy/KeyTakenError :"1" 1])
-    | proves :key/NotNullOrPathOrQuoteError/refusesAKeyWithoutItsQuote
+    | proves :key/KindNotTakenError/refusesAKeyWithoutItsQuote
         |~~ A key written without its quote mark is refused under the
             input.
         ~~|
-        ~(#[{:k 1}] | groupBy (get /k) !| type | eq ::set/groupBy/key/NotNullOrPathOrQuoteError)
+        ~(#[{:k 1}] | groupBy (get /k) !| type | eq ::set/groupBy/key/KindNotTakenError)
     | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ An element that is a vector files under no key. ~~|
         ~(#[[1]] | groupBy !| get [~(type) /index] | eq [::set/groupBy/KeyNotKeywordError 0])
@@ -642,7 +642,7 @@
             none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /id)`, it
             runs on each element, while `(get /id)` is computed once at the
             call, against the set, and refused with what it answered.
@@ -700,11 +700,11 @@
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
         ~(#[1 "1"] | indexBy !| get [~(type) /key /taken] | eq [::set/indexBy/KeyTakenError :"1" 1])
-    | proves :key/NotNullOrPathOrQuoteError/refusesAKeyWithoutItsQuote
+    | proves :key/KindNotTakenError/refusesAKeyWithoutItsQuote
         |~~ A key written without its quote mark is refused under the
             input.
         ~~|
-        ~(#[{:id :a}] | indexBy (get /id) !| type | eq ::set/indexBy/key/NotNullOrPathOrQuoteError)
+        ~(#[{:id :a}] | indexBy (get /id) !| type | eq ::set/indexBy/key/KindNotTakenError)
     | proves :KeyNotKeywordError/refusesAVectorKey
         |~~ An element that is a vector files under no key. ~~|
         ~(#[[1]] | indexBy !| get [~(type) /index] | eq [::set/indexBy/KeyNotKeywordError 0])
@@ -729,7 +729,7 @@
             none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /n)`, it runs
             on each element, while `(get /n)` is computed once at the call,
             against the set, and refused with what it answered.
@@ -750,9 +750,9 @@
         |~~ `distinct` after a sort brings the set back in the one order.
         ~~|
         ~(#[1 2 3] | sort ~(desc) | distinct | eq #[1 2 3])
-    | proves :key/NotNullOrPathOrQuoteError/refusesAValueForCode
+    | proves :key/KindNotTakenError/refusesAValueForCode
         |~~ A key computed at the call is refused under the input. ~~|
-        ~(#[3 1 2] | sort (desc) !| type | eq ::set/sort/key/NotNullOrPathOrQuoteError)
+        ~(#[3 1 2] | sort (desc) !| type | eq ::set/sort/key/KindNotTakenError)
     | impl ::builtin{}
 
 :set/take
@@ -770,7 +770,7 @@
     | takes :count
         |~~ How many of the least elements the call takes. ~~|
         /0 ::number
-    | throws :count/NotNumberError
+    | throws :count/KindNotTakenError
         |~~ The count is a number, `#[1 2 3] | take 2`; text that holds
             one is read by `toNumber` first, `take ("2" | toNumber)`.
         ~~|
@@ -816,9 +816,9 @@
     | proves :ArgsBeyondInputsError/refusesTwoCounts
         |~~ A call with two counts is refused under the word. ~~|
         ~(#[:a :b :c] | take 1 2 !| type | eq ::set/take/ArgsBeyondInputsError)
-    | proves :count/NotNumberError/refusesAString
+    | proves :count/KindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
-        ~(#[1 2] | take "1" !| type | eq ::set/take/count/NotNumberError)
+        ~(#[1 2] | take "1" !| type | eq ::set/take/count/KindNotTakenError)
     | impl ::builtin{}
 
 :set/drop
@@ -836,7 +836,7 @@
     | takes :count
         |~~ How many of the least elements the call drops. ~~|
         /0 ::number
-    | throws :count/NotNumberError
+    | throws :count/KindNotTakenError
         |~~ The count is a number, `#[1 2 3] | drop 2`; text that holds
             one is read by `toNumber` first, `drop ("2" | toNumber)`.
         ~~|
@@ -871,9 +871,9 @@
     | proves :leavesTheGreatestByACountAgainstTheSet
         |~~ A count computed against the set leaves the greatest two. ~~|
         ~(#[1 2 3] | drop (count | sub 2) | eq #[2 3])
-    | proves :count/NotNumberError/refusesAString
+    | proves :count/KindNotTakenError/refusesAString
         |~~ A count that is no number is refused under the input. ~~|
-        ~(#[:a :b :c] | drop "2" !| type | eq ::set/drop/count/NotNumberError)
+        ~(#[:a :b :c] | drop "2" !| type | eq ::set/drop/count/KindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoCounts
         |~~ A call with two counts is refused under the word. ~~|
         ~(#[:a :b :c] | drop 1 2 !| type | eq ::set/drop/ArgsBeyondInputsError)
@@ -971,7 +971,7 @@
     | takes :reducer
         |~~ The code that folds an element into the value so far. ~~|
         /1 #[::path ::quote]
-    | throws :reducer/NotPathOrQuoteError
+    | throws :reducer/KindNotTakenError
         |~~ The reducer is a path or a quote, `reduce 0 ~(add)`, after the
             seed: written first, `reduce ~(add) 0`, it stands in the seed's
             place and hands the reducer's place the seed, and written
@@ -1006,18 +1006,18 @@
             far and the element.
         ~~|
         ~(#[1 2 3] | reduce 0 ~(sumOf /0 /1) | eq 6)
-    | proves :reducer/NotPathOrQuoteError/refusesCodeComputedAtTheCall
+    | proves :reducer/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A reducer written without its quote is computed at the call
             and refused.
         ~~|
-        ~(#[1 2] | reduce 0 (add) !| type | eq ::set/reduce/reducer/NotPathOrQuoteError)
-    | proves :reducer/NotPathOrQuoteError/refusesTheReducerFirst
+        ~(#[1 2] | reduce 0 (add) !| type | eq ::set/reduce/reducer/KindNotTakenError)
+    | proves :reducer/KindNotTakenError/refusesTheReducerFirst
         |~~ A reducer written before the seed hands the reducer's place
             the seed.
         ~~|
         ~(#[1 2] | reduce ~(add) 0
           !| get [~(type) /actualType]
-          |  eq [::set/reduce/reducer/NotPathOrQuoteError ::number])
+          |  eq [::set/reduce/reducer/KindNotTakenError ::number])
     | impl ::builtin{}
 
 :set/union
@@ -1039,7 +1039,7 @@
     | takes :other
         |~~ The other set, null when the call gives none. ~~|
         ~(query /0) #[::null ::set]
-    | throws :other/NotNullOrSetError
+    | throws :other/KindNotTakenError
         |~~ The other value is a set or null; a vector is made a set by
             `distinct` first, `#[1] | union ([2 3] | distinct)`.
         ~~|
@@ -1080,9 +1080,9 @@
     | proves :unitesSeveralOneAfterAnother
         |~~ Several sets unite one after another. ~~|
         ~(#[1] | union #[2] | union #[3] | eq #[1 2 3])
-    | proves :other/NotNullOrSetError/refusesAVector
+    | proves :other/KindNotTakenError/refusesAVector
         |~~ A vector beside a set is refused under the input. ~~|
-        ~(#[:a] | union [:b] !| type | eq ::set/union/other/NotNullOrSetError)
+        ~(#[:a] | union [:b] !| type | eq ::set/union/other/KindNotTakenError)
     | proves :SubjectEmptyError/refusesTheEmptySet
         |~~ The empty set holds no value. ~~|
         ~(#[] | union !| type | eq ::set/union/SubjectEmptyError)
@@ -1119,7 +1119,7 @@
     | takes :other
         |~~ The set whose elements go, null when the call gives none. ~~|
         ~(query /0) #[::null ::set]
-    | throws :other/NotNullOrSetError
+    | throws :other/KindNotTakenError
         |~~ The value taken from a set is a set or null; a vector is made
             a set by `distinct` first, `#[1 2] | minus ([2] | distinct)`.
         ~~|
@@ -1160,9 +1160,9 @@
     | proves :takesSeveralOneAfterAnother
         |~~ Several sets go one after another. ~~|
         ~(#[1 2 3] | minus #[2] | minus #[3] | eq #[1])
-    | proves :other/NotNullOrSetError/refusesAMap
+    | proves :other/KindNotTakenError/refusesAMap
         |~~ A map beside a set is refused under the input. ~~|
-        ~(#[:a] | minus {:a 1} !| type | eq ::set/minus/other/NotNullOrSetError)
+        ~(#[:a] | minus {:a 1} !| type | eq ::set/minus/other/KindNotTakenError)
     | proves :SubjectEmptyError/refusesTheEmptySet
         |~~ The empty set holds no value. ~~|
         ~(#[] | minus !| type | eq ::set/minus/SubjectEmptyError)
@@ -1198,7 +1198,7 @@
     | takes :other
         |~~ The set whose elements stay, null when the call gives none. ~~|
         ~(query /0) #[::null ::set]
-    | throws :other/NotNullOrSetError
+    | throws :other/KindNotTakenError
         |~~ The other value is a set or null; a vector is made a set by
             `distinct` first, `#[1 2] | inter ([2] | distinct)`.
         ~~|
@@ -1240,9 +1240,9 @@
             holds.
         ~~|
         ~(#[{:a 1} {:a 2 :b 3}] | inter | eq {:a 1})
-    | proves :other/NotNullOrSetError/refusesAVector
+    | proves :other/KindNotTakenError/refusesAVector
         |~~ A vector beside a set is refused under the input. ~~|
-        ~(#[:a] | inter [:a] !| type | eq ::set/inter/other/NotNullOrSetError)
+        ~(#[:a] | inter [:a] !| type | eq ::set/inter/other/KindNotTakenError)
     | proves :SubjectEmptyError/refusesTheEmptySet
         |~~ The empty set holds no value. ~~|
         ~(#[] | inter !| type | eq ::set/inter/SubjectEmptyError)

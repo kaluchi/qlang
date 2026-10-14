@@ -87,7 +87,7 @@ same quote.
 
 `apply` runs code against its subject: a quote, a path, which reads, or
 a function. Code a quote declares stays inside its run. A value of
-another kind is refused as `::any/apply/code/NotFnOrPathOrQuoteError`.
+another kind is refused as `::any/apply/code/KindNotTakenError`.
 `open`, a word of `::quote`, runs a quote from null, beneath whatever
 tags stand over it.
 
@@ -99,7 +99,7 @@ tags stand over it.
 ::call/UnknownNameError
 
 > 42 | apply 1 !| type
-::any/apply/code/NotFnOrPathOrQuoteError
+::any/apply/code/KindNotTakenError
 ```
 
 ## modifier
@@ -129,7 +129,7 @@ modifier on as the answer of the call.
 [1 2 3]
 
 > [{:a true}] | filter (get /a) !| type
-::vec/filter/predicate/NotPathOrQuoteError
+::vec/filter/predicate/KindNotTakenError
 ```
 
 ## held

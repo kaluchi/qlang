@@ -33,14 +33,14 @@ for `anyOf`, the first that decides answering with the quotes after it
 unrun; a quote that answers another kind is refused at its index,
 `::any/allOf/ConditionNotBooleanError`, and a condition of another kind
 than a boolean, a path or a quote, an error computed at the call among
-it, as `ElementNotBooleanOrPathOrQuoteError` at the first such index.
+it, as `ElementKindNotTakenError` at the first such index.
 
 ```qlang
 > 5 | if 1 ~(1) ~(2) !| type
-::any/if/condition/NotBooleanError
+::any/if/condition/KindNotTakenError
 
 > true | and 1 !| type
-::boolean/and/right/NotBooleanError
+::boolean/and/right/KindNotTakenError
 
 > {:email null} | allOf (get /email | ne null) ~(get /email | endsWith ".org")
 false

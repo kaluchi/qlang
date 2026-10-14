@@ -137,7 +137,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('an input that breaks its invariant is refused under the address of the input [QSBLD#fn]', async () => {
-    expect((await evalQuery('1 | add "x"')).tag.name).toBe('number/add/addend/NotNumberError');
+    expect((await evalQuery('1 | add "x"')).tag.name).toBe('number/add/addend/KindNotTakenError');
   });
 
   it('each name refuses under its own address', async () => {
@@ -146,8 +146,8 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('a prefix or a suffix of another kind is refused by the kinds of its input [QSBLD#fn]', async () => {
-    expect((await evalQuery('"x" | prepend 42')).tag.name).toBe('string/prepend/prefix/NotKeywordOrStringError');
-    expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/NotKeywordOrStringError');
+    expect((await evalQuery('"x" | prepend 42')).tag.name).toBe('string/prepend/prefix/KindNotTakenError');
+    expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/KindNotTakenError');
   });
 
   it('sum element non-number → VecSumElementNotNumberError, the element and its kind among the facts', async () => {
@@ -160,7 +160,7 @@ describe('per-site error classes carry unique identity', () => {
 
   it('gt across kinds is refused by the kinds of its input, the kind it met among the facts [QSBLD#fn]', async () => {
     const refused = await evalQuery('"a" | gt 5');
-    expect(refused.tag.name).toBe('string/gt/value/NotStringError');
+    expect(refused.tag.name).toBe('string/gt/value/KindNotTakenError');
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
@@ -183,7 +183,7 @@ describe('per-site error classes carry unique identity', () => {
 
   it('a key of a map of another kind is refused by the kinds of its input [QSBLD#fn]', async () => {
     const refused = await evalQuery('{:a 1} | has [42]');
-    expect(refused.tag.name).toBe('map/has/key/NotKeywordOrNumberOrPathOrStringError');
+    expect(refused.tag.name).toBe('map/has/key/KindNotTakenError');
     expect(refused.descriptor.get('actualType').name).toBe('vec');
   });
 
@@ -267,7 +267,7 @@ describe('per-site error classes carry unique identity', () => {
       '42 | vals',         // map/vals/SubjectNotMapError
       '1 | get /name',         // path/SubjectHasNoPartsError (Number subject — neither Map nor Vec)
       '[1] | get /a',          // path/IndexNotIntegerError
-      '[1 2 3] | reduce 0 1'   // vec/reduce/reducer/NotPathOrQuoteError
+      '[1 2 3] | reduce 0 1'   // vec/reduce/reducer/KindNotTakenError
     ];
     for (const q of queries) {
       addresses.add((await evalQuery(q)).tag.name);

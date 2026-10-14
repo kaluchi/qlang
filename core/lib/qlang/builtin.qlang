@@ -20,7 +20,7 @@
   ~~|
   ::kind[~(wraps
         |~~ A map, the descriptor, its fields flat under the tag. ~~|
-    | throws :PayloadNotMapError
+    | throws :PayloadKindNotTakenError
         |~~ `::builtin` holds its fields as a map, `::builtin{}` the recipe
             a host's word ends with and the check a kind of the core takes,
             `impl ::builtin{}`; a payload of another kind is refused, and
@@ -139,11 +139,11 @@
         |~~ The recipe of a word a host implements is an empty descriptor.
         ~~|
         ~(::number/add | binding | get /value | get /1 | eq ::builtin{})
-    | proves :PayloadNotMapError/refusesAString
+    | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::builtin"hello" !| get [~(type) /actualType] | eq [::builtin/PayloadNotMapError ::string])
-    | proves :PayloadNotMapError/refusesAVector
+        ~(::builtin"hello" !| get [~(type) /actualType] | eq [::builtin/PayloadKindNotTakenError ::string])
+    | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused. ~~|
-        ~(::builtin[1 2 3] !| get [~(type) /actualType] | eq [::builtin/PayloadNotMapError ::vec]))
+        ~(::builtin[1 2 3] !| get [~(type) /actualType] | eq [::builtin/PayloadKindNotTakenError ::vec]))
     ::builtin{}]
 

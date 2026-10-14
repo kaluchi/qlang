@@ -128,7 +128,7 @@ false
 [11 0 13]
 
 > [1 2] | map (1 | div 0) !| type
-::vec/map/code/NotPathOrQuoteError
+::vec/map/code/KindNotTakenError
 ```
 
 ## site
@@ -136,9 +136,14 @@ false
 Every place that refuses has a tag of its own, its address: the address
 of the place it guards and a last name that says in the language's
 words what was refused, `::number/add/SubjectNotNumberError` for the
-subject of `add` and `::number/add/addend/NotNumberError` for its
+subject of `add` and `::number/add/addend/KindNotTakenError` for its
 input. The last name names the refusal alone, so two places may share
 one, `::call/ReadBackDiffersError` beside `::quote/ReadBackDiffersError`.
+A value of none of the kinds a holder takes is refused by the holder's
+role, `KindNotTakenError`, `PayloadKindNotTakenError` or
+`ElementKindNotTakenError`, its kinds the fact `:expected`, so a kind
+that joins a holder changes no tag; the subject of a word is refused by
+the label it resides on, `SubjectNotNumberError`.
 The refusal of an input's value lives under the input, whether an
 invariant or a primitive raises it, and what a run answers under the
 word. A refusal is declared in the source of the place it guards, and
@@ -151,13 +156,16 @@ the implementation under `::builtin`, and a failure of a host's
 implementation is `::call/HostFailureError`, with its `:message` and
 `:causes`. An error holds its facts in the order the catalog declares
 them, the label's own first, the facts `::error` declares after them,
-`:actualType` and `:actualValue` among them, and the trail last. A fact
-is a value of the language: a name a step read and a key a path read
+`:expected`, `:actualType` and `:actualValue` among them, and the trail
+last. A fact is a value of the language: a name a step read and a key a path read
 are keywords, an index a number, an entry of a map named by its `:key`.
 
 ```qlang
 > "hello" | add 1 !| type
 ::number/add/SubjectNotNumberError
+
+> 1 | add "x" !| get [~(type) /expected /actualType]
+[::number/add/addend/KindNotTakenError #[::number] ::string]
 
 > 1 | add 1 2 !| entries | map ~first
 [:actualType :places :actualValue :trail]

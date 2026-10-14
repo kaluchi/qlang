@@ -6,17 +6,17 @@ import { mintUnderTag } from './verb.mjs';
 import { bindPrim, bindStateReader, runs } from '../primitives.mjs';
 import {
   isVec, isKeyword, isRegex, isPath, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTag, makeSet, makeTag, makeTaggedInstance, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
+  isTag, kindsExpected, makeSet, makeTag, makeTaggedInstance, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
 } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 
 // `::set[…]` — the set of a vector's elements, the one `distinct`
 // mints [QSORD#order], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
 // are one value.
-const SetPayloadNotVecError = declareRefusal('set/PayloadNotVecError');
+const SetPayloadKindNotTakenError = declareRefusal('set/PayloadKindNotTakenError');
 
 function setConstructor(payload) {
-  if (!isVec(payload)) throw new SetPayloadNotVecError({ actualValue: payload });
+  if (!isVec(payload)) throw new SetPayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   return makeSet(payload);
 }
 
@@ -28,20 +28,20 @@ bindPrim('set/construct', setConstructor);
 // refused at the site, a vector or a map under a tag of its own among them, a
 // set's and a quote's too: `payload` reads what stands beneath a tag, and a
 // word `toX` turns a value into another kind [QSCND#convert].
-const NullPayloadNotNullError       = declareRefusal('null/PayloadNotNullError');
-const BooleanPayloadNotBooleanError = declareRefusal('boolean/PayloadNotBooleanError');
-const NumberPayloadNotNumberError   = declareRefusal('number/PayloadNotNumberError');
-const StringPayloadNotStringError   = declareRefusal('string/PayloadNotStringError');
-const KeywordPayloadNotKeywordError = declareRefusal('keyword/PayloadNotKeywordError');
-const RegexPayloadNotRegexError = declareRefusal('regex/PayloadNotRegexError');
-const PathPayloadNotPathError       = declareRefusal('path/PayloadNotPathError');
-const TagPayloadNotTagError         = declareRefusal('tag/PayloadNotTagError');
-const VecPayloadNotVecError         = declareRefusal('vec/PayloadNotVecError');
-const MapPayloadNotMapError         = declareRefusal('map/PayloadNotMapError');
+const NullPayloadKindNotTakenError       = declareRefusal('null/PayloadKindNotTakenError');
+const BooleanPayloadKindNotTakenError = declareRefusal('boolean/PayloadKindNotTakenError');
+const NumberPayloadKindNotTakenError   = declareRefusal('number/PayloadKindNotTakenError');
+const StringPayloadKindNotTakenError   = declareRefusal('string/PayloadKindNotTakenError');
+const KeywordPayloadKindNotTakenError = declareRefusal('keyword/PayloadKindNotTakenError');
+const RegexPayloadKindNotTakenError = declareRefusal('regex/PayloadKindNotTakenError');
+const PathPayloadKindNotTakenError       = declareRefusal('path/PayloadKindNotTakenError');
+const TagPayloadKindNotTakenError         = declareRefusal('tag/PayloadKindNotTakenError');
+const VecPayloadKindNotTakenError         = declareRefusal('vec/PayloadKindNotTakenError');
+const MapPayloadKindNotTakenError         = declareRefusal('map/PayloadKindNotTakenError');
 
-function coreKindConstructor(isOfKind, ErrorCls) {
+function coreKindConstructor(isOfKind, ErrorCls, kindName) {
   return payload => {
-    if (!isOfKind(payload)) throw new ErrorCls({ actualValue: payload });
+    if (!isOfKind(payload)) throw new ErrorCls({ expected: kindsExpected(kindName), actualValue: payload });
     return payload;
   };
 }
@@ -49,24 +49,24 @@ function coreKindConstructor(isOfKind, ErrorCls) {
 const isBareVec = payload => isVec(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
 const isBareMap = payload => isQMap(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
 
-bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadNotNullError));
-bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadNotBooleanError));
+bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadKindNotTakenError, 'null'));
+bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError, 'boolean'));
 // A number is a finite double: an answer brought under `::number` that left
 // the doubles' range is refused here, once for every word [QSSLF#catalog].
 const NumberNotFiniteError = declareRefusal('number/NotFiniteError');
-const finiteNumber = coreKindConstructor(isNumber, NumberPayloadNotNumberError);
+const finiteNumber = coreKindConstructor(isNumber, NumberPayloadKindNotTakenError, 'number');
 bindPrim('number/construct', payload => {
   const number = finiteNumber(payload);
   if (!Number.isFinite(number)) throw new NumberNotFiniteError({});
   return number;
 });
-bindPrim('string/construct',  coreKindConstructor(isString, StringPayloadNotStringError));
-bindPrim('keyword/construct', coreKindConstructor(isKeyword, KeywordPayloadNotKeywordError));
-bindPrim('regex/construct',   coreKindConstructor(isRegex, RegexPayloadNotRegexError));
-bindPrim('path/construct',    coreKindConstructor(isPath, PathPayloadNotPathError));
-bindPrim('tag/construct',     coreKindConstructor(isTag, TagPayloadNotTagError));
-bindPrim('vec/construct',     coreKindConstructor(isBareVec, VecPayloadNotVecError));
-bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadNotMapError));
+bindPrim('string/construct',  coreKindConstructor(isString, StringPayloadKindNotTakenError, 'string'));
+bindPrim('keyword/construct', coreKindConstructor(isKeyword, KeywordPayloadKindNotTakenError, 'keyword'));
+bindPrim('regex/construct',   coreKindConstructor(isRegex, RegexPayloadKindNotTakenError, 'regex'));
+bindPrim('path/construct',    coreKindConstructor(isPath, PathPayloadKindNotTakenError, 'path'));
+bindPrim('tag/construct',     coreKindConstructor(isTag, TagPayloadKindNotTakenError, 'tag'));
+bindPrim('vec/construct',     coreKindConstructor(isBareVec, VecPayloadKindNotTakenError, 'vec'));
+bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadKindNotTakenError, 'map'));
 
 // `::desc(…)` — any value turned to descend, its place in the one order
 // the reverse of its payload's [QSORD#desc].
@@ -75,11 +75,11 @@ bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
 
 // `::doc[…]` — the doc of a vector of prose strings and quotes [QSSLF#doc], so
 // a doc comes apart into its segments and back by `tag`.
-const DocPayloadNotVecError     = declareRefusal('doc/PayloadNotVecError');
+const DocPayloadKindNotTakenError     = declareRefusal('doc/PayloadKindNotTakenError');
 const DocElementNotSegmentError = declareRefusal('doc/ElementNotSegmentError');
 
 function docConstructor(payload) {
-  if (!isVec(payload)) throw new DocPayloadNotVecError({ actualValue: payload });
+  if (!isVec(payload)) throw new DocPayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   payload.forEach((element, index) => {
     if (!isDocSegment(element)) throw new DocElementNotSegmentError({ index, actualValue: element });
   });
@@ -91,10 +91,10 @@ bindPrim('doc/construct', docConstructor);
 // `::builtin{…}` — the descriptor, the recipe of a word or of a kind that
 // a primitive answers, or the value of a name under a label alone [QSBLD#fn],
 // [QSBLD#kind], [QSBLD#chain]; its fields stay flat under its tag.
-const BuiltinPayloadNotMapError = declareRefusal('builtin/PayloadNotMapError');
+const BuiltinPayloadKindNotTakenError = declareRefusal('builtin/PayloadKindNotTakenError');
 
 function builtinConstructor(payload) {
-  if (!isQMap(payload)) throw new BuiltinPayloadNotMapError({ actualValue: payload });
+  if (!isQMap(payload)) throw new BuiltinPayloadKindNotTakenError({ expected: kindsExpected('map'), actualValue: payload });
   const descriptor = new Map();
   for (const [k, v] of payload) descriptor.set(k, v);
   stampTagHeader(descriptor, BUILTIN_TAG);

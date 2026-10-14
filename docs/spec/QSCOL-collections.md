@@ -79,7 +79,7 @@ in place of the code is refused with the repair.
 [2 3]
 
 > [1 2] | map (add 1) !| type
-::vec/map/code/NotPathOrQuoteError
+::vec/map/code/KindNotTakenError
 ```
 
 ## filter

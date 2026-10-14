@@ -1,19 +1,19 @@
-{"name":"and-both-true","query":"true | and true","expect":"true"}
-{"name":"and-one-false","query":"true | and false","expect":"false"}
-{"name":"or-one-true","query":"false | or true","expect":"true"}
-{"name":"or-both-false","query":"false | or false","expect":"false"}
-{"name":"not-true","query":"true | not","expect":"false"}
-{"name":"not-false","query":"false | not","expect":"true"}
-{"name":"not-null-is-refused","query":"null | not !| get [~(type) /actualType]","expect":"[::boolean/not/SubjectNotBooleanError ::null]"}
-{"name":"not-zero-is-refused","query":"0 | not !| type","expect":"::boolean/not/SubjectNotBooleanError"}
-{"name":"not-empty-string-is-refused","query":"\"\" | not !| type","expect":"::boolean/not/SubjectNotBooleanError"}
-{"name":"filter-with-and","query":"[{:active true :age 25} {:active true :age 15} {:active false :age 30}] | filter ~(allOf (get /active) (get /age | gte 18))","expect":"[{:active true :age 25}]"}
-{"name":"and-refuses-a-left-condition-of-another-kind","query":"1 | and true !| type","expect":"::boolean/and/SubjectNotBooleanError"}
-{"name":"or-refuses-a-right-condition-of-another-kind","query":"true | or 1 !| type","expect":"::boolean/or/right/NotBooleanError"}
-{"name":"a-predicate-may-name-a-word","query":"[true false] | filter ~(not)","expect":"[false]"}
-{"name":"allOf-holds-two-conditions-of-one-record","query":"{:active true :age 25} | allOf (get /active) (get /age | gte 18)","expect":"true"}
-{"name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| get [~(type) /index /actualType]","expect":"[::any/allOf/conditions/ElementNotBooleanOrPathOrQuoteError 1 ::string/endsWith/SubjectNotStringError]"}
-{"name":"all-of-runs-a-quote-in-its-turn","query":"[{:email null} {:email \"a@b.org\"}] | filter ~(allOf (get /email | ne null) ~(get /email | endsWith \".org\")) | count","expect":"1"}
-{"name":"a-condition-of-allOf-is-a-value-or-a-quote","query":"5 | allOf (gt 1) ~(lt 10)","expect":"true"}
+{"decision":"D287","name":"and-both-true","query":"true | and true","expect":"true"}
+{"decision":"D287","name":"and-one-false","query":"true | and false","expect":"false"}
+{"decision":"D287","name":"or-one-true","query":"false | or true","expect":"true"}
+{"decision":"D287","name":"or-both-false","query":"false | or false","expect":"false"}
+{"decision":"D287","name":"not-true","query":"true | not","expect":"false"}
+{"decision":"D287","name":"not-false","query":"false | not","expect":"true"}
+{"decision":"D287","name":"not-null-is-refused","query":"null | not !| get [~(type) /actualType]","expect":"[::boolean/not/SubjectNotBooleanError ::null]"}
+{"decision":"D287","name":"not-zero-is-refused","query":"0 | not !| type","expect":"::boolean/not/SubjectNotBooleanError"}
+{"decision":"D287","name":"not-empty-string-is-refused","query":"\"\" | not !| type","expect":"::boolean/not/SubjectNotBooleanError"}
+{"decision":"D287","name":"filter-with-and","query":"[{:active true :age 25} {:active true :age 15} {:active false :age 30}] | filter ~(allOf (get /active) (get /age | gte 18))","expect":"[{:active true :age 25}]"}
+{"decision":"D287","name":"and-refuses-a-left-condition-of-another-kind","query":"1 | and true !| type","expect":"::boolean/and/SubjectNotBooleanError"}
+{"decision":"D287","name":"or-refuses-a-right-condition-of-another-kind","query":"true | or 1 !| type","expect":"::boolean/or/right/KindNotTakenError"}
+{"decision":"D287","name":"a-predicate-may-name-a-word","query":"[true false] | filter ~(not)","expect":"[false]"}
+{"decision":"D287","name":"allOf-holds-two-conditions-of-one-record","query":"{:active true :age 25} | allOf (get /active) (get /age | gte 18)","expect":"true"}
+{"decision":"D287","name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| get [~(type) /index /actualType]","expect":"[::any/allOf/conditions/ElementKindNotTakenError 1 ::string/endsWith/SubjectNotStringError]"}
+{"decision":"D287","name":"all-of-runs-a-quote-in-its-turn","query":"[{:email null} {:email \"a@b.org\"}] | filter ~(allOf (get /email | ne null) ~(get /email | endsWith \".org\")) | count","expect":"1"}
+{"decision":"D287","name":"a-condition-of-allOf-is-a-value-or-a-quote","query":"5 | allOf (gt 1) ~(lt 10)","expect":"true"}
 {"name":"if-holds-two-conditions-by-allOf","query":"{:active true :verified true} | if (allOf (get /active) (get /verified)) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
 {"name":"if-takes-either-condition-by-anyOf","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}

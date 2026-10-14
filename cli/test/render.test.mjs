@@ -88,12 +88,11 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
       makeCellEntry({ result: new Map([['k', 1]]) }),
       { didExplicitStdoutEffect: false, shouldColorize: true }
     );
-    // ANSI escape pattern present eslint-disable-next-line no-control-regex --
-    // matches the literal ESC byte that ANSI escape sequences open with
+    // ANSI escape pattern present
+    // eslint-disable-next-line no-control-regex -- matches the literal ESC byte that ANSI escape sequences open with
     expect(cliOutcome.stdoutText).toMatch(/\x1b\[/);
-    // Underlying text content survives stripping eslint-disable-next-line
-    // no-control-regex -- matches the literal ESC byte at the head of every
-    // ANSI SGR sequence
+    // Underlying text content survives stripping
+    // eslint-disable-next-line no-control-regex -- matches the literal ESC byte at the head of every ANSI SGR sequence
     expect(cliOutcome.stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('{:k 1}');
   });
 
@@ -109,8 +108,7 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
       didExplicitStdoutEffect: false,
       shouldColorize: true
     });
-    // eslint-disable-next-line no-control-regex -- matches the literal ESC
-    // byte that ANSI escape sequences open with
+    // eslint-disable-next-line no-control-regex -- matches the literal ESC byte that ANSI escape sequences open with
     expect(cliOutcome.stdoutText).toMatch(/\x1b\[/);
     expect(cliOutcome.stderrText).toBe('');
     expect(cliOutcome.exitCode).toBe(0);

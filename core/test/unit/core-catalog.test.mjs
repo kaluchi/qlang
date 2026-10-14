@@ -137,7 +137,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('apply refuses code that is not a Quote', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('"not-a-quote" | apply it !| type');
-    expect(evalResult).toEqual(makeTag('any/apply/code/NotFnOrPathOrQuoteError'));
+    expect(evalResult).toEqual(makeTag('any/apply/code/KindNotTakenError'));
   });
 
   it('round-trip — "source" | parse | apply(/) is equivalent to evaluating the source', async () => {

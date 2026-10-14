@@ -84,7 +84,7 @@
             call gives none.
         ~~|
         ~(query /0) #[::null ::string]
-    | throws :text/NotNullOrStringError
+    | throws :text/KindNotTakenError
         |~~ The text `out` writes is a string: a value of another kind is
             made text first, `out json` or `out print`.
         ~~|
@@ -102,9 +102,9 @@
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no line `out` writes alone. ~~|
         ~(42 | out !| type | eq ::any/out/SubjectNotStringError)
-    | proves :text/NotNullOrStringError/refusesANumber
+    | proves :text/KindNotTakenError/refusesANumber
         |~~ A number is no text to write. ~~|
-        ~("hi" | out 5 !| type | eq ::any/out/text/NotNullOrStringError)
+        ~("hi" | out 5 !| type | eq ::any/out/text/KindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the word. ~~|
         ~("hi" | out "a" "b" !| type | eq ::any/out/ArgsBeyondInputsError)
@@ -123,7 +123,7 @@
             call gives none.
         ~~|
         ~(query /0) #[::null ::string]
-    | throws :text/NotNullOrStringError
+    | throws :text/KindNotTakenError
         |~~ The text `err` writes is a string: a value of another kind is
             made text first, `err json` or `err print`.
         ~~|
@@ -157,7 +157,7 @@
     | takes :label
         |~~ The label written before the value, a keyword. ~~|
         /0 ::keyword
-    | throws :label/NotKeywordError
+    | throws :label/KindNotTakenError
         |~~ The label of `tap` is a keyword, `tap :before`, written before
             the value as `[tap before]`.
         ~~|
@@ -166,9 +166,9 @@
         |~~ `tap` writes its subject under one label its call gives,
             `5 | tap :n`; a call with more labels is refused.
         ~~|
-    | proves :label/NotKeywordError/refusesAString
+    | proves :label/KindNotTakenError/refusesAString
         |~~ A string is no label. ~~|
-        ~(1 | tap "x" !| type | eq ::any/tap/label/NotKeywordError)
+        ~(1 | tap "x" !| type | eq ::any/tap/label/KindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoLabels
         |~~ A call with two labels is refused under the word. ~~|
         ~(5 | tap :a :b !| type | eq ::any/tap/ArgsBeyondInputsError)

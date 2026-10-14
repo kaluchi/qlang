@@ -88,6 +88,11 @@
     | carries :index
         |~~ The place of the element refused, counted from zero. ~~|
         ::number
+    | carries :expected
+        |~~ The kinds the holder takes, where a value of none of them was
+            refused, `#[::number]`.
+        ~~|
+        #[::tag]
     | carries :actualType |~~ The kind of the value refused. ~~| ::tag
     | carries :places
         |~~ How many places the inputs of the word read, where the call

@@ -100,8 +100,7 @@ export const BuiltinRefusalDeclaredTwiceError = declareInvariantError('builtin/R
 
 export const CallUnknownNameError = declareRefusal('call/UnknownNameError');
 
-// A name with a path that no declaration names [QSDSP#walk],
-// [QSDSP#residence].
+// A name with a path that no declaration names [QSDSP#walk], [QSDSP#residence].
 export const CallUnknownAddressError = declareRefusal('call/UnknownAddressError');
 
 // One more nested frame of evaluation past the budget, a runaway in the

@@ -59,7 +59,7 @@ kind whose values they compare, an input of another kind refused.
 true
 
 > 1 | gt "x" !| type
-::number/gt/value/NotNumberError
+::number/gt/value/KindNotTakenError
 ```
 
 ## refusal
@@ -94,7 +94,7 @@ whose function names its answer's kinds checks the answer against them.
 [2 3]
 
 > :vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)) | [1] | n !| type
-::string/PayloadNotStringError
+::string/PayloadKindNotTakenError
 ```
 
 ## tagname

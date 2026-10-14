@@ -56,26 +56,26 @@ word `args` reads them, and the counts of `coalesce` and `cond` are the
 invariants of their inputs.
 
 An input holds the value of its kind the walk of its tags reaches: a
-value of none is refused under the input, `…/by/NotNumberError`, the
-name of the refusal following the order of its set of kinds,
-`…/NotPathOrQuoteError`; a strict place the call leaves out as
+value of none is refused under the input as `…/by/KindNotTakenError`,
+the kinds it takes its `:expected`, a set of tags, so the name stays
+while the kinds of the input grow; a strict place the call leaves out as
 `…/by/NotGivenError`; args past the places the inputs read under the
 call as `…/ArgsBeyondInputsError`; and a value that breaks an invariant
 under the invariant's name. Kinds written as a vector of one tag or of
 one set are the kinds of each element: the input holds a vector, or a
 set, of the value of its kind of each, a quote and a doc as they are, a
-value that is no vector refused as `…/NotVecError` and an element of
-none as `…/ElementNotNumberError` with its `:index`.
+value that is no vector refused as `…/KindNotTakenError` and an element
+of none as `…/ElementKindNotTakenError` with its `:index`.
 
 ```qlang
 > :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(5 | plus 2) ~(5 | plus "x" !| type) ~(5 | plus !| type) ~(5 | plus 1 2 !| type)]
-[7 ::number/plus/by/NotNumberError ::number/plus/by/NotGivenError ::number/plus/ArgsBeyondInputsError]
+[7 ::number/plus/by/KindNotTakenError ::number/plus/by/NotGivenError ::number/plus/ArgsBeyondInputsError]
 
 > :vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 4 2] | get [~(top) ~(top 1)]
 [[5 4 2] [5]]
 
 > :m (::fn | takes :xs |~~ X ~~| /0 [::number] | impl ~(xs)) | get [~(5 | apply m [5] !| type) ~(5 | apply m [[1 "a"]] !| get [~(type) /index])]
-[::fn/call/xs/NotVecError [::fn/call/xs/ElementNotNumberError 1]]
+[::fn/call/xs/KindNotTakenError [::fn/call/xs/ElementKindNotTakenError 1]]
 ```
 
 ## answer
@@ -87,7 +87,7 @@ of none refused under the answer's label; a word whose answer is
 
 ```qlang
 > :Box |~~ B ~~| | :Box/half (::fn | returns |~~ The half. ~~| ::string | impl ~(get /0 | div 2)) | ::Box[4] | half !| type
-::string/PayloadNotStringError
+::string/PayloadKindNotTakenError
 ```
 
 ## recipe
@@ -131,9 +131,9 @@ literal, which the constructor of `::kind` reads back.
 ## value
 
 A value put under a kind holds the value of its payload's kinds,
-refused under the kind where it holds none, `…/PayloadNotMapError`, and
-where its kinds are of each element a payload that is no vector as
-`…/PayloadNotVecError` and an element of none with its `:index`. Each
+refused under the kind where it holds none, `…/PayloadKindNotTakenError`
+with the kinds as `:expected`, and where its kinds are of each element
+an element of none as `…/ElementKindNotTakenError` with its `:index`. Each
 field reads its place of the payload, a place left out refused under the
 field as `…/NotGivenError` and a value of none of its kinds under the
 field. The invariants of the value hold of the payload beneath the tag,
@@ -144,7 +144,7 @@ an error hands it on. `get` reads a field's place.
 
 ```qlang
 > :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | holds :TooWideError |~~ At most ten. ~~| ~(get /w | lte 10)) | get [~(::Box{:w 3} | type) ~(::Box{} !| type) ~(::Box{:w "x"} !| type) ~(::Box{:w 20} !| type)]
-[::Box ::Box/w/NotGivenError ::Box/w/NotNumberError ::Box/TooWideError]
+[::Box ::Box/w/NotGivenError ::Box/w/KindNotTakenError ::Box/TooWideError]
 
 > :Box |~~ B. ~~| (::kind | holds :NegError |~~ Above zero. ~~| ~(get /0 | gt 0)) | ::Box[-1] !| keys
 #[:actualType :actualValue :trail]

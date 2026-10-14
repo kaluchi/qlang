@@ -30,7 +30,7 @@
         |~~ A path, read as itself; a vector of keys and places becomes
             one by `toPath`, `[:items 0] | toPath`.
         ~~|
-    | throws :PayloadNotPathError
+    | throws :PayloadKindNotTakenError
         |~~ `::path` reads its payload as the path it is; a payload of
             another kind is refused, and a vector of keys and places is
             read as a path by `toPath`.
@@ -112,9 +112,9 @@
     | proves :printsAKeyWithASlashQuoted
         |~~ A key with a slash that is no name of a path prints quoted. ~~|
         ~({:"a b/c" 1} | paths | first | print | eq "/\"a b/c\"")
-    | proves :PayloadNotPathError/refusesAVector
+    | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
-        ~([:a 0] | tag ::path !| get [~(type) /actualType] | eq [::path/PayloadNotPathError ::vec])
+        ~([:a 0] | tag ::path !| get [~(type) /actualType] | eq [::path/PayloadKindNotTakenError ::vec])
     | proves :IndexOutOfBoundsError/refusesAPlacePastTheEnd
         |~~ A place past the end is refused with the length. ~~|
         ~([10 20 30] | get /99 !| get [~(type) /index /length] | eq [::path/IndexOutOfBoundsError 99 3])

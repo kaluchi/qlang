@@ -31,7 +31,7 @@
   ~~|
   ::fn
     | takes :glue |~~ The steps that build the value from what the template reads. ~~| /0 ::vec
-    | throws :glue/NotVecError |~~ The glue is a vector of steps. ~~|
+    | throws :glue/KindNotTakenError |~~ The glue is a vector of steps. ~~|
     | impl
         ~(if (glue | count | eq 0)
             ~()

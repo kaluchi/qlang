@@ -88,8 +88,7 @@ function readOf(src) {
 // emit nothing here — their structural punctuation shows up via
 // the gap-interleaving pass below.
 function collectSemanticSpans(src, ast, builtinNames) {
-  // A plain comment is whitespace the parser keeps on the side
-  // [QSSYN#comment].
+  // A plain comment is whitespace the parser keeps on the side [QSSYN#comment].
   const spans = ast.comments.map(comment =>
     ({ start: comment.location.start.offset, end: comment.location.end.offset, kind: 'comment' }));
 

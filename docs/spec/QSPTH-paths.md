@@ -77,7 +77,7 @@ null
 `has` on a map takes a key as `get` takes one, a keyword, a string, a
 number or a path, and answers whether `get` reads it, a number naming
 the key of its text; a key of another kind is refused as
-`::map/has/key/NotKeywordOrNumberOrPathOrStringError`. On a vector and a
+`::map/has/key/KindNotTakenError`. On a vector and a
 set `has` asks whether an element equal to one stands [QSCOL#sequence].
 
 ```qlang
@@ -154,7 +154,7 @@ path and read it. Any other input refuses a path, its refusal naming as
 12
 
 > 5 | mul /qty !| get [~(type) /read]
-[::number/mul/multiplier/NotNumberError ~(mul (get /qty))]
+[::number/mul/multiplier/KindNotTakenError ~(mul (get /qty))]
 ```
 
 ## words

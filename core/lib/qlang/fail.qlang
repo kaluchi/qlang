@@ -14,7 +14,7 @@
   ~~|
   ::kind
     | wraps |~~ The quote of a step, built into the step `!| step`. ~~|
-    | throws :PayloadNotQuoteError
+    | throws :PayloadKindNotTakenError
         |~~ The payload of `::fail` is the quote of the step it wraps, so
             `~(get /kind) | tag ::fail` is the step `!| get /kind`.
             ::link~(::fail | doc)
@@ -32,10 +32,10 @@
     | proves :holdsItsStep
         |~~ The fail track holds its step as a quote. ~~|
         ~(~(!| get /kind) | first | payload | eq ~(get /kind))
-    | proves :PayloadNotQuoteError/refusesANumber
+    | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(42 | tag ::fail !| get [~(type) /actualType] | eq [::fail/PayloadNotQuoteError ::number])
-    | proves :PayloadNotQuoteError/buildsTheStepOfAStep
+        ~(42 | tag ::fail !| get [~(type) /actualType] | eq [::fail/PayloadKindNotTakenError ::number])
+    | proves :PayloadKindNotTakenError/buildsTheStepOfAStep
         |~~ The quote of a step builds the step the fail track runs. ~~|
         ~(~(get /kind) | tag ::fail | get [~(it)] | tag ::quote | eq ~(!| get /kind))
     | proves :ReadBackDiffersError/refusesAPipelineOutsideAGroup

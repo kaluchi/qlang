@@ -37,7 +37,7 @@
             ::link~(::map | doc) ::link~(::vec/toMap | doc)
             ::link~(::tagged/payload | doc)
         ~~|
-    | throws :PayloadNotMapError
+    | throws :PayloadKindNotTakenError
         |~~ `::map` reads its payload as the map it is: the pairs of a
             vector build a map by `toMap`, `entries | toMap`, and a map
             under a tag of its own gives the map beneath by `payload`.
@@ -55,19 +55,19 @@
     | proves :buildsBackFromEntries
         |~~ The entries of a map build it back by `toMap`. ~~|
         ~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
-    | proves :PayloadNotMapError/refusesANumber
+    | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::map#1 !| get [~(type) /actualType] | eq [::map/PayloadNotMapError ::number])
-    | proves :PayloadNotMapError/refusesThePairsOfAVector
+        ~(::map#1 !| get [~(type) /actualType] | eq [::map/PayloadKindNotTakenError ::number])
+    | proves :PayloadKindNotTakenError/refusesThePairsOfAVector
         |~~ The pairs of a vector are refused; `toMap` builds them into a
             map.
         ~~|
-        ~([[:a 1]] | tag ::map !| get [~(type) /actualType] | eq [::map/PayloadNotMapError ::vec])
-    | proves :PayloadNotMapError/refusesAMapUnderATag
+        ~([[:a 1]] | tag ::map !| get [~(type) /actualType] | eq [::map/PayloadKindNotTakenError ::vec])
+    | proves :PayloadKindNotTakenError/refusesAMapUnderATag
         |~~ A map under a tag of its own is refused; `payload` reads the
             map beneath.
         ~~|
-        ~(::map::Box{:a 1} !| get [~(type) /actualType] | eq [::map/PayloadNotMapError ::Box])
+        ~(::map::Box{:a 1} !| get [~(type) /actualType] | eq [::map/PayloadKindNotTakenError ::Box])
     | impl ::builtin{}
 
 :map/count
@@ -275,7 +275,7 @@
         |~~ The code that ranks each value, null when the call gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /n)`, it runs
             on each value, while `(get /n)` is computed once at the call,
             against the map, and refused with what it answered.
@@ -299,13 +299,13 @@
     | proves :answersNullForTheEmptyMap
         |~~ The empty map has no least value. ~~|
         ~({} | min | eq null)
-    | proves :key/NotNullOrPathOrQuoteError/refusesAKeyComputedAtTheCall
+    | proves :key/KindNotTakenError/refusesAKeyComputedAtTheCall
         |~~ A key written without its quote is computed at the call and
             refused.
         ~~|
         ~({:a {:n 1}} | min (get /n)
           !| get [~(type) /actualType]
-          |  eq [::map/min/key/NotNullOrPathOrQuoteError ::path/KeyNotInMapError])
+          |  eq [::map/min/key/KindNotTakenError ::path/KeyNotInMapError])
     | impl ::builtin{}
 
 :map/max
@@ -321,7 +321,7 @@
         |~~ The code that ranks each value, null when the call gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null, `max /n`. ~~|
     | returns |~~ The greatest value, null for the empty map. ~~| ::any
     | proves :answersTheGreatestValue
@@ -336,9 +336,9 @@
     | proves :answersNullForTheEmptyMap
         |~~ The empty map has no greatest value. ~~|
         ~({} | max | eq null)
-    | proves :key/NotNullOrPathOrQuoteError/refusesANumber
+    | proves :key/KindNotTakenError/refusesANumber
         |~~ A key that is no quote is refused under the input. ~~|
-        ~({:a 1} | max 1 !| type | eq ::map/max/key/NotNullOrPathOrQuoteError)
+        ~({:a 1} | max 1 !| type | eq ::map/max/key/KindNotTakenError)
     | proves :ranksByTheKey
         |~~ The key the call gives ranks each value. ~~|
         ~({:a {:age 30} :b {:age 40}} | max /age | eq {:age 40})
@@ -360,7 +360,7 @@
     | takes :code
         |~~ The code run on each value, a quote. ~~|
         /0 #[::path ::quote]
-    | throws :code/NotPathOrQuoteError
+    | throws :code/KindNotTakenError
         |~~ The code is a quote, `map ~(add 1)`, or a path, `map /name`;
             written without the tilde, `map (add 1)`, it is computed once
             at the call, against the map, and refused with what it
@@ -386,9 +386,9 @@
     | proves :answersUnderNoTag
         |~~ The answers stand under no tag of the subject. ~~|
         ~(::Box{:a 1} | map ~(add 1) | eq {:a 2})
-    | proves :code/NotPathOrQuoteError/refusesAStepComputedAtTheCall
+    | proves :code/KindNotTakenError/refusesAStepComputedAtTheCall
         |~~ A step written without its quote is refused. ~~|
-        ~({:a 1} | map (add 1) !| type | eq ::map/map/code/NotPathOrQuoteError)
+        ~({:a 1} | map (add 1) !| type | eq ::map/map/code/KindNotTakenError)
     | impl ::builtin{}
 
 :map/filter
@@ -408,7 +408,7 @@
     | takes :predicate
         |~~ The code each value is run through, which answers a boolean. ~~|
         /0 #[::path ::quote]
-    | throws :predicate/NotPathOrQuoteError
+    | throws :predicate/KindNotTakenError
         |~~ The predicate is a quote, `filter ~(gt 1)`, or a path,
             `filter /active`; written without the tilde, `filter (gt 1)`,
             it is computed once at the call and refused.
@@ -440,9 +440,9 @@
             place.
         ~~|
         ~({:a 1} | filter /0 !| type | eq ::path/SubjectHasNoPartsError)
-    | proves :predicate/NotPathOrQuoteError/refusesAPredicateComputedAtTheCall
+    | proves :predicate/KindNotTakenError/refusesAPredicateComputedAtTheCall
         |~~ A predicate written without its quote is refused. ~~|
-        ~({:a 1} | filter (gt 0) !| type | eq ::map/filter/predicate/NotPathOrQuoteError)
+        ~({:a 1} | filter (gt 0) !| type | eq ::map/filter/predicate/KindNotTakenError)
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | filter ~(1)
@@ -464,7 +464,7 @@
     | takes :predicate
         |~~ The code each value is run through, which answers a boolean. ~~|
         /0 #[::path ::quote]
-    | throws :predicate/NotPathOrQuoteError
+    | throws :predicate/KindNotTakenError
         |~~ The predicate is a quote, `every ~(gt 0)`, or a path,
             `every /active`.
         ~~|
@@ -497,11 +497,11 @@
         ~({:a 1} | every ~(1)
           !| get [~(type) /key /actualType]
           |  eq [::map/every/ConditionNotBooleanError :a ::number])
-    | proves :predicate/NotPathOrQuoteError/refusesCodeComputedAtTheCall
+    | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
         ~~|
-        ~({:a 1} | every (gt 0) !| type | eq ::map/every/predicate/NotPathOrQuoteError)
+        ~({:a 1} | every (gt 0) !| type | eq ::map/every/predicate/KindNotTakenError)
     | impl ::builtin{}
 
 :map/any
@@ -518,7 +518,7 @@
     | takes :predicate
         |~~ The code each value is run through, which answers a boolean. ~~|
         /0 #[::path ::quote]
-    | throws :predicate/NotPathOrQuoteError
+    | throws :predicate/KindNotTakenError
         |~~ The predicate is a quote, `any ~(gt 0)`, or a path,
             `any /vip`.
         ~~|
@@ -546,11 +546,11 @@
         ~({:a 1} | any ~(1)
           !| get [~(type) /key /actualType]
           |  eq [::map/any/ConditionNotBooleanError :a ::number])
-    | proves :predicate/NotPathOrQuoteError/refusesCodeComputedAtTheCall
+    | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
         ~~|
-        ~({:a 1} | any (gt 0) !| type | eq ::map/any/predicate/NotPathOrQuoteError)
+        ~({:a 1} | any (gt 0) !| type | eq ::map/any/predicate/KindNotTakenError)
     | impl ::builtin{}
 
 :map/sort
@@ -569,7 +569,7 @@
         |~~ The code that ranks each value, null when the call gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/NotNullOrPathOrQuoteError
+    | throws :key/KindNotTakenError
         |~~ The key is a path, a quote or null, `sort /n`. ~~|
     | returns
         |~~ The entries in the order the key ranks them, under the tags of
@@ -588,9 +588,9 @@
     | proves :answersUnderTheTagOfTheMap
         |~~ A map under a tag answers under the tag. ~~|
         ~(::Box{:a 3 :b 1} | sort | eq ::Box{:b 1 :a 3})
-    | proves :key/NotNullOrPathOrQuoteError/refusesANumber
+    | proves :key/KindNotTakenError/refusesANumber
         |~~ A key that is no code is refused. ~~|
-        ~({:a 1 :b 2} | sort 1 !| type | eq ::map/sort/key/NotNullOrPathOrQuoteError)
+        ~({:a 1 :b 2} | sort 1 !| type | eq ::map/sort/key/KindNotTakenError)
     | impl ::builtin{}
 
 :map/take
@@ -605,7 +605,7 @@
   ~~|
   ::fn
     | takes :count |~~ How many entries, a whole number. ~~| /0 ::number
-    | throws :count/NotNumberError
+    | throws :count/KindNotTakenError
         |~~ The count is a number, `{:a 1 :b 2 :c 3} | take 2`; text that
             holds one is read by `toNumber` first,
             `take ("2" | toNumber)`.
@@ -631,9 +631,9 @@
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
         ~({:a 1} | take 1.5 !| type | eq ::map/take/count/NotIntegerError)
-    | proves :count/NotNumberError/refusesAString
+    | proves :count/KindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
-        ~({:a 1} | take "1" !| type | eq ::map/take/count/NotNumberError)
+        ~({:a 1} | take "1" !| type | eq ::map/take/count/KindNotTakenError)
     | impl ::builtin{}
 
 :map/drop
@@ -649,7 +649,7 @@
   ~~|
   ::fn
     | takes :count |~~ How many entries, a whole number. ~~| /0 ::number
-    | throws :count/NotNumberError
+    | throws :count/KindNotTakenError
         |~~ The count is a number, `{:a 1 :b 2 :c 3} | drop 2`; text that
             holds one is read by `toNumber` first,
             `drop ("2" | toNumber)`.
@@ -672,9 +672,9 @@
     | proves :dropsEveryEntryForACountPastTheSize
         |~~ A count past the size drops every entry. ~~|
         ~({:a 1} | drop 5 | eq {})
-    | proves :count/NotNumberError/refusesAString
+    | proves :count/KindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
-        ~({:a 1} | drop "1" !| type | eq ::map/drop/count/NotNumberError)
+        ~({:a 1} | drop "1" !| type | eq ::map/drop/count/KindNotTakenError)
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A count that is no whole number is refused. ~~|
         ~({:a 1} | drop 1.5 !| type | eq ::map/drop/count/NotIntegerError)
@@ -718,7 +718,7 @@
             value.
         ~~|
         /1 #[::path ::quote]
-    | throws :reducer/NotPathOrQuoteError
+    | throws :reducer/KindNotTakenError
         |~~ The reducer is a path or a quote, `reduce 0 ~(add)`, after the
             seed: written first, `reduce ~(add) 0`, it stands in the seed's
             place and hands the reducer's place the seed, and written
@@ -737,16 +737,16 @@
     | proves :foldsInTheOrderOfTheEntries
         |~~ The fold meets the values in the order the map holds them. ~~|
         ~({:a "x" :b "y"} | reduce "" ~(append) | eq "xy")
-    | proves :reducer/NotPathOrQuoteError/refusesAReducerComputedAtTheCall
+    | proves :reducer/KindNotTakenError/refusesAReducerComputedAtTheCall
         |~~ A reducer written without its quote is refused. ~~|
-        ~({:a 1} | reduce 0 (add) !| type | eq ::map/reduce/reducer/NotPathOrQuoteError)
-    | proves :reducer/NotPathOrQuoteError/refusesTheReducerFirst
+        ~({:a 1} | reduce 0 (add) !| type | eq ::map/reduce/reducer/KindNotTakenError)
+    | proves :reducer/KindNotTakenError/refusesTheReducerFirst
         |~~ A reducer written before the seed hands the reducer's place
             the seed.
         ~~|
         ~({:a 1} | reduce ~(add) 0
           !| get [~(type) /actualType]
-          |  eq [::map/reduce/reducer/NotPathOrQuoteError ::number])
+          |  eq [::map/reduce/reducer/KindNotTakenError ::number])
     | proves :runsCodeOnThePair
         |~~ Code of more than one word runs on the pair of the value so
             far and the value.
@@ -875,7 +875,7 @@
             string, computed against the subject.
         ~~|
         /0 #[::keyword ::number ::path ::string]
-    | throws :key/NotKeywordOrNumberOrPathOrStringError
+    | throws :key/KindNotTakenError
         |~~ The key is a keyword or a string, written as the keyword that
             names it, `has :name`, a number, which names the key of its
             text as `get` reads it, or a path, which asks whether it reads,
@@ -902,11 +902,11 @@
     | proves :findsTheKeyOfANumber
         |~~ A number names the key of its text, as `get` reads it. ~~|
         ~({:"1" 5} | has 1)
-    | proves :key/NotKeywordOrNumberOrPathOrStringError/refusesAVector
+    | proves :key/KindNotTakenError/refusesAVector
         |~~ A vector key is refused. ~~|
         ~({:a 1} | has [1]
           !| get [~(type) /actualType]
-          |  eq [::map/has/key/NotKeywordOrNumberOrPathOrStringError ::vec])
+          |  eq [::map/has/key/KindNotTakenError ::vec])
     | impl ::builtin{}
 
 :map/union
@@ -922,7 +922,7 @@
   ~~|
   ::fn
     | takes :other |~~ The other map. ~~| /0 ::map
-    | throws :other/NotMapError
+    | throws :other/KindNotTakenError
         |~~ The subject unites with a map, `union {:b 2}`: a key comes
             with its value, and a set or a vector of keys alone is
             refused.
@@ -946,9 +946,9 @@
     | proves :answersUnderTheTagOfTheSubject
         |~~ A map under a tag answers under the tag. ~~|
         ~(::Box{:a 1} | union {:b 2} | eq ::Box{:a 1 :b 2})
-    | proves :other/NotMapError/refusesASetOfKeys
+    | proves :other/KindNotTakenError/refusesASetOfKeys
         |~~ A set of keys unites with no map. ~~|
-        ~({:a 1} | union #[:b] !| type | eq ::map/union/other/NotMapError)
+        ~({:a 1} | union #[:b] !| type | eq ::map/union/other/KindNotTakenError)
     | impl ::builtin{}
 
 :map/minus
@@ -966,7 +966,7 @@
     | takes :keys
         |~~ The keys to leave out: a map, or a vector or a set of keys. ~~|
         /0 #[::map ::vec]
-    | throws :keys/NotMapOrVecError
+    | throws :keys/KindNotTakenError
         |~~ The keys are a map, or a vector or a set of keys; a single key
             is written in a set, `minus #[:tmp]`.
         ~~|
@@ -995,9 +995,9 @@
     | proves :answersUnderTheTagOfTheMap
         |~~ A map under a tag answers under the tag. ~~|
         ~(::Box{:a 1 :b 2} | minus [:a] | eq ::Box{:b 2})
-    | proves :keys/NotMapOrVecError/refusesASingleKey
+    | proves :keys/KindNotTakenError/refusesASingleKey
         |~~ A key written alone is refused; a set holds it. ~~|
-        ~({:a 1} | minus "a" !| type | eq ::map/minus/keys/NotMapOrVecError)
+        ~({:a 1} | minus "a" !| type | eq ::map/minus/keys/KindNotTakenError)
     | proves :KeyNotKeywordOrStringError/refusesANumber
         |~~ A number among the keys is refused at its index. ~~|
         ~({:a 1} | minus [:a 1]
@@ -1018,7 +1018,7 @@
     | takes :keys
         |~~ The keys to keep: a map, or a vector or a set of keys. ~~|
         /0 #[::map ::vec]
-    | throws :keys/NotMapOrVecError
+    | throws :keys/KindNotTakenError
         |~~ The keys are a map, or a vector or a set of keys,
             `inter #[:a]`.
         ~~|
@@ -1049,11 +1049,11 @@
         ~({:a 1} | inter [[:a]]
           !| get [~(type) /actualType /index]
           |  eq [::map/inter/KeyNotKeywordOrStringError ::vec 0])
-    | proves :keys/NotMapOrVecError/refusesANumber
+    | proves :keys/KindNotTakenError/refusesANumber
         |~~ Keys that are no map, vector or set are refused under the
             input.
         ~~|
-        ~({:a 1} | inter 5 !| type | eq ::map/inter/keys/NotMapOrVecError)
+        ~({:a 1} | inter 5 !| type | eq ::map/inter/keys/KindNotTakenError)
     | impl ::builtin{}
 
 :map/raise

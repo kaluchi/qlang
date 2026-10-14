@@ -69,7 +69,7 @@ bindPrim('kind/carries', (subject, name, page, kinds) => withCommand(subject, 'c
 // and its condition.
 bindPrim('kind/holds', (subject, name, page, condition) => withCommand(subject, 'holds', [name, page, condition]));
 
-// `throws :w/NotNumberError |~~ … ~~|` — a refusal and its page.
+// `throws :w/KindNotTakenError |~~ … ~~|` — a refusal and its page.
 bindPrim('kind/throws', (subject, name, page) => withCommand(subject, 'throws', [name, page]));
 
 // `proves :holdsItsSizes |~~ … ~~| ~(…)` — a law of the kind, the claim its

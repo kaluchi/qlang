@@ -151,8 +151,7 @@ bindPrim('path/segments', path => Object.freeze(path.segments.map(segment => {
   return Number.isNaN(place) ? keyword(segment) : place;
 })));
 
-// A path names one segment at least, the value itself being `it`
-// [QSPTH#value].
+// A path names one segment at least, the value itself being `it` [QSPTH#value].
 bindPrim('vec/toPath', keys => {
   if (keys.length === 0) throw new VecToPathEmptyError({ actualValue: keys });
   return makePath(keys.map((key, index) => {

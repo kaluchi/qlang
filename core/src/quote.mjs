@@ -282,8 +282,7 @@ function stepTagOf(step) {
 // A quote of declarations alone, the story `source` reads, prints one
 // declaration a line, each after the first led by its pipe, as the
 // catalog writes it [QSQUO#parse], and so does a quote of several steps one of
-// which takes several lines, the commands of a signature among them
-// [QSBLD#fn].
+// which takes several lines, the commands of a signature among them [QSBLD#fn].
 function printSteps(steps) {
   const printed = steps.map(step => (stepTagOf(step) === 'fail' ? { fail: printSteps(step.payload) } : { step: printStep(step) }));
   const lined = steps.length > 1 && (steps.every(step => stepTagOf(step) === 'bind') || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));

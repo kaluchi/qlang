@@ -247,8 +247,8 @@
         |~~ A value under tags answers the outermost. ~~|
         ~(::Width#5 | type | eq ::Width)
     | proves :readsAnErrorOnceOpened
-        |~~ An error passes over `type`, and its descriptor answers the
-            tag of its refusal.
+        |~~ An error passes over `type`, and the error at rest answers
+            the tag of its refusal.
         ~~|
         ~("x" | add 1 | type !| type | eq ::number/add/SubjectNotNumberError)
     | proves :ArgsBeyondInputsError/refusesAKind

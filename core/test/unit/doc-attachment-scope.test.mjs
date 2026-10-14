@@ -28,7 +28,7 @@ describe('a doc documents the declaration whose slot it stands in', () => {
     expect(result).toBe(' note ');
   });
 
-  it('documents a freeze', async () => {
+  it('documents a declaration of it', async () => {
     const result = await evalQuery('42 | :x |~~ note ~~| it | ::x | doc | content');
     expect(result).toBe(' note ');
   });

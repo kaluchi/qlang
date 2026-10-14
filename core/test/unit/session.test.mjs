@@ -48,7 +48,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(10);
   });
 
-  it('evalCell persists freezes across subsequent cells', async () => {
+  it('evalCell keeps the names a cell declares for the cells after it', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell('42 | :answer it');
     const cellEntry = await sessionInstance.evalCell('answer | mul 2');

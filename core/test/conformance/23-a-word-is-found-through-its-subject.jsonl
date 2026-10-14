@@ -44,7 +44,7 @@
 {"decision":"D5","name":"a-template-of-get-begins-the-body","query":":vec/m ~(:opts get {:n ~(count)} | opts) | [1 2] | m","expect":"{:n 2}"}
 {"decision":"D5","name":"a-recipe-names-a-value-derived-from-an-input","query":":vec/m (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:limit (k | mul 2) | take limit)) | [1 2 3 4 5] | m 2","expect":"[1 2 3 4]"}
 {"decision":"D67","name":"an-optional-input-takes-a-vector-by-default","query":":any/m (::fn | takes :xs |~~ The xs. ~~| ~(query /0 [1 2]) ::vec | impl ~(xs | count)) | null | get [~(m) ~(m [5])]","expect":"[2 1]"}
-{"decision":"D5","name":"a-verb-names-its-subject-by-a-freeze","query":":any/pair ~(:self it | get [~(self) ~(self)]) | 5 | pair","expect":"[5 5]"}
+{"decision":"D5","name":"a-word-names-its-subject-by-a-declaration-of-it","query":":any/pair ~(:self it | get [~(self) ~(self)]) | 5 | pair","expect":"[5 5]"}
 {"decision":"D5","name":"a-recipe-names-its-subject-before-a-step","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:self it | mul k | add self)) | 5 | scale 2","expect":"15"}
 {"decision":"D71","name":"a-recipe-shadows-a-name-of-its-scope","query":":n 1 | :any/f (::fn | takes :n |~~ The n. ~~| ~(query /0 2) ::number | impl ~(n)) | null | get [~(f) ~(n)]","expect":"[2 1]"}
 {"decision":"D4","name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (add 1) (mul 2)","expect":"[6 10]"}

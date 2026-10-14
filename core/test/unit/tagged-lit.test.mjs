@@ -281,7 +281,7 @@ describe('within edits under one tag and rewraps it', () => {
     expect(await evalQuery('#[1 2] | within ~(:k 5 | get [/0 /1]) | env | has :k')).toBe(false);
   });
 
-  it('an error the edit answers passes as it is, and one the code answers is refused by its slot', async () => {
+  it('an error the edit answers passes as it is, and one the code answers is refused by its input', async () => {
     expect(await evalQuery('#[1 2] | within ~(!{:k 2} | raise) !| get /k')).toBe(2);
     expect(await evalQuery('#[1 2] | within (!{:k 1} | raise) !| type')).toEqual(makeTag('tagged/within/code/NotPathOrQuoteError'));
   });

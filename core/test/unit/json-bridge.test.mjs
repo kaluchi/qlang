@@ -83,7 +83,7 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
     expect(thrown.facts.path).toEqual([]);
   });
 
-  it('names the slot it walked to when the magnitude sits nested', async () => {
+  it('names the path it walked to when the magnitude sits nested', async () => {
     const { StringParseJsonNumberNotFiniteError } = await import('../../src/runtime/format.mjs');
     let thrown = null;
     try { fromPlain(JSON.parse('{"a": {"b": [1, 1e400]}}')); } catch (caught) { thrown = caught; }

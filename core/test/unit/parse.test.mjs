@@ -253,8 +253,8 @@ describe('parse — Call', () => {
   });
 });
 
-describe('parse — bindings: BindStep and the freeze', () => {
-  it('parses the freeze :name it as a BindStep over the word it', () => {
+describe('parse — declarations: BindStep and the declaration of it', () => {
+  it('parses :name it as a BindStep over the word it', () => {
     const ast = parse(':roster it');
     expect(ast.type).toBe('BindStep');
     expect(ast.key.name).toBe('roster');
@@ -283,7 +283,7 @@ describe('parse — Pipeline composition', () => {
     expect(ast.steps[1].step.type).toBe('Call');
   });
 
-  it('parses the freeze inside a pipeline', () => {
+  it('parses a declaration of it inside a pipeline', () => {
     const ast = parse('foo | :snapshot it | bar');
     expect(ast.steps).toHaveLength(3);
     expect(ast.steps[1].step.type).toBe('BindStep');

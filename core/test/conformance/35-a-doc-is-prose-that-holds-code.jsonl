@@ -25,7 +25,7 @@
 {"decision":"D19","name":"doc-line-type-answers-doc","query":"|~~| line content\n  | type | eq ::doc","expect":"true"}
 {"decision":"D19","name":"doc-with-backticks-in-content","query":"|~~ see ~(mul 2) for ref ~~|","expect":"|~~ see ~(mul 2) for ref ~~|"}
 {"decision":"D19","name":"doc-eq-self","query":"|~~ same ~~| | :d it | eq d","expect":"true"}
-{"decision":"D19","name":"doc-bound-by-a-freeze","query":"|~~ note ~~| | :n it | n | content","expect":"\" note \""}
+{"decision":"D19","name":"a-doc-named-by-a-declaration-of-it","query":"|~~ note ~~| | :n it | n | content","expect":"\" note \""}
 {"decision":"D221","name":"keyword-naming-a-binding-type-is-not-doc","query":":isDoc | type | eq ::doc","expect":"false"}
 {"decision":"D19","name":"a-doc-counts-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | count","expect":"3"}
 {"decision":"D19","name":"a-doc-addresses-a-quote-among-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | get /1","expect":"~(add 1)"}

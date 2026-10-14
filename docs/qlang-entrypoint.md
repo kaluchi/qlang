@@ -330,7 +330,7 @@ September `sed -n '60,115p' scripts/check-conventions.mjs` read a file
 without the reading sensor seeing it, and permissions on the shell are
 prefixes, `Bash(node:*)` in the maintainer's local settings allowing
 anything. A query is data: a `PreToolUse` hook on `qlang '…'` can parse
-it with the language's own parser and know which host operands it will
+it with the language's own parser and know which words of the host it will
 call, which files and which git commands, since the language has no
 effects of its own, and the host can record what the query read. The
 model keeps the economy of the shell, many probes in one call as the
@@ -445,8 +445,8 @@ line after `>` a query and the lines under it the answer, with the two
 readings the audit's notation asks for: a fence marked `target` inverts
 the verdict, and answers compare as the printer writes them, since a
 probe records what was printed. An answer with …
-matches piece by piece, and a query that names an `@` operand runs on
-the command line.
+matches piece by piece, and a string, which prints raw, as the command
+line prints it.
 
 The sensor is `scripts/sensors/run-probes.mjs`, and without an
 argument it reads the audit and this document. `npm run ci` and the

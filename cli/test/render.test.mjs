@@ -31,8 +31,8 @@ describe('renderCellOutcome — error paths', () => {
   });
 
   it('encodes a fail-track error value as data on stdout, exit 0', async () => {
-    // Error values are first-class qlang values per the spec — they
-    // travel as data on the same channel as plain values. A non-zero
+    // An error at rest is a value of the language: it travels as data
+    // on the same channel as any value. A non-zero
     // exit on a fail-track result would cancel sibling tool calls in
     // agent harnesses that parallelise qlang invocations.
     const errorDescriptor = new Map([

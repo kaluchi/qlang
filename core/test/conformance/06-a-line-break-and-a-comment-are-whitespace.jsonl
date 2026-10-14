@@ -22,11 +22,11 @@
 {"decision":"D119","name":"three-line-docs-as-vec","query":":foo |~~| First.\n|~~| Second.\n|~~| Third.\n42\n| ::foo | doc | content | lines | count","expect":"3"}
 {"decision":"D119","name":"mixed-line-and-block-docs","query":":foo |~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\n42\n| ::foo | doc | content | lines | count","expect":"3"}
 {"decision":"D83","name":"doc-block-preserves-newlines","query":":foo |~~ line one\nline two ~~| 42\n| ::foo | doc | content","expect":"\" line one\\nline two \""}
-{"decision":"D83","name":"doc-on-a-freeze","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\" Captured value.\""}
+{"decision":"D83","name":"doc-on-a-declaration-of-it","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\" Captured value.\""}
 {"decision":"D83","name":"doc-survives-shadowing-redeclare","query":":foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content)","expect":"\" New doc.\\n With second remark.\""}
 {"decision":"D81","name":"a-comment-between-steps-is-whitespace","query":"[1 2 3]\n|~| this comment doesn't change pipeValue\n| count","expect":"3"}
 {"decision":"D83","name":"doc-on-bind-succeeds","query":":foo |~~| doc\n42\n| foo","expect":"42"}
-{"decision":"D83","name":"doc-on-a-freeze-succeeds","query":"42\n:x |~~| captured\nit\n| x","expect":"42"}
+{"decision":"D83","name":"doc-on-a-declaration-of-it-hands-the-value-on","query":"42\n:x |~~| captured\nit\n| x","expect":"42"}
 {"decision":"D81","name":"interleaved-plain-between-doc-and-body","query":":foo |~~| doc\n|~ rationale ~| 42\n| ::foo | doc | content","expect":"\" doc\""}
 {"decision":"D81","name":"interleaved-plain-between-two-docs","query":":foo |~~| doc one\n|~ separator ~|\n|~~| doc two\n42\n| ::foo | doc | content","expect":"\" doc one\\n doc two\""}
 {"decision":"D81","name":"interleaved-plain-before-the-declaration","query":"|~ leading ~|\n:foo |~~| doc\n42\n| ::foo | doc | content","expect":"\" doc\""}

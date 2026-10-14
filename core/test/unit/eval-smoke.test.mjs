@@ -126,12 +126,12 @@ describe('eval — full application of mul', () => {
   });
 });
 
-describe('eval — freeze', () => {
-  it('captures and references via a freeze', async () => {
+describe('eval — a declaration of it', () => {
+  it('names the value in the pipe and reads it back', async () => {
     expect(await evalQuery('[1 2 3] | :nums it | nums | count')).toBe(3);
   });
 
-  it('multi-stage freezes', async () => {
+  it('names the values of several stages', async () => {
     expect(await evalQuery(`
       [85 92 47 78 68 95 52]
         | :allScores it

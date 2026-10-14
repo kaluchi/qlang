@@ -36,7 +36,7 @@
 {"decision":"D152","name":"the-word-of-a-literal-names-a-label","query":"\":null |~~ A thing. ~~| | 1\" | parse | count","expect":"2"}
 {"decision":"D152","name":"a-name-under-a-noun-may-end-in-the-word-of-a-literal","query":":number/null ~(1) | 5 | number/null","expect":"1"}
 {"decision":"D160","name":"env-has-unknown","query":"env | has :thisNameDoesNotExist","expect":"false"}
-{"decision":"D160","name":"env-after-a-freeze","query":"42 | :answer it | env | has :answer","expect":"true"}
+{"decision":"D160","name":"env-after-a-declaration-of-it","query":"42 | :answer it | env | has :answer","expect":"true"}
 {"decision":"D160","name":"env-after-bind","query":":double ~(mul 2) | env | has :double","expect":"true"}
 {"decision":"D160","name":"env-answers-whatever-the-subject","query":":x 1 | [1 2 3] | env | has :x","expect":"true"}
 {"decision":"D5","name":"a-descriptor-a-query-assembles-is-a-value","query":"::builtin{:note :draft} | :u it | get {:x 1} | u | type","expect":"::builtin"}

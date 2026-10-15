@@ -35,3 +35,5 @@
 {"name":"json-kebab-string-key","query":"{\"foo-bar\": 99} | get /\"foo-bar\"","expect":"99"}
 {"name":"parse-path-path","query":"\"/a/b/0\" | parse | first | segments","expect":"[:a :b 0]"}
 {"name":"a-path-with-a-slashed-key-prints-so-it-reads-back","query":"[\"a/b\" \"c\"] | toPath | :p it | get [~(print) ~(print | parse | apply it | eq p)]","expect":"[\"/:a/b/:c\" true]"}
+{"decision":"D303","name":"the-slash-alone-names-no-path","query":"\"[1] | get /\" | parse !| get /message","expect":"\"the slash alone names no path: the value itself is `it`\""}
+{"decision":"D303","name":"a-quoted-digit-is-the-segment-a-place-is","query":"/\"0\" | eq /0","expect":"true"}

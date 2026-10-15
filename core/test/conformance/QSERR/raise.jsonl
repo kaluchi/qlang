@@ -10,4 +10,4 @@
 {"name":"the-bang-raises-an-error","query":"!{:k 1} | raise | count !| type","expect":"::error"}
 {"name":"the-tag-a-step-lays-over-the-facts-names-the-error","query":"\"x\" | add 1 !| tag ::Foo | raise !| get [~(type) ~(get /trail | map /step)]","expect":"[::Foo [~(add 1)]]"}
 {"name":"error-takes-the-outermost-tag-over-its-map","query":"{:k 1} | tag ::Foo | tag ::Bar | raise !| type","expect":"::Bar"}
-{"name":"an-error-comes-back-from-the-atoms-of-its-facts","query":"#[1 :k :trail ::FooError] | get [/3 ~(get [[/1 /0] [/2 []]] | indexBy ~(first) | map ~last)] | tag | raise","expect":"::FooError!{\n  :k 1\n  :trail []\n} | raise"}
+{"decision":"D303","name":"raise-resides-on-the-map","query":"5 | raise !| type","expect":"::map/raise/SubjectNotMapError"}

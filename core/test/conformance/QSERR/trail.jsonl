@@ -43,3 +43,4 @@
 {"name":"a-tagged-error-literal-that-writes-its-path-resumes-it-when-raised","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| get /trail | map ~(get [~(get /step | parse) ~(get /skipped | parse)])","expect":"[[\"pre\" \"\"]]"}
 {"name":"an-overflow-holds-its-subject-on-the-trail","query":"1e308 | mul 10 !| get /trail/0/subject","expect":"1e308"}
 {"decision":"D303","name":"a-trail-or-a-stop-under-a-tag-is-refused-as-no-plain-trail","query":"get [~({:trail ::T[]} | raise !| type) ~({:trail [::T{:skipped ~()}]} | raise !| type)]","expect":"[::error/TrailNotVecError ::error/TrailNotVecError]"}
+{"decision":"D303","name":"trail-is-a-word-of-errors","query":"42 | trail !| type","expect":"::error/trail/SubjectNotErrorError"}

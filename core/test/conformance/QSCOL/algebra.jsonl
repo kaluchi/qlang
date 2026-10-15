@@ -29,3 +29,5 @@
 {"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| get [~(type) /actualType]","expect":"[::set/union/other/KindNotTakenError ::vec]"}
 {"name":"a-map-folds-no-values","query":"{:a 1} | union !| type","expect":"::map/union/other/NotGivenError"}
 {"name":"a-fold-of-no-values-is-refused-by-the-word-that-folds","query":"#[] | union !| type","expect":"::set/union/SubjectEmptyError"}
+{"decision":"D303","name":"unionOf-takes-one-part-at-least-and-keeps-the-tags-of-the-first","query":"get [~({} | unionOf !| type) ~(5 | unionOf ::T{:a 1} {:b 2})]","expect":"[::any/unionOf/parts/EmptyError ::T{:a 1 :b 2}]"}
+{"decision":"D303","name":"minus-of-a-map-takes-a-set-of-keys","query":"{:a 1} | minus :a !| type","expect":"::map/minus/keys/KindNotTakenError"}

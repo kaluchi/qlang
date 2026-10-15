@@ -5,3 +5,6 @@
 {"name":"toPath-reads-a-vector-of-keys","query":"[:a 0] | toPath | print","expect":"\"/a/0\""}
 {"name":"toPath-reads-json-pointer-with-its-escapes","query":"\"/a~1b/0\" | toPath | segments","expect":"[:\"a/b\" 0]"}
 {"name":"segments-keep-the-text-of-a-segment-that-is-no-number","query":"/01 | get [~(segments) ~(segments | toPath | eq /01)]","expect":"[[:\"01\"] true]"}
+{"decision":"D303","name":"toPath-takes-one-key-at-least","query":"[] | toPath !| type","expect":"::vec/toPath/EmptyError"}
+{"decision":"D303","name":"toPath-reads-a-json-pointer","query":"\"a\" | toPath !| type","expect":"::string/toPath/NotPointerError"}
+{"decision":"D303","name":"an-atom-has-no-paths","query":"5 | paths","expect":"#[]"}

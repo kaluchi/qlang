@@ -2,3 +2,4 @@
 {"name":"within-edits-under-a-tag-and-rewraps-it","query":"#[1 2] | within ~(get [/0 /0 /1])","expect":"#[1 2]"}
 {"name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]"}
 {"name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box"}
+{"decision":"D303","name":"within-runs-on-a-value-under-a-tag","query":"5 | within ~(add 1) !| type","expect":"::tagged/within/SubjectNotTaggedError"}

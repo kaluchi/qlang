@@ -11,9 +11,7 @@
 {"name":"get-reads-a-template-strictly","query":"{:a 1} | get [/a /b] !| type","expect":"::path/KeyNotInMapError"}
 {"name":"a-set-template-reads-its-paths","query":"{:name \"Alice\" :age 30} | get #[/name /age]","expect":"#[30 \"Alice\"]"}
 {"name":"if-inside-a-template","query":"[{:n 5} {:n 15}] | map ~(get {:value /n :tier ~(if (get /n | gt 10) ~(\"high\") ~(\"low\"))})","expect":"[{:value 5 :tier \"low\"} {:value 15 :tier \"high\"}]"}
-{"name":"query-of-a-path-hands-the-value-as-the-key","query":"{:email {:home \"a@b\"}} | query (get /email) !| get /actualValue","expect":"{:home \"a@b\"}"}
-{"name":"map-passes-a-failed-element-by-code-of-one-value","query":"get [1 ~(\"x\" | add 1)] | map ~(0) !| type","expect":"::number/add/SubjectNotNumberError"}
-{"name":"map-passes-a-failed-element-by-code-of-one-quote","query":"get [1 ~(\"x\" | add 1)] | map ~(~(x)) !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D303","name":"a-failed-part-answers-the-template-before-a-step-after-it","query":"get [1 ~(\"x\" | add 1)] | map ~(0) !| type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"a-template-reads-beneath-every-tag-over-it","query":"{:a 1} | get [::Box::Crate[/a] ::Box#[/a]]","expect":"[::Box::Crate[1] ::Box#[1]]"}
 {"name":"a-template-beneath-tags-answers-the-failure-of-a-part","query":"{:a 1} | get ::Box::Crate[/zz] !| type","expect":"::path/KeyNotInMapError"}
 {"name":"an-atom-under-a-tag-in-a-template-is-answered-as-it-is","query":"{:a 1} | get [::Box#5 ::Box\"s\"]","expect":"[::Box#5 ::Box\"s\"]"}

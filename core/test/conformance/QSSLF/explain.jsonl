@@ -12,3 +12,4 @@
 {"name":"a-name-explains-by-its-own-page","query":"::number/add | explain | page | eq (::number/add | doc)","expect":"true"}
 {"name":"a-tagged-value-explains-by-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box{:a 1} | explain | page | content | contains \"A box\"","expect":"true"}
 {"name":"an-error-value-explains-as-it-is","query":"::error{:k 1} | explain | value | type","expect":"::error"}
+{"decision":"D303","name":"explain-refuses-a-name-nothing-declares","query":"::Nothing | explain !| type","expect":"::any/explain/UnknownNameError"}

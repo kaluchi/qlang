@@ -18,3 +18,6 @@
 {"name":"if-holds-two-conditions-by-allOf","query":"{:active true :verified true} | if (allOf (get /active) (get /verified)) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
 {"name":"if-takes-either-condition-by-anyOf","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
 {"name":"split-then-filter","query":"\"a,b,c,d\" | split \",\" | filter ~(allOf (eq \"a\" | not) (eq \"c\" | not))","expect":"[\"b\" \"d\"]"}
+{"decision":"D303","name":"allOf-takes-one-condition-at-least","query":"5 | allOf !| type","expect":"::any/allOf/conditions/EmptyError"}
+{"decision":"D303","name":"a-condition-of-allOf-answers-a-boolean","query":"5 | allOf ~(1) !| type","expect":"::any/allOf/ConditionNotBooleanError"}
+{"decision":"D303","name":"a-path-is-a-condition-of-allOf","query":"{:a true :b true} | allOf /a /b","expect":"true"}

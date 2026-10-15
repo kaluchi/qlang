@@ -12,3 +12,4 @@
 {"name":"a-keyword-on-a-later-line-opens-a-declaration-of-its-own","query":":a\n:b 2\n| b","expect":"2"}
 {"name":"a-body-begun-on-a-later-line-is-a-sentence","query":":number/plus |~~ Adds by. ~~|\n  ::fn\n  | takes :by |~~ How much. ~~| /0\n  | impl ~(add by)\n| 5 | plus 3","expect":"8"}
 {"name":"the-chain-of-a-kind-is-the-body-of-a-bare-name-with-its-page","query":":Box\n  |~~ A box. ~~|\n  ::kind\n    | wraps |~~ The sizes. ~~| ::map\n| ::Box\"x\" !| type","expect":"::Box/PayloadKindNotTakenError"}
+{"decision":"D303","name":"a-declaration-joins-the-step-before-it-on-its-line","query":"[1 2] :y 2 | y","expect":"2"}

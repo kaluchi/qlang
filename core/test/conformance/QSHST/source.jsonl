@@ -10,3 +10,4 @@
 {"name":"a-kind-with-no-word-of-its-own-has-a-source-of-its-page","query":"[::binding ::elision ::holds ::law ::link ::snippet] | map ~(binding | get /origin)","expect":"[:qlang/binding :qlang/elision :qlang/holds :qlang/law :qlang/link :qlang/snippet]"}
 {"name":"the-source-of-the-language-declares-its-topic-alone","query":"kinds | filter ~(binding | get /origin | eq :qlang)","expect":"#[::qlang]"}
 {"name":"the-recipe-of-a-word-of-the-host-is-its-descriptor","query":"::vec/sort | binding | get /value | get /1 | type","expect":"::builtin"}
+{"decision":"D303","name":"a-builtin-in-a-reader-recipe-is-the-value-it-is","query":":any/v (::fn | impl ::builtin{}) | 5 | get [~(::any/v | type) ~(v !| type)]","expect":"[::tag ::call/UnknownNameError]"}

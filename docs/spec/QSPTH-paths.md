@@ -40,11 +40,11 @@ their segments are, and the one order ranks paths by their segments
 `get` answers the value at a path and refuses a miss, each refusal
 holding the path it followed as `:path`: a key a map lacks,
 `::path/KeyNotInMapError` with the keys near it as `:nearest`; a place
-past the end, `::path/IndexOutOfBoundsError`; a segment that is no whole
+past either end, `::path/IndexOutOfBoundsError`; a segment that is no whole
 number on a value read by place, `::path/IndexNotIntegerError`; a value
 on the path that has no parts, `::path/SubjectHasNoPartsError`. A path
 reads beneath the tags over each value it meets, and a vector, a set, a
-doc, a quote and a function read by place.
+doc, a quote, a function and a kind read by place.
 
 ```qlang
 > {:a {:b [10 20]}} | get /a/b/-1
@@ -86,7 +86,7 @@ number or a path, and answers whether `get` reads it, a number naming
 the key of its text; a key of another kind is refused as
 `::map/has/key/KindNotTakenError`. On a vector and a set `has` asks
 whether an element equal to the value stands, and reads a path, answering
-whether `query` finds a part there, so a path held as an element is
+whether `get` reads a part there, so a path held as an element is
 asked for by `contains` [QSCOL#sequence].
 
 ```qlang
@@ -109,7 +109,8 @@ map take a map, a vector or a set of keys, each a keyword or a string,
 an element of another kind refused at its index,
 `::map/minus/KeyNotKeywordOrStringError` and
 `::map/inter/KeyNotKeywordOrStringError`, and a single key refused as
-`::map/minus/keys/KindNotTakenError`. Inside a keyword the slash is a
+`::map/minus/keys/KindNotTakenError` and
+`::map/inter/keys/KindNotTakenError`. Inside a keyword the slash is a
 letter of the one name, `get :a/b` reading the key `:a/b`; in a path it
 parts the segments, `get /a/b` reading `:b` under `:a`.
 
@@ -137,7 +138,8 @@ whose field takes a number refuses a path written at that field, and
 such a value is built by `get` and then `tag`, `get {:w /w} | tag ::Box`.
 A quote under a tag, a doc, a function and a kind are answered as they
 are, their parts unread, and a template held in a name builds the same
-shape wherever it is applied.
+shape wherever it is applied. A part that answers a failure is the
+answer of the template, the parts after it unread [QSERR#rest].
 
 ```qlang
 > {:price 4 :qty 3} | get [/price /qty]
@@ -179,7 +181,7 @@ naming `take (get /n)`; an input that takes any value, the value of
 ## words
 
 A path answers the words of `::path` and those every value answers,
-`eq`, `type`, `print`, `json`; a word of another kind called on one is
+`eq`, `ne`, `type`, `print`, `json` and `tag` among them; a word of another kind called on one is
 refused, the refusal naming as `:read` the read the step was likely
 meant for. `segments` answers the keys and places of a path, a place as its number
 and a segment of digits that writes no number as its text, `/01`

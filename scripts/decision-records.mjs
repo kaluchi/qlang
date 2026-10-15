@@ -72,7 +72,9 @@ export function readDecisionRecords(root) {
       const filedUnder = recordText.match(/^Filed under the (principles|tooling) by \[D\d+\]/m)?.[1];
       return [name, {
         path,
-        domain: filedUnder === 'principles' ? 'principle' : filedUnder ?? recordText.match(/^Domain\. ([^.]+)\./m)[1].toLowerCase(),
+        // A record that names no domain is out of form, which
+        // check:conventions reports [QSWRK#journal].
+        domain: filedUnder === 'principles' ? 'principle' : filedUnder ?? recordText.match(/^Domain\. ([^.]+)\./m)?.[1].toLowerCase() ?? null,
         replacedBy: replacing(false),
         replacedInPartBy: replacing(true),
         mergedInto: [...recordText.matchAll(/^Merged into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/[DE]\d+/g)].map(match => match[0])),

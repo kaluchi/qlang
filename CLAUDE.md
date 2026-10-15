@@ -56,11 +56,10 @@ a page or a comment.
    [QSWRK#baseline].
 
 After a compaction the summary is a map and no source: reread Tier 1
-whole, the conversation from its transcript,
-`node scripts/sensors/transcript-tail.mjs`, and the desk, before the next
-claim about the language; the next work comes from the pain the
-dialogue holds and the records the desk shows, and the findings at hand
-are weighed by them.
+whole and the desk before the next claim about the language, the
+messages kept after the summary the dialogue as it was written; the
+next work comes from the pain the dialogue holds and the records the
+desk shows, and the findings at hand are weighed by them.
 
 ## Bootstrap recipe
 
@@ -290,8 +289,8 @@ no CLAUDE.md, no memory, no MCP server and no access to the history,
 answers `scripts/outside-audit-prompt.txt`, and its report lands in
 `docs/journal/research/outside-audit/` under its date and tree, the run
 giving the oldest of three to the history. The session writes its
-reading beside the report and the fate of each finding in the README
-there.
+reading beside the report, every finding checked by a probe with its
+fate.
 
 ## Sister project
 

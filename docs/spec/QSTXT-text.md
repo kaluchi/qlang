@@ -15,8 +15,9 @@ string holding none. `append` and `prepend` write a text at one end, a
 keyword written as its name. A word only strings answer refuses a
 subject of another kind under its own address,
 `::string/lower/SubjectNotStringError`, and a name strings share with
-another kind, `append`, as `::call/KindAnswersNoVerbError` with the
-addresses of its words.
+another kind, `append`, `prepend`, `count`, `take`, `drop` and `contains`
+among them, as `::call/KindAnswersNoVerbError` with the addresses of its
+words.
 
 ```qlang
 > "привет" | count
@@ -116,7 +117,8 @@ true
 `contains`, `split` and `replace` tell a pattern from a text by its kind;
 `match`, `capture` and `scan` take a pattern alone, refusing a text as
 `::string/match/pattern/KindNotTakenError`. `contains` asks for a match
-anywhere, `^` and `$` asking it of the whole; `match` answers the first
+anywhere, `^` and `$` asking it of the whole, or of each line under the
+flag `m`; `match` answers the first
 match as the vector of its text and groups, a group that took no part
 `null`, or null where none stands; `capture` the named groups of the
 first match as a map, or null, refusing a pattern that names no group;

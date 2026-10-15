@@ -74,6 +74,18 @@ describe('the names of the scope', () => {
     const met = ':tally 5 | get [~(7 | tally) ~([1 2] | tally !| get [~(type) /addresses]) ~([1 2] | vec/tally)]';
     expect((await beside.evalCell(`${met} | eq [5 [::call/ValueMeetsWordError #[::vec/tally]] 2]`)).result).toBe(true);
   });
+
+  it('a value of the reader meets a word of a later source only where the word serves the subject, its tag name among them [QSNAM#reach]', async () => {
+    const later = { uri: 'shop', source: ':Shop |~~ A shop. ~~|\n:Shop/f ~(1)\n:Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5"))' };
+    const session = await createSession({ sources: [later] });
+    const met = ':f 7 | :hours 3 | get [~(::Shop | f) ~(::Shop{} | f !| type) ~(::Shop | hours !| type)]';
+    expect((await session.evalCell(`${met} | eq [7 ::call/ValueMeetsWordError ::call/ValueMeetsWordError]`)).result).toBe(true);
+  });
+
+  it('a reader\'s word on a label meets a value of its name only on a subject it serves [QSNAM#reach]', async () => {
+    const reader = ':Shop |~~ A shop. ~~| | :Shop/f ~(1) | :f 7';
+    expect(await evalQuery(`${reader} | get [~(::Shop | f) ~(::Shop{} | f !| type) ~(5 | f)] | eq [7 ::call/ValueMeetsWordError 7]`)).toBe(true);
+  });
 });
 
 describe('the verbs that live on a kind', () => {

@@ -72,6 +72,13 @@
     return { source, start: pointOf(end), end: pointOf(end + 1) };
   }
 
+  // The last characters of what the rule read, where a refusal of the
+  // sign written last points.
+  function lastOf(length) {
+    const { source, end } = range();
+    return { source, start: pointOf(end - length), end: pointOf(end) };
+  }
+
   // A plain comment the parser read as whitespace, kept by its offset,
   // since a branch the parser abandons reads the same comment again.
   function recordComment(type, content) {
@@ -114,6 +121,12 @@
     const fields = { steps: [head, ...tail] };
     if (hasLeadingComb) fields.leadingCombinator = leadingComb[0];
     return node('Pipeline', fields, loc, txt);
+  }
+
+  // A map writes its keys one way, as keywords or as the strings of JSON
+  // [QSLIT#json].
+  function refuseMixedSpellings() {
+    error('a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{"a": 1, "b": 2}`');
   }
 
   function refuseCombinatorSpacing(combinator) {
@@ -248,13 +261,18 @@ PipedCombinator
   = "|" __ "!|" { return '!|'; }
 
 // A combinator written against its neighbour, a pipe written against a
-// tilde, which opens a comment, a word written against the word before
-// it, and a step that follows a step with no combinator between them;
-// a slash written against a word is the dangling segment of a path,
-// which the parser names by the key it expected.
+// tilde, which opens a comment, a combinator with no step after it before
+// a closing bracket, the end of the source named where the parse reads
+// it [QSSYN#combinator], a combinator after `| !|`, a word written
+// against the word before it,
+// and a step that follows a step with no combinator between them; a slash
+// written against a word is the dangling segment of a path, which the
+// parser names by the key it expected.
 SpacingRefusal
   = &{ return docQuoteDepth === 0; }
     ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a word, `| apply ~(…)`'); }
+    / _ &(Combinator _ [)\]}]) c:Combinator { error(`\`${c}\` joins two steps, and the step after it is missing`, lastOf(c.length)); }
+    / __ &(PipedCombinator __ Combinator) PipedCombinator __ second:Combinator { refuseCombinatorAfterCombinator('!|', second); }
     / __ !PipedCombinator &(Combinator __ Combinator) first:Combinator __ second:Combinator { refuseCombinatorAfterCombinator(first, second); }
     / &Combinator c:Combinator { refuseCombinatorSpacing(c); }
     / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
@@ -361,10 +379,11 @@ Step
   / DocLit
 
 // A path written before a word, the method call of other languages,
-// `/ne ""`: a verb is called by its name alone.
+// `/ne ""`, or the read of a part before a word, `/tags count`: a part is
+// read by `get`, and a verb is called by its name alone.
 PathBeforeWord
-  = &{ return docQuoteDepth === 0; } "/" name:KeywordName &(_h1 !Combinator !"!|" Word)
-    { error('`/' + name + '` is a path, a value; a verb is called by its name alone, `' + name + ' …`'); }
+  = &{ return docQuoteDepth === 0; } "/" name:KeywordName &(_h1 !Combinator !"!|" Word) _h1 next:$Word
+    { error(`\`/${name}\` is a path, a value: a part is read by \`get\`, \`get /${name} | ${next}\`, and a verb is called by its name alone, \`${name} ${next}\``); }
 
 // A command's modifiers are words; the first may touch the name when
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
@@ -568,6 +587,9 @@ QuoteLit
       return node('QuoteLit', { pipeline }, span(), text());
     }
 
+  / &{ return docQuoteDepth === 0; } "~(" _ Pipeline &(_ ",")
+    { error('modifiers are separated by spaces, not by commas: `f a b`'); }
+
 ShortQuoteLit
   = "~" pipeline:(TagLit / Name)
     { return node('QuoteLit', { pipeline }, span(), text()); }
@@ -708,6 +730,10 @@ MapLit
     { refuseComputedParts([head, ...tail].map(entry => entry.value)); return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
   / "{" _ "}"
     { return node('MapLit', { entries: [] }, span(), text()); }
+  / &{ return docQuoteDepth === 0; } "{" _ QlangMapEntry (_ QlangMapEntry)* &(_ StringLit _ ":")
+    { refuseMixedSpellings(); }
+  / &{ return docQuoteDepth === 0; } "{" _ JsonMapEntry (_ "," _ JsonMapEntry)* &(_ "," _ Keyword)
+    { refuseMixedSpellings(); }
   / &{ return docQuoteDepth === 0; } "{" _ QlangMapEntry (_ QlangMapEntry)* _ !"}" !Keyword Element
     { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`'); }
 

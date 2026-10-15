@@ -163,8 +163,9 @@ evaluator does not know, is an invariant of the implementation under
 of the runtime holds its facts in the order the catalog declares them,
 the label's own first, the facts `::error` declares after them,
 `:expected`, `:actualType` and `:actualValue` among them, `:actualValue`
-left out where it is the subject the first stop holds, and the trail
-last; an error a reader writes holds its facts as written, the trail
+left out of a refusal of the subject, which the first stop holds, and
+the trail last; an error a reader writes holds its facts as written, a
+`:trail` it writes where it stands and the trail its flight begins
 last. A fact is a value of the language: a name a step read and a key a
 path read are keywords, an index a number, an entry of a map named by
 its `:key`.
@@ -185,10 +186,10 @@ true
 
 ## print
 
-A failure prints as its error at rest, the literal `!|` grounds it to,
-the path it flew among its facts, `:trail []` for one that flew no step,
-a query that does not parse among them, so its print under `| raise` is
-the failure again. The answer of a host that is a failure prints under
+A failure prints as its error at rest with the path it flew among its
+facts, `:trail []` for one that flew no step, a query that does not
+parse among them, so its print under `| raise` is the failure again;
+the error at rest `!|` grounds it to holds no empty `:trail`. The answer of a host that is a failure prints under
 the line comment `|~| raised, and no !| caught it`, which a reading of
 the literal passes over, and an error at rest an answer gives prints as
 the value it is.

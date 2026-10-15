@@ -1264,11 +1264,13 @@
       The replacement is a string, in which `$1`, `$<name>` and `$&` name
       a group, a named group and the whole match of a pattern,
       `"2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1"` answering
-      `"12.10.2026"`, while the replacement of a text stands as written;
-      or code, which runs on the vector `match` answers for each match and
-      answers the text that takes its place,
+      `"12.10.2026"`, a `$<name>` of a group the pattern lacks standing as
+      written, while the replacement of a text stands as written; or code,
+      which runs on the vector `match` answers for each match and answers
+      the text that takes its place,
       `replace #"\d+" ~(get /0 | toNumber | mul 2 | toString)` doubling
-      every number.
+      every number, a path among it, `replace #"(\d)x" /1` keeping the
+      digit of each match.
       ::link~(::string/match | doc) ::link~(::regex | doc)
   ~~|
   ::fn
@@ -1281,13 +1283,14 @@
         ~~|
     | takes :with
         |~~ What takes the place of each match: a string, or code that
-            answers one from the match.
+            answers one from the match, a quote or a path.
         ~~|
-        /1 #[::quote ::string]
+        /1 #[::path ::quote ::string]
     | throws :with/KindNotTakenError
         |~~ The replacement is a string, `replace #"\s+" " "`, or code
             that answers one from the vector of the match,
-            `replace #"\d+" ~(get /0 | toNumber | mul 2 | toString)`.
+            `replace #"\d+" ~(get /0 | toNumber | mul 2 | toString)`, a
+            path reading a group of it, `replace #"(\d)x" /1`.
         ~~|
     | throws :with/AnswerNotStringError
         |~~ The code of `replace` answers the text that takes the place of
@@ -1314,6 +1317,21 @@
     | proves :runsCodeOnEachMatch
         |~~ Code answers the text that takes the place of each match. ~~|
         ~("2 and 30" | replace #"\d+" ~(get /0 | toNumber | mul 2 | toString) | eq "4 and 60")
+    | proves :readsAGroupByAPath
+        |~~ A path reads the text that takes the place of each match from
+            the vector of the match.
+        ~~|
+        ~("1x 2x" | replace #"(\d)x" /1 | eq "1 2")
+    | proves :namesANamedGroupOfAMatch
+        |~~ `$<name>` names the group of that name, and `$$` writes a
+            dollar.
+        ~~|
+        ~("2026-10" | replace #"(?<y>\d+)-(?<m>\d+)" "$<m>.$<y> $$" | eq "10.2026 $")
+    | proves :keepsTheNameOfAGroupThePatternLacks
+        |~~ A `$<name>` of a group the pattern lacks stands as written,
+            whether the pattern names other groups or none.
+        ~~|
+        ~("abc" | get [~(replace #"(?<n>b)" "$<zz>") ~(replace #"b" "$<zz>")] | eq ["a$<zz>c" "a$<zz>c"])
     | proves :with/AnswerNotStringError/refusesANumber
         |~~ Code that answers no string is refused. ~~|
         ~("2" | replace #"\d" ~(get /0 | toNumber) !| type | eq ::string/replace/with/AnswerNotStringError)

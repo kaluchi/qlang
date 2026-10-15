@@ -22,3 +22,5 @@
 {"name":"replace-cuts-no-character-in-halves","query":"\"a😀\" | replace \"\" \"-\"","expect":"\"-a-😀-\""}
 {"name":"a-refusal-names-no-habit-the-source-does-not-show","query":"\"(\\\\d\" | toRegex !| get /message | contains \"backslash\"","expect":"false"}
 {"name":"a-needed-escape-stays-where-a-needless-one-goes","query":"\"a\\\\-b\\\\(\" | toRegex !| get /message | contains \"backslash\"","expect":"true"}
+{"name":"a-name-of-a-group-the-pattern-lacks-stands-beside-named-groups","query":"\"abc\" | replace #\"(?<n>b)\" \"$<zz>\"","expect":"\"a$<zz>c\""}
+{"name":"a-path-reads-the-text-that-replaces-each-match","query":"\"1x 2x\" | replace #\"(\\d)x\" /1","expect":"\"1 2\""}

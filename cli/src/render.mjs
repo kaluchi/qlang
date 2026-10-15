@@ -33,6 +33,8 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
   if (didExplicitStdoutEffect) {
     return { stdoutText: '', stderrText: '', exitCode: 0 };
   }
+  // A string is written as its text, which no colour paints as code.
   const written = await answerText(cellEntry.result, cellEntry.envAfterCell, budget, cellEntry.page ?? null);
-  return { stdoutText: await maybePaint(written, shouldColorize) + '\n', stderrText: '', exitCode: 0 };
+  const painted = typeof cellEntry.result === 'string' ? written : await maybePaint(written, shouldColorize);
+  return { stdoutText: painted + '\n', stderrText: '', exitCode: 0 };
 }

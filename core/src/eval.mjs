@@ -314,15 +314,14 @@ async function evalBindStep(node, state) {
     throw new BindNounNotDeclaredError({ name: keyword(name), noun: makeTag(nounName) });
   }
 
-  if (node.body === null) {
-    return withEnv(state, envSet(state.env, name, declarationRecord(node, makeDoc(slotDocsOf(node).flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc])))));
-  }
-
-  const answered = (await evalNode(node.body, state)).pipeValue;
+  const answered = node.body === null
+    ? makeDoc(slotDocsOf(node).flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]))
+    : (await evalNode(node.body, state)).pipeValue;
   if (isErrorValue(answered)) return withPipeValue(state, answered);
   if (writesOutsideItsChain(state.env, nounName, splitAddress(name)[1], answered)) {
     throw new BindWrittenOutsideItsChainError({ name: keyword(name), noun: nounName === null ? undefined : makeTag(nounName) });
   }
+  if (node.body === null) return withEnv(state, envSet(state.env, name, declarationRecord(node, answered)));
   const declared = envSet(state.env, name, declarationRecord(node, answered));
   const origin = keyword(originOf(node));
   if (isKind(answered)) return withEnv(state, nodesOfKind(answered, name, declared, origin));
@@ -471,8 +470,8 @@ function withReadOfPath(state, node, subject, env) {
 // [QSDSP#residence]; a word the kind of the subject does not answer is refused
 // with the addresses where the word lives [QSSLF#catalog], and a name that
 // reaches nothing with the names near it. A value the scope binds and a word
-// the subject answers under one name meet, and the step is refused with the
-// word's address, which calls the word, as another name reads the value
+// that serves the subject under one name meet, and the step is refused with
+// the word's address, which calls the word, as another name reads the value
 // [QSNAM#reach]; a value of the reader withheld from held code is refused
 // under its name before a word or a value of the root answers for it
 // [QSQUO#held].
@@ -492,22 +491,33 @@ async function callByName(lookupName, modifiers, state, node) {
   }
   if (reach.underKind) return await applyWord(reach.record, modifiers, state);
   const word = residenceOnSubject(state.env, lookupName, state.pipeValue);
-  if (word !== null) throw new CallValueMeetsWordError({ name: keyword(lookupName), addresses: makeSet([makeTag(word.get('name').name)]) });
-  return await applyBinding(reach.record, lookupName, modifiers, state);
+  if (word !== null && servesTheSubject(word, state.pipeValue)) {
+    throw new CallValueMeetsWordError({ name: keyword(lookupName), addresses: makeSet([makeTag(word.get('name').name)]) });
+  }
+  return await applyBinding(reach.record, lookupName, lookupName, modifiers, state);
+}
+
+// Whether the word a walk reached serves the subject, as its call would
+// [QSNAM#reach].
+function servesTheSubject(record, subject) {
+  const value = bindingValueOf(record);
+  const fn = isFn(value) ? value : functionOfRecipe(value);
+  return subjectOfCall(signatureOf(fn), splitAddress(record.get('name').name)[0], subject) !== null;
 }
 
 // A name reads the value its record holds, so `:x it | x` sees the raw
 // data, a quote among it, which `apply` runs [QSNAM#value].
-async function applyBinding(entry, lookupName, modifiers, state) {
+async function applyBinding(entry, name, lastName, modifiers, state) {
   const resolved = bindingValueOf(entry);
 
-  // A value takes no modifiers; its refusal names where a word of the
-  // name lives, one a declaration shadows among them [QSDSP#walk].
+  // A value takes no modifiers; its refusal names the name as the step
+  // wrote it and where a word of its last name lives, one a declaration
+  // shadows among them [QSNAM#value], [QSDSP#walk].
   if (modifiers.length > 0) {
     throw new CallValueTakesNoModifiersError({
-      name: keyword(lookupName),
+      name: keyword(name),
       actualValue: resolved,
-      addresses: addressesOf(state.env, lookupName)
+      addresses: addressesOf(state.env, lastName)
     });
   }
   return withPipeValue(state, resolved);
@@ -528,7 +538,7 @@ async function callByAddress(node, state) {
   if (isMemberValue(bindingValueOf(record)) && isUnderLabel(state.env, node.name)) {
     return await applyWord(record, modifiers, state);
   }
-  return await applyBinding(record, splitAddress(node.name)[1], modifiers, state);
+  return await applyBinding(record, node.name, splitAddress(node.name)[1], modifiers, state);
 }
 
 // ─── A value held to its kinds ──────────────────────────────────
@@ -930,19 +940,23 @@ async function inputsOfCall(signature, address, modifiers, state, scope, body) {
 // An object of the call that answered an error where the input that reads
 // its place, or the objects of the call whole, takes a quote: the step ran
 // on the subject by mistake, `each (add 1)` for `each ~(add 1)`, and the
-// input refuses it under its kinds with the error at rest as its value, one
-// that holds each object naming its place; a name withheld from held code,
-// which ran no step, and anywhere else the error is the answer [QSERR#rest],
-// [QSBLD#input], [QSBLD#fn], [QSQUO#held].
+// input refuses it under its kinds with the error at rest as its value, an
+// element of the objects whole naming its place and the value of an input
+// of each element refused as no vector, as a value of the step is
+// [QSBLD#input]; a name withheld from held code, which ran no step, and
+// anywhere else the error is the answer [QSERR#rest], [QSBLD#fn],
+// [QSQUO#held].
 function refusalOfFailedObject(signature, address, place, error, scope) {
   if (error.tag.name === CallValueWithheldError.prototype.address) return error;
   const reading = signature.inputs.find(({ selector }) => selector.place === place) ?? signature.inputs.find(({ selector }) => selector.readsArgs);
   if (!(reading?.kinds?.includes('quote') ?? false)) return error;
   const atRest = errorAtRest(error.tag, new Map(error.descriptor));
   const inputAddress = `${address}/${reading.name.name}`;
-  return reading.each
-    ? refusalUnder(elementsRefusalAddress(inputAddress), { index: place, expected: kindsExpected(...reading.kinds), actualValue: atRest }, scope)
-    : refusalUnder(kindsRefusalAddress(inputAddress), { expected: kindsExpected(...reading.kinds), actualValue: atRest }, scope);
+  if (reading.each && reading.selector.readsArgs) {
+    return refusalUnder(elementsRefusalAddress(inputAddress), { index: place, expected: kindsExpected(...reading.kinds), actualValue: atRest }, scope);
+  }
+  const expected = reading.each ? kindsExpected('vec') : kindsExpected(...reading.kinds);
+  return refusalUnder(kindsRefusalAddress(inputAddress), { expected, actualValue: atRest }, scope);
 }
 
 // ─── A value under a kind ───────────────────────────────────────

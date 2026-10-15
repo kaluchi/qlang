@@ -40,7 +40,7 @@ bindPrim('map/last', map => lastOf([...map.values()]));
 // ── side by side ───────────────────────────────────────────────
 // The elements at each index of the vectors a vector holds, as long as
 // the shortest, an element that is no vector refused at its index
-// [QSTXT#string].
+// [QSCOL#sequence].
 const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
 bindPrim('vec/zip', vectors => {
   vectors.forEach((element, index) => {

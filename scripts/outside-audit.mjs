@@ -3,7 +3,7 @@
 // runs `qlang`, and answers `scripts/outside-audit-prompt.txt`; its report
 // is written into the journal as `<date>-<tree>.md` under a line that says
 // how it was made, the series keeping its two latest, and the session
-// writes its reading beside it.
+// writes its reading beside it, the fate of each finding in it.
 //
 // Usage: node scripts/outside-audit.mjs
 
@@ -65,9 +65,8 @@ const header = `<!-- An outside audit of qlang by a clean Opus: \`claude -p --mo
 writeFileSync(report, `${header}\n\n${answer}\n`);
 
 // The series keeps its two latest: an older audit goes to the history with
-// its reading and its part of the ledger [QSWRK#review].
+// its reading [QSWRK#review].
 const REPORT = /^(\d{4}-\d{2}-\d{2})-([0-9a-f]+)\.md$/;
-const ledgerPath = join(auditsDir, 'README.md');
 const byTime = readdirSync(auditsDir).filter(name => REPORT.test(name))
   .map(name => ({ name, at: Number(git('log', '-1', '--format=%ct', REPORT.exec(name)[2])) }))
   .sort((left, right) => left.at - right.at);
@@ -76,10 +75,6 @@ for (const { name } of byTime.slice(0, -2)) {
   for (const file of [name, `${auditDate}-${auditTree}-reading.md`].map(part => join(auditsDir, part)).filter(existsSync)) {
     git('rm', '-q', '--', shown(file));
   }
-  const raw = readFileSync(ledgerPath, 'utf8');
-  const eol = raw.includes('\r\n') ? '\r\n' : '\n';
-  const sections = raw.split('\r\n').join('\n').split(/\n(?=## )/);
-  writeFileSync(ledgerPath, sections.filter(section => !section.startsWith(`## ${auditDate} · ${auditTree}`)).join('\n').split('\n').join(eol));
-  console.log(`${name} goes to the history with its reading and its part of the ledger`);
+  console.log(`${name} goes to the history with its reading`);
 }
-console.log(`${shown(report)}: its reading stands beside it, and the fate of each finding in the README there`);
+console.log(`${shown(report)}: its reading stands beside it, every finding with its fate`);

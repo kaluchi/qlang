@@ -46,8 +46,8 @@ word of its name refuses any other subject under its own address. A
 refinement a word wants checked is written where the value is made,
 `x | tag ::Pos | f`, its constructor answering there. A word is called by
 its name or by its address, which checks the subject by that residence;
-a set, a quote and a doc are vectors to a word of vectors, a set
-answered back as a set. The comparisons reside on each kind whose values
+a set, a quote and a doc are vectors to a word of vectors, each answered
+back as its own kind. The comparisons reside on each kind whose values
 they compare, an input of another kind refused.
 
 ```qlang
@@ -56,6 +56,9 @@ they compare, an input of another kind refused.
 
 > #[1 2] | vec/count
 2
+
+> ~(a | b | c) | take 2
+~(a | b)
 
 > "b" | gt "a"
 true
@@ -91,7 +94,9 @@ breaks an invariant of a tag is refused under it, and an answer that is
 no value of the label is refused as `…/answer/KindNotTakenError`
 [QSBLD#answer]. A word whose answer names another kind answers that
 kind, made by its constructor and refused under the answer where the
-kind refuses it, the passed tags left behind.
+kind refuses it, the passed tags left behind; and a word whose answer
+names `::any`, or that names none, answers what it computed, `map` among
+them.
 
 ```qlang
 > ::T{:a 1 :b 2} | filter ~(eq 1) | type

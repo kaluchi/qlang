@@ -18,10 +18,12 @@ The body is a step: a literal, `it` for the value in the pipe, a group
 for what the group computes, a call of a word, a quote, which is held as
 the value it is, a keyword or a tag name, and a word after a keyword or
 a tag name is a step of its own, joined by a combinator. A page written
-between the name and the body is the name's page. A quote or a word in a
-declaration means what it means at the step that calls it, where its
-names mean the same, and a value is computed once, against the subject
-at the declaration.
+between the name and the body is the name's page. A quote in a
+declaration is held as data, and run later it reads the words, the nodes
+and the labels of the step it runs in, a value the reader named withheld
+from it [QSQUO#held]; a word declared under a label reads the tree as it
+stands where it is called [QSNAM#word]; and a value is computed once,
+against the subject at the declaration.
 
 ```qlang
 > 42 | :answer it | add 1 | answer
@@ -38,6 +40,9 @@ at the declaration.
 
 > ":s ::vec it" | parse !| get /message
 "steps are joined by `|`: write `a | b`"
+
+> :k 10 | :q ~(add k) | 5 | apply q !| type
+::call/ValueWithheldError
 ```
 
 ## letters
@@ -49,10 +54,10 @@ path [QSNAM#address]. A bare name in quotes declares that name, and a
 name in quotes that a step cannot call is refused by the parser at the
 keyword. The words of the literals, `true`, `false` and `null`, are read
 by a step as the literals, so each declares a label, which its tag
-reaches where the root holds no label of that name, `::null` staying the
-root's, its nodes read by their tags, `::false/x`, since a step reads
-`false/x` as the literal; or a last name under a noun, which its address
-calls.
+reaches where the root holds no label of that name, a label of the root
+staying the root's, `::null` among them, and its nodes are read by their
+tags, `::false/x`, the parser refusing a step `false/x`; or a last name
+under a noun, which its address calls.
 
 ```qlang
 > :имя 5 | имя
@@ -63,15 +68,22 @@ calls.
 
 > ":true 5 | 7" | parse !| get /message
 "`:true` is the word of a literal, which a step reads as the value: declare another name"
+
+> :false |~~ F. ~~| | :false/x 3 | ::false/x | binding | get /value
+3
+
+> "false/x" | parse !| type
+::quote/ParseError
 ```
 
 ## value
 
 A bare name that holds a value answers the value, a quote among values:
 the name alone reads its quote. Code under a bare name runs by `apply`,
-or goes bare into an input that takes code. A name that holds a value,
-called with modifiers, is refused as `::call/ValueTakesNoModifiersError`
-with its `:name` and the `:addresses` of the words of that name.
+or goes bare into an input that takes code, held as data [QSQUO#held]. A
+name that holds a value, called with modifiers, is refused as
+`::call/ValueTakesNoModifiersError` with its `:name`, the name as it was
+declared, and the `:addresses` of the words of its last name.
 
 ```qlang
 > :double ~(mul 2) | 5 | double
@@ -85,6 +97,9 @@ with its `:name` and the `:addresses` of the words of that name.
 
 > 5 | :five it | five 42 !| type
 ::call/ValueTakesNoModifiersError
+
+> :Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get /name
+:Box/side
 ```
 
 ## word
@@ -171,7 +186,7 @@ name of the root, while the tag of a label of the root stays the root's.
 
 A value and a word meet aloud: a bare step that reaches a value the
 scope binds, an input and the call's `args` among them, where a word of
-the same name answers the subject, is refused as
+the same name serves the subject, is refused as
 `::call/ValueMeetsWordError`, whose `:addresses` hold the word's; where
 no word answers the subject the value is read, and the word is called
 beside the value by its address. A value named by the name of a word of
@@ -193,6 +208,9 @@ so it is read under another name.
 
 > :count 5 | [1 2] | vec/count
 2
+
+> :count 5 | ::vec | count
+5
 ```
 
 ## address
@@ -238,8 +256,9 @@ The root is a scope: the one the host's sources declare, each source a
 cell run over the root the sources before it left, the language's
 first, before the first step of a reader. A source, a cell and a query
 are written alike; a source declares no name the root holds, bare or
-with a path, and is refused whole as `::builtin/RootSourceNotDeclaredError`,
-while a cell and a query declare a bare name of the root over it. A
+with a path, and fails whole as `::builtin/RootSourceNotDeclaredError`, a
+defect of the host raised past the fail track, while a cell and a query
+declare a bare name of the root over it. A
 binding records its `:origin`, the source or the cell it was read from.
 `kinds` answers the set of the labels of one name the scope reads, the
 language's, the hosts' and the reader's; a label declared under a noun,
@@ -256,10 +275,11 @@ language's, the hosts' and the reader's; a label declared under a noun,
 ## binding
 
 A declaration writes into its scope a record, `::binding`: the name,
-the docs of its page, the value, the source of the declaration and its
-origin. `env` answers the declarations of the reader where the step
-stands, each by its name with its record, `{}` where the reader
-declared nothing. The axes read the record: `binding` the record itself,
+the docs of its page, the value, the source of the declaration, null for
+a node a chain lays, and its origin. `env` answers the declarations of
+the reader where the step stands, in the body of a word those of the
+query that called it [QSNAM#owner], each by its name with its record,
+`{}` where the reader declared nothing. The axes read the record: `binding` the record itself,
 `source` its source and `doc` its page.
 
 ```qlang
@@ -271,6 +291,9 @@ declared nothing. The axes read the record: `binding` the record itself,
 
 > :x |~~ note ~~| 1 | ::x | doc
 |~~ note ~~|
+
+> ::vec/count/answer | source
+null
 ```
 
 ## owner

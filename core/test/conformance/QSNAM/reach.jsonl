@@ -12,3 +12,6 @@
 {"name":"an-unknown-name-is-refused","query":"thisIsNotDefined !| type","expect":"::call/UnknownNameError"}
 {"name":"an-unknown-name-inside-filter-is-refused","query":"[1 2 3] | filter ~(thisIsNotDefined) !| type","expect":"::call/UnknownNameError"}
 {"name":"a-member-of-a-noun-is-no-name-a-query-calls","query":"5 | pipeline !| type","expect":"::call/UnknownNameError"}
+{"name":"a-value-is-read-where-the-word-of-its-name-refuses-the-subject","query":":count 5 | ::vec | count","expect":"5"}
+{"name":"a-value-is-read-where-the-word-of-a-label-refuses-its-tag-name","query":":Shop |~~ S ~~| | :Shop/f ~(1) | :f 7 | ::Shop | f","expect":"7"}
+{"name":"a-value-meets-a-word-of-the-noun-itself-on-its-tag-name","query":":Desk |~~ D ~~| | :Desk/hours (::fn | on |~~ The desk. ~~| ::tag | impl ~(\"9 to 5\")) | :hours 3 | ::Desk | hours !| get [~(type) /addresses]","expect":"[::call/ValueMeetsWordError #[::Desk/hours]]"}

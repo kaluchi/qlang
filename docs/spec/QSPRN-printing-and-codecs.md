@@ -44,7 +44,8 @@ rest two such layers, the tag of its site over `error`; `parseJson`
 reads such an object back as the plain map it is. `parseJson` takes a
 string, `::string/parseJson/SubjectNotStringError` refusing another,
 and refuses a text that is no JSON with the reason, and a number past
-the doubles with its `:path`, the vector of the keys and places to it; a
+the doubles with its `:path`, the vector of the keys, strings as JSON
+writes them, and the places to it; a
 duplicate key reads as `JSON.parse` reads it.
 
 ```qlang

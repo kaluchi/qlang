@@ -69,7 +69,8 @@ equal values keeping the order they stood in, a map's entries ordered by
 their values, each value keeping its key; `min` and `max` answer the
 first and the last value in it, null for an empty container, and a value
 that is no container answers none of them. Each takes a key, null, a
-quote or a path, another kind refused as `::vec/sort/key/KindNotTakenError`,
+quote or a path, another kind refused under the word's key,
+`::vec/sort/key/KindNotTakenError`, `::map/sort/key/…` and `::vec/min/key/…`,
 and ranks by what the key answers, a vector key ranking place by place,
 the first place first and each later one among the elements the places
 before it leave alike; `min` and `max` with a key answer the element,

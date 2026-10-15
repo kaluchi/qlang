@@ -69,10 +69,18 @@ async function replacedByCode(text, engine, code) {
 }
 
 // A pattern's replacement names the parts of a match, `$1`, `$<name>`,
-// `$&`; a text's stands as written. A text is looked for by code points
-// as a pattern is, so the empty text cuts no character in halves.
+// `$&`, a `$<name>` of a group the pattern lacks standing as written; a
+// text's stands as written. A text is looked for by code points as a
+// pattern is, so the empty text cuts no character in halves [QSTXT#match].
 bindPrim('string/replace', runs(['with'], (text, pattern, replacement) => {
   const engine = isRegex(pattern) ? engineFor(pattern, 'g') : engineOfText(pattern);
   if (typeof replacement === 'function') return replacedByCode(text, engine, replacement);
-  return text.replace(engine, isRegex(pattern) ? replacement : () => replacement);
+  return text.replace(engine, isRegex(pattern) ? withGroupsOf(engine, replacement) : () => replacement);
 }));
+
+// The replacement with each `$<name>` of a group the engine lacks escaped,
+// so it stands as written.
+function withGroupsOf(engine, replacement) {
+  const groups = new Set(Object.keys(new RegExp(`${engine.source}|`, engine.flags).exec('').groups ?? {}));
+  return replacement.replace(/\$\$|\$<([^>]*)>/g, (token, name) => (token === '$$' || groups.has(name) ? token : `$${token}`));
+}

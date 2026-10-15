@@ -28,3 +28,4 @@
 {"name":"a-map-with-a-key-named-type-is-a-map","query":"{\"type\": \"quote\", \"source\": \"hi\"} | type","expect":"::map"}
 {"name":"a-map-with-a-key-named-error-is-no-failure","query":"{\"type\": \"error\"} | ok !| false","expect":"true"}
 {"name":"json-duplicate-key-reads-as-json-parse-reads-it","query":"{\"a\": 1, \"b\": 2, \"a\": 3} | vals","expect":"[3 2]"}
+{"name":"a-map-that-writes-its-keys-both-ways-names-the-two","query":"\"{:a 1 \\\"b\\\": 2}\" | parse !| get /message","expect":"\"a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{\\\"a\\\": 1, \\\"b\\\": 2}`\""}

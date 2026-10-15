@@ -14,8 +14,10 @@ modifier of a command may touch its name where it opens with a
 parenthesis, so `filter(gt(1))` reads as `filter` with the group
 `(gt(1))`, a call written by habit that runs where its input takes a
 value and is refused where it takes code; every other word is set off
-from the one before it, and a comma inside the parentheses of a call is
-refused, naming the command form.
+from the one before it, and a comma inside the parentheses of a group or
+a quote is refused, naming the command form. A path written before a
+word is refused naming both its readings, the read of a part,
+`get /tags | count`, and the call of a verb by its name alone.
 
 A step sees one value, the one the step before handed it, and
 everything inside the step, its modifiers among them, is computed from
@@ -57,9 +59,10 @@ start of the text standing for the space before it, so `|~`, `|~|`,
 `|~~` and `|~~|` written together open a comment or a doc. One
 combinator stands between two steps: a pipe written before `!|` stands
 for the combinator after it, and any other combinator after a
-combinator is refused, one written against its neighbour with a message
-that names the space; a combinator at the end of a pipeline is refused
-by its continuations. An unclosed `|~` after a step is refused naming
+combinator is refused, after `| !|` as after `!|`, one written against
+its neighbour with a message that names the space; a combinator at the
+end of a pipeline, a group or a quote is refused naming the step it
+misses. An unclosed `|~` after a step is refused naming
 the word that runs code after a pipe, `| apply ~(…)`. A pipeline, a
 group and a quote may open with a combinator: a leading `|` is the
 head's combinator, and a leading `!|` opens a step of the fail track.
@@ -78,8 +81,9 @@ A line break is whitespace wherever whitespace stands, at the top level
 as inside brackets. A combinator joins steps, written at the end of a
 line or at the start of the next; the modifiers of a command and the
 elements of a literal run on across lines. A keyword that begins a line
-with a doc or a step after it opens a declaration of its own, so the
-body before it ends there, and a keyword alone on its line is the
+with a doc or a step after it, on its line or a later one, opens a
+declaration of its own, so the body before it ends there, and a keyword
+alone on its line before a combinator or the end of the source is the
 modifier above. The body of a name with a path begun on a later line,
 and the body of a bare name with its page begun on a later line with a
 tag name, is a sentence: its steps run on, joined by `|`, to the next
@@ -138,13 +142,16 @@ true
 ## refusal
 
 A source the parser refuses answers `::quote/ParseError` with its
-`:source`, its `:uri`, a `:marker` under the place it failed and its
-`:location`. A refusal the grammar writes holds a `:message` that names
-the habit it met; any other holds the continuations a reader could have
-meant as `:expected` and what it met as `:found`. A source that ends
-with a bracket, a string, a quote or a doc open names it and where it
-opened, its `:message` naming the closers that complete the source and
-its `:expected` the one closer the next character must be. A refusal the
+`:source`, a `:marker` under the place it failed and its `:location`,
+and its `:uri` where `parse` read it. A refusal the grammar writes holds
+a `:message` that names the habit it met; any other holds the
+continuations a reader could have meant as `:expected` and what it met
+as `:found`, none at the end of the source. A source that ends with a
+bracket, a string, a quote or a doc open, where four closers at most
+complete it, names it and where it opened, its `:message` naming the
+closers that complete the source and its `:expected` the one closer the
+next character must be; one that ends with a combinator names the step
+it misses beside its continuations. A refusal the
 grammar writes looks ahead before it reads, so the continuations of
 another error stand as they are. A form another language writes is
 refused with the form of this one: a set written with braces names

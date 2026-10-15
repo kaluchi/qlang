@@ -283,11 +283,14 @@ consumes the workspace copy.
 
 ## Outside audit
 
-`node scripts/outside-audit.mjs` runs the outside audit [QSWRK#review]: a clean
-Opus reads the tree at HEAD from an empty directory, with no CLAUDE.md,
-no memory and no MCP server, and its report lands in
-`docs/journal/research/outside-audit/` under its date and tree; the session
-writes its reading beside it and the fate of each finding in the README
+`node scripts/outside-audit.mjs` runs the outside audit [QSWRK#review] on a
+tree every change of which a commit holds, best on master after a branch
+landed: a clean Opus reads the tree at HEAD from an empty directory, with
+no CLAUDE.md, no memory, no MCP server and no access to the history,
+answers `scripts/outside-audit-prompt.txt`, and its report lands in
+`docs/journal/research/outside-audit/` under its date and tree, the run
+giving the oldest of three to the history. The session writes its
+reading beside the report and the fate of each finding in the README
 there.
 
 ## Sister project

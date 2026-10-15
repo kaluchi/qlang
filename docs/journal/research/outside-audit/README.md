@@ -2,12 +2,13 @@
 
 Each audit stands as a clean outside reader wrote it: `claude -p --model
 opus` started from an empty directory, with no instruction file, memory
-or server, prompted by [prompt.txt](prompt.txt), which
-`node scripts/outside-audit.mjs` runs and writes under its date and tree.
-The two latest audits stay here, each with the model's reading beside it
-and below, its findings in its order, one line each, and the fate of
-each: the commit or the record that answered it, or the record that
-holds it open. An older audit goes to the history, and what the tree
+or server, prompted by `scripts/outside-audit-prompt.txt` as the tree it
+read held it, which `node scripts/outside-audit.mjs` runs and writes under
+its date and tree. The two latest audits stay here, each with the
+model's reading beside it and below, its findings in its order, one line
+each, and the fate of each: the commit or the record that answered it,
+or the record that holds it open. The run gives an older audit to the
+history with its reading and its part of this ledger, and what the tree
 still shows of its findings stands in the open records.
 
 ## 2026-10-13 · 3495de5d

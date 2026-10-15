@@ -482,14 +482,15 @@ the one to stop at.
 
 `node scripts/outside-audit.mjs` runs the outside audit: a clean Opus,
 started from an empty directory of its own with no instruction file,
-memory or server, reads the tree at HEAD, runs `qlang` and answers
-`docs/journal/research/outside-audit/prompt.txt`, and its report lands as
+memory or server, reads the tree at HEAD, runs `qlang`, the history out
+of its reach, and answers `scripts/outside-audit-prompt.txt`, and its
+report lands as
 `docs/journal/research/outside-audit/<date>-<tree>.md`; it runs on a
 tree every change of which a commit holds, once for a tree and a day.
 The session writes its reading beside the report and the fate of each
-finding in the README there. The two latest audits stay, each with its
-reading and its part of the ledger, and an older one goes to the
-history.
+finding in the README there. The run keeps the two latest audits, and
+gives an older one to the history with its reading and its part of the
+ledger.
 
 ## tooling
 

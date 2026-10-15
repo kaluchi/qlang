@@ -231,10 +231,10 @@ At the move:
   diff left alone stands as it is.
 - A document of the research stays while a record in force or a text
   that cites, `CLAUDE.md` and the READMEs of the workspaces, names it, the
-  README of its folder a ledger that holds none;
-  `node scripts/drop-documents.mjs` drops the rest, each with its part of
-  the ledger of its folder, the findings it left open carried into an
-  open record of their axis. A review is a unit, any other
+  README of its folder saying what the folder holds and the fates of its
+  findings standing with the document;
+  `node scripts/drop-documents.mjs` drops the rest, the findings each
+  left open carried into an open record of their axis. A review is a unit, any other
   research its folder, and the outside audits a series whose two latest
   stay.
 - Every probe of the open records and of the chapters is run, and every
@@ -373,7 +373,7 @@ in that file.
 chapters, the aim first. The journal, `docs/journal/`, holds the records
 in force at its root, those out of force under `replaced/`, and the
 research under `research/`, the reviews and the outside audits, each
-folder with a README that is its ledger. The screen of the work,
+folder with a README that says what it holds. The screen of the work,
 `npm run desk`, and the sensors under `scripts/sensors/`, which read the
 transcripts, the history and the files, compute what a session starts
 from.
@@ -487,10 +487,9 @@ of its reach, and answers `scripts/outside-audit-prompt.txt`, and its
 report lands as
 `docs/journal/research/outside-audit/<date>-<tree>.md`; it runs on a
 tree every change of which a commit holds, once for a tree and a day.
-The session writes its reading beside the report and the fate of each
-finding in the README there. The run keeps the two latest audits, and
-gives an older one to the history with its reading and its part of the
-ledger.
+The session writes its reading beside the report, every finding
+checked by a probe with its fate. The run keeps the two latest audits,
+and gives an older one to the history with its reading.
 
 ## tooling
 

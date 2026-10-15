@@ -241,8 +241,7 @@ export function casesTouchedUnclaimed(repoRoot, baseline) {
 // them [QSWRK#baseline]. A review is a unit of its own; a folder of any other
 // research, a design with its runs, is one unit, held by a citation of any
 // of it. The outside audits are a series the next one is read against, and
-// the ledger of a folder, its README, lists what the folder holds and holds
-// none of it.
+// the README of a folder says what the folder holds and holds none of it.
 const RESEARCH_DOCUMENT = new RegExp(`^${RESEARCH}/(?!outside-audit/)[^/]+/.+`);
 const REPORTS = new RegExp(`^${RESEARCH}/reviews/`);
 export const isReadme = path => /(^|\/)README\.md$/.test(path);

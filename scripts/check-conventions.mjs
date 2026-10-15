@@ -89,7 +89,7 @@ const IGNORE_DIRS = new Set([
   'vscode'
 ]);
 // A report a reviewer or an outside auditor wrote, named by its date,
-// stands as it was written, and its ledger beside it is checked.
+// stands as it was written, and the README of its folder is checked.
 const VERBATIM_REPORT = new RegExp(`^${RESEARCH}/(reviews|outside-audit)/\\d{4}-\\d{2}-\\d{2}[^/]*\\.md$`);
 // Files that quote the forbidden list verbatim — exempt from the
 // forbidden-word scan, still in scope for every other check.

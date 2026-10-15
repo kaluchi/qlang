@@ -285,7 +285,7 @@ function stepsOf(pipelineNode) {
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, and a
 // name's the kinds its `returns` names, the subject's own where that is the
-// word's own label [QSSLF#catalog], [QSBLD#fn]; null where a step answers no
+// word's own label [QSBLD#answer]; null where a step answers no
 // declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
@@ -465,8 +465,8 @@ function bodyRuns(body) {
 // Whether a declaration of a value declares a word, by the core's rule: a name
 // the runtime holds as the core answers it, and one of the document as
 // `declaresWord` reads it, a quote or a function with a recipe running where a
-// reader's `::builtin{}` reaches no primitive [QSDSP#walk], [QSBLD#fn],
-// [QSBLD#chain].
+// reader's `::builtin{}` reaches no primitive [QSNAM#address],
+// [QSHST#source].
 function declaresWordIn({ key, body }, runtime, isLabelName) {
   return nodeOf(runtime, key.name) !== null
     ? isWord(runtime, key.name)

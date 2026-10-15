@@ -64,10 +64,9 @@
     | throws :ValueTakesNoModifiersError
         |~~ A name the scope binds to a value takes no modifiers: the
             value is read bare, `:five 5 | five`, and `:name` holds the
-            name. A word declared under a name a value of the scope
-            already holds is shadowed by the value, `:addresses` naming
-            where the word lives, and a call by its address reaches it,
-            `any/five`.
+            name. A word of that name the subject does not reach lives
+            where `:addresses` names, and a call by its address reaches
+            it, `string/five`.
             ::link~(::call | doc)
         ~~|
     | carries :ValueTakesNoModifiersError/name
@@ -235,12 +234,14 @@
         ~~|
         ~(5 | :five it | five 42
           !| get [~(type) /name /actualType] | eq [::call/ValueTakesNoModifiersError :five ::number])
-    | proves :ValueTakesNoModifiersError/namesTheVerbTheValueShadows
-        |~~ The refusal names where the word the value shadows lives. ~~|
-        ~(:five 5 | :number/five ~(add 5) | 3 | five 42 !| get /addresses | eq #[::number/five])
-    | proves :ValueTakesNoModifiersError/reachesTheShadowedWordByItsAddress
-        |~~ A call by its address reaches the word a value shadows. ~~|
-        ~(:five 5 | :number/five ~(add 5) | 3 | number/five | eq 8)
+    | proves :ValueTakesNoModifiersError/namesWhereAWordOfTheNameLives
+        |~~ The refusal names where a word of the name lives that the
+            subject does not reach.
+        ~~|
+        ~(:five 5 | :string/five ~(1) | 3 | five 42 !| get [~(type) /addresses] | eq [::call/ValueTakesNoModifiersError #[::string/five]])
+    | proves :ValueTakesNoModifiersError/reachesTheWordByItsAddress
+        |~~ A call by its address reaches the word of the name. ~~|
+        ~(:five 5 | :string/five ~(1) | "s" | string/five | eq 1)
     | proves :KindAnswersNoVerbError/namesTheKindAndTheVerbs
         |~~ The refusal names the kind of the subject and where the verb
             lives.

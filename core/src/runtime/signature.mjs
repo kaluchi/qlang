@@ -227,7 +227,7 @@ export function signatureOf(fn) {
 }
 
 // functionOfRecipe(recipe) → the function of no commands a recipe is, a quote
-// or a host's primitive written as the value of a word [QSBLD#chain], made
+// or a host's primitive written as the value of a word [QSBLD#recipe], made
 // once for the recipe.
 const FUNCTIONS_OF_RECIPES = new WeakMap();
 const NO_COMMANDS = makeQuote([]);

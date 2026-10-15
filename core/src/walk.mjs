@@ -66,7 +66,7 @@ export function astChildrenOf(node) {
 }
 
 // The literals, which answer themselves whatever the subject, their parts
-// literals [QSLIT#tag], a path among them [QSPTH#value], a quote, whose code
+// literals [QSLIT#closed], a path among them [QSPTH#value], a quote, whose code
 // does not run, and a doc.
 const LITERALS = new Set([
   'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit', 'Path',

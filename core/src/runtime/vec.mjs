@@ -104,7 +104,7 @@ bindPrim('map/avg', map => meanOf(keyed(map), MapAvgElementNotNumberError));
 // ── ranking ────────────────────────────────────────────────────
 
 // The error a key answered for an element, the key itself or a part of
-// the vector it answered, or null [QSERR#rest], [QSORD#sort].
+// the vector it answered, or null [QSERR#flow], [QSORD#sort].
 function errorOfKey(rankKey) {
   if (isErrorValue(rankKey)) return rankKey;
   return isVec(rankKey) ? rankKey.find(isErrorValue) ?? null : null;
@@ -154,7 +154,7 @@ bindPrim('map/max', runs(['key'], (map, key) => extremeOf([...map.values()], key
 // entries by their values and keeps the keys. A vector the key answers ranks
 // element by element, and `desc` reverses a place of it. A key that answers an
 // error answers the call, as the key of `groupBy` does, and so does one whose
-// vector holds an error [QSERR#rest], [QSORD#sort].
+// vector holds an error [QSERR#flow], [QSORD#sort].
 async function sortedEntries(entries, key) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;

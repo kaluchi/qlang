@@ -40,3 +40,4 @@
 {"name":"every-set-one-fails","query":"#[2 4 -1] | every ~(gt 0)","expect":"false"}
 {"name":"every-set-declared-verb","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
 {"name":"every-set-verb-predicate","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
+{"decision":"D315","name":"a-condition-over-a-map-that-is-no-boolean-is-refused-at-its-key","query":"{:a true :b 1} | every ~(it) !| get [~(type) /key]","expect":"[::map/every/ConditionNotBooleanError :b]"}

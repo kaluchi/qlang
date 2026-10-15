@@ -19,7 +19,7 @@ export const MISSED = Symbol('qlang/missed');
 // places, the elements of a vector or a set and the values of a map, under
 // a tag or none; null for any other value, which the template answers as
 // it is, a quote, a doc, a function and a kind among them, each a vector
-// of code or prose [QSLIT#tag].
+// of code or prose [QSPTH#template].
 export function partsOfTemplate(value) {
   if (isQuote(value) || isDoc(value) || isFn(value) || isKind(value)) return null;
   if (isVec(value)) return value;

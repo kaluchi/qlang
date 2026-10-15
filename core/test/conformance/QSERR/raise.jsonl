@@ -11,3 +11,4 @@
 {"name":"the-tag-a-step-lays-over-the-facts-names-the-error","query":"\"x\" | add 1 !| tag ::Foo | raise !| get [~(type) ~(get /trail | map /step)]","expect":"[::Foo [~(add 1)]]"}
 {"name":"error-takes-the-outermost-tag-over-its-map","query":"{:k 1} | tag ::Foo | tag ::Bar | raise !| type","expect":"::Bar"}
 {"name":"raise-resides-on-the-map","query":"5 | raise !| type","expect":"::map/raise/SubjectNotMapError"}
+{"decision":"D315","name":"raise-refuses-a-value-under-a-tag-over-no-map","query":"::Foo[1] | raise !| type","expect":"::map/raise/SubjectNotMapError"}

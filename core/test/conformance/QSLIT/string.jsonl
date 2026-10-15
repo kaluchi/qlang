@@ -8,3 +8,4 @@
 {"name":"backspace-escape","query":"\"a\\bb\" | contains \"a\"","expect":"true"}
 {"name":"formfeed-escape","query":"\"a\\fb\" | contains \"a\"","expect":"true"}
 {"name":"all-json-escapes-in-one","query":"\"\\\"\\\\\\/_\\n\\t\\r\\b\\f\" | contains \"_\"","expect":"true"}
+{"decision":"D315","name":"a-string-holds-a-tab-and-a-line-break-written-raw","query":"get [~(\"a\tb\" | eq \"a\\tb\") ~(\"a\nb\" | eq \"a\\nb\")]","expect":"[true true]"}

@@ -97,7 +97,7 @@ bindPrim('set/toSet', set => set);
 bindPrim('vec/toSet', vector => makeSet(vector));
 // The map a vector's pairs `[key value]` write, the reverse of `entries`:
 // each key named as `toKeyword` names it, and of two pairs with one key
-// the last holds [QSCOL#map].
+// the last holds [QSCND#convert].
 const VecToMapElementNotPairError = declareRefusal('vec/toMap/ElementNotPairError');
 const VecToMapKeyNotKeywordError = declareRefusal('vec/toMap/KeyNotKeywordError');
 

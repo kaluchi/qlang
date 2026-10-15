@@ -496,7 +496,7 @@ BodySentenceStep
 // ── Words ──────────────────────────────────────────────────────────
 //
 // A word is a literal, a path, a name, a quote or a pipeline in
-// parentheses; every part of a literal is a literal [QSLIT#tag].
+// parentheses; every part of a literal is a literal [QSLIT#closed].
 
 Word
   = ParenGroup
@@ -542,7 +542,7 @@ CallName
 // payload touching the tag by a sign that continues the literal, a number,
 // a boolean, null or a path, whose literal would continue the tag's name,
 // by `#`, `::Width#5`; parentheses after a tag,
-// the sign of code, are refused [QSLIT#tag]. `::tag` alone is the tag name.
+// the sign of code, are refused [QSLIT#closed]. `::tag` alone is the tag name.
 TaggedLit
   = "::" tag:TagName "#" payload:PayloadAfterHash
     { return node('TaggedLit', { tag, payload }, span(), text()); }

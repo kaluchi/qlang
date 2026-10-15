@@ -91,7 +91,7 @@ bindPrim('doc/construct', docConstructor);
 
 // `::builtin{…}` — the descriptor, the recipe of a word or of a kind that
 // a primitive answers, or the value of a name under a label alone [QSBLD#fn],
-// [QSBLD#kind], [QSBLD#chain]; its fields stay flat under its tag.
+// [QSBLD#kind], [QSBLD#recipe]; its fields stay flat under its tag.
 const BuiltinPayloadKindNotTakenError = declareRefusal('builtin/PayloadKindNotTakenError');
 
 function builtinConstructor(payload) {

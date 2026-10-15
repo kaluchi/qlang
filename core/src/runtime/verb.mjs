@@ -16,7 +16,7 @@ import {
 } from '../types.mjs';
 
 // The value under a tag as its literal puts it there, for the verbs that
-// keep a kind and for `tag` [QSBLD#input].
+// keep a kind and for `tag` [QSBLD#label].
 export async function mintUnderTag(state, tag, value) {
   return await mintTaggedInstance(tag.name, value, state);
 }
@@ -55,7 +55,7 @@ export function walkToKinds(value, kindNames) {
 
 // The value under the tags from the innermost out, their constructors run
 // again [QSDSP#answer]; an error passes as it is, as it does under every tag
-// [QSERR#rest].
+// [QSERR#flow].
 async function underTags(value, tags, state) {
   let wrapped = value;
   for (const tag of [...tags].reverse()) wrapped = await mintUnderTag(state, tag, wrapped);
@@ -82,7 +82,7 @@ async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
 // of the call, a reader of the scope over the state of the call after them,
 // its scope the tree of the query, wherever it is called [QSDSP#residence],
 // [QSNAM#owner], and a reader of the tags its subject stood beneath over the
-// tags the walk passed [QSERR#rest].
+// tags the walk passed [QSERR#raise].
 export function runPrimitive(primitive, served, passedTags, inputValues, state) {
   if (readsState(primitive)) return primitive(served, ...inputValues, queryStateOf(state));
   if (readsPassedTags(primitive)) return primitive(served, ...inputValues, passedTags);

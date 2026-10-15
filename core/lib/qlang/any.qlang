@@ -1177,8 +1177,8 @@
       name reads its own page, a value the page of its kind, and an error
       `!|` opened the page of the refusal it carries, which says what
       failed and how the call is repaired. A name nothing declares is
-      refused as `binding` refuses it. The call takes no anchor: the page
-      of a member is read by `doc`.
+      refused, `::any/explain/UnknownNameError`. The call takes no
+      anchor: the page of a member is read by `doc`.
       ::link~(::any/doc | doc) ::link~(::explanation | doc)
   ~~|
   ::fn
@@ -1287,9 +1287,9 @@
       page, the sentence of the claim, and its query, which answers
       true. A value reads the laws of its kind, and a name with no laws
       answers `{}`. `runLaws` runs them, and `tutorial` pairs them with
-      the page. A name nothing declares is refused as `binding` refuses
-      it. The call takes no anchor: the laws of a member are read by its
-      address.
+      the page. A name nothing declares is refused,
+      `::any/laws/UnknownNameError`. The call takes no anchor: the laws of
+      a member are read by its address.
       ::link~(::any/runLaws | doc) ::link~(::any/tutorial | doc)
   ~~|
   ::fn

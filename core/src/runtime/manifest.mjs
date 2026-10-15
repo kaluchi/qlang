@@ -34,7 +34,7 @@ bindStateReader('any/laws', (subject, state) => {
 // root runs in the root's scope [QSQUO#held], and passes when it answers true
 // [QSCND#boolean]; its result names the law by its address and
 // the claim it proves by its page [QSSLF#laws], and holds the error it
-// answered at rest, as `!|` grounds it [QSERR#rest], [QSSLF#laws].
+// answered at rest, as `!|` grounds it [QSERR#catch], [QSSLF#laws].
 async function runLaw({ law, quote, says }, callerState) {
   const result = new Map();
   result.set('law', law);

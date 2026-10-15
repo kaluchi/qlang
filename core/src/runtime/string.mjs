@@ -41,8 +41,8 @@ bindPrim('vec/join', (subject, separator) => {
   return subject.map(writtenAsText).join(writtenAsText(separator));
 });
 
-// The case of a text, folded letter by letter as Unicode maps it, so two texts
-// that differ in case alone compare equal once folded [QSTXT#string].
+// The case of a text, folded as Unicode maps the text, a letter to two where it
+// writes two and a final sigma by its place [QSTXT#string].
 bindPrim('string/lower', subject => subject.toLowerCase());
 bindPrim('string/upper', subject => subject.toUpperCase());
 

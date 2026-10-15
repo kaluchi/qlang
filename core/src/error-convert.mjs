@@ -38,7 +38,7 @@ const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).le
 // the order of the definitions that describe them, each named as its fact
 // [QSERR#site]: those under the refusal's label first, then those under
 // `::error`, which every refusal shares, the path an error takes coming
-// after them as the trail joins it [QSERR#rest]. A fact neither declares is a
+// after them as the trail joins it. A fact neither declares is a
 // defect of the runtime.
 export function factsInOrder(tag, facts, env) {
   const ordered = new Map();
@@ -53,7 +53,7 @@ export function factsInOrder(tag, facts, env) {
 
 // The error a refusal of the runtime raised: the facts its site handed
 // with the kind of the value refused, the value left out where it equals
-// the subject the first stop holds [QSERR#rest], [QSERR#site].
+// the subject the first stop holds [QSERR#site].
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTag(qlangError.address);
   const facts = new Map();

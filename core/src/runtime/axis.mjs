@@ -21,7 +21,7 @@
 
 import { bindStateReader } from '../primitives.mjs';
 import {
-  isKeyword, isTag, isBinding, isNull, isQSet, isVec, keyword, typeKeyword, makeTaggedInstance,
+  isKeyword, isTag, isBinding, isNull, isQSet, isVec, isQMap, isValueClass, keyword, typeKeyword, makeTaggedInstance,
   makeTag, makeQuote, makeDoc, NULL
 } from '../types.mjs';
 import {
@@ -41,41 +41,41 @@ const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError'
 const AnyDocAnchorElementNotKeywordError = declareRefusal('any/doc/anchor/ElementNotKeywordError');
 export const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError');
 
-// The name a refusal says a subject read: a tag name itself, and for
-// every other value the tag of its kind, the kind `type` answers [QSSLF#axis].
-function nameReadOf(subject) {
-  return isTag(subject) ? subject : typeKeyword(subject);
+// What a refusal of an axis holds, the subject a name nothing declares:
+// the tag it read, the addresses where the pages of its last name live and
+// the names near it [QSDSP#walk], [QSERR#site], [QSSLF#near].
+function refusalOf(env, subject) {
+  return { name: subject, addresses: addressesOf(env, splitAddress(subject.name)[1]), nearest: nearestTagNames(env, subject.name) };
 }
 
-// The name whose verbs a refusal lists: the last name of a tag name's
-// path, `::any/links` naming `links` [QSERR#site], or its kind's.
-function nameOf(subject) {
-  if (isTag(subject)) return splitAddress(subject.name)[1];
-  return typeKeyword(subject).name;
-}
-
-// What a refusal of an axis holds: the name it read and the addresses
-// where the pages of that name live [QSDSP#walk], [QSERR#site].
-export function refusalOf(env, subject) {
-  return { name: nameReadOf(subject), addresses: addressesOf(env, nameOf(subject)), nearest: nearestOfSubject(env, subject) };
-}
-
-// The names near the one a tag name reads, the reader's own among them
-// [QSSLF#near].
-function nearestOfSubject(env, subject) {
-  return isTag(subject) ? nearestTagNames(env, subject.name) : Object.freeze([]);
-}
-
-// The record a subject names, the one record every axis and `runLaws` read, or
-// null when it names none: a name by its tag, the address of its node, and any
-// other value, a keyword among them, by its kind [QSLIT#keyword]; a value a
-// host bound under a name is no record, and a tag of a value withheld from
-// held code is refused [QSQUO#held].
+// The record a subject names, the one record every axis and `runLaws` read: a
+// name by its tag, the address of its node, null where nothing declares it,
+// and any other value, a keyword among them, by its kind [QSLIT#keyword]; a
+// value a host bound under a name is no record, and a tag of a value withheld
+// from held code is refused [QSQUO#held].
 export function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
-  if (isTag(subject)) refuseWithheld(env, subject.name, true);
-  const name = isTag(subject) ? subject.name : typeKeyword(subject).name;
-  return nodeOf(env, name) ?? nodeOfRefused(env, name);
+  if (isTag(subject)) {
+    refuseWithheld(env, subject.name, true);
+    return nodeOf(env, subject.name) ?? nodeOfRefused(env, subject.name);
+  }
+  return recordOfKind(env, subject);
+}
+
+// The record of the first kind a value's stack of tags declares, from the
+// outside in, as a call of a word walks it, a tag of identity read past to
+// the kind beneath it [QSSLF#axis]; null where none is declared.
+function recordOfKind(env, value) {
+  const name = typeKeyword(value).name;
+  return nodeOf(env, name) ?? nodeOfRefused(env, name) ?? recordOfKind(env, payloadBeneath(value));
+}
+
+// What stands beneath a value's own tag, every kind of the core being
+// declared: the payload of a wrapper, or the plain vector or map of a
+// container that holds its tag on itself.
+function payloadBeneath(value) {
+  if (isValueClass(value, 'taggedInstance')) return value.payload;
+  return isQMap(value) ? new Map(value) : [...value];
 }
 
 // The node a refusal named by the address of what refused reads its page

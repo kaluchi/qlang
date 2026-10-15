@@ -95,10 +95,8 @@ describe('::name | doc returns the page its attached prefixes make', () => {
     expect(err.tag).toEqual(makeTag('any/doc/UnknownNameError'));
   });
 
-  it('a value whose kind no binding declares is refused under its kind', async () => {
-    // The fork of the parentheses drops the tag the literal declared,
-    // and the value it minted leaves with the name of that kind.
-    expect(await evalQuery('(::Ghost#1) | doc !| get /name')).toEqual(makeTag('Ghost'));
+  it('a value under a tag no binding declares reads the kind beneath it [QSSLF#axis]', async () => {
+    expect(await evalQuery('::Ghost#1 | doc | eq (::number | doc)')).toBe(true);
   });
 });
 

@@ -198,7 +198,7 @@
         ::vec
     | throws :SubjectNotDocError
         |~~ `snippets` reads a doc, not its text: the page of a name is
-            read by `doc` first, `::tag/manifest | doc | snippets`.
+            read by `doc` first, `::any/manifest | doc | snippets`.
         ~~|
     | proves :findsTheSnippetInProse
         |~~ A snippet inside prose is found. ~~|

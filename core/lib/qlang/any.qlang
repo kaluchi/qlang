@@ -1189,6 +1189,68 @@
         ~([1 2] | explain :count !| type | eq ::any/explain/ArgsBeyondInputsError)
     | impl ::builtin{}
 
+:any/manifest
+  |~~ Answers the set of the names declared one name under the name the
+      subject reads, as `doc` reads it, each by its address:
+      `::number | manifest` the words and the refusals of numbers,
+      `::vec/take | manifest` the inputs and the answer of `take`,
+      `::qlang | manifest` the chapters of the language, and a value the
+      names under the kind it shows, `5 | manifest` those of numbers. A
+      name nothing declares is refused as `doc` refuses it. The laws of a
+      name are no part of the answer, `laws` reads them; the kinds of the
+      scope `kinds` lists, and what the reader declared `env`; and what
+      one name holds the axes read, `::vec/count | source`, `| doc`. The
+      call takes no value, so `manifest ::vec` is refused.
+      ::snippet~(::number | manifest) ::link~(::any/laws | doc)
+      ::link~(::any/kinds | doc) ::link~(::any/env | doc)
+      ::link~(::any/source | doc)
+  ~~|
+  ::fn
+    | returns
+        |~~ The addresses of the names declared one name under the name. ~~|
+        ::set
+    | throws :UnknownNameError
+        |~~ `manifest` found no declaration of the name it read, as
+            `binding` finds none.
+            ::link~(::any/binding/UnknownNameError | doc)
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `manifest` reads the name of the subject and takes no value:
+            the manifest of vectors is `::vec | manifest`.
+        ~~|
+    | proves :holdsAVerbOfTheNoun
+        |~~ The manifest of numbers holds `add`. ~~|
+        ~(::number | manifest | has ::number/add)
+    | proves :holdsAChapter
+        |~~ The manifest of the first page holds its chapter on values. ~~|
+        ~(::qlang | manifest | has ::qlang/values)
+    | proves :holdsTheInputsOfAWord
+        |~~ The manifest of a word holds its inputs. ~~|
+        ~(::vec/take | manifest | has ::vec/take/count)
+    | proves :holdsTheNamesOfAReader
+        |~~ The manifest of a reader's noun holds the names declared under
+            it.
+        ~~|
+        ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box | manifest | eq #[::Box/area])
+    | proves :leavesTheLawsToLaws
+        |~~ The laws of a name are no part of its manifest. ~~|
+        ~(::number/add | get [~(manifest | filter ~(binding | get /value | is ::law) | count) ~(laws | count | gt 0)] | eq [0 true])
+    | proves :readsTheKindOfAValue
+        |~~ A value reads the names under the kind it shows. ~~|
+        ~(get [5 :number] | map ~manifest | eq (get [~(::number | manifest) ~(::keyword | manifest)]))
+    | proves :readsPastATagOfIdentity
+        |~~ A value under a tag nothing declares reads the kind beneath it. ~~|
+        ~(::Box{:a 1} | manifest | eq (::map | manifest))
+    | proves :UnknownNameError/refusesANameNothingDeclares
+        |~~ A name nothing declares is refused. ~~|
+        ~(::Nothing | manifest
+          !| get [~(type) /name]
+          |  eq [::any/manifest/UnknownNameError ::Nothing])
+    | proves :ArgsBeyondInputsError/refusesANounGivenAsAValue
+        |~~ A noun given as a value is refused; it is the subject. ~~|
+        ~(::qlang | manifest ::vec !| type | eq ::any/manifest/ArgsBeyondInputsError)
+    | impl ::builtin{}
+
 :any/laws
   |~~ Answers the laws declared under the name the subject reads, as
       `doc` reads it, in the order of their declarations: a map from

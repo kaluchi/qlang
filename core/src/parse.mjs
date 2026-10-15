@@ -63,7 +63,7 @@ export function parse(source, opts = {}) {
     ast = peggyParse(source, { commentTrivia });
   } catch (err) {
     const unclosed = err.found === null ? bracketLeftOpen(source) : null;
-    const sentence = unclosed?.message ?? formMeantAt(source, err.location);
+    const sentence = unclosed?.message ?? formMeantAt(source, err.location) ?? stepMissedAtTheEnd(source, err);
     throw new ParseError(sentence ?? err.message, err.location, opts.uri ?? null, {
       expected: unclosed?.expected ?? err.expected,
       found: err.found,
@@ -112,6 +112,13 @@ function formMeantAt(source, location) {
   return source.startsWith('#{', location.start.offset)
     ? 'a set is written `#[…]`, the vector in the one order without duplicates; `{…}` is a map'
     : undefined;
+}
+
+// The step a source that ends with a combinator misses, `[1] |` and
+// `[1] !|` [QSSYN#combinator].
+function stepMissedAtTheEnd(source, err) {
+  const combinator = err.found === null ? /(?:^|\s)(!?\|)\s*$/.exec(source)?.[1] : undefined;
+  return combinator === undefined ? undefined : `\`${combinator}\` joins two steps, and the step after it is missing`;
 }
 
 // The shortest run of closers that completes a source, each a closer the

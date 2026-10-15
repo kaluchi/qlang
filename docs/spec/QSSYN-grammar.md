@@ -14,8 +14,10 @@ modifier of a command may touch its name where it opens with a
 parenthesis, so `filter(gt(1))` reads as `filter` with the group
 `(gt(1))`, a call written by habit that runs where its input takes a
 value and is refused where it takes code; every other word is set off
-from the one before it, and a comma inside the parentheses of a call is
-refused, naming the command form.
+from the one before it, and a comma inside the parentheses of a group or
+a quote is refused, naming the command form. A path written before a
+word is refused naming both its readings, the read of a part,
+`get /tags | count`, and the call of a verb by its name alone.
 
 A step sees one value, the one the step before handed it, and
 everything inside the step, its modifiers among them, is computed from
@@ -57,9 +59,10 @@ start of the text standing for the space before it, so `|~`, `|~|`,
 `|~~` and `|~~|` written together open a comment or a doc. One
 combinator stands between two steps: a pipe written before `!|` stands
 for the combinator after it, and any other combinator after a
-combinator is refused, one written against its neighbour with a message
-that names the space; a combinator at the end of a pipeline is refused
-by its continuations. An unclosed `|~` after a step is refused naming
+combinator is refused, after `| !|` as after `!|`, one written against
+its neighbour with a message that names the space; a combinator at the
+end of a pipeline, a group or a quote is refused naming the step it
+misses. An unclosed `|~` after a step is refused naming
 the word that runs code after a pipe, `| apply ~(…)`. A pipeline, a
 group and a quote may open with a combinator: a leading `|` is the
 head's combinator, and a leading `!|` opens a step of the fail track.

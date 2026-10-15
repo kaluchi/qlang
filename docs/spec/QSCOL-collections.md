@@ -14,8 +14,10 @@ where it equals its floor, a fraction refused as
 `…/count/KindNotTakenError`, `reverse`, the reverse of a set a vector and
 of a vector under a tag the vector under it, `flat`, which lifts one
 level, `sum`, a number beneath the tags over an element read as the
-number and an element that is no number refused at its index, and `min` and `max` in the one order or by a key
-[QSORD#sort], null over an empty container where it reads one. `avg`
+number and an element that is no number refused at its index, at its key
+over a map, and `min` and `max` in the one order or by a key
+[QSORD#sort]; `first`, `last`, `min`, `max` and `avg` answer null over an
+empty container. `avg`
 answers the mean, null over nothing, kept as a running mean, a number
 beneath its tags read as `sum` reads it, an element that is no number
 refused at its index, at its key over a map. `has`
@@ -58,7 +60,10 @@ keep the keys, the reducers, `min` and `max` read the values, and a
 predicate sees the value alone. `keys` answers the set of its keys,
 `vals` the vector of its values, `entries` the vector of its pairs
 `[key value]` in the order of its entries, the step that makes a key
-data, and `has` whether a key stands [QSPTH#has].
+data, and `has` whether a key stands [QSPTH#has]. The words a vector has
+beyond these, `distinct`, `groupBy`, `flat` and `contains` among them, a
+map answers by `vals` first, `{:a 1} | vals | contains 1` answering
+`true`.
 
 ```qlang
 > {:b 2 :a 1} | map ~(add 1)

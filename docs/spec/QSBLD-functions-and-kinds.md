@@ -33,10 +33,11 @@ refused as `::fn/call/SubjectKindNotTakenError` with the kinds as
 quote and its recipe after it, which the constructor of `::fn` reads
 back. `apply` hands a function a vector or a set of arguments, another
 value refused as `::any/apply/args/KindNotTakenError`, and refused under
-`::fn/call/…` as a call of the function; a quote or a path takes the
-empty vector alone, `::any/apply/args/NotTakenError`; `fill` writes the
-arguments into the head of its code, refused under `::fn/call/…` as a
-call and, for a function with no recipe, as
+`::fn/call/…` as a call of the function; a quote or a path takes empty
+args alone, `[]`, `#[]` or an empty vector under a tag, others refused
+as `::any/apply/args/NotTakenError`; `fill` writes the arguments into
+the head of its code, refused under `::fn/call/…` as a call and, for a
+function whose recipe is no code, a primitive's or none, as
 `::fn/fill/RecipeNotCodeError`; and `params` answers its inputs.
 
 ```qlang
@@ -71,12 +72,14 @@ invariants of their inputs.
 An input holds the value of its kind the walk of its tags reaches: a
 value of none is refused under the input as `…/by/KindNotTakenError`,
 the kinds it takes its `:expected`, a set of tags, so the name stays
-while the kinds of the input grow; a strict place the call leaves out
-as `…/by/NotGivenError`, and a path that meets a value it cannot read
-with the path's refusal, `::path/SubjectHasNoPartsError`; args past the
-places the inputs read, where every input reads a numbered place, under
-the call as `…/ArgsBeyondInputsError`, while an input that reads `/-1`,
-the args whole or code takes any number; and a value that breaks an
+while the kinds of the input grow, and the value of an input of each
+element that is no vector as of no `::vec`; a place the call leaves out,
+read strictly by a path or by code, as `…/by/NotGivenError`, and a path
+that meets a value it cannot read with the path's refusal,
+`::path/SubjectHasNoPartsError`; args past the places the inputs read,
+where every input reads a numbered place, under the call as
+`…/ArgsBeyondInputsError`, while an input that reads `/-1`, the args
+whole or code of several steps takes any number; and a value that breaks an
 invariant under the invariant's name, the invariant holding of the value
 as the call gives it, its tags among it, which the refusal holds as
 `:actualValue`. Kinds written as a vector of one tag or of one set are
@@ -99,7 +102,9 @@ is no vector refused as `…/KindNotTakenError` and an element of none as
 ## answer
 
 `returns` names the kinds of a word's answer, at least one,
-`::fn/returns/kinds/NotGivenError` refusing none. An answer that reaches
+`::fn/returns/kinds/NotGivenError` refusing none given and
+`::fn/SignatureNotCommandsError` an empty set; a failure the recipe
+answers passes as it is. An answer that reaches
 one of several kinds by the walk is that value; one kind makes the
 answer by its constructor and its invariants; an answer of the word's
 own label goes back under the subject's tags, held to the label. An
@@ -119,8 +124,9 @@ names `::any`, or that has none, hands its answer on as it is.
 A recipe runs in the scope its call opens: its inputs by their names
 and the args as `args`, the names its steps declare, and the tree, the
 words and the nodes of the root and of the query. A value a recipe needs
-is an input. A place runs on the args and an invariant on its input's
-value, and neither reads `args`, another input or a value of the query.
+is an input. A place reads the args alone and an invariant its input's
+value alone, a name either writes beside them refused as
+`::call/UnknownNameError`.
 A word calls itself by its name. A recipe written alone under a label
 is the function of no commands it is: args given to it are refused as
 `…/ArgsBeyondInputsError`, and it hands its answer on as it is.
@@ -141,7 +147,9 @@ its place in the payload and its kinds, `tells` a page of the kind on a
 name, `holds` an invariant of the value or of a field, `throws` a
 refusal, `carries` a fact, `proves` a law, and `impl ::builtin{}` the
 check a host hands a kind of the core, the one recipe a kind takes,
-`::kind/impl/recipe/KindNotTakenError` refusing another; a command
+`::kind/impl/recipe/KindNotTakenError` refusing another, and the literal
+`::kind[…]` taking null for none and refusing another as
+`::kind/RecipeNotBuiltinError`; a command
 written after `impl` joins the others. A name is declared once,
 `::kind/NameDeclaredTwiceError`, an invariant named as the refusal of
 its field's kinds among them, a field's and a page's of one segment

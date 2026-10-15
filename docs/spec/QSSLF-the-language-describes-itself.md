@@ -8,7 +8,8 @@ it. The requirements of each section are the cases of its file under
 ## axis
 
 The axes, words of every value, read a name: `doc` its page, `source`
-every declaration written under its address, `binding` the record of its
+every declaration written under its address, null for a node a chain
+lays, a law and a chapter among them, `binding` the record of its
 binding [QSNAM#binding], `manifest` the names under it, `laws` its laws
 and `explain` its explanation. A value is read by its kind, `5 | doc` the
 page of `::number`, a keyword among values, a value under a tag nothing
@@ -22,8 +23,9 @@ under that name, an input of a word or the word a name calls on a noun,
 `::map | doc :minus`; `doc` takes as well a vector of names as a path of
 members and a set as several pages, refusing another anchor as
 `::any/doc/anchor/KindNotTakenError` and an element that is no keyword
-as `::any/doc/anchor/ElementNotKeywordError` with its `:index`; `laws`
-and `explain` take no member. A tag nothing declares whose last name
+as `::any/doc/anchor/ElementNotKeywordError` with its `:index`; `laws`,
+`explain`, `manifest` and `tutorial` take no member, refusing one as
+`::any/manifest/ArgsBeyondInputsError` and its kin. A tag nothing declares whose last name
 ends in `Error` reads the record of the address before it, a refusal the
 runtime raises by rule having no node of its own; any other name
 nothing declares is refused under the axis, `::any/doc/UnknownNameError`,
@@ -158,7 +160,8 @@ and each run of prose is one string, an empty one dropped. `content`
 answers the text, each quote and its tags where it stands, written as
 its literal spelled it, a quote assembled from data printed; `segments`
 answers the parts, and `tag ::doc` builds a doc from a vector of strings
-and quotes, a payload that is no vector refused as
+and quotes, joining strings that stand together and dropping an empty
+one, as the parser does, a payload that is no vector refused as
 `::doc/PayloadKindNotTakenError` and an element of another kind as
 `::doc/ElementNotSegmentError`. A tag gives a quote a role, the tags of a
 stack read from the outside in: `::link`, which `links` answers and

@@ -54,7 +54,8 @@ true
 
 A query reads, and writes only by a host's words for the streams of its
 process, each an explicit step performed when it runs: the command
-line's `in` reads standard input when it is called, `out` writes a
+line's `in` reads standard input when it is called, the empty string in
+the REPL, whose prompt holds it, `out` writes a
 string as a line of standard output, `err` as a line of standard error,
 and `tap` shows a value on standard error halfway through a query. What
 changes the world is a command of its host, addressing the same names
@@ -118,7 +119,8 @@ answer.
 The command line starts from standard input when the query reads its
 subject and the input carries bytes, and otherwise from `::qlang`, the
 noun of the language. It reads the input as JSON and, where the text is
-no JSON, as the string it is; `--json` reads it as JSON alone, refused
+no JSON, as the string it is, a JSON text that holds a number past the
+doubles answering as `parseJson` refuses it; `--json` reads it as JSON alone, refused
 as `parseJson` refuses it, and `--raw` as text alone. A query reads its
 subject unless its first step that declares nothing is a literal, or a
 group whose code reads none, and no declaration before that step has a

@@ -70,11 +70,14 @@ the path bare.
 
 ## parse
 
-`parse` turns text into the quote it writes and a quote into its text,
-an involution: `"add 1 | mul 2" | parse` and back. A blank source is the
-empty quote, and a source that reads as no pipeline is refused as
-`::quote/ParseError` with its `:message`, its `:marker` and the
-`:expected` of the place it stopped [QSPRN#span]. A quote whose steps
+`parse` turns text into the quote it writes and a quote into its text:
+the text a quote prints reads back as the quote, and a text comes back
+as its quote prints it, `"5 |  mul   2" | parse | parse` answering
+`"5 | mul 2"`. A blank source is the empty quote, and a source that
+reads as no pipeline is refused as `::quote/ParseError` with its
+`:marker`, its `:location`, a `:message` where the parser names the form
+meant or the `:expected` of the place it stopped [QSSYN#refusal],
+[QSPRN#span], and the `:uri` of `parse`. A quote whose steps
 are all declarations prints one declaration a line, each after the first
 led by its pipe; any other quote prints on one line. Every text a quote
 prints reads back as the same quote.

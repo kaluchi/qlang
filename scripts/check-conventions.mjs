@@ -382,7 +382,7 @@ function decisionsInCatalog() {
 const FIRST_RECORD_NAMING_ITS_DECIDER = 155;
 const DECIDER_LINE = /^Decided by\. The (maintainer|model)\b/m;
 const holdsField = (text, field) => new RegExp(`^${field}\\. `, 'm').test(text);
-const outOfForm = text => (isOpenText(text)
+const outOfForm = text => !holdsField(text, 'Domain') || (isOpenText(text)
   ? !OPEN_RECORD_FIELDS.every(field => holdsField(text, field)) || DECIDED_RECORD_FIELDS.some(field => holdsField(text, field))
   : !DECIDER_LINE.test(text));
 
@@ -633,9 +633,9 @@ if (catalogDecisions.length > 0) {
   process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [QSWRK#marks].\n');
 }
 if (undecided.length > 0) {
-  process.stdout.write(`\nRecords that name no decider (${undecided.length}):\n`);
+  process.stdout.write(`\nRecords out of their form (${undecided.length}):\n`);
   for (const file of undecided) process.stdout.write(`  ${file}\n`);
-  process.stdout.write('    write `Decided by. The maintainer` or `Decided by. The model`, the line naming the parts of the model beside the choice of the maintainer [QSWRK#journal]; an open record holds `Question.`, `Source.` and `Alternatives.`, and no `Decided by.` or `Decision.` until it is decided [QSWRK#journal].\n');
+  process.stdout.write('    a record opens with `Domain.`, the part of the work it governs; write `Decided by. The maintainer` or `Decided by. The model`, the line naming the parts of the model beside the choice of the maintainer [QSWRK#journal]; an open record holds `Question.`, `Source.` and `Alternatives.`, and no `Decided by.` or `Decision.` until it is decided [QSWRK#journal].\n');
 }
 if (unmarked.length > 0) {
   process.stdout.write(`\nArtifacts that name no decision (${unmarked.length}):\n`);

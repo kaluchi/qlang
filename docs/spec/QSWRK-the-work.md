@@ -43,7 +43,23 @@ or comment in code. The maintainer's words are quoted as written, and a
 rule is written as a rule, its date and its source in the line of its
 source. A source outside the tree is read whole before a sentence rests
 on it. A claim about the language in doubt is run; an intention in doubt
-is asked of the maintainer, and the answer recorded with his words.
+is asked of the maintainer, and the answer recorded with his words. A
+rule is said of what it governs.
+
+The insights the work meets about itself are collected as it goes into a
+numbered record of the shift, each a rule a later session holds, written
+when the work that showed it lands; at the move of the baseline each
+dissolves into the section of this chapter it governs. A record written
+before its code is read again after the last commit of its branch. A
+record goes stale in its tenses before its rules: its source is history,
+written in the past, and its requirements name its cases, not a file of
+them. The prune of a decision ends with a walk of every record in force
+against the tree, not with a search of its own words, and a walk of the
+records finds scars of the tree as well as of the text: where a record
+names a rule the tree misses, the tree is repaired and the record stays.
+A merge of records probes every sentence it carries over, and a merged
+record keeps the lines of the parts it took from older ones, the fate of
+each older one naming it.
 
 Only the maintainer's quoted words bind a session. A record the model
 decided is a reading the session weighs on its merits and replaces by
@@ -122,7 +138,11 @@ it stands in is the section whose rule it shows. A case a record in
 transit claims opens with the record, `{"decision":"Dnn","name":…}`,
 the one record whose rule its query and its answer show. The laws of the
 catalog are the claims of its pages, which the language runs on itself,
-and a requirement a law proves as well stays a case.
+and a requirement a law proves as well stays a case. The rules a case
+holds are read from the record it names, and a rule no record states is
+written into the record it belongs to before a case names it there. The
+runner compares values, so a case writes a set in the order its print
+shows.
 
 The runner, `core/test/unit/conformance.test.mjs`, refuses a file of a
 chapter that is no section of it, a case whose first key names no record
@@ -261,6 +281,21 @@ the one run that boots the language while it runs; `node
 scripts/benchmark.mjs check` runs before a commit that reads a form of
 the language anew.
 
+A form a script rewrites is read against the parse the old grammar gave,
+each part whose role the rewrite changes found by walking the old parse
+and set by hand. A line or a branch the coverage of the gate finds no
+case reaching is read first as a question of the design. A design of
+scope is checked by a second model on counterexamples before its record
+is written, and again when a review moves it. A fact moved from a value
+onto a name is held on every road the value took, and a refusal of the
+read of a name on every road the name is read by, each road a caller of
+the lookup they share and held by a case; a clause copied from the code
+beside it that no road reaches leaves rather than a case inventing a
+road. A clause is cut in a copy its own runner alone writes, and a cut is
+read by the name of the test that failed, never by a count. A script that
+moves cases between files writes every file after it has computed them
+all, its folders made first.
+
 A branch starts from the full set of places where its cause shows, found
 by search rather than by memory, and its first commits delete. The work
 of the model on the texts is validation, the contradictions, the
@@ -286,7 +321,11 @@ branch leaves the files it touches so: it moves a reason it finds in a
 comment into its record or deletes it with the compromise it excuses,
 and deletes a false comment. The ratio of comment lines to code lines
 over the core, the command line and the language server falls,
-measured on every branch against the baseline.
+measured on every branch against the baseline. A printer decides a
+spelling by the kind of the value, never by a pattern over the text of a
+print; a fact of a call is kept by the call and never by a value it
+received; and what a rule takes from code is withheld by a refusal of its
+own, never left to fall to another meaning of the name.
 
 ## diff
 
@@ -430,7 +469,14 @@ its report gives a verdict, accepted or changes asked, and its findings,
 each with its file and its line and the principle or the rule it breaks.
 The report is kept as its writer wrote it, each finding with the fate it
 met, under `docs/journal/research/reviews/` while something in force
-cites it.
+cites it. A clean reader of the specification knows no earlier form, so
+it probes the bounds of each rule as it stands and its doubt comes out
+as a question of the tree, while a reader of the records is handed the
+words the language left, so that its probes look for them. Rounds of
+clean readers go deeper each time, the first finding sentences the tree
+contradicts and the next sentences wider or narrower than the tree and
+refusals left unnamed, and a round whose findings are precision alone is
+the one to stop at.
 
 `node scripts/outside-audit.mjs` runs the outside audit: a clean Opus,
 started from an empty directory of its own with no instruction file,

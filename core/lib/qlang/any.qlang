@@ -2331,10 +2331,11 @@
       of the path `get` reads it by and its kind:
       `{:a {:b 1 :c [2 "x"]}} | paths` answers
       `#[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string]]`. A part
-      under a tag is a leaf of its kind, a quote, a doc and a set among
-      them, an empty vector or map is a part that holds none, and the
-      subject is read beneath the tags over it. `shape` folds the leaves
-      of every element into one schema.
+      under a tag is a leaf of its kind, which tells of itself on its
+      page, a quote and a doc among them; a set opens as a vector does,
+      its elements read by their places; an empty vector or map is a part
+      that holds none, and the subject is read beneath the tags over it.
+      `shape` folds the leaves of every element into one schema.
       ::link~(::any/shape | doc) ::link~(::any/get | doc)
       ::link~(::path | doc)
   ~~|
@@ -2352,7 +2353,10 @@
         ~(::A::B{:w 2} | paths | eq #[[/w ::number]])
     | proves :standsAtATag
         |~~ A part under a tag is a leaf of its kind. ~~|
-        ~({:q ~(add 1) :d |~~ d ~~| :s #[1]} | paths | eq #[[/d ::doc] [/q ::quote] [/s ::set]])
+        ~({:q ~(add 1) :d |~~ d ~~| :t ::Box{:w 1}} | paths | eq #[[/d ::doc] [/q ::quote] [/t ::Box]])
+    | proves :opensASetAsAVector
+        |~~ A set opens as a vector does, its elements read by places. ~~|
+        ~({:s #[1 2]} | paths | eq #[[/s/0 ::number] [/s/1 ::number]])
     | proves :eachReadsByGet
         |~~ Each path of the outline reads its part. ~~|
         ~({:a {:b 1}} | :v it | paths | map ~(:p (get /0) | (v | get p)) | eq [1])
@@ -2361,26 +2365,29 @@
 :any/shape
   |~~ Answers the shape of a value, its schema in its own literal under
       `::shape`, whose page tells how a shape reads: each map keeps its
-      keys, but a map whose values, maps, vectors or values under a tag,
-      share one shape folds into `::each` over it, the map a reader's data
-      keys by names or ids, `{:alice {:id 1} :bob {:id 2}} | shape`
-      answering `::shape::each{:id ::number}`; each vector holds one
-      element whose shape holds of all its elements, and each part that
-      holds no parts stands as its kind, as `type` answers it, a part
-      under a tag as its tag:
+      keys, but a map whose values, maps, vectors, sets, values under a
+      tag or null, share one shape folds into `::each` over it, the map a
+      reader's data keys by names or ids, `{:alice {:id 1} :bob {:id 2}} |
+      shape` answering `::shape::each{:id ::number}`; each vector and each
+      set holds one element whose shape holds of all its elements, a set
+      as `#[E]`, and each part that holds no parts stands as its kind, as
+      `type` answers it, a part under a tag as its tag, which tells of
+      itself on its page:
       `{:users [{:name "a" :age 1} {:name "b" :age "2"}]} | shape`
       answers `::shape{:users [{:name ::string :age #[::number ::string]}]}`.
-      Where the elements part, the shape there is the set of their kinds,
-      records merged where they hold the same keys and standing apart
-      where they do not, so the shape folds them as far as their keys
-      agree and stitches in no key a record lacks:
-      `[{:a 1} {:a 2 :b "x"}] | shape` answers
-      `::shape[#[{:a ::number} {:a ::number :b ::string}]]`. An empty
-      vector is `[]`, and the subject is read beneath the tags over it. So
-      a reader looks at the input before the query is shaped, and the
-      paths of the data read its shape as far as a part holds one kind,
-      `/users/0/age` the kinds the age of every user holds.
-      ::link~(::shape | doc) ::link~(::each | doc)
+      Records that share a key merge into one, a key some lack marked
+      `::absent` and a part null in some `::nullable`, and records that
+      share no key stand apart; where the elements part, the shape there is
+      the set of their kinds:
+      `[{:a 1} {:a null :b "x"} {:c 2}] | shape` answers
+      `::shape[#[{:a ::nullable::number :b ::absent::string} {:c ::number}]]`.
+      An empty vector is `[]`, and the subject is read beneath the tags
+      over it. So a reader looks at the input before the query is shaped,
+      and the paths of the data read its shape through its marks as far as
+      a part holds one kind, `/users/0/age` the kinds the age of every
+      user holds.
+      ::link~(::shape | doc) ::link~(::absent | doc)
+      ::link~(::nullable | doc) ::link~(::each | doc)
       ::link~(::any/paths | doc) ::link~(::any/type | doc)
   ~~|
   ::fn
@@ -2400,15 +2407,20 @@
         |~~ Where the elements part, the shape is the set of their kinds.
         ~~|
         ~([1 "a" 2] | shape | eq ::shape[#[::number ::string]])
-    | proves :mergesRecordsOfTheSameKeys
-        |~~ Records of the same keys merge key by key. ~~|
-        ~([{:a 1} {:a null}] | shape | eq ::shape[{:a #[::null ::number]}])
-    | proves :keepsRecordsOfOtherKeysApart
-        |~~ Records of other keys stand apart, no key stitched in. ~~|
-        ~([{:a 1} {:a 2 :b "x"}] | shape | eq ::shape[#[{:a ::number} {:a ::number :b ::string}]])
+    | proves :mergesRecordsThatShareAKey
+        |~~ Records that share a key merge, a key some lack absent and a
+            part null in some nullable.
+        ~~|
+        ~([{:a 1} {:a null :b "x"}] | shape | eq ::shape[{:a ::nullable::number :b ::absent::string}])
+    | proves :keepsRecordsOfNoCommonKeyApart
+        |~~ Records that share no key stand apart. ~~|
+        ~([{:a 1} {:b "x"}] | shape | eq ::shape[#[{:a ::number} {:b ::string}]])
     | proves :standsAtATag
         |~~ A part under a tag stands as its tag. ~~|
-        ~({:t ::Box{:w 1} :q ~(add 1) :s #[1]} | shape | eq ::shape{:t ::Box :q ::quote :s ::set})
+        ~({:t ::Box{:w 1} :q ~(add 1)} | shape | eq ::shape{:t ::Box :q ::quote})
+    | proves :opensASetAsAVector
+        |~~ A set holds one element whose shape holds of all of them. ~~|
+        ~(#[1 2] | shape | eq ::shape#[::number])
     | proves :readsBeneathTheTagsOfItsSubject
         |~~ The subject is read beneath its tags. ~~|
         ~(::Box{:w 1} | shape | eq ::shape{:w ::number})

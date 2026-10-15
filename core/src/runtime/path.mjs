@@ -11,7 +11,7 @@ import { mintUnderTag } from './verb.mjs';
 import { deepEqual } from '../equality.mjs';
 import {
   isPath, makePath, isKeyword, isQMap, isVec, isQSet, isValueClass, isErrorValue, isTaggedInstance, keyword, makeSet,
-  makeTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL, EACH_TAG, SHAPE_TAG
+  makeTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL, ABSENT_TAG, EACH_TAG, NULLABLE_TAG, SHAPE_TAG
 } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
@@ -133,15 +133,16 @@ export function pathReads(subject, path) {
 }
 
 // The value the outline and the shape read: the subject beneath the tags
-// over it, and below it a vector or a map as a reader writes one, a part
-// under a tag standing whole as a leaf of its kind [QSPTH#words].
+// over it, and below it a vector, a set or a map as a reader writes one, a
+// part under a tag standing whole as a leaf of its kind, which tells of
+// itself on its page [QSPTH#words].
 function beneathItsTags(subject) {
   let beneath = subject;
   while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
   return beneath;
 }
 
-const isOpened = (value, top) => (isQMap(value) || isVec(value)) && (top || !isTaggedInstance(value));
+const isOpened = (value, top) => (isQMap(value) || isVec(value)) && (top || !isTaggedInstance(value) || isQSet(value));
 
 // The outline of a value: the pair of the path and the kind of every part
 // that holds no parts, an empty container among them.
@@ -162,9 +163,9 @@ bindPrim('any/paths', subject => {
 });
 
 // The shape of a value: each map with its keys, a map whose values share
-// one shape folding into `::each` over it, each vector one element whose
-// shape holds of all its elements, and each part that holds no parts its
-// kind.
+// one shape folding into `::each` over it, each vector and each set one
+// element whose shape holds of all its elements, a set as `#[E]`, and each
+// part that holds no parts its kind.
 function shapeOf(current, top) {
   const value = top ? beneathItsTags(current) : current;
   if (!isOpened(value, top)) return typeKeyword(value);
@@ -172,53 +173,94 @@ function shapeOf(current, top) {
     const shapes = new Map([...value].map(([key, part]) => [key, shapeOf(part, false)]));
     return foldedOf(value, shapes) ?? shapes;
   }
-  return Object.freeze(value.length === 0 ? [] : [value.map(element => shapeOf(element, false)).reduce(mergedShape)]);
+  const element = value.length === 0 ? [] : [[...value].map(part => shapeOf(part, false)).reduce(mergedShape)];
+  return isQSet(value) ? makeSet(element) : Object.freeze(element);
 }
 
-// A map of more than one value, every value a map, a vector or a value
-// under a tag, whose shapes merge into one, no kinds parting among them,
-// folds into `::each` over that shape, its keys left to the data. A map of
-// one key, of atoms, whose keys are the fields a reader reads, or of
+// A map of more than one value, every value a map, a vector, a set, a value
+// under a tag or null, whose shapes merge into one, no kinds parting among
+// them, folds into `::each` over that shape, its keys left to the data. A
+// map of one key, of atoms, whose keys are the fields a reader reads, or of
 // values of other kinds keeps its keys.
-const holdsParts = part => isQMap(part) || isVec(part) || isTaggedInstance(part);
+const holdsParts = part => part === null || isQMap(part) || isVec(part) || isTaggedInstance(part);
 
 function foldedOf(value, shapes) {
-  if (value.size < 2 || ![...value.values()].every(holdsParts)) return null;
+  const parts = [...value.values()];
+  if (value.size < 2 || !parts.every(holdsParts) || parts.every(part => part === null)) return null;
   const merged = [...shapes.values()].reduce(mergedShape);
-  return isQSet(merged) ? null : makeTaggedInstance(EACH_TAG, merged);
+  return isAlternatives(merged) ? null : makeTaggedInstance(EACH_TAG, merged);
 }
-
-const isEach = value => isTaggedInstance(value) && value[TAG_HEADER_SYMBOL].name === EACH_TAG.name;
-const eachOf = value => (isValueClass(value, 'taggedInstance') ? value.payload : isVec(value) ? Object.freeze([...value]) : new Map(value));
-const eachesMerge = (left, right) => isEach(left) && isEach(right) && !isQSet(mergedShape(eachOf(left), eachOf(right)));
 
 // The schema stands under `::shape`, whose page tells how a shape reads.
 bindPrim('any/shape', subject => makeTaggedInstance(SHAPE_TAG, shapeOf(subject, true)));
 
-// The shape two parts share: two maps of the same keys a map of their
-// shapes key by key; two vectors the vector of their elements' shape, an
-// empty one giving way; two folds `::each` over the shape their values
-// share, where they share one; and any other two the set of their kinds, a
-// vector in it merged with a vector, a fold with a fold and a map with a
-// map of the same keys. Maps of other keys stand apart, no key stitched in
-// that one of them lacks, so the shape folds the records as far as their
-// keys agree and no further.
-const sameKeys = (left, right) => left.size === right.size && [...left.keys()].every(key => right.has(key));
-const merging = (left, right) => eachesMerge(left, right)
-  || (isOpened(left, false) && isOpened(right, false) && isQMap(left) === isQMap(right) && (!isQMap(left) || sameKeys(left, right)));
+// The marks a shape carries over its core, `::absent` outside, a key some
+// records lack, and `::nullable` within, a part null in some of the data;
+// a part that is null alone stands as `::null`.
+const NULL_KIND = typeKeyword(null);
+const isMark = (value, tag) => isTaggedInstance(value) && value[TAG_HEADER_SYMBOL].name === tag.name;
+const under = value => (isValueClass(value, 'taggedInstance') ? value.payload : isVec(value) ? Object.freeze([...value]) : new Map(value));
 
+function marksOf(shape) {
+  let core = shape;
+  const absent = isMark(core, ABSENT_TAG);
+  if (absent) core = under(core);
+  const nullable = isMark(core, NULLABLE_TAG);
+  if (nullable) core = under(core);
+  return { absent, nullable, core };
+}
+
+function marked({ absent, nullable, core }) {
+  const held = nullable && !deepEqual(core, NULL_KIND) ? makeTaggedInstance(NULLABLE_TAG, core) : core;
+  return absent ? makeTaggedInstance(ABSENT_TAG, held) : held;
+}
+
+// The shape two parts share: their marks joined over the shape their cores
+// share, a null giving way to the other as `::nullable`.
 function mergedShape(left, right) {
   if (deepEqual(left, right)) return left;
-  if (eachesMerge(left, right)) return makeTaggedInstance(EACH_TAG, mergedShape(eachOf(left), eachOf(right)));
-  if (merging(left, right)) {
-    if (isQMap(left)) return new Map([...left.keys()].map(key => [key, mergedShape(left.get(key), right.get(key))]));
-    return left.length === 0 ? right : right.length === 0 ? left : Object.freeze([mergedShape(left[0], right[0])]);
+  const l = marksOf(left);
+  const r = marksOf(right);
+  const leftNull = deepEqual(l.core, NULL_KIND);
+  const rightNull = deepEqual(r.core, NULL_KIND);
+  const core = leftNull ? r.core : rightNull ? l.core : mergedCore(l.core, r.core);
+  return marked({ absent: l.absent || r.absent, nullable: l.nullable || r.nullable || leftNull || rightNull, core });
+}
+
+// The shape two cores share: two vectors the vector of their elements'
+// shape and two sets the set of it, an empty one giving way; two records
+// that share a key, an empty one among them, the record of the keys of
+// both, a key one of them lacks marked `::absent`; two folds `::each` over
+// the shape their values share, where they share one; and any other two
+// the set of their kinds, two or more where they part, a vector in it
+// merged with a vector, a set with a set, a fold with a fold and a record
+// with a record it shares a key with. Records of no common key stand
+// apart, so the shape folds records as far as they share their keys.
+const isSetOf = shape => isQSet(shape) && shape.length < 2;
+const isAlternatives = shape => isQSet(shape) && shape.length > 1;
+const isRecord = shape => isQMap(shape) && !isTaggedInstance(shape);
+const isList = shape => isVec(shape) && !isTaggedInstance(shape);
+const shareAKey = (left, right) => left.size === 0 || right.size === 0 || [...left.keys()].some(key => right.has(key));
+const eachesMerge = (left, right) => isMark(left, EACH_TAG) && isMark(right, EACH_TAG) && !isAlternatives(mergedShape(under(left), under(right)));
+const mergesWith = (left, right) => deepEqual(left, right) || eachesMerge(left, right) || (isSetOf(left) && isSetOf(right))
+  || (isList(left) && isList(right)) || (isRecord(left) && isRecord(right) && shareAKey(left, right));
+const mergedElement = (left, right) => (left.length === 0 ? [...right] : right.length === 0 ? [...left] : [mergedShape(left[0], right[0])]);
+const lacked = shape => marked({ ...marksOf(shape), absent: true });
+
+function mergedCore(left, right) {
+  if (deepEqual(left, right)) return left;
+  if (eachesMerge(left, right)) return makeTaggedInstance(EACH_TAG, mergedShape(under(left), under(right)));
+  if (isSetOf(left) && isSetOf(right)) return makeSet(mergedElement(left, right));
+  if (isList(left) && isList(right)) return Object.freeze(mergedElement(left, right));
+  if (isRecord(left) && isRecord(right) && shareAKey(left, right)) {
+    const keys = [...new Set([...left.keys(), ...right.keys()])];
+    return new Map(keys.map(key => [key, left.has(key) && right.has(key) ? mergedShape(left.get(key), right.get(key)) : lacked(left.get(key) ?? right.get(key))]));
   }
   const kinds = [];
-  for (const shape of [...(isQSet(left) ? left : [left]), ...(isQSet(right) ? right : [right])]) {
-    const same = kinds.findIndex(kept => merging(kept, shape));
+  for (const shape of [...(isAlternatives(left) ? left : [left]), ...(isAlternatives(right) ? right : [right])]) {
+    const same = kinds.findIndex(kept => mergesWith(kept, shape));
     if (same === -1) kinds.push(shape);
-    else kinds[same] = mergedShape(kinds[same], shape);
+    else kinds[same] = mergedCore(kinds[same], shape);
   }
   const set = makeSet(kinds);
   return set.length === 1 ? set[0] : set;

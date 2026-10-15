@@ -8,15 +8,19 @@
       `::shape{:users [{:age #[::number ::string]}]}`. Under it each part
       reads as the schema of the part of the value at the same path: a
       tag the kind of a part that holds no parts, as `type` answers it, a
-      part under a tag standing as its tag; a map a record, its keys the
-      keys of the data; a vector one element whose shape holds of all the
-      elements, `[]` an empty one; `#[…]` the kinds where the elements
-      part, records of other keys among them; and `::each` a map whose
-      values share one shape, its keys left to the data. The paths of the
-      data read a shape as far as a part holds one kind, past the key a
-      fold stands for, and a part a path reads out of a shape is that
-      schema without the tag.
-      ::link~(::any/shape | doc) ::link~(::each | doc)
+      part under a tag standing as its tag, which tells of itself on its
+      page; a map a record, its keys the keys of the data; a vector one
+      element whose shape holds of all the elements, `[]` an empty one,
+      and a set the same as `#[E]`, `#[]` an empty one; `#[a b]`, two
+      kinds or more, the kinds where the elements part; and three marks
+      over a part, `::absent` a key some records lack, `::nullable` a
+      part null in some of the data, and `::each` a map whose values
+      share one shape, its keys left to the data. The paths of the data
+      read a shape through its marks as far as a part holds one kind,
+      past the key a fold stands for, and a part a path reads out of a
+      shape is that schema without the tag.
+      ::link~(::any/shape | doc) ::link~(::absent | doc)
+      ::link~(::nullable | doc) ::link~(::each | doc)
   ~~|
   ::kind
     | proves :standsOverTheSchemaShapeAnswers
@@ -25,3 +29,6 @@
     | proves :readsByThePathsOfTheData
         |~~ A path of the data reads its part of the shape. ~~|
         ~({:a {:b 1}} | shape | get /a/b | eq ::number)
+    | proves :opensASetAsItOpensAVector
+        |~~ A set opens as a vector does, one element for all of them. ~~|
+        ~({:s #[1 2]} | shape | eq ::shape{:s #[::number]})

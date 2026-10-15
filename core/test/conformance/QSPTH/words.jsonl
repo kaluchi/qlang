@@ -10,22 +10,30 @@
 {"name":"an-atom-has-no-paths","query":"5 | paths","expect":"#[]"}
 {"name":"toPath-refuses-an-element-that-is-no-key","query":"[:a 1.5] | toPath !| type","expect":"::vec/toPath/ElementNotKeyError"}
 {"name":"toPath-reads-the-fragment-of-a-json-pointer","query":"\"#/a\" | toPath","expect":"/a"}
-{"decision":"D324","name":"paths-stands-at-a-part-under-a-tag","query":"{:q ~(add 1) :d |~~ d ~~| :s #[1]} | paths","expect":"#[[/d ::doc] [/q ::quote] [/s ::set]]"}
+{"decision":"D324","name":"paths-stands-at-a-part-under-a-tag","query":"{:q ~(add 1) :d |~~ d ~~| :t ::Box{:w 1}} | paths","expect":"#[[/d ::doc] [/q ::quote] [/t ::Box]]"}
+{"decision":"D324","name":"paths-opens-a-set-as-a-vector","query":"{:s #[1 2]} | paths","expect":"#[[/s/0 ::number] [/s/1 ::number]]"}
 {"decision":"D324","name":"paths-reads-its-subject-beneath-its-tags","query":"::A::B{:w 2} | paths","expect":"#[[/w ::number]]"}
 {"decision":"D324","name":"shape-answers-the-kind-of-an-atom","query":"[5 \"a\" null :k /a true] | map ~shape","expect":"[::shape::number ::shape::string ::shape::null ::shape::keyword ::shape::path ::shape::boolean]"}
 {"decision":"D324","name":"shape-keeps-the-keys-of-a-map","query":"{:a 1 :b {:c \"x\"}} | shape","expect":"::shape{:a ::number :b {:c ::string}}"}
 {"decision":"D324","name":"shape-folds-the-elements-of-a-vector-into-one","query":"[[1 2] [] [3]] | shape","expect":"::shape[[::number]]"}
 {"decision":"D324","name":"shape-sets-the-kinds-where-elements-part","query":"[1 \"a\" 2] | shape","expect":"::shape[#[::number ::string]]"}
 {"decision":"D324","name":"shape-merges-a-vector-with-a-vector-among-the-kinds-and-keeps-maps-of-other-keys-apart","query":"[1 {:a 1} [2] {:b \"x\"} []] | shape","expect":"::shape[#[::number [::number] {:a ::number} {:b ::string}]]"}
-{"decision":"D324","name":"shape-merges-records-of-the-same-keys-key-by-key","query":"[{:a 1} {:a null}] | shape","expect":"::shape[{:a #[::null ::number]}]"}
-{"decision":"D324","name":"shape-keeps-records-of-other-keys-apart","query":"[{:a 1} {:a 2 :b \"x\"}] | shape","expect":"::shape[#[{:a ::number} {:a ::number :b ::string}]]"}
+{"decision":"D324","name":"shape-marks-a-part-null-in-some-records-nullable","query":"[{:a 1} {:a null}] | shape","expect":"::shape[{:a ::nullable::number}]"}
+{"decision":"D324","name":"shape-reads-a-record-null-in-some-through-its-mark","query":"[{:author {:login \"a\"}} {:author null}] | shape | get /0/author/login","expect":"::string"}
+{"decision":"D324","name":"shape-leaves-a-part-null-alone-as-its-kind","query":"{:next null} | shape","expect":"::shape{:next ::null}"}
+{"decision":"D324","name":"shape-sets-the-kinds-that-part-under-the-null-mark","query":"[1 \"a\" null] | shape","expect":"::shape[::nullable#[::number ::string]]"}
+{"decision":"D324","name":"shape-merges-records-that-share-a-key-marking-a-key-some-lack-absent","query":"[{:a 1} {:a 2 :b \"x\"}] | shape","expect":"::shape[{:a ::number :b ::absent::string}]"}
+{"decision":"D324","name":"shape-marks-a-key-missing-in-some-and-null-in-others-absent-outside-nullable","query":"[{:a 1} {:a null} {}] | shape","expect":"::shape[{:a ::absent::nullable::number}]"}
+{"decision":"D324","name":"shape-keeps-records-of-no-common-key-apart","query":"[{:a 1} {:b \"x\"}] | shape","expect":"::shape[#[{:a ::number} {:b ::string}]]"}
 {"decision":"D324","name":"shape-folds-a-map-whose-values-share-one-shape-into-each","query":"{:alice {:id 1} :bob {:id 2}} | shape","expect":"::shape::each{:id ::number}"}
 {"decision":"D324","name":"shape-folds-a-map-of-values-under-one-tag","query":"{:alice ::user{:id 1} :bob ::user{:id 2}} | shape","expect":"::shape::each::user"}
 {"decision":"D324","name":"shape-keeps-the-fields-of-a-map-of-atoms","query":"{:x 1 :y 2} | shape","expect":"::shape{:x ::number :y ::number}"}
 {"decision":"D324","name":"shape-keeps-the-key-of-a-map-of-one","query":"{:users [{:id 1}]} | shape","expect":"::shape{:users [{:id ::number}]}"}
-{"decision":"D324","name":"shape-merges-the-folds-of-a-vector-of-maps","query":"[{:a {:id 1} :b {:id 2}} {:c {:id null} :d {:id 3}}] | shape","expect":"::shape[::each{:id #[::null ::number]}]"}
+{"decision":"D324","name":"shape-merges-the-folds-of-a-vector-of-maps","query":"[{:a {:id 1} :b {:id 2}} {:c {:id null} :d {:id 3}}] | shape","expect":"::shape[::each{:id ::nullable::number}]"}
+{"decision":"D324","name":"shape-folds-a-map-with-null-among-its-values","query":"{:u1 {:id 1} :u2 null :u3 {:id 3}} | shape","expect":"::shape::each::nullable{:id ::number}"}
 {"decision":"D324","name":"shape-reads-the-path-of-the-data-past-the-key-a-fold-stands-for","query":"{:alice {:id 1} :bob {:id 2}} | shape | get /id","expect":"::number"}
-{"decision":"D324","name":"shape-stands-at-a-part-under-a-tag","query":"{:t ::Box{:w 1} :q ~(add 1) :s #[1] :d |~~ d ~~|} | shape","expect":"::shape{:t ::Box :q ::quote :s ::set :d ::doc}"}
+{"decision":"D324","name":"shape-stands-at-a-part-under-a-tag","query":"{:t ::Box{:w 1} :q ~(add 1) :d |~~ d ~~|} | shape","expect":"::shape{:t ::Box :q ::quote :d ::doc}"}
+{"decision":"D324","name":"shape-opens-a-set-as-a-vector","query":"get [~({:s #[1 2]} | shape) ~(#[:a :b] | shape)]","expect":"[::shape{:s #[::number]} ::shape#[::keyword]]"}
 {"decision":"D324","name":"shape-reads-its-subject-beneath-its-tags","query":"::Box{:w 1} | shape","expect":"::shape{:w ::number}"}
 {"decision":"D324","name":"shape-of-an-empty-vector-and-an-empty-map-are-themselves","query":"get [~([] | shape) ~({} | shape)]","expect":"[::shape[] ::shape{}]"}
 {"decision":"D324","name":"the-paths-of-the-data-read-its-shape","query":"{:users [{:age 1} {:age \"2\"}]} | shape | get /users/0/age","expect":"#[::number ::string]"}

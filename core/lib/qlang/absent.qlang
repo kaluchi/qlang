@@ -1,0 +1,27 @@
+|~ `::absent`, the mark in a shape of a key some records lack, and the
+   laws declared under it.
+   The decisions it exists for: [QSDSP#residence]. ~|
+
+:absent
+  |~~ An absent marks, in the shape of a value, a key that some of the
+      records merged there hold and others lack, over the shape of what
+      the records that hold it hold:
+      `[{:a 1} {:a 2 :b "x"}] | shape` answers
+      `::shape[{:a ::number :b ::absent::string}]`. Records that share a
+      key merge so, the keys of all of them in one record and a key some
+      lack marked; records that share no key stand apart as the kinds
+      where the elements part. A key the mark stands over may be missing
+      from the data, so `get` refuses it where it is and `query` reads it
+      softly; the mark stands outside `::nullable`.
+      ::link~(::shape | doc) ::link~(::nullable | doc)
+      ::link~(::any/query | doc)
+  ~~|
+  ::kind
+    | proves :marksAKeySomeRecordsLack
+        |~~ A key some records lack stands marked absent. ~~|
+        ~([{:a 1} {:a 2 :b "x"}] | shape | eq ::shape[{:a ::number :b ::absent::string}])
+    | proves :standsOutsideTheNullMark
+        |~~ A key missing from some records and null in others is absent
+            outside and nullable within.
+        ~~|
+        ~([{:a 1} {:a null} {}] | shape | eq ::shape[{:a ::absent::nullable::number}])

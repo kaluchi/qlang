@@ -272,10 +272,12 @@ function stampSlot(target, slot, value) {
 // The tags the runtime names.
 export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
+export const ABSENT_TAG      = makeTag('absent');
 export const DOC_TAG         = makeTag(DOC_TAG_NAME);
 export const EACH_TAG        = makeTag('each');
 export const ELISION_TAG     = makeTag('elision');
 export const ERROR_TAG       = makeTag('error');
+export const NULLABLE_TAG    = makeTag('nullable');
 export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTag(SET_TAG_NAME);
 export const SHAPE_TAG       = makeTag('shape');

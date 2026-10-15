@@ -9,12 +9,13 @@
       `::shape::each{:id ::number}`, the one shape of every value standing for
       all of them and the keys left to the data, which `keys` reads. A map
       folds so where it holds more than one value, every value a map, a
-      vector or a value under a tag, and all of one shape; a map of one
-      key keeps it, a map of atoms keeps its keys, the fields a reader
-      reads, `{:x 1 :y 2} | shape` answering
-      `::shape{:x ::number :y ::number}`,
-      and a map of values of other kinds, null among them, keeps its keys
-      as well. A path of the data reads the shape past the
+      vector, a set, a value under a tag or null, and all of one shape,
+      records merging as they merge in a vector and a null among them
+      marking the fold `::nullable`; a map of one key keeps it, a map of
+      atoms keeps its keys, the fields a reader reads, `{:x 1 :y 2} |
+      shape` answering `::shape{:x ::number :y ::number}`, and a map of
+      values of other kinds keeps its keys as well. A path of the data
+      reads the shape past the
       key the fold stands for, `/alice/id` of the data `/id` of the shape,
       and a vector of such maps is `[::each{…}]`, a map of vectors
       `::each[…]`.

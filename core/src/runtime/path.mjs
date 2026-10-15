@@ -162,10 +162,11 @@ bindPrim('any/paths', subject => {
   return makeSet(found);
 });
 
-// The shape of a value: each map with its keys, a map whose values share
-// one shape folding into `::each` over it, each vector and each set one
-// element whose shape holds of all its elements, a set as `#[E]`, and each
-// part that holds no parts its kind.
+// The shape of a value: each map with its keys, a map keyed by data or by
+// many names folding into `::each`, each vector and each set one element
+// whose shape holds of all its elements, a set as `#[E]`, vectors of one
+// length whose places part a tuple, and each part that holds no parts its
+// kind.
 function shapeOf(current, top) {
   const value = top ? beneathItsTags(current) : current;
   if (!isOpened(value, top)) return typeKeyword(value);
@@ -173,29 +174,38 @@ function shapeOf(current, top) {
     const shapes = new Map([...value].map(([key, part]) => [key, shapeOf(part, false)]));
     return foldedOf(value, shapes) ?? shapes;
   }
-  const element = value.length === 0 ? [] : [[...value].map(part => shapeOf(part, false)).reduce(mergedShape)];
+  const elements = [...value];
+  const element = elements.length === 0 ? [] : [tupleOf(elements) ?? elements.map(part => shapeOf(part, false)).reduce(mergedShape)];
   return isQSet(value) ? makeSet(element) : Object.freeze(element);
 }
 
-// A map whose values share one shape, no kinds parting among them, folds
-// into `::each` over its first key and that shape, the one key standing for
-// all of them, where its keys are data or its names are many. A key is data
-// where it reads as no name, a date, an id of digits, an address; a map
-// keyed so folds over values of any kind. A map keyed by names, the fields
-// a reader reads by `get`, folds where it holds more than eight and every
-// value a map, a vector, a set, a value under a tag or null, the map a
-// reader's data keys by its users' names; a map of fewer names keeps them.
+// Vectors of one length, two places or more, whose places part are tuples,
+// the shape of each place across them, `[A B]`, so a path of the data
+// through a place reads it; where every place holds one shape they are
+// lists, `[E]`.
+function tupleOf(elements) {
+  if (!elements.every(isList) || new Set(elements.map(element => element.length)).size !== 1 || elements[0].length < 2) return null;
+  const places = elements[0].map((_, index) => elements.map(element => shapeOf(element[index], false)).reduce(mergedShape));
+  return places.every(place => deepEqual(place, places[0])) ? null : Object.freeze(places);
+}
+
+// A map folds into `::each` over its first key and the shape of its values,
+// the one key standing for all of them, where its keys are data, a key that
+// reads as no name, a date, an id of digits, an address, whatever its values
+// hold, kinds that part among them; and where it holds more than eight
+// names whose values share one shape, the map a reader's data keys by its
+// users' names or its metrics. A map of fewer names keeps them, the fields
+// a reader reads by `get`, as a map of many names whose values part does.
 const NAME = /^[A-Za-z_][A-Za-z0-9_-]*$/;
 const NAMES_A_RECORD_HOLDS = 8;
-const holdsParts = part => part === null || isQMap(part) || isVec(part) || isTaggedInstance(part);
 
 function foldedOf(value, shapes) {
   const parts = [...value.values()];
   if (value.size === 0 || parts.every(part => part === null)) return null;
   const keyedByData = [...value.keys()].some(key => !NAME.test(key));
-  if (!keyedByData && (value.size <= NAMES_A_RECORD_HOLDS || !parts.every(holdsParts))) return null;
+  if (!keyedByData && value.size <= NAMES_A_RECORD_HOLDS) return null;
   const merged = [...shapes.values()].reduce(mergedShape);
-  if (isAlternatives(merged)) return null;
+  if (!keyedByData && isAlternatives(merged)) return null;
   const [first] = value.keys();
   return makeTaggedInstance(EACH_TAG, new Map([[first, merged]]));
 }
@@ -237,14 +247,16 @@ function mergedShape(left, right) {
 }
 
 // The shape two cores share: two vectors the vector of their elements'
-// shape and two sets the set of it, an empty one giving way; two records
-// that share a key, an empty one among them, the record of the keys of
-// both, a key one of them lacks marked `::absent`; two folds `::each` over
-// the shape their values share, where they share one; and any other two
-// the set of their kinds, two or more where they part, a vector in it
-// merged with a vector, a set with a set, a fold with a fold and a record
-// with a record it shares a key with. Records of no common key stand
-// apart, so the shape folds records as far as they share their keys.
+// shape, two tuples of one length place by place, and two sets the set of
+// it, the element of one that is empty marked `::absent`, its first place
+// missing there; two records that share a key, an empty one among them, the
+// record of the keys of both, a key one of them lacks marked `::absent`;
+// two folds `::each` over the shape their values share, where they share
+// one, and an empty map a fold whose value it marks `::absent`; and any
+// other two the set of their kinds, two or more where they part, any two
+// of them that merge merged until none do, so records that share keys
+// merge whatever their order. Records of no common key stand apart, so the
+// shape folds records as far as they share their keys.
 const isSetOf = shape => isQSet(shape) && shape.length < 2;
 const isAlternatives = shape => isQSet(shape) && shape.length > 1;
 const isRecord = shape => isQMap(shape) && !isTaggedInstance(shape);
@@ -257,24 +269,40 @@ const isEmptyRecord = shape => isRecord(shape) && shape.size === 0;
 const eachAndEmpty = (left, right) => (isMark(left, EACH_TAG) && isEmptyRecord(right)) || (isEmptyRecord(left) && isMark(right, EACH_TAG));
 const mergesWith = (left, right) => deepEqual(left, right) || eachesMerge(left, right) || eachAndEmpty(left, right) || (isSetOf(left) && isSetOf(right))
   || (isList(left) && isList(right)) || (isRecord(left) && isRecord(right) && shareAKey(left, right));
-const mergedElement = (left, right) => (left.length === 0 ? [...right] : right.length === 0 ? [...left] : [mergedShape(left[0], right[0])]);
 const lacked = shape => marked({ ...marksOf(shape), absent: true });
+const collapsed = places => places.reduce(mergedShape);
+
+function mergedPlaces(left, right) {
+  if (left.length === 0 || right.length === 0) return left.length === right.length ? [] : [lacked(collapsed(left.length === 0 ? right : left))];
+  if (left.length !== right.length) return [collapsed([...left, ...right])];
+  const places = left.map((place, index) => mergedShape(place, right[index]));
+  return places.every(place => deepEqual(place, places[0])) ? [places[0]] : places;
+}
 
 function mergedCore(left, right) {
   if (deepEqual(left, right)) return left;
   if (eachesMerge(left, right)) return makeTaggedInstance(EACH_TAG, new Map([[eachKey(left), mergedShape(eachShape(left), eachShape(right))]]));
-  if (eachAndEmpty(left, right)) return isEmptyRecord(left) ? right : left;
-  if (isSetOf(left) && isSetOf(right)) return makeSet(mergedElement(left, right));
-  if (isList(left) && isList(right)) return Object.freeze(mergedElement(left, right));
+  if (eachAndEmpty(left, right)) {
+    const each = isEmptyRecord(left) ? right : left;
+    return makeTaggedInstance(EACH_TAG, new Map([[eachKey(each), lacked(eachShape(each))]]));
+  }
+  if (isSetOf(left) && isSetOf(right)) return makeSet(mergedPlaces(left, right));
+  if (isList(left) && isList(right)) return Object.freeze(mergedPlaces(left, right));
   if (isRecord(left) && isRecord(right) && shareAKey(left, right)) {
     const keys = [...new Set([...left.keys(), ...right.keys()])];
     return new Map(keys.map(key => [key, left.has(key) && right.has(key) ? mergedShape(left.get(key), right.get(key)) : lacked(left.get(key) ?? right.get(key))]));
   }
-  const kinds = [];
-  for (const shape of [...(isAlternatives(left) ? left : [left]), ...(isAlternatives(right) ? right : [right])]) {
-    const same = kinds.findIndex(kept => mergesWith(kept, shape));
-    if (same === -1) kinds.push(shape);
-    else kinds[same] = mergedCore(kinds[same], shape);
+  const kinds = [...(isAlternatives(left) ? left : [left]), ...(isAlternatives(right) ? right : [right])];
+  for (let found = true; found;) {
+    found = false;
+    for (let at = 0; at < kinds.length && !found; at += 1) {
+      const with_ = kinds.findIndex((kind, index) => index > at && mergesWith(kinds[at], kind));
+      if (with_ !== -1) {
+        kinds[at] = mergedCore(kinds[at], kinds[with_]);
+        kinds.splice(with_, 1);
+        found = true;
+      }
+    }
   }
   const set = makeSet(kinds);
   return set.length === 1 ? set[0] : set;

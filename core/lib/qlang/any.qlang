@@ -2370,7 +2370,9 @@
       that shape, `{:"17" {:id 1} :"42" {:id 2}} | shape` answering
       `::shape::each{:"17" {:id ::number}}`; each vector and each
       set holds one element whose shape holds of all its elements, a set
-      as `#[E]`, and each part that holds no parts stands as its kind, as
+      as `#[E]` and the element of one empty in some marked `::absent`,
+      vectors of one length whose places part a tuple, `[::string
+      ::number]`, and each part that holds no parts stands as its kind, as
       `type` answers it, a part under a tag as its tag, which tells of
       itself on its page:
       `{:users [{:name "a" :age 1} {:name "b" :age "2"}]} | shape`
@@ -2400,9 +2402,15 @@
         ~({:a 1 :b {:c "x"}} | shape | eq ::shape{:a ::number :b {:c ::string}})
     | proves :foldsTheElementsOfAVector
         |~~ A vector holds one element whose shape holds of all, an empty
-            one giving way.
+            one marking the element of the rest absent.
         ~~|
-        ~([[1 2] [] [3]] | shape | eq ::shape[[::number]])
+        ~([[1 2] [] [3]] | shape | eq ::shape[[::absent::number]])
+    | proves :readsTuplesPlaceByPlace
+        |~~ Vectors of one length whose places part are tuples. ~~|
+        ~([["a" 1] ["b" null]] | shape | eq ::shape[[::string ::nullable::number]])
+    | proves :mergesRecordsWhateverTheirOrder
+        |~~ Records that share keys merge whatever their order. ~~|
+        ~([{:a 1} {:b 2} {:a "x" :b 3}] | shape | eq ([{:a "x" :b 3} {:a 1} {:b 2}] | shape))
     | proves :setsTheKindsWhereElementsPart
         |~~ Where the elements part, the shape is the set of their kinds.
         ~~|

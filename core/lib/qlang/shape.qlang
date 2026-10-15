@@ -11,11 +11,14 @@
       part under a tag standing as its tag, which tells of itself on its
       page; a map a record, its keys the keys of the data; a vector one
       element whose shape holds of all the elements, `[]` an empty one,
-      and a set the same as `#[E]`, `#[]` an empty one; `#[a b]`, two
-      kinds or more, the kinds where the elements part; and three marks
-      over a part, `::absent` a key some records lack, `::nullable` a
-      part null in some of the data, and `::each` a map whose values
-      share one shape, over its first key standing for all of them. The
+      and a set the same as `#[E]`, `#[]` an empty one; a vector of two
+      shapes or more a tuple, vectors of one length whose places part,
+      `[::string ::number]`, a shape for each place; `#[a b]`, two kinds
+      or more, the kinds where the elements part; and three marks over a
+      part, `::absent` a key some records lack or the element of a vector
+      empty in some, `::nullable` a part null in some of the data, and
+      `::each` a map keyed by data or by many names, over its first key
+      standing for all of them. The
       paths of the data read a shape through its marks as far as a part
       holds one kind, through the key a fold shows, and a part a path
       reads out of a shape is that schema without the tag.

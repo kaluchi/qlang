@@ -2366,13 +2366,16 @@
       `{:users [{:name "a" :age 1} {:name "b" :age "2"}]} | shape`
       answers `{:users [{:name ::string :age #[::number ::string]}]}`.
       Where the elements part, the shape there is the set of their kinds,
-      a key some elements lack holding `::null` among them, as `query`
-      reads it; an empty vector is `[]`, and the subject is read beneath
-      the tags over it. So a reader looks at the input before the query
-      is shaped, and the paths of the data read its shape,
-      `/users/0/age` the kinds the age of every user holds.
+      records merged where they hold the same keys and standing apart
+      where they do not, so the shape folds them as far as their keys
+      agree and stitches in no key a record lacks:
+      `[{:a 1} {:a 2 :b "x"}] | shape` answers
+      `[#[{:a ::number} {:a ::number :b ::string}]]`. An empty vector is
+      `[]`, and the subject is read beneath the tags over it. So a reader
+      looks at the input before the query is shaped, and the paths of the
+      data read its shape as far as a part holds one kind, `/users/0/age`
+      the kinds the age of every user holds.
       ::link~(::any/paths | doc) ::link~(::any/type | doc)
-      ::link~(::any/query | doc)
   ~~|
   ::fn
     | returns |~~ The schema of the value. ~~| ::any
@@ -2391,9 +2394,12 @@
         |~~ Where the elements part, the shape is the set of their kinds.
         ~~|
         ~([1 "a" 2] | shape | eq [#[::number ::string]])
-    | proves :readsAMissingKeyAsNull
-        |~~ A key some records lack holds null among its kinds. ~~|
-        ~([{:a 1} {}] | shape | eq [{:a #[::null ::number]}])
+    | proves :mergesRecordsOfTheSameKeys
+        |~~ Records of the same keys merge key by key. ~~|
+        ~([{:a 1} {:a null}] | shape | eq [{:a #[::null ::number]}])
+    | proves :keepsRecordsOfOtherKeysApart
+        |~~ Records of other keys stand apart, no key stitched in. ~~|
+        ~([{:a 1} {:a 2 :b "x"}] | shape | eq [#[{:a ::number} {:a ::number :b ::string}]])
     | proves :standsAtATag
         |~~ A part under a tag stands as its tag. ~~|
         ~({:t ::Box{:w 1} :q ~(add 1) :s #[1]} | shape | eq {:t ::Box :q ::quote :s ::set})

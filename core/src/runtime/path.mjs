@@ -164,8 +164,6 @@ bindPrim('any/paths', subject => {
 // The shape of a value: each map with its keys, each vector one element
 // whose shape holds of all its elements, and each part that holds no parts
 // its kind.
-const NULL_KIND = typeKeyword(null);
-
 function shapeOf(current, top) {
   const value = top ? beneathItsTags(current) : current;
   if (!isOpened(value, top)) return typeKeyword(value);
@@ -175,22 +173,24 @@ function shapeOf(current, top) {
 
 bindPrim('any/shape', subject => shapeOf(subject, true));
 
-// The shape two parts share: two maps a map of the keys of both, a key one
-// lacks holding null among its kinds, as `query` reads it; two vectors the
-// vector of their elements' shape, an empty one giving way; and any other
-// two the set of their kinds, a map and a vector in it merged with their own.
+// The shape two parts share: two maps of the same keys a map of their
+// shapes key by key; two vectors the vector of their elements' shape, an
+// empty one giving way; and any other two the set of their kinds, a vector
+// in it merged with a vector and a map with a map of the same keys. Maps of
+// other keys stand apart, no key stitched in that one of them lacks, so the
+// shape folds the records as far as their keys agree and no further.
+const sameKeys = (left, right) => left.size === right.size && [...left.keys()].every(key => right.has(key));
+const merging = (left, right) => isOpened(left, false) && isOpened(right, false) && isQMap(left) === isQMap(right) && (!isQMap(left) || sameKeys(left, right));
+
 function mergedShape(left, right) {
   if (deepEqual(left, right)) return left;
-  if (isOpened(left, false) && isOpened(right, false) && isQMap(left) === isQMap(right)) {
-    if (isQMap(left)) {
-      const keys = [...new Set([...left.keys(), ...right.keys()])];
-      return new Map(keys.map(key => [key, mergedShape(left.get(key) ?? NULL_KIND, right.get(key) ?? NULL_KIND)]));
-    }
+  if (merging(left, right)) {
+    if (isQMap(left)) return new Map([...left.keys()].map(key => [key, mergedShape(left.get(key), right.get(key))]));
     return left.length === 0 ? right : right.length === 0 ? left : Object.freeze([mergedShape(left[0], right[0])]);
   }
   const kinds = [];
   for (const shape of [...(isQSet(left) ? left : [left]), ...(isQSet(right) ? right : [right])]) {
-    const same = kinds.findIndex(kept => isOpened(kept, false) && isOpened(shape, false) && isQMap(kept) === isQMap(shape));
+    const same = kinds.findIndex(kept => merging(kept, shape));
     if (same === -1) kinds.push(shape);
     else kinds[same] = mergedShape(kinds[same], shape);
   }

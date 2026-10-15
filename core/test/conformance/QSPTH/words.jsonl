@@ -16,8 +16,9 @@
 {"decision":"D324","name":"shape-keeps-the-keys-of-a-map","query":"{:a 1 :b {:c \"x\"}} | shape","expect":"{:a ::number :b {:c ::string}}"}
 {"decision":"D324","name":"shape-folds-the-elements-of-a-vector-into-one","query":"[[1 2] [] [3]] | shape","expect":"[[::number]]"}
 {"decision":"D324","name":"shape-sets-the-kinds-where-elements-part","query":"[1 \"a\" 2] | shape","expect":"[#[::number ::string]]"}
-{"decision":"D324","name":"shape-merges-a-map-and-a-vector-among-the-kinds","query":"[1 {:a 1} [2] {:b \"x\"} []] | shape","expect":"[#[::number [::number] {:a #[::null ::number] :b #[::null ::string]}]]"}
-{"decision":"D324","name":"shape-holds-null-among-the-kinds-of-a-key-some-records-lack","query":"[{:a 1} {}] | shape","expect":"[{:a #[::null ::number]}]"}
+{"decision":"D324","name":"shape-merges-a-vector-with-a-vector-among-the-kinds-and-keeps-maps-of-other-keys-apart","query":"[1 {:a 1} [2] {:b \"x\"} []] | shape","expect":"[#[::number [::number] {:a ::number} {:b ::string}]]"}
+{"decision":"D324","name":"shape-merges-records-of-the-same-keys-key-by-key","query":"[{:a 1} {:a null}] | shape","expect":"[{:a #[::null ::number]}]"}
+{"decision":"D324","name":"shape-keeps-records-of-other-keys-apart","query":"[{:a 1} {:a 2 :b \"x\"}] | shape","expect":"[#[{:a ::number} {:a ::number :b ::string}]]"}
 {"decision":"D324","name":"shape-stands-at-a-part-under-a-tag","query":"{:t ::Box{:w 1} :q ~(add 1) :s #[1] :d |~~ d ~~|} | shape","expect":"{:t ::Box :q ::quote :s ::set :d ::doc}"}
 {"decision":"D324","name":"shape-reads-its-subject-beneath-its-tags","query":"::Box{:w 1} | shape","expect":"{:w ::number}"}
 {"decision":"D324","name":"shape-of-an-empty-vector-and-an-empty-map-are-themselves","query":"get [~([] | shape) ~({} | shape)]","expect":"[[] {}]"}

@@ -33,7 +33,7 @@ const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !
 const CASES = /^core\/test\/conformance\/.*\.jsonl$/;
 
 // A mark names a record or a section of the specification, `[QSNAM#scope]`
-// [QSWRK#spec].
+// [QSWRK#marks].
 const MARK = /\[((?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)(?:,\s*(?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?))*)\]/g;
 
 // The data of the benchmark names the decision it measures in the name of
@@ -119,7 +119,7 @@ export function marksOfTree(root = repoRoot) {
     }
     if (CASES.test(path)) {
       // A file of a chapter marks its section, and a case in it the record
-      // in transit over it [QSWRK#spec].
+      // in transit over it [QSWRK#cases].
       const section = /\/(QS[A-Z]{3})\/([^/]+)\.jsonl$/.exec(path);
       const found = [...(section === null ? [] : [{ name: `${section[1]}#${section[2]}`, line: 1 }]), ...marksOfCases(readFileSync(join(root, path), 'utf8'))];
       marks.push(...found.map(mark => ({ path, ...mark })));

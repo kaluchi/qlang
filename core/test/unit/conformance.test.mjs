@@ -110,7 +110,7 @@ describe('conformance: the requirements agree', () => {
     expect(ungated).toEqual([]);
   });
 
-  it('stands each file of a chapter as a section of its specification [QSWRK#spec]', () => {
+  it('stands each file of a chapter as a section of its specification [QSWRK#cases]', () => {
     const specDir = join(here, '..', '..', '..', 'docs', 'spec');
     const homeless = files.filter(file => chapterOf(file) !== null).filter(file => {
       const [chapter, section] = [chapterOf(file), file.split('/').pop().replace(/\.jsonl$/, '')];

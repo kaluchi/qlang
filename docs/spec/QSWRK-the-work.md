@@ -27,7 +27,8 @@ the maintainer's words quoted in «…» as they were written, in their
 language, with the time in UTC and the prefix of the session, and words
 of the tree quoted in “…” beside their anchor; `Set aside.`, the
 alternatives and why; `Requirements.`, the cases it leaves.
-`check:conventions` refuses a record that names its decider otherwise,
+`check:conventions` refuses a record from `D155` on that names its
+decider otherwise,
 and `node scripts/sensors/check-quotes.mjs`, run on the maintainer's
 machine, holds every quote of the maintainer against the transcripts.
 
@@ -68,7 +69,8 @@ earliest of them, `node scripts/merge-records.mjs <earliest> <later>…`,
 whose number stays the address of the axis, described anew against the
 tree; each later one gains the line `Merged into` the earliest. A record
 out of force moves once to `docs/decisions/replaced/`, under the line of
-its fate, `Dissolved into`, `Merged into` or `Replaced by`, and under its
+its fate, `Dissolved into`, `Merged into`, `Replaced by` or `Filed
+under the principles by`, and under its
 title the line `Left at` the commit whose tree its text was last true
 of, every path it names reading as `git show <commit>:<path>`;
 `node scripts/replaced-records.mjs` moves it and rewrites the links to
@@ -89,9 +91,9 @@ writes and the refusal that teaches it; it shows its rules by probes;
 and `docs/spec/README.md` lists the chapters in the order the concepts
 rest on each other. The code, the tests and the cases cite the section
 whose rule they hold. `check:conventions` refuses a citation of a
-section its chapter lacks, and in a chapter of the language a citation
-of a record, a word of the journal, the history of a form, and a
-sentence that says what the text leaves out.
+section its chapter lacks, and in a chapter a citation of a record, the
+history of a form and a sentence that says what the text leaves out,
+and in a chapter of the language a word or a path of the journal.
 
 ## cases
 
@@ -152,7 +154,7 @@ the block that carries it, a test file in its head, a workflow under
 `.github/workflows/`, a case in its `decision` while it is in transit, a
 source of the catalog in the comment above its pages, `The decisions it
 exists for: [QSDSP#residence]`; the sister project names a record of
-qlang with the repository, `(qlang D96)`; and the data of the benchmark
+qlang with the repository, `(qlang Dnn)`; and the data of a measurement
 in the name of its file, `screens/D167.txt`. A mark covers its block,
 from its comment to the next comment that holds one, the first block
 reaching up to the head of the file, so a search answers what governs a
@@ -195,13 +197,16 @@ At the move:
   diff left alone stands as it is.
 - A document of the research stays while a record in force or a
   document that cites, the audit, the entrypoint document, `CLAUDE.md`,
-  the rules of the review and the READMEs of the research, names it;
+  the rules of the review and the READMEs of the workspaces, names it,
+  the README of its folder a ledger that holds none;
   `node scripts/drop-documents.mjs` drops the rest, each with its part of
   the ledger of its folder, the findings it left open carried into the
   ledger under its name and the commit. A review or a chapter of the
   archive is a unit, any other research its folder, and the outside
   audits a series that stays.
-- The audit is written again against the new tree, its version in git.
+- The audit is held against the new tree: its baseline named anew,
+  every probe run, and every sentence the tree proves wrong replaced by
+  the fact and its probe, its version in git.
 - The branch lands on master and is deleted, with the worktrees of its
   cuts.
 
@@ -215,7 +220,8 @@ waiting for the next move; a document of the research the baseline
 holds that nothing citing names; more than twenty records since the
 baseline; a citation in the code and the tests of a record that no met
 case holds, a case that names a record being decided, and a citation in
-a document that cites of a record neither in force nor open. `npm run
+a document that cites of a record out of force or of the language with
+no case, an open record among those it may cite. `npm run
 desk` shows the walk at the start of a shift.
 
 ## branch
@@ -237,7 +243,10 @@ with tests of shadowing by a reader's word and by a later source's; and
 a quick path in a shared helper is held against every caller and every
 input each hands it, an error and a value under a tag among them. The
 inner loop runs the tests of the topic; a commit `npm test`; and the
-full gate runs once a series, before a push, or where only it checks.
+full gate runs once a series, before a push, or where only it checks,
+the one run that boots the language while it runs; `node
+scripts/benchmark.mjs check` runs before a commit that reads a form of
+the language anew.
 
 What confuses a session during the work, a sentence the tree
 contradicts, a leftover of a milestone reached, a comment that justifies
@@ -258,15 +267,16 @@ the record it holds; the reason of a rule lives with its record. Every
 branch leaves the files it touches so: it moves a reason it finds in a
 comment into its record or deletes it with the compromise it excuses,
 and deletes a false comment. The ratio of comment lines to code lines
-over the core, the command line and the language server stays below the
-ratio of the September master `f5e8ec8`, and a branch leaves it no
-higher than it found it.
+over the core, the command line and the language server falls,
+measured on every branch against the baseline, from the ratio of the
+September master `f5e8ec8`.
 
 ## diff
 
 The sign of a diff by area, the core sources, the catalog, the
 documents, the tests and the tooling, is computed from the history,
-`node scripts/measure.mjs <from> <to>`, and read over a piece of work
+`node scripts/measure.mjs --steps <from> <to>`, and read over a piece of
+work
 against what it delivered: less code at the same behaviour is a
 refactoring, less code with a feature the work to praise, about as much
 code with a feature good work, and more code with features asks what
@@ -312,8 +322,8 @@ or a quantity to the precision the sentence states, a sign or a ratio to
 a tenth, so its answer changes when the sentence stops being true and
 only then. It reads what the sentence names in a way that fails when
 that is gone: the runner runs a shell probe with a pipeline that fails
-where any command fails, and a probe lists the files it reads with
-`git ls-files --error-unmatch`. `npm run check:probes` runs every probe of
+where any command fails, and a probe that lists files by `git ls-files`
+lists them with `--error-unmatch`. `npm run check:probes` runs every probe of
 the audit, the entrypoint document, the open records and the
 specification that reads the repository alone, and the branch that
 changed an answer rewrites the sentence with its probe. A probe that
@@ -380,7 +390,8 @@ what it carries to a clean reader on tasks its author never saw.
 
 A measurement belongs to a record in force, which says what it measures
 and why, and carries its number, `run --decision Dnn`, its runs named
-`D<n>~cli~<model>~<k>`; the numbers measured grow, `run` refusing a
+`D<n>~cli~<model>~<k>`, a screen measured again under its number
+carrying its hash in the name; the numbers measured grow, `run` refusing a
 number below the last one measured, and a second measurement under a
 number states its reason. A run fixes its circumstances when it runs:
 the screen the tree printed, saved under the number with its hash, the
@@ -455,8 +466,8 @@ order, the one run that boots the language while it runs; the checks of
 GitHub, `.github/workflows/ci.yml`, run its steps but `check:fuzz` and
 `check:benchmark` on every push to master and every pull request. The
 thresholds of coverage, pinned in the `vitest.config.mjs` of `core` and
-`cli`, hold the sources of both at a hundred on every axis, the
-browser's loader and `cli/src/bin.mjs` aside. `scripts/fuzz-laws.mjs`
+`cli`, hold the sources under the `src/` of both at a hundred on every
+axis, the browser's loader and `cli/src/bin.mjs` aside. `scripts/fuzz-laws.mjs`
 runs every law of the root again with its literals changed to edge
 values, failing on a host's failure, a throw past the fail track, or a
 print that reads back as another value. `check:conventions` holds,
@@ -473,6 +484,7 @@ a preflight, the bump, the ranges, the parser, the coverage of the core
 and the tests, the commit, the push, the wait for the checks, the tag
 and its push; the tag runs `.github/workflows/deploy.yml`, which
 publishes the core and the command line through the trusted publishing
-of npm, so the name of that file bears weight. Releases happen at
+of npm, so the name of that file bears weight; the commit of a release
+lands on master directly. Releases happen at
 milestones, and between them the sister project consumes the copy of
 the workspace.

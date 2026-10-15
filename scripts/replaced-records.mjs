@@ -1,7 +1,7 @@
 // The records replaced whole leave the root of the records for
 // `docs/decisions/replaced/`, once, and every link of a document to a
 // record is written again from the document's place to the record's
-// [QSWRK#marks], each naming the commit it left at [QSWRK#baseline]. Run where a record
+// [QSWRK#journal], each naming the commit it left at [QSWRK#baseline]. Run where a record
 // gains its line `Replaced by` or `Merged into`; a record moved once is
 // never moved again.
 //

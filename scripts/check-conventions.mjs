@@ -52,8 +52,7 @@
 //
 //   (9) The walk of a baseline: a record of the language the audit's
 //       baseline holds is held by a case or closed by the line of its
-//       fate, no more than a working day of records waits for the next
-//       walk, and the code, the tests and the cases cite the records in
+//       fate, no more than twenty records wait for the next walk, and the code, the tests and the cases cite the records in
 //       force, the documents that hold the work those in force or
 //       waiting on a target [QSWRK#baseline].
 //
@@ -625,7 +624,7 @@ if (broken.length > 0) {
 if (outOfStep.length > 0) {
   process.stdout.write(`\nFates out of step (${outOfStep.length}):\n`);
   for (const { name, problem } of outOfStep) process.stdout.write(`  ${name}  ${problem}\n`);
-  process.stdout.write('    a line of fate names a record written after it, and a record a newer one took a part of names that record [QSWRK#journal].\n');
+  process.stdout.write('    a line of fate names a record the folder holds, a part taken is named back by the record that took it, and a record is pruned only by one written after it [QSWRK#journal].\n');
 }
 if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);

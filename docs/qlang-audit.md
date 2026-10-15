@@ -52,7 +52,7 @@ source and with decisions resting on it is load-bearing and is the
 first to re-verify when anything moves. A sentence with dependents and
 no source is a hidden assumption, the most dangerous kind; it is
 verified or turned into a question. A sentence with neither a source
-nor dependents is noise and is deleted.
+nor dependents is noise, which the maintainer's word lets go.
 
 Some rules for whoever edits the document, each learnt at a cost:
 
@@ -1034,15 +1034,17 @@ alone, with the other workspaces under a rule without a number.
 A branch repairs one scar or one part of one and names the decisions it
 implements. It starts from the full set of places where its cause
 shows, found by search rather than by memory, and its first commits
-delete; the cases that confirm it are written before its code, red, and
-it ends when they are green and nothing else turned red. Its diff is
+delete; the cases that confirm it are written before its code, as
+targets that hold the answer of today, and it ends when they are met and
+nothing else turned red. Its diff is
 negative in the core sources, the documents and the tests it touches,
 its catalog growing only by what the language gains [QSWRK#diff], or it
 introduces a model and says what the next branch deletes because of
 it, and the files it touches leave with comments that state what holds
-in one sentence [QSWRK#code]. A branch that works targets leaves the records,
-the cases and the gates as it found them and drops only the mark of a
-target it met [QSWRK#target]. A design question that appears during a
+in one sentence [QSWRK#code]. A branch that works targets leaves the
+records, the cases and the gates as it found them, adds cases under its
+own record alone and drops only the mark of a target it met
+[QSWRK#target]. A design question that appears during a
 branch is decided as a record before the branch goes on, since a
 decision taken in code is a decision no one will find; what confuses a session
 on the way is settled where it is met, fixed when the decisions already
@@ -1051,12 +1053,13 @@ decision or a question [QSWRK#branch]. The sister project receives every
 breaking change in the same move.
 
 A session is one of three kinds. A design session talks, decides, and
-updates this document. An implementation session takes one scar and
+writes its records. An implementation session takes one scar and
 ends with its cases green. An audit session runs the probes and the
 metrics, replaces every sentence the tree contradicts, and removes the
 scars the tree no longer shows. Every session opens as the instruction
-file says and closes by writing what was decided into this document and
-its records, so that no decision survives only in a conversation.
+file says and closes by writing what was decided into its records and
+moving this document to the tree it leaves, so that no decision survives
+only in a conversation.
 
 The model's work on this document is validation. The maintainer said
 so without ambiguity: «я не хочу КОДОГЕНЕРАТОРСТВО, Я НЕ ХОЧУ
@@ -1068,8 +1071,8 @@ probes.
 
 When a claim about the language is in doubt, run it. When the intention
 behind a construct is in doubt, ask the maintainer, and record the
-answer here with its words; the repository records what was built, not
-why.
+answer in a record with its words; the code records what was built, and
+the records why.
 
 ## Open questions
 

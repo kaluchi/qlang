@@ -1,5 +1,5 @@
 // Merges the records of one axis into the earliest of them, the survivor,
-// whose number stays the address of the axis [QSWRK#marks]: each record merged
+// whose number stays the address of the axis [QSWRK#journal]: each record merged
 // gains the line `Merged into` the survivor and moves to `replaced/` by
 // `scripts/replaced-records.mjs`, and every case, mark, document and
 // record in force that named it in prose names the survivor. The
@@ -24,11 +24,11 @@ if (survivor === undefined || merged.length === 0) {
 }
 const recordPath = name => {
   const path = recordPathOf(repoRoot, name);
-  if (path === null) { console.error(`${name} has no record [QSWRK#marks]`); process.exit(2); }
+  if (path === null) { console.error(`${name} has no record [QSWRK#journal]`); process.exit(2); }
   return posix.relative(repoRoot.replaceAll('\\', '/'), path.replaceAll('\\', '/'));
 };
 if (recordPath(survivor) !== `docs/decisions/${survivor}.md`) {
-  console.error(`${survivor} is not in force, and a record merges into one in force [QSWRK#marks]`);
+  console.error(`${survivor} is not in force, and a record merges into one in force [QSWRK#journal]`);
   process.exit(2);
 }
 // A survivor that names no decider takes none of a merged record's by
@@ -51,7 +51,7 @@ const rewrite = (path, change) => {
 const order = name => (name.startsWith('E') ? 100000 : 0) + Number(name.slice(1));
 const earlier = merged.filter(name => order(name) < order(survivor));
 if (earlier.length > 0) {
-  console.error(`${earlier.join(' ')} came before ${survivor}: the earliest record of an axis stays, and the later ones merge into it [QSWRK#marks]`);
+  console.error(`${earlier.join(' ')} came before ${survivor}: the earliest record of an axis stays, and the later ones merge into it [QSWRK#journal]`);
   process.exit(2);
 }
 

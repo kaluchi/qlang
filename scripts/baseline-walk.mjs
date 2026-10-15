@@ -3,7 +3,7 @@
 // work, which shows it. The audit is held against a commit, its
 // baseline. A record of the language that the baseline's tree holds is
 // held by a case or closed by the line of its fate; the records written
-// since wait for the walk no longer than a working day of them; the lines
+// since wait for the walk, twenty at most; the lines
 // that replace a record in part only fall; and the code, the tests and
 // the cases cite the records in force, the documents that hold the work
 // those in force or waiting on a target.
@@ -14,9 +14,9 @@ import { join } from 'node:path';
 import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld } from './decision-records.mjs';
 
 export const RECORDS_A_WALK_TAKES = 20;
-const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'scripts'];
+export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'scripts', '.github/workflows'];
 export const CITING_DOCUMENTS = ['docs/qlang-audit.md', 'docs/qlang-entrypoint.md', 'CLAUDE.md', '.claude/agents/qlang-review.md', 'README.md', 'core/README.md', 'cli/README.md', 'lsp/README.md', 'vscode/README.md', 'site/README.md'];
-const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang)$/;
+export const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang|yml)$/;
 const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
 // A citation a document writes in words, `decision Dnn` or `decisions Dnn
 // and Dnn`, and one in brackets, `[Dnn, Dnn]`.
@@ -138,7 +138,7 @@ export function unresolvedSections(repoRoot) {
   const chapters = new Map((existsSync(specDir) ? readdirSync(specDir) : []).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name))
     .map(name => [name.slice(0, 5), new Set(readFileSync(join(specDir, name), 'utf8').split(/\r?\n/).filter(line => line.startsWith('## ')).map(line => line.slice(3).trim()))]));
   const citing = [...CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE)), ...filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/),
-    ...CITING_DOCUMENTS, ...filesUnder(repoRoot, 'docs/decisions', /\.md$/), ...filesUnder(repoRoot, 'docs/spec', /\.md$/)];
+    ...CITING_DOCUMENTS, ...filesUnder(repoRoot, 'docs/decisions', /\.md$/).filter(path => !path.includes('/replaced/')), ...filesUnder(repoRoot, 'docs/spec', /\.md$/)];
   const unresolved = [];
   for (const file of citing.filter(path => existsSync(join(repoRoot, path)))) {
     readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
@@ -153,7 +153,7 @@ export function unresolvedSections(repoRoot) {
 }
 
 // The records in transit, each with the sections it overrides: a record
-// in force with a line `Overrides [QSNAM#scope], [QSNAM#reach]` [QSWRK#spec].
+// in force with a line `Overrides [QSNAM#scope], [QSNAM#reach]` [QSWRK#journal].
 export function recordsInTransit(repoRoot) {
   const recordsDir = join(repoRoot, 'docs', 'decisions');
   return new Map(readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).flatMap(name => {
@@ -166,7 +166,7 @@ export function recordsInTransit(repoRoot) {
 // lacked, or that are gone from it, each claimed by a record in transit
 // over its section: a case added or rewritten names the record, and a
 // case taken away is named in the record's text; and a case under a
-// chapter names no record but one in transit over its section [QSWRK#spec].
+// chapter names no record but one in transit over its section [QSWRK#cases].
 // A chapter the baseline did not hold is the work of the move that wrote
 // it, read from the next baseline on.
 export function casesTouchedUnclaimed(repoRoot, baseline) {

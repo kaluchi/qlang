@@ -88,7 +88,7 @@ export function readDecisionRecords(root) {
       for (const decision of [conformanceCase.decision ?? []].flat()) {
         const record = records.get(decision);
         if (record === undefined) {
-          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in docs/decisions: a case names the record it holds [QSWRK#journal]`);
+          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in docs/decisions: a case names the record it holds [QSWRK#cases]`);
         }
         (conformanceCase.target === true ? record.targets : record.met).push(conformanceCase.name);
       }

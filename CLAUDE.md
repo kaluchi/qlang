@@ -38,11 +38,13 @@ wins and this file is what changes.
 3. State in one paragraph where the work stands: the scar at hand, or
    the question under discussion.
 4. Before the session ends, write every decision taken as a file
-   under `docs/decisions/`, with the requirements it leaves as target
-   cases of the conformance suite. A decision that survives only in a
-   conversation is lost. Then walk the baseline: every record no case
-   names gets its fate, the audit moves to the tree the session leaves,
-   and the next shift starts at a clean desk [QSWRK#baseline].
+   under `docs/decisions/`, a change of the language with the cases it
+   leaves, met or targets. A decision that survives only in a
+   conversation is lost. Then move the baseline: the records in transit
+   dissolve into their sections, every record of the language no case
+   names gets its fate while an open record waits, the audit moves to
+   the tree the session leaves, and the next shift starts at a clean
+   desk [QSWRK#baseline].
 
 After a compaction the summary is a map and no source: reread Tier 1
 whole, and the conversation from its transcript,
@@ -100,8 +102,8 @@ where the audit cites it.
 
 The audit is the maintainer's memory between sessions. A session
 validates it against the code: a wrong sentence is replaced by the
-fact with its probe, a hole becomes a question in the chapter of open
-questions with the alternatives and their cost, and nothing
+fact with its probe, a hole becomes an open record with the
+alternatives and their cost, and nothing
 is deleted or condensed without the maintainer's word. Only the
 maintainer's quoted words bind: a record whose `Decided by.` or
 `Source.` line names the model is a reading the session weighs on its
@@ -155,17 +157,18 @@ install` at the root links the workspaces; the Node floor is the
   that reads back as another value fails it. The gate runs it with its
   defaults; other counts and seeds after a change to a primitive, the
   evaluator, the printer or the grammar.
-- `npm run test:coverage`: the coverage thresholds on the core.
+- `npm run test:coverage`: the coverage thresholds on the core and the
+  command line.
 - `node scripts/dissolve-records.mjs Dnn`: at the move of the baseline,
   a record in transit dissolves into the sections it overrides, once
-  they are written anew [QSWRK#spec].
+  they are written anew [QSWRK#baseline].
 - `npm run build`: regenerate the parser from `core/src/grammar.peggy`.
 - `npm test -w @kaluchi/qlang-cli`: one workspace.
 
 ## What the tooling enforces
 
-`npm run check:conventions` fails on temporal lexicon in sources and
-documents (legacy, deprecated, currently, previously, backward
+`npm run check:conventions` fails on temporal lexicon in the sources
+outside `docs/` (legacy, deprecated, currently, previously, backward
 compatibility, and the TODO, FIXME, and HACK markers), on a digit
 followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
@@ -213,11 +216,11 @@ it; where a rule and the audit disagree, the audit wins.
   read against what it delivered, and no commit message carries a count
   the history answers [QSWRK#diff].
 - A branch that works targets, a subagent's in its own worktree
-  among them, starts from a green baseline, leaves the decision
-  records, the conformance cases and the gates as it found them, and
-  drops only the mark of a target it met [QSWRK#target].
-  Review it with the baseline's copy of `node scripts/gate-diff.mjs
-  --task Dnn`.
+  among them, starts from a green master, leaves the decision
+  records, the conformance cases and the gates as it found them, adding
+  cases under its own record alone, and drops only the mark of a target
+  it met [QSWRK#target]. Review it with master's copy of
+  `node scripts/gate-diff.mjs --task Dnn`.
 - Tests first for any new public surface. `npm run ci` green before a
   push.
 - Commit on request. Push only on an explicit invitation. Never amend.
@@ -251,7 +254,7 @@ it; where a rule and the audit disagree, the audit wins.
   nothing that boots the language, no probe, no sensor and no child of
   the benchmark, since a second boot starves the coverage run.
 - A review's report is kept as its writer wrote it, each finding with
-  the fate it met, while a record in force cites it [QSWRK#review].
+  the fate it met, while something in force cites it [QSWRK#review].
 
 ## Release
 

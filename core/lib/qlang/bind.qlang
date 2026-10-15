@@ -59,8 +59,9 @@
     | throws :WrittenOutsideItsChainError
         |~~ A kind and a function hold what they are in the chains that
             build them: an invariant is written
-            `| holds :NotPositiveError |~~ … ~~| ~(gt 0)`, the constructor
-            of a kind `| impl ~(…)`, and an input of a word `| takes …`,
+            `| holds :NotPositiveError |~~ … ~~| ~(gt 0)`, the payload and
+            the fields of a kind `| wraps …` and `| reads …`, and an input
+            of a word `| takes …`,
             its answer `| returns …` and its subject `| on …`. Declared by
             a name, an invariant holds of no value, and a constructor
             under a label, or an input, an answer or a subject under a

@@ -125,12 +125,12 @@ A word that runs a part per element, in its own order, or only when the
 part is chosen takes a quote or a path there: `filter ~(gt 1)`,
 `reduce 0 ~(add)`, the branches of `if` and the clauses of `cond`, while
 the condition of `if`, which always runs, is a value. An input that
-takes code takes a quote, a path or a function, a group that computes a
-quote among them, and refuses a value computed at the call that none of
-its kinds takes, a failure among it, under its own address, the value
-its `:actualValue` and its tag its `:actualType`; the page of that
-refusal names the tilde. An input of a value hands the failure of its
-modifier on as the answer of the call.
+takes code takes a quote or a path, a group that computes a quote among
+them, `apply` a function too, and refuses a value computed at the call
+that none of its kinds takes, a failure among it, under its own address,
+the value its `:actualValue` and its tag its `:actualType`; the page of
+that refusal names the tilde. An input of a value hands the failure of
+its modifier on as the answer of the call.
 
 ```qlang
 > [1 2 3] | take count
@@ -138,6 +138,9 @@ modifier on as the answer of the call.
 
 > [{:a true}] | filter (get /a) !| type
 ::vec/filter/predicate/KindNotTakenError
+
+> :f (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | [1 2] | map f !| type
+::vec/map/code/KindNotTakenError
 ```
 
 ## held

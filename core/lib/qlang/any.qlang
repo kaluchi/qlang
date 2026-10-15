@@ -1218,7 +1218,8 @@
       `::vec/take | manifest` the inputs and the answer of `take`,
       `::qlang | manifest` the chapters of the language, and a value the
       names under the kind it shows, `5 | manifest` those of numbers. A
-      name nothing declares is refused as `doc` refuses it. The laws of a
+      name nothing declares is refused under the word,
+      `::any/manifest/UnknownNameError`. The laws of a
       name are no part of the answer, `laws` reads them; the kinds of the
       scope `kinds` lists, and what the reader declared `env`; and what
       one name holds the axes read, `::vec/count | source`, `| doc`. The
@@ -1326,7 +1327,7 @@
 :any/runLaws
   |~~ Answers the results of the laws under the name the subject reads,
       as `doc` reads it, a word by its address among them, one
-      `{:law :says :actual :ok :error}` per law in their order: `:law`
+      `{:law :says :actual :error :ok}` per law in their order: `:law`
       its address, `:says` its page, the claim it proves, `:actual` what
       its query answered, null where it answered an error, which `:error`
       holds as the error at rest, and `:ok` whether the answer is true,
@@ -1334,7 +1335,8 @@
       laws of its kind, and a name of the scope the laws declared under
       it. The anchor, a keyword after it, runs the laws of the member the
       name holds under it, a concept of the language among them. A name
-      nothing declares is refused as `binding` refuses it.
+      nothing declares is refused under the word,
+      `::any/runLaws/UnknownNameError`.
       ::link~(::any/laws | doc) ::link~(::any/tutorial | doc)
   ~~|
   ::fn
@@ -1535,8 +1537,9 @@
       subject, as many as it gives, the subject only what they are read
       from: two fields of one record add by `sumOf /x /y`,
       `{:x 10 :y 3} | sumOf /x /y` answering `13`. A field the record
-      lacks answers the error of `it`, and one that may be missing is
-      read with its default, `(query /y | coalesce 0)`. Text that holds a
+      lacks answers the refusal of its read, `::path/KeyNotInMapError`,
+      and one that may be missing is read with its default,
+      `(query /y | coalesce 0)`. Text that holds a
       number is read first by `toNumber`, and the numbers of a vector
       sum by `sum`. The call gives one number at least.
       ::link~(::number/add | doc) ::link~(::vec/sum | doc)
@@ -1564,7 +1567,7 @@
         |~~ As many fields as the call gives add. ~~|
         ~({:a 1 :b 2 :c 3} | sumOf /a /b /c | eq 6)
     | proves :answersTheErrorOfAMissingField
-        |~~ A field the record lacks answers the error of `it`. ~~|
+        |~~ A field the record lacks answers the refusal of its read. ~~|
         ~({:x 1} | sumOf /x /y !| type | eq ::path/KeyNotInMapError)
     | proves :readsAMissingFieldByItsDefault
         |~~ A field that may be missing is read with its default. ~~|

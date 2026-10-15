@@ -92,9 +92,10 @@ of three hundred characters, a string past the excerpt giving way whole
 with its `:head`, and the subject of each later stop giving way to an
 `::elision` marker where the marker prints shorter; each marker's
 `:read` continues the query beneath `!|`. Below the alert stands the
-prose of its refusal's page as line comments, the repair it tells; a
-refusal with no page is written without prose, and the REPL prints its
-cells without it. A query that does not parse answers
+prose of its refusal's page as line comments, the repair it tells, a
+refusal with no page of its own reading the page of what refused; an
+error whose tag no declaration names is written without prose, and the
+REPL prints its cells without it. A query that does not parse answers
 `::quote/ParseError`, and an input that does not read answers as
 `parseJson` refuses it.
 

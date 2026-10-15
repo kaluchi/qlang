@@ -75,7 +75,7 @@ order of their declarations, to the pair of its page and its query, and
 refuses a name nothing declares as `::any/laws/UnknownNameError`;
 `runLaws` runs each as held code on null [QSQUO#held], the laws of a
 member when it is given its anchor, `::qlang | runLaws :errors`, and
-answers an outcome per law, `{:law :says :actual :ok :error}`, `:says`
+answers an outcome per law, `{:law :says :actual :error :ok}`, `:says`
 null for a law without a page, a law passing only where it answers
 `true` and a law that answers a failure holding it at rest under
 `:error`; a value runs the laws of its kind, and a name nothing declares

@@ -326,12 +326,13 @@ export function verbsReaching(env, kindNames) {
 
 // placesOfSelectors(selectors) → the places the inputs of a function read,
 // one past the greatest an input reads strictly or softly, or null when
-// one reads no place, the args whole, a place counted from its end or
-// anything else, and so takes any number of values.
+// one reads no place, the args whole, a place counted from its end, code
+// of several steps or anything else, and so takes any number of values
+// [QSBLD#input].
 export function placesOfSelectors(selectors) {
   let places = 0;
-  for (const { place } of selectors) {
-    if (!Number.isInteger(place)) return null;
+  for (const { place, ast } of selectors) {
+    if (!Number.isInteger(place) || ast.type === 'Pipeline') return null;
     places = Math.max(places, place + 1);
   }
   return places;

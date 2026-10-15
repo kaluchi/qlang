@@ -7,8 +7,7 @@
 import { fromPlain, printAnswer, makeTag, elideAnswer } from '@kaluchi/qlang-core';
 
 // The noun the command line starts from when standard input carries no
-// bytes, outside any project [QSHST#input]; the noun of the nearest `.qlang/`
-// folder comes with the sources a project ships.
+// bytes [QSHST#input].
 export const DEFAULT_SUBJECT = makeTag('qlang');
 
 // liftStdinToPipeValue(text, inputFormat) → the first value: the noun of

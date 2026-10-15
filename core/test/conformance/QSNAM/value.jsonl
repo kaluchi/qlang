@@ -7,3 +7,4 @@
 {"name":"cannot-apply-args-to-value","query":"5 | :five it | five 42","expect":"::call/ValueTakesNoModifiersError!{\n  :actualType ::number\n  :name :five\n  :addresses #[]\n  :trail [\n    {\n      :step ~(five 42)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)"}
 {"name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)","expect":"6"}
+{"decision":"D298","name":"a-value-at-an-address-refuses-modifiers-under-the-name-declared","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get [~(type) /name]","expect":"[::call/ValueTakesNoModifiersError :Box/side]"}

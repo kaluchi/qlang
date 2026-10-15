@@ -106,12 +106,9 @@ true
 `coalesce` answers the first alternative that is not null, one at least,
 `::any/coalesce/alternatives/EmptyError` refusing none. An alternative is
 code, a quote or a path, which runs against the subject, or a value,
-which answers itself, a group computed at the call among them; a call
-whose alternatives are all values puts the subject first, so
-`query /timeout | coalesce 30` reads the timeout, else 30, and
-`{:t null} | coalesce (get /t) 30` answers the subject. Code that
-answers a failure is taken as no value, as null is, the refusal of a
-name it misspells among them, and a
+which answers itself; a call whose alternatives are all values puts the
+subject first, so `query /timeout | coalesce 30` reads the timeout, else
+30. Code that answers a failure is taken as no value, as null is, and a
 value computed at the call that is a failure is the answer of the call
 [QSQUO#modifier]. Code after the alternative that answers stays unrun.
 

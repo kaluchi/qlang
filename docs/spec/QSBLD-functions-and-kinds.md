@@ -125,8 +125,7 @@ A recipe runs in the scope its call opens: its inputs by their names
 and the args as `args`, the names its steps declare, and the tree, the
 words and the nodes of the root and of the query. A value a recipe needs
 is an input. A place reads the args alone and an invariant its input's
-value alone, a name either writes beside them refused as
-`::call/UnknownNameError`.
+value alone.
 A word calls itself by its name. A recipe written alone under a label
 is the function of no commands it is: args given to it are refused as
 `…/ArgsBeyondInputsError`, and it hands its answer on as it is.

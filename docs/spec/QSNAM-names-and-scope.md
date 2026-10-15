@@ -175,9 +175,8 @@ A bare name reaches, nearest first: the declaration of the reader's
 scope; a word residing on a label the walk of the subject's tags
 reaches; the one word of that name, which refuses a subject the walk
 does not bring to its label; a bare name a host's source declares that
-is no label, where no word of that name resides on a label. A name that
-reaches nothing is refused as `::call/UnknownNameError`, with the names
-near it.
+is no label. A name that reaches nothing is refused as
+`::call/UnknownNameError`, with the names near it.
 
 A label, a kind or a topic, is reached by its tag, `::string`, as it is
 written wherever it is meant; its name written bare is the reader's to
@@ -279,9 +278,8 @@ A declaration writes into its scope a record, `::binding`: the name,
 the docs of its page, the value, the source of the declaration, null for
 a node a chain lays, and its origin. `env` answers the declarations of
 the reader where the step stands, in the body of a word those of the
-query that called it [QSNAM#owner] and in held code its labels and nodes
-[QSQUO#held], each by its name with its record, `{}` where the reader
-declared nothing. The axes read the record: `binding` the record itself,
+query that called it [QSNAM#owner], each by its name with its record,
+`{}` where the reader declared nothing. The axes read the record: `binding` the record itself,
 `source` its source and `doc` its page.
 
 ```qlang
@@ -296,9 +294,6 @@ declared nothing. The axes read the record: `binding` the record itself,
 
 > ::vec/count/answer | source
 null
-
-> :x 1 | :q ~(env) | apply q
-{}
 ```
 
 ## owner

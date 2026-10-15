@@ -10,7 +10,7 @@ qlang/                  ← this repo
 ├── lsp/                @kaluchi/qlang-lsp    — language server
 ├── site/               @kaluchi/qlang-site   — Astro documentation site (private)
 ├── vscode/             qlang-vscode          — VS Code Marketplace package
-├── docs/               the audit, the entrypoint design, the decisions
+├── docs/               spec/ what holds, the aim first · journal/ the records of the change and the research
 ├── scripts/            release.mjs           — release orchestration
 └── package.json        npm workspaces shell
 ```

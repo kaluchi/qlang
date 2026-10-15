@@ -1,6 +1,6 @@
 // The screen of the work a shift starts from [QSWRK#baseline], [QSWRK#marks]: the branch
 // and how far it stands from master, what the tree leaves uncommitted,
-// the walk of the audit's baseline, the targets the route holds open, the
+// the walk of the baseline, the targets open and the records being decided, the
 // artifacts that name no decision and the records whose scope changed
 // since they were described [QSWRK#marks], the stashes, the branches and the
 // worktrees a merge leaves [QSWRK#baseline], and the sister project's
@@ -42,13 +42,11 @@ else {
   for (const { where, problem } of walk.violations.slice(0, 8)) lines.push(`    ${where}  ${problem}`);
 }
 
-const requirements = execFileSync(process.execPath, [join(root, 'scripts', 'requirements.mjs')], { cwd: root, encoding: 'utf8' });
-const open = [];
-for (const line of requirements.split('\n')) {
-  if (/^(carried out|being decided|replaced|held by|rules of work|principles):/.test(line)) break;
-  if (line.trim() !== '') open.push(`  ${line}`);
-}
-lines.push(...(open.length === 0 ? ['  no target open'] : open));
+const requirements = execFileSync(process.execPath, [join(root, 'scripts', 'requirements.mjs')], { cwd: root, encoding: 'utf8' }).split('\n');
+const targets = requirements.filter(line => line.startsWith('target · ')).map(line => `  ${line}`);
+lines.push(...(targets.length === 0 ? ['  no target open'] : targets));
+const decided = requirements.find(line => line.startsWith('being decided: '));
+if (decided !== undefined) lines.push(`  ${decided}`);
 
 const { orphans } = marksOfTree(root);
 if (orphans.length > 0) lines.push(`  orphans ${orphans.length}, artifacts that name no decision: node scripts/marks.mjs`);

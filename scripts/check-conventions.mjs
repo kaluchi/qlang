@@ -1,11 +1,8 @@
 #!/usr/bin/env node
-// Mechanise the subset of CLAUDE.md review rules that a grep pass
-// can enforce. The qlang-review agent (`.claude/agents/qlang-
-// review.md`) is the authoritative rule set — the checks here are
-// a pre-commit safety net for the rules with low false-positive
-// rate: they catch obvious violations so the human review can
-// focus on the deep ones (lexicon entropy, concept completeness,
-// half-measures).
+// Mechanise the rules of the aim and of the work that a pass over the
+// tree can hold [QSAIM#principles], [QSWRK#tooling]: the checks catch the
+// plain breaches, so a review reads for the deep ones, the habits words
+// wake, the completeness of a concept, a half measure.
 //
 // Checks:
 //
@@ -40,20 +37,20 @@
 //       workspace — in any dependency map — must read
 //       `^<that workspace's version>`.
 //
-//   (6) Anchors of the documents that hold the work: a path the
-//       audit, the entrypoint document or the instruction file names
-//       exists, and words they quote from the tree, “…” beside the
-//       path of their file, stand in that file. A path under a folder
-//       the repository lacks is the sister project's, checked where
-//       its checkout sits beside this one.
+//   (6) Anchors of the texts that hold the work: a path the
+//       instruction file, the chapter of the aim or the chapter of
+//       the work names exists, and words they
+//       quote from the tree, “…” beside the path of their file, stand
+//       in that file. A path under a folder the repository lacks is the
+//       sister project's, checked where its checkout sits beside this
+//       one.
 //
 //   (8) Who decided: a record from D155 on names in a line of its
 //       own, `Decided by.`, the maintainer or the model [QSWRK#journal].
 //
-//   (9) The walk of a baseline: a record of the language the audit's
+//   (9) The walk of a baseline: a record of the language the
 //       baseline holds is held by a case or closed by the line of its
-//       fate, no more than a working day of records waits for the next
-//       walk, and the code, the tests and the cases cite the records in
+//       fate, no more than twenty records wait for the next walk, and the code, the tests and the cases cite the records in
 //       force, the documents that hold the work those in force or
 //       waiting on a target [QSWRK#baseline].
 //
@@ -66,7 +63,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { walkOfBaseline } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
-import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, isOpenText, readDecisionRecords, replacedWhole, statementsOf } from './decision-records.mjs';
+import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { execFileSync } from 'node:child_process';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -89,12 +86,11 @@ const IGNORE_DIRS = new Set([
 ]);
 // A report a reviewer or an outside auditor wrote, named by its date,
 // stands as it was written, and its ledger beside it is checked.
-const VERBATIM_REPORT = /^docs\/research\/(reviews|outside-audit)\/\d{4}-\d{2}-\d{2}[^/]*\.md$/;
+const VERBATIM_REPORT = new RegExp(`^${RESEARCH}/(reviews|outside-audit)/\\d{4}-\\d{2}-\\d{2}[^/]*\\.md$`);
 // Files that quote the forbidden list verbatim — exempt from the
 // forbidden-word scan, still in scope for every other check.
 const RULESET_FILES = new Set([
   'CLAUDE.md',
-  '.claude/agents/qlang-review.md',
   'scripts/check-conventions.mjs'  // this file quotes the list
 ]);
 
@@ -302,10 +298,10 @@ function workspaceRangeDrift() {
   return violations;
 }
 
-// ── (6) Anchors of the documents that hold the work ────────────
+// ── (6) Anchors of the texts that hold the work ────────────────
 
-const ANCHOR_DOCUMENTS = ['docs/qlang-audit.md', 'docs/qlang-entrypoint.md', 'CLAUDE.md'];
-const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs)\/[\w./@-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro))`/g;
+const ANCHOR_DOCUMENTS = ['CLAUDE.md', 'docs/spec/QSAIM-the-aim.md', 'docs/spec/QSWRK-the-work.md'];
+const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
 const TREE_QUOTE_RE = /“([^”]+)”\s*\(`([^`]+)`/g;
 const sisterRoot = join(repoRoot, '..', 'eclipse-jdt-search');
 
@@ -387,7 +383,7 @@ const outOfForm = text => (isOpenText(text)
   : !DECIDER_LINE.test(text));
 
 function recordsWithoutDecider() {
-  return ['docs/decisions', 'docs/decisions/replaced'].flatMap(folder => readdirSync(join(repoRoot, folder))
+  return [JOURNAL, REPLACED].flatMap(folder => readdirSync(join(repoRoot, folder))
     .map(file => ({ file: `${folder}/${file}`, number: Number(/^D(\d+)\.md$/.exec(file)?.[1]) }))
     .filter(({ number }) => number >= FIRST_RECORD_NAMING_ITS_DECIDER)
     .filter(({ file }) => outOfForm(readFileSync(join(repoRoot, file), 'utf8')))
@@ -404,17 +400,17 @@ function misplacedRecords() {
   const replacedWhole = path => /^(Replaced by|Merged into|Dissolved into) /m.test(readFileSync(join(repoRoot, path), 'utf8'));
   const inFolder = folder => readdirSync(join(repoRoot, folder)).filter(file => /^[DE]\d+\.md$/.test(file)).map(file => `${folder}/${file}`);
   return [
-    ...inFolder('docs/decisions').filter(replacedWhole).map(path => ({ path, problem: 'is replaced whole: move it by `node scripts/replaced-records.mjs`' })),
-    ...inFolder('docs/decisions/replaced').filter(path => !replacedWhole(path)).map(path => ({ path, problem: 'is in force, and no record replaced it whole' }))
+    ...inFolder(JOURNAL).filter(replacedWhole).map(path => ({ path, problem: 'is replaced whole: move it by `node scripts/replaced-records.mjs`' })),
+    ...inFolder(REPLACED).filter(path => !replacedWhole(path)).map(path => ({ path, problem: 'is in force, and no record replaced it whole' }))
   ];
 }
 
 // ── (9) The walk of a baseline ─────────────────────────────────
 //
-// The audit is held against a commit, its baseline. A record of the
-// language that the baseline's tree holds is held by a case or closed by
-// the line of its fate, and the records written since wait for the walk
-// no longer than a working day of them; the code, the tests and the
+// The baseline is the last commit that landed a branch on master. A record
+// of the language that the baseline's tree holds is held by a case or closed
+// by the line of its fate, and the records written since wait for the walk,
+// twenty at most; the code, the tests and the
 // cases cite the records in force, and the documents that hold the work
 // those in force or waiting on a target [QSWRK#baseline].
 
@@ -499,12 +495,16 @@ function fatesOutOfStep() {
 // prose is read outside its fenced blocks, whose probes may hold any text.
 // The chapter of the work speaks the words and the paths of the journal,
 // and no chapter cites a record [QSWRK#spec].
+// A month written in a text that states what holds dates a story, which the
+// history keeps [QSWRK#documents].
+const HISTORY_DATE = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/;
 const SPEC_INTRUSIONS = [
   { rule: 'a record of the journal', regex: /\[[DE]\d+\]|\bdecisions? [DE]\d+\b/ },
-  { rule: 'a record of the journal', regex: /docs\/decisions/, besides: 'QSWRK' },
+  { rule: 'a record of the journal', regex: /docs\/journal/, besides: 'QSWRK' },
   { rule: 'a word of the journal', regex: /\b(journal|records? in (force|transit)|baselines?|dissolves?|dissolved|in transit|replaced\/)\b/i, besides: 'QSWRK' },
   { rule: 'the history of a form', regex: /\b(left|leaves|leave) the language\b|\bno longer\b|\bused to\b|\bformerly\b|\banymore\b/i },
   { rule: 'what the text leaves out', regex: /\bnothing else\b|\bno history\b/i },
+  { rule: 'a date of the history', regex: HISTORY_DATE },
 ];
 function specIntrusions() {
   const specDir = join(repoRoot, 'docs', 'spec');
@@ -520,6 +520,12 @@ function specIntrusions() {
         const match = regex.exec(line);
         if (match) found.push({ file: `docs/spec/${name}`, line: index + 1, rule, text: match[0] });
       }
+    });
+  }
+  for (const seed of ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md']) {
+    readFileSync(join(repoRoot, seed), 'utf8').split(/\r?\n/).forEach((line, index) => {
+      const match = HISTORY_DATE.exec(line);
+      if (match) found.push({ file: seed, line: index + 1, rule: 'a date of the history', text: match[0] });
     });
   }
   return found;
@@ -625,7 +631,7 @@ if (broken.length > 0) {
 if (outOfStep.length > 0) {
   process.stdout.write(`\nFates out of step (${outOfStep.length}):\n`);
   for (const { name, problem } of outOfStep) process.stdout.write(`  ${name}  ${problem}\n`);
-  process.stdout.write('    a line of fate names a record written after it, and a record a newer one took a part of names that record [QSWRK#journal].\n');
+  process.stdout.write('    a line of fate names a record the folder holds, a part taken is named back by the record that took it, and a record is pruned only by one written after it [QSWRK#journal].\n');
 }
 if (unwalked.length > 0) {
   process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);
@@ -633,8 +639,8 @@ if (unwalked.length > 0) {
   process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [QSWRK#baseline].\n');
 }
 if (intrusions.length > 0) {
-  process.stdout.write(`\nThe specification speaks of the work (${intrusions.length}):\n`);
+  process.stdout.write(`\nA text that states what holds speaks of the change (${intrusions.length}):\n`);
   for (const v of intrusions) process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.text}\n`);
-  process.stdout.write('    a chapter states what the language is; the change, its records and its history belong to the journal [QSWRK#spec].\n');
+  process.stdout.write('    a cataphatic text states what holds; the change, its records and its history belong to the journal [QSWRK#spec], [QSWRK#documents].\n');
 }
 process.exit(1);

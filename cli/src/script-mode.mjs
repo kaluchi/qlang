@@ -52,7 +52,7 @@ function liftParsedDocument(parsed) {
 // of the literal passes over [QSHST#answer].
 export async function answerText(value, env, budget = null, page = null) {
   if (typeof value === 'string') return value;
-  const printed = await printAnswer(elideAnswer(value, budget), env);
+  const printed = await printAnswer(await elideAnswer(value, budget, env), env);
   return page === null ? printed : `${printed}\n${commentLinesOf(page)}`;
 }
 

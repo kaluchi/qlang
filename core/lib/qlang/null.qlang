@@ -33,10 +33,22 @@
         ~(::null#1 !| get [~(type) /actualType] | eq [::null/PayloadKindNotTakenError ::number])
     | impl ::builtin{}
 
+:null/toString
+  |~~ Answers `"null"`, the text `print` and `json` write for null, as
+      every atom answers the text of its literal; a field that may be
+      absent is given a text of its own by `coalesce`.
+      ::link~(::null/toKeyword | doc) ::link~(::any/coalesce | doc)
+  ~~|
+  ::fn
+    | returns |~~ `"null"`. ~~| ::string
+    | proves :writesTheLiteral
+        |~~ Null turns into the text of its literal. ~~|
+        ~(null | toString | eq "null")
+    | impl ~("null")
+
 :null/toKeyword
   |~~ Answers `:null`, the key `groupBy` files an absent field under,
-      `groupBy ~(query /country)`. Null has no string: a field that may be
-      absent is given a text by `coalesce`.
+      `groupBy ~(query /country)`.
       ::link~(::vec/groupBy | doc) ::link~(::any/coalesce | doc)
   ~~|
   ::fn

@@ -196,66 +196,6 @@
         ~(::b | lte 1 !| type | eq ::tag/lte/value/KindNotTakenError)
     | impl ::builtin{}
 
-:tag/manifest
-  |~~ Answers the set of the names declared one name under the noun the
-      subject names, each by its address: `::number | manifest` the
-      words and the refusals of numbers, `::vec/take | manifest` the
-      inputs and the answer of `take`, `::qlang | manifest` the chapters
-      of the language. A tag name that names nothing answers the empty
-      set. The laws of a name are no part of the answer, `laws` reads
-      them; the kinds of the scope `kinds` lists, and what the reader
-      declared `env`; and what one name holds the axes read,
-      `::vec/count | source`, `| doc`. The subject is the tag name of the
-      noun: a keyword, `:number`, names a binding and no noun, and is
-      refused as any other value is, and the call takes no value, so
-      `manifest ::vec` is refused.
-      ::snippet~(::number | manifest) ::link~(::any/laws | doc)
-      ::link~(::any/kinds | doc) ::link~(::any/env | doc)
-      ::link~(::any/source | doc)
-  ~~|
-  ::fn
-    | returns
-        |~~ The addresses of the names declared one name under the noun. ~~|
-        ::set
-    | throws :SubjectNotTagError
-        |~~ `manifest` is asked of a noun by its tag name,
-            `::number | manifest`; a keyword names a binding and no noun.
-        ~~|
-    | throws :ArgsBeyondInputsError
-        |~~ `manifest` reads the noun of the subject and takes no value:
-            the manifest of vectors is `::vec | manifest`.
-        ~~|
-    | proves :holdsAVerbOfTheNoun
-        |~~ The manifest of numbers holds `add`. ~~|
-        ~(::number | manifest | has ::number/add)
-    | proves :holdsAChapter
-        |~~ The manifest of the first page holds its chapter on values. ~~|
-        ~(::qlang | manifest | has ::qlang/values)
-    | proves :holdsTheInputsOfAWord
-        |~~ The manifest of a word holds its inputs. ~~|
-        ~(::vec/take | manifest | has ::vec/take/count)
-    | proves :holdsTheNamesOfAReader
-        |~~ The manifest of a reader's noun holds the names declared under
-            it.
-        ~~|
-        ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box | manifest | eq #[::Box/area])
-    | proves :leavesTheLawsToLaws
-        |~~ The laws of a name are no part of its manifest. ~~|
-        ~(::number/add | get [~(manifest | filter ~(binding | get /value | is ::law) | count) ~(laws | count | gt 0)] | eq [0 true])
-    | proves :answersNothingForANameThatNamesNothing
-        |~~ A tag name that names nothing answers the empty set. ~~|
-        ~(::Nothing | manifest | eq #[])
-    | proves :SubjectNotTagError/refusesANumber
-        |~~ A number is no noun. ~~|
-        ~(5 | manifest !| get [~(type) /actualType] | eq [::tag/manifest/SubjectNotTagError ::number])
-    | proves :SubjectNotTagError/refusesAKeyword
-        |~~ A keyword names a binding and no noun. ~~|
-        ~(:number | manifest !| type | eq ::tag/manifest/SubjectNotTagError)
-    | proves :ArgsBeyondInputsError/refusesANounGivenAsAValue
-        |~~ A noun given as a value is refused; it is the subject. ~~|
-        ~(::qlang | manifest ::vec !| type | eq ::tag/manifest/ArgsBeyondInputsError)
-    | impl ::builtin{}
-
 :tag/toString
   |~~ Answers the name of the tag as a string, `::vec | toString`
       answering `"vec"`, so a kind joins text. `toTag` turns the name

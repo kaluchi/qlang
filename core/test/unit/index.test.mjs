@@ -22,6 +22,13 @@ describe('the package root', () => {
     expect(await core.evalQuery(core.printValue(value))).toEqual(value);
   });
 
+  it('bounds an answer within a budget, a part a kind prints its own way counted as it prints', async () => {
+    const session = await core.createSession();
+    const cell = await session.evalCell(':Box |~~ B ~~| | :Box/print ~("b") | [::Box#1 ::Box#2 ::Box#3 ::Box#4 ::Box#5 ::Box#6 ::Box#7]');
+    const shown = await core.elideAnswer(cell.result, 10, cell.envAfterCell);
+    expect(await core.printAnswer(shown, cell.envAfterCell)).toBe('[b b b b b b b]');
+  });
+
   it('crosses the JSON boundary both ways', () => {
     const lifted = core.fromPlain({ name: 'alice' });
     expect(core.toPlain(lifted)).toEqual({ name: 'alice' });

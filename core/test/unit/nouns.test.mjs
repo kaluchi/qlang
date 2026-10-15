@@ -123,8 +123,8 @@ describe('an address reads the node its name declared', () => {
     expect(await evalQuery('::nowhere/nothing | binding !| type')).toEqual(makeTag('any/binding/UnknownNameError'));
   });
 
-  it('a value whose tag no node answers reads no page', async () => {
-    expect((await evalQuery('::Box#[3 1] | doc')).tag.name).toBe('any/doc/UnknownNameError');
+  it('a value whose tag no node answers reads the page of the kind beneath it [QSSLF#axis]', async () => {
+    expect(await evalQuery('::Box#[3 1] | doc | eq (::set | doc)')).toBe(true);
   });
 });
 

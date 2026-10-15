@@ -155,7 +155,7 @@
             be, and `manifest` lists the names a noun holds,
             `::vec | manifest`. An address that names a value reads it, as
             a bare name does.
-            ::link~(::call | doc) ::link~(::tag/manifest | doc)
+            ::link~(::call | doc) ::link~(::any/manifest | doc)
         ~~|
     | carries :UnknownAddressError/address
         |~~ The address the step called. ~~|

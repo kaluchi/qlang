@@ -21,7 +21,7 @@
 {"name":"docs-not-found-names-the-docs-axis","query":"::nosuchbinding | doc !| type","expect":"::any/doc/UnknownNameError"}
 {"name":"not-found-carries-the-binding-name","query":"::nosuchbinding | source !| get /name","expect":"::nosuchbinding"}
 {"name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true"}
-{"name":"an-undeclared-tag-answers-one-page-whatever-asked-first","query":"get [~(::Late | doc !| type) ~(::Late{:a 1} | doc !| type)] | distinct | count","expect":"1"}
+{"name":"an-undeclared-tag-is-refused-and-a-value-under-it-reads-the-kind-beneath","query":"get [~(::Late | doc !| type) ~(::Late{:a 1} | doc | eq (::map | doc))]","expect":"[::any/doc/UnknownNameError true]"}
 {"name":"a-word-reads-the-pages-of-its-inputs","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | ::number/plus/by | doc | content | trim","expect":"\"How much.\""}
 {"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\" A box. \""}
 {"name":"a-refusal-of-a-word-leads-to-where-it-lives","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::set/reduce ::vec/reduce]"}
@@ -39,3 +39,5 @@
 {"name":"a-set-of-anchors-reads-several-pages","query":"::qlang | doc #[:pipeline :errors] | count","expect":"2"}
 {"name":"the-empty-path-reads-the-page-of-the-subject","query":"::qlang | doc [] | eq (::qlang | doc)","expect":"true"}
 {"name":"an-anchor-of-a-set-that-is-no-keyword-is-refused","query":"::qlang | doc #[1] !| type","expect":"::any/doc/anchor/ElementNotKeywordError"}
+{"name":"an-axis-reads-a-value-under-a-tag-of-identity-by-the-kind-beneath-it","query":"::Box{:a 1} | get [~(doc | eq (::map | doc)) ~(type)]","expect":"[true ::Box]"}
+{"name":"an-axis-reads-a-vector-under-a-tag-of-identity-as-a-vector","query":"::Box[1 2] | doc | eq (::vec | doc)","expect":"true"}

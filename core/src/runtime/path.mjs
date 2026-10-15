@@ -42,6 +42,11 @@ async function readTemplate(subject, template, soft, fallback, state) {
     const read = readPath(subject, template, soft);
     return read === MISSED ? fallback : read;
   }
+  if (isValueClass(template, 'taggedInstance')) {
+    const payload = await readTemplate(subject, template.payload, soft, fallback, state);
+    if (payload === template.payload) return template;
+    return isErrorValue(payload) ? payload : await relaid(template, payload, state);
+  }
   const parts = partsOfTemplate(template);
   if (parts === null) return template;
   const read = await readParts(subject, [...parts], soft, fallback, state);
@@ -148,7 +153,7 @@ bindPrim('any/paths', value => {
 // keyword.
 bindPrim('path/segments', path => Object.freeze(path.segments.map(segment => {
   const place = segmentIndex(segment);
-  return Number.isNaN(place) ? keyword(segment) : place;
+  return Number.isNaN(place) || String(place) !== segment ? keyword(segment) : place;
 })));
 
 // A path names one segment at least, the value itself being `it` [QSPTH#value].

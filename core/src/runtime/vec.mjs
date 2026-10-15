@@ -7,7 +7,7 @@
 // that refused [QSERR#site]. An input that takes code arrives closed at the
 // call, code run on the element [QSDSP#walk], [QSBLD#fn].
 
-import { isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
+import { isNumber, isValueClass, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim, runs } from '../primitives.mjs';
@@ -52,13 +52,22 @@ bindPrim('vec/zip', vectors => {
 
 // ── sum and mean ───────────────────────────────────────────────
 
+// The number an element holds beneath the tags over it, as `add` reads
+// its subject [QSNUM#arithmetic], or undefined.
+function numberBeneath(element) {
+  let beneath = element;
+  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
+  return isNumber(beneath) ? beneath : undefined;
+}
+
 // The total of the numbers, an element of another kind refused where it
 // stands.
 function totalOf(places, ElementNotNumberError) {
   let total = 0;
   for (const [place, element] of places) {
-    if (!isNumber(element)) throw new ElementNotNumberError({ ...place, actualValue: element });
-    total += element;
+    const number = numberBeneath(element);
+    if (number === undefined) throw new ElementNotNumberError({ ...place, actualValue: element });
+    total += number;
   }
   return total;
 }
@@ -72,14 +81,15 @@ bindPrim('map/sum', map => totalOf(keyed(map), MapSumElementNotNumberError));
 
 // The mean of the numbers, a running mean whose every step stays among
 // the finite doubles; an empty container has none, and answers null as
-// `min` and `max` do [QSTXT#string].
+// `min` and `max` do [QSCOL#sequence].
 function meanOf(places, ElementNotNumberError) {
   if (places.length === 0) return NULL;
   let mean = 0;
   for (const [count, [place, element]] of places.entries()) {
-    if (!isNumber(element)) throw new ElementNotNumberError({ ...place, actualValue: element });
-    const gap = element - mean;
-    mean += Number.isFinite(gap) ? gap / (count + 1) : element / (count + 1) - mean / (count + 1);
+    const number = numberBeneath(element);
+    if (number === undefined) throw new ElementNotNumberError({ ...place, actualValue: element });
+    const gap = number - mean;
+    mean += Number.isFinite(gap) ? gap / (count + 1) : number / (count + 1) - mean / (count + 1);
   }
   return mean;
 }

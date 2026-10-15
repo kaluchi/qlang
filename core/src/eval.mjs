@@ -820,6 +820,7 @@ function handedTo(impl, signature, { values, origins }, state) {
 function quotesClosedIn(value, originOf) {
   if (isQuote(value)) return codeFrom(value, originOf(value));
   if (!holdsAQuote(value)) return value;
+  if (isValueClass(value, 'taggedInstance')) return makeTaggedInstance(value.tag, quotesClosedIn(value.payload, originOf));
   const header = value[TAG_HEADER_SYMBOL];
   const closed = isQMap(value)
     ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, originOf)]))
@@ -848,6 +849,7 @@ const HOLDERS_OF_QUOTES = new WeakMap();
 
 function holdsAQuote(value) {
   if (isQuote(value)) return true;
+  if (isValueClass(value, 'taggedInstance')) return !isQuote(value.payload) && holdsAQuote(value.payload);
   if (typeof value !== 'object' || value === null) return false;
   let holds = HOLDERS_OF_QUOTES.get(value);
   if (holds === undefined) {

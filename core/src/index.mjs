@@ -18,8 +18,7 @@ export { printQuoteSource } from './quote.mjs';
 export {
   printValue, toPlain, fromPlain, StringParseJsonNumberNotFiniteError
 } from './runtime/format.mjs';
-export { printAnswer } from './runtime/print.mjs';
-export { elide, alertOf, elideAnswer } from './elide.mjs';
+export { printAnswer, elideAnswer } from './runtime/print.mjs';
 export { tokenize } from './highlight.mjs';
 export { isNameStart, isNameContinue } from './name-chars.mjs';
 export {

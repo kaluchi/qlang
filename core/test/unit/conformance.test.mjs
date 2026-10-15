@@ -103,14 +103,14 @@ describe('conformance: the requirements agree', () => {
   // the record's change is in transit over it; a case outside the
   // chapters opens with the one record in force that gates it [QSWRK#cases].
   it('opens each case with the one record in force that gates it, whose record stands in the root of the records [QSWRK#cases]', () => {
-    const decisionsDir = join(here, '..', '..', '..', 'docs', 'decisions');
+    const decisionsDir = join(here, '..', '..', '..', 'docs', 'journal');
     const ungated = allCases.filter(({ file, ...test }) => (chapterOf(file) === null || test.decision !== undefined)
       && (typeof test.decision !== 'string' || Object.keys(test)[0] !== 'decision' || !existsSync(join(decisionsDir, `${test.decision}.md`))))
       .map(test => `${test.file}#${test.name}: ${JSON.stringify(test.decision ?? null)}`);
     expect(ungated).toEqual([]);
   });
 
-  it('stands each file of a chapter as a section of its specification [QSWRK#spec]', () => {
+  it('stands each file of a chapter as a section of its specification [QSWRK#cases]', () => {
     const specDir = join(here, '..', '..', '..', 'docs', 'spec');
     const homeless = files.filter(file => chapterOf(file) !== null).filter(file => {
       const [chapter, section] = [chapterOf(file), file.split('/').pop().replace(/\.jsonl$/, '')];

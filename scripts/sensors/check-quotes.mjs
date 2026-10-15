@@ -5,19 +5,18 @@
 // a session on the maintainer's machine, since it reads the transcripts.
 //
 // Usage: node scripts/sensors/check-quotes.mjs [document ...]
-// Without documents it reads the audit, the entrypoint and the records
-// of docs/decisions.
+// Without documents it reads the records of the journal, in force and
+// replaced.
 // The decisions it exists for: [QSWRK#journal], [QSWRK#documents].
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { recordsOf, repoRoot, transcriptFiles, typedByMaintainer } from './transcripts.mjs';
+import { JOURNAL } from '../decision-records.mjs';
 
 const squash = text => text.replace(/\s+/g, ' ').trim();
-const decisionsDir = join(repoRoot, 'docs', 'decisions');
+const decisionsDir = join(repoRoot, JOURNAL);
 const documents = process.argv.length > 2 ? process.argv.slice(2) : [
-  join(repoRoot, 'docs', 'qlang-audit.md'),
-  join(repoRoot, 'docs', 'qlang-entrypoint.md'),
   ...readdirSync(decisionsDir).filter(name => name.endsWith('.md')).map(name => join(decisionsDir, name)),
   ...readdirSync(join(decisionsDir, 'replaced')).filter(name => name.endsWith('.md')).map(name => join(decisionsDir, 'replaced', name)),
 ];

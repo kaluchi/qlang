@@ -9,11 +9,12 @@ section are the cases of its file under `core/test/conformance/QSPTH/`.
 A path is a value of the kind `::path`, written `/data/users/3/email`:
 a key or a place from zero at each segment, a negative place counted
 from the end, a key that is a keyword with a slash in its name after a
-colon, `/:a/b`, and a key that is no bare name in quotes,
-`/"first name"`. Each segment is text: a map reads it as the key that
+colon, `/:a/b`, which takes the bare names after it, so a key after it
+stands behind a colon of its own, `/:a/b/:c`, and a key that is no bare
+name in quotes, `/"first name"`. Each segment is text: a map reads it as the key that
 spells it and a vector, quoted or not, as the place its digits name, so
-`/"0"` equals `/0`. A path prints as it is written and reads back as
-itself, JSON writes its literal as a string, two paths are equal when
+`/"0"` equals `/0`. A path prints in one spelling that reads back as
+itself, `/"0"` printing `/0`, JSON writes its literal as a string, two paths are equal when
 their segments are, and the one order ranks paths by their segments
 [QSORD#order].
 
@@ -29,6 +30,9 @@ their segments are, and the one order ranks paths by their segments
 
 > {:"first name" 1} | get /"first name"
 1
+
+> ["a/b" "c"] | toPath | print
+"/:a/b/:c"
 ```
 
 ## get
@@ -125,8 +129,9 @@ parts the segments, `get /a/b` reading `:b` under `:a`.
 `get` and `query` over a template, a literal of paths and quotes at any
 depth of its vectors, maps and sets, answer the template with each path
 read and each quote run against the subject in its place, any other
-value of it as it is. A container under a tag in the template is read
-and laid back under its tags through their constructors, which check the
+value of it as it is. A container under a tag in the template, a stack
+of tags and a set among them, is read and laid back under its tags
+through their constructors, which check the
 template as its literal writes it and then the payload read, so a kind
 whose field takes a number refuses a path written at that field, and
 such a value is built by `get` and then `tag`, `get {:w /w} | tag ::Box`.
@@ -143,6 +148,9 @@ shape wherever it is applied.
 
 > {:a 1} | query [~(get /a) /b]
 [1 null]
+
+> {:a 1} | get [::Box::Crate[/a] ::Box#[/a]]
+[::Box::Crate[1] ::Box#[1]]
 ```
 
 ## code
@@ -173,7 +181,9 @@ naming `take (get /n)`; an input that takes any value, the value of
 A path answers the words of `::path` and those every value answers,
 `eq`, `type`, `print`, `json`; a word of another kind called on one is
 refused, the refusal naming as `:read` the read the step was likely
-meant for. `segments` answers the keys and places of a path. `toPath`
+meant for. `segments` answers the keys and places of a path, a place as its number
+and a segment of digits that writes no number as its text, `/01`
+answering `[:"01"]`. `toPath`
 reads a path from a vector of keys and places, an empty one refused as
 `::vec/toPath/EmptyError` and an element that is no key as
 `::vec/toPath/ElementNotKeyError`, and from a string in the form of JSON
@@ -188,6 +198,9 @@ beneath the tags over it, the outline of any value, `#[]` for an atom.
 
 > /a/0 | segments
 [:a 0]
+
+> /01 | segments
+[:"01"]
 
 > "/a~1b/0" | toPath
 /:a/b/0

@@ -24,13 +24,15 @@ const head = optionOf('head', 'HEAD');
 const base = optionOf('base', git('merge-base', 'master', head).trim());
 const task = new Set(optionOf('task', '').split(',').filter(Boolean));
 
-// The gates: the runner and the judge it compares with, the scripts of
-// the focus and of this diff, the configuration of CI, of the tests and
-// of the linter, the instructions of the sessions and the agents, and
-// the entrypoint's sensors.
+// The gates: the runner and the judge it compares with, the specification,
+// the scripts of the work and of this diff, the configuration of CI, of
+// the tests and of the linter, and the instructions of the sessions and
+// the agents.
 const GATES = [
   /^core\/test\/unit\/conformance\.test\.mjs$/,
   /^core\/src\/equality\.mjs$/,
+  /^core\/test\/helpers\/expected-value\.mjs$/,
+  /^docs\/spec\//,
   /^scripts\//,
   /^\.github\//,
   /(^|\/)vitest\.config\.[cm]?js$/,
@@ -38,7 +40,6 @@ const GATES = [
   /(^|\/)package\.json$/,
   /^CLAUDE\.md$/,
   /^\.claude\//,
-  /^docs\/qlang-entrypoint\.md$/,
 ];
 
 // The cases of a revision by file and name; a line that opens with `//`
@@ -92,7 +93,7 @@ for (const [key, added] of headCases) {
 
 // A record lands once; the one change it takes is the sentence that
 // names the record replacing it, with the definitions of its links.
-for (const line of git('diff', '--name-status', base, head, '--', 'docs/decisions').split('\n').filter(Boolean)) {
+for (const line of git('diff', '--name-status', base, head, '--', 'docs/journal', ':(exclude)docs/journal/research').split('\n').filter(Boolean)) {
   const [status, path] = line.split('\t');
   if (status === 'A') { findings.push(`record added: ${path}`); continue; }
   if (status !== 'M') { findings.push(`record ${status === 'D' ? 'deleted' : 'moved'}: ${path}`); continue; }
@@ -101,7 +102,8 @@ for (const line of git('diff', '--name-status', base, head, '--', 'docs/decision
   const replacementOnly = hunks.every(hunkLines => {
     const changed = hunkLines.filter(changedLine => changedLine !== '');
     return changed.every(changedLine => changedLine.startsWith('+'))
-      && (/^\+(Replaced (in part )?by|Merged into|Filed under the (principles|tooling) by) \[[DE]\d+\]/.test(changed[0]) || changed.every(added => /^\+\[[DE]\d+\]: [DE]\d+\.md$/.test(added)));
+      && (/^\+(Replaced (in part )?by|Merged into|Pruned of what|Filed under the (principles|tooling) by) \[[DE]\d+\]|^\+Dissolved into \[QS|^\+Left at /.test(changed[0])
+        || changed.every(added => /^\+\[([DE]\d+|QS[A-Z]{3}#[a-z]+)\]: \S+$/.test(added)));
   });
   if (replacementOnly) notes.push(`record replaced: ${path}`);
   else findings.push(`record rewritten: ${path}`);
@@ -111,15 +113,6 @@ const changedPaths = git('diff', '--name-only', base, head).split('\n').filter(B
 for (const path of changedPaths) {
   if (GATES.some(gate => gate.test(path))) findings.push(`gate touched: ${path}`);
 }
-
-// The focus reads the milestones of the audit's route.
-function routeAt(revision) {
-  const auditText = git('show', `${revision}:docs/qlang-audit.md`);
-  const start = auditText.indexOf('\n## The route\n');
-  const end = auditText.indexOf('\n## ', start + 1);
-  return start < 0 ? '' : auditText.slice(start, end < 0 ? auditText.length : end);
-}
-if (routeAt(base) !== routeAt(head)) findings.push('route of the audit changed: the focus reads its milestones');
 
 // An implementation that spells a target it met answers the case, not
 // the rule.
@@ -133,7 +126,7 @@ for (const met of metTargets) {
 }
 
 const codePaths = changedPaths.filter(path => !GATES.some(gate => gate.test(path))
-  && !path.startsWith('core/test/conformance/') && !path.startsWith('docs/decisions/'));
+  && !path.startsWith('core/test/conformance/') && !path.startsWith('docs/journal/'));
 console.log(`gate-diff ${base.slice(0, 7)}..${head}${task.size > 0 ? ` · task ${[...task].join(' ')}` : ''}`);
 for (const note of notes) console.log(`  ${note}`);
 if (codePaths.length > 0) console.log(`  other files changed: ${codePaths.length}`);

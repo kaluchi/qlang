@@ -20,8 +20,8 @@
 // run, which `npm run ci` and the checks of a push make [QSWRK#probe].
 //
 // Usage: node scripts/sensors/run-probes.mjs [document ...]
-// Without documents it reads the audit, the entrypoint, the open
-// records, whose questions hold probes as the audit does [QSWRK#journal], and the
+// Without documents it reads the open records, whose questions hold
+// probes [QSWRK#journal], and the
 // chapters of the specification, whose sections show their rules by
 // probes [QSWRK#spec].
 
@@ -30,16 +30,16 @@ import { join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { pipeEnv } from '../pipe-env.mjs';
-import { isOpenText } from '../decision-records.mjs';
+import { isOpenText, JOURNAL } from '../decision-records.mjs';
 
 const repoRoot = join(import.meta.dirname, '..', '..');
-const recordsDir = join(repoRoot, 'docs', 'decisions');
+const recordsDir = join(repoRoot, JOURNAL);
 const openRecords = readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).map(name => join(recordsDir, name))
   .filter(path => isOpenText(readFileSync(path, 'utf8')));
 const specDir = join(repoRoot, 'docs', 'spec');
 const chapters = readdirSync(specDir).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name)).map(name => join(specDir, name));
 const documents = process.argv.length > 2 ? process.argv.slice(2)
-  : [join(repoRoot, 'docs', 'qlang-audit.md'), join(repoRoot, 'docs', 'qlang-entrypoint.md'), ...openRecords, ...chapters];
+  : [...openRecords, ...chapters];
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery } = await core('eval.mjs');
 const { printValue } = await core('index.mjs');

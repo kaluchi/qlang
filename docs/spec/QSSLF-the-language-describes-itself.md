@@ -7,10 +7,14 @@ it. The requirements of each section are the cases of its file under
 
 ## axis
 
-The axes read a name: `doc` its page, `source` every declaration written
-under its address, `binding` the record of its binding [QSNAM#binding].
-A value is read by its kind, `5 | doc` the page of `::number`, a keyword
-among values, and a name by its tag, the address of its node,
+The axes, words of every value, read a name: `doc` its page, `source`
+every declaration written under its address, `binding` the record of its
+binding [QSNAM#binding], `manifest` the names under it, `laws` its laws
+and `explain` its explanation. A value is read by its kind, `5 | doc` the
+page of `::number`, a keyword among values, a value under a tag nothing
+declares by the first kind its stack of tags declares from the outside
+in, as a call of a word walks it, so `::Box{:a 1} | doc` is the page of
+`::map`; and a name by its tag, the address of its node,
 `::vec/count | doc`, a label of the root from the root and any other
 name at its nearest declaration. `binding` and `source` take the name of
 one member after it, a keyword, and read the member the subject holds
@@ -25,8 +29,8 @@ runtime raises by rule having no node of its own; any other name
 nothing declares is refused under the axis, `::any/doc/UnknownNameError`,
 named by the tag or the keyword asked, with the addresses of words of
 the name and the names near it. A name declared without a page answers
-null. A field of a map names nothing, so `{:kind ::set} | doc` is the
-page of maps, and a label may declare a `doc` of its own, which its
+null. A map is read by its kind whatever its fields hold,
+`{:kind ::set} | doc` the page of maps, and a label may declare a `doc` of its own, which its
 values answer before the word of every value. A reader adds an axis of
 its own by laying a tag over values and declaring words on the tag.
 
@@ -46,11 +50,12 @@ true
 
 ## manifest
 
-`manifest`, a word of `::tag`, answers the set of the nodes declared one
-name under a noun: its words, its refusals, its pages and the inputs and
-answer of a word, its laws aside, which `laws` reads; a tag nothing
-declares answers the empty set, and a subject that is no tag is refused
-as `::tag/manifest/SubjectNotTagError`. The topic of the language lists
+`manifest`, an axis, answers the set of the nodes declared one name
+under the name its subject reads: its words, its refusals, its pages and
+the inputs and answer of a word, its laws aside, which `laws` reads; a
+value answers those of the kind it shows, `5 | manifest` those of
+`::number`, and a name nothing declares is refused as
+`::any/manifest/UnknownNameError`. The topic of the language lists
 its chapters, and a noun the refusals its source declares.
 
 ```qlang

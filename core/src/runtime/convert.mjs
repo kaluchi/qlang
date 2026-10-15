@@ -76,7 +76,13 @@ const StringToRegexTextNotPatternError = declareRefusal('string/toRegex/TextNotP
 const StringToRegexLiteralNotSourceError = declareRefusal('string/toRegex/LiteralNotSourceError');
 const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/flags/NotFlagsError');
 
-bindPrim('regex/toRegex', regex => regex);
+const RegexToRegexFlagsNotFlagsError = declareRefusal('regex/toRegex/flags/NotFlagsError');
+bindPrim('regex/toRegex', (regex, written) => {
+  if (written === null) return regex;
+  const flags = canonicalFlags(written);
+  if (flags === null) throw new RegexToRegexFlagsNotFlagsError({ actualValue: written });
+  return makeRegex(regex.source, flags);
+});
 bindPrim('string/toRegex', (text, written) => {
   const flags = canonicalFlags(written);
   if (flags === null) throw new StringToRegexFlagsNotFlagsError({ actualValue: written });

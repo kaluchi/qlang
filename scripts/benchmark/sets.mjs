@@ -122,6 +122,7 @@ export async function run(setId, { decision, model, runs, reason }) {
   if (!/^D\d+$/.test(decision ?? '') || !existsSync(join(repoRoot, 'docs', 'decisions', `${decision}.md`))) {
     throw new Error(`--decision names no decision: ${decision}; a measurement belongs to a decision [QSWRK#measure]`);
   }
+  if (setRecordOf(setId).seen) throw new Error(`set ${setId} is seen: a set measures once, and the next measurement orders a new set [QSWRK#measure]`);
   const changes = changesOutsideCommit();
   if (changes.length > 0) throw new Error(`the tree holds changes outside its commit, which a run fixes [QSWRK#measure]:\n${changes.join('\n')}`);
   const measured = measuredNumbers();

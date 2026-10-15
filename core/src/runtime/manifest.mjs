@@ -12,7 +12,11 @@ import { recordReadBy, pageOfRecord } from './axis.mjs';
 import { namesUnder, lawsUnder, rootScopeOf } from './nouns.mjs';
 
 
-bindStateReader('tag/manifest', (subject, state) => namesUnder(state.env, subject.name));
+// `manifest` reads its subject's record as the axes do, a name its own and
+// any other value its kind's [QSSLF#manifest].
+const AnyManifestUnknownNameError = declareRefusal('any/manifest/UnknownNameError');
+bindStateReader('any/manifest', (subject, state) =>
+  namesUnder(state.env, recordReadBy(subject, NULL, state, AnyManifestUnknownNameError).get('name').name));
 
 // The laws declared under the address of the record a value reads, as
 // `doc` reads it: each one's last name and the pair of its page, null for

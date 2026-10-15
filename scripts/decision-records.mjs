@@ -9,9 +9,13 @@ import { join } from 'node:path';
 
 const readText = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
-// The folders of the records: the root holds those in force, and
-// `replaced/` those replaced whole, each moved there once [QSWRK#journal].
-const recordFolders = root => [join(root, 'docs', 'decisions'), join(root, 'docs', 'decisions', 'replaced')];
+// The journal, the apophatic texts of the tree [QSWRK#documents]: the records
+// in force at its root, those out of force under `replaced/`, each moved
+// there once, and the research under `research/` [QSWRK#journal].
+export const JOURNAL = 'docs/journal';
+export const REPLACED = `${JOURNAL}/replaced`;
+export const RESEARCH = `${JOURNAL}/research`;
+const recordFolders = root => [join(root, JOURNAL), join(root, REPLACED)];
 
 // statementsOf(text) → the statements of a record, each `{ text, from, to }`
 // over the indices of its lines: a line that opens a field, `Source.` or
@@ -88,7 +92,7 @@ export function readDecisionRecords(root) {
       for (const decision of [conformanceCase.decision ?? []].flat()) {
         const record = records.get(decision);
         if (record === undefined) {
-          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in docs/decisions: a case names the record it holds [QSWRK#journal]`);
+          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in ${JOURNAL}: a case names the record it holds [QSWRK#cases]`);
         }
         (conformanceCase.target === true ? record.targets : record.met).push(conformanceCase.name);
       }

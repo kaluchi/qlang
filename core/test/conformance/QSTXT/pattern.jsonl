@@ -18,3 +18,5 @@
 {"name":"a-lookbehind-before-a-sign-names-no-group","query":"\"a>\" | contains #\"(?<=a)>|(?<=a)>\"","expect":"true"}
 {"name":"a-quote-in-a-pattern-does-not-end-it","query":"\"say \\\"hi\\\"\" | contains #\"\\\"hi\\\"\"","expect":"true"}
 {"name":"a-pattern-reads-letters-of-any-script","query":"\"Ünïcödé 42 данные\" | scan #\"\\p{L}+\"","expect":"[\"Ünïcödé\" \"данные\"]"}
+{"name":"a-pattern-takes-flags-as-a-string-does","query":"#\"a\" | toRegex \"i\" | eq (\"a\" | toRegex \"i\")","expect":"true"}
+{"name":"a-pattern-refuses-letters-of-no-flag","query":"#\"a\" | toRegex \"q\" !| type","expect":"::regex/toRegex/flags/NotFlagsError"}

@@ -15,7 +15,8 @@ from zero. An answer keeps the subject's tags, `::W#2.7 | floor`
 answering `::W#2`. A subject that is no number is refused as
 `::number/add/SubjectNotNumberError` and an object as
 `::number/add/addend/KindNotTakenError`. Every answer is a finite
-double: one past the doubles is refused as `::number/NotFiniteError`, a
+double: one past the doubles is refused as `::number/NotFiniteError`, and
+one within them is given, `1 | round 400` answering `1`, a
 division by zero under the divisor of `div`,
 `::number/div/divisor/ZeroError`, and a remainder by zero under that of
 `mod`, `::number/mod/divisor/ZeroError`. `range` answers the whole
@@ -35,6 +36,9 @@ past the length a vector may have as `::number/range/CountTooLargeError`.
 
 > 1e308 | mul 10 !| type
 ::number/NotFiniteError
+
+> get [~(1 | round 400) ~(1 | round -400)]
+[1 0]
 
 > 10 | div 0 !| type
 ::number/div/divisor/ZeroError

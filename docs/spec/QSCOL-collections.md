@@ -11,12 +11,14 @@ A vector and a set answer `count`, `empty`, `first` and `last`, `take`
 and `drop` a count of elements, clamped to what there is, a count whole
 where it equals its floor, a fraction refused as
 `::vec/take/count/NotIntegerError` and a value of another kind as
-`…/count/KindNotTakenError`, `reverse`, which answers a vector under no
-tag, `flat`, which lifts one level, `sum`, an element that is no number
-refused at its index, and `min` and `max` in the one order or by a key
+`…/count/KindNotTakenError`, `reverse`, the reverse of a set a vector and
+of a vector under a tag the vector under it, `flat`, which lifts one
+level, `sum`, a number beneath the tags over an element read as the
+number and an element that is no number refused at its index, and `min` and `max` in the one order or by a key
 [QSORD#sort], null over an empty container where it reads one. `avg`
-answers the mean, null over nothing, kept as a running mean, an element
-that is no number refused at its index, at its key over a map. `has`
+answers the mean, null over nothing, kept as a running mean, a number
+beneath its tags read as `sum` reads it, an element that is no number
+refused at its index, at its key over a map. `has`
 asks whether an element equal to one stands [QSPTH#has]. `append` and
 `prepend` put one element at an end, a vector given among them, and a
 set takes it into its order. `zip` reads vectors side by side, as long
@@ -39,6 +41,9 @@ says [QSDSP#answer].
 
 > [1 2 3 4] | avg
 2.5
+
+> [::W#2 1] | sum
+3
 
 > [] | min
 null

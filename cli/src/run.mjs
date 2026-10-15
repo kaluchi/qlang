@@ -23,8 +23,7 @@ export async function runQuery(queryText, ioContext, runOpts = {}) {
 // refusal whose page repairs the call.
 const ERROR_KIND = 'error';
 
-// The prose of the page `explain` reads for a failure, its links and
-// snippets aside, which the command line writes below the failure so a
-// reader repairs the call where it failed [QSHST#answer]; null for a refusal
-// with no page.
-const PROSE_OF_THE_PAGE = '!| explain | get /page | segments | filter ~(type | eq ::string) | join "" !| null';
+// The prose of the page of a failure's site, its links and snippets aside,
+// which the command line writes below the failure so a reader repairs the
+// call where it failed [QSHST#answer]; null for a site with no page.
+const PROSE_OF_THE_PAGE = '!| type | doc | segments | filter ~(type | eq ::string) | join "" !| null';

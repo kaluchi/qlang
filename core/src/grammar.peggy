@@ -814,15 +814,16 @@ LiteralGap
   / &{ return docQuoteDepth === 0; } &(!"/" Element) Element { error('the words of a literal are set off by whitespace: `[1 2]`'); }
 
 // A path, a value of its own [QSPTH#value]: a segment is a bare key, a quoted
-// key, a namespaced keyword after `:`, or an index; the slash alone names
-// no path, the value itself being `it`, and a question mark after a
-// segment, the habit of a read that may miss, leads to `query`.
+// key, a namespaced keyword after `:`, or an index; the slash alone, with no
+// segment begun after it, names no path, the value itself being `it`, and a
+// question mark after a segment, the habit of a read that may miss, leads to
+// `query`.
 Path
   = &{ return docQuoteDepth === 0; } written:$("/" KeySegment ("?"? "/" KeySegment)* "?"?) &{ return written.includes('?'); }
     { error(`a part that may be missing is read by \`query\`, which answers null where it misses: write \`query ${written.replaceAll('?', '')}\``); }
   / "/" first:KeySegment rest:("/" @KeySegment)*
     { return node('Path', { keys: [first, ...rest] }, span(), text()); }
-  / &{ return docQuoteDepth === 0; } "/" !KeySegment
+  / &{ return docQuoteDepth === 0; } "/" !KeySegment !('"' / ":")
     { error('the slash alone names no path: the value itself is `it`'); }
 
 KeySegment

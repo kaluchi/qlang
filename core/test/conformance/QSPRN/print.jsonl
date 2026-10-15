@@ -6,12 +6,12 @@
 {"name":"print-writes-a-quote-as-its-literal","query":"~(add 1) | print","expect":"\"~(add 1)\""}
 {"name":"print-writes-each-part-by-its-kind","query":"[|~~ x ~~| #[1]] | print","expect":"\"[|~~ x ~~| #[1]]\""}
 {"name":"the-print-of-a-value-reads-back-as-the-value","query":"{:a [1 \"x\" :k]} | :v it | print | parse | :q it | apply q | eq v","expect":"true"}
-{"name":"a-doc-holding-a-quote-prints-as-written","query":"|~~ see ~(mul 2) for ref ~~|","expect":"|~~ see ~(mul 2) for ref ~~|"}
-{"name":"true","query":"true","expect":"true"}
-{"name":"false","query":"false","expect":"false"}
-{"name":"null","query":"null","expect":"null"}
-{"name":"doc-block-empty","query":"|~~~~|","expect":"|~~~~|"}
-{"name":"doc-block-prose","query":"|~~ hello ~~|","expect":"|~~ hello ~~|"}
-{"name":"doc-block-multiline","query":"|~~\n  paragraph one\n  paragraph two\n~~|","expect":"|~~\n  paragraph one\n  paragraph two\n~~|"}
-{"name":"doc-line-form-renders-as-block","query":"|~~| oneliner","expect":"|~~ oneliner~~|"}
-{"name":"doc-line-form-empty","query":"|~~|","expect":"|~~~~|"}
+{"name":"a-doc-holding-a-quote-prints-as-written","query":"|~~ see ~(mul 2) for ref ~~| | print","expect":"\"|~~ see ~(mul 2) for ref ~~|\""}
+{"name":"true-prints-as-its-word","query":"true | print","expect":"\"true\""}
+{"name":"false-prints-as-its-word","query":"false | print","expect":"\"false\""}
+{"name":"null-prints-as-its-word","query":"null | print","expect":"\"null\""}
+{"name":"an-empty-doc-prints-as-its-block","query":"|~~~~| | print","expect":"\"|~~~~|\""}
+{"name":"a-doc-of-prose-prints-as-its-block","query":"|~~ hello ~~| | print","expect":"\"|~~ hello ~~|\""}
+{"name":"a-doc-of-several-lines-prints-them","query":"|~~\n  paragraph one\n  paragraph two\n~~| | print","expect":"\"|~~\\n  paragraph one\\n  paragraph two\\n~~|\""}
+{"name":"a-line-doc-prints-as-a-block","query":"|~~| oneliner\n| print","expect":"\"|~~ oneliner~~|\""}
+{"name":"an-empty-line-doc-prints-as-an-empty-block","query":"|~~|\n| print","expect":"\"|~~~~|\""}

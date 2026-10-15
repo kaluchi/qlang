@@ -26,3 +26,6 @@
 {"name":"the-prefix-is-refused-at-its-residence","query":"\"a\" | prepend 1 !| type","expect":"::string/prepend/prefix/KindNotTakenError"}
 {"name":"each-value-the-call-gives-is-refused-with-its-index","query":"{:a 1 :b \"x\"} | sumOf /a /b !| get [~(type) /index /actualType]","expect":"[::vec/sum/ElementNotNumberError 1 ::string]"}
 {"name":"a-refusal-leaves-the-value-out-where-it-equals-the-subject-whatever-its-identity","query":"get [~([1] | :v it | v 1 !| has /actualValue) ~(:v [1] | [1] | v 1 !| has /actualValue) ~(:v [2] | [1] | v 1 !| has /actualValue)]","expect":"[false false true]"}
+{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | parse | contains \"throws :addend/KindNotTakenError\"","expect":"true"}
+{"name":"a-step-lists-its-refusals-on-its-noun","query":"::path | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :KeyNotInMapError) | count","expect":"1"}
+{"name":"a-noun-lists-each-refusal-once","query":"::vec | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :PayloadKindNotTakenError) | count","expect":"1"}

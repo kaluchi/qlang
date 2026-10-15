@@ -24,3 +24,4 @@
 {"name":"code-a-word-runs-names-a-value-in-its-steps","query":"[1 2 3] | filter ~(:n 2 | gt n)","expect":"[3]"}
 {"name":"a-declaration-the-fail-track-skipped-counts-as-written","query":"{} | raise | :x 1 !| :x 2 | x !| type","expect":"::bind/NameDeclaredTwiceError"}
 {"name":"a-declaration-writes-into-no-verb-it-was-handed","query":":A |~~ A. ~~| | :B |~~ B. ~~| | ~(:returns ::number | 1) | get [~(:A/f (it) | ::A{} | f) ~(:B/f (it) | ::B{} | f)]","expect":"[1 1]"}
+{"name":"a-declaration-whose-body-failed-counts-as-written","query":":x (1 | div 0) !| :x 2 | x !| type","expect":"::bind/NameDeclaredTwiceError"}

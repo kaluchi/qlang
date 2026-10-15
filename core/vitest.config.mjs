@@ -5,20 +5,16 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['test/**/*.test.mjs'],
-    // Default 5s timeout fires under v8 coverage instrumentation
-    // on tests that load the full langRuntime bootstrap (catalog
-    // parse + evaluate). 15s leaves room for instrumented bootstrap
-    // while still catching genuine hangs.
+    // A test waits fifteen seconds, the boot of the root under the
+    // coverage among them.
     testTimeout: 15000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary'],
       include: ['src/**/*.mjs'],
-      // `load-source-web.mjs` is the browser-side loader resolved
-      // via the `default` condition of `#qlang/load-source` — Node
-      // tests never import it (the `node` condition selects
-      // `host/load-source-node.mjs`). Browser-bundle smoke tests
-      // are out of scope for this workspace's coverage gate.
+      // The browser's loader, the `default` condition of
+      // `#qlang/load-source`, stands outside the coverage, which
+      // reads the loader of Node [QSWRK#tooling].
       exclude: ['src/load-source-web.mjs'],
       thresholds: {
         lines: 100,

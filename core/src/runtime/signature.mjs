@@ -118,12 +118,15 @@ export function readSignature(quote) {
       case 'takes': {
         names.declare(first.name);
         const { each, kinds, written } = kindsWritten(fourth);
+        names.named.add(notGivenAddress(first.name));
+        if (each) names.named.add(kindsRefusalAddress(first.name));
         if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
         signature.inputs.push({ name: first, page: second, place: third, kinds, each, written, selector: selectorOfPlace(third) });
         break;
       }
       case 'returns':
         names.declare(ANSWER_NAME);
+        names.named.add(kindsRefusalAddress(ANSWER_NAME));
         signature.answer = { page: first, kinds: kindsOf(second), written: second };
         break;
       case 'throws':

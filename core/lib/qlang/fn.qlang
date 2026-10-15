@@ -248,11 +248,17 @@
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
     | takes :page |~~ The page of the subject. ~~| /0 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::fn | on 5 ::number !| type | eq ::fn/on/page/KindNotTakenError)
     | takes :kinds
         |~~ The kinds of the subject, a tag or a set of tags; any value
             where none is given.
         ~~|
         ~(query /1 null) #[::null ::set ::tag]
+    | proves :kinds/KindNotTakenError/refusesANumber
+        |~~ Kinds that are no tag and no set of tags are refused. ~~|
+        ~(::fn | on |~~ p ~~| 5 !| type | eq ::fn/on/kinds/KindNotTakenError)
     | returns |~~ The function with its subject. ~~| ::fn
     | throws :SubjectNotFnError
         |~~ `on` names the subject of the noun's function, `::fn | on …`,
@@ -295,6 +301,9 @@
     | takes :page |~~ The page of the input. ~~| /1 ::doc
     | throws :page/KindNotTakenError
         |~~ The page of an input is a doc, `|~~ How much. ~~|`. ~~|
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::fn | takes :x 5 /0 ::number !| type | eq ::fn/takes/page/KindNotTakenError)
     | takes :place
         |~~ The place of the call the input reads, a path or a quote. ~~|
         /2 #[::path ::quote]
@@ -302,12 +311,18 @@
         |~~ The place is a path, `/0`, or a quote that reads the
             arguments, `~(query /0 1)`.
         ~~|
+    | proves :place/KindNotTakenError/refusesANumber
+        |~~ A place that is no path and no quote is refused. ~~|
+        ~(::fn | takes :x |~~ p ~~| 5 ::number !| type | eq ::fn/takes/place/KindNotTakenError)
     | takes :kinds
         |~~ The kinds the input holds, a tag or a set of tags, or a vector
             of one of them for the kinds of each element; any value where
             none is given.
         ~~|
         ~(query /3 null) #[::null ::set ::tag ::vec]
+    | proves :kinds/KindNotTakenError/refusesANumber
+        |~~ Kinds that are no tag and no set of tags are refused. ~~|
+        ~(::fn | takes :x |~~ p ~~| /0 5 !| type | eq ::fn/takes/kinds/KindNotTakenError)
     | returns
         |~~ The function with the input after the ones it held. ~~|
         ::fn
@@ -421,9 +436,15 @@
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
     | takes :page |~~ The page of the answer. ~~| /0 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::fn | returns 5 ::number !| type | eq ::fn/returns/page/KindNotTakenError)
     | takes :kinds
         |~~ The kinds of the answer, a tag or a set of tags. ~~|
         /1 #[::set ::tag]
+    | proves :kinds/KindNotTakenError/refusesANumber
+        |~~ Kinds that are no tag and no set of tags are refused. ~~|
+        ~(::fn | returns |~~ p ~~| 5 !| type | eq ::fn/returns/kinds/KindNotTakenError)
     | returns |~~ The function with its answer. ~~| ::fn
     | throws :SubjectNotFnError
         |~~ `returns` names the answer of the noun's function,
@@ -466,7 +487,13 @@
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
     | takes :name |~~ The name of the refusal. ~~| /0 ::keyword
+    | proves :name/KindNotTakenError/refusesANumber
+        |~~ A name that is no keyword is refused. ~~|
+        ~(::fn | throws 5 |~~ p ~~| !| type | eq ::fn/throws/name/KindNotTakenError)
     | takes :page |~~ The page of the refusal. ~~| /1 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::fn | throws :XError 5 !| type | eq ::fn/throws/page/KindNotTakenError)
     | returns |~~ The function with the refusal. ~~| ::fn
     | throws :SubjectNotFnError
         |~~ `throws` names a refusal of the noun's function,
@@ -509,10 +536,19 @@
             `:by/TooBigError`.
         ~~|
         /0 ::keyword
+    | proves :name/KindNotTakenError/refusesANumber
+        |~~ A name that is no keyword is refused. ~~|
+        ~(::fn | holds 5 |~~ p ~~| ~(true) !| type | eq ::fn/holds/name/KindNotTakenError)
     | takes :page |~~ The page of the refusal. ~~| /1 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::fn | holds :x/YError 5 ~(true) !| type | eq ::fn/holds/page/KindNotTakenError)
     | takes :condition
         |~~ The condition the value answers true to. ~~|
         /2 ::quote
+    | proves :condition/KindNotTakenError/refusesANumber
+        |~~ A condition that is no quote is refused. ~~|
+        ~(::fn | holds :x/YError |~~ p ~~| 5 !| type | eq ::fn/holds/condition/KindNotTakenError)
     | returns |~~ The function with the invariant. ~~| ::fn
     | throws :SubjectNotFnError
         |~~ `holds` writes an invariant of the noun's function,
@@ -550,10 +586,19 @@
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
     | takes :name |~~ The name of the law. ~~| /0 ::keyword
+    | proves :name/KindNotTakenError/refusesANumber
+        |~~ A name that is no keyword is refused. ~~|
+        ~(::fn | proves 5 |~~ p ~~| ~(true) !| type | eq ::fn/proves/name/KindNotTakenError)
     | takes :page |~~ The page of the law, the claim it proves. ~~| /1 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::fn | proves :x 5 ~(true) !| type | eq ::fn/proves/page/KindNotTakenError)
     | takes :query
         |~~ The query that proves the claim, answering `true`. ~~|
         /2 ::quote
+    | proves :query/KindNotTakenError/refusesANumber
+        |~~ A query that is no quote is refused. ~~|
+        ~(::fn | proves :x |~~ p ~~| 5 !| type | eq ::fn/proves/query/KindNotTakenError)
     | returns |~~ The function with the law. ~~| ::fn
     | throws :SubjectNotFnError
         |~~ `proves` writes a law of the noun's function,
@@ -595,12 +640,21 @@
     | takes :name
         |~~ The name of the fact, under the refusal that carries it. ~~|
         /0 ::keyword
+    | proves :name/KindNotTakenError/refusesANumber
+        |~~ A name that is no keyword is refused. ~~|
+        ~(::fn | carries 5 |~~ p ~~| ::number !| type | eq ::fn/carries/name/KindNotTakenError)
     | takes :page |~~ The page of the fact. ~~| /1 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::fn | carries :x 5 ::number !| type | eq ::fn/carries/page/KindNotTakenError)
     | takes :kinds
         |~~ The kinds of the fact, a tag or a set of tags; any value where
             none is given.
         ~~|
         ~(query /2 null) #[::null ::set ::tag]
+    | proves :kinds/KindNotTakenError/refusesANumber
+        |~~ Kinds that are no tag and no set of tags are refused. ~~|
+        ~(::fn | carries :x |~~ p ~~| 5 !| type | eq ::fn/carries/kinds/KindNotTakenError)
     | returns |~~ The function with the fact. ~~| ::fn
     | throws :SubjectNotFnError
         |~~ `carries` names a fact of the noun's function,

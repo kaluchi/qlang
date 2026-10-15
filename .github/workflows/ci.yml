@@ -110,13 +110,10 @@ jobs:
       - run: npm run build -w @kaluchi/qlang-core
       - run: npm run test:integration -w ${{ matrix.workspace }}
 
-  # Astro site build — runs the same `astro build` the Pages
-  # workflow runs on push to master, but earlier in the PR cycle.
-  # This is the only job that exercises Vite's SSR bundler against
-  # the qlang-core package; the workspace-tests job above runs the
-  # site's unit tests through vitest, which does not bundle, so a regression
-  # in `package.json#sideEffects` / `astro.config.mjs#vite.ssr`
-  # would slip past every other matrix entry.
+  # The build of the site, the `astro build` the Pages workflow runs on a
+  # push to master, the one job that bundles the core by Vite's SSR,
+  # `package.json#sideEffects` and `astro.config.mjs#vite.ssr` among
+  # what it reads [QSWRK#tooling].
   site-build:
     name: Astro site build
     runs-on: ubuntu-latest

@@ -23,3 +23,7 @@
 {"name":"a-negative-count-of-digits-rounds-to-tens","query":"15 | round -1","expect":"20"}
 {"name":"sum-overflow-lifts-not-finite","query":"[1e308 1e308] | sum !| type","expect":"::number/NotFiniteError"}
 {"name":"sum-overflow-holds-its-subject-on-the-trail","query":"[1e308 1e308] | sum !| get /trail/0/subject","expect":"[1e308 1e308]"}
+{"name":"add-refuses-a-subject-that-is-no-number","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
+{"name":"add-refuses-an-addend-that-is-no-number-under-the-addend","query":"1 | add \"x\" !| type","expect":"::number/add/addend/KindNotTakenError"}
+{"name":"round-refuses-a-fraction-of-digits","query":"1.5 | round 0.5 !| type","expect":"::number/round/digits/NotIntegerError"}
+{"name":"range-of-zero-and-below-is-empty","query":"get [~(0 | range) ~(-2 | range)]","expect":"[[] []]"}

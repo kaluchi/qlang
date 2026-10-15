@@ -1212,6 +1212,9 @@
         /0 ::regex
     | throws :pattern/KindNotTakenError
         |~~ The pattern is a `#"…"` that names its groups, `(?<name>…)`. ~~|
+    | proves :pattern/KindNotTakenError/refusesANumber
+        |~~ A pattern that is no pattern and no string is refused. ~~|
+        ~("a" | capture 5 !| type | eq ::string/capture/pattern/KindNotTakenError)
     | returns
         |~~ The named groups of the first match, or `null`. ~~|
         #[::map ::null]
@@ -1248,6 +1251,9 @@
         /0 ::regex
     | throws :pattern/KindNotTakenError
         |~~ The pattern is a `#"…"`; text becomes one by `toRegex`. ~~|
+    | proves :pattern/KindNotTakenError/refusesANumber
+        |~~ A pattern that is no pattern and no string is refused. ~~|
+        ~("a" | scan 5 !| type | eq ::string/scan/pattern/KindNotTakenError)
     | returns |~~ The text of every match, in order. ~~| ::vec
     | proves :readsEveryMatch
         |~~ Every match comes, in order. ~~|
@@ -1281,6 +1287,9 @@
         |~~ What is looked for is a `#"…"` or a text; a keyword gives its
             name by `toString`.
         ~~|
+    | proves :pattern/KindNotTakenError/refusesANumber
+        |~~ A pattern that is no pattern and no string is refused. ~~|
+        ~("a" | replace 5 "b" !| type | eq ::string/replace/pattern/KindNotTakenError)
     | takes :with
         |~~ What takes the place of each match: a string, or code that
             answers one from the match, a quote or a path.
@@ -1292,6 +1301,9 @@
             `replace #"\d+" ~(get /0 | toNumber | mul 2 | toString)`, a
             path reading a group of it, `replace #"(\d)x" /1`.
         ~~|
+    | proves :with/KindNotTakenError/refusesANumber
+        |~~ A replacement that is no string and no quote is refused. ~~|
+        ~("a" | replace "a" 5 !| type | eq ::string/replace/with/KindNotTakenError)
     | throws :with/AnswerNotStringError
         |~~ The code of `replace` answers the text that takes the place of
             a match: a number becomes text by `toString`,
@@ -1356,6 +1368,9 @@
         ~(query /0 null) #[::null ::string]
     | throws :flags/KindNotTakenError
         |~~ The flags are written in a string, `toRegex "i"`. ~~|
+    | proves :flags/KindNotTakenError/refusesANumber
+        |~~ Flags that are no string are refused. ~~|
+        ~("a" | toRegex 5 !| type | eq ::string/toRegex/flags/KindNotTakenError)
     | throws :flags/NotFlagsError
         |~~ The flags are `i` to ignore case, `m` for `^` and `$` at every
             line and `s` for a dot that matches a line break, each written

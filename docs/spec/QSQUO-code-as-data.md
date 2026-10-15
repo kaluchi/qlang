@@ -78,10 +78,10 @@ reads as no pipeline is refused as `::quote/ParseError` with its
 `:marker`, its `:location`, its `:message`, the form meant where the
 parser names one, the `:expected` of the place it stopped where the
 reading stops short of a form [QSSYN#refusal], [QSPRN#span], and the
-`:uri` of `parse`. A quote whose steps are all declarations prints one
-declaration a line, each after the first led by its pipe, a step that
-takes several lines prints on them, and any other quote prints on one
-line. Every text a quote
+`:uri` of `parse`. A quote whose steps are all declarations, or of
+several steps one of which takes several lines, prints a step a line,
+each after the first led by its pipe, a step that takes several lines
+printing on them, and any other quote prints on one line. Every text a quote
 prints reads back as the same quote.
 
 ```qlang

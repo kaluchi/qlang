@@ -2,11 +2,9 @@
 // share: which workspaces the repo declares, every place one of them
 // names a sibling, and the range that naming must carry.
 //
-// npm workspaces link a sibling by name, so a range on one steers
-// nothing inside the repo and reaches the registry verbatim. There a
-// consumer resolves it for real, which is why the range has to name
-// the sibling's own version — and why every dependency map counts,
-// not `dependencies` alone.
+// A workspace names a sibling by the range `^x.y.z` of the sibling's own
+// version in every map of its dependencies, the range a consumer of the
+// registry resolves [QSWRK#tooling].
 // The decisions it exists for: [QSWRK#tooling].
 
 import { readFileSync, writeFileSync } from 'node:fs';

@@ -23,7 +23,9 @@
       each field read and held, and the invariants of the value, each
       refusal named under the kind, `::Box/w/KindNotTakenError`: the
       constructor attaches the tag to the payload or refuses it, and
-      builds no other value. A kind declared under a
+      builds no other value, but for a kind of the core, which reads its
+      payload as a value of its own, `::set[2 1]` answering `#[1 2]`. A
+      kind declared under a
       name is a label, its words functions named under it: the payload,
       each field, each refusal, fact, invariant and law lie under it for
       `doc`, and `manifest` lists them but the laws, which `laws` reads;
@@ -242,12 +244,18 @@
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :page |~~ The page of the payload. ~~| /0 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::kind | wraps 5 ::number !| type | eq ::kind/wraps/page/KindNotTakenError)
     | takes :kinds
         |~~ The kinds of the payload, a tag or a set of tags, or a vector
             of one of them for the kinds of each element; any value where
             none is given.
         ~~|
         ~(query /1 null) #[::null ::set ::tag ::vec]
+    | proves :kinds/KindNotTakenError/refusesANumber
+        |~~ Kinds that are no tag and no set of tags are refused. ~~|
+        ~(::kind | wraps |~~ p ~~| 5 !| type | eq ::kind/wraps/kinds/KindNotTakenError)
     | returns |~~ The kind with its payload. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `wraps` names the payload of the noun's kind,
@@ -281,7 +289,13 @@
     | takes :name
         |~~ The name of the field, its node under the kind. ~~|
         /0 ::keyword
+    | proves :name/KindNotTakenError/refusesANumber
+        |~~ A name that is no keyword is refused. ~~|
+        ~(::kind | reads 5 |~~ p ~~| /x ::number !| type | eq ::kind/reads/name/KindNotTakenError)
     | takes :page |~~ The page of the field. ~~| /1 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::kind | reads :x 5 /x ::number !| type | eq ::kind/reads/page/KindNotTakenError)
     | takes :place
         |~~ The place of the payload the field reads, a path or a quote. ~~|
         /2 #[::path ::quote]
@@ -289,12 +303,18 @@
         |~~ The place is a path, `/w`, or a quote that reads the payload,
             `~(query /h 1)`.
         ~~|
+    | proves :place/KindNotTakenError/refusesANumber
+        |~~ A place that is no path and no quote is refused. ~~|
+        ~(::kind | reads :x |~~ p ~~| 5 ::number !| type | eq ::kind/reads/place/KindNotTakenError)
     | takes :kinds
         |~~ The kinds the field holds, a tag or a set of tags, or a vector
             of one of them for the kinds of each element; any value where
             none is given.
         ~~|
         ~(query /3 null) #[::null ::set ::tag ::vec]
+    | proves :kinds/KindNotTakenError/refusesANumber
+        |~~ Kinds that are no tag and no set of tags are refused. ~~|
+        ~(::kind | reads :x |~~ p ~~| /x 5 !| type | eq ::kind/reads/kinds/KindNotTakenError)
     | returns |~~ The kind with the field after the ones it read. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `reads` builds from the noun, `::kind | reads …`, or a kind. ~~|
@@ -326,12 +346,21 @@
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :name |~~ The name of the page. ~~| /0 ::keyword
+    | proves :name/KindNotTakenError/refusesANumber
+        |~~ A name that is no keyword is refused. ~~|
+        ~(::kind | tells 5 |~~ p ~~| ::number !| type | eq ::kind/tells/name/KindNotTakenError)
     | takes :page |~~ The page told. ~~| /1 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::kind | tells :x 5 ::number !| type | eq ::kind/tells/page/KindNotTakenError)
     | takes :kinds
         |~~ The kinds the page tells of, a tag or a set of tags; none
             where none is given.
         ~~|
         ~(query /2 null) #[::null ::set ::tag]
+    | proves :kinds/KindNotTakenError/refusesANumber
+        |~~ Kinds that are no tag and no set of tags are refused. ~~|
+        ~(::kind | tells :x |~~ p ~~| 5 !| type | eq ::kind/tells/kinds/KindNotTakenError)
     | returns |~~ The kind with the page. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `tells` writes a page of the noun's kind, `::kind | tells …`,
@@ -365,12 +394,21 @@
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :name |~~ The name of the fact. ~~| /0 ::keyword
+    | proves :name/KindNotTakenError/refusesANumber
+        |~~ A name that is no keyword is refused. ~~|
+        ~(::kind | carries 5 |~~ p ~~| ::number !| type | eq ::kind/carries/name/KindNotTakenError)
     | takes :page |~~ The page of the fact. ~~| /1 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::kind | carries :x 5 ::number !| type | eq ::kind/carries/page/KindNotTakenError)
     | takes :kinds
         |~~ The kinds of the fact, a tag or a set of tags; any value where
             none is given.
         ~~|
         ~(query /2 null) #[::null ::set ::tag]
+    | proves :kinds/KindNotTakenError/refusesANumber
+        |~~ Kinds that are no tag and no set of tags are refused. ~~|
+        ~(::kind | carries :x |~~ p ~~| 5 !| type | eq ::kind/carries/kinds/KindNotTakenError)
     | returns |~~ The kind with the fact. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `carries` names a fact of the noun's kind,
@@ -400,10 +438,19 @@
     | takes :name
         |~~ The name of the refusal of a value that breaks it. ~~|
         /0 ::keyword
+    | proves :name/KindNotTakenError/refusesANumber
+        |~~ A name that is no keyword is refused. ~~|
+        ~(::kind | holds 5 |~~ p ~~| ~(true) !| type | eq ::kind/holds/name/KindNotTakenError)
     | takes :page |~~ The page of the refusal. ~~| /1 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::kind | holds :YError 5 ~(true) !| type | eq ::kind/holds/page/KindNotTakenError)
     | takes :condition
         |~~ The condition the value answers true to. ~~|
         /2 ::quote
+    | proves :condition/KindNotTakenError/refusesANumber
+        |~~ A condition that is no quote is refused. ~~|
+        ~(::kind | holds :YError |~~ p ~~| 5 !| type | eq ::kind/holds/condition/KindNotTakenError)
     | returns |~~ The kind with the invariant. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `holds` writes an invariant of the noun's kind,
@@ -429,7 +476,13 @@
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :name |~~ The name of the refusal. ~~| /0 ::keyword
+    | proves :name/KindNotTakenError/refusesANumber
+        |~~ A name that is no keyword is refused. ~~|
+        ~(::kind | throws 5 |~~ p ~~| !| type | eq ::kind/throws/name/KindNotTakenError)
     | takes :page |~~ The page of the refusal. ~~| /1 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::kind | throws :XError 5 !| type | eq ::kind/throws/page/KindNotTakenError)
     | returns |~~ The kind with the refusal. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `throws` names a refusal of the noun's kind,
@@ -458,10 +511,19 @@
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :name |~~ The name of the law. ~~| /0 ::keyword
+    | proves :name/KindNotTakenError/refusesANumber
+        |~~ A name that is no keyword is refused. ~~|
+        ~(::kind | proves 5 |~~ p ~~| ~(true) !| type | eq ::kind/proves/name/KindNotTakenError)
     | takes :page |~~ The page of the law, the claim it proves. ~~| /1 ::doc
+    | proves :page/KindNotTakenError/refusesANumber
+        |~~ A page that is no doc is refused. ~~|
+        ~(::kind | proves :x 5 ~(true) !| type | eq ::kind/proves/page/KindNotTakenError)
     | takes :query
         |~~ The query that proves the claim, answering `true`. ~~|
         /2 ::quote
+    | proves :query/KindNotTakenError/refusesANumber
+        |~~ A query that is no quote is refused. ~~|
+        ~(::kind | proves :x |~~ p ~~| 5 !| type | eq ::kind/proves/query/KindNotTakenError)
     | returns |~~ The kind with the law. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `proves` writes a law of the noun's kind, `::kind | proves …`,

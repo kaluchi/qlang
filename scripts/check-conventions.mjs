@@ -109,7 +109,13 @@ const FORBIDDEN_PATTERNS = [
     regex: /for backward compatibility/i }
 ];
 
-function* walkSourceTree(rootDir) {
+// The sources a scan reads, the code, the pages and the texts, and those
+// the words that tell when a text changed are sought in, the grammar, the
+// pages of the site and the workflows among them [QSWRK#tooling].
+const SOURCE_FILE = /\.(mjs|js|md|qlang)$/;
+const TEXT_FILE = /\.(mjs|js|md|qlang|peggy|astro|yml)$/;
+
+function* walkSourceTree(rootDir, sourceFile = SOURCE_FILE) {
   for (const entry of readdirSync(rootDir)) {
     const entryPath = join(rootDir, entry);
     const entryStat = statSync(entryPath);
@@ -120,17 +126,17 @@ function* walkSourceTree(rootDir) {
       // A directory with a `.git` of its own is another checkout, such
       // as the worktree an editor or an agent keeps inside the tree.
       if (existsSync(join(entryPath, '.git'))) continue;
-      yield* walkSourceTree(entryPath);
+      yield* walkSourceTree(entryPath, sourceFile);
       continue;
     }
-    if (!/\.(mjs|js|md|qlang)$/.test(entry) || VERBATIM_REPORT.test(relPath)) continue;
+    if (!sourceFile.test(entry) || VERBATIM_REPORT.test(relPath)) continue;
     yield entryPath;
   }
 }
 
 function scanForbiddenWords() {
   const violations = [];
-  for (const filePath of walkSourceTree(repoRoot)) {
+  for (const filePath of walkSourceTree(repoRoot, TEXT_FILE)) {
     const text = readFileSync(filePath, 'utf8');
     const lines = text.split(/\r?\n/);
     const relFile = relative(repoRoot, filePath).split(sep).join('/');

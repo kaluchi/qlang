@@ -94,9 +94,11 @@ them, resumes that path when raised and adds no stop, and a trail other
 than a plain vector of plain maps, each holding a quote under
 `:skipped`, is refused as `::error/TrailNotVecError`, a vector or a stop
 under a tag among them. The word `trail` answers the path,
-`[]` for an error that holds none, and refuses a subject that is no
-error as `::error/trail/SubjectNotErrorError`, while `/trail` reads the
-key and is refused where there is none.
+`[]` for an error that holds none, refuses a subject that is no
+error as `::error/trail/SubjectNotErrorError` and an error whose `:trail`
+is no path, which its literal may write, by its answer,
+`::error/trail/answer/KindNotTakenError` [QSBLD#answer], while `/trail`
+reads the key and is refused where there is none.
 
 ```qlang
 > "x" | add 1 !| keys
@@ -154,7 +156,9 @@ the fact `:expected`; the subject of a word is refused by the label it resides o
 `SubjectNotNumberError`. The refusal of an input's value lives under the
 input, whether an invariant or a primitive raises it, and what a run
 answers under the word. A refusal is declared in the source of the place
-it guards. The refusal of a primitive takes the address of the word that
+it guards, but for one the runtime raises by rule, a value of none of the
+kinds of a holder or a place the call leaves out, which reads the record
+of its place [QSSLF#axis]. The refusal of a primitive takes the address of the word that
 ran it, a refusal of the read of a path sits under `::path`, whichever
 word reads it, a place of the call an input reads and the call leaves
 out refused under the input [QSBLD#input], and a refusal of the

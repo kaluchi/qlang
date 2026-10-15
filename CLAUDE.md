@@ -320,3 +320,6 @@ history.
 
 `D:\git\eclipse-jdt-search` consumes qlang and breaks first when the
 public surface shifts. Its work is a record in force, [D38].
+
+[D296]: docs/journal/D296.md
+[D38]: docs/journal/D38.md

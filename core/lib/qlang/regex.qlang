@@ -108,8 +108,14 @@
         ~(query /0 null) #[::null ::string]
     | throws :flags/KindNotTakenError
         |~~ The flags are written in a string, `toRegex "i"`. ~~|
+    | proves :flags/KindNotTakenError/refusesANumber
+        |~~ Flags that are no string are refused. ~~|
+        ~(#"a" | toRegex 5 !| type | eq ::regex/toRegex/flags/KindNotTakenError)
     | throws :flags/NotFlagsError
         |~~ The flags are `i`, `m` and `s`, each once, `toRegex "im"`. ~~|
+    | proves :flags/NotFlagsError/refusesALetterOfNoFlag
+        |~~ A letter that names no flag is refused. ~~|
+        ~(#"a" | toRegex "z" !| type | eq ::regex/toRegex/flags/NotFlagsError)
     | returns |~~ The pattern itself, or its source with the flags. ~~| ::regex
     | proves :takesFlagsAsAStringDoes
         |~~ A pattern given flags answers its source with them. ~~|

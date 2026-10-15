@@ -161,10 +161,9 @@ function collectSemanticSpans(src, ast, builtinNames) {
       }
 
       case 'BindStep': {
-        // The binding key — Keyword `:name` or TagLit `::Tag` —
-        // paints as 'keyword' (binding-introducer) so it is visually
-        // distinct from a plain value-position `:name`; the doc literals
-        // of its slot paint as every doc does [QSSYN#doc].
+        // The keyword that declares a name paints as `keyword`, and the
+        // doc literals of its slot paint as every doc does [QSNAM#declare],
+        // [QSSYN#doc].
         const key = node.key;
         spans.push({ start: key.location.start.offset, end: key.location.end.offset, kind: 'keyword' });
         return; // descend into docs / body
@@ -341,11 +340,9 @@ function pushGapTokens(src, startOffset, endOffset, outputTokens) {
   }
 }
 
-// Resolve the kind of a single- or multi-char combinator run in a
-// gap region. `!|` is the fail-track combinator and takes the `err`
-// kind so renderers can paint it in the same palette as the `!{}`
-// descriptor brackets. `#[` is not listed here because a set opener
-// always arrives through the SetLit AST case above.
+// The kind of a run of combinator characters in a gap: `!|`, the fail
+// track, paints as `err`, the palette of the brackets of an error literal
+// [QSERR#flow]; a set's `#[` arrives with its SetLit node.
 function scanPunctRun(src, startOffset) {
   const ch = src[startOffset];
   const next = src[startOffset + 1];

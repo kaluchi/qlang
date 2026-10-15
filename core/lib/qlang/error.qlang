@@ -25,7 +25,7 @@
       Raised by `raise`, an error is a failure, which lives in the pipe
       alone; a host prints it as its error at rest under the line
       `|~| raised, and no !| caught it`, which a reading passes over, so
-      the print reads back as the error at rest, as `!|` grounds it.
+      the print raised is the failure again.
       `|` passes a failure by, writing its path, and `!|` alone catches
       it, its step running on the error at rest: `"x" | add 1 !| type`
       answers the site, `::number/add/SubjectNotNumberError`, and

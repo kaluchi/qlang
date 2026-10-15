@@ -34,3 +34,5 @@
 {"name":"a-suffix-that-is-no-text-is-refused","query":"\"hi\" | endsWith 42","expect":"::string/endsWith/suffix/KindNotTakenError!{\n  :expected #[::string]\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(endsWith 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"filter-vec-by-suffix","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter ~(endsWith \".txt\")","expect":"[\"alice.txt\" \"alex.txt\"]"}
 {"name":"filter-by-path-suffix","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter ~(get /file | endsWith \".qlang\") | map /file","expect":"[\"a.qlang\" \"c.qlang\"]"}
+{"name":"contains-finds-a-path-among-the-elements","query":"[/a] | contains /a","expect":"true"}
+{"name":"a-word-that-reads-text-refuses-a-keyword-for-its-text","query":"\"abc\" | contains :a !| type","expect":"::string/contains/needle/KindNotTakenError"}

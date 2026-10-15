@@ -60,7 +60,8 @@ precision round.
 
 A string is written in double quotes with the escapes of JSON, `\"`,
 `\\`, `\/`, `\n`, `\t`, `\r`, `\b`, `\f` and `\u` with four hexadecimal
-digits, and holds a line break or a tab written raw as it is.
+digits, and holds any other character written raw as it is, a line
+break, a tab and a character of control among them.
 
 ```qlang
 > "A"
@@ -113,8 +114,8 @@ where the key is no bare name. A vector separates its elements by
 whitespace or by commas, one comma between every two, and braces with
 string keys separate their entries by commas, one between every two; a
 map of keyword keys and a set are written with whitespace, and a map that
-writes its keys both ways is refused naming the two. A map is a
-map whatever its keys say, a key named `type` among them, and a
+writes its keys both ways is refused naming the two. An object reads
+as the map of its keys, `type` and `error` as any other, and a
 duplicate key reads as `JSON.parse` reads it, at the boundary as in a
 query [QSPRN#json].
 

@@ -966,10 +966,11 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 // from held code [QSQUO#held].
 export async function mintTaggedInstance(tagName, payload, state) {
   refuseWithheld(state.env, tagName, true);
-  const declared = bindingValueOf(nodeOf(state.env, tagName));
+  const node = nodeOf(state.env, tagName);
+  const declared = bindingValueOf(node);
   if (isKind(declared)) return await underKind(tagName, declared, payload, state);
   if (isDoc(declared)) return laidUnder(tagName, payload);
-  if (declared === null || isWord(state.env, tagName) || isInvariant(declared)) return makeTaggedInstance(makeTag(tagName), payload);
+  if (node === null || isWord(state.env, tagName) || isInvariant(declared)) return makeTaggedInstance(makeTag(tagName), payload);
   throw new ConstructTagNotKindError({ tag: makeTag(tagName), actualValue: declared });
 }
 
@@ -1121,7 +1122,7 @@ function laneOf(env) {
 // and the element [QSCOL#reduce].
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
-  const astNode = reducer.astNode;
+  const astNode = soleStepOf(reducer.astNode);
   if (astNode?.type !== 'Call' || astNode.args.length !== 0) return null;
   const item = element => [async () => element];
   if (astNode.address !== undefined) {
@@ -1132,6 +1133,12 @@ export function resolveBinaryReducer(reducer) {
   if (addressesOf(callerState.env, astNode.name).length === 0) return null;
   return async (acc, element) =>
     (await callByName(astNode.name, item(element), withPipeValue(callerState, acc), astNode)).pipeValue;
+}
+
+// The one step of a pipeline a leading `|` opens is the step itself, as the
+// steps of its quote are [QSQUO#literal].
+function soleStepOf(node) {
+  return node?.type === 'Pipeline' && node.steps.length === 1 && node.leadingCombinator === '|' ? node.steps[0] : node;
 }
 
 // ─── ParenGroup ─────────────────────────────────────────────────

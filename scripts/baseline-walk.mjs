@@ -94,9 +94,7 @@ export function walkOfBaseline(repoRoot) {
   }
   // The merge that landed a branch holds no record in transit: the tension
   // of the work relaxes at it [QSWRK#documents], [QSWRK#baseline].
-  if (git(repoRoot, 'rev-parse', 'HEAD').startsWith(baseline)) {
-    for (const name of recordsInTransit(repoRoot).keys()) walk.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `in transit at the merge ${baseline} that landed it: dissolve it into its sections or set it aside before the merge` });
-  }
+  for (const name of recordsInTransitAt(repoRoot, baseline)) walk.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `in transit at the merge ${baseline} that landed it: dissolve it into its sections or set it aside before the merge` });
   walk.since = [...records.keys()].filter(name => !atBaseline.has(name));
   if (walk.since.length > RECORDS_A_WALK_TAKES) {
     walk.violations.push({ where: JOURNAL, problem: `${walk.since.length} records since the baseline ${baseline}, from ${walk.since[0]}: the walk is due` });
@@ -165,6 +163,19 @@ export function recordsInTransit(repoRoot) {
     const line = readFileSync(join(recordsDir, name), 'utf8').match(/^Overrides ((?:[^\r\n]|\r?\n(?=\[QS))+)/m)?.[1];
     return line === undefined ? [] : [[name.slice(0, -3), [...line.matchAll(/\[(QS[A-Z]{3}(?:#[a-z][a-z-]*)?)\]/g)].map(match => match[1])]];
   }));
+}
+
+// The records in transit in the tree of a commit, those of its journal
+// that override a section [QSWRK#baseline]; `git grep` ends with 1 where
+// none does.
+export function recordsInTransitAt(repoRoot, commit) {
+  try {
+    return git(repoRoot, 'grep', '-l', '-E', '^Overrides ', commit, '--', `${JOURNAL}/D*.md`, `${JOURNAL}/E*.md`).split('\n').filter(Boolean)
+      .map(found => found.slice(found.lastIndexOf('/') + 1, -'.md'.length));
+  } catch (failed) {
+    if (failed.status === 1) return [];
+    throw failed;
+  }
 }
 
 // The records dissolved since the baseline, each with the sections it

@@ -11,7 +11,8 @@ section names a check, and the review and the maintainer hold the rest.
 
 A decision is a record of its own, `docs/journal/Dnn.md`, numbered in
 the order it was written, a discussion with its choice and its
-circumstances. A citation of a record is a link of markdown to its
+circumstances, and a record of the environment of the work,
+`docs/journal/En.md`, is numbered in a series of its own. A citation of a record is a link of markdown to its
 file, `[Dnn]`.
 
 A record is written in fields, each opening a line: `Domain.`, the part
@@ -37,12 +38,11 @@ it dissolved into; an inference the model's reading, marked as such where
 it carries weight; and a question an open record. A sentence that others
 rest on and no source holds is verified or turned into a question, and
 one with neither a source nor dependents is let go. Doubt is resolved by
-a record with its source, and by no item of a process, list of statuses
-or comment in code. The maintainer's words are quoted as written, and a
+a record with its source. The maintainer's words are quoted as written, and a
 rule is written as a rule, its date and its source in the line of its
 source. A source outside the tree is read whole before a sentence rests
 on it. A claim about the language in doubt is run; an intention in doubt
-is asked of the maintainer, and the answer recorded with his words. A
+is asked of the maintainer, and the answer recorded in the maintainer's words. A
 rule is said of what it governs.
 
 The insights the work meets about itself are collected as it goes into a
@@ -52,7 +52,7 @@ dissolves into the section of this chapter it governs. A record written
 before its code is read again after the last commit of its branch. The
 source of a record is written in the past, and its requirements name its
 cases, not a file of them. The prune of a decision ends with a walk of every record in force
-against the tree, not with a search of its own words, and a walk of the
+against the tree, and a walk of the
 records finds scars of the tree as well as of the text: where a record
 names a rule the tree misses, the tree is repaired and the record stays.
 A merge of records probes every sentence it carries over, and a merged
@@ -114,7 +114,8 @@ topic, a chapter for each, its code a word of five letters,
 by the code and the heading, `[QSNAM#scope]`. A chapter states the rule
 of each section in the present, as what holds, the form a reader
 writes and the refusal that teaches it; a chapter of the language shows
-its rules by probes, and this chapter by the checks each section names;
+its rules by probes where a run shows them, and this chapter by the checks
+a section names where a check holds its rule;
 and `docs/spec/README.md` lists the chapters in the order the concepts
 rest on each other. The code, the tests and the cases cite the section
 whose rule they hold. A chapter is written at the move of the baseline
@@ -136,7 +137,8 @@ The conformance suite is the requirements of the language, held outside
 it. A case is a line of `core/test/conformance/<chapter>/<section>.jsonl`,
 `{"name":…,"query":…,"expect":…}`: a query the runner reads as text and
 the literal it must answer, a value or a raised error,
-`!{…} | raise`. Its
+`!{…} | raise`, and a case outside the folders of the chapters opens
+with the one record in force that gates it. Its
 name says the rule it shows in the words of the language, and the file
 it stands in is the section whose rule it shows. A case a record in
 transit claims opens with the record, `{"decision":"Dnn","name":…}`,
@@ -160,12 +162,13 @@ A target is a case whose answer the tree does not give yet, marked
 `"target": true`, beside the answer the tree gives today, `"now"`, an
 error by its tag and any other value as its literal; it names the record
 in transit that left it. The runner holds it to three verdicts: it
-answers its goal, and the branch that met it drops the mark; it answers
-its present, and stays a target; it answers neither, and fails until a
-reader tells a repair from a case that broke, and rewrites the present
-or the case. A block of a document fenced as `qlang target` states an
-answer a repair must produce, and `check:probes` fails when the tree
-meets it, so the block is written again as what holds.
+answers its goal, and fails until the branch that met it drops the mark;
+it answers its present, and stays a target; it answers neither, and fails
+until a reader tells a repair from a case that broke, and rewrites the
+present or the case. A block of a document fenced as `qlang target`
+states an answer a repair must produce, a block that writes none the
+answer of no failure, and `check:probes` fails when the tree meets it,
+so the block is written again as what holds.
 
 A requirement is written on the side of design and met on the side of
 implementation. A target is taken in hand where landing it changes no
@@ -176,12 +179,14 @@ own record, and drops the mark of each target it met, its query and
 answer as they were; it keeps every case, record and gate as it found
 them. Master's copy of the diff, `git show master:scripts/gate-diff.mjs`
 run with `--task Dnn`, compares the branch with its merge base on master
-and lists every such move: a target added or a case added under another
-record; a change to the specification, `scripts/`, a `package.json`,
+and lists every such move: a target added, a case added under another
+record, and a case taken away, rewritten, marked as a target or moved to
+other records; a change to the specification, `scripts/`, a `package.json`,
 `.github/`, `CLAUDE.md`, `.claude/`, the configurations of vitest and
 eslint, or the comparator of the runner and its judge; a record added, rewritten, moved or
-taken away, but for a line of fate appended; the targets met outside the
-task; and the lines of the implementation that spell a target they met.
+taken away, but for a line of fate appended, and the guide of the
+records; the targets met outside the task; and the lines of the
+implementation that spell a target they met.
 The review reads them first.
 
 ## marks
@@ -192,8 +197,9 @@ the block that carries it, a test file in its head, a workflow under
 `.github/workflows/`, a case in its `decision` while it is in transit, a
 source of the catalog in the comment above its pages, `The decisions it
 exists for: [QSDSP#residence]`; the sister project names a record of
-qlang with the repository, `(qlang Dnn)`; and a screen and a run of the
-benchmark in the name of its file, `screens/D270.txt`. A mark covers its block,
+qlang with the repository, `(qlang Dnn)`; and a screen and a run of a
+set of the benchmark in the name of its file, `screens/D270.txt`, a run
+of the references by its own number, `runs/R10.json`. A mark covers its block,
 from its comment to the next comment that holds one, the first block
 reaching up to the head of the file, so a search answers what governs a
 file and what a record left behind: `node scripts/marks.mjs` answers the
@@ -211,8 +217,8 @@ in the comment at the head of its source.
 
 The baseline is the last commit that landed a branch on master, a merge
 on its first parent line, which the walk reads from the history; its move
-is the clean desk: however a shift left the work, the next starts in
-order. It moves when a branch lands, before an outside audit among
+leaves master a clean desk, no record in transit in the tree of its
+merge, where the next shift starts. It moves when a branch lands, before an outside audit among
 them; the records a change of the journal alone writes, which lands
 without a branch, wait for the next branch, and no more than twenty
 records stand written since it. The move is the last commit or the last commits
@@ -304,14 +310,14 @@ is written, and again when a review moves it. A fact moved from a value
 onto a name is held on every road the value took, and a refusal of the
 read of a name on every road the name is read by, each road a caller of
 the lookup they share and held by a case; a clause copied from the code
-beside it that no road reaches leaves rather than a case inventing a
-road. A clause is cut in a copy its own runner alone writes, and a cut is
-read by the name of the test that failed, never by a count. A script that
+beside it that no road reaches leaves. A clause is cut in a copy its own
+runner alone writes, and a cut is read by the name of the test that
+failed. A script that
 moves cases between files writes every file after it has computed them
 all, its folders made first.
 
 A branch starts from the full set of places where its cause shows, found
-by search rather than by memory, and its first commits delete. The work
+by search, and its first commits delete. The work
 of the model on the texts is validation, the contradictions, the
 conflicts, the holes and the problems of what is written, and a session
 that finds none reads further and runs more of the probes. What confuses a session during the work is settled where it is
@@ -359,7 +365,7 @@ no count the history answers.
 
 A probe is a fenced block of a document whose lines that begin with `>`
 are queries typed into `qlang`, each read as the command line reads a
-query with no input, from `::qlang`, and whose other lines are what the
+query with no input, over its sources and from `::qlang`, and whose other lines are what the
 tree answers; one that begins with `$` is a shell command. A probe answers
 the sentence it stands under, a verdict, the things the sentence names,
 or a quantity to the precision the sentence states, a sign or a ratio to
@@ -424,10 +430,12 @@ history of the commits. The cataphatic ones state what holds, in the
 present: the chapters of the specification, the pages of the catalog,
 the cases and the comments of the code, each the rule, the form a reader
 writes and the refusal that teaches it, a negation that is the condition
-of a rule among them. A session lands on the apophatic texts, the
-dialogue, the screen of the work, the aim and the records in transit and
-open, where its work is, and reads the cataphatic ones by topic at the point
-of need. What it writes into a cataphatic text states what holds; a
+of a rule among them. A session reads the cataphatic core first, the
+chapter of the work and the texts of the language `CLAUDE.md` names, so
+its picture of the language is built from what holds, then lands on the
+apophatic texts, the dialogue, the screen of the work, the aim and the
+records in transit and open, where its work is, and reads the rest of
+the cataphatic texts by topic at the point of need. What it writes into a cataphatic text states what holds; a
 doubt or a reason it meets is said in the dialogue, or written as a
 record where it asks for a choice.
 
@@ -483,7 +491,9 @@ its score, each final query run by that tree against the author's
 answer; `verdict` reads the scores the runs of a set fixed. The
 references of `scripts/benchmark/tasks.mjs`, the shortest query the tree
 answers each task with, run in the gate as `check:benchmark`, the
-default of `scripts/benchmark.mjs`, which holds as well `prompt`,
+default of `scripts/benchmark.mjs`, and a run of them, by `prompt`,
+starts its child from `qlang --help` and the first page, which the child
+reads itself; the script holds as well `prompt`,
 `screen`, `report`, `author`, `run`, `grade`, `verdict`, `misses` and
 `frictions`; the two latest sets live under `scripts/benchmark/sets/`
 with their runs, beside the two latest screens and runs of the
@@ -584,7 +594,8 @@ print that reads back as another value. `check:conventions` holds,
 beside the walk, the fates and the anchors, the words that tell when a
 text changed, legacy, deprecated, currently, previously and backward
 compatibility, and the markers TODO, FIXME and HACK, in the sources
-outside `docs/`, `vscode/` and the instructions; a month of the
+outside `docs/`, `vscode/` and the instructions, the grammar, the pages of
+the site and the workflows among them; a month of the
 history in a chapter, a seed, a page of the catalog, a case and the
 code; a count in markdown prose that
 a command answers; the ranges of the siblings; every refusal declared by

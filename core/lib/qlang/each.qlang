@@ -11,14 +11,15 @@
       keys of the data read, and a path of the data through that key
       reads the shape, `/17/id` answering `::number`; another key of the
       data reads by the one shown, and `keys` reads them all. A map folds
-      so where its keys are data, a key that reads as no name, a date, an
-      id of digits, an address, whatever its values hold, the kinds where
-      they part among them, `::each{:"0" #[::number ::string]}`; and where
-      it holds more than eight names whose values share one shape, atoms
-      among them, the users of a reader's data or its metrics. A map of
-      fewer names keeps them, the fields a reader reads by `get`,
-      `{:x 1 :y 2} | shape` answering `::shape{:x ::number :y ::number}`,
-      as a map of many names whose values part does. Records merge in a
+      so where every key is data, an id of digits, a date or a time, a
+      uuid, an address, whatever its values hold, the kinds where they
+      part among them, `::each{:"0" #[::number ::string]}`; and where it
+      holds more than eight names whose values, maps, vectors, sets,
+      values under a tag or null, share one shape, the users of a reader's
+      data. A map of names over atoms keeps them however many, the fields
+      a reader reads by `get`, a key that reads as no name, `@type`, among
+      them: `{:x 1 :y 2} | shape` answers `::shape{:x ::number :y ::number}`,
+      as a map of fewer names or of names whose values part does. Records merge in a
       fold as they merge in a vector, a null among the values marks the
       fold `::nullable` and an empty map among the folds of a vector marks
       it `::absent`; a vector of such maps is `[::each{…}]`, a map of
@@ -50,9 +51,12 @@
     | proves :foldsDataKeysWhoseValuesPart
         |~~ A map keyed by data folds whatever its values hold. ~~|
         ~({:"1" {:id 1} :"2" [1]} | shape | eq ::shape::each{:"1" #[{:id ::number} [::number]]})
-    | proves :foldsManyNamesOverAtoms
-        |~~ More than eight names over atoms of one kind fold as well. ~~|
-        ~({:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8 :i 9} | shape | eq ::shape::each{:a ::number})
+    | proves :keepsManyFieldsOverAtoms
+        |~~ A map of names over atoms keeps them however many. ~~|
+        ~({:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8 :i 9} | shape | keys | count | eq 9)
+    | proves :keepsAKeyThatReadsAsNoNameAmongFields
+        |~~ A key that reads as no name stays a field among names. ~~|
+        ~({:"@type" "Person" :name "Ann"} | shape | eq ::shape{:"@type" ::string :name ::string})
     | proves :keepsTheKeyOfAMapOfOne
         |~~ A map of one name keeps it. ~~|
         ~({:users [1]} | shape | eq ::shape{:users [::number]})

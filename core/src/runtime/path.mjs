@@ -190,20 +190,29 @@ function tupleOf(elements) {
 }
 
 // A map folds into `::each` over its first key and the shape of its values,
-// the one key standing for all of them, where its keys are data, a key that
-// reads as no name, a date, an id of digits, an address, whatever its values
-// hold, kinds that part among them; and where it holds more than eight
-// names whose values share one shape, the map a reader's data keys by its
-// users' names or its metrics. A map of fewer names keeps them, the fields
-// a reader reads by `get`, as a map of many names whose values part does.
-const NAME = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+// the one key standing for all of them, where every key is data, an id of
+// digits, a date or a time, a uuid, an address, whatever its values hold,
+// kinds that part among them; and where it holds more than eight names
+// whose values, maps, vectors, sets, values under a tag or null, share one
+// shape, the map a reader's data keys by its users' names. A map of names
+// over atoms keeps them however many, the fields a reader reads by `get`,
+// a key that reads as no name, `@type`, among them, as a map of fewer
+// names or of names whose values part does.
+const DATA_KEYS = [
+  /^-?\d+(\.\d+)?$/,
+  /^\d{4}-\d{2}-\d{2}/,
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+];
+const isDataKey = key => DATA_KEYS.some(pattern => pattern.test(key));
 const NAMES_A_RECORD_HOLDS = 8;
+const holdsParts = part => part === null || isQMap(part) || isVec(part) || isTaggedInstance(part);
 
 function foldedOf(value, shapes) {
   const parts = [...value.values()];
   if (value.size === 0 || parts.every(part => part === null)) return null;
-  const keyedByData = [...value.keys()].some(key => !NAME.test(key));
-  if (!keyedByData && value.size <= NAMES_A_RECORD_HOLDS) return null;
+  const keyedByData = [...value.keys()].every(isDataKey);
+  if (!keyedByData && (value.size <= NAMES_A_RECORD_HOLDS || !parts.every(holdsParts))) return null;
   const merged = [...shapes.values()].reduce(mergedShape);
   if (!keyedByData && isAlternatives(merged)) return null;
   const [first] = value.keys();

@@ -2365,9 +2365,10 @@
 :any/shape
   |~~ Answers the shape of a value, its schema in its own literal under
       `::shape`, whose page tells how a shape reads: each map keeps its
-      keys, but a map whose values share one shape, keyed by data or by
-      more than eight names, folds into `::each` over its first key and
-      that shape, `{:"17" {:id 1} :"42" {:id 2}} | shape` answering
+      keys, but a map every key of which is data, ids, dates, uuids or
+      addresses, or of more than eight names over records of one shape,
+      folds into `::each` over its first key and the shape of its values,
+      `{:"17" {:id 1} :"42" {:id 2}} | shape` answering
       `::shape::each{:"17" {:id ::number}}`; each vector and each
       set holds one element whose shape holds of all its elements, a set
       as `#[E]` and the element of one empty in some marked `::absent`,

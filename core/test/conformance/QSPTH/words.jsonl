@@ -33,7 +33,9 @@
 {"decision":"D324","name":"shape-keeps-a-few-names-as-a-record","query":"{:db {:host \"h\"} :cache {:host \"c\"}} | shape","expect":"::shape{:db {:host ::string} :cache {:host ::string}}"}
 {"decision":"D324","name":"shape-folds-more-than-eight-names-of-one-shape","query":"{:a {:n 1} :b {:n 2} :c {:n 3} :d {:n 4} :e {:n 5} :f {:n 6} :g {:n 7} :h {:n 8} :i {:n 9}} | shape","expect":"::shape::each{:a {:n ::number}}"}
 {"decision":"D324","name":"shape-folds-a-map-keyed-by-data-whose-values-part","query":"{:\"0\" 0 :\"1\" \"n/a\" :\"2\" 2} | shape","expect":"::shape::each{:\"0\" #[::number ::string]}"}
-{"decision":"D324","name":"shape-folds-more-than-eight-names-over-atoms-of-one-kind","query":"{:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8 :i 9} | shape","expect":"::shape::each{:a ::number}"}
+{"decision":"D324","name":"shape-keeps-the-fields-of-many-names-over-atoms","query":"{:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8 :i 9} | shape | keys | count","expect":"9"}
+{"decision":"D324","name":"shape-keeps-a-key-that-reads-as-no-name-among-fields","query":"{:\"@type\" \"Person\" :name \"Ann\" :age 30} | shape","expect":"::shape{:\"@type\" ::string :name ::string :age ::number}"}
+{"decision":"D324","name":"shape-folds-a-map-keyed-by-dates-uuids-or-addresses","query":"get [~({:\"2024-01-01\" 5 :\"2024-01-02\" 7} | shape) ~({:\"ann@x.org\" 1 :\"bo@y.org\" 2} | shape)]","expect":"[::shape::each{:\"2024-01-01\" ::number} ::shape::each{:\"ann@x.org\" ::number}]"}
 {"decision":"D324","name":"shape-folds-a-map-of-values-under-one-tag","query":"{:\"1\" ::user{:id 1} :\"2\" ::user{:id 2}} | shape","expect":"::shape::each{:\"1\" ::user}"}
 {"decision":"D324","name":"shape-keeps-the-fields-of-a-map-of-atoms","query":"{:x 1 :y 2} | shape","expect":"::shape{:x ::number :y ::number}"}
 {"decision":"D324","name":"shape-keeps-the-key-of-a-map-of-one","query":"{:users [{:id 1}]} | shape","expect":"::shape{:users [{:id ::number}]}"}

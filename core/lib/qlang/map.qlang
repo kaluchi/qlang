@@ -103,6 +103,30 @@
         ~({:a 1 :b 2} | count ~(gt 1) !| type | eq ::map/count/ArgsBeyondInputsError)
     | impl ::builtin{}
 
+:map/size
+  |~~ The name other languages give `count`: answers how many entries the
+      map holds, as `count` does, `{:a 1 :b 2} | size` answering `2`.
+      ::link~(::map/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many entries the map holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `size` answers as `count`. ~~|
+        ~({:a 1 :b 2} | get [~(size) ~(count)] | eq [2 2])
+    | impl ~(count)
+
+:map/length
+  |~~ The name other languages give `count`: answers how many entries the
+      map holds, as `count` does, `{:a 1 :b 2} | length` answering `2`.
+      ::link~(::map/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many entries the map holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `length` answers as `count`. ~~|
+        ~({:a 1 :b 2} | get [~(length) ~(count)] | eq [2 2])
+    | impl ~(count)
+
 :map/empty
   |~~ Answers whether the map holds no entry, `{} | empty` answering
       `true`; it takes no value. A key held with a null value is an entry,
@@ -952,6 +976,35 @@
         |~~ A set of keys unites with no map. ~~|
         ~({:a 1} | union #[:b] !| type | eq ::map/union/other/KindNotTakenError)
     | impl ::builtin{}
+
+:map/merge
+  |~~ The name other languages give `union` over maps: answers the entries
+      of the subject together with those of the map the call gives, which
+      wins a key both hold, as `union` does,
+      `{:a 1 :b 2} | merge {:b 3 :c 4}` answering `{:a 1 :b 3 :c 4}`; the
+      values are not merged deeper.
+      ::link~(::map/union | doc)
+  ~~|
+  ::fn
+    | takes :other |~~ The other map. ~~| /0 ::map
+    | throws :other/KindNotTakenError
+        |~~ The subject merges with a map, `merge {:b 2}`: a key comes with
+            its value.
+        ~~|
+    | returns
+        |~~ The entries of both maps, the other winning a key both hold,
+            under the tags of the subject.
+        ~~|
+        ::map
+    | proves :answersAsUnion
+        |~~ `merge` answers as `union`, the other map winning a key both
+            hold.
+        ~~|
+        ~({:a 1 :b 2} | get [~(merge {:b 3 :c 4}) ~(union {:b 3 :c 4})] | eq [{:a 1 :b 3 :c 4} {:a 1 :b 3 :c 4}])
+    | proves :other/KindNotTakenError/refusesASetOfKeys
+        |~~ A set of keys merges with no map. ~~|
+        ~({:a 1} | merge #[:b] !| type | eq ::map/merge/other/KindNotTakenError)
+    | impl ~(union other)
 
 :map/minus
   |~~ Answers the entries of the map whose keys are not among the keys the

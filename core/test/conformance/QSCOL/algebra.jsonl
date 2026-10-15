@@ -33,3 +33,5 @@
 {"name":"minus-of-a-map-takes-a-set-of-keys","query":"{:a 1} | minus :a !| type","expect":"::map/minus/keys/KindNotTakenError"}
 {"name":"union-of-a-map-refuses-a-value-of-another-kind","query":"{:a 1} | union [1] !| type","expect":"::map/union/other/KindNotTakenError"}
 {"name":"a-pair-the-algebra-has-no-rule-for-names-its-kinds","query":"[#[1] {:a 1}] | union !| get [~(type) /leftType /rightType]","expect":"[::vec/union/KindsMismatchedError ::set ::map]"}
+{"decision":"D321","name":"merge-answers-as-union-over-maps","query":"{:a 1 :b 2} | get [~(merge {:b 3 :c 4}) ~(union {:b 3 :c 4})]","expect":"[{:a 1 :b 3 :c 4} {:a 1 :b 3 :c 4}]"}
+{"decision":"D321","name":"merge-refuses-a-value-that-is-no-map","query":"{:a 1} | merge #[:b] !| type","expect":"::map/merge/other/KindNotTakenError"}

@@ -292,6 +292,32 @@
         ~(5 | count !| get /addresses | eq #[::map/count ::set/count ::string/count ::vec/count])
     | impl ::builtin{}
 
+:string/size
+  |~~ The name other languages give `count`: answers how many characters
+      the string holds, a code point each, as `count` does,
+      `"abc" | size` answering `3`.
+      ::link~(::string/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many characters the string holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `size` answers as `count`. ~~|
+        ~("привет" | get [~(size) ~(count)] | eq [6 6])
+    | impl ~(count)
+
+:string/length
+  |~~ The name other languages give `count`: answers how many characters
+      the string holds, a code point each, as `count` does,
+      `"abc" | length` answering `3`.
+      ::link~(::string/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many characters the string holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `length` answers as `count`. ~~|
+        ~("привет" | get [~(length) ~(count)] | eq [6 6])
+    | impl ~(count)
+
 :string/take
   |~~ Answers the first characters of the string, as many as the count
       the call gives, `"db_host" | take 2` answering `"db"`. A count past

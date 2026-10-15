@@ -87,6 +87,32 @@
         ~(|~~ a ::link~(1) b ~~| | count | eq 3)
     | impl ::builtin{}
 
+:vec/size
+  |~~ The name other languages give `count`: answers the number of
+      elements the vector holds, as `count` does, `[1 2 3] | size`
+      answering `3`.
+      ::link~(::vec/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many elements the vector holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `size` answers as `count`. ~~|
+        ~([1 2 3] | get [~(size) ~(count)] | eq [3 3])
+    | impl ~(count)
+
+:vec/length
+  |~~ The name other languages give `count`: answers the number of
+      elements the vector holds, as `count` does, `[1 2 3] | length`
+      answering `3`.
+      ::link~(::vec/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many elements the vector holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `length` answers as `count`. ~~|
+        ~([1 2 3] | get [~(length) ~(count)] | eq [3 3])
+    | impl ~(count)
+
 :vec/empty
   |~~ Answers whether the vector holds no element, `[] | empty`
       answering `true`; a vector of null holds an element, so it is not
@@ -1240,6 +1266,55 @@
         |~~ The tags of the subject stay over the answer. ~~|
         ~(::Box[[1] [2]] | flat | eq ::Box[1 2])
     | impl ::builtin{}
+
+:vec/flatten
+  |~~ The name other languages give `flat`: answers the elements with one
+      level of nesting spliced in, as `flat` does,
+      `[[1 2] [3]] | flatten` answering `[1 2 3]`; a vector deeper inside
+      stays whole, `[[1 [2]] 3] | flatten` answering `[1 [2] 3]`.
+      ::link~(::vec/flat | doc)
+  ~~|
+  ::fn
+    | returns
+        |~~ The elements with one level of nesting spliced in. ~~|
+        ::vec
+    | proves :answersAsFlat
+        |~~ `flatten` answers as `flat`, one level spliced in. ~~|
+        ~([[1 2] [3 [4]]] | get [~(flatten) ~(flat)] | eq [[1 2 3 [4]] [1 2 3 [4]]])
+    | impl ~(flat)
+
+:vec/concat
+  |~~ Answers the subject with the elements of each vector the call gives
+      after its own, in their order, `[1] | concat [2 3] [4]` answering
+      `[1 2 3 4]`, so `reduce [] ~(concat)` joins the vectors a vector
+      holds, as `flat` does. A vector under a tag answers under the tag;
+      `append` puts one element at the end.
+      ::link~(::vec/flat | doc) ::link~(::vec/append | doc)
+  ~~|
+  ::fn
+    | takes :vectors |~~ The vectors joined after the subject. ~~| ~(it) [::vec]
+    | throws :vectors/ElementKindNotTakenError
+        |~~ What `concat` joins is a vector, `concat [2 3]`; a single
+            element is put at the end by `append`, `append 2`.
+        ~~|
+    | returns
+        |~~ The elements of the subject and of each vector, in order,
+            under the tags of the subject.
+        ~~|
+        ::vec
+    | proves :joinsTheVectorsAfterTheSubject
+        |~~ The vectors join after the subject in their order. ~~|
+        ~([1] | concat [2 3] [4] | eq [1 2 3 4])
+    | proves :foldsTheVectorsOfAVector
+        |~~ A fold by `concat` joins the vectors a vector holds. ~~|
+        ~([[1] [2 3]] | reduce [] ~(concat) | eq [1 2 3])
+    | proves :answersUnderTheTagOfTheSubject
+        |~~ A vector under a tag answers under the tag. ~~|
+        ~(::Box[1] | concat [2] | eq ::Box[1 2])
+    | proves :vectors/ElementKindNotTakenError/refusesANumber
+        |~~ A number is no vector to join. ~~|
+        ~([1] | concat 2 !| type | eq ::vec/concat/vectors/ElementKindNotTakenError)
+    | impl ~(:joined it | vectors | prepend joined | flat)
 
 :vec/zip
   |~~ Answers the vectors the subject holds read side by side, one vector

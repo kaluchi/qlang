@@ -15,7 +15,7 @@
 {"name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort /age","expect":"[{:age 20} {:age 25} {:age 30}]"}
 {"name":"sort-by-string-key","query":"[{:name \"Bob\"} {:name \"Alice\"}] | sort /name","expect":"[{:name \"Alice\"} {:name \"Bob\"}]"}
 {"name":"sort-by-key-orders-the-entries-by-what-the-key-answers","query":"{:a {:n 2} :b {:n 1}} | sort /n | vals | map /n","expect":"[1 2]"}
-{"decision":"D323","name":"a-path-as-the-key-of-sort-reads-each-element","query":"[{:a 2} {:a 1}] | sort /a | first | get /a","expect":"1"}
+{"name":"a-path-as-the-key-of-sort-reads-each-element","query":"[{:a 2} {:a 1}] | sort /a | first | get /a","expect":"1"}
 {"name":"a-key-of-another-kind-is-refused-under-the-key","query":"[2 1] | sort 5 !| type","expect":"::vec/sort/key/KindNotTakenError"}
 {"name":"a-key-of-a-map-that-is-no-code-is-refused","query":"{:a 1} | sort 5 !| type","expect":"::map/sort/key/KindNotTakenError"}
 {"name":"a-key-of-min-that-is-no-code-is-refused","query":"[1] | min 5 !| type","expect":"::vec/min/key/KindNotTakenError"}

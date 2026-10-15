@@ -18,10 +18,11 @@ to it as code closed at the call. The root refuses, as it is declared, a
 for any name declared otherwise, `::builtin/ImplementationNotHandedError`
 and `::builtin/ImplementationNamesNoBuiltinError`, and a source whose run
 answers an error or declares again a name the root holds as
-`::builtin/RootSourceNotDeclaredError`. A `::builtin{}` written in the
-recipe of a word a reader declares is the value it is: the word's
-address answers its function as a value, and its bare name reaches no
-word. A host makes an error of a tag by `makeErrorValue`.
+`::builtin/RootSourceNotDeclaredError`. A `::builtin{}` a reader writes
+is the value it is: as the recipe of a word, the word's address answers
+its function as a value, and its bare name reaches no word; as a step of
+the recipe's quote, the word answers it. A host makes an error of a tag
+by `makeErrorValue`.
 
 Each source is the source of one noun, its page first and what is
 declared under it after, so a kind lives whole in the source of its
@@ -79,12 +80,16 @@ calls at once takes the whole vector and bounds its own calls.
 The command line writes every answer as the language prints it,
 whatever its input was, a string as its text, and whole: a budget is
 asked for, `| elide N` in the query or `--budget=N` before it, a whole
-count of characters above zero on either road, which
-prints every answer as `elide` cuts it [QSPRN#elide], a part giving way
+count of characters above zero on either road: the step `elide` cuts the
+value the query answers, which a failure passes by, and the flag prints
+every answer as `elide` cuts it, a failure's alert among them
+[QSPRN#elide], a part giving way
 where its marker prints shorter. A reader who wants JSON converts the
 answer in the query, `| json`. A query that wrote to standard output by
 `out` holds the channel: its answer and its failure stay unwritten, and
-the code is 0. `-i` opens the REPL, a query after it its first cell.
+the code is 0. `-i` or `--repl` opens the REPL, a query after it its
+first cell, and `-h` or `--help` and `-V` or `--version` print the usage
+and the version.
 
 A failure is an answer, written to standard output with the exit code 0
 as its alert: its tag and its facts in the order the catalog declares
@@ -106,7 +111,8 @@ raised past the fail track is written as `qlang:` and its message with
 the code 1; a call with no query, an argument after the query, a
 `--budget` that is no positive count and a `--color` other than `auto`,
 `always` and `never` are refused with a usage line and the code 2; any
-other argument before the query is read as the query. The note on a
+other argument before the query, but for the flags above, is read as the
+query. The note on a
 query the shell made a path of goes to standard error beside the
 answer.
 

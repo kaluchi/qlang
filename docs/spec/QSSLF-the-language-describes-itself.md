@@ -21,7 +21,8 @@ name at its nearest declaration. `binding` and `source` take the name of
 one member after it, a keyword, and read the member the subject holds
 under that name, an input of a word or the word a name calls on a noun,
 `::map | doc :minus`; `doc` takes as well a vector of names as a path of
-members and a set as several pages, refusing another anchor as
+members and a set as several pages, null among them the page of the
+subject itself, refusing another anchor as
 `::any/doc/anchor/KindNotTakenError` and an element that is no keyword
 as `::any/doc/anchor/ElementNotKeywordError` with its `:index`, the place
 in the set of an element that is neither a name nor a path; `laws`,
@@ -57,8 +58,9 @@ true
 
 `manifest`, an axis, answers the set of the nodes declared one name
 under the name its subject reads: its words, its refusals, its pages,
-the payload and the fields of a kind, and the inputs, the subject and
-the answer of a word, its laws aside, which `laws` reads; a
+the payload, the fields and the constructor of a kind, the inputs, the
+subject and the answer of a word, and the facts a refusal carries, its
+laws aside, which `laws` reads; a
 value answers those of the kind it shows, `5 | manifest` those of
 `::number`, and a name nothing declares is refused as
 `::any/manifest/UnknownNameError`. The topic of the language lists
@@ -143,7 +145,9 @@ rule under a word, with no page of its own, reads the page of what
 refused; a name nothing declares is refused as
 `::any/explain/UnknownNameError`. The page of a refusal says what
 failed, which fact names the culprit and how the call is repaired, and
-its laws hold the recovery through `!|`. An explanation prints the page
+the laws of a refusal a query can meet hold the recovery through `!|`,
+an invariant of the implementation and the failure of a host's
+implementation, which no query of the language raises, holding none. An explanation prints the page
 above the value.
 
 ```qlang

@@ -12,7 +12,11 @@ each element, the set, the quote, the doc and the error by their own
 brackets, a quote of a path alone as `::quote[/a]`, and any other value
 under a tag as its tag before the print of its payload, every tag but
 the kind the brackets imply, so `::vec[1 2]` prints `[1 2]`; the text of
-a value of the language reads back as it. A kind answers `print` under
+a value of the language reads back as it. A vector and a set stand on
+one line unless a part takes several, and then each part stands on a line
+of its own; a map of two entries or fewer, none a container, stands on
+one line, and any other puts each entry on a line of its own, indented
+by two. A kind answers `print` under
 its own label, and the print of a value finds the `print` of each part
 by the walk of that part, an answer that is no string printed in its
 place; a kind's own `print` gives the text it chooses, which reads back
@@ -40,7 +44,9 @@ is written as the array of its elements in the one order, a keyword as
 its name, a path and a pattern as their literals, a quote, a doc and a
 tag name as their prints, and a value under a tag as the object
 `{"$tag": name, "payload": …}`, the name without its `::`, an error at
-rest two such layers, the tag of its site over `error`; `parseJson`
+rest two such layers, the tag of its site over `error`, while a failure a
+host converts, which no value of the pipe holds, writes
+`{"$error": {"$tag": name, "facts": …}}`; `parseJson`
 reads such an object back as the plain map it is. `parseJson` takes a
 string, `::string/parseJson/SubjectNotStringError` refusing another,
 and refuses a text that is no JSON with the reason, and a number past
@@ -65,8 +71,10 @@ duplicate key reads as `JSON.parse` reads it.
 ## elide
 
 `elide` answers a value whose print fits a budget of characters, a whole
-count above zero, another refused as `::any/elide/budget/NotCountError`,
-where it can, replacing parts by values of the kind `::elision`.
+count above zero, another number refused as
+`::any/elide/budget/NotCountError` and a value of another kind as
+`::any/elide/budget/KindNotTakenError`, where it can, replacing parts by
+values of the kind `::elision`.
 The largest part gives way first, or in its place a part within it that
 prints more than half of it, and a part gives way only where the least it
 gives way to prints shorter than it, so where no part's least is shorter

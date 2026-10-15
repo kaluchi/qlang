@@ -132,7 +132,9 @@ where none stands. `replace` puts a text, or what code answers on each
 match's vector, in the place of every match, read by code points: a
 replacement string of a pattern names the parts of a match by `$1`,
 `$<name>`, `$&`, the text before and after it by `` $` `` and `$'`, and
-a dollar by `$$`, a group the pattern lacks standing as written; it
+a dollar by `$$`, a group the pattern lacks standing as written, but for
+two digits whose first names a group, `$10` read as `$1` and `0`, as
+ECMAScript reads it; it
 stands as written where a text is replaced; and code that answers no
 string is refused as `::string/replace/with/AnswerNotStringError`.
 `toRegex` reads a string as the source of a pattern, its flags a string

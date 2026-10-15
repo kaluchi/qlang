@@ -90,9 +90,10 @@ tag name, is a sentence: its steps run on, joined by `|`, to the next
 declaration or a value written after `|`; any other body is one step,
 and a tag name on a later line is the body of the declaration above. A
 declaration joins a value or a group before it on its own line with no
-combinator, `[1 2] :y 2 | y` answering `2`, while a keyword on the line
-of a command is a modifier of it, and any other step is joined by a
-combinator.
+combinator, `[1 2] :y 2 | y` answering `2`, but for a tag name and a
+path, refused by the habits they meet [QSSYN#step], while a keyword on
+the line of a command is a modifier of it, and any other step is joined
+by a combinator.
 
 ```qlang
 > "[3 1 2] sort" | parse !| get /message
@@ -106,7 +107,9 @@ combinator.
 
 A comment, `|~| …` to the end of its line or `|~ … ~|`, which nests, is
 whitespace wherever whitespace stands: between steps, between the
-modifiers of a command, inside a literal and inside a quote. A pipe is
+modifiers of a command, inside a literal and inside a quote. A `~(`
+inside a block comment reads to the `)` that pairs it, where the source
+holds one, so a closer inside the pair closes nothing. A pipe is
 written beside a comment. A source of whitespace and comments alone is
 the empty pipeline, which answers the value it is handed and reads as
 the empty quote. Comments live beside the tree the parser reads, where
@@ -115,6 +118,9 @@ the tools paint them.
 ```qlang
 > 5 | |~ why ~| add 3
 8
+
+> get [~("[|~ ~(x ~|]" | parse) ~("(|~ ~(x ~|)" | parse !| type)]
+[~([]) ::quote/ParseError]
 
 > [1 |~ middle ~| 2 3]
 [1 2 3]
@@ -137,7 +143,8 @@ inside a pipeline being a comment. Inside a doc, a span between
 backquotes is prose, as markdown reads it, a run of backquotes closing
 at the next run of as many and a run with no such closer prose itself,
 and a `~(…)` outside one, under the tags written before it, is a segment
-of code where it reads as code, and prose where it does not.
+of code where it reads as code, and prose where it does not, a `~(` of
+a block doc reading to the `)` that pairs it, as in a comment.
 
 ```qlang
 > :foo |~~ one ~~| |~ why ~| |~~ two ~~| 42 | ::foo | doc | content

@@ -11,6 +11,6 @@
 {"name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
 {"name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
 {"name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}
-{"decision":"D323","name":"filter-keeps-a-set-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]"}
-{"decision":"D323","name":"a-predicate-of-a-map-that-answers-no-boolean-is-refused-at-its-key","query":"{:a 1} | filter ~(5) !| get [~(type) /key]","expect":"[::map/filter/ConditionNotBooleanError :a]"}
-{"decision":"D323","name":"a-predicate-that-fails-hands-the-failure-on","query":"[1 2] | filter ~(div 0) !| type","expect":"::number/div/divisor/ZeroError"}
+{"name":"filter-keeps-a-set-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]"}
+{"name":"a-predicate-of-a-map-that-answers-no-boolean-is-refused-at-its-key","query":"{:a 1} | filter ~(5) !| get [~(type) /key]","expect":"[::map/filter/ConditionNotBooleanError :a]"}
+{"name":"a-predicate-that-fails-hands-the-failure-on","query":"[1 2] | filter ~(div 0) !| type","expect":"::number/div/divisor/ZeroError"}

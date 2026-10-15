@@ -20,7 +20,8 @@ declared once, an input's of one segment beside the names `answer` and
 `subject`, which the chain lays itself, and the words of a literal,
 `::fn/SignatureNotCommandsError` refusing one written otherwise and
 `::fn/NameDeclaredTwiceError` a name declared again, an invariant named
-as the refusal of its input's kinds among them. A refusal and an
+as a refusal the runtime raises by rule under its input or its answer
+among them, the refusal of the kinds and of a place left out. A refusal and an
 invariant written with a path stand under an input taken before it or
 under the answer, an invariant always written so,
 `::fn/NameUnderNoInputError` refusing one under none; a fact, always
@@ -35,7 +36,9 @@ refused as `::fn/call/SubjectKindNotTakenError` with the kinds as
 `:expected`. A function prints as its literal, the chain folded into a
 quote and its recipe after it, which the constructor of `::fn` reads
 back, a payload that is no such pair refused as
-`::fn/PayloadNotPairError`. `apply` hands a function a vector or a set
+`::fn/PayloadNotPairError`, a first that is no quote of commands as
+`::fn/SignatureNotCommandsError` and a recipe that is no code as
+`::fn/RecipeNotCodeError`. `apply` hands a function a vector or a set
 of arguments, another value refused as
 `::any/apply/args/KindNotTakenError`, and refused under `::fn/call/…`
 as a call of the function, a function with no recipe as
@@ -151,12 +154,15 @@ its place in the payload and its kinds, `tells` a page of the kind on a
 name, `holds` an invariant of the value or of a field, `throws` a
 refusal, `carries` a fact, `proves` a law, and `impl ::builtin{}` the
 check a host hands a kind of the core, the one recipe a kind takes,
+a reader's kind whose `::builtin{}` no host hands laying its tag as a
+kind of no commands does,
 `::kind/impl/recipe/KindNotTakenError` refusing another, and the literal
 `::kind[…]` taking null for none and refusing another as
 `::kind/RecipeNotBuiltinError`; a command
 written after `impl` joins the others. A name is declared once,
-`::kind/NameDeclaredTwiceError`, an invariant named as the refusal of
-its field's kinds among them, a field's and a page's of one segment
+`::kind/NameDeclaredTwiceError`, an invariant named as a refusal the
+runtime raises by rule under its field among them, the refusal of the
+kinds and of a place left out, a field's and a page's of one segment
 beside `payload`, `construct` and the words of a literal,
 `::kind/SignatureNotCommandsError` refusing one written otherwise; a
 refusal or an invariant written with
@@ -165,7 +171,9 @@ name declared before it, `NameUnderNoFieldError`, `LawUnderNoNameError`
 and `FactUnderNoNameError` refusing one under none; a fact written with
 no path is a fact of the payload, as the kind of errors names the facts
 every error may carry. A kind prints as its
-literal, which the constructor of `::kind` reads back.
+literal, which the constructor of `::kind` reads back, a payload that is
+no pair of its commands and its check refused as
+`::kind/PayloadNotPairError`.
 
 ```qlang
 > ::kind | wraps |~~ The sizes. ~~| ::map | print

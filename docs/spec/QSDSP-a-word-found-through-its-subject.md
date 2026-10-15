@@ -74,9 +74,11 @@ true
 A name whose words reside on several kinds, none of which the walk of
 the subject reaches, is refused as `::call/KindAnswersNoVerbError`, with
 the name as `:name`, the subject's outermost tag as `:actualType`, the
-addresses of the words of that name as `:addresses`, and, where the
+addresses of the words of that name as `:addresses`, where the
 pages of those words lead to one, `:nearest`, the words they link that
-the subject answers and whose answer is a kind those words answer.
+the subject answers and whose answer is a kind those words answer, and,
+where the subject is a path, `:read`, the read the step was likely meant
+for [QSPTH#words].
 
 ```qlang
 > 5 | count !| get [~(type) /actualType /addresses]
@@ -84,6 +86,9 @@ the subject answers and whose answer is a kind those words answer.
 
 > [1 2] | toString !| get /nearest
 [:json :print]
+
+> /tags | count !| get /read
+~(get /tags | count)
 ```
 
 ## answer

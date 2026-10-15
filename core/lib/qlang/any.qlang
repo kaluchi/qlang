@@ -2360,9 +2360,13 @@
 
 :any/shape
   |~~ Answers the shape of a value, its schema in its own literal: each
-      map keeps its keys, each vector holds one element whose shape holds
-      of all its elements, and each part that holds no parts stands as
-      its kind, as `type` answers it, a part under a tag as its tag:
+      map keeps its keys, but a map whose values, maps, vectors or values
+      under a tag, share one shape folds into `::each` over it, the map a
+      reader's data keys by names or ids, `{:alice {:id 1} :bob {:id 2}}
+      | shape` answering `::each{:id ::number}`; each vector holds one
+      element whose shape holds of all its elements, and each part that
+      holds no parts stands as its kind, as `type` answers it, a part
+      under a tag as its tag:
       `{:users [{:name "a" :age 1} {:name "b" :age "2"}]} | shape`
       answers `{:users [{:name ::string :age #[::number ::string]}]}`.
       Where the elements part, the shape there is the set of their kinds,
@@ -2376,6 +2380,7 @@
       data read its shape as far as a part holds one kind, `/users/0/age`
       the kinds the age of every user holds.
       ::link~(::any/paths | doc) ::link~(::any/type | doc)
+      ::link~(::each | doc)
   ~~|
   ::fn
     | returns |~~ The schema of the value. ~~| ::any

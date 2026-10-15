@@ -147,6 +147,15 @@ describe('alertOf [QSHST#answer]', () => {
     expect(deepEqual(await continued(query, rest), (await evalQuery(many)).slice(subject.length - 1))).toBe(true);
   });
 
+  it('gives a wide map where the failure arose way whole, so the excerpt holds, its read answering the map', async () => {
+    const wide = `{${Array.from({ length: 200 }, (_, index) => `:k${index} ${index}`).join(' ')}}`;
+    const query = `${wide} | add 1`;
+    const subject = alertOf(await evalQuery(query)).descriptor.get('trail')[0].get('subject');
+    expect(subject.get('size')).toBe(200);
+    expect(printValue(subject.get('read'))).toBe('~(!| get /trail/0/subject)');
+    expect(deepEqual(await continued(query, subject), await evalQuery(wide))).toBe(true);
+  });
+
   it('cuts a long string where the failure arose to its head', async () => {
     const text = LONG.repeat(10);
     const query = `"${text}" | add 1`;

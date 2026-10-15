@@ -11,7 +11,7 @@ import { mintUnderTag } from './verb.mjs';
 import { deepEqual } from '../equality.mjs';
 import {
   isPath, makePath, isKeyword, isQMap, isVec, isQSet, isValueClass, isErrorValue, isTaggedInstance, keyword, makeSet,
-  typeKeyword, TAG_HEADER_SYMBOL
+  makeTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL, EACH_TAG
 } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
@@ -161,29 +161,54 @@ bindPrim('any/paths', subject => {
   return makeSet(found);
 });
 
-// The shape of a value: each map with its keys, each vector one element
-// whose shape holds of all its elements, and each part that holds no parts
-// its kind.
+// The shape of a value: each map with its keys, a map whose values share
+// one shape folding into `::each` over it, each vector one element whose
+// shape holds of all its elements, and each part that holds no parts its
+// kind.
 function shapeOf(current, top) {
   const value = top ? beneathItsTags(current) : current;
   if (!isOpened(value, top)) return typeKeyword(value);
-  if (isQMap(value)) return new Map([...value].map(([key, part]) => [key, shapeOf(part, false)]));
+  if (isQMap(value)) {
+    const shapes = new Map([...value].map(([key, part]) => [key, shapeOf(part, false)]));
+    return foldedOf(value, shapes) ?? shapes;
+  }
   return Object.freeze(value.length === 0 ? [] : [value.map(element => shapeOf(element, false)).reduce(mergedShape)]);
 }
+
+// A map of more than one value, every value a map, a vector or a value
+// under a tag, whose shapes merge into one, no kinds parting among them,
+// folds into `::each` over that shape, its keys left to the data. A map of
+// one key, of atoms, whose keys are the fields a reader reads, or of
+// values of other kinds keeps its keys.
+const holdsParts = part => isQMap(part) || isVec(part) || isTaggedInstance(part);
+
+function foldedOf(value, shapes) {
+  if (value.size < 2 || ![...value.values()].every(holdsParts)) return null;
+  const merged = [...shapes.values()].reduce(mergedShape);
+  return isQSet(merged) ? null : makeTaggedInstance(EACH_TAG, merged);
+}
+
+const isEach = value => isTaggedInstance(value) && value[TAG_HEADER_SYMBOL].name === EACH_TAG.name;
+const eachOf = value => (isValueClass(value, 'taggedInstance') ? value.payload : isVec(value) ? Object.freeze([...value]) : new Map(value));
+const eachesMerge = (left, right) => isEach(left) && isEach(right) && !isQSet(mergedShape(eachOf(left), eachOf(right)));
 
 bindPrim('any/shape', subject => shapeOf(subject, true));
 
 // The shape two parts share: two maps of the same keys a map of their
 // shapes key by key; two vectors the vector of their elements' shape, an
-// empty one giving way; and any other two the set of their kinds, a vector
-// in it merged with a vector and a map with a map of the same keys. Maps of
-// other keys stand apart, no key stitched in that one of them lacks, so the
-// shape folds the records as far as their keys agree and no further.
+// empty one giving way; two folds `::each` over the shape their values
+// share, where they share one; and any other two the set of their kinds, a
+// vector in it merged with a vector, a fold with a fold and a map with a
+// map of the same keys. Maps of other keys stand apart, no key stitched in
+// that one of them lacks, so the shape folds the records as far as their
+// keys agree and no further.
 const sameKeys = (left, right) => left.size === right.size && [...left.keys()].every(key => right.has(key));
-const merging = (left, right) => isOpened(left, false) && isOpened(right, false) && isQMap(left) === isQMap(right) && (!isQMap(left) || sameKeys(left, right));
+const merging = (left, right) => eachesMerge(left, right)
+  || (isOpened(left, false) && isOpened(right, false) && isQMap(left) === isQMap(right) && (!isQMap(left) || sameKeys(left, right)));
 
 function mergedShape(left, right) {
   if (deepEqual(left, right)) return left;
+  if (eachesMerge(left, right)) return makeTaggedInstance(EACH_TAG, mergedShape(eachOf(left), eachOf(right)));
   if (merging(left, right)) {
     if (isQMap(left)) return new Map([...left.keys()].map(key => [key, mergedShape(left.get(key), right.get(key))]));
     return left.length === 0 ? right : right.length === 0 ? left : Object.freeze([mergedShape(left[0], right[0])]);

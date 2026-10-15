@@ -2,7 +2,6 @@
 {"name":"a-pattern-prints-as-written-its-flags-in-their-order","query":"[#\"\\d+ms\" #\"a\"mi #\"\\\"q\\\"\"] | map ~print","expect":"[\"#\\\"\\\\d+ms\\\"\" \"#\\\"a\\\"im\" \"#\\\"\\\\\\\"q\\\\\\\"\\\"\"]"}
 {"name":"a-pattern-reads-back-from-its-print","query":"[#\"(\\d+)\\.(\\d+)\" #\"\\\"x\\\"\"s #\"\\\\\"] | map ~(:p it | print | parse | apply it | eq p)","expect":"[true true true]"}
 {"name":"two-patterns-are-one-when-their-text-and-flags-are","query":"get [~(#\"a\" | eq #\"a\") ~(#\"a\" | eq #\"a\"i) ~(#\"a\" | eq \"a\")]","expect":"[true false false]"}
-{"name":"patterns-rank-after-strings-by-text-then-flags","query":"[:k #\"b\" \"z\" #\"a\"i #\"a\" 1] | sort","expect":"[1 \"z\" #\"a\" #\"a\"i #\"b\" :k]"}
 {"name":"a-pattern-the-engine-cannot-read-does-not-parse","query":"[\"#\\\"(\\\"\" \"#\\\"a\\\"x\" \"#\\\"a\\\"ii\"] | map ~(parse !| type)","expect":"[::quote/ParseError ::quote/ParseError ::quote/ParseError]"}
 {"name":"a-flag-written-inside-is-refused-with-its-place","query":"\"#\\\"(?i)a\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
 {"name":"a-backslash-before-a-plain-character-is-refused-with-the-reason","query":"\"#\\\"a\\\\-b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}

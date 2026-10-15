@@ -33,3 +33,4 @@
 {"name":"json-reserved-key-false","query":"{\"false\": 0} | get /false","expect":"0"}
 {"name":"json-numeric-string-key","query":"{\"42\": \"answer\"} | get /\"42\"","expect":"\"answer\""}
 {"name":"json-kebab-string-key","query":"{\"foo-bar\": 99} | get /\"foo-bar\"","expect":"99"}
+{"name":"parse-path-path","query":"\"/a/b/0\" | parse | first | segments","expect":"[:a :b 0]"}

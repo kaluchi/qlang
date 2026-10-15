@@ -32,9 +32,10 @@ true
 ## raise
 
 Raising is an act, and `raise` alone performs it: it puts its subject on
-the fail track, a map as `::error{…}` and a value under a tag as the
-error of the tag it shows, the outermost the walk passed. An error
-opened by a catch and raised again is the error it was.
+the fail track, a map as `::error{…}` and a map under a tag as the error
+of the outermost tag; a subject that is no map, a value under a tag over
+another value among them, is refused as `::map/raise/SubjectNotMapError`.
+An error opened by a catch and raised again is the error it was.
 
 ```qlang
 > {:k 1} | raise !| type
@@ -87,10 +88,12 @@ running a quote. `/trail/0` is where the error arose and
 `/trail/-1/skipped` the steps skipped at the level that reads it, which
 `apply` runs again as held code [QSQUO#held]. An error at rest holds the
 facts it is written with; one that writes its `:trail`, empty among
-them, resumes that path when raised and adds no stop, and a trail that
-is no vector is refused as `::error/TrailNotVecError`. The word `trail`
-answers the path, `[]` for an error that holds none, while `/trail` reads
-the key and is refused where there is none.
+them, resumes that path when raised and adds no stop, and a trail other
+than a plain vector of maps, each holding a quote under `:skipped`, is
+refused as `::error/TrailNotVecError`. The word `trail` answers the path,
+`[]` for an error that holds none, and refuses a subject that is no
+error as `::error/trail/SubjectNotErrorError`, while `/trail` reads the
+key and is refused where there is none.
 
 ```qlang
 > "x" | add 1 !| keys
@@ -105,17 +108,18 @@ the key and is refused where there is none.
 
 ## flow
 
-A failure stands in the pipe alone. A template of `get` whose quote
-answers one answers it, the first in the order written; the body of a
-declaration that fails binds nothing and answers the failure; a tag over
-a payload that fails answers the failure; a modifier that answers a
-failure answers the call where its input takes a value, and is refused
-under the input where it takes code [QSQUO#modifier]; a key of `sort`,
-`groupBy` or `indexBy` that fails answers the word. A refusal holds a
-failure computed at the call as the error at rest it is, so reading it
-raises nothing. `map` answers the first failure its code answers, the
-elements after it left unrun, and code that recovers inside keeps every
-element.
+A failure stands in the pipe alone. Code a word runs that answers a
+failure answers the word, the elements after it left unrun: `map`,
+`filter`, `every`, `any`, `reduce`, the branches of `if`, and the keys of
+`sort`, `groupBy` and `indexBy`, while code that recovers inside keeps
+every element. A literal whose part fails answers that failure, and so
+does a template of `get` whose quote answers one, the first in the order
+written; the body of a declaration that fails leaves the scope as it
+was and answers the failure; a tag over a payload that fails answers the
+failure; a modifier that answers a failure answers the call where its
+input takes a value, and is refused under the input where it takes code
+[QSQUO#modifier]. A refusal holds a failure computed at the call as the
+error at rest it is, so reading it raises nothing.
 
 ```qlang
 > get [1 ~("x" | add 1)] !| type
@@ -141,24 +145,29 @@ input. The last name names the refusal alone, so two places may share
 one, `::call/ReadBackDiffersError` beside `::quote/ReadBackDiffersError`.
 A value of none of the kinds a holder takes is refused by the holder's
 role, `KindNotTakenError`, `PayloadKindNotTakenError` or
-`ElementKindNotTakenError`, its kinds the fact `:expected`, so a kind
-that joins a holder changes no tag; the subject of a word is refused by
-the label it resides on, `SubjectNotNumberError`.
-The refusal of an input's value lives under the input, whether an
-invariant or a primitive raises it, and what a run answers under the
-word. A refusal is declared in the source of the place it guards, and
-its page links the page of that place. The refusal of a primitive takes
-the address of the word that ran it, and a refusal of the language's own
-steps sits under the kind of that step, `::path`, `::call`, `::bind`,
-`::construct`, `::quote` and `::error`; what no query reaches, the table
-of primitives or a node the evaluator does not know, is an invariant of
-the implementation under `::builtin`, and a failure of a host's
-implementation is `::call/HostFailureError`, with its `:message` and
-`:causes`. An error holds its facts in the order the catalog declares
-them, the label's own first, the facts `::error` declares after them,
-`:expected`, `:actualType` and `:actualValue` among them, and the trail
-last. A fact is a value of the language: a name a step read and a key a path read
-are keywords, an index a number, an entry of a map named by its `:key`.
+`ElementKindNotTakenError`, the answer of a word and the subject of a
+function `apply` runs among them, `SubjectKindNotTakenError`, its kinds
+the fact `:expected`, so a kind that joins a holder changes no tag; the
+subject of a word is refused by the label it resides on,
+`SubjectNotNumberError`. The refusal of an input's value lives under the
+input, whether an invariant or a primitive raises it, and what a run
+answers under the word. A refusal is declared in the source of the place
+it guards, and a refusal the catalog declares links the page of its
+place. The refusal of a primitive takes the address of the word that
+ran it, and a refusal of the language's own steps sits under the kind of
+that step, `::path`, `::call`, `::bind`, `::construct`, `::quote` and
+`::error`; what no query reaches, the table of primitives or a node the
+evaluator does not know, is an invariant of the implementation under
+`::builtin`, and a failure of a host's implementation is
+`::call/HostFailureError`, with its `:message` and `:causes`. A refusal
+of the runtime holds its facts in the order the catalog declares them,
+the label's own first, the facts `::error` declares after them,
+`:expected`, `:actualType` and `:actualValue` among them, `:actualValue`
+left out where it is the subject the first stop holds, and the trail
+last; an error a reader writes holds its facts as written, the trail
+last. A fact is a value of the language: a name a step read and a key a
+path read are keywords, an index a number, an entry of a map named by
+its `:key`.
 
 ```qlang
 > "hello" | add 1 !| type

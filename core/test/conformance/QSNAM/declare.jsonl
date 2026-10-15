@@ -10,3 +10,4 @@
 {"name":"a-template-of-get-begins-the-body","query":":vec/m ~(:opts get {:n ~(count)} | opts) | [1 2] | m","expect":"{:n 2}"}
 {"name":"doc-on-a-declaration-of-it-hands-the-value-on","query":"42\n:x |~~| captured\nit\n| x","expect":"42"}
 {"name":"a-verb-moved-left-answers-as-inline","query":":vec/most ~(count | sub 1) | {:items [1 2 3] :limit 2} | get /items | take most","expect":"[1 2]"}
+{"name":"a-word-names-its-subject-by-a-declaration-of-it","query":":any/pair ~(:self it | get [~(self) ~(self)]) | 5 | pair","expect":"[5 5]"}

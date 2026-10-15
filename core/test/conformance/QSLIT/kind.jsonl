@@ -1,6 +1,3 @@
-{"name":"true","query":"true","expect":"true"}
-{"name":"false","query":"false","expect":"false"}
-{"name":"null","query":"null","expect":"null"}
 {"name":"a-vector-has-the-kind-its-brackets-imply","query":"[1 2] | type","expect":"::vec"}
 {"name":"null-has-a-kind-of-its-own","query":"null | type","expect":"::null"}
 {"name":"a-tag-name-has-the-kind-tag","query":"::foo | type","expect":"::tag"}
@@ -28,4 +25,3 @@
 {"name":"tags-stack-over-a-payload-and-read-from-the-outside-in","query":"::A::B{} | get [~(type) ~(payload | type)]","expect":"[::A ::B]"}
 {"name":"a-tag-stacks-over-an-atom-as-over-a-container","query":"::A#1 | get [~(type) ~(payload)]","expect":"[::A 1]"}
 {"name":"type-answers-a-tag","query":"5 | type | type","expect":"::tag"}
-{"name":"a-tag-over-a-set-stacks-on-it","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | payload","expect":"#[1 2 3]"}

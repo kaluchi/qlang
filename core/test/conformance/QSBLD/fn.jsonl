@@ -9,4 +9,5 @@
 {"name":"the-words-that-build-a-function-are-functions","query":"::fn/takes | binding | get /value | type","expect":"::fn"}
 {"name":"fn-is-a-kind-with-a-page","query":"::fn | doc | type","expect":"::doc"}
 {"name":"a-function-proves-its-laws-in-its-chain","query":":number/twice (::fn | proves :doubles |~~ Two is four. ~~| ~(2 | twice | eq 4) | impl ~(mul 2)) | ::number/twice | runLaws | map /ok","expect":"[true]"}
-{"name":"the-node-of-the-answer-of-a-word-holds-its-kinds","query":"::vec/count/answer | binding | get /value","expect":"::number"}
+{"name":"a-function-carries-a-fact-of-a-refusal-under-its-name","query":"get [~(::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/limit |~~ The limit. ~~| ::number | type) ~(::fn | carries :limit |~~ The limit. ~~| !| type)]","expect":"[::fn ::fn/FactUnderNoNameError]"}
+{"name":"a-fact-of-a-function-of-no-kinds-holds-its-page","query":":number/f (::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/note |~~ A note. ~~| | impl ~(it)) | ::number/f/TooBigError/note | binding | get /value | type","expect":"::doc"}

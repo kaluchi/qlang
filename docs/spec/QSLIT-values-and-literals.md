@@ -11,14 +11,16 @@ under `core/test/conformance/QSLIT/`.
 Every value has a kind: the outermost tag of its stack, and for a value
 with no tag of its own, the kind of the core its literal implies. `[…]`
 implies the vector, `{…}` the map, `#[…]` the set, `#"…"` the pattern,
-`~(…)` the quote, `|~~ … ~~|` the doc, `!{…}` the error, `/a` the path,
-and a number, a string, a keyword, a tag name, a boolean and null each
-have their own; a host's value carries its tags above one of them.
-`type` answers the kind of any value, never `::any`, and the kind's page
-is one step away. A tag is the name of an interpretation: tags stack
-over any payload and read from the outside in, `payload` reading what
-stands beneath the outermost; behaviour lives in the catalog and is
-found through the tag.
+`::regex`, `~(…)` the quote, `|~~ … ~~|` the doc, `!{…}` the error, `/a`
+the path, and a number, a string, a keyword, a tag name, a boolean and
+null each have their own; a host's value carries its tags above one of
+them. `type` answers the kind of any value, the kind a literal implies
+for one under no tag, and the kind's page is one step away. A tag is the
+name of an interpretation: tags stack over any payload and read from
+the outside in, `payload` reading what stands beneath the outermost and
+refusing a value under no tag as
+`::tagged/payload/SubjectNotTaggedError`; behaviour lives in the catalog
+and is found through the tag.
 
 ```qlang
 > [1 2] | type
@@ -39,8 +41,10 @@ found through the tag.
 A number is a finite double, written as an integer, a decimal, a minus
 sign and an exponent, `1e10`, `2.5e-3`, `1.5E+6`, its whole part
 written as JSON writes it, a zero alone or digits opening with another,
-`01` refused by the parser with the form `1`. A literal past the doubles,
-`1e400`, is refused by the parser.
+`01` refused by the parser with the form `1`. A literal whose magnitude
+passes the largest double, `1e400`, is refused by the parser; one
+smaller than the least reads as `0`, and digits past a double's
+precision round.
 
 ```qlang
 > -2.5e3
@@ -54,7 +58,7 @@ written as JSON writes it, a zero alone or digits opening with another,
 
 A string is written in double quotes with the escapes of JSON, `\"`,
 `\\`, `\/`, `\n`, `\t`, `\r`, `\b`, `\f` and `\u` with four hexadecimal
-digits.
+digits, and holds a line break or a tab written raw as it is.
 
 ```qlang
 > "A"
@@ -102,11 +106,14 @@ entries of one key, the last value stands in the first entry's place.
 ## json
 
 JSON is syntax: an object, an array, `true`, `false` and `null` read as
-the values they write, one comma between two elements reading as
-whitespace, and an object's keys read as keywords, quoted where the key
-is no bare name. A map is a map whatever its keys say, a key named
-`type` among them, and a duplicate key reads as `JSON.parse` reads it,
-at the boundary as in a query [QSPRN#json].
+the values they write, and an object's keys read as keywords, quoted
+where the key is no bare name. A vector separates its elements by
+whitespace or by commas, one comma between every two, and braces with
+string keys separate their entries by commas, one between every two; a
+map of keyword keys and a set are written with whitespace. A map is a
+map whatever its keys say, a key named `type` among them, and a
+duplicate key reads as `JSON.parse` reads it, at the boundary as in a
+query [QSPRN#json].
 
 ```qlang
 > {"name": "alice", "age": 30}
@@ -138,11 +145,18 @@ names after `::`, `::null`.
 
 The constructor of the tag's kind attaches the tag to the payload the
 literal writes, or refuses it naming why the payload does not fit. A
-kind of the core reads a payload of its own kind alone, so `::number"5"`
-is refused, and a tag no declaration names lays itself over a payload as
-it is, with no page and no node [QSNAM#address]. `tag` lays a tag over
-the value in the pipe, `5 | tag ::Foo`, or over the pair `[tag payload]`
-it takes apart, through the tag's constructor.
+kind of the core reads its payload, a value of its own kind or, for a
+set, a quote and a doc, a vector, so `::number"5"` is refused and
+`::set[3 1]` is `#[1 3]`; a label laid over a value already under it
+stands once, `::Lab::Lab[1]` reading `::Lab[1]`. A tag no declaration
+names, and the tag of a word, lays itself over a payload as it is
+[QSNAM#address], and the tag of a name that holds data is refused as
+`::construct/TagNotKindError`. `tag` lays a tag over the value in the
+pipe, `5 | tag ::Foo`, or over the pair `[tag payload]` it takes apart,
+through the tag's constructor; a tag of another kind is refused as
+`::any/tag/name/KindNotTakenError`, a subject that is no pair as
+`::any/tag/SubjectNotPairError`, and a pair whose first is no tag as
+`::any/tag/PairTagNotTagError`.
 
 ```qlang
 > ::Width#5 | add 3 | get [~(type) ~(payload)]
@@ -165,10 +179,12 @@ it takes apart, through the tag's constructor.
 
 A literal is closed from its opening to its closing pair: its parts are
 literals, fixed by its text alone. A group or a name written inside a
-container is refused by the parser, which names `get` [QSPTH#template];
-parentheses after a tag hold code and are refused, naming `tag` for a
-value computed. In the code of a doc, a literal that computes reads as
-prose.
+container is refused by the parser, which names the template of `get`
+[QSPTH#template], and inside an error literal names the facts built by
+`get` and made an error by `raise`; code in parentheses after a tag is
+refused, naming `tag` for a value computed, and a literal in them names
+the literal touching its tag, `::Width(5)` naming `::Width#5`. In the
+code of a doc, a literal that computes reads as prose.
 
 ```qlang
 > "[(5 | add 1) 2]" | parse !| get /message
@@ -182,7 +198,7 @@ prose.
 
 Every value comes apart into the set of its atoms and a shape, and the
 shape applied to the set builds a value equal to the first. The atoms
-are the values no verb takes further apart: null, booleans, numbers,
+are the leaves the decomposition stops at: null, booleans, numbers,
 strings, patterns, keywords, tag names and paths, each once and in the
 one order; the keys of maps and the tags over payloads are atoms as the
 other leaves are. The shape is a quote that reads the value back by

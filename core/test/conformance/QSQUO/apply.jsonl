@@ -15,3 +15,5 @@
 {"name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::call/UnknownNameError"}
 {"name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12"}
 {"name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/KindNotTakenError"}
+{"name":"a-value-that-is-no-quote-opens-nothing","query":"5 | open !| type","expect":"::quote/open/SubjectNotQuoteError"}
+{"name":"open-lives-on-the-kind-of-a-quote","query":"::quote | manifest | has ::quote/open","expect":"true"}

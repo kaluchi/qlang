@@ -9,16 +9,20 @@ maps. The requirements of each section are the cases of its file under
 
 A vector and a set answer `count`, `empty`, `first` and `last`, `take`
 and `drop` a count of elements, clamped to what there is, a count whole
-where it equals its floor, `reverse` and `flat`, `sum`, and `min` and
-`max` in the one order [QSORD#sort], null over an empty container where
-it reads one. `avg` answers the mean, null over nothing, kept as a
-running mean, an element that is no number refused at its index. `has`
-asks whether an element equal to one stands. `append` and `prepend` put
-one element at an end, a vector given among them, and a set takes it
-into its order. `zip` reads vectors side by side, as long as the
-shortest, an element that is no vector refused at its index. The answer
-of a word keeps or leaves the tags of its subject as its kind says
-[QSDSP#answer].
+where it equals its floor, a fraction refused as
+`::vec/take/count/NotIntegerError` and a value of another kind as
+`…/count/KindNotTakenError`, `reverse`, which answers a vector under no
+tag, `flat`, which lifts one level, `sum`, an element that is no number
+refused at its index, and `min` and `max` in the one order or by a key
+[QSORD#sort], null over an empty container where it reads one. `avg`
+answers the mean, null over nothing, kept as a running mean, an element
+that is no number refused at its index, at its key over a map. `has`
+asks whether an element equal to one stands [QSPTH#has]. `append` and
+`prepend` put one element at an end, a vector given among them, and a
+set takes it into its order. `zip` reads vectors side by side, as long
+as the shortest, an element that is no vector refused at its index. The
+answer of a word keeps or leaves the tags of its subject as its kind
+says [QSDSP#answer].
 
 ```qlang
 > [1 2 3] | take -1
@@ -65,11 +69,11 @@ data, and `has` whether a key stands [QSPTH#has].
 ## each
 
 `map` runs its code, a quote or a path, on each element in order: over
-a vector it answers the vector of what each answered, under no tag of
-the subject; over a map the map of the answers under the same keys;
-over a set the vector of the images in the one order. The first error
-its code answers is the answer of the call. A value computed at the call
-in place of the code is refused with the repair.
+a vector it answers a plain vector of what each answered; over a map a
+plain map of the answers under the same keys; over a set the vector of
+the images in the one order. The first error its code answers is the
+answer of the call. A value computed at the call in place of the code is
+refused with the repair.
 
 ```qlang
 > #[1 2 3] | map ~(mod 2)
@@ -86,7 +90,8 @@ in place of the code is refused with the repair.
 
 `filter` keeps the elements its predicate, a quote or a path, answers
 `true` for, in their order, a map keeping its keys and a set its kind;
-a predicate that answers no boolean is refused at its index.
+a predicate that answers no boolean is refused at its index, a map's at
+its key, and one that answers a failure hands it on.
 
 ```qlang
 > {:c 3 :a 1 :b 2} | filter ~(gt 1)
@@ -96,11 +101,14 @@ a predicate that answers no boolean is refused at its index.
 ## reduce
 
 `reduce` folds a vector, a set or a map's values from a seed by code of
-any shape. A quote of one word is the short form: the fold calls the
-word as the pipe calls it, the value so far its subject and the element
-its first object, the word named by its name or its address. Any other
-code runs on the pair of the value so far and the element. A value the
-scope binds under the name of the word meets it, as a step does.
+any shape, the seed first and the code after it, a call with one object
+refused as `::vec/reduce/reducer/NotGivenError` and code computed at the
+call as `::vec/reduce/reducer/KindNotTakenError`. A quote of one word is
+the short form: the fold calls the word as the pipe calls it, the value
+so far its subject and the element its first object, the word named by
+its name or its address. Any other code runs on the pair of the value so
+far and the element. A value the scope binds under the name of the word
+meets it, as a step does.
 
 ```qlang
 > [1 2 3] | reduce 0 ~(add)
@@ -119,17 +127,20 @@ scope binds under the name of the word meets it, as a step does.
 their input, and on vectors, which fold the sets or maps they hold and
 take no value beside them, `[#[1] #[2]] | union 5` refused as
 `ArgsBeyondInputsError`. A set of sets folds as the vector of its
-elements, its input left out; a map folds nothing, so its input is
-given, `{:a 1} | union` refused as `::map/union/other/NotGivenError`,
-and a value of another kind beside a set is refused under the input. A
-map's `minus` and `inter` take the keys a map, a vector or a set names;
-`union` of maps lets the later value of a key stand. A value that is no
-set or map is refused at its index, a set beside a map as a pair the
-algebra has no rule for, `KindsMismatchedError` with `:leftType` and
-`:rightType`, and a fold of nothing as `SubjectEmptyError`. The words of
-sets and of maps answer under the subject's tags; a vector's fold
-answers a set or a map of its own. `unionOf` unites the maps its call
-computes from one subject.
+elements, its input left out. A map's `union`, `minus` and `inter`
+combine it with the value their input gives, which the call gives,
+`{:a 1} | union` refused as `::map/union/other/NotGivenError`; its
+`union` takes a map, the later value of a key standing, and its `minus`
+and `inter` the keys a map, a vector or a set names; a value of another
+kind is refused under the input, `::map/union/other/KindNotTakenError`.
+A value that is no set or map is refused at its index, a set beside a
+map as a pair the algebra has no rule for, `KindsMismatchedError` with
+`:leftType` and `:rightType`, and a fold of nothing as
+`SubjectEmptyError`. The words of sets and of maps answer under the
+subject's tags; a vector's fold answers a set or a map of its own.
+`unionOf` unites the maps or the sets its call computes, one part at
+least, `::any/unionOf/parts/EmptyError` refusing none, under the tags of
+the first; one part answers itself.
 
 ```qlang
 > {:age 20} | union {:age 30}
@@ -151,15 +162,15 @@ computes from one subject.
 ## group
 
 `groupBy` files the elements of a vector or a set into a map of
-buckets and `indexBy` into a map of one element a key, the last of one
-key standing. The key, a quote, a path or none, files an element under
-a keyword: a keyword as it is, a string or a number under the keyword of
-its text, a boolean or null under that of its literal, a tag name under
-that of its name, and without a key an element is its own. A key of
-another kind is refused at its element, and two values that file under
-one keyword meet, the second refused as `KeyTakenError`, its `:key` the
-keyword, `:taken` the value that filed under it first and `:index` the
-element that met it.
+buckets, a set's buckets sets, and `indexBy` into a map of one element a
+key, the last of one key standing. The key, a quote, a path or none,
+files an element under a keyword: a keyword as it is, a string or a
+number under the keyword of its text, a boolean or null under that of
+its literal, a tag name under that of its name, and without a key an
+element is its own. A key of another kind is refused at its element, and
+two values that file under one keyword meet, the second refused as
+`KeyTakenError`, its `:key` the keyword, `:taken` the value that filed
+under it first and `:index` the element that met it.
 
 ```qlang
 > [1 2 3] | groupBy ~(gt 1)
@@ -174,10 +185,11 @@ element that met it.
 
 ## within
 
-`within` edits under one tag: it applies its code to the payload and
-lays the tag back, its constructor running once at the rewrap, so the
-steps between may break the invariant the result holds. A host may own
-the words of editing on its tags, so a kind of its own reads alone.
+`within` edits under one tag: it applies its code, a quote or a path, to
+the payload and lays the tag back, its constructor running once at the
+rewrap, so the steps between may break the invariant the result holds;
+a set is edited as its vector and laid back under `::set`. A subject
+under no tag is refused as `::tagged/within/SubjectNotTaggedError`.
 
 ```qlang
 > ::Box#[1 2] | within ~(append 1)

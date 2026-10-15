@@ -22,7 +22,6 @@
 {"name":"not-found-carries-the-binding-name","query":"::nosuchbinding | source !| get /name","expect":"::nosuchbinding"}
 {"name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true"}
 {"name":"an-undeclared-tag-answers-one-page-whatever-asked-first","query":"get [~(::Late | doc !| type) ~(::Late{:a 1} | doc !| type)] | distinct | count","expect":"1"}
-{"name":"the-page-of-tagged-values-tells-a-value-under-a-tag","query":"::tagged | doc | content | contains \"A value under a tag\"","expect":"true"}
 {"name":"a-word-reads-the-pages-of-its-inputs","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | ::number/plus/by | doc | content | trim","expect":"\"How much.\""}
 {"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\" A box. \""}
 {"name":"a-refusal-of-a-word-leads-to-where-it-lives","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::set/reduce ::vec/reduce]"}

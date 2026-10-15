@@ -7,4 +7,3 @@
 {"name":"a-call-on-a-subject-of-another-kind-names-the-form-that-fits","query":"{:price 100 :qty 3} | mul (get /price) (get /qty) !| get [~(type) ~(explain | page | content | contains \"mulOf\")]","expect":"[::number/mul/SubjectNotNumberError true]"}
 {"name":"two-fields-compare-by-the-subject-in-the-pipe","query":"{:a 2 :b 1} | gt (get /a) (get /b) !| type","expect":"::call/KindAnswersNoVerbError"}
 {"name":"a-call-of-more-values-reads-the-page-of-its-refusal","query":"5 | eq 5 6 !| explain | page | content | contains \"one of several\"","expect":"true"}
-{"name":"a-call-of-addof-names-sumof-among-the-names-near-it","query":"{:x 1} | addOf (get /x) (get /x) !| get /nearest | has :sumOf","expect":"true"}

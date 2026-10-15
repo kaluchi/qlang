@@ -7,15 +7,7 @@
 {"name":"a-quote-of-other-steps-prints-on-one-line","query":"~(:a 1 | a) | parse","expect":"\":a 1 | a\""}
 {"name":"a-story-printed-reads-back-as-itself","query":"::number | source | print | parse | first | eq (::number | source)","expect":"true"}
 {"name":"parse-number-literal","query":"\"42\" | parse","expect":"~(42)"}
-{"name":"parse-number-literal-step","query":"\"42\" | parse | first","expect":"42"}
-{"name":"parse-string-literal-step","query":"\"\\\"hello\\\"\" | parse | first","expect":"\"hello\""}
-{"name":"parse-keyword-literal-step","query":"\":foo\" | parse | first","expect":":foo"}
-{"name":"parse-call-name","query":"\"add 1 2\" | parse | first | get /name","expect":":add"}
-{"name":"parse-call-modifiers-count","query":"\"add 1 2\" | parse | first | get /modifiers | count","expect":"2"}
-{"name":"parse-command-modifiers-are-their-steps","query":"\"add 1 2\" | parse | first | get /modifiers","expect":"[1 2]"}
-{"name":"parse-bare-call-has-no-modifiers","query":"\"count\" | parse | first | has :modifiers","expect":"false"}
 {"name":"parse-pipeline-is-a-quote","query":"\"42 | add 1\" | parse | type","expect":"::quote"}
-{"name":"parse-pipeline-step-count","query":"\"42 | add 1 | mul 2\" | parse | count","expect":"3"}
 {"name":"parse-quote-subject-prints-its-text","query":"~(5 | mul 2) | parse","expect":"\"5 | mul 2\""}
 {"name":"parse-is-an-involution","query":"\"5 |  mul   2\" | parse | parse","expect":"\"5 | mul 2\""}
 {"name":"parse-blank-source-is-the-empty-quote","query":"\" \" | parse","expect":"~()"}

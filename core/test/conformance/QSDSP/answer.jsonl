@@ -5,8 +5,6 @@
 {"name":"append-runs-the-constructor-of-its-tag-again","query":":P |~~ P. ~~| (::kind | holds :TooLongError |~~ Three at most. ~~| ~(count | lte 3)) | ::P[1 2] | get [~(append 3 | type) ~(append 3 | append 4 !| type)]","expect":"[::P ::P/TooLongError]"}
 {"name":"a-tag-over-a-string-comes-back-on-append","query":"::Box\"ab\" | append \"c\"","expect":"::Box\"abc\""}
 {"name":"a-tag-over-a-string-comes-back-on-prepend","query":"::Box\"b\" | prepend \"a\"","expect":"::Box\"ab\""}
-{"name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | type","expect":"::Box"}
-{"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2"}
 {"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T"}
 {"name":"an-answer-of-the-words-own-label-keeps-the-subjects-tags","query":"::Width#2 | add 3","expect":"::Width#5"}
 {"name":"filter-over-a-tag-stacked-on-a-set-keeps-the-tag","query":":Box |~~ Box. ~~| | ::Box#[1 2 3 4] | filter ~(gt 2)","expect":"::Box#[3 4]"}

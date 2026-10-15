@@ -6,5 +6,4 @@
 {"name":"an-input-holding-a-value-takes-no-modifiers","query":":number/f (::fn | takes :n |~~ The n. ~~| /0 | impl ~(n 42)) | 0 | f 5 !| type","expect":"::call/ValueTakesNoModifiersError"}
 {"name":"cannot-apply-args-to-value","query":"5 | :five it | five 42","expect":"::call/ValueTakesNoModifiersError!{\n  :actualType ::number\n  :name :five\n  :addresses #[]\n  :trail [\n    {\n      :step ~(five 42)\n      :subject 5\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)"}
-{"name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r it | (:r | type)","expect":"::keyword"}
 {"name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)","expect":"6"}

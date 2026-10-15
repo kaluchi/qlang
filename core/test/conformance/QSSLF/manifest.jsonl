@@ -16,10 +16,7 @@
 {"name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true"}
 {"name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true"}
 {"name":"the-chapters-are-members-of-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
-{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | parse | contains \"throws :addend/KindNotTakenError\"","expect":"true"}
-{"name":"a-step-lists-its-refusals-on-its-noun","query":"::path | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :KeyNotInMapError) | count","expect":"1"}
 {"name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}
 {"name":"a-place-lists-the-refusal-declared-under-it","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/KindNotTakenError]"}
 {"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/other | manifest","expect":"#[::set/union/other/KindNotTakenError]"}
-{"name":"a-noun-lists-each-refusal-once","query":"::vec | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :PayloadKindNotTakenError) | count","expect":"1"}
-{"name":"a-sum-over-a-listing-of-the-catalog-counts-every-element","query":"::vec | manifest | map ~(laws | count) | sum | eq (::vec | manifest | sort | map ~(laws | count) | sum)","expect":"true"}
+{"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}

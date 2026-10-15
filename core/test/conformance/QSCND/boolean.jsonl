@@ -17,3 +17,4 @@
 {"name":"a-condition-of-allOf-is-a-value-or-a-quote","query":"5 | allOf (gt 1) ~(lt 10)","expect":"true"}
 {"name":"if-holds-two-conditions-by-allOf","query":"{:active true :verified true} | if (allOf (get /active) (get /verified)) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
 {"name":"if-takes-either-condition-by-anyOf","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
+{"name":"split-then-filter","query":"\"a,b,c,d\" | split \",\" | filter ~(allOf (eq \"a\" | not) (eq \"c\" | not))","expect":"[\"b\" \"d\"]"}

@@ -7,22 +7,28 @@ it. The requirements of each section are the cases of its file under
 
 ## axis
 
-The axes read a name: `doc` its page, `source` the declaration that
-wrote it, `binding` the record of its binding [QSNAM#binding]. A value
-is read by its kind, `5 | doc` the page of `::number`, a keyword among
-values, and a name by its tag, the address of its node,
+The axes read a name: `doc` its page, `source` every declaration written
+under its address, `binding` the record of its binding [QSNAM#binding].
+A value is read by its kind, `5 | doc` the page of `::number`, a keyword
+among values, and a name by its tag, the address of its node,
 `::vec/count | doc`, a label of the root from the root and any other
-name at its nearest declaration. An axis takes the name of a member
-after it and reads the member the subject holds under that name, an
-input of a word or the word a name calls on a noun, `::map | doc :minus`;
-a vector of names reads a path of members, a set several. A name nothing
-declares is refused under the axis, `::any/doc/UnknownNameError`, named
-by the tag or the keyword asked, with the addresses of words of the
-name and the names near it. A name declared without a page answers null.
-A field of a map names nothing, so `{:kind ::set} | doc` is the page of
-maps, and a label may declare a `doc` of its own, which its values
-answer before the word of every value. A reader adds an axis of its
-own by laying a tag over values and declaring words on the tag.
+name at its nearest declaration. `binding` and `source` take the name of
+one member after it, a keyword, and read the member the subject holds
+under that name, an input of a word or the word a name calls on a noun,
+`::map | doc :minus`; `doc` takes as well a vector of names as a path of
+members and a set as several pages, refusing another anchor as
+`::any/doc/anchor/KindNotTakenError` and an element that is no keyword
+as `::any/doc/anchor/ElementNotKeywordError` with its `:index`; `laws`
+and `explain` take no member. A tag nothing declares whose last name
+ends in `Error` reads the record of the address before it, a refusal the
+runtime raises by rule having no node of its own; any other name
+nothing declares is refused under the axis, `::any/doc/UnknownNameError`,
+named by the tag or the keyword asked, with the addresses of words of
+the name and the names near it. A name declared without a page answers
+null. A field of a map names nothing, so `{:kind ::set} | doc` is the
+page of maps, and a label may declare a `doc` of its own, which its
+values answer before the word of every value. A reader adds an axis of
+its own by laying a tag over values and declaring words on the tag.
 
 ```qlang
 > 5 | doc | eq (::number | doc)
@@ -40,11 +46,12 @@ true
 
 ## manifest
 
-`manifest`, a word of `::tag`, answers the nodes declared one name
-under a noun: its words, its refusals, its pages and the inputs and
-answer of a word, its laws aside, which `laws` reads. The topic of the
-language lists its chapters, and a noun the refusals its source
-declares.
+`manifest`, a word of `::tag`, answers the set of the nodes declared one
+name under a noun: its words, its refusals, its pages and the inputs and
+answer of a word, its laws aside, which `laws` reads; a tag nothing
+declares answers the empty set, and a subject that is no tag is refused
+as `::tag/manifest/SubjectNotTagError`. The topic of the language lists
+its chapters, and a noun the refusals its source declares.
 
 ```qlang
 > ::vec | manifest | has ::vec/count
@@ -56,18 +63,20 @@ true
 
 ## laws
 
-A law is a query that answers `true`, a value of `::law`, declared under
-the name whose claim it proves, its page the claim. `laws` answers the
-laws under a name by their names in the order of their declarations,
-each the pair of its page and its query; `runLaws` runs each in
-isolation, the laws of a member when it is given its anchor,
-`::qlang | runLaws :errors`, and answers an outcome per law, `{:law :says
-:actual :ok :error}`, `:says` null for a law without a page, a law
-passing only where it answers `true` and a law that answers a failure
-holding it at rest under `:error`; a value runs the laws of its kind, and
-a name nothing declares is refused as `::any/runLaws/UnknownNameError`.
-`tutorial` answers the pair of a name's page and its laws, a name nothing
-declares refused as `doc` refuses it. Every law of the core passes.
+A law is a query that answers `true`, a value of `::law` over a quote,
+declared under the name whose claim it proves, its page the claim.
+`laws` answers a map from the name of each law under a name, in the
+order of their declarations, to the pair of its page and its query, and
+refuses a name nothing declares as `::any/laws/UnknownNameError`;
+`runLaws` runs each as held code on null [QSQUO#held], the laws of a
+member when it is given its anchor, `::qlang | runLaws :errors`, and
+answers an outcome per law, `{:law :says :actual :ok :error}`, `:says`
+null for a law without a page, a law passing only where it answers
+`true` and a law that answers a failure holding it at rest under
+`:error`; a value runs the laws of its kind, and a name nothing declares
+is refused as `::any/runLaws/UnknownNameError`. `tutorial` answers the
+pair of a name's page and its laws, a name nothing declares refused as
+`doc` refuses it. Every law of the core passes.
 
 ```qlang
 > :three 3 | :three/isThree ::law~(3 | eq 3) | ::three | runLaws | map /ok
@@ -87,10 +96,12 @@ a third of its length and one at least, the nearest of them alone;
 beside them the names one of which begins the other, three letters at
 least; and the words the page of a word it begins with links whose
 names end as it goes on, `addOf` meeting `sumOf`. Each stands among the
-names the step could reach at the depth of the one written, a tag among
-tags, an address among addresses, a member among the members the axis
-reads, a key among the keys of the map a path missed. A name is no
-guess for itself.
+names the step could reach at the depth of the one written: near a bare
+name the names a step reaches, a label of the root that is no word
+standing as its tag, its tag first where the name written is the
+label's own; a tag among tags, an address among addresses, a member
+among the members the axis reads, a key among the keys of the map a path
+missed. A name is no guess for itself.
 
 ```qlang
 > 5 | ad 2 !| get /nearest
@@ -108,17 +119,18 @@ guess for itself.
 
 ## explain
 
-`explain`, a word of `::any`, answers the explanation of any value, a
+`explain`, a word of `::any`, answers the explanation of a value, a
 value of the kind `::explanation`: the page `doc` reads for it under
 `:page`, then the value under `:value`, which the words `page` and
 `value` read. A name reads its own page, a value the page of the kind it
 shows, and an error `!|` opened the page of its site, its value the
 error at rest that `raise` raises again; a refusal the runtime raises by
 rule under a word, with no page of its own, reads the page of what
-refused. The page of a refusal says what failed, which fact names the
-culprit and how the call is repaired, and its laws hold the recovery
-through `!|`. An explanation prints the page above the value. `trail` is
-a word of errors, `42 | trail` refused.
+refused; a value whose kind nothing declares is refused as
+`::any/explain/UnknownNameError`. The page of a refusal says what
+failed, which fact names the culprit and how the call is repaired, and
+its laws hold the recovery through `!|`. An explanation prints the page
+above the value. `trail` is a word of errors, `42 | trail` refused.
 
 ```qlang
 > "x" | add 1 !| explain | payload | keys
@@ -137,18 +149,20 @@ A doc is the markdown of the language, the vector of its segments,
 prose strings and quotes, under `::doc`. The parser reads the segments:
 a `~(…)` whose text reads as code is a quote, under the tags written
 before it, a span between backquotes and an unclosed quote are prose,
-and each run of prose is one string. `content` answers the text, each
-quote and its tags where it stands, written as its literal spelled it, a
-quote assembled from data printed; `segments` answers the parts, and
-`tag ::doc` builds a doc from strings and quotes, an element of another
-kind refused as `::doc/ElementNotSegmentError`. A tag gives a quote a
-role, the tags of a stack read from the outside in: `::link`, which
-`links` answers and `open` follows to a page, and `::snippet`, which
-`snippets` answers and `open` runs to what it shows; each is a kind of
-the core with a page, and a role that asks a check of its own comes as a
-kind of its own. A span between backquotes holds a fragment of the
-language that is no query to run. A doc lays each tag of a quote's role
-through the tag's label, so a tag that takes no quote refuses the doc.
+and each run of prose is one string, an empty one dropped. `content`
+answers the text, each quote and its tags where it stands, written as
+its literal spelled it, a quote assembled from data printed; `segments`
+answers the parts, and `tag ::doc` builds a doc from a vector of strings
+and quotes, a payload that is no vector refused as
+`::doc/PayloadKindNotTakenError` and an element of another kind as
+`::doc/ElementNotSegmentError`. A tag gives a quote a role, the tags of a
+stack read from the outside in: `::link`, which `links` answers and
+`open` follows to a page, and `::snippet`, which `snippets` answers and
+`open` runs to what it shows; each is a kind of the core with a page,
+and a role that asks a check of its own comes as a kind of its own. A
+span between backquotes holds a fragment of the language that is no
+query to run. A doc lays each tag of a quote's role through the tag's
+label, so a tag that takes no quote refuses the doc.
 
 ```qlang
 > |~~ a ~(add 1) b ~~| | segments
@@ -163,12 +177,13 @@ through the tag's label, so a tag that takes no quote refuses the doc.
 `::qlang` is the topic of the language: its page is the first page,
 its members are its chapters, the concepts the first page names, each a
 page by its address, `::qlang/pipeline`, read through the noun,
-`::qlang | doc :pipeline`. A concept's page tells the concept, what it
-rests on, what rests on it and the kinds that are it, by links. A member
-of a noun is read through its noun or at its address. The first page
-tells how to ask for a budget before an answer meets a marker. Every
-link of every page of the catalog opens a doc, every word of the core
-has a page, and the first page prints within 13664 characters.
+`::qlang | doc :pipeline`. A concept's page tells in prose what it rests
+on and what rests on it, with links to go deeper, and its value is the
+set of the kinds that are it. A member of a noun is read through its
+noun or at its address. The first page tells how to ask for a budget
+before an answer meets a marker. Every link of every page of the catalog
+opens a doc, every word of the core has a page, and the first page
+prints within 13664 characters.
 
 ```qlang
 > ::qlang | doc | links | map ~open | every ~(type | eq ::doc)

@@ -153,7 +153,7 @@
 
   const readsAsLiteral = parts => docQuoteDepth === 0 || !parts.some(part => COMPUTED_PARTS.has(part.type));
 
-  function refuseComputedParts(parts) {
+  function refuseComputedParts(parts, errorTag) {
     const computed = parts.filter(part => COMPUTED_PARTS.has(part.type));
     if (computed.length === 0) return;
     const start = range().start;
@@ -162,7 +162,16 @@
       const inner = part.type === 'ParenGroup' ? part.pipeline.text : part.text;
       written = written.slice(0, part.location.start.offset - start) + `~(${inner})` + written.slice(part.location.end.offset - start);
     }
-    error(`a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${written}\``);
+    if (errorTag === undefined) error(`a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${written}\``);
+    const facts = written.slice(written.indexOf('!') + 1);
+    error(`an error literal computes nothing: facts computed are built by \`get\` and \`raise\` makes them an error, write \`get ${facts}${errorTag === null ? '' : ` | tag ::${errorTag}`} | raise\``);
+  }
+
+  // The path a quote holds alone, a leading pipe before it among it, or null.
+  function pathAlone(pipeline) {
+    if (pipeline?.type === 'Path') return pipeline;
+    const lone = pipeline?.type === 'Pipeline' && pipeline.leadingCombinator === '|' && pipeline.steps.length === 1;
+    return lone && pipeline.steps[0].type === 'Path' ? pipeline.steps[0] : null;
   }
 
   function refuseNameNoStepCalls(key, body) {
@@ -552,9 +561,10 @@ ParenGroup
 // or tag name may drop the parentheses, `~add`, `~::T`.
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"
-    &{ return docQuoteDepth === 0 || pipeline?.type !== 'Path'; }
+    &{ return docQuoteDepth === 0 || pathAlone(pipeline) === null; }
     {
-      if (pipeline?.type === 'Path') error(`the quote of a path answers the path, which no word wants: give the path bare, \`${pipeline.text}\``);
+      const path = pathAlone(pipeline);
+      if (path !== null) error(`the quote of a path answers the path, which no word wants: give the path bare, \`${path.text}\``);
       return node('QuoteLit', { pipeline }, span(), text());
     }
 
@@ -681,7 +691,7 @@ ErrorLit
     { return node('ErrorLit', { tag, entries: [] }, span(), text()); }
   / tag:ErrorLitTag? "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
     &{ return readsAsLiteral([head, ...tail].map(entry => entry.value)); }
-    { refuseComputedParts([head, ...tail].map(entry => entry.value)); return node('ErrorLit', { tag, entries: [head, ...tail] }, span(), text()); }
+    { refuseComputedParts([head, ...tail].map(entry => entry.value), tag); return node('ErrorLit', { tag, entries: [head, ...tail] }, span(), text()); }
 
 ErrorLitTag
   = "::" @TagName

@@ -18,7 +18,6 @@
 {"name":"an-element-opens-a-scope-of-its-own","query":":k 1 | get [~(:k 2 | k) ~(k)]","expect":"[2 1]"}
 {"name":"a-helper-in-a-group-closes-with-it","query":":f (:h 2 | ~(mul h)) | env | has :h","expect":"false"}
 {"name":"a-recipe-names-a-value-derived-from-an-input","query":":vec/m (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:limit (k | mul 2) | take limit)) | [1 2 3 4 5] | m 2","expect":"[1 2 3 4]"}
-{"name":"a-word-names-its-subject-by-a-declaration-of-it","query":":any/pair ~(:self it | get [~(self) ~(self)]) | 5 | pair","expect":"[5 5]"}
 {"name":"a-recipe-names-its-subject-before-a-step","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:self it | mul k | add self)) | 5 | scale 2","expect":"15"}
 {"name":"a-recipe-shadows-a-name-of-its-scope","query":":n 1 | :any/f (::fn | takes :n |~~ The n. ~~| ~(query /0 2) ::number | impl ~(n)) | null | get [~(f) ~(n)]","expect":"[2 1]"}
 {"name":"a-name-declared-in-a-recipe-stays-inside-it","query":":number/f (::fn | takes :n |~~ The n. ~~| /0 | impl ~(n | :captured it | captured | add n)) | 0 | f 3 | env | has :captured","expect":"false"}

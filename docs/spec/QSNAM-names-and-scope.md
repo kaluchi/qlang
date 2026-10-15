@@ -10,16 +10,18 @@ file under `core/test/conformance/QSNAM/`, `scope.jsonl` for
 One form declares every name: `:name body`. The body runs once, where
 the declaration stands, against the value in the pipe, and the name
 holds what it answered. The declaration hands its subject on unchanged,
-so the binding is a branch to the side.
+so the binding is a branch to the side; a body that answers a failure
+declares nothing, the failure goes on in the pipe and the steps after it
+are skipped.
 
 The body is a step: a literal, `it` for the value in the pipe, a group
 for what the group computes, a call of a word, a quote, which is held as
 the value it is, a keyword or a tag name, and a word after a keyword or
 a tag name is a step of its own, joined by a combinator. A page written
-between the name and the body is the name's page. Code moved into a
-declaration further left answers as it did inline or is refused: a quote
-or a word means the same wherever its names mean the same, and a value,
-computed where it is declared, follows the subject there.
+between the name and the body is the name's page. A quote or a word in a
+declaration means what it means at the step that calls it, where its
+names mean the same, and a value is computed once, against the subject
+at the declaration.
 
 ```qlang
 > 42 | :answer it | add 1 | answer
@@ -47,7 +49,10 @@ path [QSNAM#address]. A bare name in quotes declares that name, and a
 name in quotes that a step cannot call is refused by the parser at the
 keyword. The words of the literals, `true`, `false` and `null`, are read
 by a step as the literals, so each declares a label, which its tag
-reaches, or a last name under a noun, which its address calls.
+reaches where the root holds no label of that name, `::null` staying the
+root's, its nodes read by their tags, `::false/x`, since a step reads
+`false/x` as the literal; or a last name under a noun, which its address
+calls.
 
 ```qlang
 > :имя 5 | имя
@@ -64,8 +69,9 @@ reaches, or a last name under a noun, which its address calls.
 
 A bare name that holds a value answers the value, a quote among values:
 the name alone reads its quote. Code under a bare name runs by `apply`,
-or goes bare into an input that takes code. A name that holds a value
-takes no modifiers.
+or goes bare into an input that takes code. A name that holds a value,
+called with modifiers, is refused as `::call/ValueTakesNoModifiersError`
+with its `:name` and the `:addresses` of the words of that name.
 
 ```qlang
 > :double ~(mul 2) | 5 | double
@@ -91,9 +97,9 @@ words and the nodes of the tree as the tree stands where it is called,
 so a word calls itself by its name. Each call runs a frame: an input
 read from its place, a modifier that is the literal of an atom and each
 run of the code a verb runs meet the budget of frames one below the
-call, a quote written as a modifier running no frame, and a call that
-recurses without end is refused as `::call/EvaluationDepthExceededError`
-with its `:depth` and `:limit`.
+call, a quote written as a modifier handed to the call as it is, and a
+call that recurses without end is refused as
+`::call/EvaluationDepthExceededError` with its `:depth` and `:limit`.
 
 ```qlang
 > :number/double ~(mul 2) | 5 | double
@@ -117,18 +123,22 @@ scope: the second declaration is refused where it stands,
 `::bind/NameDeclaredTwiceError` with `:name`, its step the fault.
 
 A group and each run of a quote are scopes of their own: a modifier, a
-part of a template of `get`, the code `map` runs on each element. There a
-name of the scope around is shadowed without a word, and a name declared
-there stays there.
+part of a template of `get`, the code `map` runs on each element. A
+declaration there stands over the name of the scope around, and a name
+declared there stays there.
 
-The body of a word runs in the scope its call opens with `args` and each
-input of the word. A step of the body's pipeline that declares one of
-them is refused as a second declaration; a group of the body and a quote
-it runs are scopes of their own, where an input may be shadowed, and a
-word the body calls runs in a scope its own call opens anew. What the
-body declares stays in it. A source is the scope of its text, and a cell
-of a session is a scope of its own, so a cell after another declares a
-name or a node under the reader's own noun again.
+The body of a word runs in the scope its call opens: the root, `args`,
+each input of the word, and the nodes and labels of the scope it is
+called in. A value the reader bound to a bare name stands outside it, a
+bare step of that name refused as `::call/UnknownNameError` while `env`
+reads it [QSNAM#owner]. A step of the body's pipeline that declares
+`args` or an input is refused as a second declaration; a group of the
+body and a quote it runs are scopes of their own, where an input may be
+shadowed, and a word the body calls runs in a scope its own call opens
+anew. What the body declares stays in it. A source is the scope of its
+text, and a cell of a session is a scope of its own, so a cell after
+another declares again any name or node a reader declared, under the
+reader's noun or under one of the root.
 
 ```qlang
 > :k 1 | :k 2 | k !| get [~(type) /name]
@@ -149,22 +159,24 @@ name or a node under the reader's own noun again.
 A bare name reaches, nearest first: the declaration of the reader's
 scope; a word residing on a label the walk of the subject's tags
 reaches; the one word of that name, which refuses a subject the walk
-does not bring to its label; the bare name of the root that is no
-label. A name that reaches nothing is refused as
+does not bring to its label; a bare name a host's source declares that
+is no label. A name that reaches nothing is refused as
 `::call/UnknownNameError`, with the names near it.
 
-A label, a kind or a topic, is reached by its tag alone, `::string`, as
-it is written wherever it is meant; its name written bare reaches
-nothing, and the names near it name its tag first. A reader's bare name
-stands over a bare name of the root, while the tag of a label of the
-root stays the root's.
+A label, a kind or a topic, is reached by its tag, `::string`, as it is
+written wherever it is meant; its name written bare is the reader's to
+declare, and undeclared it is refused as `::call/UnknownNameError`, its
+`:nearest` naming the tag first. A reader's bare name stands over a bare
+name of the root, while the tag of a label of the root stays the root's.
 
 A value and a word meet aloud: a bare step that reaches a value the
 scope binds, an input and the call's `args` among them, where a word of
 the same name answers the subject, is refused as
 `::call/ValueMeetsWordError`, whose `:addresses` hold the word's; where
 no word answers the subject the value is read, and the word is called
-beside the value by its address.
+beside the value by its address. A value named by the name of a word of
+`::any`, `type`, `doc`, `env`, `get`, meets that word on every subject,
+so it is read under another name.
 
 ```qlang
 > 5 | string !| get /nearest
@@ -192,14 +204,19 @@ with a path declares a node under the noun its path names before its
 last name, a noun declared before it, else `::bind/NounNotDeclaredError`;
 the tag of a name is its address, the name as it was declared. Written
 as a step, an address reads what it declared, a word run and any other
-value itself. Under a word lie its inputs, its answer, its refusals and
-its laws, so what a word is is the set of declarations under its
+value itself, whatever the subject; a node that holds data is read by
+its address alone, its last name no bare name. An address no
+declaration names, written as a step, is refused as
+`::call/UnknownAddressError` with its `:address` and the tag names near
+it as `:nearest`. Under a word lie its inputs, its answer, its refusals
+and its laws, so what a word is is the set of declarations under its
 address; a helper several words share is a node under their noun. A tag
 no declaration names lays itself over a payload as it is.
 
 The root holds the nodes of the language and of its hosts. A reader
-extends a noun of the root with nodes of its own and declares none the
-root holds, `:vec/count ~(0)` refused as a second declaration.
+extends a noun of the root with nodes of its own and declares no name
+with a path the root holds, `:vec/count ~(0)` refused as a second
+declaration; a bare name of the root it may declare over [QSNAM#reach].
 
 ```qlang
 > :Box |~~ Box. ~~| | :Box/side 3 | Box/side
@@ -220,9 +237,13 @@ root holds, `:vec/count ~(0)` refused as a second declaration.
 The root is a scope: the one the host's sources declare, each source a
 cell run over the root the sources before it left, the language's
 first, before the first step of a reader. A source, a cell and a query
-are written alike and declare alike. A binding records its `:origin`,
-the source or the cell it was read from. `kinds` answers the set of the
-labels the scope reads, the language's, the hosts' and the reader's.
+are written alike; a source declares no name the root holds, bare or
+with a path, and is refused whole as `::builtin/RootSourceNotDeclaredError`,
+while a cell and a query declare a bare name of the root over it. A
+binding records its `:origin`, the source or the cell it was read from.
+`kinds` answers the set of the labels of one name the scope reads, the
+language's, the hosts' and the reader's; a label declared under a noun,
+`::qlang/values`, is read by `manifest` of its noun.
 
 ```qlang
 > ::vec/filter | binding | get /origin

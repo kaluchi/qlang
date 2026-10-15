@@ -8,23 +8,36 @@ of each section are the cases of its file under
 ## fn
 
 A function is a value of the kind `::fn`: the roles of its signature
-and its recipe. It is built from the noun by commands, each written
-after the ones before it and the recipe last: `on` names its subject's
-kinds, `takes` an input, `returns` its answer, `throws` a refusal,
-`holds` an invariant of an input or of the answer, `proves` a law,
-`carries` a fact of a refusal, and `impl` its recipe, code or a host's
-`::builtin{}`. Each name is written with its page and declared once,
-an input's of one segment beside the names `answer` and `subject`, which
-the chain lays itself, `::fn/SignatureNotCommandsError` refusing one
-written otherwise; a refusal or an invariant written with a path stands
-under an input taken before it or under the answer,
-`::fn/NameUnderNoInputError` refusing one under no input. A function
-prints as its literal, the chain folded into a quote and its recipe after
-it, which the constructor of `::fn` reads back; one of no commands is its
-code. `apply` hands a function a vector of arguments, refused under
-`::fn/call/…` as a call of the function, and a quote or a path takes
-none, `::any/apply/args/NotTakenError`; `fill` writes the arguments into
-the head of its code, and `params` answers its inputs.
+and its recipe. It is built from the noun by commands: `on` names its
+subject's kinds, `takes` an input, `returns` its answer, `throws` a
+refusal, `holds` an invariant of an input or of the answer, `proves` a
+law, `carries` a fact of a refusal, and `impl` its recipe, code or a
+host's `::builtin{}`; a command written after `impl` joins the others
+and the recipe stays, while `impl` over the noun alone makes the
+function of no commands, its code, which takes no command after it,
+`::fn/takes/SubjectNotFnError`. Each name is written with its page and
+declared once, an input's of one segment beside the names `answer` and
+`subject`, which the chain lays itself, `::fn/SignatureNotCommandsError`
+refusing one written otherwise and `::fn/NameDeclaredTwiceError` a name
+declared again, an invariant named as the refusal of its input's kinds
+among them. A refusal and an invariant written with a path stand under
+an input taken before it or under the answer, an invariant and a fact
+always written so, `::fn/NameUnderNoInputError` and
+`::fn/FactUnderNoNameError` refusing one under none, and a law with a
+path stands under a name declared before it, `::fn/LawUnderNoNameError`.
+A word serves the values of its label and of the kinds `on` names,
+refusing any other subject by its label; a function `apply` runs serves
+the kinds `on` names, or any subject where it names none, another
+refused as `::fn/call/SubjectKindNotTakenError` with the kinds as
+`:expected`. A function prints as its literal, the chain folded into a
+quote and its recipe after it, which the constructor of `::fn` reads
+back. `apply` hands a function a vector or a set of arguments, another
+value refused as `::any/apply/args/KindNotTakenError`, and refused under
+`::fn/call/…` as a call of the function; a quote or a path takes the
+empty vector alone, `::any/apply/args/NotTakenError`; `fill` writes the
+arguments into the head of its code, refused under `::fn/call/…` as a
+call and, for a function with no recipe, as
+`::fn/fill/RecipeNotCodeError`; and `params` answers its inputs.
 
 ```qlang
 > ::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | print
@@ -58,14 +71,19 @@ invariants of their inputs.
 An input holds the value of its kind the walk of its tags reaches: a
 value of none is refused under the input as `…/by/KindNotTakenError`,
 the kinds it takes its `:expected`, a set of tags, so the name stays
-while the kinds of the input grow; a strict place the call leaves out as
-`…/by/NotGivenError`; args past the places the inputs read under the
-call as `…/ArgsBeyondInputsError`; and a value that breaks an invariant
-under the invariant's name. Kinds written as a vector of one tag or of
-one set are the kinds of each element: the input holds a vector, or a
-set, of the value of its kind of each, a quote and a doc as they are, a
-value that is no vector refused as `…/KindNotTakenError` and an element
-of none as `…/ElementKindNotTakenError` with its `:index`.
+while the kinds of the input grow; a strict place the call leaves out
+as `…/by/NotGivenError`, and a path that meets a value it cannot read
+with the path's refusal, `::path/SubjectHasNoPartsError`; args past the
+places the inputs read, where every input reads a numbered place, under
+the call as `…/ArgsBeyondInputsError`, while an input that reads `/-1`,
+the args whole or code takes any number; and a value that breaks an
+invariant under the invariant's name, the invariant holding of the value
+as the call gives it, its tags among it, which the refusal holds as
+`:actualValue`. Kinds written as a vector of one tag or of one set are
+the kinds of each element: the input holds a vector, or a set, of the
+value of its kind of each, a quote and a doc as they are, a value that
+is no vector refused as `…/KindNotTakenError` and an element of none as
+`…/ElementKindNotTakenError` with its `:index`.
 
 ```qlang
 > :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(5 | plus 2) ~(5 | plus "x" !| type) ~(5 | plus !| type) ~(5 | plus 1 2 !| type)]
@@ -80,14 +98,20 @@ of none as `…/ElementKindNotTakenError` with its `:index`.
 
 ## answer
 
-`returns` names the kinds of a word's answer, which the call brings to
-them by the walk or by that kind's constructor and invariants, an answer
-of none refused under the answer's label; a word whose answer is
-`::any`, or that names no kind for it, hands it on as it is.
+`returns` names the kinds of a word's answer, at least one,
+`::fn/returns/kinds/NotGivenError` refusing none. An answer that reaches
+one of several kinds by the walk is that value; one kind makes the
+answer by its constructor and its invariants; an answer of the word's
+own label goes back under the subject's tags, held to the label. An
+answer of none of the kinds, a payload the one kind refuses for its kind
+among them, is refused as `…/answer/KindNotTakenError` with the kinds as
+`:expected`, so a kind that joins the answer changes no tag, while an
+invariant of the kind refuses under its own name. A word whose `returns`
+names `::any`, or that has none, hands its answer on as it is.
 
 ```qlang
 > :Box |~~ B ~~| | :Box/half (::fn | returns |~~ The half. ~~| ::string | impl ~(get /0 | div 2)) | ::Box[4] | half !| type
-::string/PayloadKindNotTakenError
+::Box/half/answer/KindNotTakenError
 ```
 
 ## recipe
@@ -95,10 +119,11 @@ of none refused under the answer's label; a word whose answer is
 A recipe runs in the scope its call opens: its inputs by their names
 and the args as `args`, the names its steps declare, and the tree, the
 words and the nodes of the root and of the query. A value a recipe needs
-is an input, and the places and invariants of the inputs read the args
-alone. A word calls itself by its name. A recipe written alone under a
-label is the function of no commands it is: it takes no object and
-hands its answer on as it is.
+is an input. A place runs on the args and an invariant on its input's
+value, and neither reads `args`, another input or a value of the query.
+A word calls itself by its name. A recipe written alone under a label
+is the function of no commands it is: args given to it are refused as
+`…/ArgsBeyondInputsError`, and it hands its answer on as it is.
 
 ```qlang
 > :n 3 | :number/times ~(mul n) | 5 | times !| type
@@ -110,17 +135,20 @@ hands its answer on as it is.
 
 ## kind
 
-A kind is a value of the kind `::kind`, built from its noun by commands,
-`impl` last: `wraps` names the payload's kinds, `reads` a field, its
-name, its page, its place in the payload and its kinds, `tells` a page
-of the kind on a name, `holds` an invariant of the value or of a field,
-`throws` a refusal, `carries` a fact, `proves` a law, and `impl
-::builtin{}` the check a host hands a kind of the core. A name is
-declared once, a field's and a page's of one segment beside `payload`
-and `construct`; a refusal or an invariant written with a path stands
-under a field read before it, and a law or a fact under a name declared
-before it, `NameUnderNoFieldError`, `LawUnderNoNameError` and
-`FactUnderNoNameError` refusing one under none. A kind prints as its
+A kind is a value of the kind `::kind`, built from its noun by commands:
+`wraps` names the payload's kinds, `reads` a field, its name, its page,
+its place in the payload and its kinds, `tells` a page of the kind on a
+name, `holds` an invariant of the value or of a field, `throws` a
+refusal, `carries` a fact, `proves` a law, and `impl ::builtin{}` the
+check a host hands a kind of the core, the one recipe a kind takes,
+`::kind/impl/recipe/KindNotTakenError` refusing another; a command
+written after `impl` joins the others. A name is declared once,
+`::kind/NameDeclaredTwiceError`, an invariant named as the refusal of
+its field's kinds among them, a field's and a page's of one segment
+beside `payload` and `construct`; a refusal or an invariant written with
+a path stands under a field read before it, and a law or a fact under a
+name declared before it, `NameUnderNoFieldError`, `LawUnderNoNameError`
+and `FactUnderNoNameError` refusing one under none. A kind prints as its
 literal, which the constructor of `::kind` reads back.
 
 ```qlang
@@ -162,8 +190,9 @@ under its address for `doc`, `manifest` and the tools, its laws for
 of its host, which runs where its tag is laid, as a literal or by `tag`.
 A word of a literal, `::null`, is declared by the chain of a kind. A
 label declared by its page alone lays its tag over a payload as it is,
-as a kind of no commands does, and a tag a kind declared later checks a
-value laid before it. A word that keeps its subject's kind runs the
+as a kind of no commands does. A value laid under a tag before its kind
+is declared keeps the tag; a literal or `tag` after the declaration is
+checked, and so is a word that keeps the value's kind, which runs the
 constructors of its tags again, so an edit that breaks an invariant is
 refused. The tag of a name that holds a value is refused as
 `::construct/TagNotKindError`.

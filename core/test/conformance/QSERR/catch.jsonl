@@ -15,3 +15,5 @@
 {"name":"a-path-reads-before-a-combinator","query":"{:a 1} | get /a !| 0","expect":"1"}
 {"name":"a-catch-whose-label-refuses-passes-a-stop-at-its-step","query":"~(::number!{:a 1}) | first | raise !| it | count !| trail | map ~(get [/step /skipped])","expect":"[[~(it) ~(count)]]"}
 {"name":"a-catch-whose-label-invariant-refuses-passes-a-stop-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it | count !| trail | map ~(get [/step /skipped])","expect":"[[~(it) ~(count)]]"}
+{"name":"an-error-at-rest-a-quote-holds-under-the-tag-of-a-kind-raised-is-caught-by-the-refusal-of-the-kind","query":"~(::number!{:a 1}) | first | raise !| it !| get [~(type) /actualType]","expect":"[::number/PayloadKindNotTakenError ::error]"}
+{"name":"an-error-at-rest-a-quote-holds-under-a-label-raised-is-caught-by-the-refusal-of-its-invariant","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it !| type","expect":"::Box/k"}

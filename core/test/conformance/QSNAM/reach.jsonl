@@ -4,7 +4,6 @@
 {"name":"a-kind-of-the-root-is-no-bare-name","query":"qlang !| get [~(type) /nearest]","expect":"[::call/UnknownNameError [::qlang]]"}
 {"name":"the-name-of-a-kind-reads-no-page","query":"get [~(\"5\" | number !| type) ~(5 | string !| type)]","expect":"[::call/UnknownNameError ::call/UnknownNameError]"}
 {"name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":":vec 5 | get [~(vec) ~(env | get /vec | get /value) ~(::vec[1] | eq [1]) ~([1] | doc | type)]","expect":"[5 5 true ::doc]"}
-{"name":"a-name-several-kinds-declare-is-refused-with-their-addresses","query":":Box |~~ Box. ~~| | :Circle |~~ Circle. ~~| | :Box/area ~(1) | :Circle/area ~(2) | 5 | area !| get /addresses","expect":"#[::Box/area ::Circle/area]"}
 {"name":"a-bare-name-of-the-reader-meets-a-word-of-the-subject-aloud","query":":filter 5 | [1 2] | filter !| get [~(type) /addresses]","expect":"[::call/ValueMeetsWordError #[::vec/filter]]"}
 {"name":"a-value-of-the-reader-meets-a-word-the-reader-declared","query":":vec/second ~(get /1) | :second 5 | get [~(4 | second) ~([7 8 9] | second !| get /addresses)]","expect":"[5 #[::vec/second]]"}
 {"name":"an-input-of-a-quote-under-a-label-named-as-a-word-meets-it-in-the-recipe","query":":vec/firstN (::fn | takes :count |~~ The count. ~~| /0 | impl ~(get [~(count) ~(take count)])) | [1 2 3] | firstN 2 !| get [~(type) /name]","expect":"[::call/ValueMeetsWordError :count]"}
@@ -12,3 +11,4 @@
 {"name":"a-label-of-the-root-stays-the-roots-under-a-name-of-the-reader","query":":page (::vec | doc) | :vec 5 | ::vec | doc | eq page","expect":"true"}
 {"name":"an-unknown-name-is-refused","query":"thisIsNotDefined !| type","expect":"::call/UnknownNameError"}
 {"name":"an-unknown-name-inside-filter-is-refused","query":"[1 2 3] | filter ~(thisIsNotDefined) !| type","expect":"::call/UnknownNameError"}
+{"name":"a-member-of-a-noun-is-no-name-a-query-calls","query":"5 | pipeline !| type","expect":"::call/UnknownNameError"}

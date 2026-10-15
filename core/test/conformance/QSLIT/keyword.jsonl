@@ -15,3 +15,4 @@
 {"name":"keyword-reserved-word-bare","query":":null","expect":":null"}
 {"name":"keyword-false-bare","query":":false","expect":":false"}
 {"name":"keyword-true-bare","query":":true","expect":":true"}
+{"name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r it | (:r | type)","expect":"::keyword"}

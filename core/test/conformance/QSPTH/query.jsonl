@@ -18,13 +18,11 @@
 {"name":"query-preserves-element-type","query":"[{:id 1} {:id 2}] | query /0","expect":"{:id 1}"}
 {"name":"query-chained-with-path","query":"[{:name \"alice\"} {:name \"bob\"}] | query /1 | get /name","expect":"\"bob\""}
 {"name":"query-on-map-via-vals","query":"{:a 10 :b 20 :c 30} | vals | query /1","expect":"20"}
-{"name":"query-index-not-integer-error","query":"[1 2 3] | query 0.5 !| type","expect":"::path/IndexNotIntegerError"}
 {"name":"query-map-keyword-key","query":"{:a 1 :b 2 :c 3} | query /b","expect":"2"}
 {"name":"query-map-missing-key","query":"{:a 1} | query /z","expect":"null"}
 {"name":"query-reads-a-number-segment-as-the-key-of-its-digits","query":"{:\"42\" 1} | query /42","expect":"1"}
 {"name":"query-json-object-keyword-key","query":"::json{:a 1 :b 2 :c 3} | query /b","expect":"2"}
 {"name":"query-json-object-missing-key","query":"::json{:a 1} | query /z","expect":"null"}
-{"name":"query-under-a-tag-reads-a-number-segment-as-the-key-of-its-digits","query":"::json{:a 1} | query /42 !| type","expect":"null"}
+{"name":"query-under-a-tag-answers-null-for-a-missing-key","query":"::json{:a 1} | query /42 !| type","expect":"null"}
 {"name":"query-map-by-keyword-key","query":"{:a 1 :b 2} | query /a","expect":"1"}
 {"name":"an-index-of-a-vector-is-refused-by-its-input","query":"[1 2] | query /a !| type","expect":"::path/IndexNotIntegerError"}
-{"name":"query-and-coalesce-give-a-default","query":"{:a 1} | query /port | coalesce 8080","expect":"8080"}

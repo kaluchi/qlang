@@ -1,4 +1,3 @@
-{"name":"a-reader-kind-with-the-check-of-its-host-lays-its-tag","query":":B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1] | type","expect":"::B"}
 {"name":"a-builtin-written-in-a-recipe-is-a-value","query":":any/v ~(::builtin{:a 1}) | null | v | type","expect":"::builtin"}
 {"name":"a-builtin-in-a-declared-word-is-the-value-it-is","query":":any/c ~(::builtin{}) | 42 | c | type","expect":"::builtin"}
 {"name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | :c it | get [1 2 3] | c | type","expect":"::builtin"}

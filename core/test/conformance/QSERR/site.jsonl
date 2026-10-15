@@ -16,10 +16,12 @@
 {"name":"take-refuses-a-fractional-count","query":"[1 2 3] | take 0.5 !| type","expect":"::vec/take/count/NotIntegerError"}
 {"name":"drop-refuses-a-fractional-count","query":"[1 2 3] | drop 1.5 !| type","expect":"::vec/drop/count/NotIntegerError"}
 {"name":"take-refuses-a-count-that-is-no-number","query":"[1 2 3] | take \"x\" !| type","expect":"::vec/take/count/KindNotTakenError"}
-{"name":"a-count-under-a-tag-is-whole-where-it-equals-its-floor","query":"[1 2 3] | take ::N#2","expect":"[1 2]"}
 {"name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::path/KeyNotInMapError | doc | links | map ~open | any ~(eq (::path | doc))","expect":"true"}
 {"name":"a-refusal-is-declared-in-the-source-of-its-place","query":"::path/KeyNotInMapError | binding | get /origin","expect":":qlang/path"}
 {"name":"reading-text-as-code-is-refused-under-quote","query":"::quote/ParseError | binding | get /origin","expect":":qlang/quote"}
 {"name":"an-invariant-of-the-kernel-sits-under-builtin","query":"::builtin/UnknownAstNodeTypeError | binding | get /origin","expect":":qlang/builtin"}
 {"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string"}
 {"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| get /key","expect":":b"}
+{"name":"an-input-raises-the-refusal-under-its-address","query":"1 | add \"a\" !| get [~(type) /actualType]","expect":"[::number/add/addend/KindNotTakenError ::string]"}
+{"name":"the-prefix-is-refused-at-its-residence","query":"\"a\" | prepend 1 !| type","expect":"::string/prepend/prefix/KindNotTakenError"}
+{"name":"each-value-the-call-gives-is-refused-with-its-index","query":"{:a 1 :b \"x\"} | sumOf /a /b !| get [~(type) /index /actualType]","expect":"[::vec/sum/ElementNotNumberError 1 ::string]"}

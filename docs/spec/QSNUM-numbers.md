@@ -7,15 +7,21 @@ file under `core/test/conformance/QSNUM/`.
 ## arithmetic
 
 `add`, `sub`, `mul` and `div` take the number in the pipe as their
-subject and one number as their object; `mod` answers the remainder with
-the sign of the divisor; `floor`, `ceil` and `abs` take a number to a
-whole one or its size, and `round` to the digits its call gives, none by
-default, half away from zero. Every answer is a finite double: one past
-the doubles is refused as `::number/NotFiniteError`, a division by zero
-under the divisor of `div`, `::number/div/divisor/ZeroError`, and a
-remainder by zero under that of `mod`, `::number/mod/divisor/ZeroError`.
-`range` answers the whole numbers from zero below its subject, `[]` from
-zero and below, a fraction refused as no count.
+subject and one number as their object, computed against the subject;
+`mod` answers the remainder with the sign of the divisor; `floor`,
+`ceil` and `abs` take a number to a whole one or its size, and `round`
+to the digits its call gives, a whole number, none by default, half away
+from zero. An answer keeps the subject's tags, `::W#2.7 | floor`
+answering `::W#2`. A subject that is no number is refused as
+`::number/add/SubjectNotNumberError` and an object as
+`::number/add/addend/KindNotTakenError`. Every answer is a finite
+double: one past the doubles is refused as `::number/NotFiniteError`, a
+division by zero under the divisor of `div`,
+`::number/div/divisor/ZeroError`, and a remainder by zero under that of
+`mod`, `::number/mod/divisor/ZeroError`. `range` answers the whole
+numbers from zero below its subject, `[]` from zero and below, a
+fraction refused as `::number/range/CountNotIntegerError` and a count
+past the length a vector may have as `::number/range/CountTooLargeError`.
 
 ```qlang
 > 10 | add 5 | mul 2 | sub 10
@@ -42,8 +48,10 @@ zero and below, a fraction refused as no count.
 The subject of a call is the value in the pipe, always, and a call that
 gives more objects than its word reads is refused, its refusal naming
 what fits. Values one subject computes are combined by a word that
-serves any value, `sumOf`, `subOf`, `mulOf` and `divOf`, its objects all
-the values it combines, each read against the subject.
+serves any value, each object a number or a path read against the
+subject: `sumOf` and `mulOf` combine one value or more, `subOf` and
+`divOf` two, and a call with none is refused as
+`::any/sumOf/numbers/EmptyError`.
 
 ```qlang
 > 1 | add 1 2 !| type

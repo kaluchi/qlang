@@ -10,14 +10,17 @@ Values order first by kind: null, boolean, number, string, pattern,
 keyword, tag name, path, vector, set, map, quote, doc, elision and desc,
 and after them every other tag by its name, the labels, the errors and
 the kinds of hosts among them. Within a kind, numbers order by value,
-`false` before `true`, strings by their code units, patterns by their
-text and then their flags, paths segment by segment, vectors element by
-element, a shorter before a longer it begins, a set as its vector, maps
-by their keys and then their values, a quote by its steps, a doc by its
-text, an elision by its payload, a desc by the reverse of its payload's
-place, an error by its tag and then its facts, and a value under another
-tag by its payload. The part JSON has is the order of jq; a kind JSON
-lacks stands beside the one it resembles.
+`false` before `true`, strings by their UTF-16 code units, patterns by
+their text and then their flags, paths segment by segment, each segment
+by its code units, an index among them, so `/10` ranks before `/9`,
+vectors element by element, a shorter before a longer it begins, a set
+as its vector, maps by their keys and then their values, a quote by its
+steps, a doc by its segments in turn, a run of prose before a quote, an
+elision by its payload, a desc by the reverse of its payload's place, an
+error by its tag and then its facts, and a value under another tag by
+its payload. The part JSON has follows the order of jq, but for strings
+past the basic plane, which jq ranks by code point; a kind JSON lacks
+stands beside the one it resembles.
 
 ```qlang
 > [{:a 1} #[1] [1] ::t :k "s" 1 true null] | sort
@@ -37,8 +40,8 @@ A set is the vector in the one order without duplicates, under the tag
 its payload is that vector. Its constructor orders what it is given and
 holds each element once, so `tag ::set` and a write lay the set anew. A
 set reads by place as its vector does, two sets are equal by their
-elements, and a set is unequal to the vector of its elements. A word
-over a set answers a set where the set is its own kind's answer,
+elements, and equality reads the kind, so `#[1 2] | eq [1 2]` is false.
+A word over a set answers a set where the set is its own kind's answer,
 `filter` among them, and a vector where it answers an order of its own,
 `sort` and `reverse`, or the images of the elements, `map`.
 
@@ -64,14 +67,16 @@ false
 `sort` orders a vector, a set or a map by the one order of its values,
 equal values keeping the order they stood in, a map's entries ordered by
 their values, each value keeping its key; `min` and `max` answer the
-first and the last value in it, null for an empty container. Each takes
-a key, a quote or a path, and ranks by what the key answers, a vector
-key ranking place by place, the first place first and each later one
-among the elements the places before it leave alike; `min` and `max`
-with a key answer the element, the first of equal ones. A key that fails
-answers the call, and an error at rest a key answers ranks as the one
-order ranks it, as an error among the elements does where no key is
-given.
+first and the last value in it, null for an empty container, and a value
+that is no container answers none of them. Each takes a key, null, a
+quote or a path, another kind refused as `::vec/sort/key/KindNotTakenError`,
+and ranks by what the key answers, a vector key ranking place by place,
+the first place first and each later one among the elements the places
+before it leave alike; `min` and `max` with a key answer the element,
+the first of equal ones. A key that fails answers the call, and an error
+at rest a key answers ranks as the one order ranks it, as an error among
+the elements does where no key is given. `gt`, `gte`, `lt` and `lte`
+compare within one kind [QSCND#compare].
 
 ```qlang
 > [{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b]) | map /b

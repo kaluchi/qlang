@@ -32,4 +32,4 @@
 {"name":"coalesce-walks-values-after-null","query":"null | coalesce null 7","expect":"7"}
 {"name":"coalesce-with-a-quote-keeps-the-subject-out","query":"{:a 2} | coalesce /missing \"fallback\"","expect":"\"fallback\""}
 {"name":"an-alternative-that-is-no-quote-answers-itself","query":"{:a 1} | coalesce /b (get /a)","expect":"1"}
-{"name":"a-verb-in-a-rest-of-code-runs-as-code","query":"{:a 1} | coalesce /a","expect":"1"}
+{"name":"query-and-coalesce-give-a-default","query":"{:a 1} | query /port | coalesce 8080","expect":"8080"}

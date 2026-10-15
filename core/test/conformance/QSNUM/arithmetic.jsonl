@@ -7,7 +7,6 @@
 {"name":"sub-overflow-lifts-not-finite","query":"-1e308 | sub 1e308 !| type","expect":"::number/NotFiniteError"}
 {"name":"mul-overflow-lifts-not-finite","query":"1e308 | mul 10 !| type","expect":"::number/NotFiniteError"}
 {"name":"div-overflow-lifts-not-finite","query":"1e308 | div 0.0001 !| type","expect":"::number/NotFiniteError"}
-{"name":"an-overflow-holds-its-subject-on-the-trail","query":"1e308 | mul 10 !| get /trail/0/subject","expect":"1e308"}
 {"name":"finite-arithmetic-answers-as-it-is","query":"[1 2 3] | sum | add 4 | mul 2 | div 4 | sub 1","expect":"4"}
 {"name":"the-remainder-takes-the-sign-of-the-divisor","query":"get [~(7 | mod 3) ~(-7 | mod 3) ~(7 | mod -3)]","expect":"[1 2 -2]"}
 {"name":"floor-ceil-and-abs-take-a-number-to-a-whole-one-or-its-size","query":"get [~(2.7 | floor) ~(-2.1 | floor) ~(2.1 | ceil) ~(-2.7 | ceil) ~(-3 | abs)]","expect":"[2 -3 3 -2 3]"}

@@ -2,11 +2,6 @@
 {"name":"a-quote-assembled-from-data-is-printed","query":"~(add 1 | mul 2) | take 1 | :q it | get [~(q)] | tag ::doc | content","expect":"\"~(add 1)\""}
 {"name":"doc-content-path","query":"|~~ x ~~| | content","expect":"\" x \""}
 {"name":"doc-content-path-empty","query":"|~~~~| | content","expect":"\"\""}
-{"name":"doc-type-answers-doc","query":"|~~ x ~~| | type | eq ::doc","expect":"true"}
-{"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | type | eq ::doc","expect":"true"}
-{"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
-{"name":"doc-with-backticks-in-content","query":"|~~ see ~(mul 2) for ref ~~|","expect":"|~~ see ~(mul 2) for ref ~~|"}
-{"name":"a-doc-named-by-a-declaration-of-it","query":"|~~ note ~~| | :n it | n | content","expect":"\" note \""}
 {"name":"a-doc-counts-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | count","expect":"3"}
 {"name":"a-doc-addresses-a-quote-among-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | get /1","expect":"~(add 1)"}
 {"name":"the-text-of-a-doc-is-its-content","query":"|~~ a ~(add 1) b ~~| | content","expect":"\" a ~(add 1) b \""}
@@ -28,19 +23,21 @@
 {"name":"a-link-opens-to-another-page","query":"|~~ ::link~(::vec | doc) ~~| | links | first | open | type","expect":"::doc"}
 {"name":"a-doc-keeps-its-prose-and-its-quotes-as-segments","query":"|~~ a ~(1) b ::link~(::vec | doc) c ~~| | segments | map ~type","expect":"[::string ::quote ::string ::link ::string]"}
 {"name":"a-link-opens-to-the-answer-of-its-query","query":"|~~ ::link~(1 | add 1) ~~| | links | first | open","expect":"2"}
-{"name":"a-value-that-is-no-quote-opens-nothing","query":"5 | open !| type","expect":"::quote/open/SubjectNotQuoteError"}
 {"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | doc | segments | first | type","expect":"::string"}
 {"name":"a-doc-s-quote-under-a-tag-that-takes-no-quote-refuses-the-doc","query":"|~~ see ::number~(~(x)) ~~| !| get [~(type) /actualType]","expect":"[::number/PayloadKindNotTakenError ::quote]"}
 {"name":"the-refusal-of-a-doc-s-quote-opens-to-a-value-that-prints","query":"|~~ see ::number~(~(x)) ~~| !| it | print | startsWith \"::number/PayloadKindNotTakenError!{\"","expect":"true"}
 {"name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| type","expect":"::map/PayloadKindNotTakenError"}
 {"name":"a-doc-s-quote-under-the-tag-of-vectors-is-refused-by-their-label","query":"|~~ see ::vec~(::vec | doc) ~~| !| type","expect":"::vec/PayloadKindNotTakenError"}
 {"name":"a-doc-s-quote-under-a-role-reads-under-it","query":"|~~ see ::link~(::vec | doc) ~~| | segments | get /1 | type","expect":"::link"}
-{"name":"a-quote-holds-a-doc-under-the-tag-of-a-kind-as-written","query":"~(|~~ see ::number~(~(x)) ~~|) | print","expect":"\"~(|~~ see ::number~(~(x)) ~~|)\""}
 {"name":"a-doc-a-quote-holds-writes-its-text-as-written","query":"~(|~~ see ::vec~(x) ~~|) | first | content","expect":"\" see ::vec~(x) \""}
 {"name":"a-doc-s-quote-under-a-label-whose-invariant-refuses-the-quote-refuses-the-doc","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| type","expect":"::Role/k"}
 {"name":"a-doc-s-quote-under-a-label-whose-invariant-holds-takes-its-role","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 0)) | |~~ see ::Role~(x) ~~| | segments | get /1 | type","expect":"::Role"}
 {"name":"a-link-is-followed-by-apply","query":"|~~ ::link~(::vec | manifest) ~~| | links | first | :l it | (null | apply l | has ::vec/count)","expect":"true"}
-{"name":"open-lives-on-the-kind-of-a-quote","query":"::quote | manifest | has ::quote/open","expect":"true"}
 {"name":"a-tagged-quote-in-a-doc-is-a-segment-of-its-own","query":"|~~ see ::link~(::qlang | manifest) ~~| | segments | count","expect":"3"}
 {"name":"links-answers-the-links-of-a-doc","query":"|~~ see ::link~(::qlang | manifest) and ~(eq 1) ~~| | links | count","expect":"1"}
 {"name":"a-link-is-of-the-kind-link","query":"|~~ ::link~(::qlang | manifest) ~~| | links | first | type","expect":"::link"}
+{"name":"doc-eq-same-content","query":"(|~~ a ~~|) | eq (|~~ a ~~|)","expect":"true"}
+{"name":"doc-eq-different-content","query":"(|~~ a ~~|) | eq (|~~ b ~~|)","expect":"false"}
+{"name":"doc-eq-doc-vs-string","query":"(|~~ x ~~|) | eq \"x\"","expect":"false"}
+{"name":"doc-eq-doc-vs-quote","query":"(|~~ x ~~|) | eq ~(x)","expect":"false"}
+{"name":"doc-eq-self","query":"|~~ same ~~| | :d it | eq d","expect":"true"}

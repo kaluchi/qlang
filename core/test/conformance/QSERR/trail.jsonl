@@ -41,3 +41,4 @@
 {"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| get /trail/0/step | first | get /name","expect":":thisIsNotDefined"}
 {"name":"a-doc-is-no-trail","query":"get [~(!{:trail |~~~~|} | raise !| type) ~(!{:trail []} | raise !| type)]","expect":"[::error/TrailNotVecError ::error]"}
 {"name":"a-tagged-error-literal-that-writes-its-path-resumes-it-when-raised","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| get /trail | map ~(get [~(get /step | parse) ~(get /skipped | parse)])","expect":"[[\"pre\" \"\"]]"}
+{"name":"an-overflow-holds-its-subject-on-the-trail","query":"1e308 | mul 10 !| get /trail/0/subject","expect":"1e308"}

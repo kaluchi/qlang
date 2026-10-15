@@ -112,7 +112,7 @@
         ~({:"0" 5} | get /0 | eq 5)
     | proves :printsAKeyWithASlashQuoted
         |~~ A key with a slash that is no name of a path prints quoted. ~~|
-        ~({:"a b/c" 1} | paths | first | print | eq "/\"a b/c\"")
+        ~({:"a b/c" 1} | paths | first | first | print | eq "/\"a b/c\"")
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
         ~([:a 0] | tag ::path !| get [~(type) /actualType] | eq [::path/PayloadKindNotTakenError ::vec])

@@ -56,14 +56,14 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // printer leaves it out, as it does a vector's, and the
     // round-trip recovers the same identity [QSLIT#kind], [QSERR#rest].
     const err = makeErrorValue(makeTag('error'), new Map());
-    expect(printValue(err)).toBe('!{\n  :trail []\n}');
+    expect(printValue(err)).toBe('!{}');
   });
 
-  it('a failure that flew no step prints its empty path, its error at rest, which raise raises back to it [QSERR#rest]', async () => {
+  it('a failure that flew no step prints its facts alone, and its print raised starts its path at the raise [QSERR#print]', async () => {
     const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
-    expect(printValue(err)).toBe('::Foo!{\n  :category :oops\n  :trail []\n}');
+    expect(printValue(err)).toBe('::Foo!{:category :oops}');
     expect(isErrorValue(await evalQuery(printValue(err)))).toBe(false);
-    expect(deepEqual(await evalQuery(`${printValue(err)} | raise`), err)).toBe(true);
+    expect(deepEqual(await evalQuery(`${printValue(err)} | raise !| trail | map /step`), await evalQuery('[~(raise)]'))).toBe(true);
   });
 
   it('an answer that is a failure prints under the line that says it was raised, an error at rest under none [QSERR#rest]', async () => {
@@ -80,7 +80,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     const err = makeErrorValue(makeTag('error'), new Map([
       ['kind', keyword('oops')]
     ]));
-    expect(printValue(err)).toBe('!{\n  :kind :oops\n  :trail []\n}');
+    expect(printValue(err)).toBe('!{:kind :oops}');
   });
 
   it(':message rides through the printer verbatim — user content, not template-fill', async () => {
@@ -92,7 +92,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
       ['message', 'user-stamped prose'],
       ['category', keyword('oops')]
     ]));
-    expect(printValue(err)).toBe('::Foo!{\n  :message "user-stamped prose"\n  :category :oops\n  :trail []\n}');
+    expect(printValue(err)).toBe('::Foo!{:message "user-stamped prose" :category :oops}');
   });
 });
 

@@ -4,7 +4,7 @@
 // trip runs over every example of the catalog, read at the address of each
 // verb and at the name of each tag it declares, and over every literal the
 // conformance cases expect, a failure among them caught to its error at rest,
-// its path written into it, and raised again [QSERR#rest]. The examples of the
+// the path it flew among its facts [QSERR#rest]. The examples of the
 // catalog are walked in shares, a file each, which run side by side.
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -37,8 +37,8 @@ export async function ringSession() {
 export async function unbuiltOf(session, valuesBySource) {
   const unbuilt = [];
   for (const [source, value] of valuesBySource) {
-    const rebuilding = isErrorValue(value) ? '!| union (get {:trail ~(trail)}) | rebuilt | raise' : 'rebuilt';
-    if (!deepEqual((await session.evalCell(rebuilding, { initialPipeValue: value })).result, value)) unbuilt.push(source);
+    const taken = isErrorValue(value) ? (await session.evalCell('!| it', { initialPipeValue: value })).result : value;
+    if (!deepEqual((await session.evalCell('rebuilt', { initialPipeValue: taken })).result, taken)) unbuilt.push(source);
   }
   return unbuilt;
 }

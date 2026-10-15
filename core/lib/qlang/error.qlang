@@ -23,9 +23,11 @@
       answering `:late`, and JSON writes it as a value under its tag.
 
       Raised by `raise`, an error is a failure, which lives in the pipe
-      alone; a host prints it as its error at rest under the line
+      alone; a host prints it as the error at rest `!|` opens it to, the
+      path it flew among its facts, under the line
       `|~| raised, and no !| caught it`, which a reading passes over, so
-      the print raised is the failure again.
+      the print raised flies on from that path; a query that does not
+      parse flew no step and prints its facts alone.
       `|` passes a failure by, writing its path, and `!|` alone catches
       it, its step running on the error at rest: `"x" | add 1 !| type`
       answers the site, `::number/add/SubjectNotNumberError`, and
@@ -51,7 +53,7 @@
             under `:trail`, a set, a quote and a doc among them, is
             refused as it makes the error. A `raise` that writes the
             `:trail` it read goes on with that path, and one that leaves
-            it out starts a path at its own step.
+            it out or writes it empty starts a path at its own step.
             ::link~(::error | doc)
         ~~|
     | carries :name

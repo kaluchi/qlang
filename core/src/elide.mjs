@@ -30,12 +30,11 @@
 
 import {
   isVec, isQSet, isQuote, isDoc, isVecOfOwnKind, isQMap, isErrorValue, isValueClass,
-  makeTaggedInstance, makeTag, makeErrorValue, makePath, makeQuote, makeSet, stampTagHeader, TAG_HEADER_SYMBOL, FAIL_TAG, SET_TAG
+  makeTaggedInstance, makeErrorValue, makePath, makeQuote, makeSet, stampTagHeader, TAG_HEADER_SYMBOL, ELISION_TAG, FAIL_TAG, SET_TAG
 } from './types.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import { commandStep, docText, printQuoteSource } from './quote.mjs';
 
-const ELISION_TAG = makeTag('elision');
 const HEAD_CHARACTERS = 40;
 const EXCERPT_CHARACTERS = 300;
 const keepsNone = () => false;

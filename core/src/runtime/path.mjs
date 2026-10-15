@@ -1,16 +1,17 @@
 // The words of a path [QSPTH#value]: `get` reads it strictly and `query`
 // softly, over a path, a key or a literal that holds paths; `put`, `update`
-// and `delete` write it [QSPTH#write]; `paths` answers the outline of a value;
-// `segments` and `toPath` turn a path and its keys into each other, JSON
-// Pointer's form read with its escapes.
+// and `delete` write it [QSPTH#write]; `paths` answers the outline of a value
+// and `shape` its schema [QSPTH#words]; `segments` and `toPath` turn a path
+// and its keys into each other, JSON Pointer's form read with its escapes.
 
 import { bindPrim, bindStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, placeIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
 import { mintUnderTag } from './verb.mjs';
+import { deepEqual } from '../equality.mjs';
 import {
-  isPath, makePath, isKeyword, isQMap, isVec, isValueClass, isErrorValue, keyword, makeSet,
-  TAG_HEADER_SYMBOL
+  isPath, makePath, isKeyword, isQMap, isVec, isQSet, isValueClass, isErrorValue, isTaggedInstance, keyword, makeSet,
+  typeKeyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
@@ -131,23 +132,71 @@ export function pathReads(subject, path) {
   }
 }
 
-// The outline of a value: the path of every part that holds no parts, an
-// empty container among them, beneath the tags stacked over each.
-bindPrim('any/paths', value => {
+// The value the outline and the shape read: the subject beneath the tags
+// over it, and below it a vector or a map as a reader writes one, a part
+// under a tag standing whole as a leaf of its kind [QSPTH#words].
+function beneathItsTags(subject) {
+  let beneath = subject;
+  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
+  return beneath;
+}
+
+const isOpened = (value, top) => (isQMap(value) || isVec(value)) && (top || !isTaggedInstance(value));
+
+// The outline of a value: the pair of the path and the kind of every part
+// that holds no parts, an empty container among them.
+bindPrim('any/paths', subject => {
   const found = [];
   const walk = (current, segments) => {
-    let beneath = current;
-    while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
-    const parts = isQMap(beneath) ? [...beneath] : isVec(beneath) ? beneath.map((element, index) => [String(index), element]) : null;
-    if (parts === null || parts.length === 0) {
-      if (segments.length > 0) found.push(makePath(segments));
+    const top = segments.length === 0;
+    const value = top ? beneathItsTags(current) : current;
+    const parts = !isOpened(value, top) ? [] : isQMap(value) ? [...value] : value.map((element, index) => [String(index), element]);
+    if (parts.length === 0) {
+      if (!top) found.push(Object.freeze([makePath(segments), typeKeyword(value)]));
       return;
     }
     for (const [segment, part] of parts) walk(part, [...segments, segment]);
   };
-  walk(value, []);
+  walk(subject, []);
   return makeSet(found);
 });
+
+// The shape of a value: each map with its keys, each vector one element
+// whose shape holds of all its elements, and each part that holds no parts
+// its kind.
+const NULL_KIND = typeKeyword(null);
+
+function shapeOf(current, top) {
+  const value = top ? beneathItsTags(current) : current;
+  if (!isOpened(value, top)) return typeKeyword(value);
+  if (isQMap(value)) return new Map([...value].map(([key, part]) => [key, shapeOf(part, false)]));
+  return Object.freeze(value.length === 0 ? [] : [value.map(element => shapeOf(element, false)).reduce(mergedShape)]);
+}
+
+bindPrim('any/shape', subject => shapeOf(subject, true));
+
+// The shape two parts share: two maps a map of the keys of both, a key one
+// lacks holding null among its kinds, as `query` reads it; two vectors the
+// vector of their elements' shape, an empty one giving way; and any other
+// two the set of their kinds, a map and a vector in it merged with their own.
+function mergedShape(left, right) {
+  if (deepEqual(left, right)) return left;
+  if (isOpened(left, false) && isOpened(right, false) && isQMap(left) === isQMap(right)) {
+    if (isQMap(left)) {
+      const keys = [...new Set([...left.keys(), ...right.keys()])];
+      return new Map(keys.map(key => [key, mergedShape(left.get(key) ?? NULL_KIND, right.get(key) ?? NULL_KIND)]));
+    }
+    return left.length === 0 ? right : right.length === 0 ? left : Object.freeze([mergedShape(left[0], right[0])]);
+  }
+  const kinds = [];
+  for (const shape of [...(isQSet(left) ? left : [left]), ...(isQSet(right) ? right : [right])]) {
+    const same = kinds.findIndex(kept => isOpened(kept, false) && isOpened(shape, false) && isQMap(kept) === isQMap(shape));
+    if (same === -1) kinds.push(shape);
+    else kinds[same] = mergedShape(kinds[same], shape);
+  }
+  const set = makeSet(kinds);
+  return set.length === 1 ? set[0] : set;
+}
 
 // The keys and places of a path, a place as its number and a key as its
 // keyword.

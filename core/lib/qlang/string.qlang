@@ -89,8 +89,12 @@
         ~~|
         /0 ::string
     | throws :value/KindNotTakenError
-        |~~ The value compared is a string; a keyword gives its name by
-            `toString` first, `"b" | gt (:a | toString)`.
+        |~~ A string compares with a string. Where the subject is text
+            that holds a number, it is read by `toNumber` first,
+            `get /age | toNumber | gt 18`, since digits written as text
+            compare by their characters, `"5" | gt "18"` answering `true`;
+            a keyword gives its name by `toString`,
+            `"b" | gt (:a | toString)`.
         ~~|
     | returns
         |~~ `true` when the subject comes after the value, `false`
@@ -121,6 +125,11 @@
     | proves :value/KindNotTakenError/refusesANumber
         |~~ A number is no string to compare with. ~~|
         ~("a" | gt 1 !| type | eq ::string/gt/value/KindNotTakenError)
+    | proves :value/KindNotTakenError/readsTheNumberTextHolds
+        |~~ Text that holds a number compares as the number once
+            `toNumber` reads it, and by its characters as text.
+        ~~|
+        ~(get [~("5" | toNumber | gt 18) ~("5" | gt "18")] | eq [false true])
     | proves :namesTheKindsThatAnswerIt
         |~~ Null answers no `gt`, and the refusal names the kinds that do.
         ~~|
@@ -139,8 +148,12 @@
         ~~|
         /0 ::string
     | throws :value/KindNotTakenError
-        |~~ The value compared is a string; a keyword gives its name by
-            `toString` first, `"b" | gte (:a | toString)`.
+        |~~ A string compares with a string. Where the subject is text
+            that holds a number, it is read by `toNumber` first,
+            `get /age | toNumber | gte 18`, since digits written as text
+            compare by their characters, `"5" | gte "18"` answering
+            `true`; a keyword gives its name by `toString`,
+            `"b" | gte (:a | toString)`.
         ~~|
     | returns
         |~~ `true` when the subject comes after the value or equals it,
@@ -171,8 +184,12 @@
         ~~|
         /0 ::string
     | throws :value/KindNotTakenError
-        |~~ The value compared is a string; a keyword gives its name by
-            `toString` first, `"b" | lt (:a | toString)`.
+        |~~ A string compares with a string. Where the subject is text
+            that holds a number, it is read by `toNumber` first,
+            `get /age | toNumber | lt 18`, since digits written as text
+            compare by their characters, `"5" | lt "18"` answering
+            `false`; a keyword gives its name by `toString`,
+            `"b" | lt (:a | toString)`.
         ~~|
     | returns
         |~~ `true` when the subject comes before the value, `false`
@@ -205,8 +222,12 @@
         ~~|
         /0 ::string
     | throws :value/KindNotTakenError
-        |~~ The value compared is a string; a keyword gives its name by
-            `toString` first, `"b" | lte (:a | toString)`.
+        |~~ A string compares with a string. Where the subject is text
+            that holds a number, it is read by `toNumber` first,
+            `get /age | toNumber | lte 18`, since digits written as text
+            compare by their characters, `"5" | lte "18"` answering
+            `false`; a keyword gives its name by `toString`,
+            `"b" | lte (:a | toString)`.
         ~~|
     | returns
         |~~ `true` when the subject comes before the value or equals it,

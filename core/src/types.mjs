@@ -273,6 +273,7 @@ function stampSlot(target, slot, value) {
 export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
 export const DOC_TAG         = makeTag(DOC_TAG_NAME);
+export const ELISION_TAG     = makeTag('elision');
 export const ERROR_TAG       = makeTag('error');
 export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTag(SET_TAG_NAME);

@@ -13,7 +13,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
-import { FATE, LINK_DEFINITION, recordPathOf, statementsOf } from './decision-records.mjs';
+import { FATE, LINK_DEFINITION, recordPathOf, statementsOf, JOURNAL } from './decision-records.mjs';
 import { CITATION_IN_WORDS, CITING_DOCUMENTS } from './baseline-walk.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
@@ -27,7 +27,7 @@ const recordPath = name => {
   if (path === null) { console.error(`${name} has no record [QSWRK#journal]`); process.exit(2); }
   return posix.relative(repoRoot.replaceAll('\\', '/'), path.replaceAll('\\', '/'));
 };
-if (recordPath(survivor) !== `docs/decisions/${survivor}.md`) {
+if (recordPath(survivor) !== `${JOURNAL}/${survivor}.md`) {
   console.error(`${survivor} is not in force, and a record merges into one in force [QSWRK#journal]`);
   process.exit(2);
 }
@@ -109,7 +109,7 @@ function relink(path, text) {
   const cites = name => body.includes(`[${name}]`);
   let kept = lines.filter(line => !(LINK_DEFINITION.test(line) && merged.includes(line.match(LINK_DEFINITION)[1]) && !cites(line.match(LINK_DEFINITION)[1])));
   if (cites(survivor) && !kept.some(line => line.match(LINK_DEFINITION)?.[1] === survivor) && lines.some(line => LINK_DEFINITION.test(line))) {
-    const definition = `[${survivor}]: ${posix.relative(posix.dirname(path), `docs/decisions/${survivor}.md`)}`;
+    const definition = `[${survivor}]: ${posix.relative(posix.dirname(path), `${JOURNAL}/${survivor}.md`)}`;
     const indices = kept.map((line, index) => (LINK_DEFINITION.test(line) ? index : -1)).filter(index => index !== -1);
     const after = indices.find(index => order(kept[index].match(LINK_DEFINITION)[1]) > order(survivor));
     const at = after ?? (indices.length > 0 ? indices.at(-1) + 1 : kept.length);
@@ -156,8 +156,8 @@ for (const path of tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\//;
 // The documents the walk holds to the records in force [QSWRK#baseline].
 const isDocument = path => CITING_DOCUMENTS.includes(path);
-const RECORD_IN_FORCE = /^docs\/decisions\/[DE]\d+\.md$/;
-const isRecordMerged = path => [survivor, ...merged].some(name => path === `docs/decisions/${name}.md`);
+const RECORD_IN_FORCE = /^docs\/journal\/[DE]\d+\.md$/;
+const isRecordMerged = path => [survivor, ...merged].some(name => path === `${JOURNAL}/${name}.md`);
 const touched = [];
 for (const path of tracked.filter(path => (ARTIFACT.test(path) && !path.startsWith('docs/')) || isDocument(path) || (RECORD_IN_FORCE.test(path) && !isRecordMerged(path)))) {
   const before = readFileSync(join(repoRoot, path), 'utf8').split(/\r?\n/);

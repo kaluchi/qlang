@@ -1,5 +1,5 @@
 // The records replaced whole leave the root of the records for
-// `docs/decisions/replaced/`, once, and every link of a document to a
+// `docs/journal/replaced/`, once, and every link of a document to a
 // record is written again from the document's place to the record's
 // [QSWRK#journal], each naming the commit it left at [QSWRK#baseline]. Run where a record
 // gains its line `Replaced by` or `Merged into`; a record moved once is
@@ -10,9 +10,10 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
+import { JOURNAL, REPLACED } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
-const recordsDir = join(repoRoot, 'docs', 'decisions');
+const recordsDir = join(repoRoot, JOURNAL);
 const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
 const replacedWhole = text => /^(Replaced by|Merged into|Dissolved into) /m.test(text);
@@ -41,17 +42,17 @@ for (const name of moving) {
   if (!lines.some(line => line.startsWith('Left at '))) {
     lines.splice(1, 0, '', `Left at ${head}, the tree this text was last true of: a path, a case or a`, `probe it names reads there, \`git show ${head}:<path>\`, not in today's.`);
   }
-  const pinned = lines.join('\n').replace(TREE_PATH, (whole, named) => (named.startsWith('docs/decisions/') || !atHead(named) ? whole : `\`git show ${head}:${named}\``));
+  const pinned = lines.join('\n').replace(TREE_PATH, (whole, named) => (named.startsWith(`${JOURNAL}/`) || !atHead(named) ? whole : `\`git show ${head}:${named}\``));
   writeFileSync(path, `${pinned}\n`.split('\n').join(eol));
-  git('mv', `docs/decisions/${name}`, `docs/decisions/replaced/${name}`);
+  git('mv', `${JOURNAL}/${name}`, `${REPLACED}/${name}`);
 }
 
 // A record under `replaced/` never moves again, so a link to the root's
 // place of it, from a move this run or a merge that wrote the link
 // before it, points there.
 const movedTo = new Map(readdirSync(join(recordsDir, 'replaced')).filter(name => /^[DE]\d+\.md$/.test(name))
-  .map(name => [`docs/decisions/${name}`, `docs/decisions/replaced/${name}`]));
-const movedFrom = new Map(moving.map(name => [`docs/decisions/replaced/${name}`, `docs/decisions/${name}`]));
+  .map(name => [`${JOURNAL}/${name}`, `${REPLACED}/${name}`]));
+const movedFrom = new Map(moving.map(name => [`${REPLACED}/${name}`, `${JOURNAL}/${name}`]));
 
 // A link of markdown, its definition `[Dnn]: Dnn.md` or its inline form
 // `(Dnn.md)`, whose target is a file of markdown.

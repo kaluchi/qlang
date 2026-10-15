@@ -1,5 +1,5 @@
-// Measures the tree between two versions of the audit for a
-// retrospective, the seventh condition's count among them: lines by area
+// Measures the tree between two refs for a retrospective, the count of
+// the seventh condition among them [QSAIM#state]: lines by area
 // at both refs, the diff between them, and the catalog's surface. With
 // --steps it prints instead the diff of every step of a stack by the
 // areas a branch reports: core sources, catalog, documents, tests,
@@ -16,7 +16,7 @@ const repoRoot = join(import.meta.dirname, '..');
 const git = args => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
 
 const FINE_AREAS = ['core sources', 'core catalog', 'core conformance', 'core unit tests', 'cli sources',
-  'cli catalog', 'cli tests', 'lsp', 'vscode', 'site', 'scripts', 'audit', 'entrypoint', 'other docs',
+  'cli catalog', 'cli tests', 'lsp', 'vscode', 'site', 'scripts', 'spec', 'journal', 'other docs',
   'lockfile', 'rest'];
 const COARSE_AREAS = ['core sources', 'catalog', 'documents', 'tests', 'tooling'];
 
@@ -28,8 +28,8 @@ function fineAreaOf(path) {
   if (path.startsWith('cli/') && path.endsWith('.qlang')) return 'cli catalog';
   if (path.startsWith('cli/src/')) return 'cli sources';
   if (path.startsWith('cli/test/')) return 'cli tests';
-  if (path === 'docs/qlang-audit.md') return 'audit';
-  if (path === 'docs/qlang-entrypoint.md') return 'entrypoint';
+  if (path.startsWith('docs/spec/')) return 'spec';
+  if (path.startsWith('docs/journal/')) return 'journal';
   if (path.startsWith('docs/')) return 'other docs';
   if (path.endsWith('package-lock.json')) return 'lockfile';
   const top = path.split('/')[0];
@@ -41,7 +41,7 @@ function coarseAreaOf(path) {
   if (fine === 'core sources') return 'core sources';
   if (fine.endsWith('catalog')) return 'catalog';
   if (`/${path}`.includes('/test/')) return 'tests';
-  if (['audit', 'entrypoint', 'other docs', 'site'].includes(fine) || path.endsWith('.md')) return 'documents';
+  if (['spec', 'journal', 'other docs', 'site'].includes(fine) || path.endsWith('.md')) return 'documents';
   return 'tooling';
 }
 

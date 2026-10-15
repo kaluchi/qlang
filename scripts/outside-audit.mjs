@@ -11,10 +11,11 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { CHILD_ENVIRONMENT } from './benchmark/child.mjs';
+import { RESEARCH } from './decision-records.mjs';
 
 const repoRoot = join(import.meta.dirname, '..');
 const repoPath = repoRoot.replaceAll('\\', '/');
-const auditsDir = join(repoRoot, 'docs', 'research', 'outside-audit');
+const auditsDir = join(repoRoot, RESEARCH, 'outside-audit');
 const git = (...args) => execFileSync('git', ['-C', repoRoot, ...args], { encoding: 'utf8' }).trim();
 
 // The report names the tree it read, so a change no commit holds is

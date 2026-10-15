@@ -3,13 +3,13 @@
 How the work on the language moves: the texts it keeps and where each
 lives, how a change is decided, carried and settled, how a branch lands,
 and how the tree is measured and checked. This chapter states the
-process, which the audit's hierarchy of texts ranks after the language
-and its tools; the checks of the tooling hold the rules for which a
+process, which the order of the texts [QSAIM#texts] ranks after the
+language and its tools; the checks of the tooling hold the rules for which a
 section names a check, and the review and the maintainer hold the rest.
 
 ## journal
 
-A decision is a record of its own, `docs/decisions/Dnn.md`, numbered in
+A decision is a record of its own, `docs/journal/Dnn.md`, numbered in
 the order it was written, a discussion with its choice and its
 circumstances. A citation of a record is a link of markdown to its
 file, `[Dnn]`, so an editor or a browser opens it at a click and the
@@ -31,6 +31,19 @@ alternatives and why; `Requirements.`, the cases it leaves.
 decider otherwise,
 and `node scripts/sensors/check-quotes.mjs`, run on the maintainer's
 machine, holds every quote of the maintainer against the transcripts.
+
+A statement of the work carries its handle: a fact of the tree a probe
+or an anchor, a file and a symbol; a decision its record, or the section
+it dissolved into; an inference the model's reading, marked as such where
+it carries weight; and a question an open record. A sentence that others
+rest on and no source holds is verified or turned into a question, and
+one with neither a source nor dependents is let go. Doubt is resolved by
+a record with its source, and by no item of a process, list of statuses
+or comment in code. The maintainer's words are quoted as written, and a
+rule is written as a rule, its date and its source in the line of its
+source. A source outside the tree is read whole before a sentence rests
+on it. A claim about the language in doubt is run; an intention in doubt
+is asked of the maintainer, and the answer recorded with his words.
 
 Only the maintainer's quoted words bind a session. A record the model
 decided is a reading the session weighs on its merits and replaces by
@@ -68,7 +81,7 @@ in its source stay as they were. Records of one axis merge into the
 earliest of them, `node scripts/merge-records.mjs <earliest> <later>…`,
 whose number stays the address of the axis, described anew against the
 tree; each later one gains the line `Merged into` the earliest. A record
-out of force moves once to `docs/decisions/replaced/`, under the line of
+out of force moves once to `docs/journal/replaced/`, under the line of
 its fate, `Dissolved into`, `Merged into`, `Replaced by` or `Filed
 under the principles by`, and under its
 title the line `Left at` the commit whose tree its text was last true
@@ -89,8 +102,9 @@ by the code and the heading, `[QSNAM#scope]`. A chapter states the rule
 of each section in the present, as what holds, the form a reader
 writes and the refusal that teaches it; it shows its rules by probes;
 and `docs/spec/README.md` lists the chapters in the order the concepts
-rest on each other. The code, the tests and the cases cite the section
-whose rule they hold. `check:conventions` refuses a citation of a
+rest on each other, the aim first. The code, the tests and the cases cite
+the section whose rule they hold, and a sentence of a chapter the tree
+proves wrong is replaced by the fact and its probe. `check:conventions` refuses a citation of a
 section its chapter lacks, and in a chapter a citation of a record, the
 history of a form and a sentence that says what the text leaves out,
 and in a chapter of the language a word or a path of the journal.
@@ -139,9 +153,9 @@ answer as they were; it keeps every case, record and gate as it found
 them. Master's copy of the diff, `git show master:scripts/gate-diff.mjs`
 run with `--task Dnn`, compares the branch with its merge base on master
 and lists every such move: a target added or a case added under another
-record; a change to `scripts/`, a `package.json`, `.github/`,
-`CLAUDE.md`, `.claude/`, the entrypoint document, the comparator of the
-runner or the route of the audit; a record added, rewritten, moved or
+record; a change to the specification, `scripts/`, a `package.json`,
+`.github/`, `CLAUDE.md`, `.claude/`, or the comparator of the runner and
+its judge; a record added, rewritten, moved or
 taken away, but for a line of fate appended; the targets met outside the
 task; and the lines of the implementation that spell a target they met.
 The review reads them first.
@@ -169,12 +183,12 @@ in the comment at the head of its source.
 
 ## baseline
 
-The baseline is the commit the audit holds the tree against, named in
-its opening by the words “holds it against commit” and the commit, which
-the walk reads; its move is the clean desk: however a shift left the
-work, the next starts in order. It moves at the end of every shift that
-wrote records, before an outside audit, and when a branch lands, and no
-more than twenty records stand written since it.
+The baseline is the last commit that landed a branch on master, a merge
+on its first parent line, which the walk reads from the history; its move
+is the clean desk: however a shift left the work, the next starts in
+order. It moves when a branch lands, at the end of every shift that wrote
+records and before an outside audit, and no more than twenty records
+stand written since it.
 
 At the move:
 
@@ -195,20 +209,17 @@ At the move:
   record. A record whose marked blocks the diff from its tree touched is
   read again against the new root and described anew or closed; one the
   diff left alone stands as it is.
-- A document of the research stays while a record in force or a
-  document that cites, the audit, the entrypoint document, `CLAUDE.md`,
-  the rules of the review and the READMEs of the workspaces, names it,
-  the README of its folder a ledger that holds none;
+- A document of the research stays while a record in force or a text
+  that cites, `CLAUDE.md` and the READMEs of the workspaces, names it, the
+  README of its folder a ledger that holds none;
   `node scripts/drop-documents.mjs` drops the rest, each with its part of
   the ledger of its folder, the findings it left open carried into the
-  ledger under its name and the commit. A review or a chapter of the
-  archive is a unit, any other research its folder, and the outside
-  audits a series that stays.
-- The audit is held against the new tree: its baseline named anew,
-  every probe run, and every sentence the tree proves wrong replaced by
-  the fact and its probe, its version in git.
+  ledger under its name and the commit. A review is a unit, any other
+  research its folder, and the outside audits a series that stays.
+- Every probe of the open records and of the chapters is run, and every
+  sentence the tree proves wrong is replaced by the fact and its probe.
 - The branch lands on master and is deleted, with the worktrees of its
-  cuts.
+  cuts, and the merge holds no record in transit.
 
 `check:conventions` holds the walk: a record of the language the
 baseline's tree holds that no case names and no line of fate closes,
@@ -218,7 +229,8 @@ no record in transit over its section claims, the case naming it or,
 taken away, named in its text, a chapter the baseline did not hold
 waiting for the next move; a document of the research the baseline
 holds that nothing citing names; more than twenty records since the
-baseline; a citation in the code and the tests of a record that no met
+baseline; a record in transit in the tree of the merge that landed it;
+a citation in the code and the tests of a record that no met
 case holds, a case that names a record being decided, and a citation in
 a document that cites of a record out of force or of the language with
 no case, an open record among those it may cite. `npm run
@@ -248,9 +260,14 @@ the one run that boots the language while it runs; `node
 scripts/benchmark.mjs check` runs before a commit that reads a form of
 the language anew.
 
-What confuses a session during the work, a sentence the tree
-contradicts, a leftover of a milestone reached, a comment that justifies
-or leads away, a requirement no case states, is settled where it is met:
+A branch starts from the full set of places where its cause shows, found
+by search rather than by memory, and its first commits delete. The work
+of the model on the texts is validation, the contradictions, the
+conflicts, the holes and the problems of what is written, and a session
+that finds none has read too little of the tree or run too few of its
+probes. What confuses a session during the work, a sentence the tree
+contradicts, a comment that justifies or leads away, a requirement no
+case states, is settled where it is met:
 fixed in the branch where the records already choose the fix, and
 otherwise recorded with its probe, as a target where a record chose and
 the tree misses it, as a record where it asks for a choice, and as an
@@ -268,8 +285,7 @@ branch leaves the files it touches so: it moves a reason it finds in a
 comment into its record or deletes it with the compromise it excuses,
 and deletes a false comment. The ratio of comment lines to code lines
 over the core, the command line and the language server falls,
-measured on every branch against the baseline, from the ratio of the
-September master `f5e8ec8`.
+measured on every branch against the baseline.
 
 ## diff
 
@@ -284,33 +300,8 @@ they are worth to qlang. Measured from the baseline, the core sources,
 the documents and the tests are held to a diff that deletes more than it
 adds, where a growth signals a crooked part, an old scar or a concept
 that does not compose; the catalog grows by the words a task asks for
-and the pages that tell them, and the audit and the entrypoint document
-are the measure. A commit message, a page and a record carry no count
-the history answers.
-
-## audit
-
-The audit, `docs/qlang-audit.md`, is the compass of the work: it holds
-what no other text holds, the mission, the satisfactory state and its
-seven conditions, the principles, the scars the tree shows against its
-baseline, the finish and the route. It cites what a record decides and
-what the specification and the pages tell, and retells neither. Each
-version holds the text against its baseline, and the message of the
-commit that wrote it says what the repairs did.
-
-When two conditions of the satisfactory state conflict, the earlier
-wins: one model, then self-description, then one spelling, then the
-consumers, then the proportion of the grammar; the sixth, the goal
-written down, competes with none, and the seventh, the negative diff,
-yields only to a branch that introduces a model.
-
-The route runs from the baseline to the finish through milestones, each
-a state of the language followed by a release; the order of the work
-under a milestone shows how its parts rest on each other, and the data
-form of code and its involution with its text come before what produces
-or consumes a quote. A scar stands in the audit while the tree shows it,
-and a sentence the tree proves wrong is replaced by the fact and its
-probe; any other change to the text waits on the maintainer's word.
+and the pages that tell them. A commit message, a page and a record carry
+no count the history answers.
 
 ## probe
 
@@ -324,29 +315,27 @@ only then. It reads what the sentence names in a way that fails when
 that is gone: the runner runs a shell probe with a pipeline that fails
 where any command fails, and a probe that lists files by `git ls-files`
 lists them with `--error-unmatch`. `npm run check:probes` runs every probe of
-the audit, the entrypoint document, the open records and the
-specification that reads the repository alone, and the branch that
+the open records and the specification that reads the repository alone, and the branch that
 changed an answer rewrites the sentence with its probe. A probe that
 reads a machine, the sister project or the environment, one that names
 `jdt`, `scripts/sensors`, `env` or a variable of the shell, keeps the
 date of its answer and is run by hand.
 
-`check:conventions` holds the anchors of the audit, the entrypoint
-document and `CLAUDE.md`: a path they name in backticks is a file of the
-tree or of the sister project, and words they quote in “…” beside a path
-stand in that file.
+`check:conventions` holds the anchors of `CLAUDE.md`, the chapter of the
+aim and this chapter: a path they name in backticks is a file of the tree
+or of the sister project, and words they quote in “…” beside a path stand
+in that file.
 
 ## documents
 
-The documents of the work are the audit; the specification; the
-records; the draft of the entrypoint, `docs/qlang-entrypoint.md`, the
-computed context a session starts from, a draft of ideas from which the
-work takes what it builds, the screen of the work, `npm run desk`, and
-the sensors under `scripts/sensors/`, which read the transcripts, the
-history and the files; the research under `docs/research/`, a design
-with its runs, the reviews and the outside audits, each folder with a
-README that is its ledger; and the chapters the audit left, as written,
-under `docs/archive/`.
+`docs/` holds two folders. The specification, `docs/spec/`, holds the
+chapters, the aim first. The journal, `docs/journal/`, holds the records
+in force at its root, those out of force under `replaced/`, and the
+research under `research/`, the reviews and the outside audits, each
+folder with a README that is its ledger. The screen of the work,
+`npm run desk`, and the sensors under `scripts/sensors/`, which read the
+transcripts, the history and the files, compute what a session starts
+from.
 
 The language says the rest of itself in its catalog: what a reference or
 a tutorial would retell are the laws of its pages and the concepts on
@@ -356,6 +345,32 @@ package, `core/README.md`. The instruction file of the repository,
 project is built, how the work moves, the resources outside the tree and
 pointers into it, while the model computes from the tree what the tree
 holds.
+
+The texts of the work speak in two voices. The apophatic ones carry the
+change against the baseline: first the dialogue of a session, which a
+pain of the tree calls and where every doubt, choice and reason of the
+model is said, its transcript the whole record of it and the summary of
+a compaction the model's paraphrase of it; then the journal, the records
+with their circumstances and what they set aside, the research, the
+reviews and the outside audits; the memory between sessions; and the
+history of the commits. The cataphatic ones state what holds, in the
+present: the chapters of the specification, the pages of the catalog,
+the cases and the comments of the code, each the rule, the form a reader
+writes and the refusal that teaches it, a negation that is the condition
+of a rule among them. A session lands on the apophatic texts, the
+dialogue, the screen of the work and the records in transit and open,
+where its work is, and reads the cataphatic ones by topic at the point
+of need. What it writes into a cataphatic text states what holds; a
+doubt or a reason it meets is said in the dialogue, or written as a
+record where it asks for a choice.
+
+The apophatic texts are where the work lives. While a branch works, they
+reach into the cataphatic ones, a record in transit ruling over the
+sections it overrides, the cases it claims, the code that cites it and
+the targets it left; at the merge into master the tension relaxes: every
+record in transit dissolves into its sections or is set aside with its
+change undone, and master holds no record in transit, its open records
+waiting in the journal.
 
 ## catalog
 
@@ -408,22 +423,24 @@ runs.
 
 ## review
 
-A review holds a branch against the principles of the audit, by the
-rules of `.claude/agents/qlang-review.md`, each a principle and the check
-that enforces it, and its report is kept as its writer wrote it, each
-finding with the fate it met, under `docs/research/reviews/` while
-something in force cites it.
+A review holds a diff against the principles of the aim [QSAIM#principles]
+and the rules of the work: it reads whole every file the diff touches, and
+its report gives a verdict, accepted or changes asked, and its findings,
+each with its file and its line and the principle or the rule it breaks.
+The report is kept as its writer wrote it, each finding with the fate it
+met, under `docs/journal/research/reviews/` while something in force
+cites it.
 
 `node scripts/outside-audit.mjs` runs the outside audit: a clean Opus,
 started from an empty directory of its own with no instruction file,
 memory or server, reads the tree at HEAD, runs `qlang` and answers
-`docs/research/outside-audit/prompt.txt`, and its report lands as
-`docs/research/outside-audit/<date>-<tree>.md`; it runs on a tree every
+`docs/journal/research/outside-audit/prompt.txt`, and its report lands as
+`docs/journal/research/outside-audit/<date>-<tree>.md`; it runs on a tree every
 change of which a commit holds, once for a tree and a day. The session
 writes its reading beside the report and the fate of each finding in the
 README there. `scripts/gemini-review.mjs`, `scripts/gemini-show.mjs` and
 `scripts/gemini-resolve.mjs` drive Gemini Code Assist on a pull request,
-a signal at milestones: a finding that names a real defect is applied,
+a signal the maintainer calls for: a finding that names a real defect is applied,
 and a fallback or a defensive check it proposes is refused with a
 sentence in the commit.
 
@@ -485,6 +502,6 @@ and the tests, the commit, the push, the wait for the checks, the tag
 and its push; the tag runs `.github/workflows/deploy.yml`, which
 publishes the core and the command line through the trusted publishing
 of npm, so the name of that file bears weight; the commit of a release
-lands on master directly. Releases happen at
-milestones, and between them the sister project consumes the copy of
-the workspace.
+lands on master directly. A release happens at the maintainer's word,
+and between releases the sister project consumes the copy of the
+workspace.

@@ -27,10 +27,17 @@ describe('elide [QSPRN#elide]', () => {
     expect(deepEqual(await readBack(forty, trailing), forty.slice(view.length - 1))).toBe(true);
   });
 
-  it('gives the top way whole when half a vector no longer fits', () => {
-    const view = elide(Array.from({ length: 20 }, (_, index) => index), 20);
-    expect(view[TAG_HEADER_SYMBOL].name).toBe('elision');
-    expect(view.get('size')).toBe(20);
+  it('keeps the top as it is where its first element and a marker of the rest print no shorter', () => {
+    const twenty = Array.from({ length: 20 }, (_, index) => index);
+    expect(elide(twenty, 20)).toBe(twenty);
+  });
+
+  it('keeps the first element of the top, the part within it giving way', async () => {
+    const value = await evalQuery(`["${LONG.repeat(3)}" "${LONG.repeat(3)}"]`);
+    const view = elide(value, 200);
+    expect(view.length).toBe(2);
+    expect(await readBack(value, view[0])).toBe(value[0]);
+    expect(view[1].get('size')).toBe(1);
   });
 
   it('gives a string way whole with its head', async () => {
@@ -157,8 +164,8 @@ describe('alertOf [QSHST#answer]', () => {
     const alert = alertOf(await evalQuery(query));
     const inner = alert.descriptor.get('actualValue');
     expect(isErrorValue(inner)).toBe(false);
-    const marker = inner.payload.get('trail');
-    expect(printValue(marker.get('read'))).toBe('~(!| get /actualValue/trail)');
-    expect((await continued(query, marker)).length).toBe(2);
+    const marker = inner.payload.get('trail')[0];
+    expect(printValue(marker.get('read'))).toBe('~(!| get /actualValue/trail/0)');
+    expect((await continued(query, marker)).size).toBe(3);
   });
 });

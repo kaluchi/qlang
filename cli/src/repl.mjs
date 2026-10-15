@@ -128,6 +128,6 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 // it, on stdout: a failed cell, one that does not parse among them, is an
 // answer as every failure is [QSHST#answer].
 async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, budget) {
-  const shown = elideAnswer(cellEntry.result, budget);
+  const shown = await elideAnswer(cellEntry.result, budget, cellEntry.envAfterCell);
   stdoutWrite(highlightAnsi(await printAnswer(shown, cellEntry.envAfterCell), builtinNames) + '\n');
 }

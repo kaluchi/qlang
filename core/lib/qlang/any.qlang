@@ -348,20 +348,24 @@
 :any/elide
   |~~ Answers the subject within a budget of characters of its print,
       what does not fit given way to markers under `::elision`, and a
-      value whose print fits as it is. The largest part gives way first:
-      a string or a map beneath the top gives way whole, the marker of a
-      string keeping its first characters under `:head`; a vector keeps
-      the first half of its elements, and half of those until it fits,
-      ending with a marker of the rest; and a value under a tag keeps
-      its tag, its parts giving way within. A part whose marker prints
-      no shorter than it stays, `[]` or `{:n 1}`, so a budget never
-      lengthens a print, and a value whose parts all print no longer
-      than their markers is answered as it is. A marker's `:size` counts
-      what it stands for, and its `:read`, applied to the value `elide`
-      took, answers the part left out. The top gives way only as a
-      vector, so a string or an atom alone is answered whole. The call
-      gives the budget, a number; the command line applies `elide` to
-      every answer it prints when `--budget=N` asks it to.
+      value whose print fits as it is. The largest part gives way first,
+      or in its place a part within it that prints more than half of it:
+      a string, a doc, a quote or a map beneath the top gives way whole,
+      the marker of a text keeping its first characters under `:head`; a
+      vector or a set keeps the first half of its elements, and half of
+      those until it fits, ending with a marker of the rest, a set
+      standing in the one order; a value under a tag keeps its tag, its
+      parts giving way within; and a part a kind prints its own way
+      stands as that kind prints it, the budget counting that print. The
+      top keeps its shape: a vector or a set there keeps its first
+      element, a map gives way within, and a string, a doc, a quote or an
+      atom alone is answered whole. A part gives way only where the least
+      it gives way to prints shorter than it, `[]` or `{:n 1}` staying,
+      so a budget never lengthens a print. A marker's `:size` counts what
+      it stands for, and its `:read`, applied to the value `elide` took,
+      answers the part left out. The call gives the budget, a number; the
+      command line applies `elide` to every answer it prints when
+      `--budget=N` asks it to.
       ::link~(::elision | doc) ::link~(::any/print | doc)
   ~~|
   ::fn
@@ -406,6 +410,24 @@
         |~~ A value under a tag keeps its tag. ~~|
         ~(::Box{:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it"}
           | elide 10 | type | eq ::Box)
+    | proves :keepsTheFirstElementOfTheTop
+        |~~ The top keeps its first element, the part within it giving way.
+        ~~|
+        ~(200 | range | map ~("a") | join "" | :s it | get [~(s) ~(s)] | elide 200 | get [~(count) ~(last | type)] | eq [2 ::elision])
+    | proves :halvesASetInTheOneOrder
+        |~~ A set keeps the first half of its elements and stands in the one
+            order.
+        ~~|
+        ~(40 | range | distinct | elide 60 | get [~(type) ~(last | type)] | eq [::set ::elision])
+    | proves :givesADocWayWithTheHeadOfItsText
+        |~~ A doc beneath the top gives way whole, its marker keeping the
+            first characters of its text.
+        ~~|
+        ~(get [~(::vec/sort | doc)] | elide 100 | get /0/head | type | eq ::string)
+    | proves :countsThePrintAKindGives
+        |~~ A part a kind prints its own way stands as that kind prints it.
+        ~~|
+        ~(:Box |~~ B ~~| | :Box/print ~("b") | [::Box#1 ::Box#2 ::Box#3 ::Box#4 ::Box#5 ::Box#6 ::Box#7] | elide 10 | print | count | eq 15)
     | proves :readsTheElidedPartBack
         |~~ An elision holds the query that reads its part back. ~~|
         ~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}

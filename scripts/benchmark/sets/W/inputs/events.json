@@ -1,0 +1,80 @@
+[
+  {
+    "id": 1,
+    "type": "click",
+    "payload": {
+      "user": {
+        "id": "u1"
+      },
+      "target": "btn"
+    }
+  },
+  {
+    "id": 2,
+    "type": "view",
+    "payload": {
+      "user": {
+        "id": "u2"
+      }
+    }
+  },
+  {
+    "id": 3,
+    "type": "click",
+    "payload": {
+      "user": {
+        "id": "u2"
+      },
+      "target": "link"
+    }
+  },
+  {
+    "id": 4,
+    "type": "click",
+    "payload": {
+      "target": "btn"
+    }
+  },
+  {
+    "id": 5,
+    "type": "click",
+    "payload": {
+      "user": {
+        "id": "u1"
+      },
+      "target": "link"
+    }
+  },
+  {
+    "id": 6,
+    "type": "click",
+    "payload": null
+  },
+  {
+    "id": 7,
+    "type": "click",
+    "payload": {
+      "user": {
+        "id": null
+      }
+    }
+  },
+  {
+    "id": 8,
+    "type": "click",
+    "payload": {
+      "user": {
+        "id": "u3"
+      }
+    }
+  },
+  {
+    "id": 9,
+    "type": "view",
+    "payload": {
+      "user": {
+        "id": "u4"
+      }
+    }
+  }
+]

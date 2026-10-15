@@ -1,0 +1,98 @@
+{
+  "status": "ok",
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Anna Weber",
+        "email": "anna@x.io",
+        "active": true,
+        "roles": [
+          "admin",
+          "dev"
+        ],
+        "address": {
+          "city": "Berlin"
+        }
+      },
+      {
+        "id": 2,
+        "name": "Boris Klein",
+        "email": "boris@x.io",
+        "active": true,
+        "roles": [
+          "dev"
+        ],
+        "address": {
+          "city": "berlin"
+        }
+      },
+      {
+        "id": 3,
+        "name": "Clara Voss",
+        "email": "clara@x.io",
+        "active": false,
+        "roles": [],
+        "address": {
+          "city": "Berlin"
+        }
+      },
+      {
+        "id": 4,
+        "name": "Dmitri Orlov",
+        "email": null,
+        "active": true,
+        "roles": [
+          "ops"
+        ],
+        "address": null
+      },
+      {
+        "id": 5,
+        "name": "Elena Rossi",
+        "email": "elena@x.io",
+        "active": true,
+        "roles": [
+          "dev",
+          "ops"
+        ],
+        "address": {
+          "city": "BERLIN"
+        }
+      },
+      {
+        "id": 6,
+        "name": "Farid Aziz",
+        "email": "farid@x.io",
+        "active": true,
+        "roles": [
+          "dev"
+        ],
+        "address": {}
+      },
+      {
+        "id": 7,
+        "name": "Greta Lund",
+        "active": true,
+        "roles": [
+          "qa"
+        ],
+        "address": {
+          "city": "Oslo"
+        }
+      },
+      {
+        "id": 8,
+        "name": "Hugo Baas",
+        "email": "hugo@x.io",
+        "active": true,
+        "roles": [
+          "qa"
+        ],
+        "address": {
+          "city": "Berlin"
+        }
+      }
+    ]
+  }
+}

@@ -52,7 +52,8 @@
 //       baseline holds is held by a case or closed by the line of its
 //       fate, no more than twenty records wait for the next walk, and the code, the tests and the cases cite the records in
 //       force, the documents that hold the work those in force or
-//       waiting on a target [QSWRK#baseline].
+//       waiting on a target [QSWRK#baseline]; a section of a chapter is
+//       written since the baseline by a record dissolved into it [D300].
 //
 //   (10) A series keeps its two latest: the sets of the benchmark, its
 //       screens, the runs of the references and the outside audits

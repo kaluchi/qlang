@@ -17,11 +17,15 @@
 // it reads as a failure and never as a repair. A block indented inside
 // an item of a list is read as it stands. A probe whose answer changed,
 // a target the tree meets, and a list of files without the flag fail the
-// run, which `npm run ci` and the checks of a push make [QSWRK#probe].
+// run, which `npm run ci` and the checks of a push make [QSWRK#probe]; a
+// probe of a section a record in transit overrides is the record's, and an
+// answer its work changed waits for the move where the record holds a
+// probe of the same query [D300].
 //
 // Usage: node scripts/sensors/run-probes.mjs [document ...]
 // Without documents it reads the open records, whose questions hold
-// probes [QSWRK#journal], and the
+// probes [QSWRK#journal], the records in transit, whose probes hold the
+// answers their work changed [D300], and the
 // chapters of the specification, whose sections show their rules by
 // probes [QSWRK#spec].
 
@@ -31,15 +35,18 @@ import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { pipeEnv } from '../pipe-env.mjs';
 import { isOpenText, JOURNAL } from '../decision-records.mjs';
+import { recordsInTransit } from '../baseline-walk.mjs';
 
 const repoRoot = join(import.meta.dirname, '..', '..');
 const recordsDir = join(repoRoot, JOURNAL);
 const openRecords = readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).map(name => join(recordsDir, name))
   .filter(path => isOpenText(readFileSync(path, 'utf8')));
+const transit = recordsInTransit(repoRoot);
+const transitRecords = [...transit.keys()].map(name => join(recordsDir, `${name}.md`));
 const specDir = join(repoRoot, 'docs', 'spec');
 const chapters = readdirSync(specDir).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name)).map(name => join(specDir, name));
 const documents = process.argv.length > 2 ? process.argv.slice(2)
-  : [...openRecords, ...chapters];
+  : [...new Set([...openRecords, ...transitRecords, ...chapters])];
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery } = await core('eval.mjs');
 const { printValue } = await core('index.mjs');
@@ -48,11 +55,13 @@ const { deepEqual } = await core('equality.mjs');
 const { isErrorValue } = await core('types.mjs');
 const squash = text => text.replace(/\s+/g, ' ').trim();
 
+// The probes of a document, each under the section of its heading.
 function probesOf(source) {
   const probes = [];
   let fence = null;
   let fenceIndent = 0;
   let open = null;
+  let section = '';
   const close = () => {
     if (open?.answer.length || open?.target) probes.push({ ...open, answer: squash(open.answer.join('\n')) });
     open = null;
@@ -60,13 +69,14 @@ function probesOf(source) {
   source.split('\n').forEach((rawLine, index) => {
     const indent = rawLine.length - rawLine.trimStart().length;
     const line = rawLine.slice(Math.min(indent, fence === null ? indent : fenceIndent));
+    if (fence === null && line.startsWith('## ')) section = line.slice(3).trim();
     if (line.startsWith('```')) {
       close();
       fence = fence === null ? line.slice(3).trim() : null;
       fenceIndent = indent;
     } else if (fence !== null && (line.startsWith('> ') || line.startsWith('$ '))) {
       close();
-      open = { shell: line.startsWith('$ '), target: /\btarget\b/.test(fence), line: index + 1, query: line.slice(2).trim(), answer: [] };
+      open = { shell: line.startsWith('$ '), target: /\btarget\b/.test(fence), section, line: index + 1, query: line.slice(2).trim(), answer: [] };
     } else if (open && !open.shell && open.answer.length === 0 && line.startsWith('  ')) {
       open.query += '\n' + line.trim();
     } else if (open && line.trim() === '') {
@@ -140,17 +150,35 @@ async function answersAsRecorded({ query, answer }) {
   try { return deepEqual(await evalQuery(query), await evalQuery(answer)) || 'lossy'; } catch { return 'lossy'; }
 }
 
+const textOf = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
+
+// The records in transit over the section of a chapter's probe, and the
+// one of them that holds a probe of its query, whose answer the move
+// writes into the section [D300].
+function holdersOf(chapter, probe) {
+  const over = [...transit].filter(([, sections]) => sections.some(cited => cited === chapter || cited === `${chapter}#${probe.section}`)).map(([name]) => name);
+  const holding = over.find(name => probesOf(textOf(join(recordsDir, `${name}.md`))).some(held => squash(held.query) === squash(probe.query)));
+  return { over, holding };
+}
+
 for (const documentPath of documents) {
   const shownPath = relative(repoRoot, documentPath).split(/[\\/]/).join('/');
-  for (const probe of probesOf(readFileSync(documentPath, 'utf8').replace(/\r\n/g, '\n'))) {
+  const chapter = /(?:^|[\\/])(QS[A-Z]{3})-[^\\/]+\.md$/.exec(documentPath)?.[1];
+  for (const probe of probesOf(textOf(documentPath))) {
     let verdict;
+    let note = '';
     if (probe.shell) verdict = shellVerdict(probe);
     else {
       const agrees = await answersAsRecorded(probe);
       verdict = agrees === 'lossy' ? 'LOSSY' : probe.target ? (agrees ? 'MET' : 'target') : (agrees ? 'ok' : 'STALE');
     }
-    console.log(`${verdict.padEnd(8)}${shownPath}:${probe.line}  ${probe.query.replace(/\n/g, ' ').slice(0, 70)}`);
+    if (verdict === 'STALE' && chapter !== undefined) {
+      const { over, holding } = holdersOf(chapter, probe);
+      if (holding !== undefined) [verdict, note] = ['waits', `  [${holding} holds its answer until the move]`];
+      else if (over.length > 0) note = `  [${over.join(', ')} overrides ${chapter}#${probe.section} and holds no probe of this query]`;
+    }
+    console.log(`${verdict.padEnd(8)}${shownPath}:${probe.line}  ${probe.query.replace(/\n/g, ' ').slice(0, 70)}${note}`);
     if (['STALE', 'MET', 'UNGUARDED'].includes(verdict)) process.exitCode = 1;
   }
 }
-if (process.exitCode === 1) console.log('a probe whose answer changed rewrites its sentence with the probe, a met target drops its mark, and a probe that lists files fails where one is missing [QSWRK#probe], [QSWRK#target]');
+if (process.exitCode === 1) console.log('a probe whose answer changed is held until the move by the record in transit over its section, a probe of the same query in the record [D300]; a met target drops its mark, and a probe that lists files fails where one is missing [QSWRK#probe], [QSWRK#target]');

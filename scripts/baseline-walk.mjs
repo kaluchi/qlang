@@ -4,9 +4,10 @@
 // branch on master. A record of the language that the baseline's tree holds is
 // held by a case or closed by the line of its fate; the records written
 // since wait for the walk, twenty at most; the lines
-// that replace a record in part only fall; and the code, the tests and
+// that replace a record in part only fall; the code, the tests and
 // the cases cite the records in force, the documents that hold the work
-// those in force or waiting on a target.
+// those in force or waiting on a target; and a chapter is written at the
+// move alone [D300].
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -138,6 +139,7 @@ export function walkOfBaseline(repoRoot) {
   }
   for (const { where, problem } of unresolvedSections(repoRoot)) walk.violations.push({ where, problem });
   for (const { where, problem } of casesTouchedUnclaimed(repoRoot, baseline)) walk.violations.push({ where, problem });
+  for (const { where, problem } of sectionsWrittenUnclaimed(repoRoot, baseline)) walk.violations.push({ where, problem });
   for (const path of uncitedDocuments(repoRoot)) {
     if (git(repoRoot, 'ls-tree', '--name-only', baseline, '--', path).trim() !== '') {
       walk.violations.push({ where: path, problem: 'no record in force and no document of the work cites it: node scripts/drop-documents.mjs [QSWRK#baseline]' });
@@ -235,6 +237,50 @@ export function casesTouchedUnclaimed(repoRoot, baseline) {
     }
   }
   return unclaimed;
+}
+
+// The text of the chapters since the baseline, section by section: a
+// section the baseline's chapter held otherwise, or lacked, is one a record
+// dissolved into since the baseline, a section or a chapter gone is named
+// by one, and the head of a chapter goes with any record dissolved into
+// it, so a chapter is written at the move, where its records dissolve [D300].
+export function sectionsWrittenUnclaimed(repoRoot, baseline) {
+  const dissolved = [...dissolvedSince(repoRoot, baseline).values()];
+  const into = (chapter, section) => dissolved.some(({ sections }) => sections.some(cited => cited === chapter || cited === `${chapter}#${section}` || (section === '' && cited.startsWith(`${chapter}#`))));
+  const naming = name => dissolved.some(({ path }) => readFileSync(path, 'utf8').includes(name));
+  const chapterFile = /^QS[A-Z]{3}-.+\.md$/;
+  const now = new Map(filesUnder(repoRoot, 'docs/spec', chapterFile).map(path => [path, readFileSync(join(repoRoot, path), 'utf8')]));
+  const then = new Map(git(repoRoot, 'ls-tree', '--name-only', baseline, '--', 'docs/spec/').split('\n')
+    .filter(path => chapterFile.test(path.split('/').pop())).map(path => [path, git(repoRoot, 'show', `${baseline}:${path}`)]));
+  const unclaimed = [];
+  for (const path of new Set([...now.keys(), ...then.keys()])) {
+    const chapter = path.split('/').pop().slice(0, 5);
+    if (!now.has(path)) {
+      if (!naming(chapter)) unclaimed.push({ where: path, problem: `gone since the baseline ${baseline}, and no record dissolved since names it: a chapter is written at the move [D300]` });
+      continue;
+    }
+    const sectionsNow = sectionsOfChapter(now.get(path));
+    const sectionsThen = then.has(path) ? sectionsOfChapter(then.get(path)) : new Map();
+    for (const section of new Set([...sectionsNow.keys(), ...sectionsThen.keys()])) {
+      if (sectionsNow.get(section) === sectionsThen.get(section)) continue;
+      const cited = section === '' ? chapter : `${chapter}#${section}`;
+      if (into(chapter, section) || (!sectionsNow.has(section) && naming(cited))) continue;
+      unclaimed.push({ where: section === '' ? path : `${path}#${section}`, problem: `written since the baseline ${baseline}, and no record dissolved into ${cited} since: a chapter is written at the move, where its records dissolve [D300]` });
+    }
+  }
+  return unclaimed;
+}
+
+// The text of a chapter by its sections, the head before the first of
+// them under the empty name.
+function sectionsOfChapter(text) {
+  const sections = new Map([['', []]]);
+  let current = '';
+  for (const line of text.replace(/\r\n/g, '\n').split('\n')) {
+    if (line.startsWith('## ')) sections.set(current = line.slice(3).trim(), []);
+    else sections.get(current).push(line);
+  }
+  return new Map([...sections].map(([name, lines]) => [name, lines.join('\n').trim()]));
 }
 
 // The documents of the research that stay while something in force cites

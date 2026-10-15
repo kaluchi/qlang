@@ -125,7 +125,7 @@ value computed at the call that is a failure is the answer of the call
 A value is read as another kind by a word of its own kind named `to`
 and the kind it answers, a kind answering its own word as itself.
 `toString` writes a number as JSON writes it, a keyword and a tag name by
-their names and a boolean by its literal; `toNumber` reads a string whose
+their names, and a boolean and null by their literals; `toNumber` reads a string whose
 whole text is a number's literal, and a keyword whose name is one;
 `toKeyword` files a value as `groupBy` files a key; `toTag` reads a
 string or a keyword that names a tag; `toSet` answers the elements of a
@@ -144,8 +144,8 @@ are read by `entries`, `keys` and `vals`.
 > ["4x" ""] | map ~(toNumber !| type)
 [::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError]
 
-> [42 :a ::vec true] | map ~toString
-["42" "a" "vec" "true"]
+> [42 :a ::vec true null] | map ~toString
+["42" "a" "vec" "true" "null"]
 
 > [[:a 1] [:a 2]] | toMap
 {:a 2}

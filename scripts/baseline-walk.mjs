@@ -179,17 +179,34 @@ export function recordsInTransit(repoRoot) {
   }));
 }
 
+// The records dissolved since the baseline, each with the sections it
+// dissolved into and its file: those the baseline's tree held outside
+// `replaced/`, or lacked, whose move into the sections the merge that
+// lands them seals [QSWRK#baseline].
+function dissolvedSince(repoRoot, baseline) {
+  const replacedThen = new Set(git(repoRoot, 'ls-tree', '-r', '--name-only', baseline, '--', 'docs/').split('\n')
+    .filter(path => path.includes('/replaced/')).map(path => RECORD_FILE.exec(path)?.[1]).filter(Boolean));
+  return new Map([...readDecisionRecords(repoRoot)]
+    .filter(([name, record]) => record.dissolvedInto.length > 0 && !replacedThen.has(name))
+    .map(([name, record]) => [name, { sections: record.dissolvedInto, path: record.path }]));
+}
+
 // The cases of a chapter that the baseline's chapter held otherwise, or
 // lacked, or that are gone from it, each claimed by a record in transit
 // over its section: a case added or rewritten names the record, and a
-// case taken away is named in the record's text; and a case under a
+// case taken away is named in the record's text; a record dissolved into
+// the section since the baseline claims them until the merge that lands
+// it; and a case under a
 // chapter names no record but one in transit over its section [QSWRK#cases].
 // A chapter the baseline did not hold is the work of the move that wrote
 // it, read from the next baseline on.
 export function casesTouchedUnclaimed(repoRoot, baseline) {
   const conformance = 'core/test/conformance';
   const transit = recordsInTransit(repoRoot);
-  const overrides = (record, chapter, section) => (transit.get(record) ?? []).some(cited => cited === chapter || cited === `${chapter}#${section}`);
+  const covers = (sections, chapter, section) => sections.some(cited => cited === chapter || cited === `${chapter}#${section}`);
+  const overrides = (record, chapter, section) => covers(transit.get(record) ?? [], chapter, section);
+  const dissolved = [...dissolvedSince(repoRoot, baseline).values()];
+  const dissolvedOver = (chapter, section) => dissolved.filter(({ sections }) => covers(sections, chapter, section));
   const casesOf = text => new Map(text.split(/\r?\n/).filter(line => line.trim() !== '' && !line.startsWith('//')).map(line => JSON.parse(line)).map(test => [test.name, test]));
   const unclaimed = [];
   for (const file of filesUnder(repoRoot, conformance, /\.jsonl$/).filter(path => /\/QS[A-Z]{3}\/[^/]+\.jsonl$/.test(path))) {
@@ -209,11 +226,12 @@ export function casesTouchedUnclaimed(repoRoot, baseline) {
       if (then === null) continue;
       const before = then.get(name);
       const touched = before === undefined || before.query !== test.query || before.expect !== test.expect || before.target !== test.target || before.now !== test.now;
-      if (touched && test.decision === undefined) unclaimed.push({ where: `${file}#${name}`, problem: `changed since the baseline ${baseline} and names no record in transit over ${chapter}#${section}` });
+      if (touched && test.decision === undefined && dissolvedOver(chapter, section).length === 0) unclaimed.push({ where: `${file}#${name}`, problem: `changed since the baseline ${baseline}, and names no record in transit over ${chapter}#${section}, nor did one dissolve into it since` });
     }
     for (const name of then === null ? [] : [...then.keys()].filter(name => !now.has(name))) {
-      const claimed = [...transit.keys()].some(record => overrides(record, chapter, section) && readFileSync(join(repoRoot, JOURNAL, `${record}.md`), 'utf8').includes(name));
-      if (!claimed) unclaimed.push({ where: `${file}#${name}`, problem: `gone since the baseline ${baseline}, and no record in transit over ${chapter}#${section} names it` });
+      const claimed = [...transit.keys()].some(record => overrides(record, chapter, section) && readFileSync(join(repoRoot, JOURNAL, `${record}.md`), 'utf8').includes(name))
+        || dissolvedOver(chapter, section).some(({ path }) => readFileSync(path, 'utf8').includes(name));
+      if (!claimed) unclaimed.push({ where: `${file}#${name}`, problem: `gone since the baseline ${baseline}, and no record in transit over ${chapter}#${section} names it, nor one dissolved into it since` });
     }
   }
   return unclaimed;

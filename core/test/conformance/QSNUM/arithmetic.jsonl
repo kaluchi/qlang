@@ -14,5 +14,5 @@
 {"name":"a-division-by-zero-is-refused-under-its-divisor","query":"10 | div 0","expect":"::number/div/divisor/ZeroError!{\n  :actualType ::number\n  :actualValue 0\n  :trail [\n    {\n      :step ~(div 0)\n      :subject 10\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"round-rounds-half-away-from-zero","query":"[2.5 -2.5 3.4] | map ~round","expect":"[3 -3 3]"}
 {"name":"round-keeps-the-digits-the-call-gives","query":"3.14159 | round 2","expect":"3.14"}
-{"decision":"D290","name":"a-remainder-and-a-rounding-stay-within-the-doubles","query":"get [~(1e308 | mod 1e-308 | lt 1e-308) ~(-1e-300 | mod 1e300 | gt 0) ~(1 | round 400) ~(1 | round -400)]","expect":"[true true 1 0]"}
-{"decision":"D290","name":"a-number-past-the-digits-a-double-holds-rounds-to-itself","query":"1e308 | round 2","expect":"1e+308"}
+{"name":"a-remainder-and-a-rounding-stay-within-the-doubles","query":"get [~(1e308 | mod 1e-308 | lt 1e-308) ~(-1e-300 | mod 1e300 | gt 0) ~(1 | round 400) ~(1 | round -400)]","expect":"[true true 1 0]"}
+{"name":"a-number-past-the-digits-a-double-holds-rounds-to-itself","query":"1e308 | round 2","expect":"1e+308"}

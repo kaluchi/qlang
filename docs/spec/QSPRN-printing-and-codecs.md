@@ -18,8 +18,9 @@ by the walk of that part, an answer that is no string printed in its
 place; a kind's own `print` gives the text it chooses, which reads back
 where it writes the kind's literal. What a host leaves out of an answer
 stands as an `::elision` before the print, so the print holds all it is
-given. Every host prints an answer through `print`, the command line a
-string as its text and the REPL as its literal.
+given. The print of a failure finds the print of each part of its facts as the
+print of every value does. Every host prints an answer through `print`,
+the command line a string as its text and the REPL as its literal.
 
 ```qlang
 > {:a [1 "x" :k]} | :v it | print | parse | apply it | eq v
@@ -64,16 +65,21 @@ duplicate key reads as `JSON.parse` reads it.
 
 `elide` answers a value whose print fits a budget of characters, a
 number, where it can, replacing parts by values of the kind `::elision`.
-A part gives way only where its marker prints shorter than it, the
-largest first, so where no marker is shorter the answer stands over the
-budget: the top vector and, beneath it, vectors, maps and strings give
-way, a string or a map to its marker, a vector to its first half and a
-marker of the rest, halving until it gives way whole; a set, a quote, a
-doc and a container under a tag keep their shape, their parts giving way
-within. A marker holds `:size`, what it stands for, `:read`, the quote
-that applied to the value `elide` took answers the part left out, and for
-a string `:head`; it prints and reads back as the value it is. A value
-whose print fits is answered as it is.
+The largest part gives way first, or in its place a part within it that
+prints more than half of it, and a part gives way only where the least it
+gives way to prints shorter than it, so where no part's least is shorter
+the answer stands over the budget. A string, a doc, a quote or a map
+beneath the top gives way whole to its marker, and a vector or a set to
+its first half and a marker of the rest, halving until it gives way
+whole, a set standing in the one order; the top keeps its shape, a vector
+or a set there halving to its first element at the least, and a
+container under a tag keeps its shape, its parts giving way within. A
+part a kind prints its own way stands as that kind prints it, the budget
+counting the print a host writes. A marker holds `:size`, what it stands
+for, `:read`, the quote that applied to the value `elide` took answers
+the part left out, and for a string, a doc and a quote `:head`, the first
+characters of its text; it prints and reads back as the value it is. A
+value whose print fits is answered as it is.
 
 ```qlang
 > [1 2] | elide 100
@@ -81,6 +87,9 @@ whose print fits is answered as it is.
 
 > [[] {:n 1} "short"] | elide 3
 [[] {:n 1} "short"]
+
+> 200 | range | map ~("a") | join "" | :s it | get [~(s) ~(s)] | elide 200 | get [~(count) ~(last | type)]
+[2 ::elision]
 ```
 
 ## span

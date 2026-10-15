@@ -92,7 +92,9 @@ is no pattern is refused by the parser with the reason, and the repair
 of another dialect's habit where the source shows one: flags written
 inside, or a backslash before a character that needs none. A pattern
 prints as its literal and reads back, JSON writing that literal as a
-string, and two are equal when their text and flags are. A pattern whose
+string, and two are equal when their text and flags are. `toRegex` reads
+a string as a pattern and answers a pattern as its source, each with the
+flags its call gives in the place of its own. A pattern whose
 matching backtracks without end runs as long as its matching does.
 
 ```qlang
@@ -104,6 +106,9 @@ matching backtracks without end runs as long as its matching does.
 
 > "#\"(?i)a\"" | parse !| get /message | contains "the flags follow"
 true
+
+> #"a"m | toRegex "i"
+#"a"i
 ```
 
 ## match

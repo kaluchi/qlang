@@ -1,14 +1,14 @@
 {"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true"}
 {"name":"the-manifest-of-a-word-lists-its-inputs","query":"::any/query | manifest","expect":"#[::any/query/default ::any/query/path]"}
 {"name":"a-tag-over-a-name-passes-to-manifest","query":"::Box::vec | manifest | type","expect":"::set"}
-{"decision":"D289","name":"manifest-reads-the-kind-of-a-value","query":"5 | manifest | eq (::number | manifest)","expect":"true"}
+{"name":"manifest-reads-the-kind-of-a-value","query":"5 | manifest | eq (::number | manifest)","expect":"true"}
 {"name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | get [~(manifest | has ::vec/count) ~(doc :count | eq (::vec/count | doc))]","expect":"[true true]"}
 {"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | manifest | has ::string/gt","expect":"true"}
 {"name":"each-kind-declares-the-inputs-and-the-answer-of-its-word","query":"get [~(::vec/take | manifest) ~(::string/take | manifest)]","expect":"[#[::vec/take/answer ::vec/take/count] #[::string/take/answer ::string/take/count]]"}
 {"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true"}
 {"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::any | manifest | has ::any/doc","expect":"true"}
 {"name":"manifest-is-asked-of-a-noun","query":"::vec | manifest | filter ~(eq ::vec/count) | count","expect":"1"}
-{"decision":"D289","name":"manifest-lives-on-every-value","query":"::any | manifest | has ::any/manifest","expect":"true"}
+{"name":"manifest-lives-on-every-value","query":"::any | manifest | has ::any/manifest","expect":"true"}
 {"name":"a-noun-lists-the-refusals-its-source-declares","query":"::number | manifest | contains ::number/NotFiniteError","expect":"true"}
 {"name":"the-answer-of-a-word-is-a-node-under-it","query":"::number/add | manifest | has ::number/add/answer","expect":"true"}
 {"name":"the-answer-of-a-word-stands-under-answer","query":"::any/eq | manifest | has ::any/eq/answer","expect":"true"}
@@ -20,4 +20,4 @@
 {"name":"a-place-lists-the-refusal-declared-under-it","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/KindNotTakenError]"}
 {"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/other | manifest","expect":"#[::set/union/other/KindNotTakenError]"}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
-{"decision":"D289","name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(type) /name]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}
+{"name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(type) /name]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}

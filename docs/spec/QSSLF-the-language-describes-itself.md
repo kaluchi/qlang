@@ -29,8 +29,8 @@ runtime raises by rule having no node of its own; any other name
 nothing declares is refused under the axis, `::any/doc/UnknownNameError`,
 named by the tag or the keyword asked, with the addresses of words of
 the name and the names near it. A name declared without a page answers
-null. A field of a map names nothing, so `{:kind ::set} | doc` is the
-page of maps, and a label may declare a `doc` of its own, which its
+null. A map is read by its kind whatever its fields hold,
+`{:kind ::set} | doc` the page of maps, and a label may declare a `doc` of its own, which its
 values answer before the word of every value. A reader adds an axis of
 its own by laying a tag over values and declaring words on the tag.
 

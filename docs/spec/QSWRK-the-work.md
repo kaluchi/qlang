@@ -226,8 +226,9 @@ baseline's tree holds that no case names and no line of fate closes,
 unless it is open; a citation of a section its chapter lacks; a case of
 a chapter the baseline held, added, rewritten or taken away since, that
 no record in transit over its section claims, the case naming it or,
-taken away, named in its text, a chapter the baseline did not hold
-waiting for the next move; a document of the research the baseline
+taken away, named in its text, nor a record dissolved into the section
+since the baseline, which claims it until the merge that lands it, a
+chapter the baseline did not hold waiting for the next move; a document of the research the baseline
 holds that nothing citing names; more than twenty records since the
 baseline; a record in transit in the tree of the merge that landed it;
 a citation in the code and the tests of a record that no met

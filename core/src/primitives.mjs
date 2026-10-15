@@ -92,7 +92,7 @@ export function readsState(impl) {
 
 // A primitive whose answer names the tags its subject stood beneath takes
 // the tags the walk of its subject passed, from the outside in, after its
-// values [QSDSP#walk]: `raise` names its error by the outermost [QSERR#rest].
+// values [QSDSP#walk]: `raise` names its error by the outermost [QSERR#raise].
 const READERS_OF_PASSED_TAGS = new WeakSet();
 
 export function bindReaderOfPassedTags(addresses, impl) {
@@ -121,7 +121,7 @@ export function inputsRunBy(impl) {
 
 // runsWithin(names, impl) → the primitive, which runs the quotes a template
 // of those inputs holds, at any depth of it, as code closed at the call,
-// its paths and its other values handed as they are [QSLIT#tag].
+// its paths and its other values handed as they are [QSPTH#template].
 const INPUTS_RUN_WITHIN = new WeakMap();
 
 export function runsWithin(names, impl) {

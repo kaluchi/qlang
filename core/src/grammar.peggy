@@ -78,7 +78,6 @@
     const { source, end } = range();
     return { source, start: pointOf(end - length), end: pointOf(end) };
   }
-
   // A plain comment the parser read as whitespace, kept by its offset,
   // since a branch the parser abandons reads the same comment again.
   function recordComment(type, content) {
@@ -158,26 +157,35 @@
     return readsAsBareKeyword(name) && (body === null || builtFrom(body) === 'kind' || !LITERAL_WORDS.has(name));
   }
 
-  // A literal holds literals: a group or a name written inside one would
-  // compute, which a literal does not, and is refused naming the template
-  // of paths and quotes `get` computes a shape from, while the code of a
-  // doc that writes one reads as prose [QSLIT#tag].
+  // A literal holds literals: a group or a name written inside one, at any
+  // depth, would compute, which a literal does not, and the literal a step
+  // or a modifier writes is refused whole, naming the template of paths and
+  // quotes `get` computes the shape from, its tags and brackets kept, while
+  // the code of a doc that writes one reads as prose [QSLIT#closed].
   const COMPUTED_PARTS = new Set(['ParenGroup', 'Call']);
 
   const readsAsLiteral = parts => docQuoteDepth === 0 || !parts.some(part => COMPUTED_PARTS.has(part.type));
 
-  function refuseComputedParts(parts, errorTag) {
-    const computed = parts.filter(part => COMPUTED_PARTS.has(part.type));
+  function computedPartsOf(node) {
+    if (COMPUTED_PARTS.has(node.type)) return [node];
+    if (node.type === 'VecLit' || node.type === 'SetLit') return node.elements.flatMap(computedPartsOf);
+    if (node.type === 'MapLit' || node.type === 'ErrorLit') return node.entries.flatMap(entry => computedPartsOf(entry.value));
+    return node.type === 'TaggedLit' ? computedPartsOf(node.payload) : [];
+  }
+
+  function refuseComputedLiteral(literal) {
+    if (docQuoteDepth > 0 || COMPUTED_PARTS.has(literal.type)) return;
+    const computed = computedPartsOf(literal);
     if (computed.length === 0) return;
-    const start = range().start;
-    let written = text();
+    const start = literal.location.start.offset;
+    let written = literal.text;
     for (const part of computed.reverse()) {
       const inner = part.type === 'ParenGroup' ? part.pipeline.text : part.text;
       written = written.slice(0, part.location.start.offset - start) + `~(${inner})` + written.slice(part.location.end.offset - start);
     }
-    if (errorTag === undefined) error(`a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${written}\``);
+    if (literal.type !== 'ErrorLit') error(`a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${written}\``, literal.location);
     const facts = written.slice(written.indexOf('!') + 1);
-    error(`an error literal computes nothing: facts computed are built by \`get\` and \`raise\` makes them an error, write \`get ${facts}${errorTag === null ? '' : ` | tag ::${errorTag}`} | raise\``);
+    error(`an error literal computes nothing: facts computed are built by \`get\` and \`raise\` makes them an error, write \`get ${facts}${literal.tag === null ? '' : ` | tag ::${literal.tag}`} | raise\``, literal.location);
   }
 
   // The path a quote holds alone, a leading pipe before it among it, or null.
@@ -223,11 +231,14 @@ Query
 Pipeline
   = leadingComb:(LeadingCombinator __)? head:PipelineHead tail:ContinuationUnit*
     { return assemblePipeline(leadingComb, head, tail, span(), text()); }
+  / &{ return docQuoteDepth === 0; } &(LeadingCombinator __ Combinator) first:LeadingCombinator __ second:Combinator
+    { refuseCombinatorAfterCombinator(first, second); }
 
 // The `!"~"` lookahead keeps the comment markers `|~`, `|~|`, `|~~`,
-// `|~~|` from reading as a pipe.
+// `|~~|` from reading as a pipe; a pipe written before `!|` stands for it
+// at the head as between two steps [QSSYN#combinator].
 LeadingCombinator
-  = "!|" / "|" !"~" { return '|'; }
+  = "!|" / "|" &(__ "!|") __ "!|" { return '!|'; } / "|" !"~" { return '|'; }
 
 Combinator
   = "!|" { return '!|'; }
@@ -277,6 +288,7 @@ SpacingRefusal
     / &Combinator c:Combinator { refuseCombinatorSpacing(c); }
     / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
     / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }
+    / _ &"," "," { error('modifiers are separated by spaces, not by commas: `f a b`', lastOf(1)); }
     / _h1 &Word { error('steps are joined by `|`: write `a | b`', after()); }
     / __ &Word { error('steps are joined by `|`, at the end of a line or at the start of the next: a line break is a space', after()); }
     )
@@ -375,7 +387,7 @@ BlockDocContent
 Step
   = Command
   / PathBeforeWord
-  / Word
+  / word:Word { refuseComputedLiteral(word); return word; }
   / DocLit
 
 // A path written before a word, the method call of other languages,
@@ -390,7 +402,11 @@ PathBeforeWord
 // the group `(gt(1))`.
 Command
   = callName:CallName first:(FirstModifierSeparator @ModifierWord)? rest:(ModifierGap @ModifierWord)*
-    { return node('Call', { ...callName, args: first === null ? [] : [first, ...rest] }, span(), text()); }
+    {
+      const args = first === null ? [] : [first, ...rest];
+      args.forEach(refuseComputedLiteral);
+      return node('Call', { ...callName, args }, span(), text());
+    }
 
 FirstModifierSeparator
   = ModifierGap / &"("
@@ -480,7 +496,7 @@ BodySentenceStep
 // ── Words ──────────────────────────────────────────────────────────
 //
 // A word is a literal, a path, a name, a quote or a pipeline in
-// parentheses; every part of a literal is a literal [QSLIT#tag].
+// parentheses; every part of a literal is a literal [QSLIT#closed].
 
 Word
   = ParenGroup
@@ -526,7 +542,7 @@ CallName
 // payload touching the tag by a sign that continues the literal, a number,
 // a boolean, null or a path, whose literal would continue the tag's name,
 // by `#`, `::Width#5`; parentheses after a tag,
-// the sign of code, are refused [QSLIT#tag]. `::tag` alone is the tag name.
+// the sign of code, are refused [QSLIT#closed]. `::tag` alone is the tag name.
 TaggedLit
   = "::" tag:TagName "#" payload:PayloadAfterHash
     { return node('TaggedLit', { tag, payload }, span(), text()); }
@@ -713,7 +729,7 @@ ErrorLit
     { return node('ErrorLit', { tag, entries: [] }, span(), text()); }
   / tag:ErrorLitTag? "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
     &{ return readsAsLiteral([head, ...tail].map(entry => entry.value)); }
-    { refuseComputedParts([head, ...tail].map(entry => entry.value), tag); return node('ErrorLit', { tag, entries: [head, ...tail] }, span(), text()); }
+    { return node('ErrorLit', { tag, entries: [head, ...tail] }, span(), text()); }
 
 ErrorLitTag
   = "::" @TagName
@@ -724,10 +740,10 @@ ErrorLitTag
 MapLit
   = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ "}"
     &{ return readsAsLiteral([head, ...tail].map(entry => entry.value)); }
-    { refuseComputedParts([head, ...tail].map(entry => entry.value)); return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
+    { return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
   / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
     &{ return readsAsLiteral([head, ...tail].map(entry => entry.value)); }
-    { refuseComputedParts([head, ...tail].map(entry => entry.value)); return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
+    { return node('MapLit', { entries: [head, ...tail] }, span(), text()); }
   / "{" _ "}"
     { return node('MapLit', { entries: [] }, span(), text()); }
   / &{ return docQuoteDepth === 0; } "{" _ QlangMapEntry (_ QlangMapEntry)* &(_ StringLit _ ":")
@@ -763,19 +779,23 @@ RegexChar
   / $("\\" .)
   / [^"\\]
 
+// A set written with braces, the form of another language, is refused
+// naming its own [QSSYN#refusal].
 SetLit
   = "#[" _ "]"
     { return node('SetLit', { elements: [] }, span(), text()); }
+  / &{ return docQuoteDepth === 0; } &"#{" "#{"
+    { error('a set is written `#[…]`, the vector in the one order without duplicates; `{…}` is a map'); }
   / "#[" _ elements:ElementList _ "]"
     &{ return readsAsLiteral(elements); }
-    { refuseComputedParts(elements); return node('SetLit', { elements }, span(), text()); }
+    { return node('SetLit', { elements }, span(), text()); }
 
 // Brackets with commas are JSON syntax for a vector; whitespace-separated
 // elements are the vector's own.
 VecLit
   = "[" _ head:Element tail:((_ "," _ @Element)+ / (LiteralGap @Element)*) _ "]"
     &{ return readsAsLiteral([head, ...tail]); }
-    { refuseComputedParts([head, ...tail]); return node('VecLit', { elements: [head, ...tail] }, span(), text()); }
+    { return node('VecLit', { elements: [head, ...tail] }, span(), text()); }
   / "[" _ "]"
     { return node('VecLit', { elements: [] }, span(), text()); }
 

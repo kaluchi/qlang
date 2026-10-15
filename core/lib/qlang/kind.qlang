@@ -48,12 +48,13 @@
             it, each with its objects: `wraps` a page and kinds, `reads` a
             name, a page, a place and kinds, `holds` a name, a page and a
             condition, `throws` a name and a page, `carries` a name, a
-            page and kinds, and `proves` a name, a page and a query. The
-            name of a field is one segment, beside `payload`, `construct`
-            and the words of a literal; the name of a refusal, a fact and
-            a law is read as a tag; a page is a doc, a place a path or a
-            quote, and kinds a tag, a set of tags, or a vector of one of
-            them for the kinds of each element.
+            page and kinds, `tells` a name and a page, and `proves` a
+            name, a page and a query. The name of a field and of a page is
+            one segment, beside `payload`, `construct` and the words of a
+            literal; the name of a refusal, a fact and a law is read as a
+            tag; a page is a doc, a place a path or a quote, and kinds a
+            tag, a set of tags, or a vector of one of them for the kinds of
+            each element.
         ~~|
     | throws :NameDeclaredTwiceError
         |~~ A name of a kind is declared once: the payload, each field,

@@ -42,7 +42,7 @@ const BuiltinUnknownAstNodeTypeError = declareInvariantError(
   ({ nodeType }) => `unknown AST node type: ${nodeType}`);
 
 // The tag of a name that holds data puts no value under it: a value goes
-// under a label, a word, an invariant or a tag no node answers [QSBLD#input].
+// under a label, a word, an invariant or a tag no node answers [QSBLD#label].
 const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
 const CallValueMeetsWordError = declareRefusal('call/ValueMeetsWordError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
@@ -109,7 +109,7 @@ async function evalNode(node, state) {
     return await evaluator(node, state);
   } catch (caughtError) {
     // The error the node raised; the step that ran the node writes its
-    // stop [QSERR#rest].
+    // stop [QSERR#trail].
     return withPipeValue(state, raisedBy(errorOfThrow(caughtError, node, state.pipeValue, state.env), node));
   }
 }
@@ -133,7 +133,7 @@ async function evalPipeline(node, state) {
 }
 
 // The tracks live in the combinators alone: `|` steps around an error, the
-// step joining the skipped steps of its last stop [QSERR#rest], and `!|` fires
+// step joining the skipped steps of its last stop [QSERR#trail], and `!|` fires
 // on an error alone [QSSYN#combinator]; the parser writes no other combinator.
 async function applyCombinator(kind, state, stepNode) {
   return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
@@ -165,9 +165,9 @@ function evalBody(node, state) {
 // map of its facts, `:trail` among them, under `::error` and the tag of
 // the site that refused laid through its label as a tagged literal lays
 // it, so `!| type` reads the site and a verb of `::error` reaches every
-// error [QSSLF#doc], a value passing, a label's refusal answering for the
-// catch, and a raise that writes the `:trail` it read resuming that path
-// [QSERR#rest].
+// error [QSERR#rest], a value passing, a label's refusal answering for the
+// catch [QSERR#catch], and a raise that writes the `:trail` it read resuming
+// that path [QSERR#trail].
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
@@ -194,9 +194,9 @@ function evalRegexLit(node, state)   { return withPipeValue(state, makeRegex(nod
 
 // Each element and each value of a literal is a literal, read one after
 // another in their order [QSQUO#modifier], none reading the scope or the
-// subject [QSLIT#tag]; a failure lives in the pipe alone, so the first a part
+// subject [QSLIT#closed]; a failure lives in the pipe alone, so the first a part
 // answers, a constructor's refusal of its payload, is the answer of the
-// literal, the parts after it left unread [QSERR#rest].
+// literal, the parts after it left unread [QSERR#flow].
 async function evalVecLit(node, state) {
   return withPipeValue(state, await partValues(node.elements, state));
 }
@@ -235,7 +235,7 @@ async function evalErrorLit(node, state) {
 
 // The value a part of a literal answers: a refusal its constructor raised
 // passes a stop at the part, and one handed on from a part inside it goes
-// on as it is to the literal it fails [QSERR#rest].
+// on as it is to the literal it fails [QSERR#trail].
 async function partAnswer(partNode, state) {
   return answerOfPart((await evalNode(partNode, state)).pipeValue, partNode, state.pipeValue);
 }
@@ -278,7 +278,7 @@ async function evalTaggedLit(node, state) {
 
 // The error a tagged literal's payload answered, passed by the tag as an
 // error passes every step, the tag's step joining the skipped steps of
-// its last stop [QSERR#rest], and the literal's own raise where the payload
+// its last stop [QSERR#trail], and the literal's own raise where the payload
 // raised it.
 function passedUntagged(payloadError, node, tagName) {
   const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)));
@@ -298,7 +298,7 @@ async function evalTagLit(node, state) {
 // against the current value, `42 | :x it | add 1 | x` answering 42, a quote
 // among them as the data it is [QSBLD#fn], a declaration of docs alone binding
 // them as a page, and a body that fails answering the failure, which no name
-// holds [QSERR#rest]; a name is declared once in its scope [QSNAM#scope], a
+// holds [QSERR#flow]; a name is declared once in its scope [QSNAM#scope], a
 // node the root holds once at all and a name with a path under a noun declared
 // before it [QSNAM#address], never a value withheld from held code
 // [QSQUO#held]; what the chain of a kind or a function holds alone, declared
@@ -468,7 +468,7 @@ function withReadOfPath(state, node, subject, env) {
 
 // A bare name calls what it reaches for the subject [QSDSP#walk],
 // [QSDSP#residence]; a word the kind of the subject does not answer is refused
-// with the addresses where the word lives [QSSLF#catalog], and a name that
+// with the addresses where the word lives [QSDSP#refusal], and a name that
 // reaches nothing with the names near it. A value the scope binds and a word
 // that serves the subject under one name meet, and the step is refused with
 // the word's address, which calls the word, as another name reads the value
@@ -547,7 +547,7 @@ async function callByAddress(node, state) {
 // facts with the kind of the value refused in the order the catalog declares
 // them [QSERR#site]; the value itself rides the facts where the trail does not
 // hold it, an input or the args, and leaves them for the subject, which the
-// trail's first stop holds [QSERR#rest].
+// trail's first stop holds [QSERR#site].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
   const tag = makeTag(tagName);
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeKeyword(refused)), env));
@@ -677,7 +677,7 @@ function isNodeOrLabel(name, record) {
 const ARGS_NAME = keyword('args');
 
 // A word runs by its function [QSBLD#fn], a recipe written as the value of a
-// name under a label the function of no commands it is [QSBLD#chain].
+// name under a label the function of no commands it is [QSBLD#recipe].
 async function applyWord(record, modifiers, state) {
   const value = bindingValueOf(record);
   return await applyFunctionWord(record, isFn(value) ? value : functionOfRecipe(value), modifiers, state);
@@ -688,7 +688,7 @@ async function applyWord(record, modifiers, state) {
 const isThenable = value => typeof value?.then === 'function';
 
 // The answer brought to the kinds `returns` names, a word that names `::any`
-// bringing none [QSSLF#catalog], [QSBLD#fn]: one that reaches another of the
+// bringing none [QSBLD#answer]: one that reaches another of the
 // kinds is the value it reaches; one of the word's own label goes back under
 // the tags the walk passed, as the subject's kind; one kind alone makes the
 // value by its constructor and invariants, and so does a kind of the answer's
@@ -717,8 +717,7 @@ async function keptOfTheLabel(answer, labelName, walked, refused, state) {
 }
 
 // The answer a constructor makes, a payload the kind refuses for its kind
-// refused as the answer is, so a kind that joins the answer changes no tag
-// [QSBLD#answer].
+// refused as the answer is [QSBLD#answer].
 async function answerMadeBy(kindName, make, refused) {
   const payloadRefusal = `${kindName}/${payloadRefusalName(false)}`;
   let made;
@@ -741,7 +740,7 @@ export async function callMemberOn(record, subject, state) {
 // answerKindsOf(env, record, subjectKinds) → the kinds of the answer a
 // name under a label gives, for a tool: the subject's own where the
 // answer's kind is the word's own label, the kinds `returns` names, or
-// null for a word that answers any value [QSSLF#catalog], [QSBLD#fn].
+// null for a word that answers any value [QSBLD#answer].
 export function answerKindsOf(env, record, subjectKinds) {
   const address = record.get('name').name;
   const answerDefinition = answerOf(env, address);
@@ -944,8 +943,7 @@ async function inputsOfCall(signature, address, modifiers, state, scope, body) {
 // element of the objects whole naming its place and the value of an input
 // of each element refused as no vector, as a value of the step is
 // [QSBLD#input]; a name withheld from held code, which ran no step, and
-// anywhere else the error is the answer [QSERR#rest], [QSBLD#fn],
-// [QSQUO#held].
+// anywhere else the error is the answer [QSQUO#modifier].
 function refusalOfFailedObject(signature, address, place, error, scope) {
   if (error.tag.name === CallValueWithheldError.prototype.address) return error;
   const reading = signature.inputs.find(({ selector }) => selector.place === place) ?? signature.inputs.find(({ selector }) => selector.readsArgs);
@@ -963,8 +961,8 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 
 // mintTaggedInstance(tagName, payload, state) → the payload under the tag
 // through its label [QSDSP#answer]: built by its kind [QSBLD#kind], laid over
-// as it is where no kind answers the tag [QSLIT#tag], [QSBLD#input], never
-// over an error [QSERR#rest], and never under the name of a value withheld
+// as it is where no kind answers the tag [QSLIT#tag], [QSBLD#label], never
+// over an error [QSERR#flow], and never under the name of a value withheld
 // from held code [QSQUO#held].
 export async function mintTaggedInstance(tagName, payload, state) {
   refuseWithheld(state.env, tagName, true);
@@ -1067,13 +1065,15 @@ function heldIn(state) {
 }
 
 // codeOfPath(path, callState) → code that reads the path from each input
-// it is handed, as `get` reads it, a refusal its answer [QSPTH#value].
+// it is handed, as `~(get /path)` reads it, a refusal its answer with the
+// stop of that step at the input [QSPTH#code].
 export function codeOfPath(path, callState) {
+  const step = () => makeQuote([commandStep('get', [path])]);
   return async input => {
     try {
       return readPath(input, path);
     } catch (refusal) {
-      return errorFromQlang(refusal, input, callState.env);
+      return answerOfStep(errorFromQlang(refusal, input, callState.env), step, input);
     }
   };
 }

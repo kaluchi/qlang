@@ -14,7 +14,7 @@
       `eq`, `gt`, `has`, `contains`, `is`; `not` turns it over, `and`
       and `or` join two, and `allOf` and `anyOf` join the conditions of
       one value, `5 | allOf (gt 0) (lt 10)` answering `true`. After
-      steps, `false !| true` answers whether they failed.
+      steps, `ok !| false` answers whether they stood.
       ::snippet~(::boolean | manifest) lists its words and refusals.
       ::link~(::any/if | doc) ::link~(::qlang/values | doc)
   ~~|

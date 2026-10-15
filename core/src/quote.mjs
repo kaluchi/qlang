@@ -102,7 +102,7 @@ export function commandStep(name, modifiers) {
 }
 
 // tagCallStepOf(tag) → the step `tag ::Tag`, the call a tagged literal
-// stands for [QSERR#rest].
+// stands for [QSERR#trail].
 export function tagCallStepOf(tag) {
   return commandStep('tag', [tag]);
 }

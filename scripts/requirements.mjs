@@ -3,11 +3,10 @@
 // requirement the tree does not meet yet is a target. Without an
 // argument it prints each target open with the decisions that name it,
 // then the decisions carried out, the decisions of the language no case
-// names and the open ones, which are still being decided, the decisions
-// later records replaced in part, and the decisions a case does not
-// hold, by their domain.
+// names and the open ones, which are still being decided, and the
+// decisions a case does not hold, by their domain.
 // With decision numbers it prints the records that replace each and
-// that each replaces, whole or in part, and its cases, open and met.
+// that each replaces, and its cases, open and met.
 //
 // Usage: node scripts/requirements.mjs [D<n> ...]
 
@@ -26,15 +25,12 @@ if (askedDecisions.length > 0) {
     const record = decisions.get(decision);
     if (record === undefined) { console.error(`${decision} has no file in ${JOURNAL}: name a record the folder holds [QSWRK#journal]`); process.exit(2); }
     console.log(`${decision} · ${record.domain}`);
-    const replaces = inPart => [...decisions].filter(([, other]) => (inPart ? other.replacedInPartBy : other.replacedBy).includes(decision))
-      .map(([other]) => other);
+    const replaces = [...decisions].filter(([, other]) => other.replacedBy.includes(decision)).map(([other]) => other);
     if (record.replacedBy.length > 0) console.log(`  replaced by          ${record.replacedBy.join(' ')}`);
     if (record.mergedInto.length > 0) console.log(`  merged into          ${record.mergedInto.join(' ')}`);
     const merged = [...decisions].filter(([, other]) => other.mergedInto.includes(decision)).map(([other]) => other);
     if (merged.length > 0) console.log(`  holds merged         ${merged.join(' ')}`);
-    if (record.replacedInPartBy.length > 0) console.log(`  replaced in part by  ${record.replacedInPartBy.join(' ')}`);
-    if (replaces(false).length > 0) console.log(`  replaces             ${replaces(false).join(' ')}`);
-    if (replaces(true).length > 0) console.log(`  replaces in part     ${replaces(true).join(' ')}`);
+    if (replaces.length > 0) console.log(`  replaces             ${replaces.join(' ')}`);
     for (const name of record.targets) console.log(`  target  ${name}`);
     for (const name of record.met) console.log(`  met     ${name}`);
   }
@@ -49,7 +45,6 @@ if (askedDecisions.length > 0) {
   printList('carried out', decisionsWhere(record => record.met.length > 0 && record.targets.length === 0));
   printList('being decided', decisionsWhere(isBeingDecided));
   printList('replaced', decisionsWhere(replacedWhole));
-  printList('replaced in part', decisionsWhere(record => !replacedWhole(record) && record.replacedInPartBy.length > 0));
   // A decision in force of any other domain, a host, the command line or
   // the tooling, is held by the tests of that domain.
   const inForceOf = domain => record => record.domain === domain && !replacedWhole(record) && !record.open;

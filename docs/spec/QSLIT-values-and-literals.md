@@ -148,11 +148,12 @@ names after `::`, `::null`.
 The constructor of the tag's kind attaches the tag to the payload the
 literal writes, or refuses it naming why the payload does not fit. A
 kind of the core reads its payload, a value of its own kind or, for a
-set, a quote and a doc, a vector, so `::number"5"` is refused and
-`::set[3 1]` is `#[1 3]`; a label laid over a value already under it
-stands once, `::Lab::Lab[1]` reading `::Lab[1]`. A tag no declaration
-names, and the tag of a word, lays itself over a payload as it is
-[QSNAM#address], and the tag of a name that holds data is refused as
+set, a quote and a doc, a vector, and for an error the map of its facts,
+so `::number"5"` is refused and `::set[3 1]` is `#[1 3]`; a label laid
+over a value already under it stands once, `::Lab::Lab[1]` reading
+`::Lab[1]`, but for `::desc`, whose reversals stack [QSORD#desc]. A tag
+no declaration names, and the tag of a word, lays itself over a payload
+as it is [QSNAM#address], and the tag of a name that holds data is refused as
 `::construct/TagNotKindError`. `tag` lays a tag over the value in the
 pipe, `5 | tag ::Foo`, or over the pair `[tag payload]` it takes apart,
 through the tag's constructor; a tag of another kind is refused as
@@ -181,8 +182,10 @@ through the tag's constructor; a tag of another kind is refused as
 
 A literal is closed from its opening to its closing pair: its parts are
 literals, fixed by its text alone. A group or a name written inside a
-container is refused by the parser, which names the template of `get`
-[QSPTH#template], and inside an error literal names the facts built by
+container, at any depth, is refused by the parser, which names the
+literal whole as the template of `get`, its tags and its brackets kept,
+`[::Box[x] 1]` naming `get [::Box[~(x)] 1]` [QSPTH#template], and inside
+an error literal names the facts built by
 `get` and made an error by `raise`; code in parentheses after a tag is
 refused, naming `tag` for a value computed, and a literal in them names
 the literal touching its tag, `::Width(5)` naming `::Width#5`. In the

@@ -31,3 +31,5 @@
 {"name":"a-fold-of-no-values-is-refused-by-the-word-that-folds","query":"#[] | union !| type","expect":"::set/union/SubjectEmptyError"}
 {"name":"unionOf-takes-one-part-at-least-and-keeps-the-tags-of-the-first","query":"get [~({} | unionOf !| type) ~(5 | unionOf ::T{:a 1} {:b 2})]","expect":"[::any/unionOf/parts/EmptyError ::T{:a 1 :b 2}]"}
 {"name":"minus-of-a-map-takes-a-set-of-keys","query":"{:a 1} | minus :a !| type","expect":"::map/minus/keys/KindNotTakenError"}
+{"name":"union-of-a-map-refuses-a-value-of-another-kind","query":"{:a 1} | union [1] !| type","expect":"::map/union/other/KindNotTakenError"}
+{"name":"a-pair-the-algebra-has-no-rule-for-names-its-kinds","query":"[#[1] {:a 1}] | union !| get [~(type) /leftType /rightType]","expect":"[::vec/union/KindsMismatchedError ::set ::map]"}

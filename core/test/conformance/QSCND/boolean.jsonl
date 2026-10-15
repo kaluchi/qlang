@@ -21,3 +21,4 @@
 {"name":"allOf-takes-one-condition-at-least","query":"5 | allOf !| type","expect":"::any/allOf/conditions/EmptyError"}
 {"name":"a-condition-of-allOf-answers-a-boolean","query":"5 | allOf ~(1) !| type","expect":"::any/allOf/ConditionNotBooleanError"}
 {"name":"a-path-is-a-condition-of-allOf","query":"{:a true :b true} | allOf /a /b","expect":"true"}
+{"name":"a-failure-computed-at-the-call-is-refused-before-the-kinds-of-the-conditions","query":"get [~(5 | allOf 3 true !| get /index) ~(5 | allOf 3 (1 | div 0) !| get /index)]","expect":"[0 1]"}

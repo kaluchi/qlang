@@ -94,8 +94,9 @@ with its `:head`, and the subject of each later stop giving way to an
 `:read` continues the query beneath `!|`. Below the alert stands the
 prose of its refusal's page as line comments, the repair it tells, a
 refusal with no page of its own reading the page of what refused; an
-error whose tag no declaration names is written without prose, and the
-REPL prints its cells without it. A query that does not parse answers
+error of the kind of errors, which no site refused, and one whose tag no
+declaration names are written without prose, and the REPL prints its
+cells without it. A query that does not parse answers
 `::quote/ParseError`, and an input that does not read answers as
 `parseJson` refuses it.
 
@@ -139,8 +140,7 @@ the slash after that root, the initial query of the REPL alike. A query
 it cannot read back and that fails gets a line on standard error naming
 the two ways around it, a read begun with its word and
 `MSYS_NO_PATHCONV=1`. The reading is the command line's, at the boundary
-where the shell hands its arguments, and the core reads paths of the
-language alone.
+where the shell hands its arguments.
 
 ## repl
 

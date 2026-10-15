@@ -156,19 +156,24 @@ function recordAlongPath(subject, anchors, state) {
 }
 
 // What the next anchor of a path reads under: the address of the record
-// reached, so a name under a name is read by its address [QSBLD#input].
+// reached, so a name under a name is read by its address [QSSLF#axis].
 const underRecord = record => makeTag(record.get('name').name);
 
 // The page an anchor reads, the page of the member at the end of its path.
 const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));
 
-// A set of anchors reads a page at each, in the order of the set.
-bindStateReader('any/doc', (subject, anchor, state) =>
-  isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
+// A set of anchors reads a page at each, in the order of the set, an
+// element that is no anchor and no path refused at its place in the set.
+bindStateReader('any/doc', (subject, anchor, state) => {
+  if (!isQSet(anchor)) return pageAt(subject, anchor, state);
+  const stranger = anchor.findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
+  if (stranger >= 0) throw new AnyDocAnchorElementNotKeywordError({ index: stranger, actualValue: anchor[stranger] });
+  return Object.freeze(anchor.map(each => pageAt(subject, each, state)));
+});
 
 // The explanation of a value: the page `doc` reads for it, null for a
 // declaration without one, above the value itself, an error at rest as
-// `!|` caught it [QSERR#rest], so an explanation prints as the page above what
+// `!|` caught it [QSERR#catch], so an explanation prints as the page above what
 // it explains [QSSLF#explain].
 const EXPLANATION_TAG = makeTag('explanation');
 bindStateReader('any/explain', (subject, state) => {

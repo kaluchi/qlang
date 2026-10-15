@@ -325,7 +325,7 @@ export function makeTaggedInstance(tag, payload) {
 
 // The descriptor of an implementation a host hands, `::builtin{}`, the
 // recipe of a word or of a kind that a primitive answers, or the value of
-// a name under a label alone [QSBLD#fn], [QSBLD#kind], [QSBLD#chain].
+// a name under a label alone [QSBLD#fn], [QSBLD#kind], [QSBLD#recipe].
 export function isBuiltinDescriptor(v) {
   return isQMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
@@ -350,7 +350,7 @@ export function declareHostValue(value, impl) {
 
 // An error carries its tag, the kind of errors for a literal that names none
 // [QSERR#rest], and a descriptor of the facts of its site with its `:trail`,
-// the path it took [QSERR#rest], a vector of stops that `eval-trail.mjs`
+// the path it took [QSERR#trail], a vector of stops that `eval-trail.mjs`
 // writes; a `:trail` of another shape is refused where the error is made.
 export const ErrorTrailNotVecError = declareRefusal('error/TrailNotVecError');
 
@@ -363,7 +363,7 @@ export function isTrail(value) {
 
 // An error holds the facts of its site and, once a step raised it or
 // handed it on, its path, `:trail`; one whose path is empty holds no
-// `:trail` [QSERR#rest].
+// `:trail` [QSERR#trail].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {

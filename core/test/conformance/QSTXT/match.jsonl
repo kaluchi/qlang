@@ -24,3 +24,8 @@
 {"name":"a-needed-escape-stays-where-a-needless-one-goes","query":"\"a\\\\-b\\\\(\" | toRegex !| get /message | contains \"backslash\"","expect":"true"}
 {"name":"a-name-of-a-group-the-pattern-lacks-stands-beside-named-groups","query":"\"abc\" | replace #\"(?<n>b)\" \"$<zz>\"","expect":"\"a$<zz>c\""}
 {"name":"a-path-reads-the-text-that-replaces-each-match","query":"\"1x 2x\" | replace #\"(\\d)x\" /1","expect":"\"1 2\""}
+{"name":"match-refuses-a-text-for-a-pattern","query":"\"abc\" | match \"a\" !| type","expect":"::string/match/pattern/KindNotTakenError"}
+{"name":"a-pattern-flagged-m-anchors-at-every-line","query":"\"a\nb\" | get [~(contains #\"^b$\") ~(contains #\"^b$\"m)]","expect":"[false true]"}
+{"name":"a-replacement-text-writes-the-text-around-the-match-and-a-dollar","query":"\"xay\" | replace #\"a\" \"[$`|$'|$$]\"","expect":"\"x[x|y|$]y\""}
+{"name":"a-replacement-code-that-answers-no-string-is-refused","query":"\"a\" | replace #\"a\" ~(1) !| type","expect":"::string/replace/with/AnswerNotStringError"}
+{"name":"capture-answers-null-where-the-pattern-matches-nothing","query":"\"abc\" | capture #\"(?<n>x)\"","expect":"null"}

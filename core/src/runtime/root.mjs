@@ -1,4 +1,4 @@
-// The root [QSDSP#residence]: the scope a host's sources declare before the
+// The root [QSHST#source]: the scope a host's sources declare before the
 // reader's first step, each source a cell run in a frame over the root the
 // sources before it left, the language's first. A source whose run answers an
 // error, or that declares again a name the root holds, is refused; each name
@@ -8,7 +8,7 @@
 // beside the source under its name [QSDSP#residence], [QSQUO#modifier],
 // [QSBLD#kind], and is refused as the root is declared when it was handed
 // none; a refusal the source declares takes its address, the name it is
-// declared by, once [QSERR#rest].
+// declared by, once [QSERR#site].
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';

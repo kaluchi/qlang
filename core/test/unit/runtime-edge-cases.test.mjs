@@ -141,7 +141,7 @@ describe('error-convert.mjs — spanOfLocation [QSPRN#span]', async () => {
   });
 
   it('writes the start and the end of a location as the six numbers of a span', async () => {
-    const span = spanOfLocation(parse('42').location);
+    const span = spanOfLocation(parse('42').location, '42');
     expect(typeKeyword(span).name).toBe('span');
     expect([...span]).toEqual([0, 1, 1, 2, 1, 3]);
   });

@@ -9,7 +9,7 @@ Then check your chapters, {{group}}, section by section; the heading `## name` o
 2. The code that cites it: Grep for the text `[CODE#name]` under D:/git/qlang/core, cli, lsp and scripts, and read each block that cites it.
 3. The pages of the words and kinds it names, read from the language: `qlang '::any/coalesce | doc' < /dev/null`, and `laws`, `manifest` and `source` the same way.
 4. Every claim, run: `qlang '<query>' < /dev/null`. End every query with `< /dev/null`, or a query that reads its subject waits on standard input, and write `MSYS_NO_PATHCONV=1 qlang '…' < /dev/null` where the query begins with `/`.
-The chapter of the work, QSWRK, has no cases: its implementation is scripts/, the package.json files, .github/workflows/ and CLAUDE.md, the seed of a session, and `grep` and `git ls-files --error-unmatch` read the files.
+The chapter of the work, QSWRK, has no cases: its implementation is scripts/, the package.json files, .github/workflows/ and CLAUDE.md, the seed of a session, and `grep` and `git -C D:/git/qlang ls-files --error-unmatch` read the files.
 
 Report each finding under a heading of its kind and its place, `### <kind> · CODE#name` or `### <kind> · path:line`, the kind one of six:
 - text: a sentence of a chapter that says other than the section's own cases, another sentence of the chapters or the page of the word it names, so the rule it means is known from the written texts and the sentence misstates it; or a rule the cases and the pages hold that the chapter does not state;
@@ -26,6 +26,6 @@ Under its heading a finding quotes the sentence or the case short, then gives it
 {:t null}
 ```
 
-A fact of the files is a probe of the shell, a line that begins with `$ ` and the lines it printed, a listing of files by `git ls-files` carrying `--error-unmatch`. Then one sentence on what parts from what. For an implementation or a design finding, ask what consistent behaviour would answer. Never write the sentence a chapter should hold, least of all from what the tree answers.
+A fact of the files is a probe of the shell, a line that begins with `$ ` and the lines it printed, a listing of files by `git -C D:/git/qlang ls-files --error-unmatch`. Then one sentence on what parts from what. For an implementation or a design finding, ask what consistent behaviour would answer. Never write the sentence a chapter should hold, least of all from what the tree answers.
 
 Answer in Russian, keeping quotes, names, paths and probes as they are: findings only, the most severe first, with no preamble, no praise and no summary of what holds.

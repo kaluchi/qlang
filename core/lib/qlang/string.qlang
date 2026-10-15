@@ -919,8 +919,8 @@
       that holds a number reads as the number, `"42" | parseJson`, while
       `toNumber` reads a number alone. JSON has no form for a set, a
       keyword or a tag: what `json` wrote of a set reads back as a vector,
-      of a keyword as a string, and of a value under a tag as a map of its
-      `$tag` and `payload`, and of an error as a map of its `$error`. Text
+      of a keyword as a string, and of a value under a tag, an error at
+      rest among them, as a map of its `$tag` and `payload`. Text
       that is no JSON is refused with the message of the reader of JSON,
       and a number past the doubles is refused with the path to it in the
       text.
@@ -1137,9 +1137,9 @@
 :string/toString
   |~~ Answers the string itself, so `map ~toString` turns the atoms of
       a vector into strings whatever their kinds,
-      `[42 :a "s"] | map ~toString` answering `["42" "a" "s"]`. A
-      vector, a set, a map, null and a pattern have no `toString`: `print`
-      writes the literal of any value and `json` its JSON, while a quote
+      `[42 :a "s"] | map ~toString` answering `["42" "a" "s"]`, null
+      `"null"`. A vector, a set, a map and a pattern have no `toString`:
+      `print` writes the literal of any value and `json` its JSON, while a quote
       gives its text by `parse` and a doc its prose by `content`.
       ::link~(::number/toString | doc) ::link~(::keyword/toString | doc)
       ::link~(::any/print | doc) ::link~(::any/json | doc)
@@ -1351,9 +1351,9 @@
   ::fn
     | takes :flags
         |~~ The flags of the pattern written in a string, none when the
-            call gives none, `toRegex "im"`.
+            call gives none or null, `toRegex "im"`.
         ~~|
-        ~(query /0 "") ::string
+        ~(query /0 null) #[::null ::string]
     | throws :flags/KindNotTakenError
         |~~ The flags are written in a string, `toRegex "i"`. ~~|
     | throws :flags/NotFlagsError
@@ -1385,6 +1385,9 @@
         |~~ The flags the call gives go with the pattern, in their order.
         ~~|
         ~("error" | toRegex "si" | eq #"error"is)
+    | proves :takesNullForNoFlags
+        |~~ Null gives no flags, as it gives a pattern its own. ~~|
+        ~("a" | toRegex null | eq #"a")
     | proves :flags/NotFlagsError/refusesALetterOfNoFlag
         |~~ A letter that is no flag is refused. ~~|
         ~("a" | toRegex "x" !| type | eq ::string/toRegex/flags/NotFlagsError)

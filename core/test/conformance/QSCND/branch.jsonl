@@ -51,3 +51,4 @@
 {"name":"cond-with-path-default","query":"{:role :user :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"100"}
 {"name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
 {"name":"a-condition-of-cond-is-named-by-its-place-from-zero","query":"get [~(5 | cond ~(1) ~(\"yes\") !| get [~(type) /index]) ~(5 | cond ~(false) ~(1) ~(2) ~(3) !| get [~(type) /index])]","expect":"[[::any/cond/ConditionNotBooleanError 0] [::any/cond/ConditionNotBooleanError 2]]"}
+{"name":"a-branch-that-is-no-code-is-refused","query":"5 | if true 1 2 !| type","expect":"::any/if/then/KindNotTakenError"}

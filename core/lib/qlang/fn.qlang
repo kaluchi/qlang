@@ -584,10 +584,10 @@
 :fn/carries
   |~~ Names a fact a refusal of a function carries, its page and its
       kinds, `| carries :TooBigError/bound |~~ The bound. ~~| ::number`,
-      under the refusal its path names, one `throws` declares or one the
-      kinds of an input name; under a label it is a fact of the word's
-      refusal, which a failure of it carries and its alert shows in the
-      order its facts are named.
+      under the name its path names, one declared before it, a refusal
+      `throws` declares or the kinds of an input name among them; under
+      a label it is a fact of the word's refusal, which a failure of it
+      carries and its alert shows in the order its facts are named.
   ~~|
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|

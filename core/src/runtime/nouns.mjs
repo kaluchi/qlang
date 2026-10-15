@@ -3,8 +3,7 @@
 // the root the host's sources declared before the reader's first step: a step
 // reads the frame's declaration of a name before the root's, a tag name the
 // root's node of it before the reader's, which no reader replaces, and a walk
-// of a subject's tags the words residing on each kind it passes [QSDSP#walk],
-// [QSBLD#input].
+// of a subject's tags the words residing on each kind it passes [QSDSP#walk].
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQuote, isVec, isTag, isTaggedInstance,
@@ -56,7 +55,7 @@ export function refuseWithheld(env, name, readByTag = false) {
 }
 
 // Whether a record holds a page or a kind, either of which makes its name
-// a label [QSBLD#kind], [QSBLD#chain].
+// a label [QSBLD#label].
 export function declaresALabel(record) {
   const value = bindingValueOf(record);
   return isDoc(value) || isKind(value);
@@ -68,7 +67,7 @@ export function isLabel(env, name) {
 }
 
 // Whether a name stands under a label, where a quote or a host's
-// primitive runs on the label's values [QSBLD#input].
+// primitive runs on the label's values [QSNAM#word].
 export function isUnderLabel(env, name) {
   const [labelName] = splitAddress(name);
   return labelName !== null && isLabel(env, labelName);
@@ -339,7 +338,7 @@ export function placesOfSelectors(selectors) {
 }
 
 // The refusals the runtime raises by rule under a word, each named by the
-// address of what refused [QSSLF#catalog], [QSBLD#fn]: a subject the walk of
+// address of what refused [QSERR#site]: a subject the walk of
 // whose tags reaches no value of the word's label, args of more values than
 // its inputs read places, an input the call leaves out where its place reads
 // one, and an answer that reaches none of the kinds `returns` names; and under
@@ -361,7 +360,7 @@ const capitalOf = name => { const [, word] = splitAddress(name); return word[0].
 // ruleRefusalsOf(env, address) → the addresses of the refusals a word or a
 // kind at the address may raise by rule, which its chain pages
 // [QSSLF#catalog]: a word's read from its function, a recipe's from the
-// function of no commands it is [QSBLD#chain], and a kind's from its commands
+// function of no commands it is [QSBLD#recipe], and a kind's from its commands
 // [QSBLD#kind].
 export function ruleRefusalsOf(env, address) {
   const [labelName] = splitAddress(address);

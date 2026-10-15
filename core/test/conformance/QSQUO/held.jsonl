@@ -38,3 +38,4 @@
 {"name":"code-held-as-data-reads-no-value-a-reader-names-past-a-word","query":":any/run (::fn | takes :code |~~ The code. ~~| /0 | impl ~(apply code)) | :x 5 | \"x | add 1\" | parse | :q it | (null | run q) !| get [~(type) /name]","expect":"[::call/ValueWithheldError :x]"}
 {"name":"a-quote-holds-no-scope","query":":f (:k 10 | :g ~(mul k) | g) | :k 2 | :h ~(mul k) | get [~(f | eq h) ~(3 | apply f !| type) ~(3 | apply h !| type)]","expect":"[true ::call/ValueWithheldError ::call/ValueWithheldError]"}
 {"name":"a-quote-handed-to-a-word-reads-the-step-that-wrote-it-over-an-input-of-its-name","query":":x 10 | :any/t (::fn | takes :q |~~ The q. ~~| /0 ::quote | takes :x |~~ The x. ~~| /1 | impl ~(apply q)) | 2 | t ~(add x) 99","expect":"12"}
+{"name":"map-runs-in-the-scope-of-the-call","query":":k 10 | [1 2] | map ~(add k)","expect":"[11 12]"}

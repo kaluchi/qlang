@@ -70,8 +70,8 @@ bindPrim('keyword/toTag', key => {
 });
 
 // A string reads as the source of a pattern with the flags the call gives,
-// none by default, and a text that writes the literal of a pattern whole, as
-// JSON writes one, is refused, its reading being `parse` [QSTXT#pattern].
+// none for null, and a text that writes the literal of a pattern whole is
+// refused [QSTXT#pattern].
 const StringToRegexTextNotPatternError = declareRefusal('string/toRegex/TextNotPatternError');
 const StringToRegexLiteralNotSourceError = declareRefusal('string/toRegex/LiteralNotSourceError');
 const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/flags/NotFlagsError');
@@ -84,7 +84,7 @@ bindPrim('regex/toRegex', (regex, written) => {
   return makeRegex(regex.source, flags);
 });
 bindPrim('string/toRegex', (text, written) => {
-  const flags = canonicalFlags(written);
+  const flags = canonicalFlags(written ?? '');
   if (flags === null) throw new StringToRegexFlagsNotFlagsError({ actualValue: written });
   if (literalWritten(text, 'RegexLit') !== null) throw new StringToRegexLiteralNotSourceError({ actualValue: text });
   const problem = patternProblem(text, flags);
@@ -97,7 +97,7 @@ bindPrim('set/toSet', set => set);
 bindPrim('vec/toSet', vector => makeSet(vector));
 // The map a vector's pairs `[key value]` write, the reverse of `entries`:
 // each key named as `toKeyword` names it, and of two pairs with one key
-// the last holds [QSCOL#map].
+// the last holds [QSCND#convert].
 const VecToMapElementNotPairError = declareRefusal('vec/toMap/ElementNotPairError');
 const VecToMapKeyNotKeywordError = declareRefusal('vec/toMap/KeyNotKeywordError');
 

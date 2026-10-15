@@ -17,3 +17,6 @@
 {"name":"a-source-no-short-run-of-closers-completes-lists-the-continuations","query":"\"[[[[[ |~~ a\" | parse !| get /expected | has :any-character","expect":"true"}
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| get /message | contains \"#[\"","expect":"true"}
 {"name":"a-quote-written-with-braces-names-its-parentheses","query":"\"~{/age | doc}\" | parse !| get /message","expect":"\"a quote is written `~(…)`, its code in parentheses; `{…}` is a map and `[…]` a vector\""}
+{"name":"a-comma-between-modifiers-is-refused-naming-the-space","query":"\"5 | add 1, 2\" | parse !| get /message","expect":"\"modifiers are separated by spaces, not by commas: `f a b`\""}
+{"name":"a-set-written-with-braces-is-refused-as-the-grammar-writes-a-refusal","query":"\"#{1}\" | parse !| get [~(keys) /marker]","expect":"[#[:location :marker :message :source :trail :uri] \"^~  \"]"}
+{"name":"a-refusal-the-grammar-writes-stands-before-a-pipe-the-source-ends-with","query":"\"[x] | \" | parse !| get /message | contains \"a literal computes nothing\"","expect":"true"}

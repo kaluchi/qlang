@@ -6,7 +6,7 @@
 // string, a doc or a quote beneath the top giving way whole; the top keeps
 // its shape, a vector or a set there halving to its first element at the
 // least. A part gives way only where the least it gives way to prints
-// shorter than it, so a budget never lengthens a print. A marker holds
+// shorter than it. A marker holds
 // `:size`, what it stands for counted, `:read`, the quote that applied to the
 // value taken answers the part left out, and for a string, a doc and a quote
 // `:head`, the first characters of its text. The print measured is the one a
@@ -59,6 +59,11 @@ const isText = value => typeof value === 'string' || isDoc(value) || isQuote(val
 const isTaggedContainer = value => (isVec(value) || isQMap(value)) && !isVecOfOwnKind(value);
 
 const textOf = value => (typeof value === 'string' ? value : isDoc(value) ? docText(value) : printQuoteSource(value));
+
+// A text counts and cuts by its code points, as `count` and `take` do
+// [QSTXT#string].
+const lengthOf = text => Array.from(text).length;
+const headOf = (text, length) => Array.from(text).slice(0, length).join('');
 
 // Where the reads of a value start: the value itself, or beneath `!|` the
 // facts of an alert, each read from the path `from` names.
@@ -128,7 +133,8 @@ function wholeOf(part, start) {
   const { path, value } = part;
   if (isText(value)) {
     const text = textOf(value);
-    return marker([['size', text.length], ['read', readOf(start, path)], ['head', text.slice(0, Math.min(HEAD_CHARACTERS, Math.floor(text.length / 2)))]]);
+    const size = lengthOf(text);
+    return marker([['size', size], ['read', readOf(start, path)], ['head', headOf(text, Math.min(HEAD_CHARACTERS, Math.floor(size / 2)))]]);
   }
   if (halves(value)) {
     const { elements, standsFor } = vectorParts(value);
@@ -238,7 +244,7 @@ export function elide(value, budget, printedOf = printedByTheCore) {
 // other value, an error at rest among them [QSERR#rest], gives way within as
 // `elide` cuts it.
 function excerptOf(value, read, printedOf) {
-  if (isText(value) && printedOf(value) === undefined && textOf(value).length > EXCERPT_CHARACTERS) return wholeOf({ path: [], value }, read);
+  if (isText(value) && printedOf(value) === undefined && lengthOf(textOf(value)) > EXCERPT_CHARACTERS) return wholeOf({ path: [], value }, read);
   return elideWithin(value, EXCERPT_CHARACTERS, read, keepsNone, printedOf);
 }
 
@@ -247,7 +253,7 @@ function excerptOf(value, read, printedOf) {
 // stands for, and the read that reaches it.
 function passedOver(value, read, printedOf) {
   const sizeOf = measureBy(printedOf);
-  const size = isText(value) ? textOf(value).length : isVec(value) ? value.length : isQMap(value) ? value.size : sizeOf(value);
+  const size = isText(value) ? lengthOf(textOf(value)) : isVec(value) ? value.length : isQMap(value) ? value.size : sizeOf(value);
   const shown = marker([['size', size], ['read', readOf(read, [])]]);
   return sizeOf(shown) < sizeOf(value) ? shown : value;
 }

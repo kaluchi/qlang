@@ -79,7 +79,8 @@
       the modifier, `[1 2 3] | reduce 0 ~(add)` answering `6`, and
       running code of several steps on the pair of the two,
       `[{:n 1} {:n 2}] | reduce 0 ~(sumOf /0 /1/n)` answering `3`.
-      Several steps stand in one quote, `map ~(get /price | mul 2)`, and
+      Several steps stand in one quote,
+      `[{:price 3}] | map ~(get /price | mul 2)` answering `[6]`, and
       `apply` runs its code on the subject itself,
       `5 | apply ~(add 1 | mul 2)` answering `12`. Without the quote, a
       group is a modifier computed at the call: in
@@ -87,9 +88,9 @@
       not from each element, and `map` refuses what it is handed,
       `::vec/map/code/KindNotTakenError`.
 
-      6. Building answers. A literal computes nothing, so an answer of a
-      new shape is built by `get` over a template, a literal of paths and
-      quotes, each path read and each quote run against the subject:
+      6. Building answers. An answer of a new shape is built by `get`
+      over a template, a literal of paths and quotes, each path read and
+      each quote run against the subject:
       `{:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)}`
       answers `{:who "Ann" :next 31}`, and `{:a 1 :b 2} | get [/b /a]`
       answers `[2 1]`; `query` reads the paths of a template softly. A
@@ -449,27 +450,27 @@
 
             `|` runs the next step on the answer of the one before. A step
             is a command, and a value stands at the head of a query, of a
-            group and of a quote, and after the declarations that open
-            one, where it is the subject, or as what a word takes; a value
-            written as a later step is refused, and a value goes under a
-            tag by `tag`. `map` runs a quote or a path on each element of
-            a vector or each value of a map. A pipe written before `!|`
-            stands for it. A path, `/k`, `/0`, `/-1`, `/a/b`, is read by
-            `get`, and a miss is an error there; `query` reads it softly,
-            and `put`, `update` and `delete` write it. A modifier is
-            computed against the subject of its own step, the value the
-            step before it answered, so two fields of one record are read
-            in one step, and a name keeps the record for a later step. A
-            name holds the value in the pipe for the steps after it, and
-            steps in parentheses run on the value in the pipe and answer
-            what their last step answers. A line break is a space, so a
-            step on the next line joins by `|`, written at the end of a
-            line or at the start of the next, and around a declaration it
-            tells where the declaration ends: a keyword that begins a line
-            opens a declaration of its own, and the body of a name with a
-            path begun on the line after the name runs on through the
-            steps joined to it up to the next declaration, so a body of one
-            step is written on the line of its name. A comment,
+            group and of a quote, and after a declaration, where it is the
+            subject, or as what a word takes; a value written as a later
+            step is refused, and a value goes under a tag by `tag`. `map`
+            runs a quote or a path on each element of a vector or each
+            value of a map. A pipe written before `!|` stands for it. A
+            path, `/k`, `/0`, `/-1`, `/a/b`, is read by `get`, and a miss
+            is an error there; `query` reads it softly, and `put`,
+            `update` and `delete` write it. A modifier is computed against
+            the subject of its own step, the value the step before it
+            answered, so two fields of one record are read in one step,
+            and a name keeps the record for a later step. A name holds the
+            value in the pipe for the steps after it, and steps in
+            parentheses run on the value in the pipe and answer what their
+            last step answers. A line break is a space, so a step on the
+            next line joins by `|`, written at the end of a line or at the
+            start of the next, and around a declaration it tells where the
+            declaration ends: a keyword that begins a line with a doc or a
+            step after it opens a declaration of its own, and the body of
+            a name with a path begun on the line after the name runs on
+            through the steps joined to it up to the next declaration, so
+            a body of one step is written on the line of its name. A comment,
             `|~ … ~|`, nesting, or `|~|` to the end of its line, is
             whitespace too. `|` and `!|` bind alike, from left to right.
             A group is a fork: it starts from the value and the names
@@ -754,8 +755,8 @@
             skipped, a quote that runs again as held code runs. An error
             at rest raised
             again resumes the trail it holds, and one without `:trail`
-            starts it over. Whether the step before failed is
-            `false !| true`.
+            starts it over. Whether the step before stood is
+            `ok !| false`.
         ~~|
         #[::error ::fail ::explanation]
     | proves :errors/namesTheSite

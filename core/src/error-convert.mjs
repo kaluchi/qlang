@@ -18,21 +18,27 @@ const ERROR_KIND_NAME = 'error';
 
 const SPAN_TAG = makeTag('span');
 
-// spanOfLocation(loc) → the stretch of source a location names as a span,
-// the offset from zero, the line and the column from one of its start
-// and of the point after its end, `::span[0 1 1 1 1 2]` [QSPRN#span], or null
-// for none.
-export function spanOfLocation(loc) {
+// spanOfLocation(loc, source) → the stretch of the source a location names
+// as a span, the offset from zero, the line and the column from one of its
+// start and of the point after its end, each counted in code points as a
+// string counts, `::span[0 1 1 1 1 2]` [QSPRN#span], or null for none.
+export function spanOfLocation(loc, source) {
   if (!loc) return null;
-  const { start, end } = loc;
-  return makeTaggedInstance(SPAN_TAG, [start.offset, start.line, start.column, end.offset, end.line, end.column]);
+  const point = ({ offset, line, column }) => {
+    const lineStart = offset - (column - 1);
+    return [codePointsIn(source, 0, offset), line, codePointsIn(source, lineStart, offset) + 1];
+  };
+  return makeTaggedInstance(SPAN_TAG, [...point(loc.start), ...point(loc.end)]);
 }
+
+// The code points of the source between two offsets of its UTF-16 text.
+const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).length;
 
 // factsInOrder(tag, facts, env) → the facts of a refusal of the runtime in
 // the order of the definitions that describe them, each named as its fact
 // [QSERR#site]: those under the refusal's label first, then those under
 // `::error`, which every refusal shares, the path an error takes coming
-// after them as the trail joins it [QSERR#rest]. A fact neither declares is a
+// after them as the trail joins it. A fact neither declares is a
 // defect of the runtime.
 export function factsInOrder(tag, facts, env) {
   const ordered = new Map();
@@ -47,7 +53,7 @@ export function factsInOrder(tag, facts, env) {
 
 // The error a refusal of the runtime raised: the facts its site handed
 // with the kind of the value refused, the value left out where it equals
-// the subject the first stop holds [QSERR#rest], [QSERR#site].
+// the subject the first stop holds [QSERR#site].
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTag(qlangError.address);
   const facts = new Map();
@@ -78,7 +84,7 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
   else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
-  if (parseError.location) d.set('location', spanOfLocation(parseError.location));
+  if (parseError.location) d.set('location', spanOfLocation(parseError.location, parseError.source));
   if (uri) d.set('uri', uri);
   const tag = makeTag('quote/ParseError');
   return makeErrorValue(tag, factsInOrder(tag, d, env), {
@@ -123,13 +129,15 @@ function classKeyword() {
 function excerptAroundLocation(source, location) {
   const lineNumber = location.start.line;
   const line = source.split('\n')[lineNumber - 1];
-  const startCol = location.start.column;
+  const before = location.start.offset - (location.start.column - 1);
+  const startCol = codePointsIn(source, before, location.start.offset) + 1;
+  const endCol = codePointsIn(source, before, location.end.offset) + 1;
   // A reading stops within one line, and a span of no width takes one
   // caret.
-  const markerWidth = Math.max(1, location.end.column - startCol);
+  const markerWidth = Math.max(1, endCol - startCol);
   const lead = ' '.repeat(Math.max(0, startCol - 1));
   const caret = '^' + '~'.repeat(Math.max(0, markerWidth - 1));
-  const tail = ' '.repeat(Math.max(0, line.length - lead.length - caret.length));
+  const tail = ' '.repeat(Math.max(0, Array.from(line).length - lead.length - caret.length));
   return { source: line, marker: lead + caret + tail };
 }
 

@@ -1,4 +1,4 @@
-// An unresolved name names the names nearest to it [QSHST#answer]: within an
+// An unresolved name names the names nearest to it [QSSLF#near]: within an
 // edit distance of a third of its length, one at least, the nearest alone, in
 // the order of their spelling.
 

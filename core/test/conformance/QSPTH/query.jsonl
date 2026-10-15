@@ -23,6 +23,6 @@
 {"name":"query-reads-a-number-segment-as-the-key-of-its-digits","query":"{:\"42\" 1} | query /42","expect":"1"}
 {"name":"query-json-object-keyword-key","query":"::json{:a 1 :b 2 :c 3} | query /b","expect":"2"}
 {"name":"query-json-object-missing-key","query":"::json{:a 1} | query /z","expect":"null"}
-{"name":"query-under-a-tag-answers-null-for-a-missing-key","query":"::json{:a 1} | query /42 !| type","expect":"null"}
+{"name":"query-under-a-tag-answers-null-for-a-missing-key","query":"::json{:a 1} | query /42","expect":"null"}
 {"name":"query-map-by-keyword-key","query":"{:a 1 :b 2} | query /a","expect":"1"}
 {"name":"an-index-of-a-vector-is-refused-by-its-input","query":"[1 2] | query /a !| type","expect":"::path/IndexNotIntegerError"}

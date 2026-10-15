@@ -56,8 +56,8 @@
 //       written since the baseline by a record dissolved into it [D300].
 //
 //   (10) A series keeps its two latest: the sets of the benchmark, its
-//       screens, the runs of the references and the outside audits
-//       [QSWRK#measure], [QSWRK#review].
+//       screens, the runs of the references, the outside audits and the
+//       checks of the chapters [QSWRK#measure], [QSWRK#review], [D301].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -89,9 +89,10 @@ const IGNORE_DIRS = new Set([
   'scripts/benchmark/sets',  // the data and the generators clean authors wrote [QSWRK#measure]
   'vscode'
 ]);
-// A report a reviewer or an outside auditor wrote, named by its date,
-// stands as it was written, and the README of its folder is checked.
-const VERBATIM_REPORT = new RegExp(`^${RESEARCH}/(reviews|outside-audit)/\\d{4}-\\d{2}-\\d{2}[^/]*\\.md$`);
+// A report a reviewer, an outside auditor or a reader of the chapters
+// wrote, named by its date, stands as it was written, and the README of
+// its folder is checked [D301].
+const VERBATIM_REPORT = new RegExp(`^${RESEARCH}/(?:(?:reviews|outside-audit)/\\d{4}-\\d{2}-\\d{2}[^/]*|spec-check/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+/[^/]+)\\.md$`);
 // Files that quote the forbidden list verbatim — exempt from the
 // forbidden-word scan, still in scope for every other check.
 const RULESET_FILES = new Set([
@@ -543,14 +544,16 @@ function unmarkedArtifacts() {
 // ── (10) A series keeps its two latest ─────────────────────────
 //
 // The sets of the benchmark with their runs, the screens, the runs of the
-// references and the outside audits keep their two latest, and an older
-// one goes to the history [QSWRK#measure], [QSWRK#review].
+// references, the outside audits and the checks of the chapters keep their
+// two latest, and an older one goes to the history [QSWRK#measure],
+// [QSWRK#review], [D301].
 
 const SERIES = [
   { name: 'the sets of the benchmark', members: paths => new Set(paths.filter(path => path.startsWith('scripts/benchmark/sets/')).map(path => path.split('/')[3])) },
   { name: 'the screens of the benchmark', members: paths => paths.filter(path => path.startsWith('scripts/benchmark/screens/')) },
   { name: 'the runs of the references', members: paths => paths.filter(path => path.startsWith('scripts/benchmark/runs/')) },
   { name: 'the outside audits', members: paths => paths.filter(path => new RegExp(`^${RESEARCH}/outside-audit/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+\\.md$`).test(path)) },
+  { name: 'the checks of the chapters', members: paths => new Set(paths.filter(path => new RegExp(`^${RESEARCH}/spec-check/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+/`).test(path)).map(path => path.split('/')[4])) },
 ];
 
 function seriesBeyondTwo() {

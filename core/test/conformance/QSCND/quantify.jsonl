@@ -8,7 +8,7 @@
 {"name":"vacuously-false-on-empty-with-arbitrary-pred","query":"[] | any ~(eq 99)","expect":"false"}
 {"name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
 {"name":"any-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :actualType ::number\n  :trail [\n    {\n      :step ~(any ~(gt 0))\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"any-short-circuits","query":"[1 2 99] | any ~(gt 50)","expect":"true"}
+{"decision":"D323","name":"any-stops-at-the-first-element-that-decides","query":"[true \"x\"] | any ~(it)","expect":"true"}
 {"name":"any-as-filter-equivalence","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
 {"name":"any-string-predicate-integration","query":"[\"alice\" \"bob\" \"alex\"] | any ~(startsWith \"al\")","expect":"true"}
 {"name":"any-map-value-matches","query":"{:a -1 :b 0 :c 2} | any ~(gt 0)","expect":"true"}

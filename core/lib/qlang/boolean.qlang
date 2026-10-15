@@ -183,7 +183,7 @@
         |~~ `or` joins two booleans, the subject and the right: the
             conditions of one value hold by one of them through
             `anyOf (eq 5) (eq 10)`, and of one record by
-            `anyOf (/role | eq "admin") (/role | eq "owner")`.
+            `anyOf (get /role | eq "admin") (get /role | eq "owner")`.
         ~~|
     | throws :ArgsBeyondInputsError
         |~~ `or` joins the subject with one boolean: three conditions or

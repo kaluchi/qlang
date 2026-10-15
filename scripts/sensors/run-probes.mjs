@@ -54,13 +54,16 @@ const { parse } = await core('parse.mjs');
 const { deepEqual } = await core('equality.mjs');
 const { isErrorValue, makeTag } = await core('types.mjs');
 const { createSession } = await core('session.mjs');
+const { cliSources } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'cli-sources.mjs')).href);
 
 // A probe reads as the command line reads a query: the first cell of a
-// session of its own, its subject the noun of the language [QSWRK#probe],
-// [QSHST#input].
+// session of its own over the command line's sources, its streams silent,
+// its subject the noun of the language [QSWRK#probe], [QSHST#input].
 const LANGUAGE_NOUN = makeTag('qlang');
+const SILENT_STREAMS = { stdinReader: () => Promise.resolve(''), stdoutWrite: () => {}, stderrWrite: () => {} };
 async function answerOf(query) {
-  const { result, error } = await (await createSession()).evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
+  const session = await createSession({ sources: cliSources(SILENT_STREAMS) });
+  const { result, error } = await session.evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
   if (result === null && error !== null) throw error;
   return result;
 }

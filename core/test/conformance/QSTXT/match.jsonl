@@ -30,3 +30,4 @@
 {"name":"a-replacement-code-that-answers-no-string-is-refused","query":"\"a\" | replace #\"a\" ~(1) !| type","expect":"::string/replace/with/AnswerNotStringError"}
 {"name":"capture-answers-null-where-the-pattern-matches-nothing","query":"\"abc\" | capture #\"(?<n>x)\"","expect":"null"}
 {"name":"toRegex-refuses-flags-that-are-no-string","query":"\"a\" | toRegex 5 !| type","expect":"::string/toRegex/flags/KindNotTakenError"}
+{"decision":"D323","name":"a-two-digit-group-the-pattern-lacks-reads-as-the-group-of-its-first-digit","query":"\"abc\" | replace #\"(b)\" \"[$10]\"","expect":"\"a[b0]c\""}

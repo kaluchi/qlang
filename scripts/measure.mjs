@@ -7,11 +7,12 @@
 // tooling. Runs wherever the checkout is with the history it names.
 //
 // Usage:
-//   node scripts/measure.mjs <fromRef> <toRef>
+//   node scripts/measure.mjs [<fromRef> [<toRef>]]   from the baseline to HEAD where none is named
 //   node scripts/measure.mjs --steps <ref> <ref> [<ref>...]
 // The decisions it exists for: [QSWRK#diff].
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
+import { baselineOf } from './baseline-walk.mjs';
 
 const repoRoot = join(import.meta.dirname, '..');
 const git = args => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
@@ -131,4 +132,4 @@ function printSteps(refs) {
 
 const args = process.argv.slice(2);
 if (args[0] === '--steps') printSteps(args.slice(1));
-else printSummary(args[0], args[1]);
+else printSummary(args[0] ?? baselineOf(repoRoot), args[1] ?? 'HEAD');

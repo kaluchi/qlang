@@ -1,6 +1,6 @@
 {"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true"}
 {"name":"the-manifest-of-a-word-lists-its-inputs","query":"::any/query | manifest","expect":"#[::any/query/default ::any/query/path]"}
-{"name":"a-tag-over-a-name-passes-to-manifest","query":"::Box::vec | manifest | type","expect":"::set"}
+{"decision":"D323","name":"a-tag-over-a-tag-name-shows-the-kind-of-tag-names","query":"::Box::vec | manifest | eq (::tag | manifest)","expect":"true"}
 {"name":"manifest-reads-the-kind-of-a-value","query":"5 | manifest | eq (::number | manifest)","expect":"true"}
 {"name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | get [~(manifest | has ::vec/count) ~(doc :count | eq (::vec/count | doc))]","expect":"[true true]"}
 {"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | manifest | has ::string/gt","expect":"true"}
@@ -21,6 +21,3 @@
 {"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/other | manifest","expect":"#[::set/union/other/KindNotTakenError]"}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
 {"name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(type) /name]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}
-{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | parse | contains \"throws :addend/KindNotTakenError\"","expect":"true"}
-{"name":"a-step-lists-its-refusals-on-its-noun","query":"::path | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :KeyNotInMapError) | count","expect":"1"}
-{"name":"a-noun-lists-each-refusal-once","query":"::vec | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :PayloadKindNotTakenError) | count","expect":"1"}

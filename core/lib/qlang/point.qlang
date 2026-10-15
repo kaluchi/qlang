@@ -11,6 +11,9 @@
   ~~|
   ::kind
     | wraps |~~ The three numbers, the offset, the line and the column. ~~| [::number]
+    | proves :ElementKindNotTakenError/refusesAString
+        |~~ An element that is no number is refused. ~~|
+        ~(::point["a" 1 1] !| type | eq ::point/ElementKindNotTakenError)
     | holds :PayloadNotThreeNumbersError
         |~~ A point holds three whole numbers, its offset, its line and
             its column.
@@ -33,6 +36,9 @@
         |~~ `offset` reads a point, the start or the end of a span,
             `"[1" | parse !| get /location | start | offset`.
         ~~|
+    | proves :SubjectNotPointError/refusesANumber
+        |~~ A subject that is no point is refused. ~~|
+        ~(5 | point/offset !| type | eq ::point/offset/SubjectNotPointError)
     | proves :readsTheFirstNumber
         |~~ The offset is the first number of a point. ~~|
         ~(::point[4 1 5] | offset | eq 4)
@@ -48,6 +54,9 @@
         |~~ `line` reads a point, the start or the end of a span,
             `"[1" | parse !| get /location | start | line`.
         ~~|
+    | proves :SubjectNotPointError/refusesANumber
+        |~~ A subject that is no point is refused. ~~|
+        ~(5 | point/line !| type | eq ::point/line/SubjectNotPointError)
     | proves :readsTheSecondNumber
         |~~ The line is the second number of a point. ~~|
         ~(::point[4 2 1] | line | eq 2)
@@ -63,6 +72,9 @@
         |~~ `column` reads a point, the start or the end of a span,
             `"[1" | parse !| get /location | start | column`.
         ~~|
+    | proves :SubjectNotPointError/refusesANumber
+        |~~ A subject that is no point is refused. ~~|
+        ~(5 | point/column !| type | eq ::point/column/SubjectNotPointError)
     | proves :readsTheThirdNumber
         |~~ The column is the third number of a point. ~~|
         ~(::point[4 1 5] | column | eq 5)

@@ -24,3 +24,4 @@
 {"name":"a-doc-ranks-by-its-segments-a-run-of-prose-before-a-quote","query":"[[~(b)] [\"z\"]] | map ~(tag ::doc) | sort | map ~segments","expect":"[[\"z\"] [~(b)]]"}
 {"name":"sort-orders-docs-of-prose-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}
 {"name":"a-quote-a-doc-an-elision-and-a-desc-rank-after-a-map-in-that-order","query":"[::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~type","expect":"[::map ::quote ::doc ::elision ::desc]"}
+{"decision":"D323","name":"quotes-rank-by-their-steps","query":"[~(b) ~(a | b) ~(a)] | sort","expect":"[~(a) ~(a | b) ~(b)]"}

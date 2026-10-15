@@ -19,3 +19,4 @@
 {"name":"a-string-counts-its-code-points","query":"\"e\\u0301\" | count","expect":"2"}
 {"name":"case-folds-as-unicode-maps-the-text","query":"get [~(\"ΣΑΣ\" | lower) ~(\"straße\" | upper)]","expect":"[\"σας\" \"STRASSE\"]"}
 {"name":"an-empty-text-has-no-lines","query":"\"\" | lines","expect":"[]"}
+{"decision":"D323","name":"append-and-prepend-write-a-keyword-as-its-name","query":"\"x\" | get [~(prepend :a) ~(append :a)]","expect":"[\"ax\" \"xa\"]"}

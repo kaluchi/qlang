@@ -127,6 +127,9 @@
         |~~ The text `err` writes is a string: a value of another kind is
             made text first, `err json` or `err print`.
         ~~|
+    | proves :text/KindNotTakenError/refusesANumber
+        |~~ A text that is no string is refused. ~~|
+        ~(5 | err 7 !| type | eq ::any/err/text/KindNotTakenError)
     | returns |~~ The subject as it came. ~~| ::any
     | throws :SubjectNotStringError
         |~~ `err` alone writes its subject, a string, as a line on stderr;

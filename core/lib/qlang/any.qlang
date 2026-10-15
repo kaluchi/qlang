@@ -1461,7 +1461,9 @@
       back into itself. A tag of a kind mints through the kind:
       `5 | tag ::number` answers `5`, a payload the kind refuses is
       refused, `"5" | tag ::number`, and a kind the reader declares
-      holds its invariants. A tag over a tagged value nests it;
+      holds its invariants. A tag over a tagged value nests it, a label
+      over a value already under it standing once, `::Lab::Lab[1]`
+      reading `::Lab[1]`, but for `::desc`, whose reversals stack;
       replacing the tag goes through the payload,
       `payload | tag ::Crate`. A tag over an error at rest names its
       site, `[::Late !{:by 3}] | tag` answering `::Late!{:by 3}`, and
@@ -2187,6 +2189,9 @@
         |~~ The path is a path, `put /a/b 2`, or a key of one segment, a
             keyword, a string or a number, `put :a 2`.
         ~~|
+    | proves :path/KindNotTakenError/refusesABoolean
+        |~~ A path that is no path and no key is refused. ~~|
+        ~({:a 1} | put true 2 !| type | eq ::any/put/path/KindNotTakenError)
     | takes :value |~~ The value laid at the path. ~~| /1
     | proves :addsAKey
         |~~ A key the last map lacks is added. ~~|
@@ -2230,6 +2235,9 @@
         |~~ The path is a path, `update /n ~(add 1)`, or a key of one
             segment, `update :n ~(add 1)`.
         ~~|
+    | proves :path/KindNotTakenError/refusesABoolean
+        |~~ A path that is no path and no key is refused. ~~|
+        ~({:a 1} | update true ~(it) !| type | eq ::any/update/path/KindNotTakenError)
     | takes :code
         |~~ The code run on the part, a quote or a path. ~~|
         /1 #[::path ::quote]
@@ -2239,6 +2247,9 @@
             `update /n (add 1)`, it is computed once at the call and
             refused.
         ~~|
+    | proves :code/KindNotTakenError/refusesANumber
+        |~~ Code that is no quote and no path is refused. ~~|
+        ~({:a 1} | update /a 5 !| type | eq ::any/update/code/KindNotTakenError)
     | proves :runsTheCodeOnThePart
         |~~ The part at the path is laid anew by what the code answers. ~~|
         ~({:a {:n 1}} | update /a/n ~(add 1) | eq {:a {:n 2}})
@@ -2272,6 +2283,9 @@
         |~~ The path is a path, `delete /a/b`, or a key of one segment,
             `delete :a`.
         ~~|
+    | proves :path/KindNotTakenError/refusesABoolean
+        |~~ A path that is no path and no key is refused. ~~|
+        ~({:a 1} | delete true !| type | eq ::any/delete/path/KindNotTakenError)
     | proves :takesAKeyOut
         |~~ A key is taken out of the map at the path. ~~|
         ~({:a {:b 1 :c 2}} | delete /a/b | eq {:a {:c 2}})

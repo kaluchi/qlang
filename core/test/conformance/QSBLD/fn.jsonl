@@ -24,3 +24,6 @@
 {"name":"impl-over-the-noun-alone-takes-no-command-after-it","query":"::fn | impl ~(add 1) | takes :by |~~ b ~~| /0 !| type","expect":"::fn/takes/SubjectNotFnError"}
 {"name":"apply-hands-a-function-a-set-of-arguments","query":":f (::fn | takes :by |~~ b ~~| /0 | impl ~(add by)) | 5 | apply f #[3]","expect":"8"}
 {"name":"apply-hands-a-function-of-no-inputs-an-empty-set-or-an-empty-vector-under-a-tag","query":":f (::fn | impl ~(add 1)) | 5 | get [~(apply f #[]) ~(apply f ::T[])]","expect":"[6 6]"}
+{"decision":"D323","name":"an-invariant-takes-no-name-of-a-place-left-out","query":"::fn | takes :w |~~ w ~~| /0 | holds :w/NotGivenError |~~ n ~~| ~(true) !| type","expect":"::fn/NameDeclaredTwiceError"}
+{"decision":"D323","name":"an-invariant-takes-no-name-of-the-refusal-of-the-answer","query":"::fn | returns |~~ r ~~| ::number | holds :answer/KindNotTakenError |~~ n ~~| ~(true) !| type","expect":"::fn/NameDeclaredTwiceError"}
+{"decision":"D323","name":"an-invariant-takes-no-name-of-the-refusal-of-a-vector-of-kinds","query":"::fn | takes :xs |~~ x ~~| /0 [::number] | holds :xs/KindNotTakenError |~~ n ~~| ~(true) !| type","expect":"::fn/NameDeclaredTwiceError"}

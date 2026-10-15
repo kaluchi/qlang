@@ -41,6 +41,9 @@
         |~~ `start` reads the place a span starts at, as a parse error
             holds it, `"[1" | parse !| get /location | start`.
         ~~|
+    | proves :SubjectNotSpanError/refusesANumber
+        |~~ A subject that is no span is refused. ~~|
+        ~(5 | span/start !| type | eq ::span/start/SubjectNotSpanError)
     | proves :answersThePointItStartsAt
         |~~ The start of a span is the point of its first three numbers. ~~|
         ~(::span[0 1 1 4 1 5] | start | eq ::point[0 1 1])
@@ -58,6 +61,9 @@
         |~~ `end` reads the place a span ends at, as a parse error holds
             it, `"[1" | parse !| get /location | end`.
         ~~|
+    | proves :SubjectNotSpanError/refusesANumber
+        |~~ A subject that is no span is refused. ~~|
+        ~(5 | span/end !| type | eq ::span/end/SubjectNotSpanError)
     | proves :answersThePointAfterIt
         |~~ The end of a span is the point of its last three numbers. ~~|
         ~(::span[0 1 1 4 1 5] | end | eq ::point[4 1 5])

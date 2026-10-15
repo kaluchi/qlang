@@ -78,8 +78,11 @@ for application, `core/src/types.mjs` for the values, and
 `core/lib/qlang.qlang`, the topic of the language, its first page and
 chapters, with one source of a noun such as
 `core/lib/qlang/number.qlang` for the shape of the catalog.
-Read source with the file-reading tool, whole; the persistence limit
-below applies to shell output, so a large file is never `cat`-ed.
+Read source with the file-reading tool, whole; a read the tool cut at
+its token cap did not read the file, and
+`node scripts/sensors/read-coverage.mjs` measures what a session read.
+The persistence limit below applies to shell output, so a large file is
+never `cat`-ed.
 
 Tier 2, by topic, only the files the topic names:
 
@@ -189,7 +192,8 @@ language cannot follow, on a record that names no decider [QSWRK#journal], and
 on a path this file, the chapter of the aim or the chapter of the work
 names that the tree lacks or on words they quote from the tree that
 their file no longer holds, on a date of the history in a text that
-states what holds, and on the walk of a baseline: a record of the
+states what holds, on a series of the benchmark or of the outside audits
+past its two latest, and on the walk of a baseline: a record of the
 language the baseline holds that no case and no line of its fate does,
 a record in transit in the merge that landed a branch,
 more than twenty records since the baseline, a document of the research
@@ -277,21 +281,16 @@ which publishes through npm trusted publishing: the file name
 happens at the maintainer's word; between releases the sister project
 consumes the workspace copy.
 
-## External review
+## Outside audit
 
-`scripts/gemini-review.mjs`, `scripts/gemini-show.mjs`, and
-`scripts/gemini-resolve.mjs` drive Gemini Code Assist on a pull
-request; the first review runs on its own when the request opens, and
-the trigger script is for later rounds. The reviewer is a signal the
-maintainer calls for rather than a gate: apply a finding that
-names a real defect, and reject a proposed fallback or defensive check
-with a sentence in the commit body.
-
-`node scripts/outside-audit.mjs` runs the outside audit [QSWRK#review]: a clean
-Opus reads the tree at HEAD from an empty directory, with no CLAUDE.md,
-no memory and no MCP server, and its report lands in
-`docs/journal/research/outside-audit/` under its date and tree; the session
-writes its reading beside it and the fate of each finding in the README
+`node scripts/outside-audit.mjs` runs the outside audit [QSWRK#review] on a
+tree every change of which a commit holds, best on master after a branch
+landed: a clean Opus reads the tree at HEAD from an empty directory, with
+no CLAUDE.md, no memory, no MCP server and no access to the history,
+answers `scripts/outside-audit-prompt.txt`, and its report lands in
+`docs/journal/research/outside-audit/` under its date and tree, the run
+giving the oldest of three to the history. The session writes its
+reading beside the report and the fate of each finding in the README
 there.
 
 ## Sister project

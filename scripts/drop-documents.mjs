@@ -2,8 +2,8 @@
 // each leaves the tree, which git keeps, with its part of the ledger of
 // its folder, a record replaced reading it at the commit the record left
 // at; and the lines of its part of the ledger that say open are printed,
-// for the author to carry under the document's name and the commit that
-// last held it. A document something in force cites is refused.
+// for the author to carry into an open record of their axis. A document
+// something in force cites is refused.
 //
 // Usage: node scripts/drop-documents.mjs <path>...   (no path: the uncited)
 
@@ -47,7 +47,7 @@ for (const path of paths) {
       let to = link + 1;
       while (to < lines.length && !/^## /.test(lines[to]) && !/^\[\d{4}-\d{2}-\d{2}/.test(lines[to])) to += 1;
       const open = lines.slice(from, to).filter(line => /\b[Oo]pen[.,;]/.test(line));
-      if (open.length > 0) console.log(`  ${ledger}, open under ${name}, to carry at ${commit}:\n${open.map(line => `    ${line}`).join('\n')}`);
+      if (open.length > 0) console.log(`  ${ledger}, open under ${name} at ${commit}, to carry into an open record of their axis:\n${open.map(line => `    ${line}`).join('\n')}`);
       lines.splice(from, to - from);
       return lines.join('\n').replace(/\n{3,}/g, '\n\n');
     });

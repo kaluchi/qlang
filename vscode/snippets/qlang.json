@@ -69,12 +69,12 @@
     "body": ["|~ ${1:comment} ~|"],
     "description": "Block comment, which no step reads"
   },
-  "line doc comment": {
+  "line doc": {
     "prefix": "|~~|",
     "body": ["|~~| ${1:doc}"],
     "description": "Line doc, the page of the name before it or a value of its own"
   },
-  "block doc comment": {
+  "block doc": {
     "prefix": "|~~",
     "body": ["|~~ ${1:doc} ~~|"],
     "description": "Block doc, the page of the name before it or a value of its own"

@@ -189,7 +189,7 @@ the block that carries it, a test file in its head, a workflow under
 source of the catalog in the comment above its pages, `The decisions it
 exists for: [QSDSP#residence]`; the sister project names a record of
 qlang with the repository, `(qlang Dnn)`; and the data of a measurement
-in the name of its file, `screens/D167.txt`. A mark covers its block,
+in the name of its file, `screens/D270.txt`. A mark covers its block,
 from its comment to the next comment that holds one, the first block
 reaching up to the head of the file, so a search answers what governs a
 file and what a record left behind: `node scripts/marks.mjs` answers the
@@ -233,9 +233,10 @@ At the move:
   that cites, `CLAUDE.md` and the READMEs of the workspaces, names it, the
   README of its folder a ledger that holds none;
   `node scripts/drop-documents.mjs` drops the rest, each with its part of
-  the ledger of its folder, the findings it left open carried into the
-  ledger under its name and the commit. A review is a unit, any other
-  research its folder, and the outside audits a series that stays.
+  the ledger of its folder, the findings it left open carried into an
+  open record of their axis. A review is a unit, any other
+  research its folder, and the outside audits a series whose two latest
+  stay.
 - Every probe of the open records and of the chapters is run, and every
   sentence the tree proves wrong is replaced by the fact and its probe.
 - The branch lands on master and is deleted, with the worktrees of its
@@ -458,8 +459,9 @@ references of `scripts/benchmark/tasks.mjs`, the shortest query the tree
 answers each task with, run in the gate as `check:benchmark`, the
 default of `scripts/benchmark.mjs`, which holds as well `prompt`,
 `screen`, `report`, `author`, `run`, `grade`, `verdict`, `misses` and
-`frictions`; the sets live under `scripts/benchmark/sets/` with their
-runs.
+`frictions`; the two latest sets live under `scripts/benchmark/sets/`
+with their runs, beside the two latest screens and runs of the
+references, and an older one goes to the history.
 
 ## review
 
@@ -480,16 +482,15 @@ the one to stop at.
 
 `node scripts/outside-audit.mjs` runs the outside audit: a clean Opus,
 started from an empty directory of its own with no instruction file,
-memory or server, reads the tree at HEAD, runs `qlang` and answers
-`docs/journal/research/outside-audit/prompt.txt`, and its report lands as
-`docs/journal/research/outside-audit/<date>-<tree>.md`; it runs on a tree every
-change of which a commit holds, once for a tree and a day. The session
-writes its reading beside the report and the fate of each finding in the
-README there. `scripts/gemini-review.mjs`, `scripts/gemini-show.mjs` and
-`scripts/gemini-resolve.mjs` drive Gemini Code Assist on a pull request,
-a signal the maintainer calls for: a finding that names a real defect is applied,
-and a fallback or a defensive check it proposes is refused with a
-sentence in the commit.
+memory or server, reads the tree at HEAD, runs `qlang`, the history out
+of its reach, and answers `scripts/outside-audit-prompt.txt`, and its
+report lands as
+`docs/journal/research/outside-audit/<date>-<tree>.md`; it runs on a
+tree every change of which a commit holds, once for a tree and a day.
+The session writes its reading beside the report and the fate of each
+finding in the README there. The run keeps the two latest audits, and
+gives an older one to the history with its reading and its part of the
+ledger.
 
 ## tooling
 

@@ -1067,13 +1067,15 @@ function heldIn(state) {
 }
 
 // codeOfPath(path, callState) → code that reads the path from each input
-// it is handed, as `get` reads it, a refusal its answer [QSPTH#value].
+// it is handed, as `~(get /path)` reads it, a refusal its answer with the
+// stop of that step at the input [QSPTH#code].
 export function codeOfPath(path, callState) {
+  const step = () => makeQuote([commandStep('get', [path])]);
   return async input => {
     try {
       return readPath(input, path);
     } catch (refusal) {
-      return errorFromQlang(refusal, input, callState.env);
+      return answerOfStep(errorFromQlang(refusal, input, callState.env), step, input);
     }
   };
 }

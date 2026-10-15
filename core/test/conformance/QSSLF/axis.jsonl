@@ -44,3 +44,5 @@
 {"name":"a-keyword-reads-the-page-of-its-kind","query":":count 5 | :count | doc | eq (::keyword | doc)","expect":"true"}
 {"name":"an-anchor-of-doc-is-a-keyword-a-vector-or-a-set","query":"::qlang | doc 5 !| type","expect":"::any/doc/anchor/KindNotTakenError"}
 {"name":"manifest-takes-no-member","query":"::qlang | manifest :pipeline !| type","expect":"::any/manifest/ArgsBeyondInputsError"}
+{"decision":"D315","name":"an-anchor-of-a-set-that-is-no-keyword-is-refused-at-its-place-in-the-set","query":"::qlang | doc #[:pipeline ::x] !| get [~(type) /index]","expect":"[::any/doc/anchor/ElementNotKeywordError 1]"}
+{"decision":"D315","name":"a-set-of-anchors-takes-null-and-a-path-of-anchors","query":"::qlang | doc #[null [:pipeline]] | count","expect":"2"}

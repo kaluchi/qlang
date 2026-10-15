@@ -16,3 +16,4 @@
 {"name":"parseJson-refuses-a-text-that-is-no-json","query":"\"[1, 2\" | parseJson !| type","expect":"::string/parseJson/TextNotJsonError"}
 {"name":"a-value-under-a-tag-reads-back-from-json-as-the-plain-map","query":"::Box#1 | json | parseJson","expect":"{:\"$tag\" \"Box\" :payload 1}"}
 {"name":"a-number-past-the-doubles-is-refused-with-its-path","query":"\"{\\\"a\\\": {\\\"b c\\\": [1, 1e400]}}\" | parseJson !| get /path","expect":"[\"a\" \"b c\" 1]"}
+{"decision":"D315","name":"json-writes-a-quote-as-its-print-a-quote-of-a-path-among-them","query":"get [~([/age] | tag ::quote | json) ~(~(get /a) | json)]","expect":"[\"\\\"::quote[/age]\\\"\" \"\\\"~(get /a)\\\"\"]"}

@@ -162,9 +162,14 @@ const underRecord = record => makeTag(record.get('name').name);
 // The page an anchor reads, the page of the member at the end of its path.
 const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));
 
-// A set of anchors reads a page at each, in the order of the set.
-bindStateReader('any/doc', (subject, anchor, state) =>
-  isQSet(anchor) ? Object.freeze(anchor.map(each => pageAt(subject, each, state))) : pageAt(subject, anchor, state));
+// A set of anchors reads a page at each, in the order of the set, an
+// element that is no anchor and no path refused at its place in the set.
+bindStateReader('any/doc', (subject, anchor, state) => {
+  if (!isQSet(anchor)) return pageAt(subject, anchor, state);
+  const stranger = anchor.findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
+  if (stranger >= 0) throw new AnyDocAnchorElementNotKeywordError({ index: stranger, actualValue: anchor[stranger] });
+  return Object.freeze(anchor.map(each => pageAt(subject, each, state)));
+});
 
 // The explanation of a value: the page `doc` reads for it, null for a
 // declaration without one, above the value itself, an error at rest as

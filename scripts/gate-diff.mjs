@@ -102,7 +102,7 @@ for (const line of git('diff', '--name-status', base, head, '--', 'docs/journal'
   const replacementOnly = hunks.every(hunkLines => {
     const changed = hunkLines.filter(changedLine => changedLine !== '');
     return changed.every(changedLine => changedLine.startsWith('+'))
-      && (/^\+(Replaced (in part )?by|Merged into|Pruned of what|Filed under the (principles|tooling) by) \[[DE]\d+\]|^\+Dissolved into \[QS|^\+Left at /.test(changed[0])
+      && (/^\+(Replaced by|Merged into|Pruned of what|Filed under the (principles|tooling) by) \[[DE]\d+\]|^\+Dissolved into \[QS|^\+Left at /.test(changed[0])
         || changed.every(added => /^\+\[([DE]\d+|QS[A-Z]{3}#[a-z]+)\]: \S+$/.test(added)));
   });
   if (replacementOnly) notes.push(`record replaced: ${path}`);

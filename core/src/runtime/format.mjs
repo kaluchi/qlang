@@ -9,7 +9,6 @@
 // rendering for a terminal is a view at a host's boundary, and the command
 // line owns its `table`.
 
-import { printQuoteSource, docText } from '../quote.mjs';
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareRefusal, declareInvariantError } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
@@ -47,11 +46,12 @@ const TO_PLAIN_HANDLERS = {
     else inner = t.payload;
     return { $tag: t[TAG_HEADER_SYMBOL].name, payload: toPlain(inner) };
   },
-  quote:   q => `~(${printQuoteSource(q)})`,
-  doc:     d => `|~~${docText(d)}~~|`,
+  // A quote and a doc write their prints [QSPRN#json].
+  quote:   q => printValue(q),
+  doc:     d => printValue(d),
   set:     s => s.map(toPlain),
-  // An error writes its tag beside its facts [QSPRN#json]; the literal, not
-  // JSON, is the form that reads back.
+  // A failure a host converts writes its tag beside its facts, which no
+  // value of the pipe holds; its literal is the form that reads back.
   error:   e => ({ $error: { $tag: e.tag.name, facts: toPlain(e.descriptor) } })
 };
 

@@ -184,8 +184,9 @@ server.
 ## What the tooling enforces
 
 `npm run check:conventions` fails on temporal lexicon in the sources
-outside `docs/` (legacy, deprecated, currently, previously, backward
-compatibility, and the TODO, FIXME, and HACK markers), on a digit
+outside `docs/`, `vscode/` and the instructions (legacy, deprecated,
+currently, previously, backward compatibility, and the TODO, FIXME, and
+HACK markers), on a digit
 followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a

@@ -3,8 +3,7 @@
 // work, which shows it. The baseline is the last commit that landed a
 // branch on master. A record of the language that the baseline's tree holds is
 // held by a case or closed by the line of its fate; the records written
-// since wait for the walk, twenty at most; the lines
-// that replace a record in part only fall; the code, the tests and
+// since wait for the walk, twenty at most; the code, the tests and
 // the cases cite the records in force, the documents that hold the work
 // those in force or waiting on a target; and a chapter is written at the
 // move alone [QSWRK#spec].
@@ -75,13 +74,12 @@ export function baselineOf(repoRoot) {
 // A record by its name in the tree of a commit, wherever its journal lay.
 const RECORD_FILE = /(?:^|\/)([DE]\d+)\.md$/;
 
-// walkOfBaseline(repoRoot) → { baseline, since, partialNow, partialThen,
-// violations }: the baseline, the records written since
-// it, the lines that replace a record in part now and at the baseline,
-// and every breach of the walk, each `{ where, problem }`.
+// walkOfBaseline(repoRoot) → { baseline, since, violations }: the baseline,
+// the records written since it and every breach of the walk, each
+// `{ where, problem }`.
 export function walkOfBaseline(repoRoot) {
   const baseline = baselineOf(repoRoot);
-  const walk = { baseline, since: [], partialNow: 0, partialThen: 0, violations: [] };
+  const walk = { baseline, since: [], violations: [] };
   if (baseline === undefined) {
     walk.violations.push({ where: 'master', problem: 'no merge on its first parent line lands a branch: the history holds no baseline' });
     return walk;
@@ -102,18 +100,6 @@ export function walkOfBaseline(repoRoot) {
   walk.since = [...records.keys()].filter(name => !atBaseline.has(name));
   if (walk.since.length > RECORDS_A_WALK_TAKES) {
     walk.violations.push({ where: JOURNAL, problem: `${walk.since.length} records since the baseline ${baseline}, from ${walk.since[0]}: the walk is due` });
-  }
-  const partialLines = text => (text.match(/^Replaced in part by/gm) ?? []).length;
-  walk.partialNow = [...records.values()].reduce((sum, record) => sum + partialLines(readFileSync(record.path, 'utf8')), 0);
-  // `git grep` ends with 1 where no line matches, a baseline that held none.
-  try {
-    walk.partialThen = git(repoRoot, 'grep', '-c', '^Replaced in part by', baseline, '--', 'docs/')
-      .split('\n').filter(Boolean).reduce((sum, line) => sum + Number(line.split(':').pop()), 0);
-  } catch {
-    walk.partialThen = 0;
-  }
-  if (walk.partialNow > walk.partialThen) {
-    walk.violations.push({ where: JOURNAL, problem: `${walk.partialNow} lines replace a record in part, more than the ${walk.partialThen} of the baseline ${baseline}: prune the part a newer record takes` });
   }
   const notClosed = record => !replacedWhole(record) && !isBeingDecided(record);
   for (const file of CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE))) {

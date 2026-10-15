@@ -26,7 +26,7 @@ const recordFolders = root => [join(root, JOURNAL), join(root, REPLACED)];
 export const FIELD_NAMES = ['Domain', 'Decided by', 'Decision', 'Question', 'Source', 'Alternatives', 'Set aside', 'Requirements'];
 export const OPEN_RECORD_FIELDS = ['Question', 'Source', 'Alternatives'];
 export const DECIDED_RECORD_FIELDS = ['Decided by', 'Decision'];
-const FATES = ['Replaces', 'Pruned of what', 'Replaced by', 'Replaced in part by', 'Merged into', 'Dissolved into', 'Left at'];
+const FATES = ['Replaces', 'Pruned of what', 'Replaced by', 'Merged into', 'Dissolved into', 'Left at'];
 export const FIELD_OPENS = new RegExp(`^(${FIELD_NAMES.join('|')})\\.`);
 export const FATE = new RegExp(`^(${FATES.join('|')}) `);
 const FIELD = new RegExp(`${FIELD_OPENS.source}|${FATE.source}`);
@@ -53,7 +53,7 @@ export function recordPathOf(root, name) {
 
 // readDecisionRecords(root) → the records by name, D1 onward and then E1
 // onward, those of the environment of the work, each
-// `{ path, domain, replacedBy, replacedInPartBy, mergedInto, met, targets }`;
+// `{ path, domain, replacedBy, mergedInto, met, targets }`;
 // a record merged into the earliest record of its axis is closed whole
 // as one replaced is [QSWRK#journal].
 export function readDecisionRecords(root) {
@@ -65,8 +65,6 @@ export function readDecisionRecords(root) {
     .sort(([left], [right]) => left[0].localeCompare(right[0]) || Number(left.slice(1)) - Number(right.slice(1)))
     .map(([name, path]) => {
       const recordText = readText(path);
-      const replacing = inPart => [...recordText.matchAll(new RegExp(`^Replaced ${inPart ? 'in part ' : ''}by (.+)$`, 'gm'))]
-        .flatMap(line => [...line[1].split(', under which')[0].matchAll(/[DE]\d+/g)].map(match => match[0]));
       // A walk files a principle and a rule of the tooling under their
       // domain, which holds them where no case can, the record out of force
       // [QSWRK#journal].
@@ -77,8 +75,8 @@ export function readDecisionRecords(root) {
         // A record that names no domain is out of form, which
         // check:conventions reports [QSWRK#journal].
         domain: filedUnder === 'principles' ? 'principle' : filedUnder ?? recordText.match(/^Domain\. ([^.]+)\./m)?.[1].toLowerCase() ?? null,
-        replacedBy: replacing(false),
-        replacedInPartBy: replacing(true),
+        replacedBy: [...recordText.matchAll(/^Replaced by (.+)$/gm)]
+          .flatMap(line => [...line[1].split(', under which')[0].matchAll(/[DE]\d+/g)].map(match => match[0])),
         mergedInto: [...recordText.matchAll(/^Merged into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/[DE]\d+/g)].map(match => match[0])),
         // The sections of the specification a record of the journal
         // dissolved into, its change made the order of the baseline [QSWRK#spec].

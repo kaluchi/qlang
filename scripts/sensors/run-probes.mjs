@@ -109,7 +109,7 @@ function printedByShell(command) {
   }
 }
 
-const listsFilesUnguarded = command => /\bgit ls-files\b(?![^|]*--error-unmatch)/.test(command);
+const listsFilesUnguarded = command => /\bgit (?:-C \S+ )?ls-files\b(?![^|]*--error-unmatch)/.test(command);
 
 function shellVerdict({ query, answer }) {
   if (!readsTheRepositoryAlone(query)) return 'machine';

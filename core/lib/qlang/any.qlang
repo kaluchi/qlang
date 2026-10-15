@@ -360,9 +360,10 @@
       top keeps its shape: a vector or a set there keeps its first
       element, a map gives way within, and a string, a doc, a quote or an
       atom alone is answered whole. A part gives way only where the least
-      it gives way to prints shorter than it, `[]` or `{:n 1}` staying,
-      so a budget never lengthens a print. A marker's `:size` counts what
-      it stands for, and its `:read`, applied to the value `elide` took,
+      it gives way to prints shorter than it, `[]` or `{:n 1}` staying. A
+      marker's `:size` counts what it stands for, a text by its
+      characters as `count` counts them, and its `:read`, applied to the
+      value `elide` took,
       answers the part left out. The call gives the budget, a number; the
       command line applies `elide` to every answer it prints when
       `--budget=N` asks it to.
@@ -395,10 +396,13 @@
         ~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}
           | elide 40 | get /s/head | eq "a long line of text to leave out, which ")
     | proves :keepsAPartShorterThanItsMarker
-        |~~ A part whose marker prints no shorter than it stays, so a
-            budget never lengthens a print.
-        ~~|
+        |~~ A part whose marker prints no shorter than it stays. ~~|
         ~([[] {:n 1} "short"] | elide 3 | eq [[] {:n 1} "short"])
+    | proves :countsATextByItsCharacters
+        |~~ The marker of a text counts and keeps characters as `count`
+            and `take` do.
+        ~~|
+        ~(61 | range | map ~("😀") | join "" | :s it | {} | put /s s | elide 30 | get /s | get [/size ~(get /head | count)] | eq [61 30])
     | proves :halvesAVectorUntilItFits
         |~~ A vector keeps its first elements and ends with a marker of
             the rest.

@@ -70,8 +70,8 @@ bindPrim('keyword/toTag', key => {
 });
 
 // A string reads as the source of a pattern with the flags the call gives,
-// none by default, and a text that writes the literal of a pattern whole, as
-// JSON writes one, is refused, its reading being `parse` [QSTXT#pattern].
+// none for null, and a text that writes the literal of a pattern whole is
+// refused [QSTXT#pattern].
 const StringToRegexTextNotPatternError = declareRefusal('string/toRegex/TextNotPatternError');
 const StringToRegexLiteralNotSourceError = declareRefusal('string/toRegex/LiteralNotSourceError');
 const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/flags/NotFlagsError');
@@ -84,7 +84,7 @@ bindPrim('regex/toRegex', (regex, written) => {
   return makeRegex(regex.source, flags);
 });
 bindPrim('string/toRegex', (text, written) => {
-  const flags = canonicalFlags(written);
+  const flags = canonicalFlags(written ?? '');
   if (flags === null) throw new StringToRegexFlagsNotFlagsError({ actualValue: written });
   if (literalWritten(text, 'RegexLit') !== null) throw new StringToRegexLiteralNotSourceError({ actualValue: text });
   const problem = patternProblem(text, flags);

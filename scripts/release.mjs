@@ -2,8 +2,8 @@
 
 // Release — bumps every publishable workspace to <version>, points
 // every internal dependency range at that version, rebuilds the
-// parser, runs every workspace's test suite and
-// coverage thresholds, pushes master, and waits for CI to go green
+// parser, runs the coverage thresholds of the core and every
+// workspace's test suite, pushes master, and waits for CI to go green
 // on the Release commit before tagging. The tag push triggers the
 // Deploy workflow (npm publish + GitHub Release).
 //

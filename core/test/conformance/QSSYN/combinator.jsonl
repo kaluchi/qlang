@@ -9,3 +9,5 @@
 {"name":"a-combinator-before-a-closing-bracket-names-the-step-it-misses","query":"\"(1 | )\" | parse !| get /message","expect":"\"`|` joins two steps, and the step after it is missing\""}
 {"name":"a-combinator-after-a-piped-catch-is-refused-as-after-a-catch","query":"\"[1] | !| | count\" | parse !| get /message","expect":"\"`|` written after `!|` is the habit of a pipe before every step: write `a !| b`\""}
 {"name":"a-group-and-a-quote-may-open-with-a-combinator","query":"get [~(5 | (| add 1)) ~(5 | apply ~(!| 0))]","expect":"[6 5]"}
+{"decision":"D315","name":"a-pipe-before-the-catch-at-the-head-stands-for-it","query":"\"| !| 0\" | parse","expect":"~(!| 0)"}
+{"decision":"D315","name":"a-pipe-after-the-catch-at-the-head-is-refused-as-the-habit","query":"\"!| | 0\" | parse !| get /message","expect":"\"`|` written after `!|` is the habit of a pipe before every step: write `a !| b`\""}

@@ -36,6 +36,12 @@
       ::link~(::qlang/errors | doc)
   ~~|
   ::kind
+    | wraps |~~ The facts of the failure, a map. ~~| ::map
+    | throws :PayloadKindNotTakenError
+        |~~ An error at rest holds the facts of a failure as a map,
+            `!{:reason :late}`; a payload of another kind is refused, and a
+            value of another kind is held as a fact, `!{:value [1]}`.
+        ~~|
     | throws :TrailNotVecError
         |~~ `:trail` among the facts of an error is its path, a vector of
             stops the runtime writes, `{:step :subject :skipped}`, from
@@ -134,6 +140,9 @@
     | proves :raisesAgainOtherwise
         |~~ A failure of another type raises again as itself. ~~|
         ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::number/add/SubjectNotNumberError)
+    | proves :PayloadKindNotTakenError/refusesAVector
+        |~~ A vector is no map of facts. ~~|
+        ~(::error[1] !| type | eq ::error/PayloadKindNotTakenError)
     | proves :TrailNotVecError/refusesANumberForATrail
         |~~ A number given as a trail is refused. ~~|
         ~(!{:kind :oops :trail 5} | raise !| get [~(type) /actualType] | eq [::error/TrailNotVecError ::number])

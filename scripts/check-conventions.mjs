@@ -524,14 +524,22 @@ function specIntrusions() {
       }
     });
   }
-  for (const seed of ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md']) {
-    readFileSync(join(repoRoot, seed), 'utf8').split(/\r?\n/).forEach((line, index) => {
-      const match = HISTORY_DATE.exec(line);
-      if (match) found.push({ file: seed, line: index + 1, rule: 'a date of the history', text: match[0] });
-    });
+  const datedLines = path => readFileSync(join(repoRoot, path), 'utf8').split(/\r?\n/).forEach((line, index) => {
+    const match = HISTORY_DATE.exec(line);
+    if (match) found.push({ file: path, line: index + 1, rule: 'a date of the history', text: match[0] });
+  });
+  ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'].forEach(datedLines);
+  for (const [root, ending] of TEXTS_THAT_STATE) {
+    readdirSync(join(repoRoot, root), { recursive: true }).map(String).filter(name => ending.test(name))
+      .forEach(name => datedLines(`${root}/${name.split(sep).join('/')}`));
   }
   return found;
 }
+
+// Beside the chapters and the seeds, the catalog, the cases and the code
+// state what holds [QSWRK#documents].
+const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['cli/lib', /\.qlang$/], ['core/test/conformance', /\.jsonl$/],
+  ['core/src', /\.(mjs|peggy)$/], ['cli/src', /\.mjs$/], ['lsp/src', /\.mjs$/]];
 
 function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;

@@ -69,7 +69,7 @@ if (existsSync(run)) {
 // language and lists and searches the files, and the history stays out of
 // its reach.
 const TOOLS = ['Read', 'Grep', 'Glob', 'Bash'];
-const ALLOWED = ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(grep:*)', 'Bash(git ls-files:*)'];
+const ALLOWED = ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(grep:*)', `Bash(git -C ${repoPath} ls-files:*)`];
 const flags = ['-p', '--model', 'opus', '--restricted', '--strict-mcp-config', '--tools', ...TOOLS, '--add-dir', repoPath, '--allowedTools', ...ALLOWED];
 const env = { ...process.env, ...CHILD_ENVIRONMENT };
 delete env.FORCE_COLOR;

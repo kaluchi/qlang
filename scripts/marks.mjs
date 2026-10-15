@@ -27,7 +27,7 @@ const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8',
 // An artifact is a source, a script or a test file of a workspace, a
 // source of qlang by the comment at its head and a workflow; the data a
 // run of the benchmark wrote, its runs and the sets its authors
-// generated, marks nothing [QSWRK#measure].
+// generated, is none and carries no mark inside it [QSWRK#marks].
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\/.*\.ya?ml$/;
 const RUN_OUTPUT = /^scripts\/benchmark\/(runs|sets)\//;
 const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !RUN_OUTPUT.test(path);
@@ -140,7 +140,7 @@ export function marksOfTree(root = repoRoot) {
 // The commit each record in force was last described in: the newest that
 // changed a line of it beyond a link, a statement of fate and a citation
 // a merge or a move wrote anew, which leave its decision as it was.
-const LINK_OR_FATE = new RegExp(`${LINK_DEFINITION.source}|^(Pruned of what|Replaced by|Merged into|Replaced in part by) `);
+const LINK_OR_FATE = new RegExp(`${LINK_DEFINITION.source}|^(Pruned of what|Replaced by|Merged into) `);
 const CITATIONS = /\[[DE]\d+(?:,\s*[DE]\d+)*\](?:(?:,\s*|,?\s+and\s+)\[[DE]\d+(?:,\s*[DE]\d+)*\])*/g;
 const beyondCitations = text => text.replace(CITATIONS, '').replace(/"decision":(\[[^\]]*\]|"[^"]*")/g, '"decision":D').replace(/\s+/g, ' ').trim();
 // The lines of a record's hunk that are its decision: a statement of fate,

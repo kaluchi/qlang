@@ -62,8 +62,11 @@ export function parse(source, opts = {}) {
   try {
     ast = peggyParse(source, { commentTrivia });
   } catch (err) {
-    const unclosed = err.found === null ? bracketLeftOpen(source) : null;
-    const sentence = unclosed?.message ?? formMeantAt(source, err.location) ?? stepMissedAtTheEnd(source, err);
+    // A refusal the grammar writes holds its own sentence; a failure where
+    // the source ends names what completes it [QSSYN#refusal].
+    const atTheEnd = err.expected !== null && err.found === null;
+    const unclosed = atTheEnd ? bracketLeftOpen(source) : null;
+    const sentence = unclosed?.message ?? (atTheEnd ? stepMissedAtTheEnd(source) : undefined);
     throw new ParseError(sentence ?? err.message, err.location, opts.uri ?? null, {
       expected: unclosed?.expected ?? err.expected,
       found: err.found,
@@ -106,18 +109,10 @@ function attemptOf(candidate) {
   }
 }
 
-// The form a reader meant where the parse stopped at a spelling of
-// another language: a set written with braces, `#{…}`, is `#[…]`.
-function formMeantAt(source, location) {
-  return source.startsWith('#{', location.start.offset)
-    ? 'a set is written `#[…]`, the vector in the one order without duplicates; `{…}` is a map'
-    : undefined;
-}
-
 // The step a source that ends with a combinator misses, `[1] |` and
 // `[1] !|` [QSSYN#combinator].
-function stepMissedAtTheEnd(source, err) {
-  const combinator = err.found === null ? /(?:^|\s)(!?\|)\s*$/.exec(source)?.[1] : undefined;
+function stepMissedAtTheEnd(source) {
+  const combinator = /(?:^|\s)(!?\|)\s*$/.exec(source)?.[1];
   return combinator === undefined ? undefined : `\`${combinator}\` joins two steps, and the step after it is missing`;
 }
 

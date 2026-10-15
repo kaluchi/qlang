@@ -35,7 +35,7 @@ lines.push(`  branch ${branch} · ${ahead} ahead of master, ${behind} behind · 
 
 const walk = walkOfBaseline(root);
 const span = walk.since.length === 0 ? 'none' : walk.since.length === 1 ? walk.since[0] : `${walk.since[0]}–${walk.since[walk.since.length - 1]}`;
-lines.push(`  baseline ${walk.baseline} · ${walk.since.length} of ${RECORDS_A_WALK_TAKES} records since, ${span} · ${walk.partialNow} lines replace in part, ${walk.partialThen} at the baseline`);
+lines.push(`  baseline ${walk.baseline} · ${walk.since.length} of ${RECORDS_A_WALK_TAKES} records since, ${span}`);
 if (walk.violations.length === 0) lines.push('  the walk holds');
 else {
   lines.push(`  the walk breaks ${walk.violations.length} times [QSWRK#baseline]:`);

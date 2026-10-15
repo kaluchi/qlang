@@ -7,9 +7,13 @@
 // into the journal under the run, `<date>-<tree>/<codes>.md`, beneath a line
 // that says how it was made, the series keeping its two latest runs, and
 // the session writes its reading beside them, `reading.md`, the fate of
-// each finding in it.
+// each finding in it. With `--records`, each open record named has a clean
+// reader of its own, who bootstraps alike and critiques the record against
+// the tree, answering `scripts/design-check-prompt.txt`, the reports landing
+// under `design-check/`, `<date>-<tree>/<Dnn>.md` [QSWRK#review].
 //
 // Usage: node scripts/spec-check.mjs [--groups N] [--dry]
+//        node scripts/spec-check.mjs --records D326 D327 [--dry]
 // `--dry` prints the groups and runs no reader.
 
 import { spawn, execFileSync } from 'node:child_process';
@@ -17,12 +21,14 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, statSync
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { CHILD_ENVIRONMENT } from './benchmark/child.mjs';
-import { RESEARCH } from './decision-records.mjs';
+import { JOURNAL, RESEARCH, isOpenText } from './decision-records.mjs';
 
 const repoRoot = join(import.meta.dirname, '..');
 const repoPath = repoRoot.replaceAll('\\', '/');
-const checksDir = join(repoRoot, RESEARCH, 'spec-check');
-const promptPath = join(repoRoot, 'scripts', 'spec-check-prompt.txt');
+const recordsAt = process.argv.indexOf('--records');
+const records = recordsAt === -1 ? null : process.argv.slice(recordsAt + 1).filter(argument => !argument.startsWith('--'));
+const checksDir = join(repoRoot, RESEARCH, records === null ? 'spec-check' : 'design-check');
+const promptPath = join(repoRoot, 'scripts', records === null ? 'spec-check-prompt.txt' : 'design-check-prompt.txt');
 const git = (...args) => execFileSync('git', ['-C', repoRoot, ...args], { encoding: 'utf8' }).trim();
 const shown = path => relative(repoRoot, path).replaceAll('\\', '/');
 
@@ -45,7 +51,15 @@ for (const file of language) {
   packed[Math.min(groupCount - 1, Math.floor(((before + weight / 2) * groupCount) / total))].push(file);
   before += weight;
 }
-const groups = [...packed.filter(group => group.length > 0), ...chapters.filter(file => file.startsWith('QSWRK')).map(file => [file])];
+const groups = records !== null ? records.map(record => [record])
+  : [...packed.filter(group => group.length > 0), ...chapters.filter(file => file.startsWith('QSWRK')).map(file => [file])];
+for (const record of records ?? []) {
+  const path = join(repoRoot, JOURNAL, `${record}.md`);
+  if (!existsSync(path) || !isOpenText(readFileSync(path, 'utf8'))) {
+    console.error(`${record} is no open record of the journal: a critique reads a question still open`);
+    process.exit(1);
+  }
+}
 if (process.argv.includes('--dry')) {
   for (const group of groups) console.log(group.join(' '));
   process.exit(0);
@@ -75,15 +89,16 @@ const env = { ...process.env, ...CHILD_ENVIRONMENT };
 delete env.FORCE_COLOR;
 const prompt = readFileSync(promptPath, 'utf8');
 const listed = files => {
-  const paths = files.map(file => `docs/spec/${file}`);
+  const paths = files.map(file => (records === null ? `docs/spec/${file}` : `docs/journal/${file}.md`));
   return paths.length === 1 ? paths[0] : `${paths.slice(0, -1).join(', ')} and ${paths.at(-1)}`;
 };
 const minuteOf = at => at.toISOString().slice(11, 16);
+const work = records === null ? 'A check of the chapters' : 'A critique of an open record';
 
 mkdirSync(run, { recursive: true });
-console.log(`${groups.length} clean readers check the chapters of ${tree}`);
+console.log(`${groups.length} clean readers ${records === null ? 'check the chapters' : 'critique the records'} of ${tree}`);
 const outcomes = await Promise.all(groups.map(group => new Promise(resolve => {
-  const codes = group.map(file => file.slice(0, 5)).join('-');
+  const codes = records === null ? group.map(file => file.slice(0, 5)).join('-') : group[0];
   const started = new Date();
   const child = spawn('claude', flags, { cwd: mkdtempSync(join(tmpdir(), 'qlang-spec-check-')), env });
   let out = '';
@@ -97,12 +112,12 @@ const outcomes = await Promise.all(groups.map(group => new Promise(resolve => {
       resolve(false);
       return;
     }
-    const header = `<!-- A check of the chapters of qlang by a clean Opus: \`claude -p --model opus\`, started from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, its tools named by \`--tools ${TOOLS.join(' ')}\`, the tree let in by \`--add-dir ${repoPath}\` and reading, \`qlang\`, \`grep\` and \`git ls-files\` allowed by \`--allowedTools\`, no CLAUDE.md, no memory and no MCP server, without the \`FORCE_COLOR\` of the session, reading the tree at ${tree} and checking ${listed(group)}, on ${date} from ${minuteOf(started)} to ${minuteOf(new Date())} UTC. Its prompt is \`scripts/spec-check-prompt.txt\` at ${tree}. -->`;
+    const header = `<!-- ${work} of qlang by a clean Opus: \`claude -p --model opus\`, started from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, its tools named by \`--tools ${TOOLS.join(' ')}\`, the tree let in by \`--add-dir ${repoPath}\` and reading, \`qlang\`, \`grep\` and \`git ls-files\` allowed by \`--allowedTools\`, no CLAUDE.md, no memory and no MCP server, without the \`FORCE_COLOR\` of the session, reading the tree at ${tree} and checking ${listed(group)}, on ${date} from ${minuteOf(started)} to ${minuteOf(new Date())} UTC. Its prompt is \`${shown(promptPath)}\` at ${tree}. -->`;
     writeFileSync(join(run, `${codes}.md`), `${header}\n\n${answer}\n`);
     console.log(`${codes}: ${shown(join(run, `${codes}.md`))}`);
     resolve(true);
   });
-  child.stdin.end(prompt.replace('{{group}}', listed(group)));
+  child.stdin.end(prompt.replace(records === null ? '{{group}}' : '{{record}}', listed(group)));
 })));
 
 // The series keeps its two latest runs: an older run goes to the history

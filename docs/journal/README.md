@@ -1,31 +1,17 @@
 # The journal
 
-The apophatic texts the tree keeps [QSWRK#documents]: the records in
-force at this root, those out of force under `replaced/`, and the
-research under `research/`. One file holds one record, `Dnn.md`. The
-records in force are the changes on their way, each naming the sections
-of the specification it overrides, the open records, and the records a
-measurement or a work beside the tree is named by. `replaced/` holds the
-records out of force, the `En.md` of the environment of the work among
-them, each under the line of its fate and the commit its text was last
-true of. How a record is written, decided, carried,
-marked, merged and dissolved is the chapter of the work,
-[QSWRK#journal], [QSWRK#marks] and [QSWRK#baseline];
-`node scripts/requirements.mjs` lists where each record stands.
-
-A decision the maintainer took is sourced by his words; a decision the
-model took says so and names the request it answered. Several decisions
-of 15 September were taken by the model at the maintainer's request;
-the first version of the audit records the request, and the
-maintainer's words for it were not found when the transcripts were
-searched on 23 September, so those records say only that, and a record
-whose words a later search found quotes them. When the model took the
-remaining open questions on 22 September, it was because the maintainer
-asked why those decisions fell to him at all: «давай по остатку, почему
-это мои решения? .. из чего мне выбирать? можешь разобраться, а то я не
-понимаю.. что ты можешь предложить сам?» (maintainer, 2026-09-22 04:37,
-session 0ea77851) and, later the same day in another session, «почему
-все мое?» (2026-09-22 07:21, session 86982eb5).
+The apophatic texts the tree keeps [QSWRK#documents]: the aim, `AIM.md`,
+the yardstick a choice is weighed by; the records in force at this root,
+one file a record, `Dnn.md`; those out of force under `replaced/`, each
+under the line of its fate and the commit its text was last true of; and
+the research under `research/`, the reviews, the outside audits and the
+checks of the chapters. The records in force are the changes on their
+way, each naming the sections of the specification it overrides, the
+open records, and the records a measurement or a work beside the tree is
+named by. How a record is written, decided, carried, marked, merged and
+dissolved is the chapter of the work, [QSWRK#journal], [QSWRK#marks] and
+[QSWRK#baseline]; `node scripts/requirements.mjs` lists where each record
+stands.
 
 [QSWRK#documents]: ../spec/QSWRK-the-work.md#documents
 [QSWRK#journal]: ../spec/QSWRK-the-work.md#journal

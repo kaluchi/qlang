@@ -1,7 +1,6 @@
 # The specification
 
-What the language is for, what it is and what is required of it, by
-topic. Each chapter
+What the language is and what is required of it, by topic. Each chapter
 states its rules section by section and shows them by probes, which
 `npm run check:probes` runs. The requirements of a section are the
 cases of the conformance file named for it,
@@ -13,7 +12,6 @@ The chapters, in the order the concepts rest on each other:
 
 | code | topic |
 |---|---|
-| [QSAIM](QSAIM-the-aim.md) | the aim: the mission, the satisfactory state, the principles, the order of the texts |
 | [QSLIT](QSLIT-values-and-literals.md) | a value and its literal, JSON as syntax, the atoms |
 | [QSORD](QSORD-one-order.md) | one order over all values, the set |
 | [QSSYN](QSSYN-grammar.md) | the grammar: steps, combinators, whitespace, comments, docs, refusals |

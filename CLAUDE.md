@@ -4,8 +4,8 @@ Reference implementation of the qlang pipeline language: a monorepo of
 the language core plus its tooling. This file is the seed every
 session receives. It says how to start, what the tooling enforces, and
 how work moves. It says nothing about the design of the language: that
-lives in the specification, `docs/spec/`, the aim first, and where the
-two disagree, the specification wins and this file is what changes.
+lives in the specification, `docs/spec/`, and where the two disagree,
+the specification wins and this file is what changes.
 
 ## Start here, every session
 
@@ -13,19 +13,19 @@ The texts of the work speak in two voices [QSWRK#documents]. The
 cataphatic ones state what holds, in the present: the chapters of
 `docs/spec/`, the pages of the catalog, the cases and the comments of the
 code. The apophatic ones carry the change against the baseline: the
-dialogue of the session first, then the journal, `docs/journal/`, its
-records and its research, the memory and the history of the commits. A
+dialogue of the session first, then the journal, `docs/journal/`, the
+aim, its records and its research, the memory and the history of the
+commits. A
 session reads the cataphatic core first, so its picture of the language
 is built from what holds, then lands on the apophatic texts, where its
 work is; a doubt or a reason it meets is said in the dialogue, or
 written as a record where it asks for a choice, and never into a chapter,
 a page or a comment.
 
-1. Read whole the aim, `docs/spec/QSAIM-the-aim.md`: the mission, the
-   satisfactory state, the principles and the order of the texts; and
-   the chapter of the work, `docs/spec/QSWRK-the-work.md`, read whole
-   before the first change: the records, the cases, the baseline, the
-   branch and the measures. Then Tier 1 below, the language itself.
+1. Read whole the chapter of the work, `docs/spec/QSWRK-the-work.md`,
+   before the first change: the texts and their order, the records, the
+   cases, the baseline, the branch and the measures. Then Tier 1 below,
+   the language itself.
    What holds is stated by topic in `docs/spec/`, a chapter per topic
    cited by section, `[QSNAM#scope]`, its cases under
    `core/test/conformance/QSNAM/`; a decision is the change in transit,
@@ -36,8 +36,10 @@ a page or a comment.
 2. Land: `npm run desk`, the screen of the work: the branch against
    master, the walk of the baseline, the targets open, the records being
    decided, the stashes and the sister project's branch
-   [QSWRK#baseline]; then the records in transit and the open records,
-   whole, and the maintainer's message. `npm test` at the repo root runs
+   [QSWRK#baseline]; then the aim, `docs/journal/AIM.md`, the mission,
+   the satisfactory state and the principles a choice is weighed by, the
+   records in transit and the open records, whole, and the maintainer's
+   message. `npm test` at the repo root runs
    in the background while reading. The git snapshot the harness
    injects at the start of a session goes stale; the screen you run is
    the truth. The sensors live in `scripts/sensors/`: the probes run
@@ -48,7 +50,8 @@ a page or a comment.
 4. Before the session ends, write every decision taken as a file under
    `docs/journal/`, a change of the language with the cases it leaves,
    met or targets. A decision that survives only in a conversation is
-   lost. Then move the baseline: the records in transit dissolve into
+   lost. Then move the baseline, the last commits of the branch and the
+   only ones that write a chapter: the records in transit dissolve into
    their sections, every record of the language no case names gets its
    fate while an open record waits, the probes of the open records and
    the chapters run, and the branch lands on master by a merge that
@@ -66,9 +69,8 @@ desk shows, and the findings at hand are weighed by them.
 The tree is larger than a context window. Read in tiers and stay under
 a third of the context before reasoning starts.
 
-Tier 0, always: the aim and the chapter of the work, and, for each
-claim you are about to rely on, its probe rerun with `qlang` in script
-mode.
+Tier 0, always: the chapter of the work, and, for each claim you are
+about to rely on, its probe rerun with `qlang` in script mode.
 
 Tier 1, every session, whole, before any claim about the language is
 argued or a chapter is touched: `core/src/grammar.peggy` for the syntax,
@@ -113,9 +115,11 @@ Never wholesale: `core/test/`, `docs/journal/replaced/`,
 `docs/journal/research/`, the memory directory. Open a record out of
 force where a record in force cites it.
 
-A session validates the texts against the tree: a wrong sentence of a
-chapter is replaced by the fact with its probe, and a hole becomes an
-open record with the alternatives and their cost. Only the
+A session validates the texts against the tree: a sentence of a chapter
+the tree contradicts is said in the dialogue and written with its probe
+as a record, a target where the chapter's rule stands, an open record
+with the alternatives and their cost where the choice is open, and the
+chapter changes at the move alone [QSWRK#spec]. Only the
 maintainer's quoted words bind: a record whose `Decided by.` or
 `Source.` line names the model is a reading the session weighs on its
 merits and replaces when it finds a better one, never a rule to put to
@@ -188,11 +192,13 @@ literal or held by a constant the address does not name
 (`VecToMapElementNotPairError` for `vec/toMap/ElementNotPairError`) [QSERR#site],
 on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [QSWRK#journal], and
-on a path this file, the chapter of the aim or the chapter of the work
+on a path this file, the aim or the chapter of the work
 names that the tree lacks or on words they quote from the tree that
 their file no longer holds, on a date of the history in a text that
-states what holds, on a series of the benchmark or of the outside audits
-past its two latest, and on the walk of a baseline: a record of the
+states what holds, on a series of the benchmark, of the outside audits or
+of the checks of the chapters past its two latest, and on the walk of a
+baseline: a section of a chapter written since the baseline that no
+record dissolved into [QSWRK#spec], a record of the
 language the baseline holds that no case and no line of its fate does,
 a record in transit in the merge that landed a branch,
 more than twenty records since the baseline, a document of the research
@@ -203,18 +209,18 @@ the baseline that no record in transit over its section claims, a
 chapter that cites a record, speaks of the journal or tells a history
 [QSWRK#spec],
 and a citation of a record not in force, which the code, the tests and the cases never make and the
-documents make only of one waiting on its target [QSWRK#baseline]. `npm run check:probes` runs every probe of the open records and the
-specification, the shell ones that read the repository alone included, and fails on one whose answer changed, which the branch that
-changed it answers by rewriting the sentence with its probe [QSWRK#probe]; a
+documents make only of one waiting on its target [QSWRK#baseline]. `npm run check:probes` runs every probe of the open records, the
+records in transit and the specification, the shell ones that read the repository alone included, and fails on one whose answer changed,
+but where the record in transit over its section holds a probe of the same query, which the move writes into the section [QSWRK#probe]; a
 target case records the answer the tree gives today, so the suite
 tells a repair from a broken case [QSWRK#target].
 
 Coverage thresholds are pinned in the `vitest.config.mjs` of `core/`
 and `cli/`; which thresholds the work keeps is an open record [D296].
 
-A review holds a diff against the principles of the aim and the rules
-of the work, a verdict and its findings each with its file and its line
-[QSWRK#review].
+A review holds a diff against the principles of the aim,
+`docs/journal/AIM.md`, and the rules of the work, a verdict and its
+findings each with its file and its line [QSWRK#review].
 
 ## Change workflow
 
@@ -222,8 +228,10 @@ of the work, a verdict and its findings each with its file and its line
   them, and lands on master at every move of the baseline by a merge
   commit, made locally with no question asked where no pull request is
   open, so master is the clean desk [QSWRK#branch]. Never
-  commit code on master; a change to documents alone lands without a
-  branch. A branch states in its description what it shows when it
+  commit code on master, and write a chapter of `docs/spec/` in the last
+  commits of a branch alone, where its records dissolve [QSWRK#spec]; a
+  change to the journal alone lands without a branch. A branch states in
+  its description what it shows when it
   lands. The sign of its diff by
   area, which `node scripts/measure.mjs` computes from the history, is
   read against what it delivered, and no commit message carries a count
@@ -291,6 +299,19 @@ answers `scripts/outside-audit-prompt.txt`, and its report lands in
 giving the oldest of three to the history. The session writes its
 reading beside the report, every finding checked by a probe with its
 fate.
+
+## Check of the chapters
+
+`node scripts/spec-check.mjs` runs the check of the chapters
+[QSWRK#review] on such a tree: a clean Opus for each group of chapters,
+started at once as the outside audit is, bootstraps from every chapter
+of `docs/spec/` and the first pages, then reads its sections against
+their cases, the code that cites them, the pages of their words and the
+command line, and reports findings of six kinds, each with its probe,
+under `docs/journal/research/spec-check/<date>-<tree>/`; `--dry` prints
+the groups. The session writes its reading beside the reports, every
+finding with its fate, and the run gives the oldest of three to the
+history.
 
 ## Sister project
 

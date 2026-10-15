@@ -7,6 +7,7 @@
 // Usage:
 //   node scripts/marks.mjs                 the artifacts that mark no record, the orphans
 //   node scripts/marks.mjs D44             the places that mark a record
+//   node scripts/marks.mjs QSNAM#scope     the places that mark a section
 //   node scripts/marks.mjs <path>          the records a file marks
 //   node scripts/marks.mjs --diff <rev>    the records the files changed since a revision mark
 //   node scripts/marks.mjs --touched       the records whose scope changed since they were read against it
@@ -289,7 +290,7 @@ if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(
       touched.get(name).add(path);
     }
     for (const [name, paths] of [...touched].sort((a, b) => Number(a[0].slice(1)) - Number(b[0].slice(1)))) console.log(`${name}\t${[...paths].join(' ')}`);
-  } else if (/^[DE]\d+$/.test(command ?? '')) {
+  } else if (/^(?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)$/.test(command ?? '')) {
     for (const { path, line } of marksOfTree().marks.filter(mark => mark.name === command)) console.log(`${path}:${line}`);
   } else if (command !== undefined && existsSync(resolve(repoRoot, command))) {
     const names = new Set(marksOfTree().marks.filter(mark => mark.path === command.replaceAll('\\', '/')).map(mark => mark.name));

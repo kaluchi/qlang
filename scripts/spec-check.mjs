@@ -95,6 +95,10 @@ const listed = files => {
 const minuteOf = at => at.toISOString().slice(11, 16);
 const work = records === null ? 'A check of the chapters' : 'A critique of an open record';
 
+// A reader writes the link of a record as the records write it, from the
+// root of the journal; in a report it leads there from the run's folder.
+const linkedFromTheRun = answer => answer.replace(/^(\[D\d+\]: )((?:replaced\/)?D\d+\.md)$/gm, '$1../../../$2');
+
 mkdirSync(run, { recursive: true });
 console.log(`${groups.length} clean readers ${records === null ? 'check the chapters' : 'critique the records'} of ${tree}`);
 const outcomes = await Promise.all(groups.map(group => new Promise(resolve => {
@@ -113,7 +117,7 @@ const outcomes = await Promise.all(groups.map(group => new Promise(resolve => {
       return;
     }
     const header = `<!-- ${work} of qlang by a clean Opus: \`claude -p --model opus\`, started from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, its tools named by \`--tools ${TOOLS.join(' ')}\`, the tree let in by \`--add-dir ${repoPath}\` and reading, \`qlang\`, \`grep\` and \`git ls-files\` allowed by \`--allowedTools\`, no CLAUDE.md, no memory and no MCP server, without the \`FORCE_COLOR\` of the session, reading the tree at ${tree} and checking ${listed(group)}, on ${date} from ${minuteOf(started)} to ${minuteOf(new Date())} UTC. Its prompt is \`${shown(promptPath)}\` at ${tree}. -->`;
-    writeFileSync(join(run, `${codes}.md`), `${header}\n\n${answer}\n`);
+    writeFileSync(join(run, `${codes}.md`), `${header}\n\n${linkedFromTheRun(answer)}\n`);
     console.log(`${codes}: ${shown(join(run, `${codes}.md`))}`);
     resolve(true);
   });

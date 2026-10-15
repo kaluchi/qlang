@@ -68,4 +68,4 @@
 {"name":"an-input-whose-place-is-code-of-several-steps-takes-any-number","query":"5 | apply (::fn | takes :a |~~ a ~~| ~(query /0 1 | add 1) | impl ~(a)) [1 2]","expect":"2"}
 {"name":"a-failed-object-at-the-place-of-an-input-of-each-element-is-no-vector","query":":any/r (::fn | takes :steps |~~ s ~~| /0 [::quote] | impl ~(1)) | 5 | r (get /x) !| get [~(type) /expected]","expect":"[::any/r/steps/KindNotTakenError #[::vec]]"}
 {"name":"an-input-read-softly-takes-its-default","query":":vec/m (::fn | takes :n |~~ The n. ~~| ~(query /0 1) ::number | impl ~(map ~(add n))) | [1 2] | m","expect":"[2 3]"}
-{"decision":"D319","name":"a-place-that-meets-a-value-with-no-parts-is-refused-by-the-path","query":":any/m (::fn | takes :k |~~ k ~~| /0/k | impl ~(k)) | 1 | m 5 !| type","expect":"::path/SubjectHasNoPartsError"}
+{"name":"a-place-that-meets-a-value-with-no-parts-is-refused-by-the-path","query":":any/m (::fn | takes :k |~~ k ~~| /0/k | impl ~(k)) | 1 | m 5 !| type","expect":"::path/SubjectHasNoPartsError"}

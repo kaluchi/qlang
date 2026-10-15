@@ -21,5 +21,5 @@
 {"name":"range-counts-a-whole-number-within-the-longest","query":"get [~(2.5 | range !| type) ~(1e10 | range !| type)]","expect":"[::number/range/CountNotIntegerError ::number/range/CountTooLargeError]"}
 {"name":"a-number-under-a-tag-rounds-under-the-tag","query":"::W#2.7 | floor","expect":"::W#2"}
 {"name":"a-negative-count-of-digits-rounds-to-tens","query":"15 | round -1","expect":"20"}
-{"decision":"D319","name":"sum-overflow-lifts-not-finite","query":"[1e308 1e308] | sum !| type","expect":"::number/NotFiniteError"}
-{"decision":"D319","name":"sum-overflow-holds-its-subject-on-the-trail","query":"[1e308 1e308] | sum !| get /trail/0/subject","expect":"[1e308 1e308]"}
+{"name":"sum-overflow-lifts-not-finite","query":"[1e308 1e308] | sum !| type","expect":"::number/NotFiniteError"}
+{"name":"sum-overflow-holds-its-subject-on-the-trail","query":"[1e308 1e308] | sum !| get /trail/0/subject","expect":"[1e308 1e308]"}

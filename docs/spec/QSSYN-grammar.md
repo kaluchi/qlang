@@ -27,9 +27,8 @@ a modifier. A value written as a later step on the success track is
 refused by the parser: a path and a container literal naming `get`, a
 tag name `tag` and a quote `apply`, and an atom, a pattern, an error
 literal and a doc refused as a value standing where a command stands;
-after `!|` a value is the recovery the catch answers, and a path, which
-the habit wrote there to read a fact of the error, is refused as after
-`|`. A question mark after a segment of a path is refused, naming
+after `!|` a value is the recovery the catch answers, and a path is
+refused as after `|`. A question mark after a segment of a path is refused, naming
 `query`. A quote whose code is a path alone, a leading `|` before it
 among it, is refused, the path given bare in its place, and a path
 followed by a word is refused naming the verb it meant, `/ne ""` naming
@@ -84,8 +83,8 @@ line or at the start of the next; the modifiers of a command and the
 elements of a literal run on across lines. A keyword that begins a line
 with a doc or a step after it, on its line or a later one, opens a
 declaration of its own, so the body before it ends there, and a keyword
-alone on its line before a combinator or the end of the source is the
-modifier above. The body of a name with a path begun on a later line,
+alone on its line before a combinator, a line a keyword opens or the end
+of the source is the modifier above. The body of a name with a path begun on a later line,
 and the body of a bare name with its page begun on a later line with a
 tag name, is a sentence: its steps run on, joined by `|`, to the next
 declaration or a value written after `|`; any other body is one step,
@@ -98,6 +97,9 @@ combinator.
 ```qlang
 > "[3 1 2] sort" | parse !| get /message
 "steps are joined by `|`: write `a | b`"
+
+> "[1] | append\n:y\n:z 2\n| z" | parse
+~([1] | append :y | :z 2 | z)
 ```
 
 ## comment
@@ -132,13 +134,17 @@ doc written before a declaration is refused, naming the slot; a doc that
 opens a query is the doc value it is; a doc after a command is its next
 modifier, and one after a step that is no command is refused, a note
 inside a pipeline being a comment. Inside a doc, a span between
-backquotes is prose, as markdown reads it, and a `~(…)` outside one,
-under the tags written before it, is a segment of code where it reads as
-code, and prose where it does not.
+backquotes is prose, as markdown reads it, a run of backquotes closing
+at the next run of as many and a run with no such closer prose itself,
+and a `~(…)` outside one, under the tags written before it, is a segment
+of code where it reads as code, and prose where it does not.
 
 ```qlang
 > :foo |~~ one ~~| |~ why ~| |~~ two ~~| 42 | ::foo | doc | content
 " one \n two "
+
+> |~~ a ``~(add 1)`` c ~~| | segments
+[" a ``~(add 1)`` c "]
 
 > "|~~ note ~~| :x 42" | parse !| get /message | contains "the slot of the declaration"
 true

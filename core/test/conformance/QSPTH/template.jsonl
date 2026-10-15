@@ -18,4 +18,4 @@
 {"name":"a-template-under-three-tags-is-read","query":"{:a 1} | get ::A::B::C[/a]","expect":"::A::B::C[1]"}
 {"name":"a-set-under-a-tag-in-a-template-answers-the-failure-of-a-part","query":"{:a 1} | get ::Box#[~(1 | add \"x\")] !| type","expect":"::number/add/addend/KindNotTakenError"}
 {"name":"a-quote-in-a-set-under-a-tag-runs-as-every-quote-of-a-template","query":":k 2 | 1 | get ::Box#[~(add k)]","expect":"::Box#[3]"}
-{"decision":"D319","name":"a-field-of-a-kind-that-takes-a-number-refuses-a-path","query":":Box |~~ B ~~| (::kind | reads :w |~~ w ~~| /w ::number) | {:w 1} | get [::Box{:w /w}] !| type","expect":"::Box/w/KindNotTakenError"}
+{"name":"a-field-of-a-kind-that-takes-a-number-refuses-a-path","query":":Box |~~ B ~~| (::kind | reads :w |~~ w ~~| /w ::number) | {:w 1} | get [::Box{:w /w}] !| type","expect":"::Box/w/KindNotTakenError"}

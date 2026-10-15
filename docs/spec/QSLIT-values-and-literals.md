@@ -1,9 +1,10 @@
 # QSLIT · Values and their literals
 
 What a value is, how its text writes it, and the kind every value has.
-A literal is a value its text alone fixes; what computes a value is a
-word, [QSPTH#template] for a shape and `tag` for a tag laid over a value
-computed. The requirements of each section are the cases of its file
+A literal is a value its text fixes, reading no name and no subject, a
+tag it writes laid through the label the scope declares under that
+name; what computes a value is a word, [QSPTH#template] for a shape and
+`tag` for a tag laid over a value computed. The requirements of each section are the cases of its file
 under `core/test/conformance/QSLIT/`.
 
 ## kind
@@ -181,7 +182,9 @@ through the tag's constructor; a tag of another kind is refused as
 ## closed
 
 A literal is closed from its opening to its closing pair: its parts are
-literals, fixed by its text alone. A group or a name written inside a
+literals, fixed by its text, which reads no name and no subject, and a
+tag it writes is laid through the label the scope declares under that
+name, its constructor checking the payload [QSLIT#tag]. A group or a name written inside a
 container, at any depth, is refused by the parser, which names the
 literal whole as the template of `get`, its tags and its brackets kept,
 `[::Box[x] 1]` naming `get [::Box[~(x)] 1]` [QSPTH#template], and inside
@@ -197,6 +200,9 @@ code of a doc, a literal that computes reads as prose.
 
 > "::Width(5)" | parse !| get /message
 "a number, a boolean, null or a path touches its tag by `#`: write `::Width#5`"
+
+> :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)) | ::Pos#-1 !| type
+::Pos/NegError
 ```
 
 ## atoms

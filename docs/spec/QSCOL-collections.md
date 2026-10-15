@@ -12,7 +12,7 @@ and `drop` a count of elements, clamped to what there is, a count whole
 where it equals its floor, a fraction refused as
 `::vec/take/count/NotIntegerError` and a value of another kind as
 `…/count/KindNotTakenError`, `reverse`, the reverse of a set a vector and
-of a vector under a tag the vector under it, `flat`, which lifts one
+of a vector under a tag the vector under that tag, `flat`, which lifts one
 level, `sum`, a number beneath the tags over an element read as the
 number and an element that is no number refused at its index, at its key
 over a map, and `min` and `max` in the one order or by a key
@@ -62,8 +62,8 @@ predicate sees the value alone. `keys` answers the set of its keys,
 `[key value]` in the order of its entries, the step that makes a key
 data, and `has` whether a key stands [QSPTH#has]. The words a vector has
 beyond these, `distinct`, `groupBy`, `flat` and `contains` among them, a
-map answers by `vals` first, `{:a 1} | vals | contains 1` answering
-`true`.
+map does not answer, and a reader asks them of its values by `vals`
+first, `{:a 1} | vals | contains 1` answering `true`.
 
 ```qlang
 > {:b 2 :a 1} | map ~(add 1)
@@ -137,7 +137,8 @@ meets it, as a step does.
 their input, and on vectors, which fold the sets or maps they hold and
 take no value beside them, `[#[1] #[2]] | union 5` refused as
 `ArgsBeyondInputsError`. A set of sets folds as the vector of its
-elements, its input left out. A map's `union`, `minus` and `inter`
+elements, its input left out or null, which an input with a default
+reads as not given. A map's `union`, `minus` and `inter`
 combine it with the value their input gives, which the call gives,
 `{:a 1} | union` refused as `::map/union/other/NotGivenError`; its
 `union` takes a map, the later value of a key standing, and its `minus`
@@ -146,10 +147,10 @@ kind is refused under the input, `::map/union/other/KindNotTakenError`.
 A fold takes a set or a map first, a value of another kind refused at its
 index, `ElementNotSetOrMapError`; `union` refuses so a later value that
 is no set or map, while `minus` and `inter` take after a map the keys a
-vector names, as the map's words do; a later value the algebra has no
-rule for beside the one before it is refused as the pair,
+vector or a set names, as the map's words do; a later value the algebra
+has no rule for beside the one before it is refused as the pair,
 `KindsMismatchedError` with `:leftType` and `:rightType`, a set beside a
-map among them; and a fold of nothing is refused as
+map in `union` among them; and a fold of nothing is refused as
 `SubjectEmptyError`. The words of sets and of maps answer a value of
 the subject's kind under the subject's tags and one of another kind,
 the fold of a set of maps, as it is [QSDSP#answer]; a vector's fold
@@ -173,6 +174,12 @@ the first; one part answers itself.
 
 > ::T{:a 1} | union {:b 2}
 ::T{:a 1 :b 2}
+
+> [{:a 1 :b 2} #[:a]] | get [~(minus) ~(inter) ~(union !| type)]
+[{:b 2} {:a 1} ::vec/union/KindsMismatchedError]
+
+> #[#[1] #[2]] | union null
+#[1 2]
 ```
 
 ## group

@@ -27,8 +27,7 @@ as `::any/doc/anchor/ElementNotKeywordError` with its `:index`, the place
 in the set of an element that is neither a name nor a path; `laws`,
 `explain`, `manifest` and `tutorial` take no member, refusing one as
 `::any/manifest/ArgsBeyondInputsError` and its kin. A tag nothing declares whose last name
-ends in `Error` reads the record of the address before it, a refusal the
-runtime raises by rule having no node of its own; any other name
+ends in `Error` reads the record of the address before it; any other name
 nothing declares is refused under the axis, `::any/doc/UnknownNameError`,
 named by the tag or the keyword asked, with the addresses of words of
 the name and the names near it. A name declared without a page answers
@@ -49,13 +48,17 @@ true
 
 > ::nosuchbinding | doc !| get [~(type) /name]
 [::any/doc/UnknownNameError ::nosuchbinding]
+
+> ::number/add/FooError | binding | get /name
+:number/add
 ```
 
 ## manifest
 
 `manifest`, an axis, answers the set of the nodes declared one name
-under the name its subject reads: its words, its refusals, its pages and
-the inputs, the subject and the answer of a word, its laws aside, which `laws` reads; a
+under the name its subject reads: its words, its refusals, its pages,
+the payload and the fields of a kind, and the inputs, the subject and
+the answer of a word, its laws aside, which `laws` reads; a
 value answers those of the kind it shows, `5 | manifest` those of
 `::number`, and a name nothing declares is refused as
 `::any/manifest/UnknownNameError`. The topic of the language lists
@@ -67,6 +70,9 @@ true
 
 > ::qlang | manifest | has ::qlang/values
 true
+
+> :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box | manifest
+#[::Box/w]
 ```
 
 ## laws
@@ -169,9 +175,8 @@ stack read from the outside in: `::link`, which `links` answers and
 `open` runs to what its query answers, a page where it reads one, and
 `::snippet`, which `snippets` answers and `open` runs to what it shows; each is a kind of the core with a page,
 and a role that asks a check of its own comes as a kind of its own. A
-span between backquotes holds a fragment of the language that is no
-query to run. A doc lays each tag of a quote's role through the tag's
-label, so a tag that takes no quote refuses the doc.
+doc lays each tag of a quote's role through the tag's label, so a tag
+that takes no quote refuses the doc.
 
 ```qlang
 > |~~ a ~(add 1) b ~~| | segments

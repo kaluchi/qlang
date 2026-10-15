@@ -11,4 +11,4 @@
 {"name":"code-written-without-its-quote-is-read-from-the-whole-subject","query":"[{:n 1}] | map (get /n) !| get /actualValue | type","expect":"::path/IndexNotIntegerError"}
 {"name":"a-step-computed-where-the-input-reading-the-args-takes-code-is-refused-by-it","query":"5 | cond (get /nope) ~(1) !| get [~(type) /index]","expect":"[::any/cond/clauses/ElementKindNotTakenError 0]"}
 {"name":"a-word-of-the-reader-is-a-modifier-a-bare-name-computes","query":":vec/most ~(count | sub 1) | {:items [1 2 3] :limit 2} | get /items | take most","expect":"[1 2]"}
-{"decision":"D319","name":"an-input-that-reads-from-the-end-reads-the-last-object","query":":any/runAll (::fn | takes :steps |~~ The steps. ~~| /-1 [::quote] | impl ~(steps | count)) | 5 | get [~(runAll (get /nope) [~(1)] !| type) ~(runAll 7 [~(1)])]","expect":"[::path/SubjectHasNoPartsError 1]"}
+{"name":"an-input-that-reads-from-the-end-reads-the-last-object","query":":any/runAll (::fn | takes :steps |~~ The steps. ~~| /-1 [::quote] | impl ~(steps | count)) | 5 | get [~(runAll (get /nope) [~(1)] !| type) ~(runAll 7 [~(1)])]","expect":"[::path/SubjectHasNoPartsError 1]"}

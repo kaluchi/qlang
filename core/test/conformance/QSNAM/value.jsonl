@@ -8,5 +8,5 @@
 {"name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)"}
 {"name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)","expect":"6"}
 {"name":"a-value-at-an-address-refuses-modifiers-under-the-name-declared","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get [~(type) /name]","expect":"[::call/ValueTakesNoModifiersError :Box/side]"}
-{"decision":"D319","name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | :c it | get [1 2 3] | c | type","expect":"::builtin"}
-{"decision":"D319","name":"a-descriptor-a-query-assembles-is-a-value","query":"::builtin{:note :draft} | :u it | get {:x 1} | u | type","expect":"::builtin"}
+{"name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | :c it | get [1 2 3] | c | type","expect":"::builtin"}
+{"name":"a-descriptor-a-query-assembles-is-a-value","query":"::builtin{:note :draft} | :u it | get {:x 1} | u | type","expect":"::builtin"}

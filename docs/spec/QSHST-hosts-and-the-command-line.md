@@ -38,8 +38,8 @@ call, `doc`, `env`, `get`, `apply` and their kin, takes the state of the
 call after the values of its inputs were checked; every other primitive
 is a plain function. A call waits on an answer that has a `then`, a
 host's thenable and its promise of another realm among them. A host's
-setting is the first value of its pipe, and a host's command starts
-from its own noun.
+setting is the first value of its pipe, the command line's the noun of
+the language where it reads no input [QSHST#input].
 
 ```qlang
 > ::vec | binding | get /origin
@@ -78,7 +78,8 @@ calls at once takes the whole vector and bounds its own calls.
 
 The command line writes every answer as the language prints it,
 whatever its input was, a string as its text, and whole: a budget is
-asked for, `| elide N` in the query or `--budget=N` before it, which
+asked for, `| elide N` in the query or `--budget=N` before it, a whole
+count of characters above zero on either road, which
 prints every answer as `elide` cuts it [QSPRN#elide], a part giving way
 where its marker prints shorter. A reader who wants JSON converts the
 answer in the query, `| json`. A query that wrote to standard output by

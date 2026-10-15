@@ -48,9 +48,10 @@ against the subject at the declaration.
 ## letters
 
 A name a step can call begins with a letter of any script or `_` and
-goes on with letters, digits, `_` and `-`, and a key of a path and a tag
-are written in the same letters; names joined by `/` make a name with a
-path [QSNAM#address]. A bare name in quotes declares that name, and a
+goes on with letters, digits, `_` and `-`, and a tag is written in the
+same letters, while a key of a path may begin with a digit or `-` as
+well, `/1a`; names joined by `/` make a name with a path
+[QSNAM#address]. A bare name in quotes declares that name, and a
 name in quotes that a step cannot call is refused by the parser at the
 keyword. The words of the literals, `true`, `false` and `null`, are read
 by a step as the literals, so each declares a label, which its tag
@@ -74,13 +75,17 @@ under a noun, which its address calls.
 
 > "false/x" | parse !| type
 ::quote/ParseError
+
+> {"1a": 1} | get /1a
+1
 ```
 
 ## value
 
 A bare name that holds a value answers the value, a quote among values:
 the name alone reads its quote. Code under a bare name runs by `apply`,
-or goes bare into an input that takes code, held as data [QSQUO#held]. A
+and a quote or a path under it goes bare into an input that takes code,
+held as data [QSQUO#held], a function to `apply` alone [QSQUO#modifier]. A
 name that holds a value, called with modifiers, is refused as
 `::call/ValueTakesNoModifiersError` with its `:name`, the name as it was
 declared, and the `:addresses` of the words of its last name.
@@ -110,9 +115,9 @@ mention, the last name of its address calls it, and so does the address
 written as a step. `~double` hands the word on as code. A word reads the
 words and the nodes of the tree as the tree stands where it is called,
 so a word calls itself by its name. Each call runs a frame: an input
-read from its place, a modifier that is the literal of an atom and each
-run of the code a verb runs meet the budget of frames one below the
-call, a quote written as a modifier handed to the call as it is, and a
+read from its place, a modifier the call computes, a literal or a group,
+and each run of the code a verb runs meet the budget of frames one below
+the call, a quote written as a modifier handed to the call as it is, and a
 call that recurses without end is refused as
 `::call/EvaluationDepthExceededError` with its `:depth` and `:limit`.
 
@@ -134,8 +139,11 @@ call that recurses without end is refused as
 
 A scope is the steps of one pipeline that run in one env: its first step
 and every step `|` or `!|` joins to it. A name is declared once in a
-scope: the second declaration is refused where it stands,
-`::bind/NameDeclaredTwiceError` with `:name`, its step the fault.
+scope, counted in its steps as they are written, run or skipped: a
+declaration the fail track passed by counts, and so does one whose body
+failed, so a recovery after `!|` declares another name. The second
+declaration is refused where it stands, `::bind/NameDeclaredTwiceError`
+with `:name`, its step the fault.
 
 A group and each run of a quote are scopes of their own: a modifier, a
 part of a template of `get`, the code `map` runs on each element. A
@@ -158,6 +166,9 @@ reader's noun or under one of the root.
 ```qlang
 > :k 1 | :k 2 | k !| get [~(type) /name]
 [::bind/NameDeclaredTwiceError :k]
+
+> {} | raise | :x 1 !| :x 2 | x !| type
+::bind/NameDeclaredTwiceError
 
 > :k 1 | (:k 2 | k)
 2
@@ -280,8 +291,9 @@ A declaration writes into its scope a record, `::binding`: the name,
 the docs of its page, the value, the source of the declaration, null for
 a node a chain lays, and its origin. `env` answers the declarations of
 the reader where the step stands, in the body of a word those of the
-query that called it [QSNAM#owner], each by its name with its record,
-`{}` where the reader declared nothing. `binding` reads the record
+query that called it [QSNAM#owner], in code held as data its own and the
+nodes and the labels of the step it runs from [QSQUO#held], each by its
+name with its record, `{}` where the reader declared nothing. `binding` reads the record
 itself, `doc` its page, and `source` every declaration written under the
 name's address, the record's `:source` holding the step of the one that
 wrote it.
@@ -292,6 +304,9 @@ wrote it.
 
 > :x 1 | env | get [~(has :x) ~(has :vec)]
 [true false]
+
+> :x 1 | :Box |~~ B. ~~| | :Box/side 3 | :e ~(env | keys) | 5 | apply e
+#[:Box :Box/side]
 
 > :x |~~ note ~~| 1 | ::x | doc
 |~~ note ~~|

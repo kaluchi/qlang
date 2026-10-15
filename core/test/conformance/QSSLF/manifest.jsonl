@@ -21,6 +21,6 @@
 {"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/other | manifest","expect":"#[::set/union/other/KindNotTakenError]"}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
 {"name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(type) /name]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}
-{"decision":"D319","name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | parse | contains \"throws :addend/KindNotTakenError\"","expect":"true"}
-{"decision":"D319","name":"a-step-lists-its-refusals-on-its-noun","query":"::path | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :KeyNotInMapError) | count","expect":"1"}
-{"decision":"D319","name":"a-noun-lists-each-refusal-once","query":"::vec | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :PayloadKindNotTakenError) | count","expect":"1"}
+{"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | parse | contains \"throws :addend/KindNotTakenError\"","expect":"true"}
+{"name":"a-step-lists-its-refusals-on-its-noun","query":"::path | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :KeyNotInMapError) | count","expect":"1"}
+{"name":"a-noun-lists-each-refusal-once","query":"::vec | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :PayloadKindNotTakenError) | count","expect":"1"}

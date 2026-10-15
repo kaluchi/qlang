@@ -32,4 +32,4 @@
 {"name":"path-on-set-integer-index","query":"#[:z :x :y] | get /0","expect":":x"}
 {"name":"path-on-set-negative-index","query":"#[:z :x :y] | get /-1","expect":":z"}
 {"name":"path-on-set-index-out-of-bounds","query":"#[:a :b] | get /99 !| type","expect":"::path/IndexOutOfBoundsError"}
-{"decision":"D319","name":"a-quote-a-function-and-a-kind-read-by-place","query":"get [~(~(add 1 | mul 2) | get /1 | type) ~(::fn[~(takes :by |~~ b ~~| /0) ~(add by)] | get /1) ~(::kind | reads :w |~~ w ~~| /w ::number | get /0)]","expect":"[::call ~(add by) ~(reads :w |~~ w ~~| /w ::number)]"}
+{"name":"a-quote-a-function-and-a-kind-read-by-place","query":"get [~(~(add 1 | mul 2) | get /1 | type) ~(::fn[~(takes :by |~~ b ~~| /0) ~(add by)] | get /1) ~(::kind | reads :w |~~ w ~~| /w ::number | get /0)]","expect":"[::call ~(add by) ~(reads :w |~~ w ~~| /w ::number)]"}

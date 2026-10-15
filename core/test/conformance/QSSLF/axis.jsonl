@@ -46,7 +46,7 @@
 {"name":"manifest-takes-no-member","query":"::qlang | manifest :pipeline !| type","expect":"::any/manifest/ArgsBeyondInputsError"}
 {"name":"an-anchor-of-a-set-that-is-no-keyword-is-refused-at-its-place-in-the-set","query":"::qlang | doc #[:pipeline ::x] !| get [~(type) /index]","expect":"[::any/doc/anchor/ElementNotKeywordError 1]"}
 {"name":"a-set-of-anchors-takes-null-and-a-path-of-anchors","query":"::qlang | doc #[null [:pipeline]] | count","expect":"2"}
-{"decision":"D319","name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError"}
-{"decision":"D319","name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
-{"decision":"D319","name":"a-refusal-nothing-declares-reads-the-record-of-the-address-before-it","query":"::number/add/FooError | binding | get /name","expect":":number/add"}
-{"decision":"D319","name":"a-name-declared-without-a-page-answers-null","query":":x 1 | ::x | doc","expect":"null"}
+{"name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError"}
+{"name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
+{"name":"a-refusal-nothing-declares-reads-the-record-of-the-address-before-it","query":"::number/add/FooError | binding | get /name","expect":":number/add"}
+{"name":"a-name-declared-without-a-page-answers-null","query":":x 1 | ::x | doc","expect":"null"}

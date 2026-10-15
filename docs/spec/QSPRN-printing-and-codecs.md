@@ -64,8 +64,9 @@ duplicate key reads as `JSON.parse` reads it.
 
 ## elide
 
-`elide` answers a value whose print fits a budget of characters, a
-number, where it can, replacing parts by values of the kind `::elision`.
+`elide` answers a value whose print fits a budget of characters, a whole
+count above zero, another refused as `::any/elide/budget/NotCountError`,
+where it can, replacing parts by values of the kind `::elision`.
 The largest part gives way first, or in its place a part within it that
 prints more than half of it, and a part gives way only where the least it
 gives way to prints shorter than it, so where no part's least is shorter
@@ -78,7 +79,8 @@ container under a tag keeps its shape, its parts giving way within. A
 part a kind prints its own way stands as that kind prints it, the budget
 counting the print a host writes. A marker holds `:size`, what it stands
 for, a part that already gave way whole counting as one element and a
-text its characters as `count` counts them, `:read`, the quote that
+text its characters as `count` counts them, through the tags over it,
+`:read`, the quote that
 applied to the value `elide` took answers the part left out, and for a
 string, a doc and a quote `:head`, the first characters of its text; it
 prints and reads back as the value it is. A
@@ -93,6 +95,9 @@ value whose print fits is answered as it is.
 
 > 200 | range | map ~("a") | join "" | :s it | get [~(s) ~(s)] | elide 200 | get [~(count) ~(last | type)]
 [2 ::elision]
+
+> [1 2] | elide 0 !| type
+::any/elide/budget/NotCountError
 ```
 
 ## span

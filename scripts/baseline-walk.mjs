@@ -310,3 +310,39 @@ export function uncitedDocuments(repoRoot) {
     .filter(path => RESEARCH_DOCUMENT.test(path) && !isReadme(path))
     .filter(path => !texts.some(({ text }) => text.includes(unitOf(path))));
 }
+
+// The series of the work, a run after a run: the sets of the benchmark with
+// their runs, its screens, the runs of the references, the outside audits
+// with their readings and the checks of the chapters. A branch keeps every
+// run of its own, and the move of the baseline gives the older to the
+// history, so the merge that lands a branch holds the two latest of each
+// [QSWRK#baseline]. A member is what its paths share, a folder or a report
+// with its reading.
+const SERIES = [
+  { name: 'the sets of the benchmark', memberOf: path => /^scripts\/benchmark\/sets\/[^/]+\//.exec(path)?.[0] },
+  { name: 'the screens of the benchmark', memberOf: path => /^scripts\/benchmark\/screens\/[^/]+$/.exec(path)?.[0] },
+  { name: 'the runs of the references', memberOf: path => /^scripts\/benchmark\/runs\/[^/]+$/.exec(path)?.[0] },
+  { name: 'the outside audits', memberOf: path => new RegExp(`^${RESEARCH}/outside-audit/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+(?=(?:-reading)?\\.md$)`).exec(path)?.[0] },
+  { name: 'the checks of the chapters', memberOf: path => new RegExp(`^${RESEARCH}/spec-check/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+/`).exec(path)?.[0] },
+];
+
+// seriesPastTheirTwoLatest(repoRoot, revision) → each series that holds
+// more than its two latest in the tree of `revision`, or in the index where
+// none is named, `{ name, count, older }`, `older` the members past the two
+// latest, each `{ member, paths }`, a member dated by the commit that
+// brought it and one no commit brought the latest.
+export function seriesPastTheirTwoLatest(repoRoot, revision) {
+  const paths = (revision === undefined ? git(repoRoot, 'ls-files') : git(repoRoot, 'ls-tree', '-r', '--name-only', revision)).split('\n').filter(Boolean);
+  const broughtAt = member => Number(git(repoRoot, 'log', '--no-renames', '--diff-filter=A', '--format=%ct', revision ?? 'HEAD', '--', member.endsWith('/') ? member : `${member}*`).trim().split('\n').at(-1) || Infinity);
+  return SERIES.flatMap(({ name, memberOf }) => {
+    const members = new Map();
+    for (const path of paths) {
+      const member = memberOf(path);
+      if (member !== undefined) members.set(member, [...(members.get(member) ?? []), path]);
+    }
+    if (members.size <= 2) return [];
+    const at = new Map([...members.keys()].map(member => [member, broughtAt(member)]));
+    const byTime = [...members.keys()].sort((left, right) => at.get(left) - at.get(right));
+    return [{ name, count: members.size, older: byTime.slice(0, -2).map(member => ({ member, paths: members.get(member) })) }];
+  });
+}

@@ -5,12 +5,13 @@
 // cases, the pages of the catalog and the implementation, answering
 // `scripts/spec-check-prompt.txt`. They run at once; each report is written
 // into the journal under the run, `<date>-<tree>/<codes>.md`, beneath a line
-// that says how it was made, the series keeping its two latest runs, and
-// the session writes its reading beside them, `reading.md`, the fate of
-// each finding in it. With `--records`, each open record named has a clean
-// reader of its own, who bootstraps alike and critiques the record against
-// the tree, answering `scripts/design-check-prompt.txt`, the reports landing
-// under `design-check/`, `<date>-<tree>/<Dnn>.md` [QSWRK#review].
+// that says how it was made, and the session writes its reading beside
+// them, `reading.md`, the fate of each finding in it. With `--records`, each
+// open record named has a clean reader of its own, who bootstraps alike and
+// critiques the record against the tree, answering
+// `scripts/design-check-prompt.txt`, the reports landing under
+// `design-check/`, `<date>-<tree>/<Dnn>.md` [QSWRK#review]. A run stays in
+// its branch, and the move of the baseline trims the series [QSWRK#baseline].
 //
 // Usage: node scripts/spec-check.mjs [--groups N] [--dry]
 //        node scripts/spec-check.mjs --records D326 D327 [--dry]
@@ -124,15 +125,5 @@ const outcomes = await Promise.all(groups.map(group => new Promise(resolve => {
   child.stdin.end(prompt.replace(records === null ? '{{group}}' : '{{record}}', listed(group)));
 })));
 
-// The series keeps its two latest runs: an older run goes to the history
-// with its reading [QSWRK#review].
-const RUN = /^(\d{4}-\d{2}-\d{2})-([0-9a-f]+)$/;
-const byTime = readdirSync(checksDir).filter(name => RUN.test(name))
-  .map(name => ({ name, at: Number(git('log', '-1', '--format=%ct', RUN.exec(name)[2])) }))
-  .sort((left, right) => left.at - right.at);
-for (const { name } of byTime.slice(0, -2)) {
-  if (git('ls-files', '--', `${shown(checksDir)}/${name}`) !== '') git('rm', '-r', '-q', '--', `${shown(checksDir)}/${name}`);
-  console.log(`${name} goes to the history with its reading`);
-}
 console.log(`${shown(run)}: its reading stands beside the reports, every finding with its fate`);
 if (outcomes.includes(false)) process.exitCode = 1;

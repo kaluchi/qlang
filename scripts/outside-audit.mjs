@@ -2,13 +2,14 @@
 // directory of its own, with no CLAUDE.md, no memory and no MCP server,
 // runs `qlang`, and answers `scripts/outside-audit-prompt.txt`; its report
 // is written into the journal as `<date>-<tree>.md` under a line that says
-// how it was made, the series keeping its two latest, and the session
-// writes its reading beside it, the fate of each finding in it.
+// how it was made, and the session writes its reading beside it, the fate
+// of each finding in it; an audit stays in its branch, and the move of the
+// baseline trims the series [QSWRK#baseline].
 //
 // Usage: node scripts/outside-audit.mjs
 
 import { spawn, execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { CHILD_ENVIRONMENT } from './benchmark/child.mjs';
@@ -64,17 +65,4 @@ const minuteOf = at => at.toISOString().slice(11, 16);
 const header = `<!-- An outside audit of qlang by a clean Opus: \`claude -p --model opus\`, started from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, its tools named by \`--tools ${TOOLS.join(' ')}\`, the tree let in by \`--add-dir ${repoPath}\` and reading and \`qlang\` allowed by \`--allowedTools\`, no CLAUDE.md, no memory and no MCP server, without the \`FORCE_COLOR\` of the session, reading the tree at ${tree} and running \`qlang\`, on ${date} from ${minuteOf(started)} to ${minuteOf(new Date())} UTC. Its prompt is \`scripts/outside-audit-prompt.txt\` at ${tree}. -->`;
 writeFileSync(report, `${header}\n\n${answer}\n`);
 
-// The series keeps its two latest: an older audit goes to the history with
-// its reading [QSWRK#review].
-const REPORT = /^(\d{4}-\d{2}-\d{2})-([0-9a-f]+)\.md$/;
-const byTime = readdirSync(auditsDir).filter(name => REPORT.test(name))
-  .map(name => ({ name, at: Number(git('log', '-1', '--format=%ct', REPORT.exec(name)[2])) }))
-  .sort((left, right) => left.at - right.at);
-for (const { name } of byTime.slice(0, -2)) {
-  const [, auditDate, auditTree] = REPORT.exec(name);
-  for (const file of [name, `${auditDate}-${auditTree}-reading.md`].map(part => join(auditsDir, part)).filter(existsSync)) {
-    git('rm', '-q', '--', shown(file));
-  }
-  console.log(`${name} goes to the history with its reading`);
-}
 console.log(`${shown(report)}: its reading stands beside it, every finding with its fate`);

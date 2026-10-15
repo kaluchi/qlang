@@ -51,9 +51,10 @@
 //       waiting on a target [QSWRK#baseline]; a section of a chapter is
 //       written since the baseline by a record dissolved into it [QSWRK#baseline].
 //
-//   (10) A series keeps its two latest: the sets of the benchmark, its
-//       screens, the runs of the references, the outside audits and the
-//       checks of the chapters [QSWRK#measure], [QSWRK#review].
+//   (10) A series keeps its two latest at the merge that landed a branch:
+//       the sets of the benchmark, its screens, the runs of the
+//       references, the outside audits and the checks of the chapters, a
+//       branch keeping every run of its own [QSWRK#baseline].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -62,7 +63,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
-import { walkOfBaseline } from './baseline-walk.mjs';
+import { baselineOf, seriesPastTheirTwoLatest, walkOfBaseline } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { execFileSync } from 'node:child_process';
@@ -551,24 +552,17 @@ function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;
 }
 
-// ── (10) A series keeps its two latest ─────────────────────────
+// ── (10) A series keeps its two latest at the baseline ─────────
 //
 // The sets of the benchmark with their runs, the screens, the runs of the
 // references, the outside audits and the checks of the chapters keep their
-// two latest, and an older one goes to the history [QSWRK#measure],
-// [QSWRK#review].
-
-const SERIES = [
-  { name: 'the sets of the benchmark', members: paths => new Set(paths.filter(path => path.startsWith('scripts/benchmark/sets/')).map(path => path.split('/')[3])) },
-  { name: 'the screens of the benchmark', members: paths => paths.filter(path => path.startsWith('scripts/benchmark/screens/')) },
-  { name: 'the runs of the references', members: paths => paths.filter(path => path.startsWith('scripts/benchmark/runs/')) },
-  { name: 'the outside audits', members: paths => paths.filter(path => new RegExp(`^${RESEARCH}/outside-audit/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+\\.md$`).test(path)) },
-  { name: 'the checks of the chapters', members: paths => new Set(paths.filter(path => new RegExp(`^${RESEARCH}/spec-check/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+/`).test(path)).map(path => path.split('/')[4])) },
-];
+// two latest at the merge that landed a branch; a branch keeps every run of
+// its own, and the move of the baseline gives the older to the history,
+// `node scripts/drop-documents.mjs` [QSWRK#baseline].
 
 function seriesBeyondTwo() {
-  const paths = execFileSync('git', ['ls-files'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
-  return SERIES.map(({ name, members }) => ({ name, count: [...members(paths)].length })).filter(({ count }) => count > 2);
+  const baseline = baselineOf(repoRoot);
+  return baseline === undefined ? [] : seriesPastTheirTwoLatest(repoRoot, baseline).map(series => ({ ...series, baseline }));
 }
 
 // ── Main ───────────────────────────────────────────────────────
@@ -682,8 +676,8 @@ if (intrusions.length > 0) {
   process.stdout.write('    a cataphatic text states what holds; the change, its records and its history belong to the journal [QSWRK#spec], [QSWRK#documents].\n');
 }
 if (swollen.length > 0) {
-  process.stdout.write(`\nSeries past their two latest (${swollen.length}):\n`);
-  for (const { name, count } of swollen) process.stdout.write(`  ${name}: ${count}\n`);
-  process.stdout.write('    a series keeps its two latest, and an older one goes to the history, git keeping it [QSWRK#measure], [QSWRK#review].\n');
+  process.stdout.write(`\nSeries past their two latest at the baseline (${swollen.length}):\n`);
+  for (const { name, count, baseline } of swollen) process.stdout.write(`  ${name}: ${count} at the merge ${baseline} that landed it\n`);
+  process.stdout.write('    a branch keeps every run of its own, and the move of the baseline gives the older to the history, `node scripts/drop-documents.mjs`, git keeping it [QSWRK#baseline].\n');
 }
 process.exit(1);

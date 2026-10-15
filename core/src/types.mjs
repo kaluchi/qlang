@@ -354,11 +354,12 @@ export function declareHostValue(value, impl) {
 // writes; a `:trail` of another shape is refused where the error is made.
 export const ErrorTrailNotVecError = declareRefusal('error/TrailNotVecError');
 
-// A trail is a vector of stops, each a map whose `:skipped` is the quote
-// of the steps the error skipped after it [QSERR#rest].
+// A trail is a plain vector of stops, each a plain map whose `:skipped` is
+// the quote of the steps the error skipped after it, neither under a tag
+// [D303].
 export function isTrail(value) {
-  return isVec(value) && !isVecOfOwnKind(value)
-    && value.every(stop => isQMap(stop) && isQuote(stop.get('skipped')));
+  return isVec(value) && value[TAG_HEADER_SYMBOL] === undefined
+    && value.every(stop => isQMap(stop) && stop[TAG_HEADER_SYMBOL] === undefined && isQuote(stop.get('skipped')));
 }
 
 // An error holds the facts of its site and, once a step raised it or

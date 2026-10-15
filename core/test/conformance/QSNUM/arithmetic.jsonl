@@ -16,3 +16,4 @@
 {"name":"round-keeps-the-digits-the-call-gives","query":"3.14159 | round 2","expect":"3.14"}
 {"name":"a-remainder-and-a-rounding-stay-within-the-doubles","query":"get [~(1e308 | mod 1e-308 | lt 1e-308) ~(-1e-300 | mod 1e300 | gt 0) ~(1 | round 400) ~(1 | round -400)]","expect":"[true true 1 0]"}
 {"name":"a-number-past-the-digits-a-double-holds-rounds-to-itself","query":"1e308 | round 2","expect":"1e+308"}
+{"decision":"D303","name":"round-reads-a-number-below-a-half-as-below-it","query":"get [~(1.4999999999999998 | round) ~(0.49999999999999994 | round) ~(1.005 | round 2)]","expect":"[1 0 1.01]"}

@@ -125,6 +125,17 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('add');
   });
 
+  it('reads the kind of a path and of an error literal, the walk of an error reaching its facts', async () => {
+    const afterPath = await labelsAt('/a | ');
+    expect(afterPath).toContain('segments');
+    expect(afterPath).not.toContain('add');
+    const afterError = await labelsAt('!{:a 1} | ');
+    expect(afterError).toContain('trail');
+    expect(afterError).toContain('keys');
+    expect(afterError).not.toContain('add');
+    expect(await labelsAt('::Oops!{:a 1} | ')).toContain('trail');
+  });
+
   it('reads the subject before the word being typed', async () => {
     const labels = await labelsAt('1 | ad');
     expect(labels).toContain('add');

@@ -564,8 +564,8 @@
       error the call answers null. So `coalesce /key ~(fallback)`
       reads "the key where the map holds it, else the fallback", since
       `/key` answers an error where the map lacks the key. An
-      alternative that is no quote answers itself, and a call of such
-      alternatives alone puts the subject first: `coalesce 30` reads
+      alternative that is no code, a quote or a path, answers itself, and
+      a call of such alternatives alone puts the subject first: `coalesce 30` reads
       "the subject, else 30". An error the steps before answered passes
       over the call, as over every step, so a field that may be missing
       is read inside an alternative, `coalesce /key 0`, not before
@@ -574,8 +574,8 @@
   ~~|
   ::fn
     | takes :alternatives
-        |~~ The alternatives, in their order, each a quote run against the
-            subject or a value that answers itself.
+        |~~ The alternatives, in their order, each code, a quote or a path,
+            run against the subject, or a value that answers itself.
         ~~|
         ~(it)
     | holds :alternatives/EmptyError
@@ -899,8 +899,10 @@
       the scope the record its declaration wrote, and any other value the
       record of its kind. The anchor, a keyword after it, reads the record
       of the member the subject holds under it, an input of a word or the
-      word a value calls. The other axes project the record: `doc` its
-      page, `source` its quote. A name nothing declares is refused, with
+      word a value calls. `doc` reads the page of the record, and
+      `source` every declaration written under the name's address, the
+      record's `:source` holding the step of the declaration that wrote
+      it. A name nothing declares is refused, with
       the addresses where a word of that name lives.
       ::link~(::any/doc | doc) ::link~(::any/source | doc)
   ~~|
@@ -1751,8 +1753,8 @@
   |~~ Answers whether every condition the call gives holds of the subject:
       two conditions of one record hold together by
       `allOf (get /active) (get /age | gte 18)`. Each modifier is a
-      condition computed at the call, every one of them, or a quote that
-      answers one in its turn, run on the subject once every condition
+      condition computed at the call, every one of them, or code that
+      answers one in its turn, a quote or a path, run on the subject once every condition
       before it held: a condition that fails where an earlier one does not
       hold is written as such a quote,
       `allOf (get /email | ne null) ~(get /email | endsWith ".org")`, and
@@ -1848,7 +1850,8 @@
   |~~ Answers whether some condition the call gives holds of the subject:
       a high score passes without the flag,
       `anyOf /vip (get /score | gt 95)`. Each modifier is a condition
-      computed at the call or a quote that answers one in its turn, run on
+      computed at the call or code that answers one in its turn, a quote
+      or a path, run on
       the subject once no condition before it held, as for `allOf`: the
       first that holds answers `true` with the quotes after it unrun, so a
       flagged record passes without the field its quote reads,
@@ -2059,7 +2062,7 @@
       with the keys near it, so a misspelled field is found where it is
       read, `{:a {:b 1}} | get /a/b` answering `1`. A key the query
       computes is read as the path of one segment, a keyword, a string or
-      a whole number, `get (get /k)`. Over a template, a literal of paths
+      a number, its text the segment, `get (get /k)`. Over a template, a literal of paths
       and quotes, it answers the template with each path read and each
       quote run against the subject in its place, the answer written in
       the shape the template takes:
@@ -2067,7 +2070,7 @@
       `get {:who /first :n ~(get /tags | count)}` builds a map. A vector, a
       map or a set under a tag in a template is read and laid back under
       its tag through its constructor, and any other value of it is
-      answered as it is, a quote, a doc, a function and a kind among them. A literal computes nothing, so a shape computed
+      answered as it is, a quote under a tag, a doc, a function and a kind among them. A literal computes nothing, so a shape computed
       is written as a template. A part that may be missing is read by
       `query`.
       ::link~(::any/query | doc) ::link~(::path | doc)
@@ -2167,7 +2170,7 @@
         /0 #[::keyword ::number ::path ::string]
     | throws :path/KindNotTakenError
         |~~ The path is a path, `put /a/b 2`, or a key of one segment, a
-            keyword, a string or a whole number, `put :a 2`.
+            keyword, a string or a number, `put :a 2`.
         ~~|
     | takes :value |~~ The value laid at the path. ~~| /1
     | proves :addsAKey

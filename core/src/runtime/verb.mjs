@@ -28,7 +28,7 @@ export const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerb
 // ── kinds ──────────────────────────────────────────────────────
 
 // A vector, a set and a quote are read as vectors and a tagged map as a
-// map; a number is a finite double [QSSLF#catalog].
+// map; a number is a finite double [QSLIT#number].
 function isOfKind(value, kindName) {
   switch (kindName) {
     case ANY_KIND_NAME: return true;

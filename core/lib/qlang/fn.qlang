@@ -54,7 +54,9 @@
             name its recipe reads as a step, of one segment, beside
             `answer`, `subject` and the words of a literal; the name of a
             refusal, a fact and a law is read as a tag; a page is a doc, a
-            place a path or a quote, and kinds a tag or a set of tags.
+            place a path or a quote, and kinds a tag or a set of tags, or
+            for an input a vector of one of them, the kinds of each
+            element.
         ~~|
     | throws :NameDeclaredTwiceError
         |~~ A name of a signature is declared once: an input, a refusal

@@ -1111,7 +1111,7 @@
   |~~ Answers the tag the string names, `"vec" | toTag` answering
       `::vec`, so a kind named in text is asked as any tag is,
       `"vec" | toTag | manifest`. The text is a name, or names joined by
-      `it`; text that names no tag is refused. `toString` turns the tag
+      `/`; text that names no tag is refused. `toString` turns the tag
       back into its name.
       ::link~(::tag/toString | doc) ::link~(::tag | doc)
   ~~|
@@ -1119,7 +1119,7 @@
     | returns |~~ The tag the text names. ~~| ::tag
     | throws :TextNotNameError
         |~~ `toTag` reads the text as the name of a tag: names that begin
-            with a letter or `_`, joined by `it`, `"vec"`, `"number/add"`;
+            with a letter or `_`, joined by `/`, `"vec"`, `"number/add"`;
             a space, the empty text and a name that begins with a digit
             name no tag.
         ~~|

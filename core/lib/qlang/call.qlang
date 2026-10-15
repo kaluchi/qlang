@@ -77,7 +77,7 @@
         |~~ A name the scope binds to a value is the name of a word the
             subject answers, and the step does not choose between them:
             `:count 5 | [1 2] | count` meets `::vec/count`. A name of the
-            reader's takes any name, and meets a word only where a step
+            reader's takes any name a step calls, and meets a word only where a step
             calls the name on a subject the word answers,
             `:count 5 | 7 | count` answering `5`; there the word is called
             by its address, `[1 2] | vec/count`, or the value takes

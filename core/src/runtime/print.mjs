@@ -26,7 +26,7 @@ export async function printsOfKinds(value, env, state = rootState(value, env)) {
 // forms of the core print the rest. An answer that is a failure, which a
 // host meets alone since a step skips it, prints as its error at rest
 // under a line comment that says it was raised, which a reading of the
-// literal passes over [QSERR#rest].
+// literal passes over [QSERR#print].
 export async function printAnswer(value, env, state = rootState(value, env)) {
   const printed = printValue(value, 0, await printsOfKinds(value, env, state));
   return isErrorValue(value) ? `${RAISED_LINE}\n${printed}` : printed;

@@ -90,9 +90,9 @@ describe('runLaws Quote-as-test outcomes', () => {
     expect(cellEntry.result).toBe(0);
   });
 
-  it('a law sees the names of the calling session', async () => {
-    // A law runs in the scope of the session that asked for it, so a
-    // name a source of the root declared resolves there [QSCND#boolean].
+  it('a law a source of the root declares runs from a cell', async () => {
+    // A law the root declares runs in a lane over the root alone, which a
+    // cell's runLaws reaches [QSQUO#held].
     const moduleSource = ':fortytwo 1\n:fortytwo/addsUp |~~ Tracks the scope through runLaws. ~~| ::law~(40 | add 2 | eq 42)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]

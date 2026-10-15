@@ -111,7 +111,8 @@
       word the name calls, `:number/double ~(mul 2) | 5 | double`
       answering `10`, which in the reader's own queries shadows a word of
       that name on a broader label, `::any` among them, and which no word
-      of the root sees. A name is declared once in a scope, and the names
+      of the root sees under a label of the root. A name is declared once
+      in a scope, and the names
       a group or a quote declares stay in it.
 
       8. Elements and order. `count`, `sum`, `avg`, `min`, `max`,
@@ -547,7 +548,8 @@
             under its address; a quote taken from one label and declared
             under another resides on the second. A name is declared once
             in a scope and again in a scope inside it, which shadows it
-            for the steps after; a value the reader names takes any name,
+            for the steps after; a value the reader names takes any name a
+            step calls,
             and a step that calls the name on a subject a word of that
             name answers is refused, so the two never meet unseen, the
             word called by its address there, `[1 2] | vec/count`; an
@@ -555,10 +557,12 @@
             extends a noun of the root and replaces none of its nodes. A
             word the reader declares under a label shadows a word of its
             name on a broader label in the reader's own calls, since the
-            walk of a subject's tags reaches the narrower first, and no
-            word of the root sees it: a word of the root runs in the
-            root's scope, where a name under a noun of the root reads the
-            root alone. A name begins with a letter of any script or `_`,
+            walk of a subject's tags reaches the narrower first; under a
+            label of the root no word of the root sees it, a word of the
+            root running in the root's scope, where a name under a noun of
+            the root reads the root alone, while a word under a label the
+            reader declared goes where the label's values go. A name
+            begins with a letter of any script or `_`,
             and a word of a host, which reads or writes outside the
             language, is named as any word is. The docs in the slot of a
             declaration, between its name and its body, are its page, one

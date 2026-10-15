@@ -53,7 +53,7 @@ const isBareMap = payload => isQMap(payload) && payload[TAG_HEADER_SYMBOL] === u
 bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadKindNotTakenError));
 bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError));
 // A number is a finite double: an answer brought under `::number` that left
-// the doubles' range is refused here, once for every word [QSSLF#catalog].
+// the doubles' range is refused here, once for every word [QSNUM#arithmetic].
 const NumberNotFiniteError = declareRefusal('number/NotFiniteError');
 const finiteNumber = coreKindConstructor(isNumber, NumberPayloadKindNotTakenError);
 bindPrim('number/construct', payload => {

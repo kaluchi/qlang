@@ -5,7 +5,7 @@
 // where the declaration ends: a keyword that begins a line opens a
 // declaration of its own, which ends the modifiers of a command before
 // it [QSSYN#line], and the body of a name with a path begun on a later
-// line runs on to the next declaration [QSBLD#fn]. Every combinator is set
+// line runs on to the next declaration [QSSYN#line]. Every combinator is set
 // off by whitespace on both sides.
 //
 // Every node carries `.location`, its span, the offsets, lines and
@@ -135,7 +135,7 @@
 
   // A combinator after a combinator is the habit of a pipe before every
   // step, which gives way to the combinator before it, so `!| |` keeps the
-  // catch; a combinator stands once between two steps [QSERR#site].
+  // catch; a combinator stands once between two steps [QSSYN#combinator].
   function refuseCombinatorAfterCombinator(first, second) {
     if (second === '|') error(`\`|\` written after \`${first}\` is the habit of a pipe before every step: write \`a ${first} b\``);
     error(`\`${second}\` written after \`${first}\`: a combinator stands once between two steps, write \`a ${second} b\``);
@@ -456,9 +456,9 @@ BodyBreak
 // The body of a definition, a name with a path, begun on a later line is a
 // sentence, its steps joined by a combinator up to the next declaration or
 // a value that heads the sentence after it; on the line of its name it is
-// one step, as a body is [QSBLD#fn]. The body of a bare name with its page,
+// one step, as a body is [QSSYN#line]. The body of a bare name with its page,
 // begun on a later line with a tag name, is the sentence that builds from
-// the noun it names, `:Box |~~ … ~~| ::kind | wraps …` [QSBLD#kind]; any other
+// the noun it names, `:Box |~~ … ~~| ::kind | wraps …` [QSSYN#line]; any other
 // body of a bare name is one step.
 ChainBody
   = !(_h1 !Whitespace) __ !TaggedLit head:TagLit tail:BodySentenceStep*
@@ -497,7 +497,7 @@ Word
   / AtomLit
 
 // The element of a literal and the object of a command, which a doc value
-// may be too [QSBLD#fn].
+// may be too [QSSYN#doc].
 Element
   = Word
   / DocLit

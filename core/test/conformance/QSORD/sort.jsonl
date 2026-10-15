@@ -16,4 +16,4 @@
 {"name":"sort-by-string-key","query":"[{:name \"Bob\"} {:name \"Alice\"}] | sort /name","expect":"[{:name \"Alice\"} {:name \"Bob\"}]"}
 {"name":"sort-by-key-orders-the-entries-by-what-the-key-answers","query":"{:a {:n 2} :b {:n 1}} | sort /n | vals | map /n","expect":"[1 2]"}
 {"name":"a-key-of-a-sort-is-code-a-host-runs","query":"[{:a 2} {:a 1}] | sort /a | first | get /a","expect":"1"}
-{"decision":"D303","name":"a-key-of-another-kind-is-refused-under-the-key","query":"[2 1] | sort 5 !| type","expect":"::vec/sort/key/KindNotTakenError"}
+{"name":"a-key-of-another-kind-is-refused-under-the-key","query":"[2 1] | sort 5 !| type","expect":"::vec/sort/key/KindNotTakenError"}

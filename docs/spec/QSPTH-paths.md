@@ -11,7 +11,8 @@ a key or a place from zero at each segment, a negative place counted
 from the end, a key that is a keyword with a slash in its name after a
 colon, `/:a/b`, which takes the bare names after it, so a key after it
 stands behind a colon of its own, `/:a/b/:c`, and a key that is no bare
-name in quotes, `/"first name"`. Each segment is text: a map reads it as the key that
+name in quotes, `/"first name"`; a path holds one segment at least, the
+slash alone refused naming `it`, the value itself. Each segment is text: a map reads it as the key that
 spells it and a vector, quoted or not, as the place its digits name, so
 `/"0"` equals `/0`. A path prints in one spelling that reads back as
 itself, `/"0"` printing `/0`, JSON writes its literal as a string, two paths are equal when
@@ -139,7 +140,7 @@ such a value is built by `get` and then `tag`, `get {:w /w} | tag ::Box`.
 A quote under a tag, a doc, a function and a kind are answered as they
 are, their parts unread, and a template held in a name builds the same
 shape wherever it is applied. A part that answers a failure is the
-answer of the template, the parts after it unread [QSERR#rest].
+answer of the template, the parts after it unread [QSERR#flow].
 
 ```qlang
 > {:price 4 :qty 3} | get [/price /qty]

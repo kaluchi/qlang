@@ -22,8 +22,8 @@
 {"name":"parse-string-literal-step","query":"\"\\\"hello\\\"\" | parse | first","expect":"\"hello\""}
 {"name":"parse-keyword-literal-step","query":"\":foo\" | parse | first","expect":":foo"}
 {"name":"parse-pipeline-step-count","query":"\"42 | add 1 | mul 2\" | parse | count","expect":"3"}
-{"decision":"D303","name":"a-payload-of-a-quote-is-a-vector-of-steps","query":"5 | tag ::quote !| type","expect":"::quote/PayloadKindNotTakenError"}
-{"decision":"D303","name":"a-quote-of-a-path-alone-prints-and-reads-back","query":"::quote[/age] | :q it | print | parse | apply it | eq q","expect":"true"}
-{"decision":"D303","name":"the-step-of-an-error-literal-comes-back-as-the-error-at-rest-it-is","query":"~(!{:k 1}) | get [~(first)] | tag ::quote","expect":"~(!{:k 1})"}
-{"decision":"D303","name":"a-declaration-assembled-from-data-names-a-keyword","query":"{:name ::Box :body 1} | tag ::bind !| get [~(type) /field]","expect":"[::bind/PayloadNotSchemaError :name]"}
-{"decision":"D303","name":"a-quote-assembled-from-data-that-reads-back-as-another-is-refused","query":"[[1] [2]] | tag ::quote !| get [~(type) /printed]","expect":"[::quote/ReadBackDiffersError \"[1] | [2]\"]"}
+{"name":"a-payload-of-a-quote-is-a-vector-of-steps","query":"5 | tag ::quote !| type","expect":"::quote/PayloadKindNotTakenError"}
+{"name":"a-quote-of-a-path-alone-prints-and-reads-back","query":"::quote[/age] | :q it | print | parse | apply it | eq q","expect":"true"}
+{"name":"the-step-of-an-error-literal-comes-back-as-the-error-at-rest-it-is","query":"~(!{:k 1}) | get [~(first)] | tag ::quote","expect":"~(!{:k 1})"}
+{"name":"a-declaration-assembled-from-data-names-a-keyword","query":"{:name ::Box :body 1} | tag ::bind !| get [~(type) /field]","expect":"[::bind/PayloadNotSchemaError :name]"}
+{"name":"a-quote-assembled-from-data-that-reads-back-as-another-is-refused","query":"[[1] [2]] | tag ::quote !| get [~(type) /printed]","expect":"[::quote/ReadBackDiffersError \"[1] | [2]\"]"}

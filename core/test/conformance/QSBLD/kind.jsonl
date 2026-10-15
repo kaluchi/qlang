@@ -10,6 +10,6 @@
 {"name":"a-kind-takes-no-recipe-but-the-hosts","query":"::kind | impl ~(get {:s ~(it)}) !| type","expect":"::kind/impl/recipe/KindNotTakenError"}
 {"name":"the-literal-of-a-kind-reads-back","query":":Box |~~ A box. ~~| ::kind[~(wraps |~~ The sizes. ~~| ::map) null] | ::Box\"x\" !| type","expect":"::Box/PayloadKindNotTakenError"}
 {"name":"a-reader-kind-with-the-check-of-its-host-lays-its-tag","query":":B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1] | type","expect":"::B"}
-{"decision":"D303","name":"the-recipe-of-a-kind-command-is-the-check-of-a-host","query":"::kind | impl ~(1) !| type","expect":"::kind/impl/recipe/KindNotTakenError"}
-{"decision":"D303","name":"a-kind-built-as-data-takes-the-check-of-a-host-alone","query":"::kind[~() ~(add 1)] !| type","expect":"::kind/RecipeNotBuiltinError"}
-{"decision":"D303","name":"a-fact-of-a-kind-under-a-name-declared-after-it-is-refused","query":"::kind | carries :X/f |~~ f ~~| ::number !| type","expect":"::kind/FactUnderNoNameError"}
+{"name":"the-recipe-of-a-kind-command-is-the-check-of-a-host","query":"::kind | impl ~(1) !| type","expect":"::kind/impl/recipe/KindNotTakenError"}
+{"name":"a-kind-built-as-data-takes-the-check-of-a-host-alone","query":"::kind[~() ~(add 1)] !| type","expect":"::kind/RecipeNotBuiltinError"}
+{"name":"a-fact-of-a-kind-under-a-name-declared-after-it-is-refused","query":"::kind | carries :X/f |~~ f ~~| ::number !| type","expect":"::kind/FactUnderNoNameError"}

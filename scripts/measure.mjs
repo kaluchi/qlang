@@ -84,7 +84,7 @@ const SURFACE = [
 ];
 
 // The ratio of comment lines to code lines over the core, the command line
-// and the language server, which falls on every branch [D303].
+// and the language server, which falls on every branch [QSWRK#code].
 const COMMENTED_SOURCES = ['core/src', 'cli/src', 'lsp/src'];
 function commentRatio(ref) {
   const lines = pattern => COMMENTED_SOURCES.reduce((total, root) => total + matchingLines(ref, pattern, root), 0);

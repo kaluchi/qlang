@@ -11,10 +11,10 @@
 {"name":"a-function-proves-its-laws-in-its-chain","query":":number/twice (::fn | proves :doubles |~~ Two is four. ~~| ~(2 | twice | eq 4) | impl ~(mul 2)) | ::number/twice | runLaws | map /ok","expect":"[true]"}
 {"name":"a-function-carries-a-fact-of-a-refusal-under-its-name","query":"get [~(::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/limit |~~ The limit. ~~| ::number | type) ~(::fn | carries :limit |~~ The limit. ~~| !| type)]","expect":"[::fn ::fn/FactUnderNoNameError]"}
 {"name":"a-fact-of-a-function-of-no-kinds-holds-its-page","query":":number/f (::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/note |~~ A note. ~~| | impl ~(it)) | ::number/f/TooBigError/note | binding | get /value | type","expect":"::doc"}
-{"decision":"D303","name":"the-kinds-of-takes-are-tags","query":"::fn | takes :x |~~ x ~~| /0 5 !| type","expect":"::fn/takes/kinds/KindNotTakenError"}
-{"decision":"D303","name":"the-name-of-an-input-is-no-word-of-a-literal","query":"::fn | takes :null |~~ w ~~| /0 !| type","expect":"::fn/SignatureNotCommandsError"}
-{"decision":"D303","name":"a-name-of-a-signature-declared-twice-is-refused","query":"::fn | takes :x |~~ a ~~| /0 | takes :x |~~ b ~~| /1 !| type","expect":"::fn/NameDeclaredTwiceError"}
-{"decision":"D303","name":"a-refusal-under-an-input-taken-after-it-is-refused","query":"::fn | throws :y/BadError |~~ b ~~| !| type","expect":"::fn/NameUnderNoInputError"}
-{"decision":"D303","name":"a-law-under-a-name-declared-after-it-is-refused","query":"::fn | proves :z/holds |~~ l ~~| ~(true) !| type","expect":"::fn/LawUnderNoNameError"}
-{"decision":"D303","name":"returns-with-a-page-and-no-kinds-is-refused","query":"::fn | returns |~~ r ~~| !| type","expect":"::fn/returns/kinds/NotGivenError"}
-{"decision":"D303","name":"the-subject-of-a-function-apply-runs-is-refused-by-its-role","query":"true | apply (::fn | on |~~ A number or a text. ~~| #[::number ::string] | impl ~(it)) [] !| get [~(type) /expected]","expect":"[::fn/call/SubjectKindNotTakenError #[::number ::string]]"}
+{"name":"the-kinds-of-takes-are-tags","query":"::fn | takes :x |~~ x ~~| /0 5 !| type","expect":"::fn/takes/kinds/KindNotTakenError"}
+{"name":"the-name-of-an-input-is-no-word-of-a-literal","query":"::fn | takes :null |~~ w ~~| /0 !| type","expect":"::fn/SignatureNotCommandsError"}
+{"name":"a-name-of-a-signature-declared-twice-is-refused","query":"::fn | takes :x |~~ a ~~| /0 | takes :x |~~ b ~~| /1 !| type","expect":"::fn/NameDeclaredTwiceError"}
+{"name":"a-refusal-under-an-input-taken-after-it-is-refused","query":"::fn | throws :y/BadError |~~ b ~~| !| type","expect":"::fn/NameUnderNoInputError"}
+{"name":"a-law-under-a-name-declared-after-it-is-refused","query":"::fn | proves :z/holds |~~ l ~~| ~(true) !| type","expect":"::fn/LawUnderNoNameError"}
+{"name":"returns-with-a-page-and-no-kinds-is-refused","query":"::fn | returns |~~ r ~~| !| type","expect":"::fn/returns/kinds/NotGivenError"}
+{"name":"the-subject-of-a-function-apply-runs-is-refused-by-its-role","query":"true | apply (::fn | on |~~ A number or a text. ~~| #[::number ::string] | impl ~(it)) [] !| get [~(type) /expected]","expect":"[::fn/call/SubjectKindNotTakenError #[::number ::string]]"}

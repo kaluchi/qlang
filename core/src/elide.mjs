@@ -108,16 +108,14 @@ function partsOf(value, path, keep, printedOf, parts, underTag = false) {
   }
 }
 
-// A vector's elements before the marker of its rest that ends it, and what
-// that marker stands for; a marker an element gave way to is an element
-// [D303].
+// A vector's elements before the marker of its rest, a marker an element
+// gave way to being an element, and what the rest stands for [QSPRN#elide].
 function vectorParts(value) {
   const trailing = value.length > 0 && isRemainder(value[value.length - 1]) ? value[value.length - 1] : null;
   return { elements: trailing === null ? value : value.slice(0, -1), standsFor: trailing === null ? 0 : trailing.get('size') };
 }
 
-// The marker of the rest of a vector, whose read drops the elements kept
-// before it.
+// The marker of a vector's rest, whose read drops the elements kept.
 function isRemainder(value) {
   const read = isMarker(value) ? value.get('read') : null;
   const last = isQuote(read) ? read[read.length - 1] : null;

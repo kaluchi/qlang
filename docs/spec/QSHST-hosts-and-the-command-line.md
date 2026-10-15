@@ -7,9 +7,8 @@ unit tests of the core's host hold its sections.
 
 ## source
 
-What a host loads and what a source declares are two things, and the
-language knows only the second. A host hands its sources, each
-`{ uri, source, impls }`: the source declares its nouns into the root
+A host hands its sources, of which the language reads what each
+declares, each `{ uri, source, impls }`: the source declares its nouns into the root
 as a cell [QSNAM#root], and `impls` binds, for each address the source
 declares with the recipe `::builtin{}` under a label, a plain function
 over the values its inputs checked, the subject first and the inputs in
@@ -109,9 +108,9 @@ other argument before the query is read as the query. The note on a
 query the shell made a path of goes to standard error beside the
 answer.
 
-```qlang
-> {:a 1} | json
-"{\"a\":1}"
+```sh
+$ qlang '{:a 1} | json' < /dev/null
+{"a":1}
 ```
 
 ## input
@@ -127,8 +126,7 @@ group whose code reads none, and no declaration before that step has a
 body that reads the subject; a query of declarations alone reads it, and
 a node of the query the reading does not name counts as one that reads
 its subject. A query that reads its subject reads standard input to its
-end, waiting on a slow producer as every reader of a pipe does, and
-`< /dev/null` ends the wait.
+end, waiting on a slow producer, and `< /dev/null` ends the wait.
 
 ## shell
 

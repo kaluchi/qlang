@@ -13,6 +13,6 @@
 {"name":"json-writes-a-set-as-the-array-of-its-elements","query":"#[3 1] | json","expect":"\"[1,3]\""}
 {"name":"json-writes-a-value-under-a-tag-beside-its-payload","query":"::Box#1 | json","expect":"\"{\\\"$tag\\\":\\\"Box\\\",\\\"payload\\\":1}\""}
 {"name":"json-answers-a-string","query":"{:a 1} | json | type","expect":"::string"}
-{"decision":"D303","name":"parseJson-refuses-a-text-that-is-no-json","query":"\"[1, 2\" | parseJson !| type","expect":"::string/parseJson/TextNotJsonError"}
-{"decision":"D303","name":"a-value-under-a-tag-reads-back-from-json-as-the-plain-map","query":"::Box#1 | json | parseJson","expect":"{:\"$tag\" \"Box\" :payload 1}"}
-{"decision":"D303","name":"a-number-past-the-doubles-is-refused-with-its-path","query":"\"{\\\"a\\\": {\\\"b c\\\": [1, 1e400]}}\" | parseJson !| get /path","expect":"[\"a\" \"b c\" 1]"}
+{"name":"parseJson-refuses-a-text-that-is-no-json","query":"\"[1, 2\" | parseJson !| type","expect":"::string/parseJson/TextNotJsonError"}
+{"name":"a-value-under-a-tag-reads-back-from-json-as-the-plain-map","query":"::Box#1 | json | parseJson","expect":"{:\"$tag\" \"Box\" :payload 1}"}
+{"name":"a-number-past-the-doubles-is-refused-with-its-path","query":"\"{\\\"a\\\": {\\\"b c\\\": [1, 1e400]}}\" | parseJson !| get /path","expect":"[\"a\" \"b c\" 1]"}

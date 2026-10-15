@@ -46,10 +46,8 @@ export function factsInOrder(tag, facts, env) {
 }
 
 // The error a refusal of the runtime raised: the facts its site handed
-// with the kind of the value refused, the value itself left out where it
-// equals the subject the first stop of the trail holds, whatever its
-// identity, so its presence says the site reached below the subject
-// [QSERR#rest], [D303].
+// with the kind of the value refused, the value left out where it equals
+// the subject the first stop holds [QSERR#rest], [QSERR#site].
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTag(qlangError.address);
   const facts = new Map();

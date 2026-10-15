@@ -75,11 +75,13 @@ the text a quote prints reads back as the quote, and a text comes back
 as its quote prints it, `"5 |  mul   2" | parse | parse` answering
 `"5 | mul 2"`. A blank source is the empty quote, and a source that
 reads as no pipeline is refused as `::quote/ParseError` with its
-`:marker`, its `:location`, a `:message` where the parser names the form
-meant or the `:expected` of the place it stopped [QSSYN#refusal],
-[QSPRN#span], and the `:uri` of `parse`. A quote whose steps
-are all declarations prints one declaration a line, each after the first
-led by its pipe; any other quote prints on one line. Every text a quote
+`:marker`, its `:location`, its `:message`, the form meant where the
+parser names one, the `:expected` of the place it stopped where the
+reading stops short of a form [QSSYN#refusal], [QSPRN#span], and the
+`:uri` of `parse`. A quote whose steps are all declarations prints one
+declaration a line, each after the first led by its pipe, a step that
+takes several lines prints on them, and any other quote prints on one
+line. Every text a quote
 prints reads back as the same quote.
 
 ```qlang
@@ -131,7 +133,8 @@ the condition of `if`, which always runs, is a value. An input that
 takes code takes a quote or a path, a group that computes a quote among
 them, `apply` a function too, and refuses a value computed at the call
 that none of its kinds takes, a failure among it, under its own address,
-the value its `:actualValue` and its tag its `:actualType`; the page of
+the value its `:actualValue` and its tag its `:actualType`, but for a
+name withheld from held code, whose refusal passes as it is; the page of
 that refusal names the tilde. An input of a value hands the failure of
 its modifier on as the answer of the call.
 

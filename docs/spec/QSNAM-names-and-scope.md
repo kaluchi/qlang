@@ -180,8 +180,9 @@ is no label. A name that reaches nothing is refused as
 
 A label, a kind or a topic, is reached by its tag, `::string`, as it is
 written wherever it is meant; its name written bare is the reader's to
-declare, and undeclared it is refused as `::call/UnknownNameError`, its
-`:nearest` naming the tag first. A reader's bare name stands over a bare
+declare, and undeclared, where no word of that name answers the subject,
+it is refused as `::call/UnknownNameError`, its `:nearest` naming the tag
+first. A reader's bare name stands over a bare
 name of the root, while the tag of a label of the root stays the root's.
 
 A value and a word meet aloud: a bare step that reaches a value the
@@ -229,7 +230,8 @@ declaration names, written as a step, is refused as
 it as `:nearest`. Under a word lie its inputs, its answer, its refusals
 and its laws, so what a word is is the set of declarations under its
 address; a helper several words share is a node under their noun. A tag
-no declaration names lays itself over a payload as it is.
+no declaration names, and the tag of a word, lays itself over a payload
+as it is.
 
 The root holds the nodes of the language and of its hosts. A reader
 extends a noun of the root with nodes of its own and declares no name
@@ -279,8 +281,10 @@ the docs of its page, the value, the source of the declaration, null for
 a node a chain lays, and its origin. `env` answers the declarations of
 the reader where the step stands, in the body of a word those of the
 query that called it [QSNAM#owner], each by its name with its record,
-`{}` where the reader declared nothing. The axes read the record: `binding` the record itself,
-`source` its source and `doc` its page.
+`{}` where the reader declared nothing. `binding` reads the record
+itself, `doc` its page, and `source` every declaration written under the
+name's address, the record's `:source` holding the step of the one that
+wrote it.
 
 ```qlang
 > :x |~~ note ~~| 1 | ::x | binding | keys

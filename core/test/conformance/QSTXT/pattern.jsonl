@@ -19,4 +19,4 @@
 {"name":"a-pattern-reads-letters-of-any-script","query":"\"Ünïcödé 42 данные\" | scan #\"\\p{L}+\"","expect":"[\"Ünïcödé\" \"данные\"]"}
 {"name":"a-pattern-takes-flags-as-a-string-does","query":"#\"a\" | toRegex \"i\" | eq (\"a\" | toRegex \"i\")","expect":"true"}
 {"name":"a-pattern-refuses-letters-of-no-flag","query":"#\"a\" | toRegex \"q\" !| type","expect":"::regex/toRegex/flags/NotFlagsError"}
-{"decision":"D303","name":"toRegex-with-no-flags-keeps-a-pattern-and-gives-a-string-none","query":"get [~(#\"a\"m | toRegex) ~(\"a\" | toRegex)]","expect":"[#\"a\"m #\"a\"]"}
+{"name":"toRegex-with-no-flags-keeps-a-pattern-and-gives-a-string-none","query":"get [~(#\"a\"m | toRegex) ~(\"a\" | toRegex)]","expect":"[#\"a\"m #\"a\"]"}

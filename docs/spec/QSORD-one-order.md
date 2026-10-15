@@ -18,9 +18,7 @@ as its vector, maps by their keys and then their values, a quote by its
 steps, a doc by its segments in turn, a run of prose before a quote, an
 elision by its payload, a desc by the reverse of its payload's place, an
 error by its tag and then its facts, and a value under another tag by
-its payload. The part JSON has follows the order of jq, but for strings
-past the basic plane, which jq ranks by code point; a kind JSON lacks
-stands beside the one it resembles.
+its payload.
 
 ```qlang
 > [{:a 1} #[1] [1] ::t :k "s" 1 true null] | sort

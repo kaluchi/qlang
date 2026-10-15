@@ -20,6 +20,6 @@
 {"name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
 {"name":"sort-ranks-an-error-at-rest","query":"[2 ::error{:k 1} 1] | sort","expect":"[1 2 ::error{:k 1}]"}
 {"name":"patterns-rank-after-strings-by-text-then-flags","query":"[:k #\"b\" \"z\" #\"a\"i #\"a\" 1] | sort","expect":"[1 \"z\" #\"a\" #\"a\"i #\"b\" :k]"}
-{"decision":"D303","name":"paths-rank-segment-by-segment-by-their-code-units","query":"[/9 /10] | sort | map ~print","expect":"[\"/10\" \"/9\"]"}
-{"decision":"D303","name":"a-doc-ranks-by-its-segments-a-run-of-prose-before-a-quote","query":"[|~~ z ~~| |~~ ~(b) ~~|] | sort","expect":"[|~~ ~(b) ~~| |~~ z ~~|]"}
-{"decision":"D303","name":"sort-orders-docs-of-prose-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}
+{"name":"paths-rank-segment-by-segment-by-their-code-units","query":"[/9 /10] | sort | map ~print","expect":"[\"/10\" \"/9\"]"}
+{"name":"a-doc-ranks-by-its-segments-a-run-of-prose-before-a-quote","query":"[|~~ z ~~| |~~ ~(b) ~~|] | sort","expect":"[|~~ ~(b) ~~| |~~ z ~~|]"}
+{"name":"sort-orders-docs-of-prose-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}

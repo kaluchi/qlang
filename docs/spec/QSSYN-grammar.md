@@ -88,7 +88,10 @@ modifier above. The body of a name with a path begun on a later line,
 and the body of a bare name with its page begun on a later line with a
 tag name, is a sentence: its steps run on, joined by `|`, to the next
 declaration or a value written after `|`; any other body is one step,
-and a tag name on a later line is the body of the declaration above.
+and a tag name on a later line is the body of the declaration above. A
+declaration joins the step before it on its own line with no
+combinator, `[1 2] :y 2 | y` answering `2`, while any other step is
+joined by one.
 
 ```qlang
 > "[3 1 2] sort" | parse !| get /message
@@ -142,7 +145,8 @@ true
 ## refusal
 
 A source the parser refuses answers `::quote/ParseError` with its
-`:source`, a `:marker` under the place it failed and its `:location`,
+`:source`, the line where the reading stopped, a `:marker` under the
+place it failed and its `:location`,
 and its `:uri` where `parse` read it. A refusal the grammar writes holds
 a `:message` that names the habit it met; any other holds the
 continuations a reader could have meant as `:expected` and what it met

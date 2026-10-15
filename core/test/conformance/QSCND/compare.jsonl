@@ -12,6 +12,6 @@
 {"name":"lte-equal","query":"10 | lte 10","expect":"true"}
 {"name":"the-test-for-null-is-eq-null","query":"[null 1] | filter ~(eq null)","expect":"[null]"}
 {"name":"eq-keeps-a-keyword-apart-from-its-string","query":":a | eq \"a\"","expect":"false"}
-{"decision":"D303","name":"a-value-of-another-kind-is-refused-under-the-input","query":"5 | gt \"a\" !| type","expect":"::number/gt/value/KindNotTakenError"}
-{"decision":"D303","name":"a-kind-with-no-comparison-names-the-kinds-that-have-one","query":"true | gt false !| get [~(type) /addresses]","expect":"[::call/KindAnswersNoVerbError #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]]"}
-{"decision":"D303","name":"strings-keywords-and-tag-names-compare-within-their-kind","query":"get [~(\"b\" | gt \"a\") ~(:b | gt :a) ~(::b | gt ::a)]","expect":"[true true true]"}
+{"name":"a-value-of-another-kind-is-refused-under-the-input","query":"5 | gt \"a\" !| type","expect":"::number/gt/value/KindNotTakenError"}
+{"name":"a-kind-with-no-comparison-names-the-kinds-that-have-one","query":"true | gt false !| get [~(type) /addresses]","expect":"[::call/KindAnswersNoVerbError #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]]"}
+{"name":"strings-keywords-and-tag-names-compare-within-their-kind","query":"get [~(\"b\" | gt \"a\") ~(:b | gt :a) ~(::b | gt ::a)]","expect":"[true true true]"}

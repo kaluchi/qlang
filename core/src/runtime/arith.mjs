@@ -37,11 +37,9 @@ bindPrim('number/range', count => {
   return Array.from({ length: Math.max(count, 0) }, (_, index) => index);
 });
 
-// A number rounds half away from zero to the digits after the point the
-// call gives, read as its digits are written, a whole number its part holds
-// [QSERR#site], a negative count rounding to tens and beyond [D303]; digits
-// past what a double holds leave the number as it is, and tens past it
-// round to zero.
+// A number rounds half away from zero to the digits the call gives, a whole
+// number [QSERR#site], as its digits are written, a negative count to tens and
+// beyond [QSNUM#arithmetic]; past a double it stays, and tens past it give zero.
 bindPrim('number/round', (subject, digits) => {
   const shifted = shiftedBy(Math.abs(subject), digits);
   if (!Number.isFinite(shifted)) return subject;
@@ -49,8 +47,7 @@ bindPrim('number/round', (subject, digits) => {
   return rounded === 0 ? 0 : rounded;
 });
 
-// A number with its point moved by a count of places, read from the
-// digits that write it.
+// A number with its point moved by places, read from the digits that write it.
 function shiftedBy(number, places) {
   const [digits, exponent = '0'] = String(number).split('e');
   return Number(`${digits}e${Number(exponent) + places}`);

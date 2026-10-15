@@ -74,7 +74,7 @@ the subject reaches, is refused as `::call/KindAnswersNoVerbError`, with
 the name as `:name`, the subject's outermost tag as `:actualType`, the
 addresses of the words of that name as `:addresses`, and, where the
 pages of those words lead to one, `:nearest`, the words they link that
-the subject answers.
+the subject answers and whose answer is a kind those words answer.
 
 ```qlang
 > 5 | count !| get [~(type) /actualType /addresses]

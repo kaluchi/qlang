@@ -147,7 +147,8 @@ catalog under `core/lib/qlang/` loads at runtime through
 language server of the checkout; npm carries the core and the command
 line, and the Eclipse Marketplace the artifacts of the sister project. `npm
 install` at the root links the workspaces; the Node floor is the
-`engines.node` field of each workspace.
+`engines.node` field of the core, the command line and the language
+server.
 
 ## Commands
 
@@ -209,7 +210,7 @@ the baseline that no record in transit over its section claims, a
 chapter that cites a record, speaks of the journal or tells a history
 [QSWRK#spec],
 and a citation of a record not in force, which the code, the tests and the cases never make and the
-documents make only of one waiting on its target [QSWRK#baseline]. `npm run check:probes` runs every probe of the open records, the
+documents make only of one open or waiting on its target [QSWRK#baseline]. `npm run check:probes` runs every probe of the open records, the
 records in transit and the specification, the shell ones that read the repository alone included, and fails on one whose answer changed,
 but where the record in transit over its section holds a probe of the same query, which the move writes into the section [QSWRK#probe]; a
 target case records the answer the tree gives today, so the suite

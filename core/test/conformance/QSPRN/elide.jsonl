@@ -16,4 +16,4 @@
 {"name":"a-set-under-a-tag-keeps-its-shape","query":"40 | range | distinct | tag ::Box | elide 60 | get [~(type) ~(payload | count)]","expect":"[::Box 40]"}
 {"name":"a-doc-gives-way-whole-with-the-head-of-its-text","query":"get [~(::vec/sort | doc)] | :v it | elide 100 | get /0 | get [~(type) ~(get /size | eq (v | get /0 | content | count)) ~(get /head | type)]","expect":"[::elision true ::string]"}
 {"name":"the-read-of-the-marker-of-a-quote-answers-the-quote","query":"get [~(::vec/sort | source)] | :v it | elide 100 | get /0 | get [~(type) ~(get /read | :r it | v | apply r | eq (v | get /0))]","expect":"[::elision true]"}
-{"decision":"D303","name":"a-marker-counts-a-part-that-gave-way-whole-as-one-element","query":"200 | range | map ~(\"a\") | join \"\" | :s it | get [[~(s)] [1]] | elide 60 | get /0/size","expect":"1"}
+{"name":"a-marker-counts-a-part-that-gave-way-whole-as-one-element","query":"200 | range | map ~(\"a\") | join \"\" | :s it | get [[~(s)] [1]] | elide 60 | get /0/size","expect":"1"}

@@ -41,4 +41,4 @@
 {"name":"doc-eq-doc-vs-string","query":"(|~~ x ~~|) | eq \"x\"","expect":"false"}
 {"name":"doc-eq-doc-vs-quote","query":"(|~~ x ~~|) | eq ~(x)","expect":"false"}
 {"name":"doc-eq-self","query":"|~~ same ~~| | :d it | eq d","expect":"true"}
-{"decision":"D303","name":"a-payload-of-a-doc-is-a-vector","query":"5 | tag ::doc !| type","expect":"::doc/PayloadKindNotTakenError"}
+{"name":"a-payload-of-a-doc-is-a-vector","query":"5 | tag ::doc !| type","expect":"::doc/PayloadKindNotTakenError"}

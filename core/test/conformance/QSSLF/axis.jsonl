@@ -9,7 +9,7 @@
 {"name":"an-anchor-reads-the-input-of-a-kinds-word","query":"::vec | doc [:take :count] | eq (::vec/take/count | doc)","expect":"true"}
 {"name":"an-address-reads-its-page-whatever-the-scope-binds","query":":limit 5 | ::vec/filter | doc | type","expect":"::doc"}
 {"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::vec/count | doc | type","expect":"::doc"}
-{"decision":"D303","name":"a-tag-nothing-declares-is-refused-by-the-axis","query":"::count | doc !| type","expect":"::any/doc/UnknownNameError"}
+{"name":"a-tag-nothing-declares-is-refused-by-the-axis","query":"::count | doc !| type","expect":"::any/doc/UnknownNameError"}
 {"name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | parse | contains \"::builtin{}\"","expect":"true"}
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true"}
 {"name":"an-axis-reads-the-input-a-member-holds-under-a-name","query":"::vec/take | binding :count | get /value | print","expect":"\"/0\""}
@@ -41,6 +41,6 @@
 {"name":"an-anchor-of-a-set-that-is-no-keyword-is-refused","query":"::qlang | doc #[1] !| type","expect":"::any/doc/anchor/ElementNotKeywordError"}
 {"name":"an-axis-reads-a-value-under-a-tag-of-identity-by-the-kind-beneath-it","query":"::Box{:a 1} | get [~(doc | eq (::map | doc)) ~(type)]","expect":"[true ::Box]"}
 {"name":"an-axis-reads-a-vector-under-a-tag-of-identity-as-a-vector","query":"::Box[1 2] | doc | eq (::vec | doc)","expect":"true"}
-{"decision":"D303","name":"a-keyword-reads-the-page-of-its-kind","query":":count 5 | :count | doc | eq (::keyword | doc)","expect":"true"}
-{"decision":"D303","name":"an-anchor-of-doc-is-a-keyword-a-vector-or-a-set","query":"::qlang | doc 5 !| type","expect":"::any/doc/anchor/KindNotTakenError"}
-{"decision":"D303","name":"manifest-takes-no-member","query":"::qlang | manifest :pipeline !| type","expect":"::any/manifest/ArgsBeyondInputsError"}
+{"name":"a-keyword-reads-the-page-of-its-kind","query":":count 5 | :count | doc | eq (::keyword | doc)","expect":"true"}
+{"name":"an-anchor-of-doc-is-a-keyword-a-vector-or-a-set","query":"::qlang | doc 5 !| type","expect":"::any/doc/anchor/KindNotTakenError"}
+{"name":"manifest-takes-no-member","query":"::qlang | manifest :pipeline !| type","expect":"::any/manifest/ArgsBeyondInputsError"}

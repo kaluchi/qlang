@@ -69,7 +69,7 @@ export function readDecisionRecords(root) {
         .flatMap(line => [...line[1].split(', under which')[0].matchAll(/[DE]\d+/g)].map(match => match[0]));
       // A walk files a principle and a rule of the tooling under their
       // domain, which holds them where no case can, the record out of force
-      // [D303].
+      // [QSWRK#journal].
       const filedUnder = recordText.match(/^Filed under the (principles|tooling) by \[D\d+\]/m)?.[1];
       return [name, {
         path,

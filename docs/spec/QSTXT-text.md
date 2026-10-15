@@ -42,7 +42,7 @@ words.
 and all, a pattern for `contains` among them [QSTXT#match], and the
 empty text stands in every string; a word that reads text refuses a
 keyword for its text. `contains` asks a vector and a set for an element,
-as `has` does; a value of no kind it serves is refused with the
+a path among them, which `has` reads as the path it is; a value of no kind it serves is refused with the
 addresses that serve it.
 
 ```qlang
@@ -95,7 +95,8 @@ inside, or a backslash before a character that needs none. A pattern
 prints as its literal and reads back, JSON writing that literal as a
 string, and two are equal when their text and flags are. `toRegex` reads
 a string as a pattern and answers a pattern as its source, each with the
-flags its call gives in the place of its own. A pattern whose
+flags its call gives in the place of its own, a pattern keeping its own
+and a string taking none where the call gives none. A pattern whose
 matching backtracks without end runs as long as its matching does.
 
 ```qlang

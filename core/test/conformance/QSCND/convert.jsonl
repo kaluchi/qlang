@@ -27,4 +27,4 @@
 {"name":"a-pair-of-another-shape-is-refused","query":"[[:a 1] [:b]] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/ElementNotPairError 1]"}
 {"name":"a-key-of-another-kind-is-refused","query":"[[[1] 2]] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/KeyNotKeywordError 0]"}
 {"name":"every-atom-turns-into-the-text-of-its-literal","query":"[null true 5 :a ::vec] | map ~toString","expect":"[\"null\" \"true\" \"5\" \"a\" \"vec\"]"}
-{"decision":"D303","name":"a-pattern-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| type","expect":"::call/KindAnswersNoVerbError"}
+{"name":"a-pattern-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| type","expect":"::call/KindAnswersNoVerbError"}

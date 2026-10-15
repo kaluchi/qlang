@@ -25,4 +25,4 @@
 {"name":"an-input-raises-the-refusal-under-its-address","query":"1 | add \"a\" !| get [~(type) /actualType]","expect":"[::number/add/addend/KindNotTakenError ::string]"}
 {"name":"the-prefix-is-refused-at-its-residence","query":"\"a\" | prepend 1 !| type","expect":"::string/prepend/prefix/KindNotTakenError"}
 {"name":"each-value-the-call-gives-is-refused-with-its-index","query":"{:a 1 :b \"x\"} | sumOf /a /b !| get [~(type) /index /actualType]","expect":"[::vec/sum/ElementNotNumberError 1 ::string]"}
-{"decision":"D303","name":"a-refusal-leaves-the-value-out-where-it-equals-the-subject-whatever-its-identity","query":"get [~([1] | :v it | v 1 !| has /actualValue) ~(:v [1] | [1] | v 1 !| has /actualValue) ~(:v [2] | [1] | v 1 !| has /actualValue)]","expect":"[false false true]"}
+{"name":"a-refusal-leaves-the-value-out-where-it-equals-the-subject-whatever-its-identity","query":"get [~([1] | :v it | v 1 !| has /actualValue) ~(:v [1] | [1] | v 1 !| has /actualValue) ~(:v [2] | [1] | v 1 !| has /actualValue)]","expect":"[false false true]"}

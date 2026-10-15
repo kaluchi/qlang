@@ -54,7 +54,7 @@ true
 
 `manifest`, an axis, answers the set of the nodes declared one name
 under the name its subject reads: its words, its refusals, its pages and
-the inputs and answer of a word, its laws aside, which `laws` reads; a
+the inputs, the subject and the answer of a word, its laws aside, which `laws` reads; a
 value answers those of the kind it shows, `5 | manifest` those of
 `::number`, and a name nothing declares is refused as
 `::any/manifest/UnknownNameError`. The topic of the language lists
@@ -133,11 +133,11 @@ value of the kind `::explanation`: the page `doc` reads for it under
 shows, and an error `!|` opened the page of its site, its value the
 error at rest that `raise` raises again; a refusal the runtime raises by
 rule under a word, with no page of its own, reads the page of what
-refused; a value whose kind nothing declares is refused as
+refused; a name nothing declares is refused as
 `::any/explain/UnknownNameError`. The page of a refusal says what
 failed, which fact names the culprit and how the call is repaired, and
 its laws hold the recovery through `!|`. An explanation prints the page
-above the value. `trail` is a word of errors, `42 | trail` refused.
+above the value.
 
 ```qlang
 > "x" | add 1 !| explain | payload | keys
@@ -146,8 +146,8 @@ above the value. `trail` is a word of errors, `42 | trail` refused.
 > 42 | explain | value
 42
 
-> 42 | trail !| type
-::error/trail/SubjectNotErrorError
+> ::Nothing | explain !| type
+::any/explain/UnknownNameError
 ```
 
 ## doc
@@ -165,8 +165,8 @@ one, as the parser does, a payload that is no vector refused as
 `::doc/PayloadKindNotTakenError` and an element of another kind as
 `::doc/ElementNotSegmentError`. A tag gives a quote a role, the tags of a
 stack read from the outside in: `::link`, which `links` answers and
-`open` follows to a page, and `::snippet`, which `snippets` answers and
-`open` runs to what it shows; each is a kind of the core with a page,
+`open` runs to what its query answers, a page where it reads one, and
+`::snippet`, which `snippets` answers and `open` runs to what it shows; each is a kind of the core with a page,
 and a role that asks a check of its own comes as a kind of its own. A
 span between backquotes holds a fragment of the language that is no
 query to run. A doc lays each tag of a quote's role through the tag's

@@ -50,10 +50,9 @@ The insights the work meets about itself are collected as it goes into a
 numbered record of the shift, each a rule a later session holds, written
 when the work that showed it lands; at the move of the baseline each
 dissolves into the section of this chapter it governs. A record written
-before its code is read again after the last commit of its branch. A
-record goes stale in its tenses before its rules: its source is history,
-written in the past, and its requirements name its cases, not a file of
-them. The prune of a decision ends with a walk of every record in force
+before its code is read again after the last commit of its branch. The
+source of a record is written in the past, and its requirements name its
+cases, not a file of them. The prune of a decision ends with a walk of every record in force
 against the tree, not with a search of its own words, and a walk of the
 records finds scars of the tree as well as of the text: where a record
 names a rule the tree misses, the tree is repaired and the record stays.
@@ -67,8 +66,7 @@ a record of its own when a better one turns up; a question goes to the
 maintainer where his quoted words are at stake or the merits leave the
 choice open, laid out with the alternatives and their cost. Before a
 construct is proposed, the maintainer's words about it are searched,
-`node scripts/sensors/maintainer-messages.mjs`, since the project may
-have had it and left it, and a capability of the language, a form of
+`node scripts/sensors/maintainer-messages.mjs`, and a capability of the language, a form of
 the grammar, the shape of a value or a word is removed on the
 maintainer's words about that very axis.
 
@@ -98,14 +96,14 @@ earliest of them, `node scripts/merge-records.mjs <earliest> <later>…`,
 whose number stays the address of the axis, described anew against the
 tree; each later one gains the line `Merged into` the earliest. A record
 out of force moves once to `docs/journal/replaced/`, under the line of
-its fate, `Dissolved into`, `Merged into`, `Replaced by` or `Filed
-under the principles by`, and under its
+its fate, `Dissolved into`, `Merged into`, `Replaced by`, `Filed
+under the principles by` or `Filed under the tooling by`, and under its
 title the line `Left at` the commit whose tree its text was last true
 of, every path it names reading as `git show <commit>:<path>`;
 `node scripts/replaced-records.mjs` moves it and rewrites the links to
 it. A record keeps its number for good. `check:conventions` holds the
-fates: each names a record that exists, a part taken is named back, the
-lines `Replaced in part by` are no more than the baseline held, a record
+fates: each names a record that exists, a part taken is named back by
+`Pruned of what` and `Replaces in part` alone, a record
 replaced whole stands under `replaced/` and one in force in the root,
 and every markdown link of a document leads to a file the tree holds.
 
@@ -116,7 +114,8 @@ topic, a chapter for each, its code a word of five letters,
 `QSNAM-names-and-scope.md`, its sections the headings `## scope`, cited
 by the code and the heading, `[QSNAM#scope]`. A chapter states the rule
 of each section in the present, as what holds, the form a reader
-writes and the refusal that teaches it; it shows its rules by probes;
+writes and the refusal that teaches it; a chapter of the language shows
+its rules by probes, and this chapter by the checks each section names;
 and `docs/spec/README.md` lists the chapters in the order the concepts
 rest on each other. The code, the tests and the cases cite the section
 whose rule they hold. A chapter is written at the move of the baseline
@@ -155,7 +154,7 @@ The runner, `core/test/unit/conformance.test.mjs`, refuses a file of a
 chapter that is no section of it, a case whose first key names no record
 in force, a target that names no record, and two cases that hold one
 query to two answers; `check:conventions` refuses a case whose record
-overrides no section of its chapter.
+overrides neither its section nor its chapter whole.
 
 ## target
 
@@ -181,8 +180,8 @@ them. Master's copy of the diff, `git show master:scripts/gate-diff.mjs`
 run with `--task Dnn`, compares the branch with its merge base on master
 and lists every such move: a target added or a case added under another
 record; a change to the specification, `scripts/`, a `package.json`,
-`.github/`, `CLAUDE.md`, `.claude/`, or the comparator of the runner and
-its judge; a record added, rewritten, moved or
+`.github/`, `CLAUDE.md`, `.claude/`, the configurations of vitest and
+eslint, or the comparator of the runner and its judge; a record added, rewritten, moved or
 taken away, but for a line of fate appended; the targets met outside the
 task; and the lines of the implementation that spell a target they met.
 The review reads them first.
@@ -200,11 +199,12 @@ in the name of its file, `screens/D270.txt`. A mark covers its block,
 from its comment to the next comment that holds one, the first block
 reaching up to the head of the file, so a search answers what governs a
 file and what a record left behind: `node scripts/marks.mjs` answers the
-scope of a record, `--touched` the records whose marked blocks a diff
-touched and `--reread Dnn` what to read again. An artifact that names
-nothing, a tracked `.mjs`, `.js`, `.peggy` or `.qlang` outside `docs/`
-or a workflow, is an orphan, which `check:conventions` refuses and the
-desk counts. A page of the catalog, the public interface of the
+scope of a record or a section, `--touched` the records whose marked
+blocks a diff touched and `--reread Dnn` what to read again. An artifact
+that names nothing, a tracked `.mjs`, `.js`, `.peggy` or `.qlang` outside
+`docs/` or a workflow, is an orphan, which `check:conventions` refuses and
+the desk counts; the data a run of the benchmark wrote, its runs and the
+generators of the sets its authors wrote, mark nothing. A page of the catalog, the public interface of the
 language, cites the sections and pages a reader follows, a record only
 in the comment at the head of its source.
 
@@ -334,8 +334,8 @@ the record it holds; the reason of a rule lives with its record. Every
 branch leaves the files it touches so: it moves a reason it finds in a
 comment into its record or deletes it with the compromise it excuses,
 and deletes a false comment. The ratio of comment lines to code lines
-over the core, the command line and the language server falls,
-measured on every branch against the baseline. A printer decides a
+over the core, the command line and the language server falls on every
+branch, which `node scripts/measure.mjs` measures against the baseline. A printer decides a
 spelling by the kind of the value, never by a pattern over the text of a
 print; a fact of a call is kept by the call and never by a value it
 received; and what a rule takes from code is withheld by a refusal of its
@@ -456,8 +456,7 @@ in pieces by `split`, `lines`, `count`, `take` and `drop`.
 A declaration in a source of the catalog writes its name on a line of
 its own, each doc of its slot on the lines after it indented by two, a
 doc of one line on one line and a doc of several lines closing on a line
-of its own, and its value on the line after them; a keyword value stays
-on the line of its doc.
+of its own, and its value on the line after them.
 
 ## measure
 
@@ -520,12 +519,10 @@ yields being the question of the reading. The reports land in
 session writes its reading beside them, every finding with its fate, a
 record in transit, a target, an open record, a record that holds it
 already, or none with the probe that sets it aside; the series keeps its
-two latest runs. A clean reader knows no earlier form, so it probes the
-bounds of each rule as it stands and its doubt comes out as a question
-of the tree, while a reader of the records is handed the words the
-language left, so that its probes look for them; a check goes deeper
-each time, and one whose findings are precision alone is the one to stop
-at.
+two latest runs. A clean reader probes the bounds of each rule as it
+stands, its doubt a question of the tree, and a reader of the records
+looks for the words the language left; a check goes deeper each time,
+and one whose findings are precision alone is the one to stop at.
 
 `node scripts/outside-audit.mjs` runs the outside audit: a clean Opus,
 started from an empty directory of its own with no instruction file,
@@ -546,7 +543,7 @@ command line and its REPL, published under the `@kaluchi/` scope, `lsp`
 the language server, `site` the site, private, and `vscode` the editor's
 extension, `qlang-vscode`; `npm install` at the root links them. The
 core is pure JavaScript with no dependency at runtime and no `node:*`
-import under `core/src/`, since it ships to a browser, to Deno and to
+import under `core/src/`, and it runs in a browser, in Deno and in
 Bun; its catalog under `core/lib/qlang/` is read at runtime as
 `#qlang/<name>` through the `imports` of its `package.json`, the loader
 of each platform chosen by the condition of `#qlang/load-source`; the
@@ -559,8 +556,8 @@ catalog.
 The hosts beside the core: `cli/src/bin.mjs` is the one file of the
 command line that touches `process`, handing the arguments, the streams
 and the environment to `main.mjs` and exiting with the code `main`
-resolves, so every branch worth covering lives where a test reaches it;
-the REPL paints what it prints by `cli/src/highlight-ansi.mjs`, a layer
+resolves, every branch of the command line living where a test reaches
+it; the REPL paints what it prints by `cli/src/highlight-ansi.mjs`, a layer
 of colour over the core's `tokenize`. The language server runs over
 stdio and answers `initialize` with its capabilities; the editor's
 extension, `vscode/src/extension.js`, unpublished, launches the server
@@ -585,9 +582,11 @@ print that reads back as another value. `check:conventions` holds,
 beside the walk, the fates and the anchors, the words that tell when a
 text changed, legacy, deprecated, currently, previously and backward
 compatibility, and the markers TODO, FIXME and HACK, in the sources
-outside `docs/`, `vscode/` and the instructions; a count in markdown
-prose that a command answers; the ranges of the siblings; and every
-refusal declared by its address.
+outside `docs/`, `vscode/` and the instructions; a month of the
+history in a text that states what holds; a count in markdown prose that
+a command answers; the ranges of the siblings; every refusal declared by
+its address; and the form of a record, its `Domain.`, its decider and the
+fields of an open record.
 
 `node scripts/release.mjs <version>` runs a release end to end from a
 clean master in step with its remote whose checks on GitHub are green:
@@ -595,7 +594,7 @@ a preflight, the bump, the ranges, the parser, the coverage of the core
 and the tests, the commit, the push, the wait for the checks, the tag
 and its push; the tag runs `.github/workflows/deploy.yml`, which
 publishes the core and the command line through the trusted publishing
-of npm, so the name of that file bears weight; the commit of a release
+of npm, whose publisher names that file; the commit of a release
 lands on master directly. A release happens at the maintainer's word,
 and between releases the sister project consumes the copy of the
 workspace.

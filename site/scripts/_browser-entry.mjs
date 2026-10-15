@@ -16,7 +16,7 @@
 // source from the bundle it loaded.
 
 // The sources of the language by the names the runtime asks for them,
-// which the bundler writes from LANGUAGE_SOURCES [D153].
+// which the bundler writes from LANGUAGE_SOURCES [QSHST#source].
 import { CATALOG } from 'qlang:language-sources';
 
 export async function inlineCatalogLocator(uri) {

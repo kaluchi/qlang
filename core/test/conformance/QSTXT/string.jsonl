@@ -18,3 +18,4 @@
 {"name":"lines-reads-a-carriage-return-and-drops-the-last-break","query":"\"a\\r\\nb\\r\\n\" | lines","expect":"[\"a\" \"b\"]"}
 {"name":"a-string-counts-its-code-points","query":"\"e\\u0301\" | count","expect":"2"}
 {"name":"case-folds-as-unicode-maps-the-text","query":"get [~(\"ΣΑΣ\" | lower) ~(\"straße\" | upper)]","expect":"[\"σας\" \"STRASSE\"]"}
+{"decision":"D319","name":"an-empty-text-has-no-lines","query":"\"\" | lines","expect":"[]"}

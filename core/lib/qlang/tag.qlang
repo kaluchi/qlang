@@ -19,7 +19,7 @@
       that name; a
       tag nothing declares is a kind of identity, which checks nothing
       and lays itself over the value. Tags rank after keywords and
-      before vectors, and JSON writes a tag as its literal, `"::Box"`.
+      before paths, and JSON writes a tag as its literal, `"::Box"`.
       ::snippet~(kinds) lists the kinds the scope reads, and
       ::snippet~(::Box::Crate{:a 1} | type) answers the outer tag.
       ::link~(::qlang/values | doc)

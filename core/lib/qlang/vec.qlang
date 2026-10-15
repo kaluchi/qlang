@@ -19,7 +19,7 @@
       a literal; and `::vec[1 2]` is `[1 2]`. A set, a quote and a doc
       are vectors under their tags and read as vectors wherever a vector
       is read. JSON writes a vector as an array, and vectors rank after
-      tags and before sets, element by element.
+      paths and before sets, element by element.
 
       Its words count and cut, `count`, `first`, `last`, `take`, `drop`,
       turn each element into another, `map ~(…)`, keep some,
@@ -1005,7 +1005,9 @@
         |~~ Tag names order by their names. ~~|
         ~([::B ::A] | sort | eq [::A ::B])
     | proves :ordersAnUpperLetterFirst
-        |~~ Strings order by their characters, an upper letter first. ~~|
+        |~~ Strings order by their UTF-16 code units, an upper letter
+            first.
+        ~~|
         ~(["b" "B" "a"] | sort | eq ["B" "a" "b"])
     | proves :ordersByTheKey
         |~~ A key orders by what it answers for each element. ~~|
@@ -1739,7 +1741,9 @@
 :vec/toSet
   |~~ Answers the set of the vector's elements, `[2 1 2] | toSet`
       answering `#[1 2]`: the one order and no duplicates, as `distinct`
-      answers. `toVec` turns the set back into a vector. A map's keys are
+      answers for a vector under no tag, the set of another kind leaving
+      the tags of the subject behind. `toVec` turns the set back into a
+      vector. A map's keys are
       a set already, `keys`.
       ::link~(::vec/distinct | doc) ::link~(::set/toVec | doc)
       ::link~(::map/keys | doc)
@@ -1750,7 +1754,9 @@
         |~~ A map is led to its keys. ~~|
         ~({:a 1} | toSet !| get /nearest | eq [:keys])
     | proves :answersTheSetDistinctAnswers
-        |~~ `toSet` answers what `distinct` answers. ~~|
+        |~~ `toSet` answers what `distinct` answers for a vector under no
+            tag.
+        ~~|
         ~([2 1 2] | get [~(toSet) ~(distinct)] | eq [#[1 2] #[1 2]])
     | impl ::builtin{}
 

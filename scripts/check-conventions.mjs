@@ -458,7 +458,7 @@ const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[
 function fatesOutOfStep() {
   const records = readDecisionRecords(repoRoot);
   const statementsOfRecord = new Map([...records].map(([name, record]) => [name, statementsOf(readFileSync(record.path, 'utf8')).map(statement => statement.text)]));
-  const fatesOf = name => statementsOfRecord.get(name).filter(statement => /^(Replaced by|Merged into|Pruned of what) /.test(statement));
+  const fatesOf = name => statementsOfRecord.get(name).filter(statement => /^(Replaced by|Merged into|Pruned of what|Filed under the (?:principles|tooling) by) /.test(statement));
   const number = name => (name.startsWith('D') ? Number(name.slice(1)) : null);
   const violations = [];
   for (const name of records.keys()) {

@@ -14,7 +14,7 @@ import { join } from 'node:path';
 import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, JOURNAL, RESEARCH } from './decision-records.mjs';
 
 export const RECORDS_A_WALK_TAKES = 20;
-export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'scripts', '.github/workflows'];
+export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
 export const CITING_DOCUMENTS = ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md', 'lsp/README.md', 'vscode/README.md', 'site/README.md'];
 export const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang|yml)$/;
 const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);

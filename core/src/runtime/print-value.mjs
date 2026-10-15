@@ -1,4 +1,4 @@
-// The printer of the core: the text that reads back as a value [QSWRK#code], a part a
+// The printer of the core: the text that reads back as a value, a part a
 // kind whose `print` is declared under it prints its own way taken from that
 // kind before the forms of the core write the rest [QSPRN#print].
 

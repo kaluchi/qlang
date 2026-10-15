@@ -29,3 +29,4 @@
 {"name":"a-replacement-text-writes-the-text-around-the-match-and-a-dollar","query":"\"xay\" | replace #\"a\" \"[$`|$'|$$]\"","expect":"\"x[x|y|$]y\""}
 {"name":"a-replacement-code-that-answers-no-string-is-refused","query":"\"a\" | replace #\"a\" ~(1) !| type","expect":"::string/replace/with/AnswerNotStringError"}
 {"name":"capture-answers-null-where-the-pattern-matches-nothing","query":"\"abc\" | capture #\"(?<n>x)\"","expect":"null"}
+{"decision":"D319","name":"toRegex-refuses-flags-that-are-no-string","query":"\"a\" | toRegex 5 !| type","expect":"::string/toRegex/flags/KindNotTakenError"}

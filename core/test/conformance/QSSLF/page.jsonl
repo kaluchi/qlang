@@ -3,7 +3,6 @@
 {"name":"a-concept-is-a-member-of-the-root-noun","query":"::qlang | doc :pipeline | type","expect":"::doc"}
 {"name":"the-first-screen-opens-every-page-it-names-in-one-query","query":"::qlang | doc | links | map ~open | every ~(type | eq ::doc)","expect":"true"}
 {"name":"the-first-screen-names-the-concepts","query":"::qlang | doc | links | map ~open | filter ~(type | eq ::doc) | count | gt 5","expect":"true"}
-{"name":"every-link-of-the-first-screen-opens-a-page","query":"::qlang | doc | links | map ~open | every ~(type | eq ::doc)","expect":"true"}
 {"name":"the-first-page-asks-several-kinds-for-their-words-at-once","query":"::qlang | doc | snippets | map ~(print) | first | contains \"map ~(get [~(it) ~(manifest)])\"","expect":"true"}
 {"name":"the-language-is-a-noun-with-a-page","query":"::qlang | doc | type","expect":"::doc"}
 {"name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true"}

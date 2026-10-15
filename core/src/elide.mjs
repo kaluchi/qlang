@@ -249,11 +249,13 @@ function excerptOf(value, read, printedOf) {
 }
 
 // A subject the failure only passed, given way whole where its marker is
-// the shorter print: the characters, the elements or the entries it
-// stands for, and the read that reaches it.
+// the shorter print: the characters of a text through the tags over it,
+// the elements or the entries it stands for, and the read that reaches it.
 function passedOver(value, read, printedOf) {
   const sizeOf = measureBy(printedOf);
-  const size = isText(value) ? lengthOf(textOf(value)) : isVec(value) ? value.length : isQMap(value) ? value.size : sizeOf(value);
+  let beneath = value;
+  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
+  const size = isText(beneath) ? lengthOf(textOf(beneath)) : isVec(value) ? value.length : isQMap(value) ? value.size : sizeOf(value);
   const shown = marker([['size', size], ['read', readOf(read, [])]]);
   return sizeOf(shown) < sizeOf(value) ? shown : value;
 }

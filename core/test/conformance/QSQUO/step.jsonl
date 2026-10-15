@@ -27,3 +27,5 @@
 {"name":"the-step-of-an-error-literal-comes-back-as-the-error-at-rest-it-is","query":"~(!{:k 1}) | get [~(first)] | tag ::quote","expect":"~(!{:k 1})"}
 {"name":"a-declaration-assembled-from-data-names-a-keyword","query":"{:name ::Box :body 1} | tag ::bind !| get [~(type) /field]","expect":"[::bind/PayloadNotSchemaError :name]"}
 {"name":"a-quote-assembled-from-data-that-reads-back-as-another-is-refused","query":"[[1] [2]] | tag ::quote !| get [~(type) /printed]","expect":"[::quote/ReadBackDiffersError \"[1] | [2]\"]"}
+{"decision":"D319","name":"a-group-a-step-holds-reads-as-its-quote-under-group","query":"~(add (1)) | first | get /modifiers | first | type","expect":"::group"}
+{"decision":"D319","name":"a-quote-built-over-a-path-alone-answers-the-path","query":"{:age 3} | apply ([/age] | tag ::quote)","expect":"/age"}

@@ -34,7 +34,7 @@ const TO_PLAIN_HANDLERS = {
   tag:     k => k.literal,
   // A pattern writes its literal, which JSON has no form for [QSTXT#pattern].
   regex:   printRegex,
-  // A path writes its literal, JSON Pointer's form [QSPTH#value].
+  // A path writes its literal [QSPTH#value].
   path:    printPath,
   vec:     v => v.map(toPlain),
   map:     qMapToPlainObject,

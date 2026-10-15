@@ -375,6 +375,11 @@
         /0 ::number
     | throws :budget/KindNotTakenError
         |~~ The budget is a number of characters, `elide 80`. ~~|
+    | holds :budget/NotCountError
+        |~~ The budget is a whole count of characters above zero,
+            `elide 80`, as the command line's `--budget` takes it.
+        ~~|
+        ~(allOf (gt 0) ~(eq (floor)))
     | throws :budget/NotGivenError
         |~~ `elide` keeps the subject within the budget the call gives,
             the characters of its print, `elide 80`.
@@ -445,6 +450,10 @@
     | proves :budget/NotGivenError/refusesACallWithNoBudget
         |~~ A call with no budget is refused under the input. ~~|
         ~([1 2] | elide !| type | eq ::any/elide/budget/NotGivenError)
+    | proves :budget/NotCountError/refusesNoneAndAFraction
+        |~~ A budget of no characters or of a fraction of one is refused.
+        ~~|
+        ~(get [~([1 2] | elide 0 !| type) ~([1 2] | elide 2.5 !| type)] | eq [::any/elide/budget/NotCountError ::any/elide/budget/NotCountError])
     | impl ::builtin{}
 
 :any/if
@@ -561,13 +570,13 @@
 
 :any/coalesce
   |~~ Answers the first answer of the alternatives the call gives, run in
-      order against the subject, that is neither null nor an error:
+      order against the subject, that is neither null nor a failure:
       `{:nickname null :name "alice"} | coalesce /nickname /name`
       answers `"alice"`. Every other value ends the walk, false, `0` and
-      `""` among them, and when every alternative answers null or an
-      error the call answers null. So `coalesce /key ~(fallback)`
-      reads "the key where the map holds it, else the fallback", since
-      `/key` answers an error where the map lacks the key. An
+      `""` among them, an error at rest a value as any, and when every
+      alternative answers null or a failure the call answers null. So
+      `coalesce /key ~(fallback)` reads "the key where the map holds it,
+      else the fallback", since `/key` fails where the map lacks the key. An
       alternative that is no code, a quote or a path, answers itself, and
       a call of such alternatives alone puts the subject first: `coalesce 30` reads
       "the subject, else 30". An error the steps before answered passes
@@ -589,8 +598,8 @@
         ~~|
         ~(count | gt 0)
     | returns
-        |~~ The first answer that is neither null nor an error, null when
-            every alternative answers one.
+        |~~ The first answer that is neither null nor a failure, null
+            when every alternative answers one.
         ~~|
         ::any
     | proves :passesOverNull
@@ -817,7 +826,9 @@
       answers the record of `:limit`, and `env | get /limit` hands it to the
       next step. A name with a path is held by its address. Inside a
       fork it holds the names before the fork and the fork's own, and
-      the fork's stay inside it. What the language and the host declared
+      the fork's stay inside it; code held as data holds its own and the
+      nodes and the labels of the step it came from, a value the reader
+      named withheld from it. What the language and the host declared
       stands apart, so at the start of a query it answers `{}`: `kinds`
       lists their kinds, and `manifest` what lies under a noun. The call
       takes no name.
@@ -978,9 +989,9 @@
       name in its scope, the chain of a word's function with its inputs,
       its answer, its refusals and its laws, and every declaration under
       its address. `::Tag | source` reads what was written
-      under the tag, a refusal its own declaration, and any other value
-      the declaration of its kind. A binding no step declared, a value a
-      host bound, answers null. Given a name, it reads the name the
+      under the tag, and any other value the declaration of its kind. A
+      node a chain lays, a refusal among them, and a binding no step
+      declared, a value a host bound, answer null. Given a name, it reads the name the
       subject holds under it: for a tag name the name under its address,
       an input of a word among them, and for any other subject
       the word the name calls after it. A name nothing declares is

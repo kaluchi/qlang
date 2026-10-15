@@ -339,6 +339,11 @@ describe('tokenize — the code a doc holds', () => {
     expect(await paint('|~~ a `count` b ~~|')).toEqual([['|~~ a `', 'comment'], ['count', 'word'], ['` b ~~|', 'comment']]);
   });
 
+  it('closes a span at a run of as many backquotes as opened it', async () => {
+    expect(await paint('|~~ a ``"x`y" | count`` b ~~|')).toContainEqual(['count', 'word']);
+    expect(await paint('|~~ a `` b ~~|')).toEqual([['|~~ a `` b ~~|', 'comment']]);
+  });
+
   it('closes a doc inside a quote of a doc at its own marker', async () => {
     const painted = await paint('|~~ ~(|~~ a ~~| | count) after ~~|');
     expect(painted.at(-1)).toEqual([' after ~~|', 'comment']);

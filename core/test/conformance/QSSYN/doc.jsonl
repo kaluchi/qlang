@@ -30,3 +30,4 @@
 {"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | type | eq ::doc","expect":"true"}
 {"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
 {"name":"a-doc-named-by-a-declaration-of-it","query":"|~~ note ~~| | :n it | n | content","expect":"\" note \""}
+{"decision":"D319","name":"a-run-of-backquotes-closes-at-a-run-of-as-many","query":"|~~ a ``~(add 1)`` c ~~| | segments","expect":"[\" a ``~(add 1)`` c \"]"}

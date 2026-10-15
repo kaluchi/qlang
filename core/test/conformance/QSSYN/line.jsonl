@@ -15,3 +15,4 @@
 {"name":"a-declaration-joins-the-step-before-it-on-its-line","query":"[1 2] :y 2 | y","expect":"2"}
 {"name":"a-keyword-on-the-line-of-a-command-is-its-modifier","query":"5 | add 1 :y 2 | y !| type","expect":"::number/add/ArgsBeyondInputsError"}
 {"name":"a-declaration-joins-a-group-before-it-on-its-line","query":"5 | (add 1) :y 2 | y","expect":"2"}
+{"decision":"D319","name":"a-keyword-alone-on-its-line-before-a-declaration-is-a-modifier","query":"\"[1] | append\n:y\n:z 2\n| z\" | parse","expect":"~([1] | append :y | :z 2 | z)"}

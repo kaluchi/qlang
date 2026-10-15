@@ -1,7 +1,7 @@
 {"name":"a-name-in-quotes-a-step-cannot-call-declares-nothing","query":"\":\\\"1\\\" 5 | 7\" | parse !| get /message","expect":"\"`:\\\"1\\\"` names nothing a step can call: a name begins with a letter or `_`, `:first_name 5`\""}
 {"name":"a-bare-name-in-quotes-declares-the-name","query":"\":\\\"foo\\\" 5 | foo\" | parse | apply it","expect":"5"}
 {"name":"the-word-of-a-literal-declares-no-value","query":"\":true 5 | 7\" | parse !| get /message","expect":"\"`:true` is the word of a literal, which a step reads as the value: declare another name\""}
-{"name":"the-word-of-a-literal-names-a-label","query":"\":null |~~ A thing. ~~| | 1\" | parse | count","expect":"2"}
+{"decision":"D319","name":"the-word-of-a-literal-names-a-label","query":":null |~~ A thing. ~~| | env | keys","expect":"#[:null]"}
 {"name":"a-name-under-a-noun-may-end-in-the-word-of-a-literal","query":":number/null ~(1) | 5 | number/null","expect":"1"}
 {"name":"a-label-named-by-the-word-of-a-literal-is-reached-by-its-tag","query":":true |~~ T. ~~| | ::true | doc | content","expect":"\" T. \""}
 {"name":"a-label-of-the-root-named-by-the-word-of-a-literal-stays-the-roots","query":":null |~~ A thing. ~~| | ::null | doc | content | contains \"A thing\"","expect":"false"}

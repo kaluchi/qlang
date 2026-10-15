@@ -15,3 +15,4 @@
 {"name":"a-value-is-read-where-the-word-of-its-name-refuses-the-subject","query":":count 5 | ::vec | count","expect":"5"}
 {"name":"a-value-is-read-where-the-word-of-a-label-refuses-its-tag-name","query":":Shop |~~ S ~~| | :Shop/f ~(1) | :f 7 | ::Shop | f","expect":"7"}
 {"name":"a-value-meets-a-word-of-the-noun-itself-on-its-tag-name","query":":Desk |~~ D ~~| | :Desk/hours (::fn | on |~~ The desk. ~~| ::tag | impl ~(\"9 to 5\")) | :hours 3 | ::Desk | hours !| get [~(type) /addresses]","expect":"[::call/ValueMeetsWordError #[::Desk/hours]]"}
+{"decision":"D319","name":"a-value-named-as-a-word-of-any-meets-the-word-on-every-subject","query":":type 5 | 1 | type !| get /addresses","expect":"#[::any/type]"}

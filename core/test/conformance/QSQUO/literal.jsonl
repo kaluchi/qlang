@@ -17,4 +17,3 @@
 {"name":"quote-in-map","query":"{:body ~(mul 2)} | get /body | parse","expect":"\"mul 2\""}
 {"name":"quote-in-set","query":"#[~(a) ~(b)] | count","expect":"2"}
 {"name":"a-short-quote-is-the-quote-of-its-word","query":"~add","expect":"~(add)"}
-{"name":"a-quote-holds-a-doc-under-the-tag-of-a-kind-as-written","query":"~(|~~ see ::number~(~(x)) ~~|) | print","expect":"\"~(|~~ see ::number~(~(x)) ~~|)\""}

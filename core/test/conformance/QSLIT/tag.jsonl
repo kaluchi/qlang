@@ -25,3 +25,4 @@
 {"name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
 {"name":"an-undeclared-tag-alone-is-a-tag","query":"::AutoBareOnly | type","expect":"::tag"}
 {"name":"a-tag-lays-itself-over-a-pattern","query":"#\"a\" | tag ::Rule | get [~(type) ~(payload | eq #\"a\")]","expect":"[::Rule true]"}
+{"name":"a-kind-of-the-core-refuses-a-payload-of-another-kind-with-its-kind-expected","query":"::number\"5\" !| get [~(type) /expected]","expect":"[::number/PayloadKindNotTakenError #[::number]]"}

@@ -6,12 +6,17 @@ requirements of each section are the cases of its file under
 
 ## string
 
-A string counts, takes and drops by its characters, a letter of any
-script one. `trim` answers it without the whitespace at its two ends,
-`lower` and `upper` fold its case letter by letter as Unicode maps it,
-and `lines` reads it as the vector of its lines. `append` and `prepend`
-write a text at one end, a keyword written as its name; a word of
-strings refuses a subject of another kind.
+A string counts, takes and drops by its code points, a letter of any
+script, an emoji and a combining mark each one. `trim` answers it
+without the whitespace at its two ends, `lower` and `upper` fold its
+case letter by letter as Unicode maps it, and `lines` cuts it at `\n`
+and `\r\n`, a line break at the end closing the last line and the empty
+string holding none. `append` and `prepend` write a text at one end, a
+keyword written as its name. A word only strings answer refuses a
+subject of another kind under its own address,
+`::string/lower/SubjectNotStringError`, and a name strings share with
+another kind, `append`, as `::call/KindAnswersNoVerbError` with the
+addresses of its words.
 
 ```qlang
 > "привет" | count
@@ -56,9 +61,10 @@ true
 ## split
 
 `split` cuts a string at every occurrence of a text or every match of a
-pattern, the pieces between them alone; a separator at an end or two
-together leave empty pieces, so `split` and `join` by one separator
-round-trip. `join` writes the strings of a vector between a separator, a
+pattern, the pieces between them alone, the empty text cutting at every
+code point; a separator at an end or two together leave empty pieces, so
+`split` and `join` by one separator round-trip. `join` writes the
+elements of a vector, or of a set in its order, between a separator, a
 keyword written as its name; an element that is no string or keyword is
 refused at its index.
 
@@ -102,21 +108,30 @@ true
 
 ## match
 
-A word that reads text tells a pattern from a text by its kind.
-`contains` asks for a match anywhere, `^` and `$` asking it of the whole;
-`match` answers the first match as the vector of its text and groups, a
-group that took no part `null`, or null where none stands; `capture` the
-named groups of the first match as a map, or null, refusing a pattern
-that names no group; `scan` the text of every match, an empty match met
-at every place, `[]` where none stands; `replace` puts a text, or what
-code answers on each match's vector, in the place of every match, read
-by code points, a replacement string naming the parts of a match of a
-pattern by `$1`, `$<name>` and `$&`, and standing as written where a text
-is replaced. `toRegex` reads a string as the source of a pattern, its
-flags the call's: a source the engine cannot read is refused with the
-engine's reason, a letter of no flag as `::string/toRegex/flags/NotFlagsError`,
-flags written inside with the repair `toRegex "i"`, and a string that
-writes a whole literal, which `parse | apply it` reads.
+`contains`, `split` and `replace` tell a pattern from a text by its kind;
+`match`, `capture` and `scan` take a pattern alone, refusing a text as
+`::string/match/pattern/KindNotTakenError`. `contains` asks for a match
+anywhere, `^` and `$` asking it of the whole; `match` answers the first
+match as the vector of its text and groups, a group that took no part
+`null`, or null where none stands; `capture` the named groups of the
+first match as a map, or null, refusing a pattern that names no group;
+`scan` the text of every match, an empty match met at every place, `[]`
+where none stands. `replace` puts a text, or what code answers on each
+match's vector, in the place of every match, read by code points: a
+replacement string of a pattern names the parts of a match by `$1`,
+`$<name>`, `$&`, the text before and after it by `` $` `` and `$'`, and
+a dollar by `$$`, a group the pattern lacks standing as written; it
+stands as written where a text is replaced; and code that answers no
+string is refused as `::string/replace/with/AnswerNotStringError`.
+`toRegex` reads a string as the source of a pattern, its flags a string
+the call gives: a source the engine cannot read is refused with the
+engine's reason and, where the source shows another dialect's habit, its
+repair, a needless backslash or flags written inside, `toRegex "i"`;
+flags of another kind are refused as
+`::string/toRegex/flags/KindNotTakenError` and letters of no flag as
+`::string/toRegex/flags/NotFlagsError`; and a string that writes a whole
+literal is refused as `::string/toRegex/LiteralNotSourceError`, the
+literal read by `parse | apply it`.
 
 ```qlang
 > "v1.20 and v3.4" | match #"v(\d+)\.(\d+)"

@@ -23,7 +23,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isWord, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError, kindsOfWalk
+  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, subjectKindsRefusalAddress, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isWord, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError, kindsOfWalk
 } from './runtime/nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, kindOf, pageOfConstructor, pageOfKindsRefusal, signatureOf } from './runtime/signature.mjs';
 import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
@@ -555,13 +555,13 @@ function heldByItsKinds({ kinds, each }, refusalOf, value, env) {
   if (!each) {
     if (kinds === null) return value;
     const reached = walkToKinds(value, kinds);
-    return reached === null ? refusalUnder(refusalOf(kinds, false), { expected: kindsExpected(...kinds), actualValue: value }, env) : reached.served;
+    return reached === null ? refusalUnder(refusalOf(false), { expected: kindsExpected(...kinds), actualValue: value }, env) : reached.served;
   }
   const elements = walkToKinds(value, ['vec']);
-  if (elements === null) return refusalUnder(refusalOf(['vec'], false), { expected: kindsExpected('vec'), actualValue: value }, env);
+  if (elements === null) return refusalUnder(refusalOf(false), { expected: kindsExpected('vec'), actualValue: value }, env);
   if (kinds === null) return elements.served;
   const refused = refusedElementOf(elements.served, kinds);
-  if (refused !== null) return refusalUnder(refusalOf(kinds, true), { index: refused.index, expected: kindsExpected(...kinds), actualValue: refused.element }, env);
+  if (refused !== null) return refusalUnder(refusalOf(true), { index: refused.index, expected: kindsExpected(...kinds), actualValue: refused.element }, env);
   if (isQuote(elements.served) || isDoc(elements.served)) return elements.served;
   const served = Array.from(elements.served, element => walkToKinds(element, kinds).served);
   return isQSet(elements.served) ? makeSet(served) : Object.freeze(served);
@@ -569,7 +569,7 @@ function heldByItsKinds({ kinds, each }, refusalOf, value, env) {
 
 // The names of the refusals of the kinds of an input or a field under its
 // address, or of each of its elements'.
-const refusalsUnder = address => (_kinds, each) => (each ? elementsRefusalAddress : kindsRefusalAddress)(address);
+const refusalsUnder = address => each => (each ? elementsRefusalAddress : kindsRefusalAddress)(address);
 
 // The first element the walk of whose tags reaches none of the kinds,
 // with its index from zero, or null when every one does.
@@ -689,10 +689,36 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
   const others = kinds.filter(kind => kind !== labelName);
   const reached = others.length === 0 ? null : walkToKinds(answer, others);
   if (reached !== null) return reached.served;
-  if (kinds.includes(labelName)) return keptAsSubject(answer, walked.served, walked.passedTags, state);
+  const refused = () => refusalUnder(kindsRefusalAddress(address), { expected: kindsExpected(...kinds), actualValue: answer }, state.env);
+  if (kinds.includes(labelName)) {
+    if (walkToKinds(answer, [labelName]) !== null) return keptAsSubject(answer, walked.served, walked.passedTags, state);
+    const keeping = () => keptOfTheLabel(answer, labelName, walked, refused, state);
+    return typeKeyword(walked.served).name === labelName ? answerMadeBy(labelName, keeping, refused) : keeping();
+  }
   const constructing = kinds.length === 1 ? kinds[0] : kinds.find(kind => kind === typeKeyword(answer).name);
-  if (constructing !== undefined) return mintUnderTag(state, makeTag(constructing), answer);
-  return refusalUnder(kindsRefusalAddress(address), { expected: kindsExpected(...kinds), actualValue: answer }, state.env);
+  return constructing === undefined ? refused() : answerMadeBy(constructing, () => mintUnderTag(state, makeTag(constructing), answer), refused);
+}
+
+// An answer kept as the subject's kind, refused where what is kept is no
+// value of the label.
+async function keptOfTheLabel(answer, labelName, walked, refused, state) {
+  const kept = await keptAsSubject(answer, walked.served, walked.passedTags, state);
+  return isErrorValue(kept) || walkToKinds(kept, [labelName]) !== null ? kept : refused();
+}
+
+// The answer a constructor makes, a payload the kind refuses for its kind
+// refused as the answer is, so a kind that joins the answer changes no tag
+// [QSBLD#answer].
+async function answerMadeBy(kindName, make, refused) {
+  const payloadRefusal = `${kindName}/${payloadRefusalName(false)}`;
+  let made;
+  try {
+    made = await make();
+  } catch (caughtError) {
+    if (caughtError instanceof QlangError && caughtError.address === payloadRefusal) return refused();
+    throw caughtError;
+  }
+  return isErrorValue(made) && made.tag.name === payloadRefusal ? refused() : made;
 }
 
 // callMemberOn(record, subject, state) → the answer of the name under a
@@ -753,7 +779,8 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const signature = signatureOf(fn);
   const recipe = recipeOf(fn);
   const walked = subjectOfCall(signature, labelName, state.pipeValue);
-  if (walked === null) return refusalUnder(subjectRefusalAddress(address, labelName === null ? signature.subject.kinds : [labelName]), {}, state.env, state.pipeValue);
+  if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), { expected: kindsExpected(...signature.subject.kinds) }, state.env, state.pipeValue);
+  if (walked === null) return refusalUnder(subjectRefusalAddress(address, [labelName]), {}, state.env, state.pipeValue);
   const scope = recipeScopeOf(state, ofTheRoot);
   const body = isQuote(recipe) ? astOfQuote(recipe) : null;
   const called = await inputsOfCall(signature, address, modifiers, state, scope, body);
@@ -945,7 +972,7 @@ function laidUnder(tagName, value) {
 // constructor attaches the tag or refuses the payload [QSLIT#tag].
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = kindOf(kind);
-  const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, (_kinds, each) => `${tagName}/${payloadRefusalName(each)}`, payload, state.env);
+  const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, each => `${tagName}/${payloadRefusalName(each)}`, payload, state.env);
   if (isErrorValue(held)) return held;
   let scope;
   const opened = () => scope ??= recipeScopeOf(state, rootOf(state.env).get(tagName) === nodeOf(state.env, tagName));

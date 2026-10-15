@@ -59,7 +59,8 @@
     | throws :NameDeclaredTwiceError
         |~~ A name of a signature is declared once: an input, a refusal
             and an invariant each by its name, the subject and the answer
-            by theirs.
+            by theirs, and an invariant names no refusal the kinds of its
+            input name, `:by/KindNotTakenError`.
         ~~|
     | throws :NameUnderNoInputError
         |~~ A refusal or an invariant written with a path is named under
@@ -193,6 +194,11 @@
     | proves :NameDeclaredTwiceError/refusesTwoInputsOfOneName
         |~~ Two inputs of one name are refused. ~~|
         ~(::fn[~(takes :by |~~ How much. ~~| /0 | takes :by |~~ Again. ~~| /1) ~(1)] !| type | eq ::fn/NameDeclaredTwiceError)
+    | proves :NameDeclaredTwiceError/refusesAnInvariantNamedAsTheRefusalOfKinds
+        |~~ An invariant named as the refusal of its input's kinds is
+            refused.
+        ~~|
+        ~(::fn[~(takes :by |~~ How much. ~~| /0 ::number | holds :by/KindNotTakenError |~~ Positive. ~~| ~(gt 0)) ~(1)] !| type | eq ::fn/NameDeclaredTwiceError)
     | proves :NameUnderNoInputError/refusesARefusalUnderNoInput
         |~~ A refusal under a name no input takes is refused. ~~|
         ~(::fn[~(throws :x/TooBigError |~~ Too big. ~~|) ~(1)] !| type | eq ::fn/NameUnderNoInputError)
@@ -252,11 +258,11 @@
         ~~|
     | proves :servesTheKindsItNames
         |~~ A function serves a subject of the kinds `on` names and
-            refuses another under its call.
+            refuses another under its call, the kinds its `:expected`.
         ~~|
         ~(:f (::fn | on |~~ A number. ~~| ::number | impl ~(add 1))
-          | get [~(5 | apply f) ~("x" | apply f !| type)]
-          | eq [6 ::fn/call/SubjectNotNumberError])
+          | get [~(5 | apply f) ~("x" | apply f !| get [~(type) /expected])]
+          | eq [6 [::fn/call/SubjectKindNotTakenError #[::number]]])
     | proves :pagesTheSubjectOfAWord
         |~~ The page of the subject is the page of its node under the
             word.
@@ -422,8 +428,10 @@
             `::fn | returns …`, or of a function.
         ~~|
     | proves :bringsTheAnswerUnderItsKind
-        |~~ An answer of another kind is refused by the kind. ~~|
-        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~("x")) !| type | eq ::number/PayloadKindNotTakenError)
+        |~~ An answer of another kind is refused under the answer of the
+            call, the kind its `:expected`.
+        ~~|
+        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~("x")) !| get [~(type) /expected] | eq [::fn/call/answer/KindNotTakenError #[::number]])
     | proves :refusesAnAnswerOfNoneOfItsKinds
         |~~ An answer of none of several kinds is refused under the answer
             of the call.

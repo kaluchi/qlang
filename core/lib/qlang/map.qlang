@@ -859,11 +859,11 @@
 :map/has
   |~~ Answers whether the map holds the key the call gives, a keyword, a
       string or a number, each naming the key as `get` reads it, a number
-      by its text: `{:a 1} | has :a` answers `true`. A key held with a null value is held,
-      `{:a null} | has :a` answering `true`, so `has` tells a null value
-      from a key the map lacks, where `query` answers null for both. The
-      key is computed against the subject, so it is written as the keyword
-      that names it, `has :name`. A set asks for an element and a vector
+      by its text: `{:a 1} | has :a` answers `true`. A key held with a
+      null value is held, `{:a null} | has :a` answering `true`, so `has`
+      tells a null value from a key the map lacks, where `query` answers
+      null for both. The key is computed against the subject, so it is
+      written as the keyword that names it, `has :name`. A set asks for an element and a vector
       for a value by a `has` of their own, and a string asks for a part by
       `contains`.
       ::link~(::any/query | doc) ::link~(::set/has | doc)

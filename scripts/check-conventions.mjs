@@ -497,8 +497,8 @@ function fatesOutOfStep() {
 // no record of the journal, speaks none of the journal's words, tells no
 // history of a form, and says nothing of what it leaves out [QSWRK#spec]. The
 // prose is read outside its fenced blocks, whose probes may hold any text.
-// The chapter of the work states how the journal moves, so it speaks its
-// words and its paths, and cites no record as no chapter does [QSWRK#spec].
+// The chapter of the work speaks the words and the paths of the journal,
+// and no chapter cites a record [QSWRK#spec].
 const SPEC_INTRUSIONS = [
   { rule: 'a record of the journal', regex: /\[[DE]\d+\]|\bdecisions? [DE]\d+\b/ },
   { rule: 'a record of the journal', regex: /docs\/decisions/, besides: 'QSWRK' },

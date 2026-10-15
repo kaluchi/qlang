@@ -28,20 +28,21 @@ bindPrim('set/construct', setConstructor);
 // refused at the site, a vector or a map under a tag of its own among them, a
 // set's and a quote's too: `payload` reads what stands beneath a tag, and a
 // word `toX` turns a value into another kind [QSCND#convert].
-const NullPayloadKindNotTakenError       = declareRefusal('null/PayloadKindNotTakenError');
-const BooleanPayloadKindNotTakenError = declareRefusal('boolean/PayloadKindNotTakenError');
-const NumberPayloadKindNotTakenError   = declareRefusal('number/PayloadKindNotTakenError');
-const StringPayloadKindNotTakenError   = declareRefusal('string/PayloadKindNotTakenError');
-const KeywordPayloadKindNotTakenError = declareRefusal('keyword/PayloadKindNotTakenError');
-const RegexPayloadKindNotTakenError = declareRefusal('regex/PayloadKindNotTakenError');
-const PathPayloadKindNotTakenError       = declareRefusal('path/PayloadKindNotTakenError');
-const TagPayloadKindNotTakenError         = declareRefusal('tag/PayloadKindNotTakenError');
-const VecPayloadKindNotTakenError         = declareRefusal('vec/PayloadKindNotTakenError');
-const MapPayloadKindNotTakenError         = declareRefusal('map/PayloadKindNotTakenError');
+const NullPayloadKindNotTakenError      = declareRefusal('null/PayloadKindNotTakenError');
+const BooleanPayloadKindNotTakenError   = declareRefusal('boolean/PayloadKindNotTakenError');
+const NumberPayloadKindNotTakenError    = declareRefusal('number/PayloadKindNotTakenError');
+const StringPayloadKindNotTakenError    = declareRefusal('string/PayloadKindNotTakenError');
+const KeywordPayloadKindNotTakenError   = declareRefusal('keyword/PayloadKindNotTakenError');
+const RegexPayloadKindNotTakenError     = declareRefusal('regex/PayloadKindNotTakenError');
+const PathPayloadKindNotTakenError      = declareRefusal('path/PayloadKindNotTakenError');
+const TagPayloadKindNotTakenError       = declareRefusal('tag/PayloadKindNotTakenError');
+const VecPayloadKindNotTakenError       = declareRefusal('vec/PayloadKindNotTakenError');
+const MapPayloadKindNotTakenError       = declareRefusal('map/PayloadKindNotTakenError');
 
-function coreKindConstructor(isOfKind, ErrorCls, kindName) {
+function coreKindConstructor(isOfKind, ErrorCls) {
+  const expected = kindsExpected(ErrorCls.prototype.address.split('/')[0]);
   return payload => {
-    if (!isOfKind(payload)) throw new ErrorCls({ expected: kindsExpected(kindName), actualValue: payload });
+    if (!isOfKind(payload)) throw new ErrorCls({ expected, actualValue: payload });
     return payload;
   };
 }
@@ -49,24 +50,24 @@ function coreKindConstructor(isOfKind, ErrorCls, kindName) {
 const isBareVec = payload => isVec(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
 const isBareMap = payload => isQMap(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
 
-bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadKindNotTakenError, 'null'));
-bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError, 'boolean'));
+bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadKindNotTakenError));
+bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError));
 // A number is a finite double: an answer brought under `::number` that left
 // the doubles' range is refused here, once for every word [QSSLF#catalog].
 const NumberNotFiniteError = declareRefusal('number/NotFiniteError');
-const finiteNumber = coreKindConstructor(isNumber, NumberPayloadKindNotTakenError, 'number');
+const finiteNumber = coreKindConstructor(isNumber, NumberPayloadKindNotTakenError);
 bindPrim('number/construct', payload => {
   const number = finiteNumber(payload);
   if (!Number.isFinite(number)) throw new NumberNotFiniteError({});
   return number;
 });
-bindPrim('string/construct',  coreKindConstructor(isString, StringPayloadKindNotTakenError, 'string'));
-bindPrim('keyword/construct', coreKindConstructor(isKeyword, KeywordPayloadKindNotTakenError, 'keyword'));
-bindPrim('regex/construct',   coreKindConstructor(isRegex, RegexPayloadKindNotTakenError, 'regex'));
-bindPrim('path/construct',    coreKindConstructor(isPath, PathPayloadKindNotTakenError, 'path'));
-bindPrim('tag/construct',     coreKindConstructor(isTag, TagPayloadKindNotTakenError, 'tag'));
-bindPrim('vec/construct',     coreKindConstructor(isBareVec, VecPayloadKindNotTakenError, 'vec'));
-bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadKindNotTakenError, 'map'));
+bindPrim('string/construct',  coreKindConstructor(isString, StringPayloadKindNotTakenError));
+bindPrim('keyword/construct', coreKindConstructor(isKeyword, KeywordPayloadKindNotTakenError));
+bindPrim('regex/construct',   coreKindConstructor(isRegex, RegexPayloadKindNotTakenError));
+bindPrim('path/construct',    coreKindConstructor(isPath, PathPayloadKindNotTakenError));
+bindPrim('tag/construct',     coreKindConstructor(isTag, TagPayloadKindNotTakenError));
+bindPrim('vec/construct',     coreKindConstructor(isBareVec, VecPayloadKindNotTakenError));
+bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadKindNotTakenError));
 
 // `::desc(…)` — any value turned to descend, its place in the one order
 // the reverse of its payload's [QSORD#desc].

@@ -815,7 +815,11 @@ NumberLit "number within the finite double range"
                      + (frac ? '.' + frac[1].join('') : '')
                      + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
        return Number.isFinite(Number(matched)); }
-    { if (whole.length > 1 && whole[0] === '0') error(`a number is written without a leading zero: write \`${text().replace(/^(-?)0+(?=\d)/, '$1')}\``);
+    { if (whole.length > 1 && whole[0] === '0') {
+        const digits = whole.join('').replace(/^0+/, '') || '0';
+        const written = (sign || '') + digits + (frac ? '.' + frac[1].join('') : '') + (exp ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
+        error(`a number is written without a leading zero: write \`${written}\``);
+      }
       return node('NumberLit', { value: Number(text()) }, span(), text()); }
 
 BooleanLit

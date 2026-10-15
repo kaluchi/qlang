@@ -139,6 +139,7 @@ export function readSignature(quote) {
       case 'holds':
         if (!first.name.includes('/')) throw new FnNameUnderNoInputError({ name: first, actualValue: quote });
         underAnInput(first.name);
+        if (names.named.has(first.name)) throw new FnNameDeclaredTwiceError({ name: first, actualValue: quote });
         names.declare(first.name);
         signature.invariants.push({ name: first.name, page: second, condition: third });
         break;
@@ -197,6 +198,7 @@ export function readKindSignature(quote) {
         break;
       case 'holds': {
         const field = first.name.includes('/') ? underAField(first.name) : null;
+        if (names.named.has(first.name)) throw new KindNameDeclaredTwiceError({ name: first, actualValue: quote });
         names.declare(first.name);
         kind.invariants.push({ name: first.name, page: second, condition: third, field });
         break;

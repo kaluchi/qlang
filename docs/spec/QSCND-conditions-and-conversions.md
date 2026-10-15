@@ -1,15 +1,20 @@
 # QSCND · Conditions and conversions
 
-A condition is a boolean, strictly, and a value turns into another kind
-only by a word named for the kind it turns into. The requirements of
+A condition is a boolean, strictly, and a value is read as another kind
+of the same content by a word named `to` and that kind. The requirements of
 each section are the cases of its file under
 `core/test/conformance/QSCND/`.
 
 ## compare
 
-`eq` and `ne` compare any two values by their structure; `gt`, `gte`,
-`lt` and `lte` compare two values of one kind, the kind each resides on,
-by the one order [QSORD#order]. Null is tested with `eq null`.
+`eq` and `ne` compare any two values by their structure. `gt`, `gte`,
+`lt` and `lte` reside on numbers, strings, keywords, tags and values
+under `::desc`, and compare the subject with a value of its kind by the
+one order [QSORD#order]: a value of another kind is refused as
+`::number/gt/value/KindNotTakenError`, and a subject of a kind none of
+them resides on, a boolean, a vector, a set, a map, a pattern or null,
+as `::call/KindAnswersNoVerbError` with the addresses of the words. Null
+is tested with `eq null`.
 
 ```qlang
 > [1 2 3] | eq [1 2 3]
@@ -26,14 +31,18 @@ true
 
 A condition answers a boolean, `true` or `false`, or is refused under
 the word that runs it or the input that takes it. `not`, `and` and `or`
-take booleans. `allOf` and `anyOf` take conditions, each a boolean
-computed at the call, or a quote or a path that answers one in its turn,
-run once every condition before it held for `allOf` and once none did
-for `anyOf`, the first that decides answering with the quotes after it
-unrun; a quote that answers another kind is refused at its index,
-`::any/allOf/ConditionNotBooleanError`, and a condition of another kind
-than a boolean, a path or a quote, an error computed at the call among
-it, as `ElementKindNotTakenError` at the first such index.
+take booleans, the right side of `and` and `or` a value computed at the
+call and checked whatever the left decides. `allOf` and `anyOf` take
+conditions, one at least, `::any/allOf/conditions/EmptyError` refusing
+none: each a boolean computed at the call, or a quote or a path that
+answers one in its turn, run once every condition before it held for
+`allOf` and once none did for `anyOf`, the first that decides answering
+with the quotes after it unrun. A quote that answers another kind is
+refused at its index, `::any/allOf/ConditionNotBooleanError`, a quote
+that answers a failure hands it on as the answer, and a condition of
+another kind than a boolean, a path or a quote, an error computed at
+the call among it, is refused as `ElementKindNotTakenError` at the
+first such index.
 
 ```qlang
 > 5 | if 1 ~(1) ~(2) !| type
@@ -53,10 +62,16 @@ false
 
 `if` takes its condition as a value, computed at the call, and its two
 branches as quotes or paths, running one of them on the subject; an
-identity branch, `~()`, leaves the subject. `cond` takes its clauses as
-quotes or paths, pairs of a predicate and a branch run in order, an odd
-last clause the default, null where none matches and no default stands;
-a call with no pair is refused.
+identity branch, `~()`, leaves the subject. A condition or a branch the
+call leaves out is refused, `::any/if/else/NotGivenError`, and a branch
+of another kind, `::any/if/then/KindNotTakenError`. `cond` takes its
+clauses as quotes or paths, pairs of a predicate and a branch run in
+order, an odd last clause the default, null where none matches and no
+default stands: a predicate that answers no boolean is refused as
+`::any/cond/ConditionNotBooleanError` at its index from zero, one that
+answers a failure hands it on, a clause of another kind is refused as
+`::any/cond/clauses/ElementKindNotTakenError`, and a call with no pair as
+`::any/cond/clauses/NoBranchesError`.
 
 ```qlang
 > 75 | if (gte 60) ~("pass") ~("fail")
@@ -73,8 +88,10 @@ a call with no pair is refused.
 
 `any` answers whether one element meets a predicate and `every` whether
 all do, each stopping at the first that decides: `any` false and `every`
-true over an empty container. Over a map they read its values; a
-predicate that answers no boolean is refused at its index.
+true over an empty container. Over a map they read its values. A
+predicate that answers no boolean is refused as
+`::vec/every/ConditionNotBooleanError` at its index, at its `:key` over
+a map, and a predicate that answers a failure hands it on as the answer.
 
 ```qlang
 > [] | every ~(gt 0)
@@ -86,13 +103,14 @@ true
 
 ## coalesce
 
-`coalesce` answers the first alternative that is not null. An
-alternative is code, a quote or a path, which runs against the subject,
-or a value, which answers itself; a call whose alternatives are all
-values puts the subject first, so `query /timeout | coalesce 30` reads
-the timeout, else 30. An alternative that answers a failure is taken as
-no value, as null is. A failing alternative after the one that answers
-is never run.
+`coalesce` answers the first alternative that is not null, one at least,
+`::any/coalesce/alternatives/EmptyError` refusing none. An alternative is
+code, a quote or a path, which runs against the subject, or a value,
+which answers itself; a call whose alternatives are all values puts the
+subject first, so `query /timeout | coalesce 30` reads the timeout, else
+30. Code that answers a failure is taken as no value, as null is, and a
+value computed at the call that is a failure is the answer of the call
+[QSQUO#modifier]. Code after the alternative that answers stays unrun.
 
 ```qlang
 > {} | coalesce /missing ~("fallback")
@@ -104,18 +122,20 @@ is never run.
 
 ## convert
 
-A value turns into another kind by a word of its own kind named `to`
+A value is read as another kind by a word of its own kind named `to`
 and the kind it answers, a kind answering its own word as itself.
 `toString` writes a number as JSON writes it, a keyword and a tag name by
 their names and a boolean by its literal; `toNumber` reads a string whose
 whole text is a number's literal, and a keyword whose name is one;
 `toKeyword` files a value as `groupBy` files a key; `toTag` reads a
-string or a keyword that names a tag; `toVec` and `toSet` answer the one
-order without duplicates; `toMap` reads pairs, the last pair of a key
-holding, an element that is no pair and a key no keyword names refused at
-its index. A value turned into a wider kind and back is itself. A
-container's texts are `print` and `json`, and a map's parts are read by
-`entries`, `keys` and `vals`.
+string or a keyword that names a tag; `toSet` answers the elements of a
+vector in the one order without duplicates and `toVec` the elements of a
+set in its order; `toMap` reads pairs, the last pair of a key holding,
+an element that is no pair and a key no keyword names refused at its
+index. A number, a keyword, a string or a tag turned into a wider kind
+and back is itself, and a boolean and null turn into text and a keyword
+one way. A container's texts are `print` and `json`, and a map's parts
+are read by `entries`, `keys` and `vals`.
 
 ```qlang
 > "42" | toNumber

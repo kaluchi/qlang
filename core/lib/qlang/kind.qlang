@@ -57,7 +57,9 @@
         ~~|
     | throws :NameDeclaredTwiceError
         |~~ A name of a kind is declared once: the payload, each field,
-            refusal, fact, invariant and law by its name.
+            refusal, fact, invariant and law by its name, and an invariant
+            names no refusal the kinds of its field name,
+            `:w/KindNotTakenError`.
         ~~|
     | throws :NameUnderNoFieldError
         |~~ A refusal or an invariant written with a path is named under a
@@ -208,6 +210,11 @@
     | proves :NameDeclaredTwiceError/refusesTwoFieldsOfOneName
         |~~ Two fields of one name are refused. ~~|
         ~(::kind[~(reads :w |~~ A w. ~~| /w | reads :w |~~ Again. ~~| /x) null] !| type | eq ::kind/NameDeclaredTwiceError)
+    | proves :NameDeclaredTwiceError/refusesAnInvariantNamedAsTheRefusalOfKinds
+        |~~ An invariant named as the refusal of its field's kinds is
+            refused.
+        ~~|
+        ~(::kind[~(reads :w |~~ A w. ~~| /w ::number | holds :w/KindNotTakenError |~~ Positive. ~~| ~(gt 0)) null] !| type | eq ::kind/NameDeclaredTwiceError)
     | proves :NameUnderNoFieldError/refusesARefusalUnderNoField
         |~~ A refusal under a name no field reads is refused. ~~|
         ~(::kind[~(throws :x/TooBigError |~~ Too big. ~~|) null] !| type | eq ::kind/NameUnderNoFieldError)

@@ -35,16 +35,21 @@ modifier the step it is, so `add ~(x)` holds `[~(x)]` and `add x` holds
 `[::call{:name :x}]`; a declaration as `::bind`, its docs the doc values
 of its slot; a constructor's step as `::construct`; a step of the fail
 track under `::fail`; a group as its quote under `::group`; an error
-literal as the error at rest it writes; any other literal as itself.
-`::fail` and a declaration stand in a pipeline alone, so inside a
-container, a field or a payload a step is an element step. The
-constructor of each record checks the fields the printer reads against
-its schema, `::call/PayloadNotSchemaError`, prints the step and reads the
-text back, so an assembly that reads back as another step is refused
-where it is made, `::call/ReadBackDiffersError`. `tag ::quote` builds a
-quote from a vector of steps, an element that is no step refused as
-`::quote/ElementNotStepError`, and a quote built over a path alone
-prints under its tag, `::quote[/age]`, and reads back as it.
+literal as the error at rest it writes; any other literal as itself, a
+step that stands at the head alone. `::fail` and a declaration stand in
+a pipeline alone, so inside a container, a field or a payload a step is
+an element step. The constructor of each record checks the fields the
+printer reads against its schema, refusing under its own tag,
+`::bind/PayloadNotSchemaError`, prints the step and reads the text back,
+so an assembly that reads back as another step is refused where it is
+made, `::construct/ReadBackDiffersError`. `tag ::quote` builds a quote
+from a vector of steps: a payload that is no vector is refused as
+`::quote/PayloadKindNotTakenError`, an element that is no step as
+`::quote/ElementNotStepError`, and a literal after the head as
+`::quote/ReadBackDiffersError`. A quote built over a path alone prints
+under its tag, `::quote[/age]`, reads back as it, and answers the path
+it holds; written as `~(/age)` it is refused by the parser, which gives
+the path bare.
 
 ```qlang
 > ~(filter ~(gt 1)) | payload
@@ -67,10 +72,12 @@ prints under its tag, `::quote[/age]`, and reads back as it.
 
 `parse` turns text into the quote it writes and a quote into its text,
 an involution: `"add 1 | mul 2" | parse` and back. A blank source is the
-empty quote. A quote whose steps are all declarations prints one
-declaration a line, each after the first led by its pipe; any other
-quote prints on one line. Every text a quote prints reads back as the
-same quote.
+empty quote, and a source that reads as no pipeline is refused as
+`::quote/ParseError` with its `:message`, its `:marker` and the
+`:expected` of the place it stopped [QSPRN#span]. A quote whose steps
+are all declarations prints one declaration a line, each after the first
+led by its pipe; any other quote prints on one line. Every text a quote
+prints reads back as the same quote.
 
 ```qlang
 > "add 1 | mul 2" | parse
@@ -86,10 +93,11 @@ same quote.
 ## apply
 
 `apply` runs code against its subject: a quote, a path, which reads, or
-a function. Code a quote declares stays inside its run. A value of
-another kind is refused as `::any/apply/code/KindNotTakenError`.
-`open`, a word of `::quote`, runs a quote from null, beneath whatever
-tags stand over it.
+a function, which takes a vector of arguments, `apply f [4]`, where a
+quote and a path take none, `::any/apply/args/NotTakenError`. Code a
+quote declares stays inside its run. A value of another kind is refused
+as `::any/apply/code/KindNotTakenError`. `open`, a word of `::quote`,
+runs a quote from null, beneath whatever tags stand over it.
 
 ```qlang
 > 5 | apply ~(add 1 | mul 2)

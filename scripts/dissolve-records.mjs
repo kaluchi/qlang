@@ -32,12 +32,17 @@ const rewrite = (path, change) => {
   return written !== text;
 };
 
+// The definition of the link to a section from the document at a path.
+function sectionLink(fromPath, section) {
+  const [chapter, anchor] = section.split('#');
+  const target = relative(dirname(join(repoRoot, fromPath)), join(repoRoot, 'docs', 'spec', specOf(chapter))).split('\\').join('/');
+  return `[${section}]: ${target}${anchor === undefined ? '' : `#${anchor}`}`;
+}
+
 // A citation of the record names its section, and the definition of its
 // link leads to the chapter from the document that holds it, once.
 function sectionCited(path, text, name, section) {
-  const [chapter, anchor] = section.split('#');
-  const target = relative(dirname(join(repoRoot, path)), join(repoRoot, 'docs', 'spec', specOf(chapter))).split('\\').join('/');
-  const definition = `[${section}]: ${target}${anchor === undefined ? '' : `#${anchor}`}`;
+  const definition = sectionLink(path, section);
   const defined = text.split('\n').some(line => line.startsWith(`[${section}]: `));
   const lines = text.split('\n').flatMap(line => {
     if (!line.startsWith(`[${name}]: `)) return [line];
@@ -80,16 +85,13 @@ for (const name of names) {
   // The line of its fate, and the links to the sections as `replaced/` reads them.
   rewrite(`docs/decisions/${name}.md`, text => {
     const lines = text.replace(/\n+$/, '').split('\n');
-    const firstLink = lines.findIndex(line => /^\[[DE]\d+\]: \S+\.md$/.test(line) || /^\[QS[A-Z]{3}/.test(line));
+    const firstLink = lines.findIndex(line => /^\[[DE]\d+\]: \S+\.md$/.test(line) || /^\[QS[A-Z]{3}[^\]]*\]: /.test(line));
     const body = firstLink === -1 ? lines : lines.slice(0, firstLink);
     const links = firstLink === -1 ? [] : lines.slice(firstLink);
     while (body.at(-1) === '') body.pop();
     const cited = sections.map(section => `[${section}]`);
     body.push(`Dissolved into ${cited.length === 1 ? cited[0] : `${cited.slice(0, -1).join(', ')} and ${cited.at(-1)}`}.`);
-    const definitions = sections.map(section => {
-      const [chapter, anchor] = section.split('#');
-      return `[${section}]: ../../spec/${specOf(chapter)}${anchor === undefined ? '' : `#${anchor}`}`;
-    }).filter(definition => !links.some(line => line.startsWith(definition.split(':')[0] + ':')));
+    const definitions = sections.map(section => sectionLink(`docs/decisions/replaced/${name}.md`, section)).filter(definition => !links.some(line => line.startsWith(definition.split(':')[0] + ':')));
     return [...body, '', ...links.map(line => line.replace(/^(\[QS[A-Z]{3}[^\]]*\]: )\.\.\/spec\//, '$1../../spec/')), ...definitions, ''].join('\n');
   });
   console.log(`${name} dissolved into ${sections.join(', ')}`);

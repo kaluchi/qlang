@@ -16,8 +16,8 @@ record; the language is what its first page and its chapters tell,
 the hypertext and on how the project got here stand as written in
 `docs/archive/the-audit-chapters.md`. It was first written in September
 2026, and each version since holds the text against the tree the repairs
-of the one before left. This, the seventeenth, holds it against commit
-`8ce2b5be`, its baseline: what remains of a scar is stated as it stands,
+of the one before left. This, the eighteenth, holds it against commit
+`6faabad9`, its baseline: what remains of a scar is stated as it stands,
 the route starts from the baseline, and every probe answers as the tree
 answered on the day this version was written.
 `git log -- docs/qlang-audit.md` lists the versions, and the message of
@@ -265,7 +265,7 @@ every session begins from it. This document is where it lives, and the
 other conditions are reachable because this one holds.
 
 Seventh, the revision as a whole deletes more than it adds. Measured
-against the baseline of the version at hand, commit `8ce2b5be` for this
+against the baseline of the version at hand, commit `6faabad9` for this
 one, the diff of the work ahead is negative in the core sources, in the
 documents, and in the tests; the September 2026 master, commit
 `f5e8ec8`, stays the origin the history measures from. The catalog
@@ -395,7 +395,7 @@ The rest of the audit walks the scars in the order in which their
 repairs depend on each other. Each section states the problem, shows it
 running, and names what its repair must achieve; the decisions that fix
 the direction are cited by number. Every probe can be reproduced from a
-shell with the `qlang` command or in its REPL, and on 14 October 2026
+shell with the `qlang` command or in its REPL, and on 15 October 2026
 every probe of this chapter answered as its block records.
 
 ### Refusals a host builds from the runtime
@@ -944,7 +944,7 @@ to build.
 
 ## The route
 
-The start is the tree of the baseline, commit `8ce2b5be`, and the finish
+The start is the tree of the baseline, commit `6faabad9`, and the finish
 is the tree the previous chapter describes. Between them lie two
 milestones, each a state of the language followed by a release
 [QSWRK#audit]. Under each the work is named in the order its parts rest

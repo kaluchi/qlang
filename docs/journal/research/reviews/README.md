@@ -6,35 +6,8 @@ it, the question of the audit it became, or the reason it was set aside.
 A finding not yet settled says open.
 
 A report stays here while a record in force cites it; one no record
-cites leaves the tree, which git keeps, and its findings still open
-stand below under it (D282).
-
-## Open findings of the reports git keeps
-
-From `2026-10-10-first-page-any-number-string.md`, at c583f568:
-
-- Laws that nearly repeat each other.
-- Pages of kinds that repeat the pages of words.
-- Pages of words that repeat the repair their refusals' pages give.
-- The order of the words of `any.qlang`, which does not follow what rests on what.
-
-From `2026-10-11-autonomous-series.md`, at 95a0454d:
-
-- A count below the bound of `range` that outgrows the host's memory,
-  which no refusal names.
-
-From `2026-10-10-vec-set-map.md`, at 80a499d9:
-
-- One fact told in different words across the pages of a vector, a set
-  and a map.
-- The order of the words in the three files, which does not follow what
-  rests on what.
-
-The other findings those reports left open the tree has closed: the
-parts of numbers, strings, tags and keywords name `value`, the step
-records whose fields a schema stated twice left with the kinds of
-steps, and the language server reads no answer of `map` whose
-precision a finding could ask.
+cites leaves the tree, which git keeps, and its findings still open go
+to an open record of their axis.
 
 ## 2026-10-13 · the path is a value
 

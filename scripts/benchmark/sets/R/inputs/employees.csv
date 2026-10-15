@@ -1,9 +1,0 @@
-name,dept,salary,skills
-Alice,eng,120000,Go;Rust;SQL
-Bob,eng,100000,go;Python
-Carol,sales,70000,
-Dave,sales,,Excel;sql
-Eve,eng,110000,Rust
-Frank,hr,65000,Excel
-Grace,sales,80000,Negotiation;Python
-Heidi,hr,,

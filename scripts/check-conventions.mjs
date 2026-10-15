@@ -54,6 +54,10 @@
 //       force, the documents that hold the work those in force or
 //       waiting on a target [QSWRK#baseline].
 //
+//   (10) A series keeps its two latest: the sets of the benchmark, its
+//       screens, the runs of the references and the outside audits
+//       [QSWRK#measure], [QSWRK#review].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -535,6 +539,24 @@ function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;
 }
 
+// ── (10) A series keeps its two latest ─────────────────────────
+//
+// The sets of the benchmark with their runs, the screens, the runs of the
+// references and the outside audits keep their two latest, and an older
+// one goes to the history [QSWRK#measure], [QSWRK#review].
+
+const SERIES = [
+  { name: 'the sets of the benchmark', members: paths => new Set(paths.filter(path => path.startsWith('scripts/benchmark/sets/')).map(path => path.split('/')[3])) },
+  { name: 'the screens of the benchmark', members: paths => paths.filter(path => path.startsWith('scripts/benchmark/screens/')) },
+  { name: 'the runs of the references', members: paths => paths.filter(path => path.startsWith('scripts/benchmark/runs/')) },
+  { name: 'the outside audits', members: paths => paths.filter(path => new RegExp(`^${RESEARCH}/outside-audit/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+\\.md$`).test(path)) },
+];
+
+function seriesBeyondTwo() {
+  const paths = execFileSync('git', ['ls-files'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
+  return SERIES.map(({ name, members }) => ({ name, count: [...members(paths)].length })).filter(({ count }) => count > 2);
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
@@ -550,6 +572,7 @@ const misplaced = misplacedRecords();
 const broken = brokenLinks();
 const outOfStep = fatesOutOfStep();
 const intrusions = specIntrusions();
+const swollen = seriesBeyondTwo();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -563,7 +586,8 @@ if (forbidden.length === 0
     && misplaced.length === 0
     && broken.length === 0
     && outOfStep.length === 0
-    && intrusions.length === 0) {
+    && intrusions.length === 0
+    && swollen.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -642,5 +666,10 @@ if (intrusions.length > 0) {
   process.stdout.write(`\nA text that states what holds speaks of the change (${intrusions.length}):\n`);
   for (const v of intrusions) process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.text}\n`);
   process.stdout.write('    a cataphatic text states what holds; the change, its records and its history belong to the journal [QSWRK#spec], [QSWRK#documents].\n');
+}
+if (swollen.length > 0) {
+  process.stdout.write(`\nSeries past their two latest (${swollen.length}):\n`);
+  for (const { name, count } of swollen) process.stdout.write(`  ${name}: ${count}\n`);
+  process.stdout.write('    a series keeps its two latest, and an older one goes to the history, git keeping it [QSWRK#measure], [QSWRK#review].\n');
 }
 process.exit(1);

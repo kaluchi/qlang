@@ -1,9 +1,0 @@
-2026-03-01T10:00:00Z ERROR api Connection refused
-2026-03-01T10:00:05Z INFO api Retrying
-2026-03-01T10:01:00Z ERROR db Timeout after 30s
-2026-03-01T10:02:00Z WARN web Slow response
-2026-03-01T10:03:00Z ERROR api Connection refused
-2026-03-01T10:04:00Z INFO db Recovered
-2026-03-01T10:05:00Z ERROR web 500 on /home
-2026-03-01T10:06:00Z error api lowercase level line
-2026-03-01T10:07:00Z INFO web Request ok

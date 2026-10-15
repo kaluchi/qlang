@@ -38,7 +38,7 @@ const MARK = /\[((?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)(?:,\s*(?:[DE]\d+|QS[A-
 
 // The data of the benchmark names the decision it measures in the name of
 // its file, where no text of its own can bear a mark: a screen,
-// `screens/D167.txt`, and a run of a set, `sets/H/runs/D167~blind~haiku~1.json`
+// `screens/D270.txt`, and a run of a set, `sets/V/runs/D270~cli~sonnet~1.json`
 // [QSWRK#measure].
 const PATH_MARKS = [
   /^scripts\/benchmark\/screens\/(D\d+)(?:\.[0-9a-f]+)?\.txt$/,

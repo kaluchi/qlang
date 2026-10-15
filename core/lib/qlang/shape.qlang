@@ -1,0 +1,27 @@
+|~ `::shape`, the kind of the schema `shape` answers, and the laws
+   declared under it.
+   The decisions it exists for: [QSDSP#residence]. ~|
+
+:shape
+  |~~ A shape is the schema of a value in the value's own literal, which
+      `shape` answers: `{:users [{:age 30} {:age "x"}]} | shape` answers
+      `::shape{:users [{:age #[::number ::string]}]}`. Under it each part
+      reads as the schema of the part of the value at the same path: a
+      tag the kind of a part that holds no parts, as `type` answers it, a
+      part under a tag standing as its tag; a map a record, its keys the
+      keys of the data; a vector one element whose shape holds of all the
+      elements, `[]` an empty one; `#[…]` the kinds where the elements
+      part, records of other keys among them; and `::each` a map whose
+      values share one shape, its keys left to the data. The paths of the
+      data read a shape as far as a part holds one kind, past the key a
+      fold stands for, and a part a path reads out of a shape is that
+      schema without the tag.
+      ::link~(::any/shape | doc) ::link~(::each | doc)
+  ~~|
+  ::kind
+    | proves :standsOverTheSchemaShapeAnswers
+        |~~ A shape is what `shape` answers, the schema under its tag. ~~|
+        ~({:a 1} | shape | eq ::shape{:a ::number})
+    | proves :readsByThePathsOfTheData
+        |~~ A path of the data reads its part of the shape. ~~|
+        ~({:a {:b 1}} | shape | get /a/b | eq ::number)

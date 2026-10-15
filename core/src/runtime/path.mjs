@@ -11,7 +11,7 @@ import { mintUnderTag } from './verb.mjs';
 import { deepEqual } from '../equality.mjs';
 import {
   isPath, makePath, isKeyword, isQMap, isVec, isQSet, isValueClass, isErrorValue, isTaggedInstance, keyword, makeSet,
-  makeTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL, EACH_TAG
+  makeTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL, EACH_TAG, SHAPE_TAG
 } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
@@ -192,7 +192,8 @@ const isEach = value => isTaggedInstance(value) && value[TAG_HEADER_SYMBOL].name
 const eachOf = value => (isValueClass(value, 'taggedInstance') ? value.payload : isVec(value) ? Object.freeze([...value]) : new Map(value));
 const eachesMerge = (left, right) => isEach(left) && isEach(right) && !isQSet(mergedShape(eachOf(left), eachOf(right)));
 
-bindPrim('any/shape', subject => shapeOf(subject, true));
+// The schema stands under `::shape`, whose page tells how a shape reads.
+bindPrim('any/shape', subject => makeTaggedInstance(SHAPE_TAG, shapeOf(subject, true)));
 
 // The shape two parts share: two maps of the same keys a map of their
 // shapes key by key; two vectors the vector of their elements' shape, an

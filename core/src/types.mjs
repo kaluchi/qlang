@@ -278,6 +278,7 @@ export const ELISION_TAG     = makeTag('elision');
 export const ERROR_TAG       = makeTag('error');
 export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTag(SET_TAG_NAME);
+export const SHAPE_TAG       = makeTag('shape');
 
 // The kind of every value without a tag of its own, the one its literal
 // implies, which `type` answers [QSLIT#kind].

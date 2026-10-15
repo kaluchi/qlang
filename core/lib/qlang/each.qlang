@@ -6,12 +6,13 @@
   |~~ An each stands in the shape of a value for a map whose values all
       have one shape, the map a reader's data keys by names or ids:
       `{:alice {:id 1} :bob {:id 2}} | shape` answers
-      `::each{:id ::number}`, the one shape of every value standing for
+      `::shape::each{:id ::number}`, the one shape of every value standing for
       all of them and the keys left to the data, which `keys` reads. A map
       folds so where it holds more than one value, every value a map, a
       vector or a value under a tag, and all of one shape; a map of one
       key keeps it, a map of atoms keeps its keys, the fields a reader
-      reads, `{:x 1 :y 2} | shape` answering `{:x ::number :y ::number}`,
+      reads, `{:x 1 :y 2} | shape` answering
+      `::shape{:x ::number :y ::number}`,
       and a map of values of other kinds, null among them, keeps its keys
       as well. A path of the data reads the shape past the
       key the fold stands for, `/alice/id` of the data `/id` of the shape,
@@ -22,19 +23,19 @@
   ::kind
     | proves :foldsAMapWhoseValuesShareOneShape
         |~~ A map whose values share one shape folds into an each. ~~|
-        ~({:alice {:id 1} :bob {:id 2}} | shape | eq ::each{:id ::number})
+        ~({:alice {:id 1} :bob {:id 2}} | shape | eq ::shape::each{:id ::number})
     | proves :readsThePathPastTheKey
         |~~ The path of the data reads the shape past the key it folds. ~~|
         ~({:alice {:id 1} :bob {:id 2}} | shape | get /id | eq ::number)
     | proves :foldsAMapOfValuesUnderOneTag
         |~~ A map of values under one tag folds into an each of the tag. ~~|
-        ~({:alice ::user{:id 1} :bob ::user{:id 2}} | shape | eq ::each::user)
+        ~({:alice ::user{:id 1} :bob ::user{:id 2}} | shape | eq ::shape::each::user)
     | proves :keepsTheFieldsOfAMapOfAtoms
         |~~ A map of atoms keeps its keys, the fields a reader reads. ~~|
-        ~({:x 1 :y 2} | shape | eq {:x ::number :y ::number})
+        ~({:x 1 :y 2} | shape | eq ::shape{:x ::number :y ::number})
     | proves :keepsTheKeysOfValuesOfOtherKinds
         |~~ A map whose values part keeps its keys. ~~|
-        ~({:a {:id 1} :b [1]} | shape | eq {:a {:id ::number} :b [::number]})
+        ~({:a {:id 1} :b [1]} | shape | eq ::shape{:a {:id ::number} :b [::number]})
     | proves :keepsTheKeyOfAMapOfOne
         |~~ A map of one key keeps it. ~~|
-        ~({:users [1]} | shape | eq {:users [::number]})
+        ~({:users [1]} | shape | eq ::shape{:users [::number]})

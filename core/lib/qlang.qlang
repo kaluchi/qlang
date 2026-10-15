@@ -353,7 +353,7 @@
         ~([{:id 1 :tags ["a"]}] | get /0 | keys | eq #[:id :tags])
     | proves :looksAtTheShapeOfTheInput
         |~~ The shape of the input shows the kinds its records hold. ~~|
-        ~({:users [{:age 30} {:age "x"}]} | shape | eq {:users [{:age #[::number ::string]}]})
+        ~({:users [{:age 30} {:age "x"}]} | shape | eq ::shape{:users [{:age #[::number ::string]}]})
     | proves :opensTheChapters
         |~~ The links of the first page open its chapters. ~~|
         ~(::qlang | doc | links | map ~open | count | gt 5)

@@ -212,9 +212,10 @@ in the comment at the head of its source.
 The baseline is the last commit that landed a branch on master, a merge
 on its first parent line, which the walk reads from the history; its move
 is the clean desk: however a shift left the work, the next starts in
-order. It moves when a branch lands, at the end of every shift that wrote
-records and before an outside audit, and no more than twenty records
-stand written since it. The move is the last commit or the last commits
+order. It moves when a branch lands, before an outside audit among
+them; the records a change of the journal alone writes, which lands
+without a branch, wait for the next branch, and no more than twenty
+records stand written since it. The move is the last commit or the last commits
 of the branch, the chapters written there alone; the gate runs after it,
 and the branch lands.
 
@@ -357,8 +358,9 @@ no count the history answers.
 ## probe
 
 A probe is a fenced block of a document whose lines that begin with `>`
-are queries typed into `qlang` and whose other lines are what the tree
-answers; one that begins with `$` is a shell command. A probe answers
+are queries typed into `qlang`, each read as the command line reads a
+query with no input, from `::qlang`, and whose other lines are what the
+tree answers; one that begins with `$` is a shell command. A probe answers
 the sentence it stands under, a verdict, the things the sentence names,
 or a quantity to the precision the sentence states, a sign or a ratio to
 a tenth, so its answer changes when the sentence stops being true and
@@ -371,10 +373,10 @@ the repository alone. A probe of a section a record in transit overrides
 is the record's while it is in transit: an answer the record's work
 changed waits for the move, which writes it into the section, where the
 record holds a probe of the same query with the new answer, and any other
-answer that changed fails the run. A probe that
+answer that changed fails the run. A shell probe that
 reads a machine, the sister project or the environment, one that names
-`jdt`, `scripts/sensors`, `env` or a variable of the shell, keeps the
-date of its answer and is run by hand.
+`jdt`, `scripts/sensors` or a variable of the shell or begins with
+`env`, keeps the date of its answer and is run by hand.
 
 `check:conventions` holds the anchors of `CLAUDE.md`, the aim and this
 chapter: a path they name in backticks is a file of the tree
@@ -442,11 +444,11 @@ records waiting in the journal.
 
 A word enters the catalog when it expresses what was inexpressible over
 the values the language has, or shortens what every host would
-otherwise write; a domain's words belong to its host. Every host counts
-a host with no shell around its queries, the site's playground among
-them, so the core carries the working set a shell would supply: the JSON
-codec both ways, text as lines, `split` and `join`, trimming, replacing,
-case and search; a host keeps its domain, its input and output and its
+otherwise write; a domain's words belong to its host. The core carries
+the working set a shell would supply to every host, one with no shell
+around its queries among them, the site's playground: the JSON codec
+both ways, text as lines, `split` and `join`, trimming, replacing, case
+and search; a host keeps its domain, its input and output and its
 renderings. One sequence serves them all, the vector, a string reading
 in pieces by `split`, `lines`, `count`, `take` and `drop`.
 
@@ -542,7 +544,8 @@ extension, `qlang-vscode`; `npm install` at the root links them. The
 core is pure JavaScript with no dependency at runtime and no `node:*`
 import under `core/src/`, and it runs in a browser, in Deno and in
 Bun; its catalog under `core/lib/qlang/` is read at runtime as
-`#qlang/<name>` through the `imports` of its `package.json`, the loader
+`#qlang/<name>`, and the topic of the language, `core/lib/qlang.qlang`,
+as `#qlang`, through the `imports` of its `package.json`, the loader
 of each platform chosen by the condition of `#qlang/load-source`; the
 parser is built from `core/src/grammar.peggy` by `npm run build`; and a
 workspace depends on a sibling by the range `^x.y.z` of the sibling's
@@ -561,7 +564,9 @@ extension, `vscode/src/extension.js`, unpublished, launches the server
 of the checkout. The site is built by
 Astro, `site/astro.config.mjs`, its examples split into prompts, answers
 and comments by `site/src/lib/format-example.js` and painted by
-`site/src/lib/qlang-highlight.js` from what the core's parser reads.
+`site/src/lib/qlang-highlight.js` from what the core's parser reads, and
+`.github/workflows/pages.yml` builds it and publishes it to GitHub Pages
+on every push to master.
 
 `npm run ci` is the gate of what is pushed, judged by its exit code: the
 build, eslint, `check:conventions`, `check:probes`, `check:fuzz`,

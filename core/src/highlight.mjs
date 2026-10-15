@@ -211,14 +211,17 @@ function collectSemanticSpans(src, ast, builtinNames) {
 }
 
 // The prose of a doc between `start` and `end`: a comment, but for a
-// span in backticks, which names code and paints as the code it spells.
+// span in backticks, a run of them closing at a run of as many, which
+// names code and paints as the code it spells [QSSYN#doc].
+const CODE_SPAN = /(?<!`)(`+)(?!`)([^\n]*?[^`\n])\1(?!`)/g;
+
 function pushProseSpans(src, start, end, builtinNames, spans) {
   let cursor = start;
-  for (const match of src.slice(start, end).matchAll(/`([^`\n]+)`/g)) {
-    const codeStart = start + match.index + 1;
-    const codeEnd = codeStart + match[1].length;
+  for (const match of src.slice(start, end).matchAll(CODE_SPAN)) {
+    const codeStart = start + match.index + match[1].length;
+    const codeEnd = codeStart + match[2].length;
     spans.push({ start: cursor, end: codeStart, kind: 'comment' });
-    for (const inner of tokenize(match[1], builtinNames)) {
+    for (const inner of tokenize(match[2], builtinNames)) {
       spans.push({ ...inner, start: codeStart + inner.start, end: codeStart + inner.end });
     }
     cursor = codeEnd;

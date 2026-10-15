@@ -6,8 +6,8 @@
 // axis projects a field of
 // the record:
 //
-// `source`   the quote of the declaring step, null for a binding no
-//            step declared, a value a host bound.
+// `source`   the quote of the declaring step, null for a node a chain
+//            lays and a binding no step declared, a value a host bound.
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [QSSLF#axis].
 // `binding`  the record itself, `::binding` with its name, docs, value,

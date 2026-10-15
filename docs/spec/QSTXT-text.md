@@ -68,7 +68,7 @@ true
 `split` cuts a string at every occurrence of a text or every match of a
 pattern, the pieces between them alone, the empty text cutting at every
 code point; a separator at an end or two together leave empty pieces, so
-`split` and `join` by one separator round-trip. `join` writes the
+`split` and `join` round-trip by one separator string. `join` writes the
 elements of a vector, or of a set in its order, between a separator, a
 keyword written as its name; an element that is no string or keyword is
 refused at its index.
@@ -88,8 +88,8 @@ refused at its index.
 
 A pattern of text is a value of the kind `::regex`, written `#"\d+ms"`:
 what stands between the quotes reaches the engine as written, a
-backslash with the character after it, so `\"` is a quote that does not
-end the literal. The flags `i`, `m` and `s` may follow the closing
+backslash with the character after it, save `\"`, a quote that does not
+end the literal, which reaches it as the quote alone. The flags `i`, `m` and `s` may follow the closing
 quote, each once, and print in that order; the pattern reads text by
 code points as Unicode does. The dialect is ECMAScript's of 2018: a
 group of flags and a group name written twice are refused. A source that

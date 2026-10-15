@@ -26,7 +26,7 @@ const recordFolders = root => [join(root, JOURNAL), join(root, REPLACED)];
 export const FIELD_NAMES = ['Domain', 'Decided by', 'Decision', 'Question', 'Source', 'Alternatives', 'Set aside', 'Requirements'];
 export const OPEN_RECORD_FIELDS = ['Question', 'Source', 'Alternatives'];
 export const DECIDED_RECORD_FIELDS = ['Decided by', 'Decision'];
-const FATES = ['Replaces', 'Pruned of what', 'Replaced by', 'Merged into', 'Dissolved into', 'Left at'];
+const FATES = ['Replaces', 'Pruned of what', 'Replaced by', 'Merged into', 'Dissolved into', 'Filed under the principles by', 'Filed under the tooling by', 'Left at'];
 export const FIELD_OPENS = new RegExp(`^(${FIELD_NAMES.join('|')})\\.`);
 export const FATE = new RegExp(`^(${FATES.join('|')}) `);
 const FIELD = new RegExp(`${FIELD_OPENS.source}|${FATE.source}`);

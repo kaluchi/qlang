@@ -133,6 +133,12 @@ describe('alertOf [QSHST#answer]', () => {
     expect(deepEqual(await continued(query, passed.get('subject')), await evalQuery(records))).toBe(true);
   });
 
+  it('counts a text it passed by its characters, through the tags over it', async () => {
+    const query = `"${'a'.repeat(100)}" | tag ::Box | within ~(add 1)`;
+    const passed = alertOf(await evalQuery(query)).descriptor.get('trail')[1].get('subject');
+    expect(passed.get('size')).toBe(100);
+  });
+
   it('cuts a vector where the failure arose to its first elements, the rest read beneath !|', async () => {
     const many = `[${Array.from({ length: 60 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const query = `${many} | add 1`;

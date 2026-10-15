@@ -13,7 +13,7 @@
       `\\`, `\n`, `\t` and `\uXXXX`, any other character raw between
       them, `"line one\nline two"`, and JSON writes it the same.
       `::string"s"` is `"s"`. Strings rank after numbers and before
-      keywords, by their characters.
+      patterns, by their UTF-16 code units.
 
       Its words read it whole or by its characters, `count`, `take`,
       `drop`, `contains`, `startsWith`, `upper`, break it, `split` and

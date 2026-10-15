@@ -1,4 +1,4 @@
-// Every value prints as a literal that reads back as itself [QSWRK#code]: values
+// Every value prints as a literal that reads back as itself [QSPRN#print]: values
 // built from a seeded walk over the literals of the language, atoms with their
 // escapes, vectors and maps in both their spellings, sets with a duplicate
 // among them, values under a tag over every payload, a label the source
@@ -125,7 +125,7 @@ function literalsOf(count, seed) {
   return Array.from({ length: count }, () => (random() < 0.25 ? underALabel() : literal(2).text));
 }
 
-describe('the round trip of the print [QSWRK#code]', () => {
+describe('the round trip of the print [QSPRN#print]', () => {
   it('reads every value back from its print as itself', async () => {
     const failing = [];
     for (const source of literalsOf(300, 7)) {

@@ -88,7 +88,7 @@
   // A step is a command: a value stands at the head of a pipeline and
   // after a declaration, where it is the subject, and a value written as
   // a later step is refused, a path after `!|` as well, each refusal
-  // naming the word the habit meant [QSPTH#value].
+  // naming the word the habit meant [QSSYN#step].
   const VALUE_STEPS = new Set(['Path', 'VecLit', 'MapLit', 'SetLit', 'ErrorLit', 'TaggedLit', 'TagLit', 'QuoteLit', 'DocLit', 'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
 
   function refuseValueStep(step) {
@@ -287,7 +287,7 @@ SpacingRefusal
     / __ !PipedCombinator &(Combinator __ Combinator) first:Combinator __ second:Combinator { refuseCombinatorAfterCombinator(first, second); }
     / &Combinator c:Combinator { refuseCombinatorSpacing(c); }
     / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
-    / &(!"/" Word) Word { error('words are set off by whitespace; only the first modifier of a command may touch its name, `f(a) (b)`'); }
+    / &(!"/" Word) Word { error('words are set off by whitespace; only a first modifier that opens with a parenthesis may touch the name of its command, `f(a) (b)`'); }
     / _ &"," "," { error('modifiers are separated by spaces, not by commas: `f a b`', lastOf(1)); }
     / _h1 &Word { error('steps are joined by `|`: write `a | b`', after()); }
     / __ &Word { error('steps are joined by `|`, at the end of a line or at the start of the next: a line break is a space', after()); }
@@ -308,7 +308,7 @@ DocBeforeDeclaration
 
 // A doc written after a step with no combinator is refused: a note in a
 // pipeline is a comment, which is whitespace, and a doc as a value stands
-// at the head or where a word takes it [QSPTH#value].
+// at the head or where a word takes it [QSSYN#doc].
 DocAfterStep
   = &{ return docQuoteDepth === 0; } &DocOpen DocOpen
     { error('a doc is a value, which stands at the head or where a word takes it; a note inside a pipeline is a comment, `|~ … ~|`'); }
@@ -685,12 +685,14 @@ LineDocSegments
 
 // A run of prose free of `~`, a backquote, `:` and, in a block, `|` is
 // one part: a quote begins at `~` or at the `::` of its tags, a span
-// between backquotes at a backquote, and in a block a nested comment or
-// doc at `|`.
+// between backquotes at a backquote, as markdown reads it, a run of them
+// closing at a run of as many and a run with no such closer prose, and in
+// a block a nested comment or doc at `|` [QSSYN#doc].
 LineDocPart
   = [^~`:\n]+ { return text(); }
   / quote:DocQuote &{ return !quote.text.includes('\n'); } { return quote; }
-  / "`" [^`\n]* "`" { return text(); }
+  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / [^`\n]))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
+  / "`"+ { return text(); }
   / [^\n]
 
 BlockDocSegments
@@ -699,7 +701,8 @@ BlockDocSegments
 BlockDocPart
   = [^~`:|]+ { return text(); }
   / DocQuote
-  / "`" (!"`" !"~~|" .)* "`" { return text(); }
+  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / !"~~|" [^`]))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
+  / "`"+ { return text(); }
   / QuoteSpan
   / NestedLineDocSpan
   / NestedLinePlainSpan

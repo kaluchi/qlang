@@ -35,7 +35,7 @@ const GATES = [
   /^docs\/spec\//,
   /^scripts\//,
   /^\.github\//,
-  /(^|\/)vitest\.config\.[cm]?js$/,
+  /(^|\/)vitest(\.[a-z]+)?\.config\.[cm]?js$/,
   /(^|\/)eslint\.config\.[cm]?js$/,
   /(^|\/)package\.json$/,
   /^CLAUDE\.md$/,

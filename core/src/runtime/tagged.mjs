@@ -69,8 +69,8 @@ bindPrim('tag/construct',     coreKindConstructor(isTag, TagPayloadKindNotTakenE
 bindPrim('vec/construct',     coreKindConstructor(isBareVec, VecPayloadKindNotTakenError));
 bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadKindNotTakenError));
 
-// `::desc(…)` — any value turned to descend, its place in the one order
-// the reverse of its payload's [QSORD#desc].
+// `::desc` over any value turned to descend, `::desc#5`, its place in the
+// one order the reverse of its payload's [QSORD#desc].
 const DESC_TAG = makeTag('desc');
 bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
 

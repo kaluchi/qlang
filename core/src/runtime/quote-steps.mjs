@@ -26,7 +26,7 @@ const QuoteReadBackDiffersError = declareRefusal('quote/ReadBackDiffersError');
 
 // The steps read as the text they print as, each a step that reads back
 // by itself, so a value assembled after the head, which a step is not
-// [QSPTH#value], is refused where it is made.
+// [QSQUO#step], is refused where it is made.
 function quoteConstructor(payload) {
   if (!isVec(payload)) throw new QuotePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   payload.forEach((element, index) => {

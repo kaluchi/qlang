@@ -20,9 +20,11 @@
       `::map{:a 1}` is `{:a 1}`. JSON writes a map as an object, and
       maps rank after sets.
 
-      A map literal is the shape of an answer, each value computed
-      against the subject, `{:first "Ann" :age 30} | get {:who /first}`
-      answering `{:who "Ann"}`. `map ~(…)` runs a step on each value
+      A map literal is a value its text fixes, and the shape of an
+      answer is a map read as the template of `get`, its paths read and
+      its quotes run against the subject,
+      `{:first "Ann" :age 30} | get {:who /first}` answering
+      `{:who "Ann"}`. `map ~(…)` runs a step on each value
       under its key, `filter ~(…)` keeps the entries whose value holds,
       and `toMap` builds a map back from its pairs.
       ::snippet~(::map | manifest) lists its words and refusals.

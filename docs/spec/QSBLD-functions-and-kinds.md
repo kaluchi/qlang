@@ -34,9 +34,12 @@ the kinds `on` names, or any subject where it names none, another
 refused as `::fn/call/SubjectKindNotTakenError` with the kinds as
 `:expected`. A function prints as its literal, the chain folded into a
 quote and its recipe after it, which the constructor of `::fn` reads
-back. `apply` hands a function a vector or a set of arguments, another
-value refused as `::any/apply/args/KindNotTakenError`, and refused under
-`::fn/call/…` as a call of the function; a quote or a path takes empty
+back, a payload that is no such pair refused as
+`::fn/PayloadNotPairError`. `apply` hands a function a vector or a set
+of arguments, another value refused as
+`::any/apply/args/KindNotTakenError`, and refused under `::fn/call/…`
+as a call of the function, a function with no recipe as
+`::fn/RecipeMissingError`; a quote or a path takes empty
 args alone, `[]`, `#[]` or an empty vector under a tag, others refused
 as `::any/apply/args/NotTakenError`; `fill` writes the arguments into
 the head of its code, refused under `::fn/call/…` as a call and, for a
@@ -208,7 +211,9 @@ is declared keeps the tag; a literal or `tag` after the declaration is
 checked, and so is a word that keeps the value's kind, which runs the
 constructors of its tags again, so an edit that breaks an invariant is
 refused. The tag of a name that holds a value is refused as
-`::construct/TagNotKindError`.
+`::construct/TagNotKindError`, while the tag of an invariant, whose node
+holds its `::holds`, lays itself over the value as a tag nothing
+declares does.
 
 ```qlang
 > :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | ::Sorted[1 2 3] | reverse !| type
@@ -216,6 +221,9 @@ refused. The tag of a name that holds a value is refused as
 
 > :limit 5 | ::limit[1] !| type
 ::construct/TagNotKindError
+
+> :Box |~~ B ~~| (::kind | holds :TooBigError |~~ t ~~| ~(lt 9)) | ::Box/TooBigError[1] | type
+::Box/TooBigError
 
 > ::null | binding | get /value | type
 ::kind

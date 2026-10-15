@@ -104,7 +104,7 @@ A key alone is the path of one segment where `get`, `query` and the
 words that write take a path: a keyword, a number or a string, one
 segment of its text, which a map reads as a key and a vector as a place,
 so a key the query computes is read; any other value given to `get` or
-`query` is a template and answers as it is [QSPTH#template]. Every place
+`query` is a template [QSPTH#template]. Every place
 that takes a key of a map reads a string so: `minus` and `inter` on a
 map take a map, a vector or a set of keys, each a keyword or a string,
 an element of another kind refused at its index,

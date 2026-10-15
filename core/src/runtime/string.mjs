@@ -28,7 +28,7 @@ bindPrim('string/split', (subject, separator) => {
 });
 
 // A `\n` ends a line, a `\r` before it belongs to the ending, and a
-// final ending opens no line [QSWRK#catalog].
+// final ending opens no line [QSTXT#string].
 bindPrim('string/lines', subject => {
   const pieces = subject.split(/\r?\n/);
   if (pieces[pieces.length - 1] === '') pieces.pop();

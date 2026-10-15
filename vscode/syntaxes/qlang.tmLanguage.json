@@ -66,17 +66,17 @@
       }
     },
     "doc-code-span-line": {
-      "comment": "A span in backticks inside a line doc names code and paints as code, closed by its backtick or the end of the line.",
-      "begin": "`",
-      "end": "`|$",
+      "comment": "A span in backticks inside a line doc names code and paints as code, a run of them closed by a run of as many or the end of the line.",
+      "begin": "(`+)",
+      "end": "(?<!`)\\1(?!`)|$",
       "beginCaptures": { "0": { "name": "punctuation.definition.code.qlang" } },
       "endCaptures":   { "0": { "name": "punctuation.definition.code.qlang" } },
       "patterns": [{ "include": "#span-code" }]
     },
     "doc-code-span-block": {
-      "comment": "A span in backticks inside a block doc names code and paints as code, closed by its backtick on a later line too, as the language reads it, or at the end of the doc.",
-      "begin": "`",
-      "end": "`|(?=~~\\|)",
+      "comment": "A span in backticks inside a block doc names code and paints as code, a run of them closed by a run of as many on a later line too, as the language reads it, or at the end of the doc.",
+      "begin": "(`+)",
+      "end": "(?<!`)\\1(?!`)|(?=~~\\|)",
       "beginCaptures": { "0": { "name": "punctuation.definition.code.qlang" } },
       "endCaptures":   { "0": { "name": "punctuation.definition.code.qlang" } },
       "patterns": [{ "include": "#span-code" }]

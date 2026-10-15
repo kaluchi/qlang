@@ -52,7 +52,18 @@ const { evalQuery } = await core('eval.mjs');
 const { printValue } = await core('index.mjs');
 const { parse } = await core('parse.mjs');
 const { deepEqual } = await core('equality.mjs');
-const { isErrorValue } = await core('types.mjs');
+const { isErrorValue, makeTag } = await core('types.mjs');
+const { createSession } = await core('session.mjs');
+
+// A probe reads as the command line reads a query: the first cell of a
+// session of its own, its subject the noun of the language [QSWRK#probe],
+// [QSHST#input].
+const LANGUAGE_NOUN = makeTag('qlang');
+async function answerOf(query) {
+  const { result, error } = await (await createSession()).evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
+  if (result === null && error !== null) throw error;
+  return result;
+}
 const squash = text => text.replace(/\s+/g, ' ').trim();
 
 // The probes of a document, each under the section of its heading.
@@ -118,7 +129,7 @@ function shellVerdict({ query, answer }) {
 }
 
 async function printedByCore(query) {
-  try { return squash(printValue(await evalQuery(query))); } catch (thrown) { return `threw ${thrown.message}`; }
+  try { return squash(printValue(await answerOf(query))); } catch (thrown) { return `threw ${thrown.message}`; }
 }
 
 // The print of an error begins with its literal, `::Tag!{` or `!{`, a
@@ -131,7 +142,7 @@ const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-
 // the words of a page do not match inside the error that carries the
 // page as its subject [QSWRK#probe].
 async function answersAsRecorded({ query, answer }) {
-  if (answer === '') return !isErrorValue(await evalQuery(query));
+  if (answer === '') return !isErrorValue(await answerOf(query));
   if (answer.includes('…')) {
     const printed = squash(onCommandLine(query));
     if (readsAsError(printed) !== readsAsError(answer)) return false;
@@ -144,10 +155,10 @@ async function answersAsRecorded({ query, answer }) {
     return true;
   }
   // A string prints raw, and its text may read as words of the command form.
-  if (typeof await evalQuery(query) === 'string' && squash(onCommandLine(query)) === answer) return true;
+  if (typeof await answerOf(query) === 'string' && squash(onCommandLine(query)) === answer) return true;
   try { parse(answer); } catch { return squash(onCommandLine(query)) === answer; }
   if ((await printedByCore(query)) !== (await printedByCore(answer))) return false;
-  try { return deepEqual(await evalQuery(query), await evalQuery(answer)) || 'lossy'; } catch { return 'lossy'; }
+  try { return deepEqual(await answerOf(query), await evalQuery(answer)) || 'lossy'; } catch { return 'lossy'; }
 }
 
 const textOf = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');

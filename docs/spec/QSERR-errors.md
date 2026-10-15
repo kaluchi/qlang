@@ -154,12 +154,13 @@ the fact `:expected`; the subject of a word is refused by the label it resides o
 `SubjectNotNumberError`. The refusal of an input's value lives under the
 input, whether an invariant or a primitive raises it, and what a run
 answers under the word. A refusal is declared in the source of the place
-it guards, and a refusal the catalog declares links the page of its
-place. The refusal of a primitive takes the address of the word that
+it guards. The refusal of a primitive takes the address of the word that
 ran it, a refusal of the read of a path sits under `::path`, whichever
-word reads it, and a refusal of the language's own steps sits under the
-kind of that step, `::call`, `::bind`, `::construct`, `::quote` and
-`::error`; what no query reaches, the table of primitives or a node the
+word reads it, a place of the call an input reads and the call leaves
+out refused under the input [QSBLD#input], and a refusal of the
+language's own steps sits under the kind of that step, `::call`,
+`::bind`, `::construct`, `::quote` and `::error`, and links the page of
+its place; what no query reaches, the table of primitives or a node the
 evaluator does not know, is an invariant of the implementation under
 `::builtin`, and a failure of a host's implementation is
 `::call/HostFailureError`, with its `:message` and `:causes`. A refusal

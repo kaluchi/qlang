@@ -21,7 +21,7 @@ import { LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
 
 // The module `qlang:language-sources` the entry imports: a static import
 // of each source of the language, `lib/<uri>.qlang` as
-// `package.json#imports` maps it, in a Map by its uri [D153].
+// `package.json#imports` maps it, in a Map by its uri [QSHST#source].
 const languageSources = {
   name: 'language-sources',
   setup(builder) {

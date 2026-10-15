@@ -18,3 +18,4 @@
 {"name":"the-read-of-the-marker-of-a-quote-answers-the-quote","query":"get [~(::vec/sort | source)] | :v it | elide 100 | get /0 | get [~(type) ~(get /read | :r it | v | apply r | eq (v | get /0))]","expect":"[::elision true]"}
 {"name":"a-marker-counts-a-part-that-gave-way-whole-as-one-element","query":"200 | range | map ~(\"a\") | join \"\" | :s it | get [[~(s)] [1]] | elide 60 | get /0/size","expect":"1"}
 {"name":"a-marker-of-a-text-counts-and-keeps-its-characters","query":"61 | range | map ~(\"😀\") | join \"\" | :s it | {} | put /s s | elide 30 | get /s | get [/size ~(get /head | count)]","expect":"[61 30]"}
+{"name":"a-budget-is-a-whole-count-of-characters-above-zero","query":"30 | range | get [~(elide 0 !| type) ~(elide 2.5 !| type)]","expect":"[::any/elide/budget/NotCountError ::any/elide/budget/NotCountError]"}

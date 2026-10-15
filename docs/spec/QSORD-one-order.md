@@ -94,7 +94,9 @@ compare within one kind [QSCND#compare].
 ## desc
 
 `::desc` is a kind whose order is the reverse of its payload's, written
-by `desc` or by its literal, `::desc#5`. It owns its comparisons, `gt`,
+by `desc` or by its literal, `::desc#5`, and a desc of a desc stands
+twice, its reversals undoing each other, so it ranks as the value does.
+It owns its comparisons, `gt`,
 `gte`, `lt` and `lte`, which rank its payloads of any kinds by the one
 order as `sort` does, so `min`, `max` and `sort` read it alike, and one
 place of a vector key descends whatever the kind it ranks; the
@@ -112,4 +114,7 @@ true
 
 > 1 | desc | gt ("a" | desc)
 true
+
+> [1 3 2] | sort ~(desc | desc)
+[1 2 3]
 ```

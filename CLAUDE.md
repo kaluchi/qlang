@@ -210,8 +210,9 @@ the specification its chapter lacks, a case of a chapter changed since
 the baseline that no record in transit over its section claims, a
 chapter that cites a record, speaks of the journal or tells a history
 [QSWRK#spec],
-and a citation of a record not in force, which the code, the tests and the cases never make and the
-documents make only of one open or waiting on its target [QSWRK#baseline]. `npm run check:probes` runs every probe of the open records, the
+and a citation in the code and the tests of a record no met case holds, a case naming a record
+being decided, and a citation in a document of a record out of force or of the language with no
+case, an open record among those it may cite [QSWRK#baseline]. `npm run check:probes` runs every probe of the open records, the
 records in transit and the specification, the shell ones that read the repository alone included, and fails on one whose answer changed,
 but where the record in transit over its section holds a probe of the same query, which the move writes into the section [QSWRK#probe]; a
 target case records the answer the tree gives today, so the suite

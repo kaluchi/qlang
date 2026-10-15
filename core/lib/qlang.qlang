@@ -157,8 +157,9 @@
       failure, while an error at rest, written `!{:k 1}`, sits anywhere
       and `raise` raises it. A failure carries its facts and its trail, the steps it passed
       with their subjects, and prints as an alert: the subject where it
-      arose cut to an excerpt, and each subject it passed an ::elision,
-      whose `:read` continues the query to it, `!| get /trail/1/subject`.
+      arose cut to an excerpt, and each subject it passed an ::elision
+      where the marker prints shorter, whose `:read` continues the query
+      to it, `!| get /trail/1/subject`.
       `!| explain` answers the page of what refused above the failure,
       the page saying how to repair the call.
 
@@ -376,7 +377,9 @@
             number, `true`, `false`, `null` or a path, by `#`,
             `::Width#5`, `::T#/a`; the constructor of the kind attaches
             the tag to the payload or refuses it, saying why the payload
-            does not fit, and builds no other value. `tag` puts the value
+            does not fit, and builds no other value, but for a kind of
+            the core, which reads its payload as a value of its own,
+            `::set[2 1]` answering `#[1 2]`. `tag` puts the value
             in the pipe under a tag, a value computed among them,
             `1 | add 2 | tag ::Box`; tags stack and read from the outside
             in, `::A::B[1]`, and `payload` takes one off. A step answers a
@@ -469,8 +472,9 @@
             declaration ends: a keyword that begins a line with a doc or a
             step after it opens a declaration of its own, and the body of
             a name with a path begun on the line after the name runs on
-            through the steps joined to it up to the next declaration, so
-            a body of one step is written on the line of its name. A comment,
+            through the steps joined to it up to the next declaration or a
+            value written after `|`, so a body of one step is written on
+            the line of its name. A comment,
             `|~ … ~|`, nesting, or `|~|` to the end of its line, is
             whitespace too. `|` and `!|` bind alike, from left to right.
             A group is a fork: it starts from the value and the names
@@ -632,7 +636,8 @@
             A name finds its verb through the kind of its subject: its
             tags from the outside in, then the shape beneath them, then
             the verbs every value answers, on `::any`; a verb of vectors
-            reaches a vector under a tag and keeps the tag. A word is a
+            reaches a vector under a tag, and an answer of the subject's
+            kind keeps the tag. A word is a
             function named under a label, built from `::fn` by commands
             with its recipe last,
             `:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))`:
@@ -683,8 +688,8 @@
         |~~ `sort` finds the verb of vectors. ~~|
         ~([3 1 2] | sort | eq [1 2 3])
     | proves :verbs/keepsTheTag
-        |~~ A verb of vectors reaches a vector under a tag and keeps the
-            tag.
+        |~~ A verb of vectors reaches a vector under a tag, and an answer
+            of the subject's kind keeps the tag.
         ~~|
         ~(::Box[3 1 2] | sort | eq ::Box[1 2 3])
     | proves :verbs/declaresTheInputs

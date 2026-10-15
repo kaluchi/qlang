@@ -1,6 +1,7 @@
 // Measures the tree between two refs for a retrospective, the count of
 // the seventh condition of the aim among them, `docs/journal/AIM.md`: lines by area
-// at both refs, the diff between them, and the catalog's surface. With
+// at both refs, the diff between them, the catalog's surface and the comment
+// lines per code line. With
 // --steps it prints instead the diff of every step of a stack by the
 // areas a branch reports: core sources, catalog, documents, tests,
 // tooling. Runs wherever the checkout is with the history it names.
@@ -82,6 +83,15 @@ const SURFACE = [
   ['conformance cases', '^\\{', 'core/test/conformance'],
 ];
 
+// The ratio of comment lines to code lines over the core, the command line
+// and the language server, which falls on every branch [D303].
+const COMMENTED_SOURCES = ['core/src', 'cli/src', 'lsp/src'];
+function commentRatio(ref) {
+  const lines = pattern => COMMENTED_SOURCES.reduce((total, root) => total + matchingLines(ref, pattern, root), 0);
+  const comments = lines('^[[:space:]]*//');
+  return comments / (lines('[^[:space:]]') - comments);
+}
+
 const signed = n => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '0');
 
 function printSummary(fromRef, toRef) {
@@ -103,6 +113,7 @@ function printSummary(fromRef, toRef) {
   for (const [label, pattern, pathspec] of SURFACE) {
     console.log(`${label}: ${matchingLines(fromRef, pattern, pathspec)} → ${matchingLines(toRef, pattern, pathspec)}`);
   }
+  console.log(`comment lines per code line: ${commentRatio(fromRef).toFixed(3)} → ${commentRatio(toRef).toFixed(3)}`);
 }
 
 function printSteps(refs) {

@@ -68,10 +68,12 @@ export function readDecisionRecords(root) {
       const replacing = inPart => [...recordText.matchAll(new RegExp(`^Replaced ${inPart ? 'in part ' : ''}by (.+)$`, 'gm'))]
         .flatMap(line => [...line[1].split(', under which')[0].matchAll(/[DE]\d+/g)].map(match => match[0]));
       // A walk files a principle and a rule of the tooling under their
-      // domain, which holds them where no case can [QSWRK#baseline].
+      // domain, which holds them where no case can, the record out of force
+      // [D303].
       const filedUnder = recordText.match(/^Filed under the (principles|tooling) by \[D\d+\]/m)?.[1];
       return [name, {
         path,
+        filed: filedUnder !== undefined,
         // A record that names no domain is out of form, which
         // check:conventions reports [QSWRK#journal].
         domain: filedUnder === 'principles' ? 'principle' : filedUnder ?? recordText.match(/^Domain\. ([^.]+)\./m)?.[1].toLowerCase() ?? null,
@@ -103,7 +105,7 @@ export function readDecisionRecords(root) {
   return records;
 }
 
-export const replacedWhole = record => record.replacedBy.length > 0 || record.mergedInto.length > 0 || record.dissolvedInto.length > 0;
+export const replacedWhole = record => record.replacedBy.length > 0 || record.mergedInto.length > 0 || record.dissolvedInto.length > 0 || record.filed;
 
 // Whether the text of a record holds a question no decision answers yet,
 // an open record [QSWRK#journal].

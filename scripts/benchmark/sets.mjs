@@ -17,6 +17,7 @@ import { execFileSync, spawn } from 'node:child_process';
 import { runChild, CHILD_ENVIRONMENT } from './child.mjs';
 import { screenText, fixScreen } from './screens.mjs';
 import { pipeEnv } from '../pipe-env.mjs';
+import { JOURNAL } from '../decision-records.mjs';
 
 const benchDir = import.meta.dirname;
 const repoRoot = join(benchDir, '..', '..');
@@ -119,7 +120,7 @@ function changesOutsideCommit() {
 // its score.
 export async function run(setId, { decision, model, runs, reason }) {
   const mode = 'cli';
-  if (!/^D\d+$/.test(decision ?? '') || !existsSync(join(repoRoot, 'docs', 'decisions', `${decision}.md`))) {
+  if (!/^D\d+$/.test(decision ?? '') || !existsSync(join(repoRoot, JOURNAL, `${decision}.md`))) {
     throw new Error(`--decision names no decision: ${decision}; a measurement belongs to a decision [QSWRK#measure]`);
   }
   if (setRecordOf(setId).seen) throw new Error(`set ${setId} is seen: a set measures once, and the next measurement orders a new set [QSWRK#measure]`);

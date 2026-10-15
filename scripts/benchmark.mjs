@@ -5,7 +5,8 @@
 // never saw the language, and a set measures once: reading what its children
 // missed marks it seen, and the next measurement orders a new set. The set of
 // `benchmark/tasks.mjs`, whose runs under `benchmark/runs/` a model read and
-// wrote up, is the first screen's reading test of D104.
+// wrote up, is the first screen's reading test, its references run in the
+// gate.
 //
 // Usage:
 //   node scripts/benchmark.mjs check                  the references of tasks.mjs answer their tasks

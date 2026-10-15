@@ -9,12 +9,8 @@
 //   (1) Forbidden temporal framing / placeholder markers.
 //       `TODO`, `FIXME`, `HACK`, `legacy`, `deprecated`,
 //       `currently`, `previously`, `for backward compatibility`,
-//       `backwards compat`. Scanned in .mjs / .js source. The
-//       common English words `now` / `was` / `old` / `new` live
-//       in CLAUDE.md's forbidden list too but carry too many
-//       legitimate uses (`new Map()` constructor, `was X still Y`
-//       as part of a legitimate reference, etc.) for a cheap
-//       grep — those stay under human review.
+//       `backwards compat`, in the .mjs, .js, .md and .qlang sources
+//       outside `docs/`.
 //
 //   (3) A refusal is declared by its address. Every factory of a
 //       refusal and every recording of a site takes the address as a
@@ -403,7 +399,7 @@ function recordsWithoutDecider() {
 // [QSWRK#journal].
 
 function misplacedRecords() {
-  const replacedWhole = path => /^(Replaced by|Merged into|Dissolved into) /m.test(readFileSync(join(repoRoot, path), 'utf8'));
+  const replacedWhole = path => /^(Replaced by|Merged into|Dissolved into|Filed under the (?:principles|tooling) by) /m.test(readFileSync(join(repoRoot, path), 'utf8'));
   const inFolder = folder => readdirSync(join(repoRoot, folder)).filter(file => /^[DE]\d+\.md$/.test(file)).map(file => `${folder}/${file}`);
   return [
     ...inFolder(JOURNAL).filter(replacedWhole).map(path => ({ path, problem: 'is replaced whole: move it by `node scripts/replaced-records.mjs`' })),

@@ -1,10 +1,9 @@
-// The evaluation depth budget across every re-entry seam: a
-// runaway recursion through any seam the evaluator descends —
-// verb body, captured-arg lambda, a verb run as code or as a fold,
-// `apply`, an invariant of a kind that mints its own tag, `runLaws` — terminates on
-// the fail-track as `::call/EvaluationDepthExceededError` with `:depth`
-// and `:limit`.
-// The decisions it exists for: [D202].
+// The evaluation depth budget across every re-entry seam: a runaway recursion
+// through any seam the evaluator descends — verb body, captured-arg lambda, a
+// verb run as code or as a fold, `apply`, an invariant of a kind that mints
+// its own tag, `runLaws` — terminates on the fail-track as
+// `::call/EvaluationDepthExceededError` with `:depth` and `:limit`. The
+// decisions it exists for: [QSNAM#word].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

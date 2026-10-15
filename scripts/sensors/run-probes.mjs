@@ -17,11 +17,13 @@
 // it reads as a failure and never as a repair. A block indented inside
 // an item of a list is read as it stands. A probe whose answer changed,
 // a target the tree meets, and a list of files without the flag fail the
-// run, which `npm run ci` and the checks of a push make [D93].
+// run, which `npm run ci` and the checks of a push make [QSWRK#probe].
 //
 // Usage: node scripts/sensors/run-probes.mjs [document ...]
-// Without documents it reads the audit, the entrypoint and the open
-// records, whose questions hold probes as the audit does [D255].
+// Without documents it reads the audit, the entrypoint, the open
+// records, whose questions hold probes as the audit does [QSWRK#journal], and the
+// chapters of the specification, whose sections show their rules by
+// probes [QSWRK#spec].
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -34,8 +36,10 @@ const repoRoot = join(import.meta.dirname, '..', '..');
 const recordsDir = join(repoRoot, 'docs', 'decisions');
 const openRecords = readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).map(name => join(recordsDir, name))
   .filter(path => isOpenText(readFileSync(path, 'utf8')));
+const specDir = join(repoRoot, 'docs', 'spec');
+const chapters = readdirSync(specDir).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name)).map(name => join(specDir, name));
 const documents = process.argv.length > 2 ? process.argv.slice(2)
-  : [join(repoRoot, 'docs', 'qlang-audit.md'), join(repoRoot, 'docs', 'qlang-entrypoint.md'), ...openRecords];
+  : [join(repoRoot, 'docs', 'qlang-audit.md'), join(repoRoot, 'docs', 'qlang-entrypoint.md'), ...openRecords, ...chapters];
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery } = await core('eval.mjs');
 const { printValue } = await core('index.mjs');
@@ -108,14 +112,14 @@ async function printedByCore(query) {
 }
 
 // The print of an error begins with its literal, `::Tag!{` or `!{`, a
-// failure's under the line that says it was raised [D13].
+// failure's under the line that says it was raised [QSERR#rest].
 const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-]+)?!\{/.test(text);
 
 // An answer that is no literal, a raw string the command line printed,
 // compares as the text the command line prints. An answer with … holds
 // only where the print is an error exactly when the answer is one, so
 // the words of a page do not match inside the error that carries the
-// page as its subject [D93].
+// page as its subject [QSWRK#probe].
 async function answersAsRecorded({ query, answer }) {
   if (answer === '') return !isErrorValue(await evalQuery(query));
   if (answer.includes('…')) {
@@ -149,4 +153,4 @@ for (const documentPath of documents) {
     if (['STALE', 'MET', 'UNGUARDED'].includes(verdict)) process.exitCode = 1;
   }
 }
-if (process.exitCode === 1) console.log('a probe whose answer changed rewrites its sentence with the probe, a met target drops its mark, and a probe that lists files fails where one is missing [D93], [D59]');
+if (process.exitCode === 1) console.log('a probe whose answer changed rewrites its sentence with the probe, a met target drops its mark, and a probe that lists files fails where one is missing [QSWRK#probe], [QSWRK#target]');

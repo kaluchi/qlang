@@ -2,7 +2,7 @@
 //
 // Each JSONL line has two qlang expressions: query (arbitrary) and
 // expect (must be a pure literal — no calls, no pipelines — or the print
-// of a failure, its error at rest raised, `!{…} | raise` [D13]).
+// of a failure, its error at rest raised, `!{…} | raise` [QSERR#rest]).
 // Both are eval'd, results compared via deepEqual.
 //
 // The expect-is-literal guard catches test authoring mistakes where
@@ -10,12 +10,12 @@
 // static value.
 //
 // A case opens with the one record in force that gates it, the record
-// whose rule it shows, `"decision": "D14"` [D254], and a requirement the
+// whose rule it shows, `"decision": "D14"` [QSWRK#cases], and a requirement the
 // tree does not meet yet is a target, `"target": true`, which answers its
 // present, `"now"`, an error by its tag and any other value as its
 // literal: a target that answers as expected fails until the branch
-// that met it drops the mark [D31], and one that answers neither fails
-// until a reader tells a repair from a broken case [D91]. The
+// that met it drops the mark [QSWRK#target], and one that answers neither fails
+// until a reader tells a repair from a broken case [QSWRK#target]. The
 // requirements agree with each other in the one form a runner can see:
 // no two cases hold one query to different answers.
 
@@ -39,7 +39,7 @@ const files = readdirSync(conformanceDir, { recursive: true })
 
 // assertLiteralAst — walks the AST and rejects any node that performs
 // computation (Call, ParenGroup with pipeline ops); a path is a value
-// [D248]. Pipeline is allowed only as a container for compound literals
+// [QSPTH#value]. Pipeline is allowed only as a container for compound literals
 // (the parser wraps multi-step bodies in Pipeline nodes), and a quote
 // literal is a literal whatever steps it holds.
 function assertLiteralAst(parsed, testName) {
@@ -70,6 +70,10 @@ async function answersAsPresent(queryResult, now) {
   return deepEqual(queryResult, present);
 }
 
+// The chapter of the specification a file stands under, `QSNAM` for
+// `QSNAM/scope.jsonl`, or null for a file outside the chapters.
+const chapterOf = file => /^(QS[A-Z]{3})\//.exec(file)?.[1] ?? null;
+
 const casesByFile = files.map(file => ({
   file,
   cases: readFileSync(join(conformanceDir, file), 'utf8')
@@ -94,12 +98,26 @@ describe('conformance: the requirements agree', () => {
     expect(contradictions).toEqual([]);
   });
 
-  it('opens each case with the one record in force that gates it, whose record stands in the root of the records [D237], [D254]', () => {
+  // A case under the folder of a chapter of the specification is gated
+  // by its section, the file it stands in, and names a record only while
+  // the record's change is in transit over it; a case outside the
+  // chapters opens with the one record in force that gates it [QSWRK#cases].
+  it('opens each case with the one record in force that gates it, whose record stands in the root of the records [QSWRK#cases]', () => {
     const decisionsDir = join(here, '..', '..', '..', 'docs', 'decisions');
-    const ungated = allCases.filter(({ file: _file, ...test }) => typeof test.decision !== 'string' || Object.keys(test)[0] !== 'decision'
-      || !existsSync(join(decisionsDir, `${test.decision}.md`)))
+    const ungated = allCases.filter(({ file, ...test }) => (chapterOf(file) === null || test.decision !== undefined)
+      && (typeof test.decision !== 'string' || Object.keys(test)[0] !== 'decision' || !existsSync(join(decisionsDir, `${test.decision}.md`))))
       .map(test => `${test.file}#${test.name}: ${JSON.stringify(test.decision ?? null)}`);
     expect(ungated).toEqual([]);
+  });
+
+  it('stands each file of a chapter as a section of its specification [QSWRK#spec]', () => {
+    const specDir = join(here, '..', '..', '..', 'docs', 'spec');
+    const homeless = files.filter(file => chapterOf(file) !== null).filter(file => {
+      const [chapter, section] = [chapterOf(file), file.split('/').pop().replace(/\.jsonl$/, '')];
+      const spec = existsSync(specDir) ? readdirSync(specDir).find(name => name.startsWith(`${chapter}-`)) : undefined;
+      return spec === undefined || !readFileSync(join(specDir, spec), 'utf8').split(/\r?\n/).includes(`## ${section}`);
+    });
+    expect(homeless).toEqual([]);
   });
 });
 

@@ -12,7 +12,7 @@
 //
 // Usage:
 //   node scripts/gemini-resolve.mjs <PR_NUMBER>
-// The decisions it exists for: [D240].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { spawnSync } from 'node:child_process';
 

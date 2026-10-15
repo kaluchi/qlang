@@ -1,7 +1,7 @@
 |~ `::doc`, the kind of a page, and what is declared under it: its
    constructor and the refusals of a payload that is no vector of
    segments, and the words that read a doc.
-   The decisions it exists for: [D72], [D114]. ~|
+   The decisions it exists for: [QSDSP#residence]. ~|
 
 :doc
   |~~ A doc is prose held as a value, text that carries quotes of qlang:
@@ -28,7 +28,7 @@
   ::kind
     | wraps
         |~~ A vector of prose strings and quotes, built into the doc. ~~|
-    | throws :PayloadNotVecError
+    | throws :PayloadKindNotTakenError
         |~~ `::doc` builds a doc from the vector of its segments, prose
             strings and quotes; a payload of another kind is refused.
         ~~|
@@ -47,9 +47,9 @@
     | proves :buildsFromSegments
         |~~ Segments under `::doc` build the doc. ~~|
         ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
-    | proves :PayloadNotVecError/refusesAString
+    | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::doc"x" !| get [~(type) /actualType] | eq [::doc/PayloadNotVecError ::string])
+        ~(::doc"x" !| get [~(type) /actualType] | eq [::doc/PayloadKindNotTakenError ::string])
     | proves :ElementNotSegmentError/refusesANumberAmongTheSegments
         |~~ A number among the segments is refused at its index. ~~|
         ~(["a" 1] | tag ::doc !| get [~(type) /index] | eq [::doc/ElementNotSegmentError 1])
@@ -102,7 +102,7 @@
       `[" a " ~(add 1) " b "]`, each tag laid over the quote through its
       label as a tagged literal lays it, so a tag that takes no quote for
       its payload refuses the doc, `::number~(…)` answering
-      `::number/PayloadNotNumberError`. A doc of prose alone answers a
+      `::number/PayloadKindNotTakenError`. A doc of prose alone answers a
       vector of one string.
       A span that does not read as code stays prose, so a quote left
       broken in a page is no link and no snippet. The segments are the
@@ -137,7 +137,7 @@
         ~(|~~ a ~(add 1) b ~~| | :d it | d | segments | tag ::doc | eq d)
     | proves :refusesARoleWhosePayloadIsNoQuote
         |~~ A quote under a tag that takes no quote refuses the doc. ~~|
-        ~(|~~ see ::number~(~(x)) ~~| !| get [~(type) /actualType] | eq [::number/PayloadNotNumberError ::quote])
+        ~(|~~ see ::number~(~(x)) ~~| !| get [~(type) /actualType] | eq [::number/PayloadKindNotTakenError ::quote])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("text" | doc/segments !| get [~(type) /actualType] | eq [::doc/segments/SubjectNotDocError ::string])

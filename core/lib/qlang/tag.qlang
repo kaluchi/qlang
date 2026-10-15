@@ -1,7 +1,7 @@
 |~ `::tag`, the kind of a tag name, and what is declared under it: its
    constructor and its refusal, the comparisons of tag names, and
    `manifest`.
-   The decisions it exists for: [D114]. ~|
+   The decisions it exists for: [QSDSP#residence]. ~|
 
 :tag
   |~~ A tag names a kind, and a value carries its kind as the tag over
@@ -26,7 +26,7 @@
   ~~|
   ::kind
     | wraps |~~ A tag name, read as itself. ~~|
-    | throws :PayloadNotTagError
+    | throws :PayloadKindNotTakenError
         |~~ `::tag` reads its payload as the tag name it is; a value's own
             tag is read by `type`.
         ~~|
@@ -42,9 +42,9 @@
     | proves :readsATagNameAsItself
         |~~ `::tag` over a tag name is that name. ~~|
         ~(::tag::Box | eq ::Box)
-    | proves :PayloadNotTagError/refusesAKeyword
+    | proves :PayloadKindNotTakenError/refusesAKeyword
         |~~ A keyword payload is refused. ~~|
-        ~(::tag:k !| get [~(type) /actualType] | eq [::tag/PayloadNotTagError ::keyword])
+        ~(::tag:k !| get [~(type) /actualType] | eq [::tag/PayloadKindNotTakenError ::keyword])
     | impl ::builtin{}
 
 :tag/gt
@@ -68,7 +68,7 @@
             the subject, `::b | gt ::a`.
         ~~|
         /0 ::tag
-    | throws :value/NotTagError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a tag name, `::b | gt ::a`; a keyword
             compares by the `gt` of keywords, `:b | gt :a`.
         ~~|
@@ -92,9 +92,9 @@
             their kinds.
         ~~|
         ~([1 "a" :k] | sort ~(type) | eq [:k 1 "a"])
-    | proves :value/NotTagError/refusesAKeyword
+    | proves :value/KindNotTakenError/refusesAKeyword
         |~~ A keyword is no tag name to compare with. ~~|
-        ~(::a | gt :a !| type | eq ::tag/gt/value/NotTagError)
+        ~(::a | gt :a !| type | eq ::tag/gt/value/KindNotTakenError)
     | impl ::builtin{}
 
 :tag/gte
@@ -110,7 +110,7 @@
             the subject, `::b | gte ::a`.
         ~~|
         /0 ::tag
-    | throws :value/NotTagError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a tag name, `::b | gte ::a`; a keyword
             compares by the `gte` of keywords, `:b | gte :a`.
         ~~|
@@ -125,9 +125,9 @@
     | proves :keepsAnEarlierNameApart
         |~~ An earlier name does not come after a later one. ~~|
         ~(::a | gte ::b | not)
-    | proves :value/NotTagError/refusesANumber
+    | proves :value/KindNotTakenError/refusesANumber
         |~~ A number is no tag name to compare with. ~~|
-        ~(::b | gte 1 !| type | eq ::tag/gte/value/NotTagError)
+        ~(::b | gte 1 !| type | eq ::tag/gte/value/KindNotTakenError)
     | impl ::builtin{}
 
 :tag/lt
@@ -143,7 +143,7 @@
             the subject, `::b | lt ::a`.
         ~~|
         /0 ::tag
-    | throws :value/NotTagError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a tag name, `::b | lt ::a`; a keyword
             compares by the `lt` of keywords, `:b | lt :a`.
         ~~|
@@ -159,9 +159,9 @@
     | proves :keepsOneNameApartFromItself
         |~~ A name does not come before itself. ~~|
         ~(::a | lt ::a | not)
-    | proves :value/NotTagError/refusesANumber
+    | proves :value/KindNotTakenError/refusesANumber
         |~~ A number is no tag name to compare with. ~~|
-        ~(::b | lt 1 !| type | eq ::tag/lt/value/NotTagError)
+        ~(::b | lt 1 !| type | eq ::tag/lt/value/KindNotTakenError)
     | impl ::builtin{}
 
 :tag/lte
@@ -176,7 +176,7 @@
             the subject, `::b | lte ::a`.
         ~~|
         /0 ::tag
-    | throws :value/NotTagError
+    | throws :value/KindNotTakenError
         |~~ The value compared is a tag name, `::b | lte ::a`; a keyword
             compares by the `lte` of keywords, `:b | lte :a`.
         ~~|
@@ -191,9 +191,9 @@
     | proves :ordersByName
         |~~ `::a` comes before `::b`. ~~|
         ~(::a | lte ::b)
-    | proves :value/NotTagError/refusesANumber
+    | proves :value/KindNotTakenError/refusesANumber
         |~~ A number is no tag name to compare with. ~~|
-        ~(::b | lte 1 !| type | eq ::tag/lte/value/NotTagError)
+        ~(::b | lte 1 !| type | eq ::tag/lte/value/KindNotTakenError)
     | impl ::builtin{}
 
 :tag/manifest

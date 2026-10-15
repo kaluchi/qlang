@@ -1,0 +1,10 @@
+{"name":"empty-vec","query":"[]","expect":"[]"}
+{"name":"single-element-vec","query":"[1]","expect":"[1]"}
+{"name":"multi-element-vec","query":"[1 2 3 4 5]","expect":"[1 2 3 4 5]"}
+{"name":"vec-of-strings","query":"[\"a\" \"b\" \"c\"]","expect":"[\"a\" \"b\" \"c\"]"}
+{"name":"nested-vec","query":"[[1 2] [3 4]]","expect":"[[1 2] [3 4]]"}
+{"name":"empty-set","query":"#[]","expect":"#[]"}
+{"name":"empty-map","query":"{}","expect":"{}"}
+{"name":"single-element-bracket-reads-as-a-vector","query":"[1] | type","expect":"::vec"}
+{"name":"map-duplicate-key-keeps-last-value-in-first-position","query":"{:a 1 :b 2 :a 3} | vals","expect":"[3 2]"}
+{"name":"map-duplicate-key-equals-its-last-binding","query":"{:a 1 :b 2 :a 3} | eq {:a 3 :b 2}","expect":"true"}

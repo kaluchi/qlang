@@ -1,4 +1,4 @@
-// Constructors of a quote and of its steps [D8].
+// Constructors of a quote and of its steps [QSQUO#step].
 //
 // `::quote[…]` holds a vector every element of which is a step, and
 // runs wherever a vector comes under the tag, `tag ::quote` and every
@@ -17,18 +17,18 @@ import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource }
 import {
   keyword, isQMap, isQuote, isKeyword, isTag,
   isDoc, makeQuote, makeTaggedInstance, CALL_TAG, BIND_TAG,
-  CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG, isVec
+  CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG, isVec, kindsExpected
 } from '../types.mjs';
 
-const QuotePayloadNotVecError = declareRefusal('quote/PayloadNotVecError');
+const QuotePayloadKindNotTakenError = declareRefusal('quote/PayloadKindNotTakenError');
 const QuoteElementNotStepError = declareRefusal('quote/ElementNotStepError');
 const QuoteReadBackDiffersError = declareRefusal('quote/ReadBackDiffersError');
 
 // The steps read as the text they print as, each a step that reads back
 // by itself, so a value assembled after the head, which a step is not
-// [D248], is refused where it is made.
+// [QSPTH#value], is refused where it is made.
 function quoteConstructor(payload) {
-  if (!isVec(payload)) throw new QuotePayloadNotVecError({ actualValue: payload });
+  if (!isVec(payload)) throw new QuotePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   payload.forEach((element, index) => {
     if (!isStep(element)) throw new QuoteElementNotStepError({ index, actualValue: element });
   });
@@ -103,17 +103,17 @@ bindPrim('construct/construct', recordConstructor(CONSTRUCT_TAG,
 // ── wrappers ───────────────────────────────────────────────────
 
 // A wrapper's payload is the quote of the step it wraps.
-function wrapperConstructor(tag, PayloadNotQuoteError, ReadBackDiffersError) {
+function wrapperConstructor(tag, PayloadKindNotTakenError, ReadBackDiffersError) {
   return payload => {
-    if (!isQuote(payload)) throw new PayloadNotQuoteError({ actualValue: payload });
+    if (!isQuote(payload)) throw new PayloadKindNotTakenError({ expected: kindsExpected('quote'), actualValue: payload });
     return readBackOrRefuse(makeTaggedInstance(tag, payload), ReadBackDiffersError);
   };
 }
 
 bindPrim('fail/construct', wrapperConstructor(FAIL_TAG,
-  declareRefusal('fail/PayloadNotQuoteError'),
+  declareRefusal('fail/PayloadKindNotTakenError'),
   declareRefusal('fail/ReadBackDiffersError')));
 
 bindPrim('group/construct', wrapperConstructor(GROUP_TAG,
-  declareRefusal('group/PayloadNotQuoteError'),
+  declareRefusal('group/PayloadKindNotTakenError'),
   declareRefusal('group/ReadBackDiffersError')));

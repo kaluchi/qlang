@@ -52,7 +52,7 @@ describe('renderCellOutcome — error paths', () => {
 });
 
 // The answer is written as the language prints it, a string as its text
-// [D214].
+// [QSHST#answer].
 describe('renderCellOutcome — script-mode encoding', () => {
   it('passes a String success value through as its text', async () => {
     const cliOutcome = await renderCellOutcome(
@@ -96,7 +96,7 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
     expect(cliOutcome.stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('{:k 1}');
   });
 
-  it('paints the failure of a query that does not parse in ANSI on stdout, exit 0 [D7]', async () => {
+  it('paints the failure of a query that does not parse in ANSI on stdout, exit 0 [QSHST#answer]', async () => {
     const errorDescriptor = new Map([
       ['thrown', keyword('FilterSubjectNotContainerError')]
     ]);

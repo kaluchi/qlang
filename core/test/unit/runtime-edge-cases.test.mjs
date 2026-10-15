@@ -135,7 +135,7 @@ describe('an input takes no modifiers', async () => {
 });
 
 
-describe('error-convert.mjs — spanOfLocation [D249]', async () => {
+describe('error-convert.mjs — spanOfLocation [QSPRN#span]', async () => {
   it('answers null for a location that is none', async () => {
     expect(spanOfLocation(null)).toBe(null);
   });
@@ -306,7 +306,7 @@ describe('printValue round-trip — all composite types', async () => {
 
   it('Error value of its own tag', async () => {
     // The print form writes the tag before the bang and re-parse
-    // recovers the same value [D13].
+    // recovers the same value [QSERR#rest].
     await assertRoundTrip('::Foo!{:message "boom"}', 'Error');
   });
 

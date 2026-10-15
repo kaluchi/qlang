@@ -1,0 +1,19 @@
+{"name":"ok-asks-whether-the-step-before-stood","query":"get [~(5 | ok !| false) ~(!{:k 1} | raise | ok !| false)]","expect":"[true false]"}
+{"name":"the-catch-reads-a-fact-by-get","query":"!{:k 1} | raise !| get /k","expect":"1"}
+{"name":"error-test-in-a-template","query":"get [~(!{:kind :oops} | raise | ok !| false) ~(42 | ok !| false)]","expect":"[false true]"}
+{"name":"a-catch-passes-a-map-by","query":"{:kind :oops} !| get /kind","expect":"{:kind :oops}"}
+{"name":"a-catch-passes-null-by","query":"null !| get /kind","expect":"null"}
+{"name":"fail-apply-projects-kind","query":"!{:kind :oops :message \"boom\"} | raise !| get /kind","expect":":oops"}
+{"name":"fail-apply-projects-message","query":"!{:kind :oops :message \"boom\"} | raise !| get /message","expect":"\"boom\""}
+{"name":"a-catch-passes-a-number-by","query":"42 !| get /kind","expect":"42"}
+{"name":"a-catch-passes-a-string-by","query":"\"hello\" !| get /kind","expect":"\"hello\""}
+{"name":"a-catch-passes-a-vector-by","query":"[1 2 3] !| get /kind","expect":"[1 2 3]"}
+{"name":"fail-apply-into-paren-group","query":"!{:kind :oops} | raise !| (get /kind)","expect":":oops"}
+{"name":"an-error-literal-passes-the-fail-track-by","query":"!{:a 1} !| type","expect":"!{:a 1}"}
+{"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map ~(mul 2) | !| 0","expect":"0"}
+{"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| get /kind","expect":":inner"}
+{"name":"a-path-reads-before-a-combinator","query":"{:a 1} | get /a !| 0","expect":"1"}
+{"name":"a-catch-whose-label-refuses-passes-a-stop-at-its-step","query":"~(::number!{:a 1}) | first | raise !| it | count !| trail | map ~(get [/step /skipped])","expect":"[[~(it) ~(count)]]"}
+{"name":"a-catch-whose-label-invariant-refuses-passes-a-stop-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it | count !| trail | map ~(get [/step /skipped])","expect":"[[~(it) ~(count)]]"}
+{"name":"an-error-at-rest-a-quote-holds-under-the-tag-of-a-kind-raised-is-caught-by-the-refusal-of-the-kind","query":"~(::number!{:a 1}) | first | raise !| it !| get [~(type) /actualType]","expect":"[::number/PayloadKindNotTakenError ::error]"}
+{"name":"an-error-at-rest-a-quote-holds-under-a-label-raised-is-caught-by-the-refusal-of-its-invariant","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it !| type","expect":"::Box/k"}

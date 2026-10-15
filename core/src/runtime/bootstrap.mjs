@@ -6,11 +6,11 @@
 import { loadSource } from '#qlang/load-source';
 import { declareInvariantError } from '../errors.mjs';
 
-// The sources the language declares its root by, in order [D153], each
-// the source of one noun, its page and what is declared under it [D114]:
-// the kinds whose literals build the others first, `builtin`, `kind` and
-// `fn`, then `qlang` the topic of the language, its first page and
-// chapters, and each source after it a kind.
+// The sources the language declares its root by, in order [QSDSP#residence],
+// each the source of one noun, its page and what is declared under it
+// [QSDSP#residence]: the kinds whose literals build the others first,
+// `builtin`, `kind` and `fn`, then `qlang` the topic of the language, its
+// first page and chapters, and each source after it a kind.
 export const LANGUAGE_SOURCES = Object.freeze([
   'qlang/builtin', 'qlang/kind', 'qlang/fn', 'qlang', 'qlang/tag', 'qlang/null', 'qlang/boolean', 'qlang/number', 'qlang/string',
   'qlang/keyword', 'qlang/regex', 'qlang/vec', 'qlang/set', 'qlang/map', 'qlang/quote', 'qlang/doc',

@@ -27,7 +27,7 @@
 // Examples:
 //   node scripts/release.mjs 0.3.0
 //   node scripts/release.mjs 0.3.0-alpha
-// The decisions it exists for: [D240].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { execSync } from 'node:child_process';
 import {
@@ -64,7 +64,7 @@ function runCapture(cmd, opts = {}) {
 }
 
 function fail(message) {
-  console.error('\n✗ ' + message + ' [D240]');
+  console.error('\n✗ ' + message + ' [QSWRK#tooling]');
   process.exit(1);
 }
 

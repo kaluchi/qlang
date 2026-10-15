@@ -3,7 +3,7 @@
 // tag, and fails on a variant whose answer is a host's failure, whose run
 // throws past the fail track, or whose answer prints as a text that reads
 // back as another value: node scripts/fuzz-laws.mjs [variants of each law] [seed].
-// The decisions it exists for: [D239].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { evalQuery, printValue, langRuntime } from '../core/src/index.mjs';
 import { ROOT_KEY } from '../core/src/env-keys.mjs';
@@ -85,5 +85,5 @@ for (const law of laws) {
 
 console.log(`${laws.length} laws, ${counts.variants} variants, ${counts.values} answered a value, ${counts.unparsed} did not parse, ${breaks.size} broke`);
 for (const [broken, text] of breaks) console.log(`${broken}\n  ${text}`);
-if (breaks.size > 0) console.log('a law broke at the edges of its literals: a host failed, a run threw past the fail track, or a print read back as another value [D239]');
+if (breaks.size > 0) console.log('a law broke at the edges of its literals: a host failed, a run threw past the fail track, or a print read back as another value [QSWRK#tooling]');
 process.exitCode = breaks.size === 0 ? 0 : 1;

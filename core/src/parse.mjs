@@ -7,7 +7,7 @@
 //   - the source on the root as .source, and its name as .uri, a file
 //     path, 'inline' or 'cell-N'
 //   - .comments on the root, the plain comments the grammar read as
-//     whitespace [D81], in the order of the source
+//     whitespace [QSSYN#comment], in the order of the source
 
 import {
   parse as peggyParse
@@ -24,7 +24,7 @@ import { assignAstNodeIds, attachAstParents } from './walk.mjs';
 // so that downstream consumers (CLI caret-pointer, LSP diagnostic)
 // can quote the offending span without re-reading the file;
 // `sentence` is what a source cut short with a bracket left open is
-// told, beside the closers in `expected` [D125].
+// told, beside the closers in `expected` [QSSYN#refusal].
 export class ParseError extends Error {
   constructor(message, location, uri = null, opts = {}) {
     super(message);
@@ -81,7 +81,7 @@ export function parse(source, opts = {}) {
   return ast;
 }
 
-// ── the bracket a source left open [D125] ─────────────────────────
+// ── the bracket a source left open [QSSYN#refusal] ─────────────────────────
 
 // Each closer with the openers it closes.
 const OPENERS_BY_CLOSER = new Map([

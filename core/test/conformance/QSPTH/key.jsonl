@@ -1,0 +1,12 @@
+{"name":"get-reads-a-key-the-query-computes","query":"{:k \"b\" :b 7} | get (get /k)","expect":"7"}
+{"name":"a-key-with-a-slash-is-read-by-its-keyword","query":"{:a/b 1} | get :a/b","expect":"1"}
+{"name":"a-path-parts-its-segments-at-each-slash","query":"{:a/b 1} | get /a/b !| type","expect":"::path/KeyNotInMapError"}
+{"name":"query-map-string-key","query":"{:a 1 :b 2 :c 3} | query \"b\"","expect":"2"}
+{"name":"query-map-dynamic-keyword-key","query":"{:x 42} | :m it | (:x | :k it | m | query k)","expect":"42"}
+{"name":"query-map-dynamic-string-key","query":"{:x 42} | :m it | (\"x\" | :k it | m | query k)","expect":"42"}
+{"name":"query-json-object-string-key","query":"::json{:a 1 :b 2 :c 3} | query \"b\"","expect":"2"}
+{"name":"keys-then-query-roundtrip-map","query":":src {:a 1 :b 2} | src | keys | first | :k it | src | query k","expect":"1"}
+{"name":"minus-reads-a-string-as-a-key","query":"{:a 1 :b 2} | minus [\"a\"]","expect":"{:b 2}"}
+{"name":"inter-reads-a-string-as-a-key","query":"{:a 1 :b 2 :c 3} | inter #[\"a\" :c]","expect":"{:a 1 :c 3}"}
+{"name":"minus-refuses-an-element-that-names-no-key","query":"{:a 1} | minus [:a 1] !| get [~(type) /index]","expect":"[::map/minus/KeyNotKeywordOrStringError 1]"}
+{"name":"query-index-not-integer-error","query":"[1 2 3] | query 0.5 !| type","expect":"::path/IndexNotIntegerError"}

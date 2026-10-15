@@ -1,0 +1,13 @@
+{"name":"a-function-is-built-from-its-noun-by-commands","query":"::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | type","expect":"::fn"}
+{"name":"apply-hands-a-function-a-vector-of-arguments","query":":f (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | 5 | apply f [3]","expect":"8"}
+{"name":"a-function-prints-as-its-literal","query":"::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | print","expect":"\"::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]\""}
+{"name":"the-literal-of-a-function-reads-back","query":":f ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | 5 | apply f [3]","expect":"8"}
+{"name":"fill-writes-arguments-into-the-head-of-the-code","query":"::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | fill 3","expect":"~(:by |~~ How much. ~~| 3 | add by)"}
+{"name":"params-answers-the-inputs-of-a-function","query":"::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | params | map /name","expect":"[:by]"}
+{"name":"a-function-with-no-inputs-reads-as-its-quote","query":"::fn | impl ~(add 1) | eq ~(add 1)","expect":"true"}
+{"name":"throws-declares-a-refusal-of-a-word","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | throws :TooBigError |~~ A sum past a bound. ~~| | impl ~(add by)) | ::number/plus | manifest | has ::number/plus/TooBigError","expect":"true"}
+{"name":"the-words-that-build-a-function-are-functions","query":"::fn/takes | binding | get /value | type","expect":"::fn"}
+{"name":"fn-is-a-kind-with-a-page","query":"::fn | doc | type","expect":"::doc"}
+{"name":"a-function-proves-its-laws-in-its-chain","query":":number/twice (::fn | proves :doubles |~~ Two is four. ~~| ~(2 | twice | eq 4) | impl ~(mul 2)) | ::number/twice | runLaws | map /ok","expect":"[true]"}
+{"name":"a-function-carries-a-fact-of-a-refusal-under-its-name","query":"get [~(::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/limit |~~ The limit. ~~| ::number | type) ~(::fn | carries :limit |~~ The limit. ~~| !| type)]","expect":"[::fn ::fn/FactUnderNoNameError]"}
+{"name":"a-fact-of-a-function-of-no-kinds-holds-its-page","query":":number/f (::fn | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/note |~~ A note. ~~| | impl ~(it)) | ::number/f/TooBigError/note | binding | get /value | type","expect":"::doc"}

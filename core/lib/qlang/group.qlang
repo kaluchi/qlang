@@ -1,6 +1,6 @@
 |~ `::group`, the steps in parentheses run on the value in the pipe, and
    what is declared under it: its constructor and its refusals.
-   The decisions it exists for: [D114]. ~|
+   The decisions it exists for: [QSDSP#residence]. ~|
 
 :group
   |~~ A group, `(…)`, runs a pipeline as one word: its steps run on the
@@ -18,7 +18,7 @@
   ::kind
     | wraps
         |~~ The quote of a pipeline, built into the step `(pipeline)`. ~~|
-    | throws :PayloadNotQuoteError
+    | throws :PayloadKindNotTakenError
         |~~ The payload of `::group` is the quote of its pipeline, so
             `~(add 1 | mul 2) | tag ::group` is the step
             `(add 1 | mul 2)`.
@@ -35,10 +35,10 @@
     | proves :holdsItsSteps
         |~~ A group holds its steps. ~~|
         ~(~((add 1 | mul 2)) | first | payload | count | eq 2)
-    | proves :PayloadNotQuoteError/refusesANumber
+    | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(42 | tag ::group !| get [~(type) /actualType] | eq [::group/PayloadNotQuoteError ::number])
-    | proves :PayloadNotQuoteError/buildsTheStepOfAPipeline
+        ~(42 | tag ::group !| get [~(type) /actualType] | eq [::group/PayloadKindNotTakenError ::number])
+    | proves :PayloadKindNotTakenError/buildsTheStepOfAPipeline
         |~~ The quote of a pipeline builds the group that runs it. ~~|
         ~(~(add 1 | mul 2) | tag ::group | get [~(it)] | tag ::quote | eq ~((add 1 | mul 2)))
     | proves :ReadBackDiffersError/refusesAnEmptyGroup

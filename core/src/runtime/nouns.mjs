@@ -1,10 +1,10 @@
-// The names of a scope [D153], each a declaration's, a name with a path,
-// `vec/count`, the address of the node it declares under its noun, over
-// the root the host's sources declared before the reader's first step:
-// a step reads the frame's declaration of a name before the root's, a tag
-// name the root's node of it before the reader's, which no reader
-// replaces, and a walk of a subject's tags the words residing on each
-// kind it passes [D34], [D164].
+// The names of a scope [QSDSP#residence], each a declaration's, a name with a
+// path, `vec/count`, the address of the node it declares under its noun, over
+// the root the host's sources declared before the reader's first step: a step
+// reads the frame's declaration of a name before the root's, a tag name the
+// root's node of it before the reader's, which no reader replaces, and a walk
+// of a subject's tags the words residing on each kind it passes [QSDSP#walk],
+// [QSBLD#input].
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQuote, isVec, isTag, isTaggedInstance,
@@ -30,10 +30,10 @@ function* bindingsOf(env) {
   for (const [name, entry] of env) if (isBinding(entry)) yield [name, entry];
 }
 
-// nodeOf(env, tagName) → the record of the node a tag name addresses, or
-// null: a label of the root, a kind or a topic, which no reader declares
-// over [D153], else the nearest declaration of the name, as a step reads
-// it, the reader's before the root's [D221].
+// nodeOf(env, tagName) → the record of the node a tag name addresses, or null:
+// a label of the root, a kind or a topic, which no reader declares over
+// [QSDSP#residence], else the nearest declaration of the name, as a step reads
+// it, the reader's before the root's [QSLIT#keyword].
 export function nodeOf(env, tagName) {
   const rootEntry = rootOf(env).get(tagName);
   if (isBinding(rootEntry) && declaresALabel(rootEntry)) return rootEntry;
@@ -43,7 +43,7 @@ export function nodeOf(env, tagName) {
 
 // A value a reader named is withheld from the lane of held code, and a
 // read of its name there is refused under it, so no word, no value of the
-// root and no tag of identity answers for it [D278]: a step reads the
+// root and no tag of identity answers for it [QSQUO#held]: a step reads the
 // frame's declaration of a name before the root's and refuses it, while a
 // tag, the noun of a declaration among them, reads a label of the root
 // before any name of the reader, and the label stays.
@@ -56,7 +56,7 @@ export function refuseWithheld(env, name, readByTag = false) {
 }
 
 // Whether a record holds a page or a kind, either of which makes its name
-// a label [D252], [D253].
+// a label [QSBLD#kind], [QSBLD#chain].
 export function declaresALabel(record) {
   const value = bindingValueOf(record);
   return isDoc(value) || isKind(value);
@@ -68,7 +68,7 @@ export function isLabel(env, name) {
 }
 
 // Whether a name stands under a label, where a quote or a host's
-// primitive runs on the label's values [D164].
+// primitive runs on the label's values [QSBLD#input].
 export function isUnderLabel(env, name) {
   const [labelName] = splitAddress(name);
   return labelName !== null && isLabel(env, labelName);
@@ -92,7 +92,7 @@ function residesOn(record, env) {
 }
 
 // isWord(env, address) → whether the name at the address is a word; a
-// word is the label of the args of a call of it [D164].
+// word is the label of the args of a call of it [QSBLD#input].
 export function isWord(env, address) {
   const record = nodeOf(env, address);
   return record !== null && residesOn(record, env);
@@ -100,7 +100,7 @@ export function isWord(env, address) {
 
 // A value a name under a label holds when it runs on the label's values:
 // a recipe, code or a host's primitive, or a function whose recipe is one
-// [D251].
+// [QSBLD#fn].
 export function isMemberValue(value) {
   return isRecipe(value) || (isFn(value) && isRecipe(recipeOf(value)));
 }
@@ -112,14 +112,14 @@ export function isRecipe(value) {
 // answerOf(env, address) → the answer of the word at the address as the
 // node `answer` its function lays under it holds it, the kinds `returns`
 // names, `{ address, kinds }`, or null for a word that answers any value
-// [D251].
+// [QSBLD#fn].
 export function answerOf(env, address) {
   const record = nodeOf(env, `${address}/${ANSWER_NAME}`);
   return record === null ? null : { address: record.get('name').name, kinds: kindsNamedBy(bindingValueOf(record)) };
 }
 
 // Whether a value is an invariant, a quote under `::holds`, whose name is
-// the refusal of a value that breaks it [D168].
+// the refusal of a value that breaks it [QSSLF#catalog].
 export function isInvariant(value) {
   return isValueClass(value, 'taggedInstance') && value.tag.name === INVARIANT_TAG_NAME && isQuote(value.payload);
 }
@@ -128,7 +128,7 @@ export const INVARIANT_TAG = makeTag('holds');
 const INVARIANT_TAG_NAME = INVARIANT_TAG.name;
 
 // Whether a value is a law, a quote under `::law`, which proves the
-// claim its name makes [D123].
+// claim its name makes [QSSLF#laws].
 export function isLaw(value) {
   return isValueClass(value, 'taggedInstance') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload);
 }
@@ -137,20 +137,20 @@ export const LAW_TAG = makeTag('law');
 const LAW_TAG_NAME = LAW_TAG.name;
 
 // lawsUnder(env, address) → the laws declared one name under an address,
-// each `[lastName, record]` in the order of their declarations [D123].
+// each `[lastName, record]` in the order of their declarations [QSSLF#laws].
 export function lawsUnder(env, address) {
   return [...namesUnderOf(env, address)].filter(([, record]) => isLaw(bindingValueOf(record)));
 }
 
 // The kinds the answer of a word names, the tag or the set of tags its
-// `returns` writes [D251].
+// `returns` writes [QSBLD#fn].
 const kindsNamedBy = value => (isTag(value) ? [value.name] : value.map(tag => tag.name));
 
 // Whether a scope reads what a reader declared under a noun: every scope
 // does but a word's of the root, which reads a noun of the root in the
 // root alone, a reader's extension of it staying in the reader's queries,
 // and a noun the reader declared, whose values carry it, as the reader
-// wrote it [D200].
+// wrote it [QSNAM#owner].
 export function readsTheReaderUnder(env, nounName) {
   return !isRootWordScope(env) || !rootOf(env).has(nounName);
 }
@@ -208,10 +208,10 @@ export function pathNamesOf(env) {
 const PATH_NAMES = new WeakMap();
 
 // The kinds a verb is looked for on, from the outside in: the kind of the
-// value, the kind of every tagged value after a tag [D34], the payload
+// value, the kind of every tagged value after a tag [QSDSP#walk], the payload
 // beneath a tag over a value, the kind of a vector or a map
 // beneath a tag of its own, and, after the kind of tag names, the noun a
-// tag name names [D88].
+// tag name names [QSDSP#tagname].
 export function* kindsOfWalk(subject) {
   let value = subject;
   for (;;) {
@@ -233,7 +233,7 @@ export function* kindsOfWalk(subject) {
 
 // residenceOnSubject(env, verbName, subject) → the record of the word of
 // `verbName` the walk of the subject's tags reaches, the one on `::any`
-// last, or null [D34]; with no subject, the one on `::any` alone.
+// last, or null [QSDSP#walk]; with no subject, the one on `::any` alone.
 export function residenceOnSubject(env, verbName, subject) {
   if (subject !== undefined) {
     for (const kindName of kindsOfWalk(subject)) {
@@ -245,13 +245,12 @@ export function residenceOnSubject(env, verbName, subject) {
 }
 
 // bareNameReach(env, name, subject?) → what a bare name reaches, nearest
-// first [D153]: the reader's declaration, the word residing on a kind the
-// walk of the subject reaches, the one word of the name residing on a
-// kind, which refuses a subject of another kind [D34], and for a
-// name no kind answers the root's declaration [D168], but for a label of
-// the root, a kind or a topic, which its tag alone reaches [D153];
-// `{ record, underKind }`, or null when no record answers or words of
-// several kinds do.
+// first [QSNAM#reach]: the reader's declaration, the word residing on a kind
+// the walk of the subject reaches, the one word of the name residing on a
+// kind, which refuses a subject of another kind, and for a name no kind
+// answers the root's declaration, but for a label of the root, a kind or a
+// topic, which its tag alone reaches; `{ record, underKind }`, or null when no
+// record answers or words of several kinds do.
 export function bareNameReach(env, name, subject) {
   if (env.has(name) && isBinding(env.get(name))) return { record: env.get(name), underKind: false };
   const residence = residenceOnSubject(env, name, subject);
@@ -277,7 +276,7 @@ export function residencesOf(env, verbName) {
 
 // The names of a scope, those of one segment: the nouns of the root and
 // what the reader declared; a name with a path is a member of its noun
-// [D153].
+// [QSDSP#residence].
 export function scopeNamesOf(env) {
   const scopeNames = new Map();
   for (const [name, record] of bindingsOf(env)) {
@@ -287,7 +286,7 @@ export function scopeNamesOf(env) {
 }
 
 // readerNamesOf(env) → what the reader declared, by name, the root apart
-// [D160].
+// [QSNAM#binding].
 export function readerNamesOf(env) {
   const readerNames = new Map();
   for (const [name, entry] of env) if (isBinding(entry)) readerNames.set(name, entry);
@@ -295,7 +294,7 @@ export function readerNamesOf(env) {
 }
 
 // kindNamesOf(env) → the labels of one segment, a topic among them, the
-// root's first, as a tag reads them, then the reader's [D168].
+// root's first, as a tag reads them, then the reader's [QSSLF#catalog].
 export function kindNamesOf(env) {
   const names = [...rootOf(env).keys(), ...[...env.keys()].filter(name => !rootOf(env).has(name))];
   return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isLabel(env, name));
@@ -303,7 +302,7 @@ export function kindNamesOf(env) {
 
 // The addresses where the words of a name live, one for each kind that
 // answers it, any value among them, which a refusal of the name hands on
-// [D34], [D168].
+// [QSDSP#walk], [QSSLF#catalog].
 export function addressesOf(env, verbName) {
   const addresses = residencesOf(env, verbName).map(([kindName]) => makeTag(`${kindName}/${verbName}`));
   if (residenceOf(env, ANY_KIND_NAME, verbName) !== null) addresses.push(makeTag(`${ANY_KIND_NAME}/${verbName}`));
@@ -311,7 +310,7 @@ export function addressesOf(env, verbName) {
 }
 
 // The verbs a value of the kinds reaches by name, each with its address,
-// from the outside in [D34]: those declared under each kind, then those
+// from the outside in [QSDSP#walk]: those declared under each kind, then those
 // of any value.
 export function verbsReaching(env, kindNames) {
   const reached = new Map();
@@ -339,26 +338,30 @@ export function placesOfSelectors(selectors) {
 }
 
 // The refusals the runtime raises by rule under a word, each named by the
-// address of what refused [D179], [D251]: a subject the walk of whose tags reaches
-// no value of the word's label, args of more values than its inputs read
-// places, an input the call leaves out where its place reads one, and an
-// answer that reaches none of the kinds `returns` names; and under a
-// kind, a payload of none of its kinds, or an element of none,
-// named as the catalog names the payload's refusals [D252].
+// address of what refused [QSSLF#catalog], [QSBLD#fn]: a subject the walk of
+// whose tags reaches no value of the word's label, args of more values than
+// its inputs read places, an input the call leaves out where its place reads
+// one, and an answer that reaches none of the kinds `returns` names; and under
+// a kind, a payload of none of its kinds, or an element of none, a refusal of
+// kinds named by the role of its holder alone [QSERR#site].
 export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kindsWord(kinds)}Error`;
+// The subject of a function `apply` runs, which no label serves, is refused
+// by its role, the kinds `on` names its `:expected` [QSBLD#fn].
+export const subjectKindsRefusalAddress = address => `${address}/SubjectKindNotTakenError`;
 export const argsBeyondInputsAddress = address => `${address}/ArgsBeyondInputsError`;
 export const notGivenAddress = holderAddress => `${holderAddress}/NotGivenError`;
-export const kindsRefusalAddress = (address, kinds) => `${address}/Not${kindsWord(kinds)}Error`;
-export const elementsRefusalAddress = (address, kinds) => `${address}/ElementNot${kindsWord(kinds)}Error`;
-export const payloadRefusalName = (kinds, each) => `${each ? 'Element' : 'Payload'}Not${kindsWord(kinds)}Error`;
+export const kindsRefusalAddress = address => `${address}/KindNotTakenError`;
+export const elementsRefusalAddress = address => `${address}/ElementKindNotTakenError`;
+export const payloadRefusalName = each => `${each ? 'Element' : 'Payload'}KindNotTakenError`;
 
 const kindsWord = kinds => kinds.map(capitalOf).join('Or');
 const capitalOf = name => { const [, word] = splitAddress(name); return word[0].toUpperCase() + word.slice(1); };
 
 // ruleRefusalsOf(env, address) → the addresses of the refusals a word or a
-// kind at the address may raise by rule, which its chain pages [D179]: a
-// word's read from its function, a recipe's from the function of no
-// commands it is [D253], and a kind's from its commands [D252].
+// kind at the address may raise by rule, which its chain pages
+// [QSSLF#catalog]: a word's read from its function, a recipe's from the
+// function of no commands it is [QSBLD#chain], and a kind's from its commands
+// [QSBLD#kind].
 export function ruleRefusalsOf(env, address) {
   const [labelName] = splitAddress(address);
   const value = bindingValueOf(nodeOf(env, address));
@@ -367,7 +370,7 @@ export function ruleRefusalsOf(env, address) {
 }
 
 // The refusals the call of a word that is a function raises by rule, read
-// from its signature [D251]: a subject of none of the kinds it serves,
+// from its signature [QSBLD#fn]: a subject of none of the kinds it serves,
 // named by its label, args beyond the places its inputs read, an input the
 // call leaves out where its place reads one and not the args whole, an
 // input of none of its kinds, or that is no vector where it names the
@@ -379,36 +382,36 @@ export function functionRuleRefusalsOf(signature, address, labelName) {
   for (const { name, kinds, each, selector } of signature.inputs) {
     const inputAddress = `${address}/${name.name}`;
     if (!selector.readsArgs && (selector.strict || !selector.onePlace)) refusals.push(notGivenAddress(inputAddress));
-    if (each && !selector.readsArgs) refusals.push(kindsRefusalAddress(inputAddress, ['vec']));
-    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress, kinds) : kindsRefusalAddress(inputAddress, kinds));
+    if (each && !selector.readsArgs) refusals.push(kindsRefusalAddress(inputAddress));
+    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress));
   }
   const kinds = signature.answer?.kinds ?? null;
-  if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`, kinds));
+  if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`));
   return refusals;
 }
 
-// The refusals a kind raises by rule as it lays its tag over a payload,
-// read from its commands [D252]: a payload of none of its kinds, or that is
-// no vector where they are the kinds of each element, and an element of
-// none; a field the payload leaves out, and a field of none of its kinds,
-// or no vector, and an element of none.
+// The refusals a kind raises by rule as it lays its tag over a payload, read
+// from its commands [QSBLD#kind]: a payload of none of its kinds, or that is
+// no vector where they are the kinds of each element, and an element of none;
+// a field the payload leaves out, and a field of none of its kinds, or no
+// vector, and an element of none.
 export function kindRuleRefusalsOf({ payload, fields }, address) {
   const refusals = [];
-  if (payload?.each) refusals.push(`${address}/${payloadRefusalName(['vec'], false)}`);
-  if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.kinds, payload.each)}`);
+  if (payload?.each) refusals.push(`${address}/${payloadRefusalName(false)}`);
+  if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.each)}`);
   for (const { name, kinds, each } of fields) {
     const fieldAddress = `${address}/${name.name}`;
     refusals.push(notGivenAddress(fieldAddress));
-    if (each) refusals.push(kindsRefusalAddress(fieldAddress, ['vec']));
-    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(fieldAddress, kinds) : kindsRefusalAddress(fieldAddress, kinds));
+    if (each) refusals.push(kindsRefusalAddress(fieldAddress));
+    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(fieldAddress) : kindsRefusalAddress(fieldAddress));
   }
   return refusals;
 }
 
 // selectorOfPlace(place) → what the place of an input of a function reads,
-// once per place [D251]: its tree, a path read as it is written [D248],
-// the place its first step reads, whether the selector is that one step,
-// and whether it reads the args whole, `~(it)`.
+// once per place [QSBLD#fn]: its tree, a path read as it is written
+// [QSPTH#value], the place its first step reads, whether the selector is that
+// one step, and whether it reads the args whole, `~(it)`.
 const SELECTORS = new WeakMap();
 
 export function selectorOfPlace(value) {
@@ -490,8 +493,8 @@ function rootIndexOf(root) {
 }
 
 // namesUnder(env, tagName) → the nodes declared one name under a noun,
-// its verbs, refusals and pages, by address [D34]; its laws are read by
-// `laws` [D123].
+// its verbs, refusals and pages, by address [QSDSP#walk]; its laws are read by
+// `laws` [QSSLF#laws].
 export function namesUnder(env, tagName) {
   return makeSet([...namesUnderOf(env, tagName)]
     .filter(([, record]) => !isLaw(bindingValueOf(record)))
@@ -499,7 +502,7 @@ export function namesUnder(env, tagName) {
 }
 
 // declarationsUnder(env, address) → the records declared under an
-// address at any depth, in the order they were written [D168].
+// address at any depth, in the order they were written [QSSLF#catalog].
 export function declarationsUnder(env, address) {
   const prefix = `${address}/`;
   return [...bindingsOf(env)].filter(([name]) => name.startsWith(prefix)).map(([, record]) => record);
@@ -512,13 +515,13 @@ export function namesDeclaredUnder(env, address) {
 }
 
 // The names of every node, which a guessed tag name is held against
-// [D118].
+// [QSSLF#near].
 export function nodeAddresses(env) {
   return [...bindingsOf(env)].map(([name]) => name);
 }
 
 // The names the verbs and the names under a label go by, which a guessed
-// name of a step is held against beside the scope's [D118].
+// name of a step is held against beside the scope's [QSSLF#near].
 export function verbNames(env) {
   const names = new Set();
   for (const [name, record] of bindingsOf(env)) {

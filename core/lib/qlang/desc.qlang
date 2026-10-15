@@ -1,7 +1,7 @@
 |~ `::desc`, the kind of a value turned to descend, whose place in the
    one order is the reverse of its payload's, and what is declared under
    it: its constructor and the comparisons of values turned.
-   The decisions it exists for: [D114]. ~|
+   The decisions it exists for: [QSDSP#residence]. ~|
 
 :desc
   |~~ A desc turns a value to descend: among values of this kind the one
@@ -53,7 +53,7 @@
             computed against the subject, `2 | desc | gt (3 | desc)`.
         ~~|
         /0 ::desc
-    | throws :value/NotDescError
+    | throws :value/KindNotTakenError
         |~~ The value compared is turned to descend, a value of `::desc`.
         ~~|
     | returns
@@ -67,9 +67,9 @@
     | proves :ranksTheGreaterPayloadFirst
         |~~ The greater payload does not come after the smaller. ~~|
         ~(2 | desc | gt (1 | desc) | not)
-    | proves :value/NotDescError/refusesANumber
+    | proves :value/KindNotTakenError/refusesANumber
         |~~ A number given is no value turned to compare with. ~~|
-        ~(1 | desc | gt 2 !| type | eq ::desc/gt/value/NotDescError)
+        ~(1 | desc | gt 2 !| type | eq ::desc/gt/value/KindNotTakenError)
     | impl ::builtin{}
 
 :desc/gte
@@ -86,7 +86,7 @@
             computed against the subject, `2 | desc | gte (3 | desc)`.
         ~~|
         /0 ::desc
-    | throws :value/NotDescError
+    | throws :value/KindNotTakenError
         |~~ The value compared is turned to descend, a value of `::desc`.
         ~~|
     | returns
@@ -100,9 +100,9 @@
     | proves :reversesTheOrder
         |~~ Among values turned to descend, one comes after two. ~~|
         ~(1 | desc | gte (2 | desc))
-    | proves :value/NotDescError/refusesANumber
+    | proves :value/KindNotTakenError/refusesANumber
         |~~ A number not turned to descend is refused. ~~|
-        ~(2 | desc | gte 1 !| type | eq ::desc/gte/value/NotDescError)
+        ~(2 | desc | gte 1 !| type | eq ::desc/gte/value/KindNotTakenError)
     | impl ::builtin{}
 
 :desc/lt
@@ -120,7 +120,7 @@
             computed against the subject, `2 | desc | lt (3 | desc)`.
         ~~|
         /0 ::desc
-    | throws :value/NotDescError
+    | throws :value/KindNotTakenError
         |~~ The value compared is turned to descend, a value of `::desc`.
         ~~|
     | returns
@@ -134,9 +134,9 @@
     | proves :keepsTheSmallerPayloadBehind
         |~~ The smaller payload does not come before the greater. ~~|
         ~(1 | desc | lt (2 | desc) | not)
-    | proves :value/NotDescError/refusesANumber
+    | proves :value/KindNotTakenError/refusesANumber
         |~~ A number not turned to descend is refused. ~~|
-        ~(2 | desc | lt 1 !| type | eq ::desc/lt/value/NotDescError)
+        ~(2 | desc | lt 1 !| type | eq ::desc/lt/value/KindNotTakenError)
     | impl ::builtin{}
 
 :desc/lte
@@ -152,7 +152,7 @@
             computed against the subject, `2 | desc | lte (3 | desc)`.
         ~~|
         /0 ::desc
-    | throws :value/NotDescError
+    | throws :value/KindNotTakenError
         |~~ The value compared is turned to descend, a value of `::desc`.
         ~~|
     | returns
@@ -166,8 +166,8 @@
     | proves :reversesTheOrder
         |~~ Among values turned to descend, two comes before one. ~~|
         ~(2 | desc | lte (1 | desc))
-    | proves :value/NotDescError/refusesANumber
+    | proves :value/KindNotTakenError/refusesANumber
         |~~ A number not turned to descend is refused. ~~|
-        ~(2 | desc | lte 1 !| type | eq ::desc/lte/value/NotDescError)
+        ~(2 | desc | lte 1 !| type | eq ::desc/lte/value/KindNotTakenError)
     | impl ::builtin{}
 

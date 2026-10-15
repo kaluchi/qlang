@@ -1,10 +1,10 @@
-// The names an unresolved name was likely meant to be [D7]: the names
-// a step reaches, within an edit distance of a third of the typed name's
-// length, one at least, and of those the nearest alone, in the order of
-// their spelling. An edit is an insertion, a deletion, a substitution or
-// a swap of two neighbours, the slips of a typing hand; beside them, the
-// names one of which begins the other, and the words the page of a word
-// the typed name begins with links [D118].
+// The names an unresolved name was likely meant to be [QSHST#answer]: the
+// names a step reaches, within an edit distance of a third of the typed name's
+// length, one at least, and of those the nearest alone, in the order of their
+// spelling. An edit is an insertion, a deletion, a substitution or a swap of
+// two neighbours, the slips of a typing hand; beside them, the names one of
+// which begins the other, and the words the page of a word the typed name
+// begins with links [QSSLF#near].
 
 import { keyword, makeTag, isTag } from './types.mjs';
 import { ANY_KIND_NAME, addressesOf, answerOf, kindsOfWalk, namesDeclaredUnder, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, verbsReaching, isLabel } from './runtime/nouns.mjs';
@@ -31,7 +31,7 @@ function editDistance(typed, known) {
 }
 
 // One name begins the other, three letters at least: the guess of a longer
-// or a shorter name for the same act, `multiply` for `mul` [D118].
+// or a shorter name for the same act, `multiply` for `mul` [QSSLF#near].
 const PREFIX_LETTERS = 3;
 function beginsTheOther(typed, known) {
   return Math.min(typed.length, known.length) >= PREFIX_LETTERS && (typed.startsWith(known) || known.startsWith(typed));
@@ -62,7 +62,7 @@ function nearestOf(names, typedName) {
 
 // The names a step reaches: those of the scope and the last names of the
 // verbs declared under a kind, a label of the root among them as the tag
-// that reaches it [D153].
+// that reaches it [QSDSP#residence].
 function namesOfSteps(env) {
   return new Set([...scopeNamesOf(env).keys(), ...verbNames(env)]);
 }
@@ -70,7 +70,7 @@ function namesOfSteps(env) {
 // The words the page of a word the typed name begins with links, whose
 // names end as the typed name goes on past it in a tail of its own,
 // capitalised: `add` begins `addOf`, and its page links `sumOf`, the
-// word that adds two fields of one record [D118].
+// word that adds two fields of one record [QSSLF#near].
 function linkedFromBegun(env, typedName, names) {
   const linked = [];
   for (const name of names) {
@@ -98,7 +98,7 @@ export function nearestNames(env, typedName) {
   return Object.freeze(onlyItsTag(typedName) ? [makeTag(typedName), ...near] : near);
 }
 
-// The tags an unknown tag name was likely meant to be [D118]: the
+// The tags an unknown tag name was likely meant to be [QSSLF#near]: the
 // addresses of the tree's nodes as deep as the typed name, so a guess at
 // a noun meets the nouns, `::str` meeting `::string`, and a guess at a
 // word the words, none of the nodes beneath them.
@@ -108,7 +108,7 @@ export function nearestTagNames(env, typedName) {
   return Object.freeze(nearestOf(new Set(atItsDepth), typedName).map(name => makeTag(name)));
 }
 
-// The members a subject holds near a name it lacks [D118], read where an
+// The members a subject holds near a name it lacks [QSSLF#near], read where an
 // axis reads a member: the names declared under a tag name's address,
 // `::qlang | doc :pipelin` meeting `:pipeline`, and the words the walk of
 // the subject reaches.
@@ -119,7 +119,7 @@ export function nearestMembers(env, subject, memberName) {
 }
 
 // The keys of a map a key it lacks was likely meant to be, as a name is
-// near the names of the scope [D118].
+// near the names of the scope [QSSLF#near].
 export function nearestKeys(map, typedKey) {
   return Object.freeze(nearestOf(map.keys(), typedKey).map(name => keyword(name)));
 }
@@ -131,7 +131,7 @@ const answeredKinds = (env, addresses) => new Set(addresses.flatMap(address => a
 // at the addresses link whose words the subject answers, each a word that
 // answers a kind those words answer: the act a step meant by a word the
 // kind of its subject lacks, under the name the kind keeps it by, `print`
-// for the `toString` of a vector [D118].
+// for the `toString` of a vector [QSSLF#near].
 export function nearestWords(env, addresses, subject) {
   const kinds = answeredKinds(env, addresses.map(address => address.name));
   const names = new Set();

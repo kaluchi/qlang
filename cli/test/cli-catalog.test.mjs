@@ -1,5 +1,5 @@
 // The catalog of the command line is held as the core's is, by the same
-// checks [D19], [D108], [D123]: the laws of every name its source
+// checks [QSSLF#doc], [QSSLF#laws]: the laws of every name its source
 // declares answer true, every link of its pages leads to the page of
 // another name, and no quote of a page falls to its prose, where a link
 // whose quote does not parse would go stale in silence.

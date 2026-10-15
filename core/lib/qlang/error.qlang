@@ -5,7 +5,7 @@
    of the site that refused stacked over it, and its walk passes
    `::error` on its way to the map, so a word declared here reaches every
    error.
-   The decisions it exists for: [D114]. ~|
+   The decisions it exists for: [QSDSP#residence]. ~|
 
 :error
   |~~ An error is the facts of a failure as a value: what refused, on
@@ -88,6 +88,11 @@
     | carries :index
         |~~ The place of the element refused, counted from zero. ~~|
         ::number
+    | carries :expected
+        |~~ The kinds the holder takes, where a value of none of them was
+            refused, `#[::number]`.
+        ~~|
+        #[::tag]
     | carries :actualType |~~ The kind of the value refused. ~~| ::tag
     | carries :places
         |~~ How many places the inputs of the word read, where the call

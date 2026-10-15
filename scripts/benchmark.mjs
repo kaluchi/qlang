@@ -1,12 +1,11 @@
-// The benchmark of the first screen [D26]. A run hands a
-// clean child a screen, the pages of the language and the command line as
-// a tree printed them [D26], and a set of tasks; the child answers with
-// the command line, and the tree grades the queries it wrote. The sets are written by
-// a clean author who never saw the language, and a set measures once:
-// reading what its children missed marks it seen, and the next
-// measurement orders a new set. The set of `benchmark/tasks.mjs`, whose
-// runs under `benchmark/runs/` a model read and wrote up, is the first
-// screen's reading test of D104.
+// The benchmark of the first screen [QSWRK#measure]. A run hands a clean child a screen,
+// the pages of the language and the command line as a tree printed them [QSWRK#measure],
+// and a set of tasks; the child answers with the command line, and the tree
+// grades the queries it wrote. The sets are written by a clean author who
+// never saw the language, and a set measures once: reading what its children
+// missed marks it seen, and the next measurement orders a new set. The set of
+// `benchmark/tasks.mjs`, whose runs under `benchmark/runs/` a model read and
+// wrote up, is the first screen's reading test of D104.
 //
 // Usage:
 //   node scripts/benchmark.mjs check                  the references of tasks.mjs answer their tasks
@@ -46,7 +45,7 @@ const { deepEqual } = await core('equality.mjs');
 const shortHash = text => createHash('sha256').update(text).digest('hex').slice(0, 12);
 
 // What the command line answers for a query over the input of its task,
-// as JSON text, which `| json` writes [D214].
+// as JSON text, which `| json` writes [QSHST#answer].
 function answerOf(query, task) {
   const flags = task.raw ? ['--raw', `(${query}) | json`] : [`(${query}) | json`];
   return execFileSync(process.execPath, [commandLine, ...flags],
@@ -69,7 +68,7 @@ async function check() {
     console.log(`${task.id}: the reference answers ${given}, the task ${task.answer}`);
   }
   if (wrong.length > 0) {
-    console.log('a reference answers its task, or the task is written again with it [D26]');
+    console.log('a reference answers its task, or the task is written again with it [QSWRK#measure]');
     process.exit(1);
   }
   console.log(`check:benchmark — ${TASKS.length} references answer their tasks`);

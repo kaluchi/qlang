@@ -1,4 +1,4 @@
-// The ring of atoms [D42] over the examples of its own verbs and every
+// The ring of atoms [QSLIT#atoms] over the examples of its own verbs and every
 // literal the conformance cases expect; the examples of the catalog are
 // walked in shares, `atoms-catalog-*.test.mjs`.
 
@@ -13,7 +13,7 @@ beforeAll(async () => {
   ringSessionOfFile = await ringSession();
 }, RING_TIMEOUT);
 
-describe('the ring of atoms [D42]', () => {
+describe('the ring of atoms [QSLIT#atoms]', () => {
   it('keeps the examples of its own verbs true', async () => {
     expect((await ringSessionOfFile.evalCell('::any/apart | runLaws | map /ok')).result).toEqual([true]);
   });

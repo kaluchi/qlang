@@ -1,4 +1,4 @@
-// The walk of the audit's baseline [D225], [D227], read once for
+// The walk of the audit's baseline [QSWRK#baseline], [QSWRK#journal], read once for
 // the conventions, which fail on what it finds, and for the screen of the
 // work, which shows it. The audit is held against a commit, its
 // baseline. A record of the language that the baseline's tree holds is
@@ -14,9 +14,9 @@ import { join } from 'node:path';
 import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld } from './decision-records.mjs';
 
 export const RECORDS_A_WALK_TAKES = 20;
-const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/test/unit', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'scripts'];
+const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'scripts'];
 export const CITING_DOCUMENTS = ['docs/qlang-audit.md', 'docs/qlang-entrypoint.md', 'CLAUDE.md', '.claude/agents/qlang-review.md', 'README.md', 'core/README.md', 'cli/README.md', 'lsp/README.md', 'vscode/README.md', 'site/README.md'];
-const CODE_FILE = /\.(mjs|js|ts|astro|peggy)$/;
+const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang)$/;
 const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
 // A citation a document writes in words, `decision Dnn` or `decisions Dnn
 // and Dnn`, and one in brackets, `[Dnn, Dnn]`.
@@ -44,6 +44,7 @@ function citationsIn(text) {
 
 function stateOf(record) {
   if (record.mergedInto.length > 0) return `merged into ${record.mergedInto.join(', ')}`;
+  if (record.dissolvedInto.length > 0) return `dissolved into ${record.dissolvedInto.join(', ')}`;
   if (replacedWhole(record)) return `closed by ${record.replacedBy.join(', ')}`;
   return isBeingDecided(record) ? 'which no case holds' : 'which a target alone holds';
 }
@@ -118,5 +119,116 @@ export function walkOfBaseline(repoRoot) {
       if (record !== undefined && !notClosed(record) && !record.open) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
     }
   }
+  for (const { where, problem } of unresolvedSections(repoRoot)) walk.violations.push({ where, problem });
+  for (const { where, problem } of casesTouchedUnclaimed(repoRoot, baseline)) walk.violations.push({ where, problem });
+  for (const path of uncitedDocuments(repoRoot)) {
+    if (git(repoRoot, 'ls-tree', '--name-only', baseline, '--', path).trim() !== '') {
+      walk.violations.push({ where: path, problem: 'no record in force and no document of the work cites it: node scripts/drop-documents.mjs [QSWRK#baseline]' });
+    }
+  }
   return walk;
+}
+
+// A citation of the specification, `[QSNAM#scope]` or `[QSNAM]`, names a
+// chapter under `docs/spec/` and a section it holds as a heading of its
+// own, `## scope` [QSWRK#spec].
+const SECTION_CITATION = /\[(QS[A-Z]{3})(?:#([a-z][a-z-]*))?\]/g;
+export function unresolvedSections(repoRoot) {
+  const specDir = join(repoRoot, 'docs', 'spec');
+  const chapters = new Map((existsSync(specDir) ? readdirSync(specDir) : []).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name))
+    .map(name => [name.slice(0, 5), new Set(readFileSync(join(specDir, name), 'utf8').split(/\r?\n/).filter(line => line.startsWith('## ')).map(line => line.slice(3).trim()))]));
+  const citing = [...CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE)), ...filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/),
+    ...CITING_DOCUMENTS, ...filesUnder(repoRoot, 'docs/decisions', /\.md$/), ...filesUnder(repoRoot, 'docs/spec', /\.md$/)];
+  const unresolved = [];
+  for (const file of citing.filter(path => existsSync(join(repoRoot, path)))) {
+    readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
+      for (const [whole, chapter, section] of line.matchAll(SECTION_CITATION)) {
+        const sections = chapters.get(chapter);
+        if (sections === undefined) unresolved.push({ where: `${file}:${index + 1}`, problem: `cites ${whole}, a chapter docs/spec does not hold` });
+        else if (section !== undefined && !sections.has(section)) unresolved.push({ where: `${file}:${index + 1}`, problem: `cites ${whole}, a section ${chapter} does not hold` });
+      }
+    });
+  }
+  return unresolved;
+}
+
+// The records in transit, each with the sections it overrides: a record
+// in force with a line `Overrides [QSNAM#scope], [QSNAM#reach]` [QSWRK#spec].
+export function recordsInTransit(repoRoot) {
+  const recordsDir = join(repoRoot, 'docs', 'decisions');
+  return new Map(readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).flatMap(name => {
+    const line = readFileSync(join(recordsDir, name), 'utf8').match(/^Overrides ((?:[^\r\n]|\r?\n(?=\[QS))+)/m)?.[1];
+    return line === undefined ? [] : [[name.slice(0, -3), [...line.matchAll(/\[(QS[A-Z]{3}(?:#[a-z][a-z-]*)?)\]/g)].map(match => match[1])]];
+  }));
+}
+
+// The cases of a chapter that the baseline's chapter held otherwise, or
+// lacked, or that are gone from it, each claimed by a record in transit
+// over its section: a case added or rewritten names the record, and a
+// case taken away is named in the record's text; and a case under a
+// chapter names no record but one in transit over its section [QSWRK#spec].
+// A chapter the baseline did not hold is the work of the move that wrote
+// it, read from the next baseline on.
+export function casesTouchedUnclaimed(repoRoot, baseline) {
+  const conformance = 'core/test/conformance';
+  const transit = recordsInTransit(repoRoot);
+  const overrides = (record, chapter, section) => (transit.get(record) ?? []).some(cited => cited === chapter || cited === `${chapter}#${section}`);
+  const casesOf = text => new Map(text.split(/\r?\n/).filter(line => line.trim() !== '' && !line.startsWith('//')).map(line => JSON.parse(line)).map(test => [test.name, test]));
+  const unclaimed = [];
+  for (const file of filesUnder(repoRoot, conformance, /\.jsonl$/).filter(path => /\/QS[A-Z]{3}\/[^/]+\.jsonl$/.test(path))) {
+    const [chapter, section] = file.split('/').slice(-2).map(part => part.replace(/\.jsonl$/, ''));
+    const now = casesOf(readFileSync(join(repoRoot, file), 'utf8'));
+    const chapterThen = git(repoRoot, 'ls-tree', '--name-only', baseline, '--', `${conformance}/${chapter}/`).trim() !== '';
+    let then = null;
+    if (chapterThen) {
+      try {
+        then = casesOf(git(repoRoot, 'show', `${baseline}:${file}`));
+      } catch {
+        then = new Map();
+      }
+    }
+    for (const [name, test] of now) {
+      if (test.decision !== undefined && !overrides(test.decision, chapter, section)) unclaimed.push({ where: `${file}#${name}`, problem: `names ${test.decision}, which overrides no section ${chapter}#${section}` });
+      if (then === null) continue;
+      const before = then.get(name);
+      const touched = before === undefined || before.query !== test.query || before.expect !== test.expect || before.target !== test.target || before.now !== test.now;
+      if (touched && test.decision === undefined) unclaimed.push({ where: `${file}#${name}`, problem: `changed since the baseline ${baseline} and names no record in transit over ${chapter}#${section}` });
+    }
+    for (const name of then === null ? [] : [...then.keys()].filter(name => !now.has(name))) {
+      const claimed = [...transit.keys()].some(record => overrides(record, chapter, section) && readFileSync(join(repoRoot, 'docs', 'decisions', `${record}.md`), 'utf8').includes(name));
+      if (!claimed) unclaimed.push({ where: `${file}#${name}`, problem: `gone since the baseline ${baseline}, and no record in transit over ${chapter}#${section} names it` });
+    }
+  }
+  return unclaimed;
+}
+
+// The documents of the research that stay while something in force cites
+// them [QSWRK#baseline]. A review is a unit of its own, and so is a chapter the
+// audit left; a folder of any other research, a design with its runs, is
+// one unit, held by a citation of any of it. The outside audits are a
+// series the next one is read against, and the ledger of a folder, its
+// README, lists what the folder holds and holds none of it.
+const RESEARCH = /^docs\/(research\/(?!outside-audit\/)[^/]+|archive)\/.+/;
+const REPORTS = /^docs\/(research\/reviews|archive)\//;
+export const isReadme = path => /(^|\/)README\.md$/.test(path);
+
+// The texts in force that may cite a document: the records in force and
+// the documents of the work.
+export function textsInForce(repoRoot) {
+  const records = readdirSync(join(repoRoot, 'docs', 'decisions')).filter(name => /^[DE]\d+\.md$/.test(name)).map(name => `docs/decisions/${name}`);
+  return [...records, ...CITING_DOCUMENTS].filter(path => existsSync(join(repoRoot, path))).map(path => ({ path, text: readFileSync(join(repoRoot, path), 'utf8') }));
+}
+
+// unitOf(path) → what a citation must name to hold the document: a
+// review by its folder and name, `reviews/2026-10-10-vec-set-map.md`, any
+// other research by its folder, `research/legend/`.
+export const unitOf = path => (REPORTS.test(path) ? path.split('/').slice(-2).join('/') : `${path.split('/').slice(1, 3).join('/')}/`);
+
+// uncitedDocuments(repoRoot) → the documents of the research nothing in
+// force cites.
+export function uncitedDocuments(repoRoot) {
+  const texts = textsInForce(repoRoot);
+  return git(repoRoot, 'ls-files', 'docs/research', 'docs/archive').split('\n')
+    .filter(path => RESEARCH.test(path) && !isReadme(path))
+    .filter(path => !texts.some(({ text }) => text.includes(unitOf(path))));
 }

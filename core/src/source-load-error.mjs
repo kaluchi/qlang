@@ -1,6 +1,6 @@
 // A source of the language that the loader `#qlang/load-source`
 // resolves to could not read, a foreign failure of the embedding, which
-// carries the message and the causes of every host's failure [D46].
+// carries the message and the causes of every host's failure [QSERR#site].
 
 import { declareForeignError } from './errors.mjs';
 

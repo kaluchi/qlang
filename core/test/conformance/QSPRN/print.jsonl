@@ -1,0 +1,17 @@
+{"name":"print-writes-an-atom-as-its-literal","query":"42 | print","expect":"\"42\""}
+{"name":"print-writes-a-string-as-its-literal","query":"\"hi\" | print","expect":"\"\\\"hi\\\"\""}
+{"name":"print-writes-a-descriptor-under-its-tag","query":"::builtin{:a 1} | print","expect":"\"::builtin{:a 1}\""}
+{"name":"print-writes-a-doc-as-its-literal","query":"[\"a \" ~(add 1)] | tag ::doc | print","expect":"\"|~~a ~(add 1)~~|\""}
+{"name":"print-writes-a-set-as-its-literal","query":"#[2 1] | print","expect":"\"#[1 2]\""}
+{"name":"print-writes-a-quote-as-its-literal","query":"~(add 1) | print","expect":"\"~(add 1)\""}
+{"name":"print-writes-each-part-by-its-kind","query":"[|~~ x ~~| #[1]] | print","expect":"\"[|~~ x ~~| #[1]]\""}
+{"name":"the-print-of-a-value-reads-back-as-the-value","query":"{:a [1 \"x\" :k]} | :v it | print | parse | :q it | apply q | eq v","expect":"true"}
+{"name":"doc-with-backticks-in-content","query":"|~~ see ~(mul 2) for ref ~~|","expect":"|~~ see ~(mul 2) for ref ~~|"}
+{"name":"true","query":"true","expect":"true"}
+{"name":"false","query":"false","expect":"false"}
+{"name":"null","query":"null","expect":"null"}
+{"name":"doc-block-empty","query":"|~~~~|","expect":"|~~~~|"}
+{"name":"doc-block-prose","query":"|~~ hello ~~|","expect":"|~~ hello ~~|"}
+{"name":"doc-block-multiline","query":"|~~\n  paragraph one\n  paragraph two\n~~|","expect":"|~~\n  paragraph one\n  paragraph two\n~~|"}
+{"name":"doc-line-form-renders-as-block","query":"|~~| oneliner","expect":"|~~ oneliner~~|"}
+{"name":"doc-line-form-empty","query":"|~~|","expect":"|~~~~|"}

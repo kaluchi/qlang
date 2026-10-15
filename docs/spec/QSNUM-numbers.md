@@ -1,0 +1,62 @@
+# QSNUM · The words of numbers
+
+Arithmetic over finite doubles, and the words that combine values one
+subject computes. The requirements of each section are the cases of its
+file under `core/test/conformance/QSNUM/`.
+
+## arithmetic
+
+`add`, `sub`, `mul` and `div` take the number in the pipe as their
+subject and one number as their object, computed against the subject;
+`mod` answers the remainder with the sign of the divisor; `floor`,
+`ceil` and `abs` take a number to a whole one or its size, and `round`
+to the digits its call gives, a whole number, none by default, half away
+from zero. An answer keeps the subject's tags, `::W#2.7 | floor`
+answering `::W#2`. A subject that is no number is refused as
+`::number/add/SubjectNotNumberError` and an object as
+`::number/add/addend/KindNotTakenError`. Every answer is a finite
+double: one past the doubles is refused as `::number/NotFiniteError`, a
+division by zero under the divisor of `div`,
+`::number/div/divisor/ZeroError`, and a remainder by zero under that of
+`mod`, `::number/mod/divisor/ZeroError`. `range` answers the whole
+numbers from zero below its subject, `[]` from zero and below, a
+fraction refused as `::number/range/CountNotIntegerError` and a count
+past the length a vector may have as `::number/range/CountTooLargeError`.
+
+```qlang
+> 10 | add 5 | mul 2 | sub 10
+20
+
+> get [~(7 | mod 3) ~(-7 | mod 3) ~(7 | mod -3)]
+[1 2 -2]
+
+> get [~(2.7 | floor) ~(2.1 | ceil) ~(-3 | abs) ~(2.567 | round 2)]
+[2 3 3 2.57]
+
+> 1e308 | mul 10 !| type
+::number/NotFiniteError
+
+> 10 | div 0 !| type
+::number/div/divisor/ZeroError
+
+> 5 | range
+[0 1 2 3 4]
+```
+
+## combine
+
+The subject of a call is the value in the pipe, always, and a call that
+gives more objects than its word reads is refused, its refusal naming
+what fits. Values one subject computes are combined by a word that
+serves any value, each object a number or a path read against the
+subject: `sumOf` and `mulOf` combine one value or more, `subOf` and
+`divOf` two, and a call with none is refused as
+`::any/sumOf/numbers/EmptyError`.
+
+```qlang
+> 1 | add 1 2 !| type
+::number/add/ArgsBeyondInputsError
+
+> {:price 4 :qty 3} | mulOf /price /qty
+12
+```

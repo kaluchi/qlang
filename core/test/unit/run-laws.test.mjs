@@ -1,7 +1,7 @@
-// runLaws — run each law declared under a name as an executable test
-// case [D123]. A law passes when it answers `true`. The subject is a keyword (binding name) or a tag name, the
-// address of a verb among them, so `kinds | map ~manifest | flat | map
-// ~runLaws` walks the whole catalog.
+// runLaws — run each law declared under a name as an executable test case
+// [QSSLF#laws]. A law passes when it answers `true`. The subject is a keyword
+// (binding name) or a tag name, the address of a verb among them, so `kinds |
+// map ~manifest | flat | map ~runLaws` walks the whole catalog.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -17,7 +17,7 @@ describe('runLaws reads a name as laws does', () => {
 
   it('a binding without a doc runs no law, its page null', async () => {
     // A host-installed binding (via `session.bind`) is the record of a
-    // binding without a doc [D5].
+    // binding without a doc [QSNAM#binding].
     const sessionInstance = await createSession();
     sessionInstance.bind('hostInjected', 42);
     const cellEntry = await sessionInstance.evalCell('::hostInjected | runLaws');
@@ -41,7 +41,7 @@ describe('runLaws reads a name as laws does', () => {
     expect(bindingName).toEqual(makeTag('Nonexistent'));
   });
 
-  it('a value runs the laws of its kind, as doc reads its page [D178]', async () => {
+  it('a value runs the laws of its kind, as doc reads its page [QSSLF#laws]', async () => {
     const results = await evalQuery('42 | runLaws');
     expect(isErrorValue(results)).toBe(false);
     expect(results.map(result => result.get('law').name)).toEqual((await evalQuery('::number | runLaws')).map(result => result.get('law').name));
@@ -49,7 +49,7 @@ describe('runLaws reads a name as laws does', () => {
 });
 
 describe('runLaws Quote-as-test outcomes', () => {
-  it('a law that lifts an error → ok:false with the error at rest [D123]', async () => {
+  it('a law that lifts an error → ok:false with the error at rest [QSSLF#laws]', async () => {
     const moduleSource = ':demo 1\n:demo/broken |~~ A broken law. ~~| ::law~("x" | prepend 42 | eq 42)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
@@ -92,7 +92,7 @@ describe('runLaws Quote-as-test outcomes', () => {
 
   it('a law sees the names of the calling session', async () => {
     // A law runs in the scope of the session that asked for it, so a
-    // name a source of the root declared resolves there [D14].
+    // name a source of the root declared resolves there [QSCND#boolean].
     const moduleSource = ':fortytwo 1\n:fortytwo/addsUp |~~ Tracks the scope through runLaws. ~~| ::law~(40 | add 2 | eq 42)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
@@ -120,7 +120,7 @@ describe('runLaws Quote-as-test outcomes', () => {
       .toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a law that lifts a user-built error → :error holds it at rest, its :message among its facts [D123]', async () => {
+  it('a law that lifts a user-built error → :error holds it at rest, its :message among its facts [QSSLF#laws]', async () => {
     // A map raised is an error of the kind of errors, and the law's
     // result holds it at rest as `!|` grounds it, every entry of the
     // map a fact.

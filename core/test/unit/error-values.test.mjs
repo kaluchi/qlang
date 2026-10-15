@@ -1,4 +1,5 @@
-// Tests for error value type and its trail, deepEqual, the literal, error-convert.mjs.
+// Tests for error value type and its trail, deepEqual, the literal,
+// error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
 import { keyword, isErrorValue, makeErrorValue, formOf, makeTag, makeSet, ErrorTrailNotVecError } from '../../src/types.mjs';
@@ -11,7 +12,7 @@ import { QlangError, CallUnknownNameError, declareRefusal } from '../../src/erro
 // ── makeErrorValue ──────────────────────────────────────────────
 
 describe('makeErrorValue', () => {
-  it('produces a frozen error under its tag that holds no :trail while no step raised it [D13]', () => {
+  it('produces a frozen error under its tag that holds no :trail while no step raised it [QSERR#rest]', () => {
     const tag = makeTag('Oops');
     const errorVal = makeErrorValue(tag, new Map([['message', 'boom']]));
     expect(isErrorValue(errorVal)).toBe(true);
@@ -20,7 +21,7 @@ describe('makeErrorValue', () => {
     expect([...errorVal.descriptor.keys()]).toEqual(['message']);
   });
 
-  it('takes an empty :trail out of the facts it is handed [D13]', () => {
+  it('takes an empty :trail out of the facts it is handed [QSERR#rest]', () => {
     const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'boom'], ['trail', Object.freeze([])]]));
     expect([...errorVal.descriptor.keys()]).toEqual(['message']);
   });
@@ -154,8 +155,8 @@ const TestsProbeTypeError = declareRefusal('tests/ProbeTypeError');
 describe('errorFromQlang', () => {
   // The facts of the site come in the order the catalog declares them,
   // its label's first and those of `::error` after, and the trail last
-  // [D13], [D46].
-  it('converts a refusal — its address the tag, its facts in the order the catalog declares them [D46]', async () => {
+  // [QSERR#rest], [QSERR#site].
+  it('converts a refusal — its address the tag, its facts in the order the catalog declares them [QSERR#site]', async () => {
     const typeErr = new TestsProbeTypeError({ actualValue: 'the-value' });
     const errorVal = errorFromQlang(typeErr, 'the-subject', await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
@@ -180,7 +181,7 @@ describe('errorFromQlang', () => {
     expect(() => errorFromQlang(new TestsProbeTypeError({ undeclared: 1 }), 42, env)).toThrow(/carries :undeclared/);
   });
 
-  it('converts a refusal whose site hands no facts to an error of no facts [D13]', async () => {
+  it('converts a refusal whose site hands no facts to an error of no facts [QSERR#rest]', async () => {
     const errorVal = errorFromQlang(new TestsProbeTypeError(), 10, await langRuntime());
     expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
     expect([...errorVal.descriptor.keys()]).toEqual([]);
@@ -191,7 +192,7 @@ describe('errorFromQlang', () => {
 
 describe('errorFromForeign', () => {
   // A host's failure carries the facts every host can give, its account
-  // and the accounts of the failures beneath it [D7], [D46].
+  // and the accounts of the failures beneath it [QSHST#answer], [QSERR#site].
   it('lifts a JavaScript error to its account under the tag of the language', async () => {
     const jsErr = new Error('something went wrong');
     const errorVal = errorFromForeign(jsErr, { location: null }, await langRuntime());

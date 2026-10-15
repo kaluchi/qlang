@@ -1,6 +1,6 @@
 // The primitives of strings, and `join`, `prepend` and `append` of
 // vectors, whose words the catalog declares under `::string` and `::vec`
-// [D167].
+// [QSQUO#modifier].
 
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -8,7 +8,7 @@ import { isKeyword, isRegex } from '../types.mjs';
 import { containsMatch, piecesBetweenMatches } from './regex.mjs';
 
 // A value a word writes into text: a string as it is and a keyword as
-// its name, as the JSON channel writes it [D126], [D198].
+// its name, as the JSON channel writes it [QSPRN#json], [QSTXT#string].
 const writtenAsText = value => (isKeyword(value) ? value.name : value);
 
 // An element `join` writes is a string or a keyword.
@@ -21,14 +21,14 @@ bindPrim('vec/append', (vector, element) => [...vector, element]);
 
 // The empty separator cuts the text into its characters, the code points
 // `count` counts, so no character falls in halves, and a pattern cuts it at
-// every match [D246].
+// every match [QSTXT#pattern].
 bindPrim('string/split', (subject, separator) => {
   if (isRegex(separator)) return piecesBetweenMatches(subject, separator);
   return separator === '' ? Array.from(subject) : subject.split(separator);
 });
 
 // A `\n` ends a line, a `\r` before it belongs to the ending, and a
-// final ending opens no line [D22].
+// final ending opens no line [QSWRK#catalog].
 bindPrim('string/lines', subject => {
   const pieces = subject.split(/\r?\n/);
   if (pieces[pieces.length - 1] === '') pieces.pop();
@@ -41,13 +41,13 @@ bindPrim('vec/join', (subject, separator) => {
   return subject.map(writtenAsText).join(writtenAsText(separator));
 });
 
-// The case of a text, folded letter by letter as Unicode maps it, so
-// two texts that differ in case alone compare equal once folded [D107].
+// The case of a text, folded letter by letter as Unicode maps it, so two texts
+// that differ in case alone compare equal once folded [QSTXT#string].
 bindPrim('string/lower', subject => subject.toLowerCase());
 bindPrim('string/upper', subject => subject.toUpperCase());
 
 // The text without the whitespace at its two ends, a line break among it
-// [D132].
+// [QSTXT#string].
 bindPrim('string/trim', subject => subject.trim());
 
 bindPrim('string/contains',   (subject, needle) => (isRegex(needle) ? containsMatch(subject, needle) : subject.includes(needle)));

@@ -1,8 +1,9 @@
 // The records replaced whole leave the root of the records for
 // `docs/decisions/replaced/`, once, and every link of a document to a
 // record is written again from the document's place to the record's
-// [D237]. Run where a record gains its line `Replaced by` or `Merged
-// into`; a record moved once is never moved again.
+// [QSWRK#marks], each naming the commit it left at [QSWRK#baseline]. Run where a record
+// gains its line `Replaced by` or `Merged into`; a record moved once is
+// never moved again.
 //
 // Usage: node scripts/replaced-records.mjs
 
@@ -12,13 +13,38 @@ import { join, posix, resolve } from 'node:path';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const recordsDir = join(repoRoot, 'docs', 'decisions');
-const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' });
+const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
-const replacedWhole = text => /^(Replaced by|Merged into) /m.test(text);
+const replacedWhole = text => /^(Replaced by|Merged into|Dissolved into) /m.test(text);
 const moving = readdirSync(recordsDir)
   .filter(name => /^[DE]\d+\.md$/.test(name) && replacedWhole(readFileSync(join(recordsDir, name), 'utf8')));
 mkdirSync(join(recordsDir, 'replaced'), { recursive: true });
-for (const name of moving) git('mv', `docs/decisions/${name}`, `docs/decisions/replaced/${name}`);
+// A record leaving names, under its title, the commit its text was last
+// true of, `Left at`, and each path of the tree it names in backticks
+// reads as `git show` at that commit, so nothing it names leads into
+// today's tree [QSWRK#baseline].
+const head = git('rev-parse', '--short=8', 'HEAD').trim();
+const TREE_PATH = /`((?:core|cli|lsp|vscode|site|scripts|docs|\.claude|\.github)\/[A-Za-z0-9_./-]+)`/g;
+const atHead = path => {
+  try {
+    git('cat-file', '-e', `${head}:${path.replace(/\/$/, '')}`);
+    return true;
+  } catch {
+    return false;
+  }
+};
+for (const name of moving) {
+  const path = join(recordsDir, name);
+  const raw = readFileSync(path, 'utf8');
+  const eol = raw.includes('\r\n') ? '\r\n' : '\n';
+  const lines = raw.split('\r\n').join('\n').replace(/\n+$/, '').split('\n');
+  if (!lines.some(line => line.startsWith('Left at '))) {
+    lines.splice(1, 0, '', `Left at ${head}, the tree this text was last true of: a path, a case or a`, `probe it names reads there, \`git show ${head}:<path>\`, not in today's.`);
+  }
+  const pinned = lines.join('\n').replace(TREE_PATH, (whole, named) => (named.startsWith('docs/decisions/') || !atHead(named) ? whole : `\`git show ${head}:${named}\``));
+  writeFileSync(path, `${pinned}\n`.split('\n').join(eol));
+  git('mv', `docs/decisions/${name}`, `docs/decisions/replaced/${name}`);
+}
 
 // A record under `replaced/` never moves again, so a link to the root's
 // place of it, from a move this run or a merge that wrote the link

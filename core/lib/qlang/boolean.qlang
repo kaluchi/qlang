@@ -1,7 +1,7 @@
 |~ `::boolean` and what is declared under it: its constructor and its
    refusal, and the words that run on a boolean, the negation and the
    two that join booleans.
-   The decisions it exists for: [D114]. ~|
+   The decisions it exists for: [QSDSP#residence]. ~|
 
 :boolean
   |~~ A boolean is `true` or `false`, the answer to a question about a
@@ -20,7 +20,7 @@
   ~~|
   ::kind
     | wraps |~~ A boolean, read as itself. ~~|
-    | throws :PayloadNotBooleanError
+    | throws :PayloadKindNotTakenError
         |~~ `::boolean` reads its payload as the boolean it is; a payload
             of another kind is refused.
         ~~|
@@ -30,9 +30,9 @@
     | proves :buildsABoolean
         |~~ The constructor of a boolean answers it. ~~|
         ~(::boolean#false | eq false)
-    | proves :PayloadNotBooleanError/refusesANumber
+    | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number is no boolean and is refused. ~~|
-        ~(::boolean#1 !| get [~(type) /actualType] | eq [::boolean/PayloadNotBooleanError ::number])
+        ~(::boolean#1 !| get [~(type) /actualType] | eq [::boolean/PayloadKindNotTakenError ::number])
     | impl ::builtin{}
 
 :boolean/not
@@ -109,7 +109,7 @@
             subject.
         ~~|
         /0 ::boolean
-    | throws :right/NotBooleanError
+    | throws :right/KindNotTakenError
         |~~ The right is a boolean, `true | and (5 | gt 3)`; the
             conditions of one value hold together by `allOf`.
         ~~|
@@ -137,9 +137,9 @@
     | proves :computesTheRightAgainstTheSubject
         |~~ The right is computed against the boolean on the left. ~~|
         ~(true | and (eq true))
-    | proves :right/NotBooleanError/refusesANumber
+    | proves :right/KindNotTakenError/refusesANumber
         |~~ A right that is no boolean is refused under the input. ~~|
-        ~(true | and 1 !| get [~(type) /actualType] | eq [::boolean/and/right/NotBooleanError ::number])
+        ~(true | and 1 !| get [~(type) /actualType] | eq [::boolean/and/right/KindNotTakenError ::number])
     | proves :SubjectNotBooleanError/refusesANumber
         |~~ A subject that is no boolean is refused under the word. ~~|
         ~(1 | and true !| get [~(type) /actualType] | eq [::boolean/and/SubjectNotBooleanError ::number])
@@ -171,7 +171,7 @@
             subject.
         ~~|
         /0 ::boolean
-    | throws :right/NotBooleanError
+    | throws :right/KindNotTakenError
         |~~ The right is a boolean, `false | or (5 | gt 3)`; the
             conditions of one value hold together by `anyOf`.
         ~~|
@@ -199,9 +199,9 @@
     | proves :computesTheRightAgainstTheSubject
         |~~ The right is computed against the boolean on the left. ~~|
         ~(false | or (not))
-    | proves :right/NotBooleanError/refusesANumber
+    | proves :right/KindNotTakenError/refusesANumber
         |~~ A right that is no boolean is refused under the input. ~~|
-        ~(false | or 1 !| get [~(type) /actualType] | eq [::boolean/or/right/NotBooleanError ::number])
+        ~(false | or 1 !| get [~(type) /actualType] | eq [::boolean/or/right/KindNotTakenError ::number])
     | proves :SubjectNotBooleanError/refusesANumber
         |~~ A subject that is no boolean is refused under the word. ~~|
         ~(1 | or true !| get [~(type) /actualType] | eq [::boolean/or/SubjectNotBooleanError ::number])

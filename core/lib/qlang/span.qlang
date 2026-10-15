@@ -1,6 +1,6 @@
 |~ `::span`, the kind of a stretch of source text, and what is declared
    under it: the words that read its ends.
-   The decisions it exists for: [D249]. ~|
+   The decisions it exists for: [QSPRN#span]. ~|
 
 :span
   |~~ A span is a stretch of source text, the place where a reading
@@ -22,10 +22,10 @@
     | proves :PayloadNotSixNumbersError/refusesThreeNumbers
         |~~ Three numbers make a point, no span. ~~|
         ~(::span[0 1 1] !| type | eq ::span/PayloadNotSixNumbersError)
-    | proves :PayloadNotVecError/refusesText
+    | proves :PayloadKindNotTakenError/refusesText
         |~~ Text is no vector of numbers. ~~|
-        ~(::span"abcdef" !| type | eq ::span/PayloadNotVecError)
-    | proves :ElementNotNumberError/namesTheElement
+        ~(::span"abcdef" !| type | eq ::span/PayloadKindNotTakenError)
+    | proves :ElementKindNotTakenError/namesTheElement
         |~~ An element that is no number is refused by its index. ~~|
         ~(::span[0 1 "x" 1 1 2] !| get /index | eq 2)
 

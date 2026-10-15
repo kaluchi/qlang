@@ -1,8 +1,8 @@
-// The kind [D252]: the constructor of `::kind`, which reads a kind from its
-// literal, the commands that declare it folded into data and the recipe
+// The kind [QSBLD#kind]: the constructor of `::kind`, which reads a kind from
+// its literal, the commands that declare it folded into data and the recipe
 // that builds its values, and the words that build one from the noun by
-// commands, each writing its command after the ones the kind holds, the
-// recipe last.
+// commands, each writing its command after the ones the kind holds, the recipe
+// last.
 
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -28,7 +28,7 @@ function madeKind(commands, recipe) {
 
 // `::kind[commands check]` — a kind from its literal: the quote of its
 // commands, and the check a host hands a kind of the core, or null for a
-// kind that attaches its tag by its commands alone [D279].
+// kind that attaches its tag by its commands alone [QSLIT#tag].
 bindPrim('kind/construct', payload => {
   if (!isVec(payload) || payload.length !== 2) throw new KindPayloadNotPairError({ actualValue: payload });
   const [commands, recipe] = payload;
@@ -38,7 +38,7 @@ bindPrim('kind/construct', payload => {
 
 // The kind a builder runs on: a kind, or the noun itself, which starts the
 // kind of no commands and no recipe; the call refuses a tag of another noun
-// before the builder runs [D275].
+// before the builder runs [QSDSP#tagname].
 const NO_KIND = madeKind(makeQuote([]), null);
 
 const kindFrom = subject => (isKind(subject) ? subject : NO_KIND);
@@ -69,7 +69,7 @@ bindPrim('kind/carries', (subject, name, page, kinds) => withCommand(subject, 'c
 // and its condition.
 bindPrim('kind/holds', (subject, name, page, condition) => withCommand(subject, 'holds', [name, page, condition]));
 
-// `throws :w/NotNumberError |~~ … ~~|` — a refusal and its page.
+// `throws :w/KindNotTakenError |~~ … ~~|` — a refusal and its page.
 bindPrim('kind/throws', (subject, name, page) => withCommand(subject, 'throws', [name, page]));
 
 // `proves :holdsItsSizes |~~ … ~~| ~(…)` — a law of the kind, the claim its
@@ -77,5 +77,5 @@ bindPrim('kind/throws', (subject, name, page) => withCommand(subject, 'throws', 
 bindPrim('kind/proves', (subject, name, page, query) => withCommand(subject, 'proves', [name, page, query]));
 
 // `impl ::builtin{}` — the check a host hands a kind of the core, its
-// constructor [D279].
+// constructor [QSLIT#tag].
 bindPrim('kind/impl', (subject, recipe) => madeKind(commandsOf(kindFrom(subject)), recipe));

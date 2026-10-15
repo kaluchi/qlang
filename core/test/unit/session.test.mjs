@@ -55,7 +55,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(84);
   });
 
-  it('a cell opens a scope of its own, where a later cell declares a name again [D5]', async () => {
+  it('a cell opens a scope of its own, where a later cell declares a name again [QSNAM#scope]', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':k 1');
     const cellEntry = await sessionInstance.evalCell(':k 2 | k');
@@ -118,13 +118,13 @@ describe('createSession lifecycle', () => {
   });
 });
 
-describe('the sources a host hands [D153]', () => {
-  // A source of the host declares a word under the label of its subject,
-  // with the implementation the host hands beside it [D72], [D251].
+describe('the sources a host hands [QSDSP#residence]', () => {
+  // A source of the host declares a word under the label of its subject, with
+  // the implementation the host hands beside it [QSDSP#residence], [QSBLD#fn].
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [
-      ':number/less |~~ The subject less the input. ~~| (::fn | takes :by |~~ How much less. ~~| /0 ::number | throws :by/NotNumberError |~~ The amount is a number. ~~| | impl ::builtin{})',
+      ':number/less |~~ The subject less the input. ~~| (::fn | takes :by |~~ How much less. ~~| /0 ::number | throws :by/KindNotTakenError |~~ The amount is a number. ~~| | impl ::builtin{})',
       ':any/fetch |~~ The text fetched. ~~| (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})',
       ':any/doubled ~(fetch | append fetch)'
     ].join('\n'),
@@ -135,7 +135,7 @@ describe('the sources a host hands [D153]', () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
     expect((await sessionInstance.evalCell('7 | less "a" !| type')).result)
-      .toEqual(makeTag('number/less/by/NotNumberError'));
+      .toEqual(makeTag('number/less/by/KindNotTakenError'));
   });
 
   it('runs a name of steps the source declares over the host\'s own', async () => {
@@ -161,10 +161,10 @@ describe('the sources a host hands [D153]', () => {
       impls: { 'any/twice': (subject, by) => subject * by }
     }] });
     expect((await sessionInstance.evalCell('3 | twice 2')).result).toBe(6);
-    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTag('any/twice/by/NotNumberError'));
+    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTag('any/twice/by/KindNotTakenError'));
   });
 
-  it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [D34]', async () => {
+  it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [QSDSP#walk]', async () => {
     await expect(createSession({ sources: [{
       uri: 'tests/bare', source: ':any/shout ~(::builtin{})', impls: { shout: text => text.toUpperCase() }
     }] })).rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });

@@ -54,19 +54,19 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // slot — `::error`, the kind of errors, for user `!{}` with no tag
     // before its bang. The brackets imply that kind, so the
     // printer leaves it out, as it does a vector's, and the
-    // round-trip recovers the same identity [D20], [D64].
+    // round-trip recovers the same identity [QSLIT#kind], [QSERR#rest].
     const err = makeErrorValue(makeTag('error'), new Map());
     expect(printValue(err)).toBe('!{\n  :trail []\n}');
   });
 
-  it('a failure that flew no step prints its empty path, its error at rest, which raise raises back to it [D13]', async () => {
+  it('a failure that flew no step prints its empty path, its error at rest, which raise raises back to it [QSERR#rest]', async () => {
     const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
     expect(printValue(err)).toBe('::Foo!{\n  :category :oops\n  :trail []\n}');
     expect(isErrorValue(await evalQuery(printValue(err)))).toBe(false);
     expect(deepEqual(await evalQuery(`${printValue(err)} | raise`), err)).toBe(true);
   });
 
-  it('an answer that is a failure prints under the line that says it was raised, an error at rest under none [D13]', async () => {
+  it('an answer that is a failure prints under the line that says it was raised, an error at rest under none [QSERR#rest]', async () => {
     const env = await langRuntime();
     const failure = await evalQuery('"x" | add 1');
     expect(await printAnswer(failure, env)).toBe(`|~| raised, and no !| caught it\n${printValue(failure)}`);
@@ -75,7 +75,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
   });
 
   it('a :kind in the descriptor is a fact like any other', async () => {
-    // A `:kind` names no tag [D13]: it stays in the descriptor as
+    // A `:kind` names no tag [QSERR#rest]: it stays in the descriptor as
     // ordinary user data, the error staying of the kind of errors.
     const err = makeErrorValue(makeTag('error'), new Map([
       ['kind', keyword('oops')]
@@ -97,7 +97,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
 });
 
 describe('toPlain encodes a failure', () => {
-  it('as the object of its $error, its tag and its facts [D126]', async () => {
+  it('as the object of its $error, its tag and its facts [QSPRN#json]', async () => {
     const plain = toPlain(await evalQuery('"x" | add 1'));
     expect(Object.keys(plain)).toEqual(['$error']);
     expect(plain.$error.$tag).toBe('number/add/SubjectNotNumberError');
@@ -230,7 +230,7 @@ describe('the finite-double domain holds at every render seam', () => {
 });
 
 // A kind whose `print` is declared under it prints its parts through it,
-// and the forms of the core print the rest of the value [D96].
+// and the forms of the core print the rest of the value [QSPRN#print].
 describe('print — the print declared under a kind', () => {
   const BADGE_SOURCE = [
     ':badge |~~ A badge. ~~|',

@@ -2,7 +2,7 @@
 // tokenize — every branch is the ANSI lookup or the whitespace
 // pass-through, so the tests confirm token kinds → escape codes
 // mapping plus the no-escape behaviour of whitespace.
-// The decisions it exists for: [D241].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
 import { highlightAnsi } from '../src/highlight-ansi.mjs';

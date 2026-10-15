@@ -1,5 +1,5 @@
-// The view of a value within a budget [D109]: each way a part gives way,
-// and the `:read` of every marker applied to the value taken answering
+// The view of a value within a budget [QSPRN#elide]: each way a part gives
+// way, and the `:read` of every marker applied to the value taken answering
 // the part left out.
 
 import { describe, it, expect } from 'vitest';
@@ -13,7 +13,7 @@ import { deepEqual } from '../../src/equality.mjs';
 const LONG = 'a long line of text to leave out for sure, which runs on long enough that its marker prints shorter';
 const readBack = async (value, marker) => evalQuery(`${printValue(value)} | apply ${printValue(marker.get('read'))}`);
 
-describe('elide [D109]', () => {
+describe('elide [QSPRN#elide]', () => {
   it('answers a value whose print fits as it is', () => {
     const value = [1, 2];
     expect(elide(value, 100)).toBe(value);
@@ -79,7 +79,7 @@ describe('elide [D109]', () => {
     expect([view.get('a'), view.get('c')]).toEqual([value.get('a'), value.get('c')]);
   });
 
-  it('keeps a part whose marker prints no shorter than it, so a budget never lengthens a print [D109]', async () => {
+  it('keeps a part whose marker prints no shorter than it, so a budget never lengthens a print [QSPRN#elide]', async () => {
     const value = await evalQuery('[[] {:n 1} "short"]');
     expect(elide(value, 3)).toBe(value);
     const failing = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
@@ -87,7 +87,7 @@ describe('elide [D109]', () => {
   });
 });
 
-describe('elideAnswer [D109]', () => {
+describe('elideAnswer [QSPRN#elide]', () => {
   it('gives the facts of a raised error way beneath !|, its trail a trail', async () => {
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
     const view = elideAnswer(failing, 300);
@@ -101,7 +101,7 @@ describe('elideAnswer [D109]', () => {
     expect(elideAnswer(forty, 80)).toEqual(elide(forty, 80));
   });
 
-  it('answers a value whole and an error as its alert when no budget is asked for [D7]', async () => {
+  it('answers a value whole and an error as its alert when no budget is asked for [QSHST#answer]', async () => {
     const forty = Array.from({ length: 40 }, (_, index) => index + 1);
     expect(elideAnswer(forty)).toBe(forty);
     const failing = await evalQuery(`[${forty.join(' ')}] | filter ~(nope)`);
@@ -109,12 +109,12 @@ describe('elideAnswer [D109]', () => {
   });
 });
 
-// A failure a host prints is an alert [D7]: the subject where the
-// failure arose within an excerpt, a subject it only passed given way
-// whole, an error at rest among its facts a value cut within its excerpt
-// [D13], a value shown once, and the read of every marker continuing the
-// query beneath `!|`.
-describe('alertOf [D7]', () => {
+// A failure a host prints is an alert [QSHST#answer]: the subject where the
+// failure arose within an excerpt, a subject it only passed given way whole,
+// an error at rest among its facts a value cut within its excerpt
+// [QSERR#rest], a value shown once, and the read of every marker continuing
+// the query beneath `!|`.
+describe('alertOf [QSHST#answer]', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
   const continued = (query, marker) => evalQuery(`${query} ${printValue(marker.get('read')).slice(2, -1)}`);
 
@@ -152,7 +152,7 @@ describe('alertOf [D7]', () => {
     expect(kept.get('subject')).toBe(5);
   });
 
-  it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [D13]', async () => {
+  it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [QSERR#rest]', async () => {
     const query = `${records} | map (get /n)`;
     const alert = alertOf(await evalQuery(query));
     const inner = alert.descriptor.get('actualValue');

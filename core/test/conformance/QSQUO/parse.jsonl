@@ -1,0 +1,14 @@
+{"name":"quote-prints-as-its-text","query":"~(mul 2) | parse","expect":"\"mul 2\""}
+{"name":"quote-empty-prints-as-nothing","query":"~() | parse","expect":"\"\""}
+{"name":"quote-with-pipe-operator","query":"~(a | b) | parse","expect":"\"a | b\""}
+{"name":"quote-with-leading-combinator-trail-style","query":"~(!| 0 | sort) | parse","expect":"\"!| 0 | sort\""}
+{"name":"quote-parse-twice-is-identity","query":"~(mul 2) | parse | parse","expect":"~(mul 2)"}
+{"name":"a-quote-of-declarations-prints-a-declaration-a-line","query":"~(:a 1 | :b 2) | parse","expect":"\":a 1\n| :b 2\""}
+{"name":"a-quote-of-other-steps-prints-on-one-line","query":"~(:a 1 | a) | parse","expect":"\":a 1 | a\""}
+{"name":"a-story-printed-reads-back-as-itself","query":"::number | source | print | parse | first | eq (::number | source)","expect":"true"}
+{"name":"parse-number-literal","query":"\"42\" | parse","expect":"~(42)"}
+{"name":"parse-pipeline-is-a-quote","query":"\"42 | add 1\" | parse | type","expect":"::quote"}
+{"name":"parse-quote-subject-prints-its-text","query":"~(5 | mul 2) | parse","expect":"\"5 | mul 2\""}
+{"name":"parse-is-an-involution","query":"\"5 |  mul   2\" | parse | parse","expect":"\"5 | mul 2\""}
+{"name":"parse-blank-source-is-the-empty-quote","query":"\" \" | parse","expect":"~()"}
+{"name":"parse-refuses-a-malformed-source","query":"\"this is bad [\" | parse !| type","expect":"::quote/ParseError"}

@@ -13,16 +13,25 @@ wins and this file is what changes.
    It carries the mission, the satisfactory state, the principles, the
    scars, the finish, and the route of milestones. Each numbered
    decision is a file under `docs/decisions/`, opened where the audit
-   cites it, and `node scripts/requirements.mjs` lists the
-   requirements every decision left and which the tree meets.
+   cites it; one under `docs/decisions/replaced/` is history, and its
+   paths read in the tree its line `Left at` names [QSWRK#journal]. What
+   holds at the baseline is stated by topic in `docs/spec/`, a chapter
+   per topic cited by section, `[QSNAM#scope]`, its cases under
+   `core/test/conformance/QSNAM/`; a decision is the change in transit,
+   which dissolves into the chapters at the move of the baseline
+   [QSWRK#spec]. How the work moves, the records, the cases, the
+   baseline, the branch and the measures, is the chapter of the work,
+   `docs/spec/QSWRK-the-work.md`, read whole before the first change.
+   `node scripts/requirements.mjs` shows where every record stands,
+   those being decided among them.
    `docs/qlang-entrypoint.md` is a draft of the computed context a
-   session starts from, ideas and no decision [D231]. The sensors live
+   session starts from, ideas and no decision [QSWRK#documents]. The sensors live
    in `scripts/sensors/`: the probes run wherever the checkout is, and
    the readers of the transcripts in a session on the maintainer's
    machine.
 2. `npm run desk`, the screen of the work: the branch against master,
    the walk of the audit's baseline, the targets open, the stashes and
-   the sister project's branch [D237]. Then `npm test` at the repo root,
+   the sister project's branch [QSWRK#baseline]. Then `npm test` at the repo root,
    in the background while reading. The git snapshot the harness
    injects at the start of a session goes stale; the screen you run is
    the truth.
@@ -33,7 +42,7 @@ wins and this file is what changes.
    cases of the conformance suite. A decision that survives only in a
    conversation is lost. Then walk the baseline: every record no case
    names gets its fate, the audit moves to the tree the session leaves,
-   and the next shift starts at a clean desk [D225].
+   and the next shift starts at a clean desk [QSWRK#baseline].
 
 After a compaction the summary is a map and no source: reread Tier 1
 whole, and the conversation from its transcript,
@@ -64,7 +73,8 @@ Tier 2, by topic, only the files the topic names:
 - arguments and dispatch: `core/src/runtime/nouns.mjs` for the walk
   from a subject's tags to the verb a name calls, and
   `core/lib/qlang/any.qlang` for the words every value answers
-- names, scope, the root, sessions: `core/src/state.mjs`,
+- names, scope, the root, sessions: `docs/spec/QSNAM-names-and-scope.md`
+  first, then `core/src/state.mjs`,
   `core/src/env-keys.mjs`,
   `core/src/runtime/root.mjs`, `core/src/runtime/env.mjs`,
   `core/src/session.mjs`
@@ -96,7 +106,7 @@ is deleted or condensed without the maintainer's word. Only the
 maintainer's quoted words bind: a record whose `Decided by.` or
 `Source.` line names the model is a reading the session weighs on its
 merits and replaces when it finds a better one, never a rule to put to
-the maintainer nor a question of leave [D155]. A session's
+the maintainer nor a question of leave [QSWRK#journal]. A session's
 answer is findings with `file:line` and a probe, and the questions the
 tree cannot answer; no retelling, no tables unless asked, no next-step
 pitches, no talk of commits or pull requests.
@@ -104,7 +114,7 @@ pitches, no talk of commits or pull requests.
 Verify before asserting. Any claim about behaviour is run with
 `qlang '…'` in script mode or in `qlang -i`; in Git Bash a query that
 begins with `/` arrives as a path, which the command line reads back
-[D144]. A long tool output is persisted with a short preview; filter it
+[QSHST#shell]. A long tool output is persisted with a short preview; filter it
 instead of reading it back whole.
 
 ## Workspaces
@@ -116,7 +126,9 @@ runtime dependencies, and no `node:*` import anywhere under
 catalog under `core/lib/qlang/` loads at runtime through
 `package.json#imports`. `cli/` is the Node command line and REPL.
 `lsp/` is the language server. `site/` is the Astro site, private.
-`vscode/` is the editor extension, published to the Marketplace. `npm
+`vscode/` is the editor extension, unpublished, which runs the
+language server of the checkout; npm carries the core and the command
+line, and the Eclipse Marketplace the artifacts of the sister project. `npm
 install` at the root links the workspaces; the Node floor is the
 `engines.node` field of each workspace.
 
@@ -130,12 +142,12 @@ install` at the root links the workspaces; the Node floor is the
   to a file, never through a pipe.
 - `node scripts/benchmark.mjs prompt | screen | report`: the prompt of a
   run of a fresh model, the hash of the first screen it reads, and the
-  runs recorded side by side [D26].
+  runs recorded side by side [QSWRK#measure].
 - `node scripts/benchmark.mjs author | run | grade | misses | frictions`:
   a set of tasks a clean author writes, clean children that solve it
   with the command line under a saved screen, the pages of the language
   and the command line, the grade by the tree, and the reading of
-  the misses, which marks the set seen [D26]. The usage is the header
+  the misses, which marks the set seen [QSWRK#measure]. The usage is the header
   of the script.
 - `npm run check:fuzz -- [variants of each law] [seed]`: every law of the
   root run again with its literals changed to edge values; a variant
@@ -144,6 +156,9 @@ install` at the root links the workspaces; the Node floor is the
   defaults; other counts and seeds after a change to a primitive, the
   evaluator, the printer or the grammar.
 - `npm run test:coverage`: the coverage thresholds on the core.
+- `node scripts/dissolve-records.mjs Dnn`: at the move of the baseline,
+  a record in transit dissolves into the sections it overrides, once
+  they are written anew [QSWRK#spec].
 - `npm run build`: regenerate the parser from `core/src/grammar.peggy`.
 - `npm test -w @kaluchi/qlang-cli`: one workspace.
 
@@ -156,21 +171,27 @@ followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
 literal or held by a constant the address does not name
-(`VecToMapElementNotPairError` for `vec/toMap/ElementNotPairError`) [D46],
+(`VecToMapElementNotPairError` for `vec/toMap/ElementNotPairError`) [QSERR#site],
 on a decision named in a page of the catalog, which a reader of the
-language cannot follow, on a record that names no decider [D155], and
+language cannot follow, on a record that names no decider [QSWRK#journal], and
 on a path the audit, the entrypoint document or this file names that
 the tree lacks or on words they quote from the tree that their file no
 longer holds, and on the walk of a baseline: a record of the language
 the audit's baseline holds that no case and no line of its fate does,
-more than twenty records since the baseline, and a citation of a record
-not in force, which the code, the tests and the cases never make and the
-documents make only of one waiting on its target [D225]. `npm run check:probes` runs every probe of the audit and the
-entrypoint document, the shell ones that read the repository alone
-included, and fails on one whose answer changed, which the branch that
-changed it answers by rewriting the sentence with its probe [D93]; a
+more than twenty records since the baseline, a document of the research
+the baseline holds that nothing in force cites, which
+`node scripts/drop-documents.mjs` drops [QSWRK#baseline], a citation of a section of
+the specification its chapter lacks, a case of a chapter changed since
+the baseline that no record in transit over its section claims, a
+chapter that cites a record, speaks of the journal or tells a history
+[QSWRK#spec],
+and a citation of a record not in force, which the code, the tests and the cases never make and the
+documents make only of one waiting on its target [QSWRK#baseline]. `npm run check:probes` runs every probe of the audit, the
+entrypoint document, the open records and the specification, the shell
+ones that read the repository alone included, and fails on one whose answer changed, which the branch that
+changed it answers by rewriting the sentence with its probe [QSWRK#probe]; a
 target case records the answer the tree gives today, so the suite
-tells a repair from a broken case [D91].
+tells a repair from a broken case [QSWRK#target].
 
 Coverage thresholds are pinned in the `vitest.config.mjs` of `core/`
 and `cli/`; the audit keeps a threshold for the language core alone.
@@ -184,17 +205,17 @@ it; where a rule and the audit disagree, the audit wins.
 - A branch is a shift: it takes the scars of its shift, is named after
   them, and lands on master at every move of the baseline by a merge
   commit, made locally with no question asked where no pull request is
-  open, so master is the clean desk [D227]. Never
+  open, so master is the clean desk [QSWRK#branch]. Never
   commit code on master; a change to documents alone lands without a
   branch. A branch states in its description what it shows when it
   lands. The sign of its diff by
   area, which `node scripts/measure.mjs` computes from the history, is
   read against what it delivered, and no commit message carries a count
-  the history answers [D208].
+  the history answers [QSWRK#diff].
 - A branch that works targets, a subagent's in its own worktree
   among them, starts from a green baseline, leaves the decision
   records, the conformance cases and the gates as it found them, and
-  drops only the mark of a target it met (`docs/decisions/D59.md`).
+  drops only the mark of a target it met [QSWRK#target].
   Review it with the baseline's copy of `node scripts/gate-diff.mjs
   --task Dnn`.
 - Tests first for any new public surface. `npm run ci` green before a
@@ -204,7 +225,7 @@ it; where a rule and the audit disagree, the audit wins.
 - Write the decisions as files under `docs/decisions/` in the same
   session as the work, prune in the same commit the part of an older
   record a new one takes, found by a search of the records' words, so a
-  record in force says only what holds [D227], hold their quotes against
+  record in force says only what holds [QSWRK#journal], hold their quotes against
   the transcripts with `node scripts/sensors/check-quotes.mjs`, and
   remove a scar the tree no longer shows.
 - Before a construct is proposed, search the maintainer's words about
@@ -214,7 +235,7 @@ it; where a rule and the audit disagree, the audit wins.
   maintainer's words about that very axis.
 - A target is taken in hand only where landing it changes no met case
   and no record's text; otherwise a move of design with its record
-  comes first [D59].
+  comes first [QSWRK#target].
 - Each clause added to a condition is held by a test that fails without
   it, cut on a copy to watch it fail. A change to how inputs are read is
   run against the previous version over generated inputs, each
@@ -230,7 +251,7 @@ it; where a rule and the audit disagree, the audit wins.
   nothing that boots the language, no probe, no sensor and no child of
   the benchmark, since a second boot starves the coverage run.
 - A review's report is kept as its writer wrote it, each finding with
-  the fate it met.
+  the fate it met, while a record in force cites it [QSWRK#review].
 
 ## Release
 
@@ -253,7 +274,7 @@ as a signal at milestones rather than a gate: apply a finding that
 names a real defect, and reject a proposed fallback or defensive check
 with a sentence in the commit body.
 
-`node scripts/outside-audit.mjs` runs the outside audit [D277]: a clean
+`node scripts/outside-audit.mjs` runs the outside audit [QSWRK#review]: a clean
 Opus reads the tree at HEAD from an empty directory, with no CLAUDE.md,
 no memory and no MCP server, and its report lands in
 `docs/research/outside-audit/` under its date and tree; the session

@@ -1,0 +1,52 @@
+{"name":"count","query":"[1 2 3 4 5] | count","expect":"5"}
+{"name":"count-empty","query":"[] | count","expect":"0"}
+{"name":"empty-true","query":"[] | empty","expect":"true"}
+{"name":"empty-false","query":"[1] | empty","expect":"false"}
+{"name":"first","query":"[10 20 30] | first","expect":"10"}
+{"name":"first-empty","query":"[] | first","expect":"null"}
+{"name":"last","query":"[10 20 30] | last","expect":"30"}
+{"name":"last-empty","query":"[] | last","expect":"null"}
+{"name":"sum","query":"[1 2 3 4 5] | sum","expect":"15"}
+{"name":"sum-empty","query":"[] | sum","expect":"0"}
+{"name":"sum-overflow-lifts-not-finite","query":"[1e308 1e308] | sum !| type","expect":"::number/NotFiniteError"}
+{"name":"sum-overflow-holds-its-subject-on-the-trail","query":"[1e308 1e308] | sum !| get /trail/0/subject","expect":"[1e308 1e308]"}
+{"name":"min","query":"[3 1 4 1 5 9 2 6] | min","expect":"1"}
+{"name":"max","query":"[3 1 4 1 5 9 2 6] | max","expect":"9"}
+{"name":"take","query":"[1 2 3 4 5] | take 3","expect":"[1 2 3]"}
+{"name":"drop","query":"[1 2 3 4 5] | drop 2","expect":"[3 4 5]"}
+{"name":"reverse","query":"[1 2 3] | reverse","expect":"[3 2 1]"}
+{"name":"flat","query":"[[1 2] [3] [4 5]] | flat","expect":"[1 2 3 4 5]"}
+{"name":"append-puts-an-element-after-a-vector","query":"[1 2] | append 3","expect":"[1 2 3]"}
+{"name":"prepend-puts-an-element-before-a-vector","query":"[2 3] | prepend 1","expect":"[1 2 3]"}
+{"name":"append-takes-a-vector-as-one-element","query":"[1] | append [2 3]","expect":"[1 [2 3]]"}
+{"name":"append-keeps-the-set-of-its-subject","query":"#[1 2] | append 3","expect":"#[1 2 3]"}
+{"name":"take-negative-clamps-to-empty","query":"[1 2 3] | take -1","expect":"[]"}
+{"name":"take-negative-large-clamps-to-empty","query":"[1 2 3] | take -5","expect":"[]"}
+{"name":"drop-negative-clamps-to-whole","query":"[1 2 3] | drop -1","expect":"[1 2 3]"}
+{"name":"drop-negative-large-clamps-to-whole","query":"[1 2 3] | drop -5","expect":"[1 2 3]"}
+{"name":"take-over-length-returns-whole","query":"[1 2 3] | take 5","expect":"[1 2 3]"}
+{"name":"drop-over-length-returns-empty","query":"[1 2 3] | drop 5","expect":"[]"}
+{"name":"take-negative-on-set-clamps-to-empty","query":"#[1 2 3] | take -1 | count","expect":"0"}
+{"name":"drop-negative-on-set-clamps-to-whole","query":"#[1 2 3] | drop -1 | count","expect":"3"}
+{"name":"has-set-true","query":"#[:a :b :c] | has :b","expect":"true"}
+{"name":"has-set-false","query":"#[:a :b :c] | has :d","expect":"false"}
+{"name":"has-set-structural-vec-key-true","query":"#[[1 2] [3 4]] | has [1 2]","expect":"true"}
+{"name":"has-set-structural-vec-key-false","query":"#[[1 2] [3 4]] | has [5 6]","expect":"false"}
+{"name":"has-set-structural-map-key-true","query":"#[{:a 1} {:b 2}] | has {:a 1}","expect":"true"}
+{"name":"has-set-structural-map-key-false","query":"#[{:a 1} {:b 2}] | has {:c 3}","expect":"false"}
+{"name":"has-set-structural-nested-set-key","query":"#[#[:x :y] #[:z]] | has #[:x :y]","expect":"true"}
+{"name":"zip-reads-vectors-side-by-side-to-the-shortest","query":"[[1 2 3] [:a :b]] | zip","expect":"[[1 :a] [2 :b]]"}
+{"name":"a-vector-has-an-element-equal-to-one","query":"[\"ops\" \"db\"] | has \"ops\"","expect":"true"}
+{"name":"a-vector-lacks-an-element-it-does-not-hold","query":"[1 [2]] | has [3]","expect":"false"}
+{"name":"a-soft-read-of-an-empty-container-is-null","query":"get [~([] | first) ~([] | max)]","expect":"[null null]"}
+{"name":"avg-is-the-mean","query":"[1 2 3 4] | avg","expect":"2.5"}
+{"name":"avg-of-nothing-is-null","query":"[] | avg","expect":"null"}
+{"name":"avg-of-a-group","query":"[{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy /d | map ~(map /n | avg)","expect":"{:a 2 :b 5}"}
+{"name":"avg-refuses-an-element-that-is-no-number","query":"[1 \"x\"] | avg !| get [~(type) /index]","expect":"[::vec/avg/ElementNotNumberError 1]"}
+{"name":"a-set-holds-any-element","query":"#[1 \"a\"] | has 42","expect":"false"}
+{"name":"flat-of-sets-is-their-union","query":"#[#[3 1] #[2 1]] | flat","expect":"#[1 2 3]"}
+{"name":"first-of-an-empty-set-is-null","query":"#[] | first","expect":"null"}
+{"name":"first-set","query":"#[10 20 30] | first","expect":"10"}
+{"name":"has-finds-a-composite-member","query":"#[{:a 2} [1] \"x\" 3] | has [1]","expect":"true"}
+{"name":"has-misses-a-value-between-two-members","query":"#[1 3 5] | has 4","expect":"false"}
+{"name":"a-vector-takes-any-element-at-its-head","query":"[1] | prepend \"x\"","expect":"[\"x\" 1]"}

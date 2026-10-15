@@ -1,6 +1,6 @@
-// The words of a path [D248]: `get` reads it strictly and `query` softly,
-// over a path, a key or a literal that holds paths; `put`, `update` and
-// `delete` write it [D250]; `paths` answers the outline of a value;
+// The words of a path [QSPTH#value]: `get` reads it strictly and `query`
+// softly, over a path, a key or a literal that holds paths; `put`, `update`
+// and `delete` write it [QSPTH#write]; `paths` answers the outline of a value;
 // `segments` and `toPath` turn a path and its keys into each other, JSON
 // Pointer's form read with its escapes.
 
@@ -27,7 +27,7 @@ const isKey = value => isKeyword(value) || typeof value === 'string' || typeof v
 // A path or a key read from the subject; any other value a template whose
 // paths are read and whose quotes, closed at the call, are run against the
 // subject in their places, its other values kept, each container laid back
-// under its tags as a write lays it, the first failure the answer [D279].
+// under its tags as a write lays it, the first failure the answer [QSLIT#tag].
 function readObject(subject, object, soft, fallback, state) {
   if (isPath(object) || isKey(object)) {
     const read = readPath(subject, isPath(object) ? object : pathOfKey(object), soft);
@@ -151,7 +151,7 @@ bindPrim('path/segments', path => Object.freeze(path.segments.map(segment => {
   return Number.isNaN(place) ? keyword(segment) : place;
 })));
 
-// A path names one segment at least, the value itself being `it` [D248].
+// A path names one segment at least, the value itself being `it` [QSPTH#value].
 bindPrim('vec/toPath', keys => {
   if (keys.length === 0) throw new VecToPathEmptyError({ actualValue: keys });
   return makePath(keys.map((key, index) => {

@@ -1,13 +1,13 @@
-// The plain-JSON codec both ways [D22], `json` rendering a value and
+// The plain-JSON codec both ways [QSWRK#catalog], `json` rendering a value and
 // `parseJson` reading one, over the lossy value codec pair `toPlain` /
 // `fromPlain` that bridges qlang runtime values with ordinary JS data
 // structures.
 //
-// Canonical qlang-literal printing lives next door in
-// `print-value.mjs`; `toPlain` routes through the shared
-// `dispatchQlangValue` lookup-table walker so the choice of a writer
-// by the form of a value sits in one place. A rendering for a terminal is a view
-// at a host's boundary, and the command line owns its `table`.
+// Canonical qlang-literal printing lives next door in `print-value.mjs`;
+// `toPlain` routes through the shared `dispatchQlangValue` lookup-table walker
+// so the choice of a writer by the form of a value sits in one place. A
+// rendering for a terminal is a view at a host's boundary, and the command
+// line owns its `table`.
 
 import { printQuoteSource, docText } from '../quote.mjs';
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
@@ -33,9 +33,9 @@ const TO_PLAIN_HANDLERS = {
   boolean: v => v,
   keyword: k => k.name,
   tag:     k => k.literal,
-  // A pattern writes its literal, which JSON has no form for [D246].
+  // A pattern writes its literal, which JSON has no form for [QSTXT#pattern].
   regex:   printRegex,
-  // A path writes its literal, JSON Pointer's form [D248].
+  // A path writes its literal, JSON Pointer's form [QSPTH#value].
   path:    printPath,
   vec:     v => v.map(toPlain),
   map:     qMapToPlainObject,
@@ -50,7 +50,7 @@ const TO_PLAIN_HANDLERS = {
   quote:   q => `~(${printQuoteSource(q)})`,
   doc:     d => `|~~${docText(d)}~~|`,
   set:     s => s.map(toPlain),
-  // An error writes its tag beside its facts [D126]; the literal, not
+  // An error writes its tag beside its facts [QSPRN#json]; the literal, not
   // JSON, is the form that reads back.
   error:   e => ({ $error: { $tag: e.tag.name, facts: toPlain(e.descriptor) } })
 };
@@ -113,7 +113,7 @@ function plainObjectToQMap(plainObj, path) {
 }
 
 // `json` resides on `::any` and `parseJson` on `::string`, each a
-// plain function over the value the walk served [D167].
+// plain function over the value the walk served [QSQUO#modifier].
 const StringParseJsonTextNotJsonError = declareRefusal('string/parseJson/TextNotJsonError');
 
 bindPrim('any/json', subject => JSON.stringify(toPlain(subject)));

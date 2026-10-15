@@ -1,11 +1,11 @@
-// The refusals of the runtime and their pages in the catalog. A refusal
-// names itself in two planes: in the JavaScript, where its site declares
-// it by its address, and in the tree of names, where a source of the
-// language pages it under the noun of the place it guards, with the
-// prose, the facts and the laws a reader reaches through `doc` [D152],
-// [D46]. Nothing in the language forces the two to exist in pairs, so a
-// renamed address or a fresh site without a page drifts silently, and
-// surfaces to a reader as `!| type | doc` answering a refusal of its own.
+// The refusals of the runtime and their pages in the catalog. A refusal names
+// itself in two planes: in the JavaScript, where its site declares it by its
+// address, and in the tree of names, where a source of the language pages it
+// under the noun of the place it guards, with the prose, the facts and the
+// laws a reader reaches through `doc` [QSNAM#address], [QSERR#site]. Nothing
+// in the language forces the two to exist in pairs, so a renamed address or a
+// fresh site without a page drifts silently, and surfaces to a reader as `!|
+// type | doc` answering a refusal of its own.
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
@@ -18,20 +18,22 @@ import { bindingValueOf, isDoc, isKind } from '../../src/types.mjs';
 const session = await createSession();
 const declared = new Set(declaredRefusals());
 
-// The refusals the words and the kinds of the root raise by rule, which
-// their definitions page as the declared ones are paged [D179], [D252].
+// The refusals the words and the kinds of the root raise by rule, which their
+// definitions page as the declared ones are paged [QSSLF#catalog],
+// [QSBLD#kind].
 const ruleBorn = new Set([...session.env.get(ROOT_KEY).keys()]
   .filter(address => isWord(session.env, address) || isKind(bindingValueOf(nodeOf(session.env, address))))
   .flatMap(address => ruleRefusalsOf(session.env, address)));
 
-// The refusals the root pages under a noun, `number/add/SubjectNotNumberError`.
+// The refusals the root pages under a noun,
+// `number/add/SubjectNotNumberError`.
 const refusalPages = [];
 for (const [address, record] of session.env.get(ROOT_KEY)) {
   const [nounName, name] = splitAddress(address);
   if (nounName !== null && /Error$/.test(name) && isDoc(bindingValueOf(record))) refusalPages.push(address);
 }
 
-describe('every refusal a site of the runtime declares has its page under its noun [D152]', () => {
+describe('every refusal a site of the runtime declares has its page under its noun [QSNAM#address]', () => {
   for (const address of declared) {
     it(`${address} is paged under the noun it guards`, () => {
       expect(isDoc(bindingValueOf(nodeOf(session.env, address))),

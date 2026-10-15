@@ -62,9 +62,9 @@ laws, one for each statement of the page, the false and the refused
 among them, and its recipe last; a kind's its payload, its fields, its
 pages, its refusals, its invariants, its laws and its constructor; a
 name the story brings in is a word its prose uses, so a page says what
-its word answers (decisions D179, D251 and D252). A word and a kind
+its word answers [QSSLF#catalog], [QSBLD#fn], [QSBLD#kind]. A word and a kind
 are written by their chains alone, and a role declared by name under a
-word or a label is refused (decision D253). An error leads to the page
+word or a label is refused [QSBLD#chain]. An error leads to the page
 of its site.
 
 Check: a new verb, kind or refusal has its page under the noun of its kind;
@@ -79,7 +79,7 @@ a word, `…/SubjectNot<Label>Error`, `…/<input>/NotGivenError`,
 `…/ArgsBeyondInputsError`, `…/answer/Not<Kinds>Error`, by the one spelling
 the runtime raises it by, and paged where a procedure helps the reader;
 each fact a refusal carries is a definition under its label or under
-`::error` (decision D46); the repair of a call stands on the page of its
+`::error` [QSERR#site]; the repair of a call stands on the page of its
 refusal, where `!| explain` lands, and an input's page says what the
 input is; a law about a refusal stands under the refusal's address, ends in its
 claim with no `| eq true` tail, and repeats no other law of the catalog;

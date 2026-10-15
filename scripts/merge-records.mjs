@@ -1,5 +1,5 @@
 // Merges the records of one axis into the earliest of them, the survivor,
-// whose number stays the address of the axis [D237]: each record merged
+// whose number stays the address of the axis [QSWRK#marks]: each record merged
 // gains the line `Merged into` the survivor and moves to `replaced/` by
 // `scripts/replaced-records.mjs`, and every case, mark, document and
 // record in force that named it in prose names the survivor. The
@@ -24,18 +24,18 @@ if (survivor === undefined || merged.length === 0) {
 }
 const recordPath = name => {
   const path = recordPathOf(repoRoot, name);
-  if (path === null) { console.error(`${name} has no record [D237]`); process.exit(2); }
+  if (path === null) { console.error(`${name} has no record [QSWRK#marks]`); process.exit(2); }
   return posix.relative(repoRoot.replaceAll('\\', '/'), path.replaceAll('\\', '/'));
 };
 if (recordPath(survivor) !== `docs/decisions/${survivor}.md`) {
-  console.error(`${survivor} is not in force, and a record merges into one in force [D237]`);
+  console.error(`${survivor} is not in force, and a record merges into one in force [QSWRK#marks]`);
   process.exit(2);
 }
 // A survivor that names no decider takes none of a merged record's by
-// itself: its author writes the line, the parts of each record named [D155].
+// itself: its author writes the line, the parts of each record named [QSWRK#journal].
 const decides = name => /^Decided by\./m.test(readFileSync(join(repoRoot, recordPath(name)), 'utf8'));
 if (!decides(survivor) && merged.some(decides)) {
-  console.error(`${survivor} names no decider while a record merged into it does: write its \`Decided by.\` line first [D155]`);
+  console.error(`${survivor} names no decider while a record merged into it does: write its \`Decided by.\` line first [QSWRK#journal]`);
   process.exit(2);
 }
 const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 26 });
@@ -51,7 +51,7 @@ const rewrite = (path, change) => {
 const order = name => (name.startsWith('E') ? 100000 : 0) + Number(name.slice(1));
 const earlier = merged.filter(name => order(name) < order(survivor));
 if (earlier.length > 0) {
-  console.error(`${earlier.join(' ')} came before ${survivor}: the earliest record of an axis stays, and the later ones merge into it [D237]`);
+  console.error(`${earlier.join(' ')} came before ${survivor}: the earliest record of an axis stays, and the later ones merge into it [QSWRK#marks]`);
   process.exit(2);
 }
 
@@ -154,7 +154,7 @@ for (const path of tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/
 // A mark of an artifact, a citation of a document of the work and one of a
 // record in force name the survivor.
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\//;
-// The documents the walk holds to the records in force [D225].
+// The documents the walk holds to the records in force [QSWRK#baseline].
 const isDocument = path => CITING_DOCUMENTS.includes(path);
 const RECORD_IN_FORCE = /^docs\/decisions\/[DE]\d+\.md$/;
 const isRecordMerged = path => [survivor, ...merged].some(name => path === `docs/decisions/${name}.md`);

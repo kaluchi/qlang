@@ -7,7 +7,7 @@
 // Usage: node scripts/sensors/check-quotes.mjs [document ...]
 // Without documents it reads the audit, the entrypoint and the records
 // of docs/decisions.
-// The decisions it exists for: [D155], [D231].
+// The decisions it exists for: [QSWRK#journal], [QSWRK#documents].
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -44,6 +44,6 @@ for (const documentPath of documents) {
     const lineNumber = prose.slice(0, quoted.index).split('\n').length;
     console.log(found
       ? `ok    ${shownPath}:${lineNumber}  ${found.session} ${found.at}`
-      : `miss  ${shownPath}:${lineNumber}  «${squash(quoted[1]).slice(0, 80)}»  a quote holds the maintainer's words as he typed them [D155]`);
+      : `miss  ${shownPath}:${lineNumber}  «${squash(quoted[1]).slice(0, 80)}»  a quote holds the maintainer's words as he typed them [QSWRK#journal]`);
   }
 }

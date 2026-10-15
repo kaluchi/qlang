@@ -1,11 +1,11 @@
-// The function [D251]: the constructor of `::fn`, which reads a function
-// from its literal, the chain that built it folded into data, and the
-// words that build one from the noun by commands, `on`, `takes`,
-// `returns`, `throws`, `carries`, `holds`, `proves` and `impl`, each
-// writing its command after the ones the signature holds, a step of the objects it
-// was given, which prints as the command and reads back as the same step;
-// `fill`, which writes the arguments of a call into the head of its code,
-// and `params`, which reads its inputs.
+// The function [QSBLD#fn]: the constructor of `::fn`, which reads a function
+// from its literal, the chain that built it folded into data, and the words
+// that build one from the noun by commands, `on`, `takes`, `returns`,
+// `throws`, `carries`, `holds`, `proves` and `impl`, each writing its command
+// after the ones the signature holds, a step of the objects it was given,
+// which prints as the command and reads back as the same step; `fill`, which
+// writes the arguments of a call into the head of its code, and `params`,
+// which reads its inputs.
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -44,7 +44,7 @@ bindPrim('fn/construct', payload => {
 
 // The function a builder runs on: a function, or the noun itself, which
 // starts the one of no commands and no recipe; the call refuses a tag of
-// another noun before the builder runs [D275].
+// another noun before the builder runs [QSDSP#tagname].
 function functionOf(subject) {
   return isFn(subject) ? subject : makeTaggedInstance(FN_TAG, Object.freeze([EMPTY_SIGNATURE, null]));
 }

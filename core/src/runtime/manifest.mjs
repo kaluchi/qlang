@@ -1,7 +1,7 @@
-// `manifest` answers the nodes declared one name under a noun [D34],
+// `manifest` answers the nodes declared one name under a noun [QSDSP#walk],
 // `laws` the laws declared under a name and `runLaws` runs them, each
-// primitive reading the state of the call [D72]; the axes of one binding
-// live in `axis.mjs`.
+// primitive reading the state of the call [QSDSP#residence]; the axes of one
+// binding live in `axis.mjs`.
 
 import { bindStateReader } from '../primitives.mjs';
 import { isErrorValue, bindingValueOf, makeTag, errorAtRest, NULL } from '../types.mjs';
@@ -17,7 +17,7 @@ bindStateReader('tag/manifest', (subject, state) => namesUnder(state.env, subjec
 // The laws declared under the address of the record a value reads, as
 // `doc` reads it: each one's last name and the pair of its page, null for
 // a law without one, and its query, in the order of their declarations
-// [D123].
+// [QSSLF#laws].
 const AnyLawsUnknownNameError = declareRefusal('any/laws/UnknownNameError');
 bindStateReader('any/laws', (subject, state) => {
   const address = recordReadBy(subject, NULL, state, AnyLawsUnknownNameError).get('name').name;
@@ -27,10 +27,10 @@ bindStateReader('any/laws', (subject, state) => {
 
 // A law runs as `apply` runs held code, one frame below the step, a law of
 // a name the root declares in a lane over the root alone, as a word of the
-// root runs in the root's scope [D278], and passes when it answers true
-// [D14]; its result names the law by its address and
-// the claim it proves by its page [D123], and holds the error it
-// answered at rest, as `!|` grounds it [D13], [D123].
+// root runs in the root's scope [QSQUO#held], and passes when it answers true
+// [QSCND#boolean]; its result names the law by its address and
+// the claim it proves by its page [QSSLF#laws], and holds the error it
+// answered at rest, as `!|` grounds it [QSERR#rest], [QSSLF#laws].
 async function runLaw({ law, quote, says }, callerState) {
   const result = new Map();
   result.set('law', law);
@@ -48,10 +48,9 @@ async function runLaw({ law, quote, says }, callerState) {
   return result;
 }
 
-// A value reads its record as the axes do, a name its own and any other
-// value its kind's, a keyword after it the member it holds, `::qlang |
-// runLaws :values` [D123]: the laws declared under its address [D123],
-// [D178].
+// A value reads its record as the axes do, a name its own and any other value
+// its kind's, a keyword after it the member it holds, `::qlang | runLaws
+// :values` [QSSLF#laws]: the laws declared under its address [QSSLF#laws].
 async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   const address = recordReadBy(subject, anchor, state, UnknownNameError).get('name').name;
   const root = rootOf(state.env);

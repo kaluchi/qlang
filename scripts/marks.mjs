@@ -1,4 +1,4 @@
-// The marks the artifacts set on the decisions they exist for [D237]: a
+// The marks the artifacts set on the decisions they exist for [QSWRK#marks]: a
 // module, a script and a test file name a record in a comment or a title,
 // `[Dnn]`, a case names it in its `decision`, and the sister project
 // names a record of qlang as `(qlang Dnn)`. A record lists no file; its
@@ -26,18 +26,20 @@ const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8',
 // An artifact is a source, a script or a test file of a workspace, a
 // source of qlang by the comment at its head and a workflow; the data a
 // run of the benchmark wrote, its runs and the sets its authors
-// generated, marks nothing [D26].
+// generated, marks nothing [QSWRK#measure].
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\/.*\.ya?ml$/;
 const RUN_OUTPUT = /^scripts\/benchmark\/(runs|sets)\//;
 const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !RUN_OUTPUT.test(path);
 const CASES = /^core\/test\/conformance\/.*\.jsonl$/;
 
-const MARK = /\[((?:[DE]\d+)(?:,\s*[DE]\d+)*)\]/g;
+// A mark names a record or a section of the specification, `[QSNAM#scope]`
+// [QSWRK#spec].
+const MARK = /\[((?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)(?:,\s*(?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?))*)\]/g;
 
 // The data of the benchmark names the decision it measures in the name of
 // its file, where no text of its own can bear a mark: a screen,
 // `screens/D167.txt`, and a run of a set, `sets/H/runs/D167~blind~haiku~1.json`
-// [D26].
+// [QSWRK#measure].
 const PATH_MARKS = [
   /^scripts\/benchmark\/screens\/(D\d+)(?:\.[0-9a-f]+)?\.txt$/,
   /^scripts\/benchmark\/sets\/[^/]+\/runs\/(D\d+)~[^/]+\.json$/
@@ -49,7 +51,7 @@ function marksOfText(text, pattern) {
   const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
     for (const match of line.matchAll(pattern)) {
-      for (const name of match[1].split(/,\s*/)) marks.push({ name: name.startsWith('D') || name.startsWith('E') ? name : `D${name}`, line: index + 1 });
+      for (const name of match[1].split(/,\s*/)) marks.push({ name: /^(D|E|QS)/.test(name) ? name : `D${name}`, line: index + 1 });
     }
   });
   return marks;
@@ -68,7 +70,7 @@ function marksOfCases(text) {
 // comment that holds it to the next comment that holds one, the marks of
 // one comment covering one block, and the first block reaches up to the
 // head of the file, so every line of an artifact lies under a mark; a case
-// covers its own line [D237].
+// covers its own line [QSWRK#marks].
 function commentLines(text, path) {
   const lines = text.split(/\r?\n/);
   const isComment = [];
@@ -116,7 +118,10 @@ export function marksOfTree(root = repoRoot) {
       continue;
     }
     if (CASES.test(path)) {
-      const found = marksOfCases(readFileSync(join(root, path), 'utf8'));
+      // A file of a chapter marks its section, and a case in it the record
+      // in transit over it [QSWRK#spec].
+      const section = /\/(QS[A-Z]{3})\/([^/]+)\.jsonl$/.exec(path);
+      const found = [...(section === null ? [] : [{ name: `${section[1]}#${section[2]}`, line: 1 }]), ...marksOfCases(readFileSync(join(root, path), 'utf8'))];
       marks.push(...found.map(mark => ({ path, ...mark })));
       blocks.set(path, found.map(({ name, line }) => ({ from: line, to: line, names: new Set([name]) })));
       continue;
@@ -215,7 +220,7 @@ function describedIn(root) {
 // tree changed since it was read against them, each `{ name, commit,
 // files, hunks }`, the hunks of its blocks each `{ path, text }`, the
 // changes the working tree holds among them: what a move of
-// the baseline reads again against the new root [D237]. A record is read
+// the baseline reads again against the new root [QSWRK#marks]. A record is read
 // against the later of the commit that last described it and the
 // baseline, whose move read again every record its diff touched; with
 // `debt`, against the commit that described it alone, the records no move
@@ -265,11 +270,11 @@ if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(
     const debt = argument === '--debt';
     const touched = touchedRecords(repoRoot, { debt });
     for (const { name, commit, files } of touched) console.log(`${name}\t${commit.slice(0, 8)}\t${files.length}\t${files.join(' ')}`);
-    console.log(`touched: ${touched.length} records in force whose scope the tree changed since ${debt ? 'they were described' : 'they were read against it, the later of their description and the baseline'} [D237]`);
+    console.log(`touched: ${touched.length} records in force whose scope the tree changed since ${debt ? 'they were described' : 'they were read against it, the later of their description and the baseline'} [QSWRK#marks]`);
   } else if (command === '--reread') {
     const debt = process.argv.includes('--debt');
     const record = touchedRecords(repoRoot, { debt }).find(({ name }) => name === argument);
-    if (record === undefined) console.log(`${argument}: no block of it changed since it was read against the ${debt ? 'commit that described it' : 'later of its description and the baseline'} [D237]`);
+    if (record === undefined) console.log(`${argument}: no block of it changed since it was read against the ${debt ? 'commit that described it' : 'later of its description and the baseline'} [QSWRK#marks]`);
     else {
       console.log(`${record.name} read against ${record.commit.slice(0, 8)}; the hunks of its blocks since:`);
       for (const { path, text } of record.hunks) console.log(`\n--- ${path}\n${text}`);
@@ -292,7 +297,7 @@ if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(
   } else {
     const { orphans } = marksOfTree();
     for (const path of orphans) console.log(path);
-    console.log(`marks: ${orphans.length === 0 ? 'every artifact names the decision it exists for' : `${orphans.length} artifacts name no decision [D237]`}`);
+    console.log(`marks: ${orphans.length === 0 ? 'every artifact names the decision it exists for' : `${orphans.length} artifacts name no decision [QSWRK#marks]`}`);
     process.exitCode = orphans.length === 0 ? 0 : 1;
   }
 }

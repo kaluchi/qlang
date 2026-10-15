@@ -1,6 +1,6 @@
 // A tagged vector whose tag the environment does not declare, one a
 // host built with makeTaggedInstance, keeps its tag through a verb that
-// returns its subject [D67]. Only JavaScript builds such a value, so
+// returns its subject [QSBLD#input]. Only JavaScript builds such a value, so
 // the tests inspect the answer directly.
 
 import { describe, it, expect } from 'vitest';

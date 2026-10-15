@@ -13,7 +13,7 @@
 // logical name has no entry in the calling package's `imports`
 // field. Every other failure (file missing, read I/O error,
 // permission) propagates as `SourceLoadError`.
-// The decisions it exists for: [D238].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';

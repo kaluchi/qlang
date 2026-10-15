@@ -1,0 +1,10 @@
+{"name":"string","query":"\"hello\"","expect":"\"hello\""}
+{"name":"empty-string","query":"\"\"","expect":"\"\""}
+{"name":"unicode-escape-basic","query":"\"\\u0041\"","expect":"\"A\""}
+{"name":"unicode-escape-multibyte","query":"\"\\u00e9\"","expect":"\"\\u00e9\""}
+{"name":"unicode-escape-in-string","query":"\"hello\\u0020world\"","expect":"\"hello world\""}
+{"name":"unicode-escape-equality","query":"\"\\u0041\" | eq \"A\"","expect":"true"}
+{"name":"solidus-escape","query":"\"\\/\"","expect":"\"/\""}
+{"name":"backspace-escape","query":"\"a\\bb\" | contains \"a\"","expect":"true"}
+{"name":"formfeed-escape","query":"\"a\\fb\" | contains \"a\"","expect":"true"}
+{"name":"all-json-escapes-in-one","query":"\"\\\"\\\\\\/_\\n\\t\\r\\b\\f\" | contains \"_\"","expect":"true"}

@@ -1,12 +1,11 @@
-// The ring of atoms [D42]: every value comes apart into its atoms and a
-// shape, and the shape applied to the atoms builds it back, both written
-// in qlang with the language's own verbs in `test/qlang/atoms.qlang`.
-// The round trip runs over every example of the catalog, read at the
-// address of each verb and at the name of each tag it declares, and over
-// every literal the conformance cases expect, a failure among them
-// caught to its error at rest, its path written into it, and raised again
-// [D13]. The examples of the catalog are walked in shares, a
-// file each, which run side by side.
+// The ring of atoms [QSLIT#atoms]: every value comes apart into its atoms and
+// a shape, and the shape applied to the atoms builds it back, both written in
+// qlang with the language's own verbs in `test/qlang/atoms.qlang`. The round
+// trip runs over every example of the catalog, read at the address of each
+// verb and at the name of each tag it declares, and over every literal the
+// conformance cases expect, a failure among them caught to its error at rest,
+// its path written into it, and raised again [QSERR#rest]. The examples of the
+// catalog are walked in shares, a file each, which run side by side.
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -65,7 +64,7 @@ export async function conformanceLiterals() {
 // The ring over one share of the examples of the catalog, every
 // SHARES-th of them from the share's place.
 export function describeCatalogShare(share) {
-  describe(`the ring of atoms over share ${share} of ${SHARES} of the catalog [D42]`, () => {
+  describe(`the ring of atoms over share ${share} of ${SHARES} of the catalog [QSLIT#atoms]`, () => {
     let session;
     beforeAll(async () => { session = await ringSession(); }, RING_TIMEOUT);
 

@@ -1,4 +1,4 @@
-// The decisions it exists for: [D239].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { defineConfig } from 'vitest/config';
 

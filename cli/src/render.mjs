@@ -3,7 +3,7 @@
 // answer, on stderr with exit 1, nothing once the query wrote to stdout
 // by `out`, and any other answer, a failure among them and a query that
 // does not parse among those, as the language prints it with exit 0
-// [D7], [D96], [D103], [D214].
+// [QSHST#answer], [QSPRN#print], [QSHST#answer].
 
 import { isErrorValue, langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { answerText } from './script-mode.mjs';

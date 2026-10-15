@@ -1,8 +1,8 @@
-// The implementations of the language by the address of the verb or the
-// kind each serves, `number/add`, `vec` [D72]: each runtime module binds
-// its own as it loads, the bootstrap hands each source of the language
-// those under its noun as a host hands its own [D72], and seals the
-// table.
+// The implementations of the language by the address of the verb or the kind
+// each serves, `number/add`, `vec` [QSDSP#residence]: each runtime module
+// binds its own as it loads, the bootstrap hands each source of the language
+// those under its noun as a host hands its own [QSDSP#residence], and seals
+// the table.
 
 import { declareInvariantError } from './errors.mjs';
 import { splitAddress } from './address.mjs';
@@ -76,9 +76,9 @@ export function bindPrim(addresses, impl) {
   for (const address of [addresses].flat()) PRIMITIVE_REGISTRY.bind(address, impl);
 }
 
-// A primitive that reads the scope of its call takes the state of the
-// call after its values [D72]; every other primitive is a plain function
-// over the values of the inputs of the call [D251].
+// A primitive that reads the scope of its call takes the state of the call
+// after its values [QSDSP#residence]; every other primitive is a plain
+// function over the values of the inputs of the call [QSBLD#fn].
 const STATE_READERS = new WeakSet();
 
 export function bindStateReader(addresses, impl) {
@@ -92,7 +92,7 @@ export function readsState(impl) {
 
 // A primitive whose answer names the tags its subject stood beneath takes
 // the tags the walk of its subject passed, from the outside in, after its
-// values [D34]: `raise` names its error by the outermost [D13].
+// values [QSDSP#walk]: `raise` names its error by the outermost [QSERR#rest].
 const READERS_OF_PASSED_TAGS = new WeakSet();
 
 export function bindReaderOfPassedTags(addresses, impl) {
@@ -105,7 +105,7 @@ export function readsPassedTags(impl) {
 }
 
 // runs(names, impl) → the primitive, which runs the inputs of those names
-// as code [D251]: its call hands each as code closed at the call, each
+// as code [QSBLD#fn]: its call hands each as code closed at the call, each
 // element of one that holds the objects of the call whole, and any other
 // value as it is.
 const INPUTS_RUN = new WeakMap();
@@ -121,7 +121,7 @@ export function inputsRunBy(impl) {
 
 // runsWithin(names, impl) → the primitive, which runs the quotes a template
 // of those inputs holds, at any depth of it, as code closed at the call,
-// its paths and its other values handed as they are [D279].
+// its paths and its other values handed as they are [QSLIT#tag].
 const INPUTS_RUN_WITHIN = new WeakMap();
 
 export function runsWithin(names, impl) {

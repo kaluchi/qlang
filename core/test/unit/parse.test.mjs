@@ -1,4 +1,4 @@
-// The decisions it exists for: [D10], [D243].
+// The decisions it exists for: [QSSYN#step], [QSSYN#line].
 
 import { describe, it, expect } from 'vitest';
 import { parse, ParseError } from '../../src/parse.mjs';
@@ -885,7 +885,8 @@ describe('parse — block comment nesting', () => {
     });
 
     it('plain block whose inner nested plain swallows the outer close', () => {
-      // `|~ A |~ B ~|` — outer takes inner pair, leaves nothing to close outer.
+      // `|~ A |~ B ~|` — outer takes inner pair, leaves nothing to close
+      // outer.
       expectParseFail('|~ A |~ B ~|\n| 1');
     });
 

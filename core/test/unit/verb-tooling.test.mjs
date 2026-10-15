@@ -1,4 +1,4 @@
-// A word as the tooling reads it [D251]: what a tool shows for a name,
+// A word as the tooling reads it [QSBLD#fn]: what a tool shows for a name,
 // and the words a value of a kind reaches.
 
 import { describe, it, expect } from 'vitest';
@@ -9,7 +9,7 @@ import { answerKindsOf } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
 
 describe('a word as the tooling reads it', () => {
-  it('shows a name under a label by its address and the inputs of its function [D251]', async () => {
+  it('shows a name under a label by its address and the inputs of its function [QSBLD#fn]', async () => {
     const shown = shownFor(await langRuntime(), 'add');
     expect(shown.address.name).toBe('number/add');
     expect(shown.inputs).toEqual(['addend']);
@@ -29,7 +29,7 @@ describe('a word as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'type').address.name).toBe('any/type');
   });
 
-  it('shows the word a subject of the kinds reaches, and the inputs of its function [D34]', async () => {
+  it('shows the word a subject of the kinds reaches, and the inputs of its function [QSDSP#walk]', async () => {
     const env = await langRuntime();
     expect(shownFor(env, 'count', ['vec']).address.name).toBe('vec/count');
     expect(shownFor(env, 'count', ['map']).address.name).toBe('map/count');
@@ -40,27 +40,27 @@ describe('a word as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'add', ['string']).address.name).toBe('number/add');
   });
 
-  it('reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the word\'s own label [D168], [D251]', async () => {
+  it('reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the word\'s own label [QSSLF#catalog], [QSBLD#fn]', async () => {
     const env = await langRuntime();
     expect(answerKindsOf(env, nodeOf(env, 'vec/filter'), ['set'])).toEqual(['set']);
     expect(answerKindsOf(env, nodeOf(env, 'vec/count'), ['vec'])).toEqual(['number']);
     expect(answerKindsOf(env, nodeOf(env, 'any/coalesce'), ['vec'])).toBeNull();
   });
 
-  it('reads the kinds of an answer its returns names as a set [D251]', async () => {
+  it('reads the kinds of an answer its returns names as a set [QSBLD#fn]', async () => {
     const session = await createSession();
     await session.evalCell(':Box |~~ A box. ~~| | :Box/f (::fn | returns |~~ The value. ~~| #[::number ::string] | impl ~(eq 1))');
     expect(answerKindsOf(session.env, nodeOf(session.env, 'Box/f'), ['Box'])).toEqual(['number', 'string']);
   });
 
-  it('shows a word written as its recipe alone, the function of no commands it is, with no inputs [D253]', async () => {
+  it('shows a word written as its recipe alone, the function of no commands it is, with no inputs [QSBLD#chain]', async () => {
     const session = await createSession();
     await session.evalCell(':number/double ~(mul 2)');
     expect(shownFor(session.env, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
   });
 });
 
-describe('the verbs a value of a kind reaches [D34]', () => {
+describe('the verbs a value of a kind reaches [QSDSP#walk]', () => {
   it('reaches the verbs of its kind, then those of any value', async () => {
     const reached = verbsReaching(await langRuntime(), ['number']);
     expect(reached.get('add').address.name).toBe('number/add');

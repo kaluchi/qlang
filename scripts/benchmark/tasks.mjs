@@ -1,4 +1,4 @@
-// The tasks of the benchmark [D26]: each a question over an input of
+// The tasks of the benchmark [QSWRK#measure]: each a question over an input of
 // `inputs/`, or over the language alone, the answer, as JSON the query
 // over the input writes by `| json` or as a qlang literal, and the reference,
 // the shortest query the tree answers it with today. The reference is

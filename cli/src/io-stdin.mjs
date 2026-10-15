@@ -5,7 +5,7 @@
 // that never references `in` does not block on input it does not
 // want, and a query that references `in` more than once sees the
 // same content (stdin is consumed once at OS level).
-// The decisions it exists for: [D37].
+// The decisions it exists for: [QSHST#input].
 
 export function readStdinToString(stdin) {
   if (stdin.isTTY) {

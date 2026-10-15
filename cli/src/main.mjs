@@ -41,7 +41,7 @@ const MSYS_RUNTIME = 'usr/bin/msys-2.0.dll';
 // wrote it: under MSYS, whose `MSYSTEM` names it, a query that begins
 // with the root of the shell, the nearest directory of its path that
 // holds the runtime, is read from the slash after the root, which the
-// shell wrote the root before [D144]; any other query as it came.
+// shell wrote the root before [QSHST#shell]; any other query as it came.
 export function queryAsWritten(queryText, env, exists = existsSync) {
   if (env.MSYSTEM === undefined || !SHELL_PATH_OF_A_QUERY.test(queryText)) return queryText;
   for (let slash = queryText.indexOf('/'); slash !== -1; slash = queryText.indexOf('/', slash + 1)) {
@@ -50,7 +50,7 @@ export function queryAsWritten(queryText, env, exists = existsSync) {
   return queryText;
 }
 
-// Whether a query reads the subject standard input lifts to [D37]; a
+// Whether a query reads the subject standard input lifts to [QSHST#input]; a
 // query that does not parse reads none, its refusal written at once.
 function queryReadsInput(queryText) {
   let ast;
@@ -90,13 +90,13 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
 
   // A query that reads no subject, `[1 2] | sum` or `::vec | doc`, runs
   // without waiting on standard input, which a shell may hand open with
-  // nothing piped [D37].
+  // nothing piped [QSHST#input].
   const queryText = queryAsWritten(cliInvocation.queryText, env);
   const readsInput = queryReadsInput(queryText);
   const stdinText = readsInput ? await readStdinToString(stdinStream) : '';
   const lifted = liftStdinToPipeValue(stdinText, cliInvocation.inputFormat);
   // An input that does not read as the JSON it is taken for answers as
-  // `parseJson` refuses its text, a failure like every other [D7].
+  // `parseJson` refuses its text, a failure like every other [QSHST#answer].
   const unreadable = lifted.parseError !== undefined || lifted.codecError !== undefined;
 
   // `in` reads the text standard input already gave, or reads it then.

@@ -1,0 +1,16 @@
+{"name":"map-takes-a-path","query":"[{:n 1} {:n 2}] | map /n","expect":"[1 2]"}
+{"name":"sort-takes-a-path","query":"[{:n 2} {:n 1}] | sort /n","expect":"[{:n 1} {:n 2}]"}
+{"name":"groupBy-takes-a-path","query":"[{:s :x} {:s :y} {:s :x}] | groupBy /s | map ~(count)","expect":"{:x 2 :y 1}"}
+{"name":"filter-takes-a-path","query":"[{:a true} {:a false}] | filter /a","expect":"[{:a true}]"}
+{"name":"a-path-the-code-takes-reads-strictly","query":"[{:n 1} {:m 2}] | map /n !| type","expect":"::path/KeyNotInMapError"}
+{"name":"an-input-of-a-value-refuses-a-path","query":"5 | mul /a !| type","expect":"::number/mul/multiplier/KindNotTakenError"}
+{"name":"an-input-given-a-path-names-its-read","query":"5 | mul /qty !| get /read","expect":"~(mul (get /qty))"}
+{"name":"an-input-given-a-path-among-other-objects-names-its-read","query":"\"abc\" | replace /x \"y\" !| get /read","expect":"~(replace (get /x) \"y\")"}
+{"name":"the-words-that-combine-values-of-one-subject-read-the-paths-they-take","query":"{:total 10 :paid 3} | subOf /total /paid","expect":"7"}
+{"name":"path-after-filter","query":"[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter ~(get /age | gte 18) | map /name","expect":"[\"Alice\"]"}
+{"name":"any-with-path","query":"[{:active false} {:active true}] | any /active","expect":"true"}
+{"name":"any-with-path-none","query":"[{:active false} {:active false}] | any /active","expect":"false"}
+{"name":"every-with-path","query":"[{:active true} {:active true}] | every /active","expect":"true"}
+{"name":"every-with-path-fails","query":"[{:active true} {:active false}] | every /active","expect":"false"}
+{"name":"paths-as-modifiers-read","query":"{:qty 2 :price 3} | mulOf /qty /price","expect":"6"}
+{"name":"a-query-reads-by-get-and-its-words-take-a-path","query":"{:data {:users [{:name \"Ann\" :age 30 :active true} {:name \"Bo\" :age 15 :active false} {:name \"Cy\" :age 20 :active true}]}} | get /data/users | filter /active | sort /age | map /name","expect":"[\"Cy\" \"Ann\"]"}

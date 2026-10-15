@@ -29,7 +29,7 @@ describe('isStep — the invariant of a quote', () => {
     }
   });
 
-  it('refuses a value after the head, which reads back as no step [D248]', async () => {
+  it('refuses a value after the head, which reads back as no step [QSPTH#value]', async () => {
     expect(await evalQuery('[[1] [2]] | tag ::quote !| get [~(type) /printed]'))
       .toEqual(await evalQuery('[::quote/ReadBackDiffersError "[1] | [2]"]'));
   });
@@ -70,12 +70,12 @@ describe('assembling steps by hand', () => {
       .toBe(':six add 1');
   });
 
-  it('a keyword or a tag name is the body of its declaration [D66]', async () => {
+  it('a keyword or a tag name is the body of its declaration [QSSYN#line]', async () => {
     expect(await evalQuery('::bind{:name :s :body :active} | get [~(it)] | tag ::quote | parse')).toBe(':s :active');
     expect(await evalQuery('::bind{:name :s :body ::vec} | get [~(it)] | tag ::quote | parse')).toBe(':s ::vec');
   });
 
-  it('a number payload touches its tag by `#`, and reads back as itself [D279]', async () => {
+  it('a number payload touches its tag by `#`, and reads back as itself [QSLIT#tag]', async () => {
     expect(await evalQuery('::construct{:tag ::T :payload 42} | get [~(it)] | tag ::quote | parse')).toBe('::T#42');
   });
 
@@ -87,7 +87,7 @@ describe('assembling steps by hand', () => {
   it('an error at rest of a tag is the step of the literal that spells it', async () => {
     // The tag an error literal writes before its bang is the tag of the
     // error at rest it spells, so an error of any tag stands in a quote
-    // [D13].
+    // [QSERR#rest].
     expect(await evalQuery('get [~("x" | add 1 !| it)] | tag ::quote | parse'))
       .toBe('::number/add/SubjectNotNumberError!{:actualType ::string :trail [{:step ~(add 1) :subject "x" :skipped ~()}]}');
   });

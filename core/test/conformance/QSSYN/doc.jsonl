@@ -1,0 +1,32 @@
+{"name":"a-line-doc-documents-a-declaration","query":":double |~~| Doubles the input.\n~(mul 2)\n| 5 | apply double","expect":"10"}
+{"name":"line-doc-retrieve","query":":foo |~~| Doc text.\n42\n| ::foo | doc | content","expect":"\" Doc text.\""}
+{"name":"a-block-doc-documents-a-declaration","query":":foo |~~ Multi-line doc\n    spanning many lines. ~~| 42\n| 5 | foo","expect":"42"}
+{"name":"block-doc-retrieve","query":":foo |~~ Block doc here. ~~| 42\n| ::foo | doc | content","expect":"\" Block doc here. \""}
+{"name":"two-line-docs-as-vec","query":":foo |~~| Doc one.\n|~~| Doc two.\n42\n| ::foo | doc | content","expect":"\" Doc one.\\n Doc two.\""}
+{"name":"three-line-docs-as-vec","query":":foo |~~| First.\n|~~| Second.\n|~~| Third.\n42\n| ::foo | doc | content | lines | count","expect":"3"}
+{"name":"mixed-line-and-block-docs","query":":foo |~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\n42\n| ::foo | doc | content | lines | count","expect":"3"}
+{"name":"doc-block-preserves-newlines","query":":foo |~~ line one\nline two ~~| 42\n| ::foo | doc | content","expect":"\" line one\\nline two \""}
+{"name":"doc-on-bind-succeeds","query":":foo |~~| doc\n42\n| foo","expect":"42"}
+{"name":"doc-block-with-bare-plain-close-marker-as-content","query":":foo |~~ plain-close marker ~| mentioned here ~~| 42\n| ::foo | doc | content","expect":"\" plain-close marker ~| mentioned here \""}
+{"name":"doc-block-nests-doc-block-pair","query":":foo |~~ outer |~~ inner ~~| more ~~| 42\n| ::foo | doc | content","expect":"\" outer |~~ inner ~~| more \""}
+{"name":"doc-block-mentions-plain-pair","query":":foo |~~ holds |~ inner plain ~| inline ~~| 42\n| ::foo | doc | content","expect":"\" holds |~ inner plain ~| inline \""}
+{"name":"doc-block-preserves-nested-line-doc-mention","query":":foo |~~ holds |~~| line-doc mention\n more text ~~| 42\n| ::foo | doc | content","expect":"\" holds |~~| line-doc mention\\n more text \""}
+{"name":"doc-attached-block-with-nested-doc-pair","query":":foo |~~ outer |~~ inner ~~| more ~~|\n42\n| ::foo | doc | content","expect":"\" outer |~~ inner ~~| more \""}
+{"name":"doc-attached-block-with-mentioned-line-plain","query":":foo |~~ pair holds |~| line marker inline ~~|\n42\n| ::foo | doc | content","expect":"\" pair holds |~| line marker inline \""}
+{"name":"standalone-doc-lit-with-mention","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | content","expect":"\" mentions |~~ inner pair ~~| inside \""}
+{"name":"a-doc-reads-a-line-break-as-one","query":"|~~ a\r\nb ~~| | content | contains \"\\r\"","expect":"false"}
+{"name":"a-doc-before-a-declaration-is-refused","query":"\"|~~ note ~~| :x 42\" | parse !| type","expect":"::quote/ParseError"}
+{"name":"a-doc-in-the-slot-documents-the-declaration","query":":x |~~ note ~~| 42 | ::x | doc | content","expect":"\" note \""}
+{"name":"a-doc-after-a-step-is-refused","query":"\"[5] |~~ why ~~|\" | parse !| get /message | contains \"|~ … ~|\"","expect":"true"}
+{"name":"a-doc-is-the-object-of-a-command","query":"[1] | append |~~ A note. ~~| | count","expect":"2"}
+{"name":"doc-block-with-keyword-references","query":"|~~ see :filter and :every ~~|","expect":"|~~ see :filter and :every ~~|"}
+{"name":"doc-line-type-answers-doc","query":"|~~| line content\n  | type | eq ::doc","expect":"true"}
+{"name":"docs-alone-bind-one-doc-a-line-break-between-them","query":":note |~~| one\n|~~| two\n| note | content","expect":"\" one\\n two\""}
+{"name":"interleaved-plain-between-two-docs","query":":foo |~~| doc one\n|~ separator ~|\n|~~| doc two\n42\n| ::foo | doc | content","expect":"\" doc one\\n doc two\""}
+{"name":"multiple-interleaved-plains-among-docs","query":":foo |~~| a\n|~ p1 ~|\n|~~| b\n|~ p2 ~|\n|~~| c\n42\n| ::foo | doc | content","expect":"\" a\\n b\\n c\""}
+{"name":"block-doc-then-plain-then-line-doc","query":":bar |~~ block doc ~~|\n|~ plain ~|\n|~~| line doc\n99\n| ::bar | doc | content","expect":"\" block doc \\n line doc\""}
+{"name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":":foo |~ why ~| |~~| the doc\n42\n| ::foo | doc | content","expect":"\" the doc\""}
+{"name":"doc-type-answers-doc","query":"|~~ x ~~| | type | eq ::doc","expect":"true"}
+{"name":"doc-as-vec-element","query":"[|~~ doc ~~| 42] | first | type | eq ::doc","expect":"true"}
+{"name":"doc-as-vec-element-second","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
+{"name":"a-doc-named-by-a-declaration-of-it","query":"|~~ note ~~| | :n it | n | content","expect":"\" note \""}

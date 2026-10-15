@@ -3,7 +3,7 @@
 // for each module: the values, the one order, the arithmetic, vectors,
 // maps, the algebra of containers, text, `source` and the words of
 // control.
-// The decisions it exists for: [D239].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -54,7 +54,7 @@ describe('types.mjs', () => {
 
 describe('runtime/predicates.mjs ordering type errors', () => {
   it('gt rejects heterogeneous comparison by the law of its part', async () => {
-    await expectErrorThrown('"a" | gt 5', 'string/gt/value/NotStringError');
+    await expectErrorThrown('"a" | gt 5', 'string/gt/value/KindNotTakenError');
   });
   it('lt rejects non-comparable subject', async () => {
     await expectErrorThrown('null | lt 5', 'call/KindAnswersNoVerbError');
@@ -66,7 +66,7 @@ describe('runtime/arith.mjs error paths', () => {
     await expectErrorThrown('"x" | add 1', 'number/add/SubjectNotNumberError');
   });
   it('add rejects non-numeric modifier', async () => {
-    await expectErrorThrown('1 | add "x"', 'number/add/addend/NotNumberError');
+    await expectErrorThrown('1 | add "x"', 'number/add/addend/KindNotTakenError');
   });
   it('sub rejects non-numeric subject', async () => {
     await expectErrorThrown('"x" | sub 1', 'number/sub/SubjectNotNumberError');
@@ -93,10 +93,10 @@ describe('runtime/vec.mjs error paths', () => {
     await expectErrorThrown('42 | filter ~(gt 1)', 'call/KindAnswersNoVerbError');
   });
   it('take rejects non-numeric n', async () => {
-    await expectErrorThrown('[1 2 3] | take "x"', 'vec/take/count/NotNumberError');
+    await expectErrorThrown('[1 2 3] | take "x"', 'vec/take/count/KindNotTakenError');
   });
   it('drop rejects non-numeric n', async () => {
-    await expectErrorThrown('[1 2 3] | drop "x"', 'vec/drop/count/NotNumberError');
+    await expectErrorThrown('[1 2 3] | drop "x"', 'vec/drop/count/KindNotTakenError');
   });
   it('sort with key', async () => {
     expect(await evalQuery('[{:n 3} {:n 1} {:n 2}] | sort /n'))
@@ -114,14 +114,14 @@ describe('runtime/map.mjs error paths', () => {
   it('has rejects non-Map/non-Set subject', async () => {
     await expectErrorThrown('42 | has :foo', 'call/KindAnswersNoVerbError');
   });
-  it('has on Map requires keyword-or-string key', async () => {
-    await expectErrorThrown('{:k 1} | has 42', 'map/has/key/NotKeywordOrPathOrStringError');
+  it('has on a map takes a key as get takes one [QSPTH#has]', async () => {
+    await expectErrorThrown('{:k 1} | has [42]', 'map/has/key/KindNotTakenError');
   });
 });
 
 describe('runtime/setops.mjs Map×Map and errors', () => {
   it('union of Set with Map errors', async () => {
-    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/other/NotNullOrSetError');
+    await expectErrorThrown('#[:a] | union {:b 1}', 'set/union/other/KindNotTakenError');
   });
   it('minus of Map by another Map (key-based)', async () => {
     const evalResult = await evalQuery('{:a 1 :b 2 :c 3} | minus {:b 99 :d 5}');
@@ -132,10 +132,10 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
     expect(evalResult).toEqual(new Map([['b', 2]]));
   });
   it('minus of Set by Map errors', async () => {
-    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/other/NotNullOrSetError');
+    await expectErrorThrown('#[:a] | minus {:a 1}', 'set/minus/other/KindNotTakenError');
   });
   it('inter of Set by Map errors', async () => {
-    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/other/NotNullOrSetError');
+    await expectErrorThrown('#[:a] | inter {:a 1}', 'set/inter/other/KindNotTakenError');
   });
 });
 
@@ -166,7 +166,7 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 
   it('split with non-string separator is refused by its part', async () => {
-    await expectErrorThrown('"abc" | split 42', 'string/split/separator/NotRegexOrStringError');
+    await expectErrorThrown('"abc" | split 42', 'string/split/separator/KindNotTakenError');
   });
 
   it('join on non-Vec subject is refused by the address of join', async () => {
@@ -180,7 +180,7 @@ describe('runtime/string.mjs split and join error sites', () => {
   });
 
   it('join with non-string separator is refused by its part', async () => {
-    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/NotKeywordOrStringError');
+    await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/KindNotTakenError');
   });
 
   it('every split/join site has an address of its own', async () => {
@@ -244,7 +244,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('if refuses a null condition', async () => {
-    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTag('any/if/condition/NotBooleanError'));
+    expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTag('any/if/condition/KindNotTakenError'));
   });
 
   it('if treats false literal as falsy', async () => {

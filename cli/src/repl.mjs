@@ -1,10 +1,10 @@
 // The REPL: one session across its cells, each line a cell whose answer
-// prints, painted, after what its `out`, `err` and `tap` wrote; in a
-// terminal the line paints as it is typed and a paste of several lines is
-// one cell, through the line editor; `in` reads the empty string, since
-// the prompt holds standard input; a query given after `-i` runs as the
-// first cell [D120]; `.help` lists the commands of the REPL, and `.exit`
-// or Ctrl+D on an empty line closes it.
+// prints, painted, after what its `out`, `err` and `tap` wrote; in a terminal
+// the line paints as it is typed and a paste of several lines is one cell,
+// through the line editor; `in` reads the empty string, since the prompt holds
+// standard input; a query given after `-i` runs as the first cell
+// [QSHST#answer]; `.help` lists the commands of the REPL, and `.exit` or
+// Ctrl+D on an empty line closes it.
 
 import { createSession } from '@kaluchi/qlang-core/session';
 import {
@@ -126,7 +126,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 // An answer prints whole, an error as an alert, or within the budget
 // the caller asked for, what does not fit given way to markers that read
 // it, on stdout: a failed cell, one that does not parse among them, is an
-// answer as every failure is [D7], [D120].
+// answer as every failure is [QSHST#answer].
 async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, budget) {
   const shown = elideAnswer(cellEntry.result, budget);
   stdoutWrite(highlightAnsi(await printAnswer(shown, cellEntry.envAfterCell), builtinNames) + '\n');

@@ -51,7 +51,7 @@ describe('tokenize — atomic literal kinds', () => {
     ]);
   });
 
-  it('classifies a pattern literal, its quote escape and its flags among it [D246]', async () => {
+  it('classifies a pattern literal, its quote escape and its flags among it [QSTXT#pattern]', async () => {
     const src = 'contains #"\\"\\d+"i';
     const tokens = tokenize(src, await builtins());
     expect(tokens.at(-1)).toEqual({ start: 9, end: src.length, kind: 'regex' });
@@ -127,7 +127,7 @@ describe('tokenize — atomic literal kinds', () => {
 
   it('paints the tag an error literal writes before its bang, then its `!{` and `}`', async () => {
     // `::Tag!{…}` is one literal, the error whose content carries the
-    // tag [D13].
+    // tag [QSERR#rest].
     const tokens = tokenize('::Oops!{:a 1}', await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: 6, kind: 'tag' });
     expect(tokens[1]).toEqual({ start: 6, end: 8, kind: 'err' });
@@ -298,7 +298,7 @@ describe('tokenize — coverage invariant', () => {
 });
 
 describe('tokenize — a source that does not parse', () => {
-  it('paints a source cut short through the closers that complete it [D125]', async () => {
+  it('paints a source cut short through the closers that complete it [QSSYN#refusal]', async () => {
     expect(tokenize('(unclosed', await builtins())).toEqual([
       { start: 0, end: 1, kind: 'punct' },
       { start: 1, end: 9, kind: 'name' }
@@ -324,7 +324,7 @@ describe('tokenize — a source that does not parse', () => {
 
 describe('tokenize — the code a doc holds', () => {
   // Only the prose of a doc paints as a comment: its quotes and its
-  // spans in backticks paint as the code they are [D83].
+  // spans in backticks paint as the code they are [QSSYN#doc].
   const paint = async src => tokenize(src, await builtins())
     .filter(token => token.kind !== 'whitespace')
     .map(token => [src.slice(token.start, token.end), token.kind]);
@@ -348,7 +348,7 @@ describe('tokenize — the code a doc holds', () => {
 
 describe('tokenize — the docs of a slot', () => {
   // The doc literals of a declaration's slot are the DocLit nodes the
-  // tree holds for every doc [D83], so each paints as one `comment`
+  // tree holds for every doc [QSSYN#doc], so each paints as one `comment`
   // span instead of `pushGapTokens` misclassifying the prose as punct.
 
   it('a doc of prose between the key and the body gets one comment span', async () => {

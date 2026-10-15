@@ -110,7 +110,7 @@ describe('toPlain refuses a value JSON has no form for', () => {
   });
 });
 
-describe('a descriptor is data [D111]', () => {
+describe('a descriptor is data [QSSLF#page]', () => {
   it('writes its keyword field as its name in JSON', async () => {
     expect(await evalQuery('::builtin{:note :draft} | json')).toContain('"note":"draft"');
   });

@@ -1,5 +1,5 @@
-// The names of a scope [D153]: the nouns of the root and the reader's
-// own, the nodes a name with a path declares under its noun, and the
+// The names of a scope [QSDSP#residence]: the nouns of the root and the
+// reader's own, the nodes a name with a path declares under its noun, and the
 // address that reads one.
 
 import { describe, it, expect } from 'vitest';
@@ -8,7 +8,7 @@ import { createSession } from '../../src/session.mjs';
 import { keyword, makeTag } from '../../src/types.mjs';
 
 describe('the names of the scope', () => {
-  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [D160], [D168]', async () => {
+  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [QSNAM#binding], [QSSLF#catalog]', async () => {
     expect(await evalQuery('env | eq {}')).toBe(true);
     expect(await evalQuery('kinds | get [~(has ::number) ~(has ::qlang) ~(has ::number/add/SubjectNotNumberError)]'))
       .toEqual([true, true, false]);
@@ -28,7 +28,7 @@ describe('the names of the scope', () => {
     expect([...await evalQuery('::qlang/values | manifest')]).toEqual([]);
   });
 
-  it('a bare name reads a value a source of the root declares, and no label of the root [D153]', async () => {
+  it('a bare name reads a value a source of the root declares, and no label of the root [QSDSP#residence]', async () => {
     const session = await createSession({ sources: [{
       uri: 'shop',
       source: ':shop |~~ A shop. ~~|\n:limit 5'
@@ -37,7 +37,7 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('shop !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a word of a source reads a bare value of the root as a reader reads it, after the words of its name, no frame of its source before them [D251]', async () => {
+  it('a word of a source reads a bare value of the root as a reader reads it, after the words of its name, no frame of its source before them [QSBLD#fn]', async () => {
     const shop = { uri: 'shop', source: ':shop |~~ A shop. ~~|\n:limit 5\n:shop/capped ~(limit)' };
     const later = { uri: 'stock', source: ':stock |~~ A stock. ~~|\n:stock/limit ~(7)' };
     const alone = await createSession({ sources: [shop] });
@@ -46,17 +46,17 @@ describe('the names of the scope', () => {
     expect((await beside.evalCell('::shop{} | capped !| type')).result).toEqual(makeTag('stock/limit/SubjectNotStockError'));
   });
 
-  it('a label of a source is no bare name inside the words of its source [D153], [D200]', async () => {
+  it('a label of a source is no bare name inside the words of its source [QSDSP#residence], [QSNAM#owner]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/self ~(shop)' }] });
     expect((await session.evalCell('::shop{} | self !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a word of a source reads a bare value its source declares after it, a node of the root [D251]', async () => {
+  it('a word of a source reads a bare value its source declares after it, a node of the root [QSBLD#fn]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/capped ~(limit)\n:limit 5' }] });
     expect((await session.evalCell('::shop{} | capped')).result).toBe(5);
   });
 
-  it('a recipe declares none of the inputs its call binds whatever a reader or a later source names so, and shadows every other [D71]', async () => {
+  it('a recipe declares none of the inputs its call binds whatever a reader or a later source names so, and shadows every other [QSNAM#scope]', async () => {
     const shop = { uri: 'shop', source: ':vec/sized (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 3 | n))\n:vec/scaled (::fn | takes :n |~~ N. ~~| /0 | impl ~(map ~(mul n)))\n:vec/padded ~(:n 3 | count | add n)' };
     const later = { uri: 'stock', source: ':n 9' };
     const session = await createSession({ sources: [shop, later] });
@@ -66,7 +66,7 @@ describe('the names of the scope', () => {
     expect((await session.evalCell(`${reader} | get [~([1 2] | twice) ~([1 2] | sum2 5 !| get [~(type) /name])] | eq [[2 4] [::bind/NameDeclaredTwiceError :n]]`)).result).toBe(true);
   });
 
-  it('a value of the reader meets a word a later source declares, where the subject answers the word alone [D223]', async () => {
+  it('a value of the reader meets a word a later source declares, where the subject answers the word alone [QSNAM#reach]', async () => {
     const later = { uri: 'stock', source: ':vec/tally ~(count)' };
     const alone = await createSession({ sources: [] });
     expect((await alone.evalCell(':tally 5 | [1 2] | tally')).result).toBe(5);
@@ -139,7 +139,7 @@ describe('a name with a path calls the verb its address names', () => {
   });
 });
 
-describe('what a word reads and runs as data reads the tree of the query [D200]', () => {
+describe('what a word reads and runs as data reads the tree of the query [QSNAM#owner]', () => {
   const pages = { uri: 'pages', source: ':pages |~~ Pages. ~~|\n:k |~~ the source\'s own ~~| 1\n:any/pageOf ~(doc | content)' };
   const runner = { uri: 'runner', source: ':runner |~~ A runner. ~~|\n:any/runIt (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code))' };
 
@@ -169,13 +169,13 @@ describe('what a word reads and runs as data reads the tree of the query [D200]'
     expect((await session.evalCell(':k |~~ the reader\'s ~~| 2 | ::k | pageOf')).result).toBe(' the reader\'s ');
   });
 
-  it('code held as data reads no value of the reader, past the inputs of a word of the root [D278]', async () => {
+  it('code held as data reads no value of the reader, past the inputs of a word of the root [QSQUO#held]', async () => {
     const session = await createSession({ sources: [runner] });
     expect((await session.evalCell(':x 1 | "x" | parse | :q it | null | runIt q 99 !| get [~(type) /name]')).result)
       .toEqual([makeTag('call/ValueWithheldError'), keyword('x')]);
   });
 
-  it('a word the reader declares reads as data the tree of the query, past its own declarations, and runs held code in a lane of its own [D251], [D278]', async () => {
+  it('a word the reader declares reads as data the tree of the query, past its own declarations, and runs held code in a lane of its own [QSBLD#fn], [QSQUO#held]', async () => {
     expect(await evalQuery(':x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names | eq [false true]')).toBe(true);
     expect(await evalQuery(':any/f ~(:loc |~~ L ~~| 1 | ::loc | doc | content) | f !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
     expect(await evalQuery(':x 1 | :any/run (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code)) | "x" | parse | :q it | null | run q 99 !| type'))
@@ -188,14 +188,14 @@ describe('what a word reads and runs as data reads the tree of the query [D200]'
       .toEqual(makeTag('call/ValueWithheldError'));
   });
 
-  it('held code reads a word a later source declares, and the reader\'s word that shadows it [D278]', async () => {
+  it('held code reads a word a later source declares, and the reader\'s word that shadows it [QSQUO#held]', async () => {
     const later = { uri: 'later', source: ':any/triple ~(mul 3)' };
     const session = await createSession({ sources: [later] });
     expect((await session.evalCell(':f ~(triple) | 2 | apply f')).result).toBe(6);
     expect((await session.evalCell(':number/triple ~(mul 30) | :g ~(triple) | 2 | apply g')).result).toBe(60);
   });
 
-  it('a value of the reader that shadows a value of the root is withheld from held code, which the root\'s does not answer for [D278]', async () => {
+  it('a value of the reader that shadows a value of the root is withheld from held code, which the root\'s does not answer for [QSQUO#held]', async () => {
     const host = { uri: 'host', source: ':pi 3' };
     const session = await createSession({ sources: [host] });
     expect((await session.evalCell(':f ~(pi) | apply f')).result).toBe(3);

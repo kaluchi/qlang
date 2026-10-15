@@ -1,0 +1,44 @@
+{"name":"deflect-count-into-trail","query":"!{:kind :oops} | raise | count !| get /trail/-1/skipped | parse","expect":"\"count\""}
+{"name":"deflect-add-into-trail","query":"!{:kind :oops} | raise | add 1 !| get /trail/-1/skipped | parse","expect":"\"add 1\""}
+{"name":"deflect-path-into-trail","query":"!{:kind :oops} | raise | get /name !| get /trail/-1/skipped | parse","expect":"\"get /name\""}
+{"name":"deflect-three-steps-into-trail","query":"!{:kind :oops} | raise | count | add 1 | mul 2 !| get /trail/-1/skipped | parse","expect":"\"count | add 1 | mul 2\""}
+{"name":"deflect-entry-is-a-call-step","query":"!{:kind :oops} | raise | add 1 !| get /trail/-1/skipped | first | type","expect":"::call"}
+{"name":"deflect-entry-has-structured-name","query":"!{:kind :oops} | raise | add 1 !| get /trail/-1/skipped | first | get /name","expect":":add"}
+{"name":"a-stop-without-a-skipped-step-holds-the-empty-quote","query":"!{:kind :oops} | raise !| get /trail/-1/skipped","expect":"~()"}
+{"name":"a-stop-holds-the-step-it-skipped","query":"\"1\" | add 1 | mul 3 !| get /trail/-1/skipped","expect":"~(mul 3)"}
+{"name":"a-stop-holds-the-steps-it-skipped-in-order","query":"\"x\" | add 1 | mul 3 | count !| get /trail/-1/skipped","expect":"~(mul 3 | count)"}
+{"name":"trail-continuity-across-re-lift","query":"!{:kind :oops} | raise | count !| union {:stage 1} | raise | add 1 !| get /trail/-1/skipped | parse","expect":"\"count | add 1\""}
+{"name":"mdc-enrichment-field-survives-re-lift","query":"!{:kind :oops} | raise !| union {:request \"r-1\"} | raise | count !| get /request","expect":"\"r-1\""}
+{"name":"a-relift-without-its-trail-starts-a-path","query":"!{:kind :oops} | count | add 1 !| minus #[:trail] | raise !| get /trail | map /step","expect":"[~(raise)]"}
+{"name":"pre-existing-trail-in-literal","query":"!{:kind :oops :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| get /trail","expect":"[{:step ~(pre) :subject 1 :skipped ~()}]"}
+{"name":"pre-existing-trail-continues-with-deflections","query":"!{:kind :oops :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise | count !| get /trail/-1/skipped","expect":"~(count)"}
+{"name":"trail-not-vec-in-literal","query":"!{:kind :oops :trail 5} | raise !| get [~(type) /actualType]","expect":"[::error/TrailNotVecError ::number]"}
+{"name":"trail-not-vec-on-relift","query":"!{:kind :oops} | raise | count !| union {:trail 5} | raise !| type","expect":"::error/TrailNotVecError"}
+{"name":"a-trail-that-is-a-quote-is-refused","query":"!{:kind :oops :trail ~(| pre)} | raise !| get [~(type) /actualType]","expect":"[::error/TrailNotVecError ::quote]"}
+{"name":"the-step-of-an-error-literal-whose-trail-is-no-path-is-data","query":"~(!{:kind :oops :trail 5}) | first | get /trail","expect":"5"}
+{"name":"the-step-of-an-error-literal-whose-trail-is-no-path-is-refused-when-it-runs","query":"~(!{:kind :oops :trail 5} | raise) | apply it !| type","expect":"::error/TrailNotVecError"}
+{"name":"a-tagged-error-literal-whose-trail-is-no-path-is-refused-when-raised","query":"::Foo::Bar!{:trail 5} | raise !| get [~(type) ~(get /trail | map ~(get /step | parse))]","expect":"[::error/TrailNotVecError [\"raise\"]]"}
+{"name":"trail-truncation-then-regrow","query":"!{:kind :oops} | count !| minus #[:trail] | raise | add 1 !| get /trail/-1/skipped","expect":"~(add 1)"}
+{"name":"a-word-of-code-steps-around-an-error","query":"!{:kind :oops} | raise | map ~(add 1) !| get /trail/-1/skipped | parse","expect":"\"map ~(add 1)\""}
+{"name":"an-error-literal-under-a-tag-that-writes-its-trail-resumes-it","query":"::Oops!{:a 1 :trail []} | raise !| trail","expect":"[]"}
+{"name":"the-path-of-an-error-at-rest-that-flew-no-step-is-empty","query":"::error{:a 1} | trail","expect":"[]"}
+{"name":"the-trail-of-an-error-at-rest-that-flew-no-step-is-no-key-of-it","query":"::error{:a 1} | get /trail !| get [~(type) /key]","expect":"[::path/KeyNotInMapError :trail]"}
+{"name":"a-raised-error-holds-its-path","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trail]"}
+{"name":"an-error-literal-that-writes-an-empty-trail-holds-none","query":"::Oops!{:a 1 :trail []} | raise !| keys","expect":"#[:a]"}
+{"name":"a-map-raised-that-writes-an-empty-trail-holds-none","query":"{:a 1 :trail []} | raise !| keys","expect":"#[:a]"}
+{"name":"a-failure-a-word-resumes-flies-on-through-its-literal","query":"get [~(!{:a 1 :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise)] !| trail | map /step","expect":"[~(pre) ~(get [~(!{:a 1 :trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise)])]"}
+{"name":"a-failure-a-word-raises-on-an-empty-written-path-flies-on-from-its-literal","query":"get [~(!{:a 1 :trail []} | raise)] !| trail | map /step","expect":"[~(get [~(!{:a 1 :trail []} | raise)])]"}
+{"name":"a-tagged-literal-whose-payload-raises-itself-passes-a-stop-at-its-word","query":"[::Foo::number\"x\"] !| trail | map /step","expect":"[~(::Foo::number\"x\") ~([::Foo::number\"x\"])]"}
+{"name":"a-failure-that-flew-no-step-leaves-the-steps-it-skips-as-they-are","query":"{:a 1 :trail []} | raise | count !| trail","expect":"[]"}
+{"name":"every-error-answers-its-trail","query":"\"x\" | add 1 !| trail | count","expect":"1"}
+{"name":"the-trail-starts-where-the-error-arose","query":"\"x\" | add 1 !| trail | first | get /step","expect":"~(add 1)"}
+{"name":"a-nested-error-keeps-the-stop-of-its-level","query":"5 | (!{:k 1} | raise | add 1) !| trail | map /step","expect":"[~(raise) ~((!{:k 1} | raise | add 1))]"}
+{"name":"a-trail-names-the-stop-where-the-error-arose","query":"\"x\" | add 1 | mul 2 !| get /trail","expect":"[{:step ~(add 1) :subject \"x\" :skipped ~(mul 2)}]"}
+{"name":"a-stop-at-every-step-that-handed-the-error-on","query":":g ~(add 2 | mul 2) | \"x\" | apply g | sub 3 !| get /trail","expect":"[{:step ~(add 2) :subject \"x\" :skipped ~(mul 2)} {:step ~(apply g) :subject \"x\" :skipped ~(sub 3)}]"}
+{"name":"the-last-stop-replays-where-it-is-read","query":"(:x 1 | !{:k 1} | add x) | mul 2 !| get /trail/-1/skipped","expect":"~(mul 2)"}
+{"name":"a-stop-of-a-word-follows-the-stop-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| get /trail | map /step","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]"}
+{"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"::Foo!{:trail 5} | raise !| type","expect":"::error/TrailNotVecError"}
+{"name":"unresolved-identifier-fault-step","query":"thisIsNotDefined !| get /trail/0/step | first | get /name","expect":":thisIsNotDefined"}
+{"name":"a-doc-is-no-trail","query":"get [~(!{:trail |~~~~|} | raise !| type) ~(!{:trail []} | raise !| type)]","expect":"[::error/TrailNotVecError ::error]"}
+{"name":"a-tagged-error-literal-that-writes-its-path-resumes-it-when-raised","query":"::Foo::Bar!{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| get /trail | map ~(get [~(get /step | parse) ~(get /skipped | parse)])","expect":"[[\"pre\" \"\"]]"}
+{"name":"an-overflow-holds-its-subject-on-the-trail","query":"1e308 | mul 10 !| get /trail/0/subject","expect":"1e308"}

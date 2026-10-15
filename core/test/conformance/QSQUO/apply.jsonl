@@ -1,0 +1,19 @@
+{"name":"apply-parsed-number-literal","query":"\"42\" | parse | apply it","expect":"42"}
+{"name":"apply-parsed-string-literal","query":"\"\\\"hello\\\"\" | parse | apply it","expect":"\"hello\""}
+{"name":"apply-parsed-keyword-literal","query":"\":foo\" | parse | apply it","expect":":foo"}
+{"name":"apply-parsed-vec-literal","query":"\"[1 2 3]\" | parse | apply it","expect":"[1 2 3]"}
+{"name":"apply-parsed-map-literal","query":"\"{:a 1 :b 2}\" | parse | apply it","expect":"{:a 1 :b 2}"}
+{"name":"apply-parsed-set-literal","query":"\"#[1 2 3]\" | parse | apply it","expect":"#[1 2 3]"}
+{"name":"apply-parsed-arithmetic-pipeline","query":"\"10 | add 5\" | parse | apply it","expect":"15"}
+{"name":"apply-parsed-vec-reducer","query":"\"[1 2 3 4 5] | filter ~(gt 2) | count\" | parse | apply it","expect":"3"}
+{"name":"apply-parsed-path","query":"\"{:name \\\"alice\\\" :age 30} | get /name\" | parse | apply it","expect":"\"alice\""}
+{"name":"apply-parsed-map","query":"\"[1 2 3] | map ~(add 10)\" | parse | apply it","expect":"[11 12 13]"}
+{"name":"apply-parsed-fail-track","query":"\"\\\"hello\\\" | add 1 !| type\" | parse | apply it","expect":"::number/add/SubjectNotNumberError"}
+{"name":"apply-code-not-quote","query":"42 | apply it","expect":"::any/apply/code/KindNotTakenError!{\n  :expected #[::fn ::path ::quote]\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(apply it)\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"apply-quote-against-the-subject","query":"5 | apply ~(mul 2)","expect":"10"}
+{"name":"apply-code-type-refusal","query":"42 | apply 1 !| get [~(type) /actualType]","expect":"[::any/apply/code/KindNotTakenError ::number]"}
+{"name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::call/UnknownNameError"}
+{"name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12"}
+{"name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/KindNotTakenError"}
+{"name":"a-value-that-is-no-quote-opens-nothing","query":"5 | open !| type","expect":"::quote/open/SubjectNotQuoteError"}
+{"name":"open-lives-on-the-kind-of-a-quote","query":"::quote | manifest | has ::quote/open","expect":"true"}

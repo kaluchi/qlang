@@ -1,0 +1,9 @@
+{"name":"trailing-pipe","query":"[1 2 3] |","expect":"::quote/ParseError!{\n  :source \"[1 2 3] |\"\n  :marker \"         ^\"\n  :expected [:whitespace]\n  :location ::span[9 1 10 9 1 10]\n  :trail []\n} | raise"}
+{"name":"double-pipe","query":"[1] || count","expect":"::quote/ParseError!{\n  :source \"[1] || count\"\n  :marker \"   ^~       \"\n  :message \"a combinator is set off by whitespace on both sides: write ` | `\"\n  :location ::span[3 1 4 5 1 6]\n  :trail []\n} | raise"}
+{"name":"a-pipe-after-the-catch-keeps-the-catch","query":"\"[1] !| | count\" | parse !| get /message","expect":"\"`|` written after `!|` is the habit of a pipe before every step: write `a !| b`\""}
+{"name":"a-catch-after-the-catch-stands-once","query":"\"[1] !| !| count\" | parse !| get /message","expect":"\"`!|` written after `!|`: a combinator stands once between two steps, write `a !| b`\""}
+{"name":"a-pipe-after-a-combinator-names-the-form-that-keeps-it","query":"\"[1] !| | count\" | parse !| get /message | contains \"write `a !| b`\"","expect":"true"}
+{"name":"a-comment-opener-against-a-pipe-names-the-word-that-runs-code","query":"\"[1 2] |~(add)\" | parse !| get /message","expect":"\"`|~` opens a comment that is never closed; code runs on the value in the pipe by a word, `| apply ~(…)`\""}
+{"name":"a-step-after-a-piped-combinator-names-its-own-fault","query":"\"[1 2] | !| {:a (/x | mul) /y}\" | parse !| get /message | contains \"map entry\"","expect":"true"}
+{"name":"a-recipe-may-open-with-a-combinator","query":":vec/m (::fn | takes :n |~~ The n. ~~| ~(query /0 1) ::number | impl ~(map ~(add n))) | [1 2] | m","expect":"[2 3]"}
+{"name":"a-declaration-on-the-fail-track-ends-the-head","query":":number/m (::fn | takes :n |~~ The n. ~~| ~(query /0 1) ::number | impl ~(!| :k 2 | add n)) | 5 | m","expect":"6"}

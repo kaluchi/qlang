@@ -1,5 +1,5 @@
-// The commands of a function [D251] and of a kind [D252], the chain that
-// built it folded into the quote its literal holds, read once for each
+// The commands of a function [QSBLD#fn] and of a kind [QSBLD#kind], the chain
+// that built it folded into the quote its literal holds, read once for each
 // value as the roles they declare.
 
 import { declareRefusal } from '../errors.mjs';
@@ -118,7 +118,7 @@ export function readSignature(quote) {
       case 'takes': {
         names.declare(first.name);
         const { each, kinds, written } = kindsWritten(fourth);
-        if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name, kinds));
+        if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
         signature.inputs.push({ name: first, page: second, place: third, kinds, each, written, selector: selectorOfPlace(third) });
         break;
       }
@@ -139,6 +139,7 @@ export function readSignature(quote) {
       case 'holds':
         if (!first.name.includes('/')) throw new FnNameUnderNoInputError({ name: first, actualValue: quote });
         underAnInput(first.name);
+        if (names.named.has(first.name)) throw new FnNameDeclaredTwiceError({ name: first, actualValue: quote });
         names.declare(first.name);
         signature.invariants.push({ name: first.name, page: second, condition: third });
         break;
@@ -154,7 +155,7 @@ export function readSignature(quote) {
 
 // readKindSignature(quote) → the roles a quote of the commands of a kind
 // declares, in the order they are written, each name declared once and a
-// name with a path under one declared before it [D252].
+// name with a path under one declared before it [QSBLD#kind].
 export function readKindSignature(quote) {
   if (!isQuote(quote)) throw new KindSignatureNotCommandsError({ actualValue: quote });
   const kind = { payload: null, fields: [], tells: [], pages: new Map(), facts: [], invariants: [], laws: [] };
@@ -172,8 +173,8 @@ export function readKindSignature(quote) {
       case 'wraps': {
         names.declare(PAYLOAD_NAME);
         const { each, kinds, written } = kindsWritten(second);
-        if (kinds !== null) names.named.add(payloadRefusalName(kinds, each));
-        if (each) names.named.add(payloadRefusalName(['vec'], false));
+        if (kinds !== null) names.named.add(payloadRefusalName(each));
+        if (each) names.named.add(payloadRefusalName(false));
         kind.payload = { page: first, kinds, each, written };
         break;
       }
@@ -181,8 +182,8 @@ export function readKindSignature(quote) {
         names.declare(first.name);
         const { each, kinds, written } = kindsWritten(fourth);
         names.named.add(notGivenAddress(first.name));
-        if (each) names.named.add(kindsRefusalAddress(first.name, ['vec']));
-        if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name, kinds));
+        if (each) names.named.add(kindsRefusalAddress(first.name));
+        if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
         kind.fields.push({ name: first, page: second, place: third, kinds, each, written });
         break;
       }
@@ -197,6 +198,7 @@ export function readKindSignature(quote) {
         break;
       case 'holds': {
         const field = first.name.includes('/') ? underAField(first.name) : null;
+        if (names.named.has(first.name)) throw new KindNameDeclaredTwiceError({ name: first, actualValue: quote });
         names.declare(first.name);
         kind.invariants.push({ name: first.name, page: second, condition: third, field });
         break;
@@ -224,8 +226,8 @@ export function signatureOf(fn) {
   return signature;
 }
 
-// functionOfRecipe(recipe) → the function of no commands a recipe is, a
-// quote or a host's primitive written as the value of a word [D253], made
+// functionOfRecipe(recipe) → the function of no commands a recipe is, a quote
+// or a host's primitive written as the value of a word [QSBLD#chain], made
 // once for the recipe.
 const FUNCTIONS_OF_RECIPES = new WeakMap();
 const NO_COMMANDS = makeQuote([]);

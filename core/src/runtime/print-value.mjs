@@ -1,6 +1,6 @@
-// The printer of the core: the text that reads back as a value [D30], a
-// part a kind whose `print` is declared under it prints its own way taken from that kind before
-// the forms of the core write the rest [D96].
+// The printer of the core: the text that reads back as a value [QSWRK#code], a part a
+// kind whose `print` is declared under it prints its own way taken from that
+// kind before the forms of the core write the rest [QSPRN#print].
 
 import { printQuoteSource, docText } from '../quote.mjs';
 import { patternLiteral } from '../pattern.mjs';
@@ -38,10 +38,10 @@ function escapeQlangStringLiteral(s) {
 
 const literalOfKeyword = k => k.literal;
 
-// A pattern writes its literal, its flags after it [D246].
+// A pattern writes its literal, its flags after it [QSTXT#pattern].
 export const printRegex = r => patternLiteral(r.source, r.flags);
 
-// A path writes its segments as it is written [D248]: a place as its
+// A path writes its segments as it is written [QSPTH#value]: a place as its
 // digits, a key as its bare name, behind a colon where its name carries a
 // slash, and quoted otherwise.
 export const printPath = path => '/' + path.segments.map(printPathSegment).join('/');
@@ -53,8 +53,8 @@ function printPathSegment(segment) {
 }
 
 // A value under a tag writes its tag before its payload, a descriptor's
-// `::builtin` among them [D96]; the set, the quote, the doc and the error
-// write their own brackets.
+// `::builtin` among them [QSPRN#print]; the set, the quote, the doc and the
+// error write their own brackets.
 const PRINT_HANDLERS = {
   null:    () => 'null',
   boolean: v => String(v),
@@ -74,7 +74,7 @@ const PRINT_HANDLERS = {
 };
 
 // A quote writes its steps in `~(…)`, and one whose code is a path alone,
-// which `~(…)` refuses where it is written, under its tag [D248].
+// which `~(…)` refuses where it is written, under its tag [QSPTH#value].
 function printQuote(quote) {
   return quote.length === 1 && isPath(quote[0]) ? `::quote[${printPath(quote[0])}]` : '~(' + printQuoteSource(quote) + ')';
 }
@@ -82,8 +82,8 @@ function printQuote(quote) {
 const printedByNoKind = () => undefined;
 
 // printValue(v, indent?, printedOf?) → the text that reads back as `v`;
-// `printedOf(part)` answers the print a kind declared under it gives a part, or
-// undefined where the forms of the core write it, and a print of several
+// `printedOf(part)` answers the print a kind declared under it gives a part,
+// or undefined where the forms of the core write it, and a print of several
 // lines keeps the indent of the place it stands in.
 export function printValue(v, indent = 0, printedOf = printedByNoKind) {
   const printed = printedOf(v);
@@ -107,11 +107,11 @@ function printListLike(open, elements, indent, printedOf) {
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// A failure writes its error at rest, as `!|` grounds it: the tag of its
-// site before the bang, none for the kind of errors [D64], its facts and
-// the path it flew, `:trail []` for one that flew no step, so its print
-// reads back as the error at rest, a value that stands in a vector or a
-// map; the answer of a host says above it that it was raised [D13].
+// A failure writes its error at rest, as `!|` grounds it: the tag of its site
+// before the bang, none for the kind of errors [QSERR#rest], its facts and the
+// path it flew, `:trail []` for one that flew no step, so its print reads back
+// as the error at rest, a value that stands in a vector or a map; the answer
+// of a host says above it that it was raised [QSERR#rest].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   const facts = e.descriptor.has('trail') ? e.descriptor : new Map(e.descriptor).set('trail', NO_PATH);
@@ -122,7 +122,7 @@ const NO_PATH = Object.freeze([]);
 
 // A payload touches its tag by its own sign, and a number, a boolean,
 // null or a path, whose literal would continue the tag's name, by `#`
-// [D279].
+// [QSLIT#tag].
 const KINDS_AFTER_HASH = new Set(['number', 'boolean', 'null', 'path']);
 
 export function underTagLiteral(tagLiteral, payload, payloadPrint) {
@@ -130,7 +130,7 @@ export function underTagLiteral(tagLiteral, payload, payloadPrint) {
 }
 
 // An error at rest writes the literal of its kind, `!{…}`, as a set
-// writes `#[…]` [D13].
+// writes `#[…]` [QSERR#rest].
 function printTaggedInstance(instance, indent, printedOf) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
   if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf);

@@ -524,7 +524,7 @@ describe('createLineEditor — TTY multi-line arrow navigation', () => {
 
 describe('createLineEditor — TTY paste fast-path', () => {
   // A paste lands at the cursor with its line breaks and waits for a submit
-  // [D204].
+  // [QSHST#repl].
 
   it('inserts a multi-line chunk into the buffer without auto-submitting', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
@@ -540,105 +540,105 @@ describe('createLineEditor — TTY paste fast-path', () => {
     expect(capture.lines).toEqual(['{\n  "a": 1\n} | get /a']);
   });
 
-  it('gathers a paste the host hands over in several chunks into one paste [D204]', () => {
+  it('gathers a paste the host hands over in several chunks into one paste [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'one\r\ntw', 'o\r', '\nthree', SUBMIT);
     expect(capture.lines).toEqual(['one\ntwo\nthree']);
   });
 
-  it('ends the gathering at a chunk of one character, Enter handed over alone submitting [D204]', () => {
+  it('ends the gathering at a chunk of one character, Enter handed over alone submitting [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'one\r\ntw', 'o', '\r', '\nthree', SUBMIT);
     expect(capture.lines).toEqual(['one\ntwo', '\nthree']);
   });
 
-  it('ends the gathering at a key spelled by an escape, an arrow moving the cursor [D204]', () => {
+  it('ends the gathering at a key spelled by an escape, an arrow moving the cursor [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'one\ntwo', ESC + '[D', 'X', SUBMIT);
     expect(capture.lines).toEqual(['one\ntwXo']);
   });
 
-  it('ends the gathering at Alt+Enter, which submits the paste [D204]', () => {
+  it('ends the gathering at Alt+Enter, which submits the paste [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'one\ntwo', ESC + '\r');
     expect(capture.lines).toEqual(['one\ntwo']);
   });
 
-  it('gathers a paste after the Escape key, which does nothing [D204]', () => {
+  it('gathers a paste after the Escape key, which does nothing [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, ESC, 'one\r\ntwo', SUBMIT);
     expect(capture.lines).toEqual(['one\ntwo']);
   });
 
-  it('takes every bracket marker out of a gathered paste [D204]', () => {
+  it('takes every bracket marker out of a gathered paste [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'p\r\nq' + BRACKETED_PASTE_END, 'r\r\ns' + BRACKETED_PASTE_END, SUBMIT);
     expect(capture.lines).toEqual(['p\nqr\ns']);
   });
 
-  it('takes every begin marker out of a gathered paste [D204]', () => {
+  it('takes every begin marker out of a gathered paste [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'p\r\nq' + BRACKETED_PASTE_BEGIN + 'r', 's' + BRACKETED_PASTE_BEGIN + 't', SUBMIT);
     expect(capture.lines).toEqual(['p\nqrst']);
   });
 
-  it('ends the gathering at a character beyond the basic plane typed alone [D204]', () => {
+  it('ends the gathering at a character beyond the basic plane typed alone [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'one\r\ntwo\r\n', '\u{1F600}', SUBMIT);
     expect(capture.lines).toEqual(['one\ntwo\u{1F600}']);
   });
 
-  it('reads Alt with an arrow, an escape before the arrow\'s, as the arrow [D204]', () => {
+  it('reads Alt with an arrow, an escape before the arrow\'s, as the arrow [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'abc', ESC + ESC + '[D', 'X', SUBMIT);
     expect(capture.lines).toEqual(['abXc']);
   });
 
-  it('reads a bracketed paste after an escape in the same chunk [D204]', () => {
+  it('reads a bracketed paste after an escape in the same chunk [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, ESC + BRACKETED_PASTE_BEGIN + 'one\r\ntwo' + BRACKETED_PASTE_END, SUBMIT);
     expect(capture.lines).toEqual(['one\ntwo']);
   });
 
-  it('reads a key spelled by an escape after the Escape key [D204]', () => {
+  it('reads a key spelled by an escape after the Escape key [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'abc', ESC, ESC + '[D', 'X', SUBMIT);
     expect(capture.lines).toEqual(['abXc']);
   });
 
-  it('reads a bracketed paste after the Escape key [D204]', () => {
+  it('reads a bracketed paste after the Escape key [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, ESC, BRACKETED_PASTE_BEGIN + 'one\r\ntwo' + BRACKETED_PASTE_END, SUBMIT);
     expect(capture.lines).toEqual(['one\ntwo']);
   });
 
-  it('reads text whose one line feed ends it key by key [D204]', () => {
+  it('reads text whose one line feed ends it key by key [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'abc' + NEWLINE, 'd', SUBMIT);
     expect(capture.lines).toEqual(['abc\nd']);
   });
 
-  it('reads a character beyond the basic plane typed alone as one key, Alt with it doing nothing [D204]', () => {
+  it('reads a character beyond the basic plane typed alone as one key, Alt with it doing nothing [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, ESC, '\u{1F600}', 'x', SUBMIT);
     expect(capture.lines).toEqual(['x']);
   });
 
-  it('reads a character beyond the basic plane as it reads a letter over every delivery of up to three chunks [D204]', () => {
+  it('reads a character beyond the basic plane as it reads a letter over every delivery of up to three chunks [QSHST#repl]', () => {
     const EMOJI = '\u{1F600}';
     const LETTER = 'é';
     const CHUNKS = [ESC, '[D', ESC + '[D', 'a', 'one\r\ntwo', 'x' + NEWLINE, SUBMIT, NEWLINE,
@@ -658,42 +658,42 @@ describe('createLineEditor — TTY paste fast-path', () => {
     }
   });
 
-  it('drops an escape before a character beyond the basic plane, the keys after it typed [D204]', () => {
+  it('drops an escape before a character beyond the basic plane, the keys after it typed [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, ESC + '\u{1F600}', '1', '2', SUBMIT);
     expect(capture.lines).toEqual(['12']);
   });
 
-  it('reads an escape sequence split after its escape as one key [D204]', () => {
+  it('reads an escape sequence split after its escape as one key [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'abc', ESC, '[D', 'X', SUBMIT);
     expect(capture.lines).toEqual(['abXc']);
   });
 
-  it('reads an escape sequence split after its bracket as one key [D204]', () => {
+  it('reads an escape sequence split after its bracket as one key [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'abc', ESC + '[', '1~', 'X', SUBMIT);
     expect(capture.lines).toEqual(['Xabc']);
   });
 
-  it('reads a bracketed paste whose begin marker is split after its escape [D204]', () => {
+  it('reads a bracketed paste whose begin marker is split after its escape [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, ESC, '[200~one\r\ntwo', BRACKETED_PASTE_END, SUBMIT);
     expect(capture.lines).toEqual(['one\ntwo']);
   });
 
-  it('reads a chunk that begins with an escape as keys, a line feed in it among them [D204]', () => {
+  it('reads a chunk that begins with an escape as keys, a line feed in it among them [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'one\ntwo', ESC + '[Dx\ny', SUBMIT);
     expect(capture.lines).toEqual(['one\ntwx\nyo']);
   });
 
-  it('reads a bracketed paste up to its end marker, a pause past the window inside it [D204]', async () => {
+  it('reads a bracketed paste up to its end marker, a pause past the window inside it [QSHST#repl]', async () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, BRACKETED_PASTE_BEGIN + 'one\r\ntwo');

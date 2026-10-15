@@ -1,5 +1,5 @@
 // The path of a failure, written in flight: a failure lives in the pipe
-// alone [D13], and its `:trail` holds a stop at every step that
+// alone [QSERR#rest], and its `:trail` holds a stop at every step that
 // raised it or handed it on, `{:step :subject :skipped}`, from the step
 // where it arose to the `!|` that catches it, and a step it skips joins
 // the `:skipped` of the last stop. The helpers build a new error for
@@ -18,7 +18,7 @@
 //
 // A failure holds its path from its first stop, and one that flew no step,
 // a refusal of the text of a query or one that resumed an empty path,
-// holds no `:trail` [D13].
+// holds no `:trail` [QSERR#rest].
 
 import { isErrorValue, makeErrorValue, makeQuote } from './types.mjs';
 import { quoteOfBody } from './quote.mjs';

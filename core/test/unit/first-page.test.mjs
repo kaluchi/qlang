@@ -1,4 +1,4 @@
-// The first page [D185]: every example it states the answer of answers
+// The first page [QSSLF#page]: every example it states the answer of answers
 // it as the page writes it, the task over the input the page gives it.
 
 import { describe, it, expect } from 'vitest';
@@ -16,7 +16,7 @@ const examples = [...content.matchAll(EXAMPLE)].map(([, input, query, answer]) =
   answer
 }));
 
-describe('the first page [D185]', () => {
+describe('the first page [QSSLF#page]', () => {
   it('states the answers of its examples', () => {
     expect(examples.length).toBeGreaterThan(20);
   });

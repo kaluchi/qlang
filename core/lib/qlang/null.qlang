@@ -1,6 +1,6 @@
 |~ `::null`, the kind of the absent value, and what is declared under
    it: its constructor and its refusal, and the soft read of it.
-   The decisions it exists for: [D114]. ~|
+   The decisions it exists for: [QSDSP#residence]. ~|
 
 :null
   |~~ Null is the absence of a value, the one value of its kind. It
@@ -20,7 +20,7 @@
   ~~|
   ::kind
     | wraps |~~ Null, read as itself. ~~|
-    | throws :PayloadNotNullError
+    | throws :PayloadKindNotTakenError
         |~~ `::null` reads its payload as null; a payload of another kind
             is refused.
         ~~|
@@ -28,9 +28,9 @@
     | proves :buildsNull
         |~~ The constructor of null answers null. ~~|
         ~(::null#null | eq null)
-    | proves :PayloadNotNullError/refusesANumber
+    | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::null#1 !| get [~(type) /actualType] | eq [::null/PayloadNotNullError ::number])
+        ~(::null#1 !| get [~(type) /actualType] | eq [::null/PayloadKindNotTakenError ::number])
     | impl ::builtin{}
 
 :null/toKeyword

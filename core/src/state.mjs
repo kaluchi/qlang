@@ -4,7 +4,7 @@
 // state it started from; the scope maps the names a reader declared to
 // their records, the frame, over the root the host's sources declared,
 // under a key no name spells, a lookup reading the frame and then the
-// root [D153].
+// root [QSDSP#residence].
 
 import { CallEvaluationDepthExceededError } from './errors.mjs';
 import { ROOT_KEY, QUERY_KEY } from './env-keys.mjs';
@@ -16,7 +16,7 @@ export const EVAL_DEPTH_LIMIT = 1000;
 
 // The calls a state runs within keep the origin of each quote they
 // received, the nearest first, and a state a word of the host reads keeps
-// beside the tree of the query the scope of its own step [D278].
+// beside the tree of the query the scope of its own step [QSQUO#held].
 function makeState(pipeValue, env, depth, calls = null, own = null) {
   return Object.freeze({ pipeValue, env, depth, calls, own });
 }
@@ -55,13 +55,13 @@ export function nestState(state, pipeValue, env) {
 
 // withCall(state, origins) → the state of the run of a call, which keeps
 // the origin of each quote the call received for the code run within it,
-// before those of the calls around it [D278].
+// before those of the calls around it [QSQUO#held].
 export function withCall(state, origins) {
   return makeState(state.pipeValue, state.env, state.depth, { origins, around: state.calls }, state.own);
 }
 
 // originIn(state, quote) → the origin the nearest call around a state keeps
-// for a quote, or undefined [D278].
+// for a quote, or undefined [QSQUO#held].
 export function originIn(state, quote) {
   for (let call = state.calls; call !== null; call = call.around) {
     const origin = call.origins.get(quote);
@@ -71,7 +71,7 @@ export function originIn(state, quote) {
 }
 
 // ownScopeOf(state) → the scope of the step a state runs, its own where a
-// word of the host reads the tree of the query [D200], [D278].
+// word of the host reads the tree of the query [QSNAM#owner], [QSQUO#held].
 export function ownScopeOf(state) {
   return state.own ?? state.env;
 }
@@ -94,13 +94,13 @@ export function envHas(env, name) {
 // down through every word the body calls, and elsewhere the scope itself.
 // A word of the host reads it at its call, while the names a body writes
 // read the body's scope, so a word written in the language and a word of
-// the host read the same tree [D200].
+// the host read the same tree [QSNAM#owner].
 export function queryTreeOf(env) {
   return env.get(QUERY_KEY) ?? env;
 }
 
 // queryStateOf(state) → the state as a word of the host reads it at its
-// call: its value and its depth over the tree of the query [D200].
+// call: its value and its depth over the tree of the query [QSNAM#owner].
 export function queryStateOf(state) {
   const tree = queryTreeOf(state.env);
   return tree === state.env ? state : makeState(state.pipeValue, tree, state.depth, state.calls, state.env);
@@ -108,13 +108,13 @@ export function queryStateOf(state) {
 
 // envSet(env, name, value) → a new scope, the name holding the value; the
 // body of a word keeps its own names out of the tree of the query, as a
-// word of the host does [D200], [D251].
+// word of the host does [QSNAM#owner], [QSBLD#fn].
 export function envSet(env, name, value) {
   return asScopeOf(env, new Map(env).set(name, value));
 }
 
 // The scopes of the words of the root, where a bare name and the
-// definition of a call read the root alone [D200], and every scope made
+// definition of a call read the root alone [QSNAM#owner], and every scope made
 // from one.
 const ROOT_WORD_SCOPES = new WeakSet();
 

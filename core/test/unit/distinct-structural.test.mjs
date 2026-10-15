@@ -1,6 +1,6 @@
 // `distinct` holds each value once by the equality `eq` holds, two maps of
 // the same entries one value however they were built, and answers a set,
-// the vector in the one order without duplicates [D16].
+// the vector in the one order without duplicates [QSORD#order].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

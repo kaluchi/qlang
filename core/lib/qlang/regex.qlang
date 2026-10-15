@@ -1,7 +1,7 @@
 |~ `::regex` and what is declared under it: its constructor and its
    refusal, and `toRegex`, which answers the pattern itself. The words
    that read text by a pattern live under `::string`.
-   The decisions it exists for: [D246]. ~|
+   The decisions it exists for: [QSTXT#pattern]. ~|
 
 :regex
   |~~ A pattern of text, `#"\d+ms"`, which the words of a string read text
@@ -36,7 +36,7 @@
   ~~|
   ::kind
     | wraps |~~ A pattern, read as itself. ~~|
-    | throws :PayloadNotRegexError
+    | throws :PayloadKindNotTakenError
         |~~ `::regex` reads its payload as the pattern it is; text becomes
             one by `toRegex`, `"\\d+" | toRegex`.
         ~~|
@@ -86,11 +86,11 @@
             text.
         ~~|
         ~([:k #"b" "z" #"a"] | sort | eq ["z" #"a" #"b" :k])
-    | proves :PayloadNotRegexError/refusesAString
+    | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused; `toRegex` reads text as a
             pattern.
         ~~|
-        ~(::regex"a" !| get [~(type) /actualType] | eq [::regex/PayloadNotRegexError ::string])
+        ~(::regex"a" !| get [~(type) /actualType] | eq [::regex/PayloadKindNotTakenError ::string])
     | impl ::builtin{}
 
 :regex/toRegex

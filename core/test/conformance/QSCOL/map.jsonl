@@ -1,0 +1,22 @@
+{"name":"keys","query":"{:name \"Alice\" :age 30} | keys","expect":"#[:age :name]"}
+{"name":"vals","query":"{:name \"Alice\" :age 30} | vals","expect":"[\"Alice\" 30]"}
+{"name":"vals-map-yields-vec","query":"{:a 1 :b 2} | vals | type","expect":"::vec"}
+{"name":"keys-map-yields-set","query":"{:a 1 :b 2} | keys | type","expect":"::set"}
+{"name":"keys-map-elements-are-keywords","query":"{:a 1 :b 2} | keys | first | type","expect":"::keyword"}
+{"name":"keys-map-set-deepequal-by-structural-membership","query":"{:a 1 :b 2} | keys | eq #[:b :a]","expect":"true"}
+{"name":"sort-orders-the-entries-by-value","query":"{:a 3 :b 1 :c 2} | sort | vals","expect":"[1 2 3]"}
+{"name":"sort-keeps-the-key-of-each-value","query":"{:a 3 :b 1} | sort | take 1","expect":"{:b 1}"}
+{"name":"take-cuts-the-first-entries","query":"{:a 1 :b 2 :c 3} | take 2","expect":"{:a 1 :b 2}"}
+{"name":"drop-cuts-the-first-entries-away","query":"{:a 1 :b 2 :c 3} | drop 2","expect":"{:c 3}"}
+{"name":"reverse-reverses-the-entries","query":"{:a 1 :b 2} | reverse | vals","expect":"[2 1]"}
+{"name":"sum-reads-the-values","query":"{:a 1 :b 2} | sum","expect":"3"}
+{"name":"min-reads-the-values","query":"{:a 3 :b 1} | min","expect":"1"}
+{"name":"max-reads-the-values","query":"{:a 3 :b 1} | max","expect":"3"}
+{"name":"first-reads-the-first-value","query":"{:a 1 :b 2} | first","expect":"1"}
+{"name":"last-reads-the-last-value","query":"{:a 1 :b 2} | last","expect":"2"}
+{"name":"keys-answers-the-sorted-set-of-keys","query":"{:b 1 :a 2} | keys | first","expect":":a"}
+{"name":"first-of-an-empty-map-is-null","query":"{} | first","expect":"null"}
+{"name":"entries-answers-the-pairs-of-a-map","query":"{:a 1 :b 2} | entries","expect":"[[:a 1] [:b 2]]"}
+{"name":"a-key-stands-beside-its-value-in-a-record","query":"{:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 (get {:name ~(get /0 | toString)})) | sort /port","expect":"[{:port 3000 :name \"auth\"} {:port 5432 :name \"db\"}]"}
+{"name":"map-empty-keys","query":"{} | keys","expect":"#[]"}
+{"name":"map-empty-vals","query":"{} | vals","expect":"[]"}

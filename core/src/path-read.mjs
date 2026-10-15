@@ -1,6 +1,6 @@
-// Reading a path [D248]: each segment a key of a map or a place of a
+// Reading a path [QSPTH#value]: each segment a key of a map or a place of a
 // vector, read beneath the tags stacked over the value it meets; a write
-// follows a path as a read does and misses as a read misses [D250].
+// follows a path as a read does and misses as a read misses [QSPTH#write].
 
 import { declareRefusal } from './errors.mjs';
 import { isDoc, isFn, isKind, isQMap, isQuote, isVec, isValueClass, keyword } from './types.mjs';
@@ -19,7 +19,7 @@ export const MISSED = Symbol('qlang/missed');
 // places, the elements of a vector or a set and the values of a map, under
 // a tag or none; null for any other value, which the template answers as
 // it is, a quote, a doc, a function and a kind among them, each a vector
-// of code or prose [D279].
+// of code or prose [QSLIT#tag].
 export function partsOfTemplate(value) {
   if (isQuote(value) || isDoc(value) || isFn(value) || isKind(value)) return null;
   if (isVec(value)) return value;

@@ -35,7 +35,7 @@ const TAG_SIGIL = '::';
 const tagNameOf = tag => TAG_SIGIL + tag;
 const isTagName = name => name.startsWith(TAG_SIGIL);
 
-// The prose of a doc, its segments without its quotes [D19], which hover
+// The prose of a doc, its segments without its quotes [QSSLF#doc], which hover
 // and completion show; a doc the runtime answers is its segments, and a
 // doc of the document's tree holds them as the parser read them.
 const proseOfSegments = segments => segments.filter(segment => typeof segment === 'string').join('');
@@ -64,7 +64,7 @@ function dedent(text) {
 
 // The contents of the page at an address, `::vec/count`, once per
 // address; a word's is read at the address the tool shows for it, so its
-// signature and its page name one word [D168].
+// signature and its page name one word [QSSLF#catalog].
 const docsCache = new Map();
 async function pageContents(address) {
   if (docsCache.has(address)) return docsCache.get(address);
@@ -83,7 +83,7 @@ async function pageContents(address) {
 const signatureOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
 
 // The kinds of the subject of the step that starts at an offset, where the
-// steps before it name them, or null [D168].
+// steps before it name them, or null [QSSLF#catalog].
 async function subjectKindsAt(source, offset) {
   return (await subjectAt(source, offset))?.kinds ?? null;
 }
@@ -120,7 +120,7 @@ export function parseDocument(source, uri) {
 // ── Catalog context ───────────────────────────────────────────
 
 // The declarations of a source of the catalog by the name each declares,
-// its address [D153], with the span goto-definition jumps to.
+// its address [QSDSP#residence], with the span goto-definition jumps to.
 export function buildCatalogIndex(catalogAst) {
   const index = new Map();
   if (!catalogAst) return index;
@@ -134,9 +134,10 @@ export function buildCatalogIndex(catalogAst) {
   return index;
 }
 
-// The catalog's declaration of what a name reaches with no subject [D34],
-// [D153]: the one word of the name, or of a word several kinds answer the
-// first the catalog declares [D168]; for an address the node it names.
+// The catalog's declaration of what a name reaches with no subject
+// [QSDSP#walk], [QSDSP#residence]: the one word of the name, or of a word
+// several kinds answer the first the catalog declares [QSSLF#catalog]; for an
+// address the node it names.
 function catalogDeclarationOf({ index, runtime }, name) {
   const reach = bareNameReach(runtime, name);
   if (reach !== null) return index.get(reach.record.get('name').name) ?? null;
@@ -237,7 +238,7 @@ function withDeclaredNames(items, ast, offset, spellings) {
   return items;
 }
 
-// The kind of the value a literal step answers [D20].
+// The kind of the value a literal step answers [QSLIT#kind].
 const KIND_OF_LITERAL = {
   NumberLit: 'number', StringLit: 'string', RegexLit: 'regex', BooleanLit: 'boolean', NullLit: 'null',
   Keyword: 'keyword', VecLit: 'vec', MapLit: 'map', SetLit: 'set',
@@ -278,9 +279,9 @@ function stepsOf(pipelineNode) {
 }
 
 // The kinds of the value the steps answer from a subject of the kinds: a
-// literal's own, the subject's through a declaration and a `!|` step, and
-// a name's the kinds its `returns` names, the subject's own where that is
-// the word's own label [D168], [D251]; null where a step answers no
+// literal's own, the subject's through a declaration and a `!|` step, and a
+// name's the kinds its `returns` names, the subject's own where that is the
+// word's own label [QSSLF#catalog], [QSBLD#fn]; null where a step answers no
 // declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
@@ -374,7 +375,7 @@ function findInDocumentDocs(ast, name) {
 }
 
 // A click on the head of a node that writes a tag, the `::Tag` of a
-// TaggedLit or of an error literal `::Tag!{…}` [D13], and not on the
+// TaggedLit or of an error literal `::Tag!{…}` [QSERR#rest], and not on the
 // brackets the error literal owns around its entries.
 function isOnTagHead(node, offset) {
   return writesTag(node) && offset < node.location.start.offset + 2 + node.tag.length;
@@ -436,7 +437,7 @@ export function definitionAtOffset(ast, offset, catalogCtx) {
 }
 
 // The name a declaration binds and what it declares: a label, its tag,
-// for a page alone or for the chain or the literal of a kind [D252], a
+// for a page alone or for the chain or the literal of a kind [QSBLD#kind], a
 // value otherwise.
 function bindingDeclarationOf(node) {
   if (node.type !== 'BindStep') return null;
@@ -447,7 +448,7 @@ function bindingDeclarationOf(node) {
 
 // Whether a body runs on the values of the label it is declared under: a
 // quote, and a function its chain gives a recipe, `| impl …`, or its
-// literal one that is no null [D251].
+// literal one that is no null [QSBLD#fn].
 function bodyRuns(body) {
   if (body.type === 'QuoteLit') return true;
   if (builtFrom(body) !== 'fn') return false;
@@ -456,11 +457,11 @@ function bodyRuns(body) {
   return chain.type === 'Pipeline' && chain.steps.slice(1).some(({ step }) => step.type === 'Call' && step.name === 'impl');
 }
 
-// Whether a declaration of a value declares a word, by the core's rule: a
-// name the runtime holds as the core answers it, and one of the document
-// as `declaresWord` reads it, a quote or a function with a recipe running
-// where a reader's `::builtin{}` reaches no primitive [D34], [D251],
-// [D253].
+// Whether a declaration of a value declares a word, by the core's rule: a name
+// the runtime holds as the core answers it, and one of the document as
+// `declaresWord` reads it, a quote or a function with a recipe running where a
+// reader's `::builtin{}` reaches no primitive [QSDSP#walk], [QSBLD#fn],
+// [QSBLD#chain].
 function declaresWordIn({ key, body }, runtime, isLabelName) {
   return nodeOf(runtime, key.name) !== null
     ? isWord(runtime, key.name)

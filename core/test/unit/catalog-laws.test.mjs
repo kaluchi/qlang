@@ -1,9 +1,9 @@
 // The laws of the catalog, run. The laws of a name are declared under
-// it [D123]; `runLaws` evaluates each in isolation and reports
+// it [QSSLF#laws]; `runLaws` evaluates each in isolation and reports
 // {:law :says :actual :ok :error}, a law whose answer is true passing.
 //
-// The walk reads every name the root holds by its address [D153], and
-// names each failing reader in the assertion message.
+// The walk reads every name the root holds by its address [QSDSP#residence],
+// and names each failing reader in the assertion message.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -14,7 +14,7 @@ import { isErrorValue, isQSet } from '../../src/types.mjs';
 
 // The readers of the catalog's laws: the address of every name the root
 // holds, `::number`, `::vec/count` and `::qlang/values`, each read by
-// `runLaws` [D123].
+// `runLaws` [QSSLF#laws].
 async function catalogReaders() {
   return rootAddressesOf(await langRuntime());
 }
@@ -38,7 +38,7 @@ describe('the laws of the catalog, run by runLaws', () => {
   }, 30000);
 
   it('no quote of a page is read as prose', async () => {
-    // A quote the parser refuses reads as prose [D19], so a link or a
+    // A quote the parser refuses reads as prose [QSSLF#doc], so a link or a
     // snippet a change of the grammar breaks leaves its page with no
     // failure to show; prose names code inside backticks alone.
     expect(await proseQuotesOf(evalQuery, await catalogReaders())).toEqual([]);

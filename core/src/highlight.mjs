@@ -10,7 +10,7 @@
 // Token kinds:
 //
 //   'string'      String literal, including the surrounding quotes
-//   'regex'       Pattern literal `#"…"`, its flags among it [D246]
+//   'regex'       Pattern literal `#"…"`, its flags among it [QSTXT#pattern]
 //   'number'      Number literal, plus boolean and null literals
 //   'comment'     Plain comment, and the prose of a doc: the quotes a
 //                 doc holds and its spans in backticks paint as code
@@ -41,10 +41,10 @@
 //   'whitespace'  runs of whitespace between meaningful tokens, and
 //                 the source past where its parse stopped
 //
-// A source that does not parse paints as far as the parser reads it: a
-// source cut short, as a line being typed is, through the closers that
-// complete it [D125], and one the parser refuses up to the place of the
-// refusal, the rest as whitespace.
+// A source that does not parse paints as far as the parser reads it: a source
+// cut short, as a line being typed is, through the closers that complete it
+// [QSSYN#refusal], and one the parser refuses up to the place of the refusal,
+// the rest as whitespace.
 
 import { closersCompleting, parse } from './parse.mjs';
 import { walkAst } from './walk.mjs';
@@ -88,7 +88,7 @@ function readOf(src) {
 // emit nothing here — their structural punctuation shows up via
 // the gap-interleaving pass below.
 function collectSemanticSpans(src, ast, builtinNames) {
-  // A plain comment is whitespace the parser keeps on the side [D81].
+  // A plain comment is whitespace the parser keeps on the side [QSSYN#comment].
   const spans = ast.comments.map(comment =>
     ({ start: comment.location.start.offset, end: comment.location.end.offset, kind: 'comment' }));
 
@@ -99,7 +99,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
     switch (node.type) {
       case 'DocLit': {
         // The prose of a doc paints as a comment and the quotes it holds
-        // as the code they are, so only prose reads grey [D83].
+        // as the code they are, so only prose reads grey [QSSYN#doc].
         let cursor = startOffset;
         for (const segment of node.segments) {
           if (typeof segment === 'string') continue;
@@ -130,7 +130,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
 
       case 'ErrorLit': {
         // The tag an error literal writes before its bang paints as
-        // every tag head does, then the `!{` / `}` of the error [D13].
+        // every tag head does, then the `!{` / `}` of the error [QSERR#rest].
         const bangOffset = node.tag === null ? startOffset : startOffset + 2 + node.tag.length;
         if (node.tag !== null) spans.push({ start: startOffset, end: bangOffset, kind: 'tag' });
         emitBracketSpans(bangOffset, endOffset, 2, 1, 'err', spans);
@@ -164,7 +164,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
         // The binding key — Keyword `:name` or TagLit `::Tag` —
         // paints as 'keyword' (binding-introducer) so it is visually
         // distinct from a plain value-position `:name`; the doc literals
-        // of its slot paint as every doc does [D83].
+        // of its slot paint as every doc does [QSSYN#doc].
         const key = node.key;
         spans.push({ start: key.location.start.offset, end: key.location.end.offset, kind: 'keyword' });
         return; // descend into docs / body

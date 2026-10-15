@@ -7,7 +7,7 @@
 // consumer resolves it for real, which is why the range has to name
 // the sibling's own version — and why every dependency map counts,
 // not `dependencies` alone.
-// The decisions it exists for: [D238].
+// The decisions it exists for: [QSWRK#tooling].
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

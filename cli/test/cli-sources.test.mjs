@@ -12,7 +12,7 @@ describe('cliSources', () => {
   });
 });
 
-describe('the verbs of the command line [D153]', () => {
+describe('the verbs of the command line [QSDSP#residence]', () => {
   const evalInCli = async (query) => {
     const session = await createSession({ sources: cliSources(silentStreams) });
     return (await session.evalCell(query)).result;

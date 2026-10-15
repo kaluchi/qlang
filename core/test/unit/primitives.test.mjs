@@ -1,6 +1,6 @@
 // Tests for src/primitives.mjs — the table of the implementations of
 // the language by the address of the verb or the kind each serves,
-// which the bootstrap hands each source of the language [D72].
+// which the bootstrap hands each source of the language [QSDSP#residence].
 //
 // Every test binds into an isolated table via createPrimitiveRegistry()
 // so state does not leak between cases; PRIMITIVE_REGISTRY, which the
@@ -202,7 +202,7 @@ describe('PRIMITIVE_REGISTRY', () => {
   });
 });
 
-describe('PRIMITIVE_REGISTRY — the implementations of the language by address [D72]', () => {
+describe('PRIMITIVE_REGISTRY — the implementations of the language by address [QSDSP#residence]', () => {
   it('binds one under the address of every verb and kind of the language that ends in ::builtin{}, a function whose recipe it is among them, and no other', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { ROOT_KEY } = await import('../../src/env-keys.mjs');

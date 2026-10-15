@@ -97,10 +97,8 @@ export function stepOfNode(node) {
 // commandStep(name, modifiers) → the step of a command, its name and its
 // modifiers, which a quote assembled from data holds as a quote read from
 // text holds it.
-export function commandStep(name, modifiers = []) {
-  const fields = [['name', keyword(name)]];
-  if (modifiers.length > 0) fields.push(['modifiers', Object.freeze([...modifiers])]);
-  return record(CALL_TAG, fields);
+export function commandStep(name, modifiers) {
+  return record(CALL_TAG, [['name', keyword(name)], ['modifiers', Object.freeze([...modifiers])]]);
 }
 
 // tagCallStepOf(tag) → the step `tag ::Tag`, the call a tagged literal

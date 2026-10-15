@@ -67,14 +67,14 @@ const OF_THE_FACTS = { caught: true, from: [] };
 
 const readBelow = ({ caught, from }, segments) => ({ caught, from: [...from, ...segments] });
 
-// The read of a part: `get` with the path to it, `drop` after it where a
-// vector keeps its first elements, and `it` where the path is empty,
-// beneath `!|` for a fact of an alert [QSPTH#value].
+// The read of a part: `get` with the path to it and `drop` after it where a
+// vector keeps its first elements, beneath `!|` for a fact of an alert
+// [QSPTH#value]; the top, which never gives way whole, is read by `drop`
+// alone.
 function readOf(start, path, kept = null) {
   const segments = [...start.from, ...path].map(String);
   const steps = segments.length === 0 ? [] : [commandStep('get', [makePath(segments)])];
   if (kept !== null) steps.push(commandStep('drop', [kept]));
-  if (steps.length === 0) steps.push(commandStep('it'));
   if (start.caught) steps[0] = makeTaggedInstance(FAIL_TAG, makeQuote([steps[0]]));
   return makeQuote(steps);
 }

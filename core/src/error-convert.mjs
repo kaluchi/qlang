@@ -84,7 +84,7 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
   else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
-  if (parseError.location) d.set('location', spanOfLocation(parseError.location, parseError.source ?? ''));
+  if (parseError.location) d.set('location', spanOfLocation(parseError.location, parseError.source));
   if (uri) d.set('uri', uri);
   const tag = makeTag('quote/ParseError');
   return makeErrorValue(tag, factsInOrder(tag, d, env), {

@@ -27,8 +27,9 @@ under the answer, an invariant always written so,
 written with a path, and a law with a path stand under a name declared
 before them, a refusal among them, `::fn/FactUnderNoNameError` and
 `::fn/LawUnderNoNameError` refusing one under none.
-A word serves the values of its label and of the kinds `on` names,
-refusing any other subject by its label; a function `apply` runs serves
+A word serves the values of its label and of the kinds `on` names, of
+tag names the noun's own alone [QSDSP#tagname], refusing any other
+subject by its label; a function `apply` runs serves
 the kinds `on` names, or any subject where it names none, another
 refused as `::fn/call/SubjectKindNotTakenError` with the kinds as
 `:expected`. A function prints as its literal, the chain folded into a
@@ -78,9 +79,10 @@ element that is no vector as of no `::vec`; a place the call leaves out,
 read strictly by a path or by code, as `…/by/NotGivenError`, and a path
 that meets a value it cannot read with the path's refusal,
 `::path/SubjectHasNoPartsError`; args past the places the inputs read,
-where every input reads a numbered place, under the call as
-`…/ArgsBeyondInputsError`, while an input that reads `/-1`, the args
-whole or code of several steps takes any number; and a value that breaks an
+where every input reads a numbered place, a path from a place or
+`query` of one, under the call as `…/ArgsBeyondInputsError`, while an
+input that reads `/-1`, the args whole or a place by any other code,
+`~(get /0)` among it, takes any number; and a value that breaks an
 invariant under the invariant's name, the invariant holding of the value
 as the call gives it, its tags among it, which the refusal holds as
 `:actualValue`. Kinds written as a vector of one tag or of one set are
@@ -157,7 +159,9 @@ beside `payload`, `construct` and the words of a literal,
 refusal or an invariant written with
 a path stands under a field read before it, and a law or a fact under a
 name declared before it, `NameUnderNoFieldError`, `LawUnderNoNameError`
-and `FactUnderNoNameError` refusing one under none. A kind prints as its
+and `FactUnderNoNameError` refusing one under none; a fact written with
+no path is a fact of the payload, as the kind of errors names the facts
+every error may carry. A kind prints as its
 literal, which the constructor of `::kind` reads back.
 
 ```qlang

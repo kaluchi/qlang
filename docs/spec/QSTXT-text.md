@@ -9,7 +9,8 @@ requirements of each section are the cases of its file under
 A string counts, takes and drops by its code points, a letter of any
 script, an emoji and a combining mark each one. `trim` answers it
 without the whitespace at its two ends, `lower` and `upper` fold its
-case letter by letter as Unicode maps it, and `lines` cuts it at `\n`
+case as Unicode maps the text, a letter to two where it writes two and a
+sigma at the end of a word to its final form, and `lines` cuts it at `\n`
 and `\r\n`, a line break at the end closing the last line and the empty
 string holding none. `append` and `prepend` write a text at one end, a
 keyword written as its name. A word only strings answer refuses a
@@ -28,6 +29,9 @@ words.
 
 > "Ann@Example.COM" | lower
 "ann@example.com"
+
+> get [~("ΣΑΣ" | lower) ~("straße" | upper)]
+["σας" "STRASSE"]
 
 > "x" | append :a
 "xa"
@@ -96,7 +100,7 @@ prints as its literal and reads back, JSON writing that literal as a
 string, and two are equal when their text and flags are. `toRegex` reads
 a string as a pattern and answers a pattern as its source, each with the
 flags its call gives in the place of its own, a pattern keeping its own
-and a string taking none where the call gives none. A pattern whose
+and a string taking none where the call gives none or null. A pattern whose
 matching backtracks without end runs as long as its matching does.
 
 ```qlang

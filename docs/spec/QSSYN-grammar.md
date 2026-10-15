@@ -57,15 +57,16 @@ value by [QSERR#catch]. A combinator is set off by whitespace on both
 sides, a line break counting as whitespace and an opening bracket or the
 start of the text standing for the space before it, so `|~`, `|~|`,
 `|~~` and `|~~|` written together open a comment or a doc. One
-combinator stands between two steps: a pipe written before `!|` stands
-for the combinator after it, and any other combinator after a
-combinator is refused, after `| !|` as after `!|`, one written against
-its neighbour with a message that names the space; a combinator at the
-end of a pipeline, a group or a quote is refused naming the step it
-misses. An unclosed `|~` after a step is refused naming
-the word that runs code after a pipe, `| apply ~(…)`. A pipeline, a
-group and a quote may open with a combinator: a leading `|` is the
-head's combinator, and a leading `!|` opens a step of the fail track.
+combinator stands between two steps and at the head: a pipe written
+before `!|` stands for the combinator after it, and any other
+combinator after a combinator is refused naming the habit, after `| !|`
+as after `!|`, one written against its neighbour with a message that
+names the space; a combinator at the end of a pipeline, a group or a
+quote is refused naming the step it misses. An unclosed `|~` after a
+step is refused naming the word that runs code after a pipe,
+`| apply ~(…)`. A pipeline, a group and a quote may open with a
+combinator: a leading `|` is the head's combinator, and a leading `!|`
+opens a step of the fail track.
 
 ```qlang
 > "[1] || count" | parse !| get /message
@@ -89,9 +90,10 @@ and the body of a bare name with its page begun on a later line with a
 tag name, is a sentence: its steps run on, joined by `|`, to the next
 declaration or a value written after `|`; any other body is one step,
 and a tag name on a later line is the body of the declaration above. A
-declaration joins the step before it on its own line with no
-combinator, `[1 2] :y 2 | y` answering `2`, while any other step is
-joined by one.
+declaration joins a value or a group before it on its own line with no
+combinator, `[1 2] :y 2 | y` answering `2`, while a keyword on the line
+of a command is a modifier of it, and any other step is joined by a
+combinator.
 
 ```qlang
 > "[3 1 2] sort" | parse !| get /message
@@ -155,11 +157,13 @@ bracket, a string, a quote or a doc open, where four closers at most
 complete it, names it and where it opened, its `:message` naming the
 closers that complete the source and its `:expected` the one closer the
 next character must be; one that ends with a combinator names the step
-it misses beside its continuations. A refusal the
-grammar writes looks ahead before it reads, so the continuations of
-another error stand as they are. A form another language writes is
-refused with the form of this one: a set written with braces names
-`#[`, a quote written with braces names its parentheses.
+it misses beside its continuations, where no refusal the grammar writes
+stood before the end. A refusal the grammar writes looks ahead before
+it reads, so the continuations of another error stand as they are. A
+form another language writes is refused by the grammar with the form of
+this one: a set written with braces names `#[`, a quote written with
+braces names its parentheses, and a comma between modifiers names the
+space.
 
 ```qlang
 > "[1 2 3] | filter ~(gt 1" | parse !| get [/expected /message]

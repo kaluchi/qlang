@@ -17,4 +17,4 @@
 {"name":"append-modifier-not-string","query":"\"x\" | append 42","expect":"::string/append/suffix/KindNotTakenError!{\n  :expected #[::keyword ::string]\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"lines-reads-a-carriage-return-and-drops-the-last-break","query":"\"a\\r\\nb\\r\\n\" | lines","expect":"[\"a\" \"b\"]"}
 {"name":"a-string-counts-its-code-points","query":"\"e\\u0301\" | count","expect":"2"}
-{"decision":"D315","name":"case-folds-as-unicode-maps-the-text","query":"get [~(\"ΣΑΣ\" | lower) ~(\"straße\" | upper)]","expect":"[\"σας\" \"STRASSE\"]"}
+{"name":"case-folds-as-unicode-maps-the-text","query":"get [~(\"ΣΑΣ\" | lower) ~(\"straße\" | upper)]","expect":"[\"σας\" \"STRASSE\"]"}

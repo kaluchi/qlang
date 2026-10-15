@@ -12,8 +12,9 @@ each section are the cases of its file under
 under `::desc`, and compare the subject with a value of its kind by the
 one order [QSORD#order]: a value of another kind is refused as
 `::number/gt/value/KindNotTakenError`, and a subject of a kind none of
-them resides on, a boolean, a vector, a set, a map, a pattern or null,
-as `::call/KindAnswersNoVerbError` with the addresses of the words. Null
+them resides on, a boolean, a vector, a set, a map, a pattern, a path
+and null among them, as `::call/KindAnswersNoVerbError` with the
+addresses of the words. Null
 is tested with `eq null`.
 
 ```qlang
@@ -39,10 +40,11 @@ answers one in its turn, run once every condition before it held for
 `allOf` and once none did for `anyOf`, the first that decides answering
 with the quotes after it unrun. A quote that answers another kind is
 refused at its index, `::any/allOf/ConditionNotBooleanError`, a quote
-that answers a failure hands it on as the answer, and a condition of
-another kind than a boolean, a path or a quote, an error computed at
-the call among it, is refused as `ElementKindNotTakenError` at the
-first such index.
+that answers a failure hands it on as the answer, a condition of
+another kind than a boolean, a path or a quote is refused as
+`ElementKindNotTakenError` at the first such index, and an error
+computed at the call at its own, the conditions computed in their order
+before their kinds are read [QSQUO#modifier].
 
 ```qlang
 > 5 | if 1 ~(1) ~(2) !| type

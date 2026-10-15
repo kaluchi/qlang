@@ -4,4 +4,4 @@
 {"name":"a-name-inside-a-literal-is-refused","query":"\":x 1 | [x]\" | parse !| get /message","expect":"\"a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(x)]`\""}
 {"name":"a-literal-that-computes-reads-as-prose-in-the-code-of-a-doc","query":"|~~ ::snippet~([(1 | add 1)]) ::snippet~(get [~(count)]) ~~| | snippets","expect":"[::snippet~(get [~(count)])]"}
 {"name":"an-error-literal-names-the-facts-get-builds","query":"\"!{:a (1 | add 1)}\" | parse !| get /message","expect":"\"an error literal computes nothing: facts computed are built by `get` and `raise` makes them an error, write `get {:a ~(1 | add 1)} | raise`\""}
-{"decision":"D315","name":"a-literal-that-computes-is-refused-naming-the-whole-literal-as-the-template","query":"\"[::Box[x] 1]\" | parse !| get /message | contains \"write `get [::Box[~(x)] 1]`\"","expect":"true"}
+{"name":"a-literal-that-computes-is-refused-naming-the-whole-literal-as-the-template","query":"\"[::Box[x] 1]\" | parse !| get /message | contains \"write `get [::Box[~(x)] 1]`\"","expect":"true"}

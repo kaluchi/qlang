@@ -77,10 +77,11 @@ or a set there halving to its first element at the least, and a
 container under a tag keeps its shape, its parts giving way within. A
 part a kind prints its own way stands as that kind prints it, the budget
 counting the print a host writes. A marker holds `:size`, what it stands
-for, a part that already gave way whole counting as one element,
-`:read`, the quote that applied to the value `elide` took answers
-the part left out, and for a string, a doc and a quote `:head`, the first
-characters of its text; it prints and reads back as the value it is. A
+for, a part that already gave way whole counting as one element and a
+text its characters as `count` counts them, `:read`, the quote that
+applied to the value `elide` took answers the part left out, and for a
+string, a doc and a quote `:head`, the first characters of its text; it
+prints and reads back as the value it is. A
 value whose print fits is answered as it is.
 
 ```qlang
@@ -99,7 +100,8 @@ value whose print fits is answered as it is.
 The place a reading of text stopped is a span: six integers under
 `::span`, the offset of its start and its line and column, then those of
 the point after its end, the parser counting the offset from zero and
-the line and the column from one. `start` and `end` answer its ends as
+the line and the column from one, the offset and the column in the
+characters a string counts. `start` and `end` answer its ends as
 points, three integers under `::point`, read by `offset`, `line` and
 `column`, each a word of its kind, `5 | start` refused as
 `::span/start/SubjectNotSpanError`. A payload that is no vector is

@@ -14,8 +14,8 @@ binding [QSNAM#binding], `manifest` the names under it, `laws` its laws
 and `explain` its explanation. A value is read by its kind, `5 | doc` the
 page of `::number`, a keyword among values, a value under a tag nothing
 declares by the first kind its stack of tags declares from the outside
-in, as a call of a word walks it, so `::Box{:a 1} | doc` is the page of
-`::map`; and a name by its tag, the address of its node,
+in, the kind of the core beneath them last, so `::Box{:a 1} | doc` is
+the page of `::map`; and a name by its tag, the address of its node,
 `::vec/count | doc`, a label of the root from the root and any other
 name at its nearest declaration. `binding` and `source` take the name of
 one member after it, a keyword, and read the member the subject holds
@@ -23,7 +23,8 @@ under that name, an input of a word or the word a name calls on a noun,
 `::map | doc :minus`; `doc` takes as well a vector of names as a path of
 members and a set as several pages, refusing another anchor as
 `::any/doc/anchor/KindNotTakenError` and an element that is no keyword
-as `::any/doc/anchor/ElementNotKeywordError` with its `:index`; `laws`,
+as `::any/doc/anchor/ElementNotKeywordError` with its `:index`, the place
+in the set of an element that is neither a name nor a path; `laws`,
 `explain`, `manifest` and `tutorial` take no member, refusing one as
 `::any/manifest/ArgsBeyondInputsError` and its kin. A tag nothing declares whose last name
 ends in `Error` reads the record of the address before it, a refusal the

@@ -14,10 +14,10 @@
 {"name":"the-kinds-of-takes-are-tags","query":"::fn | takes :x |~~ x ~~| /0 5 !| type","expect":"::fn/takes/kinds/KindNotTakenError"}
 {"name":"the-name-of-an-input-is-no-word-of-a-literal","query":"::fn | takes :null |~~ w ~~| /0 !| type","expect":"::fn/SignatureNotCommandsError"}
 {"name":"a-name-of-a-signature-declared-twice-is-refused","query":"::fn | takes :x |~~ a ~~| /0 | takes :x |~~ b ~~| /1 !| type","expect":"::fn/NameDeclaredTwiceError"}
-{"decision":"D315","name":"a-refusal-under-an-input-taken-after-it-is-refused","query":"::fn | throws :y/BadError |~~ b ~~| | takes :y |~~ y ~~| /0 !| type","expect":"::fn/NameUnderNoInputError"}
-{"decision":"D315","name":"a-law-under-a-name-declared-after-it-is-refused","query":"::fn | proves :z/holds |~~ l ~~| ~(true) | takes :z |~~ z ~~| /0 !| type","expect":"::fn/LawUnderNoNameError"}
+{"name":"a-refusal-under-an-input-taken-after-it-is-refused","query":"::fn | throws :y/BadError |~~ b ~~| | takes :y |~~ y ~~| /0 !| type","expect":"::fn/NameUnderNoInputError"}
+{"name":"a-law-under-a-name-declared-after-it-is-refused","query":"::fn | proves :z/holds |~~ l ~~| ~(true) | takes :z |~~ z ~~| /0 !| type","expect":"::fn/LawUnderNoNameError"}
 {"name":"returns-with-a-page-and-no-kinds-is-refused","query":"::fn | returns |~~ r ~~| !| type","expect":"::fn/returns/kinds/NotGivenError"}
 {"name":"the-subject-of-a-function-apply-runs-is-refused-by-its-role","query":"true | apply (::fn | on |~~ A number or a text. ~~| #[::number ::string] | impl ~(it)) [] !| get [~(type) /expected]","expect":"[::fn/call/SubjectKindNotTakenError #[::number ::string]]"}
-{"decision":"D315","name":"a-fact-written-with-no-path-is-refused","query":"::fn | carries :limit |~~ The limit. ~~| !| type","expect":"::fn/FactUnderNoNameError"}
-{"decision":"D315","name":"fill-refuses-under-the-call-of-a-function","query":"::fn[~(takes :by |~~ b ~~| /0 ::number) ~(add by)] | get [~(fill \"x\" !| type) ~(fill 1 2 !| type) ~(fill !| type)]","expect":"[::fn/call/by/KindNotTakenError ::fn/call/ArgsBeyondInputsError ::fn/call/by/NotGivenError]"}
-{"decision":"D315","name":"fill-refuses-a-function-whose-recipe-is-no-code","query":"::fn | takes :by |~~ b ~~| /0 | fill 1 !| type","expect":"::fn/fill/RecipeNotCodeError"}
+{"name":"a-fact-written-with-no-path-is-refused","query":"::fn | carries :limit |~~ The limit. ~~| !| type","expect":"::fn/FactUnderNoNameError"}
+{"name":"fill-refuses-under-the-call-of-a-function","query":"::fn[~(takes :by |~~ b ~~| /0 ::number) ~(add by)] | get [~(fill \"x\" !| type) ~(fill 1 2 !| type) ~(fill !| type)]","expect":"[::fn/call/by/KindNotTakenError ::fn/call/ArgsBeyondInputsError ::fn/call/by/NotGivenError]"}
+{"name":"fill-refuses-a-function-whose-recipe-is-no-code","query":"::fn | takes :by |~~ b ~~| /0 | fill 1 !| type","expect":"::fn/fill/RecipeNotCodeError"}

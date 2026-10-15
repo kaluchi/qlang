@@ -11,12 +11,14 @@ At rest an error is a value like any other, a map of facts under
 `::error`, the kind of errors, under the tag of the site that refused:
 a container holds it, a step reads it, `print` writes it, and its print
 reads back as itself. `!{…}` is its literal, the literal of `::error`,
-and `::Foo!{…}` is `::Foo::error{…}`, the facts laid under the tag
-written before the bang through its label, a refusal of the label
-answering for the literal. A `:kind` entry is a fact as any key is. The
-walk of an error passes the tag of its site, then `::error`, then the
-map, so a word declared once on `::error` reaches every error and a path
-reads the facts beneath the tags.
+whose payload is the map of the facts, a payload of another kind refused
+as `::error/PayloadKindNotTakenError`, and `::Foo!{…}` is
+`::Foo::error{…}`, the facts laid under the tag written before the bang
+through its label, a refusal of the label answering for the literal. A
+`:kind` entry is a fact as any key is. The
+walk of an error passes the tag of its site and `::tagged`, then
+`::error`, then the map, so a word declared once on `::error` reaches
+every error and a path reads the facts beneath the tags.
 
 ```qlang
 > [!{:a 1}] | get /0

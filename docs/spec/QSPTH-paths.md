@@ -160,7 +160,8 @@ answer of the template, the parts after it unread [QSERR#flow].
 
 A word whose input takes code takes a path as the code that reads it
 from each value it runs on, as `get` reads it: `map /name`,
-`filter /active`, `sort /age`, `groupBy /status`. The inputs of `get`,
+`filter /active`, `sort /age`, `groupBy /status`; a read that misses
+stops at the value it read, as `~(get /name)` stops there. The inputs of `get`,
 `query` and `has` and those of the words that combine several values of
 one subject, `sumOf`, `subOf`, `mulOf`, `divOf` and `unionOf`, take a
 path and read it. An input whose kinds leave a path out refuses one,

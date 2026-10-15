@@ -150,8 +150,10 @@ vector names, as the map's words do; a later value the algebra has no
 rule for beside the one before it is refused as the pair,
 `KindsMismatchedError` with `:leftType` and `:rightType`, a set beside a
 map among them; and a fold of nothing is refused as
-`SubjectEmptyError`. The words of sets and of maps answer under the
-subject's tags; a vector's fold answers a set or a map of its own.
+`SubjectEmptyError`. The words of sets and of maps answer a value of
+the subject's kind under the subject's tags and one of another kind,
+the fold of a set of maps, as it is [QSDSP#answer]; a vector's fold
+answers a set or a map of its own.
 `unionOf` unites the maps or the sets its call computes, one part at
 least, `::any/unionOf/parts/EmptyError` refusing none, under the tags of
 the first; one part answers itself.

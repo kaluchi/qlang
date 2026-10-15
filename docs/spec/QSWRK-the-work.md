@@ -12,8 +12,7 @@ section names a check, and the review and the maintainer hold the rest.
 A decision is a record of its own, `docs/journal/Dnn.md`, numbered in
 the order it was written, a discussion with its choice and its
 circumstances. A citation of a record is a link of markdown to its
-file, `[Dnn]`, so an editor or a browser opens it at a click and the
-chain of reasons is a graph of files.
+file, `[Dnn]`.
 
 A record is written in fields, each opening a line: `Domain.`, the part
 of the work it governs, `Language.` a change of the language whose
@@ -137,8 +136,7 @@ The conformance suite is the requirements of the language, held outside
 it. A case is a line of `core/test/conformance/<chapter>/<section>.jsonl`,
 `{"name":…,"query":…,"expect":…}`: a query the runner reads as text and
 the literal it must answer, a value or a raised error,
-`!{…} | raise`, so a case holds a form the language does not read yet
-and stands through a change that breaks the language's own sources. Its
+`!{…} | raise`. Its
 name says the rule it shows in the words of the language, and the file
 it stands in is the section whose rule it shows. A case a record in
 transit claims opens with the record, `{"decision":"Dnn","name":…}`,
@@ -194,8 +192,8 @@ the block that carries it, a test file in its head, a workflow under
 `.github/workflows/`, a case in its `decision` while it is in transit, a
 source of the catalog in the comment above its pages, `The decisions it
 exists for: [QSDSP#residence]`; the sister project names a record of
-qlang with the repository, `(qlang Dnn)`; and the data of a measurement
-in the name of its file, `screens/D270.txt`. A mark covers its block,
+qlang with the repository, `(qlang Dnn)`; and a screen and a run of the
+benchmark in the name of its file, `screens/D270.txt`. A mark covers its block,
 from its comment to the next comment that holds one, the first block
 reaching up to the head of the file, so a search answers what governs a
 file and what a record left behind: `node scripts/marks.mjs` answers the
@@ -203,8 +201,9 @@ scope of a record or a section, `--touched` the records whose marked
 blocks a diff touched and `--reread Dnn` what to read again. An artifact
 that names nothing, a tracked `.mjs`, `.js`, `.peggy` or `.qlang` outside
 `docs/` or a workflow, is an orphan, which `check:conventions` refuses and
-the desk counts; the data a run of the benchmark wrote, its runs and the
-generators of the sets its authors wrote, mark nothing. A page of the catalog, the public interface of the
+the desk counts; the data a run of the benchmark wrote and the
+generators of the sets its authors wrote are no artifacts and carry no
+mark inside them. A page of the catalog, the public interface of the
 language, cites the sections and pages a reader follows, a record only
 in the comment at the head of its source.
 
@@ -314,8 +313,7 @@ A branch starts from the full set of places where its cause shows, found
 by search rather than by memory, and its first commits delete. The work
 of the model on the texts is validation, the contradictions, the
 conflicts, the holes and the problems of what is written, and a session
-that finds none has read too little of the tree or run too few of its
-probes. What confuses a session during the work is settled where it is
+that finds none reads further and runs more of the probes. What confuses a session during the work is settled where it is
 met: a comment that justifies or leads away is fixed in the branch, and
 a sentence of a chapter the tree contradicts or a requirement no case
 states is written with its probe as a record, a record in transit over
@@ -352,8 +350,7 @@ refactoring, less code with a feature the work to praise, about as much
 code with a feature good work, and more code with features asks what
 they are worth to qlang. Measured from the baseline, the core sources,
 the documents and the tests are held to a diff that deletes more than it
-adds, where a growth signals a crooked part, an old scar or a concept
-that does not compose; the catalog grows by the words a task asks for
+adds; the catalog grows by the words a task asks for
 and the pages that tell them. A commit message, a page and a record carry
 no count the history answers.
 
@@ -583,10 +580,11 @@ beside the walk, the fates and the anchors, the words that tell when a
 text changed, legacy, deprecated, currently, previously and backward
 compatibility, and the markers TODO, FIXME and HACK, in the sources
 outside `docs/`, `vscode/` and the instructions; a month of the
-history in a text that states what holds; a count in markdown prose that
+history in a chapter, a seed, a page of the catalog, a case and the
+code; a count in markdown prose that
 a command answers; the ranges of the siblings; every refusal declared by
-its address; and the form of a record, its `Domain.`, its decider and the
-fields of an open record.
+its address; and the form of a record from `D155` on, its `Domain.`, its
+decider and the fields of an open record.
 
 `node scripts/release.mjs <version>` runs a release end to end from a
 clean master in step with its remote whose checks on GitHub are green:

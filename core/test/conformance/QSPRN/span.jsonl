@@ -8,5 +8,5 @@
 {"name":"a-span-refuses-an-element-that-is-no-number","query":"::span[0 1 \"x\" 1 1 2] !| get [~(type) /index]","expect":"[::span/ElementKindNotTakenError 2]"}
 {"name":"a-point-refuses-a-map","query":"::point{:a 1 :b 2 :c 3} !| type","expect":"::point/PayloadKindNotTakenError"}
 {"name":"start-refuses-a-subject-that-is-no-span","query":"5 | start !| type","expect":"::span/start/SubjectNotSpanError"}
-{"decision":"D315","name":"a-span-counts-the-source-by-its-code-points","query":"\"\\\"😀\\\" ]\" | :s it | parse !| get /location | start | offset | :o it | s | drop o","expect":"\"]\""}
-{"decision":"D315","name":"a-point-refuses-an-element-that-is-no-number-at-its-index","query":"::point[1 \"x\" 3] !| get [~(type) /index]","expect":"[::point/ElementKindNotTakenError 1]"}
+{"name":"a-span-counts-the-source-by-its-code-points","query":"\"\\\"😀\\\" ]\" | :s it | parse !| get /location | start | offset | :o it | s | drop o","expect":"\"]\""}
+{"name":"a-point-refuses-an-element-that-is-no-number-at-its-index","query":"::point[1 \"x\" 3] !| get [~(type) /index]","expect":"[::point/ElementKindNotTakenError 1]"}

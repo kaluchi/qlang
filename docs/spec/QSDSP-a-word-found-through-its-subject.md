@@ -15,7 +15,8 @@ and the axes. A tagged value reaches `::tagged` after its own tag and
 before its payload, where `payload` and `within` live, so a tag over a
 value passes to the words of its payload. A word means one act wherever
 it resolves, each kind that answers it implementing that act, and a word
-on a narrower label stands over one of the same name on a broader one.
+on a label the walk reaches first stands over one of the same name it
+reaches later, a word of `::tagged` over one of the payload's kind.
 `is` answers whether the walk of a value's tags reaches a value of one
 of the kinds it is given, `::any` among them; a tag name is a value of
 `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true.
@@ -41,7 +42,8 @@ reader extending a noun of the root among them, and a name several kinds
 answer is declared on each, `::vec/count`, `::set/count`, `::map/count`,
 `::string/count`, one primitive serving several where they share it. A
 word serves the values the walk of their tags brings to its label and,
-beside them, a value of the kinds its `on` names; a word that is the one
+beside them, a value of the kinds its `on` names, of tag names the
+noun's own alone [QSDSP#tagname]; a word that is the one
 word of its name refuses any other subject under its own address. A
 refinement a word wants checked is written where the value is made,
 `x | tag ::Pos | f`, its constructor answering there. A word is called by

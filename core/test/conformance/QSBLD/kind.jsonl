@@ -13,4 +13,4 @@
 {"name":"the-recipe-of-a-kind-command-is-the-check-of-a-host","query":"::kind | impl ~(1) !| type","expect":"::kind/impl/recipe/KindNotTakenError"}
 {"name":"a-kind-built-as-data-takes-the-check-of-a-host-alone","query":"::kind[~() ~(add 1)] !| type","expect":"::kind/RecipeNotBuiltinError"}
 {"name":"a-fact-of-a-kind-under-a-name-declared-after-it-is-refused","query":"::kind | carries :X/f |~~ f ~~| ::number !| type","expect":"::kind/FactUnderNoNameError"}
-{"decision":"D315","name":"a-fact-written-with-no-path-is-a-fact-of-the-payload","query":":B |~~ B ~~| (::kind | carries :note |~~ n ~~| ::number) | ::B/note | binding | get /value","expect":"::number"}
+{"name":"a-fact-written-with-no-path-is-a-fact-of-the-payload","query":":B |~~ B ~~| (::kind | carries :note |~~ n ~~| ::number) | ::B/note | binding | get /value","expect":"::number"}

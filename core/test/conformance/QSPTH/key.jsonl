@@ -11,4 +11,4 @@
 {"name":"minus-refuses-an-element-that-names-no-key","query":"{:a 1} | minus [:a 1] !| get [~(type) /index]","expect":"[::map/minus/KeyNotKeywordOrStringError 1]"}
 {"name":"query-index-not-integer-error","query":"[1 2 3] | query 0.5 !| type","expect":"::path/IndexNotIntegerError"}
 {"name":"a-value-given-as-a-key-that-is-no-key-is-a-template","query":"{:email {:home \"a@b\"}} | query (get /email)","expect":"{:home \"a@b\"}"}
-{"decision":"D315","name":"inter-refuses-a-single-key-and-a-key-of-another-kind","query":"get [~({:a 1} | inter :a !| type) ~({:a 1} | inter [1] !| type)]","expect":"[::map/inter/keys/KindNotTakenError ::map/inter/KeyNotKeywordOrStringError]"}
+{"name":"inter-refuses-a-single-key-and-a-key-of-another-kind","query":"get [~({:a 1} | inter :a !| type) ~({:a 1} | inter [1] !| type)]","expect":"[::map/inter/keys/KindNotTakenError ::map/inter/KeyNotKeywordOrStringError]"}

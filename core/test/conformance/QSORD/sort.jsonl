@@ -17,7 +17,7 @@
 {"name":"sort-by-key-orders-the-entries-by-what-the-key-answers","query":"{:a {:n 2} :b {:n 1}} | sort /n | vals | map /n","expect":"[1 2]"}
 {"name":"a-key-of-a-sort-is-code-a-host-runs","query":"[{:a 2} {:a 1}] | sort /a | first | get /a","expect":"1"}
 {"name":"a-key-of-another-kind-is-refused-under-the-key","query":"[2 1] | sort 5 !| type","expect":"::vec/sort/key/KindNotTakenError"}
-{"decision":"D315","name":"a-key-of-a-map-that-is-no-code-is-refused","query":"{:a 1} | sort 5 !| type","expect":"::map/sort/key/KindNotTakenError"}
-{"decision":"D315","name":"a-key-of-min-that-is-no-code-is-refused","query":"[1] | min 5 !| type","expect":"::vec/min/key/KindNotTakenError"}
-{"decision":"D315","name":"an-error-at-rest-a-key-answers-ranks-as-the-one-order-ranks-it","query":"[{:a 2 :e !{:k 1}} {:a 1 :e !{:k 1}}] | sort ~(get [/e /a]) | map /a","expect":"[1 2]"}
-{"decision":"D315","name":"a-value-that-is-no-container-answers-no-sort","query":"\"cab\" | sort !| type","expect":"::call/KindAnswersNoVerbError"}
+{"name":"a-key-of-a-map-that-is-no-code-is-refused","query":"{:a 1} | sort 5 !| type","expect":"::map/sort/key/KindNotTakenError"}
+{"name":"a-key-of-min-that-is-no-code-is-refused","query":"[1] | min 5 !| type","expect":"::vec/min/key/KindNotTakenError"}
+{"name":"an-error-at-rest-a-key-answers-ranks-as-the-one-order-ranks-it","query":"[{:a 2 :e !{:k 1}} {:a 1 :e !{:k 1}}] | sort ~(get [/e /a]) | map /a","expect":"[1 2]"}
+{"name":"a-value-that-is-no-container-answers-no-sort","query":"\"cab\" | sort !| type","expect":"::call/KindAnswersNoVerbError"}

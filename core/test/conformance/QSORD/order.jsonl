@@ -21,6 +21,6 @@
 {"name":"sort-ranks-an-error-at-rest","query":"[2 ::error{:k 1} 1] | sort","expect":"[1 2 ::error{:k 1}]"}
 {"name":"patterns-rank-after-strings-by-text-then-flags","query":"[:k #\"b\" \"z\" #\"a\"i #\"a\" 1] | sort","expect":"[1 \"z\" #\"a\" #\"a\"i #\"b\" :k]"}
 {"name":"paths-rank-segment-by-segment-by-their-code-units","query":"[/9 /10] | sort | map ~print","expect":"[\"/10\" \"/9\"]"}
-{"decision":"D315","name":"a-doc-ranks-by-its-segments-a-run-of-prose-before-a-quote","query":"[[~(b)] [\"z\"]] | map ~(tag ::doc) | sort | map ~segments","expect":"[[\"z\"] [~(b)]]"}
+{"name":"a-doc-ranks-by-its-segments-a-run-of-prose-before-a-quote","query":"[[~(b)] [\"z\"]] | map ~(tag ::doc) | sort | map ~segments","expect":"[[\"z\"] [~(b)]]"}
 {"name":"sort-orders-docs-of-prose-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}
-{"decision":"D315","name":"a-quote-a-doc-an-elision-and-a-desc-rank-after-a-map-in-that-order","query":"[::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~type","expect":"[::map ::quote ::doc ::elision ::desc]"}
+{"name":"a-quote-a-doc-an-elision-and-a-desc-rank-after-a-map-in-that-order","query":"[::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~type","expect":"[::map ::quote ::doc ::elision ::desc]"}

@@ -1,9 +1,10 @@
 # The specification
 
 What the language is and what is required of it, by topic. Each chapter
-states its rules section by section and shows them by probes, which
-`npm run check:probes` runs. The requirements of a section are the
-cases of the conformance file named for it,
+of the language states its rules section by section and shows them by
+probes, which `npm run check:probes` runs, and the chapter of the work
+by the checks it names. The requirements of a section of the language
+are the cases of the conformance file named for it,
 `core/test/conformance/QSNAM/scope.jsonl` for the section `scope` of
 `QSNAM`, and the code, the tests and the documents cite a section by
 its chapter's code and its heading, `[QSNAM#scope]`.

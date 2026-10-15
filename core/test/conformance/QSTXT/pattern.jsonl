@@ -20,5 +20,5 @@
 {"name":"a-pattern-takes-flags-as-a-string-does","query":"#\"a\" | toRegex \"i\" | eq (\"a\" | toRegex \"i\")","expect":"true"}
 {"name":"a-pattern-refuses-letters-of-no-flag","query":"#\"a\" | toRegex \"q\" !| type","expect":"::regex/toRegex/flags/NotFlagsError"}
 {"name":"toRegex-with-no-flags-keeps-a-pattern-and-gives-a-string-none","query":"get [~(#\"a\"m | toRegex) ~(\"a\" | toRegex)]","expect":"[#\"a\"m #\"a\"]"}
-{"decision":"D315","name":"a-string-takes-null-for-no-flags-as-a-pattern-takes-it-for-its-own","query":"get [~(\"a\" | toRegex null) ~(#\"a\"m | toRegex null)]","expect":"[#\"a\" #\"a\"m]"}
-{"decision":"D315","name":"toRegex-refuses-flags-that-are-no-string","query":"\"a\" | toRegex 5 !| type","expect":"::string/toRegex/flags/KindNotTakenError"}
+{"name":"a-string-takes-null-for-no-flags-as-a-pattern-takes-it-for-its-own","query":"get [~(\"a\" | toRegex null) ~(#\"a\"m | toRegex null)]","expect":"[#\"a\" #\"a\"m]"}
+{"name":"toRegex-refuses-flags-that-are-no-string","query":"\"a\" | toRegex 5 !| type","expect":"::string/toRegex/flags/KindNotTakenError"}

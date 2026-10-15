@@ -1,9 +1,0 @@
-# inventory
-web-01 | web | prod,eu
-web-02 | web | Prod,us
-
-db-01 | db | prod,EU
-db-02 | db | staging,eu
-cache-01 | cache | PROD
-# retired
-ci-01 | ci | internal

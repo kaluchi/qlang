@@ -1,0 +1,50 @@
+[
+  {
+    "sku": "P1",
+    "name": "Pen",
+    "price": 1.5,
+    "stock": 100
+  },
+  {
+    "sku": "P2",
+    "name": "Notebook",
+    "price": 4.25,
+    "stock": 40
+  },
+  {
+    "sku": "P3",
+    "name": "Lamp",
+    "price": 25,
+    "stock": 0
+  },
+  {
+    "sku": "P4",
+    "name": "Chair",
+    "price": 80,
+    "stock": 3
+  },
+  {
+    "sku": "P5",
+    "name": "Desk",
+    "price": 150,
+    "stock": 2
+  },
+  {
+    "sku": "P6",
+    "name": "Mug",
+    "price": 7.9,
+    "stock": 30
+  },
+  {
+    "sku": "P7",
+    "name": "Bag",
+    "price": 35,
+    "stock": null
+  },
+  {
+    "sku": "P8",
+    "name": "Cable",
+    "price": 3.2,
+    "stock": 55
+  }
+]

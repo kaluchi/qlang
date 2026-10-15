@@ -1,0 +1,10 @@
+name,dept,salary,start_date
+Alice,eng,5200,2020-01-15
+Bob,eng,4800,2021-06-01
+Carol,sales,3900,2019-03-20
+Dave,sales,,2022-09-12
+Erin,eng,5200,2018-11-30
+Frank,ops,3500,2023-02-01
+Grace,ops,4100,2020-07-07
+Heidi,sales,4500,2021-01-25
+Ivan,hr,,2022-05-05

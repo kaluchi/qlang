@@ -11,12 +11,12 @@ describe('table — a view for a terminal', () => {
   it('draws a column per key, in the order of first occurrence across the rows', async () => {
     const cellEntry = await runQuery('[{:name "alice" :age 30} {:name "bob" :city "Oslo"}] | table', silentStreams);
     expect(cellEntry.result).toBe([
-      '-------+-----+------',
+      '+-------+-----+------+',
       '| name  | age | city |',
-      '-------+-----+------',
+      '+-------+-----+------+',
       '| alice | 30  |      |',
       '| bob   |     | Oslo |',
-      '-------+-----+------'
+      '+-------+-----+------+'
     ].join('\n'));
   });
 

@@ -37,7 +37,7 @@ function table(subject) {
     widths[columnIndex] = Math.max(widths[columnIndex], cellText.length);
     return cellText;
   }));
-  const horizontalRule = widths.map(width => '-'.repeat(width + 2)).join('+');
+  const horizontalRule = '+' + widths.map(width => '-'.repeat(width + 2)).join('+') + '+';
   const formatRow = rowCells => '|' + rowCells.map((cellText, columnIndex) => ' ' + cellText.padEnd(widths[columnIndex]) + ' ').join('|') + '|';
   return [horizontalRule, formatRow(columnNames), horizontalRule, ...cells.map(formatRow), horizontalRule].join('\n');
 }

@@ -89,8 +89,9 @@ running a quote. `/trail/0` is where the error arose and
 `apply` runs again as held code [QSQUO#held]. An error at rest holds the
 facts it is written with; one that writes its `:trail`, empty among
 them, resumes that path when raised and adds no stop, and a trail other
-than a plain vector of maps, each holding a quote under `:skipped`, is
-refused as `::error/TrailNotVecError`. The word `trail` answers the path,
+than a plain vector of plain maps, each holding a quote under
+`:skipped`, is refused as `::error/TrailNotVecError`, a vector or a stop
+under a tag among them. The word `trail` answers the path,
 `[]` for an error that holds none, and refuses a subject that is no
 error as `::error/trail/SubjectNotErrorError`, while `/trail` reads the
 key and is refused where there is none.
@@ -147,15 +148,15 @@ A value of none of the kinds a holder takes is refused by the holder's
 role, `KindNotTakenError`, `PayloadKindNotTakenError` or
 `ElementKindNotTakenError`, the answer of a word and the subject of a
 function `apply` runs among them, `SubjectKindNotTakenError`, its kinds
-the fact `:expected`, so a kind that joins a holder changes no tag; the
-subject of a word is refused by the label it resides on,
+the fact `:expected`; the subject of a word is refused by the label it resides on,
 `SubjectNotNumberError`. The refusal of an input's value lives under the
 input, whether an invariant or a primitive raises it, and what a run
 answers under the word. A refusal is declared in the source of the place
 it guards, and a refusal the catalog declares links the page of its
 place. The refusal of a primitive takes the address of the word that
-ran it, and a refusal of the language's own steps sits under the kind of
-that step, `::path`, `::call`, `::bind`, `::construct`, `::quote` and
+ran it, a refusal of the read of a path sits under `::path`, whichever
+word reads it, and a refusal of the language's own steps sits under the
+kind of that step, `::call`, `::bind`, `::construct`, `::quote` and
 `::error`; what no query reaches, the table of primitives or a node the
 evaluator does not know, is an invariant of the implementation under
 `::builtin`, and a failure of a host's implementation is
@@ -163,8 +164,8 @@ evaluator does not know, is an invariant of the implementation under
 of the runtime holds its facts in the order the catalog declares them,
 the label's own first, the facts `::error` declares after them,
 `:expected`, `:actualType` and `:actualValue` among them, `:actualValue`
-left out of a refusal of the subject, which the first stop holds, and
-the trail last; an error a reader writes holds its facts as written, a
+left out where it equals the subject the first stop holds, whatever its
+identity, and the trail last; an error a reader writes holds its facts as written, a
 `:trail` it writes where it stands and the trail its flight begins
 last. A fact is a value of the language: a name a step read and a key a
 path read are keywords, an index a number, an entry of a map named by

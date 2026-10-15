@@ -7,7 +7,7 @@
 {"name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (add 1) (mul 2)","expect":"[6 10]"}
 {"name":"a-modifier-sees-no-name-another-declared","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (:y 1 | y) y !| type","expect":"::call/UnknownNameError"}
 {"name":"a-modifier-of-a-built-in-forks-against-the-subject","query":"10 | add (sub 3)","expect":"17"}
-{"name":"a-modifier-is-computed-against-the-subject-of-its-step","query":"{:price 4 :qty 3} | mulOf /price /qty","expect":"12"}
 {"name":"a-modifier-is-read-from-the-subject-of-its-step","query":"{:price 4 :qty 3} | get /price | mul (get /qty) !| get [~(type) /key]","expect":"[::path/SubjectHasNoPartsError :qty]"}
 {"name":"code-written-without-its-quote-is-read-from-the-whole-subject","query":"[{:n 1}] | map (get /n) !| get /actualValue | type","expect":"::path/IndexNotIntegerError"}
 {"name":"a-step-computed-where-the-input-reading-the-args-takes-code-is-refused-by-it","query":"5 | cond (get /nope) ~(1) !| get [~(type) /index]","expect":"[::any/cond/clauses/ElementKindNotTakenError 0]"}
+{"name":"a-word-of-the-reader-is-a-modifier-a-bare-name-computes","query":":vec/most ~(count | sub 1) | {:items [1 2 3] :limit 2} | get /items | take most","expect":"[1 2]"}

@@ -113,9 +113,8 @@ export function envSet(env, name, value) {
   return asScopeOf(env, new Map(env).set(name, value));
 }
 
-// The scopes of the words of the root, where a bare name and the
-// definition of a call read the root alone [QSNAM#owner], and every scope made
-// from one.
+// The scopes of the words of the root, where a name under a noun of the
+// root reads the root alone [QSNAM#owner], and every scope made from one.
 const ROOT_WORD_SCOPES = new WeakSet();
 
 export function markRootWordScope(scope) {

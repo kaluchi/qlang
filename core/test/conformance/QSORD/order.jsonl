@@ -7,7 +7,6 @@
 {"name":"sort-orders-a-set-as-its-vector","query":"[#[2] #[3 1]] | sort","expect":"[#[1 3] #[2]]"}
 {"name":"sort-orders-maps-by-keys-then-values","query":"[{:b 1} {:a 2} {:a 1}] | sort","expect":"[{:a 1} {:a 2} {:b 1}]"}
 {"name":"sort-puts-tagged-values-after-the-core-by-tag-name","query":"[::B{:x 1} ::A[1] {:y 2}] | sort","expect":"[{:y 2} ::A[1] ::B{:x 1}]"}
-{"name":"sort-orders-docs-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}
 {"name":"sort-orders-nulls-as-equals","query":"[null 1 null] | sort","expect":"[null null 1]"}
 {"name":"sort-orders-errors-at-rest-by-tag-then-fields","query":"[::B::error{} ::error{:k 2} ::error{:k 1}] | sort","expect":"[::B::error{} ::error{:k 1} ::error{:k 2}]"}
 {"name":"sort-puts-elisions-before-other-tags","query":"[::Z[1] ::elision{:size 2} ::elision{:size 1}] | sort","expect":"[::elision{:size 1} ::elision{:size 2} ::Z[1]]"}
@@ -21,3 +20,6 @@
 {"name":"sort-strings","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
 {"name":"sort-ranks-an-error-at-rest","query":"[2 ::error{:k 1} 1] | sort","expect":"[1 2 ::error{:k 1}]"}
 {"name":"patterns-rank-after-strings-by-text-then-flags","query":"[:k #\"b\" \"z\" #\"a\"i #\"a\" 1] | sort","expect":"[1 \"z\" #\"a\" #\"a\"i #\"b\" :k]"}
+{"name":"paths-rank-segment-by-segment-by-their-code-units","query":"[/9 /10] | sort | map ~print","expect":"[\"/10\" \"/9\"]"}
+{"name":"a-doc-ranks-by-its-segments-a-run-of-prose-before-a-quote","query":"[|~~ z ~~| |~~ ~(b) ~~|] | sort","expect":"[|~~ ~(b) ~~| |~~ z ~~|]"}
+{"name":"sort-orders-docs-of-prose-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}

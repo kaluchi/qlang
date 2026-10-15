@@ -17,3 +17,6 @@
 {"name":"apply-takes-code","query":"5 | apply 3 !| type","expect":"::any/apply/code/KindNotTakenError"}
 {"name":"a-value-that-is-no-quote-opens-nothing","query":"5 | open !| type","expect":"::quote/open/SubjectNotQuoteError"}
 {"name":"open-lives-on-the-kind-of-a-quote","query":"::quote | manifest | has ::quote/open","expect":"true"}
+{"name":"the-args-of-apply-are-a-vector","query":"5 | apply ~(it) 7 !| type","expect":"::any/apply/args/KindNotTakenError"}
+{"name":"a-path-applied-takes-no-args","query":"{:a 1} | apply /a [1] !| type","expect":"::any/apply/args/NotTakenError"}
+{"name":"open-runs-a-quote-from-null","query":"~(it) | open","expect":"null"}

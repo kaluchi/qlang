@@ -143,9 +143,13 @@ combine it with the value their input gives, which the call gives,
 `union` takes a map, the later value of a key standing, and its `minus`
 and `inter` the keys a map, a vector or a set names; a value of another
 kind is refused under the input, `::map/union/other/KindNotTakenError`.
-A value that is no set or map is refused at its index, a set beside a
-map as a pair the algebra has no rule for, `KindsMismatchedError` with
-`:leftType` and `:rightType`, and a fold of nothing as
+A fold takes a set or a map first, a value of another kind refused at its
+index, `ElementNotSetOrMapError`; `union` refuses so a later value that
+is no set or map, while `minus` and `inter` take after a map the keys a
+vector names, as the map's words do; a later value the algebra has no
+rule for beside the one before it is refused as the pair,
+`KindsMismatchedError` with `:leftType` and `:rightType`, a set beside a
+map among them; and a fold of nothing is refused as
 `SubjectEmptyError`. The words of sets and of maps answer under the
 subject's tags; a vector's fold answers a set or a map of its own.
 `unionOf` unites the maps or the sets its call computes, one part at

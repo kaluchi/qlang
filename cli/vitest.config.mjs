@@ -20,9 +20,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'text-summary'],
       include: ['src/**/*.mjs'],
-      // bin.mjs is the Node-runtime adapter — a two-line shebang
-      // that calls into main.mjs and forwards the exit code to
-      // process.exit. It carries no testable branch and would only
+      // bin.mjs is the Node-runtime adapter, the one file that
+      // touches the process: it hands main.mjs the arguments, the
+      // streams and the environment and exits with the code main
+      // resolves. It carries no testable branch and would only
       // execute under subprocess invocation, which v8 coverage does
       // not capture from inside the test process. main.mjs holds
       // the orchestration logic and is exercised exhaustively.

@@ -1266,7 +1266,9 @@
       found whatever its digits, `#[1] | has 1.0`. A vector given is one
       element, `#[1 2] | has [1 2]` answering `false`: whether the set
       holds each of several is `inter`, and whether it holds any element
-      at all is `empty | not`. `contains` asks the same of a set.
+      at all is `empty | not`. A path given reads the part it names, as
+      `get` reads it, so a path held as an element is asked for by
+      `contains`, which asks for an element alone.
       ::link~(::set/contains | doc) ::link~(::set/inter | doc)
       ::link~(::any/eq | doc)
   ~~|

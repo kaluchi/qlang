@@ -10,11 +10,12 @@ under `core/test/conformance/QSLIT/`.
 
 Every value has a kind: the outermost tag of its stack, and for a value
 with no tag of its own, the kind of the core its literal implies. `[…]`
-implies the vector, `{…}` the map, `#[…]` the set, `#"…"` the pattern,
-`::regex`, `~(…)` the quote, `|~~ … ~~|` the doc, `!{…}` the error, `/a`
+implies the vector, `{…}` the map, `#"…"` the pattern, `::regex`, `/a`
 the path, and a number, a string, a keyword, a tag name, a boolean and
-null each have their own; a host's value carries its tags above one of
-them. `type` answers the kind of any value, the kind a literal implies
+null each have their own; `#[…]` writes the set, `~(…)` the quote,
+`|~~ … ~~|` the doc and `!{…}` the error, each a payload under the tag of
+its kind, which `payload` opens; a host's value carries its tags above
+one of them. `type` answers the kind of any value, the kind a literal implies
 for one under no tag, and the kind's page is one step away. A tag is the
 name of an interpretation: tags stack over any payload and read from
 the outside in, `payload` reading what stands beneath the outermost and

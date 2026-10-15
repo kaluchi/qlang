@@ -13,3 +13,4 @@
 {"name":"a-leading-zero-is-refused-naming-the-number","query":"\"[01]\" | parse !| get /message","expect":"\"a number is written without a leading zero: write `1`\""}
 {"name":"a-leading-zero-after-a-minus-is-refused","query":"\"-007\" | parse !| get /message","expect":"\"a number is written without a leading zero: write `-7`\""}
 {"name":"a-zero-before-a-point-reads","query":"[0 0.5 -0.5 0e1]","expect":"[0 0.5 -0.5 0]"}
+{"name":"one-below-the-least-reads-as-zero-and-past-the-precision-rounds","query":"[1e-400 9007199254740993]","expect":"[0 9007199254740992]"}

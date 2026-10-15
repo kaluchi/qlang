@@ -15,3 +15,5 @@
 {"name":"trim-cuts-the-whitespace-at-both-ends","query":"\"  db_host \n\" | trim","expect":"\"db_host\""}
 {"name":"prepend-modifier-not-string","query":"\"x\" | prepend 42","expect":"::string/prepend/prefix/KindNotTakenError!{\n  :expected #[::keyword ::string]\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(prepend 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
 {"name":"append-modifier-not-string","query":"\"x\" | append 42","expect":"::string/append/suffix/KindNotTakenError!{\n  :expected #[::keyword ::string]\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(append 42)\n      :subject \"x\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"lines-reads-a-carriage-return-and-drops-the-last-break","query":"\"a\\r\\nb\\r\\n\" | lines","expect":"[\"a\" \"b\"]"}
+{"name":"a-string-counts-its-code-points","query":"\"e\\u0301\" | count","expect":"2"}

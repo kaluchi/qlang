@@ -7,3 +7,4 @@
 {"name":"a-span-refuses-a-payload-that-is-no-vector","query":"get [~(::span\"abcdef\" !| type) ~(::span#6 !| type) ~(::span{:a 1} !| type)]","expect":"[::span/PayloadKindNotTakenError ::span/PayloadKindNotTakenError ::span/PayloadKindNotTakenError]"}
 {"name":"a-span-refuses-an-element-that-is-no-number","query":"::span[0 1 \"x\" 1 1 2] !| get [~(type) /index]","expect":"[::span/ElementKindNotTakenError 2]"}
 {"name":"a-point-refuses-a-map","query":"::point{:a 1 :b 2 :c 3} !| type","expect":"::point/PayloadKindNotTakenError"}
+{"name":"start-refuses-a-subject-that-is-no-span","query":"5 | start !| type","expect":"::span/start/SubjectNotSpanError"}

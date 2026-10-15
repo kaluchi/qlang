@@ -1,9 +1,9 @@
 // The axes, each a passage from a name to its declaration [QSSLF#axis], the
-// record the declaration wrote into its scope [QSNAM#binding]: a keyword
-// `:foo` reads the record its scope holds under the name, a tag name the node
-// of the tree it addresses, `::vec/count` or `::qlang/values`
-// [QSDSP#residence], a record the binding it records, and every other value
-// the node of its kind, the kind `type` answers. Each axis projects a field of
+// record the declaration wrote into its scope [QSNAM#binding]: a tag name the
+// node of the tree it addresses, `::vec/count` or `::qlang/values`
+// [QSDSP#residence], a record the binding it records, and every other value,
+// a keyword among them, the node of its kind, the kind `type` answers. Each
+// axis projects a field of
 // the record:
 //
 // `source`   the quote of the declaring step, null for a binding no

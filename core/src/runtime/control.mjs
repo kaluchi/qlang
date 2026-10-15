@@ -39,7 +39,7 @@ bindPrim('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfCon
 // read's miss, `get /missing` on a map without the key, is an error, and the
 // walk skips it as it skips null, so `coalesce /a /b ~("default")` reads the
 // first value defined. An alternative that is no code answers itself, and a
-// call of such alternatives alone reads the subject first, `get /timeout |
+// call of such alternatives alone reads the subject first, `query /timeout |
 // coalesce 30` [QSCND#coalesce]; the invariant of the alternatives holds one
 // at least.
 bindPrim('any/coalesce', runs(['alternatives'], async (subject, alternatives) => {

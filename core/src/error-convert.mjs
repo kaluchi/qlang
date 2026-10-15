@@ -1,6 +1,7 @@
 import { keyword, makeErrorValue, makeTag, makeTaggedInstance, typeKeyword } from './types.mjs';
 import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
+import { deepEqual } from './equality.mjs';
 
 // The reading of text into code refuses on `::quote`, and an
 // implementation of a host that fails in a call on `::call` [QSERR#site].
@@ -45,14 +46,13 @@ export function factsInOrder(tag, facts, env) {
 }
 
 // The error a refusal of the runtime raised: the facts its site handed
-// with the kind of the value refused, the value itself left out where it
-// is the subject the first stop of the trail holds, so its presence says
-// the site reached below the subject [QSERR#rest], [QSERR#site].
+// with the kind of the value refused, the value left out where it equals
+// the subject the first stop holds [QSERR#rest], [QSERR#site].
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTag(qlangError.address);
   const facts = new Map();
   for (const [name, value] of Object.entries(qlangError.facts)) {
-    if (value === undefined || (name === 'actualValue' && value === subject)) continue;
+    if (value === undefined || (name === 'actualValue' && deepEqual(value, subject))) continue;
     facts.set(name, value);
   }
   if (qlangError.facts.actualValue !== undefined) facts.set('actualType', typeKeyword(qlangError.facts.actualValue));

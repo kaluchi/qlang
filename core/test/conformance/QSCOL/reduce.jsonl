@@ -24,3 +24,4 @@
 {"name":"a-reducer-of-a-value-name-answers-the-value","query":"5 | :five it | get [1 2 3] | reduce 0 ~(five)","expect":"5"}
 {"name":"a-reducer-with-a-second-input-left-out-is-refused-by-the-input","query":":number/bad2 (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(a)) | [1 2 3] | reduce 0 ~bad2 !| type","expect":"::number/bad2/b/NotGivenError"}
 {"name":"a-verb-folds-with-its-input-taking-the-element","query":":number/plus (::fn | takes :elem |~~ The elem. ~~| /0 ::number | impl ~(add elem)) | [1 2 3] | reduce 0 ~plus","expect":"6"}
+{"name":"reduce-takes-a-reducer-as-code","query":"get [~([1] | reduce 0 !| type) ~([1] | reduce 0 (add 1) !| type)]","expect":"[::vec/reduce/reducer/NotGivenError ::vec/reduce/reducer/KindNotTakenError]"}

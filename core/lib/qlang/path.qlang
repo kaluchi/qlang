@@ -13,8 +13,9 @@
       write it, followed as `get` follows it; and a word that runs code
       takes a path as the code
       that reads it from each element, `map /name`, `sort /age`,
-      `filter /active`. A path prints as it is written and stands as
-      any value does, `/items/1 | segments` answering `[:items 1]`.
+      `filter /active`. A path prints in one spelling that reads back
+      as itself, `/"0"` printing `/0`, and stands as any value does,
+      `/items/1 | segments` answering `[:items 1]`.
 
       A key is written as a keyword is, bare, `/name`, quoted,
       `/"first name"`, or with its colon when it holds a slash,
@@ -97,9 +98,9 @@
     | proves :isAValue
         |~~ A path is a value of its own kind. ~~|
         ~(/items/0 | type | eq ::path)
-    | proves :printsAsWritten
-        |~~ A path prints as it is written. ~~|
-        ~(/items/0/"first name" | print | eq "/items/0/\"first name\"")
+    | proves :printsInOneSpelling
+        |~~ A path prints in one spelling that reads back as itself. ~~|
+        ~([/items/0/"first name" /"0" /:name] | map ~print | eq ["/items/0/\"first name\"" "/0" "/name"])
     | proves :readsQuotedAndPathKeys
         |~~ Quoted keys and keys with a path read in a path. ~~|
         ~({:"foo bar" {:qlang/error 1}} | get /"foo bar"/:qlang/error | eq 1)

@@ -11,7 +11,8 @@ subject and one number as their object, computed against the subject;
 `mod` answers the remainder with the sign of the divisor; `floor`,
 `ceil` and `abs` take a number to a whole one or its size, and `round`
 to the digits its call gives, a whole number, none by default, half away
-from zero, a negative count rounding to tens and beyond, `15 | round -1`
+from zero as its digits are written, so a number below a half rounds
+down, a negative count rounding to tens and beyond, `15 | round -1`
 answering `20`, and a fraction refused as
 `::number/round/digits/NotIntegerError`. An answer keeps the subject's tags, `::W#2.7 | floor`
 answering `::W#2`. A subject that is no number is refused as

@@ -242,8 +242,12 @@ function withDeclaredNames(items, ast, offset, spellings) {
 const KIND_OF_LITERAL = {
   NumberLit: 'number', StringLit: 'string', RegexLit: 'regex', BooleanLit: 'boolean', NullLit: 'null',
   Keyword: 'keyword', VecLit: 'vec', MapLit: 'map', SetLit: 'set',
-  QuoteLit: 'quote', DocLit: 'doc', TagLit: 'tag'
+  QuoteLit: 'quote', DocLit: 'doc', TagLit: 'tag', Path: 'path'
 };
+
+// The kinds an error literal's walk reaches: its tag, the kind of errors
+// and the map of its facts [QSLIT#kind].
+const kindsOfErrorLiteral = step => [...(step.tag === null ? [] : [step.tag]), 'error', 'map'];
 
 // Where the name being typed before the cursor begins.
 function wordStartBefore(source, offset) {
@@ -294,6 +298,7 @@ async function kindsOfSteps(steps, subjectKinds) {
 
 async function kindsAfterStep(step, kinds) {
   if (Object.hasOwn(KIND_OF_LITERAL, step.type)) return [KIND_OF_LITERAL[step.type]];
+  if (step.type === 'ErrorLit') return kindsOfErrorLiteral(step);
   if (step.type === 'BindStep') return kinds;
   if (step.type === 'ParenGroup') return await kindsOfSteps(stepsOf(step.pipeline), kinds);
   if (step.type !== 'Call' || kinds === null) return null;

@@ -272,8 +272,9 @@
       of equal ones, `[{:age 30} {:age 20}] | min /age` answering
       `{:age 20}`. The key is code run on each element, a path, `/age`, or
       a quote, `~(get /age | abs)`, read as `sort` reads its key, so
-      `desc` turns it; a value computed at the call is refused, and a key
-      that misses its field answers the error of the read. A set and a map
+      `desc` turns it; a value computed at the call other than null, which
+      gives no key, is refused, and a key that misses its field answers the
+      error of the read. A set and a map
       answer `min` by words of their own.
       ::link~(::vec/max | doc) ::link~(::vec/sort | doc)
   ~~|
@@ -676,8 +677,10 @@
       as `eq` compares them: a vector element is found by its content, a
       number whatever its digits, and a keyword is not its string, so
       `[:a] | has "a"` answers `false`. A map answers `has` of its keys
-      and a set of its elements by words of their own; `contains` asks the
-      same of a vector.
+      and a set of its elements by words of their own. A path given reads
+      the part it names, `[[1] 2] | has /0/0` answering `true`, so a path
+      held as an element is asked for by `contains`, which asks for an
+      element alone.
       ::link~(::vec/contains | doc) ::link~(::any/eq | doc)
   ~~|
   ::fn
@@ -954,10 +957,10 @@
   |~~ Answers the elements in the one order of values, the order every
       value takes against every other, the way a reader ranks what a query
       found, `[3 1 4 1 5] | sort` answering `[1 1 3 4 5]`. Kinds come
-      first, null, boolean, number, string, keyword, tag name, vector,
-      set, map, quote, doc, error, elision and desc, then every other tag
-      by its name; strings order by their characters, an upper letter
-      before a lower one.
+      first, null, boolean, number, string, pattern, keyword, tag name,
+      path, vector, set, map, quote, doc, elision and desc, then every
+      other tag by its name, the errors among them; strings order by
+      their characters, an upper letter before a lower one.
 
       With a key the call gives the elements rank by what the key answers
       for each, a vector key place by place, so
@@ -966,7 +969,8 @@
       null last; elements the key leaves alike keep the order of the
       subject, and `desc` turns the key, or one place of it, to descend.
       The key is code run on each element, a path, `/age`, or a quote,
-      `~(get /name | lower)`; a value computed at the call is refused, one key is
+      `~(get /name | lower)`; a value computed at the call other than
+      null, which gives no key, is refused, one key is
       given, and a key that misses its field answers the error of the
       read, so a field an element may lack is read softly, `~(query /a)`.
 

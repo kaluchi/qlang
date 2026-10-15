@@ -27,3 +27,4 @@
 {"name":"every-example-of-the-core-passes","query":"kinds | map ~(manifest) | flat | every ~(runLaws | every /ok)","expect":"true"}
 {"name":"the-laws-a-page-carried-stand-under-its-name","query":"::number/add | laws | count","expect":"4"}
 {"name":"a-law-of-a-spelled-form-shows-the-form","query":"::map | laws | get /readsJson | get /1 | print","expect":"\"~(\\\"{\\\\\\\"a\\\\\\\": 1, \\\\\\\"b\\\\\\\": [true, null]}\\\" | parse | apply it | eq {:a 1 :b [true null]})\""}
+{"name":"laws-and-runLaws-refuse-a-name-nothing-declares","query":"get [~(::nothere | laws !| type) ~(::nothere | runLaws !| type)]","expect":"[::any/laws/UnknownNameError ::any/runLaws/UnknownNameError]"}

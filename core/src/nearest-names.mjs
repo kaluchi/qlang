@@ -1,4 +1,4 @@
-// The names an unresolved name was likely meant to be [QSHST#answer]: the
+// The names an unresolved name was likely meant to be [QSSLF#near]: the
 // names a step reaches, within an edit distance of a third of the typed name's
 // length, one at least, and of those the nearest alone, in the order of their
 // spelling. An edit is an insertion, a deletion, a substitution or a swap of

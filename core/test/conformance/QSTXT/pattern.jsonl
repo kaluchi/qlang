@@ -5,7 +5,6 @@
 {"name":"a-pattern-the-engine-cannot-read-does-not-parse","query":"[\"#\\\"(\\\"\" \"#\\\"a\\\"x\" \"#\\\"a\\\"ii\"] | map ~(parse !| type)","expect":"[::quote/ParseError ::quote/ParseError ::quote/ParseError]"}
 {"name":"a-flag-written-inside-is-refused-with-its-place","query":"\"#\\\"(?i)a\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
 {"name":"a-backslash-before-a-plain-character-is-refused-with-the-reason","query":"\"#\\\"a\\\\-b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}
-{"name":"a-pattern-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| type","expect":"::call/KindAnswersNoVerbError"}
 {"name":"json-writes-a-pattern-as-its-literal","query":"{:p #\"\\d+\"i} | json | parseJson | get /p","expect":"\"#\\\"\\\\d+\\\"i\""}
 {"name":"a-group-of-flags-is-refused-where-an-engine-reads-it","query":"\"#\\\"(?i:a)b\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
 {"name":"a-group-name-written-twice-is-refused","query":"\"#\\\"(?<y>a)|(?<y>b)\\\"\" | parse !| get /message | contains \"is written twice\"","expect":"true"}
@@ -20,3 +19,4 @@
 {"name":"a-pattern-reads-letters-of-any-script","query":"\"Ünïcödé 42 данные\" | scan #\"\\p{L}+\"","expect":"[\"Ünïcödé\" \"данные\"]"}
 {"name":"a-pattern-takes-flags-as-a-string-does","query":"#\"a\" | toRegex \"i\" | eq (\"a\" | toRegex \"i\")","expect":"true"}
 {"name":"a-pattern-refuses-letters-of-no-flag","query":"#\"a\" | toRegex \"q\" !| type","expect":"::regex/toRegex/flags/NotFlagsError"}
+{"name":"toRegex-with-no-flags-keeps-a-pattern-and-gives-a-string-none","query":"get [~(#\"a\"m | toRegex) ~(\"a\" | toRegex)]","expect":"[#\"a\"m #\"a\"]"}

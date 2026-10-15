@@ -88,9 +88,9 @@
       tag whose invariant the answer breaks refuses it. The names the
       code binds stay inside it. Under two tags the code runs beneath the
       outer one, and the value beneath both is reached by nesting
-      `within`, `within ~(within ~(reverse))`. The code is a quote: a
-      value computed at the call, `within (reverse)`, is refused under
-      the part. A value under no tag runs its code by `apply`, and is
+      `within`, `within ~(within ~(reverse))`. The code is a quote or a
+      path, `within /a`: a value computed at the call,
+      `within (reverse)`, is refused under the part. A value under no tag runs its code by `apply`, and is
       refused here.
       ::link~(::any/apply | doc) ::link~(::tagged/payload | doc)
   ~~|

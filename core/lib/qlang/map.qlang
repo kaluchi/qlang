@@ -1062,7 +1062,8 @@
       own check fails. Its tag is the one its value shows: the outermost
       tag over the map, then the one the map carries,
       `::Oops{:message "boom"} | raise`, then `::error`, every entry of
-      the map a fact; and an error at rest raised again is itself. `|`
+      the map a fact; and an error a catch opened, raised again, is
+      itself. `|`
       steps around the failure, writing its trail, and `!|` catches it
       to its facts. It takes no value: what the error says is a fact of
       the map. A value of another kind is put in a map first,

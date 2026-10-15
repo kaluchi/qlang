@@ -77,7 +77,8 @@ or a set there halving to its first element at the least, and a
 container under a tag keeps its shape, its parts giving way within. A
 part a kind prints its own way stands as that kind prints it, the budget
 counting the print a host writes. A marker holds `:size`, what it stands
-for, `:read`, the quote that applied to the value `elide` took answers
+for, a part that already gave way whole counting as one element,
+`:read`, the quote that applied to the value `elide` took answers
 the part left out, and for a string, a doc and a quote `:head`, the first
 characters of its text; it prints and reads back as the value it is. A
 value whose print fits is answered as it is.

@@ -7,7 +7,7 @@
 // that replace a record in part only fall; the code, the tests and
 // the cases cite the records in force, the documents that hold the work
 // those in force or waiting on a target; and a chapter is written at the
-// move alone [D300].
+// move alone [QSWRK#spec].
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -243,7 +243,7 @@ export function casesTouchedUnclaimed(repoRoot, baseline) {
 // section the baseline's chapter held otherwise, or lacked, is one a record
 // dissolved into since the baseline, a section or a chapter gone is named
 // by one, and the head of a chapter goes with any record dissolved into
-// it, so a chapter is written at the move, where its records dissolve [D300].
+// it, so a chapter is written at the move, where its records dissolve [QSWRK#spec].
 export function sectionsWrittenUnclaimed(repoRoot, baseline) {
   const dissolved = [...dissolvedSince(repoRoot, baseline).values()];
   const into = (chapter, section) => dissolved.some(({ sections }) => sections.some(cited => cited === chapter || cited === `${chapter}#${section}` || (section === '' && cited.startsWith(`${chapter}#`))));
@@ -256,7 +256,7 @@ export function sectionsWrittenUnclaimed(repoRoot, baseline) {
   for (const path of new Set([...now.keys(), ...then.keys()])) {
     const chapter = path.split('/').pop().slice(0, 5);
     if (!now.has(path)) {
-      if (!naming(chapter)) unclaimed.push({ where: path, problem: `gone since the baseline ${baseline}, and no record dissolved since names it: a chapter is written at the move [D300]` });
+      if (!naming(chapter)) unclaimed.push({ where: path, problem: `gone since the baseline ${baseline}, and no record dissolved since names it: a chapter is written at the move [QSWRK#spec]` });
       continue;
     }
     const sectionsNow = sectionsOfChapter(now.get(path));
@@ -265,7 +265,7 @@ export function sectionsWrittenUnclaimed(repoRoot, baseline) {
       if (sectionsNow.get(section) === sectionsThen.get(section)) continue;
       const cited = section === '' ? chapter : `${chapter}#${section}`;
       if (into(chapter, section) || (!sectionsNow.has(section) && naming(cited))) continue;
-      unclaimed.push({ where: section === '' ? path : `${path}#${section}`, problem: `written since the baseline ${baseline}, and no record dissolved into ${cited} since: a chapter is written at the move, where its records dissolve [D300]` });
+      unclaimed.push({ where: section === '' ? path : `${path}#${section}`, problem: `written since the baseline ${baseline}, and no record dissolved into ${cited} since: a chapter is written at the move, where its records dissolve [QSWRK#spec]` });
     }
   }
   return unclaimed;
@@ -287,7 +287,7 @@ function sectionsOfChapter(text) {
 // them [QSWRK#baseline]. A review is a unit of its own; a folder of any other
 // research, a design with its runs, is one unit, held by a citation of any
 // of it. The outside audits and the checks of the chapters are series the
-// next one is read against [D301], and the README of a folder says what the
+// next one is read against [QSWRK#review], and the README of a folder says what the
 // folder holds and holds none of it.
 const RESEARCH_DOCUMENT = new RegExp(`^${RESEARCH}/(?!outside-audit/|spec-check/)[^/]+/.+`);
 const REPORTS = new RegExp(`^${RESEARCH}/reviews/`);

@@ -20,12 +20,12 @@
 // run, which `npm run ci` and the checks of a push make [QSWRK#probe]; a
 // probe of a section a record in transit overrides is the record's, and an
 // answer its work changed waits for the move where the record holds a
-// probe of the same query [D300].
+// probe of the same query [QSWRK#probe].
 //
 // Usage: node scripts/sensors/run-probes.mjs [document ...]
 // Without documents it reads the open records, whose questions hold
 // probes [QSWRK#journal], the records in transit, whose probes hold the
-// answers their work changed [D300], and the
+// answers their work changed [QSWRK#probe], and the
 // chapters of the specification, whose sections show their rules by
 // probes [QSWRK#spec].
 
@@ -154,7 +154,7 @@ const textOf = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
 // The records in transit over the section of a chapter's probe, and the
 // one of them that holds a probe of its query, whose answer the move
-// writes into the section [D300].
+// writes into the section [QSWRK#probe].
 function holdersOf(chapter, probe) {
   const over = [...transit].filter(([, sections]) => sections.some(cited => cited === chapter || cited === `${chapter}#${probe.section}`)).map(([name]) => name);
   const holding = over.find(name => probesOf(textOf(join(recordsDir, `${name}.md`))).some(held => squash(held.query) === squash(probe.query)));
@@ -181,4 +181,4 @@ for (const documentPath of documents) {
     if (['STALE', 'MET', 'UNGUARDED'].includes(verdict)) process.exitCode = 1;
   }
 }
-if (process.exitCode === 1) console.log('a probe whose answer changed is held until the move by the record in transit over its section, a probe of the same query in the record [D300]; a met target drops its mark, and a probe that lists files fails where one is missing [QSWRK#probe], [QSWRK#target]');
+if (process.exitCode === 1) console.log('a probe whose answer changed is held until the move by the record in transit over its section, a probe of the same query in the record; a met target drops its mark, and a probe that lists files fails where one is missing [QSWRK#probe], [QSWRK#target]');

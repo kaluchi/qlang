@@ -7,7 +7,7 @@
 // Usage:
 //   node scripts/marks.mjs                 the artifacts that mark no record, the orphans
 //   node scripts/marks.mjs D44             the places that mark a record
-//   node scripts/marks.mjs QSNAM#scope     the places that mark a section [D301]
+//   node scripts/marks.mjs QSNAM#scope     the places that mark a section
 //   node scripts/marks.mjs <path>          the records a file marks
 //   node scripts/marks.mjs --diff <rev>    the records the files changed since a revision mark
 //   node scripts/marks.mjs --touched       the records whose scope changed since they were read against it

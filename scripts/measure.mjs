@@ -1,5 +1,5 @@
 // Measures the tree between two refs for a retrospective, the count of
-// the seventh condition among them [QSAIM#state]: lines by area
+// the seventh condition of the aim among them, `docs/journal/AIM.md`: lines by area
 // at both refs, the diff between them, and the catalog's surface. With
 // --steps it prints instead the diff of every step of a stack by the
 // areas a branch reports: core sources, catalog, documents, tests,

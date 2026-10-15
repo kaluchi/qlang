@@ -3,7 +3,7 @@
 How the work on the language moves: the texts it keeps and where each
 lives, how a change is decided, carried and settled, how a branch lands,
 and how the tree is measured and checked. This chapter states the
-process, which the order of the texts [QSAIM#texts] ranks after the
+process, which the order of the texts [QSWRK#documents] ranks after the
 language and its tools; the checks of the tooling hold the rules for which a
 section names a check, and the review and the maintainer hold the rest.
 
@@ -118,12 +118,19 @@ by the code and the heading, `[QSNAM#scope]`. A chapter states the rule
 of each section in the present, as what holds, the form a reader
 writes and the refusal that teaches it; it shows its rules by probes;
 and `docs/spec/README.md` lists the chapters in the order the concepts
-rest on each other, the aim first. The code, the tests and the cases cite
-the section whose rule they hold, and a sentence of a chapter the tree
-proves wrong is replaced by the fact and its probe. `check:conventions` refuses a citation of a
-section its chapter lacks, and in a chapter a citation of a record, the
-history of a form and a sentence that says what the text leaves out,
-and in a chapter of the language a word or a path of the journal.
+rest on each other. The code, the tests and the cases cite the section
+whose rule they hold. A chapter is written at the move of the baseline
+alone, in the last commits of a branch, where the records in transit
+dissolve into its sections; before that the change lives in the dialogue
+and the records, and a sentence of a chapter the tree contradicts is
+written with its probe as a record: a record in transit over its section
+where the records choose the fix, a target where the chapter's rule
+stands and the tree misses it, an open record where neither answers.
+`check:conventions` refuses a citation of a section its chapter lacks, a
+section written since the baseline that no record dissolved into, and in
+a chapter a citation of a record, the history of a form and a sentence
+that says what the text leaves out, and in a chapter of the language a
+word or a path of the journal.
 
 ## cases
 
@@ -208,7 +215,9 @@ on its first parent line, which the walk reads from the history; its move
 is the clean desk: however a shift left the work, the next starts in
 order. It moves when a branch lands, at the end of every shift that wrote
 records and before an outside audit, and no more than twenty records
-stand written since it.
+stand written since it. The move is the last commit or the last commits
+of the branch, the chapters written there alone; the gate runs after it,
+and the branch lands.
 
 At the move:
 
@@ -237,14 +246,17 @@ At the move:
   left open carried into an open record of their axis. A review is a unit, any other
   research its folder, and the outside audits a series whose two latest
   stay.
-- Every probe of the open records and of the chapters is run, and every
-  sentence the tree proves wrong is replaced by the fact and its probe.
+- Every probe of the open records and of the chapters is run, and a
+  section whose answer the work changed is written with the answer the
+  record dissolving into it holds.
 - The branch lands on master and is deleted, with the worktrees of its
   cuts, and the merge holds no record in transit.
 
 `check:conventions` holds the walk: a record of the language the
 baseline's tree holds that no case names and no line of fate closes,
-unless it is open; a citation of a section its chapter lacks; a case of
+unless it is open; a citation of a section its chapter lacks; a section
+of a chapter written since the baseline that no record dissolved into
+since, and a section or a chapter gone that none names; a case of
 a chapter the baseline held, added, rewritten or taken away since, that
 no record in transit over its section claims, the case naming it or,
 taken away, named in its text, nor a record dissolved into the section
@@ -262,9 +274,10 @@ desk` shows the walk at the start of a shift.
 
 A branch is a shift: it takes the scars of its shift, is named after
 them, states in its description what it shows when it lands, and lands
-on master at the move of the baseline by a merge commit, made locally
-where no pull request is open. Code is committed on a branch, and a
-change to documents alone lands on master directly. A push waits for the
+on master by a merge commit after the move of the baseline, its last
+commits, made locally where no pull request is open. Code is committed
+on a branch, a chapter is written at the move of one, and a change to
+the journal alone lands on master directly. A push waits for the
 maintainer's invitation, a commit is never amended, and the branch is
 deleted after the merge, locally and on the remote.
 
@@ -302,15 +315,15 @@ by search rather than by memory, and its first commits delete. The work
 of the model on the texts is validation, the contradictions, the
 conflicts, the holes and the problems of what is written, and a session
 that finds none has read too little of the tree or run too few of its
-probes. What confuses a session during the work, a sentence the tree
-contradicts, a comment that justifies or leads away, a requirement no
-case states, is settled where it is met:
-fixed in the branch where the records already choose the fix, and
-otherwise recorded with its probe, as a target where a record chose and
-the tree misses it, as a record where it asks for a choice, and as an
-open record where neither answers it. Each is weighed by the mission:
-whether it makes the first attempt of a fresh session likelier and its
-reading lighter.
+probes. What confuses a session during the work is settled where it is
+met: a comment that justifies or leads away is fixed in the branch, and
+a sentence of a chapter the tree contradicts or a requirement no case
+states is written with its probe as a record, a record in transit over
+its section where the records choose the fix, a target where the
+chapter's rule stands and the tree misses it, and an open record where
+neither answers it, while the chapter waits for the move. Each is
+weighed by the mission of the aim: whether it makes the first attempt of
+a fresh session likelier and its reading lighter.
 
 ## code
 
@@ -356,24 +369,30 @@ only then. It reads what the sentence names in a way that fails when
 that is gone: the runner runs a shell probe with a pipeline that fails
 where any command fails, and a probe that lists files by `git ls-files`
 lists them with `--error-unmatch`. `npm run check:probes` runs every probe of
-the open records and the specification that reads the repository alone, and the branch that
-changed an answer rewrites the sentence with its probe. A probe that
+the open records, the records in transit and the specification that reads
+the repository alone. A probe of a section a record in transit overrides
+is the record's while it is in transit: an answer the record's work
+changed waits for the move, which writes it into the section, where the
+record holds a probe of the same query with the new answer, and any other
+answer that changed fails the run. A probe that
 reads a machine, the sister project or the environment, one that names
 `jdt`, `scripts/sensors`, `env` or a variable of the shell, keeps the
 date of its answer and is run by hand.
 
-`check:conventions` holds the anchors of `CLAUDE.md`, the chapter of the
-aim and this chapter: a path they name in backticks is a file of the tree
+`check:conventions` holds the anchors of `CLAUDE.md`, the aim and this
+chapter: a path they name in backticks is a file of the tree
 or of the sister project, and words they quote in “…” beside a path stand
 in that file.
 
 ## documents
 
 `docs/` holds two folders. The specification, `docs/spec/`, holds the
-chapters, the aim first. The journal, `docs/journal/`, holds the records
+chapters. The journal, `docs/journal/`, holds the aim,
+`docs/journal/AIM.md`, the yardstick a choice is weighed by, the records
 in force at its root, those out of force under `replaced/`, and the
-research under `research/`, the reviews and the outside audits, each
-folder with a README that says what it holds. The screen of the work,
+research under `research/`, the reviews, the outside audits and the
+checks of the chapters, each folder with a README that says what it
+holds. The screen of the work,
 `npm run desk`, and the sensors under `scripts/sensors/`, which read the
 transcripts, the history and the files, compute what a session starts
 from.
@@ -387,20 +406,28 @@ project is built, how the work moves, the resources outside the tree and
 pointers into it, while the model computes from the tree what the tree
 holds.
 
+The texts that state what holds rank in one order: the specification,
+the catalog and the cases, the reference of the language [QSWRK#spec],
+then the code that implements it, then the tools, then the process. A
+lower text holds to a higher one, and where they part, the lower one
+changes, the parting written as a record until it does; the process
+brings no entity into the language.
+
 The texts of the work speak in two voices. The apophatic ones carry the
 change against the baseline: first the dialogue of a session, which a
 pain of the tree calls and where every doubt, choice and reason of the
 model is said, its transcript the whole record of it and the summary of
-a compaction the model's paraphrase of it; then the journal, the records
-with their circumstances and what they set aside, the research, the
-reviews and the outside audits; the memory between sessions; and the
+a compaction the model's paraphrase of it; then the journal, the aim a
+choice is weighed by, the records with their circumstances and what they
+set aside, the research, the reviews, the outside audits and the checks
+of the chapters; the memory between sessions; and the
 history of the commits. The cataphatic ones state what holds, in the
 present: the chapters of the specification, the pages of the catalog,
 the cases and the comments of the code, each the rule, the form a reader
 writes and the refusal that teaches it, a negation that is the condition
 of a rule among them. A session lands on the apophatic texts, the
-dialogue, the screen of the work and the records in transit and open,
-where its work is, and reads the cataphatic ones by topic at the point
+dialogue, the screen of the work, the aim and the records in transit and
+open, where its work is, and reads the cataphatic ones by topic at the point
 of need. What it writes into a cataphatic text states what holds; a
 doubt or a reason it meets is said in the dialogue, or written as a
 record where it asks for a choice.
@@ -408,10 +435,11 @@ record where it asks for a choice.
 The apophatic texts are where the work lives. While a branch works, they
 reach into the cataphatic ones, a record in transit ruling over the
 sections it overrides, the cases it claims, the code that cites it and
-the targets it left; at the merge into master the tension relaxes: every
-record in transit dissolves into its sections or is set aside with its
-change undone, and master holds no record in transit, its open records
-waiting in the journal.
+the targets it left, while the text of a chapter waits; at the move, the
+last commits of the branch, the tension relaxes: every record in transit
+dissolves into its sections, written anew there, or is set aside with
+its change undone, and master holds no record in transit, its open
+records waiting in the journal.
 
 ## catalog
 
@@ -465,20 +493,39 @@ references, and an older one goes to the history.
 
 ## review
 
-A review holds a diff against the principles of the aim [QSAIM#principles]
-and the rules of the work: it reads whole every file the diff touches, and
-its report gives a verdict, accepted or changes asked, and its findings,
-each with its file and its line and the principle or the rule it breaks.
-The report is kept as its writer wrote it, each finding with the fate it
-met, under `docs/journal/research/reviews/` while something in force
-cites it. A clean reader of the specification knows no earlier form, so
-it probes the bounds of each rule as it stands and its doubt comes out
-as a question of the tree, while a reader of the records is handed the
-words the language left, so that its probes look for them. Rounds of
-clean readers go deeper each time, the first finding sentences the tree
-contradicts and the next sentences wider or narrower than the tree and
-refusals left unnamed, and a round whose findings are precision alone is
-the one to stop at.
+A review holds a diff against the principles of the aim,
+`docs/journal/AIM.md`, and the rules of the work: it reads whole every
+file the diff touches, and its report gives a verdict, accepted or
+changes asked, and its findings, each with its file and its line and the
+principle or the rule it breaks. The report is kept as its writer wrote
+it, each finding with the fate it met, under
+`docs/journal/research/reviews/` while something in force cites it.
+
+The check of the chapters holds the consistency of what the
+specification says: its chapters among themselves, and each with its
+cases, with the pages of the catalog and with the implementation.
+`node scripts/spec-check.mjs` runs it on a tree every change of which a
+commit holds, best on master after a branch landed, by clean readers
+started at once as the outside audit is, each answering
+`scripts/spec-check-prompt.txt` for a group of chapters in the order of
+the index: a reader bootstraps from every chapter and the first pages of
+the language, and then reads its sections against their cases, the code
+that cites them, the pages of their words and the command line. A
+finding is of one of six kinds, text, implementation, design, conflict,
+apophasis and case, and carries its probe, which
+`node scripts/sensors/run-probes.mjs` runs again on its report; a reader
+writes no sentence for a chapter from the tree's answer, the side that
+yields being the question of the reading. The reports land in
+`docs/journal/research/spec-check/`, a folder for each run, and the
+session writes its reading beside them, every finding with its fate, a
+record in transit, a target, an open record, a record that holds it
+already, or none with the probe that sets it aside; the series keeps its
+two latest runs. A clean reader knows no earlier form, so it probes the
+bounds of each rule as it stands and its doubt comes out as a question
+of the tree, while a reader of the records is handed the words the
+language left, so that its probes look for them; a check goes deeper
+each time, and one whose findings are precision alone is the one to stop
+at.
 
 `node scripts/outside-audit.mjs` runs the outside audit: a clean Opus,
 started from an empty directory of its own with no instruction file,

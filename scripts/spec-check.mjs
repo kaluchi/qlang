@@ -1,4 +1,4 @@
-// The check of the chapters [D301]: clean readers, each a clean Opus started
+// The check of the chapters [QSWRK#review]: clean readers, each a clean Opus started
 // from a directory of its own as the outside audit is, with no CLAUDE.md, no
 // memory and no MCP server and the history out of its reach, read the
 // specification whole and then check a group of its chapters against their
@@ -106,7 +106,7 @@ const outcomes = await Promise.all(groups.map(group => new Promise(resolve => {
 })));
 
 // The series keeps its two latest runs: an older run goes to the history
-// with its reading [D301].
+// with its reading [QSWRK#review].
 const RUN = /^(\d{4}-\d{2}-\d{2})-([0-9a-f]+)$/;
 const byTime = readdirSync(checksDir).filter(name => RUN.test(name))
   .map(name => ({ name, at: Number(git('log', '-1', '--format=%ct', RUN.exec(name)[2])) }))

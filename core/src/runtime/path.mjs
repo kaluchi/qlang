@@ -177,18 +177,27 @@ function shapeOf(current, top) {
   return isQSet(value) ? makeSet(element) : Object.freeze(element);
 }
 
-// A map of more than one value, every value a map, a vector, a set, a value
-// under a tag or null, whose shapes merge into one, no kinds parting among
-// them, folds into `::each` over that shape, its keys left to the data. A
-// map of one key, of atoms, whose keys are the fields a reader reads, or of
-// values of other kinds keeps its keys.
+// A map whose values share one shape, no kinds parting among them, folds
+// into `::each` over its first key and that shape, the one key standing for
+// all of them, where its keys are data or its names are many. A key is data
+// where it reads as no name, a date, an id of digits, an address; a map
+// keyed so folds over values of any kind. A map keyed by names, the fields
+// a reader reads by `get`, folds where it holds more than eight and every
+// value a map, a vector, a set, a value under a tag or null, the map a
+// reader's data keys by its users' names; a map of fewer names keeps them.
+const NAME = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+const NAMES_A_RECORD_HOLDS = 8;
 const holdsParts = part => part === null || isQMap(part) || isVec(part) || isTaggedInstance(part);
 
 function foldedOf(value, shapes) {
   const parts = [...value.values()];
-  if (value.size < 2 || !parts.every(holdsParts) || parts.every(part => part === null)) return null;
+  if (value.size === 0 || parts.every(part => part === null)) return null;
+  const keyedByData = [...value.keys()].some(key => !NAME.test(key));
+  if (!keyedByData && (value.size <= NAMES_A_RECORD_HOLDS || !parts.every(holdsParts))) return null;
   const merged = [...shapes.values()].reduce(mergedShape);
-  return isAlternatives(merged) ? null : makeTaggedInstance(EACH_TAG, merged);
+  if (isAlternatives(merged)) return null;
+  const [first] = value.keys();
+  return makeTaggedInstance(EACH_TAG, new Map([[first, merged]]));
 }
 
 // The schema stands under `::shape`, whose page tells how a shape reads.
@@ -241,15 +250,20 @@ const isAlternatives = shape => isQSet(shape) && shape.length > 1;
 const isRecord = shape => isQMap(shape) && !isTaggedInstance(shape);
 const isList = shape => isVec(shape) && !isTaggedInstance(shape);
 const shareAKey = (left, right) => left.size === 0 || right.size === 0 || [...left.keys()].some(key => right.has(key));
-const eachesMerge = (left, right) => isMark(left, EACH_TAG) && isMark(right, EACH_TAG) && !isAlternatives(mergedShape(under(left), under(right)));
-const mergesWith = (left, right) => deepEqual(left, right) || eachesMerge(left, right) || (isSetOf(left) && isSetOf(right))
+const eachKey = each => [...under(each).keys()][0];
+const eachShape = each => [...under(each).values()][0];
+const eachesMerge = (left, right) => isMark(left, EACH_TAG) && isMark(right, EACH_TAG) && !isAlternatives(mergedShape(eachShape(left), eachShape(right)));
+const isEmptyRecord = shape => isRecord(shape) && shape.size === 0;
+const eachAndEmpty = (left, right) => (isMark(left, EACH_TAG) && isEmptyRecord(right)) || (isEmptyRecord(left) && isMark(right, EACH_TAG));
+const mergesWith = (left, right) => deepEqual(left, right) || eachesMerge(left, right) || eachAndEmpty(left, right) || (isSetOf(left) && isSetOf(right))
   || (isList(left) && isList(right)) || (isRecord(left) && isRecord(right) && shareAKey(left, right));
 const mergedElement = (left, right) => (left.length === 0 ? [...right] : right.length === 0 ? [...left] : [mergedShape(left[0], right[0])]);
 const lacked = shape => marked({ ...marksOf(shape), absent: true });
 
 function mergedCore(left, right) {
   if (deepEqual(left, right)) return left;
-  if (eachesMerge(left, right)) return makeTaggedInstance(EACH_TAG, mergedShape(under(left), under(right)));
+  if (eachesMerge(left, right)) return makeTaggedInstance(EACH_TAG, new Map([[eachKey(left), mergedShape(eachShape(left), eachShape(right))]]));
+  if (eachAndEmpty(left, right)) return isEmptyRecord(left) ? right : left;
   if (isSetOf(left) && isSetOf(right)) return makeSet(mergedElement(left, right));
   if (isList(left) && isList(right)) return Object.freeze(mergedElement(left, right));
   if (isRecord(left) && isRecord(right) && shareAKey(left, right)) {

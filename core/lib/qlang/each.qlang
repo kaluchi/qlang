@@ -4,39 +4,46 @@
 
 :each
   |~~ An each stands in the shape of a value for a map whose values all
-      have one shape, the map a reader's data keys by names or ids:
-      `{:alice {:id 1} :bob {:id 2}} | shape` answers
-      `::shape::each{:id ::number}`, the one shape of every value standing for
-      all of them and the keys left to the data, which `keys` reads. A map
-      folds so where it holds more than one value, every value a map, a
-      vector, a set, a value under a tag or null, and all of one shape,
-      records merging as they merge in a vector and a null among them
-      marking the fold `::nullable`; a map of one key keeps it, a map of
-      atoms keeps its keys, the fields a reader reads, `{:x 1 :y 2} |
-      shape` answering `::shape{:x ::number :y ::number}`, and a map of
-      values of other kinds keeps its keys as well. A path of the data
-      reads the shape past the
-      key the fold stands for, `/alice/id` of the data `/id` of the shape,
-      and a vector of such maps is `[::each{…}]`, a map of vectors
-      `::each[…]`.
-      ::link~(::any/shape | doc)
+      have one shape, the map a reader's data keys by ids, dates or
+      names, over its first key and that shape, the one key standing for
+      all of them: `{:"17" {:id 1} :"42" {:id 2}} | shape` answers
+      `::shape::each{:"17" {:id ::number}}`. The key shown tells how the
+      keys of the data read, and a path of the data through it reads the
+      shape, `/17/id` answering `::number`; `keys` reads the rest. A map
+      folds so where its keys are data, a key that reads as no name, a
+      date, an id of digits, an address, over values of any kind, atoms
+      among them, and where its names are many, more than eight, over
+      maps, vectors, sets, values under a tag or null. A map of fewer
+      names keeps them, the fields a reader reads by `get`, as a map of
+      names over atoms does, `{:x 1 :y 2} | shape` answering
+      `::shape{:x ::number :y ::number}`, and a map whose values part
+      keeps its keys as well. Records merge in a fold as they merge in a
+      vector, and a null among the values marks the fold `::nullable`; a
+      vector of such maps is `[::each{…}]`, a map of vectors `::each[…]`.
+      ::link~(::shape | doc) ::link~(::any/shape | doc)
   ~~|
   ::kind
-    | proves :foldsAMapWhoseValuesShareOneShape
-        |~~ A map whose values share one shape folds into an each. ~~|
-        ~({:alice {:id 1} :bob {:id 2}} | shape | eq ::shape::each{:id ::number})
-    | proves :readsThePathPastTheKey
-        |~~ The path of the data reads the shape past the key it folds. ~~|
-        ~({:alice {:id 1} :bob {:id 2}} | shape | get /id | eq ::number)
-    | proves :foldsAMapOfValuesUnderOneTag
-        |~~ A map of values under one tag folds into an each of the tag. ~~|
-        ~({:alice ::user{:id 1} :bob ::user{:id 2}} | shape | eq ::shape::each::user)
+    | proves :foldsAMapKeyedByData
+        |~~ A map keyed by data folds over its first key. ~~|
+        ~({:"17" {:id 1} :"42" {:id 2}} | shape | eq ::shape::each{:"17" {:id ::number}})
+    | proves :foldsAtomsKeyedByData
+        |~~ A map keyed by data folds over atoms as well. ~~|
+        ~({:"2024-01-01" 3 :"2024-01-02" 5} | shape | eq ::shape::each{:"2024-01-01" ::number})
+    | proves :readsThePathThroughTheKeyItShows
+        |~~ A path of the data through the key shown reads the shape. ~~|
+        ~({:"17" {:id 1} :"42" {:id 2}} | shape | get /17/id | eq ::number)
+    | proves :keepsAFewNamesAsARecord
+        |~~ A map of a few names keeps them, the fields `get` reads. ~~|
+        ~({:db {:host "h"} :cache {:host "c"}} | shape | eq ::shape{:db {:host ::string} :cache {:host ::string}})
+    | proves :foldsManyNamesOfOneShape
+        |~~ A map of more than eight names of one shape folds. ~~|
+        ~({:a {:n 1} :b {:n 2} :c {:n 3} :d {:n 4} :e {:n 5} :f {:n 6} :g {:n 7} :h {:n 8} :i {:n 9}} | shape | eq ::shape::each{:a {:n ::number}})
     | proves :keepsTheFieldsOfAMapOfAtoms
-        |~~ A map of atoms keeps its keys, the fields a reader reads. ~~|
+        |~~ A map of names over atoms keeps its keys. ~~|
         ~({:x 1 :y 2} | shape | eq ::shape{:x ::number :y ::number})
     | proves :keepsTheKeysOfValuesOfOtherKinds
         |~~ A map whose values part keeps its keys. ~~|
-        ~({:a {:id 1} :b [1]} | shape | eq ::shape{:a {:id ::number} :b [::number]})
+        ~({:"1" {:id 1} :"2" [1]} | shape | eq ::shape{:"1" {:id ::number} :"2" [::number]})
     | proves :keepsTheKeyOfAMapOfOne
-        |~~ A map of one key keeps it. ~~|
+        |~~ A map of one name keeps it. ~~|
         ~({:users [1]} | shape | eq ::shape{:users [::number]})

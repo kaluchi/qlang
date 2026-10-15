@@ -15,10 +15,10 @@
       kinds or more, the kinds where the elements part; and three marks
       over a part, `::absent` a key some records lack, `::nullable` a
       part null in some of the data, and `::each` a map whose values
-      share one shape, its keys left to the data. The paths of the data
-      read a shape through its marks as far as a part holds one kind,
-      past the key a fold stands for, and a part a path reads out of a
-      shape is that schema without the tag.
+      share one shape, over its first key standing for all of them. The
+      paths of the data read a shape through its marks as far as a part
+      holds one kind, through the key a fold shows, and a part a path
+      reads out of a shape is that schema without the tag.
       ::link~(::any/shape | doc) ::link~(::absent | doc)
       ::link~(::nullable | doc) ::link~(::each | doc)
   ~~|

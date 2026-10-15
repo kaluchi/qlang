@@ -41,14 +41,16 @@ const literalOfKeyword = k => k.literal;
 // A pattern writes its literal, its flags after it [QSTXT#pattern].
 export const printRegex = r => patternLiteral(r.source, r.flags);
 
-// A path writes its segments as it is written [QSPTH#value]: a place as its
+// A path writes its segments so they read back [QSPTH#value]: a place as its
 // digits, a key as its bare name, behind a colon where its name carries a
-// slash, and quoted otherwise.
-export const printPath = path => '/' + path.segments.map(printPathSegment).join('/');
+// slash or follows one that does, which would take it in, and quoted
+// otherwise.
+export const printPath = path => '/' + path.segments.map((segment, index) => printPathSegment(segment, index > 0 && path.segments[index - 1].includes('/'))).join('/');
 
-function printPathSegment(segment) {
+function printPathSegment(segment, afterSlashedKey) {
   if (segment.includes('/')) return segment.split('/').every(readsAsBareKeyword) ? ':' + segment : JSON.stringify(segment);
-  if (Number.isInteger(segmentIndex(segment)) || readsAsBareKeyword(segment)) return segment;
+  if (Number.isInteger(segmentIndex(segment))) return segment;
+  if (readsAsBareKeyword(segment)) return afterSlashedKey ? ':' + segment : segment;
   return JSON.stringify(segment);
 }
 

@@ -34,3 +34,4 @@
 {"name":"json-numeric-string-key","query":"{\"42\": \"answer\"} | get /\"42\"","expect":"\"answer\""}
 {"name":"json-kebab-string-key","query":"{\"foo-bar\": 99} | get /\"foo-bar\"","expect":"99"}
 {"name":"parse-path-path","query":"\"/a/b/0\" | parse | first | segments","expect":"[:a :b 0]"}
+{"decision":"D290","name":"a-path-with-a-slashed-key-prints-so-it-reads-back","query":"[\"a/b\" \"c\"] | toPath | :p it | get [~(print) ~(print | parse | apply it | eq p)]","expect":"[\"/:a/b/:c\" true]"}

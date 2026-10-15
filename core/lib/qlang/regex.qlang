@@ -95,11 +95,25 @@
 
 :regex/toRegex
   |~~ Answers the pattern itself, so `map ~toRegex` turns patterns and
-      the strings that hold their sources into patterns.
+      the strings that hold their sources into patterns; given flags, as
+      `string/toRegex` takes them, it answers its source with those flags,
+      `#"a" | toRegex "i"` answering `#"a"i`.
       ::link~(::string/toRegex | doc)
   ~~|
   ::fn
-    | returns |~~ The pattern itself. ~~| ::regex
+    | takes :flags
+        |~~ The flags of the pattern written in a string, the pattern's own
+            where none is given.
+        ~~|
+        ~(query /0 null) #[::null ::string]
+    | throws :flags/KindNotTakenError
+        |~~ The flags are written in a string, `toRegex "i"`. ~~|
+    | throws :flags/NotFlagsError
+        |~~ The flags are `i`, `m` and `s`, each once, `toRegex "im"`. ~~|
+    | returns |~~ The pattern itself, or its source with the flags. ~~| ::regex
+    | proves :takesFlagsAsAStringDoes
+        |~~ A pattern given flags answers its source with them. ~~|
+        ~(#"a" | toRegex "i" | eq ("a" | toRegex "i"))
     | proves :answersItself
         |~~ A pattern answers itself, so patterns and their sources turn
             into patterns.

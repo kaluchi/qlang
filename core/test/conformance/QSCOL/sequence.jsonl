@@ -50,3 +50,4 @@
 {"name":"has-finds-a-composite-member","query":"#[{:a 2} [1] \"x\" 3] | has [1]","expect":"true"}
 {"name":"has-misses-a-value-between-two-members","query":"#[1 3 5] | has 4","expect":"false"}
 {"name":"a-vector-takes-any-element-at-its-head","query":"[1] | prepend \"x\"","expect":"[\"x\" 1]"}
+{"decision":"D290","name":"sum-and-avg-read-a-number-beneath-its-tags","query":"[::W#2 4] | get [~(sum) ~(avg)]","expect":"[6 3]"}

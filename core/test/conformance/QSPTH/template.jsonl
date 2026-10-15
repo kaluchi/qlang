@@ -14,3 +14,9 @@
 {"name":"query-of-a-path-hands-the-value-as-the-key","query":"{:email {:home \"a@b\"}} | query (get /email) !| get /actualValue","expect":"{:home \"a@b\"}"}
 {"name":"map-passes-a-failed-element-by-code-of-one-value","query":"get [1 ~(\"x\" | add 1)] | map ~(0) !| type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"map-passes-a-failed-element-by-code-of-one-quote","query":"get [1 ~(\"x\" | add 1)] | map ~(~(x)) !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D290","name":"a-template-reads-beneath-every-tag-over-it","query":"{:a 1} | get [::Box::Crate[/a] ::Box#[/a]]","expect":"[::Box::Crate[1] ::Box#[1]]"}
+{"decision":"D290","name":"a-template-beneath-tags-answers-the-failure-of-a-part","query":"{:a 1} | get ::Box::Crate[/zz] !| type","expect":"::path/KeyNotInMapError"}
+{"decision":"D290","name":"an-atom-under-a-tag-in-a-template-is-answered-as-it-is","query":"{:a 1} | get [::Box#5 ::Box\"s\"]","expect":"[::Box#5 ::Box\"s\"]"}
+{"decision":"D290","name":"a-template-under-three-tags-is-read","query":"{:a 1} | get ::A::B::C[/a]","expect":"::A::B::C[1]"}
+{"decision":"D290","name":"a-set-under-a-tag-in-a-template-answers-the-failure-of-a-part","query":"{:a 1} | get ::Box#[~(1 | add \"x\")] !| type","expect":"::number/add/addend/KindNotTakenError"}
+{"decision":"D290","name":"a-quote-in-a-set-under-a-tag-runs-as-every-quote-of-a-template","query":":k 2 | 1 | get ::Box#[~(add k)]","expect":"::Box#[3]"}

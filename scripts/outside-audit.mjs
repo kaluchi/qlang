@@ -3,8 +3,9 @@
 // runs `qlang`, and answers `scripts/outside-audit-prompt.txt`; its report
 // is written into the journal as `<date>-<tree>.md` under a line that says
 // how it was made, and the session writes its reading beside it, the fate
-// of each finding in it; an audit stays in its branch, and the move of the
-// baseline trims the series [QSWRK#baseline].
+// of each finding in it; no record calls an audit for, the landing of a
+// branch does, and an audit stays while a text in force cites it, the
+// records that took its findings among them [QSWRK#baseline].
 //
 // Usage: node scripts/outside-audit.mjs
 
@@ -13,6 +14,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { CHILD_ENVIRONMENT } from './benchmark/child.mjs';
+import { baselineOf } from './baseline-walk.mjs';
 import { RESEARCH } from './decision-records.mjs';
 
 const repoRoot = join(import.meta.dirname, '..');
@@ -62,7 +64,14 @@ if (code !== 0 || answer === '') {
 }
 
 const minuteOf = at => at.toISOString().slice(11, 16);
-const header = `<!-- An outside audit of qlang by a clean Opus: \`claude -p --model opus\`, started from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, its tools named by \`--tools ${TOOLS.join(' ')}\`, the tree let in by \`--add-dir ${repoPath}\` and reading and \`qlang\` allowed by \`--allowedTools\`, no CLAUDE.md, no memory and no MCP server, without the \`FORCE_COLOR\` of the session, reading the tree at ${tree} and running \`qlang\`, on ${date} from ${minuteOf(started)} to ${minuteOf(new Date())} UTC. Its prompt is \`scripts/outside-audit-prompt.txt\` at ${tree}. -->`;
+// The head of the report: what it is and what called it, the tree it read and
+// the baseline that tree stood on, when it ran, and how.
+const baseline = baselineOf(repoRoot);
+const header = [
+  '> An outside audit of qlang, which the landing of a branch called for, by a clean Opus answering `scripts/outside-audit-prompt.txt`.',
+  `> Tree \`${tree}\`, ${baseline === tree ? 'itself the baseline' : `on the baseline \`${baseline}\``}; run ${date}, ${minuteOf(started)}–${minuteOf(new Date())} UTC. A path it names reads as \`git show ${tree}:<path>\`.`,
+  `> Run as \`claude -p --model opus\` from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, tools \`${TOOLS.join(' ')}\`, \`qlang\` allowed, no CLAUDE.md, memory or MCP server, no \`FORCE_COLOR\`.`
+].join('\n');
 writeFileSync(report, `${header}\n\n${answer}\n`);
 
 console.log(`${shown(report)}: its reading stands beside it, every finding with its fate`);

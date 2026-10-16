@@ -197,8 +197,9 @@ language cannot follow, on a record that names no decider [QSWRK#journal], and
 on a path this file, the aim or the chapter of the work
 names that the tree lacks or on words they quote from the tree that
 their file no longer holds, on a date of the history in a text that
-states what holds, on a series of the benchmark, of the outside audits or
-of the checks of the chapters past its two latest, and on the walk of a
+states what holds, on a series of the benchmark past its two latest at
+the baseline, on a report of the research without the session's reading
+beside it [QSWRK#review], and on the walk of a
 baseline: a section of a chapter written since the baseline that no
 record dissolved into [QSWRK#spec], a record of the
 language the baseline holds that no case and no line of its fate does,
@@ -298,23 +299,33 @@ tree every change of which a commit holds, best on master after a branch
 landed: a clean Opus reads the tree at HEAD from an empty directory, with
 no CLAUDE.md, no memory, no MCP server and no access to the history,
 answers `scripts/outside-audit-prompt.txt`, and its report lands in
-`docs/journal/research/outside-audit/` under its date and tree, the run
-giving the oldest of three to the history. The session writes its
-reading beside the report, every finding checked by a probe with its
-fate.
+`docs/journal/research/outside-audit/` under its date and tree, where it
+stays while a text in force cites it, the records that took its findings
+among them [QSWRK#baseline]. The session writes its reading beside the
+report, every finding checked by a probe with its fate.
 
 ## Check of the chapters
 
-`node scripts/spec-check.mjs` runs the check of the chapters
-[QSWRK#review] on such a tree: a clean Opus for each group of chapters,
-started at once as the outside audit is, bootstraps from every chapter
-of `docs/spec/` and the first pages, then reads its sections against
-their cases, the code that cites them, the pages of their words and the
-command line, and reports findings of six kinds, each with its probe,
-under `docs/journal/research/spec-check/<date>-<tree>/`; `--dry` prints
-the groups. The session writes its reading beside the reports, every
-finding with its fate, and the run gives the oldest of three to the
-history.
+`node scripts/spec-check.mjs --for Dnn` runs the check of the chapters
+[QSWRK#review] that the record Dnn calls for and carries the fates of, on
+such a tree: a clean Opus for each group of chapters, started at once as
+the outside audit is, bootstraps from every chapter of `docs/spec/` and
+the first pages, then reads its sections against their cases, the code
+that cites them, the pages of their words and the command line, and
+reports findings of six kinds, each with its probe, into the folder of
+the run named after the record,
+`docs/journal/research/spec-check/<Dnn>~<k>/`; `--dry` prints the groups.
+The session writes its reading beside the reports, every finding with
+its fate. With `--records Dnn …` the script gives each open record named
+a clean critic instead, its report named after the record and numbered,
+`docs/journal/research/design-check/<Dnn>~<k>.md`, the session's reading
+beside it as `<Dnn>~<k>~reading.md`. Every report opens with its head,
+the tree it read and the baseline that tree stood on, and the script
+writes the run under `Runs.` of the record that called for it, why it ran
+given by `--why`. A report named after a record leaves with it at the
+move of the baseline, and the README of the research,
+`docs/journal/research/README.md`, tells every kind of report, what calls
+it into being and how long it stays [QSWRK#review].
 
 ## Sister project
 

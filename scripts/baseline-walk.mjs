@@ -280,15 +280,34 @@ function sectionsOfChapter(text) {
   return new Map([...sections].map(([name, lines]) => [name, lines.join('\n').trim()]));
 }
 
-// The documents of the research that stay while something in force cites
-// them [QSWRK#baseline]. A review is a unit of its own; a folder of any other
-// research, a design with its runs, is one unit, held by a citation of any
-// of it. The outside audits and the checks of the chapters are series the
-// next one is read against [QSWRK#review], and the README of a folder says what the
-// folder holds and holds none of it.
-const RESEARCH_DOCUMENT = new RegExp(`^${RESEARCH}/(?!outside-audit/|spec-check/)[^/]+/.+`);
+// The documents of the research that stay while something in force holds
+// them [QSWRK#baseline]. A report a record called for, a critique of an open
+// record, a review of the work a record did or a check of the chapters, is
+// named after that record and numbered in the order it ran, as the runs of
+// the benchmark are, `design-check/D329~2.md`, `reviews/D324~3.md` and the
+// folder of the readers of a check, `spec-check/D323~1/`, and stands with the
+// session's reading beside it, `D329~2~reading.md` or the `reading.md` of the
+// folder, the two one unit held while that record is in force or a text in
+// force cites it. A report no record called for, a review of a branch,
+// `reviews/2026-10-13-the-path-is-a-value.md`, the fate of each finding below
+// it, and an outside audit after a branch landed with its reading,
+// `outside-audit/2026-10-15-32fc3a2e`, is a unit a text in force holds by
+// citing it; a folder of any other research, a design with its runs, is one
+// unit, held by a citation of any of it [QSWRK#review], and the README of a
+// folder says what the folder holds and holds none of it.
+const RESEARCH_DOCUMENT = new RegExp(`^${RESEARCH}/[^/]+/.+`);
 const REPORTS = new RegExp(`^${RESEARCH}/reviews/`);
+const OF_A_RECORD = new RegExp(`^${RESEARCH}/(?:(?:design-check|reviews)/(D\\d+)~\\d+(?=(?:~reading)?\\.md$)|spec-check/(D\\d+)~\\d+(?=/))`);
+const AUDIT = new RegExp(`^${RESEARCH}/outside-audit/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+(?=(?:-reading)?\\.md$)`);
 export const isReadme = path => /(^|\/)README\.md$/.test(path);
+
+// recordHolding(repoRoot, path) → the record in force a report is named
+// after, which holds it, or null.
+export function recordHolding(repoRoot, path) {
+  const match = OF_A_RECORD.exec(path);
+  const name = match?.[1] ?? match?.[2];
+  return name !== undefined && existsSync(join(repoRoot, JOURNAL, `${name}.md`)) ? name : null;
+}
 
 // The texts in force that may cite a document: the records in force and
 // the documents of the work.
@@ -297,33 +316,59 @@ export function textsInForce(repoRoot) {
   return [...records, ...CITING_DOCUMENTS].filter(path => existsSync(join(repoRoot, path))).map(path => ({ path, text: readFileSync(join(repoRoot, path), 'utf8') }));
 }
 
-// unitOf(path) → what a citation must name to hold the document: a
-// review by its folder and name, `reviews/2026-10-10-vec-set-map.md`, any
-// other research by its folder, `research/legend/`.
-export const unitOf = path => (REPORTS.test(path) ? path.split('/').slice(-2).join('/') : `${path.slice(JOURNAL.length + 1).split('/').slice(0, 2).join('/')}/`);
+// unitOf(path) → what a citation must name to hold the document: a report
+// a record called for by its folder and the name it shares with its
+// reading, `design-check/D329~2` or `spec-check/D323~1`, an outside audit
+// by its folder and the name it shares with its reading,
+// `outside-audit/2026-10-15-32fc3a2e`, a review of a branch by its folder
+// and name, `reviews/2026-10-10-vec-set-map.md`, any other research by its
+// folder, `research/legend/`.
+export const unitOf = path => {
+  const named = OF_A_RECORD.exec(path) ?? AUDIT.exec(path);
+  if (named !== null) return named[0].split('/').slice(-2).join('/');
+  return REPORTS.test(path) ? path.split('/').slice(-2).join('/') : `${path.slice(JOURNAL.length + 1).split('/').slice(0, 2).join('/')}/`;
+};
 
 // uncitedDocuments(repoRoot) → the documents of the research nothing in
+// force holds: no critique whose record is in force and nothing a text in
 // force cites.
 export function uncitedDocuments(repoRoot) {
   const texts = textsInForce(repoRoot);
   return git(repoRoot, 'ls-files', RESEARCH).split('\n')
     .filter(path => RESEARCH_DOCUMENT.test(path) && !isReadme(path))
+    .filter(path => recordHolding(repoRoot, path) === null)
     .filter(path => !texts.some(({ text }) => text.includes(unitOf(path))));
 }
 
-// The series of the work, a run after a run: the sets of the benchmark with
-// their runs, its screens, the runs of the references, the outside audits
-// with their readings and the checks of the chapters. A branch keeps every
-// run of its own, and the move of the baseline gives the older to the
-// history, so the merge that lands a branch holds the two latest of each
-// [QSWRK#baseline]. A member is what its paths share, a folder or a report
-// with its reading.
+// reportsWithoutReading(repoRoot) → each report of the research that stands
+// without the session's reading beside it [QSWRK#review]: a report a record
+// called for, `design-check/D329~2.md` without `D329~2~reading.md`, a run of
+// the check of the chapters without its `reading.md`, and an outside audit
+// without its `-reading.md`.
+export function reportsWithoutReading(repoRoot) {
+  const tracked = new Set(git(repoRoot, 'ls-files', RESEARCH).split('\n').filter(Boolean));
+  const missing = [];
+  for (const path of tracked) {
+    const ofARecord = /^(.+\/(?:design-check|reviews)\/D\d+~\d+)\.md$/.exec(path);
+    if (ofARecord !== null && !tracked.has(`${ofARecord[1]}~reading.md`)) missing.push({ path, reading: `${ofARecord[1]}~reading.md` });
+    const audit = /^(.+\/outside-audit\/\d{4}-\d{2}-\d{2}-[0-9a-f]+)\.md$/.exec(path);
+    if (audit !== null && !tracked.has(`${audit[1]}-reading.md`)) missing.push({ path, reading: `${audit[1]}-reading.md` });
+  }
+  const runs = new Set([...tracked].map(path => /^(.+\/spec-check\/[^/]+)\//.exec(path)?.[1]).filter(Boolean));
+  for (const run of runs) if (!tracked.has(`${run}/reading.md`)) missing.push({ path: `${run}/`, reading: `${run}/reading.md` });
+  return missing;
+}
+
+// The series of the benchmark, a run after a run: its sets with their runs,
+// its screens and the runs of the references. A branch keeps every run of
+// its own, and the move of the baseline gives the older to the history, so
+// the merge that lands a branch holds the two latest of each
+// [QSWRK#baseline]; the reports of the research leave by what holds them,
+// above. A member is what its paths share, a folder or a file.
 const SERIES = [
   { name: 'the sets of the benchmark', memberOf: path => /^scripts\/benchmark\/sets\/[^/]+\//.exec(path)?.[0] },
   { name: 'the screens of the benchmark', memberOf: path => /^scripts\/benchmark\/screens\/[^/]+$/.exec(path)?.[0] },
   { name: 'the runs of the references', memberOf: path => /^scripts\/benchmark\/runs\/[^/]+$/.exec(path)?.[0] },
-  { name: 'the outside audits', memberOf: path => new RegExp(`^${RESEARCH}/outside-audit/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+(?=(?:-reading)?\\.md$)`).exec(path)?.[0] },
-  { name: 'the checks of the chapters', memberOf: path => new RegExp(`^${RESEARCH}/spec-check/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+/`).exec(path)?.[0] },
 ];
 
 // seriesPastTheirTwoLatest(repoRoot, revision) → each series that holds

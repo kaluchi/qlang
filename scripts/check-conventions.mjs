@@ -51,10 +51,14 @@
 //       waiting on a target [QSWRK#baseline]; a section of a chapter is
 //       written since the baseline by a record dissolved into it [QSWRK#baseline].
 //
-//   (10) A series keeps its two latest at the merge that landed a branch:
-//       the sets of the benchmark, its screens, the runs of the
-//       references, the outside audits and the checks of the chapters, a
-//       branch keeping every run of its own [QSWRK#baseline].
+//   (10) A series of the benchmark keeps its two latest at the merge that
+//       landed a branch: its sets, its screens and the runs of the
+//       references, a branch keeping every run of its own [QSWRK#baseline].
+//
+//   (11) A report of the research stands with the session's reading
+//       beside it, every finding with its fate: a critique of an open
+//       record, a run of the check of the chapters and an outside audit
+//       [QSWRK#review].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -63,7 +67,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
-import { baselineOf, seriesPastTheirTwoLatest, walkOfBaseline } from './baseline-walk.mjs';
+import { baselineOf, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { execFileSync } from 'node:child_process';
@@ -552,17 +556,22 @@ function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;
 }
 
-// ── (10) A series keeps its two latest at the baseline ─────────
+// ── (10) A series of the benchmark keeps its two latest at the baseline
 //
-// The sets of the benchmark with their runs, the screens, the runs of the
-// references, the outside audits and the checks of the chapters keep their
-// two latest at the merge that landed a branch; a branch keeps every run of
-// its own, and the move of the baseline gives the older to the history,
-// `node scripts/drop-documents.mjs` [QSWRK#baseline].
+// The sets of the benchmark with their runs, the screens and the runs of
+// the references keep their two latest at the merge that landed a branch; a
+// branch keeps every run of its own, and the move of the baseline gives the
+// older to the history, `node scripts/drop-documents.mjs` [QSWRK#baseline].
 
 function seriesBeyondTwo() {
   const baseline = baselineOf(repoRoot);
   return baseline === undefined ? [] : seriesPastTheirTwoLatest(repoRoot, baseline).map(series => ({ ...series, baseline }));
+}
+
+// ── (11) A report of the research stands with its reading ──────
+
+function unreadReports() {
+  return reportsWithoutReading(repoRoot);
 }
 
 // ── Main ───────────────────────────────────────────────────────
@@ -581,6 +590,7 @@ const broken = brokenLinks();
 const outOfStep = fatesOutOfStep();
 const intrusions = specIntrusions();
 const swollen = seriesBeyondTwo();
+const unread = unreadReports();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -595,7 +605,8 @@ if (forbidden.length === 0
     && broken.length === 0
     && outOfStep.length === 0
     && intrusions.length === 0
-    && swollen.length === 0) {
+    && swollen.length === 0
+    && unread.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -679,5 +690,10 @@ if (swollen.length > 0) {
   process.stdout.write(`\nSeries past their two latest at the baseline (${swollen.length}):\n`);
   for (const { name, count, baseline } of swollen) process.stdout.write(`  ${name}: ${count} at the merge ${baseline} that landed it\n`);
   process.stdout.write('    a branch keeps every run of its own, and the move of the baseline gives the older to the history, `node scripts/drop-documents.mjs`, git keeping it [QSWRK#baseline].\n');
+}
+if (unread.length > 0) {
+  process.stdout.write(`\nReports of the research without their reading (${unread.length}):\n`);
+  for (const { path, reading } of unread) process.stdout.write(`  ${path}  wants ${reading}\n`);
+  process.stdout.write('    the session writes its reading beside each report it runs, every finding with its probe and its fate, and commits the two together [QSWRK#review].\n');
 }
 process.exit(1);

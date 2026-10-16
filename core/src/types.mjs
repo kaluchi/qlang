@@ -355,13 +355,13 @@ export function declareHostValue(value, impl) {
 
 // An error carries its tag, the kind of errors for a literal that names none
 // [QSERR#rest], and a descriptor of the facts of its site with its `:trail`,
-// the path it took, the frames `eval-trail.mjs` writes [D337]; a `:trail` of
+// the path it took, the frames `eval-trail.mjs` writes [QSERR#trail]; a `:trail` of
 // another shape is refused where the error is made.
 export const ErrorTrailNotFramesError = declareRefusal('error/TrailNotFramesError');
 
 // A trail is a vector of frames under `::trail`, a frame the vector of the
 // subject a step met, the quote of the steps from the one that broke and the
-// path of the part a word's code broke on, where one did [D337].
+// path of the part a word's code broke on, where one did [QSERR#trail].
 export const TRAIL_TAG = makeTag('trail');
 export const FRAME_TAG = makeTag('frame');
 
@@ -383,7 +383,7 @@ export function makeTrail(frames) {
 
 // An error holds the facts of its site and, once a step raised it or
 // handed it on, its path, `:trail`, frames it holds under `::trail`; one
-// whose path is empty holds no `:trail` [D337].
+// whose path is empty holds no `:trail` [QSERR#trail].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {

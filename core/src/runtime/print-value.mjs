@@ -106,7 +106,7 @@ function printFallback(v) {
 
 // A vector or a set stands on one line unless a part takes several, and
 // then each part stands on a line of its own, as each frame of a trail of
-// two or more does, a frame standing on one line whatever it holds [D337].
+// two or more does, a frame standing on one line whatever it holds [QSPRN#print].
 function printListLike(open, elements, indent, printedOf, oneLine = false, stacked = false) {
   const rendered = elements.map(el => printValue(el, indent + 1, printedOf, oneLine));
   if (oneLine || (!stacked && !rendered.some(s => s.includes('\n')))) return `${open}${rendered.join(' ')}]`;

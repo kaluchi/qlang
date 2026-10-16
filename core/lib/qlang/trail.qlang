@@ -1,6 +1,6 @@
 |~ `::trail`, the kind of the path a failure flew, and the laws declared
    under it.
-   The decisions it exists for: [D337]. ~|
+   The decisions it exists for: [QSERR#trail]. ~|
 
 :trail
   |~~ A trail is the path a failure flew: a frame for each step that

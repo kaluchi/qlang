@@ -103,7 +103,7 @@ describe('elideAnswer [QSPRN#elide]', () => {
     expect(printValue(view)).toContain(':read ~(!| get /trail/');
   });
 
-  it('keeps the steps and the place of every frame within a budget, its subject alone giving way [D337]', async () => {
+  it('keeps the steps and the place of every frame within a budget, its subject alone giving way [QSHST#answer]', async () => {
     const skipped = Array.from({ length: 12 }, (_, index) => `add ${index}`).join(' | ');
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope) | ${skipped}`);
     const trail = elideAnswer(failing, 60).descriptor.get('trail');
@@ -125,12 +125,12 @@ describe('elideAnswer [QSPRN#elide]', () => {
   });
 });
 
-// A failure a host prints is an alert [D337]: the subject of the frame where
+// A failure a host prints is an alert [QSHST#answer]: the subject of the frame where
 // the failure arose within an excerpt, a subject it only passed given way whole,
 // an error at rest among its facts a value cut within its excerpt
 // [QSERR#rest], a value shown once, and the read of every marker continuing
 // the query beneath `!|`.
-describe('alertOf [D337]', () => {
+describe('alertOf [QSHST#answer]', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
   const continued = (query, marker) => evalQuery(`${query} ${printValue(marker.get('read')).slice(2, -1)}`);
 

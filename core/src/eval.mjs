@@ -109,7 +109,7 @@ async function evalNode(node, state) {
     return await evaluator(node, state);
   } catch (caughtError) {
     // The error the node raised; the step that ran the node writes its
-    // frame [D337].
+    // frame [QSERR#trail].
     return withPipeValue(state, raisedBy(errorOfThrow(caughtError, node, state.pipeValue, state.env), node));
   }
 }
@@ -133,7 +133,7 @@ async function evalPipeline(node, state) {
 }
 
 // The tracks live in the combinators alone: `|` steps around an error, the
-// step joining the skipped steps of its last frame [D337], and `!|` fires
+// step joining the skipped steps of its last frame [QSERR#trail], and `!|` fires
 // on an error alone [QSSYN#combinator]; the parser writes no other combinator.
 async function applyCombinator(kind, state, stepNode) {
   return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
@@ -278,7 +278,7 @@ async function evalTaggedLit(node, state) {
 
 // The error a tagged literal's payload answered, passed by the tag as an
 // error passes every step, the tag's step joining the skipped steps of
-// its last frame [D337], and the literal's own raise where the payload
+// its last frame [QSERR#trail], and the literal's own raise where the payload
 // raised it.
 function passedUntagged(payloadError, node, tagName) {
   const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)));
@@ -547,7 +547,7 @@ async function callByAddress(node, state) {
 // facts with the kind of the value refused in the order the catalog declares
 // them [QSERR#site]; the value itself rides the facts where the trail does not
 // hold it, an input or the args, and leaves them for the subject, which the
-// trail's first frame holds [D337].
+// trail's first frame holds [QSERR#site].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
   const tag = makeTag(tagName);
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeKeyword(refused)), env));
@@ -1024,7 +1024,7 @@ async function fieldRefusal(tagName, field, payload, invariants, state, opened) 
 // closeCode(astNode, capturedState, evaluate?) → (input) → value: code run
 // against the input it is handed, one frame below and in its scope, a step on
 // the success track as every step is, or by `evaluate` an arg of a step,
-// which answers within the frame of its step [D337]; it keeps its tree and
+// which answers within the frame of its step [QSERR#trail]; it keeps its tree and
 // its state, so `reduce` finds the verb a quote of one name holds
 // [QSCOL#reduce].
 function closeCode(astNode, capturedState, evaluate = evalBody) {
@@ -1043,7 +1043,7 @@ function closeCode(astNode, capturedState, evaluate = evalBody) {
 // written in the step, which the call runs it in [QSQUO#held]; a literal of an
 // atom its value one frame below the call; and any other modifier the code
 // it is, whose value the call keeps as a value of the step. A modifier
-// answers within the frame of its step, which holds it [D337].
+// answers within the frame of its step, which holds it [QSERR#trail].
 function modifierOf(argNode, state) {
   if (argNode.type === 'QuoteLit') return withOrigin(() => quoteOfLiteral(argNode), { step: state, written: true });
   if (WRITTEN_LITERALS.has(argNode.type)) return withOrigin(closeCode(argNode, state, evalNode), { step: state, written: true });
@@ -1070,7 +1070,7 @@ function heldIn(state) {
 
 // codeOfPath(path, callState) → code that reads the path from each input
 // it is handed, as `~(get /path)` reads it, a refusal its answer with the
-// frame of that step at the input [D337].
+// frame of that step at the input [QSERR#trail].
 export function codeOfPath(path, callState) {
   const step = () => makeQuote([commandStep('get', [path])]);
   return async input => {
@@ -1123,7 +1123,7 @@ function laneOf(env) {
 // word there [QSCOL#reduce], [QSNAM#reach]; null for code of any other shape
 // or a name of no word, which `reduce` runs on the pair of the value so far
 // and the element [QSCOL#reduce]. A call the accumulator refuses answers the
-// failure it raised, which the fold marks at the place of its element [D337].
+// failure it raised, which the fold marks at the place of its element [QSERR#trail].
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
   const astNode = soleStepOf(reducer.astNode);

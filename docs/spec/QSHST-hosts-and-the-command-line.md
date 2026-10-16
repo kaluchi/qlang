@@ -97,11 +97,13 @@ query gives it the code 1, for a script that tests the code, the failure
 written as without the flag and one a query that wrote by `out` left
 unwritten among them, while a failure caught is a value and every value
 exits with 0. A failure is written as its alert: its tag and its facts in the order the catalog declares
-them, the subject where it arose and every other fact cut to an excerpt
-of three hundred characters, a string past the excerpt giving way whole
-with its `:head`, and the subject of each later stop giving way to an
-`::elision` marker where the marker prints shorter; each marker's
-`:read` continues the query beneath `!|`. Below the alert stands the
+them, the subject of the first frame of its trail, where it arose, and
+every other fact cut to an excerpt of three hundred characters, a string
+past the excerpt giving way whole with its `:head`, and the subject of
+each later frame giving way to an `::elision` marker where the marker
+prints shorter, each subject measured on the one line its frame prints
+on, every frame keeping its steps and its place; each marker's `:read`
+continues the query beneath `!|`. Below the alert stands the
 prose of its refusal's page as line comments, the repair it tells, a
 refusal with no page of its own reading the page of what refused; an
 error of the kind of errors, which no site refused, and one whose tag no

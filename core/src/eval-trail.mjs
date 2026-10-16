@@ -1,7 +1,7 @@
 // The path of a failure, written in flight: a failure lives in the pipe
 // alone [QSERR#catch], and its `:trail` holds a frame at every step that
 // raised it or handed it on, from the step where it arose to the `!|` that
-// catches it, a step it skips joining the steps of the last [D337]. The
+// catches it, a step it skips joining the steps of the last [QSERR#trail]. The
 // helpers build a new error for every change; none re-enters the evaluator.
 //
 //   `answerOfStep(answer, stepQuoteOf, subject)` — the answer of a step of
@@ -17,7 +17,7 @@
 //   `raisedBy(error, node)` — marks the failure a node's own fault raised.
 //
 // A failure holds its path from its first frame, and the refusal of the
-// text of a query, which flew no step, holds no `:trail` [D337].
+// text of a query, which flew no step, holds no `:trail` [QSERR#trail].
 
 import { isErrorValue, makeErrorValue, makeFrame, makeQuote, makeTrail } from './types.mjs';
 import { quoteOfBody } from './quote.mjs';

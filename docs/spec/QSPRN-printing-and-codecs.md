@@ -17,7 +17,10 @@ one line unless a part takes several, and then each part stands on a line
 of its own; a map of two entries or fewer, none a container, stands on
 one line, and any other puts each entry on a line of its own, indented
 by two. A marker of `::elision` stands on one line whatever it holds, so a
-container that holds one keeps the layout its other parts give it. A kind answers `print` under
+container that holds one keeps the layout its other parts give it, and a
+value of `::frame` stands on one line whatever it holds as well, a value
+of `::trail` of two frames or more putting each frame on a line of its
+own. A kind answers `print` under
 its own label, and the print of a value finds the `print` of each part
 by the walk of that part, an answer that is no string printed in its
 place; a kind's own `print` gives the text it chooses, which reads back
@@ -36,6 +39,12 @@ true
 
 > :Box |~~ B ~~| | :Box/print ~("box") | [::Box#1] | print
 "[box]"
+
+> {:a {:b [1 2]}} | get /c !| trail
+::trail[::frame[{:a {:b [1 2]}} ~(get /c)]]
+
+> [1 "x" 3] | map ~(mul 2) !| trail | print | lines | count
+4
 ```
 
 ## json

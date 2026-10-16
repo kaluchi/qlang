@@ -143,5 +143,5 @@ Report in Russian, keeping queries, names and answers as they are: first a verdi
 [D13]: ../../replaced/D13.md
 [D141]: ../../replaced/D141.md
 [D327]: ../../D327.md
-[D337]: ../../D337.md
+[D337]: ../../replaced/D337.md
 [QSERR#site]: ../../../spec/QSERR-errors.md#site

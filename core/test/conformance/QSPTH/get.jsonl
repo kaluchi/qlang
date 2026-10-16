@@ -1,34 +1,34 @@
 {"name":"a-path-reads-two-segments","query":"{:a {:b 99}} | get /a/b","expect":"99"}
-{"decision":"D337","name":"keyword-path-ns-missing","query":"{:qlang/error 42} | get /:qlang/http","expect":"::path/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :path /:qlang/http\n  :actualType ::map\n  :trail ::trail[::frame[{:qlang/error 42} ~(get /:qlang/http)]]\n} | raise"}
+{"name":"keyword-path-ns-missing","query":"{:qlang/error 42} | get /:qlang/http","expect":"::path/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :path /:qlang/http\n  :actualType ::map\n  :trail ::trail[::frame[{:qlang/error 42} ~(get /:qlang/http)]]\n} | raise"}
 {"name":"a-path-of-bare-keys-reads-three","query":"{:a {:b {:c 42}}} | get /a/b/c","expect":"42"}
-{"decision":"D337","name":"a-key-json-lacks-is-refused","query":"{:a 1} | get /b","expect":"::path/KeyNotInMapError!{\n  :key :b\n  :nearest [:a]\n  :path /b\n  :actualType ::map\n  :trail ::trail[::frame[{:a 1} ~(get /b)]]\n} | raise"}
+{"name":"a-key-json-lacks-is-refused","query":"{:a 1} | get /b","expect":"::path/KeyNotInMapError!{\n  :key :b\n  :nearest [:a]\n  :path /b\n  :actualType ::map\n  :trail ::trail[::frame[{:a 1} ~(get /b)]]\n} | raise"}
 {"name":"get-reads-a-nested-path","query":"{:a {:b [10 20]}} | get /a/b/-1","expect":"20"}
 {"name":"get-refuses-a-missed-key-with-the-keys-near-it","query":"{:emails [] :age 3} | get /email !| get /nearest","expect":"[:emails]"}
 {"name":"get-refuses-a-place-past-the-end","query":"[1 2] | get /5 !| type","expect":"::path/IndexOutOfBoundsError"}
 {"name":"get-refuses-a-value-on-the-path-that-has-no-parts","query":"{:a 5} | get /a/b !| type","expect":"::path/SubjectHasNoPartsError"}
 {"name":"a-read-that-misses-names-the-path-it-followed","query":"{:a {:b 1}} | get /a/c !| get /path","expect":"/a/c"}
 {"name":"single-key","query":"{:name \"Alice\"} | get /name","expect":"\"Alice\""}
-{"decision":"D337","name":"missing-key","query":"{:name \"Alice\"} | get /age","expect":"::path/KeyNotInMapError!{\n  :key :age\n  :nearest []\n  :path /age\n  :actualType ::map\n  :trail ::trail[::frame[{:name \"Alice\"} ~(get /age)]]\n} | raise"}
+{"name":"missing-key","query":"{:name \"Alice\"} | get /age","expect":"::path/KeyNotInMapError!{\n  :key :age\n  :nearest []\n  :path /age\n  :actualType ::map\n  :trail ::trail[::frame[{:name \"Alice\"} ~(get /age)]]\n} | raise"}
 {"name":"nested-keys","query":"{:point {:x 5 :y 7}} | get /point/x","expect":"5"}
 {"name":"deeply-nested","query":"{:a {:b {:c {:d 42}}}} | get /a/b/c/d","expect":"42"}
 {"name":"vec-bare-index-zero","query":"[10 20 30] | get /0","expect":"10"}
 {"name":"vec-bare-index-mid","query":"[10 20 30] | get /1","expect":"20"}
 {"name":"vec-bare-index-negative","query":"[10 20 30] | get /-1","expect":"30"}
-{"decision":"D337","name":"vec-bare-index-oob","query":"[10 20 30] | get /99","expect":"::path/IndexOutOfBoundsError!{\n  :index 99\n  :length 3\n  :path /99\n  :actualType ::vec\n  :trail ::trail[::frame[[10 20 30] ~(get /99)]]\n} | raise"}
-{"decision":"D337","name":"vec-bare-index-negative-oob","query":"[10 20 30] | get /-99","expect":"::path/IndexOutOfBoundsError!{\n  :index -99\n  :length 3\n  :path /-99\n  :actualType ::vec\n  :trail ::trail[::frame[[10 20 30] ~(get /-99)]]\n} | raise"}
-{"decision":"D337","name":"a-name-segment-on-a-vector-is-refused","query":"[10 20 30] | get /name","expect":"::path/IndexNotIntegerError!{\n  :key :name\n  :path /name\n  :actualType ::vec\n  :trail ::trail[::frame[[10 20 30] ~(get /name)]]\n} | raise"}
+{"name":"vec-bare-index-oob","query":"[10 20 30] | get /99","expect":"::path/IndexOutOfBoundsError!{\n  :index 99\n  :length 3\n  :path /99\n  :actualType ::vec\n  :trail ::trail[::frame[[10 20 30] ~(get /99)]]\n} | raise"}
+{"name":"vec-bare-index-negative-oob","query":"[10 20 30] | get /-99","expect":"::path/IndexOutOfBoundsError!{\n  :index -99\n  :length 3\n  :path /-99\n  :actualType ::vec\n  :trail ::trail[::frame[[10 20 30] ~(get /-99)]]\n} | raise"}
+{"name":"a-name-segment-on-a-vector-is-refused","query":"[10 20 30] | get /name","expect":"::path/IndexNotIntegerError!{\n  :key :name\n  :path /name\n  :actualType ::vec\n  :trail ::trail[::frame[[10 20 30] ~(get /name)]]\n} | raise"}
 {"name":"polymorphic-deep-path","query":"{\"items\": [{\"id\": 1} {\"id\": 2}]} | get /items/0/id","expect":"1"}
 {"name":"polymorphic-negative-through-vec","query":"{\"users\": [{\"email\": \"a@x\"} {\"email\": \"b@x\"}]} | get /users/-1/email","expect":"\"b@x\""}
 {"name":"polymorphic-vec-then-map","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | get /1/name","expect":"\"bob\""}
 {"name":"map-numeric-key-vs-vec-index","query":"{\"0\": [0 1]} | get /0","expect":"[0 1]"}
 {"name":"mixed-map-then-vec-bare-index","query":"{\"rows\": [[1 2] [3 4]]} | get /rows/1/0","expect":"3"}
-{"decision":"D337","name":"null-subject-strict","query":"null | get /any","expect":"::path/SubjectHasNoPartsError!{\n  :key :any\n  :path /any\n  :actualType ::null\n  :trail ::trail[::frame[null ~(get /any)]]\n} | raise"}
+{"name":"null-subject-strict","query":"null | get /any","expect":"::path/SubjectHasNoPartsError!{\n  :key :any\n  :path /any\n  :actualType ::null\n  :trail ::trail[::frame[null ~(get /any)]]\n} | raise"}
 {"name":"a-descriptor-reads-its-field-by-path","query":"::builtin{:note :draft} | get /note","expect":":draft"}
-{"decision":"D337","name":"path-on-number","query":"42 | get /foo","expect":"::path/SubjectHasNoPartsError!{\n  :key :foo\n  :path /foo\n  :actualType ::number\n  :trail ::trail[::frame[42 ~(get /foo)]]\n} | raise"}
+{"name":"path-on-number","query":"42 | get /foo","expect":"::path/SubjectHasNoPartsError!{\n  :key :foo\n  :path /foo\n  :actualType ::number\n  :trail ::trail[::frame[42 ~(get /foo)]]\n} | raise"}
 {"name":"get-reads-beneath-the-tags","query":"::Box{:w 3} | get /w","expect":"3"}
 {"name":"a-path-reads-beneath-the-tags-stacked-over-a-map","query":"::Box::Crate{:a 1} | get /a","expect":"1"}
-{"decision":"D337","name":"a-doc-is-read-by-places-as-a-vector-is","query":"|~~ x ~~| | get /unknownKey","expect":"::path/IndexNotIntegerError!{\n  :key :unknownKey\n  :path /unknownKey\n  :actualType ::doc\n  :trail ::trail[::frame[|~~ x ~~| ~(get /unknownKey)]]\n} | raise"}
-{"decision":"D337","name":"path-on-set-named-key","query":"#[:a] | get /foo","expect":"::path/IndexNotIntegerError!{\n  :key :foo\n  :path /foo\n  :actualType ::set\n  :trail ::trail[::frame[#[:a] ~(get /foo)]]\n} | raise"}
+{"name":"a-doc-is-read-by-places-as-a-vector-is","query":"|~~ x ~~| | get /unknownKey","expect":"::path/IndexNotIntegerError!{\n  :key :unknownKey\n  :path /unknownKey\n  :actualType ::doc\n  :trail ::trail[::frame[|~~ x ~~| ~(get /unknownKey)]]\n} | raise"}
+{"name":"path-on-set-named-key","query":"#[:a] | get /foo","expect":"::path/IndexNotIntegerError!{\n  :key :foo\n  :path /foo\n  :actualType ::set\n  :trail ::trail[::frame[#[:a] ~(get /foo)]]\n} | raise"}
 {"name":"path-on-set-integer-index","query":"#[:z :x :y] | get /0","expect":":x"}
 {"name":"path-on-set-negative-index","query":"#[:z :x :y] | get /-1","expect":":z"}
 {"name":"path-on-set-index-out-of-bounds","query":"#[:a :b] | get /99 !| type","expect":"::path/IndexOutOfBoundsError"}

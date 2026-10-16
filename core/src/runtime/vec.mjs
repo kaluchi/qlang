@@ -180,7 +180,7 @@ bindPrim('map/sort', runs(['key'], async (map, key) => {
 // `map` runs its code on each element in order and answers what each
 // answered, the first error the code answers answering for the call at the
 // place of its element, the elements after it left unrun [QSCOL#each],
-// [D337]; a map keeps its keys.
+// [QSERR#trail]; a map keeps its keys.
 async function answersOf(places, code) {
   const answers = [];
   for (const [place, element] of places) {
@@ -200,7 +200,7 @@ bindPrim('map/map', runs(['code'], async (map, code) => {
 // ── predicates ─────────────────────────────────────────────────
 
 // A predicate answers a boolean for each element or fails [QSCND#boolean]: the
-// error it answered is handed on at the place of the element [D337], and
+// error it answered is handed on at the place of the element [QSERR#trail], and
 // another answer is refused where the element stands.
 async function verdictOf(predicate, place, element, ConditionNotBooleanError) {
   const verdict = await predicate(element);
@@ -364,7 +364,7 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 // first of its args [QSCOL#reduce]; any other code runs on the pair of the
 // value so far and the element, and its answer is the value so far after it
 // [QSCOL#reduce]. `seed` answers for an empty subject, and a failure of the
-// reducer stops the fold at the place of its element [D337].
+// reducer stops the fold at the place of its element [QSERR#trail].
 async function foldOf(entries, seed, reducer) {
   const combine = resolveBinaryReducer(reducer) ?? ((acc, element) => reducer([acc, element]));
   let acc = seed;

@@ -13,7 +13,7 @@
 // host writes, a part a kind prints its own way standing as that kind prints
 // it [QSPRN#print].
 //
-// A failure a host prints is an alert [D337]: its tag and its facts, the data
+// A failure a host prints is an alert [QSHST#answer]: its tag and its facts, the data
 // it carries cut to what places the failure. The subject of the first frame
 // of its trail, where the failure arose, and every other fact print within an
 // excerpt each; the subject of every later frame, which the failure only
@@ -91,7 +91,7 @@ function marker(fields) {
 // vector or a set of more than one element, and beneath it each vector, set,
 // map, string, doc and quote, a text through the tags over it; a set under a
 // tag keeps its shape as every container under a tag does, a frame its steps
-// and its place, its subject alone giving way [D337], and a part a kind
+// and its place, its subject alone giving way [QSHST#answer], and a part a kind
 // prints its own way stands as that kind prints it.
 function partsOf(value, path, printedOf, parts, underTag = false) {
   if (isMarker(value) || printedOf(value) !== undefined) return;
@@ -218,7 +218,7 @@ function partGivingWay(sized) {
 // least prints shorter than they do, a vector halving on to its least at the
 // most; where no part's least is shorter, the view stands over the budget
 // [QSPRN#elide]. A view that prints on one line, the subject of a frame, is
-// measured so [D337].
+// measured so [QSHST#answer].
 function elideWithin(value, budget, start, printedOf, oneLine = false) {
   const sizeOf = measureBy(printedOf, oneLine);
   const working = new WeakSet();
@@ -265,7 +265,7 @@ function passedOver(value, read, printedOf, oneLine = false) {
 
 // The trail of an alert: each frame keeps its steps and its place, the
 // subject of the first within its excerpt, of every later one given way
-// whole, each measured on the one line a frame prints on [D337].
+// whole, each measured on the one line a frame prints on [QSHST#answer].
 function framesOf(trail, read, printedOf) {
   return makeTrail(trail.map(([subject, steps, place = null], index) => {
     const subjectRead = readBelow(read, [index, 0]);

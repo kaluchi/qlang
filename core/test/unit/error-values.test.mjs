@@ -26,7 +26,7 @@ describe('makeErrorValue', () => {
     expect([...errorVal.descriptor.keys()]).toEqual(['message']);
   });
 
-  it('keeps a trail it is handed as it is [D337]', () => {
+  it('keeps a trail it is handed as it is [QSERR#trail]', () => {
     const preTrail = makeTrail([makeFrame('x', quoteOfSource('add 1 | mul 2 | count'))]);
     const descriptor = new Map([['trail', preTrail]]);
     const errorVal = makeErrorValue(makeTag('Oops'), descriptor);
@@ -34,7 +34,7 @@ describe('makeErrorValue', () => {
     expect(errorVal.descriptor.get('trail')).toBe(preTrail);
   });
 
-  it('lays a plain vector of frames under ::trail [D337]', () => {
+  it('lays a plain vector of frames under ::trail [QSERR#trail]', () => {
     const frames = [makeFrame('x', quoteOfSource('add 1'))];
     const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'boom'], ['trail', frames]]));
     expect([...errorVal.descriptor.keys()]).toEqual(['message', 'trail']);
@@ -42,7 +42,7 @@ describe('makeErrorValue', () => {
     expect(deepEqual([...errorVal.descriptor.get('trail')], frames)).toBe(true);
   });
 
-  it('fires ErrorTrailNotFramesError when :trail carries anything except a vector of frames [D337]', async () => {
+  it('fires ErrorTrailNotFramesError when :trail carries anything except a vector of frames [QSERR#trail]', async () => {
     // A step the error skips joins the steps of the last frame, so the
     // mint site refuses anything under `:trail` but a vector of frames.
     const refusedTrails = [

@@ -24,11 +24,11 @@ const repoRoot = resolve(import.meta.dirname, '..');
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 1 << 28 });
 
 // An artifact is a source, a script or a test file of a workspace, a
-// source of qlang by the comment at its head and a workflow; the data a
-// run of the benchmark wrote, its runs and the sets its authors
-// generated, is none and carries no mark inside it [QSWRK#marks].
+// source of qlang by the comment at its head and a workflow; the files of a
+// set of the benchmark, the generator its author wrote and the data its
+// runs wrote, are none and carry no mark inside them [D354].
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\/.*\.ya?ml$/;
-const RUN_OUTPUT = /^scripts\/benchmark\/(runs|sets)\//;
+const RUN_OUTPUT = /^scripts\/benchmark\/sets\//;
 const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !RUN_OUTPUT.test(path);
 const CASES = /^core\/test\/conformance\/.*\.jsonl$/;
 

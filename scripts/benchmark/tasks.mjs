@@ -1,10 +1,9 @@
-// The tasks of the benchmark [QSWRK#measure]: each a question over an input of
-// `inputs/`, or over the language alone, the answer, as JSON the query
-// over the input writes by `| json` or as a qlang literal, and the reference,
-// the shortest query the tree answers it with today. The reference is
-// no hint to a model under test, which never sees this file; it proves
-// the task solvable and names the price the language asks, so a
-// reference that shrinks is a repair the runs can be held against.
+// The tasks whose references run in the gate as `check:benchmark` [D354]:
+// each a question over an input of `inputs/`, or over the language alone,
+// the answer, as JSON the query over the input writes by `| json` or as a
+// qlang literal, and the reference, the shortest query the tree answers it
+// with, which proves the task solvable and names the price the language
+// asks, so a reference that shrinks is a repair.
 
 export const TASKS = [
   {

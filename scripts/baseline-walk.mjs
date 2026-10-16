@@ -20,7 +20,7 @@ export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/tes
 export const CITING_CODE_FILES = ['eslint.config.mjs', 'core/vitest.config.mjs', 'cli/vitest.config.mjs', 'cli/vitest.integration.config.mjs', 'lsp/vitest.config.mjs', 'site/astro.config.mjs', 'site/vitest.config.mjs'];
 export const CITING_DOCUMENTS = ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'];
 export const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang|yml)$/;
-const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
+const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets']);
 // A citation a document writes in words, `decision Dnn` or `decisions Dnn
 // and Dnn`, and one in brackets, `[Dnn, Dnn]`.
 export const CITATION_IN_WORDS = /\bdecisions? ((?:[DE]\d+)(?:(?:,\s*| and )[DE]\d+)*)/g;
@@ -394,16 +394,15 @@ export function reportsWithoutReading(repoRoot) {
   return missing;
 }
 
-// The series of the benchmark, a run after a run: its sets with their runs,
-// its screens and the runs of the references. A branch keeps every run of
-// its own, and the move of the baseline gives the older to the history, so
-// the merge that lands a branch holds the two latest of each
-// [QSWRK#baseline]; the reports of the research leave by what holds them,
-// above. A member is what its paths share, a folder or a file.
+// The series of the benchmark, a run after a run, are its sets with their
+// runs and its screens, a member what its paths share, a folder or a file:
+// a branch keeps every run of its own, and the move of the baseline gives
+// the older to the history, so the merge that lands a branch holds the two
+// latest of each, while a report of the research leaves by what holds it,
+// above [D354].
 const SERIES = [
   { name: 'the sets of the benchmark', memberOf: path => /^scripts\/benchmark\/sets\/[^/]+\//.exec(path)?.[0] },
   { name: 'the screens of the benchmark', memberOf: path => /^scripts\/benchmark\/screens\/[^/]+$/.exec(path)?.[0] },
-  { name: 'the runs of the references', memberOf: path => /^scripts\/benchmark\/runs\/[^/]+$/.exec(path)?.[0] },
 ];
 
 // seriesPastTheirTwoLatest(repoRoot, revision) → each series that holds

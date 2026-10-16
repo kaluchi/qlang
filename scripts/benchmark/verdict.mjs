@@ -98,7 +98,6 @@ export function verdict(setId, screen, baselineScreen = previousMeasurement(setI
   const pairs = [...new Set(measured.map(record => `${record.mode}~${record.model}`))];
   const lines = [`Замер ${screen} · набор ${setId} · ${measured[0]?.date ?? ''}`, ''];
   for (const pair of pairs) {
-    const [mode] = pair.split('~');
     const now = measured.filter(record => `${record.mode}~${record.model}` === pair);
     const base = baseline.filter(record => `${record.mode}~${record.model}` === pair);
     const [nowFigures, baseFigures] = [now.map(figuresOf), base.map(figuresOf)];
@@ -106,7 +105,7 @@ export function verdict(setId, screen, baselineScreen = previousMeasurement(setI
     lines.push('Что сравниваю', ...describe('новый', screen, now));
     if (base.length > 0) lines.push(...describe('старый', baselineScreen, base));
     const models = [...new Set([...now, ...base].map(record => record.modelId ?? record.model))].join(', ');
-    lines.push(`  Модель ${models}, ${mode === 'cli' ? 'с командной строкой qlang' : 'вслепую, по одной странице'}.`,
+    lines.push(`  Модель ${models}, с командной строкой qlang.`,
       `  Набор ${setId} — ${tasks.length} задач, их писал чистый автор.`);
     for (const reason of reasons) lines.push(`  Повторный замер: ${reason}`);
     const rows = [

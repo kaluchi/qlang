@@ -79,8 +79,8 @@
 //       [QSWRK#marks].
 //
 //   (14) A series of the benchmark keeps its two latest at the merge that
-//       landed a branch: its sets, its screens and the runs of the
-//       references, a branch keeping every run of its own [QSWRK#baseline].
+//       landed a branch: its sets and its screens, a branch keeping every
+//       run of its own [D354].
 //
 //   (15) A report of the research stands with the session's reading
 //       beside it, every finding with its fate: a critique of an open
@@ -601,10 +601,10 @@ function unmarkedArtifacts() {
 
 // ── (14) A series of the benchmark keeps its two latest at the baseline
 //
-// The sets of the benchmark with their runs, the screens and the runs of
-// the references keep their two latest at the merge that landed a branch; a
-// branch keeps every run of its own, and the move of the baseline gives the
-// older to the history, `node scripts/drop-documents.mjs` [QSWRK#baseline].
+// The sets of the benchmark with their runs and its screens keep their two
+// latest at the merge that landed a branch, a branch keeping every run of
+// its own and the move of the baseline giving the older to the history,
+// `node scripts/drop-documents.mjs` [D354].
 
 function seriesBeyondTwo() {
   const baseline = baselineOf(repoRoot);
@@ -632,7 +632,7 @@ function unreadReports() {
 // its fenced blocks; a section a record in transit overrides waits for the
 // move that writes it anew, as its probes wait [QSWRK#probe].
 
-const UNREAD_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
+const UNREAD_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets']);
 const TOKEN = /(?<![\\\w$])[A-Za-z_$][a-z$]*[A-Z0-9_][\w$]*\b|::[A-Za-z][\w/.-]*\w/g;
 const tokensIn = text => [...text.matchAll(TOKEN)].map(match => match[0])
   .filter(token => token.length >= 3 && !/^[DE]\d+$/.test(token) && (token.startsWith('::') || /[a-z]/.test(token) || /[_\d]/.test(token)));

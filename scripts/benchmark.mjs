@@ -1,18 +1,12 @@
-// The benchmark of the first screen [QSWRK#measure]. A run hands a clean child a screen,
-// the pages of the language and the command line as a tree printed them [QSWRK#measure],
-// and a set of tasks; the child answers with the command line, and the tree
-// grades the queries it wrote. The sets are written by a clean author who
-// never saw the language, and a set measures once: reading what its children
-// missed marks it seen, and the next measurement orders a new set. The set of
-// `benchmark/tasks.mjs`, whose runs under `benchmark/runs/` a model read and
-// wrote up, is the first screen's reading test, its references run in the
-// gate.
+// The benchmark measures the first attempt of a fresh model by its sets
+// alone, a run handing a clean child the first screen and the tasks a clean
+// author wrote, the tree grading the queries the child wrote, while the
+// references of `benchmark/tasks.mjs` run in the gate as `check:benchmark`
+// and no child reads them [D354].
 //
 // Usage:
 //   node scripts/benchmark.mjs check                  the references of tasks.mjs answer their tasks
-//   node scripts/benchmark.mjs prompt                 the prompt of a run of tasks.mjs
-//   node scripts/benchmark.mjs screen [--save NAME] [--query Q]   the hash of the first screen, or it or what Q prints saved under a name
-//   node scripts/benchmark.mjs report                 the runs of tasks.mjs side by side
+//   node scripts/benchmark.mjs screen                 the hash of the first screen, the one a run fixes
 //   node scripts/benchmark.mjs author ID [--model M]  a clean author writes the set ID
 //   node scripts/benchmark.mjs run ID --decision DNNN --model M --runs N [--reason TEXT]
 //   node scripts/benchmark.mjs verdict ID SCREEN [BASELINE]   the runs of a measurement beside a baseline, as they fixed them
@@ -20,14 +14,13 @@
 //   node scripts/benchmark.mjs misses ID RUN [TASK…]  what a run missed; marks the set seen
 //   node scripts/benchmark.mjs frictions ID           what the calls of its runs failed with; marks the set seen
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { TASKS } from './benchmark/tasks.mjs';
-import { firstScreen, saveScreen } from './benchmark/screens.mjs';
+import { firstScreen, shortHash } from './benchmark/screens.mjs';
 import { pipeEnv } from './pipe-env.mjs';
 import { author, run, grade, misses, frictions } from './benchmark/sets.mjs';
 import { verdict } from './benchmark/verdict.mjs';
@@ -35,15 +28,12 @@ import { verdict } from './benchmark/verdict.mjs';
 const repoRoot = join(import.meta.dirname, '..');
 const benchDir = join(repoRoot, 'scripts', 'benchmark');
 const inputsDir = join(benchDir, 'inputs');
-const runsDir = join(benchDir, 'runs');
 const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs');
 
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery } = await core('eval.mjs');
 const { printValue } = await core('index.mjs');
 const { deepEqual } = await core('equality.mjs');
-
-const shortHash = text => createHash('sha256').update(text).digest('hex').slice(0, 12);
 
 // What the command line answers for a query over the input of its task,
 // as JSON text, which `| json` writes [QSHST#answer].
@@ -75,51 +65,6 @@ async function check() {
   console.log(`check:benchmark — ${TASKS.length} references answer their tasks`);
 }
 
-function prompt() {
-  const whereOf = task => task.input === undefined ? 'no input, the answer a qlang value' : `${task.input}${task.raw ? ', raw text' : ''}`;
-  const taskLines = TASKS.map(task => `${task.id} (${whereOf(task)}): ${task.question}`).join('\n');
-  return `You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Your only sources of knowledge are the language itself, queried through its command-line tool.
-
-RULES (strict):
-- Use ONLY the Bash tool, and ONLY to run the \`qlang\` command, from the directory ${inputsDir.replace(/\\/g, '/')}.
-- Do NOT read, list, grep or open any file outside that directory, and no documentation, source or README of qlang. Do not use web search.
-- You may \`cat\` the input files of that directory to see the data.
-- Always pass stdin: either \`< file\` or \`< /dev/null\`. Use \`qlang --raw '<query>' < app.log\` for the text file. In Git Bash prefix a query that begins with \`/\` with MSYS_NO_PATHCONV=1.
-- Start with \`qlang --help < /dev/null\` and \`qlang '::qlang | doc | content' < /dev/null\`, the language's own first screen, then explore the language by asking it.
-
-TASKS (each answer is a single qlang query printing exactly the requested answer; a task with no input runs with \`< /dev/null\`):
-${taskLines}
-
-Budget: about 120 qlang invocations in total. A task that seems impossible: say so and why, and move on.
-
-UNDERSTANDING (answer in your report, in your own words, from what the language told you, before and while solving):
-U1. What is qlang, and what is it for?
-U2. What is a value, a kind and a tag, and how are they related?
-U3. How does a name in a query find the verb it runs?
-U4. What happens when a step fails, and how does a query deal with it?
-U5. How is the description of the language organized, and how do you move through it? Which queries did you use to read several pages at once?
-
-REPORT, plain text:
-1. For each task: the final query, its output (abbreviated), and the invocations spent on it.
-2. The total invocations, exploration included.
-3. Every friction, each with the exact query run, what was expected and what came: wrong guesses of names, unhelpful errors, missing or misleading docs, surprising output. Be concrete and exhaustive.
-4. What in the first screen helped, and what it should have said.
-5. The answers to U1–U5.`;
-}
-
-function report() {
-  const runs = readdirSync(runsDir).filter(name => name.endsWith('.json')).sort()
-    .map(name => JSON.parse(readFileSync(join(runsDir, name), 'utf8')));
-  for (const run of runs) {
-    const perTask = TASKS.filter(task => task.id in run.tasks)
-      .map(task => `${task.id} ${run.tasks[task.id].calls}${run.tasks[task.id].solved ? '' : '✗'}`).join('  ');
-    console.log(`${run.id}  ${run.date}  ${run.model}  screen ${run.screen}  calls ${run.calls}  ${perTask}`);
-    for (const friction of run.frictions) {
-      console.log(`  ${run.id}.${friction.id}  ${friction.task}  ${friction.kind}${friction.repairedBy ? `  repaired by ${friction.repairedBy}` : ''}`);
-    }
-  }
-}
-
 // The flags of a command, `--name value`, and the words before them.
 function argumentsOf(words) {
   const flags = {};
@@ -134,9 +79,7 @@ function argumentsOf(words) {
 const { flags, positional } = argumentsOf(process.argv.slice(3));
 const COMMANDS = {
   check: () => check(),
-  prompt: () => console.log(prompt()),
-  screen: () => (flags.save === undefined ? console.log(shortHash(firstScreen(flags.query))) : saveScreen(flags.save, flags.query)),
-  report,
+  screen: () => console.log(shortHash(firstScreen())),
   author: () => author(positional[0], flags.model),
   run: () => run(positional[0], { decision: flags.decision, model: flags.model, runs: Number(flags.runs ?? 1), reason: flags.reason }),
   verdict: () => verdict(positional[0], positional[1], positional[2]),

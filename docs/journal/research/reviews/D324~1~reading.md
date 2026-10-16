@@ -63,4 +63,4 @@ Report in Russian, keeping queries, names and answers as they are: first a verdi
 
 [D324]: ../../replaced/D324.md
 [D327]: ../../D327.md
-[D332]: ../../D332.md
+[D332]: ../../replaced/D332.md

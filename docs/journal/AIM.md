@@ -34,7 +34,13 @@ lives inside the tool and is obtained from it by a command, since
 knowledge copied out of a tool goes stale with its next release. Nothing
 is delivered as a sheet: the caller controls the shape and the detail of
 what it receives. And the shape of an answer is known before the answer
-is fetched, from the word about to be called.
+is fetched, from the word about to be called. An answer is as exact and
+as short as the query asks, and a default answer, the print of a value
+and of a failure and the outline of a value among them, carries signal
+enough to pay for the round trip that brings it into the context; where a
+literal is hard to read on, or one round trip cannot ask several
+questions at once, the round trips grow with the inconvenience of the
+tool and not with the task.
 
 The measure of quality is one: a fresh session, having read only what
 the language says about itself, writes a correct query on the first
@@ -94,6 +100,20 @@ where the ordinary protocol asks it, `doc`, `explain`, `type`,
 The language describes itself. The one description of a word is its
 declaration in the catalog: documentation is read out of the language,
 examples execute, and an error leads to its page.
+
+Looking into an answer is safe. No answer the language prints floods a
+reader's context, whatever the size of the literal it prints: where a
+literal does not print within its bound, the language compresses it so
+as to carry the most valuable information it holds, and says what it
+left out and how to read it. A failure follows the same rule, an alert
+and a refusal giving the most useful signal in the least room, and every
+literal comes with the help and the words it needs, its page, its
+outline and its words.
+
+The language carries its tools. The language carries the tools a reader
+needs for any further reading of its literals, processing, transforming
+and filtering them, and a reader extends and completes that toolset with
+words and kinds of its own.
 
 One fact, one spelling. A fact is recorded where it is used and derived
 everywhere else; a test that guards the agreement of two spellings is a

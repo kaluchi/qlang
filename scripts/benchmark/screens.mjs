@@ -18,8 +18,10 @@ export function firstScreen() {
   return execFileSync(process.execPath, [commandLine, '[::qlang ::cli] | map ~(get [~(it) ~(doc)])'], { input: '', encoding: 'utf8', env: pipeEnv }).trim();
 }
 
+// A saved screen as the tree printed it, its line breaks those of the print
+// whatever the checkout wrote [D354].
 export function screenText(screenName) {
-  return readFileSync(join(screensDir, `${screenName}.txt`), 'utf8').trim();
+  return readFileSync(join(screensDir, `${screenName}.txt`), 'utf8').replace(/\r\n/g, '\n').trim();
 }
 
 export const shortHash = text => createHash('sha256').update(text).digest('hex').slice(0, 12);
@@ -32,7 +34,7 @@ export function fixScreen(decision) {
   const text = firstScreen();
   const hash = shortHash(text);
   const plain = join(screensDir, `${decision}.txt`);
-  const name = existsSync(plain) && readFileSync(plain, 'utf8').trim() !== text ? `${decision}.${hash}` : decision;
+  const name = existsSync(plain) && screenText(decision) !== text ? `${decision}.${hash}` : decision;
   writeFileSync(join(screensDir, `${name}.txt`), `${text}\n`);
   return { name, hash };
 }

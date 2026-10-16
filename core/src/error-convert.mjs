@@ -145,12 +145,11 @@ function excerptAroundLocation(source, location) {
 const CAUSES_RECOUNTED = 8;
 
 // A JavaScript error escaping an implementation is a failure of the
-// host: a tag of the language and the facts every host can give, its
-// account and the accounts of the failures beneath it, so a port of the
-// runtime to another language changes no fact a query reads [QSHST#answer],
-// [QSERR#site]. The step that failed stands in the trail; the stack, the class
-// and the fields of the error stay with the host in `originalError`, and
-// a host that has facts to hand declares a refusal of its own.
+// host: a tag of the language, its account and the accounts of the failures
+// beneath it [QSHST#answer], [QSERR#site]. The step that failed stands in the
+// trail; the stack, the class and the fields of the error stay with the host
+// in `originalError`, and a host that has facts to hand declares a refusal of
+// its own.
 export function errorFromForeign(jsError, node, env) {
   const tag = makeTag('call/HostFailureError');
   const facts = new Map([['message', accountOf(jsError)]]);

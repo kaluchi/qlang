@@ -261,9 +261,10 @@ export function pageOfKindsRefusal(name, kinds, each) {
 }
 
 // pageOfConstructor(address) → the page of the constructor of a kind, the
-// recipe `impl` gives it, which builds its values from a payload.
+// check its host hands, which attaches the tag to a payload or refuses it
+// [QSBLD#kind].
 export function pageOfConstructor(address) {
-  return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the recipe \`impl\` gives it, which builds its values from a payload. `]);
+  return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the check its host hands, which attaches the tag to a payload or refuses it. `]);
 }
 
 // invariantsOf(signature, name) → the invariants written under an input or

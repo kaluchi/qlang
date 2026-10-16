@@ -8,7 +8,7 @@
 // constructor checks the fields the printer reads against the record's
 // schema, prints the step, and reads the text back, so an assembly that
 // reads back as another step, or as no step at all, is refused where it
-// is made rather than run as a program that means something else.
+// is made.
 
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';

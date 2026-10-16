@@ -1,7 +1,7 @@
 // The kind [QSBLD#kind]: the constructor of `::kind`, which reads a kind from
-// its literal, the commands that declare it folded into data and the recipe
-// that builds its values, and the words that build one from the noun by
-// commands, each writing its command after the ones the kind holds, the recipe
+// its literal, the commands that declare it folded into data and the check a
+// host hands a kind of the core, and the words that build one from the noun by
+// commands, each writing its command after the ones the kind holds, the check
 // last.
 
 import { bindPrim } from '../primitives.mjs';

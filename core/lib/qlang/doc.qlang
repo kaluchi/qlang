@@ -15,7 +15,7 @@
       of one. A quote under `::link` is a link to another page, which
       `open` follows, one under `::snippet` a query a reader runs to see
       what it shows, and a quote with no tag code the prose holds. JSON
-      writes a doc as its text.
+      writes a doc as its print.
 
       `content` answers its text, `segments` its prose and its quotes in
       order, `links` its links and `snippets` its snippets, so

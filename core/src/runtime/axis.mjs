@@ -2,9 +2,8 @@
 // record the declaration wrote into its scope [QSNAM#binding]: a tag name the
 // node of the tree it addresses, `::vec/count` or `::qlang/values`
 // [QSDSP#residence], a record the binding it records, and every other value,
-// a keyword among them, the node of its kind, the kind `type` answers. Each
-// axis projects a field of
-// the record:
+// a keyword among them, the node of the first kind its stack of tags
+// declares. Each axis projects a field of the record:
 //
 // `source`   the quote of the declaring step, null for a node a chain
 //            lays and a binding no step declared, a value a host bound.
@@ -31,10 +30,8 @@ import { declareRefusal } from '../errors.mjs';
 import { nearestTagNames, nearestMembers } from '../nearest-names.mjs';
 import { splitAddress } from '../address.mjs';
 
-// `name` is the name an axis read, a keyword or a tag.
-//
-// One class per axis: the axis is the site, so `!| type` alone says
-// which lookup failed.
+// Each axis refuses under its own address, `name` the name it read, a
+// keyword or a tag [QSERR#site].
 export const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
 export const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
 const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError');

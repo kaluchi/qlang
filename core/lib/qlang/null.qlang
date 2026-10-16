@@ -1,5 +1,5 @@
-|~ `::null`, the kind of the absent value, and what is declared under
-   it: its constructor and its refusal, and the soft read of it.
+|~ `::null`, the kind of null, and what is declared under it: its
+   constructor and its refusal, and its text and its keyword.
    The decisions it exists for: [QSDSP#residence]. ~|
 
 :null

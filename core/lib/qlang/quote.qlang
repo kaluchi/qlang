@@ -28,7 +28,7 @@
       that computes as a record, `~(add 1) | first` answering
       `::call{:name :add :modifiers [1]}`. `parse` turns text into a
       quote and a quote into its text, and JSON writes a quote as its
-      text.
+      print.
 
       Because code is a value, a page holds links and snippets that run,
       the laws of a name are quotes that answer true, and the trail of a

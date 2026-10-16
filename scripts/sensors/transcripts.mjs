@@ -60,14 +60,27 @@ export function* recordsOf(transcriptPath) {
 
 // What the maintainer typed: a record of kind `user` that is no summary
 // of a compaction and none the harness wrote, the echo of a local command
-// or a report a subagent handed back, or a message queued while the model
-// worked.
+// or a report a subagent handed back, a message queued while the model
+// worked, or the answer and the note he wrote to a question the session
+// put to him, an option he chose being the session's words and no answer
+// he typed.
 export function* typedByMaintainer(record) {
   if (record.type === 'queue-operation' && record.operation === 'enqueue') yield typedAfterPaste(record.content);
   if (record.type !== 'user' || record.isCompactSummary || record.isMeta) return;
+  yield* writtenToQuestions(record.toolUseResult);
   const content = record.message?.content;
   if (typeof content === 'string') yield typedAfterPaste(content);
   else for (const part of content ?? []) if (part.type === 'text') yield typedAfterPaste(part.text);
+}
+
+function* writtenToQuestions(result) {
+  if (typeof result?.answers !== 'object' || result.answers === null) return;
+  const labels = new Map((result.questions ?? []).map(({ question, options }) => [question, new Set((options ?? []).map(({ label }) => label))]));
+  for (const [question, answer] of Object.entries(result.answers)) {
+    if (typeof answer === 'string' && answer !== '' && !labels.get(question)?.has(answer)) yield answer;
+    const notes = result.annotations?.[question]?.notes;
+    if (typeof notes === 'string' && notes !== '') yield notes;
+  }
 }
 
 // The words a message holds after the pastes that open it, which the

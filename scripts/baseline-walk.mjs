@@ -14,8 +14,8 @@ import { join } from 'node:path';
 import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, JOURNAL, RESEARCH } from './decision-records.mjs';
 
 export const RECORDS_A_WALK_TAKES = 20;
-export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
-export const CITING_DOCUMENTS = ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md', 'lsp/README.md', 'vscode/README.md', 'site/README.md'];
+export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
+export const CITING_DOCUMENTS = ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'];
 export const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang|yml)$/;
 const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
 // A citation a document writes in words, `decision Dnn` or `decisions Dnn
@@ -40,6 +40,33 @@ export function citationsIn(text) {
     }
   });
   return cited;
+}
+
+// A citation of a record, `[Dnn]`, or of a section by the code of its
+// chapter and its heading, and a run of them, joined by commas and an `and`
+// across the lines it wraps over.
+const CITED = String.raw`\[(?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)\]`;
+const RUN_OF_CITATIONS = new RegExp(`${CITED}(?:(?:,\\s*|,?\\s+and\\s+)${CITED})+`, 'g');
+const byRecord = (left, right) => left[0].localeCompare(right[0]) || Number(left.slice(1)) - Number(right.slice(1));
+
+// citedOnce(text, cited) → the text with each run that cites `cited` naming
+// each record and section once, a section where it first stands and the
+// records in their order in the places they hold, its separators kept where
+// they stand, a line break before any other: the run a merge or a
+// dissolution writes [QSWRK#journal], [QSWRK#baseline].
+export function citedOnce(text, cited) {
+  return text.replace(RUN_OF_CITATIONS, run => {
+    if (!run.includes(`[${cited}]`)) return run;
+    const named = [...new Set(run.match(new RegExp(CITED, 'g')).map(citation => citation.slice(1, -1)))];
+    const records = named.filter(name => !name.startsWith('QS')).sort(byRecord);
+    const names = named.map(name => (name.startsWith('QS') ? name : records.shift()));
+    const separators = run.split(new RegExp(CITED)).slice(1, -1);
+    while (separators.length > names.length - 1) {
+      const plain = separators.findIndex((separator, index) => !separator.includes('\n') && !(index === separators.length - 1 && separator.includes('and')));
+      separators.splice(plain !== -1 ? plain : Math.max(separators.findIndex(separator => !separator.includes('\n')), 0), 1);
+    }
+    return names.map((name, index) => `${index === 0 ? '' : separators[index - 1]}[${name}]`).join('');
+  });
 }
 
 function stateOf(record) {
@@ -323,8 +350,9 @@ export function textsInForce(repoRoot) {
 // unitOf(path) → what a citation must name to hold the document: a report
 // a record called for by its folder and the name it shares with its
 // reading, `design-check/D329~2` or `spec-check/D323~1`, a review of a
-// branch by its folder and name, `reviews/2026-10-10-vec-set-map.md`, any
-// other research by its folder, `research/legend/`.
+// branch by its folder and name,
+// `reviews/2026-10-13-the-path-is-a-value.md`, and any other research by
+// its folder, `research/<folder>/`.
 export const unitOf = path => {
   const named = OF_A_RECORD.exec(path);
   if (named !== null) return named[0].split('/').slice(-2).join('/');

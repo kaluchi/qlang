@@ -14,7 +14,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
 import { FATE, LINK_DEFINITION, recordPathOf, statementsOf, JOURNAL } from './decision-records.mjs';
-import { CITATION_IN_WORDS, CITING_DOCUMENTS } from './baseline-walk.mjs';
+import { CITATION_IN_WORDS, CITING_DOCUMENTS, citedOnce } from './baseline-walk.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const [survivor, ...merged] = process.argv.slice(2);
@@ -74,9 +74,9 @@ function cite(text, isRecord = false) {
   return written.join('\n');
 }
 
-// A run of citations, `[Dnn], [Dnn] and [Dnn]` across the lines it wraps
-// over, names its records in their order, each once, and keeps its
-// separators where they stand, a line break before any other.
+// The prose between the lines `cite` keeps: a citation of a record merged
+// names the survivor, in brackets or in words, and a run of citations
+// names each record once, `citedOnce`.
 function citeProse(text) {
   let written = text;
   for (const name of merged) written = written.replaceAll(`[${name}]`, `[${survivor}]`);
@@ -89,16 +89,7 @@ function citeProse(text) {
     const spelled = kept.length === 1 ? kept[0] : `${kept.slice(0, -1).join(', ')} and ${kept.at(-1)}`;
     return `${kept.length === 1 ? 'decision' : 'decisions'} ${spelled}`;
   });
-  return written.replace(/\[[DE]\d+\](?:(?:,\s*|,?\s+and\s+)\[[DE]\d+\])+/g, run => {
-    if (!run.includes(`[${survivor}]`)) return run;
-    const names = [...new Set(run.match(/[DE]\d+/g))].sort((a, b) => order(a) - order(b));
-    const separators = run.split(/\[[DE]\d+\]/).slice(1, -1);
-    while (separators.length > names.length - 1) {
-      const plain = separators.findIndex((separator, index) => !separator.includes('\n') && !(index === separators.length - 1 && separator.includes('and')));
-      separators.splice(plain !== -1 ? plain : Math.max(separators.findIndex(separator => !separator.includes('\n')), 0), 1);
-    }
-    return names.map((name, index) => `${index === 0 ? '' : separators[index - 1]}[${name}]`).join('');
-  });
+  return citedOnce(written, survivor);
 }
 
 // A document's definitions of links: a record merged it no longer cites

@@ -10,7 +10,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@astrojs/mdx": "^8.0.1",
     "@kaluchi/qlang-core": "^0.10.0",
     "astro": "^7.3.2"
   },

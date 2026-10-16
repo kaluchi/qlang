@@ -3,7 +3,7 @@
 // the walk of the baseline, the targets open and the records being decided,
 // the reach of the records in transit [QSWRK#documents], the
 // artifacts that name no decision and the records whose scope changed
-// since they were described [QSWRK#marks], the stashes, the branches and the
+// since the baseline read them [QSWRK#marks], the stashes, the branches and the
 // worktrees a merge leaves [QSWRK#baseline], and the sister project's
 // branch against its remote.
 //
@@ -83,12 +83,6 @@ if (orphans.length > 0) lines.push(`  orphans ${orphans.length}, artifacts that 
 const touched = touchedRecords(root);
 const shown = touched.slice(0, 16).map(({ name }) => name).join(' ');
 lines.push(touched.length === 0 ? '  no record touched since the baseline read it' : `  touched ${touched.length} records since the baseline read them, ${shown}${touched.length > 16 ? ' …' : ''}: node scripts/marks.mjs --touched`);
-// The debt shows while the baseline is older than the marks: the records
-// no move read again before the marks were set, read again once [QSWRK#marks].
-const marksSince = linesOf(git(root, 'log', '--diff-filter=A', '--format=%H', '--', 'scripts/marks.mjs')).at(-1);
-if (marksSince !== undefined && git(root, 'merge-base', '--is-ancestor', walk.baseline, marksSince) !== null) {
-  lines.push(`  debt ${touchedRecords(root, { debt: true }).length} records touched since they were described, which the first move after the marks reads again: node scripts/marks.mjs --touched --debt`);
-}
 
 const stashes = linesOf(git(root, 'stash', 'list')).length;
 if (stashes > 0) lines.push(`  stashes ${stashes}`);

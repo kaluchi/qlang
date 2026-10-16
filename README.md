@@ -8,7 +8,7 @@ qlang/                  ← this repo
 ├── core/               @kaluchi/qlang-core   — language core, pure JS, zero runtime deps
 ├── cli/                @kaluchi/qlang-cli    — command line and REPL, `qlang` and `ql`
 ├── lsp/                @kaluchi/qlang-lsp    — language server
-├── site/               @kaluchi/qlang-site   — Astro documentation site (private)
+├── site/               @kaluchi/qlang-site   — Astro site, private: a landing page and a playground
 ├── vscode/             qlang-vscode          — editor extension, unpublished, running the language server of the checkout
 ├── docs/               spec/ what holds · journal/ the aim, the records of the change and the research
 ├── scripts/            release.mjs and the scripts of the work

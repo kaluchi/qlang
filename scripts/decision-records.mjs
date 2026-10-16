@@ -23,14 +23,18 @@ const recordFolders = root => [join(root, JOURNAL), join(root, REPLACED)];
 // blank line or the next field. A statement of fate, which says what
 // replaced or took a part of what, is history the record keeps [QSWRK#journal].
 
-export const FIELD_NAMES = ['Domain', 'Decided by', 'Decision', 'Question', 'Source', 'Alternatives', 'Set aside', 'Requirements'];
+export const FIELD_NAMES = ['Domain', 'Decided by', 'Decision', 'Question', 'Source', 'Alternatives', 'Set aside', 'Requirements', 'Runs'];
 export const OPEN_RECORD_FIELDS = ['Question', 'Source', 'Alternatives'];
 export const DECIDED_RECORD_FIELDS = ['Decided by', 'Decision'];
 const FATES = ['Replaces', 'Pruned of what', 'Replaced by', 'Merged into', 'Dissolved into', 'Filed under the principles by', 'Filed under the tooling by', 'Left at'];
 export const FIELD_OPENS = new RegExp(`^(${FIELD_NAMES.join('|')})\\.`);
 export const FATE = new RegExp(`^(${FATES.join('|')}) `);
 const FIELD = new RegExp(`${FIELD_OPENS.source}|${FATE.source}`);
-// The definition of a link to a record, `[QSSLF#doc]: D19.md`, and no line of
+// A line of the field of runs, its opening or a run under it, which opens
+// with the path of its report under `research/`: history the record keeps,
+// as a statement of fate is [QSWRK#journal].
+export const RUN_LINE = new RegExp(`^(?:Runs\\. |- \`${RESEARCH}/)`);
+// The definition of a link to a record, `[D0]: D0.md`, and no line of
 // prose that opens with a citation and a colon.
 export const LINK_DEFINITION = /^\[([DE]\d+)\]: \S+\.md$/;
 

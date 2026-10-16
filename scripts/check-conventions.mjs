@@ -9,31 +9,32 @@
 //   (1) Forbidden temporal framing / placeholder markers.
 //       `TODO`, `FIXME`, `HACK`, `legacy`, `deprecated`,
 //       `currently`, `previously`, `for backward compatibility`,
-//       `backwards compat`, in the .mjs, .js, .md and .qlang sources
-//       outside `docs/`.
+//       `backwards compat`, in the .mjs, .js, .md, .qlang, .peggy,
+//       .astro and .yml texts outside `docs/` and the folders
+//       `IGNORE_DIRS` names, the instruction file and this one aside.
 //
-//   (3) A refusal is declared by its address. Every factory of a
+//   (2) A refusal is declared by its address. Every factory of a
 //       refusal and every recording of a site takes the address as a
 //       literal, `'noun/LastNameError'`, and the constant that holds
 //       the class is the address without its slash, across `core/src`,
 //       `cli/src`, `lsp/src` [QSERR#site].
 //
-//   (4) Derivable tallies in markdown prose. A count that
+//   (3) Derivable tallies in markdown prose. A count that
 //       `npm test`, the manifest, or a grep already answers —
-//       conformance cases, error classes, operands, catalog
-//       families, files — drifts the moment the next commit
+//       the cases of the conformance suite, the tests, the
+//       primitives, the files — drifts the moment the next commit
 //       lands. Prose states the invariant, the generator states
 //       the number. Scanned outside fenced blocks and inline
 //       code spans so example values stay legal.
 //
-//   (5) Internal workspace dependency ranges. npm workspaces link
+//   (4) Internal workspace dependency ranges. npm workspaces link
 //       a sibling by name, so a stale range steers nothing locally
 //       and surfaces only in the registry, where a consumer
 //       resolves it for real. Every declaration naming a sibling
 //       workspace — in any dependency map — must read
 //       `^<that workspace's version>`.
 //
-//   (6) Anchors of the texts that hold the work: a path the
+//   (5) Anchors of the texts that hold the work: a path the
 //       instruction file, the aim or the chapter of
 //       the work names exists, and words they
 //       quote from the tree, “…” beside the path of their file, stand
@@ -41,26 +42,52 @@
 //       sister project's, checked where its checkout sits beside this
 //       one.
 //
-//   (8) Who decided: a record from D155 on names in a line of its
+//   (6) Decisions kept out of the catalog: a source of the catalog
+//       names a record in the comment at its head alone [QSWRK#marks].
+//
+//   (7) Who decided: a record from D155 on names in a line of its
 //       own, `Decided by.`, the maintainer or the model [QSWRK#journal].
+//
+//   (8) The folders of the records: the root of the journal holds the
+//       records in force, and `replaced/` those replaced whole
+//       [QSWRK#journal].
 //
 //   (9) The walk of a baseline: a record of the language the
 //       baseline holds is held by a case or closed by the line of its
 //       fate, no more than twenty records wait for the next walk, and the code, the tests and the cases cite the records in
 //       force, the documents that hold the work those in force or
-//       waiting on a target [QSWRK#baseline]; a section of a chapter is
+//       waiting on a target; a section of a chapter is
 //       written since the baseline by a record dissolved into it [QSWRK#baseline].
 //
-//   (10) A series of the benchmark keeps its two latest at the merge that
+//   (10) The links of the documents: a link of a document to a file of
+//       markdown leads to a file the tree holds [QSWRK#journal].
+//
+//   (11) The fates of the records: a line of fate names a record the
+//       journal holds, a part taken is named back by the record that
+//       took it, and a record is pruned only by one written after it
+//       [QSWRK#journal].
+//
+//   (12) A text that states what holds tells no history: a chapter
+//       cites no record, tells no history of a form, says nothing of
+//       what it leaves out, and but for the chapter of the work speaks
+//       no word and no path of the journal [QSWRK#spec]; and no month
+//       of the history stands in a chapter, a seed, a page of the
+//       catalog, a case or the code [QSWRK#documents].
+//
+//   (13) The marks of the artifacts: every module, script, test file,
+//       source of qlang and workflow names the decision it exists for
+//       [QSWRK#marks].
+//
+//   (14) A series of the benchmark keeps its two latest at the merge that
 //       landed a branch: its sets, its screens and the runs of the
 //       references, a branch keeping every run of its own [QSWRK#baseline].
 //
-//   (11) A report of the research stands with the session's reading
+//   (15) A report of the research stands with the session's reading
 //       beside it, every finding with its fate: a critique of an open
-//       record, a run of the check of the chapters and an outside audit
-//       [QSWRK#review].
+//       record, a review of the work a record did, a run of the check
+//       of the chapters and an outside audit [QSWRK#review].
 //
-//   (12) A comment, a doc of the catalog and a sentence of the prose
+//   (16) A comment, a doc of the catalog and a sentence of the prose
 //       that states what holds name no token the branch took out of the
 //       code, the catalog and the cases, the name of what its reader
 //       finds nowhere, but in a section a record in transit overrides
@@ -174,7 +201,7 @@ function scanForbiddenWords() {
   return violations;
 }
 
-// ── (3) A refusal is declared by its address ──────────────────
+// ── (2) A refusal is declared by its address ───────────────────
 //
 // A refusal's address is the one key the implementation and its page in the
 // catalog share: every declaration of a refusal and every recording of an
@@ -242,15 +269,14 @@ function refusalDeclarationDrift() {
   return violations;
 }
 
-// ── (4) Derivable tallies in markdown prose ────────────────────
+// ── (3) Derivable tallies in markdown prose ────────────────────
 //
 // The nouns whose counts a test run, the manifest, or a grep
 // already answers. A digit standing in front of one of them in
 // prose is a number the next commit invalidates in silence.
 
 const TALLY_NOUNS = [
-  'conformance', 'cases?', 'tests?', 'suites?', 'operands?',
-  'error classes', 'classes', 'famil(?:y|ies)', 'workspaces?',
+  'conformance', 'cases?', 'tests?', 'suites?', 'classes', 'workspaces?',
   'files?', 'entries', 'lines?', 'primitives?', 'catalogs?'
 ].join('|');
 
@@ -299,7 +325,7 @@ function scanProseTallies() {
   return violations;
 }
 
-// ── (5) Internal workspace dependency ranges ───────────────────
+// ── (4) Internal workspace dependency ranges ───────────────────
 //
 // `workspace-manifests.mjs` owns the rule: which dependency maps
 // count and what range a sibling declaration carries. The release
@@ -322,7 +348,7 @@ function workspaceRangeDrift() {
   return violations;
 }
 
-// ── (6) Anchors of the texts that hold the work ────────────────
+// ── (5) Anchors of the texts that hold the work ────────────────
 
 const ANCHOR_DOCUMENTS = ['CLAUDE.md', 'docs/journal/AIM.md', 'docs/spec/QSWRK-the-work.md'];
 const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
@@ -360,7 +386,7 @@ function anchorDrift() {
   return violations;
 }
 
-// ── (7) Decisions kept out of the catalog ──────────────────────
+// ── (6) Decisions kept out of the catalog ──────────────────────
 //
 // A page of the catalog is read by a reader of the language, which
 // follows what the page names by a query; a decision of the process is
@@ -391,7 +417,7 @@ function decisionsInCatalog() {
   return violations;
 }
 
-// ── (8) Who decided ────────────────────────────────────────────
+// ── (7) Who decided ────────────────────────────────────────────
 //
 // A record names who took its decision, so a session tells the
 // maintainer's words, which bind it, from the model's reading, which it
@@ -414,7 +440,7 @@ function recordsWithoutDecider() {
     .map(({ file }) => file));
 }
 
-// ── (8b) The folders of the records ────────────────────────────
+// ── (8) The folders of the records ─────────────────────────────
 //
 // The root of the records holds those in force, and `replaced/` those
 // replaced whole, each moved there once by `scripts/replaced-records.mjs`
@@ -442,7 +468,7 @@ function baselineDrift() {
   return walkOfBaseline(repoRoot).violations;
 }
 
-// ── (9b) The links of the documents ────────────────────────────
+// ── (10) The links of the documents ────────────────────────────
 //
 // A link of a document to a file of markdown, its definition `[Dnn]:
 // Dnn.md` or its inline form, leads to a file the tree holds, so the graph
@@ -465,7 +491,7 @@ function brokenLinks() {
   return violations;
 }
 
-// ── (9c) The fates of the records ──────────────────────────────
+// ── (11) The fates of the records ──────────────────────────────
 //
 // A line of fate names records the tree holds, a record that took a part
 // written after the record it pruned, while a record closed whole names
@@ -507,12 +533,8 @@ function fatesOutOfStep() {
   return violations;
 }
 
-// ── (10) The marks of the artifacts ────────────────────────────
+// ── (12) A text that states what holds tells no history ────────
 //
-// Every module, script, test file, source of qlang and workflow names
-// the decision it exists for, so the scope of a decision is found by its
-// marks and an artifact no decision explains is seen [QSWRK#marks].
-
 // A chapter of the specification states what the language is: it cites
 // no record of the journal, speaks none of the journal's words, tells no
 // history of a form, and says nothing of what it leaves out [QSWRK#spec]. The
@@ -563,11 +585,17 @@ function specIntrusions() {
 const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['cli/lib', /\.qlang$/], ['core/test/conformance', /\.jsonl$/],
   ['core/src', /\.(mjs|peggy)$/], ['cli/src', /\.mjs$/], ['lsp/src', /\.mjs$/]];
 
+// ── (13) The marks of the artifacts ────────────────────────────
+//
+// Every module, script, test file, source of qlang and workflow names
+// the decision it exists for, so the scope of a decision is found by its
+// marks and an artifact no decision explains is seen [QSWRK#marks].
+
 function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;
 }
 
-// ── (10) A series of the benchmark keeps its two latest at the baseline
+// ── (14) A series of the benchmark keeps its two latest at the baseline
 //
 // The sets of the benchmark with their runs, the screens and the runs of
 // the references keep their two latest at the merge that landed a branch; a
@@ -579,13 +607,13 @@ function seriesBeyondTwo() {
   return baseline === undefined ? [] : seriesPastTheirTwoLatest(repoRoot, baseline).map(series => ({ ...series, baseline }));
 }
 
-// ── (11) A report of the research stands with its reading ──────
+// ── (15) A report of the research stands with its reading ──────
 
 function unreadReports() {
   return reportsWithoutReading(repoRoot);
 }
 
-// ── (12) A text names what its reader finds ────────────────────
+// ── (16) A text names what its reader finds ────────────────────
 //
 // A text that states what holds is read by one who never saw the dialogue
 // that wrote it, so a comment, a doc and a sentence of the prose name no

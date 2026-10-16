@@ -4,7 +4,7 @@
 // by `out`, and any other answer, a failure among them and a query that
 // does not parse among those, as the language prints it with exit 0, a
 // failure with `outcomeOpts.failureExitCode`, which `--fail` makes 1
-// [QSHST#answer], [QSPRN#print], [QSHST#answer].
+// [QSHST#answer], [QSPRN#print].
 
 import { isErrorValue, langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { answerText } from './script-mode.mjs';

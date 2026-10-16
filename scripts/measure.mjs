@@ -43,7 +43,7 @@ function coarseAreaOf(path) {
   if (fine === 'core sources') return 'core sources';
   if (fine.endsWith('catalog')) return 'catalog';
   if (`/${path}`.includes('/test/')) return 'tests';
-  if (['spec', 'journal', 'other docs', 'site'].includes(fine) || path.endsWith('.md')) return 'documents';
+  if (['spec', 'journal', 'other docs'].includes(fine) || path.endsWith('.md')) return 'documents';
   return 'tooling';
 }
 

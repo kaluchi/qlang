@@ -1,20 +1,10 @@
 // The decisions it exists for: [QSWRK#tooling].
 
 import { defineConfig } from 'astro/config';
-import mdx from '@astrojs/mdx';
 
 export default defineConfig({
-  integrations: [mdx()],
   site: 'https://kaluchi.github.io',
   base: '/qlang',
-  markdown: {
-    shikiConfig: {
-      themes: {
-        light: 'min-light',
-        dark: 'github-dark'
-      }
-    }
-  },
   vite: {
     // Keep `@kaluchi/qlang-core` out of every server-side bundle so
     // that `load-source-node.mjs::loadSource` sees its native module

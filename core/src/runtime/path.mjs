@@ -7,11 +7,12 @@
 import { bindPrim, bindStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, placeIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
-import { mintUnderTag } from './verb.mjs';
+import { layTag } from './verb.mjs';
+import { atPlace } from '../eval-trail.mjs';
 import { deepEqual } from '../equality.mjs';
 import {
-  isPath, makePath, isKeyword, isQMap, isVec, isQSet, isValueClass, isErrorValue, isTaggedInstance, keyword, makeSet,
-  makeTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL, ABSENT_TAG, EACH_TAG, NULLABLE_TAG, SHAPE_TAG
+  isPath, makePath, isKeyword, isMap, isVec, isSet, isValueClass, isErrorValue, isTagged, keyword, makeSet,
+  makeTagged, beneathTags, payloadBeneath, typeKeyword, TAG_HEADER_SYMBOL, ABSENT_TAG, EACH_TAG, NULLABLE_TAG, SHAPE_TAG
 } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
@@ -43,7 +44,7 @@ async function readTemplate(subject, template, soft, fallback, state) {
     const read = readPath(subject, template, soft);
     return read === MISSED ? fallback : read;
   }
-  if (isValueClass(template, 'taggedInstance')) {
+  if (isValueClass(template, 'underTag')) {
     const payload = await readTemplate(subject, template.payload, soft, fallback, state);
     if (payload === template.payload) return template;
     return isErrorValue(payload) ? payload : await relaid(template, payload, state);
@@ -52,7 +53,7 @@ async function readTemplate(subject, template, soft, fallback, state) {
   if (parts === null) return template;
   const read = await readParts(subject, [...parts], soft, fallback, state);
   if (isErrorValue(read)) return read;
-  return await relaid(template, isQMap(template) ? new Map([...template.keys()].map((key, at) => [key, read[at]])) : read, state);
+  return await relaid(template, isMap(template) ? new Map([...template.keys()].map((key, at) => [key, read[at]])) : read, state);
 }
 
 // The parts of a template read one after another, the first failure the
@@ -76,14 +77,14 @@ bindStateReader('any/query', runsWithin(['path'], (subject, object, fallback, st
 // place it takes moving up. The path is followed as `get` follows it, and
 // every container on the way is built again and laid under the tags it
 // stood under, their constructors and invariants run, as `within` lays
-// its answer; an error the code answers is the answer.
+// its answer; an error the code answers is the answer, at its path [QSERR#trail].
 async function written(value, path, at, write, state) {
-  if (isValueClass(value, 'taggedInstance')) return await relaid(value, await written(value.payload, path, at, write, state), state);
+  if (isValueClass(value, 'underTag')) return await relaid(value, await written(value.payload, path, at, write, state), state);
   const segment = path.segments[at];
   const last = at === path.segments.length - 1;
   let bare;
   let slot;
-  if (isQMap(value)) {
+  if (isMap(value)) {
     if (!value.has(segment) && !(last && write.adds)) throw keyNotInMap(value, segment, path);
     bare = new Map(value);
     slot = segment;
@@ -94,14 +95,14 @@ async function written(value, path, at, write, state) {
     throw noPartsOn(value, segment, path);
   }
   if (last && write.removes) {
-    if (isQMap(bare)) bare.delete(slot);
+    if (isMap(bare)) bare.delete(slot);
     else bare.splice(slot, 1);
     return await relaid(value, bare, state);
   }
-  const old = isQMap(bare) ? bare.get(slot) : bare[slot];
+  const old = isMap(bare) ? bare.get(slot) : bare[slot];
   const part = last ? await write.part(old) : await written(old, path, at + 1, write, state);
   if (isErrorValue(part)) return part;
-  if (isQMap(bare)) bare.set(slot, part);
+  if (isMap(bare)) bare.set(slot, part);
   else bare[slot] = part;
   return await relaid(value, bare, state);
 }
@@ -110,15 +111,21 @@ async function relaid(original, rebuilt, state) {
   if (isErrorValue(rebuilt)) return rebuilt;
   const tag = original[TAG_HEADER_SYMBOL];
   if (tag === undefined) return isVec(rebuilt) ? Object.freeze(rebuilt) : rebuilt;
-  return await mintUnderTag(state, tag, rebuilt);
+  return await layTag(tag.name, rebuilt, state);
 }
 
 const pathOf = object => (isPath(object) ? object : pathOfKey(object));
 
 bindStateReader('any/put', (subject, object, value, state) =>
   written(subject, pathOf(object), 0, { adds: true, removes: false, part: () => value }, state));
-bindStateReader('any/update', runs(['code'], (subject, object, code, state) =>
-  written(subject, pathOf(object), 0, { adds: false, removes: false, part: code }, state)));
+bindStateReader('any/update', runs(['code'], (subject, object, code, state) => {
+  const path = pathOf(object);
+  const part = async old => {
+    const answer = await code(old);
+    return isErrorValue(answer) ? atPlace(answer, path) : answer;
+  };
+  return written(subject, path, 0, { adds: false, removes: false, part }, state);
+}));
 bindStateReader('any/delete', (subject, object, state) =>
   written(subject, pathOf(object), 0, { adds: false, removes: true }, state));
 
@@ -132,17 +139,10 @@ export function pathReads(subject, path) {
   }
 }
 
-// The value the outline and the shape read: the subject beneath the tags
-// over it, and below it a vector, a set or a map as a reader writes one, a
-// part under a tag standing whole as a leaf of its kind, which tells of
-// itself on its page [QSPTH#words].
-function beneathItsTags(subject) {
-  let beneath = subject;
-  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
-  return beneath;
-}
-
-const isOpened = (value, top) => (isQMap(value) || isVec(value)) && (top || !isTaggedInstance(value) || isQSet(value));
+// The outline and the shape read the subject beneath its tags, and below it a
+// vector, a set or a map as a reader writes one, a part under a tag standing
+// whole as a leaf of its kind, which tells of itself on its page [QSPTH#words].
+const isOpened = (value, top) => (isMap(value) || isVec(value)) && (top || !isTagged(value) || isSet(value));
 
 // The outline of a value: the pair of the path and the kind of every part
 // that holds no parts, an empty container among them.
@@ -150,8 +150,8 @@ bindPrim('any/paths', subject => {
   const found = [];
   const walk = (current, segments) => {
     const top = segments.length === 0;
-    const value = top ? beneathItsTags(current) : current;
-    const parts = !isOpened(value, top) ? [] : isQMap(value) ? [...value] : value.map((element, index) => [String(index), element]);
+    const value = top ? beneathTags(current) : current;
+    const parts = !isOpened(value, top) ? [] : isMap(value) ? [...value] : value.map((element, index) => [String(index), element]);
     if (parts.length === 0) {
       if (!top) found.push(Object.freeze([makePath(segments), typeKeyword(value)]));
       return;
@@ -168,15 +168,15 @@ bindPrim('any/paths', subject => {
 // length whose places part a tuple, and each part that holds no parts its
 // kind.
 function shapeOf(current, top) {
-  const value = top ? beneathItsTags(current) : current;
+  const value = top ? beneathTags(current) : current;
   if (!isOpened(value, top)) return typeKeyword(value);
-  if (isQMap(value)) {
+  if (isMap(value)) {
     const shapes = new Map([...value].map(([key, part]) => [key, shapeOf(part, false)]));
     return foldedOf(value, shapes) ?? shapes;
   }
   const elements = [...value];
   const element = elements.length === 0 ? [] : [tupleOf(elements) ?? elements.map(part => shapeOf(part, false)).reduce(mergedShape)];
-  return isQSet(value) ? makeSet(element) : Object.freeze(element);
+  return isSet(value) ? makeSet(element) : Object.freeze(element);
 }
 
 // Vectors of one length, two places or more, whose places part are tuples,
@@ -206,7 +206,7 @@ const DATA_KEYS = [
 ];
 const isDataKey = key => DATA_KEYS.some(pattern => pattern.test(key));
 const NAMES_A_RECORD_HOLDS = 8;
-const holdsParts = part => part === null || isQMap(part) || isVec(part) || isTaggedInstance(part);
+const holdsParts = part => part === null || isMap(part) || isVec(part) || isTagged(part);
 
 function foldedOf(value, shapes) {
   const parts = [...value.values()];
@@ -216,31 +216,30 @@ function foldedOf(value, shapes) {
   const merged = [...shapes.values()].reduce(mergedShape);
   if (!keyedByData && isAlternatives(merged)) return null;
   const [first] = value.keys();
-  return makeTaggedInstance(EACH_TAG, new Map([[first, merged]]));
+  return makeTagged(EACH_TAG, new Map([[first, merged]]));
 }
 
 // The schema stands under `::shape`, whose page tells how a shape reads.
-bindPrim('any/shape', subject => makeTaggedInstance(SHAPE_TAG, shapeOf(subject, true)));
+bindPrim('any/shape', subject => makeTagged(SHAPE_TAG, shapeOf(subject, true)));
 
 // The marks a shape carries over its core, `::absent` outside, a key some
 // records lack, and `::nullable` within, a part null in some of the data;
 // a part that is null alone stands as `::null`.
 const NULL_KIND = typeKeyword(null);
-const isMark = (value, tag) => isTaggedInstance(value) && value[TAG_HEADER_SYMBOL].name === tag.name;
-const under = value => (isValueClass(value, 'taggedInstance') ? value.payload : isVec(value) ? Object.freeze([...value]) : new Map(value));
+const isMark = (value, tag) => isTagged(value) && value[TAG_HEADER_SYMBOL].name === tag.name;
 
 function marksOf(shape) {
   let core = shape;
   const absent = isMark(core, ABSENT_TAG);
-  if (absent) core = under(core);
+  if (absent) core = payloadBeneath(core);
   const nullable = isMark(core, NULLABLE_TAG);
-  if (nullable) core = under(core);
+  if (nullable) core = payloadBeneath(core);
   return { absent, nullable, core };
 }
 
 function marked({ absent, nullable, core }) {
-  const held = nullable && !deepEqual(core, NULL_KIND) ? makeTaggedInstance(NULLABLE_TAG, core) : core;
-  return absent ? makeTaggedInstance(ABSENT_TAG, held) : held;
+  const held = nullable && !deepEqual(core, NULL_KIND) ? makeTagged(NULLABLE_TAG, core) : core;
+  return absent ? makeTagged(ABSENT_TAG, held) : held;
 }
 
 // The shape two parts share: their marks joined over the shape their cores
@@ -266,13 +265,13 @@ function mergedShape(left, right) {
 // of them that merge merged until none do, so records that share keys
 // merge whatever their order. Records of no common key stand apart, so the
 // shape folds records as far as they share their keys.
-const isSetOf = shape => isQSet(shape) && shape.length < 2;
-const isAlternatives = shape => isQSet(shape) && shape.length > 1;
-const isRecord = shape => isQMap(shape) && !isTaggedInstance(shape);
-const isList = shape => isVec(shape) && !isTaggedInstance(shape);
+const isSetOf = shape => isSet(shape) && shape.length < 2;
+const isAlternatives = shape => isSet(shape) && shape.length > 1;
+const isRecord = shape => isMap(shape) && !isTagged(shape);
+const isList = shape => isVec(shape) && !isTagged(shape);
 const shareAKey = (left, right) => left.size === 0 || right.size === 0 || [...left.keys()].some(key => right.has(key));
-const eachKey = each => [...under(each).keys()][0];
-const eachShape = each => [...under(each).values()][0];
+const eachKey = each => [...payloadBeneath(each).keys()][0];
+const eachShape = each => [...payloadBeneath(each).values()][0];
 const eachesMerge = (left, right) => isMark(left, EACH_TAG) && isMark(right, EACH_TAG) && !isAlternatives(mergedShape(eachShape(left), eachShape(right)));
 const isEmptyRecord = shape => isRecord(shape) && shape.size === 0;
 const eachAndEmpty = (left, right) => (isMark(left, EACH_TAG) && isEmptyRecord(right)) || (isEmptyRecord(left) && isMark(right, EACH_TAG));
@@ -290,10 +289,10 @@ function mergedPlaces(left, right) {
 
 function mergedCore(left, right) {
   if (deepEqual(left, right)) return left;
-  if (eachesMerge(left, right)) return makeTaggedInstance(EACH_TAG, new Map([[eachKey(left), mergedShape(eachShape(left), eachShape(right))]]));
+  if (eachesMerge(left, right)) return makeTagged(EACH_TAG, new Map([[eachKey(left), mergedShape(eachShape(left), eachShape(right))]]));
   if (eachAndEmpty(left, right)) {
     const each = isEmptyRecord(left) ? right : left;
-    return makeTaggedInstance(EACH_TAG, new Map([[eachKey(each), lacked(eachShape(each))]]));
+    return makeTagged(EACH_TAG, new Map([[eachKey(each), lacked(eachShape(each))]]));
   }
   if (isSetOf(left) && isSetOf(right)) return makeSet(mergedPlaces(left, right));
   if (isList(left) && isList(right)) return Object.freeze(mergedPlaces(left, right));

@@ -1,9 +1,8 @@
 // qlang language server — LSP wiring over features.mjs.
 //
-// Runs as a child process spawned by the VS Code extension client.
-// Communicates via stdio JSON-RPC. All qlang-specific logic lives
-// in features.mjs; this file only maps between LSP protocol types
-// and the feature functions.
+// Runs as a child process a client of the protocol launches and
+// talks JSON-RPC over stdio: it reads the sources of the language and
+// answers each request of the protocol by the functions of features.mjs.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -52,8 +51,8 @@ const documentStates = new Map();
 let catalogCtx = null;
 
 async function loadCatalogContext() {
-  // Monorepo layout: `lsp/` and `core/` are sibling workspaces, so the
-  // sources sit under `../core/lib/` relative to `lsp/src/`.
+  // `lsp/` and `core/` are sibling workspaces, so the sources sit under
+  // `core/lib/`, two folders up from `lsp/src/`.
   const lspSrcDir = dirname(fileURLToPath(import.meta.url));
   const libDir = join(lspSrcDir, '..', '..', 'core', 'lib');
 
@@ -92,7 +91,7 @@ connection.onInitialize(async () => {
       referencesProvider: true,
       documentSymbolProvider: true,
       foldingRangeProvider: true,
-      signatureHelpProvider: { triggerCharacters: ['(', ','] },
+      signatureHelpProvider: { triggerCharacters: [' '] },
       semanticTokensProvider: {
         legend: { tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: [] },
         full: true
@@ -309,12 +308,12 @@ connection.onSignatureHelp(async (params) => {
 
 // ── Semantic Tokens ───────────────────────────────────────────
 //
-// VS Code requests semantic tokens for the whole document; the
+// The client requests semantic tokens for the whole document; the
 // returned `{ data }` is a Uint32Array carrying the LSP-encoded
 // token stream (5 ints per token). The editor merges it on top of
 // the tmLanguage grammar tokens so a reader's names get the
-// `variable` colour distinct from the `function` colour of
-// `langRuntime`-resolved built-ins.
+// `variable` colour distinct from the `function` colour of the
+// words of the language.
 
 connection.languages.semanticTokens.on(async (params) => {
   const state = documentStates.get(params.textDocument.uri);

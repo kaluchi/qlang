@@ -12,16 +12,15 @@
 //   'string'      String literal, including the surrounding quotes
 //   'regex'       Pattern literal `#"…"`, its flags among it [QSTXT#pattern]
 //   'number'      Number literal, plus boolean and null literals
-//   'comment'     Plain comment, and the prose of a doc: the quotes a
+//   'comment'     A comment, and the prose of a doc: the quotes a
 //                 doc holds and its spans in backticks paint as code
 //   'name'        `:name` keyword OR a call's name that resolves
 //                 through a reader's binding
 //   'word'        a call's name that resolves to a word of the
 //                 language supplied by `langRuntime` AND each key
 //                 segment of a `Path`
-//   'keyword'     the head Keyword/tag of a BindStep
-//                 declaration
-//   'err'         `!` sigil plus its immediately-attached bracket
+//   'keyword'     the head keyword of a BindStep declaration
+//   'err'         the `!` and the bracket it touches
 //                 in `!{` / closing `}` of an error literal, and the
 //                 `!|` fail-track combinator — an error and the track
 //                 that catches it
@@ -31,7 +30,7 @@
 //                 'comment')
 //   'tag'         `::tag` head of a TaggedLit, of an ErrorLit that
 //                 writes one, or a TagLit — the
-//                 tag sigil + the address it names
+//                 sign of the tag and the address it names
 //   'set'         `#[` opener and matching `]` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
 //   'punct'       the pipe `|`, the `{` / `}` of an ordinary
@@ -88,7 +87,7 @@ function readOf(src) {
 // emit nothing here — their structural punctuation shows up via
 // the gap-interleaving pass below.
 function collectSemanticSpans(src, ast, builtinNames) {
-  // A plain comment is whitespace the parser keeps on the side [QSSYN#comment].
+  // A comment is whitespace the parser keeps on the side [QSSYN#comment].
   const spans = ast.comments.map(comment =>
     ({ start: comment.location.start.offset, end: comment.location.end.offset, kind: 'comment' }));
 
@@ -235,8 +234,8 @@ function classifyCallName(callName, builtinNames) {
 // Emit opener and closer spans for a literal with known bracket
 // widths (VecLit / SetLit / ErrorLit). Interior children still
 // walk through their own AST cases; the opener/closer fill in the
-// bracket bytes that would otherwise fall to the gap pass as
-// undifferentiated `punct`.
+// code units of the brackets that would otherwise fall to the gap pass
+// as undifferentiated `punct`.
 function emitBracketSpans(startOffset, endOffset, openerLen, closerLen, kind, spans) {
   spans.push({ start: startOffset, end: startOffset + openerLen, kind });
   spans.push({ start: endOffset - closerLen, end: endOffset, kind });
@@ -279,12 +278,9 @@ function emitPathSpans(src, startOffset, endOffset, spans) {
   }
 }
 
-// Sort by start, then a strict cursor drops overlaps — a parent
-// Call whose name range was already emitted by the child
-// rule must not duplicate. Two distinct spans never share the
-// same start offset under the current AST shape (the per-node
-// visitor emits at most one span per node), so the comparator
-// stays as a single-key sort.
+// Sort by start, then a strict cursor drops overlaps; the sort is stable,
+// so the keyword span of a declaration, pushed first, stands over the name
+// span of its key at the same start.
 function dedupeOverlappingSpans(spans) {
   spans.sort((a, b) => a.start - b.start);
   const dedupedSpans = [];
@@ -298,7 +294,7 @@ function dedupeOverlappingSpans(spans) {
   return dedupedSpans;
 }
 
-// ── Gap interleaving — every byte ends up in exactly one token ──
+// ── Gap interleaving — every code unit ends up in exactly one token ──
 
 function interleaveGapTokens(src, semanticSpans) {
   const interleavedTokens = [];
@@ -316,14 +312,9 @@ function interleaveGapTokens(src, semanticSpans) {
   return interleavedTokens;
 }
 
-// Walk a gap region, splitting into `whitespace` runs and `punct`
-// tokens. Multi-char tokens (`!|`, `#[`) bind tighter
-// than single-char punct. Any single byte that is neither
-// whitespace nor a known multi-char prefix advances by one as
-// `punct` — gaps between AST nodes contain only structural
-// punctuation under any qlang-parseable input, so the single-byte
-// fallback covers commas, brackets, the `|` combinator, and any
-// future grammar punct uniformly without changes here.
+// A gap between the nodes splits into `whitespace` runs and `punct`
+// tokens, `!|` one token and every other character of structure one
+// token each, commas, brackets and the `|` combinator among them.
 function pushGapTokens(src, startOffset, endOffset, outputTokens) {
   let cursor = startOffset;
   while (cursor < endOffset) {
@@ -342,7 +333,7 @@ function pushGapTokens(src, startOffset, endOffset, outputTokens) {
 
 // The kind of a run of combinator characters in a gap: `!|`, the fail
 // track, paints as `err`, the palette of the brackets of an error literal
-// [QSERR#flow]; a set's `#[` arrives with its SetLit node.
+// [QSERR#flow].
 function scanPunctRun(src, startOffset) {
   const ch = src[startOffset];
   const next = src[startOffset + 1];

@@ -79,8 +79,10 @@ export function declareInvariantError(address, buildMessage) {
 }
 
 // declareForeignError(address, buildMessage) → the class of a failure of
-// the embedding, which the host could not hand the runtime: it extends
-// `Error`, so the fail track never sees it and it rides out to the host.
+// the embedding, which extends `Error`: the loader of the sources throws it
+// at the boot, which reads every source before a step runs, so it rides out
+// to the host, and a host's implementation that throws it inside a step
+// answers `::call/HostFailureError`, its message the `:message` [QSERR#site].
 export function declareForeignError(address, buildMessage) {
   recordRefusal(address);
   const Cls = class extends Error {

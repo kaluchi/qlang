@@ -1,25 +1,20 @@
 // What a call reads of the kinds: the walk of a value's tags to a kind a name
 // serves, the value put under a tag through its label [QSBLD#kind], the answer
-// kept as its subject's kind under the tags the walk passed [QSDSP#answer],
-// and the primitive a host handed run over the value the walk served
-// [QSDSP#walk].
+// kept as its subject's kind under the tags the walk passed [QSDSP#answer], and
+// the primitive a host handed run over the value the walk served [QSDSP#walk].
 
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { queryStateOf } from '../state.mjs';
-import { mintTaggedInstance } from '../eval.mjs';
+import { layTag } from '../eval.mjs';
 import { ANY_KIND_NAME, TAGGED_KIND_NAME, bareNameReach, isMemberValue, nodeOf, residencesOf, verbsReaching } from './nouns.mjs';
 import { signatureOf } from './signature.mjs';
 import { declareRefusal } from '../errors.mjs';
 import {
-  bindingValueOf, isFn, isVec, isQMap, isTaggedInstance, isValueClass,
+  bindingValueOf, isFn, isVec, isMap, isTagged, isValueClass,
   makeTag, typeKeyword
 } from '../types.mjs';
 
-// The value under a tag as its literal puts it there, for the verbs that
-// keep a kind and for `tag` [QSBLD#label].
-export async function mintUnderTag(state, tag, value) {
-  return await mintTaggedInstance(tag.name, value, state);
-}
+export { layTag };
 
 // A call no kind of whose subject answers its word names what the reader
 // needs: where the word lives [QSSLF#page], [QSSLF#catalog].
@@ -34,8 +29,8 @@ function isOfKind(value, kindName) {
     case ANY_KIND_NAME: return true;
     case 'number': return Number.isFinite(value);
     case 'vec':   return isVec(value);
-    case 'map':   return isQMap(value);
-    case TAGGED_KIND_NAME: return isTaggedInstance(value);
+    case 'map':   return isMap(value);
+    case TAGGED_KIND_NAME: return isTagged(value);
     default:      return typeKeyword(value).name === kindName;
   }
 }
@@ -46,7 +41,7 @@ export function walkToKinds(value, kindNames) {
   const passedTags = [];
   let served = value;
   while (!kindNames.some(kindName => isOfKind(served, kindName))) {
-    if (!isValueClass(served, 'taggedInstance')) return null;
+    if (!isValueClass(served, 'underTag')) return null;
     passedTags.push(served.tag);
     served = served.payload;
   }
@@ -58,11 +53,11 @@ export function walkToKinds(value, kindNames) {
 // [QSERR#flow].
 async function underTags(value, tags, state) {
   let wrapped = value;
-  for (const tag of [...tags].reverse()) wrapped = await mintUnderTag(state, tag, wrapped);
+  for (const tag of [...tags].reverse()) wrapped = await layTag(tag.name, wrapped, state);
   return wrapped;
 }
 
-// The answer of the subject's own kind, minted by its constructor, a set's, a
+// The answer of the subject's own kind, made by its constructor, a set's, a
 // tag's or a quote's among them, under the tags the walk passed
 // [QSDSP#answer], [QSSLF#catalog], and at once where it is of the kind and the
 // walk passed no tag.
@@ -74,7 +69,7 @@ export function keptAsSubject(answer, served, passedTags, state) {
 }
 
 async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
-  const kept = reached?.served ?? await mintUnderTag(state, makeTag(ownKind), answer);
+  const kept = reached?.served ?? await layTag(ownKind, answer, state);
   return await underTags(kept, passedTags, state);
 }
 

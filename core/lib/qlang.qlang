@@ -155,11 +155,12 @@
       value like any other: `"x" | add 1 !| 0` answers `0`. No value
       holds a failure, so a template whose quote fails answers the
       failure, while an error at rest, written `!{:k 1}`, sits anywhere
-      and `raise` raises it. A failure carries its facts and its trail, the steps it passed
-      with their subjects, and prints as an alert: the subject where it
-      arose cut to an excerpt, and each subject it passed an ::elision
-      where the marker prints shorter, whose `:read` continues the query
-      to it, `!| get /trail/1/subject`.
+      and `raise` raises it. A failure carries its facts and its trail,
+      a frame for each step it passed, the subject the step met and the
+      steps from the one that broke, `::frame["x" ~(add 1)]`, and prints
+      as an alert: the subject where it arose cut to an excerpt, and each
+      subject it passed an ::elision where the marker prints shorter,
+      whose `:read` continues the query to it, `!| get /trail/1/0`.
       `!| explain` answers the page of what refused above the failure,
       the page saying how to repair the call.
 
@@ -324,7 +325,7 @@
         ~(get [~(!{:k 1} | raise | ok !| false) ~(5 | ok !| false)] | eq [false true])
     | proves :holdsTheTrail
         |~~ The trail holds the steps a failure skipped. ~~|
-        ~("x" | add 1 | mul 2 !| get /trail/-1/skipped | eq ~(mul 2))
+        ~("x" | add 1 | mul 2 !| trail | last | skipped | eq ~(mul 2))
     | proves :runsAQuote
         |~~ `apply` runs a quote on a subject. ~~|
         ~(5 | apply ~(add 1 | mul 2) | eq 12)
@@ -571,14 +572,12 @@
             root running in the root's scope, where a name under a noun of
             the root reads the root alone, while a word under a label the
             reader declared goes where the label's values go. A name
-            begins with a letter of any script or `_`,
-            and a word of a host, which reads or writes outside the
-            language, is named as any word is. The docs in the slot of a
-            declaration, between its name and its body, are its page, one
-            doc each. A name under a label resolves its names through the
-            tree of names as it stands at the call, itself among them, so
-            it recurses by name, and the frames of a runaway meet a
-            budget.
+            begins with a letter of any script or `_`. The docs in the
+            slot of a declaration, between its name and its body, are its
+            page, one doc each. A name under a label resolves its names
+            through the tree of names as it stands at the call, itself
+            among them, so it recurses by name, and the frames of a
+            runaway meet a budget.
         ~~|
         #[::binding]
     | proves :names/listsUnderANoun
@@ -618,8 +617,8 @@
         ~~|
         ~(:vec/doc ~("mine") | [1 2] | get [~(doc) ~(tutorial | first | type)] | eq ["mine" ::doc])
     | proves :names/beginsWithALetter
-        |~~ A name begins with a letter or `_`, and `@` begins none. ~~|
-        ~("@out" | parse !| type | eq ::quote/ParseError)
+        |~~ A name begins with a letter or `_`, and a digit begins none. ~~|
+        ~("1x" | parse !| type | eq ::quote/ParseError)
     | proves :names/holdsEachDocOfItsSlot
         |~~ Two docs in the slot are two parts of its page. ~~|
         ~(:x |~~ One. ~~| |~~ Two. ~~| 1 | env | get /x | get /docs | count | eq 2)
@@ -638,8 +637,9 @@
             ::link~(::qlang/errors | doc)
 
             A name finds its verb through the kind of its subject: its
-            tags from the outside in, then the shape beneath them, then
-            the verbs every value answers, on `::any`; a verb of vectors
+            tags from the outside in, `::tagged` after each, then the
+            shape beneath them, then the verbs every value answers, on
+            `::any`; a verb of vectors
             reaches a vector under a tag, and an answer of the subject's
             kind keeps the tag. A word is a
             function named under a label, built from `::fn` by commands
@@ -674,7 +674,7 @@
             value put under it keeps them, and a label declared by its
             page alone is a kind of no commands. A tag no declaration
             answers is a kind of identity, which checks nothing and lays
-            the tag on the value. A word answers under the label its
+            the tag on the value. A word answers under the kind its
             `returns` names. A word of a noun itself, whose subject `on`
             names `::tag`, takes the tag name as its subject, so a noun
             that stands for a thing outside the language is addressed
@@ -748,7 +748,8 @@
             Rests on values, the pipeline and verbs; the hypertext holds
             the pages the sites name.
             ::link~(::error | doc) ::link~(::fail | doc)
-            ::link~(::explanation | doc) ::link~(::qlang/code | doc)
+            ::link~(::trail | doc) ::link~(::explanation | doc)
+            ::link~(::qlang/code | doc)
 
             A failed step answers a failure the tag of its site names. `|`
             passes a failure by, and `map` answers the first an element
@@ -756,19 +757,20 @@
             error at rest, a value like any other, and recovers each
             failure where it is read. No value holds a failure: a template
             whose quote fails, a literal whose constructor refuses its
-            payload and a name whose body fails answer the failure. The facts name
-            what refused, and the first stop of the trail holds the value
-            the step refused. `explain` shows the page of the site above
-            the error. The trail is written as the failure flies: a stop
-            for each level it left, and the last stop the steps it
-            skipped, a quote that runs again as held code runs. An error
-            at rest raised
-            again resumes the trail it holds, and one that holds none,
-            an empty `:trail` among them, starts it over. Whether the
-            step before stood is
-            `ok !| false`.
+            payload and a name whose body fails answer the failure. The
+            facts name what refused, and the first frame of the trail holds
+            the value the step refused. `explain` shows the page of the
+            site above the error. The trail is written as the failure
+            flies: a frame for each level it left, the subject its step met
+            and the steps from the one that broke, the last frame holding
+            the steps skipped at the level that reads it, a quote that runs
+            again as held code runs, and the frame of a word that ran its
+            code on a part of its subject the path of that part. An error
+            at rest raised again resumes the trail it holds, and one that
+            holds none, an empty `:trail` among them, starts it over.
+            Whether the step before stood is `ok !| false`.
         ~~|
-        #[::error ::fail ::explanation]
+        #[::error ::explanation ::fail ::frame ::trail]
     | proves :errors/namesTheSite
         |~~ The error's tag names its site. ~~|
         ~("x" | add 1 !| type | eq ::number/add/SubjectNotNumberError)
@@ -776,23 +778,28 @@
         |~~ `!|` inside the code `map` runs recovers each failure. ~~|
         ~([1 "x"] | map ~(mul 2 !| 0) | eq [2 0])
     | proves :errors/holdsTheRefusedValue
-        |~~ The first stop holds the refused value. ~~|
-        ~("a" | mul 2 !| get [/actualType /trail/0/subject] | eq [::string "a"])
-    | proves :errors/stopsAtEachLevel
-        |~~ The trail stops at each level the error left. ~~|
-        ~(:f ~(add "x" | mul 2) | 5 | apply f | sub 3 !| get /trail | map /step | eq [~(add "x") ~(apply f)])
+        |~~ The first frame holds the refused value. ~~|
+        ~("a" | mul 2 !| get [/actualType /trail/0/0] | eq [::string "a"])
+    | proves :errors/holdsAFrameForEachLevel
+        |~~ The trail holds a frame for each level the error left. ~~|
+        ~(:f ~(add "x" | mul 2) | 5 | apply f | sub 3 !| trail | map ~step | eq [~(add "x") ~(apply f)])
     | proves :errors/holdsTheSkippedSteps
-        |~~ The last stop holds the steps skipped. ~~|
-        ~("x" | add 1 | mul 2 !| get /trail/-1/skipped | parse | eq "mul 2")
+        |~~ The last frame holds the steps skipped. ~~|
+        ~("x" | add 1 | mul 2 !| trail | last | skipped | parse | eq "mul 2")
     | proves :errors/runsTheSkippedStepsAgain
         |~~ The steps a failure skipped run again by `apply`. ~~|
-        ~("x" | add 1 | mul 2 !| get /trail/-1/skipped | :rest it | 5 | apply rest | eq 10)
+        ~("x" | add 1 | mul 2 !| trail | last | skipped | :rest it | 5 | apply rest | eq 10)
+    | proves :errors/namesThePlaceOfThePart
+        |~~ The frame of a word that ran its code on an element names the
+            place of the element.
+        ~~|
+        ~([1 "x" 3] | map ~(mul 2) !| trail | last | place | eq /1)
     | proves :errors/resumesItsTrail
         |~~ A map raised again resumes its trail. ~~|
-        ~(!{:kind :oops} | raise | count !| raise | add 1 !| get /trail | map /step | eq [~(raise)])
+        ~(!{:a 1} | raise | count !| raise | add 1 !| trail | last | skipped | eq ~(count | add 1))
     | proves :errors/asksWhetherTheStepBeforeStood
         |~~ `ok !| false` answers whether the step before stood. ~~|
-        ~(get [~(!{:kind :oops} | raise | ok !| false) ~(42 | ok !| false)] | eq [false true])
+        ~(get [~(!{:a 1} | raise | ok !| false) ~(42 | ok !| false)] | eq [false true])
     | tells :code
         |~~ Code. A quote, `~(…)`, holds steps unrun as a value: a verb
             takes one where it needs code, `filter`, `sort`, `if`, `apply`

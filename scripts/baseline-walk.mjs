@@ -14,8 +14,11 @@ import { join } from 'node:path';
 import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, JOURNAL, RESEARCH } from './decision-records.mjs';
 
 export const RECORDS_A_WALK_TAKES = 20;
-export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
-export const CITING_DOCUMENTS = ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md', 'lsp/README.md', 'vscode/README.md', 'site/README.md'];
+export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
+// The code beside the roots: the configurations at the root of the
+// repository and of each workspace.
+export const CITING_CODE_FILES = ['eslint.config.mjs', 'core/vitest.config.mjs', 'cli/vitest.config.mjs', 'cli/vitest.integration.config.mjs', 'lsp/vitest.config.mjs', 'site/astro.config.mjs', 'site/vitest.config.mjs'];
+export const CITING_DOCUMENTS = ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'];
 export const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang|yml)$/;
 const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
 // A citation a document writes in words, `decision Dnn` or `decisions Dnn
@@ -32,6 +35,11 @@ function filesUnder(repoRoot, dir, pattern) {
   });
 }
 
+// citingCodeOf(repoRoot) → the files of code that cite, those under the roots
+// and those beside them the tree holds; isCitingCode(path) whether a path is one.
+export const citingCodeOf = repoRoot => [...CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE)), ...CITING_CODE_FILES.filter(path => existsSync(join(repoRoot, path)))];
+export const isCitingCode = path => CITING_CODE_FILES.includes(path) || (CODE_FILE.test(path) && CITING_CODE_ROOTS.some(root => path.startsWith(`${root}/`)));
+
 export function citationsIn(text) {
   const cited = [];
   text.split(/\r?\n/).forEach((line, index) => {
@@ -40,6 +48,33 @@ export function citationsIn(text) {
     }
   });
   return cited;
+}
+
+// A citation of a record, `[Dnn]`, or of a section by the code of its
+// chapter and its heading, and a run of them, joined by commas and an `and`
+// across the lines it wraps over.
+const CITED = String.raw`\[(?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)\]`;
+const RUN_OF_CITATIONS = new RegExp(`${CITED}(?:(?:,\\s*|,?\\s+and\\s+)${CITED})+`, 'g');
+const byRecord = (left, right) => left[0].localeCompare(right[0]) || Number(left.slice(1)) - Number(right.slice(1));
+
+// citedOnce(text, cited) → the text with each run that cites `cited` naming
+// each record and section once, a section where it first stands and the
+// records in their order in the places they hold, its separators kept where
+// they stand, a line break before any other: the run a merge or a
+// dissolution writes [QSWRK#journal], [QSWRK#baseline].
+export function citedOnce(text, cited) {
+  return text.replace(RUN_OF_CITATIONS, run => {
+    if (!run.includes(`[${cited}]`)) return run;
+    const named = [...new Set(run.match(new RegExp(CITED, 'g')).map(citation => citation.slice(1, -1)))];
+    const records = named.filter(name => !name.startsWith('QS')).sort(byRecord);
+    const names = named.map(name => (name.startsWith('QS') ? name : records.shift()));
+    const separators = run.split(new RegExp(CITED)).slice(1, -1);
+    while (separators.length > names.length - 1) {
+      const plain = separators.findIndex((separator, index) => !separator.includes('\n') && !(index === separators.length - 1 && separator.includes('and')));
+      separators.splice(plain !== -1 ? plain : Math.max(separators.findIndex(separator => !separator.includes('\n')), 0), 1);
+    }
+    return names.map((name, index) => `${index === 0 ? '' : separators[index - 1]}[${name}]`).join('');
+  });
 }
 
 function stateOf(record) {
@@ -100,7 +135,7 @@ export function walkOfBaseline(repoRoot) {
     walk.violations.push({ where: JOURNAL, problem: `${walk.since.length} records since the baseline ${baseline}, from ${walk.since[0]}: the walk is due` });
   }
   const notClosed = record => !replacedWhole(record) && !isBeingDecided(record);
-  for (const file of CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE))) {
+  for (const file of citingCodeOf(repoRoot)) {
     for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {
       const record = records.get(name);
       if (record !== undefined && !isHeld(record)) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
@@ -145,7 +180,7 @@ export function unresolvedSections(repoRoot) {
   const specDir = join(repoRoot, 'docs', 'spec');
   const chapters = new Map((existsSync(specDir) ? readdirSync(specDir) : []).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name))
     .map(name => [name.slice(0, 5), new Set(readFileSync(join(specDir, name), 'utf8').split(/\r?\n/).filter(line => line.startsWith('## ')).map(line => line.slice(3).trim()))]));
-  const citing = [...CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE)), ...filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/),
+  const citing = [...citingCodeOf(repoRoot), ...filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/),
     ...CITING_DOCUMENTS, ...filesUnder(repoRoot, JOURNAL, /\.md$/).filter(path => !path.includes('/replaced/') && !path.startsWith(`${RESEARCH}/`)), ...filesUnder(repoRoot, 'docs/spec', /\.md$/)];
   const unresolved = [];
   for (const file of citing.filter(path => existsSync(join(repoRoot, path)))) {
@@ -164,7 +199,7 @@ export function unresolvedSections(repoRoot) {
 // in force with a line `Overrides [QSNAM#scope], [QSNAM#reach]` [QSWRK#journal].
 export function recordsInTransit(repoRoot) {
   const recordsDir = join(repoRoot, JOURNAL);
-  return new Map(readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).flatMap(name => {
+  return new Map(readdirSync(recordsDir).filter(name => /^D\d+\.md$/.test(name)).flatMap(name => {
     const line = readFileSync(join(recordsDir, name), 'utf8').match(/^Overrides ((?:[^\r\n]|\r?\n(?=\[QS))+)/m)?.[1];
     return line === undefined ? [] : [[name.slice(0, -3), [...line.matchAll(/\[(QS[A-Z]{3}(?:#[a-z][a-z-]*)?)\]/g)].map(match => match[1])]];
   }));
@@ -316,15 +351,16 @@ export function recordHolding(repoRoot, path) {
 // The texts in force that may cite a document: the records in force and
 // the documents of the work.
 export function textsInForce(repoRoot) {
-  const records = readdirSync(join(repoRoot, JOURNAL)).filter(name => /^[DE]\d+\.md$/.test(name)).map(name => `${JOURNAL}/${name}`);
+  const records = readdirSync(join(repoRoot, JOURNAL)).filter(name => /^D\d+\.md$/.test(name)).map(name => `${JOURNAL}/${name}`);
   return [...records, ...CITING_DOCUMENTS].filter(path => existsSync(join(repoRoot, path))).map(path => ({ path, text: readFileSync(join(repoRoot, path), 'utf8') }));
 }
 
 // unitOf(path) → what a citation must name to hold the document: a report
 // a record called for by its folder and the name it shares with its
 // reading, `design-check/D329~2` or `spec-check/D323~1`, a review of a
-// branch by its folder and name, `reviews/2026-10-10-vec-set-map.md`, any
-// other research by its folder, `research/legend/`.
+// branch by its folder and name,
+// `reviews/2026-10-13-the-path-is-a-value.md`, and any other research by
+// its folder, `research/<folder>/`.
 export const unitOf = path => {
   const named = OF_A_RECORD.exec(path);
   if (named !== null) return named[0].split('/').slice(-2).join('/');

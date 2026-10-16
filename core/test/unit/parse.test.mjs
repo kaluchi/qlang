@@ -218,7 +218,7 @@ describe('parse — Call', () => {
     expect(ast.args).toEqual([]);
   });
 
-  it('parses an identifier with @ prefix', () => {
+  it('parses a name nothing declares as a call', () => {
     const ast = parse('callers');
     expect(ast.type).toBe('Call');
     expect(ast.name).toBe('callers');
@@ -419,7 +419,7 @@ describe('parse — quoted keyword and path segments', () => {
     expect(ast.name).toBe('123');
   });
 
-  it('parses :"$ref" with sigil prefix', () => {
+  it('parses :"$ref", a keyword of a name in quotes', () => {
     const ast = parse(':"$ref"');
     expect(ast.name).toBe('$ref');
   });
@@ -634,7 +634,7 @@ describe('parse.mjs — input guards and ParseError shape', () => {
   });
 });
 
-describe('parser doc-comment attachment Vec semantics', () => {
+describe('parse — the docs in the slot of a declaration, one doc each, and a comment between steps', () => {
   it('attaches one entry per doc comment, not concatenated', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(

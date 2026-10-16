@@ -35,7 +35,7 @@ describe('in', () => {
   });
 });
 
-describe('out — bare form (0 captured)', () => {
+describe('out — the subject, written when it is a string', () => {
   it('writes the String subject to stdoutWrite with a trailing newline and is identity on pipeValue', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"hello" | out | append "!"', io);
@@ -44,7 +44,7 @@ describe('out — bare form (0 captured)', () => {
     expect(cellEntry.result).toBe('hello!');
   });
 
-  it('lifts AnyOutSubjectNotStringError onto the fail-track when the subject is not a String', async () => {
+  it('refuses a subject that is no string as ::any/out/SubjectNotStringError, writing nothing', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out', io);
     expect(io.stdoutText()).toBe('');
@@ -54,8 +54,8 @@ describe('out — bare form (0 captured)', () => {
   });
 });
 
-describe('out — full-application form (1 captured)', () => {
-  it('runs the renderer against pipeValue and writes its String result', async () => {
+describe('out — the text the call gives, computed against the subject', () => {
+  it('writes the text the call gives, computed against the subject, and answers the subject', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out print', io);
     expect(cellEntry.error).toBeNull();
@@ -72,7 +72,7 @@ describe('out — full-application form (1 captured)', () => {
     });
   });
 
-  it('answers the error its renderer answers, as every modifier of a verb does', async () => {
+  it('answers the error its text answers, as every modifier of a verb does', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
@@ -82,7 +82,7 @@ describe('out — full-application form (1 captured)', () => {
   });
 });
 
-describe('err — bare form', () => {
+describe('err — the subject, written when it is a string', () => {
   it('writes to stderrWrite, leaves stdout untouched, identity on pipeValue', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"oops" | err', io);
@@ -92,7 +92,7 @@ describe('err — bare form', () => {
     expect(cellEntry.result).toBe('oops');
   });
 
-  it('lifts AnyErrSubjectNotStringError onto the fail-track when the subject is not a String', async () => {
+  it('refuses a subject that is no string as ::any/err/SubjectNotStringError', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err', io);
     expectRefusalRaised(cellEntry, 'any/err/SubjectNotStringError', {
@@ -101,8 +101,8 @@ describe('err — bare form', () => {
   });
 });
 
-describe('err — full-application form', () => {
-  it('runs the renderer and writes the result to stderr', async () => {
+describe('err — the text the call gives, computed against the subject', () => {
+  it('writes the text the call gives, computed against the subject, to stderr', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err print', io);
     expect(cellEntry.error).toBeNull();

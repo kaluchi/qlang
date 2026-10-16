@@ -2,9 +2,9 @@
 // depth of the frames nested under the query, a new one at each step, so
 // a fork leaves the declarations of its inside behind by keeping the
 // state it started from; the scope maps the names a reader declared to
-// their records, the frame, over the root the host's sources declared,
-// under a key no name spells, a lookup reading the frame and then the
-// root [QSDSP#residence].
+// their records over the root the host's sources declared, under a key
+// no name spells, a lookup reading the scope and then the root
+// [QSDSP#residence].
 
 import { CallEvaluationDepthExceededError } from './errors.mjs';
 import { ROOT_KEY, QUERY_KEY } from './env-keys.mjs';
@@ -78,13 +78,13 @@ export function ownScopeOf(state) {
 
 const NO_ROOT = new Map();
 
-// rootOf(env) → the root beneath a frame, the bindings the host's
+// rootOf(env) → the root beneath a scope, the bindings the host's
 // sources declared.
 export function rootOf(env) {
   return env.get(ROOT_KEY) ?? NO_ROOT;
 }
 
-// envHas(env, name) → whether the frame or the root holds the name.
+// envHas(env, name) → whether the scope or the root holds the name.
 export function envHas(env, name) {
   return env.has(name) || rootOf(env).has(name);
 }

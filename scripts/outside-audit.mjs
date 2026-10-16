@@ -17,7 +17,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
-import { CHILD_ENVIRONMENT } from './benchmark/child.mjs';
+import { CHILD_ENVIRONMENT, withTheLanguageOf } from './benchmark/child.mjs';
 import { baselineOf } from './baseline-walk.mjs';
 import { JOURNAL, RESEARCH } from './decision-records.mjs';
 import { holdTheRun, runLine } from './research-runs.mjs';
@@ -67,7 +67,7 @@ const report = join(auditsDir, `${calledFor}~${Math.max(0, ...audits.map(match =
 const TOOLS = ['Read', 'Grep', 'Glob', 'Bash'];
 const ALLOWED = ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)'];
 const flags = ['-p', '--model', 'opus', '--restricted', '--strict-mcp-config', '--tools', ...TOOLS, '--add-dir', repoPath, '--allowedTools', ...ALLOWED];
-const env = { ...process.env, ...CHILD_ENVIRONMENT };
+const env = withTheLanguageOf(repoRoot, { ...process.env, ...CHILD_ENVIRONMENT });
 delete env.FORCE_COLOR;
 
 const workDir = mkdtempSync(join(tmpdir(), 'qlang-outside-audit-'));
@@ -80,7 +80,7 @@ const { code, answer, failure } = await new Promise(resolve => {
   child.stdout.on('data', chunk => { out += chunk; });
   child.stderr.on('data', chunk => { err += chunk; });
   child.on('close', exitCode => resolve({ code: exitCode, answer: out.trim(), failure: err.trim() }));
-  child.stdin.end(readFileSync(promptPath, 'utf8'));
+  child.stdin.end(readFileSync(promptPath, 'utf8').replaceAll('{{repo}}', repoPath));
 });
 if (code !== 0 || answer === '') {
   console.error(`the audit ended with ${code}: ${failure}`);

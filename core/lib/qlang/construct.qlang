@@ -16,8 +16,8 @@
   ~~|
   ::kind
     | wraps
-        |~~ The record of a constructor invocation, `:tag` and `:payload`,
-            built into its step, which reads back as itself.
+        |~~ The record of the step, `:tag` and `:payload`, built into its
+            step, which reads back as itself.
         ~~|
     | throws :PayloadNotSchemaError
         |~~ A `::construct` is a map of `:tag`, a tag name, and

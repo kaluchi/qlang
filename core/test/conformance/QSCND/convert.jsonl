@@ -13,8 +13,8 @@
 {"name":"keyword-to-string","query":":foo | toString","expect":"\"foo\""}
 {"name":"round-trip-string","query":"\"bar\" | toKeyword | toString","expect":"\"bar\""}
 {"name":"round-trip-keyword","query":":baz | toString | toKeyword","expect":":baz"}
-{"name":"namespaced-string-to-keyword","query":"\"qlang/error\" | toKeyword","expect":":qlang/error"}
-{"name":"namespaced-keyword-to-string","query":":qlang/error | toString","expect":"\"qlang/error\""}
+{"name":"a-string-of-names-joined-by-a-slash-turns-into-their-keyword","query":"\"qlang/error\" | toKeyword","expect":":qlang/error"}
+{"name":"a-keyword-of-names-joined-by-a-slash-turns-into-its-string","query":":qlang/error | toString","expect":"\"qlang/error\""}
 {"name":"quoted-keyword-to-string","query":":\"foo bar\" | toString","expect":"\"foo bar\""}
 {"name":"string-to-quoted-keyword","query":"\"foo bar\" | toKeyword","expect":":\"foo bar\""}
 {"name":"empty-string-to-keyword","query":"\"\" | toKeyword","expect":":\"\""}

@@ -32,7 +32,7 @@
     | proves :reachesPayload
         |~~ A box answers `payload`. ~~|
         ~(:Box |~~ A box. ~~| | ::Box[1 2] | payload | eq [1 2])
-    | proves :isNoStep
+    | proves :readsAsAConstructStep
         |~~ The step `::Box[1 2]` is a `::construct`. ~~|
         ~(~(::Box[1 2]) | first | type | eq ::construct)
 
@@ -93,8 +93,8 @@
       outer one, and the value beneath both is reached by nesting
       `within`, `within ~(within ~(reverse))`. The code is a quote or a
       path, `within /a`: a value computed at the call,
-      `within (reverse)`, is refused under the part. A value under no tag runs its code by `apply`, and is
-      refused here.
+      `within (reverse)`, is refused under the input. A value under no
+      tag runs its code by `apply`, and is refused here.
       ::link~(::any/apply | doc) ::link~(::tagged/payload | doc)
   ~~|
   ::fn

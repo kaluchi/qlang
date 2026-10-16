@@ -179,7 +179,7 @@ describe('runRepl — output highlighting', () => {
 describe('runRepl — error rendering', () => {
   it('renders an error value with its path through the same printValue path as success values', async () => {
     // The path of an error is written as it flows [QSERR#rest], so the value
-    // the cell answers already holds every stop and every skipped
+    // the cell answers already holds every frame and every skipped
     // step. The REPL renders the value verbatim through `printValue`.
     const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
     const replHarness = captureRepl(query + '\n.exit\n');
@@ -217,7 +217,7 @@ describe('runRepl — the first cell given on the command line', () => {
 });
 
 // A cell prints within the budget a caller asked for, an error among
-// them [QSHST#answer], and an error as its alert when none is [QSHST#answer].
+// them, and an error as its alert when none is [QSHST#answer].
 describe('runRepl — the budget of an answer', () => {
   const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
 
@@ -231,7 +231,7 @@ describe('runRepl — the budget of an answer', () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trail/1/subject)');
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trail/1/0)');
   });
 
   it('prints an error within the budget', async () => {

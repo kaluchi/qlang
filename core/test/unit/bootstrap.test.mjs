@@ -37,7 +37,7 @@ describe('BootstrapSourceMissingError', () => {
 describe('a source of the language the parser refuses', () => {
   it('raises its parse error, which names the source', async () => {
     let thrown = null;
-    try { await buildLangRuntime(async () => ({ source: ':unclosed (mul(2)' })); } catch (caught) { thrown = caught; }
+    try { await buildLangRuntime(async () => ({ source: ':unclosed (mul 2' })); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(ParseError);
     expect(thrown.uri).toBe('qlang/builtin');
   });
@@ -55,19 +55,19 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
     const cause = new Error('EACCES: permission denied');
     const err = new BuiltinSourceLoadError({
       host: 'node',
-      logicalName: '#qlang/core',
-      sourceLocation: '/locked/core.qlang',
+      logicalName: '#qlang/vec',
+      sourceLocation: '/locked/vec.qlang',
       cause
     });
     expect(err.name).toBe('SourceLoadError');
 
-    expect(err.message).toContain('#qlang/core');
-    expect(err.message).toContain('/locked/core.qlang');
+    expect(err.message).toContain('#qlang/vec');
+    expect(err.message).toContain('/locked/vec.qlang');
     expect(err.message).toContain('EACCES: permission denied');
     expect(err.facts).toEqual({
       host: 'node',
-      logicalName: '#qlang/core',
-      sourceLocation: '/locked/core.qlang',
+      logicalName: '#qlang/vec',
+      sourceLocation: '/locked/vec.qlang',
       cause,
       status: undefined
     });
@@ -77,8 +77,8 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
     const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
     const err = new BuiltinSourceLoadError({
       host: 'web',
-      logicalName: '#qlang/core',
-      sourceLocation: 'https://cdn.example/qlang/core.qlang',
+      logicalName: '#qlang/vec',
+      sourceLocation: 'https://cdn.example/qlang/vec.qlang',
       status: 503
     });
     expect(err.name).toBe('SourceLoadError');
@@ -91,7 +91,7 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
     const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
     const err = new BuiltinSourceLoadError({
       host: 'node',
-      logicalName: '#qlang/core',
+      logicalName: '#qlang/vec',
       sourceLocation: '/x.qlang',
       cause: 'raw-string-cause'
     });
@@ -102,9 +102,9 @@ describe('SourceLoadError shared base — Node and Web loaders share the class',
     const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
     const err = new BuiltinSourceLoadError({
       host: 'node',
-      logicalName: '#qlang/core',
+      logicalName: '#qlang/vec',
       sourceLocation: '/x.qlang'
     });
-    expect(err.message).toBe(`failed to read qlang source '#qlang/core' from /x.qlang`);
+    expect(err.message).toBe(`failed to read qlang source '#qlang/vec' from /x.qlang`);
   });
 });

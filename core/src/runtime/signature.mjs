@@ -4,7 +4,7 @@
 
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword, LITERAL_WORDS } from '../name-chars.mjs';
-import { isDoc, isKeyword, isPath, isQSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTaggedInstance, commandsOf, FN_TAG_NAME, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, CALL_TAG, FN_TAG_NAME, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { ANY_KIND_NAME, CONSTRUCT_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName, placesOfSelectors, selectorOfPlace } from './nouns.mjs';
 
 const FnSignatureNotCommandsError = declareRefusal('fn/SignatureNotCommandsError');
@@ -22,12 +22,12 @@ export const ANSWER_NAME = 'answer';
 export const SUBJECT_NAME = 'subject';
 export const PAYLOAD_NAME = 'payload';
 
-const isRefusalName = value => isKeyword(value) && readsAsBareKeyword(value.name);
-const isNameOfOneSegment = value => isRefusalName(value) && !value.name.includes('/') && !LITERAL_WORDS.has(value.name);
+const isNameOfChain = value => isKeyword(value) && readsAsBareKeyword(value.name);
+const isNameOfOneSegment = value => isNameOfChain(value) && !value.name.includes('/') && !LITERAL_WORDS.has(value.name);
 const isInputName = value => isNameOfOneSegment(value) && value.name !== ANSWER_NAME && value.name !== SUBJECT_NAME;
 const isFieldName = value => isNameOfOneSegment(value) && value.name !== PAYLOAD_NAME && value.name !== CONSTRUCT_NAME;
 const isPlace = value => isPath(value) || isQuote(value);
-const isKinds = value => isTag(value) || (isQSet(value) && value.length > 0 && value.every(isTag));
+const isKinds = value => isTag(value) || (isSet(value) && value.length > 0 && value.every(isTag));
 const isPlainVec = value => Array.isArray(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isKindsOfEach = value => isKinds(value) || (isPlainVec(value) && value.length === 1 && isKinds(value[0]));
 
@@ -37,26 +37,26 @@ const COMMANDS = new Map([
   ['on', { taken: [isDoc], optional: [isKinds] }],
   ['takes', { taken: [isInputName, isDoc, isPlace], optional: [isKindsOfEach] }],
   ['returns', { taken: [isDoc, isKinds], optional: [] }],
-  ['throws', { taken: [isRefusalName, isDoc], optional: [] }],
-  ['carries', { taken: [isRefusalName, isDoc], optional: [isKinds] }],
-  ['holds', { taken: [isRefusalName, isDoc, isQuote], optional: [] }],
-  ['proves', { taken: [isRefusalName, isDoc, isQuote], optional: [] }]
+  ['throws', { taken: [isNameOfChain, isDoc], optional: [] }],
+  ['carries', { taken: [isNameOfChain, isDoc], optional: [isKinds] }],
+  ['holds', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }],
+  ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
 ]);
 
 const KIND_COMMANDS = new Map([
   ['wraps', { taken: [isDoc], optional: [isKindsOfEach] }],
   ['reads', { taken: [isFieldName, isDoc, isPlace], optional: [isKindsOfEach] }],
   ['tells', { taken: [isFieldName, isDoc], optional: [isKinds] }],
-  ['carries', { taken: [isRefusalName, isDoc], optional: [isKinds] }],
-  ['holds', { taken: [isRefusalName, isDoc, isQuote], optional: [] }],
-  ['throws', { taken: [isRefusalName, isDoc], optional: [] }],
-  ['proves', { taken: [isRefusalName, isDoc, isQuote], optional: [] }]
+  ['carries', { taken: [isNameOfChain, isDoc], optional: [isKinds] }],
+  ['holds', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }],
+  ['throws', { taken: [isNameOfChain, isDoc], optional: [] }],
+  ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
 ]);
 
 // The objects of a step that is one of the commands of a table in the
 // shapes it takes, or null.
 function objectsOf(step, commands) {
-  if (step?.[TAG_HEADER_SYMBOL]?.name !== 'call' || !commands.has(step.get('name').name)) return null;
+  if (step?.[TAG_HEADER_SYMBOL]?.name !== CALL_TAG.name || !commands.has(step.get('name').name)) return null;
   const { taken, optional } = commands.get(step.get('name').name);
   const objects = step.get('modifiers') ?? [];
   if (objects.length < taken.length || objects.length > taken.length + optional.length) return null;
@@ -237,7 +237,7 @@ const NO_COMMANDS = makeQuote([]);
 
 export function functionOfRecipe(recipe) {
   let fn = FUNCTIONS_OF_RECIPES.get(recipe);
-  if (fn === undefined) FUNCTIONS_OF_RECIPES.set(recipe, fn = makeTaggedInstance(makeTag(FN_TAG_NAME), Object.freeze([NO_COMMANDS, recipe])));
+  if (fn === undefined) FUNCTIONS_OF_RECIPES.set(recipe, fn = makeTagged(makeTag(FN_TAG_NAME), Object.freeze([NO_COMMANDS, recipe])));
   return fn;
 }
 
@@ -261,9 +261,10 @@ export function pageOfKindsRefusal(name, kinds, each) {
 }
 
 // pageOfConstructor(address) → the page of the constructor of a kind, the
-// recipe `impl` gives it, which builds its values from a payload.
+// check its host hands, which attaches the tag to a payload or refuses it
+// [QSBLD#kind].
 export function pageOfConstructor(address) {
-  return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the recipe \`impl\` gives it, which builds its values from a payload. `]);
+  return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the check its host hands, which attaches the tag to a payload or refuses it. `]);
 }
 
 // invariantsOf(signature, name) → the invariants written under an input or

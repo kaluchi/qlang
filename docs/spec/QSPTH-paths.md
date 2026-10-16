@@ -161,7 +161,8 @@ answer of the template, the parts after it unread [QSERR#flow].
 A word whose input takes code takes a path as the code that reads it
 from each value it runs on, as `get` reads it: `map /name`,
 `filter /active`, `sort /age`, `groupBy /status`; a read that misses
-stops at the value it read, as `~(get /name)` stops there. The path of
+passes a frame at the value it missed, its step the `get` of the path,
+as `~(get /name)` passes one there. The path of
 `get`, `query` and `has` and the inputs of the words that combine
 several values of one subject, `sumOf`, `subOf`, `mulOf`, `divOf` and
 `unionOf`, take a path and read it. An input whose kinds leave a path out refuses one,
@@ -173,6 +174,9 @@ value it is.
 ```qlang
 > [{:n 2} {:n 1}] | sort /n
 [{:n 1} {:n 2}]
+
+> [{:n 1} {:m 2}] | map /n !| trail | map ~step
+[~(get /n) ~(map /n)]
 
 > {:price 4 :qty 3} | mulOf /price /qty
 12

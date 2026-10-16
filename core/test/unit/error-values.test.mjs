@@ -2,7 +2,7 @@
 // error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
-import { keyword, isErrorValue, makeErrorValue, formOf, makeTag, makeSet, ErrorTrailNotVecError } from '../../src/types.mjs';
+import { keyword, isErrorValue, makeErrorValue, formOf, makeTag, makeSet, makeFrame, makeTrail, isTrail, ErrorTrailNotFramesError } from '../../src/types.mjs';
 import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
@@ -26,24 +26,25 @@ describe('makeErrorValue', () => {
     expect([...errorVal.descriptor.keys()]).toEqual(['message']);
   });
 
-  it('preserves caller-supplied :trail in descriptor', () => {
-    // When the caller already includes :trail in the descriptor
-    // — typically a re-lifted descriptor carrying the path the fail
-    // track read — makeErrorValue keeps the supplied value untouched
-    // and skips the invariant-fill branch.
-    const preTrail = Object.freeze([new Map([
-      ['step', quoteOfSource('add 1')], ['subject', 'x'], ['skipped', quoteOfSource('mul 2 | count')]
-    ])]);
+  it('keeps a trail it is handed as it is [QSERR#trail]', () => {
+    const preTrail = makeTrail([makeFrame('x', quoteOfSource('add 1 | mul 2 | count'))]);
     const descriptor = new Map([['trail', preTrail]]);
     const errorVal = makeErrorValue(makeTag('Oops'), descriptor);
     expect(errorVal.descriptor).toBe(descriptor);
     expect(errorVal.descriptor.get('trail')).toBe(preTrail);
   });
 
-  it('fires ErrorTrailNotVecError when :trail carries anything except a vector of stops', async () => {
-    // `:trail` is runtime-owned — a step the error skips joins the
-    // `:skipped` quote of the last stop, so the mint site refuses
-    // anything under it but a vector of maps that hold one.
+  it('lays a plain vector of frames under ::trail [QSERR#trail]', () => {
+    const frames = [makeFrame('x', quoteOfSource('add 1'))];
+    const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'boom'], ['trail', frames]]));
+    expect([...errorVal.descriptor.keys()]).toEqual(['message', 'trail']);
+    expect(isTrail(errorVal.descriptor.get('trail'))).toBe(true);
+    expect(deepEqual([...errorVal.descriptor.get('trail')], frames)).toBe(true);
+  });
+
+  it('fires ErrorTrailNotFramesError when :trail carries anything except a vector of frames [QSERR#trail]', async () => {
+    // A step the error skips joins the steps of the last frame, so
+    // `makeErrorValue` refuses anything under `:trail` but a vector of frames.
     const refusedTrails = [
       [null, 'null'], [5, 'number'], [[1, 2], 'vec'], [quoteOfSource('| pre'), 'quote'], [makeSet([]), 'set'],
       [[new Map([['step', quoteOfSource('pre')]])], 'vec']
@@ -52,10 +53,10 @@ describe('makeErrorValue', () => {
     for (const [refusedTrail, kindName] of refusedTrails) {
       let thrown = null;
       try { makeErrorValue(makeTag('Oops'), new Map([['trail', refusedTrail]])); }
-      catch (mintErr) { thrown = mintErr; }
-      expect(thrown).toBeInstanceOf(ErrorTrailNotVecError);
+      catch (caught) { thrown = caught; }
+      expect(thrown).toBeInstanceOf(ErrorTrailNotFramesError);
       expect(thrown).toBeInstanceOf(QlangError);
-      expect(thrown.name).toBe('TrailNotVecError');
+      expect(thrown.name).toBe('TrailNotFramesError');
       expect(thrown.facts.actualValue).toBe(refusedTrail);
       expect(errorFromQlang(thrown, undefined, env).descriptor.get('actualType')).toEqual(makeTag(kindName));
     }
@@ -98,12 +99,12 @@ describe('deepEqual for error values', () => {
 
 // ── the literal ─────────────────────────────────────────────────
 
-describe('the literal reads back error values and tagged instances', () => {
+describe('the literal reads back error values and values under a tag', () => {
   // `printValue` writes the literal the parser reads, so every value
   // the host builds survives the trip; each shape exercises a distinct
   // branch of the printer.
   it('reads back an error value raised, and a tag over each payload shape', async () => {
-    const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
+    const { makeTagged, makeSet } = await import('../../src/types.mjs');
     const { printValue } = await import('../../src/runtime/format.mjs');
     const { evalQuery } = await import('../../src/eval.mjs');
     const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'something went wrong']]));
@@ -112,10 +113,10 @@ describe('the literal reads back error values and tagged instances', () => {
     expect(restoredError.tag.name).toBe('Oops');
     expect(restoredError.descriptor.get('message')).toBe('something went wrong');
     const hostBuilt = [
-      makeTaggedInstance(makeTag('Box'), [1, 2, 3]),
-      makeTaggedInstance(makeTag('Keys'), makeSet([keyword('b'), keyword('a')])),
-      makeTaggedInstance(makeTag('User'), new Map([['name', 'alice']])),
-      makeTaggedInstance(makeTag('Count'), 42)
+      makeTagged(makeTag('Box'), [1, 2, 3]),
+      makeTagged(makeTag('Keys'), makeSet([keyword('b'), keyword('a')])),
+      makeTagged(makeTag('User'), new Map([['name', 'alice']])),
+      makeTagged(makeTag('Count'), 42)
     ];
     for (const value of hostBuilt) {
       expect(deepEqual(await evalQuery(printValue(value)), value)).toBe(true);
@@ -123,25 +124,25 @@ describe('the literal reads back error values and tagged instances', () => {
   });
 });
 
-describe('deepEqual respects TaggedInstance identity on Array / Map / Set', () => {
+describe('deepEqual tells an Array, a Map and a Set under a tag from one under none', () => {
   // Tag mismatch on overlay-shape collections — same content,
   // different (or absent) header tag — must not compare equal.
   // Each branch (Array / Map / Set) gets its own assertion.
   it('rejects tagged Array vs untagged Array with same elements', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTag('A'), [1, 2, 3]);
+    const { makeTagged } = await import('../../src/types.mjs');
+    const tagged = makeTagged(makeTag('A'), [1, 2, 3]);
     expect(deepEqual(tagged, [1, 2, 3])).toBe(false);
   });
 
   it('rejects tagged Map vs untagged Map with same entries', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTag('U'), new Map([['k', 1]]));
+    const { makeTagged } = await import('../../src/types.mjs');
+    const tagged = makeTagged(makeTag('U'), new Map([['k', 1]]));
     expect(deepEqual(tagged, new Map([['k', 1]]))).toBe(false);
   });
 
   it('rejects a tag over a set vs the set with same members', async () => {
-    const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTag('S'), makeSet([1, 2]));
+    const { makeTagged, makeSet } = await import('../../src/types.mjs');
+    const tagged = makeTagged(makeTag('S'), makeSet([1, 2]));
     expect(deepEqual(tagged, makeSet([1, 2]))).toBe(false);
   });
 });
@@ -249,24 +250,20 @@ describe('error-convert coercion edge cases', () => {
     expect(errorVal.descriptor.get('actualType')).toEqual(makeTag('null'));
   });
 
-  it('actualValue ref-equal to the subject of the step is dedup-skipped on lift', async () => {
-    // Subject-shape error on a partial application: actualValue
-    // (the JS context field) is the same reference as the subject
-    // (the pipeValue the step received), which the first stop of the
-    // trail names. errorFromQlang dedup skips the redundant lift; the
-    // descriptor surface stays single-source-of-truth.
+  it('an actualValue equal to the subject the first frame holds is left out of the facts', async () => {
+    // The value refused equals the subject, whatever its identity, so the
+    // first frame of the trail holds it alone [QSERR#site].
     const subject = new Map([['nested', 1]]);
-    const typeErr = new TestsProbeTypeError({ actualValue: subject });
+    const typeErr = new TestsProbeTypeError({ actualValue: new Map([['nested', 1]]) });
     const errorVal = errorFromQlang(typeErr, subject, await langRuntime());
     expect(errorVal.descriptor.has('actualValue')).toBe(false);
     expect(errorVal.descriptor.get('actualType').name).toBe('map');
   });
 
-  it('actualValue distinct from the subject is preserved on lift (drill-down signal)', async () => {
-    // Drill-down case (multi-segment path, element iteration,
-    // full-application captured-arg): actualValue is a different
-    // reference. Lift proceeds so the presence-of-actualValue
-    // surfaces «look here for the offending sub-value».
+  it('an actualValue other than the subject stays among the facts', async () => {
+    // A value refused that is not the subject, a part a path of several keys
+    // reads, an element or the value of an input, stays among the facts as
+    // `:actualValue` [QSERR#site].
     const container = [1, 'x', 3];
     const drilled = 'x';
     const typeErr = new TestsProbeTypeError({ actualValue: drilled, index: 1 });

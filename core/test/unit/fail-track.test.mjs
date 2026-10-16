@@ -1,6 +1,7 @@
-// Tests of `raise` and the `!|` fail-apply combinator, plus edge cases around
-// trail accumulation, re-lift continuity, and verb invocation on the
-// fail-track.
+// `raise`, and the catch, `!|`, which passes a value by and runs its step on
+// the error at rest, a group and a word among them; the trail of the steps a
+// failure skips, and the refusals of the runtime, each under the address of
+// its site [QSERR#raise], [QSERR#catch], [QSERR#site].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -11,12 +12,12 @@ import { catchOriginalError } from '../helpers/error-assertions.mjs';
 // ── raise ──────────────────────────────────────────────
 
 describe('raise', () => {
-  it('bare form wraps pipeValue Map', async () => {
+  it('raises its subject, a map, its entries the facts', async () => {
     const evalResult = await evalQuery('{:kind :oops} | raise !| get /kind');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('bare form on non-Map produces RaiseSubjectNotMapError', async () => {
+  it('refuses a subject that is no map as ::map/raise/SubjectNotMapError', async () => {
     const evalResult = await evalQuery('42 | raise !| type');
     expect(evalResult).toEqual(makeTag('map/raise/SubjectNotMapError'));
   });
@@ -27,55 +28,55 @@ describe('raise', () => {
   });
 });
 
-// ── fail-apply deflect on non-error pipeValue ──────────────────
+// ── `!|` passes a value by ──────────────────────────────────────
 
-describe('fail-apply deflect on non-error', () => {
-  it('null deflects through !|', async () => {
+describe('`!|` passes a value by', () => {
+  it('passes null by', async () => {
     const evalResult = await evalQuery('null !| get /kind');
     expect(evalResult).toBeNull();
   });
 
-  it('Map deflects through !|', async () => {
+  it('passes a map by', async () => {
     const evalResult = await evalQuery('{:a 1} !| get /kind');
     expect(evalResult instanceof Map).toBe(true);
     expect(evalResult.get('a')).toBe(1);
   });
 });
 
-// ── fail-track dispatch through containers ─────────────────────
+// ── `!|` runs a group and a word ───────────────────────────────
 
-describe('fail-track dispatch through ParenGroup and verb', () => {
-  it('fail-apply fires into a ParenGroup step', async () => {
+describe('`!|` runs a group and a word on the error at rest', () => {
+  it('`!|` runs a group on the error at rest', async () => {
     const evalResult = await evalQuery('!{:kind :oops} | raise !| (get /kind)');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('a verb body first step sees exposed descriptor when called via !|', async () => {
+  it('a word called by `!|` runs its steps on the error at rest', async () => {
     const evalResult = await evalQuery(':any/handler ~(get /kind) | !{:kind :oops} | raise !| handler');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
-    // The last stop of the trail holds the steps the error skipped.
-    // `evalPipeline` steps over plain comments on both tracks, so only
-    // the step that calls a word (`count`) joins them [QSERR#rest].
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| get /trail/-1/skipped | parse');
+  it('a comment among the steps a failure skips leaves no step in the trail', async () => {
+    // The last frame of the trail holds the steps the error skipped, and a
+    // comment is whitespace, so `count` alone joins them [QSERR#trail],
+    // [QSSYN#comment].
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trail | last | skipped | parse');
     expect(evalResult).toBe('count');
   });
 
-  it('the steps skipped past a plain comment replay through apply as the bare call after it', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| get /trail/-1/skipped | :t it | 42 | apply t !| type');
+  it('the steps skipped past a comment run again by apply as the call after it', async () => {
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trail | last | skipped | :t it | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
   });
 });
 
 
 describe('source axis prints the declaration for rare body shapes', () => {
-  it('renders bare Call (no args)', async () => {
+  it('renders a call that gives no modifiers as the body of a declaration', async () => {
     expect(await evalQuery('[1 2] | :x count | ::x | source | parse')).toBe(':x count');
   });
 
-  it('a LinePlainComment inside a declaration body leaves no step', async () => {
+  it('a line comment inside the body of a declaration leaves no step', async () => {
     const evalResult = await evalQuery(':x (42 |~| note\n) | ::x | source | parse');
     expect(evalResult).toBe(':x (42)');
   });
@@ -86,14 +87,14 @@ describe('source axis prints the declaration for rare body shapes', () => {
     expect(evalResult).toContain('doc');
   });
 
-  it('renders ErrorLit body', async () => {
+  it('renders an error literal as the body of a declaration', async () => {
     expect(await evalQuery('~(:x !{:a 1}) | parse')).toBe(':x !{:a 1}');
   });
 
-  it('renders leading fail-apply prefix in a declaration body', async () => {
-    // BindStep body is a single Primary, so a `!|` leading
-    // Pipeline-step is wrapped in a ParenGroup at the source level,
-    // and the group keeps its parentheses in print.
+  it('renders a group that opens with `!|` as the body of a declaration', async () => {
+    // The body of a declaration is a step, so a pipeline that opens with
+    // `!|` is written as a group, which keeps its parentheses in print
+    // [QSNAM#declare].
     expect(await evalQuery(':handler (!| get /kind) | ::handler | source | parse')).toBe(':handler (!| get /kind)');
   });
 });
@@ -172,9 +173,8 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('apply args to non-function → CallValueTakesNoModifiersError', async () => {
-    // Freeze a raw value, not a verb. Its record holds a
-    // non-function, so captured args trigger CallValueTakesNoModifiersError on
-    // the value the record holds.
+    // A name that holds a value, called with modifiers, is refused as
+    // `::call/ValueTakesNoModifiersError` [QSNAM#value].
     const refused = await evalQuery('5 | :five it | five 42');
     expect(refused.originalError.name).toBe('ValueTakesNoModifiersError');
     expect(refused.descriptor.get('name').name).toBe('five');
@@ -187,7 +187,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualType').name).toBe('vec');
   });
 
-  it('payload on non-TaggedInstance is refused under the address of payload [QSBLD#fn]', async () => {
+  it('payload on a value under no tag is refused under the address of payload [QSBLD#fn]', async () => {
     expect((await evalQuery('42 | payload')).tag.name).toBe('tagged/payload/SubjectNotTaggedError');
   });
 
@@ -213,21 +213,21 @@ describe('per-site error classes carry unique identity', () => {
     expect(result.descriptor.get('detail')).toBe('x');
   });
 
-  it('payload strips header off every TaggedInstance shape', async () => {
+  it('payload strips the header off every shape of a value under a tag', async () => {
     // Each shape exercises its own branch of `payload`: a tag
     // over a set stacks on it and answers the set, a set answers its
     // vector, and a tagged Map returns a fresh Map without header.
     // The tagged vector and the tag over an atom are covered above via
     // the tests of a tag over each kind of payload.
-    const { isTaggedInstance, isQSet } = await import('../../src/types.mjs');
+    const { isTagged, isSet } = await import('../../src/types.mjs');
     const setResult = await evalQuery(':Tags |~~ Tags. ~~| | ::Tags#[:b :a] | payload');
-    expect(isQSet(setResult)).toBe(true);
+    expect(isSet(setResult)).toBe(true);
     const vecResult = await evalQuery('#[:b :a] | payload');
-    expect(isTaggedInstance(vecResult)).toBe(false);
+    expect(isTagged(vecResult)).toBe(false);
     expect(vecResult.map(k => k.name)).toEqual(['a', 'b']);
     const mapResult = await evalQuery(':User |~~ User. ~~| | ::User{:name "alice"} | payload');
     expect(mapResult instanceof Map).toBe(true);
-    expect(isTaggedInstance(mapResult)).toBe(false);
+    expect(isTagged(mapResult)).toBe(false);
     expect(mapResult.get('name')).toBe('alice');
   });
 

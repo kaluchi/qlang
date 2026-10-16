@@ -4,13 +4,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isQSet } from '../../src/types.mjs';
+import { isSet } from '../../src/types.mjs';
 
 
 describe('distinct — structural equality', () => {
   it('collapses two Maps with identical content', async () => {
     const result = await evalQuery('[{:fqn "a"} {:fqn "b"} {:fqn "a"}] | distinct');
-    expect(isQSet(result)).toBe(true);
+    expect(isSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(2);
     expect(items[0].get('fqn')).toBe('a');
@@ -28,7 +28,7 @@ describe('distinct — structural equality', () => {
 
   it('collapses nested Vec elements with identical content', async () => {
     const result = await evalQuery('[[1 2] [3 4] [1 2]] | distinct');
-    expect(isQSet(result)).toBe(true);
+    expect(isSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(2);
     expect(items[0]).toEqual([1, 2]);
@@ -42,7 +42,7 @@ describe('distinct — structural equality', () => {
 
   it('preserves keyword dedup', async () => {
     const result = await evalQuery('[:a :b :a :c] | distinct');
-    expect(isQSet(result)).toBe(true);
+    expect(isSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(3);
     expect(items.map(k => k.name)).toEqual(['a', 'b', 'c']);
@@ -51,7 +51,7 @@ describe('distinct — structural equality', () => {
   it('holds structural duplicates once, in the one order', async () => {
     const result = await evalQuery(
       '[{:id 2} {:id 1} {:id 2} {:id 3} {:id 1}] | distinct');
-    expect(isQSet(result)).toBe(true);
+    expect(isSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(3);
     expect(items.map(m => m.get('id'))).toEqual([1, 2, 3]);
@@ -59,7 +59,7 @@ describe('distinct — structural equality', () => {
 
   it('holds each of mixed atoms and containers once', async () => {
     const result = await evalQuery('[1 {:a 1} 1 {:a 1} "x" "x"] | distinct');
-    expect(isQSet(result)).toBe(true);
+    expect(isSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(3);
     expect(items[0]).toBe(1);
@@ -69,7 +69,7 @@ describe('distinct — structural equality', () => {
 
   it('identity on a Set subject', async () => {
     const result = await evalQuery('#[1 2 3] | distinct');
-    expect(isQSet(result)).toBe(true);
+    expect(isSet(result)).toBe(true);
     expect([...result]).toEqual([1, 2, 3]);
   });
 });

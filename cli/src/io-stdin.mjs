@@ -1,10 +1,5 @@
-// Read the entire stdin stream into a single String. Returns the
-// empty string when stdin is a TTY (no piped input).
-//
-// `in` calls this through a memoised thunk in main.mjs so a query
-// that never references `in` does not block on input it does not
-// want, and a query that references `in` more than once sees the
-// same content (stdin is consumed once at OS level).
+// The text stdin holds, read to its end, or the empty string where stdin is
+// a terminal, which `main` reads before a query that reads its subject runs.
 // The decisions it exists for: [QSHST#input].
 
 export function readStdinToString(stdin) {

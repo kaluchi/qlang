@@ -3,8 +3,6 @@
 // before a primitive runs, a divisor no zero among them [QSERR#site],
 // [QSBLD#fn], and an answer that left the finite doubles is refused as it is
 // brought under `::number` [QSNUM#arithmetic].
-//
-// The names live in lib/qlang/number.qlang.
 
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';

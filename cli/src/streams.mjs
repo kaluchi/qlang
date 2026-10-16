@@ -1,7 +1,7 @@
 // The primitives of the streams of the command line, `in`, `out`,
 // `err` and `tap`, names its source declares under `::any` [QSDSP#residence],
 // each a plain function over the subject and the inputs of its call
-// [QSDSP#residence], [QSBLD#fn].
+// [QSBLD#fn].
 
 import { printValue } from '@kaluchi/qlang-core';
 import { declareRefusal } from '@kaluchi/qlang-core/errors';

@@ -1,6 +1,6 @@
 {"name":"wrap-with-original","query":"[{:id 1 :name \"a\"}] | map ~(:item it | get {:key /id :record ~(item)})","expect":"[{:key 1 :record {:id 1 :name \"a\"}}]"}
 {"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :k]"}
-{"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| get /trail/0/step","expect":"~(:k 2)"}
+{"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| trail | first | step","expect":"~(:k 2)"}
 {"name":"a-tag-is-declared-once-in-a-scope","query":":T |~~ T. ~~| | :T |~~ T. ~~| !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :T]"}
 {"name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | {:k 1} | raise !| :x 2 !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :x]"}
 {"name":"a-recipe-declares-no-input-of-its-word-again","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :x]"}

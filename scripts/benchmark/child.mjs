@@ -7,7 +7,9 @@
 // for.
 
 import { spawn } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { delimiter, join } from 'node:path';
 
 const SYSTEM_PROMPT = 'You are a careful assistant.';
 const COMMAND_LINE_TOOLS = ['Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(cat:*)', 'Bash(head:*)'];
@@ -16,6 +18,19 @@ const COMMAND_LINE_TOOLS = ['Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)',
 // rewrites an argument that begins with `/` into a path of Windows, which
 // mangles a query that reads a part, and the conversion is off.
 export const CHILD_ENVIRONMENT = Object.freeze({ MSYS_NO_PATHCONV: '1' });
+
+// The environment with the command line of a tree first on the PATH as
+// `qlang`, so a reader of a worktree runs the language of the tree it reads
+// [QSWRK#review].
+export function withTheLanguageOf(repoRoot, env) {
+  const commands = mkdtempSync(join(tmpdir(), 'qlang-of-the-tree-'));
+  const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs');
+  const forTheShell = commandLine.split('\\').join('/');
+  writeFileSync(join(commands, 'qlang'), ['#!/bin/sh', `exec node "${forTheShell}" "$@"`, ''].join('\n'), { mode: 0o755 });
+  writeFileSync(join(commands, 'qlang.cmd'), `@node "${commandLine}" %*\r\n`);
+  const pathKey = Object.keys(env).find(key => key.toUpperCase() === 'PATH') ?? 'PATH';
+  return { ...env, [pathKey]: `${commands}${delimiter}${env[pathKey] ?? ''}` };
+}
 
 // What a tool result of the command line answered: the tag of the
 // first failure it printed, as the language prints it or under JSON, or

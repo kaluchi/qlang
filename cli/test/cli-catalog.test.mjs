@@ -43,7 +43,7 @@ describe('the catalog of the command line', () => {
 
   it('tells a link whose quote does not parse, which falls to the prose', async () => {
     const proseOf = async doc => answerOf(`${doc} | segments | filter ~(type | eq ::string) | join ""`);
-    expect(quoteInProse(await proseOf('|~~ shows a value on stderr ::link~(::any/@tap | doc) ~~|'))).toBe(true);
+    expect(quoteInProse(await proseOf('|~~ shows a value on stderr ::link~(::any/tap | ) ~~|'))).toBe(true);
     expect(quoteInProse(await proseOf('|~~ shows a value on stderr ::link~(::any/tap | doc) ~~|'))).toBe(false);
   });
 });

@@ -25,12 +25,10 @@ const REPL_HELP = `Meta commands:
   .exit    close the REPL (Ctrl+D on an empty line works too)
 
 Editing:
-  Enter               evaluate the current cell (PowerShell / bash
-                      muscle-memory parity)
+  Enter               evaluate the current cell
   Ctrl+Enter / Ctrl+J insert a soft newline at the cursor — keep
                       composing a multi-line cell
-  Alt+Enter           evaluate the current cell (alternate submit
-                      for hosts that intercept Ctrl+Enter)
+  Alt+Enter           evaluate the current cell
   Backspace           delete the character before the cursor
                       (across \`\\n\` if needed — rows collapse)
   Left / Right        move the cursor by one character

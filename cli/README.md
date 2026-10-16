@@ -14,7 +14,7 @@ Provides two binaries — `qlang` and its short alias `ql`.
 ## Usage
 
 ```
-qlang [--json | --raw] [--color=MODE] [--budget=N] <query>
+qlang [--json | --raw] [--color=MODE] [--budget=N] [--fail] <query>
 qlang [--budget=N] -i | --repl [<query>]
 qlang -h | --help
 qlang -V | --version
@@ -50,9 +50,9 @@ qlang '#[:admin :user] | print | out' | qlang --raw 'parse | open | count'
 
 | Code | Meaning |
 |---|---|
-| `0` | the query ran; an error it answers is written as its value |
-| `1` | the query does not parse, or the input is not JSON under `--json` |
-| `2` | usage error (missing or malformed argv) |
+| `0` | every answer, a failure among them |
+| `1` | a defect raised past the fail track; under `--fail`, an answer that is a failure, written as without the flag |
+| `2` | a usage error |
 
 ## REPL
 

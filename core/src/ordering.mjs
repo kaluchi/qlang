@@ -5,14 +5,14 @@
 // them [QSTXT#string], patterns by their
 // text and then their flags [QSTXT#pattern], vectors element
 // by element, a set as its vector, maps by their keys and then their
-// values, a desc by the reverse of its payload's place [QSORD#order], and a
+// values, a desc by the reverse of its payload's place, and a
 // tagged value by its payload. `sort`, `min` and `max`
-// order by it, and so do the ordering predicates, whose heads admit two
-// values of one kind [QSDSP#walk], [QSDSP#residence].
+// order by it, and so do the ordering predicates, whose inputs take a value
+// of the subject's kind [QSDSP#walk], [QSDSP#residence].
 
 import {
   isKeyword, isTag, isRegex, isPath, isDoc, isValueClass,
-  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME
+  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, ELISION_TAG, DESC_TAG
 } from './types.mjs';
 
 // The kinds in their order.
@@ -24,18 +24,15 @@ const REGEX_KIND    = 4;
 const KEYWORD_KIND  = 5;
 const TAG_NAME_KIND = 6;
 // A path ranks after the tag names [QSPTH#value].
-const PATH_KIND     = 6.5;
-const VECTOR_KIND   = 7;
-const SET_KIND      = 8;
-const MAP_KIND      = 9;
-const QUOTE_KIND    = 10;
-const DOC_KIND      = 11;
-const ELISION_KIND  = 12;
-const DESC_KIND     = 13;
-const TAGGED_KIND   = 14;
-
-const ELISION_TAG_NAME = 'elision';
-const DESC_TAG_NAME = 'desc';
+const PATH_KIND     = 7;
+const VECTOR_KIND   = 8;
+const SET_KIND      = 9;
+const MAP_KIND      = 10;
+const QUOTE_KIND    = 11;
+const DOC_KIND      = 12;
+const ELISION_KIND  = 13;
+const DESC_KIND     = 14;
+const TAGGED_KIND   = 15;
 
 function kindOf(value) {
   if (value === null || value === undefined) return NULL_KIND;
@@ -51,8 +48,8 @@ function kindOf(value) {
   if (headerTag === undefined) return shapeKindOf(value);
   if (headerTag.name === SET_TAG_NAME) return SET_KIND;
   if (headerTag.name === QUOTE_TAG_NAME) return QUOTE_KIND;
-  if (headerTag.name === ELISION_TAG_NAME) return ELISION_KIND;
-  if (headerTag.name === DESC_TAG_NAME) return DESC_KIND;
+  if (headerTag.name === ELISION_TAG.name) return ELISION_KIND;
+  if (headerTag.name === DESC_TAG.name) return DESC_KIND;
   return TAGGED_KIND;
 }
 
@@ -86,7 +83,6 @@ function compareText(left, right) {
   return compareNumbers(left.length, right.length);
 }
 
-// compareValues(a, b) → -1 / 0 / 1 — the one order.
 // Two paths rank segment by segment, a shorter one first where one
 // begins the other.
 function compareSegments(left, right) {
@@ -97,6 +93,7 @@ function compareSegments(left, right) {
   return left.length === right.length ? 0 : (left.length < right.length ? -1 : 1);
 }
 
+// compareValues(a, b) → -1 / 0 / 1 — the one order.
 export function compareValues(a, b) {
   return compareKinded(kindOf(a), a, kindOf(b), b);
 }
@@ -178,6 +175,6 @@ function comparePayloads(leftTagged, rightTagged) {
 }
 
 function payloadOf(tagged) {
-  if (isValueClass(tagged, 'taggedInstance')) return [tagged.payload, kindOf(tagged.payload)];
+  if (isValueClass(tagged, 'underTag')) return [tagged.payload, kindOf(tagged.payload)];
   return [tagged, shapeKindOf(tagged)];
 }

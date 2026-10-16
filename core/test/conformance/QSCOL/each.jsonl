@@ -8,7 +8,7 @@
 {"name":"map-answers-what-each-element-answers","query":"[1 2 3] | map ~(add 1)","expect":"[2 3 4]"}
 {"name":"map-keeps-the-keys-of-a-map","query":"{:a 1 :b 2} | map ~(add 1)","expect":"{:a 2 :b 3}"}
 {"name":"map-over-a-set-answers-the-vector-of-the-images","query":"#[1 2 3] | map ~(gt 1)","expect":"[false true true]"}
-{"name":"map-answers-the-first-error-of-its-code","query":"[1 \"x\" \"y\"] | map ~(add 1) !| get /trail/0/subject","expect":"\"x\""}
+{"name":"map-answers-the-first-error-of-its-code","query":"[1 \"x\" \"y\"] | map ~(add 1) !| get /trail/0/0","expect":"\"x\""}
 {"name":"map-answers-under-no-tag-of-the-subject","query":"::Box[1 2] | map ~(add 1)","expect":"[2 3]"}
 {"name":"map-refuses-code-written-without-its-quote","query":"[1 2] | map (add 1) !| type","expect":"::vec/map/code/KindNotTakenError"}
 {"name":"a-sum-over-a-listing-of-the-catalog-counts-every-element","query":"::vec | manifest | map ~(laws | count) | sum | eq (::vec | manifest | sort | map ~(laws | count) | sum)","expect":"true"}

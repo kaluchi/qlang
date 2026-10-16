@@ -11,15 +11,14 @@
 //   node scripts/marks.mjs <path>          the records a file marks
 //   node scripts/marks.mjs --diff <rev>    the records the files changed since a revision mark
 //   node scripts/marks.mjs --touched       the records whose scope changed since they were read against it
-//   node scripts/marks.mjs --touched --debt  the same since they were described, the debt before the marks
-//   node scripts/marks.mjs --reread D44 [--debt]  the hunks of the blocks of a record since it was read
+//   node scripts/marks.mjs --reread D44    the hunks of the blocks of a record since it was read
 //   node scripts/marks.mjs --sister <dir>  the places of the sister project that mark a record
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { baselineOf } from './baseline-walk.mjs';
-import { FATE, FIELD_OPENS, LINK_DEFINITION, JOURNAL } from './decision-records.mjs';
+import { FATE, FIELD_OPENS, LINK_DEFINITION, RUN_LINE, JOURNAL } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 1 << 28 });
@@ -138,21 +137,22 @@ export function marksOfTree(root = repoRoot) {
 }
 
 // The commit each record in force was last described in: the newest that
-// changed a line of it beyond a link, a statement of fate and a citation
-// a merge or a move wrote anew, which leave its decision as it was.
+// changed a line of it beyond a link, a statement of fate, a line of its
+// runs and a citation a merge or a move wrote anew, which leave its
+// decision as it was.
 const LINK_OR_FATE = new RegExp(`${LINK_DEFINITION.source}|^(Pruned of what|Replaced by|Merged into) `);
 const CITATIONS = /\[[DE]\d+(?:,\s*[DE]\d+)*\](?:(?:,\s*|,?\s+and\s+)\[[DE]\d+(?:,\s*[DE]\d+)*\])*/g;
 const beyondCitations = text => text.replace(CITATIONS, '').replace(/"decision":(\[[^\]]*\]|"[^"]*")/g, '"decision":D').replace(/\s+/g, ' ').trim();
 // The lines of a record's hunk that are its decision: a statement of fate,
-// `Replaces in part` and the lines that continue it among them, and a link
-// leave it as it was.
+// `Replaces in part` among them, a line of the runs, each with the lines
+// that continue it, and a link leave it as it was.
 const FIELD_OR_LINK = new RegExp(`${FIELD_OPENS.source}|${LINK_DEFINITION.source}`);
 function decisionOf(lines) {
-  let inFate = false;
+  let inHistory = false;
   return beyondCitations(lines.filter(line => {
-    if (FATE.test(line)) inFate = true;
-    else if (FIELD_OR_LINK.test(line) || line.trim() === '') inFate = false;
-    return !inFate && !LINK_OR_FATE.test(line);
+    if (FATE.test(line) || RUN_LINE.test(line)) inHistory = true;
+    else if (FIELD_OR_LINK.test(line) || line.trim() === '') inHistory = false;
+    return !inHistory && !LINK_OR_FATE.test(line);
   }).join(' '));
 }
 
@@ -204,12 +204,12 @@ function changedBeyondCitations(root, commit, paths) {
 }
 
 function describedIn(root) {
-  const inForce = new Set(git(root, 'ls-files', JOURNAL).split('\n').map(path => path.match(/^docs\/journal\/([DE]\d+)\.md$/)?.[1]).filter(Boolean));
+  const inForce = new Set(git(root, 'ls-files', JOURNAL).split('\n').map(path => path.match(/^docs\/journal\/(D\d+)\.md$/)?.[1]).filter(Boolean));
   const described = new Map();
   const log = git(root, 'log', '-p', '-M', '--unified=0', '--format=%x00%H', '--', JOURNAL);
   for (const entry of log.split('\0').slice(1)) {
     const commit = entry.slice(0, entry.indexOf('\n'));
-    for (const [name, { removed, added }] of sidesOf(entry, section => section.match(/^a\/\S+ b\/docs\/journal\/([DE]\d+)\.md\n/)?.[1])) {
+    for (const [name, { removed, added }] of sidesOf(entry, section => section.match(/^a\/\S+ b\/docs\/journal\/(D\d+)\.md\n/)?.[1])) {
       if (!inForce.has(name) || described.has(name)) continue;
       if (decisionOf(removed) !== decisionOf(added)) described.set(name, commit);
     }
@@ -217,16 +217,15 @@ function describedIn(root) {
   return described;
 }
 
-// touchedRecords(root, { debt }) → the records in force whose scope the
+// touchedRecords(root) → the records in force whose scope the
 // tree changed since it was read against them, each `{ name, commit,
 // files, hunks }`, the hunks of its blocks each `{ path, text }`, the
 // changes the working tree holds among them: what a move of
 // the baseline reads again against the new root [QSWRK#marks]. A record is read
 // against the later of the commit that last described it and the
-// baseline, whose move read again every record its diff touched; with
-// `debt`, against the commit that described it alone, the records no move
-// read again before the marks were set.
-export function touchedRecords(root = repoRoot, { debt = false, baseline = baselineOf(root) } = {}) {
+// baseline, where the history holds one, whose move read again every record
+// its diff touched.
+export function touchedRecords(root = repoRoot, { baseline = baselineOf(root) } = {}) {
   const { blocks } = marksOfTree(root);
   const blocksOfRecord = new Map();
   for (const [path, fileBlocks] of blocks) {
@@ -239,7 +238,7 @@ export function touchedRecords(root = repoRoot, { debt = false, baseline = basel
       }
     }
   }
-  const sinceBaseline = debt || baseline === null ? null : new Set(git(root, 'rev-list', `${baseline}..HEAD`).split('\n').filter(Boolean));
+  const sinceBaseline = baseline === undefined ? null : new Set(git(root, 'rev-list', `${baseline}..HEAD`).split('\n').filter(Boolean));
   const namesOf = new Map();
   for (const [name, described] of describedIn(root)) {
     if (!blocksOfRecord.has(name)) continue;
@@ -268,14 +267,12 @@ function marksOfSister(dir) {
 const [command, argument] = process.argv.slice(2);
 if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(/^([A-Za-z]):/, '/$1:')}` || process.argv[1]?.endsWith('marks.mjs')) {
   if (command === '--touched') {
-    const debt = argument === '--debt';
-    const touched = touchedRecords(repoRoot, { debt });
+    const touched = touchedRecords(repoRoot);
     for (const { name, commit, files } of touched) console.log(`${name}\t${commit.slice(0, 8)}\t${files.length}\t${files.join(' ')}`);
-    console.log(`touched: ${touched.length} records in force whose scope the tree changed since ${debt ? 'they were described' : 'they were read against it, the later of their description and the baseline'} [QSWRK#marks]`);
+    console.log(`touched: ${touched.length} records in force whose scope the tree changed since they were read against it, the later of their description and the baseline [QSWRK#marks]`);
   } else if (command === '--reread') {
-    const debt = process.argv.includes('--debt');
-    const record = touchedRecords(repoRoot, { debt }).find(({ name }) => name === argument);
-    if (record === undefined) console.log(`${argument}: no block of it changed since it was read against the ${debt ? 'commit that described it' : 'later of its description and the baseline'} [QSWRK#marks]`);
+    const record = touchedRecords(repoRoot).find(({ name }) => name === argument);
+    if (record === undefined) console.log(`${argument}: no block of it changed since it was read against the later of its description and the baseline [QSWRK#marks]`);
     else {
       console.log(`${record.name} read against ${record.commit.slice(0, 8)}; the hunks of its blocks since:`);
       for (const { path, text } of record.hunks) console.log(`\n--- ${path}\n${text}`);

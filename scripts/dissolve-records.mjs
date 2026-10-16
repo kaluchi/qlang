@@ -3,18 +3,18 @@
 // in the present, and the run does the rest. A case under a chapter that
 // names the record drops the name; a citation of the record in the code,
 // the tests and the documents of the work names its section where the
-// record overrides one, and is listed for the author where it overrides
-// several; the record gains its line `Dissolved into` the sections and
-// leaves for `replaced/` by `scripts/replaced-records.mjs`. A record that
-// overrides nothing, or a case outside the chapters that names it, is
-// refused, since the case has no section to rest in yet.
+// record overrides one, once in a run, and is listed for the author where
+// it overrides several; the record gains its line `Dissolved into` the
+// sections and leaves for `replaced/` by `scripts/replaced-records.mjs`. A
+// record that overrides nothing, or a case outside the chapters that names
+// it, is refused, since the case has no section to rest in yet.
 //
 // Usage: node scripts/dissolve-records.mjs <Dnn>...
 
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
-import { CITING_CODE_ROOTS, CITING_DOCUMENTS, CODE_FILE, recordsInTransit } from './baseline-walk.mjs';
+import { CITING_DOCUMENTS, citedOnce, isCitingCode, recordsInTransit } from './baseline-walk.mjs';
 import { JOURNAL, REPLACED } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
@@ -40,8 +40,8 @@ function sectionLink(fromPath, section) {
   return `[${section}]: ${target}${anchor === undefined ? '' : `#${anchor}`}`;
 }
 
-// A citation of the record names its section, and the definition of its
-// link leads to the chapter from the document that holds it, once.
+// A citation of the record names its section, once in a run, and the one
+// definition of its link leads to the chapter from the document holding it.
 function sectionCited(path, text, name, section) {
   const definition = sectionLink(path, section);
   const defined = text.split('\n').some(line => line.startsWith(`[${section}]: `));
@@ -49,7 +49,7 @@ function sectionCited(path, text, name, section) {
     if (!line.startsWith(`[${name}]: `)) return [line];
     return defined ? [] : [definition];
   });
-  return lines.join('\n').replaceAll(`[${name}]`, `[${section}]`);
+  return citedOnce(lines.join('\n').replaceAll(`[${name}]`, `[${section}]`), section);
 }
 
 const caseFiles = tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/.test(path));
@@ -72,7 +72,7 @@ for (const name of names) {
     }).join('\n'));
   }
   // A citation names the section, or waits for the author.
-  const citing = tracked.filter(path => (CODE_FILE.test(path) && CITING_CODE_ROOTS.some(root => path.startsWith(`${root}/`))) || CITING_DOCUMENTS.includes(path));
+  const citing = tracked.filter(path => isCitingCode(path) || CITING_DOCUMENTS.includes(path));
   const left = [];
   for (const path of citing) {
     rewrite(path, text => {

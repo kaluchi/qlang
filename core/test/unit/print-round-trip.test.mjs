@@ -4,7 +4,7 @@
 // among them, values under a tag over every payload, a label the source
 // declares among the tags, the constructors of `::qlang` and `::json`, quotes,
 // a quote of a path alone among them [QSPTH#value], docs, errors at rest
-// inside a vector [QSERR#rest], one with a stop on its trail among them, and
+// inside a vector [QSERR#rest], one with a frame on its trail among them, and
 // functions and kinds built by their chains, pages over several lines, inputs,
 // fields, invariants, refusals, facts and laws among them [QSBLD#fn],
 // [QSBLD#kind], each printed, parsed and applied, and held equal to itself by

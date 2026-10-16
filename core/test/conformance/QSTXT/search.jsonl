@@ -7,7 +7,7 @@
 {"name":"empty-subject-not-contains-non-empty","query":"\"\" | contains \"x\"","expect":"false"}
 {"name":"case-sensitive","query":"\"Hello\" | contains \"hello\"","expect":"false"}
 {"name":"needle-equals-subject","query":"\"foo\" | contains \"foo\"","expect":"true"}
-{"name":"a-needle-that-is-no-text-is-refused","query":"\"hi\" | contains 42","expect":"::string/contains/needle/KindNotTakenError!{\n  :expected #[::regex ::string]\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(contains 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"a-needle-that-is-no-text-is-refused","query":"\"hi\" | contains 42","expect":"::string/contains/needle/KindNotTakenError!{\n  :expected #[::regex ::string]\n  :actualValue 42\n  :actualType ::number\n  :trail ::trail[::frame[\"hi\" ~(contains 42)]]\n} | raise"}
 {"name":"filter-vec-by-substring","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(contains \"al\")","expect":"[\"alice\" \"alex\"]"}
 {"name":"filter-by-path-and-contains","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(get /name | contains \"al\") | map /name","expect":"[\"alice\" \"alex\"]"}
 {"name":"a-vector-contains-its-elements","query":"[\"ops\" \"db\"] | contains \"ops\"","expect":"true"}
@@ -19,8 +19,8 @@
 {"name":"empty-prefix-always-true","query":"\"anything\" | startsWith \"\"","expect":"true"}
 {"name":"empty-subject-empty-prefix","query":"\"\" | startsWith \"\"","expect":"true"}
 {"name":"startsWith-case-sensitive","query":"\"Hello\" | startsWith \"hello\"","expect":"false"}
-{"name":"a-subject-that-is-no-string-is-refused","query":"42 | startsWith \"x\"","expect":"::string/startsWith/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(startsWith \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"a-prefix-that-is-no-text-is-refused","query":"\"hi\" | startsWith 42","expect":"::string/startsWith/prefix/KindNotTakenError!{\n  :expected #[::string]\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(startsWith 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"a-subject-that-is-no-string-is-refused","query":"42 | startsWith \"x\"","expect":"::string/startsWith/SubjectNotStringError!{\n  :actualType ::number\n  :trail ::trail[::frame[42 ~(startsWith \"x\")]]\n} | raise"}
+{"name":"a-prefix-that-is-no-text-is-refused","query":"\"hi\" | startsWith 42","expect":"::string/startsWith/prefix/KindNotTakenError!{\n  :expected #[::string]\n  :actualValue 42\n  :actualType ::number\n  :trail ::trail[::frame[\"hi\" ~(startsWith 42)]]\n} | raise"}
 {"name":"filter-vec-by-prefix","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(startsWith \"al\")","expect":"[\"alice\" \"alex\"]"}
 {"name":"filter-by-path-prefix","query":"[{:path \"/usr/bin\"} {:path \"/etc/hosts\"} {:path \"/usr/lib\"}] | filter ~(get /path | startsWith \"/usr\") | map /path","expect":"[\"/usr/bin\" \"/usr/lib\"]"}
 {"name":"suffix-matches","query":"\"hello world\" | endsWith \"world\"","expect":"true"}
@@ -30,8 +30,8 @@
 {"name":"empty-suffix-always-true","query":"\"anything\" | endsWith \"\"","expect":"true"}
 {"name":"empty-subject-empty-suffix","query":"\"\" | endsWith \"\"","expect":"true"}
 {"name":"endsWith-case-sensitive","query":"\"hello\" | endsWith \"World\"","expect":"false"}
-{"name":"endsWith-a-subject-that-is-no-string-is-refused","query":"42 | endsWith \"x\"","expect":"::string/endsWith/SubjectNotStringError!{\n  :actualType ::number\n  :trail [\n    {\n      :step ~(endsWith \"x\")\n      :subject 42\n      :skipped ~()\n    }\n  ]\n} | raise"}
-{"name":"a-suffix-that-is-no-text-is-refused","query":"\"hi\" | endsWith 42","expect":"::string/endsWith/suffix/KindNotTakenError!{\n  :expected #[::string]\n  :actualValue 42\n  :actualType ::number\n  :trail [\n    {\n      :step ~(endsWith 42)\n      :subject \"hi\"\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"name":"endsWith-a-subject-that-is-no-string-is-refused","query":"42 | endsWith \"x\"","expect":"::string/endsWith/SubjectNotStringError!{\n  :actualType ::number\n  :trail ::trail[::frame[42 ~(endsWith \"x\")]]\n} | raise"}
+{"name":"a-suffix-that-is-no-text-is-refused","query":"\"hi\" | endsWith 42","expect":"::string/endsWith/suffix/KindNotTakenError!{\n  :expected #[::string]\n  :actualValue 42\n  :actualType ::number\n  :trail ::trail[::frame[\"hi\" ~(endsWith 42)]]\n} | raise"}
 {"name":"filter-vec-by-suffix","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter ~(endsWith \".txt\")","expect":"[\"alice.txt\" \"alex.txt\"]"}
 {"name":"filter-by-path-suffix","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter ~(get /file | endsWith \".qlang\") | map /file","expect":"[\"a.qlang\" \"c.qlang\"]"}
 {"name":"contains-finds-a-path-among-the-elements","query":"[/a] | contains /a","expect":"true"}

@@ -13,11 +13,11 @@
 // host writes, a part a kind prints its own way standing as that kind prints
 // it [QSPRN#print].
 //
-// A failure a host prints is an alert [QSHST#answer]: its tag and its facts,
-// the data it carries cut to what places the failure. The subject of the first
-// stop of its trail, where the failure arose, and every other fact print
-// within an excerpt each; the subject of every later stop, which the failure
-// only passed, gives way whole. Every `:read` reads its part beneath `!|`.
+// A failure a host prints is an alert [QSHST#answer]: its tag and its facts, the data
+// it carries cut to what places the failure. The subject of the first frame
+// of its trail, where the failure arose, and every other fact print within an
+// excerpt each; the subject of every later frame, which the failure only
+// passed, gives way whole. Every `:read` reads its part beneath `!|`.
 //
 //   elide(value, budget, printedOf?) → the value within the budget
 //   alertOf(error, printedOf?) → the error as an alert
@@ -29,22 +29,22 @@
 // part, or undefined where the forms of the core write it.
 
 import {
-  isVec, isQSet, isQuote, isDoc, isVecOfOwnKind, isQMap, isErrorValue, isValueClass,
-  makeTaggedInstance, makeErrorValue, makePath, makeQuote, makeSet, stampTagHeader, TAG_HEADER_SYMBOL, ELISION_TAG, FAIL_TAG, SET_TAG
+  isVec, isSet, isQuote, isDoc, isVecOfOwnKind, isMap, isErrorValue, isValueClass, isFrame, isTrail,
+  makeTagged, beneathTags, makeErrorValue, makeFrame, makePath, makeQuote, makeSet, makeTrail, stampTagHeader, TAG_HEADER_SYMBOL,
+  ELISION_TAG, FAIL_TAG, SET_TAG
 } from './types.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import { commandStep, docText, printQuoteSource } from './quote.mjs';
 
 const HEAD_CHARACTERS = 40;
 const EXCERPT_CHARACTERS = 300;
-const keepsNone = () => false;
 const printedByTheCore = () => undefined;
 
-const measureBy = printedOf => value => printValue(value, 0, printedOf).length;
+const measureBy = (printedOf, oneLine = false) => value => printValue(value, 0, printedOf, oneLine).length;
 
 // A marker is a map under `::elision`, the tag stamped on the map.
 function isMarker(value) {
-  return isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === ELISION_TAG.name;
+  return isMap(value) && value[TAG_HEADER_SYMBOL]?.name === ELISION_TAG.name;
 }
 
 // A vector of elements as a reader writes one and a set, which halve, a map of
@@ -52,10 +52,10 @@ function isMarker(value) {
 // way. A vector or a map under a tag keeps its own shape, its parts giving
 // way within.
 const isPlainVector = value => isVec(value) && value[TAG_HEADER_SYMBOL] === undefined;
-const isPlainMap = value => isQMap(value) && value[TAG_HEADER_SYMBOL] === undefined;
-const halves = value => isPlainVector(value) || isQSet(value);
+const isPlainMap = value => isMap(value) && value[TAG_HEADER_SYMBOL] === undefined;
+const halves = value => isPlainVector(value) || isSet(value);
 const isText = value => typeof value === 'string' || isDoc(value) || isQuote(value);
-const isTaggedContainer = value => (isVec(value) || isQMap(value)) && !isVecOfOwnKind(value);
+const isTaggedContainer = value => (isVec(value) || isMap(value)) && !isVecOfOwnKind(value);
 
 const textOf = value => (typeof value === 'string' ? value : isDoc(value) ? docText(value) : printQuoteSource(value));
 
@@ -79,36 +79,36 @@ function readOf(start, path, kept = null) {
   const segments = [...start.from, ...path].map(String);
   const steps = segments.length === 0 ? [] : [commandStep('get', [makePath(segments)])];
   if (kept !== null) steps.push(commandStep('drop', [kept]));
-  if (start.caught) steps[0] = makeTaggedInstance(FAIL_TAG, makeQuote([steps[0]]));
+  if (start.caught) steps[0] = makeTagged(FAIL_TAG, makeQuote([steps[0]]));
   return makeQuote(steps);
 }
 
 function marker(fields) {
-  return makeTaggedInstance(ELISION_TAG, new Map(fields));
+  return makeTagged(ELISION_TAG, new Map(fields));
 }
 
 // Every part that may give way, with the path to it: the top when it is a
 // vector or a set of more than one element, and beneath it each vector, set,
 // map, string, doc and quote, a text through the tags over it; a set under a
-// tag keeps its shape as every container under a tag does, a part a kind
-// prints its own way stands as that kind prints it, and the parts `keep`
-// names give way within, never whole.
-function partsOf(value, path, keep, printedOf, parts, underTag = false) {
+// tag keeps its shape as every container under a tag does, a frame its steps
+// and its place, its subject alone giving way [QSHST#answer], and a part a kind
+// prints its own way stands as that kind prints it.
+function partsOf(value, path, printedOf, parts, underTag = false) {
   if (isMarker(value) || printedOf(value) !== undefined) return;
+  if (isFrame(value)) return partsOf(value[0], [...path, 0], printedOf, parts);
   const beneath = path.length > 0;
-  const kept = keep(path);
   if (beneath && isText(value)) parts.push({ path, value });
   if (halves(value)) {
-    if (!kept && !underTag && (beneath || vectorParts(value).elements.length > 1)) parts.push({ path, value });
-    value.forEach((element, index) => partsOf(element, [...path, index], keep, printedOf, parts));
+    if (!underTag && (beneath || vectorParts(value).elements.length > 1)) parts.push({ path, value });
+    value.forEach((element, index) => partsOf(element, [...path, index], printedOf, parts));
   } else if (isPlainMap(value)) {
-    if (beneath && !kept) parts.push({ path, value });
-    for (const [key, entryValue] of value) partsOf(entryValue, [...path, key], keep, printedOf, parts);
+    if (beneath) parts.push({ path, value });
+    for (const [key, entryValue] of value) partsOf(entryValue, [...path, key], printedOf, parts);
   } else if (isTaggedContainer(value)) {
-    if (isVec(value)) value.forEach((element, index) => partsOf(element, [...path, index], keep, printedOf, parts));
-    else for (const [key, entryValue] of value) partsOf(entryValue, [...path, key], keep, printedOf, parts);
-  } else if (isValueClass(value, 'taggedInstance')) {
-    partsOf(value.payload, path, keep, printedOf, parts, true);
+    if (isVec(value)) value.forEach((element, index) => partsOf(element, [...path, index], printedOf, parts));
+    else for (const [key, entryValue] of value) partsOf(entryValue, [...path, key], printedOf, parts);
+  } else if (isValueClass(value, 'underTag')) {
+    partsOf(value.payload, path, printedOf, parts, true);
   }
 }
 
@@ -123,7 +123,7 @@ function vectorParts(value) {
 function isRemainder(value) {
   const read = isMarker(value) ? value.get('read') : null;
   const last = isQuote(read) ? read[read.length - 1] : null;
-  return isQMap(last) && last.get('name')?.name === 'drop';
+  return isMap(last) && last.get('name')?.name === 'drop';
 }
 
 // The marker a part gives way to whole: a text's with its head, a vector's
@@ -147,7 +147,7 @@ function wholeOf(part, start) {
 function halvedTo({ path, value }, kept, start, working) {
   const { elements, standsFor } = vectorParts(value);
   const halved = [...elements.slice(0, kept), marker([['size', elements.length - kept + standsFor], ['read', readOf(start, path, kept)]])];
-  if (isQSet(value)) stampTagHeader(halved, SET_TAG);
+  if (isSet(value)) stampTagHeader(halved, SET_TAG);
   working.add(halved);
   return halved;
 }
@@ -170,8 +170,8 @@ function leastOf(part, start, working) {
 
 function replacedAt(value, path, replacement, working) {
   if (path.length === 0) return replacement;
-  if (isValueClass(value, 'taggedInstance')) {
-    const wrapped = makeTaggedInstance(value.tag, replacedAt(value.payload, path, replacement, working));
+  if (isValueClass(value, 'underTag')) {
+    const wrapped = makeTagged(value.tag, replacedAt(value.payload, path, replacement, working));
     working.add(wrapped);
     return wrapped;
   }
@@ -190,9 +190,9 @@ function replacedAt(value, path, replacement, working) {
 // value taken.
 function inOrder(value, working) {
   if (!working.has(value)) return value;
-  if (isValueClass(value, 'taggedInstance')) return makeTaggedInstance(value.tag, inOrder(value.payload, working));
-  if (isQSet(value)) return makeSet(value.map(element => inOrder(element, working)));
-  const rebuilt = isQMap(value)
+  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, inOrder(value.payload, working));
+  if (isSet(value)) return makeSet(value.map(element => inOrder(element, working)));
+  const rebuilt = isMap(value)
     ? new Map([...value].map(([key, part]) => [key, inOrder(part, working)]))
     : value.map(part => inOrder(part, working));
   const header = value[TAG_HEADER_SYMBOL];
@@ -217,14 +217,15 @@ function partGivingWay(sized) {
 // While the print exceeds the budget, a part gives way among those whose
 // least prints shorter than they do, a vector halving on to its least at the
 // most; where no part's least is shorter, the view stands over the budget
-// [QSPRN#elide].
-function elideWithin(value, budget, start, keep, printedOf) {
-  const sizeOf = measureBy(printedOf);
+// [QSPRN#elide]. A view that prints on one line, the subject of a frame, is
+// measured so [QSHST#answer].
+function elideWithin(value, budget, start, printedOf, oneLine = false) {
+  const sizeOf = measureBy(printedOf, oneLine);
   const working = new WeakSet();
   let view = value;
   while (sizeOf(view) > budget) {
     const parts = [];
-    partsOf(view, [], keep, printedOf, parts);
+    partsOf(view, [], printedOf, parts);
     const sized = parts.map(part => ({ part, size: sizeOf(part.value) }))
       .filter(({ part, size }) => sizeOf(leastOf(part, start, working)) < size);
     if (sized.length === 0) break;
@@ -235,7 +236,7 @@ function elideWithin(value, budget, start, keep, printedOf) {
 }
 
 export function elide(value, budget, printedOf = printedByTheCore) {
-  return elideWithin(value, budget, OF_THE_VALUE, keepsNone, printedOf);
+  return elideWithin(value, budget, OF_THE_VALUE, printedOf);
 }
 
 // A fact of an alert within its excerpt, beneath the read that reaches
@@ -244,32 +245,30 @@ export function elide(value, budget, printedOf = printedByTheCore) {
 // `elide` cuts it; a value whose cut still passes the excerpt, a map at its
 // top keeping its keys, gives way whole as a subject the failure passed
 // does, so the excerpt holds whatever data the failure arose over.
-function excerptOf(value, read, printedOf) {
+function excerptOf(value, read, printedOf, oneLine = false) {
   if (isText(value) && printedOf(value) === undefined && lengthOf(textOf(value)) > EXCERPT_CHARACTERS) return wholeOf({ path: [], value }, read);
-  const cut = elideWithin(value, EXCERPT_CHARACTERS, read, keepsNone, printedOf);
-  return measureBy(printedOf)(cut) > EXCERPT_CHARACTERS ? passedOver(value, read, printedOf) : cut;
+  const cut = elideWithin(value, EXCERPT_CHARACTERS, read, printedOf, oneLine);
+  return measureBy(printedOf, oneLine)(cut) > EXCERPT_CHARACTERS ? passedOver(value, read, printedOf, oneLine) : cut;
 }
 
 // A subject the failure only passed, given way whole where its marker is
 // the shorter print: the characters of a text through the tags over it,
 // the elements or the entries it stands for, and the read that reaches it.
-function passedOver(value, read, printedOf) {
-  const sizeOf = measureBy(printedOf);
-  let beneath = value;
-  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
-  const size = isText(beneath) ? lengthOf(textOf(beneath)) : isVec(value) ? value.length : isQMap(value) ? value.size : sizeOf(value);
+function passedOver(value, read, printedOf, oneLine = false) {
+  const sizeOf = measureBy(printedOf, oneLine);
+  const beneath = beneathTags(value);
+  const size = isText(beneath) ? lengthOf(textOf(beneath)) : isVec(value) ? value.length : isMap(value) ? value.size : sizeOf(value);
   const shown = marker([['size', size], ['read', readOf(read, [])]]);
   return sizeOf(shown) < sizeOf(value) ? shown : value;
 }
 
-// The trail of an alert: each stop keeps its step and what it skipped,
-// the subject of the first within its excerpt, of every later one given
-// way whole.
-function stopsOf(trail, read, printedOf) {
-  return Object.freeze(trail.map((stop, index) => {
-    const subjectRead = readBelow(read, [index, 'subject']);
-    const subject = stop.get('subject');
-    return Object.freeze(new Map(stop).set('subject', index === 0 ? excerptOf(subject, subjectRead, printedOf) : passedOver(subject, subjectRead, printedOf)));
+// The trail of an alert: each frame keeps its steps and its place, the
+// subject of the first within its excerpt, of every later one given way
+// whole, each measured on the one line a frame prints on [QSHST#answer].
+function framesOf(trail, read, printedOf) {
+  return makeTrail(trail.map(([subject, steps, place = null], index) => {
+    const subjectRead = readBelow(read, [index, 0]);
+    return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true) : passedOver(subject, subjectRead, printedOf, true), steps, place);
   }));
 }
 
@@ -277,20 +276,20 @@ export function alertOf(error, printedOf = printedByTheCore) {
   const facts = new Map();
   for (const [name, value] of error.descriptor) {
     const factRead = readBelow(OF_THE_FACTS, [name]);
-    facts.set(name, name === 'trail' ? stopsOf(value, factRead, printedOf) : excerptOf(value, factRead, printedOf));
+    facts.set(name, isTrail(value) ? framesOf(value, factRead, printedOf) : excerptOf(value, factRead, printedOf));
   }
   return makeErrorValue(error.tag, facts);
 }
 
-// Within a budget an alert gives way within its facts: its trail keeps
-// its stops, each of which may give way within, so the error stays one
-// the core builds, and every `:read` reads beneath `!|`.
+// Within a budget an alert gives way within its facts, its trail keeping its
+// frames, so the error stays one the core builds, and every `:read` reads
+// beneath `!|`.
 export function elideAnswer(answer, budget = null, printedOf = printedByTheCore) {
   if (!isErrorValue(answer)) return budget === null ? answer : elide(answer, budget, printedOf);
   const alert = alertOf(answer, printedOf);
   if (budget === null) return alert;
   const sizeOf = measureBy(printedOf);
   const header = sizeOf(alert) - sizeOf(alert.descriptor);
-  const facts = elideWithin(new Map(alert.descriptor), budget - header, OF_THE_FACTS, path => path[0] === 'trail' && path.length <= 2, printedOf);
+  const facts = elideWithin(new Map(alert.descriptor), budget - header, OF_THE_FACTS, printedOf);
   return makeErrorValue(alert.tag, facts);
 }

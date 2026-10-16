@@ -1,6 +1,5 @@
 |~ `::any`, the kind beneath every kind, and what is declared under it:
-   the refusal of a host's value JSON has no form for, and the words
-   every value answers.
+   the words every value answers.
    The decisions it exists for: [QSDSP#residence]. ~|
 
 :any
@@ -301,17 +300,16 @@
 
 :any/print
   |~~ Answers the text that reads back as the subject, `42 | print`
-      answering `"42"`, the text the command line shows for an answer
-      other than a string, which it shows as it is. An atom prints as
-      its literal, a string inside its quotes; a vector and a map by
-      their brackets around the print of each part; a set, a quote, a
-      doc and an error by brackets of their own; any other value under a
-      tag as its tag before the print of its payload. A set prints in
-      its one order, and the text reads back as the value by `parse`
-      and `apply`. A kind may answer a `print` of its own declared under
-      it, `:Box/print`, and the print of a value takes it for each part
-      of that kind. The call takes no value: a print within a budget is
-      `elide 80 | print`.
+      answering `"42"`, the text a host shows for an answer other than a
+      string. An atom prints as its literal, a string inside its quotes;
+      a vector and a map by their brackets around the print of each part;
+      a set, a quote, a doc and an error by brackets of their own; any
+      other value under a tag as its tag before the print of its payload.
+      A set prints in its one order, and the text reads back as the value
+      by `parse` and `apply`. A kind may answer a `print` of its own
+      declared under it, `:Box/print`, and the print of a value takes it
+      for each part of that kind. The call takes no value: a print within
+      a budget is `elide 80 | print`.
       ::link~(::any/json | doc) ::link~(::any/elide | doc)
   ~~|
   ::fn
@@ -364,9 +362,9 @@
       marker's `:size` counts what it stands for, a text by its
       characters as `count` counts them, and its `:read`, applied to the
       value `elide` took,
-      answers the part left out. The call gives the budget, a number; the
-      command line applies `elide` to every answer it prints when
-      `--budget=N` asks it to.
+      answers the part left out. The call gives the budget, a number; a
+      host applies `elide` to every answer it prints when a reader asks
+      it for a budget.
       ::link~(::elision | doc) ::link~(::any/print | doc)
   ~~|
   ::fn
@@ -377,7 +375,7 @@
         |~~ The budget is a number of characters, `elide 80`. ~~|
     | holds :budget/NotCountError
         |~~ The budget is a whole count of characters above zero,
-            `elide 80`, as the command line's `--budget` takes it.
+            `elide 80`.
         ~~|
         ~(allOf (gt 0) ~(eq (floor)))
     | throws :budget/NotGivenError
@@ -724,8 +722,8 @@
       a function, or a name that holds one, `apply double`, and a
       function takes its arguments as a vector, as a call holds its
       objects, `5 | apply f [3]`. Its steps run in order, a
-      leading `!|` routing the first through the fail track, so a
-      pipeline suffix a `:trail` records runs again, as held code runs. Code held
+      leading `!|` routing the first through the fail track, so the steps
+      a frame of a trail skipped run again, as held code runs. Code held
       as the subject runs on itself by `apply it`, and text runs once
       `parse` reads it, `"10 | add 3" | parse | apply it`. The code runs
       under the fork rule: its declarations stay inside it, and only its
@@ -815,7 +813,7 @@
         ~(5 | apply ~(!| 0) | eq 5)
     | proves :runsARecordedSuffixAgain
         |~~ The steps a trail skipped run again on a value. ~~|
-        ~(1 | add "x" | mul 2 | add 3 !| (:rest (get /trail/0/skipped) | 5 | apply rest) | eq 13)
+        ~(1 | add "x" | mul 2 | add 3 !| (:rest (trail | first | skipped) | 5 | apply rest) | eq 13)
     | impl ::builtin{}
 
 :any/env
@@ -1073,14 +1071,13 @@
       page answers its text by `content`, its links by `links` and its
       snippets by `snippets`, and the laws of the name stand under it,
       `::vec/take | laws`. Any other value reads the page of its kind, a
-      keyword among them, `:limit | doc` the page of `::keyword`, and the
-      `:kind` field of a map names nothing. The anchor, a keyword
-      after `doc`, reads the page of the member the subject holds under
-      it, the word a value calls or an input of a word; a vector of
-      anchors walks a path, each read within the page the one before
-      reached, and a set of anchors reads a page at each. A name nothing
-      declares is refused, with the addresses where a word of that name
-      lives, as is an anchor no member answers.
+      keyword among them, `:limit | doc` the page of `::keyword`. The
+      anchor, a keyword after `doc`, reads the page of the member the
+      subject holds under it, the word a value calls or an input of a
+      word; a vector of anchors walks a path, each read within the page
+      the one before reached, and a set of anchors reads a page at each.
+      A name nothing declares is refused, with the addresses where a word
+      of that name lives, as is an anchor no member answers.
       ::link~(::any/laws | doc) ::link~(::doc | doc)
   ~~|
   ::fn
@@ -1132,9 +1129,6 @@
         ~(:limit |~~ The cap. ~~| 5
           | get [~(:limit | doc) ~(::limit | doc | content)]
           | eq (get [~(::keyword | doc) " The cap. "]))
-    | proves :readsNoKindFromAField
-        |~~ A map reads the page of maps, whatever its `:kind` says. ~~|
-        ~({:kind ::set} | doc | eq (::map | doc))
     | proves :readsAMemberByAnAnchor
         |~~ An anchor reads the page of a member. ~~|
         ~(::map | doc :minus | eq (::map/minus | doc))
@@ -1453,21 +1447,21 @@
     | impl ~(:subject it | doc | get [~(it) ~(subject | laws)])
 
 :any/tag
-  |~~ Answers the subject under the name the call gives, a tag name:
-      `5 | tag ::Box` answers `::Box#5`, a value minted at run time as
-      the literal `::Box#5` mints it where it is written, its type the
-      tag and its payload the subject. Given no name, it reads the pair
-      `get [~(type) ~(payload)]` answers, `[::Box 5] | tag`, so a value split tags
-      back into itself. A tag of a kind mints through the kind:
-      `5 | tag ::number` answers `5`, a payload the kind refuses is
-      refused, `"5" | tag ::number`, and a kind the reader declares
-      holds its invariants. A tag over a tagged value nests it, a label
-      over a value already under it standing once, `::Lab::Lab[1]`
-      reading `::Lab[1]`, but for `::desc`, whose reversals stack;
-      replacing the tag goes through the payload,
-      `payload | tag ::Crate`. A tag over an error at rest names its
-      site, `[::Late !{:by 3}] | tag` answering `::Late!{:by 3}`, and
-      `raise` raises it under that tag.
+  |~~ Answers the subject under the name the call gives, a tag name,
+      laying the tag over the subject through its constructor as the
+      literal does where it is written: `5 | tag ::Box` answers
+      `::Box#5`, its type the tag and its payload the subject. Given no
+      name, it reads the pair `get [~(type) ~(payload)]` answers,
+      `[::Box 5] | tag`, so a value split tags back into itself. A tag of
+      a kind is laid through the kind: `5 | tag ::number` answers `5`, a
+      payload the kind refuses is refused, `"5" | tag ::number`, and a
+      kind the reader declares holds its invariants. A tag over a tagged
+      value nests it, a label over a value already under it standing
+      once, `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` reading `::Lab[1]`, but
+      for `::desc`, whose reversals stack; replacing the tag goes through
+      the payload, `payload | tag ::Crate`. A tag over an error at rest
+      names its site, `[::Late !{:by 3}] | tag` answering
+      `::Late!{:by 3}`, and `raise` raises it under that tag.
       The call takes one name; a keyword, `:box`, names a field and no
       kind.
       ::link~(::any/type | doc) ::link~(::tagged/payload | doc)
@@ -1510,7 +1504,7 @@
     | proves :tagsASplitBack
         |~~ A split value tags back into itself. ~~|
         ~(:Box |~~ A box. ~~| | ::Box[1 2 3] | get [~(type) ~(payload)] | tag | eq ::Box[1 2 3])
-    | proves :mintsThroughTheKind
+    | proves :laysThroughTheKind
         |~~ A tag of a kind of the core reads the payload as the kind. ~~|
         ~(5 | tag ::number | eq 5)
     | proves :refusesAPayloadTheKindRefuses
@@ -2013,8 +2007,8 @@
       several kinds, it answers whether the subject is of one of them,
       and given none, false. A kind no tag of the walk names is not
       reached, so a misspelt kind, `is ::Numbr`, answers false and is
-      not refused. It answers and holds nothing: an input of a word is
-      held to its kinds by the `takes` that declares it.
+      not refused. An input of a word is held to its kinds by the `takes`
+      that declares it.
       ::link~(::any/type | doc) ::link~(::any/tag | doc)
       ::link~(::fn/takes | doc)
   ~~|

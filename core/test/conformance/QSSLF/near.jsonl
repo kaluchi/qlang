@@ -4,7 +4,7 @@
 {"name":"an-axis-refusal-names-the-tags-near-its-name","query":"::str | binding !| get /nearest | has ::string","expect":"true"}
 {"name":"a-docs-refusal-names-the-tags-near-its-name","query":"::strng | doc !| get /nearest | has ::string","expect":"true"}
 {"name":"a-name-is-no-guess-for-itself","query":"::pipeline | doc !| get /nearest","expect":"[]"}
-{"name":"an-unresolved-name-names-its-nearest","query":"[1 2 3] | filtr ~(gt 1) !| get /nearest","expect":"[:filter]"}
+{"name":"a-name-that-reaches-nothing-is-refused-with-the-names-near-it","query":"[1 2 3] | filtr ~(gt 1) !| get /nearest","expect":"[:filter]"}
 {"name":"the-names-near-a-tag-stand-at-its-depth","query":"::str | doc !| get /nearest","expect":"[::string]"}
 {"name":"the-names-near-an-address-stand-at-its-depth","query":"vec/srot !| get /nearest","expect":"[::vec/sort]"}
 {"name":"an-anchor-a-page-lacks-names-the-members-near","query":"::qlang | doc :pipelin !| get /nearest","expect":"[:pipeline]"}

@@ -7,12 +7,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
+import { createSession } from '../../src/session.mjs';
 import {
   keyword,
   formOf,
   isKeyword,
-  isQMap,
-  isQSet,
+  isMap,
+  isSet,
   isVec,
   makeSet,
   makeTag,
@@ -45,9 +46,9 @@ describe('types.mjs', () => {
 
   it('value-class predicates', () => {
     expect(isKeyword(keyword('x'))).toBe(true);
-    expect(isQMap(new Map())).toBe(true);
-    expect(isQSet(makeSet([]))).toBe(true);
-    expect(isQSet([])).toBe(false);
+    expect(isMap(new Map())).toBe(true);
+    expect(isSet(makeSet([]))).toBe(true);
+    expect(isSet([])).toBe(false);
     expect(isVec([])).toBe(true);
   });
 });
@@ -219,9 +220,9 @@ describe('runtime/string.mjs lines', () => {
 });
 
 describe('source on a word, a declaration of it and a tag', () => {
-  // `::name | source` returns the quote of the declaring BindStep,
-  // which `parse` prints as its text. Same axis covers a name (Keyword
-  // subject) and a node of the tree (tag subject).
+  // `source` reads a name by its tag, the quote of the declaration written
+  // under its address, which `parse` prints as its text, and a keyword by
+  // its kind [QSSLF#axis].
 
   it('source on the address of a word returns the whole declaration', async () => {
     const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | parse');
@@ -235,11 +236,11 @@ describe('source on a word, a declaration of it and a tag', () => {
 });
 
 describe('runtime/control.mjs if and coalesce', () => {
-  it('if with cond truthy runs the then branch', async () => {
+  it('if runs the then branch when its condition holds', async () => {
     expect(await evalQuery('75 | if (gte 60) ~("pass") ~("fail")')).toBe('pass');
   });
 
-  it('if with cond falsy runs the else branch', async () => {
+  it('if runs the else branch when its condition fails', async () => {
     expect(await evalQuery('5 | if (gte 60) ~("pass") ~("fail")')).toBe('fail');
   });
 
@@ -247,21 +248,21 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTag('any/if/condition/KindNotTakenError'));
   });
 
-  it('if treats false literal as falsy', async () => {
+  it('if runs the else branch when its condition is the literal `false`', async () => {
     expect(await evalQuery('0 | if false ~("yes") ~("no")')).toBe('no');
   });
 
-  it('if treats 0 as truthy', async () => {
+  it('if computes its condition against the subject, `eq 0` failing on five', async () => {
     expect(await evalQuery('5 | if (eq 0) ~("zero") ~("non")')).toBe('non');
   });
 
   it('if only the selected branch runs (else branch never evaluates)', async () => {
-    // The else branch contains div(0), which would break the law of the
-    // divisor if evaluated. The cond is truthy so the else branch is skipped.
+    // The condition holds, so the else branch, `div 0`, a division by zero
+    // the divisor refuses, never runs.
     expect(await evalQuery('10 | if (gt 0) ~("positive") ~(div 0)')).toBe('positive');
   });
 
-  it('if branches re-project from pipeValue, not from cond result', async () => {
+  it('if runs the chosen branch against the subject', async () => {
     expect(await evalQuery('{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary')).toBe(110);
   });
 
@@ -289,9 +290,21 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:s ""} | coalesce /missing /s ~("default")')).toBe('');
   });
 
-  it('coalesce short-circuits after first non-null (does not evaluate later alts)', async () => {
-    // div(0) would raise; coalesce never reaches it because /a is non-null
-    expect(await evalQuery('{:a 1} | coalesce /a ~(div 0)')).toBe(1);
+  it('coalesce leaves the alternatives after the first value unrun [QSCND#coalesce]', async () => {
+    // A word of the host counts its runs: the walk ends at `/a`, a value,
+    // and reaches the word where `/b` fails.
+    let runs = 0;
+    const counting = await createSession({
+      sources: [{
+        uri: 'tests/counted',
+        source: ':any/counted ::builtin{}',
+        impls: { 'any/counted': subject => { runs++; return subject; } }
+      }]
+    });
+    expect((await counting.evalCell('{:a 1} | coalesce /a ~(counted)')).result).toBe(1);
+    expect(runs).toBe(0);
+    await counting.evalCell('{:a 1} | coalesce /b ~(counted)');
+    expect(runs).toBe(1);
   });
 
   it('coalesce keeps false as a value', async () => {

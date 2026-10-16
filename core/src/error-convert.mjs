@@ -1,4 +1,4 @@
-import { keyword, makeErrorValue, makeTag, makeTaggedInstance, typeKeyword } from './types.mjs';
+import { keyword, makeErrorValue, makeTag, makeTagged, typeKeyword, ERROR_TAG } from './types.mjs';
 import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
 import { deepEqual } from './equality.mjs';
@@ -14,8 +14,6 @@ recordRefusal('call/HostFailureError');
 const BuiltinRefusalFactNotDeclaredError = declareInvariantError('builtin/RefusalFactNotDeclaredError',
   ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`);
 
-const ERROR_KIND_NAME = 'error';
-
 const SPAN_TAG = makeTag('span');
 
 // spanOfLocation(loc, source) → the stretch of the source a location names
@@ -28,7 +26,7 @@ export function spanOfLocation(loc, source) {
     const lineStart = offset - (column - 1);
     return [codePointsIn(source, 0, offset), line, codePointsIn(source, lineStart, offset) + 1];
   };
-  return makeTaggedInstance(SPAN_TAG, [...point(loc.start), ...point(loc.end)]);
+  return makeTagged(SPAN_TAG, [...point(loc.start), ...point(loc.end)]);
 }
 
 // The code points of the source between two offsets of its UTF-16 text.
@@ -42,7 +40,7 @@ const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).le
 // defect of the runtime.
 export function factsInOrder(tag, facts, env) {
   const ordered = new Map();
-  for (const name of [...namesDeclaredUnder(env, tag.name), ...namesDeclaredUnder(env, ERROR_KIND_NAME)]) {
+  for (const name of [...namesDeclaredUnder(env, tag.name), ...namesDeclaredUnder(env, ERROR_TAG.name)]) {
     if (facts.has(name) && !ordered.has(name)) ordered.set(name, facts.get(name));
   }
   for (const name of facts.keys()) {
@@ -53,7 +51,7 @@ export function factsInOrder(tag, facts, env) {
 
 // The error a refusal of the runtime raised: the facts its site handed
 // with the kind of the value refused, the value left out where it equals
-// the subject the first stop holds [QSERR#site].
+// the subject the first frame holds [QSERR#site].
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTag(qlangError.address);
   const facts = new Map();
@@ -145,12 +143,11 @@ function excerptAroundLocation(source, location) {
 const CAUSES_RECOUNTED = 8;
 
 // A JavaScript error escaping an implementation is a failure of the
-// host: a tag of the language and the facts every host can give, its
-// account and the accounts of the failures beneath it, so a port of the
-// runtime to another language changes no fact a query reads [QSHST#answer],
-// [QSERR#site]. The step that failed stands in the trail; the stack, the class
-// and the fields of the error stay with the host in `originalError`, and
-// a host that has facts to hand declares a refusal of its own.
+// host: a tag of the language, its account and the accounts of the failures
+// beneath it [QSHST#answer], [QSERR#site]. The step that failed stands in the
+// trail; the stack, the class and the fields of the error stay with the host
+// in `originalError`, and a host that has facts to hand declares a refusal of
+// its own.
 export function errorFromForeign(jsError, node, env) {
   const tag = makeTag('call/HostFailureError');
   const facts = new Map([['message', accountOf(jsError)]]);

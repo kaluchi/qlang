@@ -1,9 +1,9 @@
 // HTML renderer over core's AST tokenizer. The token stream
 // (kind + offsets) lives in @kaluchi/qlang-core/highlight; this
 // file only paints each token kind into its `<span class="…">`
-// envelope and HTML-escapes the slice. Same renderer is reused by
-// the playground (browser) and the docs build (Node) — core ships
-// pure JS with zero runtime deps so both bundles inline cleanly.
+// envelope and HTML-escapes the slice, for the examples the build of the
+// site paints and for the playground and the REPL of the site in the
+// browser.
 //
 // Usage:
 //   highlightQlang(src, builtins) → HTML string
@@ -12,8 +12,8 @@
 //     `builtins` Set<string> of the names of words that resolve through
 //                langRuntime — the playground builds this once at
 //                startup and reuses it across every highlighted
-//                snippet. Pass null to treat the name of every call
-//                as user-defined.
+//                snippet. Pass null to paint the name of every call
+//                as a reader's name.
 // The decisions it exists for: [QSWRK#tooling].
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';

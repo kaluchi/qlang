@@ -18,7 +18,7 @@ const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'u
 
 const replacedWhole = text => /^(Replaced by|Merged into|Dissolved into|Filed under the (?:principles|tooling) by) /m.test(text);
 const moving = readdirSync(recordsDir)
-  .filter(name => /^[DE]\d+\.md$/.test(name) && replacedWhole(readFileSync(join(recordsDir, name), 'utf8')));
+  .filter(name => /^D\d+\.md$/.test(name) && replacedWhole(readFileSync(join(recordsDir, name), 'utf8')));
 mkdirSync(join(recordsDir, 'replaced'), { recursive: true });
 // A record leaving names, under its title, the commit its text was last
 // true of, `Left at`, and each path of the tree it names in backticks

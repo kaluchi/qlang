@@ -58,7 +58,7 @@ on. `!|` passes a value by. A value written after `!|` is the recovery
 the catch answers. A pipe written before `!|`, `a | !| b`, stands for the
 combinator after it. `!|` opens an error under its tag through the
 tag's label, and a label whose payload takes no facts refuses it with a
-stop at the step of the catch. `ok` answers `true`, so `ok !| false`
+frame at the step of the catch. `ok` answers `true`, so `ok !| false`
 asks whether the step before stood. A fact is taken on the way and a
 failure recovered by its type in lines of `!| … | raise`.
 
@@ -79,47 +79,85 @@ true
 ## trail
 
 A raised error holds the facts of its site and, after them, the path it
-flew under `:trail`: a vector of stops from the step where it arose to
-the step where it is read, each stop `{:step :subject :skipped}`, the
-step that raised the error or handed it on, the subject that step had,
-and the steps of its pipeline the error skipped after it, printed
-without the pipe of their head. A step whose answer is a failure its
-subject was not adds a stop: a step that fails, `raise`, and a step that
-answers a failure from inside it, the call of a word, a group, a word
-running a quote. `/trail/0` is where the error arose and
-`/trail/-1/skipped` the steps skipped at the level that reads it, which
-`apply` runs again as held code [QSQUO#held]. An error at rest holds the
-facts it is written with; one that writes a `:trail` that holds a stop
-resumes that path when raised and adds no stop, and an empty `:trail` is
-no path, as an error holds none, so its raise starts the path at its own
-stop, the steps the failure skips after it joining that stop, as the
-raise of a map that writes no `:trail` does: every failure a step answers
-holds its path from its first stop, and an error a catch opened, raised
-again, is the error it was. A trail other
-than a plain vector of plain maps, each holding a quote under
-`:skipped`, is refused as `::error/TrailNotVecError`, a vector or a stop
-under a tag among them. The word `trail` answers the path,
-`[]` for an error that holds none, refuses a subject that is no
-error as `::error/trail/SubjectNotErrorError` and an error whose `:trail`
-is no path, which its literal may write, by its answer,
-`::error/trail/answer/KindNotTakenError` [QSBLD#answer], while `/trail`
-reads the key and is refused where there is none.
+flew under `:trail`, a value of `::trail`: a frame for each step that
+raised it or handed it on, from the step where it arose to the step
+where it is read. A frame is a value of `::frame`, the vector of the
+subject the step met, the quote of the steps of its level from the one
+that broke, the first broken and the rest left unrun, and, where the
+step ran its code on a part of its subject, the path of that part; a step
+the failure skips joins the steps of the last frame. A step whose answer
+is a failure its subject was not passes a frame: a step that fails,
+`raise`, and a step that answers a failure from inside it, the call of a
+word, a group, a word running a quote, while an arg of a step answers
+within the frame of that step. A word that runs its code on the elements
+of its subject, `map`, `filter`, `every`, `any` and `reduce`, and the keys
+of `sort`, `min`, `max`, `groupBy` and `indexBy`, names the place of the
+element its code broke on, its index or its key, and `update` the path it
+wrote; a step that ran no code on a part names none. `subject`, `step`,
+`skipped` and `place`, words of `::frame`, read a frame, and a path reads
+it as the vector it is, `/0` its subject, so the part a word's code broke
+on is one read away; the steps skipped at the level that reads the
+failure, `trail | last | skipped`, run again by `apply` as held code runs
+[QSQUO#held]. An error at rest holds the facts it is written with; one
+that writes a `:trail` that holds a frame resumes that path when raised
+and passes no frame, the steps the failure skips after it joining the
+last frame of that path, and an empty `:trail` is no path, as an error holds
+none, so its raise starts the path at its own frame, the steps the
+failure skips after it joining that frame, as the raise of a map that
+writes no `:trail` does: every failure a step answers holds its path from
+its first frame, and an error a catch opened, raised again, is the error
+it was, and raised without its `:trail` starts the path over at that
+raise. The `:trail` an error is made with is a vector of frames, plain,
+which the error lays under `::trail`, or one under `::trail` already,
+and any other value is refused as `::error/TrailNotFramesError`; a frame
+of a subject alone, or whose place is no path, is refused as
+`::frame/PayloadNotSubjectAndStepsError`, and a trail that holds a value
+that is no frame as `::trail/ElementKindNotTakenError` at its index. The
+word `trail` answers the path, `::trail[]` for an error that holds none,
+refuses a subject that is no error as `::error/trail/SubjectNotErrorError`
+and an error whose `:trail` is no path, which its literal may write, by
+its answer, `::error/trail/answer/KindNotTakenError` [QSBLD#answer], while
+`/trail` reads the key and is refused where there is none.
 
 ```qlang
 > "x" | add 1 !| keys
 #[:actualType :trail]
 
+> [1 "x" 3] | map ~(mul 2) | count !| trail
+::trail[
+  ::frame["x" ~(mul 2)]
+  ::frame[[1 "x" 3] ~(map ~(mul 2) | count) /1]
+]
+
+> [{:name "Ann" :age 30} {:name "Bo" :age "15"}] | filter ~(get /age | gt 18) !| get /trail/1/0/1
+{:name "Bo" :age "15"}
+
+> [1 2 3] | take (count | sub "1") !| trail | map ~step
+[~(sub "1") ~(take (count | sub "1"))]
+
 > {:a 1 :trail []} | raise !| keys
 #[:a :trail]
 
-> {:a 1 :trail []} | raise | count !| trail | map ~(get [/step /skipped])
-[[~(raise) ~(count)]]
+> {:a 1 :trail []} | raise | count !| trail
+::trail[::frame[{:a 1 :trail []} ~(raise | count)]]
 
 > {:a 1 :trail []} | raise !| :e it | raise !| eq e
 true
 
-> "x" | add 1 | mul 2 !| get /trail/0/skipped
+> !{:a 1} | raise | count !| raise | add 1 !| trail | last | skipped
+~(count | add 1)
+
+> !{:a 1} | raise | count !| minus #[:trail] | raise | add 1 !| trail | last | skipped
+~(add 1)
+
+> "x" | add 1 | mul 2 !| trail | last | skipped
 ~(mul 2)
+
+> {:trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| type
+::error/TrailNotFramesError
+
+> ::error{:a 1} | trail
+::trail[]
 ```
 
 ## flow
@@ -132,6 +170,8 @@ every element. A literal whose part fails answers that failure, and so
 does a template of `get` whose quote answers one, the first in the order
 written; the body of a declaration that fails leaves the scope as it
 was and answers the failure; a tag over a payload that fails answers the
+failure, and so does a word whose answer the kind of its subject refuses,
+under the tags its walk passed as under none, since no tag is laid over a
 failure; a modifier that answers a failure answers the call where its
 input takes a value, and is refused under the input where it takes code
 [QSQUO#modifier]. A refusal holds a failure computed at the call as the
@@ -146,6 +186,9 @@ false
 
 > [1 "x" 3] | map ~(add 10 !| 0)
 [11 0 13]
+
+> :Pair |~~ Two elements. ~~| (::kind | holds :NotPairError |~~ A pair holds two. ~~| ~(count | eq 2)) | ::Box::Pair[1 2] | take 1 !| type
+::Pair/NotPairError
 
 > [1 2] | map (1 | div 0) !| type
 ::vec/map/code/KindNotTakenError
@@ -182,7 +225,7 @@ evaluator does not know, is an invariant of the implementation under
 of the runtime holds its facts in the order the catalog declares them,
 the label's own first, the facts `::error` declares after them,
 `:expected`, `:actualType` and `:actualValue` among them, `:actualValue`
-left out where it equals the subject the first stop holds, whatever its
+left out where it equals the subject the first frame holds, whatever its
 identity, and the trail last; an error a reader writes holds its facts as written, a
 `:trail` it writes where it stands and the trail its flight begins
 last. A fact is a value of the language: a name a step read and a key a

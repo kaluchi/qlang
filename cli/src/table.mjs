@@ -1,6 +1,6 @@
 // The primitive of `table`, the renderer of the command line, a name its
 // source declares under `::vec` [QSDSP#residence] and a plain function over
-// the vector the walk served [QSDSP#residence], [QSQUO#modifier].
+// the vector the walk served [QSQUO#modifier].
 
 import { printValue } from '@kaluchi/qlang-core';
 import { declareRefusal } from '@kaluchi/qlang-core/errors';

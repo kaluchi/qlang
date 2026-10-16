@@ -5,7 +5,6 @@ import { parse } from '../../src/parse.mjs';
 import {
   astChildrenOf,
   walkAst,
-  assignAstNodeIds,
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
@@ -98,7 +97,7 @@ describe('walkAst', () => {
       if (node.type === 'VecLit') return false;
     });
     // Inside VecLit we should not have descended.
-    expect(visited.filter(t => t === 'NumberLit')).toHaveLength(1); // only the 3 in add(3)
+    expect(visited.filter(t => t === 'NumberLit')).toHaveLength(1); // only the 3 in add 3
   });
 
   it('passes the parent to the visitor', () => {
@@ -111,26 +110,12 @@ describe('walkAst', () => {
   });
 });
 
-describe('assignAstNodeIds and attachAstParents', () => {
-  it('assigns sequential ids in pre-order via parse()', () => {
-    const ast = parse('[1 2 3]');
-    expect(ast.id).toBe(0);
-    expect(ast.elements[0].id).toBe(1);
-    expect(ast.elements[1].id).toBe(2);
-    expect(ast.elements[2].id).toBe(3);
-  });
-
+describe('attachAstParents', () => {
   it('attaches parent pointers via parse()', () => {
     const ast = parse('[1 2 3]');
     expect(ast.parent).toBeNull();
     expect(ast.elements[0].parent).toBe(ast);
     expect(ast.elements[1].parent).toBe(ast);
-  });
-
-  it('manual assignAstNodeIds resets the counter', () => {
-    const ast = parse('[1 2]');
-    assignAstNodeIds(ast);
-    expect(ast.id).toBe(0);
   });
 
   it('manual attachAstParents recomputes parents', () => {
@@ -150,7 +135,7 @@ describe('findAstNodeAtOffset', () => {
     const source = '[1 2 3] | filter ~(gt 2)';
     //              0123456789012345678901234
     //                       111111111122222
-    // offset 19 lands inside `gt(2)` which is the narrowest
+    // offset 19 lands inside `gt 2` which is the narrowest
     const ast = parse(source);
     const node = findAstNodeAtOffset(ast, 19);
     expect(node).not.toBeNull();
@@ -265,7 +250,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('a non-binding Pipeline step does not contribute names', () => {
-    // `mul(2)` is a call, not a BindStep; the
+    // `mul 2` is a call, not a BindStep; the
     // binding-name walker skips it. With no binders in scope at the
     // cursor, the visible set stays empty.
     const source = '42 | mul 2 | here';

@@ -5,10 +5,10 @@
 :group
   |~~ A group, `(…)`, runs a pipeline as one word: its steps run on the
       value in the pipe, it answers what its last step answers, and the
-      names it declares stay inside. Each part of a literal is one,
-      which is why a literal is the shape an answer takes,
-      `5 | get [~(add 1) ~(mul 2)]` answering `[6 10]`, and a modifier of more
-      than one word stands in one, `take (count | sub 1)`.
+      names it declares stay inside. A modifier of more than one word
+      stands in one, `take (count | sub 1)`, and the quotes of a template
+      `get` runs are forks of their own, `5 | get [~(add 1) ~(mul 2)]`
+      answering `[6 10]`.
 
       In a quote the step is a record that wraps the quote of its
       pipeline, `~((add 1 | mul 2)) | first` answering

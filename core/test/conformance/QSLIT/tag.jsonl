@@ -1,4 +1,4 @@
-{"name":"a-reserved-word-names-a-kind-after-the-tag-sigil","query":"::null","expect":"::null"}
+{"name":"a-word-of-the-literals-after-two-colons-is-a-tag-name","query":"::null","expect":"::null"}
 {"name":"the-constructor-of-a-kind-reads-its-payload-as-the-value","query":"::vec[1 2]","expect":"[1 2]"}
 {"name":"the-vector-kind-refuses-a-set-which-toVec-turns","query":"get [~(::vec#[2 1] !| type) ~(#[2 1] | toVec)]","expect":"[::vec/PayloadKindNotTakenError [1 2]]"}
 {"name":"the-vector-kind-refuses-a-quote-whose-steps-payload-reads","query":"get [~(::vec~(a | b) !| type) ~(~(a | b) | payload | type)]","expect":"[::vec/PayloadKindNotTakenError ::vec]"}

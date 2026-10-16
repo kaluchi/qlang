@@ -16,7 +16,7 @@ import {
   makeTag,
   makeErrorValue,
   isDoc,
-  isQMap,
+  isMap,
   isErrorValue
 } from '../../src/types.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
@@ -35,16 +35,16 @@ describe('printValue — binding record / Function branches', () => {
     expect(printValue(doc)).toBe('|~~ hello ~~|');
   });
 
-  it('renders a tagged-instance Map as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const instance = makeTaggedInstance(makeTag('Box'), [42, 'inner']);
-    expect(printValue(instance)).toBe('::Box[42 "inner"]');
+  it('renders a vector under a tag as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
+    const { makeTagged } = await import('../../src/types.mjs');
+    const tagged = makeTagged(makeTag('Box'), [42, 'inner']);
+    expect(printValue(tagged)).toBe('::Box[42 "inner"]');
   });
 
-  it('renders an empty-payload tagged-instance as ::Tag[]', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const instance = makeTaggedInstance(makeTag('Marker'), []);
-    expect(printValue(instance)).toBe('::Marker[]');
+  it('renders a tag over an empty vector as ::Tag[]', async () => {
+    const { makeTagged } = await import('../../src/types.mjs');
+    const tagged = makeTagged(makeTag('Marker'), []);
+    expect(printValue(tagged)).toBe('::Marker[]');
   });
 });
 
@@ -63,7 +63,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
     expect(printValue(err)).toBe('::Foo!{:category :oops}');
     expect(isErrorValue(await evalQuery(printValue(err)))).toBe(false);
-    expect(deepEqual(await evalQuery(`${printValue(err)} | raise !| trail | map /step`), await evalQuery('[~(raise)]'))).toBe(true);
+    expect(deepEqual(await evalQuery(`${printValue(err)} | raise !| trail | map ~step`), await evalQuery('[~(raise)]'))).toBe(true);
   });
 
   it('an answer that is a failure prints under the line that says it was raised, an error at rest under none [QSERR#rest]', async () => {
@@ -105,19 +105,19 @@ describe('toPlain encodes a failure', () => {
   });
 });
 
-describe('toPlain encodes every TaggedInstance shape through the $tag envelope', () => {
+describe('toPlain encodes every shape of a value under a tag through the $tag envelope', () => {
   it('a tag over a set, a map and an atom writes its payload in JSON', async () => {
     // A tag over a vector is held by the earlier `Box[42]` test.
-    const { makeTaggedInstance, makeTag: makeTag, makeSet } = await import('../../src/types.mjs');
-    const taggedSet = makeTaggedInstance(makeTag('Keys'), makeSet([2, 1]));
+    const { makeTagged, makeTag: makeTag, makeSet } = await import('../../src/types.mjs');
+    const taggedSet = makeTagged(makeTag('Keys'), makeSet([2, 1]));
     const plainSet = toPlain(taggedSet);
     expect(plainSet.$tag).toBe('Keys');
     expect(plainSet.payload).toEqual([1, 2]);
-    const taggedMap = makeTaggedInstance(makeTag('User'), new Map([['name', 'alice']]));
+    const taggedMap = makeTagged(makeTag('User'), new Map([['name', 'alice']]));
     const plainMap = toPlain(taggedMap);
     expect(plainMap.$tag).toBe('User');
     expect(plainMap.payload).toEqual({ name: 'alice' });
-    const taggedStr = makeTaggedInstance(makeTag('Note'), 'hello');
+    const taggedStr = makeTagged(makeTag('Note'), 'hello');
     const plainStr = toPlain(taggedStr);
     expect(plainStr.$tag).toBe('Note');
     expect(plainStr.payload).toBe('hello');
@@ -162,7 +162,7 @@ describe('format.fromPlain — inverse of toPlain', () => {
 
   it('objects lift into Map keyed by interned keywords', async () => {
     const lifted = fromPlain({ a: 1, b: 2 });
-    expect(isQMap(lifted)).toBe(true);
+    expect(isMap(lifted)).toBe(true);
     expect(lifted.get('a')).toBe(1);
     expect(lifted.get('b')).toBe(2);
   });
@@ -200,8 +200,9 @@ describe('format.toPlain non-keyword Map keys', () => {
 });
 
 describe('the finite-double domain holds at every render seam', () => {
-  // Source cannot mint an infinity or a NaN — the parser refuses the
-  // literal and every arithmetic site lifts a numericDomain error.
+  // Source cannot make an infinity or a NaN: the parser refuses the
+  // literal [QSLIT#number], and an answer past the doubles is refused as
+  // `::number/NotFiniteError` [QSNUM#arithmetic].
   // A host can, through `session.bind` or the `impls` of its sources,
   // and render is where such a value becomes observable: `printValue`
   // would answer `Infinity`, which no production reads back, and the

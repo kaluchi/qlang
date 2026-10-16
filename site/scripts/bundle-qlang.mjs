@@ -1,18 +1,15 @@
 // Bundle qlang for browser use.
 //
-// Produces `public/qlang.js` from `_browser-entry.mjs` — the
-// reference embedding entry point. The browser entry statically
-// imports every `.qlang` catalog file the runtime needs;
-// esbuild's `text` loader rewrites each `import <name> from
-// '<path>.qlang'` into a JS string literal at build time, so the
-// resulting bundle is self-contained: no `<script
-// type="importmap">`, no network fetch, no host-side glue.
+// Produces `public/qlang.js` from `_browser-entry.mjs`, which imports the
+// sources of the language as one module the plugin below writes, each
+// source read as a string by esbuild's `text` loader, so the bundle holds
+// them all and fetches none.
 //
 // Inline sourcemaps keep stack traces from runtime exceptions
 // pointing at the original `core/src/runtime/<file>.mjs` line
 // instead of the bundled `qlang.js` line — debugging a failing
-// query in browser DevTools lands on the operand impl in source
-// form.
+// query in browser DevTools lands on the implementation of the word
+// in source form.
 
 import { build } from 'esbuild';
 import { resolve, dirname } from 'node:path';
@@ -47,9 +44,7 @@ await build({
   outfile: resolve(SITE_ROOT, 'public', 'qlang.js'),
   platform: 'browser',
   target: 'es2022',
-  // `text` loader on `.qlang` rewrites every static import in
-  // `_browser-entry.mjs` to a JS string literal — that is the
-  // single seam between catalog source files and the bundle.
+  // A `.qlang` source the module of the sources imports reads as a string.
   loader: { '.qlang': 'text' },
   // Inline sourcemap so a browser exception's stack frame links
   // back to `core/src/runtime/<file>.mjs` instead of an opaque
@@ -59,13 +54,6 @@ await build({
   sourcemap: 'inline',
   sourcesContent: true,
   minify: false,
-  // `runtime/index.mjs` carries bare `import './<family>.mjs'`
-  // lines that register operand impls into `PRIMITIVE_REGISTRY`
-  // at module-load time. Even with `core/package.json#sideEffects`
-  // pinning the runtime/ folder, `ignoreAnnotations: true` tells
-  // esbuild to keep them in the bundle unconditionally — a
-  // single-source-of-truth knob for the registration semantics.
-  ignoreAnnotations: true,
   plugins: [languageSources]
 });
 

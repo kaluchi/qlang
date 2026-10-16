@@ -1,18 +1,18 @@
 {"name":"quoted-keyword-with-space","query":":\"foo bar\"","expect":":\"foo bar\""}
 {"name":"quoted-keyword-empty-string","query":":\"\"","expect":":\"\""}
 {"name":"quoted-keyword-leading-digit","query":":\"123\"","expect":":\"123\""}
-{"name":"quoted-keyword-sigil-prefix","query":":\"$ref\"","expect":":\"$ref\""}
+{"name":"a-name-with-a-leading-dollar-is-a-keyword-in-quotes","query":":\"$ref\"","expect":":\"$ref\""}
 {"name":"quoted-keyword-equals-bare-form","query":":\"name\" | eq :name","expect":"true"}
 {"name":"quoted-keyword-with-newline-escape","query":":\"line1\\nline2\" | eq :\"line1\\nline2\"","expect":"true"}
-{"name":"a-reserved-word-is-a-segment-of-a-namespaced-keyword","query":":qlang/type/null","expect":":qlang/type/null"}
-{"name":"namespaced-keyword-parse","query":":qlang/error","expect":":qlang/error"}
-{"name":"namespaced-keyword-hierarchical","query":":qlang/core/strings","expect":":qlang/core/strings"}
-{"name":"namespaced-keyword-in-map-and-has","query":"{:qlang/error 42} | has :qlang/error","expect":"true"}
-{"name":"namespaced-keyword-equality","query":":qlang/error | eq :qlang/error","expect":"true"}
-{"name":"namespaced-keyword-not-equal","query":":qlang/error | eq :qlang/http","expect":"false"}
-{"name":"namespaced-in-set","query":"#[:qlang/a :qlang/b] | count","expect":"2"}
-{"name":"namespaced-in-has","query":"#[:qlang/error :qlang/http] | has :qlang/error","expect":"true"}
-{"name":"keyword-reserved-word-bare","query":":null","expect":":null"}
+{"name":"a-word-of-the-literals-stands-among-the-names-of-a-keyword","query":":qlang/type/null","expect":":qlang/type/null"}
+{"name":"names-joined-by-a-slash-make-one-keyword","query":":qlang/error","expect":":qlang/error"}
+{"name":"three-names-joined-by-slashes-make-one-keyword","query":":qlang/core/strings","expect":":qlang/core/strings"}
+{"name":"a-keyword-of-names-joined-by-a-slash-is-a-key-has-finds","query":"{:qlang/error 42} | has :qlang/error","expect":"true"}
+{"name":"a-keyword-of-names-joined-by-a-slash-equals-itself","query":":qlang/error | eq :qlang/error","expect":"true"}
+{"name":"keywords-of-names-joined-by-a-slash-differ-by-their-last-name","query":":qlang/error | eq :qlang/http","expect":"false"}
+{"name":"keywords-that-share-the-name-before-the-slash-are-two-elements-of-a-set","query":"#[:qlang/a :qlang/b] | count","expect":"2"}
+{"name":"has-finds-a-keyword-of-names-joined-by-a-slash-in-a-set","query":"#[:qlang/error :qlang/http] | has :qlang/error","expect":"true"}
+{"name":"a-word-of-the-literals-after-a-colon-is-a-keyword","query":":null","expect":":null"}
 {"name":"keyword-false-bare","query":":false","expect":":false"}
 {"name":"keyword-true-bare","query":":true","expect":":true"}
 {"name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r it | (:r | type)","expect":"::keyword"}

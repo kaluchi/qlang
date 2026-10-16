@@ -1,30 +1,24 @@
 // The one caller of the generated parser: `parse` answers the tree of a
 // source or throws a `ParseError`, and the tools that read the tree
-// through walk.mjs, the editor's hover, completion and references among
-// them, find on it:
-//   - an .id on each node, counted within the parse
+// through walk.mjs find on it:
 //   - a .parent on each node but the root
 //   - the source on the root as .source, and its name as .uri, a file
 //     path, 'inline' or 'cell-N'
-//   - .comments on the root, the plain comments the grammar read as
+//   - .comments on the root, the comments the grammar read as
 //     whitespace [QSSYN#comment], in the order of the source
 
 import {
   parse as peggyParse
 } from '../gen/grammar.mjs';
-import { assignAstNodeIds, attachAstParents } from './walk.mjs';
+import { attachAstParents } from './walk.mjs';
 
 
-// ParseError mirrors peggy's syntactic-failure shape into a qlang
-// surface. `expected` is the Vec of `{ type, description, text }`
-// alternatives peggy enumerated at the failure offset (raw shape
-// from `peg$buildStructuredError`); `found` is the unexpected
-// substring at the offset (one character for char-class mismatches,
-// `null` for end-of-input); `source` is the verbatim input text
-// so that downstream consumers (CLI caret-pointer, LSP diagnostic)
-// can quote the offending span without re-reading the file;
-// `sentence` is what a source cut short with a bracket left open is
-// told, beside the closers in `expected` [QSSYN#refusal].
+// The refusal of a source [QSSYN#refusal]: `location` holds its place, `uri`
+// the name the caller gives the source or null, `source` the text,
+// `expected` the alternatives the parser expected there, the closer a reader
+// writes next where a bracket is left open, `found` the character found
+// there, null at the end of the source, the two null where the grammar
+// writes the refusal, and `sentence` what a source cut short is told.
 export class ParseError extends Error {
   constructor(message, location, uri = null, opts = {}) {
     super(message);
@@ -46,8 +40,8 @@ export class ParseError extends Error {
 //
 // Throws ParseError on syntactic failure. The AST is a tree of
 // plain JS objects with a `type` field; see grammar.peggy for the
-// catalog of node types. Every node carries .location, .text, .id,
-// and (except the root) .parent. The root additionally carries
+// catalog of node types. Every node carries .location, .text and
+// (except the root) .parent. The root additionally carries
 // .source, .uri and .comments.
 export function parse(source, opts = {}) {
   if (typeof source !== 'string') {
@@ -74,10 +68,9 @@ export function parse(source, opts = {}) {
       sentence
     });
   }
-  // Post-pass decoration: AST parent pointers and ids first, so the
-  // root receives .parent = null and id 0, then the root's metadata.
+  // Post-pass decoration: AST parent pointers first, so the root
+  // receives .parent = null, then the root's metadata.
   attachAstParents(ast);
-  assignAstNodeIds(ast);
   ast.source = source;
   ast.uri = opts.uri ?? 'inline';
   ast.comments = [...commentTrivia.values()].sort((left, right) => left.location.start.offset - right.location.start.offset);

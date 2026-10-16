@@ -5,13 +5,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, isQSet, makeTag } from '../../src/types.mjs';
+import { isErrorValue, isSet, makeTag } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
 describe('runLaws reads a name as laws does', () => {
   it('address subject — ::vec/count | runLaws', async () => {
     const result = await evalQuery('::vec/count | runLaws | map /ok | distinct');
-    expect(isQSet(result)).toBe(true);
+    expect(isSet(result)).toBe(true);
     expect([...result]).toEqual([true]);
   });
 
@@ -60,9 +60,8 @@ describe('runLaws Quote-as-test outcomes', () => {
   });
 
   it('a law that answers false → ok:false with no error', async () => {
-    // 5 | mul(2) = 10, eq(99) = false. The law ran cleanly but
-    // answered false, so runLaws reports ok:false with :error nil —
-    // there is no error message, the claim just did not hold.
+    // `5 | mul 2 | eq 99` answers false, so the law fails, its result
+    // holding `:ok false` and `:error null`.
     const moduleSource = ':demo 1\n:demo/falsy |~~ A false claim. ~~| ::law~(5 | mul 2 | eq 99)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]

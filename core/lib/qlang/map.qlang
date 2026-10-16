@@ -375,7 +375,7 @@
       same keys in their order, `{:a 1 :b 2} | map ~(add 1)` answering
       `{:a 2 :b 3}`. The code is a quote run on each value as its subject,
       not on its entry, so a key is read beside its value by
-      `entries | map ~(…)`, and the pairs build a map back by `tag ::map`.
+      `entries | map ~(…)`, and `toMap` builds the map back from the pairs.
       The first error the code answers for a value is the answer of the
       call, and the answers stand in a map of their own, under no tag of
       the subject. A vector and a set answer `map` by words of their own.
@@ -408,7 +408,7 @@
         ~({:a 1} | entries | map /0 | eq [:a])
     | proves :answersTheFirstFailure
         |~~ The first error, in the order of the keys, answers the call. ~~|
-        ~({:a "x" :b "y"} | map ~(add 1) !| get /trail/0/subject | eq "x")
+        ~({:a "x" :b "y"} | map ~(add 1) !| trail | first | subject | eq "x")
     | proves :answersUnderNoTag
         |~~ The answers stand under no tag of the subject. ~~|
         ~(::Box{:a 1} | map ~(add 1) | eq {:a 2})
@@ -1148,18 +1148,16 @@
         |~~ The tag the map carries is the tag of the error. ~~|
         ~(::Oops{:message "boom"} | raise !| type | eq ::Oops)
     | proves :keepsEveryEntryAsAFact
-        |~~ Every entry of the map is a fact of the error, a `:kind` among
-            them.
-        ~~|
-        ~({:kind ::Oops} | raise !| get [~(type) /kind] | eq [::error ::Oops])
+        |~~ Every entry of the map is a fact of the error. ~~|
+        ~({:a 1} | raise !| get [~(type) /a] | eq [::error 1])
     | proves :raisesAnOpenedErrorAsItself
         |~~ An error caught and raised again is itself. ~~|
         ~("x" | add 1 !| raise !| type | eq ::number/add/SubjectNotNumberError)
     | proves :startsAPathOverAnEmptyTrail
         |~~ An empty `:trail` is no path: the raise starts one, and the
-            steps the failure skips join its stop.
+            steps the failure skips join its frame.
         ~~|
-        ~({:a 1 :trail []} | raise | count !| trail | map ~(get [/step /skipped]) | eq [[~(raise) ~(count)]])
+        ~({:a 1 :trail []} | raise | count !| trail | map ~(get [~(step) ~(skipped)]) | eq [[~(raise) ~(count)]])
     | proves :renamesByATag
         |~~ A step that lays a tag over an error caught renames it. ~~|
         ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)
@@ -1175,7 +1173,7 @@
         ~(42 | raise !| get [~(type) /actualType] | eq [::map/raise/SubjectNotMapError ::number])
     | proves :ArgsBeyondInputsError/refusesAMessage
         |~~ A message given to `raise` is refused; the map holds it. ~~|
-        ~({:kind :oops} | raise "boom" !| type | eq ::map/raise/ArgsBeyondInputsError)
+        ~({:a 1} | raise "boom" !| type | eq ::map/raise/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :map/toMap

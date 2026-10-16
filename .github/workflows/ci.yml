@@ -112,7 +112,7 @@ jobs:
 
   # The build of the site, the `astro build` the Pages workflow runs on a
   # push to master, the one job that bundles the core by Vite's SSR,
-  # `package.json#sideEffects` and `astro.config.mjs#vite.ssr` among
+  # `package.json#sideEffects` and `astro.config.mjs#vite.environments` among
   # what it reads [QSWRK#tooling].
   site-build:
     name: Astro site build

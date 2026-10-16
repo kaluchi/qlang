@@ -1,9 +1,9 @@
-// The screen of the work a shift starts from [QSWRK#baseline], [QSWRK#marks]: the branch
+// The screen of the work a shift starts from: the branch
 // and how far it stands from master, what the tree leaves uncommitted,
 // the walk of the baseline, the targets open and the records being decided,
 // the reach of the records in transit [QSWRK#documents], the
 // artifacts that name no decision and the records whose scope changed
-// since they were described [QSWRK#marks], the stashes, the branches and the
+// since the baseline read them [QSWRK#marks], the stashes, the branches and the
 // worktrees a merge leaves [QSWRK#baseline], and the sister project's
 // branch against its remote.
 //
@@ -12,7 +12,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { citationsIn, recordsInTransit, walkOfBaseline, CITING_CODE_ROOTS, CODE_FILE, RECORDS_A_WALK_TAKES } from './baseline-walk.mjs';
+import { citationsIn, citingCodeOf, recordsInTransit, walkOfBaseline, RECORDS_A_WALK_TAKES } from './baseline-walk.mjs';
 import { marksOfTree, touchedRecords } from './marks.mjs';
 
 const root = join(import.meta.dirname, '..');
@@ -36,7 +36,8 @@ lines.push(`  branch ${branch} · ${ahead} ahead of master, ${behind} behind · 
 
 const walk = walkOfBaseline(root);
 const span = walk.since.length === 0 ? 'none' : walk.since.length === 1 ? walk.since[0] : `${walk.since[0]}–${walk.since[walk.since.length - 1]}`;
-lines.push(`  baseline ${walk.baseline} · ${walk.since.length} of ${RECORDS_A_WALK_TAKES} records since, ${span}`);
+lines.push(walk.baseline === undefined ? '  no baseline'
+  : `  baseline ${walk.baseline} · ${walk.since.length} of ${RECORDS_A_WALK_TAKES} records since, ${span}`);
 if (walk.violations.length === 0) lines.push('  the walk holds');
 else {
   lines.push(`  the walk breaks ${walk.violations.length} times [QSWRK#baseline]:`);
@@ -68,12 +69,8 @@ const claimed = readdirSync(conformance, { recursive: true }).map(String).filter
   .flatMap(name => readFileSync(join(conformance, name), 'utf8').split(/\r?\n/))
   .filter(line => line.trim() !== '' && !line.trim().startsWith('//'))
   .filter(line => decisionOf(line).some(name => transit.has(name))).length;
-const unread = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
-const citing = CITING_CODE_ROOTS.filter(dir => existsSync(join(root, dir)))
-  .flatMap(dir => readdirSync(join(root, dir), { recursive: true }).map(String)
-    .filter(name => CODE_FILE.test(name) && !name.split(/[\\/]/).some(part => unread.has(part)))
-    .map(name => join(root, dir, name)))
-  .map(file => new Set(citationsIn(readFileSync(file, 'utf8')).filter(({ name }) => transit.has(name)).map(({ line }) => line)).size)
+const citing = citingCodeOf(root)
+  .map(file => new Set(citationsIn(readFileSync(join(root, file), 'utf8')).filter(({ name }) => transit.has(name)).map(({ line }) => line)).size)
   .reduce((sum, count) => sum + count, 0);
 lines.push(transit.size === 0 ? '  no record in transit, the tension relaxed'
   : `  reach ${transit.size} records in transit over ${new Set([...transit.values()].flat()).size} sections, ${claimed} cases they claim and ${citing} lines of code that cite them: the move parts them [QSWRK#documents]`);
@@ -83,12 +80,6 @@ if (orphans.length > 0) lines.push(`  orphans ${orphans.length}, artifacts that 
 const touched = touchedRecords(root);
 const shown = touched.slice(0, 16).map(({ name }) => name).join(' ');
 lines.push(touched.length === 0 ? '  no record touched since the baseline read it' : `  touched ${touched.length} records since the baseline read them, ${shown}${touched.length > 16 ? ' …' : ''}: node scripts/marks.mjs --touched`);
-// The debt shows while the baseline is older than the marks: the records
-// no move read again before the marks were set, read again once [QSWRK#marks].
-const marksSince = linesOf(git(root, 'log', '--diff-filter=A', '--format=%H', '--', 'scripts/marks.mjs')).at(-1);
-if (marksSince !== undefined && git(root, 'merge-base', '--is-ancestor', walk.baseline, marksSince) !== null) {
-  lines.push(`  debt ${touchedRecords(root, { debt: true }).length} records touched since they were described, which the first move after the marks reads again: node scripts/marks.mjs --touched --debt`);
-}
 
 const stashes = linesOf(git(root, 'stash', 'list')).length;
 if (stashes > 0) lines.push(`  stashes ${stashes}`);

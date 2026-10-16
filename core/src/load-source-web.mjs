@@ -1,19 +1,8 @@
-// Web / default qlang-source loader. Resolved via the package's
-// `imports` field under `#qlang/load-source` when the host is NOT
-// Node — bundlers targeting browser / Deno / Bun / a service worker
-// pick this entry through the `"default"` condition.
-//
-// Resolution flow: `import.meta.resolve(logicalName)` consults the
-// document's import map (or the bundler's equivalent), returns a
-// URL the platform can fetch. `fetch` retrieves the text. Vite
-// leaves `import.meta.resolve` as-is for the browser bundle, so
-// native runtime resolution handles bare `#qlang/<ns>` specifiers
-// against the embedder-supplied import map.
-//
-// Contract: returns the source text on success, or `null` when the
-// logical name has no entry in the import map. Every other failure
-// (HTTP error, parse error inside the loaded source) propagates as
-// `SourceLoadError`.
+// The loader of a source that `#qlang/load-source` picks by its condition
+// `default`, which answers a name, `#qlang/number`, with the text it fetches
+// from the URL the platform resolves the name to, with null where the name
+// resolves to no URL, and raises `::builtin/SourceLoadError` with the HTTP
+// `:status` of a response that fails.
 // The decisions it exists for: [QSWRK#tooling].
 
 import { BuiltinSourceLoadError } from './source-load-error.mjs';

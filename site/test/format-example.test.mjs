@@ -80,7 +80,7 @@ describe('multi-line blocks', () => {
 
   it('multi-line expression: prompt + continuation share highlighting context', () => {
     const src = [
-      '> :double mul(2)',
+      '> :double mul 2',
       '  | [10 20] | map ~double'
     ].join('\n');
     const lines = fmt(src).split('\n');
@@ -93,7 +93,7 @@ describe('multi-line blocks', () => {
   });
 
   it('multiple prompt lines each get their own > prefix', () => {
-    const src = '> count\n> add(1)';
+    const src = '> count\n> add 1';
     const lines = fmt(src).split('\n');
     expect(lines[0]).toContain('&gt; ');
     expect(lines[1]).toContain('&gt; ');
@@ -104,7 +104,7 @@ describe('multi-line blocks', () => {
 
 describe('real landing page example', () => {
   it('pipeline example renders without throwing', () => {
-    const src = '|~| Vec → filter → count\n> [1 2 3 4 5] | filter(gt(3)) | count\n2';
+    const src = '|~| Vec → filter → count\n> [1 2 3 4 5] | filter ~(gt 3) | count\n2';
     expect(() => fmt(src)).not.toThrow();
     const out = fmt(src);
     expect(out).toContain('class="comment"');

@@ -2,9 +2,8 @@
 // record the declaration wrote into its scope [QSNAM#binding]: a tag name the
 // node of the tree it addresses, `::vec/count` or `::qlang/values`
 // [QSDSP#residence], a record the binding it records, and every other value,
-// a keyword among them, the node of its kind, the kind `type` answers. Each
-// axis projects a field of
-// the record:
+// a keyword among them, the node of the first kind its stack of tags
+// declares. Each axis projects a field of the record:
 //
 // `source`   the quote of the declaring step, null for a node a chain
 //            lays and a binding no step declared, a value a host bound.
@@ -21,8 +20,8 @@
 
 import { bindStateReader } from '../primitives.mjs';
 import {
-  isKeyword, isTag, isBinding, isNull, isQSet, isVec, isQMap, isValueClass, keyword, typeKeyword, makeTaggedInstance,
-  makeTag, makeQuote, makeDoc, NULL
+  isKeyword, isTag, isBinding, isNull, isSet, isVec, keyword, typeKeyword, makeTagged,
+  makeTag, makeQuote, makeDoc, payloadBeneath, NULL
 } from '../types.mjs';
 import {
   addressesOf, declarationsUnder, nodeOf, refuseWithheld, residenceOnSubject
@@ -31,15 +30,13 @@ import { declareRefusal } from '../errors.mjs';
 import { nearestTagNames, nearestMembers } from '../nearest-names.mjs';
 import { splitAddress } from '../address.mjs';
 
-// `name` is the name an axis read, a keyword or a tag.
-//
-// One class per axis: the axis is the site, so `!| type` alone says
-// which lookup failed.
-export const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
-export const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
+// Each axis refuses under its own address, `name` the name it read, a
+// keyword or a tag [QSERR#site].
+const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
+const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
 const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError');
 const AnyDocAnchorElementNotKeywordError = declareRefusal('any/doc/anchor/ElementNotKeywordError');
-export const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError');
+const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError');
 
 // What a refusal of an axis holds, the subject a name nothing declares:
 // the tag it read, the addresses where the pages of its last name live and
@@ -53,7 +50,7 @@ function refusalOf(env, subject) {
 // and any other value, a keyword among them, by its kind [QSLIT#keyword]; a
 // value a host bound under a name is no record, and a tag of a value withheld
 // from held code is refused [QSQUO#held].
-export function declaringRecordOf(env, subject) {
+function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
   if (isTag(subject)) {
     refuseWithheld(env, subject.name, true);
@@ -70,14 +67,6 @@ function recordOfKind(env, value) {
   return nodeOf(env, name) ?? nodeOfRefused(env, name) ?? recordOfKind(env, payloadBeneath(value));
 }
 
-// What stands beneath a value's own tag, every kind of the core being
-// declared: the payload of a wrapper, or the plain vector or map of a
-// container that holds its tag on itself.
-function payloadBeneath(value) {
-  if (isValueClass(value, 'taggedInstance')) return value.payload;
-  return isQMap(value) ? new Map(value) : [...value];
-}
-
 // The node a refusal named by the address of what refused reads its page
 // from, that address, when no node of its own declares it [QSSLF#catalog].
 function nodeOfRefused(env, name) {
@@ -86,8 +75,8 @@ function nodeOfRefused(env, name) {
 }
 
 // The record of the member the subject holds under a name [QSDSP#tagname], or
-// null: the name under the address a tag name writes, a part of the
-// args of a word among them, and otherwise the word the subject's walk
+// null: the name under the address a tag name writes, an input of a word
+// among them, and otherwise the word the subject's walk
 // reaches under the name [QSSLF#page].
 function memberRecordOf(env, subject, memberName) {
   const under = isTag(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;
@@ -165,7 +154,7 @@ const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject,
 // A set of anchors reads a page at each, in the order of the set, an
 // element that is no anchor and no path refused at its place in the set.
 bindStateReader('any/doc', (subject, anchor, state) => {
-  if (!isQSet(anchor)) return pageAt(subject, anchor, state);
+  if (!isSet(anchor)) return pageAt(subject, anchor, state);
   const stranger = anchor.findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
   if (stranger >= 0) throw new AnyDocAnchorElementNotKeywordError({ index: stranger, actualValue: anchor[stranger] });
   return Object.freeze(anchor.map(each => pageAt(subject, each, state)));
@@ -178,6 +167,6 @@ bindStateReader('any/doc', (subject, anchor, state) => {
 const EXPLANATION_TAG = makeTag('explanation');
 bindStateReader('any/explain', (subject, state) => {
   const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainUnknownNameError));
-  return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', subject]]));
+  return makeTagged(EXPLANATION_TAG, new Map([['page', page], ['value', subject]]));
 });
 

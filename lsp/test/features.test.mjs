@@ -65,7 +65,7 @@ describe('completionsAtOffset', () => {
     expect(countItem.documentation).toMatch(/how many/);
   });
 
-  it('includes user-defined bindings visible at offset', async () => {
+  it('includes a name the document declares before the offset', async () => {
     const src = ':myVar 42 | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const offsetAtEnd = src.length;
@@ -74,7 +74,7 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('myVar');
   });
 
-  it('user binding has variable kind', async () => {
+  it('a name the document declares completes as a variable', async () => {
     const src = ':myVar 42 | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length);
@@ -104,7 +104,7 @@ describe('completionsAtOffset', () => {
     expect(items.every(i => i.kind === 'tag')).toBe(true);
   });
 
-  it('an in-document kind contributes to the completions of tags', async () => {
+  it('a kind the document declares is among the completions of tags', async () => {
     const src = ':MyTag |~~ MyTag. ~~| (::kind | impl ~(42))';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length, src);
@@ -576,6 +576,32 @@ describe('signatureHelpAtOffset', () => {
     const { ast } = parseDocument(src, 'test.qlang');
     const sig = await signatureHelpAtOffset(ast, src, src.lastIndexOf('2'));
     expect(sig.documentation).toMatch(/first elements, as many as the count/);
+  });
+
+  it('opens at the space after a word that takes inputs, its first input active', async () => {
+    const src = '[1 2 3] | take ';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const sig = await signatureHelpAtOffset(ast, src, src.length);
+    expect([sig.label, sig.activeParameter]).toEqual(['take count', 0]);
+  });
+
+  it('moves past the words written at the space after them', async () => {
+    const src = '{:x 1 :y 2} | subOf /x ';
+    const { ast } = parseDocument(src, 'test.qlang');
+    const sig = await signatureHelpAtOffset(ast, src, src.length);
+    expect(sig.activeParameter).toBe(1);
+  });
+
+  it('opens nothing for a word a later step follows', async () => {
+    const src = '[1 2 3] | take 2 | take';
+    const { ast } = parseDocument(src, 'test.qlang');
+    expect(await signatureHelpAtOffset(ast, src, src.lastIndexOf('take'))).toBeNull();
+  });
+
+  it('opens nothing at the space after a word that takes no input', async () => {
+    const src = '[1 2 3] | count ';
+    const { ast } = parseDocument(src, 'test.qlang');
+    expect(await signatureHelpAtOffset(ast, src, src.length)).toBeNull();
   });
 
   it('returns null for null ast', async () => {

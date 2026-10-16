@@ -4,14 +4,12 @@ import { TAG_SIGIL } from './env-keys.mjs';
 import { compareValues } from './ordering.mjs';
 
 // A number is a finite double, and one a host hands otherwise has no
-// literal, so none reaches the printer or the codec.
+// literal, which the printer and the codec of JSON refuse.
 export const BuiltinNumberNotFiniteLeakedToPrintError = declareInvariantError(
   'builtin/NumberNotFiniteLeakedToPrintError',
-  ({ actualValue }) => `render: ${actualValue} is outside the finite-double domain a ` +
-    "qlang Number lives in — a host installed it through session.bind or the impls of " +
-    'its sources, where source cannot mint one');
+  ({ actualValue }) => `a number outside the finite doubles, ${actualValue}, reached the printer or the codec of JSON from a host`);
 
-// Reads the guard at every seam where a Number becomes observable.
+// The guard the printer and the codec of JSON read before they write a number.
 export function finiteNumberOrLift(numberValue) {
   if (!Number.isFinite(numberValue)) throw new BuiltinNumberNotFiniteLeakedToPrintError({ actualValue: String(numberValue) });
   return numberValue;
@@ -19,8 +17,9 @@ export function finiteNumberOrLift(numberValue) {
 
 export const NULL = null;
 
-// The keyword, the tag name, the error and the wrapper of a tag are
-// objects branded on a hidden slot, so data never forges one.
+// The pattern, the keyword, the tag name, the path, the error and the
+// wrapper of a tag are objects branded on a hidden slot, so data never
+// forges one.
 export const VALUE_CLASS_TAG = Symbol('qlang/valueClass');
 
 export function brandValueClass(target, valueClass) {
@@ -46,13 +45,13 @@ export function isKeyword(v) {
 export function isVec(v) {
   return Array.isArray(v);
 }
-export function isQMap(v) {
+export function isMap(v) {
   return v instanceof Map;
 }
 // The set is the vector in the one order without duplicates, under
 // the `::set` tag [QSORD#order], so every verb that reads a vector reads a
 // set: `isVec` holds for it, and this predicate tells it apart.
-export function isQSet(v) {
+export function isSet(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === SET_TAG_NAME;
 }
 
@@ -141,7 +140,7 @@ export function isPath(v) {
 }
 
 // A value under a tag of its own.
-export function isTaggedInstance(v) {
+export function isTagged(v) {
   return v !== null && typeof v === 'object' && v[TAG_HEADER_SYMBOL] !== undefined;
 }
 
@@ -149,7 +148,7 @@ export function isQuote(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === QUOTE_TAG_NAME;
 }
 
-// A quote is a vector of steps under `::quote` [QSQUO#step], minted here
+// A quote is a vector of steps under `::quote` [QSQUO#step], made here
 // alone, with a holder of the tree it runs through, the parser's for a quote
 // read from text and filled at its first run for one assembled from data.
 export const QUOTE_TAG_NAME = 'quote';
@@ -192,7 +191,7 @@ export function recipeOf(built) {
 }
 
 // A set is the vector in the one order without duplicates under `::set`
-// [QSORD#order], minted here alone; the order ranks two values alike exactly
+// [QSORD#order], made here alone; the order ranks two values alike exactly
 // when they are equal.
 export const SET_TAG_NAME = 'set';
 export const BINDING_TAG_NAME = 'binding';
@@ -215,8 +214,8 @@ export function makeSet(elements) {
 // the tag of its site over them, none for the kind of errors, what `!|`
 // opens a failure to and `raise` raises [QSERR#rest].
 export function errorAtRest(tag, facts) {
-  const ofKind = makeTaggedInstance(ERROR_TAG, facts);
-  return tag.name === ERROR_TAG.name ? ofKind : makeTaggedInstance(tag, ofKind);
+  const ofKind = makeTagged(ERROR_TAG, facts);
+  return tag.name === ERROR_TAG.name ? ofKind : makeTagged(tag, ofKind);
 }
 
 // A doc is the vector of its prose strings and quotes under `::doc`
@@ -232,15 +231,13 @@ export function isDoc(v) {
 // doc, read as a vector wherever a vector is read and keeping its shape
 // where a plain vector gives way.
 export function isVecOfOwnKind(v) {
-  return isQSet(v) || isQuote(v) || isDoc(v);
+  return isSet(v) || isQuote(v) || isDoc(v);
 }
 
 // A segment of a doc: a run of its prose, a quote, or a quote under a
 // stack of tags, which gives the quote its role [QSSLF#doc].
 export function isDocSegment(v) {
-  let beneath = v;
-  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
-  return typeof v === 'string' || isQuote(beneath);
+  return typeof v === 'string' || isQuote(beneathTags(v));
 }
 
 export function makeDoc(segments) {
@@ -273,6 +270,7 @@ function stampSlot(target, slot, value) {
 export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
 export const ABSENT_TAG      = makeTag('absent');
+export const DESC_TAG        = makeTag('desc');
 export const DOC_TAG         = makeTag(DOC_TAG_NAME);
 export const EACH_TAG        = makeTag('each');
 export const ELISION_TAG     = makeTag('elision');
@@ -302,16 +300,16 @@ export const CORE_KIND = Object.freeze({
 
 // The tags of a quote's steps [QSQUO#step]: the records of what computes,
 // and the wrappers a step takes on the fail track or in parentheses.
-export const CALL_TAG   = makeTag('call');
-export const BIND_TAG   = makeTag('bind');
+export const CALL_TAG      = makeTag('call');
+export const BIND_TAG      = makeTag('bind');
 export const CONSTRUCT_TAG = makeTag('construct');
-export const FAIL_TAG   = makeTag('fail');
-export const GROUP_TAG  = makeTag('group');
+export const FAIL_TAG      = makeTag('fail');
+export const GROUP_TAG     = makeTag('group');
 
 // A tag over a payload: an untagged vector or map keeps its shape under
 // the tag, so every verb of the container reads it; any other payload, a
 // tagged one among them, is held by a wrapper, which `payload` opens.
-export function makeTaggedInstance(tag, payload) {
+export function makeTagged(tag, payload) {
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     const arr = [...payload];
     stampTagHeader(arr, tag);
@@ -323,16 +321,31 @@ export function makeTaggedInstance(tag, payload) {
     stampTagHeader(m, tag);
     return m;
   }
-  const wrap = brandValueClass({ tag, payload }, 'taggedInstance');
+  const wrap = brandValueClass({ tag, payload }, 'underTag');
   stampTagHeader(wrap, tag);
   return Object.freeze(wrap);
+}
+
+// The value beneath every tag a wrapper holds over it [QSLIT#kind].
+export function beneathTags(value) {
+  let beneath = value;
+  while (isValueClass(beneath, 'underTag')) beneath = beneath.payload;
+  return beneath;
+}
+
+// The payload beneath a value's own tag [QSLIT#kind]: the value a wrapper
+// holds, or a copy of the vector or the map that holds the tag on itself,
+// without it, a set's vector among them.
+export function payloadBeneath(value) {
+  if (isValueClass(value, 'underTag')) return value.payload;
+  return isMap(value) ? new Map(value) : Object.freeze([...value]);
 }
 
 // The descriptor of an implementation a host hands, `::builtin{}`, the
 // recipe of a word or of a kind that a primitive answers, or the value of
 // a name under a label alone [QSBLD#fn], [QSBLD#kind], [QSBLD#recipe].
 export function isBuiltinDescriptor(v) {
-  return isQMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
+  return isMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
 
 // A name under a label a host's source declared, which alone reaches a
@@ -355,28 +368,45 @@ export function declareHostValue(value, impl) {
 
 // An error carries its tag, the kind of errors for a literal that names none
 // [QSERR#rest], and a descriptor of the facts of its site with its `:trail`,
-// the path it took [QSERR#trail], a vector of stops that `eval-trail.mjs`
-// writes; a `:trail` of another shape is refused where the error is made.
-export const ErrorTrailNotVecError = declareRefusal('error/TrailNotVecError');
+// the path it took, the frames `eval-trail.mjs` writes [QSERR#trail]; a `:trail` of
+// another shape is refused where the error is made.
+export const ErrorTrailNotFramesError = declareRefusal('error/TrailNotFramesError');
 
-// A trail is a plain vector of plain maps, each holding under `:skipped`
-// the quote of the steps the error skipped after it [QSERR#trail].
+// A trail is a vector of frames under `::trail`, a frame the vector of the
+// subject a step met, the quote of the steps from the one that broke and the
+// path of the part a word's code broke on, where one did [QSERR#trail].
+export const TRAIL_TAG = makeTag('trail');
+export const FRAME_TAG = makeTag('frame');
+
 export function isTrail(value) {
-  return isVec(value) && value[TAG_HEADER_SYMBOL] === undefined
-    && value.every(stop => isQMap(stop) && stop[TAG_HEADER_SYMBOL] === undefined && isQuote(stop.get('skipped')));
+  return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === TRAIL_TAG.name;
+}
+
+export function isFrame(value) {
+  return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === FRAME_TAG.name;
+}
+
+export function makeFrame(subject, steps, place = null) {
+  return makeTagged(FRAME_TAG, place === null ? [subject, steps] : [subject, steps, place]);
+}
+
+export function makeTrail(frames) {
+  return makeTagged(TRAIL_TAG, [...frames]);
 }
 
 // An error holds the facts of its site and, once a step raised it or
-// handed it on, its path, `:trail`; one whose path is empty holds no
-// `:trail` [QSERR#trail].
+// handed it on, its path, `:trail`, frames it holds under `::trail`; one
+// whose path is empty holds no `:trail` [QSERR#trail].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {
     const trail = descriptor.get('trail');
-    if (!isTrail(trail)) throw new ErrorTrailNotVecError({ actualValue: trail });
-    if (trail.length === 0) {
+    const plain = isVec(trail) && trail[TAG_HEADER_SYMBOL] === undefined;
+    if (!(plain || isTrail(trail)) || !trail.every(isFrame)) throw new ErrorTrailNotFramesError({ actualValue: trail });
+    if (plain || trail.length === 0) {
       finalDescriptor = new Map(descriptor);
-      finalDescriptor.delete('trail');
+      if (trail.length === 0) finalDescriptor.delete('trail');
+      else finalDescriptor.set('trail', makeTrail(trail));
     }
   }
   return Object.freeze(brandValueClass({ tag, descriptor: finalDescriptor, location, originalError }, 'error'));
@@ -388,7 +418,7 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
 // answers, or `unknown` for a host's raw object.
 export function formOf(v) {
   if (isErrorValue(v)) return 'error';
-  if (isValueClass(v, 'taggedInstance')) return 'underTag';
+  if (isValueClass(v, 'underTag')) return 'underTag';
   const kind = typeKeyword(v);
   if (kind === UNKNOWN_KIND) return 'unknown';
   return Object.hasOwn(CORE_KIND, kind.name) ? kind.name : 'underTag';
@@ -410,7 +440,7 @@ export function typeKeyword(v) {
     if (headerTag !== undefined) return headerTag;
   }
   if (isVec(v)) return CORE_KIND.vec;
-  if (isQMap(v)) return CORE_KIND.map;
+  if (isMap(v)) return CORE_KIND.map;
   return UNKNOWN_KIND;
 }
 

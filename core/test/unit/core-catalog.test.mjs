@@ -1,5 +1,5 @@
-// The catalog the language declares its root by [QSDSP#residence], each source
-// the page of one noun and what is declared under it [QSDSP#residence]:
+// The catalog the language declares its root by, each source the page of one
+// noun and what is declared under it [QSDSP#residence]:
 // `lib/qlang.qlang` the topic of the language, and each source under
 // `lib/qlang/` a kind. `langRuntime()` runs them once at startup and seals the
 // registry of primitives the verbs name.
@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { nodeOf } from '../../src/runtime/nouns.mjs';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isQMap, isVec, makeSet, makeTag, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
+import { keyword, isMap, isVec, makeSet, makeTag, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { platformLocator, LANGUAGE_SOURCES } from '../../src/runtime/bootstrap.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 
@@ -41,7 +41,7 @@ describe('the verbs of the language reach their primitives', () => {
 
 describe('the pages of the language read through `doc`', () => {
 
-  it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
+  it('spot-check — the page of ::vec/count tells the number of elements it answers', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const { docText } = await import('../../src/quote.mjs');
     const joined = docText(await evalQuery('::vec/count | doc'));
@@ -85,11 +85,6 @@ describe('bare-name verb call', () => {
 });
 
 describe('the root of the language', () => {
-  // The drift guard in `error-tag-catalog-drift.test.mjs` pairs each
-  // throw site with its kind and each kind with its throw site, but a
-  // kind minted outside a per-site factory passes both whether or not it
-  // exists. This pin fails on a silent shrink of the root's nouns; a
-  // tally belongs in test code, which CI re-verifies, and never in prose.
   it('the root holds the kinds of the language and its topic', async () => {
     expect(await evalQuery('get [~(kinds | has ::number) ~(::qlang | doc | type)]')).toEqual(await evalQuery('[true ::doc]'));
   });
@@ -116,7 +111,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('parse reads a call into a ::call step with :name / :modifiers', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const callStep = (await evalQuery('"add 1 2" | parse'))[0];
-    expect(isQMap(callStep)).toBe(true);
+    expect(isMap(callStep)).toBe(true);
     expect(callStep[TAG_HEADER_SYMBOL].name).toBe('call');
     expect(callStep.get('name')).toEqual(keyword('add'));
     expect(callStep.get('modifiers')).toHaveLength(2);

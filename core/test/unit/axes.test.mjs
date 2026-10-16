@@ -8,7 +8,7 @@ import { isErrorValue, isQuote, makeTag } from '../../src/types.mjs';
 import { QlangError } from '../../src/errors.mjs';
 import { printQuoteSource } from '../../src/quote.mjs';
 
-describe('::name | source returns the BindStep source as Quote', () => {
+describe('::name | source answers the quote of the declarations under the name', () => {
   it('::vec/count | source carries the declaration by its address', async () => {
     const result = await evalQuery('::vec/count | source');
     expect(isQuote(result)).toBe(true);
@@ -22,7 +22,7 @@ describe('::name | source returns the BindStep source as Quote', () => {
     expect(cellEntry.result).toEqual(makeTag('any/source/UnknownNameError'));
   });
 
-  it('inline BindStep within the current query is reachable through axis lookup', async () => {
+  it('the axes read a declaration of the query', async () => {
     // A declaration of the query writes its record into the query's
     // scope, which the axes read.
     const result = await evalQuery(':myLocal 42 | ::myLocal | source');
@@ -30,11 +30,9 @@ describe('::name | source returns the BindStep source as Quote', () => {
     expect(printQuoteSource(result)).toBe(':myLocal 42');
   });
 
-  it('a cell-local BindStep declaration is reachable through axis lookup', async () => {
-    // A cell's declaration writes its record into the session's scope;
-    // the regression that first flagged the gap was `qlang ':foo |~~
-    // note ~~| | ::foo | doc'` returning AnyDocUnknownNameError
-    // instead of the attached doc.
+  it('the axes read a declaration of the cell', async () => {
+    // A cell's declaration writes its record into the session's scope,
+    // which the axes read.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
@@ -43,7 +41,7 @@ describe('::name | source returns the BindStep source as Quote', () => {
     expect(cellEntry.result).toBe(' a note ');
   });
 
-  it('cross-cell axis lookup — a BindStep declared in an earlier cell is visible from a later cell', async () => {
+  it('the axes of a later cell read a declaration of an earlier one', async () => {
     // The session's scope keeps the records earlier cells wrote, so a
     // later cell's axes read them beside its own.
     const { createSession } = await import('../../src/session.mjs');
@@ -54,11 +52,9 @@ describe('::name | source returns the BindStep source as Quote', () => {
     expect(cellEntry.result).toBe(' first cell ');
   });
 
-  it('moduled keyword names round-trip cleanly through axis lookup', async () => {
-    // `:landing/chapter01` parses as a single moduled Keyword;
-    // BindStep writes the record under that exact name, which the
-    // axes read. Pinned here so a future grammar change to
-    // namespacing semantics surfaces the regression.
+  it('the axes read a name with a path at its address', async () => {
+    // `:landing/chapter01` declares a node under `landing`, whose record
+    // the axes read at its address [QSNAM#address].
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
@@ -73,7 +69,7 @@ describe('::name | source returns the BindStep source as Quote', () => {
   });
 });
 
-describe('::name | doc returns the page its attached prefixes make', () => {
+describe('::name | doc returns the page the docs of its slot make', () => {
   it('::vec/count | doc returns a page', async () => {
     const result = await evalQuery('::vec/count | doc | type');
     expect(result).toEqual(makeTag('doc'));
@@ -127,7 +123,7 @@ describe('the axes read the node a tag addresses', () => {
     expect(printQuoteSource(result).startsWith(':quote')).toBe(true);
   });
 
-  it('::quote | doc returns the attached Doc-prefix on the type BindStep', async () => {
+  it('::quote | doc returns the page in the slot of the declaration of the kind', async () => {
     const result = await evalQuery('::quote | doc | content');
     expect(typeof result).toBe('string');
     expect(result).toContain('code held as a value');

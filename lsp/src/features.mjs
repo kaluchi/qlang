@@ -231,8 +231,8 @@ function withDeclaredNames(items, ast, offset, spellings) {
       const name = spelling === TAG_SPELLING ? tagNameOf(declared) : declared;
       if (items.some(item => item.label === name)) continue;
       items.push(spelling === TAG_SPELLING
-        ? { label: name, kind: 'tag', detail: 'in-document kind', documentation: null }
-        : { label: name, kind: 'variable', detail: 'BindStep binding', documentation: null });
+        ? { label: name, kind: 'tag', detail: "a reader's kind", documentation: null }
+        : { label: name, kind: 'variable', detail: "a reader's name", documentation: null });
     }
   }
   return items;
@@ -356,7 +356,7 @@ async function hoverForCall(node, documentAst, source) {
   const prose = tidyProse(docStrings.join('\n'));
   return {
     content: markdownHardBreaks([
-      `**${node.name}** — user binding`,
+      `**${node.name}** — a reader's name`,
       '',
       prose
     ].join('\n')),
@@ -610,15 +610,12 @@ export function foldingRangesOf(ast, source) {
 export async function signatureHelpAtOffset(ast, source, offset) {
   if (!ast) return null;
 
-  const node = findAstNodeAtOffset(ast, offset);
-  if (!node) return null;
-
-  const call = findEnclosingCall(node);
+  const call = callAround(ast, source, offset);
   if (!call) return null;
 
   const runtime = await langRuntime();
   const shown = shownFor(runtime, call.name, await subjectKindsAt(source, call.location.start.offset));
-  if (shown === undefined) return null;
+  if (shown === undefined || (call.args.length === 0 && shown.inputs.length === 0)) return null;
 
   const modifiers = shown.inputs;
   const docContents = await pageContents(shown.address.literal);
@@ -633,6 +630,21 @@ export async function signatureHelpAtOffset(ast, source, offset) {
     parameters: modifiers.map(mod => ({ label: mod })),
     activeParameter
   };
+}
+
+// The call the cursor writes the words of: the narrowest call with words
+// that holds it, or the call that spaces before the cursor follow, a word
+// taking inputs among them.
+function callAround(ast, source, offset) {
+  const node = findAstNodeAtOffset(ast, offset);
+  const enclosing = node ? findEnclosingCall(node) : null;
+  if (enclosing) return enclosing;
+  let followed = null;
+  walkAst(ast, (candidate) => {
+    if (candidate.type !== 'Call' || !candidate.location) return;
+    if (/^[ \t]+$/.test(source.slice(candidate.location.end.offset, offset))) followed = candidate;
+  });
+  return followed;
 }
 
 function findEnclosingCall(node) {

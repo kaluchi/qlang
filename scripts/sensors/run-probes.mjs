@@ -17,7 +17,7 @@
 // it reads as a failure and never as a repair. A block indented inside
 // an item of a list is read as it stands. A probe whose answer changed,
 // a target the tree meets, and a list of files without the flag fail the
-// run, which `npm run ci` and the checks of a push make [QSWRK#probe]; a
+// run, which `npm run ci` and the checks of a push make; a
 // probe of a section a record in transit overrides is the record's, and an
 // answer its work changed waits for the move where the record holds a
 // probe of the same query [QSWRK#probe].
@@ -39,7 +39,7 @@ import { recordsInTransit } from '../baseline-walk.mjs';
 
 const repoRoot = join(import.meta.dirname, '..', '..');
 const recordsDir = join(repoRoot, JOURNAL);
-const openRecords = readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).map(name => join(recordsDir, name))
+const openRecords = readdirSync(recordsDir).filter(name => /^D\d+\.md$/.test(name)).map(name => join(recordsDir, name))
   .filter(path => isOpenText(readFileSync(path, 'utf8')));
 const transit = recordsInTransit(repoRoot);
 const transitRecords = [...transit.keys()].map(name => join(recordsDir, `${name}.md`));

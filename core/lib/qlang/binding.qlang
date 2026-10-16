@@ -9,8 +9,8 @@
       declared, and `binding` the record of a name,
       `::vec/count | binding | get /origin` answering `:qlang/vec`.
 
-      It prints as a map under its tag; in the command line the record
-      of `:x 5` is
+      It prints as a map under its tag; the record of `:x 5` read from
+      the cell `cell-1` is
       `::binding{:name :x :docs [] :value 5 :source ~(:x 5) :origin :cell-1}`.
       `:name` is the keyword it binds, `:docs` one doc for each doc of
       its slot, `:value` what the name holds, `:source` the quote of the

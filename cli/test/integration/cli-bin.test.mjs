@@ -1,18 +1,7 @@
-// End-to-end CLI smoke tests — spawn the actual `cli/src/bin.mjs`
-// adapter through `node:child_process` and assert on the
-// stdout / stderr / exit-code triple. Catches every bug the
-// in-process unit suite cannot reach:
-//
-//   * SyntaxError / ReferenceError in any module that bin.mjs
-//     transitively imports (the unit suite mocks streams and calls
-//     main() in-process, so a top-level parse failure in repl.mjs
-//     surfaces only when `qlang -i` is actually invoked).
-//   * Argv parsing wired-up correctly (the unit suite tests
-//     parseArgv in isolation; this suite tests the full path
-//     through main → script-mode / runRepl).
-//   * Piped stdin reaches the `in` word and the format auto-detection.
-//   * REPL bootstrap loads every lazy-imported module without
-//     throwing on the first prompt.
+// The command line run as a process of its own, `cli/src/bin.mjs`: what it
+// writes to standard output and standard error and the code it exits with,
+// for a query, its flags and its piped input, and in the REPL
+// [QSHST#answer], [QSHST#input], [QSHST#repl].
 
 import { describe, it, expect } from 'vitest';
 import { spawn } from 'node:child_process';
@@ -62,7 +51,7 @@ describe('CLI: --version', () => {
 });
 
 describe('CLI: script mode — query argument', () => {
-  it('evaluates `42 | mul(2)` and writes `84`', async () => {
+  it('evaluates `42 | mul 2` and writes `84`', async () => {
     const { stdout, exitCode } = await runCli(['42 | mul 2'], { stdin: '' });
     expect(exitCode).toBe(0);
     expect(stdout.trim()).toBe('84');
@@ -94,11 +83,7 @@ describe('CLI: script mode — query argument', () => {
     expect(stderr).toMatch(/missing query/);
   });
 
-  it('the axes resolve cell-local BindStep declarations through script-mode', async () => {
-    // Regression pin: script-mode goes through session.evalCell,
-    // which must stamp the parsed cell AST under
-    // `qlang/ast/<cellUri>` so the axes find the inline
-    // `:foo |~~ note ~~|` BindStep declared by the same query.
+  it('the axes read a declaration of the query in script mode', async () => {
     const { stdout, exitCode } = await runCli(
       [':foo |~~ note ~~| | ::foo | doc | content'],
       { stdin: '' });
@@ -107,8 +92,8 @@ describe('CLI: script mode — query argument', () => {
   });
 });
 
-describe('CLI: piped stdin — auto-detect JSON', () => {
-  it('auto-detects JSON input and reads it by `get /name`', async () => {
+describe('CLI: piped stdin — the input modes', () => {
+  it('reads piped JSON as values, which `get /name` reads', async () => {
     const { stdout, exitCode } = await runCli(['get /name'], {
       stdin: '{"name": "alice", "age": 30}'
     });
@@ -116,7 +101,7 @@ describe('CLI: piped stdin — auto-detect JSON', () => {
     expect(stdout.trim()).toBe('alice');
   });
 
-  it('--raw treats stdin as a literal String subject', async () => {
+  it('--raw reads standard input as a string', async () => {
     const { stdout, exitCode } = await runCli(['--raw', 'append " world"'], {
       stdin: 'hello'
     });
@@ -134,12 +119,8 @@ describe('CLI: piped stdin — auto-detect JSON', () => {
   });
 });
 
-describe('CLI: REPL bootstrap (`-i`) loads every lazy import', () => {
-  // This test catches the exact class of bug that the in-process
-  // unit suite misses — a SyntaxError / ReferenceError in repl.mjs
-  // or any module it transitively imports surfaces only when the
-  // REPL is actually entered. Send `.exit\n` immediately so the
-  // child terminates cleanly after the bootstrap.
+describe('CLI: the REPL (`-i`) loads its modules, runs its cells and closes on `.exit`', () => {
+  // `.exit\n` sent at once closes the child after the REPL boots.
   it('starts up, prints prompt, accepts .exit, returns code 0', async () => {
     const { exitCode, stderr } = await runCli(['-i'], { stdin: '.exit\n' });
     // A syntax error inside repl.mjs would surface on stderr and
@@ -156,7 +137,7 @@ describe('CLI: REPL bootstrap (`-i`) loads every lazy import', () => {
     expect(stdout).toMatch(/84/);
   });
 
-  it('REPL persists BindStep bindings across cells in one session', async () => {
+  it('REPL keeps the words a cell declares for the cells after it', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
       stdin: ':any/double ~(mul 2)\n21 | double\n.exit\n'
     });

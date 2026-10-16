@@ -1,6 +1,6 @@
 ---
 import Base from "../layouts/Base.astro"
-import { parse, walkAst, langRuntime, verbNames } from "@kaluchi/qlang-core"
+import { langRuntime, verbNames } from "@kaluchi/qlang-core"
 import { formatExample } from "../lib/format-example.js"
 
 const builtins = verbNames(await langRuntime())
@@ -24,7 +24,7 @@ const examples = [
   {
     tab: "code-as-data",
     file: "parse | apply",
-    code: `|~| source → quote → pipeValue\n> "10 | add 3" | parse | apply it\n13`,
+    code: `|~| source → quote → answer\n> "10 | add 3" | parse | apply it\n13`,
   },
 ]
 

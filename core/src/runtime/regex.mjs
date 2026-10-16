@@ -75,12 +75,12 @@ async function replacedByCode(text, engine, code) {
 bindPrim('string/replace', runs(['with'], (text, pattern, replacement) => {
   const engine = isRegex(pattern) ? engineFor(pattern, 'g') : engineOfText(pattern);
   if (typeof replacement === 'function') return replacedByCode(text, engine, replacement);
-  return text.replace(engine, isRegex(pattern) ? withGroupsOf(engine, replacement) : () => replacement);
+  return text.replace(engine, isRegex(pattern) ? withGroupsOf(pattern, replacement) : () => replacement);
 }));
 
-// The replacement with each `$<name>` of a group the engine lacks escaped,
+// The replacement with each `$<name>` of a group the pattern lacks escaped,
 // so it stands as written.
-function withGroupsOf(engine, replacement) {
-  const groups = new Set(Object.keys(new RegExp(`${engine.source}|`, engine.flags).exec('').groups ?? {}));
+function withGroupsOf(regex, replacement) {
+  const groups = new Set(Object.keys(groupsOf(regex).groups ?? {}));
   return replacement.replace(/\$\$|\$<([^>]*)>/g, (token, name) => (token === '$$' || groups.has(name) ? token : `$${token}`));
 }

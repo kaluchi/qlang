@@ -7,12 +7,12 @@
       in the scope where it stands:
       `{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)` keeps the
       record for a later step and answers `6`. The value in the pipe
-      passes on unchanged; a group, a part of a literal and a quote a
-      word runs each close the names declared inside, and a name is
-      declared once in its scope.
+      passes on unchanged; a group and a quote a word runs each close the
+      names declared inside, the quotes of a template `get` runs are forks
+      of their own, and a name is declared once in its scope.
 
       In a quote the step is a record, `~(:x 1) | first` answering
-      `::bind{:name :x :body 1}`: `:name` the keyword or tag it binds,
+      `::bind{:name :x :body 1}`: `:name` the keyword it binds,
       `:docs` its pages and `:body` the step of its body.
       ::link~(::binding | doc) ::link~(::qlang/names | doc)
   ~~|

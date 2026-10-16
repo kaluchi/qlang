@@ -2,7 +2,7 @@
 // highlighted HTML.
 //
 // Input format — each line is one of:
-//   |~| ...    — doc-comment / label line
+//   |~| ...    — a comment to the end of its line
 //   > expr     — REPL prompt + qlang expression
 //     expr     — pipeline continuation (two-space indent)
 //   result     — plain result / output line
@@ -12,8 +12,6 @@
 // highlighted lines are mapped back 1-to-1.
 //
 // @param {string}   code     — raw demo block text
-// @param {Function} parse    — qlang `parse` function
-// @param {Function} walkAst  — qlang `walkAst` function
 // @param {Set}      builtins — Set of the names of the words of the language
 // @returns {string} HTML string
 // The decisions it exists for: [QSWRK#tooling].

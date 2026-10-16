@@ -1,8 +1,8 @@
 |~ `::builtin`, the descriptor of a primitive, and what is declared
    under it: its constructor and its refusal, and the refusals of the
    kernel no reader reaches by a query, the table of primitives, the
-   tree the evaluator does not know, the session, the printer and the
-   sources of the root.
+   declarations of the refusals, the tree the evaluator does not know,
+   the printer and the sources of the root.
    The decisions it exists for: [QSERR#site], [QSDSP#residence]. ~|
 
 :builtin
@@ -10,8 +10,9 @@
       function whose code the host hands, `::builtin{}`, where a word
       written in steps holds a quote.
       `::number/add | binding | get /value | get /1` answers
-      `::builtin{}`, and a kind the host declares builds its values by a
-      recipe that is one, `| impl ::builtin{}`.
+      `::builtin{}`, and a kind of the core takes one, `| impl ::builtin{}`,
+      as the check its host hands, which attaches the tag to a payload or
+      refuses it.
 
       It is a map under its tag and runs nothing by itself: a name bound
       to one reads it as data, and a call of the word runs the
@@ -29,9 +30,8 @@
     | throws :UnknownAstNodeTypeError
         |~~ The evaluator met a node of the parser's tree it has no rule
             for: a defect of the runtime, and no failure of the query,
-            raised past the fail track to the host. The query is sound as
-            it stands; the runtime is repaired, the node given its rule,
-            and the query that met it is the case that shows it.
+            raised past the fail track to the host. The node is given its
+            rule, and the query that met it is the case that shows it.
         ~~|
     | throws :AddressBoundTwiceError
         |~~ Two modules of the runtime bound an implementation under one
@@ -43,7 +43,7 @@
         |~~ Two sites of the runtime declared one refusal under one
             address, a defect of the runtime found as it loads: the
             address is the tag the refusal answers by and the name of its
-            page, so one site would speak for both. Each site declares its
+            page. Each site declares its
             refusal under the address of what refused, the word or the
             input, one site to an address.
         ~~|
@@ -78,17 +78,13 @@
             its sources, never to the table.
         ~~|
     | throws :NumberNotFiniteLeakedToPrintError
-        |~~ A number of qlang is a finite double. Source cannot mint an
-            infinity or a NaN — the parser refuses the literal and every
-            arithmetic site answers an error of its domain — so this tag
-            reports a value a host installed. The print and the JSON of
-            the boundary are where such a value shows: the print would be
-            `Infinity`, which no literal reads back, and JSON would write
-            `null`. `:actualValue` holds the magnitude as a string, the
-            one form that prints. The host keeps the numbers it hands
-            finite, its bindings and the answers of its implementations,
-            and answers an error of its own where its arithmetic leaves
-            the doubles.
+        |~~ A number of qlang is a finite double, and this tag reports an
+            infinity or a NaN a host installed, where the print or the
+            JSON of the boundary meets it. `:actualValue` holds the
+            magnitude as a string, the one form that prints. The host
+            keeps the numbers it hands finite, its bindings and the
+            answers of its implementations, and answers an error of its
+            own where its arithmetic leaves the doubles.
         ~~|
     | throws :JsonValueNotEncodableError
         |~~ A value a host put in the scope that is of none of the kinds

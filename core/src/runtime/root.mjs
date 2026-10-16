@@ -1,5 +1,5 @@
 // The root [QSHST#source]: the scope a host's sources declare before the
-// reader's first step, each source a cell run in a frame over the root the
+// reader's first step, each source a cell run in a scope over the root the
 // sources before it left, the language's first. A source whose run answers an
 // error, or that declares again a name the root holds, is refused; each name
 // under a label a source declares is the host's, which alone reaches an
@@ -46,8 +46,8 @@ const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 export async function declareRoot(env, sources) {
   let root = rootOf(env);
   for (const { uri, source, impls = {} } of sources) {
-    const frame = new Map([[ROOT_KEY, root]]);
-    const answered = await evalAst(parse(source, { uri }), rootState(null, frame));
+    const scope = new Map([[ROOT_KEY, root]]);
+    const answered = await evalAst(parse(source, { uri }), rootState(null, scope));
     if (isErrorValue(answered.pipeValue)) {
       throw new BuiltinRootSourceNotDeclaredError({ uri, tagName: answered.pipeValue.tag.literal });
     }

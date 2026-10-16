@@ -343,8 +343,8 @@ bindPrim('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count)))
 // order among the values under that tag [QSORD#sort].
 bindPrim('any/desc', value => makeTagged(DESC_TAG, value));
 
-// `distinct` is the constructor of the set [QSORD#order]: the elements of a
-// vector in the one order without duplicates, and a set as it is.
+// `distinct` answers the set of the elements of a vector, the value
+// `::set[…]` builds [QSORD#set], and a set as it is.
 bindPrim('vec/distinct', vector => makeSet(vector));
 bindPrim('set/distinct', set => set);
 

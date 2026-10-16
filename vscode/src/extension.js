@@ -192,10 +192,10 @@ function tokenizeWithRegex(code) {
       out += span('hljs-number', code.slice(i, j));
       i = j;
     } else if (ch === '!' && code[i + 1] === '|') {
-      // Fail-apply combinator — 2-char token, consumed together.
+      // `!|`, the combinator that carries a failure, paints as one token.
       out += span('hljs-punctuation', '!|');
       i += 2;
-    } else if ('|()[]@'.includes(ch)) {
+    } else if ('|()[]'.includes(ch)) {
       out += span('hljs-punctuation', ch);
       i++;
     } else {

@@ -54,12 +54,6 @@ await build({
   sourcemap: 'inline',
   sourcesContent: true,
   minify: false,
-  // `runtime/index.mjs` carries bare `import './<family>.mjs'`
-  // lines, each module binding the implementations of the language's
-  // verbs and kinds into `PRIMITIVE_REGISTRY` as it loads
-  // [QSDSP#residence], and `ignoreAnnotations: true` keeps them in
-  // the bundle whatever `core/package.json#sideEffects` declares.
-  ignoreAnnotations: true,
   plugins: [languageSources]
 });
 

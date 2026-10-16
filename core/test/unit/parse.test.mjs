@@ -218,7 +218,7 @@ describe('parse — Call', () => {
     expect(ast.args).toEqual([]);
   });
 
-  it('parses an identifier with @ prefix', () => {
+  it('parses a name nothing declares as a call', () => {
     const ast = parse('callers');
     expect(ast.type).toBe('Call');
     expect(ast.name).toBe('callers');

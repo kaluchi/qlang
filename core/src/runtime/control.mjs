@@ -4,8 +4,6 @@
 // the name runs only when it is chosen, closed at the call [QSQUO#literal],
 // [QSDSP#walk], and the condition of `if` is a boolean computed at the call
 // [QSCND#boolean].
-//
-// The verbs live in lib/qlang/any.qlang.
 
 import { isNull, isErrorValue, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';

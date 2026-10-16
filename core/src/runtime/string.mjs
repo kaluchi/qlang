@@ -1,6 +1,6 @@
 // The primitives of strings, and `join`, `prepend` and `append` of
 // vectors, whose words the catalog declares under `::string` and `::vec`
-// [QSQUO#modifier].
+// [QSDSP#residence].
 
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';

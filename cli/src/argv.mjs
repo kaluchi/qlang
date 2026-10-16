@@ -23,11 +23,10 @@ pipe characters. qlang '::cli | doc' reads this command line, and
 qlang '::qlang | doc' the language.
 
 Input mode (script):
-  (default)   auto-detect — try JSON.parse on stdin; on failure
-              hand the raw text to the query as a string
+  (default)   JSON is read as values, any other text as one string
   --json      stdin must be JSON; a text that does not parse answers
               ::string/parseJson/TextNotJsonError, exit 0 as every answer
-  --raw       skip parsing — stdin is the string subject
+  --raw       stdin is one string, JSON text too
 
 Output budget:
   (default)   a value prints whole, and an error as an alert: the
@@ -40,8 +39,8 @@ Output budget:
               answer the same way by '| elide N'.
 
 Output colour:
-  --color=auto    (default) paint if stdout is a terminal, raw
-                  if piped or redirected
+  --color=auto    (default) paint if stdout is a terminal, and
+                  write unpainted if piped or redirected
   --color=always  paint unconditionally
   --color=never   never paint
   Environment:    NO_COLOR=1 forces never; FORCE_COLOR=1 forces

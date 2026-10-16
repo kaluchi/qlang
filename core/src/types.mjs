@@ -17,8 +17,9 @@ export function finiteNumberOrLift(numberValue) {
 
 export const NULL = null;
 
-// The keyword, the tag name, the error and the wrapper of a tag are
-// objects branded on a hidden slot, so data never forges one.
+// The pattern, the keyword, the tag name, the path, the error and the
+// wrapper of a tag are objects branded on a hidden slot, so data never
+// forges one.
 export const VALUE_CLASS_TAG = Symbol('qlang/valueClass');
 
 export function brandValueClass(target, valueClass) {

@@ -231,8 +231,8 @@ function withDeclaredNames(items, ast, offset, spellings) {
       const name = spelling === TAG_SPELLING ? tagNameOf(declared) : declared;
       if (items.some(item => item.label === name)) continue;
       items.push(spelling === TAG_SPELLING
-        ? { label: name, kind: 'tag', detail: 'in-document kind', documentation: null }
-        : { label: name, kind: 'variable', detail: 'BindStep binding', documentation: null });
+        ? { label: name, kind: 'tag', detail: "a reader's kind", documentation: null }
+        : { label: name, kind: 'variable', detail: "a reader's name", documentation: null });
     }
   }
   return items;
@@ -356,7 +356,7 @@ async function hoverForCall(node, documentAst, source) {
   const prose = tidyProse(docStrings.join('\n'));
   return {
     content: markdownHardBreaks([
-      `**${node.name}** — user binding`,
+      `**${node.name}** — a reader's name`,
       '',
       prose
     ].join('\n')),

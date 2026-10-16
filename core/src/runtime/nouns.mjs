@@ -1,7 +1,7 @@
 // The names of a scope [QSDSP#residence], each a declaration's, a name with a
 // path, `vec/count`, the address of the node it declares under its noun, over
 // the root the host's sources declared before the reader's first step: a step
-// reads the frame's declaration of a name before the root's, a tag name the
+// reads the scope's declaration of a name before the root's, a tag name the
 // root's node of it before the reader's, which no reader replaces, and a walk
 // of a subject's tags the words residing on each kind it passes [QSDSP#walk].
 
@@ -22,8 +22,8 @@ import { ANSWER_NAME, functionOfRecipe, kindOf, signatureOf } from './signature.
 export const ANY_KIND_NAME = 'any';
 export const TAGGED_KIND_NAME = 'tagged';
 
-// The bindings of a scope by name: the root's a name of the frame does
-// not stand over, then the frame's.
+// The bindings of a scope by name: the root's a name of the scope does
+// not stand over, then the scope's.
 function* bindingsOf(env) {
   for (const [name, entry] of rootOf(env)) if (!env.has(name)) yield [name, entry];
   for (const [name, entry] of env) if (isBinding(entry)) yield [name, entry];
@@ -43,7 +43,7 @@ export function nodeOf(env, tagName) {
 // A value a reader named is withheld from the lane of held code, and a
 // read of its name there is refused under it, so no word, no value of the
 // root and no tag of identity answers for it [QSQUO#held]: a step reads the
-// frame's declaration of a name before the root's and refuses it, while a
+// scope's declaration of a name before the root's and refuses it, while a
 // tag, the noun of a declaration among them, reads a label of the root
 // before any name of the reader, and the label stays.
 export const CallValueWithheldError = declareRefusal('call/ValueWithheldError');
@@ -155,8 +155,8 @@ export function readsTheReaderUnder(env, nounName) {
 }
 
 // The record of the verb of `verbName` residing on a kind, or null; a
-// scope whose frame does not declare the address, or reads the root alone
-// under the kind, reads the root's.
+// scope that does not declare the address, or reads the root alone under
+// the kind, reads the root's.
 function residenceOf(env, kindName, verbName) {
   const address = `${kindName}/${verbName}`;
   return readsTheReaderUnder(env, kindName) && pathNamesOf(env).includes(address) ? residenceAt(env, address) : onceForRoot(ROOT_RESIDENCES, env, address, rootResidenceAt);
@@ -192,7 +192,7 @@ export function onceForRoot(table, scope, key, read) {
   return value;
 }
 
-// pathNamesOf(env) → the names with a path the frame of a scope declares;
+// pathNamesOf(env) → the names with a path a scope declares;
 // a scope never changes once made, so they are read once for it.
 export function pathNamesOf(env) {
   let names = PATH_NAMES.get(env);
@@ -450,9 +450,9 @@ function readsOnePlace(ast, place) {
 }
 
 // The nodes declared one name under a noun, by their last names: the
-// root's, read from its index, with the frame's over them, and the map of
-// the index itself where the frame declares none under the noun, so what
-// a call derives from it is read once for every frame.
+// root's, read from its index, with the scope's over them, and the map of
+// the index itself where the scope declares none under the noun, so what
+// a call derives from it is read once for every scope.
 function namesUnderOf(env, nounName) {
   const fromRoot = rootIndexOf(rootOf(env)).get(nounName) ?? NO_NAMES;
   let under = fromRoot;

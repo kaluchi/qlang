@@ -19,8 +19,7 @@
 //   'word'        a call's name that resolves to a word of the
 //                 language supplied by `langRuntime` AND each key
 //                 segment of a `Path`
-//   'keyword'     the head Keyword/tag of a BindStep
-//                 declaration
+//   'keyword'     the head keyword of a BindStep declaration
 //   'err'         `!` sigil plus its immediately-attached bracket
 //                 in `!{` / closing `}` of an error literal, and the
 //                 `!|` fail-track combinator — an error and the track
@@ -235,8 +234,8 @@ function classifyCallName(callName, builtinNames) {
 // Emit opener and closer spans for a literal with known bracket
 // widths (VecLit / SetLit / ErrorLit). Interior children still
 // walk through their own AST cases; the opener/closer fill in the
-// bracket bytes that would otherwise fall to the gap pass as
-// undifferentiated `punct`.
+// code units of the brackets that would otherwise fall to the gap pass
+// as undifferentiated `punct`.
 function emitBracketSpans(startOffset, endOffset, openerLen, closerLen, kind, spans) {
   spans.push({ start: startOffset, end: startOffset + openerLen, kind });
   spans.push({ start: endOffset - closerLen, end: endOffset, kind });
@@ -295,7 +294,7 @@ function dedupeOverlappingSpans(spans) {
   return dedupedSpans;
 }
 
-// ── Gap interleaving — every byte ends up in exactly one token ──
+// ── Gap interleaving — every code unit ends up in exactly one token ──
 
 function interleaveGapTokens(src, semanticSpans) {
   const interleavedTokens = [];

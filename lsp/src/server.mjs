@@ -1,6 +1,6 @@
 // qlang language server — LSP wiring over features.mjs.
 //
-// Runs as a child process spawned by the VS Code extension client and
+// Runs as a child process a client of the protocol launches and
 // talks JSON-RPC over stdio: it reads the sources of the language and
 // answers each request of the protocol by the functions of features.mjs.
 
@@ -308,12 +308,12 @@ connection.onSignatureHelp(async (params) => {
 
 // ── Semantic Tokens ───────────────────────────────────────────
 //
-// VS Code requests semantic tokens for the whole document; the
+// The client requests semantic tokens for the whole document; the
 // returned `{ data }` is a Uint32Array carrying the LSP-encoded
 // token stream (5 ints per token). The editor merges it on top of
 // the tmLanguage grammar tokens so a reader's names get the
-// `variable` colour distinct from the `function` colour of
-// `langRuntime`-resolved built-ins.
+// `variable` colour distinct from the `function` colour of the
+// words of the language.
 
 connection.languages.semanticTokens.on(async (params) => {
   const state = documentStates.get(params.textDocument.uri);

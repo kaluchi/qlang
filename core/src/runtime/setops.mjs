@@ -7,8 +7,6 @@
 // fold a value of no kind of the algebra is refused at its index, and the
 // values meet in pairs, a pair the algebra has no rule for refused by the word
 // with the kinds it met.
-//
-// The verbs live in lib/qlang/set.qlang, map.qlang and vec.qlang.
 
 import { isSet, isKeyword, isString, isVec, isMap, makeSet, NULL, typeKeyword } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';

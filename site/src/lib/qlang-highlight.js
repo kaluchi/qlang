@@ -12,8 +12,8 @@
 //     `builtins` Set<string> of the names of words that resolve through
 //                langRuntime — the playground builds this once at
 //                startup and reuses it across every highlighted
-//                snippet. Pass null to treat the name of every call
-//                as user-defined.
+//                snippet. Pass null to paint the name of every call
+//                as a reader's name.
 // The decisions it exists for: [QSWRK#tooling].
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';

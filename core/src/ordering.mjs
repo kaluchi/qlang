@@ -7,8 +7,8 @@
 // by element, a set as its vector, maps by their keys and then their
 // values, a desc by the reverse of its payload's place [QSORD#order], and a
 // tagged value by its payload. `sort`, `min` and `max`
-// order by it, and so do the ordering predicates, whose heads admit two
-// values of one kind [QSDSP#walk], [QSDSP#residence].
+// order by it, and so do the ordering predicates, whose inputs take a value
+// of the subject's kind [QSDSP#walk], [QSDSP#residence].
 
 import {
   isKeyword, isTag, isRegex, isPath, isDoc, isValueClass,

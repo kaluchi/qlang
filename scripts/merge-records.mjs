@@ -147,7 +147,7 @@ for (const path of tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\//;
 // The documents the walk holds to the records in force [QSWRK#baseline].
 const isDocument = path => CITING_DOCUMENTS.includes(path);
-const RECORD_IN_FORCE = /^docs\/journal\/[DE]\d+\.md$/;
+const RECORD_IN_FORCE = /^docs\/journal\/D\d+\.md$/;
 const isRecordMerged = path => [survivor, ...merged].some(name => path === `${JOURNAL}/${name}.md`);
 const touched = [];
 for (const path of tracked.filter(path => (ARTIFACT.test(path) && !path.startsWith('docs/')) || isDocument(path) || (RECORD_IN_FORCE.test(path) && !isRecordMerged(path)))) {

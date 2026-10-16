@@ -204,12 +204,12 @@ function changedBeyondCitations(root, commit, paths) {
 }
 
 function describedIn(root) {
-  const inForce = new Set(git(root, 'ls-files', JOURNAL).split('\n').map(path => path.match(/^docs\/journal\/([DE]\d+)\.md$/)?.[1]).filter(Boolean));
+  const inForce = new Set(git(root, 'ls-files', JOURNAL).split('\n').map(path => path.match(/^docs\/journal\/(D\d+)\.md$/)?.[1]).filter(Boolean));
   const described = new Map();
   const log = git(root, 'log', '-p', '-M', '--unified=0', '--format=%x00%H', '--', JOURNAL);
   for (const entry of log.split('\0').slice(1)) {
     const commit = entry.slice(0, entry.indexOf('\n'));
-    for (const [name, { removed, added }] of sidesOf(entry, section => section.match(/^a\/\S+ b\/docs\/journal\/([DE]\d+)\.md\n/)?.[1])) {
+    for (const [name, { removed, added }] of sidesOf(entry, section => section.match(/^a\/\S+ b\/docs\/journal\/(D\d+)\.md\n/)?.[1])) {
       if (!inForce.has(name) || described.has(name)) continue;
       if (decisionOf(removed) !== decisionOf(added)) described.set(name, commit);
     }

@@ -191,7 +191,7 @@ export function unresolvedSections(repoRoot) {
 // in force with a line `Overrides [QSNAM#scope], [QSNAM#reach]` [QSWRK#journal].
 export function recordsInTransit(repoRoot) {
   const recordsDir = join(repoRoot, JOURNAL);
-  return new Map(readdirSync(recordsDir).filter(name => /^[DE]\d+\.md$/.test(name)).flatMap(name => {
+  return new Map(readdirSync(recordsDir).filter(name => /^D\d+\.md$/.test(name)).flatMap(name => {
     const line = readFileSync(join(recordsDir, name), 'utf8').match(/^Overrides ((?:[^\r\n]|\r?\n(?=\[QS))+)/m)?.[1];
     return line === undefined ? [] : [[name.slice(0, -3), [...line.matchAll(/\[(QS[A-Z]{3}(?:#[a-z][a-z-]*)?)\]/g)].map(match => match[1])]];
   }));
@@ -343,7 +343,7 @@ export function recordHolding(repoRoot, path) {
 // The texts in force that may cite a document: the records in force and
 // the documents of the work.
 export function textsInForce(repoRoot) {
-  const records = readdirSync(join(repoRoot, JOURNAL)).filter(name => /^[DE]\d+\.md$/.test(name)).map(name => `${JOURNAL}/${name}`);
+  const records = readdirSync(join(repoRoot, JOURNAL)).filter(name => /^D\d+\.md$/.test(name)).map(name => `${JOURNAL}/${name}`);
   return [...records, ...CITING_DOCUMENTS].filter(path => existsSync(join(repoRoot, path))).map(path => ({ path, text: readFileSync(join(repoRoot, path), 'utf8') }));
 }
 

@@ -16,7 +16,7 @@ export {
 export { splitAddress } from './address.mjs';
 export { printQuoteSource } from './quote.mjs';
 export {
-  printValue, toPlain, fromPlain, StringParseJsonNumberNotFiniteError
+  printValue, toPlain, fromPlain, fromJsonText, StringParseJsonNumberNotFiniteError
 } from './runtime/format.mjs';
 export { printAnswer, elideAnswer } from './runtime/print.mjs';
 export { tokenize } from './highlight.mjs';

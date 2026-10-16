@@ -47,3 +47,13 @@
 {"decision":"D324","name":"shape-reads-its-subject-beneath-its-tags","query":"::Box{:w 1} | shape","expect":"::shape{:w ::number}"}
 {"decision":"D324","name":"shape-of-an-empty-vector-and-an-empty-map-are-themselves","query":"get [~([] | shape) ~({} | shape)]","expect":"[::shape[] ::shape{}]"}
 {"decision":"D324","name":"the-paths-of-the-data-read-its-shape","query":"{:users [{:age 1} {:age \"2\"}]} | shape | get /users/0/age","expect":"#[::number ::string]"}
+{"decision":"D324","name":"shape-keeps-the-names-of-a-map-whose-values-part-in-kind","query":"{:a {:n 1} :b [1] :c {:n 3} :d {:n 4} :e {:n 5} :f {:n 6} :g {:n 7} :h {:n 8} :i {:n 9}} | shape | keys | count","expect":"9"}
+{"decision":"D324","name":"shape-merges-a-third-record-into-a-key-marked-absent","query":"[{:a 1} {} {:a 2}] | shape","expect":"::shape[{:a ::absent::number}]"}
+{"decision":"D324","name":"shape-marks-a-null-before-a-number-nullable","query":"[null 1] | shape","expect":"::shape[::nullable::number]"}
+{"decision":"D324","name":"shape-marks-the-fold-an-empty-map-meets-on-either-side","query":"get [~([{} {:\"1\" 1 :\"2\" 2}] | shape) ~([{:\"1\" 1 :\"2\" 2} {}] | shape)]","expect":"[::shape[::each{:\"1\" ::absent::number}] ::shape[::each{:\"1\" ::absent::number}]]"}
+{"decision":"D324","name":"shape-merges-a-tuple-with-a-list-of-another-length-into-one-element","query":"[{:p [[1 \"a\"] [2 \"b\"]]} {:p [[1]]}] | shape","expect":"::shape[{:p [[#[::number ::string]]]}]"}
+{"decision":"D324","name":"shape-keeps-the-places-of-two-tuples-that-part","query":"[{:p [[1 \"a\"] [2 \"b\"]]} {:p [[3 null] [4 \"c\"]]}] | shape","expect":"::shape[{:p [[::number ::nullable::string]]}]"}
+{"decision":"D324","name":"shape-merges-sets-of-other-kinds-and-marks-an-empty-one-on-either-side","query":"get [~([#[1] #[\"a\"]] | shape) ~([#[] #[1]] | shape) ~([#[1] #[]] | shape)]","expect":"[::shape[#[#[::number ::string]]] ::shape[#[::absent::number]] ::shape[#[::absent::number]]]"}
+{"decision":"D324","name":"shape-merges-a-kind-with-the-kinds-that-part-after-it","query":"[{:v [true]} {:v [1 \"a\"]}] | shape","expect":"::shape[{:v [#[::boolean ::number ::string]]}]"}
+{"decision":"D324","name":"shape-merges-vectors-and-sets-among-the-kinds-that-part","query":"get [~([[1] {:a 1} [\"x\"]] | shape) ~([#[1] {:a 1} #[\"x\"]] | shape)]","expect":"[::shape[#[[#[::number ::string]] {:a ::number}]] ::shape[#[#[#[::number ::string]] {:a ::number}]]]"}
+{"decision":"D324","name":"shape-merges-a-vector-marked-nullable-with-a-later-one","query":"[{:t []} {:t [1]} {:t null} {:t [2]}] | shape","expect":"::shape[{:t ::nullable[::absent::number]}]"}

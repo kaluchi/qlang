@@ -259,11 +259,16 @@ const TALLY_RE = new RegExp(
 const FENCE_RE = /^\s*```/;
 const INLINE_CODE_RE = /`[^`]*`/g;
 
+// A report of the research stands as its outside reader wrote it
+// [QSWRK#review], so the prose held to its tallies is the work's own, the
+// session's reading of the report among it.
+const OUTSIDE_REPORT = /^docs\/journal\/research\/(?:(?:design-check|reviews|outside-audit)\/D\d+~\d+\.md|spec-check\/D\d+~\d+\/(?!reading\.md)[^/]+\.md)$/;
+
 function scanProseTallies() {
   const violations = [];
   for (const filePath of walkSourceTree(repoRoot)) {
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
-    if (!relFile.endsWith('.md')) continue;
+    if (!relFile.endsWith('.md') || OUTSIDE_REPORT.test(relFile)) continue;
 
     const lines = readFileSync(filePath, 'utf8').split(/\r?\n/);
     let insideFence = false;

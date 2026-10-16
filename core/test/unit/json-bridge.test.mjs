@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isQMap, isVec, formOf, typeKeyword, makeTag } from '../../src/types.mjs';
-import { fromPlain, toPlain, BuiltinJsonValueNotEncodableError } from '../../src/runtime/format.mjs';
+import { fromJsonText, fromPlain, toPlain, BuiltinJsonValueNotEncodableError } from '../../src/runtime/format.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
   it('an object literal is a map keyed by the keywords of its strings', async () => {
@@ -113,5 +113,40 @@ describe('toPlain refuses a value JSON has no form for', () => {
 describe('a descriptor is data [QSSLF#page]', () => {
   it('writes its keyword field as its name in JSON', async () => {
     expect(await evalQuery('::builtin{:note :draft} | json')).toContain('"note":"draft"');
+  });
+});
+
+describe('a JSON text reads as its literal reads, the keys in the order it writes them [QSLIT#json]', () => {
+  it('keeps a key that reads as an index in its place among the others', async () => {
+    const text = '{"b": 1, "2": 2, "a": 3}';
+    expect([...fromJsonText(text).keys()]).toEqual(['b', '2', 'a']);
+    expect([...(await evalQuery(text)).keys()]).toEqual(['b', '2', 'a']);
+    expect([...(await evalQuery(`${JSON.stringify(text)} | parseJson`)).keys()]).toEqual(['b', '2', 'a']);
+  });
+
+  it('reads every kind a document writes, through any whitespace', async () => {
+    const text = ' \t{ "v" :\r\n[ 1 , -2.5e1 , "q\\"t\\\\" , true , false , null , { } , [ ] ] }\n';
+    const { deepEqual } = await import('../../src/equality.mjs');
+    expect(deepEqual(fromJsonText(text), await evalQuery('{:v [1 -25 "q\\"t\\\\" true false null {} []]}'))).toBe(true);
+    expect(fromJsonText('5')).toBe(5);
+    expect(fromJsonText('"x"')).toBe('x');
+  });
+
+  it('stands a key written twice in its first place with its last value', () => {
+    const read = fromJsonText('{"a": {"x": 1}, "b": 2, "a": {"y": 3}}');
+    expect([...read.keys()]).toEqual(['a', 'b']);
+    expect([...read.get('a').keys()]).toEqual(['y']);
+  });
+
+  it('refuses a number past the doubles at its path', () => {
+    let thrown = null;
+    try { fromJsonText('{"a": {"b": [1, 1e400]}}'); } catch (caught) { thrown = caught; }
+    expect(thrown.address).toBe('string/parseJson/NumberNotFiniteError');
+    expect(thrown.facts.path).toEqual(['a', 'b', 1]);
+  });
+
+  it('writes a key JavaScript reads as the prototype as any key', async () => {
+    expect(await evalQuery('{:"__proto__" 1 :b 2} | json')).toBe('{"__proto__":1,"b":2}');
+    expect([...fromJsonText('{"__proto__": 1}').keys()]).toEqual(['__proto__']);
   });
 });

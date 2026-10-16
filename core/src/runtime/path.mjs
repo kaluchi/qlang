@@ -282,7 +282,7 @@ const lacked = shape => marked({ ...marksOf(shape), absent: true });
 const collapsed = places => places.reduce(mergedShape);
 
 function mergedPlaces(left, right) {
-  if (left.length === 0 || right.length === 0) return left.length === right.length ? [] : [lacked(collapsed(left.length === 0 ? right : left))];
+  if (left.length === 0 || right.length === 0) return [lacked(collapsed(left.length === 0 ? right : left))];
   if (left.length !== right.length) return [collapsed([...left, ...right])];
   const places = left.map((place, index) => mergedShape(place, right[index]));
   return places.every(place => deepEqual(place, places[0])) ? [places[0]] : places;

@@ -24,6 +24,10 @@ describe('liftStdinToPipeValue — auto detection', () => {
     expect(liftStdinToPipeValue('{"a": 1}', 'auto').pipeValue.get('a')).toBe(1);
   });
 
+  it('keeps the keys of a JSON stdin in the order the text writes them, as a literal does', () => {
+    expect([...liftStdinToPipeValue('{"b": 1, "2": 2, "a": 3}', 'auto').pipeValue.keys()]).toEqual(['b', '2', 'a']);
+  });
+
   it('falls back to raw String when stdin is not valid JSON', () => {
     expect(liftStdinToPipeValue('plain text', 'auto')).toEqual({ pipeValue: 'plain text' });
   });

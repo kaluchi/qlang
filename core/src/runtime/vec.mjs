@@ -7,11 +7,12 @@
 // that refused [QSERR#site]. An input that takes code arrives closed at the
 // call, code run on the element [QSDSP#walk], [QSBLD#fn].
 
-import { isNumber, isValueClass, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag } from '../types.mjs';
+import { isNumber, isValueClass, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag, makePath } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim, runs } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
+import { atPlace } from '../eval-trail.mjs';
 import { keywordFiledFor } from './convert.mjs';
 
 const DESC_TAG = makeTag('desc');
@@ -20,6 +21,11 @@ const DESC_TAG = makeTag('desc');
 // refusal: a sequence's index, from zero, and a map's key.
 const indexed = sequence => [...sequence].map((element, index) => [{ index }, element]);
 const keyed = map => [...map].map(([key, value]) => [{ key: keyword(key) }, value]);
+
+// The failure a word's code answered on the element at a place, its index or
+// its key, which the frame of the word names by its path [D337].
+const brokeAt = (error, segment) => atPlace(error, makePath([String(segment)]));
+const placeOf = place => place.index ?? place.key.name;
 
 // ── size and ends ──────────────────────────────────────────────
 
@@ -110,9 +116,9 @@ function errorOfKey(rankKey) {
   return isVec(rankKey) ? rankKey.find(isErrorValue) ?? null : null;
 }
 
-// Each entry beside the value it ranks by, its own without a key, an
-// error among the elements ranked as the one order ranks it, or the
-// error a key answered.
+// Each entry, its index or its key beside its element, beside the value it
+// ranks by, its own without a key, an error among the elements ranked as the
+// one order ranks it, or the error a key answered at the entry's place.
 async function keyedEntries(entries, key) {
   const ranked = [];
   for (const entry of entries) {
@@ -122,7 +128,7 @@ async function keyedEntries(entries, key) {
     }
     const sortKey = await key(entry[1]);
     const failed = errorOfKey(sortKey);
-    if (failed !== null) return failed;
+    if (failed !== null) return brokeAt(failed, entry[0]);
     ranked.push({ entry, sortKey });
   }
   return ranked;
@@ -131,8 +137,8 @@ async function keyedEntries(entries, key) {
 // The least or the greatest element in the one order, or by the value
 // the key answers for each, `pick` naming which side wins a comparison,
 // the first of equal ones staying [QSORD#sort].
-async function extremeOf(items, key, pick) {
-  const ranked = await keyedEntries(items.map(item => [null, item]), key);
+async function extremeOf(entries, key, pick) {
+  const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
   if (ranked.length === 0) return NULL;
   let best = ranked[0];
@@ -144,10 +150,10 @@ async function extremeOf(items, key, pick) {
 
 const least = order => order < 0;
 const greatest = order => order > 0;
-bindPrim(['vec/min', 'set/min'], runs(['key'], (sequence, key) => extremeOf([...sequence], key, least)));
-bindPrim('map/min', runs(['key'], (map, key) => extremeOf([...map.values()], key, least)));
-bindPrim(['vec/max', 'set/max'], runs(['key'], (sequence, key) => extremeOf([...sequence], key, greatest)));
-bindPrim('map/max', runs(['key'], (map, key) => extremeOf([...map.values()], key, greatest)));
+bindPrim(['vec/min', 'set/min'], runs(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, least)));
+bindPrim('map/min', runs(['key'], (map, key) => extremeOf([...map], key, least)));
+bindPrim(['vec/max', 'set/max'], runs(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, greatest)));
+bindPrim('map/max', runs(['key'], (map, key) => extremeOf([...map], key, greatest)));
 
 // `sort` orders the elements in the one order, or by the value the key answers
 // for each, keeping equal ones in the subject's order; a map orders its
@@ -174,32 +180,34 @@ bindPrim('map/sort', runs(['key'], async (map, key) => {
 // ── code on each element ───────────────────────────────────────
 
 // `map` runs its code on each element in order and answers what each
-// answered, the first error the code answers answering for the call, the
-// elements after it left unrun [QSCOL#each]; a map keeps its keys.
-async function answersOf(elements, code) {
+// answered, the first error the code answers answering for the call at the
+// place of its element, the elements after it left unrun [QSCOL#each],
+// [D337]; a map keeps its keys.
+async function answersOf(places, code) {
   const answers = [];
-  for (const element of elements) {
+  for (const [place, element] of places) {
     const answer = await code(element);
-    if (isErrorValue(answer)) return answer;
+    if (isErrorValue(answer)) return brokeAt(answer, placeOf(place));
     answers.push(answer);
   }
   return answers;
 }
 
-bindPrim(['vec/map', 'set/map'], runs(['code'], (sequence, code) => answersOf(sequence, code)));
+bindPrim(['vec/map', 'set/map'], runs(['code'], (sequence, code) => answersOf(indexed(sequence), code)));
 bindPrim('map/map', runs(['code'], async (map, code) => {
-  const answers = await answersOf(map.values(), code);
+  const answers = await answersOf(keyed(map), code);
   return isErrorValue(answers) ? answers : new Map([...map.keys()].map((key, index) => [key, answers[index]]));
 }));
 
 // ── predicates ─────────────────────────────────────────────────
 
 // A predicate answers a boolean for each element or fails [QSCND#boolean]: the
-// error it answered is handed on, and another answer is refused where
-// the element stands.
+// error it answered is handed on at the place of the element [D337], and
+// another answer is refused where the element stands.
 async function verdictOf(predicate, place, element, ConditionNotBooleanError) {
   const verdict = await predicate(element);
-  if (isErrorValue(verdict) || typeof verdict === 'boolean') return verdict;
+  if (isErrorValue(verdict)) return brokeAt(verdict, placeOf(place));
+  if (typeof verdict === 'boolean') return verdict;
   throw new ConditionNotBooleanError({ ...place, actualValue: verdict });
 }
 
@@ -266,7 +274,7 @@ bindPrim('map/any', runs(['predicate'], (map, predicate) => firstVerdict(keyed(m
 // the second is refused [QSCOL#group].
 async function keywordOf(key, element, index, KeyNotKeywordError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
-  if (isErrorValue(answer)) return answer;
+  if (isErrorValue(answer)) return brokeAt(answer, index);
   const named = keywordFiledFor(answer);
   if (named === null) throw new KeyNotKeywordError({ index, actualValue: answer });
   const taken = filed.get(named.name);
@@ -358,16 +366,16 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 // first of its args [QSCOL#reduce]; any other code runs on the pair of the
 // value so far and the element, and its answer is the value so far after it
 // [QSCOL#reduce]. `seed` answers for an empty subject, and a failure of the
-// reducer stops the fold.
-async function foldOf(elements, seed, reducer) {
+// reducer stops the fold at the place of its element [D337].
+async function foldOf(entries, seed, reducer) {
   const combine = resolveBinaryReducer(reducer) ?? ((acc, element) => reducer([acc, element]));
   let acc = seed;
-  for (const element of elements) {
+  for (const [segment, element] of entries) {
     acc = await combine(acc, element);
-    if (isErrorValue(acc)) return acc;
+    if (isErrorValue(acc)) return brokeAt(acc, segment);
   }
   return acc;
 }
 
-bindPrim(['vec/reduce', 'set/reduce'], runs(['reducer'], (sequence, seed, reducer) => foldOf(sequence, seed, reducer)));
-bindPrim('map/reduce', runs(['reducer'], (map, seed, reducer) => foldOf(map.values(), seed, reducer)));
+bindPrim(['vec/reduce', 'set/reduce'], runs(['reducer'], (sequence, seed, reducer) => foldOf(sequence.entries(), seed, reducer)));
+bindPrim('map/reduce', runs(['reducer'], (map, seed, reducer) => foldOf(map, seed, reducer)));

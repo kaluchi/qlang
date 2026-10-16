@@ -10,6 +10,7 @@ import {
   isVec,
   isQMap,
   isPath,
+  isTrail,
   ELISION_TAG,
   ERROR_TAG,
   formOf,
@@ -102,10 +103,12 @@ function printFallback(v) {
 }
 
 // A vector or a set stands on one line unless a part takes several, and
-// then each part stands on a line of its own.
-function printListLike(open, elements, indent, printedOf) {
+// then each part stands on a line of its own, as each frame of a trail of
+// two or more does, the path a failure flew read from where it arose
+// outward [D337].
+function printListLike(open, elements, indent, printedOf, stacked = false) {
   const rendered = elements.map(el => printValue(el, indent + 1, printedOf));
-  if (!rendered.some(s => s.includes('\n'))) return `${open}${rendered.join(' ')}]`;
+  if (!stacked && !rendered.some(s => s.includes('\n'))) return `${open}${rendered.join(' ')}]`;
   const pad = '  '.repeat(indent + 1);
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
@@ -132,7 +135,7 @@ export function underTagLiteral(tagLiteral, payload, payloadPrint) {
 // writes `#[…]` [QSERR#rest].
 function printTaggedInstance(instance, indent, printedOf) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
-  if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf);
+  if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf, isTrail(instance) && instance.length > 1);
   if (instance instanceof Map && instance[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', instance, indent, printedOf);
   if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf, instance[TAG_HEADER_SYMBOL].name === ELISION_TAG.name);
   return underTagLiteral(tagLiteral, instance.payload, printValue(instance.payload, indent, printedOf));

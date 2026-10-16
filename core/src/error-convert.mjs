@@ -53,7 +53,7 @@ export function factsInOrder(tag, facts, env) {
 
 // The error a refusal of the runtime raised: the facts its site handed
 // with the kind of the value refused, the value left out where it equals
-// the subject the first stop holds [QSERR#site].
+// the subject the first frame holds [D337].
 export function errorFromQlang(qlangError, subject, env) {
   const tag = makeTag(qlangError.address);
   const facts = new Map();

@@ -355,28 +355,47 @@ export function declareHostValue(value, impl) {
 
 // An error carries its tag, the kind of errors for a literal that names none
 // [QSERR#rest], and a descriptor of the facts of its site with its `:trail`,
-// the path it took [QSERR#trail], a vector of stops that `eval-trail.mjs`
-// writes; a `:trail` of another shape is refused where the error is made.
-export const ErrorTrailNotVecError = declareRefusal('error/TrailNotVecError');
+// the path it took, the frames `eval-trail.mjs` writes [D337]; a `:trail` of
+// another shape is refused where the error is made.
+export const ErrorTrailNotFramesError = declareRefusal('error/TrailNotFramesError');
 
-// A trail is a plain vector of plain maps, each holding under `:skipped`
-// the quote of the steps the error skipped after it [QSERR#trail].
+// A trail is a vector of frames under `::trail`, and a frame a vector under
+// `::frame` of the subject a step met, the quote of the steps of its level
+// from the one that broke and, where the step ran its code on a part of its
+// subject, the path of that part [D337].
+export const TRAIL_TAG = makeTag('trail');
+export const FRAME_TAG = makeTag('frame');
+
 export function isTrail(value) {
-  return isVec(value) && value[TAG_HEADER_SYMBOL] === undefined
-    && value.every(stop => isQMap(stop) && stop[TAG_HEADER_SYMBOL] === undefined && isQuote(stop.get('skipped')));
+  return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === TRAIL_TAG.name;
+}
+
+export function isFrame(value) {
+  return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === FRAME_TAG.name;
+}
+
+export function makeFrame(subject, steps, place = null) {
+  return makeTaggedInstance(FRAME_TAG, place === null ? [subject, steps] : [subject, steps, place]);
+}
+
+export function makeTrail(frames) {
+  return makeTaggedInstance(TRAIL_TAG, [...frames]);
 }
 
 // An error holds the facts of its site and, once a step raised it or
-// handed it on, its path, `:trail`; one whose path is empty holds no
-// `:trail` [QSERR#trail].
+// handed it on, its path, `:trail`, frames written plain or under
+// `::trail`, which it holds under `::trail`; one whose path is empty holds
+// no `:trail` [D337].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {
     const trail = descriptor.get('trail');
-    if (!isTrail(trail)) throw new ErrorTrailNotVecError({ actualValue: trail });
-    if (trail.length === 0) {
+    const plain = isVec(trail) && trail[TAG_HEADER_SYMBOL] === undefined;
+    if (!(plain || isTrail(trail)) || !trail.every(isFrame)) throw new ErrorTrailNotFramesError({ actualValue: trail });
+    if (plain || trail.length === 0) {
       finalDescriptor = new Map(descriptor);
-      finalDescriptor.delete('trail');
+      if (trail.length === 0) finalDescriptor.delete('trail');
+      else finalDescriptor.set('trail', makeTrail(trail));
     }
   }
   return Object.freeze(brandValueClass({ tag, descriptor: finalDescriptor, location, originalError }, 'error'));

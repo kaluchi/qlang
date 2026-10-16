@@ -20,7 +20,7 @@
 {"name":"bare-minus-sets","query":"[#[:a :b :c] #[:b :d]] | minus","expect":"#[:a :c]"}
 {"name":"bare-inter-sets","query":"[#[:a :b :c] #[:b :d]] | inter","expect":"#[:b]"}
 {"name":"bare-union-maps","query":"[{:name \"Alice\"} {:score 100}] | union","expect":"{:name \"Alice\" :score 100}"}
-{"name":"a-union-of-nothing-is-refused","query":"[] | union","expect":"::vec/union/SubjectEmptyError!{\n  :trail [\n    {\n      :step ~(union)\n      :subject []\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D337","name":"a-union-of-nothing-is-refused","query":"[] | union","expect":"::vec/union/SubjectEmptyError!{\n  :trail ::trail[::frame[[] ~(union)]]\n} | raise"}
 {"name":"bare-union-singleton","query":"[#[:only]] | union","expect":"#[:only]"}
 {"name":"unionOf-merges-the-maps-the-call-gives","query":"{:anchor true} | unionOf {:name \"Alice\"} {:age 30}","expect":"{:name \"Alice\" :age 30}"}
 {"name":"a-vector-takes-no-value-beside-it","query":"[#[1]] | union #[2] !| type","expect":"::vec/union/ArgsBeyondInputsError"}

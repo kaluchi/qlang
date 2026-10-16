@@ -408,7 +408,7 @@
         ~({:a 1} | entries | map /0 | eq [:a])
     | proves :answersTheFirstFailure
         |~~ The first error, in the order of the keys, answers the call. ~~|
-        ~({:a "x" :b "y"} | map ~(add 1) !| get /trail/0/subject | eq "x")
+        ~({:a "x" :b "y"} | map ~(add 1) !| trail | first | subject | eq "x")
     | proves :answersUnderNoTag
         |~~ The answers stand under no tag of the subject. ~~|
         ~(::Box{:a 1} | map ~(add 1) | eq {:a 2})
@@ -1157,9 +1157,9 @@
         ~("x" | add 1 !| raise !| type | eq ::number/add/SubjectNotNumberError)
     | proves :startsAPathOverAnEmptyTrail
         |~~ An empty `:trail` is no path: the raise starts one, and the
-            steps the failure skips join its stop.
+            steps the failure skips join its frame.
         ~~|
-        ~({:a 1 :trail []} | raise | count !| trail | map ~(get [/step /skipped]) | eq [[~(raise) ~(count)]])
+        ~({:a 1 :trail []} | raise | count !| trail | map ~(get [~(step) ~(skipped)]) | eq [[~(raise) ~(count)]])
     | proves :renamesByATag
         |~~ A step that lays a tag over an error caught renames it. ~~|
         ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)

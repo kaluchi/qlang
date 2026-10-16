@@ -63,7 +63,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
     expect(printValue(err)).toBe('::Foo!{:category :oops}');
     expect(isErrorValue(await evalQuery(printValue(err)))).toBe(false);
-    expect(deepEqual(await evalQuery(`${printValue(err)} | raise !| trail | map /step`), await evalQuery('[~(raise)]'))).toBe(true);
+    expect(deepEqual(await evalQuery(`${printValue(err)} | raise !| trail | map ~step`), await evalQuery('[~(raise)]'))).toBe(true);
   });
 
   it('an answer that is a failure prints under the line that says it was raised, an error at rest under none [QSERR#rest]', async () => {

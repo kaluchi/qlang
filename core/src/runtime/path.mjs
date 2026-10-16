@@ -8,6 +8,7 @@ import { bindPrim, bindStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, placeIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
 import { mintUnderTag } from './verb.mjs';
+import { atPlace } from '../eval-trail.mjs';
 import { deepEqual } from '../equality.mjs';
 import {
   isPath, makePath, isKeyword, isQMap, isVec, isQSet, isValueClass, isErrorValue, isTaggedInstance, keyword, makeSet,
@@ -76,7 +77,8 @@ bindStateReader('any/query', runsWithin(['path'], (subject, object, fallback, st
 // place it takes moving up. The path is followed as `get` follows it, and
 // every container on the way is built again and laid under the tags it
 // stood under, their constructors and invariants run, as `within` lays
-// its answer; an error the code answers is the answer.
+// its answer; an error the code answers is the answer, at the path of the
+// part [D337].
 async function written(value, path, at, write, state) {
   if (isValueClass(value, 'taggedInstance')) return await relaid(value, await written(value.payload, path, at, write, state), state);
   const segment = path.segments[at];
@@ -117,8 +119,14 @@ const pathOf = object => (isPath(object) ? object : pathOfKey(object));
 
 bindStateReader('any/put', (subject, object, value, state) =>
   written(subject, pathOf(object), 0, { adds: true, removes: false, part: () => value }, state));
-bindStateReader('any/update', runs(['code'], (subject, object, code, state) =>
-  written(subject, pathOf(object), 0, { adds: false, removes: false, part: code }, state)));
+bindStateReader('any/update', runs(['code'], (subject, object, code, state) => {
+  const path = pathOf(object);
+  const part = async old => {
+    const answer = await code(old);
+    return isErrorValue(answer) ? atPlace(answer, path) : answer;
+  };
+  return written(subject, path, 0, { adds: false, removes: false, part }, state);
+}));
 bindStateReader('any/delete', (subject, object, state) =>
   written(subject, pathOf(object), 0, { adds: false, removes: true }, state));
 

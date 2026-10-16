@@ -2,7 +2,7 @@
 // error-convert.mjs.
 
 import { describe, it, expect } from 'vitest';
-import { keyword, isErrorValue, makeErrorValue, formOf, makeTag, makeSet, ErrorTrailNotVecError } from '../../src/types.mjs';
+import { keyword, isErrorValue, makeErrorValue, formOf, makeTag, makeSet, makeFrame, makeTrail, isTrail, ErrorTrailNotFramesError } from '../../src/types.mjs';
 import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
@@ -26,24 +26,25 @@ describe('makeErrorValue', () => {
     expect([...errorVal.descriptor.keys()]).toEqual(['message']);
   });
 
-  it('preserves caller-supplied :trail in descriptor', () => {
-    // When the caller already includes :trail in the descriptor
-    // — typically a re-lifted descriptor carrying the path the fail
-    // track read — makeErrorValue keeps the supplied value untouched
-    // and skips the invariant-fill branch.
-    const preTrail = Object.freeze([new Map([
-      ['step', quoteOfSource('add 1')], ['subject', 'x'], ['skipped', quoteOfSource('mul 2 | count')]
-    ])]);
+  it('keeps a trail it is handed as it is [D337]', () => {
+    const preTrail = makeTrail([makeFrame('x', quoteOfSource('add 1 | mul 2 | count'))]);
     const descriptor = new Map([['trail', preTrail]]);
     const errorVal = makeErrorValue(makeTag('Oops'), descriptor);
     expect(errorVal.descriptor).toBe(descriptor);
     expect(errorVal.descriptor.get('trail')).toBe(preTrail);
   });
 
-  it('fires ErrorTrailNotVecError when :trail carries anything except a vector of stops', async () => {
-    // `:trail` is runtime-owned — a step the error skips joins the
-    // `:skipped` quote of the last stop, so the mint site refuses
-    // anything under it but a vector of maps that hold one.
+  it('lays a plain vector of frames under ::trail [D337]', () => {
+    const frames = [makeFrame('x', quoteOfSource('add 1'))];
+    const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'boom'], ['trail', frames]]));
+    expect([...errorVal.descriptor.keys()]).toEqual(['message', 'trail']);
+    expect(isTrail(errorVal.descriptor.get('trail'))).toBe(true);
+    expect(deepEqual([...errorVal.descriptor.get('trail')], frames)).toBe(true);
+  });
+
+  it('fires ErrorTrailNotFramesError when :trail carries anything except a vector of frames [D337]', async () => {
+    // A step the error skips joins the steps of the last frame, so the
+    // mint site refuses anything under `:trail` but a vector of frames.
     const refusedTrails = [
       [null, 'null'], [5, 'number'], [[1, 2], 'vec'], [quoteOfSource('| pre'), 'quote'], [makeSet([]), 'set'],
       [[new Map([['step', quoteOfSource('pre')]])], 'vec']
@@ -53,9 +54,9 @@ describe('makeErrorValue', () => {
       let thrown = null;
       try { makeErrorValue(makeTag('Oops'), new Map([['trail', refusedTrail]])); }
       catch (mintErr) { thrown = mintErr; }
-      expect(thrown).toBeInstanceOf(ErrorTrailNotVecError);
+      expect(thrown).toBeInstanceOf(ErrorTrailNotFramesError);
       expect(thrown).toBeInstanceOf(QlangError);
-      expect(thrown.name).toBe('TrailNotVecError');
+      expect(thrown.name).toBe('TrailNotFramesError');
       expect(thrown.facts.actualValue).toBe(refusedTrail);
       expect(errorFromQlang(thrown, undefined, env).descriptor.get('actualType')).toEqual(makeTag(kindName));
     }
@@ -252,7 +253,7 @@ describe('error-convert coercion edge cases', () => {
   it('actualValue ref-equal to the subject of the step is dedup-skipped on lift', async () => {
     // Subject-shape error on a partial application: actualValue
     // (the JS context field) is the same reference as the subject
-    // (the pipeValue the step received), which the first stop of the
+    // (the pipeValue the step received), which the first frame of the
     // trail names. errorFromQlang dedup skips the redundant lift; the
     // descriptor surface stays single-source-of-truth.
     const subject = new Map([['nested', 1]]);

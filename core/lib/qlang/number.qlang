@@ -60,7 +60,7 @@
         |~~ A product past the range of doubles is refused at the step
             that made it.
         ~~|
-        ~(1e308 | mul 10 | add 1 !| get [~(type) ~(get /trail | map /step)]
+        ~(1e308 | mul 10 | add 1 !| get [~(type) ~(trail | map ~step)]
           | eq [::number/NotFiniteError [~(mul 10)]])
     | impl ::builtin{}
 

@@ -8,7 +8,7 @@
 {"name":"the-segment-a-path-read-as-an-index-is-a-number","query":"42 | get /0 !| get /key","expect":"0"}
 {"name":"a-refusal-over-a-map-names-the-entry-by-its-key","query":"{:a 1 :b \"x\"} | sum !| get /key","expect":":b"}
 {"name":"a-refusal-is-an-error-under-the-tag-of-its-site","query":"\"x\" | add 1 !| payload | type","expect":"::error"}
-{"name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :index 1\n  :actualType ::string\n  :actualValue \"two\"\n  :trail [\n    {\n      :step ~(sum)\n      :subject [1 \"two\" 3]\n      :skipped ~()\n    }\n  ]\n} | raise"}
+{"decision":"D337","name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :index 1\n  :actualType ::string\n  :actualValue \"two\"\n  :trail ::trail[::frame[[1 \"two\" 3] ~(sum)]]\n} | raise"}
 {"name":"a-refusal-is-tagged-by-its-address-its-noun-said-once","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"a-refusal-names-the-place-it-guards","query":"blah !| type","expect":"::call/UnknownNameError"}
 {"name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}

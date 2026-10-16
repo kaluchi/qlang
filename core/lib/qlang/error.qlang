@@ -1,5 +1,5 @@
 |~ `::error`, the kind every error is a value of, and what is declared
-   under it: the refusal of an error whose path is no vector of stops,
+   under it: the refusal of an error whose path is no vector of frames,
    the facts a refusal may carry, and the words of errors. The error at
    rest, the value `!|` catches a failure to, is `::error{…}`, or the tag
    of the site that refused stacked over it, and its walk passes
@@ -45,16 +45,17 @@
             value of another kind is held as a fact, `!{:value [1]}`.
             ::link~(::error | doc)
         ~~|
-    | throws :TrailNotVecError
-        |~~ `:trail` among the facts of an error is its path, a vector of
-            stops the runtime writes, `{:step :subject :skipped}`, from
-            the step where it arose to the step where it is read. A
-            `raise` of a map that writes a value that is no plain vector
-            under `:trail`, a set, a quote and a doc among them, is
-            refused as it makes the error. A `raise` that writes the
-            `:trail` it read goes on with that path, and one that leaves
-            it out or writes it empty starts a path at its own step.
-            ::link~(::error | doc)
+    | throws :TrailNotFramesError
+        |~~ `:trail` among the facts of an error is its path, the frames
+            the runtime writes from the step where it arose to the step
+            where it is read, `::trail[::frame["x" ~(add 1)]]`. A `raise`
+            of a map that writes under `:trail` a value that is no vector
+            of frames, a vector of maps, a set, a quote and a doc among
+            them, is refused as it makes the error. A `raise` that writes
+            the `:trail` it read goes on with that path, and one that
+            leaves it out or writes it empty starts a path at its own
+            step.
+            ::link~(::trail | doc)
         ~~|
     | carries :name
         |~~ The name a reader asked for, a keyword or a tag, where nothing
@@ -110,7 +111,7 @@
         ::number
     | carries :actualValue
         |~~ The value refused, where it is not the subject that the first
-            stop of the trail holds.
+            frame of the trail holds.
         ~~|
         ::any
     | carries :leftType |~~ The kind of the value on the left. ~~| ::tag
@@ -146,22 +147,30 @@
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no map of facts. ~~|
         ~(::error[1] !| type | eq ::error/PayloadKindNotTakenError)
-    | proves :TrailNotVecError/refusesANumberForATrail
+    | proves :TrailNotFramesError/refusesANumberForATrail
         |~~ A number given as a trail is refused. ~~|
-        ~(!{:kind :oops :trail 5} | raise !| get [~(type) /actualType] | eq [::error/TrailNotVecError ::number])
-    | proves :TrailNotVecError/refusesATrailLaidOverAFailure
+        ~(!{:kind :oops :trail 5} | raise !| get [~(type) /actualType] | eq [::error/TrailNotFramesError ::number])
+    | proves :TrailNotFramesError/refusesATrailLaidOverAFailure
         |~~ A trail of a number laid over an error is refused when it is
             raised.
         ~~|
-        ~(!{:kind :oops} | raise | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotVecError)
-    | proves :TrailNotVecError/startsATrailAtTheRaise
+        ~(!{:kind :oops} | raise | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotFramesError)
+    | proves :TrailNotFramesError/startsATrailAtTheRaise
         |~~ An error raised without a trail starts its trail at the raise.
         ~~|
         ~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1
-          !| get /trail | map /step | eq [~(raise)])
-    | proves :TrailNotVecError/refusesASetAQuoteAndADoc
-        |~~ A set, a quote and a doc are no plain vector of stops. ~~|
-        ~([#[1] ~(a) |~~ d ~~|] | map ~(get {:trail ~(it)} | raise !| type) | eq [::error/TrailNotVecError ::error/TrailNotVecError ::error/TrailNotVecError])
+          !| trail | map ~step | eq [~(raise)])
+    | proves :TrailNotFramesError/refusesASetAQuoteAndADoc
+        |~~ A set, a quote and a doc are no vector of frames. ~~|
+        ~([#[1] ~(a) |~~ d ~~|] | map ~(get {:trail ~(it)} | raise !| type) | eq [::error/TrailNotFramesError ::error/TrailNotFramesError ::error/TrailNotFramesError])
+    | proves :TrailNotFramesError/refusesAVectorOfMaps
+        |~~ A vector of maps is no vector of frames. ~~|
+        ~({:trail [{:step ~(a) :subject 1}]} | raise !| type | eq ::error/TrailNotFramesError)
+    | proves :TrailNotFramesError/takesAPlainVectorOfFrames
+        |~~ A plain vector of frames is a trail, which the error holds under
+            its kind.
+        ~~|
+        ~({:trail [::frame[1 ~(pre)]]} | raise !| trail | eq ::trail[::frame[1 ~(pre)]])
     | proves :read/namesAWrittenPathAlone
         |~~ A path a name holds is no path the step wrote, and names no
             read.
@@ -169,24 +178,26 @@
         ~(:p /qty | 5 | mul p !| query /read | eq null)
 
 :error/trail
-  |~~ Answers the path of the error, a vector of stops from the step
-      that raised it to the `!|` that opened it, each a map of the
-      `:step`, the `:subject` that step met, and the steps `:skipped`
-      after it: `"x" | add 1 | mul 2 !| trail` answers the one stop of
-      `add 1`, which met `"x"` and skipped `mul 2`. A step that ran the
-      step that raised adds its stop after it, the `map` that ran an
-      element among them, so the path reads outward:
-      `[1 "x"] | map ~(mul 2) !| trail | map /step` answers
+  |~~ Answers the path of the error, the trail of its frames from the
+      step that raised it to the `!|` that opened it, each the subject a
+      step met and the steps from the one that broke:
+      `"x" | add 1 | mul 2 !| trail` answers
+      `::trail[::frame["x" ~(add 1 | mul 2)]]`, `add 1` broken on `"x"`
+      and `mul 2` left unrun. A step that ran the step that raised adds
+      its frame after it, the `map` that ran an element among them, so
+      the path reads outward:
+      `[1 "x"] | map ~(mul 2) !| trail | map ~step` answers
       `[~(mul 2) ~(map ~(mul 2))]`. An error at rest that flew no step
-      holds no `:trail` and answers `[]`, `::error{:a 1} | trail`. The
-      subject is an error at rest, the value `!|` catches a failure to:
-      under `|` a failure passes `trail` by, as it passes every step, and
-      a value that is no error is refused, a map with the key `:trail`
-      among them.
-      ::link~(::qlang/errors | doc) ::link~(::error | doc)
+      holds no `:trail` and answers `::trail[]`,
+      `::error{:a 1} | trail`. The subject is an error at rest, the value
+      `!|` catches a failure to: under `|` a failure passes `trail` by,
+      as it passes every step, and a value that is no error is refused,
+      a map with the key `:trail` among them.
+      ::link~(::trail | doc) ::link~(::frame | doc)
+      ::link~(::qlang/errors | doc)
   ~~|
   ::fn
-    | returns |~~ The stops of the path the error took. ~~| ::vec
+    | returns |~~ The trail of the frames the error passed. ~~| ::trail
     | throws :SubjectNotErrorError
         |~~ `trail` reads the path of an error at rest, the value `!|`
             catches a failure to, `"x" | add 1 !| trail`; the key `:trail`
@@ -194,25 +205,25 @@
         ~~|
     | proves :answersNothingForAnErrorThatFlewNoStep
         |~~ An error that flew no step holds no path. ~~|
-        ~(::error{:a 1} | trail | eq [])
+        ~(::error{:a 1} | trail | eq ::trail[])
     | proves :holdsTheStepThatRaised
         |~~ The trail of an error raised at once holds the one step. ~~|
         ~("x" | add 1 !| trail | count | eq 1)
     | proves :meetsTheSubjectOfTheStep
-        |~~ The stop holds the subject the step met. ~~|
-        ~("x" | add 1 !| trail | first | get /subject | eq "x")
+        |~~ The frame holds the subject the step met. ~~|
+        ~("x" | add 1 !| trail | first | subject | eq "x")
     | proves :namesTheStepsSkipped
-        |~~ The stop of the step that raised names the steps skipped after
-            it.
+        |~~ The frame of the step that raised holds the steps skipped
+            after it.
         ~~|
-        ~("x" | add 1 | mul 2 !| trail | first | get /skipped | eq ~(mul 2))
+        ~("x" | add 1 | mul 2 !| trail | first | skipped | eq ~(mul 2))
     | proves :readsOutward
-        |~~ The step that ran an element adds its stop after the
+        |~~ The step that ran an element adds its frame after the
             element's.
         ~~|
-        ~([1 "x"] | map ~(mul 2) !| trail | map /step | eq [~(mul 2) ~(map ~(mul 2))])
+        ~([1 "x"] | map ~(mul 2) !| trail | map ~step | eq [~(mul 2) ~(map ~(mul 2))])
     | proves :SubjectNotErrorError/refusesAMap
         |~~ A map with the key `:trail` is no error. ~~|
         ~({:trail []} | trail !| get [~(type) /actualType] | eq [::error/trail/SubjectNotErrorError ::map])
-    | impl ~(query /trail | coalesce [])
+    | impl ~(query /trail | coalesce ::trail[])
 

@@ -109,7 +109,7 @@ async function evalNode(node, state) {
     return await evaluator(node, state);
   } catch (caughtError) {
     // The error the node raised; the step that ran the node writes its
-    // stop [QSERR#trail].
+    // frame [D337].
     return withPipeValue(state, raisedBy(errorOfThrow(caughtError, node, state.pipeValue, state.env), node));
   }
 }
@@ -133,7 +133,7 @@ async function evalPipeline(node, state) {
 }
 
 // The tracks live in the combinators alone: `|` steps around an error, the
-// step joining the skipped steps of its last stop [QSERR#trail], and `!|` fires
+// step joining the skipped steps of its last frame [D337], and `!|` fires
 // on an error alone [QSSYN#combinator]; the parser writes no other combinator.
 async function applyCombinator(kind, state, stepNode) {
   return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
@@ -147,7 +147,7 @@ async function fork(state, sub) {
   return withPipeValue(state, innerEnd.pipeValue);
 }
 
-// `|` runs the step on a value, an error it answers taking a stop there,
+// `|` runs the step on a value, an error it answers taking a frame there,
 // and an error in the pipe skips it.
 async function applySuccessTrack(state, stepNode) {
   if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, stepOfNode(stepNode)));
@@ -234,7 +234,7 @@ async function evalErrorLit(node, state) {
 }
 
 // The value a part of a literal answers: a refusal its constructor raised
-// passes a stop at the part, and one handed on from a part inside it goes
+// passes a frame at the part, and one handed on from a part inside it goes
 // on as it is to the literal it fails [QSERR#trail].
 async function partAnswer(partNode, state) {
   return answerOfPart((await evalNode(partNode, state)).pipeValue, partNode, state.pipeValue);
@@ -278,7 +278,7 @@ async function evalTaggedLit(node, state) {
 
 // The error a tagged literal's payload answered, passed by the tag as an
 // error passes every step, the tag's step joining the skipped steps of
-// its last stop [QSERR#trail], and the literal's own raise where the payload
+// its last frame [D337], and the literal's own raise where the payload
 // raised it.
 function passedUntagged(payloadError, node, tagName) {
   const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)));
@@ -440,7 +440,7 @@ async function evalCall(node, state) {
 // the value it names [QSPTH#value]: a word called on a path, `/tags | count`
 // read as `get /tags | count`, and an input refusing the path a modifier
 // wrote, `mul /qty` read as `mul (get /qty)`; a refusal the call itself
-// answered, which no stop of a trail has passed yet, carries it.
+// answered, which no frame of a trail has passed yet, carries it.
 function readOfPathSubject(path, node) {
   return makeQuote([commandStep('get', [path]), stepOfNode(node)]);
 }
@@ -547,7 +547,7 @@ async function callByAddress(node, state) {
 // facts with the kind of the value refused in the order the catalog declares
 // them [QSERR#site]; the value itself rides the facts where the trail does not
 // hold it, an input or the args, and leaves them for the subject, which the
-// trail's first stop holds [QSERR#site].
+// trail's first frame holds [D337].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
   const tag = makeTag(tagName);
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeKeyword(refused)), env));
@@ -1067,7 +1067,7 @@ function heldIn(state) {
 
 // codeOfPath(path, callState) → code that reads the path from each input
 // it is handed, as `~(get /path)` reads it, a refusal its answer with the
-// stop of that step at the input [QSPTH#code].
+// frame of that step at the input [D337].
 export function codeOfPath(path, callState) {
   const step = () => makeQuote([commandStep('get', [path])]);
   return async input => {

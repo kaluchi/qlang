@@ -88,8 +88,8 @@ describe('assembling steps by hand', () => {
     // The tag an error literal writes before its bang is the tag of the
     // error at rest it spells, so an error of any tag stands in a quote
     // [QSERR#rest].
-    expect(await evalQuery('get [~("x" | add 1 !| it)] | tag ::quote | parse'))
-      .toBe('::number/add/SubjectNotNumberError!{:actualType ::string :trail [{:step ~(add 1) :subject "x" :skipped ~()}]}');
+    expect(await evalQuery('get [~("x" | add 1 !| minus #[:trail])] | tag ::quote | parse'))
+      .toBe('::number/add/SubjectNotNumberError!{:actualType ::string}');
   });
 
   it('a required field left out does not fit the schema', async () => {

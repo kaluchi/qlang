@@ -115,10 +115,15 @@ export function walkOfBaseline(repoRoot) {
       }
     });
   }
+  // A seed is a text that states what holds, read first by every session:
+  // it cites the sections a record in transit overrides and never the
+  // record, which the journal keeps [D336].
+  const transit = recordsInTransit(repoRoot);
   for (const file of CITING_DOCUMENTS.filter(path => existsSync(join(repoRoot, path)))) {
     for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {
       const record = records.get(name);
       if (record !== undefined && !notClosed(record) && !record.open) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
+      else if (transit.has(name)) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, a record in transit: a seed cites the sections it overrides, ${transit.get(name).map(section => `[${section}]`).join(', ')}` });
     }
   }
   for (const { where, problem } of unresolvedSections(repoRoot)) walk.violations.push({ where, problem });

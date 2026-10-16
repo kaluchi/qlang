@@ -60,6 +60,10 @@
 //       record, a run of the check of the chapters and an outside audit
 //       [QSWRK#review].
 //
+//   (12) A comment and a sentence of the prose that states what holds
+//       name no token the branch took out of the code, the catalog and
+//       the cases, the name of what its reader finds nowhere [D336].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -67,7 +71,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
-import { baselineOf, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline } from './baseline-walk.mjs';
+import { baselineOf, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_CODE_ROOTS, CITING_DOCUMENTS, CODE_FILE } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { execFileSync } from 'node:child_process';
@@ -579,6 +583,75 @@ function unreadReports() {
   return reportsWithoutReading(repoRoot);
 }
 
+// ── (12) A text names what its reader finds ────────────────────
+//
+// A text that states what holds is read by one who never saw the dialogue
+// that wrote it, so a comment and a sentence of the prose name no token the
+// branch took out of the code, the catalog and the cases since the
+// baseline: a name the reader finds nowhere is a turn of that dialogue
+// answering a past the reader never sees, which the record and the commit
+// keep [D336]. A token is a name with a lowercase letter and a capital, a
+// digit or an underscore inside it, or an address under `::`; a line of
+// code holds what stands before its comment, a line of the catalog and a
+// case hold the whole line, and the prose of a chapter and of a seed names
+// what stands outside its fenced blocks.
+
+const UNREAD_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
+const TOKEN = /(?<![\\\w$])[A-Za-z_$][a-z$]*[A-Z0-9_][\w$]*\b|::[A-Za-z][\w/.-]*\w/g;
+const tokensIn = text => [...text.matchAll(TOKEN)].map(match => match[0])
+  .filter(token => token.length >= 3 && !/^[DE]\d+$/.test(token) && (token.startsWith('::') || /[a-z]/.test(token) || /[_\d]/.test(token)));
+
+// What a file of the tree does with its lines: the prose names, the catalog
+// and the cases hold, and the code holds but in its comments.
+function voiceOfFile(path) {
+  if (path.split('/').some(part => UNREAD_FOLDERS.has(part))) return null;
+  if (CITING_DOCUMENTS.includes(path) || /^docs\/spec\/[^/]+\.md$/.test(path)) return 'prose';
+  if (/^core\/test\/conformance\/.+\.jsonl$/.test(path)) return 'holds';
+  if (!CITING_CODE_ROOTS.some(root => path.startsWith(`${root}/`)) || !CODE_FILE.test(path)) return null;
+  return path.endsWith('.qlang') ? 'holds' : 'code';
+}
+
+function partsOfLine(voice, line) {
+  if (voice === 'prose') return { holds: '', names: line };
+  if (voice === 'holds') return { holds: line, names: '' };
+  if (/^\s*(?:\/\/|\/\*|\*|#)/.test(line)) return { holds: '', names: line };
+  const comment = line.indexOf(' // ');
+  return comment === -1 ? { holds: line, names: '' } : { holds: line.slice(0, comment), names: line.slice(comment) };
+}
+
+function namesOfTakenOut() {
+  const baseline = baselineOf(repoRoot);
+  if (baseline === undefined) return [];
+  const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
+  const removed = new Set();
+  let path = null;
+  for (const line of git('diff', '--no-color', '--no-ext-diff', '--no-renames', '-U0', baseline).split('\n')) {
+    if (line.startsWith('diff --git ')) path = null;
+    else if (line.startsWith('--- a/')) path = line.slice(6);
+    else if (line.startsWith('-') && !line.startsWith('--- ') && path !== null && voiceOfFile(path) !== null) {
+      for (const token of tokensIn(partsOfLine(voiceOfFile(path), line.slice(1)).holds)) removed.add(token);
+    }
+  }
+  const files = [...git('ls-files').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')]
+    .filter(Boolean).filter(file => voiceOfFile(file) !== null && existsSync(join(repoRoot, file)));
+  const held = new Set();
+  const naming = [];
+  for (const file of files) {
+    let fenced = false;
+    readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
+      if (voiceOfFile(file) === 'prose' && line.startsWith('```')) fenced = !fenced;
+      if (fenced || line.startsWith('```')) return;
+      const { holds, names } = partsOfLine(voiceOfFile(file), line);
+      for (const token of tokensIn(holds)) held.add(token);
+      if (names !== '') naming.push({ file, line: index + 1, names, text: line.trim() });
+    });
+  }
+  const isHeld = token => held.has(token) || (token.startsWith('::') && [...held].some(other => other.startsWith(`${token}/`)));
+  const takenOut = new Set([...removed].filter(token => !isHeld(token)));
+  return naming.flatMap(({ file, line, names, text }) => [...new Set(tokensIn(names))].filter(token => takenOut.has(token))
+    .map(token => ({ file, line, token, baseline, snippet: text.slice(0, 120) })));
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
@@ -596,6 +669,7 @@ const outOfStep = fatesOutOfStep();
 const intrusions = specIntrusions();
 const swollen = seriesBeyondTwo();
 const unread = unreadReports();
+const takenOutNamed = namesOfTakenOut();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -611,7 +685,8 @@ if (forbidden.length === 0
     && outOfStep.length === 0
     && intrusions.length === 0
     && swollen.length === 0
-    && unread.length === 0) {
+    && unread.length === 0
+    && takenOutNamed.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -700,5 +775,10 @@ if (unread.length > 0) {
   process.stdout.write(`\nReports of the research without their reading (${unread.length}):\n`);
   for (const { path, reading } of unread) process.stdout.write(`  ${path}  wants ${reading}\n`);
   process.stdout.write('    the session writes its reading beside each report it runs, every finding with its probe and its fate, and commits the two together [QSWRK#review].\n');
+}
+if (takenOutNamed.length > 0) {
+  process.stdout.write(`\nNames of what the branch took out (${takenOutNamed.length}):\n`);
+  for (const { file, line, token, snippet } of takenOutNamed) process.stdout.write(`  ${file}:${line}  \`${token}\`  ${snippet}\n`);
+  process.stdout.write(`    the code, the catalog and the cases hold none of these since the baseline ${takenOutNamed[0].baseline}: a comment and the prose name what the reader finds, and what was lives in the record and the commit [D336].\n`);
 }
 process.exit(1);

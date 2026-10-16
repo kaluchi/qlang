@@ -1,8 +1,10 @@
 // Holds every «…» quote of the documents against the messages the
-// maintainer typed, in every transcript of the project. A quote matches
-// up to whitespace; an elision is written […] and each fragment around
-// it is looked up alone. Fenced blocks are code and are skipped. Runs in
-// a session on the maintainer's machine, since it reads the transcripts.
+// maintainer typed, in every transcript of the project, and says first
+// which directories it read and how many transcripts each gave [D336]. A
+// quote matches up to whitespace; an elision is written […] and each
+// fragment around it is looked up alone. Fenced blocks are code and are
+// skipped. Runs in a session on the maintainer's machine, since it reads
+// the transcripts.
 //
 // Usage: node scripts/sensors/check-quotes.mjs [document ...]
 // Without documents it reads the records of the journal, in force and
@@ -11,7 +13,7 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { recordsOf, repoRoot, transcriptFiles, typedByMaintainer } from './transcripts.mjs';
+import { recordsOf, repoRoot, transcriptCoverage, transcriptFiles, typedByMaintainer } from './transcripts.mjs';
 import { JOURNAL } from '../decision-records.mjs';
 
 const squash = text => text.replace(/\s+/g, ' ').trim();
@@ -21,6 +23,7 @@ const documents = process.argv.length > 2 ? process.argv.slice(2) : [
   ...readdirSync(join(decisionsDir, 'replaced')).filter(name => name.endsWith('.md')).map(name => join(decisionsDir, 'replaced', name)),
 ];
 
+console.log(transcriptCoverage());
 const messages = [];
 for (const transcriptPath of transcriptFiles()) {
   const session = transcriptPath.split(/[\\/]/).pop().slice(0, 8);

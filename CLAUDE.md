@@ -9,18 +9,24 @@ the specification wins and this file is what changes.
 
 ## Start here, every session
 
-The texts of the work speak in two voices [QSWRK#documents]. The
-cataphatic ones state what holds, in the present: the chapters of
+The texts of the work speak in two voices, parted by what a reader
+decides against the tree a text stands in [QSWRK#documents]. The
+cataphatic ones, the lex lata of the work, state what holds, in the
+present, each sentence one a reader decides against the tree, by a probe,
+a case, a check or a reading, a refusal among them: the chapters of
 `docs/spec/`, the pages of the catalog, the cases and the comments of the
-code. The apophatic ones carry the change against the baseline: the
-dialogue of the session first, then the journal, `docs/journal/`, the
-aim, its records and its research, the memory and the history of the
-commits. A
-session reads the cataphatic core first, so its picture of the language
-is built from what holds, then lands on the apophatic texts, where its
-work is; a doubt or a reason it meets is said in the dialogue, or
-written as a record where it asks for a choice, and never into a chapter,
-a page or a comment.
+code. The apophatic ones,
+its lex ferenda, carry the change against the baseline, what no reader
+decides against the tree, each read from its origo, the here and now it
+speaks from: the dialogue of the session first, then the journal,
+`docs/journal/`, the aim, its records and its research, the memory and
+the history of the commits. A session reads the cataphatic core first, so
+its picture of the language is built from what holds, then lands on the
+apophatic texts, where its work is; a doubt or a reason it meets is said
+in the dialogue, or written as a record where it asks for a choice, and
+never into a chapter, a page or a comment, where it stands as a
+pentimento: a dialogue answers its own beginning at every turn, and a
+turn written into a file answers a past its reader never sees.
 
 1. Read whole the chapter of the work, `docs/spec/QSWRK-the-work.md`,
    before the first change: the texts and their order, the records, the
@@ -35,8 +41,9 @@ a page or a comment.
    line `Left at` names [QSWRK#journal].
 2. Land: `npm run desk`, the screen of the work: the branch against
    master, the walk of the baseline, the targets open, the records being
-   decided, the stashes and the sister project's branch
-   [QSWRK#baseline]; then the aim, `docs/journal/AIM.md`, the mission,
+   decided, the reach of the records in transit, the stashes and the
+   sister project's branch [QSWRK#baseline]; then the aim,
+   `docs/journal/AIM.md`, the mission,
    the satisfactory state and the principles a choice is weighed by, the
    records in transit and the open records, whole, and the maintainer's
    message. `npm test` at the repo root runs
@@ -186,8 +193,9 @@ server.
 `npm run check:conventions` fails on temporal lexicon in the sources
 outside `docs/`, `vscode/` and the instructions (legacy, deprecated,
 currently, previously, backward compatibility, and the TODO, FIXME, and
-HACK markers), on a digit
-followed by a noun in markdown prose when a grep or a run already
+HACK markers), on a comment or a sentence of the prose that names a
+token the branch took out of the code, the catalog and the cases, on a
+digit followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
 literal or held by a constant the address does not name
@@ -228,7 +236,7 @@ findings each with its file and its line [QSWRK#review].
 
 ## Change workflow
 
-- A branch is a shift: it takes the pains of its shift, is named after
+- A branch is a shift: it takes the scars of its shift, is named after
   them, and lands on master at every move of the baseline by a merge
   commit, made locally with no question asked where no pull request is
   open, so master is the clean desk [QSWRK#branch]. Never
@@ -313,8 +321,8 @@ such a tree: a clean Opus for each group of chapters, started at once as
 the outside audit is, bootstraps from every chapter of `docs/spec/` and
 the first pages, then reads its sections against their cases, the code
 that cites them, the pages of their words and the command line, and
-reports findings of six kinds, each with its probe, into the folder of
-the run named after the record,
+reports findings of seven kinds, a pentimento and a drift among them,
+each with its probe, into the folder of the run named after the record,
 `docs/journal/research/spec-check/<Dnn>~<k>/`; `--dry` prints the groups.
 The session writes its reading beside the reports, every finding with
 its fate. With `--records Dnn …` the script gives each open record named

@@ -123,10 +123,9 @@ const IGNORE_DIRS = new Set([
   'scripts/benchmark/sets',  // the data and the generators clean authors wrote [QSWRK#measure]
   'vscode'
 ]);
-// A report a reviewer, an outside auditor or a reader of the chapters
-// wrote, named by its date, stands as it was written, and the README of
-// its folder is checked [QSWRK#review].
-const VERBATIM_REPORT = new RegExp(`^${RESEARCH}/(?:(?:reviews|outside-audit)/\\d{4}-\\d{2}-\\d{2}[^/]*|spec-check/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+/[^/]+)\\.md$`);
+// A review of a branch, named by its date, stands as its reviewer wrote it,
+// and the README of its folder is checked [QSWRK#review].
+const VERBATIM_REPORT = new RegExp(`^${RESEARCH}/reviews/\\d{4}-\\d{2}-\\d{2}[^/]*\\.md$`);
 // Files that quote the forbidden list verbatim — exempt from the
 // forbidden-word scan, still in scope for every other check.
 const RULESET_FILES = new Set([

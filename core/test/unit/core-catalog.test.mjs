@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { nodeOf } from '../../src/runtime/nouns.mjs';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isQMap, isVec, makeSet, makeTag, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
+import { keyword, isMap, isVec, makeSet, makeTag, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { platformLocator, LANGUAGE_SOURCES } from '../../src/runtime/bootstrap.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 
@@ -116,7 +116,7 @@ describe('parse / apply — code read, printed and run', () => {
   it('parse reads a call into a ::call step with :name / :modifiers', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const callStep = (await evalQuery('"add 1 2" | parse'))[0];
-    expect(isQMap(callStep)).toBe(true);
+    expect(isMap(callStep)).toBe(true);
     expect(callStep[TAG_HEADER_SYMBOL].name).toBe('call');
     expect(callStep.get('name')).toEqual(keyword('add'));
     expect(callStep.get('modifiers')).toHaveLength(2);

@@ -53,24 +53,24 @@ describe('formOf of a binding record and of a vector under a tag', async () => {
   });
 
   it('formOf answers "underTag" for a vector under a tag', async () => {
-    const { makeTaggedInstance, makeTag } = await import('../../src/types.mjs');
-    const instance = makeTaggedInstance(makeTag('Box'), [42]);
-    expect(formOf(instance)).toBe('underTag');
+    const { makeTagged, makeTag } = await import('../../src/types.mjs');
+    const tagged = makeTagged(makeTag('Box'), [42]);
+    expect(formOf(tagged)).toBe('underTag');
   });
 
   it('toPlain writes a vector under a tag as its tag beside its payload', async () => {
-    const { makeTaggedInstance, makeTag } = await import('../../src/types.mjs');
+    const { makeTagged, makeTag } = await import('../../src/types.mjs');
     const { toPlain } = await import('../../src/runtime/format.mjs');
-    const tagged = makeTaggedInstance(makeTag('Box'), [42, 'inner']);
+    const tagged = makeTagged(makeTag('Box'), [42, 'inner']);
     const plainTagged = toPlain(tagged);
     expect(plainTagged.$tag).toBe('Box');
     expect(plainTagged.payload).toEqual([42, 'inner']);
   });
 
-  it('isTaggedInstance takes a descriptor under ::builtin as the value under a tag it is', async () => {
-    const { isTaggedInstance } = await import('../../src/types.mjs');
-    expect(isTaggedInstance(await evalQuery('::builtin{:a 1}'))).toBe(true);
-    expect(isTaggedInstance(await evalQuery('{:kind ::builtin}'))).toBe(false);
+  it('isTagged takes a descriptor under ::builtin as the value under a tag it is', async () => {
+    const { isTagged } = await import('../../src/types.mjs');
+    expect(isTagged(await evalQuery('::builtin{:a 1}'))).toBe(true);
+    expect(isTagged(await evalQuery('{:kind ::builtin}'))).toBe(false);
   });
 
   it('typeKeyword reads identity off the JS header, not off a `:kind` field', async () => {

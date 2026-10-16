@@ -8,7 +8,7 @@
 
 import {
   isKeyword, isTag, isRegex, isPath, isErrorValue, TAG_HEADER_SYMBOL,
-  isValueClass, isQMap
+  isValueClass, isMap
 } from './types.mjs';
 
 // Two vectors or two maps are equal under one tag or under none.
@@ -22,8 +22,8 @@ export function deepEqual(a, b) {
   if (typeof a !== typeof b) return false;
   // A value under a tag's wrapper equals one under the same tag over an
   // equal payload.
-  if (isValueClass(a, 'taggedInstance')) {
-    return isValueClass(b, 'taggedInstance')
+  if (isValueClass(a, 'underTag')) {
+    return isValueClass(b, 'underTag')
       && a.tag.name === b.tag.name
       && deepEqual(a.payload, b.payload);
   }
@@ -32,8 +32,8 @@ export function deepEqual(a, b) {
     if (!tagHeadersEqual(a, b)) return false;
     return a.every((x, i) => deepEqual(x, b[i]));
   }
-  if (isQMap(a)) {
-    if (!isQMap(b) || a.size !== b.size) return false;
+  if (isMap(a)) {
+    if (!isMap(b) || a.size !== b.size) return false;
     if (!tagHeadersEqual(a, b)) return false;
     for (const [k, v] of a) {
       if (!b.has(k) || !deepEqual(v, b.get(k))) return false;

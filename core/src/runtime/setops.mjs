@@ -10,7 +10,7 @@
 //
 // The verbs live in lib/qlang/set.qlang, map.qlang and vec.qlang.
 
-import { isQSet, isKeyword, isString, isVec, isQMap, makeSet, NULL, typeKeyword } from '../types.mjs';
+import { isSet, isKeyword, isString, isVec, isMap, makeSet, NULL, typeKeyword } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
@@ -59,7 +59,7 @@ function unionOfMaps(left, right) {
 // string naming a key as `get` and `has` read it, and any other element
 // refused where it stands [QSPTH#key].
 function keyNamesOf(keysValue, KeyNotKeywordOrStringError) {
-  if (isQMap(keysValue)) return keysValue;
+  if (isMap(keysValue)) return keysValue;
   return new Set(keysValue.map((keyOfEntry, index) => {
     if (isKeyword(keyOfEntry)) return keyOfEntry.name;
     if (isString(keyOfEntry)) return keyOfEntry;
@@ -85,20 +85,20 @@ function mismatched(left, right, KindsMismatchedError) {
 }
 
 function unionPair(left, right, { KindsMismatchedError }) {
-  if (isQSet(left) && isQSet(right)) return mergeSets(left, right, UNION_KEEPS);
-  if (isQMap(left) && isQMap(right)) return unionOfMaps(left, right);
+  if (isSet(left) && isSet(right)) return mergeSets(left, right, UNION_KEEPS);
+  if (isMap(left) && isMap(right)) return unionOfMaps(left, right);
   throw mismatched(left, right, KindsMismatchedError);
 }
 
 function minusPair(left, right, { KindsMismatchedError, KeyNotKeywordOrStringError }) {
-  if (isQSet(left) && isQSet(right)) return mergeSets(left, right, MINUS_KEEPS);
-  if (isQMap(left) && (isQMap(right) || isVec(right))) return minusOfMap(left, right, KeyNotKeywordOrStringError);
+  if (isSet(left) && isSet(right)) return mergeSets(left, right, MINUS_KEEPS);
+  if (isMap(left) && (isMap(right) || isVec(right))) return minusOfMap(left, right, KeyNotKeywordOrStringError);
   throw mismatched(left, right, KindsMismatchedError);
 }
 
 function interPair(left, right, { KindsMismatchedError, KeyNotKeywordOrStringError }) {
-  if (isQSet(left) && isQSet(right)) return mergeSets(left, right, INTER_KEEPS);
-  if (isQMap(left) && (isQMap(right) || isVec(right))) return interOfMap(left, right, KeyNotKeywordOrStringError);
+  if (isSet(left) && isSet(right)) return mergeSets(left, right, INTER_KEEPS);
+  if (isMap(left) && (isMap(right) || isVec(right))) return interOfMap(left, right, KeyNotKeywordOrStringError);
   throw mismatched(left, right, KindsMismatchedError);
 }
 
@@ -109,7 +109,7 @@ function interPair(left, right, { KindsMismatchedError, KeyNotKeywordOrStringErr
 function foldOf(values, pair, refusals, readsEvery) {
   if (values.length === 0) throw new refusals.SubjectEmptyError();
   (readsEvery ? values : values.slice(0, 1)).forEach((value, index) => {
-    if (!isQSet(value) && !isQMap(value)) throw new refusals.ElementNotSetOrMapError({ index, actualValue: value });
+    if (!isSet(value) && !isMap(value)) throw new refusals.ElementNotSetOrMapError({ index, actualValue: value });
   });
   return [...values].reduce((left, right) => pair(left, right, refusals));
 }

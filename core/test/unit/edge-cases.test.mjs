@@ -11,8 +11,8 @@ import {
   keyword,
   formOf,
   isKeyword,
-  isQMap,
-  isQSet,
+  isMap,
+  isSet,
   isVec,
   makeSet,
   makeTag,
@@ -45,9 +45,9 @@ describe('types.mjs', () => {
 
   it('value-class predicates', () => {
     expect(isKeyword(keyword('x'))).toBe(true);
-    expect(isQMap(new Map())).toBe(true);
-    expect(isQSet(makeSet([]))).toBe(true);
-    expect(isQSet([])).toBe(false);
+    expect(isMap(new Map())).toBe(true);
+    expect(isSet(makeSet([]))).toBe(true);
+    expect(isSet([])).toBe(false);
     expect(isVec([])).toBe(true);
   });
 });

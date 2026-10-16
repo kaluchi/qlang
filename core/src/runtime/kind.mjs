@@ -10,7 +10,7 @@ import { kindOf } from './signature.mjs';
 import { commandStep } from '../quote.mjs';
 import {
   isVec, isNull, isBuiltinDescriptor, isKind, commandsOf, recipeOf,
-  makeTag, makeTaggedInstance, makeQuote, KIND_TAG_NAME
+  makeTag, makeTagged, makeQuote, KIND_TAG_NAME
 } from '../types.mjs';
 
 const KIND_TAG = makeTag(KIND_TAG_NAME);
@@ -21,7 +21,7 @@ const KindRecipeNotBuiltinError = declareRefusal('kind/RecipeNotBuiltinError');
 // A kind of its commands and its recipe, its commands read here, so ones
 // that declare no kind are refused where the kind is made.
 function madeKind(commands, recipe) {
-  const kind = makeTaggedInstance(KIND_TAG, Object.freeze([commands, recipe]));
+  const kind = makeTagged(KIND_TAG, Object.freeze([commands, recipe]));
   kindOf(kind);
   return kind;
 }

@@ -3,7 +3,7 @@
 // follows a path as a read does and misses as a read misses [QSPTH#write].
 
 import { declareRefusal } from './errors.mjs';
-import { isDoc, isFn, isKind, isQMap, isQuote, isVec, isValueClass, keyword } from './types.mjs';
+import { beneathTags, isDoc, isFn, isKind, isMap, isQuote, isVec, keyword } from './types.mjs';
 import { nearestKeys } from './nearest-names.mjs';
 
 export const PathSubjectHasNoPartsError = declareRefusal('path/SubjectHasNoPartsError');
@@ -23,7 +23,7 @@ export const MISSED = Symbol('qlang/missed');
 export function partsOfTemplate(value) {
   if (isQuote(value) || isDoc(value) || isFn(value) || isKind(value)) return null;
   if (isVec(value)) return value;
-  return isQMap(value) ? [...value.values()] : null;
+  return isMap(value) ? [...value.values()] : null;
 }
 
 // segmentIndex(segment) → the place a segment names, a whole number or one
@@ -31,12 +31,6 @@ export function partsOfTemplate(value) {
 // among them.
 export function segmentIndex(segment) {
   return /^-?\d+$/.test(String(segment)) ? parseInt(segment, 10) : NaN;
-}
-
-function beneathTags(value) {
-  let beneath = value;
-  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
-  return beneath;
 }
 
 // readPath(subject, path, soft?) → the value at the path. A miss is
@@ -49,7 +43,7 @@ export function readPath(subject, path, soft = false) {
   for (const segment of path.segments) {
     if (current === null && soft) return MISSED;
     const container = beneathTags(current);
-    if (isQMap(container)) {
+    if (isMap(container)) {
       if (!container.has(segment)) {
         if (soft) return MISSED;
         throw keyNotInMap(container, segment, path, current);

@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
 import { runs } from '../../src/primitives.mjs';
-import { makeTag, makeTaggedInstance } from '../../src/types.mjs';
+import { makeTag, makeTagged } from '../../src/types.mjs';
 
 // The steps of a query a line each, joined by `|` [QSSYN#line].
 const lines = (...steps) => steps.join('\n| ');
@@ -95,7 +95,7 @@ describe('a host\'s primitive under a label', () => {
           'Gauge/construct': payload => payload * 2,
           'Gauge/over': runs(['test'], async (reading, test) => test(reading)),
           'Gauge/shifted': (reading, by) => reading.payload + by,
-          'Dial/construct': payload => makeTaggedInstance(makeTag('Dial'), payload + 1)
+          'Dial/construct': payload => makeTagged(makeTag('Dial'), payload + 1)
         }
       }]
     });

@@ -7,7 +7,7 @@
 // that refused [QSERR#site]. An input that takes code arrives closed at the
 // call, code run on the element [QSDSP#walk], [QSBLD#fn].
 
-import { isNumber, isValueClass, keyword, isErrorValue, isVec, NULL, makeSet, makeTaggedInstance, makeTag, makePath } from '../types.mjs';
+import { beneathTags, isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTagged, makeTag, makePath } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim, runs } from '../primitives.mjs';
@@ -59,8 +59,7 @@ bindPrim('vec/zip', vectors => {
 // The number an element holds beneath the tags over it, as `add` reads
 // its subject [QSNUM#arithmetic], or undefined.
 function numberBeneath(element) {
-  let beneath = element;
-  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
+  const beneath = beneathTags(element);
   return isNumber(beneath) ? beneath : undefined;
 }
 
@@ -342,7 +341,7 @@ bindPrim('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count)))
 
 // `desc` lays `::desc` over a value, which reverses its place in the one
 // order among the values under that tag [QSORD#sort].
-bindPrim('any/desc', value => makeTaggedInstance(DESC_TAG, value));
+bindPrim('any/desc', value => makeTagged(DESC_TAG, value));
 
 // `distinct` is the constructor of the set [QSORD#order]: the elements of a
 // vector in the one order without duplicates, and a set as it is.

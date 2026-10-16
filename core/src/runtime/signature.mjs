@@ -4,7 +4,7 @@
 
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword, LITERAL_WORDS } from '../name-chars.mjs';
-import { isDoc, isKeyword, isPath, isQSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTaggedInstance, commandsOf, FN_TAG_NAME, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { ANY_KIND_NAME, CONSTRUCT_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName, placesOfSelectors, selectorOfPlace } from './nouns.mjs';
 
 const FnSignatureNotCommandsError = declareRefusal('fn/SignatureNotCommandsError');
@@ -27,7 +27,7 @@ const isNameOfOneSegment = value => isRefusalName(value) && !value.name.includes
 const isInputName = value => isNameOfOneSegment(value) && value.name !== ANSWER_NAME && value.name !== SUBJECT_NAME;
 const isFieldName = value => isNameOfOneSegment(value) && value.name !== PAYLOAD_NAME && value.name !== CONSTRUCT_NAME;
 const isPlace = value => isPath(value) || isQuote(value);
-const isKinds = value => isTag(value) || (isQSet(value) && value.length > 0 && value.every(isTag));
+const isKinds = value => isTag(value) || (isSet(value) && value.length > 0 && value.every(isTag));
 const isPlainVec = value => Array.isArray(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isKindsOfEach = value => isKinds(value) || (isPlainVec(value) && value.length === 1 && isKinds(value[0]));
 
@@ -237,7 +237,7 @@ const NO_COMMANDS = makeQuote([]);
 
 export function functionOfRecipe(recipe) {
   let fn = FUNCTIONS_OF_RECIPES.get(recipe);
-  if (fn === undefined) FUNCTIONS_OF_RECIPES.set(recipe, fn = makeTaggedInstance(makeTag(FN_TAG_NAME), Object.freeze([NO_COMMANDS, recipe])));
+  if (fn === undefined) FUNCTIONS_OF_RECIPES.set(recipe, fn = makeTagged(makeTag(FN_TAG_NAME), Object.freeze([NO_COMMANDS, recipe])));
   return fn;
 }
 

@@ -144,9 +144,9 @@ describe('the one order over keywords and tags', async () => {
 
   it('sort over a Set of Keywords answers the vector of its order', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const { isQSet } = await import('../../src/types.mjs');
+    const { isSet } = await import('../../src/types.mjs');
     const result = await evalQuery('#[:y :a :m] | sort');
-    expect(isQSet(result)).toBe(false);
+    expect(isSet(result)).toBe(false);
     expect(result.map(k => k.name)).toEqual(['a', 'm', 'y']);
   });
 
@@ -196,11 +196,11 @@ describe('the one order over keywords and tags', async () => {
 describe('groupBy over a set files sets', async () => {
   it('partitions a Set into Set buckets keyed by the classifier', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const { isQSet } = await import('../../src/types.mjs');
+    const { isSet } = await import('../../src/types.mjs');
     const result = await evalQuery('#[{:dept :eng :id 1} {:dept :sales :id 2} {:dept :eng :id 3}] | groupBy /dept');
     expect(result).toBeInstanceOf(Map);
     const engBucket = result.get('eng');
-    expect(isQSet(engBucket)).toBe(true);
+    expect(isSet(engBucket)).toBe(true);
     expect(engBucket.length).toBe(2);
   });
 });

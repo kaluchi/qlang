@@ -6,7 +6,7 @@
 // of a subject's tags the words residing on each kind it passes [QSDSP#walk].
 
 import {
-  isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isQMap, isQuote, isVec, isTag, isTaggedInstance,
+  isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isMap, isQuote, isVec, isTag, isTagged,
   isValueClass, isPath, isFn, isKind, recipeOf, makeSet, makeTag,
   typeKeyword, bindingValueOf, keyword, TAG_HEADER_SYMBOL
 } from '../types.mjs';
@@ -120,7 +120,7 @@ export function answerOf(env, address) {
 // Whether a value is an invariant, a quote under `::holds`, whose name is
 // the refusal of a value that breaks it [QSSLF#catalog].
 export function isInvariant(value) {
-  return isValueClass(value, 'taggedInstance') && value.tag.name === INVARIANT_TAG_NAME && isQuote(value.payload);
+  return isValueClass(value, 'underTag') && value.tag.name === INVARIANT_TAG_NAME && isQuote(value.payload);
 }
 
 export const INVARIANT_TAG = makeTag('holds');
@@ -129,7 +129,7 @@ const INVARIANT_TAG_NAME = INVARIANT_TAG.name;
 // Whether a value is a law, a quote under `::law`, which proves the
 // claim its name makes [QSSLF#laws].
 export function isLaw(value) {
-  return isValueClass(value, 'taggedInstance') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload);
+  return isValueClass(value, 'underTag') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload);
 }
 
 export const LAW_TAG = makeTag('law');
@@ -219,13 +219,13 @@ export function* kindsOfWalk(subject) {
       yield value.name;
       return;
     }
-    if (isTaggedInstance(value)) yield TAGGED_KIND_NAME;
-    if (isValueClass(value, 'taggedInstance')) {
+    if (isTagged(value)) yield TAGGED_KIND_NAME;
+    if (isValueClass(value, 'underTag')) {
       value = value.payload;
       continue;
     }
     if (value?.[TAG_HEADER_SYMBOL] !== undefined && isVec(value)) yield 'vec';
-    else if (value?.[TAG_HEADER_SYMBOL] !== undefined && isQMap(value)) yield 'map';
+    else if (value?.[TAG_HEADER_SYMBOL] !== undefined && isMap(value)) yield 'map';
     return;
   }
 }

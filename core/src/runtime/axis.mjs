@@ -20,7 +20,7 @@
 
 import { bindStateReader } from '../primitives.mjs';
 import {
-  isKeyword, isTag, isBinding, isNull, isQSet, isVec, isQMap, isValueClass, keyword, typeKeyword, makeTaggedInstance,
+  isKeyword, isTag, isBinding, isNull, isSet, isVec, isMap, isValueClass, keyword, typeKeyword, makeTagged,
   makeTag, makeQuote, makeDoc, NULL
 } from '../types.mjs';
 import {
@@ -71,8 +71,8 @@ function recordOfKind(env, value) {
 // declared: the payload of a wrapper, or the plain vector or map of a
 // container that holds its tag on itself.
 function payloadBeneath(value) {
-  if (isValueClass(value, 'taggedInstance')) return value.payload;
-  return isQMap(value) ? new Map(value) : [...value];
+  if (isValueClass(value, 'underTag')) return value.payload;
+  return isMap(value) ? new Map(value) : [...value];
 }
 
 // The node a refusal named by the address of what refused reads its page
@@ -162,7 +162,7 @@ const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject,
 // A set of anchors reads a page at each, in the order of the set, an
 // element that is no anchor and no path refused at its place in the set.
 bindStateReader('any/doc', (subject, anchor, state) => {
-  if (!isQSet(anchor)) return pageAt(subject, anchor, state);
+  if (!isSet(anchor)) return pageAt(subject, anchor, state);
   const stranger = anchor.findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
   if (stranger >= 0) throw new AnyDocAnchorElementNotKeywordError({ index: stranger, actualValue: anchor[stranger] });
   return Object.freeze(anchor.map(each => pageAt(subject, each, state)));
@@ -175,6 +175,6 @@ bindStateReader('any/doc', (subject, anchor, state) => {
 const EXPLANATION_TAG = makeTag('explanation');
 bindStateReader('any/explain', (subject, state) => {
   const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainUnknownNameError));
-  return makeTaggedInstance(EXPLANATION_TAG, new Map([['page', page], ['value', subject]]));
+  return makeTagged(EXPLANATION_TAG, new Map([['page', page], ['value', subject]]));
 });
 

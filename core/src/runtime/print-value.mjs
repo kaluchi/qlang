@@ -8,7 +8,7 @@ import { readsAsBareKeyword } from '../name-chars.mjs';
 import { segmentIndex } from '../path-read.mjs';
 import {
   isVec,
-  isQMap,
+  isMap,
   isPath,
   isFrame,
   isTrail,
@@ -75,7 +75,7 @@ const PRINT_HANDLERS = {
   set:     (s, indent, printedOf, oneLine) => printListLike('#[', s, indent, printedOf, oneLine),
   quote:   printQuote,
   doc:     d => '|~~' + docText(d) + '~~|',
-  underTag: printTaggedInstance
+  underTag: printUnderTag
 };
 
 // A quote writes its steps in `~(…)`, and one whose code is a path alone,
@@ -134,12 +134,12 @@ export function underTagLiteral(tagLiteral, payload, payloadPrint) {
 
 // An error at rest writes the literal of its kind, `!{…}`, as a set
 // writes `#[…]` [QSERR#rest].
-function printTaggedInstance(instance, indent, printedOf, oneLine) {
-  const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
-  if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf, oneLine || isFrame(instance), isTrail(instance) && instance.length > 1);
-  if (instance instanceof Map && instance[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', instance, indent, printedOf, oneLine);
-  if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf, oneLine || instance[TAG_HEADER_SYMBOL].name === ELISION_TAG.name);
-  return underTagLiteral(tagLiteral, instance.payload, printValue(instance.payload, indent, printedOf, oneLine));
+function printUnderTag(tagged, indent, printedOf, oneLine) {
+  const tagLiteral = tagged[TAG_HEADER_SYMBOL].literal;
+  if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), isTrail(tagged) && tagged.length > 1);
+  if (tagged instanceof Map && tagged[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', tagged, indent, printedOf, oneLine);
+  if (tagged instanceof Map) return tagLiteral + printMapLike('{', tagged, indent, printedOf, oneLine || tagged[TAG_HEADER_SYMBOL].name === ELISION_TAG.name);
+  return underTagLiteral(tagLiteral, tagged.payload, printValue(tagged.payload, indent, printedOf, oneLine));
 }
 
 // A map of two entries or fewer, none a container, stands on one line, and
@@ -148,7 +148,7 @@ function printTaggedInstance(instance, indent, printedOf, oneLine) {
 // a line of its own.
 function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];
-  const hasComposite = entries.some(([, v]) => isQMap(v) || isVec(v));
+  const hasComposite = entries.some(([, v]) => isMap(v) || isVec(v));
   if (oneLine || (entries.length <= 2 && !hasComposite)) {
     return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf, oneLine)}`).join(' ')}}`;
   }

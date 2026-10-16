@@ -11,11 +11,11 @@ import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, 
 import { nearestNames, nearestTagNames, nearestWords } from './nearest-names.mjs';
 import { readPath, partsOfTemplate, PathIndexOutOfBoundsError, PathKeyNotInMapError } from './path-read.mjs';
 import {
-  isQSet, isErrorValue, isQuote, isDoc, hostImplOf,
+  isSet, isErrorValue, isQuote, isDoc, hostImplOf,
   typeKeyword, keyword, NULL, makeErrorValue,
   makeDoc, makeSet, makeRegex, makePath, isPath,
-  makeBinding, bindingValueOf, makeTaggedInstance, makeTag, errorAtRest,
-  isFn, isKind, recipeOf, makeQuote, isQMap, stampTagHeader, TAG_HEADER_SYMBOL,
+  makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest,
+  isFn, isKind, recipeOf, makeQuote, isMap, stampTagHeader, TAG_HEADER_SYMBOL,
   ERROR_TAG, isValueClass, isTag, kindsExpected
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
@@ -29,7 +29,7 @@ import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf
 import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
 import { splitAddress } from './address.mjs';
 import {
-  runPrimitive, keptAsSubject, mintUnderTag, walkToKinds, CallKindAnswersNoVerbError
+  runPrimitive, keptAsSubject, walkToKinds, CallKindAnswersNoVerbError
 } from './runtime/verb.mjs';
 import {
   answerOfStep, answerOfPart, skipping, raisedBy, isRaisedBy
@@ -171,10 +171,10 @@ function evalBody(node, state) {
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
-  const errorOfKind = makeTaggedInstance(ERROR_TAG, new Map(raised.descriptor));
+  const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.descriptor));
   let opened;
   try {
-    opened = raised.tag === ERROR_TAG ? errorOfKind : await mintTaggedInstance(raised.tag.name, errorOfKind, state);
+    opened = raised.tag === ERROR_TAG ? errorOfKind : await mintTagged(raised.tag.name, errorOfKind, state);
   } catch (caughtError) {
     opened = errorOfThrow(caughtError, stepNode, errorOfKind, state.env);
   }
@@ -229,8 +229,8 @@ async function entryValues(entries, state) {
 async function evalErrorLit(node, state) {
   const facts = await entryValues(node.entries, state);
   if (isErrorValue(facts)) return withPipeValue(state, facts);
-  const atRest = await mintTaggedInstance(ERROR_TAG.name, facts, state);
-  return withPipeValue(state, node.tag === null ? atRest : await mintTaggedInstance(node.tag, atRest, state));
+  const atRest = await mintTagged(ERROR_TAG.name, facts, state);
+  return withPipeValue(state, node.tag === null ? atRest : await mintTagged(node.tag, atRest, state));
 }
 
 // The value a part of a literal answers: a refusal its constructor raised
@@ -253,7 +253,7 @@ async function evalDocLit(node, state) {
     if (part.type !== 'DocTaggedQuote') continue;
     let laid = quoteOfLiteral(part.quote);
     for (const tagName of [...part.tags].reverse()) {
-      laid = await mintTaggedInstance(tagName, laid, state);
+      laid = await mintTagged(tagName, laid, state);
       if (isErrorValue(laid)) return withPipeValue(state, laid);
     }
   }
@@ -273,7 +273,7 @@ async function evalTaggedLit(node, state) {
   const tagName = node.tag;
   const payload = (await evalNode(node.payload, state)).pipeValue;
   if (isErrorValue(payload)) return withPipeValue(state, passedUntagged(payload, node, tagName));
-  return withPipeValue(state, await mintTaggedInstance(tagName, payload, state));
+  return withPipeValue(state, await mintTagged(tagName, payload, state));
 }
 
 // The error a tagged literal's payload answered, passed by the tag as an
@@ -356,8 +356,8 @@ function layerOf(env, address, origin, pages) {
     layRest({ facts, invariants, laws }) {
       for (const [name, page] of pages) if (!under.has(`${address}/${name}`)) lay(name, page, page);
       for (const { name, page, written } of facts) lay(name, page, written ?? page);
-      for (const { name, page, condition } of invariants) lay(name, page, makeTaggedInstance(INVARIANT_TAG, condition));
-      for (const { name, page, query } of laws) lay(name, page, makeTaggedInstance(LAW_TAG, query));
+      for (const { name, page, condition } of invariants) lay(name, page, makeTagged(INVARIANT_TAG, condition));
+      for (const { name, page, query } of laws) lay(name, page, makeTagged(LAW_TAG, query));
       return under;
     }
   };
@@ -574,7 +574,7 @@ function heldByItsKinds({ kinds, each }, refusalOf, value, env) {
   if (refused !== null) return refusalUnder(refusalOf(true), { index: refused.index, expected: kindsExpected(...kinds), actualValue: refused.element }, env);
   if (isQuote(elements.served) || isDoc(elements.served)) return elements.served;
   const served = Array.from(elements.served, element => walkToKinds(element, kinds).served);
-  return isQSet(elements.served) ? makeSet(served) : Object.freeze(served);
+  return isSet(elements.served) ? makeSet(served) : Object.freeze(served);
 }
 
 // The names of the refusals of the kinds of an input or a field under its
@@ -706,7 +706,7 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
     return typeKeyword(walked.served).name === labelName ? answerMadeBy(labelName, keeping, refused) : keeping();
   }
   const constructing = kinds.length === 1 ? kinds[0] : kinds.find(kind => kind === typeKeyword(answer).name);
-  return constructing === undefined ? refused() : answerMadeBy(constructing, () => mintUnderTag(state, makeTag(constructing), answer), refused);
+  return constructing === undefined ? refused() : answerMadeBy(constructing, () => mintTagged(constructing, answer, state), refused);
 }
 
 // An answer kept as the subject's kind, refused where what is kept is no
@@ -829,9 +829,9 @@ function handedTo(impl, signature, { values, origins }, state) {
 function quotesClosedIn(value, originOf) {
   if (isQuote(value)) return codeFrom(value, originOf(value));
   if (!holdsAQuote(value)) return value;
-  if (isValueClass(value, 'taggedInstance')) return makeTaggedInstance(value.tag, quotesClosedIn(value.payload, originOf));
+  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesClosedIn(value.payload, originOf));
   const header = value[TAG_HEADER_SYMBOL];
-  const closed = isQMap(value)
+  const closed = isMap(value)
     ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, originOf)]))
     : value.map(part => quotesClosedIn(part, originOf));
   if (header !== undefined) stampTagHeader(closed, header);
@@ -847,7 +847,7 @@ function keepOrigins(origins, value, origin, state) {
     origins.set(value, origin.written ? origin : originIn(state, value) ?? origin);
     return;
   }
-  if (isValueClass(value, 'taggedInstance')) return keepOrigins(origins, value.payload, origin, state);
+  if (isValueClass(value, 'underTag')) return keepOrigins(origins, value.payload, origin, state);
   if (!holdsAQuote(value)) return;
   for (const part of partsOfTemplate(value)) keepOrigins(origins, part, origin, state);
 }
@@ -858,7 +858,7 @@ const HOLDERS_OF_QUOTES = new WeakMap();
 
 function holdsAQuote(value) {
   if (isQuote(value)) return true;
-  if (isValueClass(value, 'taggedInstance')) return !isQuote(value.payload) && holdsAQuote(value.payload);
+  if (isValueClass(value, 'underTag')) return !isQuote(value.payload) && holdsAQuote(value.payload);
   if (typeof value !== 'object' || value === null) return false;
   let holds = HOLDERS_OF_QUOTES.get(value);
   if (holds === undefined) {
@@ -912,7 +912,7 @@ async function inputsOfCall(signature, address, modifiers, state, scope, body) {
   }
   const called = withCall(state, origins);
   let args = null;
-  const argsValue = () => args ??= makeTaggedInstance(makeTag(address), values);
+  const argsValue = () => args ??= makeTagged(makeTag(address), values);
   if (signature.places !== null && values.length > signature.places) return refusalUnder(argsBeyondInputsAddress(address), { places: signature.places, actualValue: argsValue() }, scope);
   let bodyEnv = body === null ? null : envSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() }))
     .set(CALL_BINDS_KEY, { body, names: new Set([ARGS_NAME.name, ...signature.inputs.map(({ name }) => name.name)]) });
@@ -959,25 +959,25 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 
 // ─── A value under a kind ───────────────────────────────────────
 
-// mintTaggedInstance(tagName, payload, state) → the payload under the tag
+// mintTagged(tagName, payload, state) → the payload under the tag
 // through its label [QSDSP#answer]: built by its kind [QSBLD#kind], laid over
 // as it is where no kind answers the tag [QSLIT#tag], [QSBLD#label], never
 // over an error [QSERR#flow], and never under the name of a value withheld
 // from held code [QSQUO#held].
-export async function mintTaggedInstance(tagName, payload, state) {
+export async function mintTagged(tagName, payload, state) {
   refuseWithheld(state.env, tagName, true);
   const node = nodeOf(state.env, tagName);
   const declared = bindingValueOf(node);
   if (isKind(declared)) return await underKind(tagName, declared, payload, state);
   if (isDoc(declared)) return laidUnder(tagName, payload);
-  if (node === null || isWord(state.env, tagName) || isInvariant(declared)) return makeTaggedInstance(makeTag(tagName), payload);
+  if (node === null || isWord(state.env, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
   throw new ConstructTagNotKindError({ tag: makeTag(tagName), actualValue: declared });
 }
 
 // A value under the tag of a label, a value of the label's own kind staying
 // as it is.
 function laidUnder(tagName, value) {
-  return typeKeyword(value).name === tagName ? value : makeTaggedInstance(makeTag(tagName), value);
+  return typeKeyword(value).name === tagName ? value : makeTagged(makeTag(tagName), value);
 }
 
 // A value under a kind [QSBLD#kind]: its payload held to its kinds, each field

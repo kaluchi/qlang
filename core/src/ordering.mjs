@@ -178,6 +178,6 @@ function comparePayloads(leftTagged, rightTagged) {
 }
 
 function payloadOf(tagged) {
-  if (isValueClass(tagged, 'taggedInstance')) return [tagged.payload, kindOf(tagged.payload)];
+  if (isValueClass(tagged, 'underTag')) return [tagged.payload, kindOf(tagged.payload)];
   return [tagged, shapeKindOf(tagged)];
 }

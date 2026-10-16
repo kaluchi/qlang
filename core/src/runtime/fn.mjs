@@ -14,7 +14,7 @@ import { inputsOfFunction } from '../eval.mjs';
 import { signatureOf } from './signature.mjs';
 import {
   isQuote, isVec, isNull, isBuiltinDescriptor, isErrorValue, isFn, commandsOf, recipeOf,
-  makeTag, makeTaggedInstance, makeQuote, FN_TAG_NAME
+  makeTag, makeTagged, makeQuote, FN_TAG_NAME
 } from '../types.mjs';
 
 const FN_TAG = makeTag(FN_TAG_NAME);
@@ -27,7 +27,7 @@ const FnFillRecipeNotCodeError = declareRefusal('fn/fill/RecipeNotCodeError');
 // A function of a signature and a recipe, its signature read here, so one
 // its commands do not declare is refused where the function is made.
 function madeFn(signature, recipe) {
-  const fn = makeTaggedInstance(FN_TAG, Object.freeze([signature, recipe]));
+  const fn = makeTagged(FN_TAG, Object.freeze([signature, recipe]));
   signatureOf(fn);
   return fn;
 }
@@ -46,7 +46,7 @@ bindPrim('fn/construct', payload => {
 // starts the one of no commands and no recipe; the call refuses a tag of
 // another noun before the builder runs [QSDSP#tagname].
 function functionOf(subject) {
-  return isFn(subject) ? subject : makeTaggedInstance(FN_TAG, Object.freeze([EMPTY_SIGNATURE, null]));
+  return isFn(subject) ? subject : makeTagged(FN_TAG, Object.freeze([EMPTY_SIGNATURE, null]));
 }
 
 // A function with a command written after the ones its signature holds.

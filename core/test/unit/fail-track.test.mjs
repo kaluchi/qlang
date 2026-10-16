@@ -187,7 +187,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualType').name).toBe('vec');
   });
 
-  it('payload on non-TaggedInstance is refused under the address of payload [QSBLD#fn]', async () => {
+  it('payload on a value under no tag is refused under the address of payload [QSBLD#fn]', async () => {
     expect((await evalQuery('42 | payload')).tag.name).toBe('tagged/payload/SubjectNotTaggedError');
   });
 
@@ -213,21 +213,21 @@ describe('per-site error classes carry unique identity', () => {
     expect(result.descriptor.get('detail')).toBe('x');
   });
 
-  it('payload strips header off every TaggedInstance shape', async () => {
+  it('payload strips the header off every shape of a value under a tag', async () => {
     // Each shape exercises its own branch of `payload`: a tag
     // over a set stacks on it and answers the set, a set answers its
     // vector, and a tagged Map returns a fresh Map without header.
     // The tagged vector and the tag over an atom are covered above via
     // the tests of a tag over each kind of payload.
-    const { isTaggedInstance, isQSet } = await import('../../src/types.mjs');
+    const { isTagged, isSet } = await import('../../src/types.mjs');
     const setResult = await evalQuery(':Tags |~~ Tags. ~~| | ::Tags#[:b :a] | payload');
-    expect(isQSet(setResult)).toBe(true);
+    expect(isSet(setResult)).toBe(true);
     const vecResult = await evalQuery('#[:b :a] | payload');
-    expect(isTaggedInstance(vecResult)).toBe(false);
+    expect(isTagged(vecResult)).toBe(false);
     expect(vecResult.map(k => k.name)).toEqual(['a', 'b']);
     const mapResult = await evalQuery(':User |~~ User. ~~| | ::User{:name "alice"} | payload');
     expect(mapResult instanceof Map).toBe(true);
-    expect(isTaggedInstance(mapResult)).toBe(false);
+    expect(isTagged(mapResult)).toBe(false);
     expect(mapResult.get('name')).toBe('alice');
   });
 

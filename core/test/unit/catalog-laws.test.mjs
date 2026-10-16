@@ -10,7 +10,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { rootAddressesOf } from '../helpers/root-addresses.mjs';
 import { failingLawsOf, proseQuotesOf, reportOfLaws } from '../helpers/catalog-pages.mjs';
-import { isErrorValue, isQSet } from '../../src/types.mjs';
+import { isErrorValue, isSet } from '../../src/types.mjs';
 
 // The readers of the catalog's laws: the address of every name the root
 // holds, `::number`, `::vec/count` and `::qlang/values`, each read by
@@ -48,7 +48,7 @@ describe('the laws of the catalog, run by runLaws', () => {
     const readers = await catalogReaders();
     const distinctOkValues = await evalQuery(`[${readers.join(' ')}] | map ~(runLaws | map /ok) | flat | distinct`);
     expect(isErrorValue(distinctOkValues)).toBe(false);
-    expect(isQSet(distinctOkValues)).toBe(true);
+    expect(isSet(distinctOkValues)).toBe(true);
     expect([...distinctOkValues]).toEqual([true]);
   }, 30000);
 });

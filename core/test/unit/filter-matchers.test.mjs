@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { QlangError } from '../../src/errors.mjs';
-import { isQMap, isQSet, keyword, makeTag } from '../../src/types.mjs';
+import { isMap, isSet, keyword, makeTag } from '../../src/types.mjs';
 import {
   expectErrorThrown,
   expectOriginalError
@@ -29,13 +29,13 @@ describe('filter — container polymorphism', () => {
 
   it('Set element predicate — returns Set, preserves insertion order', async () => {
     const setResult = await evalQuery('#[1 2 3 4 5] | filter ~(gt 2)');
-    expect(isQSet(setResult)).toBe(true);
+    expect(isSet(setResult)).toBe(true);
     expect([...setResult].sort()).toEqual([3, 4, 5]);
   });
 
   it('Map with a quote predicate fires against value', async () => {
     const mapResult = await evalQuery('{:a 1 :b 2 :c 3} | filter ~(gt 1)');
-    expect(isQMap(mapResult)).toBe(true);
+    expect(isMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
     expect(mapResult.get('b')).toBe(2);
     expect(mapResult.get('c')).toBe(3);
@@ -46,7 +46,7 @@ describe('filter — container polymorphism', () => {
     const mapResult = await evalQuery(
       '{:a 1 :b 2 :c 3} | :any/big ~(gt 1) | filter ~big'
     );
-    expect(isQMap(mapResult)).toBe(true);
+    expect(isMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
   });
 
@@ -56,7 +56,7 @@ describe('filter — container polymorphism', () => {
       + '| :any/tiered ~(get /tier | eq :x | not) '
       + '| filter ~tiered'
     );
-    expect(isQMap(mapResult)).toBe(true);
+    expect(isMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
     expect(mapResult.has('a')).toBe(true);
     expect(mapResult.has('b')).toBe(true);
@@ -77,7 +77,7 @@ describe('filter — container polymorphism', () => {
 
   it('Map empty subject — returns empty Map', async () => {
     const mapResult = await evalQuery('{} | filter ~(gt 0)');
-    expect(isQMap(mapResult)).toBe(true);
+    expect(isMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(0);
   });
 
@@ -99,13 +99,13 @@ describe('filter — container polymorphism', () => {
 
   it('Set with a verb handed as the predicate', async () => {
     const setResult = await evalQuery('#[1 -2 3] | filter ~(gt 0)');
-    expect(isQSet(setResult)).toBe(true);
+    expect(isSet(setResult)).toBe(true);
     expect([...setResult].sort()).toEqual([1, 3]);
   });
 
   it('Map with a verb handed as the predicate', async () => {
     const mapResult = await evalQuery('{:a 1 :b -2 :c 3} | filter ~(gt 0)');
-    expect(isQMap(mapResult)).toBe(true);
+    expect(isMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
     expect(mapResult.get('a')).toBe(1);
     expect(mapResult.get('c')).toBe(3);
@@ -272,7 +272,7 @@ describe('filter + type classifiers integration', () => {
     const mapResult = await evalQuery(
       '{:ID "SGML" :GlossTerm "..." :GlossDef {:para "..."} :Count 42} | filter ~(type | eq ::string)'
     );
-    expect(isQMap(mapResult)).toBe(true);
+    expect(isMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
     expect(mapResult.has('ID')).toBe(true);
     expect(mapResult.has('GlossTerm')).toBe(true);
@@ -284,7 +284,7 @@ describe('filter + type classifiers integration', () => {
     const mapResult = await evalQuery(
       '{:ID "SGML" :GlossDef {:para "..."}} | filter ~(type | eq ::map)'
     );
-    expect(isQMap(mapResult)).toBe(true);
+    expect(isMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(1);
     expect(mapResult.has('GlossDef')).toBe(true);
   });
@@ -302,7 +302,7 @@ describe('filter — verb portability across containers', () => {
     const mapResult = await evalQuery(
       ':any/big ~(gt 1) | {:a 1 :b 2 :c 3} | filter ~big'
     );
-    expect(isQMap(mapResult)).toBe(true);
+    expect(isMap(mapResult)).toBe(true);
     expect(mapResult.size).toBe(2);
     expect(mapResult.get('b')).toBe(2);
     expect(mapResult.get('c')).toBe(3);

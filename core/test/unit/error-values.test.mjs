@@ -99,12 +99,12 @@ describe('deepEqual for error values', () => {
 
 // ── the literal ─────────────────────────────────────────────────
 
-describe('the literal reads back error values and tagged instances', () => {
+describe('the literal reads back error values and values under a tag', () => {
   // `printValue` writes the literal the parser reads, so every value
   // the host builds survives the trip; each shape exercises a distinct
   // branch of the printer.
   it('reads back an error value raised, and a tag over each payload shape', async () => {
-    const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
+    const { makeTagged, makeSet } = await import('../../src/types.mjs');
     const { printValue } = await import('../../src/runtime/format.mjs');
     const { evalQuery } = await import('../../src/eval.mjs');
     const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'something went wrong']]));
@@ -113,10 +113,10 @@ describe('the literal reads back error values and tagged instances', () => {
     expect(restoredError.tag.name).toBe('Oops');
     expect(restoredError.descriptor.get('message')).toBe('something went wrong');
     const hostBuilt = [
-      makeTaggedInstance(makeTag('Box'), [1, 2, 3]),
-      makeTaggedInstance(makeTag('Keys'), makeSet([keyword('b'), keyword('a')])),
-      makeTaggedInstance(makeTag('User'), new Map([['name', 'alice']])),
-      makeTaggedInstance(makeTag('Count'), 42)
+      makeTagged(makeTag('Box'), [1, 2, 3]),
+      makeTagged(makeTag('Keys'), makeSet([keyword('b'), keyword('a')])),
+      makeTagged(makeTag('User'), new Map([['name', 'alice']])),
+      makeTagged(makeTag('Count'), 42)
     ];
     for (const value of hostBuilt) {
       expect(deepEqual(await evalQuery(printValue(value)), value)).toBe(true);
@@ -124,25 +124,25 @@ describe('the literal reads back error values and tagged instances', () => {
   });
 });
 
-describe('deepEqual respects TaggedInstance identity on Array / Map / Set', () => {
+describe('deepEqual tells an Array, a Map and a Set under a tag from one under none', () => {
   // Tag mismatch on overlay-shape collections — same content,
   // different (or absent) header tag — must not compare equal.
   // Each branch (Array / Map / Set) gets its own assertion.
   it('rejects tagged Array vs untagged Array with same elements', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTag('A'), [1, 2, 3]);
+    const { makeTagged } = await import('../../src/types.mjs');
+    const tagged = makeTagged(makeTag('A'), [1, 2, 3]);
     expect(deepEqual(tagged, [1, 2, 3])).toBe(false);
   });
 
   it('rejects tagged Map vs untagged Map with same entries', async () => {
-    const { makeTaggedInstance } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTag('U'), new Map([['k', 1]]));
+    const { makeTagged } = await import('../../src/types.mjs');
+    const tagged = makeTagged(makeTag('U'), new Map([['k', 1]]));
     expect(deepEqual(tagged, new Map([['k', 1]]))).toBe(false);
   });
 
   it('rejects a tag over a set vs the set with same members', async () => {
-    const { makeTaggedInstance, makeSet } = await import('../../src/types.mjs');
-    const tagged = makeTaggedInstance(makeTag('S'), makeSet([1, 2]));
+    const { makeTagged, makeSet } = await import('../../src/types.mjs');
+    const tagged = makeTagged(makeTag('S'), makeSet([1, 2]));
     expect(deepEqual(tagged, makeSet([1, 2]))).toBe(false);
   });
 });

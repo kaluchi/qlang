@@ -7,7 +7,7 @@
 
 import { printQuoteSource } from '../../src/quote.mjs';
 import { printValue } from '../../src/runtime/format.mjs';
-import { isDoc, isErrorValue, isValueClass } from '../../src/types.mjs';
+import { beneathTags, isDoc, isErrorValue } from '../../src/types.mjs';
 
 // The prose of a page with its code spans taken out: a `~(` left in it is
 // a quote the parser refused, which reads as prose [QSSLF#doc].
@@ -20,9 +20,7 @@ function printed(value) {
 
 // The quote beneath the stack of tags of a link.
 function queryOfLink(link) {
-  let beneath = link;
-  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
-  return printQuoteSource(beneath);
+  return printQuoteSource(beneathTags(link));
 }
 
 // What is wrong with where a link leads, or null when it leads to the page

@@ -29,8 +29,8 @@
 // part, or undefined where the forms of the core write it.
 
 import {
-  isVec, isQSet, isQuote, isDoc, isVecOfOwnKind, isQMap, isErrorValue, isValueClass, isFrame, isTrail,
-  makeTaggedInstance, makeErrorValue, makeFrame, makePath, makeQuote, makeSet, makeTrail, stampTagHeader, TAG_HEADER_SYMBOL,
+  isVec, isSet, isQuote, isDoc, isVecOfOwnKind, isMap, isErrorValue, isValueClass, isFrame, isTrail,
+  makeTagged, beneathTags, makeErrorValue, makeFrame, makePath, makeQuote, makeSet, makeTrail, stampTagHeader, TAG_HEADER_SYMBOL,
   ELISION_TAG, FAIL_TAG, SET_TAG
 } from './types.mjs';
 import { printValue } from './runtime/print-value.mjs';
@@ -44,7 +44,7 @@ const measureBy = (printedOf, oneLine = false) => value => printValue(value, 0, 
 
 // A marker is a map under `::elision`, the tag stamped on the map.
 function isMarker(value) {
-  return isQMap(value) && value[TAG_HEADER_SYMBOL]?.name === ELISION_TAG.name;
+  return isMap(value) && value[TAG_HEADER_SYMBOL]?.name === ELISION_TAG.name;
 }
 
 // A vector of elements as a reader writes one and a set, which halve, a map of
@@ -52,10 +52,10 @@ function isMarker(value) {
 // way. A vector or a map under a tag keeps its own shape, its parts giving
 // way within.
 const isPlainVector = value => isVec(value) && value[TAG_HEADER_SYMBOL] === undefined;
-const isPlainMap = value => isQMap(value) && value[TAG_HEADER_SYMBOL] === undefined;
-const halves = value => isPlainVector(value) || isQSet(value);
+const isPlainMap = value => isMap(value) && value[TAG_HEADER_SYMBOL] === undefined;
+const halves = value => isPlainVector(value) || isSet(value);
 const isText = value => typeof value === 'string' || isDoc(value) || isQuote(value);
-const isTaggedContainer = value => (isVec(value) || isQMap(value)) && !isVecOfOwnKind(value);
+const isTaggedContainer = value => (isVec(value) || isMap(value)) && !isVecOfOwnKind(value);
 
 const textOf = value => (typeof value === 'string' ? value : isDoc(value) ? docText(value) : printQuoteSource(value));
 
@@ -79,12 +79,12 @@ function readOf(start, path, kept = null) {
   const segments = [...start.from, ...path].map(String);
   const steps = segments.length === 0 ? [] : [commandStep('get', [makePath(segments)])];
   if (kept !== null) steps.push(commandStep('drop', [kept]));
-  if (start.caught) steps[0] = makeTaggedInstance(FAIL_TAG, makeQuote([steps[0]]));
+  if (start.caught) steps[0] = makeTagged(FAIL_TAG, makeQuote([steps[0]]));
   return makeQuote(steps);
 }
 
 function marker(fields) {
-  return makeTaggedInstance(ELISION_TAG, new Map(fields));
+  return makeTagged(ELISION_TAG, new Map(fields));
 }
 
 // Every part that may give way, with the path to it: the top when it is a
@@ -107,7 +107,7 @@ function partsOf(value, path, printedOf, parts, underTag = false) {
   } else if (isTaggedContainer(value)) {
     if (isVec(value)) value.forEach((element, index) => partsOf(element, [...path, index], printedOf, parts));
     else for (const [key, entryValue] of value) partsOf(entryValue, [...path, key], printedOf, parts);
-  } else if (isValueClass(value, 'taggedInstance')) {
+  } else if (isValueClass(value, 'underTag')) {
     partsOf(value.payload, path, printedOf, parts, true);
   }
 }
@@ -123,7 +123,7 @@ function vectorParts(value) {
 function isRemainder(value) {
   const read = isMarker(value) ? value.get('read') : null;
   const last = isQuote(read) ? read[read.length - 1] : null;
-  return isQMap(last) && last.get('name')?.name === 'drop';
+  return isMap(last) && last.get('name')?.name === 'drop';
 }
 
 // The marker a part gives way to whole: a text's with its head, a vector's
@@ -147,7 +147,7 @@ function wholeOf(part, start) {
 function halvedTo({ path, value }, kept, start, working) {
   const { elements, standsFor } = vectorParts(value);
   const halved = [...elements.slice(0, kept), marker([['size', elements.length - kept + standsFor], ['read', readOf(start, path, kept)]])];
-  if (isQSet(value)) stampTagHeader(halved, SET_TAG);
+  if (isSet(value)) stampTagHeader(halved, SET_TAG);
   working.add(halved);
   return halved;
 }
@@ -170,8 +170,8 @@ function leastOf(part, start, working) {
 
 function replacedAt(value, path, replacement, working) {
   if (path.length === 0) return replacement;
-  if (isValueClass(value, 'taggedInstance')) {
-    const wrapped = makeTaggedInstance(value.tag, replacedAt(value.payload, path, replacement, working));
+  if (isValueClass(value, 'underTag')) {
+    const wrapped = makeTagged(value.tag, replacedAt(value.payload, path, replacement, working));
     working.add(wrapped);
     return wrapped;
   }
@@ -190,9 +190,9 @@ function replacedAt(value, path, replacement, working) {
 // value taken.
 function inOrder(value, working) {
   if (!working.has(value)) return value;
-  if (isValueClass(value, 'taggedInstance')) return makeTaggedInstance(value.tag, inOrder(value.payload, working));
-  if (isQSet(value)) return makeSet(value.map(element => inOrder(element, working)));
-  const rebuilt = isQMap(value)
+  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, inOrder(value.payload, working));
+  if (isSet(value)) return makeSet(value.map(element => inOrder(element, working)));
+  const rebuilt = isMap(value)
     ? new Map([...value].map(([key, part]) => [key, inOrder(part, working)]))
     : value.map(part => inOrder(part, working));
   const header = value[TAG_HEADER_SYMBOL];
@@ -256,9 +256,8 @@ function excerptOf(value, read, printedOf, oneLine = false) {
 // the elements or the entries it stands for, and the read that reaches it.
 function passedOver(value, read, printedOf, oneLine = false) {
   const sizeOf = measureBy(printedOf, oneLine);
-  let beneath = value;
-  while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
-  const size = isText(beneath) ? lengthOf(textOf(beneath)) : isVec(value) ? value.length : isQMap(value) ? value.size : sizeOf(value);
+  const beneath = beneathTags(value);
+  const size = isText(beneath) ? lengthOf(textOf(beneath)) : isVec(value) ? value.length : isMap(value) ? value.size : sizeOf(value);
   const shown = marker([['size', size], ['read', readOf(read, [])]]);
   return sizeOf(shown) < sizeOf(value) ? shown : value;
 }

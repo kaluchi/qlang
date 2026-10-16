@@ -5,19 +5,16 @@
 
 import { bindPrim } from '../primitives.mjs';
 import { docText } from '../quote.mjs';
-import { isTag, isValueClass } from '../types.mjs';
+import { beneathTags, isTag, isValueClass } from '../types.mjs';
 
-// The names of the tags a segment stands beneath, from the outside in, a
-// role's and a host's among them [QSSLF#doc], and the quote or the prose
-// beneath them.
-function beneathTags(segment) {
+// The names of the tags over a segment, its role's among them [QSSLF#doc].
+function tagNamesOver(segment) {
   const tagNames = [];
-  let beneath = segment;
-  for (; isValueClass(beneath, 'taggedInstance'); beneath = beneath.payload) tagNames.push(beneath.tag.name);
-  return { tagNames, beneath };
+  for (let over = segment; isValueClass(over, 'underTag'); over = over.payload) tagNames.push(over.tag.name);
+  return tagNames;
 }
 
-const inRole = roleName => segment => beneathTags(segment).tagNames.includes(roleName);
+const inRole = roleName => segment => tagNamesOver(segment).includes(roleName);
 
 // linksOf(doc) → the segments of a page in the role of a link.
 export const linksOf = doc => Object.freeze(doc.filter(inRole('link')));
@@ -26,7 +23,7 @@ export const linksOf = doc => Object.freeze(doc.filter(inRole('link')));
 // `::link~(::any/sumOf | doc)` opening with `any/sumOf`; a link that
 // opens with no tag name names none [QSSLF#near].
 export function linkedAddressesOf(doc) {
-  return linksOf(doc).map(link => beneathTags(link).beneath[0]).filter(isTag).map(tag => tag.name);
+  return linksOf(doc).map(link => beneathTags(link)[0]).filter(isTag).map(tag => tag.name);
 }
 
 bindPrim('doc/content', docText);

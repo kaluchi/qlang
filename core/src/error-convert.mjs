@@ -1,4 +1,4 @@
-import { keyword, makeErrorValue, makeTag, makeTaggedInstance, typeKeyword } from './types.mjs';
+import { keyword, makeErrorValue, makeTag, makeTagged, typeKeyword } from './types.mjs';
 import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
 import { deepEqual } from './equality.mjs';
@@ -28,7 +28,7 @@ export function spanOfLocation(loc, source) {
     const lineStart = offset - (column - 1);
     return [codePointsIn(source, 0, offset), line, codePointsIn(source, lineStart, offset) + 1];
   };
-  return makeTaggedInstance(SPAN_TAG, [...point(loc.start), ...point(loc.end)]);
+  return makeTagged(SPAN_TAG, [...point(loc.start), ...point(loc.end)]);
 }
 
 // The code points of the source between two offsets of its UTF-16 text.

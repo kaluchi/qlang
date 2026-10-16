@@ -2,11 +2,11 @@
 // the address of the kind's `construct`, `number/construct` [QSBLD#kind], and
 // the verbs that lay a tag over a value and take it off.
 
-import { mintUnderTag } from './verb.mjs';
+import { mintTagged } from './verb.mjs';
 import { bindPrim, bindStateReader, runs } from '../primitives.mjs';
 import {
-  isVec, isKeyword, isRegex, isPath, isQMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTag, kindsExpected, makeSet, makeTag, makeTaggedInstance, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
+  isVec, isKeyword, isRegex, isPath, isMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
+  isTag, kindsExpected, makeSet, makeTag, makeTagged, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
 } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 
@@ -48,7 +48,7 @@ function coreKindConstructor(isOfKind, ErrorCls) {
 }
 
 const isBareVec = payload => isVec(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
-const isBareMap = payload => isQMap(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
+const isBareMap = payload => isMap(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
 
 bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadKindNotTakenError));
 bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError));
@@ -72,7 +72,7 @@ bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadKindNotTa
 // `::desc` over any value turned to descend, `::desc#5`, its place in the
 // one order the reverse of its payload's [QSORD#desc].
 const DESC_TAG = makeTag('desc');
-bindPrim('desc/construct', payload => makeTaggedInstance(DESC_TAG, payload));
+bindPrim('desc/construct', payload => makeTagged(DESC_TAG, payload));
 
 // `::doc[…]` — the doc of a vector of prose strings and quotes [QSSLF#doc], so
 // a doc comes apart into its segments and back by `tag`.
@@ -95,7 +95,7 @@ bindPrim('doc/construct', docConstructor);
 const BuiltinPayloadKindNotTakenError = declareRefusal('builtin/PayloadKindNotTakenError');
 
 function builtinConstructor(payload) {
-  if (!isQMap(payload)) throw new BuiltinPayloadKindNotTakenError({ expected: kindsExpected('map'), actualValue: payload });
+  if (!isMap(payload)) throw new BuiltinPayloadKindNotTakenError({ expected: kindsExpected('map'), actualValue: payload });
   const descriptor = new Map();
   for (const [k, v] of payload) descriptor.set(k, v);
   stampTagHeader(descriptor, BUILTIN_TAG);
@@ -134,10 +134,10 @@ async function mintPair(pair, state) {
   }
   const [pairTag, value] = pair;
   if (!isTag(pairTag)) throw new AnyTagPairTagNotTagError({ actualValue: pairTag });
-  return await mintUnderTag(state, pairTag, value);
+  return await mintTagged(pairTag.name, value, state);
 }
 
 bindStateReader('any/tag', async (subject, tagName, state) =>
-  (isNull(tagName) ? await mintPair(subject, state) : await mintUnderTag(state, tagName, subject)));
+  (isNull(tagName) ? await mintPair(subject, state) : await mintTagged(tagName.name, subject, state)));
 
 

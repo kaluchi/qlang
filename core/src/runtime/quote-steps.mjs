@@ -15,8 +15,8 @@ import { declareRefusal } from '../errors.mjs';
 import { deepEqual } from '../equality.mjs';
 import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource } from '../quote.mjs';
 import {
-  keyword, isQMap, isQuote, isKeyword, isTag,
-  isDoc, makeQuote, makeTaggedInstance, CALL_TAG, BIND_TAG,
+  keyword, isMap, isQuote, isKeyword, isTag,
+  isDoc, makeQuote, makeTagged, CALL_TAG, BIND_TAG,
   CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG, isVec, kindsExpected
 } from '../types.mjs';
 
@@ -67,7 +67,7 @@ const isBodyStep = step => isElementStep(step) || isCommandStep(step);
 // payload itself is no Map.
 function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBackDiffersError) {
   return payload => {
-    if (!isQMap(payload)) {
+    if (!isMap(payload)) {
       throw new PayloadNotSchemaError({ field: null, actualValue: payload });
     }
     for (const fieldName of required) {
@@ -81,7 +81,7 @@ function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBac
         throw new PayloadNotSchemaError({ field: keyword(fieldName), actualValue: fieldValue });
       }
     }
-    return readBackOrRefuse(makeTaggedInstance(tag, payload), ReadBackDiffersError);
+    return readBackOrRefuse(makeTagged(tag, payload), ReadBackDiffersError);
   };
 }
 
@@ -106,7 +106,7 @@ bindPrim('construct/construct', recordConstructor(CONSTRUCT_TAG,
 function wrapperConstructor(tag, PayloadKindNotTakenError, ReadBackDiffersError) {
   return payload => {
     if (!isQuote(payload)) throw new PayloadKindNotTakenError({ expected: kindsExpected('quote'), actualValue: payload });
-    return readBackOrRefuse(makeTaggedInstance(tag, payload), ReadBackDiffersError);
+    return readBackOrRefuse(makeTagged(tag, payload), ReadBackDiffersError);
   };
 }
 

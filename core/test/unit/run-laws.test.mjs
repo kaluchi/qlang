@@ -5,13 +5,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, isQSet, makeTag } from '../../src/types.mjs';
+import { isErrorValue, isSet, makeTag } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
 
 describe('runLaws reads a name as laws does', () => {
   it('address subject — ::vec/count | runLaws', async () => {
     const result = await evalQuery('::vec/count | runLaws | map /ok | distinct');
-    expect(isQSet(result)).toBe(true);
+    expect(isSet(result)).toBe(true);
     expect([...result]).toEqual([true]);
   });
 

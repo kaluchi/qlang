@@ -159,52 +159,52 @@ describe('a tag no declaration answers lays itself over any payload', () => {
   });
 
   it('a vector under a tag is read as a vector, and `type` reads the tag', async () => {
-    const { isVec, isTaggedInstance, typeKeyword, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/add/SubjectNotNumberError[1 2 3]');
-    expect(Array.isArray(instance)).toBe(true);
-    expect(isVec(instance)).toBe(true);
-    expect(isTaggedInstance(instance)).toBe(true);
-    expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTag('number/add/SubjectNotNumberError'));
-    expect(typeKeyword(instance)).toEqual(makeTag('number/add/SubjectNotNumberError'));
-    expect(instance.length).toBe(3);
-    expect(instance[0]).toBe(1);
-    expect(instance[1]).toBe(2);
+    const { isVec, isTagged, typeKeyword, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
+    const tagged = await evalQuery('::number/add/SubjectNotNumberError[1 2 3]');
+    expect(Array.isArray(tagged)).toBe(true);
+    expect(isVec(tagged)).toBe(true);
+    expect(isTagged(tagged)).toBe(true);
+    expect(tagged[TAG_HEADER_SYMBOL]).toEqual(makeTag('number/add/SubjectNotNumberError'));
+    expect(typeKeyword(tagged)).toEqual(makeTag('number/add/SubjectNotNumberError'));
+    expect(tagged.length).toBe(3);
+    expect(tagged[0]).toBe(1);
+    expect(tagged[1]).toBe(2);
   });
 
   it('a map under a tag is read as a map, its entries its own', async () => {
-    const { isQMap, isTaggedInstance, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/add/SubjectNotNumberError{:custom "field" :position 1}');
-    expect(isQMap(instance)).toBe(true);
-    expect(isTaggedInstance(instance)).toBe(true);
-    expect(instance.has('kind')).toBe(false);
-    expect(instance[TAG_HEADER_SYMBOL]).toEqual(makeTag('number/add/SubjectNotNumberError'));
-    expect(instance.get('custom')).toBe('field');
-    expect(instance.get('position')).toBe(1);
+    const { isMap, isTagged, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
+    const tagged = await evalQuery('::number/add/SubjectNotNumberError{:custom "field" :position 1}');
+    expect(isMap(tagged)).toBe(true);
+    expect(isTagged(tagged)).toBe(true);
+    expect(tagged.has('kind')).toBe(false);
+    expect(tagged[TAG_HEADER_SYMBOL]).toEqual(makeTag('number/add/SubjectNotNumberError'));
+    expect(tagged.get('custom')).toBe('field');
+    expect(tagged.get('position')).toBe(1);
   });
 
   it('a string under a tag is held whole, and `payload` takes it off', async () => {
-    const { isTaggedInstance, typeKeyword } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/add/SubjectNotNumberError"hello"');
-    expect(isTaggedInstance(instance)).toBe(true);
-    expect(typeKeyword(instance)).toEqual(makeTag('number/add/SubjectNotNumberError'));
-    expect(instance.payload).toBe('hello');
+    const { isTagged, typeKeyword } = await import('../../src/types.mjs');
+    const tagged = await evalQuery('::number/add/SubjectNotNumberError"hello"');
+    expect(isTagged(tagged)).toBe(true);
+    expect(typeKeyword(tagged)).toEqual(makeTag('number/add/SubjectNotNumberError'));
+    expect(tagged.payload).toBe('hello');
     const extracted = await evalQuery('::number/add/SubjectNotNumberError"hello" | payload');
     expect(extracted).toBe('hello');
   });
 
   it('a keyword touches its tag by its colon', async () => {
-    const { isTaggedInstance, isKeyword } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/add/SubjectNotNumberError:foo');
-    expect(isTaggedInstance(instance)).toBe(true);
-    expect(isKeyword(instance.payload)).toBe(true);
-    expect(instance.payload.name).toBe('foo');
+    const { isTagged, isKeyword } = await import('../../src/types.mjs');
+    const tagged = await evalQuery('::number/add/SubjectNotNumberError:foo');
+    expect(isTagged(tagged)).toBe(true);
+    expect(isKeyword(tagged.payload)).toBe(true);
+    expect(tagged.payload.name).toBe('foo');
   });
 
   it('a number touches its tag by `#`, since `::Tag42` reads as one name [QSLIT#tag]', async () => {
-    const { isTaggedInstance } = await import('../../src/types.mjs');
-    const instance = await evalQuery('::number/add/SubjectNotNumberError#42');
-    expect(isTaggedInstance(instance)).toBe(true);
-    expect(instance.payload).toBe(42);
+    const { isTagged } = await import('../../src/types.mjs');
+    const tagged = await evalQuery('::number/add/SubjectNotNumberError#42');
+    expect(isTagged(tagged)).toBe(true);
+    expect(tagged.payload).toBe(42);
   });
 });
 

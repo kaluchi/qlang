@@ -4,13 +4,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isQMap, isVec, formOf, typeKeyword, makeTag } from '../../src/types.mjs';
+import { isMap, isVec, formOf, typeKeyword, makeTag } from '../../src/types.mjs';
 import { fromJsonText, fromPlain, toPlain, BuiltinJsonValueNotEncodableError } from '../../src/runtime/format.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
   it('an object literal is a map keyed by the keywords of its strings', async () => {
     const readMap = await evalQuery('{"a": 1, "b c": 2}');
-    expect(isQMap(readMap)).toBe(true);
+    expect(isMap(readMap)).toBe(true);
     expect(typeKeyword(readMap)).toEqual(makeTag('map'));
     expect([...readMap.keys()]).toEqual(['a', 'b c']);
   });
@@ -39,7 +39,7 @@ describe('a map whose data key "type" collides with a value-class name', () => {
   // equality, and the lossy and lossless JSON codecs.
 
   it('classifies as a map regardless of the "type" data value', async () => {
-    for (const typeValue of ['quote', 'doc', 'keyword', 'tag', 'error', 'function', 'taggedInstance']) {
+    for (const typeValue of ['quote', 'doc', 'keyword', 'tag', 'error', 'function', 'underTag']) {
       const readMap = await evalQuery(`{"type": "${typeValue}", "extra": 1}`);
       expect(formOf(readMap), `formOf for type=${typeValue}`).toBe('map');
     }

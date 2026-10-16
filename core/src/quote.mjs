@@ -18,8 +18,8 @@ import { parse } from './parse.mjs';
 import { printValue, underTagLiteral } from './runtime/print-value.mjs';
 import {
   keyword, makeTag, makeDoc, makeQuote, makeSet, makeRegex, makePath,
-  makeTaggedInstance, errorAtRest,
-  isQuote, isKeyword, isTag, isRegex, isPath, isDoc, isVec, isQMap, isQSet,
+  makeTagged, errorAtRest,
+  isQuote, isKeyword, isTag, isRegex, isPath, isDoc, isVec, isMap, isSet,
   isValueClass, ERROR_TAG, TAG_HEADER_SYMBOL, QUOTE_AST_SLOT,
   CALL_TAG, BIND_TAG, CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG,
   canonicalKeywordLiteral
@@ -72,7 +72,7 @@ const DOC_OF_LITERAL = new WeakMap();
 function docSegmentOfPart(part) {
   if (typeof part === 'string') return part;
   if (part.type !== 'DocTaggedQuote') return quoteOfLiteral(part);
-  return part.tags.reduceRight((inner, tagName) => makeTaggedInstance(makeTag(tagName), inner), quoteOfLiteral(part.quote));
+  return part.tags.reduceRight((inner, tagName) => makeTagged(makeTag(tagName), inner), quoteOfLiteral(part.quote));
 }
 
 export function docOfNode(node) {
@@ -109,7 +109,7 @@ export function tagCallStepOf(tag) {
 
 // groupStep(steps) → the step of steps in parentheses.
 export function groupStep(steps) {
-  return makeTaggedInstance(GROUP_TAG, makeQuote(steps));
+  return makeTagged(GROUP_TAG, makeQuote(steps));
 }
 
 // stepOfValue(value) → the step that answers a value where it stands, the
@@ -141,16 +141,16 @@ function stepsOfPipeline(node) {
 }
 
 function stepUnderCombinator(combinator, stepNode) {
-  if (combinator === '!|') return makeTaggedInstance(FAIL_TAG, makeQuote([stepOfNode(stepNode)], stepNode));
+  if (combinator === '!|') return makeTagged(FAIL_TAG, makeQuote([stepOfNode(stepNode)], stepNode));
   return stepOfNode(stepNode);
 }
 
 function record(tag, fields) {
-  return makeTaggedInstance(tag, new Map(fields));
+  return makeTagged(tag, new Map(fields));
 }
 
 function groupOf(pipelineNode) {
-  return makeTaggedInstance(GROUP_TAG, quoteOfBody(pipelineNode));
+  return makeTagged(GROUP_TAG, quoteOfBody(pipelineNode));
 }
 
 function entryStepsOf(entries) {
@@ -234,11 +234,11 @@ export function isElementStep(value) {
   if (isKeyword(value) || isTag(value) || isRegex(value) || isPath(value) || isDoc(value) || isQuote(value)) return true;
   const errorFields = errorFieldsOf(value);
   if (errorFields !== null) return [...errorFields.values()].every(isElementStep);
-  if (isQSet(value)) return value.every(isElementStep);
+  if (isSet(value)) return value.every(isElementStep);
   const stepTag = stepTagOf(value);
   if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && value.has('modifiers'));
   if (isVec(value)) return value.every(isElementStep);
-  return isQMap(value) && [...value.values()].every(isElementStep);
+  return isMap(value) && [...value.values()].every(isElementStep);
 }
 
 // isCommandStep(value) — a command with its modifiers, the step a
@@ -294,7 +294,7 @@ function printSteps(steps) {
 function printStep(step) {
   if (isQuote(step)) return `~(${printSteps(step)})`;
   if (isDoc(step)) return printValue(step);
-  if (isQSet(step)) return `#[${step.map(printStep).join(' ')}]`;
+  if (isSet(step)) return `#[${step.map(printStep).join(' ')}]`;
   switch (stepTagOf(step)) {
     case 'call':   return printCall(step);
     case 'bind':   return printBind(step);
@@ -302,9 +302,9 @@ function printStep(step) {
     case 'group':  return `(${printSteps(step.payload)})`;
   }
   const errorFields = errorFieldsOf(step);
-  if (errorFields !== null) return `${isValueClass(step, 'taggedInstance') ? step.tag.literal : ''}!{${printEntries([...errorFields])}}`;
+  if (errorFields !== null) return `${isValueClass(step, 'underTag') ? step.tag.literal : ''}!{${printEntries([...errorFields])}}`;
   if (isVec(step)) return `[${step.map(printStep).join(' ')}]`;
-  if (isQMap(step)) return `{${printEntries([...step])}}`;
+  if (isMap(step)) return `{${printEntries([...step])}}`;
   return printValue(step);
 }
 
@@ -321,8 +321,8 @@ function printConstruct(tagLiteral, payload) {
 // beneath the tag the literal writes before its bang [QSERR#rest]; null
 // for any other value.
 function errorFieldsOf(value) {
-  const fields = isValueClass(value, 'taggedInstance') ? value.payload : value;
-  return isQMap(fields) && fields[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name ? fields : null;
+  const fields = isValueClass(value, 'underTag') ? value.payload : value;
+  return isMap(fields) && fields[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name ? fields : null;
 }
 
 function printEntries(entries) {

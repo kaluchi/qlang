@@ -161,7 +161,7 @@
     | proves :TrailNotFramesError/startsATrailAtTheRaise
         |~~ An error raised without a trail starts its trail at the raise.
         ~~|
-        ~(!{:kind :oops} | count !| minus #[:trail] | raise | add 1
+        ~(!{:kind :oops} | raise | count !| minus #[:trail] | raise | add 1
           !| trail | map ~step | eq [~(raise)])
     | proves :TrailNotFramesError/refusesASetAQuoteAndADoc
         |~~ A set, a quote and a doc are no vector of frames. ~~|

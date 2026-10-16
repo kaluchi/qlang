@@ -965,6 +965,7 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 // over an error [QSERR#flow], and never under the name of a value withheld
 // from held code [QSQUO#held].
 export async function mintTagged(tagName, payload, state) {
+  if (isErrorValue(payload)) return payload;
   refuseWithheld(state.env, tagName, true);
   const node = nodeOf(state.env, tagName);
   const declared = bindingValueOf(node);

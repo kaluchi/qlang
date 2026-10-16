@@ -795,7 +795,7 @@
         ~([1 "x" 3] | map ~(mul 2) !| trail | last | place | eq /1)
     | proves :errors/resumesItsTrail
         |~~ A map raised again resumes its trail. ~~|
-        ~(!{:kind :oops} | raise | count !| raise | add 1 !| trail | map ~step | eq [~(raise)])
+        ~(!{:kind :oops} | raise | count !| raise | add 1 !| trail | last | skipped | eq ~(count | add 1))
     | proves :errors/asksWhetherTheStepBeforeStood
         |~~ `ok !| false` answers whether the step before stood. ~~|
         ~(get [~(!{:kind :oops} | raise | ok !| false) ~(42 | ok !| false)] | eq [false true])

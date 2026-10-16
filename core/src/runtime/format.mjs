@@ -1,13 +1,5 @@
-// The plain-JSON codec both ways [QSWRK#catalog], `json` rendering a value and
-// `parseJson` reading one, over the lossy value codec pair `toPlain` /
-// `fromPlain` that bridges qlang runtime values with ordinary JS data
-// structures.
-//
-// Canonical qlang-literal printing lives next door in `print-value.mjs`;
-// `toPlain` routes through the shared `dispatchQlangValue` lookup-table walker
-// so the choice of a writer by the form of a value sits in one place. A
-// rendering for a terminal is a view at a host's boundary, and the command
-// line owns its `table`.
+// The codec of JSON both ways [QSWRK#catalog], [QSPRN#json], `json` writing
+// the JSON text of a value and `parseJson` reading one.
 
 import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { declareRefusal, declareInvariantError } from '../errors.mjs';
@@ -22,9 +14,9 @@ function dispatchPlainValue(v, handlers, path) {
   return handlers.atom(v, path);
 }
 
-// `toPlain` writes a value in JSON's shape and `fromPlain` reads that
-// shape back as maps, vectors and the atoms, for `json`, `parseJson`,
-// the command line's streams and a host that hands values across.
+// `toPlain` writes a value in JSON's shape, for `json` and a host, and
+// `fromPlain` reads that shape back as maps, vectors and the atoms, for a
+// host.
 const TO_PLAIN_HANDLERS = {
   null:    () => null,
   number:  finiteNumberOrLift,

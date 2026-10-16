@@ -24,15 +24,15 @@ const REGEX_KIND    = 4;
 const KEYWORD_KIND  = 5;
 const TAG_NAME_KIND = 6;
 // A path ranks after the tag names [QSPTH#value].
-const PATH_KIND     = 6.5;
-const VECTOR_KIND   = 7;
-const SET_KIND      = 8;
-const MAP_KIND      = 9;
-const QUOTE_KIND    = 10;
-const DOC_KIND      = 11;
-const ELISION_KIND  = 12;
-const DESC_KIND     = 13;
-const TAGGED_KIND   = 14;
+const PATH_KIND     = 7;
+const VECTOR_KIND   = 8;
+const SET_KIND      = 9;
+const MAP_KIND      = 10;
+const QUOTE_KIND    = 11;
+const DOC_KIND      = 12;
+const ELISION_KIND  = 13;
+const DESC_KIND     = 14;
+const TAGGED_KIND   = 15;
 
 const ELISION_TAG_NAME = 'elision';
 const DESC_TAG_NAME = 'desc';
@@ -86,7 +86,6 @@ function compareText(left, right) {
   return compareNumbers(left.length, right.length);
 }
 
-// compareValues(a, b) → -1 / 0 / 1 — the one order.
 // Two paths rank segment by segment, a shorter one first where one
 // begins the other.
 function compareSegments(left, right) {
@@ -97,6 +96,7 @@ function compareSegments(left, right) {
   return left.length === right.length ? 0 : (left.length < right.length ? -1 : 1);
 }
 
+// compareValues(a, b) → -1 / 0 / 1 — the one order.
 export function compareValues(a, b) {
   return compareKinded(kindOf(a), a, kindOf(b), b);
 }

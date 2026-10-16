@@ -86,7 +86,7 @@ const AST_NODE_EVALUATORS = {
   QuoteLit:          evalQuoteLit,
   DocLit:            evalDocLit,
   TaggedLit:         evalTaggedLit,
-  TagLit:   evalTagLit,
+  TagLit:            evalTagLit,
   RegexLit:          evalRegexLit,
   Path:              evalPath,
   Call:              evalCall,

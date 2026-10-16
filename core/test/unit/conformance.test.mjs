@@ -5,19 +5,15 @@
 // of a failure, its error at rest raised, `!{…} | raise` [QSWRK#cases]).
 // Both are eval'd, results compared via deepEqual.
 //
-// The expect-is-literal guard catches test authoring mistakes where
-// the expected side accidentally computes instead of declaring a
-// static value.
-//
-// A case opens with the one record in force that gates it, the record
-// whose rule it shows, `"decision": "D14"` [QSWRK#cases], and a requirement the
-// tree does not meet yet is a target, `"target": true`, which answers its
-// present, `"now"`, an error by its tag and any other value as its
-// literal: a target that answers as expected fails until the branch
-// that met it drops the mark [QSWRK#target], and one that answers neither fails
-// until a reader tells a repair from a broken case [QSWRK#target]. The
-// requirements agree with each other in the one form a runner can see:
-// no two cases hold one query to different answers.
+// A case outside the folders of the chapters, and a case that names a
+// record, opens with a record in force, `{"decision":"Dnn",…}`
+// [QSWRK#cases], and a requirement the tree does not meet yet is a target,
+// `"target": true`, which answers its present, `"now"`, an error by its tag
+// and any other value as its literal: a target that answers as expected
+// fails until the branch that met it drops the mark [QSWRK#target], and one
+// that answers neither fails until a reader tells a repair from a broken
+// case [QSWRK#target]. The requirements agree with each other in the one
+// form a runner can see: no two cases hold one query to different answers.
 
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -37,11 +33,10 @@ const files = readdirSync(conformanceDir, { recursive: true })
   .map(f => f.split(/[\\/]/).join('/'))
   .sort();
 
-// assertLiteralAst — walks the AST and rejects any node that performs
-// computation (Call, ParenGroup with pipeline ops); a path is a value
-// [QSPTH#value]. Pipeline is allowed only as a container for compound literals
-// (the parser wraps multi-step bodies in Pipeline nodes), and a quote
-// literal is a literal whatever steps it holds.
+// assertLiteralAst refuses an expectation that holds a call outside a
+// quote, a failure's print, `!{…} | raise`, read by the literal it raises;
+// a path is a value [QSPTH#value], and a quote literal is a literal
+// whatever steps it holds.
 function assertLiteralAst(parsed, testName) {
   const ast = raisedLiteralOf(parsed) ?? parsed;
   walkAst(ast, (node) => {

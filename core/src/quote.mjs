@@ -183,7 +183,7 @@ const STEP_OF_NODE = {
   NullLit:         () => null,
   Keyword:         node => keyword(node.name),
   RegexLit:        node => makeRegex(node.pattern, node.flags),
-  TagLit: node => makeTag(node.tag),
+  TagLit:          node => makeTag(node.tag),
   QuoteLit:        quoteOfLiteral,
   DocLit:          docOfNode,
   VecLit:          node => Object.freeze(node.elements.map(stepOfNode)),
@@ -192,7 +192,7 @@ const STEP_OF_NODE = {
   ErrorLit:        node => errorAtRest(node.tag === null ? ERROR_TAG : makeTag(node.tag), new Map(entryStepsOf(node.entries))),
   TaggedLit:       node => record(CONSTRUCT_TAG, [['tag', makeTag(node.tag)], ['payload', stepOfNode(node.payload)]]),
   Path:            node => makePath(node.keys),
-  Call:     callStepOf,
+  Call:            callStepOf,
   BindStep:        bindStepOf,
   ParenGroup:      node => groupOf(node.pipeline),
   Pipeline:        groupOf

@@ -56,7 +56,7 @@ function unionOfMaps(left, right) {
 // A map minus or inter another map or a vector of keys drops or keeps
 // its entries by key [QSCOL#map]: the other map's keys, or the keys the vector
 // names, a set among them (`#[:tmp]`, `[:a "c"]`), a keyword or a
-// string naming a key as `at` and `has` read it, and any other element
+// string naming a key as `get` and `has` read it, and any other element
 // refused where it stands [QSPTH#key].
 function keyNamesOf(keysValue, KeyNotKeywordOrStringError) {
   if (isQMap(keysValue)) return keysValue;

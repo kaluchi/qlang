@@ -4,14 +4,12 @@ import { TAG_SIGIL } from './env-keys.mjs';
 import { compareValues } from './ordering.mjs';
 
 // A number is a finite double, and one a host hands otherwise has no
-// literal, so none reaches the printer or the codec.
+// literal, which the printer and the codec of JSON refuse.
 export const BuiltinNumberNotFiniteLeakedToPrintError = declareInvariantError(
   'builtin/NumberNotFiniteLeakedToPrintError',
-  ({ actualValue }) => `render: ${actualValue} is outside the finite-double domain a ` +
-    "qlang Number lives in — a host installed it through session.bind or the impls of " +
-    'its sources, where source cannot mint one');
+  ({ actualValue }) => `a number outside the finite doubles, ${actualValue}, reached the printer or the codec of JSON from a host`);
 
-// Reads the guard at every seam where a Number becomes observable.
+// The guard the printer and the codec of JSON read before they write a number.
 export function finiteNumberOrLift(numberValue) {
   if (!Number.isFinite(numberValue)) throw new BuiltinNumberNotFiniteLeakedToPrintError({ actualValue: String(numberValue) });
   return numberValue;

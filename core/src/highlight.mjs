@@ -279,12 +279,9 @@ function emitPathSpans(src, startOffset, endOffset, spans) {
   }
 }
 
-// Sort by start, then a strict cursor drops overlaps — a parent
-// Call whose name range was already emitted by the child
-// rule must not duplicate. Two distinct spans never share the
-// same start offset under the current AST shape (the per-node
-// visitor emits at most one span per node), so the comparator
-// stays as a single-key sort.
+// Sort by start, then a strict cursor drops overlaps; the sort is stable,
+// so the keyword span of a declaration, pushed first, stands over the name
+// span of its key at the same start.
 function dedupeOverlappingSpans(spans) {
   spans.sort((a, b) => a.start - b.start);
   const dedupedSpans = [];
@@ -316,14 +313,9 @@ function interleaveGapTokens(src, semanticSpans) {
   return interleavedTokens;
 }
 
-// Walk a gap region, splitting into `whitespace` runs and `punct`
-// tokens. Multi-char tokens (`!|`, `#[`) bind tighter
-// than single-char punct. Any single byte that is neither
-// whitespace nor a known multi-char prefix advances by one as
-// `punct` — gaps between AST nodes contain only structural
-// punctuation under any qlang-parseable input, so the single-byte
-// fallback covers commas, brackets, the `|` combinator, and any
-// future grammar punct uniformly without changes here.
+// A gap between the nodes splits into `whitespace` runs and `punct`
+// tokens, `!|` one token and every other character of structure one
+// token each, commas, brackets and the `|` combinator among them.
 function pushGapTokens(src, startOffset, endOffset, outputTokens) {
   let cursor = startOffset;
   while (cursor < endOffset) {
@@ -342,7 +334,7 @@ function pushGapTokens(src, startOffset, endOffset, outputTokens) {
 
 // The kind of a run of combinator characters in a gap: `!|`, the fail
 // track, paints as `err`, the palette of the brackets of an error literal
-// [QSERR#flow]; a set's `#[` arrives with its SetLit node.
+// [QSERR#flow].
 function scanPunctRun(src, startOffset) {
   const ch = src[startOffset];
   const next = src[startOffset + 1];

@@ -1,18 +1,8 @@
-// Node qlang-source loader. Resolved via the package's `imports`
-// field under `#qlang/load-source` when the host is Node.
-//
-// `createRequire(import.meta.url).resolve(name)` is the Node-native
-// way to honour the calling package's `imports` field — it works in
-// every test runner / loader / direct script run, where
-// `import.meta.resolve` is shimmed away (vitest's vite-ssr
-// transform drops it). `fs.readFile` then loads the resolved path
-// directly; no `fetch(file://)` round-trip (undici does not
-// implement that scheme as of Node 22 LTS).
-//
-// Contract: returns the source text on success, or `null` when the
-// logical name has no entry in the calling package's `imports`
-// field. Every other failure (file missing, read I/O error,
-// permission) propagates as `SourceLoadError`.
+// The loader of a source that `#qlang/load-source` picks by its condition
+// `node`, which answers a name, `#qlang/number`, with the text of the file
+// the `imports` field of the core's `package.json` maps it to, with null
+// where the field maps it to no file, and raises `::builtin/SourceLoadError`
+// where the file does not read.
 // The decisions it exists for: [QSWRK#tooling].
 
 import { createRequire } from 'node:module';

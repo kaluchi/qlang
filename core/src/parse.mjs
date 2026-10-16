@@ -1,7 +1,6 @@
 // The one caller of the generated parser: `parse` answers the tree of a
 // source or throws a `ParseError`, and the tools that read the tree
-// through walk.mjs, the editor's hover, completion and references among
-// them, find on it:
+// through walk.mjs find on it:
 //   - an .id on each node, counted within the parse
 //   - a .parent on each node but the root
 //   - the source on the root as .source, and its name as .uri, a file
@@ -15,16 +14,12 @@ import {
 import { assignAstNodeIds, attachAstParents } from './walk.mjs';
 
 
-// ParseError mirrors peggy's syntactic-failure shape into a qlang
-// surface. `expected` is the Vec of `{ type, description, text }`
-// alternatives peggy enumerated at the failure offset (raw shape
-// from `peg$buildStructuredError`); `found` is the unexpected
-// substring at the offset (one character for char-class mismatches,
-// `null` for end-of-input); `source` is the verbatim input text
-// so that downstream consumers (CLI caret-pointer, LSP diagnostic)
-// can quote the offending span without re-reading the file;
-// `sentence` is what a source cut short with a bracket left open is
-// told, beside the closers in `expected` [QSSYN#refusal].
+// The refusal of a source [QSSYN#refusal]: `location` holds its place, `uri`
+// the name the caller gives the source or null, `source` the text,
+// `expected` the alternatives the parser expected there, the closer a reader
+// writes next where a bracket is left open, `found` the character found
+// there, null at the end of the source, the two null where the grammar
+// writes the refusal, and `sentence` what a source cut short is told.
 export class ParseError extends Error {
   constructor(message, location, uri = null, opts = {}) {
     super(message);

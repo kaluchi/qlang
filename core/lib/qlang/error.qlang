@@ -1,6 +1,7 @@
 |~ `::error`, the kind every error is a value of, and what is declared
-   under it: the refusal of an error whose path is no vector of frames,
-   the facts a refusal may carry, and the words of errors. The error at
+   under it: the refusals of a payload that is no map and of a path that
+   is no vector of frames, the facts a refusal may carry, and the words
+   of errors. The error at
    rest, the value `!|` catches a failure to, is `::error{…}`, or the tag
    of the site that refused stacked over it, and its walk passes
    `::error` on its way to the map, so a word declared here reaches every
@@ -122,8 +123,10 @@
         #[::keyword ::null]
     | carries :printed
         |~~ The text a value prints as, its literal: a step that reads
-            back as another step or as none, or an answer the JSON channel
-            has no form for.
+            back as another step or as none, where
+            `::quote/ReadBackDiffersError` or the refusal of that name
+            under `::group`, `::bind`, `::call`, `::construct` or `::fail`
+            refuses it.
         ~~|
         ::string
     | proves :writesAnErrorAtRestByItsBang

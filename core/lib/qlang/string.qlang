@@ -526,9 +526,8 @@
       text holds no line. The text is then worked on as a vector, and
       `join "\n"` writes it back without its closing break.
 
-      `lines` breaks a string, the text the command line reads with
-      `--raw`, and takes no value; a vector of texts breaks element by
-      element by `map`, `map ~lines`.
+      `lines` breaks a string and takes no value; a vector of texts
+      breaks element by element by `map`, `map ~lines`.
       ::link~(::string/split | doc) ::link~(::vec/join | doc)
   ~~|
   ::fn
@@ -992,10 +991,9 @@
     | throws :NumberNotFiniteError
         |~~ JSON text may write a number past the range of the doubles a
             number of qlang is, `1e400`, which no number of the language
-            holds, so reading it is refused, no number of the language
-            holding it. It is met where JSON text is read, by `parseJson`
-            and by the command line reading its input; a literal of qlang
-            past the range is the parser's own refusal.
+            holds, so reading it is refused. It is met where JSON text is
+            read, by `parseJson` and by a host reading its input; a literal
+            of qlang past the range is the parser's own refusal.
         ~~|
     | carries :NumberNotFiniteError/path
         |~~ The path to the number in the text. ~~|

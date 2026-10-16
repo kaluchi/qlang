@@ -375,7 +375,7 @@
       same keys in their order, `{:a 1 :b 2} | map ~(add 1)` answering
       `{:a 2 :b 3}`. The code is a quote run on each value as its subject,
       not on its entry, so a key is read beside its value by
-      `entries | map ~(…)`, and the pairs build a map back by `tag ::map`.
+      `entries | map ~(…)`, and `toMap` builds the map back from the pairs.
       The first error the code answers for a value is the answer of the
       call, and the answers stand in a map of their own, under no tag of
       the subject. A vector and a set answer `map` by words of their own.

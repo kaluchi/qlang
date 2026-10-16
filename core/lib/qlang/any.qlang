@@ -1,6 +1,5 @@
 |~ `::any`, the kind beneath every kind, and what is declared under it:
-   the refusal of a host's value JSON has no form for, and the words
-   every value answers.
+   the words every value answers.
    The decisions it exists for: [QSDSP#residence]. ~|
 
 :any
@@ -301,17 +300,16 @@
 
 :any/print
   |~~ Answers the text that reads back as the subject, `42 | print`
-      answering `"42"`, the text the command line shows for an answer
-      other than a string, which it shows as it is. An atom prints as
-      its literal, a string inside its quotes; a vector and a map by
-      their brackets around the print of each part; a set, a quote, a
-      doc and an error by brackets of their own; any other value under a
-      tag as its tag before the print of its payload. A set prints in
-      its one order, and the text reads back as the value by `parse`
-      and `apply`. A kind may answer a `print` of its own declared under
-      it, `:Box/print`, and the print of a value takes it for each part
-      of that kind. The call takes no value: a print within a budget is
-      `elide 80 | print`.
+      answering `"42"`, the text a host shows for an answer other than a
+      string. An atom prints as its literal, a string inside its quotes;
+      a vector and a map by their brackets around the print of each part;
+      a set, a quote, a doc and an error by brackets of their own; any
+      other value under a tag as its tag before the print of its payload.
+      A set prints in its one order, and the text reads back as the value
+      by `parse` and `apply`. A kind may answer a `print` of its own
+      declared under it, `:Box/print`, and the print of a value takes it
+      for each part of that kind. The call takes no value: a print within
+      a budget is `elide 80 | print`.
       ::link~(::any/json | doc) ::link~(::any/elide | doc)
   ~~|
   ::fn
@@ -364,9 +362,9 @@
       marker's `:size` counts what it stands for, a text by its
       characters as `count` counts them, and its `:read`, applied to the
       value `elide` took,
-      answers the part left out. The call gives the budget, a number; the
-      command line applies `elide` to every answer it prints when
-      `--budget=N` asks it to.
+      answers the part left out. The call gives the budget, a number; a
+      host applies `elide` to every answer it prints when a reader asks
+      it for a budget.
       ::link~(::elision | doc) ::link~(::any/print | doc)
   ~~|
   ::fn
@@ -377,7 +375,7 @@
         |~~ The budget is a number of characters, `elide 80`. ~~|
     | holds :budget/NotCountError
         |~~ The budget is a whole count of characters above zero,
-            `elide 80`, as the command line's `--budget` takes it.
+            `elide 80`.
         ~~|
         ~(allOf (gt 0) ~(eq (floor)))
     | throws :budget/NotGivenError
@@ -1073,14 +1071,13 @@
       page answers its text by `content`, its links by `links` and its
       snippets by `snippets`, and the laws of the name stand under it,
       `::vec/take | laws`. Any other value reads the page of its kind, a
-      keyword among them, `:limit | doc` the page of `::keyword`, and the
-      `:kind` field of a map names nothing. The anchor, a keyword
-      after `doc`, reads the page of the member the subject holds under
-      it, the word a value calls or an input of a word; a vector of
-      anchors walks a path, each read within the page the one before
-      reached, and a set of anchors reads a page at each. A name nothing
-      declares is refused, with the addresses where a word of that name
-      lives, as is an anchor no member answers.
+      keyword among them, `:limit | doc` the page of `::keyword`. The
+      anchor, a keyword after `doc`, reads the page of the member the
+      subject holds under it, the word a value calls or an input of a
+      word; a vector of anchors walks a path, each read within the page
+      the one before reached, and a set of anchors reads a page at each.
+      A name nothing declares is refused, with the addresses where a word
+      of that name lives, as is an anchor no member answers.
       ::link~(::any/laws | doc) ::link~(::doc | doc)
   ~~|
   ::fn

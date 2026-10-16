@@ -67,7 +67,7 @@
 [D272]: ../../D272.md
 [D276]: ../../replaced/D276.md
 [D294]: ../../D294.md
-[D338]: ../../D338.md
+[D338]: ../../replaced/D338.md
 [D341]: ../../D341.md
 [QSBLD#label]: ../../../spec/QSBLD-functions-and-kinds.md#label
 [QSERR#print]: ../../../spec/QSERR-errors.md#print

@@ -5,9 +5,9 @@
 // of a failure, its error at rest raised, `!{…} | raise` [QSWRK#cases]).
 // Both are eval'd, results compared via deepEqual.
 //
-// A case outside the folders of the chapters, and a case that names a
-// record, opens with a record in force, `{"decision":"Dnn",…}`
-// [QSWRK#cases], and a requirement the tree does not meet yet is a target,
+// Every file is a section of a chapter, and a case that names a record
+// opens with a record in force, `{"decision":"Dnn",…}` [QSWRK#cases],
+// [D356], and a requirement the tree does not meet yet is a target,
 // `"target": true`, which answers its present, `"now"`, an error by its tag
 // and any other value as its literal: a target that answers as expected
 // fails until the branch that met it drops the mark, and one that answers
@@ -84,23 +84,22 @@ describe('conformance: the requirements agree', () => {
     expect(contradictions).toEqual([]);
   });
 
-  // A case under the folder of a chapter of the specification is gated
-  // by its section, the file it stands in, and names a record only while
-  // the record's change is in transit over it; a case outside the
-  // chapters opens with the one record in force that gates it [QSWRK#cases].
-  it('opens each case with the one record in force that gates it, whose record stands in the root of the records [QSWRK#cases]', () => {
+  // A case is gated by its section, the file it stands in, and names a
+  // record only while the record's change is in transit over it, the record
+  // opening the case [QSWRK#cases], [D356].
+  it('opens a case that names a record with the one record in force, whose record stands in the root of the records [QSWRK#cases]', () => {
     const decisionsDir = join(here, '..', '..', '..', 'docs', 'journal');
-    const ungated = allCases.filter(({ file, ...test }) => (chapterOf(file) === null || test.decision !== undefined)
+    const ungated = allCases.filter(({ file: _file, ...test }) => test.decision !== undefined
       && (typeof test.decision !== 'string' || Object.keys(test)[0] !== 'decision' || !existsSync(join(decisionsDir, `${test.decision}.md`))))
       .map(test => `${test.file}#${test.name}: ${JSON.stringify(test.decision ?? null)}`);
     expect(ungated).toEqual([]);
   });
 
-  it('stands each file of a chapter as a section of its specification [QSWRK#cases]', () => {
+  it('stands each file as a section of a chapter of the specification [QSWRK#cases], [D356]', () => {
     const specDir = join(here, '..', '..', '..', 'docs', 'spec');
-    const homeless = files.filter(file => chapterOf(file) !== null).filter(file => {
+    const homeless = files.filter(file => {
       const [chapter, section] = [chapterOf(file), file.split('/').pop().replace(/\.jsonl$/, '')];
-      const spec = existsSync(specDir) ? readdirSync(specDir).find(name => name.startsWith(`${chapter}-`)) : undefined;
+      const spec = chapter !== null && existsSync(specDir) ? readdirSync(specDir).find(name => name.startsWith(`${chapter}-`)) : undefined;
       return spec === undefined || !readFileSync(join(specDir, spec), 'utf8').split(/\r?\n/).includes(`## ${section}`);
     });
     expect(homeless).toEqual([]);

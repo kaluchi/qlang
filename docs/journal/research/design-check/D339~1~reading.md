@@ -70,7 +70,7 @@
 
 [D307]: ../../D307.md
 [D327]: ../../D327.md
-[D338]: ../../D338.md
+[D338]: ../../replaced/D338.md
 [D339]: ../../D339.md
 [QSCOL#sequence]: ../../../spec/QSCOL-collections.md#sequence
 [QSDSP#refusal]: ../../../spec/QSDSP-a-word-found-through-its-subject.md#refusal

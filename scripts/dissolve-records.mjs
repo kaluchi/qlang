@@ -1,13 +1,13 @@
 // Dissolves records in transit into the sections they override, at the
 // move of the baseline [QSWRK#baseline]: the author has written the sections anew
-// in the present, and the run does the rest. A case under a chapter that
-// names the record drops the name; a citation of the record in the code,
+// in the present, and the run does the rest. A case that names the record
+// drops the name, every case standing in the section of a chapter
+// [D356]; a citation of the record in the code,
 // the tests and the documents of the work names its section where the
 // record overrides one, once in a run, and is listed for the author where
 // it overrides several; the record gains its line `Dissolved into` the
 // sections and leaves for `replaced/` by `scripts/replaced-records.mjs`. A
-// record that overrides nothing, or a case outside the chapters that names
-// it, is refused, since the case has no section to rest in yet.
+// record that overrides nothing is refused.
 //
 // Usage: node scripts/dissolve-records.mjs <Dnn>...
 
@@ -56,15 +56,12 @@ const caseFiles = tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/.
 for (const name of names) {
   const sections = transit.get(name);
   if (sections === undefined || sections.length === 0) { console.error(`${name} overrides no section: it is no record in transit [QSWRK#baseline]`); process.exit(2); }
-  const homeless = caseFiles.filter(path => !/\/QS[A-Z]{3}\//.test(path))
-    .flatMap(path => readFileSync(join(repoRoot, path), 'utf8').split(/\r?\n/).filter(line => line.includes(`"decision":"${name}"`)).map(line => `${path}#${JSON.parse(line).name}`));
-  if (homeless.length > 0) { console.error(`${name} gates cases outside the chapters, which have no section to rest in:\n  ${homeless.join('\n  ')}`); process.exit(2); }
 }
 
 for (const name of names) {
   const sections = transit.get(name);
-  // The cases under a chapter rest in their section.
-  for (const path of caseFiles.filter(file => /\/QS[A-Z]{3}\//.test(file))) {
+  // A case rests in its section, the file of a chapter it stands in [D356].
+  for (const path of caseFiles) {
     rewrite(path, text => text.split('\n').map(line => {
       if (!line.includes(`"decision":"${name}"`)) return line;
       const { decision: _decision, ...rest } = JSON.parse(line);

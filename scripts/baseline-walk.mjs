@@ -11,7 +11,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
-import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, JOURNAL, RESEARCH } from './decision-records.mjs';
+import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, foldersShaped, JOURNAL, RESEARCH } from './decision-records.mjs';
 
 export const RECORDS_A_WALK_TAKES = 20;
 export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
@@ -321,23 +321,17 @@ function sectionsOfChapter(text) {
 }
 
 // The documents of the research that stay while something in force holds
-// them [QSWRK#baseline]. A report a record called for, a critique of an open
-// record, a review of the work a record did, an outside audit or a check of
-// the chapters, is named after that record and numbered in the order it
-// ran, as the runs of the benchmark are, `design-check/D329~2.md`,
-// `reviews/D324~3.md`, `outside-audit/D327~1.md` and the folder of the
-// readers of a check, `spec-check/D323~1/`, and stands with the session's
-// reading beside it, `D329~2~reading.md` or the `reading.md` of the folder,
-// the two one unit held while that record is in force or a text in force
-// cites it. A review of a branch, which no record called for,
-// `reviews/2026-10-13-the-path-is-a-value.md`, the fate of each finding below
-// it, is a unit a text in force holds by citing it; a folder of any other
-// research, a design with its runs, is one unit, held by a citation of any
-// of it [QSWRK#review], and the README of a folder says what the folder holds
-// and holds none of it.
+// them [QSWRK#baseline]. A report a record called for is named after that
+// record and numbered in the order it ran, as the runs of the benchmark are,
+// a report `design-check/D329~2.md` or a run of several readers
+// `spec-check/D323~1/`, by the shapes of the folders of the research, and
+// stands with the session's reading beside it, `D329~2~reading.md` or the
+// `reading.md` of the run, the two one unit held while that record is in
+// force or a text in force cites it. Any other document of the research is
+// a unit of its own, held by a citation of its path [QSWRK#review], [D356],
+// and the README of a folder says what the folder holds and holds none of it.
 const RESEARCH_DOCUMENT = new RegExp(`^${RESEARCH}/[^/]+/.+`);
-const REPORTS = new RegExp(`^${RESEARCH}/reviews/`);
-const OF_A_RECORD = new RegExp(`^${RESEARCH}/(?:(?:design-check|reviews|outside-audit)/(D\\d+)~\\d+(?=(?:~reading)?\\.md$)|spec-check/(D\\d+)~\\d+(?=/))`);
+const OF_A_RECORD = new RegExp(`^${RESEARCH}/(?:(?:${foldersShaped('report')})/(D\\d+)~\\d+(?=(?:~reading)?\\.md$)|(?:${foldersShaped('run')})/(D\\d+)~\\d+(?=/))`);
 export const isReadme = path => /(^|\/)README\.md$/.test(path);
 
 // recordHolding(repoRoot, path) → the record in force a report is named
@@ -357,14 +351,12 @@ export function textsInForce(repoRoot) {
 
 // unitOf(path) → what a citation must name to hold the document: a report
 // a record called for by its folder and the name it shares with its
-// reading, `design-check/D329~2` or `spec-check/D323~1`, a review of a
-// branch by its folder and name,
-// `reviews/2026-10-13-the-path-is-a-value.md`, and any other research by
-// its folder, `research/<folder>/`.
+// reading, `design-check/D329~2` or `spec-check/D323~1`, and any other
+// document of the research by its path from the root of the journal, so a
+// citation of one document holds no other [D356].
 export const unitOf = path => {
   const named = OF_A_RECORD.exec(path);
-  if (named !== null) return named[0].split('/').slice(-2).join('/');
-  return REPORTS.test(path) ? path.split('/').slice(-2).join('/') : `${path.slice(JOURNAL.length + 1).split('/').slice(0, 2).join('/')}/`;
+  return named === null ? path.slice(JOURNAL.length + 1) : named[0].split('/').slice(-2).join('/');
 };
 
 // uncitedDocuments(repoRoot) → the documents of the research nothing in
@@ -381,15 +373,17 @@ export function uncitedDocuments(repoRoot) {
 // reportsWithoutReading(repoRoot) → each report of the research that stands
 // without the session's reading beside it [QSWRK#review]: a report a record
 // called for, `design-check/D329~2.md` without `D329~2~reading.md`, and a
-// run of the check of the chapters without its `reading.md`.
+// run of several readers without its `reading.md`.
 export function reportsWithoutReading(repoRoot) {
   const tracked = new Set(git(repoRoot, 'ls-files', RESEARCH).split('\n').filter(Boolean));
   const missing = [];
+  const report = new RegExp(`^(.+/(?:${foldersShaped('report')})/D\\d+~\\d+)\\.md$`);
   for (const path of tracked) {
-    const ofARecord = /^(.+\/(?:design-check|reviews|outside-audit)\/D\d+~\d+)\.md$/.exec(path);
+    const ofARecord = report.exec(path);
     if (ofARecord !== null && !tracked.has(`${ofARecord[1]}~reading.md`)) missing.push({ path, reading: `${ofARecord[1]}~reading.md` });
   }
-  const runs = new Set([...tracked].map(path => /^(.+\/spec-check\/[^/]+)\//.exec(path)?.[1]).filter(Boolean));
+  const ofARun = new RegExp(`^(.+/(?:${foldersShaped('run')})/[^/]+)/`);
+  const runs = new Set([...tracked].map(path => ofARun.exec(path)?.[1]).filter(Boolean));
   for (const run of runs) if (!tracked.has(`${run}/reading.md`)) missing.push({ path: `${run}/`, reading: `${run}/reading.md` });
   return missing;
 }

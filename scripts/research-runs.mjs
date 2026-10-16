@@ -1,12 +1,17 @@
-// The record that called for a run of the research holds it under `Runs.`,
-// the journal and the worklog of the work: a line for each run, the report,
-// what it is, the tree it read and the baseline that tree stood on, when it
-// ran and why, below what the record says and above its links
-// [QSWRK#journal], [QSWRK#review].
+// The runs of the research its clean readers make: the check of the
+// chapters, the critique of an open record, the outside audit and the
+// pentimento audit share the start of a reader, the refusals of a run, the
+// number of the next run of a record, the head of a report, the packing of
+// what they read into groups and the line under `Runs.` of the record that
+// called for the run [QSWRK#review], [D342].
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { spawn, execFileSync } from 'node:child_process';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { JOURNAL } from './decision-records.mjs';
+import { CHILD_ENVIRONMENT, withTheLanguageOf } from './benchmark/child.mjs';
+import { baselineOf } from './baseline-walk.mjs';
+import { JOURNAL, isOpenText } from './decision-records.mjs';
 
 // runLine({ report, kind, tree, baseline, date, from, to, why }) → the line
 // of one run, `report` its path from the root of the repository.
@@ -33,4 +38,120 @@ export function holdTheRun(repoRoot, record, line) {
     lines.splice(at, 0, 'Runs. The reports of the research this record called for, each beside its reading:', line);
   }
   writeFileSync(path, `${lines.join('\n')}\n`);
+}
+
+const git = (repoRoot, ...args) => execFileSync('git', ['-C', repoRoot, ...args], { encoding: 'utf8' }).trim();
+export const minuteOf = at => at.toISOString().slice(11, 16);
+
+// A run is called for by a record in force, which holds the run and carries
+// the fates of its findings, and a critique by an open record.
+export function refuseNoRecordInForce(repoRoot, record, what) {
+  if (record !== null && /^D\d+$/.test(record) && existsSync(join(repoRoot, JOURNAL, `${record}.md`))) return;
+  console.error(`${what} is called for by a record in force, which carries its fates: write the record, then run \`--for Dnn\``);
+  process.exit(1);
+}
+
+export function refuseNoOpenRecord(repoRoot, record) {
+  const path = join(repoRoot, JOURNAL, `${record}.md`);
+  if (existsSync(path) && isOpenText(readFileSync(path, 'utf8'))) return;
+  console.error(`${record} is no open record of the journal: a critique reads a question still open`);
+  process.exit(1);
+}
+
+// treeOfTheRun(repoRoot) → the tree the readers read, `{ tree, baseline,
+// date, onTheBaseline }`: a report names the tree it read, so a change no
+// commit holds is committed before a run.
+export function treeOfTheRun(repoRoot) {
+  if (git(repoRoot, 'status', '--porcelain') !== '') {
+    console.error('the tree holds changes no commit names: commit them, so the reports name the tree they read');
+    process.exit(1);
+  }
+  const tree = git(repoRoot, 'rev-parse', '--short=8', 'HEAD');
+  const baseline = baselineOf(repoRoot);
+  return { tree, baseline, date: new Date().toISOString().slice(0, 10), onTheBaseline: baseline === tree ? 'itself the baseline' : `on the baseline \`${baseline}\`` };
+}
+
+// stillTheTree(repoRoot, tree) → whether the checkout stands at the tree the
+// readers started on, its head and its status as they were: a run another
+// session's edits moved under its readers writes no report and no line under
+// `Runs.`.
+export function stillTheTree(repoRoot, tree) {
+  if (git(repoRoot, 'rev-parse', '--short=8', 'HEAD') === tree && git(repoRoot, 'status', '--porcelain') === '') return true;
+  console.error(`the checkout moved from ${tree} while the readers read: no report is written, and the run starts again on a tree no session edits`);
+  return false;
+}
+
+// The runs a record called for are numbered in the order they ran, a report
+// `D329~2.md` or a run of several readers `D323~1/`, and a record calls for
+// one run on a tree. runsOf(dir, record, shape) → its runs, each `{ number,
+// name }`; nextRunOf the name of the next; refuseASecondRun stops a run on
+// a tree a run of the record read.
+export const runsOf = (dir, record, shape) => (existsSync(dir) ? readdirSync(dir) : [])
+  .map(name => new RegExp(`^${record}~(\\d+)${shape === 'run' ? '' : '\\.md'}$`).exec(name)).filter(Boolean)
+  .map(match => ({ number: Number(match[1]), name: match[0] }));
+
+export const nextRunOf = (dir, record, shape) => `${record}~${Math.max(0, ...runsOf(dir, record, shape).map(({ number }) => number)) + 1}`;
+
+export function refuseASecondRun(dir, record, shape, tree, shown) {
+  const readThisTree = name => {
+    const report = shape === 'run' ? readdirSync(join(dir, name)).find(file => file !== 'reading.md') : name;
+    return report !== undefined && readFileSync(join(dir, shape === 'run' ? join(name, report) : report), 'utf8').includes(`> Tree \`${tree}\``);
+  };
+  const read = runsOf(dir, record, shape).find(({ name }) => readThisTree(name));
+  if (read === undefined) return;
+  console.error(`${shown(join(dir, read.name))} stands: ${record} called for a run on this tree`);
+  process.exit(1);
+}
+
+// The start of a clean reader: a clean Opus from an empty directory of its
+// own, with no instruction file, memory or server, the tree's `qlang` first
+// on its path, its tools Read, Grep, Glob and Bash for what its caller
+// allows, and no git command but the listing of the files a caller gives it.
+export const READER_TOOLS = ['Read', 'Grep', 'Glob', 'Bash'];
+export const allowedReading = repoPath => ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(grep:*)', `Bash(git -C ${repoPath} ls-files:*)`];
+
+// headOf({ what, tree, onTheBaseline, date, started, ended, allowed }) → the
+// head of a report: what it is and what called for it, the tree it read and
+// the baseline that tree stood on, when it ran, and how.
+export const headOf = ({ what, tree, onTheBaseline, date, started, ended, allowed }) => [
+  `> ${what}`,
+  `> Tree \`${tree}\`, ${onTheBaseline}; run ${date}, ${minuteOf(started)}–${minuteOf(ended)} UTC. A path it names reads as \`git show ${tree}:<path>\`.`,
+  `> Run as \`claude -p --model opus\` from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, tools \`${READER_TOOLS.join(' ')}\`, ${allowed} allowed, no CLAUDE.md, memory or MCP server, no \`FORCE_COLOR\`.`
+].join('\n');
+
+// startReaders(repoRoot, { prompts, allowed, workPrefix }) → the answers of
+// clean readers started at once, one for each prompt `{ name, text }`, each
+// `{ name, answer, started, ended }`, an answer null where its reader failed.
+export async function startReaders(repoRoot, { prompts, allowed, workPrefix }) {
+  const repoPath = repoRoot.replaceAll('\\', '/');
+  const flags = ['-p', '--model', 'opus', '--restricted', '--strict-mcp-config', '--tools', ...READER_TOOLS, '--add-dir', repoPath, '--allowedTools', ...allowed];
+  const env = withTheLanguageOf(repoRoot, { ...process.env, ...CHILD_ENVIRONMENT });
+  delete env.FORCE_COLOR;
+  return await Promise.all(prompts.map(({ name, text }) => new Promise(resolve => {
+    const started = new Date();
+    const child = spawn('claude', flags, { cwd: mkdtempSync(join(tmpdir(), workPrefix)), env });
+    let out = '';
+    let err = '';
+    child.stdout.on('data', chunk => { out += chunk; });
+    child.stderr.on('data', chunk => { err += chunk; });
+    child.on('close', code => {
+      const answer = out.trim();
+      if (code !== 0 || answer === '') console.error(`${name}: the reader ended with ${code}: ${err.trim()}`);
+      resolve({ name, answer: code !== 0 || answer === '' ? null : answer, started, ended: new Date() });
+    });
+    child.stdin.end(text);
+  })));
+}
+
+// packByWeight(units, count) → the units, each `{ weight }`, packed in their
+// order into at most `count` groups of about one weight.
+export function packByWeight(units, count) {
+  const total = units.reduce((sum, { weight }) => sum + weight, 0);
+  const groups = Array.from({ length: count }, () => []);
+  let before = 0;
+  for (const unit of units) {
+    groups[Math.min(count - 1, Math.floor(((before + unit.weight / 2) * count) / total))].push(unit);
+    before += unit.weight;
+  }
+  return groups.filter(group => group.length > 0);
 }

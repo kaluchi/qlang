@@ -27,6 +27,11 @@ A folder for each kind of report, told by what calls a report into being:
   instructions, which a record calls for,
   `node scripts/outside-audit.mjs --for Dnn`, `D327~1.md` with
   `D327~1~reading.md`.
+- `pentimento-audit/`: a pentimento audit of the tree by clean readers,
+  which a record calls for and carries the fates of,
+  `node scripts/pentimento-audit.mjs --for Dnn`: a folder for each run
+  named after the record, `D342~1/`, a report for each group of the tree
+  and the reading `reading.md`.
 
 A report named after a record stays while that record is in force or a
 text in force cites it, and leaves with the record at the move of the

@@ -14,7 +14,7 @@
 {"name":"filter-keeps-an-undeclared-tag","query":"::AutoFilter[1 2 3 4] | filter ~(gt 2) | type","expect":"::AutoFilter"}
 {"name":"sort-keeps-an-undeclared-tag","query":"::AutoSort[3 1 2] | sort | type","expect":"::AutoSort"}
 {"name":"a-kind-of-no-recipe-keeps-its-tag-after-filter","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
-{"name":"a-kind-of-no-recipe-keeps-its-tag-after-distinct","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3] | distinct | type","expect":"::Box"}
+{"decision":"D355","name":"an-answer-of-another-kind-leaves-the-tag-of-a-kind-of-no-recipe-behind","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3] | distinct | type","expect":"::set"}
 {"name":"a-kind-of-no-recipe-keeps-its-tag-after-sort","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | type","expect":"::Box"}
 {"name":"count-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | count","expect":"3"}
 {"name":"sum-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | sum","expect":"6"}
@@ -26,7 +26,8 @@
 {"name":"flat-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[[1] [2 3]] | flat | type","expect":"::Box"}
 {"name":"filter-tagged-vec-elements-unchanged","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | sum","expect":"7"}
 {"name":"sort-tagged-vec-elements-sorted","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | first","expect":"1"}
-{"name":"distinct-tagged-vec-dedup-correct","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3 2] | distinct | payload | count","expect":"3"}
+{"decision":"D355","name":"an-answer-of-another-kind-is-made-by-its-constructor-from-the-elements-beneath-the-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3 2] | distinct","expect":"#[1 2 3]"}
 {"name":"a-verb-of-numbers-reaches-the-number-beneath-a-tag-and-keeps-it","query":"::Box#5 | add 1","expect":"::Box#6"}
 {"name":"sort-over-a-tag-stacked-on-a-set-answers-the-bare-vector","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | sort","expect":"[1 2 3]"}
-{"name":"distinct-answers-a-set-under-an-undeclared-tag","query":"::AutoDist[1 2 1 3] | distinct | type","expect":"::AutoDist"}
+{"decision":"D355","name":"an-answer-of-another-kind-leaves-an-undeclared-tag-behind","query":"::AutoDist[1 2 1 3] | distinct | type","expect":"::set"}
+{"decision":"D355","name":"the-set-of-the-elements-beneath-the-tag-of-a-vector-is-made-within-it","query":"::Box[2 1 2] | within ~(distinct)","expect":"::Box#[1 2]"}

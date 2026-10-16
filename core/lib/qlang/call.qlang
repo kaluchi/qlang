@@ -253,7 +253,7 @@
         |~~ `:addresses` lists every kind the verb serves. ~~|
         ~(5 | count
           !| get [~(type) /addresses]
-          |  eq [::call/KindAnswersNoVerbError #[::map/count ::set/count ::string/count ::vec/count]])
+          |  eq [::call/KindAnswersNoVerbError #[::map/count ::string/count ::vec/count]])
     | proves :KindAnswersNoVerbError/namesTheWordsOfAReadersNouns
         |~~ The words of the name under a reader's nouns are named by
             their addresses.

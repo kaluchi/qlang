@@ -24,7 +24,7 @@
 {"name":"an-undeclared-tag-is-refused-and-a-value-under-it-reads-the-kind-beneath","query":"get [~(::Late | doc !| type) ~(::Late{:a 1} | doc | eq (::map | doc))]","expect":"[::any/doc/UnknownNameError true]"}
 {"name":"a-word-reads-the-pages-of-its-inputs","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | ::number/plus/by | doc | content | trim","expect":"\"How much.\""}
 {"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\" A box. \""}
-{"name":"a-refusal-of-a-word-leads-to-where-it-lives","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::set/reduce ::vec/reduce]"}
+{"decision":"D355","name":"a-refusal-of-a-word-leads-to-where-it-lives","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::vec/reduce]"}
 {"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":"::type | doc !| get /addresses","expect":"#[::any/type]"}
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| get /addresses","expect":"#[::doc/content]"}
 {"name":"a-word-that-reads-a-name-no-declaration-names-refuses-as-a-call-does","query":"::Foo | doc !| type","expect":"::any/doc/UnknownNameError"}

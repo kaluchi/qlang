@@ -7,8 +7,8 @@
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isMap, isQuote, isVec, isTag, isTagged,
-  isValueClass, isPath, isFn, isKind, recipeOf, makeSet, makeTag,
-  typeKeyword, bindingValueOf, keyword, TAG_HEADER_SYMBOL
+  isValueClass, isPath, isFn, isKind, recipeOf, makeSet, makeTag, makeTagged,
+  typeKeyword, bindingValueOf, keyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS
 } from '../types.mjs';
 import { rootOf, isRootWordScope } from '../state.mjs';
 import { splitAddress } from '../address.mjs';
@@ -309,11 +309,11 @@ export function addressesOf(env, verbName) {
 }
 
 // The verbs a value of the kinds reaches by name, each with its address,
-// from the outside in [QSDSP#walk]: those declared under each kind, then those
-// of any value.
+// from the outside in [QSDSP#walk]: those declared under each kind and the
+// kinds its walk passes beneath it, then those of any value.
 export function verbsReaching(env, kindNames) {
   const reached = new Map();
-  for (const kindName of [...kindNames, ANY_KIND_NAME]) {
+  for (const kindName of new Set([...kindNames.flatMap(kindsWalkedFrom), ANY_KIND_NAME])) {
     for (const [name, record] of namesUnderOf(env, kindName)) {
       const verb = bindingValueOf(record);
       if (!residesOn(record, env) || reached.has(name)) continue;
@@ -322,6 +322,14 @@ export function verbsReaching(env, kindNames) {
   }
   return reached;
 }
+
+// The kinds the walk of a value of a kind passes, the kind first: for a
+// kind of the core whose values are vectors under a tag of their own those
+// its empty value passes, a set `::tagged` and `::vec` after `::set`, and
+// for any other the kind alone [QSDSP#walk].
+const kindsWalkedFrom = kindName => (KINDS_OF_OWN_VECTORS.includes(kindName)
+  ? [...kindsOfWalk(makeTagged(makeTag(kindName), []))]
+  : [kindName]);
 
 // placesOfSelectors(selectors) → the places the inputs of a function read,
 // one past the greatest an input reads strictly or softly, or null when

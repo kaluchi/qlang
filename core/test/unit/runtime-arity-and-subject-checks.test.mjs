@@ -34,8 +34,9 @@ describe('union, minus and inter without their object', async () => {
     expect(await evalQuery('42 | union !| type | eq ::call/KindAnswersNoVerbError')).toBe(true);
   });
 
-  it('union bare on a set folds its elements, the set being a vector', async () => {
-    expect(await evalQuery('#[#[1] #[2]] | union | eq #[1 2]')).toBe(true);
+  it('union bare on a set is refused under its input, and the sets a set holds unite by the verb of vectors [D355]', async () => {
+    expect((await evalQuery('#[#[1] #[2]] | union !| type')).name).toBe('set/union/other/NotGivenError');
+    expect(await evalQuery('#[#[1] #[2]] | vec/union | eq #[1 2]')).toBe(true);
   });
 
   it('minus bare on a number reaches the contract, which refuses it', async () => {
@@ -119,12 +120,10 @@ describe('an input left without its object', async () => {
 });
 
 describe('union, minus and inter over an empty vector', async () => {
-  it('a fold of no values is refused by the word that folds, over a vector and over a set [QSERR#site]', async () => {
-    for (const kind of ['vec', 'set']) {
-      for (const verb of ['union', 'minus', 'inter']) {
-        const empty = kind === 'vec' ? '[]' : '#[]';
-        expect((await evalQuery(`${empty} | ${verb} !| type`)).name).toBe(`${kind}/${verb}/SubjectEmptyError`);
-      }
+  it('a fold of no values is refused by the word that folds over a vector, and a set given no set under its input [QSERR#site], [D355]', async () => {
+    for (const verb of ['union', 'minus', 'inter']) {
+      expect((await evalQuery(`[] | ${verb} !| type`)).name).toBe(`vec/${verb}/SubjectEmptyError`);
+      expect((await evalQuery(`#[] | ${verb} !| type`)).name).toBe(`set/${verb}/other/NotGivenError`);
     }
   });
 });

@@ -84,4 +84,13 @@ describe('the verbs a value of a kind reaches [QSDSP#walk]', () => {
     expect(reached.has('type')).toBe(true);
     expect(reached.has('add')).toBe(false);
   });
+
+  it('takes the walk from a set, a quote and a doc to the verbs of tagged values and of vectors, a set\'s own verb first [D355]', async () => {
+    const env = await langRuntime();
+    const addressesFrom = (kindName, names) => names.map(name => verbsReaching(env, [kindName]).get(name)?.address.name);
+    expect(addressesFrom('set', ['sort', 'count', 'take', 'within'])).toEqual(['set/sort', 'vec/count', 'vec/take', 'tagged/within']);
+    expect(addressesFrom('quote', ['count', 'parse'])).toEqual(['vec/count', 'quote/parse']);
+    expect(addressesFrom('doc', ['count', 'links'])).toEqual(['vec/count', 'doc/links']);
+    expect(shownFor(env, 'count', ['set']).address.name).toBe('vec/count');
+  });
 });

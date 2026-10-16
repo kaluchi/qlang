@@ -1,19 +1,18 @@
 // Container primitives, each a plain function over the value the walk served
-// and the inputs of the call [QSBLD#fn]. Every word of a kind has its own,
-// since the walk of the subject's tags already chose the word: a vector and a
-// set, which read alike, share the one that reads the elements in order
-// [QSORD#order], a map's reads its values and keeps its keys [QSCOL#map], a
-// string's reads its characters [QSTXT#string], and a refusal names the word
-// that refused [QSERR#site]. An input that takes code arrives closed at the
-// call, code run on the element [QSDSP#walk], [QSBLD#fn].
+// and the inputs of the call, an input that takes code arriving closed at the
+// call, code run on the element [QSBLD#fn], [QSDSP#walk]: a verb of vectors
+// reads the elements in order, a set reaching it through the walk in its one
+// order [QSORD#order], [D355], a map's reads its values and keeps its keys
+// [QSCOL#map], a string's reads its characters [QSTXT#string], and a refusal
+// names the verb that refused [QSERR#site].
 
-import { beneathTags, isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTagged, makePath, DESC_TAG } from '../types.mjs';
+import { beneathTags, isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makePath } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim, runs } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
 import { atPlace } from '../eval-trail.mjs';
-import { keywordFiledFor } from './convert.mjs';
+import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
 
 // The elements beside the fact that names the place of each in a
 // refusal: a sequence's index, from zero, and a map's key.
@@ -26,17 +25,17 @@ const placeOf = place => place.index ?? place.key.name;
 // ── size and ends ──────────────────────────────────────────────
 
 bindPrim('string/count', text => Array.from(text).length);
-bindPrim(['vec/count', 'set/count'], sequence => sequence.length);
+bindPrim('vec/count', sequence => sequence.length);
 bindPrim('map/count', map => map.size);
 
-bindPrim(['vec/empty', 'set/empty'], sequence => sequence.length === 0);
+bindPrim('vec/empty', sequence => sequence.length === 0);
 bindPrim('map/empty', map => map.size === 0);
 
 const firstOf = items => (items.length === 0 ? NULL : items[0]);
 const lastOf = items => (items.length === 0 ? NULL : items[items.length - 1]);
-bindPrim(['vec/first', 'set/first'], firstOf);
+bindPrim('vec/first', firstOf);
 bindPrim('map/first', map => firstOf([...map.values()]));
-bindPrim(['vec/last', 'set/last'], lastOf);
+bindPrim('vec/last', lastOf);
 bindPrim('map/last', map => lastOf([...map.values()]));
 
 // ── side by side ───────────────────────────────────────────────
@@ -74,10 +73,8 @@ function totalOf(places, ElementNotNumberError) {
 }
 
 const VecSumElementNotNumberError = declareRefusal('vec/sum/ElementNotNumberError');
-const SetSumElementNotNumberError = declareRefusal('set/sum/ElementNotNumberError');
 const MapSumElementNotNumberError = declareRefusal('map/sum/ElementNotNumberError');
 bindPrim('vec/sum', vector => totalOf(indexed(vector), VecSumElementNotNumberError));
-bindPrim('set/sum', set => totalOf(indexed(set), SetSumElementNotNumberError));
 bindPrim('map/sum', map => totalOf(keyed(map), MapSumElementNotNumberError));
 
 // The mean of the numbers, a running mean whose every step stays among
@@ -96,10 +93,8 @@ function meanOf(places, ElementNotNumberError) {
 }
 
 const VecAvgElementNotNumberError = declareRefusal('vec/avg/ElementNotNumberError');
-const SetAvgElementNotNumberError = declareRefusal('set/avg/ElementNotNumberError');
 const MapAvgElementNotNumberError = declareRefusal('map/avg/ElementNotNumberError');
 bindPrim('vec/avg', vector => meanOf(indexed(vector), VecAvgElementNotNumberError));
-bindPrim('set/avg', set => meanOf(indexed(set), SetAvgElementNotNumberError));
 bindPrim('map/avg', map => meanOf(keyed(map), MapAvgElementNotNumberError));
 
 // ── ranking ────────────────────────────────────────────────────
@@ -145,9 +140,9 @@ async function extremeOf(entries, key, pick) {
 
 const least = order => order < 0;
 const greatest = order => order > 0;
-bindPrim(['vec/min', 'set/min'], runs(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, least)));
+bindPrim('vec/min', runs(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, least)));
 bindPrim('map/min', runs(['key'], (map, key) => extremeOf([...map], key, least)));
-bindPrim(['vec/max', 'set/max'], runs(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, greatest)));
+bindPrim('vec/max', runs(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, greatest)));
 bindPrim('map/max', runs(['key'], (map, key) => extremeOf([...map], key, greatest)));
 
 // `sort` orders the elements in the one order, or by the value the key answers
@@ -188,7 +183,7 @@ async function answersOf(places, code) {
   return answers;
 }
 
-bindPrim(['vec/map', 'set/map'], runs(['code'], (sequence, code) => answersOf(indexed(sequence), code)));
+bindPrim('vec/map', runs(['code'], (sequence, code) => answersOf(indexed(sequence), code)));
 bindPrim('map/map', runs(['code'], async (map, code) => {
   const answers = await answersOf(keyed(map), code);
   return isErrorValue(answers) ? answers : new Map([...map.keys()].map((key, index) => [key, answers[index]]));
@@ -229,10 +224,8 @@ async function keptEntries(map, predicate, ConditionNotBooleanError) {
 }
 
 const VecFilterConditionNotBooleanError = declareRefusal('vec/filter/ConditionNotBooleanError');
-const SetFilterConditionNotBooleanError = declareRefusal('set/filter/ConditionNotBooleanError');
 const MapFilterConditionNotBooleanError = declareRefusal('map/filter/ConditionNotBooleanError');
 bindPrim('vec/filter', runs(['predicate'], (vector, predicate) => keptElements(vector, predicate, VecFilterConditionNotBooleanError)));
-bindPrim('set/filter', runs(['predicate'], (set, predicate) => keptElements(set, predicate, SetFilterConditionNotBooleanError)));
 bindPrim('map/filter', runs(['predicate'], (map, predicate) => keptEntries(map, predicate, MapFilterConditionNotBooleanError)));
 
 // Whether the predicate of every element answers true, the first false
@@ -247,31 +240,28 @@ async function firstVerdict(places, predicate, decisive, ConditionNotBooleanErro
 }
 
 const VecEveryConditionNotBooleanError = declareRefusal('vec/every/ConditionNotBooleanError');
-const SetEveryConditionNotBooleanError = declareRefusal('set/every/ConditionNotBooleanError');
 const MapEveryConditionNotBooleanError = declareRefusal('map/every/ConditionNotBooleanError');
 bindPrim('vec/every', runs(['predicate'], (vector, predicate) => firstVerdict(indexed(vector), predicate, false, VecEveryConditionNotBooleanError)));
-bindPrim('set/every', runs(['predicate'], (set, predicate) => firstVerdict(indexed(set), predicate, false, SetEveryConditionNotBooleanError)));
 bindPrim('map/every', runs(['predicate'], (map, predicate) => firstVerdict(keyed(map), predicate, false, MapEveryConditionNotBooleanError)));
 
 const VecAnyConditionNotBooleanError = declareRefusal('vec/any/ConditionNotBooleanError');
-const SetAnyConditionNotBooleanError = declareRefusal('set/any/ConditionNotBooleanError');
 const MapAnyConditionNotBooleanError = declareRefusal('map/any/ConditionNotBooleanError');
 bindPrim('vec/any', runs(['predicate'], (vector, predicate) => firstVerdict(indexed(vector), predicate, true, VecAnyConditionNotBooleanError)));
-bindPrim('set/any', runs(['predicate'], (set, predicate) => firstVerdict(indexed(set), predicate, true, SetAnyConditionNotBooleanError)));
 bindPrim('map/any', runs(['predicate'], (map, predicate) => firstVerdict(keyed(map), predicate, true, MapAnyConditionNotBooleanError)));
 
 // ── partitions ─────────────────────────────────────────────────
 
 // The keyword the key of `groupBy` or `indexBy` answers for an element, the
-// one `toKeyword` turns it into [QSCND#convert], or the error
-// it answered; without a key the element is its own [QSCOL#group]. Two values
-// of the key that file under one keyword meet, `1` and `"1"` under `:"1"`, and
-// the second is refused [QSCOL#group].
-async function keywordOf(key, element, index, KeyNotKeywordError, KeyTakenError, filed) {
+// one `toKeyword` names it by, a key of another kind refused at its element
+// with the kinds a key files under as `:expected`, or the error it answered;
+// without a key the element is its own, and two values of the key that file
+// under one keyword meet, `1` and `"1"` under `:"1"`, the second refused
+// [D355].
+async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return brokeAt(answer, index);
   const named = keywordFiledFor(answer);
-  if (named === null) throw new KeyNotKeywordError({ index, actualValue: answer });
+  if (named === null) throw new KeyKindNotTakenError({ index, expected: KINDS_A_KEY_FILES_UNDER, actualValue: answer });
   const taken = filed.get(named.name);
   if (taken === undefined) filed.set(named.name, answer);
   else if (compareValues(taken, answer) !== 0) throw new KeyTakenError({ key: named, taken, index, actualValue: answer });
@@ -280,11 +270,11 @@ async function keywordOf(key, element, index, KeyNotKeywordError, KeyTakenError,
 
 // The elements filed under the keyword the key answers for each, in
 // order.
-async function bucketsOf(sequence, key, KeyNotKeywordError, KeyTakenError) {
+async function bucketsOf(sequence, key, KeyKindNotTakenError, KeyTakenError) {
   const buckets = new Map();
   const filed = new Map();
   for (const [index, element] of sequence.entries()) {
-    const bucketKey = await keywordOf(key, element, index, KeyNotKeywordError, KeyTakenError, filed);
+    const bucketKey = await keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed);
     if (isErrorValue(bucketKey)) return bucketKey;
     if (!buckets.has(bucketKey.name)) buckets.set(bucketKey.name, []);
     buckets.get(bucketKey.name).push(element);
@@ -292,36 +282,33 @@ async function bucketsOf(sequence, key, KeyNotKeywordError, KeyTakenError) {
   return buckets;
 }
 
-const VecGroupByKeyNotKeywordError = declareRefusal('vec/groupBy/KeyNotKeywordError');
+const VecGroupByKeyKindNotTakenError = declareRefusal('vec/groupBy/KeyKindNotTakenError');
 const VecGroupByKeyTakenError = declareRefusal('vec/groupBy/KeyTakenError');
-const SetGroupByKeyNotKeywordError = declareRefusal('set/groupBy/KeyNotKeywordError');
+const SetGroupByKeyKindNotTakenError = declareRefusal('set/groupBy/KeyKindNotTakenError');
 const SetGroupByKeyTakenError = declareRefusal('set/groupBy/KeyTakenError');
-bindPrim('vec/groupBy', runs(['key'], (vector, key) => bucketsOf(vector, key, VecGroupByKeyNotKeywordError, VecGroupByKeyTakenError)));
+bindPrim('vec/groupBy', runs(['key'], (vector, key) => bucketsOf(vector, key, VecGroupByKeyKindNotTakenError, VecGroupByKeyTakenError)));
 // A set's buckets are sets, so the uniqueness of its elements survives
 // the partition.
 bindPrim('set/groupBy', runs(['key'], async (set, key) => {
-  const buckets = await bucketsOf(set, key, SetGroupByKeyNotKeywordError, SetGroupByKeyTakenError);
+  const buckets = await bucketsOf(set, key, SetGroupByKeyKindNotTakenError, SetGroupByKeyTakenError);
   return isErrorValue(buckets) ? buckets : new Map([...buckets].map(([name, elements]) => [name, makeSet(elements)]));
 }));
 
 // The last element filed under each keyword the key answers.
-async function indexOf(sequence, key, KeyNotKeywordError, KeyTakenError) {
+async function indexOf(sequence, key, KeyKindNotTakenError, KeyTakenError) {
   const index = new Map();
   const filed = new Map();
   for (const [position, element] of sequence.entries()) {
-    const indexKey = await keywordOf(key, element, position, KeyNotKeywordError, KeyTakenError, filed);
+    const indexKey = await keywordOf(key, element, position, KeyKindNotTakenError, KeyTakenError, filed);
     if (isErrorValue(indexKey)) return indexKey;
     index.set(indexKey.name, element);
   }
   return index;
 }
 
-const VecIndexByKeyNotKeywordError = declareRefusal('vec/indexBy/KeyNotKeywordError');
+const VecIndexByKeyKindNotTakenError = declareRefusal('vec/indexBy/KeyKindNotTakenError');
 const VecIndexByKeyTakenError = declareRefusal('vec/indexBy/KeyTakenError');
-const SetIndexByKeyNotKeywordError = declareRefusal('set/indexBy/KeyNotKeywordError');
-const SetIndexByKeyTakenError = declareRefusal('set/indexBy/KeyTakenError');
-bindPrim('vec/indexBy', runs(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyNotKeywordError, VecIndexByKeyTakenError)));
-bindPrim('set/indexBy', runs(['key'], (set, key) => indexOf(set, key, SetIndexByKeyNotKeywordError, SetIndexByKeyTakenError)));
+bindPrim('vec/indexBy', runs(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyKindNotTakenError, VecIndexByKeyTakenError)));
 
 // ── slices and lookup ──────────────────────────────────────────
 
@@ -329,30 +316,21 @@ bindPrim('set/indexBy', runs(['key'], (set, key) => indexOf(set, key, SetIndexBy
 // negative one clamps to 0, the same graceful out-of-range handling an
 // over-length one gets (`take 99` → the whole container).
 bindPrim('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));
-bindPrim(['vec/take', 'set/take'], (sequence, count) => sequence.slice(0, Math.max(0, count)));
+bindPrim('vec/take', (sequence, count) => sequence.slice(0, Math.max(0, count)));
 bindPrim('map/take', (map, count) => new Map([...map].slice(0, Math.max(0, count))));
 bindPrim('string/drop', (text, count) => Array.from(text).slice(Math.max(0, count)).join(''));
-bindPrim(['vec/drop', 'set/drop'], (sequence, count) => sequence.slice(Math.max(0, count)));
+bindPrim('vec/drop', (sequence, count) => sequence.slice(Math.max(0, count)));
 bindPrim('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count))));
 
 // ── order and nesting ──────────────────────────────────────────
-
-// `desc` lays `::desc` over a value, which reverses its place in the one
-// order among the values under that tag [QSORD#sort].
-bindPrim('any/desc', value => makeTagged(DESC_TAG, value));
-
-// `distinct` answers the set of the elements of a vector, the value
-// `::set[…]` builds [QSORD#set], and a set as it is.
-bindPrim('vec/distinct', vector => makeSet(vector));
-bindPrim('set/distinct', set => set);
 
 bindPrim(['vec/reverse', 'set/reverse'], sequence => [...sequence].reverse());
 bindPrim('map/reverse', map => new Map([...map].reverse()));
 
 // `flat` lifts one level of nesting: the inner sequences splice in
 // order, and the answer of a set is a set again, so a set of sets
-// flattens into their union.
-bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVec(element) ? element : [element])));
+// flattens into their union [D355].
+bindPrim('vec/flat', sequence => sequence.flatMap(element => (isVec(element) ? element : [element])));
 
 // ── the fold ───────────────────────────────────────────────────
 
@@ -372,5 +350,5 @@ async function foldOf(entries, seed, reducer) {
   return acc;
 }
 
-bindPrim(['vec/reduce', 'set/reduce'], runs(['reducer'], (sequence, seed, reducer) => foldOf(sequence.entries(), seed, reducer)));
+bindPrim('vec/reduce', runs(['reducer'], (sequence, seed, reducer) => foldOf(sequence.entries(), seed, reducer)));
 bindPrim('map/reduce', runs(['reducer'], (map, seed, reducer) => foldOf(map, seed, reducer)));

@@ -114,7 +114,7 @@ describe('the axes read the node a tag addresses', () => {
 
   it('a tag naming a word of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
     expect([...await evalQuery('::count | doc !| get /addresses')])
-      .toEqual([makeTag('map/count'), makeTag('set/count'), makeTag('string/count'), makeTag('vec/count')]);
+      .toEqual([makeTag('map/count'), makeTag('string/count'), makeTag('vec/count')]);
   });
 
   it('::quote | source reads the declaration of the kind in the language\'s module', async () => {

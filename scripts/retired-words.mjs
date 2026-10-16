@@ -11,4 +11,5 @@ export const RETIRED_WORDS = [
   { pattern: /\bmint(?:s|ed|ing)?\b/i, written: 'lay a tag, `layTag`', by: 'D338' },
   { pattern: /\bsigils?\b/i, written: 'the sign of a literal', by: 'D347' },
   { pattern: /\bplain comments?\b/i, written: 'a comment', by: 'D347' },
+  { pattern: /\bKeyNotKeyword(?:OrString)?Error\b/, written: 'the name by the role, `KeyKindNotTakenError`, and under the input of the keys `keys/ElementKindNotTakenError`', by: 'D355' },
 ];

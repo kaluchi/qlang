@@ -10,6 +10,7 @@
 {"name":"a-call-by-address-reaches-the-residence","query":"5 | number/gt 3","expect":"true"}
 {"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::number/gt/SubjectNotNumberError"}
 {"name":"a-set-is-a-vector-to-a-verb-of-vectors","query":"#[1 2] | vec/count","expect":"2"}
+{"decision":"D355","name":"a-set-reaches-the-verbs-of-vectors-it-does-not-declare-an-answer-of-their-label-back-as-a-set-and-the-images-of-map-a-vector","query":"#[3 1 2] | get [~(binding :count | get /name) ~(filter ~(gt 1)) ~(take 2) ~(map ~(mul 2))]","expect":"[:vec/count #[2 3] #[1 2] [2 4 6]]"}
 {"name":"a-word-of-any-value-is-called-by-its-address","query":"\"x\" | any/type","expect":"::string"}
 {"name":"an-address-of-a-verb-of-strings-checks-its-subject","query":"[1] | string/prepend 0 !| type","expect":"::string/prepend/SubjectNotStringError"}
 {"name":"a-verb-of-one-residence-refuses-its-subject-by-its-site","query":"[1] | split \",\" !| type","expect":"::string/split/SubjectNotStringError"}

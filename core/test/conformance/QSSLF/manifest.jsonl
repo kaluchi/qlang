@@ -18,6 +18,6 @@
 {"name":"the-chapters-are-members-of-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
 {"name":"a-word-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}
 {"name":"a-place-lists-the-refusal-declared-under-it","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/KindNotTakenError]"}
-{"name":"a-place-of-several-kinds-lists-their-refusal","query":"::set/union/other | manifest","expect":"#[::set/union/other/KindNotTakenError]"}
+{"decision":"D355","name":"a-place-of-several-kinds-lists-their-refusal","query":"get [~(::vec/sort | binding | get /value | params | map /kinds) ~(::vec/sort/key | manifest)]","expect":"[[#[::null ::path ::quote]] #[::vec/sort/key/KindNotTakenError]]"}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
 {"name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(type) /name]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}

@@ -34,8 +34,8 @@ describe('the verbs of the language reach their primitives', () => {
 
   it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [QSSLF#catalog], [QSBLD#fn]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('::set/filter | manifest')).toEqual(makeSet([makeTag('set/filter/ConditionNotBooleanError'), makeTag('set/filter/answer'), makeTag('set/filter/predicate')]));
-    expect(await evalQuery('::set/filter | binding | get /value | params | map /kinds | print')).toBe('[#[::path ::quote]]');
+    expect(await evalQuery('::map/filter | manifest')).toEqual(makeSet([makeTag('map/filter/ConditionNotBooleanError'), makeTag('map/filter/answer'), makeTag('map/filter/predicate')]));
+    expect(await evalQuery('[::vec/filter ::map/filter] | map ~(binding | get /value | params | map /kinds) | print')).toBe('[[#[::path ::quote]] [#[::path ::quote]]]');
   });
 });
 

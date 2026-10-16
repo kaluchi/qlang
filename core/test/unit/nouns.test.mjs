@@ -88,6 +88,36 @@ describe('the names of the scope', () => {
   });
 });
 
+describe('a recipe of the root reads its words and its inputs by name [D355]', () => {
+  it('a name of habit answers as its word on the subject, a reader\'s word under a noun of the root staying in the reader\'s queries [QSNAM#owner]', async () => {
+    expect(await evalQuery(':number/tag ~(99) | 5 | get [~(desc) ~(tag ::desc !| type)] | eq [::desc#5 ::number/tag/ArgsBeyondInputsError]')).toBe(true);
+  });
+
+  it('a name of habit answers as its word on a value of a kind the reader declared, a word of the reader under it among them [QSNAM#owner]', async () => {
+    const post = ':Post |~~ A post. ~~| | :Post/tag ~(get /tag) | ::Post{:tag "a"}';
+    expect(await evalQuery(`${post} | get [~(desc !| type) ~(tag ::desc !| type)] | eq [::Post/tag/ArgsBeyondInputsError ::Post/tag/ArgsBeyondInputsError]`)).toBe(true);
+    const box = ':Box |~~ A box. ~~| | :Box/toSet ~(#[9]) | ::Box[2 1 2]';
+    expect(await evalQuery(`${box} | get [~(distinct) ~(toSet)] | eq [#[9] #[9]]`)).toBe(true);
+  });
+
+  it('a name of habit answers as its word under a word a later source declares', async () => {
+    const session = await createSession({ sources: [{ uri: 'later', source: ':number/tag (::fn | impl ~(99))' }] });
+    expect((await session.evalCell('5 | get [~(desc !| type) ~(tag ::desc !| type)] | eq [::number/tag/ArgsBeyondInputsError ::number/tag/ArgsBeyondInputsError]')).result).toBe(true);
+  });
+
+  it('the inputs of `subOf` and `divOf` shadow a value of the reader of their names, and a word under a noun of the root stays in the reader\'s queries [QSNAM#scope], [QSNAM#owner]', async () => {
+    const reader = ':minuend 1 | :divisor 1 | :map/subtrahend ~(1) | :map/dividend ~(1)';
+    expect(await evalQuery(`${reader} | {:a 6 :b 2} | get [~(subOf /a /b) ~(divOf /a /b)] | eq [4 3]`)).toBe(true);
+  });
+
+  it('an input of `subOf` and `divOf` meets a word of its name that serves the subject, the reader\'s under a kind of its own and a later source\'s [QSNAM#reach]', async () => {
+    const post = ':Post |~~ A post. ~~| | :Post/minuend ~(1) | ::Post{:a 6 :b 2}';
+    expect(await evalQuery(`${post} | subOf /a /b !| get [~(type) /name] | eq [::call/ValueMeetsWordError :minuend]`)).toBe(true);
+    const session = await createSession({ sources: [{ uri: 'later', source: ':map/divisor ~(1)' }] });
+    expect((await session.evalCell('{:a 6 :b 2} | divOf /a /b !| get [~(type) /name] | eq [::call/ValueMeetsWordError :divisor]')).result).toBe(true);
+  });
+});
+
 describe('the verbs that live on a kind', () => {
   it('a kind lists by address the verbs declared under it, and any value lists its own', async () => {
     expect(await evalQuery('::number | manifest | has ::number/add')).toBe(true);

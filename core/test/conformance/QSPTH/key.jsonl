@@ -8,7 +8,7 @@
 {"name":"keys-then-query-roundtrip-map","query":":src {:a 1 :b 2} | src | keys | first | :k it | src | query k","expect":"1"}
 {"name":"minus-reads-a-string-as-a-key","query":"{:a 1 :b 2} | minus [\"a\"]","expect":"{:b 2}"}
 {"name":"inter-reads-a-string-as-a-key","query":"{:a 1 :b 2 :c 3} | inter #[\"a\" :c]","expect":"{:a 1 :c 3}"}
-{"name":"minus-refuses-an-element-that-names-no-key","query":"{:a 1} | minus [:a 1] !| get [~(type) /index]","expect":"[::map/minus/KeyNotKeywordOrStringError 1]"}
+{"decision":"D355","name":"minus-refuses-an-element-that-names-no-key","query":"{:a 1} | minus [:a 1] !| get [~(type) /index]","expect":"[::map/minus/keys/ElementKindNotTakenError 1]"}
 {"name":"query-index-not-integer-error","query":"[1 2 3] | query 0.5 !| type","expect":"::path/IndexNotIntegerError"}
 {"name":"a-value-given-as-a-key-that-is-no-key-is-a-template","query":"{:email {:home \"a@b\"}} | query (get /email)","expect":"{:home \"a@b\"}"}
-{"name":"inter-refuses-a-single-key-and-a-key-of-another-kind","query":"get [~({:a 1} | inter :a !| type) ~({:a 1} | inter [1] !| type)]","expect":"[::map/inter/keys/KindNotTakenError ::map/inter/KeyNotKeywordOrStringError]"}
+{"decision":"D355","name":"inter-refuses-a-single-key-and-a-key-of-another-kind","query":"get [~({:a 1} | inter :a !| type) ~({:a 1} | inter [1] !| type)]","expect":"[::map/inter/keys/KindNotTakenError ::map/inter/keys/ElementKindNotTakenError]"}

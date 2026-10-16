@@ -154,6 +154,14 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('add');
   });
 
+  it('offers a set its own verbs and those of vectors its walk reaches, after a literal and after a verb that returns a set [D355]', async () => {
+    for (const src of ['#[3 1 2] | ', '[2 1 2] | toSet | ']) {
+      const labels = await labelsAt(src);
+      for (const label of ['sort', 'union', 'count', 'filter', 'first', 'has', 'take']) expect(labels).toContain(label);
+      expect(labels).not.toContain('add');
+    }
+  });
+
   it('shows each verb as a call from the subject reaches it, its signature over its page', async () => {
     const { ast } = parseDocument('{:a 1} | ', 'test.qlang');
     const count = (await completionsAtOffset(ast, 9, '{:a 1} | ')).find(item => item.label === 'count');
@@ -296,7 +304,7 @@ describe('hoverAtOffset', () => {
   });
 
   it('shows the word the subject of the call reaches, its signature over its page', async () => {
-    for (const [src, address, words] of [['[1 2 3] | count', '::vec/count', 'elements the vector holds'], ['{:a 1} | count', '::map/count', 'entries the map holds']]) {
+    for (const [src, address, words] of [['[1 2 3] | count', '::vec/count', 'elements the vector holds'], ['{:a 1} | count', '::map/count', 'entries the map holds'], ['#[1 2] | count', '::vec/count', 'elements the vector holds']]) {
       const { ast } = parseDocument(src, 'test.qlang');
       const hover = await hoverAtOffset(ast, src, src.indexOf('count'));
       expect(hover.content).toContain(`**count** — ${address}`);

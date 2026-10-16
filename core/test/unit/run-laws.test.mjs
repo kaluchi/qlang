@@ -33,7 +33,7 @@ describe('runLaws reads a name as laws does', () => {
 
   it('the keyword of a verb a provider keeps hands on its addresses', async () => {
     const addresses = await evalQuery('::count | runLaws !| get /addresses');
-    expect([...addresses].map(address => address.name).sort()).toEqual(['map/count', 'set/count', 'string/count', 'vec/count']);
+    expect([...addresses].map(address => address.name).sort()).toEqual(['map/count', 'string/count', 'vec/count']);
   });
 
   it('a tag name that names nothing is refused under the tag it read', async () => {

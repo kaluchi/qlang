@@ -274,9 +274,9 @@
     | proves :ordersASet
         |~~ A set stands in the one order. ~~|
         ~("#[:z :x :y] | first" | parse | apply it | eq :x)
-    | proves :answersASetByDistinct
-        |~~ `distinct` answers a set. ~~|
-        ~([2 3 2 1] | distinct | eq #[1 2 3])
+    | proves :answersASetByToSet
+        |~~ `toSet` answers a set. ~~|
+        ~([2 3 2 1] | toSet | eq #[1 2 3])
     | proves :answersASetByKeys
         |~~ `keys` answers a set. ~~|
         ~({:y 1 :x 2} | keys | eq #[:x :y])
@@ -629,9 +629,10 @@
         |~~ Verbs. A verb lives on a kind, the one whose values it serves,
             and has an address, `::vec/sort`; so what can be done with a
             value is asked of its kind, and one word serves many kinds.
-            The verbs of a kind and those of every value are the whole of
-            them: a verb in neither list does not exist. Rests on values
-            and the pipeline; errors name the verb that refused.
+            The verbs of the kinds the walk of a value's tags reaches and
+            those of every value are the whole of its verbs: a verb in none
+            of them does not exist. Rests on values and the pipeline;
+            errors name the verb that refused.
             ::snippet~(::vec | manifest) lists the verbs of a kind and
             ::snippet~(::any | manifest) those of every value.
             ::link~(::qlang/errors | doc)
@@ -696,6 +697,9 @@
             of the subject's kind keeps the tag.
         ~~|
         ~(::Box[3 1 2] | sort | eq ::Box[1 2 3])
+    | proves :verbs/answersTheVerbsOfTheKindsItsWalkReaches
+        |~~ A set answers a verb of vectors it does not declare. ~~|
+        ~(#[3 1 2] | get [~(count) ~(binding :count | get /name)] | eq [3 :vec/count])
     | proves :verbs/declaresTheInputs
         |~~ `query` declares its path and its default as its inputs. ~~|
         ~(::any/query | manifest | eq #[::any/query/default ::any/query/path])

@@ -10,8 +10,8 @@ import {
 } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 
-// `::set[…]` — the set of a vector's elements, the one `distinct`
-// answers [QSORD#order], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
+// `::set[…]` — the set of a vector's elements, the one `toSet` answers
+// [QSORD#order], [D355], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | toSet`
 // are one value.
 const SetPayloadKindNotTakenError = declareRefusal('set/PayloadKindNotTakenError');
 

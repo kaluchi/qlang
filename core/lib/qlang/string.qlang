@@ -290,7 +290,7 @@
         |~~ A number answers no `count`, and the refusal names the kinds
             that do.
         ~~|
-        ~(5 | count !| get /addresses | eq #[::map/count ::set/count ::string/count ::vec/count])
+        ~(5 | count !| get /addresses | eq #[::map/count ::string/count ::vec/count])
     | impl ::builtin{}
 
 :string/size
@@ -606,7 +606,7 @@
     | proves :makesCaseVariantsEqual
         |~~ Two strings that differ in case alone are equal once lowered.
         ~~|
-        ~(["Ann" "ANN"] | map ~lower | distinct | count | eq 1)
+        ~(["Ann" "ANN"] | map ~lower | toSet | count | eq 1)
     | proves :mayGrowTheCount
         |~~ A letter may lower into more than one character. ~~|
         ~("İ" | lower | count | eq 2)
@@ -762,7 +762,7 @@
         |~~ A map answers no `contains`, and the refusal names the kinds
             that do.
         ~~|
-        ~({:a 1} | contains "a" !| get /addresses | eq #[::set/contains ::string/contains ::vec/contains])
+        ~({:a 1} | contains "a" !| get /addresses | eq #[::string/contains ::vec/contains])
     | impl ::builtin{}
 
 :string/startsWith

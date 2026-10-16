@@ -227,11 +227,13 @@ export function isDoc(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === DOC_TAG_NAME;
 }
 
-// Whether a value is a vector of a kind of its own, a set, a quote or a
-// doc, read as a vector wherever a vector is read and keeping its shape
-// where a plain vector gives way.
+// The kinds of the core whose values are vectors under a tag of their own,
+// a set, a quote and a doc, each read as a vector wherever a vector is read
+// and keeping its shape where a plain vector gives way.
+export const KINDS_OF_OWN_VECTORS = [SET_TAG_NAME, QUOTE_TAG_NAME, DOC_TAG_NAME];
+
 export function isVecOfOwnKind(v) {
-  return isSet(v) || isQuote(v) || isDoc(v);
+  return isVec(v) && KINDS_OF_OWN_VECTORS.includes(v[TAG_HEADER_SYMBOL]?.name);
 }
 
 // A segment of a doc: a run of its prose, a quote, or a quote under a

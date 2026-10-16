@@ -6,7 +6,7 @@ import { mintTagged } from './verb.mjs';
 import { bindPrim, bindStateReader, runs } from '../primitives.mjs';
 import {
   isVec, isKeyword, isRegex, isPath, isMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTag, kindsExpected, makeSet, makeTag, makeTagged, TAG_HEADER_SYMBOL, BUILTIN_TAG, stampTagHeader
+  isTag, kindsExpected, makeSet, makeTagged, payloadBeneath, TAG_HEADER_SYMBOL, BUILTIN_TAG, DESC_TAG, stampTagHeader
 } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 
@@ -71,12 +71,11 @@ bindPrim('map/construct',     coreKindConstructor(isBareMap, MapPayloadKindNotTa
 
 // `::desc` over any value turned to descend, `::desc#5`, its place in the
 // one order the reverse of its payload's [QSORD#desc].
-const DESC_TAG = makeTag('desc');
 bindPrim('desc/construct', payload => makeTagged(DESC_TAG, payload));
 
 // `::doc[…]` — the doc of a vector of prose strings and quotes [QSSLF#doc], so
 // a doc comes apart into its segments and back by `tag`.
-const DocPayloadKindNotTakenError     = declareRefusal('doc/PayloadKindNotTakenError');
+const DocPayloadKindNotTakenError = declareRefusal('doc/PayloadKindNotTakenError');
 const DocElementNotSegmentError = declareRefusal('doc/ElementNotSegmentError');
 
 function docConstructor(payload) {
@@ -107,20 +106,12 @@ bindPrim('builtin/construct', builtinConstructor);
 const AnyTagPairTagNotTagError = declareRefusal('any/tag/PairTagNotTagError');
 const AnyTagSubjectNotPairError = declareRefusal('any/tag/SubjectNotPairError');
 
-// The value beneath a tag: a copy of the vector or the map without the
-// tag, a set's vector among them, or the value a wrapper holds.
-function payloadOf(tagged) {
-  if (Array.isArray(tagged)) return Object.freeze([...tagged]);
-  if (tagged instanceof Map) return new Map(tagged);
-  return tagged.payload;
-}
-
 // `payload` and `within` reside on `::tagged`, each a plain function over the
 // tagged value the walk served [QSDSP#walk]; the page of `within` keeps its
 // subject's kind, so the answer of its edit mints back under the subject's tag
 // [QSDSP#answer], [QSSLF#catalog].
-bindPrim('tagged/payload', subject => payloadOf(subject));
-bindPrim('tagged/within', runs(['code'], async (subject, code) => await code(payloadOf(subject))));
+bindPrim('tagged/payload', subject => payloadBeneath(subject));
+bindPrim('tagged/within', runs(['code'], async (subject, code) => await code(payloadBeneath(subject))));
 
 // `tag` resides on `::any` and reads the state of its call, whose scope holds
 // the constructor of the tag [QSDSP#residence]: `value | tag ::Foo` lays the

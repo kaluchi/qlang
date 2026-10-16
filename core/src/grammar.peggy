@@ -10,7 +10,7 @@
 //
 // Every node carries `.location`, its span, the offsets, lines and
 // columns `span()` reads, and `.text`, the source it matched; the pass
-// after the parse in src/parse.mjs adds `.id` and `.parent` on every node
+// after the parse in src/parse.mjs adds `.parent` on every node
 // and `.source`, `.uri` and `.comments` on the root.
 //
 // A plain comment, `|~| …` to the end of its line or `|~ … ~|`, is

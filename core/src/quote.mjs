@@ -5,8 +5,8 @@
 // steps back into text. Where the syntax is a literal, the step is that
 // literal itself, a nested quote included, and a container literal holds the
 // steps of its elements, a pipeline element as its group; where the syntax
-// computes, the step is a record, `::call`, `::path`, `::bind` or
-// `::construct`; the fail track and the parentheses wrap the quote of their
+// computes, the step is a record, `::call`, `::bind` or `::construct`, and a
+// path the path it reads; the fail track and the parentheses wrap the quote of their
 // step as `::fail` and `::group` [QSQUO#step]. A comment leaves no step. A
 // command's modifier is one word and is stored as its step [QSQUO#step].
 //
@@ -27,8 +27,8 @@ import {
 
 // The steps of code that stand in a pipeline alone and those that stand
 // inside a container too.
-const PIPELINE_STEP_TAG_NAMES  = new Set(['fail', 'bind', 'call']);
-const ELEMENT_RECORD_TAG_NAMES = new Set(['call', 'construct', 'group']);
+const PIPELINE_STEP_TAG_NAMES  = new Set([FAIL_TAG.name, BIND_TAG.name, CALL_TAG.name]);
+const ELEMENT_RECORD_TAG_NAMES = new Set([CALL_TAG.name, CONSTRUCT_TAG.name, GROUP_TAG.name]);
 
 // ── the tree into steps ────────────────────────────────────────
 
@@ -236,7 +236,7 @@ export function isElementStep(value) {
   if (errorFields !== null) return [...errorFields.values()].every(isElementStep);
   if (isSet(value)) return value.every(isElementStep);
   const stepTag = stepTagOf(value);
-  if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === 'call' && value.has('modifiers'));
+  if (stepTag !== undefined) return ELEMENT_RECORD_TAG_NAMES.has(stepTag) && !(stepTag === CALL_TAG.name && value.has('modifiers'));
   if (isVec(value)) return value.every(isElementStep);
   return isMap(value) && [...value.values()].every(isElementStep);
 }
@@ -244,7 +244,7 @@ export function isElementStep(value) {
 // isCommandStep(value) — a command with its modifiers, the step a
 // declaration's body may be beside an element step.
 export function isCommandStep(value) {
-  return stepTagOf(value) === 'call';
+  return stepTagOf(value) === CALL_TAG.name;
 }
 
 // ── steps into text ────────────────────────────────────────────
@@ -282,8 +282,8 @@ function stepTagOf(step) {
 // catalog writes it [QSQUO#parse], and so does a quote of several steps one of
 // which takes several lines, the commands of a signature among them [QSBLD#fn].
 function printSteps(steps) {
-  const printed = steps.map(step => (stepTagOf(step) === 'fail' ? { fail: printSteps(step.payload) } : { step: printStep(step) }));
-  const lined = steps.length > 1 && (steps.every(step => stepTagOf(step) === 'bind') || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
+  const printed = steps.map(step => (stepTagOf(step) === FAIL_TAG.name ? { fail: printSteps(step.payload) } : { step: printStep(step) }));
+  const lined = steps.length > 1 && (steps.every(step => stepTagOf(step) === BIND_TAG.name) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
   const gap = lined ? '\n' : ' ';
   return printed.map(({ fail, step }, index) => {
     if (fail !== undefined) return `${index === 0 ? '' : gap}!| ${fail}`;
@@ -296,10 +296,10 @@ function printStep(step) {
   if (isDoc(step)) return printValue(step);
   if (isSet(step)) return `#[${step.map(printStep).join(' ')}]`;
   switch (stepTagOf(step)) {
-    case 'call':   return printCall(step);
-    case 'bind':   return printBind(step);
-    case 'construct': return printConstruct(step.get('tag').literal, step.get('payload'));
-    case 'group':  return `(${printSteps(step.payload)})`;
+    case CALL_TAG.name: return printCall(step);
+    case BIND_TAG.name: return printBind(step);
+    case CONSTRUCT_TAG.name: return printConstruct(step.get('tag').literal, step.get('payload'));
+    case GROUP_TAG.name: return `(${printSteps(step.payload)})`;
   }
   const errorFields = errorFieldsOf(step);
   if (errorFields !== null) return `${isValueClass(step, 'underTag') ? step.tag.literal : ''}!{${printEntries([...errorFields])}}`;
@@ -313,7 +313,7 @@ function printStep(step) {
 // a tag, so the step reads back as none [QSLIT#tag].
 function printConstruct(tagLiteral, payload) {
   const kind = stepTagOf(payload);
-  if (kind === 'call' || kind === 'bind') return `${tagLiteral}(${printStep(payload)})`;
+  if (kind === CALL_TAG.name || kind === BIND_TAG.name) return `${tagLiteral}(${printStep(payload)})`;
   return underTagLiteral(tagLiteral, payload, printStep(payload));
 }
 

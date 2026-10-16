@@ -7,15 +7,13 @@
 // that refused [QSERR#site]. An input that takes code arrives closed at the
 // call, code run on the element [QSDSP#walk], [QSBLD#fn].
 
-import { beneathTags, isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTagged, makeTag, makePath } from '../types.mjs';
+import { beneathTags, isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makeTagged, makePath, DESC_TAG } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim, runs } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
 import { atPlace } from '../eval-trail.mjs';
 import { keywordFiledFor } from './convert.mjs';
-
-const DESC_TAG = makeTag('desc');
 
 // The elements beside the fact that names the place of each in a
 // refusal: a sequence's index, from zero, and a map's key.

@@ -101,13 +101,6 @@ export function walkAst(node, visit, parent = null) {
   for (const child of astChildrenOf(node)) walkAst(child, visit, node);
 }
 
-// assignAstNodeIds(root) → each node its `.id`, counted from 0 in the
-// order of the walk.
-export function assignAstNodeIds(root) {
-  let next = 0;
-  walkAst(root, (n) => { n.id = next++; });
-}
-
 // attachAstParents(root) → each node its `.parent`, the root's null.
 export function attachAstParents(root) {
   walkAst(root, (n, parent) => { n.parent = parent; });

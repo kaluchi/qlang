@@ -12,7 +12,7 @@
 
 import {
   isKeyword, isTag, isRegex, isPath, isDoc, isValueClass,
-  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME
+  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, ELISION_TAG, DESC_TAG
 } from './types.mjs';
 
 // The kinds in their order.
@@ -34,9 +34,6 @@ const ELISION_KIND  = 13;
 const DESC_KIND     = 14;
 const TAGGED_KIND   = 15;
 
-const ELISION_TAG_NAME = 'elision';
-const DESC_TAG_NAME = 'desc';
-
 function kindOf(value) {
   if (value === null || value === undefined) return NULL_KIND;
   if (typeof value === 'boolean') return BOOLEAN_KIND;
@@ -51,8 +48,8 @@ function kindOf(value) {
   if (headerTag === undefined) return shapeKindOf(value);
   if (headerTag.name === SET_TAG_NAME) return SET_KIND;
   if (headerTag.name === QUOTE_TAG_NAME) return QUOTE_KIND;
-  if (headerTag.name === ELISION_TAG_NAME) return ELISION_KIND;
-  if (headerTag.name === DESC_TAG_NAME) return DESC_KIND;
+  if (headerTag.name === ELISION_TAG.name) return ELISION_KIND;
+  if (headerTag.name === DESC_TAG.name) return DESC_KIND;
   return TAGGED_KIND;
 }
 

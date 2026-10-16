@@ -286,7 +286,7 @@ function passedUntagged(payloadError, node, tagName) {
 }
 
 // A tag name is a value of its own, read without the scope [QSLIT#kind].
-async function evalTagLit(node, state) {
+function evalTagLit(node, state) {
   return withPipeValue(state, makeTag(node.tag));
 }
 
@@ -654,13 +654,23 @@ function recipeScopeOf(state, ofTheRoot) {
 }
 
 function scopeOpenedIn(env, ofTheRoot) {
-  const scope = new Map([[ROOT_KEY, rootOf(env)], [QUERY_KEY, queryTreeOf(env)]]);
-  if (ofTheRoot) markRootWordScope(scope);
+  const { scope } = nodesAndLabelsOf(env);
+  scope.set(QUERY_KEY, queryTreeOf(env));
+  return ofTheRoot ? markRootWordScope(scope) : scope;
+}
+
+// The root, the nodes and the labels of a scope, which the scope a call opens
+// and the lane of held code are each made from, and the names of the values a
+// reader named there [QSNAM#owner], [QSQUO#held].
+function nodesAndLabelsOf(env) {
+  const scope = new Map([[ROOT_KEY, rootOf(env)]]);
+  const values = [];
   for (const [name, entry] of env) {
-    if (typeof name !== 'string' || scope.has(name)) continue;
+    if (typeof name !== 'string') continue;
     if (isNodeOrLabel(name, entry)) scope.set(name, entry);
+    else values.push(name);
   }
-  return scope;
+  return { scope, values };
 }
 
 // Whether a name of a scope is a node, a name with a path, or a label, the
@@ -1051,7 +1061,7 @@ function modifierOf(argNode, state) {
   return closeCode(argNode, state, evalNode);
 }
 
-const ATOM_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
+const ATOM_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit', 'TagLit', 'Path']);
 
 // The literals a template is written as, a value under a tag among them,
 // whose quotes are written in the step [QSQUO#held], [QSLIT#tag].
@@ -1105,13 +1115,8 @@ const LANES = new WeakMap();
 function laneOf(env) {
   let lane = LANES.get(env);
   if (lane !== undefined) return lane;
-  const withheld = new Set(env.get(WITHHELD_KEY));
-  lane = new Map([[ROOT_KEY, rootOf(env)], [WITHHELD_KEY, withheld]]);
-  for (const [name, entry] of env) {
-    if (typeof name !== 'string') continue;
-    if (isNodeOrLabel(name, entry)) lane.set(name, entry);
-    else withheld.add(name);
-  }
+  const { scope, values } = nodesAndLabelsOf(env);
+  lane = scope.set(WITHHELD_KEY, new Set([...(env.get(WITHHELD_KEY) ?? []), ...values]));
   LANES.set(env, lane);
   return lane;
 }

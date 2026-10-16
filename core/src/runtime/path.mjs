@@ -12,7 +12,7 @@ import { atPlace } from '../eval-trail.mjs';
 import { deepEqual } from '../equality.mjs';
 import {
   isPath, makePath, isKeyword, isMap, isVec, isSet, isValueClass, isErrorValue, isTagged, keyword, makeSet,
-  makeTagged, beneathTags, typeKeyword, TAG_HEADER_SYMBOL, ABSENT_TAG, EACH_TAG, NULLABLE_TAG, SHAPE_TAG
+  makeTagged, beneathTags, payloadBeneath, typeKeyword, TAG_HEADER_SYMBOL, ABSENT_TAG, EACH_TAG, NULLABLE_TAG, SHAPE_TAG
 } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
@@ -227,14 +227,13 @@ bindPrim('any/shape', subject => makeTagged(SHAPE_TAG, shapeOf(subject, true)));
 // a part that is null alone stands as `::null`.
 const NULL_KIND = typeKeyword(null);
 const isMark = (value, tag) => isTagged(value) && value[TAG_HEADER_SYMBOL].name === tag.name;
-const under = value => (isValueClass(value, 'underTag') ? value.payload : isVec(value) ? Object.freeze([...value]) : new Map(value));
 
 function marksOf(shape) {
   let core = shape;
   const absent = isMark(core, ABSENT_TAG);
-  if (absent) core = under(core);
+  if (absent) core = payloadBeneath(core);
   const nullable = isMark(core, NULLABLE_TAG);
-  if (nullable) core = under(core);
+  if (nullable) core = payloadBeneath(core);
   return { absent, nullable, core };
 }
 
@@ -271,8 +270,8 @@ const isAlternatives = shape => isSet(shape) && shape.length > 1;
 const isRecord = shape => isMap(shape) && !isTagged(shape);
 const isList = shape => isVec(shape) && !isTagged(shape);
 const shareAKey = (left, right) => left.size === 0 || right.size === 0 || [...left.keys()].some(key => right.has(key));
-const eachKey = each => [...under(each).keys()][0];
-const eachShape = each => [...under(each).values()][0];
+const eachKey = each => [...payloadBeneath(each).keys()][0];
+const eachShape = each => [...payloadBeneath(each).values()][0];
 const eachesMerge = (left, right) => isMark(left, EACH_TAG) && isMark(right, EACH_TAG) && !isAlternatives(mergedShape(eachShape(left), eachShape(right)));
 const isEmptyRecord = shape => isRecord(shape) && shape.size === 0;
 const eachAndEmpty = (left, right) => (isMark(left, EACH_TAG) && isEmptyRecord(right)) || (isEmptyRecord(left) && isMark(right, EACH_TAG));

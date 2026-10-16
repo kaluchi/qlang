@@ -5,7 +5,6 @@ import { parse } from '../../src/parse.mjs';
 import {
   astChildrenOf,
   walkAst,
-  assignAstNodeIds,
   attachAstParents,
   findAstNodeAtOffset,
   findIdentifierOccurrences,
@@ -111,26 +110,12 @@ describe('walkAst', () => {
   });
 });
 
-describe('assignAstNodeIds and attachAstParents', () => {
-  it('assigns sequential ids in pre-order via parse()', () => {
-    const ast = parse('[1 2 3]');
-    expect(ast.id).toBe(0);
-    expect(ast.elements[0].id).toBe(1);
-    expect(ast.elements[1].id).toBe(2);
-    expect(ast.elements[2].id).toBe(3);
-  });
-
+describe('attachAstParents', () => {
   it('attaches parent pointers via parse()', () => {
     const ast = parse('[1 2 3]');
     expect(ast.parent).toBeNull();
     expect(ast.elements[0].parent).toBe(ast);
     expect(ast.elements[1].parent).toBe(ast);
-  });
-
-  it('manual assignAstNodeIds resets the counter', () => {
-    const ast = parse('[1 2]');
-    assignAstNodeIds(ast);
-    expect(ast.id).toBe(0);
   });
 
   it('manual attachAstParents recomputes parents', () => {

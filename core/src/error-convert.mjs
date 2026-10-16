@@ -1,4 +1,4 @@
-import { keyword, makeErrorValue, makeTag, makeTagged, typeKeyword } from './types.mjs';
+import { keyword, makeErrorValue, makeTag, makeTagged, typeKeyword, ERROR_TAG } from './types.mjs';
 import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
 import { deepEqual } from './equality.mjs';
@@ -13,8 +13,6 @@ recordRefusal('call/HostFailureError');
 // disagree, a defect of the runtime.
 const BuiltinRefusalFactNotDeclaredError = declareInvariantError('builtin/RefusalFactNotDeclaredError',
   ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`);
-
-const ERROR_KIND_NAME = 'error';
 
 const SPAN_TAG = makeTag('span');
 
@@ -42,7 +40,7 @@ const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).le
 // defect of the runtime.
 export function factsInOrder(tag, facts, env) {
   const ordered = new Map();
-  for (const name of [...namesDeclaredUnder(env, tag.name), ...namesDeclaredUnder(env, ERROR_KIND_NAME)]) {
+  for (const name of [...namesDeclaredUnder(env, tag.name), ...namesDeclaredUnder(env, ERROR_TAG.name)]) {
     if (facts.has(name) && !ordered.has(name)) ordered.set(name, facts.get(name));
   }
   for (const name of facts.keys()) {

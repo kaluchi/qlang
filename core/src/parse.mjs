@@ -1,7 +1,6 @@
 // The one caller of the generated parser: `parse` answers the tree of a
 // source or throws a `ParseError`, and the tools that read the tree
 // through walk.mjs find on it:
-//   - an .id on each node, counted within the parse
 //   - a .parent on each node but the root
 //   - the source on the root as .source, and its name as .uri, a file
 //     path, 'inline' or 'cell-N'
@@ -11,7 +10,7 @@
 import {
   parse as peggyParse
 } from '../gen/grammar.mjs';
-import { assignAstNodeIds, attachAstParents } from './walk.mjs';
+import { attachAstParents } from './walk.mjs';
 
 
 // The refusal of a source [QSSYN#refusal]: `location` holds its place, `uri`
@@ -41,8 +40,8 @@ export class ParseError extends Error {
 //
 // Throws ParseError on syntactic failure. The AST is a tree of
 // plain JS objects with a `type` field; see grammar.peggy for the
-// catalog of node types. Every node carries .location, .text, .id,
-// and (except the root) .parent. The root additionally carries
+// catalog of node types. Every node carries .location, .text and
+// (except the root) .parent. The root additionally carries
 // .source, .uri and .comments.
 export function parse(source, opts = {}) {
   if (typeof source !== 'string') {
@@ -69,10 +68,9 @@ export function parse(source, opts = {}) {
       sentence
     });
   }
-  // Post-pass decoration: AST parent pointers and ids first, so the
-  // root receives .parent = null and id 0, then the root's metadata.
+  // Post-pass decoration: AST parent pointers first, so the root
+  // receives .parent = null, then the root's metadata.
   attachAstParents(ast);
-  assignAstNodeIds(ast);
   ast.source = source;
   ast.uri = opts.uri ?? 'inline';
   ast.comments = [...commentTrivia.values()].sort((left, right) => left.location.start.offset - right.location.start.offset);

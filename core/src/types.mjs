@@ -270,6 +270,7 @@ function stampSlot(target, slot, value) {
 export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
 export const ABSENT_TAG      = makeTag('absent');
+export const DESC_TAG        = makeTag('desc');
 export const DOC_TAG         = makeTag(DOC_TAG_NAME);
 export const EACH_TAG        = makeTag('each');
 export const ELISION_TAG     = makeTag('elision');
@@ -299,11 +300,11 @@ export const CORE_KIND = Object.freeze({
 
 // The tags of a quote's steps [QSQUO#step]: the records of what computes,
 // and the wrappers a step takes on the fail track or in parentheses.
-export const CALL_TAG   = makeTag('call');
-export const BIND_TAG   = makeTag('bind');
+export const CALL_TAG      = makeTag('call');
+export const BIND_TAG      = makeTag('bind');
 export const CONSTRUCT_TAG = makeTag('construct');
-export const FAIL_TAG   = makeTag('fail');
-export const GROUP_TAG  = makeTag('group');
+export const FAIL_TAG      = makeTag('fail');
+export const GROUP_TAG     = makeTag('group');
 
 // A tag over a payload: an untagged vector or map keeps its shape under
 // the tag, so every verb of the container reads it; any other payload, a
@@ -330,6 +331,14 @@ export function beneathTags(value) {
   let beneath = value;
   while (isValueClass(beneath, 'underTag')) beneath = beneath.payload;
   return beneath;
+}
+
+// The payload beneath a value's own tag [QSLIT#kind]: the value a wrapper
+// holds, or a copy of the vector or the map that holds the tag on itself,
+// without it, a set's vector among them.
+export function payloadBeneath(value) {
+  if (isValueClass(value, 'underTag')) return value.payload;
+  return isMap(value) ? new Map(value) : Object.freeze([...value]);
 }
 
 // The descriptor of an implementation a host hands, `::builtin{}`, the

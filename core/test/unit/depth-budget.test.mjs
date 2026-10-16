@@ -1,5 +1,5 @@
 // The evaluation depth budget across every re-entry seam: a runaway recursion
-// through any seam the evaluator descends — verb body, captured-arg lambda, a
+// through any seam the evaluator descends — verb body, a quote a word runs, a
 // verb run as code or as a fold, `apply`, an invariant of a kind that mints
 // its own tag, `runLaws` — terminates on the fail-track as
 // `::call/EvaluationDepthExceededError` with `:depth` and `:limit`. The
@@ -38,7 +38,7 @@ describe('depth budget — self-calling verb', () => {
 describe('depth budget — every re-entry seam', () => {
   const seams = [
     ['a body under map naming its own verb',         ':any/f ~(get [~(it)] | map ~f | first) | 1 | f'],
-    ['captured-arg lambda naming its own verb',     ':any/p ~(get [~(it)] | filter ~(p)) | [1] | p'],
+    ['a quote filter runs naming its own verb',     ':any/p ~(get [~(it)] | filter ~(p)) | [1] | p'],
     ['a verb folding through reduce',               ':any/r (::fn | takes :el |~~ The element. ~~| /0 | impl ~([1] | reduce 0 ~r)) | [1] | reduce 0 ~r'],
     ['a verb predicate over a Map',                 ':any/k ~({:a 1} | filter ~k) | {:a 1} | filter ~k'],
     ['an invariant of a kind minting its own tag',   ':T |~~ T. ~~| (::kind | holds :E |~~ e ~~| ~(::T#1 | payload | eq 1)) | ::T#1']

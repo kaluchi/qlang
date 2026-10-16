@@ -9,15 +9,14 @@ qlang/                  ← this repo
 ├── cli/                @kaluchi/qlang-cli    — command line and REPL, `qlang` and `ql`
 ├── lsp/                @kaluchi/qlang-lsp    — language server
 ├── site/               @kaluchi/qlang-site   — Astro documentation site (private)
-├── vscode/             qlang-vscode          — VS Code Marketplace package
+├── vscode/             qlang-vscode          — editor extension, unpublished, running the language server of the checkout
 ├── docs/               spec/ what holds · journal/ the aim, the records of the change and the research
-├── scripts/            release.mjs           — release orchestration
+├── scripts/            release.mjs and the scripts of the work
 └── package.json        npm workspaces shell
 ```
 
-The folder name maps to the suffix of the npm package name; the npm
-scope is always `@kaluchi/`. Single rule, applied uniformly across
-every workspace.
+The folder name maps to the suffix of the npm package name, under the
+npm scope `@kaluchi/` for every workspace but the editor extension.
 
 ## Quick start
 
@@ -30,7 +29,7 @@ npm run ci                               # every gate a push must pass
 
 ## Documentation
 
-The language documents itself: `qlang '::qlang | doc'` opens the root
+The language documents itself: `qlang '::qlang | doc'` opens the first
 page, whose links lead to every concept, kind and verb, each page a doc
 whose laws run. A host embedding the core reads
 [core/README.md](core/README.md).
@@ -41,7 +40,8 @@ whose laws run. A host embedding the core reads
 node scripts/release.mjs <version>
 ```
 
-Bumps every workspace and the sibling ranges, rebuilds, runs the tests,
+Bumps the core and the command line and the sibling ranges, rebuilds,
+runs the tests,
 commits, pushes, waits for CI and tags; the Deploy workflow publishes
 from the pushed tag to npm and creates the GitHub Release.
 

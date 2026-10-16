@@ -141,12 +141,12 @@ describe('tokenize — the kind of a call\'s name', () => {
     expect(tokens[0].kind).toBe('word');
   });
 
-  it('the `let` binding-introducer resolves to `keyword`', async () => {
+  it('the keyword that declares a name resolves to `keyword`', async () => {
     const tokens = tokenize(':x 1', await builtins());
     expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
   });
 
-  it('a user-defined name (not in builtins) resolves to `atom`', async () => {
+  it('a name outside the words of the language resolves to `name`', async () => {
     const tokens = tokenize('myVerb', await builtins());
     expect(tokens[0].kind).toBe('name');
   });

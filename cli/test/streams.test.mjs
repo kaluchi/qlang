@@ -35,7 +35,7 @@ describe('in', () => {
   });
 });
 
-describe('out — bare form (0 captured)', () => {
+describe('out — the subject, written when it is a string', () => {
   it('writes the String subject to stdoutWrite with a trailing newline and is identity on pipeValue', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"hello" | out | append "!"', io);
@@ -54,7 +54,7 @@ describe('out — bare form (0 captured)', () => {
   });
 });
 
-describe('out — full-application form (1 captured)', () => {
+describe('out — the text the call gives, computed against the subject', () => {
   it('runs the renderer against pipeValue and writes its String result', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out print', io);
@@ -82,7 +82,7 @@ describe('out — full-application form (1 captured)', () => {
   });
 });
 
-describe('err — bare form', () => {
+describe('err — the subject, written when it is a string', () => {
   it('writes to stderrWrite, leaves stdout untouched, identity on pipeValue', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"oops" | err', io);
@@ -101,7 +101,7 @@ describe('err — bare form', () => {
   });
 });
 
-describe('err — full-application form', () => {
+describe('err — the text the call gives, computed against the subject', () => {
   it('runs the renderer and writes the result to stderr', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err print', io);

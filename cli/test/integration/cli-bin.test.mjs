@@ -4,14 +4,12 @@
 // in-process unit suite cannot reach:
 //
 //   * SyntaxError / ReferenceError in any module that bin.mjs
-//     transitively imports (the unit suite mocks streams and calls
-//     main() in-process, so a top-level parse failure in repl.mjs
-//     surfaces only when `qlang -i` is actually invoked).
+//     transitively imports.
 //   * Argv parsing wired-up correctly (the unit suite tests
 //     parseArgv in isolation; this suite tests the full path
 //     through main → script-mode / runRepl).
 //   * Piped stdin reaches the `in` word and the format auto-detection.
-//   * REPL bootstrap loads every lazy-imported module without
+//   * REPL bootstrap loads every module it imports without
 //     throwing on the first prompt.
 
 import { describe, it, expect } from 'vitest';
@@ -134,12 +132,8 @@ describe('CLI: piped stdin — auto-detect JSON', () => {
   });
 });
 
-describe('CLI: REPL bootstrap (`-i`) loads every lazy import', () => {
-  // This test catches the exact class of bug that the in-process
-  // unit suite misses — a SyntaxError / ReferenceError in repl.mjs
-  // or any module it transitively imports surfaces only when the
-  // REPL is actually entered. Send `.exit\n` immediately so the
-  // child terminates cleanly after the bootstrap.
+describe('CLI: the REPL (`-i`) loads its modules, runs its cells and closes on `.exit`', () => {
+  // `.exit\n` sent at once closes the child after the REPL boots.
   it('starts up, prints prompt, accepts .exit, returns code 0', async () => {
     const { exitCode, stderr } = await runCli(['-i'], { stdin: '.exit\n' });
     // A syntax error inside repl.mjs would surface on stderr and

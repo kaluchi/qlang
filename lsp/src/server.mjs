@@ -1,9 +1,8 @@
 // qlang language server — LSP wiring over features.mjs.
 //
-// Runs as a child process spawned by the VS Code extension client.
-// Communicates via stdio JSON-RPC. All qlang-specific logic lives
-// in features.mjs; this file only maps between LSP protocol types
-// and the feature functions.
+// Runs as a child process spawned by the VS Code extension client and
+// talks JSON-RPC over stdio: it reads the sources of the language and
+// answers each request of the protocol by the functions of features.mjs.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -52,8 +51,8 @@ const documentStates = new Map();
 let catalogCtx = null;
 
 async function loadCatalogContext() {
-  // Monorepo layout: `lsp/` and `core/` are sibling workspaces, so the
-  // sources sit under `../core/lib/` relative to `lsp/src/`.
+  // `lsp/` and `core/` are sibling workspaces, so the sources sit under
+  // `core/lib/`, two folders up from `lsp/src/`.
   const lspSrcDir = dirname(fileURLToPath(import.meta.url));
   const libDir = join(lspSrcDir, '..', '..', 'core', 'lib');
 
@@ -92,7 +91,7 @@ connection.onInitialize(async () => {
       referencesProvider: true,
       documentSymbolProvider: true,
       foldingRangeProvider: true,
-      signatureHelpProvider: { triggerCharacters: ['(', ','] },
+      signatureHelpProvider: { triggerCharacters: [' '] },
       semanticTokensProvider: {
         legend: { tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: [] },
         full: true

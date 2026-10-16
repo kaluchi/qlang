@@ -65,8 +65,6 @@ Examples:
   qlang --raw 'lines | map ~(parseJson) | filter ~(has :error)' < app.ndjson
   qlang '[1 2 3] | filter ~(gt 1) | count'
   qlang -i '::qlang | doc | links | map ~open'
-
-See https://github.com/kaluchi/qlang for the language reference.
 `;
 
 export const VERSION_LINE = `@kaluchi/qlang-cli ${_cliPackage.version}\n`;

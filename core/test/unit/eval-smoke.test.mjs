@@ -45,19 +45,19 @@ describe('eval — literals', () => {
 });
 
 describe('eval — pipeline arithmetic', () => {
-  it('100 | mul(2) → 200', async () => {
+  it('100 | mul 2 → 200', async () => {
     expect(await evalQuery('100 | mul 2')).toBe(200);
   });
 
-  it('10 | sub(3) → 7', async () => {
+  it('10 | sub 3 → 7', async () => {
     expect(await evalQuery('10 | sub 3')).toBe(7);
   });
 
-  it('10 | add(5) → 15', async () => {
+  it('10 | add 5 → 15', async () => {
     expect(await evalQuery('10 | add 5')).toBe(15);
   });
 
-  it('10 | div(2) → 5', async () => {
+  it('10 | div 2 → 5', async () => {
     expect(await evalQuery('10 | div 2')).toBe(5);
   });
 
@@ -266,9 +266,8 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
   });
 });
 
-describe('eval.mjs — Call node.docs missing (synthetic AST)', async () => {
-  it('lambdas.docs falls back to [] when node has no .docs field', async () => {
-    // Synthetic Call without .docs — hits the `node.docs || []` false arm
+describe('eval.mjs — a Call node built by hand', async () => {
+  it('runs the word it names, its location null', async () => {
     const ast = { type: 'Call', name: 'count', args: [], location: null };
     const runtimeEnv = await langRuntime();
     const state = rootState([1, 2, 3], runtimeEnv);

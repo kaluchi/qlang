@@ -294,15 +294,16 @@ consumes the workspace copy.
 
 ## Outside audit
 
-`node scripts/outside-audit.mjs` runs the outside audit [QSWRK#review] on a
-tree every change of which a commit holds, best on master after a branch
-landed: a clean Opus reads the tree at HEAD from an empty directory, with
-no CLAUDE.md, no memory, no MCP server and no access to the history,
-answers `scripts/outside-audit-prompt.txt`, and its report lands in
-`docs/journal/research/outside-audit/` under its date and tree, where it
-stays while a text in force cites it, the records that took its findings
-among them [QSWRK#baseline]. The session writes its reading beside the
-report, every finding checked by a probe with its fate.
+`node scripts/outside-audit.mjs --for Dnn` runs the outside audit
+[QSWRK#review] the record Dnn calls for, on a tree every change of which a
+commit holds, best on master after a branch landed: a clean Opus reads
+the tree at HEAD from an empty directory, with no CLAUDE.md, no memory,
+no MCP server and no access to the history, answers
+`scripts/outside-audit-prompt.txt`, and its report lands as
+`docs/journal/research/outside-audit/<Dnn>~<k>.md`, the run held under
+`Runs.` of the record, why it ran given by `--why` [QSWRK#baseline]. The
+session writes its reading beside the report, `<Dnn>~<k>~reading.md`,
+every finding checked by a probe with its fate.
 
 ## Check of the chapters
 

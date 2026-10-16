@@ -282,23 +282,22 @@ function sectionsOfChapter(text) {
 
 // The documents of the research that stay while something in force holds
 // them [QSWRK#baseline]. A report a record called for, a critique of an open
-// record, a review of the work a record did or a check of the chapters, is
-// named after that record and numbered in the order it ran, as the runs of
-// the benchmark are, `design-check/D329~2.md`, `reviews/D324~3.md` and the
-// folder of the readers of a check, `spec-check/D323~1/`, and stands with the
-// session's reading beside it, `D329~2~reading.md` or the `reading.md` of the
-// folder, the two one unit held while that record is in force or a text in
-// force cites it. A report no record called for, a review of a branch,
+// record, a review of the work a record did, an outside audit or a check of
+// the chapters, is named after that record and numbered in the order it
+// ran, as the runs of the benchmark are, `design-check/D329~2.md`,
+// `reviews/D324~3.md`, `outside-audit/D327~1.md` and the folder of the
+// readers of a check, `spec-check/D323~1/`, and stands with the session's
+// reading beside it, `D329~2~reading.md` or the `reading.md` of the folder,
+// the two one unit held while that record is in force or a text in force
+// cites it. A review of a branch, which no record called for,
 // `reviews/2026-10-13-the-path-is-a-value.md`, the fate of each finding below
-// it, and an outside audit after a branch landed with its reading,
-// `outside-audit/2026-10-15-32fc3a2e`, is a unit a text in force holds by
-// citing it; a folder of any other research, a design with its runs, is one
-// unit, held by a citation of any of it [QSWRK#review], and the README of a
-// folder says what the folder holds and holds none of it.
+// it, is a unit a text in force holds by citing it; a folder of any other
+// research, a design with its runs, is one unit, held by a citation of any
+// of it [QSWRK#review], and the README of a folder says what the folder holds
+// and holds none of it.
 const RESEARCH_DOCUMENT = new RegExp(`^${RESEARCH}/[^/]+/.+`);
 const REPORTS = new RegExp(`^${RESEARCH}/reviews/`);
-const OF_A_RECORD = new RegExp(`^${RESEARCH}/(?:(?:design-check|reviews)/(D\\d+)~\\d+(?=(?:~reading)?\\.md$)|spec-check/(D\\d+)~\\d+(?=/))`);
-const AUDIT = new RegExp(`^${RESEARCH}/outside-audit/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+(?=(?:-reading)?\\.md$)`);
+const OF_A_RECORD = new RegExp(`^${RESEARCH}/(?:(?:design-check|reviews|outside-audit)/(D\\d+)~\\d+(?=(?:~reading)?\\.md$)|spec-check/(D\\d+)~\\d+(?=/))`);
 export const isReadme = path => /(^|\/)README\.md$/.test(path);
 
 // recordHolding(repoRoot, path) → the record in force a report is named
@@ -318,13 +317,11 @@ export function textsInForce(repoRoot) {
 
 // unitOf(path) → what a citation must name to hold the document: a report
 // a record called for by its folder and the name it shares with its
-// reading, `design-check/D329~2` or `spec-check/D323~1`, an outside audit
-// by its folder and the name it shares with its reading,
-// `outside-audit/2026-10-15-32fc3a2e`, a review of a branch by its folder
-// and name, `reviews/2026-10-10-vec-set-map.md`, any other research by its
-// folder, `research/legend/`.
+// reading, `design-check/D329~2` or `spec-check/D323~1`, a review of a
+// branch by its folder and name, `reviews/2026-10-10-vec-set-map.md`, any
+// other research by its folder, `research/legend/`.
 export const unitOf = path => {
-  const named = OF_A_RECORD.exec(path) ?? AUDIT.exec(path);
+  const named = OF_A_RECORD.exec(path);
   if (named !== null) return named[0].split('/').slice(-2).join('/');
   return REPORTS.test(path) ? path.split('/').slice(-2).join('/') : `${path.slice(JOURNAL.length + 1).split('/').slice(0, 2).join('/')}/`;
 };
@@ -342,17 +339,14 @@ export function uncitedDocuments(repoRoot) {
 
 // reportsWithoutReading(repoRoot) → each report of the research that stands
 // without the session's reading beside it [QSWRK#review]: a report a record
-// called for, `design-check/D329~2.md` without `D329~2~reading.md`, a run of
-// the check of the chapters without its `reading.md`, and an outside audit
-// without its `-reading.md`.
+// called for, `design-check/D329~2.md` without `D329~2~reading.md`, and a
+// run of the check of the chapters without its `reading.md`.
 export function reportsWithoutReading(repoRoot) {
   const tracked = new Set(git(repoRoot, 'ls-files', RESEARCH).split('\n').filter(Boolean));
   const missing = [];
   for (const path of tracked) {
-    const ofARecord = /^(.+\/(?:design-check|reviews)\/D\d+~\d+)\.md$/.exec(path);
+    const ofARecord = /^(.+\/(?:design-check|reviews|outside-audit)\/D\d+~\d+)\.md$/.exec(path);
     if (ofARecord !== null && !tracked.has(`${ofARecord[1]}~reading.md`)) missing.push({ path, reading: `${ofARecord[1]}~reading.md` });
-    const audit = /^(.+\/outside-audit\/\d{4}-\d{2}-\d{2}-[0-9a-f]+)\.md$/.exec(path);
-    if (audit !== null && !tracked.has(`${audit[1]}-reading.md`)) missing.push({ path, reading: `${audit[1]}-reading.md` });
   }
   const runs = new Set([...tracked].map(path => /^(.+\/spec-check\/[^/]+)\//.exec(path)?.[1]).filter(Boolean));
   for (const run of runs) if (!tracked.has(`${run}/reading.md`)) missing.push({ path: `${run}/`, reading: `${run}/reading.md` });

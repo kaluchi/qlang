@@ -24,20 +24,18 @@ A folder for each kind of report, told by what calls a report into being:
   Dnn`: a folder for each run named after the record, `D323~1/`, a report
   for each group of chapters and the reading `reading.md`.
 - `outside-audit/`: an outside audit of the tree by a clean reader with no
-  instructions, which the landing of a branch calls for,
-  `node scripts/outside-audit.mjs`, `<date>-<tree>.md` with
-  `<date>-<tree>-reading.md`.
+  instructions, which a record calls for,
+  `node scripts/outside-audit.mjs --for Dnn`, `D327~1.md` with
+  `D327~1~reading.md`.
 
 A report named after a record stays while that record is in force or a
 text in force cites it, and leaves with the record at the move of the
-baseline; a report no record called for, a review of a branch or an
-outside audit, stays while a text in force cites it, the records that
-took its findings among them. `node scripts/drop-documents.mjs` drops the
-rest at the move and prints the fates that say open, each to be carried
-into an open record of its axis [QSWRK#baseline]. A report that left is
-read in the history, at the commit the record that held it left at,
-`git show <commit>:<path>`, and its probes run again on the tree its first
-line names.
+baseline; a review of a branch, which no record calls for, stays while a
+text in force cites it. `node scripts/drop-documents.mjs` drops the rest
+at the move and prints the fates that say open, each to be carried into
+an open record of its axis [QSWRK#baseline]. A report that left is read
+in the history, `git show <commit>:<path>` at a commit that held it, and
+its probes run again on the tree its head names.
 
 [QSWRK#baseline]: ../../spec/QSWRK-the-work.md#baseline
 [QSWRK#documents]: ../../spec/QSWRK-the-work.md#documents

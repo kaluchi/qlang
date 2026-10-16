@@ -1,7 +1,5 @@
-// A tagged vector whose tag the environment does not declare, one a
-// host built with makeTagged, keeps its tag through a verb that
-// returns its subject [QSBLD#input]. Only JavaScript builds such a value, so
-// the tests inspect the answer directly.
+// A vector under a tag nothing declares keeps its tag through a word whose
+// answer is its subject's kind, `take` among them [QSDSP#answer].
 
 import { describe, it, expect } from 'vitest';
 import { evalAst } from '../../src/eval.mjs';

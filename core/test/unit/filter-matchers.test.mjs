@@ -13,9 +13,9 @@ import {
   expectOriginalError
 } from '../helpers/error-assertions.mjs';
 
-// ── Polymorphic filter over Vec/Set/Map ───────────────────────
+// ── filter over a vector, a set and a map ──────────────────────
 
-describe('filter — container polymorphism', () => {
+describe('filter — one word serves a vector, a set and a map', () => {
   it('Vec element predicate filters through subject-first comparator', async () => {
     expect(await evalQuery('[1 2 3 4 5] | filter ~(gt 2)')).toEqual([3, 4, 5]);
   });
@@ -112,9 +112,9 @@ describe('filter — container polymorphism', () => {
   });
 });
 
-// ── Polymorphic every over Vec/Set/Map ────────────────────────
+// ── every over a vector, a set and a map ───────────────────────
 
-describe('every — container polymorphism', () => {
+describe('every — one word serves a vector, a set and a map', () => {
   it('Vec all-match', async () => {
     expect(await evalQuery('[2 4 6] | every ~(gt 0)')).toBe(true);
   });
@@ -164,9 +164,9 @@ describe('every — container polymorphism', () => {
   });
 });
 
-// ── Polymorphic any over Vec/Set/Map ──────────────────────────
+// ── any over a vector, a set and a map ─────────────────────────
 
-describe('any — container polymorphism', () => {
+describe('any — one word serves a vector, a set and a map', () => {
   it('Vec one-matches', async () => {
     expect(await evalQuery('[1 2 3] | any ~(gt 2)')).toBe(true);
   });
@@ -268,7 +268,7 @@ describe('the kind of a value read by `type | eq ::kind`', () => {
 // ── Integration — filter with type classifiers over Map ──────
 
 describe('filter + type classifiers integration', () => {
-  it('filter(type | eq(:string)) over Map keeps only String-valued entries', async () => {
+  it('filter ~(type | eq ::string) over a map keeps the entries whose value is a string', async () => {
     const mapResult = await evalQuery(
       '{:ID "SGML" :GlossTerm "..." :GlossDef {:para "..."} :Count 42} | filter ~(type | eq ::string)'
     );
@@ -280,7 +280,7 @@ describe('filter + type classifiers integration', () => {
     expect(mapResult.has('Count')).toBe(false);
   });
 
-  it('filter(type | eq(:map)) over Map keeps only Map-valued entries', async () => {
+  it('filter ~(type | eq ::map) over a map keeps the entries whose value is a map', async () => {
     const mapResult = await evalQuery(
       '{:ID "SGML" :GlossDef {:para "..."}} | filter ~(type | eq ::map)'
     );

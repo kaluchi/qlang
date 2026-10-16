@@ -235,11 +235,11 @@ describe('source on a word, a declaration of it and a tag', () => {
 });
 
 describe('runtime/control.mjs if and coalesce', () => {
-  it('if with cond truthy runs the then branch', async () => {
+  it('if runs the then branch when its condition holds', async () => {
     expect(await evalQuery('75 | if (gte 60) ~("pass") ~("fail")')).toBe('pass');
   });
 
-  it('if with cond falsy runs the else branch', async () => {
+  it('if runs the else branch when its condition fails', async () => {
     expect(await evalQuery('5 | if (gte 60) ~("pass") ~("fail")')).toBe('fail');
   });
 
@@ -247,21 +247,21 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:no "data"} | if null ~("yes") ~("no") !| type')).toEqual(makeTag('any/if/condition/KindNotTakenError'));
   });
 
-  it('if treats false literal as falsy', async () => {
+  it('if runs the else branch when its condition is the literal `false`', async () => {
     expect(await evalQuery('0 | if false ~("yes") ~("no")')).toBe('no');
   });
 
-  it('if treats 0 as truthy', async () => {
+  it('if computes its condition against the subject, `eq 0` failing on five', async () => {
     expect(await evalQuery('5 | if (eq 0) ~("zero") ~("non")')).toBe('non');
   });
 
   it('if only the selected branch runs (else branch never evaluates)', async () => {
-    // The else branch contains div(0), which would break the law of the
-    // divisor if evaluated. The cond is truthy so the else branch is skipped.
+    // The condition holds, so the else branch, `div 0`, a division by zero
+    // the divisor refuses, never runs.
     expect(await evalQuery('10 | if (gt 0) ~("positive") ~(div 0)')).toBe('positive');
   });
 
-  it('if branches re-project from pipeValue, not from cond result', async () => {
+  it('if runs the chosen branch against the subject', async () => {
     expect(await evalQuery('{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary')).toBe(110);
   });
 
@@ -290,7 +290,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('coalesce short-circuits after first non-null (does not evaluate later alts)', async () => {
-    // div(0) would raise; coalesce never reaches it because /a is non-null
+    // The walk ends at `/a`, a value, so `div 0` never runs.
     expect(await evalQuery('{:a 1} | coalesce /a ~(div 0)')).toBe(1);
   });
 

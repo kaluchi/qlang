@@ -37,7 +37,7 @@ describe('BootstrapSourceMissingError', () => {
 describe('a source of the language the parser refuses', () => {
   it('raises its parse error, which names the source', async () => {
     let thrown = null;
-    try { await buildLangRuntime(async () => ({ source: ':unclosed (mul(2)' })); } catch (caught) { thrown = caught; }
+    try { await buildLangRuntime(async () => ({ source: ':unclosed (mul 2' })); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(ParseError);
     expect(thrown.uri).toBe('qlang/builtin');
   });

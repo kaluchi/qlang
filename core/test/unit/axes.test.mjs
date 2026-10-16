@@ -73,7 +73,7 @@ describe('::name | source returns the BindStep source as Quote', () => {
   });
 });
 
-describe('::name | doc returns the page its attached prefixes make', () => {
+describe('::name | doc returns the page the docs of its slot make', () => {
   it('::vec/count | doc returns a page', async () => {
     const result = await evalQuery('::vec/count | doc | type');
     expect(result).toEqual(makeTag('doc'));
@@ -127,7 +127,7 @@ describe('the axes read the node a tag addresses', () => {
     expect(printQuoteSource(result).startsWith(':quote')).toBe(true);
   });
 
-  it('::quote | doc returns the attached Doc-prefix on the type BindStep', async () => {
+  it('::quote | doc returns the page in the slot of the declaration of the kind', async () => {
     const result = await evalQuery('::quote | doc | content');
     expect(typeof result).toBe('string');
     expect(result).toContain('code held as a value');

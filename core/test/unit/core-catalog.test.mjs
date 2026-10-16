@@ -41,7 +41,7 @@ describe('the verbs of the language reach their primitives', () => {
 
 describe('the pages of the language read through `doc`', () => {
 
-  it('spot-check — ::vec/count docs mention polymorphic and container kinds', async () => {
+  it('spot-check — the page of ::vec/count tells the number of elements it answers', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const { docText } = await import('../../src/quote.mjs');
     const joined = docText(await evalQuery('::vec/count | doc'));

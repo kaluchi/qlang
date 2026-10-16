@@ -264,10 +264,9 @@ describe('error-convert coercion edge cases', () => {
   });
 
   it('actualValue distinct from the subject is preserved on lift (drill-down signal)', async () => {
-    // Drill-down case (multi-segment path, element iteration,
-    // full-application captured-arg): actualValue is a different
-    // reference. Lift proceeds so the presence-of-actualValue
-    // surfaces «look here for the offending sub-value».
+    // A value refused that is not the subject, a part a path of several keys
+    // reads, an element or the value of an input, stays among the facts as
+    // `:actualValue` [QSERR#site].
     const container = [1, 'x', 3];
     const drilled = 'x';
     const typeErr = new TestsProbeTypeError({ actualValue: drilled, index: 1 });

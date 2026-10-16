@@ -120,7 +120,7 @@ describe('eval — Map and path', () => {
   });
 });
 
-describe('eval — full application of mul', () => {
+describe('eval — a word that combines two fields of one record', () => {
   it('mulOf multiplies two fields of one record', async () => {
     expect(await evalQuery('{:price 100 :qty 3} | mulOf /price /qty')).toBe(300);
   });

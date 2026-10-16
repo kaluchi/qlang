@@ -634,7 +634,7 @@ describe('parse.mjs — input guards and ParseError shape', () => {
   });
 });
 
-describe('parser doc-comment attachment Vec semantics', () => {
+describe('parse — the docs in the slot of a declaration, one doc each, and a comment between steps', () => {
   it('attaches one entry per doc comment, not concatenated', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const docsResult = await evalQuery(

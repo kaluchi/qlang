@@ -7,7 +7,7 @@ import { makeTag, formOf } from '../../src/types.mjs';
 import { docText } from '../../src/quote.mjs';
 
 describe('BindStep — docs-only form', () => {
-  it('binds a Doc-value when the prefix is the only attached content', async () => {
+  it('a name declared by its page alone holds the page, a doc', async () => {
     const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | type');
     expect(result).toEqual(makeTag('doc'));
   });

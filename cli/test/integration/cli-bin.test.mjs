@@ -60,7 +60,7 @@ describe('CLI: --version', () => {
 });
 
 describe('CLI: script mode — query argument', () => {
-  it('evaluates `42 | mul(2)` and writes `84`', async () => {
+  it('evaluates `42 | mul 2` and writes `84`', async () => {
     const { stdout, exitCode } = await runCli(['42 | mul 2'], { stdin: '' });
     expect(exitCode).toBe(0);
     expect(stdout.trim()).toBe('84');

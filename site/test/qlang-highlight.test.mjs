@@ -78,16 +78,16 @@ describe('the words of the language', () => {
   });
 });
 
-// ── Projections ───────────────────────────────────────────────
+// ── Paths ──────────────────────────────────────────────────────
 
-describe('projections', () => {
+describe('paths', () => {
   it('renders slash as punct and field as word', () => {
     const out = hl('/name');
     expect(out).toContain('<span class="punct">/</span>');
     expect(out).toContain('<span class="word">name</span>');
   });
 
-  it('renders nested projection correctly', () => {
+  it('renders a path at depth, each key a word after its slash', () => {
     const out = hl('/a/b');
     expect(out.match(/<span class="word">/g)).toHaveLength(2);
     expect(out.match(new RegExp('<span class="punct">/</span>', 'g'))).toHaveLength(2);

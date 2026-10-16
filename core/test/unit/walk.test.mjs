@@ -98,7 +98,7 @@ describe('walkAst', () => {
       if (node.type === 'VecLit') return false;
     });
     // Inside VecLit we should not have descended.
-    expect(visited.filter(t => t === 'NumberLit')).toHaveLength(1); // only the 3 in add(3)
+    expect(visited.filter(t => t === 'NumberLit')).toHaveLength(1); // only the 3 in add 3
   });
 
   it('passes the parent to the visitor', () => {
@@ -150,7 +150,7 @@ describe('findAstNodeAtOffset', () => {
     const source = '[1 2 3] | filter ~(gt 2)';
     //              0123456789012345678901234
     //                       111111111122222
-    // offset 19 lands inside `gt(2)` which is the narrowest
+    // offset 19 lands inside `gt 2` which is the narrowest
     const ast = parse(source);
     const node = findAstNodeAtOffset(ast, 19);
     expect(node).not.toBeNull();
@@ -265,7 +265,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 
   it('a non-binding Pipeline step does not contribute names', () => {
-    // `mul(2)` is a call, not a BindStep; the
+    // `mul 2` is a call, not a BindStep; the
     // binding-name walker skips it. With no binders in scope at the
     // cursor, the visible set stays empty.
     const source = '42 | mul 2 | here';

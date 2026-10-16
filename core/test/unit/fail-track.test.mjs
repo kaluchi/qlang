@@ -1,6 +1,7 @@
-// Tests of `raise` and the `!|` fail-apply combinator, plus edge cases around
-// trail accumulation, re-lift continuity, and verb invocation on the
-// fail-track.
+// `raise`, and the catch, `!|`, which passes a value by and runs its step on
+// the error at rest, a group and a word among them; the trail of the steps a
+// failure skips, and the refusals of the runtime, each under the address of
+// its site [QSERR#raise], [QSERR#catch], [QSERR#site].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -11,12 +12,12 @@ import { catchOriginalError } from '../helpers/error-assertions.mjs';
 // ── raise ──────────────────────────────────────────────
 
 describe('raise', () => {
-  it('bare form wraps pipeValue Map', async () => {
+  it('raises its subject, a map, its entries the facts', async () => {
     const evalResult = await evalQuery('{:kind :oops} | raise !| get /kind');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('bare form on non-Map produces RaiseSubjectNotMapError', async () => {
+  it('refuses a subject that is no map as ::map/raise/SubjectNotMapError', async () => {
     const evalResult = await evalQuery('42 | raise !| type');
     expect(evalResult).toEqual(makeTag('map/raise/SubjectNotMapError'));
   });
@@ -27,15 +28,15 @@ describe('raise', () => {
   });
 });
 
-// ── fail-apply deflect on non-error pipeValue ──────────────────
+// ── `!|` passes a value by ──────────────────────────────────────
 
-describe('fail-apply deflect on non-error', () => {
-  it('null deflects through !|', async () => {
+describe('`!|` passes a value by', () => {
+  it('passes null by', async () => {
     const evalResult = await evalQuery('null !| get /kind');
     expect(evalResult).toBeNull();
   });
 
-  it('Map deflects through !|', async () => {
+  it('passes a map by', async () => {
     const evalResult = await evalQuery('{:a 1} !| get /kind');
     expect(evalResult instanceof Map).toBe(true);
     expect(evalResult.get('a')).toBe(1);
@@ -45,7 +46,7 @@ describe('fail-apply deflect on non-error', () => {
 // ── fail-track dispatch through containers ─────────────────────
 
 describe('fail-track dispatch through ParenGroup and verb', () => {
-  it('fail-apply fires into a ParenGroup step', async () => {
+  it('`!|` runs a group on the error at rest', async () => {
     const evalResult = await evalQuery('!{:kind :oops} | raise !| (get /kind)');
     expect(evalResult).toEqual(keyword('oops'));
   });
@@ -55,7 +56,7 @@ describe('fail-track dispatch through ParenGroup and verb', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('plain comment between a deflecting step and a fail-apply step stays out of the trail', async () => {
+  it('a plain comment among the steps a failure skips leaves no step in the trail', async () => {
     // The last frame of the trail holds the steps the error skipped.
     // `evalPipeline` steps over plain comments on both tracks, so only
     // the step that calls a word (`count`) joins them [QSERR#rest].
@@ -90,7 +91,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
     expect(await evalQuery('~(:x !{:a 1}) | parse')).toBe(':x !{:a 1}');
   });
 
-  it('renders leading fail-apply prefix in a declaration body', async () => {
+  it('renders a group that opens with `!|` as the body of a declaration', async () => {
     // BindStep body is a single Primary, so a `!|` leading
     // Pipeline-step is wrapped in a ParenGroup at the source level,
     // and the group keeps its parentheses in print.
@@ -172,9 +173,8 @@ describe('per-site error classes carry unique identity', () => {
   });
 
   it('apply args to non-function → CallValueTakesNoModifiersError', async () => {
-    // Freeze a raw value, not a verb. Its record holds a
-    // non-function, so captured args trigger CallValueTakesNoModifiersError on
-    // the value the record holds.
+    // A name that holds a value, called with modifiers, is refused as
+    // `::call/ValueTakesNoModifiersError` [QSNAM#value].
     const refused = await evalQuery('5 | :five it | five 42');
     expect(refused.originalError.name).toBe('ValueTakesNoModifiersError');
     expect(refused.descriptor.get('name').name).toBe('five');

@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 
-describe('doc-prefix inside MapEntry literal is a parse error', () => {
+describe('a doc before the key of a map entry is a parse error', () => {
   it('rejects a doc-comment ahead of a MapEntry key', () => {
     expect(() => parse('{|~~ doc ~~| :k 1}')).toThrow();
   });

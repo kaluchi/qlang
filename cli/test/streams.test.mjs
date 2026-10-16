@@ -55,7 +55,7 @@ describe('out — the subject, written when it is a string', () => {
 });
 
 describe('out — the text the call gives, computed against the subject', () => {
-  it('runs the renderer against pipeValue and writes its String result', async () => {
+  it('writes the text the call gives, computed against the subject, and answers the subject', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out print', io);
     expect(cellEntry.error).toBeNull();
@@ -72,7 +72,7 @@ describe('out — the text the call gives, computed against the subject', () => 
     });
   });
 
-  it('answers the error its renderer answers, as every modifier of a verb does', async () => {
+  it('answers the error its text answers, as every modifier of a verb does', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
@@ -102,7 +102,7 @@ describe('err — the subject, written when it is a string', () => {
 });
 
 describe('err — the text the call gives, computed against the subject', () => {
-  it('runs the renderer and writes the result to stderr', async () => {
+  it('writes the text the call gives, computed against the subject, to stderr', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err print', io);
     expect(cellEntry.error).toBeNull();

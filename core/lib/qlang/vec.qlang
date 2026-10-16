@@ -1250,6 +1250,10 @@
             `take 2`, and the first alone is `first`.
         ~~|
     | returns |~~ The first elements, as many as the count. ~~| ::vec
+    | throws :ArgsBeyondInputsError
+        |~~ `take` takes one count: the two elements after the first are
+            `drop 1 | take 2`.
+        ~~|
     | proves :takesTheFirst
         |~~ Three of five are the first three. ~~|
         ~([1 2 3 4 5] | take 3 | eq [1 2 3])
@@ -1282,6 +1286,9 @@
     | proves :count/NotGivenError/refusesACallWithNoCount
         |~~ A call with no count is refused under the input. ~~|
         ~(#[:a :b] | take !| type | eq ::vec/take/count/NotGivenError)
+    | proves :ArgsBeyondInputsError/refusesTwoCounts
+        |~~ A call with two counts is refused under the word. ~~|
+        ~(#[:a :b] | take 1 2 !| type | eq ::vec/take/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :vec/drop

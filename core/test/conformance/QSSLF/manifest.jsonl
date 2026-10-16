@@ -4,7 +4,7 @@
 {"name":"manifest-reads-the-kind-of-a-value","query":"5 | manifest | eq (::number | manifest)","expect":"true"}
 {"name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | get [~(manifest | has ::vec/count) ~(doc :count | eq (::vec/count | doc))]","expect":"[true true]"}
 {"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | manifest | has ::string/gt","expect":"true"}
-{"name":"each-kind-declares-the-inputs-and-the-answer-of-its-word","query":"get [~(::vec/take | manifest) ~(::string/take | manifest)]","expect":"[#[::vec/take/answer ::vec/take/count] #[::string/take/answer ::string/take/count]]"}
+{"decision":"D355","name":"each-kind-declares-the-inputs-and-the-answer-of-its-word","query":"get [~(::vec/take | manifest) ~(::string/take | manifest)]","expect":"[#[::vec/take/ArgsBeyondInputsError ::vec/take/answer ::vec/take/count] #[::string/take/answer ::string/take/count]]"}
 {"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true"}
 {"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::any | manifest | has ::any/doc","expect":"true"}
 {"name":"manifest-is-asked-of-a-noun","query":"::vec | manifest | filter ~(eq ::vec/count) | count","expect":"1"}

@@ -359,10 +359,9 @@ export function declareHostValue(value, impl) {
 // another shape is refused where the error is made.
 export const ErrorTrailNotFramesError = declareRefusal('error/TrailNotFramesError');
 
-// A trail is a vector of frames under `::trail`, and a frame a vector under
-// `::frame` of the subject a step met, the quote of the steps of its level
-// from the one that broke and, where the step ran its code on a part of its
-// subject, the path of that part [D337].
+// A trail is a vector of frames under `::trail`, a frame the vector of the
+// subject a step met, the quote of the steps from the one that broke and the
+// path of the part a word's code broke on, where one did [D337].
 export const TRAIL_TAG = makeTag('trail');
 export const FRAME_TAG = makeTag('frame');
 
@@ -383,9 +382,8 @@ export function makeTrail(frames) {
 }
 
 // An error holds the facts of its site and, once a step raised it or
-// handed it on, its path, `:trail`, frames written plain or under
-// `::trail`, which it holds under `::trail`; one whose path is empty holds
-// no `:trail` [D337].
+// handed it on, its path, `:trail`, frames it holds under `::trail`; one
+// whose path is empty holds no `:trail` [D337].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   let finalDescriptor = descriptor;
   if (descriptor.has('trail')) {

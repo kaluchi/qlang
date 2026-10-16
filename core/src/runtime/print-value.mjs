@@ -104,8 +104,7 @@ function printFallback(v) {
 
 // A vector or a set stands on one line unless a part takes several, and
 // then each part stands on a line of its own, as each frame of a trail of
-// two or more does, the path a failure flew read from where it arose
-// outward [D337].
+// two or more does [D337].
 function printListLike(open, elements, indent, printedOf, stacked = false) {
   const rendered = elements.map(el => printValue(el, indent + 1, printedOf));
   if (!stacked && !rendered.some(s => s.includes('\n'))) return `${open}${rendered.join(' ')}]`;

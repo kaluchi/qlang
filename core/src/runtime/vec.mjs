@@ -22,8 +22,6 @@ const DESC_TAG = makeTag('desc');
 const indexed = sequence => [...sequence].map((element, index) => [{ index }, element]);
 const keyed = map => [...map].map(([key, value]) => [{ key: keyword(key) }, value]);
 
-// The failure a word's code answered on the element at a place, its index or
-// its key, which the frame of the word names by its path [D337].
 const brokeAt = (error, segment) => atPlace(error, makePath([String(segment)]));
 const placeOf = place => place.index ?? place.key.name;
 

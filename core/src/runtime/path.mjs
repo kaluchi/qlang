@@ -77,8 +77,7 @@ bindStateReader('any/query', runsWithin(['path'], (subject, object, fallback, st
 // place it takes moving up. The path is followed as `get` follows it, and
 // every container on the way is built again and laid under the tags it
 // stood under, their constructors and invariants run, as `within` lays
-// its answer; an error the code answers is the answer, at the path of the
-// part [D337].
+// its answer; an error the code answers is the answer, at its path [D337].
 async function written(value, path, at, write, state) {
   if (isValueClass(value, 'taggedInstance')) return await relaid(value, await written(value.payload, path, at, write, state), state);
   const segment = path.segments[at];

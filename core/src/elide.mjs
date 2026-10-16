@@ -15,10 +15,9 @@
 //
 // A failure a host prints is an alert [D337]: its tag and its facts, the data
 // it carries cut to what places the failure. The subject of the first frame
-// of its trail, where the failure arose, and every other fact print within
-// an excerpt each; the subject of every later frame, which the failure only
-// passed, gives way whole, and a frame keeps its steps and its place. Every
-// `:read` reads its part beneath `!|`.
+// of its trail, where the failure arose, and every other fact print within an
+// excerpt each; the subject of every later frame, which the failure only
+// passed, gives way whole. Every `:read` reads its part beneath `!|`.
 //
 //   elide(value, budget, printedOf?) → the value within the budget
 //   alertOf(error, printedOf?) → the error as an alert

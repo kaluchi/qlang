@@ -1,11 +1,8 @@
 // The path of a failure, written in flight: a failure lives in the pipe
 // alone [QSERR#catch], and its `:trail` holds a frame at every step that
 // raised it or handed it on, from the step where it arose to the `!|` that
-// catches it: the subject the step met, the quote of the steps of its level
-// from the one that broke, a step the failure skips joining them, and, where
-// the step ran its code on a part of its subject, the path of that part
-// [D337]. The helpers build a new error for every change; none re-enters the
-// evaluator.
+// catches it, a step it skips joining the steps of the last [D337]. The
+// helpers build a new error for every change; none re-enters the evaluator.
 //
 //   `answerOfStep(answer, stepQuoteOf, subject)` — the answer of a step of
 //     a pipeline: a failure its subject was not passes a frame there,
@@ -14,8 +11,7 @@
 //     literal answers: a refusal the part's constructor raised passes a
 //     frame at the part, and one handed on from inside it goes on as it is.
 //   `skipping(error, skippedStep)` — the failure that skipped a step.
-//   `atPlace(error, place)` — marks the failure a word's code answered on a
-//     part of its subject, at the path of that part.
+//   `atPlace(error, place)` — marks a failure at the part a word's code broke on.
 //   `resumingItsTrail(error)` — marks a failure `raise` made of a map
 //     that wrote a path.
 //   `raisedBy(error, node)` — marks the failure a node's own fault raised.

@@ -1129,9 +1129,6 @@
         ~(:limit |~~ The cap. ~~| 5
           | get [~(:limit | doc) ~(::limit | doc | content)]
           | eq (get [~(::keyword | doc) " The cap. "]))
-    | proves :readsNoKindFromAField
-        |~~ A map reads the page of maps, whatever its `:kind` says. ~~|
-        ~({:kind ::set} | doc | eq (::map | doc))
     | proves :readsAMemberByAnAnchor
         |~~ An anchor reads the page of a member. ~~|
         ~(::map | doc :minus | eq (::map/minus | doc))
@@ -1450,21 +1447,21 @@
     | impl ~(:subject it | doc | get [~(it) ~(subject | laws)])
 
 :any/tag
-  |~~ Answers the subject under the name the call gives, a tag name:
-      `5 | tag ::Box` answers `::Box#5`, a value minted at run time as
-      the literal `::Box#5` mints it where it is written, its type the
-      tag and its payload the subject. Given no name, it reads the pair
-      `get [~(type) ~(payload)]` answers, `[::Box 5] | tag`, so a value split tags
-      back into itself. A tag of a kind mints through the kind:
-      `5 | tag ::number` answers `5`, a payload the kind refuses is
-      refused, `"5" | tag ::number`, and a kind the reader declares
-      holds its invariants. A tag over a tagged value nests it, a label
-      over a value already under it standing once, `::Lab::Lab[1]`
-      reading `::Lab[1]`, but for `::desc`, whose reversals stack;
-      replacing the tag goes through the payload,
-      `payload | tag ::Crate`. A tag over an error at rest names its
-      site, `[::Late !{:by 3}] | tag` answering `::Late!{:by 3}`, and
-      `raise` raises it under that tag.
+  |~~ Answers the subject under the name the call gives, a tag name,
+      laying the tag over the subject through its constructor as the
+      literal does where it is written: `5 | tag ::Box` answers
+      `::Box#5`, its type the tag and its payload the subject. Given no
+      name, it reads the pair `get [~(type) ~(payload)]` answers,
+      `[::Box 5] | tag`, so a value split tags back into itself. A tag of
+      a kind is laid through the kind: `5 | tag ::number` answers `5`, a
+      payload the kind refuses is refused, `"5" | tag ::number`, and a
+      kind the reader declares holds its invariants. A tag over a tagged
+      value nests it, a label over a value already under it standing
+      once, `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` reading `::Lab[1]`, but
+      for `::desc`, whose reversals stack; replacing the tag goes through
+      the payload, `payload | tag ::Crate`. A tag over an error at rest
+      names its site, `[::Late !{:by 3}] | tag` answering
+      `::Late!{:by 3}`, and `raise` raises it under that tag.
       The call takes one name; a keyword, `:box`, names a field and no
       kind.
       ::link~(::any/type | doc) ::link~(::tagged/payload | doc)
@@ -1507,7 +1504,7 @@
     | proves :tagsASplitBack
         |~~ A split value tags back into itself. ~~|
         ~(:Box |~~ A box. ~~| | ::Box[1 2 3] | get [~(type) ~(payload)] | tag | eq ::Box[1 2 3])
-    | proves :mintsThroughTheKind
+    | proves :laysThroughTheKind
         |~~ A tag of a kind of the core reads the payload as the kind. ~~|
         ~(5 | tag ::number | eq 5)
     | proves :refusesAPayloadTheKindRefuses
@@ -2010,8 +2007,8 @@
       several kinds, it answers whether the subject is of one of them,
       and given none, false. A kind no tag of the walk names is not
       reached, so a misspelt kind, `is ::Numbr`, answers false and is
-      not refused. It answers and holds nothing: an input of a word is
-      held to its kinds by the `takes` that declares it.
+      not refused. An input of a word is held to its kinds by the `takes`
+      that declares it.
       ::link~(::any/type | doc) ::link~(::any/tag | doc)
       ::link~(::fn/takes | doc)
   ~~|

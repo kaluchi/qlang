@@ -327,7 +327,7 @@ bindPrim('set/indexBy', runs(['key'], (set, key) => indexOf(set, key, SetIndexBy
 
 // ── slices and lookup ──────────────────────────────────────────
 
-// A count is a whole number by the invariant of its part [QSERR#site]; a
+// A count is a whole number by the invariant of its input [QSERR#site]; a
 // negative one clamps to 0, the same graceful out-of-range handling an
 // over-length one gets (`take 99` → the whole container).
 bindPrim('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));
@@ -358,7 +358,7 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 
 // ── the fold ───────────────────────────────────────────────────
 
-// `reduce seed ~(reducer)` — the universal left-fold: a quote of one word is
+// The fold, `reduce seed ~(reducer)`: a quote of one word is
 // the word called as the pipe calls it, `acc | add element`, the element the
 // first of its args [QSCOL#reduce]; any other code runs on the pair of the
 // value so far and the element, and its answer is the value so far after it

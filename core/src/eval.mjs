@@ -224,8 +224,7 @@ async function entryValues(entries, state) {
 // set's: `!{…}` is `::error{…}`, an error at rest, and `::Foo!{…}` is
 // `::Foo::error{…}`, laid through the label of its tag as a tagged literal
 // lays a payload, a refusal of the label answering for the literal; every
-// entry is a fact, `:kind` among them, and `raise` raises the error
-// [QSERR#rest].
+// entry is a fact, and `raise` raises the error [QSERR#rest].
 async function evalErrorLit(node, state) {
   const facts = await entryValues(node.entries, state);
   if (isErrorValue(facts)) return withPipeValue(state, facts);

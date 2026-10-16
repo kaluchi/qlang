@@ -3,8 +3,8 @@
    word of vectors serves a vector under any tag, a quote and a doc
    among them, and a set where the set has no word of its own; a word
    whose answer names the vector answers under the tags of the subject,
-   and `map`, whose answer is any value, under none. Its parts are read
-   and held to their invariants before the word runs.
+   and `map`, whose answer is any value, under none. The inputs of a word
+   are read and held to their invariants before the word runs.
    The decisions it exists for: [QSDSP#residence]. ~|
 
 :vec
@@ -1363,11 +1363,10 @@
       the pair of the value so far and the element, and what it answers is the value so far after
       that element:
       `[{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (get /1 | get /x))` answers
-      `3`. A failure the reducer answers answers the call. `sum`, `count`,
-      `max` and the builders of structures all factor through it: adding
-      from zero sums, multiplying from one gives the product, appending
-      joins strings and uniting merges sets. A set and a map answer
-      `reduce` by words of their own.
+      `3`. A failure the reducer answers answers the call. Adding from
+      zero sums, multiplying from one gives the product, appending from
+      the empty string joins strings and uniting from the empty set merges
+      sets. A set and a map answer `reduce` by words of their own.
       ::link~(::vec/sum | doc)
   ~~|
   ::fn

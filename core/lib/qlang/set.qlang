@@ -334,7 +334,7 @@
       order, as `last` answers, `#[1 "a" :k] | max` answering `:k`. The
       key is code, a quote run on each element with the element as its
       subject; a value computed at the call in its place is refused under
-      the part. A key under `desc` turns the greatest into the least,
+      the input. A key under `desc` turns the greatest into the least,
       `#[3 1 4] | max ~(desc)` answering `1`. The empty set answers null.
       ::link~(::set/min | doc) ::link~(::set/last | doc)
       ::link~(::vec/max | doc) ::link~(::desc | doc)

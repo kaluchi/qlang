@@ -1148,10 +1148,8 @@
         |~~ The tag the map carries is the tag of the error. ~~|
         ~(::Oops{:message "boom"} | raise !| type | eq ::Oops)
     | proves :keepsEveryEntryAsAFact
-        |~~ Every entry of the map is a fact of the error, a `:kind` among
-            them.
-        ~~|
-        ~({:kind ::Oops} | raise !| get [~(type) /kind] | eq [::error ::Oops])
+        |~~ Every entry of the map is a fact of the error. ~~|
+        ~({:a 1} | raise !| get [~(type) /a] | eq [::error 1])
     | proves :raisesAnOpenedErrorAsItself
         |~~ An error caught and raised again is itself. ~~|
         ~("x" | add 1 !| raise !| type | eq ::number/add/SubjectNotNumberError)
@@ -1175,7 +1173,7 @@
         ~(42 | raise !| get [~(type) /actualType] | eq [::map/raise/SubjectNotMapError ::number])
     | proves :ArgsBeyondInputsError/refusesAMessage
         |~~ A message given to `raise` is refused; the map holds it. ~~|
-        ~({:kind :oops} | raise "boom" !| type | eq ::map/raise/ArgsBeyondInputsError)
+        ~({:a 1} | raise "boom" !| type | eq ::map/raise/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :map/toMap

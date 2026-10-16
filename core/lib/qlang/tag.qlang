@@ -1,6 +1,7 @@
 |~ `::tag`, the kind of a tag name, and what is declared under it: its
-   constructor and its refusal, the comparisons of tag names, and
-   `manifest`.
+   constructor and its refusal, the comparisons of tag names, the words
+   that turn a tag name into a string and a keyword, and `toTag`, which
+   answers the tag itself.
    The decisions it exists for: [QSDSP#residence]. ~|
 
 :tag

@@ -83,8 +83,8 @@ function nodeOfRefused(env, name) {
 }
 
 // The record of the member the subject holds under a name [QSDSP#tagname], or
-// null: the name under the address a tag name writes, a part of the
-// args of a word among them, and otherwise the word the subject's walk
+// null: the name under the address a tag name writes, an input of a word
+// among them, and otherwise the word the subject's walk
 // reaches under the name [QSSLF#page].
 function memberRecordOf(env, subject, memberName) {
   const under = isTag(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;

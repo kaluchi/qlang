@@ -152,16 +152,16 @@
         ~(::error[1] !| type | eq ::error/PayloadKindNotTakenError)
     | proves :TrailNotFramesError/refusesANumberForATrail
         |~~ A number given as a trail is refused. ~~|
-        ~(!{:kind :oops :trail 5} | raise !| get [~(type) /actualType] | eq [::error/TrailNotFramesError ::number])
+        ~(!{:a 1 :trail 5} | raise !| get [~(type) /actualType] | eq [::error/TrailNotFramesError ::number])
     | proves :TrailNotFramesError/refusesATrailLaidOverAFailure
         |~~ A trail of a number laid over an error is refused when it is
             raised.
         ~~|
-        ~(!{:kind :oops} | raise | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotFramesError)
+        ~(!{:a 1} | raise | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotFramesError)
     | proves :TrailNotFramesError/startsATrailAtTheRaise
         |~~ An error raised without a trail starts its trail at the raise.
         ~~|
-        ~(!{:kind :oops} | raise | count !| minus #[:trail] | raise | add 1
+        ~(!{:a 1} | raise | count !| minus #[:trail] | raise | add 1
           !| trail | map ~step | eq [~(raise)])
     | proves :TrailNotFramesError/refusesASetAQuoteAndADoc
         |~~ A set, a quote and a doc are no vector of frames. ~~|

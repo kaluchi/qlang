@@ -1053,7 +1053,7 @@
 
 :string/parse
   |~~ Answers the quote of the steps the source text spells,
-      `"add 1 2" | parse` answering `~(add 1 2)`, the reverse of `parse`
+      `"add 1" | parse` answering `~(add 1)`, the reverse of `parse`
       on a quote, which answers its text; the empty text spells the empty
       quote. `apply` runs the quote on a subject,
       `5 | apply ("add 1" | parse)`, and a source that starts from a value
@@ -1071,7 +1071,7 @@
         ~("1 | add 1" | parse | count | eq 2)
     | proves :readsTheQuote
         |~~ The source reads as the quote it spells. ~~|
-        ~("add 1 2" | parse | eq ~(add 1 2))
+        ~("add 1" | parse | eq ~(add 1))
     | proves :readsTheEmptyQuote
         |~~ The empty text spells the empty quote. ~~|
         ~("" | parse | eq ~())

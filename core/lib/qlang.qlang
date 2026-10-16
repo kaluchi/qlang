@@ -637,8 +637,9 @@
             ::link~(::qlang/errors | doc)
 
             A name finds its verb through the kind of its subject: its
-            tags from the outside in, then the shape beneath them, then
-            the verbs every value answers, on `::any`; a verb of vectors
+            tags from the outside in, `::tagged` after each, then the
+            shape beneath them, then the verbs every value answers, on
+            `::any`; a verb of vectors
             reaches a vector under a tag, and an answer of the subject's
             kind keeps the tag. A word is a
             function named under a label, built from `::fn` by commands
@@ -795,10 +796,10 @@
         ~([1 "x" 3] | map ~(mul 2) !| trail | last | place | eq /1)
     | proves :errors/resumesItsTrail
         |~~ A map raised again resumes its trail. ~~|
-        ~(!{:kind :oops} | raise | count !| raise | add 1 !| trail | last | skipped | eq ~(count | add 1))
+        ~(!{:a 1} | raise | count !| raise | add 1 !| trail | last | skipped | eq ~(count | add 1))
     | proves :errors/asksWhetherTheStepBeforeStood
         |~~ `ok !| false` answers whether the step before stood. ~~|
-        ~(get [~(!{:kind :oops} | raise | ok !| false) ~(42 | ok !| false)] | eq [false true])
+        ~(get [~(!{:a 1} | raise | ok !| false) ~(42 | ok !| false)] | eq [false true])
     | tells :code
         |~~ Code. A quote, `~(…)`, holds steps unrun as a value: a verb
             takes one where it needs code, `filter`, `sort`, `if`, `apply`

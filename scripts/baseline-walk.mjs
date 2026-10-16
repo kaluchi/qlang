@@ -32,7 +32,7 @@ function filesUnder(repoRoot, dir, pattern) {
   });
 }
 
-function citationsIn(text) {
+export function citationsIn(text) {
   const cited = [];
   text.split(/\r?\n/).forEach((line, index) => {
     for (const match of line.matchAll(CITATION)) {

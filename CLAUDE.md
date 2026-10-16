@@ -9,24 +9,18 @@ the specification wins and this file is what changes.
 
 ## Start here, every session
 
-The texts of the work speak in two voices, parted by what a reader
-decides against the tree a text stands in [QSWRK#documents]. The
-cataphatic ones, the lex lata of the work, state what holds, in the
-present, each sentence one a reader decides against the tree, by a probe,
-a case, a check or a reading, a refusal among them: the chapters of
+The texts of the work speak in two voices [QSWRK#documents]. The
+cataphatic ones state what holds, in the present: the chapters of
 `docs/spec/`, the pages of the catalog, the cases and the comments of the
-code. The apophatic ones,
-its lex ferenda, carry the change against the baseline, what no reader
-decides against the tree, each read from its origo, the here and now it
-speaks from: the dialogue of the session first, then the journal,
-`docs/journal/`, the aim, its records and its research, the memory and
-the history of the commits. A session reads the cataphatic core first, so
-its picture of the language is built from what holds, then lands on the
-apophatic texts, where its work is; a doubt or a reason it meets is said
-in the dialogue, or written as a record where it asks for a choice, and
-never into a chapter, a page or a comment, where it stands as a
-pentimento: a dialogue answers its own beginning at every turn, and a
-turn written into a file answers a past its reader never sees.
+code. The apophatic ones carry the change against the baseline: the
+dialogue of the session first, then the journal, `docs/journal/`, the
+aim, its records and its research, the memory and the history of the
+commits. A
+session reads the cataphatic core first, so its picture of the language
+is built from what holds, then lands on the apophatic texts, where its
+work is; a doubt or a reason it meets is said in the dialogue, or
+written as a record where it asks for a choice, and never into a chapter,
+a page or a comment.
 
 1. Read whole the chapter of the work, `docs/spec/QSWRK-the-work.md`,
    before the first change: the texts and their order, the records, the

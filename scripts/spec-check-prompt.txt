@@ -16,7 +16,7 @@ Report each finding under a heading of its kind and its place, `### <kind> · CO
 - implementation: the tree misses a rule that a chapter and its cases state alike;
 - design: rules the texts state, each as it is meant, that together answer as the language should not, or two roads that answer one question differently, a value computed at the call and a quote, a value and a path, a bare name and an address, a query and the body of a word;
 - conflict: two texts that state different rules for one thing, two chapters, a chapter and a page, a page and its laws;
-- pentimento: a sentence that no run of the tree decides, in a chapter, or in a page or a comment of the code you read beside it: it tells a history, justifies itself, answers a reader, or says what is not where the rule could be said as what holds, an earlier layer showing through the paint;
+- pentimento: a sentence no reader decides against the tree, by a run, a case or a reading of it, in a chapter, or in a page or a comment of the code you read beside it: it tells a history, justifies a change, answers a reader, or says what is not where the rule could be said as what holds, an earlier layer showing through the paint; what a rule does for its reader, a consequence a reading of the tree decides, is no pentimento;
 - drift: one thing named by two words across the texts that state what holds, the chapters, the pages and CLAUDE.md among them, where a reader would take the two for two things;
 - case: a case under a section whose rule it does not show, naming the section it shows, or a rule of a section that no case holds.
 

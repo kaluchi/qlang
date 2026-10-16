@@ -758,20 +758,18 @@
             error at rest, a value like any other, and recovers each
             failure where it is read. No value holds a failure: a template
             whose quote fails, a literal whose constructor refuses its
-            payload and a name whose body fails answer the failure. The facts name
-            what refused, and the first frame of the trail holds the value
-            the step refused. `explain` shows the page of the site above
-            the error. The trail is written as the failure flies: a frame
-            for each level it left, the subject its step met and the steps
-            from the one that broke, the last frame holding the steps
-            skipped at the level that reads it, a quote that runs again as
-            held code runs, and the frame of a word that ran its code on a
-            part of its subject the path of that part. An error
-            at rest raised
-            again resumes the trail it holds, and one that holds none,
-            an empty `:trail` among them, starts it over. Whether the
-            step before stood is
-            `ok !| false`.
+            payload and a name whose body fails answer the failure. The
+            facts name what refused, and the first frame of the trail holds
+            the value the step refused. `explain` shows the page of the
+            site above the error. The trail is written as the failure
+            flies: a frame for each level it left, the subject its step met
+            and the steps from the one that broke, the last frame holding
+            the steps skipped at the level that reads it, a quote that runs
+            again as held code runs, and the frame of a word that ran its
+            code on a part of its subject the path of that part. An error
+            at rest raised again resumes the trail it holds, and one that
+            holds none, an empty `:trail` among them, starts it over.
+            Whether the step before stood is `ok !| false`.
         ~~|
         #[::error ::explanation ::fail ::frame ::trail]
     | proves :errors/namesTheSite

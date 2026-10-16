@@ -10,6 +10,7 @@ import {
   isVec,
   isQMap,
   isPath,
+  isFrame,
   isTrail,
   ELISION_TAG,
   ERROR_TAG,
@@ -69,9 +70,9 @@ const PRINT_HANDLERS = {
   regex:   printRegex,
   path:    printPath,
   error:   printErrorValue,
-  vec:     (v, indent, printedOf) => printListLike('[', v, indent, printedOf),
-  map:     (m, indent, printedOf) => printMapLike('{', m, indent, printedOf),
-  set:     (s, indent, printedOf) => printListLike('#[', s, indent, printedOf),
+  vec:     (v, indent, printedOf, oneLine) => printListLike('[', v, indent, printedOf, oneLine),
+  map:     (m, indent, printedOf, oneLine) => printMapLike('{', m, indent, printedOf, oneLine),
+  set:     (s, indent, printedOf, oneLine) => printListLike('#[', s, indent, printedOf, oneLine),
   quote:   printQuote,
   doc:     d => '|~~' + docText(d) + '~~|',
   underTag: printTaggedInstance
@@ -85,14 +86,15 @@ function printQuote(quote) {
 
 const printedByNoKind = () => undefined;
 
-// printValue(v, indent?, printedOf?) → the text that reads back as `v`;
-// `printedOf(part)` answers the print a kind declared under it gives a part,
-// or undefined where the forms of the core write it, and a print of several
-// lines keeps the indent of the place it stands in.
-export function printValue(v, indent = 0, printedOf = printedByNoKind) {
+// printValue(v, indent?, printedOf?, oneLine?) → the text that reads back as
+// `v`; `printedOf(part)` answers the print a kind declared under it gives a
+// part, or undefined where the forms of the core write it, a print of several
+// lines keeps the indent of the place it stands in, and `oneLine` lays every
+// part on one line.
+export function printValue(v, indent = 0, printedOf = printedByNoKind, oneLine = false) {
   const printed = printedOf(v);
   if (printed !== undefined) return printed.split('\n').join('\n' + '  '.repeat(indent));
-  return dispatchQlangValue(v, PRINT_HANDLERS, printFallback, indent, printedOf);
+  return dispatchQlangValue(v, PRINT_HANDLERS, printFallback, indent, printedOf, oneLine);
 }
 
 // A function a host bound in the environment prints as a string that
@@ -104,10 +106,10 @@ function printFallback(v) {
 
 // A vector or a set stands on one line unless a part takes several, and
 // then each part stands on a line of its own, as each frame of a trail of
-// two or more does [D337].
-function printListLike(open, elements, indent, printedOf, stacked = false) {
-  const rendered = elements.map(el => printValue(el, indent + 1, printedOf));
-  if (!stacked && !rendered.some(s => s.includes('\n'))) return `${open}${rendered.join(' ')}]`;
+// two or more does, a frame standing on one line whatever it holds [D337].
+function printListLike(open, elements, indent, printedOf, oneLine = false, stacked = false) {
+  const rendered = elements.map(el => printValue(el, indent + 1, printedOf, oneLine));
+  if (oneLine || (!stacked && !rendered.some(s => s.includes('\n')))) return `${open}${rendered.join(' ')}]`;
   const pad = '  '.repeat(indent + 1);
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
@@ -132,12 +134,12 @@ export function underTagLiteral(tagLiteral, payload, payloadPrint) {
 
 // An error at rest writes the literal of its kind, `!{…}`, as a set
 // writes `#[…]` [QSERR#rest].
-function printTaggedInstance(instance, indent, printedOf) {
+function printTaggedInstance(instance, indent, printedOf, oneLine) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
-  if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf, isTrail(instance) && instance.length > 1);
-  if (instance instanceof Map && instance[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', instance, indent, printedOf);
-  if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf, instance[TAG_HEADER_SYMBOL].name === ELISION_TAG.name);
-  return underTagLiteral(tagLiteral, instance.payload, printValue(instance.payload, indent, printedOf));
+  if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf, oneLine || isFrame(instance), isTrail(instance) && instance.length > 1);
+  if (instance instanceof Map && instance[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', instance, indent, printedOf, oneLine);
+  if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf, oneLine || instance[TAG_HEADER_SYMBOL].name === ELISION_TAG.name);
+  return underTagLiteral(tagLiteral, instance.payload, printValue(instance.payload, indent, printedOf, oneLine));
 }
 
 // A map of two entries or fewer, none a container, stands on one line, and
@@ -148,7 +150,7 @@ function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];
   const hasComposite = entries.some(([, v]) => isQMap(v) || isVec(v));
   if (oneLine || (entries.length <= 2 && !hasComposite)) {
-    return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf)}`).join(' ')}}`;
+    return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf, oneLine)}`).join(' ')}}`;
   }
   const pad = '  '.repeat(indent + 1);
   const lines = entries.map(([k, v]) => `${pad}${canonicalKeywordLiteral(k)} ${printValue(v, indent + 1, printedOf)}`);

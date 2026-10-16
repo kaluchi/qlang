@@ -183,6 +183,15 @@ describe('alertOf [D337]', () => {
     expect(kept[0]).toBe(5);
   });
 
+  it('measures the subject of a frame on the one line the frame prints on', async () => {
+    const six = '6 | range | map ~(get {:id ~(it) :name "user" :tags ["a" "b"]})';
+    const [arose] = alertOf(await evalQuery(`${six} | get /9`)).descriptor.get('trail');
+    expect(deepEqual(arose[0], await evalQuery(six))).toBe(true);
+    const nested = '[{:a {:b 1}} {:a {:b 2}} {:a {:b "x"}}]';
+    const [, passed] = alertOf(await evalQuery(`${nested} | map ~(get /a/b | add 1)`)).descriptor.get('trail');
+    expect(deepEqual(passed[0], await evalQuery(nested))).toBe(true);
+  });
+
   it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [QSERR#rest]', async () => {
     const query = `${records} | map (get /n)`;
     const alert = alertOf(await evalQuery(query));

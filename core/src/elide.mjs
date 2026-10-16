@@ -40,7 +40,7 @@ const HEAD_CHARACTERS = 40;
 const EXCERPT_CHARACTERS = 300;
 const printedByTheCore = () => undefined;
 
-const measureBy = printedOf => value => printValue(value, 0, printedOf).length;
+const measureBy = (printedOf, oneLine = false) => value => printValue(value, 0, printedOf, oneLine).length;
 
 // A marker is a map under `::elision`, the tag stamped on the map.
 function isMarker(value) {
@@ -217,9 +217,10 @@ function partGivingWay(sized) {
 // While the print exceeds the budget, a part gives way among those whose
 // least prints shorter than they do, a vector halving on to its least at the
 // most; where no part's least is shorter, the view stands over the budget
-// [QSPRN#elide].
-function elideWithin(value, budget, start, printedOf) {
-  const sizeOf = measureBy(printedOf);
+// [QSPRN#elide]. A view that prints on one line, the subject of a frame, is
+// measured so [D337].
+function elideWithin(value, budget, start, printedOf, oneLine = false) {
+  const sizeOf = measureBy(printedOf, oneLine);
   const working = new WeakSet();
   let view = value;
   while (sizeOf(view) > budget) {
@@ -244,17 +245,17 @@ export function elide(value, budget, printedOf = printedByTheCore) {
 // `elide` cuts it; a value whose cut still passes the excerpt, a map at its
 // top keeping its keys, gives way whole as a subject the failure passed
 // does, so the excerpt holds whatever data the failure arose over.
-function excerptOf(value, read, printedOf) {
+function excerptOf(value, read, printedOf, oneLine = false) {
   if (isText(value) && printedOf(value) === undefined && lengthOf(textOf(value)) > EXCERPT_CHARACTERS) return wholeOf({ path: [], value }, read);
-  const cut = elideWithin(value, EXCERPT_CHARACTERS, read, printedOf);
-  return measureBy(printedOf)(cut) > EXCERPT_CHARACTERS ? passedOver(value, read, printedOf) : cut;
+  const cut = elideWithin(value, EXCERPT_CHARACTERS, read, printedOf, oneLine);
+  return measureBy(printedOf, oneLine)(cut) > EXCERPT_CHARACTERS ? passedOver(value, read, printedOf, oneLine) : cut;
 }
 
 // A subject the failure only passed, given way whole where its marker is
 // the shorter print: the characters of a text through the tags over it,
 // the elements or the entries it stands for, and the read that reaches it.
-function passedOver(value, read, printedOf) {
-  const sizeOf = measureBy(printedOf);
+function passedOver(value, read, printedOf, oneLine = false) {
+  const sizeOf = measureBy(printedOf, oneLine);
   let beneath = value;
   while (isValueClass(beneath, 'taggedInstance')) beneath = beneath.payload;
   const size = isText(beneath) ? lengthOf(textOf(beneath)) : isVec(value) ? value.length : isQMap(value) ? value.size : sizeOf(value);
@@ -264,11 +265,11 @@ function passedOver(value, read, printedOf) {
 
 // The trail of an alert: each frame keeps its steps and its place, the
 // subject of the first within its excerpt, of every later one given way
-// whole [D337].
+// whole, each measured on the one line a frame prints on [D337].
 function framesOf(trail, read, printedOf) {
   return makeTrail(trail.map(([subject, steps, place = null], index) => {
     const subjectRead = readBelow(read, [index, 0]);
-    return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf) : passedOver(subject, subjectRead, printedOf), steps, place);
+    return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true) : passedOver(subject, subjectRead, printedOf, true), steps, place);
   }));
 }
 

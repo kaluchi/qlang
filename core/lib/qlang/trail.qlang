@@ -14,7 +14,8 @@
       `trail` reads it from an error at rest; the words of vectors read
       it, `first` the frame where the failure arose and `last` the frame
       of the level that reads it. It prints a frame a line where it holds
-      two or more. An error at rest written with frames under `:trail`
+      two or more, a frame standing on one line whatever its subject
+      holds. An error at rest written with frames under `:trail`
       resumes that path when `raise` raises it, and an empty trail is no
       path, the raise starting one at its own step.
       ::snippet~([1 "x" 3] | map ~(mul 2) !| trail)

@@ -1021,14 +1021,16 @@ async function fieldRefusal(tagName, field, payload, invariants, state, opened) 
 
 // ─── Code closed at a call ──────────────────────────────────────
 
-// closeCode(astNode, capturedState) → (input) → value: code run against
-// the input it is handed, one frame below and in its scope, a step on the
-// success track as every step is; it keeps its tree and its state, so
-// `reduce` finds the verb a quote of one name holds [QSCOL#reduce].
-function closeCode(astNode, capturedState) {
+// closeCode(astNode, capturedState, evaluate?) → (input) → value: code run
+// against the input it is handed, one frame below and in its scope, a step on
+// the success track as every step is, or by `evaluate` an arg of a step,
+// which answers within the frame of its step [D337]; it keeps its tree and
+// its state, so `reduce` finds the verb a quote of one name holds
+// [QSCOL#reduce].
+function closeCode(astNode, capturedState, evaluate = evalBody) {
   const run = async (input) => {
     const subState = nestState(capturedState, input, capturedState.env);
-    return (await evalBody(astNode, subState)).pipeValue;
+    return (await evaluate(astNode, subState)).pipeValue;
   };
   run.astNode = astNode;
   run.capturedState = capturedState;
@@ -1040,12 +1042,13 @@ function closeCode(astNode, capturedState) {
 // template or a tagged literal written there the code that builds it, each
 // written in the step, which the call runs it in [QSQUO#held]; a literal of an
 // atom its value one frame below the call; and any other modifier the code
-// it is, whose value the call keeps as a value of the step.
+// it is, whose value the call keeps as a value of the step. A modifier
+// answers within the frame of its step, which holds it [D337].
 function modifierOf(argNode, state) {
   if (argNode.type === 'QuoteLit') return withOrigin(() => quoteOfLiteral(argNode), { step: state, written: true });
-  if (WRITTEN_LITERALS.has(argNode.type)) return withOrigin(closeCode(argNode, state), { step: state, written: true });
+  if (WRITTEN_LITERALS.has(argNode.type)) return withOrigin(closeCode(argNode, state, evalNode), { step: state, written: true });
   if (ATOM_LITERALS.has(argNode.type)) return () => (frameBelow(state), AST_NODE_EVALUATORS[argNode.type](argNode, state).pipeValue);
-  return closeCode(argNode, state);
+  return closeCode(argNode, state, evalNode);
 }
 
 const ATOM_LITERALS = new Set(['NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
@@ -1119,20 +1122,27 @@ function laneOf(env) {
 // them [QSDSP#residence], and a value of the scope under the name meeting the
 // word there [QSCOL#reduce], [QSNAM#reach]; null for code of any other shape
 // or a name of no word, which `reduce` runs on the pair of the value so far
-// and the element [QSCOL#reduce].
+// and the element [QSCOL#reduce]. A call the accumulator refuses answers the
+// failure it raised, which the fold marks at the place of its element [D337].
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
   const astNode = soleStepOf(reducer.astNode);
   if (astNode?.type !== 'Call' || astNode.args.length !== 0) return null;
   const item = element => [async () => element];
+  const calledOn = call => async (acc, element) => {
+    try {
+      return (await call(item(element), withPipeValue(callerState, acc))).pipeValue;
+    } catch (caughtError) {
+      return errorOfThrow(caughtError, astNode, acc, callerState.env);
+    }
+  };
   if (astNode.address !== undefined) {
     if (!isWord(callerState.env, astNode.name)) return null;
     const record = nodeOf(callerState.env, astNode.name);
-    return async (acc, element) => (await applyWord(record, item(element), withPipeValue(callerState, acc))).pipeValue;
+    return calledOn((modifiers, state) => applyWord(record, modifiers, state));
   }
   if (addressesOf(callerState.env, astNode.name).length === 0) return null;
-  return async (acc, element) =>
-    (await callByName(astNode.name, item(element), withPipeValue(callerState, acc), astNode)).pipeValue;
+  return calledOn((modifiers, state) => callByName(astNode.name, modifiers, state, astNode));
 }
 
 // The one step of a pipeline a leading `|` opens is the step itself, as the

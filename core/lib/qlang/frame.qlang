@@ -13,7 +13,8 @@
       is `map`, which broke where its code ran on the element at `/1`.
 
       A trail holds a frame for each step that raised a failure or handed
-      it on, a frame a line. `subject`, `step`, `skipped` and `place` read
+      it on, a frame a line, and a frame prints on one line whatever its
+      subject holds. `subject`, `step`, `skipped` and `place` read
       a frame, and a path reads it as the vector it is, `/0` its subject,
       so `!| get /trail/1/0/1` reads the element the code of `map` broke
       on. The steps skipped at the level that reads a failure run again on
@@ -39,6 +40,9 @@
             broke on.
         ~~|
         ~([1 "x" 3] | map ~(mul 2) !| trail | last | eq ::frame[[1 "x" 3] ~(map ~(mul 2)) /1])
+    | proves :printsOnOneLine
+        |~~ A frame prints on one line whatever its subject holds. ~~|
+        ~({:a {:b [1 2]}} | get /c !| trail | first | print | lines | count | eq 1)
     | proves :PayloadNotSubjectAndStepsError/refusesASubjectAlone
         |~~ A subject with no steps is no frame. ~~|
         ~(::frame["x"] !| type | eq ::frame/PayloadNotSubjectAndStepsError)

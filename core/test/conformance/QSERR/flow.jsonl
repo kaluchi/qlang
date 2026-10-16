@@ -2,7 +2,7 @@
 {"name":"code-that-recovers-keeps-every-element","query":"[1 \"x\" 3] | map ~(add 10 !| 0)","expect":"[11 0 13]"}
 {"name":"code-that-answers-the-kind-lets-the-consumer-count-failures","query":"[1 \"x\" 3 \"y\"] | map ~(add 10 !| type) | filter ~(eq ::number/add/SubjectNotNumberError) | count","expect":"2"}
 {"name":"an-input-of-any-hands-an-error-on","query":"[1] | append (!{:k 1} | raise) !| type","expect":"::error"}
-{"decision":"D337","name":"an-input-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f (::fn | takes :x |~~ The x. ~~| /0 | impl ~(get [~(x)])) | 1 | f (!{:k 1} | raise) !| trail | map ~step","expect":"[~(raise) ~((!{:k 1} | raise)) ~(f (!{:k 1} | raise))]"}
+{"decision":"D337","name":"an-input-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f (::fn | takes :x |~~ The x. ~~| /0 | impl ~(get [~(x)])) | 1 | f (!{:k 1} | raise) !| trail | map ~step","expect":"[~(raise) ~(f (!{:k 1} | raise))]"}
 {"name":"a-template-answers-the-failure-a-quote-answers","query":"get [1 ~(\"x\" | add 1)] | count !| type","expect":"::number/add/SubjectNotNumberError"}
 {"decision":"D337","name":"map-over-a-map-answers-its-first-failure","query":"{:a 1 :b \"x\"} | map ~(add 10) !| get [~(type) ~(trail | map ~step)]","expect":"[::number/add/SubjectNotNumberError [~(add 10) ~(map ~(add 10))]]"}
 {"name":"a-template-answers-the-first-failure-in-the-order-written","query":"get [~(1 | div 0) ~(\"x\" | add 1)] !| type","expect":"::number/div/divisor/ZeroError"}

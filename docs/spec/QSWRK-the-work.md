@@ -26,7 +26,10 @@ are the model's; `Decision.`, what holds; `Source.`, where it came from,
 the maintainer's words quoted in «…» as they were written, in their
 language, with the time in UTC and the prefix of the session, and words
 of the tree quoted in “…” beside their anchor; `Set aside.`, the
-alternatives and why; `Requirements.`, the cases it leaves.
+alternatives and why; `Requirements.`, the cases it leaves; and
+`Runs.`, the reports of the research it called for, a line each that the
+script writes as it writes the report [QSWRK#review], the journal and the
+worklog of the work.
 `check:conventions` refuses a record from `D155` on that names its
 decider otherwise,
 and `node scripts/sensors/check-quotes.mjs`, run on the maintainer's
@@ -218,7 +221,8 @@ in the comment at the head of its source.
 The baseline is the last commit that landed a branch on master, a merge
 on its first parent line, which the walk reads from the history; its move
 leaves master a clean desk, no record in transit in the tree of its
-merge, where the next shift starts. It moves when a branch lands, before an outside audit among
+merge and no text in both voices [QSWRK#documents], where the next shift
+starts. It moves when a branch lands, before an outside audit among
 them; the records a change of the journal alone writes, which lands
 without a branch, wait for the next branch, and no more than twenty
 records stand written since it. The move is the last commit or the last commits
@@ -244,14 +248,18 @@ At the move:
   record. A record whose marked blocks the diff from its tree touched is
   read again against the new root and described anew or closed; one the
   diff left alone stands as it is.
-- A document of the research stays while a record in force or a text
-  that cites, `CLAUDE.md` and the READMEs of the workspaces, names it, the
-  README of its folder saying what the folder holds and the fates of its
-  findings standing with the document;
-  `node scripts/drop-documents.mjs` drops the rest, the findings each
-  left open carried into an open record of their axis. A review is a unit, any other
-  research its folder, and the outside audits a series whose two latest
-  stay.
+- A report of the research named after a record stays while that record
+  is in force or a text in force cites it, `CLAUDE.md` and the READMEs of
+  the workspaces among them, and leaves with it, the README of its folder
+  saying what the folder holds and the fates of its findings standing with
+  the report; `node scripts/drop-documents.mjs` drops the documents of the
+  research nothing in force holds, printing the fates that say open, each
+  carried into an open record of its axis, and gives the members of each
+  series of the benchmark, its sets, its screens and the runs of its
+  references, past its two latest to the history, refusing a document or
+  a member something in force holds. A branch keeps every run it made
+  until then, one leaving earlier only when the session drops it by its
+  path.
 - Every probe of the open records and of the chapters is run, and a
   section whose answer the work changed is written with the answer the
   record dissolving into it holds.
@@ -268,13 +276,15 @@ no record in transit over its section claims, the case naming it or,
 taken away, named in its text, nor a record dissolved into the section
 since the baseline, which claims it until the merge that lands it, a
 chapter the baseline did not hold waiting for the next move; a document of the research the baseline
-holds that nothing citing names; more than twenty records since the
+holds that nothing citing names; a series of the benchmark past its two
+latest at the baseline; a seed that cites a record in transit; more than twenty records since the
 baseline; a record in transit in the tree of the merge that landed it;
 a citation in the code and the tests of a record that no met
 case holds, a case that names a record being decided, and a citation in
 a document that cites of a record out of force or of the language with
 no case, an open record among those it may cite. `npm run
-desk` shows the walk at the start of a shift.
+desk` shows the walk at the start of a shift, and the reach of the
+records in transit [QSWRK#documents].
 
 ## branch
 
@@ -395,12 +405,17 @@ in that file.
 chapters. The journal, `docs/journal/`, holds the aim,
 `docs/journal/AIM.md`, the yardstick a choice is weighed by, the records
 in force at its root, those out of force under `replaced/`, and the
-research under `research/`, the reviews, the outside audits and the
-checks of the chapters, each folder with a README that says what it
-holds. The screen of the work,
-`npm run desk`, and the sensors under `scripts/sensors/`, which read the
-transcripts, the history and the files, compute what a session starts
-from.
+research under `research/`, the reviews, the critiques of the records,
+the outside audits and the checks of the chapters, each folder with a
+README that says what it holds. The screen of the work, `npm run desk`,
+and the sensors under `scripts/sensors/`, which read the transcripts, the
+history and the files, compute what a session starts from. The sensors
+that read the transcripts read every configuration directory of the
+machine that keeps a transcript of the project, the one a session runs
+under, each beside it and `~/.claude`, or the directories
+`QLANG_TRANSCRIPTS` names, and say how many transcripts each gave, so a
+search of the maintainer's words that read a part of them says which
+part.
 
 The language says the rest of itself in its catalog: what a reference or
 a tutorial would retell are the laws of its pages and the concepts on
@@ -418,35 +433,80 @@ lower text holds to a higher one, and where they part, the lower one
 changes, the parting written as a record until it does; the process
 brings no entity into the language.
 
-The texts of the work speak in two voices. The apophatic ones carry the
-change against the baseline: first the dialogue of a session, which a
-pain of the tree calls and where every doubt, choice and reason of the
-model is said, its transcript the whole record of it and the summary of
-a compaction the model's paraphrase of it; then the journal, the aim a
-choice is weighed by, the records with their circumstances and what they
-set aside, the research, the reviews, the outside audits and the checks
-of the chapters; the memory between sessions; and the
-history of the commits. The cataphatic ones state what holds, in the
-present: the chapters of the specification, the pages of the catalog,
-the cases and the comments of the code, each the rule, the form a reader
-writes and the refusal that teaches it, a negation that is the condition
-of a rule among them. A session reads the cataphatic core first, the
-chapter of the work and the texts of the language `CLAUDE.md` names, so
-its picture of the language is built from what holds, then lands on the
-apophatic texts, the dialogue, the screen of the work, the aim and the
-records in transit and open, where its work is, and reads the rest of
-the cataphatic texts by topic at the point of need. What it writes into a cataphatic text states what holds; a
-doubt or a reason it meets is said in the dialogue, or written as a
-record where it asks for a choice.
+The texts of the work speak in two voices, parted by what a reader
+decides against the tree a text stands in. A cataphatic text holds only
+sentences a reader decides against that tree, by a probe, a case, a
+check or a reading of the tree, a refusal and a negation that is the
+condition of a rule among them, and names no moment and no reader, so it
+reads the same to a session that saw none of its history: the chapters
+of the specification, the pages of the catalog, the cases and the
+comments of the code, and the seeds a session and a reader start from,
+`CLAUDE.md` and the READMEs of the workspaces. A section keeps what its
+rule does for its reader, a consequence a reading of the tree decides, as
+that calls run side by side never stop each other; why the rule changed,
+what it was and what it set aside leave with its record at the move. An
+apophatic text carries the change against the baseline, what no reader
+decides against the tree, a reason, an intention, a doubt, an alternative
+and what holds of another tree, and is read from its origo, the here and
+now it speaks from: the dialogue of a session from its session, where
+every doubt, choice and reason of the model is said, its transcript the
+whole record of it and the summary of a compaction the model's
+paraphrase of it; a quote of the maintainer from its time and its
+session; a report of the research from its head; a record out of force
+from the commit it left at; a commit from its parent; a record in force
+from the baseline, which every move holds it against, with no mark of
+the commit that wrote it, and one written since from the tree of its
+branch; the memory between sessions from the session that wrote it; and
+the aim from the tree it is read in. A commit a record names, the tree of
+a run under `Runs.` and a path read as `git show <commit>:<path>`, is the
+origo of what the record cites, and stays. A record holds both voices:
+what a reader decides once its work is done, its rule and its cases, and
+what no reader decides, its source, its circumstances and what it set
+aside. A session reads the cataphatic core first, the chapter of the work
+and the texts of the language `CLAUDE.md` names, so its picture of the
+language is built from what holds, then lands on the apophatic texts,
+the dialogue, the screen of the work, the aim and the records in transit
+and open, where its work is, and reads the rest of the cataphatic texts
+by topic at the point of need. What it writes into a cataphatic text
+states what holds; a doubt or a reason it meets is said in the dialogue,
+or written as a record where it asks for a choice.
 
-The apophatic texts are where the work lives. While a branch works, they
-reach into the cataphatic ones, a record in transit ruling over the
-sections it overrides, the cases it claims, the code that cites it and
-the targets it left, while the text of a chapter waits; at the move, the
-last commits of the branch, the tension relaxes: every record in transit
-dissolves into its sections, written anew there, or is set aside with
-its change undone, and master holds no record in transit, its open
-records waiting in the journal.
+A sentence of a cataphatic text that no reader decides against its tree
+is a pentimento, the earlier layer that shows through the paint, the
+Italian for repentance: a history, the justification of a change, a
+contrast with what the tree does not hold, a word to a reader. A dialogue
+answers its own beginning at every turn, and a session writes such a turn
+into a file it touches as one more turn of the dialogue, answering a past
+the reader of the file never sees. A script holds the line where a script
+can, since a prohibition is forgotten where a check is not:
+`check:conventions` refuses, beside the words that point to a moment or a
+record, a comment, a doc of the catalog or a sentence of the prose that
+names a token the branch took out of the code, the catalog and the cases
+since the baseline, a name with a lowercase letter and a capital, a digit
+or an underscore inside it, or an address under `::`, a section a record
+in transit overrides waiting for its move as its probes wait
+[QSWRK#probe]; and the readers of the check of the chapters read for a
+pentimento the chapters, and the pages and the comments of the code they
+read beside them, and for a drift, one thing named by two words across
+the texts that state what holds, the seeds among them, where a reader
+would take the two for two things.
+
+The apophatic texts are where the work lives. While a branch works, a
+record in transit reaches into the cataphatic texts, each section it
+overrides, each case it claims, each line of code that cites it and each
+target it left speaking in both voices, the tension of the work, while
+the text of a chapter waits; `npm run desk` shows the reach, the records
+in transit, the sections they override, the cases they claim and the
+lines of code that cite them. A seed, read first by every session, cites
+the sections a record in transit overrides and never the record, and
+states what those sections hold, its words for the voices the two voices
+and the pentimento, the criterion and the origo left to this chapter. At
+the move, the last commits of the branch, the tension relaxes: every
+record in transit parts, what a reader decides against the new tree
+written into its sections, or is set aside with its change undone, and
+leaves with its origo, so the merge that lands a branch holds no text in
+both voices, and the journal on master keeps the open records and the
+aim, what the next change draws on.
 
 ## catalog
 
@@ -459,6 +519,16 @@ both ways, text as lines, `split` and `join`, trimming, replacing, case
 and search; a host keeps its domain, its input and output and its
 renderings. One sequence serves them all, the vector, a string reading
 in pieces by `split`, `lines`, `count`, `take` and `drop`.
+
+A name a reader trained on other languages reaches for enters beside the
+word that answers what the habit expects, as `distinct` stands beside
+`toSet`, `flatten` beside `flat`, `merge` beside `union` and `size` and
+`length` beside `count`: a function under the same label whose recipe
+calls the word, its page naming the word, so the fact keeps one spelling
+and the name is another road to it. Where the habit expects another
+answer or another call, the name is a word of its own, as `concat` is, or
+none, since a name that answers otherwise than the habit expects fails in
+silence.
 
 A declaration in a source of the catalog writes its name on a line of
 its own, each doc of its slot on the lines after it indented by two, a
@@ -495,9 +565,10 @@ default of `scripts/benchmark.mjs`, and a run of them, by `prompt`,
 starts its child from `qlang --help` and the first page, which the child
 reads itself; the script holds as well `prompt`,
 `screen`, `report`, `author`, `run`, `grade`, `verdict`, `misses` and
-`frictions`; the two latest sets live under `scripts/benchmark/sets/`
-with their runs, beside the two latest screens and runs of the
-references, and an older one goes to the history.
+`frictions`; the sets live under `scripts/benchmark/sets/` with their
+runs, beside the screens and the runs of the references, a branch keeping
+every one it makes and the move of the baseline giving each series past
+its two latest to the history [QSWRK#baseline].
 
 ## review
 
@@ -506,43 +577,66 @@ A review holds a diff against the principles of the aim,
 file the diff touches, and its report gives a verdict, accepted or
 changes asked, and its findings, each with its file and its line and the
 principle or the rule it breaks. The report is kept as its writer wrote
-it, each finding with the fate it met, under
-`docs/journal/research/reviews/` while something in force cites it.
+it, each finding with the fate it met.
+
+A report of the research is named after the record that called for it and
+numbered in the order the reports of that record ran, as the runs of the
+benchmark are named after the record they measure: a review of the work
+a record did, `docs/journal/research/reviews/D324~3.md`; a critique of an
+open record, `docs/journal/research/design-check/D329~2.md`; a check of
+the chapters, whose readers write into the folder of the run,
+`docs/journal/research/spec-check/D323~1/`; and an outside audit,
+`docs/journal/research/outside-audit/D327~1.md`. Every report opens with
+its head, what it is and the record that called for it, the tree it read
+and the baseline that tree stood on, when it ran and how, a path it names
+read as `git show <tree>:<path>`; the record holds each run under
+`Runs.`, a line the script writes as it writes the report, why it ran
+given by `--why`; and beside each report stands the session's reading,
+`D329~2~reading.md`, every finding with its probe and its fate, a record
+in transit, a target, an open record, a record that holds it already, or
+none with the probe that sets it aside. No run trims the reports a branch
+made, and the move of the baseline cleans them [QSWRK#baseline]. The
+README of the research, `docs/journal/research/README.md`, tells its
+folders, what calls each report into being, how each is named and how
+long it stays.
+
+`node scripts/spec-check.mjs --records Dnn …` gives each open record named
+a clean critic of its own, who bootstraps from the chapters, the first
+pages and the aim, reads the record and the records it cites, and holds
+each of its roads against the chapters, the cases, the catalog and the
+implementation, answering `scripts/design-check-prompt.txt` with findings
+of five kinds, a counterexample, a cost, a conflict, a road and a hole,
+each with its probe; a record that is not open is refused, a critique
+reading a question still open.
 
 The check of the chapters holds the consistency of what the
 specification says: its chapters among themselves, and each with its
 cases, with the pages of the catalog and with the implementation.
-`node scripts/spec-check.mjs` runs it on a tree every change of which a
-commit holds, best on master after a branch landed, by clean readers
+`node scripts/spec-check.mjs --for Dnn` runs it for the record in force
+that calls for it and carries its fates, on a tree every change of which
+a commit holds, best on master after a branch landed, by clean readers
 started at once as the outside audit is, each answering
 `scripts/spec-check-prompt.txt` for a group of chapters in the order of
 the index: a reader bootstraps from every chapter and the first pages of
 the language, and then reads its sections against their cases, the code
 that cites them, the pages of their words and the command line. A
-finding is of one of six kinds, text, implementation, design, conflict,
-apophasis and case, and carries its probe, which
-`node scripts/sensors/run-probes.mjs` runs again on its report; a reader
-writes no sentence for a chapter from the tree's answer, the side that
-yields being the question of the reading. The reports land in
-`docs/journal/research/spec-check/`, a folder for each run, and the
-session writes its reading beside them, every finding with its fate, a
-record in transit, a target, an open record, a record that holds it
-already, or none with the probe that sets it aside; the series keeps its
-two latest runs. A clean reader probes the bounds of each rule as it
-stands, its doubt a question of the tree, and a reader of the records
-looks for the words the language left; a check goes deeper each time,
-and one whose findings are precision alone is the one to stop at.
+finding is of one of seven kinds, text, implementation, design, conflict,
+pentimento, drift and case [QSWRK#documents], and carries its probe,
+which `node scripts/sensors/run-probes.mjs` runs again on its report; a
+reader writes no sentence for a chapter from the tree's answer, the side
+that yields being the question of the reading. A clean reader probes the
+bounds of each rule as it stands, its doubt a question of the tree, and a
+reader of the records looks for the words the language left; a check
+goes deeper each time, and one whose findings are precision alone is the
+one to stop at.
 
-`node scripts/outside-audit.mjs` runs the outside audit: a clean Opus,
-started from an empty directory of its own with no instruction file,
-memory or server, reads the tree at HEAD, runs `qlang`, the history out
-of its reach, and answers `scripts/outside-audit-prompt.txt`, and its
-report lands as
-`docs/journal/research/outside-audit/<date>-<tree>.md`; it runs on a
-tree every change of which a commit holds, once for a tree and a day.
-The session writes its reading beside the report, every finding
-checked by a probe with its fate. The run keeps the two latest audits,
-and gives an older one to the history with its reading.
+`node scripts/outside-audit.mjs --for Dnn` runs the outside audit the
+record in force calls for: a clean Opus, started from an empty directory
+of its own with no instruction file, memory or server, reads the tree at
+HEAD, runs `qlang`, the history out of its reach, and answers
+`scripts/outside-audit-prompt.txt`, on a tree every change of which a
+commit holds. The session writes its reading beside the report, every
+finding checked by a probe with its fate.
 
 ## tooling
 
@@ -599,8 +693,11 @@ the site and the workflows among them; a month of the
 history in a chapter, a seed, a page of the catalog, a case and the
 code; a count in markdown prose that
 a command answers; the ranges of the siblings; every refusal declared by
-its address; and the form of a record from `D155` on, its `Domain.`, its
-decider and the fields of an open record.
+its address; a report of the research without the session's reading
+beside it [QSWRK#review]; a comment, a doc of the catalog and a sentence
+of the prose that name a token the branch took out [QSWRK#documents];
+and the form of a record from `D155` on, its `Domain.`, its decider and
+the fields of an open record.
 
 `node scripts/release.mjs <version>` runs a release end to end from a
 clean master in step with its remote whose checks on GitHub are green:

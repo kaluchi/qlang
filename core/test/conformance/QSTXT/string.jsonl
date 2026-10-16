@@ -20,4 +20,4 @@
 {"name":"case-folds-as-unicode-maps-the-text","query":"get [~(\"ΣΑΣ\" | lower) ~(\"straße\" | upper)]","expect":"[\"σας\" \"STRASSE\"]"}
 {"name":"an-empty-text-has-no-lines","query":"\"\" | lines","expect":"[]"}
 {"name":"append-and-prepend-write-a-keyword-as-its-name","query":"\"x\" | get [~(prepend :a) ~(append :a)]","expect":"[\"ax\" \"xa\"]"}
-{"decision":"D321","name":"size-and-length-answer-as-count-over-a-string","query":"\"привет\" | get [~(size) ~(length) ~(count)]","expect":"[6 6 6]"}
+{"name":"size-and-length-answer-as-count-over-a-string","query":"\"привет\" | get [~(size) ~(length) ~(count)]","expect":"[6 6 6]"}

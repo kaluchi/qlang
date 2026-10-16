@@ -64,7 +64,7 @@
 //       that states what holds name no token the branch took out of the
 //       code, the catalog and the cases, the name of what its reader
 //       finds nowhere, but in a section a record in transit overrides
-//       [D336].
+//       [QSWRK#documents].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -592,7 +592,7 @@ function unreadReports() {
 // token the branch took out of the code, the catalog and the cases since
 // the baseline: a name the reader finds nowhere is a turn of that dialogue
 // answering a past the reader never sees, which the record and the commit
-// keep [D336]. A token is a name with a lowercase letter and a capital, a
+// keep [QSWRK#documents]. A token is a name with a lowercase letter and a capital, a
 // digit or an underscore inside it, or an address under `::`. A line of
 // code holds what stands before its comment, a source of the catalog
 // holds what stands outside its docs and comments, a case holds the whole
@@ -839,6 +839,6 @@ if (unread.length > 0) {
 if (takenOutNamed.length > 0) {
   process.stdout.write(`\nNames of what the branch took out (${takenOutNamed.length}):\n`);
   for (const { file, line, token, snippet } of takenOutNamed) process.stdout.write(`  ${file}:${line}  \`${token}\`  ${snippet}\n`);
-  process.stdout.write(`    the code, the catalog and the cases hold none of these since the baseline ${takenOutNamed[0].baseline}: a comment, a doc and the prose name what the reader finds, a section of a chapter waiting for its move under a record in transit over it, and what was lives in the record and the commit [D336].\n`);
+  process.stdout.write(`    the code, the catalog and the cases hold none of these since the baseline ${takenOutNamed[0].baseline}: a comment, a doc and the prose name what the reader finds, a section of a chapter waiting for its move under a record in transit over it, and what was lives in the record and the commit [QSWRK#documents].\n`);
 }
 process.exit(1);

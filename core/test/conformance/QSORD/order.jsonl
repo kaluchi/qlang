@@ -25,6 +25,6 @@
 {"name":"sort-orders-docs-of-prose-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}
 {"name":"a-quote-a-doc-an-elision-and-a-desc-rank-after-a-map-in-that-order","query":"[::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~type","expect":"[::map ::quote ::doc ::elision ::desc]"}
 {"name":"quotes-rank-by-their-steps","query":"[~(b) ~(a | b) ~(a)] | sort","expect":"[~(a) ~(a | b) ~(b)]"}
-{"decision":"D334","name":"strings-order-by-their-code-points-as-they-count","query":"[\"😀\" \"ﬁ\" \"a\" \"👍\"] | sort","expect":"[\"a\" \"ﬁ\" \"👍\" \"😀\"]"}
-{"decision":"D334","name":"a-comparison-of-strings-reads-their-code-points","query":"get [~(\"😀\" | gt \"ﬁ\") ~(\"ﬁ\" | lt \"😀\") ~(\"😀\" | gt \"a\")]","expect":"[true true true]"}
-{"decision":"D334","name":"a-character-before-the-surrogates-ranks-before-one-after-them","query":"get [~([\"\\uE000\" \"\\uD7FF\"] | sort | eq [\"\\uD7FF\" \"\\uE000\"]) ~(\"\\uD7FF\" | lt \"\\uE000\") ~(\"\\uE000\" | gt \"\\uD7FF\")]","expect":"[true true true]"}
+{"name":"strings-order-by-their-code-points-as-they-count","query":"[\"😀\" \"ﬁ\" \"a\" \"👍\"] | sort","expect":"[\"a\" \"ﬁ\" \"👍\" \"😀\"]"}
+{"name":"a-comparison-of-strings-reads-their-code-points","query":"get [~(\"😀\" | gt \"ﬁ\") ~(\"ﬁ\" | lt \"😀\") ~(\"😀\" | gt \"a\")]","expect":"[true true true]"}
+{"name":"a-character-before-the-surrogates-ranks-before-one-after-them","query":"get [~([\"\\uE000\" \"\\uD7FF\"] | sort | eq [\"\\uD7FF\" \"\\uE000\"]) ~(\"\\uD7FF\" | lt \"\\uE000\") ~(\"\\uE000\" | gt \"\\uD7FF\")]","expect":"[true true true]"}

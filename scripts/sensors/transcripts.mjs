@@ -17,7 +17,7 @@ export const repoRoot = join(import.meta.dirname, '..', '..');
 // `QLANG_TRANSCRIPTS` names, written as a list of paths is, or else the
 // configuration directory a session runs under, every configuration
 // directory beside it and `~/.claude`, so a sensor reads every session
-// the machine keeps, whichever configuration ran it [D336].
+// the machine keeps, whichever configuration ran it [QSWRK#documents].
 export function transcriptDirs() {
   if (process.env.QLANG_TRANSCRIPTS) return process.env.QLANG_TRANSCRIPTS.split(delimiter).filter(dir => dir !== '' && existsSync(dir));
   const home = join(homedir(), '.claude');
@@ -42,7 +42,7 @@ export function transcriptFiles() {
 }
 
 // How many transcripts each directory gave, so a search that read a part
-// of the sessions says which part [D336].
+// of the sessions says which part [QSWRK#documents].
 export function transcriptCoverage() {
   const counts = transcriptDirs().map(dir => `${dir} ${readdirSync(dir).filter(name => name.endsWith('.jsonl')).length}`);
   return `transcripts read: ${counts.length === 0 ? 'none, no directory holds one' : counts.join(' · ')}`;

@@ -61,6 +61,6 @@ Report in Russian, keeping queries, names and answers as they are: first a verdi
     Размер и образец открыты в [D327], тег над схемой снят, как в пункте
     6.
 
-[D324]: ../../D324.md
+[D324]: ../../replaced/D324.md
 [D327]: ../../D327.md
 [D332]: ../../D332.md

@@ -1,7 +1,7 @@
 // The screen of the work a shift starts from [QSWRK#baseline], [QSWRK#marks]: the branch
 // and how far it stands from master, what the tree leaves uncommitted,
 // the walk of the baseline, the targets open and the records being decided,
-// the reach of the records in transit [D336], the
+// the reach of the records in transit [QSWRK#documents], the
 // artifacts that name no decision and the records whose scope changed
 // since they were described [QSWRK#marks], the stashes, the branches and the
 // worktrees a merge leaves [QSWRK#baseline], and the sister project's
@@ -52,7 +52,7 @@ if (decided !== undefined) lines.push(`  ${decided}`);
 // The reach of the records in transit, the tension of the work: a section a
 // record overrides, a case it claims and a line of code that cites it speak
 // in both voices until the move parts the record, so the merge that lands
-// the branch reaches none [D336].
+// the branch reaches none [QSWRK#documents].
 const transit = recordsInTransit(root);
 const conformance = join(root, 'core', 'test', 'conformance');
 // A line of a case that does not read as JSON claims nothing here; the
@@ -76,7 +76,7 @@ const citing = CITING_CODE_ROOTS.filter(dir => existsSync(join(root, dir)))
   .map(file => new Set(citationsIn(readFileSync(file, 'utf8')).filter(({ name }) => transit.has(name)).map(({ line }) => line)).size)
   .reduce((sum, count) => sum + count, 0);
 lines.push(transit.size === 0 ? '  no record in transit, the tension relaxed'
-  : `  reach ${transit.size} records in transit over ${new Set([...transit.values()].flat()).size} sections, ${claimed} cases they claim and ${citing} lines of code that cite them: the move parts them [D336]`);
+  : `  reach ${transit.size} records in transit over ${new Set([...transit.values()].flat()).size} sections, ${claimed} cases they claim and ${citing} lines of code that cite them: the move parts them [QSWRK#documents]`);
 
 const { orphans } = marksOfTree(root);
 if (orphans.length > 0) lines.push(`  orphans ${orphans.length}, artifacts that name no decision: node scripts/marks.mjs`);

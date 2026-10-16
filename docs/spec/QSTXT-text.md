@@ -6,8 +6,9 @@ requirements of each section are the cases of its file under
 
 ## string
 
-A string counts, takes and drops by its code points, a letter of any
-script, an emoji and a combining mark each one. `trim` answers it
+A string counts, by `count`, `size` and `length` alike, takes and drops
+by its code points, a letter of any script, an emoji and a combining mark
+each one. `trim` answers it
 without the whitespace at its two ends, `lower` and `upper` fold its
 case as Unicode maps the text, a letter to two where it writes two and a
 sigma at the end of a word to its final form, and `lines` cuts it at `\n`
@@ -23,6 +24,9 @@ words.
 ```qlang
 > "привет" | count
 6
+
+> "abc" | length
+3
 
 > "db_host" | drop 3
 "host"

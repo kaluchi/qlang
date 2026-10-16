@@ -87,12 +87,16 @@ every answer as `elide` cuts it, a failure's alert among them
 where its marker prints shorter. A reader who wants JSON converts the
 answer in the query, `| json`. A query that wrote to standard output by
 `out` holds the channel: its answer and its failure stay unwritten, and
-the code is 0. `-i` or `--repl` opens the REPL, a query after it its
+the code is the one its answer exits with. `-i` or `--repl` opens the REPL, a query after it its
 first cell, and `-h` or `--help` and `-V` or `--version` print the usage
 and the version.
 
-A failure is an answer, written to standard output with the exit code 0
-as its alert: its tag and its facts in the order the catalog declares
+A failure is an answer, written to standard output with the exit code 0,
+so calls run side by side never stop each other; `--fail` before the
+query gives it the code 1, for a script that tests the code, the failure
+written as without the flag and one a query that wrote by `out` left
+unwritten among them, while a failure caught is a value and every value
+exits with 0. A failure is written as its alert: its tag and its facts in the order the catalog declares
 them, the subject where it arose and every other fact cut to an excerpt
 of three hundred characters, a string past the excerpt giving way whole
 with its `:head`, and the subject of each later stop giving way to an
@@ -119,6 +123,12 @@ answer.
 ```sh
 $ qlang '{:a 1} | json' < /dev/null
 {"a":1}
+
+$ qlang --fail '"x" | add 1' > /dev/null || echo failed
+failed
+
+$ qlang '"x" | add 1' > /dev/null && echo answered
+answered
 ```
 
 ## input

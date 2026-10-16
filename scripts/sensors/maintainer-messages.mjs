@@ -1,6 +1,6 @@
 // Every message the maintainer typed, across the transcripts of the
 // project, one JSON line each: session, time, text, and on the standard
-// error the directories read and how many transcripts each gave [D336].
+// error the directories read and how many transcripts each gave [QSWRK#documents].
 // Runs in a session on the maintainer's machine, since it reads the
 // transcripts.
 //

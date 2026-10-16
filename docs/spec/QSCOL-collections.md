@@ -7,13 +7,16 @@ maps. The requirements of each section are the cases of its file under
 
 ## sequence
 
-A vector and a set answer `count`, `empty`, `first` and `last`, `take`
+A vector and a set answer `count`, and `size` and `length` as it does, `empty`, `first` and `last`, `take`
 and `drop` a count of elements, clamped to what there is, a count whole
 where it equals its floor, a fraction refused as
 `::vec/take/count/NotIntegerError` and a value of another kind as
 `…/count/KindNotTakenError`, `reverse`, the reverse of a set a vector and
 of a vector under a tag the vector under that tag, `flat`, which lifts one
-level, `sum`, a number beneath the tags over an element read as the
+level, and `flatten` as it does, `concat`, the vectors the call gives
+joined after the subject under its tags, a value given that is no vector
+refused as `::vec/concat/vectors/ElementKindNotTakenError`, so
+`reduce [] ~(concat)` joins the vectors a vector holds, `sum`, a number beneath the tags over an element read as the
 number and an element that is no number refused at its index, at its key
 over a map, and `min` and `max` in the one order or by a key
 [QSORD#sort]; `first`, `last`, `min`, `max` and `avg` answer null over an
@@ -41,6 +44,9 @@ says [QSDSP#answer].
 > [[1 2 3] [:a :b]] | zip
 [[1 :a] [2 :b]]
 
+> get [~([1] | concat [2 3] [4]) ~([[1] [2 3]] | reduce [] ~(concat)) ~([[1 2] [3 [4]]] | flatten) ~(#[1 2] | size)]
+[[1 2 3 4] [1 2 3] [1 2 3 [4]] 2]
+
 > [1 2 3 4] | avg
 2.5
 
@@ -56,8 +62,9 @@ null
 A map is a record and a dictionary at once. Its elements are its
 values, and its keys are the shape that travels with them: `map`,
 `filter`, `sort`, `take`, `drop` and `reverse` act on the values and
-keep the keys, the reducers, `min` and `max` read the values, and a
-predicate sees the value alone. `keys` answers the set of its keys,
+keep the keys, the reducers, `min` and `max` read the values, a
+predicate sees the value alone, and `count`, `size` and `length` count
+its entries. `keys` answers the set of its keys,
 `vals` the vector of its values, `entries` the vector of its pairs
 `[key value]` in the order of its entries, the step that makes a key
 data, and `has` whether a key stands [QSPTH#has]. The words a vector has
@@ -141,7 +148,8 @@ elements, its input left out or null, which an input with a default
 reads as not given. A map's `union`, `minus` and `inter`
 combine it with the value their input gives, which the call gives,
 `{:a 1} | union` refused as `::map/union/other/NotGivenError`; its
-`union` takes a map, the later value of a key standing, and its `minus`
+`union` takes a map, the later value of a key standing, `merge`
+answering as it does, and its `minus`
 and `inter` the keys a map, a vector or a set names; a value of another
 kind is refused under the input, `::map/union/other/KindNotTakenError`.
 A fold takes a set or a map first, a value of another kind refused at its
@@ -162,6 +170,9 @@ the first; one part answers itself.
 ```qlang
 > {:age 20} | union {:age 30}
 {:age 30}
+
+> {:a 1 :b 2} | merge {:b 3 :c 4}
+{:a 1 :b 3 :c 4}
 
 > [#[:a :b] #[:b :d]] | inter
 #[:b]

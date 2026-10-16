@@ -117,7 +117,7 @@ export function walkOfBaseline(repoRoot) {
   }
   // A seed is a text that states what holds, read first by every session:
   // it cites the sections a record in transit overrides and never the
-  // record, which the journal keeps [D336].
+  // record, which the journal keeps [QSWRK#documents].
   const transit = recordsInTransit(repoRoot);
   for (const file of CITING_DOCUMENTS.filter(path => existsSync(join(repoRoot, path)))) {
     for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {

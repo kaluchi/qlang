@@ -194,15 +194,11 @@ describe('tokenize — paths', () => {
 });
 
 describe('tokenize — comments', () => {
-  // Plain comments parse as standalone PipeStep nodes and surface
-  // through walkAst. Doc comments (|~~| and |~~ ~~|) attach as
-  // metadata to the next binding's `:docs` field rather than
-  // appearing as walkable children, so a renderer that wants to
-  // colour doc-comment text would do a separate descent into
-  // binding nodes — out of scope for the parity surface this
-  // module ships, parking it for a future enhancement.
+  // A comment is whitespace the parser keeps beside the tree, which the
+  // painter reads from it, and a doc is a value painted whole
+  // [QSSYN#comment], [QSSYN#doc].
 
-  it('classifies a line plain comment as `comment`', async () => {
+  it('paints a comment to the end of its line as `comment`', async () => {
     const src = '|~| short note |~|';
     const tokens = tokenize(src, await builtins());
     expect(tokens[0].kind).toBe('comment');
@@ -214,19 +210,19 @@ describe('tokenize — comments', () => {
     expect(tokens.at(-1)).toEqual({ start: 0, end: src.length, kind: 'comment' });
   });
 
-  it('classifies a block plain comment as `comment`', async () => {
+  it('paints a block comment as `comment`', async () => {
     const src = '|~ block ~|';
     const tokens = tokenize(src, await builtins());
     expect(tokens[0].kind).toBe('comment');
   });
 
-  it('paints a nested-pair plain block as a single `comment` span', async () => {
+  it('paints a block comment that nests another as one `comment` span', async () => {
     const src = '|~ outer |~ inner ~| more ~|';
     const tokens = tokenize(src, await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: src.length, kind: 'comment' });
   });
 
-  it('paints a doc-pair-mentioning plain block as one `comment` span', async () => {
+  it('paints a block comment that holds a doc as one `comment` span', async () => {
     const src = '|~ holds |~~ inner ~~| inline ~|';
     const tokens = tokenize(src, await builtins());
     expect(tokens[0]).toEqual({ start: 0, end: src.length, kind: 'comment' });

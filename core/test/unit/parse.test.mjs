@@ -419,7 +419,7 @@ describe('parse — quoted keyword and path segments', () => {
     expect(ast.name).toBe('123');
   });
 
-  it('parses :"$ref" with sigil prefix', () => {
+  it('parses :"$ref", a keyword of a name in quotes', () => {
     const ast = parse(':"$ref"');
     expect(ast.name).toBe('$ref');
   });

@@ -19,8 +19,8 @@
 {"name":"a-constructor-of-the-core-never-meets-a-failure","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::set[::Pos#-3] !| type","expect":"::Pos/NotPositiveError"}
 {"name":"a-pair-whose-payload-fails-answers-the-failure-before-tag","query":"get [::Foo ~(!{:k 1} | raise)] | tag !| get [~(type) ~(trail | map ~step)]","expect":"[::error [~(raise) ~(get [::Foo ~(!{:k 1} | raise)])]]"}
 {"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort /a !| get [~(type) ~(trail | map ~step)]","expect":"[::path/KeyNotInMapError [~(get /a) ~(sort /a)]]"}
-{"name":"reduce-seed-error-shortcircuits","query":"[1 2 3] | reduce (!{:kind :oops} | raise) ~(add) !| type","expect":"::error"}
-{"name":"reduce-reducer-error-shortcircuits","query":":any/r (::fn | takes :x |~~ The x. ~~| /0 | impl ~(!{:kind :stop} | raise)) | [1 2 3] | reduce 0 ~r !| type","expect":"::error"}
+{"decision":"D347","name":"reduce-answers-the-failure-its-seed-answers","query":"[1 2 3] | reduce (!{:kind :oops} | raise) ~(add) !| type","expect":"::error"}
+{"decision":"D347","name":"reduce-answers-the-failure-its-reducer-answers","query":":any/r (::fn | takes :x |~~ The x. ~~| /0 | impl ~(!{:kind :stop} | raise)) | [1 2 3] | reduce 0 ~r !| type","expect":"::error"}
 {"name":"a-condition-that-answers-an-error-answers-the-call","query":"{} | if (get /missing) ~(1) ~(2) !| type","expect":"::path/KeyNotInMapError"}
 {"name":"a-key-that-answers-an-error-answers-it","query":"[{:a 1}] | groupBy /b !| type","expect":"::path/KeyNotInMapError"}
 {"name":"a-key-that-answers-an-error-answers-it-over-a-set","query":"#[{:a 1}] | groupBy /b !| type","expect":"::path/KeyNotInMapError"}

@@ -12,7 +12,7 @@
 //   'string'      String literal, including the surrounding quotes
 //   'regex'       Pattern literal `#"…"`, its flags among it [QSTXT#pattern]
 //   'number'      Number literal, plus boolean and null literals
-//   'comment'     Plain comment, and the prose of a doc: the quotes a
+//   'comment'     A comment, and the prose of a doc: the quotes a
 //                 doc holds and its spans in backticks paint as code
 //   'name'        `:name` keyword OR a call's name that resolves
 //                 through a reader's binding
@@ -20,7 +20,7 @@
 //                 language supplied by `langRuntime` AND each key
 //                 segment of a `Path`
 //   'keyword'     the head keyword of a BindStep declaration
-//   'err'         `!` sigil plus its immediately-attached bracket
+//   'err'         the `!` and the bracket it touches
 //                 in `!{` / closing `}` of an error literal, and the
 //                 `!|` fail-track combinator — an error and the track
 //                 that catches it
@@ -30,7 +30,7 @@
 //                 'comment')
 //   'tag'         `::tag` head of a TaggedLit, of an ErrorLit that
 //                 writes one, or a TagLit — the
-//                 tag sigil + the address it names
+//                 sign of the tag and the address it names
 //   'set'         `#[` opener and matching `]` closer of a SetLit
 //   'vec'         `[` opener and matching `]` closer of a VecLit
 //   'punct'       the pipe `|`, the `{` / `}` of an ordinary
@@ -87,7 +87,7 @@ function readOf(src) {
 // emit nothing here — their structural punctuation shows up via
 // the gap-interleaving pass below.
 function collectSemanticSpans(src, ast, builtinNames) {
-  // A plain comment is whitespace the parser keeps on the side [QSSYN#comment].
+  // A comment is whitespace the parser keeps on the side [QSSYN#comment].
   const spans = ast.comments.map(comment =>
     ({ start: comment.location.start.offset, end: comment.location.end.offset, kind: 'comment' }));
 

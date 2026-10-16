@@ -5,11 +5,11 @@
 {"name":"json-object-multiple-keys","query":"{\"name\": \"alice\", \"age\": 30}","expect":"{:name \"alice\" :age 30}"}
 {"name":"json-object-nested","query":"{\"user\": {\"name\": \"alice\"}}","expect":"{:user {:name \"alice\"}}"}
 {"name":"json-object-in-vec","query":"[{\"name\": \"alice\"}, {\"name\": \"bob\"}] | map /name","expect":"[\"alice\" \"bob\"]"}
-{"name":"json-object-as-pipevalue","query":"{\"name\": \"alice\"} | get /name","expect":"\"alice\""}
+{"decision":"D347","name":"get-reads-a-key-of-a-json-object-in-the-pipe","query":"{\"name\": \"alice\"} | get /name","expect":"\"alice\""}
 {"name":"json-null-in-vec","query":"[1, null, 3]","expect":"[1 null 3]"}
 {"name":"json-array-with-json-objects","query":"[{\"v\": 1}, {\"v\": 2}] | count","expect":"2"}
 {"name":"json-object-pipeline","query":"{\"scores\": [85 92 78]} | get /scores | count","expect":"3"}
-{"name":"json-object-quoted-key-sigil","query":"{\"$ref\": \"x\"} | get /\"$ref\"","expect":"\"x\""}
+{"decision":"D347","name":"a-json-key-that-is-no-bare-name-is-read-by-a-quoted-segment","query":"{\"$ref\": \"x\"} | get /\"$ref\"","expect":"\"x\""}
 {"name":"json-string-key-equals-keyword","query":"{\"name\": 1} | get /name","expect":"1"}
 {"name":"json-form-keys-only","query":"{\"a\": 1, \"b\": 2} | get [/a /b]","expect":"[1 2]"}
 {"name":"scientific-in-json-object","query":"{\"v\": 1e10, \"e\": 2.5e-3} | get [/v, /e]","expect":"[10000000000 0.0025]"}
@@ -19,7 +19,7 @@
 {"name":"json-null-value","query":"{\"x\": null} | get /x","expect":"null"}
 {"name":"json-array-value-sum","query":"{\"items\": [1 2 3]} | get /items | sum","expect":"6"}
 {"name":"json-full-roundtrip","query":"{\"name\": \"alice\", \"age\": 30, \"active\": true, \"score\": null} | get [/name, /age, /active, /score]","expect":"[\"alice\" 30 true null]"}
-{"name":"json-objects-in-vec-project-count","query":"[{\"v\": 1e3}, {\"v\": 2e3}, {\"v\": 3e3}] | map /v","expect":"[1000 2000 3000]"}
+{"decision":"D347","name":"map-reads-a-key-of-each-json-object-an-array-holds","query":"[{\"v\": 1e3}, {\"v\": 2e3}, {\"v\": 3e3}] | map /v","expect":"[1000 2000 3000]"}
 {"name":"json-mixed-types-in-array","query":"[1, \"two\", true, null, 3.14]","expect":"[1 \"two\" true null 3.14]"}
 {"name":"json-object-reads-as-a-map","query":"{\"a\": 1} | type","expect":"::map"}
 {"name":"json-object-keys-are-keywords","query":"{\"a\": 1, \"b\": 2} | keys","expect":"#[:a :b]"}

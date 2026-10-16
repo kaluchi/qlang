@@ -4,7 +4,7 @@
 //   - a .parent on each node but the root
 //   - the source on the root as .source, and its name as .uri, a file
 //     path, 'inline' or 'cell-N'
-//   - .comments on the root, the plain comments the grammar read as
+//   - .comments on the root, the comments the grammar read as
 //     whitespace [QSSYN#comment], in the order of the source
 
 import {

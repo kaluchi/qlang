@@ -1,4 +1,4 @@
-// The sigil of a tag, and the keys no name a reader declares spells: the root
+// The sign of a tag, and the keys no name a reader declares spells: the root
 // beneath the scope [QSDSP#residence], the tree of the query a body reads as
 // data [QSNAM#owner], the names a call binds in its body's scope
 // [QSNAM#scope], and the values of the reader withheld from code held as data

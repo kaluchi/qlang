@@ -13,7 +13,7 @@
 // after the parse in src/parse.mjs adds `.parent` on every node
 // and `.source`, `.uri` and `.comments` on the root.
 //
-// A plain comment, `|~| …` to the end of its line or `|~ … ~|`, is
+// A comment, `|~| …` to the end of its line or `|~ … ~|`, is
 // whitespace wherever whitespace stands [QSSYN#comment]; the parser
 // records each on the side, `options.commentTrivia`, for the tools. The
 // doc forms, `|~~| …` and `|~~ … ~~|`, are the doc literal, which
@@ -78,7 +78,7 @@
     const { source, end } = range();
     return { source, start: pointOf(end - length), end: pointOf(end) };
   }
-  // A plain comment the parser read as whitespace, kept by its offset,
+  // A comment the parser read as whitespace, kept by its offset,
   // since a branch the parser abandons reads the same comment again.
   function recordComment(type, content) {
     const loc = span();
@@ -924,7 +924,7 @@ IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
 //
 // `_` is optional whitespace, `__` required whitespace, and `_h1`
 // whitespace within a line, which tells a body or a modifier on the line
-// of its name from a declaration that opens a later line [QSSYN#line]; a plain
+// of its name from a declaration that opens a later line [QSSYN#line]; a
 // comment is whitespace [QSSYN#comment].
 
 _   = Whitespace*

@@ -13,7 +13,7 @@
       `\\`, `\n`, `\t` and `\uXXXX`, any other character raw between
       them, `"line one\nline two"`, and JSON writes it the same.
       `::string"s"` is `"s"`. Strings rank after numbers and before
-      patterns, by their UTF-16 code units.
+      patterns, by their characters, the code points `count` reads.
 
       Its words read it whole or by its characters, `count`, `take`,
       `drop`, `contains`, `startsWith`, `upper`, break it, `split` and
@@ -67,10 +67,11 @@
 
 :string/gt
   |~~ Answers whether the subject comes after the string the call gives,
-      the two compared code unit by code unit, `"b" | gt "a"`. So an
-      upper-case letter comes before every lower-case one, `"B" | gt "a"`
-      answering `false`; a letter outside the ASCII letters comes after
-      them, `"é" | gt "z"`; a string comes after its own beginning,
+      the two compared character by character, by their code points,
+      `"b" | gt "a"`. So an upper-case letter comes before every
+      lower-case one, `"B" | gt "a"` answering `false`; a letter outside
+      the ASCII letters comes after them, `"é" | gt "z"`; a string comes
+      after its own beginning,
       `"abc" | gt "ab"`; and digits compare as characters, not as numbers,
       `"10" | gt "9"` answering `false`. A string compares with a string:
       a number or a keyword given is refused. A keyword or a number in the
@@ -89,8 +90,12 @@
         ~~|
         /0 ::string
     | throws :value/KindNotTakenError
-        |~~ The value compared is a string; a keyword gives its name by
-            `toString` first, `"b" | gt (:a | toString)`.
+        |~~ A string compares with a string. Where the subject is text
+            that holds a number, it is read by `toNumber` first,
+            `get /age | toNumber | gt 18`, since digits written as text
+            compare by their characters, `"5" | gt "18"` answering `true`;
+            a keyword gives its name by `toString`,
+            `"b" | gt (:a | toString)`.
         ~~|
     | returns
         |~~ `true` when the subject comes after the value, `false`
@@ -121,6 +126,11 @@
     | proves :value/KindNotTakenError/refusesANumber
         |~~ A number is no string to compare with. ~~|
         ~("a" | gt 1 !| type | eq ::string/gt/value/KindNotTakenError)
+    | proves :value/KindNotTakenError/readsTheNumberTextHolds
+        |~~ Text that holds a number compares as the number once
+            `toNumber` reads it, and by its characters as text.
+        ~~|
+        ~(get [~("5" | toNumber | gt 18) ~("5" | gt "18")] | eq [false true])
     | proves :namesTheKindsThatAnswerIt
         |~~ Null answers no `gt`, and the refusal names the kinds that do.
         ~~|
@@ -139,8 +149,12 @@
         ~~|
         /0 ::string
     | throws :value/KindNotTakenError
-        |~~ The value compared is a string; a keyword gives its name by
-            `toString` first, `"b" | gte (:a | toString)`.
+        |~~ A string compares with a string. Where the subject is text
+            that holds a number, it is read by `toNumber` first,
+            `get /age | toNumber | gte 18`, since digits written as text
+            compare by their characters, `"5" | gte "18"` answering
+            `true`; a keyword gives its name by `toString`,
+            `"b" | gte (:a | toString)`.
         ~~|
     | returns
         |~~ `true` when the subject comes after the value or equals it,
@@ -171,8 +185,12 @@
         ~~|
         /0 ::string
     | throws :value/KindNotTakenError
-        |~~ The value compared is a string; a keyword gives its name by
-            `toString` first, `"b" | lt (:a | toString)`.
+        |~~ A string compares with a string. Where the subject is text
+            that holds a number, it is read by `toNumber` first,
+            `get /age | toNumber | lt 18`, since digits written as text
+            compare by their characters, `"5" | lt "18"` answering
+            `false`; a keyword gives its name by `toString`,
+            `"b" | lt (:a | toString)`.
         ~~|
     | returns
         |~~ `true` when the subject comes before the value, `false`
@@ -205,8 +223,12 @@
         ~~|
         /0 ::string
     | throws :value/KindNotTakenError
-        |~~ The value compared is a string; a keyword gives its name by
-            `toString` first, `"b" | lte (:a | toString)`.
+        |~~ A string compares with a string. Where the subject is text
+            that holds a number, it is read by `toNumber` first,
+            `get /age | toNumber | lte 18`, since digits written as text
+            compare by their characters, `"5" | lte "18"` answering
+            `false`; a keyword gives its name by `toString`,
+            `"b" | lte (:a | toString)`.
         ~~|
     | returns
         |~~ `true` when the subject comes before the value or equals it,
@@ -270,6 +292,32 @@
         ~~|
         ~(5 | count !| get /addresses | eq #[::map/count ::set/count ::string/count ::vec/count])
     | impl ::builtin{}
+
+:string/size
+  |~~ The name other languages give `count`: answers how many characters
+      the string holds, a code point each, as `count` does,
+      `"abc" | size` answering `3`.
+      ::link~(::string/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many characters the string holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `size` answers as `count`. ~~|
+        ~("привет" | get [~(size) ~(count)] | eq [6 6])
+    | impl ~(count)
+
+:string/length
+  |~~ The name other languages give `count`: answers how many characters
+      the string holds, a code point each, as `count` does,
+      `"abc" | length` answering `3`.
+      ::link~(::string/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many characters the string holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `length` answers as `count`. ~~|
+        ~("привет" | get [~(length) ~(count)] | eq [6 6])
+    | impl ~(count)
 
 :string/take
   |~~ Answers the first characters of the string, as many as the count

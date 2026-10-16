@@ -103,6 +103,30 @@
         ~({:a 1 :b 2} | count ~(gt 1) !| type | eq ::map/count/ArgsBeyondInputsError)
     | impl ::builtin{}
 
+:map/size
+  |~~ The name other languages give `count`: answers how many entries the
+      map holds, as `count` does, `{:a 1 :b 2} | size` answering `2`.
+      ::link~(::map/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many entries the map holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `size` answers as `count`. ~~|
+        ~({:a 1 :b 2} | get [~(size) ~(count)] | eq [2 2])
+    | impl ~(count)
+
+:map/length
+  |~~ The name other languages give `count`: answers how many entries the
+      map holds, as `count` does, `{:a 1 :b 2} | length` answering `2`.
+      ::link~(::map/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many entries the map holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `length` answers as `count`. ~~|
+        ~({:a 1 :b 2} | get [~(length) ~(count)] | eq [2 2])
+    | impl ~(count)
+
 :map/empty
   |~~ Answers whether the map holds no entry, `{} | empty` answering
       `true`; it takes no value. A key held with a null value is an entry,
@@ -953,6 +977,35 @@
         ~({:a 1} | union #[:b] !| type | eq ::map/union/other/KindNotTakenError)
     | impl ::builtin{}
 
+:map/merge
+  |~~ The name other languages give `union` over maps: answers the entries
+      of the subject together with those of the map the call gives, which
+      wins a key both hold, as `union` does,
+      `{:a 1 :b 2} | merge {:b 3 :c 4}` answering `{:a 1 :b 3 :c 4}`; the
+      values are not merged deeper.
+      ::link~(::map/union | doc)
+  ~~|
+  ::fn
+    | takes :other |~~ The other map. ~~| /0 ::map
+    | throws :other/KindNotTakenError
+        |~~ The subject merges with a map, `merge {:b 2}`: a key comes with
+            its value.
+        ~~|
+    | returns
+        |~~ The entries of both maps, the other winning a key both hold,
+            under the tags of the subject.
+        ~~|
+        ::map
+    | proves :answersAsUnion
+        |~~ `merge` answers as `union`, the other map winning a key both
+            hold.
+        ~~|
+        ~({:a 1 :b 2} | get [~(merge {:b 3 :c 4}) ~(union {:b 3 :c 4})] | eq [{:a 1 :b 3 :c 4} {:a 1 :b 3 :c 4}])
+    | proves :other/KindNotTakenError/refusesASetOfKeys
+        |~~ A set of keys merges with no map. ~~|
+        ~({:a 1} | merge #[:b] !| type | eq ::map/merge/other/KindNotTakenError)
+    | impl ~(union other)
+
 :map/minus
   |~~ Answers the entries of the map whose keys are not among the keys the
       call gives, under the tags of the map: the keys of a map, or the
@@ -1064,8 +1117,9 @@
       own check fails. Its tag is the one its value shows: the outermost
       tag over the map, then the one the map carries,
       `::Oops{:message "boom"} | raise`, then `::error`, every entry of
-      the map a fact; and an error a catch opened, raised again, is
-      itself. `|`
+      the map a fact; an error a catch opened, raised again, is itself,
+      and a map that writes an empty `:trail` writes no path, so its
+      raise starts one. `|`
       steps around the failure, writing its trail, and `!|` catches it
       to its facts. It takes no value: what the error says is a fact of
       the map. A value of another kind is put in a map first,
@@ -1101,6 +1155,11 @@
     | proves :raisesAnOpenedErrorAsItself
         |~~ An error caught and raised again is itself. ~~|
         ~("x" | add 1 !| raise !| type | eq ::number/add/SubjectNotNumberError)
+    | proves :startsAPathOverAnEmptyTrail
+        |~~ An empty `:trail` is no path: the raise starts one, and the
+            steps the failure skips join its stop.
+        ~~|
+        ~({:a 1 :trail []} | raise | count !| trail | map ~(get [/step /skipped]) | eq [[~(raise) ~(count)]])
     | proves :renamesByATag
         |~~ A step that lays a tag over an error caught renames it. ~~|
         ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)

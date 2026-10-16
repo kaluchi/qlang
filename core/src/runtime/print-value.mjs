@@ -10,6 +10,7 @@ import {
   isVec,
   isQMap,
   isPath,
+  ELISION_TAG,
   ERROR_TAG,
   formOf,
   finiteNumberOrLift,
@@ -109,17 +110,14 @@ function printListLike(open, elements, indent, printedOf) {
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// A failure writes its error at rest: the tag of its site before the bang,
-// none for the kind of errors, its facts and the path it flew, `:trail []`
-// for one that flew no step, so its print raised is the failure again; the
-// answer of a host says above it that it was raised [QSERR#print].
+// A failure writes the error at rest `!|` opens it to: the tag of its site
+// before the bang, none for the kind of errors, and its facts, the path it
+// flew among them; the answer of a host says above it that it was raised
+// [QSERR#print].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
-  const facts = e.descriptor.has('trail') ? e.descriptor : new Map(e.descriptor).set('trail', NO_PATH);
-  return `${tagHead}${printMapLike('!{', facts, indent, printedOf)}`;
+  return `${tagHead}${printMapLike('!{', e.descriptor, indent, printedOf)}`;
 }
-
-const NO_PATH = Object.freeze([]);
 
 // A payload touches its tag by its own sign, and a number, a boolean,
 // null or a path, whose literal would continue the tag's name, by `#`
@@ -136,16 +134,18 @@ function printTaggedInstance(instance, indent, printedOf) {
   const tagLiteral = instance[TAG_HEADER_SYMBOL].literal;
   if (Array.isArray(instance)) return tagLiteral + printListLike('[', [...instance], indent, printedOf);
   if (instance instanceof Map && instance[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', instance, indent, printedOf);
-  if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf);
+  if (instance instanceof Map) return tagLiteral + printMapLike('{', instance, indent, printedOf, instance[TAG_HEADER_SYMBOL].name === ELISION_TAG.name);
   return underTagLiteral(tagLiteral, instance.payload, printValue(instance.payload, indent, printedOf));
 }
 
-// A map of two entries or fewer, none a container, stands on one line;
-// any other puts each entry on a line of its own.
-function printMapLike(open, m, indent, printedOf) {
+// A map of two entries or fewer, none a container, stands on one line, and
+// so does a marker of what a view left out, whatever it holds, so what
+// holds it keeps its layout [QSPRN#elide]; any other map puts each entry on
+// a line of its own.
+function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];
   const hasComposite = entries.some(([, v]) => isQMap(v) || isVec(v));
-  if (entries.length <= 2 && !hasComposite) {
+  if (oneLine || (entries.length <= 2 && !hasComposite)) {
     return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf)}`).join(' ')}}`;
   }
   const pad = '  '.repeat(indent + 1);

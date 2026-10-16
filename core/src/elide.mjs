@@ -30,12 +30,11 @@
 
 import {
   isVec, isQSet, isQuote, isDoc, isVecOfOwnKind, isQMap, isErrorValue, isValueClass,
-  makeTaggedInstance, makeTag, makeErrorValue, makePath, makeQuote, makeSet, stampTagHeader, TAG_HEADER_SYMBOL, FAIL_TAG, SET_TAG
+  makeTaggedInstance, makeErrorValue, makePath, makeQuote, makeSet, stampTagHeader, TAG_HEADER_SYMBOL, ELISION_TAG, FAIL_TAG, SET_TAG
 } from './types.mjs';
 import { printValue } from './runtime/print-value.mjs';
 import { commandStep, docText, printQuoteSource } from './quote.mjs';
 
-const ELISION_TAG = makeTag('elision');
 const HEAD_CHARACTERS = 40;
 const EXCERPT_CHARACTERS = 300;
 const keepsNone = () => false;
@@ -242,10 +241,13 @@ export function elide(value, budget, printedOf = printedByTheCore) {
 // A fact of an alert within its excerpt, beneath the read that reaches
 // it: a text past the excerpt gives way whole with its head, and any
 // other value, an error at rest among them [QSERR#rest], gives way within as
-// `elide` cuts it.
+// `elide` cuts it; a value whose cut still passes the excerpt, a map at its
+// top keeping its keys, gives way whole as a subject the failure passed
+// does, so the excerpt holds whatever data the failure arose over.
 function excerptOf(value, read, printedOf) {
   if (isText(value) && printedOf(value) === undefined && lengthOf(textOf(value)) > EXCERPT_CHARACTERS) return wholeOf({ path: [], value }, read);
-  return elideWithin(value, EXCERPT_CHARACTERS, read, keepsNone, printedOf);
+  const cut = elideWithin(value, EXCERPT_CHARACTERS, read, keepsNone, printedOf);
+  return measureBy(printedOf)(cut) > EXCERPT_CHARACTERS ? passedOver(value, read, printedOf) : cut;
 }
 
 // A subject the failure only passed, given way whole where its marker is

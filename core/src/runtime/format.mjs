@@ -71,10 +71,12 @@ export const BuiltinJsonValueNotEncodableError = declareInvariantError(
   'builtin/JsonValueNotEncodableError',
   ({ actualType }) => `toPlain: JSON has no form for a ${actualType} value a host put in the scope`);
 
+// Each key is laid as a property of its own, so a key JavaScript reads as
+// the prototype, `__proto__`, is written as any key is [QSPRN#json].
 function qMapToPlainObject(m) {
   const obj = {};
   for (const [k, val] of m) {
-    obj[k] = toPlain(val);
+    Object.defineProperty(obj, k, { value: toPlain(val), enumerable: true, writable: true, configurable: true });
   }
   return obj;
 }
@@ -112,17 +114,72 @@ function plainObjectToQMap(plainObj, path) {
   return qlangMap;
 }
 
+// fromJsonText(text) → the value a JSON text writes, read as a literal
+// reads it: each object the map of its keys in the order the text writes
+// them, which a plain object of JavaScript moves for a key that reads as an
+// index, a key written twice standing in its first place with its last
+// value, and a number past the doubles refused at its path [QSLIT#json]. The
+// text is one `JSON.parse` has read.
+export function fromJsonText(text) {
+  let at = 0;
+  const skipSpace = () => {
+    while (at < text.length && (text[at] === ' ' || text[at] === '\t' || text[at] === '\n' || text[at] === '\r')) at += 1;
+  };
+  const stringAt = () => {
+    const start = at;
+    for (at += 1; text[at] !== '"'; at += 1) if (text[at] === '\\') at += 1;
+    at += 1;
+    return JSON.parse(text.slice(start, at));
+  };
+  const valueAt = path => {
+    skipSpace();
+    if (text[at] === '{') {
+      const map = new Map();
+      at += 1;
+      skipSpace();
+      while (text[at] !== '}') {
+        const key = stringAt();
+        skipSpace();
+        at += 1;
+        map.set(key, valueAt([...path, key]));
+        skipSpace();
+        if (text[at] === ',') at += 1;
+        skipSpace();
+      }
+      at += 1;
+      return map;
+    }
+    if (text[at] === '[') {
+      const vec = [];
+      at += 1;
+      skipSpace();
+      while (text[at] !== ']') {
+        vec.push(valueAt([...path, vec.length]));
+        skipSpace();
+        if (text[at] === ',') at += 1;
+        skipSpace();
+      }
+      at += 1;
+      return vec;
+    }
+    if (text[at] === '"') return stringAt();
+    const start = at;
+    while (at < text.length && !',]} \t\n\r'.includes(text[at])) at += 1;
+    return liftPlainAtom(JSON.parse(text.slice(start, at)), path);
+  };
+  return valueAt([]);
+}
+
 // `json` resides on `::any` and `parseJson` on `::string`, each a
 // plain function over the value the walk served [QSQUO#modifier].
 const StringParseJsonTextNotJsonError = declareRefusal('string/parseJson/TextNotJsonError');
 
 bindPrim('any/json', subject => JSON.stringify(toPlain(subject)));
 bindPrim('string/parseJson', subject => {
-  let parsed;
   try {
-    parsed = JSON.parse(subject);
+    JSON.parse(subject);
   } catch (jsParseError) {
     throw new StringParseJsonTextNotJsonError({ message: jsParseError.message });
   }
-  return fromPlain(parsed);
+  return fromJsonText(subject);
 });

@@ -89,8 +89,13 @@ answers a failure from inside it, the call of a word, a group, a word
 running a quote. `/trail/0` is where the error arose and
 `/trail/-1/skipped` the steps skipped at the level that reads it, which
 `apply` runs again as held code [QSQUO#held]. An error at rest holds the
-facts it is written with; one that writes its `:trail`, empty among
-them, resumes that path when raised and adds no stop, and a trail other
+facts it is written with; one that writes a `:trail` that holds a stop
+resumes that path when raised and adds no stop, and an empty `:trail` is
+no path, as an error holds none, so its raise starts the path at its own
+stop, the steps the failure skips after it joining that stop, as the
+raise of a map that writes no `:trail` does: every failure a step answers
+holds its path from its first stop, and an error a catch opened, raised
+again, is the error it was. A trail other
 than a plain vector of plain maps, each holding a quote under
 `:skipped`, is refused as `::error/TrailNotVecError`, a vector or a stop
 under a tag among them. The word `trail` answers the path,
@@ -105,7 +110,13 @@ reads the key and is refused where there is none.
 #[:actualType :trail]
 
 > {:a 1 :trail []} | raise !| keys
-#[:a]
+#[:a :trail]
+
+> {:a 1 :trail []} | raise | count !| trail | map ~(get [/step /skipped])
+[[~(raise) ~(count)]]
+
+> {:a 1 :trail []} | raise !| :e it | raise !| eq e
+true
 
 > "x" | add 1 | mul 2 !| get /trail/0/skipped
 ~(mul 2)
@@ -194,10 +205,10 @@ true
 
 ## print
 
-A failure prints as its error at rest with the path it flew among its
-facts, `:trail []` for one that flew no step, a query that does not
-parse among them, so its print under `| raise` is the failure again;
-the error at rest `!|` grounds it to holds no empty `:trail`. The answer of a host that is a failure prints under
+A failure prints as the error at rest `!|` opens it to, the path it flew
+among its facts; the refusal of a text that does not parse, which flew no
+step, prints its facts alone, and its print raised starts its path at
+that raise. The answer of a host that is a failure prints under
 the line comment `|~| raised, and no !| caught it`, which a reading of
 the literal passes over, and an error at rest an answer gives prints as
 the value it is.
@@ -208,4 +219,15 @@ the value it is.
 
 > !{:a 1}
 !{:a 1}
+```
+
+```sh
+$ qlang '[01' < /dev/null | sed -n '1,7p'
+|~| raised, and no !| caught it
+::quote/ParseError!{
+  :source "[01"
+  :marker " ^~"
+  :message "a number is written without a leading zero: write `1`"
+  :location ::span[1 1 2 3 1 4]
+}
 ```

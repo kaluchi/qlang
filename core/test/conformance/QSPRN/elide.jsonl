@@ -9,7 +9,7 @@
 {"name":"a-part-no-longer-than-its-marker-stays-under-a-budget","query":"[[] {:n 1} \"short\"] | elide 3","expect":"[[] {:n 1} \"short\"]"}
 {"name":"a-budget-counts-the-print-a-kind-gives","query":":Box |~~ B ~~| | :Box/print ~(\"b\") | [::Box#1 ::Box#2 ::Box#3 ::Box#4 ::Box#5 ::Box#6 ::Box#7] | elide 10 | print | count","expect":"15"}
 {"name":"the-top-keeps-its-first-element-and-a-marker-of-the-rest","query":"200 | range | map ~(\"a\") | join \"\" | :s it | get [~(s) ~(s)] | elide 200 | get [~(type) ~(count) ~(last | type)]","expect":"[::vec 2 ::elision]"}
-{"name":"a-top-whose-least-prints-no-shorter-stays-as-it-is","query":"20 | range | :v it | elide 20 | eq v","expect":"true"}
+{"name":"a-top-whose-least-prints-no-shorter-stays-as-it-is","query":"[1 2 3 4 5 6 7 8 9 10] | :v it | elide 15 | eq v","expect":"true"}
 {"name":"a-part-that-prints-most-of-the-part-around-it-gives-way-in-its-place","query":"500 | range | map ~(\"a\") | join \"\" | :s it | get [~({:n 1} | put /big s) {:n 2}] | elide 200 | get [~(get /0/big | type) ~(get /0/n) ~(get /1)]","expect":"[::elision 1 {:n 2}]"}
 {"name":"a-set-past-its-budget-halves-and-stands-in-the-one-order","query":"40 | range | distinct | :v it | elide 60 | :e it | get [~(e | type) ~(e | last | type) ~(e | last | get /read | :r it | v | apply r | eq (v | drop (e | count | sub 1)))]","expect":"[::set ::elision true]"}
 {"name":"the-parts-of-a-set-give-way-within-it","query":"200 | range | map ~(\"a\") | join \"\" | :s it | get [~(s) ~(s | append \"b\")] | distinct | elide 150 | get [~(type) ~(count) ~(filter ~(type | eq ::elision) | count)]","expect":"[::set 2 2]"}
@@ -19,3 +19,5 @@
 {"name":"a-marker-counts-a-part-that-gave-way-whole-as-one-element","query":"200 | range | map ~(\"a\") | join \"\" | :s it | get [[~(s)] [1]] | elide 60 | get /0/size","expect":"1"}
 {"name":"a-marker-of-a-text-counts-and-keeps-its-characters","query":"61 | range | map ~(\"😀\") | join \"\" | :s it | {} | put /s s | elide 30 | get /s | get [/size ~(get /head | count)]","expect":"[61 30]"}
 {"name":"a-budget-is-a-whole-count-of-characters-above-zero","query":"30 | range | get [~(elide 0 !| type) ~(elide 2.5 !| type)]","expect":"[::any/elide/budget/NotCountError ::any/elide/budget/NotCountError]"}
+{"name":"a-marker-prints-on-one-line","query":"{:s \"a long line of text to leave out, which runs on long enough that its marker prints shorter than it\"} | elide 40 | get /s | print | contains \"\\n\"","expect":"false"}
+{"name":"a-vector-that-holds-a-marker-stays-on-one-line","query":"1000 | range | elide 120 | print","expect":"\"[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 ::elision{:size 984 :read ~(drop 16)}]\""}

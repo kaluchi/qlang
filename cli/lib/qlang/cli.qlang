@@ -34,7 +34,9 @@
       stdout with the exit code 0, a failure among them: a query that does
       not parse answers `::quote/ParseError`, and an input that does not
       read as JSON answers as `parseJson` refuses its text, so calls run
-      side by side never stop each other.
+      side by side never stop each other. A script that tests the code
+      writes `--fail` before the query, `qlang --fail 'get /id' < a.json
+      && next`: a failure exits with 1, written as without it.
 
       An answer prints whole, and `--budget=N` or `| elide N` bounds it,
       what is left out an `::elision` marker whose `:read` continues the

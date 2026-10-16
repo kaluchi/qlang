@@ -20,3 +20,4 @@
 {"name":"a-key-stands-beside-its-value-in-a-record","query":"{:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 (get {:name ~(get /0 | toString)})) | sort /port","expect":"[{:port 3000 :name \"auth\"} {:port 5432 :name \"db\"}]"}
 {"name":"map-empty-keys","query":"{} | keys","expect":"#[]"}
 {"name":"map-empty-vals","query":"{} | vals","expect":"[]"}
+{"name":"size-and-length-answer-as-count-over-a-map","query":"{:a 1 :b 2} | get [~(size) ~(length) ~(count)]","expect":"[2 2 2]"}

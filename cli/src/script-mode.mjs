@@ -4,7 +4,7 @@
 // whatever the input was, a query converting it where a reader wants
 // another format, `| json` [QSHST#answer].
 
-import { fromPlain, printAnswer, makeTag, elideAnswer } from '@kaluchi/qlang-core';
+import { fromJsonText, printAnswer, makeTag, elideAnswer } from '@kaluchi/qlang-core';
 
 // The noun the command line starts from when standard input carries no
 // bytes [QSHST#input].
@@ -24,20 +24,20 @@ export function liftStdinToPipeValue(stdinText, inputFormat) {
 
   // `JSON.parse` alone stands in the `try`, so a document that parses
   // and holds a number past the doubles is refused as a document.
-  let parsed;
   try {
-    parsed = JSON.parse(stdinText);
+    JSON.parse(stdinText);
   } catch (jsParseError) {
     return inputFormat === 'json' ? { parseError: jsParseError } : { pipeValue: stdinText };
   }
-  return liftParsedDocument(parsed);
+  return liftParsedDocument(stdinText);
 }
 
-// The document lifted to a value, or the refusal of a number past the
-// doubles at the path `fromPlain` names.
-function liftParsedDocument(parsed) {
+// The document lifted to a value as a literal reads it, the keys of each
+// object in the order the text writes them, or the refusal of a number
+// past the doubles at the path `fromJsonText` names [QSLIT#json].
+function liftParsedDocument(stdinText) {
   try {
-    return { pipeValue: fromPlain(parsed) };
+    return { pipeValue: fromJsonText(stdinText) };
   } catch (codecRefusal) {
     return { codecError: codecRefusal };
   }

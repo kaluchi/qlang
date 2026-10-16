@@ -179,8 +179,9 @@
       `{"users": [{"name": "Ann", "age": 30, "tags": ["a", "b"]}, {"name": "Bo", "age": 15, "tags": []}]}`,
       `get /users | filter ~(get /age | gte 18) | map ~(get {:name /name :n ~(get /tags | count)})`
       answers `[{:name "Ann" :n 2}]`. Look at the input before shaping
-      it, `paths` its outline, `keys`, `get /0`, `type`, `count`, and
-      build the query a step at a time, running each.
+      it, `shape` its schema, the kind at each of its parts, `keys`,
+      `get /0`, `type`, `count`, and build the query a step at a time,
+      running each.
 
       14. The chapters, in the order they rest on each other:
       ::link~(::qlang/values | doc) values, kinds and tags;
@@ -350,6 +351,9 @@
     | proves :looksAtTheInput
         |~~ The keys of the first element show the shape of the input. ~~|
         ~([{:id 1 :tags ["a"]}] | get /0 | keys | eq #[:id :tags])
+    | proves :looksAtTheShapeOfTheInput
+        |~~ The shape of the input shows the kinds its records hold. ~~|
+        ~({:users [{:age 30} {:age "x"}]} | shape | eq ::shape{:users [{:age #[::number ::string]}]})
     | proves :opensTheChapters
         |~~ The links of the first page open its chapters. ~~|
         ~(::qlang | doc | links | map ~open | count | gt 5)
@@ -759,8 +763,9 @@
             for each level it left, and the last stop the steps it
             skipped, a quote that runs again as held code runs. An error
             at rest raised
-            again resumes the trail it holds, and one without `:trail`
-            starts it over. Whether the step before stood is
+            again resumes the trail it holds, and one that holds none,
+            an empty `:trail` among them, starts it over. Whether the
+            step before stood is
             `ok !| false`.
         ~~|
         #[::error ::fail ::explanation]

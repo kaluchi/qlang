@@ -16,7 +16,8 @@ a value of the language reads back as it. A vector and a set stand on
 one line unless a part takes several, and then each part stands on a line
 of its own; a map of two entries or fewer, none a container, stands on
 one line, and any other puts each entry on a line of its own, indented
-by two. A kind answers `print` under
+by two. A marker of `::elision` stands on one line whatever it holds, so a
+container that holds one keeps the layout its other parts give it. A kind answers `print` under
 its own label, and the print of a value finds the `print` of each part
 by the walk of that part, an answer that is no string printed in its
 place; a kind's own `print` gives the text it chooses, which reads back
@@ -91,10 +92,15 @@ text its characters as `count` counts them, through the tags over it,
 `:read`, the quote that
 applied to the value `elide` took answers the part left out, and for a
 string, a doc and a quote `:head`, the first characters of its text; it
-prints and reads back as the value it is. A
+prints on one line and reads back as the value it is, the printer of the
+core writing it, since a view is cut before the print a kind declares is
+asked for, so the budget goes to the parts the view shows. A
 value whose print fits is answered as it is.
 
 ```qlang
+> 1000 | range | elide 120 | print
+"[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 ::elision{:size 984 :read ~(drop 16)}]"
+
 > [1 2] | elide 100
 [1 2]
 

@@ -28,7 +28,7 @@ import { parse } from '../../src/parse.mjs';
 import { walkAst } from '../../src/walk.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { isErrorValue, isTag } from '../../src/types.mjs';
-import { expectedValueOf } from '../helpers/expected-value.mjs';
+import { expectedValueOf, raisedLiteralOf } from '../helpers/expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const conformanceDir = join(here, '..', 'conformance');
@@ -53,15 +53,6 @@ function assertLiteralAst(parsed, testName) {
       );
     }
   });
-}
-
-// The error literal a failure's print raises, or null for any other
-// expectation.
-function raisedLiteralOf(ast) {
-  if (ast.type !== 'Pipeline' || ast.steps.length !== 2) return null;
-  const [literal, { combinator, step }] = ast.steps;
-  const raises = combinator === '|' && step.type === 'Call' && step.name === 'raise' && step.args.length === 0;
-  return raises ? literal : null;
 }
 
 async function answersAsPresent(queryResult, now) {

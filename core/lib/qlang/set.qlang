@@ -82,6 +82,30 @@
         ~(#[:a] | count 1 !| type | eq ::set/count/ArgsBeyondInputsError)
     | impl ::builtin{}
 
+:set/size
+  |~~ The name other languages give `count`: answers how many elements
+      the set holds, as `count` does, `#[:a :b] | size` answering `2`.
+      ::link~(::set/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many elements the set holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `size` answers as `count`. ~~|
+        ~(#[:a :b] | get [~(size) ~(count)] | eq [2 2])
+    | impl ~(count)
+
+:set/length
+  |~~ The name other languages give `count`: answers how many elements
+      the set holds, as `count` does, `#[:a :b] | length` answering `2`.
+      ::link~(::set/count | doc)
+  ~~|
+  ::fn
+    | returns |~~ How many elements the set holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `length` answers as `count`. ~~|
+        ~(#[:a :b] | get [~(length) ~(count)] | eq [2 2])
+    | impl ~(count)
+
 :set/empty
   |~~ Answers whether the set holds no element, `#[] | empty` answering
       `true`. A set that holds null holds an element, `#[null] | empty`
@@ -950,6 +974,23 @@
         |~~ A vector nested deeper stays whole. ~~|
         ~(#[[[1]] 2] | flat | eq #[2 [1]])
     | impl ::builtin{}
+
+:set/flatten
+  |~~ The name other languages give `flat`: answers the set of the
+      elements with one level of nesting spliced in, as `flat` does,
+      `#[#[1 2] #[2 3]] | flatten` answering `#[1 2 3]`.
+      ::link~(::set/flat | doc)
+  ~~|
+  ::fn
+    | returns
+        |~~ The elements with the sets and vectors among them spliced in,
+            a set under the tags of the subject.
+        ~~|
+        ::set
+    | proves :answersAsFlat
+        |~~ `flatten` answers as `flat`. ~~|
+        ~(#[#[1 2] #[2 3]] | get [~(flatten) ~(flat)] | eq [#[1 2 3] #[1 2 3]])
+    | impl ~(flat)
 
 :set/reduce
   |~~ Answers the seed folded over the elements in the one order by the

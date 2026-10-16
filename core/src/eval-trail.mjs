@@ -13,12 +13,11 @@
 //     stop at the part, and one handed on from inside it goes on as it is.
 //   `skipping(error, skippedStep)` — the failure that skipped a step.
 //   `resumingItsTrail(error)` — marks a failure `raise` made of a map
-//     that wrote its `:trail`.
+//     that wrote a path.
 //   `raisedBy(error, node)` — marks the failure a node's own fault raised.
 //
-// A failure holds its path from its first stop, and one that flew no step,
-// a refusal of the text of a query or one that resumed an empty path,
-// holds no `:trail` [QSERR#trail].
+// A failure holds its path from its first stop, and the refusal of the
+// text of a query, which flew no step, holds no `:trail` [QSERR#trail].
 
 import { isErrorValue, makeErrorValue, makeQuote } from './types.mjs';
 import { quoteOfBody } from './quote.mjs';
@@ -57,7 +56,7 @@ function withStop(error, stepQuote, subject) {
 
 export function answerOfStep(answer, stepQuoteOf, subject) {
   if (!isErrorValue(answer)) return answer;
-  if (resumesItsTrail(answer)) return withTrail(answer, answer.descriptor.get('trail') ?? []);
+  if (resumesItsTrail(answer)) return withTrail(answer, answer.descriptor.get('trail'));
   return withStop(answer, stepQuoteOf(), subject);
 }
 
@@ -65,7 +64,8 @@ export function answerOfPart(answer, partNode, subject) {
   return isErrorValue(answer) && isRaisedBy(answer, partNode) ? withStop(answer, quoteOfBody(partNode), subject) : answer;
 }
 
-// A failure that flew no step holds no stop to join, and the steps it
+// A failure that holds no path, a refusal inside a literal before its step
+// answers or one a host hands, holds no stop to join, and the steps it
 // passes leave it as it is.
 export function skipping(error, skippedStep) {
   const trail = error.descriptor.get('trail');

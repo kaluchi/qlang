@@ -28,8 +28,8 @@ describe('elide [QSPRN#elide]', () => {
   });
 
   it('keeps the top as it is where its first element and a marker of the rest print no shorter', () => {
-    const twenty = Array.from({ length: 20 }, (_, index) => index);
-    expect(elide(twenty, 20)).toBe(twenty);
+    const ten = Array.from({ length: 10 }, (_, index) => index + 1);
+    expect(elide(ten, 15)).toBe(ten);
   });
 
   it('keeps the first element of the top, the part within it giving way', async () => {
@@ -147,6 +147,15 @@ describe('alertOf [QSHST#answer]', () => {
     expect(deepEqual(await continued(query, rest), (await evalQuery(many)).slice(subject.length - 1))).toBe(true);
   });
 
+  it('gives a wide map where the failure arose way whole, so the excerpt holds, its read answering the map', async () => {
+    const wide = `{${Array.from({ length: 200 }, (_, index) => `:k${index} ${index}`).join(' ')}}`;
+    const query = `${wide} | add 1`;
+    const subject = alertOf(await evalQuery(query)).descriptor.get('trail')[0].get('subject');
+    expect(subject.get('size')).toBe(200);
+    expect(printValue(subject.get('read'))).toBe('~(!| get /trail/0/subject)');
+    expect(deepEqual(await continued(query, subject), await evalQuery(wide))).toBe(true);
+  });
+
   it('cuts a long string where the failure arose to its head', async () => {
     const text = LONG.repeat(10);
     const query = `"${text}" | add 1`;
@@ -170,8 +179,8 @@ describe('alertOf [QSHST#answer]', () => {
     const alert = alertOf(await evalQuery(query));
     const inner = alert.descriptor.get('actualValue');
     expect(isErrorValue(inner)).toBe(false);
-    const marker = inner.payload.get('trail')[0];
-    expect(printValue(marker.get('read'))).toBe('~(!| get /actualValue/trail/0)');
-    expect((await continued(query, marker)).size).toBe(3);
+    const marker = inner.payload.get('trail')[0].get('subject');
+    expect(printValue(marker.get('read'))).toBe('~(!| get /actualValue/trail/0/subject)');
+    expect((await continued(query, marker)).length).toBe(30);
   });
 });

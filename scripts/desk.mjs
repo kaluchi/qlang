@@ -1,6 +1,7 @@
 // The screen of the work a shift starts from [QSWRK#baseline], [QSWRK#marks]: the branch
 // and how far it stands from master, what the tree leaves uncommitted,
-// the walk of the baseline, the targets open and the records being decided, the
+// the walk of the baseline, the targets open and the records being decided,
+// the reach of the records in transit [QSWRK#documents], the
 // artifacts that name no decision and the records whose scope changed
 // since they were described [QSWRK#marks], the stashes, the branches and the
 // worktrees a merge leaves [QSWRK#baseline], and the sister project's
@@ -9,9 +10,9 @@
 // Usage: node scripts/desk.mjs
 
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { walkOfBaseline, RECORDS_A_WALK_TAKES } from './baseline-walk.mjs';
+import { citationsIn, recordsInTransit, walkOfBaseline, CITING_CODE_ROOTS, CODE_FILE, RECORDS_A_WALK_TAKES } from './baseline-walk.mjs';
 import { marksOfTree, touchedRecords } from './marks.mjs';
 
 const root = join(import.meta.dirname, '..');
@@ -47,6 +48,35 @@ const targets = requirements.filter(line => line.startsWith('target · ')).map(l
 lines.push(...(targets.length === 0 ? ['  no target open'] : targets));
 const decided = requirements.find(line => line.startsWith('being decided: '));
 if (decided !== undefined) lines.push(`  ${decided}`);
+
+// The reach of the records in transit, the tension of the work: a section a
+// record overrides, a case it claims and a line of code that cites it speak
+// in both voices until the move parts the record, so the merge that lands
+// the branch reaches none [QSWRK#documents].
+const transit = recordsInTransit(root);
+const conformance = join(root, 'core', 'test', 'conformance');
+// A line of a case that does not read as JSON claims nothing here; the
+// runner refuses it.
+const decisionOf = line => {
+  try {
+    return [JSON.parse(line).decision ?? []].flat();
+  } catch {
+    return [];
+  }
+};
+const claimed = readdirSync(conformance, { recursive: true }).map(String).filter(name => name.endsWith('.jsonl'))
+  .flatMap(name => readFileSync(join(conformance, name), 'utf8').split(/\r?\n/))
+  .filter(line => line.trim() !== '' && !line.trim().startsWith('//'))
+  .filter(line => decisionOf(line).some(name => transit.has(name))).length;
+const unread = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
+const citing = CITING_CODE_ROOTS.filter(dir => existsSync(join(root, dir)))
+  .flatMap(dir => readdirSync(join(root, dir), { recursive: true }).map(String)
+    .filter(name => CODE_FILE.test(name) && !name.split(/[\\/]/).some(part => unread.has(part)))
+    .map(name => join(root, dir, name)))
+  .map(file => new Set(citationsIn(readFileSync(file, 'utf8')).filter(({ name }) => transit.has(name)).map(({ line }) => line)).size)
+  .reduce((sum, count) => sum + count, 0);
+lines.push(transit.size === 0 ? '  no record in transit, the tension relaxed'
+  : `  reach ${transit.size} records in transit over ${new Set([...transit.values()].flat()).size} sections, ${claimed} cases they claim and ${citing} lines of code that cite them: the move parts them [QSWRK#documents]`);
 
 const { orphans } = marksOfTree(root);
 if (orphans.length > 0) lines.push(`  orphans ${orphans.length}, artifacts that name no decision: node scripts/marks.mjs`);

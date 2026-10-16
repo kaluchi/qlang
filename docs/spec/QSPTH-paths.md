@@ -194,8 +194,37 @@ reads a path from a vector of keys and places, an empty one refused as
 `::vec/toPath/ElementNotKeyError`, and from a string in the form of JSON
 Pointer, its escapes read and a leading `#` of a fragment among it, a
 string of another form refused as `::string/toPath/NotPointerError`.
-`paths` answers the set of the paths at which a value holds no parts,
-beneath the tags over it, the outline of any value, `#[]` for an atom.
+
+`paths` answers the outline of a value, the set of its leaves, each the
+pair of the path that reads it and its kind, the value read beneath the
+tags over it, a part under a tag a leaf and a set opened as a vector, and
+`#[]` for an atom. `shape`, a word of `::any`, answers the schema of a
+value in its own literal under `::shape`, a noun whose page tells how a
+shape reads, so `doc` on the answer reads that page: the value read
+beneath the tags over it, each map keeping its keys, each vector and each
+set one element whose shape holds of all its elements, a set as `#[E]`,
+an empty vector `[]`, and each part that holds no parts its kind, as
+`type` answers it, a part under a tag standing whole as its tag, a quote
+and a doc among them. Records that share a key merge into one, the keys
+of all of them, a key some lack marked `::absent` over its shape and a
+part null in some `::nullable`, `::absent` outside, and a part that is
+null alone stands as `::null`; records that share no key stand apart,
+and where the elements part, the shape there is the set of their kinds,
+as `:expected` writes the kinds a holder takes, any two of them that
+merge merged until none do, so records that share keys merge whatever
+their order. The element of a vector or a set empty in some of the data
+stands marked `::absent`, and vectors of one length whose places part
+are tuples, a shape for each place, where vectors of one length and one
+shape are lists. A map folds into `::each` over its first key and the
+shape of its values, the one key standing for all of them and telling
+how the keys of the data read: where every key is data, an id of digits,
+a date or a time, a uuid, an address, whatever its values hold, and
+where it holds more than eight names whose values, maps, vectors, sets,
+values under a tag or null, share one shape; a map of names over atoms
+keeps them however many, a key that reads as no name among them, as a
+map of fewer names or of names whose values part does. A path of the
+data reads its shape through its marks and its folds as far as a part
+holds one kind.
 
 ```qlang
 > /tags | count !| get /read
@@ -210,8 +239,29 @@ beneath the tags over it, the outline of any value, `#[]` for an atom.
 > "/a~1b/0" | toPath
 /:a/b/0
 
+> {:q ~(add 1) :n [1 "x"] :s #[2]} | paths
+#[[/n/0 ::number] [/n/1 ::string] [/q ::quote] [/s/0 ::number]]
+
 > {:a {:b 1 :c [2 3]} :d []} | paths | map ~(print)
-["/a/b" "/a/c/0" "/a/c/1" "/d"]
+["[/a/b ::number]" "[/a/c/0 ::number]" "[/a/c/1 ::number]" "[/d ::vec]"]
+
+> get [~([{:labels [{:name "bug"}]} {:labels []}] | shape) ~({:rows [["2024-01-01" 1.5] ["2024-01-02" null]]} | shape)]
+[::shape[{:labels [::absent{:name ::string}]}] ::shape{:rows [[::string ::nullable::number]]}]
+
+> {:users [{:name "a" :age 1 :tags ["x" "y"]} {:name "b" :age "2" :tags []}]} | shape | get [/users/0/name /users/0/age /users/0/tags]
+[::string #[::number ::string] [::absent::string]]
+
+> [{:a 1} {:a null :b "x"} {:c 2}] | shape
+::shape[#[{:a ::nullable::number :b ::absent::string} {:c ::number}]]
+
+> [{:author {:login "a"}} {:author null}] | shape | get /0/author/login
+::string
+
+> get [~({:"17" {:id 1} :"42" {:id 2}} | shape) ~({:"2024-01-01" 3 :"2024-01-02" 5} | shape) ~({:db {:host "h"} :cache {:host "c"}} | shape) ~({:x 1 :y 2} | shape)]
+[::shape::each{:"17" {:id ::number}} ::shape::each{:"2024-01-01" ::number} ::shape{:db {:host ::string} :cache {:host ::string}} ::shape{:x ::number :y ::number}]
+
+> {:"17" {:id 1} :"42" {:id 2}} | shape | get /17/id
+::number
 ```
 
 ## write

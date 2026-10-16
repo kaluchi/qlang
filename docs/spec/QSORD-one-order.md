@@ -10,10 +10,11 @@ Values order first by kind: null, boolean, number, string, pattern,
 keyword, tag name, path, vector, set, map, quote, doc, elision and desc,
 and after them every other tag by its name, the labels, the errors and
 the kinds of hosts among them. Within a kind, numbers order by value,
-`false` before `true`, strings by their UTF-16 code units, patterns by
-their text and then their flags, paths segment by segment, each segment
-by its code units, an index among them, so `/10` ranks before `/9`,
-vectors element by element, a shorter before a longer it begins, a set
+`false` before `true`, and a text by its code points, the characters a
+string counts [QSTXT#string]: a string, the name of a keyword and of a
+tag, a key of a map, a pattern by its text and then its flags, and a
+path segment by segment, an index among them, so `/10` ranks before
+`/9`; vectors element by element, a shorter before a longer it begins, a set
 as its vector, maps by their keys and then their values, a quote by its
 steps, a doc by its segments in turn, a run of prose before a quote, an
 elision by its payload, a desc by the reverse of its payload's place, an
@@ -26,6 +27,9 @@ its payload.
 
 > ["b" "B" "a"] | sort
 ["B" "a" "b"]
+
+> ["😀" "ﬁ" "a" "👍"] | sort
+["a" "ﬁ" "👍" "😀"]
 
 > [/b /a/c /a] | sort | map ~(print)
 ["/a" "/a/c" "/b"]

@@ -81,6 +81,13 @@ describe('CLI: script mode — query argument', () => {
     expect(stderr).toBe('');
   });
 
+  it('exits a failure with 1 under --fail, written on stdout as without it [QSHST#answer]', async () => {
+    const { stdout, stderr, exitCode } = await runCli(['--fail', '"x" | add 1'], { stdin: '' });
+    expect(exitCode).toBe(1);
+    expect(stdout).toContain('::number/add/SubjectNotNumberError!{');
+    expect(stderr).toBe('');
+  });
+
   it('errors on usage failure with exit code 2', async () => {
     const { exitCode, stderr } = await runCli([]);
     expect(exitCode).toBe(2);

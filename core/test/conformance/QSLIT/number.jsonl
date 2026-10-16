@@ -8,7 +8,7 @@
 {"name":"scientific-zero-exponent","query":"1e0","expect":"1"}
 {"name":"scientific-integer-no-frac","query":"2e3","expect":"2000"}
 {"name":"scientific-upper-no-sign","query":"5E10","expect":"50000000000"}
-{"name":"number-literal-past-the-finite-domain","query":"1e400","expect":"::quote/ParseError!{\n  :source \"1e400\"\n  :marker \"^    \"\n  :expected [:whitespace \"!|\" \"|\" \":\" \"::\" :\"identifier start (letter or underscore)\" \"/\" \"(\" \"!{\" \"#[\" \"[\" \"{\" \"~(\" \"~\" \"\\\"\" :\"number within the finite double range\" \"true\" \"false\" \"null\" \"#\\\"\" :doc :end-of-input]\n  :found \"1\"\n  :location ::span[0 1 1 1 1 2]\n  :trail []\n} | raise"}
+{"name":"number-literal-past-the-finite-domain","query":"1e400","expect":"::quote/ParseError!{\n  :source \"1e400\"\n  :marker \"^    \"\n  :expected [:whitespace \"!|\" \"|\" \":\" \"::\" :\"identifier start (letter or underscore)\" \"/\" \"(\" \"!{\" \"#[\" \"[\" \"{\" \"~(\" \"~\" \"\\\"\" :\"number within the finite double range\" \"true\" \"false\" \"null\" \"#\\\"\" :doc :end-of-input]\n  :found \"1\"\n  :location ::span[0 1 1 1 1 2]\n} | raise"}
 {"name":"number-literal-inside-the-finite-domain-parses","query":"\"1e308\" | parse | apply it | gt 1e307","expect":"true"}
 {"name":"a-leading-zero-is-refused-naming-the-number","query":"\"[01]\" | parse !| get /message","expect":"\"a number is written without a leading zero: write `1`\""}
 {"name":"a-leading-zero-after-a-minus-is-refused","query":"\"-007\" | parse !| get /message","expect":"\"a number is written without a leading zero: write `-7`\""}

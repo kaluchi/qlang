@@ -52,3 +52,10 @@
 {"name":"zip-refuses-an-element-that-is-no-vector-at-its-index","query":"[[1] 2] | zip !| get [~(type) /index]","expect":"[::vec/zip/ElementNotVecError 1]"}
 {"name":"a-count-under-a-tag-is-whole-where-it-equals-its-floor","query":"[1 2 3] | take ::N#2","expect":"[1 2]"}
 {"name":"take-refuses-a-fraction-and-a-value-of-another-kind","query":"[1 2] | get [~(take 1.5 !| type) ~(take \"x\" !| type)]","expect":"[::vec/take/count/NotIntegerError ::vec/take/count/KindNotTakenError]"}
+{"name":"flatten-answers-as-flat-over-a-vector","query":"[[1 2] [3 [4]]] | get [~(flatten) ~(flat)]","expect":"[[1 2 3 [4]] [1 2 3 [4]]]"}
+{"name":"flatten-answers-as-flat-over-a-set","query":"#[#[1 2] #[2 3]] | get [~(flatten) ~(flat)]","expect":"[#[1 2 3] #[1 2 3]]"}
+{"name":"size-and-length-answer-as-count-over-a-vector-and-a-set","query":"get [~([1 2 3] | size) ~([1 2 3] | length) ~(#[:a :b] | size) ~(#[:a :b] | length)]","expect":"[3 3 2 2]"}
+{"name":"concat-joins-the-vectors-after-the-subject","query":"[1] | concat [2 3] [4]","expect":"[1 2 3 4]"}
+{"name":"concat-folds-the-vectors-a-vector-holds","query":"[[1] [2 3]] | reduce [] ~(concat)","expect":"[1 2 3]"}
+{"name":"concat-answers-under-the-tag-of-its-subject","query":"::Box[1] | concat [2]","expect":"::Box[1 2]"}
+{"name":"concat-refuses-an-element-that-is-no-vector","query":"[1] | concat 2 !| get [~(type) /index]","expect":"[::vec/concat/vectors/ElementKindNotTakenError 0]"}

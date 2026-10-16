@@ -2,31 +2,50 @@
 // read. Claude Code keeps one `.jsonl` file per session under its
 // configuration directory, `$CLAUDE_CONFIG_DIR` or `~/.claude`, in
 // `projects/` and the working directory with every character but a
-// letter or a digit written `-`; `QLANG_TRANSCRIPTS` names another
-// directory. The transcripts live on the maintainer's machine alone, so
-// every sensor that reads them runs in a session there and nowhere else.
+// letter or a digit written `-`. The transcripts live on the maintainer's
+// machine alone, so every sensor that reads them runs in a session there
+// and nowhere else.
 // The decisions it exists for: [QSWRK#documents].
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { basename, delimiter, dirname, join } from 'node:path';
 
 export const repoRoot = join(import.meta.dirname, '..', '..');
 
-export function transcriptsDir() {
-  if (process.env.QLANG_TRANSCRIPTS) return process.env.QLANG_TRANSCRIPTS;
-  const configDir = process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), '.claude');
-  return join(configDir, 'projects', repoRoot.replace(/[^A-Za-z0-9]/g, '-'));
+// The directories that hold the transcripts of the project: those
+// `QLANG_TRANSCRIPTS` names, written as a list of paths is, or else the
+// configuration directory a session runs under, every configuration
+// directory beside it and `~/.claude`, so a sensor reads every session
+// the machine keeps, whichever configuration ran it [QSWRK#documents].
+export function transcriptDirs() {
+  if (process.env.QLANG_TRANSCRIPTS) return process.env.QLANG_TRANSCRIPTS.split(delimiter).filter(dir => dir !== '' && existsSync(dir));
+  const home = join(homedir(), '.claude');
+  const configDir = process.env.CLAUDE_CONFIG_DIR ?? home;
+  const beside = process.env.CLAUDE_CONFIG_DIR === undefined ? [] : readdirSync(dirname(configDir), { withFileTypes: true })
+    .filter(entry => entry.isDirectory()).map(entry => join(dirname(configDir), entry.name));
+  const project = repoRoot.replace(/[^A-Za-z0-9]/g, '-');
+  return [...new Set([configDir, ...beside, home].map(dir => join(dir, 'projects', project)))].filter(existsSync);
 }
 
-// The transcript of a session, the running one when none is named.
+// The transcript of a session, the running one when none is named, in the
+// directory that holds it, or in the first where none does.
 export function sessionTranscript(sessionId = process.env.CLAUDE_CODE_SESSION_ID) {
   if (sessionId === undefined) throw new Error('no session named, and CLAUDE_CODE_SESSION_ID is unset outside a session');
-  return join(transcriptsDir(), `${sessionId}.jsonl`);
+  const paths = transcriptDirs().map(dir => join(dir, `${sessionId}.jsonl`));
+  return paths.find(existsSync) ?? paths[0];
 }
 
 export function transcriptFiles() {
-  return readdirSync(transcriptsDir()).filter(name => name.endsWith('.jsonl')).sort().map(name => join(transcriptsDir(), name));
+  return transcriptDirs().flatMap(dir => readdirSync(dir).filter(name => name.endsWith('.jsonl')).map(name => join(dir, name)))
+    .sort((left, right) => basename(left).localeCompare(basename(right)));
+}
+
+// How many transcripts each directory gave, so a search that read a part
+// of the sessions says which part [QSWRK#documents].
+export function transcriptCoverage() {
+  const counts = transcriptDirs().map(dir => `${dir} ${readdirSync(dir).filter(name => name.endsWith('.jsonl')).length}`);
+  return `transcripts read: ${counts.length === 0 ? 'none, no directory holds one' : counts.join(' · ')}`;
 }
 
 // A line that is no record, a torn last line of a running session among

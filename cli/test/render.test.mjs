@@ -51,6 +51,43 @@ describe('renderCellOutcome — error paths', () => {
   });
 });
 
+// `--fail` gives a failure the code 1 for a script that tests it, the
+// failure written as without it [QSHST#answer].
+describe('renderCellOutcome — the code a failure exits with', () => {
+  const failure = () => makeErrorValue(makeTag('FilterSubjectNotContainerError'), new Map([['thrown', keyword('FilterSubjectNotContainerError')]]));
+
+  it('exits a failure with the code the caller asks for, written as without it', async () => {
+    const cliOutcome = await renderCellOutcome(makeCellEntry({ result: failure() }), {
+      didExplicitStdoutEffect: false,
+      shouldColorize: false,
+      failureExitCode: 1
+    });
+    expect(cliOutcome.stdoutText).toContain('::FilterSubjectNotContainerError');
+    expect(cliOutcome.stderrText).toBe('');
+    expect(cliOutcome.exitCode).toBe(1);
+  });
+
+  it('exits a failure the query left unwritten by `out` with that code too', async () => {
+    const cliOutcome = await renderCellOutcome(makeCellEntry({ result: failure() }), {
+      didExplicitStdoutEffect: true,
+      shouldColorize: false,
+      failureExitCode: 1
+    });
+    expect(cliOutcome.stdoutText).toBe('');
+    expect(cliOutcome.exitCode).toBe(1);
+  });
+
+  it('exits a value with 0 whatever code a failure takes', async () => {
+    const cliOutcome = await renderCellOutcome(makeCellEntry({ result: 'hello' }), {
+      didExplicitStdoutEffect: false,
+      shouldColorize: false,
+      failureExitCode: 1
+    });
+    expect(cliOutcome.stdoutText).toBe('hello\n');
+    expect(cliOutcome.exitCode).toBe(0);
+  });
+});
+
 // The answer is written as the language prints it, a string as its text
 // [QSHST#answer].
 describe('renderCellOutcome — script-mode encoding', () => {

@@ -51,9 +51,20 @@
 //       waiting on a target [QSWRK#baseline]; a section of a chapter is
 //       written since the baseline by a record dissolved into it [QSWRK#baseline].
 //
-//   (10) A series keeps its two latest: the sets of the benchmark, its
-//       screens, the runs of the references, the outside audits and the
-//       checks of the chapters [QSWRK#measure], [QSWRK#review].
+//   (10) A series of the benchmark keeps its two latest at the merge that
+//       landed a branch: its sets, its screens and the runs of the
+//       references, a branch keeping every run of its own [QSWRK#baseline].
+//
+//   (11) A report of the research stands with the session's reading
+//       beside it, every finding with its fate: a critique of an open
+//       record, a run of the check of the chapters and an outside audit
+//       [QSWRK#review].
+//
+//   (12) A comment, a doc of the catalog and a sentence of the prose
+//       that states what holds name no token the branch took out of the
+//       code, the catalog and the cases, the name of what its reader
+//       finds nowhere, but in a section a record in transit overrides
+//       [QSWRK#documents].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -62,7 +73,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
-import { walkOfBaseline } from './baseline-walk.mjs';
+import { baselineOf, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_CODE_ROOTS, CITING_DOCUMENTS, CODE_FILE } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { execFileSync } from 'node:child_process';
@@ -254,11 +265,16 @@ const TALLY_RE = new RegExp(
 const FENCE_RE = /^\s*```/;
 const INLINE_CODE_RE = /`[^`]*`/g;
 
+// A report of the research stands as its outside reader wrote it
+// [QSWRK#review], so the prose held to its tallies is the work's own, the
+// session's reading of the report among it.
+const OUTSIDE_REPORT = /^docs\/journal\/research\/(?:(?:design-check|reviews|outside-audit)\/D\d+~\d+\.md|spec-check\/D\d+~\d+\/(?!reading\.md)[^/]+\.md)$/;
+
 function scanProseTallies() {
   const violations = [];
   for (const filePath of walkSourceTree(repoRoot)) {
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
-    if (!relFile.endsWith('.md')) continue;
+    if (!relFile.endsWith('.md') || OUTSIDE_REPORT.test(relFile)) continue;
 
     const lines = readFileSync(filePath, 'utf8').split(/\r?\n/);
     let insideFence = false;
@@ -551,24 +567,149 @@ function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;
 }
 
-// ── (10) A series keeps its two latest ─────────────────────────
+// ── (10) A series of the benchmark keeps its two latest at the baseline
 //
-// The sets of the benchmark with their runs, the screens, the runs of the
-// references, the outside audits and the checks of the chapters keep their
-// two latest, and an older one goes to the history [QSWRK#measure],
-// [QSWRK#review].
-
-const SERIES = [
-  { name: 'the sets of the benchmark', members: paths => new Set(paths.filter(path => path.startsWith('scripts/benchmark/sets/')).map(path => path.split('/')[3])) },
-  { name: 'the screens of the benchmark', members: paths => paths.filter(path => path.startsWith('scripts/benchmark/screens/')) },
-  { name: 'the runs of the references', members: paths => paths.filter(path => path.startsWith('scripts/benchmark/runs/')) },
-  { name: 'the outside audits', members: paths => paths.filter(path => new RegExp(`^${RESEARCH}/outside-audit/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+\\.md$`).test(path)) },
-  { name: 'the checks of the chapters', members: paths => new Set(paths.filter(path => new RegExp(`^${RESEARCH}/spec-check/\\d{4}-\\d{2}-\\d{2}-[0-9a-f]+/`).test(path)).map(path => path.split('/')[4])) },
-];
+// The sets of the benchmark with their runs, the screens and the runs of
+// the references keep their two latest at the merge that landed a branch; a
+// branch keeps every run of its own, and the move of the baseline gives the
+// older to the history, `node scripts/drop-documents.mjs` [QSWRK#baseline].
 
 function seriesBeyondTwo() {
-  const paths = execFileSync('git', ['ls-files'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
-  return SERIES.map(({ name, members }) => ({ name, count: [...members(paths)].length })).filter(({ count }) => count > 2);
+  const baseline = baselineOf(repoRoot);
+  return baseline === undefined ? [] : seriesPastTheirTwoLatest(repoRoot, baseline).map(series => ({ ...series, baseline }));
+}
+
+// ── (11) A report of the research stands with its reading ──────
+
+function unreadReports() {
+  return reportsWithoutReading(repoRoot);
+}
+
+// ── (12) A text names what its reader finds ────────────────────
+//
+// A text that states what holds is read by one who never saw the dialogue
+// that wrote it, so a comment, a doc and a sentence of the prose name no
+// token the branch took out of the code, the catalog and the cases since
+// the baseline: a name the reader finds nowhere is a turn of that dialogue
+// answering a past the reader never sees, which the record and the commit
+// keep [QSWRK#documents]. A token is a name with a lowercase letter and a capital, a
+// digit or an underscore inside it, or an address under `::`. A line of
+// code holds what stands before its comment, a source of the catalog
+// holds what stands outside its docs and comments, a case holds the whole
+// line, and the prose of a chapter and of a seed names what stands outside
+// its fenced blocks; a section a record in transit overrides waits for the
+// move that writes it anew, as its probes wait [QSWRK#probe].
+
+const UNREAD_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
+const TOKEN = /(?<![\\\w$])[A-Za-z_$][a-z$]*[A-Z0-9_][\w$]*\b|::[A-Za-z][\w/.-]*\w/g;
+const tokensIn = text => [...text.matchAll(TOKEN)].map(match => match[0])
+  .filter(token => token.length >= 3 && !/^[DE]\d+$/.test(token) && (token.startsWith('::') || /[a-z]/.test(token) || /[_\d]/.test(token)));
+
+// What a file of the tree does with its lines: the prose names, a case
+// holds, and the code and the catalog hold but in their comments and docs.
+function voiceOfFile(path) {
+  if (path.split('/').some(part => UNREAD_FOLDERS.has(part))) return null;
+  if (CITING_DOCUMENTS.includes(path) || /^docs\/spec\/[^/]+\.md$/.test(path)) return 'prose';
+  if (/^core\/test\/conformance\/.+\.jsonl$/.test(path)) return 'case';
+  if (!CITING_CODE_ROOTS.some(root => path.startsWith(`${root}/`)) || !CODE_FILE.test(path)) return null;
+  return path.endsWith('.qlang') ? 'catalog' : 'code';
+}
+
+// The lines of a text, each split into what it holds and what it names;
+// a doc and a comment of the catalog run over lines, the longer marker
+// read first, `|~~|` before `|~|` and `|~~` before `|~`, and a string of
+// its code, `"…"` with its escapes as the grammar reads it, holds what it
+// writes, a marker inside it among it.
+function partsOfLines(voice, text) {
+  const lines = text.split(/\r?\n/);
+  if (voice === 'case') return lines.map(line => ({ holds: line, names: '' }));
+  if (voice === 'prose') {
+    let fenced = false;
+    return lines.map(line => {
+      if (line.startsWith('```')) fenced = !fenced;
+      return { holds: '', names: fenced || line.startsWith('```') ? '' : line };
+    });
+  }
+  if (voice === 'code') {
+    return lines.map(line => {
+      if (/^\s*(?:\/\/|\/\*|\*|#)/.test(line)) return { holds: '', names: line };
+      const comment = line.indexOf(' // ');
+      return comment === -1 ? { holds: line, names: '' } : { holds: line.slice(0, comment), names: line.slice(comment) };
+    });
+  }
+  let inside = null;
+  return lines.map(line => {
+    let holds = '';
+    let names = '';
+    for (let at = 0; at < line.length;) {
+      if (inside === '"') {
+        const step = line[at] === '\\' ? 2 : 1;
+        if (line[at] === '"') inside = null;
+        holds += line.slice(at, at + step);
+        at += step;
+      } else if (inside !== null) {
+        if (line.startsWith(inside, at)) { at += inside.length; inside = null; } else { names += line[at]; at += 1; }
+      } else if (line[at] === '"') {
+        inside = '"';
+        holds += '"';
+        at += 1;
+      } else if (line.startsWith('|~~|', at) || line.startsWith('|~|', at)) {
+        names += line.slice(at);
+        break;
+      } else if (line.startsWith('|~~', at)) { inside = '~~|'; at += 3; } else if (line.startsWith('|~', at)) { inside = '~|'; at += 2; } else { holds += line[at]; at += 1; }
+    }
+    return { holds, names };
+  });
+}
+
+function namesOfTakenOut() {
+  const baseline = baselineOf(repoRoot);
+  if (baseline === undefined) return [];
+  const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
+  // The tokens the removed lines held, each line read in its file as the
+  // baseline held it, so a doc or a comment it stood in is known.
+  const removedLines = new Map();
+  let path = null;
+  let old = 0;
+  for (const line of git('diff', '--no-color', '--no-ext-diff', '--no-renames', '-U0', baseline).split('\n')) {
+    const hunk = /^@@ -(\d+)/.exec(line);
+    if (line.startsWith('diff --git ')) path = null;
+    else if (line.startsWith('--- a/')) path = line.slice(6);
+    else if (hunk !== null) old = Number(hunk[1]);
+    else if (line.startsWith('-') && !line.startsWith('--- ') && path !== null && voiceOfFile(path) !== null) {
+      removedLines.set(path, [...(removedLines.get(path) ?? []), old]);
+      old += 1;
+    }
+  }
+  const removed = new Set();
+  for (const [file, numbers] of removedLines) {
+    const parts = partsOfLines(voiceOfFile(file), git('show', `${baseline}:${file}`));
+    for (const number of numbers) for (const token of tokensIn(parts[number - 1]?.holds ?? '')) removed.add(token);
+  }
+  // The sections a record in transit overrides, whose text waits for the
+  // move [QSWRK#spec].
+  const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
+  const files = [...git('ls-files').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')]
+    .filter(Boolean).filter(file => voiceOfFile(file) !== null && existsSync(join(repoRoot, file)));
+  const held = new Set();
+  const naming = [];
+  for (const file of files) {
+    const text = readFileSync(join(repoRoot, file), 'utf8');
+    const lines = text.split(/\r?\n/);
+    const chapter = /^docs\/spec\/(QS[A-Z]{3})-/.exec(file)?.[1];
+    let section = '';
+    partsOfLines(voiceOfFile(file), text).forEach(({ holds, names }, index) => {
+      const line = lines[index];
+      if (chapter !== undefined && line.startsWith('## ')) section = line.slice(3).trim();
+      for (const token of tokensIn(holds)) held.add(token);
+      const waits = chapter !== undefined && (waiting.has(chapter) || waiting.has(`${chapter}#${section}`));
+      if (names !== '' && !waits) naming.push({ file, line: index + 1, names, text: line.trim() });
+    });
+  }
+  const isHeld = token => held.has(token) || (token.startsWith('::') && [...held].some(other => other.startsWith(`${token}/`)));
+  const takenOut = new Set([...removed].filter(token => !isHeld(token)));
+  return naming.flatMap(({ file, line, names, text }) => [...new Set(tokensIn(names))].filter(token => takenOut.has(token))
+    .map(token => ({ file, line, token, baseline, snippet: text.slice(0, 120) })));
 }
 
 // ── Main ───────────────────────────────────────────────────────
@@ -587,6 +728,8 @@ const broken = brokenLinks();
 const outOfStep = fatesOutOfStep();
 const intrusions = specIntrusions();
 const swollen = seriesBeyondTwo();
+const unread = unreadReports();
+const takenOutNamed = namesOfTakenOut();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -601,7 +744,9 @@ if (forbidden.length === 0
     && broken.length === 0
     && outOfStep.length === 0
     && intrusions.length === 0
-    && swollen.length === 0) {
+    && swollen.length === 0
+    && unread.length === 0
+    && takenOutNamed.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -682,8 +827,18 @@ if (intrusions.length > 0) {
   process.stdout.write('    a cataphatic text states what holds; the change, its records and its history belong to the journal [QSWRK#spec], [QSWRK#documents].\n');
 }
 if (swollen.length > 0) {
-  process.stdout.write(`\nSeries past their two latest (${swollen.length}):\n`);
-  for (const { name, count } of swollen) process.stdout.write(`  ${name}: ${count}\n`);
-  process.stdout.write('    a series keeps its two latest, and an older one goes to the history, git keeping it [QSWRK#measure], [QSWRK#review].\n');
+  process.stdout.write(`\nSeries past their two latest at the baseline (${swollen.length}):\n`);
+  for (const { name, count, baseline } of swollen) process.stdout.write(`  ${name}: ${count} at the merge ${baseline} that landed it\n`);
+  process.stdout.write('    a branch keeps every run of its own, and the move of the baseline gives the older to the history, `node scripts/drop-documents.mjs`, git keeping it [QSWRK#baseline].\n');
+}
+if (unread.length > 0) {
+  process.stdout.write(`\nReports of the research without their reading (${unread.length}):\n`);
+  for (const { path, reading } of unread) process.stdout.write(`  ${path}  wants ${reading}\n`);
+  process.stdout.write('    the session writes its reading beside each report it runs, every finding with its probe and its fate, and commits the two together [QSWRK#review].\n');
+}
+if (takenOutNamed.length > 0) {
+  process.stdout.write(`\nNames of what the branch took out (${takenOutNamed.length}):\n`);
+  for (const { file, line, token, snippet } of takenOutNamed) process.stdout.write(`  ${file}:${line}  \`${token}\`  ${snippet}\n`);
+  process.stdout.write(`    the code, the catalog and the cases hold none of these since the baseline ${takenOutNamed[0].baseline}: a comment, a doc and the prose name what the reader finds, a section of a chapter waiting for its move under a record in transit over it, and what was lives in the record and the commit [QSWRK#documents].\n`);
 }
 process.exit(1);

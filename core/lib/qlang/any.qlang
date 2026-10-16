@@ -414,7 +414,7 @@
         ~~|
         ~(["alpha" "bravo" "charlie" "delta" "echo" "foxtrot" "golf" "hotel" "india" "juliet"]
           | elide 80
-          | eq ["alpha" "bravo" ::elision{:size 8 :read ~(drop 2)}])
+          | eq ["alpha" "bravo" "charlie" "delta" "echo" ::elision{:size 5 :read ~(drop 5)}])
     | proves :keepsATag
         |~~ A value under a tag keeps its tag. ~~|
         ~(::Box{:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it"}
@@ -2327,27 +2327,117 @@
     | impl ~(true)
 
 :any/paths
-  |~~ Answers the set of the paths at which the value holds no parts, the
-      outline of any value, each a path `get` reads:
-      `{:a {:b 1 :c [2 3]}} | paths` answers `#[/a/b /a/c/0 /a/c/1]`. An
-      empty vector or map is a part that holds none, and a value under a
-      tag is read beneath it.
-      ::link~(::any/get | doc) ::link~(::path | doc)
+  |~~ Answers the outline of a value, the set of its leaves, each the pair
+      of the path `get` reads it by and its kind:
+      `{:a {:b 1 :c [2 "x"]}} | paths` answers
+      `#[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string]]`. A part
+      under a tag is a leaf of its kind, which tells of itself on its
+      page, a quote and a doc among them; a set opens as a vector does,
+      its elements read by their places; an empty vector or map is a part
+      that holds none, and the subject is read beneath the tags over it.
+      `shape` folds the leaves of every element into one schema.
+      ::link~(::any/shape | doc) ::link~(::any/get | doc)
+      ::link~(::path | doc)
   ~~|
   ::fn
-    | returns |~~ The paths of the parts that hold no parts. ~~| ::set
+    | returns |~~ The pairs of the path and the kind of each leaf. ~~| ::set
     | proves :answersTheOutline
-        |~~ The outline holds the path of every part that holds no parts.
-        ~~|
-        ~({:a {:b 1 :c [2 3]} :d []} | paths | map ~(print) | eq ["/a/b" "/a/c/0" "/a/c/1" "/d"])
+        |~~ The outline holds the path and the kind of every leaf. ~~|
+        ~({:a {:b 1 :c [2 "x"]} :d []} | paths | eq #[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string] [/d ::vec]])
     | proves :answersNoPathOfAValueWithoutParts
         |~~ A value that has no parts has no path in it. ~~|
         ~(5 | paths | eq #[])
     | proves :readsBeneathTheTags
-        |~~ The outline reads beneath the tags stacked over a value. ~~|
-        ~(::A::B{:w 2} | paths | map ~(print) | eq ["/w"])
+        |~~ The outline reads beneath the tags stacked over the subject.
+        ~~|
+        ~(::A::B{:w 2} | paths | eq #[[/w ::number]])
+    | proves :standsAtATag
+        |~~ A part under a tag is a leaf of its kind. ~~|
+        ~({:q ~(add 1) :d |~~ d ~~| :t ::Box{:w 1}} | paths | eq #[[/d ::doc] [/q ::quote] [/t ::Box]])
+    | proves :opensASetAsAVector
+        |~~ A set opens as a vector does, its elements read by places. ~~|
+        ~({:s #[1 2]} | paths | eq #[[/s/0 ::number] [/s/1 ::number]])
     | proves :eachReadsByGet
         |~~ Each path of the outline reads its part. ~~|
-        ~({:a {:b 1}} | :v it | paths | map ~(:p it | (v | get p)) | eq [1])
+        ~({:a {:b 1}} | :v it | paths | map ~(:p (get /0) | (v | get p)) | eq [1])
+    | impl ::builtin{}
+
+:any/shape
+  |~~ Answers the shape of a value, its schema in its own literal under
+      `::shape`, whose page tells how a shape reads: each map keeps its
+      keys, but a map every key of which is data, ids, dates, uuids or
+      addresses, or of more than eight names over records of one shape,
+      folds into `::each` over its first key and the shape of its values,
+      `{:"17" {:id 1} :"42" {:id 2}} | shape` answering
+      `::shape::each{:"17" {:id ::number}}`; each vector and each
+      set holds one element whose shape holds of all its elements, a set
+      as `#[E]` and the element of one empty in some marked `::absent`,
+      vectors of one length whose places part a tuple, `[::string
+      ::number]`, and each part that holds no parts stands as its kind, as
+      `type` answers it, a part under a tag as its tag, which tells of
+      itself on its page:
+      `{:users [{:name "a" :age 1} {:name "b" :age "2"}]} | shape`
+      answers `::shape{:users [{:name ::string :age #[::number ::string]}]}`.
+      Records that share a key merge into one, a key some lack marked
+      `::absent` and a part null in some `::nullable`, and records that
+      share no key stand apart; where the elements part, the shape there is
+      the set of their kinds:
+      `[{:a 1} {:a null :b "x"} {:c 2}] | shape` answers
+      `::shape[#[{:a ::nullable::number :b ::absent::string} {:c ::number}]]`.
+      An empty vector is `[]`, and the subject is read beneath the tags
+      over it. So a reader looks at the input before the query is shaped,
+      and the paths of the data read its shape through its marks as far as
+      a part holds one kind, `/users/0/age` the kinds the age of every
+      user holds.
+      ::link~(::shape | doc) ::link~(::absent | doc)
+      ::link~(::nullable | doc) ::link~(::each | doc)
+      ::link~(::any/paths | doc) ::link~(::any/type | doc)
+  ~~|
+  ::fn
+    | returns |~~ The schema of the value. ~~| ::shape
+    | proves :answersTheKindOfAnAtom
+        |~~ An atom answers its kind. ~~|
+        ~([5 "a" null :k /a] | map ~shape | eq [::shape::number ::shape::string ::shape::null ::shape::keyword ::shape::path])
+    | proves :keepsTheKeysOfAMap
+        |~~ A map keeps its keys, each with its shape. ~~|
+        ~({:a 1 :b {:c "x"}} | shape | eq ::shape{:a ::number :b {:c ::string}})
+    | proves :foldsTheElementsOfAVector
+        |~~ A vector holds one element whose shape holds of all, an empty
+            one marking the element of the rest absent.
+        ~~|
+        ~([[1 2] [] [3]] | shape | eq ::shape[[::absent::number]])
+    | proves :readsTuplesPlaceByPlace
+        |~~ Vectors of one length whose places part are tuples. ~~|
+        ~([["a" 1] ["b" null]] | shape | eq ::shape[[::string ::nullable::number]])
+    | proves :mergesRecordsWhateverTheirOrder
+        |~~ Records that share keys merge whatever their order. ~~|
+        ~([{:a 1} {:b 2} {:a "x" :b 3}] | shape | eq ([{:a "x" :b 3} {:a 1} {:b 2}] | shape))
+    | proves :setsTheKindsWhereElementsPart
+        |~~ Where the elements part, the shape is the set of their kinds.
+        ~~|
+        ~([1 "a" 2] | shape | eq ::shape[#[::number ::string]])
+    | proves :mergesRecordsThatShareAKey
+        |~~ Records that share a key merge, a key some lack absent and a
+            part null in some nullable.
+        ~~|
+        ~([{:a 1} {:a null :b "x"}] | shape | eq ::shape[{:a ::nullable::number :b ::absent::string}])
+    | proves :keepsRecordsOfNoCommonKeyApart
+        |~~ Records that share no key stand apart. ~~|
+        ~([{:a 1} {:b "x"}] | shape | eq ::shape[#[{:a ::number} {:b ::string}]])
+    | proves :standsAtATag
+        |~~ A part under a tag stands as its tag. ~~|
+        ~({:t ::Box{:w 1} :q ~(add 1)} | shape | eq ::shape{:t ::Box :q ::quote})
+    | proves :opensASetAsAVector
+        |~~ A set holds one element whose shape holds of all of them. ~~|
+        ~(#[1 2] | shape | eq ::shape#[::number])
+    | proves :readsBeneathTheTagsOfItsSubject
+        |~~ The subject is read beneath its tags. ~~|
+        ~(::Box{:w 1} | shape | eq ::shape{:w ::number})
+    | proves :showsNoElementOfAnEmptyVector
+        |~~ An empty vector shows no element. ~~|
+        ~([] | shape | eq ::shape[])
+    | proves :readsByThePathsOfTheData
+        |~~ The paths of the data read its shape. ~~|
+        ~({:users [{:age 1} {:age "2"}]} | shape | get /users/0/age | eq #[::number ::string])
     | impl ::builtin{}
 

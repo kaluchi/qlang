@@ -760,11 +760,20 @@ function retiredWordsWritten() {
   const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
   const files = [...git('ls-files').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')]
     .filter(Boolean).filter(file => voiceOfFile(file) !== null && existsSync(join(repoRoot, file)));
+  // The sections a record in transit overrides, whose text waits for the
+  // move [QSWRK#spec].
+  const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
   const found = [];
   for (const file of files) {
     const voice = voiceOfFile(file);
     const isTest = /(^|\/)test\//.test(file);
-    partsOfLines(voice, readFileSync(join(repoRoot, file), 'utf8')).forEach(({ holds, names }, index) => {
+    const text = readFileSync(join(repoRoot, file), 'utf8');
+    const lines = text.split(/\r?\n/);
+    const chapter = /^docs\/spec\/(QS[A-Z]{3})-/.exec(file)?.[1];
+    let section = '';
+    partsOfLines(voice, text).forEach(({ holds, names }, index) => {
+      if (chapter !== undefined && lines[index].startsWith('## ')) section = lines[index].slice(3).trim();
+      if (chapter !== undefined && (waiting.has(chapter) || waiting.has(`${chapter}#${section}`))) return;
       const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(isTest ? [...holds.matchAll(TEST_TITLE)].map(match => match[2]) : [])];
       for (const part of read) {
         for (const { pattern, written, by } of RETIRED_WORDS) {

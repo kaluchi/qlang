@@ -1,5 +1,5 @@
-{"decision":"D347","name":"coalesce-of-one-alternative-answers-its-value","query":"{:x 42} | coalesce /x","expect":"42"}
-{"decision":"D347","name":"coalesce-of-one-alternative-that-misses-answers-null","query":"{} | coalesce /missing","expect":"null"}
+{"name":"coalesce-of-one-alternative-answers-its-value","query":"{:x 42} | coalesce /x","expect":"42"}
+{"name":"coalesce-of-one-alternative-that-misses-answers-null","query":"{} | coalesce /missing","expect":"null"}
 {"name":"two-args-first-non-null","query":"{:a 1} | coalesce /a /b","expect":"1"}
 {"name":"two-args-second-non-null","query":"{:b 2} | coalesce /a /b","expect":"2"}
 {"name":"two-args-both-null","query":"{} | coalesce /a /b","expect":"null"}
@@ -20,8 +20,8 @@
 {"name":"literal-default-vec","query":"{} | coalesce /missing ~([1 2 3])","expect":"[1 2 3]"}
 {"name":"literal-default-null","query":"{} | coalesce /missing ~(null)","expect":"null"}
 {"name":"computed-default-via-add","query":"{} | coalesce /missing ~(sumOf 1 2)","expect":"3"}
-{"decision":"D347","name":"code-after-the-alternative-that-answers-stays-unrun","query":"{:a 1} | coalesce /a ~(div 0)","expect":"1"}
-{"decision":"D347","name":"the-alternatives-after-a-later-one-that-answers-stay-unrun","query":"{:b 99} | coalesce /a /b ~(div 0) ~(\"unreached\")","expect":"99"}
+{"name":"code-after-the-alternative-that-answers-stays-unrun","query":"{:a 1} | coalesce /a ~(div 0)","expect":"1"}
+{"name":"the-alternatives-after-a-later-one-that-answers-stay-unrun","query":"{:b 99} | coalesce /a /b ~(div 0) ~(\"unreached\")","expect":"99"}
 {"name":"evaluates-failing-when-needed","query":"{} | coalesce /missing ~(\"safe\")","expect":"\"safe\""}
 {"name":"coalesce-with-no-alternative-is-refused","query":"{} | coalesce","expect":"::any/coalesce/alternatives/EmptyError!{\n  :actualType ::any/coalesce\n  :actualValue ::any/coalesce[]\n  :trail ::trail[::frame[{} ~(coalesce)]]\n} | raise"}
 {"name":"with-path-chain","query":"{:user {:name \"Alice\"}} | coalesce /admin /user/name ~(\"Unknown\")","expect":"\"Alice\""}

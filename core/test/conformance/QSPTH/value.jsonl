@@ -2,14 +2,14 @@
 {"name":"map-with-quoted-empty-key","query":"{:\"\" \"value-of-empty\"} | get /\"\"","expect":"\"value-of-empty\""}
 {"name":"map-with-mixed-bare-and-quoted-keys","query":"{:foo 1 :\"bar baz\" 2} | get /\"bar baz\"","expect":"2"}
 {"name":"keyword-path-simple","query":"{:name \"alice\"} | get /:name","expect":"\"alice\""}
-{"decision":"D347","name":"a-key-with-a-slash-in-its-name-is-read-after-a-colon","query":"{:qlang/error 42} | get /:qlang/error","expect":"42"}
+{"name":"a-key-with-a-slash-in-its-name-is-read-after-a-colon","query":"{:qlang/error 42} | get /:qlang/error","expect":"42"}
 {"name":"keyword-path-deep-ns","query":"{:qlang/core/strings 99} | get /:qlang/core/strings","expect":"99"}
 {"name":"keyword-path-two-ns-segments","query":"{:qlang/error {:retry 42}} | get /:qlang/error/:retry","expect":"42"}
 {"name":"keyword-path-deep-then-simple","query":"{:qlang/core/strings {:trim 1}} | get /:qlang/core/strings/:trim","expect":"1"}
 {"name":"keyword-path-mixed-bare-ns","query":"{:outer {:qlang/error 42}} | get /outer/:qlang/error","expect":"42"}
 {"name":"keyword-path-equiv-bare","query":"{:name 42} | get /:name","expect":"42"}
 {"name":"keyword-path-equiv-bare-nested","query":"{:a {:b 42}} | get /:a/:b","expect":"42"}
-{"decision":"D347","name":"a-word-of-the-literals-is-a-key-a-path-reads","query":"{:null 42} | get /null","expect":"42"}
+{"name":"a-word-of-the-literals-is-a-key-a-path-reads","query":"{:null 42} | get /null","expect":"42"}
 {"name":"a-path-at-the-head-is-the-subject","query":"/items/1 | type","expect":"::path"}
 {"name":"a-path-prints-as-written","query":"/items/1 | print","expect":"\"/items/1\""}
 {"name":"json-writes-a-path-as-its-literal","query":"/items/1 | json","expect":"\"\\\"/items/1\\\"\""}
@@ -28,9 +28,9 @@
 {"name":"unicode-mixed-cyrillic-and-latin","query":"{\"user\": {\"имя\": \"Алиса\"}} | get /user/имя","expect":"\"Алиса\""}
 {"name":"unicode-cyrillic-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | get [/пункт1, /пункт2]","expect":"[10 20]"}
 {"name":"unicode-cyrillic-kebab-case","query":"{\"имя-пользователя\": \"alice\"} | get /имя-пользователя","expect":"\"alice\""}
-{"decision":"D347","name":"a-json-key-named-null-is-read-by-a-path","query":"{\"null\": 42} | get /null","expect":"42"}
-{"decision":"D347","name":"a-json-key-named-true-is-read-by-a-path","query":"{\"true\": 1} | get /true","expect":"1"}
-{"decision":"D347","name":"a-json-key-named-false-is-read-by-a-path","query":"{\"false\": 0} | get /false","expect":"0"}
+{"name":"a-json-key-named-null-is-read-by-a-path","query":"{\"null\": 42} | get /null","expect":"42"}
+{"name":"a-json-key-named-true-is-read-by-a-path","query":"{\"true\": 1} | get /true","expect":"1"}
+{"name":"a-json-key-named-false-is-read-by-a-path","query":"{\"false\": 0} | get /false","expect":"0"}
 {"name":"json-numeric-string-key","query":"{\"42\": \"answer\"} | get /\"42\"","expect":"\"answer\""}
 {"name":"json-kebab-string-key","query":"{\"foo-bar\": 99} | get /\"foo-bar\"","expect":"99"}
 {"name":"parse-path-path","query":"\"/a/b/0\" | parse | first | segments","expect":"[:a :b 0]"}

@@ -2,7 +2,7 @@
 {"name":"raise-takes-the-tag-the-map-carries","query":"::Foo{:a 1} | raise !| type","expect":"::Foo"}
 {"name":"raise-makes-an-error-of-a-map","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail ::trail[::frame[{:kind :oops} ~(raise)]]\n} | raise"}
 {"name":"the-facts-of-an-error-at-rest-raise-under-the-kind-of-errors","query":"!{:a 1} | payload | get [~(type) ~(raise !| type)]","expect":"[::map ::error]"}
-{"decision":"D347","name":"raise-puts-an-error-at-rest-read-from-a-vector-on-the-fail-track","query":"[::error{:a 1}] | first | raise !| trail | map ~step","expect":"[~(raise)]"}
+{"name":"raise-puts-an-error-at-rest-read-from-a-vector-on-the-fail-track","query":"[::error{:a 1}] | first | raise !| trail | map ~step","expect":"[~(raise)]"}
 {"name":"raise-alone-raises-an-error-at-rest","query":"!{:a 1} | raise !| trail | map ~step","expect":"[~(raise)]"}
 {"name":"raise-puts-a-map-on-the-fail-track-as-an-error","query":"{:k 1} | raise !| type","expect":"::error"}
 {"name":"raise-keeps-the-tag-the-value-shows","query":"::Site::error{:k 1} | raise !| type","expect":"::Site"}

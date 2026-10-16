@@ -3,12 +3,12 @@
 {"name":"error-test-in-a-template","query":"get [~(!{:kind :oops} | raise | ok !| false) ~(42 | ok !| false)]","expect":"[false true]"}
 {"name":"a-catch-passes-a-map-by","query":"{:kind :oops} !| get /kind","expect":"{:kind :oops}"}
 {"name":"a-catch-passes-null-by","query":"null !| get /kind","expect":"null"}
-{"decision":"D347","name":"a-catch-reads-the-kind-entry-of-the-error-at-rest","query":"!{:kind :oops :message \"boom\"} | raise !| get /kind","expect":":oops"}
-{"decision":"D347","name":"a-catch-reads-the-message-entry-of-the-error-at-rest","query":"!{:kind :oops :message \"boom\"} | raise !| get /message","expect":"\"boom\""}
+{"name":"a-catch-reads-the-kind-entry-of-the-error-at-rest","query":"!{:kind :oops :message \"boom\"} | raise !| get /kind","expect":":oops"}
+{"name":"a-catch-reads-the-message-entry-of-the-error-at-rest","query":"!{:kind :oops :message \"boom\"} | raise !| get /message","expect":"\"boom\""}
 {"name":"a-catch-passes-a-number-by","query":"42 !| get /kind","expect":"42"}
 {"name":"a-catch-passes-a-string-by","query":"\"hello\" !| get /kind","expect":"\"hello\""}
 {"name":"a-catch-passes-a-vector-by","query":"[1 2 3] !| get /kind","expect":"[1 2 3]"}
-{"decision":"D347","name":"a-catch-runs-a-group-on-the-error-at-rest","query":"!{:kind :oops} | raise !| (get /kind)","expect":":oops"}
+{"name":"a-catch-runs-a-group-on-the-error-at-rest","query":"!{:kind :oops} | raise !| (get /kind)","expect":":oops"}
 {"name":"an-error-literal-passes-the-fail-track-by","query":"!{:a 1} !| type","expect":"!{:a 1}"}
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map ~(mul 2) | !| 0","expect":"0"}
 {"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| get /kind","expect":":inner"}

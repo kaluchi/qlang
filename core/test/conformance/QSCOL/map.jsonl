@@ -3,7 +3,7 @@
 {"name":"vals-map-yields-vec","query":"{:a 1 :b 2} | vals | type","expect":"::vec"}
 {"name":"keys-map-yields-set","query":"{:a 1 :b 2} | keys | type","expect":"::set"}
 {"name":"keys-map-elements-are-keywords","query":"{:a 1 :b 2} | keys | first | type","expect":"::keyword"}
-{"decision":"D347","name":"the-keys-of-a-map-equal-a-set-of-them-written-in-another-order","query":"{:a 1 :b 2} | keys | eq #[:b :a]","expect":"true"}
+{"name":"the-keys-of-a-map-equal-a-set-of-them-written-in-another-order","query":"{:a 1 :b 2} | keys | eq #[:b :a]","expect":"true"}
 {"name":"sort-orders-the-entries-by-value","query":"{:a 3 :b 1 :c 2} | sort | vals","expect":"[1 2 3]"}
 {"name":"sort-keeps-the-key-of-each-value","query":"{:a 3 :b 1} | sort | take 1","expect":"{:b 1}"}
 {"name":"take-cuts-the-first-entries","query":"{:a 1 :b 2 :c 3} | take 2","expect":"{:a 1 :b 2}"}

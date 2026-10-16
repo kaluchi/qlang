@@ -100,15 +100,17 @@ on is one read away; the steps skipped at the level that reads the
 failure, `trail | last | skipped`, run again by `apply` as held code runs
 [QSQUO#held]. An error at rest holds the facts it is written with; one
 that writes a `:trail` that holds a frame resumes that path when raised
-and passes no frame, and an empty `:trail` is no path, as an error holds
+and passes no frame, the steps the failure skips after it joining the
+last frame of that path, and an empty `:trail` is no path, as an error holds
 none, so its raise starts the path at its own frame, the steps the
 failure skips after it joining that frame, as the raise of a map that
 writes no `:trail` does: every failure a step answers holds its path from
 its first frame, and an error a catch opened, raised again, is the error
-it was. The `:trail` an error is made with is a vector of frames, plain,
-which the error lays under `::trail`, or under `::trail`, and any other
-value is refused as `::error/TrailNotFramesError`; a frame of a subject
-alone, or whose place is no path, is refused as
+it was, and raised without its `:trail` starts the path over at that
+raise. The `:trail` an error is made with is a vector of frames, plain,
+which the error lays under `::trail`, or one under `::trail` already,
+and any other value is refused as `::error/TrailNotFramesError`; a frame
+of a subject alone, or whose place is no path, is refused as
 `::frame/PayloadNotSubjectAndStepsError`, and a trail that holds a value
 that is no frame as `::trail/ElementKindNotTakenError` at its index. The
 word `trail` answers the path, `::trail[]` for an error that holds none,
@@ -142,6 +144,12 @@ its answer, `::error/trail/answer/KindNotTakenError` [QSBLD#answer], while
 > {:a 1 :trail []} | raise !| :e it | raise !| eq e
 true
 
+> !{:a 1} | raise | count !| raise | add 1 !| trail | last | skipped
+~(count | add 1)
+
+> !{:a 1} | raise | count !| minus #[:trail] | raise | add 1 !| trail | last | skipped
+~(add 1)
+
 > "x" | add 1 | mul 2 !| trail | last | skipped
 ~(mul 2)
 
@@ -162,6 +170,8 @@ every element. A literal whose part fails answers that failure, and so
 does a template of `get` whose quote answers one, the first in the order
 written; the body of a declaration that fails leaves the scope as it
 was and answers the failure; a tag over a payload that fails answers the
+failure, and so does a word whose answer the kind of its subject refuses,
+under the tags its walk passed as under none, since no tag is laid over a
 failure; a modifier that answers a failure answers the call where its
 input takes a value, and is refused under the input where it takes code
 [QSQUO#modifier]. A refusal holds a failure computed at the call as the
@@ -176,6 +186,9 @@ false
 
 > [1 "x" 3] | map ~(add 10 !| 0)
 [11 0 13]
+
+> :Pair |~~ Two elements. ~~| (::kind | holds :NotPairError |~~ A pair holds two. ~~| ~(count | eq 2)) | ::Box::Pair[1 2] | take 1 !| type
+::Pair/NotPairError
 
 > [1 2] | map (1 | div 0) !| type
 ::vec/map/code/KindNotTakenError

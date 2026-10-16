@@ -12,7 +12,7 @@
 {"name":"if-reads-the-empty-vector-by-empty","query":"[] | if (empty | not) ~(\"non-empty\") ~(\"empty\")","expect":"\"empty\""}
 {"name":"if-reads-the-empty-map-by-a-comparison","query":"{} | if (eq {}) ~(\"empty-map\") ~(\"other\")","expect":"\"empty-map\""}
 {"name":"if-takes-a-condition-turned-by-not","query":"true | if not ~(\"truthy\") ~(\"falsy\")","expect":"\"falsy\""}
-{"decision":"D347","name":"a-branch-written-as-a-quote-runs-on-the-subject","query":"{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"110"}
+{"name":"a-branch-written-as-a-quote-runs-on-the-subject","query":"{:active true :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"110"}
 {"name":"then-arithmetic","query":"10 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"20"}
 {"name":"else-arithmetic","query":"3 | if (gt 5) ~(mul 2) ~(mul 0)","expect":"0"}
 {"name":"then-literal-string","query":"1 | if true ~(\"hello\") ~(\"goodbye\")","expect":"\"hello\""}
@@ -26,9 +26,9 @@
 {"name":"if-under-map-doubles-some","query":"[1 2 3 4 5] | map ~(if (gt 2) ~(mul 10) ~(add 0))","expect":"[1 2 30 40 50]"}
 {"name":"if-answers-a-boolean-filter-reads","query":"[1 2 3 4] | filter ~(if (gt 2) ~(true) ~(false))","expect":"[3 4]"}
 {"name":"if-with-coalesce","query":"{:role :admin :name \"Bob\"} | if (get /role | eq :admin) ~(coalesce /displayName /name ~(\"???\")) ~(\"guest\")","expect":"\"Bob\""}
-{"decision":"D347","name":"if-runs-then-when-a-keyword-read-from-the-subject-matches","query":"{:status :ok} | if (get /status | eq :ok) ~(200) ~(500)","expect":"200"}
-{"decision":"D347","name":"if-runs-else-when-a-keyword-read-from-the-subject-differs","query":"{:status :error} | if (get /status | eq :ok) ~(200) ~(500)","expect":"500"}
-{"decision":"D347","name":"if-takes-a-condition-read-by-a-deep-path","query":"{:a {:b {:c true}}} | if (get /a/b/c) ~(\"deep-yes\") ~(\"deep-no\")","expect":"\"deep-yes\""}
+{"name":"if-runs-then-when-a-keyword-read-from-the-subject-matches","query":"{:status :ok} | if (get /status | eq :ok) ~(200) ~(500)","expect":"200"}
+{"name":"if-runs-else-when-a-keyword-read-from-the-subject-differs","query":"{:status :error} | if (get /status | eq :ok) ~(200) ~(500)","expect":"500"}
+{"name":"if-takes-a-condition-read-by-a-deep-path","query":"{:a {:b {:c true}}} | if (get /a/b/c) ~(\"deep-yes\") ~(\"deep-no\")","expect":"\"deep-yes\""}
 {"name":"first-pair-matches","query":"5 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"\"five\""}
 {"name":"second-pair-matches","query":"6 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"\"six\""}
 {"name":"no-pair-matches-no-default-yields-null","query":"7 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"null"}
@@ -47,7 +47,7 @@
 {"name":"if-resides-on-any","query":"\"x\" | if true ~(1) ~(2)","expect":"1"}
 {"name":"a-clause-of-another-kind-names-its-index","query":"5 | cond true ~(\"yes\") !| get [~(type) /index /actualType]","expect":"[::any/cond/clauses/ElementKindNotTakenError 0 ::boolean]"}
 {"name":"if-refuses-a-missing-branch","query":"true | if true ~(1) !| type","expect":"::any/if/else/NotGivenError"}
-{"decision":"D347","name":"a-branch-written-as-a-path-reads-the-subject","query":"{:active false :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"100"}
+{"name":"a-branch-written-as-a-path-reads-the-subject","query":"{:active false :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"100"}
 {"name":"cond-with-path-default","query":"{:role :user :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"100"}
 {"name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
 {"name":"a-condition-of-cond-is-named-by-its-place-from-zero","query":"get [~(5 | cond ~(1) ~(\"yes\") !| get [~(type) /index]) ~(5 | cond ~(false) ~(1) ~(2) ~(3) !| get [~(type) /index])]","expect":"[[::any/cond/ConditionNotBooleanError 0] [::any/cond/ConditionNotBooleanError 2]]"}

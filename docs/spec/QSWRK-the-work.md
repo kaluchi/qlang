@@ -11,9 +11,8 @@ section names a check, and the review and the maintainer hold the rest.
 
 A decision is a record of its own, `docs/journal/Dnn.md`, numbered in
 the order it was written, a discussion with its choice and its
-circumstances, and a record of the environment of the work,
-`docs/journal/En.md`, is numbered in a series of its own. A citation of a record is a link of markdown to its
-file, `[Dnn]`.
+circumstances. A citation of a record is a link of markdown to its file,
+`[Dnn]`.
 
 A record is written in fields, each opening a line: `Domain.`, the part
 of the work it governs, `Language.` a change of the language whose

@@ -17,9 +17,9 @@
 {"name":"vec-bare-index-oob","query":"[10 20 30] | get /99","expect":"::path/IndexOutOfBoundsError!{\n  :index 99\n  :length 3\n  :path /99\n  :actualType ::vec\n  :trail ::trail[::frame[[10 20 30] ~(get /99)]]\n} | raise"}
 {"name":"vec-bare-index-negative-oob","query":"[10 20 30] | get /-99","expect":"::path/IndexOutOfBoundsError!{\n  :index -99\n  :length 3\n  :path /-99\n  :actualType ::vec\n  :trail ::trail[::frame[[10 20 30] ~(get /-99)]]\n} | raise"}
 {"name":"a-name-segment-on-a-vector-is-refused","query":"[10 20 30] | get /name","expect":"::path/IndexNotIntegerError!{\n  :key :name\n  :path /name\n  :actualType ::vec\n  :trail ::trail[::frame[[10 20 30] ~(get /name)]]\n} | raise"}
-{"decision":"D347","name":"a-path-reads-a-key-then-a-place-then-a-key","query":"{\"items\": [{\"id\": 1} {\"id\": 2}]} | get /items/0/id","expect":"1"}
-{"decision":"D347","name":"a-path-reads-a-place-from-the-end-between-two-keys","query":"{\"users\": [{\"email\": \"a@x\"} {\"email\": \"b@x\"}]} | get /users/-1/email","expect":"\"b@x\""}
-{"decision":"D347","name":"a-path-reads-a-place-then-a-key","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | get /1/name","expect":"\"bob\""}
+{"name":"a-path-reads-a-key-then-a-place-then-a-key","query":"{\"items\": [{\"id\": 1} {\"id\": 2}]} | get /items/0/id","expect":"1"}
+{"name":"a-path-reads-a-place-from-the-end-between-two-keys","query":"{\"users\": [{\"email\": \"a@x\"} {\"email\": \"b@x\"}]} | get /users/-1/email","expect":"\"b@x\""}
+{"name":"a-path-reads-a-place-then-a-key","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | get /1/name","expect":"\"bob\""}
 {"name":"map-numeric-key-vs-vec-index","query":"{\"0\": [0 1]} | get /0","expect":"[0 1]"}
 {"name":"mixed-map-then-vec-bare-index","query":"{\"rows\": [[1 2] [3 4]]} | get /rows/1/0","expect":"3"}
 {"name":"null-subject-strict","query":"null | get /any","expect":"::path/SubjectHasNoPartsError!{\n  :key :any\n  :path /any\n  :actualType ::null\n  :trail ::trail[::frame[null ~(get /any)]]\n} | raise"}

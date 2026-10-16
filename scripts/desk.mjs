@@ -1,4 +1,4 @@
-// The screen of the work a shift starts from [QSWRK#baseline], [QSWRK#marks]: the branch
+// The screen of the work a shift starts from: the branch
 // and how far it stands from master, what the tree leaves uncommitted,
 // the walk of the baseline, the targets open and the records being decided,
 // the reach of the records in transit [QSWRK#documents], the

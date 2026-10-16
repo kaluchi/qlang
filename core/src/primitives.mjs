@@ -1,8 +1,7 @@
 // The implementations of the language by the address of the verb or the kind
 // each serves, `number/add`, `vec` [QSDSP#residence]: each runtime module
 // binds its own as it loads, the bootstrap hands each source of the language
-// those under its noun as a host hands its own [QSDSP#residence], and seals
-// the table.
+// those under its noun as a host hands its own, and seals the table.
 
 import { declareInvariantError } from './errors.mjs';
 import { splitAddress } from './address.mjs';

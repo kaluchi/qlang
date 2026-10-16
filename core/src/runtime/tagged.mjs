@@ -2,7 +2,7 @@
 // the address of the kind's `construct`, `number/construct` [QSBLD#kind], and
 // the verbs that lay a tag over a value and take it off.
 
-import { mintTagged } from './verb.mjs';
+import { layTag } from './verb.mjs';
 import { bindPrim, bindStateReader, runs } from '../primitives.mjs';
 import {
   isVec, isKeyword, isRegex, isPath, isMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
@@ -11,7 +11,7 @@ import {
 import { declareRefusal } from '../errors.mjs';
 
 // `::set[…]` — the set of a vector's elements, the one `distinct`
-// mints [QSORD#order], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
+// answers [QSORD#order], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
 // are one value.
 const SetPayloadKindNotTakenError = declareRefusal('set/PayloadKindNotTakenError');
 
@@ -108,7 +108,7 @@ const AnyTagSubjectNotPairError = declareRefusal('any/tag/SubjectNotPairError');
 
 // `payload` and `within` reside on `::tagged`, each a plain function over the
 // tagged value the walk served [QSDSP#walk]; the page of `within` keeps its
-// subject's kind, so the answer of its edit mints back under the subject's tag
+// subject's kind, so the answer of its edit is laid back under the subject's tag
 // [QSDSP#answer], [QSSLF#catalog].
 bindPrim('tagged/payload', subject => payloadBeneath(subject));
 bindPrim('tagged/within', runs(['code'], async (subject, code) => await code(payloadBeneath(subject))));
@@ -117,7 +117,7 @@ bindPrim('tagged/within', runs(['code'], async (subject, code) => await code(pay
 // the constructor of the tag [QSDSP#residence]: `value | tag ::Foo` lays the
 // tag over the subject, and `[::Foo value] | tag` over the second element of
 // the pair it takes apart.
-async function mintPair(pair, state) {
+async function layTagOfPair(pair, state) {
   if (!isVec(pair) || pair.length !== 2) {
     throw new AnyTagSubjectNotPairError({
       actualValue: pair
@@ -125,10 +125,10 @@ async function mintPair(pair, state) {
   }
   const [pairTag, value] = pair;
   if (!isTag(pairTag)) throw new AnyTagPairTagNotTagError({ actualValue: pairTag });
-  return await mintTagged(pairTag.name, value, state);
+  return await layTag(pairTag.name, value, state);
 }
 
 bindStateReader('any/tag', async (subject, tagName, state) =>
-  (isNull(tagName) ? await mintPair(subject, state) : await mintTagged(tagName.name, subject, state)));
+  (isNull(tagName) ? await layTagOfPair(subject, state) : await layTag(tagName.name, subject, state)));
 
 

@@ -8,7 +8,7 @@
 //   * Argv parsing wired-up correctly (the unit suite tests
 //     parseArgv in isolation; this suite tests the full path
 //     through main → script-mode / runRepl).
-//   * Piped stdin reaches the `in` word and the format auto-detection.
+//   * Piped stdin reaches the `in` word and the input modes.
 //   * REPL bootstrap loads every module it imports without
 //     throwing on the first prompt.
 
@@ -105,8 +105,8 @@ describe('CLI: script mode — query argument', () => {
   });
 });
 
-describe('CLI: piped stdin — auto-detect JSON', () => {
-  it('auto-detects JSON input and reads it by `get /name`', async () => {
+describe('CLI: piped stdin — the input modes', () => {
+  it('reads piped JSON as values, which `get /name` reads', async () => {
     const { stdout, exitCode } = await runCli(['get /name'], {
       stdin: '{"name": "alice", "age": 30}'
     });
@@ -150,7 +150,7 @@ describe('CLI: the REPL (`-i`) loads its modules, runs its cells and closes on `
     expect(stdout).toMatch(/84/);
   });
 
-  it('REPL persists BindStep bindings across cells in one session', async () => {
+  it('REPL keeps the words a cell declares for the cells after it', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
       stdin: ':any/double ~(mul 2)\n21 | double\n.exit\n'
     });

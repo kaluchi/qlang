@@ -13,8 +13,8 @@ import { resumingItsTrail } from '../eval-trail.mjs';
 // as none, starts the path at the raise [QSERR#trail].
 function raisedFrom(sourceMap, passedTags) {
   const tag = passedTags[0] ?? sourceMap[TAG_HEADER_SYMBOL] ?? ERROR_TAG;
-  const minted = makeErrorValue(tag, new Map(sourceMap));
-  return minted.descriptor.has('trail') ? resumingItsTrail(minted) : minted;
+  const raised = makeErrorValue(tag, new Map(sourceMap));
+  return raised.descriptor.has('trail') ? resumingItsTrail(raised) : raised;
 }
 
 bindReaderOfPassedTags('map/raise', raisedFrom);

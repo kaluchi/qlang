@@ -7,7 +7,7 @@
 import { bindPrim, bindStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, placeIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
-import { mintTagged } from './verb.mjs';
+import { layTag } from './verb.mjs';
 import { atPlace } from '../eval-trail.mjs';
 import { deepEqual } from '../equality.mjs';
 import {
@@ -111,7 +111,7 @@ async function relaid(original, rebuilt, state) {
   if (isErrorValue(rebuilt)) return rebuilt;
   const tag = original[TAG_HEADER_SYMBOL];
   if (tag === undefined) return isVec(rebuilt) ? Object.freeze(rebuilt) : rebuilt;
-  return await mintTagged(tag.name, rebuilt, state);
+  return await layTag(tag.name, rebuilt, state);
 }
 
 const pathOf = object => (isPath(object) ? object : pathOfKey(object));

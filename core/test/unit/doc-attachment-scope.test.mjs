@@ -1,5 +1,6 @@
 // Grammar contract: where a doc stands.
-//   1. Inside a literal body (Map / Vec / Set entries) — parse error.
+//   1. An element of a vector or a set, a literal as any other; before
+//      the key of a map entry — parse error.
 //   2. In the slot of a declaration, between its name and its body, it
 //      documents the declaration; before a declaration it is refused
 //      [QSSYN#doc].
@@ -10,7 +11,7 @@ import { parse } from '../../src/parse.mjs';
 import { evalQuery } from '../../src/eval.mjs';
 
 describe('a doc before the key of a map entry is a parse error', () => {
-  it('rejects a doc-comment ahead of a MapEntry key', () => {
+  it('refuses a doc ahead of the key of an entry', () => {
     expect(() => parse('{|~~ doc ~~| :k 1}')).toThrow();
   });
 });

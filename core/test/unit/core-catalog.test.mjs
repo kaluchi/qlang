@@ -1,5 +1,5 @@
-// The catalog the language declares its root by [QSDSP#residence], each source
-// the page of one noun and what is declared under it [QSDSP#residence]:
+// The catalog the language declares its root by, each source the page of one
+// noun and what is declared under it [QSDSP#residence]:
 // `lib/qlang.qlang` the topic of the language, and each source under
 // `lib/qlang/` a kind. `langRuntime()` runs them once at startup and seals the
 // registry of primitives the verbs name.

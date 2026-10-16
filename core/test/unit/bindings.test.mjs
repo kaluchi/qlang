@@ -12,7 +12,7 @@ describe('BindStep — docs-only form', () => {
     expect(result).toEqual(makeTag('doc'));
   });
 
-  it('the bound value content matches the attached doc', async () => {
+  it('the content of the page is the content of the doc in its slot', async () => {
     const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | content');
     expect(result).toBe(' A guide. ');
   });

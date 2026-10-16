@@ -67,7 +67,7 @@ describe('parseArgv', () => {
     });
   });
 
-  it('parses --raw as the raw-String input mode preceding the query', () => {
+  it('parses --raw, stdin read as one string, before the query', () => {
     expect(parseArgv(['--raw', 'append " world"'])).toEqual({
       kind: 'evalQuery',
       queryText: 'append " world"',

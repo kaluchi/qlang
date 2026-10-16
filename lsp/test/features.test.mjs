@@ -65,7 +65,7 @@ describe('completionsAtOffset', () => {
     expect(countItem.documentation).toMatch(/how many/);
   });
 
-  it('includes user-defined bindings visible at offset', async () => {
+  it('includes a name the document declares before the offset', async () => {
     const src = ':myVar 42 | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const offsetAtEnd = src.length;
@@ -74,7 +74,7 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('myVar');
   });
 
-  it('user binding has variable kind', async () => {
+  it('a name the document declares completes as a variable', async () => {
     const src = ':myVar 42 | myVar';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length);
@@ -104,7 +104,7 @@ describe('completionsAtOffset', () => {
     expect(items.every(i => i.kind === 'tag')).toBe(true);
   });
 
-  it('an in-document kind contributes to the completions of tags', async () => {
+  it('a kind the document declares is among the completions of tags', async () => {
     const src = ':MyTag |~~ MyTag. ~~| (::kind | impl ~(42))';
     const { ast } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(ast, src.length, src);

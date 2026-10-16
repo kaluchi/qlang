@@ -59,7 +59,7 @@ describe('depth budget — host seams', () => {
     // the budget refused. The host-bound tally counts the frames
     // whose `runLaws` step returned — the root and every frame
     // below it up to the budget; the refused frame's `runLaws`
-    // step lifts the error and the tally deflects.
+    // step answers the failure, which skips the tally.
     let frameTally = 0;
     const sessionInstance = await createSession({
       sources: [{

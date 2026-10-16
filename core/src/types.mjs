@@ -148,7 +148,7 @@ export function isQuote(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === QUOTE_TAG_NAME;
 }
 
-// A quote is a vector of steps under `::quote` [QSQUO#step], minted here
+// A quote is a vector of steps under `::quote` [QSQUO#step], made here
 // alone, with a holder of the tree it runs through, the parser's for a quote
 // read from text and filled at its first run for one assembled from data.
 export const QUOTE_TAG_NAME = 'quote';
@@ -191,7 +191,7 @@ export function recipeOf(built) {
 }
 
 // A set is the vector in the one order without duplicates under `::set`
-// [QSORD#order], minted here alone; the order ranks two values alike exactly
+// [QSORD#order], made here alone; the order ranks two values alike exactly
 // when they are equal.
 export const SET_TAG_NAME = 'set';
 export const BINDING_TAG_NAME = 'binding';

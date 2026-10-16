@@ -43,23 +43,23 @@ describe('`!|` passes a value by', () => {
   });
 });
 
-// ── fail-track dispatch through containers ─────────────────────
+// ── `!|` runs a group and a word ───────────────────────────────
 
-describe('fail-track dispatch through ParenGroup and verb', () => {
+describe('`!|` runs a group and a word on the error at rest', () => {
   it('`!|` runs a group on the error at rest', async () => {
     const evalResult = await evalQuery('!{:kind :oops} | raise !| (get /kind)');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('a verb body first step sees exposed descriptor when called via !|', async () => {
+  it('a word called by `!|` runs its steps on the error at rest', async () => {
     const evalResult = await evalQuery(':any/handler ~(get /kind) | !{:kind :oops} | raise !| handler');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
   it('a plain comment among the steps a failure skips leaves no step in the trail', async () => {
-    // The last frame of the trail holds the steps the error skipped.
-    // `evalPipeline` steps over plain comments on both tracks, so only
-    // the step that calls a word (`count`) joins them [QSERR#rest].
+    // The last frame of the trail holds the steps the error skipped, and a
+    // comment is whitespace, so `count` alone joins them [QSERR#trail],
+    // [QSSYN#comment].
     const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trail | last | skipped | parse');
     expect(evalResult).toBe('count');
   });
@@ -92,9 +92,9 @@ describe('source axis prints the declaration for rare body shapes', () => {
   });
 
   it('renders a group that opens with `!|` as the body of a declaration', async () => {
-    // BindStep body is a single Primary, so a `!|` leading
-    // Pipeline-step is wrapped in a ParenGroup at the source level,
-    // and the group keeps its parentheses in print.
+    // The body of a declaration is a step, so a pipeline that opens with
+    // `!|` is written as a group, which keeps its parentheses in print
+    // [QSNAM#declare].
     expect(await evalQuery(':handler (!| get /kind) | ::handler | source | parse')).toBe(':handler (!| get /kind)');
   });
 });

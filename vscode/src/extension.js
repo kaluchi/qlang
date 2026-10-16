@@ -195,7 +195,7 @@ function tokenizeWithRegex(code) {
       // `!|`, the combinator that carries a failure, paints as one token.
       out += span('hljs-punctuation', '!|');
       i += 2;
-    } else if ('|()[]'.includes(ch)) {
+    } else if ('|()[]{}'.includes(ch)) {
       out += span('hljs-punctuation', ch);
       i++;
     } else {

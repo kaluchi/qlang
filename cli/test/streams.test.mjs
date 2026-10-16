@@ -44,7 +44,7 @@ describe('out — the subject, written when it is a string', () => {
     expect(cellEntry.result).toBe('hello!');
   });
 
-  it('lifts AnyOutSubjectNotStringError onto the fail-track when the subject is not a String', async () => {
+  it('refuses a subject that is no string as ::any/out/SubjectNotStringError, writing nothing', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out', io);
     expect(io.stdoutText()).toBe('');
@@ -92,7 +92,7 @@ describe('err — the subject, written when it is a string', () => {
     expect(cellEntry.result).toBe('oops');
   });
 
-  it('lifts AnyErrSubjectNotStringError onto the fail-track when the subject is not a String', async () => {
+  it('refuses a subject that is no string as ::any/err/SubjectNotStringError', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err', io);
     expectRefusalRaised(cellEntry, 'any/err/SubjectNotStringError', {

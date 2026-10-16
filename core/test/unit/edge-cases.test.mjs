@@ -7,6 +7,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
+import { createSession } from '../../src/session.mjs';
 import {
   keyword,
   formOf,
@@ -219,9 +220,9 @@ describe('runtime/string.mjs lines', () => {
 });
 
 describe('source on a word, a declaration of it and a tag', () => {
-  // `::name | source` returns the quote of the declaring BindStep,
-  // which `parse` prints as its text. Same axis covers a name (Keyword
-  // subject) and a node of the tree (tag subject).
+  // `source` reads a name by its tag, the quote of the declaration written
+  // under its address, which `parse` prints as its text, and a keyword by
+  // its kind [QSSLF#axis].
 
   it('source on the address of a word returns the whole declaration', async () => {
     const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | parse');
@@ -289,9 +290,21 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('{:s ""} | coalesce /missing /s ~("default")')).toBe('');
   });
 
-  it('coalesce short-circuits after first non-null (does not evaluate later alts)', async () => {
-    // The walk ends at `/a`, a value, so `div 0` never runs.
-    expect(await evalQuery('{:a 1} | coalesce /a ~(div 0)')).toBe(1);
+  it('coalesce leaves the alternatives after the first value unrun [QSCND#coalesce]', async () => {
+    // A word of the host counts its runs: the walk ends at `/a`, a value,
+    // and reaches the word where `/b` fails.
+    let runs = 0;
+    const counting = await createSession({
+      sources: [{
+        uri: 'tests/counted',
+        source: ':any/counted ::builtin{}',
+        impls: { 'any/counted': subject => { runs++; return subject; } }
+      }]
+    });
+    expect((await counting.evalCell('{:a 1} | coalesce /a ~(counted)')).result).toBe(1);
+    expect(runs).toBe(0);
+    await counting.evalCell('{:a 1} | coalesce /b ~(counted)');
+    expect(runs).toBe(1);
   });
 
   it('coalesce keeps false as a value', async () => {

@@ -31,10 +31,8 @@ describe('::name | source returns the BindStep source as Quote', () => {
   });
 
   it('a cell-local BindStep declaration is reachable through axis lookup', async () => {
-    // A cell's declaration writes its record into the session's scope;
-    // the regression that first flagged the gap was `qlang ':foo |~~
-    // note ~~| | ::foo | doc'` returning AnyDocUnknownNameError
-    // instead of the attached doc.
+    // A cell's declaration writes its record into the session's scope,
+    // which the axes read.
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(

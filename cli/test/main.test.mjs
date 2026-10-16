@@ -211,7 +211,7 @@ describe('main — script mode auto-pipe', () => {
     expect(s.stdoutText()).toBe('3\n');
   });
 
-  it('falls back to raw mode when stdin fails JSON.parse', async () => {
+  it('reads stdin that is no JSON as one string', async () => {
     const s = captureStreams('plain text');
     const exitCode = await main(
       ['append " world"'],

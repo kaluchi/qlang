@@ -174,7 +174,7 @@ async function applyFailTrack(state, stepNode) {
   const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.descriptor));
   let opened;
   try {
-    opened = raised.tag === ERROR_TAG ? errorOfKind : await mintTagged(raised.tag.name, errorOfKind, state);
+    opened = raised.tag === ERROR_TAG ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
   } catch (caughtError) {
     opened = errorOfThrow(caughtError, stepNode, errorOfKind, state.env);
   }
@@ -228,8 +228,8 @@ async function entryValues(entries, state) {
 async function evalErrorLit(node, state) {
   const facts = await entryValues(node.entries, state);
   if (isErrorValue(facts)) return withPipeValue(state, facts);
-  const atRest = await mintTagged(ERROR_TAG.name, facts, state);
-  return withPipeValue(state, node.tag === null ? atRest : await mintTagged(node.tag, atRest, state));
+  const atRest = await layTag(ERROR_TAG.name, facts, state);
+  return withPipeValue(state, node.tag === null ? atRest : await layTag(node.tag, atRest, state));
 }
 
 // The value a part of a literal answers: a refusal its constructor raised
@@ -252,7 +252,7 @@ async function evalDocLit(node, state) {
     if (part.type !== 'DocTaggedQuote') continue;
     let laid = quoteOfLiteral(part.quote);
     for (const tagName of [...part.tags].reverse()) {
-      laid = await mintTagged(tagName, laid, state);
+      laid = await layTag(tagName, laid, state);
       if (isErrorValue(laid)) return withPipeValue(state, laid);
     }
   }
@@ -272,7 +272,7 @@ async function evalTaggedLit(node, state) {
   const tagName = node.tag;
   const payload = (await evalNode(node.payload, state)).pipeValue;
   if (isErrorValue(payload)) return withPipeValue(state, passedUntagged(payload, node, tagName));
-  return withPipeValue(state, await mintTagged(tagName, payload, state));
+  return withPipeValue(state, await layTag(tagName, payload, state));
 }
 
 // The error a tagged literal's payload answered, passed by the tag as an
@@ -542,11 +542,11 @@ async function callByAddress(node, state) {
 
 // ─── A value held to its kinds ──────────────────────────────────
 
-// A refusal named by the address of what refused [QSERR#site], [QSBLD#fn], its
-// facts with the kind of the value refused in the order the catalog declares
-// them [QSERR#site]; the value itself rides the facts where the trail does not
-// hold it, an input or the args, and leaves them for the subject, which the
-// trail's first frame holds [QSERR#site].
+// A refusal named by the address of what refused [QSBLD#fn], its facts with
+// the kind of the value refused in the order the catalog declares them; the
+// value itself rides the facts where the trail does not hold it, an input or
+// the args, and leaves them for the subject, which the trail's first frame
+// holds [QSERR#site].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
   const tag = makeTag(tagName);
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeKeyword(refused)), env));
@@ -715,7 +715,7 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
     return typeKeyword(walked.served).name === labelName ? answerMadeBy(labelName, keeping, refused) : keeping();
   }
   const constructing = kinds.length === 1 ? kinds[0] : kinds.find(kind => kind === typeKeyword(answer).name);
-  return constructing === undefined ? refused() : answerMadeBy(constructing, () => mintTagged(constructing, answer, state), refused);
+  return constructing === undefined ? refused() : answerMadeBy(constructing, () => layTag(constructing, answer, state), refused);
 }
 
 // An answer kept as the subject's kind, refused where what is kept is no
@@ -968,12 +968,12 @@ function refusalOfFailedObject(signature, address, place, error, scope) {
 
 // ─── A value under a kind ───────────────────────────────────────
 
-// mintTagged(tagName, payload, state) → the payload under the tag
+// layTag(tagName, payload, state) → the payload under the tag
 // through its label [QSDSP#answer]: built by its kind [QSBLD#kind], laid over
 // as it is where no kind answers the tag [QSLIT#tag], [QSBLD#label], never
 // over an error [QSERR#flow], and never under the name of a value withheld
 // from held code [QSQUO#held].
-export async function mintTagged(tagName, payload, state) {
+export async function layTag(tagName, payload, state) {
   if (isErrorValue(payload)) return payload;
   refuseWithheld(state.env, tagName, true);
   const node = nodeOf(state.env, tagName);

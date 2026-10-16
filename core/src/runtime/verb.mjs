@@ -5,7 +5,7 @@
 
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { queryStateOf } from '../state.mjs';
-import { mintTagged } from '../eval.mjs';
+import { layTag } from '../eval.mjs';
 import { ANY_KIND_NAME, TAGGED_KIND_NAME, bareNameReach, isMemberValue, nodeOf, residencesOf, verbsReaching } from './nouns.mjs';
 import { signatureOf } from './signature.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -14,7 +14,7 @@ import {
   makeTag, typeKeyword
 } from '../types.mjs';
 
-export { mintTagged };
+export { layTag };
 
 // A call no kind of whose subject answers its word names what the reader
 // needs: where the word lives [QSSLF#page], [QSSLF#catalog].
@@ -53,11 +53,11 @@ export function walkToKinds(value, kindNames) {
 // [QSERR#flow].
 async function underTags(value, tags, state) {
   let wrapped = value;
-  for (const tag of [...tags].reverse()) wrapped = await mintTagged(tag.name, wrapped, state);
+  for (const tag of [...tags].reverse()) wrapped = await layTag(tag.name, wrapped, state);
   return wrapped;
 }
 
-// The answer of the subject's own kind, minted by its constructor, a set's, a
+// The answer of the subject's own kind, made by its constructor, a set's, a
 // tag's or a quote's among them, under the tags the walk passed
 // [QSDSP#answer], [QSSLF#catalog], and at once where it is of the kind and the
 // walk passed no tag.
@@ -69,7 +69,7 @@ export function keptAsSubject(answer, served, passedTags, state) {
 }
 
 async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
-  const kept = reached?.served ?? await mintTagged(ownKind, answer, state);
+  const kept = reached?.served ?? await layTag(ownKind, answer, state);
   return await underTags(kept, passedTags, state);
 }
 

@@ -223,7 +223,8 @@ function describedIn(root) {
 // changes the working tree holds among them: what a move of
 // the baseline reads again against the new root [QSWRK#marks]. A record is read
 // against the later of the commit that last described it and the
-// baseline, whose move read again every record its diff touched.
+// baseline, where the history holds one, whose move read again every record
+// its diff touched.
 export function touchedRecords(root = repoRoot, { baseline = baselineOf(root) } = {}) {
   const { blocks } = marksOfTree(root);
   const blocksOfRecord = new Map();
@@ -237,7 +238,7 @@ export function touchedRecords(root = repoRoot, { baseline = baselineOf(root) } 
       }
     }
   }
-  const sinceBaseline = baseline === null ? null : new Set(git(root, 'rev-list', `${baseline}..HEAD`).split('\n').filter(Boolean));
+  const sinceBaseline = baseline === undefined ? null : new Set(git(root, 'rev-list', `${baseline}..HEAD`).split('\n').filter(Boolean));
   const namesOf = new Map();
   for (const [name, described] of describedIn(root)) {
     if (!blocksOfRecord.has(name)) continue;

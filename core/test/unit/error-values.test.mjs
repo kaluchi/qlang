@@ -250,20 +250,17 @@ describe('error-convert coercion edge cases', () => {
     expect(errorVal.descriptor.get('actualType')).toEqual(makeTag('null'));
   });
 
-  it('actualValue ref-equal to the subject of the step is dedup-skipped on lift', async () => {
-    // Subject-shape error on a partial application: actualValue
-    // (the JS context field) is the same reference as the subject
-    // (the pipeValue the step received), which the first frame of the
-    // trail names. errorFromQlang dedup skips the redundant lift; the
-    // descriptor surface stays single-source-of-truth.
+  it('an actualValue equal to the subject the first frame holds is left out of the facts', async () => {
+    // The value refused equals the subject, whatever its identity, so the
+    // first frame of the trail holds it alone [QSERR#site].
     const subject = new Map([['nested', 1]]);
-    const typeErr = new TestsProbeTypeError({ actualValue: subject });
+    const typeErr = new TestsProbeTypeError({ actualValue: new Map([['nested', 1]]) });
     const errorVal = errorFromQlang(typeErr, subject, await langRuntime());
     expect(errorVal.descriptor.has('actualValue')).toBe(false);
     expect(errorVal.descriptor.get('actualType').name).toBe('map');
   });
 
-  it('actualValue distinct from the subject is preserved on lift (drill-down signal)', async () => {
+  it('an actualValue other than the subject stays among the facts', async () => {
     // A value refused that is not the subject, a part a path of several keys
     // reads, an element or the value of an input, stays among the facts as
     // `:actualValue` [QSERR#site].

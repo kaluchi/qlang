@@ -232,7 +232,7 @@ describe('parse — Call', () => {
     expect(ast.args).toEqual([]);
   });
 
-  it('parses a single-arg call', () => {
+  it('parses a call of one modifier', () => {
     const ast = parse('add 2');
     expect(ast.type).toBe('Call');
     expect(ast.name).toBe('add');
@@ -341,7 +341,7 @@ describe('parse — comments and whitespace', () => {
     expect(parse('|~ note ~| :x |~~| about x\n1').type).toBe('BindStep');
   });
 
-  it('reads a source of comments alone as the blank pipeline', () => {
+  it('reads a source of comments alone as the empty pipeline', () => {
     const ast = parse('|~ only a note ~|');
     expect(ast.type).toBe('Blank');
     expect(ast.comments).toHaveLength(1);
@@ -590,7 +590,7 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
     expect(ast.name).toBe('посчитать');
   });
 
-  it('parses a namespaced keyword with Cyrillic segments', () => {
+  it('parses a keyword of Cyrillic names joined by a slash', () => {
     const ast = parse(':проект/пользователь');
     expect(ast.type).toBe('Keyword');
     expect(ast.name).toBe('проект/пользователь');

@@ -203,11 +203,9 @@ describe('quoted keywords — eval-level identity and Map interop', () => {
   });
 });
 
-describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
-  // `apply` reads its body AST through `astFromQuoteLike`, which
-  // short-circuits when the Quote already has a `.ast` cached: a
-  // quote read from text carries the parser's own node, so applying
-  // it to a fresh subject exercises the `.ast` truthy branch.
+describe('apply runs a quote held in a name', async () => {
+  // A quote held in a name runs by `apply` on the subject it is given
+  // [QSQUO#apply].
   it('a quote read from text runs through apply against a new subject', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession();

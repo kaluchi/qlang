@@ -114,7 +114,7 @@ describe('printing steps read from text', () => {
     expect(await evalQuery('~(:x |~~ note ~~| it) | parse')).toBe(':x |~~ note ~~| it');
   });
 
-  it('a key that is no bare name prints quoted, a namespaced one behind a colon', async () => {
+  it('a key that is no bare name prints quoted, a keyword of names joined by a slash behind a colon', async () => {
     expect(await evalQuery('~(get /"a b") | parse')).toBe('get /"a b"');
     expect(await evalQuery('~(get /:ns/name) | parse')).toBe('get /:ns/name');
   });

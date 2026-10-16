@@ -93,6 +93,11 @@
 //       finds nowhere, but in a section a record in transit overrides
 //       [QSWRK#documents].
 //
+//   (17) A text that states what holds writes no word the language
+//       retired, `scripts/retired-words.mjs`: the prose of the chapters
+//       and the seeds, the comments and docs of the code and the catalog,
+//       the names of the cases and the titles of the tests [D350].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -103,6 +108,7 @@ import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { baselineOf, isCitingCode, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_DOCUMENTS } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
+import { RETIRED_WORDS } from './retired-words.mjs';
 import { execFileSync } from 'node:child_process';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -281,7 +287,7 @@ const TALLY_NOUNS = [
 
 // Up to two adjectives may sit between the digit and the noun
 // («1192 error-producing conformance cases»). A digit carrying a
-// section sigil (`§3 rule`, `#4 case`) addresses a chapter rather
+// section sign (`§3 rule`, `#4 case`) addresses a chapter rather
 // than counting one, and stays legal.
 const TALLY_RE = new RegExp(
   String.raw`(?<![§#])\b\d[\d,]*\s+(?:[a-z][a-z-]*\s+){0,2}(?:` + TALLY_NOUNS + String.raw`)\b`,
@@ -738,6 +744,39 @@ function namesOfTakenOut() {
     .map(token => ({ file, line, token, baseline, snippet: text.slice(0, 120) })));
 }
 
+// ── (17) Retired words ─────────────────────────────────────────
+
+// The title a test states its rule in, `it('…')`, a string its code holds.
+const TEST_TITLE = /\b(?:it|test|describe)(?:\.\w+)?\(\s*(['"`])((?:\\.|(?!\1).)*)\1/g;
+
+const nameOfCase = line => {
+  try { return JSON.parse(line).name ?? ''; } catch { return ''; }
+};
+
+// The words the language retired, read where a text states what holds:
+// the prose, the comments and docs, the name of a case and the title of a
+// test [D350].
+function retiredWordsWritten() {
+  const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
+  const files = [...git('ls-files').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')]
+    .filter(Boolean).filter(file => voiceOfFile(file) !== null && existsSync(join(repoRoot, file)));
+  const found = [];
+  for (const file of files) {
+    const voice = voiceOfFile(file);
+    const isTest = /(^|\/)test\//.test(file);
+    partsOfLines(voice, readFileSync(join(repoRoot, file), 'utf8')).forEach(({ holds, names }, index) => {
+      const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(isTest ? [...holds.matchAll(TEST_TITLE)].map(match => match[2]) : [])];
+      for (const part of read) {
+        for (const { pattern, written, by } of RETIRED_WORDS) {
+          const word = pattern.exec(part)?.[0];
+          if (word !== undefined) found.push({ file, line: index + 1, word, written, by });
+        }
+      }
+    });
+  }
+  return found;
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const forbidden = scanForbiddenWords();
@@ -756,6 +795,7 @@ const intrusions = specIntrusions();
 const swollen = seriesBeyondTwo();
 const unread = unreadReports();
 const takenOutNamed = namesOfTakenOut();
+const retired = retiredWordsWritten();
 
 if (forbidden.length === 0
     && refusalDeclarations.length === 0
@@ -772,7 +812,8 @@ if (forbidden.length === 0
     && intrusions.length === 0
     && swollen.length === 0
     && unread.length === 0
-    && takenOutNamed.length === 0) {
+    && takenOutNamed.length === 0
+    && retired.length === 0) {
   process.stdout.write('check:conventions — OK\n');
   process.exit(0);
 }
@@ -866,5 +907,10 @@ if (takenOutNamed.length > 0) {
   process.stdout.write(`\nNames of what the branch took out (${takenOutNamed.length}):\n`);
   for (const { file, line, token, snippet } of takenOutNamed) process.stdout.write(`  ${file}:${line}  \`${token}\`  ${snippet}\n`);
   process.stdout.write(`    the code, the catalog and the cases hold none of these since the baseline ${takenOutNamed[0].baseline}: a comment, a doc and the prose name what the reader finds, a section of a chapter waiting for its move under a record in transit over it, and what was lives in the record and the commit [QSWRK#documents].\n`);
+}
+if (retired.length > 0) {
+  process.stdout.write(`\nWords the language retired (${retired.length}):\n`);
+  for (const { file, line, word, written, by } of retired) process.stdout.write(`  ${file}:${line}  \`${word}\`, which ${by} retired: write ${written}\n`);
+  process.stdout.write('    a word the language retired stays retired in every text that states what holds, and a record that renames a word writes the old one into scripts/retired-words.mjs [D350].\n');
 }
 process.exit(1);

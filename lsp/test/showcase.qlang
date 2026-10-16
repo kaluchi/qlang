@@ -131,7 +131,7 @@
 
 
 |~| ── 9. Comments ───────────────────────────────────────────
-|~| A plain comment, a line one or a block one, is whitespace;
+|~| A comment, a line one or a block one, is whitespace;
 |~| a doc stands in the slot of the declaration it documents.
 
 |~ a block comment between two steps ~|

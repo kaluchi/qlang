@@ -95,8 +95,8 @@ const AST_NODE_EVALUATORS = {
   Blank:             evalBlank,
 };
 
-// A blank source, comments among it, answers the value it is handed
-// [QSSYN#comment].
+// A source of whitespace and comments alone answers the value it is
+// handed [QSSYN#comment].
 function evalBlank(_node, state) {
   return state;
 }

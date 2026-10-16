@@ -580,7 +580,7 @@ TagLit
     { return node('TagLit', { tag }, span(), text()); }
 
 // A tag's name lives apart from the values, so a name after `::` may be
-// a reserved word, as after `:` and `/`: `::null` is the kind of null
+// a word of the literals, as after `:` and `/`: `::null` is the kind of null
 // [QSLIT#kind].
 TagName
   = NamespacedName
@@ -814,7 +814,7 @@ LiteralGap
   / &{ return docQuoteDepth === 0; } &(!"/" Element) Element { error('the words of a literal are set off by whitespace: `[1 2]`'); }
 
 // A path, a value of its own [QSPTH#value]: a segment is a bare key, a quoted
-// key, a namespaced keyword after `:`, or an index; the slash alone, with no
+// key, a keyword of names joined by `/` after `:`, or an index; the slash alone, with no
 // segment begun after it, names no path, the value itself being `it`, and a
 // question mark after a segment, the habit of a read that may miss, leads to
 // `query`.
@@ -902,7 +902,7 @@ NamespacedName
 QuotedKeywordName
   = '"' chars:DoubleStringChar* '"' { return chars.join(''); }
 
-// A name after `:` or `/` may be a reserved word.
+// A name after `:` or `/` may be a word of the literals.
 KeywordName
   = first:IdentStart rest:IdentTail*
     { return first + rest.join(''); }

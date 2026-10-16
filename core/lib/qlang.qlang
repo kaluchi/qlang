@@ -572,14 +572,12 @@
             root running in the root's scope, where a name under a noun of
             the root reads the root alone, while a word under a label the
             reader declared goes where the label's values go. A name
-            begins with a letter of any script or `_`,
-            and a word of a host, which reads or writes outside the
-            language, is named as any word is. The docs in the slot of a
-            declaration, between its name and its body, are its page, one
-            doc each. A name under a label resolves its names through the
-            tree of names as it stands at the call, itself among them, so
-            it recurses by name, and the frames of a runaway meet a
-            budget.
+            begins with a letter of any script or `_`. The docs in the
+            slot of a declaration, between its name and its body, are its
+            page, one doc each. A name under a label resolves its names
+            through the tree of names as it stands at the call, itself
+            among them, so it recurses by name, and the frames of a
+            runaway meet a budget.
         ~~|
         #[::binding]
     | proves :names/listsUnderANoun
@@ -619,8 +617,8 @@
         ~~|
         ~(:vec/doc ~("mine") | [1 2] | get [~(doc) ~(tutorial | first | type)] | eq ["mine" ::doc])
     | proves :names/beginsWithALetter
-        |~~ A name begins with a letter or `_`, and `@` begins none. ~~|
-        ~("@out" | parse !| type | eq ::quote/ParseError)
+        |~~ A name begins with a letter or `_`, and a digit begins none. ~~|
+        ~("1x" | parse !| type | eq ::quote/ParseError)
     | proves :names/holdsEachDocOfItsSlot
         |~~ Two docs in the slot are two parts of its page. ~~|
         ~(:x |~~ One. ~~| |~~ Two. ~~| 1 | env | get /x | get /docs | count | eq 2)
@@ -675,7 +673,7 @@
             value put under it keeps them, and a label declared by its
             page alone is a kind of no commands. A tag no declaration
             answers is a kind of identity, which checks nothing and lays
-            the tag on the value. A word answers under the label its
+            the tag on the value. A word answers under the kind its
             `returns` names. A word of a noun itself, whose subject `on`
             names `::tag`, takes the tag name as its subject, so a noun
             that stands for a thing outside the language is addressed

@@ -617,7 +617,9 @@ function voiceOfFile(path) {
 
 // The lines of a text, each split into what it holds and what it names;
 // a doc and a comment of the catalog run over lines, the longer marker
-// read first, `|~~|` before `|~|` and `|~~` before `|~`.
+// read first, `|~~|` before `|~|` and `|~~` before `|~`, and a string of
+// its code, `"…"` with its escapes as the grammar reads it, holds what it
+// writes, a marker inside it among it.
 function partsOfLines(voice, text) {
   const lines = text.split(/\r?\n/);
   if (voice === 'case') return lines.map(line => ({ holds: line, names: '' }));
@@ -640,8 +642,17 @@ function partsOfLines(voice, text) {
     let holds = '';
     let names = '';
     for (let at = 0; at < line.length;) {
-      if (inside !== null) {
+      if (inside === '"') {
+        const step = line[at] === '\\' ? 2 : 1;
+        if (line[at] === '"') inside = null;
+        holds += line.slice(at, at + step);
+        at += step;
+      } else if (inside !== null) {
         if (line.startsWith(inside, at)) { at += inside.length; inside = null; } else { names += line[at]; at += 1; }
+      } else if (line[at] === '"') {
+        inside = '"';
+        holds += '"';
+        at += 1;
       } else if (line.startsWith('|~~|', at) || line.startsWith('|~|', at)) {
         names += line.slice(at);
         break;

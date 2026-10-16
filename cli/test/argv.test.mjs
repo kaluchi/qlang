@@ -43,7 +43,8 @@ describe('parseArgv', () => {
       queryText: '[1 2 3] | count',
       inputFormat: 'auto',
       colorMode: 'auto',
-      budget: null
+      budget: null,
+      failureExitCode: 0
     });
   });
 
@@ -61,7 +62,8 @@ describe('parseArgv', () => {
       queryText: '/key',
       inputFormat: 'json',
       colorMode: 'auto',
-      budget: null
+      budget: null,
+      failureExitCode: 0
     });
   });
 
@@ -71,7 +73,8 @@ describe('parseArgv', () => {
       queryText: 'append " world"',
       inputFormat: 'raw',
       colorMode: 'auto',
-      budget: null
+      budget: null,
+      failureExitCode: 0
     });
   });
 
@@ -81,7 +84,8 @@ describe('parseArgv', () => {
       queryText: '42',
       inputFormat: 'auto',
       colorMode: 'always',
-      budget: null
+      budget: null,
+      failureExitCode: 0
     });
   });
 
@@ -91,7 +95,8 @@ describe('parseArgv', () => {
       queryText: '42',
       inputFormat: 'auto',
       colorMode: 'never',
-      budget: null
+      budget: null,
+      failureExitCode: 0
     });
   });
 
@@ -107,9 +112,22 @@ describe('parseArgv', () => {
       queryText: '42',
       inputFormat: 'auto',
       colorMode: 'auto',
-      budget: 4000
+      budget: 4000,
+      failureExitCode: 0
     });
     expect(parseArgv(['--budget=500', '-i'])).toEqual({ kind: 'repl', budget: 500, initialQuery: null });
+  });
+
+  it('parses --fail as the code 1 a failure exits with, 0 without it [QSHST#answer]', () => {
+    expect(parseArgv(['--fail', '--raw', 'count'])).toEqual({
+      kind: 'evalQuery',
+      queryText: 'count',
+      inputFormat: 'raw',
+      colorMode: 'auto',
+      budget: null,
+      failureExitCode: 1
+    });
+    expect(parseArgv(['count']).failureExitCode).toBe(0);
   });
 
   it('rejects a --budget that is no positive count as a usageError', () => {
@@ -147,5 +165,12 @@ describe('HELP_TEXT and VERSION_LINE constants', () => {
     const jsonMode = HELP_TEXT.slice(HELP_TEXT.indexOf('--json  '), HELP_TEXT.indexOf('--raw  '));
     expect(jsonMode).toContain('::string/parseJson/TextNotJsonError');
     expect(jsonMode).toContain('exit 0 as every answer');
+  });
+
+  it('tells the code every answer exits with and the one --fail gives a failure [QSHST#answer]', () => {
+    const exitCodes = HELP_TEXT.slice(HELP_TEXT.indexOf('Exit code:'), HELP_TEXT.indexOf('Examples:'));
+    expect(exitCodes).toContain('0 for every answer, a failure among them');
+    expect(exitCodes).toContain('--fail      1 where the answer is a failure');
+    expect(HELP_TEXT).toContain('[--budget=N] [--fail] <query>');
   });
 });

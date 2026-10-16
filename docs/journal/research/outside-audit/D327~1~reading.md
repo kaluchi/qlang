@@ -69,7 +69,8 @@
   (3.6).** `["ﬁ" "😀"] | sort` отвечает `["😀" "ﬁ"]`, а `"😀" | count` —
   `1`; страницы сравнений строк говорят «by their characters»
   (`core/lib/qlang/string.qlang:95`). [QSORD#order] пишет единицы UTF-16,
-  [QSTXT#string] — кодовые точки: у языка два понятия знака.
+  [QSTXT#string] — кодовые точки: у языка два понятия знака. Теперь одно,
+  кодовые точки, D334.
 - **JSON со входа и `parseJson` ставили ключи-индексы вперёд (3.8).**
   `{"b":1,"2":2,"a":3}` со входа давал `[:"2" :b :a]`, литерал — `[:b :"2"
   :a]`. Поправлено, см. ниже.
@@ -110,18 +111,20 @@
 - Счёты верны с округлением: `held.jsonl` — 41 случай, `.qlang` — 14096
   строк, `replaced/` — 297, глава работы — 614 строк.
 
-## Что просит вашего слова
+## Что просило вашего слова
 
 1. **Код возврата.** Девятый первым голосует за ненулевой код. Ваш довод —
-   харнесс. Дорога, которая его не трогает: флаг для скриптов,
-   `--exit-on-failure`, при умолчании 0.
-2. **Порядок строк.** Упорядочить строки по кодовым точкам, как их
-   считает `count`, или оставить UTF-16 и написать это на страницах
-   сравнений.
+   харнесс. Вы разрешили флаги ради полноты и чтобы снять напряжение
+   будущих прочтений: `--fail` даёт отказу код 1, ответ пишется как без
+   него, умолчание 0, D335. JSON построчно читает `--raw` с
+   `lines | map ~(parseJson)`, и usage это показывает; файл даёт
+   перенаправление шелла.
+2. **Порядок строк.** Выбор вы отдали тому, что меньше удивляет: строки
+   упорядочены по кодовым точкам, как их считает `count`, D334.
 3. **Три корня.** Девятый сводит большую часть открытых записей к трём
    решениям: код без замыканий, одно пространство имён значений и слов,
-   модификатор только от субъекта. Пересмотр корня закрыл бы больше
-   записей, чем точечные правки. Это вопрос стратегии, а не правка.
+   модификатор только от субъекта. Вопросы вы признали, подступиться к ним
+   пока трудно; они ждут в D257.
 
 ## Что сделано без вашего слова
 
@@ -144,11 +147,11 @@ The problems, its third section:
 3. One namespace of values and words. A value meeting a word by [QSNAM#reach]; the refusal of a subject by the count of residences carried into D311; a second declaration of a root address by [QSNAM#address].
 4. Arithmetic from the subject. By [QSNUM#combine]; a word that combines a vector waits for a task, as `spread` of the eighth did.
 5. Three forms of conditions. By [QSCND#branch], [QSQUO#modifier] and [QSCND#boolean].
-6. Collections and tags. `keys` by the maintainer's D15; `map` by [QSDSP#answer]; `sort` across kinds against `lt`, D311; the order of strings asks the maintainer's word.
+6. Collections and tags. `keys` by the maintainer's D15; `map` by [QSDSP#answer]; `sort` across kinds against `lt`, D311; strings ranked by their code points, as they count, D334.
 7. `manifest`. By [QSSLF#manifest], as in the eighth.
 8. The codec and the print. The order of the keys of a JSON text and the key `__proto__` repaired in the branch; the indentation of a page's prose carried into D294.
-9. The exit code. The maintainer's decision, [QSHST#answer]; a flag for scripts asks his word.
+9. The exit code. The maintainer's decision, [QSHST#answer]; `--fail` gives a script the code 1 of a failure, D335.
 10. The private dialect. Open as D294.
 11. Complexity. The comments and the line break open as D295; the chapter of the work stands in `docs/spec/` by [QSWRK#documents].
 
-Its proposals, the fifth section: the flag of the exit code asks the maintainer's word; the ordered codec and `__proto__` done; the indentation of prose with D294; `manifest` as a record and signatures wait for a task, as in the eighth; the closure by `fill` in D304; one protocol of code by [QSQUO#modifier]; arithmetic over a vector waits for a task; one form of conditions set aside by the rules of the third section; a warning where a name a reader declares is a word's waits beside the trivia of D256; one tag for a subject a word does not serve carried into D311; NDJSON and files as arguments, the input of a host, wait for a task; `shape`, `paths` and `elide` on the first screen meet D333 and the outline of D327; the glossary with D294; the chapter of the work by [QSWRK#documents]. Its disagreements, the sixth: "everything is a value" and held code, D304, the case it cites holding the opposite; "words carry paradigms", D294; one model, D304 and [QSNAM#reach]; the comments of the grammar, D295; D321 weighed `:nearest` and set it aside; D256 takes its case; D311 takes its road for strings that read as numbers; the exit code stands on the harness and its flag asks the maintainer's word; the host boundary agreed, the codec repaired; the three roots ask the maintainer's word.
+Its proposals, the fifth section: the flag of the exit code taken as `--fail`, D335; the ordered codec and `__proto__` done; the indentation of prose with D294; `manifest` as a record and signatures wait for a task, as in the eighth; the closure by `fill` in D304; one protocol of code by [QSQUO#modifier]; arithmetic over a vector waits for a task; one form of conditions set aside by the rules of the third section; a warning where a name a reader declares is a word's waits beside the trivia of D256; one tag for a subject a word does not serve carried into D311; JSON a line read by `--raw` and the language, which the usage shows, and a file by the shell, D335; `shape`, `paths` and `elide` on the first screen meet D333 and the outline of D327; the glossary with D294; the chapter of the work by [QSWRK#documents]. Its disagreements, the sixth: "everything is a value" and held code, D304, the case it cites holding the opposite; "words carry paradigms", D294; one model, D304 and [QSNAM#reach]; the comments of the grammar, D295; D321 weighed `:nearest` and set it aside; D256 takes its case; D311 takes its road for strings that read as numbers; the exit code stands on the harness, and `--fail` gives a script the code, D335; the host boundary agreed, the codec repaired; the three roots wait in D257, the maintainer holding them real and not yet within reach.

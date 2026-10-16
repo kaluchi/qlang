@@ -13,7 +13,7 @@
       `\\`, `\n`, `\t` and `\uXXXX`, any other character raw between
       them, `"line one\nline two"`, and JSON writes it the same.
       `::string"s"` is `"s"`. Strings rank after numbers and before
-      patterns, by their UTF-16 code units.
+      patterns, by their characters, the code points `count` reads.
 
       Its words read it whole or by its characters, `count`, `take`,
       `drop`, `contains`, `startsWith`, `upper`, break it, `split` and
@@ -67,10 +67,11 @@
 
 :string/gt
   |~~ Answers whether the subject comes after the string the call gives,
-      the two compared code unit by code unit, `"b" | gt "a"`. So an
-      upper-case letter comes before every lower-case one, `"B" | gt "a"`
-      answering `false`; a letter outside the ASCII letters comes after
-      them, `"é" | gt "z"`; a string comes after its own beginning,
+      the two compared character by character, by their code points,
+      `"b" | gt "a"`. So an upper-case letter comes before every
+      lower-case one, `"B" | gt "a"` answering `false`; a letter outside
+      the ASCII letters comes after them, `"é" | gt "z"`; a string comes
+      after its own beginning,
       `"abc" | gt "ab"`; and digits compare as characters, not as numbers,
       `"10" | gt "9"` answering `false`. A string compares with a string:
       a number or a keyword given is refused. A keyword or a number in the

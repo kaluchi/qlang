@@ -1,7 +1,8 @@
 // One order ranks every value [QSORD#order]: first by kind, null,
 // boolean, number, string, pattern, keyword, tag name, path, vector, set,
 // map, quote, doc, elision and desc, then every other tag by its name; within
-// a kind numbers by value, strings by their code units, patterns by their
+// a kind numbers by value, a text by its code points, as a string counts
+// them [QSTXT#string], patterns by their
 // text and then their flags [QSTXT#pattern], vectors element
 // by element, a set as its vector, maps by their keys and then their
 // values, a desc by the reverse of its payload's place [QSORD#order], and a
@@ -61,10 +62,28 @@ function shapeKindOf(container) {
   return Array.isArray(container) ? VECTOR_KIND : MAP_KIND;
 }
 
-function compareCodeUnits(left, right) {
+function compareNumbers(left, right) {
   if (left < right) return -1;
   if (left > right) return 1;
   return 0;
+}
+
+// Two texts rank by their code points: their code units rank so but where
+// a surrogate, half of a code point past the basic plane, meets a code unit
+// at U+E000 or past it, which the code point of the pair ranks after.
+function compareText(left, right) {
+  const shared = Math.min(left.length, right.length);
+  for (let at = 0; at < shared; at += 1) {
+    let leftUnit = left.charCodeAt(at);
+    let rightUnit = right.charCodeAt(at);
+    if (leftUnit === rightUnit) continue;
+    if (leftUnit >= 0xD800 && rightUnit >= 0xD800) {
+      leftUnit += leftUnit >= 0xE000 ? -0x800 : 0x2000;
+      rightUnit += rightUnit >= 0xE000 ? -0x800 : 0x2000;
+    }
+    return leftUnit < rightUnit ? -1 : 1;
+  }
+  return compareNumbers(left.length, right.length);
 }
 
 // compareValues(a, b) → -1 / 0 / 1 — the one order.
@@ -72,7 +91,7 @@ function compareCodeUnits(left, right) {
 // begins the other.
 function compareSegments(left, right) {
   for (let index = 0; index < Math.min(left.length, right.length); index++) {
-    const bySegment = compareCodeUnits(left[index], right[index]);
+    const bySegment = compareText(left[index], right[index]);
     if (bySegment !== 0) return bySegment;
   }
   return left.length === right.length ? 0 : (left.length < right.length ? -1 : 1);
@@ -90,15 +109,16 @@ function compareKinded(leftKind, left, rightKind, right) {
     case BOOLEAN_KIND:
       return left === right ? 0 : (left ? 1 : -1);
     case NUMBER_KIND:
+      return compareNumbers(left, right);
     case STRING_KIND:
-      return compareCodeUnits(left, right);
+      return compareText(left, right);
     case REGEX_KIND: {
-      const bySource = compareCodeUnits(left.source, right.source);
-      return bySource !== 0 ? bySource : compareCodeUnits(left.flags, right.flags);
+      const bySource = compareText(left.source, right.source);
+      return bySource !== 0 ? bySource : compareText(left.flags, right.flags);
     }
     case KEYWORD_KIND:
     case TAG_NAME_KIND:
-      return compareCodeUnits(left.name, right.name);
+      return compareText(left.name, right.name);
     case PATH_KIND:
       return compareSegments(left.segments, right.segments);
     case VECTOR_KIND:
@@ -114,7 +134,7 @@ function compareKinded(leftKind, left, rightKind, right) {
     case DESC_KIND:
       return comparePayloads(right, left);
     default: {
-      const byTag = compareCodeUnits(left[TAG_HEADER_SYMBOL].name, right[TAG_HEADER_SYMBOL].name);
+      const byTag = compareText(left[TAG_HEADER_SYMBOL].name, right[TAG_HEADER_SYMBOL].name);
       return byTag !== 0 ? byTag : comparePayloads(left, right);
     }
   }
@@ -126,11 +146,11 @@ function compareSequences(leftItems, rightItems) {
     const byElement = compareValues(leftItems[index], rightItems[index]);
     if (byElement !== 0) return byElement;
   }
-  return compareCodeUnits(leftItems.length, rightItems.length);
+  return compareNumbers(leftItems.length, rightItems.length);
 }
 
 function sortedKeysOf(mapValue) {
-  return [...mapValue.keys()].sort(compareCodeUnits);
+  return [...mapValue.keys()].sort(compareText);
 }
 
 function compareMaps(leftMap, rightMap) {
@@ -138,10 +158,10 @@ function compareMaps(leftMap, rightMap) {
   const rightKeys = sortedKeysOf(rightMap);
   const sharedLength = Math.min(leftKeys.length, rightKeys.length);
   for (let index = 0; index < sharedLength; index++) {
-    const byKey = compareCodeUnits(leftKeys[index], rightKeys[index]);
+    const byKey = compareText(leftKeys[index], rightKeys[index]);
     if (byKey !== 0) return byKey;
   }
-  if (leftKeys.length !== rightKeys.length) return compareCodeUnits(leftKeys.length, rightKeys.length);
+  if (leftKeys.length !== rightKeys.length) return compareNumbers(leftKeys.length, rightKeys.length);
   for (const key of leftKeys) {
     const byValue = compareValues(leftMap.get(key), rightMap.get(key));
     if (byValue !== 0) return byValue;

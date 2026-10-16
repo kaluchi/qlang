@@ -1031,7 +1031,7 @@
         |~~ Tag names order by their names. ~~|
         ~([::B ::A] | sort | eq [::A ::B])
     | proves :ordersAnUpperLetterFirst
-        |~~ Strings order by their UTF-16 code units, an upper letter
+        |~~ Strings order by their code points, an upper letter
             first.
         ~~|
         ~(["b" "B" "a"] | sort | eq ["B" "a" "b"])

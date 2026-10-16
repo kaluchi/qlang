@@ -4,7 +4,7 @@ const _cliPackage = createRequire(import.meta.url)('../package.json');
 
 export const HELP_TEXT = `qlang \u2014 pipeline query language
 
-Usage:  qlang [--json | --raw] [--color=MODE] [--budget=N] <query>
+Usage:  qlang [--json | --raw] [--color=MODE] [--budget=N] [--fail] <query>
         qlang [--budget=N] -i | --repl [<query>]
         qlang -h | --help
         qlang -V | --version
@@ -47,12 +47,22 @@ Output colour:
   Environment:    NO_COLOR=1 forces never; FORCE_COLOR=1 forces
                   always (the explicit --color flag overrides both).
 
+Exit code:
+  (default)   0 for every answer, a failure among them, so calls run
+              side by side never stop each other; 1 for a defect
+              raised past the fail track, 2 for a usage error
+  --fail      1 where the answer is a failure, written as without
+              the flag, one a query that wrote by out leaves unwritten
+              among them, for a script that tests the code:
+              qlang --fail 'get /id' < a.json && next
+
 Examples:
   curl -s api/users | qlang 'get /data | map /name'
   qlang 'get /glossary/title' < data.json
   qlang 'get /users | filter /active | json' < data.json
   echo hi           | qlang --raw 'append " world"'
   qlang --raw 'lines | filter ~(contains "ERROR") | count' < app.log
+  qlang --raw 'lines | map ~(parseJson) | filter ~(has :error)' < app.ndjson
   qlang '[1 2 3] | filter ~(gt 1) | count'
   qlang -i '::qlang | doc | links | map ~open'
 
@@ -72,16 +82,18 @@ const argumentAfterTheQuery = argument => ({
 
 // parseArgv(argvSlice) → what the arguments of the command line ask for,
 // one of
-//   { kind: 'evalQuery', queryText, inputFormat, colorMode, budget }
+//   { kind: 'evalQuery', queryText, inputFormat, colorMode, budget, failureExitCode }
 //   { kind: 'repl', budget, initialQuery }
 //   { kind: 'help' }, { kind: 'version' }, { kind: 'usageError', message }
 // the format of the input `auto`, `json` or `raw`, the colour `auto`,
-// `always` or `never`, and the budget null or the characters every
-// answer prints within [QSHST#answer].
+// `always` or `never`, the budget null or the characters every
+// answer prints within, and the code a failure exits with, 0, or 1
+// under `--fail` [QSHST#answer].
 export function parseArgv(argvSlice) {
   let inputFormat = 'auto';
   let colorMode = 'auto';
   let budget = null;
+  let failureExitCode = 0;
   let isRepl = false;
   let cursor = 0;
 
@@ -101,6 +113,7 @@ export function parseArgv(argvSlice) {
     }
     if (head === '--json') { inputFormat = 'json'; cursor += 1; continue; }
     if (head === '--raw')  { inputFormat = 'raw';  cursor += 1; continue; }
+    if (head === '--fail') { failureExitCode = 1; cursor += 1; continue; }
     if (head.startsWith('--color=')) {
       const value = head.slice('--color='.length);
       if (!COLOR_MODES.has(value)) {
@@ -115,7 +128,7 @@ export function parseArgv(argvSlice) {
     }
     if (cursor + 1 < argvSlice.length) return argumentAfterTheQuery(argvSlice[cursor + 1]);
     if (isRepl) return { kind: 'repl', budget, initialQuery: head };
-    return { kind: 'evalQuery', queryText: head, inputFormat, colorMode, budget };
+    return { kind: 'evalQuery', queryText: head, inputFormat, colorMode, budget, failureExitCode };
   }
 
   if (isRepl) return { kind: 'repl', budget, initialQuery: null };

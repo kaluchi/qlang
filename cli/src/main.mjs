@@ -114,7 +114,8 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   const cliOutcome = await renderCellOutcome(cellEntry, {
     didExplicitStdoutEffect,
     shouldColorize: resolveShouldColorize(cliInvocation.colorMode, stdoutStream, env),
-    budget: cliInvocation.budget
+    budget: cliInvocation.budget,
+    failureExitCode: cliInvocation.failureExitCode
   });
 
   stdoutWrite(cliOutcome.stdoutText);

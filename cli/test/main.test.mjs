@@ -134,6 +134,32 @@ describe('main — standard input read for a query that reads its subject', () =
   });
 });
 
+// `--fail` gives a failure the code 1, written as without it, and a
+// value the code 0 [QSHST#answer].
+describe('main — the code a failure exits with under --fail', () => {
+  it('exits a failure with 1 and writes its alert on stdout', async () => {
+    const s = captureStreams();
+    const exitCode = await main(['--fail', '"x" | add 1'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect(exitCode).toBe(1);
+    expect(s.stdoutText()).toContain('::number/add/SubjectNotNumberError!{');
+    expect(s.stderrText()).toBe('');
+  });
+
+  it('exits an input --json cannot read with 1, the refusal of parseJson its answer', async () => {
+    const s = captureStreams('{"a":1');
+    const exitCode = await main(['--fail', '--json', 'get /a'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect(exitCode).toBe(1);
+    expect(s.stdoutText()).toContain('::string/parseJson/TextNotJsonError!{');
+  });
+
+  it('exits a value with 0', async () => {
+    const s = captureStreams();
+    const exitCode = await main(['--fail', '1 | add 1'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toBe('2\n');
+  });
+});
+
 describe('main — script mode auto-pipe', () => {
   it('starts from the default subject when stdin carries no bytes', async () => {
     const s = captureStreams();

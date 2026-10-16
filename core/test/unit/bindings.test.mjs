@@ -6,7 +6,7 @@ import { evalQuery } from '../../src/eval.mjs';
 import { makeTag, formOf } from '../../src/types.mjs';
 import { docText } from '../../src/quote.mjs';
 
-describe('BindStep — docs-only form', () => {
+describe('a name declared by its page alone', () => {
   it('a name declared by its page alone holds the page, a doc', async () => {
     const result = await evalQuery(':guide |~~ A guide. ~~|\n| guide | type');
     expect(result).toEqual(makeTag('doc'));
@@ -31,11 +31,9 @@ describe('BindStep — docs-only form', () => {
   });
 });
 
-describe('BindStep — value-body purity routing', () => {
-  // A pure-literal body evaluates at declaration and its record holds
-  // the value [QSNAM#declare]; identifier lookup reads it, so the
-  // user-observable contract is "lookup yields the eval-at-bind-time
-  // value".
+describe('a declaration holds what its body answered', () => {
+  // The body runs once, where the declaration stands, and the name holds
+  // what it answered, a quote held as the value it is [QSNAM#declare].
 
   it('a name holding an atom reads back its value', async () => {
     expect(await evalQuery(':pi 3.14 | pi')).toBe(3.14);
@@ -45,7 +43,7 @@ describe('BindStep — value-body purity routing', () => {
     expect(await evalQuery(':xs [1 2 3] | xs')).toEqual([1, 2, 3]);
   });
 
-  it('impure body containing Call fires the deferred body per call', async () => {
+  it('a quote declared under a label is a word that runs at each call', async () => {
     expect(await evalQuery(':any/double ~(mul 2) | 5 | double')).toBe(10);
   });
 
@@ -58,7 +56,7 @@ describe('BindStep — value-body purity routing', () => {
   });
 });
 
-describe('BindStep — a word with inputs', () => {
+describe('a word with inputs', () => {
   it('a word binds its inputs from the modifiers of the call', async () => {
     expect(await evalQuery(':any/surround (::fn | takes :pfx |~~ The prefix. ~~| /0 | takes :sfx |~~ The suffix. ~~| /1 | impl ~(prepend pfx | append sfx)) | "x" | surround "[" "]"'))
       .toBe('[x]');
@@ -69,7 +67,7 @@ describe('BindStep — a word with inputs', () => {
   });
 });
 
-describe('BindStep — pipeline-transparency', () => {
+describe('a declaration hands its subject on unchanged', () => {
   it('subject pipeValue passes through unchanged across a binding step', async () => {
     expect(await evalQuery('"input" | :x 1 | x')).toBe(1);
   });

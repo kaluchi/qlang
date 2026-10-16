@@ -222,7 +222,7 @@ describe('main — script mode auto-pipe', () => {
   });
 
   it('uses raw mode on --raw regardless of stdin shape', async () => {
-    // Input is valid JSON but `--raw` forces the String path.
+    // The input reads as JSON, and `--raw` reads it as a string [QSHST#input].
     const s = captureStreams('{"a":1}');
     const exitCode = await main(
       ['--raw', 'append " done"'],

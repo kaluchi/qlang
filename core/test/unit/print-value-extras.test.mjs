@@ -200,8 +200,9 @@ describe('format.toPlain non-keyword Map keys', () => {
 });
 
 describe('the finite-double domain holds at every render seam', () => {
-  // Source cannot mint an infinity or a NaN — the parser refuses the
-  // literal and every arithmetic site lifts a numericDomain error.
+  // Source cannot make an infinity or a NaN: the parser refuses the
+  // literal [QSLIT#number], and an answer past the doubles is refused as
+  // `::number/NotFiniteError` [QSNUM#arithmetic].
   // A host can, through `session.bind` or the `impls` of its sources,
   // and render is where such a value becomes observable: `printValue`
   // would answer `Infinity`, which no production reads back, and the

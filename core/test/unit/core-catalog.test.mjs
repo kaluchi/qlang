@@ -85,11 +85,6 @@ describe('bare-name verb call', () => {
 });
 
 describe('the root of the language', () => {
-  // The drift guard in `error-tag-catalog-drift.test.mjs` pairs each
-  // throw site with its kind and each kind with its throw site, but a
-  // kind minted outside a per-site factory passes both whether or not it
-  // exists. This pin fails on a silent shrink of the root's nouns; a
-  // tally belongs in test code, which CI re-verifies, and never in prose.
   it('the root holds the kinds of the language and its topic', async () => {
     expect(await evalQuery('get [~(kinds | has ::number) ~(::qlang | doc | type)]')).toEqual(await evalQuery('[true ::doc]'));
   });

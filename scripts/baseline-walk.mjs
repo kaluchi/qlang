@@ -15,6 +15,9 @@ import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, JOURNAL, RE
 
 export const RECORDS_A_WALK_TAKES = 20;
 export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
+// The code beside the roots: the configurations at the root of the
+// repository and of each workspace.
+export const CITING_CODE_FILES = ['eslint.config.mjs', 'core/vitest.config.mjs', 'cli/vitest.config.mjs', 'cli/vitest.integration.config.mjs', 'lsp/vitest.config.mjs', 'site/astro.config.mjs', 'site/vitest.config.mjs'];
 export const CITING_DOCUMENTS = ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'];
 export const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang|yml)$/;
 const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
@@ -31,6 +34,11 @@ function filesUnder(repoRoot, dir, pattern) {
     return pattern.test(entry.name) ? [`${dir}/${entry.name}`] : [];
   });
 }
+
+// citingCodeOf(repoRoot) → the files of code that cite, those under the roots
+// and those beside them the tree holds; isCitingCode(path) whether a path is one.
+export const citingCodeOf = repoRoot => [...CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE)), ...CITING_CODE_FILES.filter(path => existsSync(join(repoRoot, path)))];
+export const isCitingCode = path => CITING_CODE_FILES.includes(path) || (CODE_FILE.test(path) && CITING_CODE_ROOTS.some(root => path.startsWith(`${root}/`)));
 
 export function citationsIn(text) {
   const cited = [];
@@ -127,7 +135,7 @@ export function walkOfBaseline(repoRoot) {
     walk.violations.push({ where: JOURNAL, problem: `${walk.since.length} records since the baseline ${baseline}, from ${walk.since[0]}: the walk is due` });
   }
   const notClosed = record => !replacedWhole(record) && !isBeingDecided(record);
-  for (const file of CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE))) {
+  for (const file of citingCodeOf(repoRoot)) {
     for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {
       const record = records.get(name);
       if (record !== undefined && !isHeld(record)) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
@@ -172,7 +180,7 @@ export function unresolvedSections(repoRoot) {
   const specDir = join(repoRoot, 'docs', 'spec');
   const chapters = new Map((existsSync(specDir) ? readdirSync(specDir) : []).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name))
     .map(name => [name.slice(0, 5), new Set(readFileSync(join(specDir, name), 'utf8').split(/\r?\n/).filter(line => line.startsWith('## ')).map(line => line.slice(3).trim()))]));
-  const citing = [...CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE)), ...filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/),
+  const citing = [...citingCodeOf(repoRoot), ...filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/),
     ...CITING_DOCUMENTS, ...filesUnder(repoRoot, JOURNAL, /\.md$/).filter(path => !path.includes('/replaced/') && !path.startsWith(`${RESEARCH}/`)), ...filesUnder(repoRoot, 'docs/spec', /\.md$/)];
   const unresolved = [];
   for (const file of citing.filter(path => existsSync(join(repoRoot, path)))) {

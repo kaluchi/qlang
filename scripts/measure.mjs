@@ -7,7 +7,7 @@
 // tooling. Runs wherever the checkout is with the history it names.
 //
 // Usage:
-//   node scripts/measure.mjs [<fromRef> [<toRef>]]   from the baseline to HEAD where none is named
+//   node scripts/measure.mjs [<fromRef> [<toRef>]]   from the baseline, or the root of a history that holds none, to HEAD where none is named
 //   node scripts/measure.mjs --steps <ref> <ref> [<ref>...]
 // The decisions it exists for: [QSWRK#diff].
 import { execFileSync } from 'node:child_process';
@@ -130,6 +130,10 @@ function printSteps(refs) {
   }
 }
 
+// The first commit of the history, which a measure runs from where the
+// history holds no baseline [QSWRK#diff].
+const rootOfHistory = () => git(['rev-list', '--max-parents=0', 'HEAD']).trim().split('\n').at(-1).slice(0, 8);
+
 const args = process.argv.slice(2);
 if (args[0] === '--steps') printSteps(args.slice(1));
-else printSummary(args[0] ?? baselineOf(repoRoot), args[1] ?? 'HEAD');
+else printSummary(args[0] ?? baselineOf(repoRoot) ?? rootOfHistory(), args[1] ?? 'HEAD');

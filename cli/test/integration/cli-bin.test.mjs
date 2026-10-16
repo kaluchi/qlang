@@ -1,16 +1,7 @@
-// End-to-end CLI smoke tests — spawn the actual `cli/src/bin.mjs`
-// adapter through `node:child_process` and assert on the
-// stdout / stderr / exit-code triple. Catches every bug the
-// in-process unit suite cannot reach:
-//
-//   * SyntaxError / ReferenceError in any module that bin.mjs
-//     transitively imports.
-//   * Argv parsing wired-up correctly (the unit suite tests
-//     parseArgv in isolation; this suite tests the full path
-//     through main → script-mode / runRepl).
-//   * Piped stdin reaches the `in` word and the input modes.
-//   * REPL bootstrap loads every module it imports without
-//     throwing on the first prompt.
+// The command line run as a process of its own, `cli/src/bin.mjs`: what it
+// writes to standard output and standard error and the code it exits with,
+// for a query, its flags and its piped input, and in the REPL
+// [QSHST#answer], [QSHST#input], [QSHST#repl].
 
 import { describe, it, expect } from 'vitest';
 import { spawn } from 'node:child_process';
@@ -92,11 +83,7 @@ describe('CLI: script mode — query argument', () => {
     expect(stderr).toMatch(/missing query/);
   });
 
-  it('the axes resolve cell-local BindStep declarations through script-mode', async () => {
-    // Regression pin: script-mode goes through session.evalCell,
-    // which must stamp the parsed cell AST under
-    // `qlang/ast/<cellUri>` so the axes find the inline
-    // `:foo |~~ note ~~|` BindStep declared by the same query.
+  it('the axes read a declaration of the query in script mode', async () => {
     const { stdout, exitCode } = await runCli(
       [':foo |~~ note ~~| | ::foo | doc | content'],
       { stdin: '' });
@@ -114,7 +101,7 @@ describe('CLI: piped stdin — the input modes', () => {
     expect(stdout.trim()).toBe('alice');
   });
 
-  it('--raw treats stdin as a literal String subject', async () => {
+  it('--raw reads standard input as a string', async () => {
     const { stdout, exitCode } = await runCli(['--raw', 'append " world"'], {
       stdin: 'hello'
     });

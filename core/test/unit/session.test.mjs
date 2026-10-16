@@ -21,9 +21,6 @@ describe('createSession lifecycle', () => {
   });
 
   it('evalCell seeds the cell pipeValue from evalOpts.initialPipeValue', async () => {
-    // The CLI script mode uses this hook to deliver parsed stdin
-    // as the implicit subject — `qlang 'get /key'` then acts as a
-    // pure filter without needing `in | parseJson | …` ceremony.
     const sessionInstance = await createSession();
     const seeded = new Map([['a', 1], ['b', 2]]);
     const cellEntry = await sessionInstance.evalCell('get /a', { initialPipeValue: seeded });
@@ -31,10 +28,9 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(1);
   });
 
-  it('evalCell omitting initialPipeValue falls back to env as the seed', async () => {
-    // Historical behaviour — a query that starts with a value
-    // producer (`42`, `[1 2]`, `in`) overrides the seed anyway,
-    // so a cell that does not reference pipeValue acts as before.
+  it('evalCell without initialPipeValue answers the value the cell opens with', async () => {
+    // The subject of the first step is null, and a value at the head of the
+    // cell stands in its place.
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42');
     expect(cellEntry.error).toBeNull();

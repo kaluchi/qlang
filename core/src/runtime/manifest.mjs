@@ -54,7 +54,7 @@ async function runLaw({ law, quote, says }, callerState) {
 
 // A value reads its record as the axes do, a name its own and any other value
 // its kind's, a keyword after it the member it holds, `::qlang | runLaws
-// :values` [QSSLF#laws]: the laws declared under its address [QSSLF#laws].
+// :values`: the laws declared under its address [QSSLF#laws].
 async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   const address = recordReadBy(subject, anchor, state, UnknownNameError).get('name').name;
   const root = rootOf(state.env);

@@ -5,7 +5,7 @@
 // them [QSTXT#string], patterns by their
 // text and then their flags [QSTXT#pattern], vectors element
 // by element, a set as its vector, maps by their keys and then their
-// values, a desc by the reverse of its payload's place [QSORD#order], and a
+// values, a desc by the reverse of its payload's place, and a
 // tagged value by its payload. `sort`, `min` and `max`
 // order by it, and so do the ordering predicates, whose inputs take a value
 // of the subject's kind [QSDSP#walk], [QSDSP#residence].

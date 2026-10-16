@@ -243,9 +243,9 @@ function evalQuoteLit(node, state) {
   return withPipeValue(state, quoteOfLiteral(node));
 }
 
-// A doc's quote takes the role the tags written before it give [QSSLF#doc],
-// each laid over the quote through its label as a tagged literal lays a
-// payload, so a tag whose label takes no quote refuses the doc,
+// A doc's quote takes the role the tags written before it give, each laid
+// over the quote through its label as a tagged literal lays a payload, so a
+// tag whose label takes no quote refuses the doc,
 // `|~~ see ::number~(~(x)) ~~|` as `::number~(~(x))` does [QSSLF#doc].
 async function evalDocLit(node, state) {
   for (const part of node.segments) {
@@ -1125,7 +1125,7 @@ function laneOf(env) {
 // reducer's quote names by one word, its name or its address, called as the
 // pipe calls it, `acc | add item`, the word residing on the accumulator among
 // them [QSDSP#residence], and a value of the scope under the name meeting the
-// word there [QSCOL#reduce], [QSNAM#reach]; null for code of any other shape
+// word there [QSNAM#reach]; null for code of any other shape
 // or a name of no word, which `reduce` runs on the pair of the value so far
 // and the element [QSCOL#reduce]. A call the accumulator refuses answers the
 // failure it raised, which the fold marks at the place of its element [QSERR#trail].

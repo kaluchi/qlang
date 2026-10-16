@@ -1,9 +1,8 @@
 // The checks a catalog's pages are held to, over the addresses of the names a
 // test walks and a query answered where they live, the root of the language or
 // the session of a host: the laws of each name answer true [QSSLF#laws], every
-// link of a page leads to the page of another name [QSSLF#doc], and no quote
-// of a page falls to its prose, where a link a change of the grammar breaks
-// would go stale in silence [QSSLF#doc].
+// link of a page leads to the page of another name [QSSLF#page], and no quote
+// of a page falls to its prose [QSSLF#doc].
 
 import { printQuoteSource } from '../../src/quote.mjs';
 import { printValue } from '../../src/runtime/format.mjs';

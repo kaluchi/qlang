@@ -190,9 +190,8 @@ describe('the one order over keywords and tags', async () => {
   });
 });
 
-// `groupBy` on a Set subject mints Set-typed buckets — the
-// subject's uniqueness invariant carries into each bucket so the
-// value-class signal survives partitioning.
+// `groupBy` files the elements of a set into buckets that are sets
+// [QSCOL#group].
 describe('groupBy over a set files sets', async () => {
   it('partitions a Set into Set buckets keyed by the classifier', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');

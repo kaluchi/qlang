@@ -14,7 +14,7 @@
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
-import { CITING_CODE_ROOTS, CITING_DOCUMENTS, CODE_FILE, citedOnce, recordsInTransit } from './baseline-walk.mjs';
+import { CITING_DOCUMENTS, citedOnce, isCitingCode, recordsInTransit } from './baseline-walk.mjs';
 import { JOURNAL, REPLACED } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
@@ -72,7 +72,7 @@ for (const name of names) {
     }).join('\n'));
   }
   // A citation names the section, or waits for the author.
-  const citing = tracked.filter(path => (CODE_FILE.test(path) && CITING_CODE_ROOTS.some(root => path.startsWith(`${root}/`))) || CITING_DOCUMENTS.includes(path));
+  const citing = tracked.filter(path => isCitingCode(path) || CITING_DOCUMENTS.includes(path));
   const left = [];
   for (const path of citing) {
     rewrite(path, text => {

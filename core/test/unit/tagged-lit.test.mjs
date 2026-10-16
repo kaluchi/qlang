@@ -255,14 +255,14 @@ describe('a quote is text to `parse` and code to `apply`', () => {
 
 describe('a tag no node answers is a kind of identity, and declares nothing [QSNAM#address]', () => {
   it('leaves no binding to read', async () => {
-    const result = await evalQuery('::Top#1 | :minted it | ::Top | binding');
+    const result = await evalQuery('::Top#1 | :laid it | ::Top | binding');
     expect(result.tag.name).toBe('any/binding/UnknownNameError');
     expect(await evalQuery('::Zap#1 | env | has :Zap')).toBe(false);
   });
 });
 
 describe('within edits under one tag and rewraps it', () => {
-  // The payload runs through the quote as a fork and mints back under the
+  // The payload runs through the quote as a fork and is laid back under the
   // subject's tag, whose constructor runs once, at the rewrap [QSDSP#answer].
   it('a set normalizes the vector the edit answers', async () => {
     expect(await evalQuery('#[1 2] | within ~(get [/0 /0 /1]) | eq #[1 2]')).toBe(true);

@@ -10,9 +10,9 @@
 // [QSWRK#cases], and a requirement the tree does not meet yet is a target,
 // `"target": true`, which answers its present, `"now"`, an error by its tag
 // and any other value as its literal: a target that answers as expected
-// fails until the branch that met it drops the mark [QSWRK#target], and one
-// that answers neither fails until a reader tells a repair from a broken
-// case [QSWRK#target]. The requirements agree with each other in the one
+// fails until the branch that met it drops the mark, and one that answers
+// neither fails until a reader tells a repair from a broken case
+// [QSWRK#target]. The requirements agree with each other in the one
 // form a runner can see: no two cases hold one query to different answers.
 
 import { describe, it, expect } from 'vitest';

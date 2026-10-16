@@ -1,7 +1,6 @@
 // The primitives of the verbs of a doc: its text, `content`, which writes its
-// quotes as text among its prose, its parts, `segments` [QSSLF#doc], and its
-// links and snippets, the quotes in the role of a link or a snippet
-// [QSSLF#doc].
+// quotes as text among its prose, its parts, `segments`, and its links and
+// snippets, the quotes in the role of a link or a snippet [QSSLF#doc].
 
 import { bindPrim } from '../primitives.mjs';
 import { docText } from '../quote.mjs';

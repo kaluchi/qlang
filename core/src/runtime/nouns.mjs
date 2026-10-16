@@ -343,7 +343,7 @@ export function placesOfSelectors(selectors) {
 // its inputs read places, an input the call leaves out where its place reads
 // one, and an answer that reaches none of the kinds `returns` names; and under
 // a kind, a payload of none of its kinds, or an element of none, a refusal of
-// kinds named by the role of its holder alone [QSERR#site].
+// kinds named by the role of its holder alone.
 export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kindsWord(kinds)}Error`;
 // The subject of a function `apply` runs, which no label serves, is refused
 // by its role, the kinds `on` names its `:expected` [QSBLD#fn].

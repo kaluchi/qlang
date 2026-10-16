@@ -358,7 +358,7 @@ bindPrim(['vec/flat', 'set/flat'], sequence => sequence.flatMap(element => (isVe
 
 // The fold, `reduce seed ~(reducer)`: a quote of one word is
 // the word called as the pipe calls it, `acc | add element`, the element the
-// first of its args [QSCOL#reduce]; any other code runs on the pair of the
+// first of its args; any other code runs on the pair of the
 // value so far and the element, and its answer is the value so far after it
 // [QSCOL#reduce]. `seed` answers for an empty subject, and a failure of the
 // reducer stops the fold at the place of its element [QSERR#trail].

@@ -141,7 +141,7 @@ describe('one address, one site', () => {
 describe('declareForeignError — a failure of the embedding', () => {
   // The class stays off the QlangError hierarchy and carries the address
   // every other declaration stamps.
-  it('mints a class outside the QlangError hierarchy that still names its site', () => {
+  it('declares a class outside the QlangError hierarchy that still names its site', () => {
     const HostBridgeUnreachableError = declareForeignError('HostBridgeUnreachableError',
       ({ endpoint }) => `host bridge at ${endpoint} answered nothing`);
     const foreignErr = new HostBridgeUnreachableError({ endpoint: 'ipc://bridge' });

@@ -56,7 +56,7 @@ describe('`!|` runs a group and a word on the error at rest', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('a plain comment among the steps a failure skips leaves no step in the trail', async () => {
+  it('a comment among the steps a failure skips leaves no step in the trail', async () => {
     // The last frame of the trail holds the steps the error skipped, and a
     // comment is whitespace, so `count` alone joins them [QSERR#trail],
     // [QSSYN#comment].
@@ -64,7 +64,7 @@ describe('`!|` runs a group and a word on the error at rest', () => {
     expect(evalResult).toBe('count');
   });
 
-  it('the steps skipped past a plain comment replay through apply as the bare call after it', async () => {
+  it('the steps skipped past a comment run again by apply as the call after it', async () => {
     const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trail | last | skipped | :t it | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
   });
@@ -72,11 +72,11 @@ describe('`!|` runs a group and a word on the error at rest', () => {
 
 
 describe('source axis prints the declaration for rare body shapes', () => {
-  it('renders bare Call (no args)', async () => {
+  it('renders a call that gives no modifiers as the body of a declaration', async () => {
     expect(await evalQuery('[1 2] | :x count | ::x | source | parse')).toBe(':x count');
   });
 
-  it('a LinePlainComment inside a declaration body leaves no step', async () => {
+  it('a line comment inside the body of a declaration leaves no step', async () => {
     const evalResult = await evalQuery(':x (42 |~| note\n) | ::x | source | parse');
     expect(evalResult).toBe(':x (42)');
   });
@@ -87,7 +87,7 @@ describe('source axis prints the declaration for rare body shapes', () => {
     expect(evalResult).toContain('doc');
   });
 
-  it('renders ErrorLit body', async () => {
+  it('renders an error literal as the body of a declaration', async () => {
     expect(await evalQuery('~(:x !{:a 1}) | parse')).toBe(':x !{:a 1}');
   });
 

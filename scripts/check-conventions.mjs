@@ -100,7 +100,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
-import { baselineOf, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_CODE_ROOTS, CITING_DOCUMENTS, CODE_FILE } from './baseline-walk.mjs';
+import { baselineOf, isCitingCode, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_DOCUMENTS } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { execFileSync } from 'node:child_process';
@@ -420,9 +420,8 @@ function decisionsInCatalog() {
 //
 // A record names who took its decision, so a session tells the
 // maintainer's words, which bind it, from the model's reading, which it
-// weighs on its merits [QSWRK#journal]; an open record names none until it is
-// decided, and holds its question, its source and its alternatives
-// [QSWRK#journal].
+// weighs on its merits; an open record names none until it is decided, and
+// holds its question, its source and its alternatives [QSWRK#journal].
 
 const FIRST_RECORD_NAMING_ITS_DECIDER = 155;
 const DECIDER_LINE = /^Decided by\. The (maintainer|model)\b/m;
@@ -638,7 +637,7 @@ function voiceOfFile(path) {
   if (path.split('/').some(part => UNREAD_FOLDERS.has(part))) return null;
   if (CITING_DOCUMENTS.includes(path) || /^docs\/spec\/[^/]+\.md$/.test(path)) return 'prose';
   if (/^core\/test\/conformance\/.+\.jsonl$/.test(path)) return 'case';
-  if (!CITING_CODE_ROOTS.some(root => path.startsWith(`${root}/`)) || !CODE_FILE.test(path)) return null;
+  if (!isCitingCode(path)) return null;
   return path.endsWith('.qlang') ? 'catalog' : 'code';
 }
 

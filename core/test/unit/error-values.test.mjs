@@ -43,8 +43,8 @@ describe('makeErrorValue', () => {
   });
 
   it('fires ErrorTrailNotFramesError when :trail carries anything except a vector of frames [QSERR#trail]', async () => {
-    // A step the error skips joins the steps of the last frame, so the
-    // mint site refuses anything under `:trail` but a vector of frames.
+    // A step the error skips joins the steps of the last frame, so
+    // `makeErrorValue` refuses anything under `:trail` but a vector of frames.
     const refusedTrails = [
       [null, 'null'], [5, 'number'], [[1, 2], 'vec'], [quoteOfSource('| pre'), 'quote'], [makeSet([]), 'set'],
       [[new Map([['step', quoteOfSource('pre')]])], 'vec']
@@ -53,7 +53,7 @@ describe('makeErrorValue', () => {
     for (const [refusedTrail, kindName] of refusedTrails) {
       let thrown = null;
       try { makeErrorValue(makeTag('Oops'), new Map([['trail', refusedTrail]])); }
-      catch (mintErr) { thrown = mintErr; }
+      catch (caught) { thrown = caught; }
       expect(thrown).toBeInstanceOf(ErrorTrailNotFramesError);
       expect(thrown).toBeInstanceOf(QlangError);
       expect(thrown.name).toBe('TrailNotFramesError');

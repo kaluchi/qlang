@@ -88,9 +88,9 @@ function docConstructor(payload) {
 
 bindPrim('doc/construct', docConstructor);
 
-// `::builtin{…}` — the descriptor, the recipe of a verb or of a kind that
-// a primitive answers, or the value of a name under a label alone [D352];
-// its fields stay flat under its tag.
+// `::builtin{…}` — the descriptor, the recipe of a verb or the constructor
+// of a kind that a primitive answers, or the value of a name under a label
+// alone [D352], [D357]; its fields stay flat under its tag.
 const BuiltinPayloadKindNotTakenError = declareRefusal('builtin/PayloadKindNotTakenError');
 
 function builtinConstructor(payload) {

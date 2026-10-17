@@ -782,7 +782,7 @@
 
 :vec/has
   |~~ Answers whether the vector holds an element equal to the element the
-      call gives, the membership of a JSON array,
+      call gives, whether a JSON array holds a value,
       `["ops" "db"] | has "ops"` answering `true`. Elements are compared
       as `eq` compares them: a vector element is found by its content, a
       number whatever its digits, and a keyword is not its string, so
@@ -851,7 +851,7 @@
 
 :vec/contains
   |~~ Answers whether the vector holds an element equal to the element the
-      call gives, the membership `has` asks, under the name a string
+      call gives, as `has` asks of an element, under the name a string
       answers for its substrings, `["ops" "db"] | contains "ops"`
       answering `true`; whether a value is one of several reads
       `:x it | [5 6] | contains x`. A set is searched by its one order,

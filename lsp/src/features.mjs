@@ -63,8 +63,8 @@ function dedent(text) {
 }
 
 // The contents of the page at an address, `::vec/count`, once per
-// address; a verb's is read at the address the tool shows for it, so its
-// signature and its page name one verb [D352].
+// address; a verb's is read at the address the tool shows for it, so the
+// form of its call and its page name one verb [D352].
 const docsCache = new Map();
 async function pageContents(address) {
   if (docsCache.has(address)) return docsCache.get(address);
@@ -79,8 +79,8 @@ async function pageContents(address) {
   return contents;
 }
 
-// What a call of a verb shows: its address and the inputs of its function.
-const signatureOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
+// The form of a call of a verb: its address and the inputs of its function.
+const callFormOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
 
 // The kinds of the subject of the step that starts at an offset, where the
 // steps before it name them, or null [QSSLF#catalog].
@@ -165,8 +165,8 @@ async function nameCompletions() {
 }
 
 // The completion of a verb as a call of it from a subject of the kinds
-// shows it, or with no kinds, its signature and its page; null for a name
-// that reaches no verb.
+// shows it, or with no kinds, the form of its call and its page; null for
+// a name that reaches no verb.
 async function verbCompletion(runtime, name, kinds) {
   const shown = shownFor(runtime, name, kinds);
   if (shown === undefined) return null;
@@ -174,7 +174,7 @@ async function verbCompletion(runtime, name, kinds) {
   return {
     label: name,
     kind: 'function',
-    detail: signatureOf(shown),
+    detail: callFormOf(shown),
     documentation: tidyProse(docContents[0] ?? '')
   };
 }
@@ -334,15 +334,15 @@ export async function hoverAtOffset(ast, source, offset) {
 }
 
 // A call of a verb of the runtime shows the verb its subject reaches,
-// where the steps before it name the kinds of the subject, its signature
-// over its page; a verb the document declares shows its doc.
+// where the steps before it name the kinds of the subject, the form of its
+// call over its page; a verb the document declares shows its doc.
 async function hoverForCall(node, documentAst, source) {
   const runtime = await langRuntime();
   const shown = shownFor(runtime, node.name, await subjectKindsAt(source, node.location.start.offset));
   if (shown !== undefined) {
     const docContents = await pageContents(shown.address.literal);
     const prose = tidyProse(docContents.join('\n'));
-    const heading = [`**${node.name}** — ${signatureOf(shown)}`];
+    const heading = [`**${node.name}** — ${callFormOf(shown)}`];
     return {
       content: markdownHardBreaks([...heading, '', prose].join('\n')),
       startOffset: node.location.start.offset,
@@ -551,9 +551,9 @@ export function referencesAtOffset(ast, offset) {
 // ── Document Symbols ──────────────────────────────────────────
 
 // documentSymbols(ast, runtime) → the declarations of a document, each
-// shown as a label, a verb or a value; a label is a name the document
-// declares by its page alone, or a label of the language the runtime
-// holds.
+// shown as a label, a verb or a value, a label a kind the document declares
+// under a name, by its chain or by its page alone, or one the runtime holds
+// [D357].
 export function documentSymbols(ast, runtime) {
   if (!ast) return [];
 

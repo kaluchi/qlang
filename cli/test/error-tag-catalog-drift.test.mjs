@@ -20,7 +20,7 @@ import '../src/table.mjs';
 import '../src/script-mode.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const isLaw = value => typeOf(value).name === 'holds';
+const isInvariant = value => typeOf(value).name === 'invariant';
 const srcDir = join(here, '..', 'src');
 
 // Every form that declares a refusal opens with its address as a string
@@ -41,12 +41,12 @@ const session = await createSession({
     stderrWrite: () => {}
   })
 });
-// The refusals the source of the command line declares, by address; a
-// law, whose name is its refusal, is raised by the runtime [QSSLF#catalog].
+// The refusals the source of the command line declares, by address; an
+// invariant, whose name is its refusal, is raised by the runtime [D357].
 const refusalAddresses = new Set();
 for (const address of nodeAddresses(session.env)) {
   const record = nodeOf(session.env, address);
-  if (record.get('origin')?.name === 'cli' && address.endsWith('Error') && !isLaw(record.get('value'))) refusalAddresses.add(address);
+  if (record.get('origin')?.name === 'cli' && address.endsWith('Error') && !isInvariant(record.get('value'))) refusalAddresses.add(address);
 }
 // The refusals the verbs of the command line raise by rule, which the
 // runtime raises and the source pages where a repair helps [D352].

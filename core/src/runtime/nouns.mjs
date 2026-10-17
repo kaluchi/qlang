@@ -16,7 +16,7 @@ import { ROOT_KEY, WITHHELD_KEY } from '../env-keys.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { astOfQuote } from '../quote.mjs';
 import { segmentIndex } from '../path-read.mjs';
-import { ANSWER_NAME, functionOfRecipe, kindOf, signatureOf } from './signature.mjs';
+import { ANSWER_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
 
 // The kind every value answers, and the kind of every value under a tag.
 export const ANY_KIND_NAME = 'any';
@@ -30,9 +30,9 @@ function* bindingsOf(env) {
 }
 
 // nodeOf(env, tagName) → the record of the node a tag name addresses, or null:
-// a label of the root, a kind or a topic, which no reader declares over
-// [QSDSP#residence], else the nearest declaration of the name, as a step reads
-// it, the reader's before the root's [QSLIT#keyword].
+// a label of the root, which no reader declares over [QSDSP#residence], else
+// the nearest declaration of the name, as a step reads it, the reader's before
+// the root's [QSLIT#keyword].
 export function nodeOf(env, tagName) {
   const rootEntry = rootOf(env).get(tagName);
   if (isBinding(rootEntry) && declaresALabel(rootEntry)) return rootEntry;
@@ -54,14 +54,14 @@ export function refuseWithheld(env, name, readByTag = false) {
   throw new CallValueWithheldError({ name: keyword(name) });
 }
 
-// Whether a record holds a page or a kind, either of which makes its name
-// a label [QSBLD#label].
+// Whether a record declares a label, a kind under its name, by its chain or
+// by its page alone, a kind of no commands [D357].
 export function declaresALabel(record) {
   const value = bindingValueOf(record);
   return isDoc(value) || isKind(value);
 }
 
-// Whether a node is a label, a name declared by its page.
+// Whether a node is a label, a kind declared under its name [D357].
 export function isLabel(env, name) {
   return declaresALabel(nodeOf(env, name));
 }
@@ -87,7 +87,7 @@ export const CONSTRUCT_NAME = 'construct';
 // Whether a record holds a verb, its value a quote or the descriptor of a
 // host's primitive, which run on the label's values.
 function residesOn(record, env) {
-  return declaresVerb(record.get('name').name, isMemberValue(bindingValueOf(record)), labelName => isLabel(env, labelName));
+  return declaresVerb(record.get('name').name, isVerbValue(bindingValueOf(record)), labelName => isLabel(env, labelName));
 }
 
 // isVerb(env, address) → whether the name at the address is a verb; a
@@ -97,10 +97,10 @@ export function isVerb(env, address) {
   return record !== null && residesOn(record, env);
 }
 
-// A value a name under a label holds when it runs on the label's values:
-// a recipe, code or a host's primitive, or a function whose recipe is one
-// [QSBLD#fn].
-export function isMemberValue(value) {
+// The value of a verb, a function or a recipe under a label, what runs on
+// the values of its label: a recipe, code or a host's primitive, or a
+// function whose recipe is one [D357].
+export function isVerbValue(value) {
   return isRecipe(value) || (isFn(value) && isRecipe(recipeOf(value)));
 }
 
@@ -117,13 +117,13 @@ export function answerOf(env, address) {
   return record === null ? null : { address: record.get('name').name, kinds: kindsNamedBy(bindingValueOf(record)) };
 }
 
-// Whether a value is an invariant, a quote under `::holds`, whose name is
-// the refusal of a value that breaks it [QSSLF#catalog].
+// Whether a value is an invariant, a quote under `::invariant`, whose name
+// is the refusal of a value that breaks it [D357].
 export function isInvariant(value) {
   return isValueClass(value, 'underTag') && value.tag.name === INVARIANT_TAG_NAME && isQuote(value.payload);
 }
 
-export const INVARIANT_TAG = makeTag('holds');
+export const INVARIANT_TAG = makeTag('invariant');
 const INVARIANT_TAG_NAME = INVARIANT_TAG.name;
 
 // Whether a value is a law, a quote under `::law`, which proves the
@@ -247,9 +247,9 @@ export function residenceOnSubject(env, verbName, subject) {
 // first [D352]: the reader's declaration, the verb residing on a kind the
 // walk of the subject reaches, the one verb of the name residing on a kind,
 // which refuses a subject of another kind, and for a name no kind answers
-// the root's declaration, but for a label of the root, a kind or a topic,
-// which its tag alone reaches; `{ record, underKind }`, or null when no
-// record answers or verbs of several kinds do.
+// the root's declaration, but for a label of the root, which its tag alone
+// reaches; `{ record, underKind }`, or null when no record answers or verbs
+// of several kinds do.
 export function bareNameReach(env, name, subject) {
   if (env.has(name) && isBinding(env.get(name))) return { record: env.get(name), underKind: false };
   const residence = residenceOnSubject(env, name, subject);
@@ -274,7 +274,7 @@ export function residencesOf(env, verbName) {
 }
 
 // The names of a scope, those of one segment: the nouns of the root and
-// what the reader declared; a name with a path is a member of its noun
+// what the reader declared; a name with a path is a node under its noun
 // [QSDSP#residence].
 export function scopeNamesOf(env) {
   const scopeNames = new Map();
@@ -293,7 +293,7 @@ export function readerNamesOf(env) {
 }
 
 // kindNamesOf(env) → the labels of one segment, a topic among them, the
-// root's first, as a tag reads them, then the reader's [QSSLF#catalog].
+// root's first, as a tag reads them, then the reader's [D357].
 export function kindNamesOf(env) {
   const names = [...rootOf(env).keys(), ...[...env.keys()].filter(name => !rootOf(env).has(name))];
   return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isLabel(env, name));
@@ -372,27 +372,27 @@ const capitalOf = name => { const [, word] = splitAddress(name); return word[0].
 export function ruleRefusalsOf(env, address) {
   const [labelName] = splitAddress(address);
   const value = bindingValueOf(nodeOf(env, address));
-  if (isKind(value)) return kindRuleRefusalsOf(kindOf(value), address);
-  return functionRuleRefusalsOf(signatureOf(isFn(value) ? value : functionOfRecipe(value)), address, labelName);
+  if (isKind(value)) return kindRuleRefusalsOf(chainOfKind(value), address);
+  return functionRuleRefusalsOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, labelName);
 }
 
 // The refusals the call of a verb that is a function raises by rule, read
-// from its signature [D352]: a subject of none of the kinds it serves,
+// from its chain [D352]: a subject of none of the kinds it serves,
 // named by its label, args beyond the places its inputs read, an input the
 // call leaves out where its place reads one and not the args whole, an
 // input of none of its kinds, or that is no vector where it names the
 // kinds of each element, and an element of none of them, and an answer of
 // none of several kinds.
-export function functionRuleRefusalsOf(signature, address, labelName) {
+export function functionRuleRefusalsOf(chain, address, labelName) {
   const refusals = [subjectRefusalAddress(address, [labelName])];
-  if (signature.places !== null) refusals.push(argsBeyondInputsAddress(address));
-  for (const { name, kinds, each, reading } of signature.inputs) {
+  if (chain.places !== null) refusals.push(argsBeyondInputsAddress(address));
+  for (const { name, kinds, each, reading } of chain.inputs) {
     const inputAddress = `${address}/${name.name}`;
     if (!reading.readsArgs && (reading.strict || !reading.onePlace)) refusals.push(notGivenAddress(inputAddress));
     if (each && !reading.readsArgs) refusals.push(kindsRefusalAddress(inputAddress));
     if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress));
   }
-  const kinds = signature.answer?.kinds ?? null;
+  const kinds = chain.answer?.kinds ?? null;
   if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`));
   return refusals;
 }

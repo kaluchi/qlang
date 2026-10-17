@@ -129,8 +129,8 @@ bindStateReader('any/update', runs(['code'], (subject, pathOrKey, code, state) =
 bindStateReader('any/delete', (subject, pathOrKey, state) =>
   written(subject, pathOf(pathOrKey), 0, { adds: false, removes: true }, state));
 
-// `has` asks whether a path reads, beside the membership it answers for any
-// other value.
+// `has` asks whether a path reads, beside whether a value of any other kind
+// is held [QSPTH#has].
 export function pathReads(subject, path) {
   try {
     return readPath(subject, path, true) !== MISSED;

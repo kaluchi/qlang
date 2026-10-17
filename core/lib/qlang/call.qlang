@@ -157,7 +157,7 @@
         |~~ The address the step called. ~~|
         ::tag
     | throws :EvaluationDepthExceededError
-        |~~ A call too deep: the body of a verb, a modifier computed at
+        |~~ A call too deep: the recipe of a verb, a modifier computed at
             the call, `apply`, a constructor of a tag and each run of the
             code a verb runs, `map ~(…)`, run one frame below the step
             that called them, an input read from its place meets the budget
@@ -220,9 +220,9 @@
             address calls the verb.
         ~~|
         ~(:add 5 | [1 2 3] | get [~(reduce 0 ~(add) !| type) ~(reduce 0 ~(number/add))] | eq [::call/ValueMeetsVerbError 6])
-    | proves :ValueMeetsVerbError/meetsAnInputInTheBodyOfAVerb
-        |~~ An input named as a verb meets the verb in the body that reads
-            it.
+    | proves :ValueMeetsVerbError/meetsAnInputInTheRecipeOfAVerb
+        |~~ An input named as a verb meets the verb in the recipe that
+            reads it.
         ~~|
         ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0 | impl ~(get [~(count) ~(take count)])) | [1 2 3] | firstN 2 !| get [~(type) /name] | eq [::call/ValueMeetsVerbError :count])
     | proves :ValueTakesNoModifiersError/refusesModifiersOnAValue

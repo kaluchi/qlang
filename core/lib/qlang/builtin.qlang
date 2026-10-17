@@ -11,8 +11,8 @@
       written in steps holds a quote.
       `::number/add | binding | get /value | get /1` answers
       `::builtin{}`, and a kind of the core takes one, `| impl ::builtin{}`,
-      as the check its host hands, which attaches the tag to a payload or
-      refuses it.
+      as its constructor, the one its host hands, which attaches the tag to
+      a payload or refuses it.
 
       It is a map under its tag and runs nothing by itself: a name bound
       to one reads it as data, and a call of the verb runs the
@@ -23,9 +23,9 @@
         |~~ A map, the descriptor, its fields flat under the tag. ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::builtin` holds its fields as a map, `::builtin{}` the recipe
-            a host's verb ends with and the check a kind of the core takes,
-            `impl ::builtin{}`; a payload of another kind is refused, and
-            the descriptor is written `::builtin{}`.
+            a host's verb ends with and the constructor a kind of the core
+            takes, `impl ::builtin{}`; a payload of another kind is refused,
+            and the descriptor is written `::builtin{}`.
         ~~|
     | throws :UnknownAstNodeTypeError
         |~~ The evaluator met a node of the parser's tree it has no rule

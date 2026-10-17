@@ -162,7 +162,7 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     }
   });
 
-  it('shows each verb as a call from the subject reaches it, its signature over its page', async () => {
+  it('shows each verb as a call from the subject reaches it, the form of its call over its page', async () => {
     const { ast } = parseDocument('{:a 1} | ', 'test.qlang');
     const count = (await completionsAtOffset(ast, 9, '{:a 1} | ')).find(item => item.label === 'count');
     expect(count.detail).toBe('::map/count');
@@ -303,7 +303,7 @@ describe('hoverAtOffset', () => {
     }
   });
 
-  it('shows the verb the subject of the call reaches, its signature over its page', async () => {
+  it('shows the verb the subject of the call reaches, the form of its call over its page', async () => {
     for (const [src, address, words] of [['[1 2 3] | count', '::vec/count', 'elements the vector holds'], ['{:a 1} | count', '::map/count', 'entries the map holds'], ['#[1 2] | count', '::vec/count', 'elements the vector holds']]) {
       const { ast } = parseDocument(src, 'test.qlang');
       const hover = await hoverAtOffset(ast, src, src.indexOf('count'));
@@ -550,11 +550,11 @@ describe('documentSymbols', () => {
 });
 
 describe('signatureHelpAtOffset', () => {
-  it('returns the signature of the command around the cursor', async () => {
+  it('returns the form of the call around the cursor', async () => {
     const src = '[1 2 3] | filter ~(gt 2)';
     const { ast } = parseDocument(src, 'test.qlang');
-    // Cursor on the `g` of `gt` — the narrowest command with
-    // modifiers is `gt 2`, not `filter`. The signature shows gt's contract.
+    // The cursor on the `g` of `gt` stands in the narrowest call with
+    // modifiers, `gt 2`, whose form the help shows.
     const offset = src.indexOf('gt');
     const sig = await signatureHelpAtOffset(ast, src, offset);
     expect(sig).not.toBeNull();
@@ -565,7 +565,7 @@ describe('signatureHelpAtOffset', () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const sig = await signatureHelpAtOffset(ast, src, src.indexOf('count'));
-    // count has no modifiers, so no signature
+    // A call of `count` writes no modifiers, and the help shows nothing.
     expect(sig).toBeNull();
   });
 

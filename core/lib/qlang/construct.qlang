@@ -11,7 +11,10 @@
 
       In a quote the step is a record, `~(::Box[1 2]) | first` answering
       `::construct{:tag ::Box :payload [1 2]}`: `:tag` the tag and
-      `:payload` the step of its payload.
+      `:payload` the step of the payload the literal writes, the record
+      built into its step by its constructor, `::construct/construct`, as
+      the constructor a kind holds in its slot lies under its label as
+      `construct`.
       ::link~(::tagged | doc) ::link~(::qlang/pipeline | doc)
   ~~|
   ::kind

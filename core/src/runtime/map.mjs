@@ -1,5 +1,5 @@
-// The primitives of the keys of a map and of membership, whose verbs the
-// catalog declares under `::map` and `::vec` [D352].
+// The primitives of the keys of a map and of the element a vector holds or
+// lacks, whose verbs the catalog declares under `::map` and `::vec` [D352].
 
 import { keyword, isKeyword, isPath, isSet, makeSet } from '../types.mjs';
 import { pathReads } from './path.mjs';
@@ -28,7 +28,7 @@ function containsElement(vector, element) {
 }
 
 // `has` asks whether a path reads, and of any other value whether it is
-// held [QSPTH#has]; `contains` asks the membership alone.
+// held [QSPTH#has]; `contains` asks whether the element is held alone.
 bindPrim('vec/has', (vector, element) => (isPath(element) ? pathReads(vector, element) : containsElement(vector, element)));
 bindPrim('vec/contains', containsElement);
 // A map's key is named by a keyword, a string or a number alike, the

@@ -16,3 +16,4 @@
 {"name":"a-kind-of-the-core-is-built-by-its-chain-with-a-construct","query":"::keyword | get [~(binding | get /value | type) ~(::keyword/construct | binding | get /value | type)]","expect":"[::kind ::builtin]"}
 {"name":"a-value-laid-under-a-tag-before-its-kind-keeps-the-tag","query":"::AutoLater[5] | :AutoLater |~~ AutoLater. ~~| (::kind | holds :TooSmallError |~~ Above six. ~~| ~(gt 6)) | type","expect":"::AutoLater"}
 {"name":"the-tag-of-a-name-that-holds-null-builds-nothing","query":":n null | ::n[1] !| type","expect":"::construct/TagNotKindError"}
+{"decision":"D357","name":"the-node-of-an-invariant-holds-a-quote-under-invariant","query":"::vec/take/count/NotIntegerError | binding | get /value | type","expect":"::invariant"}

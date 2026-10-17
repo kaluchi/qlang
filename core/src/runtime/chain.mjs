@@ -1,18 +1,18 @@
-// The commands of a function [QSBLD#fn] and of a kind [QSBLD#kind], the chain
-// that built it folded into the quote its literal holds, read once for each
-// value as the roles they declare.
+// The chain of a function and of a kind, the commands that built it folded
+// into the quote its literal holds, read once for each value as the roles
+// they declare [D357].
 
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword, LITERAL_WORDS } from '../name-chars.mjs';
 import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, CALL_TAG, FN_TAG_NAME, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { ANY_KIND_NAME, CONSTRUCT_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName, placesOfReadings, readingOfPlace } from './nouns.mjs';
 
-const FnSignatureNotCommandsError = declareRefusal('fn/SignatureNotCommandsError');
+const FnCommandNotTakenError = declareRefusal('fn/CommandNotTakenError');
 const FnNameDeclaredTwiceError = declareRefusal('fn/NameDeclaredTwiceError');
 const FnNameUnderNoInputError = declareRefusal('fn/NameUnderNoInputError');
 const FnLawUnderNoNameError = declareRefusal('fn/LawUnderNoNameError');
 const FnFactUnderNoNameError = declareRefusal('fn/FactUnderNoNameError');
-const KindSignatureNotCommandsError = declareRefusal('kind/SignatureNotCommandsError');
+const KindCommandNotTakenError = declareRefusal('kind/CommandNotTakenError');
 const KindNameDeclaredTwiceError = declareRefusal('kind/NameDeclaredTwiceError');
 const KindNameUnderNoFieldError = declareRefusal('kind/NameUnderNoFieldError');
 const KindLawUnderNoNameError = declareRefusal('kind/LawUnderNoNameError');
@@ -52,6 +52,10 @@ const KIND_COMMANDS = new Map([
   ['throws', { taken: [isNameOfChain, isDoc], optional: [] }],
   ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
 ]);
+
+// The names of the commands a chain is written in, those its quote folds and
+// `impl`, which gives a function its recipe or a kind its constructor [D357].
+export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), 'impl'])]);
 
 // The modifiers of a step that is one of the commands of a table in the
 // shapes it takes, or null.
@@ -95,25 +99,24 @@ function namesOf(quote, DeclaredTwiceError) {
   };
 }
 
-// readSignature(quote) → the roles a quote of commands declares, in the
-// order they are written, each name declared once and a name with a path
-// under one declared before it.
-export function readSignature(quote) {
-  if (!isQuote(quote)) throw new FnSignatureNotCommandsError({ actualValue: quote });
-  const signature = { subject: null, inputs: [], answer: null, pages: new Map(), facts: [], invariants: [], laws: [] };
+// The roles the quote of the commands of a function declares, in their order,
+// each name declared once and a name with a path under one declared before
+// it, a step written with args the rules of the chain do not take refused.
+function readChainOfFn(quote) {
+  const chain = { subject: null, inputs: [], answer: null, pages: new Map(), facts: [], invariants: [], laws: [] };
   const names = namesOf(quote, FnNameDeclaredTwiceError);
   const underAnInput = name => {
     const [head] = name.split('/');
-    if (head !== ANSWER_NAME && !signature.inputs.some(input => input.name.name === head)) throw new FnNameUnderNoInputError({ name: keyword(name), actualValue: quote });
+    if (head !== ANSWER_NAME && !chain.inputs.some(input => input.name.name === head)) throw new FnNameUnderNoInputError({ name: keyword(name), actualValue: quote });
   };
   for (const step of quote) {
     const modifiers = modifiersOf(step, COMMANDS);
-    if (modifiers === null) throw new FnSignatureNotCommandsError({ actualValue: quote });
+    if (modifiers === null) throw new FnCommandNotTakenError({ actualValue: quote });
     const [first, second, third, fourth] = modifiers;
     switch (step.get('name').name) {
       case 'on':
         names.declare(SUBJECT_NAME);
-        signature.subject = { page: first, kinds: kindsOf(second), written: second ?? null };
+        chain.subject = { page: first, kinds: kindsOf(second), written: second ?? null };
         break;
       case 'takes': {
         names.declare(first.name);
@@ -121,46 +124,45 @@ export function readSignature(quote) {
         names.named.add(notGivenAddress(first.name));
         if (each) names.named.add(kindsRefusalAddress(first.name));
         if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
-        signature.inputs.push({ name: first, page: second, place: third, kinds, each, written, reading: readingOfPlace(third) });
+        chain.inputs.push({ name: first, page: second, place: third, kinds, each, written, reading: readingOfPlace(third) });
         break;
       }
       case 'returns':
         names.declare(ANSWER_NAME);
         names.named.add(kindsRefusalAddress(ANSWER_NAME));
-        signature.answer = { page: first, kinds: kindsOf(second), written: second };
+        chain.answer = { page: first, kinds: kindsOf(second), written: second };
         break;
       case 'throws':
         if (first.name.includes('/')) underAnInput(first.name);
         names.declare(first.name);
-        signature.pages.set(first.name, second);
+        chain.pages.set(first.name, second);
         break;
       case 'carries':
         if (!first.name.includes('/') || !names.isUnderANamed(first.name)) throw new FnFactUnderNoNameError({ name: first, actualValue: quote });
         names.declare(first.name);
-        signature.facts.push({ name: first.name, page: second, written: third ?? null });
+        chain.facts.push({ name: first.name, page: second, written: third ?? null });
         break;
       case 'holds':
         if (!first.name.includes('/')) throw new FnNameUnderNoInputError({ name: first, actualValue: quote });
         underAnInput(first.name);
         if (names.named.has(first.name)) throw new FnNameDeclaredTwiceError({ name: first, actualValue: quote });
         names.declare(first.name);
-        signature.invariants.push({ name: first.name, page: second, condition: third });
+        chain.invariants.push({ name: first.name, page: second, condition: third });
         break;
       default:
         if (first.name.includes('/') && !names.isUnderANamed(first.name)) throw new FnLawUnderNoNameError({ name: first, actualValue: quote });
         names.declare(first.name);
-        signature.laws.push({ name: first.name, page: second, query: third });
+        chain.laws.push({ name: first.name, page: second, query: third });
     }
   }
-  signature.places = placesOfReadings(signature.inputs.map(input => input.reading));
-  return Object.freeze(signature);
+  chain.places = placesOfReadings(chain.inputs.map(input => input.reading));
+  return Object.freeze(chain);
 }
 
-// readKindSignature(quote) → the roles a quote of the commands of a kind
-// declares, in the order they are written, each name declared once and a
-// name with a path under one declared before it [QSBLD#kind].
-export function readKindSignature(quote) {
-  if (!isQuote(quote)) throw new KindSignatureNotCommandsError({ actualValue: quote });
+// The roles the quote of the commands of a kind declares, in their order,
+// each name declared once and a name with a path under one declared before
+// it, a step written with args the rules of the chain do not take refused.
+function readChainOfKind(quote) {
   const kind = { payload: null, fields: [], tells: [], pages: new Map(), facts: [], invariants: [], laws: [] };
   const names = namesOf(quote, KindNameDeclaredTwiceError);
   const underAField = name => {
@@ -170,7 +172,7 @@ export function readKindSignature(quote) {
   };
   for (const step of quote) {
     const modifiers = modifiersOf(step, KIND_COMMANDS);
-    if (modifiers === null) throw new KindSignatureNotCommandsError({ actualValue: quote });
+    if (modifiers === null) throw new KindCommandNotTakenError({ actualValue: quote });
     const [first, second, third, fourth] = modifiers;
     switch (step.get('name').name) {
       case 'wraps': {
@@ -220,13 +222,13 @@ export function readKindSignature(quote) {
   return Object.freeze(kind);
 }
 
-// signatureOf(fn) → the roles of a function's signature, read once.
-const SIGNATURES = new WeakMap();
+// chainOfFn(fn) → the roles of the chain of a function, read once.
+const CHAINS_OF_FUNCTIONS = new WeakMap();
 
-export function signatureOf(fn) {
-  let signature = SIGNATURES.get(fn);
-  if (signature === undefined) SIGNATURES.set(fn, signature = readSignature(commandsOf(fn)));
-  return signature;
+export function chainOfFn(fn) {
+  let chain = CHAINS_OF_FUNCTIONS.get(fn);
+  if (chain === undefined) CHAINS_OF_FUNCTIONS.set(fn, chain = readChainOfFn(commandsOf(fn)));
+  return chain;
 }
 
 // functionOfRecipe(recipe) → the function of no commands a recipe is, a quote
@@ -241,13 +243,13 @@ export function functionOfRecipe(recipe) {
   return fn;
 }
 
-// kindOf(kind) → the roles of the commands of a kind, read once.
-const KINDS = new WeakMap();
+// chainOfKind(kind) → the roles of the chain of a kind, read once.
+const CHAINS_OF_KINDS = new WeakMap();
 
-export function kindOf(kind) {
-  let read = KINDS.get(kind);
-  if (read === undefined) KINDS.set(kind, read = readKindSignature(commandsOf(kind)));
-  return read;
+export function chainOfKind(kind) {
+  let chain = CHAINS_OF_KINDS.get(kind);
+  if (chain === undefined) CHAINS_OF_KINDS.set(kind, chain = readChainOfKind(commandsOf(kind)));
+  return chain;
 }
 
 // pageOfKindsRefusal(name, kinds, each) → the page of the refusal the kinds
@@ -261,14 +263,14 @@ export function pageOfKindsRefusal(name, kinds, each) {
 }
 
 // pageOfConstructor(address) → the page of the constructor of a kind, the
-// check its host hands, which attaches the tag to a payload or refuses it
-// [QSBLD#kind].
+// one its host hands, which attaches the tag to a payload or refuses it
+// [D357].
 export function pageOfConstructor(address) {
-  return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the check its host hands, which attaches the tag to a payload or refuses it. `]);
+  return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the one its host hands, which attaches the tag to a payload or refuses it. `]);
 }
 
-// invariantsOf(signature, name) → the invariants written under an input or
+// invariantsOf(chain, name) → the invariants written under an input or
 // under the answer, in their order.
-export function invariantsOf(signature, name) {
-  return signature.invariants.filter(invariant => invariant.name.startsWith(`${name}/`));
+export function invariantsOf(chain, name) {
+  return chain.invariants.filter(invariant => invariant.name.startsWith(`${name}/`));
 }

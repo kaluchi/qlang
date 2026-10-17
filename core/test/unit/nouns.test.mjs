@@ -189,7 +189,7 @@ describe('what a verb reads and runs as data reads the tree of the query [D352]'
     expect(await evalQuery(':k |~~ Answers five. ~~| 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | tutorial | get [~(get /0 | content) ~(get /1 | keys)] | eq [" Answers five. " #[:answersFive]]')).toBe(true);
   });
 
-  it('a value of the reader reaches no name the body of a verb of the root writes', async () => {
+  it('a value of the reader reaches no name the recipe of a verb of the root writes', async () => {
     expect(await evalQuery(':laws 7 | :k |~~ K. ~~| 1 | ::k | tutorial | get [~(get /0 | content) /1] | eq [" K. " {}]')).toBe(true);
   });
 

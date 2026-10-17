@@ -15,7 +15,7 @@ import {
   typeOf, keyword, NULL, makeErrorValue,
   makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest,
-  isFn, isKind, recipeOf, makeQuote, isMap, stampTagHeader, TAG_HEADER_SYMBOL,
+  isFn, isKind, recipeOf, constructorOf, makeQuote, isMap, stampTagHeader, TAG_HEADER_SYMBOL,
   ERROR_TAG, isValueClass, isTag, kindsExpected
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
@@ -23,9 +23,9 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, subjectKindsRefusalAddress, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isMemberValue, isRecipe, isUnderLabel, isVerb, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError, kindsOfWalk
+  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, subjectKindsRefusalAddress, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isVerbValue, isRecipe, isUnderLabel, isVerb, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError, kindsOfWalk
 } from './runtime/nouns.mjs';
-import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, kindOf, pageOfConstructor, pageOfKindsRefusal, signatureOf } from './runtime/signature.mjs';
+import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './runtime/chain.mjs';
 import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
 import { splitAddress } from './address.mjs';
 import {
@@ -155,8 +155,8 @@ async function applySuccessTrack(state, stepNode) {
   return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), state.pipeValue));
 }
 
-// A body, a query, a group, a verb's body or an applied quote among them,
-// whose head rides `|` like every other step.
+// A body, a query, a group, the recipe of a verb or an applied quote among
+// them, whose head rides `|` like every other step.
 function evalBody(node, state) {
   return node.type === 'Pipeline' ? evalNode(node, state) : applySuccessTrack(state, node);
 }
@@ -363,9 +363,9 @@ function layerOf(env, address, origin, pages) {
 }
 
 // The nodes a kind lays under its address, each role of its chain with its
-// page, which its values never read [QSBLD#kind].
+// page, which its values never read, and its constructor [D357].
 function nodesOfKind(kind, address, env, origin) {
-  const roles = kindOf(kind);
+  const roles = chainOfKind(kind);
   const { payload, fields, tells } = roles;
   const { lay, layKindsRefusal, layRest } = layerOf(env, address, origin, roles.pages);
   if (payload !== null) {
@@ -380,29 +380,29 @@ function nodesOfKind(kind, address, env, origin) {
     if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
   }
   for (const { name, page, written } of tells) lay(name, page, written ?? page);
-  if (recipeOf(kind) !== null) lay(CONSTRUCT_NAME, pageOfConstructor(address), recipeOf(kind));
+  if (constructorOf(kind) !== null) lay(CONSTRUCT_NAME, pageOfConstructor(address), constructorOf(kind));
   return layRest(roles);
 }
 
 // The nodes a function named under a label lays under its address, each
-// role of its chain with its page, which its call never reads [QSBLD#fn].
+// role of its chain with its page, which its call never reads [D357].
 function nodesOfFunction(fn, address, env, origin) {
-  const signature = signatureOf(fn);
-  const { subject, inputs, answer } = signature;
-  const { lay, layKindsRefusal, layRest } = layerOf(env, address, origin, signature.pages);
+  const chain = chainOfFn(fn);
+  const { subject, inputs, answer } = chain;
+  const { lay, layKindsRefusal, layRest } = layerOf(env, address, origin, chain.pages);
   if (subject !== null) lay(SUBJECT_NAME, subject.page, subject.written ?? subject.page);
   for (const { name, page, place, kinds, each } of inputs) {
     lay(name.name, page, place);
     if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
   }
   if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
-  return layRest(signature);
+  return layRest(chain);
 }
 
-// Whether a declaration among the steps of a verb's body, the body itself
-// or a step of its pipeline, names what its call bound in the body's
-// scope, `args` or an input; a group of one step the parser leaves as the
-// body is a scope of its own [D352].
+// Whether a declaration among the steps of the recipe of a verb, the recipe
+// itself or a step of its pipeline, names what its call bound in the scope
+// the recipe runs in, `args` or an input; a group of one step the parser
+// leaves as the recipe is a scope of its own [D352].
 function declaresWhatTheCallBinds(bindStep, env, name) {
   const binds = env.get(CALL_BINDS_KEY);
   return binds !== undefined && (bindStep === binds.body || (binds.body.type === 'Pipeline' && bindStep.parent === binds.body)) && binds.names.has(name);
@@ -500,7 +500,7 @@ async function callByName(lookupName, modifiers, state, node) {
 function servesTheSubject(record, subject) {
   const value = bindingValueOf(record);
   const fn = isFn(value) ? value : functionOfRecipe(value);
-  return subjectOfCall(signatureOf(fn), splitAddress(record.get('name').name)[0], subject) !== null;
+  return subjectOfCall(chainOfFn(fn), splitAddress(record.get('name').name)[0], subject) !== null;
 }
 
 // A name reads the value its record holds, so `:x it | x` sees the raw
@@ -532,7 +532,7 @@ async function callByAddress(node, state) {
     throw new CallUnknownAddressError({ address: makeTag(node.name), nearest: nearestTagNames(state.env, node.name) });
   }
   const modifiers = node.args.map(argNode => modifierOf(argNode, state));
-  if (isMemberValue(bindingValueOf(record)) && isUnderLabel(state.env, node.name)) {
+  if (isVerbValue(bindingValueOf(record)) && isUnderLabel(state.env, node.name)) {
     return await applyVerb(record, modifiers, state);
   }
   return await applyBinding(record, node.name, splitAddress(node.name)[1], modifiers, state);
@@ -737,10 +737,10 @@ async function answerMadeBy(kindName, make, refused) {
   return isErrorValue(made) && made.tag.name === payloadRefusal ? refused() : made;
 }
 
-// callMemberOn(record, subject, state) → the answer of the name under a
-// label the record holds, run on the subject with no modifiers, the
-// print a kind answers among them [QSPRN#print].
-export async function callMemberOn(record, subject, state) {
+// callVerbOn(record, subject, state) → the answer of the verb the record
+// holds, run on the subject with no modifiers, the print a kind answers
+// among them [QSPRN#print].
+export async function callVerbOn(record, subject, state) {
   return (await applyVerb(record, [], withPipeValue(state, subject))).pipeValue;
 }
 
@@ -787,29 +787,29 @@ export async function applyFunction(fn, subject, args, state) {
 // read from the values of a vector, as its call reads them, or the refusal
 // its call would answer.
 export async function inputsOfFunction(fn, args, state) {
-  const called = await inputsOfCall(signatureOf(fn), FN_CALL_ADDRESS, args.map(value => () => value), state, recipeScopeOf(state, false), null);
+  const called = await inputsOfCall(chainOfFn(fn), FN_CALL_ADDRESS, args.map(value => () => value), state, recipeScopeOf(state, false), null);
   return isErrorValue(called) ? called : called.values;
 }
 
 async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, state) {
-  const signature = signatureOf(fn);
+  const chain = chainOfFn(fn);
   const recipe = recipeOf(fn);
-  const walked = subjectOfCall(signature, labelName, state.pipeValue);
-  if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), { expected: kindsExpected(...signature.subject.kinds) }, state.env, state.pipeValue);
+  const walked = subjectOfCall(chain, labelName, state.pipeValue);
+  if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), { expected: kindsExpected(...chain.subject.kinds) }, state.env, state.pipeValue);
   if (walked === null) return refusalUnder(subjectRefusalAddress(address, [labelName]), {}, state.env, state.pipeValue);
   const scope = recipeScopeOf(state, ofTheRoot);
   const body = isQuote(recipe) ? astOfQuote(recipe) : null;
-  const called = await inputsOfCall(signature, address, modifiers, state, scope, body);
+  const called = await inputsOfCall(chain, address, modifiers, state, scope, body);
   if (isErrorValue(called)) return called;
   const running = body === null
-    ? runPrimitive(hostImplOf(recipe), walked.served, walked.passedTags, handedTo(hostImplOf(recipe), signature, called, state), called.state)
+    ? runPrimitive(hostImplOf(recipe), walked.served, walked.passedTags, handedTo(hostImplOf(recipe), chain, called, state), called.state)
     : (await evalBody(body, nestState(called.state, state.pipeValue, called.bodyEnv))).pipeValue;
   const answer = isThenable(running) ? await running : running;
   if (isErrorValue(answer)) return answer;
-  const kinds = signature.answer?.kinds ?? null;
+  const kinds = chain.answer?.kinds ?? null;
   const brought = kinds === null ? answer : await answerUnderItsLabel(answer, { address: `${address}/${ANSWER_NAME}`, kinds }, walked.byLabel ? labelName : null, walked, state);
   if (isErrorValue(brought)) return brought;
-  return await invariantRefusal(invariantsOf(signature, ANSWER_NAME), address, brought, called.state, scope) ?? brought;
+  return await invariantRefusal(invariantsOf(chain, ANSWER_NAME), address, brought, called.state, scope) ?? brought;
 }
 
 // The values a primitive is handed, its inputs in the order `takes` names
@@ -817,13 +817,13 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 // the quote came from, a path read as `get` reads it, and every element so
 // of one that holds the args of the call whole; any other value as it is
 // [D352].
-function handedTo(impl, signature, { values, origins }, state) {
+function handedTo(impl, chain, { values, origins }, state) {
   const run = inputsRunBy(impl);
   const within = inputsRunWithin(impl);
   if (run === undefined && within === undefined) return values;
   const originOf = quote => origins.get(quote);
   return values.map((value, at) => {
-    const { name, reading } = signature.inputs[at];
+    const { name, reading } = chain.inputs[at];
     if (within?.has(name.name)) return quotesClosedIn(value, originOf);
     if (!run?.has(name.name)) return value;
     return reading.readsArgs ? value.map(element => codeOfArg(element, originOf, state)) : codeOfArg(value, originOf, state);
@@ -887,8 +887,8 @@ function codeOfArg(value, originOf, state) {
 // of a tag name passes the noun it names and no other [D352]; for a
 // function `apply` runs, a value of the kinds `on` names, or the subject as
 // it is; null where the walk reaches none.
-function subjectOfCall(signature, labelName, subject) {
-  const onKinds = signature.subject?.kinds ?? null;
+function subjectOfCall(chain, labelName, subject) {
+  const onKinds = chain.subject?.kinds ?? null;
   if (labelName === null) return onKinds === null ? { served: subject, passedTags: [] } : walkToKinds(subject, onKinds);
   const byLabel = walkToKinds(subject, [labelName]);
   if (byLabel !== null) return { ...byLabel, byLabel: true };
@@ -898,8 +898,8 @@ function subjectOfCall(signature, labelName, subject) {
 
 // The values of the inputs of a function's call, read from its args by
 // their places, the values its modifiers computed against the subject,
-// and, for a recipe written in steps, the scope of its body, each input
-// bound by its name and the args as `args`, names the steps of the body
+// and, for a recipe written in steps, the scope it runs in, each input
+// bound by its name and the args as `args`, names the steps of the recipe
 // declare no second time, and the state of the call's run, which keeps the
 // origin of each quote its args hold [D352]: args of more values than the
 // inputs read places are refused, an input the args leave out where its
@@ -907,25 +907,25 @@ function subjectOfCall(signature, labelName, subject) {
 // refused, each refusal named under the address, and so is a value that
 // breaks an invariant written under its input, which holds of the value as
 // the args give it.
-async function inputsOfCall(signature, address, modifiers, state, scope, body) {
+async function inputsOfCall(chain, address, modifiers, state, scope, body) {
   const values = [];
   const origins = new Map();
   for (const [index, modifier] of modifiers.entries()) {
     const computing = modifier(state.pipeValue);
     const value = isThenable(computing) ? await computing : computing;
-    if (isErrorValue(value)) return refusalOfFailedModifier(signature, address, index, value, scope);
+    if (isErrorValue(value)) return refusalOfFailedModifier(chain, address, index, value, scope);
     values.push(value);
     keepOrigins(origins, value, modifier.origin ?? heldIn(state), state);
   }
   const called = withCall(state, origins);
   let args = null;
   const argsValue = () => args ??= makeTagged(makeTag(address), values);
-  if (signature.places !== null && values.length > signature.places) return refusalUnder(argsBeyondInputsAddress(address), { places: signature.places, actualValue: argsValue() }, scope);
+  if (chain.places !== null && values.length > chain.places) return refusalUnder(argsBeyondInputsAddress(address), { places: chain.places, actualValue: argsValue() }, scope);
   let bodyEnv = body === null ? null : envSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() }))
-    .set(CALL_BINDS_KEY, { body, names: new Set([ARGS_NAME.name, ...signature.inputs.map(({ name }) => name.name)]) });
+    .set(CALL_BINDS_KEY, { body, names: new Set([ARGS_NAME.name, ...chain.inputs.map(({ name }) => name.name)]) });
   const overArgs = () => nestState(called, argsValue(), scope);
   const inputValues = [];
-  for (const input of signature.inputs) {
+  for (const input of chain.inputs) {
     const { name } = input;
     const inputAddress = `${address}/${name.name}`;
     frameBelow(state);
@@ -935,7 +935,7 @@ async function inputsOfCall(signature, address, modifiers, state, scope, body) {
     if (isErrorValue(read)) return read;
     const held = heldByItsKinds(input, refusalsUnder(inputAddress), read, scope);
     if (isErrorValue(held)) return held;
-    const refused = await invariantRefusal(invariantsOf(signature, name.name), address, read, called, scope);
+    const refused = await invariantRefusal(invariantsOf(chain, name.name), address, read, called, scope);
     if (refused !== null) return refused;
     inputValues.push(held);
     if (body !== null) bodyEnv = envSet(bodyEnv, name.name, makeBinding({ name, value: held }));
@@ -951,9 +951,9 @@ async function inputsOfCall(signature, address, modifiers, state, scope, body) {
 // each element refused as no vector, as a value of the step is; a name
 // withheld from held code, which ran no step, and anywhere else the error
 // is the answer [D352].
-function refusalOfFailedModifier(signature, address, index, error, scope) {
+function refusalOfFailedModifier(chain, address, index, error, scope) {
   if (error.tag.name === CallValueWithheldError.prototype.address) return error;
-  const input = signature.inputs.find(({ reading }) => reading.index === index) ?? signature.inputs.find(({ reading }) => reading.readsArgs);
+  const input = chain.inputs.find(({ reading }) => reading.index === index) ?? chain.inputs.find(({ reading }) => reading.readsArgs);
   if (!(input?.kinds?.includes('quote') ?? false)) return error;
   const atRest = errorAtRest(error.tag, new Map(error.descriptor));
   const inputAddress = `${address}/${input.name.name}`;
@@ -988,13 +988,13 @@ function laidUnder(tagName, value) {
   return typeOf(value).name === tagName ? value : makeTagged(makeTag(tagName), value);
 }
 
-// A value under a kind [QSBLD#kind]: its payload held to its kinds, each field
-// read and held, the check a host hands a kind of the core run, and the
+// A value under a kind [D357]: its payload held to its kinds, each field
+// read and held, the constructor a host hands a kind of the core run, and the
 // invariants of the value held, every refusal named under the label, the
 // code of a place or a condition running in the scope a call opens; the
 // constructor attaches the tag or refuses the payload [QSLIT#tag].
 async function underKind(tagName, kind, payload, state) {
-  const { payload: payloadRole, fields, invariants } = kindOf(kind);
+  const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, each => `${tagName}/${payloadRefusalName(each)}`, payload, state.env);
   if (isErrorValue(held)) return held;
   let scope;
@@ -1003,11 +1003,11 @@ async function underKind(tagName, kind, payload, state) {
     const refused = await fieldRefusal(tagName, field, held, invariants, state, opened);
     if (refused !== null) return refused;
   }
-  const check = recipeOf(kind);
-  const checked = isRecipe(check) ? await hostImplOf(check)(held, state) : held;
-  const labelled = laidUnder(tagName, checked);
+  const constructs = hostImplOf(constructorOf(kind));
+  const constructed = constructs === undefined ? held : await constructs(held, state);
+  const labelled = laidUnder(tagName, constructed);
   const ofTheValue = invariants.filter(({ field }) => field === null);
-  return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, checked, state, opened(), labelled) ?? labelled;
+  return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, constructed, state, opened(), labelled) ?? labelled;
 }
 
 // The refusal of a field of the payload: a place the payload leaves out, a

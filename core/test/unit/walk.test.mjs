@@ -192,12 +192,12 @@ describe('findIdentifierOccurrences', () => {
   });
 
   it('finds TaggedLit occurrences written as a tag', () => {
-    const ast = parse('::holds~(count)');
-    const refs = findIdentifierOccurrences(ast, 'holds', TAG_SPELLING);
+    const ast = parse('::invariant~(count)');
+    const refs = findIdentifierOccurrences(ast, 'invariant', TAG_SPELLING);
     // The TaggedLit node itself plus any nested references; here
     // only the constructor invocation matches.
     expect(refs.length).toBeGreaterThanOrEqual(1);
-    expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'holds')).toBe(true);
+    expect(refs.some(n => n.type === 'TaggedLit' && n.tag === 'invariant')).toBe(true);
   });
 
   it('finds a name with a path by the name a step calls it by', () => {

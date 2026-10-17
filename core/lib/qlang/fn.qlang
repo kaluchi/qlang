@@ -4,14 +4,15 @@
    as their literal, the chain that builds a function folded into data,
    since none of them stands while the source runs; the chain builds every
    other verb.
-   The rules it holds: [QSBLD#fn], [QSBLD#kind]. ~|
+   The rules it holds: [D357]. ~|
 
 :fn
   |~~ A function: the subject it runs on, the inputs it takes, the answer
       it gives, the refusals it pages and the facts they carry, the
       invariants it holds, its laws, and its recipe, code or a primitive of
-      the host. It is built from the noun by commands, each a verb the
-      function so far is the subject of, the recipe last:
+      the host. It is built from the noun by a chain, the commands written
+      on it, each a verb the function so far is the subject of, the recipe
+      last:
       `::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)`.
       `on` names the subject, its page and its kinds; `takes` an input, its
       name, its page, the place of the args it reads, `/0` the first arg
@@ -36,30 +37,32 @@
   ::kind
     | wraps
         |~~ The literal of a function, the quote of the commands of its
-            signature and its recipe, a quote, a primitive, or null for a
+            chain and its recipe, a quote, a primitive, or null for a
             contract no call runs.
         ~~|
     | throws :PayloadNotPairError
-        |~~ The literal of a function is a pair, the commands of its
-            signature and its recipe:
-            `::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]`.
+        |~~ The literal of a function is a pair, the quote of the commands
+            of its chain and its recipe,
+            `::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]`: a payload
+            of another shape, a first that is no quote among them, is
+            refused.
         ~~|
-    | throws :SignatureNotCommandsError
-        |~~ The signature of a function is a quote of the commands that
-            build it, each with its modifiers: `on` a page and kinds,
-            `takes` a name, a page, a place and kinds, `returns` a page
-            and kinds, `throws` a name and a page, `carries` a name, a
+    | throws :CommandNotTakenError
+        |~~ Each step of the chain of a function is a command the chain
+            takes, written with the args its rules take: `on` a page and
+            kinds, `takes` a name, a page, a place and kinds, `returns` a
+            page and kinds, `throws` a name and a page, `carries` a name, a
             page and kinds, `holds` a name, a page and a condition, and
             `proves` a name, a page and a query. The name of an input is a
             name its recipe reads as a step, of one segment, beside
             `answer`, `subject` and the words of a literal; the name of a
             refusal, a fact and a law is read as a tag; a page is a doc, a
-            place a path or a quote, and kinds a tag or a set of tags, or
-            for an input a vector of one of them, the kinds of each
-            element.
+            place a path or a quote, and kinds a tag or a set of one tag or
+            more, `returns #[]` naming none, or for an input a vector of one
+            of them, the kinds of each element.
         ~~|
     | throws :NameDeclaredTwiceError
-        |~~ A name of a signature is declared once: an input, a refusal
+        |~~ A name of a chain is declared once: an input, a refusal
             and an invariant each by its name, the subject and the answer
             by theirs, and an invariant names no refusal the kinds of its
             input name, `:by/KindNotTakenError`.
@@ -141,58 +144,63 @@
     | proves :PayloadNotPairError/refusesANumber
         |~~ A number is no pair. ~~|
         ~(::fn[1] !| type | eq ::fn/PayloadNotPairError)
-    | proves :SignatureNotCommandsError/refusesAStepThatIsNoCommand
-        |~~ A step of a recipe is no command of a signature. ~~|
-        ~(::fn[~(add 1) ~(add 1)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesACommandWithNoModifiers
+    | proves :PayloadNotPairError/refusesCommandsThatAreNoQuote
+        |~~ The commands of a chain are a quote. ~~|
+        ~(::fn[[] ~(1)] !| type | eq ::fn/PayloadNotPairError)
+    | proves :CommandNotTakenError/refusesAStepThatIsNoCommand
+        |~~ A step of a recipe is no command of a chain. ~~|
+        ~(::fn[~(add 1) ~(add 1)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesACommandWithNoModifiers
         |~~ A command writes its modifiers. ~~|
-        ~(::fn[~(returns) ~(1)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesAnInputWithNoPage
+        ~(::fn[~(returns) ~(1)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesAnInputWithNoPage
         |~~ An input names its page. ~~|
-        ~(::fn[~(takes :by /0) ~(add by)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesAModifierPastTheKinds
+        ~(::fn[~(takes :by /0) ~(add by)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesAModifierPastTheKinds
         |~~ The command of an input writes no modifier after its kinds. ~~|
-        ~(::fn[~(takes :by |~~ How much. ~~| /0 ::number 1) ~(add by)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesAPageThatIsNoDoc
+        ~(::fn[~(takes :by |~~ How much. ~~| /0 ::number 1) ~(add by)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesAPageThatIsNoDoc
         |~~ A page is a doc. ~~|
-        ~(::fn[~(takes :by "How much." /0) ~(add by)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesANameThatIsNoKeyword
+        ~(::fn[~(takes :by "How much." /0) ~(add by)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesANameThatIsNoKeyword
         |~~ The name of an input is a keyword. ~~|
-        ~(::fn[~(takes "by" |~~ How much. ~~| /0) ~(add by)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesAnInputNamedWithAPath
+        ~(::fn[~(takes "by" |~~ How much. ~~| /0) ~(add by)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesAnInputNamedWithAPath
         |~~ The name of an input is one segment. ~~|
-        ~(::fn[~(takes :by/x |~~ How much. ~~| /0) ~(1)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesAnInputNoStepReads
+        ~(::fn[~(takes :by/x |~~ How much. ~~| /0) ~(1)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesAnInputNoStepReads
         |~~ The name of an input is one a step reads. ~~|
-        ~(::fn[~(takes :"a b" |~~ How much. ~~| /0) ~(1)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesAWordOfALiteralAsAnInput
+        ~(::fn[~(takes :"a b" |~~ How much. ~~| /0) ~(1)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesAWordOfALiteralAsAnInput
         |~~ A word of a literal is no input, which a step would read as
             the value.
         ~~|
-        ~(::fn[~(takes :null |~~ Nothing. ~~| /0) ~(1)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesARefusalNoTagReads
+        ~(::fn[~(takes :null |~~ Nothing. ~~| /0) ~(1)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesARefusalNoTagReads
         |~~ The name of a refusal is one a tag reads. ~~|
-        ~(::fn[~(throws :"Too big" |~~ Too big. ~~|) ~(1)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesTheAnswerAsAnInput
+        ~(::fn[~(throws :"Too big" |~~ Too big. ~~|) ~(1)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesTheAnswerAsAnInput
         |~~ The answer is no input. ~~|
-        ~(::fn[~(takes :answer |~~ An answer. ~~| /0) ~(1)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesTheSubjectAsAnInput
+        ~(::fn[~(takes :answer |~~ An answer. ~~| /0) ~(1)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesTheSubjectAsAnInput
         |~~ The subject is no input. ~~|
-        ~(::fn[~(takes :subject |~~ A subject. ~~| /0) ~(1)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesAPlaceThatIsNoPathOrQuote
+        ~(::fn[~(takes :subject |~~ A subject. ~~| /0) ~(1)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesAPlaceThatIsNoPathOrQuote
         |~~ A place is a path or a quote. ~~|
-        ~(::fn[~(takes :by |~~ How much. ~~| 0) ~(add by)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesKindsThatAreNoTags
+        ~(::fn[~(takes :by |~~ How much. ~~| 0) ~(add by)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesKindsThatAreNoTags
         |~~ Kinds are tags. ~~|
-        ~(::fn[~(takes :by |~~ How much. ~~| /0 #[1]) ~(add by)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesKindsOfEachElementTwice
+        ~(::fn[~(takes :by |~~ How much. ~~| /0 #[1]) ~(add by)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesKindsOfEachElementTwice
         |~~ The kinds of each element stand in the vector as one tag or
             one set.
         ~~|
-        ~(::fn[~(takes :by |~~ How much. ~~| /0 [::number ::string]) ~(add by)] !| type | eq ::fn/SignatureNotCommandsError)
-    | proves :SignatureNotCommandsError/refusesASignatureThatIsNoQuote
-        |~~ A signature is a quote. ~~|
-        ~(::fn[[] ~(1)] !| type | eq ::fn/SignatureNotCommandsError)
+        ~(::fn[~(takes :by |~~ How much. ~~| /0 [::number ::string]) ~(add by)] !| type | eq ::fn/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesAnEmptySetOfKindsOfTheAnswer
+        |~~ The answer names one kind at least, which the verb `returns`
+            takes as a set and the rules of the chain refuse empty.
+        ~~|
+        ~(::fn | returns |~~ A. ~~| #[] !| type | eq ::fn/CommandNotTakenError)
     | proves :NameDeclaredTwiceError/refusesTwoInputsOfOneName
         |~~ Two inputs of one name are refused. ~~|
         ~(::fn[~(takes :by |~~ How much. ~~| /0 | takes :by |~~ Again. ~~| /1) ~(1)] !| type | eq ::fn/NameDeclaredTwiceError)
@@ -523,10 +531,11 @@
     ::builtin{}]
 
 :fn/holds
-  |~~ Writes an invariant of an input or of the answer: the refusal of a
-      value that breaks it, named under the input or the answer, its page,
-      and the condition the value answers true to,
-      `| holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100)`.
+  |~~ Writes an invariant of an input or of the answer, a quote under
+      `::invariant`: the refusal of a value that breaks it, named under the
+      input or the answer, its page, and the condition the value answers
+      true to, `| holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100)`.
+      ::link~(::invariant | doc)
   ~~|
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
@@ -574,8 +583,8 @@
     ::builtin{}]
 
 :fn/proves
-  |~~ Writes a law of a function, the claim its name makes, its page and
-      the query that proves it,
+  |~~ Writes a law of a function, a quote under `::law`, the claim its
+      name makes, its page and the query that proves it,
       `| proves :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8)`;
       under a label it is a law of the verb, which `laws` and `runLaws`
       read, and a name written with a path lays it under an input, a

@@ -90,11 +90,11 @@ export function envHas(env, name) {
 }
 
 // queryTreeOf(env) → the tree of names of the query a scope runs under:
-// in the body of a verb, the tree of the query that called it, carried
-// down through every verb the body calls, and elsewhere the scope itself.
-// A verb of the host reads it at its call, while the names a body writes
-// read the body's scope, so a verb written in the language and a verb of
-// the host read the same tree [D352].
+// in the recipe of a verb, the tree of the query that called it, carried
+// down through every verb the recipe calls, and elsewhere the scope itself.
+// A verb of the host reads it at its call, while the names a recipe writes
+// read the scope the recipe runs in, so a verb written in the language and
+// a verb of the host read the same tree [D352].
 export function queryTreeOf(env) {
   return env.get(QUERY_KEY) ?? env;
 }
@@ -107,7 +107,7 @@ export function queryStateOf(state) {
 }
 
 // envSet(env, name, value) → a new scope, the name holding the value; the
-// body of a verb keeps its own names out of the tree of the query, as a
+// recipe of a verb keeps its own names out of the tree of the query, as a
 // verb of the host does [D352].
 export function envSet(env, name, value) {
   return asScopeOf(env, new Map(env).set(name, value));

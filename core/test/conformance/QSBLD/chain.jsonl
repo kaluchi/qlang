@@ -1,7 +1,7 @@
-{"decision":"D352","name":"an-invariant-a-reader-declares-under-an-input-of-a-verb-is-refused","query":":number/add/addend/TooBigError ::holds~(lt 100) !| get [~(type) /noun]","expect":"[::bind/WrittenOutsideItsChainError ::number/add/addend]"}
+{"decision":"D357","name":"an-invariant-a-reader-declares-under-an-input-of-a-verb-is-refused","query":":number/add/addend/TooBigError ::invariant~(lt 100) !| get [~(type) /noun]","expect":"[::bind/WrittenOutsideItsChainError ::number/add/addend]"}
 {"decision":"D352","name":"an-input-a-reader-declares-under-a-verb-is-refused","query":":number/add/extra |~~ More. ~~| /1 !| get [~(type) /name]","expect":"[::bind/WrittenOutsideItsChainError :number/add/extra]"}
-{"name":"an-invariant-declared-by-a-bare-name-is-refused","query":":Box |~~ A box. ~~| ::holds~(get /w | is ::number) | :Box/area ~(mulOf /w /h) !| get [~(type) /name]","expect":"[::bind/WrittenOutsideItsChainError :Box]"}
-{"name":"an-invariant-a-bare-name-declares-is-refused","query":":Positive ::holds~(gt 0) !| type","expect":"::bind/WrittenOutsideItsChainError"}
+{"decision":"D357","name":"an-invariant-declared-by-a-bare-name-is-refused","query":":Box |~~ A box. ~~| ::invariant~(get /w | is ::number) | :Box/area ~(mulOf /w /h) !| get [~(type) /name]","expect":"[::bind/WrittenOutsideItsChainError :Box]"}
+{"decision":"D357","name":"an-invariant-a-bare-name-declares-is-refused","query":":Positive ::invariant~(gt 0) !| type","expect":"::bind/WrittenOutsideItsChainError"}
 {"decision":"D352","name":"a-tag-a-reader-declares-under-a-verb-changes-no-call","query":":any/k ~(5) | :any/k/out |~~ Text. ~~| ::string | 0 | k","expect":"5"}
 {"name":"a-name-under-a-label-outside-its-chain-lies-there-with-its-page","query":":Box |~~ A box. ~~| | :Box/w |~~ The width. ~~| ::number | get [~(::Box | manifest) ~(::Box/w | doc | content | contains \"width\")]","expect":"[#[::Box/w] true]"}
 {"decision":"D352","name":"a-page-alone-writes-no-answer-under-a-verb","query":":any/k ~(5) | :any/k/answer |~~ a ~~| !| get [~(type) /name]","expect":"[::bind/WrittenOutsideItsChainError :any/k/answer]"}

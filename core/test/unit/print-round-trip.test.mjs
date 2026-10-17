@@ -45,7 +45,7 @@ const KIND_COMMANDS = [
   ['proves :holdsItself |~~ It holds. ~~| ~(true)']
 ];
 const FN_RECIPES = ['impl ~(it)', 'impl ~(get /w | add 1)'];
-const KIND_RECIPES = ['impl ::builtin{}'];
+const KIND_CONSTRUCTORS = ['impl ::builtin{}'];
 
 // A part is the text that builds it and whether that text computes.
 const written = text => ({ text, computed: false });
@@ -115,12 +115,12 @@ function literalsOf(count, seed) {
         computed('get [~("x" | add 1 !| it)]'), written('[::error{:k 1 :trail [{:step ~(count) :subject 1 :skipped ~()}]}]')])
     ])();
   };
-  const chain = (noun, groups, recipes) => {
+  const chain = (noun, groups, impls) => {
     const commands = groups.filter(() => random() < 0.5).flat();
-    if (commands.length === 0 || random() < 0.5) commands.push(pick(recipes));
+    if (commands.length === 0 || random() < 0.5) commands.push(pick(impls));
     return computed(`(${noun}\n  | ${commands.join('\n  | ')})`);
   };
-  const built = () => (random() < 0.5 ? chain('::fn', FN_COMMANDS, FN_RECIPES) : chain('::kind', KIND_COMMANDS, KIND_RECIPES));
+  const built = () => (random() < 0.5 ? chain('::fn', FN_COMMANDS, FN_RECIPES) : chain('::kind', KIND_COMMANDS, KIND_CONSTRUCTORS));
   const underALabel = () => `:L |~~ L. ~~| | ${literal(2).text.replaceAll('::T', '::L')}`;
   return Array.from({ length: count }, () => (random() < 0.25 ? underALabel() : literal(2).text));
 }

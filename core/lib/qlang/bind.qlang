@@ -4,7 +4,7 @@
 
 :bind
   |~~ A declaration, `:name body`, names a value for the steps after it,
-      in the scope where it stands:
+      writing its `::binding` into the scope where it stands:
       `{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)` keeps the
       record for a later step and answers `6`. The value in the pipe
       passes on unchanged; a group and a quote a verb runs each close the
@@ -13,7 +13,8 @@
 
       In a quote the step is a record, `~(:x 1) | first` answering
       `::bind{:name :x :body 1}`: `:name` the keyword it binds,
-      `:docs` its pages and `:body` the step of its body.
+      `:docs` its pages and `:body` its body, the step after its name and
+      its pages, which runs once where the declaration stands.
       ::link~(::binding | doc) ::link~(::qlang/names | doc)
   ~~|
   ::kind
@@ -141,12 +142,12 @@
         ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box{} | area | eq 1)
     | proves :WrittenOutsideItsChainError/refusesAnInvariantDeclaredBare
         |~~ An invariant declared by a bare name holds of no value. ~~|
-        ~(:Positive ::holds~(gt 0) !| get [~(type) /name] | eq [::bind/WrittenOutsideItsChainError :Positive])
+        ~(:Positive ::invariant~(gt 0) !| get [~(type) /name] | eq [::bind/WrittenOutsideItsChainError :Positive])
     | proves :WrittenOutsideItsChainError/refusesAnInvariantUnderALabel
         |~~ An invariant declared by a name under a label is refused; the
             chain of the kind writes it.
         ~~|
-        ~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0)
+        ~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::invariant~(gt 0)
           !| get [~(type) /name /noun]
           |  eq [::bind/WrittenOutsideItsChainError :Pos/NotPositiveError ::Pos])
     | proves :WrittenOutsideItsChainError/refusesAConstructorUnderALabel

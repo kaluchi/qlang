@@ -6,8 +6,8 @@
 import { readsState, readsPassedTags } from '../primitives.mjs';
 import { queryStateOf } from '../state.mjs';
 import { layTag } from '../eval.mjs';
-import { ANY_KIND_NAME, TAGGED_KIND_NAME, bareNameReach, isMemberValue, nodeOf, residencesOf, verbsReaching } from './nouns.mjs';
-import { signatureOf } from './signature.mjs';
+import { ANY_KIND_NAME, TAGGED_KIND_NAME, bareNameReach, isVerbValue, nodeOf, residencesOf, verbsReaching } from './nouns.mjs';
+import { chainOfFn } from './chain.mjs';
 import { declareRefusal } from '../errors.mjs';
 import {
   bindingValueOf, isFn, isVec, isMap, isTagged, isValueClass,
@@ -96,7 +96,7 @@ export function shownFor(env, name, kindNames = null) {
     ? bareNameReach(env, name)?.record ?? residencesOf(env, name)[0]?.[1]
     : nodeOf(env, reached.address.name);
   const value = bindingValueOf(record);
-  if (!isMemberValue(value)) return undefined;
-  const inputs = isFn(value) ? signatureOf(value).inputs.map(({ name: input }) => input.name) : [];
+  if (!isVerbValue(value)) return undefined;
+  const inputs = isFn(value) ? chainOfFn(value).inputs.map(({ name: input }) => input.name) : [];
   return { address: makeTag(record.get('name').name), inputs };
 }

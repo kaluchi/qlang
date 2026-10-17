@@ -10,9 +10,9 @@ import { printQuoteSource } from '../../src/quote.mjs';
 
 describe('the parser reads a tag before a payload as a tagged literal', () => {
   it('reads a quote after a tag as its payload', () => {
-    const ast = parse('::holds~(mul 2)');
+    const ast = parse('::invariant~(mul 2)');
     expect(ast.type).toBe('TaggedLit');
-    expect(ast.tag).toBe('holds');
+    expect(ast.tag).toBe('invariant');
     expect(ast.payload.type).toBe('QuoteLit');
   });
 
@@ -51,7 +51,7 @@ describe('a verb under a label runs when its name is mentioned', () => {
 });
 
 describe('a kind whose construct is a primitive of the host', () => {
-  it('puts a payload under the tag through the check its host hands [QSDSP#walk]', async () => {
+  it('puts a payload under the tag through the constructor its host hands [QSDSP#walk]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
       sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', impls: { 'myType/construct': payload => payload * 2 } }]
@@ -210,8 +210,8 @@ describe('a tag no declaration answers lays itself over any payload', () => {
 
 describe('the steps of a tagged literal and of a tag', () => {
   it('a tagged literal is a `::construct` step over the step of its payload [QSQUO#step]', async () => {
-    expect(await evalQuery('~(::holds~(mul 2)) | first | get [~(type) /tag /payload]'))
-      .toEqual(await evalQuery('[::construct ::holds ~(mul 2)]'));
+    expect(await evalQuery('~(::invariant~(mul 2)) | first | get [~(type) /tag /payload]'))
+      .toEqual(await evalQuery('[::construct ::invariant ~(mul 2)]'));
   });
 
   it('a tag alone is its name as a step', async () => {

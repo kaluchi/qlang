@@ -643,8 +643,8 @@
             `::any`; a verb of vectors
             reaches a vector under a tag, and an answer of the subject's
             kind keeps the tag. A verb is a
-            function named under a label, built from `::fn` by commands
-            with its recipe last,
+            function named under a label, built from `::fn` by a chain of
+            commands with its recipe last,
             `:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))`:
             `on` names its subject, `takes` an input with its page, the
             place of the args it reads and its kinds, `returns` its
@@ -663,32 +663,32 @@
             of one subject reads each from its args, `mulOf /price /qty`;
             an input that runs code later takes
             a quote, `~name` or `~(get /path)` the quote of one step, and
-            a condition is a boolean. A kind is a label built from
-            `::kind` by commands and declared under a name,
-            `:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)`:
-            `wraps` names its payload and its kinds, `reads` a field the
-            payload holds at a place and its kinds, `holds` an invariant
-            of the value or of a field, `throws` a refusal, `carries` a
-            fact and `proves` a law, and a kind of the core `impl` the
-            check its host hands; the constructor attaches the tag to the
-            payload or refuses it, and builds no other value, so every
-            value put under it keeps them, and a label declared by its
-            page alone is a kind of no commands. A tag no declaration
-            answers is a kind of identity, which checks nothing and lays
-            the tag on the value. A verb answers under the kind its
-            `returns` names. A verb of a noun itself, whose subject `on`
-            names `::tag`, takes the tag name as its subject, so a noun
-            that stands for a thing outside the language is addressed
-            bare, `::Jenkins | builds`, while a verb of the noun's values
-            refuses the tag name. A verb is told as a story, in one order:
-            the verb and its page, its inputs, its answer, its refusals,
-            its laws and its recipe, one chain; a kind as its page, its
-            payload, its fields, its refusals, its invariants, its laws
-            and its recipe; and the refusal of a step as its page, which
-            repairs the step, its facts and its laws. `source` reads the
-            story of a name as it is written, `::vec/sort | source`.
+            a condition is a boolean. A label is a kind declared under a
+            name, by the chain that builds it from `::kind`,
+            `:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)`,
+            or by its page alone, a kind of no commands: `wraps` names its
+            payload and its kinds, `reads` a field the payload holds at a
+            place and its kinds, `holds` an invariant of the value or of a
+            field, `throws` a refusal, `carries` a fact and `proves` a law,
+            and a kind of the core `impl` its constructor, which its host
+            hands; the constructor attaches the tag to the payload or
+            refuses it, and builds no other value, so every value put under
+            it keeps them. A tag no declaration answers is a kind of
+            identity, which checks nothing and lays the tag on the value.
+            A verb answers under the kind its `returns` names. A verb of a
+            noun itself, whose subject `on` names `::tag`, takes the tag
+            name as its subject, so a noun that stands for a thing outside
+            the language is addressed bare, `::Jenkins | builds`, while a
+            verb of the noun's values refuses the tag name. A verb is told
+            as a story, in one order: the verb and its page, its inputs,
+            its answer, its refusals, its laws and its recipe, one chain; a
+            kind as its page, its payload, its fields, its refusals, its
+            invariants, its laws and its constructor; and the refusal of a
+            step as its page, which repairs the step, its facts and its
+            laws. `source` reads the story of a name as it is written,
+            `::vec/sort | source`.
         ~~|
-        #[::any ::fn ::holds ::kind]
+        #[::any ::fn ::invariant ::kind]
     | proves :verbs/findsTheVerbOfTheKind
         |~~ `sort` finds the verb of vectors. ~~|
         ~([3 1 2] | sort | eq [1 2 3])
@@ -859,9 +859,10 @@
             verb and what it reaches are all values, so the pipeline goes
             on from what an axis reaches as from any value, and a tag you
             declare with verbs on it adds axes of its own. A keyword after
-            `doc` is an anchor within the page of its subject,
-            `::qlang/pipeline | doc`, a vector of anchors a path, a set of
-            anchors several pages at once. A page is a doc, prose that
+            `doc` is an anchor, the last name of a node its subject holds,
+            `::qlang | doc :pipeline` the page of `::qlang/pipeline`, a
+            vector of anchors read in turn, a set of anchors several pages
+            at once. A page is a doc, prose that
             holds code: a quote under `::link` is a link to another page,
             and a quote under `::snippet` a query a reader runs to see
             what it shows, `open` running either. So a page leads on to

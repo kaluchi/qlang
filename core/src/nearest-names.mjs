@@ -108,14 +108,14 @@ export function nearestTagNames(env, typedName) {
   return Object.freeze(nearestOf(new Set(atItsDepth), typedName).map(name => makeTag(name)));
 }
 
-// The members a subject holds near a name it lacks [D352], read where an
-// axis reads a member: the names declared under a tag name's address,
-// `::qlang | doc :pipelin` meeting `:pipeline`, and the verbs the walk of
-// the subject reaches.
-export function nearestMembers(env, subject, memberName) {
+// The nodes a subject holds near an anchor it holds none under [D357], read
+// where an axis reads the node under an anchor: the names declared under a
+// tag name's address, `::qlang | doc :pipelin` meeting `:pipeline`, and the
+// verbs the walk of the subject reaches.
+export function nearestNodes(env, subject, anchorName) {
   const declared = isTag(subject) ? namesDeclaredUnder(env, subject.name) : [];
   const reached = verbsReaching(env, [...kindsOfWalk(subject)]).keys();
-  return Object.freeze(nearestOf(new Set([...declared, ...reached]), memberName).map(name => keyword(name)));
+  return Object.freeze(nearestOf(new Set([...declared, ...reached]), anchorName).map(name => keyword(name)));
 }
 
 // The keys of a map a key it lacks was likely meant to be, as a name is

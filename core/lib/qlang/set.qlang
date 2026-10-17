@@ -9,8 +9,8 @@
 
 :set
   |~~ A set is a vector in the one order without duplicates, `#[1 2 3]`:
-      the answer of `toSet` and of `keys`, and the value to ask
-      membership of, `#[:a :b] | has :a` answering `true`. Its order is
+      the answer of `toSet` and of `keys`, and the value to ask whether it
+      holds an element, `#[:a :b] | has :a` answering `true`. Its order is
       the one order of values, never the order written, `#[3 1 3]`
       answering `#[1 3]`.
 

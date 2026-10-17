@@ -1,12 +1,14 @@
-|~ `::holds`, the kind of an invariant, and the laws declared under it.
+|~ `::invariant`, the kind of an invariant, and the laws declared under
+   it.
 
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [D357]. ~|
 
-:holds
+:invariant
   |~~ An invariant is a query the values of a kind keep, a quote under
       this tag, written by `holds` in the chain that builds the kind or
-      the function it guards and laid under the name of the refusal of a
-      value that breaks it: a kind of
+      the function it guards, as a law is a quote under `::law` that
+      `proves` writes, and laid under the name of the refusal of a value
+      that breaks it: a kind of
       `(::kind | holds :TooLargeError |~~ Below ten. ~~| ~(lt 10))`
       declared as `:Small` refuses `::Small#12` under
       `::Small/TooLargeError`.
@@ -20,9 +22,14 @@
       Declared by a name outside a chain, an invariant holds of nothing
       and is refused.
       ::link~(::kind/holds | doc) ::link~(::fn/holds | doc)
-      ::link~(::qlang/verbs | doc)
+      ::link~(::law | doc) ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
+    | proves :liesUnderItsRefusal
+        |~~ The node an invariant of a chain lays under the name of its
+            refusal holds a quote under `::invariant`.
+        ~~|
+        ~(::vec/take/count/NotIntegerError | binding | get /value | type | eq ::invariant)
     | proves :readsThePayloadBeneathTheTag
         |~~ An invariant of a kind's value reads the payload beneath the
             tag, so a verb that keeps its subject's kind runs in it.

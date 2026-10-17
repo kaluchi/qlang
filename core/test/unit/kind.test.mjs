@@ -1,8 +1,8 @@
-// The kind built from `::kind` by commands [QSBLD#kind]: the refusals it
-// raises by rule, which the catalog's drift test holds against the pages of
-// the root's kinds, the reading of its chain as the body of a bare name, the
-// declarations under it its chain holds alone, and a check its host has not
-// yet handed.
+// The kind built from `::kind` by commands [D357]: the refusals it raises by
+// rule, which the catalog's drift test holds against the pages of the root's
+// kinds, the reading of its chain as the body of a bare name, the
+// declarations under it its chain holds alone, and a constructor its host has
+// not yet handed.
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
@@ -100,19 +100,19 @@ describe('the chain of a kind as the body of a bare name [QSBLD#kind]', () => {
 describe('a declaration under a label that the chain of its kind holds alone [QSBLD#chain]', () => {
   it('refuses an invariant and a constructor and takes a page and a law', async () => {
     const kind = ':Pos |~~ A positive number. ~~| (::kind | wraps |~~ The number. ~~| ::number)';
-    expect(await answers(`${kind} | :Pos/NotPositiveError ::holds~(gt 0) !| type`)).toBe('::bind/WrittenOutsideItsChainError');
+    expect(await answers(`${kind} | :Pos/NotPositiveError ::invariant~(gt 0) !| type`)).toBe('::bind/WrittenOutsideItsChainError');
     expect(await answers(`${kind} | :Pos/construct ~(add 0) !| type`)).toBe('::bind/WrittenOutsideItsChainError');
     expect(await answers(`${kind} | :Pos/note |~~ A note. ~~| | ::Pos/note | doc | content | trim`)).toBe('"A note."');
   });
 
   it('refuses an invariant and a constructor under a label declared by its page, a kind of no commands', async () => {
-    expect(await answers(':Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::holds~(gt 0) !| type')).toBe('::bind/WrittenOutsideItsChainError');
+    expect(await answers(':Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::invariant~(gt 0) !| type')).toBe('::bind/WrittenOutsideItsChainError');
     expect(await answers(':Pos |~~ A positive number. ~~| | :Pos/construct ~(add 0) !| type')).toBe('::bind/WrittenOutsideItsChainError');
   });
 });
 
-describe('the check a host hands a kind', () => {
-  it('lays the tag over the payload as it is until the host hands the recipe, and runs it after', async () => {
+describe('the constructor a host hands a kind', () => {
+  it('lays the tag over the payload as it is until the host hands the constructor, and runs it after', async () => {
     const hosted = await createSession({ sources: [{
       uri: 'test/hosted-kind',
       source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :Hk/early ::law~(::Hk#1 | payload | eq 1)',

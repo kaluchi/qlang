@@ -1,5 +1,5 @@
 // The refusals a verb that is a function raises by rule, read from its
-// signature as its call raises them, which the catalog's drift test holds
+// chain as its call raises them, which the catalog's drift test holds
 // against the pages of the root's verbs [D352].
 
 import { describe, it, expect } from 'vitest';

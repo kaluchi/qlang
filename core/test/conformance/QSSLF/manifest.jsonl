@@ -15,7 +15,7 @@
 {"decision":"D352","name":"a-fan-out-over-kinds-answers-each-kind-beside-its-verbs","query":"[::vec ::any] | map ~(get [~(it) ~(manifest)]) | map ~(get [/0 ~(get /1 | has ::vec/count)])","expect":"[[::vec true] [::any false]]"}
 {"name":"manifest-answers-nouns","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true"}
 {"name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true"}
-{"name":"the-chapters-are-members-of-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
+{"decision":"D357","name":"the-chapters-are-nodes-under-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
 {"decision":"D352","name":"a-verb-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}
 {"name":"a-place-lists-the-refusal-declared-under-it","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/KindNotTakenError]"}
 {"decision":"D355","name":"a-place-of-several-kinds-lists-their-refusal","query":"get [~(::vec/sort | binding | get /value | inputs | map /kinds) ~(::vec/sort/key | manifest)]","expect":"[[#[::null ::path ::quote]] #[::vec/sort/key/KindNotTakenError]]"}

@@ -54,7 +54,7 @@
             written with the args its rules take: `wraps` a page and kinds,
             `reads` a name, a page, a place and kinds, `holds` a name, a
             page and a condition, `throws` a name and a page, `carries` a
-            name, a page and kinds, `tells` a name and a page, and `proves`
+            name, a page and kinds, `tells` a name, a page and kinds, and `proves`
             a name, a page and a query. The name of a field and of a page is
             one segment, beside `payload`, `construct` and the words of a
             literal; the name of a refusal, a fact and a law is read as a

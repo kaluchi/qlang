@@ -13,9 +13,9 @@
 {"name":"a-verb-that-returns-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T"}
 {"name":"filter-keeps-an-undeclared-tag","query":"::AutoFilter[1 2 3 4] | filter ~(gt 2) | type","expect":"::AutoFilter"}
 {"name":"sort-keeps-an-undeclared-tag","query":"::AutoSort[3 1 2] | sort | type","expect":"::AutoSort"}
-{"name":"a-kind-of-no-recipe-keeps-its-tag-after-filter","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
-{"decision":"D355","name":"an-answer-of-another-kind-leaves-the-tag-of-a-kind-of-no-recipe-behind","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3] | distinct | type","expect":"::set"}
-{"name":"a-kind-of-no-recipe-keeps-its-tag-after-sort","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | type","expect":"::Box"}
+{"decision":"D357","name":"a-kind-of-no-constructor-keeps-its-tag-after-filter","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
+{"decision":"D355","name":"an-answer-of-another-kind-leaves-the-tag-of-a-kind-of-no-constructor-behind","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3] | distinct | type","expect":"::set"}
+{"decision":"D357","name":"a-kind-of-no-constructor-keeps-its-tag-after-sort","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | type","expect":"::Box"}
 {"name":"count-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | count","expect":"3"}
 {"name":"sum-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | sum","expect":"6"}
 {"name":"first-of-a-tagged-vector-answers-the-element","query":":Box |~~ Box. ~~| | ::Box[42 100] | first","expect":"42"}

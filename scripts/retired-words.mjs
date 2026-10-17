@@ -35,9 +35,9 @@ export const RETIRED_WORDS = [
   { pattern: /\bmemberRecordOf\b/, written: 'the node a subject holds under an anchor, `nodeUnderAnchor`', by: 'D357' },
   { pattern: /\bmemberRefusalOf\b/, written: 'what the refusal of an anchor holds, `anchorRefusalOf`', by: 'D357' },
   { pattern: /\brecordAlongPath\b/, written: 'the record anchors read in turn reach, `recordOfAnchors`', by: 'D357' },
-  { pattern: /\bmembers?\b(?=\s+(?:(?:the|a|its)\s+(?:subject|value|number|tag|page)\s+(?:holds|lacks)|it\s+(?:holds|lacks)|of\s+(?:a|the|its)\s+(?:root\s+)?(?:page|noun|topic|subject|label)\b|near\b))/i, written: 'the node a subject holds under an anchor, which an axis reads', by: 'D357' },
+  { pattern: /\bmembers?\b(?=[\s-]+(?:(?:the|a|its)[\s-]+(?:subject|value|number|tag|page)[\s-]+(?:holds|lacks)|it[\s-]+(?:holds|lacks)|of[\s-]+(?:a|the|its)[\s-]+(?:root[\s-]+)?(?:page|noun|topic|subject|label)\b|near\b))/i, written: 'the node a subject holds under an anchor, which an axis reads', by: 'D357' },
   { pattern: /\bmembership\b/i, written: 'a vector or a set holding an element or lacking it, `has`', by: 'D357' },
   { pattern: /\bpaths?[\s-]+of[\s-]+anchors\b/i, written: 'anchors read in turn, a vector of anchors', by: 'D357' },
   { pattern: /\bthe[\s-]+check[\s-]+(?:its|a|the)[\s-]+host[\s-]+hands\b|\bchecks?[\s-]+of[\s-]+(?:a|its|the)[\s-]+hosts?\b/i, written: 'the constructor a host hands a kind of the core, which attaches the tag to a payload or refuses it', by: 'D357' },
-  { pattern: /\brecipes?[\s-]+of[\s-]+(?:a|the|its)[\s-]+kinds?\b|\bkinds?[\s-]+takes?[\s-]+no[\s-]+recipe\b|\bkinds?\s+of\s+no\s+recipe\b/i, written: 'the constructor the slot of a kind holds, recipe naming the code of a verb alone', by: 'D357' },
+  { pattern: /\brecipes?[\s-]+of[\s-]+(?:a|the|its)[\s-]+kinds?\b|\bkinds?[\s-]+takes?[\s-]+no[\s-]+recipe\b|\bkinds?[\s-]+of[\s-]+no[\s-]+recipe\b|\bchecks?[\s-]+of[\s-]+(?:a|the|its)[\s-]+kinds?\b/i, written: 'the constructor the slot of a kind holds, recipe naming the code of a verb alone', by: 'D357' },
 ];

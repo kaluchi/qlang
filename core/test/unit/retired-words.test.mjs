@@ -1,7 +1,7 @@
 // The terms D357 retired, each held by the lexicon of retired terms as one
-// pattern of its one sense [D350], [D357]: the pattern refuses the term in
-// prose, in a name of the code and in the name of a case, and leaves the words
-// of another sense.
+// pattern of its one sense [D350], [D357], which refuses the term where it is
+// written, in prose, a name of the code or the name of a case, and leaves
+// the words of another sense.
 
 import { describe, it, expect } from 'vitest';
 import { RETIRED_WORDS } from '../../../scripts/retired-words.mjs';
@@ -9,7 +9,7 @@ import { RETIRED_WORDS } from '../../../scripts/retired-words.mjs';
 const refused = text => RETIRED_WORDS.some(({ pattern }) => pattern.test(text));
 
 describe('the lexicon of retired terms [D357]', () => {
-  it('refuses each term D357 retired, in prose, in a name of the code and in the name of a case', () => {
+  it('refuses each term D357 retired where it is written', () => {
     for (const text of [
       'a-name-of-a-signature-declared-twice-is-refused', 'the signature of a function', 'readSignature', 'readKindSignature',
       'EMPTY_SIGNATURE', 'core/src/runtime/signature.mjs',
@@ -17,6 +17,8 @@ describe('the lexicon of retired terms [D357]', () => {
       'a-reader-kind-with-the-check-of-its-host-lays-its-tag', 'the check its host hands a kind of the core', 'a kind of no recipe keeps its tag',
       'a-path-of-anchors-reads-an-input-of-a-verb-under-a-label', 'the membership a set answers',
       'reads the member of the subject', 'a member a value lacks names the verbs near', 'a concept is a member of the root noun',
+      'a-member-a-value-lacks-names-the-verbs-near', 'a-member-of-a-noun-stays-out-of-the-scope', 'the-chapters-are-members-of-the-topic-of-the-language',
+      'a-kind-of-no-recipe-keeps-its-tag-after-sort', 'the check of a kind',
       'callMemberOn', 'isMemberValue', 'nearestMembers', 'memberRecordOf', 'memberRefusalOf', 'recordAlongPath'
     ]) expect(refused(text), text).toBe(true);
   });

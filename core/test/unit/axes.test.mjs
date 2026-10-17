@@ -112,7 +112,7 @@ describe('the axes read the node a tag addresses', () => {
     expect(await evalQuery(':"::vec" | source')).toEqual(await evalQuery('::keyword | source'));
   });
 
-  it('a tag naming a verb of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
+  it('a tag of a name several kinds answer is refused with the addresses of its pages, one on each kind that answers it', async () => {
     expect([...await evalQuery('::count | doc !| get /addresses')])
       .toEqual([makeTag('map/count'), makeTag('string/count'), makeTag('vec/count')]);
   });

@@ -151,7 +151,7 @@ describe('an address reads the node its name declared', () => {
     expect(await evalQuery('::vec/count | binding | get /value | type')).toEqual(makeTag('fn'));
   });
 
-  it('a verb has no address of its own, only through the noun it lives on', async () => {
+  it('a name has no address of its own, only through the noun each of its verbs lives on', async () => {
     expect(await evalQuery('::count | doc !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
   });
 

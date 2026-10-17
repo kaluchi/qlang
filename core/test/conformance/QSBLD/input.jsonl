@@ -28,7 +28,7 @@
 {"name":"an-input-of-code-filters","query":":vec/matching (::fn | takes :pred |~~ The pred. ~~| /0 ::quote | impl ~(filter pred)) | [1 2 3 4 5] | matching ~(gt 3)","expect":"[4 5]"}
 {"decision":"D352","name":"a-verb-refuses-an-input-left-out","query":":number/f (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(add a b)) | 0 | f 1","expect":"::number/f/b/NotGivenError!{\n  :actualValue ::number/f[1]\n  :actualType ::number/f\n  :trail ::trail[::frame[0 ~(f 1)]]\n} | raise"}
 {"decision":"D352","name":"a-verb-refuses-args-beyond-its-inputs","query":":number/f (::fn | takes :a |~~ The a. ~~| /0 | impl ~(add a)) | 5 | f 1 2 3","expect":"::number/f/ArgsBeyondInputsError!{\n  :places 1\n  :actualValue ::number/f[1 2 3]\n  :actualType ::number/f\n  :trail ::trail[::frame[5 ~(f 1 2 3)]]\n} | raise"}
-{"name":"an-input-takes-its-modifier-at-each-call","query":":map/pluck (::fn | takes :proj |~~ The proj. ~~| /0 | impl ~(proj)) | [{:a 1} {:a 2} {:a 3}] | map ~(pluck (get /a))","expect":"[1 2 3]"}
+{"decision":"D352","name":"an-input-reads-its-arg-at-each-call","query":":map/pluck (::fn | takes :proj |~~ The proj. ~~| /0 | impl ~(proj)) | [{:a 1} {:a 2} {:a 3}] | map ~(pluck (get /a))","expect":"[1 2 3]"}
 {"name":"the-args-a-refusal-holds-read-back-as-they-print","query":"1 | add 1 2 !| get /actualValue | eq ::number/add[1 2]","expect":"true"}
 {"name":"an-invariant-of-an-input-that-reads-the-args-whole-refuses-them","query":"{} | coalesce !| get [~(type) /actualValue]","expect":"[::any/coalesce/alternatives/EmptyError ::any/coalesce[]]"}
 {"decision":"D352","name":"the-args-of-a-call-are-a-value-under-its-verb","query":":any/argsOf (::fn | takes :xs |~~ The xs. ~~| ~(take 99) | impl ~(args)) | 5 | argsOf 1 2","expect":"::any/argsOf[1 2]"}
@@ -36,7 +36,7 @@
 {"name":"the-kind-of-an-input-names-its-refusal","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | 5 | plus \"x\" !| type","expect":"::number/plus/by/KindNotTakenError"}
 {"name":"a-verb-takes-an-input-by-its-declaration","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(mul 10 | add x)) | 2 | m 3","expect":"23"}
 {"name":"an-optional-input-takes-its-default","query":":vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 9 7] | top","expect":"[9 7 5]"}
-{"name":"an-optional-input-takes-a-modifier","query":":vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 9 7] | top 2","expect":"[9 7]"}
+{"decision":"D352","name":"an-optional-input-reads-the-arg-a-call-gives","query":":vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 9 7] | top 2","expect":"[9 7]"}
 {"name":"a-number-under-a-tag-of-its-own-is-a-number-an-input-takes","query":"5 | add ::Width#2","expect":"7"}
 {"name":"each-value-an-input-of-each-element-takes-is-handed-as-its-kind","query":"{:a ::W#5 :b 2} | sumOf (get /a) /b","expect":"7"}
 {"name":"a-predicate-with-an-input-left-out-is-refused-by-the-input","query":"{:a 1 :b 2 :c 3} | :number/above (::fn | takes :limit |~~ The limit. ~~| /0 | impl ~(gt limit)) | filter ~above !| type","expect":"::number/above/limit/NotGivenError"}

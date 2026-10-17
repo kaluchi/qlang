@@ -1158,8 +1158,8 @@
             verbs of that name live.
         ~~|
         ~(::filter | doc !| get /addresses | has ::vec/filter)
-    | proves :UnknownNameError/namesWhereAnotherVerbLives
-        |~~ Another verb's name is refused with its addresses. ~~|
+    | proves :UnknownNameError/namesWhereTheVerbsOfAnotherNameLive
+        |~~ Another name of several verbs is refused with their addresses. ~~|
         ~(::reduce | doc !| get /addresses | has ::vec/reduce)
     | proves :UnknownNameError/refusesAnAnchorNoMemberAnswers
         |~~ An anchor no member answers is refused with the name it read.

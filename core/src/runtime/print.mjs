@@ -8,7 +8,7 @@ import { elide, elideAnswer as answerWithin } from '../elide.mjs';
 import { rootState } from '../state.mjs';
 import { printValue } from './print-value.mjs';
 import { nodeOf, residenceOnSubject } from './nouns.mjs';
-import { callMemberOn } from '../eval.mjs';
+import { callVerbOn } from '../eval.mjs';
 
 // printsOfKinds(value, env, state?) → `printedOf(part)`: the print a kind
 // answers of its own for each part of the value whose kind declares one,
@@ -46,7 +46,7 @@ async function collectPrintsOfKinds(part, env, state, printOfAny, printedByKind)
   if (part[TAG_HEADER_SYMBOL] !== undefined) {
     const printOfKind = residenceOnSubject(env, 'print', part);
     if (printOfKind !== null && printOfKind !== printOfAny) {
-      const printed = await callMemberOn(printOfKind, part, state);
+      const printed = await callVerbOn(printOfKind, part, state);
       printedByKind.set(part, typeof printed === 'string' ? printed : printValue(printed));
       return;
     }

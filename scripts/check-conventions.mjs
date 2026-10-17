@@ -75,12 +75,12 @@
 //       catalog, a case or the code [QSWRK#documents].
 //
 //   (13) The marks of the artifacts: every module, script, test file,
-//       source of qlang and workflow names the decision it exists for
+//       source of qlang and workflow names the rules it holds
 //       [QSWRK#marks].
 //
 //   (14) A series of the benchmark keeps its two latest at the merge that
-//       landed a branch: its sets, its screens and the runs of the
-//       references, a branch keeping every run of its own [QSWRK#baseline].
+//       landed a branch: its sets and its screens, a branch keeping every
+//       run of its own [QSWRK#baseline].
 //
 //   (15) A report of the research stands with the session's reading
 //       beside it, every finding with its fate: a critique of an open
@@ -93,6 +93,15 @@
 //       finds nowhere, but in a section a record in transit overrides
 //       [QSWRK#documents].
 //
+//   (17) A text that states what holds writes no word the language
+//       retired, `scripts/retired-words.mjs`: the prose of the chapters
+//       and the seeds, the comments and docs of the code and the catalog,
+//       the names of the cases and the titles of the tests [QSWRK#documents].
+//
+//   (18) No kind of the catalog bears the name of a command of a chain, one
+//       the chain of a function or of a kind takes, the command named by its
+//       act and what it writes by the noun of the thing [QSBLD#fn].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -102,7 +111,10 @@ import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { baselineOf, isCitingCode, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_DOCUMENTS } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
-import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
+import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersShaped, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
+import { RETIRED_WORDS } from './retired-words.mjs';
+import { kindsNamedForCommands } from './catalog-kinds.mjs';
+import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -281,7 +293,7 @@ const TALLY_NOUNS = [
 
 // Up to two adjectives may sit between the digit and the noun
 // («1192 error-producing conformance cases»). A digit carrying a
-// section sigil (`§3 rule`, `#4 case`) addresses a chapter rather
+// section sign (`§3 rule`, `#4 case`) addresses a chapter rather
 // than counting one, and stays legal.
 const TALLY_RE = new RegExp(
   String.raw`(?<![§#])\b\d[\d,]*\s+(?:[a-z][a-z-]*\s+){0,2}(?:` + TALLY_NOUNS + String.raw`)\b`,
@@ -292,8 +304,9 @@ const INLINE_CODE_RE = /`[^`]*`/g;
 
 // A report of the research stands as its outside reader wrote it
 // [QSWRK#review], so the prose held to its tallies is the work's own, the
-// session's reading of the report among it.
-const OUTSIDE_REPORT = /^docs\/journal\/research\/(?:(?:design-check|reviews|outside-audit)\/D\d+~\d+\.md|spec-check\/D\d+~\d+\/(?!reading\.md)[^/]+\.md)$/;
+// session's reading of the report among it, by the shapes of the folders of
+// the research.
+const OUTSIDE_REPORT = new RegExp(`^${RESEARCH}/(?:(?:${foldersShaped('report')})/D\\d+~\\d+\\.md|(?:${foldersShaped('run')})/D\\d+~\\d+/(?!reading\\.md)[^/]+\\.md)$`);
 
 function scanProseTallies() {
   const violations = [];
@@ -350,7 +363,7 @@ function workspaceRangeDrift() {
 // ── (5) Anchors of the texts that hold the work ────────────────
 
 const ANCHOR_DOCUMENTS = ['CLAUDE.md', 'docs/journal/AIM.md', 'docs/spec/QSWRK-the-work.md'];
-const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
+const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@~-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
 const TREE_QUOTE_RE = /“([^”]+)”\s*\(`([^`]+)`/g;
 const sisterRoot = join(repoRoot, '..', 'eclipse-jdt-search');
 
@@ -401,7 +414,7 @@ function catalogFiles(dir) {
 }
 
 // The comment at the head of a source, `|~ … ~|`, is no page a reader
-// reads: it marks the decisions the source exists for [QSWRK#marks].
+// reads: it marks the rules the source holds [QSWRK#marks].
 function decisionsInCatalog() {
   const violations = [];
   for (const file of CATALOG_ROOTS.flatMap(catalogFiles)) {
@@ -586,8 +599,8 @@ const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['cli/lib', /\.qlang$/], ['c
 // ── (13) The marks of the artifacts ────────────────────────────
 //
 // Every module, script, test file, source of qlang and workflow names
-// the decision it exists for, so the scope of a decision is found by its
-// marks and an artifact no decision explains is seen [QSWRK#marks].
+// the rules it holds, so the scope of a record or a section is found by its
+// marks and an artifact that names no rule it holds is seen [QSWRK#marks].
 
 function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;
@@ -595,10 +608,10 @@ function unmarkedArtifacts() {
 
 // ── (14) A series of the benchmark keeps its two latest at the baseline
 //
-// The sets of the benchmark with their runs, the screens and the runs of
-// the references keep their two latest at the merge that landed a branch; a
-// branch keeps every run of its own, and the move of the baseline gives the
-// older to the history, `node scripts/drop-documents.mjs` [QSWRK#baseline].
+// The sets of the benchmark with their runs and its screens keep their two
+// latest at the merge that landed a branch, a branch keeping every run of
+// its own and the move of the baseline giving the older to the history,
+// `node scripts/drop-documents.mjs` [QSWRK#baseline].
 
 function seriesBeyondTwo() {
   const baseline = baselineOf(repoRoot);
@@ -626,7 +639,7 @@ function unreadReports() {
 // its fenced blocks; a section a record in transit overrides waits for the
 // move that writes it anew, as its probes wait [QSWRK#probe].
 
-const UNREAD_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets', 'runs']);
+const UNREAD_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets']);
 const TOKEN = /(?<![\\\w$])[A-Za-z_$][a-z$]*[A-Z0-9_][\w$]*\b|::[A-Za-z][\w/.-]*\w/g;
 const tokensIn = text => [...text.matchAll(TOKEN)].map(match => match[0])
   .filter(token => token.length >= 3 && !/^[DE]\d+$/.test(token) && (token.startsWith('::') || /[a-z]/.test(token) || /[_\d]/.test(token)));
@@ -738,133 +751,79 @@ function namesOfTakenOut() {
     .map(token => ({ file, line, token, baseline, snippet: text.slice(0, 120) })));
 }
 
+// ── (17) Retired words ─────────────────────────────────────────
+
+// The title a test states its rule in, `it('…')`, a string its code holds.
+const TEST_TITLE = /\b(?:it|test|describe)(?:\.\w+)?\(\s*(['"`])((?:\\.|(?!\1).)*)\1/g;
+
+const nameOfCase = line => {
+  try { return JSON.parse(line).name ?? ''; } catch { return ''; }
+};
+
+// The words the language retired, read where a text states what holds:
+// the prose, the comments and docs, the name of a case and the title of a
+// test [QSWRK#documents].
+function retiredWordsWritten() {
+  const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
+  const files = [...git('ls-files').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')]
+    .filter(Boolean).filter(file => voiceOfFile(file) !== null && existsSync(join(repoRoot, file)));
+  // The sections a record in transit overrides, whose text waits for the
+  // move [QSWRK#spec].
+  const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
+  const found = [];
+  for (const file of files) {
+    const voice = voiceOfFile(file);
+    const isTest = /(^|\/)test\//.test(file);
+    const text = readFileSync(join(repoRoot, file), 'utf8');
+    const lines = text.split(/\r?\n/);
+    const chapter = /^docs\/spec\/(QS[A-Z]{3})-/.exec(file)?.[1];
+    let section = '';
+    partsOfLines(voice, text).forEach(({ holds, names }, index) => {
+      if (chapter !== undefined && lines[index].startsWith('## ')) section = lines[index].slice(3).trim();
+      if (chapter !== undefined && (waiting.has(chapter) || waiting.has(`${chapter}#${section}`))) return;
+      const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(isTest ? [...holds.matchAll(TEST_TITLE)].map(match => match[2]) : [])];
+      for (const part of read) {
+        for (const { pattern, written, by } of RETIRED_WORDS) {
+          const word = pattern.exec(part)?.[0];
+          if (word !== undefined) found.push({ file, line: index + 1, word, written, by });
+        }
+      }
+    });
+  }
+  return found;
+}
+
+// ── (18) Kinds named for commands ──────────────────────────────
+//
+// A command of a chain is named by its act and what it writes by the noun of
+// the thing, so no kind of the catalog bears the name of a command [QSBLD#fn].
+
+function kindsOfCommands() {
+  const sources = CATALOG_ROOTS.flatMap(catalogFiles).map(file => ({ path: file.replace(/\\/g, '/'), text: readFileSync(join(repoRoot, file), 'utf8') }));
+  return kindsNamedForCommands(sources);
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
-const forbidden = scanForbiddenWords();
-const refusalDeclarations = refusalDeclarationDrift();
-const proseTallies = scanProseTallies();
-const workspaceRanges = workspaceRangeDrift();
-const anchors = anchorDrift();
-const catalogDecisions = decisionsInCatalog();
-const undecided = recordsWithoutDecider();
-const unwalked = baselineDrift();
-const unmarked = unmarkedArtifacts();
-const misplaced = misplacedRecords();
-const broken = brokenLinks();
-const outOfStep = fatesOutOfStep();
-const intrusions = specIntrusions();
-const swollen = seriesBeyondTwo();
-const unread = unreadReports();
-const takenOutNamed = namesOfTakenOut();
-
-if (forbidden.length === 0
-    && refusalDeclarations.length === 0
-    && proseTallies.length === 0
-    && workspaceRanges.length === 0
-    && anchors.length === 0
-    && catalogDecisions.length === 0
-    && undecided.length === 0
-    && unwalked.length === 0
-    && unmarked.length === 0
-    && misplaced.length === 0
-    && broken.length === 0
-    && outOfStep.length === 0
-    && intrusions.length === 0
-    && swollen.length === 0
-    && unread.length === 0
-    && takenOutNamed.length === 0) {
-  process.stdout.write('check:conventions — OK\n');
-  process.exit(0);
-}
-
-if (forbidden.length > 0) {
-  process.stdout.write(`\nForbidden framing / markers (${forbidden.length}):\n`);
-  for (const v of forbidden) {
-    process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.snippet}\n`);
-  }
-  process.stdout.write('    a text says what holds, not when it changed, and leaves no marker of work undone [QSWRK#tooling].\n');
-}
-if (refusalDeclarations.length > 0) {
-  process.stdout.write(`\nRefusals not declared by their address (${refusalDeclarations.length}):\n`);
-  for (const v of refusalDeclarations) process.stdout.write(`  ${v.file}:${v.line}  ${v.problem}\n`);
-  process.stdout.write('    the address is the key the implementation and the page of the catalog share [QSERR#site].\n');
-}
-if (proseTallies.length > 0) {
-  process.stdout.write(
-    `\nDerivable tallies in prose (${proseTallies.length}):\n`);
-  for (const v of proseTallies) {
-    process.stdout.write(`  ${v.file}:${v.line}  [tally: '${v.tally}']  ${v.snippet}\n`);
-    process.stdout.write('    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose [QSWRK#tooling].\n');
-  }
-}
-if (workspaceRanges.length > 0) {
-  process.stdout.write(
-    `\nInternal workspace dependency ranges (${workspaceRanges.length}):\n`);
-  for (const v of workspaceRanges) {
-    process.stdout.write(`  ${v.file}  ${v.dependencyMap}.${v.depName}: '${v.declaredRange}' — expected '${v.expectedRange}'\n`);
-    process.stdout.write('    the published manifest carries this range verbatim; name the sibling version this release ships with so a consumer resolves one core instance, not two [QSWRK#tooling].\n');
-  }
-}
-if (anchors.length > 0) {
-  process.stdout.write(`\nAnchors the tree no longer holds (${anchors.length}):\n`);
-  for (const v of anchors) {
-    process.stdout.write(`  ${v.file}  \`${v.anchor}\` ${v.problem}\n`);
-  }
-  process.stdout.write('    replace the sentence with the fact of the tree and its new anchor [QSWRK#probe].\n');
-}
-if (catalogDecisions.length > 0) {
-  process.stdout.write(`\nDecisions named in the catalog (${catalogDecisions.length}):\n`);
-  for (const v of catalogDecisions) process.stdout.write(`  ${v.file}:${v.line}  ${v.reference}\n`);
-  process.stdout.write('    a page names what a reader can follow by a query; the reason lives with its decision [QSWRK#marks].\n');
-}
-if (undecided.length > 0) {
-  process.stdout.write(`\nRecords out of their form (${undecided.length}):\n`);
-  for (const file of undecided) process.stdout.write(`  ${file}\n`);
-  process.stdout.write('    a record opens with `Domain.`, the part of the work it governs; write `Decided by. The maintainer` or `Decided by. The model`, the line naming the parts of the model beside the choice of the maintainer [QSWRK#journal]; an open record holds `Question.`, `Source.` and `Alternatives.`, and no `Decided by.` or `Decision.` until it is decided [QSWRK#journal].\n');
-}
-if (unmarked.length > 0) {
-  process.stdout.write(`\nArtifacts that name no decision (${unmarked.length}):\n`);
-  for (const path of unmarked) process.stdout.write(`  ${path}\n`);
-  process.stdout.write('    name the decision the artifact exists for at its head, or let it go [QSWRK#marks].\n');
-}
-if (misplaced.length > 0) {
-  process.stdout.write(`\nRecords in the wrong folder (${misplaced.length}):\n`);
-  for (const { path, problem } of misplaced) process.stdout.write(`  ${path}  ${problem}\n`);
-  process.stdout.write('    the root of the records holds those in force, and `replaced/` those replaced whole, moved once [QSWRK#journal].\n');
-}
-if (broken.length > 0) {
-  process.stdout.write(`\nLinks that lead nowhere (${broken.length}):\n`);
-  for (const { path, line, target } of broken) process.stdout.write(`  ${path}:${line}  ${target}\n`);
-  process.stdout.write('    a link of a document leads to a file the tree holds; `node scripts/replaced-records.mjs` writes the links to a record it moves [QSWRK#journal], [QSWRK#marks].\n');
-}
-if (outOfStep.length > 0) {
-  process.stdout.write(`\nFates out of step (${outOfStep.length}):\n`);
-  for (const { name, problem } of outOfStep) process.stdout.write(`  ${name}  ${problem}\n`);
-  process.stdout.write('    a line of fate names a record the folder holds, a part taken is named back by the record that took it, and a record is pruned only by one written after it [QSWRK#journal].\n');
-}
-if (unwalked.length > 0) {
-  process.stdout.write(`\nThe walk of the baseline (${unwalked.length}):\n`);
-  for (const v of unwalked) process.stdout.write(`  ${v.where}  ${v.problem}\n`);
-  process.stdout.write('    give each record its fate or its case, move the baseline, and cite the records in force [QSWRK#baseline].\n');
-}
-if (intrusions.length > 0) {
-  process.stdout.write(`\nA text that states what holds speaks of the change (${intrusions.length}):\n`);
-  for (const v of intrusions) process.stdout.write(`  ${v.file}:${v.line}  [${v.rule}]  ${v.text}\n`);
-  process.stdout.write('    a cataphatic text states what holds; the change, its records and its history belong to the journal [QSWRK#spec], [QSWRK#documents].\n');
-}
-if (swollen.length > 0) {
-  process.stdout.write(`\nSeries past their two latest at the baseline (${swollen.length}):\n`);
-  for (const { name, count, baseline } of swollen) process.stdout.write(`  ${name}: ${count} at the merge ${baseline} that landed it\n`);
-  process.stdout.write('    a branch keeps every run of its own, and the move of the baseline gives the older to the history, `node scripts/drop-documents.mjs`, git keeping it [QSWRK#baseline].\n');
-}
-if (unread.length > 0) {
-  process.stdout.write(`\nReports of the research without their reading (${unread.length}):\n`);
-  for (const { path, reading } of unread) process.stdout.write(`  ${path}  wants ${reading}\n`);
-  process.stdout.write('    the session writes its reading beside each report it runs, every finding with its probe and its fate, and commits the two together [QSWRK#review].\n');
-}
-if (takenOutNamed.length > 0) {
-  process.stdout.write(`\nNames of what the branch took out (${takenOutNamed.length}):\n`);
-  for (const { file, line, token, snippet } of takenOutNamed) process.stdout.write(`  ${file}:${line}  \`${token}\`  ${snippet}\n`);
-  process.stdout.write(`    the code, the catalog and the cases hold none of these since the baseline ${takenOutNamed[0].baseline}: a comment, a doc and the prose name what the reader finds, a section of a chapter waiting for its move under a record in transit over it, and what was lives in the record and the commit [QSWRK#documents].\n`);
-}
-process.exit(1);
+const { text, failed } = verdictOf({
+  forbidden: scanForbiddenWords(),
+  refusalDeclarations: refusalDeclarationDrift(),
+  proseTallies: scanProseTallies(),
+  workspaceRanges: workspaceRangeDrift(),
+  anchors: anchorDrift(),
+  catalogDecisions: decisionsInCatalog(),
+  undecided: recordsWithoutDecider(),
+  unmarked: unmarkedArtifacts(),
+  misplaced: misplacedRecords(),
+  broken: brokenLinks(),
+  outOfStep: fatesOutOfStep(),
+  unwalked: baselineDrift(),
+  intrusions: specIntrusions(),
+  swollen: seriesBeyondTwo(),
+  unread: unreadReports(),
+  takenOutNamed: namesOfTakenOut(),
+  retired: retiredWordsWritten(),
+  commandKinds: kindsOfCommands()
+});
+process.stdout.write(text);
+process.exit(failed ? 1 : 0);

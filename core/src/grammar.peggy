@@ -88,15 +88,15 @@
   // A step is a command: a value stands at the head of a pipeline and
   // after a declaration, where it is the subject, and a value written as
   // a later step is refused, a path after `!|` as well, each refusal
-  // naming the word the habit meant [QSSYN#step].
+  // naming the verb the habit meant [QSSYN#step].
   const VALUE_STEPS = new Set(['Path', 'VecLit', 'MapLit', 'SetLit', 'ErrorLit', 'TaggedLit', 'TagLit', 'QuoteLit', 'DocLit', 'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
 
   function refuseValueStep(step) {
-    if (step.type === 'Path') error(`a path is a value, which the word that takes it reads: write \`get ${step.text}\``, step.location);
+    if (step.type === 'Path') error(`a path is a value, which the verb that takes it reads: write \`get ${step.text}\``, step.location);
     if (step.type === 'TagLit') error(`a tag goes over the value in the pipe by \`tag\`: write \`tag ${step.text}\``, step.location);
     if (step.type === 'QuoteLit') error('code runs on the value in the pipe by `apply`: write `apply ~(…)`', step.location);
     if (step.type === 'VecLit' || step.type === 'MapLit' || step.type === 'SetLit' || step.type === 'TaggedLit') error('a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`', step.location);
-    error('a step is a command: a value stands at the head, where it is the subject, or as what a word takes', step.location);
+    error('a step is a command: a value stands at the head, where it is the subject, or as what a verb takes', step.location);
   }
 
   function refuseValueSteps(leadingComb, head, tail) {
@@ -281,7 +281,7 @@ PipedCombinator
 // parser names by the key it expected.
 SpacingRefusal
   = &{ return docQuoteDepth === 0; }
-    ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a word, `| apply ~(…)`'); }
+    ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a verb, `| apply ~(…)`'); }
     / _ &(Combinator _ [)\]}]) c:Combinator { error(`\`${c}\` joins two steps, and the step after it is missing`, lastOf(c.length)); }
     / __ &(PipedCombinator __ Combinator) PipedCombinator __ second:Combinator { refuseCombinatorAfterCombinator('!|', second); }
     / __ !PipedCombinator &(Combinator __ Combinator) first:Combinator __ second:Combinator { refuseCombinatorAfterCombinator(first, second); }
@@ -308,10 +308,10 @@ DocBeforeDeclaration
 
 // A doc written after a step with no combinator is refused: a note in a
 // pipeline is a comment, which is whitespace, and a doc as a value stands
-// at the head or where a word takes it [QSSYN#doc].
+// at the head or where a verb takes it [QSSYN#doc].
 DocAfterStep
   = &{ return docQuoteDepth === 0; } &DocOpen DocOpen
-    { error('a doc is a value, which stands at the head or where a word takes it; a note inside a pipeline is a comment, `|~ … ~|`'); }
+    { error('a doc is a value, which stands at the head or where a verb takes it; a note inside a pipeline is a comment, `|~ … ~|`'); }
 
 DocOpen
   = LineDocOpen / BlockDocOpen
@@ -512,7 +512,7 @@ Word
   / Name
   / AtomLit
 
-// The element of a literal and the object of a command, which a doc value
+// The element of a literal and the modifier of a command, which a doc value
 // may be too [QSSYN#doc].
 Element
   = Word
@@ -538,7 +538,7 @@ CallName
     }
   / name:Ident { return { name }; }
 
-// `::tag<payload>` puts a payload under a tag through its constructor, the
+// `::tag<payload>` puts a payload under a tag through its kind, the
 // payload touching the tag by a sign that continues the literal, a number,
 // a boolean, null or a path, whose literal would continue the tag's name,
 // by `#`, `::Width#5`; parentheses after a tag,
@@ -580,7 +580,7 @@ TagLit
     { return node('TagLit', { tag }, span(), text()); }
 
 // A tag's name lives apart from the values, so a name after `::` may be
-// a reserved word, as after `:` and `/`: `::null` is the kind of null
+// a word of the literals, as after `:` and `/`: `::null` is the kind of null
 // [QSLIT#kind].
 TagName
   = NamespacedName
@@ -599,7 +599,7 @@ QuoteLit
     &{ return docQuoteDepth === 0 || pathAlone(pipeline) === null; }
     {
       const path = pathAlone(pipeline);
-      if (path !== null) error(`the quote of a path answers the path, which no word wants: give the path bare, \`${path.text}\``);
+      if (path !== null) error(`the quote of a path answers the path, which no verb wants: give the path bare, \`${path.text}\``);
       return node('QuoteLit', { pipeline }, span(), text());
     }
 
@@ -610,7 +610,7 @@ ShortQuoteLit
   = "~" pipeline:(TagLit / Name)
     { return node('QuoteLit', { pipeline }, span(), text()); }
   / &{ return docQuoteDepth === 0; } "~" path:Path
-    { error(`the quote of a path answers the path, which no word wants: give the path bare, \`${path.text}\``); }
+    { error(`the quote of a path answers the path, which no verb wants: give the path bare, \`${path.text}\``); }
   / &{ return docQuoteDepth === 0; } "~" &[{[]
     { error('a quote is written `~(…)`, its code in parentheses; `{…}` is a map and `[…]` a vector'); }
 
@@ -814,7 +814,7 @@ LiteralGap
   / &{ return docQuoteDepth === 0; } &(!"/" Element) Element { error('the words of a literal are set off by whitespace: `[1 2]`'); }
 
 // A path, a value of its own [QSPTH#value]: a segment is a bare key, a quoted
-// key, a namespaced keyword after `:`, or an index; the slash alone, with no
+// key, a keyword of names joined by `/` after `:`, or an index; the slash alone, with no
 // segment begun after it, names no path, the value itself being `it`, and a
 // question mark after a segment, the habit of a read that may miss, leads to
 // `query`.
@@ -902,7 +902,7 @@ NamespacedName
 QuotedKeywordName
   = '"' chars:DoubleStringChar* '"' { return chars.join(''); }
 
-// A name after `:` or `/` may be a reserved word.
+// A name after `:` or `/` may be a word of the literals.
 KeywordName
   = first:IdentStart rest:IdentTail*
     { return first + rest.join(''); }

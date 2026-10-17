@@ -10,7 +10,7 @@ Usage:  qlang [--json | --raw] [--color=MODE] [--budget=N] [--fail] <query>
         qlang -V | --version
 
 Script mode runs the query on what stdin holds and prints the answer
-as the language prints it. JSON input is the subject as values, an
+as the language prints it. JSON on stdin is the subject as values, an
 object a map whose keys are keywords, and other text a string. A
 query that reads no subject, '[1 2] | sum' or '::vec | doc', reads no
 stdin; one that reads it with nothing piped, a terminal or < /dev/null,
@@ -22,7 +22,7 @@ cell. Quote the query so the shell does not split on whitespace or
 pipe characters. qlang '::cli | doc' reads this command line, and
 qlang '::qlang | doc' the language.
 
-Input mode (script):
+Reading stdin (script):
   (default)   JSON is read as values, any other text as one string
   --json      stdin must be JSON; a text that does not parse answers
               ::string/parseJson/TextNotJsonError, exit 0 as every answer
@@ -79,15 +79,15 @@ const argumentAfterTheQuery = argument => ({
 
 // parseArgv(argvSlice) → what the arguments of the command line ask for,
 // one of
-//   { kind: 'evalQuery', queryText, inputFormat, colorMode, budget, failureExitCode }
+//   { kind: 'evalQuery', queryText, stdinFormat, colorMode, budget, failureExitCode }
 //   { kind: 'repl', budget, initialQuery }
 //   { kind: 'help' }, { kind: 'version' }, { kind: 'usageError', message }
-// the format of the input `auto`, `json` or `raw`, the colour `auto`,
-// `always` or `never`, the budget null or the characters every
-// answer prints within, and the code a failure exits with, 0, or 1
+// the format standard input is read in, `auto`, `json` or `raw`, the
+// colour `auto`, `always` or `never`, the budget null or the characters
+// every answer prints within, and the code a failure exits with, 0, or 1
 // under `--fail` [QSHST#answer].
 export function parseArgv(argvSlice) {
-  let inputFormat = 'auto';
+  let stdinFormat = 'auto';
   let colorMode = 'auto';
   let budget = null;
   let failureExitCode = 0;
@@ -108,8 +108,8 @@ export function parseArgv(argvSlice) {
       cursor += 1;
       continue;
     }
-    if (head === '--json') { inputFormat = 'json'; cursor += 1; continue; }
-    if (head === '--raw')  { inputFormat = 'raw';  cursor += 1; continue; }
+    if (head === '--json') { stdinFormat = 'json'; cursor += 1; continue; }
+    if (head === '--raw')  { stdinFormat = 'raw';  cursor += 1; continue; }
     if (head === '--fail') { failureExitCode = 1; cursor += 1; continue; }
     if (head.startsWith('--color=')) {
       const value = head.slice('--color='.length);
@@ -125,7 +125,7 @@ export function parseArgv(argvSlice) {
     }
     if (cursor + 1 < argvSlice.length) return argumentAfterTheQuery(argvSlice[cursor + 1]);
     if (isRepl) return { kind: 'repl', budget, initialQuery: head };
-    return { kind: 'evalQuery', queryText: head, inputFormat, colorMode, budget, failureExitCode };
+    return { kind: 'evalQuery', queryText: head, stdinFormat, colorMode, budget, failureExitCode };
   }
 
   if (isRepl) return { kind: 'repl', budget, initialQuery: null };

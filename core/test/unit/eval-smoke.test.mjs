@@ -1,4 +1,4 @@
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery, evalAst } from '../../src/eval.mjs';
@@ -120,7 +120,7 @@ describe('eval — Map and path', () => {
   });
 });
 
-describe('eval — a word that combines two fields of one record', () => {
+describe('eval — a verb that combines two fields of one record', () => {
   it('mulOf multiplies two fields of one record', async () => {
     expect(await evalQuery('{:price 100 :qty 3} | mulOf /price /qty')).toBe(300);
   });
@@ -203,11 +203,9 @@ describe('quoted keywords — eval-level identity and Map interop', () => {
   });
 });
 
-describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
-  // `apply` reads its body AST through `astFromQuoteLike`, which
-  // short-circuits when the Quote already has a `.ast` cached: a
-  // quote read from text carries the parser's own node, so applying
-  // it to a fresh subject exercises the `.ast` truthy branch.
+describe('apply runs a quote held in a name', async () => {
+  // A quote held in a name runs by `apply` on the subject it is given
+  // [QSQUO#apply].
   it('a quote read from text runs through apply against a new subject', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession();
@@ -216,7 +214,7 @@ describe('apply — pre-parsed Quote skips the lazy re-parse', async () => {
   });
 });
 
-describe('the answer of a word of the host', async () => {
+describe('the answer of a verb of the host', async () => {
   it('waits on an answer that has a then, a thenable and a promise of another realm', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const vm = await import('node:vm');
@@ -247,7 +245,7 @@ describe('the answer of a word of the host', async () => {
 });
 
 describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
-  it('wraps a plain JS Error from a word as a foreign error value', async () => {
+  it('wraps a plain JS Error from a verb as a foreign error value', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
     // A host verb whose implementation throws a raw Error, no QlangError.
@@ -267,7 +265,7 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
 });
 
 describe('eval.mjs — a Call node built by hand', async () => {
-  it('runs the word it names, its location null', async () => {
+  it('runs the verb it names, its location null', async () => {
     const ast = { type: 'Call', name: 'count', args: [], location: null };
     const runtimeEnv = await langRuntime();
     const state = rootState([1, 2, 3], runtimeEnv);

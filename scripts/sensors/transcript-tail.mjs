@@ -7,7 +7,7 @@
 // maintainer's machine, since it reads the transcripts.
 //
 // Usage: node scripts/sensors/transcript-tail.mjs <isoAfter> [i j] [--session <uuid>]
-// The decisions it exists for: [QSWRK#documents].
+// The rules it holds: [QSWRK#documents].
 
 import { recordsOf, sessionTranscript } from './transcripts.mjs';
 

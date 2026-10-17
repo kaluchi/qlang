@@ -1,7 +1,7 @@
 // The command line run as a process of its own, `cli/src/bin.mjs`: what it
 // writes to standard output and standard error and the code it exits with,
 // for a query, its flags and its piped input, and in the REPL
-// [QSHST#answer], [QSHST#input], [QSHST#repl].
+// [QSHST#answer], [QSHST#stdin], [QSHST#repl].
 
 import { describe, it, expect } from 'vitest';
 import { spawn } from 'node:child_process';
@@ -92,7 +92,7 @@ describe('CLI: script mode — query argument', () => {
   });
 });
 
-describe('CLI: piped stdin — the input modes', () => {
+describe('CLI: piped stdin — the readings of stdin', () => {
   it('reads piped JSON as values, which `get /name` reads', async () => {
     const { stdout, exitCode } = await runCli(['get /name'], {
       stdin: '{"name": "alice", "age": 30}'
@@ -137,7 +137,7 @@ describe('CLI: the REPL (`-i`) loads its modules, runs its cells and closes on `
     expect(stdout).toMatch(/84/);
   });
 
-  it('REPL keeps the words a cell declares for the cells after it', async () => {
+  it('REPL keeps the verbs a cell declares for the cells after it', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
       stdin: ':any/double ~(mul 2)\n21 | double\n.exit\n'
     });

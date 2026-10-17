@@ -1,7 +1,7 @@
 // script-mode coverage. `liftStdinToPipeValue` resolves the `auto` /
 // `json` / `raw` flag into the query's first value, and `answerText`
-// writes the answer as the language prints it, whatever the input was
-// [QSHST#answer].
+// writes the answer as the language prints it, whatever the data was
+// [QSHST#stdin], [QSHST#answer].
 
 import { describe, it, expect } from 'vitest';
 import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
@@ -14,8 +14,8 @@ import {
 
 describe('liftStdinToPipeValue — auto detection', () => {
   it('starts from the default subject when stdin carries no bytes, in every mode', () => {
-    for (const inputFormat of ['auto', 'json', 'raw']) {
-      expect(liftStdinToPipeValue('', inputFormat)).toEqual({ pipeValue: DEFAULT_SUBJECT });
+    for (const stdinFormat of ['auto', 'json', 'raw']) {
+      expect(liftStdinToPipeValue('', stdinFormat)).toEqual({ pipeValue: DEFAULT_SUBJECT });
     }
     expect(DEFAULT_SUBJECT.name).toBe('qlang');
   });
@@ -38,7 +38,7 @@ describe('liftStdinToPipeValue — explicit formats', () => {
     expect(liftStdinToPipeValue('[1, 2, 3]', 'json').pipeValue).toEqual([1, 2, 3]);
   });
 
-  it('surfaces parseError on malformed --json input', () => {
+  it('surfaces parseError on a text --json cannot read', () => {
     const lifted = liftStdinToPipeValue('not-json', 'json');
     expect(lifted.parseError).toBeInstanceOf(Error);
     expect(lifted.parseError.message).toMatch(/JSON/);
@@ -49,7 +49,7 @@ describe('liftStdinToPipeValue — explicit formats', () => {
   });
 });
 
-// The answer is written as the language prints it whatever the input was,
+// The answer is written as the language prints it whatever the data was,
 // a string as its text, so a query converts it where a reader wants
 // another format [QSHST#answer].
 describe('answerText — the answer as the language prints it', () => {

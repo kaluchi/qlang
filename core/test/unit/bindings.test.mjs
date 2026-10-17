@@ -43,7 +43,7 @@ describe('a declaration holds what its body answered', () => {
     expect(await evalQuery(':xs [1 2 3] | xs')).toEqual([1, 2, 3]);
   });
 
-  it('a quote declared under a label is a word that runs at each call', async () => {
+  it('a quote declared under a label is a verb that runs at each call', async () => {
     expect(await evalQuery(':any/double ~(mul 2) | 5 | double')).toBe(10);
   });
 
@@ -56,8 +56,8 @@ describe('a declaration holds what its body answered', () => {
   });
 });
 
-describe('a word with inputs', () => {
-  it('a word binds its inputs from the modifiers of the call', async () => {
+describe('a verb with inputs', () => {
+  it('a verb binds its inputs from the modifiers of the call', async () => {
     expect(await evalQuery(':any/surround (::fn | takes :pfx |~~ The prefix. ~~| /0 | takes :sfx |~~ The suffix. ~~| /1 | impl ~(prepend pfx | append sfx)) | "x" | surround "[" "]"'))
       .toBe('[x]');
   });

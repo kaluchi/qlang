@@ -8,10 +8,10 @@
 //     a pipeline: a failure its subject was not passes a frame there,
 //     unless its maker wrote its trail and it resumes that path.
 //   `answerOfPart(answer, partNode, subject)` — the value a part of a
-//     literal answers: a refusal the part's constructor raised passes a
-//     frame at the part, and one handed on from inside it goes on as it is.
+//     literal answers: a refusal the kind of the part's tag raised passes
+//     a frame at the part, and one handed on from inside it goes on as it is.
 //   `skipping(error, skippedStep)` — the failure that skipped a step.
-//   `atPlace(error, place)` — marks a failure at the part a word's code broke on.
+//   `atPlace(error, place)` — marks a failure at the part a verb's code broke on.
 //   `resumingItsTrail(error)` — marks a failure `raise` made of a map
 //     that wrote a path.
 //   `raisedBy(error, node)` — marks the failure a node's own fault raised.

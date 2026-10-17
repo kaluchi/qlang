@@ -59,7 +59,7 @@ describe('assembling steps by hand', () => {
     expect(await refusal('get [[~(~(f) | tag ::fail)]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
   });
 
-  it('a declaration stands in a pipeline and in no container or argument head', async () => {
+  it('a declaration stands in a pipeline and in no container or modifier', async () => {
     expect(await refusal('[[::bind{:name :x :body 1}]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
     expect(await refusal('::call{:name :f :modifiers [::bind{:name :x :body 1}]}'))
       .toEqual(await tagOf('::call/PayloadNotSchemaError'));
@@ -114,7 +114,7 @@ describe('printing steps read from text', () => {
     expect(await evalQuery('~(:x |~~ note ~~| it) | parse')).toBe(':x |~~ note ~~| it');
   });
 
-  it('a key that is no bare name prints quoted, a namespaced one behind a colon', async () => {
+  it('a key that is no bare name prints quoted, a keyword of names joined by a slash behind a colon', async () => {
     expect(await evalQuery('~(get /"a b") | parse')).toBe('get /"a b"');
     expect(await evalQuery('~(get /:ns/name) | parse')).toBe('get /:ns/name');
   });

@@ -1,6 +1,6 @@
 // The coverage of `table`: it runs through runQuery, so the bind
 // reaches the runtime and every refusal fires through real eval.
-// The decisions it exists for: [QSDSP#residence].
+// The rules it holds: [QSDSP#residence].
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';

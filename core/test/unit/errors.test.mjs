@@ -51,10 +51,10 @@ describe('a refusal declared by its address [QSERR#site]', () => {
 
 describe('QlangInvariantError', () => {
   it('is constructible with message and context', () => {
-    const invariantErr = new QlangInvariantError('registration failed', { site: 'X', word: 'foo' });
+    const invariantErr = new QlangInvariantError('registration failed', { site: 'X', verb: 'foo' });
     expect(invariantErr.message).toBe('registration failed');
     expect(invariantErr.facts.site).toBe('X');
-    expect(invariantErr.facts.word).toBe('foo');
+    expect(invariantErr.facts.verb).toBe('foo');
     expect(invariantErr).toBeInstanceOf(QlangError);
   });
 });
@@ -81,7 +81,7 @@ describe('runtime error location propagation via evalNode', () => {
     expect(originalErr.location.start.offset).toBe(source.indexOf('filter', 25));
   });
 
-  it('the location of a refusal inside a quote a step hands a word points into the source of the query', async () => {
+  it('the location of a refusal inside a quote a step hands a verb points into the source of the query', async () => {
     const source = '[1 2] | map ~(add 1 | nope 2)';
     const originalErr = await catchOriginalError(source);
     expect(originalErr.location.start.offset).toBe(source.indexOf('nope'));

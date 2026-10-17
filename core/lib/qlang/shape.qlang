@@ -1,6 +1,6 @@
 |~ `::shape`, the kind of the schema `shape` answers, and the laws
    declared under it.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :shape
   |~~ A shape is the schema of a value in the value's own literal, which

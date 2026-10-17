@@ -1,6 +1,6 @@
-// The refusals a word that is a function raises by rule, read from its
-// signature as its call raises them, which the catalog's drift test holds
-// against the pages of the root's words [QSBLD#fn].
+// The refusals a verb that is a function raises by rule, read from its
+// chain as its call raises them, which the catalog's drift test holds
+// against the pages of the root's verbs [QSERR#site].
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
@@ -14,7 +14,7 @@ await session.evalCell([
   ':number/plain (::fn | takes :by |~~ How much. ~~| ~(query /0 1) | impl ~(add by))'
 ].join(' | '));
 
-describe('the refusals a word that is a function raises by rule [QSBLD#fn]', () => {
+describe('the refusals a verb that is a function raises by rule [QSERR#site]', () => {
   it('names an answer of none of several kinds where its label is none of them', () => {
     expect(ruleRefusalsOf(session.env, 'number/pick')).toEqual([
       'number/pick/SubjectNotNumberError',
@@ -35,7 +35,7 @@ describe('the refusals a word that is a function raises by rule [QSBLD#fn]', () 
 });
 
 describe('the refusals by rule of an input that names the kinds of each element [QSBLD#fn]', () => {
-  it('names a value that is no vector where its place reads one object, and an element of none of its kinds', async () => {
+  it('names a value that is no vector where its place reads one arg, and an element of none of its kinds', async () => {
     const own = await createSession();
     await own.evalCell(':number/each (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))');
     expect(ruleRefusalsOf(own.env, 'number/each')).toEqual([
@@ -48,8 +48,8 @@ describe('the refusals by rule of an input that names the kinds of each element 
   });
 });
 
-describe('a host\'s word written as the chain of its function [QSBLD#fn]', () => {
-  it('runs the code inputs of a host\'s word, a quote written in the step in the scope of the step', async () => {
+describe('a host\'s verb written as the chain of its function [QSHST#source]', () => {
+  it('runs the code inputs of a host\'s verb, a quote written in the step in the scope of the step', async () => {
     const hosted = await createSession({ sources: [{
       uri: 'test/declared',
       source: [
@@ -65,7 +65,7 @@ describe('a host\'s word written as the chain of its function [QSBLD#fn]', () =>
     expect((await hosted.evalCell(':k 10 | 5 | each ~(add k) ~(mul 2)')).result).toEqual([15, 10]);
   });
 
-  it('hands a host\'s word an input it runs as code, a path among it, and an input it does not run as it is', async () => {
+  it('hands a host\'s verb an input it runs as code, a path among it, and an input it does not run as it is', async () => {
     const hosted = await createSession({ sources: [{
       uri: 'test/declared-values',
       source: [
@@ -84,14 +84,14 @@ describe('a host\'s word written as the chain of its function [QSBLD#fn]', () =>
     expect((await hosted.evalCell('5 | each ~(add 1) 7')).result).toEqual([6, 7]);
   });
 
-  it('names the refusals of a word written as its recipe alone, the function of no commands it is [QSBLD#chain]', async () => {
+  it('names the refusals of a verb written as its recipe alone, the function of no commands it is [QSBLD#recipe]', async () => {
     const own = await createSession();
     await own.evalCell(':number/v ~(1)');
     expect(ruleRefusalsOf(own.env, 'number/v')).toEqual(['number/v/SubjectNotNumberError', 'number/v/ArgsBeyondInputsError']);
   });
 });
 
-describe('a word a later source declares as a function [QSBLD#fn]', () => {
+describe('a verb a later source declares as a function [QSBLD#recipe]', () => {
   it('runs by its function, its recipe reading its input past a value of the reader of the name', async () => {
     const hosted = await createSession({ sources: [{ uri: 'test/twice', source: ':number/twice ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by | add by)]' }] });
     expect((await hosted.evalCell(':by 99 | 5 | twice 1')).result).toBe(7);

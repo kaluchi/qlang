@@ -1,7 +1,7 @@
 |~ `::doc`, the kind of a page, and what is declared under it: its
    constructor and the refusals of a payload that is no vector of
-   segments, and the words that read a doc.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   segments, and the verbs that read a doc.
+   The rules it holds: [QSDSP#residence]. ~|
 
 :doc
   |~~ A doc is prose held as a value, text that carries quotes of qlang:
@@ -21,7 +21,7 @@
       order, `links` its links and `snippets` its snippets, so
       `::qlang | doc | links | map ~open` opens every page the first
       page names.
-      ::snippet~(::doc | manifest) lists its words and refusals.
+      ::snippet~(::doc | manifest) lists its verbs and refusals.
       ::link~(::link | doc) ::link~(::snippet | doc)
       ::link~(::qlang/hypertext | doc)
   ~~|
@@ -82,8 +82,8 @@
     | proves :writesALinkWithItsTags
         |~~ A link is written with its tags. ~~|
         ~(|~~ see ::link~(::vec | doc) ~~| | content | eq " see ::link~(::vec | doc) ")
-    | proves :readsThePageOfAWord
-        |~~ The content of a word's page is its text. ~~|
+    | proves :readsThePageOfAVerb
+        |~~ The content of a verb's page is its text. ~~|
         ~(::vec/join | doc | content | contains "separator")
     | proves :SubjectNotDocError/refusesTheNullOfANameWithoutAPage
         |~~ A name declared without a page has no content to read. ~~|

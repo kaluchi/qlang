@@ -1,6 +1,6 @@
 |~ `::null`, the kind of null, and what is declared under it: its
    constructor and its refusal, and its text and its keyword.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :null
   |~~ Null is the absence of a value, the one value of its kind. It
@@ -14,7 +14,7 @@
       writes it as `null`. `get /b` reads strictly: a missing part is a
       failure there, never null, so a misspelled field is
       found where it is read.
-      ::snippet~(::null | manifest) lists its words.
+      ::snippet~(::null | manifest) lists its verbs.
       ::link~(::any/coalesce | doc) ::link~(::path | doc)
       ::link~(::qlang/values | doc)
   ~~|

@@ -1,7 +1,7 @@
 // @kaluchi/qlang-core — the package root, free of `node:*` for the
 // browser, and what a host builds on; `package.json#sideEffects` keeps
 // the runtime modules, which bind their primitives as they load.
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 export { parse, ParseError } from './parse.mjs';
 export { evalQuery, answerKindsOf } from './eval.mjs';
@@ -24,7 +24,7 @@ export { isNameStart, isNameContinue } from './name-chars.mjs';
 export {
   keyword, isKeyword, makeTag, isTag, isErrorValue,
   bindingValueOf, makeErrorValue,
-  TAG_HEADER_SYMBOL, stampTagHeader, typeKeyword
+  TAG_HEADER_SYMBOL, stampTagHeader, typeOf
 } from './types.mjs';
 export { shownFor } from './runtime/verb.mjs';
-export { verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isWord, declaresWord, ruleRefusalsOf } from './runtime/nouns.mjs';
+export { verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isVerb, declaresVerb, ruleRefusalsOf } from './runtime/nouns.mjs';

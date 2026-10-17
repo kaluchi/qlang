@@ -1,7 +1,7 @@
 |~ `::frame`, the kind of one level of the path a failure flew, and what
    is declared under it: the refusal of a payload that holds no subject
-   and steps, and the words that read a frame.
-   The decisions it exists for: [QSERR#trail]. ~|
+   and steps, and the verbs that read a frame.
+   The rules it holds: [QSERR#trail]. ~|
 
 :frame
   |~~ A frame is one level of the path a failure flew, the step that broke
@@ -57,7 +57,7 @@
   |~~ Answers the subject of the frame, the value the step that broke
       there met, `::frame["x" ~(add 1)] | subject` answering `"x"`: the
       first frame of a trail holds the value the refusal met, and the
-      frame of a word that ran its code on a part of its subject the whole
+      frame of a verb that ran its code on a part of its subject the whole
       subject, its `place` naming the part.
       ::link~(::frame/place | doc) ::link~(::frame/step | doc)
   ~~|
@@ -70,7 +70,7 @@
     | proves :answersTheValueTheStepMet
         |~~ The first frame holds the value the refusal met. ~~|
         ~("x" | add 1 !| trail | first | subject | eq "x")
-    | proves :answersTheWholeSubjectOfAWord
+    | proves :answersTheWholeSubjectOfAVerb
         |~~ The frame of `map` holds the vector it ran its code over. ~~|
         ~([1 "x" 3] | map ~(mul 2) !| trail | last | subject | eq [1 "x" 3])
     | proves :SubjectNotFrameError/refusesAnError
@@ -135,7 +135,7 @@
   |~~ Answers the path of the part of the subject the step ran its code on
       where it broke, null where it ran it on no part:
       `[1 "x" 3] | map ~(mul 2) !| trail | last | place` answers `/1`. A
-      word that runs its code on the elements of its subject, `map`,
+      verb that runs its code on the elements of its subject, `map`,
       `filter`, `every`, `any` and `reduce`, and the keys of `sort`,
       `min`, `max`, `groupBy` and `indexBy`, names the place of the
       element, its index or its key, and `update` the path it wrote; the

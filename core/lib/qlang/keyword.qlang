@@ -1,7 +1,7 @@
 |~ `::keyword` and what is declared under it: its constructor and its
-   refusal, the comparisons of keywords, and the words that turn a
+   refusal, the comparisons of keywords, and the verbs that turn a
    keyword into a string, a number and a tag.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :keyword
   |~~ A keyword is a name that stands for itself, `:name`. It is apart
@@ -18,7 +18,7 @@
       turn one into the other, `"draft" | toKeyword` answering `:draft`. JSON writes a
       keyword as its name, `"draft"`, and keywords rank after patterns
       and before tags.
-      ::snippet~(::keyword | manifest) lists its words.
+      ::snippet~(::keyword | manifest) lists its verbs.
       ::link~(::map | doc) ::link~(::string | doc)
       ::link~(::qlang/values | doc)
   ~~|

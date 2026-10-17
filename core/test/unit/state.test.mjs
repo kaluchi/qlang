@@ -1,7 +1,7 @@
 // state.mjs — the (pipeValue, env) accessors, the immutable env
 // updaters, and the frame constructors that carry the evaluation
 // depth budget.
-// The decisions it exists for: [QSDSP#residence], [QSNAM#word].
+// The rules it holds: [QSDSP#residence], [QSNAM#verb].
 
 import { describe, it, expect } from 'vitest';
 import {

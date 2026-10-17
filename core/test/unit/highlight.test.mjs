@@ -136,7 +136,7 @@ describe('tokenize — atomic literal kinds', () => {
 });
 
 describe('tokenize — the kind of a call\'s name', () => {
-  it('the name of a word of the language resolves to `word`', async () => {
+  it('the name of a verb of the language resolves to `word`', async () => {
     const tokens = tokenize('count', await builtins());
     expect(tokens[0].kind).toBe('word');
   });
@@ -146,7 +146,7 @@ describe('tokenize — the kind of a call\'s name', () => {
     expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
   });
 
-  it('a name outside the words of the language resolves to `name`', async () => {
+  it('a name outside the verbs of the language resolves to `name`', async () => {
     const tokens = tokenize('myVerb', await builtins());
     expect(tokens[0].kind).toBe('name');
   });

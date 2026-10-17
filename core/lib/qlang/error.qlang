@@ -1,12 +1,12 @@
 |~ `::error`, the kind every error is a value of, and what is declared
    under it: the refusals of a payload that is no map and of a path that
-   is no vector of frames, the facts a refusal may carry, and the words
+   is no vector of frames, the facts a refusal may carry, and the verbs
    of errors. The error at
    rest, the value `!|` catches a failure to, is `::error{…}`, or the tag
    of the site that refused stacked over it, and its walk passes
-   `::error` on its way to the map, so a word declared here reaches every
+   `::error` on its way to the map, so a verb declared here reaches every
    error.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :error
   |~~ An error is the facts of a failure as a value: what refused, on
@@ -34,7 +34,7 @@
       answers the site, `::number/add/SubjectNotNumberError`, and
       `trail` the path. No value holds a failure, so a literal, a name
       or a fact whose part fails answers the failure.
-      ::snippet~(::error | manifest) lists its words and refusals.
+      ::snippet~(::error | manifest) lists its verbs and refusals.
       ::link~(::explanation | doc) ::link~(::fail | doc)
       ::link~(::qlang/errors | doc)
   ~~|
@@ -64,7 +64,7 @@
         ~~|
         #[::keyword ::tag]
     | carries :addresses
-        |~~ The addresses where a word of that name lives, one for each
+        |~~ The addresses where a verb of that name lives, one for each
             kind that answers it.
         ~~|
         ::set
@@ -75,13 +75,13 @@
             substitution or a swap of two neighbours, up to a third of its
             length and one at least, the nearest of them alone; beside
             them a name that begins it or that it begins, three letters at
-            least, `multiply` for `mul`; and the words the page of a word
+            least, `multiply` for `mul`; and the verbs the page of a verb
             it begins with links whose names end as it goes on, `sumOf`
-            for `addOf`. For a word the kind of the subject lacks, the
-            words the pages of the word lead to that the subject answers
-            and that answer a kind the word answers, `print` and `json`
-            for the `toString` of a vector. In the order of their
-            spelling, and `[]` where none is near.
+            for `addOf`. For a name whose verbs the kind of the subject
+            lacks, the verbs their pages lead to that the subject answers
+            and that answer a kind they answer, `print` and `json` for the
+            `toString` of a vector. In the order of their spelling, and
+            `[]` where none is near.
         ~~|
         ::vec
     | carries :read
@@ -106,7 +106,7 @@
         #[::tag]
     | carries :actualType |~~ The kind of the value refused. ~~| ::tag
     | carries :places
-        |~~ How many places the inputs of the word read, where the call
+        |~~ How many places the inputs of the verb read, where the call
             gave more values.
         ~~|
         ::number

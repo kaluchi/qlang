@@ -1,4 +1,4 @@
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { defineConfig } from 'vitest/config';
 
@@ -13,7 +13,7 @@ import { defineConfig } from 'vitest/config';
 // Coverage is intentionally NOT enforced here — v8 coverage runs
 // in-process and does not capture child-process execution. The
 // unit suite (`vitest.config.mjs`) keeps the 100/100/100/100 gate
-// on the words / argv / render machinery.
+// on the verbs / argv / render machinery.
 
 export default defineConfig({
   test: {

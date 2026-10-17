@@ -6,7 +6,7 @@ section are the cases of its file under `core/test/conformance/QSPRN/`.
 
 ## print
 
-`print`, a word of `::any`, answers the text of its subject: an atom as
+`print`, a verb of `::any`, answers the text of its subject: an atom as
 its literal, a vector and a map by their brackets around the print of
 each element, the set, the quote, the doc and the error by their own
 brackets, a quote of a path alone as `::quote[/a]`, and any other value
@@ -131,7 +131,7 @@ the point after its end, the parser counting the offset from zero and
 the line and the column from one, the offset and the column in the
 characters a string counts. `start` and `end` answer its ends as
 points, three integers under `::point`, read by `offset`, `line` and
-`column`, each a word of its kind, `5 | start` refused as
+`column`, each a verb of its kind, `5 | start` refused as
 `::span/start/SubjectNotSpanError`. A payload that is no vector is
 refused as `…/PayloadKindNotTakenError`, an element that is no number as
 `…/ElementKindNotTakenError` with its `:index`, and a vector of another

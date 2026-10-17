@@ -12,22 +12,21 @@
 // `binding`  the record itself, `::binding` with its name, docs, value,
 //            source and origin, the source it was read from [QSDSP#residence].
 //
-// Given a name, each axis reads the member the subject holds under it
-// [QSDSP#tagname]: for a tag name the name under its address, an input of a
-// word among them, `::vec/take | doc :count`, and for any other subject the
-// word the name calls after it, `::map | doc :minus` the page of
-// `::map/minus`.
+// Given an anchor, a keyword, each axis reads the node the subject holds
+// under it [QSSLF#axis]: for a tag name the node under its address, an input of a
+// verb among them, `::vec/take | doc :count`, and for any other subject the
+// verb of that name it calls, `[1 2] | doc :count` the page of `::vec/count`.
 
 import { bindStateReader } from '../primitives.mjs';
 import {
-  isKeyword, isTag, isBinding, isNull, isSet, isVec, keyword, typeKeyword, makeTagged,
+  isKeyword, isTag, isBinding, isNull, isSet, isVec, keyword, typeOf, makeTagged,
   makeTag, makeQuote, makeDoc, payloadBeneath, NULL
 } from '../types.mjs';
 import {
   addressesOf, declarationsUnder, nodeOf, refuseWithheld, residenceOnSubject
 } from './nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { nearestTagNames, nearestMembers } from '../nearest-names.mjs';
+import { nearestTagNames, nearestNodes } from '../nearest-names.mjs';
 import { splitAddress } from '../address.mjs';
 
 // Each axis refuses under its own address, `name` the name it read, a
@@ -60,10 +59,10 @@ function declaringRecordOf(env, subject) {
 }
 
 // The record of the first kind a value's stack of tags declares, from the
-// outside in, as a call of a word walks it, a tag of identity read past to
+// outside in, as a call of a verb walks it, a tag of identity read past to
 // the kind beneath it [QSSLF#axis]; null where none is declared.
 function recordOfKind(env, value) {
-  const name = typeKeyword(value).name;
+  const name = typeOf(value).name;
   return nodeOf(env, name) ?? nodeOfRefused(env, name) ?? recordOfKind(env, payloadBeneath(value));
 }
 
@@ -74,49 +73,48 @@ function nodeOfRefused(env, name) {
   return refusedName !== null && name.endsWith('Error') ? nodeOf(env, refusedName) : null;
 }
 
-// The record of the member the subject holds under a name [QSDSP#tagname], or
-// null: the name under the address a tag name writes, an input of a word
-// among them, and otherwise the word the subject's walk
-// reaches under the name [QSSLF#page].
-function memberRecordOf(env, subject, memberName) {
-  const under = isTag(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;
-  return under ?? residenceOnSubject(env, memberName, subject);
+// The record of the node the subject holds under an anchor, or null: the
+// node under the address a tag name writes, an input of a verb among them,
+// and otherwise the verb the subject's walk reaches under the anchor [QSSLF#axis].
+function nodeUnderAnchor(env, subject, anchorName) {
+  const under = isTag(subject) ? nodeOf(env, `${subject.name}/${anchorName}`) : null;
+  return under ?? residenceOnSubject(env, anchorName, subject);
 }
 
-// What the refusal of a member holds: the name the reader asked, a
-// keyword, where the words of that name live [QSSLF#doc], and the members of
-// the subject near it [QSSLF#near].
-function memberRefusalOf(env, subject, memberName) {
+// What the refusal of an anchor holds: the name the reader asked, a
+// keyword, where the verbs of that name live, and the nodes of the subject
+// near it [QSSLF#axis].
+function anchorRefusalOf(env, subject, anchorName) {
   return {
-    name: keyword(memberName),
-    addresses: addressesOf(env, memberName),
-    nearest: nearestMembers(env, subject, memberName)
+    name: keyword(anchorName),
+    addresses: addressesOf(env, anchorName),
+    nearest: nearestNodes(env, subject, anchorName)
   };
 }
 
-// The record the subject names in the scope of the call, or the member
-// it holds under a name, or the refusal of the axis that read it; each
+// The record the subject names in the scope of the call, or the node it
+// holds under an anchor, or the refusal of the axis that read it; each
 // axis resides on `::any`, and its primitive reads the state of
 // the call [QSDSP#residence].
-export function recordReadBy(subject, memberName, state, NotFoundError) {
-  if (!isNull(memberName)) {
-    const member = memberRecordOf(state.env, subject, memberName.name);
-    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, subject, memberName.name));
-    return member;
+export function recordReadBy(subject, anchor, state, NotFoundError) {
+  if (!isNull(anchor)) {
+    const node = nodeUnderAnchor(state.env, subject, anchor.name);
+    if (node === null) throw new NotFoundError(anchorRefusalOf(state.env, subject, anchor.name));
+    return node;
   }
   const record = declaringRecordOf(state.env, subject);
   if (record === null) throw new NotFoundError(refusalOf(state.env, subject));
   return record;
 }
 
-bindStateReader('any/binding', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, AnyBindingUnknownNameError));
+bindStateReader('any/binding', (subject, anchor, state) =>
+  recordReadBy(subject, anchor, state, AnyBindingUnknownNameError));
 // The source of a record and of every declaration under its address,
 // one quote of their steps in the order they were written, what stands
 // under the address read at once; a value a host bound wrote none
 // [QSSLF#catalog].
-bindStateReader('any/source', (subject, memberName, state) => {
-  const record = recordReadBy(subject, memberName, state, AnySourceUnknownNameError);
+bindStateReader('any/source', (subject, anchor, state) => {
+  const record = recordReadBy(subject, anchor, state, AnySourceUnknownNameError);
   const written = [record, ...declarationsUnder(state.env, record.get('name').name)].filter(declared => declared.get('source') !== null);
   return written.length === 0 ? NULL : makeQuote(written.flatMap(declared => [...declared.get('source')]));
 });
@@ -128,15 +126,15 @@ export function pageOfRecord(record) {
   return makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
 }
 
-// The anchors of a path: null the empty one, a keyword a path of one,
-// a vector its elements, and any other value a path of one the walk
-// refuses [QSSLF#axis].
+// The anchors `doc` reads in turn: none for null, a keyword alone, the
+// elements of a vector, and any other value one anchor the read refuses
+// [QSSLF#axis].
 const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anchor]);
 
-// The record a path of anchors reaches, each anchor the name of a member
-// of the record the one before it reached, the empty path the record of
-// the subject itself [QSSLF#axis].
-function recordAlongPath(subject, anchors, state) {
+// The record the anchors reach, read in turn, each the last name of a node
+// under the record the one before it reached, no anchor the record of the
+// subject itself [QSSLF#axis].
+function recordOfAnchors(subject, anchors, state) {
   if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocUnknownNameError);
   return anchors.reduce((reached, anchor, index) => {
     if (!isKeyword(anchor)) throw new AnyDocAnchorElementNotKeywordError({ index, actualValue: anchor });
@@ -144,15 +142,15 @@ function recordAlongPath(subject, anchors, state) {
   }, subject);
 }
 
-// What the next anchor of a path reads under: the address of the record
-// reached, so a name under a name is read by its address [QSSLF#axis].
+// What the next anchor reads under: the address of the record reached, so
+// a node under a node is read by its address [QSSLF#axis].
 const underRecord = record => makeTag(record.get('name').name);
 
-// The page an anchor reads, the page of the member at the end of its path.
-const pageAt = (subject, anchor, state) => pageOfRecord(recordAlongPath(subject, anchorsOf(anchor), state));
+// The page the anchors read, the page of the node the last of them reaches.
+const pageAt = (subject, anchor, state) => pageOfRecord(recordOfAnchors(subject, anchorsOf(anchor), state));
 
 // A set of anchors reads a page at each, in the order of the set, an
-// element that is no anchor and no path refused at its place in the set.
+// element that is no anchor and no vector of them refused at its place.
 bindStateReader('any/doc', (subject, anchor, state) => {
   if (!isSet(anchor)) return pageAt(subject, anchor, state);
   const stranger = anchor.findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));

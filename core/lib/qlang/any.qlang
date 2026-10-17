@@ -1,17 +1,17 @@
 |~ `::any`, the kind beneath every kind, and what is declared under it:
-   the words every value answers.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   the verbs every value answers.
+   The rules it holds: [QSDSP#residence]. ~|
 
 :any
-  |~~ Any is the kind beneath every kind, where the words every value
+  |~~ Any is the kind beneath every kind, where the verbs every value
       answers live: `type`, `eq`, `doc`, `print`, `json`, `explain`,
-      `elide`, `if` and their kin. A word that means the same for every
+      `elide`, `if` and their kin. A verb that means the same for every
       value is written once here, and the walk from a name to its verb
       ends here, after the kinds of the subject.
 
       No value is of this kind alone, since `type` answers the kind
-      above it, and every value answers the words listed here.
-      ::snippet~(::any | manifest) lists the words of every value.
+      above it, and every value answers the verbs listed here.
+      ::snippet~(::any | manifest) lists the verbs of every value.
       ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
@@ -23,17 +23,19 @@
         ~(5 | type | eq ::any | not)
 
 :any/desc
-  |~~ Answers the subject under `::desc`, `5 | desc` answering
-      `::desc#5`, a value that ranks the greater first: a key of `sort`,
-      `min` or `max` that answers it descends, `[1 3 2] | sort ~(desc)`
-      answering `[3 2 1]`, and in a vector key it turns its own place
-      alone, `sort ~(get [~(get /n | desc) /s])`. A value of every kind turns, a
-      map among them, and `payload` reads it back. The key is code, a
+  |~~ Answers the subject under `::desc`, as `tag ::desc` lays it,
+      `5 | desc` answering `::desc#5`, a value that ranks the greater
+      first: a key of `sort`, `min` or `max` that answers it descends,
+      `[1 3 2] | sort ~(desc)` answering `[3 2 1]`, and in a vector key it
+      turns its own place alone, `sort ~(get [~(get /n | desc) /s])`. A
+      value of every kind turns, a map among them, and `payload` reads it
+      back. The key is code, a
       quote: `sort desc` turns the vector itself, which `sort` refuses
       as no key. A desc of a desc ranks as the value does, and a key
       turned in `max` finds the least. The call takes no value; a field
       turns by reading it first, `~(get /n | desc)`.
-      ::link~(::desc | doc) ::link~(::vec/sort | doc)
+      ::link~(::desc | doc) ::link~(::any/tag | doc)
+      ::link~(::vec/sort | doc)
   ~~|
   ::fn
     | returns
@@ -69,9 +71,9 @@
         |~~ A key turned in `max` finds the least. ~~|
         ~([{:n 1} {:n 2}] | max ~(get /n | desc) | eq {:n 1})
     | proves :ArgsBeyondInputsError/refusesAField
-        |~~ A field given to `desc` is refused under the word. ~~|
+        |~~ A field given to `desc` is refused under the verb. ~~|
         ~([{:n 1} {:n 2}] | sort ~(desc (get /n)) !| type | eq ::any/desc/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ~(tag ::desc)
 
 :any/eq
   |~~ Answers whether the subject and the value the call gives are one
@@ -133,7 +135,7 @@
         |~~ A call with no value is refused under the input. ~~|
         ~(5 | eq !| type | eq ::any/eq/value/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoValues
-        |~~ A call with two values is refused under the word. ~~|
+        |~~ A call with two values is refused under the verb. ~~|
         ~(5 | eq 5 6 !| type | eq ::any/eq/ArgsBeyondInputsError)
     | proves :keepsTheOrderOfKeysAside
         |~~ Two maps of the same entries are one value, whatever the order
@@ -175,7 +177,7 @@
         |~~ A call with no value is refused under the input. ~~|
         ~(5 | ne !| type | eq ::any/ne/value/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoValues
-        |~~ A call with two values is refused under the word. ~~|
+        |~~ A call with two values is refused under the verb. ~~|
         ~(5 | ne 6 7 !| type | eq ::any/ne/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -244,7 +246,7 @@
         ~~|
         ~("x" | add 1 | type !| type | eq ::number/add/SubjectNotNumberError)
     | proves :ArgsBeyondInputsError/refusesAKind
-        |~~ A kind given to `type` is refused under the word. ~~|
+        |~~ A kind given to `type` is refused under the verb. ~~|
         ~(5 | type ::number !| type | eq ::any/type/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -294,7 +296,7 @@
         ~~|
         ~({:k :foo :s #[1 2]} | json | parseJson | eq {:k "foo" :s [1 2]})
     | proves :ArgsBeyondInputsError/refusesAnIndent
-        |~~ An indent given to `json` is refused under the word. ~~|
+        |~~ An indent given to `json` is refused under the verb. ~~|
         ~({:a 1} | json 2 !| type | eq ::any/json/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -339,7 +341,7 @@
         ~~|
         ~(:Box |~~ A box. ~~| | :Box/print ~("box") | [::Box[1] 2] | print | eq "[box 2]")
     | proves :ArgsBeyondInputsError/refusesABudget
-        |~~ A budget given to `print` is refused under the word. ~~|
+        |~~ A budget given to `print` is refused under the verb. ~~|
         ~([1 2] | print 80 !| type | eq ::any/print/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -425,7 +427,7 @@
         |~~ A set keeps the first half of its elements and stands in the one
             order.
         ~~|
-        ~(40 | range | distinct | elide 60 | get [~(type) ~(last | type)] | eq [::set ::elision])
+        ~(40 | range | toSet | elide 60 | get [~(type) ~(last | type)] | eq [::set ::elision])
     | proves :givesADocWayWithTheHeadOfItsText
         |~~ A doc beneath the top gives way whole, its marker keeping the
             first characters of its text.
@@ -562,7 +564,7 @@
         |~~ A call without the else branch is refused under the input. ~~|
         ~(5 | if (gt 0) ~(add 1) !| type | eq ::any/if/else/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesAThirdBranch
-        |~~ A third branch is refused under the word. ~~|
+        |~~ A third branch is refused under the verb. ~~|
         ~(5 | if true ~(1) ~(2) ~(3) !| type | eq ::any/if/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -720,8 +722,8 @@
   |~~ Answers the code the call gives run against the subject,
       `5 | apply ~(add 1)` answering `6`. The code is a quote, a path or
       a function, or a name that holds one, `apply double`, and a
-      function takes its arguments as a vector, as a call holds its
-      objects, `5 | apply f [3]`. Its steps run in order, a
+      function takes its args as a vector, as a call holds its args,
+      `5 | apply f [3]`. Its steps run in order, a
       leading `!|` routing the first through the fail track, so the steps
       a frame of a trail skipped run again, as held code runs. Code held
       as the subject runs on itself by `apply it`, and text runs once
@@ -750,22 +752,21 @@
             held as the subject runs on itself by `apply it`.
         ~~|
     | takes :args
-        |~~ The arguments of a function, a vector, as a call holds its
-            objects.
+        |~~ The args of a function, a vector, as a call holds its args.
         ~~|
         ~(query /1 []) ::vec
     | throws :args/KindNotTakenError
-        |~~ The arguments of a function are a vector, `apply f [3]`, as a
-            call holds its objects.
+        |~~ The args of a function are a vector, `apply f [3]`, as a call
+            holds its args.
         ~~|
     | throws :args/NotTakenError
-        |~~ A quote and a path take no arguments: steps run in order
-            inside one quote, `apply ~(add 1 | mul 2)`, and arguments go
-            to a function, `apply f [3]`.
+        |~~ A quote and a path take no args: steps run in order inside
+            one quote, `apply ~(add 1 | mul 2)`, and args go to a
+            function, `apply f [3]`.
         ~~|
     | returns |~~ The answer of the code run against the subject. ~~| ::any
     | throws :ArgsBeyondInputsError
-        |~~ `apply` takes the code and the arguments of a function, one
+        |~~ `apply` takes the code and the args of a function, one
             vector, `apply f [3]`.
         ~~|
     | proves :runsTheCode
@@ -794,19 +795,19 @@
     | proves :code/NotGivenError/refusesACallWithNoCode
         |~~ A call with no code is refused under the input. ~~|
         ~(~(add 1) | apply !| type | eq ::any/apply/code/NotGivenError)
-    | proves :ArgsBeyondInputsError/refusesAThirdObject
-        |~~ A call with an object after the arguments is refused under the
-            word.
+    | proves :ArgsBeyondInputsError/refusesAThirdArg
+        |~~ A call with an arg after the args of the function is refused
+            under the verb.
         ~~|
         ~(5 | apply ~(add 1) [] [] !| type | eq ::any/apply/ArgsBeyondInputsError)
-    | proves :args/NotTakenError/refusesTheArgumentsOfAQuote
-        |~~ A second quote is no argument of the first. ~~|
+    | proves :args/NotTakenError/refusesTheArgsOfAQuote
+        |~~ A second quote is no arg of the first. ~~|
         ~(5 | apply ~(add 1) ~(mul 2) !| type | eq ::any/apply/args/NotTakenError)
     | proves :args/KindNotTakenError/refusesANumber
-        |~~ A number is no vector of arguments. ~~|
+        |~~ A number is no vector of args. ~~|
         ~(5 | apply ~(add 1) 3 !| type | eq ::any/apply/args/KindNotTakenError)
-    | proves :runsAFunctionOnItsArguments
-        |~~ A function runs on the subject with its arguments. ~~|
+    | proves :runsAFunctionOnItsArgs
+        |~~ A function runs on the subject with its args. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [3] | eq 8)
     | proves :passesAValueByALeadingFailStep
         |~~ A leading `!|` passes a value on. ~~|
@@ -862,18 +863,19 @@
         |~~ Nothing is declared at the start. ~~|
         ~(env | eq {})
     | proves :ArgsBeyondInputsError/refusesAName
-        |~~ A name given to `env` is refused under the word. ~~|
+        |~~ A name given to `env` is refused under the verb. ~~|
         ~(:limit 10 | env :limit !| type | eq ::any/env/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :any/kinds
-  |~~ Answers the set of the kinds the scope reads, each by its tag name,
-      whatever the subject: those the language and the host declared,
-      the topic of the language among them, and those the reader
-      declares. A query asks which kinds there are before it asks one of
-      them for its page, `::set | doc`, or for what lies under it,
-      `::set | manifest`. A concept of the topic is no kind:
-      `::qlang/values` is a page `doc` reads. The call takes no kind.
+  |~~ Answers the set of the labels the scope reads, the kinds declared
+      under a name, each by its tag name, whatever the subject: those the
+      language and the host declared, the topic of the language among
+      them, and those the reader declares. A query asks which kinds there
+      are before it asks one of them for its page, `::set | doc`, or for
+      what lies under it, `::set | manifest`. A chapter a topic tells is no
+      kind: `::qlang/values` is a page `doc` reads, which `manifest` of its
+      topic lists. The call takes no kind.
       ::link~(::any/env | doc) ::link~(::qlang | doc)
   ~~|
   ::fn
@@ -894,11 +896,11 @@
     | proves :holdsAReadersKind
         |~~ A kind the reader declares is read. ~~|
         ~(:Box |~~ A box. ~~| | kinds | has ::Box)
-    | proves :holdsNoConcept
-        |~~ A concept of the topic is no kind. ~~|
+    | proves :holdsNoChapter
+        |~~ A chapter of the topic is no kind. ~~|
         ~(kinds | has ::qlang/values | not)
     | proves :ArgsBeyondInputsError/refusesAKind
-        |~~ A kind given to `kinds` is refused under the word. ~~|
+        |~~ A kind given to `kinds` is refused under the verb. ~~|
         ~(kinds ::set !| type | eq ::any/kinds/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -908,47 +910,48 @@
       `:source` and its `:origin`, the source it was read from, so where a
       name was declared is read as data,
       `::vec/filter | binding | get /origin` answering `:qlang/vec`. A
-      word by its address reads the record its source declared, a name of
+      verb by its address reads the record its source declared, a name of
       the scope the record its declaration wrote, and any other value the
       record of its kind. The anchor, a keyword after it, reads the record
-      of the member the subject holds under it, an input of a word or the
-      word a value calls. `doc` reads the page of the record, and
+      of the node the subject holds under it, an input of a verb or the
+      verb a value calls. `doc` reads the page of the record, and
       `source` every declaration written under the name's address, the
       record's `:source` holding the step of the declaration that wrote
       it. A name nothing declares is refused, with
-      the addresses where a word of that name lives.
+      the addresses where a verb of that name lives.
       ::link~(::any/doc | doc) ::link~(::any/source | doc)
   ~~|
   ::fn
     | takes :anchor
-        |~~ The member read under the name, a keyword, null when the call
-            gives none.
+        |~~ The last name of the node read under the subject, a keyword,
+            null when the call gives none.
         ~~|
         ~(query /0) #[::keyword ::null]
     | throws :anchor/KindNotTakenError
-        |~~ The anchor is a keyword or null, the last name of a name under
+        |~~ The anchor is a keyword or null, the last name of a node under
             the subject, `::vec | binding :sort`.
         ~~|
     | returns |~~ The record of the name. ~~| ::binding
     | throws :UnknownNameError
         |~~ `binding` found no declaration of the name it read: a keyword
-            that names no binding of its scope, the last name of a word
+            that names no binding of its scope, the last name of a verb
             declared under a kind among them, or a tag name that names
             nothing. `:name` holds the name, and `:addresses` the
             addresses of the pages of that name, one for each kind that
-            answers it, so the word is read by one of them,
+            answers it, so the verb is read by one of them,
             `::vec/filter | binding`. `source`, `doc`, `explain`, `laws`
             and `runLaws` read a name as `binding` does, and each is
             refused under a tag of its own, so the tag says which of them
             read it. `:nearest` holds the names near the one it missed,
-            the tags as deep as a tag it read, and for a member the subject
-            lacks the members it holds and the words its walk reaches.
+            the tags as deep as a tag it read, and for an anchor the subject
+            holds no node under the nodes it holds and the verbs its walk
+            reaches.
         ~~|
     | proves :answersABinding
         |~~ The record is a `::binding`. ~~|
         ~(::vec/filter | binding | type | eq ::binding)
     | proves :readsTheOriginOfAVerb
-        |~~ A word's record names the source that declared it. ~~|
+        |~~ A verb's record names the source that declared it. ~~|
         ~(::vec/filter | binding | get /origin | eq :qlang/vec)
     | proves :readsTheValueOfAName
         |~~ A name's record holds its value. ~~|
@@ -957,10 +960,10 @@
         |~~ A number reads the record of `::number`. ~~|
         ~(5 | binding | get /name | eq :number)
     | proves :readsAnInputByAnAnchor
-        |~~ An anchor reads the record of an input of a word. ~~|
+        |~~ An anchor reads the record of an input of a verb. ~~|
         ~(::vec/take | binding :count | get /name | eq :vec/take/count)
-    | proves :readsTheWordAValueCalls
-        |~~ An anchor on a value reads the record of the word it calls. ~~|
+    | proves :readsTheVerbAValueCalls
+        |~~ An anchor on a value reads the record of the verb it calls. ~~|
         ~([1] | binding :count | get /name | eq :vec/count)
     | proves :holdsThePageDocReads
         |~~ The record holds the page `doc` reads. ~~|
@@ -973,9 +976,9 @@
         ~(::nonexistent-binding | binding
           !| get [~(type) /name]
           |  eq [::any/binding/UnknownNameError ::nonexistent-binding])
-    | proves :UnknownNameError/namesWhereTheWordLives
-        |~~ A word's name is refused with the addresses where the word
-            lives.
+    | proves :UnknownNameError/namesWhereItsVerbsLive
+        |~~ The name of a verb is refused with the addresses where the
+            verbs of that name live.
         ~~|
         ~(::filter | binding !| get /addresses | has ::vec/filter)
     | impl ::builtin{}
@@ -984,26 +987,26 @@
   |~~ Answers the code written under a name, one quote of its
       declarations in the order they were written, which `parse` prints
       as its text, a declaration a line: the declaration that binds the
-      name in its scope, the chain of a word's function with its inputs,
+      name in its scope, the chain of a verb's function with its inputs,
       its answer, its refusals and its laws, and every declaration under
       its address. `::Tag | source` reads what was written
       under the tag, and any other value the declaration of its kind. A
       node a chain lays, a refusal among them, and a binding no step
-      declared, a value a host bound, answer null. Given a name, it reads the name the
-      subject holds under it: for a tag name the name under its address,
-      an input of a word among them, and for any other subject
-      the word the name calls after it. A name nothing declares is
-      refused, with the addresses where a word of that name lives.
+      declared, a value a host bound, answer null. The anchor, a keyword
+      after it, reads the code of the node the subject holds under it,
+      an input of a verb or the verb a value calls. A name nothing
+      declares is refused, with the addresses where a verb of that name
+      lives.
       ::link~(::any/doc | doc) ::link~(::any/binding | doc)
   ~~|
   ::fn
-    | takes :name
-        |~~ The name read under the subject, a keyword, null when the call
-            gives none.
+    | takes :anchor
+        |~~ The last name of the node read under the subject, a keyword,
+            null when the call gives none.
         ~~|
         ~(query /0) #[::keyword ::null]
-    | throws :name/KindNotTakenError
-        |~~ The name is a keyword or null, the last name of a name under
+    | throws :anchor/KindNotTakenError
+        |~~ The anchor is a keyword or null, the last name of a node under
             the subject, `::vec | source :sort`.
         ~~|
     | returns
@@ -1017,7 +1020,7 @@
             ::link~(::any/binding/UnknownNameError | doc)
         ~~|
     | proves :readsEveryDeclarationUnderAName
-        |~~ The source of a word is its declaration, the chain that holds
+        |~~ The source of a verb is its declaration, the chain that holds
             its inputs, its refusals and its laws.
         ~~|
         ~(::vec/take | source | map /name | eq [:vec/take])
@@ -1029,10 +1032,10 @@
           | ::Box | source | map /name
           | eq [:Box :Box/a :Box/b :Box/note])
     | proves :printsTheDeclaration
-        |~~ The source of a word prints as its declaration. ~~|
+        |~~ The source of a verb prints as its declaration. ~~|
         ~(::vec/filter | source | parse | contains ":vec/filter")
     | proves :printsADeclarationALine
-        |~~ The source of a word prints a declaration a line. ~~|
+        |~~ The source of a verb prints a declaration a line. ~~|
         ~(::number/round | source | parse | lines | first | eq ":number/round |~~ Answers the subject rounded to the digits after the point the call")
     | proves :printsARefusalInTheChainOfItsKind
         |~~ A refusal a kind pages prints in the source of the kind, the
@@ -1042,23 +1045,23 @@
     | proves :readsTheKindOfAValue
         |~~ A string reads the source of `::string`. ~~|
         ~("text" | source | eq (::string | source))
-    | proves :readsAWordByAnAnchor
-        |~~ A name after a kind reads the source of its word. ~~|
+    | proves :readsAVerbByAnAnchor
+        |~~ An anchor after a kind reads the source of its verb. ~~|
         ~(::vec | source :take | eq (::vec/take | source))
-    | proves :readsTheWordAValueCalls
-        |~~ A name on a value reads the source of the word it calls. ~~|
+    | proves :readsTheVerbAValueCalls
+        |~~ An anchor on a value reads the source of the verb it calls. ~~|
         ~([1] | source :count | eq (::vec/count | source))
-    | proves :name/KindNotTakenError/refusesANumber
-        |~~ A name that is a number is refused under the input. ~~|
-        ~(::vec/take | source 1 !| type | eq ::any/source/name/KindNotTakenError)
+    | proves :anchor/KindNotTakenError/refusesANumber
+        |~~ An anchor that is a number is refused under the input. ~~|
+        ~(::vec/take | source 1 !| type | eq ::any/source/anchor/KindNotTakenError)
     | proves :UnknownNameError/refusesANameNothingDeclares
         |~~ A name nothing declares is refused. ~~|
         ~(::nonexistent-binding | source
           !| get [~(type) /name]
           |  eq [::any/source/UnknownNameError ::nonexistent-binding])
-    | proves :UnknownNameError/namesWhereTheWordLives
-        |~~ A word's name is refused with the addresses where the word
-            lives.
+    | proves :UnknownNameError/namesWhereItsVerbsLive
+        |~~ The name of a verb is refused with the addresses where the
+            verbs of that name live.
         ~~|
         ~(::filter | source !| get /addresses | has ::vec/filter)
     | impl ::builtin{}
@@ -1066,33 +1069,34 @@
 :any/doc
   |~~ Answers the page of a name, the passage from an address into its
       description: a name is read by its tag, `::vec/filter | doc` the
-      page of a word, `::limit | doc` the page of the declaration that
+      page of a verb, `::limit | doc` the page of the declaration that
       binds `limit` in the scope, null for a declaration without one. A
       page answers its text by `content`, its links by `links` and its
       snippets by `snippets`, and the laws of the name stand under it,
       `::vec/take | laws`. Any other value reads the page of its kind, a
       keyword among them, `:limit | doc` the page of `::keyword`. The
-      anchor, a keyword after `doc`, reads the page of the member the
-      subject holds under it, the word a value calls or an input of a
-      word; a vector of anchors walks a path, each read within the page
+      anchor, a keyword after `doc`, reads the page of the node the
+      subject holds under it, the verb a value calls or an input of a
+      verb; a vector of anchors reads them in turn, each under the node
       the one before reached, and a set of anchors reads a page at each.
-      A name nothing declares is refused, with the addresses where a word
-      of that name lives, as is an anchor no member answers.
+      A name nothing declares is refused, with the addresses where a verb
+      of that name lives, as is an anchor no node answers.
       ::link~(::any/laws | doc) ::link~(::doc | doc)
   ~~|
   ::fn
     | takes :anchor
-        |~~ The anchor within the page: a keyword, a vector of them that
-            walks a path or a set of them, null when the call gives none.
+        |~~ The last name of the node read under the subject, a keyword, a
+            vector of them read in turn or a set of them, null when the
+            call gives none.
         ~~|
         ~(query /0) #[::keyword ::null ::set ::vec]
     | throws :anchor/KindNotTakenError
         |~~ The anchor is a keyword, a vector, a set or null, the last
-            names of names under the subject, `::qlang | doc :pipeline`.
+            names of nodes under the subject, `::qlang | doc :pipeline`.
         ~~|
     | throws :anchor/ElementNotKeywordError
-        |~~ An anchor of the path `doc` reads is no keyword: each step of
-            the path names a member by a keyword, `doc [:take :count]`.
+        |~~ An anchor `doc` reads in turn is no keyword: each names a node
+            by a keyword, `doc [:take :count]`.
         ~~|
     | returns
         |~~ The page of the name, null for a declaration without one, a
@@ -1101,12 +1105,12 @@
         #[::doc ::null ::vec]
     | throws :UnknownNameError
         |~~ `doc` found no declaration of the name it read, as `binding`
-            finds none, or no member of the page before it under an anchor
-            of its path.
+            finds none, or no node under the one before it at an anchor it
+            read in turn.
             ::link~(::any/binding/UnknownNameError | doc)
         ~~|
     | throws :ArgsBeyondInputsError
-        |~~ `doc` reads one anchor: a path of anchors is a vector,
+        |~~ `doc` reads one anchor: anchors read in turn are a vector,
             `doc [:take :count]`, and the pages of several a set,
             `doc #[:take :drop]`.
         ~~|
@@ -1129,18 +1133,18 @@
         ~(:limit |~~ The cap. ~~| 5
           | get [~(:limit | doc) ~(::limit | doc | content)]
           | eq (get [~(::keyword | doc) " The cap. "]))
-    | proves :readsAMemberByAnAnchor
-        |~~ An anchor reads the page of a member. ~~|
+    | proves :readsANodeByAnAnchor
+        |~~ An anchor reads the page of a node. ~~|
         ~(::map | doc :minus | eq (::map/minus | doc))
-    | proves :readsTheWordAValueCalls
-        |~~ An anchor on a value reads the page of the word it calls. ~~|
+    | proves :readsTheVerbAValueCalls
+        |~~ An anchor on a value reads the page of the verb it calls. ~~|
         ~([1 2] | doc :count | eq (::vec/count | doc))
-    | proves :readsAnInputOfAWord
-        |~~ An anchor reads the page of an input of a word. ~~|
+    | proves :readsAnInputOfAVerb
+        |~~ An anchor reads the page of an input of a verb. ~~|
         ~(::number/add | doc :addend | eq (::number/add/addend | doc))
-    | proves :walksAPath
-        |~~ A vector of anchors walks a path. ~~|
-        ~(::vec | doc [:take] | eq (::vec/take | doc))
+    | proves :readsAnchorsInTurn
+        |~~ A vector of anchors reads them in turn. ~~|
+        ~(::vec | doc [:take :count] | eq (::vec/take/count | doc))
     | proves :readsAPageAtEachAnchor
         |~~ A set of anchors reads a page at each. ~~|
         ~(::qlang | doc #[:pipeline :errors] | count | eq 2)
@@ -1152,26 +1156,29 @@
         ~(::nonexistent-binding | doc
           !| get [~(type) /name]
           |  eq [::any/doc/UnknownNameError ::nonexistent-binding])
-    | proves :UnknownNameError/namesWhereTheWordLives
-        |~~ A word's name is refused with the addresses where the word
-            lives.
+    | proves :UnknownNameError/namesWhereItsVerbsLive
+        |~~ The name of a verb is refused with the addresses where the
+            verbs of that name live.
         ~~|
         ~(::filter | doc !| get /addresses | has ::vec/filter)
-    | proves :UnknownNameError/namesWhereAnotherWordLives
-        |~~ Another word's name is refused with its addresses. ~~|
+    | proves :UnknownNameError/namesWhereTheVerbsOfAnotherNameLive
+        |~~ Another name of several verbs is refused with their addresses. ~~|
         ~(::reduce | doc !| get /addresses | has ::vec/reduce)
-    | proves :UnknownNameError/refusesAnAnchorNoMemberAnswers
-        |~~ An anchor no member answers is refused with the name it read.
-        ~~|
+    | proves :UnknownNameError/refusesAnAnchorNoNodeAnswers
+        |~~ An anchor no node answers is refused with the name it read. ~~|
         ~(::vec/take | doc :nope !| get [~(type) /name] | eq [::any/doc/UnknownNameError :nope])
-    | proves :UnknownNameError/namesTheMembersNear
-        |~~ A member a page lacks names the members near it. ~~|
+    | proves :UnknownNameError/namesTheNodesNear
+        |~~ An anchor the subject holds no node under names the nodes near
+            it.
+        ~~|
         ~(::qlang | doc :pipelin !| get /nearest | eq [:pipeline])
-    | proves :anchor/ElementNotKeywordError/refusesANumberInThePath
-        |~~ A number in the path is refused at its index. ~~|
+    | proves :anchor/ElementNotKeywordError/refusesANumberAmongTheAnchors
+        |~~ A number among the anchors read in turn is refused at its
+            index.
+        ~~|
         ~(::vec | doc [:take 1] !| get [~(type) /index] | eq [::any/doc/anchor/ElementNotKeywordError 1])
     | proves :ArgsBeyondInputsError/refusesTwoAnchors
-        |~~ Two anchors given apart are refused under the word. ~~|
+        |~~ Two anchors given apart are refused under the verb. ~~|
         ~(::vec | doc :take :count !| type | eq ::any/doc/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -1183,7 +1190,7 @@
       `!|` opened the page of the refusal it carries, which says what
       failed and how the call is repaired. A name nothing declares is
       refused, `::any/explain/UnknownNameError`. The call takes no
-      anchor: the page of a member is read by `doc`.
+      anchor: the page of a node under an anchor is read by `doc`.
       ::link~(::any/doc | doc) ::link~(::explanation | doc)
   ~~|
   ::fn
@@ -1195,8 +1202,9 @@
         ~~|
     | throws :ArgsBeyondInputsError
         |~~ `explain` explains its subject and takes no anchor: the page
-            of a member is read by `doc`, `[1 2] | doc :count`, and the
-            member is explained by its address, `::vec/count | explain`.
+            of a node under an anchor is read by `doc`, `[1 2] | doc :count`,
+            and the node is explained by its address,
+            `::vec/count | explain`.
         ~~|
     | proves :explainsAValueByItsKind
         |~~ A number is explained by the page of its kind. ~~|
@@ -1206,8 +1214,8 @@
             explains.
         ~~|
         ~(42 | explain | get [~(page | type) ~(value)] | eq [::doc 42])
-    | proves :explainsAWordByItsPage
-        |~~ A word is explained by its page. ~~|
+    | proves :explainsAVerbByItsPage
+        |~~ A verb is explained by its page. ~~|
         ~(::number/add | explain | page | content | contains "plus the number")
     | proves :explainsAnErrorByItsSite
         |~~ An error is explained by the page of the refusal it carries. ~~|
@@ -1218,18 +1226,18 @@
           !| get [~(type) /name]
           |  eq [::any/explain/UnknownNameError ::nonexistent-binding])
     | proves :ArgsBeyondInputsError/refusesAnAnchor
-        |~~ An anchor given to `explain` is refused under the word. ~~|
+        |~~ An anchor given to `explain` is refused under the verb. ~~|
         ~([1 2] | explain :count !| type | eq ::any/explain/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :any/manifest
-  |~~ Answers the set of the names declared one name under the name the
+  |~~ Answers the set of the nodes declared one name under the name the
       subject reads, as `doc` reads it, each by its address:
-      `::number | manifest` the words and the refusals of numbers,
+      `::number | manifest` the verbs and the refusals of numbers,
       `::vec/take | manifest` the inputs and the answer of `take`,
       `::qlang | manifest` the chapters of the language, and a value the
       names under the kind it shows, `5 | manifest` those of numbers. A
-      name nothing declares is refused under the word,
+      name nothing declares is refused under the verb,
       `::any/manifest/UnknownNameError`. The laws of a
       name are no part of the answer, `laws` reads them; the kinds of the
       scope `kinds` lists, and what the reader declared `env`; and what
@@ -1258,8 +1266,8 @@
     | proves :holdsAChapter
         |~~ The manifest of the first page holds its chapter on values. ~~|
         ~(::qlang | manifest | has ::qlang/values)
-    | proves :holdsTheInputsOfAWord
-        |~~ The manifest of a word holds its inputs. ~~|
+    | proves :holdsTheInputsOfAVerb
+        |~~ The manifest of a verb holds its inputs. ~~|
         ~(::vec/take | manifest | has ::vec/take/count)
     | proves :holdsTheNamesOfAReader
         |~~ The manifest of a reader's noun holds the names declared under
@@ -1294,7 +1302,7 @@
       answers `{}`. `runLaws` runs them, and `tutorial` pairs them with
       the page. A name nothing declares is refused,
       `::any/laws/UnknownNameError`. The call takes no anchor: the laws of
-      a member are read by its address.
+      a node are read by its address.
       ::link~(::any/runLaws | doc) ::link~(::any/tutorial | doc)
   ~~|
   ::fn
@@ -1308,7 +1316,7 @@
         ~~|
     | throws :ArgsBeyondInputsError
         |~~ `laws` reads the laws of its subject and takes no anchor: the
-            laws of a member are read by its address, `::vec/take | laws`.
+            laws of a node are read by its address, `::vec/take | laws`.
         ~~|
     | proves :answersEachLawByItsName
         |~~ A law declared under a name is answered under its own name. ~~|
@@ -1331,33 +1339,33 @@
           !| get [~(type) /name]
           |  eq [::any/laws/UnknownNameError ::nonexistent-binding])
     | proves :ArgsBeyondInputsError/refusesAnAnchor
-        |~~ An anchor given to `laws` is refused under the word. ~~|
+        |~~ An anchor given to `laws` is refused under the verb. ~~|
         ~(::vec | laws :take !| type | eq ::any/laws/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :any/runLaws
   |~~ Answers the results of the laws under the name the subject reads,
-      as `doc` reads it, a word by its address among them, one
+      as `doc` reads it, a verb by its address among them, one
       `{:law :says :actual :error :ok}` per law in their order: `:law`
       its address, `:says` its page, the claim it proves, `:actual` what
       its query answered, null where it answered an error, which `:error`
       holds as the error at rest, and `:ok` whether the answer is true,
       so a law that answers false or an error fails. A value runs the
       laws of its kind, and a name of the scope the laws declared under
-      it. The anchor, a keyword after it, runs the laws of the member the
-      name holds under it, a concept of the language among them. A name
-      nothing declares is refused under the word,
+      it. The anchor, a keyword after it, runs the laws of the node the
+      name holds under it, a chapter of the language among them. A name
+      nothing declares is refused under the verb,
       `::any/runLaws/UnknownNameError`.
       ::link~(::any/laws | doc) ::link~(::any/tutorial | doc)
   ~~|
   ::fn
     | takes :anchor
-        |~~ The member whose laws run, a keyword, null when the call gives
-            none.
+        |~~ The last name of the node whose laws run, a keyword, null when
+            the call gives none.
         ~~|
         ~(query /0) #[::keyword ::null]
     | throws :anchor/KindNotTakenError
-        |~~ The anchor is a keyword or null, the last name of a name under
+        |~~ The anchor is a keyword or null, the last name of a node under
             the subject, `::vec | runLaws :sort`.
         ~~|
     | returns
@@ -1375,7 +1383,7 @@
         ~(::number/add | runLaws | first | get /ok)
     | proves :holdsEveryLawOfAdd
         |~~ Every law of `add` holds. ~~|
-        ~(::number/add | runLaws | map /ok | distinct | eq #[true])
+        ~(::number/add | runLaws | map /ok | toSet | eq #[true])
     | proves :failsALawThatAnswersFalse
         |~~ A law that answers false fails. ~~|
         ~(:k 5 | :k/wrong |~~ One is two. ~~| ::law~(1 | eq 2)
@@ -1403,9 +1411,9 @@
         ~(::Nonexistent | runLaws
           !| get [~(type) /name]
           |  eq [::any/runLaws/UnknownNameError ::Nonexistent])
-    | proves :UnknownNameError/namesWhereTheWordLives
-        |~~ A word's name is refused with the addresses where the word
-            lives.
+    | proves :UnknownNameError/namesWhereItsVerbsLive
+        |~~ The name of a verb is refused with the addresses where the
+            verbs of that name live.
         ~~|
         ~(::filter | runLaws !| get /addresses | has ::vec/filter)
     | proves :failsALawThatAnswersAFailure
@@ -1423,14 +1431,14 @@
       and its query, `::number | tutorial`. A value reads the page and
       the laws of its kind. A name nothing declares is refused as `doc`
       refuses it, under the tag of `doc`. The call takes no anchor: a
-      member is read by its address, `::vec/take | tutorial`.
+      node is read by its address, `::vec/take | tutorial`.
       ::link~(::any/doc | doc) ::link~(::any/laws | doc)
   ~~|
   ::fn
     | returns |~~ The page and the laws. ~~| ::vec
     | throws :ArgsBeyondInputsError
         |~~ `tutorial` reads the name of its subject and takes no anchor:
-            a member is read by its address, `::vec/take | tutorial`.
+            a node is read by its address, `::vec/take | tutorial`.
         ~~|
     | proves :pairsThePageWithTheLaws
         |~~ A tutorial is the page of a name and its laws. ~~|
@@ -1442,13 +1450,13 @@
         |~~ A name nothing declares is refused as `doc` refuses it. ~~|
         ~(::nothere | tutorial !| type | eq ::any/doc/UnknownNameError)
     | proves :ArgsBeyondInputsError/refusesAnAnchor
-        |~~ An anchor given to `tutorial` is refused under the word. ~~|
+        |~~ An anchor given to `tutorial` is refused under the verb. ~~|
         ~(::vec | tutorial :take !| type | eq ::any/tutorial/ArgsBeyondInputsError)
     | impl ~(:subject it | doc | get [~(it) ~(subject | laws)])
 
 :any/tag
   |~~ Answers the subject under the name the call gives, a tag name,
-      laying the tag over the subject through its constructor as the
+      laying the tag over the subject through its kind as the
       literal does where it is written: `5 | tag ::Box` answers
       `::Box#5`, its type the tag and its payload the subject. Given no
       name, it reads the pair `get [~(type) ~(payload)]` answers,
@@ -1541,7 +1549,7 @@
         |~~ A vector of three is no pair. ~~|
         ~([::Foo 1 2] | tag !| get [~(type) /actualType] | eq [::any/tag/SubjectNotPairError ::vec])
     | proves :ArgsBeyondInputsError/refusesTwoTags
-        |~~ Two tags given to one call are refused under the word. ~~|
+        |~~ Two tags given to one call are refused under the verb. ~~|
         ~(5 | tag ::Box ::Crate !| type | eq ::any/tag/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -1560,7 +1568,7 @@
   ::fn
     | takes :numbers
         |~~ The numbers to add, one at least, each a number or a path the
-            word reads from the subject.
+            verb reads from the subject.
         ~~|
         ~(it) [#[::number ::path]]
     | holds :numbers/EmptyError
@@ -1610,7 +1618,7 @@
   ::fn
     | takes :factors
         |~~ The numbers multiplied, one at least, each a number or a path
-            the word reads from the subject.
+            the verb reads from the subject.
         ~~|
         ~(it) [#[::number ::path]]
     | holds :factors/EmptyError
@@ -1687,7 +1695,7 @@
         ~~|
         ~({:t 10} | subOf /t !| type | eq ::any/subOf/subtrahend/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesAThirdNumber
-        |~~ A third number is refused under the word. ~~|
+        |~~ A third number is refused under the verb. ~~|
         ~({:t 10 :p 3 :q 1} | subOf /t /p /q !| type | eq ::any/subOf/ArgsBeyondInputsError)
     | proves :subtrahend/KindNotTakenError/refusesAString
         |~~ A subtrahend that is no number is refused under the input. ~~|
@@ -1696,7 +1704,7 @@
         |~~ What is left to pay is the total less what was paid. ~~|
         ~({:total 10 :paid 3} | subOf /total /paid | eq 7)
     | impl
-        ~(get args
+        ~(get (get [~(minuend) ~(subtrahend)])
           | :pair it
           | (pair | first)
           | sub (pair | last))
@@ -1746,7 +1754,7 @@
         |~~ A call with the dividend alone is refused under the divisor. ~~|
         ~({:s 20} | divOf /s !| type | eq ::any/divOf/divisor/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesAThirdNumber
-        |~~ A third number is refused under the word. ~~|
+        |~~ A third number is refused under the verb. ~~|
         ~({:s 20 :c 4 :x 1} | divOf /s /c /x !| type | eq ::any/divOf/ArgsBeyondInputsError)
     | proves :dividend/KindNotTakenError/refusesAString
         |~~ A dividend that is no number is refused under the input. ~~|
@@ -1755,7 +1763,7 @@
         |~~ A divisor that is no number is refused under the input. ~~|
         ~({:a 6} | divOf /a "3" !| type | eq ::any/divOf/divisor/KindNotTakenError)
     | impl
-        ~(get args
+        ~(get (get [~(dividend) ~(divisor)])
           | :pair it
           | (pair | first)
           | div (pair | last))
@@ -2007,7 +2015,7 @@
       several kinds, it answers whether the subject is of one of them,
       and given none, false. A kind no tag of the walk names is not
       reached, so a misspelt kind, `is ::Numbr`, answers false and is
-      not refused. An input of a word is held to its kinds by the `takes`
+      not refused. An input of a verb is held to its kinds by the `takes`
       that declares it.
       ::link~(::any/type | doc) ::link~(::any/tag | doc)
       ::link~(::fn/takes | doc)
@@ -2080,7 +2088,7 @@
       `{:price 4 :qty 3} | get [/price /qty]` answers `[4 3]`, and
       `get {:who /first :n ~(get /tags | count)}` builds a map. A vector, a
       map or a set under a tag in a template is read and laid back under
-      its tag through its constructor, and any other value of it is
+      its tag through its kind, and any other value of it is
       answered as it is, a quote under a tag, a doc, a function and a kind among them. A literal computes nothing, so a shape computed
       is written as a template. A part that may be missing is read by
       `query`.
@@ -2169,7 +2177,7 @@
       answering `{:a {:b 1 :c 2}}`. The path is followed as `get` follows
       it, so a key or a place missing on the way is refused where the
       path writes it, and a value under a tag on the way is laid under it
-      again, its constructor and its invariants run. A key the query
+      again through its kind. A key the query
       computes is the path of one segment, `put :a 1`, and a vector grows
       by `append`.
       ::link~(::any/update | doc) ::link~(::any/delete | doc)
@@ -2379,7 +2387,7 @@
       `[{:a 1} {:a null :b "x"} {:c 2}] | shape` answers
       `::shape[#[{:a ::nullable::number :b ::absent::string} {:c ::number}]]`.
       An empty vector is `[]`, and the subject is read beneath the tags
-      over it. So a reader looks at the input before the query is shaped,
+      over it. So a reader looks at the data before the query is shaped,
       and the paths of the data read its shape through its marks as far as
       a part holds one kind, `/users/0/age` the kinds the age of every
       user holds.

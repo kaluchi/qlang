@@ -3,8 +3,8 @@
 // length, one at least, and of those the nearest alone, in the order of their
 // spelling. An edit is an insertion, a deletion, a substitution or a swap of
 // two neighbours, the slips of a typing hand; beside them, the names one of
-// which begins the other, and the words the page of a word the typed name
-// begins with links [QSSLF#near].
+// which begins the other, and the verbs the page of a verb the typed name
+// begins with links.
 
 import { keyword, makeTag, isTag } from './types.mjs';
 import { ANY_KIND_NAME, addressesOf, answerOf, kindsOfWalk, namesDeclaredUnder, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, verbsReaching, isLabel } from './runtime/nouns.mjs';
@@ -67,10 +67,10 @@ function namesOfSteps(env) {
   return new Set([...scopeNamesOf(env).keys(), ...verbNames(env)]);
 }
 
-// The words the page of a word the typed name begins with links, whose
+// The verbs the page of a verb the typed name begins with links, whose
 // names end as the typed name goes on past it in a tail of its own,
 // capitalised: `add` begins `addOf`, and its page links `sumOf`, the
-// word that adds two fields of one record [QSSLF#near].
+// verb that adds two fields of one record [QSSLF#near].
 function linkedFromBegun(env, typedName, names) {
   const linked = [];
   for (const name of names) {
@@ -86,12 +86,12 @@ function linkedFromBegun(env, typedName, names) {
   return linked;
 }
 
-// The names near a typed one, a label of the root that is no word
+// The names near a typed one, a label of the root that is no verb
 // written as its tag, and the tag first when the typed name is the
 // label's own.
 export function nearestNames(env, typedName) {
-  const words = new Set(verbNames(env));
-  const onlyItsTag = name => !env.has(name) && !words.has(name) && isLabel(env, name);
+  const verbs = new Set(verbNames(env));
+  const onlyItsTag = name => !env.has(name) && !verbs.has(name) && isLabel(env, name);
   const spelled = nearestOf(namesOfSteps(env), typedName);
   const near = [...new Set([...spelled, ...linkedFromBegun(env, typedName, spelled)])].sort()
     .map(name => onlyItsTag(name) ? makeTag(name) : keyword(name));
@@ -101,21 +101,21 @@ export function nearestNames(env, typedName) {
 // The tags an unknown tag name was likely meant to be [QSSLF#near]: the
 // addresses of the tree's nodes as deep as the typed name, so a guess at
 // a noun meets the nouns, `::str` meeting `::string`, and a guess at a
-// word the words, none of the nodes beneath them.
+// verb the verbs, none of the nodes beneath them.
 export function nearestTagNames(env, typedName) {
   const depth = typedName.split('/').length;
   const atItsDepth = [...nodeAddresses(env)].filter(address => address.split('/').length === depth);
   return Object.freeze(nearestOf(new Set(atItsDepth), typedName).map(name => makeTag(name)));
 }
 
-// The members a subject holds near a name it lacks [QSSLF#near], read where an
-// axis reads a member: the names declared under a tag name's address,
-// `::qlang | doc :pipelin` meeting `:pipeline`, and the words the walk of
-// the subject reaches.
-export function nearestMembers(env, subject, memberName) {
+// The nodes a subject holds near an anchor it holds none under [QSSLF#near], read
+// where an axis reads the node under an anchor: the names declared under a
+// tag name's address, `::qlang | doc :pipelin` meeting `:pipeline`, and the
+// verbs the walk of the subject reaches.
+export function nearestNodes(env, subject, anchorName) {
   const declared = isTag(subject) ? namesDeclaredUnder(env, subject.name) : [];
   const reached = verbsReaching(env, [...kindsOfWalk(subject)]).keys();
-  return Object.freeze(nearestOf(new Set([...declared, ...reached]), memberName).map(name => keyword(name)));
+  return Object.freeze(nearestOf(new Set([...declared, ...reached]), anchorName).map(name => keyword(name)));
 }
 
 // The keys of a map a key it lacks was likely meant to be, as a name is
@@ -124,23 +124,23 @@ export function nearestKeys(map, typedKey) {
   return Object.freeze(nearestOf(map.keys(), typedKey).map(name => keyword(name)));
 }
 
-// The kinds the words at the addresses answer, a word of any value aside.
+// The kinds the verbs at the addresses answer, a verb of any value aside.
 const answeredKinds = (env, addresses) => new Set(addresses.flatMap(address => answerOf(env, address)?.kinds ?? []).filter(kind => kind !== ANY_KIND_NAME));
 
-// nearestWords(env, addresses, subject) → the names the pages of the words
-// at the addresses link whose words the subject answers, each a word that
-// answers a kind those words answer: the act a step meant by a word the
+// nearestVerbs(env, addresses, subject) → the names the pages of the verbs
+// at the addresses link whose verbs the subject answers, each a verb that
+// answers a kind those verbs answer: the act a step meant by a verb the
 // kind of its subject lacks, under the name the kind keeps it by, `print`
-// for the `toString` of a vector [QSSLF#near].
-export function nearestWords(env, addresses, subject) {
+// for the `toString` of a vector [QSDSP#refusal].
+export function nearestVerbs(env, addresses, subject) {
   const kinds = answeredKinds(env, addresses.map(address => address.name));
   const names = new Set();
   for (const address of addresses) {
     for (const doc of nodeOf(env, address.name).get('docs')) {
       for (const linked of linkedAddressesOf(doc)) {
         const name = splitAddress(linked)[1];
-        const word = residenceOnSubject(env, name, subject);
-        if (word !== null && [...answeredKinds(env, [word.get('name').name])].some(kind => kinds.has(kind))) names.add(name);
+        const verb = residenceOnSubject(env, name, subject);
+        if (verb !== null && [...answeredKinds(env, [verb.get('name').name])].some(kind => kinds.has(kind))) names.add(name);
       }
     }
   }

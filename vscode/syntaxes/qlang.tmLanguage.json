@@ -267,7 +267,7 @@
     },
 
     "identifier": {
-      "comment": "Names called as words, and addresses of words.",
+      "comment": "Names called as verbs, and addresses of verbs.",
       "name": "entity.name.function.qlang",
       "match": "[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*"
     },

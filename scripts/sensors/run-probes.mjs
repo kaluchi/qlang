@@ -58,7 +58,7 @@ const { cliSources } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', '
 
 // A probe reads as the command line reads a query: the first cell of a
 // session of its own over the command line's sources, its streams silent,
-// its subject the noun of the language [QSWRK#probe], [QSHST#input].
+// its subject the noun of the language [QSWRK#probe], [QSHST#stdin].
 const LANGUAGE_NOUN = makeTag('qlang');
 const SILENT_STREAMS = { stdinReader: () => Promise.resolve(''), stdoutWrite: () => {}, stderrWrite: () => {} };
 async function answerOf(query) {

@@ -10,9 +10,9 @@ import { printQuoteSource } from '../../src/quote.mjs';
 
 describe('the parser reads a tag before a payload as a tagged literal', () => {
   it('reads a quote after a tag as its payload', () => {
-    const ast = parse('::holds~(mul 2)');
+    const ast = parse('::invariant~(mul 2)');
     expect(ast.type).toBe('TaggedLit');
-    expect(ast.tag).toBe('holds');
+    expect(ast.tag).toBe('invariant');
     expect(ast.payload.type).toBe('QuoteLit');
   });
 
@@ -29,20 +29,20 @@ describe('the parser reads a tag before a payload as a tagged literal', () => {
   });
 });
 
-describe('a word under a label runs when its name is mentioned', () => {
-  it('a word runs when its name is called', async () => {
+describe('a verb under a label runs when its name is mentioned', () => {
+  it('a verb runs when its name is called', async () => {
     const result = await evalQuery(':any/double ~(mul 2) | 5 | double');
     expect(result).toBe(10);
   });
 
-  it('a word binds its inputs from the modifiers', async () => {
+  it('a verb binds its inputs from the modifiers', async () => {
     const result = await evalQuery(
       ':any/surround (::fn | takes :pfx |~~ The prefix. ~~| /0 ::string | takes :sfx |~~ The suffix. ~~| /1 ::string | impl ~(prepend pfx | append sfx)) | "x" | surround "[" "]"'
     );
     expect(result).toBe('[x]');
   });
 
-  it('a declared word recurses by its own name', async () => {
+  it('a declared verb recurses by its own name', async () => {
     const result = await evalQuery(
       ':any/walk ~(if empty ~(0) ~(drop 1 | walk | add 1)) | [1 2 3] | walk'
     );
@@ -51,7 +51,7 @@ describe('a word under a label runs when its name is mentioned', () => {
 });
 
 describe('a kind whose construct is a primitive of the host', () => {
-  it('puts a payload under the tag through the check its host hands [QSDSP#walk]', async () => {
+  it('puts a payload under the tag through the constructor its host hands [QSDSP#walk]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
       sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', impls: { 'myType/construct': payload => payload * 2 } }]
@@ -108,13 +108,13 @@ describe('what a tag before a payload refuses and hands on', () => {
     expect(evalResult).toEqual(makeTag('unboundTag'));
   });
 
-  it('refuses a tag whose node is neither a kind nor a word', async () => {
+  it('refuses a tag whose node is neither a kind nor a verb', async () => {
     const err = await evalQuery(':limit 5 | ::limit[]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('construct/TagNotKindError'));
   });
 
-  it('lays the tag of a word over the args of a call of it, which read back [QSBLD#input]', async () => {
+  it('lays the tag of a verb over the args of a call of it, which read back [QSBLD#input]', async () => {
     expect(await evalQuery('1 | add 1 2 !| get /actualValue | eq ::number/add[1 2]')).toBe(true);
     expect(await evalQuery('::vec/count[] | type')).toEqual(makeTag('vec/count'));
   });
@@ -159,13 +159,13 @@ describe('a tag no declaration answers lays itself over any payload', () => {
   });
 
   it('a vector under a tag is read as a vector, and `type` reads the tag', async () => {
-    const { isVec, isTagged, typeKeyword, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
+    const { isVec, isTagged, typeOf, TAG_HEADER_SYMBOL } = await import('../../src/types.mjs');
     const tagged = await evalQuery('::number/add/SubjectNotNumberError[1 2 3]');
     expect(Array.isArray(tagged)).toBe(true);
     expect(isVec(tagged)).toBe(true);
     expect(isTagged(tagged)).toBe(true);
     expect(tagged[TAG_HEADER_SYMBOL]).toEqual(makeTag('number/add/SubjectNotNumberError'));
-    expect(typeKeyword(tagged)).toEqual(makeTag('number/add/SubjectNotNumberError'));
+    expect(typeOf(tagged)).toEqual(makeTag('number/add/SubjectNotNumberError'));
     expect(tagged.length).toBe(3);
     expect(tagged[0]).toBe(1);
     expect(tagged[1]).toBe(2);
@@ -183,10 +183,10 @@ describe('a tag no declaration answers lays itself over any payload', () => {
   });
 
   it('a string under a tag is held whole, and `payload` takes it off', async () => {
-    const { isTagged, typeKeyword } = await import('../../src/types.mjs');
+    const { isTagged, typeOf } = await import('../../src/types.mjs');
     const tagged = await evalQuery('::number/add/SubjectNotNumberError"hello"');
     expect(isTagged(tagged)).toBe(true);
-    expect(typeKeyword(tagged)).toEqual(makeTag('number/add/SubjectNotNumberError'));
+    expect(typeOf(tagged)).toEqual(makeTag('number/add/SubjectNotNumberError'));
     expect(tagged.payload).toBe('hello');
     const extracted = await evalQuery('::number/add/SubjectNotNumberError"hello" | payload');
     expect(extracted).toBe('hello');
@@ -210,8 +210,8 @@ describe('a tag no declaration answers lays itself over any payload', () => {
 
 describe('the steps of a tagged literal and of a tag', () => {
   it('a tagged literal is a `::construct` step over the step of its payload [QSQUO#step]', async () => {
-    expect(await evalQuery('~(::holds~(mul 2)) | first | get [~(type) /tag /payload]'))
-      .toEqual(await evalQuery('[::construct ::holds ~(mul 2)]'));
+    expect(await evalQuery('~(::invariant~(mul 2)) | first | get [~(type) /tag /payload]'))
+      .toEqual(await evalQuery('[::construct ::invariant ~(mul 2)]'));
   });
 
   it('a tag alone is its name as a step', async () => {
@@ -221,11 +221,11 @@ describe('the steps of a tagged literal and of a tag', () => {
 
 describe('a tag name as a value', () => {
 
-  it('formOf / typeKeyword tell a tag name from a keyword', async () => {
-    const { formOf, typeKeyword, makeTag } = await import('../../src/types.mjs');
+  it('formOf / typeOf tell a tag name from a keyword', async () => {
+    const { formOf, typeOf, makeTag } = await import('../../src/types.mjs');
     const k = makeTag('foo');
     expect(formOf(k)).toBe('tag');
-    expect(typeKeyword(k)).toEqual(makeTag('tag'));
+    expect(typeOf(k)).toEqual(makeTag('tag'));
   });
 
   it('tag equality compares by name', async () => {

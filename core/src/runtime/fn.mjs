@@ -1,57 +1,57 @@
-// The function [QSBLD#fn]: the constructor of `::fn`, which reads a function
-// from its literal, the chain that built it folded into data, and the words
-// that build one from the noun by commands, `on`, `takes`, `returns`,
+// The function [QSBLD#fn]: the constructor of `::fn`, which reads a
+// function from its literal, the chain that built it folded into data, and the
+// verbs that build one from the noun by commands, `on`, `takes`, `returns`,
 // `throws`, `carries`, `holds`, `proves` and `impl`, each writing its command
-// after the ones the signature holds, a step of the objects it was given,
-// which prints as the command and reads back as the same step; `fill`, which
-// writes the arguments of a call into the head of its code, and `params`,
+// after the ones its chain holds, a step whose modifiers are the args it was
+// given, which prints as the command and reads back as the same step; `fill`,
+// which writes the args of a call into the head of its code, and `inputs`,
 // which reads its inputs.
 
 import { bindPrim, bindStateReader } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { commandStep, declarationStep } from '../quote.mjs';
 import { inputsOfFunction } from '../eval.mjs';
-import { signatureOf } from './signature.mjs';
+import { chainOfFn } from './chain.mjs';
 import {
   isQuote, isVec, isNull, isBuiltinDescriptor, isErrorValue, isFn, commandsOf, recipeOf,
   makeTag, makeTagged, makeQuote, FN_TAG_NAME
 } from '../types.mjs';
 
 const FN_TAG = makeTag(FN_TAG_NAME);
-const EMPTY_SIGNATURE = makeQuote([]);
+const NO_COMMANDS = makeQuote([]);
 
 const FnPayloadNotPairError = declareRefusal('fn/PayloadNotPairError');
 const FnRecipeNotCodeError = declareRefusal('fn/RecipeNotCodeError');
 const FnFillRecipeNotCodeError = declareRefusal('fn/fill/RecipeNotCodeError');
 
-// A function of a signature and a recipe, its signature read here, so one
-// its commands do not declare is refused where the function is made.
-function madeFn(signature, recipe) {
-  const fn = makeTagged(FN_TAG, Object.freeze([signature, recipe]));
-  signatureOf(fn);
+// A function of its commands and a recipe, its chain read here, so a step it
+// does not take is refused where the function is made.
+function madeFn(commands, recipe) {
+  const fn = makeTagged(FN_TAG, Object.freeze([commands, recipe]));
+  chainOfFn(fn);
   return fn;
 }
 
-// `::fn[signature recipe]` — a function from its literal: the quote of the
-// commands of its signature, and its recipe, a quote, a host's primitive,
-// or null for a contract no call runs.
+// `::fn[commands recipe]` — a function from its literal: the quote of the
+// commands of its chain, and its recipe, a quote, a host's primitive, or null
+// for a contract no call runs; a payload that is no such pair is refused.
 bindPrim('fn/construct', payload => {
-  if (!isVec(payload) || payload.length !== 2) throw new FnPayloadNotPairError({ actualValue: payload });
-  const [signature, recipe] = payload;
+  if (!isVec(payload) || payload.length !== 2 || !isQuote(payload[0])) throw new FnPayloadNotPairError({ actualValue: payload });
+  const [commands, recipe] = payload;
   if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new FnRecipeNotCodeError({ actualValue: recipe });
-  return madeFn(signature, recipe);
+  return madeFn(commands, recipe);
 });
 
-// The function a builder runs on: a function, or the noun itself, which
-// starts the one of no commands and no recipe; the call refuses a tag of
-// another noun before the builder runs [QSDSP#tagname].
+// The function a command of its chain runs on: a function, or the noun
+// itself, which starts the one of no commands and no recipe; the call
+// refuses a tag of another noun before the command runs [QSDSP#tagname].
 function functionOf(subject) {
-  return isFn(subject) ? subject : makeTagged(FN_TAG, Object.freeze([EMPTY_SIGNATURE, null]));
+  return isFn(subject) ? subject : makeTagged(FN_TAG, Object.freeze([NO_COMMANDS, null]));
 }
 
-// A function with a command written after the ones its signature holds.
-function withCommand(fn, command, objects) {
-  return madeFn(makeQuote([...commandsOf(fn), commandStep(command, objects.filter(object => object !== null))]), recipeOf(fn));
+// A function with a command written after the ones its chain holds.
+function withCommand(fn, command, args) {
+  return madeFn(makeQuote([...commandsOf(fn), commandStep(command, args.filter(arg => arg !== null))]), recipeOf(fn));
 }
 
 // `on |~~ A number. ~~| ::number` — the subject, its page and its kinds.
@@ -59,7 +59,7 @@ bindPrim('fn/on', (subject, page, kinds) =>
   withCommand(functionOf(subject), 'on', [page, kinds]));
 
 // `takes :by |~~ How much. ~~| /0 ::number` — an input, its page, the place
-// of the call it reads and its kinds.
+// of the args it reads and its kinds.
 bindPrim('fn/takes', (subject, name, page, place, kinds) =>
   withCommand(functionOf(subject), 'takes', [name, page, place, kinds]));
 
@@ -95,7 +95,7 @@ bindPrim('fn/impl', (subject, recipe) => {
   return commandsOf(fn).length === 0 && isQuote(recipe) ? recipe : madeFn(commandsOf(fn), recipe);
 });
 
-// `fill 3` — the arguments of a call written into the head of the code,
+// `fill 3` — the args of a call written into the head of the code,
 // each input a declaration with its page of the value it reads, as its call
 // reads it; the code answers.
 bindStateReader('fn/fill', async (fn, args, state) => {
@@ -103,10 +103,10 @@ bindStateReader('fn/fill', async (fn, args, state) => {
   if (!isQuote(recipe)) throw new FnFillRecipeNotCodeError({ actualValue: fn });
   const values = await inputsOfFunction(fn, [...args], state);
   if (isErrorValue(values)) return values;
-  return makeQuote([...signatureOf(fn).inputs.map(({ name, page }, at) => declarationStep(name.name, [page], values[at])), ...recipe]);
+  return makeQuote([...chainOfFn(fn).inputs.map(({ name, page }, at) => declarationStep(name.name, [page], values[at])), ...recipe]);
 });
 
-// `params` — the inputs, each a map of its name, its page, its place and
+// `inputs` — the inputs, each a map of its name, its page, its place and
 // its kinds as written, null where it names none.
-bindPrim('fn/params', fn => Object.freeze(signatureOf(fn).inputs.map(({ name, page, place, written }) =>
+bindPrim('fn/inputs', fn => Object.freeze(chainOfFn(fn).inputs.map(({ name, page, place, written }) =>
   new Map([['name', name], ['page', page], ['place', place], ['kinds', written]]))));

@@ -29,7 +29,7 @@ describe('an unresolved name names the names nearest to it', () => {
     expect(await nearestOf('numbe')).toEqual([makeTag('number')]);
   });
 
-  it('a name that begins with a word and goes on in a capitalised tail names the words its page links that end in the tail [QSSLF#near]', async () => {
+  it('a name that begins with a verb and goes on in a capitalised tail names the verbs its page links that end in the tail [QSSLF#near]', async () => {
     expect(await nearestOf('{:x 1} | addOf (get /x) (get /x)')).toEqual([keyword('add'), keyword('sumOf')]);
   });
 

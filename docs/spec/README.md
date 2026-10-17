@@ -17,13 +17,13 @@ The chapters, in the order the concepts rest on each other:
 | [QSORD](QSORD-one-order.md) | one order over all values, the set |
 | [QSSYN](QSSYN-grammar.md) | the grammar: steps, combinators, whitespace, comments, docs, refusals |
 | [QSPTH](QSPTH-paths.md) | a path, read and written |
-| [QSNUM](QSNUM-numbers.md) | the words of numbers |
+| [QSNUM](QSNUM-numbers.md) | the verbs of numbers |
 | [QSCOL](QSCOL-collections.md) | vectors, maps and sets, their algebra, `map`, `filter`, `reduce`, `groupBy` |
 | [QSTXT](QSTXT-text.md) | text and patterns |
 | [QSCND](QSCND-conditions-and-conversions.md) | conditions and conversions |
 | [QSQUO](QSQUO-code-as-data.md) | code as data: the quote, its steps, `apply`, modifiers, held code |
 | [QSNAM](QSNAM-names-and-scope.md) | names and scope |
-| [QSDSP](QSDSP-a-word-found-through-its-subject.md) | a word found through its subject |
+| [QSDSP](QSDSP-a-verb-found-through-its-subject.md) | a verb found through its subject |
 | [QSBLD](QSBLD-functions-and-kinds.md) | a function and a kind built by commands |
 | [QSERR](QSERR-errors.md) | an error at rest and in flight |
 | [QSSLF](QSSLF-the-language-describes-itself.md) | the language describes itself: axes, laws, docs, the first page, the catalog |

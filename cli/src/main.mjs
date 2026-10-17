@@ -50,9 +50,9 @@ export function queryAsWritten(queryText, env, exists = existsSync) {
   return queryText;
 }
 
-// Whether a query reads the subject standard input lifts to [QSHST#input]; a
+// Whether a query reads the subject standard input lifts to [QSHST#stdin]; a
 // query that does not parse reads none, its refusal written at once.
-function queryReadsInput(queryText) {
+function queryReadsStdin(queryText) {
   let ast;
   try {
     ast = parse(queryText);
@@ -90,17 +90,18 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
 
   // A query that reads no subject, `[1 2] | sum` or `::vec | doc`, runs
   // without waiting on standard input, which a shell may hand open with
-  // nothing piped [QSHST#input].
+  // nothing piped [QSHST#stdin].
   const queryText = queryAsWritten(cliInvocation.queryText, env);
-  const readsInput = queryReadsInput(queryText);
-  const stdinText = readsInput ? await readStdinToString(stdinStream) : '';
-  const lifted = liftStdinToPipeValue(stdinText, cliInvocation.inputFormat);
-  // An input that does not read as the JSON it is taken for answers as
-  // `parseJson` refuses its text, a failure like every other [QSHST#answer].
+  const readsStdin = queryReadsStdin(queryText);
+  const stdinText = readsStdin ? await readStdinToString(stdinStream) : '';
+  const lifted = liftStdinToPipeValue(stdinText, cliInvocation.stdinFormat);
+  // A text of standard input that does not read as the JSON it is taken
+  // for answers as `parseJson` refuses it, a failure like every other
+  // [QSHST#answer].
   const unreadable = lifted.parseError !== undefined || lifted.codecError !== undefined;
 
   // `in` reads the text standard input already gave, or reads it then.
-  const stdinReader = memoiseStdinReader(() => (readsInput ? Promise.resolve(stdinText) : readStdinToString(stdinStream)));
+  const stdinReader = memoiseStdinReader(() => (readsStdin ? Promise.resolve(stdinText) : readStdinToString(stdinStream)));
 
   let didExplicitStdoutEffect = false;
   const recordStdoutEffect = () => { didExplicitStdoutEffect = true; };

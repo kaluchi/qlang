@@ -1,4 +1,4 @@
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { langRuntime, verbNames } from '@kaluchi/qlang-core';
@@ -58,10 +58,10 @@ describe('keywords as names', () => {
   });
 });
 
-// ── Calls of words ─────────────────────────────────────────────
+// ── Calls of verbs ─────────────────────────────────────────────
 
-describe('the words of the language', () => {
-  it('wraps the name of a word in a word span', () => {
+describe('the verbs of the language', () => {
+  it('wraps the name of a verb in a word span', () => {
     const out = hl('count');
     expect(out).toBe('<span class="word">count</span>');
   });

@@ -25,6 +25,6 @@
 {"name":"entries-and-toMap-round-trip","query":"{:a 1 :b [2]} | entries | toMap | eq {:a 1 :b [2]}","expect":"true"}
 {"name":"the-last-pair-of-a-key-wins","query":"[[:a 1] [:a 2]] | toMap","expect":"{:a 2}"}
 {"name":"a-pair-of-another-shape-is-refused","query":"[[:a 1] [:b]] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/ElementNotPairError 1]"}
-{"name":"a-key-of-another-kind-is-refused","query":"[[[1] 2]] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/KeyNotKeywordError 0]"}
+{"name":"a-key-of-another-kind-is-refused","query":"[[[1] 2]] | toMap !| get [~(type) /index /expected]","expect":"[::vec/toMap/KeyKindNotTakenError 0 #[::boolean ::keyword ::null ::number ::string ::tag]]"}
 {"name":"every-atom-turns-into-the-text-of-its-literal","query":"[null true 5 :a ::vec] | map ~toString","expect":"[\"null\" \"true\" \"5\" \"a\" \"vec\"]"}
 {"name":"a-pattern-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| type","expect":"::call/KindAnswersNoVerbError"}

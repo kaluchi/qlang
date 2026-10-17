@@ -3,7 +3,7 @@
 {"name":"the-name-a-step-read-is-a-keyword","query":"blah !| get /name","expect":":blah"}
 {"name":"the-key-a-path-read-is-a-keyword","query":"{:a 1} | get /b !| get /key","expect":":b"}
 {"name":"the-facts-every-refusal-shares-are-declared-on-error","query":"::error | manifest | has ::error/actualType","expect":"true"}
-{"name":"a-refusal-of-a-primitive-sits-under-the-word-that-ran-it","query":"[1 \"x\"] | sum !| type","expect":"::vec/sum/ElementNotNumberError"}
+{"name":"a-refusal-of-a-primitive-sits-under-the-verb-that-ran-it","query":"[1 \"x\"] | sum !| type","expect":"::vec/sum/ElementNotNumberError"}
 {"name":"a-count-that-is-no-whole-number-breaks-the-law-of-its-input","query":"\"ab\" | take 1.5 !| type","expect":"::string/take/count/NotIntegerError"}
 {"name":"the-segment-a-path-read-as-an-index-is-a-number","query":"42 | get /0 !| get /key","expect":"0"}
 {"name":"a-refusal-over-a-map-names-the-entry-by-its-key","query":"{:a 1 :b \"x\"} | sum !| get /key","expect":":b"}
@@ -19,7 +19,7 @@
 {"name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::path/KeyNotInMapError | doc | links | map ~open | any ~(eq (::path | doc))","expect":"true"}
 {"name":"a-refusal-is-declared-in-the-source-of-its-place","query":"::path/KeyNotInMapError | binding | get /origin","expect":":qlang/path"}
 {"name":"reading-text-as-code-is-refused-under-quote","query":"::quote/ParseError | binding | get /origin","expect":":qlang/quote"}
-{"name":"an-invariant-of-the-kernel-sits-under-builtin","query":"::builtin/UnknownAstNodeTypeError | binding | get /origin","expect":":qlang/builtin"}
+{"name":"a-defect-of-the-runtime-sits-under-builtin","query":"::builtin/UnknownAstNodeTypeError | binding | get /origin","expect":":qlang/builtin"}
 {"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string"}
 {"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| get /key","expect":":b"}
 {"name":"an-input-raises-the-refusal-under-its-address","query":"1 | add \"a\" !| get [~(type) /actualType]","expect":"[::number/add/addend/KindNotTakenError ::string]"}

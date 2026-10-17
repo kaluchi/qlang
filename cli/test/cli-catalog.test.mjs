@@ -24,7 +24,7 @@ beforeAll(async () => {
 }, 120_000);
 
 describe('the catalog of the command line', () => {
-  it('declares its topic and its words in its own source', () => {
+  it('declares its topic and its verbs in its own source', () => {
     expect(cliNames).toEqual(expect.arrayContaining(['::cli', '::any/in', '::any/out', '::any/err', '::any/tap', '::vec/table']));
   });
 

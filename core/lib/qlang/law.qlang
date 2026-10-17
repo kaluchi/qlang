@@ -1,5 +1,5 @@
 |~ `::law`, the kind of a law, and the laws declared under it.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :law
   |~~ A law is a claim about a name that runs: a query that answers
@@ -7,9 +7,10 @@
       proves, its page the sentence of the claim. The chain of a function
       or a kind writes it by `proves`,
       `| proves :addsTheNumber |~~ Ten and three is thirteen. ~~| ~(10 | add 3 | eq 13)`,
-      and a law of any other name, a label among them, is declared under
-      it, `:Box/holdsItsWidth ::law~(::Box{:w 1} | get /w | eq 1)`. A law is
-      code held as data: it reads the words of the tree and the names it
+      as `holds` writes an invariant, a quote under `::invariant`, and a
+      law of any other name, a label among them, is declared under it,
+      `:Box/holdsItsWidth ::law~(::Box{:w 1} | get /w | eq 1)`. A law is
+      code held as data: it reads the verbs of the tree and the names it
       declares, and no value the reader named, and a law of a name the
       language declares runs over the root alone.
 
@@ -17,7 +18,8 @@
       and `runLaws` runs them, so the examples of the catalog are its
       tests.
       ::link~(::any/laws | doc) ::link~(::any/runLaws | doc)
-      ::link~(::qlang/hypertext | doc) ::link~(::qlang/code | doc)
+      ::link~(::invariant | doc) ::link~(::qlang/hypertext | doc)
+      ::link~(::qlang/code | doc)
   ~~|
   ::kind
     | proves :provesItsClaim

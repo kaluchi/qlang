@@ -1,24 +1,24 @@
 // The streams of the command line: standard input lifts to the query's
 // first value, a JSON document as its value and any other text as a
-// string [QSHST#input], and the answer is written as the language prints it,
-// whatever the input was, a query converting it where a reader wants
-// another format, `| json` [QSHST#answer].
+// string, and the answer is written as the language prints it, whatever
+// the data was, a query converting it where a reader wants another format,
+// `| json` [QSHST#stdin], [QSHST#answer].
 
 import { fromJsonText, printAnswer, makeTag, elideAnswer } from '@kaluchi/qlang-core';
 
 // The noun the command line starts from when standard input carries no
-// bytes [QSHST#input].
+// bytes [QSHST#stdin].
 export const DEFAULT_SUBJECT = makeTag('qlang');
 
-// liftStdinToPipeValue(text, inputFormat) → the first value: the noun of
+// liftStdinToPipeValue(text, stdinFormat) → the first value: the noun of
 // the language with no bytes, the text under `raw`, the document under
 // `json`, which refuses a text that does not parse, and under `auto` the
 // document where the text parses and the text where it does not.
-export function liftStdinToPipeValue(stdinText, inputFormat) {
+export function liftStdinToPipeValue(stdinText, stdinFormat) {
   if (stdinText.length === 0) {
     return { pipeValue: DEFAULT_SUBJECT };
   }
-  if (inputFormat === 'raw') {
+  if (stdinFormat === 'raw') {
     return { pipeValue: stdinText };
   }
 
@@ -27,7 +27,7 @@ export function liftStdinToPipeValue(stdinText, inputFormat) {
   try {
     JSON.parse(stdinText);
   } catch (jsParseError) {
-    return inputFormat === 'json' ? { parseError: jsParseError } : { pipeValue: stdinText };
+    return stdinFormat === 'json' ? { parseError: jsParseError } : { pipeValue: stdinText };
   }
   return liftParsedDocument(stdinText);
 }

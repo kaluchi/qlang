@@ -4,10 +4,10 @@
     "body": [":${1:name} ${2:body}"],
     "description": "Name what the body answers, for the steps after it"
   },
-  "declare a word": {
+  "declare a verb": {
     "prefix": "bindv",
     "body": [":${1:vec}/${2:name}", "  |~~ ${3:What it answers.} ~~|", "  ::fn", "    | takes :${4:input} |~~ ${5:What it takes.} ~~| /0", "    | impl ~(${6:recipe})"],
-    "description": "Declare a word under the label of its subject, the chain of its function"
+    "description": "Declare a verb under the label of its subject, the chain of its function"
   },
   "declare a kind": {
     "prefix": "bindtag",

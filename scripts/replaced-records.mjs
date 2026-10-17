@@ -55,18 +55,20 @@ const movedTo = new Map(readdirSync(join(recordsDir, 'replaced')).filter(name =>
 const movedFrom = new Map(moving.map(name => [`${REPLACED}/${name}`, `${JOURNAL}/${name}`]));
 
 // A link of markdown, its definition `[Dnn]: Dnn.md` or its inline form
-// `(Dnn.md)`, whose target is a file of markdown.
-const LINK = /(\]:[ \t]*|\]\()([^)\s]+\.md)(?=[)\s]|$)/gm;
+// `(Dnn.md)`, whose target is a file of markdown, an anchor after it
+// among them, `(AIM.md#principles)`, written again once from the place
+// the document stood at.
+const LINK = /(\]:[ \t]*|\]\()([^)\s#]+\.md)(#[^)\s]*)?(?=[)\s]|$)/gm;
 let relinked = 0;
 for (const path of git('ls-files', '*.md').split('\n').filter(Boolean)) {
   const wasAt = movedFrom.get(path) ?? path;
   const text = readFileSync(join(repoRoot, path), 'utf8');
-  const written = text.replace(LINK, (whole, lead, target) => {
+  const written = text.replace(LINK, (whole, lead, target, anchor = '') => {
     if (/^[a-z]+:/i.test(target) || target.startsWith('/')) return whole;
     const pointedThen = posix.normalize(posix.join(posix.dirname(wasAt), target));
     const pointedNow = movedTo.get(pointedThen) ?? pointedThen;
     if (pointedNow === pointedThen && wasAt === path) return whole;
-    return `${lead}${posix.relative(posix.dirname(path), pointedNow)}`;
+    return `${lead}${posix.relative(posix.dirname(path), pointedNow)}${anchor}`;
   });
   if (written === text) continue;
   writeFileSync(join(repoRoot, path), written);

@@ -134,6 +134,16 @@ is chosen for the habits it wakes in a reader trained on every other
 language: a tag names a kind, a step is a command, and a word stays where
 the habit it wakes is the right one.
 
+A term strikes one sense. Other things equal, a term of the language and
+of its texts is chosen high in entropy: one exact sense, which moves a
+reader's inference to the one concept it names and which a search of the
+project finds with few false matches, so the generic word every small
+project writes gives way to it, as `::builtin` strikes its own domain where
+`word` strikes a heap of senses. One concept goes by one term and one
+image; a term is weighed in the texts of the project before it is chosen,
+kept or split, and where two tie there, the one a reader knows outside in
+the right pair wins [QSWRK#documents].
+
 Borrow concepts, not formats. The lessons of the history of interfaces
 are taken, levels of help, the procedure behind an alert, typed link
 relations, ownership of names; everything the language says is said in

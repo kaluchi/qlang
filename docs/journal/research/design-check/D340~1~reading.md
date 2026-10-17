@@ -70,10 +70,10 @@
 
 [D268]: ../../D268.md
 [D273]: ../../D273.md
-[D338]: ../../D338.md
+[D338]: ../../replaced/D338.md
 [D339]: ../../D339.md
 [D340]: ../../D340.md
-[D342]: ../../D342.md
+[D342]: ../../replaced/D342.md
 [QSERR#site]: ../../../spec/QSERR-errors.md#site
 [QSHST#input]: ../../../spec/QSHST-hosts-and-the-command-line.md#input
 [QSHST#source]: ../../../spec/QSHST-hosts-and-the-command-line.md#source

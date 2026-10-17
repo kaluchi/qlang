@@ -2,7 +2,7 @@
 {"name":"a-template-held-in-a-name-builds-the-shape-of-each-element","query":":view {:who /first :n ~(get /tags | count)} | [{:first \"A\" :tags [1 2]} {:first \"B\" :tags []}] | map ~(get view)","expect":"[{:who \"A\" :n 2} {:who \"B\" :n 0}]"}
 {"name":"query-reads-the-paths-of-its-template-softly","query":"{:a 1} | query [~(get /a) /b]","expect":"[1 null]"}
 {"name":"a-template-reads-under-a-tag-runs-a-quote-and-answers-a-doc","query":"{:a 1} | get [/a ::Box[/a] ::Box#5 |~~ x ~~| ~(get /a) #[/a 2]]","expect":"[1 ::Box[1] ::Box#5 |~~ x ~~| 1 #[1 2]]"}
-{"name":"a-template-lays-a-tag-back-through-its-constructor","query":":P |~~ P. ~~| (::kind | holds :HasNumberError |~~ No number. ~~| ~(every ~(type | ne ::number))) | {:a 1} | get [::P[/a]] !| type","expect":"::P/HasNumberError"}
+{"name":"a-template-lays-a-tag-back-through-its-kind","query":":P |~~ P. ~~| (::kind | holds :HasNumberError |~~ No number. ~~| ~(every ~(type | ne ::number))) | {:a 1} | get [::P[/a]] !| type","expect":"::P/HasNumberError"}
 {"name":"a-template-answers-a-function-as-it-is","query":"get [::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]] | first | type !| type","expect":"::fn"}
 {"name":"a-template-answers-a-kind-as-it-is","query":"get [::kind[~(wraps |~~ A number. ~~| ::number) null]] | first | type !| type","expect":"::kind"}
 {"name":"get-reads-a-tuple","query":"{:price 4 :qty 3} | get [/price /qty]","expect":"[4 3]"}

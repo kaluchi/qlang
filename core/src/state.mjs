@@ -9,14 +9,14 @@
 import { CallEvaluationDepthExceededError } from './errors.mjs';
 import { ROOT_KEY, QUERY_KEY } from './env-keys.mjs';
 
-// The deepest frame `nestState` admits: a runaway, a word that calls
+// The deepest frame `nestState` admits: a runaway, a verb that calls
 // itself without end, is refused on the frame past it, and the host's
 // heap stays bounded.
 export const EVAL_DEPTH_LIMIT = 1000;
 
 // The calls a state runs within keep the origin of each quote they
-// received, the nearest first, and a state a word of the host reads keeps
-// beside the tree of the query the scope of its own step [QSQUO#held].
+// received, the nearest first, and a state a verb of the host reads keeps
+// beside the tree of the query the scope of its own step [QSQUO#held], [QSNAM#owner].
 function makeState(pipeValue, env, depth, calls = null, own = null) {
   return Object.freeze({ pipeValue, env, depth, calls, own });
 }
@@ -71,7 +71,7 @@ export function originIn(state, quote) {
 }
 
 // ownScopeOf(state) → the scope of the step a state runs, its own where a
-// word of the host reads the tree of the query [QSNAM#owner], [QSQUO#held].
+// verb of the host reads the tree of the query [QSNAM#owner].
 export function ownScopeOf(state) {
   return state.own ?? state.env;
 }
@@ -90,16 +90,16 @@ export function envHas(env, name) {
 }
 
 // queryTreeOf(env) → the tree of names of the query a scope runs under:
-// in the body of a word, the tree of the query that called it, carried
-// down through every word the body calls, and elsewhere the scope itself.
-// A word of the host reads it at its call, while the names a body writes
-// read the body's scope, so a word written in the language and a word of
-// the host read the same tree [QSNAM#owner].
+// in the recipe of a verb, the tree of the query that called it, carried
+// down through every verb the recipe calls, and elsewhere the scope itself.
+// A verb of the host reads it at its call, while the names a recipe writes
+// read the scope the recipe runs in, so a verb written in the language and
+// a verb of the host read the same tree [QSNAM#owner].
 export function queryTreeOf(env) {
   return env.get(QUERY_KEY) ?? env;
 }
 
-// queryStateOf(state) → the state as a word of the host reads it at its
+// queryStateOf(state) → the state as a verb of the host reads it at its
 // call: its value and its depth over the tree of the query [QSNAM#owner].
 export function queryStateOf(state) {
   const tree = queryTreeOf(state.env);
@@ -107,27 +107,27 @@ export function queryStateOf(state) {
 }
 
 // envSet(env, name, value) → a new scope, the name holding the value; the
-// body of a word keeps its own names out of the tree of the query, as a
-// word of the host does [QSNAM#owner], [QSBLD#fn].
+// recipe of a verb keeps its own names out of the tree of the query, as a
+// verb of the host does [QSNAM#owner].
 export function envSet(env, name, value) {
   return asScopeOf(env, new Map(env).set(name, value));
 }
 
-// The scopes of the words of the root, where a name under a noun of the
+// The scopes of the verbs of the root, where a name under a noun of the
 // root reads the root alone [QSNAM#owner], and every scope made from one.
-const ROOT_WORD_SCOPES = new WeakSet();
+const ROOT_VERB_SCOPES = new WeakSet();
 
-export function markRootWordScope(scope) {
-  ROOT_WORD_SCOPES.add(scope);
+export function markRootVerbScope(scope) {
+  ROOT_VERB_SCOPES.add(scope);
   return scope;
 }
 
-export function isRootWordScope(scope) {
-  return ROOT_WORD_SCOPES.has(scope);
+export function isRootVerbScope(scope) {
+  return ROOT_VERB_SCOPES.has(scope);
 }
 
 export function asScopeOf(from, made) {
-  return ROOT_WORD_SCOPES.has(from) ? markRootWordScope(made) : made;
+  return ROOT_VERB_SCOPES.has(from) ? markRootVerbScope(made) : made;
 }
 
 // envMerge(env, otherMap) → a new scope, the names of the map over its own.

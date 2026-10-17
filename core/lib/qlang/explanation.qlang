@@ -1,7 +1,7 @@
 |~ `::explanation`, the kind of what `explain` answers, the page `doc`
    reads for a value and the value itself, and what is declared under
-   it: the words that read it.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   it: the verbs that read it.
+   The rules it holds: [QSDSP#residence]. ~|
 
 :explanation
   |~~ An explanation sets a value beside the page that explains it, the
@@ -28,7 +28,7 @@
       page of its kind, `#[1] | explain | page` the page of sets; of an
       error the page of the refusal it carries, the procedure that
       repairs the call, `"x" | add 1 !| explain | page`, or the page of
-      what refused, the word or its input, where the refusal has none; and
+      what refused, the verb or its input, where the refusal has none; and
       null for a name declared without a page. The subject is an explanation, what
       `explain` answers, so a map is refused, its key `:page` read by
       `/page`. `value` answers what was explained.

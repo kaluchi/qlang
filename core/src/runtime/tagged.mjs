@@ -10,8 +10,8 @@ import {
 } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 
-// `::set[…]` — the set of a vector's elements, the one `distinct`
-// answers [QSORD#order], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | distinct`
+// `::set[…]` — the set of a vector's elements, the one `toSet` answers
+// [QSORD#order], [QSCND#convert], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | toSet`
 // are one value.
 const SetPayloadKindNotTakenError = declareRefusal('set/PayloadKindNotTakenError');
 
@@ -22,12 +22,12 @@ function setConstructor(payload) {
 
 bindPrim('set/construct', setConstructor);
 
-// The constructors of the core's kinds [QSLIT#kind], [QSSLF#catalog]: each
-// reads a payload of its kind as the value itself, so `::vec[1 2]` and `[1 2]`
-// are one value and print as the latter, and a payload of another kind is
-// refused at the site, a vector or a map under a tag of its own among them, a
-// set's and a quote's too: `payload` reads what stands beneath a tag, and a
-// word `toX` turns a value into another kind [QSCND#convert].
+// The constructors of the core's kinds: each reads a payload of its kind as
+// the value itself, so `::vec[1 2]` and `[1 2]` are one value and print as
+// the latter, and a payload of another kind is refused at the site, a vector
+// or a map under a tag of its own among them, a set's and a quote's too:
+// `payload` reads what stands beneath a tag, and a verb `toX` turns a value
+// into another kind [QSLIT#tag].
 const NullPayloadKindNotTakenError      = declareRefusal('null/PayloadKindNotTakenError');
 const BooleanPayloadKindNotTakenError   = declareRefusal('boolean/PayloadKindNotTakenError');
 const NumberPayloadKindNotTakenError    = declareRefusal('number/PayloadKindNotTakenError');
@@ -53,7 +53,7 @@ const isBareMap = payload => isMap(payload) && payload[TAG_HEADER_SYMBOL] === un
 bindPrim('null/construct',    coreKindConstructor(isNull, NullPayloadKindNotTakenError));
 bindPrim('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError));
 // A number is a finite double: an answer brought under `::number` that left
-// the doubles' range is refused here, once for every word [QSNUM#arithmetic].
+// the doubles' range is refused here, once for every verb [QSNUM#arithmetic].
 const NumberNotFiniteError = declareRefusal('number/NotFiniteError');
 const finiteNumber = coreKindConstructor(isNumber, NumberPayloadKindNotTakenError);
 bindPrim('number/construct', payload => {
@@ -88,9 +88,9 @@ function docConstructor(payload) {
 
 bindPrim('doc/construct', docConstructor);
 
-// `::builtin{…}` — the descriptor, the recipe of a word or of a kind that
-// a primitive answers, or the value of a name under a label alone [QSBLD#fn],
-// [QSBLD#kind], [QSBLD#recipe]; its fields stay flat under its tag.
+// `::builtin{…}` — the descriptor, the recipe of a verb or the constructor
+// of a kind that a primitive answers, or the value of a name under a label
+// alone [QSHST#source]; its fields stay flat under its tag.
 const BuiltinPayloadKindNotTakenError = declareRefusal('builtin/PayloadKindNotTakenError');
 
 function builtinConstructor(payload) {

@@ -7,7 +7,7 @@
 {"name":"vacuously-false-on-empty","query":"[] | any ~(gt 0)","expect":"false"}
 {"name":"vacuously-false-on-empty-with-arbitrary-pred","query":"[] | any ~(eq 99)","expect":"false"}
 {"name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
-{"name":"any-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::set/any ::vec/any]\n  :actualType ::number\n  :trail ::trail[::frame[42 ~(any ~(gt 0))]]\n} | raise"}
+{"name":"any-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::vec/any]\n  :actualType ::number\n  :trail ::trail[::frame[42 ~(any ~(gt 0))]]\n} | raise"}
 {"name":"any-stops-at-the-first-element-that-decides","query":"[true \"x\"] | any ~(it)","expect":"true"}
 {"name":"any-as-filter-equivalence","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
 {"name":"any-string-predicate-integration","query":"[\"alice\" \"bob\" \"alex\"] | any ~(startsWith \"al\")","expect":"true"}
@@ -23,7 +23,7 @@
 {"name":"vacuously-true-on-empty","query":"[] | every ~(gt 0)","expect":"true"}
 {"name":"vacuously-true-on-empty-with-arbitrary-pred","query":"[] | every ~(eq 99)","expect":"true"}
 {"name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true"}
-{"name":"every-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | every ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :every\n  :addresses #[::map/every ::set/every ::vec/every]\n  :actualType ::number\n  :trail ::trail[::frame[42 ~(every ~(gt 0))]]\n} | raise"}
+{"name":"every-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | every ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :every\n  :addresses #[::map/every ::vec/every]\n  :actualType ::number\n  :trail ::trail[::frame[42 ~(every ~(gt 0))]]\n} | raise"}
 {"name":"every-is-false-where-a-middle-element-does-not-meet-the-predicate","query":"[1 0 2] | every ~(gt 0)","expect":"false"}
 {"name":"every-as-filter-equivalence","query":":xs [1 2 3 4 5] | xs | filter ~(gt 0) | count | eq (xs | count) | eq (xs | every ~(gt 0))","expect":"true"}
 {"name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every ~(gt 0)","expect":"true"}

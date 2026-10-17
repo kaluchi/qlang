@@ -140,7 +140,7 @@ describe('deepEqual tells an Array, a Map and a Set under a tag from one under n
     expect(deepEqual(tagged, new Map([['k', 1]]))).toBe(false);
   });
 
-  it('rejects a tag over a set vs the set with same members', async () => {
+  it('rejects a tag over a set vs the set of the same elements', async () => {
     const { makeTagged, makeSet } = await import('../../src/types.mjs');
     const tagged = makeTagged(makeTag('S'), makeSet([1, 2]));
     expect(deepEqual(tagged, makeSet([1, 2]))).toBe(false);

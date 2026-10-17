@@ -1,11 +1,11 @@
 {"name":"a-builtin-written-in-a-recipe-is-a-value","query":":any/v ~(::builtin{:a 1}) | null | v | type","expect":"::builtin"}
-{"name":"a-builtin-in-a-declared-word-is-the-value-it-is","query":":any/c ~(::builtin{}) | 42 | c | type","expect":"::builtin"}
+{"name":"a-builtin-in-a-declared-verb-is-the-value-it-is","query":":any/c ~(::builtin{}) | 42 | c | type","expect":"::builtin"}
 {"name":"a-kind-is-declared-in-the-source-of-its-noun","query":"::vec | binding | get /origin","expect":":qlang/vec"}
 {"name":"the-kind-of-paths-is-declared-in-the-source-of-its-noun","query":"::path | binding | get /origin","expect":":qlang/path"}
 {"name":"the-kind-of-a-tag-name-is-declared-in-the-source-of-its-noun","query":"::tag | binding | get /origin","expect":":qlang/tag"}
 {"name":"a-kind-names-the-source-of-its-noun","query":"::vec | binding | entries | filter ~(first | eq :origin) | first | last","expect":":qlang/vec"}
 {"name":"an-addressed-built-in-answers-its-descriptor","query":"::vec/take | binding | get /value | get /1 | type","expect":"::builtin"}
-{"name":"a-kind-with-no-word-of-its-own-has-a-source-of-its-page","query":"[::binding ::elision ::holds ::law ::link ::snippet] | map ~(binding | get /origin)","expect":"[:qlang/binding :qlang/elision :qlang/holds :qlang/law :qlang/link :qlang/snippet]"}
+{"name":"a-kind-with-no-verb-of-its-own-has-a-source-of-its-page","query":"[::binding ::elision ::invariant ::law ::link ::snippet] | map ~(binding | get /origin)","expect":"[:qlang/binding :qlang/elision :qlang/invariant :qlang/law :qlang/link :qlang/snippet]"}
 {"name":"the-source-of-the-language-declares-its-topic-alone","query":"kinds | filter ~(binding | get /origin | eq :qlang)","expect":"#[::qlang]"}
-{"name":"the-recipe-of-a-word-of-the-host-is-its-descriptor","query":"::vec/sort | binding | get /value | get /1 | type","expect":"::builtin"}
+{"name":"the-recipe-of-a-verb-of-the-host-is-its-descriptor","query":"::vec/sort | binding | get /value | get /1 | type","expect":"::builtin"}
 {"name":"a-builtin-in-a-reader-recipe-is-the-value-it-is","query":":any/v (::fn | impl ::builtin{}) | 5 | get [~(any/v | type) ~(v !| type)]","expect":"[::fn ::call/UnknownNameError]"}

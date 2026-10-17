@@ -1,7 +1,7 @@
 |~ `::desc`, the kind of a value turned to descend, whose place in the
    one order is the reverse of its payload's, and what is declared under
    it: its constructor and the comparisons of values turned.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :desc
   |~~ A desc turns a value to descend: among values of this kind the one
@@ -15,7 +15,7 @@
       It is a value under its tag, `::desc#5`, which `desc` lays over
       any value and `payload` opens. Every comparison agrees with it,
       `gt` and `lt` as `sort` and `max`.
-      ::snippet~(::desc | manifest) lists its words.
+      ::snippet~(::desc | manifest) lists its verbs.
       ::link~(::vec/sort | doc) ::link~(::qlang/values | doc)
   ~~|
   ::kind

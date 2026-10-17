@@ -7,16 +7,16 @@ of each section are the cases of its file under
 
 ## step
 
-A query is a pipeline of steps. A step is a command: a word and its
-modifiers, separated by whitespace, `take 2`, `if (gt 0) ~("pos") ~("neg")`.
-Parentheses hold a pipeline taken as one value, a group. The first
-modifier of a command may touch its name where it opens with a
-parenthesis, so `filter(gt(1))` reads as `filter` with the group
-`(gt(1))`, a call written by habit that runs where its input takes a
-value and is refused where it takes code; every other word is set off
-from the one before it, and a comma inside the parentheses of a group or
-a quote is refused, naming the command form. A path written before a
-word is refused naming both its readings, the read of a part,
+A query is a pipeline of steps. A step is a command: a name and its
+modifiers, each one word, separated by whitespace, `take 2`,
+`if (gt 0) ~("pos") ~("neg")`. Parentheses hold a pipeline taken as one
+value, a group. The first modifier of a command may touch its name where
+it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
+the group `(gt(1))`, a call written by habit that runs where its input
+takes a value and is refused where it takes code; every other word is
+set off from the one before it, and a comma inside the parentheses of a
+group or a quote is refused, naming the command form. A path written
+before a word is refused naming both its readings, the read of a part,
 `get /tags | count`, and the call of a verb by its name alone.
 
 A step sees one value, the one the step before handed it, and
@@ -24,22 +24,26 @@ everything inside the step, its modifiers among them, is computed from
 that value; what an earlier step saw a name keeps. A value stands at the
 head of a query, of a group and of a quote, after a declaration, and as
 a modifier. A value written as a later step on the success track is
-refused by the parser: a path and a container literal naming `get`, a
-tag name `tag` and a quote `apply`, and an atom, a pattern, an error
-literal and a doc refused as a value standing where a command stands;
-after `!|` a value is the recovery the catch answers, and a path is
-refused as after `|`. A question mark after a segment of a path is refused, naming
-`query`. A quote whose code is a path alone, a leading `|` before it
-among it, is refused, the path given bare in its place, and a path
-followed by a word is refused naming the verb it meant, `/ne ""` naming
-`ne`. A tag name in the place of a declaration's name is refused.
+refused by the parser: a path, a container literal and a tagged literal
+naming `get`, a tag name `tag` and a quote `apply`, and an atom, a
+pattern, an error literal and a doc refused as a value standing where a
+command stands; after `!|` a value is the recovery the catch answers,
+and a path is refused as after `|`. A question mark after a segment of a
+path is refused, naming `query`. A quote whose code is a path alone, a
+leading `|` before it among it, is refused, the path given bare in its
+place, and a path followed by a word is refused naming the verb it
+meant, `/ne ""` naming `ne`. A tag name in the place of a declaration's
+name is refused.
 
 ```qlang
 > "{:a 1} | /a" | parse !| get /message
-"a path is a value, which the word that takes it reads: write `get /a`"
+"a path is a value, which the verb that takes it reads: write `get /a`"
 
 > "5 | ~(add 1)" | parse !| get /message | contains "by `apply`"
 true
+
+> "5 | ::Box#5" | parse !| get /message
+"a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`"
 
 > "get /age?" | parse !| get /message
 "a part that may be missing is read by `query`, which answers null where it misses: write `query /age`"
@@ -62,8 +66,8 @@ combinator after a combinator is refused naming the habit, after `| !|`
 as after `!|`, one written against its neighbour with a message that
 names the space; a combinator at the end of a pipeline, a group or a
 quote is refused naming the step it misses. An unclosed `|~` after a
-step is refused naming the word that runs code after a pipe,
-`| apply ~(…)`. A pipeline, a group and a quote may open with a
+step is refused naming the verb that runs code on the value in the
+pipe, `| apply ~(…)`. A pipeline, a group and a quote may open with a
 combinator: a leading `|` is the head's combinator, and a leading `!|`
 opens a step of the fail track.
 
@@ -84,16 +88,16 @@ elements of a literal run on across lines. A keyword that begins a line
 with a doc or a step after it, on its line or a later one, opens a
 declaration of its own, so the body before it ends there, and a keyword
 alone on its line before a combinator, a line a keyword opens or the end
-of the source is the modifier above. The body of a name with a path begun on a later line,
-and the body of a bare name with its page begun on a later line with a
-tag name, is a sentence: its steps run on, joined by `|`, to the next
-declaration or a value written after `|`; any other body is one step,
-and a tag name on a later line is the body of the declaration above. A
-declaration joins a value or a group before it on its own line with no
-combinator, `[1 2] :y 2 | y` answering `2`, but for a tag name and a
-path, refused by the habits they meet [QSSYN#step], while a keyword on
-the line of a command is a modifier of it, and any other step is joined
-by a combinator.
+of the source is the modifier above. The body of a name with a path
+begun on a later line, and the body of a bare name with its page begun
+on a later line with a tag name, is a sentence: its steps run on, joined
+by a combinator, to the next declaration or a value written after `|`;
+any other body is one step, and a tag name on a later line is the body
+of the declaration above. A declaration joins a value or a group before
+it on its own line with no combinator, `[1 2] :y 2 | y` answering `2`,
+but for a tag name and a path, refused by the habits they meet
+[QSSYN#step], while a keyword on the line of a command is a modifier of
+it, and any other step is joined by a combinator.
 
 ```qlang
 > "[3 1 2] sort" | parse !| get /message
@@ -101,6 +105,9 @@ by a combinator.
 
 > "[1] | append\n:y\n:z 2\n| z" | parse
 ~([1] | append :y | :z 2 | z)
+
+> "[1] | :vec/f\n  ~(first) !| 0\n:y 2 | y" | parse
+~([1] | :vec/f (~(first) !| 0) | :y 2 | y)
 ```
 
 ## comment

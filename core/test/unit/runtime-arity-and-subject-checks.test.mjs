@@ -1,9 +1,9 @@
 // The refusals of a subject or an input of another kind at the sites the
 // laws of the catalog leave out: the second input of `sub`, `mul` and
 // `div`, `flat`, `min`, `max` and `sort` over an empty vector or a value
-// that is none, `union`, `minus` and `inter` with and without their
-// object, a modifier beyond the inputs of a word, and an input left
-// without its object.
+// that is none, `union`, `minus` and `inter` with and without their arg,
+// a modifier beyond the inputs of a verb, and an input left without its
+// arg.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -29,13 +29,14 @@ describe('flat over elements of several kinds', async () => {
   });
 });
 
-describe('union, minus and inter without their object', async () => {
+describe('union, minus and inter without their arg', async () => {
   it('union bare on a number reaches the contract, which refuses it', async () => {
     expect(await evalQuery('42 | union !| type | eq ::call/KindAnswersNoVerbError')).toBe(true);
   });
 
-  it('union bare on a set folds its elements, the set being a vector', async () => {
-    expect(await evalQuery('#[#[1] #[2]] | union | eq #[1 2]')).toBe(true);
+  it('union bare on a set is refused under its input, and the sets a set holds unite by the verb of vectors [QSCOL#algebra]', async () => {
+    expect((await evalQuery('#[#[1] #[2]] | union !| type')).name).toBe('set/union/other/NotGivenError');
+    expect(await evalQuery('#[#[1] #[2]] | vec/union | eq #[1 2]')).toBe(true);
   });
 
   it('minus bare on a number reaches the contract, which refuses it', async () => {
@@ -47,7 +48,7 @@ describe('union, minus and inter without their object', async () => {
   });
 });
 
-describe('union, minus and inter with their object', async () => {
+describe('union, minus and inter with their arg', async () => {
   it('minus takes the keys off the map in the pipe', async () => {
     const result = await evalQuery('{:a 1 :b 2 :tmp 3} | minus #[:tmp]');
     expect(result).toBeInstanceOf(Map);
@@ -96,8 +97,8 @@ describe('sort with a key over a value that is no vector', async () => {
   });
 });
 
-describe('the objects a word takes', async () => {
-  it('a word of no inputs refuses an object', async () => {
+describe('the args a verb takes', async () => {
+  it('a verb of no inputs refuses an arg', async () => {
     expect((await evalQuery('[1 2 3] | count :foo !| type')).name).toBe('vec/count/ArgsBeyondInputsError');
   });
 
@@ -112,19 +113,17 @@ describe('count over a map', async () => {
   });
 });
 
-describe('an input left without its object', async () => {
+describe('an input left without its arg', async () => {
   it('add without its addend is refused', async () => {
     expect((await evalQuery('5 | add !| type')).name).toBe('number/add/addend/NotGivenError');
   });
 });
 
 describe('union, minus and inter over an empty vector', async () => {
-  it('a fold of no values is refused by the word that folds, over a vector and over a set [QSERR#site]', async () => {
-    for (const kind of ['vec', 'set']) {
-      for (const verb of ['union', 'minus', 'inter']) {
-        const empty = kind === 'vec' ? '[]' : '#[]';
-        expect((await evalQuery(`${empty} | ${verb} !| type`)).name).toBe(`${kind}/${verb}/SubjectEmptyError`);
-      }
+  it('a fold of no values is refused by the verb that folds over a vector, and a set given no set under its input [QSCOL#algebra]', async () => {
+    for (const verb of ['union', 'minus', 'inter']) {
+      expect((await evalQuery(`[] | ${verb} !| type`)).name).toBe(`vec/${verb}/SubjectEmptyError`);
+      expect((await evalQuery(`#[] | ${verb} !| type`)).name).toBe(`set/${verb}/other/NotGivenError`);
     }
   });
 });

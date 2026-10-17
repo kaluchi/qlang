@@ -1,9 +1,9 @@
 // The refusals and the rare branches of the runtime's modules that the
 // laws of the catalog and the conformance cases leave out, a `describe`
 // for each module: the values, the one order, the arithmetic, vectors,
-// maps, the algebra of containers, text, `source` and the words of
+// maps, the algebra of containers, text, `source` and the verbs of
 // control.
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -17,13 +17,13 @@ import {
   isVec,
   makeSet,
   makeTag,
-  typeKeyword
+  typeOf
 } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorThrown } from '../helpers/error-assertions.mjs';
 
 describe('types.mjs', () => {
-  it('typeKeyword reads a value the language holds no literal for, a symbol of a host, as unknown', () => {
-    expect(typeKeyword(Symbol('host'))).toEqual(makeTag('unknown'));
+  it('typeOf reads a value the language holds no literal for, a symbol of a host, as unknown', () => {
+    expect(typeOf(Symbol('host'))).toEqual(makeTag('unknown'));
   });
 
   it('interns keywords', () => {
@@ -54,7 +54,7 @@ describe('types.mjs', () => {
 });
 
 describe('runtime/predicates.mjs ordering type errors', () => {
-  it('gt rejects heterogeneous comparison by the law of its part', async () => {
+  it('gt rejects heterogeneous comparison by the law of its input', async () => {
     await expectErrorThrown('"a" | gt 5', 'string/gt/value/KindNotTakenError');
   });
   it('lt rejects non-comparable subject', async () => {
@@ -166,7 +166,7 @@ describe('runtime/string.mjs split and join error sites', () => {
     await expectErrorThrown('42 | split ","', 'string/split/SubjectNotStringError');
   });
 
-  it('split with non-string separator is refused by its part', async () => {
+  it('split with non-string separator is refused under its input', async () => {
     await expectErrorThrown('"abc" | split 42', 'string/split/separator/KindNotTakenError');
   });
 
@@ -180,7 +180,7 @@ describe('runtime/string.mjs split and join error sites', () => {
     expect(caughtErr.facts.index).toBe(1);
   });
 
-  it('join with non-string separator is refused by its part', async () => {
+  it('join with non-string separator is refused under its input', async () => {
     await expectErrorThrown('["a" "b"] | join 42', 'vec/join/separator/KindNotTakenError');
   });
 
@@ -219,12 +219,12 @@ describe('runtime/string.mjs lines', () => {
   });
 });
 
-describe('source on a word, a declaration of it and a tag', () => {
+describe('source on a verb, a declaration of it and a tag', () => {
   // `source` reads a name by its tag, the quote of the declaration written
   // under its address, which `parse` prints as its text, and a keyword by
   // its kind [QSSLF#axis].
 
-  it('source on the address of a word returns the whole declaration', async () => {
+  it('source on the address of a verb returns the whole declaration', async () => {
     const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | parse');
     expect(source).toBe(':any/double ~(mul 2)');
   });
@@ -291,8 +291,8 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   it('coalesce leaves the alternatives after the first value unrun [QSCND#coalesce]', async () => {
-    // A word of the host counts its runs: the walk ends at `/a`, a value,
-    // and reaches the word where `/b` fails.
+    // A verb of the host counts its runs: the walk ends at `/a`, a value,
+    // and reaches the verb where `/b` fails.
     let runs = 0;
     const counting = await createSession({
       sources: [{
@@ -316,7 +316,7 @@ describe('runtime/control.mjs if and coalesce', () => {
   });
 
   // The refusal of a bare coalesce is pinned by
-  // `fail-track.test.mjs`; the control-flow block tests what the word
+  // `fail-track.test.mjs`; the control-flow block tests what the verb
   // does.
   it('coalesce answers its subject first when its alternatives are values', async () => {
     expect(await evalQuery('null | coalesce 30')).toBe(30);

@@ -1,8 +1,8 @@
 |~ `::tag`, the kind of a tag name, and what is declared under it: its
-   constructor and its refusal, the comparisons of tag names, the words
+   constructor and its refusal, the comparisons of tag names, the verbs
    that turn a tag name into a string and a keyword, and `toTag`, which
    answers the tag itself.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :tag
   |~~ A tag names a kind, and a value carries its kind as the tag over
@@ -14,13 +14,13 @@
 
       It is written `::` and a name, a slash joining names into an
       address, `::vec/count`; a tag that touches a payload puts the
-      payload under it, which ::link~(::tagged | doc) tells. A kind is
-      built from ::link~(::kind | doc) by commands and declared under a
-      name, or declared by its page alone, and its tag is the address of
-      that name; a
-      tag nothing declares is a kind of identity, which checks nothing
-      and lays itself over the value. Tags rank after keywords and
-      before paths, and JSON writes a tag as its literal, `"::Box"`.
+      payload under it, which ::link~(::tagged | doc) tells. A label is a
+      kind declared under a name, by the chain that builds it from
+      ::link~(::kind | doc) or by its page alone, and its tag is the
+      address of that name; a tag nothing declares is a kind of identity,
+      which checks nothing and lays itself over the value. Tags rank after
+      keywords and before paths, and JSON writes a tag as its literal,
+      `"::Box"`.
       ::snippet~(kinds) lists the kinds the scope reads, and
       ::snippet~(::Box::Crate{:a 1} | type) answers the outer tag.
       ::link~(::qlang/values | doc)

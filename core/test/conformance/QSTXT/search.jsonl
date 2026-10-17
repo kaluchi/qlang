@@ -11,7 +11,7 @@
 {"name":"filter-vec-by-substring","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(contains \"al\")","expect":"[\"alice\" \"alex\"]"}
 {"name":"filter-by-path-and-contains","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(get /name | contains \"al\") | map /name","expect":"[\"alice\" \"alex\"]"}
 {"name":"a-vector-contains-its-elements","query":"[\"ops\" \"db\"] | contains \"ops\"","expect":"true"}
-{"name":"a-value-no-kind-of-contains-serves-names-its-addresses","query":"42 | contains \"x\" !| get /addresses","expect":"#[::set/contains ::string/contains ::vec/contains]"}
+{"name":"a-value-no-kind-of-contains-serves-names-its-addresses","query":"42 | contains \"x\" !| get /addresses","expect":"#[::string/contains ::vec/contains]"}
 {"name":"prefix-matches","query":"\"hello world\" | startsWith \"hello\"","expect":"true"}
 {"name":"prefix-equals-subject","query":"\"hello\" | startsWith \"hello\"","expect":"true"}
 {"name":"prefix-not-matching","query":"\"hello\" | startsWith \"world\"","expect":"false"}
@@ -35,4 +35,4 @@
 {"name":"filter-vec-by-suffix","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter ~(endsWith \".txt\")","expect":"[\"alice.txt\" \"alex.txt\"]"}
 {"name":"filter-by-path-suffix","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter ~(get /file | endsWith \".qlang\") | map /file","expect":"[\"a.qlang\" \"c.qlang\"]"}
 {"name":"contains-finds-a-path-among-the-elements","query":"[/a] | contains /a","expect":"true"}
-{"name":"a-word-that-reads-text-refuses-a-keyword-for-its-text","query":"\"abc\" | contains :a !| type","expect":"::string/contains/needle/KindNotTakenError"}
+{"name":"a-verb-that-reads-text-refuses-a-keyword-for-its-text","query":"\"abc\" | contains :a !| type","expect":"::string/contains/needle/KindNotTakenError"}

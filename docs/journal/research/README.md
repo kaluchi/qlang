@@ -16,7 +16,7 @@ A folder for each kind of report, told by what calls a report into being:
   after the record and numbered in the order its critiques ran,
   `D329~2.md`, its reading `D329~2~reading.md`.
 - `reviews/`: a review of the work a record did, by a clean reader, named
-  so, `D324~3.md` with `D324~3~reading.md`; and a review of a branch
+  so, `D324~4.md` with `D324~4~reading.md`; and a review of a branch
   against the aim and the rules of the work, which the branch calls for,
   `<date>-<branch>.md`, the fate of each finding below it.
 - `spec-check/`: a check of the chapters by clean readers, which a record
@@ -27,6 +27,11 @@ A folder for each kind of report, told by what calls a report into being:
   instructions, which a record calls for,
   `node scripts/outside-audit.mjs --for Dnn`, `D327~1.md` with
   `D327~1~reading.md`.
+- `pentimento-audit/`: a pentimento audit of the tree by clean readers,
+  which a record calls for and carries the fates of,
+  `node scripts/pentimento-audit.mjs --for Dnn`: a folder for each run
+  named after the record, `Dnn~1/`, a report for each group of the tree
+  and the reading `reading.md`.
 
 A report named after a record stays while that record is in force or a
 text in force cites it, and leaves with the record at the move of the

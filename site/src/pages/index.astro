@@ -18,8 +18,8 @@ const examples = [
   },
   {
     tab: "name",
-    file: "a word built from ::fn",
-    code: `|~| a word with the inputs of its call\n> :string/surround (::fn\n  | takes :pfx |~~ The prefix. ~~| /0 ::string\n  | takes :sfx |~~ The suffix. ~~| /1 ::string\n  | impl ~(prepend pfx | append sfx))\n  | "world" | surround "[" "]"\n"[world]"`,
+    file: "a verb built from ::fn",
+    code: `|~| a verb with the inputs of its call\n> :string/surround (::fn\n  | takes :pfx |~~ The prefix. ~~| /0 ::string\n  | takes :sfx |~~ The suffix. ~~| /1 ::string\n  | impl ~(prepend pfx | append sfx))\n  | "world" | surround "[" "]"\n"[world]"`,
   },
   {
     tab: "code-as-data",
@@ -29,11 +29,11 @@ const examples = [
 ]
 
 const features = [
-  { title: "Pipeline composition", desc: "Thread values through chains of steps with |; a step on each element is the word map." },
+  { title: "Pipeline composition", desc: "Thread values through chains of steps with |; a step on each element is the verb map." },
   { title: "Everything a value", desc: "Numbers, strings, keywords, vectors, maps, sets, code, prose and failures each have a literal that prints and reads back as itself, and nothing changes in place." },
   { title: "Failures as values", desc: "| passes a failure by and !| runs its step on a failure alone; the trail holds the steps a failure skipped, ready to replay." },
   { title: "Code as data", desc: "A quote is code held unrun as a vector of steps: parse turns text into one, and apply runs it on a subject." },
-  { title: "Names under labels", desc: "A kind is a label declared by its page; a name under it runs on its values, and the parts of a call's args are names under its address, each held to the invariants declared under it." },
+  { title: "Names under labels", desc: "A label is a kind declared under a name, by its chain or by its page alone; a name under it runs on its values, and the inputs a verb takes are nodes under its address, each held to the invariants declared under it." },
 ]
 ---
 

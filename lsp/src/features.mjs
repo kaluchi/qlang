@@ -26,8 +26,8 @@ import {
   bareNameReach,
   residencesOf,
   isLabel,
-  isWord,
-  declaresWord
+  isVerb,
+  declaresVerb
 } from '@kaluchi/qlang-core';
 
 // A tag as the server names it, `::number`, apart from the names of verbs.
@@ -63,8 +63,8 @@ function dedent(text) {
 }
 
 // The contents of the page at an address, `::vec/count`, once per
-// address; a word's is read at the address the tool shows for it, so its
-// signature and its page name one word [QSSLF#catalog].
+// address; a verb's is read at the address the tool shows for it, so the
+// form of its call and its page name one verb [QSHST#tools].
 const docsCache = new Map();
 async function pageContents(address) {
   if (docsCache.has(address)) return docsCache.get(address);
@@ -79,8 +79,8 @@ async function pageContents(address) {
   return contents;
 }
 
-// What a call of a word shows: its address and the inputs of its function.
-const signatureOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
+// The form of a call of a verb: its address and the inputs of its function.
+const callFormOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
 
 // The kinds of the subject of the step that starts at an offset, where the
 // steps before it name them, or null [QSSLF#catalog].
@@ -134,10 +134,9 @@ export function buildCatalogIndex(catalogAst) {
   return index;
 }
 
-// The catalog's declaration of what a name reaches with no subject
-// [QSDSP#walk], [QSDSP#residence]: the one word of the name, or of a word
-// several kinds answer the first the catalog declares [QSSLF#catalog]; for an
-// address the node it names.
+// The catalog's declaration of what a name reaches with no subject: the one
+// verb of the name, or of a name several kinds answer the first verb the
+// catalog declares [QSNAM#reach]; for an address the node it names.
 function catalogDeclarationOf({ index, runtime }, name) {
   const reach = bareNameReach(runtime, name);
   if (reach !== null) return index.get(reach.record.get('name').name) ?? null;
@@ -159,23 +158,23 @@ async function nameCompletions() {
   const runtime = await langRuntime();
   _valueCompletions = [];
   for (const name of verbNames(runtime)) {
-    const item = await wordCompletion(runtime, name, null);
+    const item = await verbCompletion(runtime, name, null);
     if (item !== null) _valueCompletions.push(item);
   }
   return _valueCompletions;
 }
 
-// The completion of a word as a call of it from a subject of the kinds
-// shows it, or with no kinds, its signature and its page; null for a name
-// that reaches no word.
-async function wordCompletion(runtime, name, kinds) {
+// The completion of a verb as a call of it from a subject of the kinds
+// shows it, or with no kinds, the form of its call and its page; null for
+// a name that reaches no verb.
+async function verbCompletion(runtime, name, kinds) {
   const shown = shownFor(runtime, name, kinds);
   if (shown === undefined) return null;
   const docContents = await pageContents(shown.address.literal);
   return {
     label: name,
     kind: 'function',
-    detail: signatureOf(shown),
+    detail: callFormOf(shown),
     documentation: tidyProse(docContents[0] ?? '')
   };
 }
@@ -215,7 +214,7 @@ export async function completionsAtOffset(ast, offset, source = null) {
     const runtime = await langRuntime();
     const verbs = [];
     for (const name of verbsReaching(runtime, subject.kinds).keys()) {
-      const item = await wordCompletion(runtime, name, subject.kinds);
+      const item = await verbCompletion(runtime, name, subject.kinds);
       if (item !== null) verbs.push(item);
     }
     return withDeclaredNames(verbs, subject.pipeline, subject.end, [CALL_SPELLING]);
@@ -285,8 +284,7 @@ function stepsOf(pipelineNode) {
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, and a
 // name's the kinds its `returns` names, the subject's own where that is the
-// word's own label [QSBLD#answer]; null where a step answers no
-// declared kind.
+// verb's own label [QSBLD#answer]; null where a step answers no declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
   for (const { combinator, step } of steps) {
@@ -335,16 +333,16 @@ export async function hoverAtOffset(ast, source, offset) {
   return null;
 }
 
-// A call of a word of the runtime shows the word its subject reaches,
-// where the steps before it name the kinds of the subject, its signature
-// over its page; a word the document declares shows its doc.
+// A call of a verb of the runtime shows the verb its subject reaches,
+// where the steps before it name the kinds of the subject, the form of its
+// call over its page; a verb the document declares shows its doc.
 async function hoverForCall(node, documentAst, source) {
   const runtime = await langRuntime();
   const shown = shownFor(runtime, node.name, await subjectKindsAt(source, node.location.start.offset));
   if (shown !== undefined) {
     const docContents = await pageContents(shown.address.literal);
     const prose = tidyProse(docContents.join('\n'));
-    const heading = [`**${node.name}** — ${signatureOf(shown)}`];
+    const heading = [`**${node.name}** — ${callFormOf(shown)}`];
     return {
       content: markdownHardBreaks([...heading, '', prose].join('\n')),
       startOffset: node.location.start.offset,
@@ -365,7 +363,7 @@ async function hoverForCall(node, documentAst, source) {
   };
 }
 
-// The docs of the last declaration of the name in the document, a word
+// The docs of the last declaration of the name in the document, a verb
 // under a label by the name a step calls it by.
 function findInDocumentDocs(ast, name) {
   if (!ast) return [];
@@ -462,15 +460,14 @@ function bodyRuns(body) {
   return chain.type === 'Pipeline' && chain.steps.slice(1).some(({ step }) => step.type === 'Call' && step.name === 'impl');
 }
 
-// Whether a declaration of a value declares a word, by the core's rule: a name
+// Whether a declaration of a value declares a verb, by the core's rule: a name
 // the runtime holds as the core answers it, and one of the document as
-// `declaresWord` reads it, a quote or a function with a recipe running where a
-// reader's `::builtin{}` reaches no primitive [QSNAM#address],
-// [QSHST#source].
-function declaresWordIn({ key, body }, runtime, isLabelName) {
+// `declaresVerb` reads it, a quote or a function with a recipe running where a
+// reader's `::builtin{}` reaches no primitive [QSNAM#verb], [QSHST#source].
+function declaresVerbIn({ key, body }, runtime, isLabelName) {
   return nodeOf(runtime, key.name) !== null
-    ? isWord(runtime, key.name)
-    : declaresWord(key.name, bodyRuns(body), isLabelName);
+    ? isVerb(runtime, key.name)
+    : declaresVerb(key.name, bodyRuns(body), isLabelName);
 }
 
 // The span of the last declaration of the name that stands before the
@@ -554,9 +551,9 @@ export function referencesAtOffset(ast, offset) {
 // ── Document Symbols ──────────────────────────────────────────
 
 // documentSymbols(ast, runtime) → the declarations of a document, each
-// shown as a label, a word or a value; a label is a name the document
-// declares by its page alone, or a label of the language the runtime
-// holds.
+// shown as a label, a verb or a value, a label a kind the document declares
+// under a name, by its chain or by its page alone, or one the runtime holds
+// [QSNAM#address].
 export function documentSymbols(ast, runtime) {
   if (!ast) return [];
 
@@ -575,7 +572,7 @@ export function documentSymbols(ast, runtime) {
 
     symbols.push({
       name: decl.name,
-      kind: decl.kind === 'value' && declaresWordIn(node, runtime, isLabelName) ? 'verb' : decl.kind,
+      kind: decl.kind === 'value' && declaresVerbIn(node, runtime, isLabelName) ? 'verb' : decl.kind,
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     });
@@ -617,23 +614,23 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   const shown = shownFor(runtime, call.name, await subjectKindsAt(source, call.location.start.offset));
   if (shown === undefined || (call.args.length === 0 && shown.inputs.length === 0)) return null;
 
-  const modifiers = shown.inputs;
+  const inputs = shown.inputs;
   const docContents = await pageContents(shown.address.literal);
 
-  // The active parameter is the modifier the cursor stands on or after:
-  // one per word that ends before it.
-  const activeParameter = call.args.filter(arg => arg.location.end.offset < offset).length;
+  // The active parameter of the protocol is the input whose modifier the
+  // cursor stands on or after: one per modifier that ends before it.
+  const activeParameter = call.args.filter(modifier => modifier.location.end.offset < offset).length;
 
   return {
-    label: [call.name, ...modifiers].join(' '),
+    label: [call.name, ...inputs].join(' '),
     documentation: tidyProse(docContents[0] ?? ''),
-    parameters: modifiers.map(mod => ({ label: mod })),
+    parameters: inputs.map(input => ({ label: input })),
     activeParameter
   };
 }
 
 // The call the cursor writes the words of: the narrowest call with words
-// that holds it, or the call that spaces before the cursor follow, a word
+// that holds it, or the call that spaces before the cursor follow, a verb
 // taking inputs among them.
 function callAround(ast, source, offset) {
   const node = findAstNodeAtOffset(ast, offset);

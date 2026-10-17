@@ -1,5 +1,5 @@
 // runQuery(queryText, ioContext, runOpts) → the cell of a session seeded
-// with the command line's sources, whose words of the streams read and
+// with the command line's sources, whose verbs of the streams read and
 // write through `ioContext`, the query's first value the one
 // `runOpts.initialPipeValue` gives, and a failure's cell with the prose of
 // the page that explains it.

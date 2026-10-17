@@ -8,7 +8,7 @@ import { deepEqual } from '../../src/equality.mjs';
 import { makeSet } from '../../src/types.mjs';
 import {
   formOf,
-  typeKeyword,
+  typeOf,
   keyword,
   makeTag,
   makeBinding,
@@ -73,31 +73,31 @@ describe('formOf of a binding record and of a vector under a tag', async () => {
     expect(isTagged(await evalQuery('{:kind ::builtin}'))).toBe(false);
   });
 
-  it('typeKeyword reads identity off the JS header, not off a `:kind` field', async () => {
+  it('typeOf reads identity off the JS header, not off a `:kind` field', async () => {
     const { makeTag, isTag, stampTagHeader } = await import('../../src/types.mjs');
     const carriesKindField = new Map([
       ['kind', makeTag('Box')],
       ['payload', [42, 'inner']]
     ]);
-    expect(typeKeyword(carriesKindField).name).toBe('map');
+    expect(typeOf(carriesKindField).name).toBe('map');
 
     const stamped = new Map([['payload', [42, 'inner']]]);
     stampTagHeader(stamped, makeTag('Box'));
-    const tk = typeKeyword(stamped);
-    expect(isTag(tk)).toBe(true);
-    expect(tk.name).toBe('Box');
+    const kind = typeOf(stamped);
+    expect(isTag(kind)).toBe(true);
+    expect(kind.name).toBe('Box');
   });
 });
 
-describe('typeKeyword covers all value kinds', () => {
+describe('typeOf covers all value kinds', () => {
 
-  it('typeKeyword returns :unknown for an unrecognized object', () => {
-    expect(typeKeyword({ type: 'alien' }).name).toBe('unknown');
+  it('typeOf returns ::unknown for an unrecognized object', () => {
+    expect(typeOf({ type: 'alien' }).name).toBe('unknown');
   });
 
-  it('typeKeyword returns ::binding for a binding record', () => {
+  it('typeOf returns ::binding for a binding record', () => {
     const record = makeBinding({ name: keyword('x'), value: 42 });
-    expect(typeKeyword(record).name).toBe('binding');
+    expect(typeOf(record).name).toBe('binding');
   });
 });
 
@@ -142,7 +142,7 @@ describe('error-convert.mjs — spanOfLocation [QSPRN#span]', async () => {
 
   it('writes the start and the end of a location as the six numbers of a span', async () => {
     const span = spanOfLocation(parse('42').location, '42');
-    expect(typeKeyword(span).name).toBe('span');
+    expect(typeOf(span).name).toBe('span');
     expect([...span]).toEqual([0, 1, 1, 2, 1, 3]);
   });
 });

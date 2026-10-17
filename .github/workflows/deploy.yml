@@ -1,4 +1,4 @@
-# The decisions it exists for: [QSWRK#tooling].
+# The rules it holds: [QSWRK#tooling].
 name: Deploy
 
 on:
@@ -9,7 +9,7 @@ jobs:
   publish:
     name: Publish ${{ matrix.workspace }} to npm
     runs-on: ubuntu-latest
-    # npm trusted publishing (OIDC): the registry mints the publish
+    # npm trusted publishing (OIDC): the registry issues the publish
     # credential from this token, matched against the package's
     # trusted-publisher entry (repository + this workflow's file
     # name). No long-lived npm token takes part.

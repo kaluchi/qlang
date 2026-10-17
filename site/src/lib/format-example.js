@@ -12,9 +12,9 @@
 // highlighted lines are mapped back 1-to-1.
 //
 // @param {string}   code     — raw demo block text
-// @param {Set}      builtins — Set of the names of the words of the language
+// @param {Set}      builtins — Set of the names of the verbs of the language
 // @returns {string} HTML string
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { highlightQlang } from './qlang-highlight.js';
 

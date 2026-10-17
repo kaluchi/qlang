@@ -1,8 +1,8 @@
 // `filter`, `every` and `any` over a vector, a set and a map. A predicate is
-// code applied to each element, a map's value being its element [QSCOL#map]: a
-// quote runs against the element as its subject, and so does a word it names
-// or a word handed in its place [QSBLD#input]. A refusal is asserted by its
-// tag and its facts.
+// code applied to each element, a map's value being its element: a quote
+// runs against the element as its subject, and so does a verb it names or a
+// verb handed in its place [QSCOL#filter]. A refusal is asserted by its tag and its
+// facts.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -15,7 +15,7 @@ import {
 
 // ── filter over a vector, a set and a map ──────────────────────
 
-describe('filter — one word serves a vector, a set and a map', () => {
+describe('filter — one name serves a vector, a set and a map', () => {
   it('Vec element predicate filters through subject-first comparator', async () => {
     expect(await evalQuery('[1 2 3 4 5] | filter ~(gt 2)')).toEqual([3, 4, 5]);
   });
@@ -114,7 +114,7 @@ describe('filter — one word serves a vector, a set and a map', () => {
 
 // ── every over a vector, a set and a map ───────────────────────
 
-describe('every — one word serves a vector, a set and a map', () => {
+describe('every — one name serves a vector, a set and a map', () => {
   it('Vec all-match', async () => {
     expect(await evalQuery('[2 4 6] | every ~(gt 0)')).toBe(true);
   });
@@ -166,7 +166,7 @@ describe('every — one word serves a vector, a set and a map', () => {
 
 // ── any over a vector, a set and a map ─────────────────────────
 
-describe('any — one word serves a vector, a set and a map', () => {
+describe('any — one name serves a vector, a set and a map', () => {
   it('Vec one-matches', async () => {
     expect(await evalQuery('[1 2 3] | any ~(gt 2)')).toBe(true);
   });
@@ -254,10 +254,6 @@ describe('the kind of a value read by `type | eq ::kind`', () => {
 
   it('type answers ::null for null alone', async () => {
     expect(await evalQuery('null | type | eq ::null')).toBe(true);
-    // A Map entry whose value is the explicit `null` is the only
-    // a strict path or null by a soft one. A missing
-    // key now errors (::path/KeyNotInMapError) instead of silently
-    // returning null.
     expect(await evalQuery('{:nothing null} | get /nothing | type | eq ::null')).toBe(true);
     expect(await evalQuery('0 | type | eq ::null')).toBe(false);
     expect(await evalQuery('"" | type | eq ::null')).toBe(false);

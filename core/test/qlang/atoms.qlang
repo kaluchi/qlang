@@ -16,10 +16,10 @@
    The verbs are the language's own, and the test of the ring runs them
    over every example of the catalog and every literal of the
    conformance cases.
-   The decisions it exists for: [QSLIT#atoms]. ~|
+   The rules it holds: [QSLIT#atoms]. ~|
 
 :any/atomKinds
-  |~~ The kinds of the atoms, a word, since a recipe reads no value a
+  |~~ The kinds of the atoms, a verb, since a recipe reads no value a
       sentence names.
   ~~|
   ~(#[::null ::boolean ::number ::string ::regex ::keyword ::tag ::path])

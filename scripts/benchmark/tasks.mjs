@@ -1,10 +1,9 @@
-// The tasks of the benchmark [QSWRK#measure]: each a question over an input of
-// `inputs/`, or over the language alone, the answer, as JSON the query
-// over the input writes by `| json` or as a qlang literal, and the reference,
-// the shortest query the tree answers it with today. The reference is
-// no hint to a model under test, which never sees this file; it proves
-// the task solvable and names the price the language asks, so a
-// reference that shrinks is a repair the runs can be held against.
+// The tasks whose references run in the gate as `check:benchmark` [QSWRK#measure]:
+// each a question over a file of data in `inputs/`, or over the language
+// alone, the answer, as JSON the query over the data writes by `| json`
+// or as a qlang literal, and the reference, the shortest query the tree
+// answers it with, which proves the task solvable and names the price the
+// language asks, so a reference that shrinks is a repair.
 
 export const TASKS = [
   {
@@ -51,7 +50,7 @@ export const TASKS = [
   },
   // The language itself: its literals, its own verbs and tags, code as a
   // value, docs, errors as values, and the pages it answers questions
-  // with. Each runs on no input, and its answer is a qlang literal.
+  // with. Each reads no data, and its answer is a qlang literal.
   {
     id: 'L1',
     question: 'declare a verb of your own named triple that multiplies a number by three, and answer the vector [1 2 3] with every element tripled.',

@@ -1,8 +1,8 @@
-// The words of a path [QSPTH#value]: `get` reads it strictly and `query`
-// softly, over a path, a key or a literal that holds paths; `put`, `update`
-// and `delete` write it [QSPTH#write]; `paths` answers the outline of a value
-// and `shape` its schema [QSPTH#words]; `segments` and `toPath` turn a path
-// and its keys into each other, JSON Pointer's form read with its escapes.
+// The verbs of a path: `get` reads it strictly and `query` softly, over a
+// path, a key or a literal that holds paths; `put`, `update` and `delete`
+// write it; `paths` answers the outline of a value and `shape` its schema;
+// `segments` and `toPath` turn a path and its keys into each other, JSON
+// Pointer's form read with its escapes [QSPTH].
 
 import { bindPrim, bindStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -12,7 +12,7 @@ import { atPlace } from '../eval-trail.mjs';
 import { deepEqual } from '../equality.mjs';
 import {
   isPath, makePath, isKeyword, isMap, isVec, isSet, isValueClass, isErrorValue, isTagged, keyword, makeSet,
-  makeTagged, beneathTags, payloadBeneath, typeKeyword, TAG_HEADER_SYMBOL, ABSENT_TAG, EACH_TAG, NULLABLE_TAG, SHAPE_TAG
+  makeTagged, beneathTags, payloadBeneath, typeOf, TAG_HEADER_SYMBOL, ABSENT_TAG, EACH_TAG, NULLABLE_TAG, SHAPE_TAG
 } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
@@ -30,12 +30,12 @@ const isKey = value => isKeyword(value) || typeof value === 'string' || typeof v
 // paths are read and whose quotes, closed at the call, are run against the
 // subject in their places, its other values kept, each container laid back
 // under its tags as a write lays it, the first failure the answer [QSLIT#tag].
-function readObject(subject, object, soft, fallback, state) {
-  if (isPath(object) || isKey(object)) {
-    const read = readPath(subject, isPath(object) ? object : pathOfKey(object), soft);
+function readByPath(subject, path, soft, fallback, state) {
+  if (isPath(path) || isKey(path)) {
+    const read = readPath(subject, isPath(path) ? path : pathOfKey(path), soft);
     return read === MISSED ? fallback : read;
   }
-  return readTemplate(subject, object, soft, fallback, state);
+  return readTemplate(subject, path, soft, fallback, state);
 }
 
 async function readTemplate(subject, template, soft, fallback, state) {
@@ -68,15 +68,15 @@ async function readParts(subject, templates, soft, fallback, state) {
   return parts;
 }
 
-bindStateReader('any/get', runsWithin(['path'], (subject, object, state) => readObject(subject, object, false, null, state)));
-bindStateReader('any/query', runsWithin(['path'], (subject, object, fallback, state) => readObject(subject, object, true, fallback, state)));
+bindStateReader('any/get', runsWithin(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
+bindStateReader('any/query', runsWithin(['path'], (subject, path, fallback, state) => readByPath(subject, path, true, fallback, state)));
 
 // The subject with the part at a path written: `put` lays a value there,
 // a key the last map lacks added, `update` lays what its code answers for
 // the part there, and `delete` takes the part out, the elements after a
 // place it takes moving up. The path is followed as `get` follows it, and
 // every container on the way is built again and laid under the tags it
-// stood under, their constructors and invariants run, as `within` lays
+// stood under, each laid again through its kind, as `within` lays
 // its answer; an error the code answers is the answer, at its path [QSERR#trail].
 async function written(value, path, at, write, state) {
   if (isValueClass(value, 'underTag')) return await relaid(value, await written(value.payload, path, at, write, state), state);
@@ -114,23 +114,23 @@ async function relaid(original, rebuilt, state) {
   return await layTag(tag.name, rebuilt, state);
 }
 
-const pathOf = object => (isPath(object) ? object : pathOfKey(object));
+const pathOf = pathOrKey => (isPath(pathOrKey) ? pathOrKey : pathOfKey(pathOrKey));
 
-bindStateReader('any/put', (subject, object, value, state) =>
-  written(subject, pathOf(object), 0, { adds: true, removes: false, part: () => value }, state));
-bindStateReader('any/update', runs(['code'], (subject, object, code, state) => {
-  const path = pathOf(object);
+bindStateReader('any/put', (subject, pathOrKey, value, state) =>
+  written(subject, pathOf(pathOrKey), 0, { adds: true, removes: false, part: () => value }, state));
+bindStateReader('any/update', runs(['code'], (subject, pathOrKey, code, state) => {
+  const path = pathOf(pathOrKey);
   const part = async old => {
     const answer = await code(old);
     return isErrorValue(answer) ? atPlace(answer, path) : answer;
   };
   return written(subject, path, 0, { adds: false, removes: false, part }, state);
 }));
-bindStateReader('any/delete', (subject, object, state) =>
-  written(subject, pathOf(object), 0, { adds: false, removes: true }, state));
+bindStateReader('any/delete', (subject, pathOrKey, state) =>
+  written(subject, pathOf(pathOrKey), 0, { adds: false, removes: true }, state));
 
-// `has` asks whether a path reads, beside the membership it answers for any
-// other value.
+// `has` asks whether a path reads, beside whether a value of any other kind
+// is held [QSPTH#has].
 export function pathReads(subject, path) {
   try {
     return readPath(subject, path, true) !== MISSED;
@@ -141,7 +141,7 @@ export function pathReads(subject, path) {
 
 // The outline and the shape read the subject beneath its tags, and below it a
 // vector, a set or a map as a reader writes one, a part under a tag standing
-// whole as a leaf of its kind, which tells of itself on its page [QSPTH#words].
+// whole as a leaf of its kind, which tells of itself on its page [QSPTH#verbs].
 const isOpened = (value, top) => (isMap(value) || isVec(value)) && (top || !isTagged(value) || isSet(value));
 
 // The outline of a value: the pair of the path and the kind of every part
@@ -153,7 +153,7 @@ bindPrim('any/paths', subject => {
     const value = top ? beneathTags(current) : current;
     const parts = !isOpened(value, top) ? [] : isMap(value) ? [...value] : value.map((element, index) => [String(index), element]);
     if (parts.length === 0) {
-      if (!top) found.push(Object.freeze([makePath(segments), typeKeyword(value)]));
+      if (!top) found.push(Object.freeze([makePath(segments), typeOf(value)]));
       return;
     }
     for (const [segment, part] of parts) walk(part, [...segments, segment]);
@@ -169,7 +169,7 @@ bindPrim('any/paths', subject => {
 // kind.
 function shapeOf(current, top) {
   const value = top ? beneathTags(current) : current;
-  if (!isOpened(value, top)) return typeKeyword(value);
+  if (!isOpened(value, top)) return typeOf(value);
   if (isMap(value)) {
     const shapes = new Map([...value].map(([key, part]) => [key, shapeOf(part, false)]));
     return foldedOf(value, shapes) ?? shapes;
@@ -225,7 +225,7 @@ bindPrim('any/shape', subject => makeTagged(SHAPE_TAG, shapeOf(subject, true)));
 // The marks a shape carries over its core, `::absent` outside, a key some
 // records lack, and `::nullable` within, a part null in some of the data;
 // a part that is null alone stands as `::null`.
-const NULL_KIND = typeKeyword(null);
+const NULL_KIND = typeOf(null);
 const isMark = (value, tag) => isTagged(value) && value[TAG_HEADER_SYMBOL].name === tag.name;
 
 function marksOf(shape) {

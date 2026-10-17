@@ -1,10 +1,10 @@
 |~ `::regex` and what is declared under it: its constructor and its
-   refusal, and `toRegex`, which answers the pattern itself. The words
+   refusal, and `toRegex`, which answers the pattern itself. The verbs
    that read text by a pattern live under `::string`.
-   The decisions it exists for: [QSTXT#pattern]. ~|
+   The rules it holds: [QSTXT#pattern]. ~|
 
 :regex
-  |~~ A pattern of text, `#"\d+ms"`, which the words of a string read text
+  |~~ A pattern of text, `#"\d+ms"`, which the verbs of a string read text
       by: whether a match stands, `"took 12ms" | contains #"\d+ms"`, the
       first match and its groups, `match`, the groups it names, `capture`,
       the text of every match, `scan`, the text put in the place of every
@@ -26,7 +26,7 @@
 
       A pattern is no string: `split "."` cuts a text at its dots, and
       `split #"[.,;]"` at any of three marks. Text becomes a pattern by
-      `toRegex`, its flags the part of the call, `"error" | toRegex "i"`,
+      `toRegex`, the flags its input `flags`, `"error" | toRegex "i"`,
       and a pattern prints as its literal, which `print` writes. JSON
       writes that literal as a string, which `parse | apply it` reads back,
       and patterns rank after strings, by their text and then their flags.

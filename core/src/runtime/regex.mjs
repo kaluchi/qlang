@@ -1,8 +1,8 @@
-// The words of a string that read its text by a pattern: whether a match
+// The verbs of a string that read its text by a pattern: whether a match
 // stands, the first match and its groups, the groups it names, the text of
 // every match, the text put in the place of every match, and the pieces
 // between the matches.
-// The decisions it exists for: [QSTXT#pattern].
+// The rules it holds: [QSTXT#pattern].
 
 import { bindPrim, runs } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';

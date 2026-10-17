@@ -109,7 +109,7 @@ describe('main — flag dispatch', () => {
 });
 
 // A query that reads no subject runs without waiting on standard input,
-// which a shell may hand open with nothing piped [QSHST#input].
+// which a shell may hand open with nothing piped [QSHST#stdin].
 describe('main — standard input read for a query that reads its subject', () => {
   const openStdin = () => Object.assign(new Readable({ read() {} }), { isTTY: false });
 
@@ -145,7 +145,7 @@ describe('main — the code a failure exits with under --fail', () => {
     expect(s.stderrText()).toBe('');
   });
 
-  it('exits an input --json cannot read with 1, the refusal of parseJson its answer', async () => {
+  it('exits a text --json cannot read with 1, the refusal of parseJson its answer', async () => {
     const s = captureStreams('{"a":1');
     const exitCode = await main(['--fail', '--json', 'get /a'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(1);
@@ -179,7 +179,7 @@ describe('main — script mode auto-pipe', () => {
     expect(s.stderrText()).toBe('');
   });
 
-  it('prints a map read from a JSON input as its literal [QSHST#answer]', async () => {
+  it('prints a map read from JSON on stdin as its literal [QSHST#answer]', async () => {
     const s = captureStreams('{"a": {"b": 1, "c": 2}}');
     const exitCode = await main(
       ['get /a'],
@@ -189,7 +189,7 @@ describe('main — script mode auto-pipe', () => {
     expect(s.stdoutText()).toBe('{:b 1 :c 2}\n');
   });
 
-  it('prints a kind asked of a JSON input, which JSON has no form for [QSHST#answer]', async () => {
+  it('prints a kind asked of a JSON subject, which JSON has no form for [QSHST#answer]', async () => {
     const s = captureStreams('{"a": 1}');
     await main(['type'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('::map\n');
@@ -201,7 +201,7 @@ describe('main — script mode auto-pipe', () => {
     expect(s.stdoutText()).toBe('[1,2]\n');
   });
 
-  it('prints the count of a JSON input as its literal', async () => {
+  it('prints the count of a JSON subject as its literal', async () => {
     const s = captureStreams('[1, 2, 3]');
     const exitCode = await main(
       ['count'],
@@ -222,7 +222,7 @@ describe('main — script mode auto-pipe', () => {
   });
 
   it('uses raw mode on --raw regardless of stdin shape', async () => {
-    // The input reads as JSON, and `--raw` reads it as a string [QSHST#input].
+    // Standard input reads as JSON, and `--raw` reads it as a string [QSHST#stdin].
     const s = captureStreams('{"a":1}');
     const exitCode = await main(
       ['--raw', 'append " done"'],
@@ -314,7 +314,7 @@ describe('main — error paths', () => {
     expect(s.stdoutText()).toContain(':path []');
   });
 
-  it('answers the same refusal under an explicit --json input mode', async () => {
+  it('answers the same refusal where --json reads stdin', async () => {
     const s = captureStreams('{"deep": [0, 1e400]}');
     const exitCode = await main(['--json', 'count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
@@ -344,7 +344,7 @@ describe('main — error paths', () => {
     expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `query`');
   });
 
-  it('writes a failure on a JSON input as its alert with the prose of its page [QSHST#answer]', async () => {
+  it('writes a failure on a JSON subject as its alert with the prose of its page [QSHST#answer]', async () => {
     const s = captureStreams('{"a": 1}');
     await main(['| get /b'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toMatch(/^\|~\| raised, and no !\| caught it\n::path\/KeyNotInMapError!\{/);

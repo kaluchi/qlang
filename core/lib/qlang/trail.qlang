@@ -1,6 +1,6 @@
 |~ `::trail`, the kind of the path a failure flew, and the laws declared
    under it.
-   The decisions it exists for: [QSERR#trail]. ~|
+   The rules it holds: [QSERR#trail]. ~|
 
 :trail
   |~~ A trail is the path a failure flew: a frame for each step that
@@ -11,7 +11,7 @@
       joins the steps of the last frame.
 
       An error holds it under `:trail`, written as the failure flies, and
-      `trail` reads it from an error at rest; the words of vectors read
+      `trail` reads it from an error at rest; the verbs of vectors read
       it, `first` the frame where the failure arose and `last` the frame
       of the level that reads it. It prints a frame a line where it holds
       two or more, a frame standing on one line whatever its subject

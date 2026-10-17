@@ -2,7 +2,7 @@
 // tokenize — every branch is the ANSI lookup or the whitespace
 // pass-through, so the tests confirm token kinds → escape codes
 // mapping plus the no-escape behaviour of whitespace.
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
 import { highlightAnsi } from '../src/highlight-ansi.mjs';
@@ -59,7 +59,7 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[36m:active\x1b[0m');
   });
 
-  it('wraps the call of a word of the language in the bright-blue escape pair', () => {
+  it('wraps the call of a verb of the language in the bright-blue escape pair', () => {
     const builtins = new Set(['count']);
     const out = highlightAnsi('count', builtins);
     expect(out).toBe('\x1b[94mcount\x1b[0m');

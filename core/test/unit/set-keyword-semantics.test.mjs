@@ -53,7 +53,7 @@ describe('the algebra of two sets of keywords', async () => {
   });
 });
 
-describe('a keyword made fresh is a member of a set', async () => {
+describe('a set holds a keyword made fresh as an element', async () => {
   it('has(:key) on Set finds keyword by name', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('#[:a :b :c] | has :b')).toBe(true);
@@ -104,16 +104,16 @@ describe('two sets of different keywords are unequal', async () => {
 });
 
 describe('minus and inter over a set of keywords and other values', async () => {
-  it('Map×Set minus refuses a member that names no key, under the word of the fold [QSERR#site], [QSPTH#key]', async () => {
+  it('Map×Set minus refuses an element that names no key, under the verb of the fold [QSPTH#key]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2}, #[:a 42]] | minus !| type');
-    expect(result.name).toBe('vec/minus/KeyNotKeywordOrStringError');
+    expect(result.name).toBe('vec/minus/KeyKindNotTakenError');
   });
 
-  it('Map×Set inter refuses a member that names no key, under the word of the fold [QSERR#site], [QSPTH#key]', async () => {
+  it('Map×Set inter refuses an element that names no key, under the verb of the fold [QSPTH#key]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const result = await evalQuery('[{:a 1 :b 2 :c 3}, #[:b 99]] | inter !| type');
-    expect(result.name).toBe('vec/inter/KeyNotKeywordOrStringError');
+    expect(result.name).toBe('vec/inter/KeyKindNotTakenError');
   });
 });
 

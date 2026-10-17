@@ -1,6 +1,6 @@
 # QSTXT · Text and patterns
 
-The words of strings and the pattern, a value that reads text. The
+The verbs of strings and the pattern, a value that reads text. The
 requirements of each section are the cases of its file under
 `core/test/conformance/QSTXT/`.
 
@@ -14,12 +14,12 @@ case as Unicode maps the text, a letter to two where it writes two and a
 sigma at the end of a word to its final form, and `lines` cuts it at `\n`
 and `\r\n`, a line break at the end closing the last line and the empty
 string holding none. `append` and `prepend` write a text at one end, a
-keyword written as its name. A word only strings answer refuses a
-subject of another kind under its own address,
+keyword written as its name. A verb of strings that holds its name alone
+refuses a subject of another kind under its own address,
 `::string/lower/SubjectNotStringError`, and a name strings share with
 another kind, `append`, `prepend`, `count`, `take`, `drop` and `contains`
-among them, as `::call/KindAnswersNoVerbError` with the addresses of its
-words.
+among them, is refused by the call, `::call/KindAnswersNoVerbError`,
+with the addresses of its verbs.
 
 ```qlang
 > "привет" | count
@@ -42,16 +42,20 @@ words.
 
 > "a\nb\nc" | lines
 ["a" "b" "c"]
+
+> get [~(42 | lower !| type) ~(42 | take 2 !| get [~(type) /addresses])]
+[::string/lower/SubjectNotStringError [::call/KindAnswersNoVerbError #[::map/take ::string/take ::vec/take]]]
 ```
 
 ## search
 
 `contains`, `startsWith` and `endsWith` ask a string for a text, case
 and all, a pattern for `contains` among them [QSTXT#match], and the
-empty text stands in every string; a word that reads text refuses a
-keyword for its text. `contains` asks a vector and a set for an element,
-a path among them, which `has` reads as the path it is; a value of no kind it serves is refused with the
-addresses that serve it.
+empty text stands in every string; a verb that reads text refuses a
+keyword for its text. `contains` asks a vector for an element, a path
+among them, which `has` reads as the path it is, and a set answers it by
+the verb of vectors; a subject of no kind its verbs serve is refused by
+the call with their addresses.
 
 ```qlang
 > "Hello" | contains "hello"
@@ -65,6 +69,9 @@ true
 
 > "abc" | contains :a !| type
 ::string/contains/needle/KindNotTakenError
+
+> get [~(42 | contains "x" !| get [~(type) /addresses]) ~(#[1 2] | binding :contains | get /name)]
+[[::call/KindAnswersNoVerbError #[::string/contains ::vec/contains]] :vec/contains]
 ```
 
 ## split
@@ -141,10 +148,10 @@ two digits whose first names a group, `$10` read as `$1` and `0`, as
 ECMAScript reads it; it
 stands as written where a text is replaced; and code that answers no
 string is refused as `::string/replace/with/AnswerNotStringError`.
-`toRegex` reads a string as the source of a pattern, its flags a string
-the call gives: a source the engine cannot read is refused with the
-engine's reason and, where the source shows another dialect's habit, its
-repair, a needless backslash or flags written inside, `toRegex "i"`;
+`toRegex` reads a string as the source of a pattern, its input `flags` a
+string the call gives: a source the engine cannot read is refused with
+the engine's reason and, where the source shows another dialect's habit,
+its repair, a needless backslash or flags written inside, `toRegex "i"`;
 flags of another kind are refused as
 `::string/toRegex/flags/KindNotTakenError` and letters of no flag as
 `::string/toRegex/flags/NotFlagsError`; and a string that writes a whole

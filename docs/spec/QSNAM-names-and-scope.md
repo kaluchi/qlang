@@ -264,10 +264,11 @@ refusals and the facts they carry, its invariants and its laws, so what
 a verb is is the set of the nodes under its address, and a helper
 several verbs share is a node under their noun. Any other value is data.
 
-Written as a step, an address reads what it declared, a verb run on the
-subject its residence serves [QSDSP#residence] and any other value
-itself, whatever the subject; a node that holds data is read by its
-address alone, its last name no bare name. An address no declaration
+Written as a step, an address reads what it declared, a verb or the
+constructor a host hands run on the subject its residence serves
+[QSDSP#residence] and any other value itself, whatever the subject; a
+node that holds data is read by its address alone, its last name no bare
+name. An address no declaration
 names, written as a step, is refused as `::call/UnknownAddressError`
 with its `:address` and the tag names near it as `:nearest`. A tag no
 declaration names, the tag of a verb and the tag of an invariant lay
@@ -297,8 +298,8 @@ true
 > ::Nobody[1 2] | type
 ::Nobody
 
-> get [~(5 | number/construct) ~(::vec/take/count/NotIntegerError#5 | type)]
-[::builtin{} ::vec/take/count/NotIntegerError]
+> get [~(5 | number/construct) ~("x" | number/construct !| type) ~(::vec/take/count/NotIntegerError#5 | type)]
+[5 ::number/construct/SubjectNotNumberError ::vec/take/count/NotIntegerError]
 ```
 
 ## root

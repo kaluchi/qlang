@@ -436,9 +436,10 @@
 :fn/returns
   |~~ Names the answer of a function, its page and its kinds, the tag or
       the set of tags it is brought to,
-      `::fn | returns |~~ The sum. ~~| ::number`: an answer of one kind is
-      made that kind by its constructor, and one of none of several is
-      refused under the answer.
+      `::fn | returns |~~ The sum. ~~| ::number`: an answer whose walk
+      reaches one of the kinds is the value it reaches, one that reaches
+      none is put under the one kind named, and one of none of the kinds
+      is refused under the answer.
   ~~|
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
@@ -636,12 +637,13 @@
     ::builtin{}]
 
 :fn/carries
-  |~~ Names a fact a refusal of a function carries, its page and its
-      kinds, `| carries :TooBigError/bound |~~ The bound. ~~| ::number`,
-      under the name its path names, one declared before it, a refusal
-      `throws` declares or the kinds of an input name among them; under
-      a label it is a fact of the verb's refusal, which a failure of it
-      carries and its alert shows in the order its facts are named.
+  |~~ Names a fact of a function, its page and its kinds,
+      `| carries :TooBigError/bound |~~ The bound. ~~| ::number`, under
+      the name its path names, one declared before it, a refusal `throws`
+      declares or the kinds of an input name, an input and the answer
+      among them; under a label a fact of a refusal is a fact of the
+      verb's refusal, which a failure of it carries and its alert shows
+      in the order its facts are named.
   ~~|
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|

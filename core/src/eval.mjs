@@ -23,7 +23,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, subjectKindsRefusalAddress, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isRecipe, isVerb, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError, kindsOfWalk
+  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, subjectKindsRefusalAddress, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isVerbValue, isRecipe, isUnderLabel, isVerb, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError, kindsOfWalk
 } from './runtime/nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './runtime/chain.mjs';
 import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
@@ -195,7 +195,7 @@ function evalRegexLit(node, state)   { return withPipeValue(state, makeRegex(nod
 // Each element and each value of a literal is a literal, read one after
 // another in their order [QSQUO#modifier], none reading the scope or the
 // subject [QSLIT#closed]; a failure lives in the pipe alone, so the first a part
-// answers, a constructor's refusal of its payload, is the answer of the
+// answers, a kind's refusal of its payload, is the answer of the
 // literal, the parts after it left unread [QSERR#flow].
 async function evalVecLit(node, state) {
   return withPipeValue(state, await partValues(node.elements, state));
@@ -232,8 +232,8 @@ async function evalErrorLit(node, state) {
   return withPipeValue(state, node.tag === null ? atRest : await layTag(node.tag, atRest, state));
 }
 
-// The value a part of a literal answers: a refusal its constructor raised
-// passes a frame at the part, and one handed on from a part inside it goes
+// The value a part of a literal answers: a refusal the kind of its tag
+// raised passes a frame at the part, and one handed on from a part inside it goes
 // on as it is to the literal it fails [QSERR#trail].
 async function partAnswer(partNode, state) {
   return answerOfPart((await evalNode(partNode, state)).pipeValue, partNode, state.pipeValue);
@@ -522,17 +522,19 @@ async function applyBinding(entry, name, lastName, modifiers, state) {
 }
 
 // A name with a path reads what its address declared, past every bare
-// name of the scope, a verb run and any other value itself, the
-// constructor of a kind among them, so a verb a declaration shadows stays
-// one address away [QSNAM#address]: `[1 2 3] | vec/filter ~(gt 1)` calls
-// the `filter` of vectors whatever the scope binds as `filter`.
+// name of the scope: a value that runs, named under a label, runs on the
+// subject, a verb or the constructor a host hands, which no bare name
+// reaches, and any other value is read itself, so a verb a declaration
+// shadows stays one address away [QSNAM#address]: `[1 2 3] | vec/filter
+// ~(gt 1)` calls the `filter` of vectors whatever the scope binds as
+// `filter`.
 async function callByAddress(node, state) {
   const record = nodeOf(state.env, node.name);
   if (record === null) {
     throw new CallUnknownAddressError({ address: makeTag(node.name), nearest: nearestTagNames(state.env, node.name) });
   }
   const modifiers = node.args.map(argNode => modifierOf(argNode, state));
-  if (isVerb(state.env, node.name)) {
+  if (isVerbValue(bindingValueOf(record)) && isUnderLabel(state.env, node.name)) {
     return await applyVerb(record, modifiers, state);
   }
   return await applyBinding(record, node.name, splitAddress(node.name)[1], modifiers, state);
@@ -723,8 +725,8 @@ async function keptOfTheLabel(answer, labelName, walked, refused, state) {
   return isErrorValue(kept) || walkToKinds(kept, [labelName]) !== null ? kept : refused();
 }
 
-// The answer a constructor makes, a payload the kind refuses for its kind
-// refused as the answer is [QSBLD#answer].
+// The answer a kind makes, a payload it refuses for its kind refused as
+// the answer is [QSBLD#answer].
 async function answerMadeBy(kindName, make, refused) {
   const payloadRefusal = `${kindName}/${payloadRefusalName(false)}`;
   let made;

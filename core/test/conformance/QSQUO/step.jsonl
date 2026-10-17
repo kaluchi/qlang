@@ -9,7 +9,7 @@
 {"name":"quote-tag-refuses-a-non-step","query":"[::Box[1]] | tag ::quote !| type","expect":"::quote/ElementNotStepError"}
 {"name":"quote-assembled-from-steps","query":"[[1 2] ::call{:name :count}] | tag ::quote | parse","expect":"\"[1 2] | count\""}
 {"name":"call-record-that-reads-back-as-no-code-is-refused","query":"::call{:name :\"a b\"} !| get [~(type) /printed]","expect":"[::call/ReadBackDiffersError \"a b\"]"}
-{"name":"the-step-of-a-constructor-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct"}
+{"decision":"D358","name":"the-step-of-a-tagged-literal-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct"}
 {"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::construct/ReadBackDiffersError"}
 {"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| it) | first | get /docs | first | type","expect":"::doc"}
 {"name":"the-step-of-an-error-literal-maps-as-the-map-of-its-fields","query":"~(!{:kind :oops :trail 5}) | map ~count","expect":"[2]"}

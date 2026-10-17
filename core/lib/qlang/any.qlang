@@ -2177,7 +2177,7 @@
       answering `{:a {:b 1 :c 2}}`. The path is followed as `get` follows
       it, so a key or a place missing on the way is refused where the
       path writes it, and a value under a tag on the way is laid under it
-      again, its constructor and its invariants run. A key the query
+      again through its kind. A key the query
       computes is the path of one segment, `put :a 1`, and a vector grows
       by `append`.
       ::link~(::any/update | doc) ::link~(::any/delete | doc)

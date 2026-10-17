@@ -72,12 +72,17 @@ line's `in` reads standard input when it is called, the empty string in
 the REPL, whose prompt holds it, `out` writes a string as a line of
 standard output, `err` as a line of standard error, and `tap` shows a
 value on standard error halfway through a query. What changes the world
-is a verb of a host, a step performed when it runs, and no value
-performs anything: reading or constructing a literal performs nothing,
-and neither does the constructor of a kind of the core. The forks of a
-sequence run in its order, so a verb of a host with an effect meets the
-elements in their order, and a host whose verb is better served by calls
-at once takes the whole vector and bounds its own calls.
+is a verb of its host, addressing the same names the queries read, and
+its result a noun that queries read. A verb of a host has one output, a
+value under its tag, and the kinds of its refusals; what it answers is
+the data its inputs chose, filtered for the question. A tag may describe
+an effect a host is to perform, and such a value is performed by an
+explicit step at the boundary; a host that wants the provenance of a
+value seen tags the value. A constructor is pure, and reading or
+constructing a literal performs nothing. The forks of a sequence run in
+its order, so a verb of a host with an effect meets the elements in their
+order, and a host whose verb is better served by calls at once takes the
+whole vector and bounds its own calls.
 
 ```qlang
 > :any/quiet ~(out) | 1

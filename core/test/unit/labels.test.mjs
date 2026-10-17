@@ -23,7 +23,7 @@ const BOX = lines(
 );
 
 describe('a kind built from ::kind', () => {
-  it('refuses a payload that breaks an invariant of its kind, the constructor attaching or refusing [QSLIT#tag]', async () => {
+  it('refuses a payload that breaks an invariant of its kind, the kind attaching the tag or refusing the payload [QSLIT#tag]', async () => {
     expect(await evalQuery(lines(
       ':Small |~~ A number below ten. ~~| (::kind | holds :TooBigError |~~ Below ten. ~~| ~(lt 10))',
       '::Small#12 !| type'

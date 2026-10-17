@@ -264,9 +264,10 @@ an error hands it on. `get` reads a field's place.
 A label is a kind declared under a name [QSNAM#address]. Its verbs are
 the functions and the recipes named under it, and its nodes lie under
 its address for `doc`, `manifest` and the tools, its laws for `laws`,
-and its constructor, where `impl` gives it one, as `construct`, a node
-of data [QSNAM#address], which runs where its tag is laid, as a literal
-or by `tag`, and which no step calls. A word of a literal, `::null`, is
+and its constructor, where `impl` gives it one, as `construct`, which
+runs where its tag is laid, as a literal or by `tag`, and which no bare
+name reaches, its address running the one a host hands on the subject
+its label serves [QSNAM#address]. A word of a literal, `::null`, is
 declared by the chain of a kind. The tag of a label declared by its page
 alone lays itself over a payload as it is. A value laid under a tag
 before its kind is declared keeps the tag; a literal or `tag` after the
@@ -294,7 +295,7 @@ value [QSNAM#address].
 ::builtin
 
 > :Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}) | get [~(::Pos#5 | construct !| type) ~(5 | number/construct)]
-[::call/UnknownNameError ::builtin{}]
+[::call/UnknownNameError 5]
 
 > ::null | binding | get /value | type
 ::kind

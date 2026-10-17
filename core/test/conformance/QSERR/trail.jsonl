@@ -70,6 +70,6 @@
 {"name":"a-frame-of-a-subject-alone-is-refused","query":"::frame[\"x\"] !| type","expect":"::frame/PayloadNotSubjectAndStepsError"}
 {"name":"a-frame-whose-place-is-no-path-is-refused","query":"::frame[\"x\" ~(add 1) 1] !| type","expect":"::frame/PayloadNotSubjectAndStepsError"}
 {"name":"a-trail-refuses-an-element-that-is-no-frame-at-its-index","query":"::trail[{:step ~(add 1)}] !| get [~(type) /index]","expect":"[::trail/ElementKindNotTakenError 0]"}
-{"name":"a-group-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"[1 2 3] | take (count | sub \"1\") !| trail | map ~step","expect":"[~(sub \"1\") ~(take (count | sub \"1\"))]"}
-{"name":"a-literal-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"1 | add ::frame[1] !| get [~(type) ~(trail | map ~step)]","expect":"[::frame/PayloadNotSubjectAndStepsError [~(add ::frame[1])]]"}
+{"decision":"D358","name":"a-group-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"[1 2 3] | take (count | sub \"1\") !| trail | map ~step","expect":"[~(sub \"1\") ~(take (count | sub \"1\"))]"}
+{"decision":"D358","name":"a-literal-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"1 | add ::frame[1] !| get [~(type) ~(trail | map ~step)]","expect":"[::frame/PayloadNotSubjectAndStepsError [~(add ::frame[1])]]"}
 {"name":"the-frame-of-reduce-names-the-element-a-call-of-its-one-word-is-refused-at","query":"[1 2 \"3\"] | reduce 0 ~(sum) !| get [~(type) ~(trail | last | place)]","expect":"[::call/KindAnswersNoVerbError /0]"}

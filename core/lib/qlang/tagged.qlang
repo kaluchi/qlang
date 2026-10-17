@@ -13,9 +13,9 @@
 
       It is written as the tag touching its payload, whatever brackets
       hold the payload, or made by `tag`, `[1 2] | tag ::Box` answering
-      `::Box[1 2]`. A tag declared as a kind runs its constructor and
-      its invariants over the payload, and one nothing declares lays
-      itself as it is. `payload` takes the outer tag off, and
+      `::Box[1 2]`. A tag declared as a kind runs over the payload its
+      constructor, where its slot holds one, and its invariants, and one
+      nothing declares lays itself as it is. `payload` takes the outer tag off, and
       `within ~(…)` edits the payload under the tag, which checks it
       again. JSON writes it as an object of its `$tag` and its
       `payload`.
@@ -127,7 +127,7 @@
             a set.
         ~~|
         ~(#[3 1] | within ~(get [/0 /1 /0]) | eq #[1 3])
-    | proves :runsTheConstructorOnTheAnswer
+    | proves :laysItsTagAgainOverTheAnswer
         |~~ An answer the tag's invariant refuses is refused as it goes
             back under the tag.
         ~~|

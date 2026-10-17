@@ -314,8 +314,8 @@ describe('printValue round-trip — all composite types', async () => {
     await assertRoundTrip('!{:kind ::Foo :message "boom"}', 'Error');
   });
 
-  it('Error with trail', async () => {
-    await assertRoundTrip('!{:message "boom" :trail ~(| count)}', 'Error trail');
+  it('Error with a trace of another shape', async () => {
+    await assertRoundTrip('!{:message "boom" :trace ~(| count)}', 'Error trace');
   });
 
   it('deeply nested composite', async () => {

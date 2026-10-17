@@ -1,9 +1,9 @@
-// The evaluation depth budget across every re-entry seam: a runaway recursion
-// through any seam the evaluator descends — verb body, a quote a verb runs, a
-// verb run as code or as a fold, `apply`, an invariant of a kind that lays
-// its own tag, `runLaws` — terminates on the fail-track as
+// The limit of the evaluation depth across every re-entry seam: a runaway
+// recursion through any seam the evaluator descends — verb body, a quote a
+// verb runs, a verb run as code or as a fold, `apply`, an invariant of a kind
+// that lays its own tag, `runLaws` — terminates on the fail-track as
 // `::call/EvaluationDepthExceededError` with `:depth` and `:limit`. The
-// rules it holds: [QSNAM#verb].
+// rules it holds: [D359].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -13,7 +13,7 @@ import { QlangError, CallEvaluationDepthExceededError } from '../../src/errors.m
 import { makeTag } from '../../src/types.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
-describe('depth budget — self-calling verb', () => {
+describe('the limit of the evaluation depth — self-calling verb', () => {
   it('lifts ::call/EvaluationDepthExceededError with :depth and :limit on the descriptor', async () => {
     const runaway = await evalQuery(':any/inf ~(add 1 | inf) | 0 | inf');
     expect(runaway.tag).toEqual(makeTag('call/EvaluationDepthExceededError'));
@@ -26,7 +26,7 @@ describe('depth budget — self-calling verb', () => {
     expect(original.facts).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
   });
 
-  it('leaves the budget intact for recursion that terminates', async () => {
+  it('lets a recursion that terminates run within the limit', async () => {
     const nodeCount = await evalQuery(
       ':any/total ~(sumOf 1 (get /children | map ~total | sum)) '
       + '| {:children [{:children [{:children []}]} {:children []}]} | total'
@@ -35,7 +35,7 @@ describe('depth budget — self-calling verb', () => {
   });
 });
 
-describe('depth budget — every re-entry seam', () => {
+describe('the limit of the evaluation depth — every re-entry seam', () => {
   const seams = [
     ['a body under map naming its own verb',         ':any/f ~(get [~(it)] | map ~f | first) | 1 | f'],
     ['a quote filter runs naming its own verb',     ':any/p ~(get [~(it)] | filter ~(p)) | [1] | p'],
@@ -52,27 +52,27 @@ describe('depth budget — every re-entry seam', () => {
   }
 });
 
-describe('depth budget — host seams', () => {
-  it('runLaws evaluates each example one frame below the step, so an example running its own examples terminates', async () => {
-    // Example outcomes are data: every frame that ran its example
-    // answers `:ok` for it, and the depth error sits on the frame
-    // the budget refused. The host-bound tally counts the frames
-    // whose `runLaws` step returned — the root and every frame
-    // below it up to the budget; the refused frame's `runLaws`
-    // step answers the failure, which skips the tally.
-    let frameTally = 0;
+describe('the limit of the evaluation depth — host seams', () => {
+  it('runLaws evaluates each example one deeper than the step, so an example running its own examples terminates', async () => {
+    // Example outcomes are data: every depth that ran its example
+    // answers `:ok` for it, and the depth error sits at the depth the
+    // limit refused. The host-bound tally counts the depths whose
+    // `runLaws` step returned — the root and every depth below it up to
+    // the limit; the `runLaws` step at the depth refused answers the
+    // failure, which skips the tally.
+    let depthTally = 0;
     const sessionInstance = await createSession({
       sources: [{
         uri: 'tests/tally',
-        source: ':any/tallyFrame ::builtin{}',
-        impls: { 'any/tallyFrame': subject => { frameTally++; return subject; } }
+        source: ':any/tallyDepth ::builtin{}',
+        impls: { 'any/tallyDepth': subject => { depthTally++; return subject; } }
       }]
     });
     const cellEntry = await sessionInstance.evalCell(
-      ':X |~~ X. ~~| | :X/runsItself ::law~(::X | runLaws | tallyFrame | count | eq 1) | ::X | runLaws | tallyFrame'
+      ':X |~~ X. ~~| | :X/runsItself ::law~(::X | runLaws | tallyDepth | count | eq 1) | ::X | runLaws | tallyDepth'
     );
     expect(cellEntry.result).toHaveLength(1);
     expect(cellEntry.result[0].get('ok')).toBe(true);
-    expect(frameTally).toBe(EVAL_DEPTH_LIMIT);
+    expect(depthTally).toBe(EVAL_DEPTH_LIMIT);
   });
 });

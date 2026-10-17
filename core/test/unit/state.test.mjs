@@ -1,7 +1,7 @@
 // state.mjs — the (pipeValue, env) accessors, the immutable env
-// updaters, and the frame constructors that carry the evaluation
-// depth budget.
-// The rules it holds: [QSDSP#residence], [QSNAM#verb].
+// updaters, and the states that carry the evaluation depth and its
+// limit.
+// The rules it holds: [QSDSP#residence], [D359].
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -31,8 +31,8 @@ describe('state.mjs env updaters', () => {
   });
 });
 
-describe('state.mjs frames', () => {
-  it('rootState opens depth 0; withPipeValue and withEnv stay on the frame', () => {
+describe('state.mjs evaluation depth', () => {
+  it('rootState opens depth 0; withPipeValue and withEnv stay at its depth', () => {
     const root = rootState(null, new Map());
     expect(root.depth).toBe(0);
     expect(Object.isFrozen(root)).toBe(true);
@@ -46,7 +46,7 @@ describe('state.mjs frames', () => {
     expect(nextEnv.depth).toBe(0);
   });
 
-  it('nestState descends one frame with the inner pair', () => {
+  it('nestState goes one deeper with the inner pair', () => {
     const root = rootState(1, new Map());
     const inner = nestState(root, 2, envSet(root.env, 'y', 2));
     expect(inner.depth).toBe(1);
@@ -56,12 +56,12 @@ describe('state.mjs frames', () => {
     expect(deeper.depth).toBe(2);
   });
 
-  it('nestState admits the frame at EVAL_DEPTH_LIMIT and refuses the frame past it', () => {
-    let frame = rootState(null, new Map());
-    for (let level = 0; level < EVAL_DEPTH_LIMIT; level++) frame = nestState(frame, null, frame.env);
-    expect(frame.depth).toBe(EVAL_DEPTH_LIMIT);
+  it('nestState admits the depth EVAL_DEPTH_LIMIT and refuses the one past it', () => {
+    let state = rootState(null, new Map());
+    for (let level = 0; level < EVAL_DEPTH_LIMIT; level++) state = nestState(state, null, state.env);
+    expect(state.depth).toBe(EVAL_DEPTH_LIMIT);
     let thrown = null;
-    try { nestState(frame, null, frame.env); } catch (depthErr) { thrown = depthErr; }
+    try { nestState(state, null, state.env); } catch (depthErr) { thrown = depthErr; }
     expect(thrown).toBeInstanceOf(CallEvaluationDepthExceededError);
     expect(thrown).toBeInstanceOf(QlangError);
     expect(thrown.name).toBe('EvaluationDepthExceededError');

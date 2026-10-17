@@ -80,9 +80,13 @@ export function bindPrim(addresses, impl) {
 // function over the values of the inputs of the call [QSBLD#fn].
 const STATE_READERS = new WeakSet();
 
-export function bindStateReader(addresses, impl) {
+export function readingState(impl) {
   STATE_READERS.add(impl);
-  bindPrim(addresses, impl);
+  return impl;
+}
+
+export function bindStateReader(addresses, impl) {
+  bindPrim(addresses, readingState(impl));
 }
 
 export function readsState(impl) {

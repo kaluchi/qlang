@@ -1,7 +1,7 @@
 {"name":"quote-prints-as-its-text","query":"~(mul 2) | parse","expect":"\"mul 2\""}
 {"name":"quote-empty-prints-as-nothing","query":"~() | parse","expect":"\"\""}
 {"name":"a-quote-of-two-steps-prints-them-joined-by-the-pipe","query":"~(a | b) | parse","expect":"\"a | b\""}
-{"name":"quote-with-leading-combinator-trail-style","query":"~(!| 0 | sort) | parse","expect":"\"!| 0 | sort\""}
+{"decision":"D359","name":"a-quote-that-opens-with-a-catch-parses-to-its-text","query":"~(!| 0 | sort) | parse","expect":"\"!| 0 | sort\""}
 {"name":"quote-parse-twice-is-identity","query":"~(mul 2) | parse | parse","expect":"~(mul 2)"}
 {"name":"a-quote-of-declarations-prints-a-declaration-a-line","query":"~(:a 1 | :b 2) | parse","expect":"\":a 1\n| :b 2\""}
 {"name":"a-quote-of-other-steps-prints-on-one-line","query":"~(:a 1 | a) | parse","expect":"\":a 1 | a\""}

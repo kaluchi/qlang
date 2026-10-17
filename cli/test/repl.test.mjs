@@ -81,11 +81,11 @@ describe('runRepl — query evaluation', () => {
     expect(replHarness.stderrText()).toBe('');
   });
 
-  it('prints the path of an error in its display without explicit !|', async () => {
+  it('prints the trace of an error in its display without explicit !|', async () => {
     const replHarness = captureRepl('"hello" | add 1 | mul 2 | sub 3\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const text = stripAnsi(replHarness.stdoutText());
-    expect(text).toMatch(/:trail/);
+    expect(text).toMatch(/:trace/);
     expect(text).toMatch(/mul/);
     expect(text).toMatch(/sub/);
   });
@@ -177,8 +177,8 @@ describe('runRepl — output highlighting', () => {
 });
 
 describe('runRepl — error rendering', () => {
-  it('renders an error value with its path through the same printValue path as success values', async () => {
-    // The path of an error is written as it flows [QSERR#rest], so the value
+  it('renders an error value with its trace through the same printValue path as success values', async () => {
+    // The trace of an error is written as it flows [D359], so the value
     // the cell answers already holds every frame and every skipped
     // step. The REPL renders the value verbatim through `printValue`.
     const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
@@ -231,12 +231,12 @@ describe('runRepl — the budget of an answer', () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trail/1/0)');
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/1/0)');
   });
 
   it('prints an error within the budget', async () => {
     const replHarness = captureRepl(`${forty} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 200, terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trail/');
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/');
   });
 });

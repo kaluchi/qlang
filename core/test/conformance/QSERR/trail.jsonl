@@ -1,75 +1,82 @@
-{"name":"a-verb-the-failure-skips-after-raise-joins-its-frame","query":"!{:kind :oops} | raise | count !| trail | last | skipped | parse","expect":"\"count\""}
-{"name":"a-command-the-failure-skips-after-raise-joins-its-frame-with-its-modifier","query":"!{:kind :oops} | raise | add 1 !| trail | last | skipped | parse","expect":"\"add 1\""}
-{"name":"a-read-of-a-path-the-failure-skips-after-raise-joins-its-frame","query":"!{:kind :oops} | raise | get /name !| trail | last | skipped | parse","expect":"\"get /name\""}
-{"name":"the-steps-the-failure-skips-after-raise-join-its-frame-in-order","query":"!{:kind :oops} | raise | count | add 1 | mul 2 !| trail | last | skipped | parse","expect":"\"count | add 1 | mul 2\""}
-{"name":"a-step-the-failure-skips-after-raise-is-a-call","query":"!{:kind :oops} | raise | add 1 !| trail | last | skipped | first | type","expect":"::call"}
-{"name":"a-call-the-failure-skips-after-raise-holds-its-name-as-a-keyword","query":"!{:kind :oops} | raise | add 1 !| trail | last | skipped | first | get /name","expect":":add"}
-{"name":"a-frame-without-a-skipped-step-holds-the-empty-quote","query":"!{:kind :oops} | raise !| trail | last | skipped","expect":"~()"}
-{"name":"a-frame-holds-the-step-it-skipped","query":"\"1\" | add 1 | mul 3 !| trail | last | skipped","expect":"~(mul 3)"}
-{"name":"a-frame-holds-the-steps-it-skipped-in-order","query":"\"x\" | add 1 | mul 3 | count !| trail | last | skipped","expect":"~(mul 3 | count)"}
-{"name":"an-error-raised-again-resumes-its-path-at-its-last-frame","query":"!{:kind :oops} | raise | count !| union {:stage 1} | raise | add 1 !| trail | last | skipped | parse","expect":"\"count | add 1\""}
+{"decision":"D359","name":"a-verb-the-failure-skips-after-raise-joins-its-frame","query":"!{:kind :oops} | raise | count !| trace | last | skipped | parse","expect":"\"count\""}
+{"decision":"D359","name":"a-command-the-failure-skips-after-raise-joins-its-frame-with-its-modifier","query":"!{:kind :oops} | raise | add 1 !| trace | last | skipped | parse","expect":"\"add 1\""}
+{"decision":"D359","name":"a-read-of-a-path-the-failure-skips-after-raise-joins-its-frame","query":"!{:kind :oops} | raise | get /name !| trace | last | skipped | parse","expect":"\"get /name\""}
+{"decision":"D359","name":"the-steps-the-failure-skips-after-raise-join-its-frame-in-order","query":"!{:kind :oops} | raise | count | add 1 | mul 2 !| trace | last | skipped | parse","expect":"\"count | add 1 | mul 2\""}
+{"decision":"D359","name":"a-step-the-failure-skips-after-raise-is-a-call","query":"!{:kind :oops} | raise | add 1 !| trace | last | skipped | first | type","expect":"::call"}
+{"decision":"D359","name":"a-call-the-failure-skips-after-raise-holds-its-name-as-a-keyword","query":"!{:kind :oops} | raise | add 1 !| trace | last | skipped | first | get /name","expect":":add"}
+{"decision":"D359","name":"a-frame-without-a-skipped-step-holds-the-empty-quote","query":"!{:kind :oops} | raise !| trace | last | skipped","expect":"~()"}
+{"decision":"D359","name":"a-frame-holds-the-step-it-skipped","query":"\"1\" | add 1 | mul 3 !| trace | last | skipped","expect":"~(mul 3)"}
+{"decision":"D359","name":"a-frame-holds-the-steps-it-skipped-in-order","query":"\"x\" | add 1 | mul 3 | count !| trace | last | skipped","expect":"~(mul 3 | count)"}
+{"decision":"D359","name":"an-error-raised-again-resumes-its-trace-at-its-last-frame","query":"!{:kind :oops} | raise | count !| union {:stage 1} | raise | add 1 !| trace | last | skipped | parse","expect":"\"count | add 1\""}
 {"name":"a-fact-taken-on-the-way-stays-with-the-error-raised-again","query":"!{:kind :oops} | raise !| union {:request \"r-1\"} | raise | count !| get /request","expect":"\"r-1\""}
-{"name":"an-error-raised-again-without-its-trail-starts-its-trail-at-that-raise","query":"!{:kind :oops} | raise | count | add 1 !| minus #[:trail] | raise !| get [~(type) ~(trail | map ~step)]","expect":"[::error [~(raise)]]"}
-{"name":"a-raise-of-an-error-that-writes-its-trail-passes-no-frame","query":"!{:kind :oops :trail ::trail[::frame[1 ~(pre)]]} | raise !| get /trail","expect":"::trail[::frame[1 ~(pre)]]"}
-{"name":"a-path-an-error-literal-writes-resumes-at-its-last-frame","query":"!{:kind :oops :trail ::trail[::frame[1 ~(pre)]]} | raise | count !| trail | last | skipped","expect":"~(count)"}
-{"name":"trail-not-frames-in-literal","query":"!{:kind :oops :trail 5} | raise !| get [~(type) /actualType]","expect":"[::error/TrailNotFramesError ::number]"}
-{"name":"an-error-raised-again-with-a-trail-of-no-frames-is-refused","query":"!{:kind :oops} | raise | count !| union {:trail 5} | raise !| type","expect":"::error/TrailNotFramesError"}
-{"name":"a-trail-that-is-a-quote-is-refused","query":"!{:kind :oops :trail ~(| pre)} | raise !| get [~(type) /actualType]","expect":"[::error/TrailNotFramesError ::quote]"}
-{"name":"the-step-of-an-error-literal-whose-trail-is-no-path-is-data","query":"~(!{:kind :oops :trail 5}) | first | get /trail","expect":"5"}
-{"name":"the-step-of-an-error-literal-whose-trail-is-no-path-is-refused-when-it-runs","query":"~(!{:kind :oops :trail 5} | raise) | apply it !| type","expect":"::error/TrailNotFramesError"}
-{"name":"a-tagged-error-literal-whose-trail-is-no-path-is-refused-when-raised","query":"::Foo::Bar!{:trail 5} | raise !| get [~(type) ~(trail | map ~(step | parse))]","expect":"[::error/TrailNotFramesError [\"raise\"]]"}
-{"name":"a-trail-started-again-holds-the-steps-skipped-after-its-raise","query":"!{:kind :oops} | raise | count !| minus #[:trail] | raise | add 1 !| trail | last | skipped","expect":"~(add 1)"}
-{"name":"the-pipe-passes-a-failure-by-a-verb-that-runs-code","query":"!{:kind :oops} | raise | map ~(add 1) !| trail | last | skipped | parse","expect":"\"map ~(add 1)\""}
-{"name":"an-error-literal-under-a-tag-that-writes-an-empty-trail-starts-a-path-at-its-raise","query":"::Oops!{:a 1 :trail []} | raise !| trail | map ~step","expect":"[~(raise)]"}
-{"name":"the-path-of-an-error-at-rest-that-flew-no-step-is-empty","query":"::error{:a 1} | trail","expect":"::trail[]"}
-{"name":"the-trail-of-an-error-at-rest-that-flew-no-step-is-no-key-of-it","query":"::error{:a 1} | get /trail !| get [~(type) /key]","expect":"[::path/KeyNotInMapError :trail]"}
-{"name":"a-raised-error-holds-its-path","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trail]"}
-{"name":"an-error-literal-that-writes-an-empty-trail-holds-the-path-of-its-raise","query":"::Oops!{:a 1 :trail []} | raise !| keys","expect":"#[:a :trail]"}
-{"name":"a-map-raised-that-writes-an-empty-trail-holds-the-path-of-its-raise","query":"{:a 1 :trail []} | raise !| keys","expect":"#[:a :trail]"}
-{"name":"an-error-a-catch-opened-from-an-empty-written-trail-raised-again-is-itself","query":"{:a 1 :trail []} | raise !| :e it | raise !| eq e","expect":"true"}
-{"name":"a-failure-a-verb-resumes-flies-on-through-its-literal","query":"get [~(!{:a 1 :trail ::trail[::frame[1 ~(pre)]]} | raise)] !| trail | map ~step","expect":"[~(pre) ~(get [~(!{:a 1 :trail ::trail[::frame[1 ~(pre)]]} | raise)])]"}
-{"name":"a-failure-raised-on-an-empty-written-trail-inside-a-verb-arises-at-its-raise","query":"get [~(!{:a 1 :trail []} | raise)] !| trail | map ~step","expect":"[~(raise) ~(get [~(!{:a 1 :trail []} | raise)])]"}
-{"name":"a-tagged-literal-whose-payload-raises-itself-passes-a-frame-at-its-word","query":"[::Foo::number\"x\"] !| trail | map ~step","expect":"[~(::Foo::number\"x\") ~([::Foo::number\"x\"])]"}
-{"name":"an-empty-written-trail-joins-the-steps-its-raise-skips-to-its-frame","query":"{:a 1 :trail []} | raise | count !| trail | map ~(get [~(step) ~(skipped)])","expect":"[[~(raise) ~(count)]]"}
-{"name":"every-error-answers-its-trail","query":"\"x\" | add 1 !| trail | count","expect":"1"}
-{"name":"the-trail-starts-where-the-error-arose","query":"\"x\" | add 1 !| trail | first | step","expect":"~(add 1)"}
-{"name":"a-nested-error-keeps-the-frame-of-its-level","query":"5 | (!{:k 1} | raise | add 1) !| trail | map ~step","expect":"[~(raise) ~((!{:k 1} | raise | add 1))]"}
-{"name":"a-trail-names-the-frame-where-the-error-arose","query":"\"x\" | add 1 | mul 2 !| get /trail","expect":"::trail[::frame[\"x\" ~(add 1 | mul 2)]]"}
-{"name":"a-frame-at-every-step-that-handed-the-error-on","query":":g ~(add 2 | mul 2) | \"x\" | apply g | sub 3 !| get /trail","expect":"::trail[::frame[\"x\" ~(add 2 | mul 2)] ::frame[\"x\" ~(apply g | sub 3)]]"}
-{"name":"the-last-frame-replays-where-it-is-read","query":"(:x 1 | !{:k 1} | add x) | mul 2 !| trail | last | skipped","expect":"~(mul 2)"}
-{"name":"a-frame-of-a-verb-follows-the-frame-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| trail | map ~step","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]"}
-{"name":"a-tagged-error-literal-refused-by-its-trail-keeps-the-refusal","query":"::Foo!{:trail 5} | raise !| type","expect":"::error/TrailNotFramesError"}
-{"name":"the-first-frame-of-a-name-that-reaches-nothing-holds-its-call","query":"thisIsNotDefined !| trail | first | step | first | get /name","expect":":thisIsNotDefined"}
-{"name":"a-doc-is-no-trail","query":"get [~(!{:trail |~~~~|} | raise !| type) ~(!{:trail []} | raise !| type)]","expect":"[::error/TrailNotFramesError ::error]"}
-{"name":"a-tagged-error-literal-that-writes-its-path-resumes-it-when-raised","query":"::Foo::Bar!{:trail ::trail[::frame[1 ~(pre)]]} | raise !| trail | map ~(get [~(step | parse) ~(skipped | parse)])","expect":"[[\"pre\" \"\"]]"}
-{"name":"an-overflow-holds-its-subject-on-the-trail","query":"1e308 | mul 10 !| get /trail/0/0","expect":"1e308"}
-{"name":"a-trail-under-another-tag-or-an-element-that-is-no-frame-is-refused","query":"get [~({:trail ::T[]} | raise !| type) ~({:trail [::T{:skipped ~()}]} | raise !| type)]","expect":"[::error/TrailNotFramesError ::error/TrailNotFramesError]"}
-{"name":"trail-is-a-verb-of-errors","query":"42 | trail !| type","expect":"::error/trail/SubjectNotErrorError"}
-{"name":"a-trail-holds-a-frame-for-each-step-the-failure-passed","query":"[1 \"x\" 3] | map ~(mul 2) | count !| trail","expect":"::trail[::frame[\"x\" ~(mul 2)] ::frame[[1 \"x\" 3] ~(map ~(mul 2) | count) /1]]"}
-{"name":"the-frame-of-a-step-that-ran-no-code-on-a-part-names-no-place","query":"\"x\" | add 1 !| trail | first | place","expect":"null"}
-{"name":"the-frame-of-map-names-the-index-of-the-element-its-code-broke-on","query":"[1 \"x\" 3] | map ~(mul 2) !| trail | last | place","expect":"/1"}
-{"name":"the-frame-of-map-over-a-set-names-the-place-in-its-order","query":"#[1 \"x\"] | map ~(mul 2) !| trail | last | place","expect":"/1"}
-{"name":"the-frame-of-map-over-a-map-names-the-key","query":"{:a 1 :b \"x\"} | map ~(add 1) !| trail | last | place","expect":"/b"}
-{"name":"the-frame-of-filter-names-the-index-its-predicate-broke-at","query":"[1 \"x\" 3] | filter ~(gt 1) !| trail | last | place","expect":"/1"}
-{"name":"the-frame-of-filter-over-a-map-names-the-key-its-predicate-broke-at","query":"{:a 1 :b \"x\"} | filter ~(gt 0) !| trail | last | place","expect":"/b"}
-{"name":"the-frame-of-sort-over-a-map-names-the-key-its-key-broke-at","query":"{:x {:a 1} :y {:b 2}} | sort /a !| trail | last | place","expect":"/y"}
-{"name":"the-frame-of-every-names-the-index-its-predicate-broke-at","query":"[1 \"x\"] | every ~(gt 0) !| trail | last | place","expect":"/1"}
-{"name":"the-frame-of-any-names-the-index-its-predicate-broke-at","query":"[\"x\"] | any ~(gt 0) !| trail | last | place","expect":"/0"}
-{"name":"the-frame-of-sort-names-the-index-its-key-broke-at","query":"[{:a 2} {:b 1}] | sort /a !| trail | last | place","expect":"/1"}
-{"name":"the-frame-of-max-names-the-index-its-key-broke-at","query":"[{:a 1} {:b 2}] | max /a !| trail | last | place","expect":"/1"}
-{"name":"the-frame-of-min-over-a-map-names-the-key-its-key-broke-at","query":"{:x {:a 1} :y {:b 2}} | min /a !| trail | last | place","expect":"/y"}
-{"name":"the-frame-of-groupBy-names-the-index-its-key-broke-at","query":"[{:a 1} {:b 2}] | groupBy /a !| trail | last | place","expect":"/1"}
-{"name":"the-frame-of-indexBy-names-the-index-its-key-broke-at","query":"[{:a 1} {:b 2}] | indexBy /a !| trail | last | place","expect":"/1"}
-{"name":"the-frame-of-reduce-names-the-index-of-the-element-its-reducer-broke-on","query":"[1 \"x\"] | reduce 0 ~(add) !| trail | last | place","expect":"/1"}
-{"name":"the-frame-of-reduce-over-a-map-names-the-key","query":"{:a 1 :b \"x\"} | reduce 0 ~(add) !| trail | last | place","expect":"/b"}
-{"name":"the-frame-of-update-names-the-path-it-wrote","query":"{:a {:n \"x\"}} | update /a/n ~(add 1) !| trail | last | place","expect":"/a/n"}
-{"name":"each-level-names-the-place-of-its-own-part","query":"[[1 \"x\"]] | map ~(map ~(mul 2)) !| trail | map ~place","expect":"[null /1 /0]"}
-{"name":"the-subject-of-a-frame-reads-the-part-by-its-place","query":"[1 \"x\" 3] | map ~(mul 2) !| trail | last | :f it | subject | get (f | place)","expect":"\"x\""}
-{"name":"a-plain-vector-of-frames-written-under-trail-is-laid-under-its-kind","query":"{:a 1 :trail [::frame[1 ~(pre)]]} | raise !| get /trail","expect":"::trail[::frame[1 ~(pre)]]"}
-{"name":"a-vector-of-maps-written-under-trail-is-refused-as-no-frames","query":"{:trail [{:step ~(pre) :subject 1 :skipped ~()}]} | raise !| type","expect":"::error/TrailNotFramesError"}
+{"decision":"D359","name":"an-error-raised-again-without-its-trace-starts-its-trace-at-that-raise","query":"!{:kind :oops} | raise | count | add 1 !| minus #[:trace] | raise !| get [~(type) ~(trace | map ~failed)]","expect":"[::error [~(raise)]]"}
+{"decision":"D359","name":"a-raise-of-an-error-that-writes-its-trace-passes-no-frame","query":"!{:kind :oops :trace ::trace[::frame[1 ~(pre)]]} | raise !| get /trace","expect":"::trace[::frame[1 ~(pre)]]"}
+{"decision":"D359","name":"a-trace-an-error-literal-writes-resumes-at-its-last-frame","query":"!{:kind :oops :trace ::trace[::frame[1 ~(pre)]]} | raise | count !| trace | last | skipped","expect":"~(count)"}
+{"decision":"D359","name":"a-number-an-error-literal-writes-as-its-trace-is-refused-by-its-kind-when-raised","query":"!{:kind :oops :trace 5} | raise !| get [~(type) /actualType]","expect":"[::trace/PayloadKindNotTakenError ::number]"}
+{"decision":"D359","name":"a-number-an-error-raised-again-writes-as-its-trace-is-refused-by-its-kind","query":"!{:kind :oops} | raise | count !| union {:trace 5} | raise !| type","expect":"::trace/PayloadKindNotTakenError"}
+{"decision":"D359","name":"a-trace-that-is-a-quote-is-refused","query":"!{:kind :oops :trace ~(| pre)} | raise !| get [~(type) /actualType]","expect":"[::trace/PayloadKindNotTakenError ::quote]"}
+{"decision":"D359","name":"the-step-of-an-error-literal-whose-trace-is-no-vector-of-frames-is-data","query":"~(!{:kind :oops :trace 5}) | first | get /trace","expect":"5"}
+{"decision":"D359","name":"the-step-of-an-error-literal-whose-trace-is-no-vector-of-frames-is-refused-when-it-runs","query":"~(!{:kind :oops :trace 5} | raise) | apply it !| type","expect":"::trace/PayloadKindNotTakenError"}
+{"decision":"D359","name":"a-tagged-error-literal-whose-trace-is-no-vector-of-frames-is-refused-when-raised","query":"::Foo::Bar!{:trace 5} | raise !| get [~(type) ~(trace | map ~(failed | parse))]","expect":"[::trace/PayloadKindNotTakenError [\"raise\"]]"}
+{"decision":"D359","name":"a-trace-started-again-holds-the-steps-skipped-after-its-raise","query":"!{:kind :oops} | raise | count !| minus #[:trace] | raise | add 1 !| trace | last | skipped","expect":"~(add 1)"}
+{"decision":"D359","name":"the-pipe-passes-a-failure-by-a-verb-that-runs-code","query":"!{:kind :oops} | raise | map ~(add 1) !| trace | last | skipped | parse","expect":"\"map ~(add 1)\""}
+{"decision":"D359","name":"an-error-literal-under-a-tag-that-writes-an-empty-trace-starts-a-trace-at-its-raise","query":"::Oops!{:a 1 :trace []} | raise !| trace | map ~failed","expect":"[~(raise)]"}
+{"decision":"D359","name":"the-trace-of-an-error-at-rest-that-flew-no-step-is-empty","query":"::error{:a 1} | trace","expect":"::trace[]"}
+{"decision":"D359","name":"the-trace-of-an-error-at-rest-that-flew-no-step-is-no-key-of-it","query":"::error{:a 1} | get /trace !| get [~(type) /key]","expect":"[::path/KeyNotInMapError :trace]"}
+{"decision":"D359","name":"a-raised-error-holds-its-trace","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trace]"}
+{"decision":"D359","name":"an-error-literal-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"::Oops!{:a 1 :trace []} | raise !| keys","expect":"#[:a :trace]"}
+{"decision":"D359","name":"a-map-raised-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"{:a 1 :trace []} | raise !| keys","expect":"#[:a :trace]"}
+{"decision":"D359","name":"an-error-a-catch-opened-from-an-empty-written-trace-raised-again-is-itself","query":"{:a 1 :trace []} | raise !| :e it | raise !| eq e","expect":"true"}
+{"decision":"D359","name":"a-failure-a-verb-resumes-flies-on-through-its-literal","query":"get [~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | raise)] !| trace | map ~failed","expect":"[~(pre) ~(get [~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | raise)])]"}
+{"decision":"D359","name":"a-failure-raised-on-an-empty-written-trace-inside-a-verb-arises-at-its-raise","query":"get [~(!{:a 1 :trace []} | raise)] !| trace | map ~failed","expect":"[~(raise) ~(get [~(!{:a 1 :trace []} | raise)])]"}
+{"decision":"D359","name":"a-tagged-literal-whose-payload-raises-itself-passes-a-frame-at-its-word","query":"[::Foo::number\"x\"] !| trace | map ~failed","expect":"[~(::Foo::number\"x\") ~([::Foo::number\"x\"])]"}
+{"decision":"D359","name":"an-empty-written-trace-joins-the-steps-its-raise-skips-to-its-frame","query":"{:a 1 :trace []} | raise | count !| trace | map ~(get [~(failed) ~(skipped)])","expect":"[[~(raise) ~(count)]]"}
+{"decision":"D359","name":"every-error-answers-its-trace","query":"\"x\" | add 1 !| trace | count","expect":"1"}
+{"decision":"D359","name":"the-trace-starts-where-the-error-arose","query":"\"x\" | add 1 !| trace | first | failed","expect":"~(add 1)"}
+{"decision":"D359","name":"a-nested-error-keeps-the-frame-of-its-level","query":"5 | (!{:k 1} | raise | add 1) !| trace | map ~failed","expect":"[~(raise) ~((!{:k 1} | raise | add 1))]"}
+{"decision":"D359","name":"a-trace-names-the-frame-where-the-error-arose","query":"\"x\" | add 1 | mul 2 !| get /trace","expect":"::trace[::frame[\"x\" ~(add 1 | mul 2)]]"}
+{"decision":"D359","name":"a-frame-at-every-step-that-handed-the-error-on","query":":g ~(add 2 | mul 2) | \"x\" | apply g | sub 3 !| get /trace","expect":"::trace[::frame[\"x\" ~(add 2 | mul 2)] ::frame[\"x\" ~(apply g | sub 3)]]"}
+{"decision":"D359","name":"the-last-frame-replays-where-it-is-read","query":"(:x 1 | !{:k 1} | add x) | mul 2 !| trace | last | skipped","expect":"~(mul 2)"}
+{"decision":"D359","name":"a-frame-of-a-verb-follows-the-frame-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| trace | map ~failed","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]"}
+{"decision":"D359","name":"a-tagged-error-literal-whose-trace-is-a-number-raises-the-refusal-of-its-kind","query":"::Foo!{:trace 5} | raise !| type","expect":"::trace/PayloadKindNotTakenError"}
+{"decision":"D359","name":"the-first-frame-of-a-name-that-reaches-nothing-holds-its-call","query":"thisIsNotDefined !| trace | first | failed | first | get /name","expect":":thisIsNotDefined"}
+{"decision":"D359","name":"a-doc-is-no-trace","query":"get [~(!{:trace |~~~~|} | raise !| type) ~(!{:trace []} | raise !| type)]","expect":"[::trace/PayloadKindNotTakenError ::error]"}
+{"decision":"D359","name":"a-tagged-error-literal-that-writes-its-trace-resumes-it-when-raised","query":"::Foo::Bar!{:trace ::trace[::frame[1 ~(pre)]]} | raise !| trace | map ~(get [~(failed | parse) ~(skipped | parse)])","expect":"[[\"pre\" \"\"]]"}
+{"decision":"D359","name":"an-overflow-holds-its-subject-on-the-trace","query":"1e308 | mul 10 !| get /trace/0/0","expect":"1e308"}
+{"decision":"D359","name":"a-trace-under-another-tag-or-an-element-that-is-no-frame-is-refused","query":"get [~({:trace ::T[]} | raise !| type) ~({:trace [::T{:skipped ~()}]} | raise !| type)]","expect":"[::trace/PayloadKindNotTakenError ::trace/ElementKindNotTakenError]"}
+{"decision":"D359","name":"trace-is-a-verb-of-errors","query":"42 | trace !| type","expect":"::error/trace/SubjectNotErrorError"}
+{"decision":"D359","name":"a-trace-holds-a-frame-for-each-step-the-failure-passed","query":"[1 \"x\" 3] | map ~(mul 2) | count !| trace","expect":"::trace[::frame[\"x\" ~(mul 2)] ::frame[[1 \"x\" 3] ~(map ~(mul 2) | count) /1]]"}
+{"decision":"D359","name":"the-frame-of-a-step-that-ran-no-code-on-a-part-names-no-place","query":"\"x\" | add 1 !| trace | first | place","expect":"null"}
+{"decision":"D359","name":"the-frame-of-map-names-the-index-of-the-element-its-code-failed-on","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | last | place","expect":"/1"}
+{"decision":"D359","name":"the-frame-of-map-over-a-set-names-the-place-in-its-order","query":"#[1 \"x\"] | map ~(mul 2) !| trace | last | place","expect":"/1"}
+{"decision":"D359","name":"the-frame-of-map-over-a-map-names-the-key","query":"{:a 1 :b \"x\"} | map ~(add 1) !| trace | last | place","expect":"/b"}
+{"decision":"D359","name":"the-frame-of-filter-names-the-index-its-predicate-failed-at","query":"[1 \"x\" 3] | filter ~(gt 1) !| trace | last | place","expect":"/1"}
+{"decision":"D359","name":"the-frame-of-filter-over-a-map-names-the-key-its-predicate-failed-at","query":"{:a 1 :b \"x\"} | filter ~(gt 0) !| trace | last | place","expect":"/b"}
+{"decision":"D359","name":"the-frame-of-sort-over-a-map-names-the-key-its-key-failed-at","query":"{:x {:a 1} :y {:b 2}} | sort /a !| trace | last | place","expect":"/y"}
+{"decision":"D359","name":"the-frame-of-every-names-the-index-its-predicate-failed-at","query":"[1 \"x\"] | every ~(gt 0) !| trace | last | place","expect":"/1"}
+{"decision":"D359","name":"the-frame-of-any-names-the-index-its-predicate-failed-at","query":"[\"x\"] | any ~(gt 0) !| trace | last | place","expect":"/0"}
+{"decision":"D359","name":"the-frame-of-sort-names-the-index-its-key-failed-at","query":"[{:a 2} {:b 1}] | sort /a !| trace | last | place","expect":"/1"}
+{"decision":"D359","name":"the-frame-of-max-names-the-index-its-key-failed-at","query":"[{:a 1} {:b 2}] | max /a !| trace | last | place","expect":"/1"}
+{"decision":"D359","name":"the-frame-of-min-over-a-map-names-the-key-its-key-failed-at","query":"{:x {:a 1} :y {:b 2}} | min /a !| trace | last | place","expect":"/y"}
+{"decision":"D359","name":"the-frame-of-groupBy-names-the-index-its-key-failed-at","query":"[{:a 1} {:b 2}] | groupBy /a !| trace | last | place","expect":"/1"}
+{"decision":"D359","name":"the-frame-of-indexBy-names-the-index-its-key-failed-at","query":"[{:a 1} {:b 2}] | indexBy /a !| trace | last | place","expect":"/1"}
+{"decision":"D359","name":"the-frame-of-reduce-names-the-index-of-the-element-its-reducer-failed-on","query":"[1 \"x\"] | reduce 0 ~(add) !| trace | last | place","expect":"/1"}
+{"decision":"D359","name":"the-frame-of-reduce-over-a-map-names-the-key","query":"{:a 1 :b \"x\"} | reduce 0 ~(add) !| trace | last | place","expect":"/b"}
+{"decision":"D359","name":"the-frame-of-update-names-the-path-it-wrote","query":"{:a {:n \"x\"}} | update /a/n ~(add 1) !| trace | last | place","expect":"/a/n"}
+{"decision":"D359","name":"each-level-names-the-place-of-its-own-part","query":"[[1 \"x\"]] | map ~(map ~(mul 2)) !| trace | map ~place","expect":"[null /1 /0]"}
+{"decision":"D359","name":"the-subject-of-a-frame-reads-the-part-by-its-place","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | last | :f it | subject | get (f | place)","expect":"\"x\""}
+{"decision":"D359","name":"a-plain-vector-of-frames-written-under-trace-is-laid-under-its-kind","query":"{:a 1 :trace [::frame[1 ~(pre)]]} | raise !| get /trace","expect":"::trace[::frame[1 ~(pre)]]"}
+{"decision":"D359","name":"a-vector-of-maps-written-under-trace-is-refused-as-no-frames","query":"{:trace [{:failed ~(pre) :subject 1 :skipped ~()}]} | raise !| type","expect":"::trace/ElementKindNotTakenError"}
 {"name":"a-frame-of-a-subject-alone-is-refused","query":"::frame[\"x\"] !| type","expect":"::frame/PayloadNotSubjectAndStepsError"}
 {"name":"a-frame-whose-place-is-no-path-is-refused","query":"::frame[\"x\" ~(add 1) 1] !| type","expect":"::frame/PayloadNotSubjectAndStepsError"}
-{"name":"a-trail-refuses-an-element-that-is-no-frame-at-its-index","query":"::trail[{:step ~(add 1)}] !| get [~(type) /index]","expect":"[::trail/ElementKindNotTakenError 0]"}
-{"name":"a-group-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"[1 2 3] | take (count | sub \"1\") !| trail | map ~step","expect":"[~(sub \"1\") ~(take (count | sub \"1\"))]"}
-{"name":"a-literal-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"1 | add ::frame[1] !| get [~(type) ~(trail | map ~step)]","expect":"[::frame/PayloadNotSubjectAndStepsError [~(add ::frame[1])]]"}
-{"name":"the-frame-of-reduce-names-the-element-a-call-of-its-one-word-is-refused-at","query":"[1 2 \"3\"] | reduce 0 ~(sum) !| get [~(type) ~(trail | last | place)]","expect":"[::call/KindAnswersNoVerbError /0]"}
+{"decision":"D359","name":"a-trace-refuses-an-element-that-is-no-frame-at-its-index","query":"::trace[{:failed ~(add 1)}] !| get [~(type) /index]","expect":"[::trace/ElementKindNotTakenError 0]"}
+{"decision":"D359","name":"a-group-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"[1 2 3] | take (count | sub \"1\") !| trace | map ~failed","expect":"[~(sub \"1\") ~(take (count | sub \"1\"))]"}
+{"decision":"D359","name":"a-literal-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"1 | add ::frame[1] !| get [~(type) ~(trace | map ~failed)]","expect":"[::frame/PayloadNotSubjectAndStepsError [~(add ::frame[1])]]"}
+{"decision":"D359","name":"the-frame-of-reduce-names-the-element-a-call-of-its-one-word-is-refused-at","query":"[1 2 \"3\"] | reduce 0 ~(sum) !| get [~(type) ~(trace | last | place)]","expect":"[::call/KindAnswersNoVerbError /0]"}
+{"decision":"D359","name":"a-set-of-frames-is-no-trace-written-or-raised","query":"get [~(::trace#[::frame[1 ~(a)]] !| type) ~({:trace #[::frame[1 ~(a)]]} | raise !| type)]","expect":"[::trace/PayloadKindNotTakenError ::trace/PayloadKindNotTakenError]"}
+{"decision":"D359","name":"an-error-literal-whose-trace-is-no-vector-of-frames-stands-as-a-value","query":"!{:a 1 :trace 5} | get [~(type) /trace]","expect":"[::error 5]"}
+{"decision":"D359","name":"a-frame-reads-the-step-that-failed-the-steps-skipped-and-the-steps-left-unfinished","query":"\"x\" | add 1 | mul 2 !| trace | first | get [~(failed) ~(skipped) ~(unfinished) ~(failed | first | type)]","expect":"[~(add 1) ~(mul 2) ~(add 1 | mul 2) ::call]"}
+{"decision":"D359","name":"the-trace-of-an-error-at-rest-is-brought-to-its-kind-as-the-verb-answers-it","query":"get [~(::error{:trace [::frame[1 ~(pre)]]} | trace) ~(!{:trace 5} | trace !| type) ~(::error{:trace [5]} | trace !| get [~(type) /index])]","expect":"[::trace[::frame[1 ~(pre)]] ::error/trace/answer/KindNotTakenError [::trace/ElementKindNotTakenError 0]]"}
+{"decision":"D359","name":"a-trace-reads-a-frame-under-a-tag-as-the-frame-beneath-it","query":"get [~(::trace[::X::frame[1 ~(a)]]) ~({:trace [::X::frame[1 ~(a)]]} | raise !| trace) ~(!{:trace [::X::frame[1 ~(a)]]} | trace)]","expect":"[::trace[::frame[1 ~(a)]] ::trace[::frame[1 ~(a)]] ::trace[::frame[1 ~(a)]]]"}
+{"decision":"D359","name":"a-map-that-writes-a-plain-vector-of-frames-raises-as-its-literal-raised","query":"{:a 1 :trace [::frame[1 ~(pre)]]} | raise","expect":"!{:a 1 :trace [::frame[1 ~(pre)]]} | raise"}
+{"decision":"D359","name":"a-frame-laid-over-a-tagged-vector-or-a-set-is-no-frame-of-a-trace","query":"get [~(!{:a 1 :trace [::frame::X[1 ~(a)]]} | raise | count !| get [~(type) /index]) ~(!{:a 1 :trace [::frame#[1 ~(a)]]} | raise !| get [~(type) /index])]","expect":"[[::trace/ElementKindNotTakenError 0] [::trace/ElementKindNotTakenError 0]]"}

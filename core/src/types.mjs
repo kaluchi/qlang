@@ -1,5 +1,5 @@
 import { readsAsBareKeyword } from './name-chars.mjs';
-import { declareRefusal, declareInvariantError } from './errors.mjs';
+import { declareInvariantError } from './errors.mjs';
 import { TAG_SIGIL } from './env-keys.mjs';
 import { compareValues } from './ordering.mjs';
 
@@ -370,20 +370,14 @@ export function declareHostValue(value, impl) {
   HOST_IMPLS.set(value, impl);
 }
 
-// An error carries its tag, the kind of errors for a literal that names none
-// [QSERR#rest], and a descriptor of the facts of its site with its `:trail`,
-// the path it took, the frames `eval-trail.mjs` writes [QSERR#trail]; a `:trail` of
-// another shape is refused where the error is made.
-export const ErrorTrailNotFramesError = declareRefusal('error/TrailNotFramesError');
-
-// A trail is a vector of frames under `::trail`, a frame the vector of the
-// subject a step met, the quote of the steps from the one that broke and the
-// path of the part a verb's code broke on, where one did [QSERR#trail].
-export const TRAIL_TAG = makeTag('trail');
+// A trace is a vector of frames under `::trace`, a frame the vector of the
+// subject a step met, the quote of the steps from the one that failed and
+// the path of the part a verb's code failed on, where one did [D359].
+export const TRACE_TAG = makeTag('trace');
 export const FRAME_TAG = makeTag('frame');
 
-export function isTrail(value) {
-  return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === TRAIL_TAG.name;
+export function isTrace(value) {
+  return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === TRACE_TAG.name;
 }
 
 export function isFrame(value) {
@@ -394,26 +388,16 @@ export function makeFrame(subject, steps, place = null) {
   return makeTagged(FRAME_TAG, place === null ? [subject, steps] : [subject, steps, place]);
 }
 
-export function makeTrail(frames) {
-  return makeTagged(TRAIL_TAG, [...frames]);
+export function makeTrace(frames) {
+  return makeTagged(TRACE_TAG, [...frames]);
 }
 
-// An error holds the facts of its site and, once a step raised it or
-// handed it on, its path, `:trail`, frames it holds under `::trail`; one
-// whose path is empty holds no `:trail` [QSERR#trail].
+// An error carries its tag, the kind of errors for a literal that names
+// none, and a descriptor of the facts of its site, and once a step raised it
+// or handed it on its trace, `:trace`, the frames `eval-trace.mjs` writes
+// [D359].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
-  let finalDescriptor = descriptor;
-  if (descriptor.has('trail')) {
-    const trail = descriptor.get('trail');
-    const plain = isVec(trail) && trail[TAG_HEADER_SYMBOL] === undefined;
-    if (!(plain || isTrail(trail)) || !trail.every(isFrame)) throw new ErrorTrailNotFramesError({ actualValue: trail });
-    if (plain || trail.length === 0) {
-      finalDescriptor = new Map(descriptor);
-      if (trail.length === 0) finalDescriptor.delete('trail');
-      else finalDescriptor.set('trail', makeTrail(trail));
-    }
-  }
-  return Object.freeze(brandValueClass({ tag, descriptor: finalDescriptor, location, originalError }, 'error'));
+  return Object.freeze(brandValueClass({ tag, descriptor, location, originalError }, 'error'));
 }
 
 // formOf(v) → the form a writer of the core reads a value by: `error`,

@@ -61,7 +61,7 @@ the seventh yields only to a branch that introduces a model.
    a state pair of a value and a scope, a step that maps one state to the
    next, two combinators, the fork rule for nested expressions,
    subject-first application, a literal as a subject, naming with
-   lexical scope, the error as a value with a trail, a tag that names the
+   lexical scope, the error as a value with a trace, a tag that names the
    kind of a value, and a catalog that describes itself.
 2. Self-description is complete: a session that reads only the first
    screen of the language and asks the language for what it needs solves

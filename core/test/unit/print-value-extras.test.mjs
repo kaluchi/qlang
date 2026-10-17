@@ -59,11 +59,11 @@ describe('printErrorValue — head + payload-filter branches', () => {
     expect(printValue(err)).toBe('!{}');
   });
 
-  it('a failure that flew no step prints its facts alone, and its print raised starts its path at the raise [QSERR#print]', async () => {
+  it('a failure that flew no step prints its facts alone, and its print raised starts its trace at the raise [D359]', async () => {
     const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
     expect(printValue(err)).toBe('::Foo!{:category :oops}');
     expect(isErrorValue(await evalQuery(printValue(err)))).toBe(false);
-    expect(deepEqual(await evalQuery(`${printValue(err)} | raise !| trail | map ~step`), await evalQuery('[~(raise)]'))).toBe(true);
+    expect(deepEqual(await evalQuery(`${printValue(err)} | raise !| trace | map ~failed`), await evalQuery('[~(raise)]'))).toBe(true);
   });
 
   it('an answer that is a failure prints under the line that says it was raised, an error at rest under none [QSERR#rest]', async () => {

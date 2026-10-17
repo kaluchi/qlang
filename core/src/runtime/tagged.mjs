@@ -6,9 +6,10 @@ import { layTag } from './verb.mjs';
 import { bindPrim, bindStateReader, runs } from '../primitives.mjs';
 import {
   isVec, isKeyword, isRegex, isPath, isMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTag, kindsExpected, makeSet, makeTagged, payloadBeneath, TAG_HEADER_SYMBOL, BUILTIN_TAG, DESC_TAG, stampTagHeader
+  isTag, kindsExpected, makeSet, makeTagged, makeTrace, payloadBeneath, TAG_HEADER_SYMBOL, BUILTIN_TAG, DESC_TAG, stampTagHeader
 } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
+import { framesOfTrace } from '../eval-trace.mjs';
 
 // `::set[…]` — the set of a vector's elements, the one `toSet` answers
 // [QSORD#order], [QSCND#convert], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | toSet`
@@ -87,6 +88,9 @@ function docConstructor(payload) {
 }
 
 bindPrim('doc/construct', docConstructor);
+
+// `::trace[…]` — the trace of a failure, its frames in the order it flew [D359].
+bindPrim('trace/construct', payload => makeTrace(framesOfTrace(payload)));
 
 // `::builtin{…}` — the descriptor, the recipe of a verb or the constructor
 // of a kind that a primitive answers, or the value of a name under a label

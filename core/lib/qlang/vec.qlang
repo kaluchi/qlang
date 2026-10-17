@@ -506,7 +506,7 @@
         ~(:k 10 | [1 2] | map ~(mul k) | eq [10 20])
     | proves :answersTheFirstFailure
         |~~ The first error answers the call. ~~|
-        ~([1 "a" "b"] | map ~(add 1) !| trail | first | subject | eq "a")
+        ~([1 "a" "b"] | map ~(add 1) !| trace | first | subject | eq "a")
     | proves :recoversAFailedElement
         |~~ A code that recovers keeps every element. ~~|
         ~([1 "x"] | map ~(add 1 !| 0) | eq [2 0])

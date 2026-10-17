@@ -11,7 +11,7 @@ import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim, runs } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
-import { atPlace } from '../eval-trail.mjs';
+import { atPlace } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
 
 // The elements beside the fact that names the place of each in a
@@ -19,7 +19,7 @@ import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
 const indexed = sequence => [...sequence].map((element, index) => [{ index }, element]);
 const keyed = map => [...map].map(([key, value]) => [{ key: keyword(key) }, value]);
 
-const brokeAt = (error, segment) => atPlace(error, makePath([String(segment)]));
+const failedAt = (error, segment) => atPlace(error, makePath([String(segment)]));
 const placeOf = place => place.index ?? place.key.name;
 
 // ── size and ends ──────────────────────────────────────────────
@@ -118,7 +118,7 @@ async function keyedEntries(entries, key) {
     }
     const sortKey = await key(entry[1]);
     const failed = errorOfKey(sortKey);
-    if (failed !== null) return brokeAt(failed, entry[0]);
+    if (failed !== null) return failedAt(failed, entry[0]);
     ranked.push({ entry, sortKey });
   }
   return ranked;
@@ -177,7 +177,7 @@ async function answersOf(places, code) {
   const answers = [];
   for (const [place, element] of places) {
     const answer = await code(element);
-    if (isErrorValue(answer)) return brokeAt(answer, placeOf(place));
+    if (isErrorValue(answer)) return failedAt(answer, placeOf(place));
     answers.push(answer);
   }
   return answers;
@@ -196,7 +196,7 @@ bindPrim('map/map', runs(['code'], async (map, code) => {
 // another answer is refused where the element stands.
 async function verdictOf(predicate, place, element, ConditionNotBooleanError) {
   const verdict = await predicate(element);
-  if (isErrorValue(verdict)) return brokeAt(verdict, placeOf(place));
+  if (isErrorValue(verdict)) return failedAt(verdict, placeOf(place));
   if (typeof verdict === 'boolean') return verdict;
   throw new ConditionNotBooleanError({ ...place, actualValue: verdict });
 }
@@ -259,7 +259,7 @@ bindPrim('map/any', runs(['predicate'], (map, predicate) => firstVerdict(keyed(m
 // [QSCOL#group].
 async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
-  if (isErrorValue(answer)) return brokeAt(answer, index);
+  if (isErrorValue(answer)) return failedAt(answer, index);
   const named = keywordFiledFor(answer);
   if (named === null) throw new KeyKindNotTakenError({ index, expected: KINDS_A_KEY_FILES_UNDER, actualValue: answer });
   const taken = filed.get(named.name);
@@ -345,7 +345,7 @@ async function foldOf(entries, seed, reducer) {
   let acc = seed;
   for (const [segment, element] of entries) {
     acc = await combine(acc, element);
-    if (isErrorValue(acc)) return brokeAt(acc, segment);
+    if (isErrorValue(acc)) return failedAt(acc, segment);
   }
   return acc;
 }

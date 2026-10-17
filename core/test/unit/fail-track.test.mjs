@@ -1,7 +1,7 @@
 // `raise`, and the catch, `!|`, which passes a value by and runs its step on
-// the error at rest, a group and a verb among them; the trail of the steps a
+// the error at rest, a group and a verb among them; the trace of the steps a
 // failure skips, and the refusals of the runtime, each under the address of
-// its site [QSERR#site].
+// its site [D359].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -56,16 +56,16 @@ describe('`!|` runs a group and a verb on the error at rest', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('a comment among the steps a failure skips leaves no step in the trail', async () => {
-    // The last frame of the trail holds the steps the error skipped, and a
-    // comment is whitespace, so `count` alone joins them [QSERR#trail],
+  it('a comment among the steps a failure skips leaves no step in the trace', async () => {
+    // The last frame of the trace holds the steps the error skipped, and a
+    // comment is whitespace, so `count` alone joins them [D359],
     // [QSSYN#comment].
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trail | last | skipped | parse');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | parse');
     expect(evalResult).toBe('count');
   });
 
   it('the steps skipped past a comment run again by apply as the call after it', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trail | last | skipped | :t it | 42 | apply t !| type');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | :t it | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
   });
 });

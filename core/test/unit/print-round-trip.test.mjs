@@ -1,10 +1,10 @@
-// Every value prints as a literal that reads back as itself [QSPRN#print]: values
+// Every value prints as a literal that reads back as itself [D359]: values
 // built from a seeded walk over the literals of the language, atoms with their
 // escapes, vectors and maps in both their spellings, sets with a duplicate
 // among them, values under a tag over every payload, a label the source
 // declares among the tags, the constructors of `::qlang` and `::json`, quotes,
 // a quote of a path alone among them [QSPTH#value], docs, errors at rest
-// inside a vector [QSERR#rest], one with a frame on its trail among them, and
+// inside a vector [D359], one with a frame on its trace among them, and
 // functions and kinds built by their chains, pages over several lines, inputs,
 // fields, invariants, refusals, facts and laws among them [QSBLD#fn],
 // [QSBLD#kind], each printed, parsed and applied, and held equal to itself by
@@ -20,7 +20,7 @@ const STRINGS = ['""', '"a b"', '"quote \\" inside"', '"back\\\\slash"', '"line\
 const KEYWORDS = [':a', ':ab-c', ':_x', ':e', ':"with space"', ':"1"', ':"a:b"', ':ns/name', ':qlang/error/guards', ':ñ', ':данные', ':true', ':null', ':""', ':"$ref"'];
 const JSON_KEYS = ['"k"', '"first name"', '"$ref"', '""'];
 const TAGS = ['::T', '::Box', '::a/b', '::number', '::vec', '::qlang', '::json'];
-const STEPS = ['count', 'get /k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1 | x', '{:a ~(b)}', '| count', '!| get /trail', '"text with spaces"', '42', '[1 2 3] | filter ~(gt 1)', ':n 3 | take n', ':x ::number | mul x 2'];
+const STEPS = ['count', 'get /k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1 | x', '{:a ~(b)}', '| count', '!| get /trace', '"text with spaces"', '42', '[1 2 3] | filter ~(gt 1)', ':n 3 | take n', ':x ::number | mul x 2'];
 const PATHS = ['/k', '/a/0', '/"first name"/-1', '/:ns/k', '/"0"'];
 const DOCS = ['|~~~~|', '|~~ prose ~(eq 1) `code` ~~|', '|~~ one line\n    and another ~~|'];
 
@@ -112,7 +112,7 @@ function literalsOf(count, seed) {
       () => errorOf(['::E']),
       built,
       () => pick([written('[::error{}]'), written('[::number/add/SubjectNotNumberError::error{:actualType ::string}]'),
-        computed('get [~("x" | add 1 !| it)]'), written('[::error{:k 1 :trail [{:step ~(count) :subject 1 :skipped ~()}]}]')])
+        computed('get [~("x" | add 1 !| it)]'), written('[::error{:k 1 :trace [{:failed ~(count) :subject 1 :skipped ~()}]}]')])
     ])();
   };
   const chain = (noun, groups, impls) => {

@@ -8,7 +8,7 @@
 // that write it, the `node_modules` of the checkout.
 //
 // Usage: node scripts/sensors/vocabulary.mjs <term>[=<anchor>]... [--pair <a>:<b>]... [--rivals <anchor>=<word>,<word>...]... [--corpus]
-// e.g.   node scripts/sensors/vocabulary.mjs frame=::frame --pair trail:frame --rivals ::frame=trail,trace,path
+// e.g.   node scripts/sensors/vocabulary.mjs frame=::frame --pair trace:frame --rivals ::trace=trace,path
 
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';

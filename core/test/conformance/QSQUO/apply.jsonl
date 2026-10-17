@@ -9,7 +9,7 @@
 {"name":"apply-parsed-path","query":"\"{:name \\\"alice\\\" :age 30} | get /name\" | parse | apply it","expect":"\"alice\""}
 {"name":"apply-parsed-map","query":"\"[1 2 3] | map ~(add 10)\" | parse | apply it","expect":"[11 12 13]"}
 {"name":"apply-parsed-fail-track","query":"\"\\\"hello\\\" | add 1 !| type\" | parse | apply it","expect":"::number/add/SubjectNotNumberError"}
-{"name":"apply-code-not-quote","query":"42 | apply it","expect":"::any/apply/code/KindNotTakenError!{\n  :expected #[::fn ::path ::quote]\n  :actualValue 42\n  :actualType ::number\n  :trail ::trail[::frame[42 ~(apply it)]]\n} | raise"}
+{"decision":"D359","name":"apply-code-not-quote","query":"42 | apply it","expect":"::any/apply/code/KindNotTakenError!{\n  :expected #[::fn ::path ::quote]\n  :actualValue 42\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(apply it)]]\n} | raise"}
 {"name":"apply-quote-against-the-subject","query":"5 | apply ~(mul 2)","expect":"10"}
 {"name":"apply-code-type-refusal","query":"42 | apply 1 !| get [~(type) /actualType]","expect":"[::any/apply/code/KindNotTakenError ::number]"}
 {"name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::call/UnknownNameError"}

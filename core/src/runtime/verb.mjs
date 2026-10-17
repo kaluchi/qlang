@@ -74,14 +74,13 @@ async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
 }
 
 // A primitive runs over the value the walk served and the values of the inputs
-// of the call, a reader of the scope over the state of the call after them,
-// its scope the tree of the query, wherever it is called [QSDSP#residence],
-// [QSNAM#owner], and a reader of the tags its subject stood beneath over the
-// tags the walk passed [QSERR#raise].
+// of the call, a reader of the tags its subject stood beneath over the tags
+// the walk passed after them, and a reader of the scope over the state of the
+// call after those, its scope the tree of the query, wherever it is called
+// [QSDSP#residence], [QSNAM#owner], [D359].
 export function runPrimitive(primitive, served, passedTags, inputValues, state) {
-  if (readsState(primitive)) return primitive(served, ...inputValues, queryStateOf(state));
-  if (readsPassedTags(primitive)) return primitive(served, ...inputValues, passedTags);
-  return primitive(served, ...inputValues);
+  const read = readsPassedTags(primitive) ? [...inputValues, passedTags] : inputValues;
+  return readsState(primitive) ? primitive(served, ...read, queryStateOf(state)) : primitive(served, ...read);
 }
 
 // shownFor(env, name, kindNames?) → what a tool shows for a name, `{ address,

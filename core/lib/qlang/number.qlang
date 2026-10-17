@@ -35,7 +35,7 @@
         |~~ A number is a finite double: an answer brought under
             `::number` that left their range, a sum or a product too
             large, is refused here, whichever verb computed it, and the
-            trail names the step and the subject it ran on.
+            trace names the step and the subject it ran on.
         ~~|
     | proves :isANumber |~~ Five is a number. ~~| ~(5 | type | eq ::number)
     | proves :refusesALeadingZero
@@ -60,7 +60,7 @@
         |~~ A product past the range of doubles is refused at the step
             that made it.
         ~~|
-        ~(1e308 | mul 10 | add 1 !| get [~(type) ~(trail | map ~step)]
+        ~(1e308 | mul 10 | add 1 !| get [~(type) ~(trace | map ~failed)]
           | eq [::number/NotFiniteError [~(mul 10)]])
     | impl ::builtin{}
 

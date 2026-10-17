@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword, makeTag, isErrorValue } from '../../src/types.mjs';
+import { keyword, makeErrorValue, makeTag, isErrorValue } from '../../src/types.mjs';
 import { QlangInvariantError, declareRefusal } from '../../src/errors.mjs';
 
 describe('createSession lifecycle', () => {
@@ -111,6 +111,13 @@ describe('createSession lifecycle', () => {
     other.bind('answer', record);
     expect(other.env.get('answer')).toBe(record);
     expect((await other.evalCell('::answer | doc | content')).result).toBe(' The answer. ');
+  });
+
+  it('bind installs a failure a host hands, whose trace the kind of a trace holds where a step reads it [D359]', async () => {
+    const sessionInstance = await createSession();
+    sessionInstance.bind('failed', makeErrorValue(makeTag('error'), new Map([['trace', [5]]])));
+    expect((await sessionInstance.evalCell('failed !| get [~(type) /index]')).result).toEqual(await evalQuery('[::trace/ElementKindNotTakenError 0]'));
+    expect((await sessionInstance.evalCell('failed !| 0')).result).toBe(0);
   });
 });
 

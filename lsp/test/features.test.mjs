@@ -130,10 +130,10 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(afterPath).toContain('segments');
     expect(afterPath).not.toContain('add');
     const afterError = await labelsAt('!{:a 1} | ');
-    expect(afterError).toContain('trail');
+    expect(afterError).toContain('trace');
     expect(afterError).toContain('keys');
     expect(afterError).not.toContain('add');
-    expect(await labelsAt('::Oops!{:a 1} | ')).toContain('trail');
+    expect(await labelsAt('::Oops!{:a 1} | ')).toContain('trace');
   });
 
   it('reads the subject before the word being typed', async () => {

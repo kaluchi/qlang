@@ -592,7 +592,7 @@ ParenGroup
   / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('modifiers are separated by spaces, not by commas: `f a b`'); }
 
 // A quote holds the pipeline it is written around, a leading combinator
-// included (`~(!| get /trail)`); `~()` is the empty quote. A single name
+// included (`~(!| get /trace)`); `~()` is the empty quote. A single name
 // or tag name may drop the parentheses, `~add`, `~::T`.
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"

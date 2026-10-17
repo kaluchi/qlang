@@ -87,8 +87,8 @@ describe('assembling steps by hand', () => {
   it('an error at rest of a tag is the step of the literal that spells it', async () => {
     // The tag an error literal writes before its bang is the tag of the
     // error at rest it spells, so an error of any tag stands in a quote
-    // [QSERR#rest].
-    expect(await evalQuery('get [~("x" | add 1 !| minus #[:trail])] | tag ::quote | parse'))
+    // [D359].
+    expect(await evalQuery('get [~("x" | add 1 !| minus #[:trace])] | tag ::quote | parse'))
       .toBe('::number/add/SubjectNotNumberError!{:actualType ::string}');
   });
 

@@ -105,8 +105,8 @@ export const CallUnknownNameError = declareRefusal('call/UnknownNameError');
 // A name with a path that no declaration names [QSDSP#walk], [QSDSP#residence].
 export const CallUnknownAddressError = declareRefusal('call/UnknownAddressError');
 
-// One more nested frame of evaluation past the budget, a runaway in the
-// recursion of the query (`state.mjs`).
+// A step one deeper than the limit of the evaluation depth, a runaway in
+// the recursion of the query (`state.mjs`) [D359].
 export const CallEvaluationDepthExceededError = declareRefusal('call/EvaluationDepthExceededError');
 
 // A declaration of a name an earlier step of its scope declared, or of an

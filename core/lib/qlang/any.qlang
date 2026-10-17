@@ -725,7 +725,7 @@
       function takes its args as a vector, as a call holds its args,
       `5 | apply f [3]`. Its steps run in order, a
       leading `!|` routing the first through the fail track, so the steps
-      a frame of a trail skipped run again, as held code runs. Code held
+      a frame of a trace skipped run again, as held code runs. Code held
       as the subject runs on itself by `apply it`, and text runs once
       `parse` reads it, `"10 | add 3" | parse | apply it`. The code runs
       under the fork rule: its declarations stay inside it, and only its
@@ -813,8 +813,8 @@
         |~~ A leading `!|` passes a value on. ~~|
         ~(5 | apply ~(!| 0) | eq 5)
     | proves :runsARecordedSuffixAgain
-        |~~ The steps a trail skipped run again on a value. ~~|
-        ~(1 | add "x" | mul 2 | add 3 !| (:rest (trail | first | skipped) | 5 | apply rest) | eq 13)
+        |~~ The steps a trace skipped run again on a value. ~~|
+        ~(1 | add "x" | mul 2 | add 3 !| (:rest (trace | first | skipped) | 5 | apply rest) | eq 13)
     | impl ::builtin{}
 
 :any/env

@@ -34,9 +34,9 @@ const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).le
 
 // factsInOrder(tag, facts, env) → the facts of a refusal of the runtime in
 // the order of the definitions that describe them, each named as its fact
-// [QSERR#site]: those under the refusal's label first, then those under
-// `::error`, which every refusal shares, the path an error takes coming
-// after them as the trail joins it. A fact neither declares is a
+// [D359]: those under the refusal's label first, then those under
+// `::error`, which every refusal shares, the trace an error leaves coming
+// after them as it joins them. A fact neither declares is a
 // defect of the runtime.
 export function factsInOrder(tag, facts, env) {
   const ordered = new Map();
@@ -144,10 +144,9 @@ const CAUSES_RECOUNTED = 8;
 
 // A JavaScript error escaping an implementation is a failure of the
 // host: a tag of the language, its account and the accounts of the failures
-// beneath it [QSHST#answer], [QSERR#site]. The step that failed stands in the
-// trail; the stack, the class and the fields of the error stay with the host
-// in `originalError`, and a host that has facts to hand declares a refusal of
-// its own.
+// beneath it [D359]. The step that failed stands in the trace; the stack, the
+// class and the fields of the error stay with the host in `originalError`,
+// and a host that has facts to hand declares a refusal of its own.
 export function errorFromForeign(jsError, node, env) {
   const tag = makeTag('call/HostFailureError');
   const facts = new Map([['message', accountOf(jsError)]]);

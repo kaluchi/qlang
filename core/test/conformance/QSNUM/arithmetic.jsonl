@@ -11,7 +11,7 @@
 {"name":"the-remainder-takes-the-sign-of-the-divisor","query":"get [~(7 | mod 3) ~(-7 | mod 3) ~(7 | mod -3)]","expect":"[1 2 -2]"}
 {"name":"floor-ceil-and-abs-take-a-number-to-a-whole-one-or-its-size","query":"get [~(2.7 | floor) ~(-2.1 | floor) ~(2.1 | ceil) ~(-2.7 | ceil) ~(-3 | abs)]","expect":"[2 -3 3 -2 3]"}
 {"name":"range-counts-from-zero-below-its-subject","query":"get [~(5 | range) ~(0 | range)]","expect":"[[0 1 2 3 4] []]"}
-{"name":"a-division-by-zero-is-refused-under-its-divisor","query":"10 | div 0","expect":"::number/div/divisor/ZeroError!{\n  :actualType ::number\n  :actualValue 0\n  :trail ::trail[::frame[10 ~(div 0)]]\n} | raise"}
+{"decision":"D359","name":"a-division-by-zero-is-refused-under-its-divisor","query":"10 | div 0","expect":"::number/div/divisor/ZeroError!{\n  :actualType ::number\n  :actualValue 0\n  :trace ::trace[::frame[10 ~(div 0)]]\n} | raise"}
 {"name":"round-rounds-half-away-from-zero","query":"[2.5 -2.5 3.4] | map ~round","expect":"[3 -3 3]"}
 {"name":"round-keeps-the-digits-the-call-gives","query":"3.14159 | round 2","expect":"3.14"}
 {"name":"a-remainder-and-a-rounding-stay-within-the-doubles","query":"get [~(1e308 | mod 1e-308 | lt 1e-308) ~(-1e-300 | mod 1e300 | gt 0) ~(1 | round 400) ~(1 | round -400)]","expect":"[true true 1 0]"}
@@ -22,7 +22,7 @@
 {"name":"a-number-under-a-tag-rounds-under-the-tag","query":"::W#2.7 | floor","expect":"::W#2"}
 {"name":"a-negative-count-of-digits-rounds-to-tens","query":"15 | round -1","expect":"20"}
 {"name":"sum-refuses-an-answer-past-the-doubles","query":"[1e308 1e308] | sum !| type","expect":"::number/NotFiniteError"}
-{"name":"sum-overflow-holds-its-subject-on-the-trail","query":"[1e308 1e308] | sum !| get /trail/0/0","expect":"[1e308 1e308]"}
+{"decision":"D359","name":"sum-overflow-holds-its-subject-on-the-trace","query":"[1e308 1e308] | sum !| get /trace/0/0","expect":"[1e308 1e308]"}
 {"name":"add-refuses-a-subject-that-is-no-number","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"add-refuses-an-addend-that-is-no-number-under-the-addend","query":"1 | add \"x\" !| type","expect":"::number/add/addend/KindNotTakenError"}
 {"name":"round-refuses-a-fraction-of-digits","query":"1.5 | round 0.5 !| type","expect":"::number/round/digits/NotIntegerError"}

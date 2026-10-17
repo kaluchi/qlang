@@ -1,18 +1,21 @@
 // The value an expectation spells, the `expect` of a conformance case or
 // the result a document shows, read as a query; the print of a failure, its
 // error at rest under `raise`, names the failure that holds the facts the
-// literal writes, the path it flew among them, as they are written
-// [QSERR#print].
+// literal writes, the trace it left among them, laid as `raise` lays it
+// [D359].
 
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery, factsWithTheirTrace } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
+import { rootState } from '../../src/state.mjs';
+import { langRuntime } from '../../src/runtime/index.mjs';
 import { beneathTags, makeErrorValue, typeOf } from '../../src/types.mjs';
 
 export async function expectedValueOf(expectSource) {
   const literal = raisedLiteralOf(parse(expectSource));
   if (literal === null) return await evalQuery(expectSource);
   const atRest = await evalQuery(literal.text);
-  return makeErrorValue(typeOf(atRest), new Map(beneathTags(atRest)));
+  const facts = await factsWithTheirTrace(new Map(beneathTags(atRest)), rootState(atRest, await langRuntime()));
+  return makeErrorValue(typeOf(atRest), facts);
 }
 
 // The error literal a failure's print raises, or null for any other

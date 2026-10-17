@@ -12,7 +12,7 @@
 {"name":"the-step-of-a-tagged-literal-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct"}
 {"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::construct/ReadBackDiffersError"}
 {"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| it) | first | get /docs | first | type","expect":"::doc"}
-{"name":"the-step-of-an-error-literal-maps-as-the-map-of-its-fields","query":"~(!{:kind :oops :trail 5}) | map ~count","expect":"[2]"}
+{"decision":"D359","name":"the-step-of-an-error-literal-maps-as-the-map-of-its-fields","query":"~(!{:kind :oops :trace 5}) | map ~count","expect":"[2]"}
 {"name":"a-quote-holds-a-pattern-as-a-step","query":"\"match #\\\"\\\\d\\\"\" | parse | get [~(first | get /modifiers | first | type) ~(print)]","expect":"[::regex \"~(match #\\\"\\\\d\\\")\"]"}
 {"name":"parse-call-name","query":"\"add 1 2\" | parse | first | get /name","expect":":add"}
 {"name":"parse-call-modifiers-count","query":"\"add 1 2\" | parse | first | get /modifiers | count","expect":"2"}

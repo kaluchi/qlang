@@ -46,7 +46,7 @@
             language the runtime is written in escaped a verb, which is a
             defect of that verb's host. `:message` carries the host's
             account of it and `:causes` the accounts of the failures
-            beneath it. Its trail is that of any error;
+            beneath it. Its trace is that of any error;
             recovery is a `!|` step, and the repair belongs to the host,
             which declares a refusal of its own where it has facts to
             hand.
@@ -159,22 +159,24 @@
     | throws :EvaluationDepthExceededError
         |~~ A call too deep: the recipe of a verb, a modifier computed at
             the call, `apply`, a constructor of a tag and each run of the
-            code a verb runs, `map ~(…)`, run one frame below the step
-            that called them, an input read from its place meets the budget
-            at that frame, a quote written as a modifier is a value at the
-            call, and the frame past the budget refuses, `:depth` the
-            refused frame and `:limit` the budget. A recursion without a
-            base case, a verb that calls itself, is refused here, on the
-            fail track, while the host's memory stays bounded: the case
-            that ends the recursion is tested first,
+            code a verb runs, `map ~(…)`, run one deeper in the evaluation
+            depth than the step that called them, while the steps of one
+            pipeline run at its depth; an input read from its place meets
+            the limit at that depth, a quote written as a modifier is a
+            value at the call, and a step past the limit refuses, `:depth`
+            the evaluation depth refused and `:limit` the deepest one
+            evaluation goes. A recursion without a base case, a verb that
+            calls itself, is refused here, on the fail track, while the
+            host's memory stays bounded: the case that ends the recursion
+            is tested first,
             `:number/down ~(if (eq 0) ~(0) ~(sub 1 | down)) | 5 | down`.
             ::link~(::call | doc) ::link~(::any/if | doc)
         ~~|
     | carries :EvaluationDepthExceededError/depth
-        |~~ The frame the budget refused. ~~|
+        |~~ The evaluation depth refused, one past the limit. ~~|
         ::number
     | carries :EvaluationDepthExceededError/limit
-        |~~ The budget, the frames one evaluation may nest. ~~|
+        |~~ The limit, the deepest evaluation depth one evaluation goes. ~~|
         ::number
     | proves :holdsTheNameAndTheModifiers
         |~~ A command is a call of its name and its modifiers. ~~|
@@ -314,7 +316,7 @@
         ~(:big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(type) /name] | eq [::call/ValueWithheldError :lim])
     | proves :EvaluationDepthExceededError/refusesARunawayRecursion
         |~~ A verb that calls itself without end is refused past the
-            budget.
+            limit of the evaluation depth.
         ~~|
         ~(:number/inf ~(add 1 | inf) | 0 | inf !| type | eq ::call/EvaluationDepthExceededError)
     | proves :EvaluationDepthExceededError/namesADepthPastTheLimit

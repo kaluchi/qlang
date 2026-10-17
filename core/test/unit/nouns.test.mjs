@@ -37,7 +37,7 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('shop !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a verb of a source reads a bare value of the root as a reader reads it, after the verbs of its name, no frame of its source before them [QSNAM#reach]', async () => {
+  it('a verb of a source reads a bare value of the root as a reader reads it, after the verbs of its name, no scope of its source before them [QSNAM#reach]', async () => {
     const shop = { uri: 'shop', source: ':shop |~~ A shop. ~~|\n:limit 5\n:shop/capped ~(limit)' };
     const later = { uri: 'stock', source: ':stock |~~ A stock. ~~|\n:stock/limit ~(7)' };
     const alone = await createSession({ sources: [shop] });

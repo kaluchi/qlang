@@ -11,7 +11,7 @@ import {
   isMap,
   isPath,
   isFrame,
-  isTrail,
+  isTrace,
   ELISION_TAG,
   ERROR_TAG,
   formOf,
@@ -105,8 +105,8 @@ function printFallback(v) {
 }
 
 // A vector or a set stands on one line unless a part takes several, and
-// then each part stands on a line of its own, as each frame of a trail of
-// two or more does, a frame standing on one line whatever it holds [QSPRN#print].
+// then each part stands on a line of its own, as each frame of a trace of
+// two or more does, a frame standing on one line whatever it holds [D359].
 function printListLike(open, elements, indent, printedOf, oneLine = false, stacked = false) {
   const rendered = elements.map(el => printValue(el, indent + 1, printedOf, oneLine));
   if (oneLine || (!stacked && !rendered.some(s => s.includes('\n')))) return `${open}${rendered.join(' ')}]`;
@@ -115,9 +115,9 @@ function printListLike(open, elements, indent, printedOf, oneLine = false, stack
 }
 
 // A failure writes the error at rest `!|` opens it to: the tag of its site
-// before the bang, none for the kind of errors, and its facts, the path it
-// flew among them; the answer of a host says above it that it was raised
-// [QSERR#print].
+// before the bang, none for the kind of errors, and its facts, the trace it
+// left among them; the answer of a host says above it that it was raised
+// [D359].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   return `${tagHead}${printMapLike('!{', e.descriptor, indent, printedOf)}`;
@@ -136,7 +136,7 @@ export function underTagLiteral(tagLiteral, payload, payloadPrint) {
 // writes `#[…]` [QSERR#rest].
 function printUnderTag(tagged, indent, printedOf, oneLine) {
   const tagLiteral = tagged[TAG_HEADER_SYMBOL].literal;
-  if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), isTrail(tagged) && tagged.length > 1);
+  if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), isTrace(tagged) && tagged.length > 1);
   if (tagged instanceof Map && tagged[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', tagged, indent, printedOf, oneLine);
   if (tagged instanceof Map) return tagLiteral + printMapLike('{', tagged, indent, printedOf, oneLine || tagged[TAG_HEADER_SYMBOL].name === ELISION_TAG.name);
   return underTagLiteral(tagLiteral, tagged.payload, printValue(tagged.payload, indent, printedOf, oneLine));

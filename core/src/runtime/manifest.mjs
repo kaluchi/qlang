@@ -29,11 +29,12 @@ bindStateReader('any/laws', (subject, state) => {
     [lastName, Object.freeze([pageOfRecord(record), bindingValueOf(record).payload])]));
 });
 
-// A law runs as `apply` runs held code, one frame below the step, a law of
-// a name the root declares in a lane over the root alone, as a verb of the
-// root runs in the root's scope, and passes when it answers true; its result
-// names the law by its address and the claim it proves by its page, and
-// holds the error it answered at rest, as `!|` grounds it [QSSLF#laws].
+// A law runs as `apply` runs held code, one deeper in the evaluation depth
+// than the step, a law of a name the root declares in a lane over the root
+// alone, as a verb of the root runs in the root's scope, and passes when it
+// answers true; its result names the law by its address and the claim it
+// proves by its page, and holds the error it answered at rest, as `!|`
+// grounds it [QSSLF#laws], [D359].
 async function runLaw({ law, quote, says }, callerState) {
   const result = new Map();
   result.set('law', law);

@@ -13,9 +13,9 @@
 // host writes, a part a kind prints its own way standing as that kind prints
 // it [QSPRN#print].
 //
-// A failure a host prints is an alert [QSHST#answer]: its tag and its facts, the data
+// A failure a host prints is an alert [D359]: its tag and its facts, the data
 // it carries cut to what places the failure. The subject of the first frame
-// of its trail, where the failure arose, and every other fact print within an
+// of its trace, where the failure arose, and every other fact print within an
 // excerpt each; the subject of every later frame, which the failure only
 // passed, gives way whole. Every `:read` reads its part beneath `!|`.
 //
@@ -29,8 +29,8 @@
 // part, or undefined where the forms of the core write it.
 
 import {
-  isVec, isSet, isQuote, isDoc, isVecOfOwnKind, isMap, isErrorValue, isValueClass, isFrame, isTrail,
-  makeTagged, beneathTags, makeErrorValue, makeFrame, makePath, makeQuote, makeSet, makeTrail, stampTagHeader, TAG_HEADER_SYMBOL,
+  isVec, isSet, isQuote, isDoc, isVecOfOwnKind, isMap, isErrorValue, isValueClass, isFrame, isTrace,
+  makeTagged, beneathTags, makeErrorValue, makeFrame, makePath, makeQuote, makeSet, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL,
   ELISION_TAG, FAIL_TAG, SET_TAG
 } from './types.mjs';
 import { printValue } from './runtime/print-value.mjs';
@@ -262,11 +262,11 @@ function passedOver(value, read, printedOf, oneLine = false) {
   return sizeOf(shown) < sizeOf(value) ? shown : value;
 }
 
-// The trail of an alert: each frame keeps its steps and its place, the
+// The trace of an alert: each frame keeps its steps and its place, the
 // subject of the first within its excerpt, of every later one given way
-// whole, each measured on the one line a frame prints on [QSHST#answer].
-function framesOf(trail, read, printedOf) {
-  return makeTrail(trail.map(([subject, steps, place = null], index) => {
+// whole, each measured on the one line a frame prints on [D359].
+function framesOf(trace, read, printedOf) {
+  return makeTrace(trace.map(([subject, steps, place = null], index) => {
     const subjectRead = readBelow(read, [index, 0]);
     return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true) : passedOver(subject, subjectRead, printedOf, true), steps, place);
   }));
@@ -276,12 +276,12 @@ export function alertOf(error, printedOf = printedByTheCore) {
   const facts = new Map();
   for (const [name, value] of error.descriptor) {
     const factRead = readBelow(OF_THE_FACTS, [name]);
-    facts.set(name, isTrail(value) ? framesOf(value, factRead, printedOf) : excerptOf(value, factRead, printedOf));
+    facts.set(name, isTrace(value) ? framesOf(value, factRead, printedOf) : excerptOf(value, factRead, printedOf));
   }
   return makeErrorValue(error.tag, facts);
 }
 
-// Within a budget an alert gives way within its facts, its trail keeping its
+// Within a budget an alert gives way within its facts, its trace keeping its
 // frames, so the error stays one the core builds, and every `:read` reads
 // beneath `!|`.
 export function elideAnswer(answer, budget = null, printedOf = printedByTheCore) {

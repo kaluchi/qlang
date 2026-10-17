@@ -31,7 +31,7 @@
       print.
 
       Because code is a value, a page holds links and snippets that run,
-      the laws of a name are quotes that answer true, and the trail of a
+      the laws of a name are quotes that answer true, and the trace of a
       failure holds the steps it skipped, a quote that runs again as held
       code runs.
       ::link~(::call | doc) ::link~(::any/apply | doc)

@@ -100,7 +100,7 @@ Tier 2, by topic, only the files the topic names:
   `core/src/runtime/root.mjs`, `core/src/runtime/env.mjs`,
   `core/src/session.mjs`
 - errors: `core/src/errors.mjs`, `core/src/error-convert.mjs`,
-  `core/src/eval-trail.mjs`
+  `core/src/eval-trace.mjs`
 - self-description: `core/src/runtime/axis.mjs`,
   `core/src/runtime/manifest.mjs`, `core/src/runtime/doc.mjs`,
   `core/lib/qlang/doc.qlang`,

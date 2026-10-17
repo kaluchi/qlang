@@ -1,0 +1,82 @@
+|~ `::trace`, the kind of the trace a failure leaves, and what is declared
+   under it: its constructor and the refusals of a payload that is no
+   vector of frames, and the laws of a trace.
+   The rules it holds: [D359]. ~|
+
+:trace
+  |~~ A trace is what a failure leaves as it flies: a frame for each step
+      that raised it or handed it on, from the step where it arose to the
+      step where it is read. `[1 "x" 3] | map ~(mul 2) !| trace` answers
+      the frame of `mul 2`, which failed on `"x"`, then the frame of `map`,
+      whose code failed on the element at `/1`; a step the failure skips
+      joins the steps of the last frame.
+
+      An error holds it under `:trace`, written as the failure flies, and
+      `trace` reads it from an error at rest; the verbs of vectors read
+      it, `first` the frame where the failure arose and `last` the frame
+      of the level that reads it. It prints a frame a line where it holds
+      two or more, a frame standing on one line whatever its subject
+      holds. It is the vector of its frames in the order the failure flew,
+      `::trace[::frame["x" ~(add 1)]]`, and any other payload is refused.
+      An error at rest written with frames under `:trace` resumes them
+      when `raise` raises it, and an empty trace is none, the raise
+      starting one at its own step.
+      ::snippet~([1 "x" 3] | map ~(mul 2) !| trace)
+      ::link~(::frame | doc) ::link~(::error/trace | doc)
+      ::link~(::qlang/errors | doc)
+  ~~|
+  ::kind
+    | wraps
+        |~~ The frames, from where the failure arose outward, a vector of
+            frames plain or under `::trace`, built into the trace, a frame
+            under a tag read as the frame beneath it.
+        ~~|
+    | throws :PayloadKindNotTakenError
+        |~~ A trace is the vector of its frames in the order the failure
+            flew, `::trace[::frame["x" ~(add 1)]]`: a payload of another
+            kind is refused, a set, which holds its frames in the one order
+            of values, and a vector under a tag of another kind among them,
+            whose frames `payload` reads first.
+        ~~|
+    | throws :ElementKindNotTakenError
+        |~~ Every element of a trace is a frame, `::frame["x" ~(add 1)]`;
+            `:index` names the first that is not, and `:expected` the kind
+            of a frame.
+        ~~|
+    | proves :holdsAFrameForEachStep
+        |~~ A failure inside the code of `map` holds the frame of the step
+            that failed and the frame of `map`.
+        ~~|
+        ~([1 "x" 3] | map ~(mul 2) !| trace | count | eq 2)
+    | proves :joinsTheStepsSkippedToTheLastFrame
+        |~~ A step the failure skips joins the steps of the last frame. ~~|
+        ~("x" | add 1 | mul 2 | count !| trace | last | skipped | eq ~(mul 2 | count))
+    | proves :printsAFrameALine
+        |~~ A trace of two frames prints a frame a line. ~~|
+        ~([1 "x" 3] | map ~(mul 2) !| trace | print | lines | count | eq 4)
+    | proves :resumesWhenRaised
+        |~~ An error at rest written with frames resumes them when raised.
+        ~~|
+        ~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | raise | count !| trace | eq ::trace[::frame[1 ~(pre | count)]])
+    | proves :takesAPlainVectorOfFrames
+        |~~ A plain vector of frames is a trace. ~~|
+        ~([::frame[1 ~(pre)]] | tag ::trace | eq ::trace[::frame[1 ~(pre)]])
+    | proves :readsAFrameUnderATag
+        |~~ A frame under a tag is read as the frame beneath it. ~~|
+        ~(::trace[::X::frame[1 ~(pre)]] | eq ::trace[::frame[1 ~(pre)]])
+    | proves :PayloadKindNotTakenError/refusesASet
+        |~~ A set of frames is no trace, written or raised. ~~|
+        ~(get [~(::trace#[::frame[1 ~(a)]] !| type) ~({:trace #[::frame[1 ~(a)]]} | raise !| type)]
+          | eq [::trace/PayloadKindNotTakenError ::trace/PayloadKindNotTakenError])
+    | proves :PayloadKindNotTakenError/refusesAVectorUnderAnotherTag
+        |~~ A vector of frames under a tag of another kind is refused. ~~|
+        ~([::frame[1 ~(a)]] | tag ::T | tag ::trace !| type | eq ::trace/PayloadKindNotTakenError)
+    | proves :PayloadKindNotTakenError/refusesANumberARaiseLays
+        |~~ A number a map writes as its trace is refused when it is
+            raised.
+        ~~|
+        ~({:a 1 :trace 5} | raise !| get [~(type) /actualType] | eq [::trace/PayloadKindNotTakenError ::number])
+    | proves :ElementKindNotTakenError/refusesAMap
+        |~~ An element that is no frame is refused at its index. ~~|
+        ~(::trace[{:failed ~(add 1)}] !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 0])
+    | impl ::builtin{}

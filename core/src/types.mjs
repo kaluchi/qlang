@@ -128,8 +128,8 @@ export function isRegex(v) {
   return isValueClass(v, 'regex');
 }
 
-// A path, the value of `/a/b/0` [QSPTH#value]: the text of each segment, a key of a
-// map or a place of a vector, which the verb that takes the path reads.
+// A path, the value of `/a/b/0` [D360]: the text of each segment, a key of a
+// map or an index of a vector, which the verb that takes the path reads.
 export function makePath(segments) {
   return Object.freeze(brandValueClass({ segments: Object.freeze(segments.map(String)) }, 'path'));
 }
@@ -213,8 +213,8 @@ export function makeSet(elements) {
 }
 
 // An error at rest, a value like any other: its facts under `::error` and
-// the tag of its site over them, none for the kind of errors, what `!|`
-// opens a failure to and `raise` raises [QSERR#rest].
+// the tag of its site over them, none for the kind of errors, what a catch
+// holds of a failure and `raise` raises [D360].
 export function errorAtRest(tag, facts) {
   const ofKind = makeTagged(ERROR_TAG, facts);
   return tag.name === ERROR_TAG.name ? ofKind : makeTagged(tag, ofKind);

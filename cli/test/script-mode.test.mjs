@@ -75,6 +75,25 @@ describe('answerText — the answer as the language prints it', () => {
 });
 
 
+// The command line draws the caret of a refused text below its alert where
+// the alert shows its line, above the prose of the page [D360].
+describe('answerText — the caret of a refused text', () => {
+  const refused = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] x`;
+
+  it('writes the caret between the alert and the prose of the page', async () => {
+    const text = await answerText(await evalQuery('[1 2'), await langRuntime(), null, 'The page.');
+    expect(text).toMatch(/\}\n\|~\| \[1 2\n\|~\| {5}\^\n\|~\| The page\.$/);
+  });
+
+  it('draws the caret under a line the alert shows whole, and none where the budget left the line out', async () => {
+    const failure = await evalQuery(refused);
+    expect(await answerText(failure, await langRuntime())).toContain(`}\n|~| ${refused}\n|~| ${' '.repeat(113)}^`);
+    const bounded = await answerText(failure, await langRuntime(), 80);
+    expect(bounded).toContain(':source ::elision{');
+    expect(bounded).not.toContain('|~| [1 2');
+  });
+});
+
 // An answer prints within the budget a caller asked for; an error prints as
 // its alert [QSHST#answer].
 describe('answerText — the budget of the answer', () => {

@@ -5,7 +5,7 @@
 {"name":"the-facts-every-refusal-shares-are-declared-on-error","query":"::error | manifest | has ::error/actualType","expect":"true"}
 {"name":"a-refusal-of-a-primitive-sits-under-the-verb-that-ran-it","query":"[1 \"x\"] | sum !| type","expect":"::vec/sum/ElementNotNumberError"}
 {"name":"a-count-that-is-no-whole-number-breaks-the-law-of-its-input","query":"\"ab\" | take 1.5 !| type","expect":"::string/take/count/NotIntegerError"}
-{"name":"the-segment-a-path-read-as-an-index-is-a-number","query":"42 | get /0 !| get /key","expect":"0"}
+{"decision":"D360","name":"the-segment-a-path-read-as-an-index-is-a-number","query":"42 | get /0 !| get /segment","expect":"0"}
 {"name":"a-refusal-over-a-map-names-the-entry-by-its-key","query":"{:a 1 :b \"x\"} | sum !| get /key","expect":":b"}
 {"name":"a-refusal-is-an-error-under-the-tag-of-its-site","query":"\"x\" | add 1 !| payload | type","expect":"::error"}
 {"decision":"D359","name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :index 1\n  :actualType ::string\n  :actualValue \"two\"\n  :trace ::trace[::frame[[1 \"two\" 3] ~(sum)]]\n} | raise"}

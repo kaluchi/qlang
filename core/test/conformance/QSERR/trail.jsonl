@@ -26,7 +26,7 @@
 {"decision":"D359","name":"a-raised-error-holds-its-trace","query":"\"x\" | add 1 !| keys","expect":"#[:actualType :trace]"}
 {"decision":"D359","name":"an-error-literal-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"::Oops!{:a 1 :trace []} | raise !| keys","expect":"#[:a :trace]"}
 {"decision":"D359","name":"a-map-raised-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"{:a 1 :trace []} | raise !| keys","expect":"#[:a :trace]"}
-{"decision":"D359","name":"an-error-a-catch-opened-from-an-empty-written-trace-raised-again-is-itself","query":"{:a 1 :trace []} | raise !| :e it | raise !| eq e","expect":"true"}
+{"decision":"D360","name":"an-error-at-rest-from-an-empty-written-trace-raised-again-is-itself","query":"{:a 1 :trace []} | raise !| :e it | raise !| eq e","expect":"true"}
 {"decision":"D359","name":"a-failure-a-verb-resumes-flies-on-through-its-literal","query":"get [~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | raise)] !| trace | map ~failed","expect":"[~(pre) ~(get [~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | raise)])]"}
 {"decision":"D359","name":"a-failure-raised-on-an-empty-written-trace-inside-a-verb-arises-at-its-raise","query":"get [~(!{:a 1 :trace []} | raise)] !| trace | map ~failed","expect":"[~(raise) ~(get [~(!{:a 1 :trace []} | raise)])]"}
 {"decision":"D359","name":"a-tagged-literal-whose-payload-raises-itself-passes-a-frame-at-its-word","query":"[::Foo::number\"x\"] !| trace | map ~failed","expect":"[~(::Foo::number\"x\") ~([::Foo::number\"x\"])]"}
@@ -48,7 +48,7 @@
 {"decision":"D359","name":"a-trace-holds-a-frame-for-each-step-the-failure-passed","query":"[1 \"x\" 3] | map ~(mul 2) | count !| trace","expect":"::trace[::frame[\"x\" ~(mul 2)] ::frame[[1 \"x\" 3] ~(map ~(mul 2) | count) /1]]"}
 {"decision":"D359","name":"the-frame-of-a-step-that-ran-no-code-on-a-part-names-no-place","query":"\"x\" | add 1 !| trace | first | place","expect":"null"}
 {"decision":"D359","name":"the-frame-of-map-names-the-index-of-the-element-its-code-failed-on","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | last | place","expect":"/1"}
-{"decision":"D359","name":"the-frame-of-map-over-a-set-names-the-place-in-its-order","query":"#[1 \"x\"] | map ~(mul 2) !| trace | last | place","expect":"/1"}
+{"decision":"D360","name":"the-frame-of-map-over-a-set-names-the-index-in-its-one-order","query":"#[1 \"x\"] | map ~(mul 2) !| trace | last | place","expect":"/1"}
 {"decision":"D359","name":"the-frame-of-map-over-a-map-names-the-key","query":"{:a 1 :b \"x\"} | map ~(add 1) !| trace | last | place","expect":"/b"}
 {"decision":"D359","name":"the-frame-of-filter-names-the-index-its-predicate-failed-at","query":"[1 \"x\" 3] | filter ~(gt 1) !| trace | last | place","expect":"/1"}
 {"decision":"D359","name":"the-frame-of-filter-over-a-map-names-the-key-its-predicate-failed-at","query":"{:a 1 :b \"x\"} | filter ~(gt 0) !| trace | last | place","expect":"/b"}

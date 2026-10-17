@@ -5,7 +5,7 @@ import {
   parse, ParseError,
   langRuntime, evalQuery, answerKindsOf,
   findAstNodeAtOffset,
-  findIdentifierOccurrences,
+  findNameOccurrences,
   writesTag,
   bindingNamesVisibleAt,
   builtFrom,
@@ -538,8 +538,8 @@ export function referencesAtOffset(ast, offset) {
   if (!name) return [];
 
   const occurrences = isTagName(name)
-    ? findIdentifierOccurrences(ast, name.slice(TAG_SIGIL.length), TAG_SPELLING)
-    : findIdentifierOccurrences(ast, name);
+    ? findNameOccurrences(ast, name.slice(TAG_SIGIL.length), TAG_SPELLING)
+    : findNameOccurrences(ast, name);
   return occurrences
     .filter(occ => occ.location)
     .map(occ => ({

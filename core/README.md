@@ -59,7 +59,11 @@ printValue(cell.result);  // the answer as its literal; a failure is an error va
   the payload. A source that declares a name the root holds is refused.
 - `evalQuery(source)` evaluates one query in a fresh runtime.
 - `printValue(value)` writes the literal of a value, which `evalQuery`
-  reads back; the literal is the one lossless form. `toPlain` and
+  reads back; the literal is the one lossless form. `caretOf(answer)`
+  answers, for a refusal of a text, the line its `:source` holds and a
+  caret under the column its `:location` names, the two line comments a
+  host that prints for a person's eye writes below the refusal, and null
+  for any other answer. `toPlain` and
   `fromPlain` cross the JSON boundary, losing the kinds JSON has no form
   for.
 - `parse(source)` answers the syntax tree; `tokenize(source, names)` the

@@ -303,8 +303,10 @@
     | proves :printsText
         |~~ `print` answers the text a value reads back from. ~~|
         ~(7 | print | eq "7")
-    | proves :opensAFailureToItsFacts
-        |~~ `!|` opens a failure to its facts. ~~|
+    | proves :catchesAFailureToItsFacts
+        |~~ `!|` catches a failure, its step running on the error at rest,
+            which holds its facts.
+        ~~|
         ~("x" | add 1 !| get /actualType | eq ::string)
     | proves :refusesUnderTheInput
         |~~ An input of none of its kinds is refused under the input. ~~|

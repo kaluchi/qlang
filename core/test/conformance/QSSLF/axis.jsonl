@@ -45,7 +45,7 @@
 {"name":"an-anchor-of-doc-is-a-keyword-a-vector-or-a-set","query":"::qlang | doc 5 !| type","expect":"::any/doc/anchor/KindNotTakenError"}
 {"name":"an-anchor-of-source-is-a-keyword","query":"::vec/take | source 1 !| type","expect":"::any/source/anchor/KindNotTakenError"}
 {"name":"manifest-takes-no-anchor","query":"::qlang | manifest :pipeline !| type","expect":"::any/manifest/ArgsBeyondInputsError"}
-{"name":"an-anchor-of-a-set-that-is-no-keyword-is-refused-at-its-place-in-the-set","query":"::qlang | doc #[:pipeline ::x] !| get [~(type) /index]","expect":"[::any/doc/anchor/ElementNotKeywordError 1]"}
+{"decision":"D360","name":"an-anchor-of-a-set-that-is-no-keyword-is-refused-at-its-index-in-the-set","query":"::qlang | doc #[:pipeline ::x] !| get [~(type) /index]","expect":"[::any/doc/anchor/ElementNotKeywordError 1]"}
 {"name":"a-set-of-anchors-takes-null-and-anchors-read-in-turn","query":"::qlang | doc #[null [:pipeline]] | count","expect":"2"}
 {"name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError"}
 {"name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}

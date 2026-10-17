@@ -70,7 +70,7 @@ function hostHanding(trace) {
 const answerIn = async (session, query, initialPipeValue = null) => (await session.evalCell(query, { initialPipeValue })).result;
 
 describe('a failure a host hands holds the :trace it writes as the kind of a trace takes it [D359]', () => {
-  it('a :trace of another shape on the answer of a host\'s verb answers the refusal of the kind, which the catch opens', async () => {
+  it('a :trace of another shape on the answer of a host\'s verb answers the refusal of the kind, which the catch holds at rest', async () => {
     for (const [trace, refused] of [[5, 'trace/PayloadKindNotTakenError'], ['at Foo.bar(Foo.java:1)', 'trace/PayloadKindNotTakenError'], [[5], 'trace/ElementKindNotTakenError']]) {
       const session = await hostHanding(trace);
       const failure = await answerIn(session, '1 | answered');
@@ -100,7 +100,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
     expect(await answerIn(thrown, '[1 2] | reduce 0 ~(thrownToTheFold) !| get [~(type) ~(trace | last | place)] | eq [::trace/PayloadKindNotTakenError /0]')).toBe(true);
   });
 
-  it('a constructor of a host\'s kind that refuses the error at rest a catch opens with such a :trace answers the refusal of the kind', async () => {
+  it('a constructor of a host\'s kind that refuses the error at rest a catch holds with such a :trace answers the refusal of the kind', async () => {
     const session = await hostHanding('at Foo.bar(Foo.java:1)');
     expect(await answerIn(session, '::Built{:a 1} | raise !| type !| type')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
   });

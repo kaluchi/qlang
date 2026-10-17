@@ -213,9 +213,11 @@
     | proves :multiplier/KindNotTakenError/refusesAString
         |~~ A multiplier that is no number is refused under the input. ~~|
         ~(1 | mul "x" !| get [~(type) /actualType] | eq [::number/mul/multiplier/KindNotTakenError ::string])
-    | proves :multiplier/KindNotTakenError/namesTheReadOfAPath
-        |~~ A path given for the multiplier names the read of its field. ~~|
-        ~(5 | mul /qty !| get /read | eq ~(mul (get /qty)))
+    | proves :multiplier/KindNotTakenError/namesTheRepairOfAPath
+        |~~ A path given for the multiplier names the repair that reads its
+            field.
+        ~~|
+        ~(5 | mul /qty !| get /repair | eq ~(mul (get /qty)))
     | proves :answersUnderTheTag
         |~~ A number under a tag answers under the tag. ~~|
         ~(::Width#2 | mul 3 | eq ::Width#6)

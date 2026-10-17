@@ -150,7 +150,7 @@ const underRecord = record => makeTag(record.get('name').name);
 const pageAt = (subject, anchor, state) => pageOfRecord(recordOfAnchors(subject, anchorsOf(anchor), state));
 
 // A set of anchors reads a page at each, in the order of the set, an
-// element that is no anchor and no vector of them refused at its place.
+// element that is no anchor and no vector of them refused at its index.
 bindStateReader('any/doc', (subject, anchor, state) => {
   if (!isSet(anchor)) return pageAt(subject, anchor, state);
   const stranger = anchor.findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));

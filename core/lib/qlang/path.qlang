@@ -4,7 +4,7 @@
 
 :path
   |~~ A path, `/a/0/b`, is a value that names a part of another: a key
-      of a map or a place of a vector at each segment, a negative place
+      of a map or an index of a vector at each segment, a negative index
       counted from the end. It does nothing by itself; the verb that
       takes it reads it. `get /a/b` answers the part and refuses one
       that is not there, so a misspelled field is found where it is
@@ -20,7 +20,7 @@
       A key is written as a keyword is, bare, `/name`, quoted,
       `/"first name"`, or with its colon when it holds a slash,
       `/:qlang/error`, one key where `/qlang/error` is two. A segment is
-      text, as in JSON Pointer, so `/0` reads the place of a vector and
+      text, as in JSON Pointer, so `/0` reads the index of a vector and
       the key `"0"` of a map. The value itself is `it`, never a path.
       ::snippet~({:a {:b [5 6]}} | get /a/b/-1) answers `6`.
       ::link~(::any/get | doc) ::link~(::any/query | doc)
@@ -28,27 +28,27 @@
   ~~|
   ::kind
     | wraps
-        |~~ A path, read as itself; a vector of keys and places becomes
+        |~~ A path, read as itself; a vector of keys and indices becomes
             one by `toPath`, `[:items 0] | toPath`.
         ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::path` reads its payload as the path it is; a payload of
-            another kind is refused, and a vector of keys and places is
+            another kind is refused, and a vector of keys and indices is
             read as a path by `toPath`.
             ::link~(::vec/toPath | doc)
         ~~|
     | throws :IndexOutOfBoundsError
-        |~~ A place reads within a vector or a set, from `/0` to the last,
-            `/-1`, a negative place counting from the end; `:index` holds
-            the place read and `:length` the length of the subject. The
-            last element is `/-1` whatever the length, a place that may
+        |~~ An index reads within a vector or a set, from `/0` to the last,
+            `/-1`, a negative index counting from the end; `:index` holds
+            the index read and `:length` the length of the subject. The
+            last element is `/-1` whatever the length, an index that may
             lie past the end is read by `query`, which answers null there,
             and `take` and `drop` answer the part there is without
             refusing.
             ::link~(::path | doc) ::link~(::any/query | doc)
         ~~|
     | carries :IndexOutOfBoundsError/index
-        |~~ The place the path read, counted from the end when negative. ~~|
+        |~~ The index the path read, counted from the end when negative. ~~|
         ::number
     | carries :IndexOutOfBoundsError/length
         |~~ How many elements the value holds. ~~|
@@ -73,27 +73,28 @@
     | throws :SubjectHasNoPartsError
         |~~ A path reads a part of a map, a vector or a set, one under a
             tag among them; a number, a string or null has no parts, and
-            `:key` holds the key or the place read. A path read from the
-            subject of a later step reads what that step was handed: after
-            `get /qty |` the subject is the number, so two fields of one
-            record are read in one step, `get [/qty /price]`, or combined
-            by a verb that reads each from its args, `mulOf /qty /price`. A value
-            that may be null is read by `query`, which answers null.
+            `:segment` holds the segment read, a key or an index. A path
+            read from the subject of a later step reads what that step was
+            handed: after `get /qty |` the subject is the number, so two
+            fields of one record are read in one step, `get [/qty /price]`,
+            or combined by a verb that reads each from its args,
+            `mulOf /qty /price`. A value that may be null is read by
+            `query`, which answers null.
             ::link~(::path | doc) ::link~(::any/mulOf | doc)
         ~~|
-    | carries :SubjectHasNoPartsError/key
-        |~~ The segment the path read, a key or a place. ~~|
+    | carries :SubjectHasNoPartsError/segment
+        |~~ The segment the path read, a key or an index. ~~|
         #[::keyword ::number]
     | throws :IndexNotIntegerError
-        |~~ A vector is read by a place, `/0`, and a set by the place of
-            an element in its one order; `:key` holds the field read. A
-            field of each element is read by `map`, `map /name`, and the
-            elements a field picks are found by `filter`,
-            `filter ~(get /n | gt 1)`.
+        |~~ A vector is read by an index, `/0`, and a set by the index of
+            an element in its one order; `:segment` holds the segment read,
+            which names no index. A field of each element is read by `map`,
+            `map /name`, and the elements a field picks are found by
+            `filter`, `filter ~(get /n | gt 1)`.
             ::link~(::path | doc) ::link~(::vec/filter | doc)
         ~~|
-    | carries :IndexNotIntegerError/key
-        |~~ The segment the path read, which names no place. ~~|
+    | carries :IndexNotIntegerError/segment
+        |~~ The segment the path read, which names no index. ~~|
         ::keyword
     | proves :isAValue
         |~~ A path is a value of its own kind. ~~|
@@ -107,8 +108,8 @@
     | proves :readsNestedKeys
         |~~ A path of two keys reads nested maps. ~~|
         ~({:qlang {:error 2}} | get /qlang/error | eq 2)
-    | proves :readsTheKeyOfAMapByThePlace
-        |~~ A place reads the key of a map that spells it. ~~|
+    | proves :readsTheKeyOfAMapByItsDigits
+        |~~ A segment of digits reads the key of a map that spells it. ~~|
         ~({:"0" 5} | get /0 | eq 5)
     | proves :printsAKeyWithASlashQuoted
         |~~ A key with a slash that is no name of a path prints quoted. ~~|
@@ -116,11 +117,11 @@
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
         ~([:a 0] | tag ::path !| get [~(type) /actualType] | eq [::path/PayloadKindNotTakenError ::vec])
-    | proves :IndexOutOfBoundsError/refusesAPlacePastTheEnd
-        |~~ A place past the end is refused with the length. ~~|
+    | proves :IndexOutOfBoundsError/refusesAnIndexPastTheEnd
+        |~~ An index past the end is refused with the length. ~~|
         ~([10 20 30] | get /99 !| get [~(type) /index /length] | eq [::path/IndexOutOfBoundsError 99 3])
-    | proves :IndexOutOfBoundsError/refusesAPlaceBeforeTheStart
-        |~~ A negative place past the start is refused as it was written.
+    | proves :IndexOutOfBoundsError/refusesAnIndexBeforeTheStart
+        |~~ A negative index past the start is refused as it was written.
         ~~|
         ~([10 20 30] | get /-4 !| get [~(type) /index /length] | eq [::path/IndexOutOfBoundsError -4 3])
     | proves :IndexOutOfBoundsError/readsTheLastFromTheEnd
@@ -144,31 +145,31 @@
     | proves :SubjectHasNoPartsError/refusesANumber
         |~~ A number has no fields. ~~|
         ~(42 | get /foo
-          !| get [~(type) /key /actualType] | eq [::path/SubjectHasNoPartsError :foo ::number])
+          !| get [~(type) /segment /actualType] | eq [::path/SubjectHasNoPartsError :foo ::number])
     | proves :SubjectHasNoPartsError/refusesNull
         |~~ Null has no parts for `get`. ~~|
         ~(null | get /k !| get [~(type) /actualType] | eq [::path/SubjectHasNoPartsError ::null])
     | proves :IndexNotIntegerError/refusesAFieldOfAVector
-        |~~ A vector is read by a place, not a field. ~~|
-        ~([10 20 30] | get /name !| get [~(type) /key] | eq [::path/IndexNotIntegerError :name])
+        |~~ A vector is read by an index, not a field. ~~|
+        ~([10 20 30] | get /name !| get [~(type) /segment] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/refusesAFieldOfASet
-        |~~ A set is read by a place, not a field. ~~|
-        ~(#[:a :b :c] | get /name !| get [~(type) /key] | eq [::path/IndexNotIntegerError :name])
+        |~~ A set is read by an index, not a field. ~~|
+        ~(#[:a :b :c] | get /name !| get [~(type) /segment] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/readsAFieldOfEachElement
         |~~ A field of each element is read by `map`. ~~|
         ~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"])
     | impl ::builtin{}
 
 :path/segments
-  |~~ Answers the keys and places of the path, a place as its number and
-      a key as its keyword, `/items/0 | segments` answering `[:items 0]`;
+  |~~ Answers the keys and indices of the path, an index as its number
+      and a key as its keyword, `/items/0 | segments` answering `[:items 0]`;
       `toPath` builds the path back from them.
       ::link~(::vec/toPath | doc)
   ~~|
   ::fn
-    | returns |~~ The keys and places of the path. ~~| ::vec
-    | proves :answersKeysAndPlaces
-        |~~ A key answers its keyword and a place its number. ~~|
+    | returns |~~ The keys and indices of the path. ~~| ::vec
+    | proves :answersKeysAndIndices
+        |~~ A key answers its keyword and an index its number. ~~|
         ~(/items/0 | segments | eq [:items 0])
     | proves :readsBackByToPath
         |~~ The segments build the path back. ~~|

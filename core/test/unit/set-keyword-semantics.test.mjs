@@ -204,8 +204,8 @@ describe('groupBy over a set files sets', async () => {
   });
 });
 
-// `query` on a Set subject — a place in the one order, which a key
-// names none of [QSPTH#value].
+// `query` on a Set subject — an index in the one order, which a key
+// names none of [D360].
 describe('query over a set', async () => {
   it('positive index returns the n-th-added element', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
@@ -223,7 +223,7 @@ describe('query over a set', async () => {
     expect(await evalQuery('#[:a :b :c] | query /99')).toBe(null);
   });
 
-  it('a key names no place of a set, and is refused read softly too', async () => {
+  it('a key names no index of a set, and is refused read softly too', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const err = await evalQuery('#[:a :b] | query /x');
     expect(err.tag.name).toBe('path/IndexNotIntegerError');

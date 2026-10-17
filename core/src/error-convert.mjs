@@ -2,6 +2,7 @@ import { keyword, makeErrorValue, makeTag, makeTagged, typeOf, ERROR_TAG } from 
 import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
 import { deepEqual } from './equality.mjs';
+import { nameOfContinuation } from './parse.mjs';
 
 // The reading of text into code refuses on `::quote`, and an
 // implementation of a host that fails in a call on `::call` [QSERR#site].
@@ -66,15 +67,11 @@ export function errorFromQlang(qlangError, subject, env) {
   });
 }
 
-// The error of a text the parser refused: where it stopped and what it
-// wanted there, in the order its label declares them.
+// The error of a text the parser refused: the line where it stopped, what it
+// wanted there and the span of the place, in the order its label declares [D360].
 export function errorFromParse(parseError, env, uri = parseError.uri) {
   const d = new Map();
-  if (parseError.source != null && parseError.location) {
-    const excerpt = excerptAroundLocation(parseError.source, parseError.location);
-    d.set('source', excerpt.source);
-    d.set('marker', excerpt.marker);
-  }
+  if (parseError.source != null && parseError.location) d.set('source', parseError.source.split('\n')[parseError.location.start.line - 1]);
   // A refusal the grammar names itself carries its sentence, which says
   // the fix, and a bracket left open its sentence beside its closers
   // [QSSYN#refusal]; any other failure lists what the parser expected there.
@@ -91,8 +88,8 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
   });
 }
 
-// The continuations a parse failure lists, each once: a literal as its
-// text, and the end, any character and a named rule as keywords.
+// The continuations a parse failure lists, each once: a literal as its text,
+// the end, any character and a named part of the grammar as keywords [D360].
 function liftExpectedAlternatives(expected) {
   const seen = new Set();
   const out = [];
@@ -107,36 +104,7 @@ function liftExpectedAlternatives(expected) {
 }
 
 function liftExpectedAlternative(alt) {
-  if (alt.type === 'literal') return alt.text;
-  if (alt.type === 'end') return keyword('end-of-input');
-  if (alt.type === 'any') return keyword('any-character');
-  if (alt.type === 'other') return keyword(alt.description);
-  return classKeyword();
-}
-
-// A peggy char-class reads as `:char-class`: the classes a reader would
-// name stand under named rules of the grammar, whitespace among them
-// [QSSYN#comment].
-function classKeyword() {
-  return keyword('char-class');
-}
-
-// The line where a reading stopped and its marker, a caret under the
-// start of the span and tildes to its end, padded so the two strings
-// end in one column; `:location` holds the span itself [QSPRN#span].
-function excerptAroundLocation(source, location) {
-  const lineNumber = location.start.line;
-  const line = source.split('\n')[lineNumber - 1];
-  const before = location.start.offset - (location.start.column - 1);
-  const startCol = codePointsIn(source, before, location.start.offset) + 1;
-  const endCol = codePointsIn(source, before, location.end.offset) + 1;
-  // A reading stops within one line, and a span of no width takes one
-  // caret.
-  const markerWidth = Math.max(1, endCol - startCol);
-  const lead = ' '.repeat(Math.max(0, startCol - 1));
-  const caret = '^' + '~'.repeat(Math.max(0, markerWidth - 1));
-  const tail = ' '.repeat(Math.max(0, Array.from(line).length - lead.length - caret.length));
-  return { source: line, marker: lead + caret + tail };
+  return alt.type === 'literal' ? alt.text : keyword(nameOfContinuation(alt));
 }
 
 // The failures beneath a host's failure that its facts recount.

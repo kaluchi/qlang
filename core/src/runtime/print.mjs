@@ -3,7 +3,7 @@
 // and of `elide`, the value within a budget of its print [QSHST#answer].
 
 import { bindStateReader } from '../primitives.mjs';
-import { TAG_HEADER_SYMBOL, isErrorValue } from '../types.mjs';
+import { TAG_HEADER_SYMBOL, isErrorValue, typeOf } from '../types.mjs';
 import { elide, elideAnswer as answerWithin } from '../elide.mjs';
 import { rootState } from '../state.mjs';
 import { printValue } from './print-value.mjs';
@@ -40,6 +40,21 @@ export async function elideAnswer(answer, budget, env) {
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';
+
+// caretOf(answer) → for the refusal of a text, the line `:source` holds and a
+// caret under the column of it its `:location` names, the two line comments a
+// host that prints for a person's eye draws below it [D360]; null otherwise.
+export function caretOf(answer) {
+  if (!isErrorValue(answer) || answer.tag.name !== 'quote/ParseError') return null;
+  const source = answer.descriptor.get('source');
+  const location = answer.descriptor.get('location');
+  if (typeof source !== 'string' || source.includes('\n') || typeOf(location).name !== 'span') return null;
+  const [, startLine, startColumn, , endLine, endColumn] = location;
+  const pastTheLine = Array.from(source).length + 1;
+  if (startColumn < 1 || startColumn > pastTheLine) return null;
+  const end = endLine === startLine ? Math.min(endColumn, pastTheLine) : pastTheLine;
+  return `|~| ${source}\n|~| ${' '.repeat(startColumn - 1)}^${'~'.repeat(Math.max(1, end - startColumn) - 1)}`;
+}
 
 async function collectPrintsOfKinds(part, env, state, printOfAny, printedByKind) {
   if (part === null || typeof part !== 'object') return;

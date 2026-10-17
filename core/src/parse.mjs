@@ -61,7 +61,7 @@ export function parse(source, opts = {}) {
     const atTheEnd = err.expected !== null && err.found === null;
     const unclosed = atTheEnd ? bracketLeftOpen(source) : null;
     const sentence = unclosed?.message ?? (atTheEnd ? stepMissedAtTheEnd(source) : undefined);
-    throw new ParseError(sentence ?? err.message, err.location, opts.uri ?? null, {
+    throw new ParseError(sentence ?? (err.expected === null ? err.message : expectedSentence(err.expected, err.found)), err.location, opts.uri ?? null, {
       expected: unclosed?.expected ?? err.expected,
       found: err.found,
       source,
@@ -75,6 +75,21 @@ export function parse(source, opts = {}) {
   ast.uri = opts.uri ?? 'inline';
   ast.comments = [...commentTrivia.values()].sort((left, right) => left.location.start.offset - right.location.start.offset);
   return ast;
+}
+
+// nameOfContinuation(alternative) → the name the language gives a continuation
+// no literal is: the end of the source, any character, or a rule's name [D360].
+export function nameOfContinuation(alternative) {
+  if (alternative.type === 'end') return 'end-of-source';
+  return alternative.type === 'any' ? 'any-character' : alternative.description;
+}
+
+// The sentence of a failure no rule of the grammar writes: the continuations
+// as `:expected` names them, a literal in its quotes, and what it met [D360].
+function expectedSentence(expected, found) {
+  const named = [...new Set(expected.map(alternative => (alternative.type === 'literal' ? JSON.stringify(alternative.text) : nameOfContinuation(alternative))))].sort();
+  const listed = named.length === 1 ? named[0] : `${named.slice(0, -1).join(', ')} or ${named[named.length - 1]}`;
+  return `Expected ${listed} but ${found === null ? nameOfContinuation({ type: 'end' }) : JSON.stringify(found)} found.`;
 }
 
 // ── the bracket a source left open [QSSYN#refusal] ─────────────────────────

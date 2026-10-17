@@ -1,8 +1,9 @@
 // The retired terms of the chain, of the slot of a kind, of the node an
-// axis reads and of the trace a failure leaves, each held by the lexicon of
-// retired terms as one pattern of its one sense [QSWRK#documents], [D359],
-// which refuses the term where it is written, in prose, a name of the code
-// or the name of a case, and leaves the words of another sense.
+// axis reads, of the trace a failure leaves and of a refusal, each held by
+// the lexicon of retired terms as one pattern of its one sense
+// [QSWRK#documents], [D359], [D360], which refuses the term where it is
+// written, in prose, a name of the code or the name of a case, and leaves
+// the words of another sense.
 
 import { describe, it, expect } from 'vitest';
 import { RETIRED_WORDS } from '../../../scripts/retired-words.mjs';
@@ -83,6 +84,84 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'the frame of `map` stands a frame below the frame of `count` in the print', 'the frame of the raise lies one frame below the catch',
       'the frames one below another print a frame a line', 'the deepest frame of a trace is its first',
       'the steps a failure skips stay on the frame of the step that failed', 'the key that broke the order', 'the code that broke it'
+    ]) expect(refused(text), text).toBe(false);
+  });
+
+  it('refuses each retired term of a refusal, of a conversion, of an empty subject and of the error a catch holds where it is written [D360]', () => {
+    for (const text of [
+      '::keyword/toTag/NameNotNameError', '::string/toTag/TextNotNameError', 'KeywordToTagNameNotNameError', 'StringToTagTextNotNameError', ':NameNotNameError/refusesASpace',
+      '::vec/toPath/EmptyError', 'VecToPathEmptyError', ':EmptyError/refusesTheEmptyVector',
+      ':KindAnswersNoVerbError/namesTheReadOfAPath', 'an-input-given-a-path-names-its-read', 'a-name-called-on-a-path-names-its-read', ':read/namesAWrittenPathAlone',
+      'A path given for the multiplier names the read of its field.', 'withReadOfPath', 'readOfPathSubject', 'readOfRefusedPath',
+      'The read a step was likely meant for where a path stands', 'naming as `:read` the read the call was likely meant for',
+      'The source does not read as qlang: `:marker` points where the reading stopped', 'carries :ParseError/marker', '"#{1}" | parse !| get [~(keys) /marker]',
+      ':source "[1 2" :marker "    ^"', 'excerptAroundLocation',
+      ':"identifier start (letter or underscore)"', ':"identifier continue (letter, digit, hyphen, underscore)"', '[:char-class]', ':end-of-input',
+      'A peggy char-class reads as `:char-class`', 'classKeyword', 'findIdentifierOccurrences',
+      'an-opened-error-raised-again-is-the-error', 'an-error-a-catch-opened-from-an-empty-written-trace-raised-again-is-itself',
+      ':readsAnErrorOnceOpened', ':raisesAnOpenedErrorAsItself', ':asksAnOpenedFailure', 'An opened error is a value of `::error` and of its refusal.',
+      'that raised it to the `!|` that opened it', 'an error a catch opened, raised again, is itself', 'An error opened by a catch and raised again is the error it was.',
+      '`!|` opened the page of the refusal it carries', 'answers the refusal of the kind, which the catch opens', 'an opened error\'s among them', 'a failure opened by the catch',
+      ':opensAFailureToItsFacts', '`!|` opens a failure to its facts.', 'a host prints it as the error at rest `!|` opens it to',
+      'the-error-literal-under-the-tag-of-a-kind-opens-to-a-value-that-prints', 'the-refusal-of-a-doc-s-quote-opens-to-a-value-that-prints'
+    ]) expect(refused(text), text).toBe(true);
+  });
+
+  it('refuses the position of an element named as a place where it is written [D360]', () => {
+    for (const text of [
+      'get-refuses-a-place-past-the-end', 'A vector grows by `append`, not by a place past its end.', 'A negative place past the start is refused as it was written.',
+      '`/-1`, a negative place counting from the end', ':readsTuplesPlaceByPlace', 'a vector key place by place', 'two tuples of one length place by place',
+      'segments-answers-the-keys-and-places-of-a-path', 'Answers the keys and places of the path', 'a vector of keys and places becomes',
+      'a-doc-is-read-by-places-as-a-vector-is', 'a-quote-a-function-and-a-kind-read-by-place', 'A vector is read by a place, not a field.', 'A set reads by place as its vector does',
+      'a-path-reads-a-step-of-a-quote-by-its-place', 'a-condition-of-cond-is-named-by-its-place-from-zero', 'its elements read by their places', 'the groups by their places',
+      'Its elements are read by their place from zero, `get /0`',
+      'desc-turns-one-place-of-a-vector-key-to-descend', 'A place of a vector key descends alone', 'so `/0` reads the place of a vector', '`desc` reverses a place of it',
+      'turns its own place alone', 'a vector\'s own places are its', 'shape-reads-vectors-of-one-length-whose-places-part-as-tuples',
+      'one that answers another kind is refused at its place', 'an-anchor-of-a-set-that-is-no-keyword-is-refused-at-its-place-in-the-set', 'its place in the set its `:index`',
+      'A vector key ranks by its first place.', 'a-vector-key-ranks-by-its-next-place-among-ties', 'A vector key breaks the ties of its first place by its next.', 'A first place of `eq null` puts null last.',
+      'call is computed at every place, the first among them', 'the shape of each place across them', 'where every place holds one shape', 'so a path of the data through a place reads it',
+      'query-answers-null-for-a-missing-place', 'a key or a place missing on the way', 'or a place that is not there is refused', 'where it missed, the key or the place',
+      'Each element is a key, a keyword or a string, or a place', 'put-replaces-a-place-a-vector-holds', 'delete-takes-a-place-out', 'A place is taken out of a vector',
+      'a key taken out of a map, or a place out of a vector', 'a-quoted-digit-is-the-segment-a-place-is', 'a-path-reads-a-key-then-a-place-then-a-key',
+      'a-path-reads-a-place-from-the-end-between-two-keys', 'a-path-reads-a-place-then-a-key', 'A key answers its keyword and a place its number.',
+      'shape-keeps-the-places-of-two-tuples-that-part', 'the place in the args, from zero, of the predicate', '`:index` naming a place in its one order', 'a place in the one order, which a key names none of',
+      'a-place-of-a-key-that-fails-answers-the-call', 'An element of one place is no pair', 'An element of three places is no pair either.', 'Vectors of one length, two places or more',
+      'a key that ranks by several places', 'a place as its number and a key as its keyword', 'a place as a whole number', 'a segment that names no place', 'The segment the path read, which names no place.',
+      'a key names no place of a set', 'A fraction is no place, and is refused at its index.', 'a place within a place among', 'A place reads within a vector or a set', 'A place reads the key of a map that spells it.',
+      'a shape for each place', 'equal images each in its place', 'the vector of its text and then each group in its place', 'The place of the element refused, counted from zero.',
+      '`:index` the place of an element in its one order', '`:index` holds the place read', 'The place the path read, counted from the end when negative.',
+      'The index a set is refused at is the place in its one order', 'the place a segment names', 'the keys near it, or the place and the length',
+      'and the places to it', 'The key an atom\'s place is read by', 'each segment a key of a map or a place of', 'and `desc` turns the key, or one place of it, to descend',
+      'data, its first place missing there', 'as the place its digits name', 'a place past either end', 'which a map reads as a key and a vector as a place',
+      'the first place first', 'each later one among the elements the places before it rank alike', 'a number on a value read by place',
+      'A frame is read by the verbs written over its places', 'The elements beside the fact that names the place of each in a refusal',
+      'the-frame-of-map-over-a-set-names-the-place-in-its-order',
+      ':ranksByTheFirstPlace', ':breaksTiesByTheNextPlace', ':answersTheErrorOfAPlace', ':replacesAPlace', ':turnsOnePlaceOfAVectorKey', ':readsTheKeyOfAMapByThePlace',
+      ':answersKeysAndPlaces', ':namesThePlaceInTheOneOrderOfASet', ':refusesAPatternOfPlacesAlone', ':refusesAFieldMissingAtTheFirstPlace', ':takesAPlaceOut',
+      ':IndexOutOfBoundsError/refusesAPlacePastTheEnd', ':IndexOutOfBoundsError/refusesAPlaceBeforeTheStart', 'placeIn', 'mergedPlaces', 'placeKey'
+    ]) expect(refused(text), text).toBe(true);
+  });
+
+  it('leaves the words of another sense beside a refusal: the place of the args, of a frame, of a payload and of a text, the read of an elision, a bracket opened and the end of the source [D360]', () => {
+    for (const text of [
+      'The place of the args the input reads, a path or a quote.', 'An input whose place the args leave out is refused.', 'A place read by `query` gives a default.',
+      'a modifier that failed is refused by its place', 'The input `multiplier` reads the first place of the args', 'How many places the inputs of the verb read', 'Args past the places its inputs read are refused.',
+      '`place` reads a frame, which the trace of a failure holds', 'The frame of `map` holds the place of the element its code failed on', 'The subject of the frame reads the part by its place.',
+      'the-frame-of-a-step-that-ran-no-code-on-a-part-names-no-place', 'The place of the payload the field reads, a path or a quote.',
+      'A point is a place in source text', 'the place where a reading stopped', 'a caret under the place its `:location` names', 'scan-meets-an-empty-match-at-every-place', 'an empty match met at every place',
+      'is declared under the noun of its place', '`coalesce` puts a fallback in the place of null.', 'A sum subtracted is computed in its place.', 'the text that takes the place of each match',
+      'where a path stands in the place of the value it names', 'Two digits keep two places after the point.', 'Any value, its place in the one order turned around.',
+      'saves the draft of the place it leaves and loads the next place\'s', 'a key written twice standing in its first place with its last value', 'the values change nothing in place',
+      '`:read` continues the query to it, `!| get /trace/1/0`', 'an ::elision marker whose :read continues the query', 'the-read-of-a-marker-answers-what-it-left-out', 'elide 10 | last | get /read',
+      'the marker of an elision', 'the read of a part before a word', 'answers the refusal of its read', 'an-input-given-a-path-names-its-repair', ':repair/namesAWrittenPathAlone',
+      '`[` opened at line 1, column 1 is never closed', 'an-unclosed-bracket-names-where-it-opened', 'closes a span at a run of as many backquotes as opened it',
+      'the scope a call opens', '`open` runs a quote, a link or a snippet', 'the error at rest a catch holds', ':raisesAnErrorAtRestAsItself',
+      '::keyword/toNumber/NameNotNumberError', '::keyword/toTag/NameNotTagError', '::vec/toPath/SubjectEmptyError', ':SubjectEmptyError/refusesTheEmptyVector', ':numbers/EmptyError/refusesNoNumber',
+      'a valid identifier', 'IdentStart', ':any-character', ':end-of-source', ':"letters of a name"', 'findNameOccurrences', 'a character class of a pattern',
+      'the args of the call, which the inputs of its function read by their places', 'its inputs read from the args by their places',
+      'its own place read through the field again', 'a link opens to the answer of its query', 'a value turned by `desc` opens to the value it turned',
+      'a leading `!|` opens a step of the fail track', 'A link opens to a value its query answers',
+      'an-error-literal-a-kind-refuses-is-caught-at-rest-as-a-value-that-prints', 'the-frame-of-map-over-a-set-names-the-index-in-its-one-order'
     ]) expect(refused(text), text).toBe(false);
   });
 });

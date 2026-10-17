@@ -182,15 +182,15 @@ async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
   const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.descriptor));
-  let opened;
+  let atRest;
   try {
-    opened = raised.tag === ERROR_TAG ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
+    atRest = raised.tag === ERROR_TAG ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
   } catch (caughtError) {
-    opened = errorOfThrow(caughtError, stepNode, errorOfKind, state.env);
+    atRest = errorOfThrow(caughtError, stepNode, errorOfKind, state.env);
   }
-  if (isErrorValue(opened)) return withPipeValue(state, answerOfStep(opened, () => quoteOfBody(stepNode), errorOfKind, state.env));
-  const answered = await evalNode(stepNode, withPipeValue(state, opened));
-  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), opened, state.env));
+  if (isErrorValue(atRest)) return withPipeValue(state, answerOfStep(atRest, () => quoteOfBody(stepNode), errorOfKind, state.env));
+  const answered = await evalNode(stepNode, withPipeValue(state, atRest));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), atRest, state.env));
 }
 
 // ─── Literal evaluators ─────────────────────────────────────────
@@ -442,20 +442,20 @@ function evalPath(node, state) {
 
 async function evalCall(node, state) {
   if (node.address !== undefined) return await callByAddress(node, state);
-  return withReadOfPath(await callByName(node.name, node.args.map(argNode => modifierOf(argNode, state)), state, node), node, state.pipeValue, state.env);
+  return withRepairOfPath(await callByName(node.name, node.args.map(argNode => modifierOf(argNode, state)), state, node), node, state.pipeValue, state.env);
 }
 
-// The read a step was likely meant for where a path stands in place of
-// the value it names [QSPTH#verbs], [D359]: a verb called on a path, `/tags | count`
-// read as `get /tags | count`, and an input refusing the path a modifier
-// wrote, `mul /qty` read as `mul (get /qty)`; a refusal the call itself
-// answered, which no frame of a trace has passed yet, carries it.
-function readOfPathSubject(path, node) {
+// The repair, the step a call was likely meant as where a path stands in
+// the place of the value it names [D359], [D360]: a verb called on a path,
+// `/tags | count` repaired as `get /tags | count`, and an input refusing the
+// path a modifier wrote, `mul /qty` as `mul (get /qty)`; a refusal the call
+// itself answered, which no frame of a trace has passed yet, carries it.
+function repairOfPathSubject(path, node) {
   return makeQuote([commandStep('get', [path]), stepOfNode(node)]);
 }
 
-function readOfRefusedPath(refused, node, subject) {
-  if (!refused.descriptor.has('actualValue')) return isPath(subject) ? readOfPathSubject(subject, node) : null;
+function repairOfRefusedPath(refused, node, subject) {
+  if (!refused.descriptor.has('actualValue')) return isPath(subject) ? repairOfPathSubject(subject, node) : null;
   const value = refused.descriptor.get('actualValue');
   if (!isPath(value)) return null;
   const written = node.args.findIndex(argNode => argNode.type === 'Path'
@@ -466,12 +466,12 @@ function readOfRefusedPath(refused, node, subject) {
   return makeQuote([commandStep(step.get('name').name, modifiers)]);
 }
 
-function withReadOfPath(state, node, subject, env) {
+function withRepairOfPath(state, node, subject, env) {
   const refused = state.pipeValue;
-  if (!isErrorValue(refused) || refused.descriptor.has('read') || refused.descriptor.has('trace')) return state;
-  const read = readOfRefusedPath(refused, node, subject);
-  if (read === null) return state;
-  const facts = factsInOrder(refused.tag, new Map(refused.descriptor).set('read', read), env);
+  if (!isErrorValue(refused) || refused.descriptor.has('repair') || refused.descriptor.has('trace')) return state;
+  const repair = repairOfRefusedPath(refused, node, subject);
+  if (repair === null) return state;
+  const facts = factsInOrder(refused.tag, new Map(refused.descriptor).set('repair', repair), env);
   return withPipeValue(state, makeErrorValue(refused.tag, facts, { location: refused.location, originalError: refused.originalError }));
 }
 
@@ -490,8 +490,8 @@ async function callByName(lookupName, modifiers, state, node) {
     const addresses = addressesOf(state.env, lookupName);
     if (addresses.length > 0) {
       const nearest = nearestVerbs(state.env, addresses, state.pipeValue);
-      const read = isPath(state.pipeValue) ? readOfPathSubject(state.pipeValue, node) : undefined;
-      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, read, actualValue: state.pipeValue });
+      const repair = isPath(state.pipeValue) ? repairOfPathSubject(state.pipeValue, node) : undefined;
+      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair, actualValue: state.pipeValue });
     }
     throw new CallUnknownNameError({
       name: keyword(lookupName), nearest: nearestNames(state.env, lookupName), addresses

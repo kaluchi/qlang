@@ -639,7 +639,7 @@ QuoteStringSpan
 
 QuoteStringChar
   = "\\" .
-  / [^"\\]
+  / ProseOfAString
 
 QuoteBlockDocSpan
   = "|~~" !"|" QuoteBlockDocChar* "~~|" { return text(); }
@@ -654,10 +654,10 @@ QuoteBlockPlainChar
   = !"~|" .
 
 QuoteLineDocSpan
-  = "|~~|" [^\n]* { return text(); }
+  = "|~~|" ProseOfALine* { return text(); }
 
 QuoteLinePlainSpan
-  = "|~|" [^\n]* { return text(); }
+  = "|~|" ProseOfALine* { return text(); }
 
 QuoteChar
   = ![()] c:. { return c; }
@@ -666,8 +666,7 @@ QuoteChar
 // `~(…)` that reads as code is a quote, a span between backquotes is
 // prose whole, and the rest is prose [QSQUO#literal], [QSSLF#doc]; a line doc's quote
 // stays on its line. The printer writes the block form. A parse error
-// names its opening `doc` among the continuations, where its markers
-// would read as a comment's [QSHST#answer].
+// names its opening `doc` and its prose among the continuations [D360].
 DocLit
   = LineDocOpen segments:LineDocSegments
     { return node('DocLit', { segments, content: text().slice(4) }, span(), text()); }
@@ -689,19 +688,19 @@ LineDocSegments
 // closing at a run of as many and a run with no such closer prose, and in
 // a block a nested comment or doc at `|` [QSSYN#doc].
 LineDocPart
-  = [^~`:\n]+ { return text(); }
+  = ProseRunOfALine { return text(); }
   / quote:DocQuote &{ return !quote.text.includes('\n'); } { return quote; }
-  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / [^`\n]))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
+  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / ProseOfALine))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
   / "`"+ { return text(); }
-  / [^\n]
+  / ProseOfALine
 
 BlockDocSegments
   = parts:BlockDocPart* { return proseJoined(parts); }
 
 BlockDocPart
-  = [^~`:|]+ { return text(); }
+  = ProseRunOfABlock { return text(); }
   / DocQuote
-  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / !"~~|" [^`]))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
+  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
   / "`"+ { return text(); }
   / QuoteSpan
   / NestedLineDocSpan
@@ -710,6 +709,23 @@ BlockDocPart
   / NestedBlockPlainSpan
   / "~|"
   / !"~~|" c:. { return c; }
+
+// The characters of the prose of a doc, a span of prose inside it among it,
+// which a refusal names beside the literals that close what it opened [D360].
+ProseRunOfALine "character of prose"
+  = [^~`:\n]+
+
+ProseOfALine "character of prose"
+  = [^\n]
+
+ProseRunOfABlock "character of prose"
+  = [^~`:|]+
+
+ProseOfABlock "character of prose"
+  = [^`]
+
+ProseOfAString "character of prose"
+  = [^"\\]
 
 // A quote of a doc, under the stack of tags written before it, which
 // gives it its role [QSSLF#doc], the depth `docQuoteDepth` counts given back
@@ -767,9 +783,9 @@ QlangMapEntry
 // A pattern of text, read as written: a backslash passes to the engine
 // with the character after it, but for `\"`, a quote in the pattern that
 // does not end it, and the flags may follow the closing quote,
-// `#"error"i` [QSTXT#pattern].
+// `#"error"i` [QSTXT#pattern], [D360].
 RegexLit
-  = "#\"" chars:RegexChar* "\"" written:$[a-zA-Z]*
+  = "#\"" chars:RegexChar* "\"" written:$PatternFlag*
     &{ return docQuoteDepth === 0 || patternRead(chars.join(''), written); }
     {
       const pattern = chars.join('');
@@ -780,7 +796,13 @@ RegexLit
 RegexChar
   = "\\\"" { return '"'; }
   / $("\\" .)
-  / [^"\\]
+  / PatternCharacter
+
+PatternCharacter "character of a pattern"
+  = [^"\\]
+
+PatternFlag "flag of a pattern"
+  = [a-zA-Z]
 
 // A set written with braces, the form of another language, is refused
 // naming its own [QSSYN#refusal].
@@ -863,7 +885,7 @@ EscapeChar
   / "f" { return '\f'; }
   / "u" hex:$(HexDigit HexDigit HexDigit HexDigit) { return String.fromCharCode(parseInt(hex, 16)); }
 
-HexDigit
+HexDigit "hexadecimal digit"
   = [0-9a-fA-F]
 
 // A number is a finite double, so digits naming a magnitude outside
@@ -914,10 +936,10 @@ Ident
 ReservedWord
   = ("true" / "false" / "null") !IdentTail
 
-// The letters of a name, `core/src/name-chars.mjs`.
-IdentStart "identifier start (letter or underscore)"
+// The letters of a name, `core/src/name-chars.mjs` [D360].
+IdentStart "name"
   = c:. &{ return isNameStart(c); } { return c; }
-IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
+IdentTail  "letters of a name"
   = c:. &{ return isNameContinue(c); } { return c; }
 
 // ── Whitespace ─────────────────────────────────────────────────────

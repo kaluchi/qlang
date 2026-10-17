@@ -61,16 +61,16 @@ bindPrim('keyword/toNumber', key => {
   return number;
 });
 
-const StringToTagTextNotNameError = declareRefusal('string/toTag/TextNotNameError');
-const KeywordToTagNameNotNameError = declareRefusal('keyword/toTag/NameNotNameError');
+const StringToTagTextNotTagError = declareRefusal('string/toTag/TextNotTagError');
+const KeywordToTagNameNotTagError = declareRefusal('keyword/toTag/NameNotTagError');
 
 bindPrim('tag/toTag', tag => tag);
 bindPrim('string/toTag', text => {
-  if (!readsAsBareKeyword(text)) throw new StringToTagTextNotNameError({ actualValue: text });
+  if (!readsAsBareKeyword(text)) throw new StringToTagTextNotTagError({ actualValue: text });
   return makeTag(text);
 });
 bindPrim('keyword/toTag', key => {
-  if (!readsAsBareKeyword(key.name)) throw new KeywordToTagNameNotNameError({ actualValue: key });
+  if (!readsAsBareKeyword(key.name)) throw new KeywordToTagNameNotTagError({ actualValue: key });
   return makeTag(key.name);
 });
 

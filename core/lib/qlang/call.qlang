@@ -246,11 +246,11 @@
             of the name live.
         ~~|
         ~(1 | count !| get [/actualType ~(get /addresses | has ::vec/count)] | eq [::number true])
-    | proves :KindAnswersNoVerbError/namesTheReadOfAPath
-        |~~ A name called on a path names the read the step was likely
-            meant for.
+    | proves :KindAnswersNoVerbError/namesTheRepairOfAPath
+        |~~ A name called on a path names the repair, the step the call was
+            likely meant as.
         ~~|
-        ~(/tags | count !| get /read | eq ~(get /tags | count))
+        ~(/tags | count !| get /repair | eq ~(get /tags | count))
     | proves :KindAnswersNoVerbError/listsEveryKindTheNameServes
         |~~ `:addresses` lists every kind the name serves. ~~|
         ~(5 | count

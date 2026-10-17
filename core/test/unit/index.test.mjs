@@ -36,7 +36,7 @@ describe('the package root', () => {
 
   it('hands the tools the tree, the tokens and the letters of a name', () => {
     const ast = core.parse(':x 1 | x');
-    expect(core.findIdentifierOccurrences(ast, 'x').length).toBeGreaterThan(0);
+    expect(core.findNameOccurrences(ast, 'x').length).toBeGreaterThan(0);
     expect(core.tokenize('[1] | count', new Set(['count'])).length).toBeGreaterThan(0);
     expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
   });

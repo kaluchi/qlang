@@ -90,7 +90,7 @@ describe('runRepl — query evaluation', () => {
     expect(text).toMatch(/sub/);
   });
 
-  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout [QSHST#answer]', async () => {
+  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout, its caret drawn below it [D360]', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // REPL paints output with ANSI colour codes — strip before
@@ -98,6 +98,7 @@ describe('runRepl — query evaluation', () => {
     const text = replHarness.stdoutText().replace(/\x1b\[[0-9;]*m/g, '');
     expect(text).toContain('::quote/ParseError!{');
     expect(text).toContain(':source "[1 2"');
+    expect(text).toContain('}\n|~| [1 2\n|~|     ^\n');
     expect(replHarness.stderrText()).toBe('');
   });
 });
@@ -238,5 +239,13 @@ describe('runRepl — the budget of an answer', () => {
     const replHarness = captureRepl(`${forty} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 200, terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/');
+  });
+
+  it('draws no caret where the budget left the line of a refused text out of its alert [D360]', async () => {
+    const replHarness = captureRepl(`${forty} x\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
+    const printed = stripAnsi(replHarness.stdoutText());
+    expect(printed).toContain(':source ::elision{');
+    expect(printed).not.toContain('|~| [1 2');
   });
 });

@@ -197,7 +197,7 @@ const features = [
   import { highlightQlang as hl } from '../lib/qlang-highlight.js';
 
   async function initRepl() {
-    const { evalQuery, printValue, langRuntime, inlineCatalogLocator, verbNames } = await import(
+    const { evalQuery, printValue, caretOf, langRuntime, inlineCatalogLocator, verbNames } = await import(
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
@@ -213,7 +213,7 @@ const features = [
       entry.className = 'repl-entry';
       entry.innerHTML = `
         <div class="repl-entry-input"><span class="punct">&gt; </span>${hi(src)}</div>
-        <div class="repl-entry-output">${hl(printValue(result), builtins)}</div>
+        <div class="repl-entry-output">${hl([printValue(result), caretOf(result)].filter(part => part !== null).join('\n'), builtins)}</div>
       `;
       return entry;
     }

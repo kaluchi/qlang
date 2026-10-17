@@ -25,7 +25,7 @@
 {"name":"a-link-opens-to-the-answer-of-its-query","query":"|~~ ::link~(1 | add 1) ~~| | links | first | open","expect":"2"}
 {"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | doc | segments | first | type","expect":"::string"}
 {"name":"a-doc-s-quote-under-a-tag-that-takes-no-quote-refuses-the-doc","query":"|~~ see ::number~(~(x)) ~~| !| get [~(type) /actualType]","expect":"[::number/PayloadKindNotTakenError ::quote]"}
-{"name":"the-refusal-of-a-doc-s-quote-opens-to-a-value-that-prints","query":"|~~ see ::number~(~(x)) ~~| !| it | print | startsWith \"::number/PayloadKindNotTakenError!{\"","expect":"true"}
+{"decision":"D360","name":"the-refusal-of-a-doc-s-quote-is-caught-at-rest-as-a-value-that-prints","query":"|~~ see ::number~(~(x)) ~~| !| it | print | startsWith \"::number/PayloadKindNotTakenError!{\"","expect":"true"}
 {"name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| type","expect":"::map/PayloadKindNotTakenError"}
 {"name":"a-doc-s-quote-under-the-tag-of-vectors-is-refused-by-their-label","query":"|~~ see ::vec~(::vec | doc) ~~| !| type","expect":"::vec/PayloadKindNotTakenError"}
 {"name":"a-doc-s-quote-under-a-role-reads-under-it","query":"|~~ see ::link~(::vec | doc) ~~| | segments | get /1 | type","expect":"::link"}

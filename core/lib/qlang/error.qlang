@@ -1,7 +1,7 @@
 |~ `::error`, the kind every error is a value of, and what is declared
    under it: the refusal of a payload that is no map, the facts a refusal
    may carry, and the verbs of errors. The error at
-   rest, the value `!|` catches a failure to, is `::error{…}`, or the tag
+   rest, the value a catch holds of a failure, is `::error{…}`, or the tag
    of the site that refused stacked over it, and its walk passes
    `::error` on its way to the map, so a verb declared here reaches every
    error.
@@ -23,8 +23,8 @@
       answering `:late`, and JSON writes it as a value under its tag.
 
       Raised by `raise`, an error is a failure, which lives in the pipe
-      alone; a host prints it as the error at rest `!|` opens it to, the
-      trace it left among its facts, under the line
+      alone; a host prints it as its error at rest, the trace it left
+      among its facts, under the line
       `|~| raised, and no !| caught it`, which a reading passes over, so
       the print raised flies on from that trace; a query that does not
       parse flew no step and prints its facts alone.
@@ -71,20 +71,20 @@
             `[]` where none is near.
         ~~|
         ::vec
-    | carries :read
-        |~~ The read the step was likely meant for, where a path stands in
-            place of the value it names: the step again with the path read
-            by `get`, `/tags | count` read as `get /tags | count` and
-            `mul /qty` as `mul (get /qty)`.
+    | carries :repair
+        |~~ The step the call was likely meant as, where a path stands in
+            the place of the value it names: the step again with the path
+            read by `get`, `/tags | count` repaired as `get /tags | count`
+            and `mul /qty` as `mul (get /qty)`.
         ~~|
         ::quote
     | carries :path
-        |~~ The path a read followed where it missed, the key or the place
+        |~~ The path a read followed where it missed, the key or the index
             it missed named beside it.
         ~~|
         ::path
     | carries :index
-        |~~ The place of the element refused, counted from zero. ~~|
+        |~~ The index of the element refused, counted from zero. ~~|
         ::number
     | carries :expected
         |~~ The kinds the holder takes, where a value of none of them was
@@ -142,15 +142,15 @@
             another shape among them, which a raise refuses.
         ~~|
         ~(get [~(!{:a 1 :trace 5} | get /trace) ~(!{:a 1 :trace 5} | raise !| type)] | eq [5 ::trace/PayloadKindNotTakenError])
-    | proves :read/namesAWrittenPathAlone
+    | proves :repair/namesAWrittenPathAlone
         |~~ A path a name holds is no path the step wrote, and names no
-            read.
+            repair.
         ~~|
-        ~(:p /qty | 5 | mul p !| query /read | eq null)
+        ~(:p /qty | 5 | mul p !| query /repair | eq null)
 
 :error/trace
   |~~ Answers the trace of the error, the frames it left from the step
-      that raised it to the `!|` that opened it, each the subject a step
+      that raised it to the `!|` that caught it, each the subject a step
       met and the steps from the one that failed:
       `"x" | add 1 | mul 2 !| trace` answers
       `::trace[::frame["x" ~(add 1 | mul 2)]]`, `add 1` failed on `"x"`
@@ -162,7 +162,7 @@
       holds no `:trace` and answers `::trace[]`,
       `::error{:a 1} | trace`, and the `:trace` an error at rest is
       written with is brought to `::trace` as the verb answers it. The
-      subject is an error at rest, the value `!|` catches a failure to:
+      subject is an error at rest, the value a catch holds of a failure:
       under `|` a failure passes `trace` by, as it passes every step, and
       a value that is no error is refused, a map with the key `:trace`
       among them.
@@ -172,8 +172,8 @@
   ::fn
     | returns |~~ The trace of the frames the error passed. ~~| ::trace
     | throws :SubjectNotErrorError
-        |~~ `trace` reads the trace of an error at rest, the value `!|`
-            catches a failure to, `"x" | add 1 !| trace`; the key `:trace`
+        |~~ `trace` reads the trace of an error at rest, the value a catch
+            holds of a failure, `"x" | add 1 !| trace`; the key `:trace`
             of a plain map is read by `/trace`.
         ~~|
     | proves :answersNothingForAnErrorThatFlewNoStep

@@ -44,7 +44,7 @@ const literalOfKeyword = k => k.literal;
 // A pattern writes its literal, its flags after it [QSTXT#pattern].
 export const printRegex = r => patternLiteral(r.source, r.flags);
 
-// A path writes its segments so they read back [QSPTH#value]: a place as its
+// A path writes its segments so they read back [D360]: an index as its
 // digits, a key as its bare name, behind a colon where its name carries a
 // slash or follows one that does, which would take it in, and quoted
 // otherwise.
@@ -114,10 +114,10 @@ function printListLike(open, elements, indent, printedOf, oneLine = false, stack
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// A failure writes the error at rest `!|` opens it to: the tag of its site
-// before the bang, none for the kind of errors, and its facts, the trace it
-// left among them; the answer of a host says above it that it was raised
-// [D359].
+// A failure writes its error at rest, the value a catch holds of it: the tag
+// of its site before the bang, none for the kind of errors, and its facts, the
+// trace it left among them; the answer of a host says above it that it was
+// raised [D359], [D360].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   return `${tagHead}${printMapLike('!{', e.descriptor, indent, printedOf)}`;

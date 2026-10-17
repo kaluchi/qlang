@@ -165,10 +165,10 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
-  it('a path on a value with no parts → PathSubjectHasNoPartsError', async () => {
+  it('a path on a value with no parts → PathSubjectHasNoPartsError, the segment it met among the facts [D360]', async () => {
     const refused = await evalQuery('42 | get /name');
     expect(refused.originalError.name).toBe('SubjectHasNoPartsError');
-    expect(refused.descriptor.get('key').name).toBe('name');
+    expect(refused.descriptor.get('segment').name).toBe('name');
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 

@@ -20,7 +20,7 @@ import {
   isErrorValue
 } from '../../src/types.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { printAnswer } from '../../src/runtime/print.mjs';
+import { printAnswer, caretOf } from '../../src/runtime/print.mjs';
 
 describe('printValue — binding record / Function branches', () => {
   it('renders a binding record as the tagged Map it is', () => {
@@ -93,6 +93,49 @@ describe('printErrorValue — head + payload-filter branches', () => {
       ['category', keyword('oops')]
     ]));
     expect(printValue(err)).toBe('::Foo!{:message "user-stamped prose" :category :oops}');
+  });
+});
+
+// The refusal of a text holds where the reading stopped as its span, and a
+// host that prints for a person's eye draws the line and a caret under its
+// column below the alert, two line comments a reading passes over [D360].
+describe('caretOf — the caret under the line where the reading stopped [D360]', () => {
+  const caretOfQuery = async query => caretOf(await evalQuery(query));
+  const refusalAt = (source, span) => `::quote/ParseError!{:source ${JSON.stringify(source)} :location ::span[${span}]} | raise`;
+
+  it('draws the line and a caret as wide as the span under its column', async () => {
+    expect(await caretOfQuery('[mul(2) add(1)]')).toBe('|~| [mul(2) add(1)]\n|~|     ^~~');
+  });
+
+  it('draws one caret where the reading stopped at the end of the line', async () => {
+    expect(await caretOfQuery('[1 2')).toBe('|~| [1 2\n|~|     ^');
+    expect(await caretOfQuery(refusalAt('x', '1 1 2 1 1 2'))).toBe('|~| x\n|~|  ^');
+  });
+
+  it('draws the caret to the end of the line for a span that runs past it', async () => {
+    expect(await caretOfQuery('[1 2 (3 | add 1)\n]')).toBe('|~| [1 2 (3 | add 1)\n|~| ^~~~~~~~~~~~~~~~');
+    expect(await caretOfQuery(refusalAt('xyz', '1 1 2 1000000000 1 1000000000'))).toBe('|~| xyz\n|~|  ^~');
+  });
+
+  it('draws none for a column before the line or past its end', async () => {
+    for (const span of ['0 0 0 0 0 0', '0 1 -3 0 1 2', '2 1 3 2 1 3', '0 1 1000000000 0 1 1000000000']) {
+      expect(await caretOfQuery(refusalAt('x', span)), span).toBe(null);
+    }
+  });
+
+  it('draws none for a source that is no line', async () => {
+    expect(await caretOfQuery(refusalAt('a\nb', '0 1 1 1 1 2'))).toBe(null);
+  });
+
+  it('draws none for a failure of another kind that holds the same facts, nor for a value, the error at rest of a refusal of a text among them', async () => {
+    expect(await caretOfQuery('!{:source "x" :location ::span[0 1 1 1 1 2]} | raise')).toBe(null);
+    expect(await caretOfQuery('[1 2]')).toBe(null);
+    expect(await caretOfQuery('"[1 2" | parse !| it')).toBe(null);
+  });
+
+  it('draws none for a refusal of a text that holds no line or no span', async () => {
+    expect(await caretOfQuery('::quote/ParseError!{:location ::span[0 1 1 1 1 2]} | raise')).toBe(null);
+    expect(await caretOfQuery('::quote/ParseError!{:source "x" :location 5} | raise')).toBe(null);
   });
 });
 

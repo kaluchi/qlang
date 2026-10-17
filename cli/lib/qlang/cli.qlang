@@ -30,10 +30,11 @@
       arose cut to an excerpt, under the line
       `|~| raised, and no !| caught it` and above the prose of its
       refusal's page as line comments `|~| …`, which tells how to repair
-      the call; `!| json` writes a failure as JSON. Every answer goes to
-      stdout with the exit code 0, a failure among them, a query that does
-      not parse answering `::quote/ParseError`, so calls run side by side
-      never stop each other. A script that tests the code
+      the call, a refused text with a caret under the line the alert shows
+      between the two; `!| json` writes a failure as JSON. Every answer
+      goes to stdout with the exit code 0, a failure among them, a query
+      that does not parse answering `::quote/ParseError`, so calls run side
+      by side never stop each other. A script that tests the code
       writes `--fail` before the query, `qlang --fail 'get /id' < a.json
       && next`: a failure exits with 1, written as without it.
 

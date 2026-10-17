@@ -235,16 +235,16 @@
   ~~|
   ::fn
     | returns |~~ The tag the keyword names. ~~| ::tag
-    | throws :NameNotNameError
+    | throws :NameNotTagError
         |~~ `toTag` reads the name of the keyword as the name of a tag; a
             quoted name with a space, `:"a b"`, names none.
         ~~|
     | proves :namesATag
         |~~ A keyword names the tag of its name. ~~|
         ~(:Box | toTag | eq ::Box)
-    | proves :NameNotNameError/refusesASpace
+    | proves :NameNotTagError/refusesASpace
         |~~ A name with a space names no tag. ~~|
-        ~(:"a b" | toTag !| type | eq ::keyword/toTag/NameNotNameError)
+        ~(:"a b" | toTag !| type | eq ::keyword/toTag/NameNotTagError)
     | impl ::builtin{}
 
 :keyword/toKeyword

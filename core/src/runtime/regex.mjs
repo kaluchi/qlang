@@ -15,8 +15,8 @@ const engineFor = (regex, extra = '') => engineOf(regex.source, regex.flags, ext
 // answers the groups the pattern holds, every one of them unmatched.
 const groupsOf = regex => engineOf(`${regex.source}|`, regex.flags).exec('');
 
-// The vector of a match: its text, then each group in its place, a group
-// that took no part null.
+// The vector of a match: its text, then each group at the index of its
+// number, a group that took no part null.
 const matchVector = found => Object.freeze(Array.from(found, part => part ?? null));
 
 export const containsMatch = (text, regex) => engineFor(regex).test(text);

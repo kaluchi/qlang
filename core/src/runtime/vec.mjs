@@ -14,13 +14,13 @@ import { resolveBinaryReducer } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
 
-// The elements beside the fact that names the place of each in a
-// refusal: a sequence's index, from zero, and a map's key.
+// The elements, each beside the fact that names it in a refusal, its index
+// from zero in a sequence and its key in a map [D360].
 const indexed = sequence => [...sequence].map((element, index) => [{ index }, element]);
 const keyed = map => [...map].map(([key, value]) => [{ key: keyword(key) }, value]);
 
 const failedAt = (error, segment) => atPlace(error, makePath([String(segment)]));
-const placeOf = place => place.index ?? place.key.name;
+const segmentOf = at => at.index ?? at.key.name;
 
 // ── size and ends ──────────────────────────────────────────────
 
@@ -62,11 +62,11 @@ function numberBeneath(element) {
 
 // The total of the numbers, an element of another kind refused where it
 // stands.
-function totalOf(places, ElementNotNumberError) {
+function totalOf(elements, ElementNotNumberError) {
   let total = 0;
-  for (const [place, element] of places) {
+  for (const [at, element] of elements) {
     const number = numberBeneath(element);
-    if (number === undefined) throw new ElementNotNumberError({ ...place, actualValue: element });
+    if (number === undefined) throw new ElementNotNumberError({ ...at, actualValue: element });
     total += number;
   }
   return total;
@@ -80,12 +80,12 @@ bindPrim('map/sum', map => totalOf(keyed(map), MapSumElementNotNumberError));
 // The mean of the numbers, a running mean whose every step stays among
 // the finite doubles; an empty container has none, and answers null as
 // `min` and `max` do [QSCOL#sequence].
-function meanOf(places, ElementNotNumberError) {
-  if (places.length === 0) return NULL;
+function meanOf(elements, ElementNotNumberError) {
+  if (elements.length === 0) return NULL;
   let mean = 0;
-  for (const [count, [place, element]] of places.entries()) {
+  for (const [count, [at, element]] of elements.entries()) {
     const number = numberBeneath(element);
-    if (number === undefined) throw new ElementNotNumberError({ ...place, actualValue: element });
+    if (number === undefined) throw new ElementNotNumberError({ ...at, actualValue: element });
     const gap = number - mean;
     mean += Number.isFinite(gap) ? gap / (count + 1) : number / (count + 1) - mean / (count + 1);
   }
@@ -148,9 +148,9 @@ bindPrim('map/max', runs(['key'], (map, key) => extremeOf([...map], key, greates
 // `sort` orders the elements in the one order, or by the value the key answers
 // for each, keeping equal ones in the subject's order; a map orders its
 // entries by their values and keeps the keys. A vector the key answers ranks
-// element by element, and `desc` reverses a place of it. A key that answers an
+// element by element, and `desc` reverses one index of it. A key that answers an
 // error answers the call, as the key of `groupBy` does, and so does one whose
-// vector holds an error [QSERR#flow], [QSORD#sort].
+// vector holds an error [QSERR#flow], [D360].
 async function sortedEntries(entries, key) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
@@ -173,11 +173,11 @@ bindPrim('map/sort', runs(['key'], async (map, key) => {
 // answered, the first error the code answers answering for the call at the
 // place of its element, the elements after it left unrun [QSCOL#each],
 // [QSERR#trail]; a map keeps its keys.
-async function answersOf(places, code) {
+async function answersOf(elements, code) {
   const answers = [];
-  for (const [place, element] of places) {
+  for (const [at, element] of elements) {
     const answer = await code(element);
-    if (isErrorValue(answer)) return failedAt(answer, placeOf(place));
+    if (isErrorValue(answer)) return failedAt(answer, segmentOf(at));
     answers.push(answer);
   }
   return answers;
@@ -194,19 +194,19 @@ bindPrim('map/map', runs(['code'], async (map, code) => {
 // A predicate answers a boolean for each element or fails [QSCND#boolean]: the
 // error it answered is handed on at the place of the element [QSERR#trail], and
 // another answer is refused where the element stands.
-async function verdictOf(predicate, place, element, ConditionNotBooleanError) {
+async function verdictOf(predicate, at, element, ConditionNotBooleanError) {
   const verdict = await predicate(element);
-  if (isErrorValue(verdict)) return failedAt(verdict, placeOf(place));
+  if (isErrorValue(verdict)) return failedAt(verdict, segmentOf(at));
   if (typeof verdict === 'boolean') return verdict;
-  throw new ConditionNotBooleanError({ ...place, actualValue: verdict });
+  throw new ConditionNotBooleanError({ ...at, actualValue: verdict });
 }
 
 // `filter` keeps the elements whose predicate answers true, and a map the
 // entries whose values do.
 async function keptElements(sequence, predicate, ConditionNotBooleanError) {
   const kept = [];
-  for (const [place, element] of indexed(sequence)) {
-    const verdict = await verdictOf(predicate, place, element, ConditionNotBooleanError);
+  for (const [at, element] of indexed(sequence)) {
+    const verdict = await verdictOf(predicate, at, element, ConditionNotBooleanError);
     if (isErrorValue(verdict)) return verdict;
     if (verdict) kept.push(element);
   }
@@ -231,9 +231,9 @@ bindPrim('map/filter', runs(['predicate'], (map, predicate) => keptEntries(map, 
 // Whether the predicate of every element answers true, the first false
 // answering for the call, and whether the predicate of any does, the
 // first true answering.
-async function firstVerdict(places, predicate, decisive, ConditionNotBooleanError) {
-  for (const [place, element] of places) {
-    const verdict = await verdictOf(predicate, place, element, ConditionNotBooleanError);
+async function firstVerdict(elements, predicate, decisive, ConditionNotBooleanError) {
+  for (const [at, element] of elements) {
+    const verdict = await verdictOf(predicate, at, element, ConditionNotBooleanError);
     if (isErrorValue(verdict) || verdict === decisive) return verdict;
   }
   return !decisive;

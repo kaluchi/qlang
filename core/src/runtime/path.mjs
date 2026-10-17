@@ -6,7 +6,7 @@
 
 import { bindPrim, bindStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { readPath, MISSED, segmentIndex, keyNotInMap, placeIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
+import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
 import { layTag } from './verb.mjs';
 import { atPlace } from '../eval-trace.mjs';
 import { deepEqual } from '../equality.mjs';
@@ -17,7 +17,7 @@ import {
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
 const VecToPathElementNotKeyError = declareRefusal('vec/toPath/ElementNotKeyError');
-const VecToPathEmptyError = declareRefusal('vec/toPath/EmptyError');
+const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError');
 
 // The path a key names, a keyword, a string or a number, of one segment.
 function pathOfKey(key) {
@@ -73,11 +73,11 @@ bindStateReader('any/query', runsWithin(['path'], (subject, path, fallback, stat
 
 // The subject with the part at a path written: `put` lays a value there,
 // a key the last map lacks added, `update` lays what its code answers for
-// the part there, and `delete` takes the part out, the elements after a
-// place it takes moving up. The path is followed as `get` follows it, and
+// the part there, and `delete` takes the part out, the elements after an
+// index it takes moving up. The path is followed as `get` follows it, and
 // every container on the way is built again and laid under the tags it
 // stood under, each laid again through its kind, as `within` lays
-// its answer; an error the code answers is the answer, at its path [QSERR#trail].
+// its answer; an error the code answers is the answer, at its path [D360].
 async function written(value, path, at, write, state) {
   if (isValueClass(value, 'underTag')) return await relaid(value, await written(value.payload, path, at, write, state), state);
   const segment = path.segments[at];
@@ -90,7 +90,7 @@ async function written(value, path, at, write, state) {
     slot = segment;
   } else if (isVec(value)) {
     bare = [...value];
-    slot = placeIn(value, segment, path);
+    slot = indexIn(value, segment, path);
   } else {
     throw noPartsOn(value, segment, path);
   }
@@ -165,8 +165,8 @@ bindPrim('any/paths', subject => {
 // The shape of a value: each map with its keys, a map keyed by data or by
 // many names folding into `::each`, each vector and each set one element
 // whose shape holds of all its elements, a set as `#[E]`, vectors of one
-// length whose places part a tuple, and each part that holds no parts its
-// kind.
+// length that part index by index a tuple, and each part that holds no parts
+// its kind.
 function shapeOf(current, top) {
   const value = top ? beneathTags(current) : current;
   if (!isOpened(value, top)) return typeOf(value);
@@ -179,14 +179,14 @@ function shapeOf(current, top) {
   return isSet(value) ? makeSet(element) : Object.freeze(element);
 }
 
-// Vectors of one length, two places or more, whose places part are tuples,
-// the shape of each place across them, `[A B]`, so a path of the data
-// through a place reads it; where every place holds one shape they are
+// Vectors of one length, two elements or more, that part index by index are
+// tuples, the shape at each index across them, `[A B]`, so a path of the data
+// through an index reads it; where every index holds one shape they are
 // lists, `[E]`.
 function tupleOf(elements) {
   if (!elements.every(isList) || new Set(elements.map(element => element.length)).size !== 1 || elements[0].length < 2) return null;
-  const places = elements[0].map((_, index) => elements.map(element => shapeOf(element[index], false)).reduce(mergedShape));
-  return places.every(place => deepEqual(place, places[0])) ? null : Object.freeze(places);
+  const byIndex = elements[0].map((_, index) => elements.map(element => shapeOf(element[index], false)).reduce(mergedShape));
+  return byIndex.every(shape => deepEqual(shape, byIndex[0])) ? null : Object.freeze(byIndex);
 }
 
 // A map folds into `::each` over its first key and the shape of its values,
@@ -255,8 +255,8 @@ function mergedShape(left, right) {
 }
 
 // The shape two cores share: two vectors the vector of their elements'
-// shape, two tuples of one length place by place, and two sets the set of
-// it, the element of one that is empty marked `::absent`, its first place
+// shape, two tuples of one length index by index, and two sets the set of
+// it, the element of one that is empty marked `::absent`, its first index
 // missing there; two records that share a key, an empty one among them, the
 // record of the keys of both, a key one of them lacks marked `::absent`;
 // two folds `::each` over the shape their values share, where they share
@@ -278,13 +278,13 @@ const eachAndEmpty = (left, right) => (isMark(left, EACH_TAG) && isEmptyRecord(r
 const mergesWith = (left, right) => deepEqual(left, right) || eachesMerge(left, right) || eachAndEmpty(left, right) || (isSetOf(left) && isSetOf(right))
   || (isList(left) && isList(right)) || (isRecord(left) && isRecord(right) && shareAKey(left, right));
 const lacked = shape => marked({ ...marksOf(shape), absent: true });
-const collapsed = places => places.reduce(mergedShape);
+const collapsed = shapes => shapes.reduce(mergedShape);
 
-function mergedPlaces(left, right) {
+function mergedByIndex(left, right) {
   if (left.length === 0 || right.length === 0) return [lacked(collapsed(left.length === 0 ? right : left))];
   if (left.length !== right.length) return [collapsed([...left, ...right])];
-  const places = left.map((place, index) => mergedShape(place, right[index]));
-  return places.every(place => deepEqual(place, places[0])) ? [places[0]] : places;
+  const byIndex = left.map((shape, index) => mergedShape(shape, right[index]));
+  return byIndex.every(shape => deepEqual(shape, byIndex[0])) ? [byIndex[0]] : byIndex;
 }
 
 function mergedCore(left, right) {
@@ -294,8 +294,8 @@ function mergedCore(left, right) {
     const each = isEmptyRecord(left) ? right : left;
     return makeTagged(EACH_TAG, new Map([[eachKey(each), lacked(eachShape(each))]]));
   }
-  if (isSetOf(left) && isSetOf(right)) return makeSet(mergedPlaces(left, right));
-  if (isList(left) && isList(right)) return Object.freeze(mergedPlaces(left, right));
+  if (isSetOf(left) && isSetOf(right)) return makeSet(mergedByIndex(left, right));
+  if (isList(left) && isList(right)) return Object.freeze(mergedByIndex(left, right));
   if (isRecord(left) && isRecord(right) && shareAKey(left, right)) {
     const keys = [...new Set([...left.keys(), ...right.keys()])];
     return new Map(keys.map(key => [key, left.has(key) && right.has(key) ? mergedShape(left.get(key), right.get(key)) : lacked(left.get(key) ?? right.get(key))]));
@@ -316,16 +316,16 @@ function mergedCore(left, right) {
   return set.length === 1 ? set[0] : set;
 }
 
-// The keys and places of a path, a place as its number and a key as its
+// The keys and indices of a path, an index as its number and a key as its
 // keyword.
 bindPrim('path/segments', path => Object.freeze(path.segments.map(segment => {
-  const place = segmentIndex(segment);
-  return Number.isNaN(place) || String(place) !== segment ? keyword(segment) : place;
+  const index = segmentIndex(segment);
+  return Number.isNaN(index) || String(index) !== segment ? keyword(segment) : index;
 })));
 
-// A path names one segment at least, the value itself being `it` [QSPTH#value].
+// A path names one segment at least, the value itself being `it` [D360].
 bindPrim('vec/toPath', keys => {
-  if (keys.length === 0) throw new VecToPathEmptyError({ actualValue: keys });
+  if (keys.length === 0) throw new VecToPathSubjectEmptyError({ actualValue: keys });
   return makePath(keys.map((key, index) => {
     if (!isKey(key) || (typeof key === 'number' && !Number.isInteger(key))) {
       throw new VecToPathElementNotKeyError({ index, actualValue: key });

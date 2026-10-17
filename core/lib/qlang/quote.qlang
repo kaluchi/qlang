@@ -63,18 +63,16 @@
             ::link~(::quote | doc) ::link~(::qlang/pipeline | doc)
         ~~|
     | throws :ParseError
-        |~~ The source does not read as qlang: `:marker` points where the
-            reading stopped, `:message` names the habit a form of another
-            language wrote, and where none does `:expected` lists what
-            could stand there and a source cut short names the bracket it
-            left open.
-            ::link~(::quote | doc)
+        |~~ The source does not read as qlang: `:location` names where the
+            reading stopped, its line and column read by `line` and
+            `column` of its `start`, `:message` names the habit a form of
+            another language wrote, and where none does `:expected` lists
+            what could stand there and a source cut short names the bracket
+            it left open.
+            ::link~(::quote | doc) ::link~(::span | doc)
         ~~|
     | carries :ParseError/source
         |~~ The line of the text where the reading stopped. ~~|
-        ::string
-    | carries :ParseError/marker
-        |~~ A caret under the place it stopped. ~~|
         ::string
     | carries :ParseError/message
         |~~ What the grammar says of the place, a bracket left open among
@@ -82,9 +80,17 @@
         ~~|
         ::string
     | carries :ParseError/expected
-        |~~ What the reading could take there. ~~|
+        |~~ The continuations the reading could take where it stopped, each
+            the text of a literal or a part of the grammar named as a
+            keyword, `:name`, `:whitespace`, `:end-of-source`, beside
+            what it met as `:found`.
+        ~~|
         ::vec
-    | carries :ParseError/found |~~ What it found there. ~~| ::string
+    | carries :ParseError/found
+        |~~ What the reading met where it stopped, none at the end of the
+            source.
+        ~~|
+        ::string
     | carries :ParseError/location
         |~~ The span of the text where the reading stopped. ~~|
         ::span
@@ -128,6 +134,16 @@
     | proves :ParseError/refusesASourceCutShort
         |~~ A source cut short after a pipe is refused. ~~|
         ~("42 |" | parse !| type | eq ::quote/ParseError)
+    | proves :ParseError/namesTheLineAndTheColumnWhereTheReadingStopped
+        |~~ The start of `:location` reads the line and the column where the
+            reading stopped, under the line `:source` holds.
+        ~~|
+        ~("[1 2" | parse !| get [/source ~(get /location | start | get [~(line) ~(column)])] | eq ["[1 2" [1 5]])
+    | proves :ParseError/namesTheContinuationsInTheWordsOfTheLanguage
+        |~~ A continuation is the text of a literal or a part of the grammar
+            named in the words of the language.
+        ~~|
+        ~(":" | parse !| get /expected | eq ["\"" :name])
     | impl ::builtin{}
 
 :quote/parse

@@ -651,11 +651,11 @@
     | proves :SubjectNotStringError/refusesAKeyword
         |~~ A keyword has no case to raise. ~~|
         ~(:ab | upper !| type | eq ::string/upper/SubjectNotStringError)
-    | proves :SubjectNotStringError/namesTheReadOfAPath
-        |~~ A path names the read of its field the step was likely meant
-            for.
+    | proves :SubjectNotStringError/namesTheRepairOfAPath
+        |~~ A path names the repair that reads its field, the step the call
+            was likely meant as.
         ~~|
-        ~(/name | upper !| get /read | eq ~(get /name | upper))
+        ~(/name | upper !| get /repair | eq ~(get /name | upper))
     | impl ::builtin{}
 
 :string/trim
@@ -1164,7 +1164,7 @@
   ~~|
   ::fn
     | returns |~~ The tag the text names. ~~| ::tag
-    | throws :TextNotNameError
+    | throws :TextNotTagError
         |~~ `toTag` reads the text as the name of a tag: names that begin
             with a letter or `_`, joined by `/`, `"vec"`, `"number/add"`;
             a space, the empty text and a name that begins with a digit
@@ -1176,9 +1176,9 @@
     | proves :readsBack
         |~~ A tag turned into its name turns back into itself. ~~|
         ~(::vec | toString | toTag | eq ::vec)
-    | proves :TextNotNameError/refusesASpace
+    | proves :TextNotTagError/refusesASpace
         |~~ Text with a space names no tag. ~~|
-        ~("a b" | toTag !| type | eq ::string/toTag/TextNotNameError)
+        ~("a b" | toTag !| type | eq ::string/toTag/TextNotTagError)
     | impl ::builtin{}
 
 :string/toString
@@ -1208,8 +1208,9 @@
 
 :string/match
   |~~ Answers the first match of the pattern the call gives as a vector,
-      its text and then each group in its place, or `null` where none
-      stands: `"took 12ms" | match #"(\d+)ms"` answers `["12ms" "12"]`, so
+      its text and then each group at the index of its number, or `null`
+      where none stands: `"took 12ms" | match #"(\d+)ms"` answers
+      `["12ms" "12"]`, so
       `match #"(\d+)ms" | get /1` reads the number's text. A group that took no
       part in the match is `null`. The groups a pattern names come as a map
       from `capture`, every match from `scan`, and whether one stands at all
@@ -1250,7 +1251,7 @@
       answers `{:date "2026-10-12" :level "ERROR"}`, so a line of a log
       becomes a record, `lines | map ~(capture #"…")`. A named group that
       took no part is `null`. A pattern that names no group is refused;
-      `match` answers the groups by their places.
+      `match` answers the groups by their indices.
       ::link~(::string/match | doc) ::link~(::string/lines | doc)
   ~~|
   ::fn
@@ -1268,7 +1269,7 @@
     | throws :PatternNamesNoGroupError
         |~~ `capture` answers the groups a pattern names, `(?<level>\w+)`,
             and this pattern names none: `match` answers its groups by
-            their places, `match #"(\w+)" | get /1`.
+            their indices, `match #"(\w+)" | get /1`.
         ~~|
     | proves :turnsALineIntoARecord
         |~~ The named groups of a line of a log are a record. ~~|
@@ -1279,7 +1280,7 @@
     | proves :answersNullForAGroupThatTookNoPart
         |~~ A named group that took no part is null. ~~|
         ~("5" | capture #"(?<digit>\d)(?<unit>ms)?" | eq {:digit "5" :unit null})
-    | proves :PatternNamesNoGroupError/refusesAPatternOfPlacesAlone
+    | proves :PatternNamesNoGroupError/refusesAPatternOfNumberedGroupsAlone
         |~~ A pattern that names no group is refused. ~~|
         ~("5" | capture #"(\d)" !| type | eq ::string/capture/PatternNamesNoGroupError)
     | impl ::builtin{}

@@ -10,6 +10,7 @@ import { createSession } from '@kaluchi/qlang-core/session';
 import {
   printAnswer,
   elideAnswer,
+  caretOf,
   langRuntime,
   verbNames
 } from '@kaluchi/qlang-core';
@@ -121,11 +122,12 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
   });
 }
 
-// An answer prints whole, an error as an alert, or within the budget
-// the caller asked for, what does not fit given way to markers that read
-// it, on stdout: a failed cell, one that does not parse among them, is an
-// answer as every failure is [QSHST#answer].
+// An answer prints whole, an error as an alert, or within the budget the
+// caller asked for, what does not fit given way to markers that read it, on
+// stdout: a failed cell, one that does not parse among them with its caret
+// where the alert shows its line, is an answer as every failure is [D360].
 async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, budget) {
   const shown = await elideAnswer(cellEntry.result, budget, cellEntry.envAfterCell);
-  stdoutWrite(highlightAnsi(await printAnswer(shown, cellEntry.envAfterCell), builtinNames) + '\n');
+  const printed = [await printAnswer(shown, cellEntry.envAfterCell), caretOf(shown)].filter(part => part !== null).join('\n');
+  stdoutWrite(highlightAnsi(printed, builtinNames) + '\n');
 }

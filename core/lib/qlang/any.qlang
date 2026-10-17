@@ -1456,7 +1456,7 @@
 
 :any/tag
   |~~ Answers the subject under the name the call gives, a tag name,
-      laying the tag over the subject through its constructor as the
+      laying the tag over the subject through its kind as the
       literal does where it is written: `5 | tag ::Box` answers
       `::Box#5`, its type the tag and its payload the subject. Given no
       name, it reads the pair `get [~(type) ~(payload)]` answers,
@@ -2088,7 +2088,7 @@
       `{:price 4 :qty 3} | get [/price /qty]` answers `[4 3]`, and
       `get {:who /first :n ~(get /tags | count)}` builds a map. A vector, a
       map or a set under a tag in a template is read and laid back under
-      its tag through its constructor, and any other value of it is
+      its tag through its kind, and any other value of it is
       answered as it is, a quote under a tag, a doc, a function and a kind among them. A literal computes nothing, so a shape computed
       is written as a template. A part that may be missing is read by
       `query`.

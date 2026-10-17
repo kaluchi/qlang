@@ -68,7 +68,7 @@ messages kept after the summary the dialogue as it was written; the
 next work comes from the pain the dialogue holds and the records the
 desk shows, and the findings at hand are weighed by them.
 
-## Bootstrap recipe
+## Bootstrap in tiers
 
 The tree is larger than a context window. Read in tiers and stay under
 a third of the context before reasoning starts.
@@ -217,15 +217,15 @@ record dissolved into [QSWRK#spec], a record of the
 language the baseline holds that no case and no line of its fate does,
 a record in transit in the merge that landed a branch,
 more than twenty records since the baseline, a document of the research
-the baseline holds that nothing in force cites, which
+the baseline holds that nothing in force holds, which
 `node scripts/drop-documents.mjs` drops [QSWRK#baseline], a citation of a section of
 the specification its chapter lacks, a case of a chapter changed since
 the baseline that no record in transit over its section claims, a
 chapter that cites a record, speaks of the journal or tells a history
 [QSWRK#spec],
-and a citation in the code and the tests of a record no met case holds, a case naming a record
-out of force or being decided, and a citation in a document of a record out of force or of the language with no
-case, an open record among those it may cite [QSWRK#baseline]. `npm run check:probes` runs every probe of the open records, the
+and a citation in the code and the tests of a record out of force or of one of the language no met
+case holds, a case naming a record out of force or being decided, and a citation in a seed of a record
+out of force or of the language with no case, an open record among those it may cite [QSWRK#baseline]. `npm run check:probes` runs every probe of the open records, the
 records in transit and the specification, the shell ones that read the repository alone included, and fails on one whose answer changed,
 but where the record in transit over its section holds a probe of the same query, which the move writes into the section [QSWRK#probe]; a
 target case records the answer the tree gives today, so the suite
@@ -365,7 +365,7 @@ axis before a removal is weighed, weighs the terms of a drift or an
 archaism by `node scripts/sensors/vocabulary.mjs`, and gives every
 finding its fate: a repair that moves no rule is taken in hand, and a
 finding that moves a rule enters the open record of its axis or a record
-of its own [QSWRK#documents].
+of its own [QSWRK#review].
 
 ## Sister project
 

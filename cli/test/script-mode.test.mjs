@@ -14,8 +14,8 @@ import {
 
 describe('liftStdinToPipeValue — auto detection', () => {
   it('starts from the default subject when stdin carries no bytes, in every mode', () => {
-    for (const inputFormat of ['auto', 'json', 'raw']) {
-      expect(liftStdinToPipeValue('', inputFormat)).toEqual({ pipeValue: DEFAULT_SUBJECT });
+    for (const stdinFormat of ['auto', 'json', 'raw']) {
+      expect(liftStdinToPipeValue('', stdinFormat)).toEqual({ pipeValue: DEFAULT_SUBJECT });
     }
     expect(DEFAULT_SUBJECT.name).toBe('qlang');
   });

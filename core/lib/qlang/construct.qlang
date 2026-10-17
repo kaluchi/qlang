@@ -1,13 +1,13 @@
 |~ `::construct`, the step that puts a value under a tag through the
-   tag's constructor, `::T[…]`, and what is declared under it: its
+   tag's kind, `::T[…]`, and what is declared under it: its
    constructor and the refusals of that step.
    The rules it holds: [QSDSP#residence]. ~|
 
 :construct
   |~~ The step that puts a payload under a tag, `::T[…]`, `::T{…}`,
       `::T"…"`, or a number, a boolean, null or a path by `#`, `::T#5`,
-      through the tag's constructor, which attaches the tag or refuses
-      the payload.
+      through the tag's kind, which attaches the tag or refuses the
+      payload.
 
       In a quote the step is a record, `~(::Box[1 2]) | first` answering
       `::construct{:tag ::Box :payload [1 2]}`: `:tag` the tag and
@@ -41,15 +41,17 @@
     | throws :TagNotKindError
         |~~ The tag before a payload addresses a kind, a label declared by
             its chain or by its page alone, a verb, whose args it lays
-            itself over, `::vec/take[2]`, or no declaration at all; a tag
-            that addresses a name holding a value of its own names nothing
-            to build by, and `:tag` is that tag. The value is read by its
-            name, `limit`, and is put under a tag of its own by `tag`,
-            `limit | tag ::Limit`.
+            itself over, `::vec/take[2]`, an invariant, whose refusal it
+            lays itself over, or no declaration at all; a tag that addresses
+            a name holding a value of its own names nothing to build by, and
+            `:tag` is that tag. The value is read by its name, `limit`, and
+            is put under a tag of its own by `tag`, `limit | tag ::Limit`.
             ::link~(::construct | doc)
         ~~|
     | carries :TagNotKindError/tag
-        |~~ The tag, whose node is neither a label nor a verb. ~~|
+        |~~ The tag, whose node is neither a label, a verb nor an
+            invariant.
+        ~~|
         ::tag
     | proves :holdsTheTagAndThePayload
         |~~ The step holds its tag and its payload. ~~|
@@ -83,6 +85,9 @@
     | proves :TagNotKindError/laysAVerbsTagOverItsArgs
         |~~ The tag of a verb lays itself over its args. ~~|
         ~(::vec/take[2] | type | eq ::vec/take)
+    | proves :TagNotKindError/laysAnInvariantsTagOverAValue
+        |~~ The tag of an invariant lays itself over a value. ~~|
+        ~(::vec/take/count/NotIntegerError#5 | type | eq ::vec/take/count/NotIntegerError)
     | proves :TagNotKindError/putsTheValueUnderATagOfItsOwn
         |~~ The value of a name is put under a tag of its own. ~~|
         ~(:limit 5 | limit | tag ::Limit | payload | eq 5)

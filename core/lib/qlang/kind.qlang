@@ -23,8 +23,8 @@
       core. A value put under a kind holds the value of the kinds of its
       payload, each field read and held, and the invariants of the value,
       each refusal named under the kind, `::Box/w/KindNotTakenError`: the
-      constructor attaches the tag to the payload or refuses it, and
-      builds no other value, but for a kind of the core, which reads its
+      kind attaches the tag to the payload or refuses it, and builds no
+      other value, but for a kind of the core, whose constructor reads its
       payload as a value of its own, `::set[2 1]` answering `#[1 2]`. A
       label is a kind declared under a name, by its chain or by its page
       alone, its verbs functions named under it: the payload, each field,
@@ -39,8 +39,8 @@
   ~~|
   ::kind[~(wraps
         |~~ The literal of a kind: the quote of the commands of its chain
-            and the constructor a host hands a kind of the core,
-            `::builtin{}`, or null.
+            and its constructor, the `::builtin{}` a host hands a kind of
+            the core, or null.
         ~~|
     | throws :PayloadNotPairError
         |~~ The literal of a kind is a pair, the quote of the commands of
@@ -559,11 +559,11 @@
     ::builtin{}]
 
 :kind/impl
-  |~~ Gives a kind of the core its constructor, the one its host hands,
-      `| impl ::builtin{}`, which lies under it as `construct` and attaches
-      the tag to a payload or refuses it; any other kind attaches its tag
-      by its commands, and code that would build another value from the
-      payload is refused.
+  |~~ Gives a kind its constructor, `| impl ::builtin{}`, which lies under
+      it as `construct`: the one a host hands a kind of the core attaches
+      the tag to a payload or refuses it, and one no host hands constructs
+      nothing, a kind of yours laying its tag by its commands; code that
+      would build another value from the payload is refused.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :constructor

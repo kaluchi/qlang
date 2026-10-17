@@ -23,7 +23,7 @@ import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfN
 import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import {
-  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, subjectKindsRefusalAddress, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isVerbValue, isRecipe, isUnderLabel, isVerb, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError, kindsOfWalk
+  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, subjectKindsRefusalAddress, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isRecipe, isVerb, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError, kindsOfWalk
 } from './runtime/nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './runtime/chain.mjs';
 import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
@@ -522,17 +522,17 @@ async function applyBinding(entry, name, lastName, modifiers, state) {
 }
 
 // A name with a path reads what its address declared, past every bare
-// name of the scope, a name under a label run and any other value
-// itself, so a verb a declaration shadows stays one address away [QSNAM#address]:
-// `[1 2 3] | vec/filter ~(gt 1)` calls the `filter` of vectors whatever
-// the scope binds as `filter`.
+// name of the scope, a verb run and any other value itself, the
+// constructor of a kind among them, so a verb a declaration shadows stays
+// one address away [QSNAM#address]: `[1 2 3] | vec/filter ~(gt 1)` calls
+// the `filter` of vectors whatever the scope binds as `filter`.
 async function callByAddress(node, state) {
   const record = nodeOf(state.env, node.name);
   if (record === null) {
     throw new CallUnknownAddressError({ address: makeTag(node.name), nearest: nearestTagNames(state.env, node.name) });
   }
   const modifiers = node.args.map(argNode => modifierOf(argNode, state));
-  if (isVerbValue(bindingValueOf(record)) && isUnderLabel(state.env, node.name)) {
+  if (isVerb(state.env, node.name)) {
     return await applyVerb(record, modifiers, state);
   }
   return await applyBinding(record, node.name, splitAddress(node.name)[1], modifiers, state);
@@ -698,9 +698,9 @@ const isThenable = value => typeof value?.then === 'function';
 // bringing none [QSBLD#answer]: one that reaches another of the
 // kinds is the value it reaches; one of the verb's own label goes back under
 // the tags the walk passed, as the subject's kind; one kind alone makes the
-// value by its constructor and invariants, and so does a kind of the answer's
-// own kind the walk passed by, a number past the finite doubles refused there
-// as under `::number` alone; an answer of none of several kinds is refused
+// value as a value is put under it, and so does a kind of the answer's own
+// kind the walk passed by, a number past the finite doubles refused there as
+// under `::number` alone; an answer of none of several kinds is refused
 // under the answer's address.
 function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
   const others = kinds.filter(kind => kind !== labelName);
@@ -992,7 +992,7 @@ function laidUnder(tagName, value) {
 // read and held, the constructor a host hands a kind of the core run, and the
 // invariants of the value held, every refusal named under the label, the
 // code of a place or a condition running in the scope a call opens; the
-// constructor attaches the tag or refuses the payload [QSLIT#tag].
+// kind attaches the tag or refuses the payload [QSLIT#tag].
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, each => `${tagName}/${payloadRefusalName(each)}`, payload, state.env);

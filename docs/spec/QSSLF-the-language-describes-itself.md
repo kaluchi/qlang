@@ -137,8 +137,8 @@ refuses it. Every law of the core passes.
 > ::number/add | laws | count
 4
 
-> kinds | toVec | :ks it | map ~(manifest) | flat | :nodes it | get [~(ks) ~(nodes) ~(nodes | map ~(manifest) | flat)] | flat | every ~(runLaws | every /ok)
-true
+> kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | get [~(n4 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4)] | flat | every ~(runLaws | every /ok))]
+[0 true]
 ```
 
 ## near
@@ -245,13 +245,13 @@ page, and `::cli` the topic of the command line. What `tells` declares
 under a topic is a chapter, the page of a concept the first page names,
 a node under the topic, `::qlang/pipeline`, read at its address or by
 its anchor, `::qlang | doc :pipeline`, and listed by `manifest` of the
-topic; a chapter is no kind, `kinds` answering the labels alone. A
-chapter tells in prose what it rests on and what rests on it, with links
-to go deeper, and its value is the set of the kinds that are it. The
-first page tells how to ask for a budget before an answer meets a
-marker. Every link of every page of the catalog opens a doc, every node
-one name under a label of the root has a page, and the first page prints
-within 13664 characters.
+topic. A chapter tells in prose what it rests on and what rests on it,
+with links to go deeper, and its value is the set of the kinds that are
+it, data, so a chapter is no label [QSNAM#root]. The first page tells
+how to bound an answer, `elide`, and what the `::elision` marker of a
+part left out reads. Every link of every page of the catalog opens a
+doc, every node one name under a label of the root has a page, and the
+first page prints within 13664 characters.
 
 ```qlang
 > ::qlang | doc | links | map ~open | every ~(type | eq ::doc)
@@ -260,11 +260,14 @@ true
 > ::qlang | doc :pipeline | type
 ::doc
 
-> get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | type) ~(kinds | has ::qlang/values) ~(::qlang | manifest | has ::qlang/values)]
-[true ::kind false true]
+> get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | type) ~(::qlang/values[1] !| type) ~(::qlang | manifest | has ::qlang/values)]
+[true ::kind ::construct/TagNotKindError true]
 
-> kinds | toVec | :ks it | map ~(manifest) | flat | :nodes it | get [~(ks) ~(nodes) ~(nodes | map ~(manifest) | flat)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | type | eq ::doc)
-true
+> ::qlang | doc | content | get [~(contains "x | elide 4000") ~(contains "an ::elision whose `:read` continues")]
+[true true]
+
+> kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | get [~(n4 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | type | eq ::doc))]
+[0 true]
 
 > kinds | map ~(manifest) | flat | every ~(doc | content | eq "" | not)
 true

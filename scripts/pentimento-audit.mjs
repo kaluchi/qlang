@@ -4,7 +4,7 @@
 // that shows through them, a vestige, an archaism, a shim, a subordination,
 // a pentimento or a drift, answering `scripts/pentimento-audit-prompt.txt`.
 // An audit is called for by a record in force, which carries its fates,
-// `--for D342`, and its run is named after it, `pentimento-audit/D342~1/`,
+// `--for Dnn`, and its run is named after it, `pentimento-audit/Dnn~1/`,
 // numbered in the order the runs of that record ran; each report is written
 // into the run, named after the units of its group, and the session writes
 // its reading beside them, `reading.md`, every finding with its probe and

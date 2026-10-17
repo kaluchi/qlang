@@ -76,7 +76,7 @@ bindStateReader('any/query', runsWithin(['path'], (subject, path, fallback, stat
 // the part there, and `delete` takes the part out, the elements after a
 // place it takes moving up. The path is followed as `get` follows it, and
 // every container on the way is built again and laid under the tags it
-// stood under, their constructors and invariants run, as `within` lays
+// stood under, each laid again through its kind, as `within` lays
 // its answer; an error the code answers is the answer, at its path [QSERR#trail].
 async function written(value, path, at, write, state) {
   if (isValueClass(value, 'underTag')) return await relaid(value, await written(value.payload, path, at, write, state), state);

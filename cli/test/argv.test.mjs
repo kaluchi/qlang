@@ -36,12 +36,12 @@ describe('parseArgv', () => {
     expect(parseArgv(['--repl'])).toEqual({ kind: 'repl', budget: null, initialQuery: null });
   });
 
-  it('returns an evalQuery cliInvocation carrying the first positional argument and auto inputFormat', () => {
+  it('returns an evalQuery cliInvocation carrying the first positional argument and auto stdinFormat', () => {
     const cliInvocation = parseArgv(['[1 2 3] | count']);
     expect(cliInvocation).toEqual({
       kind: 'evalQuery',
       queryText: '[1 2 3] | count',
-      inputFormat: 'auto',
+      stdinFormat: 'auto',
       colorMode: 'auto',
       budget: null,
       failureExitCode: 0
@@ -56,11 +56,11 @@ describe('parseArgv', () => {
     expect(parseArgv(['-i', '1 | add 2', '2']).kind).toBe('usageError');
   });
 
-  it('parses --json as the JSON input mode preceding the query', () => {
+  it('parses --json as the reading of stdin as JSON preceding the query', () => {
     expect(parseArgv(['--json', '/key'])).toEqual({
       kind: 'evalQuery',
       queryText: '/key',
-      inputFormat: 'json',
+      stdinFormat: 'json',
       colorMode: 'auto',
       budget: null,
       failureExitCode: 0
@@ -71,7 +71,7 @@ describe('parseArgv', () => {
     expect(parseArgv(['--raw', 'append " world"'])).toEqual({
       kind: 'evalQuery',
       queryText: 'append " world"',
-      inputFormat: 'raw',
+      stdinFormat: 'raw',
       colorMode: 'auto',
       budget: null,
       failureExitCode: 0
@@ -82,7 +82,7 @@ describe('parseArgv', () => {
     expect(parseArgv(['--color=always', '42'])).toEqual({
       kind: 'evalQuery',
       queryText: '42',
-      inputFormat: 'auto',
+      stdinFormat: 'auto',
       colorMode: 'always',
       budget: null,
       failureExitCode: 0
@@ -93,7 +93,7 @@ describe('parseArgv', () => {
     expect(parseArgv(['--color=never', '42'])).toEqual({
       kind: 'evalQuery',
       queryText: '42',
-      inputFormat: 'auto',
+      stdinFormat: 'auto',
       colorMode: 'never',
       budget: null,
       failureExitCode: 0
@@ -110,7 +110,7 @@ describe('parseArgv', () => {
     expect(parseArgv(['--budget=4000', '42'])).toEqual({
       kind: 'evalQuery',
       queryText: '42',
-      inputFormat: 'auto',
+      stdinFormat: 'auto',
       colorMode: 'auto',
       budget: 4000,
       failureExitCode: 0
@@ -122,7 +122,7 @@ describe('parseArgv', () => {
     expect(parseArgv(['--fail', '--raw', 'count'])).toEqual({
       kind: 'evalQuery',
       queryText: 'count',
-      inputFormat: 'raw',
+      stdinFormat: 'raw',
       colorMode: 'auto',
       budget: null,
       failureExitCode: 1
@@ -144,7 +144,7 @@ describe('parseArgv', () => {
     expect(parseArgv(['-i', '--budget=500', '::qlang | doc'])).toEqual({ kind: 'repl', budget: 500, initialQuery: '::qlang | doc' });
   });
 
-  it('reports a usageError when only an input-mode flag is supplied without a query', () => {
+  it('reports a usageError when only a flag of the reading of stdin is supplied without a query', () => {
     const cliInvocation = parseArgv(['--json']);
     expect(cliInvocation.kind).toBe('usageError');
     expect(cliInvocation.message).toMatch(/missing query/);
@@ -161,7 +161,7 @@ describe('HELP_TEXT and VERSION_LINE constants', () => {
     expect(VERSION_LINE).toMatch(/@kaluchi\/qlang-cli/);
   });
 
-  it('tells an input --json takes that does not parse as the refusal it answers, exit 0 as every answer [QSHST#answer]', () => {
+  it('tells a text --json reads that does not parse as the refusal it answers, exit 0 as every answer [QSHST#answer]', () => {
     const jsonMode = HELP_TEXT.slice(HELP_TEXT.indexOf('--json  '), HELP_TEXT.indexOf('--raw  '));
     expect(jsonMode).toContain('::string/parseJson/TextNotJsonError');
     expect(jsonMode).toContain('exit 0 as every answer');

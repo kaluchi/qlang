@@ -1,21 +1,23 @@
 # QSBLD · A function and a kind built by commands
 
 A function and a kind are built from their noun by a chain, the
-commands written on it, which a call and a constructor read; a function
-named under a label is a verb, and a kind declared under a name a label
-[QSNAM#address]. The requirements of each section are the cases of its
-file under `core/test/conformance/QSBLD/`.
+commands written on it, which a call of the function and a value put
+under the kind read; a function named under a label is a verb, and a
+kind declared under a name a label [QSNAM#address]. The requirements of
+each section are the cases of its file under
+`core/test/conformance/QSBLD/`.
 
 ## fn
 
 A function is a value of the kind `::fn`: the commands of its chain and
 its recipe. It is built from the noun by a chain, each command a verb of
 `::fn` whose subject is the function so far, and what a command writes
-is named by the noun of the thing: `on` names its subject, its page and
-its kinds, `takes` writes an input, `returns` the answer, `throws` a
-refusal, `carries` a fact of a refusal, `holds` an invariant of an input
-or of the answer, a quote under `::invariant`, `proves` a law, a quote
-under `::law`, and `impl` gives it its recipe, code or a host's
+is named by the noun of the thing, no kind of the catalog bearing the
+name of a command of a chain: `on` names its subject, its page and its
+kinds, `takes` writes an input, `returns` the answer, `throws` a
+refusal, `carries` a fact, `holds` an invariant of an input or of the
+answer, a quote under `::invariant`, `proves` a law, a quote under
+`::law`, and `impl` gives it its recipe, code or a host's
 `::builtin{}`; a command written after `impl` joins the others and the
 recipe stays, while `impl` over the noun alone makes the function of no
 commands, its code, which takes no command after it,
@@ -80,6 +82,9 @@ true
 
 > 5 | apply ~(add 1) [3] !| type
 ::any/apply/args/NotTakenError
+
+> kinds | inter #[::carries ::holds ::impl ::on ::proves ::reads ::returns ::takes ::tells ::throws ::wraps]
+#[]
 ```
 
 ## input
@@ -138,7 +143,7 @@ kinds other than the verb's own label is the value it reaches, `::W#5`
 the number `5` where `returns` names `::number`; an answer of the verb's
 own label goes back under the subject's tags, held to the label; and
 where the walk reaches none, the one kind `returns` names makes the
-answer by its constructor and its invariants. An answer of none of the
+answer as a value is put under it [QSBLD#value]. An answer of none of the
 kinds, a payload the one kind refuses for its kind among them, is
 refused as `…/answer/KindNotTakenError` with the kinds as `:expected`,
 while an invariant of the kind refuses under its own name. A function
@@ -159,16 +164,14 @@ A recipe is the code a function runs, which `impl` gives it, or a quote
 written alone under a label, the function of no commands it is. It runs
 in the scope its call opens: the root, the nodes and the labels of the
 scope the call is made in, the verbs among them, the args as `args`,
-each input by its name, and the names its steps declare; what it reads
-as data, `env`, a page or a binding, reads the tree of names of the
-query that made the call [QSNAM#owner]. A value the reader bound to a
-bare name stands outside that scope, a bare step of that name refused as
-`::call/UnknownNameError` while `env` reads it, so a value a recipe
-needs is an input. A place reads the args alone, and an invariant reads
-its input's value alone, as the call gives it. A verb calls itself by
-its name. A recipe written alone under a label takes no args, those
-given to it refused as `…/ArgsBeyondInputsError`, and hands its answer
-on as it is.
+each input by its name, and the names its steps declare, and what it
+reads as data is read as [QSNAM#owner] states. A value the reader bound
+to a bare name stands outside that scope, a bare step of that name
+refused as `::call/UnknownNameError`, so a value a recipe needs is an
+input. A place reads the args alone, and an invariant reads its input's
+value alone, as the call gives it. A verb calls itself by its name. A
+recipe written alone under a label takes no args, those given to it
+refused as `…/ArgsBeyondInputsError`, and hands its answer on as it is.
 
 ```qlang
 > :n 3 | :number/times ~(mul n) | 5 | times !| type
@@ -191,14 +194,16 @@ its place in the payload and its kinds, `tells` a page of the kind on a
 name, a chapter of a topic among them [QSNAM#root], `holds` an invariant
 of the value or of a field, a quote under `::invariant`, `throws` a
 refusal, `carries` a fact, `proves` a law, a quote under `::law`, and
-`impl ::builtin{}` gives a kind of the core the constructor its host
-hands, which attaches the tag to a payload or refuses it,
+`impl` its constructor, a `::builtin{}`,
 `::kind/impl/constructor/KindNotTakenError` refusing another value; a
-command written after `impl` joins the others. The slot of a
-kind holds its constructor, null for a kind whose commands alone lay its
-tag, and a `::builtin{}` no host hands constructs nothing, so a reader's
-kind lays its tag by its commands alone; the literal `::kind[…]` refuses
-a constructor of another value as `::kind/ConstructorNotBuiltinError`. A
+command written after `impl` joins the others. The slot of a kind holds
+its constructor, the `::builtin{}` `impl` gives it, or null where its
+chain writes no `impl`. The constructor a host hands beside its source
+attaches the tag to a payload or refuses it [QSHST#source], and a
+`::builtin{}` no host hands constructs nothing, so a reader's kind lays
+its tag by its commands alone, whatever its slot holds; the literal
+`::kind[…]` refuses a constructor of another value as
+`::kind/ConstructorNotBuiltinError`. A
 name is declared once, `::kind/NameDeclaredTwiceError`, an invariant
 named as a refusal the runtime raises by rule under its field among
 them, the refusal of the kinds and of a place left out, and a step of
@@ -224,6 +229,9 @@ chain and a constructor refused as `::kind/PayloadNotPairError`.
 
 > :B |~~ B. ~~| (::kind | wraps |~~ w ~~| ::number | impl ::builtin{}) | get [~(::B#5 | type) ~(::B"x" !| type)]
 [::B ::B/PayloadKindNotTakenError]
+
+> :B |~~ B. ~~| (::kind | impl ::builtin{}) | get [~(::B | binding | get /value | get /1) ~(::number | binding | get /value | get /1) ~(::B[1])]
+[::builtin{} ::builtin{} ::B[1]]
 ```
 
 ## value
@@ -253,21 +261,21 @@ an error hands it on. `get` reads a field's place.
 
 ## label
 
-The verbs of a label are the functions and the recipes named under it,
-and its nodes lie under its address for `doc`, `manifest` and the tools,
-its laws for `laws`, and its constructor as `construct` where `impl`
-gives it the one its host hands, which runs where its tag is laid, as a
-literal or by `tag`, and which no step calls. A word of a literal,
-`::null`, is declared by the chain of a kind. A label declared by its
-page alone is a kind of no commands, which lays its tag over a payload
-as it is. A value laid under
-a tag before its kind is declared keeps the tag; a literal or `tag`
-after the declaration is held to the kind, and so is a verb that keeps
-the value's kind, which runs the constructors of its tags again, so an
-edit that breaks an invariant is refused. The tag of a name that holds a
-value is refused as `::construct/TagNotKindError`, while the tag of an
-invariant, whose node holds its quote under `::invariant`, lays itself
-over the value as a tag nothing declares does.
+A label is a kind declared under a name [QSNAM#address]. Its verbs are
+the functions and the recipes named under it, and its nodes lie under
+its address for `doc`, `manifest` and the tools, its laws for `laws`,
+and its constructor, where `impl` gives it one, as `construct`, a node
+of data [QSNAM#address], which runs where its tag is laid, as a literal
+or by `tag`, and which no step calls. A word of a literal, `::null`, is
+declared by the chain of a kind. The tag of a label declared by its page
+alone lays itself over a payload as it is. A value laid under a tag
+before its kind is declared keeps the tag; a literal or `tag` after the
+declaration is held to the kind, and so is a verb that keeps the value's
+kind, which lays its tags again, each through its kind, so an edit that
+breaks an invariant is refused. The tag of a name that holds a value is
+refused as `::construct/TagNotKindError`, while the tag of an invariant,
+whose node holds its quote under `::invariant`, lays itself over the
+value [QSNAM#address].
 
 ```qlang
 > :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | ::Sorted[1 2 3] | reverse !| type
@@ -285,8 +293,8 @@ over the value as a tag nothing declares does.
 > ::keyword/construct | binding | get /value | type
 ::builtin
 
-> :Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}) | ::Pos#5 | construct !| type
-::call/UnknownNameError
+> :Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}) | get [~(::Pos#5 | construct !| type) ~(5 | number/construct)]
+[::call/UnknownNameError ::builtin{}]
 
 > ::null | binding | get /value | type
 ::kind

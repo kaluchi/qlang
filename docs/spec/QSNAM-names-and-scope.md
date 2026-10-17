@@ -255,15 +255,14 @@ last name, a label, a verb or a name of data, as the value of its
 binding says. A label is a kind declared under a name, by the chain that
 builds it from `::kind` or by its page alone, which declares a kind of
 no commands: its verbs reside on it, its nodes lie under its address,
-`kinds` answers it where its name is of one segment [QSNAM#root], and
-its tag lays itself over a payload through its constructor
-[QSBLD#label]. A verb is a function or a recipe named under a label, its
-constructor `construct` aside, what runs on the values of its label
-[QSNAM#verb]; under it lie the roles of its chain, its subject, its
-inputs, its answer, its refusals and the facts they carry, its
-invariants and its laws, so what a verb is is the set of the nodes under
-its address, and a helper several verbs share is a node under their
-noun. Any other value is data.
+`kinds` answers it where its name is of one segment [QSNAM#root], and a
+value goes under its tag through the kind [QSBLD#label]. A verb is a
+function or a recipe named under a label, its constructor `construct`
+aside, what runs on the values of its label [QSNAM#verb]; under it lie
+the roles of its chain, its subject, its inputs, its answer, its
+refusals and the facts they carry, its invariants and its laws, so what
+a verb is is the set of the nodes under its address, and a helper
+several verbs share is a node under their noun. Any other value is data.
 
 Written as a step, an address reads what it declared, a verb run on the
 subject its residence serves [QSDSP#residence] and any other value
@@ -271,8 +270,8 @@ itself, whatever the subject; a node that holds data is read by its
 address alone, its last name no bare name. An address no declaration
 names, written as a step, is refused as `::call/UnknownAddressError`
 with its `:address` and the tag names near it as `:nearest`. A tag no
-declaration names, and the tag of a verb, lays itself over a payload as
-it is.
+declaration names, the tag of a verb and the tag of an invariant lay
+themselves over a payload as it is.
 
 The root holds the nodes of the language and of its hosts. A reader
 extends a noun of the root with nodes of its own and declares no name
@@ -297,6 +296,9 @@ true
 
 > ::Nobody[1 2] | type
 ::Nobody
+
+> get [~(5 | number/construct) ~(::vec/take/count/NotIntegerError#5 | type)]
+[::builtin{} ::vec/take/count/NotIntegerError]
 ```
 
 ## root
@@ -313,8 +315,10 @@ set of the labels of one segment the scope reads, the language's, the
 hosts' and the reader's, the topics among them: the topic of the
 language is the label `::qlang`, whose page is the first page, and the
 topic of the command line `::cli`. What `tells` declares under a topic
-is a chapter, the page of a concept, read by `manifest` of its noun, and
-no kind, `::qlang/values` among them.
+is a chapter, the page of a concept, read by `manifest` of its noun; a
+chapter of `::qlang` holds the set of the kinds it tells of, data, so
+its tag lays nothing, `::qlang/values[1]` refused as
+`::construct/TagNotKindError`.
 
 ```qlang
 > ::vec/filter | binding | get /origin
@@ -323,8 +327,8 @@ no kind, `::qlang/values` among them.
 > :Box |~~ Box. ~~| | kinds | get [~(has ::vec) ~(has ::Box)]
 [true true]
 
-> get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | type) ~(kinds | has ::qlang/values)]
-[true ::kind false]
+> get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | type) ~(::qlang | manifest | map ~(binding | get /value | type) | toSet) ~(::qlang/values[1] !| type)]
+[true ::kind #[::set] ::construct/TagNotKindError]
 ```
 
 ## binding

@@ -538,7 +538,7 @@ CallName
     }
   / name:Ident { return { name }; }
 
-// `::tag<payload>` puts a payload under a tag through its constructor, the
+// `::tag<payload>` puts a payload under a tag through its kind, the
 // payload touching the tag by a sign that continues the literal, a number,
 // a boolean, null or a path, whose literal would continue the tag's name,
 // by `#`, `::Width#5`; parentheses after a tag,

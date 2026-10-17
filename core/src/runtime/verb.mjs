@@ -48,9 +48,9 @@ export function walkToKinds(value, kindNames) {
   return { served, passedTags };
 }
 
-// The value under the tags from the innermost out, their constructors run
-// again [QSDSP#answer]; an error passes as it is, as it does under every tag
-// [QSERR#flow].
+// The value under the tags from the innermost out, each laid again through
+// its kind [QSDSP#answer]; an error passes as it is, as it does under every
+// tag [QSERR#flow].
 async function underTags(value, tags, state) {
   let wrapped = value;
   for (const tag of [...tags].reverse()) wrapped = await layTag(tag.name, wrapped, state);

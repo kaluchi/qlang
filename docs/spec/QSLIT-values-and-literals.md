@@ -147,10 +147,10 @@ whose first character would continue the tag's name, take `#`:
 `::Width#5`, `::T#/a`, and print so. The words of the literals are tag
 names after `::`, `::null`.
 
-The constructor of the tag's kind attaches the tag to the payload the
-literal writes, or refuses it naming why the payload does not fit. A
-kind of the core reads its payload, a value of its own kind or, for a
-set, a quote and a doc, a vector, and for an error the map of its facts,
+The tag's kind attaches the tag to the payload the literal writes, or
+refuses it naming why the payload does not fit [QSBLD#value]. A kind of
+the core reads its payload, a value of its own kind or, for a set, a
+quote and a doc, a vector, and for an error the map of its facts,
 so `::number"5"` is refused and `::set[3 1]` is `#[1 3]`; a label laid
 over a value already under it stands once, `::Lab::Lab[1]` reading
 `::Lab[1]`, but for `::desc`, whose reversals stack [QSORD#desc]. A tag
@@ -158,8 +158,8 @@ no declaration names, the tag of a verb and the tag of an invariant lay
 themselves over a payload as it is [QSNAM#address], and the tag of a
 name that holds data is refused as `::construct/TagNotKindError`. `tag`
 lays a tag over the value in the pipe, `5 | tag ::Foo`, or over the pair
-`[tag payload]` it takes apart, through the tag's constructor; a name
-that is no tag name is refused as `::any/tag/name/KindNotTakenError`, a
+`[tag payload]` it takes apart, through the tag's kind; a name that is
+no tag name is refused as `::any/tag/name/KindNotTakenError`, a
 subject that is no pair as `::any/tag/SubjectNotPairError`, and a pair
 whose first is no tag as `::any/tag/PairTagNotTagError`.
 
@@ -188,7 +188,7 @@ whose first is no tag as `::any/tag/PairTagNotTagError`.
 A literal is closed from its opening to its closing pair: its parts are
 literals, fixed by its text, which reads no name and no subject, and a
 tag it writes is laid through the label the scope declares under that
-name, its constructor attaching the tag to the payload or refusing it
+name, its kind attaching the tag to the payload or refusing it
 [QSLIT#tag]. A group or a name written inside a container, at any depth,
 is refused by the parser, which names the literal whole as the template
 of `get`, its tags and its brackets kept, `[::Box[x] 1]` naming

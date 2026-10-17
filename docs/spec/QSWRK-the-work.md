@@ -627,12 +627,12 @@ it, each finding with the fate it met.
 A report of the research is named after the record that called for it and
 numbered in the order the reports of that record ran, as the runs of the
 benchmark are named after the record they measure: a review of the work
-a record did, `docs/journal/research/reviews/D324~3.md`; a critique of an
+a record did, `docs/journal/research/reviews/D324~4.md`; a critique of an
 open record, `docs/journal/research/design-check/D329~2.md`; an outside
 audit, `docs/journal/research/outside-audit/D327~1.md`; and a check of
 the chapters and a pentimento audit, whose readers write into the folder
 of the run, `docs/journal/research/spec-check/D323~1/` and
-`docs/journal/research/pentimento-audit/D342~1/`. One table,
+`docs/journal/research/pentimento-audit/<Dnn>~<k>/`. One table,
 `RESEARCH_FOLDERS` of `scripts/decision-records.mjs`, names each folder
 of the research and the shape of what it holds, a report or a run, and
 the walk and the conventions build their patterns from it. Every report
@@ -687,9 +687,14 @@ the index, the chapter of the work a group of its own: a reader
 bootstraps from every chapter and the first pages of the language, and
 then reads its sections against their cases, the code that cites them,
 the pages of the verbs and the kinds they name and the command line. A
-finding is of one of seven kinds, text, implementation, design, conflict,
-pentimento, drift and case [QSWRK#documents], and carries its probe,
-which `node scripts/sensors/run-probes.mjs` runs again on its report; a
+finding is of one of seven kinds: a text that misstates a rule the
+written texts mean, or leaves unstated a rule the cases and the pages
+hold; an implementation that misses a rule a chapter and its cases state
+alike; a design, rules each stated as it is meant that together answer
+as the language should not; a conflict of two texts over one thing; a
+case that shows no rule of its section, or a rule no case holds; and a
+pentimento and a drift [QSWRK#documents]. It carries its probe, which
+`node scripts/sensors/run-probes.mjs` runs again on its report; a
 reader writes no sentence for a chapter from the tree's answer, the side
 that yields being the question of the reading. A clean reader probes the
 bounds of each rule as it stands, its doubt a question of the tree, and a
@@ -706,8 +711,7 @@ the report, every finding checked by a probe with its fate.
 The pentimento audit reads the whole tree, where a review reads a diff, a
 critique a record and a check a group of chapters: its readers read the
 texts that state what holds beyond the chapters for the earlier layer
-that shows through them [QSWRK#documents], its name written whole, the
-outside audit being an audit too.
+that shows through them [QSWRK#documents].
 `node scripts/pentimento-audit.mjs --for Dnn` runs it for the record in
 force that calls for it and carries its fates, six readers at once unless
 `--groups` names another count, and `--dry` prints its groups and the
@@ -725,21 +729,27 @@ the aim, then reads its group, the names of the cases and the titles of
 the tests by grep and the rest whole, reports what it meets in a chapter
 it read as well, and answers `scripts/pentimento-audit-prompt.txt` with
 at most twenty-five findings, the weightiest first, each of one of six
-kinds, a vestige, an archaism, a shim, a subordination, a pentimento and
-a drift [QSWRK#documents], with the layer it keeps, what a tree built for
-the mission from a clean sheet would hold in its place and a probe the
-tree answered. The reports of a run stand in its folder, each named after
-the units of its group, and the session's reading beside them,
-`reading.md`, reads the layer a finding keeps by `git log -S`, searches
-the maintainer's words on its axis before a removal is weighed, and
-weighs the terms of a drift or an archaism by
-`node scripts/sensors/vocabulary.mjs` [QSWRK#documents]. A repair that
-moves no rule is taken in hand, and a finding that moves a rule enters
-the open record of its axis or a record of its own; a repaired kind a
-pattern finds is held by `check:conventions`, and an archaism of one
-sense a record retires enters the lexicon of retired terms. A later tree
-may be read again, deeper, as the chapters are, to the run whose findings
-are precision alone.
+kinds: a vestige, a name, a fact, a refusal, a path, a module or a
+mechanism that a tree built for the mission from a clean sheet would not
+hold, or would hold simpler or fewer; an archaism, a term of a model the
+language left, read against the pages of the catalog; a shim, newer code
+that reaches older code through a conversion, a wrapper, a second table,
+a special case, a flag or an export kept for an older shape; a
+subordination, a part that depends on what should depend on it; and a
+pentimento and a drift [QSWRK#documents], the drift read both ways. Each
+gives the layer it keeps, what a tree built for the mission from a clean
+sheet would hold in its place and a probe the tree answered. The reports
+of a run stand in its folder, each named after the units of its group,
+and the session's reading beside them, `reading.md`, reads the layer a
+finding keeps by `git log -S`, searches the maintainer's words on its
+axis before a removal is weighed, and weighs the terms of a drift or an
+archaism by `node scripts/sensors/vocabulary.mjs` [QSWRK#documents]. A
+repair that moves no rule is taken in hand, and a finding that moves a
+rule enters the open record of its axis or a record of its own; a
+repaired kind a pattern finds is held by `check:conventions`, and an
+archaism of one sense a record retires enters the lexicon of retired
+terms. A later tree may be read again, deeper, as the chapters are, to
+the run whose findings are precision alone.
 
 ## tooling
 

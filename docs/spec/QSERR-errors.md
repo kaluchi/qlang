@@ -228,7 +228,7 @@ the args an input reads and the call leaves out refused under the input
 kind of that step, `::call`, `::bind`, `::construct`, `::quote` and
 `::error`, and links the page of its place; what no query reaches, the
 table of primitives or a node of the parser's tree the evaluator does
-not know, is an invariant of the implementation under `::builtin`, and a
+not know, is a defect of the runtime under `::builtin`, and a
 failure of a host's implementation is `::call/HostFailureError`, with
 its `:message` and `:causes`. A refusal of the runtime holds its facts
 in the order the catalog declares them, the label's own first, the facts

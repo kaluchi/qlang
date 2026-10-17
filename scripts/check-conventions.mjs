@@ -363,7 +363,7 @@ function workspaceRangeDrift() {
 // ── (5) Anchors of the texts that hold the work ────────────────
 
 const ANCHOR_DOCUMENTS = ['CLAUDE.md', 'docs/journal/AIM.md', 'docs/spec/QSWRK-the-work.md'];
-const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
+const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@~-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
 const TREE_QUOTE_RE = /“([^”]+)”\s*\(`([^`]+)`/g;
 const sisterRoot = join(repoRoot, '..', 'eclipse-jdt-search');
 

@@ -53,7 +53,7 @@ refused, where one verb holds the name, by that verb under its own
 address, with its page and its repair, `42 | keys` as
 `::map/keys/SubjectNotMapError`, and where several hold it by the call
 [QSDSP#refusal]. A refinement a verb wants checked is written where the
-value is made, `x | tag ::Pos | f`, its constructor answering there. A
+value is made, `x | tag ::Pos | f`, its kind answering there. A
 verb is called by its name or by its address, which checks the subject
 by that residence. A set, a quote and a doc are vectors to a verb of
 vectors, an answer of the vector's label brought back as their own kind
@@ -130,20 +130,21 @@ root holds the call's, its address beside the root's.
 
 A verb written in steps runs on the subject with its tags, and what it
 answers keeps the tags its steps keep; a primitive runs on the value the
-walk served. `returns` names the kinds a verb answers by one rule
-[QSBLD#answer]. An answer of the verb's own label goes back under the
-tags the walk passed, their constructors run again, so an edit that
-breaks an invariant of a tag is refused under it and a set under a tag
-keeps it, `::Box#[2 1] | distinct` answering `::Box#[1 2]`; an answer
-that is no value of the label is refused as `…/answer/KindNotTakenError`.
-An answer of another kind is made by the constructor of that kind and
-refused under the answer where the kind refuses it, the passed tags left
-behind, so `distinct`, whose answer names `::set`, answers a set under
-no tag over a vector under one, `::Box[2 1 2] | distinct` answering
-`#[1 2]`, and the distinct elements beneath the tag of a vector, a quote
-or a doc stay under it by `within ~(distinct)`. A verb whose answer
-names `::any`, or that names none, hands on what it computed, `map`
-among them.
+walk served. `returns` names the kinds a verb answers, each answer
+brought to them by the one rule of [QSBLD#answer]: an answer of the
+verb's own label goes back under the tags the walk passed, each laid
+again through its kind, so an edit that breaks an invariant of a tag is
+refused under it and a set under a tag keeps it, `::Box#[2 1] | distinct`
+answering `::Box#[1 2]`; and an answer of another kind leaves the tags
+the walk passed behind, so `distinct`, whose answer names `::set`,
+answers a set under no tag over a vector under one,
+`::Box[2 1 2] | distinct` answering `#[1 2]`, and the distinct elements
+beneath the tag of a vector, a quote or a doc stay under it by
+`within ~(distinct)`. An answer the rule brings to none of the kinds is
+refused as `…/answer/KindNotTakenError`. A verb whose answer names
+`::any`, or that names none, hands on what it computed, `map` among
+them, and no chain of the catalog names a kind its verb does not answer
+under the rule, which the laws of each verb hold [QSSLF#laws].
 
 ```qlang
 > ::T{:a 1 :b 2} | filter ~(eq 1) | type

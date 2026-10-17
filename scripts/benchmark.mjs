@@ -35,7 +35,7 @@ const { evalQuery } = await core('eval.mjs');
 const { printValue } = await core('index.mjs');
 const { deepEqual } = await core('equality.mjs');
 
-// What the command line answers for a query over the input of its task,
+// What the command line answers for a query over the data of its task,
 // as JSON text, which `| json` writes [QSHST#answer].
 function answerOf(query, task) {
   const flags = task.raw ? ['--raw', `(${query}) | json`] : [`(${query}) | json`];
@@ -43,7 +43,7 @@ function answerOf(query, task) {
     { input: readFileSync(join(inputsDir, task.input)), encoding: 'utf8', env: pipeEnv });
 }
 
-// A task over an input answers JSON through the command line; a task of
+// A task over data answers JSON through the command line; a task of
 // the language alone answers a value, held against the literal of its
 // answer.
 async function referenceHolds(task) {

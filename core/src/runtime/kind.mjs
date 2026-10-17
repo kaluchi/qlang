@@ -36,9 +36,9 @@ bindPrim('kind/construct', payload => {
   return madeKind(commands, constructor);
 });
 
-// The kind a builder runs on: a kind, or the noun itself, which starts the
-// kind of no commands and no constructor; the call refuses a tag of another
-// noun before the builder runs [QSDSP#tagname].
+// The kind a command of its chain runs on: a kind, or the noun itself,
+// which starts the kind of no commands and no constructor; the call
+// refuses a tag of another noun before the command runs [QSDSP#tagname].
 const NO_KIND = madeKind(makeQuote([]), null);
 
 const kindFrom = subject => (isKind(subject) ? subject : NO_KIND);

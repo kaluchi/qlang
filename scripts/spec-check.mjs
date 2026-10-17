@@ -4,7 +4,7 @@
 // read the specification whole and then check a group of its chapters
 // against their cases, the pages of the catalog and the implementation,
 // answering `scripts/spec-check-prompt.txt`. A check is called for by a
-// record in force, which carries its fates, `--for D323`, and its run is
+// record in force, which carries its fates, `--for Dnn`, and its run is
 // named after it, `spec-check/D323~1/`, numbered in the order the runs of
 // that record ran. The readers run at once; each report is written into the
 // run, `<codes>.md`, beneath a line that says how it was made, and the
@@ -15,10 +15,11 @@
 // `scripts/design-check-prompt.txt`, the report landing as the next critique
 // of its record, `design-check/D329~3.md`, named after the record as the runs
 // of the benchmark are, and the session writing its reading beside it,
-// `D329~3~reading.md` [QSWRK#review]. A run stays in its branch, the move of
-// the baseline trims the series, and a critique leaves with its record
-// [QSWRK#baseline]. The start of the readers, the refusals, the numbers and
-// the heads are the ones every run of the research shares [QSWRK#review].
+// `D329~3~reading.md` [QSWRK#review]. A report stays while its record is in
+// force or a text in force cites it, and leaves with what holds it at the
+// move of the baseline [QSWRK#baseline]. The start of the readers, the
+// refusals, the numbers and the heads are the ones every run of the
+// research shares [QSWRK#review].
 //
 // A report opens with its head: what it is and the record that called for
 // it, the tree it read and the baseline that tree stood on, when it ran and
@@ -26,7 +27,7 @@
 // there as it writes the report, with why it ran where `--why` says it, so
 // the journal tells what was run for what and when [QSWRK#journal].
 //
-// Usage: node scripts/spec-check.mjs --for D323 [--why "…"] [--groups N] [--dry]
+// Usage: node scripts/spec-check.mjs --for Dnn [--why "…"] [--groups N] [--dry]
 //        node scripts/spec-check.mjs --records D326 D327 [--why "…"] [--dry]
 // `--dry` prints the groups and runs no reader.
 

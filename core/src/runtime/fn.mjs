@@ -42,9 +42,9 @@ bindPrim('fn/construct', payload => {
   return madeFn(commands, recipe);
 });
 
-// The function a builder runs on: a function, or the noun itself, which
-// starts the one of no commands and no recipe; the call refuses a tag of
-// another noun before the builder runs [QSDSP#tagname].
+// The function a command of its chain runs on: a function, or the noun
+// itself, which starts the one of no commands and no recipe; the call
+// refuses a tag of another noun before the command runs [QSDSP#tagname].
 function functionOf(subject) {
   return isFn(subject) ? subject : makeTagged(FN_TAG, Object.freeze([NO_COMMANDS, null]));
 }

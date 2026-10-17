@@ -92,7 +92,7 @@ describe('CLI: script mode — query argument', () => {
   });
 });
 
-describe('CLI: piped stdin — the input modes', () => {
+describe('CLI: piped stdin — the readings of stdin', () => {
   it('reads piped JSON as values, which `get /name` reads', async () => {
     const { stdout, exitCode } = await runCli(['get /name'], {
       stdin: '{"name": "alice", "age": 30}'

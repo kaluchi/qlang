@@ -15,7 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { CITING_DOCUMENTS, citedOnce, isCitingCode, recordsInTransit } from './baseline-walk.mjs';
-import { JOURNAL, REPLACED } from './decision-records.mjs';
+import { JOURNAL } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const names = process.argv.slice(2);
@@ -80,7 +80,9 @@ for (const name of names) {
     });
   }
   if (left.length > 0) console.log(`${name} overrides ${sections.join(', ')}; name the section at each of:\n  ${left.join('\n  ')}`);
-  // The line of its fate, and the links to the sections as `replaced/` reads them.
+  // The line of its fate and the links to the sections it dissolved into,
+  // written from the place the record stands at, which
+  // `scripts/replaced-records.mjs` writes again once for `replaced/`.
   rewrite(`${JOURNAL}/${name}.md`, text => {
     const lines = text.replace(/\n+$/, '').split('\n');
     const firstLink = lines.findIndex(line => /^\[[DE]\d+\]: \S+\.md$/.test(line) || /^\[QS[A-Z]{3}[^\]]*\]: /.test(line));
@@ -89,8 +91,8 @@ for (const name of names) {
     while (body.at(-1) === '') body.pop();
     const cited = sections.map(section => `[${section}]`);
     body.push(`Dissolved into ${cited.length === 1 ? cited[0] : `${cited.slice(0, -1).join(', ')} and ${cited.at(-1)}`}.`);
-    const definitions = sections.map(section => sectionLink(`${REPLACED}/${name}.md`, section)).filter(definition => !links.some(line => line.startsWith(definition.split(':')[0] + ':')));
-    return [...body, '', ...links.map(line => line.replace(/^(\[QS[A-Z]{3}[^\]]*\]: )\.\.\/spec\//, '$1../../spec/')), ...definitions, ''].join('\n');
+    const definitions = sections.map(section => sectionLink(`${JOURNAL}/${name}.md`, section)).filter(definition => !links.some(line => line.startsWith(definition.split(':')[0] + ':')));
+    return [...body, '', ...links, ...definitions, ''].join('\n');
   });
   console.log(`${name} dissolved into ${sections.join(', ')}`);
 }

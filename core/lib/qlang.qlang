@@ -380,10 +380,10 @@
             `::P[1 2]`, `::T"s"`, `::T:k`, `::T~(add 1)`, and a literal
             whose first character would continue the tag's name, a
             number, `true`, `false`, `null` or a path, by `#`,
-            `::Width#5`, `::T#/a`; the constructor of the kind attaches
-            the tag to the payload or refuses it, saying why the payload
-            does not fit, and builds no other value, but for a kind of
-            the core, which reads its payload as a value of its own,
+            `::Width#5`, `::T#/a`; the kind attaches the tag to the
+            payload or refuses it, saying why the payload does not fit,
+            and builds no other value, but for a kind of the core, whose
+            constructor reads its payload as a value of its own,
             `::set[2 1]` answering `#[1 2]`. `tag` puts the value
             in the pipe under a tag, a value computed among them,
             `1 | add 2 | tag ::Box`; tags stack and read from the outside
@@ -412,9 +412,7 @@
           | map ~payload
           | eq [{:a 1} [1 2] "s" :k 3 true null /a])
     | proves :values/attachesTheTagOrRefusesThePayload
-        |~~ The constructor of a kind attaches its tag to a payload or
-            refuses it.
-        ~~|
+        |~~ A kind attaches its tag to a payload or refuses it. ~~|
         ~(:Pos |~~ A number above zero. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0))
           | get [~(::Pos#3 | payload) ~(::Pos#-3 !| type)]
           | eq [3 ::Pos/NotPositiveError])
@@ -671,9 +669,9 @@
             place and its kinds, `holds` an invariant of the value or of a
             field, `throws` a refusal, `carries` a fact and `proves` a law,
             and a kind of the core `impl` its constructor, which its host
-            hands; the constructor attaches the tag to the payload or
-            refuses it, and builds no other value, so every value put under
-            it keeps them. A tag no declaration answers is a kind of
+            hands; the kind attaches the tag to the payload or refuses
+            it, and builds no other value, so every value put under it
+            keeps them. A tag no declaration answers is a kind of
             identity, which checks nothing and lays the tag on the value.
             A verb answers under the kind its `returns` names. A verb of a
             noun itself, whose subject `on` names `::tag`, takes the tag

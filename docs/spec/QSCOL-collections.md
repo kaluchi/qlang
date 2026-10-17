@@ -239,8 +239,8 @@ its `:key` the keyword, `:taken` the value that filed under it first and
 ## within
 
 `within` edits under one tag: it applies its code, a quote or a path, to
-the payload and lays the tag back, its constructor running once at the
-rewrap, so the steps between may break the invariant the result holds;
+the payload and lays the tag back through its kind, once, on its
+answer, so the steps between may break the invariant the result holds;
 a set is edited as its vector and laid back under `::set`. A subject
 under no tag is refused as `::tagged/within/SubjectNotTaggedError`.
 

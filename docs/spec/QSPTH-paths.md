@@ -141,8 +141,8 @@ depth of its vectors, maps and sets, answer the template with each path
 read and each quote run against the subject in its place, any other
 value of it as it is. A container under a tag in the template, a stack
 of tags and a set among them, is read and laid back under its tags
-through their constructors, which check the
-template as its literal writes it and then the payload read, so a kind
+through their kinds, which hold the template as its literal writes it
+and then the payload read, so a kind
 whose field takes a number refuses a path written at that field, and
 such a value is built by `get` and then `tag`, `get {:w /w} | tag ::Box`.
 A quote under a tag, a doc, a function and a kind are answered as they
@@ -288,7 +288,7 @@ the elements after it moving up. Each follows the path as `get` does, a
 key or a place missing on the way refused there, and for `update` and
 `delete` the part itself must be there; a key is the path of one
 segment. Every container on the way is built again under the tags it
-stood under, their constructors and invariants run, so a set is ordered
+stood under, each laid again through its kind, so a set is ordered
 again and a value that breaks the invariant of its tag is refused.
 
 ```qlang

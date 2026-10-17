@@ -1,4 +1,4 @@
-// The kind [D352], [D357]: the constructor of `::kind`, which reads a kind
+// The kind [QSBLD#kind]: the constructor of `::kind`, which reads a kind
 // from its literal, the commands of its chain folded into data and the
 // constructor a host hands a kind of the core, and the verbs that build one
 // from the noun by commands, each writing its command after the ones the kind

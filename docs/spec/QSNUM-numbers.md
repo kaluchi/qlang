@@ -1,29 +1,29 @@
-# QSNUM · The words of numbers
+# QSNUM · The verbs of numbers
 
-Arithmetic over finite doubles, and the words that combine values one
-subject computes. The requirements of each section are the cases of its
-file under `core/test/conformance/QSNUM/`.
+Arithmetic over finite doubles, and the verbs that combine values of one
+subject. The requirements of each section are the cases of its file
+under `core/test/conformance/QSNUM/`.
 
 ## arithmetic
 
 `add`, `sub`, `mul` and `div` take the number in the pipe as their
-subject and one number as their object, computed against the subject;
+subject and one number as their input, computed against the subject;
 `mod` answers the remainder with the sign of the divisor; `floor`,
 `ceil` and `abs` take a number to a whole one or its size, and `round`
-to the digits its call gives, a whole number, none by default, half away
-from zero as its digits are written, so a number below a half rounds
-down, a negative count rounding to tens and beyond, `15 | round -1`
-answering `20`, and a fraction refused as
-`::number/round/digits/NotIntegerError`. An answer keeps the subject's tags, `::W#2.7 | floor`
-answering `::W#2`. A subject that is no number is refused as
-`::number/add/SubjectNotNumberError` and an object as
-`::number/add/addend/KindNotTakenError`. Every answer is a finite
-double: one past the doubles is refused as `::number/NotFiniteError`, and
-one within them is given, `1 | round 400` answering `1`, a
-division by zero under the divisor of `div`,
-`::number/div/divisor/ZeroError`, and a remainder by zero under that of
-`mod`, `::number/mod/divisor/ZeroError`. `range` answers the whole
-numbers from zero below its subject, `[]` from zero and below, a
+to the digits its call gives, a whole number, none where it gives none,
+half away from zero as its digits are written, so a number below a half
+rounds down, a negative count rounding to tens and beyond,
+`15 | round -1` answering `20`, and a fraction refused as
+`::number/round/digits/NotIntegerError`. An answer keeps the subject's
+tags, `::W#2.7 | floor` answering `::W#2`. A subject that is no number is
+refused as `::number/add/SubjectNotNumberError` and an input that is no
+number as `::number/add/addend/KindNotTakenError`. Every answer is a
+finite double: one past the doubles is refused as
+`::number/NotFiniteError`, and one within them is given,
+`1 | round 400` answering `1`, a division by zero under the divisor of
+`div`, `::number/div/divisor/ZeroError`, and a remainder by zero under
+that of `mod`, `::number/mod/divisor/ZeroError`. `range` answers the
+whole numbers from zero below its subject, `[]` from zero and below, a
 fraction refused as `::number/range/CountNotIntegerError` and a count
 past the length a vector may have as `::number/range/CountTooLargeError`.
 
@@ -53,17 +53,22 @@ past the length a vector may have as `::number/range/CountTooLargeError`.
 ## combine
 
 The subject of a call is the value in the pipe, always, and a call that
-gives more objects than its word reads is refused, its refusal naming
-what fits. Values one subject computes are combined by a word that
-serves any value, each object a number or a path read against the
-subject: `sumOf` and `mulOf` combine one value or more, `subOf` and
-`divOf` two, and a call with none is refused as
-`::any/sumOf/numbers/EmptyError`.
+gives more args than the inputs of its verb read is refused as
+`…/ArgsBeyondInputsError`, the page of its refusal naming what fits.
+Values of one subject are combined by the verbs of one subject on
+`::any`, each of the args a number or a path read against the subject:
+`sumOf` and `mulOf` combine one value or more, `subOf` and `divOf` two,
+a call of `sumOf` that gives none refused as
+`::any/sumOf/numbers/EmptyError` and one of `subOf` that gives one as
+`::any/subOf/subtrahend/NotGivenError`.
 
 ```qlang
-> 1 | add 1 2 !| type
-::number/add/ArgsBeyondInputsError
+> 1 | add 1 2 !| get [~(type) ~(explain | page | content | contains "sumOf")]
+[::number/add/ArgsBeyondInputsError true]
 
 > {:price 4 :qty 3} | mulOf /price /qty
 12
+
+> {:a 1} | get [~(sumOf !| type) ~(subOf /a !| type)]
+[::any/sumOf/numbers/EmptyError ::any/subOf/subtrahend/NotGivenError]
 ```

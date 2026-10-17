@@ -3,7 +3,7 @@
 {"name":"a-second-declaration-is-the-fault","query":":k 1 | :k 2 | k !| trail | first | step","expect":"~(:k 2)"}
 {"name":"a-tag-is-declared-once-in-a-scope","query":":T |~~ T. ~~| | :T |~~ T. ~~| !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :T]"}
 {"name":"the-fail-track-declares-in-the-same-scope","query":":x 1 | {:k 1} | raise !| :x 2 !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :x]"}
-{"decision":"D352","name":"a-recipe-declares-no-input-of-its-verb-again","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :x]"}
+{"name":"a-recipe-declares-no-input-of-its-verb-again","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :x]"}
 {"name":"a-recipe-of-one-step-declares-no-input-again","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3)) | 1 | m 2 !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :x]"}
 {"name":"a-recipe-declares-no-args-of-its-call-again","query":":number/m ~(:args 5 | add args) | 1 | m !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :args]"}
 {"name":"a-group-in-a-recipe-shadows-an-input-as-any-scope-of-its-own","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~((:x 3 | x) | add x)) | 1 | m 2","expect":"5"}
@@ -21,7 +21,7 @@
 {"name":"a-recipe-names-its-subject-before-a-step","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(:self it | mul k | add self)) | 5 | scale 2","expect":"15"}
 {"name":"a-recipe-shadows-a-name-of-its-scope","query":":n 1 | :any/f (::fn | takes :n |~~ The n. ~~| ~(query /0 2) ::number | impl ~(n)) | null | get [~(f) ~(n)]","expect":"[2 1]"}
 {"name":"a-name-declared-in-a-recipe-stays-inside-it","query":":number/f (::fn | takes :n |~~ The n. ~~| /0 | impl ~(n | :captured it | captured | add n)) | 0 | f 3 | env | has :captured","expect":"false"}
-{"decision":"D352","name":"code-a-verb-runs-names-a-value-in-its-steps","query":"[1 2 3] | filter ~(:n 2 | gt n)","expect":"[3]"}
+{"name":"code-a-verb-runs-names-a-value-in-its-steps","query":"[1 2 3] | filter ~(:n 2 | gt n)","expect":"[3]"}
 {"name":"a-declaration-the-fail-track-skipped-counts-as-written","query":"{} | raise | :x 1 !| :x 2 | x !| type","expect":"::bind/NameDeclaredTwiceError"}
 {"name":"a-declaration-writes-into-no-verb-it-was-handed","query":":A |~~ A. ~~| | :B |~~ B. ~~| | ~(:returns ::number | 1) | get [~(:A/f (it) | ::A{} | f) ~(:B/f (it) | ::B{} | f)]","expect":"[1 1]"}
 {"name":"a-declaration-whose-body-failed-counts-as-written","query":":x (1 | div 0) !| :x 2 | x !| type","expect":"::bind/NameDeclaredTwiceError"}

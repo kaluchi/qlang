@@ -13,7 +13,7 @@
 //            source and origin, the source it was read from [QSDSP#residence].
 //
 // Given an anchor, a keyword, each axis reads the node the subject holds
-// under it [D357]: for a tag name the node under its address, an input of a
+// under it [QSSLF#axis]: for a tag name the node under its address, an input of a
 // verb among them, `::vec/take | doc :count`, and for any other subject the
 // verb of that name it calls, `[1 2] | doc :count` the page of `::vec/count`.
 
@@ -60,7 +60,7 @@ function declaringRecordOf(env, subject) {
 
 // The record of the first kind a value's stack of tags declares, from the
 // outside in, as a call of a verb walks it, a tag of identity read past to
-// the kind beneath it [D352]; null where none is declared.
+// the kind beneath it [QSSLF#axis]; null where none is declared.
 function recordOfKind(env, value) {
   const name = typeOf(value).name;
   return nodeOf(env, name) ?? nodeOfRefused(env, name) ?? recordOfKind(env, payloadBeneath(value));
@@ -75,7 +75,7 @@ function nodeOfRefused(env, name) {
 
 // The record of the node the subject holds under an anchor, or null: the
 // node under the address a tag name writes, an input of a verb among them,
-// and otherwise the verb the subject's walk reaches under the anchor [D357].
+// and otherwise the verb the subject's walk reaches under the anchor [QSSLF#axis].
 function nodeUnderAnchor(env, subject, anchorName) {
   const under = isTag(subject) ? nodeOf(env, `${subject.name}/${anchorName}`) : null;
   return under ?? residenceOnSubject(env, anchorName, subject);
@@ -83,7 +83,7 @@ function nodeUnderAnchor(env, subject, anchorName) {
 
 // What the refusal of an anchor holds: the name the reader asked, a
 // keyword, where the verbs of that name live, and the nodes of the subject
-// near it [D357].
+// near it [QSSLF#axis].
 function anchorRefusalOf(env, subject, anchorName) {
   return {
     name: keyword(anchorName),
@@ -128,12 +128,12 @@ export function pageOfRecord(record) {
 
 // The anchors `doc` reads in turn: none for null, a keyword alone, the
 // elements of a vector, and any other value one anchor the read refuses
-// [D357].
+// [QSSLF#axis].
 const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anchor]);
 
 // The record the anchors reach, read in turn, each the last name of a node
 // under the record the one before it reached, no anchor the record of the
-// subject itself [D357].
+// subject itself [QSSLF#axis].
 function recordOfAnchors(subject, anchors, state) {
   if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocUnknownNameError);
   return anchors.reduce((reached, anchor, index) => {
@@ -143,7 +143,7 @@ function recordOfAnchors(subject, anchors, state) {
 }
 
 // What the next anchor reads under: the address of the record reached, so
-// a node under a node is read by its address [D357].
+// a node under a node is read by its address [QSSLF#axis].
 const underRecord = record => makeTag(record.get('name').name);
 
 // The page the anchors read, the page of the node the last of them reaches.

@@ -1,5 +1,5 @@
 // A vector under a tag nothing declares keeps its tag through a verb whose
-// answer is its subject's kind, `take` among them [D352].
+// answer is its subject's kind, `take` among them [QSDSP#answer].
 
 import { describe, it, expect } from 'vitest';
 import { evalAst } from '../../src/eval.mjs';

@@ -1,4 +1,4 @@
-// The function [D352], [D357]: the constructor of `::fn`, which reads a
+// The function [QSBLD#fn]: the constructor of `::fn`, which reads a
 // function from its literal, the chain that built it folded into data, and the
 // verbs that build one from the noun by commands, `on`, `takes`, `returns`,
 // `throws`, `carries`, `holds`, `proves` and `impl`, each writing its command

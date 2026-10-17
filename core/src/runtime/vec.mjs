@@ -2,7 +2,7 @@
 // and the inputs of the call, an input that takes code arriving closed at the
 // call, code run on the element [QSBLD#fn], [QSDSP#walk]: a verb of vectors
 // reads the elements in order, a set reaching it through the walk in its one
-// order [QSORD#order], [D355], a map's reads its values and keeps its keys
+// order [QSORD#order], [QSDSP#residence], a map's reads its values and keeps its keys
 // [QSCOL#map], a string's reads its characters [QSTXT#string], and a refusal
 // names the verb that refused [QSERR#site].
 
@@ -256,7 +256,7 @@ bindPrim('map/any', runs(['predicate'], (map, predicate) => firstVerdict(keyed(m
 // with the kinds a key files under as `:expected`, or the error it answered;
 // without a key the element is its own, and two values of the key that file
 // under one keyword meet, `1` and `"1"` under `:"1"`, the second refused
-// [D355].
+// [QSCOL#group].
 async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return brokeAt(answer, index);
@@ -329,7 +329,7 @@ bindPrim('map/reverse', map => new Map([...map].reverse()));
 
 // `flat` lifts one level of nesting: the inner sequences splice in
 // order, and the answer of a set is a set again, so a set of sets
-// flattens into their union [D355].
+// flattens into their union [QSCOL#sequence], [QSCOL#algebra].
 bindPrim('vec/flat', sequence => sequence.flatMap(element => (isVec(element) ? element : [element])));
 
 // ── the fold ───────────────────────────────────────────────────
@@ -339,7 +339,7 @@ bindPrim('vec/flat', sequence => sequence.flatMap(element => (isVec(element) ? e
 // its args; any other code runs on the pair of the value so far and the
 // element, and its answer is the value so far after it; `seed` answers for an
 // empty subject, and a failure of the reducer stops the fold at the place of
-// its element [D352].
+// its element [QSCOL#reduce].
 async function foldOf(entries, seed, reducer) {
   const combine = resolveBinaryReducer(reducer) ?? ((acc, element) => reducer([acc, element]));
   let acc = seed;

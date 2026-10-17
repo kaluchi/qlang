@@ -18,7 +18,7 @@
 {"name":"a-doc-before-a-declaration-is-refused","query":"\"|~~ note ~~| :x 42\" | parse !| type","expect":"::quote/ParseError"}
 {"name":"a-doc-in-the-slot-documents-the-declaration","query":":x |~~ note ~~| 42 | ::x | doc | content","expect":"\" note \""}
 {"name":"a-doc-after-a-step-is-refused","query":"\"[5] |~~ why ~~|\" | parse !| get /message | contains \"|~ … ~|\"","expect":"true"}
-{"decision":"D352","name":"a-doc-is-a-modifier-of-a-command","query":"[1] | append |~~ A note. ~~| | count","expect":"2"}
+{"name":"a-doc-is-a-modifier-of-a-command","query":"[1] | append |~~ A note. ~~| | count","expect":"2"}
 {"name":"doc-block-with-keyword-references","query":"|~~ see :filter and :every ~~|","expect":"|~~ see :filter and :every ~~|"}
 {"name":"doc-line-type-answers-doc","query":"|~~| line content\n  | type | eq ::doc","expect":"true"}
 {"name":"docs-alone-bind-one-doc-a-line-break-between-them","query":":note |~~| one\n|~~| two\n| note | content","expect":"\" one\\n two\""}

@@ -367,7 +367,7 @@ describe('astChildrenOf on a stepless Pipeline', () => {
 
 // A query reads its subject where its first step that declares nothing
 // does, or a declaration's body before it; a host waits on the stream it
-// lifts the subject from only then [QSHST#input].
+// lifts the subject from only then [QSHST#stdin].
 describe('readsItsSubject', () => {
   const readsOf = query => readsItsSubject(parse(query));
 

@@ -1,6 +1,6 @@
 // The first screen a run hands its child, which the run fixes with its hash
 // under the number of the record it measures, the hash `screen` prints, so
-// a run states which pages it read and two runs compare two screens [D354].
+// a run states which pages it read and two runs compare two screens [QSWRK#measure].
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -13,13 +13,13 @@ const screensDir = join(benchDir, 'screens');
 const commandLine = join(benchDir, '..', '..', 'cli', 'src', 'bin.mjs');
 
 // The first screen, the pages of the language and the command line as the
-// tree prints them, trimmed [D354].
+// tree prints them, trimmed [QSWRK#measure].
 export function firstScreen() {
   return execFileSync(process.execPath, [commandLine, '[::qlang ::cli] | map ~(get [~(it) ~(doc)])'], { input: '', encoding: 'utf8', env: pipeEnv }).trim();
 }
 
 // A saved screen as the tree printed it, its line breaks those of the print
-// whatever the checkout wrote [D354].
+// whatever the checkout wrote [QSWRK#measure].
 export function screenText(screenName) {
   return readFileSync(join(screensDir, `${screenName}.txt`), 'utf8').replace(/\r\n/g, '\n').trim();
 }

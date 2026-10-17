@@ -64,7 +64,7 @@ function dedent(text) {
 
 // The contents of the page at an address, `::vec/count`, once per
 // address; a verb's is read at the address the tool shows for it, so the
-// form of its call and its page name one verb [D352].
+// form of its call and its page name one verb [QSHST#tools].
 const docsCache = new Map();
 async function pageContents(address) {
   if (docsCache.has(address)) return docsCache.get(address);
@@ -136,7 +136,7 @@ export function buildCatalogIndex(catalogAst) {
 
 // The catalog's declaration of what a name reaches with no subject: the one
 // verb of the name, or of a name several kinds answer the first verb the
-// catalog declares [D352]; for an address the node it names.
+// catalog declares [QSNAM#reach]; for an address the node it names.
 function catalogDeclarationOf({ index, runtime }, name) {
   const reach = bareNameReach(runtime, name);
   if (reach !== null) return index.get(reach.record.get('name').name) ?? null;
@@ -284,7 +284,7 @@ function stepsOf(pipelineNode) {
 // The kinds of the value the steps answer from a subject of the kinds: a
 // literal's own, the subject's through a declaration and a `!|` step, and a
 // name's the kinds its `returns` names, the subject's own where that is the
-// verb's own label [D352]; null where a step answers no declared kind.
+// verb's own label [QSBLD#answer]; null where a step answers no declared kind.
 async function kindsOfSteps(steps, subjectKinds) {
   let kinds = subjectKinds;
   for (const { combinator, step } of steps) {
@@ -463,7 +463,7 @@ function bodyRuns(body) {
 // Whether a declaration of a value declares a verb, by the core's rule: a name
 // the runtime holds as the core answers it, and one of the document as
 // `declaresVerb` reads it, a quote or a function with a recipe running where a
-// reader's `::builtin{}` reaches no primitive [D352].
+// reader's `::builtin{}` reaches no primitive [QSNAM#verb], [QSHST#source].
 function declaresVerbIn({ key, body }, runtime, isLabelName) {
   return nodeOf(runtime, key.name) !== null
     ? isVerb(runtime, key.name)
@@ -553,7 +553,7 @@ export function referencesAtOffset(ast, offset) {
 // documentSymbols(ast, runtime) → the declarations of a document, each
 // shown as a label, a verb or a value, a label a kind the document declares
 // under a name, by its chain or by its page alone, or one the runtime holds
-// [D357].
+// [QSNAM#address].
 export function documentSymbols(ast, runtime) {
   if (!ast) return [];
 

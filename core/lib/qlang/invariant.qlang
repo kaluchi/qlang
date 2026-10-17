@@ -1,7 +1,7 @@
 |~ `::invariant`, the kind of an invariant, and the laws declared under
    it.
 
-   The rules it holds: [QSDSP#residence], [D357]. ~|
+   The rules it holds: [QSDSP#residence], [QSBLD#fn]. ~|
 
 :invariant
   |~~ An invariant is a query the values of a kind keep, a quote under

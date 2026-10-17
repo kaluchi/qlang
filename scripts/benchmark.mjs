@@ -2,7 +2,7 @@
 // alone, a run handing a clean child the first screen and the tasks a clean
 // author wrote, the tree grading the queries the child wrote, while the
 // references of `benchmark/tasks.mjs` run in the gate as `check:benchmark`
-// and no child reads them [D354].
+// and no child reads them [QSWRK#measure].
 //
 // Usage:
 //   node scripts/benchmark.mjs check                  the references of tasks.mjs answer their tasks

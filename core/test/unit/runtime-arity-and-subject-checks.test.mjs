@@ -34,7 +34,7 @@ describe('union, minus and inter without their arg', async () => {
     expect(await evalQuery('42 | union !| type | eq ::call/KindAnswersNoVerbError')).toBe(true);
   });
 
-  it('union bare on a set is refused under its input, and the sets a set holds unite by the verb of vectors [D355]', async () => {
+  it('union bare on a set is refused under its input, and the sets a set holds unite by the verb of vectors [QSCOL#algebra]', async () => {
     expect((await evalQuery('#[#[1] #[2]] | union !| type')).name).toBe('set/union/other/NotGivenError');
     expect(await evalQuery('#[#[1] #[2]] | vec/union | eq #[1 2]')).toBe(true);
   });
@@ -120,7 +120,7 @@ describe('an input left without its arg', async () => {
 });
 
 describe('union, minus and inter over an empty vector', async () => {
-  it('a fold of no values is refused by the verb that folds over a vector, and a set given no set under its input [D352], [D355]', async () => {
+  it('a fold of no values is refused by the verb that folds over a vector, and a set given no set under its input [QSCOL#algebra]', async () => {
     for (const verb of ['union', 'minus', 'inter']) {
       expect((await evalQuery(`[] | ${verb} !| type`)).name).toBe(`vec/${verb}/SubjectEmptyError`);
       expect((await evalQuery(`#[] | ${verb} !| type`)).name).toBe(`set/${verb}/other/NotGivenError`);

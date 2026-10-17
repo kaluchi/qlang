@@ -28,7 +28,7 @@ const SECTIONS = {
     'a page names what a reader can follow by a query; the reason lives with its decision [QSWRK#marks].'),
   undecided: found => section('Records out of their form', found, file => `  ${file}\n`,
     'a record opens with `Domain.`, the part of the work it governs; write `Decided by. The maintainer` or `Decided by. The model`, the line naming the parts of the model beside the choice of the maintainer [QSWRK#journal]; an open record holds `Question.`, `Source.` and `Alternatives.`, and no `Decided by.` or `Decision.` until it is decided [QSWRK#journal].'),
-  unmarked: found => section('Artifacts that name no decision', found, path => `  ${path}\n`,
+  unmarked: found => section('Artifacts that name no rule they hold', found, path => `  ${path}\n`,
     'name the rules the artifact holds at its head, or let it go [QSWRK#marks].'),
   misplaced: found => section('Records in the wrong folder', found, ({ path, problem }) => `  ${path}  ${problem}\n`,
     'the root of the records holds those in force, and `replaced/` those replaced whole, moved once [QSWRK#journal].'),
@@ -47,8 +47,8 @@ const SECTIONS = {
   takenOutNamed: found => section('Names of what the branch took out', found, ({ file, line, token, snippet }) => `  ${file}:${line}  \`${token}\`  ${snippet}\n`,
     `the code, the catalog and the cases hold none of these since the baseline ${found[0].baseline}: a comment, a doc and the prose name what the reader finds, a section of a chapter waiting for its move under a record in transit over it, and what was lives in the record and the commit [QSWRK#documents].`),
   retired: found => section('Words the language retired', found, ({ file, line, word, written, by }) => `  ${file}:${line}  \`${word}\`, which ${by} retired: write ${written}\n`,
-    'a word the language retired stays retired in every text that states what holds, and a record that renames a word writes the old one into scripts/retired-words.mjs [D350].'),
-  // The kinds of the catalog that bear the name of a command of a chain [D357].
+    'a word the language retired stays retired in every text that states what holds, and a record that renames a word writes the old one into scripts/retired-words.mjs [QSWRK#documents].'),
+  // The kinds of the catalog that bear the name of a command of a chain [QSBLD#fn].
   commandKinds: found => section('Kinds that bear the name of a command', found, ({ path, line, name }) => `  ${path}:${line}  ::${name}, the name of the command \`${name}\`\n`,
-    'a command of a chain is named by its act and what it writes by the noun of the thing, as `holds` writes an `::invariant` and `proves` a `::law`: the kind takes a noun of its own [D357].')
+    'a command of a chain is named by its act and what it writes by the noun of the thing, as `holds` writes an `::invariant` and `proves` a `::law`: the kind takes a noun of its own [QSBLD#fn].')
 };

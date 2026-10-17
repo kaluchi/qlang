@@ -2,12 +2,12 @@
 // first value, a JSON document as its value and any other text as a
 // string, and the answer is written as the language prints it, whatever
 // the data was, a query converting it where a reader wants another format,
-// `| json` [D352].
+// `| json` [QSHST#stdin], [QSHST#answer].
 
 import { fromJsonText, printAnswer, makeTag, elideAnswer } from '@kaluchi/qlang-core';
 
 // The noun the command line starts from when standard input carries no
-// bytes [QSHST#input].
+// bytes [QSHST#stdin].
 export const DEFAULT_SUBJECT = makeTag('qlang');
 
 // liftStdinToPipeValue(text, inputFormat) → the first value: the noun of

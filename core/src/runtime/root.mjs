@@ -6,7 +6,7 @@
 // implementation [QSDSP#walk]: a name whose value is `::builtin{}`, or a
 // function whose recipe is or a kind whose constructor is, runs the
 // implementation the host handed beside the source under its name
-// [QSDSP#residence], [QSQUO#modifier], [D357], and is refused as the root is
+// [QSDSP#residence], [QSQUO#modifier], and is refused as the root is
 // declared when it was handed none; a refusal the source declares takes its
 // address, the name it is declared by, once [QSERR#site].
 
@@ -72,7 +72,7 @@ export async function declareRoot(env, sources) {
 
 // The descriptor of a host's primitive a name holds, itself or as the
 // recipe of a function, or null; the constructor a host hands a kind is
-// held by its own node, `construct` [D357].
+// held by its own node, `construct` [QSHST#source].
 function builtinOf(value) {
   const recipe = isFn(value) ? recipeOf(value) : value;
   return isBuiltinDescriptor(recipe) ? recipe : null;

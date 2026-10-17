@@ -1,7 +1,7 @@
 // The command line run as a process of its own, `cli/src/bin.mjs`: what it
 // writes to standard output and standard error and the code it exits with,
 // for a query, its flags and its piped input, and in the REPL
-// [QSHST#answer], [QSHST#input], [QSHST#repl].
+// [QSHST#answer], [QSHST#stdin], [QSHST#repl].
 
 import { describe, it, expect } from 'vitest';
 import { spawn } from 'node:child_process';

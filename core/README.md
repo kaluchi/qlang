@@ -16,11 +16,11 @@ pipelines. Domain-agnostic. Pure. Composable.
 
 The language documents itself: every name has a page, a doc whose
 laws run. `::qlang | doc` opens the first page, `env | keys` lists the
-names a query declared, `kinds` the kinds the scope reads,
-`::vec | manifest` the names declared under one, `::vec/sort | manifest`
-the parts of the `sort` of vectors, and `::vec/sort | doc` the page of a
-name. The command line, `@kaluchi/qlang-cli`, runs a query from the
-shell.
+names a query declared, `kinds` the labels the scope reads,
+`::vec | manifest` the nodes under one, `::vec/sort | manifest` the
+nodes under the `sort` of vectors, its inputs, its answer and its
+refusals, and `::vec/sort | doc` the page of a name. The command line,
+`@kaluchi/qlang-cli`, runs a query from the shell.
 
 ## Embedding
 
@@ -49,11 +49,14 @@ printValue(cell.result);  // the answer as its literal; a failure is an error va
   `{ source, uri, ast, result, error, envAfterCell }`; `bind(name, value)`
   installs a value under a name; `env` is the current scope.
 - A source is `{ uri, source, impls? }`: its declarations stand in the
-  root, a name declared under the kind of its subject whose value is
-  `::builtin{}`, `:string/fetch`, the parts of its args names under
-  it, and each implementation is a plain function over the subject and
-  the values of the parts in their order. A source that declares a name
-  the root holds is refused.
+  root, a verb declared under the label of its subject whose recipe is
+  `::builtin{}`, `:string/fetch`, the inputs its function takes nodes
+  under it, and each implementation is a plain function over the
+  subject and the values of its inputs in the order `takes` names them;
+  the constructor of a kind whose chain ends in `impl ::builtin{}` is
+  handed under the address of its node, `<label>/construct`, a function
+  of the payload that answers the value its tag is laid over or refuses
+  the payload. A source that declares a name the root holds is refused.
 - `evalQuery(source)` evaluates one query in a fresh runtime.
 - `printValue(value)` writes the literal of a value, which `evalQuery`
   reads back; the literal is the one lossless form. `toPlain` and

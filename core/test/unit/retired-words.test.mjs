@@ -1,5 +1,6 @@
-// The terms D357 retired, each held by the lexicon of retired terms as one
-// pattern of its one sense [D350], [D357], which refuses the term where it is
+// The retired terms of the chain, of the slot of a kind and of the node an
+// axis reads, each held by the lexicon of retired terms as one pattern of
+// its one sense [QSWRK#documents], which refuses the term where it is
 // written, in prose, a name of the code or the name of a case, and leaves
 // the words of another sense.
 
@@ -8,8 +9,8 @@ import { RETIRED_WORDS } from '../../../scripts/retired-words.mjs';
 
 const refused = text => RETIRED_WORDS.some(({ pattern }) => pattern.test(text));
 
-describe('the lexicon of retired terms [D357]', () => {
-  it('refuses each term D357 retired where it is written', () => {
+describe('the lexicon of retired terms [QSWRK#documents]', () => {
+  it('refuses each retired term of the chain, of the slot of a kind and of the node where it is written', () => {
     for (const text of [
       'a-name-of-a-signature-declared-twice-is-refused', 'the signature of a function', 'readSignature', 'readKindSignature',
       'EMPTY_SIGNATURE', 'core/src/runtime/signature.mjs',

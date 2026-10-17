@@ -1,6 +1,6 @@
 # QSQUO · Code as data
 
-Code is a value, the quote: a vector of steps a word runs and a reader
+Code is a value, the quote: a vector of steps a verb runs and a reader
 takes apart and builds back. The requirements of each section are the
 cases of its file under `core/test/conformance/QSQUO/`.
 
@@ -13,7 +13,7 @@ quote of a single name or tag name may drop its parentheses, `~add`,
 `~::T`; the full form is the one the printer writes. Two quotes are
 equal when their steps are, spacing and comments aside. A quote is a
 value like any other: a container holds it, a name holds it, and it
-runs where a word applies it.
+runs where a verb applies it.
 
 ```qlang
 > ~add
@@ -28,28 +28,31 @@ true
 
 ## step
 
-A quote is a vector of steps under `::quote`, and the words of a vector
-apply to it as to any vector under a tag. A step is stored as the record
-of its form: a call as `::call`, its name and its modifiers, each
+A quote is a vector of steps under `::quote`, and the verbs of a vector
+apply to it as to any vector under a tag. A step is held as the record
+of its act: a call as `::call`, its `:name` and its `:modifiers`, each
 modifier the step it is, so `add ~(x)` holds `[~(x)]` and `add x` holds
-`[::call{:name :x}]`; a declaration as `::bind`, its docs the doc values
-of its slot; a constructor's step as `::construct`; a step of the fail
-track under `::fail`; a group as its quote under `::group`; an error
-literal as the error at rest it writes; any other literal as itself, a
-step that stands at the head alone. `::fail` and a declaration stand in
-a pipeline alone, so inside a container, a field or a payload a step is
-an element step. The constructor of each record checks the fields the
-printer reads against its schema, refusing under its own tag,
-`::bind/PayloadNotSchemaError`, prints the step and reads the text back,
-so an assembly that reads back as another step is refused where it is
-made, `::construct/ReadBackDiffersError`. `tag ::quote` builds a quote
-from a vector of steps: a payload that is no vector is refused as
-`::quote/PayloadKindNotTakenError`, an element that is no step as
-`::quote/ElementNotStepError`, and a literal after the head as
-`::quote/ReadBackDiffersError`. A quote built over a path alone prints
-under its tag, `::quote[/age]`, reads back as it, and answers the path
-it holds; written as `~(/age)` it is refused by the parser, which gives
-the path bare.
+`[::call{:name :x}]`; a declaration, which writes a `::binding` into its
+scope, as `::bind`, its `:name`, the doc values of its slot as `:docs`
+and its body, the step after its name and its page, as `:body`, each
+where the declaration writes one; a tagged literal as `::construct`, its
+`:tag` and the `:payload` the literal writes; a step of the fail track
+under `::fail`; a group as its quote under `::group`; an error literal
+as the error at rest it writes; any other literal as itself, a step that
+stands at the head alone. `::fail` and a declaration stand in a pipeline
+alone, so inside a container, a field or a payload a step is an element
+step. The constructor of each record, `::construct/construct` among
+them, checks the fields the printer reads against its schema, refusing
+under its own tag, `::bind/PayloadNotSchemaError`, prints the step and
+reads the text back, so an assembly that reads back as another step is
+refused where it is made, `::construct/ReadBackDiffersError`.
+`tag ::quote` builds a quote from a vector of steps: a payload that is
+no vector is refused as `::quote/PayloadKindNotTakenError`, an element
+that is no step as `::quote/ElementNotStepError`, and a literal after
+the head as `::quote/ReadBackDiffersError`. A quote built over a path
+alone prints under its tag, `::quote[/age]`, reads back as it, and
+answers the path it holds; written as `~(/age)` it is refused by the
+parser, which gives the path bare.
 
 ```qlang
 > ~(filter ~(gt 1)) | payload
@@ -60,6 +63,12 @@ the path bare.
 
 > ~(:x |~~ note ~~| it) | first | get /docs
 [|~~ note ~~|]
+
+> [~(:x 1) ~(:x |~~ X. ~~| 1) ~(:Box |~~ A box. ~~|)] | map ~(first | keys)
+[#[:body :name] #[:body :docs :name] #[:docs :name]]
+
+> ~(::Box[1 2]) | first | get [~(type) /tag /payload]
+[::construct ::Box [1 2]]
 
 > [[1 2] ::call{:name :count}] | tag ::quote | parse
 "[1 2] | count"
@@ -81,8 +90,8 @@ reading stops short of a form [QSSYN#refusal], [QSPRN#span], and the
 `:uri` of `parse`. A quote whose steps are all declarations, or of
 several steps one of which takes several lines, prints a step a line,
 each after the first led by its pipe, a step that takes several lines
-printing on them, and any other quote prints on one line. Every text a quote
-prints reads back as the same quote.
+printing on them, and any other quote prints on one line. Every text a
+quote prints reads back as the same quote.
 
 ```qlang
 > "add 1 | mul 2" | parse
@@ -98,15 +107,20 @@ prints reads back as the same quote.
 ## apply
 
 `apply` runs code against its subject: a quote, a path, which reads, or
-a function, which takes a vector of arguments, `apply f [4]`, where a
-quote and a path take none, `::any/apply/args/NotTakenError`. Code a
-quote declares stays inside its run. A value of another kind is refused
-as `::any/apply/code/KindNotTakenError`. `open`, a word of `::quote`,
-runs a quote from null, beneath whatever tags stand over it.
+a function, which takes its args as one vector, as a call holds its
+args, `apply f [4]`, where a quote and a path take none,
+`::any/apply/args/NotTakenError`, and args that are no vector are
+refused as `::any/apply/args/KindNotTakenError`. Code a quote declares
+stays inside its run. A value of another kind is refused as
+`::any/apply/code/KindNotTakenError`. `open`, a verb of `::quote`, runs a
+quote from null, beneath whatever tags stand over it.
 
 ```qlang
 > 5 | apply ~(add 1 | mul 2)
 12
+
+> 5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [3]
+8
 
 > {:a 1} | apply ~(:x 2) | x !| type
 ::call/UnknownNameError
@@ -117,16 +131,18 @@ runs a quote from null, beneath whatever tags stand over it.
 
 ## modifier
 
-A modifier holds a value: it is read by its own form and evaluated at
-the call against the subject, a bare name and a group included, so
-`take count` takes as many elements as there are. A command's modifiers
-are forks against the subject, results by position, none seeing
-another; a call computes them in their order up to the first that
-answers a failure, and the forks of every sequence run in its order:
-the elements a word runs over, the parts of a template, the modifiers
-of a command, the keys of `sort` and the laws `runLaws` runs.
+A step writes its modifiers, each read by its own form and computed at
+the call against the subject, a bare name and a group among them, so
+`take count` takes as many elements as there are; their values are the
+args of the call, which the inputs of its function read by their places.
+The modifiers of a command are forks against the subject, their values
+the args by position, none seeing another; a call computes them in
+their order up to the first that answers a failure, and the forks of
+every sequence run in its order: the elements a verb runs over, the
+parts of a template, the modifiers of a command, the keys of `sort` and
+the laws `runLaws` runs.
 
-A word that runs a part per element, in its own order, or only when the
+A verb that runs a part per element, in its own order, or only when the
 part is chosen takes a quote or a path there: `filter ~(gt 1)`,
 `reduce 0 ~(add)`, the branches of `if` and the clauses of `cond`, while
 the condition of `if`, which always runs, is a value. An input that
@@ -145,6 +161,9 @@ its modifier on as the answer of the call.
 > [{:a true}] | filter (get /a) !| type
 ::vec/filter/predicate/KindNotTakenError
 
+> [1 2] | take (get /x) !| type
+::path/IndexNotIntegerError
+
 > :f (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | [1 2] | map f !| type
 ::vec/map/code/KindNotTakenError
 ```
@@ -152,27 +171,27 @@ its modifier on as the answer of the call.
 ## held
 
 Code a verb runs is code of a step or code held as data. A quote written
-in a step, an object of a call or a part of a template, a quote or a
-template under a tag among them, is code of that step: the call runs it
-in the scope of the step that wrote it, by whatever road it takes inside
-the call. A quote stays the value its print shows, and the meaning of
-held code is its text and the vocabulary.
+in a step, a modifier of a call or a part of a template it writes, a
+quote or a template under a tag among them, is code of that step: the
+call runs it in the scope of the step that wrote it, by whatever road it
+takes inside the call. A quote stays the value its print shows, and the
+meaning of held code is its text and the vocabulary.
 
 Any other code runs in a lane of its own: a quote held in a name, a
-field or a page, a law and a snippet among them, a quote a call
-answered or a group computed, and the steps a trail skipped. The lane is
-the one of the step a call keeps as the code's origin, or else of the
-step that runs it: its past is the subject it runs on, the words, the
-nodes and the labels of that step's scope, and the names the code
-declares itself, which `doc` and `binding` read there. A value that
-scope names is withheld: read by a step, by a tag or as the noun of a
-declaration, it is refused under its name as `::call/ValueWithheldError`,
-while a tag reads a label of the root before any name of the reader. The
-scope of a word's body is its own, so code a word holds is refused under
-a value its body names; a law the root declares runs in a lane over the
-root alone. A value held code needs is an input of a function,
-`apply f [4]`, or written into its code by `fill`, and code that calls
-itself is a word.
+field or a page, a law and a snippet among them, a quote a call answered
+or a group computed, and the steps a trail skipped. The lane is the one
+of the step a call keeps as the code's origin, or else of the step that
+runs it: its past is the subject it runs on, the verbs, the nodes and
+the labels of that step's scope, and the names the code declares itself,
+which `doc` and `binding` read there. A value that scope names is
+withheld: read by a step, by a tag or as the noun of a declaration, it
+is refused under its name as `::call/ValueWithheldError`, while a tag
+reads a label of the root before any name of the reader. The scope of a
+verb's recipe is its own, so code a verb holds is refused under a value
+its recipe names; a law the root declares runs in a lane over the root
+alone. A value held code needs is an input of a function, `apply f [4]`,
+or written into its code by `fill`, and code that calls itself is a
+verb.
 
 ```qlang
 > :k 10 | [1 2] | map ~(add k)
@@ -183,4 +202,7 @@ itself is a word.
 
 > :k 1 | :f ~(:k 2 | add k) | 5 | apply f
 7
+
+> :vec/w ~(:count 7 | :q ~(count) | apply q) | [1 2 3] | w !| query [~(type) /name]
+[::call/ValueWithheldError :count]
 ```

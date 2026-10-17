@@ -1,4 +1,4 @@
-// The pentimento audit [QSWRK#review], [D342]: clean readers, started at once
+// The pentimento audit [QSWRK#review]: clean readers, started at once
 // as every run of the research starts them, read the texts that state what
 // holds beyond the chapters, each a group of the tree, for the earlier layer
 // that shows through them, a vestige, an archaism, a shim, a subordination,

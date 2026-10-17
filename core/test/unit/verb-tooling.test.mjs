@@ -1,4 +1,4 @@
-// A verb as the tooling reads it [D352]: what a tool shows for a name,
+// A verb as the tooling reads it [QSHST#tools]: what a tool shows for a name,
 // and the verbs a value of a kind reaches.
 
 import { describe, it, expect } from 'vitest';
@@ -29,7 +29,7 @@ describe('a verb as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'type').address.name).toBe('any/type');
   });
 
-  it('shows the verb a subject of the kinds reaches, and the inputs of its function [D352]', async () => {
+  it('shows the verb a subject of the kinds reaches, and the inputs of its function [QSHST#tools]', async () => {
     const env = await langRuntime();
     expect(shownFor(env, 'count', ['vec']).address.name).toBe('vec/count');
     expect(shownFor(env, 'count', ['map']).address.name).toBe('map/count');
@@ -40,7 +40,7 @@ describe('a verb as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'add', ['string']).address.name).toBe('number/add');
   });
 
-  it('reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the verb\'s own label [D352]', async () => {
+  it('reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the verb\'s own label [QSBLD#answer]', async () => {
     const env = await langRuntime();
     expect(answerKindsOf(env, nodeOf(env, 'vec/filter'), ['set'])).toEqual(['set']);
     expect(answerKindsOf(env, nodeOf(env, 'vec/count'), ['vec'])).toEqual(['number']);
@@ -53,7 +53,7 @@ describe('a verb as the tooling reads it', () => {
     expect(answerKindsOf(session.env, nodeOf(session.env, 'Box/f'), ['Box'])).toEqual(['number', 'string']);
   });
 
-  it('shows a verb written as its recipe alone, the function of no commands it is, with no inputs [D352]', async () => {
+  it('shows a verb written as its recipe alone, the function of no commands it is, with no inputs [QSHST#tools]', async () => {
     const session = await createSession();
     await session.evalCell(':number/double ~(mul 2)');
     expect(shownFor(session.env, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
@@ -85,7 +85,7 @@ describe('the verbs a value of a kind reaches [QSDSP#walk]', () => {
     expect(reached.has('add')).toBe(false);
   });
 
-  it('takes the walk from a set, a quote and a doc to the verbs of tagged values and of vectors, a set\'s own verb first [D355]', async () => {
+  it('takes the walk from a set, a quote and a doc to the verbs of tagged values and of vectors, a set\'s own verb first [QSDSP#walk]', async () => {
     const env = await langRuntime();
     const addressesFrom = (kindName, names) => names.map(name => verbsReaching(env, [kindName]).get(name)?.address.name);
     expect(addressesFrom('set', ['sort', 'count', 'take', 'within'])).toEqual(['set/sort', 'vec/count', 'vec/take', 'tagged/within']);

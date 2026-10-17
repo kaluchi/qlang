@@ -1,7 +1,7 @@
 // The terms of the earlier models of the language that its later work
 // retired, each a pattern of one sense with the term written in its place
-// and the record that retired it [D350]: a text that states what holds
-// writes none of them [QSWRK#documents], and a record that retires a term
+// and the record that retired it: a text that states what holds writes
+// none of them [QSWRK#documents], and a record that retires a term
 // of the language adds it here in the commit that retires it.
 
 export const RETIRED_WORDS = [

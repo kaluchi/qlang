@@ -1,5 +1,5 @@
 // The measures of the vocabulary of the project, read in its own texts, the
-// texts that state what holds [D349]: the selectivity of a term, the share
+// texts that state what holds [QSWRK#documents]: the selectivity of a term, the share
 // of its matches that stand in the files naming its anchor; the consistency
 // of a pair of terms that work together, the share of the files writing the
 // first that write the second; and the rivals of a concept, the matches of

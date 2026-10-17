@@ -3,7 +3,7 @@
 // pentimento audit share the start of a reader, the refusals of a run, the
 // number of the next run of a record, the head of a report, the packing of
 // what they read into groups and the line under `Runs.` of the record that
-// called for the run [QSWRK#review], [D342].
+// called for the run [QSWRK#review].
 
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';

@@ -91,9 +91,9 @@ never `cat`-ed.
 
 Tier 2, by topic, only the files the topic names:
 
-- arguments and dispatch: `core/src/runtime/nouns.mjs` for the walk
+- args and dispatch: `core/src/runtime/nouns.mjs` for the walk
   from a subject's tags to the verb a name calls, and
-  `core/lib/qlang/any.qlang` for the words every value answers
+  `core/lib/qlang/any.qlang` for the verbs every value answers
 - names, scope, the root, sessions: `docs/spec/QSNAM-names-and-scope.md`
   first, then `core/src/state.mjs`,
   `core/src/env-keys.mjs`,
@@ -162,15 +162,18 @@ server.
   `check:benchmark`, every suite, coverage thresholds, CLI integration,
   site build, in that order. Judge it by its real exit code, captured
   to a file, never through a pipe.
-- `node scripts/benchmark.mjs prompt | screen | report`: the prompt of a
-  run of a fresh model, the hash of the first screen it reads, and the
-  runs recorded side by side [QSWRK#measure].
+- `node scripts/benchmark.mjs check | screen | verdict`: the references
+  of the tasks held against their answers, the default and
+  `check:benchmark`; the hash of the first screen a run fixes; and the
+  runs of a measurement beside the one before it, or the one named
+  [QSWRK#measure].
 - `node scripts/benchmark.mjs author | run | grade | misses | frictions`:
   a set of tasks a clean author writes, clean children that solve it
-  with the command line under a saved screen, the pages of the language
-  and the command line, the grade by the tree, and the reading of
-  the misses, which marks the set seen [QSWRK#measure]. The usage is the header
-  of the script.
+  with the command line handed one first screen, the pages of the
+  language and of the command line, which the run fixes under the number
+  of its record, the grade by the tree, and the reading of the misses,
+  which marks the set seen [QSWRK#measure]. The usage is the header of
+  the script.
 - `npm run check:fuzz -- [variants of each law] [seed]`: every law of the
   root run again with its literals changed to edge values; a variant
   that makes a host fail, throws past the fail track or prints as a text
@@ -192,6 +195,10 @@ outside `docs/`, `vscode/` and the instructions (legacy, deprecated,
 currently, previously, backward compatibility, and the TODO, FIXME, and
 HACK markers), on a comment or a sentence of the prose that names a
 token the branch took out of the code, the catalog and the cases, on a
+term the language retired, `scripts/retired-words.mjs`, written in the
+prose, a comment, a doc of the catalog, the name of a case or the title
+of a test, naming the term to write [QSWRK#documents], on a kind of the
+catalog that bears the name of a command of a chain [QSBLD#fn], on a
 digit followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
@@ -217,7 +224,7 @@ the baseline that no record in transit over its section claims, a
 chapter that cites a record, speaks of the journal or tells a history
 [QSWRK#spec],
 and a citation in the code and the tests of a record no met case holds, a case naming a record
-being decided, and a citation in a document of a record out of force or of the language with no
+out of force or being decided, and a citation in a document of a record out of force or of the language with no
 case, an open record among those it may cite [QSWRK#baseline]. `npm run check:probes` runs every probe of the open records, the
 records in transit and the specification, the shell ones that read the repository alone included, and fails on one whose answer changed,
 but where the record in transit over its section holds a probe of the same query, which the move writes into the section [QSWRK#probe]; a
@@ -264,18 +271,18 @@ findings each with its file and its line [QSWRK#review].
 - Before a construct is proposed, search the maintainer's words about
   it, `node scripts/sensors/maintainer-messages.mjs`: the project may
   have had it and left it. A capability of the language, a form of the
-  grammar, the shape of a value or a word, is removed only on the
+  grammar, the shape of a value or a verb, is removed only on the
   maintainer's words about that very axis.
 - A target is taken in hand only where landing it changes no met case
   and no record's text; otherwise a move of design with its record
   comes first [QSWRK#target].
 - Each clause added to a condition is held by a test that fails without
-  it, cut on a copy to watch it fail. A change to how inputs are read is
-  run against the previous version over generated inputs, each
+  it, cut on a copy to watch it fail. A change to how a text is read is
+  run against the previous version over generated texts, each
   divergence explained. A change to the scope a quote runs in or to the
-  reach of a bare name comes with tests of shadowing by a reader's word
+  reach of a bare name comes with tests of shadowing by a reader's verb
   and by a later source's, and a quick path in a shared helper is held
-  against every caller and every input each hands it, an error and a
+  against every caller and every value each hands it, an error and a
   value under a tag among them.
 - In the inner loop run the tests of the topic; before a commit
   `npm test`, and `node scripts/benchmark.mjs check` where the change
@@ -317,7 +324,8 @@ every finding checked by a probe with its fate.
 such a tree: a clean Opus for each group of chapters, started at once as
 the outside audit is, bootstraps from every chapter of `docs/spec/` and
 the first pages, then reads its sections against their cases, the code
-that cites them, the pages of their words and the command line, and
+that cites them, the pages of the verbs and the kinds they name and the
+command line, and
 reports findings of seven kinds, a pentimento and a drift among them,
 each with its probe, into the folder of the run named after the record,
 `docs/journal/research/spec-check/<Dnn>~<k>/`; `--dry` prints the groups.
@@ -332,6 +340,32 @@ given by `--why`. A report named after a record leaves with it at the
 move of the baseline, and the README of the research,
 `docs/journal/research/README.md`, tells every kind of report, what calls
 it into being and how long it stays [QSWRK#review].
+
+## Pentimento audit
+
+`node scripts/pentimento-audit.mjs --for Dnn` runs the pentimento audit
+[QSWRK#review] that the record Dnn calls for and carries the fates of,
+on such a tree, from a worktree of its commit outside the repository,
+with its own install and build, where another session works in the
+checkout: clean readers, six at once unless `--groups` names another
+count, started by `scripts/research-runs.mjs` as the readers of the
+outside audit and of the check of the chapters are, bootstrap from every
+chapter, the first pages and the aim, then read the texts that state
+what holds beyond the chapters, in the groups the script packs from the
+texts the walk of the baseline cites, for the earlier layer that shows
+through them, each answering `scripts/pentimento-audit-prompt.txt` with
+at most twenty-five findings of six kinds, a vestige, an archaism, a
+shim, a subordination, a pentimento and a drift, each with its probe,
+into the folder of the run named after the record,
+`docs/journal/research/pentimento-audit/<Dnn>~<k>/`; `--dry` prints the
+groups and the cycles of the imports of `core/src` and starts no reader.
+The session's reading beside the reports, `reading.md`, reads the layer
+a finding keeps by `git log -S`, searches the maintainer's words on its
+axis before a removal is weighed, weighs the terms of a drift or an
+archaism by `node scripts/sensors/vocabulary.mjs`, and gives every
+finding its fate: a repair that moves no rule is taken in hand, and a
+finding that moves a rule enters the open record of its axis or a record
+of its own [QSWRK#documents].
 
 ## Sister project
 

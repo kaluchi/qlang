@@ -17,7 +17,7 @@ import {
 export { layTag };
 
 // A call of a name no kind of whose subject answers names what the reader
-// needs: where the verbs of the name live [D352].
+// needs: where the verbs of the name live [QSDSP#refusal].
 export const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
 
 // ── kinds ──────────────────────────────────────────────────────
@@ -88,7 +88,7 @@ export function runPrimitive(primitive, served, passedTags, inputValues, state) 
 // inputs }`: the verb a subject of the kinds reaches, or, where the tool
 // knows no kinds or they reach none, the address the name reaches with no
 // subject, or the first verb of a name several kinds answer, and the names
-// of the inputs its function takes [D352]; undefined for a name that reaches
+// of the inputs its function takes [QSHST#tools]; undefined for a name that reaches
 // no name under a label.
 export function shownFor(env, name, kindNames = null) {
   const reached = kindNames === null ? undefined : verbsReaching(env, kindNames).get(name);

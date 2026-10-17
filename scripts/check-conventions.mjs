@@ -76,11 +76,11 @@
 //
 //   (13) The marks of the artifacts: every module, script, test file,
 //       source of qlang and workflow names the rules it holds
-//       [QSWRK#marks], [D356].
+//       [QSWRK#marks].
 //
 //   (14) A series of the benchmark keeps its two latest at the merge that
 //       landed a branch: its sets and its screens, a branch keeping every
-//       run of its own [D354].
+//       run of its own [QSWRK#baseline].
 //
 //   (15) A report of the research stands with the session's reading
 //       beside it, every finding with its fate: a critique of an open
@@ -96,11 +96,11 @@
 //   (17) A text that states what holds writes no word the language
 //       retired, `scripts/retired-words.mjs`: the prose of the chapters
 //       and the seeds, the comments and docs of the code and the catalog,
-//       the names of the cases and the titles of the tests [D350].
+//       the names of the cases and the titles of the tests [QSWRK#documents].
 //
 //   (18) No kind of the catalog bears the name of a command of a chain, one
 //       the chain of a function or of a kind takes, the command named by its
-//       act and what it writes by the noun of the thing [D357].
+//       act and what it writes by the noun of the thing [QSBLD#fn].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -305,7 +305,7 @@ const INLINE_CODE_RE = /`[^`]*`/g;
 // A report of the research stands as its outside reader wrote it
 // [QSWRK#review], so the prose held to its tallies is the work's own, the
 // session's reading of the report among it, by the shapes of the folders of
-// the research [D342].
+// the research.
 const OUTSIDE_REPORT = new RegExp(`^${RESEARCH}/(?:(?:${foldersShaped('report')})/D\\d+~\\d+\\.md|(?:${foldersShaped('run')})/D\\d+~\\d+/(?!reading\\.md)[^/]+\\.md)$`);
 
 function scanProseTallies() {
@@ -599,8 +599,8 @@ const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['cli/lib', /\.qlang$/], ['c
 // ── (13) The marks of the artifacts ────────────────────────────
 //
 // Every module, script, test file, source of qlang and workflow names
-// the rules it holds, so the scope of a decision is found by its marks and
-// an artifact no decision explains is seen [QSWRK#marks], [D356].
+// the rules it holds, so the scope of a record or a section is found by its
+// marks and an artifact that names no rule it holds is seen [QSWRK#marks].
 
 function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;
@@ -611,7 +611,7 @@ function unmarkedArtifacts() {
 // The sets of the benchmark with their runs and its screens keep their two
 // latest at the merge that landed a branch, a branch keeping every run of
 // its own and the move of the baseline giving the older to the history,
-// `node scripts/drop-documents.mjs` [D354].
+// `node scripts/drop-documents.mjs` [QSWRK#baseline].
 
 function seriesBeyondTwo() {
   const baseline = baselineOf(repoRoot);
@@ -762,7 +762,7 @@ const nameOfCase = line => {
 
 // The words the language retired, read where a text states what holds:
 // the prose, the comments and docs, the name of a case and the title of a
-// test [D350].
+// test [QSWRK#documents].
 function retiredWordsWritten() {
   const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
   const files = [...git('ls-files').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')]
@@ -796,7 +796,7 @@ function retiredWordsWritten() {
 // ── (18) Kinds named for commands ──────────────────────────────
 //
 // A command of a chain is named by its act and what it writes by the noun of
-// the thing, so no kind of the catalog bears the name of a command [D357].
+// the thing, so no kind of the catalog bears the name of a command [QSBLD#fn].
 
 function kindsOfCommands() {
   const sources = CATALOG_ROOTS.flatMap(catalogFiles).map(file => ({ path: file.replace(/\\/g, '/'), text: readFileSync(join(repoRoot, file), 'utf8') }));

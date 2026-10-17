@@ -4,7 +4,7 @@
 // spelling. An edit is an insertion, a deletion, a substitution or a swap of
 // two neighbours, the slips of a typing hand; beside them, the names one of
 // which begins the other, and the verbs the page of a verb the typed name
-// begins with links [D352].
+// begins with links.
 
 import { keyword, makeTag, isTag } from './types.mjs';
 import { ANY_KIND_NAME, addressesOf, answerOf, kindsOfWalk, namesDeclaredUnder, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, verbsReaching, isLabel } from './runtime/nouns.mjs';
@@ -70,7 +70,7 @@ function namesOfSteps(env) {
 // The verbs the page of a verb the typed name begins with links, whose
 // names end as the typed name goes on past it in a tail of its own,
 // capitalised: `add` begins `addOf`, and its page links `sumOf`, the
-// verb that adds two fields of one record [D352].
+// verb that adds two fields of one record [QSSLF#near].
 function linkedFromBegun(env, typedName, names) {
   const linked = [];
   for (const name of names) {
@@ -98,7 +98,7 @@ export function nearestNames(env, typedName) {
   return Object.freeze(onlyItsTag(typedName) ? [makeTag(typedName), ...near] : near);
 }
 
-// The tags an unknown tag name was likely meant to be [D352]: the
+// The tags an unknown tag name was likely meant to be [QSSLF#near]: the
 // addresses of the tree's nodes as deep as the typed name, so a guess at
 // a noun meets the nouns, `::str` meeting `::string`, and a guess at a
 // verb the verbs, none of the nodes beneath them.
@@ -108,7 +108,7 @@ export function nearestTagNames(env, typedName) {
   return Object.freeze(nearestOf(new Set(atItsDepth), typedName).map(name => makeTag(name)));
 }
 
-// The nodes a subject holds near an anchor it holds none under [D357], read
+// The nodes a subject holds near an anchor it holds none under [QSSLF#near], read
 // where an axis reads the node under an anchor: the names declared under a
 // tag name's address, `::qlang | doc :pipelin` meeting `:pipeline`, and the
 // verbs the walk of the subject reaches.
@@ -131,7 +131,7 @@ const answeredKinds = (env, addresses) => new Set(addresses.flatMap(address => a
 // at the addresses link whose verbs the subject answers, each a verb that
 // answers a kind those verbs answer: the act a step meant by a verb the
 // kind of its subject lacks, under the name the kind keeps it by, `print`
-// for the `toString` of a vector [D352].
+// for the `toString` of a vector [QSDSP#refusal].
 export function nearestVerbs(env, addresses, subject) {
   const kinds = answeredKinds(env, addresses.map(address => address.name));
   const names = new Set();

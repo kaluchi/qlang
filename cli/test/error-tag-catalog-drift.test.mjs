@@ -42,14 +42,14 @@ const session = await createSession({
   })
 });
 // The refusals the source of the command line declares, by address; an
-// invariant, whose name is its refusal, is raised by the runtime [D357].
+// invariant, whose name is its refusal, is raised by the runtime [QSBLD#fn].
 const refusalAddresses = new Set();
 for (const address of nodeAddresses(session.env)) {
   const record = nodeOf(session.env, address);
   if (record.get('origin')?.name === 'cli' && address.endsWith('Error') && !isInvariant(record.get('value'))) refusalAddresses.add(address);
 }
 // The refusals the verbs of the command line raise by rule, which the
-// runtime raises and the source pages where a repair helps [D352].
+// runtime raises and the source pages where a repair helps [QSERR#site].
 const ruleBorn = new Set([...nodeAddresses(session.env)]
   .filter(address => isVerb(session.env, address))
   .flatMap(address => ruleRefusalsOf(session.env, address)));

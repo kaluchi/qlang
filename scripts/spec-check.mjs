@@ -18,7 +18,7 @@
 // `D329~3~reading.md` [QSWRK#review]. A run stays in its branch, the move of
 // the baseline trims the series, and a critique leaves with its record
 // [QSWRK#baseline]. The start of the readers, the refusals, the numbers and
-// the heads are the ones every run of the research shares [D342].
+// the heads are the ones every run of the research shares [QSWRK#review].
 //
 // A report opens with its head: what it is and the record that called for
 // it, the tree it read and the baseline that tree stood on, when it ran and

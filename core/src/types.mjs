@@ -128,7 +128,7 @@ export function isRegex(v) {
   return isValueClass(v, 'regex');
 }
 
-// A path, the value of `/a/b/0` [D352]: the text of each segment, a key of a
+// A path, the value of `/a/b/0` [QSPTH#value]: the text of each segment, a key of a
 // map or a place of a vector, which the verb that takes the path reads.
 export function makePath(segments) {
   return Object.freeze(brandValueClass({ segments: Object.freeze(segments.map(String)) }, 'path'));
@@ -162,7 +162,7 @@ export function makeQuote(steps, ast = undefined) {
 
 // A function, a value of `::fn`: the commands of its chain, which declare
 // the inputs it takes, its answer and its refusals, a quote, and its recipe,
-// code or a host's primitive, or none for a contract [D357].
+// code or a host's primitive, or none for a contract [QSBLD#fn].
 export const FN_TAG_NAME = 'fn';
 
 export function isFn(v) {
@@ -171,7 +171,7 @@ export function isFn(v) {
 
 // A kind, a value of `::kind`: the commands of its chain, its payload, its
 // fields, its refusals, its invariants and its laws, a quote, and the
-// constructor a host hands a kind of the core, or none [D357], [QSLIT#tag].
+// constructor a host hands a kind of the core, or none [QSBLD#kind], [QSLIT#tag].
 export const KIND_TAG_NAME = 'kind';
 
 export function isKind(v) {
@@ -179,7 +179,7 @@ export function isKind(v) {
 }
 
 // The commands of a function or of a kind, its chain folded into a quote,
-// and the recipe of a function or the constructor of a kind [D357].
+// and the recipe of a function or the constructor of a kind [QSBLD#fn], [QSBLD#kind].
 export function commandsOf(built) {
   return built[0];
 }
@@ -347,7 +347,7 @@ export function payloadBeneath(value) {
 
 // The descriptor of an implementation a host hands, `::builtin{}`, the
 // recipe of a verb or the constructor of a kind that a primitive answers,
-// or the value of a name under a label alone [D352], [D357].
+// or the value of a name under a label alone [QSHST#source].
 export function isBuiltinDescriptor(v) {
   return isMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
@@ -378,7 +378,7 @@ export const ErrorTrailNotFramesError = declareRefusal('error/TrailNotFramesErro
 
 // A trail is a vector of frames under `::trail`, a frame the vector of the
 // subject a step met, the quote of the steps from the one that broke and the
-// path of the part a verb's code broke on, where one did [D352].
+// path of the part a verb's code broke on, where one did [QSERR#trail].
 export const TRAIL_TAG = makeTag('trail');
 export const FRAME_TAG = makeTag('frame');
 
@@ -419,7 +419,7 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
 // formOf(v) → the form a writer of the core reads a value by: `error`,
 // `underTag` for a value under a tag, a quote's data written under the
 // tag of a kind among them, the kind of the core `typeOf` answers, or
-// `unknown` for a host's raw object [D352].
+// `unknown` for a host's raw object [QSLIT#kind].
 export function formOf(v) {
   if (isErrorValue(v)) return 'error';
   if (isValueClass(v, 'underTag')) return 'underTag';
@@ -428,7 +428,7 @@ export function formOf(v) {
   return Object.hasOwn(CORE_KIND, kind.name) ? kind.name : 'underTag';
 }
 
-// typeOf(v) — the kind of a value, the tag `type` answers [D352]: its
+// typeOf(v) — the kind of a value, the tag `type` answers [QSLIT#kind]: its
 // outermost tag, or the kind of the core its literal implies.
 export function typeOf(v) {
   if (isNull(v)) return CORE_KIND.null;

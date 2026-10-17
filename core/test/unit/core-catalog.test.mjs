@@ -23,7 +23,7 @@ describe('the sources of the language', () => {
 });
 
 // A command of a chain is named by its act and what it writes by the noun of
-// the thing, which the check of the conventions holds over the catalog [D357].
+// the thing, which the check of the conventions holds over the catalog [QSBLD#fn].
 describe('no kind of the catalog bears the name of a command of a chain', () => {
   it('finds a label that bears the name of a command, declared by its chain, by its page alone, on one line or by its literal', () => {
     const planted = [

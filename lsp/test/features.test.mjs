@@ -154,7 +154,7 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('add');
   });
 
-  it('offers a set its own verbs and those of vectors its walk reaches, after a literal and after a verb that returns a set [D355]', async () => {
+  it('offers a set its own verbs and those of vectors its walk reaches, after a literal and after a verb that returns a set [QSDSP#residence]', async () => {
     for (const src of ['#[3 1 2] | ', '[2 1 2] | toSet | ']) {
       const labels = await labelsAt(src);
       for (const label of ['sort', 'union', 'count', 'filter', 'first', 'has', 'take']) expect(labels).toContain(label);
@@ -497,7 +497,7 @@ describe('documentSymbols', () => {
     ]);
   });
 
-  it('shows a kind built from ::kind as a label and a function with a recipe under it as a verb [D352]', async () => {
+  it('shows a kind built from ::kind as a label and a function with a recipe under it as a verb [QSNAM#address]', async () => {
     const src = [
       ':Box',
       '  |~~ A parcel. ~~|',

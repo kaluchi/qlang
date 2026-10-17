@@ -5,5 +5,5 @@
 {"name":"an-address-reads-a-value","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side","expect":"3"}
 {"name":"a-path-names-a-noun-declared-before-it","query":":Box/area ~(1) !| get [~(type) /noun]","expect":"[::bind/NounNotDeclaredError ::Box]"}
 {"name":"an-address-no-declaration-names-is-refused-with-the-tags-near-it","query":"5 | vec/cout !| get [~(type) /address /nearest]","expect":"[::call/UnknownAddressError ::vec/cout [::vec/count]]"}
-{"decision":"D352","name":"the-tag-of-a-verb-lays-itself-over-a-payload-as-it-is","query":":number/f ~(1) | ::number/f[1] | type","expect":"::number/f"}
+{"name":"the-tag-of-a-verb-lays-itself-over-a-payload-as-it-is","query":":number/f ~(1) | ::number/f[1] | type","expect":"::number/f"}
 {"name":"a-tag-no-declaration-names-is-identity","query":"::code{:a 1} | type","expect":"::code"}

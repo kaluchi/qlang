@@ -109,7 +109,7 @@ describe('main — flag dispatch', () => {
 });
 
 // A query that reads no subject runs without waiting on standard input,
-// which a shell may hand open with nothing piped [QSHST#input].
+// which a shell may hand open with nothing piped [QSHST#stdin].
 describe('main — standard input read for a query that reads its subject', () => {
   const openStdin = () => Object.assign(new Readable({ read() {} }), { isTTY: false });
 
@@ -222,7 +222,7 @@ describe('main — script mode auto-pipe', () => {
   });
 
   it('uses raw mode on --raw regardless of stdin shape', async () => {
-    // The input reads as JSON, and `--raw` reads it as a string [QSHST#input].
+    // Standard input reads as JSON, and `--raw` reads it as a string [QSHST#stdin].
     const s = captureStreams('{"a":1}');
     const exitCode = await main(
       ['--raw', 'append " done"'],

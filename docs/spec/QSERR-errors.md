@@ -17,7 +17,7 @@ as `::error/PayloadKindNotTakenError`, and `::Foo!{…}` is
 through its label, a refusal of the label answering for the literal. A
 `:kind` entry is a fact as any key is. The
 walk of an error passes the tag of its site and `::tagged`, then
-`::error`, then the map, so a word declared once on `::error` reaches
+`::error`, then the map, so a verb declared once on `::error` reaches
 every error and a path reads the facts beneath the tags.
 
 ```qlang
@@ -29,6 +29,9 @@ true
 
 > !{:kind ::Foo} | get [~(type) /kind]
 [::error ::Foo]
+
+> :error/twice ~(get /a | mul 2) | ::Oops!{:a 3} | twice
+6
 ```
 
 ## raise
@@ -88,14 +91,14 @@ step ran its code on a part of its subject, the path of that part; a step
 the failure skips joins the steps of the last frame. A step whose answer
 is a failure its subject was not passes a frame: a step that fails,
 `raise`, and a step that answers a failure from inside it, the call of a
-word, a group, a word running a quote, while an arg of a step answers
-within the frame of that step. A word that runs its code on the elements
+verb, a group, a verb running a quote, while a modifier of a step answers
+within the frame of that step. A verb that runs its code on the elements
 of its subject, `map`, `filter`, `every`, `any` and `reduce`, and the keys
 of `sort`, `min`, `max`, `groupBy` and `indexBy`, names the place of the
 element its code broke on, its index or its key, and `update` the path it
 wrote; a step that ran no code on a part names none. `subject`, `step`,
-`skipped` and `place`, words of `::frame`, read a frame, and a path reads
-it as the vector it is, `/0` its subject, so the part a word's code broke
+`skipped` and `place`, verbs of `::frame`, read a frame, and a path reads
+it as the vector it is, `/0` its subject, so the part a verb's code broke
 on is one read away; the steps skipped at the level that reads the
 failure, `trail | last | skipped`, run again by `apply` as held code runs
 [QSQUO#held]. An error at rest holds the facts it is written with; one
@@ -113,7 +116,7 @@ and any other value is refused as `::error/TrailNotFramesError`; a frame
 of a subject alone, or whose place is no path, is refused as
 `::frame/PayloadNotSubjectAndStepsError`, and a trail that holds a value
 that is no frame as `::trail/ElementKindNotTakenError` at its index. The
-word `trail` answers the path, `::trail[]` for an error that holds none,
+verb `trail` answers the path, `::trail[]` for an error that holds none,
 refuses a subject that is no error as `::error/trail/SubjectNotErrorError`
 and an error whose `:trail` is no path, which its literal may write, by
 its answer, `::error/trail/answer/KindNotTakenError` [QSBLD#answer], while
@@ -158,19 +161,22 @@ true
 
 > ::error{:a 1} | trail
 ::trail[]
+
+> !{:a 1 :trail 5} | trail !| type
+::error/trail/answer/KindNotTakenError
 ```
 
 ## flow
 
-A failure stands in the pipe alone. Code a word runs that answers a
-failure answers the word, the elements after it left unrun: `map`,
+A failure stands in the pipe alone. Code a verb runs that answers a
+failure answers the verb, the elements after it left unrun: `map`,
 `filter`, `every`, `any`, `reduce`, the branches of `if`, and the keys of
 `sort`, `groupBy` and `indexBy`, while code that recovers inside keeps
 every element. A literal whose part fails answers that failure, and so
 does a template of `get` whose quote answers one, the first in the order
 written; the body of a declaration that fails leaves the scope as it
 was and answers the failure; a tag over a payload that fails answers the
-failure, and so does a word whose answer the kind of its subject refuses,
+failure, and so does a verb whose answer the kind of its subject refuses,
 under the tags its walk passed as under none, since no tag is laid over a
 failure; a modifier that answers a failure answers the call where its
 input takes a value, and is refused under the input where it takes code
@@ -204,33 +210,35 @@ input. The last name names the refusal alone, so two places may share
 one, `::call/ReadBackDiffersError` beside `::quote/ReadBackDiffersError`.
 A value of none of the kinds a holder takes is refused by the holder's
 role, `KindNotTakenError`, `PayloadKindNotTakenError` or
-`ElementKindNotTakenError`, the answer of a word and the subject of a
-function `apply` runs among them, `SubjectKindNotTakenError`, its kinds
-the fact `:expected`; the subject of a word is refused by the label it resides on,
+`ElementKindNotTakenError`, the answer of a verb, the subject of a
+function `apply` runs, `SubjectKindNotTakenError`, and the key an element
+files under, `KeyKindNotTakenError`, among them, its kinds the fact
+`:expected`; the subject of a verb is refused by the label it resides on,
 `SubjectNotNumberError`. The refusal of an input's value lives under the
 input, whether an invariant or a primitive raises it, and what a run
-answers under the word. A refusal is declared in the source of the place
-it guards, but for one the runtime raises by rule, a value of none of the
-kinds of a holder or a place the call leaves out, which reads the record
-of its place [QSSLF#axis]. The refusal of a primitive takes the address of the word that
-ran it, a refusal of the read of a path sits under `::path`, whichever
-word reads it, a place of the call an input reads and the call leaves
-out refused under the input [QSBLD#input], and a refusal of the
-language's own steps sits under the kind of that step, `::call`,
-`::bind`, `::construct`, `::quote` and `::error`, and links the page of
-its place; what no query reaches, the table of primitives or a node the
-evaluator does not know, is an invariant of the implementation under
-`::builtin`, and a failure of a host's implementation is
-`::call/HostFailureError`, with its `:message` and `:causes`. A refusal
-of the runtime holds its facts in the order the catalog declares them,
-the label's own first, the facts `::error` declares after them,
-`:expected`, `:actualType` and `:actualValue` among them, `:actualValue`
-left out where it equals the subject the first frame holds, whatever its
-identity, and the trail last; an error a reader writes holds its facts as written, a
-`:trail` it writes where it stands and the trail its flight begins
-last. A fact is a value of the language: a name a step read and a key a
-path read are keywords, an index a number, an entry of a map named by
-its `:key`.
+answers under the verb. A refusal is declared in the source of the place
+it guards, but for one the runtime raises by rule: the refusal of the
+kinds of an input, a field or a payload is a node the chain lays, with a
+page of its own where no `throws` gives one, and any other no `throws`
+declares reads the record of its place [QSSLF#axis]. The refusal of a
+primitive takes the address of the verb that ran it, a refusal of the
+read of a path sits under `::path`, whichever verb reads it, a place of
+the args an input reads and the call leaves out refused under the input
+[QSBLD#input], and a refusal of the language's own steps sits under the
+kind of that step, `::call`, `::bind`, `::construct`, `::quote` and
+`::error`, and links the page of its place; what no query reaches, the
+table of primitives or a node of the parser's tree the evaluator does
+not know, is an invariant of the implementation under `::builtin`, and a
+failure of a host's implementation is `::call/HostFailureError`, with
+its `:message` and `:causes`. A refusal of the runtime holds its facts
+in the order the catalog declares them, the label's own first, the facts
+`::error` declares after them, `:expected`, `:actualType` and
+`:actualValue` among them, `:actualValue` left out where it equals the
+subject the first frame holds, whatever its identity, and the trail
+last; an error a reader writes holds its facts as written, a `:trail` it
+writes where it stands and the trail its flight begins last. A fact is a
+value of the language: a name a step read and a key a path read are
+keywords, an index a number, an entry of a map named by its `:key`.
 
 ```qlang
 > "hello" | add 1 !| type
@@ -244,6 +252,9 @@ its `:key`.
 
 > ::error | manifest | has ::error/actualType
 true
+
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(::number/plus/by/KindNotTakenError | binding | get /name) ~(::number/plus/by/NotGivenError | binding | get /name)]
+[:number/plus/by/KindNotTakenError :number/plus/by]
 ```
 
 ## print

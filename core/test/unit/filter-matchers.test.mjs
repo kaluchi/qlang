@@ -1,7 +1,7 @@
 // `filter`, `every` and `any` over a vector, a set and a map. A predicate is
 // code applied to each element, a map's value being its element: a quote
 // runs against the element as its subject, and so does a verb it names or a
-// verb handed in its place [D352]. A refusal is asserted by its tag and its
+// verb handed in its place [QSCOL#filter]. A refusal is asserted by its tag and its
 // facts.
 
 import { describe, it, expect } from 'vitest';

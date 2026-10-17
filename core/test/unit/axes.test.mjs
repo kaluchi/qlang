@@ -191,7 +191,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
   // The axes project the one record the scope holds under an address, so
   // a verb the reader declares reads as itself, the case the hypertext
   // chain exists for. A value of the reader's named as a verb meets the
-  // verb at a step whose subject the verb answers [D352].
+  // verb at a step whose subject the verb answers [QSNAM#reach].
   const shadowed = ':any/hundredfold ~(mul 100) | ';
 
   it('a value of the reader named as a verb meets the verb where the subject answers it', async () => {

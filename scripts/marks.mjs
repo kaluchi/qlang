@@ -1,11 +1,13 @@
-// The marks the artifacts set on the decisions they exist for [QSWRK#marks]: a
-// module, a script and a test file name a record in a comment or a title,
-// `[Dnn]`, a case names it in its `decision`, and the sister project
-// names a record of qlang as `(qlang Dnn)`. A record lists no file; its
-// scope is every place that marks it, which this search answers.
+// The marks of the rules the artifacts hold [QSWRK#marks]: a module, a
+// script and a test file name a section in a comment or a title,
+// `[QSNAM#scope]`, and a record while its change is in transit, `[Dnn]`, a
+// case names the record in transit over its section in its `decision`, and
+// the sister project names a record of qlang as `(qlang Dnn)`. A record
+// lists no file; its scope is every place that marks it, which this search
+// answers.
 //
 // Usage:
-//   node scripts/marks.mjs                 the artifacts that mark no record, the orphans
+//   node scripts/marks.mjs                 the artifacts that name nothing, the orphans
 //   node scripts/marks.mjs D44             the places that mark a record
 //   node scripts/marks.mjs QSNAM#scope     the places that mark a section
 //   node scripts/marks.mjs <path>          the records a file marks
@@ -26,7 +28,7 @@ const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8',
 // An artifact is a source, a script or a test file of a workspace, a
 // source of qlang by the comment at its head and a workflow; the files of a
 // set of the benchmark, the generator its author wrote and the data its
-// runs wrote, are none and carry no mark inside them [D354].
+// runs wrote, are none and carry no mark inside them [QSWRK#marks].
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\/.*\.ya?ml$/;
 const RUN_OUTPUT = /^scripts\/benchmark\/sets\//;
 const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !RUN_OUTPUT.test(path);
@@ -36,7 +38,7 @@ const CASES = /^core\/test\/conformance\/.*\.jsonl$/;
 // [QSWRK#marks].
 const MARK = /\[((?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)(?:,\s*(?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?))*)\]/g;
 
-// The data of the benchmark names the decision it measures in the name of
+// The data of the benchmark names the record it measures in the name of
 // its file, where no text of its own can bear a mark: a screen,
 // `screens/D270.txt`, and a run of a set, `sets/V/runs/D270~cli~sonnet~1.json`
 // [QSWRK#measure].
@@ -295,7 +297,7 @@ if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(
   } else {
     const { orphans } = marksOfTree();
     for (const path of orphans) console.log(path);
-    console.log(`marks: ${orphans.length === 0 ? 'every artifact names the rules it holds' : `${orphans.length} artifacts name no decision [QSWRK#marks]`}`);
+    console.log(`marks: ${orphans.length === 0 ? 'every artifact names the rules it holds' : `${orphans.length} artifacts name no rule they hold [QSWRK#marks]`}`);
     process.exitCode = orphans.length === 0 ? 0 : 1;
   }
 }

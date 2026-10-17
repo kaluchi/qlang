@@ -19,7 +19,7 @@ const session = await createSession();
 const declared = new Set(declaredRefusals());
 
 // The refusals the verbs and the kinds of the root raise by rule, which their
-// definitions page as the declared ones are paged [D352].
+// definitions page as the declared ones are paged [QSERR#site].
 const ruleBorn = new Set([...session.env.get(ROOT_KEY).keys()]
   .filter(address => isVerb(session.env, address) || isKind(bindingValueOf(nodeOf(session.env, address))))
   .flatMap(address => ruleRefusalsOf(session.env, address)));

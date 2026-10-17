@@ -2,7 +2,7 @@
    the kinds of their subjects, `table` under `::vec` and the names of
    the streams under `::any`. Their primitives are plain functions over
    the served subject and the values of their inputs.
-   The rules it holds: [D352]. ~|
+   The rules it holds: [QSHST#effect], [QSDSP#residence]. ~|
 
 :cli
   |~~ The command line runs a query on what a shell hands it and prints

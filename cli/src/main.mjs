@@ -50,7 +50,7 @@ export function queryAsWritten(queryText, env, exists = existsSync) {
   return queryText;
 }
 
-// Whether a query reads the subject standard input lifts to [QSHST#input]; a
+// Whether a query reads the subject standard input lifts to [QSHST#stdin]; a
 // query that does not parse reads none, its refusal written at once.
 function queryReadsInput(queryText) {
   let ast;
@@ -90,7 +90,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
 
   // A query that reads no subject, `[1 2] | sum` or `::vec | doc`, runs
   // without waiting on standard input, which a shell may hand open with
-  // nothing piped [QSHST#input].
+  // nothing piped [QSHST#stdin].
   const queryText = queryAsWritten(cliInvocation.queryText, env);
   const readsInput = queryReadsInput(queryText);
   const stdinText = readsInput ? await readStdinToString(stdinStream) : '';

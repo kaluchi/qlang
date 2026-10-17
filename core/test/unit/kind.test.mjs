@@ -1,4 +1,4 @@
-// The kind built from `::kind` by commands [D357]: the refusals it raises by
+// The kind built from `::kind` by commands [QSBLD#kind]: the refusals it raises by
 // rule, which the catalog's drift test holds against the pages of the root's
 // kinds, the reading of its chain as the body of a bare name, the
 // declarations under it its chain holds alone, and a constructor its host has

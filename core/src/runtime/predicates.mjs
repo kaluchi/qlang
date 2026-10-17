@@ -1,6 +1,6 @@
 // The primitives of equality, of the comparisons, of the booleans and of the
 // kinds, whose verbs the catalog declares under `::any`, `::boolean` and the
-// kinds they compare [D352].
+// kinds they compare [QSCND#compare], [QSCND#boolean].
 
 import { typeOf } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';

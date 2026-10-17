@@ -1,6 +1,6 @@
 // The text stdin holds, read to its end, or the empty string where stdin is
 // a terminal, which `main` reads before a query that reads its subject runs.
-// The rules it holds: [QSHST#input].
+// The rules it holds: [QSHST#stdin].
 
 export function readStdinToString(stdin) {
   if (stdin.isTTY) {

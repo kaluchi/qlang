@@ -4,7 +4,7 @@
 // vector or a set names, and a vector folds the values it holds and takes
 // none beside it, a value of no kind of the algebra refused at its index and
 // a pair the algebra has no rule for refused by the verb with the kinds it
-// met [QSORD#order], [D352], [D355].
+// met [QSORD#order], [QSCOL#algebra].
 
 import { isSet, isKeyword, isString, isVec, isMap, makeSet, kindsExpected, typeOf } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
@@ -53,7 +53,7 @@ function unionOfMaps(left, right) {
 // entries by key: the other map's keys, or the keys the vector names, a set
 // among them (`#[:tmp]`, `[:a "c"]`), each a keyword or a string naming a key
 // as `get` and `has` read it, and an element of another kind refused at its
-// index with those two kinds as `:expected` [D355].
+// index with those two kinds as `:expected` [QSPTH#key].
 const KINDS_NAMING_A_MAP_KEY = kindsExpected('keyword', 'string');
 
 function keyNamesOf(keysValue, KeyRefusal) {

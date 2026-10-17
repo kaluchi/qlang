@@ -1,6 +1,6 @@
 // The chain of a function and of a kind, the commands that built it folded
 // into the quote its literal holds, read once for each value as the roles
-// they declare [D357].
+// they declare [QSBLD#fn], [QSBLD#kind].
 
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword, LITERAL_WORDS } from '../name-chars.mjs';
@@ -54,7 +54,7 @@ const KIND_COMMANDS = new Map([
 ]);
 
 // The names of the commands a chain is written in, those its quote folds and
-// `impl`, which gives a function its recipe or a kind its constructor [D357].
+// `impl`, which gives a function its recipe or a kind its constructor [QSBLD#fn], [QSBLD#kind].
 export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), 'impl'])]);
 
 // The modifiers of a step that is one of the commands of a table in the
@@ -232,7 +232,7 @@ export function chainOfFn(fn) {
 }
 
 // functionOfRecipe(recipe) → the function of no commands a recipe is, a quote
-// or a host's primitive written as the value of a verb [D352], made once
+// or a host's primitive written as the value of a verb [QSBLD#recipe], made once
 // for the recipe.
 const FUNCTIONS_OF_RECIPES = new WeakMap();
 const NO_COMMANDS = makeQuote([]);
@@ -264,7 +264,7 @@ export function pageOfKindsRefusal(name, kinds, each) {
 
 // pageOfConstructor(address) → the page of the constructor of a kind, the
 // one its host hands, which attaches the tag to a payload or refuses it
-// [D357].
+// [QSBLD#kind].
 export function pageOfConstructor(address) {
   return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the one its host hands, which attaches the tag to a payload or refuses it. `]);
 }

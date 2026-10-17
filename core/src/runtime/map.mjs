@@ -1,5 +1,5 @@
 // The primitives of the keys of a map and of the element a vector holds or
-// lacks, whose verbs the catalog declares under `::map` and `::vec` [D352].
+// lacks, whose verbs the catalog declares under `::map` and `::vec` [QSCOL#map], [QSCOL#sequence].
 
 import { keyword, isKeyword, isPath, isSet, makeSet } from '../types.mjs';
 import { pathReads } from './path.mjs';
@@ -12,7 +12,7 @@ bindPrim('map/entries', map => [...map].map(([entryKey, entryValue]) => Object.f
 
 // Whether a vector holds a value equal to the element: a set by a search in
 // its one order, which ranks two values alike exactly when they are equal,
-// and any other vector element by element [QSORD#order], [D355].
+// and any other vector element by element [QSORD#order], [QSCOL#sequence].
 function containsElement(vector, element) {
   if (!isSet(vector)) return vector.some(held => compareValues(held, element) === 0);
   let low = 0;

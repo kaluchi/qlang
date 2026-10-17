@@ -3,9 +3,10 @@
 What a value is, how its text writes it, and the kind every value has.
 A literal is a value its text fixes, reading no name and no subject, a
 tag it writes laid through the label the scope declares under that
-name; what computes a value is a word, [QSPTH#template] for a shape and
-`tag` for a tag laid over a value computed. The requirements of each section are the cases of its file
-under `core/test/conformance/QSLIT/`.
+name; what computes a value is a verb, `get` over a template for a
+shape [QSPTH#template] and `tag` for a tag laid over a value computed.
+The requirements of each section are the cases of its file under
+`core/test/conformance/QSLIT/`.
 
 ## kind
 
@@ -17,12 +18,11 @@ null each have their own; `#[…]` writes the set, `~(…)` the quote,
 `|~~ … ~~|` the doc and `!{…}` the error, each a payload under the tag of
 its kind, which `payload` opens; a host's value carries its tags above
 one of them. `type` answers the kind of any value, the kind a literal implies
-for one under no tag, and the kind's page is one step away. A tag is the
-name of an interpretation: tags stack over any payload and read from
-the outside in, `payload` reading what stands beneath the outermost and
-refusing a value under no tag as
-`::tagged/payload/SubjectNotTaggedError`; behaviour lives in the catalog
-and is found through the tag.
+for one under no tag, and the kind's page is one step away. A tag names
+a kind: tags stack over any payload and read from the outside in,
+`payload` reading what stands beneath the outermost and refusing a value
+under no tag as `::tagged/payload/SubjectNotTaggedError`; behaviour
+lives in the catalog and is found through the tag.
 
 ```qlang
 > [1 2] | type
@@ -154,14 +154,14 @@ set, a quote and a doc, a vector, and for an error the map of its facts,
 so `::number"5"` is refused and `::set[3 1]` is `#[1 3]`; a label laid
 over a value already under it stands once, `::Lab::Lab[1]` reading
 `::Lab[1]`, but for `::desc`, whose reversals stack [QSORD#desc]. A tag
-no declaration names, and the tag of a word, lays itself over a payload
-as it is [QSNAM#address], and the tag of a name that holds data is refused as
-`::construct/TagNotKindError`. `tag` lays a tag over the value in the
-pipe, `5 | tag ::Foo`, or over the pair `[tag payload]` it takes apart,
-through the tag's constructor; a tag of another kind is refused as
-`::any/tag/name/KindNotTakenError`, a subject that is no pair as
-`::any/tag/SubjectNotPairError`, and a pair whose first is no tag as
-`::any/tag/PairTagNotTagError`.
+no declaration names, the tag of a verb and the tag of an invariant lay
+themselves over a payload as it is [QSNAM#address], and the tag of a
+name that holds data is refused as `::construct/TagNotKindError`. `tag`
+lays a tag over the value in the pipe, `5 | tag ::Foo`, or over the pair
+`[tag payload]` it takes apart, through the tag's constructor; a name
+that is no tag name is refused as `::any/tag/name/KindNotTakenError`, a
+subject that is no pair as `::any/tag/SubjectNotPairError`, and a pair
+whose first is no tag as `::any/tag/PairTagNotTagError`.
 
 ```qlang
 > ::Width#5 | add 3 | get [~(type) ~(payload)]
@@ -178,6 +178,9 @@ through the tag's constructor; a tag of another kind is refused as
 
 > [::Foo 5] | tag
 ::Foo#5
+
+> get [~(::vec/sort#5 | type) ~(::vec/take/count/NotIntegerError#5 | type) ~(:limit 5 | ::limit#1 !| type)]
+[::vec/sort ::vec/take/count/NotIntegerError ::construct/TagNotKindError]
 ```
 
 ## closed
@@ -185,15 +188,16 @@ through the tag's constructor; a tag of another kind is refused as
 A literal is closed from its opening to its closing pair: its parts are
 literals, fixed by its text, which reads no name and no subject, and a
 tag it writes is laid through the label the scope declares under that
-name, its constructor checking the payload [QSLIT#tag]. A group or a name written inside a
-container, at any depth, is refused by the parser, which names the
-literal whole as the template of `get`, its tags and its brackets kept,
-`[::Box[x] 1]` naming `get [::Box[~(x)] 1]` [QSPTH#template], and inside
-an error literal names the facts built by
-`get` and made an error by `raise`; code in parentheses after a tag is
-refused, naming `tag` for a value computed, and a literal in them names
-the literal touching its tag, `::Width(5)` naming `::Width#5`. In the
-code of a doc, a literal that computes reads as prose.
+name, its constructor attaching the tag to the payload or refusing it
+[QSLIT#tag]. A group or a name written inside a container, at any depth,
+is refused by the parser, which names the literal whole as the template
+of `get`, its tags and its brackets kept, `[::Box[x] 1]` naming
+`get [::Box[~(x)] 1]` [QSPTH#template], and inside an error literal names
+the facts built by `get` and made an error by `raise`; code in
+parentheses after a tag is refused, naming `tag` for a value computed,
+and a literal in them names the literal touching its tag, `::Width(5)`
+naming `::Width#5`. In the code of a doc, a literal that computes reads
+as prose.
 
 ```qlang
 > "[(5 | add 1) 2]" | parse !| get /message

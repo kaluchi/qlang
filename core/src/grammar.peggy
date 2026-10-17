@@ -88,7 +88,7 @@
   // A step is a command: a value stands at the head of a pipeline and
   // after a declaration, where it is the subject, and a value written as
   // a later step is refused, a path after `!|` as well, each refusal
-  // naming the verb the habit meant [D352].
+  // naming the verb the habit meant [QSSYN#step].
   const VALUE_STEPS = new Set(['Path', 'VecLit', 'MapLit', 'SetLit', 'ErrorLit', 'TaggedLit', 'TagLit', 'QuoteLit', 'DocLit', 'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'RegexLit']);
 
   function refuseValueStep(step) {
@@ -308,7 +308,7 @@ DocBeforeDeclaration
 
 // A doc written after a step with no combinator is refused: a note in a
 // pipeline is a comment, which is whitespace, and a doc as a value stands
-// at the head or where a verb takes it [D352].
+// at the head or where a verb takes it [QSSYN#doc].
 DocAfterStep
   = &{ return docQuoteDepth === 0; } &DocOpen DocOpen
     { error('a doc is a value, which stands at the head or where a verb takes it; a note inside a pipeline is a comment, `|~ … ~|`'); }
@@ -513,7 +513,7 @@ Word
   / AtomLit
 
 // The element of a literal and the modifier of a command, which a doc value
-// may be too [D352].
+// may be too [QSSYN#doc].
 Element
   = Word
   / DocLit

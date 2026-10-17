@@ -43,9 +43,14 @@ its payload is that vector. Its constructor orders what it is given and
 holds each element once, so `tag ::set` and a write lay the set anew. A
 set reads by place as its vector does, two sets are equal by their
 elements, and equality reads the kind, so `#[1 2] | eq [1 2]` is false.
-A word over a set answers a set where the set is its own kind's answer,
-`filter` among them, and a vector where it answers an order of its own,
-`sort` and `reverse`, or the images of the elements, `map`.
+Its own verbs are those whose answer on a set is not the answer of the
+verb of vectors on it: `sort` and `reverse` answer the vector of an
+order, `toVec` the vector of its elements, `toSet` and `distinct` the set
+itself, `groupBy` files into sets, and `union`, `minus` and `inter` meet
+the set the call gives [QSCOL#algebra]. Every other verb of vectors
+reaches a set through the walk, an answer of the vector's label brought
+back as a set [QSDSP#residence], `filter` and `take` among them, while
+`map` answers the vector of the images.
 
 ```qlang
 > [2 1 2] | distinct
@@ -62,6 +67,12 @@ false
 
 > #[3 1 2] | filter ~(gt 1)
 #[2 3]
+
+> get [~(#[3 1 2] | sort) ~(#[3 1 2] | reverse) ~(#[3 1 2] | take 2) ~(#[-1 1] | map ~(mul 0))]
+[[1 2 3] [3 2 1] #[1 2] [0 0]]
+
+> #[1 2] | get [~(binding :filter | get /name) ~(binding :sort | get /name)]
+[:vec/filter :set/sort]
 ```
 
 ## sort
@@ -71,7 +82,7 @@ equal values keeping the order they stood in, a map's entries ordered by
 their values, each value keeping its key; `min` and `max` answer the
 first and the last value in it, null for an empty container, and a value
 that is no container answers none of them. Each takes a key, null, a
-quote or a path, another kind refused under the word's key,
+quote or a path, another kind refused under its input `key`,
 `::vec/sort/key/KindNotTakenError`, `::map/sort/key/…` and `::vec/min/key/…`,
 and ranks by what the key answers, a vector key ranking place by place,
 the first place first and each later one among the elements the places

@@ -17,5 +17,5 @@
 {"name":"distinct-on-set","query":"#[1 2 3] | distinct","expect":"#[1 2 3]"}
 {"name":"set-literal","query":"#[1 2 3]","expect":"#[1 2 3]"}
 {"name":"map-over-a-set-then-distinct","query":"#[1 2 3] | map ~(add 1) | distinct","expect":"#[2 3 4]"}
-{"decision":"D352","name":"a-set-answered-by-a-verb-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]"}
+{"name":"a-set-answered-by-a-verb-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]"}
 {"name":"keys-answer-the-one-order","query":"{:b 1 :a 2} | keys | payload","expect":"[:a :b]"}

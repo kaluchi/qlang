@@ -1,4 +1,4 @@
-// The kinds of the catalog and the commands of a chain [D357]: a kind is a
+// The kinds of the catalog and the commands of a chain [QSNAM#address], [QSBLD#fn]: a kind is a
 // label a source declares, a bare name by its page alone or by the chain or
 // the literal that builds it from `::kind`, as the parser reads the source
 // and `kinds` answers it, and a command one a chain takes, so no kind of the

@@ -116,7 +116,7 @@ describe('createSession lifecycle', () => {
 
 describe('the sources a host hands [QSDSP#residence]', () => {
   // A source of the host declares a verb under the label of its subject, with
-  // the implementation the host hands beside it [D352].
+  // the implementation the host hands beside it [QSHST#source].
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [

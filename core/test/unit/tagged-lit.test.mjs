@@ -114,7 +114,7 @@ describe('what a tag before a payload refuses and hands on', () => {
     expect(err.tag).toEqual(makeTag('construct/TagNotKindError'));
   });
 
-  it('lays the tag of a verb over the args of a call of it, which read back [D352]', async () => {
+  it('lays the tag of a verb over the args of a call of it, which read back [QSBLD#input]', async () => {
     expect(await evalQuery('1 | add 1 2 !| get /actualValue | eq ::number/add[1 2]')).toBe(true);
     expect(await evalQuery('::vec/count[] | type')).toEqual(makeTag('vec/count'));
   });

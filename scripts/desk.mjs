@@ -2,7 +2,7 @@
 // and how far it stands from master, what the tree leaves uncommitted,
 // the walk of the baseline, the targets open and the records being decided,
 // the reach of the records in transit [QSWRK#documents], the
-// artifacts that name no decision and the records whose scope changed
+// artifacts that name no rule they hold and the records whose scope changed
 // since the baseline read them [QSWRK#marks], the stashes, the branches and the
 // worktrees a merge leaves [QSWRK#baseline], and the sister project's
 // branch against its remote.
@@ -76,7 +76,7 @@ lines.push(transit.size === 0 ? '  no record in transit, the tension relaxed'
   : `  reach ${transit.size} records in transit over ${new Set([...transit.values()].flat()).size} sections, ${claimed} cases they claim and ${citing} lines of code that cite them: the move parts them [QSWRK#documents]`);
 
 const { orphans } = marksOfTree(root);
-if (orphans.length > 0) lines.push(`  orphans ${orphans.length}, artifacts that name no decision: node scripts/marks.mjs`);
+if (orphans.length > 0) lines.push(`  orphans ${orphans.length}, artifacts that name no rule they hold: node scripts/marks.mjs`);
 const touched = touchedRecords(root);
 const shown = touched.slice(0, 16).map(({ name }) => name).join(' ');
 lines.push(touched.length === 0 ? '  no record touched since the baseline read it' : `  touched ${touched.length} records since the baseline read them, ${shown}${touched.length > 16 ? ' …' : ''}: node scripts/marks.mjs --touched`);

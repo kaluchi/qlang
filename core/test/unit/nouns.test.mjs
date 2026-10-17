@@ -37,7 +37,7 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('shop !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a verb of a source reads a bare value of the root as a reader reads it, after the verbs of its name, no frame of its source before them [D352]', async () => {
+  it('a verb of a source reads a bare value of the root as a reader reads it, after the verbs of its name, no frame of its source before them [QSNAM#reach]', async () => {
     const shop = { uri: 'shop', source: ':shop |~~ A shop. ~~|\n:limit 5\n:shop/capped ~(limit)' };
     const later = { uri: 'stock', source: ':stock |~~ A stock. ~~|\n:stock/limit ~(7)' };
     const alone = await createSession({ sources: [shop] });
@@ -46,12 +46,12 @@ describe('the names of the scope', () => {
     expect((await beside.evalCell('::shop{} | capped !| type')).result).toEqual(makeTag('stock/limit/SubjectNotStockError'));
   });
 
-  it('a label of a source is no bare name inside the verbs of its source [D352]', async () => {
+  it('a label of a source is no bare name inside the verbs of its source [QSNAM#reach]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/self ~(shop)' }] });
     expect((await session.evalCell('::shop{} | self !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a verb of a source reads a bare value its source declares after it, a node of the root [D352]', async () => {
+  it('a verb of a source reads a bare value its source declares after it, a node of the root [QSNAM#reach]', async () => {
     const session = await createSession({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|\n:shop/capped ~(limit)\n:limit 5' }] });
     expect((await session.evalCell('::shop{} | capped')).result).toBe(5);
   });
@@ -66,7 +66,7 @@ describe('the names of the scope', () => {
     expect((await session.evalCell(`${reader} | get [~([1 2] | twice) ~([1 2] | sum2 5 !| get [~(type) /name])] | eq [[2 4] [::bind/NameDeclaredTwiceError :n]]`)).result).toBe(true);
   });
 
-  it('a value of the reader meets a verb a later source declares, where the subject answers the verb alone [D352]', async () => {
+  it('a value of the reader meets a verb a later source declares, where the subject answers the verb alone [QSNAM#reach]', async () => {
     const later = { uri: 'stock', source: ':vec/tally ~(count)' };
     const alone = await createSession({ sources: [] });
     expect((await alone.evalCell(':tally 5 | [1 2] | tally')).result).toBe(5);
@@ -75,25 +75,25 @@ describe('the names of the scope', () => {
     expect((await beside.evalCell(`${met} | eq [5 [::call/ValueMeetsVerbError #[::vec/tally]] 2]`)).result).toBe(true);
   });
 
-  it('a value of the reader meets a verb of a later source only where the verb serves the subject, its tag name among them [D352]', async () => {
+  it('a value of the reader meets a verb of a later source only where the verb serves the subject, its tag name among them [QSNAM#reach]', async () => {
     const later = { uri: 'shop', source: ':Shop |~~ A shop. ~~|\n:Shop/f ~(1)\n:Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5"))' };
     const session = await createSession({ sources: [later] });
     const met = ':f 7 | :hours 3 | get [~(::Shop | f) ~(::Shop{} | f !| type) ~(::Shop | hours !| type)]';
     expect((await session.evalCell(`${met} | eq [7 ::call/ValueMeetsVerbError ::call/ValueMeetsVerbError]`)).result).toBe(true);
   });
 
-  it('a reader\'s verb on a label meets a value of its name only on a subject it serves [D352]', async () => {
+  it('a reader\'s verb on a label meets a value of its name only on a subject it serves [QSNAM#reach]', async () => {
     const reader = ':Shop |~~ A shop. ~~| | :Shop/f ~(1) | :f 7';
     expect(await evalQuery(`${reader} | get [~(::Shop | f) ~(::Shop{} | f !| type) ~(5 | f)] | eq [7 ::call/ValueMeetsVerbError 7]`)).toBe(true);
   });
 });
 
-describe('a recipe of the root reads its verbs and its inputs by name [D355]', () => {
-  it('a name of habit answers as its verb on the subject, a reader\'s verb under a noun of the root staying in the reader\'s queries [D352]', async () => {
+describe('a recipe of the root reads its verbs and its inputs by name [QSBLD#recipe]', () => {
+  it('a name of habit answers as its verb on the subject, a reader\'s verb under a noun of the root staying in the reader\'s queries [QSNAM#owner]', async () => {
     expect(await evalQuery(':number/tag ~(99) | 5 | get [~(desc) ~(tag ::desc !| type)] | eq [::desc#5 ::number/tag/ArgsBeyondInputsError]')).toBe(true);
   });
 
-  it('a name of habit answers as its verb on a value of a kind the reader declared, a verb of the reader under it among them [D352]', async () => {
+  it('a name of habit answers as its verb on a value of a kind the reader declared, a verb of the reader under it among them [QSNAM#owner]', async () => {
     const post = ':Post |~~ A post. ~~| | :Post/tag ~(get /tag) | ::Post{:tag "a"}';
     expect(await evalQuery(`${post} | get [~(desc !| type) ~(tag ::desc !| type)] | eq [::Post/tag/ArgsBeyondInputsError ::Post/tag/ArgsBeyondInputsError]`)).toBe(true);
     const box = ':Box |~~ A box. ~~| | :Box/toSet ~(#[9]) | ::Box[2 1 2]';
@@ -105,12 +105,12 @@ describe('a recipe of the root reads its verbs and its inputs by name [D355]', (
     expect((await session.evalCell('5 | get [~(desc !| type) ~(tag ::desc !| type)] | eq [::number/tag/ArgsBeyondInputsError ::number/tag/ArgsBeyondInputsError]')).result).toBe(true);
   });
 
-  it('the inputs of `subOf` and `divOf` shadow a value of the reader of their names, and a verb under a noun of the root stays in the reader\'s queries [D352]', async () => {
+  it('the inputs of `subOf` and `divOf` shadow a value of the reader of their names, and a verb under a noun of the root stays in the reader\'s queries [QSBLD#recipe], [QSNAM#owner]', async () => {
     const reader = ':minuend 1 | :divisor 1 | :map/subtrahend ~(1) | :map/dividend ~(1)';
     expect(await evalQuery(`${reader} | {:a 6 :b 2} | get [~(subOf /a /b) ~(divOf /a /b)] | eq [4 3]`)).toBe(true);
   });
 
-  it('an input of `subOf` and `divOf` meets a verb of its name that serves the subject, the reader\'s under a kind of its own and a later source\'s [D352]', async () => {
+  it('an input of `subOf` and `divOf` meets a verb of its name that serves the subject, the reader\'s under a kind of its own and a later source\'s [QSNAM#reach]', async () => {
     const post = ':Post |~~ A post. ~~| | :Post/minuend ~(1) | ::Post{:a 6 :b 2}';
     expect(await evalQuery(`${post} | subOf /a /b !| get [~(type) /name] | eq [::call/ValueMeetsVerbError :minuend]`)).toBe(true);
     const session = await createSession({ sources: [{ uri: 'later', source: ':map/divisor ~(1)' }] });
@@ -181,7 +181,7 @@ describe('a name with a path calls the verb its address names', () => {
   });
 });
 
-describe('what a verb reads and runs as data reads the tree of the query [D352]', () => {
+describe('what a verb reads and runs as data reads the tree of the query [QSNAM#owner]', () => {
   const pages = { uri: 'pages', source: ':pages |~~ Pages. ~~|\n:k |~~ the source\'s own ~~| 1\n:any/pageOf ~(doc | content)' };
   const runner = { uri: 'runner', source: ':runner |~~ A runner. ~~|\n:any/runIt (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code))' };
 
@@ -211,13 +211,13 @@ describe('what a verb reads and runs as data reads the tree of the query [D352]'
     expect((await session.evalCell(':k |~~ the reader\'s ~~| 2 | ::k | pageOf')).result).toBe(' the reader\'s ');
   });
 
-  it('code held as data reads no value of the reader, past the inputs of a verb of the root [D352]', async () => {
+  it('code held as data reads no value of the reader, past the inputs of a verb of the root [QSQUO#held]', async () => {
     const session = await createSession({ sources: [runner] });
     expect((await session.evalCell(':x 1 | "x" | parse | :q it | null | runIt q 99 !| get [~(type) /name]')).result)
       .toEqual([makeTag('call/ValueWithheldError'), keyword('x')]);
   });
 
-  it('a verb the reader declares reads as data the tree of the query, past its own declarations, and runs held code in a lane of its own [D352]', async () => {
+  it('a verb the reader declares reads as data the tree of the query, past its own declarations, and runs held code in a lane of its own [QSNAM#owner]', async () => {
     expect(await evalQuery(':x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names | eq [false true]')).toBe(true);
     expect(await evalQuery(':any/f ~(:loc |~~ L ~~| 1 | ::loc | doc | content) | f !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
     expect(await evalQuery(':x 1 | :any/run (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code)) | "x" | parse | :q it | null | run q 99 !| type'))
@@ -230,7 +230,7 @@ describe('what a verb reads and runs as data reads the tree of the query [D352]'
       .toEqual(makeTag('call/ValueWithheldError'));
   });
 
-  it('held code reads a verb a later source declares, and the reader\'s verb that shadows it [D352]', async () => {
+  it('held code reads a verb a later source declares, and the reader\'s verb that shadows it [QSQUO#held]', async () => {
     const later = { uri: 'later', source: ':any/triple ~(mul 3)' };
     const session = await createSession({ sources: [later] });
     expect((await session.evalCell(':f ~(triple) | 2 | apply f')).result).toBe(6);

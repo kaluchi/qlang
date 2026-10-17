@@ -280,7 +280,7 @@ function stepTagOf(step) {
 // A quote of declarations alone, the story `source` reads, prints one
 // declaration a line, each after the first led by its pipe, as the
 // catalog writes it [QSQUO#parse], and so does a quote of several steps one of
-// which takes several lines, the commands of a chain among them [D357].
+// which takes several lines, the commands of a chain among them.
 function printSteps(steps) {
   const printed = steps.map(step => (stepTagOf(step) === FAIL_TAG.name ? { fail: printSteps(step.payload) } : { step: printStep(step) }));
   const lined = steps.length > 1 && (steps.every(step => stepTagOf(step) === BIND_TAG.name) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));

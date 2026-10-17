@@ -1,7 +1,7 @@
 // `raise`, and the catch, `!|`, which passes a value by and runs its step on
 // the error at rest, a group and a verb among them; the trail of the steps a
 // failure skips, and the refusals of the runtime, each under the address of
-// its site [D352].
+// its site [QSERR#site].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -120,7 +120,7 @@ describe('per-site error classes carry unique identity', () => {
   // `.originalError` for structured (`.name`, `.facts.*`,
   // `instanceof QlangError`) inspection.
 
-  it('count on a value no kind of which answers it is refused with the addresses of count [D355]', async () => {
+  it('count on a value no kind of which answers it is refused with the addresses of count [QSDSP#refusal]', async () => {
     const caughtErr = await catchOriginalError('42 | count');
     expect(caughtErr).toBeInstanceOf(QlangError);
     expect(caughtErr.name).toBe('KindAnswersNoVerbError');
@@ -131,7 +131,7 @@ describe('per-site error classes carry unique identity', () => {
     expect((await evalQuery('42 | keys')).tag.name).toBe('map/keys/SubjectNotMapError');
   });
 
-  it('a subject of another kind is refused under the address of the verb [D352]', async () => {
+  it('a subject of another kind is refused under the address of the verb [QSERR#site]', async () => {
     const refused = await evalQuery('"x" | add 1');
     expect(refused.tag.name).toBe('number/add/SubjectNotNumberError');
     expect(refused.descriptor.get('actualType').name).toBe('string');
@@ -231,14 +231,14 @@ describe('per-site error classes carry unique identity', () => {
     expect(mapResult.get('name')).toBe('alice');
   });
 
-  it('a count that is no whole number breaks the law of the count of its verb [D352]', async () => {
+  it('a count that is no whole number breaks the law of the count of its verb [QSCOL#sequence]', async () => {
     expect((await evalQuery('[1 2 3] | take 1.5')).tag.name).toBe('vec/take/count/NotIntegerError');
     expect((await evalQuery('[1 2 3] | drop 1.5')).tag.name).toBe('vec/drop/count/NotIntegerError');
     expect((await evalQuery('"abc" | take 1.5')).tag.name).toBe('string/take/count/NotIntegerError');
   });
 
 
-  it('a reducer of code runs on the pair, failing under the verb it called [D352]', async () => {
+  it('a reducer of code runs on the pair, failing under the verb it called [QSCOL#reduce]', async () => {
     const answer = await evalQuery('[1 2 3] | reduce 0 ~(add 1)');
     expect(answer.tag.name).toBe('number/add/SubjectNotNumberError');
   });

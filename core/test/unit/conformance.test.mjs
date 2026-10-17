@@ -7,7 +7,7 @@
 //
 // Every file is a section of a chapter, and a case that names a record
 // opens with a record in force, `{"decision":"Dnn",…}` [QSWRK#cases],
-// [D356], and a requirement the tree does not meet yet is a target,
+// and a requirement the tree does not meet yet is a target,
 // `"target": true`, which answers its present, `"now"`, an error by its tag
 // and any other value as its literal: a target that answers as expected
 // fails until the branch that met it drops the mark, and one that answers
@@ -86,7 +86,7 @@ describe('conformance: the requirements agree', () => {
 
   // A case is gated by its section, the file it stands in, and names a
   // record only while the record's change is in transit over it, the record
-  // opening the case [QSWRK#cases], [D356].
+  // opening the case [QSWRK#cases].
   it('opens a case that names a record with the one record in force, whose record stands in the root of the records [QSWRK#cases]', () => {
     const decisionsDir = join(here, '..', '..', '..', 'docs', 'journal');
     const ungated = allCases.filter(({ file: _file, ...test }) => test.decision !== undefined
@@ -95,7 +95,7 @@ describe('conformance: the requirements agree', () => {
     expect(ungated).toEqual([]);
   });
 
-  it('stands each file as a section of a chapter of the specification [QSWRK#cases], [D356]', () => {
+  it('stands each file as a section of a chapter of the specification [QSWRK#cases]', () => {
     const specDir = join(here, '..', '..', '..', 'docs', 'spec');
     const homeless = files.filter(file => {
       const [chapter, section] = [chapterOf(file), file.split('/').pop().replace(/\.jsonl$/, '')];

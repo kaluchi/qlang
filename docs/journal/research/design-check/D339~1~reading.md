@@ -73,7 +73,7 @@
 [D338]: ../../replaced/D338.md
 [D339]: ../../D339.md
 [QSCOL#sequence]: ../../../spec/QSCOL-collections.md#sequence
-[QSDSP#refusal]: ../../../spec/QSDSP-a-word-found-through-its-subject.md#refusal
+[QSDSP#refusal]: ../../../spec/QSDSP-a-verb-found-through-its-subject.md#refusal
 [QSLIT#atoms]: ../../../spec/QSLIT-values-and-literals.md#atoms
 [QSLIT#closed]: ../../../spec/QSLIT-values-and-literals.md#closed
 [QSSLF#doc]: ../../../spec/QSSLF-the-language-describes-itself.md#doc

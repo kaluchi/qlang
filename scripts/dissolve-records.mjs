@@ -2,7 +2,7 @@
 // move of the baseline [QSWRK#baseline]: the author has written the sections anew
 // in the present, and the run does the rest. A case that names the record
 // drops the name, every case standing in the section of a chapter
-// [D356]; a citation of the record in the code,
+// [QSWRK#cases]; a citation of the record in the code,
 // the tests and the documents of the work names its section where the
 // record overrides one, once in a run, and is listed for the author where
 // it overrides several; the record gains its line `Dissolved into` the
@@ -60,7 +60,7 @@ for (const name of names) {
 
 for (const name of names) {
   const sections = transit.get(name);
-  // A case rests in its section, the file of a chapter it stands in [D356].
+  // A case rests in its section, the file of a chapter it stands in [QSWRK#cases].
   for (const path of caseFiles) {
     rewrite(path, text => text.split('\n').map(line => {
       if (!line.includes(`"decision":"${name}"`)) return line;

@@ -10,7 +10,7 @@
 // `D327~1~reading.md`, the fate of each finding in it, and the audit leaves
 // with its record at the move of the baseline unless a text in force cites
 // it [QSWRK#baseline]. The start of the reader, the refusals, the number and
-// the head are the ones every run of the research shares [D342].
+// the head are the ones every run of the research shares [QSWRK#review].
 //
 // Usage: node scripts/outside-audit.mjs --for Dnn [--why "…"]
 

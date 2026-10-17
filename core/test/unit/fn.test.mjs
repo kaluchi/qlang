@@ -1,6 +1,6 @@
 // The refusals a verb that is a function raises by rule, read from its
 // chain as its call raises them, which the catalog's drift test holds
-// against the pages of the root's verbs [D352].
+// against the pages of the root's verbs [QSERR#site].
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
@@ -14,7 +14,7 @@ await session.evalCell([
   ':number/plain (::fn | takes :by |~~ How much. ~~| ~(query /0 1) | impl ~(add by))'
 ].join(' | '));
 
-describe('the refusals a verb that is a function raises by rule [D352]', () => {
+describe('the refusals a verb that is a function raises by rule [QSERR#site]', () => {
   it('names an answer of none of several kinds where its label is none of them', () => {
     expect(ruleRefusalsOf(session.env, 'number/pick')).toEqual([
       'number/pick/SubjectNotNumberError',
@@ -48,7 +48,7 @@ describe('the refusals by rule of an input that names the kinds of each element 
   });
 });
 
-describe('a host\'s verb written as the chain of its function [D352]', () => {
+describe('a host\'s verb written as the chain of its function [QSHST#source]', () => {
   it('runs the code inputs of a host\'s verb, a quote written in the step in the scope of the step', async () => {
     const hosted = await createSession({ sources: [{
       uri: 'test/declared',
@@ -84,14 +84,14 @@ describe('a host\'s verb written as the chain of its function [D352]', () => {
     expect((await hosted.evalCell('5 | each ~(add 1) 7')).result).toEqual([6, 7]);
   });
 
-  it('names the refusals of a verb written as its recipe alone, the function of no commands it is [D352]', async () => {
+  it('names the refusals of a verb written as its recipe alone, the function of no commands it is [QSBLD#recipe]', async () => {
     const own = await createSession();
     await own.evalCell(':number/v ~(1)');
     expect(ruleRefusalsOf(own.env, 'number/v')).toEqual(['number/v/SubjectNotNumberError', 'number/v/ArgsBeyondInputsError']);
   });
 });
 
-describe('a verb a later source declares as a function [D352]', () => {
+describe('a verb a later source declares as a function [QSBLD#recipe]', () => {
   it('runs by its function, its recipe reading its input past a value of the reader of the name', async () => {
     const hosted = await createSession({ sources: [{ uri: 'test/twice', source: ':number/twice ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by | add by)]' }] });
     expect((await hosted.evalCell(':by 99 | 5 | twice 1')).result).toBe(7);

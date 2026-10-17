@@ -1,7 +1,7 @@
 // script-mode coverage. `liftStdinToPipeValue` resolves the `auto` /
 // `json` / `raw` flag into the query's first value, and `answerText`
 // writes the answer as the language prints it, whatever the data was
-// [D352].
+// [QSHST#stdin], [QSHST#answer].
 
 import { describe, it, expect } from 'vitest';
 import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
@@ -51,7 +51,7 @@ describe('liftStdinToPipeValue — explicit formats', () => {
 
 // The answer is written as the language prints it whatever the data was,
 // a string as its text, so a query converts it where a reader wants
-// another format [D352].
+// another format [QSHST#answer].
 describe('answerText — the answer as the language prints it', () => {
   it('prints a keyword, a set, a tag and a quote as their literals', async () => {
     expect(await answerText(await evalQuery('[:v #[2 1] ::vec ~(add 1) "s"]'), await langRuntime()))

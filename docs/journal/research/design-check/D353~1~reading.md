@@ -179,6 +179,6 @@ Read docs/journal/AIM.md. Find where the decisions of different records conflict
 return { decided, coherence }
 ```
 
-[D349]: ../../D349.md
+[D349]: ../../replaced/D349.md
 [D353]: ../../D353.md
 [QSWRK#documents]: ../../../spec/QSWRK-the-work.md#documents

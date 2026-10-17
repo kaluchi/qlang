@@ -328,7 +328,7 @@ function sectionsOfChapter(text) {
 // stands with the session's reading beside it, `D329~2~reading.md` or the
 // `reading.md` of the run, the two one unit held while that record is in
 // force or a text in force cites it. Any other document of the research is
-// a unit of its own, held by a citation of its path [QSWRK#review], [D356],
+// a unit of its own, held by a citation of its path [QSWRK#review],
 // and the README of a folder says what the folder holds and holds none of it.
 const RESEARCH_DOCUMENT = new RegExp(`^${RESEARCH}/[^/]+/.+`);
 const OF_A_RECORD = new RegExp(`^${RESEARCH}/(?:(?:${foldersShaped('report')})/(D\\d+)~\\d+(?=(?:~reading)?\\.md$)|(?:${foldersShaped('run')})/(D\\d+)~\\d+(?=/))`);
@@ -353,7 +353,7 @@ export function textsInForce(repoRoot) {
 // a record called for by its folder and the name it shares with its
 // reading, `design-check/D329~2` or `spec-check/D323~1`, and any other
 // document of the research by its path from the root of the journal, so a
-// citation of one document holds no other [D356].
+// citation of one document holds no other [QSWRK#baseline].
 export const unitOf = path => {
   const named = OF_A_RECORD.exec(path);
   return named === null ? path.slice(JOURNAL.length + 1) : named[0].split('/').slice(-2).join('/');
@@ -393,7 +393,7 @@ export function reportsWithoutReading(repoRoot) {
 // a branch keeps every run of its own, and the move of the baseline gives
 // the older to the history, so the merge that lands a branch holds the two
 // latest of each, while a report of the research leaves by what holds it,
-// above [D354].
+// above [QSWRK#baseline].
 const SERIES = [
   { name: 'the sets of the benchmark', memberOf: path => /^scripts\/benchmark\/sets\/[^/]+\//.exec(path)?.[0] },
   { name: 'the screens of the benchmark', memberOf: path => /^scripts\/benchmark\/screens\/[^/]+$/.exec(path)?.[0] },

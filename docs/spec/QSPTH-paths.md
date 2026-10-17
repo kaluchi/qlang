@@ -1,6 +1,6 @@
 # QSPTH · Paths
 
-A path is a value that names a place in another value, and the word
+A path is a value that names a place in another value, and the verb
 that takes it reads it there or writes it. The requirements of each
 section are the cases of its file under `core/test/conformance/QSPTH/`.
 
@@ -101,19 +101,24 @@ asked for by `contains` [QSCOL#sequence].
 ## key
 
 A key alone is the path of one segment where `get`, `query` and the
-words that write take a path: a keyword, a number or a string, one
+verbs that write take a path: a keyword, a number or a string, one
 segment of its text, which a map reads as a key and a vector as a place,
 so a key the query computes is read; any other value given to `get` or
-`query` is a template [QSPTH#template]. Every place
-that takes a key of a map reads a string so: `minus` and `inter` on a
-map take a map, a vector or a set of keys, each a keyword or a string,
-an element of another kind refused at its index,
-`::map/minus/KeyNotKeywordOrStringError` and
-`::map/inter/KeyNotKeywordOrStringError`, and a single key refused as
+`query` is a template [QSPTH#template]. Every place that takes a key of a
+map reads a string so. The keys `minus` takes out of a map and `inter`
+keeps of it are the value of their input `keys`, a map, a vector or a set
+of keys, each a keyword or a string: an element of another kind is
+refused under that input at its index, the two kinds as `:expected`,
+`::map/minus/keys/ElementKindNotTakenError` and
+`::map/inter/keys/ElementKindNotTakenError`, and a single key as
 `::map/minus/keys/KindNotTakenError` and
-`::map/inter/keys/KindNotTakenError`. Inside a keyword the slash is a
-letter of the one name, `get :a/b` reading the key `:a/b`; in a path it
-parts the segments, `get /a/b` reading `:b` under `:a`.
+`::map/inter/keys/KindNotTakenError`. A vector that folds the maps it
+holds by `minus` and `inter` [QSCOL#algebra] reads the keys in each
+element after the first, a key of another kind refused under the verb,
+`::vec/minus/KeyKindNotTakenError` and `::vec/inter/KeyKindNotTakenError`.
+Inside a keyword the slash is a letter of the one name, `get :a/b`
+reading the key `:a/b`; in a path it parts the segments, `get /a/b`
+reading `:b` under `:a`.
 
 ```qlang
 > {:k "b" :b 7} | get (get /k)
@@ -121,6 +126,9 @@ parts the segments, `get /a/b` reading `:b` under `:a`.
 
 > {:a 1 :b 2} | minus ["a"]
 {:b 2}
+
+> get [~({:a 1} | minus [:a 1] !| get [~(type) /index /expected]) ~([{:a 1} [1]] | minus !| type)]
+[[::map/minus/keys/ElementKindNotTakenError 1 #[::keyword ::string]] ::vec/minus/KeyKindNotTakenError]
 
 > {:a/b 1} | get :a/b
 1
@@ -158,18 +166,18 @@ answer of the template, the parts after it unread [QSERR#flow].
 
 ## code
 
-A word whose input takes code takes a path as the code that reads it
+A verb whose input takes code takes a path as the code that reads it
 from each value it runs on, as `get` reads it: `map /name`,
 `filter /active`, `sort /age`, `groupBy /status`; a read that misses
 passes a frame at the value it missed, its step the `get` of the path,
-as `~(get /name)` passes one there. The path of
-`get`, `query` and `has` and the inputs of the words that combine
-several values of one subject, `sumOf`, `subOf`, `mulOf`, `divOf` and
-`unionOf`, take a path and read it. An input whose kinds leave a path out refuses one,
-naming as `:read` the read the call was likely meant for, `take /n`
-naming `take (get /n)`; an input that takes any value, the value of
-`put`, `append`, `eq` and the default of `query`, takes the path as the
-value it is.
+as `~(get /name)` passes one there. The path of `get`, `query` and `has`
+and the inputs of the verbs of one subject, which combine several of its
+values, `sumOf`, `subOf`, `mulOf`, `divOf` and `unionOf`, take a path and
+read it against the subject. An input whose kinds leave a path out
+refuses one, naming as `:read` the read the call was likely meant for,
+`take /n` naming `take (get /n)`; an input that takes any value, the
+value of `put`, `append`, `eq` and the default of `query`, takes the path
+as the value it is.
 
 ```qlang
 > [{:n 2} {:n 1}] | sort /n
@@ -185,25 +193,27 @@ value it is.
 [::number/mul/multiplier/KindNotTakenError ~(mul (get /qty))]
 ```
 
-## words
+## verbs
 
-A path answers the words of `::path` and those every value answers,
-`eq`, `ne`, `type`, `print`, `json` and `tag` among them; a word of another kind called on one is
-refused, the refusal naming as `:read` the read the step was likely
-meant for. `segments` answers the keys and places of a path, a place as its number
-and a segment of digits that writes no number as its text, `/01`
-answering `[:"01"]`. `toPath`
-reads a path from a vector of keys and places, an empty one refused as
-`::vec/toPath/EmptyError` and an element that is no key as
-`::vec/toPath/ElementNotKeyError`, and from a string in the form of JSON
-Pointer, its escapes read and a leading `#` of a fragment among it, a
-string of another form refused as `::string/toPath/NotPointerError`.
+A path answers the verbs of `::path` and those every value answers,
+`eq`, `ne`, `type`, `print`, `json` and `tag` among them; a name whose
+verbs serve other kinds is refused on a path, under the address of its
+verb where one verb holds the name and by the call where several do
+[QSDSP#refusal], the refusal naming as `:read` the read the step was
+likely meant for. `segments` answers the keys and places of a path, a
+place as its number and a segment of digits that writes no number as its
+text, `/01` answering `[:"01"]`. `toPath` reads a path from a vector of
+keys and places, an empty one refused as `::vec/toPath/EmptyError` and an
+element that is no key as `::vec/toPath/ElementNotKeyError`, and from a
+string in the form of JSON Pointer, its escapes read and a leading `#` of
+a fragment among it, a string of another form refused as
+`::string/toPath/NotPointerError`.
 
 `paths` answers the outline of a value, the set of its leaves, each the
 pair of the path that reads it and its kind, the value read beneath the
 tags over it, a part under a tag a leaf and a set opened as a vector, and
-`#[]` for an atom. `shape`, a word of `::any`, answers the schema of a
-value in its own literal under `::shape`, a noun whose page tells how a
+`#[]` for an atom. `shape`, a verb of `::any`, answers the schema of a
+value in its own literal under `::shape`, a label whose page tells how a
 shape reads, so `doc` on the answer reads that page: the value read
 beneath the tags over it, each map keeping its keys, each vector and each
 set one element whose shape holds of all its elements, a set as `#[E]`,
@@ -231,8 +241,8 @@ data reads its shape through its marks and its folds as far as a part
 holds one kind.
 
 ```qlang
-> /tags | count !| get /read
-~(get /tags | count)
+> get [~(/tags | count !| get [~(type) /read]) ~(/tags | keys !| get [~(type) /read])]
+[[::call/KindAnswersNoVerbError ~(get /tags | count)] [::map/keys/SubjectNotMapError ~(get /tags | keys)]]
 
 > /a/0 | segments
 [:a 0]
@@ -297,7 +307,7 @@ again and a value that breaks the invariant of its tag is refused.
 
 ## it
 
-`it` answers the value in the pipe, the value itself where a word takes
+`it` answers the value in the pipe, the value itself where a verb takes
 a value.
 
 ```qlang

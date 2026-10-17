@@ -1,4 +1,4 @@
-// Verbs and kinds under a label [D352]: a kind its chain
+// Verbs and kinds under a label [QSBLD#label]: a kind its chain
 // builds, the verbs declared under it running on its values, the inputs a
 // call's args hold, a host's primitive under a label, and the refusals
 // named by the address of what refused.

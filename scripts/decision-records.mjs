@@ -17,8 +17,8 @@ export const REPLACED = `${JOURNAL}/replaced`;
 export const RESEARCH = `${JOURNAL}/research`;
 const recordFolders = root => [join(root, JOURNAL), join(root, REPLACED)];
 
-// The folders of the research by the shape of what each holds [QSWRK#review],
-// [D342]: a report named after the record that called for it, `D329~2.md`,
+// The folders of the research by the shape of what each holds
+// [QSWRK#review]: a report named after the record that called for it, `D329~2.md`,
 // beside the session's reading, `D329~2~reading.md`, or a run of several
 // readers, `D323~1/`, its reports and the session's `reading.md` within it.
 export const RESEARCH_FOLDERS = [

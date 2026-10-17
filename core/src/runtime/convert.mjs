@@ -2,7 +2,7 @@
 // source kind named for the kind it answers, `toNumber`, a plain function
 // over the subject the walk served: a kind answers its own verb as
 // itself, and what a verb cannot read whole it refuses under its address
-// [D352].
+// [QSCND#convert].
 
 import { keyword, makeTag, makeSet, makeRegex, isKeyword, isTag, isVec, kindsExpected, typeOf } from '../types.mjs';
 import { canonicalFlags, patternProblem, textRefusal } from '../pattern.mjs';
@@ -16,14 +16,14 @@ const textOf = value => (isKeyword(value) || isTag(value) ? value.name : String(
 bindPrim(['string/toString', 'number/toString', 'keyword/toString', 'tag/toString', 'boolean/toString'], textOf);
 
 // The kinds a key files under are those `toKeyword` lives on, the set a
-// refusal of a key of another kind holds as `:expected` [D355].
+// refusal of a key of another kind holds as `:expected` [QSCND#convert].
 const TO_KEYWORD_ADDRESSES = ['keyword/toKeyword', 'string/toKeyword', 'number/toKeyword', 'boolean/toKeyword', 'null/toKeyword', 'tag/toKeyword'];
 export const KINDS_A_KEY_FILES_UNDER = kindsExpected(...TO_KEYWORD_ADDRESSES.map(address => splitAddress(address)[0]));
 
 // keywordFiledFor(value) → the keyword a value of a kind a key files under
 // is named by, a keyword itself, a string or a number by its text, a
 // boolean or null by its literal and a tag name by its name, as `toKeyword`
-// names it and `groupBy`, `indexBy` and `toMap` file it [D355]; null for a
+// names it and `groupBy`, `indexBy` and `toMap` file it [QSCND#convert]; null for a
 // value of another kind.
 export function keywordFiledFor(value) {
   if (!KINDS_A_KEY_FILES_UNDER.some(kind => kind.name === typeOf(value).name)) return null;
@@ -102,7 +102,7 @@ bindPrim('set/toSet', set => set);
 bindPrim('vec/toSet', vector => makeSet(vector));
 // The map a vector's pairs `[key value]` write, the reverse of `entries`:
 // each key named as `toKeyword` names it, and of two pairs with one key
-// the last holds [D355].
+// the last holds [QSCND#convert].
 const VecToMapElementNotPairError = declareRefusal('vec/toMap/ElementNotPairError');
 const VecToMapKeyKindNotTakenError = declareRefusal('vec/toMap/KeyKindNotTakenError');
 

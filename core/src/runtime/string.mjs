@@ -1,6 +1,6 @@
 // The primitives of strings, and `join`, `prepend` and `append` of
 // vectors, whose verbs the catalog declares under `::string` and `::vec`
-// [D352].
+// [QSTXT#string].
 
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -8,7 +8,7 @@ import { isKeyword, isRegex } from '../types.mjs';
 import { containsMatch, piecesBetweenMatches } from './regex.mjs';
 
 // A value a verb writes into text: a string as it is and a keyword as
-// its name, as `json` writes it [D352].
+// its name, as `json` writes it [QSTXT#string].
 const writtenAsText = value => (isKeyword(value) ? value.name : value);
 
 // An element `join` writes is a string or a keyword.

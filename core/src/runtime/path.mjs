@@ -2,7 +2,7 @@
 // path, a key or a literal that holds paths; `put`, `update` and `delete`
 // write it; `paths` answers the outline of a value and `shape` its schema;
 // `segments` and `toPath` turn a path and its keys into each other, JSON
-// Pointer's form read with its escapes [D352].
+// Pointer's form read with its escapes [QSPTH].
 
 import { bindPrim, bindStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -141,7 +141,7 @@ export function pathReads(subject, path) {
 
 // The outline and the shape read the subject beneath its tags, and below it a
 // vector, a set or a map as a reader writes one, a part under a tag standing
-// whole as a leaf of its kind, which tells of itself on its page [QSPTH#words].
+// whole as a leaf of its kind, which tells of itself on its page [QSPTH#verbs].
 const isOpened = (value, top) => (isMap(value) || isVec(value)) && (top || !isTagged(value) || isSet(value));
 
 // The outline of a value: the pair of the path and the kind of every part

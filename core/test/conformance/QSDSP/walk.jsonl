@@ -5,5 +5,5 @@
 {"name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| get [~(type) /index /actualType]","expect":"[::any/is/kinds/ElementKindNotTakenError 0 ::keyword]"}
 {"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2"}
 {"name":"count-over-a-tag-stacked-on-a-set-counts-the-set","query":":Box |~~ Box. ~~| | ::Box#[3 1] | count","expect":"2"}
-{"decision":"D352","name":"a-verb-on-a-narrower-label-stands-over-one-on-a-broader","query":":tagged/count ~(99) | ::Box[1 2] | count","expect":"99"}
+{"name":"a-verb-on-a-narrower-label-stands-over-one-on-a-broader","query":":tagged/count ~(99) | ::Box[1 2] | count","expect":"99"}
 {"name":"a-tag-name-is-of-the-kind-tag-not-of-the-noun-it-names","query":"get [~(::vec | is ::vec) ~(::vec | is ::tag)]","expect":"[false true]"}

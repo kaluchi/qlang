@@ -2,7 +2,7 @@
 {"name":"a-tagged-map-keeps-its-tag-through-filter","query":"::T{:a 1 :b 2} | filter ~(eq 1) | type","expect":"::T"}
 {"name":"a-tag-over-a-set-comes-back-on-take","query":"::Box#[1 2] | take 1","expect":"::Box#[1]"}
 {"name":"append-keeps-the-tag-of-its-vector","query":"::Box[1 2] | append 3","expect":"::Box[1 2 3]"}
-{"decision":"D358","name":"append-lays-the-tag-of-its-subject-again","query":":P |~~ P. ~~| (::kind | holds :TooLongError |~~ Three at most. ~~| ~(count | lte 3)) | ::P[1 2] | get [~(append 3 | type) ~(append 3 | append 4 !| type)]","expect":"[::P ::P/TooLongError]"}
+{"name":"append-lays-the-tag-of-its-subject-again","query":":P |~~ P. ~~| (::kind | holds :TooLongError |~~ Three at most. ~~| ~(count | lte 3)) | ::P[1 2] | get [~(append 3 | type) ~(append 3 | append 4 !| type)]","expect":"[::P ::P/TooLongError]"}
 {"name":"a-tag-over-a-string-comes-back-on-append","query":"::Box\"ab\" | append \"c\"","expect":"::Box\"abc\""}
 {"name":"a-tag-over-a-string-comes-back-on-prepend","query":"::Box\"b\" | prepend \"a\"","expect":"::Box\"ab\""}
 {"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T"}

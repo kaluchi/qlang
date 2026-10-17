@@ -7,5 +7,5 @@
 {"name":"an-address-no-declaration-names-is-refused-with-the-tags-near-it","query":"5 | vec/cout !| get [~(type) /address /nearest]","expect":"[::call/UnknownAddressError ::vec/cout [::vec/count]]"}
 {"name":"the-tag-of-a-verb-lays-itself-over-a-payload-as-it-is","query":":number/f ~(1) | ::number/f[1] | type","expect":"::number/f"}
 {"name":"a-tag-no-declaration-names-is-identity","query":"::code{:a 1} | type","expect":"::code"}
-{"decision":"D358","name":"the-address-of-the-constructor-a-host-hands-runs-it-on-the-subject-its-label-serves","query":"get [~(5 | number/construct) ~(\"x\" | number/construct !| type)]","expect":"[5 ::number/construct/SubjectNotNumberError]"}
-{"decision":"D358","name":"the-tag-of-an-invariant-lays-itself-over-a-payload-as-it-is","query":"::vec/take/count/NotIntegerError#5 | type","expect":"::vec/take/count/NotIntegerError"}
+{"name":"the-address-of-the-constructor-a-host-hands-runs-it-on-the-subject-its-label-serves","query":"get [~(5 | number/construct) ~(\"x\" | number/construct !| type)]","expect":"[5 ::number/construct/SubjectNotNumberError]"}
+{"name":"the-tag-of-an-invariant-lays-itself-over-a-payload-as-it-is","query":"::vec/take/count/NotIntegerError#5 | type","expect":"::vec/take/count/NotIntegerError"}

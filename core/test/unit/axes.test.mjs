@@ -112,7 +112,7 @@ describe('the axes read the node a tag addresses', () => {
     expect(await evalQuery(':"::vec" | source')).toEqual(await evalQuery('::keyword | source'));
   });
 
-  it('a tag naming a word of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
+  it('a tag naming a verb of a provider is refused with the addresses of its pages, one on each kind that answers it', async () => {
     expect([...await evalQuery('::count | doc !| get /addresses')])
       .toEqual([makeTag('map/count'), makeTag('string/count'), makeTag('vec/count')]);
   });
@@ -189,21 +189,21 @@ describe('a value that is no name reads the declaration of its kind', () => {
 
 describe('the axes resolve the binding the evaluator dispatches', () => {
   // The axes project the one record the scope holds under an address, so
-  // a word the reader declares reads as itself, the case the hypertext
-  // chain exists for. A value of the reader's named as a word meets the
-  // word at a step whose subject the word answers [QSNAM#reach].
+  // a verb the reader declares reads as itself, the case the hypertext
+  // chain exists for. A value of the reader's named as a verb meets the
+  // verb at a step whose subject the verb answers [D352].
   const shadowed = ':any/hundredfold ~(mul 100) | ';
 
-  it('a value of the reader named as a word meets the word where the subject answers it', async () => {
-    expect((await evalQuery(':add ~(mul 100) | 2 | add')).tag.name).toBe('call/ValueMeetsWordError');
+  it('a value of the reader named as a verb meets the verb where the subject answers it', async () => {
+    expect((await evalQuery(':add ~(mul 100) | 2 | add')).tag.name).toBe('call/ValueMeetsVerbError');
   });
 
-  it('a word of the reader is the one source reports', async () => {
+  it('a verb of the reader is the one source reports', async () => {
     expect(await evalQuery(shadowed + '2 | hundredfold')).toBe(200);
     expect(await evalQuery(shadowed + '::any/hundredfold | source | parse')).toBe(':any/hundredfold ~(mul 100)');
   });
 
-  it('doc answers null for a word of the reader that carries no page', async () => {
+  it('doc answers null for a verb of the reader that carries no page', async () => {
     expect(await evalQuery(shadowed + '::any/hundredfold | doc')).toBeNull();
   });
 

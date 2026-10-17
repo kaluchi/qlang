@@ -1,5 +1,5 @@
 // parseJson coverage. The parser is exercised through
-// runQuery so the bound word's path, the per-site error sites, and
+// runQuery so the bound verb's path, the per-site error sites, and
 // the qlang-shape conversion all fire against a real session.
 // The decisions it exists for: [QSHST#answer], [QSDSP#walk].
 

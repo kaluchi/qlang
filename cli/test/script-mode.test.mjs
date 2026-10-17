@@ -1,7 +1,7 @@
 // script-mode coverage. `liftStdinToPipeValue` resolves the `auto` /
 // `json` / `raw` flag into the query's first value, and `answerText`
-// writes the answer as the language prints it, whatever the input was
-// [QSHST#answer].
+// writes the answer as the language prints it, whatever the data was
+// [D352].
 
 import { describe, it, expect } from 'vitest';
 import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
@@ -38,7 +38,7 @@ describe('liftStdinToPipeValue — explicit formats', () => {
     expect(liftStdinToPipeValue('[1, 2, 3]', 'json').pipeValue).toEqual([1, 2, 3]);
   });
 
-  it('surfaces parseError on malformed --json input', () => {
+  it('surfaces parseError on a text --json cannot read', () => {
     const lifted = liftStdinToPipeValue('not-json', 'json');
     expect(lifted.parseError).toBeInstanceOf(Error);
     expect(lifted.parseError.message).toMatch(/JSON/);
@@ -49,9 +49,9 @@ describe('liftStdinToPipeValue — explicit formats', () => {
   });
 });
 
-// The answer is written as the language prints it whatever the input was,
+// The answer is written as the language prints it whatever the data was,
 // a string as its text, so a query converts it where a reader wants
-// another format [QSHST#answer].
+// another format [D352].
 describe('answerText — the answer as the language prints it', () => {
   it('prints a keyword, a set, a tag and a quote as their literals', async () => {
     expect(await answerText(await evalQuery('[:v #[2 1] ::vec ~(add 1) "s"]'), await langRuntime()))

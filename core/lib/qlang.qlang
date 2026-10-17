@@ -5,7 +5,7 @@
 
 :qlang
   |~~ qlang is a pipeline language over values. A query starts from a
-      subject, the input it is given, and passes it through steps: each
+      subject, the value it is given, and passes it through steps: each
       step takes the value the step before answered and answers a new
       one, and the last answer is the answer of the query. Nothing
       changes in place. Everything the language handles is a value with
@@ -16,8 +16,8 @@
 
       1. The pipe. `a | b` runs b on the value a answered, its subject:
       `[3 1 2] | sort | first` answers `1`. Each step is a command, a
-      word and what it takes, and a value stands where it is the
-      subject, at the head or after a declaration, or as what a word
+      verb and what it takes, and a value stands where it is the
+      subject, at the head or after a declaration, or as what a verb
       takes:
       `get /users | filter /active | sort /age | map /name` reads the
       users, keeps the active ones, ranks them by age and answers their
@@ -43,30 +43,30 @@
 
       3. Reading parts. A path, ::path, names a part of a value: `/k` a
       key, `/0` an element, `/-1` the last, `/a/b/0` a part at depth. A
-      path is a value and does nothing by itself; the word that takes it
+      path is a value and does nothing by itself; the verb that takes it
       reads it. `get` reads it and refuses a part that is not there:
       `{:a {:b [10 20]}} | get /a/b/-1` answers `20`. `query` reads it
       softly and answers null where the part is missing, or the default
       it is given: `{:a 1} | query /b 0` answers `0`. `has /b` asks
       whether the part is there, and `it` is the value itself.
 
-      4. Commands. A command is a word and what it takes, separated by
-      spaces: `add 1`, `split ","`, `take 2`, `get /price`. The word is
+      4. Commands. A command is a verb and what it takes, separated by
+      spaces: `add 1`, `split ","`, `take 2`, `get /price`. The verb is
       found through the kind of the subject: `count` counts the elements
       of a vector and the characters of a string. Every modifier is
       computed once, at the call, against the subject of the step, and
-      the word receives the values: `10 | add 3` answers `13`. The
+      the verb receives the values: `10 | add 3` answers `13`. The
       subject of a step is what the step before it answered, so in
       `{:price 4 :qty 3} | get /price | mul (get /qty)` the `/qty` is
       read from the price, a number with no parts, and the call is
       refused, `::path/SubjectHasNoPartsError`: two values of one
       record are read in one step, `get [/price /qty]`, or combined by a
-      word that reads them, `{:price 4 :qty 3} | mulOf /price /qty`
+      verb that reads them, `{:price 4 :qty 3} | mulOf /price /qty`
       answering `12`. A modifier of more than one word stands in
       parentheses: `[1 2 3] | take (count | sub 1)` answers `[1 2]`.
 
       5. Code. A quote, `~(…)`, is code, and a quote computes to itself,
-      so the word receives it unrun and runs it where it needs. `map`
+      so the verb receives it unrun and runs it where it needs. `map`
       runs its code on each element, that element its subject:
       `[1 2 3] | map ~(mul 2)` answers `[2 4 6]`. A path is code too, the
       code that reads it from each element: `[{:n 2} {:n 1}] | sort /n`
@@ -75,8 +75,8 @@
       files the elements under what its code answers, or under
       themselves, `["b" "a" "b"] | groupBy | map ~(count)` answering
       `{:b 2 :a 1}`; `reduce` folds the elements into a seed, calling
-      its word with the value so far as the subject and the element as
-      the modifier, `[1 2 3] | reduce 0 ~(add)` answering `6`, and
+      its verb with the value so far as the subject and the element as
+      its first arg, `[1 2 3] | reduce 0 ~(add)` answering `6`, and
       running code of several steps on the pair of the two,
       `[{:n 1} {:n 2}] | reduce 0 ~(sumOf /0 /1/n)` answering `3`.
       Several steps stand in one quote,
@@ -104,14 +104,14 @@
       pipe goes on unchanged, and the bare word reads the name back, `:r`
       staying a keyword:
       `{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)`
-      answers `6`. A name holds code as it holds any value, and a word
+      answers `6`. A name holds code as it holds any value, and a verb
       that takes code takes the name bare:
       `:double ~(mul 2) | 5 | apply double` answers `10`, and
       `:double ~(mul 2) | [1 2 3] | map double` answers `[2 4 6]`.
       Declared under the label of the values it serves, the code is a
-      word the name calls, `:number/double ~(mul 2) | 5 | double`
-      answering `10`, which in the reader's own queries shadows a word of
-      that name on a broader label, `::any` among them, and which no word
+      verb the name calls, `:number/double ~(mul 2) | 5 | double`
+      answering `10`, which in the reader's own queries shadows a verb of
+      that name on a broader label, `::any` among them, and which no verb
       of the root sees under a label of the root. A name is declared once
       in a scope, and the names
       a group or a quote declares stay in it.
@@ -165,11 +165,11 @@
       the page saying how to repair the call.
 
       12. Asking. `::vec | manifest` answers what lies under a kind, its
-      words, its refusals and the roles of its chain, and `map` asks
+      verbs, its refusals and the roles of its chain, and `map` asks
       several kinds at once, each beside its own:
       ::snippet~([::vec ::map ::string ::number ::any] | map ~(get [~(it) ~(manifest)]))
-      lists the words most queries use. `::vec/sort | doc` answers the
-      page of a word, and `::vec/sort | laws` the laws of a word by
+      lists the verbs most queries use. `::vec/sort | doc` answers the
+      page of a verb, and `::vec/sort | laws` the laws of a verb by
       name, each a page and a query that answers true; `x | type | doc`
       answers the page of the kind of any value. An answer prints whole;
       `x | elide 4000` bounds it to four thousand characters of its
@@ -179,7 +179,7 @@
       13. A task. Over
       `{"users": [{"name": "Ann", "age": 30, "tags": ["a", "b"]}, {"name": "Bo", "age": 15, "tags": []}]}`,
       `get /users | filter ~(get /age | gte 18) | map ~(get {:name /name :n ~(get /tags | count)})`
-      answers `[{:name "Ann" :n 2}]`. Look at the input before shaping
+      answers `[{:name "Ann" :n 2}]`. Look at the data before shaping
       it, `shape` its schema, the kind at each of its parts, `keys`,
       `get /0`, `type`, `count`, and build the query a step at a time,
       running each.
@@ -188,7 +188,7 @@
       ::link~(::qlang/values | doc) values, kinds and tags;
       ::link~(::qlang/pipeline | doc) the steps of a query;
       ::link~(::qlang/names | doc) names and their records;
-      ::link~(::qlang/verbs | doc) the words that live on kinds;
+      ::link~(::qlang/verbs | doc) the verbs that live on kinds;
       ::link~(::qlang/errors | doc) the failure as a value;
       ::link~(::qlang/code | doc) code as a value;
       ::link~(::qlang/hypertext | doc) the pages and how to move through
@@ -333,7 +333,7 @@
         |~~ `parse` turns text into a quote. ~~|
         ~("add 1" | parse | eq ~(add 1))
     | proves :declaresAKindOfYourOwn
-        |~~ A kind of your own takes a word and an input held to its
+        |~~ A kind of your own takes a verb and an input held to its
             kinds.
         ~~|
         ~(:Box |~~ A parcel. ~~| | :Box/put (::fn | takes :w |~~ A weight. ~~| /0 ::number | impl ~(within ~(append w))) | ::Box[1] | get [~(put 7) ~(put "x" !| type)] | eq [::Box[1 7] ::Box/put/w/KindNotTakenError])
@@ -349,11 +349,11 @@
     | proves :readsADoc
         |~~ A doc splits into its prose and the code it holds. ~~|
         ~(|~~ a ~(eq 1) b ~~| | segments | count | eq 3)
-    | proves :looksAtTheInput
-        |~~ The keys of the first element show the shape of the input. ~~|
+    | proves :looksAtTheKeysOfTheData
+        |~~ The keys of the first element show the shape of the data. ~~|
         ~([{:id 1 :tags ["a"]}] | get /0 | keys | eq #[:id :tags])
-    | proves :looksAtTheShapeOfTheInput
-        |~~ The shape of the input shows the kinds its records hold. ~~|
+    | proves :looksAtTheShapeOfTheData
+        |~~ The shape of the data shows the kinds its records hold. ~~|
         ~({:users [{:age 30} {:age "x"}]} | shape | eq ::shape{:users [{:age #[::number ::string]}]})
     | proves :opensTheChapters
         |~~ The links of the first page open its chapters. ~~|
@@ -459,7 +459,7 @@
             `|` runs the next step on the answer of the one before. A step
             is a command, and a value stands at the head of a query, of a
             group and of a quote, and after a declaration, where it is the
-            subject, or as what a word takes; a value written as a later
+            subject, or as what a verb takes; a value written as a later
             step is refused, and a value goes under a tag by `tag`. `map`
             runs a quote or a path on each element of a vector or each
             value of a map. A pipe written before `!|` stands for it. A
@@ -539,7 +539,7 @@
             A name is a record, `::binding`, with its page, its source,
             its value and the source it came from, so where a thing was
             declared is read as data. The scope of a step is what the
-            steps before it wrote; a step inside `(…)` or a quote a word
+            steps before it wrote; a step inside `(…)` or a quote a verb
             runs writes a scope that closes with it. Under every scope
             lies the root, which the host's sources declared as cells
             before the first step of a reader, the language's first; a
@@ -560,17 +560,17 @@
             in a scope and again in a scope inside it, which shadows it
             for the steps after; a value the reader names takes any name a
             step calls,
-            and a step that calls the name on a subject a word of that
+            and a step that calls the name on a subject a verb of that
             name answers is refused, so the two never meet unseen, the
-            word called by its address there, `[1 2] | vec/count`; an
+            verb called by its address there, `[1 2] | vec/count`; an
             address the root holds is declared once at all, so a reader
             extends a noun of the root and replaces none of its nodes. A
-            word the reader declares under a label shadows a word of its
+            verb the reader declares under a label shadows a verb of its
             name on a broader label in the reader's own calls, since the
             walk of a subject's tags reaches the narrower first; under a
-            label of the root no word of the root sees it, a word of the
+            label of the root no verb of the root sees it, a verb of the
             root running in the root's scope, where a name under a noun of
-            the root reads the root alone, while a word under a label the
+            the root reads the root alone, while a verb under a label the
             reader declared goes where the label's values go. A name
             begins with a letter of any script or `_`. The docs in the
             slot of a declaration, between its name and its body, are its
@@ -606,14 +606,14 @@
     | proves :names/declaresOnce
         |~~ A name is declared once in a scope. ~~|
         ~(:k 1 | :k 2 !| type | eq ::bind/NameDeclaredTwiceError)
-    | proves :names/meetsAWordAloud
-        |~~ A value named as a word meets the word aloud where the subject
+    | proves :names/meetsAVerbAloud
+        |~~ A value named as a verb meets the verb aloud where the subject
             answers it.
         ~~|
-        ~(:count 5 | get [~(7 | count) ~([1 2] | count !| type)] | eq [5 ::call/ValueMeetsWordError])
+        ~(:count 5 | get [~(7 | count) ~([1 2] | count !| type)] | eq [5 ::call/ValueMeetsVerbError])
     | proves :names/shadowsForTheReaderAlone
-        |~~ A reader's word shadows a broader one in the reader's call,
-            and a word of the root never sees it.
+        |~~ A reader's verb shadows a broader one in the reader's call,
+            and a verb of the root never sees it.
         ~~|
         ~(:vec/doc ~("mine") | [1 2] | get [~(doc) ~(tutorial | first | type)] | eq ["mine" ::doc])
     | proves :names/beginsWithALetter
@@ -628,7 +628,7 @@
     | tells :verbs
         |~~ Verbs. A verb lives on a kind, the one whose values it serves,
             and has an address, `::vec/sort`; so what can be done with a
-            value is asked of its kind, and one word serves many kinds.
+            value is asked of its kind, and one name serves many kinds.
             The verbs of the kinds the walk of a value's tags reaches and
             those of every value are the whole of its verbs: a verb in none
             of them does not exist. Rests on values and the pipeline;
@@ -642,24 +642,24 @@
             shape beneath them, then the verbs every value answers, on
             `::any`; a verb of vectors
             reaches a vector under a tag, and an answer of the subject's
-            kind keeps the tag. A word is a
+            kind keeps the tag. A verb is a
             function named under a label, built from `::fn` by commands
             with its recipe last,
             `:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))`:
             `on` names its subject, `takes` an input with its page, the
-            place of the call it reads and its kinds, `returns` its
+            place of the args it reads and its kinds, `returns` its
             answer, `throws` a refusal, `carries` a fact it carries,
             `holds` an invariant and `proves` a law, and its call reads
             them from the function, each input bound by its name in the
             recipe, a name the recipe declares no second time; `manifest`
             answers them before a call. A recipe written alone under a
             label, `:number/double ~(mul 2)`, is the function of no
-            commands it is, which takes no object; an input, an answer, a
+            commands it is, which takes no args; an input, an answer, a
             subject and an invariant are written in the chain alone. An
-            answer of the word's own label goes back under the tags the
+            answer of the verb's own label goes back under the tags the
             subject came through. A modifier is evaluated at the call
             against the subject, the value in the pipe, which is always
-            the subject of the call; a word that combines several values
+            the subject of the call; a verb that combines several values
             of one subject reads each from its args, `mulOf /price /qty`;
             an input that runs code later takes
             a quote, `~name` or `~(get /path)` the quote of one step, and
@@ -675,13 +675,13 @@
             value put under it keeps them, and a label declared by its
             page alone is a kind of no commands. A tag no declaration
             answers is a kind of identity, which checks nothing and lays
-            the tag on the value. A word answers under the kind its
-            `returns` names. A word of a noun itself, whose subject `on`
+            the tag on the value. A verb answers under the kind its
+            `returns` names. A verb of a noun itself, whose subject `on`
             names `::tag`, takes the tag name as its subject, so a noun
             that stands for a thing outside the language is addressed
-            bare, `::Jenkins | builds`, while a word of the noun's values
-            refuses the tag name. A word is told as a story, in one order:
-            the word and its page, its inputs, its answer, its refusals,
+            bare, `::Jenkins | builds`, while a verb of the noun's values
+            refuses the tag name. A verb is told as a story, in one order:
+            the verb and its page, its inputs, its answer, its refusals,
             its laws and its recipe, one chain; a kind as its page, its
             payload, its fields, its refusals, its invariants, its laws
             and its recipe; and the refusal of a step as its page, which
@@ -707,13 +707,13 @@
         |~~ A sum goes back under the tag the subject came through. ~~|
         ~(::Width#2 | add 3 | eq ::Width#5)
     | proves :verbs/isAFunctionNamedUnderALabel
-        |~~ A word is a function named under a label. ~~|
+        |~~ A verb is a function named under a label. ~~|
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | 5 | plus 2 | eq 7)
-    | proves :verbs/takesNoObjectForARecipeWrittenAlone
-        |~~ A recipe written alone takes no object. ~~|
+    | proves :verbs/takesNoArgsForARecipeWrittenAlone
+        |~~ A recipe written alone takes no args. ~~|
         ~(:number/double ~(mul 2) | 5 | get [~(double) ~(double 3 !| type)] | eq [10 ::number/double/ArgsBeyondInputsError])
     | proves :verbs/combinesValuesOfOneSubject
-        |~~ A word that combines several values of one subject reads each
+        |~~ A verb that combines several values of one subject reads each
             from its args.
         ~~|
         ~({:price 100 :qty 3} | mulOf /price /qty | eq 300)
@@ -732,13 +732,13 @@
         |~~ A tag no declaration answers checks nothing. ~~|
         ~(::Small#12 | payload | eq 12)
     | proves :verbs/answersUnderTheKindItReturns
-        |~~ A word answers under the kind its `returns` names. ~~|
+        |~~ A verb answers under the kind its `returns` names. ~~|
         ~(:Box |~~ A box. ~~| | :Box/half (::fn | returns |~~ The half. ~~| ::number | impl ~(get /0 | div 2)) | ::Box[4] | half | eq 2)
     | proves :verbs/takesTheTagOfItsNoun
-        |~~ A word of a noun itself takes the tag name as its subject. ~~|
+        |~~ A verb of a noun itself takes the tag name as its subject. ~~|
         ~(:Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk itself. ~~| ::tag | impl ~("9 to 5")) | ::Desk | hours | eq "9 to 5")
-    | proves :verbs/refusesTheTagForAWordOfValues
-        |~~ A word of the noun's values refuses the tag name. ~~|
+    | proves :verbs/refusesTheTagForAVerbOfValues
+        |~~ A verb of the noun's values refuses the tag name. ~~|
         ~(:Desk |~~ A help desk. ~~| | :Desk/size ~(count) | ::Desk | size !| type | eq ::Desk/size/SubjectNotDeskError)
     | proves :verbs/keepsTheInvariantsOfItsKind
         |~~ A value put under a kind keeps the kind's invariants. ~~|
@@ -768,7 +768,7 @@
             flies: a frame for each level it left, the subject its step met
             and the steps from the one that broke, the last frame holding
             the steps skipped at the level that reads it, a quote that runs
-            again as held code runs, and the frame of a word that ran its
+            again as held code runs, and the frame of a verb that ran its
             code on a part of its subject the path of that part. An error
             at rest raised again resumes the trail it holds, and one that
             holds none, an empty `:trail` among them, starts it over.
@@ -794,7 +794,7 @@
         |~~ The steps a failure skipped run again by `apply`. ~~|
         ~("x" | add 1 | mul 2 !| trail | last | skipped | :rest it | 5 | apply rest | eq 10)
     | proves :errors/namesThePlaceOfThePart
-        |~~ The frame of a word that ran its code on an element names the
+        |~~ The frame of a verb that ran its code on an element names the
             place of the element.
         ~~|
         ~([1 "x" 3] | map ~(mul 2) !| trail | last | place | eq /1)
@@ -816,14 +816,14 @@
             ::link~(::quote | doc) ::link~(::qlang/hypertext | doc)
             ::link~(::call/ValueWithheldError | doc)
 
-            A quote written in a step, what a word takes or a part of a
-            template it takes, is code of that step: the word runs it in
-            the scope of the step that wrote it, and so does a word written
+            A quote written in a step, what a verb takes or a part of a
+            template it takes, is code of that step: the verb runs it in
+            the scope of the step that wrote it, and so does a verb written
             in the language, by whatever road its recipe hands the quote
-            on, since a call keeps where each of its objects came from.
+            on, since a call keeps where each of its args came from.
             Any other code is held as data, a quote in a name, a field or
             a page, a law and a snippet among them, and runs in a lane of
-            its own: the words, the nodes and the labels of the scope of
+            its own: the verbs, the nodes and the labels of the scope of
             its step and the names it declares itself, a value that scope
             names withheld from it and refused under its name,
             `::call/ValueWithheldError`. A value held code needs is an
@@ -843,8 +843,8 @@
     | proves :code/withholdsAValueOfTheReader
         |~~ Held code reads no value the reader named. ~~|
         ~(:k 10 | :q ~(add k) | 5 | apply q !| get [~(type) /name] | eq [::call/ValueWithheldError :k])
-    | proves :code/readsTheStepThroughAWordOfTheLanguage
-        |~~ A word written in the language hands a quote on from the step
+    | proves :code/readsTheStepThroughAVerbOfTheLanguage
+        |~~ A verb written in the language hands a quote on from the step
             that wrote it.
         ~~|
         ~(:k 10 | :vec/twice (::fn | takes :q |~~ The code. ~~| /0 ::quote | impl ~(map q | map q)) | [1 2] | twice ~(add k) | eq [21 22])

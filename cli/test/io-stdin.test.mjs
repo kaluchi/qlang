@@ -1,5 +1,5 @@
 // io-stdin coverage. readStdinToString sits at the boundary between
-// Node's Readable stream protocol and the qlang `in` word
+// Node's Readable stream protocol and the qlang `in` verb
 // contract — every branch (a terminal answering at once, data accumulation,
 // end resolution, error rejection) is exercised through synthetic
 // streams. memoiseStdinReader's caching behaviour is tested with

@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { declaredRefusals } from '../../src/errors.mjs';
-import { declaresALabel, isWord, nodeOf, ruleRefusalsOf } from '../../src/runtime/nouns.mjs';
+import { declaresALabel, isVerb, nodeOf, ruleRefusalsOf } from '../../src/runtime/nouns.mjs';
 import { splitAddress } from '../../src/address.mjs';
 import { ROOT_KEY } from '../../src/env-keys.mjs';
 import { bindingValueOf, isDoc, isKind } from '../../src/types.mjs';
@@ -18,11 +18,10 @@ import { bindingValueOf, isDoc, isKind } from '../../src/types.mjs';
 const session = await createSession();
 const declared = new Set(declaredRefusals());
 
-// The refusals the words and the kinds of the root raise by rule, which their
-// definitions page as the declared ones are paged [QSSLF#catalog],
-// [QSBLD#kind].
+// The refusals the verbs and the kinds of the root raise by rule, which their
+// definitions page as the declared ones are paged [D352].
 const ruleBorn = new Set([...session.env.get(ROOT_KEY).keys()]
-  .filter(address => isWord(session.env, address) || isKind(bindingValueOf(nodeOf(session.env, address))))
+  .filter(address => isVerb(session.env, address) || isKind(bindingValueOf(nodeOf(session.env, address))))
   .flatMap(address => ruleRefusalsOf(session.env, address)));
 
 // The refusals the root pages under a noun,

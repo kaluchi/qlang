@@ -1,5 +1,5 @@
 |~ `::string` and what is declared under it: its constructor and the
-   refusal of a payload of another kind, and the words that run on a
+   refusal of a payload of another kind, and the verbs that run on a
    string.
    The decisions it exists for: [QSDSP#residence]. ~|
 
@@ -15,14 +15,14 @@
       `::string"s"` is `"s"`. Strings rank after numbers and before
       patterns, by their characters, the code points `count` reads.
 
-      Its words read it whole or by its characters, `count`, `take`,
+      Its verbs read it whole or by its characters, `count`, `take`,
       `drop`, `contains`, `startsWith`, `upper`, break it, `split` and
       `lines`, into a vector that `join` makes text again, and read it by
       a pattern, `match`, `capture`, `scan` and `replace`. A number, a
       keyword, a tag name and a boolean turn into text by `toString`,
       `5 | toString` answering `"5"`, while `print` writes any value as
       its literal and `json` as JSON.
-      ::snippet~(::string | manifest) lists its words and refusals.
+      ::snippet~(::string | manifest) lists its verbs and refusals.
       ::link~(::regex | doc) ::link~(::keyword | doc)
       ::link~(::any/print | doc) ::link~(::qlang/values | doc)
   ~~|
@@ -284,7 +284,7 @@
         |~~ A letter with a combining accent counts two. ~~|
         ~("e\u0301" | count | eq 2)
     | proves :ArgsBeyondInputsError/refusesAPiece
-        |~~ A piece given to `count` is refused under the word. ~~|
+        |~~ A piece given to `count` is refused under the verb. ~~|
         ~("banana" | count "a" !| type | eq ::string/count/ArgsBeyondInputsError)
     | proves :namesTheKindsThatAnswerIt
         |~~ A number answers no `count`, and the refusal names the kinds
@@ -573,7 +573,7 @@
         |~~ A number is no text. ~~|
         ~(42 | lines !| get [~(type) /actualType] | eq [::string/lines/SubjectNotStringError ::number])
     | proves :ArgsBeyondInputsError/refusesASeparator
-        |~~ A separator given to `lines` is refused under the word. ~~|
+        |~~ A separator given to `lines` is refused under the verb. ~~|
         ~("a;b" | lines ";" !| type | eq ::string/lines/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -992,8 +992,9 @@
         |~~ JSON text may write a number past the range of the doubles a
             number of qlang is, `1e400`, which no number of the language
             holds, so reading it is refused. It is met where JSON text is
-            read, by `parseJson` and by a host reading its input; a literal
-            of qlang past the range is the parser's own refusal.
+            read, by `parseJson` and by a host reading the data a query
+            starts from; a literal of qlang past the range is the parser's
+            own refusal.
         ~~|
     | carries :NumberNotFiniteError/path
         |~~ The path to the number in the text. ~~|
@@ -1455,9 +1456,9 @@
     | proves :TextNotPatternError/refusesAnOpenGroup
         |~~ A source the engine cannot read is refused. ~~|
         ~("(a" | toRegex !| type | eq ::string/toRegex/TextNotPatternError)
-    | proves :TextNotPatternError/namesTheFlagsAsAPart
+    | proves :TextNotPatternError/namesTheFlagsAsAnInput
         |~~ Flags written inside the source are refused, the refusal
-            naming the part.
+            naming the input `flags`.
         ~~|
         ~("(?i)abc" | toRegex !| get /message | contains "toRegex \"i\"")
     | proves :LiteralNotSourceError/refusesALiteral

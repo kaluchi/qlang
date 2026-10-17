@@ -124,7 +124,7 @@ describe('the check a host hands a kind', () => {
 });
 
 describe('a command a function and a kind share, called on another tag', () => {
-  it('meets the words of both nouns, each reached by its address', async () => {
+  it('meets the verbs of both nouns, each reached by its address', async () => {
     expect(await answers('::number | holds :E |~~ An e. ~~| ~(true) !| get [~(type) /addresses]'))
       .toBe('[::call/KindAnswersNoVerbError #[::fn/holds ::kind/holds]]');
   });

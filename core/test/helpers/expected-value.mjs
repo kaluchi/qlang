@@ -6,13 +6,13 @@
 
 import { evalQuery } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
-import { beneathTags, makeErrorValue, typeKeyword } from '../../src/types.mjs';
+import { beneathTags, makeErrorValue, typeOf } from '../../src/types.mjs';
 
 export async function expectedValueOf(expectSource) {
   const literal = raisedLiteralOf(parse(expectSource));
   if (literal === null) return await evalQuery(expectSource);
   const atRest = await evalQuery(literal.text);
-  return makeErrorValue(typeKeyword(atRest), new Map(beneathTags(atRest)));
+  return makeErrorValue(typeOf(atRest), new Map(beneathTags(atRest)));
 }
 
 // The error literal a failure's print raises, or null for any other

@@ -37,7 +37,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(42);
   });
 
-  it('evalCell keeps the words a cell declares for the cells after it', async () => {
+  it('evalCell keeps the verbs a cell declares for the cells after it', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':any/double ~(mul 2)');
     const cellEntry = await sessionInstance.evalCell('5 | double');
@@ -115,8 +115,8 @@ describe('createSession lifecycle', () => {
 });
 
 describe('the sources a host hands [QSDSP#residence]', () => {
-  // A source of the host declares a word under the label of its subject, with
-  // the implementation the host hands beside it [QSBLD#fn].
+  // A source of the host declares a verb under the label of its subject, with
+  // the implementation the host hands beside it [D352].
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [

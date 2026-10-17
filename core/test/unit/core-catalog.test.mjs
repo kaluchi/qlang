@@ -35,7 +35,7 @@ describe('the verbs of the language reach their primitives', () => {
   it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [QSSLF#catalog], [QSBLD#fn]', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     expect(await evalQuery('::map/filter | manifest')).toEqual(makeSet([makeTag('map/filter/ConditionNotBooleanError'), makeTag('map/filter/answer'), makeTag('map/filter/predicate')]));
-    expect(await evalQuery('[::vec/filter ::map/filter] | map ~(binding | get /value | params | map /kinds) | print')).toBe('[[#[::path ::quote]] [#[::path ::quote]]]');
+    expect(await evalQuery('[::vec/filter ::map/filter] | map ~(binding | get /value | inputs | map /kinds) | print')).toBe('[[#[::path ::quote]] [#[::path ::quote]]]');
   });
 });
 
@@ -58,9 +58,9 @@ describe('the pages of the language read through `doc`', () => {
 });
 
 describe('bare-name verb call', () => {
-  // A word called by its bare name, with no modifiers, runs on the
-  // value in the pipe; a part it reads that the call leaves out is
-  // refused under the part. What a word does is read by `:name |
+  // A verb called by its bare name, with no modifiers, runs on the
+  // value in the pipe; an input whose place the call leaves out is
+  // refused under the input. What a verb does is read by `:name |
   // source`, `::name | doc` and `::name | laws`, not by a bare name.
 
   it('bare `count` fires against the inbound Vec', async () => {

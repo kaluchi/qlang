@@ -12,15 +12,14 @@
 // `binding`  the record itself, `::binding` with its name, docs, value,
 //            source and origin, the source it was read from [QSDSP#residence].
 //
-// Given a name, each axis reads the member the subject holds under it
-// [QSDSP#tagname]: for a tag name the name under its address, an input of a
-// word among them, `::vec/take | doc :count`, and for any other subject the
-// word the name calls after it, `::map | doc :minus` the page of
-// `::map/minus`.
+// Given an anchor, a keyword, each axis reads the member the subject holds
+// under it [D352]: for a tag name the name under its address, an input of a
+// verb among them, `::vec/take | doc :count`, and for any other subject the
+// verb of that name it calls, `[1 2] | doc :count` the page of `::vec/count`.
 
 import { bindStateReader } from '../primitives.mjs';
 import {
-  isKeyword, isTag, isBinding, isNull, isSet, isVec, keyword, typeKeyword, makeTagged,
+  isKeyword, isTag, isBinding, isNull, isSet, isVec, keyword, typeOf, makeTagged,
   makeTag, makeQuote, makeDoc, payloadBeneath, NULL
 } from '../types.mjs';
 import {
@@ -60,10 +59,10 @@ function declaringRecordOf(env, subject) {
 }
 
 // The record of the first kind a value's stack of tags declares, from the
-// outside in, as a call of a word walks it, a tag of identity read past to
-// the kind beneath it [QSSLF#axis]; null where none is declared.
+// outside in, as a call of a verb walks it, a tag of identity read past to
+// the kind beneath it [D352]; null where none is declared.
 function recordOfKind(env, value) {
-  const name = typeKeyword(value).name;
+  const name = typeOf(value).name;
   return nodeOf(env, name) ?? nodeOfRefused(env, name) ?? recordOfKind(env, payloadBeneath(value));
 }
 
@@ -74,18 +73,17 @@ function nodeOfRefused(env, name) {
   return refusedName !== null && name.endsWith('Error') ? nodeOf(env, refusedName) : null;
 }
 
-// The record of the member the subject holds under a name [QSDSP#tagname], or
-// null: the name under the address a tag name writes, an input of a word
-// among them, and otherwise the word the subject's walk
-// reaches under the name [QSSLF#page].
+// The record of the member the subject holds under a name, or null: the name
+// under the address a tag name writes, an input of a verb among them, and
+// otherwise the verb the subject's walk reaches under the name [D352].
 function memberRecordOf(env, subject, memberName) {
   const under = isTag(subject) ? nodeOf(env, `${subject.name}/${memberName}`) : null;
   return under ?? residenceOnSubject(env, memberName, subject);
 }
 
 // What the refusal of a member holds: the name the reader asked, a
-// keyword, where the words of that name live [QSSLF#doc], and the members of
-// the subject near it [QSSLF#near].
+// keyword, where the verbs of that name live, and the members of the
+// subject near it [D352].
 function memberRefusalOf(env, subject, memberName) {
   return {
     name: keyword(memberName),
@@ -98,10 +96,10 @@ function memberRefusalOf(env, subject, memberName) {
 // it holds under a name, or the refusal of the axis that read it; each
 // axis resides on `::any`, and its primitive reads the state of
 // the call [QSDSP#residence].
-export function recordReadBy(subject, memberName, state, NotFoundError) {
-  if (!isNull(memberName)) {
-    const member = memberRecordOf(state.env, subject, memberName.name);
-    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, subject, memberName.name));
+export function recordReadBy(subject, anchor, state, NotFoundError) {
+  if (!isNull(anchor)) {
+    const member = memberRecordOf(state.env, subject, anchor.name);
+    if (member === null) throw new NotFoundError(memberRefusalOf(state.env, subject, anchor.name));
     return member;
   }
   const record = declaringRecordOf(state.env, subject);
@@ -109,14 +107,14 @@ export function recordReadBy(subject, memberName, state, NotFoundError) {
   return record;
 }
 
-bindStateReader('any/binding', (subject, memberName, state) =>
-  recordReadBy(subject, memberName, state, AnyBindingUnknownNameError));
+bindStateReader('any/binding', (subject, anchor, state) =>
+  recordReadBy(subject, anchor, state, AnyBindingUnknownNameError));
 // The source of a record and of every declaration under its address,
 // one quote of their steps in the order they were written, what stands
 // under the address read at once; a value a host bound wrote none
 // [QSSLF#catalog].
-bindStateReader('any/source', (subject, memberName, state) => {
-  const record = recordReadBy(subject, memberName, state, AnySourceUnknownNameError);
+bindStateReader('any/source', (subject, anchor, state) => {
+  const record = recordReadBy(subject, anchor, state, AnySourceUnknownNameError);
   const written = [record, ...declarationsUnder(state.env, record.get('name').name)].filter(declared => declared.get('source') !== null);
   return written.length === 0 ? NULL : makeQuote(written.flatMap(declared => [...declared.get('source')]));
 });

@@ -1,5 +1,5 @@
 |~ `::point`, the kind of a place in source text, and what is declared
-   under it: the words that read its offset, its line and its column.
+   under it: the verbs that read its offset, its line and its column.
    The decisions it exists for: [QSPRN#span]. ~|
 
 :point

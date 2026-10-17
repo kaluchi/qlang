@@ -334,12 +334,12 @@ bindPrim('vec/flat', sequence => sequence.flatMap(element => (isVec(element) ? e
 
 // ── the fold ───────────────────────────────────────────────────
 
-// The fold, `reduce seed ~(reducer)`: a quote of one word is
-// the word called as the pipe calls it, `acc | add element`, the element the
-// first of its args; any other code runs on the pair of the
-// value so far and the element, and its answer is the value so far after it
-// [QSCOL#reduce]. `seed` answers for an empty subject, and a failure of the
-// reducer stops the fold at the place of its element [QSERR#trail].
+// The fold, `reduce seed ~(reducer)`: a quote of one word names the verb
+// called as the pipe calls it, `acc | add element`, the element the first of
+// its args; any other code runs on the pair of the value so far and the
+// element, and its answer is the value so far after it; `seed` answers for an
+// empty subject, and a failure of the reducer stops the fold at the place of
+// its element [D352].
 async function foldOf(entries, seed, reducer) {
   const combine = resolveBinaryReducer(reducer) ?? ((acc, element) => reducer([acc, element]));
   let acc = seed;

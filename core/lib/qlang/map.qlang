@@ -1,7 +1,7 @@
 |~ `::map` and what is declared under it: its constructor and the
-   refusals of a payload it cannot read, and the words of maps. A map's
+   refusals of a payload it cannot read, and the verbs of maps. A map's
    elements are its values, and its keys are the shape that travels with
-   them: a word whose answer names the map keeps the keys of the entries
+   them: a verb whose answer names the map keeps the keys of the entries
    it keeps and answers under the tags of the map, and `map`, whose
    answer is any value, answers under none.
    The decisions it exists for: [QSDSP#residence]. ~|
@@ -27,7 +27,7 @@
       `{:who "Ann"}`. `map ~(…)` runs a step on each value
       under its key, `filter ~(…)` keeps the entries whose value holds,
       and `toMap` builds a map back from its pairs.
-      ::snippet~(::map | manifest) lists its words and refusals.
+      ::snippet~(::map | manifest) lists its verbs and refusals.
       ::link~(::keyword | doc) ::link~(::path | doc)
       ::link~(::qlang/values | doc)
   ~~|
@@ -730,19 +730,19 @@
   |~~ Answers the seed folded over the values by the reducer, in the order
       the map holds them: `{:a 1 :b 2} | reduce 0 ~(add)` answers `3`, and
       the empty map answers the seed. The reducer is code: a quote of one
-      word, by its name or its address, which the fold calls with the value so
-      far as its subject and each value as its first arg, or any other
-      code, which the fold runs on the pair of the value so far and the
-      value, as a vector's fold does. A vector and a set fold by the
-      `reduce` of vectors.
+      word, the name of a verb or its address, names the verb the fold
+      calls with the value so far as its subject and each value as its
+      first arg, and any other code the fold runs on the pair of the value
+      so far and the value, as a vector's fold does. A vector and a set
+      fold by the `reduce` of vectors.
       ::link~(::map/sum | doc) ::link~(::vec/reduce | doc)
   ~~|
   ::fn
     | takes :seed |~~ The value the fold starts from. ~~| /0
     | takes :reducer
-        |~~ Code: a quote of one word the fold calls with a value, or a path
-            or a quote it runs on the pair of the value so far and the
-            value.
+        |~~ Code: a quote of one word, which names the verb the fold calls
+            with a value, or a path or a quote it runs on the pair of the
+            value so far and the value.
         ~~|
         /1 #[::path ::quote]
     | throws :reducer/KindNotTakenError

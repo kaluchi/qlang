@@ -1,5 +1,5 @@
-// The primitives of the keys of a map and of membership, whose words the
-// catalog declares under `::map` and `::vec` [QSQUO#modifier].
+// The primitives of the keys of a map and of membership, whose verbs the
+// catalog declares under `::map` and `::vec` [D352].
 
 import { keyword, isKeyword, isPath, isSet, makeSet } from '../types.mjs';
 import { pathReads } from './path.mjs';

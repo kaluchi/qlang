@@ -1,10 +1,10 @@
-// The words that turn a value into another kind, each a word of the
+// The verbs that turn a value into another kind, each a verb of the
 // source kind named for the kind it answers, `toNumber`, a plain function
-// over the subject the walk served: a kind answers its own word as
-// itself, and what a word cannot read whole it refuses under its address
-// [QSCND#convert].
+// over the subject the walk served: a kind answers its own verb as
+// itself, and what a verb cannot read whole it refuses under its address
+// [D352].
 
-import { keyword, makeTag, makeSet, makeRegex, isKeyword, isTag, isVec, kindsExpected, typeKeyword } from '../types.mjs';
+import { keyword, makeTag, makeSet, makeRegex, isKeyword, isTag, isVec, kindsExpected, typeOf } from '../types.mjs';
 import { canonicalFlags, patternProblem, textRefusal } from '../pattern.mjs';
 import { bindPrim } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -26,7 +26,7 @@ export const KINDS_A_KEY_FILES_UNDER = kindsExpected(...TO_KEYWORD_ADDRESSES.map
 // names it and `groupBy`, `indexBy` and `toMap` file it [D355]; null for a
 // value of another kind.
 export function keywordFiledFor(value) {
-  if (!KINDS_A_KEY_FILES_UNDER.some(kind => kind.name === typeKeyword(value).name)) return null;
+  if (!KINDS_A_KEY_FILES_UNDER.some(kind => kind.name === typeOf(value).name)) return null;
   return isKeyword(value) ? value : keyword(textOf(value));
 }
 

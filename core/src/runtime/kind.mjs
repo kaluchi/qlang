@@ -1,6 +1,6 @@
-// The kind [QSBLD#kind]: the constructor of `::kind`, which reads a kind from
+// The kind [D352]: the constructor of `::kind`, which reads a kind from
 // its literal, the commands that declare it folded into data and the check a
-// host hands a kind of the core, and the words that build one from the noun by
+// host hands a kind of the core, and the verbs that build one from the noun by
 // commands, each writing its command after the ones the kind holds, the check
 // last.
 
@@ -44,9 +44,9 @@ const NO_KIND = madeKind(makeQuote([]), null);
 const kindFrom = subject => (isKind(subject) ? subject : NO_KIND);
 
 // A kind with a command written after the ones it holds.
-function withCommand(subject, command, objects) {
+function withCommand(subject, command, args) {
   const kind = kindFrom(subject);
-  return madeKind(makeQuote([...commandsOf(kind), commandStep(command, objects.filter(object => object !== null))]), recipeOf(kind));
+  return madeKind(makeQuote([...commandsOf(kind), commandStep(command, args.filter(arg => arg !== null))]), recipeOf(kind));
 }
 
 // `wraps |~~ The sizes. ~~| ::map` — the payload, its page and its kinds.

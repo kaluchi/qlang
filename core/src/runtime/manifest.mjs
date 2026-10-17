@@ -30,11 +30,10 @@ bindStateReader('any/laws', (subject, state) => {
 });
 
 // A law runs as `apply` runs held code, one frame below the step, a law of
-// a name the root declares in a lane over the root alone, as a word of the
-// root runs in the root's scope [QSQUO#held], and passes when it answers true
-// [QSCND#boolean]; its result names the law by its address and
-// the claim it proves by its page, and holds the error it
-// answered at rest, as `!|` grounds it [QSERR#catch], [QSSLF#laws].
+// a name the root declares in a lane over the root alone, as a verb of the
+// root runs in the root's scope, and passes when it answers true; its result
+// names the law by its address and the claim it proves by its page, and
+// holds the error it answered at rest, as `!|` grounds it [D352].
 async function runLaw({ law, quote, says }, callerState) {
   const result = new Map();
   result.set('law', law);

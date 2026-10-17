@@ -1,5 +1,5 @@
 // The evaluation depth budget across every re-entry seam: a runaway recursion
-// through any seam the evaluator descends — verb body, a quote a word runs, a
+// through any seam the evaluator descends — verb body, a quote a verb runs, a
 // verb run as code or as a fold, `apply`, an invariant of a kind that lays
 // its own tag, `runLaws` — terminates on the fail-track as
 // `::call/EvaluationDepthExceededError` with `:depth` and `:limit`. The

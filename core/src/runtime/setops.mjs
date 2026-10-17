@@ -1,12 +1,12 @@
 // The algebra of containers: union, minus, inter, each a plain function over
-// the subject and the inputs of its call [QSBLD#fn], one for each word of a
-// kind [QSERR#site]: a set meets the other set its call gives, a map the other
-// map or the keys a vector or a set names, and a vector folds the values it
-// holds and takes none beside it, a value of no kind of the algebra refused at
-// its index and a pair the algebra has no rule for refused by the word with
-// the kinds it met [QSORD#order], [D355].
+// the subject and the inputs of its call, one for each verb of a kind: a set
+// meets the other set its call gives, a map the other map or the keys a
+// vector or a set names, and a vector folds the values it holds and takes
+// none beside it, a value of no kind of the algebra refused at its index and
+// a pair the algebra has no rule for refused by the verb with the kinds it
+// met [QSORD#order], [D352], [D355].
 
-import { isSet, isKeyword, isString, isVec, isMap, makeSet, kindsExpected, typeKeyword } from '../types.mjs';
+import { isSet, isKeyword, isString, isVec, isMap, makeSet, kindsExpected, typeOf } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { bindPrim } from '../primitives.mjs';
@@ -79,7 +79,7 @@ const interOfMap = (map, keys, KeyRefusal) => {
 // drops or keeps the keys a map, a vector or a set names; any other pair
 // is refused with the kinds it met.
 function mismatched(left, right, KindsMismatchedError) {
-  return new KindsMismatchedError({ leftType: typeKeyword(left), rightType: typeKeyword(right) });
+  return new KindsMismatchedError({ leftType: typeOf(left), rightType: typeOf(right) });
 }
 
 function unionPair(left, right, { KindsMismatchedError }) {

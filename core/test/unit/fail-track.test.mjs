@@ -1,7 +1,7 @@
 // `raise`, and the catch, `!|`, which passes a value by and runs its step on
-// the error at rest, a group and a word among them; the trail of the steps a
+// the error at rest, a group and a verb among them; the trail of the steps a
 // failure skips, and the refusals of the runtime, each under the address of
-// its site [QSERR#raise], [QSERR#catch], [QSERR#site].
+// its site [D352].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -43,15 +43,15 @@ describe('`!|` passes a value by', () => {
   });
 });
 
-// ── `!|` runs a group and a word ───────────────────────────────
+// ── `!|` runs a group and a verb ───────────────────────────────
 
-describe('`!|` runs a group and a word on the error at rest', () => {
+describe('`!|` runs a group and a verb on the error at rest', () => {
   it('`!|` runs a group on the error at rest', async () => {
     const evalResult = await evalQuery('!{:kind :oops} | raise !| (get /kind)');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('a word called by `!|` runs its steps on the error at rest', async () => {
+  it('a verb called by `!|` runs its steps on the error at rest', async () => {
     const evalResult = await evalQuery(':any/handler ~(get /kind) | !{:kind :oops} | raise !| handler');
     expect(evalResult).toEqual(keyword('oops'));
   });
@@ -131,7 +131,7 @@ describe('per-site error classes carry unique identity', () => {
     expect((await evalQuery('42 | keys')).tag.name).toBe('map/keys/SubjectNotMapError');
   });
 
-  it('a subject of another kind is refused under the address of the word [QSBLD#fn]', async () => {
+  it('a subject of another kind is refused under the address of the verb [D352]', async () => {
     const refused = await evalQuery('"x" | add 1');
     expect(refused.tag.name).toBe('number/add/SubjectNotNumberError');
     expect(refused.descriptor.get('actualType').name).toBe('string');
@@ -231,14 +231,14 @@ describe('per-site error classes carry unique identity', () => {
     expect(mapResult.get('name')).toBe('alice');
   });
 
-  it('a count that is no whole number breaks the law of the count of its word [QSERR#site]', async () => {
+  it('a count that is no whole number breaks the law of the count of its verb [D352]', async () => {
     expect((await evalQuery('[1 2 3] | take 1.5')).tag.name).toBe('vec/take/count/NotIntegerError');
     expect((await evalQuery('[1 2 3] | drop 1.5')).tag.name).toBe('vec/drop/count/NotIntegerError');
     expect((await evalQuery('"abc" | take 1.5')).tag.name).toBe('string/take/count/NotIntegerError');
   });
 
 
-  it('a reducer of code runs on the pair, failing under the word it called [QSCOL#reduce]', async () => {
+  it('a reducer of code runs on the pair, failing under the verb it called [D352]', async () => {
     const answer = await evalQuery('[1 2 3] | reduce 0 ~(add 1)');
     expect(answer.tag.name).toBe('number/add/SubjectNotNumberError');
   });
@@ -276,7 +276,7 @@ describe('per-site error classes carry unique identity', () => {
   });
 });
 
-describe('coalesce refuses a call with no alternatives by the law of its part', () => {
+describe('coalesce refuses a call with no alternatives by the law of its input', () => {
   it('coalesce with no args breaks the law of its alternatives, the args it was given among its facts [QSERR#site], [QSBLD#input]', async () => {
     const refused = await evalQuery('{} | coalesce');
     expect(refused.tag.name).toBe('any/coalesce/alternatives/EmptyError');

@@ -104,8 +104,8 @@ export function readsPassedTags(impl) {
 }
 
 // runs(names, impl) → the primitive, which runs the inputs of those names
-// as code [QSBLD#fn]: its call hands each as code closed at the call, each
-// element of one that holds the objects of the call whole, and any other
+// as code [D352]: its call hands each as code closed at the call, each
+// element of one that holds the args of the call whole, and any other
 // value as it is.
 const INPUTS_RUN = new WeakMap();
 

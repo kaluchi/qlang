@@ -14,7 +14,7 @@
 {"name":"replace-refuses-a-replacement-of-another-kind","query":"\"a\" | replace #\"a\" 5 !| type","expect":"::string/replace/with/KindNotTakenError"}
 {"name":"toRegex-reads-a-pattern-kept-in-data","query":"{:rule \"^\\\\d{3}$\"} | :p (get /rule | toRegex) | get [\"123\" \"12a\"] | map ~(contains p)","expect":"[true false]"}
 {"name":"toRegex-refuses-a-source-the-engine-cannot-read","query":"\"(a\" | toRegex !| get [~(type) ~(get /message | contains \"Invalid regular expression\")]","expect":"[::string/toRegex/TextNotPatternError false]"}
-{"name":"a-name-holds-a-pattern-and-a-word-takes-it","query":":digits #\"\\d+\" | \"a1b22\" | get [~(scan digits) ~(contains digits)]","expect":"[[\"1\" \"22\"] true]"}
+{"decision":"D352","name":"a-name-holds-a-pattern-and-a-verb-takes-it","query":":digits #\"\\d+\" | \"a1b22\" | get [~(scan digits) ~(contains digits)]","expect":"[[\"1\" \"22\"] true]"}
 {"name":"toRegex-takes-the-flags-of-the-call","query":"\"error\" | toRegex \"mi\" | eq #\"error\"im","expect":"true"}
 {"name":"toRegex-refuses-a-letter-of-no-flag","query":"\"a\" | toRegex \"g\" !| type","expect":"::string/toRegex/flags/NotFlagsError"}
 {"name":"toRegex-refuses-a-literal-which-parse-reads","query":"{:p #\"\\d+\"i} | json | parseJson | get /p | get [~(toRegex !| type) ~(parse | apply it | eq #\"\\d+\"i)]","expect":"[::string/toRegex/LiteralNotSourceError true]"}

@@ -35,4 +35,4 @@
 {"name":"filter-vec-by-suffix","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter ~(endsWith \".txt\")","expect":"[\"alice.txt\" \"alex.txt\"]"}
 {"name":"filter-by-path-suffix","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter ~(get /file | endsWith \".qlang\") | map /file","expect":"[\"a.qlang\" \"c.qlang\"]"}
 {"name":"contains-finds-a-path-among-the-elements","query":"[/a] | contains /a","expect":"true"}
-{"name":"a-word-that-reads-text-refuses-a-keyword-for-its-text","query":"\"abc\" | contains :a !| type","expect":"::string/contains/needle/KindNotTakenError"}
+{"decision":"D352","name":"a-verb-that-reads-text-refuses-a-keyword-for-its-text","query":"\"abc\" | contains :a !| type","expect":"::string/contains/needle/KindNotTakenError"}

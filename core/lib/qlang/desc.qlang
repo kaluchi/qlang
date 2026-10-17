@@ -15,7 +15,7 @@
       It is a value under its tag, `::desc#5`, which `desc` lays over
       any value and `payload` opens. Every comparison agrees with it,
       `gt` and `lt` as `sort` and `max`.
-      ::snippet~(::desc | manifest) lists its words.
+      ::snippet~(::desc | manifest) lists its verbs.
       ::link~(::vec/sort | doc) ::link~(::qlang/values | doc)
   ~~|
   ::kind

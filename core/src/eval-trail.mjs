@@ -11,7 +11,7 @@
 //     literal answers: a refusal the part's constructor raised passes a
 //     frame at the part, and one handed on from inside it goes on as it is.
 //   `skipping(error, skippedStep)` — the failure that skipped a step.
-//   `atPlace(error, place)` — marks a failure at the part a word's code broke on.
+//   `atPlace(error, place)` — marks a failure at the part a verb's code broke on.
 //   `resumingItsTrail(error)` — marks a failure `raise` made of a map
 //     that wrote a path.
 //   `raisedBy(error, node)` — marks the failure a node's own fault raised.

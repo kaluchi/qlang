@@ -37,7 +37,7 @@
         ~~|
     | throws :TagNotKindError
         |~~ The tag before a payload addresses a kind, a label declared by
-            its chain or by its page alone, a word, whose args it lays
+            its chain or by its page alone, a verb, whose args it lays
             itself over, `::vec/take[2]`, or no declaration at all; a tag
             that addresses a name holding a value of its own names nothing
             to build by, and `:tag` is that tag. The value is read by its
@@ -46,7 +46,7 @@
             ::link~(::construct | doc)
         ~~|
     | carries :TagNotKindError/tag
-        |~~ The tag, whose node is neither a label nor a word. ~~|
+        |~~ The tag, whose node is neither a label nor a verb. ~~|
         ::tag
     | proves :holdsTheTagAndThePayload
         |~~ The step holds its tag and its payload. ~~|
@@ -77,8 +77,8 @@
         |~~ The tag of a name that holds a value builds nothing. ~~|
         ~(:limit 5 | ::limit[1]
           !| get [~(type) /tag /actualType] | eq [::construct/TagNotKindError ::limit ::number])
-    | proves :TagNotKindError/laysAWordsTagOverItsArgs
-        |~~ The tag of a word lays itself over its args. ~~|
+    | proves :TagNotKindError/laysAVerbsTagOverItsArgs
+        |~~ The tag of a verb lays itself over its args. ~~|
         ~(::vec/take[2] | type | eq ::vec/take)
     | proves :TagNotKindError/putsTheValueUnderATagOfItsOwn
         |~~ The value of a name is put under a tag of its own. ~~|

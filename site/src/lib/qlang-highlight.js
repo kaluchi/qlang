@@ -9,7 +9,7 @@
 //   highlightQlang(src, builtins) → HTML string
 //
 //     `src`      qlang source text, no prompt prefix or result lines
-//     `builtins` Set<string> of the names of words that resolve through
+//     `builtins` Set<string> of the names of verbs that resolve through
 //                langRuntime — the playground builds this once at
 //                startup and reuses it across every highlighted
 //                snippet. Pass null to paint the name of every call

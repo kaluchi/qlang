@@ -1,4 +1,4 @@
-// The coverage of the effectful words of the streams. Each is tested
+// The coverage of the effectful verbs of the streams. Each is tested
 // through a real session evalCell with a captured ioContext, so the dispatch
 // path, the per-site error sites, and the side-effect writers are
 // all exercised together — the same shape the real bin executes.
@@ -63,7 +63,7 @@ describe('out — the text the call gives, computed against the subject', () => 
     expect(cellEntry.result).toBe(42);
   });
 
-  it('refuses a text of another kind by the law of its part', async () => {
+  it('refuses a text of another kind by the law of its input', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out (add 1)', io);
     expect(io.stdoutText()).toBe('');
@@ -109,7 +109,7 @@ describe('err — the text the call gives, computed against the subject', () => 
     expect(io.stderrText()).toBe('[1 2 3]\n');
   });
 
-  it('refuses a text of another kind on stderr by the law of its part', async () => {
+  it('refuses a text of another kind on stderr by the law of its input', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | err (add 1)', io);
     expectRefusalByAddress(cellEntry, 'any/err/text/KindNotTakenError', {
@@ -128,7 +128,7 @@ describe('tap', () => {
     expect(io.stdoutText()).toBe('');
   });
 
-  it('refuses a label that is not a keyword by the law of its part', async () => {
+  it('refuses a label that is not a keyword by the law of its input', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | tap "oops"', io);
     expectRefusalByAddress(cellEntry, 'any/tap/label/KindNotTakenError', {

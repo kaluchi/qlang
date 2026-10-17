@@ -1,6 +1,6 @@
 |~ `::kind` and what is declared under it: the kind, its constructor, the
-   words that build it from the noun, their refusals and their laws. The
-   kind of kinds and its words are written as their literals, since none of
+   verbs that build it from the noun, their refusals and their laws. The
+   kind of kinds and its verbs are written as their literals, since none of
    them stands while the source runs; the chain builds every other kind.
    The decisions it exists for: [QSBLD#kind]. ~|
 
@@ -26,7 +26,7 @@
       builds no other value, but for a kind of the core, which reads its
       payload as a value of its own, `::set[2 1]` answering `#[1 2]`. A
       kind declared under a
-      name is a label, its words functions named under it: the payload,
+      name is a label, its verbs functions named under it: the payload,
       each field, each refusal, fact, invariant and law lie under it for
       `doc`, and `manifest` lists them but the laws, which `laws` reads;
       a label declared by its page alone holds its page and lays its tag
@@ -47,7 +47,7 @@
         ~~|
     | throws :SignatureNotCommandsError
         |~~ The commands of a kind are a quote of the commands that build
-            it, each with its objects: `wraps` a page and kinds, `reads` a
+            it, each with its modifiers: `wraps` a page and kinds, `reads` a
             name, a page, a place and kinds, `holds` a name, a page and a
             condition, `throws` a name and a page, `carries` a name, a
             page and kinds, `tells` a name and a page, and `proves` a
@@ -162,8 +162,8 @@
           | content
           | trim
           | eq "`w` holds a value of `::number`.")
-    | proves :readsNoFieldAsAWord
-        |~~ A field is no word of the values of its kind: `get` reads its
+    | proves :readsNoFieldAsAVerb
+        |~~ A field is no verb of the values of its kind: `get` reads its
             place.
         ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| ~(get /w) ::number)
@@ -283,7 +283,7 @@
       path into the payload, `/w` the key `w`, a place the payload leaves
       out refused under the field, or a quote that reads it,
       `~(query /h 1)` the key `h` or one; a value of none of the kinds is
-      refused under the field. A field is no word: `get` reads its place.
+      refused under the field. A field is no verb: `get` reads its place.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :name

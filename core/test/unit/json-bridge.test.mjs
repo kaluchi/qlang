@@ -4,14 +4,14 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isMap, isVec, formOf, typeKeyword, makeTag } from '../../src/types.mjs';
+import { isMap, isVec, formOf, typeOf, makeTag } from '../../src/types.mjs';
 import { fromJsonText, fromPlain, toPlain, BuiltinJsonValueNotEncodableError } from '../../src/runtime/format.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
   it('an object literal is a map keyed by the keywords of its strings', async () => {
     const readMap = await evalQuery('{"a": 1, "b c": 2}');
     expect(isMap(readMap)).toBe(true);
-    expect(typeKeyword(readMap)).toEqual(makeTag('map'));
+    expect(typeOf(readMap)).toEqual(makeTag('map'));
     expect([...readMap.keys()]).toEqual(['a', 'b c']);
   });
 

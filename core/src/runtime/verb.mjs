@@ -11,13 +11,13 @@ import { signatureOf } from './signature.mjs';
 import { declareRefusal } from '../errors.mjs';
 import {
   bindingValueOf, isFn, isVec, isMap, isTagged, isValueClass,
-  makeTag, typeKeyword
+  makeTag, typeOf
 } from '../types.mjs';
 
 export { layTag };
 
-// A call no kind of whose subject answers its word names what the reader
-// needs: where the word lives [QSSLF#page], [QSSLF#catalog].
+// A call of a name no kind of whose subject answers names what the reader
+// needs: where the verbs of the name live [D352].
 export const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
 
 // ── kinds ──────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ function isOfKind(value, kindName) {
     case 'vec':   return isVec(value);
     case 'map':   return isMap(value);
     case TAGGED_KIND_NAME: return isTagged(value);
-    default:      return typeKeyword(value).name === kindName;
+    default:      return typeOf(value).name === kindName;
   }
 }
 
@@ -62,7 +62,7 @@ async function underTags(value, tags, state) {
 // [QSDSP#answer], [QSSLF#catalog], and at once where it is of the kind and the
 // walk passed no tag.
 export function keptAsSubject(answer, served, passedTags, state) {
-  const ownKind = typeKeyword(served).name;
+  const ownKind = typeOf(served).name;
   const reached = walkToKinds(answer, [ownKind]);
   if (reached !== null && passedTags.length === 0) return reached.served;
   return keptUnderTags(answer, reached, ownKind, passedTags, state);
@@ -85,11 +85,11 @@ export function runPrimitive(primitive, served, passedTags, inputValues, state) 
 }
 
 // shownFor(env, name, kindNames?) → what a tool shows for a name, `{ address,
-// inputs }`: the word a subject of the kinds reaches [QSDSP#walk], or, where
-// the tool knows no kinds or they reach none, the address the name reaches
-// with no subject, or the first word of a name several kinds answer, and the
-// names of the inputs its function takes [QSBLD#fn]; undefined for a name that
-// reaches no name under a label.
+// inputs }`: the verb a subject of the kinds reaches, or, where the tool
+// knows no kinds or they reach none, the address the name reaches with no
+// subject, or the first verb of a name several kinds answer, and the names
+// of the inputs its function takes [D352]; undefined for a name that reaches
+// no name under a label.
 export function shownFor(env, name, kindNames = null) {
   const reached = kindNames === null ? undefined : verbsReaching(env, kindNames).get(name);
   const record = reached === undefined

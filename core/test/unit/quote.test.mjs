@@ -59,7 +59,7 @@ describe('assembling steps by hand', () => {
     expect(await refusal('get [[~(~(f) | tag ::fail)]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
   });
 
-  it('a declaration stands in a pipeline and in no container or argument head', async () => {
+  it('a declaration stands in a pipeline and in no container or modifier', async () => {
     expect(await refusal('[[::bind{:name :x :body 1}]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
     expect(await refusal('::call{:name :f :modifiers [::bind{:name :x :body 1}]}'))
       .toEqual(await tagOf('::call/PayloadNotSchemaError'));

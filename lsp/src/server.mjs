@@ -313,7 +313,7 @@ connection.onSignatureHelp(async (params) => {
 // token stream (5 ints per token). The editor merges it on top of
 // the tmLanguage grammar tokens so a reader's names get the
 // `variable` colour distinct from the `function` colour of the
-// words of the language.
+// verbs of the language.
 
 connection.languages.semanticTokens.on(async (params) => {
   const state = documentStates.get(params.textDocument.uri);

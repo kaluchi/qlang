@@ -1,14 +1,14 @@
 |~ The command line: its topic, `::cli`, and the names it declares under
    the kinds of their subjects, `table` under `::vec` and the names of
    the streams under `::any`. Their primitives are plain functions over
-   the served subject and the parts.
-   The decisions it exists for: [QSHST#effect], [QSDSP#residence]. ~|
+   the served subject and the values of their inputs.
+   The decisions it exists for: [D352]. ~|
 
 :cli
   |~~ The command line runs a query on what a shell hands it and prints
       the answer: `qlang 'get /users | count' < data.json` in a script, and
       `qlang -i` a session of cells. It is the host a reader meets first,
-      and the words it adds read and write the streams of the process.
+      and the verbs it adds read and write the streams of the process.
 
       A query runs on what stdin holds. JSON is read as values, an object
       a map whose keys are keywords, `{"name": "Ann"}` arriving as
@@ -20,7 +20,7 @@
       `qlang 'doc'` reads the first page; where a shell leaves stdin
       open, it waits for the end, as every reader of a pipe does.
 
-      The answer is printed as the language prints it, whatever the input
+      The answer is printed as the language prints it, whatever the data
       was: a map as `{:name "Ann" :tags #["a"]}`, a kind as `::map`. A
       string goes out as its text, so a query that ends in a conversion
       writes what the conversion made: `| json` the JSON text of the
@@ -107,7 +107,7 @@
         |~~ A number is no text to write. ~~|
         ~("hi" | out 5 !| type | eq ::any/out/text/KindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoTexts
-        |~~ A call with two texts is refused under the word. ~~|
+        |~~ A call with two texts is refused under the verb. ~~|
         ~("hi" | out "a" "b" !| type | eq ::any/out/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -146,7 +146,7 @@
         |~~ A number is no line `err` writes alone. ~~|
         ~(42 | err !| type | eq ::any/err/SubjectNotStringError)
     | proves :ArgsBeyondInputsError/refusesTwoTexts
-        |~~ A call with two texts is refused under the word. ~~|
+        |~~ A call with two texts is refused under the verb. ~~|
         ~("hi" | err "a" "b" !| type | eq ::any/err/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -174,7 +174,7 @@
         |~~ A string is no label. ~~|
         ~(1 | tap "x" !| type | eq ::any/tap/label/KindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoLabels
-        |~~ A call with two labels is refused under the word. ~~|
+        |~~ A call with two labels is refused under the verb. ~~|
         ~(5 | tap :a :b !| type | eq ::any/tap/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -210,7 +210,7 @@
         |~~ A single map is drawn in a vector. ~~|
         ~({:name "alice"} | get [~(it)] | table | contains "alice")
     | proves :SubjectNotVecError/refusesAMap
-        |~~ A single map is refused under the word. ~~|
+        |~~ A single map is refused under the verb. ~~|
         ~({:name "alice"} | table !| get [~(type) /actualType] | eq [::vec/table/SubjectNotVecError ::map])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of rows. ~~|

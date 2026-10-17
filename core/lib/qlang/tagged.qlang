@@ -1,13 +1,13 @@
 |~ `::tagged`, the kind of every value under a tag, which the walk of a
    tagged value reaches after its own tags, and what is declared under
-   it: the words of tagged values.
+   it: the verbs of tagged values.
    The decisions it exists for: [QSDSP#residence]. ~|
 
 :tagged
   |~~ A value under a tag is a payload read by the kind its tag names,
       `::Box[1 2]`, `::Box{:a 1}`, `::Box#5`, `::Box"s"`: the tag says
       how to read the data beneath, and the data keeps its shape, so the
-      words of the payload's kind still serve it, `::Box[1 2] | count`
+      verbs of the payload's kind still serve it, `::Box[1 2] | count`
       answering `2`. Tags stack and read from the outside in,
       `::Box::Crate{:a 1} | type` answering `::Box`.
 
@@ -22,9 +22,9 @@
 
       A verb finds a value under a tag through its tags from the outside
       in, then this kind, then the kind of its payload, so every value
-      under a tag reaches the words of this kind, a reader's kind adds
-      words over the core's, and a vector under a tag stays a vector.
-      ::snippet~(::tagged | manifest) lists its words.
+      under a tag reaches the verbs of this kind, a reader's kind adds
+      verbs over the core's, and a vector under a tag stays a vector.
+      ::snippet~(::tagged | manifest) lists its verbs.
       ::link~(::tag | doc) ::link~(::construct | doc)
       ::link~(::qlang/values | doc)
   ~~|

@@ -5,7 +5,7 @@
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword, LITERAL_WORDS } from '../name-chars.mjs';
 import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, CALL_TAG, FN_TAG_NAME, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { ANY_KIND_NAME, CONSTRUCT_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName, placesOfSelectors, selectorOfPlace } from './nouns.mjs';
+import { ANY_KIND_NAME, CONSTRUCT_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName, placesOfReadings, readingOfPlace } from './nouns.mjs';
 
 const FnSignatureNotCommandsError = declareRefusal('fn/SignatureNotCommandsError');
 const FnNameDeclaredTwiceError = declareRefusal('fn/NameDeclaredTwiceError');
@@ -31,7 +31,7 @@ const isKinds = value => isTag(value) || (isSet(value) && value.length > 0 && va
 const isPlainVec = value => Array.isArray(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isKindsOfEach = value => isKinds(value) || (isPlainVec(value) && value.length === 1 && isKinds(value[0]));
 
-// The objects each command takes, in their order, the last ones left out
+// The modifiers each command writes, in their order, the last ones left out
 // where the command may leave them.
 const COMMANDS = new Map([
   ['on', { taken: [isDoc], optional: [isKinds] }],
@@ -53,14 +53,14 @@ const KIND_COMMANDS = new Map([
   ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
 ]);
 
-// The objects of a step that is one of the commands of a table in the
+// The modifiers of a step that is one of the commands of a table in the
 // shapes it takes, or null.
-function objectsOf(step, commands) {
+function modifiersOf(step, commands) {
   if (step?.[TAG_HEADER_SYMBOL]?.name !== CALL_TAG.name || !commands.has(step.get('name').name)) return null;
   const { taken, optional } = commands.get(step.get('name').name);
-  const objects = step.get('modifiers') ?? [];
-  if (objects.length < taken.length || objects.length > taken.length + optional.length) return null;
-  return objects.every((object, at) => [...taken, ...optional][at](object)) ? objects : null;
+  const modifiers = step.get('modifiers') ?? [];
+  if (modifiers.length < taken.length || modifiers.length > taken.length + optional.length) return null;
+  return modifiers.every((modifier, at) => [...taken, ...optional][at](modifier)) ? modifiers : null;
 }
 
 // The names of the kinds a tag or a set of tags names, or null for any
@@ -71,8 +71,8 @@ function kindsOf(value) {
 }
 
 // The kinds of a value or of each of its elements, as `takes`, `wraps` and
-// `reads` write them: whether they are of each element, the kinds, and
-// the objects as written, null where none are.
+// `reads` write them: whether they are of each element, the names of the
+// kinds, and the kinds as written, null where none are.
 function kindsWritten(written) {
   const each = isPlainVec(written);
   return { each, kinds: kindsOf(each ? written[0] : written), written: written ?? null };
@@ -107,9 +107,9 @@ export function readSignature(quote) {
     if (head !== ANSWER_NAME && !signature.inputs.some(input => input.name.name === head)) throw new FnNameUnderNoInputError({ name: keyword(name), actualValue: quote });
   };
   for (const step of quote) {
-    const objects = objectsOf(step, COMMANDS);
-    if (objects === null) throw new FnSignatureNotCommandsError({ actualValue: quote });
-    const [first, second, third, fourth] = objects;
+    const modifiers = modifiersOf(step, COMMANDS);
+    if (modifiers === null) throw new FnSignatureNotCommandsError({ actualValue: quote });
+    const [first, second, third, fourth] = modifiers;
     switch (step.get('name').name) {
       case 'on':
         names.declare(SUBJECT_NAME);
@@ -121,7 +121,7 @@ export function readSignature(quote) {
         names.named.add(notGivenAddress(first.name));
         if (each) names.named.add(kindsRefusalAddress(first.name));
         if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
-        signature.inputs.push({ name: first, page: second, place: third, kinds, each, written, selector: selectorOfPlace(third) });
+        signature.inputs.push({ name: first, page: second, place: third, kinds, each, written, reading: readingOfPlace(third) });
         break;
       }
       case 'returns':
@@ -152,7 +152,7 @@ export function readSignature(quote) {
         signature.laws.push({ name: first.name, page: second, query: third });
     }
   }
-  signature.places = placesOfSelectors(signature.inputs.map(input => input.selector));
+  signature.places = placesOfReadings(signature.inputs.map(input => input.reading));
   return Object.freeze(signature);
 }
 
@@ -169,9 +169,9 @@ export function readKindSignature(quote) {
     return head;
   };
   for (const step of quote) {
-    const objects = objectsOf(step, KIND_COMMANDS);
-    if (objects === null) throw new KindSignatureNotCommandsError({ actualValue: quote });
-    const [first, second, third, fourth] = objects;
+    const modifiers = modifiersOf(step, KIND_COMMANDS);
+    if (modifiers === null) throw new KindSignatureNotCommandsError({ actualValue: quote });
+    const [first, second, third, fourth] = modifiers;
     switch (step.get('name').name) {
       case 'wraps': {
         names.declare(PAYLOAD_NAME);
@@ -230,8 +230,8 @@ export function signatureOf(fn) {
 }
 
 // functionOfRecipe(recipe) → the function of no commands a recipe is, a quote
-// or a host's primitive written as the value of a word [QSBLD#recipe], made
-// once for the recipe.
+// or a host's primitive written as the value of a verb [D352], made once
+// for the recipe.
 const FUNCTIONS_OF_RECIPES = new WeakMap();
 const NO_COMMANDS = makeQuote([]);
 

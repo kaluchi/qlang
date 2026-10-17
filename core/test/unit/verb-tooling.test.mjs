@@ -1,5 +1,5 @@
-// A word as the tooling reads it [QSBLD#fn]: what a tool shows for a name,
-// and the words a value of a kind reaches.
+// A verb as the tooling reads it [D352]: what a tool shows for a name,
+// and the verbs a value of a kind reaches.
 
 import { describe, it, expect } from 'vitest';
 import { langRuntime } from '../../src/runtime/index.mjs';
@@ -8,7 +8,7 @@ import { nodeOf, verbsReaching } from '../../src/runtime/nouns.mjs';
 import { answerKindsOf } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
 
-describe('a word as the tooling reads it', () => {
+describe('a verb as the tooling reads it', () => {
   it('shows a name under a label by its address and the inputs of its function [QSBLD#fn]', async () => {
     const shown = shownFor(await langRuntime(), 'add');
     expect(shown.address.name).toBe('number/add');
@@ -19,7 +19,7 @@ describe('a word as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'nothingAtAll')).toBeUndefined();
   });
 
-  it('shows the first kind\'s name of a word several kinds answer, and the inputs of its function', async () => {
+  it('shows the first verb of a name several kinds answer, and the inputs of its function', async () => {
     const shown = shownFor(await langRuntime(), 'gt');
     expect(shown.address.name.endsWith('/gt')).toBe(true);
     expect(shown.inputs).toEqual(['value']);
@@ -29,18 +29,18 @@ describe('a word as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'type').address.name).toBe('any/type');
   });
 
-  it('shows the word a subject of the kinds reaches, and the inputs of its function [QSDSP#walk]', async () => {
+  it('shows the verb a subject of the kinds reaches, and the inputs of its function [D352]', async () => {
     const env = await langRuntime();
     expect(shownFor(env, 'count', ['vec']).address.name).toBe('vec/count');
     expect(shownFor(env, 'count', ['map']).address.name).toBe('map/count');
     expect(shownFor(env, 'take', ['string'])).toEqual({ address: expect.objectContaining({ name: 'string/take' }), inputs: ['count'] });
   });
 
-  it('shows the word a name reaches with no subject where the kinds reach none', async () => {
+  it('shows the verb a name reaches with no subject where the kinds reach none', async () => {
     expect(shownFor(await langRuntime(), 'add', ['string']).address.name).toBe('number/add');
   });
 
-  it('reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the word\'s own label [QSSLF#catalog], [QSBLD#fn]', async () => {
+  it('reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the verb\'s own label [D352]', async () => {
     const env = await langRuntime();
     expect(answerKindsOf(env, nodeOf(env, 'vec/filter'), ['set'])).toEqual(['set']);
     expect(answerKindsOf(env, nodeOf(env, 'vec/count'), ['vec'])).toEqual(['number']);
@@ -53,7 +53,7 @@ describe('a word as the tooling reads it', () => {
     expect(answerKindsOf(session.env, nodeOf(session.env, 'Box/f'), ['Box'])).toEqual(['number', 'string']);
   });
 
-  it('shows a word written as its recipe alone, the function of no commands it is, with no inputs [QSBLD#chain]', async () => {
+  it('shows a verb written as its recipe alone, the function of no commands it is, with no inputs [D352]', async () => {
     const session = await createSession();
     await session.evalCell(':number/double ~(mul 2)');
     expect(shownFor(session.env, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
@@ -68,7 +68,7 @@ describe('the verbs a value of a kind reaches [QSDSP#walk]', () => {
     expect(reached.get('take')).toBeUndefined();
   });
 
-  it('leaves out a word its kind does not answer', async () => {
+  it('leaves out a verb its kind does not answer', async () => {
     const env = await langRuntime();
     expect(verbsReaching(env, ['number']).has('count')).toBe(false);
     expect(verbsReaching(env, ['vec']).get('count').address.name).toBe('vec/count');

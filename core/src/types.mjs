@@ -128,9 +128,8 @@ export function isRegex(v) {
   return isValueClass(v, 'regex');
 }
 
-// A path, the value of `/a/b/0` [QSPTH#value]: the text of each segment, a key
-// of a map or a place of a vector, which the word that takes the path
-// reads.
+// A path, the value of `/a/b/0` [D352]: the text of each segment, a key of a
+// map or a place of a vector, which the verb that takes the path reads.
 export function makePath(segments) {
   return Object.freeze(brandValueClass({ segments: Object.freeze(segments.map(String)) }, 'path'));
 }
@@ -344,8 +343,8 @@ export function payloadBeneath(value) {
 }
 
 // The descriptor of an implementation a host hands, `::builtin{}`, the
-// recipe of a word or of a kind that a primitive answers, or the value of
-// a name under a label alone [QSBLD#fn], [QSBLD#kind], [QSBLD#recipe].
+// recipe of a verb or of a kind that a primitive answers, or the value of
+// a name under a label alone [D352].
 export function isBuiltinDescriptor(v) {
   return isMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
@@ -376,7 +375,7 @@ export const ErrorTrailNotFramesError = declareRefusal('error/TrailNotFramesErro
 
 // A trail is a vector of frames under `::trail`, a frame the vector of the
 // subject a step met, the quote of the steps from the one that broke and the
-// path of the part a word's code broke on, where one did [QSERR#trail].
+// path of the part a verb's code broke on, where one did [D352].
 export const TRAIL_TAG = makeTag('trail');
 export const FRAME_TAG = makeTag('frame');
 
@@ -416,19 +415,19 @@ export function makeErrorValue(tag, descriptor, { location = null, originalError
 
 // formOf(v) → the form a writer of the core reads a value by: `error`,
 // `underTag` for a value under a tag, a quote's data written under the
-// tag of a kind among them [QSSLF#doc], the kind of the core `typeKeyword`
-// answers, or `unknown` for a host's raw object.
+// tag of a kind among them, the kind of the core `typeOf` answers, or
+// `unknown` for a host's raw object [D352].
 export function formOf(v) {
   if (isErrorValue(v)) return 'error';
   if (isValueClass(v, 'underTag')) return 'underTag';
-  const kind = typeKeyword(v);
+  const kind = typeOf(v);
   if (kind === UNKNOWN_KIND) return 'unknown';
   return Object.hasOwn(CORE_KIND, kind.name) ? kind.name : 'underTag';
 }
 
-// typeKeyword(v) — the kind of a value [QSLIT#kind]: its outermost tag, or
-// the kind of the core its literal implies.
-export function typeKeyword(v) {
+// typeOf(v) — the kind of a value, the tag `type` answers [D352]: its
+// outermost tag, or the kind of the core its literal implies.
+export function typeOf(v) {
   if (isNull(v)) return CORE_KIND.null;
   if (isBoolean(v)) return CORE_KIND.boolean;
   if (isNumber(v)) return CORE_KIND.number;

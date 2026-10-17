@@ -16,7 +16,7 @@
 //                 doc holds and its spans in backticks paint as code
 //   'name'        `:name` keyword OR a call's name that resolves
 //                 through a reader's binding
-//   'word'        a call's name that resolves to a word of the
+//   'word'        a call's name that resolves to a verb of the
 //                 language supplied by `langRuntime` AND each key
 //                 segment of a `Path`
 //   'keyword'     the head keyword of a BindStep declaration

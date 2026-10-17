@@ -7,7 +7,7 @@
       in the scope where it stands:
       `{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)` keeps the
       record for a later step and answers `6`. The value in the pipe
-      passes on unchanged; a group and a quote a word runs each close the
+      passes on unchanged; a group and a quote a verb runs each close the
       names declared inside, the quotes of a template `get` runs are forks
       of their own, and a name is declared once in its scope.
 
@@ -61,12 +61,12 @@
             build them: an invariant is written
             `| holds :NotPositiveError |~~ … ~~| ~(gt 0)`, the payload and
             the fields of a kind `| wraps …` and `| reads …`, and an input
-            of a word `| takes …`,
+            of a verb `| takes …`,
             its answer `| returns …` and its subject `| on …`. Declared by
             a name, an invariant holds of no value, and a constructor
             under a label, or an input, an answer or a subject under a
-            word, is read by no call, so the declaration is refused,
-            `:name` naming it and `:noun` the label or the word it is
+            verb, is read by no call, so the declaration is refused,
+            `:name` naming it and `:noun` the label or the verb it is
             under. A page and a law are declared by a name under any of
             them.
             ::link~(::kind | doc) ::link~(::fn | doc)
@@ -78,7 +78,7 @@
         ~~|
         ::keyword
     | carries :WrittenOutsideItsChainError/noun
-        |~~ The label or the word the name is declared under. ~~|
+        |~~ The label or the verb the name is declared under. ~~|
         ::tag
     | throws :NameDeclaredTwiceError
         |~~ A name is declared once in a scope: the steps of a pipeline
@@ -88,7 +88,7 @@
             scopes of their own, where a name of the scope around them is
             shadowed, so a second value takes another name or a group of
             its own, `(:k 2 | k)`. The recipe
-            of a word runs in a scope its call opens with `args` and each
+            of a verb runs in a scope its call opens with `args` and each
             input, so a step of the recipe declares none of them again: the
             recipe reads an input by its name, and a value of its own takes
             another. An address the root holds is declared once at all: a
@@ -152,13 +152,13 @@
     | proves :WrittenOutsideItsChainError/refusesAConstructorUnderALabel
         |~~ A constructor declared by a name under a label is refused. ~~|
         ~(:Pos |~~ A positive number. ~~| | :Pos/construct ~(add 0) !| type | eq ::bind/WrittenOutsideItsChainError)
-    | proves :WrittenOutsideItsChainError/refusesAnInputUnderAWord
-        |~~ An input declared by a name under a word is refused; the chain
+    | proves :WrittenOutsideItsChainError/refusesAnInputUnderAVerb
+        |~~ An input declared by a name under a verb is refused; the chain
             of the function takes it.
         ~~|
         ~(:number/plus ~(add 1) | :number/plus/by /0 !| type | eq ::bind/WrittenOutsideItsChainError)
-    | proves :WrittenOutsideItsChainError/refusesTheAnswerOfAWord
-        |~~ The answer of a word declared by a name is refused. ~~|
+    | proves :WrittenOutsideItsChainError/refusesTheAnswerOfAVerb
+        |~~ The answer of a verb declared by a name is refused. ~~|
         ~(:number/half ~(div 2) | :number/half/answer ::number !| type | eq ::bind/WrittenOutsideItsChainError)
     | proves :WrittenOutsideItsChainError/takesAPageAndALaw
         |~~ A page and a law are declared by a name under a kind. ~~|
@@ -187,7 +187,7 @@
         |~~ A quote declares in a scope of its own. ~~|
         ~(:k 1 | apply ~(:k 2 | k) | eq 2)
     | proves :NameDeclaredTwiceError/refusesAnInputDeclaredInTheRecipe
-        |~~ The recipe of a word declares none of its inputs again. ~~|
+        |~~ The recipe of a verb declares none of its inputs again. ~~|
         ~(:number/m (::fn | takes :x |~~ How much. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(type) /name] | eq [::bind/NameDeclaredTwiceError :x])
     | proves :NameDeclaredTwiceError/refusesANameTheRootHolds
         |~~ A reader declares no name the root holds. ~~|

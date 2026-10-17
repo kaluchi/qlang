@@ -9,7 +9,7 @@
       `| proves :addsTheNumber |~~ Ten and three is thirteen. ~~| ~(10 | add 3 | eq 13)`,
       and a law of any other name, a label among them, is declared under
       it, `:Box/holdsItsWidth ::law~(::Box{:w 1} | get /w | eq 1)`. A law is
-      code held as data: it reads the words of the tree and the names it
+      code held as data: it reads the verbs of the tree and the names it
       declares, and no value the reader named, and a law of a name the
       language declares runs over the root alone.
 

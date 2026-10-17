@@ -1,10 +1,10 @@
 |~ `::vec` and what is declared under it: its constructor and the
-   refusal of a payload of another kind, and the words of vectors. A
-   word of vectors serves a vector under any tag, a quote and a doc
-   among them, and a set where the set has no word of its own; a word
+   refusal of a payload of another kind, and the verbs of vectors. A
+   verb of vectors serves a vector under any tag, a quote and a doc
+   among them, and a set where the set has no verb of its own; a verb
    whose answer names the vector answers under the tags of the subject,
-   and `map`, whose answer is any value, under none. The inputs of a word
-   are read and held to their invariants before the word runs.
+   and `map`, whose answer is any value, under none. The inputs of a verb
+   are read and held to their invariants before the verb runs.
    The decisions it exists for: [QSDSP#residence]. ~|
 
 :vec
@@ -21,12 +21,12 @@
       is read. JSON writes a vector as an array, and vectors rank after
       paths and before sets, element by element.
 
-      Its words count and cut, `count`, `first`, `last`, `take`, `drop`,
+      Its verbs count and cut, `count`, `first`, `last`, `take`, `drop`,
       turn each element into another, `map ~(…)`, keep some,
       `filter ~(…)`, rank them, `sort`, fold them, `reduce`, and sum
       their numbers, `sum`. A long answer is read in pieces,
       `drop 20 | take 20`, the rest of it the same query with a tail.
-      ::snippet~(::vec | manifest) lists its words and refusals.
+      ::snippet~(::vec | manifest) lists its verbs and refusals.
       ::link~(::vec/map | doc) ::link~(::set | doc)
       ::link~(::qlang/values | doc)
   ~~|
@@ -65,7 +65,7 @@
       answering `3` and the empty vector `0`. A quote counts its steps,
       a doc its segments, its prose and its quotes, and a set its
       elements, each held once. A map and a string answer `count` by
-      words of their own, a map counting its entries and a string its
+      verbs of their own, a map counting its entries and a string its
       characters; a number, null or a boolean answers no `count`, and the
       call is refused with the kinds that do.
       ::link~(::vec/empty | doc)
@@ -94,7 +94,7 @@
         |~~ A set counts each element once. ~~|
         ~([1 1 2] | get [~(count) ~(toSet | count)] | eq [3 2])
     | proves :ArgsBeyondInputsError/refusesAValue
-        |~~ A value given to `count` is refused under the word. ~~|
+        |~~ A value given to `count` is refused under the verb. ~~|
         ~(#[:a] | count 1 !| type | eq ::vec/count/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -127,7 +127,7 @@
 :vec/empty
   |~~ Answers whether the vector holds no element, `[] | empty`
       answering `true`; a vector of null holds an element, as a set of
-      null does, so it is not empty. A map answers `empty` by a word of
+      null does, so it is not empty. A map answers `empty` by a verb of
       its own; a string answers no `empty`, and text is asked
       `count | eq 0`.
       ::link~(::vec/count | doc)
@@ -185,7 +185,7 @@
         |~~ A vector answers its first written, its set the least. ~~|
         ~([:c :a :b] | get [~(first) ~(toSet | first)] | eq [:c :a])
     | proves :ArgsBeyondInputsError/refusesACount
-        |~~ A count given to `first` is refused under the word. ~~|
+        |~~ A count given to `first` is refused under the verb. ~~|
         ~(#[1 2] | first 2 !| type | eq ::vec/first/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -218,7 +218,7 @@
         |~~ A vector answers its last written, its set the greatest. ~~|
         ~([:c :a :b] | get [~(last) ~(toSet | last)] | eq [:b :c])
     | proves :ArgsBeyondInputsError/refusesACount
-        |~~ A count given to `last` is refused under the word. ~~|
+        |~~ A count given to `last` is refused under the verb. ~~|
         ~(#[1 2] | last 2 !| type | eq ::vec/last/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -455,7 +455,7 @@
       `map ~(get {:id /id :n ~(get /tags | count)})`.
       A quote written in the call reads the names of its step, a name
       declared before the call among them; a quote held in a name runs
-      in a lane of its own, which reads the words of the tree and no
+      in a lane of its own, which reads the verbs of the tree and no
       value a reader named; and the names a run declares stay in it. The
       first failure the code answers for an element is the answer of the
       call, the elements after it left unrun, and a code that recovers,
@@ -463,7 +463,7 @@
       vector of their own, under no tag of the subject, whose tags speak
       of the elements it held; a quote maps its steps, a doc its segments
       and a set its elements in its one order, equal images each in its
-      place, which `toSet` makes a set. A map answers `map` by a word of
+      place, which `toSet` makes a set. A map answers `map` by a verb of
       its own; `filter` keeps the elements a predicate holds of, and
       `reduce` folds them into one value.
       ::link~(::vec/filter | doc) ::link~(::vec/reduce | doc)
@@ -526,7 +526,7 @@
         |~~ A call without code is refused under the input. ~~|
         ~([1 2] | map !| type | eq ::vec/map/code/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoCodes
-        |~~ Two codes are refused under the word. ~~|
+        |~~ Two codes are refused under the verb. ~~|
         ~([1 2] | map ~(add 1) ~(mul 2) !| type | eq ::vec/map/ArgsBeyondInputsError)
     | proves :buildsTheShapeOfEachElementByATemplate
         |~~ A template of `get` builds the shape of each element. ~~|
@@ -548,7 +548,7 @@
   |~~ Answers the elements whose predicate answers `true`, in their order,
       `[1 2 3 4 5] | filter ~(gt 2)` answering `[3 4 5]`. The predicate is
       code run on each element as its subject, a quote,
-      `~(get /age | gte 18)`, or a word by its name, `~empty`; a value
+      `~(get /age | gte 18)`, or a verb by its name, `~empty`; a value
       computed at the call is refused, the error of a read computed at the
       call among them, `filter (get /active)` for `filter /active`. The
       predicate answers a boolean, since no other value stands for one,
@@ -559,7 +559,7 @@
       kind of the subject: a vector under a tag stays under it, a quote
       keeps the steps that hold, a doc the segments and a set a set, its
       `:index` the place of an element in its one order; a map answers
-      `filter` by a word of its own.
+      `filter` by a verb of its own.
       ::link~(::vec/every | doc) ::link~(::any/allOf | doc)
   ~~|
   ::fn
@@ -588,8 +588,8 @@
     | proves :readsEachElement
         |~~ The predicate reads each element as its subject. ~~|
         ~([{:age 25} {:age 15}] | filter ~(get /age | gte 18) | eq [{:age 25}])
-    | proves :takesAWordByItsName
-        |~~ A word by its name stands where a quote would. ~~|
+    | proves :takesAVerbByItsName
+        |~~ A verb by its name stands where a quote would. ~~|
         ~([1 -2 3] | :number/positive ~(gt 0) | filter ~positive | eq [1 3])
     | proves :answersTheErrorOfAnElement
         |~~ An error the predicate answers for an element answers the
@@ -639,7 +639,7 @@
           !| get [~(type) /index]
           |  eq [::vec/filter/ConditionNotBooleanError 1])
     | proves :ArgsBeyondInputsError/refusesTwoPredicates
-        |~~ Two predicates are refused under the word. ~~|
+        |~~ Two predicates are refused under the verb. ~~|
         ~([1 2] | filter ~(gt 1) ~(gt 0) !| type | eq ::vec/filter/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -649,7 +649,7 @@
       answering `true`. It stops at the first element that answers
       `false`, so the elements after it are not run, and the empty
       vector answers `true`. The predicate is code run on each element,
-      a quote or a word by its name, as `filter` takes it: a value
+      a quote or a verb by its name, as `filter` takes it: a value
       computed at the call is refused, the predicate answers a boolean,
       and an error it answers for an element answers the call. A set is
       asked in its one order, and a map of its values by an `every` of its
@@ -688,8 +688,8 @@
     | proves :holdsOfNothing
         |~~ An empty container answers true. ~~|
         ~([] | every ~(gt 0))
-    | proves :takesAWordByItsName
-        |~~ A word by its name stands where a quote would. ~~|
+    | proves :takesAVerbByItsName
+        |~~ A verb by its name stands where a quote would. ~~|
         ~([2 4 6] | :number/positive ~(gt 0) | every ~positive)
     | proves :answersTheErrorOfAnElement
         |~~ An error the predicate answers for an element answers the
@@ -720,7 +720,7 @@
       `[1 2 3] | any ~(gt 2)` answering `true`. It stops at the first
       element that answers `true`, so the elements after it are not run,
       and the empty vector answers `false`. The predicate is code run on
-      each element, a quote or a word by its name, as `filter` takes it:
+      each element, a quote or a verb by its name, as `filter` takes it:
       a value computed at the call is refused, and the predicate answers
       a boolean. A set is asked in its one order, and a map of its values
       by an `any` of its own; `every` asks whether each element holds.
@@ -758,8 +758,8 @@
     | proves :failsOfNothing
         |~~ An empty container answers false. ~~|
         ~([] | any ~(gt 0) | not)
-    | proves :takesAWordByItsName
-        |~~ A word by its name stands where a quote would. ~~|
+    | proves :takesAVerbByItsName
+        |~~ A verb by its name stands where a quote would. ~~|
         ~([1 2 3] | :number/big ~(gt 2) | any ~big)
     | proves :predicate/KindNotTakenError/refusesABoolean
         |~~ A value computed at the call is refused, a boolean among them.
@@ -788,7 +788,7 @@
       number whatever its digits, and a keyword is not its string, so
       `[:a] | has "a"` answers `false`. A set is searched by its one
       order, `#[:a :b :c] | has :b` answering `true`, and a map answers
-      `has` of its keys by a word of its own. A vector given is one
+      `has` of its keys by a verb of its own. A vector given is one
       element: whether a set holds each of several is `inter`. A path
       given reads the part it names, `[[1] 2] | has /0/0` answering
       `true`, so a path held as an element is asked for by `contains`,
@@ -845,13 +845,13 @@
         |~~ A call with no element is refused under the input. ~~|
         ~(#[1 2] | has !| type | eq ::vec/has/element/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoElements
-        |~~ A call with two elements is refused under the word. ~~|
+        |~~ A call with two elements is refused under the verb. ~~|
         ~(#[1 2] | has 1 2 !| type | eq ::vec/has/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :vec/contains
   |~~ Answers whether the vector holds an element equal to the element the
-      call gives, the membership `has` asks, under the word a string
+      call gives, the membership `has` asks, under the name a string
       answers for its substrings, `["ops" "db"] | contains "ops"`
       answering `true`; whether a value is one of several reads
       `:x it | [5 6] | contains x`. A set is searched by its one order,
@@ -905,7 +905,7 @@
       `groupBy | map ~count` counts the occurrences of each value. The key
       is code run on each element, a quote, `~(get /k)`; a value computed
       at the call is refused, and a key that misses its field answers the
-      error of the read. A set answers `groupBy` by a word of its own, and
+      error of the read. A set answers `groupBy` by a verb of its own, and
       `indexBy` keeps one element under each key.
       ::link~(::vec/indexBy | doc) ::link~(::vec/avg | doc)
   ~~|
@@ -1142,7 +1142,7 @@
 
       The answer keeps the kind of the subject, a vector under a tag and a
       quote among them; a set sorts into a vector, and a map by its
-      values, its keys kept, by words of their own.
+      values, its keys kept, by verbs of their own.
       ::link~(::vec/min | doc) ::link~(::desc | doc)
   ~~|
   ::fn
@@ -1217,7 +1217,7 @@
         ~~|
         ~([3 1 2] | sort 1 !| get [~(type) /actualType] | eq [::vec/sort/key/KindNotTakenError ::number])
     | proves :ArgsBeyondInputsError/refusesTwoKeys
-        |~~ Two keys are refused under the word. ~~|
+        |~~ Two keys are refused under the verb. ~~|
         ~([{:a 1}] | sort /a /b !| type | eq ::vec/sort/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -1229,7 +1229,7 @@
       fraction, is refused under the input. The answer keeps the kind of
       the subject, a vector under a tag, a quote, whose first steps it
       takes, and a set, which takes its least elements, the first of its
-      one order. A map and a string answer `take` by words of their own,
+      one order. A map and a string answer `take` by verbs of their own,
       a string taking its first characters. `drop` answers the rest, so
       `drop 20 | take 10` reads a slice.
       ::link~(::vec/drop | doc) ::link~(::any/query | doc)
@@ -1287,7 +1287,7 @@
         |~~ A call with no count is refused under the input. ~~|
         ~(#[:a :b] | take !| type | eq ::vec/take/count/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoCounts
-        |~~ A call with two counts is refused under the word. ~~|
+        |~~ A call with two counts is refused under the verb. ~~|
         ~(#[:a :b] | take 1 2 !| type | eq ::vec/take/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -1298,7 +1298,7 @@
       count of zero or below drops nothing; a count that is no number, or
       a fraction, is refused under the input. The answer keeps the kind of
       the subject, as `take` keeps it, a set dropping its least elements,
-      and a map and a string answer `drop` by words of their own.
+      and a map and a string answer `drop` by verbs of their own.
       ::link~(::vec/take | doc)
   ~~|
   ::fn
@@ -1341,7 +1341,7 @@
         ~~|
         ~([3 1 2] | get [~(drop 2) ~(toSet | drop 2)] | eq [[2] #[3]])
     | proves :ArgsBeyondInputsError/refusesTwoCounts
-        |~~ A call with two counts is refused under the word. ~~|
+        |~~ A call with two counts is refused under the verb. ~~|
         ~(#[:a :b :c] | drop 1 2 !| type | eq ::vec/drop/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -1366,7 +1366,7 @@
   |~~ Answers the elements in the reverse order, `[1 2 3] | reverse`
       answering `[3 2 1]`. The answer keeps the kind of the subject, a
       vector under a tag and a quote, whose steps it reverses; a set and
-      a map answer `reverse` by words of their own, a set reversing into
+      a map answer `reverse` by verbs of their own, a set reversing into
       a vector.
       ::link~(::vec/sort | doc)
   ~~|
@@ -1531,10 +1531,10 @@
       `reduce ~(add)` reads the quote as the seed and is refused for the
       reducer it lacks. The reducer is code, a path or a quote. A quote
       of one word, `~(add)` or `~add`, or of its address,
-      `~(number/add)`, is the word the fold calls with the value so far as
-      its subject and the element as its first arg; any other code runs on
-      the pair of the value so far and the element, and what it answers is the value so far after
-      that element:
+      `~(number/add)`, names the verb the fold calls with the value so far
+      as its subject and the element as its first arg; any other code runs
+      on the pair of the value so far and the element, and what it answers
+      is the value so far after that element:
       `[{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (get /1 | get /x))` answers
       `3`. A failure the reducer answers answers the call. Adding from
       zero sums, multiplying from one gives the product, appending from
@@ -1546,9 +1546,9 @@
   ::fn
     | takes :seed |~~ The value the fold starts from, any value. ~~| /0
     | takes :reducer
-        |~~ Code: a quote of one word the fold calls with the element, or a
-            path or a quote it runs on the pair of the value so far and the
-            element.
+        |~~ Code: a quote of one word, which names the verb the fold calls
+            with the element, or a path or a quote it runs on the pair of
+            the value so far and the element.
         ~~|
         /1 #[::path ::quote]
     | throws :reducer/KindNotTakenError
@@ -1583,8 +1583,8 @@
     | proves :takesTheQuoteOfAName
         |~~ The quote of a name alone is a reducer. ~~|
         ~([1 2 3] | reduce 0 ~add | eq 6)
-    | proves :takesTheAddressOfAWord
-        |~~ A word named by its address is a reducer. ~~|
+    | proves :takesTheAddressOfAVerb
+        |~~ A verb named by its address is a reducer. ~~|
         ~([1 2 3] | reduce 0 ~(number/add) | eq 6)
     | proves :runsCodeOnThePair
         |~~ Code of more than one word runs on the pair of the value so
@@ -1626,7 +1626,7 @@
         |~~ A call of the reducer alone lacks the reducer. ~~|
         ~([1 2 3] | reduce ~(add) !| type | eq ::vec/reduce/reducer/NotGivenError)
     | proves :takesANameOfTwoSteps
-        |~~ Two steps under a name of their own fold as one word. ~~|
+        |~~ Two steps under a name of their own fold as one verb. ~~|
         ~(:number/step (::fn | takes :el |~~ The element. ~~| /0 ::number | impl ~(mul 2 | add el)) | [1 2 3] | reduce 0 ~(step) | eq 11)
     | proves :foldsASetInItsOneOrder
         |~~ A vector folds as written, its set in the one order. ~~|
@@ -1697,7 +1697,7 @@
           !| get [~(type) /leftType /rightType]
           |  eq [::vec/union/KindsMismatchedError ::set ::map])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
-        |~~ A value the call gives is refused under the word. ~~|
+        |~~ A value the call gives is refused under the verb. ~~|
         ~([#[1]] | union #[2] !| type | eq ::vec/union/ArgsBeyondInputsError)
     | proves :unitesTheSetsASetHoldsByItsAddress
         |~~ The sets a set holds unite by the verb called by its address.
@@ -1781,7 +1781,7 @@
           !| get [~(type) /actualType /index /expected]
           |  eq [::vec/minus/KeyKindNotTakenError ::number 1 #[::keyword ::string]])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
-        |~~ A value the call gives is refused under the word. ~~|
+        |~~ A value the call gives is refused under the verb. ~~|
         ~([#[1]] | minus #[2] !| type | eq ::vec/minus/ArgsBeyondInputsError)
     | proves :takesTheSetsASetHoldsInItsOneOrder
         |~~ The sets a set holds meet in its one order, the sets a vector
@@ -1861,7 +1861,7 @@
           !| get [~(type) /actualType /index /expected]
           |  eq [::vec/inter/KeyKindNotTakenError ::vec 0 #[::keyword ::string]])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
-        |~~ A value the call gives is refused under the word. ~~|
+        |~~ A value the call gives is refused under the verb. ~~|
         ~([#[1]] | inter #[2] !| type | eq ::vec/inter/ArgsBeyondInputsError)
     | proves :keepsWhatTheSetsASetHoldsShareByItsAddress
         |~~ What the sets a set holds share is the verb called by its
@@ -1881,7 +1881,7 @@
       another value is refused at its index, a number made text first by
       `toString`, `["a" 2] | map ~toString | join "+"` answering
       `"a+2"`, and any value written as its literal by `print`. A set
-      joins its elements in the one order; a map, a string or a number is refused under the word, and a
+      joins its elements in the one order; a map, a string or a number is refused under the verb, and a
       map's values are read first, `vals | join ","`.
       ::link~(::string/split | doc) ::link~(::any/print | doc)
   ~~|
@@ -1964,7 +1964,7 @@
       keeps the kind of the subject: a vector under a tag stays under it,
       a quote takes the element as its first step, and a set takes it
       through its constructor, so it stays a set in the one order. A
-      string answers `prepend` by a word of its own; `append` puts the
+      string answers `prepend` by a verb of its own; `append` puts the
       element at the end.
       ::link~(::vec/append | doc)
   ~~|
@@ -1993,7 +1993,7 @@
       subject: a vector under a tag stays under it, a quote takes the
       element as its last step, a set takes it through its constructor,
       so it stays a set, and a doc takes a segment, a string or a quote,
-      and refuses another value. A string answers `append` by a word of
+      and refuses another value. A string answers `append` by a verb of
       its own; `prepend` puts the element at the head.
       ::link~(::vec/prepend | doc) ::link~(::vec/flat | doc)
       ::link~(::doc/ElementNotSegmentError | doc)

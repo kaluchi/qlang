@@ -1,16 +1,16 @@
 |~ `::path`, the kind of a path, and what is declared under it: its
-   word and the refusals of a read that misses.
+   verb and the refusals of a read that misses.
    The decisions it exists for: [QSDSP#residence], [QSPTH#value]. ~|
 
 :path
   |~~ A path, `/a/0/b`, is a value that names a part of another: a key
       of a map or a place of a vector at each segment, a negative place
-      counted from the end. It does nothing by itself; the word that
+      counted from the end. It does nothing by itself; the verb that
       takes it reads it. `get /a/b` answers the part and refuses one
       that is not there, so a misspelled field is found where it is
       read; `query /a/b` answers null there; `has /a/b` answers whether
       it is there; `put /a/b 2`, `update /a/b ~(add 1)` and `delete /a/b`
-      write it, followed as `get` follows it; and a word that runs code
+      write it, followed as `get` follows it; and a verb that runs code
       takes a path as the code
       that reads it from each element, `map /name`, `sort /age`,
       `filter /active`. A path prints in one spelling that reads back
@@ -77,7 +77,7 @@
             subject of a later step reads what that step was handed: after
             `get /qty |` the subject is the number, so two fields of one
             record are read in one step, `get [/qty /price]`, or combined
-            by a word that reads each from its args, `mulOf /qty /price`. A value
+            by a verb that reads each from its args, `mulOf /qty /price`. A value
             that may be null is read by `query`, which answers null.
             ::link~(::path | doc) ::link~(::any/mulOf | doc)
         ~~|

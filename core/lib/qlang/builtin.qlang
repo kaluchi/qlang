@@ -6,8 +6,8 @@
    The decisions it exists for: [QSERR#site], [QSDSP#residence]. ~|
 
 :builtin
-  |~~ A builtin marks a word a host implements: the recipe of a
-      function whose code the host hands, `::builtin{}`, where a word
+  |~~ A builtin marks a verb a host implements: the recipe of a
+      function whose code the host hands, `::builtin{}`, where a verb
       written in steps holds a quote.
       `::number/add | binding | get /value | get /1` answers
       `::builtin{}`, and a kind of the core takes one, `| impl ::builtin{}`,
@@ -15,7 +15,7 @@
       refuses it.
 
       It is a map under its tag and runs nothing by itself: a name bound
-      to one reads it as data, and a call of the word runs the
+      to one reads it as data, and a call of the verb runs the
       implementation its host handed.
       ::link~(::qlang/hosts | doc)
   ~~|
@@ -23,7 +23,7 @@
         |~~ A map, the descriptor, its fields flat under the tag. ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::builtin` holds its fields as a map, `::builtin{}` the recipe
-            a host's word ends with and the check a kind of the core takes,
+            a host's verb ends with and the check a kind of the core takes,
             `impl ::builtin{}`; a payload of another kind is refused, and
             the descriptor is written `::builtin{}`.
         ~~|
@@ -36,7 +36,7 @@
     | throws :AddressBoundTwiceError
         |~~ Two modules of the runtime bound an implementation under one
             address, a defect of the runtime found as it loads. Each
-            implementation is bound under the address of the word or the
+            implementation is bound under the address of the verb or the
             kind it serves, one to an address, `number/add`.
         ~~|
     | throws :RefusalDeclaredTwiceError
@@ -44,7 +44,7 @@
             address, a defect of the runtime found as it loads: the
             address is the tag the refusal answers by and the name of its
             page. Each site declares its
-            refusal under the address of what refused, the word or the
+            refusal under the address of what refused, the verb or the
             input, one site to an address.
         ~~|
     | throws :RefusalFactNotDeclaredError
@@ -60,7 +60,7 @@
     | throws :AddressNotStringError
         |~~ A module of the runtime bound an implementation under an
             address that is no string, a defect of the runtime found as it
-            loads. The address is the text of the word's address,
+            loads. The address is the text of the verb's address,
             `number/add`.
         ~~|
     | throws :ImplementationNotHandedError
@@ -112,10 +112,10 @@
         |~~ A host handed an implementation beside a source of the root
             for a name the source declares neither as a `::builtin{}`
             under a label nor as a kind ending in one; `:uri` names the
-            source and `:name` the name. A word written in steps runs
+            source and `:name` the name. A verb written in steps runs
             them, a `::builtin{}` written among them the value it is, and a
             bare name reads its value, so a host declares its primitive as
-            the recipe of a word under the label of its subject,
+            the recipe of a verb under the label of its subject,
             `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})`.
             A `::builtin{}` the host hands nothing for is refused with
             `::builtin/ImplementationNotHandedError`.
@@ -132,7 +132,7 @@
         |~~ An empty descriptor is a value like any other. ~~|
         ~(::builtin{} | :c it | get [1 2] | c | type | eq ::builtin)
     | proves :endsAPrimitive
-        |~~ The recipe of a word a host implements is an empty descriptor.
+        |~~ The recipe of a verb a host implements is an empty descriptor.
         ~~|
         ~(::number/add | binding | get /value | get /1 | eq ::builtin{})
     | proves :PayloadKindNotTakenError/refusesAString

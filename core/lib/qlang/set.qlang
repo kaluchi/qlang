@@ -233,7 +233,7 @@
   ::fn
     | returns |~~ The vector of the elements. ~~| ::vec
     | proves :leadsAMapToItsParts
-        |~~ A map is led to its pairs and its values, the words that
+        |~~ A map is led to its pairs and its values, the verbs that
             answer a vector, and a string to `split`.
         ~~|
         ~(get [~({:a 1} | toVec !| get /nearest) ~("ab" | toVec !| get /nearest)] | eq [[:entries :vals] [:split]])
@@ -319,7 +319,7 @@
         |~~ A call that gives no set is refused under the input. ~~|
         ~(#[#[1] #[2]] | union !| type | eq ::set/union/other/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
-        |~~ A call with two sets is refused under the word. ~~|
+        |~~ A call with two sets is refused under the verb. ~~|
         ~(#[1] | union #[2] #[3] !| type | eq ::set/union/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -366,7 +366,7 @@
         |~~ A call that gives no set is refused under the input. ~~|
         ~(#[#[1] #[2]] | minus !| type | eq ::set/minus/other/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
-        |~~ A call with two sets is refused under the word. ~~|
+        |~~ A call with two sets is refused under the verb. ~~|
         ~(#[1 2 3] | minus #[2] #[3] !| type | eq ::set/minus/ArgsBeyondInputsError)
     | impl ::builtin{}
 
@@ -415,6 +415,6 @@
         |~~ A call that gives no set is refused under the input. ~~|
         ~(#[#[1 2] #[2 3]] | inter !| type | eq ::set/inter/other/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
-        |~~ A call with two sets is refused under the word. ~~|
+        |~~ A call with two sets is refused under the verb. ~~|
         ~(#[1 2] | inter #[1] #[2] !| type | eq ::set/inter/ArgsBeyondInputsError)
     | impl ::builtin{}

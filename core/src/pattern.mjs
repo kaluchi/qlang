@@ -90,7 +90,7 @@ export function patternProblem(source, flags) {
 // The repair of each habit, for a literal and for a source given as text.
 const NEEDED_ESCAPES = 'a backslash stands before `^ $ \\ . * + ? ( ) [ ] { } | /`, a letter of a class such as `\\d`, and `-` in brackets';
 const REPAIRS = {
-  flags: { literal: 'the flags follow the closing quote, `#"error"i`', text: 'the flags are the part of `toRegex`, `toRegex "i"`' },
+  flags: { literal: 'the flags follow the closing quote, `#"error"i`', text: 'the flags are the input `flags` of `toRegex`, `toRegex "i"`' },
   escape: { literal: `${NEEDED_ESCAPES}, and \`\\"\` writes a quote`, text: NEEDED_ESCAPES }
 };
 

@@ -11,7 +11,7 @@
       joins the steps of the last frame.
 
       An error holds it under `:trail`, written as the failure flies, and
-      `trail` reads it from an error at rest; the words of vectors read
+      `trail` reads it from an error at rest; the verbs of vectors read
       it, `first` the frame where the failure arose and `last` the frame
       of the level that reads it. It prints a frame a line where it holds
       two or more, a frame standing on one line whatever its subject

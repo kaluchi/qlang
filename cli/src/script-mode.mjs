@@ -1,8 +1,8 @@
 // The streams of the command line: standard input lifts to the query's
 // first value, a JSON document as its value and any other text as a
-// string [QSHST#input], and the answer is written as the language prints it,
-// whatever the input was, a query converting it where a reader wants
-// another format, `| json` [QSHST#answer].
+// string, and the answer is written as the language prints it, whatever
+// the data was, a query converting it where a reader wants another format,
+// `| json` [D352].
 
 import { fromJsonText, printAnswer, makeTag, elideAnswer } from '@kaluchi/qlang-core';
 

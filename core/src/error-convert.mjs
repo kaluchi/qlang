@@ -1,4 +1,4 @@
-import { keyword, makeErrorValue, makeTag, makeTagged, typeKeyword, ERROR_TAG } from './types.mjs';
+import { keyword, makeErrorValue, makeTag, makeTagged, typeOf, ERROR_TAG } from './types.mjs';
 import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
 import { deepEqual } from './equality.mjs';
@@ -59,7 +59,7 @@ export function errorFromQlang(qlangError, subject, env) {
     if (value === undefined || (name === 'actualValue' && deepEqual(value, subject))) continue;
     facts.set(name, value);
   }
-  if (qlangError.facts.actualValue !== undefined) facts.set('actualType', typeKeyword(qlangError.facts.actualValue));
+  if (qlangError.facts.actualValue !== undefined) facts.set('actualType', typeOf(qlangError.facts.actualValue));
   return makeErrorValue(tag, factsInOrder(tag, facts, env), {
     location: qlangError.location,
     originalError: qlangError

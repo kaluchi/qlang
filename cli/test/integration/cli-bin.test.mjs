@@ -137,7 +137,7 @@ describe('CLI: the REPL (`-i`) loads its modules, runs its cells and closes on `
     expect(stdout).toMatch(/84/);
   });
 
-  it('REPL keeps the words a cell declares for the cells after it', async () => {
+  it('REPL keeps the verbs a cell declares for the cells after it', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
       stdin: ':any/double ~(mul 2)\n21 | double\n.exit\n'
     });

@@ -1,6 +1,6 @@
-// Words and kinds under a label [QSBLD#fn], [QSBLD#kind]: a kind its chain
-// builds, the words declared under it running on its values, the inputs a
-// call's object holds, a host's primitive under a label, and the refusals
+// Verbs and kinds under a label [D352]: a kind its chain
+// builds, the verbs declared under it running on its values, the inputs a
+// call's args hold, a host's primitive under a label, and the refusals
 // named by the address of what refused.
 
 import { describe, it, expect } from 'vitest';
@@ -30,21 +30,21 @@ describe('a kind built from ::kind', () => {
     ))).toEqual(makeTag('Small/TooBigError'));
   });
 
-  it('answers the error the recipe of its word answers', async () => {
+  it('answers the error the recipe of its verb answers', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | past !| type')).toEqual(makeTag('path/IndexOutOfBoundsError'));
   });
 
-  it('calls a word under it by its address', async () => {
+  it('calls a verb under it by its address', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | Box/length')).toBe(4);
   });
 
-  it('refuses under the word a subject the walk of whose tags reaches no value of the label', async () => {
+  it('refuses under the verb a subject the walk of whose tags reaches no value of the label', async () => {
     expect(await evalQuery(BOX + '5 | Box/length !| type')).toEqual(makeTag('Box/length/SubjectNotBoxError'));
   });
 });
 
-describe('the object of a call', () => {
-  it('refuses under the input a place the object does not hold', async () => {
+describe('the args of a call', () => {
+  it('refuses under the input a place the args do not hold', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | put !| type')).toEqual(makeTag('Box/put/weight/NotGivenError'));
   });
 
@@ -65,7 +65,7 @@ describe('the object of a call', () => {
       .toBe(' The weight is a number. ');
   });
 
-  it('lets a word under a label fold as a reducer', async () => {
+  it('lets a verb under a label fold as a reducer', async () => {
     expect(await evalQuery(lines(
       ':number/addTo |~~ The sum with n. ~~| (::fn | takes :n |~~ The number added. ~~| /0 | impl ~(add n))',
       '[1 2 3] | reduce 0 ~(addTo)'
@@ -81,7 +81,7 @@ describe('the object of a call', () => {
 });
 
 describe('a host\'s primitive under a label', () => {
-  it('runs over the served value and the inputs of the object, a quote closed at the call where the input is run', async () => {
+  it('runs over the served value and the values of its inputs, a quote closed at the call where the input is run', async () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/gauge',
@@ -114,7 +114,7 @@ describe('a host\'s primitive under a label', () => {
     expect(noted).toBe(0);
   });
 
-  it('reads the values after a primitive\'s lead by code over the object', async () => {
+  it('reads the values after a primitive\'s lead by code over the args', async () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/zap',

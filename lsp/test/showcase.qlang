@@ -3,7 +3,7 @@
 
    Open this file in VS Code with the qlang extension active
    to exercise the language server:
-     1. Hover — the page of a word, a path, a keyword
+     1. Hover — the page of a verb, a path, a keyword
      2. Ctrl+Click — Go to Definition
      3. Shift+F12 — Find References
      4. Ctrl+Shift+O — Outline
@@ -14,8 +14,8 @@
    The file is one query: each example joins the one before it by
    `|`, and its literal replaces the value in the pipe. Code a
    query names is held under a bare name and run by `apply`; a
-   word, called by its name on a value, is declared under the
-   label of the values it serves, and `::any` holds the words
+   verb, called by its name on a value, is declared under the
+   label of the values it serves, and `::any` holds the verbs
    that mean the same for every value.
    The decisions it exists for: [QSSLF#catalog]. ~|
 
@@ -31,7 +31,7 @@
 |~| ── 2. Code ──────────────────────────────────────────────
 |~| A quote, `~(…)`, is code: `apply` runs it on the value in the
 |~| pipe, `map` on each element, `filter` to keep the elements it
-|~| holds of. A name holds code as it holds any value, a word that
+|~| holds of. A name holds code as it holds any value, a verb that
 |~| takes code takes the name bare, and the name alone reads the
 |~| quote itself. Ctrl+Click double to jump to its declaration;
 |~| Shift+F12 finds the declaration and its uses.
@@ -54,7 +54,7 @@
 |~| ── 3. A kind of your own ─────────────────────────────────
 |~| A kind is built from `::kind` by commands, `reads` a field of
 |~| its payload held to its kinds, and a value put under it keeps
-|~| them. A word declared under it serves its values alone, called
+|~| them. A verb declared under it serves its values alone, called
 |~| by its name on the value, and is built from `::fn`, `takes` an
 |~| input of the call held to its kinds.
 
@@ -89,9 +89,9 @@
 
 
 |~| ── 5. A fold ─────────────────────────────────────────────
-|~| A word of one name folds with the element as its modifier;
-|~| code of several steps runs on the pair of the value so far
-|~| and the element.
+|~| A quote of one word names the verb the fold calls with the
+|~| element as its first arg; code of several steps runs on the
+|~| pair of the value so far and the element.
 
 | ([1 2 3] | reduce 0 ~(add))
 
@@ -109,9 +109,9 @@
 
 
 |~| ── 7. Signature Help and Completion ──────────────────────
-|~| Inside a call of a word of the language the active input
+|~| Inside a call of a verb of the language the active input
 |~| follows the modifier under the cursor: condition, then,
-|~| else. After `|` Ctrl+Space lists the words the kind of the
+|~| else. After `|` Ctrl+Space lists the verbs the kind of the
 |~| value answers and the names the file declares above.
 
 | (5 | if (gt 0) ~("pos") ~("neg"))

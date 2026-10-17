@@ -1,5 +1,5 @@
 // The forks of a sequence run in its order [QSQUO#modifier]. A pure pipeline
-// cannot observe the order, so a word of a host that records its calls does:
+// cannot observe the order, so a verb of a host that records its calls does:
 // each element's call finishes before the next one begins, though the first
 // element waits the longest.
 

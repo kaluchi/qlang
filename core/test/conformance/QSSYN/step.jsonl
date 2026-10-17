@@ -16,4 +16,4 @@
 {"name":"a-path-before-a-word-names-the-read-of-the-part","query":"\"{:tags [1 2]} | /tags count\" | parse !| get /message","expect":"\"`/tags` is a path, a value: a part is read by `get`, `get /tags | count`, and a verb is called by its name alone, `tags count`\""}
 {"name":"a-call-written-by-habit-runs-where-its-input-takes-a-value","query":"5 | add(1)","expect":"6"}
 {"name":"a-call-written-by-habit-is-refused-where-its-input-takes-code","query":"[1 2] | filter(gt(1)) !| type","expect":"::vec/filter/predicate/KindNotTakenError"}
-{"name":"a-quote-of-a-path-with-a-leading-pipe-is-refused","query":"\"[{:n 1}] | map ~(| /n)\" | parse !| get /message","expect":"\"the quote of a path answers the path, which no word wants: give the path bare, `/n`\""}
+{"decision":"D352","name":"a-quote-of-a-path-with-a-leading-pipe-is-refused","query":"\"[{:n 1}] | map ~(| /n)\" | parse !| get /message","expect":"\"the quote of a path answers the path, which no verb wants: give the path bare, `/n`\""}

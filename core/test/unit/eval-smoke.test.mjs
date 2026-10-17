@@ -120,7 +120,7 @@ describe('eval — Map and path', () => {
   });
 });
 
-describe('eval — a word that combines two fields of one record', () => {
+describe('eval — a verb that combines two fields of one record', () => {
   it('mulOf multiplies two fields of one record', async () => {
     expect(await evalQuery('{:price 100 :qty 3} | mulOf /price /qty')).toBe(300);
   });
@@ -214,7 +214,7 @@ describe('apply runs a quote held in a name', async () => {
   });
 });
 
-describe('the answer of a word of the host', async () => {
+describe('the answer of a verb of the host', async () => {
   it('waits on an answer that has a then, a thenable and a promise of another realm', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const vm = await import('node:vm');
@@ -245,7 +245,7 @@ describe('the answer of a word of the host', async () => {
 });
 
 describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
-  it('wraps a plain JS Error from a word as a foreign error value', async () => {
+  it('wraps a plain JS Error from a verb as a foreign error value', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
     // A host verb whose implementation throws a raw Error, no QlangError.
@@ -265,7 +265,7 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
 });
 
 describe('eval.mjs — a Call node built by hand', async () => {
-  it('runs the word it names, its location null', async () => {
+  it('runs the verb it names, its location null', async () => {
     const ast = { type: 'Call', name: 'count', args: [], location: null };
     const runtimeEnv = await langRuntime();
     const state = rootState([1, 2, 3], runtimeEnv);

@@ -34,7 +34,7 @@ describe('parseDocument', () => {
 });
 
 describe('completionsAtOffset', () => {
-  it('includes the names of the words of the language', async () => {
+  it('includes the names of the verbs of the language', async () => {
     const { ast } = parseDocument('', 'test.qlang');
     const items = await completionsAtOffset(ast, 0);
     const labels = items.map(i => i.label);
@@ -199,7 +199,7 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
 });
 
 describe('hoverAtOffset', () => {
-  it('returns hover for a word of the language', async () => {
+  it('returns hover for a verb of the language', async () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const countOffset = src.indexOf('count');
@@ -294,7 +294,7 @@ describe('hoverAtOffset', () => {
     expect(hover.endOffset - hover.startOffset).toBe('::number'.length);
   });
 
-  it('returns the doc of a word the document declares under a label, called by its name or its address', async () => {
+  it('returns the doc of a verb the document declares under a label, called by its name or its address', async () => {
     const src = ':number/double |~~ Doubles a number. ~~| ~(mul 2) | 10 | double | number/double';
     const { ast } = parseDocument(src, 'test.qlang');
     for (const offset of [src.indexOf('| double') + 2, src.lastIndexOf('number/double')]) {
@@ -303,7 +303,7 @@ describe('hoverAtOffset', () => {
     }
   });
 
-  it('shows the word the subject of the call reaches, its signature over its page', async () => {
+  it('shows the verb the subject of the call reaches, its signature over its page', async () => {
     for (const [src, address, words] of [['[1 2 3] | count', '::vec/count', 'elements the vector holds'], ['{:a 1} | count', '::map/count', 'entries the map holds'], ['#[1 2] | count', '::vec/count', 'elements the vector holds']]) {
       const { ast } = parseDocument(src, 'test.qlang');
       const hover = await hoverAtOffset(ast, src, src.indexOf('count'));
@@ -312,7 +312,7 @@ describe('hoverAtOffset', () => {
     }
   });
 
-  it('shows a word with no subject under the address whose page it shows', async () => {
+  it('shows a verb with no subject under the address whose page it shows', async () => {
     const src = 'count';
     const { ast } = parseDocument(src, 'test.qlang');
     const hover = await hoverAtOffset(ast, src, 0);
@@ -349,7 +349,7 @@ for (const [name, range] of buildCatalogIndex(catalogAst)) {
 const testCatalogCtx = { index: testCatalogIndex, runtime: await langRuntime() };
 
 describe('definitionAtOffset', () => {
-  it('jumps from the use site of a word to its declaration under a label', () => {
+  it('jumps from the use site of a verb to its declaration under a label', () => {
     const src = ':number/double ~(mul 2) | 10 | double';
     const { ast } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('double');
@@ -379,7 +379,7 @@ describe('definitionAtOffset', () => {
     expect(def === null || def.fileUri !== undefined).toBe(true);
   });
 
-  it('jumps from a word several kinds answer to the first of its words the catalog declares', () => {
+  it('jumps from a name several kinds answer to the first of its verbs the catalog declares', () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.indexOf('count'), testCatalogCtx);
@@ -430,7 +430,7 @@ describe('definitionAtOffset', () => {
 });
 
 describe('referencesAtOffset', () => {
-  it('finds all occurrences of a word a reader declares', () => {
+  it('finds all occurrences of a verb a reader declares', () => {
     const src = ':number/double ~(mul 2) | [1 2] | map ~double';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.lastIndexOf('double'));
@@ -447,7 +447,7 @@ describe('referencesAtOffset', () => {
     expect(refs.length).toBe(2);
   });
 
-  it('returns references for the words of the language', () => {
+  it('returns references for the verbs of the language', () => {
     const src = '[1 2 3] | count | add 1';
     const { ast } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(ast, src.indexOf('count'));
@@ -476,7 +476,7 @@ describe('foldingRangesOf', () => {
 });
 
 describe('documentSymbols', () => {
-  it('collects the words a reader declares under a label as verb symbols', async () => {
+  it('collects the verbs a reader declares under a label as verb symbols', async () => {
     const src = ':number/double ~(mul 2) | :number/triple ~(mul 3) | :q ~(add 1)';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast, await langRuntime());
@@ -488,7 +488,7 @@ describe('documentSymbols', () => {
     expect(syms[1].kind).toBe('verb');
   });
 
-  it('shows a label of the document and the words under it as the core reads them', async () => {
+  it('shows a label of the document and the verbs under it as the core reads them', async () => {
     const src = ':Box |~~ A box. ~~| | :Box/area ~(1) | :Ring/area ~(2)';
     const { ast } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(ast, await langRuntime());
@@ -497,7 +497,7 @@ describe('documentSymbols', () => {
     ]);
   });
 
-  it('shows a kind built from ::kind as a label and a function with a recipe under it as a word [QSBLD#kind]', async () => {
+  it('shows a kind built from ::kind as a label and a function with a recipe under it as a verb [D352]', async () => {
     const src = [
       ':Box',
       '  |~~ A parcel. ~~|',
@@ -579,14 +579,14 @@ describe('signatureHelpAtOffset', () => {
     expect(sig.activeParameter).toBe(1);
   });
 
-  it('shows the page of the word the subject of the call reaches', async () => {
+  it('shows the page of the verb the subject of the call reaches', async () => {
     const src = '[1 2 3] | take 2';
     const { ast } = parseDocument(src, 'test.qlang');
     const sig = await signatureHelpAtOffset(ast, src, src.lastIndexOf('2'));
     expect(sig.documentation).toMatch(/first elements, as many as the count/);
   });
 
-  it('opens at the space after a word that takes inputs, its first input active', async () => {
+  it('opens at the space after a verb that takes inputs, its first input active', async () => {
     const src = '[1 2 3] | take ';
     const { ast } = parseDocument(src, 'test.qlang');
     const sig = await signatureHelpAtOffset(ast, src, src.length);
@@ -600,13 +600,13 @@ describe('signatureHelpAtOffset', () => {
     expect(sig.activeParameter).toBe(1);
   });
 
-  it('opens nothing for a word a later step follows', async () => {
+  it('opens nothing for a verb a later step follows', async () => {
     const src = '[1 2 3] | take 2 | take';
     const { ast } = parseDocument(src, 'test.qlang');
     expect(await signatureHelpAtOffset(ast, src, src.lastIndexOf('take'))).toBeNull();
   });
 
-  it('opens nothing at the space after a word that takes no input', async () => {
+  it('opens nothing at the space after a verb that takes no input', async () => {
     const src = '[1 2 3] | count ';
     const { ast } = parseDocument(src, 'test.qlang');
     expect(await signatureHelpAtOffset(ast, src, src.length)).toBeNull();
@@ -636,7 +636,7 @@ function decodeSemanticTokens(data, types) {
 }
 
 describe('semanticTokensFor', () => {
-  it('paints a word of the language as `function`', async () => {
+  it('paints a verb of the language as `function`', async () => {
     const { data } = await semanticTokensFor('[1 2 3] | count');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     const countTok = tokens.find(t => t.type === 'function');

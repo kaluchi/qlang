@@ -4,7 +4,7 @@
    as their literal, the chain that builds a function folded into data,
    since none of them stands while the source runs; the chain builds every
    other verb.
-   The decisions it exists for: [QSBLD#fn], [QSBLD#kind]. ~|
+   The rules it holds: [QSBLD#fn], [QSBLD#kind]. ~|
 
 :fn
   |~~ A function: the subject it runs on, the inputs it takes, the answer

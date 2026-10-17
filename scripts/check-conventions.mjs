@@ -75,8 +75,8 @@
 //       catalog, a case or the code [QSWRK#documents].
 //
 //   (13) The marks of the artifacts: every module, script, test file,
-//       source of qlang and workflow names the decision it exists for
-//       [QSWRK#marks].
+//       source of qlang and workflow names the rules it holds
+//       [QSWRK#marks], [D356].
 //
 //   (14) A series of the benchmark keeps its two latest at the merge that
 //       landed a branch: its sets and its screens, a branch keeping every
@@ -408,7 +408,7 @@ function catalogFiles(dir) {
 }
 
 // The comment at the head of a source, `|~ … ~|`, is no page a reader
-// reads: it marks the decisions the source exists for [QSWRK#marks].
+// reads: it marks the rules the source holds [QSWRK#marks].
 function decisionsInCatalog() {
   const violations = [];
   for (const file of CATALOG_ROOTS.flatMap(catalogFiles)) {
@@ -593,8 +593,8 @@ const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['cli/lib', /\.qlang$/], ['c
 // ── (13) The marks of the artifacts ────────────────────────────
 //
 // Every module, script, test file, source of qlang and workflow names
-// the decision it exists for, so the scope of a decision is found by its
-// marks and an artifact no decision explains is seen [QSWRK#marks].
+// the rules it holds, so the scope of a decision is found by its marks and
+// an artifact no decision explains is seen [QSWRK#marks], [D356].
 
 function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;
@@ -876,7 +876,7 @@ if (undecided.length > 0) {
 if (unmarked.length > 0) {
   process.stdout.write(`\nArtifacts that name no decision (${unmarked.length}):\n`);
   for (const path of unmarked) process.stdout.write(`  ${path}\n`);
-  process.stdout.write('    name the decision the artifact exists for at its head, or let it go [QSWRK#marks].\n');
+  process.stdout.write('    name the rules the artifact holds at its head, or let it go [QSWRK#marks].\n');
 }
 if (misplaced.length > 0) {
   process.stdout.write(`\nRecords in the wrong folder (${misplaced.length}):\n`);

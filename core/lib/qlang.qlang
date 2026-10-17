@@ -1,7 +1,7 @@
 |~ `::qlang`, the topic of the language, and what is declared under it:
    its page, the first screen a session reads, its chapters, and their
    laws.
-   The decisions it exists for: [QSDSP#residence], [QSSLF#page]. ~|
+   The rules it holds: [QSDSP#residence], [QSSLF#page]. ~|
 
 :qlang
   |~~ qlang is a pipeline language over values. A query starts from a

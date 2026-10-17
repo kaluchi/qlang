@@ -17,7 +17,7 @@
    verb, called by its name on a value, is declared under the
    label of the values it serves, and `::any` holds the verbs
    that mean the same for every value.
-   The decisions it exists for: [QSSLF#catalog]. ~|
+   The rules it holds: [QSSLF#catalog]. ~|
 
 
 |~| ── 1. Hover ─────────────────────────────────────────────

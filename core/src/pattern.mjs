@@ -2,7 +2,7 @@
 // written, in the dialect of ECMAScript of 2018 every engine of the core
 // reads alike, with the flags `i`, `m` and `s`, and always by code points,
 // as Unicode reads characters.
-// The decisions it exists for: [QSTXT#pattern].
+// The rules it holds: [QSTXT#pattern].
 
 // The flags a pattern may take, in the order they are written.
 export const PATTERN_FLAGS = 'ims';

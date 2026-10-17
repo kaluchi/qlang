@@ -1,6 +1,6 @@
 |~ `::any`, the kind beneath every kind, and what is declared under it:
    the verbs every value answers.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :any
   |~~ Any is the kind beneath every kind, where the verbs every value

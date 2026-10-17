@@ -1,7 +1,7 @@
 |~ `::keyword` and what is declared under it: its constructor and its
    refusal, the comparisons of keywords, and the verbs that turn a
    keyword into a string, a number and a tag.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :keyword
   |~~ A keyword is a name that stands for itself, `:name`. It is apart

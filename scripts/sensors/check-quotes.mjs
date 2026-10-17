@@ -9,7 +9,7 @@
 // Usage: node scripts/sensors/check-quotes.mjs [document ...]
 // Without documents it reads the records of the journal, in force and
 // replaced.
-// The decisions it exists for: [QSWRK#journal], [QSWRK#documents].
+// The rules it holds: [QSWRK#journal], [QSWRK#documents].
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';

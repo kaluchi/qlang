@@ -1,7 +1,7 @@
 |~ `::number` and what is declared under it: its constructor and the
    refusals of a payload of another kind and of an answer that leaves
    the doubles, and the verbs that run on a number.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :number
   |~~ A number is a finite double, the one kind of number: a whole

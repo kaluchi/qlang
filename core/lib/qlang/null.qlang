@@ -1,6 +1,6 @@
 |~ `::null`, the kind of null, and what is declared under it: its
    constructor and its refusal, and its text and its keyword.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :null
   |~~ Null is the absence of a value, the one value of its kind. It

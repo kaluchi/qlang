@@ -1,6 +1,6 @@
 |~ `::each`, the kind of a map in a shape whose values share one shape,
    and the laws declared under it.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :each
   |~~ An each stands in the shape of a value for a map a reader's data

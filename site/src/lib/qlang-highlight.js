@@ -14,7 +14,7 @@
 //                startup and reuses it across every highlighted
 //                snippet. Pass null to paint the name of every call
 //                as a reader's name.
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 

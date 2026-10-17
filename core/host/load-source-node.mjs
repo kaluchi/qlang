@@ -3,7 +3,7 @@
 // the `imports` field of the core's `package.json` maps it to, with null
 // where the field maps it to no file, and raises `::builtin/SourceLoadError`
 // where the file does not read.
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';

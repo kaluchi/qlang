@@ -3,7 +3,7 @@
 // verb run as code or as a fold, `apply`, an invariant of a kind that lays
 // its own tag, `runLaws` — terminates on the fail-track as
 // `::call/EvaluationDepthExceededError` with `:depth` and `:limit`. The
-// decisions it exists for: [QSNAM#word].
+// rules it holds: [QSNAM#word].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

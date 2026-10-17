@@ -1,4 +1,4 @@
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery, evalAst } from '../../src/eval.mjs';

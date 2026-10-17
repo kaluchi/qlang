@@ -174,10 +174,10 @@ function sidesOf(diff, pathOf) {
 
 // The lines of the present files among the paths that a diff since a
 // commit changed beyond the citations of decisions, a mark, its line `The
-// decisions it exists for` or a case's `decision`, which leave what a file
+// rules it holds` or a case's `decision`, which leave what a file
 // does as it was: the ranges of the hunks that change more, by the path
 // of their file, a hunk that only removes reaching the lines around it.
-const MARK_STATEMENT = /The decisions? it exists for: [^.]*\./;
+const MARK_STATEMENT = /The rules it holds: [^.]*\./;
 const beyondMarks = lines => beyondCitations(lines.map(line => line.replace(MARK_STATEMENT, ''))
   .filter(line => !/^\s*(\/\/|#|\*)?\s*$/.test(line)).join(' '));
 
@@ -295,7 +295,7 @@ if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(
   } else {
     const { orphans } = marksOfTree();
     for (const path of orphans) console.log(path);
-    console.log(`marks: ${orphans.length === 0 ? 'every artifact names the decision it exists for' : `${orphans.length} artifacts name no decision [QSWRK#marks]`}`);
+    console.log(`marks: ${orphans.length === 0 ? 'every artifact names the rules it holds' : `${orphans.length} artifacts name no decision [QSWRK#marks]`}`);
     process.exitCode = orphans.length === 0 ? 0 : 1;
   }
 }

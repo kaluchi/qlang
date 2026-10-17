@@ -4,7 +4,7 @@
    modifiers, a value that meets a verb, a value withheld from held code,
    a call too deep and a failure of a host's implementation.
 
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :call
   |~~ A call, `add 1`, runs a command: its name finds its verb through

@@ -1,6 +1,6 @@
 |~ `::point`, the kind of a place in source text, and what is declared
    under it: the verbs that read its offset, its line and its column.
-   The decisions it exists for: [QSPRN#span]. ~|
+   The rules it holds: [QSPRN#span]. ~|
 
 :point
   |~~ A point is a place in source text, where a span starts or ends:

@@ -1,7 +1,7 @@
 |~ `::string` and what is declared under it: its constructor and the
    refusal of a payload of another kind, and the verbs that run on a
    string.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :string
   |~~ A string is text, kept as it came: the value of a JSON string, a

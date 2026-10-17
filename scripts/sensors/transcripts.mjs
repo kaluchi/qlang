@@ -5,7 +5,7 @@
 // letter or a digit written `-`. The transcripts live on the maintainer's
 // machine alone, so every sensor that reads them runs in a session there
 // and nowhere else.
-// The decisions it exists for: [QSWRK#documents].
+// The rules it holds: [QSWRK#documents].
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';

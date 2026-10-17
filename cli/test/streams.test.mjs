@@ -2,7 +2,7 @@
 // through a real session evalCell with a captured ioContext, so the dispatch
 // path, the per-site error sites, and the side-effect writers are
 // all exercised together — the same shape the real bin executes.
-// The decisions it exists for: [QSHST#effect].
+// The rules it holds: [QSHST#effect].
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';

@@ -3,7 +3,7 @@
 // for each module: the values, the one order, the arithmetic, vectors,
 // maps, the algebra of containers, text, `source` and the verbs of
 // control.
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

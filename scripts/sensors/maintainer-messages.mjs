@@ -5,7 +5,7 @@
 // transcripts.
 //
 // Usage: node scripts/sensors/maintainer-messages.mjs
-// The decisions it exists for: [QSWRK#journal], [QSWRK#documents].
+// The rules it holds: [QSWRK#journal], [QSWRK#documents].
 
 import { recordsOf, transcriptCoverage, transcriptFiles, typedByMaintainer } from './transcripts.mjs';
 

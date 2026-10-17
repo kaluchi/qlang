@@ -1,7 +1,7 @@
 |~ `::construct`, the step that puts a value under a tag through the
    tag's constructor, `::T[…]`, and what is declared under it: its
    constructor and the refusals of that step.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :construct
   |~~ The step that puts a payload under a tag, `::T[…]`, `::T{…}`,

@@ -4,7 +4,7 @@
 // end resolution, error rejection) is exercised through synthetic
 // streams. memoiseStdinReader's caching behaviour is tested with
 // a counting stub.
-// The decisions it exists for: [QSHST#input].
+// The rules it holds: [QSHST#input].
 
 import { describe, it, expect } from 'vitest';
 import { Readable } from 'node:stream';

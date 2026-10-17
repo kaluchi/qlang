@@ -1,7 +1,7 @@
 |~ `::boolean` and what is declared under it: its constructor and its
    refusal, and the verbs that run on a boolean, the negation and the
    two that join booleans.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :boolean
   |~~ A boolean is `true` or `false`, the answer to a question about a

@@ -5,7 +5,7 @@
    whose answer names the vector answers under the tags of the subject,
    and `map`, whose answer is any value, under none. The inputs of a verb
    are read and held to their invariants before the verb runs.
-   The decisions it exists for: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence]. ~|
 
 :vec
   |~~ A vector is an ordered list of values of any kinds, `[1 "a" [2]]`:

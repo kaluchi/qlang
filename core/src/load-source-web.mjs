@@ -3,7 +3,7 @@
 // from the URL the platform resolves the name to, with null where the name
 // resolves to no URL, and raises `::builtin/SourceLoadError` with the HTTP
 // `:status` of a response that fails.
-// The decisions it exists for: [QSWRK#tooling].
+// The rules it holds: [QSWRK#tooling].
 
 import { BuiltinSourceLoadError } from './source-load-error.mjs';
 

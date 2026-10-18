@@ -221,7 +221,7 @@ describe('main — script mode auto-pipe', () => {
     expect(s.stdoutText()).toBe('plain text world\n');
   });
 
-  it('uses raw mode on --raw regardless of stdin shape', async () => {
+  it('uses raw mode on --raw whatever stdin holds', async () => {
     // Standard input reads as JSON, and `--raw` reads it as a string [QSHST#stdin].
     const s = captureStreams('{"a":1}');
     const exitCode = await main(

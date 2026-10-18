@@ -648,7 +648,7 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
   });
 });
 
-describe('parse.mjs — input guards and ParseError shape', () => {
+describe('parse.mjs — input guards and the location of a ParseError', () => {
   it('rethrows non-PeggySyntaxError as-is', () => {
     expect(() => parse(undefined)).toThrow(/string source/);
   });
@@ -707,7 +707,7 @@ describe('parse — the docs in the slot of a declaration, one doc each, and a c
 });
 
 // Recursive nesting of block-comments. The block-marker design picks
-// distinct open / close shapes (`|~`/`~|`, `|~~`/`~~|`) so the parser
+// distinct open / close forms (`|~`/`~|`, `|~~`/`~~|`) so the parser
 // descends into a nested span without an escape mechanism — when
 // content position sees the open of another comment, the whole pair
 // (including its own balanced close) is consumed as opaque content
@@ -718,7 +718,7 @@ describe('parse — the docs in the slot of a declaration, one doc each, and a c
 //
 // The cases below pin: (1) every nested combination round-trips the
 // outer `.content` as the verbatim source slice between delimiters;
-// (2) bare close-of-other-shape (`~~|` inside plain, `~|` inside
+// (2) bare close-of-other-form (`~~|` inside plain, `~|` inside
 // doc) is accepted as content; (3) the container's own close still
 // terminates the body; (4) every unbalanced/malformed nesting raises
 // ParseError with a usable location.

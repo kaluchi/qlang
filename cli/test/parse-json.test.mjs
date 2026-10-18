@@ -1,6 +1,6 @@
 // parseJson coverage. The parser is exercised through
 // runQuery so the bound verb's path, the per-site error sites, and
-// the qlang-shape conversion all fire against a real session.
+// the lift of JSON into the values of qlang all fire against a real session.
 // The rules it holds: [QSHST#answer], [QSDSP#walk].
 
 import { describe, it, expect } from 'vitest';

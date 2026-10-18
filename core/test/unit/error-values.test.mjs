@@ -188,9 +188,9 @@ describe('deepEqual for error values', () => {
 
 describe('the literal reads back error values and values under a tag', () => {
   // `printValue` writes the literal the parser reads, so every value
-  // the host builds survives the trip; each shape exercises a distinct
-  // branch of the printer.
-  it('reads back an error value raised, and a tag over each payload shape', async () => {
+  // the host builds survives the trip; each kind of payload exercises a
+  // distinct branch of the printer.
+  it('reads back an error value raised, and a tag over each kind of payload', async () => {
     const { makeTagged, makeSet } = await import('../../src/types.mjs');
     const { printValue } = await import('../../src/runtime/format.mjs');
     const { evalQuery } = await import('../../src/eval.mjs');
@@ -212,8 +212,8 @@ describe('the literal reads back error values and values under a tag', () => {
 });
 
 describe('deepEqual tells an Array, a Map and a Set under a tag from one under none', () => {
-  // Tag mismatch on overlay-shape collections — same content, a
-  // different header tag or none — must not compare equal.
+  // Tag mismatch on collections that hold their tag on themselves — same
+  // content, a different header tag or none — must not compare equal.
   // Each branch (Array / Map / Set) gets its own assertion.
   it('rejects tagged Array vs untagged Array with same elements', async () => {
     const { makeTagged } = await import('../../src/types.mjs');

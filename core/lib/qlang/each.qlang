@@ -3,28 +3,13 @@
    The rules it holds: [QSDSP#residence]. ~|
 
 :each
-  |~~ An each stands in the shape of a value for a map a reader's data
-      keys by ids, dates or names, over its first key and the shape of its
-      values, the one key standing for all of them:
-      `{:"17" {:id 1} :"42" {:id 2}} | shape` answers
-      `::shape::each{:"17" {:id ::number}}`. The key shown tells how the
-      keys of the data read, and a path of the data through that key
-      reads the shape, `/17/id` answering `::number`; another key of the
-      data reads by the one shown, and `keys` reads them all. A map folds
-      so where every key is data, an id of digits, a date or a time, a
-      uuid, an email, whatever its values hold, the kinds where they
-      part among them, `::each{:"0" #[::number ::string]}`; and where it
-      holds more than eight names whose values, maps, vectors, sets,
-      values under a tag or null, share one shape, the users of a reader's
-      data. A map of names over atoms keeps them however many, the fields
-      a reader reads by `get`, a key that reads as no name, `@type`, among
-      them: `{:x 1 :y 2} | shape` answers `::shape{:x ::number :y ::number}`,
-      as a map of fewer names or of names whose values part does. Records merge in a
-      fold as they merge in a vector, a null among the values marks the
-      fold `::nullable` and an empty map among the folds of a vector marks
-      it `::absent`; a vector of such maps is `[::each{…}]`, a map of
-      vectors `::each[…]`.
-      ::link~(::shape | doc) ::link~(::any/shape | doc)
+  |~~ An each stands in a shape for a map whose values are not all null,
+      every key of which is data, an id, a date, a uuid or an email, or
+      which holds more than eight names whose values, containers, values
+      under a tag or null, share one shape, over its first key and the
+      shape of its values: `{:"17" {:id 1} :"42" {:id 2}} | shape` answers
+      `::shape::each{:"17" {:id ::number}}`.
+      ::link~(::shape | doc)
   ~~|
   ::kind
     | proves :foldsAMapKeyedByData
@@ -33,8 +18,8 @@
     | proves :foldsAtomsKeyedByData
         |~~ A map keyed by data folds over atoms as well. ~~|
         ~({:"2024-01-01" 3 :"2024-01-02" 5} | shape | eq ::shape::each{:"2024-01-01" ::number})
-    | proves :readsThePathThroughTheKeyItShows
-        |~~ A path of the data through the key shown reads the shape. ~~|
+    | proves :readsByTheKeyItShows
+        |~~ A fold reads by the key it shows. ~~|
         ~({:"17" {:id 1} :"42" {:id 2}} | shape | get /17/id | eq ::number)
     | proves :keepsAFewNamesAsARecord
         |~~ A map of a few names keeps them, the fields `get` reads. ~~|
@@ -49,8 +34,11 @@
         |~~ A map of many names whose values part keeps its keys. ~~|
         ~({:a 1 :b "x" :c 3 :d 4 :e 5 :f 6 :g 7 :h 8 :i 9} | shape | get /b | eq ::string)
     | proves :foldsDataKeysWhoseValuesPart
-        |~~ A map keyed by data folds whatever its values hold. ~~|
+        |~~ A map keyed by data folds though its values part. ~~|
         ~({:"1" {:id 1} :"2" [1]} | shape | eq ::shape::each{:"1" #[{:id ::number} [::number]]})
+    | proves :keepsTheKeysOfAMapOfNullAlone
+        |~~ A map whose values are all null keeps its keys. ~~|
+        ~({:"1" null :"2" null} | shape | eq ::shape{:"1" ::null :"2" ::null})
     | proves :keepsManyFieldsOverAtoms
         |~~ A map of names over atoms keeps them however many. ~~|
         ~({:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8 :i 9} | shape | keys | count | eq 9)

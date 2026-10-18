@@ -14,8 +14,8 @@ function dispatchPlainValue(v, handlers, path) {
   return handlers.atom(v, path);
 }
 
-// `toPlain` writes a value in JSON's shape, for `json` and a host, a number
-// past the doubles raised [QSHST#source], and `fromPlain` reads that shape back as
+// `toPlain` writes a value in the kinds of JSON, for `json` and a host, a number
+// past the doubles raised [QSHST#source], and `fromPlain` reads them back as
 // maps, vectors and the atoms, for a host.
 const TO_PLAIN_HANDLERS = {
   null:    () => null,

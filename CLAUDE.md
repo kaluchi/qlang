@@ -82,7 +82,7 @@ argued or a chapter is touched: `core/src/grammar.peggy` for the syntax,
 for application, `core/src/types.mjs` for the values, and
 `core/lib/qlang.qlang`, the topic of the language, its first page and
 chapters, with one source of a noun such as
-`core/lib/qlang/number.qlang` for the shape of the catalog.
+`core/lib/qlang/number.qlang` for the form of the catalog.
 Read source with the file-reading tool, whole; a read the tool cut at
 its token cap did not read the file, and
 `node scripts/sensors/read-coverage.mjs` measures what a session read.

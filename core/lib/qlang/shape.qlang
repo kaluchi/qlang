@@ -1,36 +1,38 @@
-|~ `::shape`, the kind of the schema `shape` answers, and the laws
+|~ `::shape`, the kind of the shape `shape` answers, and the laws
    declared under it.
    The rules it holds: [QSDSP#residence]. ~|
 
 :shape
-  |~~ A shape is the schema of a value in the value's own literal, which
-      `shape` answers: `{:users [{:age 30} {:age "x"}]} | shape` answers
-      `::shape{:users [{:age #[::number ::string]}]}`. Under it each part
-      reads as the schema of the part of the value at the same path: a
-      tag the kind of a part that holds no parts, as `type` answers it, a
-      part under a tag standing as its tag, which tells of itself on its
-      page; a map a record, its keys the keys of the data; a vector one
-      element whose shape holds of all the elements, `[]` an empty one,
-      and a set the same as `#[E]`, `#[]` an empty one; a vector of two
-      shapes or more a tuple, vectors of one length that part index by
-      index, `[::string ::number]`, a shape for each index; `#[a b]`, two
-      kinds or more, the kinds where the elements part; and three marks over a
-      part, `::absent` a key some records lack or the element of a vector
-      empty in some, `::nullable` a part null in some of the data, and
-      `::each` a map keyed by data or by many names, over its first key
-      standing for all of them. The
-      paths of the data read a shape through its marks as far as a part
-      holds one kind, through the key a fold shows, and a part a path
-      reads out of a shape is that schema without the tag.
+  |~~ A shape is the structure of a value beneath its tags, which `shape`
+      answers under `::shape`: the kind of each atom, as `type` answers
+      it, a part under a tag standing as its tag, which tells of itself on
+      its page; each map with its keys, `{}` an empty one; each vector one
+      element whose shape holds of all of them, `[E]`, `[]` an empty one,
+      records that share a key merged into one; each set `#[E]`, `#[]` an
+      empty one; a tuple, `[A B]`, where vectors of one length part index
+      by index; the kinds where parts part, `#[::number ::string]`; and the
+      marks over a part, `::absent`, `::nullable` and `::each`. A shape is
+      read as every value is: a path reads it beneath the tags over each
+      part it meets, its marks among them, a list by its one element, a
+      tuple by its indices and a fold by the key it shows, so a part read
+      beneath a mark is answered without the mark, which stands over the
+      part above it,
+      `[{:author {:login "a"}} {:author null}] | shape | get /0/author/login`
+      answering `::string` under a `::nullable` author. The shape of a part
+      of the data is the shape of that part, `get /items | map /assignee | shape`,
+      and its size, a sample and the share of its kinds are asked of the
+      data, by `count`, `get /0` and `groupBy ~(type) | map ~count`.
       ::link~(::any/shape | doc) ::link~(::absent | doc)
       ::link~(::nullable | doc) ::link~(::each | doc)
   ~~|
   ::kind
-    | proves :standsOverTheSchemaShapeAnswers
-        |~~ A shape is what `shape` answers, the schema under its tag. ~~|
+    | proves :isWhatShapeAnswers
+        |~~ A shape is what `shape` answers, under its tag. ~~|
         ~({:a 1} | shape | eq ::shape{:a ::number})
-    | proves :readsByThePathsOfTheData
-        |~~ A path of the data reads its part of the shape. ~~|
+    | proves :readsAPartBeneathItsTag
+        |~~ A path reads a part of a shape beneath its tag, as it reads
+            every value.
+        ~~|
         ~({:a {:b 1}} | shape | get /a/b | eq ::number)
     | proves :opensASetAsItOpensAVector
         |~~ A set opens as a vector does, one element for all of them. ~~|

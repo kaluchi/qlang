@@ -180,7 +180,7 @@
       `{"users": [{"name": "Ann", "age": 30, "tags": ["a", "b"]}, {"name": "Bo", "age": 15, "tags": []}]}`,
       `get /users | filter ~(get /age | gte 18) | map ~(get {:name /name :n ~(get /tags | count)})`
       answers `[{:name "Ann" :n 2}]`. Look at the data before shaping
-      it, `shape` its schema, the kind at each of its parts, `keys`,
+      it, `shape` its structure, the kind at each of its parts, `keys`,
       `get /0`, `type`, `count`, and build the query a step at a time,
       running each.
 
@@ -639,8 +639,8 @@
 
             A name finds its verb through the kind of its subject: its
             tags from the outside in, `::tagged` after each, then the
-            shape beneath them, then the verbs every value answers, on
-            `::any`; a verb of vectors
+            kind of the core beneath them, then the verbs every value
+            answers, on `::any`; a verb of vectors
             reaches a vector under a tag, and an answer of the subject's
             kind keeps the tag. A verb is a
             function named under a label, built from `::fn` by a chain of

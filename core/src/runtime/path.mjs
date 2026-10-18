@@ -1,19 +1,14 @@
-// The verbs of a path: `get` reads it strictly and `query` softly, over a
-// path, a key or a literal that holds paths; `put`, `update` and `delete`
-// write it; `paths` answers the outline of a value and `shape` its schema;
-// `segments` and `toPath` turn a path and its keys into each other, JSON
-// Pointer's form read with its escapes [QSPTH].
+// The verbs of a path [D363]: `get` reads it strictly and `query` softly,
+// over a path, a key or a literal that holds paths; `put`, `update` and
+// `delete` write it; `segments` and `toPath` turn a path and its keys into
+// each other, JSON Pointer's form read with its escapes.
 
 import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
 import { layTag } from './verb.mjs';
 import { atPlace } from '../eval-trace.mjs';
-import { deepEqual } from '../equality.mjs';
-import {
-  isPath, makePath, isKeyword, isMap, isVec, isSet, isValueClass, isErrorValue, isTagged, keyword, makeSet,
-  makeTagged, beneathTags, payloadBeneath, typeOf, TAG_HEADER_SYMBOL, ABSENT_TAG, EACH_TAG, NULLABLE_TAG, SHAPE_TAG
-} from '../types.mjs';
+import { isPath, makePath, isKeyword, isMap, isVec, isValueClass, isErrorValue, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
 const VecToPathElementNotKeyError = declareRefusal('vec/toPath/ElementNotKeyError');
@@ -138,183 +133,6 @@ export function pathReads(subject, path) {
   } catch {
     return false;
   }
-}
-
-// The outline and the shape read the subject beneath its tags, and below it a
-// vector, a set or a map as a reader writes one, a part under a tag standing
-// whole as a leaf of its kind, which tells of itself on its page [QSPTH#verbs].
-const isOpened = (value, top) => (isMap(value) || isVec(value)) && (top || !isTagged(value) || isSet(value));
-
-// The outline of a value: the pair of the path and the kind of every part
-// that holds no parts, an empty container among them.
-registerPrimitive('any/paths', subject => {
-  const found = [];
-  const walk = (current, segments) => {
-    const top = segments.length === 0;
-    const value = top ? beneathTags(current) : current;
-    const parts = !isOpened(value, top) ? [] : isMap(value) ? [...value] : value.map((element, index) => [String(index), element]);
-    if (parts.length === 0) {
-      if (!top) found.push(Object.freeze([makePath(segments), typeOf(value)]));
-      return;
-    }
-    for (const [segment, part] of parts) walk(part, [...segments, segment]);
-  };
-  walk(subject, []);
-  return makeSet(found);
-});
-
-// The shape of a value: each map with its keys, a map keyed by data or by
-// many names folding into `::each`, each vector and each set one element
-// whose shape holds of all its elements, a set as `#[E]`, vectors of one
-// length that part index by index a tuple, and each part that holds no parts
-// its kind.
-function shapeOf(current, top) {
-  const value = top ? beneathTags(current) : current;
-  if (!isOpened(value, top)) return typeOf(value);
-  if (isMap(value)) {
-    const shapes = new Map([...value].map(([key, part]) => [key, shapeOf(part, false)]));
-    return foldedOf(value, shapes) ?? shapes;
-  }
-  const elements = [...value];
-  const element = elements.length === 0 ? [] : [tupleOf(elements) ?? elements.map(part => shapeOf(part, false)).reduce(mergedShape)];
-  return isSet(value) ? makeSet(element) : Object.freeze(element);
-}
-
-// Vectors of one length, two elements or more, that part index by index are
-// tuples, the shape at each index across them, `[A B]`, so a path of the data
-// through an index reads it; where every index holds one shape they are
-// lists, `[E]`.
-function tupleOf(elements) {
-  if (!elements.every(isList) || new Set(elements.map(element => element.length)).size !== 1 || elements[0].length < 2) return null;
-  const byIndex = elements[0].map((_, index) => elements.map(element => shapeOf(element[index], false)).reduce(mergedShape));
-  return byIndex.every(shape => deepEqual(shape, byIndex[0])) ? null : Object.freeze(byIndex);
-}
-
-// A map folds into `::each` over its first key and the shape of its values,
-// the one key standing for all of them, where every key is data, an id of
-// digits, a date or a time, a uuid, an email, whatever its values hold,
-// kinds that part among them; and where it holds more than eight names
-// whose values, maps, vectors, sets, values under a tag or null, share one
-// shape, the map a reader's data keys by its users' names. A map of names
-// over atoms keeps them however many, the fields a reader reads by `get`,
-// a key that reads as no name, `@type`, among them, as a map of fewer
-// names or of names whose values part does.
-const DATA_KEYS = [
-  /^-?\d+(\.\d+)?$/,
-  /^\d{4}-\d{2}-\d{2}/,
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-  /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-];
-const isDataKey = key => DATA_KEYS.some(regex => regex.test(key));
-const NAMES_A_RECORD_HOLDS = 8;
-const holdsParts = part => part === null || isMap(part) || isVec(part) || isTagged(part);
-
-function foldedOf(value, shapes) {
-  const parts = [...value.values()];
-  if (value.size === 0 || parts.every(part => part === null)) return null;
-  const keyedByData = [...value.keys()].every(isDataKey);
-  if (!keyedByData && (value.size <= NAMES_A_RECORD_HOLDS || !parts.every(holdsParts))) return null;
-  const merged = [...shapes.values()].reduce(mergedShape);
-  if (!keyedByData && isAlternatives(merged)) return null;
-  const [first] = value.keys();
-  return makeTagged(EACH_TAG, new Map([[first, merged]]));
-}
-
-// The schema stands under `::shape`, whose page tells how a shape reads.
-registerPrimitive('any/shape', subject => makeTagged(SHAPE_TAG, shapeOf(subject, true)));
-
-// The marks a shape carries over its core, `::absent` outside, a key some
-// records lack, and `::nullable` within, a part null in some of the data;
-// a part that is null alone stands as `::null`.
-const NULL_KIND = typeOf(null);
-const isMark = (value, tag) => isTagged(value) && value[TAG_HEADER_SYMBOL].name === tag.name;
-
-function marksOf(shape) {
-  let core = shape;
-  const absent = isMark(core, ABSENT_TAG);
-  if (absent) core = payloadBeneath(core);
-  const nullable = isMark(core, NULLABLE_TAG);
-  if (nullable) core = payloadBeneath(core);
-  return { absent, nullable, core };
-}
-
-function marked({ absent, nullable, core }) {
-  const held = nullable && !deepEqual(core, NULL_KIND) ? makeTagged(NULLABLE_TAG, core) : core;
-  return absent ? makeTagged(ABSENT_TAG, held) : held;
-}
-
-// The shape two parts share: their marks joined over the shape their cores
-// share, a null giving way to the other as `::nullable`.
-function mergedShape(left, right) {
-  if (deepEqual(left, right)) return left;
-  const l = marksOf(left);
-  const r = marksOf(right);
-  const leftNull = deepEqual(l.core, NULL_KIND);
-  const rightNull = deepEqual(r.core, NULL_KIND);
-  const core = leftNull ? r.core : rightNull ? l.core : mergedCore(l.core, r.core);
-  return marked({ absent: l.absent || r.absent, nullable: l.nullable || r.nullable || leftNull || rightNull, core });
-}
-
-// The shape two cores share: two vectors the vector of their elements'
-// shape, two tuples of one length index by index, and two sets the set of
-// it, the element of one that is empty marked `::absent`, its first index
-// missing there; two records that share a key, an empty one among them, the
-// record of the keys of both, a key one of them lacks marked `::absent`;
-// two folds `::each` over the shape their values share, where they share
-// one, and an empty map a fold whose value it marks `::absent`; and any
-// other two the set of their kinds, two or more where they part, any two
-// of them that merge merged until none do, so records that share keys
-// merge whatever their order. Records of no common key stand apart, so the
-// shape folds records as far as they share their keys.
-const isSetOf = shape => isSet(shape) && shape.length < 2;
-const isAlternatives = shape => isSet(shape) && shape.length > 1;
-const isRecord = shape => isMap(shape) && !isTagged(shape);
-const isList = shape => isVec(shape) && !isTagged(shape);
-const shareAKey = (left, right) => left.size === 0 || right.size === 0 || [...left.keys()].some(key => right.has(key));
-const eachKey = each => [...payloadBeneath(each).keys()][0];
-const eachShape = each => [...payloadBeneath(each).values()][0];
-const eachesMerge = (left, right) => isMark(left, EACH_TAG) && isMark(right, EACH_TAG) && !isAlternatives(mergedShape(eachShape(left), eachShape(right)));
-const isEmptyRecord = shape => isRecord(shape) && shape.size === 0;
-const eachAndEmpty = (left, right) => (isMark(left, EACH_TAG) && isEmptyRecord(right)) || (isEmptyRecord(left) && isMark(right, EACH_TAG));
-const mergesWith = (left, right) => deepEqual(left, right) || eachesMerge(left, right) || eachAndEmpty(left, right) || (isSetOf(left) && isSetOf(right))
-  || (isList(left) && isList(right)) || (isRecord(left) && isRecord(right) && shareAKey(left, right));
-const lacked = shape => marked({ ...marksOf(shape), absent: true });
-const collapsed = shapes => shapes.reduce(mergedShape);
-
-function mergedByIndex(left, right) {
-  if (left.length === 0 || right.length === 0) return [lacked(collapsed(left.length === 0 ? right : left))];
-  if (left.length !== right.length) return [collapsed([...left, ...right])];
-  const byIndex = left.map((shape, index) => mergedShape(shape, right[index]));
-  return byIndex.every(shape => deepEqual(shape, byIndex[0])) ? [byIndex[0]] : byIndex;
-}
-
-function mergedCore(left, right) {
-  if (deepEqual(left, right)) return left;
-  if (eachesMerge(left, right)) return makeTagged(EACH_TAG, new Map([[eachKey(left), mergedShape(eachShape(left), eachShape(right))]]));
-  if (eachAndEmpty(left, right)) {
-    const each = isEmptyRecord(left) ? right : left;
-    return makeTagged(EACH_TAG, new Map([[eachKey(each), lacked(eachShape(each))]]));
-  }
-  if (isSetOf(left) && isSetOf(right)) return makeSet(mergedByIndex(left, right));
-  if (isList(left) && isList(right)) return Object.freeze(mergedByIndex(left, right));
-  if (isRecord(left) && isRecord(right) && shareAKey(left, right)) {
-    const keys = [...new Set([...left.keys(), ...right.keys()])];
-    return new Map(keys.map(key => [key, left.has(key) && right.has(key) ? mergedShape(left.get(key), right.get(key)) : lacked(left.get(key) ?? right.get(key))]));
-  }
-  const kinds = [...(isAlternatives(left) ? left : [left]), ...(isAlternatives(right) ? right : [right])];
-  for (let found = true; found;) {
-    found = false;
-    for (let at = 0; at < kinds.length && !found; at += 1) {
-      const with_ = kinds.findIndex((kind, index) => index > at && mergesWith(kinds[at], kind));
-      if (with_ !== -1) {
-        kinds[at] = mergedCore(kinds[at], kinds[with_]);
-        kinds.splice(with_, 1);
-        found = true;
-      }
-    }
-  }
-  const set = makeSet(kinds);
-  return set.length === 1 ? set[0] : set;
 }
 
 // The keys and indices of a path, an index as its number and a key as its

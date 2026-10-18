@@ -54,9 +54,9 @@ function kindOf(value) {
   return TAGGED_KIND;
 }
 
-// The kind a container has by its shape alone, which is the kind of a
-// tagged container's payload.
-function shapeKindOf(container) {
+// The kind of the core a container holds beneath its tag, which is the kind
+// of a tagged container's payload.
+function coreKindOf(container) {
   return Array.isArray(container) ? VECTOR_KIND : MAP_KIND;
 }
 
@@ -167,8 +167,8 @@ function compareMaps(leftMap, rightMap) {
   return 0;
 }
 
-// A tagged container's payload is the container itself read by its
-// shape; a tag over an atom or a value class wraps its payload.
+// A tagged container's payload is the container itself read by the kind of
+// its core; a tag over an atom or a value class wraps its payload.
 function comparePayloads(leftTagged, rightTagged) {
   const [leftPayload, leftKind] = payloadOf(leftTagged);
   const [rightPayload, rightKind] = payloadOf(rightTagged);
@@ -177,5 +177,5 @@ function comparePayloads(leftTagged, rightTagged) {
 
 function payloadOf(tagged) {
   if (isValueClass(tagged, 'underTag')) return [tagged.payload, kindOf(tagged.payload)];
-  return [tagged, shapeKindOf(tagged)];
+  return [tagged, coreKindOf(tagged)];
 }

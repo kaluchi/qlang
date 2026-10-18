@@ -202,7 +202,7 @@ if (!bumpDiff) {
 // Every dependency map counts — a sibling named under
 // `devDependencies` or `peerDependencies` reaches a consumer the
 // same way — and `workspace-manifests.mjs` owns both that list and
-// the range shape, so the rewrite here and the convention check
+// the form of the range, so the rewrite here and the convention check
 // enforce one rule.
 
 console.log('\nInternal dependency ranges:');

@@ -83,21 +83,21 @@ export function stillTheTree(repoRoot, tree) {
 
 // The runs a record called for are numbered in the order they ran, a report
 // `D329~2.md` or a run of several readers `D323~1/`, and a record calls for
-// one run on a tree. runsOf(dir, record, shape) → its runs, each `{ number,
+// one run on a tree. runsOf(dir, record, form) → its runs, each `{ number,
 // name }`; nextRunOf the name of the next; refuseASecondRun stops a run on
 // a tree a run of the record read.
-export const runsOf = (dir, record, shape) => (existsSync(dir) ? readdirSync(dir) : [])
-  .map(name => new RegExp(`^${record}~(\\d+)${shape === 'run' ? '' : '\\.md'}$`).exec(name)).filter(Boolean)
+export const runsOf = (dir, record, form) => (existsSync(dir) ? readdirSync(dir) : [])
+  .map(name => new RegExp(`^${record}~(\\d+)${form === 'run' ? '' : '\\.md'}$`).exec(name)).filter(Boolean)
   .map(match => ({ number: Number(match[1]), name: match[0] }));
 
-export const nextRunOf = (dir, record, shape) => `${record}~${Math.max(0, ...runsOf(dir, record, shape).map(({ number }) => number)) + 1}`;
+export const nextRunOf = (dir, record, form) => `${record}~${Math.max(0, ...runsOf(dir, record, form).map(({ number }) => number)) + 1}`;
 
-export function refuseASecondRun(dir, record, shape, tree, shown) {
+export function refuseASecondRun(dir, record, form, tree, shown) {
   const readThisTree = name => {
-    const report = shape === 'run' ? readdirSync(join(dir, name)).find(file => file !== 'reading.md') : name;
-    return report !== undefined && readFileSync(join(dir, shape === 'run' ? join(name, report) : report), 'utf8').includes(`> Tree \`${tree}\``);
+    const report = form === 'run' ? readdirSync(join(dir, name)).find(file => file !== 'reading.md') : name;
+    return report !== undefined && readFileSync(join(dir, form === 'run' ? join(name, report) : report), 'utf8').includes(`> Tree \`${tree}\``);
   };
-  const read = runsOf(dir, record, shape).find(({ name }) => readThisTree(name));
+  const read = runsOf(dir, record, form).find(({ name }) => readThisTree(name));
   if (read === undefined) return;
   console.error(`${shown(join(dir, read.name))} stands: ${record} called for a run on this tree`);
   process.exit(1);

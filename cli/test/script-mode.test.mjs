@@ -20,7 +20,7 @@ describe('liftStdinToPipeValue — auto detection', () => {
     expect(DEFAULT_SUBJECT.name).toBe('qlang');
   });
 
-  it('parses JSON stdin into qlang shape when auto succeeds', () => {
+  it('parses JSON stdin into the values of qlang when auto succeeds', () => {
     expect(liftStdinToPipeValue('{"a": 1}', 'auto').pipeValue.get('a')).toBe(1);
   });
 

@@ -1,5 +1,5 @@
-// argv-parser branch coverage. parseArgv has four shapes; one test
-// per shape, plus the long/short flag aliases so every comparison
+// argv-parser branch coverage. parseArgv has four forms; one test
+// per form, plus the long/short flag aliases so every comparison
 // branch fires.
 
 import { describe, it, expect } from 'vitest';

@@ -1,22 +1,22 @@
-|~ Every value comes apart into the set of its atoms and a shape, and
-   the shape applied to the set builds the value back [QSLIT#atoms]. The
-   atoms are the values no verb takes further apart, null, booleans,
-   numbers, strings, regexes, keywords, tag names and paths, each once, in the one
-   order, and a value is taken apart to the end: the keys of its maps
-   and the tags over its payloads are atoms as its other leaves are.
-   The shape is a quote that reads the value back from the set by `get`,
-   over a template of the reads of its parts [QSLIT#atoms]: an atom is
-   read by the path of its index in the set, `/n`; a vector is the vector of the
-   reads of its elements; a map is built from the pairs of its keys and
-   values by `indexBy`, and a tagged value, the set, the quote and the
-   doc and an error at rest among them, from its tag and its payload by
-   `tag` [QSLIT#atoms], [QSSLF#doc], each of the two a quote the template runs.
-   `["x" [1 1] {:b :a}]` has the atoms `#[1 "x" :a :b]` and the shape
-   `~(get [/1 [/0 /0] ~(get [[/3 /2]] | indexBy ~(first) | map ~last)])`.
+|~ Every value comes apart into the set of its atoms and a template, and
+   `get` over the template, read against the set, builds the value back
+   [D363]. The atoms are the values no verb takes further apart, null,
+   booleans, numbers, strings, regexes, keywords, tag names and paths,
+   each once, in the one order, and a value is taken apart to the end: the
+   keys of its maps and the tags over its payloads are atoms as its other
+   leaves are. The template is the literal of the reads of its parts
+   [D363]: an atom is read by the path of its index in the set, `/n`; a
+   vector is the vector of the reads of its elements; a map is built from
+   the pairs of its keys and values by `indexBy`, and a tagged value, the
+   set, the quote and the doc and an error at rest among them, from its
+   tag and its payload by `tag` [D363], [QSSLF#doc], each of the two a
+   quote `get` runs against the set. `["x" [1 1] {:b :a}]` has the atoms
+   `#[1 "x" :a :b]` and the template
+   `[/1 [/0 /0] ~(get [[/3 /2]] | indexBy ~(first) | map ~last)]`.
    The verbs are the language's own, and the test of the ring runs them
    over every example of the catalog and every literal of the
    conformance cases.
-   The rules it holds: [QSLIT#atoms]. ~|
+   The rules it holds: [D363]. ~|
 
 :any/atomKinds
   |~~ The kinds of the atoms, a verb, since a recipe reads no value a
@@ -75,7 +75,7 @@
         ~(:acc it
           | get {:next ~(acc | get /next | add 1) :pairs ~(acc | get /pairs | append (get [~(atom) ~(acc | get /next)]))})
 
-:any/intoShape
+:any/intoTemplate
   |~~ The reads built so far, `{:numbered … :reads …}`, with the read of
       one value after them: the path of an atom's index in the set, which
       `:numbered` holds under the atom's key, or what builds a value from
@@ -91,24 +91,24 @@
               ~(get {:numbered ~(acc | get /numbered)
                      :reads ~(acc | get /reads | append (get [~(acc | get /numbered | query (item | indexKey) | last)] | toPath))})
               ~(partsOf | :built it
-                | built | get /parts | reduce (get {:numbered ~(acc | get /numbered) :reads []}) ~(intoShape) | :inner it
+                | built | get /parts | reduce (get {:numbered ~(acc | get /numbered) :reads []}) ~(intoTemplate) | :inner it
                 | get {:numbered ~(acc | get /numbered) :reads ~(acc | get /reads | append (inner | get /reads | gluedBy (built | get /glue)))}))
 
 :any/apart
-  |~~ The atoms of the subject and its shape. ~~|
+  |~~ The atoms of the subject and its template. ~~|
   ::fn
     | proves :takesAValueApart
         |~~ A vector of a string, a vector and a map comes apart into four
-            atoms and its shape.
+            atoms and its template.
         ~~|
-        ~(["x" [1 1] {:b :a}] | apart | eq {:atoms #[1 "x" :a :b] :shape ~(get [/1 [/0 /0] ~(get [[/3 /2]] | indexBy ~(first) | map ~last)])})
+        ~(["x" [1 1] {:b :a}] | apart | eq {:atoms #[1 "x" :a :b] :template [/1 [/0 /0] ~(get [[/3 /2]] | indexBy ~(first) | map ~last)]})
     | impl
         ~(:held get [~(it)]
           | :atoms (held | map ~atomsOf | flat | tag ::set)
           | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | get /pairs | indexBy ~(first | indexKey))
-          | :read (held | reduce (get {:numbered ~(numbered) :reads []}) ~(intoShape) | get /reads | first)
-          | get {:atoms ~(atoms) :shape ~(get {:name :get :modifiers ~(get [~(read)])} | tag ::call | get [~(it)] | tag ::quote)})
+          | :read (held | reduce (get {:numbered ~(numbered) :reads []}) ~(intoTemplate) | get /reads | first)
+          | get {:atoms ~(atoms) :template ~(read)})
 
 :any/rebuilt
-  |~~ The value the shape of the subject builds from its atoms. ~~|
-  ~(apart | :pieces it | pieces | get /atoms | apply (pieces | get /shape))
+  |~~ The value `get` over the template of the subject builds from its atoms. ~~|
+  ~(apart | :pieces it | pieces | get /atoms | get (pieces | get /template))

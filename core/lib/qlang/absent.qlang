@@ -3,23 +3,12 @@
    The rules it holds: [QSDSP#residence]. ~|
 
 :absent
-  |~~ An absent marks, in the shape of a value, a key that some of the
-      records merged there hold and others lack, over the shape of what
-      the records that hold it hold:
+  |~~ An absent marks in a shape a part some of the data lacks, a key some
+      of the records merged there lack or the element of a vector or a set
+      empty in some, over the shape of the rest and outside `::nullable`:
       `[{:a 1} {:a 2 :b "x"}] | shape` answers
-      `::shape[{:a ::number :b ::absent::string}]`. Records that share a
-      key merge so, the keys of all of them in one record and a key some
-      lack marked, whatever their order; records that share no key stand
-      apart as the kinds where the elements part. The mark stands as well
-      over the element of a vector or a set that is empty in some of the
-      data, its first index missing there,
-      `[{:labels [{:name "bug"}]} {:labels []}] | shape` answering
-      `::shape[{:labels [::absent{:name ::string}]}]`. A part the mark
-      stands over may be missing from the data, so `get` refuses it where
-      it is and `query` reads it softly; the mark stands outside
-      `::nullable`.
-      ::link~(::shape | doc) ::link~(::nullable | doc)
-      ::link~(::any/query | doc)
+      `::shape[{:a ::number :b ::absent::string}]`.
+      ::link~(::shape | doc)
   ~~|
   ::kind
     | proves :marksAKeySomeRecordsLack

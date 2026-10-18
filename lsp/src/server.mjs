@@ -236,7 +236,7 @@ connection.onReferences((params) => {
   }));
 });
 
-// ── Document Symbols (Outline) ────────────────────────────────
+// ── Document Symbols ──────────────────────────────────────────
 
 const SYMBOL_KIND_MAP = {
   verb:     SymbolKind.Function,

@@ -3,7 +3,7 @@
    as code and the facts it carries, and the verbs that read a quote. A
    quote is also the vector of its steps, so the verbs of vectors read
    it as one, and a quote under a tag, a link or a snippet of a page,
-   reads them through its shape.
+   reads them through the walk of its tags.
    The rules it holds: [QSDSP#residence]. ~|
 
 :quote

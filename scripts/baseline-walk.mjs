@@ -12,7 +12,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { readText, treeAt } from './tree-reads.mjs';
-import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, foldersShaped, JOURNAL, RESEARCH } from './decision-records.mjs';
+import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, foldersOfForm, JOURNAL, RESEARCH } from './decision-records.mjs';
 
 export const RECORDS_A_WALK_TAKES = 20;
 export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
@@ -326,14 +326,14 @@ function sectionsOfChapter(text) {
 // them [QSWRK#baseline]. A report a record called for is named after that
 // record and numbered in the order it ran, as the runs of the benchmark are,
 // a report `design-check/D329~2.md` or a run of several readers
-// `spec-check/D323~1/`, by the shapes of the folders of the research, and
+// `spec-check/D323~1/`, by the forms of the folders of the research, and
 // stands with the session's reading beside it, `D329~2~reading.md` or the
 // `reading.md` of the run, the two one unit held while that record is in
 // force or a text in force cites it. Any other document of the research is
-// a unit of its own, held by a citation of its path [QSWRK#review],
+// a unit of its own, held by a citation of its path [D363],
 // and the README of a folder says what the folder holds and holds none of it.
 const RESEARCH_DOCUMENT = new RegExp(`^${RESEARCH}/[^/]+/.+`);
-const OF_A_RECORD = new RegExp(`^${RESEARCH}/(?:(?:${foldersShaped('report')})/(D\\d+)~\\d+(?=(?:~reading)?\\.md$)|(?:${foldersShaped('run')})/(D\\d+)~\\d+(?=/))`);
+const OF_A_RECORD = new RegExp(`^${RESEARCH}/(?:(?:${foldersOfForm('report')})/(D\\d+)~\\d+(?=(?:~reading)?\\.md$)|(?:${foldersOfForm('run')})/(D\\d+)~\\d+(?=/))`);
 export const isReadme = path => /(^|\/)README\.md$/.test(path);
 
 // recordHolding(repoRoot, path) → the record in force a report is named
@@ -379,12 +379,12 @@ export function uncitedDocuments(repoRoot) {
 export function reportsWithoutReading(repoRoot) {
   const tracked = new Set(git(repoRoot, 'ls-files', RESEARCH).split('\n').filter(Boolean));
   const missing = [];
-  const report = new RegExp(`^(.+/(?:${foldersShaped('report')})/D\\d+~\\d+)\\.md$`);
+  const report = new RegExp(`^(.+/(?:${foldersOfForm('report')})/D\\d+~\\d+)\\.md$`);
   for (const path of tracked) {
     const ofARecord = report.exec(path);
     if (ofARecord !== null && !tracked.has(`${ofARecord[1]}~reading.md`)) missing.push({ path, reading: `${ofARecord[1]}~reading.md` });
   }
-  const ofARun = new RegExp(`^(.+/(?:${foldersShaped('run')})/[^/]+)/`);
+  const ofARun = new RegExp(`^(.+/(?:${foldersOfForm('run')})/[^/]+)/`);
   const runs = new Set([...tracked].map(path => ofARun.exec(path)?.[1]).filter(Boolean));
   for (const run of runs) if (!tracked.has(`${run}/reading.md`)) missing.push({ path: `${run}/`, reading: `${run}/reading.md` });
   return missing;

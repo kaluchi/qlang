@@ -1,5 +1,6 @@
 // The terms of the earlier models of the language that its later work
-// retired, each a regex of one sense with the term written in its place
+// retired, each a regex of one sense, or of a generic word the texts that
+// state what holds write in no sense, with the term written in its place
 // and the record that retired it: a text that states what holds writes
 // none of them [QSWRK#documents], and a record that retires a term
 // of the language adds it here in the commit that retires it.
@@ -78,4 +79,6 @@ export const RETIRED_WORDS = [
   { regex: /pattern/i, written: 'a regex, the value of `#"…"` and the regex of JavaScript alike, `::string/toRegex/TextNotRegexError` and `::string/capture/RegexNamesNoGroupError` its refusals, the input `:regex` of `match`, `capture` and `scan` and `:needle` of `replace`', by: 'D362' },
   { regex: /\b(?:get|query)`?[\s-]+reads[\s-]+a[\s-]+tuple\b|readsATuple|\btemplate[\s-]+answers[\s-]+a[\s-]+tuple\b|\breads[\s-]+a[\s-]+tuple[\s-]+of[\s-]+two[\s-]+fields\b|\bthe[\s-]+tuple[\s-]+a[\s-]+template[\s-]+answers\b|\b[Tt]uples[\s-]+the[\s-]+templates\b/, written: 'the template `get` answers, read softly by `query`, tuple naming the form of a shape', by: 'D362' },
   { regex: /\bparse\s+\|\s+apply(?:\s+it\b|\(it\))/, written: 'a print read back by `parse | open`, `apply` running code on a subject', by: 'D362' },
+  { regex: /outline/i, written: 'the shape of a value, which `shape` answers under `::shape`, the leaves of a value, which `paths` answers, and the symbols of a document an editor shows', by: 'D363' },
+  { regex: /\bshapeKindOf\b|\bfoldersShaped\b|\bintoShape\b|PathsOfTheData|PathThroughTheKeyItShows|\bstandsOverTheSchemaShapeAnswers\b|\bthe-paths-of-the-data-read-its-shape\b|\bshape-reads-the-path-of-the-data-through-the-key-a-fold-shows\b|\bshape-reads-a-record-null-in-some-through-its-mark\b|\ba-shape-reads-the-set-of-atoms-by-path\b/, written: 'the names written in their place, `coreKindOf`, `foldersOfForm` and `intoTemplate`, and the laws and the cases named for the read that holds', by: 'D363' },
 ];

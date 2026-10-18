@@ -148,7 +148,7 @@ describe('toPlain encodes a failure', () => {
   });
 });
 
-describe('toPlain encodes every shape of a value under a tag through the $tag envelope', () => {
+describe('toPlain encodes a tag over every kind of payload through the $tag envelope', () => {
   it('a tag over a set, a map and an atom writes its payload in JSON', async () => {
     // A tag over a vector is held by the earlier `Box[42]` test.
     const { makeTagged, makeTag: makeTag, makeSet } = await import('../../src/types.mjs');

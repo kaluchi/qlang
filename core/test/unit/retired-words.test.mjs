@@ -1,11 +1,12 @@
 // The retired terms of the chain, of the slot of a kind, of the node an
 // axis reads, of the trace a failure leaves, of a refusal, of the boundary
 // of a host, of the read of text into code and back, of the elision, of the
-// regex, of the template and of the read of a print, each held by the
-// lexicon of retired terms as one regex of its one sense [QSWRK#documents],
-// which refuses the term where it is written,
-// in prose, a name of the code or the name of a case, and leaves the words of
-// another sense.
+// template, of the read of a print and of the shape of a value, each held
+// by the lexicon of retired terms as one regex of its one sense, which
+// refuses the term where it is written, in prose, a name of the code or the
+// name of a case, and leaves the words of another sense, and the generic
+// words the texts that state what holds write in no sense, which it refuses
+// whole [QSWRK#documents].
 
 import { describe, it, expect } from 'vitest';
 import { RETIRED_WORDS } from '../../../scripts/retired-words.mjs';
@@ -393,6 +394,53 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'reads a bracketed paste up to its end marker, a pause past the window inside it', 'shapes or more a tuple, vectors of one length that part index by',
       'capture-refuses-a-regex-that-names-no-group', 'reads a bracketed paste whose begin marker\'s escape is split',
       'a line that holds a marker of a block comment', 'a doc gives way to a marker of a block comment'
+    ]) expect(refused(text), text).toBe(false);
+  });
+
+  it('refuses in every sense where it is written a generic word the texts that state what holds write in no sense [QSWRK#documents]', () => {
+    for (const text of [
+      'Answers the outline of a value, the set of its leaves', '`paths` answers the outline of a value and `shape` its schema',
+      ':answersTheOutline', 'The outline holds the path and the kind of every leaf.', 'and of a failure and the outline of a value among them',
+      'outline and its words', '// ── Document Symbols (Outline) ──', '4. Ctrl+Shift+O — Outline', 'OUTLINES', 'an outlined box'
+    ]) expect(refused(text), text).toBe(true);
+  });
+
+  it('leaves the words written in its place: the shape, the leaves, the symbols of a document and the schema of a step [QSWRK#documents]', () => {
+    for (const text of [
+      'Answers the shape of a value, its structure beneath its tags', '`paths` answers the leaves of a value', ':answersTheLeaves',
+      '// ── Document Symbols ──', '4. Ctrl+Shift+O — Document Symbols', 'the fields a record of a step holds against its schema',
+      '::bind/PayloadNotSchemaError'
+    ]) expect(refused(text), text).toBe(false);
+  });
+
+  it('refuses each name the shape and its other senses gave way to where it is written [D363]', () => {
+    for (const text of [
+      'shapeKindOf', 'foldersShaped', ':any/intoShape', ':readsByThePathsOfTheData', ':readsThePathsOfTheDataThroughIt',
+      ':readsThePathThroughTheKeyItShows', ':standsOverTheSchemaShapeAnswers', 'the-paths-of-the-data-read-its-shape',
+      'shape-reads-the-path-of-the-data-through-the-key-a-fold-shows', 'shape-reads-a-record-null-in-some-through-its-mark',
+      'a-shape-reads-the-set-of-atoms-by-path'
+    ]) expect(refused(text), text).toBe(true);
+  });
+
+  it('leaves the words written in their place and the shape of a value: the read every value takes, the schema of a step, the kind of the core, the form of a folder and of code, the template of the atoms and the kinds of the codec [QSWRK#documents]', () => {
+    for (const text of [
+      'A shape is read as every value is: a path reads it beneath the tags over each part it meets, its marks among them', ':readsAPartBeneathItsTag',
+      ':answersAPartBeneathItWithoutTheMark', ':readsByTheKeyItShows', ':readsAListByItsOneElement', 'a-shape-reads-a-list-by-its-one-element',
+      'a-shape-answers-a-part-read-beneath-a-mark-without-the-mark', 'a-shape-reads-a-fold-by-the-key-it-shows', 'a-shape-reads-a-tuple-by-its-indices',
+      'The shape of a part of the data is the shape of that part', 'checks the fields the printer reads against its schema',
+      'A record\'s payload is a Map whose fields each fit the schema', 'a required field left out does not fit the schema', 'the schema of the steps of a quote',
+      'coreKindOf', 'The kind of the core a container holds beneath its tag', 'then the kind of the core beneath them, then the verbs every value answers',
+      'an untagged vector or map holds the tag on itself', 'collections that hold their tag on themselves', 'payload strips the header off every kind of payload under a tag',
+      'the top keeps its shape, a vector or a set there halving to its first element', 'a container under a tag keeps its shape, its parts giving way within',
+      'the data keeps its shape, so the verbs of the payload\'s kind still serve it', 'A shape is the structure of a value beneath its tags',
+      'foldersOfForm', 'The folders of the research by the form of what each holds', 'the folders of that form as one alternation of a regex',
+      'intoTemplate', 'Every value comes apart into the set of its atoms and a template', 'The atoms of the subject and its template.',
+      'a-template-reads-a-value-back-from-the-set-of-its-atoms', 'A template of `get` builds a shape from the value', 'Under `map` a template builds the shape of each element.',
+      'A map\'s elements are its values, and its keys travel with them', 'A map keeps its keys, each with its shape.',
+      'null for code of any other form or a name of no verb', 'What the rule read, in the form of `location()`.',
+      'Every value answers, and the kinds of qlang alone give way at this boundary', '`toPlain` writes a value in the kinds of JSON, for `json` and a host',
+      'the lift of JSON into the values of qlang all fire against a real session', 'An answer of a new shape is built by `get` over a template',
+      'a query names the shape of what it reads', 'a subject of another shape is refused, a vector of another length among them', 'a :trace of another shape'
     ]) expect(refused(text), text).toBe(false);
   });
 });

@@ -59,7 +59,7 @@
     return { offset, line: low + 1, column: offset - lineStarts[low] + 1 };
   }
 
-  // What the rule read, in the shape of `location()`.
+  // What the rule read, in the form of `location()`.
   function span() {
     const { source, start, end } = range();
     return { source, start: pointOf(start), end: pointOf(end) };
@@ -141,7 +141,7 @@
   }
 
   // How deep the parser is in a `~(…)` of a doc it tries as code: there
-  // a shape it refuses elsewhere fails the try, and the span reads as
+  // a form it refuses elsewhere fails the try, and the span reads as
   // prose [QSSLF#doc].
   let docQuoteDepth = 0;
 
@@ -341,7 +341,7 @@ QuoteSpan
     { return '~(' + content + ')'; }
 
 // Inside a block comment the line markers are bare tokens, the block
-// forms nest, and the closer of the other block shape is content.
+// forms nest, and the closer of the other block form is content.
 NestedLineDocSpan
   = "|~~|"
     { return text(); }

@@ -1,10 +1,10 @@
-// The ring of atoms [QSLIT#atoms]: every value comes apart into its atoms and
-// a shape, and the shape applied to the atoms builds it back, both written in
-// qlang with the language's own verbs in `test/qlang/atoms.qlang`. The round
-// trip runs over every example of the catalog, read at the address of each
-// verb and at the name of each tag it declares, and over every literal the
-// conformance cases expect, a failure among them caught to its error at rest,
-// the trace it left among its facts [QSERR#trace]. The examples of the
+// The ring of atoms [D363]: every value comes apart into its atoms and a
+// template, and `get` over the template builds it back from the atoms, both
+// written in qlang with the language's own verbs in `test/qlang/atoms.qlang`.
+// The round trip runs over every example of the catalog, read at the address
+// of each verb and at the name of each tag it declares, and over every literal
+// the conformance cases expect, a failure among them caught to its error at
+// rest, the trace it left among its facts [QSERR#trace]. The examples of the
 // catalog are walked in shares, a file each, which run side by side.
 
 import { describe, it, expect, beforeAll } from 'vitest';

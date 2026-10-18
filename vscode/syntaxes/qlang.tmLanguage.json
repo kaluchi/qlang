@@ -247,7 +247,7 @@
     },
 
     "error-lit-brackets": {
-      "comment": "Error literal !{...} opener and the closing brace inside ErrorLit body. Carries the same fail-track palette as the !| combinator so error-shape syntax reads loud at a glance. Matched before the generic !| combinator so `!{` wins against the trailing `|` of an adjacent comment.",
+      "comment": "Error literal !{...} opener and the closing brace inside ErrorLit body. Carries the same fail-track palette as the !| combinator so the syntax of an error reads loud at a glance. Matched before the generic !| combinator so `!{` wins against the trailing `|` of an adjacent comment.",
       "match": "!\\{",
       "name": "keyword.operator.fail-apply.qlang"
     },

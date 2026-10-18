@@ -218,8 +218,7 @@ export function isDoc(v) {
 }
 
 // The kinds of the core whose values are vectors under a tag of their own,
-// a set, a quote and a doc, each read as a vector wherever a vector is read
-// and keeping its shape where a plain vector gives way.
+// a set, a quote and a doc, each read as a vector wherever a vector is read.
 export const KINDS_OF_OWN_VECTORS = [SET_TAG_NAME, QUOTE_TAG_NAME, DOC_TAG_NAME];
 
 export function isVecOfOwnKind(v) {
@@ -261,16 +260,12 @@ function stampSlot(target, slot, value) {
 // The tags the runtime names.
 export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
-export const ABSENT_TAG      = makeTag('absent');
 export const DESC_TAG        = makeTag('desc');
 export const DOC_TAG         = makeTag(DOC_TAG_NAME);
-export const EACH_TAG        = makeTag('each');
 export const ELISION_TAG     = makeTag('elision');
 export const ERROR_TAG       = makeTag('error');
-export const NULLABLE_TAG    = makeTag('nullable');
 export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTag(SET_TAG_NAME);
-export const SHAPE_TAG       = makeTag('shape');
 
 // The kind of every value without a tag of its own, the one its literal
 // implies, which `type` answers [QSLIT#kind].
@@ -298,9 +293,9 @@ export const CONSTRUCT_TAG = makeTag('construct');
 export const FAIL_TAG      = makeTag('fail');
 export const GROUP_TAG     = makeTag('group');
 
-// A tag over a payload: an untagged vector or map keeps its shape under
-// the tag, so every verb of the container reads it; any other payload, a
-// tagged one among them, is held by a wrapper, which `payload` opens.
+// A tag over a payload: an untagged vector or map holds the tag on itself,
+// so every verb of the container reads it; any other payload, a tagged one
+// among them, is held by a wrapper, which `payload` opens.
 export function makeTagged(tag, payload) {
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     const arr = [...payload];

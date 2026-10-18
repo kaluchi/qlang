@@ -111,7 +111,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { baselineOf, isCitingCode, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_DOCUMENTS } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
-import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersShaped, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
+import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
 import { kindsNamedForCommands } from './catalog-kinds.mjs';
 import { verdictOf } from './conventions-verdict.mjs';
@@ -304,10 +304,10 @@ const FENCE_RE = /^\s*```/;
 const INLINE_CODE_RE = /`[^`]*`/g;
 
 // A report of the research stands as its outside reader wrote it
-// [QSWRK#review], so the prose held to its tallies is the work's own, the
-// session's reading of the report among it, by the shapes of the folders of
+// [D363], so the prose held to its tallies is the work's own, the
+// session's reading of the report among it, by the forms of the folders of
 // the research.
-const OUTSIDE_REPORT = new RegExp(`^${RESEARCH}/(?:(?:${foldersShaped('report')})/D\\d+~\\d+\\.md|(?:${foldersShaped('run')})/D\\d+~\\d+/(?!reading\\.md)[^/]+\\.md)$`);
+const OUTSIDE_REPORT = new RegExp(`^${RESEARCH}/(?:(?:${foldersOfForm('report')})/D\\d+~\\d+\\.md|(?:${foldersOfForm('run')})/D\\d+~\\d+/(?!reading\\.md)[^/]+\\.md)$`);
 
 function scanProseTallies() {
   const violations = [];

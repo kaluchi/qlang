@@ -94,7 +94,7 @@ describe('runRepl — query evaluation', () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // REPL paints output with ANSI colour codes — strip before
-    // matching the structural shape.
+    // matching the text.
     const text = replHarness.stdoutText().replace(/\x1b\[[0-9;]*m/g, '');
     expect(text).toContain('::quote/ParseError!{');
     expect(text).toContain(':source "[1 2"');

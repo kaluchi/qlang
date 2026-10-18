@@ -132,7 +132,7 @@ describe('the algebra of two sets of values that are no keywords', async () => {
 });
 
 // Keyword / tag ordering — sort / min / max / gt / lt / gte /
-// lte pairwise comparability extends to identifier-shape pairs through
+// lte pairwise comparability extends to pairs of names through
 // lexicographic `.name` compare, the one order of `compareValues` in
 // `ordering.mjs`; these tests cover its keyword and tag branches.
 describe('the one order over keywords and tags', async () => {

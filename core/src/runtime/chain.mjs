@@ -58,7 +58,7 @@ const KIND_COMMANDS = new Map([
 export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), 'impl'])]);
 
 // The modifiers of a step that is one of the commands of a table in the
-// shapes it takes, or null.
+// forms it takes, or null.
 function modifiersOf(step, commands) {
   if (step?.[TAG_HEADER_SYMBOL]?.name !== CALL_TAG.name || !commands.has(step.get('name').name)) return null;
   const { taken, optional } = commands.get(step.get('name').name);

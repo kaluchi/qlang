@@ -16,6 +16,7 @@ import './raise.mjs';
 import './convert.mjs';
 import './regex.mjs';
 import './path.mjs';
+import './shape.mjs';
 import './tagged.mjs';
 import './quote-steps.mjs';
 import './verb.mjs';

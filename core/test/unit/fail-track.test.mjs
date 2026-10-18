@@ -71,7 +71,7 @@ describe('`!|` runs a group and a verb on the error at rest', () => {
 });
 
 
-describe('source axis prints the declaration for rare body shapes', () => {
+describe('source axis prints the declaration for rare forms of a body', () => {
   it('renders a call that gives no modifiers as the body of a declaration', async () => {
     expect(await evalQuery('[1 2] | :x count | ::x | source | toString')).toBe(':x count');
   });
@@ -213,8 +213,8 @@ describe('per-site error classes carry unique identity', () => {
     expect(result.descriptor.get('detail')).toBe('x');
   });
 
-  it('payload strips the header off every shape of a value under a tag', async () => {
-    // Each shape exercises its own branch of `payload`: a tag
+  it('payload strips the header off every kind of payload under a tag', async () => {
+    // Each kind of payload exercises its own branch of `payload`: a tag
     // over a set stacks on it and answers the set, a set answers its
     // vector, and a tagged Map returns a fresh Map without header.
     // The tagged vector and the tag over an atom are covered above via

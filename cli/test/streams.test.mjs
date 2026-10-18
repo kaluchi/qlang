@@ -1,7 +1,7 @@
 // The coverage of the effectful verbs of the streams. Each is tested
 // through a real session evalCell with a captured ioContext, so the dispatch
 // path, the per-site error sites, and the side-effect writers are
-// all exercised together — the same shape the real bin executes.
+// all exercised together — as the real bin runs them.
 // The rules it holds: [QSHST#effect].
 
 import { describe, it, expect } from 'vitest';

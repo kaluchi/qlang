@@ -463,7 +463,7 @@ export function verbNames(scope) {
 // inputs }`: the verb a subject of the kinds reaches, or, where the tool
 // knows no kinds or they reach none, the address the name reaches with no
 // subject, or the first verb of a name several kinds answer, and the names
-// of the inputs its function takes [D365]; undefined for a name that reaches
+// of the inputs its function takes [QSHST#tools]; undefined for a name that reaches
 // no name under a label.
 export function shownFor(scope, name, kindNames = null) {
   const reached = kindNames === null ? undefined : verbsReaching(scope, kindNames).get(name);

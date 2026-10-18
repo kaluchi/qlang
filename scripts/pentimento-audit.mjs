@@ -45,9 +45,9 @@ const shown = path => relative(repoRoot, path).replaceAll('\\', '/');
 const sizeOf = path => statSync(join(repoRoot, path)).size;
 const read = path => readFileSync(join(repoRoot, path), 'utf8');
 
-// The modules of `core/src` by the noun under which they bind most of their
-// addresses, read from the calls that register their primitives in the table
-// of `core/src/primitives.mjs`.
+// The modules of `core/src` by the noun under which they register most of
+// their addresses, the first they register under where two tie, read from the
+// calls that register their primitives in the table of `core/src/primitives.mjs`.
 const code = citingCodeOf(repoRoot);
 const coreModules = code.filter(path => path.startsWith('core/src/'));
 const BOUND = /register(?:Primitive|StateReader|ReaderOfPassedTags)\(\s*(\[[^\]]*\]|'[^']*')/g;

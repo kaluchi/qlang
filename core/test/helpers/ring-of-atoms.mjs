@@ -1,4 +1,4 @@
-// The ring of atoms [D363]: every value comes apart into its atoms and a
+// The ring of atoms [QSLIT#atoms]: every value comes apart into its atoms and a
 // template, and `get` over the template builds it back from the atoms, both
 // written in qlang with the language's own verbs in `test/qlang/atoms.qlang`.
 // The round trip runs over every example of the catalog, read at the address

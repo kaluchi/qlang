@@ -1,6 +1,6 @@
 // The surface of the package root: what a host, the command line, the
 // language server and the site build on, each function behind one door.
-// The rules it holds: [D365].
+// The rules it holds: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -49,7 +49,7 @@ describe('the package root', () => {
   });
 });
 
-describe('the doors of the package [D365]', () => {
+describe('the doors of the package [QSWRK#tooling]', () => {
   it('opens its root, its errors, its painter and the sources of its catalog, and no other door', () => {
     const { exports } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
     expect(Object.keys(exports)).toEqual(['.', './errors', './highlight', './lib/qlang.qlang', './lib/qlang/*.qlang']);

@@ -128,7 +128,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 // stdout: a failed cell, one that does not parse among them with its caret
 // where the alert shows its line, is an answer as every failure is [QSHST#answer],
 // and a defect raised past the fail track as the cell ran or as its answer
-// printed is written on stderr [D365].
+// printed is written on stderr [QSHST#repl].
 async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, budget) {
   if (cellEntry.defect !== null) {
     stderrWrite(defectLine(cellEntry.defect));

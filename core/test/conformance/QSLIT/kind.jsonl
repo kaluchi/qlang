@@ -1,26 +1,26 @@
 {"name":"a-vector-has-the-kind-its-brackets-imply","query":"[1 2] | type","expect":"::vec"}
 {"name":"null-has-a-kind-of-its-own","query":"null | type","expect":"::null"}
 {"name":"a-tag-name-has-the-kind-tag","query":"::foo | type","expect":"::tag"}
-{"decision":"D364","name":"true-has-the-kind-boolean","query":"true | type","expect":"::boolean"}
-{"decision":"D364","name":"false-has-the-kind-boolean","query":"false | type","expect":"::boolean"}
-{"decision":"D364","name":"an-integer-has-the-kind-number","query":"42 | type","expect":"::number"}
-{"decision":"D364","name":"a-decimal-has-the-kind-number","query":"3.14 | type","expect":"::number"}
-{"decision":"D364","name":"a-negative-number-has-the-kind-number","query":"-7 | type","expect":"::number"}
-{"decision":"D364","name":"zero-has-the-kind-number","query":"0 | type","expect":"::number"}
-{"decision":"D364","name":"a-string-has-the-kind-string","query":"\"hello\" | type","expect":"::string"}
-{"decision":"D364","name":"the-empty-string-has-the-kind-string","query":"\"\" | type","expect":"::string"}
-{"decision":"D364","name":"a-keyword-has-the-kind-keyword","query":":name | type","expect":"::keyword"}
-{"decision":"D364","name":"a-tag-name-has-the-kind-tag-whatever-the-case-of-its-letters","query":"::Foo | type","expect":"::tag"}
+{"name":"true-has-the-kind-boolean","query":"true | type","expect":"::boolean"}
+{"name":"false-has-the-kind-boolean","query":"false | type","expect":"::boolean"}
+{"name":"an-integer-has-the-kind-number","query":"42 | type","expect":"::number"}
+{"name":"a-decimal-has-the-kind-number","query":"3.14 | type","expect":"::number"}
+{"name":"a-negative-number-has-the-kind-number","query":"-7 | type","expect":"::number"}
+{"name":"zero-has-the-kind-number","query":"0 | type","expect":"::number"}
+{"name":"a-string-has-the-kind-string","query":"\"hello\" | type","expect":"::string"}
+{"name":"the-empty-string-has-the-kind-string","query":"\"\" | type","expect":"::string"}
+{"name":"a-keyword-has-the-kind-keyword","query":":name | type","expect":"::keyword"}
+{"name":"a-tag-name-has-the-kind-tag-whatever-the-case-of-its-letters","query":"::Foo | type","expect":"::tag"}
 {"name":"type-of-a-value-under-a-tag-is-the-tag","query":"::AutoBox[1 2 3] | type","expect":"::AutoBox"}
-{"decision":"D364","name":"a-vector-of-numbers-has-the-kind-vec","query":"[1 2 3] | type","expect":"::vec"}
-{"decision":"D364","name":"the-empty-vector-has-the-kind-vec","query":"[] | type","expect":"::vec"}
-{"decision":"D364","name":"a-quote-has-the-kind-quote","query":"~(mul 2) | type","expect":"::quote"}
-{"decision":"D364","name":"a-doc-has-the-kind-doc","query":"|~~ note ~~| | type","expect":"::doc"}
-{"decision":"D364","name":"a-map-has-the-kind-map","query":"{:a 1} | type","expect":"::map"}
-{"decision":"D364","name":"the-empty-map-has-the-kind-map","query":"{} | type","expect":"::map"}
+{"name":"a-vector-of-numbers-has-the-kind-vec","query":"[1 2 3] | type","expect":"::vec"}
+{"name":"the-empty-vector-has-the-kind-vec","query":"[] | type","expect":"::vec"}
+{"name":"a-quote-has-the-kind-quote","query":"~(mul 2) | type","expect":"::quote"}
+{"name":"a-doc-has-the-kind-doc","query":"|~~ note ~~| | type","expect":"::doc"}
+{"name":"a-map-has-the-kind-map","query":"{:a 1} | type","expect":"::map"}
+{"name":"the-empty-map-has-the-kind-map","query":"{} | type","expect":"::map"}
 {"name":"type-of-a-map-carrying-a-kind-field-is-map","query":"{:kind ::Foo :a 1} | type","expect":"::map"}
-{"decision":"D364","name":"a-set-has-the-kind-set","query":"#[1 2] | type","expect":"::set"}
-{"decision":"D364","name":"the-empty-set-has-the-kind-set","query":"#[] | type","expect":"::set"}
+{"name":"a-set-has-the-kind-set","query":"#[1 2] | type","expect":"::set"}
+{"name":"the-empty-set-has-the-kind-set","query":"#[] | type","expect":"::set"}
 {"name":"type-of-the-payload-reads-past-its-tag","query":"::AutoBox[1 2 3] | payload | type","expect":"::vec"}
 {"name":"tags-stack-over-a-payload-and-read-from-the-outside-in","query":"::A::B{} | get [~(type) ~(payload | type)]","expect":"[::A ::B]"}
 {"name":"a-tag-stacks-over-an-atom-as-over-a-container","query":"::A#1 | get [~(type) ~(payload)]","expect":"[::A 1]"}

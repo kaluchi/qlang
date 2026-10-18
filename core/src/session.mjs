@@ -1,5 +1,5 @@
 // A session keeps the scope its cells write, each cell a query, taking what
-// its host hands by the walk of the door [QSNAM#root], [QSDSP#residence], [D365].
+// its host hands by the walk of the door [QSNAM#root], [QSDSP#residence], [QSHST#source].
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst } from './eval.mjs';
@@ -13,7 +13,7 @@ import { BuiltinForeignValueError } from './types.mjs';
 // A value a host hands where the core takes it, the subject of a cell or what
 // a name of a scope holds, held by the walk of the door, a value of no kind
 // raised as `::builtin/ForeignValueError`; a scope is taken name by name, its
-// root and the keys of the runtime's own aside [D365].
+// root and the keys of the runtime's own aside [QSHST#source].
 function takenFromAHost(value) {
   const foreign = foreignPartOf(value);
   if (foreign !== null) throw new BuiltinForeignValueError({ actualValue: foreign.account });
@@ -50,7 +50,7 @@ export async function createSession(opts = {}) {
       } catch (thrown) {
         // A failure to parse is an answer, naming the source a host named, a
         // cell the session numbers naming none; a throw past the fail track is
-        // the cell's defect, which answers nothing [D365].
+        // the cell's defect, which answers nothing [QSHST#source].
         return thrown instanceof ParseError ? entry(errorFromParse(thrown, scope, evalOpts.uri ?? null), null) : entry(null, thrown);
       }
     },
@@ -60,7 +60,7 @@ export async function createSession(opts = {}) {
 }
 
 // evalQuery(source, scope?) → the answer of one cell of a session over the
-// scope, the root's where none is handed, a defect raised to its caller [D365].
+// scope, the root's where none is handed, a defect raised to its caller [QSHST#source].
 export async function evalQuery(source, scope) {
   const { result, defect } = await (await createSession({ scope })).evalCell(source);
   if (defect !== null) throw defect;

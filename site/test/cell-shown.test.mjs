@@ -1,4 +1,4 @@
-// The rules it holds: [D365].
+// The rules it holds: [QSHST#tools].
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { createSession } from '@kaluchi/qlang-core';

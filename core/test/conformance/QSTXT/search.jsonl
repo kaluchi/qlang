@@ -1,38 +1,38 @@
-{"decision":"D364","name":"contains-finds-a-text-in-the-middle-of-a-string","query":"\"hello world\" | contains \"lo wor\"","expect":"true"}
-{"decision":"D364","name":"contains-finds-a-text-at-the-start-of-a-string","query":"\"hello world\" | contains \"hello\"","expect":"true"}
-{"decision":"D364","name":"contains-finds-a-text-at-the-end-of-a-string","query":"\"hello world\" | contains \"world\"","expect":"true"}
-{"decision":"D364","name":"contains-answers-false-for-a-text-the-string-lacks","query":"\"hello\" | contains \"xyz\"","expect":"false"}
-{"decision":"D364","name":"every-string-holds-the-empty-needle","query":"\"anything\" | contains \"\"","expect":"true"}
+{"name":"contains-finds-a-text-in-the-middle-of-a-string","query":"\"hello world\" | contains \"lo wor\"","expect":"true"}
+{"name":"contains-finds-a-text-at-the-start-of-a-string","query":"\"hello world\" | contains \"hello\"","expect":"true"}
+{"name":"contains-finds-a-text-at-the-end-of-a-string","query":"\"hello world\" | contains \"world\"","expect":"true"}
+{"name":"contains-answers-false-for-a-text-the-string-lacks","query":"\"hello\" | contains \"xyz\"","expect":"false"}
+{"name":"every-string-holds-the-empty-needle","query":"\"anything\" | contains \"\"","expect":"true"}
 {"name":"empty-subject-only-contains-empty","query":"\"\" | contains \"\"","expect":"true"}
 {"name":"empty-subject-not-contains-non-empty","query":"\"\" | contains \"x\"","expect":"false"}
-{"decision":"D364","name":"contains-asks-for-a-text-case-and-all","query":"\"Hello\" | contains \"hello\"","expect":"false"}
-{"decision":"D364","name":"a-string-contains-a-text-equal-to-itself","query":"\"foo\" | contains \"foo\"","expect":"true"}
+{"name":"contains-asks-for-a-text-case-and-all","query":"\"Hello\" | contains \"hello\"","expect":"false"}
+{"name":"a-string-contains-a-text-equal-to-itself","query":"\"foo\" | contains \"foo\"","expect":"true"}
 {"name":"a-needle-that-is-no-text-is-refused","query":"\"hi\" | contains 42","expect":"::string/contains/needle/KindNotTakenError!{\n  :expected #[::regex ::string]\n  :actualValue 42\n  :actualType ::number\n  :trace ::trace[::frame[\"hi\" ~(contains 42)]]\n} | raise"}
-{"decision":"D364","name":"filter-keeps-the-strings-that-contain-a-text","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(contains \"al\")","expect":"[\"alice\" \"alex\"]"}
-{"decision":"D364","name":"filter-keeps-the-records-whose-field-contains-a-text","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(get /name | contains \"al\") | map /name","expect":"[\"alice\" \"alex\"]"}
+{"name":"filter-keeps-the-strings-that-contain-a-text","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(contains \"al\")","expect":"[\"alice\" \"alex\"]"}
+{"name":"filter-keeps-the-records-whose-field-contains-a-text","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(get /name | contains \"al\") | map /name","expect":"[\"alice\" \"alex\"]"}
 {"name":"a-vector-contains-its-elements","query":"[\"ops\" \"db\"] | contains \"ops\"","expect":"true"}
 {"name":"a-value-no-kind-of-contains-serves-names-its-addresses","query":"42 | contains \"x\" !| get /addresses","expect":"#[::string/contains ::vec/contains]"}
-{"decision":"D364","name":"startsWith-finds-a-text-at-the-start-of-a-string","query":"\"hello world\" | startsWith \"hello\"","expect":"true"}
-{"decision":"D364","name":"a-string-starts-with-a-text-equal-to-itself","query":"\"hello\" | startsWith \"hello\"","expect":"true"}
-{"decision":"D364","name":"startsWith-answers-false-for-a-text-the-string-does-not-begin-with","query":"\"hello\" | startsWith \"world\"","expect":"false"}
-{"decision":"D364","name":"a-prefix-longer-than-the-string-begins-none","query":"\"hi\" | startsWith \"hello\"","expect":"false"}
-{"decision":"D364","name":"the-empty-prefix-begins-every-string","query":"\"anything\" | startsWith \"\"","expect":"true"}
-{"decision":"D364","name":"the-empty-prefix-begins-the-empty-string","query":"\"\" | startsWith \"\"","expect":"true"}
-{"decision":"D364","name":"startsWith-asks-for-a-text-case-and-all","query":"\"Hello\" | startsWith \"hello\"","expect":"false"}
+{"name":"startsWith-finds-a-text-at-the-start-of-a-string","query":"\"hello world\" | startsWith \"hello\"","expect":"true"}
+{"name":"a-string-starts-with-a-text-equal-to-itself","query":"\"hello\" | startsWith \"hello\"","expect":"true"}
+{"name":"startsWith-answers-false-for-a-text-the-string-does-not-begin-with","query":"\"hello\" | startsWith \"world\"","expect":"false"}
+{"name":"a-prefix-longer-than-the-string-begins-none","query":"\"hi\" | startsWith \"hello\"","expect":"false"}
+{"name":"the-empty-prefix-begins-every-string","query":"\"anything\" | startsWith \"\"","expect":"true"}
+{"name":"the-empty-prefix-begins-the-empty-string","query":"\"\" | startsWith \"\"","expect":"true"}
+{"name":"startsWith-asks-for-a-text-case-and-all","query":"\"Hello\" | startsWith \"hello\"","expect":"false"}
 {"name":"a-subject-that-is-no-string-is-refused","query":"42 | startsWith \"x\"","expect":"::string/startsWith/SubjectNotStringError!{\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(startsWith \"x\")]]\n} | raise"}
 {"name":"a-prefix-that-is-no-text-is-refused","query":"\"hi\" | startsWith 42","expect":"::string/startsWith/prefix/KindNotTakenError!{\n  :expected #[::string]\n  :actualValue 42\n  :actualType ::number\n  :trace ::trace[::frame[\"hi\" ~(startsWith 42)]]\n} | raise"}
-{"decision":"D364","name":"filter-keeps-the-strings-that-start-with-a-text","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(startsWith \"al\")","expect":"[\"alice\" \"alex\"]"}
-{"decision":"D364","name":"filter-keeps-the-records-whose-field-starts-with-a-text","query":"[{:path \"/usr/bin\"} {:path \"/etc/hosts\"} {:path \"/usr/lib\"}] | filter ~(get /path | startsWith \"/usr\") | map /path","expect":"[\"/usr/bin\" \"/usr/lib\"]"}
-{"decision":"D364","name":"endsWith-finds-a-text-at-the-end-of-a-string","query":"\"hello world\" | endsWith \"world\"","expect":"true"}
-{"decision":"D364","name":"a-string-ends-with-a-text-equal-to-itself","query":"\"hello\" | endsWith \"hello\"","expect":"true"}
-{"decision":"D364","name":"endsWith-answers-false-for-a-text-the-string-does-not-end-with","query":"\"hello\" | endsWith \"world\"","expect":"false"}
-{"decision":"D364","name":"a-suffix-longer-than-the-string-ends-none","query":"\"hi\" | endsWith \"hello\"","expect":"false"}
-{"decision":"D364","name":"the-empty-suffix-ends-every-string","query":"\"anything\" | endsWith \"\"","expect":"true"}
-{"decision":"D364","name":"the-empty-suffix-ends-the-empty-string","query":"\"\" | endsWith \"\"","expect":"true"}
-{"decision":"D364","name":"endsWith-asks-for-a-text-case-and-all","query":"\"hello\" | endsWith \"World\"","expect":"false"}
+{"name":"filter-keeps-the-strings-that-start-with-a-text","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(startsWith \"al\")","expect":"[\"alice\" \"alex\"]"}
+{"name":"filter-keeps-the-records-whose-field-starts-with-a-text","query":"[{:path \"/usr/bin\"} {:path \"/etc/hosts\"} {:path \"/usr/lib\"}] | filter ~(get /path | startsWith \"/usr\") | map /path","expect":"[\"/usr/bin\" \"/usr/lib\"]"}
+{"name":"endsWith-finds-a-text-at-the-end-of-a-string","query":"\"hello world\" | endsWith \"world\"","expect":"true"}
+{"name":"a-string-ends-with-a-text-equal-to-itself","query":"\"hello\" | endsWith \"hello\"","expect":"true"}
+{"name":"endsWith-answers-false-for-a-text-the-string-does-not-end-with","query":"\"hello\" | endsWith \"world\"","expect":"false"}
+{"name":"a-suffix-longer-than-the-string-ends-none","query":"\"hi\" | endsWith \"hello\"","expect":"false"}
+{"name":"the-empty-suffix-ends-every-string","query":"\"anything\" | endsWith \"\"","expect":"true"}
+{"name":"the-empty-suffix-ends-the-empty-string","query":"\"\" | endsWith \"\"","expect":"true"}
+{"name":"endsWith-asks-for-a-text-case-and-all","query":"\"hello\" | endsWith \"World\"","expect":"false"}
 {"name":"endsWith-a-subject-that-is-no-string-is-refused","query":"42 | endsWith \"x\"","expect":"::string/endsWith/SubjectNotStringError!{\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(endsWith \"x\")]]\n} | raise"}
 {"name":"a-suffix-that-is-no-text-is-refused","query":"\"hi\" | endsWith 42","expect":"::string/endsWith/suffix/KindNotTakenError!{\n  :expected #[::string]\n  :actualValue 42\n  :actualType ::number\n  :trace ::trace[::frame[\"hi\" ~(endsWith 42)]]\n} | raise"}
-{"decision":"D364","name":"filter-keeps-the-strings-that-end-with-a-text","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter ~(endsWith \".txt\")","expect":"[\"alice.txt\" \"alex.txt\"]"}
-{"decision":"D364","name":"filter-keeps-the-records-whose-field-ends-with-a-text","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter ~(get /file | endsWith \".qlang\") | map /file","expect":"[\"a.qlang\" \"c.qlang\"]"}
+{"name":"filter-keeps-the-strings-that-end-with-a-text","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter ~(endsWith \".txt\")","expect":"[\"alice.txt\" \"alex.txt\"]"}
+{"name":"filter-keeps-the-records-whose-field-ends-with-a-text","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter ~(get /file | endsWith \".qlang\") | map /file","expect":"[\"a.qlang\" \"c.qlang\"]"}
 {"name":"contains-finds-a-path-among-the-elements","query":"[/a] | contains /a","expect":"true"}
 {"name":"a-verb-that-reads-text-refuses-a-keyword-for-its-text","query":"\"abc\" | contains :a !| type","expect":"::string/contains/needle/KindNotTakenError"}

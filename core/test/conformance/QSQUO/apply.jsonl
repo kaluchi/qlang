@@ -9,12 +9,12 @@
 {"name":"a-source-that-reads-a-field-of-its-map-opens-to-the-field","query":"\"{:name \\\"alice\\\" :age 30} | get /name\" | parse | open","expect":"\"alice\""}
 {"name":"a-source-that-maps-its-vector-opens-to-the-images","query":"\"[1 2 3] | map ~(add 10)\" | parse | open","expect":"[11 12 13]"}
 {"name":"a-source-that-catches-its-own-failure-opens-to-the-catch","query":"\"\\\"hello\\\" | add 1 !| type\" | parse | open","expect":"::number/add/SubjectNotNumberError"}
-{"decision":"D364","name":"apply-refuses-a-number-for-its-code-naming-the-kinds-it-takes","query":"42 | apply it","expect":"::any/apply/code/KindNotTakenError!{\n  :expected #[::fn ::path ::quote]\n  :actualValue 42\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(apply it)]]\n} | raise"}
-{"decision":"D364","name":"apply-runs-a-quote-against-its-subject","query":"5 | apply ~(mul 2)","expect":"10"}
-{"decision":"D364","name":"apply-refuses-a-value-of-another-kind-naming-its-kind","query":"42 | apply 1 !| get [~(type) /actualType]","expect":"[::any/apply/code/KindNotTakenError ::number]"}
+{"name":"apply-refuses-a-number-for-its-code-naming-the-kinds-it-takes","query":"42 | apply it","expect":"::any/apply/code/KindNotTakenError!{\n  :expected #[::fn ::path ::quote]\n  :actualValue 42\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(apply it)]]\n} | raise"}
+{"name":"apply-runs-a-quote-against-its-subject","query":"5 | apply ~(mul 2)","expect":"10"}
+{"name":"apply-refuses-a-value-of-another-kind-naming-its-kind","query":"42 | apply 1 !| get [~(type) /actualType]","expect":"[::any/apply/code/KindNotTakenError ::number]"}
 {"name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| type","expect":"::call/UnknownNameError"}
 {"name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12"}
-{"decision":"D364","name":"apply-takes-code-and-refuses-a-number-under-its-input","query":"5 | apply 3 !| type","expect":"::any/apply/code/KindNotTakenError"}
+{"name":"apply-takes-code-and-refuses-a-number-under-its-input","query":"5 | apply 3 !| type","expect":"::any/apply/code/KindNotTakenError"}
 {"name":"a-value-that-is-no-quote-opens-nothing","query":"5 | open !| type","expect":"::quote/open/SubjectNotQuoteError"}
 {"name":"open-lives-on-the-kind-of-a-quote","query":"::quote | manifest | has ::quote/open","expect":"true"}
 {"name":"the-args-of-apply-are-a-vector","query":"5 | apply ~(it) 7 !| type","expect":"::any/apply/args/KindNotTakenError"}

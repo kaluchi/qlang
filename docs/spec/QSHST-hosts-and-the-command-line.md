@@ -111,12 +111,18 @@ among them, raise the same defect for a value of no kind no door met.
 The doors hold the shape of a value, and `fromPlain` is the road a host
 builds a lawful answer by from data it holds parsed.
 
-A scope is the names a step reads over the root, and the interface of
-the package names it so: a session keeps the scope its cells write,
-`createSession({ scope })`, `session.scope` and the entry's
-`scopeAfterCell`, `evalQuery` runs a query in the scope it is handed, and
-`langRuntime` answers the scope of the root; a host puts its names into
-the scope by its sources alone, and a reader by a declaration.
+A query runs as a cell of a session. A scope is the names a step reads
+over the root, and the interface of the package names it so: a session
+keeps the scope its cells write, `createSession({ scope })` and
+`session.scope`, and the entry of a cell is
+`{ source, uri, result, defect, scopeAfterCell }`, its `result` the
+answer, a failure to parse among the failures, and its `defect` a defect
+raised past the fail track, null where none was; `evalQuery(source,
+scope?)` answers the value one cell of a session over the scope answers,
+booting the root where none is handed, a declaration it makes naming its
+origin as every cell's does, `:cell-1`, and raises a defect to its
+caller; and `langRuntime` answers the scope of the root. A host puts its
+names into the scope by its sources alone, and a reader by a declaration.
 
 ```qlang
 > ::vec | binding | get /origin
@@ -136,10 +142,12 @@ true
 ```
 
 ```sh
-$ node --input-type=module -e "const { createSession } = await import('./core/src/session.mjs'); const s = await createSession({ sources: [{ uri: 'probe', source: ':any/obj (::fn | returns |~~ O. ~~| ::any | impl ::builtin{})', primitives: { 'any/obj': () => ({ a: 1 }) } }] }); const e = await s.evalCell('obj !| type | toString'); console.log(e.result, 'scope' in s, 'scopeAfterCell' in e)"
+$ node --input-type=module -e "const { createSession } = await import('./core/src/index.mjs'); const s = await createSession({ sources: [{ uri: 'probe', source: ':any/obj (::fn | returns |~~ O. ~~| ::any | impl ::builtin{})', primitives: { 'any/obj': () => ({ a: 1 }) } }] }); const e = await s.evalCell('obj !| type | toString'); console.log(e.result, 'scope' in s, 'scopeAfterCell' in e)"
 call/HostFailureError true true
-$ node --input-type=module -e "const { createSession } = await import('./core/src/session.mjs'); const s = await createSession(); const e = await s.evalCell('type', { initialPipeValue: function hello() {} }); console.log(e.error.address, e.error.facts.actualValue)"
+$ node --input-type=module -e "const { createSession } = await import('./core/src/index.mjs'); const s = await createSession(); const e = await s.evalCell('type', { initialPipeValue: function hello() {} }); console.log(e.defect.address, e.defect.facts.actualValue)"
 builtin/ForeignValueError function hello
+$ node --input-type=module -e "const { createSession, evalQuery } = await import('./core/src/index.mjs'); const s = await createSession(); const e = await s.evalCell('add ('); console.log(Object.keys(e).join(' '), e.result.tag.name, e.defect, (await evalQuery(':x 1 | env | get /x | get /origin')).name)"
+source uri result defect scopeAfterCell quote/ParseError null cell-1
 ```
 
 ## effect
@@ -281,8 +289,10 @@ where the shell hands its arguments.
 The REPL runs a cell at a time in one session, each cell a scope of its
 own [QSNAM#scope], and prints each answer as its literal, a string among
 them, and a failure as its alert, painted whether or not standard output
-is a terminal; the colour of script mode follows `--color`, `NO_COLOR`
-and `FORCE_COLOR`. Its line editor reads a chunk of one character, or
+is a terminal; a defect raised past the fail track, as a cell ran or as
+its answer printed, it writes on standard error as `qlang:` and its
+message, and runs the next cell. The colour of script mode follows
+`--color`, `NO_COLOR` and `FORCE_COLOR`. Its line editor reads a chunk of one character, or
 one that begins with an escape, as keys, and any other chunk as text. A
 paste the terminal hands over in several chunks is gathered and lands at
 the cursor as one, its bracket markers taken out, its line breaks kept and
@@ -291,8 +301,8 @@ read to its end marker. Enter submits, Alt+Enter submits a paste in both
 its spellings, ESC then CR and ESC then LF, an Escape alone does nothing,
 an escape before `[` opens a sequence however its chunks split it, and
 Alt with an arrow reads as the arrow. Its colour is a layer over the
-core's tokens, the painters reading the verbs of the root by
-`verbNames`, where the name of a call that reaches a verb of the
+tokens of the core's `tokenize`, the painters reading the verbs of the
+root by `verbNames`, where the name of a call that reaches a verb of the
 language is a `word`, and a keyword or a reader's name a `name`.
 
 ## tools
@@ -301,5 +311,13 @@ language is a `word`, and a keyword or a reader's name a `name`.
 process. The language server runs over stdio, answers goto-definition
 by the reach of a bare name [QSNAM#reach] and shows a verb with the
 inputs of its function and its page; the extension of the editor
-launches it. The site is built by Astro and paints its examples from
-what the core's parser reads.
+launches it. The painters of the REPL, the language server and the site
+paint by the `tokenize` of `./highlight`, the door of the core that loads
+its parser and its walks and no runtime. The site is built by Astro; its
+REPL keeps one session across its cells, a name one cell declares staying
+for the cells after it, and its playground runs the cells of one run in
+one session, each showing a defect as `qlang:` and its message. The words
+of the streams of a process, `in`, `out`, `err` and `tap`, are the
+command line's, beside `table`, and a host that runs as a command takes
+them with their source from `./cli-sources` of the command line's
+package.

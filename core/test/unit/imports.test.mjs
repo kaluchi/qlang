@@ -1,4 +1,4 @@
-// The imports of the core [D365]: no module of `core/src` imports a module
+// The imports of the core [QSWRK#tooling]: no module of `core/src` imports a module
 // that imports it, through the parser `core/gen` holds and the loaders of
 // `core/host` among them, and no module outside `runtime/` imports one inside
 // it, the session and the root of the package aside.

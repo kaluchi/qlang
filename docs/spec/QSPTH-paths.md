@@ -1,9 +1,9 @@
 # QSPTH · Paths
 
 A path is a value that locates a part of another value, and the verb
-that takes it reads the part there or writes it. The requirements of
-each section are the cases of its file under
-`core/test/conformance/QSPTH/`.
+that takes it reads the part there or writes it; the shape of a value
+tells the parts it holds and their kinds. The requirements of each
+section are the cases of its file under `core/test/conformance/QSPTH/`.
 
 ## value
 
@@ -218,13 +218,31 @@ nor an index as `::vec/toPath/ElementNotKeyError`, and from a string in the form
 Pointer, its escapes read and a leading `#` of a fragment among it, a
 string of another form refused as `::string/toPath/NotPointerError`.
 
-`paths` answers the outline of a value, the set of its leaves, each the
-pair of the path that reads it and its kind, the value read beneath the
-tags over it, a part under a tag a leaf and a set read as its vector, and
-`#[]` for an atom. `shape`, a verb of `::any`, answers the schema of a
-value in its own literal under `::shape`, a label whose page tells how a
-shape reads, so `doc` on the answer reads that page: the value read
-beneath the tags over it, each map keeping its keys, each vector and each
+```qlang
+> get [~(/tags | count !| get [~(type) /repair]) ~(/tags | keys !| get [~(type) /repair])]
+[[::call/KindAnswersNoVerbError ~(get /tags | count)] [::map/keys/SubjectNotMapError ~(get /tags | keys)]]
+
+> /a/0 | segments
+[:a 0]
+
+> /01 | segments
+[:"01"]
+
+> "/a~1b/0" | toPath
+/:a/b/0
+
+> [] | toPath !| type
+::vec/toPath/SubjectEmptyError
+```
+
+## shape
+
+The shape of a value is its structure beneath its tags, the kind at each
+of its parts, the keys of its maps and the shape of its elements, and a
+template of `get` writes the shape of an answer [QSPTH#template].
+`shape`, a verb of `::any`, answers it in its own literal under
+`::shape`, a label whose page tells how a shape reads, so `doc` on the
+answer reads that page: each map keeping its keys, each vector and each
 set one element whose shape holds of all its elements, a set as `#[E]`,
 an empty vector `[]`, and each part that holds no parts its kind, as
 `type` answers it, a part under a tag standing whole as its tag, a quote
@@ -245,51 +263,58 @@ map folds into `::each` over its first key and the shape of its values,
 the one key standing for all of them and telling how the keys of the data
 read: where every key is data, an id of digits, a date or a time, a uuid,
 an email, whatever its values hold, and where it holds more than eight
-names whose values, maps, vectors, sets, values under a tag or null,
-share one shape; a map of names over atoms keeps them however many, a key
-that reads as no name among them, as a map of fewer names or of names
-whose values part does. A path of the data reads its shape through its
-marks as far as a part holds one kind.
+names whose values, maps, vectors, sets or values under a tag, share one
+shape, a null among them taken as no value; a map of names over atoms
+keeps them however many, a key that reads as no name among them, as a map
+of fewer names or of names whose values part does.
+
+A shape is a value read as every value is: a path reads it beneath the
+tags over each part it meets, its marks among them, a list by its one
+element, a tuple by its indices and a fold by the key it shows, so a part
+read beneath a mark is answered without the mark, which stands over the
+part above it. The shape of a part of the data is the shape of that part,
+`get /items | map /assignee | shape`, and the size of the data, a sample
+of it and the share of its kinds are read from the data, by `count`,
+`get /0` and `groupBy ~(type) | map ~count`.
+
+`paths` answers the leaves of a value, the set of the pairs of the path
+that reads each and its kind, the value read beneath the tags over it, a
+part under a tag a leaf and a set read as its vector, and `#[]` for an
+atom.
 
 ```qlang
-> get [~(/tags | count !| get [~(type) /repair]) ~(/tags | keys !| get [~(type) /repair])]
-[[::call/KindAnswersNoVerbError ~(get /tags | count)] [::map/keys/SubjectNotMapError ~(get /tags | keys)]]
+> [1] | shape
+::shape[::number]
 
-> /a/0 | segments
-[:a 0]
+> get [~([{:labels [{:name "bug"}]} {:labels []}] | shape) ~({:rows [["2024-01-01" 1.5] ["2024-01-02" null]]} | shape)]
+[::shape[{:labels [::absent{:name ::string}]}] ::shape{:rows [[::string ::nullable::number]]}]
 
-> /01 | segments
-[:"01"]
+> [{:a 1} {:a null :b "x"} {:c 2}] | shape
+::shape[#[{:a ::nullable::number :b ::absent::string} {:c ::number}]]
 
-> "/a~1b/0" | toPath
-/:a/b/0
+> get [~({:"17" {:id 1} :"42" {:id 2}} | shape) ~({:"2024-01-01" 3 :"2024-01-02" 5} | shape) ~({:"ann@x.org" 1 :"bo@y.org" 2} | shape) ~({:db {:host "h"} :cache {:host "c"}} | shape) ~({:x 1 :y 2} | shape)]
+[::shape::each{:"17" {:id ::number}} ::shape::each{:"2024-01-01" ::number} ::shape::each{:"ann@x.org" ::number} ::shape{:db {:host ::string} :cache {:host ::string}} ::shape{:x ::number :y ::number}]
 
-> [] | toPath !| type
-::vec/toPath/SubjectEmptyError
+> {:a {:n 1} :b {:n 2} :c {:n 3} :d {:n 4} :e {:n 5} :f {:n 6} :g {:n 7} :h {:n 8} :i null} | shape
+::shape::each{:a ::nullable{:n ::number}}
+
+> {:users [{:name "a" :age 1 :tags ["x" "y"]} {:name "b" :age "2" :tags []}]} | shape | get [/users/0/name /users/0/age /users/0/tags]
+[::string #[::number ::string] [::absent::string]]
+
+> [{:author {:login "a"}} {:author null}] | shape | get [/0/author /0/author/login]
+[::nullable{:login ::string} ::string]
+
+> {:"17" {:id 1} :"42" {:id 2}} | shape | get /17/id
+::number
+
+> {:items [{:assignee {:login "a"}} {:assignee null}]} | get /items | map /assignee | shape
+::shape[::nullable{:login ::string}]
 
 > {:q ~(add 1) :n [1 "x"] :s #[2]} | paths
 #[[/n/0 ::number] [/n/1 ::string] [/q ::quote] [/s/0 ::number]]
 
 > {:a {:b 1 :c [2 3]} :d []} | paths | map ~(print)
 ["[/a/b ::number]" "[/a/c/0 ::number]" "[/a/c/1 ::number]" "[/d ::vec]"]
-
-> get [~([{:labels [{:name "bug"}]} {:labels []}] | shape) ~({:rows [["2024-01-01" 1.5] ["2024-01-02" null]]} | shape)]
-[::shape[{:labels [::absent{:name ::string}]}] ::shape{:rows [[::string ::nullable::number]]}]
-
-> {:users [{:name "a" :age 1 :tags ["x" "y"]} {:name "b" :age "2" :tags []}]} | shape | get [/users/0/name /users/0/age /users/0/tags]
-[::string #[::number ::string] [::absent::string]]
-
-> [{:a 1} {:a null :b "x"} {:c 2}] | shape
-::shape[#[{:a ::nullable::number :b ::absent::string} {:c ::number}]]
-
-> [{:author {:login "a"}} {:author null}] | shape | get /0/author/login
-::string
-
-> get [~({:"17" {:id 1} :"42" {:id 2}} | shape) ~({:"2024-01-01" 3 :"2024-01-02" 5} | shape) ~({:"ann@x.org" 1 :"bo@y.org" 2} | shape) ~({:db {:host "h"} :cache {:host "c"}} | shape) ~({:x 1 :y 2} | shape)]
-[::shape::each{:"17" {:id ::number}} ::shape::each{:"2024-01-01" ::number} ::shape::each{:"ann@x.org" ::number} ::shape{:db {:host ::string} :cache {:host ::string}} ::shape{:x ::number :y ::number}]
-
-> {:"17" {:id 1} :"42" {:id 2}} | shape | get /17/id
-::number
 ```
 
 ## write

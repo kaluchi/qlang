@@ -1,26 +1,26 @@
-{"decision":"D364","name":"the-key-of-a-json-object-reads-the-escapes-of-a-string","query":"{\"k\\u0065y\": 42} | get /key","expect":"42"}
+{"name":"the-key-of-a-json-object-reads-the-escapes-of-a-string","query":"{\"k\\u0065y\": 42} | get /key","expect":"42"}
 {"name":"type-json-array-syntax-reads-as-a-vector","query":"[1, 2] | type","expect":"::vec"}
 {"name":"type-json-object-syntax-reads-as-a-map","query":"{\"k\": 1} | type","expect":"::map"}
-{"decision":"D364","name":"the-string-key-of-a-json-object-reads-as-a-keyword","query":"{\"name\": \"alice\"}","expect":"{:name \"alice\"}"}
-{"decision":"D364","name":"a-json-object-separates-its-entries-by-commas","query":"{\"name\": \"alice\", \"age\": 30}","expect":"{:name \"alice\" :age 30}"}
-{"decision":"D364","name":"a-json-object-holds-a-json-object-as-a-value","query":"{\"user\": {\"name\": \"alice\"}}","expect":"{:user {:name \"alice\"}}"}
-{"decision":"D364","name":"a-json-array-of-objects-reads-as-a-vector-of-maps","query":"[{\"name\": \"alice\"}, {\"name\": \"bob\"}] | map /name","expect":"[\"alice\" \"bob\"]"}
+{"name":"the-string-key-of-a-json-object-reads-as-a-keyword","query":"{\"name\": \"alice\"}","expect":"{:name \"alice\"}"}
+{"name":"a-json-object-separates-its-entries-by-commas","query":"{\"name\": \"alice\", \"age\": 30}","expect":"{:name \"alice\" :age 30}"}
+{"name":"a-json-object-holds-a-json-object-as-a-value","query":"{\"user\": {\"name\": \"alice\"}}","expect":"{:user {:name \"alice\"}}"}
+{"name":"a-json-array-of-objects-reads-as-a-vector-of-maps","query":"[{\"name\": \"alice\"}, {\"name\": \"bob\"}] | map /name","expect":"[\"alice\" \"bob\"]"}
 {"name":"get-reads-a-key-of-a-json-object-in-the-pipe","query":"{\"name\": \"alice\"} | get /name","expect":"\"alice\""}
-{"decision":"D364","name":"null-in-a-json-array-reads-as-null","query":"[1, null, 3]","expect":"[1 null 3]"}
-{"decision":"D364","name":"count-counts-the-objects-a-json-array-holds","query":"[{\"v\": 1}, {\"v\": 2}] | count","expect":"2"}
-{"decision":"D364","name":"a-pipeline-reads-a-json-object-as-a-map","query":"{\"scores\": [85 92 78]} | get /scores | count","expect":"3"}
+{"name":"null-in-a-json-array-reads-as-null","query":"[1, null, 3]","expect":"[1 null 3]"}
+{"name":"count-counts-the-objects-a-json-array-holds","query":"[{\"v\": 1}, {\"v\": 2}] | count","expect":"2"}
+{"name":"a-pipeline-reads-a-json-object-as-a-map","query":"{\"scores\": [85 92 78]} | get /scores | count","expect":"3"}
 {"name":"a-json-key-that-is-no-bare-name-is-read-by-a-quoted-segment","query":"{\"$ref\": \"x\"} | get /\"$ref\"","expect":"\"x\""}
 {"name":"json-string-key-equals-keyword","query":"{\"name\": 1} | get /name","expect":"1"}
-{"decision":"D364","name":"a-template-of-paths-reads-the-keys-of-a-json-object","query":"{\"a\": 1, \"b\": 2} | get [/a /b]","expect":"[1 2]"}
-{"decision":"D364","name":"a-json-object-holds-numbers-written-with-an-exponent","query":"{\"v\": 1e10, \"e\": 2.5e-3} | get [/v, /e]","expect":"[10000000000 0.0025]"}
-{"decision":"D364","name":"a-path-reads-a-number-with-a-negative-exponent-in-a-json-object","query":"{\"rate\": 1.5e-2} | get /rate","expect":"0.015"}
-{"decision":"D364","name":"a-path-reads-json-objects-nested-at-any-depth","query":"{\"a\": {\"b\": {\"c\": 42}}} | get /a/b/c","expect":"42"}
-{"decision":"D364","name":"true-and-false-in-a-json-object-read-as-booleans","query":"{\"x\": true, \"y\": false} | get [/x, /y]","expect":"[true false]"}
-{"decision":"D364","name":"null-in-a-json-object-reads-as-null","query":"{\"x\": null} | get /x","expect":"null"}
-{"decision":"D364","name":"sum-reads-the-numbers-of-an-array-a-json-object-holds","query":"{\"items\": [1 2 3]} | get /items | sum","expect":"6"}
-{"decision":"D364","name":"a-json-object-holds-values-of-several-kinds","query":"{\"name\": \"alice\", \"age\": 30, \"active\": true, \"score\": null} | get [/name, /age, /active, /score]","expect":"[\"alice\" 30 true null]"}
+{"name":"a-template-of-paths-reads-the-keys-of-a-json-object","query":"{\"a\": 1, \"b\": 2} | get [/a /b]","expect":"[1 2]"}
+{"name":"a-json-object-holds-numbers-written-with-an-exponent","query":"{\"v\": 1e10, \"e\": 2.5e-3} | get [/v, /e]","expect":"[10000000000 0.0025]"}
+{"name":"a-path-reads-a-number-with-a-negative-exponent-in-a-json-object","query":"{\"rate\": 1.5e-2} | get /rate","expect":"0.015"}
+{"name":"a-path-reads-json-objects-nested-at-any-depth","query":"{\"a\": {\"b\": {\"c\": 42}}} | get /a/b/c","expect":"42"}
+{"name":"true-and-false-in-a-json-object-read-as-booleans","query":"{\"x\": true, \"y\": false} | get [/x, /y]","expect":"[true false]"}
+{"name":"null-in-a-json-object-reads-as-null","query":"{\"x\": null} | get /x","expect":"null"}
+{"name":"sum-reads-the-numbers-of-an-array-a-json-object-holds","query":"{\"items\": [1 2 3]} | get /items | sum","expect":"6"}
+{"name":"a-json-object-holds-values-of-several-kinds","query":"{\"name\": \"alice\", \"age\": 30, \"active\": true, \"score\": null} | get [/name, /age, /active, /score]","expect":"[\"alice\" 30 true null]"}
 {"name":"map-reads-a-key-of-each-json-object-an-array-holds","query":"[{\"v\": 1e3}, {\"v\": 2e3}, {\"v\": 3e3}] | map /v","expect":"[1000 2000 3000]"}
-{"decision":"D364","name":"a-json-array-holds-values-of-several-kinds","query":"[1, \"two\", true, null, 3.14]","expect":"[1 \"two\" true null 3.14]"}
+{"name":"a-json-array-holds-values-of-several-kinds","query":"[1, \"two\", true, null, 3.14]","expect":"[1 \"two\" true null 3.14]"}
 {"name":"json-object-reads-as-a-map","query":"{\"a\": 1} | type","expect":"::map"}
 {"name":"json-object-keys-are-keywords","query":"{\"a\": 1, \"b\": 2} | keys","expect":"#[:a :b]"}
 {"name":"json-object-key-that-is-no-identifier-reads-quoted","query":"{\"a b\": 1} | keys","expect":"#[:\"a b\"]"}

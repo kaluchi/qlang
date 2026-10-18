@@ -1,26 +1,26 @@
-{"decision":"D364","name":"groupBy-files-one-element-into-the-bucket-of-its-key","query":"[{:dept :eng :name \"a\"}] | groupBy /dept | get /eng | first | get /name","expect":"\"a\""}
-{"decision":"D364","name":"groupBy-makes-a-bucket-for-each-key","query":"[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"}] | groupBy /dept | keys | count","expect":"2"}
+{"name":"groupBy-files-one-element-into-the-bucket-of-its-key","query":"[{:dept :eng :name \"a\"}] | groupBy /dept | get /eng | first | get /name","expect":"\"a\""}
+{"name":"groupBy-makes-a-bucket-for-each-key","query":"[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"}] | groupBy /dept | keys | count","expect":"2"}
 {"name":"multi-element-bucket-preserves-order","query":"[{:dept :eng :name \"a\"} {:dept :sales :name \"b\"} {:dept :eng :name \"c\"}] | groupBy /dept | get /eng | map /name","expect":"[\"a\" \"c\"]"}
-{"decision":"D364","name":"groupBy-by-a-quote-files-the-elements-of-one-answer-together","query":"[1 2 3 4 5] | groupBy ~(if (gt 2) ~(:big) ~(:small)) | get /small","expect":"[1 2]"}
-{"decision":"D364","name":"groupBy-by-a-quote-files-the-elements-of-another-answer-apart","query":"[1 2 3 4 5] | groupBy ~(if (gt 2) ~(:big) ~(:small)) | get /big","expect":"[3 4 5]"}
+{"name":"groupBy-by-a-quote-files-the-elements-of-one-answer-together","query":"[1 2 3 4 5] | groupBy ~(if (gt 2) ~(:big) ~(:small)) | get /small","expect":"[1 2]"}
+{"name":"groupBy-by-a-quote-files-the-elements-of-another-answer-apart","query":"[1 2 3 4 5] | groupBy ~(if (gt 2) ~(:big) ~(:small)) | get /big","expect":"[3 4 5]"}
 {"name":"groupBy-empty-vec-yields-empty-map","query":"[] | groupBy /k | empty","expect":"true"}
 {"name":"groupBy-boolean-key-files-under-its-literal","query":"[{:k true} {:k 2}] | groupBy /k | keys","expect":"#[:\"2\" :true]"}
 {"name":"groupBy-key-of-another-kind-is-refused","query":"[{:k [1]} {:k 2}] | groupBy /k !| get [~(type) /index /actualType]","expect":"[::vec/groupBy/KeyKindNotTakenError 0 ::vec]"}
-{"decision":"D364","name":"the-buckets-of-groupBy-count-the-elements-filed-under-each-key","query":"[{:c :a} {:c :b} {:c :a} {:c :a}] | groupBy /c | vals | map ~count","expect":"[3 1]"}
-{"decision":"D364","name":"the-buckets-of-groupBy-flattened-hold-every-element","query":":xs [{:k :a} {:k :b} {:k :a}] | xs | groupBy /k | vals | flat | count | eq (xs | count)","expect":"true"}
+{"name":"the-buckets-of-groupBy-count-the-elements-filed-under-each-key","query":"[{:c :a} {:c :b} {:c :a} {:c :a}] | groupBy /c | vals | map ~count","expect":"[3 1]"}
+{"name":"the-buckets-of-groupBy-flattened-hold-every-element","query":":xs [{:k :a} {:k :b} {:k :a}] | xs | groupBy /k | vals | flat | count | eq (xs | count)","expect":"true"}
 {"name":"groupBy-vec-subject-bucket-stays-vec","query":"[1 2 3 4 5] | groupBy ~(if (gt 2) ~(:big) ~(:small)) | get /big | type","expect":"::vec"}
 {"name":"groupBy-files-a-string-under-its-keyword","query":"[{:s \"a\"} {:s \"b\"} {:s \"a\"}] | groupBy /s | map ~count","expect":"{:a 2 :b 1}"}
 {"name":"groupBy-files-a-number-under-the-keyword-of-its-text","query":"[{:k 1} {:k 2} {:k 1}] | groupBy /k | keys","expect":"#[:\"1\" :\"2\"]"}
 {"name":"two-values-of-one-text-meet-under-one-key","query":"[1 \"1\"] | groupBy !| get [~(type) /key /taken]","expect":"[::vec/groupBy/KeyTakenError :\"1\" 1]"}
 {"name":"groupBy-files-a-boolean-and-null","query":"[true 2 null] | groupBy | keys","expect":"#[:\"2\" :null :true]"}
 {"name":"two-values-filed-under-one-keyword-meet-aloud","query":"[1 \"1\"] | groupBy !| type","expect":"::vec/groupBy/KeyTakenError"}
-{"decision":"D364","name":"indexBy-files-one-element-under-its-key","query":"[{:id :a :name \"alice\"}] | indexBy /id | get /a/name","expect":"\"alice\""}
+{"name":"indexBy-files-one-element-under-its-key","query":"[{:id :a :name \"alice\"}] | indexBy /id | get /a/name","expect":"\"alice\""}
 {"name":"unique-keys-form-a-lookup-map","query":"[{:id :a :name \"alice\"} {:id :b :name \"bob\"}] | indexBy /id | get /b/name","expect":"\"bob\""}
 {"name":"duplicate-keys-last-wins","query":"[{:id :a :v 1} {:id :a :v 2}] | indexBy /id | get /a/v","expect":"2"}
 {"name":"indexBy-empty-vec-yields-empty-map","query":"[] | indexBy /k | empty","expect":"true"}
 {"name":"indexBy-key-of-another-kind-is-refused","query":"[{:k [1]}] | indexBy /k","expect":"::vec/indexBy/KeyKindNotTakenError!{\n  :index 0\n  :expected #[::boolean ::keyword ::null ::number ::string ::tag]\n  :actualType ::vec\n  :actualValue [1]\n  :trace ::trace[::frame[[{:k [1]}] ~(indexBy /k)]]\n} | raise"}
-{"decision":"D364","name":"a-path-reads-through-the-map-indexBy-builds","query":"[{:id :u1 :role :admin} {:id :u2 :role :user}] | indexBy /id | get /u1/role","expect":":admin"}
-{"decision":"D364","name":"indexBy-files-each-element-under-a-key-of-its-own","query":"[{:id :a} {:id :b} {:id :c}] | indexBy /id | keys | count","expect":"3"}
+{"name":"a-path-reads-through-the-map-indexBy-builds","query":"[{:id :u1 :role :admin} {:id :u2 :role :user}] | indexBy /id | get /u1/role","expect":":admin"}
+{"name":"indexBy-files-each-element-under-a-key-of-its-own","query":"[{:id :a} {:id :b} {:id :c}] | indexBy /id | keys | count","expect":"3"}
 {"name":"indexBy-builds-a-map-whose-key-is-an-atom","query":"[1 :a] | get [{:k /1 :v /0}] | indexBy /k | map /v","expect":"{:a 1}"}
 {"name":"indexBy-files-a-number-under-the-keyword-of-its-text","query":"[{:id 7 :n \"ann\"}] | indexBy /id | get /7/n","expect":"\"ann\""}
 {"name":"groupBy-without-a-key-files-an-element-under-itself","query":"[\"b\" \"a\" \"b\"] | groupBy | map ~count","expect":"{:b 2 :a 1}"}

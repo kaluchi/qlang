@@ -413,7 +413,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each name the shape and its other senses gave way to where it is written [D363]', () => {
+  it('refuses each name the shape and its other senses gave way to where it is written [QSWRK#documents]', () => {
     for (const text of [
       'shapeKindOf', 'foldersShaped', ':any/intoShape', ':readsByThePathsOfTheData', ':readsThePathsOfTheDataThroughIt',
       ':readsThePathThroughTheKeyItShows', ':standsOverTheSchemaShapeAnswers', 'the-paths-of-the-data-read-its-shape',

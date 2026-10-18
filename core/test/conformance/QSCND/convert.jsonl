@@ -10,22 +10,22 @@
 {"name":"a-container-has-no-string-and-a-map-no-vector","query":"get [~([1 2] | toString !| type) ~({:a 1} | toVec !| type)]","expect":"[::call/KindAnswersNoVerbError ::call/KindAnswersNoVerbError]"}
 {"name":"distinct-stays-beside-toSet","query":"[2 1 2] | get [~(distinct) ~(toSet)]","expect":"[#[1 2] #[1 2]]"}
 {"name":"a-string-of-two-characters-is-no-pair","query":"[\"ab\"] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/ElementNotPairError 0]"}
-{"decision":"D364","name":"a-string-turns-into-the-keyword-of-its-text","query":"\"foo\" | toKeyword","expect":":foo"}
-{"decision":"D364","name":"a-keyword-turns-into-the-string-of-its-name","query":":foo | toString","expect":"\"foo\""}
-{"decision":"D364","name":"a-string-turned-into-a-keyword-and-back-is-itself","query":"\"bar\" | toKeyword | toString","expect":"\"bar\""}
-{"decision":"D364","name":"a-keyword-turned-into-a-string-and-back-is-itself","query":":baz | toString | toKeyword","expect":":baz"}
+{"name":"a-string-turns-into-the-keyword-of-its-text","query":"\"foo\" | toKeyword","expect":":foo"}
+{"name":"a-keyword-turns-into-the-string-of-its-name","query":":foo | toString","expect":"\"foo\""}
+{"name":"a-string-turned-into-a-keyword-and-back-is-itself","query":"\"bar\" | toKeyword | toString","expect":"\"bar\""}
+{"name":"a-keyword-turned-into-a-string-and-back-is-itself","query":":baz | toString | toKeyword","expect":":baz"}
 {"name":"a-string-of-names-joined-by-a-slash-turns-into-their-keyword","query":"\"qlang/error\" | toKeyword","expect":":qlang/error"}
 {"name":"a-keyword-of-names-joined-by-a-slash-turns-into-its-string","query":":qlang/error | toString","expect":"\"qlang/error\""}
-{"decision":"D364","name":"a-keyword-written-in-quotes-turns-into-the-string-of-its-name","query":":\"foo bar\" | toString","expect":"\"foo bar\""}
-{"decision":"D364","name":"a-string-that-is-no-bare-name-turns-into-a-keyword-in-quotes","query":"\"foo bar\" | toKeyword","expect":":\"foo bar\""}
-{"decision":"D364","name":"the-empty-string-turns-into-the-empty-keyword","query":"\"\" | toKeyword","expect":":\"\""}
-{"decision":"D364","name":"the-empty-keyword-turns-into-the-empty-string","query":":\"\" | toString","expect":"\"\""}
+{"name":"a-keyword-written-in-quotes-turns-into-the-string-of-its-name","query":":\"foo bar\" | toString","expect":"\"foo bar\""}
+{"name":"a-string-that-is-no-bare-name-turns-into-a-keyword-in-quotes","query":"\"foo bar\" | toKeyword","expect":":\"foo bar\""}
+{"name":"the-empty-string-turns-into-the-empty-keyword","query":"\"\" | toKeyword","expect":":\"\""}
+{"name":"the-empty-keyword-turns-into-the-empty-string","query":":\"\" | toString","expect":"\"\""}
 {"name":"a-number-turns-into-the-keyword-of-its-text","query":"42 | toKeyword","expect":":\"42\""}
 {"name":"a-vector-has-no-keyword","query":"[1] | toKeyword !| type","expect":"::call/KindAnswersNoVerbError"}
 {"name":"toMap-builds-a-map-from-pairs","query":"[[:a 1] [\"b\" 2] [3 4]] | toMap","expect":"{:a 1 :b 2 :\"3\" 4}"}
 {"name":"entries-and-toMap-round-trip","query":"{:a 1 :b [2]} | entries | toMap | eq {:a 1 :b [2]}","expect":"true"}
 {"name":"the-last-pair-of-a-key-wins","query":"[[:a 1] [:a 2]] | toMap","expect":"{:a 2}"}
-{"decision":"D364","name":"an-element-that-is-no-pair-is-refused-at-its-index","query":"[[:a 1] [:b]] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/ElementNotPairError 1]"}
+{"name":"an-element-that-is-no-pair-is-refused-at-its-index","query":"[[:a 1] [:b]] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/ElementNotPairError 1]"}
 {"name":"a-key-of-another-kind-is-refused","query":"[[[1] 2]] | toMap !| get [~(type) /index /expected]","expect":"[::vec/toMap/KeyKindNotTakenError 0 #[::boolean ::keyword ::null ::number ::string ::tag]]"}
 {"name":"every-atom-turns-into-the-text-of-its-literal","query":"[null true 5 :a ::vec] | map ~toString","expect":"[\"null\" \"true\" \"5\" \"a\" \"vec\"]"}
 {"name":"a-regex-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| type","expect":"::call/KindAnswersNoVerbError"}

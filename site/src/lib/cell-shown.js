@@ -1,7 +1,7 @@
 // What a page shows for a cell of a session: its answer as the language
 // prints it, the caret under the place a parse stopped below it, and a defect
 // raised past the fail track, as the cell ran or as its answer printed,
-// written as `qlang:` and its message [D365].
+// written as `qlang:` and its message [QSHST#tools].
 
 import { printValue, caretOf, isErrorValue } from '@kaluchi/qlang-core';
 

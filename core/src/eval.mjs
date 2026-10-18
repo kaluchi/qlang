@@ -1150,7 +1150,7 @@ function laneOf(env) {
 // pipe calls it, `acc | add item`, the verb residing on the accumulator among
 // them, and a value of the scope under the name meeting the verb there; null
 // for code of any other form or a name of no verb, which `reduce` runs on
-// the pair of the value so far and the element [D363]. A call the
+// the pair of the value so far and the element [QSCOL#reduce]. A call the
 // accumulator refuses answers the failure it raised, which the fold marks at
 // the place of its element [QSERR#trace].
 export function resolveBinaryReducer(reducer) {

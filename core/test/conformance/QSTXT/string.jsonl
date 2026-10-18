@@ -1,9 +1,9 @@
-{"decision":"D364","name":"prepend-writes-a-text-before-a-string","query":"\"world\" | prepend \"hello \"","expect":"\"hello world\""}
-{"decision":"D364","name":"append-writes-a-text-after-a-string","query":"\"hello\" | append \" world\"","expect":"\"hello world\""}
-{"decision":"D364","name":"prepend-of-the-empty-text-leaves-the-string","query":"\"x\" | prepend \"\"","expect":"\"x\""}
-{"decision":"D364","name":"append-of-the-empty-text-leaves-the-string","query":"\"x\" | append \"\"","expect":"\"x\""}
-{"decision":"D364","name":"prepend-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | prepend \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(prepend \"x\")]]\n} | raise"}
-{"decision":"D364","name":"append-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | append \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(append \"x\")]]\n} | raise"}
+{"name":"prepend-writes-a-text-before-a-string","query":"\"world\" | prepend \"hello \"","expect":"\"hello world\""}
+{"name":"append-writes-a-text-after-a-string","query":"\"hello\" | append \" world\"","expect":"\"hello world\""}
+{"name":"prepend-of-the-empty-text-leaves-the-string","query":"\"x\" | prepend \"\"","expect":"\"x\""}
+{"name":"append-of-the-empty-text-leaves-the-string","query":"\"x\" | append \"\"","expect":"\"x\""}
+{"name":"prepend-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | prepend \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(prepend \"x\")]]\n} | raise"}
+{"name":"append-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | append \"x\"","expect":"::call/KindAnswersNoVerbError!{\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(append \"x\")]]\n} | raise"}
 {"name":"lower-folds-the-case-of-a-string","query":"\"Ann@Example.COM\" | lower","expect":"\"ann@example.com\""}
 {"name":"upper-raises-the-case-of-a-string","query":"\"ok, go\" | upper","expect":"\"OK, GO\""}
 {"name":"strings-that-differ-in-case-alone-meet-once-lowered","query":"[\"Ann\" \"ANN\" \"bob\"] | map ~lower | distinct | count","expect":"2"}
@@ -13,8 +13,8 @@
 {"name":"a-string-drops-its-first-characters","query":"\"db_host\" | drop 3","expect":"\"host\""}
 {"name":"a-string-reads-in-pieces-by-its-lines","query":"\"a\\nb\\nc\" | lines | drop 1 | take 1","expect":"[\"b\"]"}
 {"name":"trim-cuts-the-whitespace-at-both-ends","query":"\"  db_host \n\" | trim","expect":"\"db_host\""}
-{"decision":"D364","name":"prepend-refuses-a-prefix-that-is-no-string-or-keyword","query":"\"x\" | prepend 42","expect":"::string/prepend/prefix/KindNotTakenError!{\n  :expected #[::keyword ::string]\n  :actualValue 42\n  :actualType ::number\n  :trace ::trace[::frame[\"x\" ~(prepend 42)]]\n} | raise"}
-{"decision":"D364","name":"append-refuses-a-suffix-that-is-no-string-or-keyword","query":"\"x\" | append 42","expect":"::string/append/suffix/KindNotTakenError!{\n  :expected #[::keyword ::string]\n  :actualValue 42\n  :actualType ::number\n  :trace ::trace[::frame[\"x\" ~(append 42)]]\n} | raise"}
+{"name":"prepend-refuses-a-prefix-that-is-no-string-or-keyword","query":"\"x\" | prepend 42","expect":"::string/prepend/prefix/KindNotTakenError!{\n  :expected #[::keyword ::string]\n  :actualValue 42\n  :actualType ::number\n  :trace ::trace[::frame[\"x\" ~(prepend 42)]]\n} | raise"}
+{"name":"append-refuses-a-suffix-that-is-no-string-or-keyword","query":"\"x\" | append 42","expect":"::string/append/suffix/KindNotTakenError!{\n  :expected #[::keyword ::string]\n  :actualValue 42\n  :actualType ::number\n  :trace ::trace[::frame[\"x\" ~(append 42)]]\n} | raise"}
 {"name":"lines-reads-a-carriage-return-and-drops-the-last-break","query":"\"a\\r\\nb\\r\\n\" | lines","expect":"[\"a\" \"b\"]"}
 {"name":"a-string-counts-its-code-points","query":"\"e\\u0301\" | count","expect":"2"}
 {"name":"case-folds-as-unicode-maps-the-text","query":"get [~(\"ΣΑΣ\" | lower) ~(\"straße\" | upper)]","expect":"[\"σας\" \"STRASSE\"]"}

@@ -34,7 +34,7 @@ describe('runQuery', () => {
     expect(cellEntry.source).toBe('[1 2 3] | sum');
   });
 
-  it('answers a query that does not parse by its failure, the cell no defect [D365]', async () => {
+  it('answers a query that does not parse by its failure, the cell no defect [QSHST#source]', async () => {
     const cellEntry = await runQuery('[1 2', captureIoContext());
     expect(cellEntry.defect).toBeNull();
     expect(isErrorValue(cellEntry.result)).toBe(true);

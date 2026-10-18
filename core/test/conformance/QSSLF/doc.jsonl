@@ -1,7 +1,7 @@
 {"name":"a-doc-shows-its-quote-as-written","query":"|~~ x ~({\"a\": 1} | eq {:a 1}) ~~| | content","expect":"\" x ~({\\\"a\\\": 1} | eq {:a 1}) \""}
 {"name":"a-quote-assembled-from-data-is-printed","query":"~(add 1 | mul 2) | take 1 | :q it | get [~(q)] | tag ::doc | content","expect":"\"~(add 1)\""}
-{"decision":"D364","name":"content-answers-the-text-of-a-doc-of-prose","query":"|~~ x ~~| | content","expect":"\" x \""}
-{"decision":"D364","name":"the-content-of-the-empty-doc-is-the-empty-string","query":"|~~~~| | content","expect":"\"\""}
+{"name":"content-answers-the-text-of-a-doc-of-prose","query":"|~~ x ~~| | content","expect":"\" x \""}
+{"name":"the-content-of-the-empty-doc-is-the-empty-string","query":"|~~~~| | content","expect":"\"\""}
 {"name":"a-doc-counts-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | count","expect":"3"}
 {"name":"a-doc-addresses-a-quote-among-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | get /1","expect":"~(add 1)"}
 {"name":"the-text-of-a-doc-is-its-content","query":"|~~ a ~(add 1) b ~~| | content","expect":"\" a ~(add 1) b \""}
@@ -36,10 +36,10 @@
 {"name":"a-tagged-quote-in-a-doc-is-a-segment-of-its-own","query":"|~~ see ::link~(::qlang | manifest) ~~| | segments | count","expect":"3"}
 {"name":"links-answers-the-links-of-a-doc","query":"|~~ see ::link~(::qlang | manifest) and ~(eq 1) ~~| | links | count","expect":"1"}
 {"name":"a-link-is-of-the-kind-link","query":"|~~ ::link~(::qlang | manifest) ~~| | links | first | type","expect":"::link"}
-{"decision":"D364","name":"two-docs-of-the-same-segments-are-equal","query":"(|~~ a ~~|) | eq (|~~ a ~~|)","expect":"true"}
-{"decision":"D364","name":"two-docs-of-different-prose-differ","query":"(|~~ a ~~|) | eq (|~~ b ~~|)","expect":"false"}
-{"decision":"D364","name":"a-doc-is-not-equal-to-a-string-of-its-word","query":"(|~~ x ~~|) | eq \"x\"","expect":"false"}
-{"decision":"D364","name":"a-doc-is-not-equal-to-a-quote-of-its-word","query":"(|~~ x ~~|) | eq ~(x)","expect":"false"}
-{"decision":"D364","name":"a-doc-held-in-a-name-is-equal-to-itself","query":"|~~ same ~~| | :d it | eq d","expect":"true"}
+{"name":"two-docs-of-the-same-segments-are-equal","query":"(|~~ a ~~|) | eq (|~~ a ~~|)","expect":"true"}
+{"name":"two-docs-of-different-prose-differ","query":"(|~~ a ~~|) | eq (|~~ b ~~|)","expect":"false"}
+{"name":"a-doc-is-not-equal-to-a-string-of-its-word","query":"(|~~ x ~~|) | eq \"x\"","expect":"false"}
+{"name":"a-doc-is-not-equal-to-a-quote-of-its-word","query":"(|~~ x ~~|) | eq ~(x)","expect":"false"}
+{"name":"a-doc-held-in-a-name-is-equal-to-itself","query":"|~~ same ~~| | :d it | eq d","expect":"true"}
 {"name":"a-payload-of-a-doc-is-a-vector","query":"5 | tag ::doc !| type","expect":"::doc/PayloadKindNotTakenError"}
 {"name":"a-quote-holds-a-doc-under-the-tag-of-a-kind-as-written","query":"~(|~~ see ::number~(~(x)) ~~|) | print","expect":"\"~(|~~ see ::number~(~(x)) ~~|)\""}

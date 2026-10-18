@@ -5,24 +5,24 @@
 {"name":"query-in-code-reads-softly","query":"[{:n 1} {:m 2}] | map ~(query /n)","expect":"[1 null]"}
 {"name":"query-holds-a-default-for-a-missing-index","query":"[] | query /0 7","expect":"7"}
 {"name":"query-answers-a-null-that-stands-at-the-path","query":"[null] | query /0 7","expect":"null"}
-{"decision":"D364","name":"query-reads-an-index-from-zero-as-get-does","query":"[10 20 30] | query /0","expect":"10"}
-{"decision":"D364","name":"query-reads-an-index-within-the-vector","query":"[10 20 30] | query /1","expect":"20"}
-{"decision":"D364","name":"query-reads-the-last-element-by-its-index","query":"[10 20 30] | query /2","expect":"30"}
-{"decision":"D364","name":"query-reads-a-negative-index-from-the-end","query":"[10 20 30] | query /-1","expect":"30"}
-{"decision":"D364","name":"query-counts-a-negative-index-back-from-the-end","query":"[10 20 30] | query /-2","expect":"20"}
-{"decision":"D364","name":"query-reads-the-first-element-by-the-negative-of-the-length","query":"[10 20 30] | query /-3","expect":"10"}
-{"decision":"D364","name":"query-of-the-index-minus-one-answers-as-last-does","query":"[10 20 30] | query /-1 | eq ([10 20 30] | last)","expect":"true"}
-{"decision":"D364","name":"query-answers-null-for-an-index-past-the-end","query":"[10 20 30] | query /99","expect":"null"}
-{"decision":"D364","name":"query-answers-null-for-a-negative-index-past-the-start","query":"[10 20 30] | query /-99","expect":"null"}
-{"decision":"D364","name":"query-answers-null-for-an-index-of-the-empty-vector","query":"[] | query /0","expect":"null"}
+{"name":"query-reads-an-index-from-zero-as-get-does","query":"[10 20 30] | query /0","expect":"10"}
+{"name":"query-reads-an-index-within-the-vector","query":"[10 20 30] | query /1","expect":"20"}
+{"name":"query-reads-the-last-element-by-its-index","query":"[10 20 30] | query /2","expect":"30"}
+{"name":"query-reads-a-negative-index-from-the-end","query":"[10 20 30] | query /-1","expect":"30"}
+{"name":"query-counts-a-negative-index-back-from-the-end","query":"[10 20 30] | query /-2","expect":"20"}
+{"name":"query-reads-the-first-element-by-the-negative-of-the-length","query":"[10 20 30] | query /-3","expect":"10"}
+{"name":"query-of-the-index-minus-one-answers-as-last-does","query":"[10 20 30] | query /-1 | eq ([10 20 30] | last)","expect":"true"}
+{"name":"query-answers-null-for-an-index-past-the-end","query":"[10 20 30] | query /99","expect":"null"}
+{"name":"query-answers-null-for-a-negative-index-past-the-start","query":"[10 20 30] | query /-99","expect":"null"}
+{"name":"query-answers-null-for-an-index-of-the-empty-vector","query":"[] | query /0","expect":"null"}
 {"name":"query-preserves-element-type","query":"[{:id 1} {:id 2}] | query /0","expect":"{:id 1}"}
-{"decision":"D364","name":"get-reads-on-from-the-element-query-answered","query":"[{:name \"alice\"} {:name \"bob\"}] | query /1 | get /name","expect":"\"bob\""}
-{"decision":"D364","name":"query-reads-an-index-of-the-values-vals-answers","query":"{:a 10 :b 20 :c 30} | vals | query /1","expect":"20"}
-{"decision":"D364","name":"query-reads-a-key-of-a-map-as-get-does","query":"{:a 1 :b 2 :c 3} | query /b","expect":"2"}
-{"decision":"D364","name":"query-answers-null-where-a-map-lacks-the-key","query":"{:a 1} | query /z","expect":"null"}
+{"name":"get-reads-on-from-the-element-query-answered","query":"[{:name \"alice\"} {:name \"bob\"}] | query /1 | get /name","expect":"\"bob\""}
+{"name":"query-reads-an-index-of-the-values-vals-answers","query":"{:a 10 :b 20 :c 30} | vals | query /1","expect":"20"}
+{"name":"query-reads-a-key-of-a-map-as-get-does","query":"{:a 1 :b 2 :c 3} | query /b","expect":"2"}
+{"name":"query-answers-null-where-a-map-lacks-the-key","query":"{:a 1} | query /z","expect":"null"}
 {"name":"query-reads-a-number-segment-as-the-key-of-its-digits","query":"{:\"42\" 1} | query /42","expect":"1"}
-{"decision":"D364","name":"query-reads-a-key-beneath-the-tag-over-a-map","query":"::json{:a 1 :b 2 :c 3} | query /b","expect":"2"}
-{"decision":"D364","name":"query-answers-null-for-a-key-the-map-beneath-a-tag-lacks","query":"::json{:a 1} | query /z","expect":"null"}
+{"name":"query-reads-a-key-beneath-the-tag-over-a-map","query":"::json{:a 1 :b 2 :c 3} | query /b","expect":"2"}
+{"name":"query-answers-null-for-a-key-the-map-beneath-a-tag-lacks","query":"::json{:a 1} | query /z","expect":"null"}
 {"name":"query-under-a-tag-answers-null-for-a-missing-key","query":"::json{:a 1} | query /42","expect":"null"}
-{"decision":"D364","name":"query-of-a-key-the-map-holds-answers-its-value","query":"{:a 1 :b 2} | query /a","expect":"1"}
+{"name":"query-of-a-key-the-map-holds-answers-its-value","query":"{:a 1 :b 2} | query /a","expect":"1"}
 {"name":"query-refuses-a-key-on-a-vector-as-get-does","query":"[1 2] | query /a !| type","expect":"::path/IndexNotIntegerError"}

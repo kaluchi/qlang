@@ -13,7 +13,7 @@
 {"name":"the-answer-of-a-verb-is-a-node-under-it","query":"::number/add | manifest | has ::number/add/answer","expect":"true"}
 {"name":"the-answer-of-a-verb-stands-under-answer","query":"::any/eq | manifest | has ::any/eq/answer","expect":"true"}
 {"name":"a-fan-out-over-kinds-answers-each-kind-beside-its-verbs","query":"[::vec ::any] | map ~(get [~(it) ~(manifest)]) | map ~(get [/0 ~(get /1 | has ::vec/count)])","expect":"[[::vec true] [::any false]]"}
-{"decision":"D364","name":"manifest-answers-the-nodes-of-a-topic-as-tag-names","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true"}
+{"name":"manifest-answers-the-nodes-of-a-topic-as-tag-names","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true"}
 {"name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true"}
 {"name":"the-chapters-are-nodes-under-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
 {"name":"a-verb-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}

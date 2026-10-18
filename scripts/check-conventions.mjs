@@ -304,7 +304,7 @@ const FENCE_RE = /^\s*```/;
 const INLINE_CODE_RE = /`[^`]*`/g;
 
 // A report of the research stands as its outside reader wrote it
-// [D363], so the prose held to its tallies is the work's own, the
+// [QSWRK#review], so the prose held to its tallies is the work's own, the
 // session's reading of the report among it, by the forms of the folders of
 // the research.
 const OUTSIDE_REPORT = new RegExp(`^${RESEARCH}/(?:(?:${foldersOfForm('report')})/D\\d+~\\d+\\.md|(?:${foldersOfForm('run')})/D\\d+~\\d+/(?!reading\\.md)[^/]+\\.md)$`);

@@ -1,22 +1,22 @@
 |~ Every value comes apart into the set of its atoms and a template, and
    `get` over the template, read against the set, builds the value back
-   [D363]. The atoms are the values no verb takes further apart, null,
+   [QSLIT#atoms]. The atoms are the values no verb takes further apart, null,
    booleans, numbers, strings, regexes, keywords, tag names and paths,
    each once, in the one order, and a value is taken apart to the end: the
    keys of its maps and the tags over its payloads are atoms as its other
    leaves are. The template is the literal of the reads of its parts
-   [D363]: an atom is read by the path of its index in the set, `/n`; a
+   [QSLIT#atoms]: an atom is read by the path of its index in the set, `/n`; a
    vector is the vector of the reads of its elements; a map is built from
    the pairs of its keys and values by `indexBy`, and a tagged value, the
    set, the quote and the doc and an error at rest among them, from its
-   tag and its payload by `tag` [D363], [QSSLF#doc], each of the two a
+   tag and its payload by `tag` [QSLIT#atoms], [QSSLF#doc], each of the two a
    quote `get` runs against the set. `["x" [1 1] {:b :a}]` has the atoms
    `#[1 "x" :a :b]` and the template
    `[/1 [/0 /0] ~(get [[/3 /2]] | indexBy ~(first) | map ~last)]`.
    The verbs are the language's own, and the test of the ring runs them
    over every example of the catalog and every literal of the
    conformance cases.
-   The rules it holds: [D363]. ~|
+   The rules it holds: [QSLIT#atoms]. ~|
 
 :any/atomKinds
   |~~ The kinds of the atoms, a verb, since a recipe reads no value a

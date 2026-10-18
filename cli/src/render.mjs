@@ -23,7 +23,7 @@ async function maybePaint(text, shouldColorize) {
   return highlightAnsi(text, await rootVerbNames());
 }
 
-// The line a defect raised past the fail track is written as, on stderr [D365].
+// The line a defect raised past the fail track is written as, on stderr [QSHST#answer].
 export const defectLine = defect => `qlang: ${defect.message}\n`;
 
 const defectOutcome = defect => ({ stdoutText: '', stderrText: defectLine(defect), exitCode: 1 });

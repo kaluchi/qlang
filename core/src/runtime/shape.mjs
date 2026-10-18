@@ -1,4 +1,4 @@
-// The shape of a value and its leaves [D363]: `shape` answers the structure
+// The shape of a value and its leaves [QSPTH#shape]: `shape` answers the structure
 // of the subject beneath its tags as a value of `::shape`, with the marks it
 // lays over a part, and `paths` the pair of the path and the kind of each leaf.
 
@@ -9,7 +9,7 @@ import {
 } from '../types.mjs';
 import { makeSet } from '../ordering.mjs';
 
-// The tag of a shape and the marks a shape lays over a part [D363].
+// The tag of a shape and the marks a shape lays over a part [QSPTH#shape].
 const SHAPE_TAG = makeTag('shape');
 const ABSENT_TAG = makeTag('absent');
 const NULLABLE_TAG = makeTag('nullable');
@@ -84,7 +84,7 @@ function foldedOf(value, shapes) {
   return makeTagged(EACH_TAG, new Map([[first, merged]]));
 }
 
-// The shape stands under `::shape`, whose page tells how a shape reads [D363].
+// The shape stands under `::shape`, whose page tells how a shape reads [QSPTH#shape].
 registerPrimitive('any/shape', subject => makeTagged(SHAPE_TAG, shapeOf(subject, true)));
 
 // The marks over the core of a shape, `::absent` outside, a key some records

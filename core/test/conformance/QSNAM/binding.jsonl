@@ -1,6 +1,6 @@
-{"decision":"D364","name":"env-holds-no-name-the-reader-did-not-declare","query":"env | has :thisNameDoesNotExist","expect":"false"}
-{"decision":"D364","name":"env-holds-a-name-declared-from-the-value-in-the-pipe","query":"42 | :answer it | env | has :answer","expect":"true"}
-{"decision":"D364","name":"env-holds-a-name-that-holds-a-quote","query":":double ~(mul 2) | env | has :double","expect":"true"}
+{"name":"env-holds-no-name-the-reader-did-not-declare","query":"env | has :thisNameDoesNotExist","expect":"false"}
+{"name":"env-holds-a-name-declared-from-the-value-in-the-pipe","query":"42 | :answer it | env | has :answer","expect":"true"}
+{"name":"env-holds-a-name-that-holds-a-quote","query":":double ~(mul 2) | env | has :double","expect":"true"}
 {"name":"env-answers-whatever-the-subject","query":":x 1 | [1 2 3] | env | has :x","expect":"true"}
 {"name":"env-answers-the-names-of-the-scope","query":":x 1 | env | get [~(has :x) ~(has :vec) ~(has :count)]","expect":"[true false false]"}
 {"name":"a-declaration-produces-a-binding-record","query":":x |~~ One. ~~| 1 | env | get /x | get /value","expect":"1"}
@@ -13,5 +13,5 @@
 {"name":"env-answers-a-map","query":"env | type","expect":"::map"}
 {"name":"a-node-under-a-noun-stays-out-of-the-scope","query":"env | has :pipeline","expect":"false"}
 {"name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | get /value","expect":"10"}
-{"decision":"D364","name":"doc-reads-the-page-of-a-declaration-that-stands-over-the-name-around","query":":foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content)","expect":"\" New doc.\\n With second remark.\""}
-{"decision":"D364","name":"doc-reads-the-page-written-between-a-name-and-its-body","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\" Captured value.\""}
+{"name":"doc-reads-the-page-of-a-declaration-that-stands-over-the-name-around","query":":foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content)","expect":"\" New doc.\\n With second remark.\""}
+{"name":"doc-reads-the-page-written-between-a-name-and-its-body","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\" Captured value.\""}

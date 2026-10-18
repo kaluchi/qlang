@@ -1,6 +1,6 @@
 // The walk of a value's tags to a kind a name serves [QSDSP#walk], and the
 // primitive a host handed run over the value the walk served, what it answers
-// held at the door by the walk that holds what a host hands a session [D365].
+// held at the door by the walk that holds what a host hands a session [QSHST#source].
 
 import { readsState, readsPassedTags, PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { queryStateOf } from './state.mjs';
@@ -99,7 +99,7 @@ const NOTHING_HANDED = new Set();
 // path where it stands, or null, by one walk of a stack of its own at any depth,
 // a part the call handed in passed over, a container met twice walked once, one
 // met again within its own walk holding itself, and a hole of a vector no
-// element [D365].
+// element [QSHST#source].
 export function foreignPartOf(value, handed = NOTHING_HANDED) {
   const opened = new Set();
   const walked = new Set();

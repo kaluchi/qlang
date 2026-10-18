@@ -212,13 +212,14 @@ as prose.
 
 ## atoms
 
-Every value comes apart into the set of its atoms and a shape, and the
-shape applied to the set builds a value equal to the first. The atoms
+Every value comes apart into the set of its atoms and a quote that
+builds it back, and the quote applied to the set builds a value equal to
+the first. The atoms
 are the leaves the decomposition stops at: null, booleans, numbers,
 strings, regexes, keywords, tag names and paths, each once and in the
 one order; the keys of maps and the tags over payloads are atoms as the
-other leaves are. The shape is a quote that reads the value back by
-`get` over a template of the reads of its parts: an atom by the path of
+other leaves are. The quote reads the value back by `get` over a
+template of the reads of its parts: an atom by the path of
 its index in the set, a vector as the vector of its elements' reads, a
 map from the pairs of its keys and values by `indexBy`, and a tagged
 value, a set, a quote, a doc and an error at rest among them, from its

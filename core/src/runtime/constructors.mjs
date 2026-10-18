@@ -1,7 +1,7 @@
 // The constructors of the kinds of the core's values, but those of `::fn`,
 // `::kind` and the steps of code, each beside the other words of its kind,
 // each `(payload) → value` under the address of the kind's `construct`,
-// `number/construct` [QSBLD#kind], [D365].
+// `number/construct` [QSBLD#kind].
 
 import { registerPrimitive } from '../primitives.mjs';
 import {
@@ -122,7 +122,7 @@ registerPrimitive('trace/construct', payload => makeTrace(framesOfTrace(payload)
 
 // `::builtin{…}` — the descriptor, the recipe of a verb or the constructor
 // of a kind that a primitive answers, or the value of a name under a label
-// alone [D365]; its fields stay flat under its tag.
+// alone [QSHST#source]; its fields stay flat under its tag.
 const BuiltinPayloadKindNotTakenError = declareRefusal('builtin/PayloadKindNotTakenError');
 
 function builtinConstructor(payload) {

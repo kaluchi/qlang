@@ -9,4 +9,4 @@
 {"name":"the-source-of-the-language-declares-its-topic-alone","query":"kinds | filter ~(binding | get /origin | eq :qlang)","expect":"#[::qlang]"}
 {"name":"the-recipe-of-a-verb-of-the-host-is-its-descriptor","query":"::vec/sort | binding | get /value | get /1 | type","expect":"::builtin"}
 {"name":"a-builtin-in-a-reader-recipe-is-the-value-it-is","query":":any/v (::fn | impl ::builtin{}) | 5 | get [~(any/v | type) ~(v !| type)]","expect":"[::fn ::call/UnknownNameError]"}
-{"decision":"D365","name":"a-declaration-of-a-query-names-its-cell-as-its-origin","query":":x 1 | env | get /x | get /origin","expect":":cell-1"}
+{"name":"a-declaration-of-a-query-names-its-cell-as-its-origin","query":":x 1 | env | get /x | get /origin","expect":":cell-1"}

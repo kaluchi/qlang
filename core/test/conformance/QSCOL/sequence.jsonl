@@ -1,19 +1,19 @@
-{"decision":"D364","name":"count-answers-the-number-of-elements-a-vector-holds","query":"[1 2 3 4 5] | count","expect":"5"}
-{"decision":"D364","name":"count-of-the-empty-vector-is-zero","query":"[] | count","expect":"0"}
-{"decision":"D364","name":"empty-answers-true-for-a-vector-that-holds-no-element","query":"[] | empty","expect":"true"}
-{"decision":"D364","name":"empty-answers-false-for-a-vector-that-holds-an-element","query":"[1] | empty","expect":"false"}
-{"decision":"D364","name":"first-answers-the-first-element-of-a-vector","query":"[10 20 30] | first","expect":"10"}
-{"decision":"D364","name":"first-of-the-empty-vector-is-null","query":"[] | first","expect":"null"}
-{"decision":"D364","name":"last-answers-the-last-element-of-a-vector","query":"[10 20 30] | last","expect":"30"}
-{"decision":"D364","name":"last-of-the-empty-vector-is-null","query":"[] | last","expect":"null"}
-{"decision":"D364","name":"sum-answers-the-sum-of-the-numbers-a-vector-holds","query":"[1 2 3 4 5] | sum","expect":"15"}
-{"decision":"D364","name":"sum-of-the-empty-vector-is-zero","query":"[] | sum","expect":"0"}
-{"decision":"D364","name":"min-answers-the-least-element-in-the-one-order","query":"[3 1 4 1 5 9 2 6] | min","expect":"1"}
-{"decision":"D364","name":"max-answers-the-greatest-element-in-the-one-order","query":"[3 1 4 1 5 9 2 6] | max","expect":"9"}
-{"decision":"D364","name":"take-answers-as-many-first-elements-as-its-count","query":"[1 2 3 4 5] | take 3","expect":"[1 2 3]"}
-{"decision":"D364","name":"drop-answers-the-elements-after-as-many-as-its-count","query":"[1 2 3 4 5] | drop 2","expect":"[3 4 5]"}
-{"decision":"D364","name":"reverse-answers-the-elements-in-the-reverse-order","query":"[1 2 3] | reverse","expect":"[3 2 1]"}
-{"decision":"D364","name":"flat-lifts-the-elements-of-its-vectors-one-level","query":"[[1 2] [3] [4 5]] | flat","expect":"[1 2 3 4 5]"}
+{"name":"count-answers-the-number-of-elements-a-vector-holds","query":"[1 2 3 4 5] | count","expect":"5"}
+{"name":"count-of-the-empty-vector-is-zero","query":"[] | count","expect":"0"}
+{"name":"empty-answers-true-for-a-vector-that-holds-no-element","query":"[] | empty","expect":"true"}
+{"name":"empty-answers-false-for-a-vector-that-holds-an-element","query":"[1] | empty","expect":"false"}
+{"name":"first-answers-the-first-element-of-a-vector","query":"[10 20 30] | first","expect":"10"}
+{"name":"first-of-the-empty-vector-is-null","query":"[] | first","expect":"null"}
+{"name":"last-answers-the-last-element-of-a-vector","query":"[10 20 30] | last","expect":"30"}
+{"name":"last-of-the-empty-vector-is-null","query":"[] | last","expect":"null"}
+{"name":"sum-answers-the-sum-of-the-numbers-a-vector-holds","query":"[1 2 3 4 5] | sum","expect":"15"}
+{"name":"sum-of-the-empty-vector-is-zero","query":"[] | sum","expect":"0"}
+{"name":"min-answers-the-least-element-in-the-one-order","query":"[3 1 4 1 5 9 2 6] | min","expect":"1"}
+{"name":"max-answers-the-greatest-element-in-the-one-order","query":"[3 1 4 1 5 9 2 6] | max","expect":"9"}
+{"name":"take-answers-as-many-first-elements-as-its-count","query":"[1 2 3 4 5] | take 3","expect":"[1 2 3]"}
+{"name":"drop-answers-the-elements-after-as-many-as-its-count","query":"[1 2 3 4 5] | drop 2","expect":"[3 4 5]"}
+{"name":"reverse-answers-the-elements-in-the-reverse-order","query":"[1 2 3] | reverse","expect":"[3 2 1]"}
+{"name":"flat-lifts-the-elements-of-its-vectors-one-level","query":"[[1 2] [3] [4 5]] | flat","expect":"[1 2 3 4 5]"}
 {"name":"append-puts-an-element-after-a-vector","query":"[1 2] | append 3","expect":"[1 2 3]"}
 {"name":"prepend-puts-an-element-before-a-vector","query":"[2 3] | prepend 1","expect":"[1 2 3]"}
 {"name":"append-takes-a-vector-as-one-element","query":"[1] | append [2 3]","expect":"[1 [2 3]]"}
@@ -26,25 +26,25 @@
 {"name":"drop-over-length-returns-empty","query":"[1 2 3] | drop 5","expect":"[]"}
 {"name":"take-negative-on-set-clamps-to-empty","query":"#[1 2 3] | take -1 | count","expect":"0"}
 {"name":"drop-negative-on-set-clamps-to-whole","query":"#[1 2 3] | drop -1 | count","expect":"3"}
-{"decision":"D364","name":"has-answers-true-where-a-set-holds-the-element","query":"#[:a :b :c] | has :b","expect":"true"}
-{"decision":"D364","name":"has-answers-false-where-a-set-lacks-the-element","query":"#[:a :b :c] | has :d","expect":"false"}
-{"decision":"D364","name":"has-finds-in-a-set-a-vector-equal-to-the-one-given","query":"#[[1 2] [3 4]] | has [1 2]","expect":"true"}
-{"decision":"D364","name":"has-answers-false-for-a-vector-no-element-of-the-set-equals","query":"#[[1 2] [3 4]] | has [5 6]","expect":"false"}
-{"decision":"D364","name":"has-finds-in-a-set-a-map-equal-to-the-one-given","query":"#[{:a 1} {:b 2}] | has {:a 1}","expect":"true"}
-{"decision":"D364","name":"has-answers-false-for-a-map-no-element-of-the-set-equals","query":"#[{:a 1} {:b 2}] | has {:c 3}","expect":"false"}
-{"decision":"D364","name":"has-finds-in-a-set-a-set-equal-to-the-one-given","query":"#[#[:x :y] #[:z]] | has #[:x :y]","expect":"true"}
+{"name":"has-answers-true-where-a-set-holds-the-element","query":"#[:a :b :c] | has :b","expect":"true"}
+{"name":"has-answers-false-where-a-set-lacks-the-element","query":"#[:a :b :c] | has :d","expect":"false"}
+{"name":"has-finds-in-a-set-a-vector-equal-to-the-one-given","query":"#[[1 2] [3 4]] | has [1 2]","expect":"true"}
+{"name":"has-answers-false-for-a-vector-no-element-of-the-set-equals","query":"#[[1 2] [3 4]] | has [5 6]","expect":"false"}
+{"name":"has-finds-in-a-set-a-map-equal-to-the-one-given","query":"#[{:a 1} {:b 2}] | has {:a 1}","expect":"true"}
+{"name":"has-answers-false-for-a-map-no-element-of-the-set-equals","query":"#[{:a 1} {:b 2}] | has {:c 3}","expect":"false"}
+{"name":"has-finds-in-a-set-a-set-equal-to-the-one-given","query":"#[#[:x :y] #[:z]] | has #[:x :y]","expect":"true"}
 {"name":"zip-reads-vectors-side-by-side-to-the-shortest","query":"[[1 2 3] [:a :b]] | zip","expect":"[[1 :a] [2 :b]]"}
 {"name":"a-vector-has-an-element-equal-to-one","query":"[\"ops\" \"db\"] | has \"ops\"","expect":"true"}
 {"name":"a-vector-lacks-an-element-it-does-not-hold","query":"[1 [2]] | has [3]","expect":"false"}
 {"name":"a-soft-read-of-an-empty-container-is-null","query":"get [~([] | first) ~([] | max)]","expect":"[null null]"}
 {"name":"avg-is-the-mean","query":"[1 2 3 4] | avg","expect":"2.5"}
 {"name":"avg-of-nothing-is-null","query":"[] | avg","expect":"null"}
-{"decision":"D364","name":"avg-answers-the-mean-of-each-bucket-groupBy-files","query":"[{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy /d | map ~(map /n | avg)","expect":"{:a 2 :b 5}"}
+{"name":"avg-answers-the-mean-of-each-bucket-groupBy-files","query":"[{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy /d | map ~(map /n | avg)","expect":"{:a 2 :b 5}"}
 {"name":"avg-refuses-an-element-that-is-no-number","query":"[1 \"x\"] | avg !| get [~(type) /index]","expect":"[::vec/avg/ElementNotNumberError 1]"}
-{"decision":"D364","name":"has-answers-false-for-a-value-a-set-of-several-kinds-lacks","query":"#[1 \"a\"] | has 42","expect":"false"}
+{"name":"has-answers-false-for-a-value-a-set-of-several-kinds-lacks","query":"#[1 \"a\"] | has 42","expect":"false"}
 {"name":"flat-of-sets-is-their-union","query":"#[#[3 1] #[2 1]] | flat","expect":"#[1 2 3]"}
 {"name":"first-of-an-empty-set-is-null","query":"#[] | first","expect":"null"}
-{"decision":"D364","name":"first-of-a-set-answers-its-least-element","query":"#[10 20 30] | first","expect":"10"}
+{"name":"first-of-a-set-answers-its-least-element","query":"#[10 20 30] | first","expect":"10"}
 {"name":"has-finds-a-composite-element","query":"#[{:a 2} [1] \"x\" 3] | has [1]","expect":"true"}
 {"name":"has-misses-a-value-between-two-elements","query":"#[1 3 5] | has 4","expect":"false"}
 {"name":"a-vector-takes-any-element-at-its-head","query":"[1] | prepend \"x\"","expect":"[\"x\" 1]"}

@@ -3,7 +3,7 @@
 // of `core/src` into, each module beside the modules of the core its imports
 // name, a relative one by its path and one of the `imports` of the package by
 // every condition it maps to, in either quote, and their cycles, the strongly
-// connected components of that graph of more than one module [D365].
+// connected components of that graph of more than one module [QSWRK#tooling].
 
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, posix } from 'node:path';

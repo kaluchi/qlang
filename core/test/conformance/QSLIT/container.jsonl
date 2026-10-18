@@ -1,10 +1,10 @@
-{"decision":"D364","name":"a-vector-written-with-nothing-between-its-brackets-is-empty","query":"[]","expect":"[]"}
-{"decision":"D364","name":"a-vector-holds-one-element-as-written","query":"[1]","expect":"[1]"}
-{"decision":"D364","name":"a-vector-holds-its-elements-in-the-order-written","query":"[1 2 3 4 5]","expect":"[1 2 3 4 5]"}
-{"decision":"D364","name":"a-vector-holds-strings-as-it-holds-numbers","query":"[\"a\" \"b\" \"c\"]","expect":"[\"a\" \"b\" \"c\"]"}
-{"decision":"D364","name":"a-vector-holds-vectors-at-any-depth","query":"[[1 2] [3 4]]","expect":"[[1 2] [3 4]]"}
-{"decision":"D364","name":"a-set-written-with-nothing-between-its-brackets-is-empty","query":"#[]","expect":"#[]"}
-{"decision":"D364","name":"a-map-written-with-nothing-between-its-braces-is-empty","query":"{}","expect":"{}"}
+{"name":"a-vector-written-with-nothing-between-its-brackets-is-empty","query":"[]","expect":"[]"}
+{"name":"a-vector-holds-one-element-as-written","query":"[1]","expect":"[1]"}
+{"name":"a-vector-holds-its-elements-in-the-order-written","query":"[1 2 3 4 5]","expect":"[1 2 3 4 5]"}
+{"name":"a-vector-holds-strings-as-it-holds-numbers","query":"[\"a\" \"b\" \"c\"]","expect":"[\"a\" \"b\" \"c\"]"}
+{"name":"a-vector-holds-vectors-at-any-depth","query":"[[1 2] [3 4]]","expect":"[[1 2] [3 4]]"}
+{"name":"a-set-written-with-nothing-between-its-brackets-is-empty","query":"#[]","expect":"#[]"}
+{"name":"a-map-written-with-nothing-between-its-braces-is-empty","query":"{}","expect":"{}"}
 {"name":"single-element-bracket-reads-as-a-vector","query":"[1] | type","expect":"::vec"}
 {"name":"map-duplicate-key-keeps-last-value-in-first-position","query":"{:a 1 :b 2 :a 3} | vals","expect":"[3 2]"}
 {"name":"map-duplicate-key-equals-its-last-binding","query":"{:a 1 :b 2 :a 3} | eq {:a 3 :b 2}","expect":"true"}

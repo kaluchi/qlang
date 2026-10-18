@@ -26,7 +26,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.scopeAfterCell.has('n')).toBe(true);
   });
 
-  it('answers the entry of a cell, its source, its name, its result, its defect and the scope after it [D365]', async () => {
+  it('answers the entry of a cell, its source, its name, its result, its defect and the scope after it [QSHST#source]', async () => {
     expect(Object.keys(await (await createSession()).evalCell('1'))).toEqual(['source', 'uri', 'result', 'defect', 'scopeAfterCell']);
   });
 
@@ -86,7 +86,7 @@ describe('createSession lifecycle', () => {
     expect((await (await createSession()).evalCell('type')).result).toEqual(makeTag('null'));
   });
 
-  it('answers a cell that does not parse by its failure, the cell no defect [D365]', async () => {
+  it('answers a cell that does not parse by its failure, the cell no defect [QSHST#source]', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('[1 2');
     expect([cellEntry.result.tag, cellEntry.defect]).toEqual([makeTag('quote/ParseError'), null]);
@@ -282,7 +282,7 @@ describe('a session takes what its host hands by the walk of the door [QSHST#sou
 
 describe('a cell whose failure is no error value', () => {
   // A defect of the host, raised past the fail track, is what a cell answers
-  // with no result, and what a query raises to its caller [D365].
+  // with no result, and what a query raises to its caller [QSHST#source].
   const collapsing = () => createSession({
     sources: [{
       uri: 'tests/collapse',
@@ -291,19 +291,19 @@ describe('a cell whose failure is no error value', () => {
     }]
   });
 
-  it('answers a defect as the defect of its cell, with no result [D365]', async () => {
+  it('answers a defect as the defect of its cell, with no result [QSHST#source]', async () => {
     const cellEntry = await (await collapsing()).evalCell('42 | collapse');
     expect(cellEntry.result).toBeNull();
     expect(cellEntry.defect).toBeInstanceOf(QlangInvariantError);
     expect(cellEntry.defect.name).toBe('QlangInvariantError');
   });
 
-  it('raises the defect of the cell a query runs as to its caller [D365]', async () => {
+  it('raises the defect of the cell a query runs as to its caller [QSHST#source]', async () => {
     await expect(evalQuery('42 | collapse', (await collapsing()).scope)).rejects.toBeInstanceOf(QlangInvariantError);
   });
 });
 
-describe('a query runs as one cell of a session [D365]', () => {
+describe('a query runs as one cell of a session [QSHST#source]', () => {
   it('names the origin of a declaration as the first cell of a session names it', async () => {
     expect(await evalQuery(':x 1 | env | get /x | get /origin')).toEqual(keyword('cell-1'));
   });

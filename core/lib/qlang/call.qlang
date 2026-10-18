@@ -2,7 +2,7 @@
    its constructor and the refusals of a call, a name that names
    nothing, a kind that answers no verb of the name, a value given
    modifiers, a value that meets a verb, a value withheld from held code,
-   a call too deep and a failure of a host's implementation.
+   a call too deep and a failure inside a primitive.
 
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -42,14 +42,21 @@
             ::link~(::call | doc)
         ~~|
     | throws :HostFailureError
-        |~~ A failure of the host's implementation: an error of the
-            language the runtime is written in escaped a verb, which is a
-            defect of that verb's host. `:message` carries the host's
-            account of it and `:causes` the accounts of the failures
-            beneath it. Its trace is that of any error;
-            recovery is a `!|` step, and the repair belongs to the host,
-            which declares a refusal of its own where it has facts to
-            hand.
+        |~~ A failure inside a primitive: an error of the language the
+            runtime is written in escaped a verb, or the primitive a host
+            handed beside its source, whatever function runs it, answered
+            a value of no kind of the language or threw a refusal whose
+            facts hold one, a function, an object of JavaScript, a map whose
+            key is no string, a failure whose facts are no map, a value
+            under a tag that is no tag, a vector or a map that holds itself,
+            or a number past the finite doubles, which is a defect of that
+            verb's host; a value the call handed in passes back as it is.
+            `:message` carries the host's account of it, or names the call
+            and the path where the value of no kind stands in its answer,
+            and `:causes` the accounts of the failures beneath it. Its
+            trace is that of any error; recovery is a `!|` step, and the
+            repair belongs to the host, which declares a refusal of its own
+            where it has facts to hand.
             ::link~(::call | doc)
         ~~|
     | carries :HostFailureError/message

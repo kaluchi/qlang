@@ -991,12 +991,12 @@
       its answer, its refusals and its laws, and every declaration under
       its address. `::Tag | source` reads what was written
       under the tag, and any other value the declaration of its kind. A
-      node a chain lays, a refusal among them, and a binding no step
-      declared, a value a host bound, answer null. The anchor, a keyword
-      after it, reads the code of the node the subject holds under it,
-      an input of a verb or the verb a value calls. A name nothing
-      declares is refused, with the addresses where a verb of that name
-      lives.
+      binding no declaration wrote, a node a chain lays among them, a
+      refusal among those, holds no source, which `source` answers null
+      for. The anchor, a keyword after it, reads the code of the node the
+      subject holds under it, an input of a verb or the verb a value
+      calls. A name nothing declares is refused, with the addresses where
+      a verb of that name lives.
       ::link~(::any/doc | doc) ::link~(::any/binding | doc)
   ~~|
   ::fn
@@ -1010,8 +1010,8 @@
             the subject, `::vec | source :sort`.
         ~~|
     | returns
-        |~~ The code written under the name, null for a value a host
-            bound.
+        |~~ The code written under the name, null for a binding no
+            declaration wrote.
         ~~|
         #[::quote ::null]
     | throws :UnknownNameError
@@ -1051,6 +1051,11 @@
     | proves :readsTheVerbAValueCalls
         |~~ An anchor on a value reads the source of the verb it calls. ~~|
         ~([1] | source :count | eq (::vec/count | source))
+    | proves :answersNullForANodeAChainLays
+        |~~ A binding no declaration wrote, a node a chain lays, answers no
+            source.
+        ~~|
+        ~(::number/add/addend | source | eq null)
     | proves :anchor/KindNotTakenError/refusesANumber
         |~~ An anchor that is a number is refused under the input. ~~|
         ~(::vec/take | source 1 !| type | eq ::any/source/anchor/KindNotTakenError)

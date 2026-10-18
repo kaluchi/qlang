@@ -52,7 +52,7 @@ persist across the cells of one REPL session.
 `;
 
 export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null, initialQuery = null, terminal } = {}) {
-  const builtinNames = verbNames(await langRuntime());
+  const rootVerbNames = verbNames(await langRuntime());
 
   // A terminal in raw mode moves the cursor down at `\n` without
   // returning it, so the writers of a terminal write `\r\n`.
@@ -74,7 +74,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 
   const lineEditor = createLineEditor(stdinStream, stdoutWrite, {
     prompt: PROMPT,
-    render: (bufferText) => highlightAnsi(bufferText, builtinNames),
+    render: (bufferText) => highlightAnsi(bufferText, rootVerbNames),
     columns: () => terminal.columns || 80
   });
 
@@ -116,7 +116,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
       }
 
       const cellEntry = await session.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
-      await writeCellOutcome(cellEntry, builtinNames, writeOutput, budget);
+      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, budget);
       lineEditor.prompt();
     }
   });
@@ -126,8 +126,8 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 // caller asked for, what does not fit given way to markers that read it, on
 // stdout: a failed cell, one that does not parse among them with its caret
 // where the alert shows its line, is an answer as every failure is [D360].
-async function writeCellOutcome(cellEntry, builtinNames, stdoutWrite, budget) {
-  const shown = await elideAnswer(cellEntry.result, budget, cellEntry.envAfterCell);
-  const printed = [await printAnswer(shown, cellEntry.envAfterCell), caretOf(shown)].filter(part => part !== null).join('\n');
-  stdoutWrite(highlightAnsi(printed, builtinNames) + '\n');
+async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, budget) {
+  const shown = await elideAnswer(cellEntry.result, budget, cellEntry.scopeAfterCell);
+  const printed = [await printAnswer(shown, cellEntry.scopeAfterCell), caretOf(shown)].filter(part => part !== null).join('\n');
+  stdoutWrite(highlightAnsi(printed, rootVerbNames) + '\n');
 }

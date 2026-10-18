@@ -14,7 +14,7 @@ function makeCellEntry({ result = null, error = null } = {}) {
     ast: null,
     result,
     error,
-    envAfterCell: new Map()
+    scopeAfterCell: new Map()
   };
 }
 

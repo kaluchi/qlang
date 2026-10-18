@@ -10,7 +10,7 @@
 // reads back as another step, or as no step at all, is refused where it
 // is made.
 
-import { bindPrim } from '../primitives.mjs';
+import { registerPrimitive } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { deepEqual } from '../equality.mjs';
 import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource } from '../quote.mjs';
@@ -41,7 +41,7 @@ function quoteConstructor(payload) {
   return makeQuote(payload);
 }
 
-bindPrim('quote/construct', quoteConstructor);
+registerPrimitive('quote/construct', quoteConstructor);
 
 // The step reads back as itself, or its refusal names the text it
 // printed as. Text that reads as no step at all is refused alike.
@@ -85,17 +85,17 @@ function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBac
   };
 }
 
-bindPrim('call/construct', recordConstructor(CALL_TAG,
+registerPrimitive('call/construct', recordConstructor(CALL_TAG,
   { name: isKeyword, modifiers: vecOf(isElementStep) }, ['name'],
   declareRefusal('call/PayloadNotSchemaError'),
   declareRefusal('call/ReadBackDiffersError')));
 
-bindPrim('bind/construct', recordConstructor(BIND_TAG,
+registerPrimitive('bind/construct', recordConstructor(BIND_TAG,
   { name: isKeyword, docs: vecOf(isDoc), body: isBodyStep }, ['name'],
   declareRefusal('bind/PayloadNotSchemaError'),
   declareRefusal('bind/ReadBackDiffersError')));
 
-bindPrim('construct/construct', recordConstructor(CONSTRUCT_TAG,
+registerPrimitive('construct/construct', recordConstructor(CONSTRUCT_TAG,
   { tag: isTag, payload: isElementStep }, ['tag', 'payload'],
   declareRefusal('construct/PayloadNotSchemaError'),
   declareRefusal('construct/ReadBackDiffersError')));
@@ -110,10 +110,10 @@ function wrapperConstructor(tag, PayloadKindNotTakenError, ReadBackDiffersError)
   };
 }
 
-bindPrim('fail/construct', wrapperConstructor(FAIL_TAG,
+registerPrimitive('fail/construct', wrapperConstructor(FAIL_TAG,
   declareRefusal('fail/PayloadKindNotTakenError'),
   declareRefusal('fail/ReadBackDiffersError')));
 
-bindPrim('group/construct', wrapperConstructor(GROUP_TAG,
+registerPrimitive('group/construct', wrapperConstructor(GROUP_TAG,
   declareRefusal('group/PayloadKindNotTakenError'),
   declareRefusal('group/ReadBackDiffersError')));

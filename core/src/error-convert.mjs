@@ -4,8 +4,8 @@ import { namesDeclaredUnder } from './runtime/nouns.mjs';
 import { deepEqual } from './equality.mjs';
 import { nameOfContinuation } from './parse.mjs';
 
-// The reading of text into code refuses on `::quote`, and an
-// implementation of a host that fails in a call on `::call` [QSERR#site].
+// The reading of text into code refuses on `::quote`, and a primitive that
+// fails in a call on `::call` [D361].
 recordRefusal('quote/ParseError');
 recordRefusal('call/HostFailureError');
 
@@ -68,7 +68,8 @@ export function errorFromQlang(qlangError, subject, env) {
 }
 
 // The error of a text the parser refused: the line where it stopped, what it
-// wanted there and the span of the place, in the order its label declares [D360].
+// wanted there, the span of the place and where the text came from, in the
+// order its label declares [D360], [D361].
 export function errorFromParse(parseError, env, uri = parseError.uri) {
   const d = new Map();
   if (parseError.source != null && parseError.location) d.set('source', parseError.source.split('\n')[parseError.location.start.line - 1]);
@@ -80,7 +81,7 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
   else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', spanOfLocation(parseError.location, parseError.source));
-  if (uri) d.set('uri', uri);
+  if (uri) d.set('origin', keyword(uri));
   const tag = makeTag('quote/ParseError');
   return makeErrorValue(tag, factsInOrder(tag, d, env), {
     location: parseError.location,
@@ -110,9 +111,9 @@ function liftExpectedAlternative(alt) {
 // The failures beneath a host's failure that its facts recount.
 const CAUSES_RECOUNTED = 8;
 
-// A JavaScript error escaping an implementation is a failure of the
-// host: a tag of the language, its account and the accounts of the failures
-// beneath it [D359]. The step that failed stands in the trace; the stack, the
+// A JavaScript error escaping a primitive is a failure of the host: a tag of
+// the language, its account and the accounts of the failures beneath it
+// [D359]. The step that failed stands in the trace; the stack, the
 // class and the fields of the error stay with the host in `originalError`,
 // and a host that has facts to hand declares a refusal of its own.
 export function errorFromForeign(jsError, node, env) {

@@ -43,14 +43,14 @@ function variantOf(law) {
   return variant;
 }
 
-const env = await langRuntime();
+const scope = await langRuntime();
 const counts = { variants: 0, values: 0, unparsed: 0 };
 
 // What a variant breaks, or null; an answer that holds an elision stays
 // out of the reading back, since its print writes a cut.
 async function breakOf(text) {
   try {
-    const answer = await evalQuery(text, env);
+    const answer = await evalQuery(text, scope);
     if (isErrorValue(answer)) {
       if (answer.tag.name === 'quote/ParseError') counts.unparsed++;
       return answer.tag.name === 'call/HostFailureError' ? `a host's failure: ${answer.descriptor.get('message')}` : null;
@@ -58,7 +58,7 @@ async function breakOf(text) {
     counts.values++;
     const printed = printValue(answer);
     if (printed.includes('::elision')) return null;
-    return deepEqual(answer, await evalQuery(printed, env)) ? null : `reads back as another value: ${printed.slice(0, 80)}`;
+    return deepEqual(answer, await evalQuery(printed, scope)) ? null : `reads back as another value: ${printed.slice(0, 80)}`;
   } catch (thrown) {
     return `threw: ${String(thrown?.message ?? thrown).slice(0, 120)}`;
   }
@@ -68,8 +68,8 @@ async function breakOf(text) {
 // that compares its answer left off, so a variant answers the value the
 // law reaches.
 const laws = [];
-for (const name of env.get(ROOT_KEY).keys()) {
-  const quotes = await evalQuery(`::${name} | laws | entries | map ~(get /1 | get /1 | print)`, env);
+for (const name of scope.get(ROOT_KEY).keys()) {
+  const quotes = await evalQuery(`::${name} | laws | entries | map ~(get /1 | get /1 | print)`, scope);
   if (Array.isArray(quotes)) for (const quote of quotes) laws.push(quote.slice(2, -1).replace(/\s+\|\s+eq\s[^|]*$/, ''));
 }
 

@@ -439,13 +439,13 @@
         ~~|
     | throws :CountTooLargeError
         |~~ The count of `range` is no longer than the length a vector of
-            the host may have, which `:longest` names: a count past it
+            the engine may have, which `:longest` names: a count past it
             makes no vector, and the call has no repair but a count within
             it.
         ~~|
     | carries :CountTooLargeError/longest
-        |~~ The length a vector of the host may have, the count past which
-            `range` makes none.
+        |~~ The length a vector of the engine may have, the count past
+            which `range` makes none.
         ~~|
         ::number
     | throws :SubjectNotNumberError

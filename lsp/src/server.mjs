@@ -5,8 +5,6 @@
 // answers each request of the protocol by the functions of features.mjs.
 
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 import {
   createConnection,
   TextDocuments,
@@ -45,37 +43,31 @@ const documentStates = new Map();
 //
 // Every source of the language takes part in goto-definition: its
 // declarations merge into one `address → { uri, source, range }` table,
-// and the runtime answers the address a bare name reaches, so `count`
-// and `::number/add/SubjectNotNumberError` resolve through one lookup.
+// and the scope of the root answers the address a bare name reaches, so
+// `count` and `::number/add/SubjectNotNumberError` resolve through one lookup.
 
 let catalogCtx = null;
 
 async function loadCatalogContext() {
-  // `lsp/` and `core/` are sibling workspaces, so the sources sit under
-  // `core/lib/`, two folders up from `lsp/src/`.
-  const lspSrcDir = dirname(fileURLToPath(import.meta.url));
-  const libDir = join(lspSrcDir, '..', '..', 'core', 'lib');
-
-  // The sources of the language, `lib/<uri>.qlang` as `package.json#imports`
-  // maps each [QSDSP#residence]; the resolved file URI lets goto-definition
-  // return absolute locations the editor can open.
-  const sources = LANGUAGE_SOURCES.map(uri => ({ path: join(libDir, `${uri}.qlang`), uri }));
+  // The file of each source of the language where the core's package exports
+  // it, `@kaluchi/qlang-core/lib/<uri>.qlang`, resolved from the server's own
+  // dependency, its URL the location goto-definition returns [D361].
+  const sources = LANGUAGE_SOURCES.map(uri => ({ fileUri: import.meta.resolve(`@kaluchi/qlang-core/lib/${uri}.qlang`), uri }));
 
   const mergedIndex = new Map();
-  for (const { path, uri } of sources) {
+  for (const { fileUri, uri } of sources) {
     try {
-      const source = readFileSync(path, 'utf8');
+      const source = readFileSync(new URL(fileUri), 'utf8');
       const ast = parse(source, { uri });
-      const fileUri = 'file:///' + path.replace(/\\/g, '/');
       const entries = buildCatalogIndex(ast);
       for (const [name, range] of entries) {
         mergedIndex.set(name, { ...range, fileUri, source });
       }
     } catch (e) {
-      connection.console.warn(`catalog source ${path} not loaded: ${e.message}`);
+      connection.console.warn(`catalog source ${fileUri} not loaded: ${e.message}`);
     }
   }
-  catalogCtx = mergedIndex.size > 0 ? { index: mergedIndex, runtime: await langRuntime() } : null;
+  catalogCtx = mergedIndex.size > 0 ? { index: mergedIndex, scope: await langRuntime() } : null;
 }
 
 // ── Initialization ────────────────────────────────────────────

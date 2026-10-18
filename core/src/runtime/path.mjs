@@ -4,7 +4,7 @@
 // `segments` and `toPath` turn a path and its keys into each other, JSON
 // Pointer's form read with its escapes [QSPTH].
 
-import { bindPrim, bindStateReader, runs, runsWithin } from '../primitives.mjs';
+import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
 import { layTag } from './verb.mjs';
@@ -68,8 +68,8 @@ async function readParts(subject, templates, soft, fallback, state) {
   return parts;
 }
 
-bindStateReader('any/get', runsWithin(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
-bindStateReader('any/query', runsWithin(['path'], (subject, path, fallback, state) => readByPath(subject, path, true, fallback, state)));
+registerStateReader('any/get', runsWithin(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
+registerStateReader('any/query', runsWithin(['path'], (subject, path, fallback, state) => readByPath(subject, path, true, fallback, state)));
 
 // The subject with the part at a path written: `put` lays a value there,
 // a key the last map lacks added, `update` lays what its code answers for
@@ -116,9 +116,9 @@ async function relaid(original, rebuilt, state) {
 
 const pathOf = pathOrKey => (isPath(pathOrKey) ? pathOrKey : pathOfKey(pathOrKey));
 
-bindStateReader('any/put', (subject, pathOrKey, value, state) =>
+registerStateReader('any/put', (subject, pathOrKey, value, state) =>
   written(subject, pathOf(pathOrKey), 0, { adds: true, removes: false, part: () => value }, state));
-bindStateReader('any/update', runs(['code'], (subject, pathOrKey, code, state) => {
+registerStateReader('any/update', runs(['code'], (subject, pathOrKey, code, state) => {
   const path = pathOf(pathOrKey);
   const part = async old => {
     const answer = await code(old);
@@ -126,7 +126,7 @@ bindStateReader('any/update', runs(['code'], (subject, pathOrKey, code, state) =
   };
   return written(subject, path, 0, { adds: false, removes: false, part }, state);
 }));
-bindStateReader('any/delete', (subject, pathOrKey, state) =>
+registerStateReader('any/delete', (subject, pathOrKey, state) =>
   written(subject, pathOf(pathOrKey), 0, { adds: false, removes: true }, state));
 
 // `has` asks whether a path reads, beside whether a value of any other kind
@@ -146,7 +146,7 @@ const isOpened = (value, top) => (isMap(value) || isVec(value)) && (top || !isTa
 
 // The outline of a value: the pair of the path and the kind of every part
 // that holds no parts, an empty container among them.
-bindPrim('any/paths', subject => {
+registerPrimitive('any/paths', subject => {
   const found = [];
   const walk = (current, segments) => {
     const top = segments.length === 0;
@@ -220,7 +220,7 @@ function foldedOf(value, shapes) {
 }
 
 // The schema stands under `::shape`, whose page tells how a shape reads.
-bindPrim('any/shape', subject => makeTagged(SHAPE_TAG, shapeOf(subject, true)));
+registerPrimitive('any/shape', subject => makeTagged(SHAPE_TAG, shapeOf(subject, true)));
 
 // The marks a shape carries over its core, `::absent` outside, a key some
 // records lack, and `::nullable` within, a part null in some of the data;
@@ -318,13 +318,13 @@ function mergedCore(left, right) {
 
 // The keys and indices of a path, an index as its number and a key as its
 // keyword.
-bindPrim('path/segments', path => Object.freeze(path.segments.map(segment => {
+registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segment => {
   const index = segmentIndex(segment);
   return Number.isNaN(index) || String(index) !== segment ? keyword(segment) : index;
 })));
 
 // A path names one segment at least, the value itself being `it` [D360].
-bindPrim('vec/toPath', keys => {
+registerPrimitive('vec/toPath', keys => {
   if (keys.length === 0) throw new VecToPathSubjectEmptyError({ actualValue: keys });
   return makePath(keys.map((key, index) => {
     if (!isKey(key) || (typeof key === 'number' && !Number.isInteger(key))) {
@@ -336,7 +336,7 @@ bindPrim('vec/toPath', keys => {
 
 // A string in JSON Pointer's form, a fragment's `#` before it read too,
 // `~1` a slash and `~0` a tilde within a segment.
-bindPrim('string/toPath', text => {
+registerPrimitive('string/toPath', text => {
   const pointer = text.startsWith('#') ? text.slice(1) : text;
   if (!pointer.startsWith('/')) throw new StringToPathNotPointerError({ actualValue: text });
   return makePath(pointer.slice(1).split('/').map(segment => segment.replace(/~1/g, '/').replace(/~0/g, '~')));

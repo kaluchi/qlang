@@ -56,7 +56,7 @@ describe('the limit of the evaluation depth — host seams', () => {
   it('runLaws evaluates each example one deeper than the step, so an example running its own examples terminates', async () => {
     // Example outcomes are data: every depth that ran its example
     // answers `:ok` for it, and the depth error sits at the depth the
-    // limit refused. The host-bound tally counts the depths whose
+    // limit refused. The host's tally counts the depths whose
     // `runLaws` step returned — the root and every depth below it up to
     // the limit; the `runLaws` step at the depth refused answers the
     // failure, which skips the tally.
@@ -65,7 +65,7 @@ describe('the limit of the evaluation depth — host seams', () => {
       sources: [{
         uri: 'tests/tally',
         source: ':any/tallyDepth ::builtin{}',
-        impls: { 'any/tallyDepth': subject => { depthTally++; return subject; } }
+        primitives: { 'any/tallyDepth': subject => { depthTally++; return subject; } }
       }]
     });
     const cellEntry = await sessionInstance.evalCell(

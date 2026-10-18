@@ -18,7 +18,7 @@
 {"name":"a-set-written-with-braces-names-its-brackets","query":"\"#{1}\" | parse !| get /message | contains \"#[\"","expect":"true"}
 {"name":"a-quote-written-with-braces-names-its-parentheses","query":"\"~{/age | doc}\" | parse !| get /message","expect":"\"a quote is written `~(…)`, its code in parentheses; `{…}` is a map and `[…]` a vector\""}
 {"name":"a-comma-between-modifiers-is-refused-naming-the-space","query":"\"5 | add 1, 2\" | parse !| get /message","expect":"\"modifiers are separated by spaces, not by commas: `f a b`\""}
-{"decision":"D360","name":"a-set-written-with-braces-is-refused-as-the-grammar-writes-a-refusal","query":"\"#{1}\" | parse !| get [~(keys) ~(get /location | start | column)]","expect":"[#[:location :message :source :trace :uri] 1]"}
+{"decision":"D361","name":"a-set-written-with-braces-is-refused-as-the-grammar-writes-a-refusal","query":"\"#{1}\" | parse !| get [~(keys) ~(get /location | start | column)]","expect":"[#[:location :message :origin :source :trace] 1]"}
 {"name":"a-refusal-the-grammar-writes-stands-before-a-pipe-the-source-ends-with","query":"\"[x] | \" | parse !| get /message | contains \"a literal computes nothing\"","expect":"true"}
 {"name":"a-segment-begun-and-left-open-keeps-the-continuations-of-its-quote","query":"\"get /\\\"a b\" | parse !| get /expected","expect":"[:any-character \"\\\\\" \"\\\"\"]"}
 {"decision":"D360","name":"a-segment-begun-by-a-colon-and-left-open-keeps-its-continuations","query":"\"get /:\" | parse !| get /expected","expect":"[:name]"}

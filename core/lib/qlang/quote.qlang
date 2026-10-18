@@ -94,9 +94,11 @@
     | carries :ParseError/location
         |~~ The span of the text where the reading stopped. ~~|
         ::span
-    | carries :ParseError/uri
-        |~~ The source the text came from. ~~|
-        ::string
+    | carries :ParseError/origin
+        |~~ Where the text came from, the source, the cell or the verb that
+            read it.
+        ~~|
+        ::keyword
     | proves :countsItsSteps
         |~~ A quote of three steps counts three. ~~|
         ~(~(1 | add 1 | mul 2) | count | eq 3)

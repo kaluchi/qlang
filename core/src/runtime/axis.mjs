@@ -5,8 +5,8 @@
 // a keyword among them, the node of the first kind its stack of tags
 // declares. Each axis projects a field of the record:
 //
-// `source`   the quote of the declaring step, null for a node a chain
-//            lays and a binding no step declared, a value a host bound.
+// `source`   the quote of the declaring step, null for a binding no
+//            declaration wrote, a node a chain lays among them [D361].
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [QSSLF#axis].
 // `binding`  the record itself, `::binding` with its name, docs, value,
@@ -17,7 +17,7 @@
 // verb among them, `::vec/take | doc :count`, and for any other subject the
 // verb of that name it calls, `[1 2] | doc :count` the page of `::vec/count`.
 
-import { bindStateReader } from '../primitives.mjs';
+import { registerStateReader } from '../primitives.mjs';
 import {
   isKeyword, isTag, isBinding, isNull, isSet, isVec, keyword, typeOf, makeTagged,
   makeTag, makeQuote, makeDoc, payloadBeneath, NULL
@@ -47,8 +47,7 @@ function refusalOf(env, subject) {
 // The record a subject names, the one record every axis and `runLaws` read: a
 // name by its tag, the address of its node, null where nothing declares it,
 // and any other value, a keyword among them, by its kind [QSLIT#keyword]; a
-// value a host bound under a name is no record, and a tag of a value withheld
-// from held code is refused [QSQUO#held].
+// tag of a value withheld from held code is refused [QSQUO#held].
 function declaringRecordOf(env, subject) {
   if (isBinding(subject)) return subject;
   if (isTag(subject)) {
@@ -107,13 +106,13 @@ export function recordReadBy(subject, anchor, state, NotFoundError) {
   return record;
 }
 
-bindStateReader('any/binding', (subject, anchor, state) =>
+registerStateReader('any/binding', (subject, anchor, state) =>
   recordReadBy(subject, anchor, state, AnyBindingUnknownNameError));
 // The source of a record and of every declaration under its address,
 // one quote of their steps in the order they were written, what stands
-// under the address read at once; a value a host bound wrote none
-// [QSSLF#catalog].
-bindStateReader('any/source', (subject, anchor, state) => {
+// under the address read at once; a binding no declaration wrote holds
+// none [QSSLF#catalog], [D361].
+registerStateReader('any/source', (subject, anchor, state) => {
   const record = recordReadBy(subject, anchor, state, AnySourceUnknownNameError);
   const written = [record, ...declarationsUnder(state.env, record.get('name').name)].filter(declared => declared.get('source') !== null);
   return written.length === 0 ? NULL : makeQuote(written.flatMap(declared => [...declared.get('source')]));
@@ -151,7 +150,7 @@ const pageAt = (subject, anchor, state) => pageOfRecord(recordOfAnchors(subject,
 
 // A set of anchors reads a page at each, in the order of the set, an
 // element that is no anchor and no vector of them refused at its index.
-bindStateReader('any/doc', (subject, anchor, state) => {
+registerStateReader('any/doc', (subject, anchor, state) => {
   if (!isSet(anchor)) return pageAt(subject, anchor, state);
   const stranger = anchor.findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
   if (stranger >= 0) throw new AnyDocAnchorElementNotKeywordError({ index: stranger, actualValue: anchor[stranger] });
@@ -163,7 +162,7 @@ bindStateReader('any/doc', (subject, anchor, state) => {
 // `!|` caught it [QSERR#catch], so an explanation prints as the page above what
 // it explains [QSSLF#explain].
 const EXPLANATION_TAG = makeTag('explanation');
-bindStateReader('any/explain', (subject, state) => {
+registerStateReader('any/explain', (subject, state) => {
   const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainUnknownNameError));
   return makeTagged(EXPLANATION_TAG, new Map([['page', page], ['value', subject]]));
 });

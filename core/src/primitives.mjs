@@ -1,53 +1,61 @@
-// The implementations of the language by the address of the verb or the kind
-// each serves, `number/add`, `vec` [QSDSP#residence]: each runtime module
-// binds its own as it loads, the bootstrap hands each source of the language
-// those under its noun as a host hands its own, and seals the table.
+// The primitives of the language by the address of the verb or the kind each
+// serves, `number/add`, `vec` [QSDSP#residence]: each module of the runtime
+// registers its own as it loads, and the bootstrap hands each source of the
+// language those under its noun as a host hands its own and seals the table
+// [D361].
 
 import { declareInvariantError } from './errors.mjs';
 import { splitAddress } from './address.mjs';
+import { accountOfForeign } from './types.mjs';
 
 const BuiltinAddressNotStringError = declareInvariantError(
   'builtin/AddressNotStringError',
-  ({ actualType }) => `bind: an address must be a string, got ${actualType}`);
+  ({ actualValue }) => `register: an address must be a string, got ${actualValue}`);
 
-const BuiltinAddressBoundTwiceError = declareInvariantError(
-  'builtin/AddressBoundTwiceError',
-  ({ address }) => `bind: ${address} is already bound; two runtime modules claim the same address`);
+const BuiltinAddressRegisteredTwiceError = declareInvariantError(
+  'builtin/AddressRegisteredTwiceError',
+  ({ address }) => `register: ${address} is already registered; two runtime modules claim the same address`);
 
 const BuiltinTableSealedError = declareInvariantError(
   'builtin/TableSealedError',
-  ({ address }) => `bind: the table is sealed; cannot bind ${address} after the bootstrap`);
+  ({ address }) => `register: the table is sealed; cannot register ${address} after the bootstrap`);
 
 // createPrimitiveRegistry() → a table of its own, for a test.
 export function createPrimitiveRegistry() {
-  const bindings = new Map();
+  const primitives = new Map();
+  const registered = new WeakSet();
   let sealed = false;
 
   return {
-    bind(key, impl) {
+    register(address, primitive) {
       if (sealed) {
-        throw new BuiltinTableSealedError({ address: key });
+        throw new BuiltinTableSealedError({ address });
       }
-      if (typeof key !== 'string') {
-        throw new BuiltinAddressNotStringError({ actualType: typeof key });
+      if (typeof address !== 'string') {
+        throw new BuiltinAddressNotStringError({ actualValue: accountOfForeign(address) });
       }
-      if (bindings.has(key)) {
-        throw new BuiltinAddressBoundTwiceError({ address: key });
+      if (primitives.has(address)) {
+        throw new BuiltinAddressRegisteredTwiceError({ address });
       }
-      bindings.set(key, impl);
-      return key;
+      primitives.set(address, primitive);
+      registered.add(primitive);
+      return address;
     },
 
-    has(key) {
-      return bindings.has(key);
+    has(address) {
+      return primitives.has(address);
     },
 
-    // The implementations under a noun, by address, each a name under
-    // one.
-    implsUnder(nounName) {
+    // Whether the table holds a primitive, one of the core's own.
+    holds(primitive) {
+      return registered.has(primitive);
+    },
+
+    // The primitives under a noun, by address, each a name under one.
+    primitivesUnder(nounName) {
       const under = {};
-      for (const [address, impl] of bindings) {
-        if (splitAddress(address)[0] === nounName) under[address] = impl;
+      for (const [address, primitive] of primitives) {
+        if (splitAddress(address)[0] === nounName) under[address] = primitive;
       }
       return under;
     },
@@ -61,36 +69,35 @@ export function createPrimitiveRegistry() {
     },
 
     get size() {
-      return bindings.size;
+      return primitives.size;
     }
   };
 }
 
-// The table every runtime module binds into.
+// The table every module of the runtime registers into.
 export const PRIMITIVE_REGISTRY = createPrimitiveRegistry();
 
-// bindPrim(addresses, impl) — binds an implementation under the address
-// of each verb or kind it serves, one or several.
-export function bindPrim(addresses, impl) {
-  for (const address of [addresses].flat()) PRIMITIVE_REGISTRY.bind(address, impl);
+// registerPrimitive(addresses, primitive) — registers a primitive under the
+// address of each verb or kind it serves, one or several.
+export function registerPrimitive(addresses, primitive) {
+  for (const address of [addresses].flat()) PRIMITIVE_REGISTRY.register(address, primitive);
 }
 
-// A primitive that reads the scope of its call takes the state of the call
-// after its values [QSDSP#residence]; every other primitive is a plain
-// function over the values of the inputs of the call [QSBLD#fn].
+// A primitive that reads the state of its call takes it after the values of
+// its inputs [QSDSP#residence], and every other takes the values alone [D361].
 const STATE_READERS = new WeakSet();
 
-export function readingState(impl) {
-  STATE_READERS.add(impl);
-  return impl;
+export function readingState(primitive) {
+  STATE_READERS.add(primitive);
+  return primitive;
 }
 
-export function bindStateReader(addresses, impl) {
-  bindPrim(addresses, readingState(impl));
+export function registerStateReader(addresses, primitive) {
+  registerPrimitive(addresses, readingState(primitive));
 }
 
-export function readsState(impl) {
-  return STATE_READERS.has(impl);
+export function readsState(primitive) {
+  return STATE_READERS.has(primitive);
 }
 
 // A primitive whose answer names the tags its subject stood beneath takes
@@ -98,41 +105,40 @@ export function readsState(impl) {
 // values [QSDSP#walk]: `raise` names its error by the outermost [QSERR#raise].
 const READERS_OF_PASSED_TAGS = new WeakSet();
 
-export function bindReaderOfPassedTags(addresses, impl) {
-  READERS_OF_PASSED_TAGS.add(impl);
-  bindPrim(addresses, impl);
+export function registerReaderOfPassedTags(addresses, primitive) {
+  READERS_OF_PASSED_TAGS.add(primitive);
+  registerPrimitive(addresses, primitive);
 }
 
-export function readsPassedTags(impl) {
-  return READERS_OF_PASSED_TAGS.has(impl);
+export function readsPassedTags(primitive) {
+  return READERS_OF_PASSED_TAGS.has(primitive);
 }
 
-// runs(names, impl) → the primitive, which runs the inputs of those names
-// as code [QSHST#source]: its call hands each as code closed at the call, each
-// element of one that holds the args of the call whole, and any other
-// value as it is.
+// runs(names, primitive) → the primitive, which runs the inputs of those
+// names as code [D361]: its call hands each as code closed at the call, each
+// element of one that holds the args of the call whole, and any other value
+// as it is.
 const INPUTS_RUN = new WeakMap();
 
-export function runs(names, impl) {
-  INPUTS_RUN.set(impl, new Set(names));
-  return impl;
+export function runs(names, primitive) {
+  INPUTS_RUN.set(primitive, new Set(names));
+  return primitive;
 }
 
-export function inputsRunBy(impl) {
-  return INPUTS_RUN.get(impl);
+export function inputsRunBy(primitive) {
+  return INPUTS_RUN.get(primitive);
 }
 
-// runsWithin(names, impl) → the primitive, which runs the quotes a template
-// of those inputs holds, at any depth of it, as code closed at the call,
-// its paths and its other values handed as they are [QSPTH#template].
+// runsWithin(names, primitive) → the primitive, which runs the quotes a
+// template of those inputs holds, at any depth of it, as code closed at the
+// call, its paths and its other values handed as they are [QSPTH#template].
 const INPUTS_RUN_WITHIN = new WeakMap();
 
-export function runsWithin(names, impl) {
-  INPUTS_RUN_WITHIN.set(impl, new Set(names));
-  return impl;
+export function runsWithin(names, primitive) {
+  INPUTS_RUN_WITHIN.set(primitive, new Set(names));
+  return primitive;
 }
 
-export function inputsRunWithin(impl) {
-  return INPUTS_RUN_WITHIN.get(impl);
+export function inputsRunWithin(primitive) {
+  return INPUTS_RUN_WITHIN.get(primitive);
 }
-

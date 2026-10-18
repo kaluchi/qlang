@@ -1,7 +1,7 @@
 {
   "name": "@kaluchi/qlang-lsp",
   "version": "0.1.0-alpha",
-  "description": "Language server for the qlang query language",
+  "description": "Language server for the qlang pipeline query language",
   "type": "module",
   "main": "src/server.mjs",
   "scripts": {

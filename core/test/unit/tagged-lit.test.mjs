@@ -54,7 +54,7 @@ describe('a kind whose construct is a primitive of the host', () => {
   it('puts a payload under the tag through the constructor its host hands [QSDSP#walk]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
-      sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', impls: { 'myType/construct': payload => payload * 2 } }]
+      sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', primitives: { 'myType/construct': payload => payload * 2 } }]
     });
     expect((await sessionInstance.evalCell('::myType#4 | get [~(type) ~(payload)]')).result).toEqual([makeTag('myType'), 8]);
   });

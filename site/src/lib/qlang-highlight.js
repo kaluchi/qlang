@@ -6,14 +6,14 @@
 // browser.
 //
 // Usage:
-//   highlightQlang(src, builtins) → HTML string
+//   highlightQlang(src, verbNames) → HTML string
 //
-//     `src`      qlang source text, no prompt prefix or result lines
-//     `builtins` Set<string> of the names of verbs that resolve through
-//                langRuntime — the playground builds this once at
-//                startup and reuses it across every highlighted
-//                snippet. Pass null to paint the name of every call
-//                as a reader's name.
+//     `src`       qlang source text, no prompt prefix or result lines
+//     `verbNames` Set<string> of the names of verbs that resolve through
+//                 langRuntime — the playground builds this once at
+//                 startup and reuses it across every highlighted
+//                 snippet. Pass null to paint the name of every call
+//                 as a reader's name.
 // The rules it holds: [QSWRK#tooling].
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';
@@ -41,8 +41,8 @@ const KIND_TO_CLASS = {
   punct:    'punct'
 };
 
-export function highlightQlang(src, builtins) {
-  const tokens = tokenize(src, builtins ?? new Set());
+export function highlightQlang(src, verbNames) {
+  const tokens = tokenize(src, verbNames ?? new Set());
   let out = '';
   for (const { start, end, kind, italic } of tokens) {
     const slice = src.slice(start, end);

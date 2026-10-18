@@ -1,4 +1,4 @@
-// PEG grammar for the qlang expression language.
+// PEG grammar for the qlang pipeline query language.
 //
 // A step is a command, a name followed by its modifiers, each one word
 // [QSSYN#step]. A line break is whitespace, and around a declaration it tells

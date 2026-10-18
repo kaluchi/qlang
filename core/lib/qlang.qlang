@@ -4,10 +4,10 @@
    The rules it holds: [QSDSP#residence], [QSSLF#page]. ~|
 
 :qlang
-  |~~ qlang is a pipeline language over values. A query starts from a
-      subject, the value it is given, and passes it through steps: each
-      step takes the value the step before answered and answers a new
-      one, and the last answer is the answer of the query. Nothing
+  |~~ qlang is a pipeline query language over values. A query starts
+      from a subject, the value it is given, and passes it through steps:
+      each step takes the value the step before answered and answers a
+      new one, and the last answer is the answer of the query. Nothing
       changes in place. Everything the language handles is a value with
       a literal that prints and reads back as itself, data, code, prose
       and failures alike, so the language describes itself in its own

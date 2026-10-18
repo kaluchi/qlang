@@ -50,13 +50,13 @@ describe('a verb as the tooling reads it', () => {
   it('reads the kinds of an answer its returns names as a set [QSBLD#fn]', async () => {
     const session = await createSession();
     await session.evalCell(':Box |~~ A box. ~~| | :Box/f (::fn | returns |~~ The value. ~~| #[::number ::string] | impl ~(eq 1))');
-    expect(answerKindsOf(session.env, nodeOf(session.env, 'Box/f'), ['Box'])).toEqual(['number', 'string']);
+    expect(answerKindsOf(session.scope, nodeOf(session.scope, 'Box/f'), ['Box'])).toEqual(['number', 'string']);
   });
 
   it('shows a verb written as its recipe alone, the function of no commands it is, with no inputs [QSHST#tools]', async () => {
     const session = await createSession();
     await session.evalCell(':number/double ~(mul 2)');
-    expect(shownFor(session.env, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
+    expect(shownFor(session.scope, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
   });
 });
 

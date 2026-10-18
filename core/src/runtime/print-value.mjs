@@ -15,17 +15,15 @@ import {
   ELISION_TAG,
   ERROR_TAG,
   formOf,
-  finiteNumberOrLift,
+  refuseForeign,
   TAG_HEADER_SYMBOL,
   canonicalKeywordLiteral
 } from '../types.mjs';
 
-// `dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs)`: the
-// handler of the value's form, `formOf`, which the views of `format.mjs`
-// share.
-export function dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs) {
-  const handler = handlers[formOf(pipeValue)];
-  return handler ? handler(pipeValue, ...extraArgs) : fallback(pipeValue, ...extraArgs);
+// `dispatchQlangValue(pipeValue, handlers, ...extraArgs)`: the handler of the
+// value's form, `formOf`, which the views of `format.mjs` share.
+export function dispatchQlangValue(pipeValue, handlers, ...extraArgs) {
+  return handlers[formOf(pipeValue)](pipeValue, ...extraArgs);
 }
 
 function escapeQlangStringLiteral(s) {
@@ -59,11 +57,11 @@ function printPathSegment(segment, afterSlashedKey) {
 
 // A value under a tag writes its tag before its payload, a descriptor's
 // `::builtin` among them [QSPRN#print]; the set, the quote, the doc and the
-// error write their own brackets.
+// error write their own brackets, and a number past the doubles is raised [D361].
 const PRINT_HANDLERS = {
   null:    () => 'null',
   boolean: v => String(v),
-  number:  v => String(finiteNumberOrLift(v)),
+  number:  v => (Number.isFinite(v) ? String(v) : refuseForeign(v)),
   string:  escapeQlangStringLiteral,
   keyword: literalOfKeyword,
   tag:     literalOfKeyword,
@@ -94,14 +92,7 @@ const printedByNoKind = () => undefined;
 export function printValue(v, indent = 0, printedOf = printedByNoKind, oneLine = false) {
   const printed = printedOf(v);
   if (printed !== undefined) return printed.split('\n').join('\n' + '  '.repeat(indent));
-  return dispatchQlangValue(v, PRINT_HANDLERS, printFallback, indent, printedOf, oneLine);
-}
-
-// A function a host bound in the environment prints as a string that
-// names it.
-function printFallback(v) {
-  if (typeof v === 'function') return escapeQlangStringLiteral(`<host-fn ${v.name}>`);
-  return String(v);
+  return dispatchQlangValue(v, PRINT_HANDLERS, indent, printedOf, oneLine);
 }
 
 // A vector or a set stands on one line unless a part takes several, and

@@ -2,7 +2,7 @@
 // track as an error [QSERR#raise].
 
 import { makeErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { bindReaderOfPassedTags, readingState } from '../primitives.mjs';
+import { registerReaderOfPassedTags, readingState } from '../primitives.mjs';
 import { resumingItsTrace } from '../eval-trace.mjs';
 import { factsWithTheirTrace } from '../eval.mjs';
 
@@ -19,4 +19,4 @@ async function raisedFrom(sourceMap, passedTags, state) {
   return facts.has('trace') ? resumingItsTrace(raised) : raised;
 }
 
-bindReaderOfPassedTags('map/raise', readingState(raisedFrom));
+registerReaderOfPassedTags('map/raise', readingState(raisedFrom));

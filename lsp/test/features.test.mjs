@@ -44,20 +44,20 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('manifest');
   });
 
-  it('returns more than 60 builtin completions', async () => {
+  it('returns the names of more than 60 verbs of the language', async () => {
     const { ast } = parseDocument('', 'test.qlang');
     const items = await completionsAtOffset(ast, 0);
     expect(items.length).toBeGreaterThan(60);
   });
 
-  it('builtins have function kind', async () => {
+  it('a verb of the language completes as a function', async () => {
     const { ast } = parseDocument('', 'test.qlang');
     const items = await completionsAtOffset(ast, 0);
     const countItem = items.find(i => i.label === 'count');
     expect(countItem.kind).toBe('function');
   });
 
-  it('builtins have documentation from manifest', async () => {
+  it('a verb of the language completes with the documentation of its page', async () => {
     const { ast } = parseDocument('', 'test.qlang');
     const items = await completionsAtOffset(ast, 0);
     const countItem = items.find(i => i.label === 'count');
@@ -332,7 +332,7 @@ describe('hoverAtOffset', () => {
 // A catalog context for definition fallback tests, in the shape of a
 // source of the language: a contract under `::any` and verbs under a
 // kind, each a declaration `buildCatalogIndex` records by its span, and
-// the runtime that answers what a bare name reaches. The server merges
+// the scope of the root that answers what a bare name reaches. The server merges
 // each catalog file's source and URI onto every index entry so the goto
 // handler resolves offsets without re-reading the source — the test
 // mirror does the same.
@@ -346,7 +346,7 @@ for (const [name, range] of buildCatalogIndex(catalogAst)) {
     source: catalogSrc
   });
 }
-const testCatalogCtx = { index: testCatalogIndex, runtime: await langRuntime() };
+const testCatalogCtx = { index: testCatalogIndex, scope: await langRuntime() };
 
 describe('definitionAtOffset', () => {
   it('jumps from the use site of a verb to its declaration under a label', () => {
@@ -402,14 +402,14 @@ describe('definitionAtOffset', () => {
     expect(def.startOffset).toBe(catalogSrc.indexOf(':number/add'));
   });
 
-  it('returns null without catalog context for builtins', () => {
+  it('returns null for a verb of the language without a catalog context', () => {
     const src = '[1 2 3] | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.indexOf('count'));
     expect(def).toBeNull();
   });
 
-  it('in-document BindStep shadows builtin — jumps to BindStep, not catalog', () => {
+  it('a declaration of the document shadows a verb of the language — jumps to the declaration, not the catalog', () => {
     const src = ':count 42 | count';
     const { ast } = parseDocument(src, 'test.qlang');
     const def = definitionAtOffset(ast, src.lastIndexOf('count'), testCatalogCtx);

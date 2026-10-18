@@ -25,7 +25,7 @@ describe('the refusals a kind raises by rule [QSBLD#kind]', () => {
       '    | reads :tags |~~ The tags. ~~| ~(query /tags []) [::keyword]',
       '    | reads :note |~~ A note. ~~| /note'
     ].join('\n'));
-    expect(ruleRefusalsOf(own.env, 'Box')).toEqual([
+    expect(ruleRefusalsOf(own.scope, 'Box')).toEqual([
       'Box/PayloadKindNotTakenError',
       'Box/w/NotGivenError',
       'Box/w/KindNotTakenError',
@@ -39,14 +39,14 @@ describe('the refusals a kind raises by rule [QSBLD#kind]', () => {
   it('names a payload that is no vector where it names the kinds of each element', async () => {
     const own = await createSession();
     await own.evalCell(':Nums\n  |~~ Numbers. ~~|\n  ::kind\n    | wraps |~~ The numbers. ~~| [::number]');
-    expect(ruleRefusalsOf(own.env, 'Nums')).toEqual(['Nums/PayloadKindNotTakenError', 'Nums/ElementKindNotTakenError']);
+    expect(ruleRefusalsOf(own.scope, 'Nums')).toEqual(['Nums/PayloadKindNotTakenError', 'Nums/ElementKindNotTakenError']);
     expect(printValue((await own.evalCell('::Nums#5 !| type')).result)).toBe('::Nums/PayloadKindNotTakenError');
   });
 
   it('names no refusal of a kind of no payload and no field', async () => {
     const own = await createSession();
     await own.evalCell(':Mark\n  |~~ A mark. ~~|\n  ::kind\n    | proves :holds |~~ It holds. ~~| ~(true)');
-    expect(ruleRefusalsOf(own.env, 'Mark')).toEqual([]);
+    expect(ruleRefusalsOf(own.scope, 'Mark')).toEqual([]);
   });
 });
 
@@ -116,7 +116,7 @@ describe('the constructor a host hands a kind', () => {
     const hosted = await createSession({ sources: [{
       uri: 'test/hosted-kind',
       source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :Hk/early ::law~(::Hk#1 | payload | eq 1)',
-      impls: { 'Hk/construct': payload => payload + 1 }
+      primitives: { 'Hk/construct': payload => payload + 1 }
     }] });
     expect(printValue((await hosted.evalCell('::Hk#1 | payload')).result)).toBe('2');
     expect(printValue((await hosted.evalCell('::Hk | runLaws | map /ok')).result)).toBe('[false]');

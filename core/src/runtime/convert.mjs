@@ -1,19 +1,19 @@
 // The verbs that turn a value into another kind, each a verb of the
-// source kind named for the kind it answers, `toNumber`, a plain function
-// over the subject the walk served: a kind answers its own verb as
+// source kind named for the kind it answers, `toNumber`, taking the subject
+// the walk served alone: a kind answers its own verb as
 // itself, and what a verb cannot read whole it refuses under its address
 // [QSCND#convert].
 
 import { keyword, makeTag, makeSet, makeRegex, isKeyword, isTag, isVec, kindsExpected, typeOf } from '../types.mjs';
 import { canonicalFlags, patternProblem, textRefusal } from '../pattern.mjs';
-import { bindPrim } from '../primitives.mjs';
+import { registerPrimitive } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
 import { splitAddress } from '../address.mjs';
 import { parse } from '../parse.mjs';
 
 const textOf = value => (isKeyword(value) || isTag(value) ? value.name : String(value));
-bindPrim(['string/toString', 'number/toString', 'keyword/toString', 'tag/toString', 'boolean/toString'], textOf);
+registerPrimitive(['string/toString', 'number/toString', 'keyword/toString', 'tag/toString', 'boolean/toString'], textOf);
 
 // The kinds a key files under are those `toKeyword` lives on, the set a
 // refusal of a key of another kind holds as `:expected` [QSCND#convert].
@@ -30,7 +30,7 @@ export function keywordFiledFor(value) {
   return isKeyword(value) ? value : keyword(textOf(value));
 }
 
-bindPrim(TO_KEYWORD_ADDRESSES, keywordFiledFor);
+registerPrimitive(TO_KEYWORD_ADDRESSES, keywordFiledFor);
 
 // The node of a literal of the kind a text writes whole, or null.
 function literalWritten(text, nodeType) {
@@ -49,13 +49,13 @@ const numberWritten = text => literalWritten(text, 'NumberLit')?.value ?? null;
 const StringToNumberTextNotNumberError = declareRefusal('string/toNumber/TextNotNumberError');
 const KeywordToNumberNameNotNumberError = declareRefusal('keyword/toNumber/NameNotNumberError');
 
-bindPrim('number/toNumber', number => number);
-bindPrim('string/toNumber', text => {
+registerPrimitive('number/toNumber', number => number);
+registerPrimitive('string/toNumber', text => {
   const number = numberWritten(text);
   if (number === null) throw new StringToNumberTextNotNumberError({ actualValue: text });
   return number;
 });
-bindPrim('keyword/toNumber', key => {
+registerPrimitive('keyword/toNumber', key => {
   const number = numberWritten(key.name);
   if (number === null) throw new KeywordToNumberNameNotNumberError({ actualValue: key });
   return number;
@@ -64,12 +64,12 @@ bindPrim('keyword/toNumber', key => {
 const StringToTagTextNotTagError = declareRefusal('string/toTag/TextNotTagError');
 const KeywordToTagNameNotTagError = declareRefusal('keyword/toTag/NameNotTagError');
 
-bindPrim('tag/toTag', tag => tag);
-bindPrim('string/toTag', text => {
+registerPrimitive('tag/toTag', tag => tag);
+registerPrimitive('string/toTag', text => {
   if (!readsAsBareKeyword(text)) throw new StringToTagTextNotTagError({ actualValue: text });
   return makeTag(text);
 });
-bindPrim('keyword/toTag', key => {
+registerPrimitive('keyword/toTag', key => {
   if (!readsAsBareKeyword(key.name)) throw new KeywordToTagNameNotTagError({ actualValue: key });
   return makeTag(key.name);
 });
@@ -82,13 +82,13 @@ const StringToRegexLiteralNotSourceError = declareRefusal('string/toRegex/Litera
 const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/flags/NotFlagsError');
 
 const RegexToRegexFlagsNotFlagsError = declareRefusal('regex/toRegex/flags/NotFlagsError');
-bindPrim('regex/toRegex', (regex, written) => {
+registerPrimitive('regex/toRegex', (regex, written) => {
   if (written === null) return regex;
   const flags = canonicalFlags(written);
   if (flags === null) throw new RegexToRegexFlagsNotFlagsError({ actualValue: written });
   return makeRegex(regex.source, flags);
 });
-bindPrim('string/toRegex', (text, written) => {
+registerPrimitive('string/toRegex', (text, written) => {
   const flags = canonicalFlags(written ?? '');
   if (flags === null) throw new StringToRegexFlagsNotFlagsError({ actualValue: written });
   if (literalWritten(text, 'RegexLit') !== null) throw new StringToRegexLiteralNotSourceError({ actualValue: text });
@@ -97,9 +97,9 @@ bindPrim('string/toRegex', (text, written) => {
   return makeRegex(text, flags);
 });
 
-bindPrim(['vec/toVec', 'set/toVec'], sequence => Object.freeze([...sequence]));
-bindPrim('set/toSet', set => set);
-bindPrim('vec/toSet', vector => makeSet(vector));
+registerPrimitive(['vec/toVec', 'set/toVec'], sequence => Object.freeze([...sequence]));
+registerPrimitive('set/toSet', set => set);
+registerPrimitive('vec/toSet', vector => makeSet(vector));
 // The map a vector's pairs `[key value]` write, the reverse of `entries`:
 // each key named as `toKeyword` names it, and of two pairs with one key
 // the last holds [QSCND#convert].
@@ -117,5 +117,5 @@ function mapOfPairs(pairs) {
   return built;
 }
 
-bindPrim('map/toMap', map => map);
-bindPrim('vec/toMap', mapOfPairs);
+registerPrimitive('map/toMap', map => map);
+registerPrimitive('vec/toMap', mapOfPairs);

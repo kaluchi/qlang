@@ -3,7 +3,6 @@
 // The rules it holds: [QSWRK#tooling].
 
 const path = require('path');
-const { pathToFileURL } = require('url');
 const { LanguageClient, TransportKind } = require('vscode-languageclient/node');
 
 let client;
@@ -24,14 +23,9 @@ function activate(context) {
   client = new LanguageClient('qlang', 'qlang Language Server', serverOptions, clientOptions);
   client.start();
 
-  // Load qlang parser async — CJS can dynamic-import ESM.
-  // Falls back to regex tokenizer until ready. Path resolves
-  // through the monorepo layout: this file is `vscode/src/
-  // extension.js`, the parser entry sits at `core/src/index.mjs`.
-  const qlangEntry = pathToFileURL(
-    path.resolve(__dirname, '..', '..', 'core', 'src', 'index.mjs')
-  ).href;
-  import(qlangEntry)
+  // The core loads by its name, a dependency of the extension's package,
+  // and the tokenizer of patterns paints until it has loaded [D361].
+  import('@kaluchi/qlang-core')
     .then(m => { qlang = m; })
     .catch(e => console.warn('qlang markdown highlight: parser load failed:', e.message));
 

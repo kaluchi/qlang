@@ -3,7 +3,7 @@
 // primitive reading the state of the call [QSDSP#residence]; the axes of one
 // binding live in `axis.mjs`.
 
-import { bindStateReader } from '../primitives.mjs';
+import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue, bindingValueOf, makeTag, errorAtRest, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { codeOf } from '../eval.mjs';
@@ -15,7 +15,7 @@ import { namesUnder, lawsUnder, rootScopeOf } from './nouns.mjs';
 // `manifest` reads its subject's record as the axes do, a name its own and
 // any other value its kind's [QSSLF#manifest].
 const AnyManifestUnknownNameError = declareRefusal('any/manifest/UnknownNameError');
-bindStateReader('any/manifest', (subject, state) =>
+registerStateReader('any/manifest', (subject, state) =>
   namesUnder(state.env, recordReadBy(subject, NULL, state, AnyManifestUnknownNameError).get('name').name));
 
 // The laws declared under the address of the record a value reads, as
@@ -23,7 +23,7 @@ bindStateReader('any/manifest', (subject, state) =>
 // a law without one, and its query, in the order of their declarations
 // [QSSLF#laws].
 const AnyLawsUnknownNameError = declareRefusal('any/laws/UnknownNameError');
-bindStateReader('any/laws', (subject, state) => {
+registerStateReader('any/laws', (subject, state) => {
   const address = recordReadBy(subject, NULL, state, AnyLawsUnknownNameError).get('name').name;
   return new Map(lawsUnder(state.env, address).map(([lastName, record]) =>
     [lastName, Object.freeze([pageOfRecord(record), bindingValueOf(record).payload])]));
@@ -71,4 +71,4 @@ async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
 }
 
 const AnyRunLawsUnknownNameError = declareRefusal('any/runLaws/UnknownNameError');
-bindStateReader('any/runLaws', (subject, anchor, state) => resultsOfLaws(subject, anchor, state, AnyRunLawsUnknownNameError));
+registerStateReader('any/runLaws', (subject, anchor, state) => resultsOfLaws(subject, anchor, state, AnyRunLawsUnknownNameError));

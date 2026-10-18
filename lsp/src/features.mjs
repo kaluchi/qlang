@@ -36,7 +36,7 @@ const tagNameOf = tag => TAG_SIGIL + tag;
 const isTagName = name => name.startsWith(TAG_SIGIL);
 
 // The prose of a doc, its segments without its quotes [QSSLF#doc], which hover
-// and completion show; a doc the runtime answers is its segments, and a
+// and completion show; a doc the language answers is its segments, and a
 // doc of the document's tree holds them as the parser read them.
 const proseOfSegments = segments => segments.filter(segment => typeof segment === 'string').join('');
 
@@ -137,10 +137,10 @@ export function buildCatalogIndex(catalogAst) {
 // The catalog's declaration of what a name reaches with no subject: the one
 // verb of the name, or of a name several kinds answer the first verb the
 // catalog declares [QSNAM#reach]; for an address the node it names.
-function catalogDeclarationOf({ index, runtime }, name) {
-  const reach = bareNameReach(runtime, name);
+function catalogDeclarationOf({ index, scope }, name) {
+  const reach = bareNameReach(scope, name);
   if (reach !== null) return index.get(reach.record.get('name').name) ?? null;
-  for (const [, record] of residencesOf(runtime, name)) {
+  for (const [, record] of residencesOf(scope, name)) {
     const span = index.get(record.get('name').name);
     if (span !== undefined) return span;
   }
@@ -149,16 +149,16 @@ function catalogDeclarationOf({ index, runtime }, name) {
 
 // ── Completion ────────────────────────────────────────────────
 
-// The names of the runtime, its verbs and its tags, read once.
+// The names of the root, its verbs and its tags, read once.
 let _valueCompletions = null;
 let _tagCompletions = null;
 
 async function nameCompletions() {
   if (_valueCompletions) return _valueCompletions;
-  const runtime = await langRuntime();
+  const scope = await langRuntime();
   _valueCompletions = [];
-  for (const name of verbNames(runtime)) {
-    const item = await verbCompletion(runtime, name, null);
+  for (const name of verbNames(scope)) {
+    const item = await verbCompletion(scope, name, null);
     if (item !== null) _valueCompletions.push(item);
   }
   return _valueCompletions;
@@ -167,8 +167,8 @@ async function nameCompletions() {
 // The completion of a verb as a call of it from a subject of the kinds
 // shows it, or with no kinds, the form of its call and its page; null for
 // a name that reaches no verb.
-async function verbCompletion(runtime, name, kinds) {
-  const shown = shownFor(runtime, name, kinds);
+async function verbCompletion(scope, name, kinds) {
+  const shown = shownFor(scope, name, kinds);
   if (shown === undefined) return null;
   const docContents = await pageContents(shown.address.literal);
   return {
@@ -181,9 +181,9 @@ async function verbCompletion(runtime, name, kinds) {
 
 async function tagCompletions() {
   if (_tagCompletions) return _tagCompletions;
-  const runtime = await langRuntime();
+  const scope = await langRuntime();
   _tagCompletions = [];
-  for (const address of nodeAddresses(runtime)) {
+  for (const address of nodeAddresses(scope)) {
     const label = tagNameOf(address);
     const docContents = await pageContents(label);
     _tagCompletions.push({
@@ -211,10 +211,10 @@ export async function completionsAtOffset(ast, offset, source = null) {
   }
   const subject = typeof source === 'string' ? await subjectAt(source, offset) : null;
   if (subject !== null) {
-    const runtime = await langRuntime();
+    const scope = await langRuntime();
     const verbs = [];
-    for (const name of verbsReaching(runtime, subject.kinds).keys()) {
-      const item = await verbCompletion(runtime, name, subject.kinds);
+    for (const name of verbsReaching(scope, subject.kinds).keys()) {
+      const item = await verbCompletion(scope, name, subject.kinds);
       if (item !== null) verbs.push(item);
     }
     return withDeclaredNames(verbs, subject.pipeline, subject.end, [CALL_SPELLING]);
@@ -300,10 +300,10 @@ async function kindsAfterStep(step, kinds) {
   if (step.type === 'BindStep') return kinds;
   if (step.type === 'ParenGroup') return await kindsOfSteps(stepsOf(step.pipeline), kinds);
   if (step.type !== 'Call' || kinds === null) return null;
-  const runtime = await langRuntime();
-  const reached = verbsReaching(runtime, kinds).get(step.name);
+  const scope = await langRuntime();
+  const reached = verbsReaching(scope, kinds).get(step.name);
   if (reached === undefined) return null;
-  return answerKindsOf(runtime, nodeOf(runtime, reached.address.name), kinds);
+  return answerKindsOf(scope, nodeOf(scope, reached.address.name), kinds);
 }
 
 // ── Hover ─────────────────────────────────────────────────────
@@ -333,12 +333,12 @@ export async function hoverAtOffset(ast, source, offset) {
   return null;
 }
 
-// A call of a verb of the runtime shows the verb its subject reaches,
+// A call of a verb of the root shows the verb its subject reaches,
 // where the steps before it name the kinds of the subject, the form of its
 // call over its page; a verb the document declares shows its doc.
 async function hoverForCall(node, documentAst, source) {
-  const runtime = await langRuntime();
-  const shown = shownFor(runtime, node.name, await subjectKindsAt(source, node.location.start.offset));
+  const scope = await langRuntime();
+  const shown = shownFor(scope, node.name, await subjectKindsAt(source, node.location.start.offset));
   if (shown !== undefined) {
     const docContents = await pageContents(shown.address.literal);
     const prose = tidyProse(docContents.join('\n'));
@@ -387,8 +387,8 @@ function isOnTagHead(node, offset) {
 // The page of a tag a node names or writes, over the span of its head.
 async function hoverForTag(node) {
   const tagKey = tagNameOf(node.tag);
-  const runtime = await langRuntime();
-  if (nodeOf(runtime, node.tag) === null) return null;
+  const scope = await langRuntime();
+  if (nodeOf(scope, node.tag) === null) return null;
 
   const docContents = await pageContents(tagKey);
   const headStart = node.location.start.offset;
@@ -461,12 +461,12 @@ function bodyRuns(body) {
 }
 
 // Whether a declaration of a value declares a verb, by the core's rule: a name
-// the runtime holds as the core answers it, and one of the document as
+// the root holds as the core answers it, and one of the document as
 // `declaresVerb` reads it, a quote or a function with a recipe running where a
-// reader's `::builtin{}` reaches no primitive [QSNAM#verb], [QSHST#source].
-function declaresVerbIn({ key, body }, runtime, isLabelName) {
-  return nodeOf(runtime, key.name) !== null
-    ? isVerb(runtime, key.name)
+// reader's `::builtin{}` reaches no primitive [QSNAM#verb], [D361].
+function declaresVerbIn({ key, body }, scope, isLabelName) {
+  return nodeOf(scope, key.name) !== null
+    ? isVerb(scope, key.name)
     : declaresVerb(key.name, bodyRuns(body), isLabelName);
 }
 
@@ -550,11 +550,11 @@ export function referencesAtOffset(ast, offset) {
 
 // ── Document Symbols ──────────────────────────────────────────
 
-// documentSymbols(ast, runtime) → the declarations of a document, each
+// documentSymbols(ast, scope) → the declarations of a document, each
 // shown as a label, a verb or a value, a label a kind the document declares
-// under a name, by its chain or by its page alone, or one the runtime holds
+// under a name, by its chain or by its page alone, or one the root holds
 // [QSNAM#address].
-export function documentSymbols(ast, runtime) {
+export function documentSymbols(ast, scope) {
   if (!ast) return [];
 
   const labels = new Set();
@@ -562,7 +562,7 @@ export function documentSymbols(ast, runtime) {
     if (node.type === 'DocLit') return false;
     if (node.type === 'BindStep' && bindingDeclarationOf(node).kind === 'tag') labels.add(node.key.name);
   });
-  const isLabelName = name => labels.has(name) || isLabel(runtime, name);
+  const isLabelName = name => labels.has(name) || isLabel(scope, name);
 
   const symbols = [];
   walkAst(ast, (node) => {
@@ -572,7 +572,7 @@ export function documentSymbols(ast, runtime) {
 
     symbols.push({
       name: decl.name,
-      kind: decl.kind === 'value' && declaresVerbIn(node, runtime, isLabelName) ? 'verb' : decl.kind,
+      kind: decl.kind === 'value' && declaresVerbIn(node, scope, isLabelName) ? 'verb' : decl.kind,
       startOffset: node.location.start.offset,
       endOffset: node.location.end.offset
     });
@@ -610,8 +610,8 @@ export async function signatureHelpAtOffset(ast, source, offset) {
   const call = callAround(ast, source, offset);
   if (!call) return null;
 
-  const runtime = await langRuntime();
-  const shown = shownFor(runtime, call.name, await subjectKindsAt(source, call.location.start.offset));
+  const scope = await langRuntime();
+  const shown = shownFor(scope, call.name, await subjectKindsAt(source, call.location.start.offset));
   if (shown === undefined || (call.args.length === 0 && shown.inputs.length === 0)) return null;
 
   const inputs = shown.inputs;
@@ -683,20 +683,19 @@ const KIND_TO_TYPE_INDEX = {
   err:     2
 };
 
-// The names of the runtime, which `tokenize` paints as words.
-let _builtinNamesCache = null;
-async function builtinNamesForTokenize() {
-  if (_builtinNamesCache) return _builtinNamesCache;
-  _builtinNamesCache = verbNames(await langRuntime());
-  return _builtinNamesCache;
+// The verbs of the root, which `tokenize` paints as words.
+let _rootVerbNames = null;
+async function rootVerbNames() {
+  if (_rootVerbNames) return _rootVerbNames;
+  _rootVerbNames = verbNames(await langRuntime());
+  return _rootVerbNames;
 }
 
 // semanticTokensFor(source) → { data: Uint32Array }, five integers per
 // token as the protocol encodes them, a token that spans lines split
 // into one per line.
 export async function semanticTokensFor(source) {
-  const builtinNames = await builtinNamesForTokenize();
-  const tokens = tokenize(source, builtinNames);
+  const tokens = tokenize(source, await rootVerbNames());
   const data = [];
   let prevLine = 0;
   let prevChar = 0;

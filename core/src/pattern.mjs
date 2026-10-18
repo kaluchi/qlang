@@ -1,6 +1,6 @@
-// The patterns of text: a source the engine of the host reads as it is
-// written, in the dialect of ECMAScript of 2018 every engine of the core
-// reads alike, with the flags `i`, `m` and `s`, and always by code points,
+// The patterns of text: a source the engine reads as it is written, in
+// the dialect of ECMAScript of 2018 the engine reads alike on every
+// platform, with the flags `i`, `m` and `s`, and always by code points,
 // as Unicode reads characters.
 // The rules it holds: [QSTXT#pattern].
 

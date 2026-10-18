@@ -1,32 +1,31 @@
-// A session keeps the env its cells write, so a query sees what the
-// cells before it declared [QSNAM#root], [QSDSP#residence].
+// A session keeps the scope its cells write, taking what its host hands by
+// the walk of the door [QSNAM#root], [QSDSP#residence], [D361].
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { rootState } from './state.mjs';
-import { isBinding, keyword, makeBinding } from './types.mjs';
 import { errorFromParse } from './error-convert.mjs';
 import { declareRoot } from './runtime/root.mjs';
+import { takenFromAHost, scopeTakenFromAHost } from './runtime/verb.mjs';
 
 // createSession(opts?) → Session
 //
 // opts:
-//   env     — initial env Map (defaults to a fresh langRuntime())
-//   sources — the host's sources, `{ uri, source, impls? }` in order,
+//   scope   — the scope its first cell reads (defaults to a fresh langRuntime())
+//   sources — the host's sources, `{ uri, source, primitives? }` in order,
 //             which declare the root beside the language's [QSDSP#residence].
 //
 // Returns an object with:
 //   evalCell(source, evalOpts?) — parse and evaluate one cell, the
-//     entry { source, uri, ast, result, error, envAfterCell } its
+//     entry { source, uri, ast, result, error, scopeAfterCell } its
 //     answer; `evalOpts.initialPipeValue` is the subject of its first
 //     step, null when absent, and `evalOpts.uri` its name, a cell
 //     without one numbered among the cells without one.
-//   env — the current env Map
-//   bind(name, value) — install a binding into env
+//   scope — the current scope
 export async function createSession(opts = {}) {
-  let env = opts.env ?? await langRuntime();
-  if (opts.sources) env = await declareRoot(env, opts.sources);
+  let scope = opts.scope ? scopeTakenFromAHost(opts.scope) : await langRuntime();
+  if (opts.sources) scope = await declareRoot(scope, opts.sources);
   let cellCount = 0;
 
   return {
@@ -38,12 +37,12 @@ export async function createSession(opts = {}) {
       try {
         cellAst = parse(source, { uri: cellUri });
         const cellSeedPipeValue = 'initialPipeValue' in evalOpts
-          ? evalOpts.initialPipeValue
+          ? takenFromAHost(evalOpts.initialPipeValue)
           : null;
-        const cellInitialState = rootState(cellSeedPipeValue, env);
+        const cellInitialState = rootState(cellSeedPipeValue, scope);
         const cellFinalState = await evalAst(cellAst, cellInitialState);
         cellResult = cellFinalState.pipeValue;
-        env = cellFinalState.env;
+        scope = cellFinalState.env;
       } catch (evalCellErr) {
         // A parse failure answers its error value beside the throw, so
         // the host prints it as it prints any error and still tells a
@@ -51,20 +50,13 @@ export async function createSession(opts = {}) {
         // its text came from where the host named one, a cell the
         // session numbers itself naming none.
         if (evalCellErr instanceof ParseError) {
-          cellResult = errorFromParse(evalCellErr, env, evalOpts.uri ?? null);
+          cellResult = errorFromParse(evalCellErr, scope, evalOpts.uri ?? null);
         }
         cellError = evalCellErr;
       }
-      return { source, uri: cellUri, ast: cellAst, result: cellResult, error: cellError, envAfterCell: env };
+      return { source, uri: cellUri, ast: cellAst, result: cellResult, error: cellError, scopeAfterCell: scope };
     },
 
-    // A host binds a value as a binding without a doc [QSNAM#binding], a
-    // record as the binding it is.
-    bind(name, value) {
-      env = new Map(env).set(name, isBinding(value) ? value : makeBinding({ name: keyword(name), value }));
-    },
-
-    get env() { return env; }
+    get scope() { return scope; }
   };
 }
-

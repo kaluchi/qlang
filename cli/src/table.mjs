@@ -1,6 +1,6 @@
 // The primitive of `table`, the renderer of the command line, a name its
-// source declares under `::vec` [QSDSP#residence] and a plain function over
-// the vector the walk served [QSQUO#modifier].
+// source declares under `::vec` [QSDSP#residence], taking the vector the
+// walk served alone [QSQUO#modifier].
 
 import { printValue } from '@kaluchi/qlang-core';
 import { declareRefusal } from '@kaluchi/qlang-core/errors';
@@ -42,6 +42,6 @@ function table(subject) {
   return [horizontalRule, formatRow(columnNames), horizontalRule, ...cells.map(formatRow), horizontalRule].join('\n');
 }
 
-export const formatImpls = {
+export const tablePrimitives = {
   'vec/table': table
 };

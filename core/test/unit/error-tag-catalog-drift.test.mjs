@@ -20,14 +20,14 @@ const declared = new Set(declaredRefusals());
 
 // The refusals the verbs and the kinds of the root raise by rule, which their
 // definitions page as the declared ones are paged [QSERR#site].
-const ruleBorn = new Set([...session.env.get(ROOT_KEY).keys()]
-  .filter(address => isVerb(session.env, address) || isKind(bindingValueOf(nodeOf(session.env, address))))
-  .flatMap(address => ruleRefusalsOf(session.env, address)));
+const ruleBorn = new Set([...session.scope.get(ROOT_KEY).keys()]
+  .filter(address => isVerb(session.scope, address) || isKind(bindingValueOf(nodeOf(session.scope, address))))
+  .flatMap(address => ruleRefusalsOf(session.scope, address)));
 
 // The refusals the root pages under a noun,
 // `number/add/SubjectNotNumberError`.
 const refusalPages = [];
-for (const [address, record] of session.env.get(ROOT_KEY)) {
+for (const [address, record] of session.scope.get(ROOT_KEY)) {
   const [nounName, name] = splitAddress(address);
   if (nounName !== null && /Error$/.test(name) && isDoc(bindingValueOf(record))) refusalPages.push(address);
 }
@@ -35,7 +35,7 @@ for (const [address, record] of session.env.get(ROOT_KEY)) {
 describe('every refusal a site of the runtime declares has its page under its noun [QSNAM#address]', () => {
   for (const address of declared) {
     it(`${address} is paged under the noun it guards`, () => {
-      expect(isDoc(bindingValueOf(nodeOf(session.env, address))),
+      expect(isDoc(bindingValueOf(nodeOf(session.scope, address))),
         `${address} is declared by a site of the runtime and no source of the language pages it under its noun`
       ).toBe(true);
     });
@@ -50,7 +50,7 @@ describe('every refusal the catalog pages is declared by a site of the runtime o
   }
 
   it('the root holds the topic of the language and its kinds', () => {
-    expect(nodeOf(session.env, 'qlang')).not.toBeNull();
-    expect(declaresALabel(nodeOf(session.env, 'number'))).toBe(true);
+    expect(nodeOf(session.scope, 'qlang')).not.toBeNull();
+    expect(declaresALabel(nodeOf(session.scope, 'number'))).toBe(true);
   });
 });

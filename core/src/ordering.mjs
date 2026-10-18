@@ -11,8 +11,8 @@
 // of the subject's kind [QSDSP#walk], [QSDSP#residence].
 
 import {
-  isKeyword, isTag, isRegex, isPath, isDoc, isValueClass,
-  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, ELISION_TAG, DESC_TAG
+  isKeyword, isTag, isRegex, isPath, isDoc, isValueClass, typeOf,
+  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, ELISION_TAG, DESC_TAG, CORE_KIND
 } from './types.mjs';
 
 // The kinds in their order.
@@ -34,6 +34,8 @@ const ELISION_KIND  = 13;
 const DESC_KIND     = 14;
 const TAGGED_KIND   = 15;
 
+// The kind of a value as the order ranks it, a value of no kind refused as
+// `typeOf` refuses it [D361].
 function kindOf(value) {
   if (value === null || value === undefined) return NULL_KIND;
   if (typeof value === 'boolean') return BOOLEAN_KIND;
@@ -44,12 +46,13 @@ function kindOf(value) {
   if (isTag(value)) return TAG_NAME_KIND;
   if (isPath(value)) return PATH_KIND;
   if (isDoc(value)) return DOC_KIND;
-  const headerTag = value[TAG_HEADER_SYMBOL];
-  if (headerTag === undefined) return shapeKindOf(value);
-  if (headerTag.name === SET_TAG_NAME) return SET_KIND;
-  if (headerTag.name === QUOTE_TAG_NAME) return QUOTE_KIND;
-  if (headerTag.name === ELISION_TAG.name) return ELISION_KIND;
-  if (headerTag.name === DESC_TAG.name) return DESC_KIND;
+  const kind = typeOf(value);
+  if (kind === CORE_KIND.vec) return VECTOR_KIND;
+  if (kind === CORE_KIND.map) return MAP_KIND;
+  if (kind.name === SET_TAG_NAME) return SET_KIND;
+  if (kind.name === QUOTE_TAG_NAME) return QUOTE_KIND;
+  if (kind.name === ELISION_TAG.name) return ELISION_KIND;
+  if (kind.name === DESC_TAG.name) return DESC_KIND;
   return TAGGED_KIND;
 }
 

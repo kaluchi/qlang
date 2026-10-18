@@ -115,9 +115,9 @@ function literalsOf(count, seed) {
         computed('get [~("x" | add 1 !| it)]'), written('[::error{:k 1 :trace [{:failed ~(count) :subject 1 :skipped ~()}]}]')])
     ])();
   };
-  const chain = (noun, groups, impls) => {
+  const chain = (noun, groups, endings) => {
     const commands = groups.filter(() => random() < 0.5).flat();
-    if (commands.length === 0 || random() < 0.5) commands.push(pick(impls));
+    if (commands.length === 0 || random() < 0.5) commands.push(pick(endings));
     return computed(`(${noun}\n  | ${commands.join('\n  | ')})`);
   };
   const built = () => (random() < 0.5 ? chain('::fn', FN_COMMANDS, FN_RECIPES) : chain('::kind', KIND_COMMANDS, KIND_CONSTRUCTORS));

@@ -8,8 +8,8 @@
 // Inline sourcemaps keep stack traces from runtime exceptions
 // pointing at the original `core/src/runtime/<file>.mjs` line
 // instead of the bundled `qlang.js` line — debugging a failing
-// query in browser DevTools lands on the implementation of the verb
-// in source form.
+// query in browser DevTools lands on the primitive of the verb in
+// source form.
 
 import { build } from 'esbuild';
 import { resolve, dirname } from 'node:path';

@@ -33,7 +33,7 @@ import Base from "../layouts/Base.astro"
               id="editor"
               spellcheck="false"
               autocomplete="off"
-              placeholder="Type qlang expressions here...
+              placeholder="Type qlang queries here...
 
 [1 2 3 4 5] | filter ~(gt 2) | count
 
@@ -204,8 +204,8 @@ import Base from "../layouts/Base.astro"
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
-    const env = await langRuntime({ locator: inlineCatalogLocator });
-    const builtins = verbNames(env);
+    const scope = await langRuntime({ locator: inlineCatalogLocator });
+    const rootVerbNames = verbNames(scope);
 
     const editor = document.getElementById('editor') as HTMLTextAreaElement;
     const results = document.getElementById('results')!;
@@ -213,7 +213,7 @@ import Base from "../layouts/Base.astro"
     const clearBtn = document.getElementById('clear-btn')!;
     const highlightLayer = document.getElementById('highlight-layer')!;
 
-    const hl = (src: string) => highlightQlang(src, builtins);
+    const hl = (src: string) => highlightQlang(src, rootVerbNames);
 
     function updateEditorHighlight() {
       // Trailing '\n' ensures the last line renders at full height in the pre.
@@ -230,19 +230,19 @@ import Base from "../layouts/Base.astro"
       const source = editor.value.trim();
       if (!source) return;
 
-      // Split by blank lines to get multiple expressions
+      // Split by blank lines into the queries it holds
       const cells = source.split(/\n\s*\n/).filter(s => s.trim());
 
       const entries: HTMLElement[] = [];
       for (const cell of cells) {
-        const result = await evalQuery(cell.trim(), env);
+        const result = await evalQuery(cell.trim(), scope);
         const isError = isErrorValue(result);
         const entry = document.createElement('div');
         entry.className = 'pg-entry';
-        const highlighted = highlightQlang(cell.trim(), builtins)
+        const highlighted = highlightQlang(cell.trim(), rootVerbNames)
           .replace(/\n/g, '<br>');
         const printed = [printValue(result), caretOf(result)].filter(part => part !== null).join('\n');
-        const highlightedResult = highlightQlang(printed, builtins);
+        const highlightedResult = highlightQlang(printed, rootVerbNames);
         entry.innerHTML = `
           <div class="pg-source">${highlighted}</div>
           <div class="${isError ? 'pg-error' : 'pg-value'}">${highlightedResult}</div>

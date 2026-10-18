@@ -4,13 +4,13 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { formatExample } from '../src/lib/format-example.js';
 
-let builtins;
+let rootVerbNames;
 beforeAll(async () => {
-  const runtime = await langRuntime();
-  builtins = verbNames(runtime);
+  const scope = await langRuntime();
+  rootVerbNames = verbNames(scope);
 });
 
-const fmt = code => formatExample(code, builtins);
+const fmt = code => formatExample(code, rootVerbNames);
 
 // ── Line classification ───────────────────────────────────────
 
@@ -29,7 +29,7 @@ describe('comment lines', () => {
 });
 
 describe('prompt lines', () => {
-  it('">" prefix becomes punct span, expression is highlighted', () => {
+  it('">" prefix becomes punct span, the query is highlighted', () => {
     const out = fmt('> count');
     expect(out).toContain('<span class="punct">&gt; </span>');
     expect(out).toContain('<span class="word">count</span>');
@@ -44,7 +44,7 @@ describe('prompt lines', () => {
 });
 
 describe('continuation lines', () => {
-  it('two-space indent preserved, expression highlighted', () => {
+  it('two-space indent preserved, the query highlighted', () => {
     const out = fmt('  add 1');
     expect(out.startsWith('  ')).toBe(true);
     expect(out).toContain('<span class="word">add</span>');
@@ -78,7 +78,7 @@ describe('multi-line blocks', () => {
     expect(lines[2]).toContain('<span class="number">3</span>');
   });
 
-  it('multi-line expression: prompt + continuation share highlighting context', () => {
+  it('a query of several lines: prompt + continuation share highlighting context', () => {
     const src = [
       '> :double mul 2',
       '  | [10 20] | map ~double'

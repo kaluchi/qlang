@@ -3,7 +3,7 @@ import Base from "../layouts/Base.astro"
 import { langRuntime, verbNames } from "@kaluchi/qlang-core"
 import { formatExample } from "../lib/format-example.js"
 
-const builtins = verbNames(await langRuntime())
+const rootVerbNames = verbNames(await langRuntime())
 
 const examples = [
   {
@@ -37,7 +37,7 @@ const features = [
 ]
 ---
 
-<Base title="qlang — pipeline expression language">
+<Base title="qlang — pipeline query language">
   <main class="landing">
     <div class="landing-container">
       <!-- Header -->
@@ -59,10 +59,9 @@ const features = [
       <div class="landing-content">
         <!-- Hero -->
         <section class="hero">
-          <h1>Transform values through pipelines</h1>
+          <h1>Query values through pipelines</h1>
           <p class="hero-subtitle">
-            Expression language for composing immutable data transformations.
-            Domain-agnostic. Pure. Runs in the browser.
+            A pipeline query language over values. Runs in the browser.
           </p>
           <div class="install-section">
             <button class="install-command" id="install-btn" data-command="npm install @kaluchi/qlang-core">
@@ -102,7 +101,7 @@ const features = [
             <div class="code-editor-panels">
               {examples.map((ex, i) => (
                 <div class="code-editor-body" data-panel={ex.tab} data-active={i === 0 ? "true" : "false"}>
-                  <pre><code set:html={formatExample(ex.code, builtins)} /></pre>
+                  <pre><code set:html={formatExample(ex.code, rootVerbNames)} /></pre>
                 </div>
               ))}
             </div>
@@ -113,7 +112,7 @@ const features = [
         <section class="features-section">
           <h2>What is qlang?</h2>
           <p>
-            A pipeline language over values: a query starts from a subject and
+            A pipeline query language over values: a query starts from a subject and
             passes it through steps, each answering a new value. Every name has
             a page a query reads as data, a failure is a value that carries its
             trace, and the REPL below runs in the browser.
@@ -131,7 +130,7 @@ const features = [
         <!-- REPL -->
         <section class="repl-section">
           <h2>Try it</h2>
-          <p>Type a qlang expression and press Enter. The evaluator runs entirely in your browser.</p>
+          <p>Type a qlang query and press Enter. The evaluator runs entirely in your browser.</p>
           <div class="repl-container">
             <div class="repl-history" id="repl-history"></div>
             <div class="repl-input-area">
@@ -201,9 +200,9 @@ const features = [
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
-    const env = await langRuntime({ locator: inlineCatalogLocator });
-    const builtins = verbNames(env);
-    const hi = (src: string) => hl(src, builtins);
+    const scope = await langRuntime({ locator: inlineCatalogLocator });
+    const rootVerbNames = verbNames(scope);
+    const hi = (src: string) => hl(src, rootVerbNames);
 
     const input = document.getElementById('repl-input') as HTMLTextAreaElement;
     const history = document.getElementById('repl-history')!;
@@ -213,7 +212,7 @@ const features = [
       entry.className = 'repl-entry';
       entry.innerHTML = `
         <div class="repl-entry-input"><span class="punct">&gt; </span>${hi(src)}</div>
-        <div class="repl-entry-output">${hl([printValue(result), caretOf(result)].filter(part => part !== null).join('\n'), builtins)}</div>
+        <div class="repl-entry-output">${hl([printValue(result), caretOf(result)].filter(part => part !== null).join('\n'), rootVerbNames)}</div>
       `;
       return entry;
     }
@@ -252,7 +251,7 @@ const features = [
       '{:name "alice" :age 30} | get /age | mul 2',
     ];
     for (const src of demos) {
-      history.appendChild(makeEntry(src, await evalQuery(src, env)));
+      history.appendChild(makeEntry(src, await evalQuery(src, scope)));
       cmdHistory.unshift(src);   // oldest demo ends up deepest in history
     }
 
@@ -273,7 +272,7 @@ const features = [
         cmdHistory.unshift(source);   // newest first
         histIdx = -1;
         savedDraft = '';
-        history.appendChild(makeEntry(source, await evalQuery(source, env)));
+        history.appendChild(makeEntry(source, await evalQuery(source, scope)));
         history.scrollTop = history.scrollHeight;
         input.value = '';
         updateReplHighlight();

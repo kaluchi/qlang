@@ -4,12 +4,12 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { makeIoImpls } from './streams.mjs';
-import { formatImpls } from './table.mjs';
+import { streamPrimitives } from './streams.mjs';
+import { tablePrimitives } from './table.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI_SOURCE = readFileSync(join(__dirname, '..', 'lib', 'qlang', 'cli.qlang'), 'utf8');
 
 export function cliSources(ioContext) {
-  return [{ uri: 'cli', source: CLI_SOURCE, impls: { ...makeIoImpls(ioContext), ...formatImpls } }];
+  return [{ uri: 'cli', source: CLI_SOURCE, primitives: { ...streamPrimitives(ioContext), ...tablePrimitives } }];
 }

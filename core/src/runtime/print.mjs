@@ -2,7 +2,7 @@
 // a kind answers of its own taken for each part of that kind [QSPRN#print],
 // and of `elide`, the value within a budget of its print [QSHST#answer].
 
-import { bindStateReader } from '../primitives.mjs';
+import { registerStateReader } from '../primitives.mjs';
 import { TAG_HEADER_SYMBOL, isErrorValue, typeOf } from '../types.mjs';
 import { elide, elideAnswer as answerWithin } from '../elide.mjs';
 import { rootState } from '../state.mjs';
@@ -21,22 +21,22 @@ export async function printsOfKinds(value, env, state = rootState(value, env)) {
   return part => printedByKind.get(part);
 }
 
-// printAnswer(value, env, state?) → the print of a value: a part under a
+// printAnswer(value, scope, state?) → the print of a value: a part under a
 // tag whose kind answers a `print` of its own prints through it, and the
 // forms of the core print the rest. An answer that is a failure, which a
 // host meets alone since a step skips it, prints as its error at rest
 // under a line comment that says it was raised, which a reading of the
 // literal passes over [QSERR#print].
-export async function printAnswer(value, env, state = rootState(value, env)) {
-  const printed = printValue(value, 0, await printsOfKinds(value, env, state));
+export async function printAnswer(value, scope, state = rootState(value, scope)) {
+  const printed = printValue(value, 0, await printsOfKinds(value, scope, state));
   return isErrorValue(value) ? `${RAISED_LINE}\n${printed}` : printed;
 }
 
-// elideAnswer(answer, budget, env) → an answer as a host prints it: a value
+// elideAnswer(answer, budget, scope) → an answer as a host prints it: a value
 // whole, or within the budget asked for, and an error its alert, each print
 // measured as the host writes it [QSHST#answer], [QSPRN#elide].
-export async function elideAnswer(answer, budget, env) {
-  return answerWithin(answer, budget, await printsOfKinds(answer, env));
+export async function elideAnswer(answer, budget, scope) {
+  return answerWithin(answer, budget, await printsOfKinds(answer, scope));
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';
@@ -73,5 +73,5 @@ async function collectPrintsOfKinds(part, env, state, printOfAny, printedByKind)
   for (const inner of parts) await collectPrintsOfKinds(inner, env, state, printOfAny, printedByKind);
 }
 
-bindStateReader('any/print', (subject, state) => printAnswer(subject, state.env, state));
-bindStateReader('any/elide', async (subject, budget, state) => elide(subject, budget, await printsOfKinds(subject, state.env, state)));
+registerStateReader('any/print', (subject, state) => printAnswer(subject, state.env, state));
+registerStateReader('any/elide', async (subject, budget, state) => elide(subject, budget, await printsOfKinds(subject, state.env, state)));

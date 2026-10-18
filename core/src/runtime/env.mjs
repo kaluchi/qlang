@@ -3,9 +3,9 @@
 // [QSSLF#axis], [QSNAM#binding]; `kinds` answers the kinds the scope reads,
 // the root's and the reader's, each by its tag.
 
-import { bindStateReader } from '../primitives.mjs';
+import { registerStateReader } from '../primitives.mjs';
 import { makeSet, makeTag } from '../types.mjs';
 import { kindNamesOf, readerNamesOf } from './nouns.mjs';
 
-bindStateReader('any/env', (subject, state) => readerNamesOf(state.env));
-bindStateReader('any/kinds', (subject, state) => makeSet(kindNamesOf(state.env).map(makeTag)));
+registerStateReader('any/env', (subject, state) => readerNamesOf(state.env));
+registerStateReader('any/kinds', (subject, state) => makeSet(kindNamesOf(state.env).map(makeTag)));

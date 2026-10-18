@@ -21,16 +21,16 @@ export const LANGUAGE_SOURCES = Object.freeze([
 ]);
 
 // A source of the language the locator does not serve leaves the root
-// without the declarations it holds.
+// without the declarations it holds, `:origin` naming it [D361].
 export const BuiltinBootstrapSourceMissingError = declareInvariantError(
   'builtin/BootstrapSourceMissingError',
-  ({ uri }) => `qlang bootstrap: '#${uri}' must resolve to a source of the language — ` +
+  ({ origin }) => `qlang bootstrap: '#${origin.name}' must resolve to a source of the language — ` +
     'add an entry to package.json#imports or the import map');
 
 // platformLocator(uri) → Promise<{ source } | null>: the source `qlang/number`
 // read from `#qlang/number` through the `imports` field or the import map,
 // null for a name neither maps.
 export async function platformLocator(uri) {
-  const source = await loadSource('#' + uri);
+  const source = await loadSource(uri);
   return source === null ? null : { source };
 }

@@ -186,10 +186,9 @@ describe('runtime/format.mjs structural — json round-trips', () => {
 });
 
 describe('format.fromPlain — inverse of toPlain', () => {
-  // `fromPlain` lifts a JSON-parsed plain JS value back into qlang:
-  // plain object → Map keyed by interned keywords; plain array →
-  // Vec; atoms pass through. Used by `parseJson` and by the CLI
-  // script-mode auto-pipe of stdin.
+  // `fromPlain` lifts a value of JavaScript parsed from JSON into qlang: an
+  // object of JavaScript into a map keyed by its names, an array into a
+  // vector, and an atom as it is [D361].
 
   it('atoms pass through unchanged', async () => {
     expect(fromPlain(42)).toBe(42);
@@ -198,7 +197,7 @@ describe('format.fromPlain — inverse of toPlain', () => {
     expect(fromPlain(null)).toBe(null);
   });
 
-  it('arrays lift into Vec (plain JS array) elementwise', async () => {
+  it('an array of JavaScript lifts into a vector element by element', async () => {
     const lifted = fromPlain([1, 'two', true]);
     expect(lifted).toEqual([1, 'two', true]);
   });
@@ -210,7 +209,7 @@ describe('format.fromPlain — inverse of toPlain', () => {
     expect(lifted.get('b')).toBe(2);
   });
 
-  it('round-trips nested plain JSON through toPlain and back', async () => {
+  it('round-trips nested data of JSON through toPlain and back', async () => {
     const plain = { user: { name: 'alice', tags: ['admin', 'dev'] } };
     const roundtrip = toPlain(fromPlain(plain));
     expect(roundtrip).toEqual(plain);
@@ -224,46 +223,36 @@ describe('format.toPlain carries a binding record as a tagged Map', () => {
   });
 });
 
-describe('format.toPlain non-keyword Map keys', () => {
-  it('json on a Map with string (non-keyword) keys uses String(k) fallback', async () => {
-    // Inject a Map whose keys are plain strings, not interned keywords.
-    // Construct via session.bind so we bypass the parser's
-    // keyword-only Map literal syntax.
-    const { createSession } = await import('../../src/session.mjs');
+describe('format.toPlain writes the keys of a map a host hands', () => {
+  it('json writes a map a host hands as the subject of a cell by its keys, each a string', async () => {
     const s = await createSession();
     const map = new Map();
     map.set('rawKey', 'rawValue');
-    s.bind('rawMap', map);
-    const out = (await s.evalCell('rawMap | json')).result;
-    expect(typeof out).toBe('string');
-    expect(out).toContain('rawKey');
-    expect(out).toContain('rawValue');
+    const out = (await s.evalCell('json', { initialPipeValue: map })).result;
+    expect(out).toBe('{"rawKey":"rawValue"}');
   });
-
 });
 
 describe('the finite-double domain holds at every render seam', () => {
-  // Source cannot make an infinity or a NaN: the parser refuses the
-  // literal [QSLIT#number], and an answer past the doubles is refused as
-  // `::number/NotFiniteError` [QSNUM#arithmetic].
-  // A host can, through `session.bind` or the `impls` of its sources,
-  // and render is where such a value becomes observable: `printValue`
-  // would answer `Infinity`, which no production reads back, and the
-  // JSON boundary would answer `null`.
-  it('printValue refuses an infinity and a NaN', async () => {
-    const { BuiltinNumberNotFiniteLeakedToPrintError } = await import('../../src/types.mjs');
+  // A number past the doubles has no literal [QSLIT#number], and an answer
+  // brought under `::number` past them is refused as `::number/NotFiniteError`
+  // [QSNUM#arithmetic]; a function of the reader that answers one from a
+  // primitive of the core under no kind meets the printer and the codec of
+  // JSON, which raise it where they write it [D361].
+  it('printValue refuses an infinity and a NaN as values of no kind', async () => {
+    const { BuiltinForeignValueError } = await import('../../src/types.mjs');
     for (const leaked of [Infinity, -Infinity, NaN]) {
       let thrown = null;
       try { printValue(leaked); } catch (caught) { thrown = caught; }
-      expect(thrown).toBeInstanceOf(BuiltinNumberNotFiniteLeakedToPrintError);
-      expect(thrown.name).toBe('NumberNotFiniteLeakedToPrintError');
-      expect(thrown.facts.actualValue).toBe(String(leaked));
+      expect(thrown).toBeInstanceOf(BuiltinForeignValueError);
+      expect(thrown.name).toBe('ForeignValueError');
+      expect(thrown.facts.actualValue).toBe(`number ${leaked}`);
     }
   });
 
   it('toPlain refuses the values the printer refuses', async () => {
-    const { BuiltinNumberNotFiniteLeakedToPrintError } = await import('../../src/types.mjs');
-    expect(() => toPlain(Infinity)).toThrow(BuiltinNumberNotFiniteLeakedToPrintError);
+    const { BuiltinForeignValueError } = await import('../../src/types.mjs');
+    expect(() => toPlain(Infinity)).toThrow(BuiltinForeignValueError);
   });
 
   it('every in-domain magnitude renders unchanged', () => {
@@ -318,20 +307,15 @@ describe('the print of env reads back', () => {
     expect(printed).not.toMatch(/=>\s*\{/);
   });
 
-  it('prints a function a host binds as a string that marks it', async () => {
-    const session = await createSession();
-    session.bind('myHostFn', async function helloFn() { return 42; });
-    const printed = printValue((await session.evalCell('env')).result);
-    expect(printed).toContain('"<host-fn helloFn>"');
-    expect(() => parse(printed, { uri: 'host-fn-round-trip' })).not.toThrow();
+  it('never meets a function a host hands in a scope, which the session refuses as it takes the scope [D361]', async () => {
+    const scope = new Map(await langRuntime()).set('hostFn', makeBinding({ name: keyword('hostFn'), value: async function helloFn() { return 42; } }));
+    await expect(createSession({ scope })).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: 'function helloFn' } });
   });
 
-  it('writes the JSON of a tag name and of a host function as strings', async () => {
-    const session = await createSession();
-    session.bind('hostFn', async function helloFn() { return 42; });
-    session.bind('kindName', makeTag('Foo'));
+  it('writes the JSON of a tag name a host hands in a scope as its literal', async () => {
+    const scope = new Map(await langRuntime()).set('kindName', makeBinding({ name: keyword('kindName'), value: makeTag('Foo') }));
+    const session = await createSession({ scope });
     const parsed = JSON.parse((await session.evalCell('env | json')).result);
-    expect(parsed.hostFn.payload.value).toMatch(/^<host-fn [A-Za-z]+>$/);
     expect(parsed.kindName.payload.value).toBe('::Foo');
   });
 });

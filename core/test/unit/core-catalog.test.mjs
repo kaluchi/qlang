@@ -65,12 +65,12 @@ describe('the verbs of the language reach their primitives', () => {
 
   it('spot-check — :add is a function under ::number whose recipe a primitive answers [QSBLD#input], [QSBLD#fn]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const { isBuiltinDescriptor, isHostDeclared, isFn, recipeOf } = await import('../../src/types.mjs');
+    const { isBuiltinDescriptor, isPrimitiveHanded, isFn, recipeOf } = await import('../../src/types.mjs');
     const resolved = await langRuntime();
     const add = bindingValueOf(nodeOf(resolved, 'number/add'));
     expect(isFn(add)).toBe(true);
     expect(isBuiltinDescriptor(recipeOf(add))).toBe(true);
-    expect(isHostDeclared(recipeOf(add))).toBe(true);
+    expect(isPrimitiveHanded(recipeOf(add))).toBe(true);
   });
 
   it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [QSSLF#catalog], [QSBLD#fn]', async () => {

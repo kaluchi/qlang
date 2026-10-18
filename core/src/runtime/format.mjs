@@ -1,9 +1,9 @@
 // The codec of JSON both ways [QSWRK#catalog], [QSPRN#json], `json` writing
 // the JSON text of a value and `parseJson` reading one.
 
-import { finiteNumberOrLift, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { declareRefusal, declareInvariantError } from '../errors.mjs';
-import { bindPrim } from '../primitives.mjs';
+import { TAG_HEADER_SYMBOL, refuseForeign } from '../types.mjs';
+import { declareRefusal } from '../errors.mjs';
+import { registerPrimitive } from '../primitives.mjs';
 import { dispatchQlangValue, printValue, printRegex, printPath } from './print-value.mjs';
 
 export { printValue };
@@ -14,12 +14,12 @@ function dispatchPlainValue(v, handlers, path) {
   return handlers.atom(v, path);
 }
 
-// `toPlain` writes a value in JSON's shape, for `json` and a host, and
-// `fromPlain` reads that shape back as maps, vectors and the atoms, for a
-// host.
+// `toPlain` writes a value in JSON's shape, for `json` and a host, a number
+// past the doubles raised [D361], and `fromPlain` reads that shape back as
+// maps, vectors and the atoms, for a host.
 const TO_PLAIN_HANDLERS = {
   null:    () => null,
-  number:  finiteNumberOrLift,
+  number:  v => (Number.isFinite(v) ? v : refuseForeign(v)),
   string:  v => v,
   boolean: v => v,
   keyword: k => k.name,
@@ -48,20 +48,8 @@ const TO_PLAIN_HANDLERS = {
 };
 
 export function toPlain(v) {
-  return dispatchQlangValue(v, TO_PLAIN_HANDLERS, toPlainFallback);
+  return dispatchQlangValue(v, TO_PLAIN_HANDLERS);
 }
-
-// A value of none of the kinds of qlang: a function a host bound writes
-// as `<host-fn name>`, so `env | json` stays plain JSON, and any other
-// is refused.
-function toPlainFallback(v) {
-  if (typeof v === 'function') return `<host-fn ${v.name}>`;
-  throw new BuiltinJsonValueNotEncodableError({ actualType: typeof v, actualValue: v });
-}
-
-export const BuiltinJsonValueNotEncodableError = declareInvariantError(
-  'builtin/JsonValueNotEncodableError',
-  ({ actualType }) => `toPlain: JSON has no form for a ${actualType} value a host put in the scope`);
 
 // Each key is laid as a property of its own, so a key JavaScript reads as
 // the prototype, `__proto__`, is written as any key is [QSPRN#json].
@@ -108,7 +96,7 @@ function plainObjectToQMap(plainObj, path) {
 
 // fromJsonText(text) → the value a JSON text writes, read as a literal
 // reads it: each object the map of its keys in the order the text writes
-// them, which a plain object of JavaScript moves for a key that reads as an
+// them, which an object of JavaScript moves for a key that reads as an
 // index, a key written twice standing in its first place with its last
 // value, and a number past the doubles refused at its path [QSLIT#json]. The
 // text is one `JSON.parse` has read.
@@ -162,12 +150,12 @@ export function fromJsonText(text) {
   return valueAt([]);
 }
 
-// `json` resides on `::any` and `parseJson` on `::string`, each a
-// plain function over the value the walk served [QSQUO#modifier].
+// `json` resides on `::any` and `parseJson` on `::string`, each taking the
+// value the walk served alone [QSQUO#modifier].
 const StringParseJsonTextNotJsonError = declareRefusal('string/parseJson/TextNotJsonError');
 
-bindPrim('any/json', subject => JSON.stringify(toPlain(subject)));
-bindPrim('string/parseJson', subject => {
+registerPrimitive('any/json', subject => JSON.stringify(toPlain(subject)));
+registerPrimitive('string/parseJson', subject => {
   try {
     JSON.parse(subject);
   } catch (jsParseError) {

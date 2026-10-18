@@ -8,7 +8,7 @@
 
 import {
   isKeyword, isTag, isRegex, isPath, isErrorValue, TAG_HEADER_SYMBOL,
-  isValueClass, isMap
+  isValueClass, isMap, isNull
 } from './types.mjs';
 
 // Two vectors or two maps are equal under one tag or under none.
@@ -18,7 +18,8 @@ function tagHeadersEqual(a, b) {
 
 export function deepEqual(a, b) {
   if (a === b) return true;
-  if (a === null || b === null) return false;
+  // A value JavaScript leaves undefined is null [D361].
+  if (isNull(a) || isNull(b)) return isNull(a) && isNull(b);
   if (typeof a !== typeof b) return false;
   // A value under a tag's wrapper equals one under the same tag over an
   // equal payload.

@@ -221,16 +221,10 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
     expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', ' from the cell ']);
   });
 
-  it('a host binding is a record with no source and no docs', async () => {
-    // `session.bind` writes the record of a binding without a
-    // declaration behind it [QSNAM#binding], which the axes project.
-    const { createSession } = await import('../../src/session.mjs');
-    const sessionInstance = await createSession();
-    sessionInstance.bind('hostInstalled', null);
-    const sourceEntry = await sessionInstance.evalCell('::hostInstalled | source');
-    expect(sourceEntry.result).toBeNull();
-    const docsEntry = await sessionInstance.evalCell('::hostInstalled | doc');
-    expect(docsEntry.result).toBeNull();
+  it('a binding no declaration wrote, a node a chain lays, holds no source, its page the one the chain wrote [D361]', async () => {
+    expect(await evalQuery('::number/add/addend | source')).toBeNull();
+    expect(await evalQuery('::number/add/addend | binding | get /source')).toBeNull();
+    expect(await evalQuery('::number/add/addend | doc | content')).toContain('The number added to the subject');
   });
 });
 

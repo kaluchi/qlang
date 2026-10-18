@@ -44,15 +44,15 @@ const session = await createSession({
 // The refusals the source of the command line declares, by address; an
 // invariant, whose name is its refusal, is raised by the runtime [QSBLD#fn].
 const refusalAddresses = new Set();
-for (const address of nodeAddresses(session.env)) {
-  const record = nodeOf(session.env, address);
+for (const address of nodeAddresses(session.scope)) {
+  const record = nodeOf(session.scope, address);
   if (record.get('origin')?.name === 'cli' && address.endsWith('Error') && !isInvariant(record.get('value'))) refusalAddresses.add(address);
 }
 // The refusals the verbs of the command line raise by rule, which the
 // runtime raises and the source pages where a repair helps [QSERR#site].
-const ruleBorn = new Set([...nodeAddresses(session.env)]
-  .filter(address => isVerb(session.env, address))
-  .flatMap(address => ruleRefusalsOf(session.env, address)));
+const ruleBorn = new Set([...nodeAddresses(session.scope)]
+  .filter(address => isVerb(session.scope, address))
+  .flatMap(address => ruleRefusalsOf(session.scope, address)));
 const ask = async query => (await session.evalCell(query)).result;
 
 describe('the verbs of the command line — every throw site has its kind in the source of the command line', () => {

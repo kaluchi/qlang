@@ -1,9 +1,9 @@
 // The retired terms of the chain, of the slot of a kind, of the node an
-// axis reads, of the trace a failure leaves and of a refusal, each held by
-// the lexicon of retired terms as one pattern of its one sense
-// [QSWRK#documents], [D359], [D360], which refuses the term where it is
-// written, in prose, a name of the code or the name of a case, and leaves
-// the words of another sense.
+// axis reads, of the trace a failure leaves, of a refusal and of the
+// boundary of a host, each held by the lexicon of retired terms as one
+// pattern of its one sense [QSWRK#documents], [D359], [D360], [D361], which
+// refuses the term where it is written, in prose, a name of the code or the
+// name of a case, and leaves the words of another sense.
 
 import { describe, it, expect } from 'vitest';
 import { RETIRED_WORDS } from '../../../scripts/retired-words.mjs';
@@ -162,6 +162,70 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'its own place read through the field again', 'a link opens to the answer of its query', 'a value turned by `desc` opens to the value it turned',
       'a leading `!|` opens a step of the fail track', 'A link opens to a value its query answers',
       'an-error-literal-a-kind-refuses-is-caught-at-rest-as-a-value-that-prints', 'the-frame-of-map-over-a-set-names-the-index-in-its-one-order'
+    ]) expect(refused(text), text).toBe(false);
+  });
+
+  it('refuses each retired term of the boundary of a host where it is written [D361]', () => {
+    for (const text of [
+      'A source is `{ uri, source, impls? }`', 'the `impls` of its sources', 'Object.keys(cliSource.impls)', 'const impls = {};', 'impls: {}',
+      '`impls?` names what a source hands', 'the source { uri, source, impls } a host hands',
+      'a failure of a host\'s implementation', 'A failure of the host\'s implementation: an error', 'the implementation its host handed.',
+      'runs the implementation the host handed beside the source', 'runs a host name through the implementation handed beside its source',
+      'no implementation is handed for any/hello', 'Two modules of the runtime bound an implementation under one address',
+      'a module of the runtime binds its implementations as it loads', 'The table of the language\'s implementations is sealed',
+      'the answers of its implementations', 'an implementation of a host that fails in a call', 'A JavaScript error escaping an implementation',
+      'The implementations of the language by the address of the verb', 'The implementations under a noun, by address',
+      'Each module binds the implementations of the language\'s verbs', 'which alone reaches an implementation',
+      'The descriptor of an implementation a host hands', 'refuses it by the implementation a host hands beside its source',
+      'each implementation is a plain function over the subject', 'Each implementation is bound under the address of the verb',
+      'A host verb whose implementation throws a raw Error',
+      'the implementations stay readable after seal', 'hands a source of the language the implementations under its noun',
+      'refuses an implementation handed for a verb of steps', 'hostImplOf', 'HOST_IMPLS', 'declareHostValue', 'isHostDeclared',
+      'bindPrim', 'bindStateReader', 'bindReaderOfPassedTags', 'implsUnder', 'The idiom: `export const add = PRIMITIVE_REGISTRY.bind(key, impl);`',
+      'the refusals of the kernel no reader reaches by a query', 'The kernel is the evaluator with its table of primitives',
+      '::builtin/ImplementationNotHandedError', 'BuiltinImplementationNotHandedError', '::builtin/ImplementationNamesNoBuiltinError',
+      '::builtin/AddressBoundTwiceError', 'BuiltinAddressBoundTwiceError',
+      'typeOf answers `::unknown` for a raw object', 'UNKNOWN_KIND', '"<host-fn helloFn>"', 'printFallback', 'toPlainFallback',
+      '::builtin/JsonValueNotEncodableError', '::builtin/NumberNotFiniteLeakedToPrintError', 'finiteNumberOrLift',
+      'The error carries `:host`, `:logicalName` and `:sourceLocation`', 'logicalName', 'The platform resolved a `#qlang/<ns>` logical name to a path',
+      '`:uri` names the source', '"add (" | parse !| get /uri', 'carries :ParseError/uri', 'the :uri of parse', 'get /:uri',
+      'envAfterCell', 'session.env', 'sessionInstance.env', '`createSession({ env?, sources? })` answers a session',
+      'installs a value under a name; `env` is the current scope.', 'a session keeps the current env', 'the initial env of a session', 'the env Map a cell writes',
+      'session.bind', 'sessionInstance.bind', '`bind(name, value)` installs a value under a name', 'null for a value a host bound',
+      'A value a host binds is a binding without a page or a source.', 'A host binds a value as a binding without a doc',
+      'a function a host bound in the environment prints as a string', 'a failure a host binds as the value of a name', 'The host-bound tally counts the depths',
+      'highlightAnsi(src, builtinNames)', 'const noBuiltins = new Set();', 'With no builtin names supplied', 'returns more than 60 builtin completions',
+      'makeIoImpls', 'formatImpls',
+      'a module binding its implementations as it loads', 'the host hands the implementations beside its source', 'a host handed an implementation for it',
+      'Two modules bound an implementation', 'a descriptor that binds no implementation', 'it binds the implementations once', 'the modules bind their implementations',
+      'the verb runs by its host\'s implementation', 'the implementations of the language\'s verbs are registered', 'an implementation is a plain closure over the subject',
+      'the implementations under one address', 'the implementation under an address', 'the implementations under its noun', 'an implementation handed beside its source',
+      'the implementations of the host', 'the implementation of its host', 'the implementation a host hands', 'the implementation its host hands', 'the answers of the implementations',
+      'each a plain function over the value the walk served', 'Their primitives are plain functions over the served subject',
+      'Expression language for transforming immutable values through pipelines.', 'qlang — pipeline expression language',
+      'PEG grammar for the qlang expression language.'
+    ]) expect(refused(text), text).toBe(true);
+  });
+
+  it('leaves the words of another sense beside the boundary of a host: the code of the language, the command impl and its plural, a builtin and its plural, the environment, a plain value, the host\'s uri and the codec of JSON [D361]', () => {
+    for (const text of [
+      'Reference implementation of the qlang pipeline query language', 'its reference implementation lives in the repository',
+      'the one key the implementation and its page in the catalog share', 'implementation spells a target it met',
+      'with the pages of the catalog and with the implementation', 'the implementation lines that spell a target', 'an implementation or a design finding',
+      '`impl` gives a function its recipe', 'the command `impl`', '| impl ::builtin{}', '::fn/impl', 'a primitive of the host',
+      'the primitives a host hands beside its source', '`{ uri, source, primitives }`', 'registerPrimitive', 'PRIMITIVE_REGISTRY.register',
+      'the runtime, the evaluator with its table of primitives', '::builtin/PrimitiveNotHandedError', '::builtin/AddressRegisteredTwiceError',
+      'process.env', 'the environment Node gives the process', '`env | keys` lists the names a query declared', 'state.env', 'envSet', 'withEnv',
+      'core/src/env-keys.mjs', 'session.scope', 'scopeAfterCell', '`createSession({ scope?, sources? })`',
+      'a plain map', '`{:a 1}` a plain map beside `::Box{:a 1}`', 'a plain vector of what each answered', 'plain Enter (CR), which submits',
+      'plain text world', 'evalOpts.uri', 'uri: cellUri', 'parse(source, { uri })', 'the host\'s field `uri`', 'fileUri', 'textDocument.uri',
+      'toPlain', 'fromPlain', '::call/UnknownNameError', '::unknownTag', 'an unknown AST node type', '::bind', '::binding',
+      '::bind/NameDeclaredTwiceError', 'binds `limit` in the scope', 'a name the scope binds to a value', '`|` and `!|` bind alike',
+      'the expression of the engine a pattern reads as', 'the core met function hello, a value of no kind of the language',
+      'pick one of the impls that end a generated chain', 'the impls, each a quote', 'a source that declares two builtins hands a primitive for each',
+      'the status of a response that fails', 'a host', ':origin', '`:origin` names the source', 'the origin of a binding',
+      'the needs of the host boundary', 'verbNames', '`::builtin` holds its fields as a map', 'builtin/ForeignValueError', 'BuiltinForeignValueError',
+      'isBuiltinDescriptor', 'A builtin marks a verb a host answers by a primitive', 'streamPrimitives', 'tablePrimitives', 'the current scope', 'the environment of the process'
     ]) expect(refused(text), text).toBe(false);
   });
 });

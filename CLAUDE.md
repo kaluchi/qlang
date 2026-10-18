@@ -1,6 +1,6 @@
 # qlang
 
-Reference implementation of the qlang pipeline language: a monorepo of
+Reference implementation of the qlang pipeline query language: a monorepo of
 the language core plus its tooling. This file is the seed every
 session receives. It says how to start, what the tooling enforces, and
 how work moves. It says nothing about the design of the language: that

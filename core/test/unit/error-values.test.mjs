@@ -37,8 +37,8 @@ describe('makeErrorValue', () => {
 
 // A host hands a failure by the answer of its verb, by a refusal its verb or
 // the constructor of its kind throws, as the first value of a query and as the
-// value of a name it binds, and each holds the `:trace` it writes as the kind
-// `::trace` takes it before a frame joins it [D359].
+// value of a name in a scope it hands, and each holds the `:trace` it writes
+// as the kind `::trace` takes it before a frame joins it [D359].
 const AnyThrownRefusedError = declareRefusal('any/thrown/RefusedError');
 const NumberThrownToTheFoldRefusedError = declareRefusal('number/thrownToTheFold/RefusedError');
 const BuiltRefusedError = declareRefusal('Built/RefusedError');
@@ -55,7 +55,7 @@ const HANDING_SOURCE = [
 // constructor refusing the text "x" and an error at rest.
 function hostHanding(trace) {
   const failure = () => makeErrorValue(makeTag('error'), new Map([['trace', trace]]));
-  return createSession({ sources: [{ uri: 'host', source: HANDING_SOURCE, impls: {
+  return createSession({ sources: [{ uri: 'host', source: HANDING_SOURCE, primitives: {
     'any/answered': failure,
     'any/thrown': () => { throw new AnyThrownRefusedError({ trace }); },
     'number/answeredToTheFold': failure,
@@ -75,7 +75,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
       const session = await hostHanding(trace);
       const failure = await answerIn(session, '1 | answered');
       expect(failure.tag).toEqual(makeTag(refused));
-      expect((await elideAnswer(failure, null, session.env)).tag).toEqual(makeTag(refused));
+      expect((await elideAnswer(failure, null, session.scope)).tag).toEqual(makeTag(refused));
       expect(await answerIn(session, '1 | answered !| 0')).toBe(0);
     }
   });
@@ -117,13 +117,13 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
     expect(await answerIn(session, '!| 0', handed)).toBe(0);
   });
 
-  it('a failure a host binds as the value of a name in the env it hands a session or a query answers the refusal of the kind where a step reads it', async () => {
+  it('a failure a host hands as the value of a name in the scope it hands a session or a query answers the refusal of the kind where a step reads it', async () => {
     const bound = makeErrorValue(makeTag('error'), new Map([['trace', 5]]));
-    const env = new Map(await langRuntime()).set('f', makeBinding({ name: keyword('f'), value: bound }));
-    const session = await createSession({ env });
+    const scope = new Map(await langRuntime()).set('f', makeBinding({ name: keyword('f'), value: bound }));
+    const session = await createSession({ scope });
     expect(await answerIn(session, 'f | count !| type')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
     expect(await answerIn(session, 'f !| 0')).toBe(0);
-    expect(await evalQuery('get [~(f)] !| type', env)).toEqual(makeTag('trace/PayloadKindNotTakenError'));
+    expect(await evalQuery('get [~(f)] !| type', scope)).toEqual(makeTag('trace/PayloadKindNotTakenError'));
   });
 
   it('a trace a host stamps `::trace` over by hand is walked to its frames, an element that is no frame refused at its index', async () => {
@@ -132,17 +132,16 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
     expect(await answerIn(await hostHanding(trace), '1 | answered !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 1]')).toBe(true);
   });
 
-  it('a frame a host stamps `::frame` over a vector of another layout and a hole of its trace are no frames, refused at their index', async () => {
+  it('a frame a host stamps `::frame` over a vector of another layout and a frame its trace leaves undefined are no frames, refused at their index', async () => {
     const stamped = parts => {
       stampTagHeader(parts, makeTag('frame'));
       return parts;
     };
     const steps = quoteOfSource('add 1');
-    const holed = [makeFrame(0, quoteOfSource('pre'))];
-    holed[2] = makeFrame(2, quoteOfSource('post'));
-    const laidOut = [[1], [1, [1, 2]], [1, makeQuote([])], [1, steps, 5], [1, steps, makePath([0]), 9]].map(parts => [[makeFrame(0, steps), stamped(parts)], 1]);
-    for (const [trace, index] of [...laidOut, [holed, 1]]) {
-      expect(await answerIn(await hostHanding(trace), `1 | answered !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError ${index}]`)).toBe(true);
+    const holed = [makeFrame(0, quoteOfSource('pre')), undefined, makeFrame(2, quoteOfSource('post'))];
+    const laidOut = [[1], [1, [1, 2]], [1, makeQuote([])], [1, steps, 5], [1, steps, makePath([0]), 9]].map(parts => [makeFrame(0, steps), stamped(parts)]);
+    for (const trace of [...laidOut, holed]) {
+      expect(await answerIn(await hostHanding(trace), '1 | answered !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 1]')).toBe(true);
     }
   });
 

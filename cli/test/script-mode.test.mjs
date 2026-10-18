@@ -68,9 +68,9 @@ describe('answerText — the answer as the language prints it', () => {
   });
 
   it('writes a failure as its error at rest under the line that says it was raised, and `!| json` as JSON text [QSERR#rest]', async () => {
-    const env = await langRuntime();
-    expect(await answerText(await evalQuery('"x" | add 1'), env)).toMatch(/^\|~\| raised, and no !\| caught it\n::number\/add\/SubjectNotNumberError!\{[\s\S]*\}$/);
-    expect(JSON.parse(await answerText(await evalQuery('"x" | add 1 !| json'), env)).$tag).toBe('number/add/SubjectNotNumberError');
+    const scope = await langRuntime();
+    expect(await answerText(await evalQuery('"x" | add 1'), scope)).toMatch(/^\|~\| raised, and no !\| caught it\n::number\/add\/SubjectNotNumberError!\{[\s\S]*\}$/);
+    expect(JSON.parse(await answerText(await evalQuery('"x" | add 1 !| json'), scope)).$tag).toBe('number/add/SubjectNotNumberError');
   });
 });
 

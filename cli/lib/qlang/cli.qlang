@@ -1,7 +1,7 @@
 |~ The command line: its topic, `::cli`, and the names it declares under
    the kinds of their subjects, `table` under `::vec` and the names of
-   the streams under `::any`. Their primitives are plain functions over
-   the served subject and the values of their inputs.
+   the streams under `::any`. Their primitives take the values alone, the
+   served subject and the values of their inputs.
    The rules it holds: [QSHST#effect], [QSDSP#residence]. ~|
 
 :cli

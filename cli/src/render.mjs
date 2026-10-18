@@ -11,18 +11,18 @@ import { answerText } from './script-mode.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 
 // The names of the verbs the highlighter marks, read once.
-let _builtinNamesPromise = null;
-async function getBuiltinNames() {
-  if (_builtinNamesPromise === null) {
-    _builtinNamesPromise = langRuntime().then(env => verbNames(env));
+let _rootVerbNamesPromise = null;
+async function rootVerbNames() {
+  if (_rootVerbNamesPromise === null) {
+    _rootVerbNamesPromise = langRuntime().then(scope => verbNames(scope));
   }
-  return _builtinNamesPromise;
+  return _rootVerbNamesPromise;
 }
 
 // The text painted for a terminal where the caller asks for colour.
 async function maybePaint(text, shouldColorize) {
   if (!shouldColorize) return text;
-  return highlightAnsi(text, await getBuiltinNames());
+  return highlightAnsi(text, await rootVerbNames());
 }
 
 export async function renderCellOutcome(cellEntry, outcomeOpts) {
@@ -37,7 +37,7 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
     return { stdoutText: '', stderrText: '', exitCode };
   }
   // A string is written as its text, which no colour paints as code.
-  const written = await answerText(cellEntry.result, cellEntry.envAfterCell, budget, cellEntry.page ?? null);
+  const written = await answerText(cellEntry.result, cellEntry.scopeAfterCell, budget, cellEntry.page ?? null);
   const painted = typeof cellEntry.result === 'string' ? written : await maybePaint(written, shouldColorize);
   return { stdoutText: painted + '\n', stderrText: '', exitCode };
 }

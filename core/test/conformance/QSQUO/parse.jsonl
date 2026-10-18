@@ -12,3 +12,4 @@
 {"name":"parse-is-an-involution","query":"\"5 |  mul   2\" | parse | parse","expect":"\"5 | mul 2\""}
 {"name":"the-parse-of-a-source-of-whitespace-alone-is-the-empty-quote","query":"\" \" | parse","expect":"~()"}
 {"name":"parse-refuses-a-malformed-source","query":"\"this is bad [\" | parse !| type","expect":"::quote/ParseError"}
+{"decision":"D361","name":"a-text-parse-refuses-names-the-verb-that-read-it-as-its-origin","query":"\"add (\" | parse !| get /origin","expect":":string/parse"}

@@ -4,7 +4,7 @@
 // between the matches.
 // The rules it holds: [QSTXT#pattern].
 
-import { bindPrim, runs } from '../primitives.mjs';
+import { registerPrimitive, runs } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { isRegex, isErrorValue } from '../types.mjs';
 import { engineOf } from '../pattern.mjs';
@@ -29,21 +29,21 @@ export function piecesBetweenMatches(text, regex) {
   return Object.freeze(text.split(engineFor(regex)).filter((_piece, index) => index % stride === 0));
 }
 
-bindPrim('string/match', (text, regex) => {
+registerPrimitive('string/match', (text, regex) => {
   const found = engineFor(regex).exec(text);
   return found === null ? null : matchVector(found);
 });
 
 const StringCapturePatternNamesNoGroupError = declareRefusal('string/capture/PatternNamesNoGroupError');
 
-bindPrim('string/capture', (text, regex) => {
+registerPrimitive('string/capture', (text, regex) => {
   const names = Object.keys(groupsOf(regex).groups ?? {});
   if (names.length === 0) throw new StringCapturePatternNamesNoGroupError({ actualValue: regex });
   const found = engineFor(regex).exec(text);
   return found === null ? null : new Map(names.map(name => [name, found.groups[name] ?? null]));
 });
 
-bindPrim('string/scan', (text, regex) => Object.freeze(Array.from(text.matchAll(engineFor(regex, 'g')), found => found[0])));
+registerPrimitive('string/scan', (text, regex) => Object.freeze(Array.from(text.matchAll(engineFor(regex, 'g')), found => found[0])));
 
 // A text looked for as a pattern of itself, every character the engine
 // reads as syntax escaped.
@@ -72,7 +72,7 @@ async function replacedByCode(text, engine, code) {
 // `$&`, a `$<name>` of a group the pattern lacks standing as written; a
 // text's stands as written. A text is looked for by code points as a
 // pattern is, so the empty text cuts no character in halves [QSTXT#match].
-bindPrim('string/replace', runs(['with'], (text, pattern, replacement) => {
+registerPrimitive('string/replace', runs(['with'], (text, pattern, replacement) => {
   const engine = isRegex(pattern) ? engineFor(pattern, 'g') : engineOfText(pattern);
   if (typeof replacement === 'function') return replacedByCode(text, engine, replacement);
   return text.replace(engine, isRegex(pattern) ? withGroupsOf(pattern, replacement) : () => replacement);

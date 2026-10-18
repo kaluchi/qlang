@@ -137,7 +137,7 @@ describe('the verbs that live on a kind', () => {
     const session = await createSession({ sources: [{
       uri: 'tests/typed',
       source: ':string/shout ::builtin{}',
-      impls: { 'string/shout': text => text.toUpperCase() }
+      primitives: { 'string/shout': text => text.toUpperCase() }
     }] });
     expect((await session.evalCell('::Box"hi" | shout')).result).toBe('HI');
   });

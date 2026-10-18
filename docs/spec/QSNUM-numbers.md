@@ -19,7 +19,9 @@ tags, `::W#2.7 | floor` answering `::W#2`. A subject that is no number is
 refused as `::number/add/SubjectNotNumberError` and an input that is no
 number as `::number/add/addend/KindNotTakenError`. Every answer is a
 finite double: one past the doubles is refused as
-`::number/NotFiniteError`, and one within them is given,
+`::number/NotFiniteError` at the step that made it, whichever verb
+computed it, its trace holding that step and the subject it ran on, and
+one within them is given,
 `1 | round 400` answering `1`, a division by zero under the divisor of
 `div`, `::number/div/divisor/ZeroError`, and a remainder by zero under
 that of `mod`, `::number/mod/divisor/ZeroError`. `range` answers the
@@ -37,8 +39,8 @@ past the length a vector may have as `::number/range/CountTooLargeError`.
 > get [~(2.7 | floor) ~(2.1 | ceil) ~(-3 | abs) ~(2.567 | round 2)]
 [2 3 3 2.57]
 
-> 1e308 | mul 10 !| type
-::number/NotFiniteError
+> 1e308 | mul 10 | add 1 !| get [~(type) ~(trace | map ~failed) /trace/0/0]
+[::number/NotFiniteError [~(mul 10)] 1e+308]
 
 > get [~(1 | round 400) ~(1 | round -400)]
 [1 0]

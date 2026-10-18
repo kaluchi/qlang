@@ -13,7 +13,7 @@ under `::desc`, and compare the subject with the `:value` the call gives,
 a value of its kind, by the one order [QSORD#order]: a value of another
 kind is refused as `::number/gt/value/KindNotTakenError`, and a subject
 of a kind none of them resides on, a boolean, a vector, a set, a map, a
-pattern, a path and null among them, as `::call/KindAnswersNoVerbError`
+regex, a path and null among them, as `::call/KindAnswersNoVerbError`
 with the addresses of the verbs. Null is tested with `eq null`.
 
 ```qlang
@@ -136,13 +136,21 @@ value computed at the call that is a failure is the answer of the call
 A value is read as another kind by a verb of its own kind named `to` and
 the kind it answers, a kind answering its own verb with itself under the
 tags it came with, `::set/toSet` and `::map/toMap` among them. `toString`
-writes a number as JSON writes it, a keyword and a tag name by their
-names, and a boolean and null by their literals; `toNumber` reads a
-string whose whole text is a number's literal, and a keyword whose name
-is one; `toKeyword` answers the keyword `groupBy`, `indexBy` and `toMap`
-file a value under, a keyword as it is, a string or a number the keyword
-of its text, a boolean or null that of its literal and a tag name that of
-its name; `toTag` reads a string or a keyword that names a tag; `toSet`
+writes the text a value stands for: a number as JSON writes it, a
+keyword and a tag name by their names, a boolean and null by their
+literals, and a quote by its code [QSQUO#parse]; a regex has no string,
+its text being its literal. `toNumber` reads a string whose whole text is
+a number's literal, and a keyword whose name is one; `toKeyword` answers
+the keyword `groupBy`, `indexBy` and `toMap` file a value under, a
+keyword as it is, a string or a number the keyword of its text, a boolean
+or null that of its literal and a tag name that of its name; `toTag`
+reads a string or a keyword that names a tag. A conversion refuses a
+subject whose text writes no value of the kind it does not become, by the
+part of the subject and that kind: `toNumber` as
+`::keyword/toNumber/NameNotNumberError` and
+`::string/toNumber/TextNotNumberError`, `toTag` as
+`::keyword/toTag/NameNotTagError` and `::string/toTag/TextNotTagError`.
+`toSet`
 answers the elements of a vector in the one order without duplicates, as
 the constructor of `::set` builds them, `distinct` answering as it does,
 while a set beneath a tag, which that constructor refuses, answers
@@ -151,9 +159,12 @@ itself under the tag; `toVec` answers the elements of a set in its order;
 pair refused at its index and a key of another kind as
 `::vec/toMap/KeyKindNotTakenError`, its `:index` the element and its
 `:expected` the kinds a key files under. A number, a keyword, a string or
-a tag turned into a wider kind and back is itself, and a boolean and null
-turn into text and a keyword one way. A container's texts are `print`
-and `json`, and a map's parts are read by `entries`, `keys` and `vals`.
+a tag turned into a wider kind and back is itself, and so is a quote
+turned into text and read back by `parse`, while a boolean and null turn
+into text and a keyword one way. A container's texts are `print` and
+`json`, the `:nearest` of `toString` over a vector, a set and a map
+`[:json :print]`, the text of a doc is its `content`, and a map's parts
+are read by `entries`, `keys` and `vals`.
 `desc`, a verb of any value whose recipe is the one step `tag ::desc`,
 puts a value under `::desc`, so `::Box#5 | desc` answers `::desc::Box#5`
 [QSORD#desc].
@@ -165,8 +176,11 @@ puts a value under `::desc`, so `::Box#5 | desc` answers `::desc::Box#5`
 > ["4x" ""] | map ~(toNumber !| type)
 [::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError]
 
-> [42 :a ::vec true null] | map ~toString
-["42" "a" "vec" "true" "null"]
+> [42 :a ::vec true null ~(add 1 | mul 2)] | map ~toString
+["42" "a" "vec" "true" "null" "add 1 | mul 2"]
+
+> get [~(:"a b" | toTag !| type) ~("a b" | toTag !| type) ~(#"a" | toString !| type)]
+[::keyword/toTag/NameNotTagError ::string/toTag/TextNotTagError ::call/KindAnswersNoVerbError]
 
 > get [~(::Box#[2 1] | toSet) ~(::Box#[2 1] | tag ::set !| type) ~([2 1 2] | distinct) ~(::W#5 | toNumber)]
 [::Box#[1 2] ::set/PayloadKindNotTakenError #[1 2] ::W#5]

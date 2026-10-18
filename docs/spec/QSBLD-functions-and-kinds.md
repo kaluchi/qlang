@@ -93,8 +93,9 @@ An input, `takes :by |~~ How much. ~~| /0 ::number`, has a name, a page,
 the place of the args it reads, and its kinds. The place is a path read
 strictly, `/0` the first arg, `/-1` counted from the end, `/0/by` the
 key `by` of the first, or code over the args, `~(query /0 3)` for an
-input with a default and `~(it)` for the args whole. The args of a call,
-the values its modifiers computed against the subject, are a value
+input with a default and `~(it)` for the args whole, code that runs one
+deeper in the evaluation depth than the call [QSNAM#verb]. The args of a
+call, the values its modifiers computed against the subject, are a value
 under the tag of its verb, `::number/add[1 2]`, which reads back as it
 prints; inside a recipe `args` reads them, and the counts of `coalesce`
 and `cond` are the invariants of their inputs.
@@ -106,8 +107,8 @@ input of each element that is no vector as of no `::vec`; a place the
 call leaves out, read strictly by a path or by code, as
 `…/by/NotGivenError`, and a path that meets a value it cannot read with
 the path's refusal, `::path/SubjectHasNoPartsError`; args past the
-places the inputs read, where every input reads a numbered place, a path
-from a place or `query` of one, under the call as
+places the inputs read, where every input reads the arg at an index, by
+a path from it or by `query` of one, under the call as
 `…/ArgsBeyondInputsError`, while an input that reads `/-1`, the args
 whole or a place by any other code, `~(get /0)` among it, takes any
 number; and a value that breaks an invariant under the invariant's name,
@@ -253,7 +254,7 @@ an error hands it on. `get` reads a field's place.
 [::Box ::Box/w/NotGivenError ::Box/w/KindNotTakenError ::Box/TooWideError]
 
 > :Box |~~ B. ~~| (::kind | holds :NegError |~~ Above zero. ~~| ~(get /0 | gt 0)) | ::Box[-1] !| keys
-#[:actualType :actualValue :trail]
+#[:actualType :actualValue :trace]
 
 > :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| get /actualValue)]
 [[1 2] ::Sorted[2 1]]

@@ -91,7 +91,7 @@ describe('formOf of a binding record and of a vector under a tag', async () => {
 
 describe('typeOf covers all value kinds', () => {
 
-  it('typeOf refuses an object of JavaScript, a value of no kind of the language [D361]', () => {
+  it('typeOf refuses an object of JavaScript, a value of no kind of the language [QSHST#source]', () => {
     expect(() => typeOf({ type: 'alien' })).toThrow('the core met object Object, a value of no kind of the language');
   });
 
@@ -111,7 +111,7 @@ describe('deepEqual Set vs non-Set non-Array', async () => {
   });
 });
 
-describe('error-convert.mjs — errorFromParse and the origin of a text [D361]', async () => {
+describe('error-convert.mjs — errorFromParse and the origin of a text [QSQUO#parse]', async () => {
   it('names no origin where the text came from no source a host named', async () => {
     const parseError = Object.assign(new Error('unexpected token'), { location: null });
     // no .uri property — tests the false arm of `if (uri)`
@@ -229,7 +229,7 @@ describe('printValue — qlang literal serialization', async () => {
     expect(out).toContain(':message "boom"');
   });
 
-  it('refuses a value of no kind of the language where it reads its kind [D361]', async () => {
+  it('refuses a value of no kind of the language where it reads its kind [QSHST#source]', async () => {
     expect(() => printValue(Symbol('x'))).toThrow('the core met symbol Symbol(x), a value of no kind of the language');
   });
 });

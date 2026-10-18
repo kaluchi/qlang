@@ -1,5 +1,5 @@
 // A session keeps the scope its cells write, taking what its host hands by
-// the walk of the door [QSNAM#root], [QSDSP#residence], [D361].
+// the walk of the door [QSNAM#root], [QSDSP#residence], [QSHST#source].
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst } from './eval.mjs';

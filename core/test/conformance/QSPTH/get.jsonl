@@ -1,35 +1,35 @@
 {"name":"a-path-reads-two-segments","query":"{:a {:b 99}} | get /a/b","expect":"99"}
-{"decision":"D359","name":"keyword-path-ns-missing","query":"{:qlang/error 42} | get /:qlang/http","expect":"::path/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :path /:qlang/http\n  :actualType ::map\n  :trace ::trace[::frame[{:qlang/error 42} ~(get /:qlang/http)]]\n} | raise"}
+{"name":"keyword-path-ns-missing","query":"{:qlang/error 42} | get /:qlang/http","expect":"::path/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :path /:qlang/http\n  :actualType ::map\n  :trace ::trace[::frame[{:qlang/error 42} ~(get /:qlang/http)]]\n} | raise"}
 {"name":"a-path-of-bare-keys-reads-three","query":"{:a {:b {:c 42}}} | get /a/b/c","expect":"42"}
-{"decision":"D359","name":"a-key-json-lacks-is-refused","query":"{:a 1} | get /b","expect":"::path/KeyNotInMapError!{\n  :key :b\n  :nearest [:a]\n  :path /b\n  :actualType ::map\n  :trace ::trace[::frame[{:a 1} ~(get /b)]]\n} | raise"}
+{"name":"a-key-json-lacks-is-refused","query":"{:a 1} | get /b","expect":"::path/KeyNotInMapError!{\n  :key :b\n  :nearest [:a]\n  :path /b\n  :actualType ::map\n  :trace ::trace[::frame[{:a 1} ~(get /b)]]\n} | raise"}
 {"name":"get-reads-a-nested-path","query":"{:a {:b [10 20]}} | get /a/b/-1","expect":"20"}
 {"name":"get-refuses-a-missed-key-with-the-keys-near-it","query":"{:emails [] :age 3} | get /email !| get /nearest","expect":"[:emails]"}
-{"decision":"D360","name":"get-refuses-an-index-past-the-end","query":"[1 2] | get /5 !| type","expect":"::path/IndexOutOfBoundsError"}
+{"name":"get-refuses-an-index-past-the-end","query":"[1 2] | get /5 !| type","expect":"::path/IndexOutOfBoundsError"}
 {"name":"get-refuses-a-value-on-the-path-that-has-no-parts","query":"{:a 5} | get /a/b !| type","expect":"::path/SubjectHasNoPartsError"}
 {"name":"a-read-that-misses-names-the-path-it-followed","query":"{:a {:b 1}} | get /a/c !| get /path","expect":"/a/c"}
 {"name":"single-key","query":"{:name \"Alice\"} | get /name","expect":"\"Alice\""}
-{"decision":"D359","name":"missing-key","query":"{:name \"Alice\"} | get /age","expect":"::path/KeyNotInMapError!{\n  :key :age\n  :nearest []\n  :path /age\n  :actualType ::map\n  :trace ::trace[::frame[{:name \"Alice\"} ~(get /age)]]\n} | raise"}
+{"name":"missing-key","query":"{:name \"Alice\"} | get /age","expect":"::path/KeyNotInMapError!{\n  :key :age\n  :nearest []\n  :path /age\n  :actualType ::map\n  :trace ::trace[::frame[{:name \"Alice\"} ~(get /age)]]\n} | raise"}
 {"name":"nested-keys","query":"{:point {:x 5 :y 7}} | get /point/x","expect":"5"}
 {"name":"deeply-nested","query":"{:a {:b {:c {:d 42}}}} | get /a/b/c/d","expect":"42"}
 {"name":"vec-bare-index-zero","query":"[10 20 30] | get /0","expect":"10"}
 {"name":"vec-bare-index-mid","query":"[10 20 30] | get /1","expect":"20"}
 {"name":"vec-bare-index-negative","query":"[10 20 30] | get /-1","expect":"30"}
-{"decision":"D359","name":"vec-bare-index-oob","query":"[10 20 30] | get /99","expect":"::path/IndexOutOfBoundsError!{\n  :index 99\n  :length 3\n  :path /99\n  :actualType ::vec\n  :trace ::trace[::frame[[10 20 30] ~(get /99)]]\n} | raise"}
-{"decision":"D359","name":"vec-bare-index-negative-oob","query":"[10 20 30] | get /-99","expect":"::path/IndexOutOfBoundsError!{\n  :index -99\n  :length 3\n  :path /-99\n  :actualType ::vec\n  :trace ::trace[::frame[[10 20 30] ~(get /-99)]]\n} | raise"}
-{"decision":"D360","name":"a-name-segment-on-a-vector-is-refused","query":"[10 20 30] | get /name","expect":"::path/IndexNotIntegerError!{\n  :segment :name\n  :path /name\n  :actualType ::vec\n  :trace ::trace[::frame[[10 20 30] ~(get /name)]]\n} | raise"}
-{"decision":"D360","name":"a-path-reads-a-key-then-an-index-then-a-key","query":"{\"items\": [{\"id\": 1} {\"id\": 2}]} | get /items/0/id","expect":"1"}
-{"decision":"D360","name":"a-path-reads-an-index-from-the-end-between-two-keys","query":"{\"users\": [{\"email\": \"a@x\"} {\"email\": \"b@x\"}]} | get /users/-1/email","expect":"\"b@x\""}
-{"decision":"D360","name":"a-path-reads-an-index-then-a-key","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | get /1/name","expect":"\"bob\""}
+{"name":"vec-bare-index-oob","query":"[10 20 30] | get /99","expect":"::path/IndexOutOfBoundsError!{\n  :index 99\n  :length 3\n  :path /99\n  :actualType ::vec\n  :trace ::trace[::frame[[10 20 30] ~(get /99)]]\n} | raise"}
+{"name":"vec-bare-index-negative-oob","query":"[10 20 30] | get /-99","expect":"::path/IndexOutOfBoundsError!{\n  :index -99\n  :length 3\n  :path /-99\n  :actualType ::vec\n  :trace ::trace[::frame[[10 20 30] ~(get /-99)]]\n} | raise"}
+{"name":"a-name-segment-on-a-vector-is-refused","query":"[10 20 30] | get /name","expect":"::path/IndexNotIntegerError!{\n  :segment :name\n  :path /name\n  :actualType ::vec\n  :trace ::trace[::frame[[10 20 30] ~(get /name)]]\n} | raise"}
+{"name":"a-path-reads-a-key-then-an-index-then-a-key","query":"{\"items\": [{\"id\": 1} {\"id\": 2}]} | get /items/0/id","expect":"1"}
+{"name":"a-path-reads-an-index-from-the-end-between-two-keys","query":"{\"users\": [{\"email\": \"a@x\"} {\"email\": \"b@x\"}]} | get /users/-1/email","expect":"\"b@x\""}
+{"name":"a-path-reads-an-index-then-a-key","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | get /1/name","expect":"\"bob\""}
 {"name":"map-numeric-key-vs-vec-index","query":"{\"0\": [0 1]} | get /0","expect":"[0 1]"}
 {"name":"mixed-map-then-vec-bare-index","query":"{\"rows\": [[1 2] [3 4]]} | get /rows/1/0","expect":"3"}
-{"decision":"D360","name":"get-refuses-a-segment-of-null-as-a-subject-with-no-parts","query":"null | get /any","expect":"::path/SubjectHasNoPartsError!{\n  :segment :any\n  :path /any\n  :actualType ::null\n  :trace ::trace[::frame[null ~(get /any)]]\n} | raise"}
+{"name":"get-refuses-a-segment-of-null-as-a-subject-with-no-parts","query":"null | get /any","expect":"::path/SubjectHasNoPartsError!{\n  :segment :any\n  :path /any\n  :actualType ::null\n  :trace ::trace[::frame[null ~(get /any)]]\n} | raise"}
 {"name":"a-descriptor-reads-its-field-by-path","query":"::builtin{:note :draft} | get /note","expect":":draft"}
-{"decision":"D360","name":"get-refuses-a-segment-of-a-number-as-a-subject-with-no-parts","query":"42 | get /foo","expect":"::path/SubjectHasNoPartsError!{\n  :segment :foo\n  :path /foo\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(get /foo)]]\n} | raise"}
+{"name":"get-refuses-a-segment-of-a-number-as-a-subject-with-no-parts","query":"42 | get /foo","expect":"::path/SubjectHasNoPartsError!{\n  :segment :foo\n  :path /foo\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(get /foo)]]\n} | raise"}
 {"name":"get-reads-beneath-the-tags","query":"::Box{:w 3} | get /w","expect":"3"}
 {"name":"a-path-reads-beneath-the-tags-stacked-over-a-map","query":"::Box::Crate{:a 1} | get /a","expect":"1"}
-{"decision":"D360","name":"a-doc-is-read-by-indices-as-a-vector-is","query":"|~~ x ~~| | get /unknownKey","expect":"::path/IndexNotIntegerError!{\n  :segment :unknownKey\n  :path /unknownKey\n  :actualType ::doc\n  :trace ::trace[::frame[|~~ x ~~| ~(get /unknownKey)]]\n} | raise"}
-{"decision":"D360","name":"get-refuses-a-name-segment-on-a-set","query":"#[:a] | get /foo","expect":"::path/IndexNotIntegerError!{\n  :segment :foo\n  :path /foo\n  :actualType ::set\n  :trace ::trace[::frame[#[:a] ~(get /foo)]]\n} | raise"}
+{"name":"a-doc-is-read-by-indices-as-a-vector-is","query":"|~~ x ~~| | get /unknownKey","expect":"::path/IndexNotIntegerError!{\n  :segment :unknownKey\n  :path /unknownKey\n  :actualType ::doc\n  :trace ::trace[::frame[|~~ x ~~| ~(get /unknownKey)]]\n} | raise"}
+{"name":"get-refuses-a-name-segment-on-a-set","query":"#[:a] | get /foo","expect":"::path/IndexNotIntegerError!{\n  :segment :foo\n  :path /foo\n  :actualType ::set\n  :trace ::trace[::frame[#[:a] ~(get /foo)]]\n} | raise"}
 {"name":"path-on-set-integer-index","query":"#[:z :x :y] | get /0","expect":":x"}
 {"name":"path-on-set-negative-index","query":"#[:z :x :y] | get /-1","expect":":z"}
 {"name":"path-on-set-index-out-of-bounds","query":"#[:a :b] | get /99 !| type","expect":"::path/IndexOutOfBoundsError"}
-{"decision":"D360","name":"a-quote-a-function-and-a-kind-read-by-index","query":"get [~(~(add 1 | mul 2) | get /1 | type) ~(::fn[~(takes :by |~~ b ~~| /0) ~(add by)] | get /1) ~(::kind | reads :w |~~ w ~~| /w ::number | get /0)]","expect":"[::call ~(add by) ~(reads :w |~~ w ~~| /w ::number)]"}
+{"name":"a-quote-a-function-and-a-kind-read-by-index","query":"get [~(~(add 1 | mul 2) | get /1 | type) ~(::fn[~(takes :by |~~ b ~~| /0) ~(add by)] | get /1) ~(::kind | reads :w |~~ w ~~| /w ::number | get /0)]","expect":"[::call ~(add by) ~(reads :w |~~ w ~~| /w ::number)]"}

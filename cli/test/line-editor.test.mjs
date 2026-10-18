@@ -540,7 +540,7 @@ describe('createLineEditor — TTY paste fast-path', () => {
     expect(capture.lines).toEqual(['{\n  "a": 1\n} | get /a']);
   });
 
-  it('gathers a paste the terminal hands over in several chunks into one paste [D361]', () => {
+  it('gathers a paste the terminal hands over in several chunks into one paste [QSHST#repl]', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'one\r\ntw', 'o\r', '\nthree', SUBMIT);

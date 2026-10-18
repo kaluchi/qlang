@@ -77,7 +77,7 @@ registerStateReader('any/query', runsWithin(['path'], (subject, path, fallback, 
 // index it takes moving up. The path is followed as `get` follows it, and
 // every container on the way is built again and laid under the tags it
 // stood under, each laid again through its kind, as `within` lays
-// its answer; an error the code answers is the answer, at its path [D360].
+// its answer; an error the code answers is the answer, at its path [QSPTH#write].
 async function written(value, path, at, write, state) {
   if (isValueClass(value, 'underTag')) return await relaid(value, await written(value.payload, path, at, write, state), state);
   const segment = path.segments[at];
@@ -323,7 +323,7 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
   return Number.isNaN(index) || String(index) !== segment ? keyword(segment) : index;
 })));
 
-// A path names one segment at least, the value itself being `it` [D360].
+// A path names one segment at least, the value itself being `it` [QSPTH#value].
 registerPrimitive('vec/toPath', keys => {
   if (keys.length === 0) throw new VecToPathSubjectEmptyError({ actualValue: keys });
   return makePath(keys.map((key, index) => {

@@ -1,7 +1,7 @@
 // `raise`, and the catch, `!|`, which passes a value by and runs its step on
 // the error at rest, a group and a verb among them; the trace of the steps a
 // failure skips, and the refusals of the runtime, each under the address of
-// its site [D359].
+// its site [QSERR#catch], [QSERR#trace].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -58,7 +58,7 @@ describe('`!|` runs a group and a verb on the error at rest', () => {
 
   it('a comment among the steps a failure skips leaves no step in the trace', async () => {
     // The last frame of the trace holds the steps the error skipped, and a
-    // comment is whitespace, so `count` alone joins them [D359],
+    // comment is whitespace, so `count` alone joins them [QSERR#trace],
     // [QSSYN#comment].
     const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | toString');
     expect(evalResult).toBe('count');
@@ -165,7 +165,7 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
-  it('a path on a value with no parts → PathSubjectHasNoPartsError, the segment it met among the facts [D360]', async () => {
+  it('a path on a value with no parts → PathSubjectHasNoPartsError, the segment it met among the facts [QSPTH#get]', async () => {
     const refused = await evalQuery('42 | get /name');
     expect(refused.originalError.name).toBe('SubjectHasNoPartsError');
     expect(refused.descriptor.get('segment').name).toBe('name');

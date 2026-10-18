@@ -1,7 +1,7 @@
 |~ `::frame`, the kind of one level of the trace a failure leaves, and
    what is declared under it: the refusal of a payload that holds no
    subject and steps, and the verbs that read a frame.
-   The rules it holds: [D359]. ~|
+   The rules it holds: [QSERR#trace]. ~|
 
 :frame
   |~~ A frame is one level of the trace a failure leaves, the step that

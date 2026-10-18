@@ -1,6 +1,6 @@
 |~ `::elision`, the kind of what a view leaves where it left a part out,
    and the laws declared under it.
-   The rules it holds: [QSDSP#residence], [D362]. ~|
+   The rules it holds: [QSDSP#residence], [QSPRN#elide]. ~|
 
 :elision
   |~~ An elision stands for a part of an answer that a budget left out,

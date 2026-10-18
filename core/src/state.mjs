@@ -3,14 +3,14 @@
 // declarations of its inside behind by keeping the state it started from;
 // the scope maps the names a reader declared to their records over the root
 // the host's sources declared, under a key no name spells, a lookup reading
-// the scope and then the root [QSDSP#residence], [D359].
+// the scope and then the root [QSDSP#residence], [QSNAM#verb].
 
 import { CallEvaluationDepthExceededError } from './errors.mjs';
 import { ROOT_KEY, QUERY_KEY } from './env-keys.mjs';
 
 // The deepest evaluation depth `nestState` admits: a runaway, a verb that
 // calls itself without end, is refused one deeper, and the host's heap stays
-// bounded [D359].
+// bounded [QSNAM#verb].
 export const EVAL_DEPTH_LIMIT = 1000;
 
 // The calls a state runs within keep the origin of each quote they
@@ -40,7 +40,7 @@ export function withEnv(state, nextEnv) {
 // depthBelow(state) → the evaluation depth one deeper than a state, or
 // CallEvaluationDepthExceededError once it passes EVAL_DEPTH_LIMIT, its
 // fact `:depth` the depth refused; a read that runs with no state of its
-// own meets the limit by it alone [D359].
+// own meets the limit by it alone [QSNAM#verb].
 export function depthBelow(state) {
   const depth = state.depth + 1;
   if (depth > EVAL_DEPTH_LIMIT) throw new CallEvaluationDepthExceededError({ depth, limit: EVAL_DEPTH_LIMIT });

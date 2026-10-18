@@ -21,7 +21,7 @@ registerPrimitive('vec/append', (vector, element) => [...vector, element]);
 
 // The empty separator cuts the text into its characters, the code points
 // `count` counts, so no character falls in halves, and a regex cuts it at
-// every match [D362].
+// every match [QSTXT#split].
 registerPrimitive('string/split', (subject, separator) => {
   if (isRegex(separator)) return piecesBetweenMatches(subject, separator);
   return separator === '' ? Array.from(subject) : subject.split(separator);

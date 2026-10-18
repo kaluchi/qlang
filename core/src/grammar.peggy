@@ -204,7 +204,7 @@
     }
   }
 
-  // Whether the engine reads a regex a literal writes with its flags [D362].
+  // Whether the engine reads a regex a literal writes with its flags [QSTXT#regex].
   function regexRead(source, written) {
     const flags = canonicalFlags(written);
     return flags !== null && regexProblem(source, flags) === null;
@@ -665,7 +665,7 @@ QuoteChar
 // `~(…)` that reads as code is a quote, a span between backquotes is
 // prose whole, and the rest is prose [QSQUO#literal], [QSSLF#doc]; a line doc's quote
 // stays on its line. The printer writes the block form. A parse error
-// names its opening `doc` and its prose among the continuations [D360].
+// names its opening `doc` and its prose among the continuations [QSSYN#refusal].
 DocLit
   = LineDocOpen segments:LineDocSegments
     { return node('DocLit', { segments, content: text().slice(4) }, span(), text()); }
@@ -710,7 +710,7 @@ BlockDocPart
   / !"~~|" c:. { return c; }
 
 // The characters of the prose of a doc, a span of prose inside it among it,
-// which a refusal names beside the literals that close what it opened [D360].
+// which a refusal names beside the literals that close what it opened [QSSYN#refusal].
 ProseRunOfALine "character of prose"
   = [^~`:\n]+
 
@@ -781,8 +781,8 @@ QlangMapEntry
 
 // A regex, read as written: a backslash passes to the engine with the
 // character after it, but for `\"`, a quote in the regex that does not end
-// it, and the flags may follow the closing quote, `#"error"i` [D362],
-// [D360].
+// it, and the flags may follow the closing quote, `#"error"i`
+// [QSTXT#regex].
 RegexLit
   = "#\"" chars:RegexChar* "\"" written:$RegexFlag*
     &{ return docQuoteDepth === 0 || regexRead(chars.join(''), written); }
@@ -935,7 +935,7 @@ Ident
 ReservedWord
   = ("true" / "false" / "null") !IdentTail
 
-// The letters of a name, `core/src/name-chars.mjs` [D360].
+// The letters of a name, `core/src/name-chars.mjs` [QSNAM#letters].
 IdentStart "name"
   = c:. &{ return isNameStart(c); } { return c; }
 IdentTail  "letters of a name"

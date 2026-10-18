@@ -2,7 +2,7 @@
 // answers `initialize` with its capabilities, which a test of the
 // features alone never reaches, since those import `features.mjs` and
 // leave the server's own imports unread, and it reads each source of the
-// language where the core's package exports it [D361].
+// language where the core's package exports it [QSHST#source].
 // The rules it holds: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';

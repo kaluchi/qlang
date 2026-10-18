@@ -1,7 +1,7 @@
 // The loaders `#qlang/load-source` picks by its condition raise
 // `::builtin/SourceLoadError` where a source the package maps does not read,
 // its facts the origin of the source, where the platform looked for it and
-// the host's account of the failure [D361].
+// the host's account of the failure [QSHST#source].
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { keyword } from '../../src/types.mjs';
@@ -14,7 +14,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('the loaders of the sources of the language [D361]', () => {
+describe('the loaders of the sources of the language [QSHST#source]', () => {
   it('raises it on Node for a file the package maps that does not read, its origin the keyword of the source', async () => {
     const { loadSource } = await import('../../host/load-source-node.mjs');
     const raised = await loadSource('qlang/vec').catch(error => error);

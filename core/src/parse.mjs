@@ -78,14 +78,14 @@ export function parse(source, opts = {}) {
 }
 
 // nameOfContinuation(alternative) → the name the language gives a continuation
-// no literal is: the end of the source, any character, or a rule's name [D360].
+// no literal is: the end of the source, any character, or a rule's name [QSSYN#refusal].
 export function nameOfContinuation(alternative) {
   if (alternative.type === 'end') return 'end-of-source';
   return alternative.type === 'any' ? 'any-character' : alternative.description;
 }
 
 // The sentence of a failure no rule of the grammar writes: the continuations
-// as `:expected` names them, a literal in its quotes, and what it met [D360].
+// as `:expected` names them, a literal in its quotes, and what it met [QSSYN#refusal].
 function expectedSentence(expected, found) {
   const named = [...new Set(expected.map(alternative => (alternative.type === 'literal' ? JSON.stringify(alternative.text) : nameOfContinuation(alternative))))].sort();
   const listed = named.length === 1 ? named[0] : `${named.slice(0, -1).join(', ')} or ${named[named.length - 1]}`;

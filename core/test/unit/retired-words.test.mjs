@@ -3,7 +3,7 @@
 // of a host, of the read of text into code and back, of the elision, of the
 // regex, of the template and of the read of a print, each held by the
 // lexicon of retired terms as one regex of its one sense [QSWRK#documents],
-// [D359], [D360], [D361], [D362], which refuses the term where it is written,
+// which refuses the term where it is written,
 // in prose, a name of the code or the name of a case, and leaves the words of
 // another sense.
 
@@ -27,7 +27,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('refuses each retired term of the trace, of the step that failed and of the evaluation depth where it is written [D359]', () => {
+  it('refuses each retired term of the trace, of the step that failed and of the evaluation depth where it is written [QSWRK#documents]', () => {
     for (const text of [
       'the trail of a failure', 'Trails are read by trail', '`:trail` among the facts', '`::trail[]`', '`!| get /trail/1/0`',
       'core/src/eval-trail.mjs', 'a-raised-error-holds-its-trail', 'quote-with-leading-combinator-trail-style',
@@ -54,7 +54,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('refuses a frame for the scope of a source where it is written [D359]', () => {
+  it('refuses a frame for the scope of a source where it is written [QSWRK#documents]', () => {
     for (const text of ['no frame of its source before them', 'each source a cell run in a frame over the root', 'the frames of the sources']) {
       expect(refused(text), text).toBe(true);
     }
@@ -68,11 +68,11 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('leaves the words of another sense beside the trace: a frame of a trace, the budget of a print, and a case, a law, a tag and a stream that broke [D359]', () => {
+  it('leaves the words of another sense beside the trace: a frame of a trace, the budget of a print, and a case, a law, a tag and a stream that broke [QSWRK#documents]', () => {
     for (const text of [
       'a frame of the trace holds the subject its step met', 'the frame of `map`', 'a frame a line', 'the frame of its step',
       'trim_trailing_whitespace', 'a trailing newline', 'trailing-separator-leaves-empty', 'Trailing',
-      '[QSERR#trail]', 'the step that failed', 'failedAt', 'a reader\'s own verb `:number/step`', 'reduce 0 ~(step)', '!| step',
+      'the step that failed', 'failedAt', 'a reader\'s own verb `:number/step`', 'reduce 0 ~(step)', '!| step',
       'tell a repair from a case that broke', 'a broken case', 'the tag that broke it its `:actualValue`',
       'stream broke', 'a law broke', 'a quote left broken in a page', 'breaks an invariant',
       'a law broke at the edges of its literals', 'the stream broke on a bad byte', 'whether a repair moved it or the case broke',
@@ -89,7 +89,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each retired term of a refusal, of a conversion, of an empty subject and of the error a catch holds where it is written [D360]', () => {
+  it('refuses each retired term of a refusal, of a conversion, of an empty subject and of the error a catch holds where it is written [QSWRK#documents]', () => {
     for (const text of [
       '::keyword/toTag/NameNotNameError', '::string/toTag/TextNotNameError', 'KeywordToTagNameNotNameError', 'StringToTagTextNotNameError', ':NameNotNameError/refusesASpace',
       '::vec/toPath/EmptyError', 'VecToPathEmptyError', ':EmptyError/refusesTheEmptyVector',
@@ -109,7 +109,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('refuses the position of an element named as a place where it is written [D360]', () => {
+  it('refuses the position of an element named as a place where it is written [QSWRK#documents]', () => {
     for (const text of [
       'get-refuses-a-place-past-the-end', 'A vector grows by `append`, not by a place past its end.', 'A negative place past the start is refused as it was written.',
       '`/-1`, a negative place counting from the end', ':readsTuplesPlaceByPlace', 'a vector key place by place', 'two tuples of one length place by place',
@@ -144,7 +144,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the words of another sense beside a refusal: the place of the args, of a frame, of a payload and of a text, the read of an elision, a bracket opened and the end of the source [D360]', () => {
+  it('leaves the words of another sense beside a refusal: the place of the args, of a frame, of a payload and of a text, the read of an elision, a bracket opened and the end of the source [QSWRK#documents]', () => {
     for (const text of [
       'The place of the args the input reads, a path or a quote.', 'An input whose place the args leave out is refused.', 'A place read by `query` gives a default.',
       'a modifier that failed is refused by its place', 'The input `multiplier` reads the first place of the args', 'How many places the inputs of the verb read', 'Args past the places its inputs read are refused.',
@@ -167,7 +167,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each retired term of the boundary of a host where it is written [D361]', () => {
+  it('refuses each retired term of the boundary of a host where it is written [QSWRK#documents]', () => {
     for (const text of [
       'A source is `{ uri, source, impls? }`', 'the `impls` of its sources', 'Object.keys(cliSource.impls)', 'const impls = {};', 'impls: {}',
       '`impls?` names what a source hands', 'the source { uri, source, impls } a host hands',
@@ -209,7 +209,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the words of another sense beside the boundary of a host: the code of the language, the command impl and its plural, a builtin and its plural, the environment, a plain value, the host\'s uri and the codec of JSON [D361]', () => {
+  it('leaves the words of another sense beside the boundary of a host: the code of the language, the command impl and its plural, a builtin and its plural, the environment, a plain value, the host\'s uri and the codec of JSON [QSWRK#documents]', () => {
     for (const text of [
       'Reference implementation of the qlang pipeline query language', 'its reference implementation lives in the repository',
       'the one key the implementation and its page in the catalog share', 'implementation spells a target it met',
@@ -230,7 +230,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'isBuiltinDescriptor', 'A builtin marks a verb a host answers by a primitive', 'streamPrimitives', 'tablePrimitives', 'the current scope', 'the environment of the process'
     ]) expect(refused(text), text).toBe(false);
   });
-  it('refuses each retired term of the read of text into code and back, of the elision, of the regex, of the template and of the read of a print where it is written [D362]', () => {
+  it('refuses each retired term of the read of text into code and back, of the elision, of the regex, of the template and of the read of a print where it is written [QSWRK#documents]', () => {
     for (const text of [
       '::quote/parse', '`::quote/parse` reads text into a quote and prints a quote as its text', 'quote/parse',
       'what does not fit given way to markers under `::elision`', 'the marker of a text keeping its first characters under `:head`', 'ending with a marker of the rest',
@@ -315,8 +315,8 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'one. A source that is no pattern is refused with the reason, and so', 'is a text that writes the literal of a pattern whole, as `json`',
       'The flags of the pattern written in a string, none when the', '`toRegex` reads the string as the source of a pattern, and it', 'Why the source is no pattern, and its repair where one shows.',
       '`toRegex` reads the source of a pattern, and this text writes', 'A string reads as the pattern whose source it holds.', 'The literal of a pattern is refused, and `parse | apply it`',
-      'first, null, boolean, number, string, pattern, keyword, tag name,', 'Two patterns are one when their text and their flags are [QSTXT#pattern].',
-      'A pattern of text, read as written: a backslash passes to the engine', '\'regex\'       Pattern literal `#"…"`, its flags among it [QSTXT#pattern]',
+      'first, null, boolean, number, string, pattern, keyword, tag name,', 'Two patterns are one when their text and their flags are QSTXT#pattern.',
+      'A pattern of text, read as written: a backslash passes to the engine', '\'regex\'       Pattern literal `#"…"`, its flags among it QSTXT#pattern',
       'boolean, number, string, pattern, keyword, tag name, path, vector, set,', 'The patterns of text: a source the engine reads as it is written, in',
       'engineOf(source, flags, extra?) → the expression of the engine a pattern', 'patternProblem(source, flags) → what keeps a source from being a',
       'patternRefusal(source, flags, problem) → the sentence that refuses a', 'literal whose source is no pattern: the reason, and the repair of the',
@@ -327,8 +327,8 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'A text looked for as a pattern of itself, every character the engine', 'A pattern\'s replacement names the parts of a match, `$1`, `$<name>`,',
       '`$&`, a `$<name>` of a group the pattern lacks standing as written; a', 'The replacement with each `$<name>` of a group the pattern lacks escaped,',
       '`count` counts, so no character falls in halves, and a pattern cuts it at', 'The pattern, the keyword, the tag name, the path, the error and the',
-      'A pattern of text, the value of a `#"…"` literal: its source as written', 'and its flags, which `pattern.mjs` hands to the engine [QSTXT#pattern].',
-      'numbers, strings, patterns, keywords, tag names and paths, each once, in the one', 'classifies a pattern literal, its quote escape and its flags among it [QSTXT#pattern]',
+      'A pattern of text, the value of a `#"…"` literal: its source as written', 'and its flags, which `pattern.mjs` hands to the engine QSTXT#pattern.',
+      'numbers, strings, patterns, keywords, tag names and paths, each once, in the one', 'classifies a pattern literal, its quote escape and its flags among it QSTXT#pattern',
       'implies the vector, `{…}` the map, `#"…"` the pattern, `::regex`, `/a`', 'strings, patterns, keywords, tag names and paths, each once and in the',
       'A pattern of text is a value of the kind `::regex`, written `#"\\d+ms"`:', 'quote, each once, and print in that order; the pattern reads text by',
       'is no pattern is refused by the parser with the reason, and the repair', 'flags its call gives in the place of its own, a pattern keeping its own',
@@ -336,7 +336,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'first match as a map, or null, refusing a pattern that names no group;', 'a dollar by `$$`, a group the pattern lacks standing as written, but for',
       '`toRegex` reads a string as the source of a pattern, its input `flags` a', 'A pattern, read as itself.', 'whether the pattern names other groups or none.',
       'The pattern the source writes, with its flags.', 'Whether the engine reads a pattern a literal writes with its flags', 'with the character after it, but for `\\"`, a quote in the pattern that',
-      'A pattern writes its literal, which JSON has no form for [QSTXT#pattern].', 'A pattern writes its literal, its flags after it [QSTXT#pattern].', '`capture` takes a pattern alone',
+      'A pattern writes its literal, which JSON has no form for QSTXT#pattern.', 'A pattern writes its literal, its flags after it QSTXT#pattern.', '`capture` takes a pattern alone',
       'the pattern literals of a page',
       '::string/toRegex/TextNotPatternError', 'StringToRegexTextNotPatternError', ':TextNotPatternError/refusesTheLiteralOfARegex',
       '::string/capture/PatternNamesNoGroupError', 'StringCapturePatternNamesNoGroupError', ':PatternNamesNoGroupError/refusesARegexOfNumberedGroupsAlone', '| throws :PatternNamesNoGroupError',
@@ -361,7 +361,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves marker for the signs of a comment, the end of a paste and unfinished work, tuple for the form of a shape, `parse` of a string, `open` of a link and a snippet, and `apply` of code on a subject [D362]', () => {
+  it('leaves marker for the signs of a comment, the end of a paste and unfinished work, tuple for the form of a shape, `parse` of a string, `open` of a link and a snippet, and `apply` of code on a subject [QSWRK#documents]', () => {
     for (const text of [
       'the comment markers `|~`, `|~|`, `|~~`', 'Longer markers are tried first', 'Inside a block comment the line markers are bare tokens',
       'a-parse-error-names-no-marker-of-a-comment-among-its-continuations', '|~ doc-close marker ~~| mentioned here ~|', 'holds a |~| line marker mention here', 'plain-close marker', 'line-doc marker',

@@ -4,8 +4,8 @@
 {"name":"filter-takes-a-path","query":"[{:a true} {:a false}] | filter /a","expect":"[{:a true}]"}
 {"name":"a-path-the-code-takes-reads-strictly","query":"[{:n 1} {:m 2}] | map /n !| type","expect":"::path/KeyNotInMapError"}
 {"name":"an-input-of-a-value-refuses-a-path","query":"5 | mul /a !| type","expect":"::number/mul/multiplier/KindNotTakenError"}
-{"decision":"D360","name":"an-input-given-a-path-names-its-repair","query":"5 | mul /qty !| get /repair","expect":"~(mul (get /qty))"}
-{"decision":"D360","name":"an-input-given-a-path-among-other-args-names-its-repair","query":"\"abc\" | replace /x \"y\" !| get /repair","expect":"~(replace (get /x) \"y\")"}
+{"name":"an-input-given-a-path-names-its-repair","query":"5 | mul /qty !| get /repair","expect":"~(mul (get /qty))"}
+{"name":"an-input-given-a-path-among-other-args-names-its-repair","query":"\"abc\" | replace /x \"y\" !| get /repair","expect":"~(replace (get /x) \"y\")"}
 {"name":"the-verbs-that-combine-values-of-one-subject-read-the-paths-they-take","query":"{:total 10 :paid 3} | subOf /total /paid","expect":"7"}
 {"name":"path-after-filter","query":"[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter ~(get /age | gte 18) | map /name","expect":"[\"Alice\"]"}
 {"name":"any-with-path","query":"[{:active false} {:active true}] | any /active","expect":"true"}
@@ -14,5 +14,5 @@
 {"name":"every-with-path-fails","query":"[{:active true} {:active false}] | every /active","expect":"false"}
 {"name":"paths-as-modifiers-read","query":"{:qty 2 :price 3} | mulOf /qty /price","expect":"6"}
 {"name":"a-query-reads-by-get-and-its-verbs-take-a-path","query":"{:data {:users [{:name \"Ann\" :age 30 :active true} {:name \"Bo\" :age 15 :active false} {:name \"Cy\" :age 20 :active true}]}} | get /data/users | filter /active | sort /age | map /name","expect":"[\"Cy\" \"Ann\"]"}
-{"decision":"D359","name":"a-path-run-as-code-passes-a-frame-at-the-value-it-missed-as-its-get-does","query":"[{:n 1} {:m 2}] | map /n !| get [~(trace | map ~subject) ~(trace | map ~failed)]","expect":"[[{:m 2} [{:n 1} {:m 2}]] [~(get /n) ~(map /n)]]"}
+{"name":"a-path-run-as-code-passes-a-frame-at-the-value-it-missed-as-its-get-does","query":"[{:n 1} {:m 2}] | map /n !| get [~(trace | map ~subject) ~(trace | map ~failed)]","expect":"[[{:m 2} [{:n 1} {:m 2}]] [~(get /n) ~(map /n)]]"}
 {"name":"an-input-of-any-value-takes-a-path-as-the-value-it-is","query":"[1] | append /a","expect":"[1 /a]"}

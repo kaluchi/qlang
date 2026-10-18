@@ -1,4 +1,4 @@
-// One order ranks every value [D362]: first by kind, null, boolean, number,
+// One order ranks every value [QSORD#order]: first by kind, null, boolean, number,
 // string, regex, keyword, tag name, path, vector, set, map, quote, doc,
 // elision and desc, then every other tag by its name; within a kind numbers
 // by value, a text by its code points, as a string counts them, regexes by
@@ -33,7 +33,7 @@ const DESC_KIND     = 14;
 const TAGGED_KIND   = 15;
 
 // The kind of a value as the order ranks it, a value of no kind refused as
-// `typeOf` refuses it [D361].
+// `typeOf` refuses it [QSHST#source].
 function kindOf(value) {
   if (value === null || value === undefined) return NULL_KIND;
   if (typeof value === 'boolean') return BOOLEAN_KIND;

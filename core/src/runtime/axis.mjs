@@ -6,7 +6,7 @@
 // declares. Each axis projects a field of the record:
 //
 // `source`   the quote of the declaring step, null for a binding no
-//            declaration wrote, a node a chain lays among them [D361].
+//            declaration wrote, a node a chain lays among them [QSSLF#axis].
 // `doc`      the page of the step's slot, its docs as one, null for
 //            a slot without one [QSSLF#axis].
 // `binding`  the record itself, `::binding` with its name, docs, value,
@@ -111,7 +111,7 @@ registerStateReader('any/binding', (subject, anchor, state) =>
 // The source of a record and of every declaration under its address,
 // one quote of their steps in the order they were written, what stands
 // under the address read at once; a binding no declaration wrote holds
-// none [QSSLF#catalog], [D361].
+// none [QSSLF#catalog], [QSSLF#axis].
 registerStateReader('any/source', (subject, anchor, state) => {
   const record = recordReadBy(subject, anchor, state, AnySourceUnknownNameError);
   const written = [record, ...declarationsUnder(state.env, record.get('name').name)].filter(declared => declared.get('source') !== null);

@@ -440,7 +440,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
 
   // A paste the terminal hands over in several chunks gathers here, each
   // chunk of text arriving within the window after the last joining it, and
-  // lands at the cursor as one paste [D361].
+  // lands at the cursor as one paste [QSHST#repl].
   let pasteAccumBuffer = '';
   let pasteAccumTimer  = null;
   const PASTE_FLUSH_MS = 50;

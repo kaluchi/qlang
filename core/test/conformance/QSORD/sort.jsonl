@@ -6,8 +6,8 @@
 {"name":"min-answers-the-first-value-in-the-order","query":"[3 \"a\" null] | min","expect":"null"}
 {"name":"max-answers-the-last-value-in-the-order","query":"[3 \"a\" null] | max","expect":"\"a\""}
 {"name":"a-key-that-answers-an-error-answers-it-over-a-map","query":"{:a {:n 1}} | sort /b !| type","expect":"::path/KeyNotInMapError"}
-{"decision":"D360","name":"a-vector-key-ranks-by-its-next-index-among-ties","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b]) | map /b","expect":"[9 1 2]"}
-{"decision":"D360","name":"a-vector-key-that-fails-at-an-index-answers-the-call","query":"[{:a 2} {:b 1}] | sort ~(get [/a]) !| type","expect":"::path/KeyNotInMapError"}
+{"name":"a-vector-key-ranks-by-its-next-index-among-ties","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b]) | map /b","expect":"[9 1 2]"}
+{"name":"a-vector-key-that-fails-at-an-index-answers-the-call","query":"[{:a 2} {:b 1}] | sort ~(get [/a]) !| type","expect":"::path/KeyNotInMapError"}
 {"name":"max-takes-a-key-and-answers-the-element","query":"[{:age 30} {:age 40}] | max /age","expect":"{:age 40}"}
 {"name":"min-takes-a-key-and-answers-the-first-of-equal-ones","query":"[{:n 1 :i 0} {:n 1 :i 1}] | min /n | get /i","expect":"0"}
 {"name":"the-key-of-the-greatest-value-of-a-map","query":"{:a 3 :b 1} | entries | max /1 | get /0","expect":":a"}

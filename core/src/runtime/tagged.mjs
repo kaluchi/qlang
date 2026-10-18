@@ -1,5 +1,5 @@
 // The constructors of the kinds, each `(payload) → value` under the address
-// of the kind's `construct`, `number/construct` [QSBLD#kind], [D361], and the
+// of the kind's `construct`, `number/construct` [QSBLD#kind], [QSHST#source], and the
 // verbs that lay a tag over a value and take it off.
 
 import { layTag } from './verb.mjs';
@@ -89,7 +89,7 @@ function docConstructor(payload) {
 
 registerPrimitive('doc/construct', docConstructor);
 
-// `::trace[…]` — the trace of a failure, its frames in the order it flew [D359].
+// `::trace[…]` — the trace of a failure, its frames in the order it flew [QSERR#trace].
 registerPrimitive('trace/construct', payload => makeTrace(framesOfTrace(payload)));
 
 // `::builtin{…}` — the descriptor, the recipe of a verb or the constructor

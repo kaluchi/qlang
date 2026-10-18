@@ -48,7 +48,7 @@ function liftParsedDocument(stdinText) {
 // table, and any other value as its print, whole unless the caller asked for a
 // budget, an error as its alert, a refused text with its caret below the alert
 // where the alert shows its line, and a failure with the prose of its refusal's
-// page last, line comments a reading of the literal passes over [D360].
+// page last, line comments a reading of the literal passes over [QSHST#answer].
 export async function answerText(value, scope, budget = null, page = null) {
   if (typeof value === 'string') return value;
   const shown = await elideAnswer(value, budget, scope);

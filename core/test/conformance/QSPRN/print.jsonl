@@ -5,7 +5,7 @@
 {"name":"print-writes-a-set-as-its-literal","query":"#[2 1] | print","expect":"\"#[1 2]\""}
 {"name":"print-writes-a-quote-as-its-literal","query":"~(add 1) | print","expect":"\"~(add 1)\""}
 {"name":"print-writes-each-part-by-its-kind","query":"[|~~ x ~~| #[1]] | print","expect":"\"[|~~ x ~~| #[1]]\""}
-{"decision":"D362","name":"the-print-of-a-value-reads-back-as-the-value","query":"{:a [1 \"x\" :k]} | :v it | print | parse | open | eq v","expect":"true"}
+{"name":"the-print-of-a-value-reads-back-as-the-value","query":"{:a [1 \"x\" :k]} | :v it | print | parse | open | eq v","expect":"true"}
 {"name":"a-doc-holding-a-quote-prints-as-written","query":"|~~ see ~(mul 2) for ref ~~| | print","expect":"\"|~~ see ~(mul 2) for ref ~~|\""}
 {"name":"true-prints-as-its-word","query":"true | print","expect":"\"true\""}
 {"name":"false-prints-as-its-word","query":"false | print","expect":"\"false\""}
@@ -15,7 +15,7 @@
 {"name":"a-doc-of-several-lines-prints-them","query":"|~~\n  paragraph one\n  paragraph two\n~~| | print","expect":"\"|~~\\n  paragraph one\\n  paragraph two\\n~~|\""}
 {"name":"a-line-doc-prints-as-a-block","query":"|~~| oneliner\n| print","expect":"\"|~~ oneliner~~|\""}
 {"name":"an-empty-line-doc-prints-as-an-empty-block","query":"|~~|\n| print","expect":"\"|~~~~|\""}
-{"decision":"D359","name":"a-trace-of-two-frames-prints-a-frame-a-line","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | print","expect":"\"::trace[\\n  ::frame[\\\"x\\\" ~(mul 2)]\\n  ::frame[[1 \\\"x\\\" 3] ~(map ~(mul 2)) /1]\\n]\""}
-{"decision":"D359","name":"a-trace-of-one-frame-prints-on-one-line","query":"\"x\" | add 1 !| trace | print","expect":"\"::trace[::frame[\\\"x\\\" ~(add 1)]]\""}
-{"decision":"D359","name":"a-frame-prints-on-one-line-whatever-its-subject-holds","query":"{:v [{:e {:f 1}}] :s #[{:c {:d 1}}] :t ::A::B{:g {:h 1}} :r !{:i {:j 1}}} | get /none !| trace | print","expect":"\"::trace[::frame[{:v [{:e {:f 1}}] :s #[{:c {:d 1}}] :t ::A::B{:g {:h 1}} :r !{:i {:j 1}}} ~(get /none)]]\""}
-{"decision":"D359","name":"a-frame-prints-the-trace-of-an-error-it-holds-on-its-one-line","query":"[1 \"x\" 3] | map ~(mul 2) !| get /nope !| trace | print","expect":"\"::trace[::frame[::number/mul/SubjectNotNumberError!{:actualType ::string :trace ::trace[::frame[\\\"x\\\" ~(mul 2)] ::frame[[1 \\\"x\\\" 3] ~(map ~(mul 2)) /1]]} ~(get /nope)]]\""}
+{"name":"a-trace-of-two-frames-prints-a-frame-a-line","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | print","expect":"\"::trace[\\n  ::frame[\\\"x\\\" ~(mul 2)]\\n  ::frame[[1 \\\"x\\\" 3] ~(map ~(mul 2)) /1]\\n]\""}
+{"name":"a-trace-of-one-frame-prints-on-one-line","query":"\"x\" | add 1 !| trace | print","expect":"\"::trace[::frame[\\\"x\\\" ~(add 1)]]\""}
+{"name":"a-frame-prints-on-one-line-whatever-its-subject-holds","query":"{:v [{:e {:f 1}}] :s #[{:c {:d 1}}] :t ::A::B{:g {:h 1}} :r !{:i {:j 1}}} | get /none !| trace | print","expect":"\"::trace[::frame[{:v [{:e {:f 1}}] :s #[{:c {:d 1}}] :t ::A::B{:g {:h 1}} :r !{:i {:j 1}}} ~(get /none)]]\""}
+{"name":"a-frame-prints-the-trace-of-an-error-it-holds-on-its-one-line","query":"[1 \"x\" 3] | map ~(mul 2) !| get /nope !| trace | print","expect":"\"::trace[::frame[::number/mul/SubjectNotNumberError!{:actualType ::string :trace ::trace[::frame[\\\"x\\\" ~(mul 2)] ::frame[[1 \\\"x\\\" 3] ~(map ~(mul 2)) /1]]} ~(get /nope)]]\""}

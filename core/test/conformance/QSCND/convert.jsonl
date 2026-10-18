@@ -3,7 +3,7 @@
 {"name":"an-atom-turns-into-its-string","query":"[42 :a ::vec true \"s\"] | map ~toString","expect":"[\"42\" \"a\" \"vec\" \"true\" \"s\"]"}
 {"name":"an-atom-turns-into-the-keyword-groupBy-files-it-under","query":"[\"a\" 1 true null ::Box :k] | map ~toKeyword","expect":"[:a :\"1\" :true :null :Box :k]"}
 {"name":"a-name-turns-into-its-tag","query":"[\"vec\" :Box] | map ~toTag","expect":"[::vec ::Box]"}
-{"decision":"D360","name":"a-keyword-or-a-string-that-names-no-tag-is-refused-by-the-kind-it-does-not-become","query":"get [~(:\"a b\" | toTag !| type) ~(\"a b\" | toTag !| type)]","expect":"[::keyword/toTag/NameNotTagError ::string/toTag/TextNotTagError]"}
+{"name":"a-keyword-or-a-string-that-names-no-tag-is-refused-by-the-kind-it-does-not-become","query":"get [~(:\"a b\" | toTag !| type) ~(\"a b\" | toTag !| type)]","expect":"[::keyword/toTag/NameNotTagError ::string/toTag/TextNotTagError]"}
 {"name":"a-container-turns-into-another","query":"get [~(#[2 1] | toVec) ~([2 1 2] | toSet) ~([[:a 1]] | toMap)]","expect":"[[1 2] #[1 2] {:a 1}]"}
 {"name":"a-value-turned-wider-and-back-is-itself","query":"get [~(42 | toString | toNumber) ~(:a | toString | toKeyword) ~(1 | toKeyword | toNumber) ~(#[1 2] | toVec | toSet)]","expect":"[42 :a 1 #[1 2]]"}
 {"name":"two-records-join-by-a-number-turned-into-its-key","query":"{:users [{:id 1 :name \"Ann\"}] :orders [{:uid 1 :sum 5}]} | :byId (get /users | indexBy /id) | get /orders | map ~(:o it | get {:sum /sum :name ~(byId | query (o | get /uid | toKeyword) | get /name)})","expect":"[{:sum 5 :name \"Ann\"}]"}
@@ -28,4 +28,4 @@
 {"name":"a-pair-of-another-shape-is-refused","query":"[[:a 1] [:b]] | toMap !| get [~(type) /index]","expect":"[::vec/toMap/ElementNotPairError 1]"}
 {"name":"a-key-of-another-kind-is-refused","query":"[[[1] 2]] | toMap !| get [~(type) /index /expected]","expect":"[::vec/toMap/KeyKindNotTakenError 0 #[::boolean ::keyword ::null ::number ::string ::tag]]"}
 {"name":"every-atom-turns-into-the-text-of-its-literal","query":"[null true 5 :a ::vec] | map ~toString","expect":"[\"null\" \"true\" \"5\" \"a\" \"vec\"]"}
-{"decision":"D362","name":"a-regex-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| type","expect":"::call/KindAnswersNoVerbError"}
+{"name":"a-regex-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| type","expect":"::call/KindAnswersNoVerbError"}

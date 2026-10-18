@@ -18,7 +18,7 @@ function tagHeadersEqual(a, b) {
 
 export function deepEqual(a, b) {
   if (a === b) return true;
-  // A value JavaScript leaves undefined is null [D361].
+  // A value JavaScript leaves undefined is null [QSHST#source].
   if (isNull(a) || isNull(b)) return isNull(a) && isNull(b);
   if (typeof a !== typeof b) return false;
   // A value under a tag's wrapper equals one under the same tag over an
@@ -47,7 +47,7 @@ export function deepEqual(a, b) {
   if (isTag(a)) {
     return isTag(b) && a.name === b.name;
   }
-  // Two regexes are one when their text and their flags are [D362].
+  // Two regexes are one when their text and their flags are [QSTXT#regex].
   if (isRegex(a)) {
     return isRegex(b) && a.source === b.source && a.flags === b.flags;
   }

@@ -2,7 +2,7 @@
 // it declares: `platformLocator` resolves the sources of the language
 // through the calling package's `imports` field, a source it cannot find
 // refuses the bootstrap by `BootstrapSourceMissingError`, and a source
-// the parser refuses raises its `ParseError` [QSDSP#residence], [D361].
+// the parser refuses raises its `ParseError` [QSDSP#residence], [QSHST#source].
 
 import { describe, it, expect } from 'vitest';
 import { platformLocator, BuiltinBootstrapSourceMissingError } from '../../src/runtime/bootstrap.mjs';
@@ -47,7 +47,7 @@ describe('a source of the language the parser refuses', () => {
   });
 });
 
-describe('SourceLoadError, which every loader raises alike [D361]', () => {
+describe('SourceLoadError, which every loader raises alike [QSHST#source]', () => {
   // Both loaders (`host/load-source-node.mjs`, `src/load-source-web.mjs`)
   // raise the same `SourceLoadError` class imported from
   // `src/source-load-error.mjs`, its facts the origin of the source, where

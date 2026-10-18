@@ -59,7 +59,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     expect(printValue(err)).toBe('!{}');
   });
 
-  it('a failure that flew no step prints its facts alone, and its print raised starts its trace at the raise [D359]', async () => {
+  it('a failure that flew no step prints its facts alone, and its print raised starts its trace at the raise [QSERR#print]', async () => {
     const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
     expect(printValue(err)).toBe('::Foo!{:category :oops}');
     expect(isErrorValue(await evalQuery(printValue(err)))).toBe(false);
@@ -98,8 +98,8 @@ describe('printErrorValue — head + payload-filter branches', () => {
 
 // The refusal of a text holds where the reading stopped as its span, and a
 // host that prints for a person's eye draws the line and a caret under its
-// column below the alert, two line comments a reading passes over [D360].
-describe('caretOf — the caret under the line where the reading stopped [D360]', () => {
+// column below the alert, two line comments a reading passes over [QSERR#print].
+describe('caretOf — the caret under the line where the reading stopped [QSERR#print]', () => {
   const caretOfQuery = async query => caretOf(await evalQuery(query));
   const refusalAt = (source, span) => `::quote/ParseError!{:source ${JSON.stringify(source)} :location ::span[${span}]} | raise`;
 
@@ -188,7 +188,7 @@ describe('runtime/format.mjs structural — json round-trips', () => {
 describe('format.fromPlain — inverse of toPlain', () => {
   // `fromPlain` lifts a value of JavaScript parsed from JSON into qlang: an
   // object of JavaScript into a map keyed by its names, an array into a
-  // vector, and an atom as it is [D361].
+  // vector, and an atom as it is [QSHST#source].
 
   it('atoms pass through unchanged', async () => {
     expect(fromPlain(42)).toBe(42);
@@ -238,7 +238,7 @@ describe('the finite-double domain holds at every render seam', () => {
   // brought under `::number` past them is refused as `::number/NotFiniteError`
   // [QSNUM#arithmetic]; a function of the reader that answers one from a
   // primitive of the core under no kind meets the printer and the codec of
-  // JSON, which raise it where they write it [D361].
+  // JSON, which raise it where they write it [QSHST#source].
   it('printValue refuses an infinity and a NaN as values of no kind', async () => {
     const { BuiltinForeignValueError } = await import('../../src/types.mjs');
     for (const leaked of [Infinity, -Infinity, NaN]) {
@@ -307,7 +307,7 @@ describe('the print of env reads back', () => {
     expect(printed).not.toMatch(/=>\s*\{/);
   });
 
-  it('never meets a function a host hands in a scope, which the session refuses as it takes the scope [D361]', async () => {
+  it('never meets a function a host hands in a scope, which the session refuses as it takes the scope [QSHST#source]', async () => {
     const scope = new Map(await langRuntime()).set('hostFn', makeBinding({ name: keyword('hostFn'), value: async function helloFn() { return 42; } }));
     await expect(createSession({ scope })).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: 'function helloFn' } });
   });

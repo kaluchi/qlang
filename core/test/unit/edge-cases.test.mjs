@@ -22,7 +22,7 @@ import {
 import { catchOriginalError, expectErrorThrown } from '../helpers/error-assertions.mjs';
 
 describe('types.mjs', () => {
-  it('typeOf refuses a value the language holds no kind for, a symbol of a host, past the fail track [D361]', () => {
+  it('typeOf refuses a value the language holds no kind for, a symbol of a host, past the fail track [QSHST#source]', () => {
     expect(() => typeOf(Symbol('host'))).toThrow('the core met symbol Symbol(host), a value of no kind of the language');
   });
 
@@ -222,7 +222,7 @@ describe('runtime/string.mjs lines', () => {
 describe('source on a verb, a declaration of it and a tag', () => {
   // `source` reads a name by its tag, the quote of the declaration written
   // under its address, which `toString` writes as its text, and a keyword by
-  // its kind [D362].
+  // its kind [QSSLF#axis].
 
   it('source on the address of a verb returns the whole declaration', async () => {
     const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | toString');

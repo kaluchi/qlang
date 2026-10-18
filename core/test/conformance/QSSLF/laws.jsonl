@@ -26,5 +26,5 @@
 {"name":"a-page-holds-the-laws-of-its-claims","query":"::vec/sort | laws | count | gt 0","expect":"true"}
 {"name":"every-example-of-the-core-passes","query":"kinds | toVec | :ks it | map ~(manifest) | flat | :nodes it | get [~(ks) ~(nodes) ~(nodes | map ~(manifest) | flat)] | flat | every ~(runLaws | every /ok)","expect":"true"}
 {"name":"the-laws-a-page-carried-stand-under-its-name","query":"::number/add | laws | count","expect":"4"}
-{"decision":"D362","name":"a-law-of-a-spelled-form-shows-the-form","query":"::map | laws | get /readsJson | get /1 | print","expect":"\"~(\\\"{\\\\\\\"a\\\\\\\": 1, \\\\\\\"b\\\\\\\": [true, null]}\\\" | parse | open | eq {:a 1 :b [true null]})\""}
+{"name":"a-law-of-a-spelled-form-shows-the-form","query":"::map | laws | get /readsJson | get /1 | print","expect":"\"~(\\\"{\\\\\\\"a\\\\\\\": 1, \\\\\\\"b\\\\\\\": [true, null]}\\\" | parse | open | eq {:a 1 :b [true null]})\""}
 {"name":"laws-and-runLaws-refuse-a-name-nothing-declares","query":"get [~(::nothere | laws !| type) ~(::nothere | runLaws !| type)]","expect":"[::any/laws/UnknownNameError ::any/runLaws/UnknownNameError]"}

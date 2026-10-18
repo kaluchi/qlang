@@ -1,7 +1,7 @@
 // state.mjs — the (pipeValue, env) accessors, the immutable env
 // updaters, and the states that carry the evaluation depth and its
 // limit.
-// The rules it holds: [QSDSP#residence], [D359].
+// The rules it holds: [QSDSP#residence], [QSNAM#verb].
 
 import { describe, it, expect } from 'vitest';
 import {

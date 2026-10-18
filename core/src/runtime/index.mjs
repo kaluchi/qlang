@@ -1,6 +1,6 @@
 // The scope every query starts from: the root the language's sources declare
 // [QSDSP#residence], each read by the host's locator, with nothing seeded
-// before them [D361].
+// before them [QSHST#source].
 
 // Each module registers the primitives of the language's verbs and kinds
 // into PRIMITIVE_REGISTRY, by address, as it loads [QSDSP#residence].
@@ -40,7 +40,7 @@ const _templateScopeByLocator = new WeakMap();
 // langRuntime({ locator? }) → a copy of the scope of the root the language's
 // sources declare, each read by `opts.locator`, `(uri) → Promise<{ source }
 // | null>`, or through `package.json#imports`; a bundle without an import
-// map hands its own, as `site/scripts/_browser-entry.mjs` does [D361].
+// map hands its own, as `site/scripts/_browser-entry.mjs` does [QSHST#source].
 export async function langRuntime(opts = {}) {
   const locator = opts.locator ?? platformLocator;
   let templatePromise = _templateScopeByLocator.get(locator);

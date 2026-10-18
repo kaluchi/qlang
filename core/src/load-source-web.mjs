@@ -2,7 +2,7 @@
 // `default`, which answers the uri of a source, `qlang/number`, with the text
 // it fetches from the URL the platform resolves `#qlang/number` to, with null
 // where the name resolves to no URL, and raises `::builtin/SourceLoadError`
-// with the status of a response that fails as its cause [D361].
+// with the status of a response that fails as its cause [QSHST#source].
 // The rules it holds: [QSWRK#tooling].
 
 import { keyword } from './types.mjs';

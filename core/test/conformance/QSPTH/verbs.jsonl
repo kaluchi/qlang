@@ -1,11 +1,11 @@
 {"name":"a-path-answers-its-own-verbs-alone","query":"/tags | count !| type","expect":"::call/KindAnswersNoVerbError"}
 {"name":"paths-answers-each-leaf-with-its-kind","query":"{:a {:b 1 :c [2 \"x\"]} :d []} | paths","expect":"#[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string] [/d ::vec]]"}
-{"decision":"D360","name":"segments-answers-the-keys-and-indices-of-a-path","query":"/a/0 | segments","expect":"[:a 0]"}
-{"decision":"D360","name":"a-name-called-on-a-path-names-its-repair","query":"/tags | count !| get /repair","expect":"~(get /tags | count)"}
+{"name":"segments-answers-the-keys-and-indices-of-a-path","query":"/a/0 | segments","expect":"[:a 0]"}
+{"name":"a-name-called-on-a-path-names-its-repair","query":"/tags | count !| get /repair","expect":"~(get /tags | count)"}
 {"name":"toPath-reads-a-vector-of-keys","query":"[:a 0] | toPath | print","expect":"\"/a/0\""}
 {"name":"toPath-reads-json-pointer-with-its-escapes","query":"\"/a~1b/0\" | toPath | segments","expect":"[:\"a/b\" 0]"}
 {"name":"segments-keep-the-text-of-a-segment-that-is-no-number","query":"/01 | get [~(segments) ~(segments | toPath | eq /01)]","expect":"[[:\"01\"] true]"}
-{"decision":"D360","name":"toPath-takes-one-key-at-least","query":"[] | toPath !| type","expect":"::vec/toPath/SubjectEmptyError"}
+{"name":"toPath-takes-one-key-at-least","query":"[] | toPath !| type","expect":"::vec/toPath/SubjectEmptyError"}
 {"name":"toPath-refuses-a-string-that-is-no-json-pointer","query":"\"a\" | toPath !| type","expect":"::string/toPath/NotPointerError"}
 {"name":"an-atom-has-no-paths","query":"5 | paths","expect":"#[]"}
 {"name":"toPath-refuses-an-element-that-is-no-key","query":"[:a 1.5] | toPath !| type","expect":"::vec/toPath/ElementNotKeyError"}
@@ -16,7 +16,7 @@
 {"name":"shape-answers-the-kind-of-an-atom","query":"[5 \"a\" null :k /a true] | map ~shape","expect":"[::shape::number ::shape::string ::shape::null ::shape::keyword ::shape::path ::shape::boolean]"}
 {"name":"shape-keeps-the-keys-of-a-map","query":"{:a 1 :b {:c \"x\"}} | shape","expect":"::shape{:a ::number :b {:c ::string}}"}
 {"name":"shape-folds-the-elements-of-a-vector-into-one-an-empty-one-marking-it-absent","query":"[[1 2] [] [3]] | shape","expect":"::shape[[::absent::number]]"}
-{"decision":"D360","name":"shape-reads-vectors-of-one-length-that-part-index-by-index-as-tuples","query":"{:rows [[\"2024-01-01\" 1.5] [\"2024-01-02\" null]]} | shape","expect":"::shape{:rows [[::string ::nullable::number]]}"}
+{"name":"shape-reads-vectors-of-one-length-that-part-index-by-index-as-tuples","query":"{:rows [[\"2024-01-01\" 1.5] [\"2024-01-02\" null]]} | shape","expect":"::shape{:rows [[::string ::nullable::number]]}"}
 {"name":"shape-reads-vectors-of-one-length-and-one-shape-as-lists","query":"[[1 2 3] [4 5 6]] | shape","expect":"::shape[[::number]]"}
 {"name":"shape-merges-records-whatever-their-order","query":"get [~([{:a 1} {:b 2} {:a \"x\" :b 3}] | shape) ~([{:a \"x\" :b 3} {:a 1} {:b 2}] | shape)]","expect":"[::shape[{:a ::absent#[::number ::string] :b ::absent::number}] ::shape[{:a ::absent#[::number ::string] :b ::absent::number}]]"}
 {"name":"shape-sets-the-kinds-where-elements-part","query":"[1 \"a\" 2] | shape","expect":"::shape[#[::number ::string]]"}
@@ -35,7 +35,7 @@
 {"name":"shape-folds-a-map-keyed-by-data-whose-values-part","query":"{:\"0\" 0 :\"1\" \"n/a\" :\"2\" 2} | shape","expect":"::shape::each{:\"0\" #[::number ::string]}"}
 {"name":"shape-keeps-the-fields-of-many-names-over-atoms","query":"{:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8 :i 9} | shape | keys | count","expect":"9"}
 {"name":"shape-keeps-a-key-that-reads-as-no-name-among-fields","query":"{:\"@type\" \"Person\" :name \"Ann\" :age 30} | shape","expect":"::shape{:\"@type\" ::string :name ::string :age ::number}"}
-{"decision":"D362","name":"shape-folds-a-map-keyed-by-dates-uuids-or-emails","query":"get [~({:\"2024-01-01\" 5 :\"2024-01-02\" 7} | shape) ~({:\"ann@x.org\" 1 :\"bo@y.org\" 2} | shape)]","expect":"[::shape::each{:\"2024-01-01\" ::number} ::shape::each{:\"ann@x.org\" ::number}]"}
+{"name":"shape-folds-a-map-keyed-by-dates-uuids-or-emails","query":"get [~({:\"2024-01-01\" 5 :\"2024-01-02\" 7} | shape) ~({:\"ann@x.org\" 1 :\"bo@y.org\" 2} | shape)]","expect":"[::shape::each{:\"2024-01-01\" ::number} ::shape::each{:\"ann@x.org\" ::number}]"}
 {"name":"shape-folds-a-map-of-values-under-one-tag","query":"{:\"1\" ::user{:id 1} :\"2\" ::user{:id 2}} | shape","expect":"::shape::each{:\"1\" ::user}"}
 {"name":"shape-keeps-the-fields-of-a-map-of-atoms","query":"{:x 1 :y 2} | shape","expect":"::shape{:x ::number :y ::number}"}
 {"name":"shape-keeps-the-key-of-a-map-of-one","query":"{:users [{:id 1}]} | shape","expect":"::shape{:users [{:id ::number}]}"}
@@ -52,7 +52,7 @@
 {"name":"shape-marks-a-null-before-a-number-nullable","query":"[null 1] | shape","expect":"::shape[::nullable::number]"}
 {"name":"shape-marks-the-fold-an-empty-map-meets-on-either-side","query":"get [~([{} {:\"1\" 1 :\"2\" 2}] | shape) ~([{:\"1\" 1 :\"2\" 2} {}] | shape)]","expect":"[::shape[::each{:\"1\" ::absent::number}] ::shape[::each{:\"1\" ::absent::number}]]"}
 {"name":"shape-merges-a-tuple-with-a-list-of-another-length-into-one-element","query":"[{:p [[1 \"a\"] [2 \"b\"]]} {:p [[1]]}] | shape","expect":"::shape[{:p [[#[::number ::string]]]}]"}
-{"decision":"D360","name":"shape-keeps-each-index-of-two-tuples-that-part","query":"[{:p [[1 \"a\"] [2 \"b\"]]} {:p [[3 null] [4 \"c\"]]}] | shape","expect":"::shape[{:p [[::number ::nullable::string]]}]"}
+{"name":"shape-keeps-each-index-of-two-tuples-that-part","query":"[{:p [[1 \"a\"] [2 \"b\"]]} {:p [[3 null] [4 \"c\"]]}] | shape","expect":"::shape[{:p [[::number ::nullable::string]]}]"}
 {"name":"shape-merges-sets-of-other-kinds-and-marks-an-empty-one-on-either-side","query":"get [~([#[1] #[\"a\"]] | shape) ~([#[] #[1]] | shape) ~([#[1] #[]] | shape)]","expect":"[::shape[#[#[::number ::string]]] ::shape[#[::absent::number]] ::shape[#[::absent::number]]]"}
 {"name":"shape-merges-a-kind-with-the-kinds-that-part-after-it","query":"[{:v [true]} {:v [1 \"a\"]}] | shape","expect":"::shape[{:v [#[::boolean ::number ::string]]}]"}
 {"name":"shape-merges-vectors-and-sets-among-the-kinds-that-part","query":"get [~([[1] {:a 1} [\"x\"]] | shape) ~([#[1] {:a 1} #[\"x\"]] | shape)]","expect":"[::shape[#[[#[::number ::string]] {:a ::number}]] ::shape[#[#[#[::number ::string]] {:a ::number}]]]"}

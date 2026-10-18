@@ -43,7 +43,7 @@ const RAISED_LINE = '|~| raised, and no !| caught it';
 
 // caretOf(answer) → for the refusal of a text, the line `:source` holds and a
 // caret under the column of it its `:location` names, the two line comments a
-// host that prints for a person's eye draws below it [D360]; null otherwise.
+// host that prints for a person's eye draws below it [QSERR#print]; null otherwise.
 export function caretOf(answer) {
   if (!isErrorValue(answer) || answer.tag.name !== 'quote/ParseError') return null;
   const source = answer.descriptor.get('source');

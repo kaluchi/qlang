@@ -82,7 +82,7 @@ export function declareInvariantError(address, buildMessage) {
 // the embedding, which extends `Error`: the loader of the sources throws it
 // at the boot, which reads every source before a step runs, so it rides out
 // to the host, and a primitive that throws it inside a step answers
-// `::call/HostFailureError`, its message the `:message` [D361].
+// `::call/HostFailureError`, its message the `:message` [QSERR#site].
 export function declareForeignError(address, buildMessage) {
   recordRefusal(address);
   const Cls = class extends Error {
@@ -106,7 +106,7 @@ export const CallUnknownNameError = declareRefusal('call/UnknownNameError');
 export const CallUnknownAddressError = declareRefusal('call/UnknownAddressError');
 
 // A step one deeper than the limit of the evaluation depth, a runaway in
-// the recursion of the query (`state.mjs`) [D359].
+// the recursion of the query (`state.mjs`) [QSNAM#verb].
 export const CallEvaluationDepthExceededError = declareRefusal('call/EvaluationDepthExceededError');
 
 // A declaration of a name an earlier step of its scope declared, or of an

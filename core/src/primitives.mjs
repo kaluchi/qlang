@@ -2,7 +2,7 @@
 // serves, `number/add`, `vec` [QSDSP#residence]: each module of the runtime
 // registers its own as it loads, and the bootstrap hands each source of the
 // language those under its noun as a host hands its own and seals the table
-// [D361].
+// [QSHST#source].
 
 import { declareInvariantError } from './errors.mjs';
 import { splitAddress } from './address.mjs';
@@ -84,7 +84,7 @@ export function registerPrimitive(addresses, primitive) {
 }
 
 // A primitive that reads the state of its call takes it after the values of
-// its inputs [QSDSP#residence], and every other takes the values alone [D361].
+// its inputs [QSDSP#residence], and every other takes the values alone [QSHST#source].
 const STATE_READERS = new WeakSet();
 
 export function readingState(primitive) {
@@ -115,7 +115,7 @@ export function readsPassedTags(primitive) {
 }
 
 // runs(names, primitive) → the primitive, which runs the inputs of those
-// names as code [D361]: its call hands each as code closed at the call, each
+// names as code [QSHST#source]: its call hands each as code closed at the call, each
 // element of one that holds the args of the call whole, and any other value
 // as it is.
 const INPUTS_RUN = new WeakMap();

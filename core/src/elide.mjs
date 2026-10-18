@@ -10,9 +10,9 @@
 // value taken answers the part left out, and for a string, a doc and a quote
 // `:head`, the first characters of its text. The print measured is the one a
 // host writes, a part a kind prints its own way standing as that kind prints
-// it [D362].
+// it [QSPRN#elide].
 //
-// A failure a host prints is an alert [D359]: its tag and its facts, the data
+// A failure a host prints is an alert [QSHST#answer]: its tag and its facts, the data
 // it carries cut to what places the failure. The subject of the first frame
 // of its trace, where the failure arose, and every other fact print within an
 // excerpt each; the subject of every later frame, which the failure only
@@ -112,7 +112,7 @@ function partsOf(value, path, printedOf, parts, underTag = false) {
 }
 
 // A vector's elements before the elision of its rest, an elision an element
-// gave way to being an element, and what the rest stands for [D362].
+// gave way to being an element, and what the rest stands for [QSPRN#elide].
 function vectorParts(value) {
   const trailing = value.length > 0 && isRemainder(value[value.length - 1]) ? value[value.length - 1] : null;
   return { elements: trailing === null ? value : value.slice(0, -1), standsFor: trailing === null ? 0 : trailing.get('size') };
@@ -186,7 +186,7 @@ function replacedAt(value, path, replacement, working) {
 
 // The view as a value: each set elide built stands in the one order again,
 // the reads of its elisions written against the order of the value taken
-// [D362].
+// [QSPRN#elide].
 function inOrder(value, working) {
   if (!working.has(value)) return value;
   if (isValueClass(value, 'underTag')) return makeTagged(value.tag, inOrder(value.payload, working));
@@ -263,7 +263,7 @@ function passedOver(value, read, printedOf, oneLine = false) {
 
 // The trace of an alert: each frame keeps its steps and its place, the
 // subject of the first within its excerpt, of every later one given way
-// whole, each measured on the one line a frame prints on [D359].
+// whole, each measured on the one line a frame prints on [QSHST#answer].
 function framesOf(trace, read, printedOf) {
   return makeTrace(trace.map(([subject, steps, place = null], index) => {
     const subjectRead = readBelow(read, [index, 0]);

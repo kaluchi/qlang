@@ -182,7 +182,7 @@ export function findAstNodeAtOffset(ast, offset) {
 // it, a keyword written as a value none of them: called, a call of the
 // name, its declaration and a path that reads it as a key; written
 // as a tag [QSNAM#address], its declaration, a tagged or an error literal that
-// writes it [D360] and the tag name alone.
+// writes it [QSERR#rest] and the tag name alone.
 export function findNameOccurrences(ast, name, spelling = CALL_SPELLING) {
   if (spelling === TAG_SPELLING) return findTagOccurrences(ast, name);
   const occurrences = [];

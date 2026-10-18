@@ -1,7 +1,7 @@
 // The trace of a failure, written in flight: a failure lives in the pipe
 // alone, and its `:trace` holds a frame at every step that raised it or
 // handed it on, from the step where it arose to the `!|` that catches it,
-// a step it skips joining the steps of the last [D359]. The helpers build a
+// a step it skips joining the steps of the last [QSERR#trace]. The helpers build a
 // new error for every change; none re-enters the evaluator.
 //
 //   `answerOfStep(answer, stepQuoteOf, subject, env)` — the answer of a step
@@ -17,7 +17,7 @@
 //   `raisedBy(error, node)` — marks the failure a node's own fault raised.
 //
 // A failure holds its trace from its first frame, and the refusal of the
-// text of a query, which flew no step, holds no `:trace` [D359].
+// text of a query, which flew no step, holds no `:trace` [QSERR#trace].
 
 import { isErrorValue, isPath, isQuote, isTagged, isTrace, isVec, kindsExpected, makeErrorValue, makeFrame, makeQuote, makeTrace, FRAME_TAG } from './types.mjs';
 import { quoteOfBody } from './quote.mjs';
@@ -54,7 +54,7 @@ export function atPlace(error, place) {
 
 // framesOfTrace(payload) → the frames of a trace, the one check of the
 // constructor of `::trace` and of every trace a frame joins, each element
-// under its tags a vector of the layout `::frame` holds [D359].
+// under its tags a vector of the layout `::frame` holds [QSERR#trace].
 const TracePayloadKindNotTakenError = declareRefusal('trace/PayloadKindNotTakenError');
 const TraceElementKindNotTakenError = declareRefusal('trace/ElementKindNotTakenError');
 
@@ -72,7 +72,7 @@ export function framesOfTrace(payload) {
 }
 
 // The failure and its frames, or in its place the refusal of its trace,
-// which names the trace it refused [D359].
+// which names the trace it refused [QSERR#trace].
 function heldTrace(error, env) {
   if (!error.descriptor.has('trace')) return [error, []];
   try {
@@ -107,7 +107,7 @@ export function answerOfPart(answer, partNode, subject, env) {
 // The failure that skipped a step, its last frame taking the step; one whose
 // trace holds no frame, a refusal inside a literal before its step answers
 // among them, goes on as it is, and a trace its kind refuses gives way to
-// the refusal [D359].
+// the refusal [QSERR#trace].
 export function skipping(error, skippedStep, env) {
   const [held, frames] = heldTrace(error, env);
   if (frames.length === 0) return held;

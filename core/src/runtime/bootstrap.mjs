@@ -21,7 +21,7 @@ export const LANGUAGE_SOURCES = Object.freeze([
 ]);
 
 // A source of the language the locator does not serve leaves the root
-// without the declarations it holds, `:origin` naming it [D361].
+// without the declarations it holds, `:origin` naming it [QSHST#source].
 export const BuiltinBootstrapSourceMissingError = declareInvariantError(
   'builtin/BootstrapSourceMissingError',
   ({ origin }) => `qlang bootstrap: '#${origin.name}' must resolve to a source of the language — ` +

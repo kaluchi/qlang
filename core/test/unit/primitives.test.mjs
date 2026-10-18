@@ -1,6 +1,6 @@
 // Tests for src/primitives.mjs — the table of the primitives of the
 // language by the address of the verb or the kind each serves, which the
-// bootstrap hands each source of the language [QSDSP#residence], [D361].
+// bootstrap hands each source of the language [QSDSP#residence], [QSHST#source].
 //
 // Every test registers into an isolated table via createPrimitiveRegistry()
 // so state does not leak between cases; PRIMITIVE_REGISTRY, which the
@@ -49,7 +49,7 @@ describe('createPrimitiveRegistry — lifecycle', () => {
     expect(registry.has(k)).toBe(true);
   });
 
-  it('holds(primitive) tells a primitive the table holds from one it does not [D361]', () => {
+  it('holds(primitive) tells a primitive the table holds from one it does not [QSHST#source]', () => {
     const registered = () => 'registered';
     registry.register('qlang/test-prim/held', registered);
     expect(registry.holds(registered)).toBe(true);
@@ -91,7 +91,7 @@ describe('createPrimitiveRegistry — the refusals of registering', () => {
     registry = createPrimitiveRegistry();
   });
 
-  it('rejects non-string addresses with BuiltinAddressNotStringError, naming the address as JavaScript holds it [D361]', () => {
+  it('rejects non-string addresses with BuiltinAddressNotStringError, naming the address as JavaScript holds it [QSHST#source]', () => {
     expect(() => registry.register(Symbol('bad'), () => null))
       .toThrow('an address must be a string, got symbol Symbol(bad)');
   });
@@ -106,7 +106,7 @@ describe('createPrimitiveRegistry — the refusals of registering', () => {
       .toThrow('an address must be a string, got object Object');
   });
 
-  it('non-string rejection is a QlangInvariantError, its :actualValue the address as JavaScript holds it [D361]', () => {
+  it('non-string rejection is a QlangInvariantError, its :actualValue the address as JavaScript holds it [QSHST#source]', () => {
     try {
       registry.register(null, () => null);
       expect.fail('should have thrown');
@@ -117,7 +117,7 @@ describe('createPrimitiveRegistry — the refusals of registering', () => {
     }
   });
 
-  it('rejects an address registered twice with BuiltinAddressRegisteredTwiceError [D361]', () => {
+  it('rejects an address registered twice with BuiltinAddressRegisteredTwiceError [QSHST#source]', () => {
     const k = 'qlang/test-prim/dup';
     registry.register(k, () => 'first');
     expect(() => registry.register(k, () => 'second'))

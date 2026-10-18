@@ -90,7 +90,7 @@ describe('runRepl — query evaluation', () => {
     expect(text).toMatch(/sub/);
   });
 
-  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout, its caret drawn below it [D360]', async () => {
+  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout, its caret drawn below it [QSHST#answer]', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // REPL paints output with ANSI colour codes — strip before
@@ -179,7 +179,7 @@ describe('runRepl — output highlighting', () => {
 
 describe('runRepl — error rendering', () => {
   it('renders an error value with its trace through the same printValue path as success values', async () => {
-    // The trace of an error is written as it flows [D359], so the value
+    // The trace of an error is written as it flows [QSERR#trace], so the value
     // the cell answers already holds every frame and every skipped
     // step. The REPL renders the value verbatim through `printValue`.
     const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
@@ -241,7 +241,7 @@ describe('runRepl — the budget of an answer', () => {
     expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/');
   });
 
-  it('draws no caret where the budget left the line of a refused text out of its alert [D360]', async () => {
+  it('draws no caret where the budget left the line of a refused text out of its alert [QSHST#answer]', async () => {
     const replHarness = captureRepl(`${forty} x\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());

@@ -1,5 +1,5 @@
 {"name":"a-name-in-quotes-a-step-cannot-call-declares-nothing","query":"\":\\\"1\\\" 5 | 7\" | parse !| get /message","expect":"\"`:\\\"1\\\"` names nothing a step can call: a name begins with a letter or `_`, `:first_name 5`\""}
-{"decision":"D362","name":"a-bare-name-in-quotes-declares-the-name","query":"\":\\\"foo\\\" 5 | foo\" | parse | open","expect":"5"}
+{"name":"a-bare-name-in-quotes-declares-the-name","query":"\":\\\"foo\\\" 5 | foo\" | parse | open","expect":"5"}
 {"name":"the-word-of-a-literal-declares-no-value","query":"\":true 5 | 7\" | parse !| get /message","expect":"\"`:true` is the word of a literal, which a step reads as the value: declare another name\""}
 {"name":"the-word-of-a-literal-names-a-label","query":":null |~~ A thing. ~~| | env | keys","expect":"#[:null]"}
 {"name":"a-name-under-a-noun-may-end-in-the-word-of-a-literal","query":":number/null ~(1) | 5 | number/null","expect":"1"}

@@ -99,7 +99,7 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
   });
 });
 
-describe('toPlain refuses a value of no kind of the language where it reads its kind [D361]', () => {
+describe('toPlain refuses a value of no kind of the language where it reads its kind [QSHST#source]', () => {
   it('refuses an object of JavaScript a host handed', () => {
     expect(() => toPlain(new Date())).toThrow(BuiltinForeignValueError);
   });

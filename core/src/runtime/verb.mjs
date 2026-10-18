@@ -83,7 +83,7 @@ export const isThenable = value => typeof value?.then === 'function';
 // beneath over the tags the walk passed after them, and a reader of the scope
 // over the state of the call after those, its scope the tree of the query,
 // wherever it is called, held at the door under the address of its call
-// [QSDSP#residence], [QSNAM#owner], [D359], [D361].
+// [QSDSP#residence], [QSNAM#owner], [QSHST#source].
 export function runPrimitive(descriptor, served, passedTags, inputValues, state, address) {
   const primitive = primitiveOf(descriptor);
   const read = readsPassedTags(primitive) ? [...inputValues, passedTags] : inputValues;
@@ -95,7 +95,7 @@ export function runPrimitive(descriptor, served, passedTags, inputValues, state,
 // the core's table unheld, one a host handed beside its source held to the
 // kinds of the language at any depth with the facts of a refusal it throws, a
 // value of no kind failing the call as `::call/HostFailureError` naming the
-// address and the path where it stands, a value the call handed in as it is [D361].
+// address and the path where it stands, a value the call handed in as it is [QSHST#source].
 export function heldAtTheDoor(primitive, run, address, handed) {
   if (PRIMITIVE_REGISTRY.holds(primitive)) return run();
   let answer;
@@ -130,7 +130,7 @@ function failureOfTheDoor(address, { path, account }) {
 // takenFromAHost(value) → a value a host hands where the core takes it, the
 // subject of a cell or what a name of a scope holds, held by the walk of the
 // door, a value of no kind raised as `::builtin/ForeignValueError`; a scope is
-// taken name by name, its root and the keys of the runtime's own aside [D361].
+// taken name by name, its root and the keys of the runtime's own aside [QSHST#source].
 export function takenFromAHost(value) {
   const foreign = foreignPartOf(value, NOTHING_HANDED);
   if (foreign !== null) throw new BuiltinForeignValueError({ actualValue: foreign.account });

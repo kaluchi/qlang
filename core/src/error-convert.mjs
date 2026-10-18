@@ -5,7 +5,7 @@ import { deepEqual } from './equality.mjs';
 import { nameOfContinuation } from './parse.mjs';
 
 // The reading of text into code refuses on `::quote`, and a primitive that
-// fails in a call on `::call` [D361].
+// fails in a call on `::call` [QSERR#site].
 recordRefusal('quote/ParseError');
 recordRefusal('call/HostFailureError');
 
@@ -35,7 +35,7 @@ const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).le
 
 // factsInOrder(tag, facts, env) → the facts of a refusal of the runtime in
 // the order of the definitions that describe them, each named as its fact
-// [D359]: those under the refusal's label first, then those under
+// [QSERR#site]: those under the refusal's label first, then those under
 // `::error`, which every refusal shares, the trace an error leaves coming
 // after them as it joins them. A fact neither declares is a
 // defect of the runtime.
@@ -69,7 +69,7 @@ export function errorFromQlang(qlangError, subject, env) {
 
 // The error of a text the parser refused: the line where it stopped, what it
 // wanted there, the span of the place and where the text came from, in the
-// order its label declares [D360], [D361].
+// order its label declares [QSSYN#refusal].
 export function errorFromParse(parseError, env, uri = parseError.uri) {
   const d = new Map();
   if (parseError.source != null && parseError.location) d.set('source', parseError.source.split('\n')[parseError.location.start.line - 1]);
@@ -90,7 +90,7 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
 }
 
 // The continuations a parse failure lists, each once: a literal as its text,
-// the end, any character and a named part of the grammar as keywords [D360].
+// the end, any character and a named part of the grammar as keywords [QSSYN#refusal].
 function liftExpectedAlternatives(expected) {
   const seen = new Set();
   const out = [];
@@ -113,7 +113,7 @@ const CAUSES_RECOUNTED = 8;
 
 // A JavaScript error escaping a primitive is a failure of the host: a tag of
 // the language, its account and the accounts of the failures beneath it
-// [D359]. The step that failed stands in the trace; the stack, the
+// [QSERR#site]. The step that failed stands in the trace; the stack, the
 // class and the fields of the error stay with the host in `originalError`,
 // and a host that has facts to hand declares a refusal of its own.
 export function errorFromForeign(jsError, node, env) {

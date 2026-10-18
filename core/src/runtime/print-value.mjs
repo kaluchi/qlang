@@ -39,10 +39,10 @@ function escapeQlangStringLiteral(s) {
 
 const literalOfKeyword = k => k.literal;
 
-// A regex writes its literal, its flags after it [D362].
+// A regex writes its literal, its flags after it [QSTXT#regex].
 export const printRegex = r => regexLiteral(r.source, r.flags);
 
-// A path writes its segments so they read back [D360]: an index as its
+// A path writes its segments so they read back [QSPTH#value]: an index as its
 // digits, a key as its bare name, behind a colon where its name carries a
 // slash or follows one that does, which would take it in, and quoted
 // otherwise.
@@ -57,7 +57,7 @@ function printPathSegment(segment, afterSlashedKey) {
 
 // A value under a tag writes its tag before its payload, a descriptor's
 // `::builtin` among them [QSPRN#print]; the set, the quote, the doc and the
-// error write their own brackets, and a number past the doubles is raised [D361].
+// error write their own brackets, and a number past the doubles is raised [QSHST#source].
 const PRINT_HANDLERS = {
   null:    () => 'null',
   boolean: v => String(v),
@@ -97,7 +97,7 @@ export function printValue(v, indent = 0, printedOf = printedByNoKind, oneLine =
 
 // A vector or a set stands on one line unless a part takes several, and
 // then each part stands on a line of its own, as each frame of a trace of
-// two or more does, a frame standing on one line whatever it holds [D359].
+// two or more does, a frame standing on one line whatever it holds [QSPRN#print].
 function printListLike(open, elements, indent, printedOf, oneLine = false, stacked = false) {
   const rendered = elements.map(el => printValue(el, indent + 1, printedOf, oneLine));
   if (oneLine || (!stacked && !rendered.some(s => s.includes('\n')))) return `${open}${rendered.join(' ')}]`;
@@ -108,7 +108,7 @@ function printListLike(open, elements, indent, printedOf, oneLine = false, stack
 // A failure writes its error at rest, the value a catch holds of it: the tag
 // of its site before the bang, none for the kind of errors, and its facts, the
 // trace it left among them; the answer of a host says above it that it was
-// raised [D359], [D360].
+// raised [QSERR#print].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   return `${tagHead}${printMapLike('!{', e.descriptor, indent, printedOf)}`;
@@ -135,7 +135,7 @@ function printUnderTag(tagged, indent, printedOf, oneLine) {
 
 // A map of two entries or fewer, none a container, stands on one line, and
 // so does an elision of what a view left out, whatever it holds, so what
-// holds it keeps its layout [D362]; any other map puts each entry on a line
+// holds it keeps its layout [QSPRN#print]; any other map puts each entry on a line
 // of its own.
 function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];

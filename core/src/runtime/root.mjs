@@ -1,4 +1,4 @@
-// The root [D361]: the scope a host's sources declare before the reader's
+// The root [QSHST#source]: the scope a host's sources declare before the reader's
 // first step, each source a cell run in a scope over the root the sources
 // before it left, the language's first. A source whose run answers an error,
 // or that declares again a name the root holds, is refused; each name under a
@@ -8,7 +8,7 @@
 // beside the source under its name, the answer of one the table of the core
 // does not hold held at the door [QSDSP#residence], [QSQUO#modifier], and is
 // refused as the root is declared when it was handed none; a refusal the
-// source declares takes its address, the name it is declared by, once [D361].
+// source declares takes its address, the name it is declared by, once [QSHST#source].
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
@@ -34,7 +34,7 @@ export const BuiltinPrimitiveNotHandedError = declareInvariantError('builtin/Pri
 // A primitive a host hands for a name its source declares as no `::builtin{}`
 // under a label has nothing to run under: a name written in steps runs them, a
 // bare name reads its value, and one that holds the `::builtin{}` another name
-// took, `:sharedWith`, runs its primitive [QSDSP#walk], [QSQUO#modifier], [D361].
+// took, `:sharedWith`, runs its primitive [QSDSP#walk], [QSQUO#modifier], [QSHST#source].
 export const BuiltinPrimitiveNamesNoBuiltinError = declareInvariantError('builtin/PrimitiveNamesNoBuiltinError',
   ({ origin, name, sharedWith }) => `qlang root: the source ${origin.name} is handed a primitive for ${name.literal}, ${sharedWith === undefined
     ? 'which it declares as no ::builtin{} under a label' : `whose ::builtin{} is another name's, ${sharedWith.literal}, whose primitive it runs`}`);
@@ -45,7 +45,7 @@ const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 // declareRoot(scope, sources) → the scope whose root holds what each source
 // declared, `{ uri, source, primitives? }` in order, over the root `scope`
 // holds: each `::builtin{}` takes the primitive of the first name that holds
-// it, and a name that holds one another name took takes none [D361].
+// it, and a name that holds one another name took takes none [QSHST#source].
 export async function declareRoot(scope, sources) {
   let root = rootOf(scope);
   for (const { uri, source, primitives = {} } of sources) {
@@ -81,7 +81,7 @@ export async function declareRoot(scope, sources) {
 
 // The descriptor of a host's primitive a name holds, itself or as the
 // recipe of a function, or null; the constructor a host hands a kind is
-// held by its own node, `construct` [D361].
+// held by its own node, `construct` [QSHST#source].
 function builtinOf(value) {
   const recipe = isFn(value) ? recipeOf(value) : value;
   return isBuiltinDescriptor(recipe) ? recipe : null;

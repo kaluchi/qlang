@@ -2,7 +2,7 @@
 // stands, the first match and its groups, the groups it names, the text of
 // every match, the text put in the place of every match, and the pieces
 // between the matches.
-// The rules it holds: [D362].
+// The rules it holds: [QSTXT#match].
 
 import { registerPrimitive, runs } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -71,7 +71,7 @@ async function replacedByCode(text, engine, code) {
 // A regex's replacement names the parts of a match, `$1`, `$<name>`,
 // `$&`, a `$<name>` of a group the regex lacks standing as written; a
 // text's stands as written. A text is looked for by code points as a
-// regex is, so the empty text cuts no character in halves [D362].
+// regex is, so the empty text cuts no character in halves [QSTXT#match].
 registerPrimitive('string/replace', runs(['with'], (text, needle, replacement) => {
   const engine = isRegex(needle) ? engineFor(needle, 'g') : engineOfText(needle);
   if (typeof replacement === 'function') return replacedByCode(text, engine, replacement);

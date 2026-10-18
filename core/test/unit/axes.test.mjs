@@ -221,7 +221,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
     expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', ' from the cell ']);
   });
 
-  it('a binding no declaration wrote, a node a chain lays, holds no source, its page the one the chain wrote [D361]', async () => {
+  it('a binding no declaration wrote, a node a chain lays, holds no source, its page the one the chain wrote [QSSLF#axis]', async () => {
     expect(await evalQuery('::number/add/addend | source')).toBeNull();
     expect(await evalQuery('::number/add/addend | binding | get /source')).toBeNull();
     expect(await evalQuery('::number/add/addend | doc | content')).toContain('The number added to the subject');

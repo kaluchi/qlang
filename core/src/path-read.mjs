@@ -1,6 +1,6 @@
 // Reading a path: each segment a key of a map or an index of a vector,
 // read beneath the tags stacked over the value it meets, and a write
-// follows a path as a read does and misses as a read misses [D360].
+// follows a path as a read does and misses as a read misses [QSPTH#get].
 
 import { declareRefusal } from './errors.mjs';
 import { beneathTags, isDoc, isFn, isKind, isMap, isQuote, isVec, keyword } from './types.mjs';

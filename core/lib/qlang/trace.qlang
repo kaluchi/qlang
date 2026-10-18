@@ -1,7 +1,7 @@
 |~ `::trace`, the kind of the trace a failure leaves, and what is declared
    under it: its constructor and the refusals of a payload that is no
    vector of frames, and the laws of a trace.
-   The rules it holds: [D359]. ~|
+   The rules it holds: [QSERR#trace]. ~|
 
 :trace
   |~~ A trace is what a failure leaves as it flies: a frame for each step

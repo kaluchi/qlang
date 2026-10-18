@@ -15,7 +15,7 @@ const AnyApplyArgsNotTakenError = declareRefusal('any/apply/args/NotTakenError')
 
 // A source the parser refuses answers the `::quote/ParseError` with the
 // location and the excerpt of the source, and a quote writes the text of its
-// code, its steps as the printer writes them [D362].
+// code, its steps as the printer writes them [QSQUO#parse].
 registerStateReader('string/parse', (source, state) => {
   try {
     return quoteOfSource(source, 'string/parse');

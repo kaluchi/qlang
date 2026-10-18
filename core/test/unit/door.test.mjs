@@ -1,4 +1,4 @@
-// The doors of a host [D361]: the answer of a primitive a host hands beside
+// The doors of a host [QSHST#source]: the answer of a primitive a host hands beside
 // its source, and the facts of a refusal it throws, are held to the kinds of
 // the language at any depth by one walk, a value of no kind failing the call
 // as `::call/HostFailureError` naming the verb and the path where it stands;
@@ -80,7 +80,7 @@ function counted(element) {
   return { vector, reads };
 }
 
-describe('the first door: the answer of a primitive a host hands beside its source [D361]', () => {
+describe('the first door: the answer of a primitive a host hands beside its source [QSHST#source]', () => {
   it('passes each kind of value of the language back as it is', async () => {
     for (const value of lawful) expect(await answerOf(value)).toBe(value);
   });
@@ -164,7 +164,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 });
 
-describe('the primitives of the core run unwalked, whatever function runs them [D361]', () => {
+describe('the primitives of the core run unwalked, whatever function runs them [QSHST#source]', () => {
   const overAdd = returns => `(::fn | takes :x |~~ An x. ~~| /0${returns} | impl (::number/add | binding | get /value | get /1))`;
 
   it('brings an answer past the doubles under the kinds `returns` names, as a verb written in steps does', async () => {
@@ -184,7 +184,7 @@ describe('the primitives of the core run unwalked, whatever function runs them [
   });
 });
 
-describe('the second door: what a host hands where the core takes it [D361]', () => {
+describe('the second door: what a host hands where the core takes it [QSHST#source]', () => {
   const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: keyword('held'), value }));
 
   it('takes each kind of value of the language as the subject of a cell and as what a name of a scope holds', async () => {
@@ -224,7 +224,7 @@ describe('the second door: what a host hands where the core takes it [D361]', ()
   });
 });
 
-describe('a value of no kind the core meets where it reads a kind or writes a number [D361]', () => {
+describe('a value of no kind the core meets where it reads a kind or writes a number [QSHST#source]', () => {
   it('raises an object of no kind of the core where its kind is read, and reads every number of JavaScript as a number', () => {
     for (const value of [function named() {}, { a: 1 }, new Date(0), 5n, Symbol('s')]) {
       expect(() => typeOf(value)).toThrow(BuiltinForeignValueError);

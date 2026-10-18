@@ -2,7 +2,7 @@
 // the result a document shows, read as a query; the print of a failure, its
 // error at rest under `raise`, names the failure that holds the facts the
 // literal writes, the trace it left among them, laid as `raise` lays it
-// [D359].
+// [QSERR#print].
 
 import { evalQuery, factsWithTheirTrace } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';

@@ -4,7 +4,7 @@
 // reads the elements in order, a set reaching it through the walk in its one
 // order [QSORD#order], [QSDSP#residence], a map's reads its values and keeps its keys
 // [QSCOL#map], a string's reads its characters [QSTXT#string], and a refusal
-// names the verb that refused [D361].
+// names the verb that refused [QSERR#site].
 
 import { beneathTags, isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makePath } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
@@ -15,7 +15,7 @@ import { atPlace } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
 
 // The elements, each beside the fact that names it in a refusal, its index
-// from zero in a sequence and its key in a map [D360].
+// from zero in a sequence and its key in a map [QSERR#site].
 const indexed = sequence => [...sequence].map((element, index) => [{ index }, element]);
 const keyed = map => [...map].map(([key, value]) => [{ key: keyword(key) }, value]);
 
@@ -150,7 +150,7 @@ registerPrimitive('map/max', runs(['key'], (map, key) => extremeOf([...map], key
 // entries by their values and keeps the keys. A vector the key answers ranks
 // element by element, and `desc` reverses one index of it. A key that answers an
 // error answers the call, as the key of `groupBy` does, and so does one whose
-// vector holds an error [QSERR#flow], [D360].
+// vector holds an error [QSERR#flow], [QSORD#sort].
 async function sortedEntries(entries, key) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
@@ -171,8 +171,8 @@ registerPrimitive('map/sort', runs(['key'], async (map, key) => {
 
 // `map` runs its code on each element in order and answers what each
 // answered, the first error the code answers answering for the call at the
-// place of its element, the elements after it left unrun [QSCOL#each],
-// [QSERR#trail]; a map keeps its keys.
+// place of its element, the elements after it left unrun [QSCOL#image],
+// [QSERR#trace]; a map keeps its keys.
 async function answersOf(elements, code) {
   const answers = [];
   for (const [at, element] of elements) {
@@ -192,7 +192,7 @@ registerPrimitive('map/map', runs(['code'], async (map, code) => {
 // ── predicates ─────────────────────────────────────────────────
 
 // A predicate answers a boolean for each element or fails [QSCND#boolean]: the
-// error it answered is handed on at the place of the element [QSERR#trail], and
+// error it answered is handed on at the place of the element [QSERR#trace], and
 // another answer is refused where the element stands.
 async function verdictOf(predicate, at, element, ConditionNotBooleanError) {
   const verdict = await predicate(element);

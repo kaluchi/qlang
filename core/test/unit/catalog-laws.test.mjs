@@ -27,7 +27,7 @@ describe('the laws of the catalog, run by runLaws', () => {
 
   it('every law reads back from the text of its code as itself', async () => {
     // `toString` writes each law as the text of its code, which `parse` reads
-    // back as the law, a reader whose read answers a failure failing [D362].
+    // back as the law, a reader whose read answers a failure failing [QSQUO#parse].
     const unequal = [];
     for (const reader of await catalogReaders()) {
       const changed = await evalQuery(`${reader} | laws | vals | map /1 | filter ~(:law it | toString | parse | eq law | not)`);

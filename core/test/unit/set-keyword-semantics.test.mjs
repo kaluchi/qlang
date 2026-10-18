@@ -205,7 +205,7 @@ describe('groupBy over a set files sets', async () => {
 });
 
 // `query` on a Set subject — an index in the one order, which a key
-// names none of [D360].
+// names none of [QSPTH#query].
 describe('query over a set', async () => {
   it('positive index returns the n-th-added element', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');

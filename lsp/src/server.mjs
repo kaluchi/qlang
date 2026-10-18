@@ -51,7 +51,7 @@ let catalogCtx = null;
 async function loadCatalogContext() {
   // The file of each source of the language where the core's package exports
   // it, `@kaluchi/qlang-core/lib/<uri>.qlang`, resolved from the server's own
-  // dependency, its URL the location goto-definition returns [D361].
+  // dependency, its URL the location goto-definition returns [QSHST#source].
   const sources = LANGUAGE_SOURCES.map(uri => ({ fileUri: import.meta.resolve(`@kaluchi/qlang-core/lib/${uri}.qlang`), uri }));
 
   const mergedIndex = new Map();

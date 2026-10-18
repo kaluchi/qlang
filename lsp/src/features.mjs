@@ -463,7 +463,7 @@ function bodyRuns(body) {
 // Whether a declaration of a value declares a verb, by the core's rule: a name
 // the root holds as the core answers it, and one of the document as
 // `declaresVerb` reads it, a quote or a function with a recipe running where a
-// reader's `::builtin{}` reaches no primitive [QSNAM#verb], [D361].
+// reader's `::builtin{}` reaches no primitive [QSNAM#verb], [QSHST#source].
 function declaresVerbIn({ key, body }, scope, isLabelName) {
   return nodeOf(scope, key.name) !== null
     ? isVerb(scope, key.name)

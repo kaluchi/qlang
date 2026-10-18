@@ -281,7 +281,7 @@ describe('main — `out` suppression of auto-encoded stdout', () => {
 });
 
 describe('main — error paths', () => {
-  it('writes a query that does not parse as its failure on stdout, its caret drawn below it, with exit 0 as every answer [D360]', async () => {
+  it('writes a query that does not parse as its failure on stdout, its caret drawn below it, with exit 0 as every answer [QSHST#answer]', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);

@@ -231,7 +231,7 @@ describe('the answer of a verb of the host', async () => {
     expect((await s.evalCell('get [~(41 | later | add 1) ~(41 | elsewhere | add 1)]')).result).toEqual([43, 43]);
   });
 
-  it('refuses a number past the finite doubles a host\'s primitive answers at the door, under several kinds as under one [D361]', async () => {
+  it('refuses a number past the finite doubles a host\'s primitive answers at the door, under several kinds as under one [QSHST#source]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const s = await createSession({
       sources: [{

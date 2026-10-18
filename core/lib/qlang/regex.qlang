@@ -1,7 +1,7 @@
 |~ `::regex` and what is declared under it: its constructor and its
    refusal, and `toRegex`, which answers the regex itself. The verbs
    that read text by a regex live under `::string`.
-   The rules it holds: [D362]. ~|
+   The rules it holds: [QSTXT#regex]. ~|
 
 :regex
   |~~ A regex, `#"\d+ms"`, which the verbs of a string read text by:

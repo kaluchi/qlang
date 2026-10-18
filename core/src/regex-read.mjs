@@ -2,7 +2,7 @@
 // dialect of ECMAScript of 2018 the engine reads alike on every platform,
 // with the flags `i`, `m` and `s`, and always by code points, as Unicode
 // reads characters.
-// The rules it holds: [D362].
+// The rules it holds: [QSTXT#regex].
 
 // The flags a regex may take, in the order they are written.
 export const REGEX_FLAGS = 'ims';

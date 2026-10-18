@@ -1,4 +1,4 @@
-// The view of a value within a budget [D362]: each way a part gives way, and
+// The view of a value within a budget [QSPRN#elide]: each way a part gives way, and
 // the `:read` of every elision applied to the value taken answering the part
 // left out.
 
@@ -86,7 +86,7 @@ describe('elide [QSPRN#elide]', () => {
     expect([view.get('a'), view.get('c')]).toEqual([value.get('a'), value.get('c')]);
   });
 
-  it('keeps a part whose elision prints no shorter than it, so a budget never lengthens a print [D362]', async () => {
+  it('keeps a part whose elision prints no shorter than it, so a budget never lengthens a print [QSPRN#elide]', async () => {
     const value = await evalQuery('[[] {:n 1} "short"]');
     expect(elide(value, 3)).toBe(value);
     const failing = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
@@ -95,7 +95,7 @@ describe('elide [QSPRN#elide]', () => {
 });
 
 describe('elideAnswer [QSPRN#elide]', () => {
-  it('gives the facts of a raised error way beneath !|, its trace a trace [D359]', async () => {
+  it('gives the facts of a raised error way beneath !|, its trace a trace [QSHST#answer]', async () => {
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
     const view = elideAnswer(failing, 300);
     expect(isErrorValue(view)).toBe(true);
@@ -103,7 +103,7 @@ describe('elideAnswer [QSPRN#elide]', () => {
     expect(printValue(view)).toContain(':read ~(!| get /trace/');
   });
 
-  it('keeps the steps and the place of every frame within a budget, its subject alone giving way [D359]', async () => {
+  it('keeps the steps and the place of every frame within a budget, its subject alone giving way [QSHST#answer]', async () => {
     const skipped = Array.from({ length: 12 }, (_, index) => `add ${index}`).join(' | ');
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope) | ${skipped}`);
     const trace = elideAnswer(failing, 60).descriptor.get('trace');
@@ -125,11 +125,11 @@ describe('elideAnswer [QSPRN#elide]', () => {
   });
 });
 
-// A failure a host prints is an alert [D359]: the subject of the frame where
+// A failure a host prints is an alert [QSHST#answer]: the subject of the frame where
 // the failure arose within an excerpt, a subject it only passed given way whole,
 // an error at rest among its facts a value cut within its excerpt, a value
 // shown once, and the read of every elision continuing the query beneath `!|`.
-describe('alertOf [D359]', () => {
+describe('alertOf [QSHST#answer]', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
   const continued = (query, elision) => evalQuery(`${query} ${printValue(elision.get('read')).slice(2, -1)}`);
 
@@ -191,7 +191,7 @@ describe('alertOf [D359]', () => {
     expect(deepEqual(passed[0], await evalQuery(nested))).toBe(true);
   });
 
-  it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [D359]', async () => {
+  it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [QSHST#answer]', async () => {
     const query = `${records} | map (get /n)`;
     const alert = alertOf(await evalQuery(query));
     const inner = alert.descriptor.get('actualValue');

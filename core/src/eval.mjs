@@ -51,7 +51,7 @@ const FnRecipeMissingError = declareRefusal('fn/RecipeMissingError');
 const BindWrittenOutsideItsChainError = declareRefusal('bind/WrittenOutsideItsChainError');
 
 // evalQuery(source, scope?) → the value a query answers from null, in the
-// scope it is handed, taken from its host, or the root's [D361].
+// scope it is handed, taken from its host, or the root's [QSHST#source].
 export async function evalQuery(source, scope) {
   const initialScope = scope ? scopeTakenFromAHost(scope) : await langRuntime();
   let ast;
@@ -109,7 +109,7 @@ async function evalNode(node, state) {
     return await evaluator(node, state);
   } catch (caughtError) {
     // The error the node raised; the step that ran the node writes its
-    // frame [D359].
+    // frame [QSERR#trace].
     return withPipeValue(state, raisedBy(errorOfThrow(caughtError, node, state.pipeValue, state.env), node));
   }
 }
@@ -123,7 +123,7 @@ function errorOfThrow(caughtError, node, subject, env) {
 }
 
 // factsWithTheirTrace(facts, state) → the facts with the `:trace` they write
-// laid through the label of `::trace`, an empty one none [D359].
+// laid through the label of `::trace`, an empty one none [QSERR#trace].
 export async function factsWithTheirTrace(facts, state) {
   if (!facts.has('trace')) return facts;
   const trace = await layTag(TRACE_TAG.name, facts.get('trace'), state);
@@ -144,7 +144,7 @@ async function evalPipeline(node, state) {
 }
 
 // The tracks live in the combinators alone: `|` steps around an error, the
-// step joining the skipped steps of its last frame [QSERR#trail], and `!|` fires
+// step joining the skipped steps of its last frame [QSERR#trace], and `!|` fires
 // on an error alone [QSSYN#combinator]; the parser writes no other combinator.
 async function applyCombinator(kind, state, stepNode) {
   return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
@@ -152,7 +152,7 @@ async function applyCombinator(kind, state, stepNode) {
 
 // The fork rule: a nested pipeline or a group starts from the outer
 // state and hands back its value alone, its declarations left behind, at
-// the evaluation depth of the outer state [D359].
+// the evaluation depth of the outer state [QSNAM#scope], [QSNAM#verb].
 async function fork(state, sub) {
   const innerEnd = await sub(state);
   return withPipeValue(state, innerEnd.pipeValue);
@@ -177,7 +177,7 @@ function evalBody(node, state) {
 // the site that refused laid through its label as a tagged literal lays
 // it, so `!| type` reads the site and a verb of `::error` reaches every
 // error, a value passing, a label's refusal answering for the catch, and a
-// raise that writes the `:trace` it read resuming it [D359].
+// raise that writes the `:trace` it read resuming it [QSERR#catch], [QSERR#trace].
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
@@ -244,7 +244,7 @@ async function evalErrorLit(node, state) {
 
 // The value a part of a literal answers: a refusal the kind of its tag
 // raised passes a frame at the part, and one handed on from a part inside it goes
-// on as it is to the literal it fails [QSERR#trail].
+// on as it is to the literal it fails [QSERR#trace].
 async function partAnswer(partNode, state) {
   return answerOfPart((await evalNode(partNode, state)).pipeValue, partNode, state.pipeValue, state.env);
 }
@@ -287,7 +287,7 @@ async function evalTaggedLit(node, state) {
 
 // The error a tagged literal's payload answered, passed by the tag as an
 // error passes every step, the tag's step joining the skipped steps of
-// its last frame [QSERR#trail], and the literal's own raise where the payload
+// its last frame [QSERR#trace], and the literal's own raise where the payload
 // raised it.
 function passedUntagged(payloadError, node, tagName, env) {
   const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)), env);
@@ -446,7 +446,7 @@ async function evalCall(node, state) {
 }
 
 // The repair, the step a call was likely meant as where a path stands in
-// the place of the value it names [D359], [D360]: a verb called on a path,
+// the place of the value it names [QSPTH#code], [QSPTH#verbs]: a verb called on a path,
 // `/tags | count` repaired as `get /tags | count`, and an input refusing the
 // path a modifier wrote, `mul /qty` as `mul (get /qty)`; a refusal the call
 // itself answered, which no frame of a trace has passed yet, carries it.
@@ -556,7 +556,7 @@ async function callByAddress(node, state) {
 // the kind of the value refused in the order the catalog declares them; the
 // value itself rides the facts where the trace does not hold it, an input or
 // the args, and leaves them for the subject, which the trace's first frame
-// holds [D359].
+// holds [QSERR#site].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
   const tag = makeTag(tagName);
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeOf(refused)), env));
@@ -617,7 +617,7 @@ async function invariantRefusal(invariants, address, value, state, scope, held =
 // step, `/n` or `query /n default`, is the value there, read here as
 // `get` and `query` read it, so the inputs of `query` itself read
 // without calling it; any other place runs as code over the args, one
-// deeper in the evaluation depth than the call [D359].
+// deeper in the evaluation depth than the call [QSNAM#verb].
 function placeRead({ ast, index, onePlace, strict, fallback }, values, overArgs) {
   if (!onePlace) return ast.type === 'Path' ? pathOfArgs(makePath(ast.keys), overArgs()) : answerOfBody(ast, overArgs());
   if (index < values.length) return values[index];
@@ -824,7 +824,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 // them, each it runs as code closed at the call where the call keeps that
 // the quote came from, a path read as `get` reads it, and every element so
 // of one that holds the args of the call whole; any other value as it is
-// [D361].
+// [QSHST#source].
 function handedTo(primitive, chain, { values, origins }, state) {
   const run = inputsRunBy(primitive);
   const within = inputsRunWithin(primitive);
@@ -1000,7 +1000,7 @@ function laidUnder(tagName, value) {
 // read and held, the constructor a host hands its kind run, its answer held at
 // the door, and the invariants of the value held, every refusal named under
 // the label, the code of a place or a condition running in the scope a call
-// opens; the kind attaches the tag or refuses the payload [QSLIT#tag], [D361].
+// opens; the kind attaches the tag or refuses the payload [QSLIT#tag], [QSHST#source].
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, each => `${tagName}/${payloadRefusalName(each)}`, payload, state.env);
@@ -1042,7 +1042,7 @@ async function fieldRefusal(tagName, field, payload, invariants, state, opened) 
 // its scope, a step on the success track as every step is, or by `evaluate` a
 // modifier of a step, which answers within the frame of its step; it keeps its
 // tree and its state, so `reduce` finds the verb a quote of one word names
-// [QSCOL#reduce], [D359].
+// [QSCOL#reduce], [QSNAM#verb].
 function closeCode(astNode, capturedState, evaluate = evalBody) {
   const run = async (subject) => {
     const subState = nestState(capturedState, subject, capturedState.env);
@@ -1059,7 +1059,7 @@ function closeCode(astNode, capturedState, evaluate = evalBody) {
 // written in the step, which the call runs it in; a literal of an atom its
 // value one deeper in the evaluation depth than the call; and any other
 // modifier the code it is, whose value the call keeps as a value of the step.
-// A modifier answers within the frame of its step, which holds it [D359].
+// A modifier answers within the frame of its step, which holds it [QSNAM#verb], [QSERR#trace].
 function modifierOf(argNode, state) {
   if (argNode.type === 'QuoteLit') return withOrigin(() => quoteOfLiteral(argNode), { step: state, written: true });
   if (WRITTEN_LITERALS.has(argNode.type)) return withOrigin(closeCode(argNode, state, evalNode), { step: state, written: true });
@@ -1134,7 +1134,7 @@ function laneOf(env) {
 // for code of any other shape or a name of no verb, which `reduce` runs on
 // the pair of the value so far and the element [QSCOL#reduce]. A call the
 // accumulator refuses answers the failure it raised, which the fold marks at
-// the place of its element [QSERR#trail].
+// the place of its element [QSERR#trace].
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
   const astNode = soleStepOf(reducer.astNode);

@@ -10,7 +10,7 @@
 // Token kinds:
 //
 //   'string'      String literal, including the surrounding quotes
-//   'regex'       Regex literal `#"…"`, its flags among it [D362]
+//   'regex'       Regex literal `#"…"`, its flags among it [QSTXT#regex]
 //   'number'      Number literal, plus boolean and null literals
 //   'comment'     A comment, and the prose of a doc: the quotes a
 //                 doc holds and its spans in backticks paint as code
@@ -42,7 +42,7 @@
 //
 // A source that does not parse paints as far as the parser reads it: a source
 // cut short, as a line being typed is, through the closers that complete it
-// [D361], and one the parser refuses up to the place of the refusal,
+// [QSSYN#refusal], and one the parser refuses up to the place of the refusal,
 // the rest as whitespace.
 
 import { closersCompleting, parse } from './parse.mjs';

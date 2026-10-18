@@ -1,7 +1,7 @@
 // Tests for session.mjs — REPL/notebook session lifecycle: a session
 // keeps the scope its cells write, a host puts its names into it by its
 // sources alone, and the scope and the subject a host hands are taken by
-// the walk of the door [QSNAM#root], [D361].
+// the walk of the door [QSNAM#root], [QSHST#source].
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
@@ -18,7 +18,7 @@ describe('createSession lifecycle', () => {
     expect((await sessionInstance.evalCell('[1 2 3] | filter ~(gt 1) | count')).result).toBe(2);
   });
 
-  it('evalCell returns an entry with its result and the scope after the cell [D361]', async () => {
+  it('evalCell returns an entry with its result and the scope after the cell [QSHST#source]', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42 | :n it');
     expect(cellEntry.result).toBe(42);
@@ -65,7 +65,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(2);
   });
 
-  it('a session starts from the scope a host hands it, the record a cell wrote among it [D361]', async () => {
+  it('a session starts from the scope a host hands it, the record a cell wrote among it [QSHST#source]', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':answer |~~ The answer. ~~| 42');
     const other = await createSession({ scope: sessionInstance.scope });
@@ -73,13 +73,13 @@ describe('createSession lifecycle', () => {
     expect((await other.evalCell('::answer | doc | content')).result).toBe(' The answer. ');
   });
 
-  it('a session binds no name a host hands it: its names come by its sources alone [D361]', async () => {
+  it('a session binds no name a host hands it: its names come by its sources alone [QSHST#source]', async () => {
     const sessionInstance = await createSession();
     expect('bind' in sessionInstance).toBe(false);
     expect(Object.keys(sessionInstance)).toEqual(['evalCell', 'scope']);
   });
 
-  it('a cell handed no subject starts from null [D361]', async () => {
+  it('a cell handed no subject starts from null [QSHST#source]', async () => {
     expect((await (await createSession()).evalCell('type')).result).toEqual(makeTag('null'));
   });
 
@@ -90,7 +90,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.error.name).toBe('ParseError');
   });
 
-  it('a parse failure names as its origin the source a host named, and a cell the session numbers names none [D361]', async () => {
+  it('a parse failure names as its origin the source a host named, and a cell the session numbers names none [QSHST#source]', async () => {
     const sessionInstance = await createSession();
     const numbered = await sessionInstance.evalCell('[1 2');
     expect(numbered.uri).toBe('cell-1');
@@ -126,7 +126,7 @@ describe('createSession lifecycle', () => {
 
 describe('the sources a host hands [QSDSP#residence]', () => {
   // A source of the host declares a verb under the label of its subject, with
-  // the primitive the host hands beside it [D361].
+  // the primitive the host hands beside it [QSHST#source].
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [
@@ -170,7 +170,7 @@ describe('the sources a host hands [QSDSP#residence]', () => {
     expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTag('any/twice/by/KindNotTakenError'));
   });
 
-  it('a failure a host\'s primitive answers holds its trace in the kind of a trace where a step reads it [D359]', async () => {
+  it('a failure a host\'s primitive answers holds its trace in the kind of a trace where a step reads it [QSERR#trace]', async () => {
     const sessionInstance = await createSession({ sources: [{
       uri: 'tests/failed', source: ':any/failed ::builtin{}',
       primitives: { 'any/failed': () => makeErrorValue(makeTag('error'), new Map([['trace', [5]]])) }
@@ -185,12 +185,12 @@ describe('the sources a host hands [QSDSP#residence]', () => {
     }] })).rejects.toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', facts: { origin: keyword('tests/bare') } });
   });
 
-  it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared, naming the source and the name [D361]', async () => {
+  it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared, naming the source and the name [QSHST#source]', async () => {
     await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':any/hello ::builtin{}' }] }))
       .rejects.toMatchObject({ name: 'PrimitiveNotHandedError', address: 'builtin/PrimitiveNotHandedError', facts: { origin: keyword('tests/bare'), name: keyword('any/hello') } });
   });
 
-  it('takes no primitive for a name that holds a ::builtin{} another name took, which runs that name\'s, and refuses one handed for it, naming the name whose ::builtin{} it holds [D361]', async () => {
+  it('takes no primitive for a name that holds a ::builtin{} another name took, which runs that name\'s, and refuses one handed for it, naming the name whose ::builtin{} it holds [QSHST#source]', async () => {
     const aliasing = primitives => createSession({ sources: [{
       uri: 'tests/alias',
       source: ':any/plus (::number/add | binding | get /value)\n:any/greet ::builtin{}\n:any/hail (::any/greet | binding | get /value)',
@@ -213,7 +213,7 @@ describe('the sources a host hands [QSDSP#residence]', () => {
     }] })).rejects.toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', address: 'builtin/PrimitiveNamesNoBuiltinError' });
   });
 
-  it('refuses a primitive handed for a name that is no ::builtin{} under a label, saying so [D361]', async () => {
+  it('refuses a primitive handed for a name that is no ::builtin{} under a label, saying so [QSHST#source]', async () => {
     const refusal = (uri, name) => `qlang root: the source ${uri} is handed a primitive for :${name}, which it declares as no ::builtin{} under a label`;
     for (const [uri, source, name] of [['tests/bare', ':shout ::builtin{}', 'shout'], ['tests/map', ':x {} | :x/shout ::builtin{}', 'x/shout'], ['tests/stray', ':limit 10', 'limit']]) {
       const refused = await createSession({ sources: [{ uri, source, primitives: { [name]: text => text } }] }).catch(caught => caught);
@@ -222,7 +222,7 @@ describe('the sources a host hands [QSDSP#residence]', () => {
     }
   });
 
-  it('refuses a source that declares a name the root holds, bare or with a path, by one refusal naming the source as its origin [D361]', async () => {
+  it('refuses a source that declares a name the root holds, bare or with a path, by one refusal naming the source as its origin [QSHST#source]', async () => {
     for (const source of [':vec |~~ again ~~|', ':vec/count ~(0)']) {
       await expect(createSession({ sources: [{ uri: 'tests/twice', source }] }))
         .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: keyword('tests/twice'), tagName: '::bind/NameDeclaredTwiceError' } });
@@ -249,7 +249,7 @@ describe('the sources a host hands [QSDSP#residence]', () => {
   });
 });
 
-describe('a session takes what its host hands by the walk of the door [D361]', () => {
+describe('a session takes what its host hands by the walk of the door [QSHST#source]', () => {
   const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: keyword('held'), value }));
 
   it('takes a value of each kind of the language as the subject of a cell and in the scope it starts from, as it is', async () => {

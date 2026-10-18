@@ -76,7 +76,7 @@ registerPrimitive('keyword/toTag', key => {
 
 // A string reads as the source of a regex with the flags the call gives,
 // none for null, and a text that writes the literal of a regex whole is
-// refused [D362].
+// refused [QSTXT#match].
 const StringToRegexTextNotRegexError = declareRefusal('string/toRegex/TextNotRegexError');
 const StringToRegexLiteralNotSourceError = declareRefusal('string/toRegex/LiteralNotSourceError');
 const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/flags/NotFlagsError');

@@ -15,7 +15,7 @@ function dispatchPlainValue(v, handlers, path) {
 }
 
 // `toPlain` writes a value in JSON's shape, for `json` and a host, a number
-// past the doubles raised [D361], and `fromPlain` reads that shape back as
+// past the doubles raised [QSHST#source], and `fromPlain` reads that shape back as
 // maps, vectors and the atoms, for a host.
 const TO_PLAIN_HANDLERS = {
   null:    () => null,
@@ -24,7 +24,7 @@ const TO_PLAIN_HANDLERS = {
   boolean: v => v,
   keyword: k => k.name,
   tag:     k => k.literal,
-  // A regex writes its literal, which JSON has no form for [D362].
+  // A regex writes its literal, which JSON has no form for [QSPRN#json].
   regex:   printRegex,
   // A path writes its literal [QSPTH#value].
   path:    printPath,

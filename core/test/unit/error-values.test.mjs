@@ -1,5 +1,5 @@
 // Tests for error value type and its trace, deepEqual, the literal,
-// error-convert.mjs, and the trace of a failure a host hands [D359].
+// error-convert.mjs, and the trace of a failure a host hands [QSERR#trace].
 
 import { describe, it, expect } from 'vitest';
 import { keyword, isErrorValue, makeBinding, makeErrorValue, formOf, makeTag, makeSet, makeFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
@@ -15,7 +15,7 @@ import { QlangError, CallUnknownNameError, declareRefusal } from '../../src/erro
 // ── makeErrorValue ──────────────────────────────────────────────
 
 describe('makeErrorValue', () => {
-  it('produces a frozen error under its tag that holds no :trace while no step raised it [D359]', () => {
+  it('produces a frozen error under its tag that holds no :trace while no step raised it [QSERR#trace]', () => {
     const tag = makeTag('Oops');
     const errorVal = makeErrorValue(tag, new Map([['message', 'boom']]));
     expect(isErrorValue(errorVal)).toBe(true);
@@ -24,7 +24,7 @@ describe('makeErrorValue', () => {
     expect([...errorVal.descriptor.keys()]).toEqual(['message']);
   });
 
-  it('keeps a trace it is handed as it is [D359]', () => {
+  it('keeps a trace it is handed as it is [QSERR#trace]', () => {
     const trace = makeTrace([makeFrame('x', quoteOfSource('add 1 | mul 2 | count'))]);
     const descriptor = new Map([['trace', trace]]);
     const errorVal = makeErrorValue(makeTag('Oops'), descriptor);
@@ -38,7 +38,7 @@ describe('makeErrorValue', () => {
 // A host hands a failure by the answer of its verb, by a refusal its verb or
 // the constructor of its kind throws, as the first value of a query and as the
 // value of a name in a scope it hands, and each holds the `:trace` it writes
-// as the kind `::trace` takes it before a frame joins it [D359].
+// as the kind `::trace` takes it before a frame joins it [QSERR#trace].
 const AnyThrownRefusedError = declareRefusal('any/thrown/RefusedError');
 const NumberThrownToTheFoldRefusedError = declareRefusal('number/thrownToTheFold/RefusedError');
 const BuiltRefusedError = declareRefusal('Built/RefusedError');
@@ -69,7 +69,7 @@ function hostHanding(trace) {
 
 const answerIn = async (session, query, initialPipeValue = null) => (await session.evalCell(query, { initialPipeValue })).result;
 
-describe('a failure a host hands holds the :trace it writes as the kind of a trace takes it [D359]', () => {
+describe('a failure a host hands holds the :trace it writes as the kind of a trace takes it [QSERR#trace]', () => {
   it('a :trace of another shape on the answer of a host\'s verb answers the refusal of the kind, which the catch holds at rest', async () => {
     for (const [trace, refused] of [[5, 'trace/PayloadKindNotTakenError'], ['at Foo.bar(Foo.java:1)', 'trace/PayloadKindNotTakenError'], [[5], 'trace/ElementKindNotTakenError']]) {
       const session = await hostHanding(trace);
@@ -243,7 +243,7 @@ const TestsProbeTypeError = declareRefusal('tests/ProbeTypeError');
 describe('errorFromQlang', () => {
   // The facts of the site come in the order the catalog declares them,
   // its label's first and those of `::error` after, and the trace last
-  // [D359].
+  // [QSERR#site].
   it('converts a refusal — its address the tag, its facts in the order the catalog declares them [QSERR#site]', async () => {
     const typeErr = new TestsProbeTypeError({ actualValue: 'the-value' });
     const errorVal = errorFromQlang(typeErr, 'the-subject', await langRuntime());
@@ -339,7 +339,7 @@ describe('error-convert coercion edge cases', () => {
 
   it('an actualValue equal to the subject the first frame holds is left out of the facts', async () => {
     // The value refused equals the subject, whatever its identity, so the
-    // first frame of the trace holds it alone [D359].
+    // first frame of the trace holds it alone [QSERR#site].
     const subject = new Map([['nested', 1]]);
     const typeErr = new TestsProbeTypeError({ actualValue: new Map([['nested', 1]]) });
     const errorVal = errorFromQlang(typeErr, subject, await langRuntime());

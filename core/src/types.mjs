@@ -84,7 +84,7 @@ export function isTag(v) {
 // the docs of its slot, the value, the quote of the declaring step and its
 // origin, the source or the cell it was read from [QSDSP#residence], under the
 // kind `::binding`; a binding no declaration wrote, a node a chain lays among
-// them, holds no source [D361].
+// them, holds no source [QSHST#source].
 export function isBinding(v) {
   return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === BINDING_TAG_NAME;
 }
@@ -107,7 +107,7 @@ export function bindingValueOf(entry) {
 }
 
 // A regex, the value of a `#"…"` literal: its source as written and its
-// flags, which `regex-read.mjs` hands to the engine [D362].
+// flags, which `regex-read.mjs` hands to the engine [QSTXT#regex].
 export function makeRegex(source, flags) {
   return Object.freeze(brandValueClass({ source, flags }, 'regex'));
 }
@@ -116,7 +116,7 @@ export function isRegex(v) {
   return isValueClass(v, 'regex');
 }
 
-// A path, the value of `/a/b/0` [D360]: the text of each segment, a key of a
+// A path, the value of `/a/b/0` [QSPTH#value]: the text of each segment, a key of a
 // map or an index of a vector, which the verb that takes the path reads.
 export function makePath(segments) {
   return Object.freeze(brandValueClass({ segments: Object.freeze(segments.map(String)) }, 'path'));
@@ -202,7 +202,7 @@ export function makeSet(elements) {
 
 // An error at rest, a value like any other: its facts under `::error` and
 // the tag of its site over them, none for the kind of errors, what a catch
-// holds of a failure and `raise` raises [D360].
+// holds of a failure and `raise` raises [QSERR#rest].
 export function errorAtRest(tag, facts) {
   const ofKind = makeTagged(ERROR_TAG, facts);
   return tag.name === ERROR_TAG.name ? ofKind : makeTagged(tag, ofKind);
@@ -335,14 +335,14 @@ export function payloadBeneath(value) {
 
 // The descriptor `::builtin{}`, the recipe of a verb or the constructor of a
 // kind a host answers by a primitive, or the value of a name under a label
-// alone [D361].
+// alone [QSHST#source].
 export function isBuiltinDescriptor(v) {
   return isMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
 
 // The descriptor of a name under a label a source declared, which alone
 // reaches a primitive [QSDSP#walk], with the primitive handed beside that
-// source [QSQUO#literal], [QSDSP#residence], [D361].
+// source [QSQUO#literal], [QSDSP#residence], [QSHST#source].
 const HANDED_PRIMITIVES = new WeakMap();
 
 export function isPrimitiveHanded(descriptor) {
@@ -359,7 +359,7 @@ export function takePrimitive(descriptor, primitive) {
 
 // A trace is a vector of frames under `::trace`, a frame the vector of the
 // subject a step met, the quote of the steps from the one that failed and
-// the path of the part a verb's code failed on, where one did [D359].
+// the path of the part a verb's code failed on, where one did [QSERR#trace].
 export const TRACE_TAG = makeTag('trace');
 export const FRAME_TAG = makeTag('frame');
 
@@ -382,7 +382,7 @@ export function makeTrace(frames) {
 // An error carries its tag, the kind of errors for a literal that names
 // none, and a descriptor of the facts of its site, and once a step raised it
 // or handed it on its trace, `:trace`, the frames `eval-trace.mjs` writes
-// [D359].
+// [QSERR#trace].
 export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
   return Object.freeze(brandValueClass({ tag, descriptor, location, originalError }, 'error'));
 }
@@ -400,7 +400,7 @@ export function formOf(v) {
 
 // typeOf(v) — the kind of a value, the tag `type` answers [QSLIT#kind]: its
 // outermost tag, or the kind of the core its literal implies, an object of no
-// kind of the core raised as `::builtin/ForeignValueError` [D361].
+// kind of the core raised as `::builtin/ForeignValueError` [QSHST#source].
 export function typeOf(v) {
   if (isNull(v)) return CORE_KIND.null;
   if (isBoolean(v)) return CORE_KIND.boolean;
@@ -418,7 +418,7 @@ export function typeOf(v) {
 
 // A value of no kind where the core takes what a host hands or reads a kind,
 // and a number past the doubles where it is written, a defect raised past the
-// fail track, `:actualValue` naming it as JavaScript holds it [D361].
+// fail track, `:actualValue` naming it as JavaScript holds it [QSHST#source].
 export const BuiltinForeignValueError = declareInvariantError('builtin/ForeignValueError',
   ({ actualValue }) => `the core met ${actualValue}, a value of no kind of the language`);
 
@@ -427,7 +427,7 @@ export function refuseForeign(value) {
 }
 
 // accountOfForeign(value) → a value as JavaScript holds it: its type and its
-// name, its maker or its text, `function hello`, `object Map`, `undefined` [D361].
+// name, its maker or its text, `function hello`, `object Map`, `undefined` [QSHST#source].
 export function accountOfForeign(value) {
   if (value === undefined || value === null) return String(value);
   if (typeof value === 'function') return `function ${value.name}`.trimEnd();

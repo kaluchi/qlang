@@ -1,7 +1,7 @@
-{"name":"vec-across-lines","query":"[\n  1\n  2\n  3\n]","expect":"[1 2 3]"}
-{"name":"map-across-lines","query":"{\n  :name \"Alice\"\n  :age 30\n}","expect":"{:name \"Alice\" :age 30}"}
-{"name":"pipeline-across-lines","query":"[1 2 3 4 5]\n  | filter ~(gt 2)\n  | count","expect":"3"}
-{"name":"deeply-nested-multiline","query":"{\n  :team {\n    :lead {\n      :name \"Alice\"\n      :email \"alice@example.com\"\n    }\n  }\n} | get /team/lead/email","expect":"\"alice@example.com\""}
+{"decision":"D364","name":"the-elements-of-a-vector-run-on-across-lines","query":"[\n  1\n  2\n  3\n]","expect":"[1 2 3]"}
+{"decision":"D364","name":"the-entries-of-a-map-run-on-across-lines","query":"{\n  :name \"Alice\"\n  :age 30\n}","expect":"{:name \"Alice\" :age 30}"}
+{"decision":"D364","name":"a-pipe-at-the-start-of-a-line-joins-the-step-above","query":"[1 2 3 4 5]\n  | filter ~(gt 2)\n  | count","expect":"3"}
+{"decision":"D364","name":"literals-nested-across-lines-read-at-any-depth","query":"{\n  :team {\n    :lead {\n      :name \"Alice\"\n      :email \"alice@example.com\"\n    }\n  }\n} | get /team/lead/email","expect":"\"alice@example.com\""}
 {"name":"a-literal-across-lines-continues-its-pipeline","query":"[\n  {:price 100 :qty 3}\n  {:price 50 :qty 10}\n]\n  | map ~(mulOf /price /qty)","expect":"[300 500]"}
 {"name":"steps-a-line-alone-joins-do-not-parse","query":"\"[3 1 2]\nsort\" | parse | count !| type","expect":"::quote/ParseError"}
 {"name":"a-command-takes-its-modifiers-across-lines-at-the-top-level","query":"\"5 | if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\")\" | parse | open !| type","expect":"\"pos\""}

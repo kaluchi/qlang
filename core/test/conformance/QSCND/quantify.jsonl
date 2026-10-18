@@ -2,43 +2,43 @@
 {"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(it)","expect":"false"}
 {"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(it) !| get [~(type) /index]","expect":"[::vec/any/ConditionNotBooleanError 1]"}
 {"name":"at-least-one-satisfies","query":"[1 2 3] | any ~(gt 2)","expect":"true"}
-{"name":"none-satisfy","query":"[1 2 3] | any ~(gt 99)","expect":"false"}
-{"name":"first-element-satisfies","query":"[5 1 2] | any ~(gt 2)","expect":"true"}
-{"name":"vacuously-false-on-empty","query":"[] | any ~(gt 0)","expect":"false"}
-{"name":"vacuously-false-on-empty-with-arbitrary-pred","query":"[] | any ~(eq 99)","expect":"false"}
-{"name":"any-with-compound-pred","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
+{"decision":"D364","name":"any-answers-false-where-no-element-meets-the-predicate","query":"[1 2 3] | any ~(gt 99)","expect":"false"}
+{"decision":"D364","name":"any-answers-true-where-the-first-element-meets-the-predicate","query":"[5 1 2] | any ~(gt 2)","expect":"true"}
+{"decision":"D364","name":"any-answers-false-over-an-empty-vector","query":"[] | any ~(gt 0)","expect":"false"}
+{"decision":"D364","name":"any-answers-false-over-an-empty-vector-whatever-its-predicate","query":"[] | any ~(eq 99)","expect":"false"}
+{"decision":"D364","name":"any-runs-a-predicate-of-several-steps-on-each-element","query":"[{:role :user} {:role :admin}] | any ~(get /role | eq :admin)","expect":"true"}
 {"name":"any-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | any ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :any\n  :addresses #[::map/any ::vec/any]\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(any ~(gt 0))]]\n} | raise"}
 {"name":"any-stops-at-the-first-element-that-decides","query":"[true \"x\"] | any ~(it)","expect":"true"}
-{"name":"any-as-filter-equivalence","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
-{"name":"any-string-predicate-integration","query":"[\"alice\" \"bob\" \"alex\"] | any ~(startsWith \"al\")","expect":"true"}
-{"name":"any-map-value-matches","query":"{:a -1 :b 0 :c 2} | any ~(gt 0)","expect":"true"}
-{"name":"any-map-no-value-matches","query":"{:a -1 :b -2 :c -3} | any ~(gt 0)","expect":"false"}
-{"name":"any-map-empty-vacuous","query":"{} | any ~(gt 0)","expect":"false"}
-{"name":"any-map-declared-verb","query":"{:a -1 :b 2} | :any/pos ~(gt 0) | any ~(pos)","expect":"true"}
-{"name":"any-map-verb-predicate","query":"{:a -1 :b 2} | :any/positive ~(gt 0) | any ~positive","expect":"true"}
-{"name":"any-map-verb-predicate-false","query":"{:a -1 :b -2} | :any/positive ~(gt 0) | any ~positive","expect":"false"}
-{"name":"all-elements-satisfy","query":"[2 4 6 8] | every ~(gt 0)","expect":"true"}
-{"name":"single-element-fails","query":"[2 4 -1 8] | every ~(gt 0)","expect":"false"}
-{"name":"first-element-fails","query":"[-1 4 6 8] | every ~(gt 0)","expect":"false"}
-{"name":"vacuously-true-on-empty","query":"[] | every ~(gt 0)","expect":"true"}
-{"name":"vacuously-true-on-empty-with-arbitrary-pred","query":"[] | every ~(eq 99)","expect":"true"}
-{"name":"every-with-compound-pred","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true"}
+{"decision":"D364","name":"any-answers-whether-filter-keeps-an-element","query":"[1 2 3] | filter ~(gt 2) | empty | not | eq ([1 2 3] | any ~(gt 2))","expect":"true"}
+{"decision":"D364","name":"any-takes-a-predicate-of-a-verb-of-strings","query":"[\"alice\" \"bob\" \"alex\"] | any ~(startsWith \"al\")","expect":"true"}
+{"decision":"D364","name":"any-over-a-map-answers-true-where-a-value-meets-the-predicate","query":"{:a -1 :b 0 :c 2} | any ~(gt 0)","expect":"true"}
+{"decision":"D364","name":"any-over-a-map-answers-false-where-no-value-meets-the-predicate","query":"{:a -1 :b -2 :c -3} | any ~(gt 0)","expect":"false"}
+{"decision":"D364","name":"any-answers-false-over-an-empty-map","query":"{} | any ~(gt 0)","expect":"false"}
+{"decision":"D364","name":"any-over-a-map-runs-a-verb-the-reader-declares-in-its-predicate","query":"{:a -1 :b 2} | :any/pos ~(gt 0) | any ~(pos)","expect":"true"}
+{"decision":"D364","name":"any-over-a-map-takes-a-verb-handed-on-as-code","query":"{:a -1 :b 2} | :any/positive ~(gt 0) | any ~positive","expect":"true"}
+{"decision":"D364","name":"any-over-a-map-answers-false-where-the-verb-holds-for-no-value","query":"{:a -1 :b -2} | :any/positive ~(gt 0) | any ~positive","expect":"false"}
+{"decision":"D364","name":"every-answers-true-where-all-elements-meet-the-predicate","query":"[2 4 6 8] | every ~(gt 0)","expect":"true"}
+{"decision":"D364","name":"every-answers-false-where-a-later-element-does-not-meet-the-predicate","query":"[2 4 -1 8] | every ~(gt 0)","expect":"false"}
+{"decision":"D364","name":"every-answers-false-where-the-first-element-does-not-meet-the-predicate","query":"[-1 4 6 8] | every ~(gt 0)","expect":"false"}
+{"decision":"D364","name":"every-answers-true-over-an-empty-vector","query":"[] | every ~(gt 0)","expect":"true"}
+{"decision":"D364","name":"every-answers-true-over-an-empty-vector-whatever-its-predicate","query":"[] | every ~(eq 99)","expect":"true"}
+{"decision":"D364","name":"every-runs-a-predicate-of-allOf-on-each-element","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true"}
 {"name":"every-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | every ~(gt 0)","expect":"::call/KindAnswersNoVerbError!{\n  :name :every\n  :addresses #[::map/every ::vec/every]\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(every ~(gt 0))]]\n} | raise"}
 {"name":"every-is-false-where-a-middle-element-does-not-meet-the-predicate","query":"[1 0 2] | every ~(gt 0)","expect":"false"}
-{"name":"every-as-filter-equivalence","query":":xs [1 2 3 4 5] | xs | filter ~(gt 0) | count | eq (xs | count) | eq (xs | every ~(gt 0))","expect":"true"}
-{"name":"every-map-values-positive","query":"{:a 1 :b 2 :c 3} | every ~(gt 0)","expect":"true"}
-{"name":"every-map-one-value-fails","query":"{:a 1 :b -2 :c 3} | every ~(gt 0)","expect":"false"}
-{"name":"every-map-empty-vacuous","query":"{} | every ~(gt 0)","expect":"true"}
-{"name":"every-map-declared-verb","query":"{:a 1 :b 2} | :any/big ~(gt 0) | every ~(big)","expect":"true"}
-{"name":"every-map-verb-predicate","query":"{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive","expect":"true"}
-{"name":"every-map-verb-predicate-fails","query":"{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive","expect":"false"}
-{"name":"any-set-one-matches","query":"#[1 2 3] | any ~(gt 2)","expect":"true"}
-{"name":"any-set-none-match","query":"#[1 2 3] | any ~(gt 99)","expect":"false"}
-{"name":"any-set-declared-verb","query":"#[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
-{"name":"any-set-verb-predicate","query":"#[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
-{"name":"every-set-all-match","query":"#[2 4 6] | every ~(gt 0)","expect":"true"}
-{"name":"every-set-one-fails","query":"#[2 4 -1] | every ~(gt 0)","expect":"false"}
-{"name":"every-set-declared-verb","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
-{"name":"every-set-verb-predicate","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
+{"decision":"D364","name":"every-answers-whether-filter-keeps-every-element","query":":xs [1 2 3 4 5] | xs | filter ~(gt 0) | count | eq (xs | count) | eq (xs | every ~(gt 0))","expect":"true"}
+{"decision":"D364","name":"every-over-a-map-answers-true-where-all-values-meet-the-predicate","query":"{:a 1 :b 2 :c 3} | every ~(gt 0)","expect":"true"}
+{"decision":"D364","name":"every-over-a-map-answers-false-where-one-value-does-not-meet-the-predicate","query":"{:a 1 :b -2 :c 3} | every ~(gt 0)","expect":"false"}
+{"decision":"D364","name":"every-answers-true-over-an-empty-map","query":"{} | every ~(gt 0)","expect":"true"}
+{"decision":"D364","name":"every-over-a-map-runs-a-verb-the-reader-declares-in-its-predicate","query":"{:a 1 :b 2} | :any/big ~(gt 0) | every ~(big)","expect":"true"}
+{"decision":"D364","name":"every-over-a-map-takes-a-verb-handed-on-as-code","query":"{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive","expect":"true"}
+{"decision":"D364","name":"every-over-a-map-answers-false-where-the-verb-does-not-hold-for-a-value","query":"{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive","expect":"false"}
+{"decision":"D364","name":"any-over-a-set-answers-true-where-an-element-meets-the-predicate","query":"#[1 2 3] | any ~(gt 2)","expect":"true"}
+{"decision":"D364","name":"any-over-a-set-answers-false-where-no-element-meets-the-predicate","query":"#[1 2 3] | any ~(gt 99)","expect":"false"}
+{"decision":"D364","name":"any-over-a-set-runs-a-verb-the-reader-declares-in-its-predicate","query":"#[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
+{"decision":"D364","name":"any-over-a-set-takes-a-verb-handed-on-as-code","query":"#[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
+{"decision":"D364","name":"every-over-a-set-answers-true-where-all-elements-meet-the-predicate","query":"#[2 4 6] | every ~(gt 0)","expect":"true"}
+{"decision":"D364","name":"every-over-a-set-answers-false-where-one-element-does-not-meet-the-predicate","query":"#[2 4 -1] | every ~(gt 0)","expect":"false"}
+{"decision":"D364","name":"every-over-a-set-runs-a-verb-the-reader-declares-in-its-predicate","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
+{"decision":"D364","name":"every-over-a-set-takes-a-verb-handed-on-as-code","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
 {"name":"a-condition-over-a-map-that-is-no-boolean-is-refused-at-its-key","query":"{:a true :b 1} | every ~(it) !| get [~(type) /key]","expect":"[::map/every/ConditionNotBooleanError :b]"}
 {"name":"a-predicate-that-fails-fails-the-quantifier","query":"[1 2] | any ~(div 0) !| type","expect":"::number/div/divisor/ZeroError"}

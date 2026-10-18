@@ -1,13 +1,13 @@
 {"name":"coalesce-of-one-alternative-answers-its-value","query":"{:x 42} | coalesce /x","expect":"42"}
 {"name":"coalesce-of-one-alternative-that-misses-answers-null","query":"{} | coalesce /missing","expect":"null"}
-{"name":"two-args-first-non-null","query":"{:a 1} | coalesce /a /b","expect":"1"}
-{"name":"two-args-second-non-null","query":"{:b 2} | coalesce /a /b","expect":"2"}
-{"name":"two-args-both-null","query":"{} | coalesce /a /b","expect":"null"}
-{"name":"three-args-first-non-null","query":"{:firstName \"Alice\"} | coalesce /preferredName /firstName ~(\"Anon\")","expect":"\"Alice\""}
-{"name":"three-args-second-non-null","query":"{:firstName \"Alice\"} | coalesce /missing /firstName ~(\"Anon\")","expect":"\"Alice\""}
-{"name":"three-args-third-default","query":"{} | coalesce /preferredName /firstName ~(\"Anon\")","expect":"\"Anon\""}
-{"name":"many-args-first-found","query":"{:e 5} | coalesce /a /b /c /d /e /f","expect":"5"}
-{"name":"many-args-all-null","query":"{} | coalesce /a /b /c /d /e","expect":"null"}
+{"decision":"D364","name":"coalesce-answers-the-first-of-two-alternatives-that-is-not-null","query":"{:a 1} | coalesce /a /b","expect":"1"}
+{"decision":"D364","name":"coalesce-answers-the-second-alternative-where-the-first-misses","query":"{:b 2} | coalesce /a /b","expect":"2"}
+{"decision":"D364","name":"coalesce-answers-null-where-both-alternatives-miss","query":"{} | coalesce /a /b","expect":"null"}
+{"decision":"D364","name":"coalesce-reads-the-paths-in-order-past-one-that-misses","query":"{:firstName \"Alice\"} | coalesce /preferredName /firstName ~(\"Anon\")","expect":"\"Alice\""}
+{"decision":"D364","name":"coalesce-answers-a-path-found-before-the-default","query":"{:firstName \"Alice\"} | coalesce /missing /firstName ~(\"Anon\")","expect":"\"Alice\""}
+{"decision":"D364","name":"coalesce-answers-the-default-where-every-path-before-it-misses","query":"{} | coalesce /preferredName /firstName ~(\"Anon\")","expect":"\"Anon\""}
+{"decision":"D364","name":"coalesce-reads-on-through-many-alternatives-to-the-first-found","query":"{:e 5} | coalesce /a /b /c /d /e /f","expect":"5"}
+{"decision":"D364","name":"coalesce-answers-null-where-every-alternative-misses","query":"{} | coalesce /a /b /c /d /e","expect":"null"}
 {"name":"zero-is-non-null","query":"{:zero 0} | coalesce /missing /zero ~(\"default\")","expect":"0"}
 {"name":"false-is-non-null","query":"{:flag false} | coalesce /missing /flag ~(true)","expect":"false"}
 {"name":"empty-string-is-non-null","query":"{:s \"\"} | coalesce /missing /s ~(\"default\")","expect":"\"\""}
@@ -15,17 +15,17 @@
 {"name":"empty-map-is-non-null","query":"{:obj {}} | coalesce /missing /obj ~(\"default\")","expect":"{}"}
 {"name":"empty-set-is-non-null","query":"{:tags #[]} | coalesce /missing /tags ~(\"default\")","expect":"#[]"}
 {"name":"keyword-is-non-null","query":"{:k :foo} | coalesce /missing /k","expect":":foo"}
-{"name":"literal-default-string","query":"{} | coalesce /missing ~(\"fallback\")","expect":"\"fallback\""}
-{"name":"literal-default-number","query":"{} | coalesce /missing ~(42)","expect":"42"}
-{"name":"literal-default-vec","query":"{} | coalesce /missing ~([1 2 3])","expect":"[1 2 3]"}
-{"name":"literal-default-null","query":"{} | coalesce /missing ~(null)","expect":"null"}
-{"name":"computed-default-via-add","query":"{} | coalesce /missing ~(sumOf 1 2)","expect":"3"}
+{"decision":"D364","name":"a-default-quote-of-a-string-answers-the-string","query":"{} | coalesce /missing ~(\"fallback\")","expect":"\"fallback\""}
+{"decision":"D364","name":"a-default-quote-of-a-number-answers-the-number","query":"{} | coalesce /missing ~(42)","expect":"42"}
+{"decision":"D364","name":"a-default-quote-of-a-vector-answers-the-vector","query":"{} | coalesce /missing ~([1 2 3])","expect":"[1 2 3]"}
+{"decision":"D364","name":"a-default-quote-of-null-answers-null","query":"{} | coalesce /missing ~(null)","expect":"null"}
+{"decision":"D364","name":"a-default-quote-computes-its-answer-when-it-runs","query":"{} | coalesce /missing ~(sumOf 1 2)","expect":"3"}
 {"name":"code-after-the-alternative-that-answers-stays-unrun","query":"{:a 1} | coalesce /a ~(div 0)","expect":"1"}
 {"name":"the-alternatives-after-a-later-one-that-answers-stay-unrun","query":"{:b 99} | coalesce /a /b ~(div 0) ~(\"unreached\")","expect":"99"}
-{"name":"evaluates-failing-when-needed","query":"{} | coalesce /missing ~(\"safe\")","expect":"\"safe\""}
+{"decision":"D364","name":"coalesce-runs-the-quote-after-a-path-that-misses","query":"{} | coalesce /missing ~(\"safe\")","expect":"\"safe\""}
 {"name":"coalesce-with-no-alternative-is-refused","query":"{} | coalesce","expect":"::any/coalesce/alternatives/EmptyError!{\n  :actualType ::any/coalesce\n  :actualValue ::any/coalesce[]\n  :trace ::trace[::frame[{} ~(coalesce)]]\n} | raise"}
-{"name":"with-path-chain","query":"{:user {:name \"Alice\"}} | coalesce /admin /user/name ~(\"Unknown\")","expect":"\"Alice\""}
-{"name":"cascade-from-deepest","query":"{:a {:b {:c 42}}} | coalesce /a/b/c /a/b /a ~(0)","expect":"42"}
+{"decision":"D364","name":"coalesce-reads-a-path-of-several-segments-as-an-alternative","query":"{:user {:name \"Alice\"}} | coalesce /admin /user/name ~(\"Unknown\")","expect":"\"Alice\""}
+{"decision":"D364","name":"coalesce-answers-the-first-alternative-where-none-is-null","query":"{:a {:b {:c 42}}} | coalesce /a/b/c /a/b /a ~(0)","expect":"42"}
 {"name":"coalesce-passes-a-missing-field-to-the-next-alternative","query":"{:a 1} | coalesce /b /a","expect":"1"}
 {"name":"coalesce-of-values-reads-the-subject-first","query":"[{:t 45} {:t null} {}] | map ~(query /t | coalesce 30)","expect":"[45 30 30]"}
 {"name":"coalesce-keeps-a-subject-that-is-a-value","query":"[1] | coalesce []","expect":"[1]"}

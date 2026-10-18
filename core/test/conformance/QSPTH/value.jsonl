@@ -1,39 +1,39 @@
-{"name":"map-with-quoted-key-path","query":"{:\"weird key\" 42} | get /\"weird key\"","expect":"42"}
-{"name":"map-with-quoted-empty-key","query":"{:\"\" \"value-of-empty\"} | get /\"\"","expect":"\"value-of-empty\""}
-{"name":"map-with-mixed-bare-and-quoted-keys","query":"{:foo 1 :\"bar baz\" 2} | get /\"bar baz\"","expect":"2"}
-{"name":"keyword-path-simple","query":"{:name \"alice\"} | get /:name","expect":"\"alice\""}
+{"decision":"D364","name":"a-key-that-is-no-bare-name-is-written-in-quotes-in-a-path","query":"{:\"weird key\" 42} | get /\"weird key\"","expect":"42"}
+{"decision":"D364","name":"the-empty-key-is-written-as-two-quotes-in-a-path","query":"{:\"\" \"value-of-empty\"} | get /\"\"","expect":"\"value-of-empty\""}
+{"decision":"D364","name":"a-quoted-segment-reads-its-key-beside-keys-of-bare-names","query":"{:foo 1 :\"bar baz\" 2} | get /\"bar baz\"","expect":"2"}
+{"decision":"D364","name":"a-key-after-a-colon-reads-as-the-bare-key","query":"{:name \"alice\"} | get /:name","expect":"\"alice\""}
 {"name":"a-key-with-a-slash-in-its-name-is-read-after-a-colon","query":"{:qlang/error 42} | get /:qlang/error","expect":"42"}
-{"name":"keyword-path-deep-ns","query":"{:qlang/core/strings 99} | get /:qlang/core/strings","expect":"99"}
-{"name":"keyword-path-two-ns-segments","query":"{:qlang/error {:retry 42}} | get /:qlang/error/:retry","expect":"42"}
-{"name":"keyword-path-deep-then-simple","query":"{:qlang/core/strings {:trim 1}} | get /:qlang/core/strings/:trim","expect":"1"}
-{"name":"keyword-path-mixed-bare-ns","query":"{:outer {:qlang/error 42}} | get /outer/:qlang/error","expect":"42"}
-{"name":"keyword-path-equiv-bare","query":"{:name 42} | get /:name","expect":"42"}
-{"name":"keyword-path-equiv-bare-nested","query":"{:a {:b 42}} | get /:a/:b","expect":"42"}
+{"decision":"D364","name":"a-key-after-a-colon-takes-every-name-a-slash-joins-to-it","query":"{:qlang/core/strings 99} | get /:qlang/core/strings","expect":"99"}
+{"decision":"D364","name":"a-key-behind-a-colon-of-its-own-follows-a-key-with-a-slash","query":"{:qlang/error {:retry 42}} | get /:qlang/error/:retry","expect":"42"}
+{"decision":"D364","name":"a-bare-key-behind-its-own-colon-follows-a-key-of-three-names","query":"{:qlang/core/strings {:trim 1}} | get /:qlang/core/strings/:trim","expect":"1"}
+{"decision":"D364","name":"a-key-with-a-slash-after-a-colon-follows-a-bare-key","query":"{:outer {:qlang/error 42}} | get /outer/:qlang/error","expect":"42"}
+{"decision":"D364","name":"a-colon-before-a-bare-name-changes-nothing-it-reads","query":"{:name 42} | get /:name","expect":"42"}
+{"decision":"D364","name":"every-key-of-a-path-may-stand-behind-a-colon-of-its-own","query":"{:a {:b 42}} | get /:a/:b","expect":"42"}
 {"name":"a-word-of-the-literals-is-a-key-a-path-reads","query":"{:null 42} | get /null","expect":"42"}
 {"name":"a-path-at-the-head-is-the-subject","query":"/items/1 | type","expect":"::path"}
 {"name":"a-path-prints-as-written","query":"/items/1 | print","expect":"\"/items/1\""}
 {"name":"json-writes-a-path-as-its-literal","query":"/items/1 | json","expect":"\"\\\"/items/1\\\"\""}
 {"name":"two-paths-are-equal-when-their-segments-are","query":"[/a/0 /a/0 /a/1] | distinct | count","expect":"2"}
-{"name":"quoted-path-single-key","query":"{:\"foo bar\" 42} | get /\"foo bar\"","expect":"42"}
-{"name":"quoted-path-leading-digit","query":"{:\"123\" \"x\"} | get /\"123\"","expect":"\"x\""}
-{"name":"nested-quoted-path","query":"{:\"a.b\" {:\"$ref\" 99}} | get /\"a.b\"/\"$ref\"","expect":"99"}
-{"name":"mixed-quoted-and-bare-path","query":"{:outer {:\"inner key\" 7}} | get /outer/\"inner key\"","expect":"7"}
-{"name":"quoted-path-empty-key","query":"{:\"\" 5} | get /\"\"","expect":"5"}
+{"decision":"D364","name":"a-key-with-a-space-is-read-by-a-quoted-segment","query":"{:\"foo bar\" 42} | get /\"foo bar\"","expect":"42"}
+{"decision":"D364","name":"a-quoted-segment-of-digits-reads-the-key-they-spell","query":"{:\"123\" \"x\"} | get /\"123\"","expect":"\"x\""}
+{"decision":"D364","name":"quoted-segments-follow-each-other-in-a-path","query":"{:\"a.b\" {:\"$ref\" 99}} | get /\"a.b\"/\"$ref\"","expect":"99"}
+{"decision":"D364","name":"a-quoted-segment-follows-a-bare-key-in-a-path","query":"{:outer {:\"inner key\" 7}} | get /outer/\"inner key\"","expect":"7"}
+{"decision":"D364","name":"a-path-of-the-empty-key-reads-its-value","query":"{:\"\" 5} | get /\"\"","expect":"5"}
 {"name":"a-map-reads-a-number-as-the-key-of-its-digits","query":"{:\"1\" 5} | get /1","expect":"5"}
-{"name":"unicode-cyrillic-bare-key","query":"{\"имя\": \"Алиса\"} | get /имя","expect":"\"Алиса\""}
-{"name":"unicode-cyrillic-nested-path","query":"{\"пользователь\": {\"имя\": \"Боб\"}} | get /пользователь/имя","expect":"\"Боб\""}
-{"name":"unicode-cyrillic-vec-path","query":"[{\"имя\": \"Алиса\"}, {\"имя\": \"Боб\"}] | map /имя","expect":"[\"Алиса\" \"Боб\"]"}
-{"name":"unicode-cjk-bare-key","query":"{\"元素\": 42} | get /元素","expect":"42"}
-{"name":"unicode-greek-bare-key","query":"{\"αβγ\": \"ok\"} | get /αβγ","expect":"\"ok\""}
-{"name":"unicode-mixed-cyrillic-and-latin","query":"{\"user\": {\"имя\": \"Алиса\"}} | get /user/имя","expect":"\"Алиса\""}
-{"name":"unicode-cyrillic-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | get [/пункт1, /пункт2]","expect":"[10 20]"}
-{"name":"unicode-cyrillic-kebab-case","query":"{\"имя-пользователя\": \"alice\"} | get /имя-пользователя","expect":"\"alice\""}
+{"decision":"D364","name":"a-path-reads-a-key-of-cyrillic-letters-bare","query":"{\"имя\": \"Алиса\"} | get /имя","expect":"\"Алиса\""}
+{"decision":"D364","name":"a-path-reads-cyrillic-keys-nested-in-each-other-bare","query":"{\"пользователь\": {\"имя\": \"Боб\"}} | get /пользователь/имя","expect":"\"Боб\""}
+{"decision":"D364","name":"map-reads-a-cyrillic-key-of-each-element-by-a-path","query":"[{\"имя\": \"Алиса\"}, {\"имя\": \"Боб\"}] | map /имя","expect":"[\"Алиса\" \"Боб\"]"}
+{"decision":"D364","name":"a-path-reads-a-key-of-ideographs-bare","query":"{\"元素\": 42} | get /元素","expect":"42"}
+{"decision":"D364","name":"a-path-reads-a-key-of-greek-letters-bare","query":"{\"αβγ\": \"ok\"} | get /αβγ","expect":"\"ok\""}
+{"decision":"D364","name":"a-path-joins-a-latin-key-and-a-cyrillic-key","query":"{\"user\": {\"имя\": \"Алиса\"}} | get /user/имя","expect":"\"Алиса\""}
+{"decision":"D364","name":"a-bare-key-of-cyrillic-letters-goes-on-with-digits","query":"{\"пункт1\": 10, \"пункт2\": 20} | get [/пункт1, /пункт2]","expect":"[10 20]"}
+{"decision":"D364","name":"a-bare-key-of-cyrillic-letters-goes-on-with-a-hyphen","query":"{\"имя-пользователя\": \"alice\"} | get /имя-пользователя","expect":"\"alice\""}
 {"name":"a-json-key-named-null-is-read-by-a-path","query":"{\"null\": 42} | get /null","expect":"42"}
 {"name":"a-json-key-named-true-is-read-by-a-path","query":"{\"true\": 1} | get /true","expect":"1"}
 {"name":"a-json-key-named-false-is-read-by-a-path","query":"{\"false\": 0} | get /false","expect":"0"}
-{"name":"json-numeric-string-key","query":"{\"42\": \"answer\"} | get /\"42\"","expect":"\"answer\""}
-{"name":"json-kebab-string-key","query":"{\"foo-bar\": 99} | get /\"foo-bar\"","expect":"99"}
-{"name":"parse-path-path","query":"\"/a/b/0\" | parse | first | segments","expect":"[:a :b 0]"}
+{"decision":"D364","name":"a-quoted-segment-of-digits-reads-the-json-key-they-spell","query":"{\"42\": \"answer\"} | get /\"42\"","expect":"\"answer\""}
+{"decision":"D364","name":"a-quoted-segment-reads-the-json-key-its-text-spells","query":"{\"foo-bar\": 99} | get /\"foo-bar\"","expect":"99"}
+{"decision":"D364","name":"parse-reads-a-path-whose-segments-are-keys-and-an-index","query":"\"/a/b/0\" | parse | first | segments","expect":"[:a :b 0]"}
 {"name":"a-path-with-a-slashed-key-prints-so-it-reads-back","query":"[\"a/b\" \"c\"] | toPath | :p it | get [~(print) ~(print | parse | open | eq p)]","expect":"[\"/:a/b/:c\" true]"}
 {"name":"the-slash-alone-names-no-path","query":"\"[1] | get /\" | parse !| get /message","expect":"\"the slash alone names no path: the value itself is `it`\""}
 {"name":"a-quoted-digit-is-the-segment-an-index-is","query":"/\"0\" | eq /0","expect":"true"}

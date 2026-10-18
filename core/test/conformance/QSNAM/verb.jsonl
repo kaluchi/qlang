@@ -1,29 +1,29 @@
-{"name":"filter-vec-declared-verb","query":"[1 2 3 4 5] | :number/big ~(gt 2) | filter ~(big)","expect":"[3 4 5]"}
-{"name":"filter-vec-verb-predicate","query":"[1 -2 3 -4 5] | :number/positive ~(gt 0) | filter ~positive","expect":"[1 3 5]"}
-{"name":"filter-set-declared-verb","query":"#[1 2 3 4 5] | :number/big ~(gt 2) | filter ~(big)","expect":"#[3 4 5]"}
-{"name":"filter-set-verb-predicate","query":"#[1 -2 3 -4 5] | :number/positive ~(gt 0) | filter ~positive","expect":"#[1 3 5]"}
-{"name":"filter-map-declared-verb","query":"{:a 1 :b 2 :c 3} | :number/big ~(gt 1) | filter ~(big)","expect":"{:b 2 :c 3}"}
-{"name":"filter-map-verb-predicate","query":"{:a 1 :b -2 :c 3} | :number/positive ~(gt 0) | filter ~positive","expect":"{:a 1 :c 3}"}
-{"name":"any-vec-declared-verb","query":"[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
-{"name":"any-vec-verb-predicate","query":"[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
-{"name":"any-vec-verb-predicate-false","query":"[1 2 3] | :any/huge ~(gt 99) | any ~huge","expect":"false"}
-{"name":"every-vec-declared-verb","query":"[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
-{"name":"every-vec-verb-predicate","query":"[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
-{"name":"every-vec-verb-predicate-fails","query":"[2 4 -1] | :any/positive ~(gt 0) | every ~positive","expect":"false"}
+{"decision":"D364","name":"filter-runs-a-verb-the-reader-declares-in-its-predicate","query":"[1 2 3 4 5] | :number/big ~(gt 2) | filter ~(big)","expect":"[3 4 5]"}
+{"decision":"D364","name":"filter-takes-a-verb-handed-on-as-code","query":"[1 -2 3 -4 5] | :number/positive ~(gt 0) | filter ~positive","expect":"[1 3 5]"}
+{"decision":"D364","name":"filter-over-a-set-runs-a-verb-the-reader-declares-in-its-predicate","query":"#[1 2 3 4 5] | :number/big ~(gt 2) | filter ~(big)","expect":"#[3 4 5]"}
+{"decision":"D364","name":"filter-over-a-set-takes-a-verb-handed-on-as-code","query":"#[1 -2 3 -4 5] | :number/positive ~(gt 0) | filter ~positive","expect":"#[1 3 5]"}
+{"decision":"D364","name":"filter-over-a-map-runs-a-verb-the-reader-declares-in-its-predicate","query":"{:a 1 :b 2 :c 3} | :number/big ~(gt 1) | filter ~(big)","expect":"{:b 2 :c 3}"}
+{"decision":"D364","name":"filter-over-a-map-takes-a-verb-handed-on-as-code","query":"{:a 1 :b -2 :c 3} | :number/positive ~(gt 0) | filter ~positive","expect":"{:a 1 :c 3}"}
+{"decision":"D364","name":"any-runs-a-verb-the-reader-declares-in-its-predicate","query":"[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
+{"decision":"D364","name":"any-takes-a-verb-handed-on-as-code","query":"[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
+{"decision":"D364","name":"any-answers-false-where-a-verb-handed-on-holds-for-no-element","query":"[1 2 3] | :any/huge ~(gt 99) | any ~huge","expect":"false"}
+{"decision":"D364","name":"every-runs-a-verb-the-reader-declares-in-its-predicate","query":"[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
+{"decision":"D364","name":"every-takes-a-verb-handed-on-as-code","query":"[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
+{"decision":"D364","name":"every-answers-false-where-a-verb-handed-on-does-not-hold-for-an-element","query":"[2 4 -1] | :any/positive ~(gt 0) | every ~positive","expect":"false"}
 {"name":"a-verb-declared-under-a-label-runs-on-its-value","query":":number/double ~(mul 2) | 10 | double","expect":"20"}
 {"name":"a-declared-verb-runs-under-map","query":":number/plus10 ~(add 10) | [1 2 3] | map ~plus10","expect":"[11 12 13]"}
-{"name":"tree-sum-leaf","query":":map/totalSize ~(sumOf /size (get /children | map ~totalSize | sum)) | {:size 100 :children []} | totalSize","expect":"100"}
-{"name":"tree-sum-flat","query":":map/totalSize ~(sumOf /size (get /children | map ~totalSize | sum)) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize","expect":"300"}
-{"name":"tree-sum-nested-directories","query":":map/totalSize ~(sumOf /size (get /children | map ~totalSize | sum)) | {:label \"root\" :size 0 :children [{:label \"README.md\" :size 2048 :children []} {:label \"src\" :size 0 :children [{:label \"main.c\" :size 512 :children []} {:label \"util.c\" :size 256 :children []}]}]} | totalSize","expect":"2816"}
-{"name":"tree-count-nodes","query":":map/countNodes ~(sumOf 1 (get /children | map ~countNodes | sum)) | {:children [{:children []} {:children [{:children []} {:children []}]}]} | countNodes","expect":"5"}
-{"name":"tree-flatten-labels","query":":map/allLabels ~(get [[/label], ~(get /children | map ~allLabels | flat)] | flat) | {:label \"root\" :children [{:label \"a\" :children []} {:label \"b\" :children [{:label \"c\" :children []}]}]} | allLabels","expect":"[\"root\" \"a\" \"b\" \"c\"]"}
-{"name":"tree-enrich-with-count","query":":map/withCounts ~(get {:label /label :count ~(get /children | count) :children ~(get /children | map ~withCounts)}) | {:label \"root\" :children [{:label \"a\" :children []} {:label \"b\" :children [{:label \"c\" :children []}]}]} | withCounts","expect":"{:label \"root\" :count 2 :children [{:label \"a\" :count 0 :children []} {:label \"b\" :count 1 :children [{:label \"c\" :count 0 :children []}]}]}"}
-{"name":"tree-empty-children-terminates","query":":map/walk ~(get {:label /label :children ~(get /children | map ~walk)}) | {:label \"only\" :children []} | walk","expect":"{:label \"only\" :children []}"}
+{"decision":"D364","name":"a-verb-that-calls-itself-by-its-name-answers-where-it-maps-the-empty-vector","query":":map/totalSize ~(sumOf /size (get /children | map ~totalSize | sum)) | {:size 100 :children []} | totalSize","expect":"100"}
+{"decision":"D364","name":"a-verb-calls-itself-by-its-name-on-each-child","query":":map/totalSize ~(sumOf /size (get /children | map ~totalSize | sum)) | {:size 0 :children [{:size 100 :children []} {:size 200 :children []}]} | totalSize","expect":"300"}
+{"decision":"D364","name":"a-verb-calls-itself-by-its-name-on-a-map-and-every-map-it-holds","query":":map/totalSize ~(sumOf /size (get /children | map ~totalSize | sum)) | {:label \"root\" :size 0 :children [{:label \"README.md\" :size 2048 :children []} {:label \"src\" :size 0 :children [{:label \"main.c\" :size 512 :children []} {:label \"util.c\" :size 256 :children []}]}]} | totalSize","expect":"2816"}
+{"decision":"D364","name":"a-verb-that-calls-itself-counts-a-map-and-every-map-it-holds","query":":map/countNodes ~(sumOf 1 (get /children | map ~countNodes | sum)) | {:children [{:children []} {:children [{:children []} {:children []}]}]} | countNodes","expect":"5"}
+{"decision":"D364","name":"a-verb-that-calls-itself-gathers-a-field-of-each-map-in-order","query":":map/allLabels ~(get [[/label], ~(get /children | map ~allLabels | flat)] | flat) | {:label \"root\" :children [{:label \"a\" :children []} {:label \"b\" :children [{:label \"c\" :children []}]}]} | allLabels","expect":"[\"root\" \"a\" \"b\" \"c\"]"}
+{"decision":"D364","name":"a-verb-that-calls-itself-builds-each-map-anew-with-a-field-added","query":":map/withCounts ~(get {:label /label :count ~(get /children | count) :children ~(get /children | map ~withCounts)}) | {:label \"root\" :children [{:label \"a\" :children []} {:label \"b\" :children [{:label \"c\" :children []}]}]} | withCounts","expect":"{:label \"root\" :count 2 :children [{:label \"a\" :count 0 :children []} {:label \"b\" :count 1 :children [{:label \"c\" :count 0 :children []}]}]}"}
+{"decision":"D364","name":"a-verb-that-calls-itself-in-a-template-keeps-the-empty-vector-it-maps","query":":map/walk ~(get {:label /label :children ~(get /children | map ~walk)}) | {:label \"only\" :children []} | walk","expect":"{:label \"only\" :children []}"}
 {"name":"a-verb-is-called-by-the-last-name-of-its-address","query":":any/x ~(1) | 5 | x","expect":"1"}
 {"name":"a-verb-reads-the-tree-as-it-stands-at-its-call","query":":number/double ~(mul 2) | :number/apply_double ~(double) | (:number/double ~(mul 3) | 5 | apply_double)","expect":"15"}
 {"name":"a-declared-verb-calls-a-verb-of-its-subject","query":":vec/howMany ~(count) | [1 2 3] | howMany","expect":"3"}
 {"name":"a-runaway-self-call-meets-the-limit-of-the-evaluation-depth","query":":number/inf ~(add 1 | inf) | 0 | inf !| type","expect":"::call/EvaluationDepthExceededError"}
-{"name":"runaway-self-call-descriptor-depth-past-limit","query":":number/inf ~(add 1 | inf) | 0 | inf !| :e it | get /depth | gt (e | get /limit)","expect":"true"}
+{"decision":"D364","name":"the-refusal-of-a-runaway-self-call-holds-a-depth-past-its-limit","query":":number/inf ~(add 1 | inf) | 0 | inf !| :e it | get /depth | gt (e | get /limit)","expect":"true"}
 {"name":"a-verb-that-recurses-through-map-meets-the-evaluation-depth","query":":number/f ~(get [~(it)] | map ~f | first) | 1 | f !| type","expect":"::call/EvaluationDepthExceededError"}
 {"name":"an-input-read-from-its-place-meets-the-limit-one-deeper-than-its-call","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | map ~(x))))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError"}
 {"name":"a-modifier-of-an-atom-meets-the-limit-one-deeper-than-its-call","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count 1)))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError"}

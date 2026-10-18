@@ -1,21 +1,21 @@
 {"name":"union-merges-two-sets-of-mixed-kinds","query":"#[1 \"a\"] | union #[null 2]","expect":"#[null 1 2 \"a\"]"}
-{"name":"minus-merges-two-sets","query":"#[1 2 3 4] | minus #[0 2 4 6]","expect":"#[1 3]"}
-{"name":"inter-merges-two-sets","query":"#[1 2 3 4] | inter #[0 2 4 6]","expect":"#[2 4]"}
+{"decision":"D364","name":"minus-of-two-sets-of-numbers-keeps-what-the-other-lacks","query":"#[1 2 3 4] | minus #[0 2 4 6]","expect":"#[1 3]"}
+{"decision":"D364","name":"inter-of-two-sets-of-numbers-keeps-what-both-hold","query":"#[1 2 3 4] | inter #[0 2 4 6]","expect":"#[2 4]"}
 {"name":"a-vector-is-no-set-for-the-algebra","query":"[[1] [2]] | union !| get [~(type) /index]","expect":"[::vec/union/ElementNotSetOrMapError 0]"}
 {"name":"a-set-of-sets-folds-by-the-verb-of-vectors-and-by-flat","query":"#[#[1] #[2]] | get [~(vec/union) ~(flat)]","expect":"[#[1 2] #[1 2]]"}
 {"name":"a-set-of-sets-folds-in-its-one-order-as-the-vector-it-is","query":"get [~(#[#[1 2] #[1]] | toVec | minus) ~([#[1 2] #[1]] | minus)]","expect":"[#[] #[2]]"}
 {"name":"inter-selects-by-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | inter [:a :c]","expect":"{:a 1 :c 3}"}
 {"name":"minus-removes-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | minus [:a :c]","expect":"{:b 2}"}
-{"name":"set-union","query":"#[:a :b :c] | union #[:b :d]","expect":"#[:a :b :c :d]"}
-{"name":"set-minus","query":"#[:a :b :c] | minus #[:b :d]","expect":"#[:a :c]"}
-{"name":"set-inter","query":"#[:a :b :c] | inter #[:b :d]","expect":"#[:b]"}
+{"decision":"D364","name":"union-of-two-sets-of-keywords-holds-each-element-once","query":"#[:a :b :c] | union #[:b :d]","expect":"#[:a :b :c :d]"}
+{"decision":"D364","name":"minus-of-two-sets-of-keywords-keeps-what-the-other-lacks","query":"#[:a :b :c] | minus #[:b :d]","expect":"#[:a :c]"}
+{"decision":"D364","name":"inter-of-two-sets-of-keywords-keeps-what-both-hold","query":"#[:a :b :c] | inter #[:b :d]","expect":"#[:b]"}
 {"name":"union-combines-a-map-with-the-map-its-input-gives","query":"{:name \"Alice\"} | union {:age 30}","expect":"{:name \"Alice\" :age 30}"}
-{"name":"map-union-overrides","query":"{:age 20} | union {:age 30}","expect":"{:age 30}"}
-{"name":"map-minus-by-map","query":"{:a 1 :b 2 :c 3} | minus {:b 99 :d 5}","expect":"{:a 1 :c 3}"}
-{"name":"map-inter-by-map","query":"{:a 1 :b 2 :c 3} | inter {:b 99 :d 5}","expect":"{:b 2}"}
-{"name":"map-minus-by-set","query":"{:name \"Alice\" :age 30 :tmp 1} | minus #[:tmp]","expect":"{:name \"Alice\" :age 30}"}
-{"name":"map-inter-by-set","query":"{:name \"Alice\" :age 30 :tmp 1} | inter #[:name :age]","expect":"{:name \"Alice\" :age 30}"}
-{"name":"enrich-with-derived","query":"{:name \"Alice\" :age 20} | union (get {:adult ~(get /age | gte 18)})","expect":"{:name \"Alice\" :age 20 :adult true}"}
+{"decision":"D364","name":"union-of-two-maps-keeps-the-later-value-of-a-key","query":"{:age 20} | union {:age 30}","expect":"{:age 30}"}
+{"decision":"D364","name":"minus-of-a-map-takes-off-the-keys-a-map-names","query":"{:a 1 :b 2 :c 3} | minus {:b 99 :d 5}","expect":"{:a 1 :c 3}"}
+{"decision":"D364","name":"inter-of-a-map-keeps-the-keys-a-map-names","query":"{:a 1 :b 2 :c 3} | inter {:b 99 :d 5}","expect":"{:b 2}"}
+{"decision":"D364","name":"minus-of-a-map-takes-off-the-keys-a-set-names","query":"{:name \"Alice\" :age 30 :tmp 1} | minus #[:tmp]","expect":"{:name \"Alice\" :age 30}"}
+{"decision":"D364","name":"inter-of-a-map-keeps-the-keys-a-set-names","query":"{:name \"Alice\" :age 30 :tmp 1} | inter #[:name :age]","expect":"{:name \"Alice\" :age 30}"}
+{"decision":"D364","name":"union-adds-to-a-map-the-fields-a-template-computes-from-it","query":"{:name \"Alice\" :age 20} | union (get {:adult ~(get /age | gte 18)})","expect":"{:name \"Alice\" :age 20 :adult true}"}
 {"name":"union-folds-the-two-sets-a-vector-holds","query":"[#[:a :b :c] #[:b :d]] | union","expect":"#[:a :b :c :d]"}
 {"name":"union-folds-the-three-sets-a-vector-holds","query":"[#[:a] #[:b] #[:c]] | union","expect":"#[:a :b :c]"}
 {"name":"minus-folds-the-sets-a-vector-holds","query":"[#[:a :b :c] #[:b :d]] | minus","expect":"#[:a :c]"}

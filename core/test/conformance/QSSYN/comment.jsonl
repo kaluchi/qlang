@@ -34,15 +34,15 @@
 {"name":"a-source-of-comments-alone-is-the-empty-pipeline","query":"|~ only a note ~|","expect":"null"}
 {"name":"a-comment-at-the-head-keeps-a-leading-catch","query":"~(!| |~ note ~| get /kind) | first | type","expect":"::fail"}
 {"name":"comment-head-hands-the-head-to-the-first-step","query":"42 | apply ~(|~ note ~| type)","expect":"::number"}
-{"name":"comment-head-of-a-group","query":"[1 2] | (|~ note ~| map ~(add 1))","expect":"[2 3]"}
+{"decision":"D364","name":"a-comment-at-the-head-of-a-group-is-whitespace","query":"[1 2] | (|~ note ~| map ~(add 1))","expect":"[2 3]"}
 {"name":"a-comment-at-the-head-before-a-catch-keeps-it","query":"~(|~ note ~| !| get /kind) | first | type","expect":"::fail"}
-{"name":"comment-head-explicit-pipe-rides-the-pipe","query":"~(|~ note ~| | type) | first | type","expect":"::call"}
-{"name":"line-comment-head-of-a-group","query":"[1 2] | (|~| note\nmap ~(add 1))","expect":"[2 3]"}
-{"name":"comment-mid-pipeline","query":"[1 2] |~ note ~| | map ~(add 1)","expect":"[2 3]"}
+{"decision":"D364","name":"a-leading-pipe-after-a-comment-is-the-combinator-of-the-head","query":"~(|~ note ~| | type) | first | type","expect":"::call"}
+{"decision":"D364","name":"a-line-comment-at-the-head-of-a-group-is-whitespace","query":"[1 2] | (|~| note\nmap ~(add 1))","expect":"[2 3]"}
+{"decision":"D364","name":"a-comment-in-the-middle-of-a-pipeline-is-whitespace","query":"[1 2] |~ note ~| | map ~(add 1)","expect":"[2 3]"}
 {"name":"comment-head-keeps-leading-pipe","query":"~(| |~ note ~| count) | first | type","expect":"::call"}
-{"name":"comment-head-without-leading-combinator-rides-pipe","query":"~(|~ note ~| count) | first | type","expect":"::call"}
+{"decision":"D364","name":"a-comment-at-the-head-of-a-quote-leaves-its-first-step-a-call","query":"~(|~ note ~| count) | first | type","expect":"::call"}
 {"name":"a-comment-sets-off-the-modifiers-of-a-command","query":"5 | add |~ the addend ~| 1","expect":"6"}
 {"name":"a-line-break-inside-a-comment-ends-no-line","query":"5 | add |~ one\ntwo ~| 1","expect":"6"}
 {"name":"the-parse-of-a-source-of-comments-alone-is-the-empty-quote","query":"\"|~ x ~|\" | parse | eq ~()","expect":"true"}
-{"name":"with-line-comments","query":"|~| compute the sum\n| [1 2 3]\n  | sum |~| final reduction","expect":"6"}
+{"decision":"D364","name":"line-comments-before-and-after-the-steps-are-whitespace","query":"|~| compute the sum\n| [1 2 3]\n  | sum |~| final reduction","expect":"6"}
 {"name":"quote-comment-leaves-no-step","query":"~(|~ note ~| count) | count","expect":"1"}

@@ -7,54 +7,113 @@ unit tests of the core's host hold its sections.
 
 ## source
 
-A host hands its sources, of which the language reads what each
-declares, each `{ uri, source, impls }`: the source declares its nouns
-into the root as a cell [QSNAM#root], and `impls` binds an
-implementation to each address the source declares as `::builtin{}`
-under a label: to the recipe of a verb a plain function over the values
-its inputs checked, the subject first and the inputs in their order, a
-primitive naming the inputs it runs as code, each handed to it as code
-closed at the call; and to the constructor of a kind, its node
-`<label>/construct`, a function of the payload that answers the value
-the tag is laid over or refuses the payload. The root refuses, as it is
-declared, a `::builtin{}` the host handed nothing for and an
-implementation handed for any name declared otherwise,
-`::builtin/ImplementationNotHandedError` and
-`::builtin/ImplementationNamesNoBuiltinError`, and a source whose run
-answers an error or declares again a name the root holds as
-`::builtin/RootSourceNotDeclaredError`. A `::builtin{}` a reader writes
-is the value it is: as the recipe of a function under a label, the
-address answers the function as a value, and its bare name reaches no
-verb; as a step of a recipe's quote, the verb answers it; and as the
-constructor of a kind, the kind lays its tag over the payload as it is.
-A host makes an error of a tag by `makeErrorValue`.
+A host is a tool that hands the language its sources and receives its
+answers: the core is the host of the language's own sources, and the
+command line, the language server and the site are hosts, so a verb of
+the core and a verb of another host answer alike [QSNAM#owner]. A host
+hands each source as `{ uri, source, primitives }`: the source declares
+its nouns into the root as a cell [QSNAM#root], and `primitives` hands a
+primitive, a JavaScript function, under each address the source declares
+as `::builtin{}` under a label, the descriptor of a recipe or a
+constructor a host answers by a primitive: for the recipe of a verb a
+function of the values of its inputs, the subject first and the inputs
+in their order, a primitive naming the inputs it runs as code, each
+handed to it as code closed at the call; and for the constructor of a
+kind, its node `<label>/construct`, a function of the payload that
+answers the value the tag is laid over or refuses the payload. The root
+refuses, as it is declared, a `::builtin{}` its host handed no primitive
+for, `::builtin/PrimitiveNotHandedError`, a primitive handed for a name
+its source declares otherwise, `::builtin/PrimitiveNamesNoBuiltinError`,
+and a source whose run answers an error or declares again a name the
+root holds, `::builtin/RootSourceNotDeclaredError`; the modules of the
+runtime register the core's primitives in its table, two under one
+address refused as `::builtin/AddressRegisteredTwiceError`. A
+`::builtin{}` a reader writes is the value it is: as the recipe of a
+function under a label, the address answers the function as a value, and
+its bare name reaches no verb; as a step of a recipe's quote, the verb
+answers it; and as the constructor of a kind, the kind lays its tag over
+the payload as it is. A host makes an error of a tag by
+`makeErrorValue`.
 
 Each source is the source of one noun, its page first and what is
 declared under it after, so a kind lives whole in the source of its
 noun, and a kind with no verb of its own has a source of its page and
 its laws; the source `qlang` holds the topic of the language. A host's
 source declares its own noun and its verbs under the labels of their
-subjects, and a binding's `:origin` names the source or the cell that
-declared it. The core is a host of its own sources, listed once in
-`LANGUAGE_SOURCES`, each read whole when the runtime starts, and hands
-beside each the implementations of its verbs and of the constructor of
+subjects. A source is code as written: the text a host hands, the step
+that declared a binding, its `:source`, and every declaration under an
+address, which the axis `source` reads, null for a binding no
+declaration wrote, a node a chain lays among them. Where a text came from
+is its `:origin`, a keyword naming the source, the cell or the verb that
+read it, on a binding, a failure to parse and a refusal of the root
+alike, the root recording the `uri` a host hands as that origin. The
+core is a host of its own sources, listed once in `LANGUAGE_SOURCES`, and
+hands beside each the primitives of its verbs and of the constructor of
 each kind whose chain ends in `impl ::builtin{}`, under the address of
-the constructor's node, `::number/construct`. The kernel is the
-evaluator with its table of primitives and the shapes it reads, `::fn`,
-`::kind` and `::builtin{}`, whose pages the catalog holds. A primitive
-that reads the scope of its call, `doc`, `env`, `get`, `apply` and their
-kin, takes the state of the call after the values of its inputs were
-checked; every other primitive is a plain function. A call waits on an
-answer that has a `then`, a host's thenable and its promise of another
-realm among them. A host's setting is the first value of its pipe, the
+the constructor's node, `::number/construct`. The runtime, the evaluator
+with its table of primitives and the values it reads, `::fn`, `::kind`
+and `::builtin{}`, whose pages the catalog holds, runs a primitive, and
+a failure inside one is `::call/HostFailureError` [QSERR#site]. A
+primitive that reads the state of its call, `doc`, `env`, `get`, `apply`
+and their kin, takes it after the values of its inputs, and every other
+takes the values alone. A call waits on an answer that has a `then`, a
+host's thenable and its promise of another realm among them. The engine
+a host runs on bounds the length of a vector and runs a regex alike on
+every platform. A host's setting is the first value of its pipe, the
 subject its query starts from, the command line's the noun of the
 language where standard input gives it no text [QSHST#stdin].
+
+The sources of the language are read where `core/package.json` maps
+them, by the road each platform asks for: the files on Node, read by the
+loader of `core/host/`; `fetch` in a browser that maps `#qlang/<name>`
+in its import map; and the locator a bundle hands `langRuntime`, as the
+site's does; the root reads each whole as it boots. The language server
+reads the file of each source where the package exports it,
+`@kaluchi/qlang-core/lib/<uri>.qlang`, resolved from its own dependency,
+and the editor's extension imports the core by its name, a dependency of
+its package. The refusals of the boot stand under `::builtin` and name
+no platform: `::builtin/SourceLoadError` holds `:origin`, the source, as
+`::builtin/BootstrapSourceMissingError` names it, `:sourceLocation`,
+where the platform looked for it, and `:cause`, the host's account of
+the failure.
+
+A value enters the language from a host only as a value of the
+language, which two doors hold, each by one walk of the value at any
+depth, a container met twice in one value walked once. The answer of a
+primitive a host hands beside its source, and the facts of a refusal it
+throws, are held where the call takes them: an answer that is or holds a
+function, an object of JavaScript, a map whose key is no string, a
+failure whose facts are no map, a value under a tag that is no tag, a
+container that holds itself, a hole of a vector or a number past the
+finite doubles fails the call as `::call/HostFailureError`, its
+`:message` naming the verb and the path where that value stands in its
+answer; a value the call handed in passes back as it is, the door
+trusting a host to change none of the values it is handed, and the
+primitives of the core are never walked, whatever function runs them. A
+value JavaScript leaves undefined is null wherever the language reads
+it. The subject a host hands a cell and the values of the scope it hands
+a session or `evalQuery` are held where the core takes them, by the same
+walk: a value of no kind there is a defect of the host, raised past the
+fail track as `::builtin/ForeignValueError`, whose `:actualValue` names
+the value as JavaScript holds it, its type and its name or its maker,
+`"function hello"`, `"number Infinity"`, or what makes a container of no
+kind, `"a map whose key number 1 is no string"`; the printer and the
+codec of JSON raise the same defect for a value of no kind no door met.
+The doors hold the shape of a value, and `fromPlain` is the road a host
+builds a lawful answer by from data it holds parsed.
+
+A scope is the names a step reads over the root, and the interface of
+the package names it so: a session keeps the scope its cells write,
+`createSession({ scope })`, `session.scope` and the entry's
+`scopeAfterCell`, `evalQuery` runs a query in the scope it is handed, and
+`langRuntime` answers the scope of the root; a host puts its names into
+the scope by its sources alone, and a reader by a declaration.
 
 ```qlang
 > ::vec | binding | get /origin
 :qlang/vec
 
-> ::vec/count | source | parse | contains "::builtin{}"
+> ::vec/count | source | toString | contains "::builtin{}"
 true
 
 > ::number/construct | binding | get /value
@@ -62,6 +121,16 @@ true
 
 > :B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1]
 ::B[1]
+
+> get [~("add (" | parse !| get /origin) ~(::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
+[:string/parse true]
+```
+
+```sh
+$ node --input-type=module -e "const { createSession } = await import('./core/src/session.mjs'); const s = await createSession({ sources: [{ uri: 'probe', source: ':any/obj (::fn | returns |~~ O. ~~| ::any | impl ::builtin{})', primitives: { 'any/obj': () => ({ a: 1 }) } }] }); const e = await s.evalCell('obj !| type | toString'); console.log(e.result, 'scope' in s, 'scopeAfterCell' in e)"
+call/HostFailureError true true
+$ node --input-type=module -e "const { createSession } = await import('./core/src/session.mjs'); const s = await createSession(); const e = await s.evalCell('type', { initialPipeValue: function hello() {} }); console.log(e.error.address, e.error.facts.actualValue)"
+builtin/ForeignValueError function hello
 ```
 
 ## effect
@@ -97,7 +166,7 @@ budget is asked for, `| elide N` in the query or `--budget=N` before it,
 a whole count of characters above zero on either road: the step `elide`
 cuts the value the query answers, which a failure passes by, and the
 flag prints every answer as `elide` cuts it, a failure's alert among
-them [QSPRN#elide], a part giving way where its marker prints shorter. A
+them [QSPRN#elide], a part giving way where its elision prints shorter. A
 reader who wants JSON converts the answer in the query, `| json`. A
 query that wrote to standard output by `out` holds the channel: its
 answer and its failure stay unwritten, and the code is the one its
@@ -112,20 +181,21 @@ written as without the flag and one a query that wrote by `out` left
 unwritten among them, while a failure caught is a value and every value
 exits with 0. A failure is written as its alert: its tag and its facts
 in the order the catalog declares them, the subject of the first frame
-of its trail, where it arose, and every other fact cut to an excerpt of
+of its trace, where it arose, and every other fact cut to an excerpt of
 three hundred characters, a string past the excerpt giving way whole
 with its `:head`, and the subject of each later frame giving way to an
-`::elision` marker where the marker prints shorter, each subject
-measured on the one line its frame prints on, every frame keeping its
-steps and its place; each marker's `:read` continues the query beneath
-`!|`. Below the alert stands the prose of its refusal's page as line
-comments, the repair it tells, a refusal with no page of its own reading
-the page of what refused; an error of the kind of errors, which no site
-refused, and one whose tag no declaration names are written without
-prose, and the REPL prints its cells without it. A query that does not
-parse answers `::quote/ParseError`, and a text of standard input that
-does not read as the JSON it is taken for answers as `parseJson` refuses
-it [QSHST#stdin].
+elision where the elision prints shorter, each subject measured on the
+one line its frame prints on, every frame keeping its steps and its
+place; each elision's `:read` continues the query beneath `!|`. Below
+the alert stands the prose of its refusal's page as line comments, the
+repair it tells, a refusal with no page of its own reading the page of
+what refused; an error of the kind of errors, which no site refused, and
+one whose tag no declaration names are written without prose, and the
+REPL prints its cells without it. A query that does not parse answers
+`::quote/ParseError`, the line the reading stopped in and a caret under
+the place its `:location` names drawn below the alert [QSERR#print], and
+a text of standard input that does not read as the JSON it is taken for
+answers as `parseJson` refuses it [QSHST#stdin].
 
 Standard error and a nonzero code are for what is no answer: a defect
 raised past the fail track is written as `qlang:` and its message with
@@ -205,14 +275,15 @@ them, and a failure as its alert, painted whether or not standard output
 is a terminal; the colour of script mode follows `--color`, `NO_COLOR`
 and `FORCE_COLOR`. Its line editor reads a chunk of one character, or
 one that begins with an escape, as keys, and any other chunk as text. A
-paste a host hands over in several chunks is gathered and lands at the
-cursor as one, its bracket markers taken out, its line breaks kept and
+paste the terminal hands over in several chunks is gathered and lands at
+the cursor as one, its bracket markers taken out, its line breaks kept and
 the trailing ones dropped, waiting for a submit; a bracketed paste is
 read to its end marker. Enter submits, Alt+Enter submits a paste in both
 its spellings, ESC then CR and ESC then LF, an Escape alone does nothing,
 an escape before `[` opens a sequence however its chunks split it, and
 Alt with an arrow reads as the arrow. Its colour is a layer over the
-core's tokens, where the name of a call that reaches a verb of the
+core's tokens, the painters reading the verbs of the root by
+`verbNames`, where the name of a call that reaches a verb of the
 language is a `word`, and a keyword or a reader's name a `name`.
 
 ## tools

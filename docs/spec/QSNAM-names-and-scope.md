@@ -122,11 +122,15 @@ verb where its value is a function or a recipe,
 mention, the last name of its address calls it, and so does the address
 written as a step. `~double` hands the verb on as code. A verb reads the
 verbs and the nodes of the tree as the tree stands where it is called,
-so a verb calls itself by its name. Each call runs a frame: an input
-read from its place, a modifier the call computes, a literal or a group,
-and each run of the code a verb runs meet the budget of frames one below
-the call, a quote written as a modifier handed to the call as it is, and
-a call that recurses without end is refused as
+so a verb calls itself by its name. The evaluator counts the nesting of
+the code it runs beneath a step, its evaluation depth: the recipe of a
+verb, a modifier the call computes, `apply`, the constructor of a tag
+and each run of the code a verb runs go one deeper than the step that
+called them, an input read from its place and a modifier of an atom
+meeting the limit one deeper than the call, while the steps of one
+pipeline and a group run at its depth and a quote written as a modifier,
+handed to the call as it is, goes no deeper; a run past the limit, a
+call that recurses without end among them, is refused as
 `::call/EvaluationDepthExceededError` with its `:depth` and `:limit`.
 
 ```qlang
@@ -139,8 +143,8 @@ a call that recurses without end is refused as
 > :number/plus10 ~(add 10) | [1 2 3] | map ~plus10
 [11 12 13]
 
-> :number/inf ~(add 1 | inf) | 0 | inf !| type
-::call/EvaluationDepthExceededError
+> :number/inf ~(add 1 | inf) | 0 | inf !| get [~(type) ~(keys | has :depth) ~(keys | has :limit)]
+[::call/EvaluationDepthExceededError true true]
 ```
 
 ## scope
@@ -151,7 +155,7 @@ counted in its steps as they are written, run or skipped: a declaration
 the fail track passed by counts, and so does one whose body failed, so a
 recovery after `!|` declares another name. The second declaration is
 refused where it stands, `::bind/NameDeclaredTwiceError` with `:name`,
-its step the fault.
+its step the one that failed.
 
 A group and each run of a quote are scopes of their own: a modifier, a
 part of a template of `get`, the code `map` runs on each element. A

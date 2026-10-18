@@ -168,9 +168,10 @@
             the call, `apply`, a constructor of a tag and each run of the
             code a verb runs, `map ~(…)`, run one deeper in the evaluation
             depth than the step that called them, while the steps of one
-            pipeline run at its depth; an input read from its place meets
-            the limit at that depth, a quote written as a modifier is a
-            value at the call, and a step past the limit refuses, `:depth`
+            pipeline and a group run at its depth; an input read from its
+            place and a modifier of an atom meet the limit one deeper than
+            the call, a quote written as a modifier goes no deeper, and a
+            step past the limit refuses, `:depth`
             the evaluation depth refused and `:limit` the deepest one
             evaluation goes. A recursion without a base case, a verb that
             calls itself, is refused here, on the fail track, while the

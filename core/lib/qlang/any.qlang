@@ -362,9 +362,8 @@
       atom alone is answered whole. A part gives way only where the least
       it gives way to prints shorter than it, `[]` or `{:n 1}` staying. An
       elision's `:size` counts what it stands for, a text by its
-      characters as `count` counts them, and its `:read`, applied to the
-      value `elide` took,
-      answers the part left out. The call gives the budget, a number; a
+      characters as `count` counts them, and its `:read`, continued from
+      the value `elide` took, reads the part left out. The call gives the budget, a number; a
       host applies `elide` to every answer it prints when a reader asks
       it for a budget.
       ::link~(::elision | doc) ::link~(::any/print | doc)
@@ -2361,8 +2360,8 @@
     | proves :standsAtATag
         |~~ A part under a tag is a leaf of its kind. ~~|
         ~({:q ~(add 1) :d |~~ d ~~| :t ::Box{:w 1}} | paths | eq #[[/d ::doc] [/q ::quote] [/t ::Box]])
-    | proves :opensASetAsAVector
-        |~~ A set opens as a vector does, its elements read by indices. ~~|
+    | proves :readsASetAsItsVector
+        |~~ A set is read as its vector, its elements by their indices. ~~|
         ~({:s #[1 2]} | paths | eq #[[/s/0 ::number] [/s/1 ::number]])
     | proves :eachReadsByGet
         |~~ Each path of the outline reads its part. ~~|
@@ -2434,7 +2433,7 @@
     | proves :standsAtATag
         |~~ A part under a tag stands as its tag. ~~|
         ~({:t ::Box{:w 1} :q ~(add 1)} | shape | eq ::shape{:t ::Box :q ::quote})
-    | proves :opensASetAsAVector
+    | proves :shapesASetByOneElement
         |~~ A set holds one element whose shape holds of all of them. ~~|
         ~(#[1 2] | shape | eq ::shape#[::number])
     | proves :readsBeneathTheTagsOfItsSubject

@@ -144,9 +144,9 @@ a number's literal, and a keyword whose name is one; `toKeyword` answers
 the keyword `groupBy`, `indexBy` and `toMap` file a value under, a
 keyword as it is, a string or a number the keyword of its text, a boolean
 or null that of its literal and a tag name that of its name; `toTag`
-reads a string or a keyword that names a tag. A conversion refuses a
-subject whose text writes no value of the kind it does not become, by the
-part of the subject and that kind: `toNumber` as
+reads a string or a keyword that names a tag; the two refuse a subject
+whose text writes no number or no name of a tag by the part of the
+subject and the kind it does not become, `toNumber` as
 `::keyword/toNumber/NameNotNumberError` and
 `::string/toNumber/TextNotNumberError`, `toTag` as
 `::keyword/toTag/NameNotTagError` and `::string/toTag/TextNotTagError`.

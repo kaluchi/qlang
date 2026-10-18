@@ -169,14 +169,16 @@ true
 A source the parser refuses answers `::quote/ParseError` with its
 `:source`, the line where the reading stopped, its `:location`, a
 `::span` whose `start` and `end` are the points `line` and `column` read
-[QSPRN#span], and its `:origin`, the source, the cell or the verb that
-read it. A refusal the grammar writes holds a `:message` that names the
+[QSPRN#span], and, where a host named the source or the cell or `parse`
+read the text, its `:origin`, `:string/parse` for a text `parse` read. A
+refusal the grammar writes holds a `:message` that names the
 habit it met; any other holds the continuations a reader could have
 meant as `:expected` and what it met as `:found`, none at the end of the
-source. A continuation is the text of a literal or a keyword, or a part
-of the grammar named in the words of the language: a name and the
-letters of a name [QSNAM#letters], whitespace, a doc, the end of the
-source, and a character by what it reads, a character of prose and a
+source. A continuation is the text of a literal, or a part of the
+grammar named as a keyword in the words of the language: a name and the
+letters of a name [QSNAM#letters], a number, a hexadecimal digit,
+whitespace, a doc, the end of the source, any character, and a character
+by what it reads, a character of prose and a
 character and a flag of a regex among them. A source that ends with a
 bracket, a string, a quote or a doc open, where four closers at most
 complete it, names it and where it opened, its `:message` naming the

@@ -177,7 +177,8 @@
       verb that runs its code on the elements of its subject, `map`,
       `filter`, `every`, `any` and `reduce`, and the keys of `sort`,
       `min`, `max`, `groupBy` and `indexBy`, names the place of the
-      element, its index or its key, and `update` the path it wrote; the
+      part, the path of its index or of its key, and `update` the path it
+      wrote; the
       subject reads the part by it, `get (f | place)` with `f` the frame.
       ::link~(::frame/subject | doc) ::link~(::path | doc)
   ~~|

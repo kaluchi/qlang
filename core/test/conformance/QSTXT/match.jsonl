@@ -5,7 +5,7 @@
 {"name":"capture-reads-the-lines-of-a-log-into-records","query":"\"ERROR db\\nINFO up\\nERROR net\" | lines | map ~(capture #\"(?<level>\\w+) (?<what>\\w+)\") | filter ~(get /level | eq \"ERROR\") | map /what","expect":"[\"db\" \"net\"]"}
 {"name":"capture-refuses-a-regex-that-names-no-group","query":"\"a1\" | capture #\"(\\d)\" !| type","expect":"::string/capture/RegexNamesNoGroupError"}
 {"name":"scan-answers-the-text-of-every-match","query":"\"took 12ms, then 7ms, then 130ms\" | scan #\"\\d+\" | map ~toNumber | sum","expect":"149"}
-{"name":"scan-meets-an-empty-match-at-every-place","query":"\"ab\" | scan #\"x*\"","expect":"[\"\" \"\" \"\"]"}
+{"name":"scan-meets-an-empty-match-before-every-code-point-and-at-the-end","query":"\"ab\" | scan #\"x*\"","expect":"[\"\" \"\" \"\"]"}
 {"name":"replace-names-the-groups-of-a-match","query":"[\"2026-10-12\" \"id: 7\"] | get [~(get /0 | replace #\"(?<y>\\d+)-(?<m>\\d+)-(?<d>\\d+)\" \"$<d>.$<m>.$<y>\") ~(get /1 | replace #\"\\d+\" \"[$&]\")]","expect":"[\"12.10.2026\" \"id: [7]\"]"}
 {"name":"replace-puts-a-text-as-written","query":"\"price $5\" | replace \"$5\" \"$&10\"","expect":"\"price $&10\""}
 {"name":"replace-runs-code-on-the-vector-of-each-match","query":"\"3x4 and 5x6\" | replace #\"(\\d+)x(\\d+)\" ~(mulOf (get /1 | toNumber) (get /2 | toNumber) | toString)","expect":"\"12 and 30\""}

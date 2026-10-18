@@ -154,7 +154,7 @@
       met and the steps from the one that failed:
       `"x" | add 1 | mul 2 !| trace` answers
       `::trace[::frame["x" ~(add 1 | mul 2)]]`, `add 1` failed on `"x"`
-      and `mul 2` left unrun. A step that ran the step that raised adds
+      and `mul 2` skipped. A step that ran the step that raised adds
       its frame after it, the `map` that ran an element among them, so
       the trace reads outward:
       `[1 "x"] | map ~(mul 2) !| trace | map ~failed` answers

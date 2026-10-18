@@ -107,10 +107,10 @@ asked for by `contains` [QSCOL#sequence].
 
 ## key
 
-A key alone is the path of one segment where `get`, `query` and the
-verbs that write take a path: a keyword, a number or a string, one
-segment of its text, which a map reads as a key and a vector as an index,
-so a key the query computes is read; any other value given to `get` or
+A key or an index alone, a keyword, a number or a string, is the path of
+one segment of its text where `get`, `query` and the verbs that write
+take a path, which a map reads as a key and a vector as an index, so one
+the query computes is read; any other value given to `get` or
 `query` is a template [QSPTH#template]. Every place that takes a key of a
 map reads a string so. The keys `minus` takes out of a map and `inter`
 keeps of it are the value of their input `keys`, a map, a vector or a set
@@ -182,8 +182,9 @@ as `~(get /name)` passes one there. The path of `get`, `query` and `has`
 and the inputs of the verbs of one subject, which combine several of its
 values, `sumOf`, `subOf`, `mulOf`, `divOf` and `unionOf`, take a path and
 read it against the subject. An input whose kinds leave a path out
-refuses one, naming as `:repair` the step the call was likely meant as,
-`take /n` repaired as `take (get /n)`; an input that takes any value, the
+refuses one, and where the step writes the path the refusal names as
+`:repair` the step the call was likely meant as, `take /n` repaired as
+`take (get /n)`; an input that takes any value, the
 value of `put`, `append`, `eq` and the default of `query`, takes the path
 as the value it is.
 
@@ -209,17 +210,17 @@ verbs serve other kinds is refused on a path, under the address of its
 verb where one verb holds the name and by the call where several do
 [QSDSP#refusal], the refusal naming as `:repair` the step the call was
 likely meant as. `segments` answers the keys and the indices of a path,
-an index as its number and a segment of digits that writes no number as
-its text, `/01` answering `[:"01"]`. `toPath` reads a path from a vector
-of keys and indices, an empty one refused as
-`::vec/toPath/SubjectEmptyError` and an element that is no key as
-`::vec/toPath/ElementNotKeyError`, and from a string in the form of JSON
+a key as its keyword and an index as its number, a segment of digits
+that writes no number a key, `/01` answering `[:"01"]`. `toPath` reads a
+path from a vector of keys and indices, an empty one refused as
+`::vec/toPath/SubjectEmptyError` and an element that is neither a key
+nor an index as `::vec/toPath/ElementNotKeyError`, and from a string in the form of JSON
 Pointer, its escapes read and a leading `#` of a fragment among it, a
 string of another form refused as `::string/toPath/NotPointerError`.
 
 `paths` answers the outline of a value, the set of its leaves, each the
 pair of the path that reads it and its kind, the value read beneath the
-tags over it, a part under a tag a leaf and a set opened as a vector, and
+tags over it, a part under a tag a leaf and a set read as its vector, and
 `#[]` for an atom. `shape`, a verb of `::any`, answers the schema of a
 value in its own literal under `::shape`, a label whose page tells how a
 shape reads, so `doc` on the answer reads that page: the value read

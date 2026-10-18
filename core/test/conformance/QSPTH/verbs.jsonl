@@ -11,7 +11,7 @@
 {"name":"toPath-refuses-an-element-that-is-no-key","query":"[:a 1.5] | toPath !| type","expect":"::vec/toPath/ElementNotKeyError"}
 {"name":"toPath-reads-the-fragment-of-a-json-pointer","query":"\"#/a\" | toPath","expect":"/a"}
 {"name":"paths-stands-at-a-part-under-a-tag","query":"{:q ~(add 1) :d |~~ d ~~| :t ::Box{:w 1}} | paths","expect":"#[[/d ::doc] [/q ::quote] [/t ::Box]]"}
-{"name":"paths-opens-a-set-as-a-vector","query":"{:s #[1 2]} | paths","expect":"#[[/s/0 ::number] [/s/1 ::number]]"}
+{"name":"paths-reads-a-set-as-its-vector","query":"{:s #[1 2]} | paths","expect":"#[[/s/0 ::number] [/s/1 ::number]]"}
 {"name":"paths-reads-its-subject-beneath-its-tags","query":"::A::B{:w 2} | paths","expect":"#[[/w ::number]]"}
 {"name":"shape-answers-the-kind-of-an-atom","query":"[5 \"a\" null :k /a true] | map ~shape","expect":"[::shape::number ::shape::string ::shape::null ::shape::keyword ::shape::path ::shape::boolean]"}
 {"name":"shape-keeps-the-keys-of-a-map","query":"{:a 1 :b {:c \"x\"}} | shape","expect":"::shape{:a ::number :b {:c ::string}}"}
@@ -43,7 +43,7 @@
 {"name":"shape-folds-a-map-with-null-among-its-values","query":"{:\"1\" {:id 1} :\"2\" null :\"3\" {:id 3}} | shape","expect":"::shape::each{:\"1\" ::nullable{:id ::number}}"}
 {"name":"shape-reads-the-path-of-the-data-through-the-key-a-fold-shows","query":"{:\"17\" {:id 1} :\"42\" {:id 2}} | shape | get /17/id","expect":"::number"}
 {"name":"shape-stands-at-a-part-under-a-tag","query":"{:t ::Box{:w 1} :q ~(add 1) :d |~~ d ~~|} | shape","expect":"::shape{:t ::Box :q ::quote :d ::doc}"}
-{"name":"shape-opens-a-set-as-a-vector","query":"get [~({:s #[1 2]} | shape) ~(#[:a :b] | shape)]","expect":"[::shape{:s #[::number]} ::shape#[::keyword]]"}
+{"name":"shape-reads-a-set-as-its-vector","query":"get [~({:s #[1 2]} | shape) ~(#[:a :b] | shape)]","expect":"[::shape{:s #[::number]} ::shape#[::keyword]]"}
 {"name":"shape-reads-its-subject-beneath-its-tags","query":"::Box{:w 1} | shape","expect":"::shape{:w ::number}"}
 {"name":"shape-of-an-empty-vector-and-an-empty-map-are-themselves","query":"get [~([] | shape) ~({} | shape)]","expect":"[::shape[] ::shape{}]"}
 {"name":"the-paths-of-the-data-read-its-shape","query":"{:users [{:age 1} {:age \"2\"}]} | shape | get /users/0/age","expect":"#[::number ::string]"}

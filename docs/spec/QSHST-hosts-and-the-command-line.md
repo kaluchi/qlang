@@ -10,7 +10,8 @@ unit tests of the core's host hold its sections.
 A host is a tool that hands the language its sources and receives its
 answers: the core is the host of the language's own sources, and the
 command line, the language server and the site are hosts, so a verb of
-the core and a verb of another host answer alike [QSNAM#owner]. A host
+the core and a verb of another host answer alike, as a verb written in
+the language and a primitive do [QSNAM#owner]. A host
 hands each source as `{ uri, source, primitives }`: the source declares
 its nouns into the root as a cell [QSNAM#root], and `primitives` hands a
 primitive, a JavaScript function, under each address the source declares
@@ -49,8 +50,11 @@ that declared a binding, its `:source`, and every declaration under an
 address, which the axis `source` reads, null for a binding no
 declaration wrote, a node a chain lays among them. Where a text came from
 is its `:origin`, a keyword naming the source, the cell or the verb that
-read it, on a binding, a failure to parse and a refusal of the root
-alike, the root recording the `uri` a host hands as that origin. The
+read it: a binding holds the source or the cell it was read from, a cell
+the session numbers among them, `:cell-1`, and a failure to parse and a
+refusal of the root the source a host named or the verb that read the
+text, a cell the session numbers naming none; the root records the `uri`
+a host hands as that origin. The
 core is a host of its own sources, listed once in `LANGUAGE_SOURCES`, and
 hands beside each the primitives of its verbs and of the constructor of
 each kind whose chain ends in `impl ::builtin{}`, under the address of
@@ -91,8 +95,8 @@ failure whose facts are no map, a value under a tag that is no tag, a
 container that holds itself, a hole of a vector or a number past the
 finite doubles fails the call as `::call/HostFailureError`, its
 `:message` naming the verb and the path where that value stands in its
-answer; a value the call handed in passes back as it is, the door
-trusting a host to change none of the values it is handed, and the
+answer; a value the call handed in passes back as it is, unwalked, and
+the
 primitives of the core are never walked, whatever function runs them. A
 value JavaScript leaves undefined is null wherever the language reads
 it. The subject a host hands a cell and the values of the scope it hands

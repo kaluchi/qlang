@@ -297,6 +297,9 @@ place its `:location` names.
 > !{:a 1} | raise !| print | parse | open | raise !| keys
 #[:a :trace]
 
+> "x" | add 1 !| print | parse | open | raise | count !| trace | map ~(get [~(subject) ~(failed) ~(skipped)])
+[["x" ~(add 1) ~(count)]]
+
 > !{:a 1}
 !{:a 1}
 ```

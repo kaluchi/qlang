@@ -137,7 +137,7 @@ describe('the axes read the node a tag addresses', () => {
   // A tag is the address of a name, so it reads the nearest declaration
   // of that name whatever its value holds [QSDSP#residence].
   it('::Tag | source reads the declaration of its name', async () => {
-    expect(await evalQuery('42 | :Foo it | ::Foo | source | parse')).toBe(':Foo it');
+    expect(await evalQuery('42 | :Foo it | ::Foo | source | toString')).toBe(':Foo it');
   });
 
   it('a tag no declaration names is refused by its address', async () => {
@@ -200,7 +200,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
 
   it('a verb of the reader is the one source reports', async () => {
     expect(await evalQuery(shadowed + '2 | hundredfold')).toBe(200);
-    expect(await evalQuery(shadowed + '::any/hundredfold | source | parse')).toBe(':any/hundredfold ~(mul 100)');
+    expect(await evalQuery(shadowed + '::any/hundredfold | source | toString')).toBe(':any/hundredfold ~(mul 100)');
   });
 
   it('doc answers null for a verb of the reader that carries no page', async () => {
@@ -216,21 +216,15 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
     });
     const cellEntry = await sessionInstance.evalCell(
       ':contested |~~ from the cell ~~| 222 | ' +
-      'get [~(contested), ~(::contested | source | parse), ~(::contested | doc | content)]');
+      'get [~(contested), ~(::contested | source | toString), ~(::contested | doc | content)]');
     expect(cellEntry.error).toBeNull();
     expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', ' from the cell ']);
   });
 
-  it('a host binding is a record with no source and no docs', async () => {
-    // `session.bind` writes the record of a binding without a
-    // declaration behind it [QSNAM#binding], which the axes project.
-    const { createSession } = await import('../../src/session.mjs');
-    const sessionInstance = await createSession();
-    sessionInstance.bind('hostInstalled', null);
-    const sourceEntry = await sessionInstance.evalCell('::hostInstalled | source');
-    expect(sourceEntry.result).toBeNull();
-    const docsEntry = await sessionInstance.evalCell('::hostInstalled | doc');
-    expect(docsEntry.result).toBeNull();
+  it('a binding no declaration wrote, a node a chain lays, holds no source, its page the one the chain wrote [QSSLF#axis]', async () => {
+    expect(await evalQuery('::number/add/addend | source')).toBeNull();
+    expect(await evalQuery('::number/add/addend | binding | get /source')).toBeNull();
+    expect(await evalQuery('::number/add/addend | doc | content')).toContain('The number added to the subject');
   });
 });
 

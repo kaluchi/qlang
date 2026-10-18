@@ -1,6 +1,6 @@
 // AST-based syntax highlighter for qlang source.
 //
-// `tokenize(src, builtinNames)` returns a flat, gap-free, sorted
+// `tokenize(src, verbNames)` returns a flat, gap-free, sorted
 // `Array<{ start, end, kind }>` covering exactly `[0, src.length]`
 // — every character of the source falls inside exactly one token.
 // Renderers (HTML for the docs site, ANSI for the CLI REPL,
@@ -10,7 +10,7 @@
 // Token kinds:
 //
 //   'string'      String literal, including the surrounding quotes
-//   'regex'       Pattern literal `#"…"`, its flags among it [QSTXT#pattern]
+//   'regex'       Regex literal `#"…"`, its flags among it [QSTXT#regex]
 //   'number'      Number literal, plus boolean and null literals
 //   'comment'     A comment, and the prose of a doc: the quotes a
 //                 doc holds and its spans in backticks paint as code
@@ -50,11 +50,11 @@ import { walkAst } from './walk.mjs';
 
 // ── Public surface ────────────────────────────────────────────
 
-export function tokenize(src, builtinNames) {
+export function tokenize(src, verbNames) {
   if (src.length === 0) return [];
   const read = readOf(src);
   if (read === null) return [{ start: 0, end: src.length, kind: 'whitespace' }];
-  const semanticSpans = collectSemanticSpans(read.source, read.ast, builtinNames)
+  const semanticSpans = collectSemanticSpans(read.source, read.ast, verbNames)
     .filter(span => span.start < read.end)
     .map(span => span.end > read.end ? { ...span, end: read.end } : span);
   const tokens = interleaveGapTokens(src.slice(0, read.end), semanticSpans);
@@ -86,7 +86,7 @@ function readOf(src) {
 // themselves spanned (Pipeline, VecLit, MapLit, ParenGroup, …)
 // emit nothing here — their structural punctuation shows up via
 // the gap-interleaving pass below.
-function collectSemanticSpans(src, ast, builtinNames) {
+function collectSemanticSpans(src, ast, verbNames) {
   // A comment is whitespace the parser keeps on the side [QSSYN#comment].
   const spans = ast.comments.map(comment =>
     ({ start: comment.location.start.offset, end: comment.location.end.offset, kind: 'comment' }));
@@ -102,10 +102,10 @@ function collectSemanticSpans(src, ast, builtinNames) {
         let cursor = startOffset;
         for (const segment of node.segments) {
           if (typeof segment === 'string') continue;
-          pushProseSpans(src, cursor, segment.location.start.offset, builtinNames, spans);
+          pushProseSpans(src, cursor, segment.location.start.offset, verbNames, spans);
           cursor = segment.location.end.offset;
         }
-        pushProseSpans(src, cursor, endOffset, builtinNames, spans);
+        pushProseSpans(src, cursor, endOffset, verbNames, spans);
         return; // descend into the quotes
       }
 
@@ -146,7 +146,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
         const bodyEnd = isShortForm ? endOffset : endOffset - 1;
         spans.push({ start: startOffset, end: bodyStart, kind: 'quote' });
         const innerSource = src.slice(bodyStart, bodyEnd);
-        const innerSpans = tokenize(innerSource, builtinNames);
+        const innerSpans = tokenize(innerSource, verbNames);
         for (const inner of innerSpans) {
           spans.push({
             start: bodyStart + inner.start,
@@ -198,7 +198,7 @@ function collectSemanticSpans(src, ast, builtinNames) {
         spans.push({
           start: startOffset,
           end:   nameEndOffset,
-          kind:  classifyCallName(node.name, builtinNames)
+          kind:  classifyCallName(node.name, verbNames)
         });
         return; // descend into args
       }
@@ -213,13 +213,13 @@ function collectSemanticSpans(src, ast, builtinNames) {
 // names code and paints as the code it spells [QSSYN#doc].
 const CODE_SPAN = /(?<!`)(`+)(?!`)([^\n]*?[^`\n])\1(?!`)/g;
 
-function pushProseSpans(src, start, end, builtinNames, spans) {
+function pushProseSpans(src, start, end, verbNames, spans) {
   let cursor = start;
   for (const match of src.slice(start, end).matchAll(CODE_SPAN)) {
     const codeStart = start + match.index + match[1].length;
     const codeEnd = codeStart + match[2].length;
     spans.push({ start: cursor, end: codeStart, kind: 'comment' });
-    for (const inner of tokenize(match[2], builtinNames)) {
+    for (const inner of tokenize(match[2], verbNames)) {
       spans.push({ ...inner, start: codeStart + inner.start, end: codeStart + inner.end });
     }
     cursor = codeEnd;
@@ -227,8 +227,8 @@ function pushProseSpans(src, start, end, builtinNames, spans) {
   spans.push({ start: cursor, end, kind: 'comment' });
 }
 
-function classifyCallName(callName, builtinNames) {
-  return builtinNames.has(callName) ? 'word' : 'name';
+function classifyCallName(callName, verbNames) {
+  return verbNames.has(callName) ? 'word' : 'name';
 }
 
 // Emit opener and closer spans for a literal with known bracket

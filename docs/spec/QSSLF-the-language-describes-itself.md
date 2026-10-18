@@ -36,7 +36,8 @@ refused under the input, `::any/source/anchor/KindNotTakenError` and its
 kin, an anchor read in turn that is no keyword as
 `::any/doc/anchor/ElementNotKeywordError` with its `:index`, and so is
 an element of a set that is neither null, a keyword nor a vector, its
-place in the set its `:index`; `laws`, `explain`, `manifest` and
+index in the one order of the set its `:index`; `laws`, `explain`,
+`manifest` and
 `tutorial` take no anchor, refusing one as
 `::any/manifest/ArgsBeyondInputsError` and its kin.
 
@@ -179,14 +180,14 @@ guess for itself.
 value of the kind `::explanation`: the page `doc` reads for it under
 `:page`, then the value under `:value`, which the verbs `page` and
 `value` read. A name reads its own page, a value the page of the kind it
-shows, and an error `!|` opened the page of its site, its value the
-error at rest that `raise` raises again; a refusal the runtime raises by
+shows, and the error at rest a catch holds the page of its site, its
+value the error at rest that `raise` raises again; a refusal the runtime raises by
 rule under a verb, with no page of its own, reads the page of what
 refused; a name nothing declares is refused as
 `::any/explain/UnknownNameError`. The page of a refusal says what
 failed, which fact names the culprit and how the call is repaired, and
 the laws of a refusal a query can meet hold the recovery through `!|`,
-a defect of the runtime and the failure of a host's implementation,
+a defect of the runtime and a failure inside a primitive a host hands,
 which no query of the language raises, holding none. An explanation
 prints the page above the value.
 
@@ -248,8 +249,8 @@ its anchor, `::qlang | doc :pipeline`, and listed by `manifest` of the
 topic. A chapter tells in prose what it rests on and what rests on it,
 with links to go deeper, and its value is the set of the kinds that are
 it, data, so a chapter is no label [QSNAM#root]. The first page tells
-how to bound an answer, `elide`, and what the `::elision` marker of a
-part left out reads. Every link of every page of the catalog opens a
+how to bound an answer, `elide`, and what the `::elision` of a part left
+out reads. Every link of every page of the catalog opens a
 doc, every node one name under a label of the root has a page, and the
 first page prints within 13664 characters.
 

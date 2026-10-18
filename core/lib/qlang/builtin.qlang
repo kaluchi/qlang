@@ -1,22 +1,22 @@
 |~ `::builtin`, the descriptor of a primitive, and what is declared
    under it: its constructor and its refusal, and the refusals of the
-   kernel no reader reaches by a query, the table of primitives, the
-   declarations of the refusals, the tree the evaluator does not know,
-   the printer and the sources of the root.
-   The rules it holds: [QSERR#site], [QSDSP#residence]. ~|
+   runtime no reader reaches by a query, the table of primitives, the
+   declarations of the refusals, the tree the evaluator does not know, a
+   value of no kind a host handed and the sources of the root.
+   The rules it holds: [QSHST#source], [QSERR#site], [QSDSP#residence]. ~|
 
 :builtin
-  |~~ A builtin marks a verb a host implements: the recipe of a
-      function whose code the host hands, `::builtin{}`, where a verb
+  |~~ A builtin marks a verb a host answers by a primitive: the recipe of
+      a function whose code the host hands, `::builtin{}`, where a verb
       written in steps holds a quote.
       `::number/add | binding | get /value | get /1` answers
       `::builtin{}`, and a kind of the core takes one, `| impl ::builtin{}`,
       as its constructor, the one its host hands, which attaches the tag to
       a payload or refuses it.
 
-      It is a map under its tag and runs nothing by itself: a name bound
-      to one reads it as data, and a call of the verb runs the
-      implementation its host handed.
+      It is a map under its tag and runs nothing by itself: a name that
+      holds one reads it as data, and a call of the verb runs the
+      primitive its host handed, whose answer is a value of the language.
       ::link~(::qlang/hosts | doc)
   ~~|
   ::kind[~(wraps
@@ -33,10 +33,10 @@
             raised past the fail track to the host. The node is given its
             rule, and the query that met it is the case that shows it.
         ~~|
-    | throws :AddressBoundTwiceError
-        |~~ Two modules of the runtime bound an implementation under one
+    | throws :AddressRegisteredTwiceError
+        |~~ Two modules of the runtime registered a primitive under one
             address, a defect of the runtime found as it loads. Each
-            implementation is bound under the address of the verb or the
+            primitive is registered under the address of the verb or the
             kind it serves, one to an address, `number/add`.
         ~~|
     | throws :RefusalDeclaredTwiceError
@@ -58,81 +58,89 @@
             under `::error` when every refusal shares it.
         ~~|
     | throws :AddressNotStringError
-        |~~ A module of the runtime bound an implementation under an
-            address that is no string, a defect of the runtime found as it
-            loads. The address is the text of the verb's address,
-            `number/add`.
+        |~~ A module of the runtime registered a primitive under an address
+            that is no string, a defect of the runtime found as it loads,
+            `:actualValue` naming the address as JavaScript holds it. The
+            address is the text of the verb's address, `number/add`.
         ~~|
-    | throws :ImplementationNotHandedError
+    | throws :PrimitiveNotHandedError
         |~~ A name is `::builtin{}`, or a kind ends in one, and the host
-            handed no implementation for it beside its source; `:name`
-            names it, and the root is refused as it is declared. The host
-            hands an implementation for the name beside the source, or
-            writes the name in steps, a quote, which runs without one.
+            handed no primitive for it beside its source; `:origin` names
+            the source and `:name` the name, and the root is refused as it
+            is declared. The host hands a primitive for the name beside the
+            source, or writes the name in steps, a quote, which runs
+            without one.
         ~~|
     | throws :TableSealedError
-        |~~ The table of the language's implementations is sealed when the
-            bootstrap completes, and one bound after it is refused, a
-            defect of the runtime: a module of the runtime binds its
-            implementations as it loads, and a host hands its own beside
-            its sources, never to the table.
+        |~~ The table of the language's primitives is sealed when the
+            bootstrap completes, and one registered after it is refused, a
+            defect of the runtime: a module of the runtime registers its
+            primitives as it loads, and a host hands its own beside its
+            sources, never to the table.
         ~~|
-    | throws :NumberNotFiniteLeakedToPrintError
-        |~~ A number of qlang is a finite double, and this tag reports an
-            infinity or a NaN a host installed, where the print or the
-            JSON of the boundary meets it. `:actualValue` holds the
-            magnitude as a string, the one form that prints. The host
-            keeps the numbers it hands finite, its bindings and the
-            answers of its implementations, and answers an error of its
-            own where its arithmetic leaves the doubles.
-        ~~|
-    | throws :JsonValueNotEncodableError
-        |~~ A value a host put in the scope that is of none of the kinds
-            of qlang has no form in JSON. `json` writes such a value that
-            runs as `<host-fn name>`, and any other is thrown to the host,
-            past the fail track, out of reach of `!|`; the host keeps its
-            values to the kinds of the language.
+    | throws :ForeignValueError
+        |~~ A host handed the core a value of none of the kinds of the
+            language where the core takes it, as the subject of a cell or as
+            what a name holds in the scope it hands a session or a query,
+            at any depth: a function, an object of JavaScript, a map whose
+            key is no string, a failure whose facts are no map, a value under
+            a tag that is no tag, a vector or a map that holds itself, or a
+            number past the finite doubles, a value JavaScript leaves
+            undefined reading as null. It is a defect of the host, raised past the fail track,
+            `:actualValue` naming the value as JavaScript holds it, its type
+            and its name or its maker, `"function hello"`, or what makes a
+            vector or a map of no kind; the printer and the codec of JSON
+            raise it too for a number past the doubles that a function of
+            the reader answered from a primitive of the core under no kind.
+            The answer of a primitive a host hands beside its source is held
+            to the kinds at its call and refused as `::call/HostFailureError`,
+            and a host builds a value of the language from the data it holds
+            parsed by `fromPlain`.
         ~~|
     | throws :BootstrapSourceMissingError
         |~~ A source of the language resolved to nothing, so the root
-            lacks what it declares; `:uri` names the source. The host maps
-            the source in the imports of its package or in the import map
-            of a browser, or hands the runtime a locator of its own.
+            lacks what it declares; `:origin` names the source. The host
+            maps the source where its package says the sources of the
+            language stand, or hands the runtime a locator of its own.
         ~~|
     | throws :RootSourceNotDeclaredError
         |~~ A source of the root answered an error, or declared again a
             name the root holds, so its declarations stay out of the root;
-            `:uri` names the source and `:tagName` the refusal, for a name
-            declared again `::bind/NameDeclaredTwiceError` with `:name`
+            `:origin` names the source and `:tagName` the refusal, for a
+            name declared again `::bind/NameDeclaredTwiceError` with `:name`
             the name. The source is repaired by the page of that refusal,
             and a name declared again takes a name of its own, the root's
             left as they are.
         ~~|
-    | throws :ImplementationNamesNoBuiltinError
-        |~~ A host handed an implementation beside a source of the root
-            for a name the source declares neither as a `::builtin{}`
-            under a label nor as a kind ending in one; `:uri` names the
-            source and `:name` the name. A verb written in steps runs
-            them, a `::builtin{}` written among them the value it is, and a
-            bare name reads its value, so a host declares its primitive as
-            the recipe of a verb under the label of its subject,
+    | throws :PrimitiveNamesNoBuiltinError
+        |~~ A host handed a primitive beside a source of the root for a
+            name the source declares neither as a `::builtin{}` under a
+            label nor as a kind ending in one, or for a name that holds the
+            `::builtin{}` of another name; `:origin` names the source,
+            `:name` the name and `:sharedWith` that other name. A verb
+            written in steps runs them, a `::builtin{}` written among them
+            the value it is, a bare name reads its value, and a name that
+            holds the `::builtin{}` of another name runs the primitive of
+            that name, so a host declares its primitive as the recipe of a
+            verb under the label of its subject,
             `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})`.
             A `::builtin{}` the host hands nothing for is refused with
-            `::builtin/ImplementationNotHandedError`.
+            `::builtin/PrimitiveNotHandedError`.
         ~~|
     | throws :SourceLoadError
-        |~~ The platform resolved a `#qlang/<ns>` logical name to a path
-            or URL the host could not read. The error carries `:host`
-            (`:node` / `:web`), `:logicalName`, `:sourceLocation`, and
-            either the underlying `:cause` or the HTTP `:status`. A host
-            that ships its own catalog hands the runtime a locator of the
-            sources of the language and never reaches the platform loader.
+        |~~ A source of the language was found where its package maps it,
+            and could not be read; `:origin` names the source,
+            `:sourceLocation` where it was looked for and `:cause` the
+            host's account of the failure. A host that ships the sources of
+            the language with it hands the runtime a locator of them, which
+            reads each where it keeps them.
         ~~|
     | proves :isAValueOfItsOwn
         |~~ An empty descriptor is a value like any other. ~~|
         ~(::builtin{} | :c it | get [1 2] | c | type | eq ::builtin)
     | proves :endsAPrimitive
-        |~~ The recipe of a verb a host implements is an empty descriptor.
+        |~~ The recipe of a verb a host answers by a primitive is an empty
+            descriptor.
         ~~|
         ~(::number/add | binding | get /value | get /1 | eq ::builtin{})
     | proves :PayloadKindNotTakenError/refusesAString
@@ -142,4 +150,3 @@
         |~~ A vector payload is refused. ~~|
         ~(::builtin[1 2 3] !| get [~(type) /actualType] | eq [::builtin/PayloadKindNotTakenError ::vec]))
     ::builtin{}]
-

@@ -27,11 +27,11 @@
       data: a literal as itself, and a step
       that computes as a record, `~(add 1) | first` answering
       `::call{:name :add :modifiers [1]}`. `parse` turns text into a
-      quote and a quote into its text, and JSON writes a quote as its
-      print.
+      quote, `toString` a quote into the text of its code, and JSON
+      writes a quote as its print.
 
       Because code is a value, a page holds links and snippets that run,
-      the laws of a name are quotes that answer true, and the trail of a
+      the laws of a name are quotes that answer true, and the trace of a
       failure holds the steps it skipped, a quote that runs again as held
       code runs.
       ::link~(::call | doc) ::link~(::any/apply | doc)
@@ -63,18 +63,16 @@
             ::link~(::quote | doc) ::link~(::qlang/pipeline | doc)
         ~~|
     | throws :ParseError
-        |~~ The source does not read as qlang: `:marker` points where the
-            reading stopped, `:message` names the habit a form of another
-            language wrote, and where none does `:expected` lists what
-            could stand there and a source cut short names the bracket it
-            left open.
-            ::link~(::quote | doc)
+        |~~ The source does not read as qlang: `:location` names where the
+            reading stopped, its line and column read by `line` and
+            `column` of its `start`, `:message` names the habit a form of
+            another language wrote, and where none does `:expected` lists
+            what could stand there and a source cut short names the bracket
+            it left open.
+            ::link~(::quote | doc) ::link~(::span | doc)
         ~~|
     | carries :ParseError/source
         |~~ The line of the text where the reading stopped. ~~|
-        ::string
-    | carries :ParseError/marker
-        |~~ A caret under the place it stopped. ~~|
         ::string
     | carries :ParseError/message
         |~~ What the grammar says of the place, a bracket left open among
@@ -82,21 +80,31 @@
         ~~|
         ::string
     | carries :ParseError/expected
-        |~~ What the reading could take there. ~~|
+        |~~ The continuations the reading could take where it stopped, each
+            the text of a literal or a part of the grammar named as a
+            keyword, `:name`, `:whitespace`, `:end-of-source`, beside
+            what it met as `:found`.
+        ~~|
         ::vec
-    | carries :ParseError/found |~~ What it found there. ~~| ::string
+    | carries :ParseError/found
+        |~~ What the reading met where it stopped, none at the end of the
+            source.
+        ~~|
+        ::string
     | carries :ParseError/location
         |~~ The span of the text where the reading stopped. ~~|
         ::span
-    | carries :ParseError/uri
-        |~~ The source the text came from. ~~|
-        ::string
+    | carries :ParseError/origin
+        |~~ Where the text came from, the source, the cell or the verb that
+            read it.
+        ~~|
+        ::keyword
     | proves :countsItsSteps
         |~~ A quote of three steps counts three. ~~|
         ~(~(1 | add 1 | mul 2) | count | eq 3)
     | proves :printsADeclarationALine
         |~~ A quote of declarations alone prints a declaration a line. ~~|
-        ~(~(:a 1 | :b 2) | parse | eq ":a 1\n| :b 2")
+        ~(~(:a 1 | :b 2) | toString | eq ":a 1\n| :b 2")
     | proves :equalsItsCopy
         |~~ Two quotes of one code are equal. ~~|
         ~(~(add 1) | eq ~(add 1))
@@ -111,7 +119,7 @@
         ~(~(add 1 | mul 2) | payload | tag ::quote | eq ~(add 1 | mul 2))
     | proves :filtersItsSteps
         |~~ A quote filters as the vector of its steps. ~~|
-        ~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | parse | eq "mul 2")
+        ~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | toString | eq "mul 2")
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
         ~(::quote{:not :steps} !| get [~(type) /actualType] | eq [::quote/PayloadKindNotTakenError ::map])
@@ -128,37 +136,52 @@
     | proves :ParseError/refusesASourceCutShort
         |~~ A source cut short after a pipe is refused. ~~|
         ~("42 |" | parse !| type | eq ::quote/ParseError)
+    | proves :ParseError/namesTheLineAndTheColumnWhereTheReadingStopped
+        |~~ The start of `:location` reads the line and the column where the
+            reading stopped, under the line `:source` holds.
+        ~~|
+        ~("[1 2" | parse !| get [/source ~(get /location | start | get [~(line) ~(column)])] | eq ["[1 2" [1 5]])
+    | proves :ParseError/namesTheContinuationsInTheWordsOfTheLanguage
+        |~~ A continuation is the text of a literal or a part of the grammar
+            named in the words of the language.
+        ~~|
+        ~(":" | parse !| get /expected | eq ["\"" :name])
     | impl ::builtin{}
 
-:quote/parse
-  |~~ Answers the source of the quote, a string,
-      `~(add 1 | mul 2) | parse` answering `"add 1 | mul 2"`: the reverse
-      of `parse` on a string, which reads text as a quote, so the source
-      parsed again is the quote, `~(add 1) | parse | parse` answering
-      `~(add 1)`. The source is printed in one spelling, so the spaces and
-      the line breaks the quote was written with are not kept,
-      `~(add   1) | parse` answering `"add 1"`. A link or a snippet out of
-      a page answers the query it holds, without its tags, and the empty
-      quote the empty string.
-      ::link~(::string/parse | doc) ::link~(::quote/open | doc)
+:quote/toString
+  |~~ Answers the text of the quote's code, a string, its steps without
+      the brackets around them, `~(add 1 | mul 2) | toString` answering
+      `"add 1 | mul 2"`, which `parse` reads back as the quote, so a quote
+      turned into text and back is itself, `~(add 1) | toString | parse`
+      answering `~(add 1)`. The steps are written in the one spelling the
+      printer writes, so the spaces and the line breaks the quote was
+      written with are not kept, `"5 |  mul   2" | parse | toString`
+      answering `"5 | mul 2"`. A link or a snippet out of a page answers
+      the query it holds, without its tags, and the empty quote the empty
+      string; `print` writes the quote with its brackets.
+      ::link~(::string/parse | doc) ::link~(::any/print | doc)
+      ::link~(::quote/open | doc)
   ~~|
   ::fn
     | returns |~~ The text the quote reads back from. ~~| ::string
-    | proves :answersTheSource
-        |~~ A quote parses to its source. ~~|
-        ~(~(add 1) | parse | eq "add 1")
+    | proves :writesTheTextOfItsCode
+        |~~ A quote answers the text of its code. ~~|
+        ~(~(add 1) | toString | eq "add 1")
     | proves :readsBackAsTheQuote
-        |~~ The source parsed again is the quote. ~~|
-        ~(~(add 1 | mul 2) | :q it | q | parse | parse | eq q)
-    | proves :printsOneSpelling
+        |~~ The text parsed again is the quote. ~~|
+        ~(~(add 1 | mul 2) | :q it | q | toString | parse | eq q)
+    | proves :writesOneSpelling
         |~~ The spaces the quote was written with are not kept. ~~|
-        ~(~(add   1 |   mul 2) | parse | eq "add 1 | mul 2")
+        ~("5 |  mul   2" | parse | toString | eq "5 | mul 2")
+    | proves :leavesItsBracketsToPrint
+        |~~ `print` writes the quote with its brackets. ~~|
+        ~(~(add 1) | get [~(toString) ~(print)] | eq ["add 1" "~(add 1)"])
     | proves :leavesTheTagsOfALink
         |~~ A link answers the query it holds, without its tags. ~~|
-        ~(::link~(1 | add 1) | parse | eq "1 | add 1")
+        ~(::link~(1 | add 1) | toString | eq "1 | add 1")
     | proves :answersNothingForTheEmptyQuote
-        |~~ The empty quote parses to the empty string. ~~|
-        ~(~() | parse | eq "")
+        |~~ The empty quote writes the empty string. ~~|
+        ~(~() | toString | eq "")
     | impl ::builtin{}
 
 :quote/open

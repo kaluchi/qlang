@@ -2,19 +2,21 @@
 // track as an error [QSERR#raise].
 
 import { makeErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { bindReaderOfPassedTags } from '../primitives.mjs';
-import { resumingItsTrail } from '../eval-trail.mjs';
+import { registerReaderOfPassedTags, readingState } from '../primitives.mjs';
+import { resumingItsTrace } from '../eval-trace.mjs';
+import { factsWithTheirTrace } from '../eval.mjs';
 
 
-// The tag of the raised error is the one its value shows: the
-// outermost tag the walk passed, an opened error's among them, then the
-// one the map carries, then the kind of errors [QSERR#raise]. A map that
-// writes a path resumes it, and an empty `:trail`, which the error holds
-// as none, starts the path at the raise [QSERR#trail].
-function raisedFrom(sourceMap, passedTags) {
+// The tag of the raised error is the one its value shows: the outermost
+// tag the walk passed, an error at rest's among them, then the one the map
+// carries, then the kind of errors; a `:trace` the map writes is laid through
+// the label of `::trace` and resumed, an empty one none, so the raise starts
+// the trace at its own frame [QSERR#trace], [QSERR#raise].
+async function raisedFrom(sourceMap, passedTags, state) {
   const tag = passedTags[0] ?? sourceMap[TAG_HEADER_SYMBOL] ?? ERROR_TAG;
-  const raised = makeErrorValue(tag, new Map(sourceMap));
-  return raised.descriptor.has('trail') ? resumingItsTrail(raised) : raised;
+  const facts = await factsWithTheirTrace(new Map(sourceMap), state);
+  const raised = makeErrorValue(tag, facts);
+  return facts.has('trace') ? resumingItsTrace(raised) : raised;
 }
 
-bindReaderOfPassedTags('map/raise', raisedFrom);
+registerReaderOfPassedTags('map/raise', readingState(raisedFrom));

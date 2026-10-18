@@ -8,7 +8,7 @@ describe('cliSources', () => {
     const [cliSource] = cliSources(silentStreams);
     expect(cliSource.uri).toBe('cli');
     expect(cliSource.source).toContain(':vec/table');
-    expect(Object.keys(cliSource.impls)).toEqual(expect.arrayContaining(['any/in', 'any/out', 'any/err', 'any/tap', 'vec/table']));
+    expect(Object.keys(cliSource.primitives)).toEqual(expect.arrayContaining(['any/in', 'any/out', 'any/err', 'any/tap', 'vec/table']));
   });
 });
 

@@ -373,6 +373,32 @@ describe('parse — error handling', () => {
     }
   });
 
+  // A refusal lists its continuations as literals and as parts of the
+  // grammar named in the words of the language, no class of characters
+  // among them [QSSYN#refusal].
+  it('lists no class of characters among the continuations of a refusal [QSSYN#refusal]', () => {
+    for (const source of ['"\\u12"', '#"a', '#"a")', '(|~~| a', '(|~~| ``a', '[|~~ a', '|~~ ~("[.']) {
+      let refusal = null;
+      try { parse(source); } catch (e) { refusal = e; }
+      expect(refusal, source).toBeInstanceOf(ParseError);
+      expect(refusal.expected.filter(alternative => alternative.type === 'class'), source).toEqual([]);
+    }
+  });
+
+  const refusalOf = source => { try { parse(source); } catch (e) { return e; } return null; };
+
+  it('names the prose of a doc beside the literals it may meet, so a source cut short in its quote names the bracket it left open [QSSYN#refusal]', () => {
+    expect(refusalOf('|~~ mentions |').expected.map(alternative => alternative.text ?? alternative.description))
+      .toEqual(expect.arrayContaining(['character of prose', '::', '~(', '`', '|~~|', '|~|', '|~~', '|~', '~|', '~~|']));
+    expect(refusalOf('~(|~~ see ::vec~(').message).toBe('`~(` opened at line 1, column 16 is never closed; `)~~|)` completes the source');
+  });
+
+  it('says what could stand where the reading stopped as `:expected` names it, and what stood there [QSSYN#refusal]', () => {
+    expect(refusalOf('"a" | :').message).toBe('Expected "\\"" or name but end-of-source found.');
+    expect(refusalOf('"\\u12"').message).toBe('Expected hexadecimal digit but "\\"" found.');
+    expect(refusalOf('#"a")').message).toBe('Expected end-of-source, flag of a regex or whitespace but ")" found.');
+  });
+
   it('attaches the opts.uri to ParseError', () => {
     try {
       parse('[1 2', { uri: 'cell-7' });
@@ -596,11 +622,11 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
     expect(ast.name).toBe('проект/пользователь');
   });
 
-  it('rejects a digit as identifier start (leading-digit rule still holds)', () => {
+  it('rejects a digit as the start of a name', () => {
     expect(() => parse(':1name')).toThrow(ParseError);
   });
 
-  it('rejects bracket / punctuation as identifier start (not in ID_Start)', () => {
+  it('rejects a bracket or a punctuation mark as the start of a name (not in ID_Start)', () => {
     expect(() => parse(':<tag')).toThrow(ParseError);
     expect(() => parse(':{key')).toThrow(ParseError);
     expect(() => parse(':!sigil')).toThrow(ParseError);

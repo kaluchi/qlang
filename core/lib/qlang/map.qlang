@@ -50,10 +50,10 @@
         ~(::map{:a 1} | eq {:a 1})
     | proves :readsJson
         |~~ A JSON object is a map literal. ~~|
-        ~("{\"a\": 1, \"b\": [true, null]}" | parse | apply it | eq {:a 1 :b [true null]})
+        ~("{\"a\": 1, \"b\": [true, null]}" | parse | open | eq {:a 1 :b [true null]})
     | proves :keepsTheLastOfAKey
         |~~ A key written twice keeps the last value. ~~|
-        ~("{:a 1 :a 2}" | parse | apply it | eq {:a 2})
+        ~("{:a 1 :a 2}" | parse | open | eq {:a 2})
     | proves :buildsBackFromEntries
         |~~ The entries of a map build it back by `toMap`. ~~|
         ~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
@@ -409,7 +409,7 @@
         ~({:a 1} | entries | map /0 | eq [:a])
     | proves :answersTheFirstFailure
         |~~ The first error, in the order of the keys, answers the call. ~~|
-        ~({:a "x" :b "y"} | map ~(add 1) !| trail | first | subject | eq "x")
+        ~({:a "x" :b "y"} | map ~(add 1) !| trace | first | subject | eq "x")
     | proves :answersUnderNoTag
         |~~ The answers stand under no tag of the subject. ~~|
         ~(::Box{:a 1} | map ~(add 1) | eq {:a 2})
@@ -464,7 +464,7 @@
         ~(::Box{:a 1 :b 2} | filter ~(gt 1) | eq ::Box{:b 2})
     | proves :runsOnTheValue
         |~~ The predicate meets the value, not its entry: a number has no
-            place.
+            parts.
         ~~|
         ~({:a 1} | filter /0 !| type | eq ::path/SubjectHasNoPartsError)
     | proves :predicate/KindNotTakenError/refusesAPredicateComputedAtTheCall
@@ -798,8 +798,8 @@
         ::set
     | throws :SubjectNotMapError
         |~~ `keys` reads a map: a vector of maps answers its keys element
-            by element, `map ~keys`, and a vector's own places are its
-            indices, read by `/0`.
+            by element, `map ~keys`, and a vector reads its elements by
+            their indices, `/0`.
         ~~|
     | proves :answersASetOfKeys
         |~~ The keys are a set. ~~|
@@ -1122,14 +1122,16 @@
       own check fails. Its tag is the one its value shows: the outermost
       tag over the map, then the one the map carries,
       `::Oops{:message "boom"} | raise`, then `::error`, every entry of
-      the map a fact; an error a catch opened, raised again, is itself,
-      and a map that writes an empty `:trail` writes no path, so its
-      raise starts one. `|`
-      steps around the failure, writing its trail, and `!|` catches it
-      to its facts. It takes no value: what the error says is a fact of
-      the map. A value of another kind is put in a map first,
+      the map a fact; an error at rest, raised again, is the error it was.
+      A map that writes a `:trace` lays it under `::trace`, which refuses
+      a value that is no vector of frames, and the raise resumes it, while
+      an empty `:trace` is no trace and a map that writes none holds none,
+      so its raise starts one at its own step. `|` steps around the
+      failure, writing its trace, and `!|` catches it, its step running on
+      the error at rest. It takes no value: what the error says is a fact
+      of the map. A value of another kind is put in a map first,
       `get {:value ~(it)} | raise`.
-      ::link~(::error | doc) ::link~(::fail | doc)
+      ::link~(::error | doc) ::link~(::fail | doc) ::link~(::trace | doc)
   ~~|
   ::fn
     | returns
@@ -1155,14 +1157,29 @@
     | proves :keepsEveryEntryAsAFact
         |~~ Every entry of the map is a fact of the error. ~~|
         ~({:a 1} | raise !| get [~(type) /a] | eq [::error 1])
-    | proves :raisesAnOpenedErrorAsItself
-        |~~ An error caught and raised again is itself. ~~|
+    | proves :raisesAnErrorAtRestAsItself
+        |~~ An error at rest raised again is the error it was. ~~|
         ~("x" | add 1 !| raise !| type | eq ::number/add/SubjectNotNumberError)
-    | proves :startsAPathOverAnEmptyTrail
-        |~~ An empty `:trail` is no path: the raise starts one, and the
+    | proves :startsATraceOverAnEmptyTrace
+        |~~ An empty `:trace` is no trace: the raise starts one, and the
             steps the failure skips join its frame.
         ~~|
-        ~({:a 1 :trail []} | raise | count !| trail | map ~(get [~(step) ~(skipped)]) | eq [[~(raise) ~(count)]])
+        ~({:a 1 :trace []} | raise | count !| trace | map ~(get [~(failed) ~(skipped)]) | eq [[~(raise) ~(count)]])
+    | proves :startsATraceAtTheRaise
+        |~~ An error raised without a trace starts its trace at the raise.
+        ~~|
+        ~(!{:a 1} | raise | count !| minus #[:trace] | raise | add 1
+          !| trace | map ~failed | eq [~(raise)])
+    | proves :resumesTheTraceItWrites
+        |~~ A map that writes a vector of frames resumes it, laid under
+            `::trace`.
+        ~~|
+        ~({:trace [::frame[1 ~(pre)]]} | raise !| trace | eq ::trace[::frame[1 ~(pre)]])
+    | proves :laysTheTraceItWritesThroughItsKind
+        |~~ A trace that is no vector of frames is refused by its kind, a
+            vector of maps at the index of its first.
+        ~~|
+        ~({:trace [{:failed ~(a) :subject 1}]} | raise !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 0])
     | proves :renamesByATag
         |~~ A step that lays a tag over an error caught renames it. ~~|
         ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)

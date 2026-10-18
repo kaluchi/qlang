@@ -1,22 +1,24 @@
 # QSPTH · Paths
 
-A path is a value that names a place in another value, and the verb
-that takes it reads it there or writes it. The requirements of each
-section are the cases of its file under `core/test/conformance/QSPTH/`.
+A path is a value that locates a part of another value, and the verb
+that takes it reads the part there or writes it. The requirements of
+each section are the cases of its file under
+`core/test/conformance/QSPTH/`.
 
 ## value
 
 A path is a value of the kind `::path`, written `/data/users/3/email`:
-a key or a place from zero at each segment, a negative place counted
+a key or an index from zero at each segment, a negative index counted
 from the end, a key that is a keyword with a slash in its name after a
 colon, `/:a/b`, which takes the bare names after it, so a key after it
 stands behind a colon of its own, `/:a/b/:c`, and a key that is no bare
 name in quotes, `/"first name"`; a path holds one segment at least, the
-slash alone refused naming `it`, the value itself. Each segment is text: a map reads it as the key that
-spells it and a vector, quoted or not, as the place its digits name, so
-`/"0"` equals `/0`. A path prints in one spelling that reads back as
-itself, `/"0"` printing `/0`, JSON writes its literal as a string, two paths are equal when
-their segments are, and the one order ranks paths by their segments
+slash alone refused naming `it`, the value itself. Each segment is text:
+a map reads it as the key that spells it and a vector, quoted or not, as
+the index its digits write, so `/"0"` equals `/0`. A path prints in one
+spelling that reads back as itself by `parse | open`, `/"0"` printing
+`/0`, JSON writes its literal as a string, two paths are equal when their
+segments are, and the one order ranks paths by their segments
 [QSORD#order].
 
 ```qlang
@@ -32,36 +34,41 @@ their segments are, and the one order ranks paths by their segments
 > {:"first name" 1} | get /"first name"
 1
 
-> ["a/b" "c"] | toPath | print
-"/:a/b/:c"
+> ["a/b" "c"] | toPath | :p it | get [~(print) ~(print | parse | open | eq p)]
+["/:a/b/:c" true]
 ```
 
 ## get
 
 `get` answers the value at a path and refuses a miss, each refusal
 holding the path it followed as `:path`: a key a map lacks,
-`::path/KeyNotInMapError` with the keys near it as `:nearest`; a place
-past either end, `::path/IndexOutOfBoundsError`; a segment that is no whole
-number on a value read by place, `::path/IndexNotIntegerError`; a value
-on the path that has no parts, `::path/SubjectHasNoPartsError`. A path
-reads beneath the tags over each value it meets, and a vector, a set, a
-doc, a quote, a function and a kind read by place.
+`::path/KeyNotInMapError` with the key as `:key` and the keys near it as
+`:nearest`; an index past either end, `::path/IndexOutOfBoundsError`
+with the index as `:index`; a segment that is no whole number on a value
+read by index, `::path/IndexNotIntegerError`, and a value on the path
+that has no parts, `::path/SubjectHasNoPartsError`, each naming the
+segment it could not read as `:segment`. A path reads beneath the tags
+over each value it meets, and a vector, a set, a doc, a quote, a function
+and a kind read by index.
 
 ```qlang
 > {:a {:b [10 20]}} | get /a/b/-1
 20
 
-> {:emails [] :age 3} | get /email !| get [~(type) /nearest /path]
-[::path/KeyNotInMapError [:emails] /email]
+> {:emails [] :age 3} | get /email !| get [~(type) /key /nearest /path]
+[::path/KeyNotInMapError :email [:emails] /email]
 
-> {:a 5} | get /a/b !| type
-::path/SubjectHasNoPartsError
+> [10 20] | get /name !| get [~(type) /segment]
+[::path/IndexNotIntegerError :name]
+
+> {:a 5} | get /a/b !| get [~(type) /segment]
+[::path/SubjectHasNoPartsError :b]
 ```
 
 ## query
 
-`query` reads a path as `get` does and answers `null` where a key or a
-place is missing or `null` stands on the path; another kind on the path
+`query` reads a path as `get` does and answers `null` where a key or an
+index is missing or `null` stands on the path; another kind on the path
 it refuses as `get` does, a segment that is no whole number on a vector
 among it. Its second input is a default, answered as it is where the
 path misses; a `null` that stands at the path is answered as it stands.
@@ -100,10 +107,10 @@ asked for by `contains` [QSCOL#sequence].
 
 ## key
 
-A key alone is the path of one segment where `get`, `query` and the
-verbs that write take a path: a keyword, a number or a string, one
-segment of its text, which a map reads as a key and a vector as a place,
-so a key the query computes is read; any other value given to `get` or
+A key or an index alone, a keyword, a number or a string, is the path of
+one segment of its text where `get`, `query` and the verbs that write
+take a path, which a map reads as a key and a vector as an index, so one
+the query computes is read; any other value given to `get` or
 `query` is a template [QSPTH#template]. Every place that takes a key of a
 map reads a string so. The keys `minus` takes out of a map and `inter`
 keeps of it are the value of their input `keys`, a map, a vector or a set
@@ -138,17 +145,18 @@ reading `:b` under `:a`.
 
 `get` and `query` over a template, a literal of paths and quotes at any
 depth of its vectors, maps and sets, answer the template with each path
-read and each quote run against the subject in its place, any other
-value of it as it is. A container under a tag in the template, a stack
-of tags and a set among them, is read and laid back under its tags
-through their kinds, which hold the template as its literal writes it
-and then the payload read, so a kind
-whose field takes a number refuses a path written at that field, and
-such a value is built by `get` and then `tag`, `get {:w /w} | tag ::Box`.
-A quote under a tag, a doc, a function and a kind are answered as they
-are, their parts unread, and a template held in a name builds the same
-shape wherever it is applied. A part that answers a failure is the
-answer of the template, the parts after it unread [QSERR#flow].
+read and each quote run against the subject, any other value of it as it
+is, so two fields of one record are read in one step by `get`, and
+softly by `query`. A container under a tag in the template, a stack of
+tags and a set among them, is read and laid back under its tags through
+their kinds, which hold the template as its literal writes it and then
+the payload read, so a kind whose field takes a number refuses a path
+written at that field, and such a value is built by `get` and then `tag`,
+`get {:w /w} | tag ::Box`. A quote under a tag, a doc, a function and a
+kind are answered as they are, their parts unread, and a template held in
+a name builds the same shape wherever it is applied. A part that answers
+a failure is the answer of the template, the parts after it unread
+[QSERR#flow].
 
 ```qlang
 > {:price 4 :qty 3} | get [/price /qty]
@@ -174,8 +182,9 @@ as `~(get /name)` passes one there. The path of `get`, `query` and `has`
 and the inputs of the verbs of one subject, which combine several of its
 values, `sumOf`, `subOf`, `mulOf`, `divOf` and `unionOf`, take a path and
 read it against the subject. An input whose kinds leave a path out
-refuses one, naming as `:read` the read the call was likely meant for,
-`take /n` naming `take (get /n)`; an input that takes any value, the
+refuses one, and where the step writes the path the refusal names as
+`:repair` the step the call was likely meant as, `take /n` repaired as
+`take (get /n)`; an input that takes any value, the
 value of `put`, `append`, `eq` and the default of `query`, takes the path
 as the value it is.
 
@@ -183,13 +192,13 @@ as the value it is.
 > [{:n 2} {:n 1}] | sort /n
 [{:n 1} {:n 2}]
 
-> [{:n 1} {:m 2}] | map /n !| trail | map ~step
+> [{:n 1} {:m 2}] | map /n !| trace | map ~failed
 [~(get /n) ~(map /n)]
 
 > {:price 4 :qty 3} | mulOf /price /qty
 12
 
-> 5 | mul /qty !| get [~(type) /read]
+> 5 | mul /qty !| get [~(type) /repair]
 [::number/mul/multiplier/KindNotTakenError ~(mul (get /qty))]
 ```
 
@@ -199,19 +208,19 @@ A path answers the verbs of `::path` and those every value answers,
 `eq`, `ne`, `type`, `print`, `json` and `tag` among them; a name whose
 verbs serve other kinds is refused on a path, under the address of its
 verb where one verb holds the name and by the call where several do
-[QSDSP#refusal], the refusal naming as `:read` the read the step was
-likely meant for. `segments` answers the keys and places of a path, a
-place as its number and a segment of digits that writes no number as its
-text, `/01` answering `[:"01"]`. `toPath` reads a path from a vector of
-keys and places, an empty one refused as `::vec/toPath/EmptyError` and an
-element that is no key as `::vec/toPath/ElementNotKeyError`, and from a
-string in the form of JSON Pointer, its escapes read and a leading `#` of
-a fragment among it, a string of another form refused as
-`::string/toPath/NotPointerError`.
+[QSDSP#refusal], the refusal naming as `:repair` the step the call was
+likely meant as. `segments` answers the keys and the indices of a path,
+a key as its keyword and an index as its number, a segment of digits
+that writes no number a key, `/01` answering `[:"01"]`. `toPath` reads a
+path from a vector of keys and indices, an empty one refused as
+`::vec/toPath/SubjectEmptyError` and an element that is neither a key
+nor an index as `::vec/toPath/ElementNotKeyError`, and from a string in the form of JSON
+Pointer, its escapes read and a leading `#` of a fragment among it, a
+string of another form refused as `::string/toPath/NotPointerError`.
 
 `paths` answers the outline of a value, the set of its leaves, each the
 pair of the path that reads it and its kind, the value read beneath the
-tags over it, a part under a tag a leaf and a set opened as a vector, and
+tags over it, a part under a tag a leaf and a set read as its vector, and
 `#[]` for an atom. `shape`, a verb of `::any`, answers the schema of a
 value in its own literal under `::shape`, a label whose page tells how a
 shape reads, so `doc` on the answer reads that page: the value read
@@ -219,29 +228,31 @@ beneath the tags over it, each map keeping its keys, each vector and each
 set one element whose shape holds of all its elements, a set as `#[E]`,
 an empty vector `[]`, and each part that holds no parts its kind, as
 `type` answers it, a part under a tag standing whole as its tag, a quote
-and a doc among them. Records that share a key merge into one, the keys
-of all of them, a key some lack marked `::absent` over its shape and a
-part null in some `::nullable`, `::absent` outside, and a part that is
-null alone stands as `::null`; records that share no key stand apart,
-and where the elements part, the shape there is the set of their kinds,
-as `:expected` writes the kinds a holder takes, any two of them that
-merge merged until none do, so records that share keys merge whatever
-their order. The element of a vector or a set empty in some of the data
-stands marked `::absent`, and vectors of one length whose places part
-are tuples, a shape for each place, where vectors of one length and one
-shape are lists. A map folds into `::each` over its first key and the
-shape of its values, the one key standing for all of them and telling
-how the keys of the data read: where every key is data, an id of digits,
-a date or a time, a uuid, an address, whatever its values hold, and
-where it holds more than eight names whose values, maps, vectors, sets,
-values under a tag or null, share one shape; a map of names over atoms
-keeps them however many, a key that reads as no name among them, as a
-map of fewer names or of names whose values part does. A path of the
-data reads its shape through its marks and its folds as far as a part
-holds one kind.
+and a doc among them. The tags a shape lays over a part are its marks:
+`::absent` over a part some of the data lacks, `::nullable` over a part
+null in some of the data, and `::each` over a map whose keys are data.
+Records that share a key merge into one, the keys of all of them, a key
+some lack marked `::absent` over its shape and a part null in some
+`::nullable`, `::absent` outside, and a part that is null alone stands as
+`::null`; records that share no key stand apart, and where the elements
+part, the shape there is the set of their kinds, as `:expected` writes
+the kinds a holder takes, any two of them that merge merged until none
+do, so records that share keys merge whatever their order. The element
+of a vector or a set empty in some of the data stands marked `::absent`,
+and vectors of one length that part index by index are tuples, a shape
+for each index, where vectors of one length and one shape are lists. A
+map folds into `::each` over its first key and the shape of its values,
+the one key standing for all of them and telling how the keys of the data
+read: where every key is data, an id of digits, a date or a time, a uuid,
+an email, whatever its values hold, and where it holds more than eight
+names whose values, maps, vectors, sets, values under a tag or null,
+share one shape; a map of names over atoms keeps them however many, a key
+that reads as no name among them, as a map of fewer names or of names
+whose values part does. A path of the data reads its shape through its
+marks as far as a part holds one kind.
 
 ```qlang
-> get [~(/tags | count !| get [~(type) /read]) ~(/tags | keys !| get [~(type) /read])]
+> get [~(/tags | count !| get [~(type) /repair]) ~(/tags | keys !| get [~(type) /repair])]
 [[::call/KindAnswersNoVerbError ~(get /tags | count)] [::map/keys/SubjectNotMapError ~(get /tags | keys)]]
 
 > /a/0 | segments
@@ -252,6 +263,9 @@ holds one kind.
 
 > "/a~1b/0" | toPath
 /:a/b/0
+
+> [] | toPath !| type
+::vec/toPath/SubjectEmptyError
 
 > {:q ~(add 1) :n [1 "x"] :s #[2]} | paths
 #[[/n/0 ::number] [/n/1 ::string] [/q ::quote] [/s/0 ::number]]
@@ -271,8 +285,8 @@ holds one kind.
 > [{:author {:login "a"}} {:author null}] | shape | get /0/author/login
 ::string
 
-> get [~({:"17" {:id 1} :"42" {:id 2}} | shape) ~({:"2024-01-01" 3 :"2024-01-02" 5} | shape) ~({:db {:host "h"} :cache {:host "c"}} | shape) ~({:x 1 :y 2} | shape)]
-[::shape::each{:"17" {:id ::number}} ::shape::each{:"2024-01-01" ::number} ::shape{:db {:host ::string} :cache {:host ::string}} ::shape{:x ::number :y ::number}]
+> get [~({:"17" {:id 1} :"42" {:id 2}} | shape) ~({:"2024-01-01" 3 :"2024-01-02" 5} | shape) ~({:"ann@x.org" 1 :"bo@y.org" 2} | shape) ~({:db {:host "h"} :cache {:host "c"}} | shape) ~({:x 1 :y 2} | shape)]
+[::shape::each{:"17" {:id ::number}} ::shape::each{:"2024-01-01" ::number} ::shape::each{:"ann@x.org" ::number} ::shape{:db {:host ::string} :cache {:host ::string}} ::shape{:x ::number :y ::number}]
 
 > {:"17" {:id 1} :"42" {:id 2}} | shape | get /17/id
 ::number
@@ -281,15 +295,16 @@ holds one kind.
 ## write
 
 `put` lays a value at a path, adding a key the last map lacks and
-replacing a key it holds or a place a vector holds; `update` lays anew
-the part at a path by what its code, a quote or a path, answers for it,
-an error the code answers being the answer; `delete` takes the part out,
-the elements after it moving up. Each follows the path as `get` does, a
-key or a place missing on the way refused there, and for `update` and
-`delete` the part itself must be there; a key is the path of one
-segment. Every container on the way is built again under the tags it
-stood under, each laid again through its kind, so a set is ordered
-again and a value that breaks the invariant of its tag is refused.
+replacing a key it holds or the element at an index a vector holds;
+`update` lays anew the part at a path by what its code, a quote or a
+path, answers for it, an error the code answers being the answer;
+`delete` takes the part out, the elements after it moving up. Each
+follows the path as `get` does, a key or an index missing on the way
+refused there, and for `update` and `delete` the part itself must be
+there; a key is the path of one segment. Every container on the way is
+built again under the tags it stood under, each laid again through its
+kind, so a set is ordered again and a value that breaks the invariant of
+its tag is refused.
 
 ```qlang
 > {:a {:b 1}} | put /a/c 2

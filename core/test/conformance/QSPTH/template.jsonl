@@ -5,9 +5,9 @@
 {"name":"a-template-lays-a-tag-back-through-its-kind","query":":P |~~ P. ~~| (::kind | holds :HasNumberError |~~ No number. ~~| ~(every ~(type | ne ::number))) | {:a 1} | get [::P[/a]] !| type","expect":"::P/HasNumberError"}
 {"name":"a-template-answers-a-function-as-it-is","query":"get [::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]] | first | type !| type","expect":"::fn"}
 {"name":"a-template-answers-a-kind-as-it-is","query":"get [::kind[~(wraps |~~ A number. ~~| ::number) null]] | first | type !| type","expect":"::kind"}
-{"name":"get-reads-a-tuple","query":"{:price 4 :qty 3} | get [/price /qty]","expect":"[4 3]"}
+{"name":"get-reads-two-fields-of-one-record-by-a-template","query":"{:price 4 :qty 3} | get [/price /qty]","expect":"[4 3]"}
 {"name":"get-reads-a-template","query":"{:first \"Ann\" :tags [:a :b]} | get {:who /first :n ~(get /tags | count)}","expect":"{:who \"Ann\" :n 2}"}
-{"name":"query-reads-a-tuple-softly","query":"{:a 1} | query [/a /b]","expect":"[1 null]"}
+{"name":"query-reads-each-path-of-a-template-softly","query":"{:a 1} | query [/a /b]","expect":"[1 null]"}
 {"name":"get-reads-a-template-strictly","query":"{:a 1} | get [/a /b] !| type","expect":"::path/KeyNotInMapError"}
 {"name":"a-set-template-reads-its-paths","query":"{:name \"Alice\" :age 30} | get #[/name /age]","expect":"#[30 \"Alice\"]"}
 {"name":"if-inside-a-template","query":"[{:n 5} {:n 15}] | map ~(get {:value /n :tier ~(if (get /n | gt 10) ~(\"high\") ~(\"low\"))})","expect":"[{:value 5 :tier \"low\"} {:value 15 :tier \"high\"}]"}

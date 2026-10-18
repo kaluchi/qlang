@@ -21,7 +21,7 @@ export class QlangError extends Error {
 }
 
 // A defect of the runtime or of what a host handed: the table of
-// implementations, the bootstrap, the root a host's sources declare. It is
+// primitives, the bootstrap, the root a host's sources declare. It is
 // raised past the fail track to the host, with its message.
 export class QlangInvariantError extends QlangError {
   constructor(message, facts = {}) {
@@ -81,8 +81,8 @@ export function declareInvariantError(address, buildMessage) {
 // declareForeignError(address, buildMessage) → the class of a failure of
 // the embedding, which extends `Error`: the loader of the sources throws it
 // at the boot, which reads every source before a step runs, so it rides out
-// to the host, and a host's implementation that throws it inside a step
-// answers `::call/HostFailureError`, its message the `:message` [QSERR#site].
+// to the host, and a primitive that throws it inside a step answers
+// `::call/HostFailureError`, its message the `:message` [QSERR#site].
 export function declareForeignError(address, buildMessage) {
   recordRefusal(address);
   const Cls = class extends Error {
@@ -105,8 +105,8 @@ export const CallUnknownNameError = declareRefusal('call/UnknownNameError');
 // A name with a path that no declaration names [QSDSP#walk], [QSDSP#residence].
 export const CallUnknownAddressError = declareRefusal('call/UnknownAddressError');
 
-// One more nested frame of evaluation past the budget, a runaway in the
-// recursion of the query (`state.mjs`).
+// A step one deeper than the limit of the evaluation depth, a runaway in
+// the recursion of the query (`state.mjs`) [QSNAM#verb].
 export const CallEvaluationDepthExceededError = declareRefusal('call/EvaluationDepthExceededError');
 
 // A declaration of a name an earlier step of its scope declared, or of an

@@ -357,7 +357,7 @@ comment into its record or deletes it with the compromise it excuses,
 and deletes a false comment. The ratio of comment lines to code lines
 over the core, the command line and the language server falls on every
 branch, which `node scripts/measure.mjs` measures against the baseline. A printer decides a
-spelling by the kind of the value, never by a pattern over the text of a
+spelling by the kind of the value, never by a regex over the text of a
 print; a fact of a call is kept by the call and never by a value it
 received; and what a rule takes from code is withheld by a refusal of its
 own, never left to fall to another meaning of the name.
@@ -522,11 +522,13 @@ found in several senses is split into anchor terms, one a sense, each
 with its own anchor; a concept under rival words keeps one; and a group
 of another image is chosen again as a whole. A record that retires a term
 writes it into the lexicon of retired terms, `scripts/retired-words.mjs`,
-in the commit that retires it, a pattern of the one sense it had, the
+in the commit that retires it, a regex of the one sense it had, the
 term written in its place and the record. The lexicon holds the terms of
 the project, each of one sense and high in entropy: a generic word of
 other projects, which a search finds in a heap of senses, stays out of
-it, its uses held by the readers of the pentimento audit; the journal and
+it, its uses held by the readers of the pentimento audit, but for a
+generic word the texts that state what holds write in no sense at all,
+which it refuses whole; the journal and
 the research, which carry the change, keep the words they quote.
 
 The apophatic texts are where the work lives. While a branch works, a
@@ -635,7 +637,7 @@ of the run, `docs/journal/research/spec-check/D323~1/` and
 `docs/journal/research/pentimento-audit/<Dnn>~<k>/`. One table,
 `RESEARCH_FOLDERS` of `scripts/decision-records.mjs`, names each folder
 of the research and the shape of what it holds, a report or a run, and
-the walk and the conventions build their patterns from it. Every report
+the walk and the conventions build their regexes from it. Every report
 opens with its head, what it is and the record that called for it, the
 tree it read and the baseline that tree stood on, when it ran and how, a
 path it names read as `git show <tree>:<path>`; the record holds each run
@@ -746,7 +748,7 @@ axis before a removal is weighed, and weighs the terms of a drift or an
 archaism by `node scripts/sensors/vocabulary.mjs` [QSWRK#documents]. A
 repair that moves no rule is taken in hand, and a finding that moves a
 rule enters the open record of its axis or a record of its own; a
-repaired kind a pattern finds is held by `check:conventions`, and an
+repaired kind a regex finds is held by `check:conventions`, and an
 archaism of one sense a record retires enters the lexicon of retired
 terms. A later tree may be read again, deeper, as the chapters are, to
 the run whose findings are precision alone.

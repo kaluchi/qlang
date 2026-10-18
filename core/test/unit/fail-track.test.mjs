@@ -1,7 +1,7 @@
 // `raise`, and the catch, `!|`, which passes a value by and runs its step on
-// the error at rest, a group and a verb among them; the trail of the steps a
+// the error at rest, a group and a verb among them; the trace of the steps a
 // failure skips, and the refusals of the runtime, each under the address of
-// its site [QSERR#site].
+// its site [QSERR#catch], [QSERR#trace], [QSERR#site].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -56,16 +56,16 @@ describe('`!|` runs a group and a verb on the error at rest', () => {
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('a comment among the steps a failure skips leaves no step in the trail', async () => {
-    // The last frame of the trail holds the steps the error skipped, and a
-    // comment is whitespace, so `count` alone joins them [QSERR#trail],
+  it('a comment among the steps a failure skips leaves no step in the trace', async () => {
+    // The last frame of the trace holds the steps the error skipped, and a
+    // comment is whitespace, so `count` alone joins them [QSERR#trace],
     // [QSSYN#comment].
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trail | last | skipped | parse');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | toString');
     expect(evalResult).toBe('count');
   });
 
   it('the steps skipped past a comment run again by apply as the call after it', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trail | last | skipped | :t it | 42 | apply t !| type');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | :t it | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
   });
 });
@@ -73,11 +73,11 @@ describe('`!|` runs a group and a verb on the error at rest', () => {
 
 describe('source axis prints the declaration for rare body shapes', () => {
   it('renders a call that gives no modifiers as the body of a declaration', async () => {
-    expect(await evalQuery('[1 2] | :x count | ::x | source | parse')).toBe(':x count');
+    expect(await evalQuery('[1 2] | :x count | ::x | source | toString')).toBe(':x count');
   });
 
   it('a line comment inside the body of a declaration leaves no step', async () => {
-    const evalResult = await evalQuery(':x (42 |~| note\n) | ::x | source | parse');
+    const evalResult = await evalQuery(':x (42 |~| note\n) | ::x | source | toString');
     expect(evalResult).toBe(':x (42)');
   });
 
@@ -88,14 +88,14 @@ describe('source axis prints the declaration for rare body shapes', () => {
   });
 
   it('renders an error literal as the body of a declaration', async () => {
-    expect(await evalQuery('~(:x !{:a 1}) | parse')).toBe(':x !{:a 1}');
+    expect(await evalQuery('~(:x !{:a 1}) | toString')).toBe(':x !{:a 1}');
   });
 
   it('renders a group that opens with `!|` as the body of a declaration', async () => {
     // The body of a declaration is a step, so a pipeline that opens with
     // `!|` is written as a group, which keeps its parentheses in print
     // [QSNAM#declare].
-    expect(await evalQuery(':handler (!| get /kind) | ::handler | source | parse')).toBe(':handler (!| get /kind)');
+    expect(await evalQuery(':handler (!| get /kind) | ::handler | source | toString')).toBe(':handler (!| get /kind)');
   });
 });
 
@@ -165,10 +165,10 @@ describe('per-site error classes carry unique identity', () => {
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 
-  it('a path on a value with no parts → PathSubjectHasNoPartsError', async () => {
+  it('a path on a value with no parts → PathSubjectHasNoPartsError, the segment it met among the facts [QSPTH#get]', async () => {
     const refused = await evalQuery('42 | get /name');
     expect(refused.originalError.name).toBe('SubjectHasNoPartsError');
-    expect(refused.descriptor.get('key').name).toBe('name');
+    expect(refused.descriptor.get('segment').name).toBe('name');
     expect(refused.descriptor.get('actualType').name).toBe('number');
   });
 

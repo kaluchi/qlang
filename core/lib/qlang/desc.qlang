@@ -8,7 +8,7 @@
       order runs in reverse, so a key of `sort`, `min` or `max` under
       `desc` ranks the greater first, whatever the kind it ranks,
       `[{:n 1} {:n 2}] | sort ~(get /n | desc)` answering `[{:n 2} {:n 1}]`.
-      A place of a vector key descends alone,
+      One index of a vector key descends alone,
       `sort ~(get [~(get /n | desc) /name])` ranking by n descending, then by
       name.
 

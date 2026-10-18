@@ -4,10 +4,10 @@
    The rules it holds: [QSDSP#residence], [QSSLF#page]. ~|
 
 :qlang
-  |~~ qlang is a pipeline language over values. A query starts from a
-      subject, the value it is given, and passes it through steps: each
-      step takes the value the step before answered and answers a new
-      one, and the last answer is the answer of the query. Nothing
+  |~~ qlang is a pipeline query language over values. A query starts
+      from a subject, the value it is given, and passes it through steps:
+      each step takes the value the step before answered and answers a
+      new one, and the last answer is the answer of the query. Nothing
       changes in place. Everything the language handles is a value with
       a literal that prints and reads back as itself, data, code, prose
       and failures alike, so the language describes itself in its own
@@ -143,7 +143,7 @@
       breaks text into its lines, and `trim`, `lower`, `upper`,
       `contains`, `startsWith` and `endsWith` read it. A string is never
       read as a number behind the reader's back: `toNumber` reads one,
-      `"42" | toNumber | add 1` answering `43`. A pattern, `#"…"`, is
+      `"42" | toNumber | add 1` answering `43`. A regex, `#"…"`, is
       written as the engine reads it, no backslash doubled, and reads
       text: `"took 12ms" | match #"(\d+)ms" | get /1` answers `"12"`,
       and `capture` answers the groups it names as a record.
@@ -155,12 +155,12 @@
       value like any other: `"x" | add 1 !| 0` answers `0`. No value
       holds a failure, so a template whose quote fails answers the
       failure, while an error at rest, written `!{:k 1}`, sits anywhere
-      and `raise` raises it. A failure carries its facts and its trail,
+      and `raise` raises it. A failure carries its facts and its trace,
       a frame for each step it passed, the subject the step met and the
-      steps from the one that broke, `::frame["x" ~(add 1)]`, and prints
+      steps from the one that failed, `::frame["x" ~(add 1)]`, and prints
       as an alert: the subject where it arose cut to an excerpt, and each
-      subject it passed an ::elision where the marker prints shorter,
-      whose `:read` continues the query to it, `!| get /trail/1/0`.
+      subject it passed an ::elision where the elision prints shorter,
+      whose `:read` continues the query to it, `!| get /trace/1/0`.
       `!| explain` answers the page of what refused above the failure,
       the page saying how to repair the call.
 
@@ -243,7 +243,7 @@
         ~([{:age 3} {:age 20}] | filter ~(get /age | gte 18) | count | eq 1)
     | proves :quotesOneWord
         |~~ `~name` quotes one word. ~~|
-        ~("[3 1 2] | map ~toString | first" | parse | apply it | eq "3")
+        ~("[3 1 2] | map ~toString | first" | parse | open | eq "3")
     | proves :refusesAValueForCode
         |~~ A value computed at the call is refused where code is wanted.
         ~~|
@@ -273,7 +273,7 @@
         ~([{:n 1} {:n 2}] | reduce 0 ~(sumOf /0 /1/n) | eq 3)
     | proves :ordersASet
         |~~ A set stands in the one order. ~~|
-        ~("#[:z :x :y] | first" | parse | apply it | eq :x)
+        ~("#[:z :x :y] | first" | parse | open | eq :x)
     | proves :answersASetByToSet
         |~~ `toSet` answers a set. ~~|
         ~([2 3 2 1] | toSet | eq #[1 2 3])
@@ -303,8 +303,10 @@
     | proves :printsText
         |~~ `print` answers the text a value reads back from. ~~|
         ~(7 | print | eq "7")
-    | proves :opensAFailureToItsFacts
-        |~~ `!|` opens a failure to its facts. ~~|
+    | proves :catchesAFailureToItsFacts
+        |~~ `!|` catches a failure, its step running on the error at rest,
+            which holds its facts.
+        ~~|
         ~("x" | add 1 !| get /actualType | eq ::string)
     | proves :refusesUnderTheInput
         |~~ An input of none of its kinds is refused under the input. ~~|
@@ -323,9 +325,9 @@
     | proves :asksWhetherTheStepBeforeStood
         |~~ `ok !| false` asks whether the step before stood. ~~|
         ~(get [~(!{:k 1} | raise | ok !| false) ~(5 | ok !| false)] | eq [false true])
-    | proves :holdsTheTrail
-        |~~ The trail holds the steps a failure skipped. ~~|
-        ~("x" | add 1 | mul 2 !| trail | last | skipped | eq ~(mul 2))
+    | proves :holdsTheTrace
+        |~~ The trace holds the steps a failure skipped. ~~|
+        ~("x" | add 1 | mul 2 !| trace | last | skipped | eq ~(mul 2))
     | proves :runsAQuote
         |~~ `apply` runs a quote on a subject. ~~|
         ~(5 | apply ~(add 1 | mul 2) | eq 12)
@@ -392,7 +394,7 @@
             as a literal that reads back as itself. A value is told by how
             its print opens: `"` a string, `:` a keyword, `::` and a name
             alone a tag and with a payload touching it a value under that
-            tag, `[` a vector, `#[` a set, `#"` a pattern of text, `{` a
+            tag, `[` a vector, `#[` a set, `#"` a regex, `{` a
             map, `/` a path, `~(` a quote, `|~~` a doc, `!{` an error at
             rest, a digit or a minus a number, and `true`, `false` and
             `null` themselves; a failure a host prints is its error at
@@ -423,7 +425,7 @@
         ~(get [~("[(1 | add 2)]" | parse !| type) ~(":x 1 | [x]" | parse !| type) ~(1 | add 2 | tag ::Box | payload)]
           | eq [::quote/ParseError ::quote/ParseError 3])
     | proves :values/isToldByHowItsPrintOpens
-        |~~ A string, a keyword, a tag, a vector, a set, a pattern, a map,
+        |~~ A string, a keyword, a tag, a vector, a set, a regex, a map,
             a quote and an error at rest each print as their kind opens.
         ~~|
         ~(["a" :a ::A [1] #[1] #"a" {:a 1} ~(a) !{:a 1}] | map ~type | eq [::string ::keyword ::tag ::vec ::set ::regex ::map ::quote ::error])
@@ -443,7 +445,7 @@
         ~([1 2] | :v it | append 3 | get [~(v) ~(it)] | eq [[1 2] [1 2 3]])
     | proves :values/readsBackItsPrint
         |~~ A value reads back from its print. ~~|
-        ~({:a [1 #[2]] :t ::Box[3]} | :v it | print | parse | :q it | apply q | eq v)
+        ~({:a [1 #[2]] :t ::Box[3]} | :v it | print | parse | open | eq v)
     | tells :pipeline
         |~~ The pipeline. A query is a subject and its steps, each a
             command on the value the step before it answered, and the
@@ -512,7 +514,7 @@
         ~(5 | :n it | get [~(n) ~(n | add 1)] | eq [5 6])
     | proves :pipeline/joinsLinesByAPipe
         |~~ Steps on several lines join by `|`, a comment between them. ~~|
-        ~("[3 1 2]\n|~| the order\n| sort\n| first" | parse | apply it | eq 1)
+        ~("[3 1 2]\n|~| the order\n| sort\n| first" | parse | open | eq 1)
     | proves :pipeline/joinsNoStepsByALine
         |~~ A line break is a space, and joins no steps. ~~|
         ~("[3 1 2]\nsort" | parse !| type | eq ::quote/ParseError)
@@ -520,10 +522,10 @@
         |~~ The body of a name with a path begun on the line after it runs
             on through the steps joined to it, and the subject passes on.
         ~~|
-        ~("[1 2 3] | :vec/f\n  ~(get /1) | count" | parse | apply it | eq [1 2 3])
+        ~("[1 2 3] | :vec/f\n  ~(get /1) | count" | parse | open | eq [1 2 3])
     | proves :pipeline/nestsComments
         |~~ Comments nest and stand where spaces stand. ~~|
-        ~("|~ outer |~ inner ~| ~| [1 2] |~ a note ~| | count" | parse | apply it | eq 2)
+        ~("|~ outer |~ inner ~| ~| [1 2] |~ a note ~| | count" | parse | open | eq 2)
     | proves :pipeline/seesNothingOfASibling
         |~~ One quote of a template sees nothing of another. ~~|
         ~(get [~(:a 1 | a) ~(a)] !| type | eq ::call/UnknownNameError)
@@ -574,8 +576,8 @@
             slot of a declaration, between its name and its body, are its
             page, one doc each. A name under a label resolves its names
             through the tree of names as it stands at the call, itself
-            among them, so it recurses by name, and the frames of a
-            runaway meet a budget.
+            among them, so it recurses by name, and a runaway meets the
+            limit of the evaluation depth.
         ~~|
         #[::binding]
     | proves :names/listsUnderANoun
@@ -722,7 +724,7 @@
         |~~ A path is the code that reads it from each element,
             `sort /age`.
         ~~|
-        ~("[{:age 3}] | sort /age | first | get /age" | parse | apply it | eq 3)
+        ~("[{:age 3}] | sort /age | first | get /age" | parse | open | eq 3)
     | proves :verbs/needsABoolean
         |~~ A condition is a boolean. ~~|
         ~([1 2] | filter ~(1) !| type | eq ::vec/filter/ConditionNotBooleanError)
@@ -743,14 +745,14 @@
         ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos#-3 !| type | eq ::Pos/NotPositiveError)
     | tells :errors
         |~~ Errors. A failure does not throw: a step that fails answers an
-            error, a value that carries the facts of the failure, the path
-            it took and the tag of the site that refused, which names the
+            error, a value that carries the facts of the failure, the trace
+            it left and the tag of the site that refused, which names the
             page of its procedure. A reader learning a tool fails often,
             and the failure is where what it needs is cheapest to give.
             Rests on values, the pipeline and verbs; the hypertext holds
             the pages the sites name.
             ::link~(::error | doc) ::link~(::fail | doc)
-            ::link~(::trail | doc) ::link~(::explanation | doc)
+            ::link~(::trace | doc) ::link~(::explanation | doc)
             ::link~(::qlang/code | doc)
 
             A failed step answers a failure the tag of its site names. `|`
@@ -760,19 +762,19 @@
             failure where it is read. No value holds a failure: a template
             whose quote fails, a literal whose constructor refuses its
             payload and a name whose body fails answer the failure. The
-            facts name what refused, and the first frame of the trail holds
+            facts name what refused, and the first frame of the trace holds
             the value the step refused. `explain` shows the page of the
-            site above the error. The trail is written as the failure
+            site above the error. The trace is written as the failure
             flies: a frame for each level it left, the subject its step met
-            and the steps from the one that broke, the last frame holding
+            and the steps from the one that failed, the last frame holding
             the steps skipped at the level that reads it, a quote that runs
             again as held code runs, and the frame of a verb that ran its
             code on a part of its subject the path of that part. An error
-            at rest raised again resumes the trail it holds, and one that
-            holds none, an empty `:trail` among them, starts it over.
+            at rest raised again resumes the trace it holds, and one that
+            holds none, an empty `:trace` among them, starts it over.
             Whether the step before stood is `ok !| false`.
         ~~|
-        #[::error ::explanation ::fail ::frame ::trail]
+        #[::error ::explanation ::fail ::frame ::trace]
     | proves :errors/namesTheSite
         |~~ The error's tag names its site. ~~|
         ~("x" | add 1 !| type | eq ::number/add/SubjectNotNumberError)
@@ -781,24 +783,24 @@
         ~([1 "x"] | map ~(mul 2 !| 0) | eq [2 0])
     | proves :errors/holdsTheRefusedValue
         |~~ The first frame holds the refused value. ~~|
-        ~("a" | mul 2 !| get [/actualType /trail/0/0] | eq [::string "a"])
+        ~("a" | mul 2 !| get [/actualType /trace/0/0] | eq [::string "a"])
     | proves :errors/holdsAFrameForEachLevel
-        |~~ The trail holds a frame for each level the error left. ~~|
-        ~(:f ~(add "x" | mul 2) | 5 | apply f | sub 3 !| trail | map ~step | eq [~(add "x") ~(apply f)])
+        |~~ The trace holds a frame for each level the error left. ~~|
+        ~(:f ~(add "x" | mul 2) | 5 | apply f | sub 3 !| trace | map ~failed | eq [~(add "x") ~(apply f)])
     | proves :errors/holdsTheSkippedSteps
         |~~ The last frame holds the steps skipped. ~~|
-        ~("x" | add 1 | mul 2 !| trail | last | skipped | parse | eq "mul 2")
+        ~("x" | add 1 | mul 2 !| trace | last | skipped | toString | eq "mul 2")
     | proves :errors/runsTheSkippedStepsAgain
         |~~ The steps a failure skipped run again by `apply`. ~~|
-        ~("x" | add 1 | mul 2 !| trail | last | skipped | :rest it | 5 | apply rest | eq 10)
+        ~("x" | add 1 | mul 2 !| trace | last | skipped | :rest it | 5 | apply rest | eq 10)
     | proves :errors/namesThePlaceOfThePart
         |~~ The frame of a verb that ran its code on an element names the
             place of the element.
         ~~|
-        ~([1 "x" 3] | map ~(mul 2) !| trail | last | place | eq /1)
-    | proves :errors/resumesItsTrail
-        |~~ A map raised again resumes its trail. ~~|
-        ~(!{:a 1} | raise | count !| raise | add 1 !| trail | last | skipped | eq ~(count | add 1))
+        ~([1 "x" 3] | map ~(mul 2) !| trace | last | place | eq /1)
+    | proves :errors/resumesItsTrace
+        |~~ A map raised again resumes its trace. ~~|
+        ~(!{:a 1} | raise | count !| raise | add 1 !| trace | last | skipped | eq ~(count | add 1))
     | proves :errors/asksWhetherTheStepBeforeStood
         |~~ `ok !| false` answers whether the step before stood. ~~|
         ~(get [~(!{:a 1} | raise | ok !| false) ~(42 | ok !| false)] | eq [false true])
@@ -807,7 +809,7 @@
             takes one where it needs code, `filter`, `sort`, `if`, `apply`
             runs one on a subject, and a quote is taken apart and built
             like any vector of steps. Because code is a value, the laws of
-            a name run, a page holds links that open, and the trail of an
+            a name run, a page holds links that open, and the trace of an
             error holds the steps it skipped, a quote that runs again.
             Rests on values and the pipeline; the hypertext is written in
             it.
@@ -893,10 +895,10 @@
             reader asks for a budget, by `elide` in the query or by the
             host's flag, the command line's `--budget=N`: an answer whose
             print fits the budget stays whole, and what a budget left out
-            is an `::elision` marker, whose `:read` continues the query to
-            the part. A failure the host prints is an alert: its tag and
-            its facts, the subject where it arose within an excerpt, and a
-            marker for each subject it passed, the failure itself staying
+            is an `::elision`, whose `:read` continues the query to the
+            part. A failure the host prints is an alert: its tag and its
+            facts, the subject where it arose within an excerpt, and an
+            elision for each subject it passed, the failure itself staying
             whole; the command line writes below it the prose of its
             refusal's page, as `!| explain` reads it, so the reader
             repairs the call where it failed. The command line reads JSON

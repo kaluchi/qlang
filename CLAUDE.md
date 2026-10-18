@@ -1,6 +1,6 @@
 # qlang
 
-Reference implementation of the qlang pipeline language: a monorepo of
+Reference implementation of the qlang pipeline query language: a monorepo of
 the language core plus its tooling. This file is the seed every
 session receives. It says how to start, what the tooling enforces, and
 how work moves. It says nothing about the design of the language: that
@@ -100,7 +100,7 @@ Tier 2, by topic, only the files the topic names:
   `core/src/runtime/root.mjs`, `core/src/runtime/env.mjs`,
   `core/src/session.mjs`
 - errors: `core/src/errors.mjs`, `core/src/error-convert.mjs`,
-  `core/src/eval-trail.mjs`
+  `core/src/eval-trace.mjs`
 - self-description: `core/src/runtime/axis.mjs`,
   `core/src/runtime/manifest.mjs`, `core/src/runtime/doc.mjs`,
   `core/lib/qlang/doc.qlang`,

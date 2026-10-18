@@ -1,4 +1,4 @@
-// highlightAnsi(src, builtinNames) → the source painted for a terminal:
+// highlightAnsi(src, verbNames) → the source painted for a terminal:
 // the tokens of the core's tokenizer, which the site paints as HTML, each
 // in the colour of its kind among the eight of ANSI and their bright and
 // dim variants.
@@ -12,7 +12,7 @@ const ANSI_RESET = '\x1b[0m';
 // bright so a dark scheme does not swallow them; whitespace has none.
 const KIND_TO_SGR = {
   string:   '32',         // green
-  regex:    '95',         // bright magenta — a pattern `#"…"`
+  regex:    '95',         // bright magenta — a regex `#"…"`
   quote:    '32',         // green — `~(` and `)`, the body in italics
   number:   '33',         // yellow
   comment:  '2',          // dim
@@ -33,8 +33,8 @@ function sgrFor(kind, italic) {
   return italic ? `\x1b[3;${base}m` : `\x1b[${base}m`;
 }
 
-export function highlightAnsi(src, builtinNames) {
-  const tokens = tokenize(src, builtinNames);
+export function highlightAnsi(src, verbNames) {
+  const tokens = tokenize(src, verbNames);
   let out = '';
   for (const { start, end, kind, italic } of tokens) {
     const slice = src.slice(start, end);

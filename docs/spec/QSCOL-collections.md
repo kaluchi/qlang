@@ -85,7 +85,7 @@ them, a map does not answer, and a reader asks them of its values by
 [[:a 1] [:b 2]]
 ```
 
-## each
+## image
 
 `map` runs its code, a quote or a path, on each element in order: over
 a vector it answers a plain vector of what each answered; over a map a

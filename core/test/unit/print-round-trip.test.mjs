@@ -4,13 +4,13 @@
 // among them, values under a tag over every payload, a label the source
 // declares among the tags, the constructors of `::qlang` and `::json`, quotes,
 // a quote of a path alone among them [QSPTH#value], docs, errors at rest
-// inside a vector [QSERR#rest], one with a frame on its trail among them, and
+// inside a vector [QSERR#rest], one with a frame on its trace among them, and
 // functions and kinds built by their chains, pages over several lines, inputs,
 // fields, invariants, refusals, facts and laws among them [QSBLD#fn],
-// [QSBLD#kind], each printed, parsed and applied, and held equal to itself by
+// [QSBLD#kind], each printed, parsed and opened, and held equal to itself by
 // `eq`. A part computed goes into a container by the template of `get`, each
 // part of it a quote that answers it, and under a tag by `tag`, since a
-// literal computes nothing [QSLIT#tag].
+// literal computes nothing [QSLIT#closed].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -20,7 +20,7 @@ const STRINGS = ['""', '"a b"', '"quote \\" inside"', '"back\\\\slash"', '"line\
 const KEYWORDS = [':a', ':ab-c', ':_x', ':e', ':"with space"', ':"1"', ':"a:b"', ':ns/name', ':qlang/error/guards', ':ñ', ':данные', ':true', ':null', ':""', ':"$ref"'];
 const JSON_KEYS = ['"k"', '"first name"', '"$ref"', '""'];
 const TAGS = ['::T', '::Box', '::a/b', '::number', '::vec', '::qlang', '::json'];
-const STEPS = ['count', 'get /k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1 | x', '{:a ~(b)}', '| count', '!| get /trail', '"text with spaces"', '42', '[1 2 3] | filter ~(gt 1)', ':n 3 | take n', ':x ::number | mul x 2'];
+const STEPS = ['count', 'get /k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1 | x', '{:a ~(b)}', '| count', '!| get /trace', '"text with spaces"', '42', '[1 2 3] | filter ~(gt 1)', ':n 3 | take n', ':x ::number | mul x 2'];
 const PATHS = ['/k', '/a/0', '/"first name"/-1', '/:ns/k', '/"0"'];
 const DOCS = ['|~~~~|', '|~~ prose ~(eq 1) `code` ~~|', '|~~ one line\n    and another ~~|'];
 
@@ -112,12 +112,12 @@ function literalsOf(count, seed) {
       () => errorOf(['::E']),
       built,
       () => pick([written('[::error{}]'), written('[::number/add/SubjectNotNumberError::error{:actualType ::string}]'),
-        computed('get [~("x" | add 1 !| it)]'), written('[::error{:k 1 :trail [{:step ~(count) :subject 1 :skipped ~()}]}]')])
+        computed('get [~("x" | add 1 !| it)]'), written('[::error{:k 1 :trace [{:failed ~(count) :subject 1 :skipped ~()}]}]')])
     ])();
   };
-  const chain = (noun, groups, impls) => {
+  const chain = (noun, groups, endings) => {
     const commands = groups.filter(() => random() < 0.5).flat();
-    if (commands.length === 0 || random() < 0.5) commands.push(pick(impls));
+    if (commands.length === 0 || random() < 0.5) commands.push(pick(endings));
     return computed(`(${noun}\n  | ${commands.join('\n  | ')})`);
   };
   const built = () => (random() < 0.5 ? chain('::fn', FN_COMMANDS, FN_RECIPES) : chain('::kind', KIND_COMMANDS, KIND_CONSTRUCTORS));
@@ -129,7 +129,7 @@ describe('the round trip of the print [QSPRN#print]', () => {
   it('reads every value back from its print as itself', async () => {
     const failing = [];
     for (const source of literalsOf(300, 7)) {
-      const held = await evalQuery(`${source} | :v it | print | parse | apply it | eq v`);
+      const held = await evalQuery(`${source} | :v it | print | parse | open | eq v`);
       if (held !== true) failing.push(source);
     }
     expect(failing).toEqual([]);

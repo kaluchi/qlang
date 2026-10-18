@@ -1,4 +1,4 @@
-// The names of control, residing on `::any`, each a plain function over the
+// The names of control, residing on `::any`, each taking the values alone, the
 // subject and the inputs of its call [QSBLD#fn]: a branch, a clause, an
 // alternative and a quote among the conditions of `allOf` and `anyOf` is code
 // the name runs only when it is chosen, closed at the call [QSQUO#literal],
@@ -7,13 +7,13 @@
 
 import { isNull, isErrorValue, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { bindPrim, runs } from '../primitives.mjs';
+import { registerPrimitive, runs } from '../primitives.mjs';
 
 const AnyCondConditionNotBooleanError = declareRefusal('any/cond/ConditionNotBooleanError');
 const AnyAllOfConditionNotBooleanError = declareRefusal('any/allOf/ConditionNotBooleanError');
 const AnyAnyOfConditionNotBooleanError = declareRefusal('any/anyOf/ConditionNotBooleanError');
 
-bindPrim('any/if', runs(['then', 'else'], async (subject, condition, thenCode, elseCode) =>
+registerPrimitive('any/if', runs(['then', 'else'], async (subject, condition, thenCode, elseCode) =>
   (condition ? await thenCode(subject) : await elseCode(subject))));
 
 // Whether every condition holds of the subject, and whether some does:
@@ -30,8 +30,8 @@ async function verdictOfConditions(subject, conditions, decisive, ConditionNotBo
   return !decisive;
 }
 
-bindPrim('any/allOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, false, AnyAllOfConditionNotBooleanError)));
-bindPrim('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionNotBooleanError)));
+registerPrimitive('any/allOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, false, AnyAllOfConditionNotBooleanError)));
+registerPrimitive('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionNotBooleanError)));
 
 // The first alternative that answers neither null nor an error value: a strict
 // read's miss, `get /missing` on a map without the key, is an error, and the
@@ -40,7 +40,7 @@ bindPrim('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfCon
 // call of such alternatives alone reads the subject first, `query /timeout |
 // coalesce 30` [QSCND#coalesce]; the invariant of the alternatives holds one
 // at least.
-bindPrim('any/coalesce', runs(['alternatives'], async (subject, alternatives) => {
+registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alternatives) => {
   const isCode = alternative => typeof alternative === 'function';
   const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];
   for (const alternative of candidates) {
@@ -53,7 +53,7 @@ bindPrim('any/coalesce', runs(['alternatives'], async (subject, alternatives) =>
 
 // The clauses alternate a predicate and its branch, a pair at least by
 // the invariant of the clauses, and a clause left over is the default.
-bindPrim('any/cond', runs(['clauses'], async (subject, clauses) => {
+registerPrimitive('any/cond', runs(['clauses'], async (subject, clauses) => {
   let clauseIndex = 0;
   while (clauseIndex + 1 < clauses.length) {
     const answer = await clauses[clauseIndex](subject);

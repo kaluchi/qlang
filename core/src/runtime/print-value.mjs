@@ -3,7 +3,7 @@
 // kind before the forms of the core write the rest [QSPRN#print].
 
 import { printQuoteSource, docText } from '../quote.mjs';
-import { patternLiteral } from '../pattern.mjs';
+import { regexLiteral } from '../regex-read.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
 import { segmentIndex } from '../path-read.mjs';
 import {
@@ -11,21 +11,19 @@ import {
   isMap,
   isPath,
   isFrame,
-  isTrail,
+  isTrace,
   ELISION_TAG,
   ERROR_TAG,
   formOf,
-  finiteNumberOrLift,
+  refuseForeign,
   TAG_HEADER_SYMBOL,
   canonicalKeywordLiteral
 } from '../types.mjs';
 
-// `dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs)`: the
-// handler of the value's form, `formOf`, which the views of `format.mjs`
-// share.
-export function dispatchQlangValue(pipeValue, handlers, fallback, ...extraArgs) {
-  const handler = handlers[formOf(pipeValue)];
-  return handler ? handler(pipeValue, ...extraArgs) : fallback(pipeValue, ...extraArgs);
+// `dispatchQlangValue(pipeValue, handlers, ...extraArgs)`: the handler of the
+// value's form, `formOf`, which the views of `format.mjs` share.
+export function dispatchQlangValue(pipeValue, handlers, ...extraArgs) {
+  return handlers[formOf(pipeValue)](pipeValue, ...extraArgs);
 }
 
 function escapeQlangStringLiteral(s) {
@@ -41,10 +39,10 @@ function escapeQlangStringLiteral(s) {
 
 const literalOfKeyword = k => k.literal;
 
-// A pattern writes its literal, its flags after it [QSTXT#pattern].
-export const printRegex = r => patternLiteral(r.source, r.flags);
+// A regex writes its literal, its flags after it [QSTXT#regex].
+export const printRegex = r => regexLiteral(r.source, r.flags);
 
-// A path writes its segments so they read back [QSPTH#value]: a place as its
+// A path writes its segments so they read back [QSPTH#value]: an index as its
 // digits, a key as its bare name, behind a colon where its name carries a
 // slash or follows one that does, which would take it in, and quoted
 // otherwise.
@@ -59,11 +57,11 @@ function printPathSegment(segment, afterSlashedKey) {
 
 // A value under a tag writes its tag before its payload, a descriptor's
 // `::builtin` among them [QSPRN#print]; the set, the quote, the doc and the
-// error write their own brackets.
+// error write their own brackets, and a number past the doubles is raised [QSHST#source].
 const PRINT_HANDLERS = {
   null:    () => 'null',
   boolean: v => String(v),
-  number:  v => String(finiteNumberOrLift(v)),
+  number:  v => (Number.isFinite(v) ? String(v) : refuseForeign(v)),
   string:  escapeQlangStringLiteral,
   keyword: literalOfKeyword,
   tag:     literalOfKeyword,
@@ -94,18 +92,11 @@ const printedByNoKind = () => undefined;
 export function printValue(v, indent = 0, printedOf = printedByNoKind, oneLine = false) {
   const printed = printedOf(v);
   if (printed !== undefined) return printed.split('\n').join('\n' + '  '.repeat(indent));
-  return dispatchQlangValue(v, PRINT_HANDLERS, printFallback, indent, printedOf, oneLine);
-}
-
-// A function a host bound in the environment prints as a string that
-// names it.
-function printFallback(v) {
-  if (typeof v === 'function') return escapeQlangStringLiteral(`<host-fn ${v.name}>`);
-  return String(v);
+  return dispatchQlangValue(v, PRINT_HANDLERS, indent, printedOf, oneLine);
 }
 
 // A vector or a set stands on one line unless a part takes several, and
-// then each part stands on a line of its own, as each frame of a trail of
+// then each part stands on a line of its own, as each frame of a trace of
 // two or more does, a frame standing on one line whatever it holds [QSPRN#print].
 function printListLike(open, elements, indent, printedOf, oneLine = false, stacked = false) {
   const rendered = elements.map(el => printValue(el, indent + 1, printedOf, oneLine));
@@ -114,10 +105,10 @@ function printListLike(open, elements, indent, printedOf, oneLine = false, stack
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// A failure writes the error at rest `!|` opens it to: the tag of its site
-// before the bang, none for the kind of errors, and its facts, the path it
-// flew among them; the answer of a host says above it that it was raised
-// [QSERR#print].
+// A failure writes its error at rest, the value a catch holds of it: the tag
+// of its site before the bang, none for the kind of errors, and its facts, the
+// trace it left among them; the answer of a host says above it that it was
+// raised [QSERR#print].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   return `${tagHead}${printMapLike('!{', e.descriptor, indent, printedOf)}`;
@@ -136,16 +127,16 @@ export function underTagLiteral(tagLiteral, payload, payloadPrint) {
 // writes `#[…]` [QSERR#rest].
 function printUnderTag(tagged, indent, printedOf, oneLine) {
   const tagLiteral = tagged[TAG_HEADER_SYMBOL].literal;
-  if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), isTrail(tagged) && tagged.length > 1);
+  if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), isTrace(tagged) && tagged.length > 1);
   if (tagged instanceof Map && tagged[TAG_HEADER_SYMBOL].name === ERROR_TAG.name) return printMapLike('!{', tagged, indent, printedOf, oneLine);
   if (tagged instanceof Map) return tagLiteral + printMapLike('{', tagged, indent, printedOf, oneLine || tagged[TAG_HEADER_SYMBOL].name === ELISION_TAG.name);
   return underTagLiteral(tagLiteral, tagged.payload, printValue(tagged.payload, indent, printedOf, oneLine));
 }
 
 // A map of two entries or fewer, none a container, stands on one line, and
-// so does a marker of what a view left out, whatever it holds, so what
-// holds it keeps its layout [QSPRN#elide]; any other map puts each entry on
-// a line of its own.
+// so does an elision of what a view left out, whatever it holds, so what
+// holds it keeps its layout [QSPRN#print]; any other map puts each entry on a line
+// of its own.
 function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];
   const hasComposite = entries.some(([, v]) => isMap(v) || isVec(v));

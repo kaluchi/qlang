@@ -1,0 +1,24 @@
+{"name":"a-regex-is-a-value-of-its-own-kind","query":"#\"\\d+\" | type","expect":"::regex"}
+{"name":"a-regex-prints-as-written-its-flags-in-their-order","query":"[#\"\\d+ms\" #\"a\"mi #\"\\\"q\\\"\"] | map ~print","expect":"[\"#\\\"\\\\d+ms\\\"\" \"#\\\"a\\\"im\" \"#\\\"\\\\\\\"q\\\\\\\"\\\"\"]"}
+{"name":"a-regex-reads-back-from-its-print","query":"[#\"(\\d+)\\.(\\d+)\" #\"\\\"x\\\"\"s #\"\\\\\"] | map ~(:p it | print | parse | open | eq p)","expect":"[true true true]"}
+{"name":"two-regexes-are-one-when-their-text-and-flags-are","query":"get [~(#\"a\" | eq #\"a\") ~(#\"a\" | eq #\"a\"i) ~(#\"a\" | eq \"a\")]","expect":"[true false false]"}
+{"name":"a-regex-the-engine-cannot-read-does-not-parse","query":"[\"#\\\"(\\\"\" \"#\\\"a\\\"x\" \"#\\\"a\\\"ii\"] | map ~(parse !| type)","expect":"[::quote/ParseError ::quote/ParseError ::quote/ParseError]"}
+{"name":"a-failure-to-parse-names-a-character-and-a-flag-of-a-regex-among-its-continuations","query":"get [~(\"#\\\"a\" | parse !| get /expected) ~(\"#\\\"a\\\")\" | parse !| get /expected)]","expect":"[[\"\\\\\\\"\" \"\\\\\" :\"character of a regex\" \"\\\"\"] [:\"flag of a regex\" :whitespace :end-of-source]]"}
+{"name":"a-flag-written-inside-is-refused-with-its-place","query":"\"#\\\"(?i)a\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
+{"name":"a-backslash-before-a-plain-character-is-refused-with-the-reason","query":"\"#\\\"a\\\\-b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}
+{"name":"json-writes-a-regex-as-its-literal","query":"{:p #\"\\d+\"i} | json | parseJson | get /p","expect":"\"#\\\"\\\\d+\\\"i\""}
+{"name":"a-group-of-flags-is-refused-where-an-engine-reads-it","query":"\"#\\\"(?i:a)b\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
+{"name":"a-group-name-written-twice-is-refused","query":"\"#\\\"(?<y>a)|(?<y>b)\\\"\" | parse !| get /message | contains \"is written twice\"","expect":"true"}
+{"name":"a-needless-backslash-is-told-by-the-source","query":"\"#\\\"a\\\\:b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}
+{"name":"an-escaped-bracket-opens-no-class-before-a-group-of-flags","query":"\"#\\\"\\\\[(?i:a)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
+{"name":"a-group-of-flags-turned-off-is-refused-too","query":"\"#\\\"(?-i:a)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
+{"name":"a-group-of-flags-after-a-class-is-refused","query":"\"#\\\"[a](?i:b)\\\"\" | parse !| get /message | contains \"a group of flags\"","expect":"true"}
+{"name":"a-group-of-flags-in-a-class-is-text","query":"\"(?i:a)\" | contains #\"[(?i:a)]\"","expect":"true"}
+{"name":"a-lookbehind-names-no-group","query":"\"ab\" | contains #\"(?<=a)b|(?<=a)c\"","expect":"true"}
+{"name":"a-lookbehind-before-a-sign-names-no-group","query":"\"a>\" | contains #\"(?<=a)>|(?<=a)>\"","expect":"true"}
+{"name":"a-quote-in-a-regex-does-not-end-it","query":"\"say \\\"hi\\\"\" | contains #\"\\\"hi\\\"\"","expect":"true"}
+{"name":"a-regex-reads-letters-of-any-script","query":"\"Ünïcödé 42 данные\" | scan #\"\\p{L}+\"","expect":"[\"Ünïcödé\" \"данные\"]"}
+{"name":"a-regex-takes-flags-as-a-string-does","query":"#\"a\" | toRegex \"i\" | eq (\"a\" | toRegex \"i\")","expect":"true"}
+{"name":"a-regex-refuses-letters-of-no-flag","query":"#\"a\" | toRegex \"q\" !| type","expect":"::regex/toRegex/flags/NotFlagsError"}
+{"name":"toRegex-with-no-flags-keeps-a-regex-and-gives-a-string-none","query":"get [~(#\"a\"m | toRegex) ~(\"a\" | toRegex)]","expect":"[#\"a\"m #\"a\"]"}
+{"name":"a-string-takes-null-for-no-flags-as-a-regex-takes-it-for-its-own","query":"get [~(\"a\" | toRegex null) ~(#\"a\"m | toRegex null)]","expect":"[#\"a\" #\"a\"m]"}

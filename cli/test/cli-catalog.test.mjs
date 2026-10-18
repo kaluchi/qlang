@@ -19,7 +19,7 @@ let cliNames;
 
 beforeAll(async () => {
   session = await createSession({ sources: cliSources(silentStreams) });
-  names = nodeAddresses(session.env).map(name => `::${name}`);
+  names = nodeAddresses(session.scope).map(name => `::${name}`);
   cliNames = await answerOf(`[${names.join(' ')}] | filter ~(binding | get /origin | eq :cli) | map ~print`);
 }, 120_000);
 

@@ -1,7 +1,7 @@
 |~ The command line: its topic, `::cli`, and the names it declares under
    the kinds of their subjects, `table` under `::vec` and the names of
-   the streams under `::any`. Their primitives are plain functions over
-   the served subject and the values of their inputs.
+   the streams under `::any`. Their primitives take the values alone, the
+   served subject and the values of their inputs.
    The rules it holds: [QSHST#effect], [QSDSP#residence]. ~|
 
 :cli
@@ -30,16 +30,17 @@
       arose cut to an excerpt, under the line
       `|~| raised, and no !| caught it` and above the prose of its
       refusal's page as line comments `|~| …`, which tells how to repair
-      the call; `!| json` writes a failure as JSON. Every answer goes to
-      stdout with the exit code 0, a failure among them, a query that does
-      not parse answering `::quote/ParseError`, so calls run side by side
-      never stop each other. A script that tests the code
+      the call, a refused text with a caret under the line the alert shows
+      between the two; `!| json` writes a failure as JSON. Every answer
+      goes to stdout with the exit code 0, a failure among them, a query
+      that does not parse answering `::quote/ParseError`, so calls run side
+      by side never stop each other. A script that tests the code
       writes `--fail` before the query, `qlang --fail 'get /id' < a.json
       && next`: a failure exits with 1, written as without it.
 
       An answer prints whole, and `--budget=N` or `| elide N` bounds it,
-      what is left out an `::elision` marker whose `:read` continues the
-      query to it. `in`, `out`, `err` and `tap` read and write the
+      what is left out an `::elision` whose `:read` continues the query
+      to it. `in`, `out`, `err` and `tap` read and write the
       streams, `tap` showing a value halfway through a query on stderr;
       a query that writes to stdout by `out` holds the channel, and its
       answer is left unwritten. A value one query hands another over a

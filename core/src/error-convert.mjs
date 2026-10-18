@@ -2,9 +2,10 @@ import { keyword, makeErrorValue, makeTag, makeTagged, typeOf, ERROR_TAG } from 
 import { declareInvariantError, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './runtime/nouns.mjs';
 import { deepEqual } from './equality.mjs';
+import { nameOfContinuation } from './parse.mjs';
 
-// The reading of text into code refuses on `::quote`, and an
-// implementation of a host that fails in a call on `::call` [QSERR#site].
+// The reading of text into code refuses on `::quote`, and a primitive that
+// fails in a call on `::call` [QSERR#site].
 recordRefusal('quote/ParseError');
 recordRefusal('call/HostFailureError');
 
@@ -35,8 +36,8 @@ const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).le
 // factsInOrder(tag, facts, env) → the facts of a refusal of the runtime in
 // the order of the definitions that describe them, each named as its fact
 // [QSERR#site]: those under the refusal's label first, then those under
-// `::error`, which every refusal shares, the path an error takes coming
-// after them as the trail joins it. A fact neither declares is a
+// `::error`, which every refusal shares, the trace an error leaves coming
+// after them as it joins them. A fact neither declares is a
 // defect of the runtime.
 export function factsInOrder(tag, facts, env) {
   const ordered = new Map();
@@ -66,15 +67,12 @@ export function errorFromQlang(qlangError, subject, env) {
   });
 }
 
-// The error of a text the parser refused: where it stopped and what it
-// wanted there, in the order its label declares them.
+// The error of a text the parser refused: the line where it stopped, what it
+// wanted there, the span of the place and where the text came from, in the
+// order its label declares [QSSYN#refusal].
 export function errorFromParse(parseError, env, uri = parseError.uri) {
   const d = new Map();
-  if (parseError.source != null && parseError.location) {
-    const excerpt = excerptAroundLocation(parseError.source, parseError.location);
-    d.set('source', excerpt.source);
-    d.set('marker', excerpt.marker);
-  }
+  if (parseError.source != null && parseError.location) d.set('source', parseError.source.split('\n')[parseError.location.start.line - 1]);
   // A refusal the grammar names itself carries its sentence, which says
   // the fix, and a bracket left open its sentence beside its closers
   // [QSSYN#refusal]; any other failure lists what the parser expected there.
@@ -83,7 +81,7 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
   else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', spanOfLocation(parseError.location, parseError.source));
-  if (uri) d.set('uri', uri);
+  if (uri) d.set('origin', keyword(uri));
   const tag = makeTag('quote/ParseError');
   return makeErrorValue(tag, factsInOrder(tag, d, env), {
     location: parseError.location,
@@ -91,8 +89,8 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
   });
 }
 
-// The continuations a parse failure lists, each once: a literal as its
-// text, and the end, any character and a named rule as keywords.
+// The continuations a parse failure lists, each once: a literal as its text,
+// the end, any character and a named part of the grammar as keywords [QSSYN#refusal].
 function liftExpectedAlternatives(expected) {
   const seen = new Set();
   const out = [];
@@ -107,47 +105,17 @@ function liftExpectedAlternatives(expected) {
 }
 
 function liftExpectedAlternative(alt) {
-  if (alt.type === 'literal') return alt.text;
-  if (alt.type === 'end') return keyword('end-of-input');
-  if (alt.type === 'any') return keyword('any-character');
-  if (alt.type === 'other') return keyword(alt.description);
-  return classKeyword();
-}
-
-// A peggy char-class reads as `:char-class`: the classes a reader would
-// name stand under named rules of the grammar, whitespace among them
-// [QSSYN#comment].
-function classKeyword() {
-  return keyword('char-class');
-}
-
-// The line where a reading stopped and its marker, a caret under the
-// start of the span and tildes to its end, padded so the two strings
-// end in one column; `:location` holds the span itself [QSPRN#span].
-function excerptAroundLocation(source, location) {
-  const lineNumber = location.start.line;
-  const line = source.split('\n')[lineNumber - 1];
-  const before = location.start.offset - (location.start.column - 1);
-  const startCol = codePointsIn(source, before, location.start.offset) + 1;
-  const endCol = codePointsIn(source, before, location.end.offset) + 1;
-  // A reading stops within one line, and a span of no width takes one
-  // caret.
-  const markerWidth = Math.max(1, endCol - startCol);
-  const lead = ' '.repeat(Math.max(0, startCol - 1));
-  const caret = '^' + '~'.repeat(Math.max(0, markerWidth - 1));
-  const tail = ' '.repeat(Math.max(0, Array.from(line).length - lead.length - caret.length));
-  return { source: line, marker: lead + caret + tail };
+  return alt.type === 'literal' ? alt.text : keyword(nameOfContinuation(alt));
 }
 
 // The failures beneath a host's failure that its facts recount.
 const CAUSES_RECOUNTED = 8;
 
-// A JavaScript error escaping an implementation is a failure of the
-// host: a tag of the language, its account and the accounts of the failures
-// beneath it [QSHST#answer], [QSERR#site]. The step that failed stands in the
-// trail; the stack, the class and the fields of the error stay with the host
-// in `originalError`, and a host that has facts to hand declares a refusal of
-// its own.
+// A JavaScript error escaping a primitive is a failure of the host: a tag of
+// the language, its account and the accounts of the failures beneath it
+// [QSERR#site]. The step that failed stands in the trace; the stack, the
+// class and the fields of the error stay with the host in `originalError`,
+// and a host that has facts to hand declares a refusal of its own.
 export function errorFromForeign(jsError, node, env) {
   const tag = makeTag('call/HostFailureError');
   const facts = new Map([['message', accountOf(jsError)]]);

@@ -1,16 +1,16 @@
 |~ Every value comes apart into the set of its atoms and a shape, and
    the shape applied to the set builds the value back [QSLIT#atoms]. The
    atoms are the values no verb takes further apart, null, booleans,
-   numbers, strings, patterns, keywords, tag names and paths, each once, in the one
+   numbers, strings, regexes, keywords, tag names and paths, each once, in the one
    order, and a value is taken apart to the end: the keys of its maps
    and the tags over its payloads are atoms as its other leaves are.
    The shape is a quote that reads the value back from the set by `get`,
-   over a template of the reads of its parts [QSPTH#template]: an atom is
-   read by the path of its place in the set, `/n`; a vector is the vector of the
+   over a template of the reads of its parts [QSLIT#atoms]: an atom is
+   read by the path of its index in the set, `/n`; a vector is the vector of the
    reads of its elements; a map is built from the pairs of its keys and
    values by `indexBy`, and a tagged value, the set, the quote and the
    doc and an error at rest among them, from its tag and its payload by
-   `tag` [QSERR#rest], [QSSLF#doc], each of the two a quote the template runs.
+   `tag` [QSLIT#atoms], [QSSLF#doc], each of the two a quote the template runs.
    `["x" [1 1] {:b :a}]` has the atoms `#[1 "x" :a :b]` and the shape
    `~(get [/1 [/0 /0] ~(get [[/3 /2]] | indexBy ~(first) | map ~last)])`.
    The verbs are the language's own, and the test of the ring runs them
@@ -61,8 +61,8 @@
   ~~|
   ~(:item it | if (atomKinds | has (item | type)) ~(get [~(it)]) ~(partsOf | get /parts | map ~atomsOf | flat))
 
-:any/placeKey
-  |~~ The key an atom's place is read by, the keyword of its print, which
+:any/indexKey
+  |~~ The key an atom's index is read by, the keyword of its print, which
       tells `1` from `"1"`.
   ~~|
   ~(print | toKeyword)
@@ -77,7 +77,7 @@
 
 :any/intoShape
   |~~ The reads built so far, `{:numbered … :reads …}`, with the read of
-      one value after them: the path of an atom's place in the set, which
+      one value after them: the path of an atom's index in the set, which
       `:numbered` holds under the atom's key, or what builds a value from
       the reads of its parts.
   ~~|
@@ -89,7 +89,7 @@
           | :item it
           | if (atomKinds | has (item | type))
               ~(get {:numbered ~(acc | get /numbered)
-                     :reads ~(acc | get /reads | append (get [~(acc | get /numbered | query (item | placeKey) | last)] | toPath))})
+                     :reads ~(acc | get /reads | append (get [~(acc | get /numbered | query (item | indexKey) | last)] | toPath))})
               ~(partsOf | :built it
                 | built | get /parts | reduce (get {:numbered ~(acc | get /numbered) :reads []}) ~(intoShape) | :inner it
                 | get {:numbered ~(acc | get /numbered) :reads ~(acc | get /reads | append (inner | get /reads | gluedBy (built | get /glue)))}))
@@ -105,7 +105,7 @@
     | impl
         ~(:held get [~(it)]
           | :atoms (held | map ~atomsOf | flat | tag ::set)
-          | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | get /pairs | indexBy ~(first | placeKey))
+          | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | get /pairs | indexBy ~(first | indexKey))
           | :read (held | reduce (get {:numbered ~(numbered) :reads []}) ~(intoShape) | get /reads | first)
           | get {:atoms ~(atoms) :shape ~(get {:name :get :modifiers ~(get [~(read)])} | tag ::call | get [~(it)] | tag ::quote)})
 

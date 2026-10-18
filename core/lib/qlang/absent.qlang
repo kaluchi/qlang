@@ -12,7 +12,7 @@
       lack marked, whatever their order; records that share no key stand
       apart as the kinds where the elements part. The mark stands as well
       over the element of a vector or a set that is empty in some of the
-      data, its first place missing there,
+      data, its first index missing there,
       `[{:labels [{:name "bug"}]} {:labels []}] | shape` answering
       `::shape[{:labels [::absent{:name ::string}]}]`. A part the mark
       stands over may be missing from the data, so `get` refuses it where

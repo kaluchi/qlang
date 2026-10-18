@@ -32,7 +32,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { execFileSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
+import { Readable } from 'node:stream';
 import { pipeEnv } from '../pipe-env.mjs';
 import { isOpenText, JOURNAL } from '../decision-records.mjs';
 import { recordsInTransit } from '../baseline-walk.mjs';
@@ -55,17 +56,25 @@ const { deepEqual } = await core('equality.mjs');
 const { isErrorValue, makeTag } = await core('types.mjs');
 const { createSession } = await core('session.mjs');
 const { cliSources } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'cli-sources.mjs')).href);
+const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
 
 // A probe reads as the command line reads a query: the first cell of a
-// session of its own over the command line's sources, its streams silent,
-// its subject the noun of the language [QSWRK#probe], [QSHST#stdin].
+// session of its own over the scope the command line's sources declare once,
+// its streams silent, its subject the noun of the language, each query
+// answered once in a run [QSWRK#probe], [QSHST#stdin].
 const LANGUAGE_NOUN = makeTag('qlang');
 const SILENT_STREAMS = { stdinReader: () => Promise.resolve(''), stdoutWrite: () => {}, stderrWrite: () => {} };
-async function answerOf(query) {
-  const session = await createSession({ sources: cliSources(SILENT_STREAMS) });
-  const { result, error } = await session.evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
-  if (result === null && error !== null) throw error;
-  return result;
+const { scope: withTheCommandLine } = await createSession({ sources: cliSources(SILENT_STREAMS) });
+const answers = new Map();
+function answerOf(query) {
+  if (!answers.has(query)) {
+    answers.set(query, createSession({ scope: withTheCommandLine }).then(async session => {
+      const { result, error } = await session.evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
+      if (result === null && error !== null) throw error;
+      return result;
+    }));
+  }
+  return answers.get(query);
 }
 const squash = text => text.replace(/\s+/g, ' ').trim();
 
@@ -103,24 +112,39 @@ function probesOf(source) {
   return probes;
 }
 
-function onCommandLine(query) {
-  try {
-    return execFileSync(process.execPath, [join(repoRoot, 'cli', 'src', 'bin.mjs'), query], { cwd: repoRoot, encoding: 'utf8', stdio: 'pipe', env: pipeEnv });
-  } catch (failed) {
-    return `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
-  }
+// What the command line prints for a query handed no input, run in this
+// process as `bin.mjs` runs it: its standard output, and its standard error
+// after it where the run failed.
+async function onCommandLine(query) {
+  let stdout = '';
+  let stderr = '';
+  const code = await main([query], Readable.from([]), { write: written => { stdout += written; } }, { write: written => { stderr += written; } }, pipeEnv);
+  return code === 0 ? stdout : `${stdout}${stderr}`;
 }
 
 const readsTheRepositoryAlone = command => !/\bjdt\b|scripts\/sensors|^env\b|\$[A-Z]/.test(command);
 
+// What a shell probe prints, its pipeline failing where a command of it
+// fails; the shell probes run four at a time, each answered in its turn.
+const SHELLS_AT_ONCE = 4;
+const shellsWaiting = [];
+let shellsRunning = 0;
 function printedByShell(command) {
   const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs').split('\\').join('/');
-  try {
-    return execFileSync('bash', ['-c', `set -o pipefail\nqlang() { node "${commandLine}" "$@"; }\n${command}`],
-      { cwd: repoRoot, encoding: 'utf8', input: '', env: { ...pipeEnv, MSYS_NO_PATHCONV: '1' } });
-  } catch (failed) {
-    return `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
-  }
+  return new Promise(resolve => {
+    const start = () => {
+      shellsRunning += 1;
+      const shell = execFile('bash', ['-c', `set -o pipefail\nqlang() { node "${commandLine}" "$@"; }\n${command}`],
+        { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28, env: { ...pipeEnv, MSYS_NO_PATHCONV: '1' } }, (failed, stdout, stderr) => {
+          shellsRunning -= 1;
+          shellsWaiting.shift()?.();
+          resolve(failed === null ? stdout : `${stdout ?? ''}${stderr ?? ''}`);
+        });
+      shell.stdin.end();
+    };
+    if (shellsRunning < SHELLS_AT_ONCE) start();
+    else shellsWaiting.push(start);
+  });
 }
 
 const listsFilesUnguarded = command => /\bgit (?:-C \S+ )?ls-files\b(?![^|]*--error-unmatch)/.test(command);
@@ -128,7 +152,7 @@ const listsFilesUnguarded = command => /\bgit (?:-C \S+ )?ls-files\b(?![^|]*--er
 function shellVerdict({ query, answer }) {
   if (!readsTheRepositoryAlone(query)) return 'machine';
   if (listsFilesUnguarded(query)) return 'UNGUARDED';
-  return squash(printedByShell(query)) === answer ? 'ok' : 'STALE';
+  return printedByShell(query).then(printed => (squash(printed) === answer ? 'ok' : 'STALE'));
 }
 
 async function printedByCore(query) {
@@ -147,7 +171,7 @@ const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-
 async function answersAsRecorded({ query, answer }) {
   if (answer === '') return !isErrorValue(await answerOf(query));
   if (answer.includes('…')) {
-    const printed = squash(onCommandLine(query));
+    const printed = squash(await onCommandLine(query));
     if (readsAsError(printed) !== readsAsError(answer)) return false;
     let from = 0;
     for (const piece of answer.split(/\s*…\s*/).filter(Boolean)) {
@@ -158,8 +182,8 @@ async function answersAsRecorded({ query, answer }) {
     return true;
   }
   // A string prints raw, and its text may read as words of the command form.
-  if (typeof await answerOf(query) === 'string' && squash(onCommandLine(query)) === answer) return true;
-  try { parse(answer); } catch { return squash(onCommandLine(query)) === answer; }
+  if (typeof await answerOf(query) === 'string' && squash(await onCommandLine(query)) === answer) return true;
+  try { parse(answer); } catch { return squash(await onCommandLine(query)) === answer; }
   if ((await printedByCore(query)) !== (await printedByCore(answer))) return false;
   try { return deepEqual(await answerOf(query), await evalQuery(answer)) || 'lossy'; } catch { return 'lossy'; }
 }
@@ -175,13 +199,16 @@ function holdersOf(chapter, probe) {
   return { over, holding };
 }
 
-for (const documentPath of documents) {
+// The shell probes of every document start at once, four running at a time,
+// and each verdict is read in the order the documents hold them.
+const probesByDocument = documents.map(documentPath => [documentPath, probesOf(textOf(documentPath)).map(probe => (probe.shell ? { ...probe, shellVerdict: shellVerdict(probe) } : probe))]);
+for (const [documentPath, probes] of probesByDocument) {
   const shownPath = relative(repoRoot, documentPath).split(/[\\/]/).join('/');
   const chapter = /(?:^|[\\/])(QS[A-Z]{3})-[^\\/]+\.md$/.exec(documentPath)?.[1];
-  for (const probe of probesOf(textOf(documentPath))) {
+  for (const probe of probes) {
     let verdict;
     let note = '';
-    if (probe.shell) verdict = shellVerdict(probe);
+    if (probe.shell) verdict = await probe.shellVerdict;
     else {
       const agrees = await answersAsRecorded(probe);
       verdict = agrees === 'lossy' ? 'LOSSY' : probe.target ? (agrees ? 'MET' : 'target') : (agrees ? 'ok' : 'STALE');

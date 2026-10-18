@@ -18,7 +18,7 @@ const BOX = lines(
   ':Box/put |~~ The same box with another weight inside. ~~| (::fn | takes :weight |~~ The weight to put inside. ~~| /0 | holds :weight/NotANumberError |~~ The weight is a number. ~~| ~(type | eq ::number) | impl ~(within ~(take 1 | append weight)))',
   ':Box/scaled |~~ The length scaled. ~~| (::fn | takes :factor |~~ The factor, one less than the scale. ~~| ~(get /0 | add 1) | impl ~(length | mul (factor | add 1)))',
   ':Box/tally |~~ The lead and the rest. ~~| (::fn | takes :lead |~~ The lead, null when left out. ~~| ~(query /0) | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ~(get [~(lead) ~(rest)]))',
-  ':Box/past |~~ A place past the end. ~~| ~(get /9)',
+  ':Box/past |~~ An index past the end. ~~| ~(get /9)',
   ''
 );
 
@@ -91,7 +91,7 @@ describe('a host\'s primitive under a label', () => {
           ':Gauge/shifted |~~ The reading shifted. ~~| (::fn | takes :by |~~ The shift. ~~| /0 | impl ::builtin{})',
           ':Dial |~~ A reading of a dial. ~~| (::kind | impl ::builtin{})'
         ),
-        impls: {
+        primitives: {
           'Gauge/construct': payload => payload * 2,
           'Gauge/over': runs(['test'], async (reading, test) => test(reading)),
           'Gauge/shifted': (reading, by) => reading.payload + by,
@@ -108,7 +108,7 @@ describe('a host\'s primitive under a label', () => {
   it('computes the modifiers of a call up to the first that answers an error, and runs none after it [QSQUO#modifier]', async () => {
     let noted = 0;
     const session = await createSession({
-      sources: [{ uri: 'probe/note', source: ':any/note ::builtin{}', impls: { 'any/note': subject => { noted += 1; return subject; } } }]
+      sources: [{ uri: 'probe/note', source: ':any/note ::builtin{}', primitives: { 'any/note': subject => { noted += 1; return subject; } } }]
     });
     expect((await session.evalCell('[1 2] | query (get /nope) ("ran" | note) !| type')).result).toEqual(makeTag('path/IndexNotIntegerError'));
     expect(noted).toBe(0);
@@ -119,7 +119,7 @@ describe('a host\'s primitive under a label', () => {
       sources: [{
         uri: 'probe/zap',
         source: ':vec/zap (::fn | takes :lead |~~ The lead. ~~| /0 | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ::builtin{})',
-        impls: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
+        primitives: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
       }]
     });
     expect((await session.evalCell('[9] | zap 1 2 3')).result).toEqual([1, 2]);
@@ -130,7 +130,7 @@ describe('a host\'s primitive under a label', () => {
       sources: [{
         uri: 'probe/pair',
         source: ':vec/pair2 (::fn | takes :b |~~ The second. ~~| /1 | takes :a |~~ The first. ~~| /0 | impl ::builtin{})',
-        impls: { 'vec/pair2': (subject, b, a) => [a, b] }
+        primitives: { 'vec/pair2': (subject, b, a) => [a, b] }
       }]
     });
     expect((await session.evalCell('[0] | pair2 1 2')).result).toEqual([1, 2]);

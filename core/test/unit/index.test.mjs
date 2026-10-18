@@ -25,8 +25,8 @@ describe('the package root', () => {
   it('bounds an answer within a budget, a part a kind prints its own way counted as it prints', async () => {
     const session = await core.createSession();
     const cell = await session.evalCell(':Box |~~ B ~~| | :Box/print ~("b") | [::Box#1 ::Box#2 ::Box#3 ::Box#4 ::Box#5 ::Box#6 ::Box#7]');
-    const shown = await core.elideAnswer(cell.result, 10, cell.envAfterCell);
-    expect(await core.printAnswer(shown, cell.envAfterCell)).toBe('[b b b b b b b]');
+    const shown = await core.elideAnswer(cell.result, 10, cell.scopeAfterCell);
+    expect(await core.printAnswer(shown, cell.scopeAfterCell)).toBe('[b b b b b b b]');
   });
 
   it('crosses the JSON boundary both ways', () => {
@@ -36,7 +36,7 @@ describe('the package root', () => {
 
   it('hands the tools the tree, the tokens and the letters of a name', () => {
     const ast = core.parse(':x 1 | x');
-    expect(core.findIdentifierOccurrences(ast, 'x').length).toBeGreaterThan(0);
+    expect(core.findNameOccurrences(ast, 'x').length).toBeGreaterThan(0);
     expect(core.tokenize('[1] | count', new Set(['count'])).length).toBeGreaterThan(0);
     expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
   });

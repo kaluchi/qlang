@@ -7,7 +7,7 @@ import {
   walkAst,
   attachAstParents,
   findAstNodeAtOffset,
-  findIdentifierOccurrences,
+  findNameOccurrences,
   bindingNamesVisibleAt, readsItsSubject, TAG_SPELLING } from '../../src/walk.mjs';
 
 describe('astChildrenOf', () => {
@@ -152,17 +152,17 @@ describe('findAstNodeAtOffset', () => {
   });
 });
 
-describe('findIdentifierOccurrences', () => {
+describe('findNameOccurrences', () => {
   it('finds Call occurrences of a name', () => {
     const ast = parse('count | add count');
-    const refs = findIdentifierOccurrences(ast, 'count');
+    const refs = findNameOccurrences(ast, 'count');
     expect(refs.length).toBeGreaterThanOrEqual(2);
     expect(refs.every(n => n.type === 'Call' && n.name === 'count')).toBe(true);
   });
 
   it('finds :name ... declaration alongside read sites', () => {
     const ast = parse(':double mul 2 | double');
-    const refs = findIdentifierOccurrences(ast, 'double');
+    const refs = findNameOccurrences(ast, 'double');
     // Both the `:double …` BindStep declaration and the bare
     // `double` read site land in the result — the BindStep matches
     // because its `.key` Keyword names `double`, the read site
@@ -174,26 +174,26 @@ describe('findIdentifierOccurrences', () => {
     // `::Foo!{…}` names the tag of its content, and an error literal
     // that writes none names no tag [QSERR#rest].
     const ast = parse('::Foo!{:k 1} | get [::Foo[1] !{:j 2}]');
-    const refs = findIdentifierOccurrences(ast, 'Foo', TAG_SPELLING);
+    const refs = findNameOccurrences(ast, 'Foo', TAG_SPELLING);
     expect(refs.map(ref => ref.type)).toEqual(['ErrorLit', 'TaggedLit']);
   });
 
   it('finds the segments of a path by name', () => {
     const ast = parse('get /foo/bar | count');
-    const refs = findIdentifierOccurrences(ast, 'foo');
+    const refs = findNameOccurrences(ast, 'foo');
     expect(refs.length).toBeGreaterThanOrEqual(1);
     expect(refs[0].type).toBe('Path');
   });
 
   it('does not include keyword literals', () => {
     const ast = parse(':foo');
-    const refs = findIdentifierOccurrences(ast, 'foo');
+    const refs = findNameOccurrences(ast, 'foo');
     expect(refs).toHaveLength(0);
   });
 
   it('finds TaggedLit occurrences written as a tag', () => {
     const ast = parse('::invariant~(count)');
-    const refs = findIdentifierOccurrences(ast, 'invariant', TAG_SPELLING);
+    const refs = findNameOccurrences(ast, 'invariant', TAG_SPELLING);
     // The TaggedLit node itself plus any nested references; here
     // only the constructor invocation matches.
     expect(refs.length).toBeGreaterThanOrEqual(1);
@@ -202,19 +202,19 @@ describe('findIdentifierOccurrences', () => {
 
   it('finds a name with a path by the name a step calls it by', () => {
     const ast = parse(':any/double ~(mul 2) | [1 2] | map ~double | any/double');
-    const refs = findIdentifierOccurrences(ast, 'double');
+    const refs = findNameOccurrences(ast, 'double');
     expect(refs.map(n => n.type)).toEqual(['BindStep', 'Call', 'Call']);
   });
 
   it('finds TagLit occurrences written as a tag', () => {
     const ast = parse('::Box | source');
-    const refs = findIdentifierOccurrences(ast, 'Box', TAG_SPELLING);
+    const refs = findNameOccurrences(ast, 'Box', TAG_SPELLING);
     expect(refs.some(n => n.type === 'TagLit' && n.tag === 'Box')).toBe(true);
   });
 
   it('finds the declaration of a kind written as a tag', () => {
     const ast = parse(':Box |~~ Box. ~~|');
-    const refs = findIdentifierOccurrences(ast, 'Box', TAG_SPELLING);
+    const refs = findNameOccurrences(ast, 'Box', TAG_SPELLING);
     expect(refs.some(n => n.type === 'BindStep' && n.key.name === 'Box')).toBe(true);
   });
 });
@@ -328,7 +328,7 @@ describe('bindingNamesVisibleAt', () => {
   });
 });
 
-describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
+describe('findAstNodeAtOffset / findNameOccurrences edge cases', () => {
   it('findAstNodeAtOffset skips synthesized nodes that lack a location', () => {
     // Build a synth Pipeline whose direct child is a real parsed
     // node (with location) and another child is synthesized (no
@@ -347,9 +347,9 @@ describe('findAstNodeAtOffset / findIdentifierOccurrences edge cases', () => {
     expect(node).toBe(realChild);
   });
 
-  it('findIdentifierOccurrences finds a declaration of it', () => {
+  it('findNameOccurrences finds a declaration of it', () => {
     const ast = parse('42 | :snapshot it | snapshot');
-    const refs = findIdentifierOccurrences(ast, 'snapshot');
+    const refs = findNameOccurrences(ast, 'snapshot');
     // The `:snapshot it` BindStep matches by its key; bare `snapshot`
     // matches as a read-site Call.
     expect(refs.length).toBeGreaterThanOrEqual(2);

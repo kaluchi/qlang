@@ -87,7 +87,7 @@ describe('runtime error location propagation via evalNode', () => {
     expect(originalErr.location.start.offset).toBe(source.indexOf('nope'));
   });
 
-  it('does not overwrite a location set by a deeper frame', async () => {
+  it('does not overwrite a location set by an inner step', async () => {
     // An error in an inner step carries its location through the pipeline.
     // The outer step (mul) is never reached — the error value propagates.
     // Location references the inner `count` call site, not the outer `mul`.

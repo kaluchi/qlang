@@ -50,13 +50,13 @@ describe('a verb as the tooling reads it', () => {
   it('reads the kinds of an answer its returns names as a set [QSBLD#fn]', async () => {
     const session = await createSession();
     await session.evalCell(':Box |~~ A box. ~~| | :Box/f (::fn | returns |~~ The value. ~~| #[::number ::string] | impl ~(eq 1))');
-    expect(answerKindsOf(session.env, nodeOf(session.env, 'Box/f'), ['Box'])).toEqual(['number', 'string']);
+    expect(answerKindsOf(session.scope, nodeOf(session.scope, 'Box/f'), ['Box'])).toEqual(['number', 'string']);
   });
 
   it('shows a verb written as its recipe alone, the function of no commands it is, with no inputs [QSHST#tools]', async () => {
     const session = await createSession();
     await session.evalCell(':number/double ~(mul 2)');
-    expect(shownFor(session.env, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
+    expect(shownFor(session.scope, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
   });
 });
 
@@ -89,7 +89,7 @@ describe('the verbs a value of a kind reaches [QSDSP#walk]', () => {
     const env = await langRuntime();
     const addressesFrom = (kindName, names) => names.map(name => verbsReaching(env, [kindName]).get(name)?.address.name);
     expect(addressesFrom('set', ['sort', 'count', 'take', 'within'])).toEqual(['set/sort', 'vec/count', 'vec/take', 'tagged/within']);
-    expect(addressesFrom('quote', ['count', 'parse'])).toEqual(['vec/count', 'quote/parse']);
+    expect(addressesFrom('quote', ['count', 'toString'])).toEqual(['vec/count', 'quote/toString']);
     expect(addressesFrom('doc', ['count', 'links'])).toEqual(['vec/count', 'doc/links']);
     expect(shownFor(env, 'count', ['set']).address.name).toBe('vec/count');
   });

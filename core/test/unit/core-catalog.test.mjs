@@ -65,12 +65,12 @@ describe('the verbs of the language reach their primitives', () => {
 
   it('spot-check — :add is a function under ::number whose recipe a primitive answers [QSBLD#input], [QSBLD#fn]', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const { isBuiltinDescriptor, isHostDeclared, isFn, recipeOf } = await import('../../src/types.mjs');
+    const { isBuiltinDescriptor, isPrimitiveHanded, isFn, recipeOf } = await import('../../src/types.mjs');
     const resolved = await langRuntime();
     const add = bindingValueOf(nodeOf(resolved, 'number/add'));
     expect(isFn(add)).toBe(true);
     expect(isBuiltinDescriptor(recipeOf(add))).toBe(true);
-    expect(isHostDeclared(recipeOf(add))).toBe(true);
+    expect(isPrimitiveHanded(recipeOf(add))).toBe(true);
   });
 
   it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [QSSLF#catalog], [QSBLD#fn]', async () => {
@@ -135,10 +135,10 @@ describe('the root of the language', () => {
   });
 });
 
-describe('parse / apply — code read, printed and run', () => {
-  // `parse` reads a source string into the quote of its
-  // steps and prints a quote back; `apply(/)` runs the quote against
-  // the subject. Together they round-trip
+describe('parse / open / apply — code read, written and run', () => {
+  // `parse` reads a source string into the quote of its steps and
+  // `toString` writes a quote back; `open` runs the quote from null and
+  // `apply` against the subject. Together they round-trip
   // source text → data → pipeValue without leaving the language,
   // and ground the programmatic-query-construction surface.
 
@@ -158,10 +158,10 @@ describe('parse / apply — code read, printed and run', () => {
     expect(callStep.get('modifiers')).toHaveLength(2);
   });
 
-  it('parse errors on non-string subject', async () => {
+  it('parse refuses a subject that is no string under its own address', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
     const evalResult = await evalQuery('42 | parse !| type');
-    expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
+    expect(evalResult).toEqual(makeTag('string/parse/SubjectNotStringError'));
   });
 
   it('apply runs a quote assembled from its steps', async () => {
@@ -176,21 +176,21 @@ describe('parse / apply — code read, printed and run', () => {
     expect(evalResult).toEqual(makeTag('any/apply/code/KindNotTakenError'));
   });
 
-  it('round-trip — "source" | parse | apply(/) is equivalent to evaluating the source', async () => {
+  it('round-trip — "source" | parse | open is equivalent to evaluating the source', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('"42" | parse | apply it')).toBe(42);
-    expect(await evalQuery('"10 | add 3" | parse | apply it')).toBe(13);
-    expect(await evalQuery('"[1 2 3] | filter ~(gt 1) | count" | parse | apply it')).toBe(2);
+    expect(await evalQuery('"42" | parse | open')).toBe(42);
+    expect(await evalQuery('"10 | add 3" | parse | open')).toBe(13);
+    expect(await evalQuery('"[1 2 3] | filter ~(gt 1) | count" | parse | open')).toBe(2);
   });
 
   it('round-trip preserves paths and Map literals', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    expect(await evalQuery('"{:a 1 :b 2} | get /a" | parse | apply it')).toBe(1);
+    expect(await evalQuery('"{:a 1 :b 2} | get /a" | parse | open')).toBe(1);
   });
 
-  it('error values round-trip through parse | apply(it)', async () => {
+  it('error values round-trip through parse | open', async () => {
     const { evalQuery } = await import('../../src/eval.mjs');
-    const evalResult = await evalQuery('"!{:kind :oops} | raise !| get /kind" | parse | apply it');
+    const evalResult = await evalQuery('"!{:kind :oops} | raise !| get /kind" | parse | open');
     expect(evalResult).toEqual(keyword('oops'));
   });
 

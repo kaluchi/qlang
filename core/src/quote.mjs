@@ -102,7 +102,7 @@ export function commandStep(name, modifiers) {
 }
 
 // tagCallStepOf(tag) → the step `tag ::Tag`, the call a tagged literal
-// stands for [QSERR#trail].
+// stands for [QSERR#trace].
 export function tagCallStepOf(tag) {
   return commandStep('tag', [tag]);
 }
@@ -182,7 +182,7 @@ const STEP_OF_NODE = {
   BooleanLit:      node => node.value,
   NullLit:         () => null,
   Keyword:         node => keyword(node.name),
-  RegexLit:        node => makeRegex(node.pattern, node.flags),
+  RegexLit:        node => makeRegex(node.regexSource, node.flags),
   TagLit:          node => makeTag(node.tag),
   QuoteLit:        quoteOfLiteral,
   DocLit:          docOfNode,

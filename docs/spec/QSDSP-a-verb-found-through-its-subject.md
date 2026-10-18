@@ -105,8 +105,8 @@ the subject reaches, is refused by the call as
 outermost tag as `:actualType`, the addresses of the verbs of that name
 as `:addresses`, where the pages of those verbs lead to one, `:nearest`,
 the verbs they link that the subject answers and whose answer is a kind
-those verbs answer, and, where the subject is a path, `:read`, the read
-the step was likely meant for [QSPTH#verbs]. A name one verb holds
+those verbs answer, and, where the subject is a path, `:repair`, the
+step the call was likely meant as [QSPTH#verbs]. A name one verb holds
 refuses such a subject by that verb [QSDSP#residence], and the verbs of
 a name are those the scope of the step holds, so a verb the reader
 declares under a second noun makes the refusal of a name one verb of the
@@ -122,7 +122,7 @@ root holds the call's, its address beside the root's.
 > [1 2] | toString !| get /nearest
 [:json :print]
 
-> /tags | count !| get /read
+> /tags | count !| get /repair
 ~(get /tags | count)
 ```
 

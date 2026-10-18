@@ -1,27 +1,27 @@
-|~ `::elision`, the kind of the marker of what a view left out, and the
-   laws declared under it.
-   The rules it holds: [QSDSP#residence]. ~|
+|~ `::elision`, the kind of what a view leaves where it left a part out,
+   and the laws declared under it.
+   The rules it holds: [QSDSP#residence], [QSPRN#elide]. ~|
 
 :elision
-  |~~ An elision marks a part of an answer that a budget left out, and
-      keeps the way back to it. A reader's context only grows, so a
+  |~~ An elision stands for a part of an answer that a budget left out,
+      and keeps the way back to it. A reader's context only grows, so a
       reader asks for a budget, `elide 4000` in a query or the host's
-      flag, and every part left out gives way to a marker; an answer
+      flag, and every part left out gives way to an elision; an answer
       nobody bounded prints whole.
 
       It prints as a map under its tag,
-      `::elision{:size 28 :read ~(!| get /trail/0/0 | drop 2)}`:
+      `::elision{:size 28 :read ~(!| get /trace/0/0 | drop 2)}`:
       `:size` counts the elements, the entries or the characters it
       stands for, `:read` is the query that, continued from the answer,
       reads the part left out, and `:head` holds the first characters of
       the text of a string, a doc or a quote. A failure the host prints
-      is an alert, each subject it passed such a marker where the marker
-      prints shorter.
+      is an alert, each subject it passed given way to an elision where
+      the elision prints shorter.
       ::link~(::any/elide | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind
     | proves :measuresWhatItLeftOut
         |~~ An elision holds the size of what it left out. ~~|
-        ~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it"}
-          | elide 20 | get /s | get /size | eq 98)
+        ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it"}
+          | elide 20 | get /s | get /size | eq 99)
 

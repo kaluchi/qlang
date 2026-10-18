@@ -8,9 +8,10 @@
 // those in force or waiting on a target; and a chapter is written at the
 // move alone [QSWRK#spec].
 
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
+import { readText, treeAt } from './tree-reads.mjs';
 import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, foldersShaped, JOURNAL, RESEARCH } from './decision-records.mjs';
 
 export const RECORDS_A_WALK_TAKES = 20;
@@ -26,12 +27,12 @@ const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets
 export const CITATION_IN_WORDS = /\bdecisions? ((?:[DE]\d+)(?:(?:,\s*| and )[DE]\d+)*)/g;
 const CITATION = new RegExp(`\\[((?:[DE]\\d+)(?:,\\s*[DE]\\d+)*)\\]|${CITATION_IN_WORDS.source}`, 'g');
 
-function filesUnder(repoRoot, dir, pattern) {
+function filesUnder(repoRoot, dir, regex) {
   const absolute = join(repoRoot, dir);
   if (!existsSync(absolute)) return [];
   return readdirSync(absolute, { withFileTypes: true }).flatMap(entry => {
-    if (entry.isDirectory()) return UNCITING_FOLDERS.has(entry.name) ? [] : filesUnder(repoRoot, `${dir}/${entry.name}`, pattern);
-    return pattern.test(entry.name) ? [`${dir}/${entry.name}`] : [];
+    if (entry.isDirectory()) return UNCITING_FOLDERS.has(entry.name) ? [] : filesUnder(repoRoot, `${dir}/${entry.name}`, regex);
+    return regex.test(entry.name) ? [`${dir}/${entry.name}`] : [];
   });
 }
 
@@ -119,8 +120,7 @@ export function walkOfBaseline(repoRoot) {
     walk.violations.push({ where: 'master', problem: 'no merge on its first parent line lands a branch: the history holds no baseline' });
     return walk;
   }
-  const listed = git(repoRoot, 'ls-tree', '-r', '--name-only', baseline, '--', 'docs/');
-  const atBaseline = new Set(listed.split('\n').map(path => RECORD_FILE.exec(path)?.[1]).filter(Boolean));
+  const atBaseline = new Set(treeAt(repoRoot, baseline).paths.filter(path => path.startsWith('docs/')).map(path => RECORD_FILE.exec(path)?.[1]).filter(Boolean));
   const records = readDecisionRecords(repoRoot);
   for (const [name, record] of records) {
     if (atBaseline.has(name) && isBeingDecided(record) && !record.open) {
@@ -136,13 +136,13 @@ export function walkOfBaseline(repoRoot) {
   }
   const notClosed = record => !replacedWhole(record) && !isBeingDecided(record);
   for (const file of citingCodeOf(repoRoot)) {
-    for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {
+    for (const { name, line } of citationsIn(readText(join(repoRoot, file)))) {
       const record = records.get(name);
       if (record !== undefined && !isHeld(record)) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
     }
   }
   for (const file of filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/)) {
-    readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
+    readText(join(repoRoot, file)).split(/\r?\n/).forEach((line, index) => {
       if (line.trim() === '' || line.trim().startsWith('//')) return;
       for (const name of [JSON.parse(line).decision ?? []].flat()) {
         const record = records.get(name);
@@ -155,7 +155,7 @@ export function walkOfBaseline(repoRoot) {
   // record, which the journal keeps [QSWRK#documents].
   const transit = recordsInTransit(repoRoot);
   for (const file of CITING_DOCUMENTS.filter(path => existsSync(join(repoRoot, path)))) {
-    for (const { name, line } of citationsIn(readFileSync(join(repoRoot, file), 'utf8'))) {
+    for (const { name, line } of citationsIn(readText(join(repoRoot, file)))) {
       const record = records.get(name);
       if (record !== undefined && !notClosed(record) && !record.open) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
       else if (transit.has(name)) walk.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, a record in transit: a seed cites the sections it overrides, ${transit.get(name).map(section => `[${section}]`).join(', ')}` });
@@ -165,7 +165,7 @@ export function walkOfBaseline(repoRoot) {
   for (const { where, problem } of casesTouchedUnclaimed(repoRoot, baseline)) walk.violations.push({ where, problem });
   for (const { where, problem } of sectionsWrittenUnclaimed(repoRoot, baseline)) walk.violations.push({ where, problem });
   for (const path of uncitedDocuments(repoRoot)) {
-    if (git(repoRoot, 'ls-tree', '--name-only', baseline, '--', path).trim() !== '') {
+    if (treeAt(repoRoot, baseline).holds(path)) {
       walk.violations.push({ where: path, problem: 'no record in force and no document of the work cites it: node scripts/drop-documents.mjs [QSWRK#baseline]' });
     }
   }
@@ -179,12 +179,12 @@ const SECTION_CITATION = /\[(QS[A-Z]{3})(?:#([a-z][a-z-]*))?\]/g;
 export function unresolvedSections(repoRoot) {
   const specDir = join(repoRoot, 'docs', 'spec');
   const chapters = new Map((existsSync(specDir) ? readdirSync(specDir) : []).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name))
-    .map(name => [name.slice(0, 5), new Set(readFileSync(join(specDir, name), 'utf8').split(/\r?\n/).filter(line => line.startsWith('## ')).map(line => line.slice(3).trim()))]));
+    .map(name => [name.slice(0, 5), new Set(readText(join(specDir, name)).split(/\r?\n/).filter(line => line.startsWith('## ')).map(line => line.slice(3).trim()))]));
   const citing = [...citingCodeOf(repoRoot), ...filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/),
     ...CITING_DOCUMENTS, ...filesUnder(repoRoot, JOURNAL, /\.md$/).filter(path => !path.includes('/replaced/') && !path.startsWith(`${RESEARCH}/`)), ...filesUnder(repoRoot, 'docs/spec', /\.md$/)];
   const unresolved = [];
   for (const file of citing.filter(path => existsSync(join(repoRoot, path)))) {
-    readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/).forEach((line, index) => {
+    readText(join(repoRoot, file)).split(/\r?\n/).forEach((line, index) => {
       for (const [whole, chapter, section] of line.matchAll(SECTION_CITATION)) {
         const sections = chapters.get(chapter);
         if (sections === undefined) unresolved.push({ where: `${file}:${index + 1}`, problem: `cites ${whole}, a chapter docs/spec does not hold` });
@@ -200,7 +200,7 @@ export function unresolvedSections(repoRoot) {
 export function recordsInTransit(repoRoot) {
   const recordsDir = join(repoRoot, JOURNAL);
   return new Map(readdirSync(recordsDir).filter(name => /^D\d+\.md$/.test(name)).flatMap(name => {
-    const line = readFileSync(join(recordsDir, name), 'utf8').match(/^Overrides ((?:[^\r\n]|\r?\n(?=\[QS))+)/m)?.[1];
+    const line = readText(join(recordsDir, name)).match(/^Overrides ((?:[^\r\n]|\r?\n(?=\[QS))+)/m)?.[1];
     return line === undefined ? [] : [[name.slice(0, -3), [...line.matchAll(/\[(QS[A-Z]{3}(?:#[a-z][a-z-]*)?)\]/g)].map(match => match[1])]];
   }));
 }
@@ -223,8 +223,8 @@ export function recordsInTransitAt(repoRoot, commit) {
 // `replaced/`, or lacked, whose move into the sections the merge that
 // lands them seals [QSWRK#baseline].
 function dissolvedSince(repoRoot, baseline) {
-  const replacedThen = new Set(git(repoRoot, 'ls-tree', '-r', '--name-only', baseline, '--', 'docs/').split('\n')
-    .filter(path => path.includes('/replaced/')).map(path => RECORD_FILE.exec(path)?.[1]).filter(Boolean));
+  const replacedThen = new Set(treeAt(repoRoot, baseline).paths.filter(path => path.startsWith('docs/') && path.includes('/replaced/'))
+    .map(path => RECORD_FILE.exec(path)?.[1]).filter(Boolean));
   return new Map([...readDecisionRecords(repoRoot)]
     .filter(([name, record]) => record.dissolvedInto.length > 0 && !replacedThen.has(name))
     .map(([name, record]) => [name, { sections: record.dissolvedInto, path: record.path }]));
@@ -248,14 +248,16 @@ export function casesTouchedUnclaimed(repoRoot, baseline) {
   const dissolvedOver = (chapter, section) => dissolved.filter(({ sections }) => covers(sections, chapter, section));
   const casesOf = text => new Map(text.split(/\r?\n/).filter(line => line.trim() !== '' && !line.startsWith('//')).map(line => JSON.parse(line)).map(test => [test.name, test]));
   const unclaimed = [];
-  for (const file of filesUnder(repoRoot, conformance, /\.jsonl$/).filter(path => /\/QS[A-Z]{3}\/[^/]+\.jsonl$/.test(path))) {
+  const tree = treeAt(repoRoot, baseline);
+  const files = filesUnder(repoRoot, conformance, /\.jsonl$/).filter(path => /\/QS[A-Z]{3}\/[^/]+\.jsonl$/.test(path));
+  const textsThen = tree.textsOf(files);
+  for (const file of files) {
     const [chapter, section] = file.split('/').slice(-2).map(part => part.replace(/\.jsonl$/, ''));
-    const now = casesOf(readFileSync(join(repoRoot, file), 'utf8'));
-    const chapterThen = git(repoRoot, 'ls-tree', '--name-only', baseline, '--', `${conformance}/${chapter}/`).trim() !== '';
+    const now = casesOf(readText(join(repoRoot, file)));
     let then = null;
-    if (chapterThen) {
+    if (tree.holds(`${conformance}/${chapter}`)) {
       try {
-        then = casesOf(git(repoRoot, 'show', `${baseline}:${file}`));
+        then = casesOf(textsThen.get(file) ?? '');
       } catch {
         then = new Map();
       }
@@ -268,8 +270,8 @@ export function casesTouchedUnclaimed(repoRoot, baseline) {
       if (touched && test.decision === undefined && dissolvedOver(chapter, section).length === 0) unclaimed.push({ where: `${file}#${name}`, problem: `changed since the baseline ${baseline}, and names no record in transit over ${chapter}#${section}, nor did one dissolve into it since` });
     }
     for (const name of then === null ? [] : [...then.keys()].filter(name => !now.has(name))) {
-      const claimed = [...transit.keys()].some(record => overrides(record, chapter, section) && readFileSync(join(repoRoot, JOURNAL, `${record}.md`), 'utf8').includes(name))
-        || dissolvedOver(chapter, section).some(({ path }) => readFileSync(path, 'utf8').includes(name));
+      const claimed = [...transit.keys()].some(record => overrides(record, chapter, section) && readText(join(repoRoot, JOURNAL, `${record}.md`)).includes(name))
+        || dissolvedOver(chapter, section).some(({ path }) => readText(path).includes(name));
       if (!claimed) unclaimed.push({ where: `${file}#${name}`, problem: `gone since the baseline ${baseline}, and no record in transit over ${chapter}#${section} names it, nor one dissolved into it since` });
     }
   }
@@ -284,11 +286,11 @@ export function casesTouchedUnclaimed(repoRoot, baseline) {
 export function sectionsWrittenUnclaimed(repoRoot, baseline) {
   const dissolved = [...dissolvedSince(repoRoot, baseline).values()];
   const into = (chapter, section) => dissolved.some(({ sections }) => sections.some(cited => cited === chapter || cited === `${chapter}#${section}` || (section === '' && cited.startsWith(`${chapter}#`))));
-  const naming = name => dissolved.some(({ path }) => readFileSync(path, 'utf8').includes(name));
+  const naming = name => dissolved.some(({ path }) => readText(path).includes(name));
   const chapterFile = /^QS[A-Z]{3}-.+\.md$/;
-  const now = new Map(filesUnder(repoRoot, 'docs/spec', chapterFile).map(path => [path, readFileSync(join(repoRoot, path), 'utf8')]));
-  const then = new Map(git(repoRoot, 'ls-tree', '--name-only', baseline, '--', 'docs/spec/').split('\n')
-    .filter(path => chapterFile.test(path.split('/').pop())).map(path => [path, git(repoRoot, 'show', `${baseline}:${path}`)]));
+  const now = new Map(filesUnder(repoRoot, 'docs/spec', chapterFile).map(path => [path, readText(join(repoRoot, path))]));
+  const tree = treeAt(repoRoot, baseline);
+  const then = tree.textsOf(tree.paths.filter(path => /^docs\/spec\/[^/]+$/.test(path) && chapterFile.test(path.split('/').pop())));
   const unclaimed = [];
   for (const path of new Set([...now.keys(), ...then.keys()])) {
     const chapter = path.split('/').pop().slice(0, 5);
@@ -346,7 +348,7 @@ export function recordHolding(repoRoot, path) {
 // the documents of the work.
 export function textsInForce(repoRoot) {
   const records = readdirSync(join(repoRoot, JOURNAL)).filter(name => /^D\d+\.md$/.test(name)).map(name => `${JOURNAL}/${name}`);
-  return [...records, ...CITING_DOCUMENTS].filter(path => existsSync(join(repoRoot, path))).map(path => ({ path, text: readFileSync(join(repoRoot, path), 'utf8') }));
+  return [...records, ...CITING_DOCUMENTS].filter(path => existsSync(join(repoRoot, path))).map(path => ({ path, text: readText(join(repoRoot, path)) }));
 }
 
 // unitOf(path) → what a citation must name to hold the document: a report

@@ -16,7 +16,7 @@ await session.evalCell([
 
 describe('the refusals a verb that is a function raises by rule [QSERR#site]', () => {
   it('names an answer of none of several kinds where its label is none of them', () => {
-    expect(ruleRefusalsOf(session.env, 'number/pick')).toEqual([
+    expect(ruleRefusalsOf(session.scope, 'number/pick')).toEqual([
       'number/pick/SubjectNotNumberError',
       'number/pick/ArgsBeyondInputsError',
       'number/pick/by/NotGivenError',
@@ -26,11 +26,11 @@ describe('the refusals a verb that is a function raises by rule [QSERR#site]', (
   });
 
   it('names no refusal of an answer whose kinds hold its label', () => {
-    expect(ruleRefusalsOf(session.env, 'number/keep')).toEqual(['number/keep/SubjectNotNumberError', 'number/keep/ArgsBeyondInputsError']);
+    expect(ruleRefusalsOf(session.scope, 'number/keep')).toEqual(['number/keep/SubjectNotNumberError', 'number/keep/ArgsBeyondInputsError']);
   });
 
   it('names no refusal of an answer it does not name, nor of an input its place reads softly', () => {
-    expect(ruleRefusalsOf(session.env, 'number/plain')).toEqual(['number/plain/SubjectNotNumberError', 'number/plain/ArgsBeyondInputsError']);
+    expect(ruleRefusalsOf(session.scope, 'number/plain')).toEqual(['number/plain/SubjectNotNumberError', 'number/plain/ArgsBeyondInputsError']);
   });
 });
 
@@ -38,7 +38,7 @@ describe('the refusals by rule of an input that names the kinds of each element 
   it('names a value that is no vector where its place reads one arg, and an element of none of its kinds', async () => {
     const own = await createSession();
     await own.evalCell(':number/each (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))');
-    expect(ruleRefusalsOf(own.env, 'number/each')).toEqual([
+    expect(ruleRefusalsOf(own.scope, 'number/each')).toEqual([
       'number/each/SubjectNotNumberError',
       'number/each/ArgsBeyondInputsError',
       'number/each/xs/NotGivenError',
@@ -56,7 +56,7 @@ describe('a host\'s verb written as the chain of its function [QSHST#source]', (
         ':number/twice |~~ Runs the code twice. ~~| (::fn | takes :code |~~ The code. ~~| /0 #[::path ::quote] | impl ::builtin{})',
         '| :number/each |~~ Runs each code. ~~| (::fn | takes :codes |~~ The codes. ~~| ~(it) [#[::path ::quote]] | impl ::builtin{})'
       ].join('\n'),
-      impls: {
+      primitives: {
         'number/twice': runs(['code'], async (subject, code) => await code(await code(subject))),
         'number/each': runs(['codes'], async (subject, codes) => await Promise.all(codes.map(code => code(subject))))
       }
@@ -73,7 +73,7 @@ describe('a host\'s verb written as the chain of its function [QSHST#source]', (
         '| :any/pair |~~ Pairs the subject with a value. ~~| (::fn | takes :value |~~ The value. ~~| /0 | impl ::builtin{})',
         '| :any/each |~~ Runs each code, and keeps each other value. ~~| (::fn | takes :items |~~ The codes and the values. ~~| ~(it) | impl ::builtin{})'
       ].join('\n'),
-      impls: {
+      primitives: {
         'any/both': runs(['code'], async (subject, code) => [await code(subject), await code(subject)]),
         'any/pair': (subject, value) => [subject, value],
         'any/each': runs(['items'], async (subject, items) => await Promise.all(items.map(item => (typeof item === 'function' ? item(subject) : item))))
@@ -87,7 +87,7 @@ describe('a host\'s verb written as the chain of its function [QSHST#source]', (
   it('names the refusals of a verb written as its recipe alone, the function of no commands it is [QSBLD#recipe]', async () => {
     const own = await createSession();
     await own.evalCell(':number/v ~(1)');
-    expect(ruleRefusalsOf(own.env, 'number/v')).toEqual(['number/v/SubjectNotNumberError', 'number/v/ArgsBeyondInputsError']);
+    expect(ruleRefusalsOf(own.scope, 'number/v')).toEqual(['number/v/SubjectNotNumberError', 'number/v/ArgsBeyondInputsError']);
   });
 });
 

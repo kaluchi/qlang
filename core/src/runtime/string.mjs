@@ -2,7 +2,7 @@
 // vectors, whose verbs the catalog declares under `::string` and `::vec`
 // [QSTXT#string].
 
-import { bindPrim } from '../primitives.mjs';
+import { registerPrimitive } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { isKeyword, isRegex } from '../types.mjs';
 import { containsMatch, piecesBetweenMatches } from './regex.mjs';
@@ -14,28 +14,28 @@ const writtenAsText = value => (isKeyword(value) ? value.name : value);
 // An element `join` writes is a string or a keyword.
 const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNotStringOrKeywordError');
 
-bindPrim('string/prepend', (text, prefix) => writtenAsText(prefix) + text);
-bindPrim('vec/prepend', (vector, element) => [element, ...vector]);
-bindPrim('string/append', (text, suffix) => text + writtenAsText(suffix));
-bindPrim('vec/append', (vector, element) => [...vector, element]);
+registerPrimitive('string/prepend', (text, prefix) => writtenAsText(prefix) + text);
+registerPrimitive('vec/prepend', (vector, element) => [element, ...vector]);
+registerPrimitive('string/append', (text, suffix) => text + writtenAsText(suffix));
+registerPrimitive('vec/append', (vector, element) => [...vector, element]);
 
 // The empty separator cuts the text into its characters, the code points
-// `count` counts, so no character falls in halves, and a pattern cuts it at
-// every match [QSTXT#pattern].
-bindPrim('string/split', (subject, separator) => {
+// `count` counts, so no character falls in halves, and a regex cuts it at
+// every match [QSTXT#split].
+registerPrimitive('string/split', (subject, separator) => {
   if (isRegex(separator)) return piecesBetweenMatches(subject, separator);
   return separator === '' ? Array.from(subject) : subject.split(separator);
 });
 
 // A `\n` ends a line, a `\r` before it belongs to the ending, and a
 // final ending opens no line [QSTXT#string].
-bindPrim('string/lines', subject => {
+registerPrimitive('string/lines', subject => {
   const pieces = subject.split(/\r?\n/);
   if (pieces[pieces.length - 1] === '') pieces.pop();
   return pieces;
 });
 
-bindPrim('vec/join', (subject, separator) => {
+registerPrimitive('vec/join', (subject, separator) => {
   const stranger = subject.findIndex(element => typeof element !== 'string' && !isKeyword(element));
   if (stranger >= 0) throw new VecJoinElementNotStringOrKeywordError({ index: stranger, actualValue: subject[stranger] });
   return subject.map(writtenAsText).join(writtenAsText(separator));
@@ -43,13 +43,13 @@ bindPrim('vec/join', (subject, separator) => {
 
 // The case of a text, folded as Unicode maps the text, a letter to two where it
 // writes two and a final sigma by its place [QSTXT#string].
-bindPrim('string/lower', subject => subject.toLowerCase());
-bindPrim('string/upper', subject => subject.toUpperCase());
+registerPrimitive('string/lower', subject => subject.toLowerCase());
+registerPrimitive('string/upper', subject => subject.toUpperCase());
 
 // The text without the whitespace at its two ends, a line break among it
 // [QSTXT#string].
-bindPrim('string/trim', subject => subject.trim());
+registerPrimitive('string/trim', subject => subject.trim());
 
-bindPrim('string/contains',   (subject, needle) => (isRegex(needle) ? containsMatch(subject, needle) : subject.includes(needle)));
-bindPrim('string/startsWith', (subject, prefix) => subject.startsWith(prefix));
-bindPrim('string/endsWith',   (subject, suffix) => subject.endsWith(suffix));
+registerPrimitive('string/contains',   (subject, needle) => (isRegex(needle) ? containsMatch(subject, needle) : subject.includes(needle)));
+registerPrimitive('string/startsWith', (subject, prefix) => subject.startsWith(prefix));
+registerPrimitive('string/endsWith',   (subject, suffix) => subject.endsWith(suffix));

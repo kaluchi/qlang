@@ -1,17 +1,16 @@
 // The state of the evaluator, the value in the pipe, the scope and the
-// depth of the frames nested under the query, a new one at each step, so
-// a fork leaves the declarations of its inside behind by keeping the
-// state it started from; the scope maps the names a reader declared to
-// their records over the root the host's sources declared, under a key
-// no name spells, a lookup reading the scope and then the root
-// [QSDSP#residence].
+// evaluation depth, a new state at each step, so a fork leaves the
+// declarations of its inside behind by keeping the state it started from;
+// the scope maps the names a reader declared to their records over the root
+// the host's sources declared, under a key no name spells, a lookup reading
+// the scope and then the root [QSDSP#residence], [QSNAM#verb].
 
 import { CallEvaluationDepthExceededError } from './errors.mjs';
 import { ROOT_KEY, QUERY_KEY } from './env-keys.mjs';
 
-// The deepest frame `nestState` admits: a runaway, a verb that calls
-// itself without end, is refused on the frame past it, and the host's
-// heap stays bounded.
+// The deepest evaluation depth `nestState` admits: a runaway, a verb that
+// calls itself without end, is refused one deeper, and the host's heap stays
+// bounded [QSNAM#verb].
 export const EVAL_DEPTH_LIMIT = 1000;
 
 // The calls a state runs within keep the origin of each quote they
@@ -38,19 +37,20 @@ export function withEnv(state, nextEnv) {
   return makeState(state.pipeValue, nextEnv, state.depth, state.calls);
 }
 
-// frameBelow(state) → the depth of the frame one below a state, or
+// depthBelow(state) → the evaluation depth one deeper than a state, or
 // CallEvaluationDepthExceededError once it passes EVAL_DEPTH_LIMIT, its
-// fact `:depth` the refused frame; a frame read with no state of its own
-// meets the budget by it alone.
-export function frameBelow(state) {
+// fact `:depth` the depth refused; a read that runs with no state of its
+// own meets the limit by it alone [QSNAM#verb].
+export function depthBelow(state) {
   const depth = state.depth + 1;
   if (depth > EVAL_DEPTH_LIMIT) throw new CallEvaluationDepthExceededError({ depth, limit: EVAL_DEPTH_LIMIT });
   return depth;
 }
 
-// nestState(state, pipeValue, env) → the state one frame below.
+// nestState(state, pipeValue, env) → the state one deeper in the evaluation
+// depth.
 export function nestState(state, pipeValue, env) {
-  return makeState(pipeValue, env, frameBelow(state), state.calls);
+  return makeState(pipeValue, env, depthBelow(state), state.calls);
 }
 
 // withCall(state, origins) → the state of the run of a call, which keeps

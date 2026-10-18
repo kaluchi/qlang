@@ -1,73 +1,82 @@
-// The root [QSHST#source]: the scope a host's sources declare before the
-// reader's first step, each source a cell run in a scope over the root the
-// sources before it left, the language's first. A source whose run answers an
-// error, or that declares again a name the root holds, is refused; each name
-// under a label a source declares is the host's, which alone reaches an
-// implementation [QSDSP#walk]: a name whose value is `::builtin{}`, or a
-// function whose recipe is or a kind whose constructor is, runs the
-// implementation the host handed beside the source under its name
-// [QSDSP#residence], [QSQUO#modifier], and is refused as the root is
-// declared when it was handed none; a refusal the source declares takes its
-// address, the name it is declared by, once [QSERR#site].
+// The root [QSHST#source]: the scope a host's sources declare before the reader's
+// first step, each source a cell run in a scope over the root the sources
+// before it left, the language's first. A source whose run answers an error,
+// or that declares again a name the root holds, is refused; each name under a
+// label a source declares is the host's, which alone reaches a primitive
+// [QSDSP#walk]: a name whose value is `::builtin{}`, or a function whose
+// recipe is or a kind whose constructor is, runs the primitive the host handed
+// beside the source under its name, the answer of one the table of the core
+// does not hold held at the door [QSDSP#residence], [QSQUO#modifier], and is
+// refused as the root is declared when it was handed none; a refusal the
+// source declares takes its address, the name it is declared by, once [QSERR#site].
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, recipeOf, bindingValueOf, declareHostValue, keyword } from '../types.mjs';
+import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, isPrimitiveHanded, recipeOf, bindingValueOf, takePrimitive, keyword } from '../types.mjs';
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareInvariantError } from '../errors.mjs';
 import { isUnderLabel } from './nouns.mjs';
 
 // A source of the root whose run answers an error, or that declares again
-// a name the root holds, left its declarations out of the root, `:tagName`
-// the refusal and `:name` the name declared again; one the parser refuses
-// raises the parse error with its uri.
+// a name the root holds, left its declarations out of the root, `:origin`
+// the source, `:tagName` the refusal and `:name` the name declared again;
+// one the parser refuses raises the parse error with its uri.
 export const BuiltinRootSourceNotDeclaredError = declareInvariantError('builtin/RootSourceNotDeclaredError',
-  ({ uri, tagName, name }) => `qlang root: the source ${uri} is refused with ${tagName}${name === undefined ? '' : ` for ${name.literal}`}, and its declarations stay out of the root`);
+  ({ origin, tagName, name }) => `qlang root: the source ${origin.name} is refused with ${tagName}${name === undefined ? '' : ` for ${name.literal}`}, and its declarations stay out of the root`);
 
 // A name a source of the root declares as `::builtin{}` that its host
-// handed no implementation for has nothing to run [QSDSP#residence].
-export const BuiltinImplementationNotHandedError = declareInvariantError('builtin/ImplementationNotHandedError',
-  ({ name }) => `qlang root: no implementation is handed for ${name}, which its source declares as ::builtin{}`);
+// handed no primitive for has nothing to run [QSDSP#residence].
+export const BuiltinPrimitiveNotHandedError = declareInvariantError('builtin/PrimitiveNotHandedError',
+  ({ origin, name }) => `qlang root: no primitive is handed for ${name.literal}, which the source ${origin.name} declares as ::builtin{}`);
 
-// An implementation a host hands for a name its source declares as no
-// `::builtin{}` under a label has nothing to run under: a name written in
-// steps runs them, and a bare name reads its value [QSDSP#walk],
-// [QSQUO#modifier].
-export const BuiltinImplementationNamesNoBuiltinError = declareInvariantError('builtin/ImplementationNamesNoBuiltinError',
-  ({ uri, name }) => `qlang root: the source ${uri} is handed an implementation for ${name.literal}, which it declares as no ::builtin{} under a label`);
+// A primitive a host hands for a name its source declares as no `::builtin{}`
+// under a label has nothing to run under: a name written in steps runs them, a
+// bare name reads its value, and one that holds the `::builtin{}` another name
+// took, `:sharedWith`, runs its primitive [QSDSP#walk], [QSQUO#modifier], [QSHST#source].
+export const BuiltinPrimitiveNamesNoBuiltinError = declareInvariantError('builtin/PrimitiveNamesNoBuiltinError',
+  ({ origin, name, sharedWith }) => `qlang root: the source ${origin.name} is handed a primitive for ${name.literal}, ${sharedWith === undefined
+    ? 'which it declares as no ::builtin{} under a label' : `whose ::builtin{} is another name's, ${sharedWith.literal}, whose primitive it runs`}`);
 
 const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 
 
-// declareRoot(env, sources) → the env whose root holds what each source
-// declared, `{ uri, source, impls? }` in order, over the root `env` holds.
-export async function declareRoot(env, sources) {
-  let root = rootOf(env);
-  for (const { uri, source, impls = {} } of sources) {
-    const scope = new Map([[ROOT_KEY, root]]);
-    const answered = await evalAst(parse(source, { uri }), rootState(null, scope));
+// declareRoot(scope, sources) → the scope whose root holds what each source
+// declared, `{ uri, source, primitives? }` in order, over the root `scope`
+// holds: each `::builtin{}` takes the primitive of the first name that holds
+// it, and a name that holds one another name took takes none [QSHST#source].
+export async function declareRoot(scope, sources) {
+  let root = rootOf(scope);
+  for (const { uri, source, primitives = {} } of sources) {
+    const origin = keyword(uri);
+    const sourceScope = new Map([[ROOT_KEY, root]]);
+    const answered = await evalAst(parse(source, { uri }), rootState(null, sourceScope));
     if (isErrorValue(answered.pipeValue)) {
-      throw new BuiltinRootSourceNotDeclaredError({ uri, tagName: answered.pipeValue.tag.literal });
+      throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: answered.pipeValue.tag.literal });
     }
     const declared = new Map([...answered.env].filter(([, record]) => isBinding(record)));
     const again = [...declared.keys()].find(name => root.has(name));
-    if (again !== undefined) throw new BuiltinRootSourceNotDeclaredError({ uri, tagName: DECLARED_TWICE, name: keyword(again) });
+    if (again !== undefined) throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: DECLARED_TWICE, name: keyword(again) });
+    const taking = new Set();
     for (const [name, record] of declared) {
       const builtin = builtinOf(bindingValueOf(record));
-      if (builtin === null) continue;
-      if (impls[name] === undefined) throw new BuiltinImplementationNotHandedError({ name });
-      declareHostValue(builtin, impls[name]);
+      if (builtin === null || isPrimitiveHanded(builtin)) continue;
+      const primitive = primitives[name];
+      if (primitive === undefined) throw new BuiltinPrimitiveNotHandedError({ origin, name: keyword(name) });
+      takePrimitive(builtin, primitive);
+      taking.add(name);
     }
-    for (const implName of Object.keys(impls)) {
-      if (builtinOf(bindingValueOf(declared.get(implName))) === null || !isUnderLabel(answered.env, implName)) {
-        throw new BuiltinImplementationNamesNoBuiltinError({ uri, name: keyword(implName) });
-      }
+    for (const primitiveName of Object.keys(primitives)) {
+      if (taking.has(primitiveName) && isUnderLabel(answered.env, primitiveName)) continue;
+      const held = builtinOf(bindingValueOf(declared.get(primitiveName)));
+      const facts = { origin, name: keyword(primitiveName) };
+      if (held !== null && !taking.has(primitiveName)) facts.sharedWith = keyword([...root, ...declared].find(([, record]) => builtinOf(bindingValueOf(record)) === held)[0]);
+      throw new BuiltinPrimitiveNamesNoBuiltinError(facts);
     }
     root = new Map([...root, ...declared]);
   }
-  return new Map(env).set(ROOT_KEY, root);
+  return new Map(scope).set(ROOT_KEY, root);
 }
 
 // The descriptor of a host's primitive a name holds, itself or as the

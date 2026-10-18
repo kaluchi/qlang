@@ -150,7 +150,7 @@
       another page. A doc without links answers the empty vector, and a
       snippet is no link. A link opens to what its query answers, so
       `::vec | doc | links | map ~open` reads every page the page of vectors
-      names, in one query, and `parse` spells its query. The subject is
+      names, in one query, and `toString` spells its query. The subject is
       a doc, the page of a name read by `doc` first.
       ::link~(::quote/open | doc) ::link~(::doc/snippets | doc)
   ~~|

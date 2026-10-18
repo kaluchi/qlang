@@ -91,8 +91,8 @@ describe('formOf of a binding record and of a vector under a tag', async () => {
 
 describe('typeOf covers all value kinds', () => {
 
-  it('typeOf returns ::unknown for an unrecognized object', () => {
-    expect(typeOf({ type: 'alien' }).name).toBe('unknown');
+  it('typeOf refuses an object of JavaScript, a value of no kind of the language [QSHST#source]', () => {
+    expect(() => typeOf({ type: 'alien' })).toThrow('the core met object Object, a value of no kind of the language');
   });
 
   it('typeOf returns ::binding for a binding record', () => {
@@ -102,7 +102,7 @@ describe('typeOf covers all value kinds', () => {
 });
 
 describe('deepEqual Set vs non-Set non-Array', async () => {
-  it('returns false when first is a set and second is plain object', async () => {
+  it('returns false when first is a set and second is an object of JavaScript', async () => {
     expect(deepEqual(makeSet([1]), {})).toBe(false);
   });
 
@@ -111,14 +111,21 @@ describe('deepEqual Set vs non-Set non-Array', async () => {
   });
 });
 
-describe('error-convert.mjs — errorFromParse without uri', async () => {
-  it('omits :uri from descriptor when ParseError has no .uri', async () => {
+describe('error-convert.mjs — errorFromParse and the origin of a text [QSHST#source]', async () => {
+  it('names no origin where the text came from no source a host named', async () => {
     const parseError = Object.assign(new Error('unexpected token'), { location: null });
-    // no .uri property — tests the false arm of `if (parseError.uri)`
+    // no .uri property — tests the false arm of `if (uri)`
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const errVal = errorFromParse(parseError, await langRuntime());
     expect(isErrorValue(errVal)).toBe(true);
-    expect(errVal.descriptor.has('uri')).toBe(false);
+    expect(errVal.descriptor.has('origin')).toBe(false);
+  });
+
+  it('names as its origin, a keyword, the uri of the source the text came from', async () => {
+    const parseError = Object.assign(new Error('unexpected token'), { location: null, uri: 'shop.qlang' });
+    const { langRuntime } = await import('../../src/runtime/index.mjs');
+    const errVal = errorFromParse(parseError, await langRuntime());
+    expect(errVal.descriptor.get('origin')).toEqual(keyword('shop.qlang'));
   });
 });
 
@@ -222,9 +229,8 @@ describe('printValue — qlang literal serialization', async () => {
     expect(out).toContain(':message "boom"');
   });
 
-  it('falls back to String() for exotic values', async () => {
-    const out = printValue(Symbol('x'));
-    expect(out).toBe('Symbol(x)');
+  it('refuses a value of no kind of the language where it reads its kind [QSHST#source]', async () => {
+    expect(() => printValue(Symbol('x'))).toThrow('the core met symbol Symbol(x), a value of no kind of the language');
   });
 });
 
@@ -314,8 +320,8 @@ describe('printValue round-trip — all composite types', async () => {
     await assertRoundTrip('!{:kind ::Foo :message "boom"}', 'Error');
   });
 
-  it('Error with trail', async () => {
-    await assertRoundTrip('!{:message "boom" :trail ~(| count)}', 'Error trail');
+  it('Error with a trace of another shape', async () => {
+    await assertRoundTrip('!{:message "boom" :trace ~(| count)}', 'Error trace');
   });
 
   it('deeply nested composite', async () => {

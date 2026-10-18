@@ -15,8 +15,8 @@
       `:name` is the keyword it binds, `:docs` one doc for each doc of
       its slot, `:value` what the name holds, `:source` the quote of the
       step that declared it, and `:origin` the source or the cell it was
-      read from. A value a host binds is a binding without a page or a
-      source.
+      read from. A binding no declaration wrote, a node a chain lays among
+      them, holds no source.
       ::link~(::bind | doc) ::link~(::any/binding | doc)
       ::link~(::qlang/names | doc)
   ~~|
@@ -30,4 +30,9 @@
     | proves :holdsTheName
         |~~ The record of a name holds the name. ~~|
         ~(:x 1 | env | get /x | get /name | eq :x)
+    | proves :holdsNoSourceForANodeAChainLays
+        |~~ A binding no declaration wrote, a node a chain lays, holds no
+            source.
+        ~~|
+        ~(::number/add/addend | binding | get /source | eq null)
 

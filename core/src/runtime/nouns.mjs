@@ -6,7 +6,7 @@
 // of a subject's tags the verbs residing on each kind it passes [QSNAM#reach].
 
 import {
-  isBinding, isBuiltinDescriptor, isDoc, isHostDeclared, isMap, isQuote, isVec, isTag, isTagged,
+  isBinding, isBuiltinDescriptor, isDoc, isPrimitiveHanded, isMap, isQuote, isVec, isTag, isTagged,
   isValueClass, isPath, isFn, isKind, recipeOf, makeSet, makeTag, makeTagged,
   typeOf, bindingValueOf, keyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS
 } from '../types.mjs';
@@ -29,14 +29,14 @@ function* bindingsOf(env) {
   for (const [name, entry] of env) if (isBinding(entry)) yield [name, entry];
 }
 
-// nodeOf(env, tagName) → the record of the node a tag name addresses, or null:
-// a label of the root, which no reader declares over [QSDSP#residence], else
-// the nearest declaration of the name, as a step reads it, the reader's before
-// the root's [QSLIT#keyword].
-export function nodeOf(env, tagName) {
-  const rootEntry = rootOf(env).get(tagName);
+// nodeOf(scope, tagName) → the record of the node a tag name addresses, or
+// null: a label of the root, which no reader declares over [QSDSP#residence],
+// else the nearest declaration of the name, as a step reads it, the reader's
+// before the root's [QSLIT#keyword].
+export function nodeOf(scope, tagName) {
+  const rootEntry = rootOf(scope).get(tagName);
   if (isBinding(rootEntry) && declaresALabel(rootEntry)) return rootEntry;
-  const entry = env.get(tagName) ?? rootEntry;
+  const entry = scope.get(tagName) ?? rootEntry;
   return isBinding(entry) ? entry : null;
 }
 
@@ -62,8 +62,8 @@ export function declaresALabel(record) {
 }
 
 // Whether a node is a label, a kind declared under its name [QSNAM#address].
-export function isLabel(env, name) {
-  return declaresALabel(nodeOf(env, name));
+export function isLabel(scope, name) {
+  return declaresALabel(nodeOf(scope, name));
 }
 
 // Whether a name stands under a label, where a quote or a host's
@@ -90,11 +90,11 @@ function residesOn(record, env) {
   return declaresVerb(record.get('name').name, isVerbValue(bindingValueOf(record)), labelName => isLabel(env, labelName));
 }
 
-// isVerb(env, address) → whether the name at the address is a verb; a
+// isVerb(scope, address) → whether the name at the address is a verb; a
 // verb is the label of the args of a call of it [QSNAM#address], [QSBLD#input].
-export function isVerb(env, address) {
-  const record = nodeOf(env, address);
-  return record !== null && residesOn(record, env);
+export function isVerb(scope, address) {
+  const record = nodeOf(scope, address);
+  return record !== null && residesOn(record, scope);
 }
 
 // The value of a verb, a function or a recipe under a label, what runs on
@@ -105,7 +105,7 @@ export function isVerbValue(value) {
 }
 
 export function isRecipe(value) {
-  return isQuote(value) || (isBuiltinDescriptor(value) && isHostDeclared(value));
+  return isQuote(value) || (isBuiltinDescriptor(value) && isPrimitiveHanded(value));
 }
 
 // answerOf(env, address) → the answer of the verb at the address as the
@@ -243,32 +243,32 @@ export function residenceOnSubject(env, verbName, subject) {
   return residenceOf(env, ANY_KIND_NAME, verbName);
 }
 
-// bareNameReach(env, name, subject?) → what a bare name reaches, nearest
+// bareNameReach(scope, name, subject?) → what a bare name reaches, nearest
 // first [QSNAM#reach]: the reader's declaration, the verb residing on a kind the
 // walk of the subject reaches, the one verb of the name residing on a kind,
 // which refuses a subject of another kind, and for a name no kind answers
 // the root's declaration, but for a label of the root, which its tag alone
 // reaches; `{ record, underKind }`, or null when no record answers or verbs
 // of several kinds do.
-export function bareNameReach(env, name, subject) {
-  if (env.has(name) && isBinding(env.get(name))) return { record: env.get(name), underKind: false };
-  const residence = residenceOnSubject(env, name, subject);
+export function bareNameReach(scope, name, subject) {
+  if (scope.has(name) && isBinding(scope.get(name))) return { record: scope.get(name), underKind: false };
+  const residence = residenceOnSubject(scope, name, subject);
   if (residence !== null) return { record: residence, underKind: true };
-  const residences = residencesOf(isRootVerbScope(env) ? rootScopeOf(env) : env, name);
-  const root = rootOf(env);
+  const residences = residencesOf(isRootVerbScope(scope) ? rootScopeOf(scope) : scope, name);
+  const root = rootOf(scope);
   if (residences.length === 0 && root.has(name) && !declaresALabel(root.get(name))) return { record: root.get(name), underKind: false };
   return residences.length === 1 ? { record: residences[0][1], underKind: true } : null;
 }
 
-// residencesOf(env, verbName) → the verbs of a name residing on a kind,
+// residencesOf(scope, verbName) → the verbs of a name residing on a kind,
 // each with its kind, in the order of their declarations, the one on
 // `::any` apart, since it answers every value.
-export function residencesOf(env, verbName) {
+export function residencesOf(scope, verbName) {
   const residences = [];
-  for (const [name, record] of bindingsOf(env)) {
+  for (const [name, record] of bindingsOf(scope)) {
     const [kindName, lastName] = splitAddress(name);
     if (kindName === null || kindName === ANY_KIND_NAME || lastName !== verbName) continue;
-    if (residesOn(record, env)) residences.push([kindName, record]);
+    if (residesOn(record, scope)) residences.push([kindName, record]);
   }
   return residences;
 }
@@ -311,12 +311,12 @@ export function addressesOf(env, verbName) {
 // The verbs a value of the kinds reaches by name, each with its address,
 // from the outside in [QSDSP#walk]: those declared under each kind and the
 // kinds its walk passes beneath it, then those of any value.
-export function verbsReaching(env, kindNames) {
+export function verbsReaching(scope, kindNames) {
   const reached = new Map();
   for (const kindName of new Set([...kindNames.flatMap(kindsWalkedFrom), ANY_KIND_NAME])) {
-    for (const [name, record] of namesUnderOf(env, kindName)) {
+    for (const [name, record] of namesUnderOf(scope, kindName)) {
       const verb = bindingValueOf(record);
-      if (!residesOn(record, env) || reached.has(name)) continue;
+      if (!residesOn(record, scope) || reached.has(name)) continue;
       reached.set(name, { address: makeTag(`${kindName}/${name}`), verb });
     }
   }
@@ -365,13 +365,13 @@ export const payloadRefusalName = each => `${each ? 'Element' : 'Payload'}KindNo
 const kindsWord = kinds => kinds.map(capitalOf).join('Or');
 const capitalOf = name => { const [, word] = splitAddress(name); return word[0].toUpperCase() + word.slice(1); };
 
-// ruleRefusalsOf(env, address) → the addresses of the refusals a verb or a
+// ruleRefusalsOf(scope, address) → the addresses of the refusals a verb or a
 // kind at the address may raise by rule, which its chain pages: a verb's
 // read from its function, a recipe's from the function of no commands it
 // is, and a kind's from its commands [QSERR#site].
-export function ruleRefusalsOf(env, address) {
+export function ruleRefusalsOf(scope, address) {
   const [labelName] = splitAddress(address);
-  const value = bindingValueOf(nodeOf(env, address));
+  const value = bindingValueOf(nodeOf(scope, address));
   if (isKind(value)) return kindRuleRefusalsOf(chainOfKind(value), address);
   return functionRuleRefusalsOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, labelName);
 }
@@ -523,17 +523,17 @@ export function namesDeclaredUnder(env, address) {
 
 // The names of every node, which a guessed tag name is held against
 // [QSSLF#near].
-export function nodeAddresses(env) {
-  return [...bindingsOf(env)].map(([name]) => name);
+export function nodeAddresses(scope) {
+  return [...bindingsOf(scope)].map(([name]) => name);
 }
 
 // The names the verbs and the names under a label go by, which a guessed
 // name of a step is held against beside the scope's [QSSLF#near].
-export function verbNames(env) {
+export function verbNames(scope) {
   const names = new Set();
-  for (const [name, record] of bindingsOf(env)) {
+  for (const [name, record] of bindingsOf(scope)) {
     const [nounName, lastName] = splitAddress(name);
-    if (nounName !== null && residesOn(record, env)) names.add(lastName);
+    if (nounName !== null && residesOn(record, scope)) names.add(lastName);
   }
   return names;
 }

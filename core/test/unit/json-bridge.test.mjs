@@ -5,7 +5,8 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
 import { isMap, isVec, formOf, typeOf, makeTag } from '../../src/types.mjs';
-import { fromJsonText, fromPlain, toPlain, BuiltinJsonValueNotEncodableError } from '../../src/runtime/format.mjs';
+import { fromJsonText, fromPlain, toPlain } from '../../src/runtime/format.mjs';
+import { BuiltinForeignValueError } from '../../src/types.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
   it('an object literal is a map keyed by the keywords of its strings', async () => {
@@ -98,15 +99,15 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
   });
 });
 
-describe('toPlain refuses a value JSON has no form for', () => {
-  it('refuses a raw object of the host', () => {
-    expect(() => toPlain(new Date())).toThrow(BuiltinJsonValueNotEncodableError);
+describe('toPlain refuses a value of no kind of the language where it reads its kind [QSHST#source]', () => {
+  it('refuses an object of JavaScript a host handed', () => {
+    expect(() => toPlain(new Date())).toThrow(BuiltinForeignValueError);
   });
 
-  it('names the JavaScript type of what it refused', () => {
+  it('names what it refused as JavaScript holds it, and no kind of it', () => {
     let refused;
-    try { toPlain(Symbol('s')); } catch (error) { refused = error; }
-    expect(refused.facts.actualType).toBe('symbol');
+    try { toPlain([Symbol('s')]); } catch (error) { refused = error; }
+    expect(refused.facts).toEqual({ actualValue: 'symbol Symbol(s)' });
   });
 });
 

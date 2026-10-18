@@ -3,16 +3,16 @@
 //
 // Input format — each line is one of:
 //   |~| ...    — a comment to the end of its line
-//   > expr     — REPL prompt + qlang expression
-//     expr     — pipeline continuation (two-space indent)
+//   > query    — REPL prompt + qlang query
+//     query    — pipeline continuation (two-space indent)
 //   result     — plain result / output line
 //
 // All qlang source lines (prompt + continuation) are concatenated before
-// highlighting so multi-line expressions get correct context, then the
+// highlighting so a query of several lines gets its context, then the
 // highlighted lines are mapped back 1-to-1.
 //
 // @param {string}   code     — raw demo block text
-// @param {Set}      builtins — Set of the names of the verbs of the language
+// @param {Set}      verbNames — Set of the names of the verbs of the language
 // @returns {string} HTML string
 // The rules it holds: [QSWRK#tooling].
 
@@ -31,14 +31,14 @@ function classifyLines(lines) {
   });
 }
 
-export function formatExample(code, builtins) {
+export function formatExample(code, verbNames) {
   const infos = classifyLines(code.split('\n'));
 
   const combined = infos
     .filter(l => l.type === 'prompt' || l.type === 'cont')
     .map(l => l.content)
     .join('\n');
-  const hlSplit = highlightQlang(combined, builtins).split('\n');
+  const hlSplit = highlightQlang(combined, verbNames).split('\n');
 
   let codeIdx = 0;
   return infos.map(({ type, content }) => {
@@ -46,7 +46,7 @@ export function formatExample(code, builtins) {
       case 'comment': return `<span class="comment">${esc(content)}</span>`;
       case 'prompt':  return `<span class="punct">&gt; </span>${hlSplit[codeIdx++] ?? ''}`;
       case 'cont':    return `  ${hlSplit[codeIdx++] ?? ''}`;
-      default:        return highlightQlang(content, builtins);
+      default:        return highlightQlang(content, verbNames);
     }
   }).join('\n');
 }

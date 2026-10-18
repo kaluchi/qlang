@@ -72,9 +72,9 @@ function diffByArea(fromRef, toRef, areaOf) {
 }
 
 // git grep exits 1 when nothing matches, which reads as a count of zero.
-function matchingLines(ref, pattern, pathspec) {
+function matchingLines(ref, regex, pathspec) {
   let matches;
-  try { matches = git(['grep', '-I', '-c', '-E', '-e', pattern, ref, '--', pathspec]); } catch { return 0; }
+  try { matches = git(['grep', '-I', '-c', '-E', '-e', regex, ref, '--', pathspec]); } catch { return 0; }
   return matches.split('\n').filter(Boolean).reduce((total, row) => total + Number(row.slice(row.lastIndexOf(':') + 1)), 0);
 }
 
@@ -88,7 +88,7 @@ const SURFACE = [
 // and the language server, which falls on every branch [QSWRK#code].
 const COMMENTED_SOURCES = ['core/src', 'cli/src', 'lsp/src'];
 function commentRatio(ref) {
-  const lines = pattern => COMMENTED_SOURCES.reduce((total, root) => total + matchingLines(ref, pattern, root), 0);
+  const lines = regex => COMMENTED_SOURCES.reduce((total, root) => total + matchingLines(ref, regex, root), 0);
   const comments = lines('^[[:space:]]*//');
   return comments / (lines('[^[:space:]]') - comments);
 }
@@ -111,8 +111,8 @@ function printSummary(fromRef, toRef) {
   }
   console.log(`${'total'.padEnd(17)}${String(total.before).padStart(6)} → ${String(total.after).padEnd(6)}` +
     `${signed(total.after - total.before).padEnd(7)} +${total.added} −${total.removed}`);
-  for (const [label, pattern, pathspec] of SURFACE) {
-    console.log(`${label}: ${matchingLines(fromRef, pattern, pathspec)} → ${matchingLines(toRef, pattern, pathspec)}`);
+  for (const [label, regex, pathspec] of SURFACE) {
+    console.log(`${label}: ${matchingLines(fromRef, regex, pathspec)} → ${matchingLines(toRef, regex, pathspec)}`);
   }
   console.log(`comment lines per code line: ${commentRatio(fromRef).toFixed(3)} → ${commentRatio(toRef).toFixed(3)}`);
 }

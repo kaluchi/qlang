@@ -7,10 +7,10 @@ import { describe, it, expect } from 'vitest';
 import { Readable } from 'node:stream';
 import { runRepl } from '../src/repl.mjs';
 
-const ANSI_PATTERN = /\x1b\[[0-9;]*m/g;
+const ANSI_ESCAPE = /\x1b\[[0-9;]*m/g;
 
 function stripAnsi(text) {
-  return text.replace(ANSI_PATTERN, '');
+  return text.replace(ANSI_ESCAPE, '');
 }
 
 function captureRepl(scriptedInput) {
@@ -81,16 +81,16 @@ describe('runRepl — query evaluation', () => {
     expect(replHarness.stderrText()).toBe('');
   });
 
-  it('prints the path of an error in its display without explicit !|', async () => {
+  it('prints the trace of an error in its display without explicit !|', async () => {
     const replHarness = captureRepl('"hello" | add 1 | mul 2 | sub 3\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const text = stripAnsi(replHarness.stdoutText());
-    expect(text).toMatch(/:trail/);
+    expect(text).toMatch(/:trace/);
     expect(text).toMatch(/mul/);
     expect(text).toMatch(/sub/);
   });
 
-  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout [QSHST#answer]', async () => {
+  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout, its caret drawn below it [QSHST#answer]', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // REPL paints output with ANSI colour codes — strip before
@@ -98,6 +98,7 @@ describe('runRepl — query evaluation', () => {
     const text = replHarness.stdoutText().replace(/\x1b\[[0-9;]*m/g, '');
     expect(text).toContain('::quote/ParseError!{');
     expect(text).toContain(':source "[1 2"');
+    expect(text).toContain('}\n|~| [1 2\n|~|     ^\n');
     expect(replHarness.stderrText()).toBe('');
   });
 });
@@ -177,8 +178,8 @@ describe('runRepl — output highlighting', () => {
 });
 
 describe('runRepl — error rendering', () => {
-  it('renders an error value with its path through the same printValue path as success values', async () => {
-    // The path of an error is written as it flows [QSERR#rest], so the value
+  it('renders an error value with its trace through the same printValue path as success values', async () => {
+    // The trace of an error is written as it flows [QSERR#trace], so the value
     // the cell answers already holds every frame and every skipped
     // step. The REPL renders the value verbatim through `printValue`.
     const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
@@ -221,7 +222,7 @@ describe('runRepl — the first cell given on the command line', () => {
 describe('runRepl — the budget of an answer', () => {
   const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
 
-  it('prints a value past its budget with a marker that reads the rest', async () => {
+  it('prints a value past its budget with an elision that reads the rest', async () => {
     const replHarness = captureRepl(`${forty}\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toContain('::elision{');
@@ -231,12 +232,20 @@ describe('runRepl — the budget of an answer', () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trail/1/0)');
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/1/0)');
   });
 
   it('prints an error within the budget', async () => {
     const replHarness = captureRepl(`${forty} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 200, terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trail/');
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/');
+  });
+
+  it('draws no caret where the budget left the line of a refused text out of its alert [QSHST#answer]', async () => {
+    const replHarness = captureRepl(`${forty} x\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
+    const printed = stripAnsi(replHarness.stdoutText());
+    expect(printed).toContain(':source ::elision{');
+    expect(printed).not.toContain('|~| [1 2');
   });
 });

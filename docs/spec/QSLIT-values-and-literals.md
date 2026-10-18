@@ -12,7 +12,7 @@ The requirements of each section are the cases of its file under
 
 Every value has a kind: the outermost tag of its stack, and for a value
 with no tag of its own, the kind of the core its literal implies. `[…]`
-implies the vector, `{…}` the map, `#"…"` the pattern, `::regex`, `/a`
+implies the vector, `{…}` the map, `#"…"` the regex, `::regex`, `/a`
 the path, and a number, a string, a keyword, a tag name, a boolean and
 null each have their own; `#[…]` writes the set, `~(…)` the quote,
 `|~~ … ~~|` the doc and `!{…}` the error, each a payload under the tag of
@@ -215,11 +215,11 @@ as prose.
 Every value comes apart into the set of its atoms and a shape, and the
 shape applied to the set builds a value equal to the first. The atoms
 are the leaves the decomposition stops at: null, booleans, numbers,
-strings, patterns, keywords, tag names and paths, each once and in the
+strings, regexes, keywords, tag names and paths, each once and in the
 one order; the keys of maps and the tags over payloads are atoms as the
 other leaves are. The shape is a quote that reads the value back by
 `get` over a template of the reads of its parts: an atom by the path of
-its place in the set, a vector as the vector of its elements' reads, a
+its index in the set, a vector as the vector of its elements' reads, a
 map from the pairs of its keys and values by `indexBy`, and a tagged
 value, a set, a quote, a doc and an error at rest among them, from its
 tag and its payload by `tag`. Every value comes back so, each example of

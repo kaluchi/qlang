@@ -4,10 +4,11 @@
 // met or open. A record of the language that no case names and no record
 // replaces whole is still being decided [QSWRK#baseline].
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { readText as textOf } from './tree-reads.mjs';
 
-const readText = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
+const readText = path => textOf(path).replace(/\r\n/g, '\n');
 
 // The journal, the apophatic texts of the tree [QSWRK#documents]: the records
 // in force at its root, those out of force under `replaced/`, each moved
@@ -29,7 +30,7 @@ export const RESEARCH_FOLDERS = [
   { folder: 'pentimento-audit', shape: 'run' },
 ];
 // foldersShaped(shape) → the folders of that shape as one alternation of a
-// pattern.
+// regex.
 export const foldersShaped = shape => RESEARCH_FOLDERS.filter(entry => entry.shape === shape).map(({ folder }) => folder).join('|');
 
 // statementsOf(text) → the statements of a record, each `{ text, from, to }`

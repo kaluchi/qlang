@@ -1,21 +1,20 @@
-// The view of a value within a budget of characters of its print
-// [QSPRN#elide]: while the print exceeds the budget, the largest part, or a
-// part within it that prints more than half of it, gives way to a value of
-// the kind `::elision`, a vector or a set keeping the first
-// half of its elements and ending with a marker of the rest, and a map, a
-// string, a doc or a quote beneath the top giving way whole; the top keeps
-// its shape, a vector or a set there halving to its first element at the
-// least. A part gives way only where the least it gives way to prints
-// shorter than it. A marker holds
+// The view of a value within a budget of characters of its print: while the
+// print exceeds the budget, the largest part, or a part within it that prints
+// more than half of it, gives way to an elision, a value of the kind
+// `::elision`, a vector or a set keeping the first half of its elements and
+// ending with an elision of the rest, and a map, a string, a doc or a quote
+// beneath the top giving way whole; the top keeps its shape, a vector or a
+// set there halving to its first element at the least. A part gives way only
+// where the least it gives way to prints shorter than it. An elision holds
 // `:size`, what it stands for counted, `:read`, the quote that applied to the
 // value taken answers the part left out, and for a string, a doc and a quote
 // `:head`, the first characters of its text. The print measured is the one a
 // host writes, a part a kind prints its own way standing as that kind prints
-// it [QSPRN#print].
+// it [QSPRN#elide].
 //
 // A failure a host prints is an alert [QSHST#answer]: its tag and its facts, the data
 // it carries cut to what places the failure. The subject of the first frame
-// of its trail, where the failure arose, and every other fact print within an
+// of its trace, where the failure arose, and every other fact print within an
 // excerpt each; the subject of every later frame, which the failure only
 // passed, gives way whole. Every `:read` reads its part beneath `!|`.
 //
@@ -29,8 +28,8 @@
 // part, or undefined where the forms of the core write it.
 
 import {
-  isVec, isSet, isQuote, isDoc, isVecOfOwnKind, isMap, isErrorValue, isValueClass, isFrame, isTrail,
-  makeTagged, beneathTags, makeErrorValue, makeFrame, makePath, makeQuote, makeSet, makeTrail, stampTagHeader, TAG_HEADER_SYMBOL,
+  isVec, isSet, isQuote, isDoc, isVecOfOwnKind, isMap, isErrorValue, isValueClass, isFrame, isTrace,
+  makeTagged, beneathTags, makeErrorValue, makeFrame, makePath, makeQuote, makeSet, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL,
   ELISION_TAG, FAIL_TAG, SET_TAG
 } from './types.mjs';
 import { printValue } from './runtime/print-value.mjs';
@@ -42,8 +41,8 @@ const printedByTheCore = () => undefined;
 
 const measureBy = (printedOf, oneLine = false) => value => printValue(value, 0, printedOf, oneLine).length;
 
-// A marker is a map under `::elision`, the tag stamped on the map.
-function isMarker(value) {
+// An elision is a map under `::elision`, the tag stamped on the map.
+function isElision(value) {
   return isMap(value) && value[TAG_HEADER_SYMBOL]?.name === ELISION_TAG.name;
 }
 
@@ -83,7 +82,7 @@ function readOf(start, path, kept = null) {
   return makeQuote(steps);
 }
 
-function marker(fields) {
+function elisionOf(fields) {
   return makeTagged(ELISION_TAG, new Map(fields));
 }
 
@@ -94,7 +93,7 @@ function marker(fields) {
 // and its place, its subject alone giving way [QSHST#answer], and a part a kind
 // prints its own way stands as that kind prints it.
 function partsOf(value, path, printedOf, parts, underTag = false) {
-  if (isMarker(value) || printedOf(value) !== undefined) return;
+  if (isElision(value) || printedOf(value) !== undefined) return;
   if (isFrame(value)) return partsOf(value[0], [...path, 0], printedOf, parts);
   const beneath = path.length > 0;
   if (beneath && isText(value)) parts.push({ path, value });
@@ -112,41 +111,41 @@ function partsOf(value, path, printedOf, parts, underTag = false) {
   }
 }
 
-// A vector's elements before the marker of its rest, a marker an element
+// A vector's elements before the elision of its rest, an elision an element
 // gave way to being an element, and what the rest stands for [QSPRN#elide].
 function vectorParts(value) {
   const trailing = value.length > 0 && isRemainder(value[value.length - 1]) ? value[value.length - 1] : null;
   return { elements: trailing === null ? value : value.slice(0, -1), standsFor: trailing === null ? 0 : trailing.get('size') };
 }
 
-// The marker of a vector's rest, whose read drops the elements kept.
+// The elision of a vector's rest, whose read drops the elements kept.
 function isRemainder(value) {
-  const read = isMarker(value) ? value.get('read') : null;
+  const read = isElision(value) ? value.get('read') : null;
   const last = isQuote(read) ? read[read.length - 1] : null;
   return isMap(last) && last.get('name')?.name === 'drop';
 }
 
-// The marker a part gives way to whole: a text's with its head, a vector's
+// The elision a part gives way to whole: a text's with its head, a vector's
 // and a set's standing for every element it held, a map's for its entries.
 function wholeOf(part, start) {
   const { path, value } = part;
   if (isText(value)) {
     const text = textOf(value);
     const size = lengthOf(text);
-    return marker([['size', size], ['read', readOf(start, path)], ['head', headOf(text, Math.min(HEAD_CHARACTERS, Math.floor(size / 2)))]]);
+    return elisionOf([['size', size], ['read', readOf(start, path)], ['head', headOf(text, Math.min(HEAD_CHARACTERS, Math.floor(size / 2)))]]);
   }
   if (halves(value)) {
     const { elements, standsFor } = vectorParts(value);
-    return marker([['size', elements.length + standsFor], ['read', readOf(start, path)]]);
+    return elisionOf([['size', elements.length + standsFor], ['read', readOf(start, path)]]);
   }
-  return marker([['size', value.size], ['read', readOf(start, path)]]);
+  return elisionOf([['size', value.size], ['read', readOf(start, path)]]);
 }
 
-// A vector or a set keeping its first elements and ending with a marker of
+// A vector or a set keeping its first elements and ending with an elision of
 // the rest, a set in the order of the value taken until the view is done.
 function halvedTo({ path, value }, kept, start, working) {
   const { elements, standsFor } = vectorParts(value);
-  const halved = [...elements.slice(0, kept), marker([['size', elements.length - kept + standsFor], ['read', readOf(start, path, kept)]])];
+  const halved = [...elements.slice(0, kept), elisionOf([['size', elements.length - kept + standsFor], ['read', readOf(start, path, kept)]])];
   if (isSet(value)) stampTagHeader(halved, SET_TAG);
   working.add(halved);
   return halved;
@@ -154,7 +153,7 @@ function halvedTo({ path, value }, kept, start, working) {
 
 // What a part gives way to: a vector or a set its first half while it holds
 // more than one element, and any other part, a vector of one among them, its
-// marker.
+// elision.
 function givenWay(part, start, working) {
   if (!halves(part.value)) return wholeOf(part, start);
   const { elements } = vectorParts(part.value);
@@ -162,8 +161,8 @@ function givenWay(part, start, working) {
   return kept === elements.length ? wholeOf(part, start) : halvedTo(part, kept, start, working);
 }
 
-// The least a part gives way to: the top its first element and a marker of
-// the rest, any other part its marker.
+// The least a part gives way to: the top its first element and an elision of
+// the rest, any other part its elision.
 function leastOf(part, start, working) {
   return part.path.length === 0 ? halvedTo(part, 1, start, working) : wholeOf(part, start);
 }
@@ -185,9 +184,9 @@ function replacedAt(value, path, replacement, working) {
   return copy;
 }
 
-// The view as a value: each set elide built stands in the one order again
-// [QSORD#order], the reads of its markers written against the order of the
-// value taken.
+// The view as a value: each set elide built stands in the one order again,
+// the reads of its elisions written against the order of the value taken
+// [QSPRN#elide].
 function inOrder(value, working) {
   if (!working.has(value)) return value;
   if (isValueClass(value, 'underTag')) return makeTagged(value.tag, inOrder(value.payload, working));
@@ -251,22 +250,22 @@ function excerptOf(value, read, printedOf, oneLine = false) {
   return measureBy(printedOf, oneLine)(cut) > EXCERPT_CHARACTERS ? passedOver(value, read, printedOf, oneLine) : cut;
 }
 
-// A subject the failure only passed, given way whole where its marker is
+// A subject the failure only passed, given way whole where its elision is
 // the shorter print: the characters of a text through the tags over it,
 // the elements or the entries it stands for, and the read that reaches it.
 function passedOver(value, read, printedOf, oneLine = false) {
   const sizeOf = measureBy(printedOf, oneLine);
   const beneath = beneathTags(value);
   const size = isText(beneath) ? lengthOf(textOf(beneath)) : isVec(value) ? value.length : isMap(value) ? value.size : sizeOf(value);
-  const shown = marker([['size', size], ['read', readOf(read, [])]]);
+  const shown = elisionOf([['size', size], ['read', readOf(read, [])]]);
   return sizeOf(shown) < sizeOf(value) ? shown : value;
 }
 
-// The trail of an alert: each frame keeps its steps and its place, the
+// The trace of an alert: each frame keeps its steps and its place, the
 // subject of the first within its excerpt, of every later one given way
 // whole, each measured on the one line a frame prints on [QSHST#answer].
-function framesOf(trail, read, printedOf) {
-  return makeTrail(trail.map(([subject, steps, place = null], index) => {
+function framesOf(trace, read, printedOf) {
+  return makeTrace(trace.map(([subject, steps, place = null], index) => {
     const subjectRead = readBelow(read, [index, 0]);
     return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true) : passedOver(subject, subjectRead, printedOf, true), steps, place);
   }));
@@ -276,12 +275,12 @@ export function alertOf(error, printedOf = printedByTheCore) {
   const facts = new Map();
   for (const [name, value] of error.descriptor) {
     const factRead = readBelow(OF_THE_FACTS, [name]);
-    facts.set(name, isTrail(value) ? framesOf(value, factRead, printedOf) : excerptOf(value, factRead, printedOf));
+    facts.set(name, isTrace(value) ? framesOf(value, factRead, printedOf) : excerptOf(value, factRead, printedOf));
   }
   return makeErrorValue(error.tag, facts);
 }
 
-// Within a budget an alert gives way within its facts, its trail keeping its
+// Within a budget an alert gives way within its facts, its trace keeping its
 // frames, so the error stays one the core builds, and every `:read` reads
 // beneath `!|`.
 export function elideAnswer(answer, budget = null, printedOf = printedByTheCore) {

@@ -1,10 +1,10 @@
 // The primitives of code as a value: `parse`, which reads source text into a
-// quote and prints a quote as its text, `apply`, which runs a quote or a path
-// against the subject, and a function with a vector of args, as a call holds
-// its args, and `open`, which runs the query a quote holds as held code, in a
-// lane of its own [QSQUO#apply].
+// quote, `toString`, which writes a quote as the text of its code, `apply`,
+// which runs a quote or a path against the subject, and a function with a
+// vector of args, as a call holds its args, and `open`, which runs the query a
+// quote holds as held code, in a lane of its own [QSQUO#apply].
 
-import { bindPrim, bindStateReader, runs } from '../primitives.mjs';
+import { registerPrimitive, registerStateReader, runs } from '../primitives.mjs';
 import { quoteOfSource, printQuoteSource } from '../quote.mjs';
 import { errorFromParse } from '../error-convert.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -13,21 +13,21 @@ import { codeOf, applyFunction } from '../eval.mjs';
 
 const AnyApplyArgsNotTakenError = declareRefusal('any/apply/args/NotTakenError');
 
-// A source the parser refuses answers the `::quote/ParseError` with
-// the location and the excerpt of the source; a quote answers the
-// source it prints as.
-bindStateReader('string/parse', (source, state) => {
+// A source the parser refuses answers the `::quote/ParseError` with the
+// location and the line where the reading stopped, and a quote writes the text of its
+// code, its steps as the printer writes them [QSQUO#parse].
+registerStateReader('string/parse', (source, state) => {
   try {
     return quoteOfSource(source, 'string/parse');
   } catch (parseErr) {
     return errorFromParse(parseErr, state.env);
   }
 });
-bindPrim('quote/parse', quote => printQuoteSource(quote));
+registerPrimitive('quote/toString', quote => printQuoteSource(quote));
 
 // A function takes the args its inputs read, and a quote and a path take
 // none.
-bindStateReader('any/apply', runs(['code'], async (subject, code, args, state) => {
+registerStateReader('any/apply', runs(['code'], async (subject, code, args, state) => {
   if (isFn(code)) return await applyFunction(code, subject, args, state);
   if (args.length > 0) throw new AnyApplyArgsNotTakenError({ actualValue: args });
   return await code(subject);
@@ -37,4 +37,4 @@ bindStateReader('any/apply', runs(['code'], async (subject, code, args, state) =
 // of the step that opens it; the walk of its subject hands the quote
 // beneath the tags of a link or a snippet, so a page names the verbs and
 // the labels its reader's scope holds [QSQUO#held].
-bindStateReader('quote/open', async (query, state) => await codeOf(query, state)(null));
+registerStateReader('quote/open', async (query, state) => await codeOf(query, state)(null));

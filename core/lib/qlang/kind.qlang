@@ -108,7 +108,7 @@
         ~(:Shop |~~ A shop. ~~| | ::Shop{:a 1} | type | eq ::Shop)
     | proves :readsBackFromItsPrint
         |~~ The print of a kind reads back as the kind. ~~|
-        ~(::kind | wraps |~~ The sizes. ~~| ::map | :k it | print | parse | apply it | eq k)
+        ~(::kind | wraps |~~ The sizes. ~~| ::map | :k it | print | parse | open | eq k)
     | proves :laysItsTagOverThePayload
         |~~ A value put under a kind is the payload under its tag. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map)

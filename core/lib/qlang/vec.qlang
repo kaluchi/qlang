@@ -10,8 +10,8 @@
 :vec
   |~~ A vector is an ordered list of values of any kinds, `[1 "a" [2]]`:
       the value of a JSON array and the shape most answers take. Its
-      elements are read by their place from zero, `get /0`, a negative
-      place from the end, `get /-1`; a place past the end is a failure
+      elements are read by their index from zero, `get /0`, a negative
+      index from the end, `get /-1`; an index past the end is a failure
       there, and `query` reads softly.
 
       It is written in brackets, its elements set off by spaces,
@@ -46,7 +46,7 @@
         ~~|
     | proves :takesCommas
         |~~ A comma between every two elements writes the same vector. ~~|
-        ~("[1, 2]" | parse | apply it | eq [1 2])
+        ~("[1, 2]" | parse | open | eq [1 2])
     | proves :takesCommasBetweenAllOrNone
         |~~ A literal writes a comma between every two elements or between
             none.
@@ -227,9 +227,9 @@
       answering `10`, and `0` for the empty vector. An element that is
       no number, a string, a record or null among them, is refused at its
       index, so a field of each record is read first, `map /amount | sum`.
-      A set adds each element once, `:index` naming a place in its one
-      order, so the set of a vector's elements may sum to less than the
-      vector, and a map sums its values by a `sum` of its own. Two fields
+      A set adds each element once, `:index` counting its one order, so
+      the set of a vector's elements may sum to less than the vector, and
+      a map sums its values by a `sum` of its own. Two fields
       of one record add by `sumOf /x /y`, and a number is added to each
       element by `map ~(add 1)`.
       ::link~(::vec/avg | doc) ::link~(::any/sumOf | doc)
@@ -265,9 +265,9 @@
     | proves :addsOnceWhatASetHolds
         |~~ The set of a vector's elements adds a repeated one once. ~~|
         ~([1 1 2] | get [~(sum) ~(toSet | sum)] | eq [4 3])
-    | proves :ElementNotNumberError/namesThePlaceInTheOneOrderOfASet
-        |~~ The index a set is refused at is the place in its one order,
-            not where the element was written.
+    | proves :ElementNotNumberError/namesTheIndexInTheOneOrderOfASet
+        |~~ The index a set is refused at counts its one order, not where
+            the element was written.
         ~~|
         ~(["two" 1] | toSet | sum !| get [~(type) /index] | eq [::vec/sum/ElementNotNumberError 1])
     | impl ::builtin{}
@@ -462,8 +462,8 @@
       `map ~(add 1 !| 0)`, keeps every element. The answers stand in a
       vector of their own, under no tag of the subject, whose tags speak
       of the elements it held; a quote maps its steps, a doc its segments
-      and a set its elements in its one order, equal images each in its
-      place, which `toSet` makes a set. A map answers `map` by a verb of
+      and a set its elements in its one order, equal images each at its
+      index, which `toSet` makes a set. A map answers `map` by a verb of
       its own; `filter` keeps the elements a predicate holds of, and
       `reduce` folds them into one value.
       ::link~(::vec/filter | doc) ::link~(::vec/reduce | doc)
@@ -506,7 +506,7 @@
         ~(:k 10 | [1 2] | map ~(mul k) | eq [10 20])
     | proves :answersTheFirstFailure
         |~~ The first error answers the call. ~~|
-        ~([1 "a" "b"] | map ~(add 1) !| trail | first | subject | eq "a")
+        ~([1 "a" "b"] | map ~(add 1) !| trace | first | subject | eq "a")
     | proves :recoversAFailedElement
         |~~ A code that recovers keeps every element. ~~|
         ~([1 "x"] | map ~(add 1 !| 0) | eq [2 0])
@@ -539,7 +539,7 @@
         ~([1 "a" 3] | map ~(add 1 !| 0) | eq [2 0 4])
     | proves :mapsASetInItsOneOrderIntoAVector
         |~~ A set maps its elements in its one order into a vector, equal
-            images each in its place.
+            images each at its index.
         ~~|
         ~(#[3 1 2] | map ~(gt 1) | eq [false true true])
     | impl ::builtin{}
@@ -558,8 +558,8 @@
       `filter ~(allOf /active (get /age | gte 18))`. The answer keeps the
       kind of the subject: a vector under a tag stays under it, a quote
       keeps the steps that hold, a doc the segments and a set a set, its
-      `:index` the place of an element in its one order; a map answers
-      `filter` by a verb of its own.
+      `:index` counting its one order; a map answers `filter` by a verb
+      of its own.
       ::link~(::vec/every | doc) ::link~(::any/allOf | doc)
   ~~|
   ::fn
@@ -631,9 +631,9 @@
         ~([1 2] | filter ~(1)
           !| get [~(type) /index /actualType]
           |  eq [::vec/filter/ConditionNotBooleanError 0 ::number])
-    | proves :ConditionNotBooleanError/namesThePlaceInTheOneOrderOfASet
-        |~~ The index a set is refused at is the place in its one order,
-            not where the element was written.
+    | proves :ConditionNotBooleanError/namesTheIndexInTheOneOrderOfASet
+        |~~ The index a set is refused at counts its one order, not where
+            the element was written.
         ~~|
         ~(["two" 1] | toSet | filter ~(if (eq 1) ~(true) ~(it))
           !| get [~(type) /index]
@@ -829,7 +829,7 @@
         |~~ A keyword is not its string. ~~|
         ~([:a] | has "a" | not)
     | proves :asksWhetherAPathReads
-        |~~ A path asks whether it reads, a place within a place among
+        |~~ A path asks whether it reads, an index within an index among
             them.
         ~~|
         ~([1 [2]] | has /1/0)
@@ -1123,17 +1123,17 @@
   |~~ Answers the elements in the one order of values, the order every
       value takes against every other, the way a reader ranks what a query
       found, `[3 1 4 1 5] | sort` answering `[1 1 3 4 5]`. Kinds come
-      first, null, boolean, number, string, pattern, keyword, tag name,
+      first, null, boolean, number, string, regex, keyword, tag name,
       path, vector, set, map, quote, doc, elision and desc, then every
       other tag by its name, the errors among them; strings order by
       their characters, an upper letter before a lower one.
 
       With a key the call gives the elements rank by what the key answers
-      for each, a vector key place by place, so
+      for each, a vector key index by index, so
       `sort ~(get [~(get /count | desc) ~(get /name)])` reads as
-      `ORDER BY count DESC, name`, and a first place of `eq null` puts
+      `ORDER BY count DESC, name`, and `eq null` at the first index puts
       null last; elements the key leaves alike keep the order of the
-      subject, and `desc` turns the key, or one place of it, to descend.
+      subject, and `desc` turns the key, or one index of it, to descend.
       The key is code run on each element, a path, `/age`, or a quote,
       `~(get /name | lower)`; a value computed at the call other than
       null, which gives no key, is refused, one key is
@@ -1158,7 +1158,7 @@
         ~~|
     | returns |~~ The elements in the order the key ranks them. ~~| ::vec
     | throws :ArgsBeyondInputsError
-        |~~ `sort` takes one key; a key that ranks by several places is a
+        |~~ `sort` takes one key; a key that ranks by several indices is a
             vector, `sort ~(get [/a /b])`.
         ~~|
     | proves :ordersNumbers
@@ -1178,15 +1178,15 @@
     | proves :ordersByTheKey
         |~~ A key orders by what it answers for each element. ~~|
         ~([{:age 30} {:age 20}] | sort /age | eq [{:age 20} {:age 30}])
-    | proves :ranksByTheFirstPlace
-        |~~ A vector key ranks by its first place. ~~|
+    | proves :ranksByTheFirstIndex
+        |~~ A vector key ranks by its first index. ~~|
         ~([{:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b]) | map /b | eq [9 1])
-    | proves :breaksTiesByTheNextPlace
-        |~~ A vector key breaks the ties of its first place by its next. ~~|
+    | proves :breaksTiesByTheNextIndex
+        |~~ A vector key breaks the ties of its first index by its next. ~~|
         ~([{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~(get [~(get /n | desc) /s]) | map /s
           |  eq ["a" "c" "b"])
     | proves :putsNullLast
-        |~~ A first place of `eq null` puts null last. ~~|
+        |~~ `eq null` at the first index puts null last. ~~|
         ~([3 null 1] | sort ~(get [~(eq null) ~(it)]) | eq [1 3 null])
     | proves :keepsTheOrderOfAlikeElements
         |~~ Elements the key leaves alike keep the order of the subject. ~~|
@@ -1195,7 +1195,7 @@
         |~~ A key under `desc` descends. ~~|
         ~([{:age 30} {:age 40}] | sort ~(get /age | desc) | first | get /age | eq 40)
     | proves :turnsTheKey
-        |~~ `desc` turns one place of a vector key alone. ~~|
+        |~~ `desc` turns one index of a vector key alone. ~~|
         ~([{:a 1 :b 1} {:a 1 :b 2}] | sort ~(get [/a ~(get /b | desc)]) | map /b | eq [2 1])
     | proves :readsAFieldSoftly
         |~~ A field an element may lack is read softly. ~~|
@@ -1206,9 +1206,9 @@
     | proves :answersTheErrorOfTheKey
         |~~ A key that misses its field answers the error of the read. ~~|
         ~([{:a 2} {:b 1}] | sort /a !| type | eq ::path/KeyNotInMapError)
-    | proves :answersTheErrorOfAPlace
-        |~~ A place of a vector key that misses its field answers the
-            error alike.
+    | proves :answersTheErrorAtAnIndex
+        |~~ A vector key whose read at an index misses its field answers
+            the error alike.
         ~~|
         ~([{:a 2} {:b 1}] | sort ~(get [/a]) !| type | eq ::path/KeyNotInMapError)
     | proves :key/KindNotTakenError/refusesANumber
@@ -2089,12 +2089,12 @@
         |~~ A key written twice among the pairs holds its last value. ~~|
         ~([[:a 1] [:a 2]] | toMap | eq {:a 2})
     | proves :ElementNotPairError/refusesAPairOfOne
-        |~~ An element of one place is no pair, and is refused at its
-            index.
+        |~~ An element that holds one value is no pair, and is refused at
+            its index.
         ~~|
         ~([[:a 1] [:b]] | toMap !| get [~(type) /index] | eq [::vec/toMap/ElementNotPairError 1])
     | proves :ElementNotPairError/refusesAPairOfThree
-        |~~ An element of three places is no pair either. ~~|
+        |~~ An element that holds three values is no pair either. ~~|
         ~([[:a 1 2]] | toMap !| get [~(type) /index] | eq [::vec/toMap/ElementNotPairError 0])
     | proves :KeyKindNotTakenError/refusesAVectorKey
         |~~ A vector names no key, and is refused at its pair with the
@@ -2117,7 +2117,7 @@
 
 :vec/toPath
   |~~ Answers the path whose segments are the elements, a key written as
-      a keyword or a string and a place as a whole number:
+      a keyword or a string and an index as a whole number:
       `[:items 0] | toPath` answers `/items/0`, the path `segments` takes
       apart.
       ::link~(::path/segments | doc) ::link~(::string/toPath | doc)
@@ -2125,21 +2125,21 @@
   ::fn
     | returns |~~ The path of the segments. ~~| ::path
     | throws :ElementNotKeyError
-        |~~ Each element is a key, a keyword or a string, or a place, a
+        |~~ Each element is a key, a keyword or a string, or an index, a
             whole number, `[:items 0] | toPath`.
         ~~|
-    | throws :EmptyError
+    | throws :SubjectEmptyError
         |~~ A path names one segment at least: the value itself is `it`,
             so the empty vector names no path.
         ~~|
     | proves :buildsAPath
-        |~~ Keys and places build a path. ~~|
+        |~~ Keys and indices build a path. ~~|
         ~([:items 0] | toPath | print | eq "/items/0")
-    | proves :EmptyError/refusesTheEmptyVector
+    | proves :SubjectEmptyError/refusesTheEmptyVector
         |~~ The empty vector names no path. ~~|
-        ~([] | toPath !| type | eq ::vec/toPath/EmptyError)
+        ~([] | toPath !| type | eq ::vec/toPath/SubjectEmptyError)
     | proves :ElementNotKeyError/refusesAFraction
-        |~~ A fraction is no place, and is refused at its index. ~~|
+        |~~ A fraction names no index, and is refused at its own. ~~|
         ~([:a 0.5] | toPath !| get [~(type) /index] | eq [::vec/toPath/ElementNotKeyError 1])
     | impl ::builtin{}
 

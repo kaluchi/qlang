@@ -12,7 +12,7 @@ async function sessionRecordingVisits(visits) {
   return await createSession({ sources: [{
     uri: 'probe',
     source: ':any/visit ::builtin{}',
-    impls: {
+    primitives: {
       'any/visit': async element => {
         visits.push(['start', element]);
         await pause(element);

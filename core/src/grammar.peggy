@@ -1,4 +1,4 @@
-// PEG grammar for the qlang expression language.
+// PEG grammar for the qlang pipeline query language.
 //
 // A step is a command, a name followed by its modifiers, each one word
 // [QSSYN#step]. A line break is whitespace, and around a declaration it tells
@@ -21,7 +21,7 @@
 
 {{
   import { isNameStart, isNameContinue, readsAsBareKeyword, LITERAL_WORDS } from '../src/name-chars.mjs';
-  import { canonicalFlags, patternProblem, patternRefusal, PATTERN_FLAGS } from '../src/pattern.mjs';
+  import { canonicalFlags, regexProblem, regexRefusal, REGEX_FLAGS } from '../src/regex-read.mjs';
   import { builtFrom } from '../src/walk.mjs';
 
   function node(type, fields, loc, txt) {
@@ -204,18 +204,17 @@
     }
   }
 
-  // Whether the engine reads a pattern a literal writes with its flags
-  // [QSTXT#pattern].
-  function patternRead(source, written) {
+  // Whether the engine reads a regex a literal writes with its flags [QSTXT#regex].
+  function regexRead(source, written) {
     const flags = canonicalFlags(written);
-    return flags !== null && patternProblem(source, flags) === null;
+    return flags !== null && regexProblem(source, flags) === null;
   }
 
-  function refuseUnreadPattern(source, written) {
+  function refuseUnreadRegex(source, written) {
     const flags = canonicalFlags(written);
-    if (flags === null) error(`a pattern takes the flags ${[...PATTERN_FLAGS].map(flag => '`' + flag + '`').join(', ')}, each once after its closing quote, \`#"error"i\``);
-    const problem = patternProblem(source, flags);
-    if (problem !== null) error(patternRefusal(source, flags, problem));
+    if (flags === null) error(`a regex takes the flags ${[...REGEX_FLAGS].map(flag => '`' + flag + '`').join(', ')}, each once after its closing quote, \`#"error"i\``);
+    const problem = regexProblem(source, flags);
+    if (problem !== null) error(regexRefusal(source, flags, problem));
   }
 }
 
@@ -592,7 +591,7 @@ ParenGroup
   / &{ return docQuoteDepth === 0; } "(" _ Pipeline _ "," { error('modifiers are separated by spaces, not by commas: `f a b`'); }
 
 // A quote holds the pipeline it is written around, a leading combinator
-// included (`~(!| get /trail)`); `~()` is the empty quote. A single name
+// included (`~(!| get /trace)`); `~()` is the empty quote. A single name
 // or tag name may drop the parentheses, `~add`, `~::T`.
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"
@@ -639,7 +638,7 @@ QuoteStringSpan
 
 QuoteStringChar
   = "\\" .
-  / [^"\\]
+  / ProseOfAString
 
 QuoteBlockDocSpan
   = "|~~" !"|" QuoteBlockDocChar* "~~|" { return text(); }
@@ -654,10 +653,10 @@ QuoteBlockPlainChar
   = !"~|" .
 
 QuoteLineDocSpan
-  = "|~~|" [^\n]* { return text(); }
+  = "|~~|" ProseOfALine* { return text(); }
 
 QuoteLinePlainSpan
-  = "|~|" [^\n]* { return text(); }
+  = "|~|" ProseOfALine* { return text(); }
 
 QuoteChar
   = ![()] c:. { return c; }
@@ -666,8 +665,7 @@ QuoteChar
 // `~(…)` that reads as code is a quote, a span between backquotes is
 // prose whole, and the rest is prose [QSQUO#literal], [QSSLF#doc]; a line doc's quote
 // stays on its line. The printer writes the block form. A parse error
-// names its opening `doc` among the continuations, where its markers
-// would read as a comment's [QSHST#answer].
+// names its opening `doc` and its prose among the continuations [QSSYN#refusal].
 DocLit
   = LineDocOpen segments:LineDocSegments
     { return node('DocLit', { segments, content: text().slice(4) }, span(), text()); }
@@ -689,19 +687,19 @@ LineDocSegments
 // closing at a run of as many and a run with no such closer prose, and in
 // a block a nested comment or doc at `|` [QSSYN#doc].
 LineDocPart
-  = [^~`:\n]+ { return text(); }
+  = ProseRunOfALine { return text(); }
   / quote:DocQuote &{ return !quote.text.includes('\n'); } { return quote; }
-  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / [^`\n]))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
+  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / ProseOfALine))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
   / "`"+ { return text(); }
-  / [^\n]
+  / ProseOfALine
 
 BlockDocSegments
   = parts:BlockDocPart* { return proseJoined(parts); }
 
 BlockDocPart
-  = [^~`:|]+ { return text(); }
+  = ProseRunOfABlock { return text(); }
   / DocQuote
-  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / !"~~|" [^`]))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
+  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
   / "`"+ { return text(); }
   / QuoteSpan
   / NestedLineDocSpan
@@ -710,6 +708,23 @@ BlockDocPart
   / NestedBlockPlainSpan
   / "~|"
   / !"~~|" c:. { return c; }
+
+// The characters of the prose of a doc, a span of prose inside it among it,
+// which a refusal names beside the literals that close what it opened [QSSYN#refusal].
+ProseRunOfALine "character of prose"
+  = [^~`:\n]+
+
+ProseOfALine "character of prose"
+  = [^\n]
+
+ProseRunOfABlock "character of prose"
+  = [^~`:|]+
+
+ProseOfABlock "character of prose"
+  = [^`]
+
+ProseOfAString "character of prose"
+  = [^"\\]
 
 // A quote of a doc, under the stack of tags written before it, which
 // gives it its role [QSSLF#doc], the depth `docQuoteDepth` counts given back
@@ -764,23 +779,29 @@ QlangMapEntry
   = key:Keyword __ value:Element
     { return node('MapEntry', { key, value }, span(), text()); }
 
-// A pattern of text, read as written: a backslash passes to the engine
-// with the character after it, but for `\"`, a quote in the pattern that
-// does not end it, and the flags may follow the closing quote,
-// `#"error"i` [QSTXT#pattern].
+// A regex, read as written: a backslash passes to the engine with the
+// character after it, but for `\"`, a quote in the regex that does not end
+// it, and the flags may follow the closing quote, `#"error"i`
+// [QSTXT#regex].
 RegexLit
-  = "#\"" chars:RegexChar* "\"" written:$[a-zA-Z]*
-    &{ return docQuoteDepth === 0 || patternRead(chars.join(''), written); }
+  = "#\"" chars:RegexChar* "\"" written:$RegexFlag*
+    &{ return docQuoteDepth === 0 || regexRead(chars.join(''), written); }
     {
-      const pattern = chars.join('');
-      refuseUnreadPattern(pattern, written);
-      return node('RegexLit', { pattern, flags: canonicalFlags(written) }, span(), text());
+      const source = chars.join('');
+      refuseUnreadRegex(source, written);
+      return node('RegexLit', { regexSource: source, flags: canonicalFlags(written) }, span(), text());
     }
 
 RegexChar
   = "\\\"" { return '"'; }
   / $("\\" .)
-  / [^"\\]
+  / RegexSourceCharacter
+
+RegexSourceCharacter "character of a regex"
+  = [^"\\]
+
+RegexFlag "flag of a regex"
+  = [a-zA-Z]
 
 // A set written with braces, the form of another language, is refused
 // naming its own [QSSYN#refusal].
@@ -863,7 +884,7 @@ EscapeChar
   / "f" { return '\f'; }
   / "u" hex:$(HexDigit HexDigit HexDigit HexDigit) { return String.fromCharCode(parseInt(hex, 16)); }
 
-HexDigit
+HexDigit "hexadecimal digit"
   = [0-9a-fA-F]
 
 // A number is a finite double, so digits naming a magnitude outside
@@ -914,10 +935,10 @@ Ident
 ReservedWord
   = ("true" / "false" / "null") !IdentTail
 
-// The letters of a name, `core/src/name-chars.mjs`.
-IdentStart "identifier start (letter or underscore)"
+// The letters of a name, `core/src/name-chars.mjs` [QSNAM#letters].
+IdentStart "name"
   = c:. &{ return isNameStart(c); } { return c; }
-IdentTail  "identifier continue (letter, digit, hyphen, underscore)"
+IdentTail  "letters of a name"
   = c:. &{ return isNameContinue(c); } { return c; }
 
 // ── Whitespace ─────────────────────────────────────────────────────

@@ -4,13 +4,13 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { highlightQlang } from '../src/lib/qlang-highlight.js';
 
-let builtins;
+let rootVerbNames;
 beforeAll(async () => {
-  const runtime = await langRuntime();
-  builtins = verbNames(runtime);
+  const scope = await langRuntime();
+  rootVerbNames = verbNames(scope);
 });
 
-const hl = src => highlightQlang(src, builtins);
+const hl = src => highlightQlang(src, rootVerbNames);
 
 // ── Literal types ─────────────────────────────────────────────
 
@@ -156,7 +156,7 @@ describe('parse error fallback', () => {
 
 // ── Full pipeline ─────────────────────────────────────────────
 
-describe('full expressions', () => {
+describe('full queries', () => {
   it('pipeline produces expected span sequence', () => {
     const out = hl('[1 2 3] | count');
     expect(out).toContain('<span class="number">1</span>');

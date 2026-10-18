@@ -2,7 +2,7 @@
    its constructor and the refusals of a call, a name that names
    nothing, a kind that answers no verb of the name, a value given
    modifiers, a value that meets a verb, a value withheld from held code,
-   a call too deep and a failure of a host's implementation.
+   a call too deep and a failure inside a primitive.
 
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -42,14 +42,21 @@
             ::link~(::call | doc)
         ~~|
     | throws :HostFailureError
-        |~~ A failure of the host's implementation: an error of the
-            language the runtime is written in escaped a verb, which is a
-            defect of that verb's host. `:message` carries the host's
-            account of it and `:causes` the accounts of the failures
-            beneath it. Its trail is that of any error;
-            recovery is a `!|` step, and the repair belongs to the host,
-            which declares a refusal of its own where it has facts to
-            hand.
+        |~~ A failure inside a primitive: an error of the language the
+            runtime is written in escaped a verb, or the primitive a host
+            handed beside its source, whatever function runs it, answered
+            a value of no kind of the language or threw a refusal whose
+            facts hold one, a function, an object of JavaScript, a map whose
+            key is no string, a failure whose facts are no map, a value
+            under a tag that is no tag, a vector or a map that holds itself,
+            or a number past the finite doubles, which is a defect of that
+            verb's host; a value the call handed in passes back as it is.
+            `:message` carries the host's account of it, or names the call
+            and the path where the value of no kind stands in its answer,
+            and `:causes` the accounts of the failures beneath it. Its
+            trace is that of any error; recovery is a `!|` step, and the
+            repair belongs to the host, which declares a refusal of its own
+            where it has facts to hand.
             ::link~(::call | doc)
         ~~|
     | carries :HostFailureError/message
@@ -159,22 +166,25 @@
     | throws :EvaluationDepthExceededError
         |~~ A call too deep: the recipe of a verb, a modifier computed at
             the call, `apply`, a constructor of a tag and each run of the
-            code a verb runs, `map ~(…)`, run one frame below the step
-            that called them, an input read from its place meets the budget
-            at that frame, a quote written as a modifier is a value at the
-            call, and the frame past the budget refuses, `:depth` the
-            refused frame and `:limit` the budget. A recursion without a
-            base case, a verb that calls itself, is refused here, on the
-            fail track, while the host's memory stays bounded: the case
-            that ends the recursion is tested first,
+            code a verb runs, `map ~(…)`, run one deeper in the evaluation
+            depth than the step that called them, while the steps of one
+            pipeline and a group run at its depth; an input read from its
+            place and a modifier of an atom meet the limit one deeper than
+            the call, a quote written as a modifier goes no deeper, and a
+            step past the limit refuses, `:depth`
+            the evaluation depth refused and `:limit` the deepest one
+            evaluation goes. A recursion without a base case, a verb that
+            calls itself, is refused here, on the fail track, while the
+            host's memory stays bounded: the case that ends the recursion
+            is tested first,
             `:number/down ~(if (eq 0) ~(0) ~(sub 1 | down)) | 5 | down`.
             ::link~(::call | doc) ::link~(::any/if | doc)
         ~~|
     | carries :EvaluationDepthExceededError/depth
-        |~~ The frame the budget refused. ~~|
+        |~~ The evaluation depth refused, one past the limit. ~~|
         ::number
     | carries :EvaluationDepthExceededError/limit
-        |~~ The budget, the frames one evaluation may nest. ~~|
+        |~~ The limit, the deepest evaluation depth one evaluation goes. ~~|
         ::number
     | proves :holdsTheNameAndTheModifiers
         |~~ A command is a call of its name and its modifiers. ~~|
@@ -244,11 +254,11 @@
             of the name live.
         ~~|
         ~(1 | count !| get [/actualType ~(get /addresses | has ::vec/count)] | eq [::number true])
-    | proves :KindAnswersNoVerbError/namesTheReadOfAPath
-        |~~ A name called on a path names the read the step was likely
-            meant for.
+    | proves :KindAnswersNoVerbError/namesTheRepairOfAPath
+        |~~ A name called on a path names the repair, the step the call was
+            likely meant as.
         ~~|
-        ~(/tags | count !| get /read | eq ~(get /tags | count))
+        ~(/tags | count !| get /repair | eq ~(get /tags | count))
     | proves :KindAnswersNoVerbError/listsEveryKindTheNameServes
         |~~ `:addresses` lists every kind the name serves. ~~|
         ~(5 | count
@@ -314,7 +324,7 @@
         ~(:big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(type) /name] | eq [::call/ValueWithheldError :lim])
     | proves :EvaluationDepthExceededError/refusesARunawayRecursion
         |~~ A verb that calls itself without end is refused past the
-            budget.
+            limit of the evaluation depth.
         ~~|
         ~(:number/inf ~(add 1 | inf) | 0 | inf !| type | eq ::call/EvaluationDepthExceededError)
     | proves :EvaluationDepthExceededError/namesADepthPastTheLimit

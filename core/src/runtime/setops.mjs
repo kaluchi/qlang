@@ -1,4 +1,4 @@
-// The algebra of containers: union, minus, inter, each a plain function over
+// The algebra of containers: union, minus, inter, each taking the values alone,
 // the subject and the inputs of its call, one for each verb of a kind: a set
 // meets the other set its call gives, a map the other map or the keys a
 // vector or a set names, and a vector folds the values it holds and takes
@@ -9,7 +9,7 @@
 import { isSet, isKeyword, isString, isVec, isMap, makeSet, kindsExpected, typeOf } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { bindPrim } from '../primitives.mjs';
+import { registerPrimitive } from '../primitives.mjs';
 
 // The algebra of two sets is a merge of their elements in the one
 // order [QSORD#order]: each operation keeps the elements of the left alone,
@@ -120,9 +120,9 @@ const VEC_UNION = {
   ElementNotSetOrMapError: declareRefusal('vec/union/ElementNotSetOrMapError')
 };
 
-bindPrim('vec/union', vector => foldOf(vector, unionPair, VEC_UNION, true));
-bindPrim('set/union', (set, other) => mergeSets(set, other, UNION_KEEPS));
-bindPrim('map/union', (map, other) => unionOfMaps(map, other));
+registerPrimitive('vec/union', vector => foldOf(vector, unionPair, VEC_UNION, true));
+registerPrimitive('set/union', (set, other) => mergeSets(set, other, UNION_KEEPS));
+registerPrimitive('map/union', (map, other) => unionOfMaps(map, other));
 
 // ── minus ──────────────────────────────────────────────────────
 
@@ -135,9 +135,9 @@ const VEC_MINUS = {
   KeyKindNotTakenError: declareRefusal('vec/minus/KeyKindNotTakenError')
 };
 
-bindPrim('vec/minus', vector => foldOf(vector, minusPair, VEC_MINUS, false));
-bindPrim('set/minus', (set, other) => mergeSets(set, other, MINUS_KEEPS));
-bindPrim('map/minus', (map, keys) => minusOfMap(map, keys, MapMinusKeysElementKindNotTakenError));
+registerPrimitive('vec/minus', vector => foldOf(vector, minusPair, VEC_MINUS, false));
+registerPrimitive('set/minus', (set, other) => mergeSets(set, other, MINUS_KEEPS));
+registerPrimitive('map/minus', (map, keys) => minusOfMap(map, keys, MapMinusKeysElementKindNotTakenError));
 
 // ── inter ──────────────────────────────────────────────────────
 
@@ -150,6 +150,6 @@ const VEC_INTER = {
   KeyKindNotTakenError: declareRefusal('vec/inter/KeyKindNotTakenError')
 };
 
-bindPrim('vec/inter', vector => foldOf(vector, interPair, VEC_INTER, false));
-bindPrim('set/inter', (set, other) => mergeSets(set, other, INTER_KEEPS));
-bindPrim('map/inter', (map, keys) => interOfMap(map, keys, MapInterKeysElementKindNotTakenError));
+registerPrimitive('vec/inter', vector => foldOf(vector, interPair, VEC_INTER, false));
+registerPrimitive('set/inter', (set, other) => mergeSets(set, other, INTER_KEEPS));
+registerPrimitive('map/inter', (map, keys) => interOfMap(map, keys, MapInterKeysElementKindNotTakenError));

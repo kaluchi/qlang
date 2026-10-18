@@ -5,9 +5,9 @@
 {"name":"the-map-kind-refuses-a-map-under-a-tag-whose-map-payload-reads","query":"get [~(::map::Box{:a 1} !| type) ~(::Box{:a 1} | payload | type)]","expect":"[::map/PayloadKindNotTakenError ::map]"}
 {"name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::number/PayloadKindNotTakenError"}
 {"name":"a-tag-taken-as-a-value-is-the-kind-as-a-subject","query":"::vec | manifest | has ::vec/count","expect":"true"}
-{"name":"a-number-under-a-tag-touches-it-by-a-hash","query":"\"::Width#5 | payload\" | parse | apply it","expect":"5"}
-{"name":"a-number-a-boolean-null-and-a-path-under-a-tag-print-by-a-hash","query":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\" | parse | apply it | print","expect":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\""}
-{"name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(type) ~(payload)]\" | parse | apply it","expect":"[::Width 8]"}
+{"name":"a-number-under-a-tag-touches-it-by-a-hash","query":"\"::Width#5 | payload\" | parse | open","expect":"5"}
+{"name":"a-number-a-boolean-null-and-a-path-under-a-tag-print-by-a-hash","query":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\" | parse | open | print","expect":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\""}
+{"name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(type) ~(payload)]\" | parse | open","expect":"[::Width 8]"}
 {"name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| type) ~(#[2 1] | tag ::vec !| type)]","expect":"[::map/PayloadKindNotTakenError ::vec/PayloadKindNotTakenError]"}
 {"name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
 {"name":"the-subject-of-tag-alone-is-a-pair","query":"[[:foo 42] 5] | map ~(tag !| type)","expect":"[::any/tag/PairTagNotTagError ::any/tag/SubjectNotPairError]"}
@@ -22,7 +22,7 @@
 {"name":"an-undeclared-tag-keeps-a-number-a-number","query":"::AutoNumber#42 | payload","expect":"42"}
 {"name":"an-undeclared-tag-over-a-tagged-value-answers-its-tag","query":"::AutoJson::json[1 2 3] | type","expect":"::AutoJson"}
 {"name":"an-undeclared-tag-alone-is-a-tag","query":"::AutoBareOnly | type","expect":"::tag"}
-{"name":"a-tag-lays-itself-over-a-pattern","query":"#\"a\" | tag ::Rule | get [~(type) ~(payload | eq #\"a\")]","expect":"[::Rule true]"}
+{"name":"a-tag-lays-itself-over-a-regex","query":"#\"a\" | tag ::Rule | get [~(type) ~(payload | eq #\"a\")]","expect":"[::Rule true]"}
 {"name":"a-kind-of-the-core-refuses-a-payload-of-another-kind-with-its-kind-expected","query":"::number\"5\" !| get [~(type) /expected]","expect":"[::number/PayloadKindNotTakenError #[::number]]"}
 {"name":"a-tag-over-a-set-stacks-on-it","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | payload","expect":"#[1 2 3]"}
 {"name":"a-label-laid-over-a-value-already-under-it-stands-once","query":":Lab |~~ L. ~~| | ::Lab::Lab[1]","expect":"::Lab[1]"}

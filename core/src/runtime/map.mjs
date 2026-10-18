@@ -3,12 +3,12 @@
 
 import { keyword, isKeyword, isPath, isSet, makeSet } from '../types.mjs';
 import { pathReads } from './path.mjs';
-import { bindPrim } from '../primitives.mjs';
+import { registerPrimitive } from '../primitives.mjs';
 import { compareValues } from '../ordering.mjs';
 
-bindPrim('map/keys', map => makeSet([...map.keys()].map(keyword)));
-bindPrim('map/vals', map => [...map.values()]);
-bindPrim('map/entries', map => [...map].map(([entryKey, entryValue]) => Object.freeze([keyword(entryKey), entryValue])));
+registerPrimitive('map/keys', map => makeSet([...map.keys()].map(keyword)));
+registerPrimitive('map/vals', map => [...map.values()]);
+registerPrimitive('map/entries', map => [...map].map(([entryKey, entryValue]) => Object.freeze([keyword(entryKey), entryValue])));
 
 // Whether a vector holds a value equal to the element: a set by a search in
 // its one order, which ranks two values alike exactly when they are equal,
@@ -29,8 +29,8 @@ function containsElement(vector, element) {
 
 // `has` asks whether a path reads, and of any other value whether it is
 // held [QSPTH#has]; `contains` asks whether the element is held alone.
-bindPrim('vec/has', (vector, element) => (isPath(element) ? pathReads(vector, element) : containsElement(vector, element)));
-bindPrim('vec/contains', containsElement);
+registerPrimitive('vec/has', (vector, element) => (isPath(element) ? pathReads(vector, element) : containsElement(vector, element)));
+registerPrimitive('vec/contains', containsElement);
 // A map's key is named by a keyword, a string or a number alike, the
 // number by its text, as `get` reads it [QSPTH#has].
-bindPrim('map/has', (map, key) => (isPath(key) ? pathReads(map, key) : map.has(isKeyword(key) ? key.name : String(key))));
+registerPrimitive('map/has', (map, key) => (isPath(key) ? pathReads(map, key) : map.has(isKeyword(key) ? key.name : String(key))));

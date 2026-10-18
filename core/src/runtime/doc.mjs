@@ -2,7 +2,7 @@
 // quotes as text among its prose, its parts, `segments`, and its links and
 // snippets, the quotes in the role of a link or a snippet [QSSLF#doc].
 
-import { bindPrim } from '../primitives.mjs';
+import { registerPrimitive } from '../primitives.mjs';
 import { docText } from '../quote.mjs';
 import { beneathTags, isTag, isValueClass } from '../types.mjs';
 
@@ -25,7 +25,7 @@ export function linkedAddressesOf(doc) {
   return linksOf(doc).map(link => beneathTags(link)[0]).filter(isTag).map(tag => tag.name);
 }
 
-bindPrim('doc/content', docText);
-bindPrim('doc/segments', doc => Object.freeze([...doc]));
-bindPrim('doc/links', linksOf);
-bindPrim('doc/snippets', doc => Object.freeze(doc.filter(inRole('snippet'))));
+registerPrimitive('doc/content', docText);
+registerPrimitive('doc/segments', doc => Object.freeze([...doc]));
+registerPrimitive('doc/links', linksOf);
+registerPrimitive('doc/snippets', doc => Object.freeze(doc.filter(inRole('snippet'))));

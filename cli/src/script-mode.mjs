@@ -4,7 +4,7 @@
 // the data was, a query converting it where a reader wants another format,
 // `| json` [QSHST#stdin], [QSHST#answer].
 
-import { fromJsonText, printAnswer, makeTag, elideAnswer } from '@kaluchi/qlang-core';
+import { fromJsonText, printAnswer, makeTag, elideAnswer, caretOf } from '@kaluchi/qlang-core';
 
 // The noun the command line starts from when standard input carries no
 // bytes [QSHST#stdin].
@@ -43,16 +43,16 @@ function liftParsedDocument(stdinText) {
   }
 }
 
-// answerText(value, env, budget, page) → the text the command line writes for
+// answerText(value, scope, budget, page) → the text the command line writes for
 // an answer: a string as it is, so `| json` writes JSON text and `| table` a
 // table, and any other value as its print, whole unless the caller asked for a
-// budget, an error as its alert, a failure carrying the prose of its refusal's
-// page below it as line comments a reading of the literal passes over
-// [QSHST#answer].
-export async function answerText(value, env, budget = null, page = null) {
+// budget, an error as its alert, a refused text with its caret below the alert
+// where the alert shows its line, and a failure with the prose of its refusal's
+// page last, line comments a reading of the literal passes over [QSHST#answer].
+export async function answerText(value, scope, budget = null, page = null) {
   if (typeof value === 'string') return value;
-  const printed = await printAnswer(await elideAnswer(value, budget, env), env);
-  return page === null ? printed : `${printed}\n${commentLinesOf(page)}`;
+  const shown = await elideAnswer(value, budget, scope);
+  return [await printAnswer(shown, scope), caretOf(shown), page === null ? null : commentLinesOf(page)].filter(part => part !== null).join('\n');
 }
 
 const oneLine = text => text.replace(/\s+/g, ' ').trim();

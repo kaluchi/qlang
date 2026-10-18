@@ -263,11 +263,11 @@ export function pageOfKindsRefusal(name, kinds, each) {
 }
 
 // pageOfConstructor(address) → the page of the constructor of a kind, the
-// `::builtin{}` its `impl` gives, which constructs by the implementation a
-// host hands beside its source and constructs nothing where none is handed
-// [QSBLD#kind].
+// `::builtin{}` its `impl` gives, which constructs by the primitive a host
+// hands beside its source and constructs nothing where none is handed
+// [QSBLD#kind], [QSHST#source].
 export function pageOfConstructor(address) {
-  return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the \`::builtin{}\` \`impl\` gives it, which attaches the tag to a payload or refuses it by the implementation a host hands beside its source, and constructs nothing where none is handed. `]);
+  return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the \`::builtin{}\` \`impl\` gives it, which attaches the tag to a payload or refuses it by the primitive a host hands beside its source, and constructs nothing where none is handed. `]);
 }
 
 // invariantsOf(chain, name) → the invariants written under an input or

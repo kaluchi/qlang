@@ -6,18 +6,18 @@ section are the cases of its file under `core/test/conformance/QSORD/`.
 
 ## order
 
-Values order first by kind: null, boolean, number, string, pattern,
+Values order first by kind: null, boolean, number, string, regex,
 keyword, tag name, path, vector, set, map, quote, doc, elision and desc,
 and after them every other tag by its name, the labels, the errors and
 the kinds of hosts among them. Within a kind, numbers order by value,
 `false` before `true`, and a text by its code points, the characters a
 string counts [QSTXT#string]: a string, the name of a keyword and of a
-tag, a key of a map, a pattern by its text and then its flags, and a
+tag, a key of a map, a regex by its text and then its flags, and a
 path segment by segment, an index among them, so `/10` ranks before
 `/9`; vectors element by element, a shorter before a longer it begins, a set
 as its vector, maps by their keys and then their values, a quote by its
 steps, a doc by its segments in turn, a run of prose before a quote, an
-elision by its payload, a desc by the reverse of its payload's place, an
+elision by its payload, a desc by the reverse of its payload's rank, an
 error by its tag and then its facts, and a value under another tag by
 its payload.
 
@@ -41,7 +41,7 @@ A set is the vector in the one order without duplicates, under the tag
 `::set`: `#[…]` is its literal, `distinct` and `toSet` answer it, and
 its payload is that vector. Its constructor orders what it is given and
 holds each element once, so `tag ::set` and a write lay the set anew. A
-set reads by place as its vector does, two sets are equal by their
+set reads by index as its vector does, two sets are equal by their
 elements, and equality reads the kind, so `#[1 2] | eq [1 2]` is false.
 Its own verbs are those whose answer on a set is not the answer of the
 verb of vectors on it: `sort` and `reverse` answer the vector of an
@@ -84,8 +84,8 @@ first and the last value in it, null for an empty container, and a value
 that is no container answers none of them. Each takes a key, null, a
 quote or a path, another kind refused under its input `key`,
 `::vec/sort/key/KindNotTakenError`, `::map/sort/key/…` and `::vec/min/key/…`,
-and ranks by what the key answers, a vector key ranking place by place,
-the first place first and each later one among the elements the places
+and ranks by what the key answers, a vector key ranking index by index,
+the first index first and each later one among the elements the indices
 before it leave alike; `min` and `max` with a key answer the element,
 the first of equal ones. A key that fails answers the call, and an error
 at rest a key answers ranks as the one order ranks it, as an error among
@@ -114,7 +114,7 @@ twice, its reversals undoing each other, so it ranks as the value does.
 It owns its comparisons, `gt`,
 `gte`, `lt` and `lte`, which rank its payloads of any kinds by the one
 order as `sort` does, so `min`, `max` and `sort` read it alike, and one
-place of a vector key descends whatever the kind it ranks; the
+element of a vector key descends whatever the kind it ranks; the
 comparisons of the core compare within one kind.
 
 ```qlang

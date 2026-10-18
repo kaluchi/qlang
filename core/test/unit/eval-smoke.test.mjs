@@ -162,8 +162,8 @@ describe('eval — env', () => {
 describe('eval.mjs unknown node type', () => {
   it('throws on unknown AST node', async () => {
     const fakeNode = { type: 'BogusNode' };
-    const runtimeEnv = await langRuntime();
-    const state = rootState(null, runtimeEnv);
+    const scope = await langRuntime();
+    const state = rootState(null, scope);
     await expect(evalAst(fakeNode, state)).rejects.toThrow(/unknown AST node type/);
   });
 });
@@ -222,7 +222,7 @@ describe('the answer of a verb of the host', async () => {
       sources: [{
         uri: 'tests/later',
         source: ':number/later ::builtin{}\n:number/elsewhere ::builtin{}',
-        impls: {
+        primitives: {
           'number/later': n => ({ then(resolve) { resolve(n + 1); } }),
           'number/elsewhere': vm.runInNewContext('(async (n) => n + 1)')
         }
@@ -231,35 +231,37 @@ describe('the answer of a verb of the host', async () => {
     expect((await s.evalCell('get [~(41 | later | add 1) ~(41 | elsewhere | add 1)]')).result).toEqual([43, 43]);
   });
 
-  it('refuses a number past the finite doubles under several labels as under ::number alone', async () => {
+  it('refuses a number past the finite doubles a host\'s primitive answers at the door, under several kinds as under one [QSHST#source]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const s = await createSession({
       sources: [{
         uri: 'tests/past',
-        source: ':any/past (::fn | returns |~~ A number or null. ~~| #[::number ::null] | impl ::builtin{})',
-        impls: { 'any/past': () => Infinity }
+        source: ':any/past (::fn | returns |~~ A number or null. ~~| #[::number ::null] | impl ::builtin{})\n:any/pastOne (::fn | returns |~~ A number. ~~| ::number | impl ::builtin{})',
+        primitives: { 'any/past': () => Infinity, 'any/pastOne': () => Infinity }
       }]
     });
-    expect((await s.evalCell('1 | past !| type | eq ::number/NotFiniteError')).result).toBe(true);
+    expect((await s.evalCell('1 | past !| get [~(type) /message]')).result)
+      .toEqual(await evalQuery('[::call/HostFailureError "the answer of ::any/past is number Infinity, a value of no kind of the language"]'));
+    expect((await s.evalCell('1 | pastOne !| type')).result).toEqual(await evalQuery('::call/HostFailureError'));
   });
 });
 
 describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
-  it('wraps a plain JS Error from a verb as a foreign error value', async () => {
+  it('lifts an error of JavaScript a primitive throws to a failure of the host', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
-    // A host verb whose implementation throws a raw Error, no QlangError.
+    // A host's primitive that throws an error of JavaScript, no QlangError.
     const s = await createSession({
       sources: [{
         uri: 'tests/bomb',
         source: ':any/bomb ::builtin{}',
-        impls: { 'any/bomb': () => { throw new Error('raw boom'); } }
+        primitives: { 'any/bomb': () => { throw new Error('raw boom'); } }
       }]
     });
     const entry = await s.evalCell('42 | bomb');
     expect(isErrorValue(entry.result)).toBe(true);
     expect(entry.result.tag.name).toBe('call/HostFailureError');
-    expect([...entry.result.descriptor.keys()]).toEqual(['message', 'trail']);
+    expect([...entry.result.descriptor.keys()]).toEqual(['message', 'trace']);
     expect(entry.result.descriptor.get('message')).toBe('raw boom');
   });
 });
@@ -267,8 +269,8 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
 describe('eval.mjs — a Call node built by hand', async () => {
   it('runs the verb it names, its location null', async () => {
     const ast = { type: 'Call', name: 'count', args: [], location: null };
-    const runtimeEnv = await langRuntime();
-    const state = rootState([1, 2, 3], runtimeEnv);
+    const scope = await langRuntime();
+    const state = rootState([1, 2, 3], scope);
     const evalResult = await evalAst(ast, state);
     const result = evalResult.pipeValue;
     expect(result).toBe(3);

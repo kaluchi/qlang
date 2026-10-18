@@ -1,4 +1,4 @@
-{"name":"desc-turns-one-place-of-a-vector-key-to-descend","query":"[{:n 1 :s \"b\"} {:n 2 :s \"c\"} {:n 2 :s \"a\"}] | sort ~(get [~(get /n | desc) /s]) | map /s","expect":"[\"a\" \"c\" \"b\"]"}
+{"name":"desc-turns-one-index-of-a-vector-key-to-descend","query":"[{:n 1 :s \"b\"} {:n 2 :s \"c\"} {:n 2 :s \"a\"}] | sort ~(get [~(get /n | desc) /s]) | map /s","expect":"[\"a\" \"c\" \"b\"]"}
 {"name":"desc-descends-strings","query":"[\"b\" \"c\" \"a\"] | sort ~(desc)","expect":"[\"c\" \"b\" \"a\"]"}
 {"name":"every-comparison-agrees-on-desc","query":"get [~(1 | desc | gt (2 | desc)) ~([1 2] | map ~desc | max | payload)]","expect":"[true 1]"}
 {"name":"desc-lays-its-kind","query":"5 | desc | get [~(type) ~(payload)]","expect":"[::desc 5]"}

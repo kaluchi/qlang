@@ -1,8 +1,7 @@
 |~ `::error`, the kind every error is a value of, and what is declared
-   under it: the refusals of a payload that is no map and of a path that
-   is no vector of frames, the facts a refusal may carry, and the verbs
-   of errors. The error at
-   rest, the value `!|` catches a failure to, is `::error{…}`, or the tag
+   under it: the refusal of a payload that is no map, the facts a refusal
+   may carry, and the verbs of errors. The error at
+   rest, the value a catch holds of a failure, is `::error{…}`, or the tag
    of the site that refused stacked over it, and its walk passes
    `::error` on its way to the map, so a verb declared here reaches every
    error.
@@ -10,7 +9,7 @@
 
 :error
   |~~ An error is the facts of a failure as a value: what refused, on
-      what, and the path the failure took, under the tag of the site
+      what, and the trace the failure left, under the tag of the site
       that refused, which names the page that tells how to repair the
       call. A step that fails answers an error raised, a failure; a
       reader learning a tool fails often, and the failure brings what
@@ -24,15 +23,15 @@
       answering `:late`, and JSON writes it as a value under its tag.
 
       Raised by `raise`, an error is a failure, which lives in the pipe
-      alone; a host prints it as the error at rest `!|` opens it to, the
-      path it flew among its facts, under the line
+      alone; a host prints it as its error at rest, the trace it left
+      among its facts, under the line
       `|~| raised, and no !| caught it`, which a reading passes over, so
-      the print raised flies on from that path; a query that does not
+      the print raised flies on from that trace; a query that does not
       parse flew no step and prints its facts alone.
-      `|` passes a failure by, writing its path, and `!|` alone catches
+      `|` passes a failure by, writing its trace, and `!|` alone catches
       it, its step running on the error at rest: `"x" | add 1 !| type`
       answers the site, `::number/add/SubjectNotNumberError`, and
-      `trail` the path. No value holds a failure, so a literal, a name
+      `trace` the trace. No value holds a failure, so a literal, a name
       or a fact whose part fails answers the failure.
       ::snippet~(::error | manifest) lists its verbs and refusals.
       ::link~(::explanation | doc) ::link~(::fail | doc)
@@ -45,18 +44,6 @@
             `!{:reason :late}`; a payload of another kind is refused, and a
             value of another kind is held as a fact, `!{:value [1]}`.
             ::link~(::error | doc)
-        ~~|
-    | throws :TrailNotFramesError
-        |~~ `:trail` among the facts of an error is its path, the frames
-            the runtime writes from the step where it arose to the step
-            where it is read, `::trail[::frame["x" ~(add 1)]]`. A `raise`
-            of a map that writes under `:trail` a value that is no vector
-            of frames, a vector of maps, a set, a quote and a doc among
-            them, is refused as it makes the error. A `raise` that writes
-            the `:trail` it read goes on with that path, and one that
-            leaves it out or writes it empty starts a path at its own
-            step.
-            ::link~(::trail | doc)
         ~~|
     | carries :name
         |~~ The name a reader asked for, a keyword or a tag, where nothing
@@ -84,20 +71,20 @@
             `[]` where none is near.
         ~~|
         ::vec
-    | carries :read
-        |~~ The read the step was likely meant for, where a path stands in
-            place of the value it names: the step again with the path read
-            by `get`, `/tags | count` read as `get /tags | count` and
-            `mul /qty` as `mul (get /qty)`.
+    | carries :repair
+        |~~ The step the call was likely meant as, where a path stands in
+            the place of the value it names: the step again with the path
+            read by `get`, `/tags | count` repaired as `get /tags | count`
+            and `mul /qty` as `mul (get /qty)`.
         ~~|
         ::quote
     | carries :path
-        |~~ The path a read followed where it missed, the key or the place
+        |~~ The path a read followed where it missed, the key or the index
             it missed named beside it.
         ~~|
         ::path
     | carries :index
-        |~~ The place of the element refused, counted from zero. ~~|
+        |~~ The index of the element refused, counted from zero. ~~|
         ::number
     | carries :expected
         |~~ The kinds the holder takes, where a value of none of them was
@@ -112,7 +99,7 @@
         ::number
     | carries :actualValue
         |~~ The value refused, where it is not the subject that the first
-            frame of the trail holds.
+            frame of the trace holds.
         ~~|
         ::any
     | carries :leftType |~~ The kind of the value on the left. ~~| ::tag
@@ -150,83 +137,71 @@
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no map of facts. ~~|
         ~(::error[1] !| type | eq ::error/PayloadKindNotTakenError)
-    | proves :TrailNotFramesError/refusesANumberForATrail
-        |~~ A number given as a trail is refused. ~~|
-        ~(!{:a 1 :trail 5} | raise !| get [~(type) /actualType] | eq [::error/TrailNotFramesError ::number])
-    | proves :TrailNotFramesError/refusesATrailLaidOverAFailure
-        |~~ A trail of a number laid over an error is refused when it is
-            raised.
+    | proves :standsWithATraceOfAnotherShapeAtRest
+        |~~ An error at rest holds the facts it is written with, a trace of
+            another shape among them, which a raise refuses.
         ~~|
-        ~(!{:a 1} | raise | count !| union {:trail 5} | raise !| type | eq ::error/TrailNotFramesError)
-    | proves :TrailNotFramesError/startsATrailAtTheRaise
-        |~~ An error raised without a trail starts its trail at the raise.
-        ~~|
-        ~(!{:a 1} | raise | count !| minus #[:trail] | raise | add 1
-          !| trail | map ~step | eq [~(raise)])
-    | proves :TrailNotFramesError/refusesASetAQuoteAndADoc
-        |~~ A set, a quote and a doc are no vector of frames. ~~|
-        ~([#[1] ~(a) |~~ d ~~|] | map ~(get {:trail ~(it)} | raise !| type) | eq [::error/TrailNotFramesError ::error/TrailNotFramesError ::error/TrailNotFramesError])
-    | proves :TrailNotFramesError/refusesAVectorOfMaps
-        |~~ A vector of maps is no vector of frames. ~~|
-        ~({:trail [{:step ~(a) :subject 1}]} | raise !| type | eq ::error/TrailNotFramesError)
-    | proves :TrailNotFramesError/takesAPlainVectorOfFrames
-        |~~ A plain vector of frames is a trail, which the error holds under
-            its kind.
-        ~~|
-        ~({:trail [::frame[1 ~(pre)]]} | raise !| trail | eq ::trail[::frame[1 ~(pre)]])
-    | proves :read/namesAWrittenPathAlone
+        ~(get [~(!{:a 1 :trace 5} | get /trace) ~(!{:a 1 :trace 5} | raise !| type)] | eq [5 ::trace/PayloadKindNotTakenError])
+    | proves :repair/namesAWrittenPathAlone
         |~~ A path a name holds is no path the step wrote, and names no
-            read.
+            repair.
         ~~|
-        ~(:p /qty | 5 | mul p !| query /read | eq null)
+        ~(:p /qty | 5 | mul p !| query /repair | eq null)
 
-:error/trail
-  |~~ Answers the path of the error, the trail of its frames from the
-      step that raised it to the `!|` that opened it, each the subject a
-      step met and the steps from the one that broke:
-      `"x" | add 1 | mul 2 !| trail` answers
-      `::trail[::frame["x" ~(add 1 | mul 2)]]`, `add 1` broken on `"x"`
-      and `mul 2` left unrun. A step that ran the step that raised adds
+:error/trace
+  |~~ Answers the trace of the error, the frames it left from the step
+      that raised it to the `!|` that caught it, each the subject a step
+      met and the steps from the one that failed:
+      `"x" | add 1 | mul 2 !| trace` answers
+      `::trace[::frame["x" ~(add 1 | mul 2)]]`, `add 1` failed on `"x"`
+      and `mul 2` skipped. A step that ran the step that raised adds
       its frame after it, the `map` that ran an element among them, so
-      the path reads outward:
-      `[1 "x"] | map ~(mul 2) !| trail | map ~step` answers
+      the trace reads outward:
+      `[1 "x"] | map ~(mul 2) !| trace | map ~failed` answers
       `[~(mul 2) ~(map ~(mul 2))]`. An error at rest that flew no step
-      holds no `:trail` and answers `::trail[]`,
-      `::error{:a 1} | trail`. The subject is an error at rest, the value
-      `!|` catches a failure to: under `|` a failure passes `trail` by,
-      as it passes every step, and a value that is no error is refused,
-      a map with the key `:trail` among them.
-      ::link~(::trail | doc) ::link~(::frame | doc)
+      holds no `:trace` and answers `::trace[]`,
+      `::error{:a 1} | trace`, and the `:trace` an error at rest is
+      written with is brought to `::trace` as the verb answers it. The
+      subject is an error at rest, the value a catch holds of a failure:
+      under `|` a failure passes `trace` by, as it passes every step, and
+      a value that is no error is refused, a map with the key `:trace`
+      among them.
+      ::link~(::trace | doc) ::link~(::frame | doc)
       ::link~(::qlang/errors | doc)
   ~~|
   ::fn
-    | returns |~~ The trail of the frames the error passed. ~~| ::trail
+    | returns |~~ The trace of the frames the error passed. ~~| ::trace
     | throws :SubjectNotErrorError
-        |~~ `trail` reads the path of an error at rest, the value `!|`
-            catches a failure to, `"x" | add 1 !| trail`; the key `:trail`
-            of a plain map is read by `/trail`.
+        |~~ `trace` reads the trace of an error at rest, the value a catch
+            holds of a failure, `"x" | add 1 !| trace`; the key `:trace`
+            of a plain map is read by `/trace`.
         ~~|
     | proves :answersNothingForAnErrorThatFlewNoStep
-        |~~ An error that flew no step holds no path. ~~|
-        ~(::error{:a 1} | trail | eq ::trail[])
+        |~~ An error that flew no step holds no trace. ~~|
+        ~(::error{:a 1} | trace | eq ::trace[])
     | proves :holdsTheStepThatRaised
-        |~~ The trail of an error raised at once holds the one step. ~~|
-        ~("x" | add 1 !| trail | count | eq 1)
+        |~~ The trace of an error raised at once holds the one step. ~~|
+        ~("x" | add 1 !| trace | count | eq 1)
     | proves :meetsTheSubjectOfTheStep
         |~~ The frame holds the subject the step met. ~~|
-        ~("x" | add 1 !| trail | first | subject | eq "x")
+        ~("x" | add 1 !| trace | first | subject | eq "x")
     | proves :namesTheStepsSkipped
         |~~ The frame of the step that raised holds the steps skipped
             after it.
         ~~|
-        ~("x" | add 1 | mul 2 !| trail | first | skipped | eq ~(mul 2))
+        ~("x" | add 1 | mul 2 !| trace | first | skipped | eq ~(mul 2))
     | proves :readsOutward
         |~~ The step that ran an element adds its frame after the
             element's.
         ~~|
-        ~([1 "x"] | map ~(mul 2) !| trail | map ~step | eq [~(mul 2) ~(map ~(mul 2))])
+        ~([1 "x"] | map ~(mul 2) !| trace | map ~failed | eq [~(mul 2) ~(map ~(mul 2))])
+    | proves :bringsAWrittenTraceToItsKind
+        |~~ The `:trace` an error at rest is written with is brought to
+            `::trace`, a number refused as the answer.
+        ~~|
+        ~(get [~(::error{:trace [::frame[1 ~(pre)]]} | trace) ~(!{:trace 5} | trace !| type)] | eq [::trace[::frame[1 ~(pre)]] ::error/trace/answer/KindNotTakenError])
     | proves :SubjectNotErrorError/refusesAMap
-        |~~ A map with the key `:trail` is no error. ~~|
-        ~({:trail []} | trail !| get [~(type) /actualType] | eq [::error/trail/SubjectNotErrorError ::map])
-    | impl ~(query /trail | coalesce ::trail[])
+        |~~ A map with the key `:trace` is no error. ~~|
+        ~({:trace []} | trace !| get [~(type) /actualType] | eq [::error/trace/SubjectNotErrorError ::map])
+    | impl ~(query /trace | coalesce ::trace[])
 

@@ -1,14 +1,14 @@
 {"name":"raise-names-no-tag-by-a-kind","query":"{:kind ::Foo} | raise !| get [~(type) /kind]","expect":"[::error ::Foo]"}
 {"name":"raise-takes-the-tag-the-map-carries","query":"::Foo{:a 1} | raise !| type","expect":"::Foo"}
-{"name":"raise-makes-an-error-of-a-map","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trail ::trail[::frame[{:kind :oops} ~(raise)]]\n} | raise"}
+{"name":"raise-makes-an-error-of-a-map","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trace ::trace[::frame[{:kind :oops} ~(raise)]]\n} | raise"}
 {"name":"the-facts-of-an-error-at-rest-raise-under-the-kind-of-errors","query":"!{:a 1} | payload | get [~(type) ~(raise !| type)]","expect":"[::map ::error]"}
-{"name":"raise-puts-an-error-at-rest-read-from-a-vector-on-the-fail-track","query":"[::error{:a 1}] | first | raise !| trail | map ~step","expect":"[~(raise)]"}
-{"name":"raise-alone-raises-an-error-at-rest","query":"!{:a 1} | raise !| trail | map ~step","expect":"[~(raise)]"}
+{"name":"raise-puts-an-error-at-rest-read-from-a-vector-on-the-fail-track","query":"[::error{:a 1}] | first | raise !| trace | map ~failed","expect":"[~(raise)]"}
+{"name":"raise-alone-raises-an-error-at-rest","query":"!{:a 1} | raise !| trace | map ~failed","expect":"[~(raise)]"}
 {"name":"raise-puts-a-map-on-the-fail-track-as-an-error","query":"{:k 1} | raise !| type","expect":"::error"}
 {"name":"raise-keeps-the-tag-the-value-shows","query":"::Site::error{:k 1} | raise !| type","expect":"::Site"}
-{"name":"an-opened-error-raised-again-is-the-error","query":"\"x\" | add 1 !| raise !| type","expect":"::number/add/SubjectNotNumberError"}
+{"name":"an-error-at-rest-raised-again-is-the-error-it-was","query":"\"x\" | add 1 !| raise !| type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"the-bang-raises-an-error","query":"!{:k 1} | raise | count !| type","expect":"::error"}
-{"name":"the-tag-a-step-lays-over-the-facts-names-the-error","query":"\"x\" | add 1 !| tag ::Foo | raise !| get [~(type) ~(trail | map ~step)]","expect":"[::Foo [~(add 1)]]"}
+{"name":"the-tag-a-step-lays-over-the-facts-names-the-error","query":"\"x\" | add 1 !| tag ::Foo | raise !| get [~(type) ~(trace | map ~failed)]","expect":"[::Foo [~(add 1)]]"}
 {"name":"error-takes-the-outermost-tag-over-its-map","query":"{:k 1} | tag ::Foo | tag ::Bar | raise !| type","expect":"::Bar"}
 {"name":"raise-resides-on-the-map","query":"5 | raise !| type","expect":"::map/raise/SubjectNotMapError"}
 {"name":"raise-refuses-a-value-under-a-tag-over-no-map","query":"::Foo[1] | raise !| type","expect":"::map/raise/SubjectNotMapError"}

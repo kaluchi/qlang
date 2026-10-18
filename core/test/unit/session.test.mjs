@@ -1,23 +1,30 @@
-// Tests for session.mjs — REPL/notebook session lifecycle.
+// Tests for session.mjs — REPL/notebook session lifecycle: a session
+// keeps the scope its cells write, a host puts its names into it by its
+// sources alone, and the scope and the subject a host hands are taken by
+// the walk of the door [QSNAM#root], [QSHST#source].
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
 import { evalQuery } from '../../src/eval.mjs';
-import { keyword, makeTag, isErrorValue } from '../../src/types.mjs';
+import { langRuntime } from '../../src/runtime/index.mjs';
+import { keyword, makeBinding, makeErrorValue, makeTag, isErrorValue, BuiltinForeignValueError } from '../../src/types.mjs';
 import { QlangInvariantError, declareRefusal } from '../../src/errors.mjs';
+import { valuesOfTheLanguage, valuesOfNoKind } from '../helpers/values-at-the-door.mjs';
 
 describe('createSession lifecycle', () => {
-  it('creates a session seeded with langRuntime builtins', async () => {
+  it('creates a session seeded with the scope of the root', async () => {
     const sessionInstance = await createSession();
-    expect(sessionInstance.env).toBeInstanceOf(Map);
+    expect(sessionInstance.scope).toBeInstanceOf(Map);
     expect((await sessionInstance.evalCell('[1 2 3] | filter ~(gt 1) | count')).result).toBe(2);
   });
 
-  it('evalCell returns an entry with its result', async () => {
+  it('evalCell returns an entry with its result and the scope after the cell [QSHST#source]', async () => {
     const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('42');
+    const cellEntry = await sessionInstance.evalCell('42 | :n it');
     expect(cellEntry.result).toBe(42);
     expect(cellEntry.error).toBeNull();
+    expect(cellEntry.scopeAfterCell).toBe(sessionInstance.scope);
+    expect(cellEntry.scopeAfterCell.has('n')).toBe(true);
   });
 
   it('evalCell seeds the cell pipeValue from evalOpts.initialPipeValue', async () => {
@@ -58,6 +65,24 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(2);
   });
 
+  it('a session starts from the scope a host hands it, the record a cell wrote among it [QSHST#source]', async () => {
+    const sessionInstance = await createSession();
+    await sessionInstance.evalCell(':answer |~~ The answer. ~~| 42');
+    const other = await createSession({ scope: sessionInstance.scope });
+    expect(other.scope.get('answer')).toBe(sessionInstance.scope.get('answer'));
+    expect((await other.evalCell('::answer | doc | content')).result).toBe(' The answer. ');
+  });
+
+  it('a session binds no name a host hands it: its names come by its sources alone [QSHST#source]', async () => {
+    const sessionInstance = await createSession();
+    expect('bind' in sessionInstance).toBe(false);
+    expect(Object.keys(sessionInstance)).toEqual(['evalCell', 'scope']);
+  });
+
+  it('a cell handed no subject starts from null [QSHST#source]', async () => {
+    expect((await (await createSession()).evalCell('type')).result).toEqual(makeTag('null'));
+  });
+
   it('evalCell records the error on parse failure', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('[1 2');
@@ -65,13 +90,14 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.error.name).toBe('ParseError');
   });
 
-  it('a parse failure names the source a host named, and a cell the session numbers names none', async () => {
+  it('a parse failure names as its origin the source a host named, and a cell the session numbers names none [QSHST#source]', async () => {
     const sessionInstance = await createSession();
     const numbered = await sessionInstance.evalCell('[1 2');
     expect(numbered.uri).toBe('cell-1');
-    expect(numbered.result.descriptor.has('uri')).toBe(false);
+    expect(numbered.result.descriptor.has('origin')).toBe(false);
     const named = await sessionInstance.evalCell('[1 2', { uri: 'shop.qlang' });
-    expect(named.result.descriptor.get('uri')).toBe('shop.qlang');
+    expect(named.result.descriptor.get('origin')).toEqual(keyword('shop.qlang'));
+    expect(named.result.descriptor.has('uri')).toBe(false);
   });
 
   it('evalCell records the error on runtime failure', async () => {
@@ -96,27 +122,11 @@ describe('createSession lifecycle', () => {
     const cellEntry = await sessionInstance.evalCell('1', { uri: 'notebook.qlang#cell-foo' });
     expect(cellEntry.uri).toBe('notebook.qlang#cell-foo');
   });
-
-  it('bind installs a raw value into env', async () => {
-    const sessionInstance = await createSession();
-    sessionInstance.bind('answer', 42);
-    expect((await sessionInstance.evalCell('answer')).result).toBe(42);
-  });
-
-  it('bind installs a record a host hands as the record it is', async () => {
-    const sessionInstance = await createSession();
-    await sessionInstance.evalCell(':answer |~~ The answer. ~~| 42');
-    const record = sessionInstance.env.get('answer');
-    const other = await createSession();
-    other.bind('answer', record);
-    expect(other.env.get('answer')).toBe(record);
-    expect((await other.evalCell('::answer | doc | content')).result).toBe(' The answer. ');
-  });
 });
 
 describe('the sources a host hands [QSDSP#residence]', () => {
   // A source of the host declares a verb under the label of its subject, with
-  // the implementation the host hands beside it [QSHST#source].
+  // the primitive the host hands beside it [QSHST#source].
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [
@@ -124,10 +134,10 @@ describe('the sources a host hands [QSDSP#residence]', () => {
       ':any/fetch |~~ The text fetched. ~~| (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})',
       ':any/doubled ~(fetch | append fetch)'
     ].join('\n'),
-    impls: { 'number/less': (subject, by) => subject - by, 'any/fetch': () => 'fetched' }
+    primitives: { 'number/less': (subject, by) => subject - by, 'any/fetch': () => 'fetched' }
   }];
 
-  it('runs a host name through the implementation handed beside its source', async () => {
+  it('runs a host name through the primitive handed beside its source', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
     expect((await sessionInstance.evalCell('7 | less "a" !| type')).result)
@@ -150,46 +160,72 @@ describe('the sources a host hands [QSDSP#residence]', () => {
     expect((await sessionInstance.evalCell('::number/less | binding | get /origin')).result).toEqual(keyword('tests/host'));
   });
 
-  it('runs a host name whose descriptor names no primitive by the implementation handed for it', async () => {
+  it('runs a host name whose descriptor names no primitive by the primitive handed for it', async () => {
     const sessionInstance = await createSession({ sources: [{
       uri: 'tests/handed',
       source: ':any/twice (::fn | takes :by |~~ The factor. ~~| /0 ::number | impl ::builtin{})',
-      impls: { 'any/twice': (subject, by) => subject * by }
+      primitives: { 'any/twice': (subject, by) => subject * by }
     }] });
     expect((await sessionInstance.evalCell('3 | twice 2')).result).toBe(6);
     expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTag('any/twice/by/KindNotTakenError'));
   });
 
-  it('takes a ::builtin{} in a verb a host declares as a step, and refuses an implementation handed for it [QSDSP#walk]', async () => {
-    await expect(createSession({ sources: [{
-      uri: 'tests/bare', source: ':any/shout ~(::builtin{})', impls: { shout: text => text.toUpperCase() }
-    }] })).rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
+  it('a failure a host\'s primitive answers holds its trace in the kind of a trace where a step reads it [QSERR#trace]', async () => {
+    const sessionInstance = await createSession({ sources: [{
+      uri: 'tests/failed', source: ':any/failed ::builtin{}',
+      primitives: { 'any/failed': () => makeErrorValue(makeTag('error'), new Map([['trace', [5]]])) }
+    }] });
+    expect((await sessionInstance.evalCell('failed !| get [~(type) /index]')).result).toEqual(await evalQuery('[::trace/ElementKindNotTakenError 0]'));
+    expect((await sessionInstance.evalCell('failed !| 0')).result).toBe(0);
   });
 
-  it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared', async () => {
+  it('takes a ::builtin{} in a verb a host declares as a step, and refuses a primitive handed for it [QSDSP#walk]', async () => {
+    await expect(createSession({ sources: [{
+      uri: 'tests/bare', source: ':any/shout ~(::builtin{})', primitives: { shout: text => text.toUpperCase() }
+    }] })).rejects.toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', facts: { origin: keyword('tests/bare') } });
+  });
+
+  it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared, naming the source and the name [QSHST#source]', async () => {
     await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':any/hello ::builtin{}' }] }))
-      .rejects.toMatchObject({ name: 'ImplementationNotHandedError', facts: { name: 'any/hello' } });
+      .rejects.toMatchObject({ name: 'PrimitiveNotHandedError', address: 'builtin/PrimitiveNotHandedError', facts: { origin: keyword('tests/bare'), name: keyword('any/hello') } });
   });
 
-  it('refuses an implementation handed for a verb of steps', async () => {
+  it('takes no primitive for a name that holds a ::builtin{} another name took, which runs that name\'s, and refuses one handed for it, naming the name whose ::builtin{} it holds [QSHST#source]', async () => {
+    const aliasing = primitives => createSession({ sources: [{
+      uri: 'tests/alias',
+      source: ':any/plus (::number/add | binding | get /value)\n:any/greet ::builtin{}\n:any/hail (::any/greet | binding | get /value)',
+      primitives
+    }] });
+    expect((await (await aliasing({ 'any/greet': () => 'hi' })).evalCell('get [~(5 | plus 1) ~(hail)]')).result).toEqual([6, 'hi']);
+    for (const [name, sharedWith] of [['any/plus', 'number/add'], ['any/hail', 'any/greet']]) {
+      await expect(aliasing({ 'any/greet': () => 'hi', [name]: () => 0 })).rejects.toMatchObject({
+        name: 'PrimitiveNamesNoBuiltinError',
+        facts: { origin: keyword('tests/alias'), name: keyword(name), sharedWith: keyword(sharedWith) },
+        message: `qlang root: the source tests/alias is handed a primitive for :${name}, whose ::builtin{} is another name's, :${sharedWith}, whose primitive it runs`
+      });
+    }
+    expect((await (await createSession()).evalCell('1 | add 2')).result).toBe(3);
+  });
+
+  it('refuses a primitive handed for a verb of steps', async () => {
     await expect(createSession({ sources: [{
-      uri: 'tests/over', source: ':any/many ~(count)', impls: { 'any/many': () => 0 }
-    }] })).rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
+      uri: 'tests/over', source: ':any/many ~(count)', primitives: { 'any/many': () => 0 }
+    }] })).rejects.toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', address: 'builtin/PrimitiveNamesNoBuiltinError' });
   });
 
-  it('refuses an implementation handed for a name that is no ::builtin{} under a label', async () => {
-    await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':shout ::builtin{}', impls: { shout: text => text } }] }))
-      .rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
-    await expect(createSession({ sources: [{ uri: 'tests/map', source: ':x {} | :x/shout ::builtin{}', impls: { 'x/shout': text => text } }] }))
-      .rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
-    await expect(createSession({ sources: [{ uri: 'tests/stray', source: ':limit 10', impls: { limit: () => 1 } }] }))
-      .rejects.toMatchObject({ name: 'ImplementationNamesNoBuiltinError' });
+  it('refuses a primitive handed for a name that is no ::builtin{} under a label, saying so [QSHST#source]', async () => {
+    const refusal = (uri, name) => `qlang root: the source ${uri} is handed a primitive for :${name}, which it declares as no ::builtin{} under a label`;
+    for (const [uri, source, name] of [['tests/bare', ':shout ::builtin{}', 'shout'], ['tests/map', ':x {} | :x/shout ::builtin{}', 'x/shout'], ['tests/stray', ':limit 10', 'limit']]) {
+      const refused = await createSession({ sources: [{ uri, source, primitives: { [name]: text => text } }] }).catch(caught => caught);
+      expect(refused).toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', message: refusal(uri, name) });
+      expect(refused.facts).toEqual({ origin: keyword(uri), name: keyword(name) });
+    }
   });
 
-  it('refuses a source that declares a name the root holds, bare or with a path, by one refusal', async () => {
+  it('refuses a source that declares a name the root holds, bare or with a path, by one refusal naming the source as its origin [QSHST#source]', async () => {
     for (const source of [':vec |~~ again ~~|', ':vec/count ~(0)']) {
       await expect(createSession({ sources: [{ uri: 'tests/twice', source }] }))
-        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { tagName: '::bind/NameDeclaredTwiceError' } });
+        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: keyword('tests/twice'), tagName: '::bind/NameDeclaredTwiceError' } });
     }
   });
 
@@ -209,7 +245,36 @@ describe('the sources a host hands [QSDSP#residence]', () => {
 
   it('refuses a source whose run answers an error', async () => {
     await expect(createSession({ sources: [{ uri: 'tests/broken', source: ':a 1 | 1 | add "x" | :b 2' }] }))
-      .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError' });
+      .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', message: expect.stringContaining('the source tests/broken is refused') });
+  });
+});
+
+describe('a session takes what its host hands by the walk of the door [QSHST#source]', () => {
+  const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: keyword('held'), value }));
+
+  it('takes a value of each kind of the language as the subject of a cell and in the scope it starts from, as it is', async () => {
+    const sessionInstance = await createSession();
+    for (const value of await valuesOfTheLanguage()) {
+      expect((await sessionInstance.evalCell('it', { initialPipeValue: value })).result).toBe(value);
+      expect((await (await createSession({ scope: await scopeHolding(value), sources: [] })).evalCell('held')).result).toBe(value);
+    }
+  });
+
+  it('answers a subject of no kind as the defect of its cell, raised past the fail track, and the cells after it run', async () => {
+    const sessionInstance = await createSession();
+    for (const [value, , account] of valuesOfNoKind()) {
+      const cell = await sessionInstance.evalCell(':late 1 | type', { initialPipeValue: value });
+      expect([cell.result, cell.error, cell.error.facts], account).toEqual([null, expect.any(BuiltinForeignValueError), { actualValue: account }]);
+      expect(cell.scopeAfterCell.has('late')).toBe(false);
+    }
+    expect((await sessionInstance.evalCell('1 | add 1')).result).toBe(2);
+  });
+
+  it('refuses a scope whose name holds a value of no kind, before its sources declare the root', async () => {
+    for (const [value, , account] of valuesOfNoKind()) {
+      await expect(createSession({ scope: await scopeHolding(value), sources: [{ uri: 'tests/never', source: ':any/never ::builtin{}' }] }), account)
+        .rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: account } });
+    }
   });
 });
 
@@ -223,7 +288,7 @@ describe('a cell whose failure is no error value', () => {
       sources: [{
         uri: 'tests/collapse',
         source: ':any/collapse ::builtin{}',
-        impls: { 'any/collapse': () => { throw new QlangInvariantError('a defect of the host'); } }
+        primitives: { 'any/collapse': () => { throw new QlangInvariantError('a defect of the host'); } }
       }]
     });
 

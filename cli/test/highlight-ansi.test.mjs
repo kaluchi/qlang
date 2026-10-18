@@ -10,21 +10,21 @@ import { highlightAnsi } from '../src/highlight-ansi.mjs';
 const ANY_ANSI = /\x1b\[[0-9;]*m/;
 const ANSI_RESET = '\x1b[0m';
 
-const noBuiltins = new Set();
+const noVerbNames = new Set();
 
 describe('highlightAnsi', () => {
   it('wraps a number literal in the yellow escape pair', () => {
-    const out = highlightAnsi('42', noBuiltins);
+    const out = highlightAnsi('42', noVerbNames);
     expect(out).toBe('\x1b[33m42\x1b[0m');
   });
 
   it('wraps a String literal in the green escape pair', () => {
-    const out = highlightAnsi('"hi"', noBuiltins);
+    const out = highlightAnsi('"hi"', noVerbNames);
     expect(out).toBe('\x1b[32m"hi"\x1b[0m');
   });
 
-  it('wraps a pattern literal, its flags among it, in the bright-magenta escape pair', () => {
-    const out = highlightAnsi('#"\\d+"i', noBuiltins);
+  it('wraps a regex literal, its flags among it, in the bright-magenta escape pair', () => {
+    const out = highlightAnsi('#"\\d+"i', noVerbNames);
     expect(out).toBe('\x1b[95m#"\\d+"i\x1b[0m');
   });
 
@@ -32,36 +32,36 @@ describe('highlightAnsi', () => {
     // `~(` and `)` get the upright green `quote` escape; the body
     // sub-tokenises with each inner kind's colour combined with
     // italic (e.g. the name `:active` → italic cyan).
-    const out = highlightAnsi('~(:active)', noBuiltins);
+    const out = highlightAnsi('~(:active)', noVerbNames);
     expect(out).toContain('\x1b[32m~(\x1b[0m');           // upright open
     expect(out).toContain('\x1b[3;36m:active\x1b[0m');   // italic name
     expect(out).toContain('\x1b[32m)\x1b[0m');            // upright close
   });
 
   it('wraps a ::tag TagLit in the bright-cyan tag escape', () => {
-    const out = highlightAnsi('::Box', noBuiltins);
+    const out = highlightAnsi('::Box', noVerbNames);
     expect(out).toBe('\x1b[96m::Box\x1b[0m');
   });
 
   it('wraps the ::tag head of a TaggedLit and descends into the payload', () => {
-    const out = highlightAnsi('::Box~(mul x)', noBuiltins);
+    const out = highlightAnsi('::Box~(mul x)', noVerbNames);
     expect(out).toContain('\x1b[96m::Box\x1b[0m');
-    // Quote payload — upright delimiters + italic body. With no
-    // builtin names supplied, `mul` falls back to the `name`
-    // colour (cyan 36) carrying the italic modifier.
+    // Quote payload — upright delimiters + italic body. With no names
+    // of verbs supplied, `mul` falls back to the `name` colour (cyan
+    // 36) carrying the italic modifier.
     expect(out).toContain('\x1b[32m~(\x1b[0m');
     expect(out).toContain('\x1b[3;36mmul\x1b[0m');
     expect(out).toContain('\x1b[32m)\x1b[0m');
   });
 
   it('wraps a :keyword name in the cyan escape pair', () => {
-    const out = highlightAnsi(':active', noBuiltins);
+    const out = highlightAnsi(':active', noVerbNames);
     expect(out).toBe('\x1b[36m:active\x1b[0m');
   });
 
   it('wraps the call of a verb of the language in the bright-blue escape pair', () => {
-    const builtins = new Set(['count']);
-    const out = highlightAnsi('count', builtins);
+    const verbNames = new Set(['count']);
+    const out = highlightAnsi('count', verbNames);
     expect(out).toBe('\x1b[94mcount\x1b[0m');
   });
 
@@ -71,7 +71,7 @@ describe('highlightAnsi', () => {
   });
 
   it('wraps a comment in the dim escape', () => {
-    const out = highlightAnsi('|~| note |~|', noBuiltins);
+    const out = highlightAnsi('|~| note |~|', noVerbNames);
     expect(out).toBe('\x1b[2m|~| note |~|\x1b[0m');
   });
 
@@ -120,10 +120,10 @@ describe('highlightAnsi', () => {
   });
 
   it('paints a line cut short, as it is typed', () => {
-    expect(highlightAnsi('(unclosed', noBuiltins)).toMatch(ANY_ANSI);
+    expect(highlightAnsi('(unclosed', noVerbNames)).toMatch(ANY_ANSI);
   });
 
   it('passes a source the parser reads none of through without escape sequences', () => {
-    expect(highlightAnsi(')))', noBuiltins)).toBe(')))');
+    expect(highlightAnsi(')))', noVerbNames)).toBe(')))');
   });
 });

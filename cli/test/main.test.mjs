@@ -281,16 +281,17 @@ describe('main — `out` suppression of auto-encoded stdout', () => {
 });
 
 describe('main — error paths', () => {
-  it('writes a query that does not parse as its failure on stdout, with exit 0 as every answer [QSHST#answer]', async () => {
+  it('writes a query that does not parse as its failure on stdout, its caret drawn below it, with exit 0 as every answer [QSHST#answer]', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
     expect(s.stderrText()).toBe('');
-    // The failure as the language prints it, `::quote/ParseError!{:expected …
-    // :found … :source "[1 2" :marker "    ^" :location {…}}`.
+    // The failure as the language prints it holds the line and the span of
+    // the place, and the command line draws the caret under the line.
     expect(s.stdoutText()).toContain('::quote/ParseError!{');
     expect(s.stdoutText()).toContain(':source "[1 2"');
-    expect(s.stdoutText()).toContain(':marker');
+    expect(s.stdoutText()).toContain(':location ::span[4 1 5 4 1 5]');
+    expect(s.stdoutText()).toContain('}\n|~| [1 2\n|~|     ^\n|~| The source does not read as qlang');
   });
 
   it('answers a stdin magnitude outside the finite-double domain as parseJson refuses it, naming the path [QSHST#answer]', async () => {
@@ -392,7 +393,7 @@ describe('main — a query the shell turned into a path', () => {
     expect(queryAsWritten('C:/data/users', UNDER_MSYS, () => false)).toBe('C:/data/users');
   });
 
-  it('leaves a query of the language and the absent query of a REPL as they came [QSHST#shell]', () => {
+  it('leaves a query of the language, and no query where a REPL starts without one, as they came [QSHST#shell]', () => {
     expect(queryAsWritten('/data/users', UNDER_MSYS, () => true)).toBe('/data/users');
     expect(queryAsWritten(null, UNDER_MSYS, () => true)).toBe(null);
   });

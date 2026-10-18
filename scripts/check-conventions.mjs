@@ -105,7 +105,7 @@
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
@@ -116,6 +116,7 @@ import { RETIRED_WORDS } from './retired-words.mjs';
 import { kindsNamedForCommands } from './catalog-kinds.mjs';
 import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
+import { readText, treeAt } from './tree-reads.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -145,7 +146,7 @@ const RULESET_FILES = new Set([
   'scripts/check-conventions.mjs'  // this file quotes the list
 ]);
 
-const FORBIDDEN_PATTERNS = [
+const FORBIDDEN_REGEXES = [
   { rule: 'TODO marker',                 regex: /\bTODO\b/ },
   { rule: 'FIXME marker',                regex: /\bFIXME\b/ },
   { rule: 'HACK marker',                 regex: /\bHACK\b/ },
@@ -186,7 +187,7 @@ function* walkSourceTree(rootDir, sourceFile = SOURCE_FILE) {
 function scanForbiddenWords() {
   const violations = [];
   for (const filePath of walkSourceTree(repoRoot, TEXT_FILE)) {
-    const text = readFileSync(filePath, 'utf8');
+    const text = readText(filePath);
     const lines = text.split(/\r?\n/);
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
     // The docs/ tree names forbidden words for pedagogy, and the
@@ -197,7 +198,7 @@ function scanForbiddenWords() {
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
       const line = lines[lineIndex];
-      for (const { rule, regex } of FORBIDDEN_PATTERNS) {
+      for (const { rule, regex } of FORBIDDEN_REGEXES) {
         if (regex.test(line)) {
           violations.push({
             file: relFile,
@@ -258,7 +259,7 @@ function* walkRefusalScanRoots() {
 function refusalDeclarationDrift() {
   const violations = [];
   for (const filePath of walkRefusalScanRoots()) {
-    const text = readFileSync(filePath, 'utf8');
+    const text = readText(filePath);
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
     const lineAt = index => text.slice(0, index).split('\n').length;
     for (const match of text.matchAll(refusalDeclarationRe)) {
@@ -314,7 +315,7 @@ function scanProseTallies() {
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
     if (!relFile.endsWith('.md') || OUTSIDE_REPORT.test(relFile)) continue;
 
-    const lines = readFileSync(filePath, 'utf8').split(/\r?\n/);
+    const lines = readText(filePath).split(/\r?\n/);
     let insideFence = false;
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
       const line = lines[lineIndex];
@@ -378,7 +379,7 @@ function anchorRootOf(anchorPath) {
 function anchorDrift() {
   const violations = [];
   for (const documentPath of ANCHOR_DOCUMENTS) {
-    const text = readFileSync(join(repoRoot, documentPath), 'utf8');
+    const text = readText(join(repoRoot, documentPath));
     for (const [, anchorPath] of text.matchAll(ANCHOR_PATH_RE)) {
       if (/\/(?:Dnn|En)\.md$/.test(anchorPath)) continue;
       const root = anchorRootOf(anchorPath);
@@ -389,7 +390,7 @@ function anchorDrift() {
     for (const [, quoted, anchorPath] of text.replace(/\s+/g, ' ').matchAll(TREE_QUOTE_RE)) {
       const root = anchorRootOf(anchorPath);
       if (root === null || !existsSync(join(root, anchorPath))) continue;
-      const anchored = readFileSync(join(root, anchorPath), 'utf8').replace(/\s+/g, ' ');
+      const anchored = readText(join(root, anchorPath)).replace(/\s+/g, ' ');
       if (!anchored.includes(quoted.trim())) {
         violations.push({ file: documentPath, anchor: anchorPath, problem: `quotes “${quoted}”, which the file no longer holds` });
       }
@@ -418,7 +419,7 @@ function catalogFiles(dir) {
 function decisionsInCatalog() {
   const violations = [];
   for (const file of CATALOG_ROOTS.flatMap(catalogFiles)) {
-    const lines = readFileSync(join(repoRoot, file), 'utf8').split(/\r?\n/);
+    const lines = readText(join(repoRoot, file)).split(/\r?\n/);
     const headEnd = lines[0]?.startsWith('|~') && !lines[0].startsWith('|~~') ? lines.findIndex(line => line.includes('~|')) : -1;
     lines.forEach((line, index) => {
       if (index <= headEnd) return;
@@ -447,7 +448,7 @@ function recordsWithoutDecider() {
   return [JOURNAL, REPLACED].flatMap(folder => readdirSync(join(repoRoot, folder))
     .map(file => ({ file: `${folder}/${file}`, number: Number(/^D(\d+)\.md$/.exec(file)?.[1]) }))
     .filter(({ number }) => number >= FIRST_RECORD_NAMING_ITS_DECIDER)
-    .filter(({ file }) => outOfForm(readFileSync(join(repoRoot, file), 'utf8')))
+    .filter(({ file }) => outOfForm(readText(join(repoRoot, file))))
     .map(({ file }) => file));
 }
 
@@ -458,7 +459,7 @@ function recordsWithoutDecider() {
 // [QSWRK#journal].
 
 function misplacedRecords() {
-  const replacedWhole = path => /^(Replaced by|Merged into|Dissolved into|Filed under the (?:principles|tooling) by) /m.test(readFileSync(join(repoRoot, path), 'utf8'));
+  const replacedWhole = path => /^(Replaced by|Merged into|Dissolved into|Filed under the (?:principles|tooling) by) /m.test(readText(join(repoRoot, path)));
   const inFolder = folder => readdirSync(join(repoRoot, folder)).filter(file => /^[DE]\d+\.md$/.test(file)).map(file => `${folder}/${file}`);
   return [
     ...inFolder(JOURNAL).filter(replacedWhole).map(path => ({ path, problem: 'is replaced whole: move it by `node scripts/replaced-records.mjs`' })),
@@ -491,7 +492,7 @@ function brokenLinks() {
   const violations = [];
   const documents = execFileSync('git', ['ls-files', '*.md'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
   for (const path of documents) {
-    const text = readFileSync(join(repoRoot, path), 'utf8');
+    const text = readText(join(repoRoot, path));
     for (const match of text.matchAll(MARKDOWN_LINK)) {
       const target = match[1];
       if (/^[a-z]+:/i.test(target) || target.startsWith('/')) continue;
@@ -516,7 +517,7 @@ const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[
 
 function fatesOutOfStep() {
   const records = readDecisionRecords(repoRoot);
-  const statementsOfRecord = new Map([...records].map(([name, record]) => [name, statementsOf(readFileSync(record.path, 'utf8')).map(statement => statement.text)]));
+  const statementsOfRecord = new Map([...records].map(([name, record]) => [name, statementsOf(readText(record.path)).map(statement => statement.text)]));
   const fatesOf = name => statementsOfRecord.get(name).filter(statement => /^(Replaced by|Merged into|Pruned of what|Filed under the (?:principles|tooling) by) /.test(statement));
   const number = name => (name.startsWith('D') ? Number(name.slice(1)) : null);
   const violations = [];
@@ -569,7 +570,7 @@ function specIntrusions() {
   const found = [];
   for (const name of readdirSync(specDir).filter(file => file.endsWith('.md'))) {
     let fenced = false;
-    readFileSync(join(specDir, name), 'utf8').split(/\r?\n/).forEach((line, index) => {
+    readText(join(specDir, name)).split(/\r?\n/).forEach((line, index) => {
       if (line.startsWith('```')) { fenced = !fenced; return; }
       if (fenced) return;
       for (const { rule, regex, besides } of SPEC_INTRUSIONS) {
@@ -579,7 +580,7 @@ function specIntrusions() {
       }
     });
   }
-  const datedLines = path => readFileSync(join(repoRoot, path), 'utf8').split(/\r?\n/).forEach((line, index) => {
+  const datedLines = path => readText(join(repoRoot, path)).split(/\r?\n/).forEach((line, index) => {
     const match = HISTORY_DATE.exec(line);
     if (match) found.push({ file: path, line: index + 1, rule: 'a date of the history', text: match[0] });
   });
@@ -701,6 +702,16 @@ function partsOfLines(voice, text) {
   });
 }
 
+// The files of the checkout, tracked and untracked but not ignored, that a
+// voice reads, listed once.
+let speaking;
+function filesThatSpeak() {
+  const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
+  speaking ??= [...git('ls-files').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')]
+    .filter(Boolean).filter(file => voiceOfFile(file) !== null && existsSync(join(repoRoot, file)));
+  return speaking;
+}
+
 function namesOfTakenOut() {
   const baseline = baselineOf(repoRoot);
   if (baseline === undefined) return [];
@@ -721,19 +732,19 @@ function namesOfTakenOut() {
     }
   }
   const removed = new Set();
+  const textsThen = treeAt(repoRoot, baseline).textsOf([...removedLines.keys()]);
   for (const [file, numbers] of removedLines) {
-    const parts = partsOfLines(voiceOfFile(file), git('show', `${baseline}:${file}`));
+    const parts = partsOfLines(voiceOfFile(file), textsThen.get(file));
     for (const number of numbers) for (const token of tokensIn(parts[number - 1]?.holds ?? '')) removed.add(token);
   }
   // The sections a record in transit overrides, whose text waits for the
   // move [QSWRK#spec].
   const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
-  const files = [...git('ls-files').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')]
-    .filter(Boolean).filter(file => voiceOfFile(file) !== null && existsSync(join(repoRoot, file)));
+  const files = filesThatSpeak();
   const held = new Set();
   const naming = [];
   for (const file of files) {
-    const text = readFileSync(join(repoRoot, file), 'utf8');
+    const text = readText(join(repoRoot, file));
     const lines = text.split(/\r?\n/);
     const chapter = /^docs\/spec\/(QS[A-Z]{3})-/.exec(file)?.[1];
     let section = '';
@@ -764,9 +775,7 @@ const nameOfCase = line => {
 // the prose, the comments and docs, the name of a case and the title of a
 // test [QSWRK#documents].
 function retiredWordsWritten() {
-  const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
-  const files = [...git('ls-files').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')]
-    .filter(Boolean).filter(file => voiceOfFile(file) !== null && existsSync(join(repoRoot, file)));
+  const files = filesThatSpeak();
   // The sections a record in transit overrides, whose text waits for the
   // move [QSWRK#spec].
   const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
@@ -774,7 +783,7 @@ function retiredWordsWritten() {
   for (const file of files) {
     const voice = voiceOfFile(file);
     const isTest = /(^|\/)test\//.test(file);
-    const text = readFileSync(join(repoRoot, file), 'utf8');
+    const text = readText(join(repoRoot, file));
     const lines = text.split(/\r?\n/);
     const chapter = /^docs\/spec\/(QS[A-Z]{3})-/.exec(file)?.[1];
     let section = '';
@@ -783,8 +792,8 @@ function retiredWordsWritten() {
       if (chapter !== undefined && (waiting.has(chapter) || waiting.has(`${chapter}#${section}`))) return;
       const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(isTest ? [...holds.matchAll(TEST_TITLE)].map(match => match[2]) : [])];
       for (const part of read) {
-        for (const { pattern, written, by } of RETIRED_WORDS) {
-          const word = pattern.exec(part)?.[0];
+        for (const { regex, written, by } of RETIRED_WORDS) {
+          const word = regex.exec(part)?.[0];
           if (word !== undefined) found.push({ file, line: index + 1, word, written, by });
         }
       }
@@ -799,7 +808,7 @@ function retiredWordsWritten() {
 // the thing, so no kind of the catalog bears the name of a command [QSBLD#fn].
 
 function kindsOfCommands() {
-  const sources = CATALOG_ROOTS.flatMap(catalogFiles).map(file => ({ path: file.replace(/\\/g, '/'), text: readFileSync(join(repoRoot, file), 'utf8') }));
+  const sources = CATALOG_ROOTS.flatMap(catalogFiles).map(file => ({ path: file.replace(/\\/g, '/'), text: readText(join(repoRoot, file)) }));
   return kindsNamedForCommands(sources);
 }
 

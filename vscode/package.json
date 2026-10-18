@@ -1,7 +1,7 @@
 {
   "name": "qlang-vscode",
   "displayName": "qlang",
-  "description": "Syntax highlighting and language server for the qlang query language",
+  "description": "Syntax highlighting and language server for the qlang pipeline query language",
   "version": "0.1.0",
   "publisher": "local",
   "engines": {
@@ -47,6 +47,7 @@
     ]
   },
   "dependencies": {
+    "@kaluchi/qlang-core": "^0.10.0",
     "vscode-languageclient": "^10.1.1"
   }
 }

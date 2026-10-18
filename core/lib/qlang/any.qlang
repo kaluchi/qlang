@@ -27,7 +27,7 @@
       `5 | desc` answering `::desc#5`, a value that ranks the greater
       first: a key of `sort`, `min` or `max` that answers it descends,
       `[1 3 2] | sort ~(desc)` answering `[3 2 1]`, and in a vector key it
-      turns its own place alone, `sort ~(get [~(get /n | desc) /s])`. A
+      turns its own index alone, `sort ~(get [~(get /n | desc) /s])`. A
       value of every kind turns, a map among them, and `payload` reads it
       back. The key is code, a
       quote: `sort desc` turns the vector itself, which `sort` refuses
@@ -51,8 +51,8 @@
     | proves :descendsASort
         |~~ A sort by `desc` descends. ~~|
         ~([1 3 2] | sort ~(desc) | eq [3 2 1])
-    | proves :turnsOnePlaceOfAVectorKey
-        |~~ In a vector key `desc` turns its own place alone. ~~|
+    | proves :turnsOneIndexOfAVectorKey
+        |~~ In a vector key `desc` turns its own index alone. ~~|
         ~([{:n 1 :s "b"} {:n 1 :s "a"} {:n 2 :s "c"}]
           | sort ~(get [~(get /n | desc) /s]) | map /s | eq ["c" "a" "b"])
     | proves :readsBackByPayload
@@ -240,7 +240,7 @@
     | proves :answersTheOutermostTag
         |~~ A value under tags answers the outermost. ~~|
         ~(::Width#5 | type | eq ::Width)
-    | proves :readsAnErrorOnceOpened
+    | proves :readsAnErrorAtRest
         |~~ An error passes over `type`, and the error at rest answers
             the tag of its refusal.
         ~~|
@@ -308,7 +308,7 @@
       a set, a quote, a doc and an error by brackets of their own; any
       other value under a tag as its tag before the print of its payload.
       A set prints in its one order, and the text reads back as the value
-      by `parse` and `apply`. A kind may answer a `print` of its own
+      by `parse` and `open`. A kind may answer a `print` of its own
       declared under it, `:Box/print`, and the print of a value takes it
       for each part of that kind. The call takes no value: a print within
       a budget is `elide 80 | print`.
@@ -331,10 +331,10 @@
         ~(::builtin{:a 1} | print | eq "::builtin{:a 1}")
     | proves :printsASetInItsOrder
         |~~ A set prints in its one order. ~~|
-        ~("#[2 1]" | parse | apply it | print | eq "#[1 2]")
+        ~("#[2 1]" | parse | open | print | eq "#[1 2]")
     | proves :readsBack
         |~~ The text reads back as the value. ~~|
-        ~({:a [1 "x"]} | :v it | print | parse | :q it | apply q | eq v)
+        ~({:a [1 "x"]} | :v it | print | parse | open | eq v)
     | proves :takesThePrintOfAKind
         |~~ The print of a value takes the `print` of a kind for each part
             of it.
@@ -347,24 +347,23 @@
 
 :any/elide
   |~~ Answers the subject within a budget of characters of its print,
-      what does not fit given way to markers under `::elision`, and a
-      value whose print fits as it is. The largest part gives way first,
+      what does not fit given way to elisions, values of `::elision`, and
+      a value whose print fits as it is. The largest part gives way first,
       or in its place a part within it that prints more than half of it:
       a string, a doc, a quote or a map beneath the top gives way whole,
-      the marker of a text keeping its first characters under `:head`; a
+      the elision of a text keeping its first characters under `:head`; a
       vector or a set keeps the first half of its elements, and half of
-      those until it fits, ending with a marker of the rest, a set
+      those until it fits, ending with an elision of the rest, a set
       standing in the one order; a value under a tag keeps its tag, its
       parts giving way within; and a part a kind prints its own way
       stands as that kind prints it, the budget counting that print. The
       top keeps its shape: a vector or a set there keeps its first
       element, a map gives way within, and a string, a doc, a quote or an
       atom alone is answered whole. A part gives way only where the least
-      it gives way to prints shorter than it, `[]` or `{:n 1}` staying. A
-      marker's `:size` counts what it stands for, a text by its
-      characters as `count` counts them, and its `:read`, applied to the
-      value `elide` took,
-      answers the part left out. The call gives the budget, a number; a
+      it gives way to prints shorter than it, `[]` or `{:n 1}` staying. An
+      elision's `:size` counts what it stands for, a text by its
+      characters as `count` counts them, and its `:read`, continued from
+      the value `elide` took, reads the part left out. The call gives the budget, a number; a
       host applies `elide` to every answer it prints when a reader asks
       it for a budget.
       ::link~(::elision | doc) ::link~(::any/print | doc)
@@ -386,7 +385,7 @@
         ~~|
     | returns
         |~~ The subject within the budget, its parts that did not fit
-            given way to markers.
+            given way to elisions.
         ~~|
         ::any
     | proves :leavesWhatFits
@@ -394,22 +393,22 @@
         ~([1 2] | elide 100 | eq [1 2])
     | proves :elidesTheLargestPart
         |~~ The largest part gives way to an elision. ~~|
-        ~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}
+        ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it" :n 1}
           | elide 40 | get /s | type | eq ::elision)
     | proves :keepsTheHeadOfAString
-        |~~ The marker of a string keeps its first characters. ~~|
-        ~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}
+        |~~ The elision of a string keeps its first characters. ~~|
+        ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it" :n 1}
           | elide 40 | get /s/head | eq "a long line of text to leave out, which ")
-    | proves :keepsAPartShorterThanItsMarker
-        |~~ A part whose marker prints no shorter than it stays. ~~|
+    | proves :keepsAPartShorterThanItsElision
+        |~~ A part whose elision prints no shorter than it stays. ~~|
         ~([[] {:n 1} "short"] | elide 3 | eq [[] {:n 1} "short"])
     | proves :countsATextByItsCharacters
-        |~~ The marker of a text counts and keeps characters as `count`
+        |~~ The elision of a text counts and keeps characters as `count`
             and `take` do.
         ~~|
         ~(61 | range | map ~("😀") | join "" | :s it | {} | put /s s | elide 30 | get /s | get [/size ~(get /head | count)] | eq [61 30])
     | proves :halvesAVectorUntilItFits
-        |~~ A vector keeps its first elements and ends with a marker of
+        |~~ A vector keeps its first elements and ends with an elision of
             the rest.
         ~~|
         ~(["alpha" "bravo" "charlie" "delta" "echo" "foxtrot" "golf" "hotel" "india" "juliet"]
@@ -417,7 +416,7 @@
           | eq ["alpha" "bravo" "charlie" "delta" "echo" ::elision{:size 5 :read ~(drop 5)}])
     | proves :keepsATag
         |~~ A value under a tag keeps its tag. ~~|
-        ~(::Box{:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it"}
+        ~(::Box{:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it"}
           | elide 10 | type | eq ::Box)
     | proves :keepsTheFirstElementOfTheTop
         |~~ The top keeps its first element, the part within it giving way.
@@ -429,7 +428,7 @@
         ~~|
         ~(40 | range | toSet | elide 60 | get [~(type) ~(last | type)] | eq [::set ::elision])
     | proves :givesADocWayWithTheHeadOfItsText
-        |~~ A doc beneath the top gives way whole, its marker keeping the
+        |~~ A doc beneath the top gives way whole, its elision keeping the
             first characters of its text.
         ~~|
         ~(get [~(::vec/sort | doc)] | elide 100 | get /0/head | type | eq ::string)
@@ -439,7 +438,7 @@
         ~(:Box |~~ B ~~| | :Box/print ~("b") | [::Box#1 ::Box#2 ::Box#3 ::Box#4 ::Box#5 ::Box#6 ::Box#7] | elide 10 | print | count | eq 15)
     | proves :readsTheElidedPartBack
         |~~ An elision holds the query that reads its part back. ~~|
-        ~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}
+        ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it" :n 1}
           | :v it | elide 40 | get /s/read | :r it | v | apply r | eq (v | get /s))
     | proves :answersAStringWhole
         |~~ A string alone is answered whole. ~~|
@@ -653,7 +652,7 @@
       so a chain of nested `if` flattens into one call. A clause left over
       after the pairs is the default branch; without one, a walk that
       matches nothing answers null. Each predicate answers a boolean, and
-      one that answers another kind is refused at its place. Unlike the
+      one that answers another kind is refused at its index. Unlike the
       condition of `if`, a predicate is code, a quote, and one computed at
       the call, `(gte 90)`, is refused at its index. The call takes one
       pair at least.
@@ -682,9 +681,9 @@
         ~~|
         ::any
     | throws :ConditionNotBooleanError
-        |~~ Every predicate of `cond` answers a boolean; `:index` is the
-            place in the args, from zero, of the predicate that answered
-            another kind.
+        |~~ Every predicate of `cond` answers a boolean; `:index` names
+            the predicate that answered another kind by its index among the
+            args, from zero.
         ~~|
     | proves :picksTheFirstThatHolds
         |~~ Eighty-five is a B. ~~|
@@ -712,7 +711,7 @@
         |~~ A lone default is no pair. ~~|
         ~(5 | cond ~("only") !| type | eq ::any/cond/clauses/NoBranchesError)
     | proves :ConditionNotBooleanError/refusesANumberAnswer
-        |~~ A predicate that answers a number is refused at its place. ~~|
+        |~~ A predicate that answers a number is refused at its index. ~~|
         ~(5 | cond ~(1) ~("yes")
           !| get [~(type) /index /actualType]
           |  eq [::any/cond/ConditionNotBooleanError 0 ::number])
@@ -725,11 +724,11 @@
       function takes its args as a vector, as a call holds its args,
       `5 | apply f [3]`. Its steps run in order, a
       leading `!|` routing the first through the fail track, so the steps
-      a frame of a trail skipped run again, as held code runs. Code held
-      as the subject runs on itself by `apply it`, and text runs once
-      `parse` reads it, `"10 | add 3" | parse | apply it`. The code runs
-      under the fork rule: its declarations stay inside it, and only its
-      value comes out. A step written without its quote runs at the
+      a frame of a trace skipped run again, as held code runs. Code held
+      as the subject runs on itself by `apply it`, and text runs on a
+      subject once `parse` reads it, `5 | apply ("add 3" | parse)`. The
+      code runs under the fork rule: its declarations stay inside it, and
+      only its value comes out. A step written without its quote runs at the
       call, so `apply (add 1)` is refused, as is the error a step
       answered there. The call takes one code; code of several steps is
       one quote.
@@ -779,8 +778,8 @@
         |~~ Several steps run in order. ~~|
         ~([[1 2] [3 4]] | apply ~(flat | sort) | eq [1 2 3 4])
     | proves :runsParsedText
-        |~~ Text parsed into a quote runs. ~~|
-        ~("10 | add 3" | parse | apply it | eq 13)
+        |~~ Text parsed into a quote runs on a subject. ~~|
+        ~(5 | apply ("add 3" | parse) | eq 8)
     | proves :keepsTheDeclarationsInside
         |~~ The declarations of the code stay inside it. ~~|
         ~(5 | apply ~(:x 1 | x) | :y it | env | has :x | not)
@@ -813,8 +812,8 @@
         |~~ A leading `!|` passes a value on. ~~|
         ~(5 | apply ~(!| 0) | eq 5)
     | proves :runsARecordedSuffixAgain
-        |~~ The steps a trail skipped run again on a value. ~~|
-        ~(1 | add "x" | mul 2 | add 3 !| (:rest (trail | first | skipped) | 5 | apply rest) | eq 13)
+        |~~ The steps a trace skipped run again on a value. ~~|
+        ~(1 | add "x" | mul 2 | add 3 !| (:rest (trace | first | skipped) | 5 | apply rest) | eq 13)
     | impl ::builtin{}
 
 :any/env
@@ -985,18 +984,18 @@
 
 :any/source
   |~~ Answers the code written under a name, one quote of its
-      declarations in the order they were written, which `parse` prints
-      as its text, a declaration a line: the declaration that binds the
+      declarations in the order they were written, which `toString`
+      writes as its text, a declaration a line: the declaration that binds the
       name in its scope, the chain of a verb's function with its inputs,
       its answer, its refusals and its laws, and every declaration under
       its address. `::Tag | source` reads what was written
       under the tag, and any other value the declaration of its kind. A
-      node a chain lays, a refusal among them, and a binding no step
-      declared, a value a host bound, answer null. The anchor, a keyword
-      after it, reads the code of the node the subject holds under it,
-      an input of a verb or the verb a value calls. A name nothing
-      declares is refused, with the addresses where a verb of that name
-      lives.
+      binding no declaration wrote, a node a chain lays among them, a
+      refusal among those, holds no source, which `source` answers null
+      for. The anchor, a keyword after it, reads the code of the node the
+      subject holds under it, an input of a verb or the verb a value
+      calls. A name nothing declares is refused, with the addresses where
+      a verb of that name lives.
       ::link~(::any/doc | doc) ::link~(::any/binding | doc)
   ~~|
   ::fn
@@ -1010,8 +1009,8 @@
             the subject, `::vec | source :sort`.
         ~~|
     | returns
-        |~~ The code written under the name, null for a value a host
-            bound.
+        |~~ The code written under the name, null for a binding no
+            declaration wrote.
         ~~|
         #[::quote ::null]
     | throws :UnknownNameError
@@ -1033,15 +1032,15 @@
           | eq [:Box :Box/a :Box/b :Box/note])
     | proves :printsTheDeclaration
         |~~ The source of a verb prints as its declaration. ~~|
-        ~(::vec/filter | source | parse | contains ":vec/filter")
+        ~(::vec/filter | source | toString | contains ":vec/filter")
     | proves :printsADeclarationALine
         |~~ The source of a verb prints a declaration a line. ~~|
-        ~(::number/round | source | parse | lines | first | eq ":number/round |~~ Answers the subject rounded to the digits after the point the call")
+        ~(::number/round | source | toString | lines | first | eq ":number/round |~~ Answers the subject rounded to the digits after the point the call")
     | proves :printsARefusalInTheChainOfItsKind
         |~~ A refusal a kind pages prints in the source of the kind, the
             chain that declares it.
         ~~|
-        ~(::number | source | parse | contains "throws :NotFiniteError")
+        ~(::number | source | toString | contains "throws :NotFiniteError")
     | proves :readsTheKindOfAValue
         |~~ A string reads the source of `::string`. ~~|
         ~("text" | source | eq (::string | source))
@@ -1051,6 +1050,11 @@
     | proves :readsTheVerbAValueCalls
         |~~ An anchor on a value reads the source of the verb it calls. ~~|
         ~([1] | source :count | eq (::vec/count | source))
+    | proves :answersNullForANodeAChainLays
+        |~~ A binding no declaration wrote, a node a chain lays, answers no
+            source.
+        ~~|
+        ~(::number/add/addend | source | eq null)
     | proves :anchor/KindNotTakenError/refusesANumber
         |~~ An anchor that is a number is refused under the input. ~~|
         ~(::vec/take | source 1 !| type | eq ::any/source/anchor/KindNotTakenError)
@@ -1187,7 +1191,7 @@
       `::explanation{:page … :value …}`: the page `doc` reads for it, then
       the value itself, so it prints as the page above what it explains. A
       name reads its own page, a value the page of its kind, and an error
-      `!|` opened the page of the refusal it carries, which says what
+      at rest the page of the refusal it carries, which says what
       failed and how the call is repaired. A name nothing declares is
       refused, `::any/explain/UnknownNameError`. The call takes no
       anchor: the page of a node under an anchor is read by `doc`.
@@ -1531,8 +1535,8 @@
     | proves :namesTheSiteOfAnErrorAtRest
         |~~ A tag over an error at rest names its site. ~~|
         ~([::Late !{:by 3}] | tag | eq ::Late!{:by 3})
-    | proves :raisesAnOpenedErrorAsItself
-        |~~ An opened error split and tagged back raises as itself. ~~|
+    | proves :raisesAnErrorAtRestAsItself
+        |~~ An error at rest split and tagged back raises as itself. ~~|
         ~(1 | add "1" !| get [~(type) ~(payload)] | tag | raise
           !| type
           |  eq ::number/add/addend/KindNotTakenError)
@@ -1798,7 +1802,7 @@
             `(get /age | gte 18)`, a path whose field answers one,
             `/active`, or a quote that answers one in its turn,
             `~(get /email | endsWith ".org")`. A condition computed at the
-            call is computed at every place, the first among them, and one
+            call is computed at every index, the first among them, and one
             that answered an error is refused here, the error its value: a
             field a record may lack is read softly,
             `allOf (query /b | eq 1)`, and a condition that fails where an
@@ -1828,8 +1832,8 @@
     | proves :answersTheFailureOfAQuote
         |~~ A quote that fails answers its error. ~~|
         ~({:a 1} | allOf ~(get /b | eq 1) !| get [~(type) /key] | eq [::path/KeyNotInMapError :b])
-    | proves :conditions/ElementKindNotTakenError/refusesAFieldMissingAtTheFirstPlace
-        |~~ A field the record lacks is refused at its place, the first
+    | proves :conditions/ElementKindNotTakenError/refusesAFieldMissingAtTheFirstIndex
+        |~~ A field the record lacks is refused at its index, the first
             among them.
         ~~|
         ~({:a 1} | allOf (get /b | eq 1)
@@ -1852,7 +1856,7 @@
           !| get [~(type) /index /actualType]
           |  eq [::any/allOf/conditions/ElementKindNotTakenError 0 ::number])
     | proves :ConditionNotBooleanError/refusesAQuoteThatAnswersAString
-        |~~ A quote that answers a string is refused at its place. ~~|
+        |~~ A quote that answers a string is refused at its index. ~~|
         ~({:email "a@b.org"} | allOf true /email
           !| get [~(type) /index /actualType]
           |  eq [::any/allOf/ConditionNotBooleanError 1 ::string])
@@ -1894,7 +1898,7 @@
             `(get /score | gt 95)`, a path whose field answers one,
             `/vip`, or a quote that answers one in its turn,
             `~(get /score | gt 95)`. A condition computed at the call is
-            computed at every place, the first among them, and one that
+            computed at every index, the first among them, and one that
             answered an error is refused here, the error its value: a
             field a record may lack is read softly,
             `anyOf (query /vip | eq true)`, and a condition that fails
@@ -1924,8 +1928,8 @@
     | proves :answersTheFailureOfAQuote
         |~~ A quote that fails answers its error. ~~|
         ~({:vip false} | anyOf (get /vip) ~(get /score | gt 95) !| get [~(type) /key] | eq [::path/KeyNotInMapError :score])
-    | proves :conditions/ElementKindNotTakenError/refusesAFieldMissingAtTheFirstPlace
-        |~~ A field the record lacks is refused at its place, the first
+    | proves :conditions/ElementKindNotTakenError/refusesAFieldMissingAtTheFirstIndex
+        |~~ A field the record lacks is refused at its index, the first
             among them.
         ~~|
         ~({:score 99} | anyOf (get /vip | eq true)
@@ -1947,7 +1951,7 @@
           !| get [~(type) /index /actualType]
           |  eq [::any/anyOf/conditions/ElementKindNotTakenError 0 ::number])
     | proves :ConditionNotBooleanError/refusesAQuoteThatAnswersANumber
-        |~~ A quote that answers a number is refused at its place. ~~|
+        |~~ A quote that answers a number is refused at its index. ~~|
         ~({:score 99} | anyOf false /score
           !| get [~(type) /index /actualType]
           |  eq [::any/anyOf/ConditionNotBooleanError 1 ::number])
@@ -2051,8 +2055,8 @@
     | proves :keepsAVectorApartFromASet
         |~~ A vector is no set. ~~|
         ~([1] | is ::set | not)
-    | proves :asksAnOpenedFailure
-        |~~ An opened error is a value of `::error` and of its refusal. ~~|
+    | proves :asksAnErrorAtRest
+        |~~ An error at rest is a value of `::error` and of its refusal. ~~|
         ~("x" | add 1
           !| get [~(is ::error) ~(is ::number/add/SubjectNotNumberError)]
           |  eq [true true])
@@ -2077,7 +2081,7 @@
 
 :any/get
   |~~ Answers the part of the subject a path names, read strictly: a key
-      or a place that is not there is refused, `::path/KeyNotInMapError`
+      or an index that is not there is refused, `::path/KeyNotInMapError`
       with the keys near it, so a misspelled field is found where it is
       read, `{:a {:b 1}} | get /a/b` answering `1`. A key the query
       computes is read as the path of one segment, a keyword, a string or
@@ -2109,7 +2113,7 @@
     | proves :readsAKeyTheQueryComputes
         |~~ A key the query computes reads as the path of one segment. ~~|
         ~({:k "b" :b 7} | get (get /k) | eq 7)
-    | proves :readsATuple
+    | proves :readsTwoFieldsByATemplate
         |~~ Two fields of one record are read in one step. ~~|
         ~({:price 4 :qty 3} | get [/price /qty] | eq [4 3])
     | proves :buildsTheShapeOfItsTemplate
@@ -2130,7 +2134,7 @@
 
 :any/query
   |~~ Answers the part of the subject a path names, read softly: where a
-      key or a place is missing, or null stands on the way, it answers
+      key or an index is missing, or null stands on the way, it answers
       null, or the default the call gives, `{:a 1} | query /b 0`
       answering `0`, while a null that stands at the path is answered as
       it stands. A value on the path that has no parts is refused as
@@ -2165,7 +2169,7 @@
     | proves :refusesAnotherKind
         |~~ A value on the path that has no parts is refused. ~~|
         ~({:a 5} | query /a/b !| type | eq ::path/SubjectHasNoPartsError)
-    | proves :readsATupleSoftly
+    | proves :readsATemplateSoftly
         |~~ Each path of a template is read softly. ~~|
         ~({:a 1} | query [/a /b] | eq [1 null])
     | impl ::builtin{}
@@ -2173,9 +2177,9 @@
 :any/put
   |~~ Answers the subject with a value laid at the path the call gives:
       a key the last map on the path lacks is added, and a key it holds or
-      a place a vector holds is replaced, `{:a {:b 1}} | put /a/c 2`
+      an index a vector holds is replaced, `{:a {:b 1}} | put /a/c 2`
       answering `{:a {:b 1 :c 2}}`. The path is followed as `get` follows
-      it, so a key or a place missing on the way is refused where the
+      it, so a key or an index missing on the way is refused where the
       path writes it, and a value under a tag on the way is laid under it
       again through its kind. A key the query
       computes is the path of one segment, `put :a 1`, and a vector grows
@@ -2198,15 +2202,15 @@
     | proves :addsAKey
         |~~ A key the last map lacks is added. ~~|
         ~({:a {:b 1}} | put /a/c 2 | eq {:a {:b 1 :c 2}})
-    | proves :replacesAPlace
-        |~~ A place a vector holds is replaced. ~~|
+    | proves :replacesTheElementAtAnIndex
+        |~~ The element at an index a vector holds is replaced. ~~|
         ~([1 2 3] | put /-1 9 | eq [1 2 9])
     | proves :refusesAKeyMissedOnTheWay
         |~~ A key missing on the way is refused where the path writes it.
         ~~|
         ~({:a 1} | put /b/c 2 !| get [~(type) /path] | eq [::path/KeyNotInMapError /b/c])
-    | proves :refusesAPlacePastTheEnd
-        |~~ A vector grows by `append`, not by a place past its end. ~~|
+    | proves :refusesAnIndexPastTheEnd
+        |~~ A vector grows by `append`, not by an index past its end. ~~|
         ~([1 2] | put /2 3 !| type | eq ::path/IndexOutOfBoundsError)
     | proves :laysTheTagsAgain
         |~~ A value under a tag is laid under it again. ~~|
@@ -2270,8 +2274,8 @@
 
 :any/delete
   |~~ Answers the subject without the part at the path the call gives: a
-      key taken out of a map, or a place out of a vector, the elements
-      after it moving up, `{:a 1 :b 2} | delete /b` answering `{:a 1}`.
+      key taken out of a map, or an element out of a vector by its index,
+      the elements after it moving up, `{:a 1 :b 2} | delete /b` answering `{:a 1}`.
       The part must be there, as for `get`, so a misspelled key is found;
       keys that may be absent leave a map by `minus`. The tags on the way
       are laid again as `put` lays them.
@@ -2291,9 +2295,9 @@
     | proves :takesAKeyOut
         |~~ A key is taken out of the map at the path. ~~|
         ~({:a {:b 1 :c 2}} | delete /a/b | eq {:a {:c 2}})
-    | proves :takesAPlaceOut
-        |~~ A place is taken out of a vector, the elements after it moving
-            up.
+    | proves :takesAnElementOut
+        |~~ An element is taken out of a vector by its index, the elements
+            after it moving up.
         ~~|
         ~([1 2 3] | delete /0 | eq [2 3])
     | proves :refusesAMissedKey
@@ -2335,7 +2339,7 @@
       `#[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string]]`. A part
       under a tag is a leaf of its kind, which tells of itself on its
       page, a quote and a doc among them; a set opens as a vector does,
-      its elements read by their places; an empty vector or map is a part
+      its elements read by their indices; an empty vector or map is a part
       that holds none, and the subject is read beneath the tags over it.
       `shape` folds the leaves of every element into one schema.
       ::link~(::any/shape | doc) ::link~(::any/get | doc)
@@ -2356,8 +2360,8 @@
     | proves :standsAtATag
         |~~ A part under a tag is a leaf of its kind. ~~|
         ~({:q ~(add 1) :d |~~ d ~~| :t ::Box{:w 1}} | paths | eq #[[/d ::doc] [/q ::quote] [/t ::Box]])
-    | proves :opensASetAsAVector
-        |~~ A set opens as a vector does, its elements read by places. ~~|
+    | proves :readsASetAsItsVector
+        |~~ A set is read as its vector, its elements by their indices. ~~|
         ~({:s #[1 2]} | paths | eq #[[/s/0 ::number] [/s/1 ::number]])
     | proves :eachReadsByGet
         |~~ Each path of the outline reads its part. ~~|
@@ -2368,13 +2372,13 @@
   |~~ Answers the shape of a value, its schema in its own literal under
       `::shape`, whose page tells how a shape reads: each map keeps its
       keys, but a map every key of which is data, ids, dates, uuids or
-      addresses, or of more than eight names over records of one shape,
+      emails, or of more than eight names over records of one shape,
       folds into `::each` over its first key and the shape of its values,
       `{:"17" {:id 1} :"42" {:id 2}} | shape` answering
       `::shape::each{:"17" {:id ::number}}`; each vector and each
       set holds one element whose shape holds of all its elements, a set
       as `#[E]` and the element of one empty in some marked `::absent`,
-      vectors of one length whose places part a tuple, `[::string
+      vectors of one length that part index by index a tuple, `[::string
       ::number]`, and each part that holds no parts stands as its kind, as
       `type` answers it, a part under a tag as its tag, which tells of
       itself on its page:
@@ -2408,8 +2412,8 @@
             one marking the element of the rest absent.
         ~~|
         ~([[1 2] [] [3]] | shape | eq ::shape[[::absent::number]])
-    | proves :readsTuplesPlaceByPlace
-        |~~ Vectors of one length whose places part are tuples. ~~|
+    | proves :readsTuplesIndexByIndex
+        |~~ Vectors of one length that part index by index are tuples. ~~|
         ~([["a" 1] ["b" null]] | shape | eq ::shape[[::string ::nullable::number]])
     | proves :mergesRecordsWhateverTheirOrder
         |~~ Records that share keys merge whatever their order. ~~|
@@ -2429,7 +2433,7 @@
     | proves :standsAtATag
         |~~ A part under a tag stands as its tag. ~~|
         ~({:t ::Box{:w 1} :q ~(add 1)} | shape | eq ::shape{:t ::Box :q ::quote})
-    | proves :opensASetAsAVector
+    | proves :shapesASetByOneElement
         |~~ A set holds one element whose shape holds of all of them. ~~|
         ~(#[1 2] | shape | eq ::shape#[::number])
     | proves :readsBeneathTheTagsOfItsSubject

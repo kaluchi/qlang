@@ -5,8 +5,9 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
-import { isErrorValue, isSet, makeTag } from '../../src/types.mjs';
+import { isErrorValue, isSet, makeTag, makeBinding, keyword } from '../../src/types.mjs';
 import { createSession } from '../../src/session.mjs';
+import { langRuntime } from '../../src/runtime/index.mjs';
 
 describe('runLaws reads a name as laws does', () => {
   it('address subject — ::vec/count | runLaws', async () => {
@@ -16,10 +17,10 @@ describe('runLaws reads a name as laws does', () => {
   });
 
   it('a binding without a doc runs no law, its page null', async () => {
-    // A host-installed binding (via `session.bind`) is the record of a
-    // binding without a doc [QSNAM#binding].
-    const sessionInstance = await createSession();
-    sessionInstance.bind('hostInjected', 42);
+    // A binding no declaration wrote, in a scope a host hands a session,
+    // holds no doc [QSNAM#binding].
+    const scope = new Map(await langRuntime()).set('hostInjected', makeBinding({ name: keyword('hostInjected'), value: 42 }));
+    const sessionInstance = await createSession({ scope });
     const cellEntry = await sessionInstance.evalCell('::hostInjected | runLaws');
     expect(cellEntry.result).toEqual([]);
     const pageEntry = await sessionInstance.evalCell('::hostInjected | doc');

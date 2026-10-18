@@ -1,7 +1,7 @@
 # @kaluchi/qlang-core
 
-Expression language for transforming immutable values through
-pipelines. Domain-agnostic. Pure. Composable.
+A pipeline query language over values: a query starts from a subject
+and passes it through steps, each answering a new value.
 
 ```qlang
 > [1 2 3 4 5] | filter ~(gt 3) | count
@@ -10,7 +10,7 @@ pipelines. Domain-agnostic. Pure. Composable.
 > :number/double ~(mul 2) | [10 20 30] | map ~double
 [20 40 60]
 
-> "10 | add 3" | parse | apply it
+> "10 | add 3" | parse | open
 13
 ```
 
@@ -35,7 +35,7 @@ const session = await createSession({
   sources: [{
     uri: 'my/tools',
     source: ':string/fetch ::builtin{}',
-    impls: { 'string/fetch': async (url) => fetchText(url) }
+    primitives: { 'string/fetch': async (url) => fetchText(url) }
   }]
 });
 
@@ -44,22 +44,38 @@ cell.error;               // a ParseError when the source does not parse, else n
 printValue(cell.result);  // the answer as its literal; a failure is an error value
 ```
 
-- `createSession({ env?, sources? })` answers a session: `evalCell(source,
+- `createSession({ scope?, sources? })` answers a session: `evalCell(source,
   { initialPipeValue?, uri? })` evaluates one cell and answers
-  `{ source, uri, ast, result, error, envAfterCell }`; `bind(name, value)`
-  installs a value under a name; `env` is the current scope.
-- A source is `{ uri, source, impls? }`: its declarations stand in the
-  root, a verb declared under the label of its subject whose recipe is
-  `::builtin{}`, `:string/fetch`, the inputs its function takes nodes
-  under it, and each implementation is a plain function over the
-  subject and the values of its inputs in the order `takes` names them;
-  the constructor of a kind whose chain ends in `impl ::builtin{}` is
-  handed under the address of its node, `<label>/construct`, a function
-  of the payload that answers the value its tag is laid over or refuses
-  the payload. A source that declares a name the root holds is refused.
-- `evalQuery(source)` evaluates one query in a fresh runtime.
+  `{ source, uri, ast, result, error, scopeAfterCell }`; `scope` is the
+  current scope, and a host puts its names into it by its sources alone.
+- A source is `{ uri, source, primitives? }`: its declarations stand in
+  the root, a verb declared under the label of its subject whose recipe
+  is `::builtin{}`, `:string/fetch`, the inputs its function takes nodes
+  under it, and each primitive takes the values alone, the subject and
+  the values of its inputs in the order `takes` names them; the
+  constructor of a kind whose chain ends in `impl ::builtin{}` is handed
+  under the address of its node, `<label>/construct`, a function of the
+  payload that answers the value its tag is laid over or refuses the
+  payload. A source that declares a name the root holds is refused.
+- A primitive answers a value of the language, held to its kinds at any
+  depth whatever function runs it: an answer that is or holds a function,
+  an object of JavaScript, a map whose key is no string, a failure whose
+  facts are no map, a value under a tag that is no tag, a container that
+  holds itself or a number past the finite doubles fails the call as
+  `::call/HostFailureError`, and `fromPlain` builds a value from data the
+  host holds parsed. The core takes the subject of a cell and what the
+  names of the scope `createSession({ scope })` and `evalQuery(source,
+  scope)` are handed hold by the same walk, and a value of no kind there
+  is a defect of the host, `::builtin/ForeignValueError`, raised past the
+  fail track: a cell answers it as its `error`, and the others throw it.
+- `evalQuery(source, scope?)` evaluates one query in the scope it is
+  handed, by default the scope of the root `langRuntime()` answers.
 - `printValue(value)` writes the literal of a value, which `evalQuery`
-  reads back; the literal is the one lossless form. `toPlain` and
+  reads back; the literal is the one lossless form. `caretOf(answer)`
+  answers, for a refusal of a text, the line its `:source` holds and a
+  caret under the column its `:location` names, the two line comments a
+  host that prints for a person's eye writes below the refusal, and null
+  for any other answer. `toPlain` and
   `fromPlain` cross the JSON boundary, losing the kinds JSON has no form
   for.
 - `parse(source)` answers the syntax tree; `tokenize(source, names)` the

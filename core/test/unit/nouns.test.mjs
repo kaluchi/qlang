@@ -37,7 +37,7 @@ describe('the names of the scope', () => {
     expect((await session.evalCell('shop !| type')).result).toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a verb of a source reads a bare value of the root as a reader reads it, after the verbs of its name, no frame of its source before them [QSNAM#reach]', async () => {
+  it('a verb of a source reads a bare value of the root as a reader reads it, after the verbs of its name, no scope of its source before them [QSNAM#reach]', async () => {
     const shop = { uri: 'shop', source: ':shop |~~ A shop. ~~|\n:limit 5\n:shop/capped ~(limit)' };
     const later = { uri: 'stock', source: ':stock |~~ A stock. ~~|\n:stock/limit ~(7)' };
     const alone = await createSession({ sources: [shop] });
@@ -137,7 +137,7 @@ describe('the verbs that live on a kind', () => {
     const session = await createSession({ sources: [{
       uri: 'tests/typed',
       source: ':string/shout ::builtin{}',
-      impls: { 'string/shout': text => text.toUpperCase() }
+      primitives: { 'string/shout': text => text.toUpperCase() }
     }] });
     expect((await session.evalCell('::Box"hi" | shout')).result).toBe('HI');
   });
@@ -146,7 +146,7 @@ describe('the verbs that live on a kind', () => {
 describe('an address reads the node its name declared', () => {
   it('an address with a kind reads the verb declared under that kind', async () => {
     expect(await evalQuery('::vec/count | doc | type')).toEqual(makeTag('doc'));
-    expect(await evalQuery('::vec/count | source | parse | startsWith ":vec/count"')).toBe(true);
+    expect(await evalQuery('::vec/count | source | toString | startsWith ":vec/count"')).toBe(true);
     expect(await evalQuery('::vec/count | laws | count | gt 0')).toBe(true);
     expect(await evalQuery('::vec/count | binding | get /value | type')).toEqual(makeTag('fn'));
   });

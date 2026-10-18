@@ -54,7 +54,7 @@ describe('a kind whose construct is a primitive of the host', () => {
   it('puts a payload under the tag through the constructor its host hands [QSDSP#walk]', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const sessionInstance = await createSession({
-      sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', impls: { 'myType/construct': payload => payload * 2 } }]
+      sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', primitives: { 'myType/construct': payload => payload * 2 } }]
     });
     expect((await sessionInstance.evalCell('::myType#4 | get [~(type) ~(payload)]')).result).toEqual([makeTag('myType'), 8]);
   });
@@ -243,9 +243,9 @@ describe('a tag name as a value', () => {
 
 });
 
-describe('a quote is text to `parse` and code to `apply`', () => {
-  it('`~(code) | parse` prints the quote as its text', async () => {
-    expect(await evalQuery('~(5 | mul 2) | parse')).toBe('5 | mul 2');
+describe('a quote is text to `toString` and code to `apply`', () => {
+  it('`~(code) | toString` writes the quote as the text of its code', async () => {
+    expect(await evalQuery('~(5 | mul 2) | toString')).toBe('5 | mul 2');
   });
 
   it('`~(code) | apply it` runs the quote on itself', async () => {

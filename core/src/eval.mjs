@@ -4,19 +4,19 @@
 import { parse } from './parse.mjs';
 import { ROOT_KEY, QUERY_KEY, CALL_BINDS_KEY, WITHHELD_KEY } from './env-keys.mjs';
 import {
-  rootState, withPipeValue, withEnv, nestState, frameBelow, envSet, envHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
+  rootState, withPipeValue, withEnv, nestState, depthBelow, envSet, envHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
   withCall, originIn, ownScopeOf
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
 import { readPath, partsOfTemplate, PathIndexOutOfBoundsError, PathKeyNotInMapError } from './path-read.mjs';
 import {
-  isSet, isErrorValue, isQuote, isDoc, hostImplOf,
+  isSet, isErrorValue, isQuote, isDoc, primitiveOf,
   typeOf, keyword, NULL, makeErrorValue,
   makeDoc, makeSet, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest,
   isFn, isKind, recipeOf, constructorOf, makeQuote, isMap, stampTagHeader, TAG_HEADER_SYMBOL,
-  ERROR_TAG, isValueClass, isTag, kindsExpected
+  ERROR_TAG, TRACE_TAG, isValueClass, isTag, kindsExpected
 } from './types.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
 import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, tagCallStepOf, commandStep, groupStep } from './quote.mjs';
@@ -29,11 +29,11 @@ import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf
 import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
 import { splitAddress } from './address.mjs';
 import {
-  runPrimitive, keptAsSubject, walkToKinds, CallKindAnswersNoVerbError
+  runPrimitive, heldAtTheDoor, scopeTakenFromAHost, isThenable, keptAsSubject, walkToKinds, CallKindAnswersNoVerbError
 } from './runtime/verb.mjs';
 import {
   answerOfStep, answerOfPart, skipping, raisedBy, isRaisedBy
-} from './eval-trail.mjs';
+} from './eval-trace.mjs';
 
 // A node or a combinator the tables below do not name is a defect of the
 // evaluator, raised past the fail track.
@@ -50,17 +50,17 @@ const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifier
 const FnRecipeMissingError = declareRefusal('fn/RecipeMissingError');
 const BindWrittenOutsideItsChainError = declareRefusal('bind/WrittenOutsideItsChainError');
 
-// evalQuery(source, env?) → the value a query answers from null, in the
-// scope of the runtime unless `env` is given.
-export async function evalQuery(source, env) {
-  const initialEnv = env ?? await langRuntime();
+// evalQuery(source, scope?) → the value a query answers from null, in the
+// scope it is handed, taken from its host, or the root's [QSHST#source].
+export async function evalQuery(source, scope) {
+  const initialScope = scope ? scopeTakenFromAHost(scope) : await langRuntime();
   let ast;
   try {
     ast = parse(source);
   } catch (parseErr) {
-    return errorFromParse(parseErr, initialEnv);
+    return errorFromParse(parseErr, initialScope);
   }
-  const finalState = await evalBody(ast, rootState(null, initialEnv));
+  const finalState = await evalBody(ast, rootState(null, initialScope));
   return finalState.pipeValue;
 }
 
@@ -109,7 +109,7 @@ async function evalNode(node, state) {
     return await evaluator(node, state);
   } catch (caughtError) {
     // The error the node raised; the step that ran the node writes its
-    // frame [QSERR#trail].
+    // frame [QSERR#trace].
     return withPipeValue(state, raisedBy(errorOfThrow(caughtError, node, state.pipeValue, state.env), node));
   }
 }
@@ -120,6 +120,17 @@ function errorOfThrow(caughtError, node, subject, env) {
   if (caughtError instanceof QlangError && !caughtError.location && node.location) caughtError.location = node.location;
   if (caughtError instanceof QlangInvariantError) throw caughtError;
   return caughtError instanceof QlangError ? errorFromQlang(caughtError, subject, env) : errorFromForeign(caughtError, node, env);
+}
+
+// factsWithTheirTrace(facts, state) → the facts with the `:trace` they write
+// laid through the label of `::trace`, an empty one none [QSERR#trace].
+export async function factsWithTheirTrace(facts, state) {
+  if (!facts.has('trace')) return facts;
+  const trace = await layTag(TRACE_TAG.name, facts.get('trace'), state);
+  const laid = new Map(facts);
+  if (trace.length > 0) laid.set('trace', trace);
+  else laid.delete('trace');
+  return laid;
 }
 
 // ─── Pipeline ───────────────────────────────────────────────────
@@ -133,15 +144,15 @@ async function evalPipeline(node, state) {
 }
 
 // The tracks live in the combinators alone: `|` steps around an error, the
-// step joining the skipped steps of its last frame [QSERR#trail], and `!|` fires
+// step joining the skipped steps of its last frame [QSERR#trace], and `!|` fires
 // on an error alone [QSSYN#combinator]; the parser writes no other combinator.
 async function applyCombinator(kind, state, stepNode) {
   return kind === '!|' ? await applyFailTrack(state, stepNode) : await applySuccessTrack(state, stepNode);
 }
 
 // The fork rule: a nested pipeline or a group starts from the outer
-// state and hands back its value alone, its declarations left behind, on
-// the outer frame of the depth budget.
+// state and hands back its value alone, its declarations left behind, at
+// the evaluation depth of the outer state [QSNAM#scope], [QSNAM#verb].
 async function fork(state, sub) {
   const innerEnd = await sub(state);
   return withPipeValue(state, innerEnd.pipeValue);
@@ -150,9 +161,9 @@ async function fork(state, sub) {
 // `|` runs the step on a value, an error it answers taking a frame there,
 // and an error in the pipe skips it.
 async function applySuccessTrack(state, stepNode) {
-  if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, stepOfNode(stepNode)));
+  if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, stepOfNode(stepNode), state.env));
   const answered = await evalNode(stepNode, state);
-  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), state.pipeValue));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), state.pipeValue, state.env));
 }
 
 // A body, a query, a group, the recipe of a verb or an applied quote among
@@ -162,25 +173,25 @@ function evalBody(node, state) {
 }
 
 // `!|` alone catches a failure, its step running on the error at rest, the
-// map of its facts, `:trail` among them, under `::error` and the tag of
+// map of its facts, `:trace` among them, under `::error` and the tag of
 // the site that refused laid through its label as a tagged literal lays
 // it, so `!| type` reads the site and a verb of `::error` reaches every
-// error [QSERR#rest], a value passing, a label's refusal answering for the
-// catch [QSERR#catch], and a raise that writes the `:trail` it read resuming
-// that path [QSERR#trail].
+// error, a value passing, a label's refusal answering for the catch, and a
+// raise that writes the `:trace` it read resuming it [QSERR#catch],
+// [QSERR#rest], [QSERR#trace].
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
   const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.descriptor));
-  let opened;
+  let atRest;
   try {
-    opened = raised.tag === ERROR_TAG ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
+    atRest = raised.tag === ERROR_TAG ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
   } catch (caughtError) {
-    opened = errorOfThrow(caughtError, stepNode, errorOfKind, state.env);
+    atRest = errorOfThrow(caughtError, stepNode, errorOfKind, state.env);
   }
-  if (isErrorValue(opened)) return withPipeValue(state, answerOfStep(opened, () => quoteOfBody(stepNode), errorOfKind));
-  const answered = await evalNode(stepNode, withPipeValue(state, opened));
-  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), opened));
+  if (isErrorValue(atRest)) return withPipeValue(state, answerOfStep(atRest, () => quoteOfBody(stepNode), errorOfKind, state.env));
+  const answered = await evalNode(stepNode, withPipeValue(state, atRest));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => quoteOfBody(stepNode), atRest, state.env));
 }
 
 // ─── Literal evaluators ─────────────────────────────────────────
@@ -190,7 +201,7 @@ function evalStringLit(node, state)  { return withPipeValue(state, node.value); 
 function evalBooleanLit(node, state) { return withPipeValue(state, node.value); }
 function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
-function evalRegexLit(node, state)   { return withPipeValue(state, makeRegex(node.pattern, node.flags)); }
+function evalRegexLit(node, state)   { return withPipeValue(state, makeRegex(node.regexSource, node.flags)); }
 
 // Each element and each value of a literal is a literal, read one after
 // another in their order [QSQUO#modifier], none reading the scope or the
@@ -234,9 +245,9 @@ async function evalErrorLit(node, state) {
 
 // The value a part of a literal answers: a refusal the kind of its tag
 // raised passes a frame at the part, and one handed on from a part inside it goes
-// on as it is to the literal it fails [QSERR#trail].
+// on as it is to the literal it fails [QSERR#trace].
 async function partAnswer(partNode, state) {
-  return answerOfPart((await evalNode(partNode, state)).pipeValue, partNode, state.pipeValue);
+  return answerOfPart((await evalNode(partNode, state)).pipeValue, partNode, state.pipeValue, state.env);
 }
 
 function evalQuoteLit(node, state) {
@@ -271,16 +282,16 @@ async function evalSetLit(node, state) {
 async function evalTaggedLit(node, state) {
   const tagName = node.tag;
   const payload = (await evalNode(node.payload, state)).pipeValue;
-  if (isErrorValue(payload)) return withPipeValue(state, passedUntagged(payload, node, tagName));
+  if (isErrorValue(payload)) return withPipeValue(state, passedUntagged(payload, node, tagName, state.env));
   return withPipeValue(state, await layTag(tagName, payload, state));
 }
 
 // The error a tagged literal's payload answered, passed by the tag as an
 // error passes every step, the tag's step joining the skipped steps of
-// its last frame [QSERR#trail], and the literal's own raise where the payload
+// its last frame [QSERR#trace], and the literal's own raise where the payload
 // raised it.
-function passedUntagged(payloadError, node, tagName) {
-  const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)));
+function passedUntagged(payloadError, node, tagName, env) {
+  const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)), env);
   if (isRaisedBy(payloadError, node.payload)) raisedBy(passed, node);
   return passed;
 }
@@ -432,20 +443,20 @@ function evalPath(node, state) {
 
 async function evalCall(node, state) {
   if (node.address !== undefined) return await callByAddress(node, state);
-  return withReadOfPath(await callByName(node.name, node.args.map(argNode => modifierOf(argNode, state)), state, node), node, state.pipeValue, state.env);
+  return withRepairOfPath(await callByName(node.name, node.args.map(argNode => modifierOf(argNode, state)), state, node), node, state.pipeValue, state.env);
 }
 
-// The read a step was likely meant for where a path stands in place of
-// the value it names [QSPTH#verbs], [QSPTH#code]: a verb called on a path, `/tags | count`
-// read as `get /tags | count`, and an input refusing the path a modifier
-// wrote, `mul /qty` read as `mul (get /qty)`; a refusal the call itself
-// answered, which no frame of a trail has passed yet, carries it.
-function readOfPathSubject(path, node) {
+// The repair, the step a call was likely meant as where a path stands in
+// the place of the value it names [QSPTH#code], [QSPTH#verbs]: a verb called on a path,
+// `/tags | count` repaired as `get /tags | count`, and an input refusing the
+// path a modifier wrote, `mul /qty` as `mul (get /qty)`; a refusal the call
+// itself answered, which no frame of a trace has passed yet, carries it.
+function repairOfPathSubject(path, node) {
   return makeQuote([commandStep('get', [path]), stepOfNode(node)]);
 }
 
-function readOfRefusedPath(refused, node, subject) {
-  if (!refused.descriptor.has('actualValue')) return isPath(subject) ? readOfPathSubject(subject, node) : null;
+function repairOfRefusedPath(refused, node, subject) {
+  if (!refused.descriptor.has('actualValue')) return isPath(subject) ? repairOfPathSubject(subject, node) : null;
   const value = refused.descriptor.get('actualValue');
   if (!isPath(value)) return null;
   const written = node.args.findIndex(argNode => argNode.type === 'Path'
@@ -456,12 +467,12 @@ function readOfRefusedPath(refused, node, subject) {
   return makeQuote([commandStep(step.get('name').name, modifiers)]);
 }
 
-function withReadOfPath(state, node, subject, env) {
+function withRepairOfPath(state, node, subject, env) {
   const refused = state.pipeValue;
-  if (!isErrorValue(refused) || refused.descriptor.has('read') || refused.descriptor.has('trail')) return state;
-  const read = readOfRefusedPath(refused, node, subject);
-  if (read === null) return state;
-  const facts = factsInOrder(refused.tag, new Map(refused.descriptor).set('read', read), env);
+  if (!isErrorValue(refused) || refused.descriptor.has('repair') || refused.descriptor.has('trace')) return state;
+  const repair = repairOfRefusedPath(refused, node, subject);
+  if (repair === null) return state;
+  const facts = factsInOrder(refused.tag, new Map(refused.descriptor).set('repair', repair), env);
   return withPipeValue(state, makeErrorValue(refused.tag, facts, { location: refused.location, originalError: refused.originalError }));
 }
 
@@ -480,8 +491,8 @@ async function callByName(lookupName, modifiers, state, node) {
     const addresses = addressesOf(state.env, lookupName);
     if (addresses.length > 0) {
       const nearest = nearestVerbs(state.env, addresses, state.pipeValue);
-      const read = isPath(state.pipeValue) ? readOfPathSubject(state.pipeValue, node) : undefined;
-      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, read, actualValue: state.pipeValue });
+      const repair = isPath(state.pipeValue) ? repairOfPathSubject(state.pipeValue, node) : undefined;
+      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair, actualValue: state.pipeValue });
     }
     throw new CallUnknownNameError({
       name: keyword(lookupName), nearest: nearestNames(state.env, lookupName), addresses
@@ -544,8 +555,8 @@ async function callByAddress(node, state) {
 
 // A refusal named by the address of what refused [QSBLD#fn], its facts with
 // the kind of the value refused in the order the catalog declares them; the
-// value itself rides the facts where the trail does not hold it, an input or
-// the args, and leaves them for the subject, which the trail's first frame
+// value itself rides the facts where the trace does not hold it, an input or
+// the args, and leaves them for the subject, which the trace's first frame
 // holds [QSERR#site].
 function refusalUnder(tagName, facts, env, refused = facts.actualValue) {
   const tag = makeTag(tagName);
@@ -606,8 +617,8 @@ async function invariantRefusal(invariants, address, value, state, scope, held =
 // The value an input reads from the args by its place: a place of one
 // step, `/n` or `query /n default`, is the value there, read here as
 // `get` and `query` read it, so the inputs of `query` itself read
-// without calling it; any other place runs as code over the args, a frame
-// below the call.
+// without calling it; any other place runs as code over the args, one
+// deeper in the evaluation depth than the call [QSNAM#verb].
 function placeRead({ ast, index, onePlace, strict, fallback }, values, overArgs) {
   if (!onePlace) return ast.type === 'Path' ? pathOfArgs(makePath(ast.keys), overArgs()) : answerOfBody(ast, overArgs());
   if (index < values.length) return values[index];
@@ -692,18 +703,14 @@ async function applyVerb(record, modifiers, state) {
   return await applyFunctionVerb(record, isFn(value) ? value : functionOfRecipe(value), modifiers, state);
 }
 
-// Whether an answer is waited on: anything with a `then`, so a host's
-// promise of another realm and a thenable resolve as the core's own do.
-const isThenable = value => typeof value?.then === 'function';
-
 // The answer brought to the kinds `returns` names, a verb that names `::any`
 // bringing none [QSBLD#answer]: one that reaches another of the
 // kinds is the value it reaches; one of the verb's own label goes back under
 // the tags the walk passed, as the subject's kind; one kind alone makes the
-// value as a value is put under it, and so does a kind of the answer's own
-// kind the walk passed by, a number past the finite doubles refused there as
-// under `::number` alone; an answer of none of several kinds is refused
-// under the answer's address.
+// value as a value is put under it, a number past the finite doubles refused
+// under `::number`, and so does a kind of the answer's own kind the walk
+// passed by; an answer of none of several kinds is refused under the
+// answer's address.
 function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
   const others = kinds.filter(kind => kind !== labelName);
   const reached = others.length === 0 ? null : walkToKinds(answer, others);
@@ -746,13 +753,13 @@ export async function callVerbOn(record, subject, state) {
   return (await applyVerb(record, [], withPipeValue(state, subject))).pipeValue;
 }
 
-// answerKindsOf(env, record, subjectKinds) → the kinds of the answer a
+// answerKindsOf(scope, record, subjectKinds) → the kinds of the answer a
 // name under a label gives, for a tool: the subject's own where the
 // answer's kind is the verb's own label, the kinds `returns` names, or
 // null for a verb that answers any value [QSBLD#answer].
-export function answerKindsOf(env, record, subjectKinds) {
+export function answerKindsOf(scope, record, subjectKinds) {
   const address = record.get('name').name;
-  const answerDefinition = answerOf(env, address);
+  const answerDefinition = answerOf(scope, address);
   if (answerDefinition === null || answerDefinition.kinds.includes(ANY_KIND_NAME)) return null;
   return answerDefinition.kinds.includes(splitAddress(address)[0]) ? subjectKinds : answerDefinition.kinds;
 }
@@ -804,7 +811,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const called = await inputsOfCall(chain, address, modifiers, state, scope, body);
   if (isErrorValue(called)) return called;
   const running = body === null
-    ? runPrimitive(hostImplOf(recipe), walked.served, walked.passedTags, handedTo(hostImplOf(recipe), chain, called, state), called.state)
+    ? runPrimitive(recipe, walked.served, walked.passedTags, handedTo(primitiveOf(recipe), chain, called, state), called.state, address)
     : (await evalBody(body, nestState(called.state, state.pipeValue, called.bodyEnv))).pipeValue;
   const answer = isThenable(running) ? await running : running;
   if (isErrorValue(answer)) return answer;
@@ -819,9 +826,9 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 // the quote came from, a path read as `get` reads it, and every element so
 // of one that holds the args of the call whole; any other value as it is
 // [QSHST#source].
-function handedTo(impl, chain, { values, origins }, state) {
-  const run = inputsRunBy(impl);
-  const within = inputsRunWithin(impl);
+function handedTo(primitive, chain, { values, origins }, state) {
+  const run = inputsRunBy(primitive);
+  const within = inputsRunWithin(primitive);
   if (run === undefined && within === undefined) return values;
   const originOf = quote => origins.get(quote);
   return values.map((value, at) => {
@@ -930,7 +937,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, body) {
   for (const input of chain.inputs) {
     const { name } = input;
     const inputAddress = `${address}/${name.name}`;
-    frameBelow(state);
+    depthBelow(state);
     const reached = placeRead(input.reading, values, overArgs);
     const read = isThenable(reached) ? await reached : reached;
     if (read === MISSED_PLACE || (isErrorValue(read) && isMissedPlace(read))) return refusalUnder(notGivenAddress(inputAddress), { actualValue: argsValue() }, scope);
@@ -991,10 +998,10 @@ function laidUnder(tagName, value) {
 }
 
 // A value under a kind [QSBLD#value]: its payload held to its kinds, each field
-// read and held, the constructor a host hands a kind of the core run, and the
-// invariants of the value held, every refusal named under the label, the
-// code of a place or a condition running in the scope a call opens; the
-// kind attaches the tag or refuses the payload [QSLIT#tag].
+// read and held, the constructor a host hands its kind run, its answer held at
+// the door, and the invariants of the value held, every refusal named under
+// the label, the code of a place or a condition running in the scope a call
+// opens; the kind attaches the tag or refuses the payload [QSLIT#tag], [QSHST#source].
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, each => `${tagName}/${payloadRefusalName(each)}`, payload, state.env);
@@ -1005,8 +1012,8 @@ async function underKind(tagName, kind, payload, state) {
     const refused = await fieldRefusal(tagName, field, held, invariants, state, opened);
     if (refused !== null) return refused;
   }
-  const constructs = hostImplOf(constructorOf(kind));
-  const constructed = constructs === undefined ? held : await constructs(held, state);
+  const constructs = primitiveOf(constructorOf(kind));
+  const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), `${tagName}/construct`, [held]);
   const labelled = laidUnder(tagName, constructed);
   const ofTheValue = invariants.filter(({ field }) => field === null);
   return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, constructed, state, opened(), labelled) ?? labelled;
@@ -1032,10 +1039,11 @@ async function fieldRefusal(tagName, field, payload, invariants, state, opened) 
 // ─── Code closed at a call ──────────────────────────────────────
 
 // closeCode(astNode, capturedState, evaluate?) → (subject) → value: code run
-// against the subject it is handed, one frame below and in its scope, a step
-// on the success track as every step is, or by `evaluate` a modifier of a
-// step, which answers within the frame of its step; it keeps its tree and its
-// state, so `reduce` finds the verb a quote of one word names [QSCOL#reduce].
+// against the subject it is handed, one deeper in the evaluation depth and in
+// its scope, a step on the success track as every step is, or by `evaluate` a
+// modifier of a step, which answers within the frame of its step; it keeps its
+// tree and its state, so `reduce` finds the verb a quote of one word names
+// [QSCOL#reduce], [QSNAM#verb].
 function closeCode(astNode, capturedState, evaluate = evalBody) {
   const run = async (subject) => {
     const subState = nestState(capturedState, subject, capturedState.env);
@@ -1049,14 +1057,15 @@ function closeCode(astNode, capturedState, evaluate = evalBody) {
 // modifierOf(argNode, state) → the code of a modifier of a call, whose
 // subject is never an error: a quote written there the data it is and a
 // template or a tagged literal written there the code that builds it, each
-// written in the step, which the call runs it in [QSQUO#held]; a literal of an
-// atom its value one frame below the call; and any other modifier the code
-// it is, whose value the call keeps as a value of the step. A modifier
-// answers within the frame of its step, which holds it [QSERR#trail].
+// written in the step, which the call runs it in; a literal of an atom its
+// value one deeper in the evaluation depth than the call; and any other
+// modifier the code it is, whose value the call keeps as a value of the step.
+// A modifier answers within the frame of its step, which holds it [QSQUO#held],
+// [QSNAM#verb], [QSERR#trace].
 function modifierOf(argNode, state) {
   if (argNode.type === 'QuoteLit') return withOrigin(() => quoteOfLiteral(argNode), { step: state, written: true });
   if (WRITTEN_LITERALS.has(argNode.type)) return withOrigin(closeCode(argNode, state, evalNode), { step: state, written: true });
-  if (ATOM_LITERALS.has(argNode.type)) return () => (frameBelow(state), AST_NODE_EVALUATORS[argNode.type](argNode, state).pipeValue);
+  if (ATOM_LITERALS.has(argNode.type)) return () => (depthBelow(state), AST_NODE_EVALUATORS[argNode.type](argNode, state).pipeValue);
   return closeCode(argNode, state, evalNode);
 }
 
@@ -1086,7 +1095,7 @@ export function codeOfPath(path, callState) {
     try {
       return readPath(subject, path);
     } catch (refusal) {
-      return answerOfStep(errorFromQlang(refusal, subject, callState.env), step, subject);
+      return answerOfStep(errorFromQlang(refusal, subject, callState.env), step, subject, callState.env);
     }
   };
 }
@@ -1127,7 +1136,7 @@ function laneOf(env) {
 // for code of any other shape or a name of no verb, which `reduce` runs on
 // the pair of the value so far and the element [QSCOL#reduce]. A call the
 // accumulator refuses answers the failure it raised, which the fold marks at
-// the place of its element [QSERR#trail].
+// the place of its element [QSERR#trace].
 export function resolveBinaryReducer(reducer) {
   const callerState = reducer.capturedState;
   const astNode = soleStepOf(reducer.astNode);

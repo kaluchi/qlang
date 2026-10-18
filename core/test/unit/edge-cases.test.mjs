@@ -22,8 +22,8 @@ import {
 import { catchOriginalError, expectErrorThrown } from '../helpers/error-assertions.mjs';
 
 describe('types.mjs', () => {
-  it('typeOf reads a value the language holds no literal for, a symbol of a host, as unknown', () => {
-    expect(typeOf(Symbol('host'))).toEqual(makeTag('unknown'));
+  it('typeOf refuses a value the language holds no kind for, a symbol of a host, past the fail track [QSHST#source]', () => {
+    expect(() => typeOf(Symbol('host'))).toThrow('the core met symbol Symbol(host), a value of no kind of the language');
   });
 
   it('interns keywords', () => {
@@ -41,7 +41,7 @@ describe('types.mjs', () => {
     expect(formOf([])).toBe('vec');
     expect(formOf(new Map())).toBe('map');
     expect(formOf(makeSet([]))).toBe('set');
-    expect(formOf(Symbol('weird'))).toBe('unknown');
+    expect(formOf(makeTag('T'))).toBe('tag');
   });
 
   it('value-class predicates', () => {
@@ -221,16 +221,16 @@ describe('runtime/string.mjs lines', () => {
 
 describe('source on a verb, a declaration of it and a tag', () => {
   // `source` reads a name by its tag, the quote of the declaration written
-  // under its address, which `parse` prints as its text, and a keyword by
+  // under its address, which `toString` writes as its text, and a keyword by
   // its kind [QSSLF#axis].
 
   it('source on the address of a verb returns the whole declaration', async () => {
-    const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | parse');
+    const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | toString');
     expect(source).toBe(':any/double ~(mul 2)');
   });
 
   it('source on a declaration of it answers the declaration', async () => {
-    const source = await evalQuery('42 | :snap it | ::snap | source | parse');
+    const source = await evalQuery('42 | :snap it | ::snap | source | toString');
     expect(source).toBe(':snap it');
   });
 });
@@ -298,7 +298,7 @@ describe('runtime/control.mjs if and coalesce', () => {
       sources: [{
         uri: 'tests/counted',
         source: ':any/counted ::builtin{}',
-        impls: { 'any/counted': subject => { runs++; return subject; } }
+        primitives: { 'any/counted': subject => { runs++; return subject; } }
       }]
     });
     expect((await counting.evalCell('{:a 1} | coalesce /a ~(counted)')).result).toBe(1);

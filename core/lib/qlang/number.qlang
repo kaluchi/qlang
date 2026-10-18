@@ -35,7 +35,7 @@
         |~~ A number is a finite double: an answer brought under
             `::number` that left their range, a sum or a product too
             large, is refused here, whichever verb computed it, and the
-            trail names the step and the subject it ran on.
+            trace names the step and the subject it ran on.
         ~~|
     | proves :isANumber |~~ Five is a number. ~~| ~(5 | type | eq ::number)
     | proves :refusesALeadingZero
@@ -60,7 +60,7 @@
         |~~ A product past the range of doubles is refused at the step
             that made it.
         ~~|
-        ~(1e308 | mul 10 | add 1 !| get [~(type) ~(trail | map ~step)]
+        ~(1e308 | mul 10 | add 1 !| get [~(type) ~(trace | map ~failed)]
           | eq [::number/NotFiniteError [~(mul 10)]])
     | impl ::builtin{}
 
@@ -213,9 +213,11 @@
     | proves :multiplier/KindNotTakenError/refusesAString
         |~~ A multiplier that is no number is refused under the input. ~~|
         ~(1 | mul "x" !| get [~(type) /actualType] | eq [::number/mul/multiplier/KindNotTakenError ::string])
-    | proves :multiplier/KindNotTakenError/namesTheReadOfAPath
-        |~~ A path given for the multiplier names the read of its field. ~~|
-        ~(5 | mul /qty !| get /read | eq ~(mul (get /qty)))
+    | proves :multiplier/KindNotTakenError/namesTheRepairOfAPath
+        |~~ A path given for the multiplier names the repair that reads its
+            field.
+        ~~|
+        ~(5 | mul /qty !| get /repair | eq ~(mul (get /qty)))
     | proves :answersUnderTheTag
         |~~ A number under a tag answers under the tag. ~~|
         ~(::Width#2 | mul 3 | eq ::Width#6)
@@ -437,13 +439,13 @@
         ~~|
     | throws :CountTooLargeError
         |~~ The count of `range` is no longer than the length a vector of
-            the host may have, which `:longest` names: a count past it
+            the engine may have, which `:longest` names: a count past it
             makes no vector, and the call has no repair but a count within
             it.
         ~~|
     | carries :CountTooLargeError/longest
-        |~~ The length a vector of the host may have, the count past which
-            `range` makes none.
+        |~~ The length a vector of the engine may have, the count past
+            which `range` makes none.
         ~~|
         ::number
     | throws :SubjectNotNumberError

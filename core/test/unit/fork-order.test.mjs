@@ -34,7 +34,7 @@ describe('the forks of a sequence run in its order [QSQUO#modifier]', () => {
       const visits = [];
       const session = await sessionRecordingVisits(visits);
       const cell = await session.evalCell(query);
-      expect(cell.error).toBeNull();
+      expect(cell.defect).toBeNull();
       expect(visits).toEqual([['start', 3], ['end', 3], ['start', 2], ['end', 2], ['start', 1], ['end', 1]]);
     });
   }

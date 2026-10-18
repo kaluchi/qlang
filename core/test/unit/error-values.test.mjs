@@ -2,13 +2,13 @@
 // error-convert.mjs, and the trace of a failure a host hands [QSERR#trace].
 
 import { describe, it, expect } from 'vitest';
-import { keyword, isErrorValue, makeBinding, makeErrorValue, formOf, makeTag, makeSet, makeFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
+import { keyword, isErrorValue, makeBinding, makeErrorValue, formOf, makeTag, makeFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
+import { makeSet } from '../../src/ordering.mjs';
 import { quoteOfSource } from '../../src/quote.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { createSession } from '../../src/session.mjs';
-import { evalQuery } from '../../src/eval.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
 import { elideAnswer } from '../../src/runtime/print.mjs';
 import { QlangError, CallUnknownNameError, declareRefusal } from '../../src/errors.mjs';
 
@@ -191,9 +191,9 @@ describe('the literal reads back error values and values under a tag', () => {
   // the host builds survives the trip; each kind of payload exercises a
   // distinct branch of the printer.
   it('reads back an error value raised, and a tag over each kind of payload', async () => {
-    const { makeTagged, makeSet } = await import('../../src/types.mjs');
-    const { printValue } = await import('../../src/runtime/format.mjs');
-    const { evalQuery } = await import('../../src/eval.mjs');
+    const { makeTagged } = await import('../../src/types.mjs');
+    const { printValue } = await import('../../src/print-value.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
     const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'something went wrong']]));
     const restoredError = await evalQuery(`${printValue(errorVal)} | raise`);
     expect(isErrorValue(restoredError)).toBe(true);
@@ -228,7 +228,7 @@ describe('deepEqual tells an Array, a Map and a Set under a tag from one under n
   });
 
   it('rejects a tag over a set vs the set of the same elements', async () => {
-    const { makeTagged, makeSet } = await import('../../src/types.mjs');
+    const { makeTagged } = await import('../../src/types.mjs');
     const tagged = makeTagged(makeTag('S'), makeSet([1, 2]));
     expect(deepEqual(tagged, makeSet([1, 2]))).toBe(false);
   });

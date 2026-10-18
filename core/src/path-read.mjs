@@ -5,7 +5,7 @@
 
 import { declareRefusal } from './errors.mjs';
 import { beneathTags, isDoc, isFn, isKind, isMap, isQuote, isVec, keyword } from './types.mjs';
-import { nearestKeys } from './nearest-names.mjs';
+import { nearestOf } from './nearness.mjs';
 
 export const PathSubjectHasNoPartsError = declareRefusal('path/SubjectHasNoPartsError');
 export const PathKeyNotInMapError = declareRefusal('path/KeyNotInMapError');
@@ -63,9 +63,11 @@ export function readPath(subject, path, soft = false) {
   return current;
 }
 
-// The refusal of a key the map lacks, with the keys near it.
+// The refusal of a key the map lacks, with the keys near it, as a name is
+// near the names of the scope [QSSLF#near].
 export function keyNotInMap(container, segment, path, met = container) {
-  return new PathKeyNotInMapError({ key: keyword(segment), nearest: nearestKeys(container, segment), path, actualValue: met });
+  const nearest = Object.freeze(nearestOf(container.keys(), segment).map(name => keyword(name)));
+  return new PathKeyNotInMapError({ key: keyword(segment), nearest, path, actualValue: met });
 }
 
 // The index a segment names in a vector, counted from the end where it

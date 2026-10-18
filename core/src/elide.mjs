@@ -29,11 +29,12 @@
 
 import {
   isVec, isSet, isQuote, isDoc, isVecOfOwnKind, isMap, isErrorValue, isValueClass, isFrame, isTrace,
-  makeTagged, beneathTags, makeErrorValue, makeFrame, makePath, makeQuote, makeSet, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL,
-  ELISION_TAG, FAIL_TAG, SET_TAG
+  makeTagged, beneathTags, makeErrorValue, makeFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL,
+  ELISION_TAG, SET_TAG
 } from './types.mjs';
-import { printValue } from './runtime/print-value.mjs';
-import { commandStep, docText, printQuoteSource } from './quote.mjs';
+import { makeSet } from './ordering.mjs';
+import { printValue, docText, printQuoteSource } from './print-value.mjs';
+import { commandStep, FAIL_TAG } from './steps.mjs';
 
 const HEAD_CHARACTERS = 40;
 const EXCERPT_CHARACTERS = 300;

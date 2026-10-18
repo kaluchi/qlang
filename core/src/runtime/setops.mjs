@@ -6,8 +6,8 @@
 // a pair the algebra has no rule for refused by the verb with the kinds it
 // met [QSORD#order], [QSCOL#algebra].
 
-import { isSet, isKeyword, isString, isVec, isMap, makeSet, kindsExpected, typeOf } from '../types.mjs';
-import { compareValues } from '../ordering.mjs';
+import { isSet, isKeyword, isString, isVec, isMap, typeOf } from '../types.mjs';
+import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 

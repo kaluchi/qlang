@@ -6,7 +6,7 @@
 
 import { parse } from '../core/src/parse.mjs';
 import { declaresKind } from '../core/src/walk.mjs';
-import { COMMAND_NAMES } from '../core/src/runtime/chain.mjs';
+import { COMMAND_NAMES } from '../core/src/chain.mjs';
 
 // The declarations of the catalog a source writes, the steps of its pipeline.
 function declarationsOf(ast) {

@@ -3,8 +3,7 @@
 // address that reads one.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
-import { createSession } from '../../src/session.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
 import { keyword, makeTag } from '../../src/types.mjs';
 
 describe('the names of the scope', () => {

@@ -4,8 +4,7 @@
 // the walk of the door [QSNAM#root], [QSHST#source].
 
 import { describe, it, expect } from 'vitest';
-import { createSession } from '../../src/session.mjs';
-import { evalQuery } from '../../src/eval.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { keyword, makeBinding, makeErrorValue, makeTag, isErrorValue, BuiltinForeignValueError } from '../../src/types.mjs';
 import { QlangInvariantError, declareRefusal } from '../../src/errors.mjs';
@@ -22,16 +21,20 @@ describe('createSession lifecycle', () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42 | :n it');
     expect(cellEntry.result).toBe(42);
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.scopeAfterCell).toBe(sessionInstance.scope);
     expect(cellEntry.scopeAfterCell.has('n')).toBe(true);
+  });
+
+  it('answers the entry of a cell, its source, its name, its result, its defect and the scope after it [D365]', async () => {
+    expect(Object.keys(await (await createSession()).evalCell('1'))).toEqual(['source', 'uri', 'result', 'defect', 'scopeAfterCell']);
   });
 
   it('evalCell seeds the cell pipeValue from evalOpts.initialPipeValue', async () => {
     const sessionInstance = await createSession();
     const seeded = new Map([['a', 1], ['b', 2]]);
     const cellEntry = await sessionInstance.evalCell('get /a', { initialPipeValue: seeded });
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe(1);
   });
 
@@ -40,7 +43,7 @@ describe('createSession lifecycle', () => {
     // cell stands in its place.
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42');
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe(42);
   });
 
@@ -83,11 +86,10 @@ describe('createSession lifecycle', () => {
     expect((await (await createSession()).evalCell('type')).result).toEqual(makeTag('null'));
   });
 
-  it('evalCell records the error on parse failure', async () => {
+  it('answers a cell that does not parse by its failure, the cell no defect [D365]', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('[1 2');
-    expect(cellEntry.error).not.toBeNull();
-    expect(cellEntry.error.name).toBe('ParseError');
+    expect([cellEntry.result.tag, cellEntry.defect]).toEqual([makeTag('quote/ParseError'), null]);
   });
 
   it('a parse failure names as its origin the source a host named, and a cell the session numbers names none [QSHST#source]', async () => {
@@ -104,8 +106,8 @@ describe('createSession lifecycle', () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42 | count');
     // Runtime errors are error values (5th type).
-    // evalCell succeeds; result is an error value, entry.error is null.
-    expect(cellEntry.error).toBeNull();
+    // evalCell succeeds; result is an error value, entry.defect is null.
+    expect(cellEntry.defect).toBeNull();
     expect(isErrorValue(cellEntry.result)).toBe(true);
     expect(cellEntry.result.originalError.name).toBe('KindAnswersNoVerbError');
   });
@@ -264,7 +266,7 @@ describe('a session takes what its host hands by the walk of the door [QSHST#sou
     const sessionInstance = await createSession();
     for (const [value, , account] of valuesOfNoKind()) {
       const cell = await sessionInstance.evalCell(':late 1 | type', { initialPipeValue: value });
-      expect([cell.result, cell.error, cell.error.facts], account).toEqual([null, expect.any(BuiltinForeignValueError), { actualValue: account }]);
+      expect([cell.result, cell.defect, cell.defect.facts], account).toEqual([null, expect.any(BuiltinForeignValueError), { actualValue: account }]);
       expect(cell.scopeAfterCell.has('late')).toBe(false);
     }
     expect((await sessionInstance.evalCell('1 | add 1')).result).toBe(2);
@@ -279,22 +281,41 @@ describe('a session takes what its host hands by the walk of the door [QSHST#sou
 });
 
 describe('a cell whose failure is no error value', () => {
-  it('leaves an invariant failure on the error channel with no result value', async () => {
-    // `evalAst` converts every failure into an ErrorValue except
-    // QlangInvariantError, which travels as a host-level throw. The
-    // cell records it on the error channel; only a ParseError also
-    // lands a structured value on the result channel.
-    const sessionInstance = await createSession({
-      sources: [{
-        uri: 'tests/collapse',
-        source: ':any/collapse ::builtin{}',
-        primitives: { 'any/collapse': () => { throw new QlangInvariantError('a defect of the host'); } }
-      }]
-    });
+  // A defect of the host, raised past the fail track, is what a cell answers
+  // with no result, and what a query raises to its caller [D365].
+  const collapsing = () => createSession({
+    sources: [{
+      uri: 'tests/collapse',
+      source: ':any/collapse ::builtin{}',
+      primitives: { 'any/collapse': () => { throw new QlangInvariantError('a defect of the host'); } }
+    }]
+  });
 
-    const cellEntry = await sessionInstance.evalCell('42 | collapse');
+  it('answers a defect as the defect of its cell, with no result [D365]', async () => {
+    const cellEntry = await (await collapsing()).evalCell('42 | collapse');
     expect(cellEntry.result).toBeNull();
-    expect(cellEntry.error).toBeInstanceOf(QlangInvariantError);
-    expect(cellEntry.error.name).toBe('QlangInvariantError');
+    expect(cellEntry.defect).toBeInstanceOf(QlangInvariantError);
+    expect(cellEntry.defect.name).toBe('QlangInvariantError');
+  });
+
+  it('raises the defect of the cell a query runs as to its caller [D365]', async () => {
+    await expect(evalQuery('42 | collapse', (await collapsing()).scope)).rejects.toBeInstanceOf(QlangInvariantError);
+  });
+});
+
+describe('a query runs as one cell of a session [D365]', () => {
+  it('names the origin of a declaration as the first cell of a session names it', async () => {
+    expect(await evalQuery(':x 1 | env | get /x | get /origin')).toEqual(keyword('cell-1'));
+  });
+
+  it('answers a source that does not parse by its failure, naming no origin, as such a cell does', async () => {
+    const refused = await evalQuery('[1 2');
+    expect([refused.tag, refused.descriptor.has('origin')]).toEqual([makeTag('quote/ParseError'), false]);
+  });
+
+  it('runs over the scope it is handed, the root\'s where none is', async () => {
+    const session = await createSession();
+    await session.evalCell(':k 7');
+    expect([await evalQuery('k', session.scope), (await evalQuery('k')).tag]).toEqual([7, makeTag('call/UnknownNameError')]);
   });
 });

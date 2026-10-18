@@ -5,8 +5,9 @@
 import { registerPrimitive } from '../primitives.mjs';
 import { deepEqual } from '../equality.mjs';
 import {
-  makePath, makeTag, isMap, isVec, isSet, isTagged, makeSet, makeTagged, beneathTags, payloadBeneath, typeOf, TAG_HEADER_SYMBOL
+  makePath, makeTag, isMap, isVec, isSet, isTagged, makeTagged, beneathTags, payloadBeneath, typeOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
+import { makeSet } from '../ordering.mjs';
 
 // The tag of a shape and the marks a shape lays over a part [D363].
 const SHAPE_TAG = makeTag('shape');

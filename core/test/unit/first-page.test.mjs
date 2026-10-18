@@ -2,7 +2,7 @@
 // it as the page writes it, the task over the input the page gives it.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
 const content = await evalQuery('::qlang | doc | content');

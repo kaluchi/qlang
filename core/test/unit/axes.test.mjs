@@ -3,10 +3,10 @@
 
 import { describe, it, expect } from 'vitest';
 import { printValue } from '../../src/index.mjs';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { isErrorValue, isQuote, makeTag } from '../../src/types.mjs';
 import { QlangError } from '../../src/errors.mjs';
-import { printQuoteSource } from '../../src/quote.mjs';
+import { printQuoteSource } from '../../src/print-value.mjs';
 
 describe('::name | source answers the quote of the declarations under the name', () => {
   it('::vec/count | source carries the declaration by its address', async () => {
@@ -37,7 +37,7 @@ describe('::name | source answers the quote of the declarations under the name',
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
       ':foo |~~ a note ~~| | ::foo | doc | content');
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe(' a note ');
   });
 
@@ -48,7 +48,7 @@ describe('::name | source answers the quote of the declarations under the name',
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':foo |~~ first cell ~~|');
     const cellEntry = await sessionInstance.evalCell('::foo | doc | content');
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe(' first cell ');
   });
 
@@ -59,7 +59,7 @@ describe('::name | source answers the quote of the declarations under the name',
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
       ':landing {} | :landing/chapter01 |~~ Глава из лендинг пейджа ~~| | ::landing/chapter01 | doc | content');
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe(' Глава из лендинг пейджа ');
   });
 
@@ -217,7 +217,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
     const cellEntry = await sessionInstance.evalCell(
       ':contested |~~ from the cell ~~| 222 | ' +
       'get [~(contested), ~(::contested | source | toString), ~(::contested | doc | content)]');
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', ' from the cell ']);
   });
 

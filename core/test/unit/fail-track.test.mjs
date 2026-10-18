@@ -4,7 +4,7 @@
 // its site [QSERR#catch], [QSERR#trace], [QSERR#site].
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { keyword, makeTag } from '../../src/types.mjs';
 import { QlangError } from '../../src/errors.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';

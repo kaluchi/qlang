@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { tokenize } from '../../src/highlight.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { verbNames } from '../../src/runtime/nouns.mjs';
+import { verbNames } from '../../src/nouns.mjs';
 
 let verbNamesOfTheRoot;
 async function rootVerbNames() {

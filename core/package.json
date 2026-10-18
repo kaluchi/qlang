@@ -8,9 +8,6 @@
     ".": {
       "import": "./src/index.mjs"
     },
-    "./session": {
-      "import": "./src/session.mjs"
-    },
     "./errors": {
       "import": "./src/errors.mjs"
     },

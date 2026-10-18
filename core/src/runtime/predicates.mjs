@@ -6,7 +6,7 @@ import { typeOf } from '../types.mjs';
 import { deepEqual } from '../equality.mjs';
 import { compareValues } from '../ordering.mjs';
 import { registerPrimitive } from '../primitives.mjs';
-import { walkToKinds } from './verb.mjs';
+import { walkToKinds } from '../dispatch.mjs';
 
 registerPrimitive('any/eq',  (subject, value) => deepEqual(subject, value));
 registerPrimitive('any/ne',  (subject, value) => !deepEqual(subject, value));

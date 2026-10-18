@@ -6,8 +6,7 @@
 // The rules it holds: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
-import { createSession } from '../../src/session.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
 import {
   keyword,
   formOf,
@@ -15,10 +14,10 @@ import {
   isMap,
   isSet,
   isVec,
-  makeSet,
   makeTag,
   typeOf
 } from '../../src/types.mjs';
+import { makeSet } from '../../src/ordering.mjs';
 import { catchOriginalError, expectErrorThrown } from '../helpers/error-assertions.mjs';
 
 describe('types.mjs', () => {
@@ -80,7 +79,7 @@ describe('runtime/arith.mjs error paths', () => {
   });
 });
 
-describe('runtime/vec.mjs error paths', () => {
+describe('runtime/sequence.mjs error paths', () => {
   it('count rejects non-Vec', async () => {
     await expectErrorThrown('42 | count', 'call/KindAnswersNoVerbError');
   });
@@ -161,7 +160,7 @@ describe('runtime/predicates.mjs deepEqual', () => {
   });
 });
 
-describe('runtime/string.mjs split and join error sites', () => {
+describe('runtime/string.mjs and runtime/sequence.mjs split and join error sites', () => {
   it('split on non-string subject is refused by the address of split', async () => {
     await expectErrorThrown('42 | split ","', 'string/split/SubjectNotStringError');
   });

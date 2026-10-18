@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 
 describe('a doc before the key of a map entry is a parse error', () => {
   it('refuses a doc ahead of the key of an entry', () => {

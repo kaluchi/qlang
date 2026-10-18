@@ -20,11 +20,12 @@
 // text of a query, which flew no step, holds no `:trace` [QSERR#trace],
 // [QSERR#print].
 
-import { isErrorValue, isPath, isQuote, isTagged, isTrace, isVec, kindsExpected, makeErrorValue, makeFrame, makeQuote, makeTrace, FRAME_TAG } from './types.mjs';
+import { isErrorValue, isPath, isQuote, isTagged, isTrace, isVec, makeErrorValue, makeFrame, makeQuote, makeTrace, FRAME_TAG } from './types.mjs';
+import { kindsExpected } from './ordering.mjs';
 import { quoteOfBody } from './quote.mjs';
 import { declareRefusal } from './errors.mjs';
 import { errorFromQlang } from './error-convert.mjs';
-import { walkToKinds } from './runtime/verb.mjs';
+import { walkToKinds } from './dispatch.mjs';
 
 const RESUMING_THEIR_TRACE = new WeakSet();
 const RAISED_BY = new WeakMap();

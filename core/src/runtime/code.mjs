@@ -5,7 +5,8 @@
 // quote holds as held code, in a lane of its own [QSQUO#apply].
 
 import { registerPrimitive, registerStateReader, runs } from '../primitives.mjs';
-import { quoteOfSource, printQuoteSource } from '../quote.mjs';
+import { quoteOfSource } from '../quote.mjs';
+import { printQuoteSource } from '../print-value.mjs';
 import { errorFromParse } from '../error-convert.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { isFn } from '../types.mjs';

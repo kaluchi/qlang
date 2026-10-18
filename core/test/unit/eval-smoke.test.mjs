@@ -1,7 +1,8 @@
 // The rules it holds: [QSWRK#tooling].
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery, evalAst } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
+import { evalAst } from '../../src/eval.mjs';
 import { keyword } from '../../src/types.mjs';
 import { rootState } from '../../src/state.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';

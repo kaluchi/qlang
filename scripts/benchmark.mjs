@@ -30,8 +30,7 @@ const benchDir = join(repoRoot, 'scripts', 'benchmark');
 const inputsDir = join(benchDir, 'inputs');
 
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
-const { evalQuery } = await core('eval.mjs');
-const { printValue } = await core('index.mjs');
+const { evalQuery, printValue } = await core('index.mjs');
 const { deepEqual } = await core('equality.mjs');
 const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
 

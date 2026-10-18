@@ -1,7 +1,6 @@
 import { readsAsBareKeyword } from './name-chars.mjs';
 import { declareInvariantError } from './errors.mjs';
 import { TAG_SIGIL } from './env-keys.mjs';
-import { compareValues } from './ordering.mjs';
 
 export const NULL = null;
 
@@ -180,25 +179,10 @@ export function constructorOf(kind) {
   return kind[1];
 }
 
-// A set is the vector in the one order without duplicates under `::set`
-// [QSORD#order], made here alone; the order ranks two values alike exactly
-// when they are equal.
+// The names of the tags of a set, a binding and a descriptor.
 export const SET_TAG_NAME = 'set';
 export const BINDING_TAG_NAME = 'binding';
 const BUILTIN_TAG_NAME = 'builtin';
-
-// The kinds a holder takes, the set of their tags a refusal of a value of
-// none of them holds as `:expected` [QSERR#site].
-export function kindsExpected(...kindNames) {
-  return makeSet(kindNames.map(makeTag));
-}
-
-export function makeSet(elements) {
-  const ordered = [...elements].sort(compareValues);
-  const set = ordered.filter((element, index) => index === 0 || compareValues(ordered[index - 1], element) !== 0);
-  stampTagHeader(set, SET_TAG);
-  return Object.freeze(set);
-}
 
 // An error at rest, a value like any other: its facts under `::error` and
 // the tag of its site over them, none for the kind of errors, what a catch
@@ -284,14 +268,6 @@ export const CORE_KIND = Object.freeze({
   quote:   QUOTE_TAG,
   doc:     DOC_TAG
 });
-
-// The tags of a quote's steps [QSQUO#step]: the records of what computes,
-// and the wrappers a step takes on the fail track or in parentheses.
-export const CALL_TAG      = makeTag('call');
-export const BIND_TAG      = makeTag('bind');
-export const CONSTRUCT_TAG = makeTag('construct');
-export const FAIL_TAG      = makeTag('fail');
-export const GROUP_TAG     = makeTag('group');
 
 // A tag over a payload: an untagged vector or map holds the tag on itself,
 // so every verb of the container reads it; any other payload, a tagged one

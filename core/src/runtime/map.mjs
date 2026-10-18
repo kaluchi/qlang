@@ -1,36 +1,15 @@
-// The primitives of the keys of a map and of the element a vector holds or
-// lacks, whose verbs the catalog declares under `::map` and `::vec` [QSCOL#map], [QSCOL#sequence].
+// The primitives of the keys, the values and the entries of a map, whose verbs
+// the catalog declares under `::map` [QSCOL#map].
 
-import { keyword, isKeyword, isPath, isSet, makeSet } from '../types.mjs';
+import { keyword, isKeyword, isPath } from '../types.mjs';
+import { makeSet } from '../ordering.mjs';
 import { pathReads } from './path.mjs';
 import { registerPrimitive } from '../primitives.mjs';
-import { compareValues } from '../ordering.mjs';
 
 registerPrimitive('map/keys', map => makeSet([...map.keys()].map(keyword)));
 registerPrimitive('map/vals', map => [...map.values()]);
 registerPrimitive('map/entries', map => [...map].map(([entryKey, entryValue]) => Object.freeze([keyword(entryKey), entryValue])));
 
-// Whether a vector holds a value equal to the element: a set by a search in
-// its one order, which ranks two values alike exactly when they are equal,
-// and any other vector element by element [QSORD#order], [QSCOL#sequence].
-function containsElement(vector, element) {
-  if (!isSet(vector)) return vector.some(held => compareValues(held, element) === 0);
-  let low = 0;
-  let high = vector.length - 1;
-  while (low <= high) {
-    const middle = (low + high) >> 1;
-    const byOrder = compareValues(vector[middle], element);
-    if (byOrder === 0) return true;
-    if (byOrder < 0) low = middle + 1;
-    else high = middle - 1;
-  }
-  return false;
-}
-
-// `has` asks whether a path reads, and of any other value whether it is
-// held [QSPTH#has]; `contains` asks whether the element is held alone.
-registerPrimitive('vec/has', (vector, element) => (isPath(element) ? pathReads(vector, element) : containsElement(vector, element)));
-registerPrimitive('vec/contains', containsElement);
 // A map's key is named by a keyword, a string or a number alike, the
 // number by its text, as `get` reads it [QSPTH#has].
 registerPrimitive('map/has', (map, key) => (isPath(key) ? pathReads(map, key) : map.has(isKeyword(key) ? key.name : String(key))));

@@ -1,47 +1,17 @@
-// Constructors of a quote and of its steps [QSQUO#step].
-//
-// `::quote[…]` holds a vector every element of which is a step, and
-// runs wherever a vector comes under the tag, `tag ::quote` and every
-// transform of a quote included, so the invariant holds after each.
-//
-// A record or a wrapper is the step its own text reads back as: its
-// constructor checks the fields the printer reads against the record's
-// schema, prints the step, and reads the text back, so an assembly that
-// reads back as another step, or as no step at all, is refused where it
-// is made.
+// The constructors of the steps of a quote [QSQUO#step]: a record or a wrapper
+// is the step its own text reads back as, its constructor checking the fields
+// the printer reads against the record's schema, printing the step and reading
+// the text back, so an assembly that reads back as another step, or as no step
+// at all, is refused where it is made.
 
 import { registerPrimitive } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { deepEqual } from '../equality.mjs';
-import { isStep, isElementStep, isCommandStep, printQuoteSource, quoteOfSource } from '../quote.mjs';
-import {
-  keyword, isMap, isQuote, isKeyword, isTag,
-  isDoc, makeQuote, makeTagged, CALL_TAG, BIND_TAG,
-  CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG, isVec, kindsExpected
-} from '../types.mjs';
-
-const QuotePayloadKindNotTakenError = declareRefusal('quote/PayloadKindNotTakenError');
-const QuoteElementNotStepError = declareRefusal('quote/ElementNotStepError');
-const QuoteReadBackDiffersError = declareRefusal('quote/ReadBackDiffersError');
-
-// The steps read as the text they print as, each a step that reads back
-// by itself, so a value assembled after the head, which a step is not
-// [QSQUO#step], is refused where it is made.
-function quoteConstructor(payload) {
-  if (!isVec(payload)) throw new QuotePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
-  payload.forEach((element, index) => {
-    if (!isStep(element)) throw new QuoteElementNotStepError({ index, actualValue: element });
-  });
-  const printed = printQuoteSource(payload);
-  try {
-    quoteOfSource(printed, 'quote-read-back');
-  } catch {
-    throw new QuoteReadBackDiffersError({ printed });
-  }
-  return makeQuote(payload);
-}
-
-registerPrimitive('quote/construct', quoteConstructor);
+import { kindsExpected } from '../ordering.mjs';
+import { printQuoteSource } from '../print-value.mjs';
+import { quoteOfSource } from '../quote.mjs';
+import { RECORD_FIELDS, CALL_TAG, BIND_TAG, CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG } from '../steps.mjs';
+import { keyword, isMap, isQuote, makeTagged } from '../types.mjs';
 
 // The step reads back as itself, or its refusal names the text it
 // printed as. Text that reads as no step at all is refused alike.
@@ -59,13 +29,11 @@ function readBackOrRefuse(step, ReadBackDiffersError) {
 
 // ── records ────────────────────────────────────────────────────
 
-const vecOf = isElement => value => isVec(value) && value.every(isElement);
-const isBodyStep = step => isElementStep(step) || isCommandStep(step);
-
 // A record's payload is a Map whose fields each fit the schema, the
 // required ones present; the field the refusal names is null when the
 // payload itself is no Map.
-function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBackDiffersError) {
+function recordConstructor(tag, PayloadNotSchemaError, ReadBackDiffersError) {
+  const { fields: schema, required } = RECORD_FIELDS.get(tag.name);
   return payload => {
     if (!isMap(payload)) {
       throw new PayloadNotSchemaError({ field: null, actualValue: payload });
@@ -86,17 +54,14 @@ function recordConstructor(tag, schema, required, PayloadNotSchemaError, ReadBac
 }
 
 registerPrimitive('call/construct', recordConstructor(CALL_TAG,
-  { name: isKeyword, modifiers: vecOf(isElementStep) }, ['name'],
   declareRefusal('call/PayloadNotSchemaError'),
   declareRefusal('call/ReadBackDiffersError')));
 
 registerPrimitive('bind/construct', recordConstructor(BIND_TAG,
-  { name: isKeyword, docs: vecOf(isDoc), body: isBodyStep }, ['name'],
   declareRefusal('bind/PayloadNotSchemaError'),
   declareRefusal('bind/ReadBackDiffersError')));
 
 registerPrimitive('construct/construct', recordConstructor(CONSTRUCT_TAG,
-  { tag: isTag, payload: isElementStep }, ['tag', 'payload'],
   declareRefusal('construct/PayloadNotSchemaError'),
   declareRefusal('construct/ReadBackDiffersError')));
 

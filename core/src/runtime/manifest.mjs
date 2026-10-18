@@ -9,7 +9,7 @@ import { declareRefusal } from '../errors.mjs';
 import { codeOf } from '../eval.mjs';
 import { rootOf, withEnv } from '../state.mjs';
 import { recordReadBy, pageOfRecord } from './axis.mjs';
-import { namesUnder, lawsUnder, rootScopeOf } from './nouns.mjs';
+import { namesUnder, lawsUnder, rootScopeOf } from '../nouns.mjs';
 
 
 // `manifest` reads its subject's record as the axes do, a name its own and

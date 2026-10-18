@@ -40,14 +40,16 @@ const session = await createSession({
 });
 
 const cell = await session.evalCell('"https://example.org" | fetch');
-cell.error;               // a ParseError when the source does not parse, else null
-printValue(cell.result);  // the answer as its literal; a failure is an error value
+printValue(cell.result);  // the answer as its literal; a failure, one to parse among them, is an error value
+cell.defect;              // what was raised past the fail track, else null
 ```
 
 - `createSession({ scope?, sources? })` answers a session: `evalCell(source,
   { initialPipeValue?, uri? })` evaluates one cell and answers
-  `{ source, uri, ast, result, error, scopeAfterCell }`; `scope` is the
-  current scope, and a host puts its names into it by its sources alone.
+  `{ source, uri, result, defect, scopeAfterCell }`, `result` the answer,
+  a failure to parse among the failures, and `defect` a defect raised past
+  the fail track, null where none was; `scope` is the scope its cells
+  write, and a host puts its names into it by its sources alone.
 - A source is `{ uri, source, primitives? }`: its declarations stand in
   the root, a verb declared under the label of its subject whose recipe
   is `::builtin{}`, `:string/fetch`, the inputs its function takes nodes
@@ -67,9 +69,11 @@ printValue(cell.result);  // the answer as its literal; a failure is an error va
   names of the scope `createSession({ scope })` and `evalQuery(source,
   scope)` are handed hold by the same walk, and a value of no kind there
   is a defect of the host, `::builtin/ForeignValueError`, raised past the
-  fail track: a cell answers it as its `error`, and the others throw it.
-- `evalQuery(source, scope?)` evaluates one query in the scope it is
-  handed, by default the scope of the root `langRuntime()` answers.
+  fail track: a cell holds it as its `defect`, and the others throw it.
+- `evalQuery(source, scope?)` answers the value one cell of a session over
+  the scope it is handed answers, by default over the scope of the root
+  `langRuntime()` answers, a defect raised to its caller; a declaration
+  it makes names its origin as every cell's does, `:cell-1`.
 - `printValue(value)` writes the literal of a value, which `evalQuery`
   reads back; the literal is the one lossless form. `caretOf(answer)`
   answers, for a refusal of a text, the line its `:source` holds and a
@@ -78,8 +82,11 @@ printValue(cell.result);  // the answer as its literal; a failure is an error va
   for any other answer. `toPlain` and
   `fromPlain` cross the JSON boundary, losing the kinds JSON has no form
   for.
-- `parse(source)` answers the syntax tree; `tokenize(source, names)` the
-  tokens a highlighter paints.
+- `parse(source)` answers the syntax tree, and `tokenize(source, names)`
+  the tokens a highlighter paints, from `@kaluchi/qlang-core/highlight`,
+  the light door that loads the parser and its walks and no runtime. The
+  doors of the package are its root, `./errors`, `./highlight` and the
+  sources of its catalog.
 
 ## Running
 

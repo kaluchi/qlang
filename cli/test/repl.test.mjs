@@ -177,6 +177,26 @@ describe('runRepl — output highlighting', () => {
   });
 });
 
+// A defect raised past the fail track is no answer: the REPL writes it on
+// stderr and runs the next cell [D365].
+describe('runRepl — a defect of a cell', () => {
+  it('writes the defect on stderr as `qlang:` and its message, and runs the next cell', async () => {
+    const leaked = '1e308 | apply (::fn | takes :x |~~ An x. ~~| /0 | impl (::number/add | binding | get /value | get /1)) [1e308] | print';
+    const replHarness = captureRepl(`${leaked}\n[1 2] | count\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    expect(replHarness.stderrText()).toBe('qlang: the core met number Infinity, a value of no kind of the language\n');
+    expect(stripAnsi(replHarness.stdoutText())).toContain('2\n');
+  });
+
+  it('writes a defect the printer raises on the answer on stderr, and runs the next cell', async () => {
+    const leaked = '1e308 | apply (::fn | takes :x |~~ An x. ~~| /0 | impl (::number/add | binding | get /value | get /1)) [1e308]';
+    const replHarness = captureRepl(`${leaked}\n[1 2] | count\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    expect(replHarness.stderrText()).toBe('qlang: the core met number Infinity, a value of no kind of the language\n');
+    expect(stripAnsi(replHarness.stdoutText())).toContain('2\n');
+  });
+});
+
 describe('runRepl — error rendering', () => {
   it('renders an error value with its trace through the same printValue path as success values', async () => {
     // The trace of an error is written as it flows [QSERR#trace], so the value

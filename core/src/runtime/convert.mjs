@@ -4,7 +4,8 @@
 // itself, and what a verb cannot read whole it refuses under its address
 // [QSCND#convert].
 
-import { keyword, makeTag, makeSet, makeRegex, isKeyword, isTag, isVec, kindsExpected, typeOf } from '../types.mjs';
+import { keyword, makeTag, makeRegex, isKeyword, isTag, isVec, typeOf } from '../types.mjs';
+import { makeSet, kindsExpected } from '../ordering.mjs';
 import { canonicalFlags, regexProblem, textRefusal } from '../regex-read.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';

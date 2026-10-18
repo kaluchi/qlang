@@ -294,6 +294,22 @@ describe('main — error paths', () => {
     expect(s.stdoutText()).toContain('}\n|~| [1 2\n|~|     ^\n|~| The source does not read as qlang');
   });
 
+  it('writes a defect raised past the fail track on stderr as `qlang:` and its message, with the code 1 [QSHST#answer]', async () => {
+    // The sum of a primitive of the core under no kind leaves the doubles,
+    // which the printer raises as no value of the language.
+    const s = captureStreams();
+    const leaked = '1e308 | apply (::fn | takes :x |~~ An x. ~~| /0 | impl (::number/add | binding | get /value | get /1)) [1e308] | print';
+    const exitCode = await main([leaked], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect([exitCode, s.stdoutText(), s.stderrText()]).toEqual([1, '', 'qlang: the core met number Infinity, a value of no kind of the language\n']);
+  });
+
+  it('writes a defect the printer raises on the answer on stderr as `qlang:` and its message, with the code 1 [QSHST#answer]', async () => {
+    const s = captureStreams();
+    const leaked = '1e308 | apply (::fn | takes :x |~~ An x. ~~| /0 | impl (::number/add | binding | get /value | get /1)) [1e308]';
+    const exitCode = await main([leaked], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect([exitCode, s.stdoutText(), s.stderrText()]).toEqual([1, '', 'qlang: the core met number Infinity, a value of no kind of the language\n']);
+  });
+
   it('answers a stdin magnitude outside the finite-double domain as parseJson refuses it, naming the path [QSHST#answer]', async () => {
     // `JSON.parse` reads `1e400` as an infinity, which the lift
     // refuses. Auto-mode keeps the refusal instead of re-labelling

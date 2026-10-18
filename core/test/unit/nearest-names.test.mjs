@@ -3,7 +3,7 @@
 // the order of their spelling.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { keyword, makeTag } from '../../src/types.mjs';
 
 const nearestOf = query => evalQuery(`${query} !| get /nearest`);

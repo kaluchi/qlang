@@ -5,7 +5,7 @@
 // facts.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { QlangError } from '../../src/errors.mjs';
 import { isMap, isSet, keyword, makeTag } from '../../src/types.mjs';
 import {

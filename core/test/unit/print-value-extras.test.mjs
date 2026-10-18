@@ -4,11 +4,11 @@
 // answers, which the parser reads back.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { parse } from '../../src/parse.mjs';
-import { createSession } from '../../src/session.mjs';
-import { printValue, toPlain, fromPlain } from '../../src/runtime/format.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
+import { printValue } from '../../src/print-value.mjs';
+import { toPlain, fromPlain } from '../../src/runtime/json.mjs';
 import {
   makeBinding,
   makeDoc,
@@ -151,7 +151,8 @@ describe('toPlain encodes a failure', () => {
 describe('toPlain encodes a tag over every kind of payload through the $tag envelope', () => {
   it('a tag over a set, a map and an atom writes its payload in JSON', async () => {
     // A tag over a vector is held by the earlier `Box[42]` test.
-    const { makeTagged, makeTag: makeTag, makeSet } = await import('../../src/types.mjs');
+    const { makeTagged, makeTag: makeTag } = await import('../../src/types.mjs');
+    const { makeSet } = await import('../../src/ordering.mjs');
     const taggedSet = makeTagged(makeTag('Keys'), makeSet([2, 1]));
     const plainSet = toPlain(taggedSet);
     expect(plainSet.$tag).toBe('Keys');
@@ -167,25 +168,25 @@ describe('toPlain encodes a tag over every kind of payload through the $tag enve
   });
 });
 
-describe('runtime/format.mjs structural — json round-trips', () => {
+describe('runtime/json.mjs structural — json round-trips', () => {
   it('json roundtrips Set as array', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
     expect(await evalQuery('#[1 2 3] | json')).toMatch(/^\[/);
   });
 
   it('json writes a keyword as its bare name', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
     expect(await evalQuery(':foo | json')).toBe('"foo"');
   });
 
   it('json roundtrips Boolean as JSON boolean', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
     expect(await evalQuery('true | json')).toBe('true');
     expect(await evalQuery('false | json')).toBe('false');
   });
 });
 
-describe('format.fromPlain — inverse of toPlain', () => {
+describe('json.fromPlain — inverse of toPlain', () => {
   // `fromPlain` lifts a value of JavaScript parsed from JSON into qlang: an
   // object of JavaScript into a map keyed by its names, an array into a
   // vector, and an atom as it is [QSHST#source].
@@ -216,14 +217,14 @@ describe('format.fromPlain — inverse of toPlain', () => {
   });
 });
 
-describe('format.toPlain carries a binding record as a tagged Map', () => {
+describe('json.toPlain carries a binding record as a tagged Map', () => {
   it('toPlain on a binding record keeps its tag and its fields', () => {
     const plain = toPlain(makeBinding({ name: keyword('answer'), value: 42 }));
     expect(plain.$tag).toBe('binding');
   });
 });
 
-describe('format.toPlain writes the keys of a map a host hands', () => {
+describe('json.toPlain writes the keys of a map a host hands', () => {
   it('json writes a map a host hands as the subject of a cell by its keys, each a string', async () => {
     const s = await createSession();
     const map = new Map();

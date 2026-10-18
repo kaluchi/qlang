@@ -6,7 +6,7 @@
 // arg.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { isErrorValue } from '../../src/types.mjs';
 
 describe('the second input of the arithmetic', () => {

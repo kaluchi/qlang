@@ -28,7 +28,7 @@ export const RETIRED_WORDS = [
   { regex: /\breadSignature\b/, written: 'the roles the chain of a function declares, read once by `chainOfFn`', by: 'D357' },
   { regex: /\breadKindSignature\b/, written: 'the roles the chain of a kind declares, read once by `chainOfKind`', by: 'D357' },
   { regex: /\bEMPTY_SIGNATURE\b/, written: 'the quote of no commands, `NO_COMMANDS`', by: 'D357' },
-  { regex: /\bsignature\.mjs\b/, written: 'the module of the chain of a function and of a kind, `core/src/runtime/chain.mjs`', by: 'D357' },
+  { regex: /\bsignature\.mjs\b/, written: 'the module of the chain of a function and of a kind, `core/src/chain.mjs`', by: 'D357' },
   { regex: /\bsignatures?[\s-]+of[\s-]+(?:a|an|the|its)[\s-]+(?:functions?|commands?|verbs?|kinds?|chains?)\b|\bnames?[\s-]+of[\s-]+(?:a|the|its)[\s-]+signatures?\b/i, written: 'the chain of a function or of a kind, the commands written on it, and the form of a call that the signature help of the language server shows', by: 'D357' },
   { regex: /\bcallMemberOn\b/, written: 'the answer of a verb run on a subject, `callVerbOn`', by: 'D357' },
   { regex: /\bisMemberValue\b/, written: 'whether a value is the value of a verb, `isVerbValue`', by: 'D357' },

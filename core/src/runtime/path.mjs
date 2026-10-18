@@ -6,7 +6,7 @@
 import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
-import { layTag } from './verb.mjs';
+import { layTag } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
 import { isPath, makePath, isKeyword, isMap, isVec, isValueClass, isErrorValue, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
 

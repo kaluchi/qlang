@@ -3,7 +3,7 @@
 // the vector in the one order without duplicates [QSORD#order].
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { isSet } from '../../src/types.mjs';
 
 

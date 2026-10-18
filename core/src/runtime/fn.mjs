@@ -9,9 +9,10 @@
 
 import { registerPrimitive, registerStateReader } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { commandStep, declarationStep } from '../quote.mjs';
+import { declarationStep } from '../quote.mjs';
+import { commandStep } from '../steps.mjs';
 import { inputsOfFunction } from '../eval.mjs';
-import { chainOfFn } from './chain.mjs';
+import { chainOfFn } from '../chain.mjs';
 import {
   isQuote, isVec, isNull, isBuiltinDescriptor, isErrorValue, isFn, commandsOf, recipeOf,
   makeTag, makeTagged, makeQuote, FN_TAG_NAME

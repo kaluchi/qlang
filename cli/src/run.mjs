@@ -4,8 +4,7 @@
 // `runOpts.initialPipeValue` gives, and a failure's cell with the prose of
 // the page that explains it.
 
-import { isErrorValue } from '@kaluchi/qlang-core';
-import { createSession } from '@kaluchi/qlang-core/session';
+import { isErrorValue, createSession } from '@kaluchi/qlang-core';
 import { cliSources } from './cli-sources.mjs';
 
 export async function runQuery(queryText, ioContext, runOpts = {}) {

@@ -1,25 +1,16 @@
-// What a call reads of the kinds: the walk of a value's tags to a kind a name
-// serves, the value put under a tag through its label [QSBLD#kind], the answer
-// kept as its subject's kind under the tags the walk passed [QSDSP#answer], and
-// the primitive a host handed run over the value the walk served [QSDSP#walk].
+// The walk of a value's tags to a kind a name serves [QSDSP#walk], and the
+// primitive a host handed run over the value the walk served, what it answers
+// held at the door by the walk that holds what a host hands a session [D365].
 
-import { readsState, readsPassedTags, PRIMITIVE_REGISTRY } from '../primitives.mjs';
-import { queryStateOf } from '../state.mjs';
-import { layTag } from '../eval.mjs';
-import { ANY_KIND_NAME, TAGGED_KIND_NAME, bareNameReach, isVerbValue, nodeOf, residencesOf, verbsReaching } from './nouns.mjs';
-import { chainOfFn } from './chain.mjs';
-import { declareRefusal, QlangError, QlangInvariantError } from '../errors.mjs';
+import { readsState, readsPassedTags, PRIMITIVE_REGISTRY } from './primitives.mjs';
+import { queryStateOf } from './state.mjs';
+import { ANY_KIND_NAME, TAGGED_KIND_NAME } from './address.mjs';
+import { QlangError, QlangInvariantError } from './errors.mjs';
 import { printPath } from './print-value.mjs';
 import {
-  bindingValueOf, isFn, isVec, isMap, isTagged, isValueClass, isKeyword, isTag, isRegex, isPath, isErrorValue,
-  makeTag, makePath, typeOf, primitiveOf, accountOfForeign, TAG_HEADER_SYMBOL, BuiltinForeignValueError
-} from '../types.mjs';
-
-export { layTag };
-
-// A call of a name no kind of whose subject answers names what the reader
-// needs: where the verbs of the name live [QSDSP#refusal].
-export const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
+  isVec, isMap, isTagged, isValueClass, isKeyword, isTag, isRegex, isPath, isErrorValue,
+  makeTag, makePath, typeOf, primitiveOf, accountOfForeign, TAG_HEADER_SYMBOL
+} from './types.mjs';
 
 // ── kinds ──────────────────────────────────────────────────────
 
@@ -47,31 +38,6 @@ export function walkToKinds(value, kindNames) {
     served = served.payload;
   }
   return { served, passedTags };
-}
-
-// The value under the tags from the innermost out, each laid again through
-// its kind [QSDSP#answer]; an error passes as it is, as it does under every
-// tag [QSERR#flow].
-async function underTags(value, tags, state) {
-  let wrapped = value;
-  for (const tag of [...tags].reverse()) wrapped = await layTag(tag.name, wrapped, state);
-  return wrapped;
-}
-
-// The answer of the subject's own kind, made by its constructor, a set's, a
-// tag's or a quote's among them, under the tags the walk passed
-// [QSDSP#answer], [QSSLF#catalog], and at once where it is of the kind and the
-// walk passed no tag.
-export function keptAsSubject(answer, served, passedTags, state) {
-  const ownKind = typeOf(served).name;
-  const reached = walkToKinds(answer, [ownKind]);
-  if (reached !== null && passedTags.length === 0) return reached.served;
-  return keptUnderTags(answer, reached, ownKind, passedTags, state);
-}
-
-async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
-  const kept = reached?.served ?? await layTag(ownKind, answer, state);
-  return await underTags(kept, passedTags, state);
 }
 
 // Whether an answer is waited on: anything with a `then`, so a host's
@@ -127,28 +93,14 @@ function failureOfTheDoor(address, { path, account }) {
   return new Error(`the answer of ${makeTag(address).literal} ${where} ${account}, a value of no kind of the language`);
 }
 
-// takenFromAHost(value) → a value a host hands where the core takes it, the
-// subject of a cell or what a name of a scope holds, held by the walk of the
-// door, a value of no kind raised as `::builtin/ForeignValueError`; a scope is
-// taken name by name, its root and the keys of the runtime's own aside [QSHST#source].
-export function takenFromAHost(value) {
-  const foreign = foreignPartOf(value, NOTHING_HANDED);
-  if (foreign !== null) throw new BuiltinForeignValueError({ actualValue: foreign.account });
-  return value;
-}
-
-export function scopeTakenFromAHost(scope) {
-  for (const [name, entry] of scope) if (typeof name === 'string') takenFromAHost(entry);
-  return scope;
-}
-
 const NOTHING_HANDED = new Set();
 
-// The first part of a value of no kind with the path where it stands, or null,
-// by one walk of a stack of its own at any depth, a container met twice walked
-// once, one met again within its own walk holding itself, and a hole of a
-// vector no element.
-function foreignPartOf(value, handed) {
+// foreignPartOf(value, handed?) → the first part of a value of no kind with the
+// path where it stands, or null, by one walk of a stack of its own at any depth,
+// a part the call handed in passed over, a container met twice walked once, one
+// met again within its own walk holding itself, and a hole of a vector no
+// element [D365].
+export function foreignPartOf(value, handed = NOTHING_HANDED) {
   const opened = new Set();
   const walked = new Set();
   const walks = [];
@@ -196,21 +148,4 @@ function containerAtTheDoor(part, opened) {
   if (tag !== undefined && !isTag(tag)) return `${kind} whose tag ${accountOfForeign(tag)} is no tag`;
   if (isMap(part)) for (const key of Map.prototype.keys.call(part)) if (typeof key !== 'string') return `a map whose key ${accountOfForeign(key)} is no string`;
   return part;
-}
-
-// shownFor(scope, name, kindNames?) → what a tool shows for a name, `{ address,
-// inputs }`: the verb a subject of the kinds reaches, or, where the tool
-// knows no kinds or they reach none, the address the name reaches with no
-// subject, or the first verb of a name several kinds answer, and the names
-// of the inputs its function takes [QSHST#tools]; undefined for a name that reaches
-// no name under a label.
-export function shownFor(scope, name, kindNames = null) {
-  const reached = kindNames === null ? undefined : verbsReaching(scope, kindNames).get(name);
-  const record = reached === undefined
-    ? bareNameReach(scope, name)?.record ?? residencesOf(scope, name)[0]?.[1]
-    : nodeOf(scope, reached.address.name);
-  const value = bindingValueOf(record);
-  if (!isVerbValue(value)) return undefined;
-  const inputs = isFn(value) ? chainOfFn(value).inputs.map(({ name: input }) => input.name) : [];
-  return { address: makeTag(record.get('name').name), inputs };
 }

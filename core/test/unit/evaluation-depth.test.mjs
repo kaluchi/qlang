@@ -6,8 +6,7 @@
 // rules it holds: [QSNAM#verb].
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
-import { createSession } from '../../src/session.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
 import { EVAL_DEPTH_LIMIT } from '../../src/state.mjs';
 import { QlangError, CallEvaluationDepthExceededError } from '../../src/errors.mjs';
 import { makeTag } from '../../src/types.mjs';

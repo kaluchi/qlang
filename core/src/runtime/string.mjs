@@ -1,23 +1,16 @@
-// The primitives of strings, and `join`, `prepend` and `append` of
-// vectors, whose verbs the catalog declares under `::string` and `::vec`
-// [QSTXT#string].
+// The primitives of strings, whose verbs the catalog declares under
+// `::string` [QSTXT#string].
 
 import { registerPrimitive } from '../primitives.mjs';
-import { declareRefusal } from '../errors.mjs';
 import { isKeyword, isRegex } from '../types.mjs';
 import { containsMatch, piecesBetweenMatches } from './regex.mjs';
 
 // A value a verb writes into text: a string as it is and a keyword as
 // its name, as `json` writes it [QSTXT#string].
-const writtenAsText = value => (isKeyword(value) ? value.name : value);
-
-// An element `join` writes is a string or a keyword.
-const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNotStringOrKeywordError');
+export const writtenAsText = value => (isKeyword(value) ? value.name : value);
 
 registerPrimitive('string/prepend', (text, prefix) => writtenAsText(prefix) + text);
-registerPrimitive('vec/prepend', (vector, element) => [element, ...vector]);
 registerPrimitive('string/append', (text, suffix) => text + writtenAsText(suffix));
-registerPrimitive('vec/append', (vector, element) => [...vector, element]);
 
 // The empty separator cuts the text into its characters, the code points
 // `count` counts, so no character falls in halves, and a regex cuts it at
@@ -33,12 +26,6 @@ registerPrimitive('string/lines', subject => {
   const pieces = subject.split(/\r?\n/);
   if (pieces[pieces.length - 1] === '') pieces.pop();
   return pieces;
-});
-
-registerPrimitive('vec/join', (subject, separator) => {
-  const stranger = subject.findIndex(element => typeof element !== 'string' && !isKeyword(element));
-  if (stranger >= 0) throw new VecJoinElementNotStringOrKeywordError({ index: stranger, actualValue: subject[stranger] });
-  return subject.map(writtenAsText).join(writtenAsText(separator));
 });
 
 // The case of a text, folded as Unicode maps the text, a letter to two where it

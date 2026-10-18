@@ -4,9 +4,8 @@
 // map ~manifest | flat | map ~runLaws` walks the whole catalog.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
 import { isErrorValue, isSet, makeTag, makeBinding, keyword } from '../../src/types.mjs';
-import { createSession } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 
 describe('runLaws reads a name as laws does', () => {

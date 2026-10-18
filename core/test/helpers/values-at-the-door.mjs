@@ -2,11 +2,12 @@
 // the language, which passes both doors as it is, and each value of no kind
 // beside the path where it stands and what the walk of the door names it by.
 
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { nodeOf } from '../../src/runtime/nouns.mjs';
+import { nodeOf } from '../../src/nouns.mjs';
+import { makeSet } from '../../src/ordering.mjs';
 import {
-  keyword, makeTag, makeTagged, makeSet, makeDoc, makePath, makeRegex, makeErrorValue, bindingValueOf, stampTagHeader
+  keyword, makeTag, makeTagged, makeDoc, makePath, makeRegex, makeErrorValue, bindingValueOf, stampTagHeader
 } from '../../src/types.mjs';
 
 export async function valuesOfTheLanguage() {

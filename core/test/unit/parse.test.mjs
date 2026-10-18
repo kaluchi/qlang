@@ -662,7 +662,7 @@ describe('parse.mjs — input guards and the location of a ParseError', () => {
 
 describe('parse — the docs in the slot of a declaration, one doc each, and a comment between steps', () => {
   it('attaches one entry per doc comment, not concatenated', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
     const docsResult = await evalQuery(
       ':foo |~~| First.\n|~~| Second.\n|~~| Third.\n42 | env | get /foo | get /docs | map ~content'
     );
@@ -670,7 +670,7 @@ describe('parse — the docs in the slot of a declaration, one doc each, and a c
   });
 
   it('block doc preserves internal newlines as one entry', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
     const docsResult = await evalQuery(
       ':foo |~~ line one\nline two\nline three ~~| 42\n| env | get /foo | get /docs | map ~content'
     );
@@ -681,7 +681,7 @@ describe('parse — the docs in the slot of a declaration, one doc each, and a c
   });
 
   it('mixes line and block docs preserving order', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
     const docsResult = await evalQuery(
       ':foo |~~| line one\n|~~ block two ~~|\n|~~| line three\n42 | env | get /foo | get /docs | map ~content'
     );
@@ -692,7 +692,7 @@ describe('parse — the docs in the slot of a declaration, one doc each, and a c
   });
 
   it('shadowing redeclare overrides docs Vec', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
     const docsResult = await evalQuery(
       ':foo |~~| Old.\n1\n| (:foo |~~| Brand new.\n|~~| With extra remark.\n2\n| env | get /foo | get /docs | map ~content)'
     );
@@ -700,7 +700,7 @@ describe('parse — the docs in the slot of a declaration, one doc each, and a c
   });
 
   it('a comment is whitespace between the steps of a pipeline', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
     expect(await evalQuery('[1 2 3] |~| inline annotation\n| count')).toBe(3);
     expect(await evalQuery('[1 2 3] |~ block annotation ~| | count')).toBe(3);
   });
@@ -790,7 +790,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('doc block nests doc-pair as opaque content (attached docs)', async () => {
-      const { evalQuery } = await import('../../src/eval.mjs');
+      const { evalQuery } = await import('../../src/session.mjs');
       const docs = await evalQuery(
         ':foo |~~ outer |~~ inner ~~| more ~~| 42\n| env | get /foo | get /docs | map ~content'
       );
@@ -798,7 +798,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('doc block adjacent nested doc pairs', async () => {
-      const { evalQuery } = await import('../../src/eval.mjs');
+      const { evalQuery } = await import('../../src/session.mjs');
       const docs = await evalQuery(
         ':foo |~~ |~~ a ~~| middle |~~ b ~~| ~~| 42\n| env | get /foo | get /docs | map ~content'
       );
@@ -806,7 +806,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('doc block nests plain pair as opaque content', async () => {
-      const { evalQuery } = await import('../../src/eval.mjs');
+      const { evalQuery } = await import('../../src/session.mjs');
       const docs = await evalQuery(
         ':foo |~~ holds |~ inner plain ~| inline ~~| 42\n| env | get /foo | get /docs | map ~content'
       );
@@ -814,7 +814,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('doc block accepts bare ~| (sibling close) as content', async () => {
-      const { evalQuery } = await import('../../src/eval.mjs');
+      const { evalQuery } = await import('../../src/session.mjs');
       const docs = await evalQuery(
         ':foo |~~ plain-close marker ~| mentioned ~~| 42\n| env | get /foo | get /docs | map ~content'
       );
@@ -822,7 +822,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('doc block collapses |~| line marker to 3-char content', async () => {
-      const { evalQuery } = await import('../../src/eval.mjs');
+      const { evalQuery } = await import('../../src/session.mjs');
       const docs = await evalQuery(
         ':foo |~~ pair holds |~| line marker inline ~~| 42\n| env | get /foo | get /docs | map ~content'
       );
@@ -830,7 +830,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('doc block collapses |~~| line-doc marker to 4-char content', async () => {
-      const { evalQuery } = await import('../../src/eval.mjs');
+      const { evalQuery } = await import('../../src/session.mjs');
       const docs = await evalQuery(
         ':foo |~~ pair holds |~~| line-doc marker inline ~~|\n42\n| env | get /foo | get /docs | map ~content'
       );
@@ -838,7 +838,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('doc-attached block on BindStep keeps nested doc-pair verbatim', async () => {
-      const { evalQuery } = await import('../../src/eval.mjs');
+      const { evalQuery } = await import('../../src/session.mjs');
       const docs = await evalQuery(
         ':foo |~~ outer |~~ inner ~~| more ~~|\n42\n| env | get /foo | get /docs | map ~content'
       );
@@ -846,7 +846,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('standalone DocLit captures nested doc-pair', async () => {
-      const { evalQuery } = await import('../../src/eval.mjs');
+      const { evalQuery } = await import('../../src/session.mjs');
       const content = await evalQuery(
         '|~~ mentions |~~ inner pair ~~| inside ~~| | content'
       );

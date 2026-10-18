@@ -11,7 +11,7 @@ import { silentStreams } from './helpers/silent-streams.mjs';
 describe('parseJson — happy path', () => {
   it('lifts a JSON object into a Map with keyword keys', async () => {
     const cellEntry = await runQuery('"{\\"name\\":\\"alice\\"}" | parseJson', silentStreams);
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBeInstanceOf(Map);
     expect(cellEntry.result.get('name')).toBe('alice');
   });

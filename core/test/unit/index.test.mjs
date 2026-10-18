@@ -1,9 +1,11 @@
 // The surface of the package root: what a host, the command line, the
-// language server and the site build on.
-// The rules it holds: [QSWRK#tooling].
+// language server and the site build on, each function behind one door.
+// The rules it holds: [D365].
 
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import * as core from '../../src/index.mjs';
+import { tokenize } from '../../src/highlight.mjs';
 
 describe('the package root', () => {
   it('parses a source and evaluates a query', async () => {
@@ -34,10 +36,9 @@ describe('the package root', () => {
     expect(core.toPlain(lifted)).toEqual({ name: 'alice' });
   });
 
-  it('hands the tools the tree, the tokens and the letters of a name', () => {
+  it('hands the tools the tree and the letters of a name', () => {
     const ast = core.parse(':x 1 | x');
     expect(core.findNameOccurrences(ast, 'x').length).toBeGreaterThan(0);
-    expect(core.tokenize('[1] | count', new Set(['count'])).length).toBeGreaterThan(0);
     expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
   });
 
@@ -45,5 +46,17 @@ describe('the package root', () => {
     for (const internal of ['evalAst', 'astChildrenOf', 'QlangError', 'makeTagged', 'formOf', 'EVAL_DEPTH_LIMIT']) {
       expect(core[internal], internal).toBeUndefined();
     }
+  });
+});
+
+describe('the doors of the package [D365]', () => {
+  it('opens its root, its errors, its painter and the sources of its catalog, and no other door', () => {
+    const { exports } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
+    expect(Object.keys(exports)).toEqual(['.', './errors', './highlight', './lib/qlang.qlang', './lib/qlang/*.qlang']);
+  });
+
+  it('hands the tokens a painter paints by its light door alone', () => {
+    expect(core.tokenize).toBeUndefined();
+    expect(tokenize('[1] | count', new Set(['count'])).length).toBeGreaterThan(0);
   });
 });

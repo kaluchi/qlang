@@ -4,8 +4,9 @@
 // the root's and the reader's, each by its tag.
 
 import { registerStateReader } from '../primitives.mjs';
-import { makeSet, makeTag } from '../types.mjs';
-import { kindNamesOf, readerNamesOf } from './nouns.mjs';
+import { makeTag } from '../types.mjs';
+import { makeSet } from '../ordering.mjs';
+import { kindNamesOf, readerNamesOf } from '../nouns.mjs';
 
 registerStateReader('any/env', (subject, state) => readerNamesOf(state.env));
 registerStateReader('any/kinds', (subject, state) => makeSet(kindNamesOf(state.env).map(makeTag)));

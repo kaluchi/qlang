@@ -6,7 +6,7 @@
 // and names each failing reader in the assertion message.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { rootAddressesOf } from '../helpers/root-addresses.mjs';
 import { failingLawsOf, proseQuotesOf, reportOfLaws } from '../helpers/catalog-pages.mjs';

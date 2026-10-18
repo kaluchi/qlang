@@ -3,10 +3,10 @@
 // attaches the tag or refuses the payload [QSNAM#address], [QSLIT#tag].
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
 import { isErrorValue, isQuote, makeTag } from '../../src/types.mjs';
-import { printQuoteSource } from '../../src/quote.mjs';
+import { printQuoteSource } from '../../src/print-value.mjs';
 
 describe('the parser reads a tag before a payload as a tagged literal', () => {
   it('reads a quote after a tag as its payload', () => {
@@ -236,7 +236,7 @@ describe('a tag name as a value', () => {
   });
 
   it('printValue renders a tag as ::name', async () => {
-    const { printValue } = await import('../../src/runtime/format.mjs');
+    const { printValue } = await import('../../src/print-value.mjs');
     const { makeTag } = await import('../../src/types.mjs');
     expect(printValue(makeTag('foo'))).toBe('::foo');
   });

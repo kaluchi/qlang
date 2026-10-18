@@ -3,9 +3,9 @@
 // out, a `describe` for each.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { deepEqual } from '../../src/equality.mjs';
-import { makeSet } from '../../src/types.mjs';
+import { makeSet } from '../../src/ordering.mjs';
 import {
   formOf,
   typeOf,
@@ -17,7 +17,7 @@ import {
 } from '../../src/types.mjs';
 import { parse } from '../../src/parse.mjs';
 import { errorFromParse, spanOfLocation } from '../../src/error-convert.mjs';
-import { printValue } from '../../src/runtime/format.mjs';
+import { printValue } from '../../src/print-value.mjs';
 
 describe('equality.deepEqual rejection branches', async () => {
   it('returns false when only one side is null', async () => {
@@ -60,7 +60,7 @@ describe('formOf of a binding record and of a vector under a tag', async () => {
 
   it('toPlain writes a vector under a tag as its tag beside its payload', async () => {
     const { makeTagged, makeTag } = await import('../../src/types.mjs');
-    const { toPlain } = await import('../../src/runtime/format.mjs');
+    const { toPlain } = await import('../../src/runtime/json.mjs');
     const tagged = makeTagged(makeTag('Box'), [42, 'inner']);
     const plainTagged = toPlain(tagged);
     expect(plainTagged.$tag).toBe('Box');
@@ -237,8 +237,8 @@ describe('printValue — qlang literal serialization', async () => {
 
 describe('printValue keyword round-trip', async () => {
   it('quoted keywords round-trip through printValue → parse → eval', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const { printValue } = await import('../../src/runtime/format.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
+    const { printValue } = await import('../../src/print-value.mjs');
     const { deepEqual } = await import('../../src/equality.mjs');
 
     const cases = [':"1"', ':"foo bar"', ':"$ref"', ':""', ':"123"', ':foo', ':qlang/error'];
@@ -251,8 +251,8 @@ describe('printValue keyword round-trip', async () => {
   });
 
   it('Map with quoted-keyword keys round-trips through printValue', async () => {
-    const { evalQuery } = await import('../../src/eval.mjs');
-    const { printValue } = await import('../../src/runtime/format.mjs');
+    const { evalQuery } = await import('../../src/session.mjs');
+    const { printValue } = await import('../../src/print-value.mjs');
     const { deepEqual } = await import('../../src/equality.mjs');
 
     const original = await evalQuery('{:"$ref" 1 :"foo bar" 2}');
@@ -263,8 +263,8 @@ describe('printValue keyword round-trip', async () => {
 });
 
 describe('printValue round-trip — all composite types', async () => {
-  const { evalQuery } = await import('../../src/eval.mjs');
-  const { printValue } = await import('../../src/runtime/format.mjs');
+  const { evalQuery } = await import('../../src/session.mjs');
+  const { printValue } = await import('../../src/print-value.mjs');
   const { deepEqual } = await import('../../src/equality.mjs');
 
   async function assertRoundTrip(src, label) {

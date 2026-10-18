@@ -4,7 +4,7 @@
 // and check the result via isErrorValue + descriptor inspection.
 
 import { expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { isErrorValue } from '../../src/types.mjs';
 
 // expectErrorResult(query) → error value

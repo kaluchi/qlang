@@ -38,3 +38,4 @@ export {
   isErrorValue,
   verbNames
 } from '@kaluchi/qlang-core';
+export { cellShown } from '../src/lib/cell-shown.js';

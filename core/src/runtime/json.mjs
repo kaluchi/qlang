@@ -4,9 +4,7 @@
 import { TAG_HEADER_SYMBOL, refuseForeign } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
-import { dispatchQlangValue, printValue, printRegex, printPath } from './print-value.mjs';
-
-export { printValue };
+import { dispatchQlangValue, printValue, printRegex, printPath } from '../print-value.mjs';
 
 function dispatchPlainValue(v, handlers, path) {
   if (Array.isArray(v)) return handlers.array(v, path);

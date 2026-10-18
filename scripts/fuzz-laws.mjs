@@ -20,7 +20,7 @@ const random = () => {
 };
 const pick = items => items[Math.floor(random() * items.length)];
 
-// The edge values a literal is changed to, by the pattern that finds it.
+// The edge values a literal is changed to, by the regex that finds it.
 const MUTATORS = [
   [/(?<![\w.:/"-])-?\d+(?:\.\d+)?(?:e[+-]?\d+)?(?![\w.])/g,
     ['0', '-1', '1', '2', '-0.5', '1e308', '-1e308', '0.1', '1e-308', '9007199254740993', '1000000', '-0', '3.7']],

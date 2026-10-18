@@ -792,8 +792,8 @@ function retiredWordsWritten() {
       if (chapter !== undefined && (waiting.has(chapter) || waiting.has(`${chapter}#${section}`))) return;
       const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(isTest ? [...holds.matchAll(TEST_TITLE)].map(match => match[2]) : [])];
       for (const part of read) {
-        for (const { pattern, written, by } of RETIRED_WORDS) {
-          const word = pattern.exec(part)?.[0];
+        for (const { regex, written, by } of RETIRED_WORDS) {
+          const word = regex.exec(part)?.[0];
           if (word !== undefined) found.push({ file, line: index + 1, word, written, by });
         }
       }

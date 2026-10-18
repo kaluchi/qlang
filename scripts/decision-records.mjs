@@ -30,7 +30,7 @@ export const RESEARCH_FOLDERS = [
   { folder: 'pentimento-audit', shape: 'run' },
 ];
 // foldersShaped(shape) → the folders of that shape as one alternation of a
-// pattern.
+// regex.
 export const foldersShaped = shape => RESEARCH_FOLDERS.filter(entry => entry.shape === shape).map(({ folder }) => folder).join('|');
 
 // statementsOf(text) → the statements of a record, each `{ text, from, to }`

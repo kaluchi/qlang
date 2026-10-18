@@ -125,7 +125,7 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
       makeCellEntry({ result: new Map([['k', 1]]) }),
       { didExplicitStdoutEffect: false, shouldColorize: true }
     );
-    // ANSI escape pattern present
+    // The answer holds an ANSI escape.
     // eslint-disable-next-line no-control-regex -- matches the literal ESC byte that ANSI escape sequences open with
     expect(cliOutcome.stdoutText).toMatch(/\x1b\[/);
     // Underlying text content survives stripping

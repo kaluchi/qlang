@@ -2,7 +2,7 @@
 // axis reads, of the trace a failure leaves, of a refusal, of the boundary
 // of a host, of the read of text into code and back, of the elision, of the
 // regex, of the template and of the read of a print, each held by the
-// lexicon of retired terms as one pattern of its one sense [QSWRK#documents],
+// lexicon of retired terms as one regex of its one sense [QSWRK#documents],
 // [D359], [D360], [D361], [D362], which refuses the term where it is written,
 // in prose, a name of the code or the name of a case, and leaves the words of
 // another sense.
@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { RETIRED_WORDS } from '../../../scripts/retired-words.mjs';
 
-const refused = text => RETIRED_WORDS.some(({ pattern }) => pattern.test(text));
+const refused = text => RETIRED_WORDS.some(({ regex }) => regex.test(text));
 
 describe('the lexicon of retired terms [QSWRK#documents]', () => {
   it('refuses each retired term of the chain, of the slot of a kind and of the node where it is written', () => {
@@ -347,11 +347,21 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'tuples the templates of `get` answer', 'Tuples the templates of `get` answer', 'the tuple a template answers', '`query` reads a tuple softly',
       'each marker\'s :read continues the query beneath',
       '"10 | add 3" | parse | apply it', 'print | parse | apply it | eq v', 'error values round-trip through parse | apply(it)', 'reads back by `parse | apply it`', '"add 1" | parse | apply it',
-      'pattern: the literal reads back by `parse | apply it`, its'
+      'pattern: the literal reads back by `parse | apply it`, its',
+      'each a pattern of one sense with the term written in its place', 'as one pattern of its one sense', 'a pattern of the one sense it had', 'the conventions build their patterns from it',
+      'a repaired kind a pattern finds', 'never by a pattern over the text of a print', 'ANSI escape pattern present', 'by the pattern that finds it',
+      'the folders of that shape as one alternation of a pattern', 'RETIRED_WORDS.some(({ pattern }) => pattern.test(text))', 'filesUnder(repoRoot, dir, pattern)', 'a pattern for each term',
+      'the lexicon holds two patterns', 'the source of the pattern of each term', 'the flags of the pattern the lexicon holds', 'the first match of the pattern in a line',
+      'the groups of the pattern a script reads', 'a word becomes a pattern of the lexicon', 'the folders turn into patterns of the walk', 'a loop over a pattern of the lexicon',
+      'the term is the pattern itself', 'a script finds the text by a pattern', 'a printer that tells a spelling from the text by a pattern', 'a word of another sense is no pattern of the lexicon',
+      'each pattern reads text the conventions read', 'a pattern cuts no word of another sense', 'patterns rank by the order the table writes them', 'the pattern the call gives to git grep',
+      'a pattern whose groups capture the name of a case', 'a text or a pattern a check finds', 'the engine a pattern of JavaScript runs on', 'a name holds a pattern of the lexicon',
+      'the pattern prints the words it found', 'a pattern keeping its generic sense', 'each pattern of the lexicon is a JavaScript RegExp, not a `::regex`', 'the pattern of the grammar that paints `#"` as a regexp',
+      'a pattern of the lexicon that finds `toRegex` where it is written', 'the source of a pattern of the lexicon', 'and the tokenizer of patterns paints until it has loaded', 'Embedders hosting qlang in a browser tab copy this pattern:'
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves marker for the signs of a comment, the end of a paste and unfinished work, pattern for a pattern of the lexicon or of a script and every generic sense, tuple for the form of a shape, `parse` of a string, `open` of a link and a snippet, and `apply` of code on a subject [D362]', () => {
+  it('leaves marker for the signs of a comment, the end of a paste and unfinished work, tuple for the form of a shape, `parse` of a string, `open` of a link and a snippet, and `apply` of code on a subject [D362]', () => {
     for (const text of [
       'the comment markers `|~`, `|~|`, `|~~`', 'Longer markers are tried first', 'Inside a block comment the line markers are bare tokens',
       'a-parse-error-names-no-marker-of-a-comment-among-its-continuations', '|~ doc-close marker ~~| mentioned here ~|', 'holds a |~| line marker mention here', 'plain-close marker', 'line-doc marker',
@@ -364,15 +374,8 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'the marker prints nothing of the comment', 'the paste marker counts as no character', 'the comment marker that reads a doc', 'each marker of a block comment',
       'the read of the marker of a comment', 'a line that holds a marker of a comment', 'the size of a marker of a block comment', 'the paste ends with a marker',
       'a doc gives way to a marker of a comment', 'the marker standing for the end of a paste', 'an ::elision whose :read continues the query', 'the elision of a text keeping its first characters',
-      'a part whose elision prints no shorter than it stays', 'each a pattern of one sense with the term written in its place', 'as one pattern of its one sense', 'a pattern of the one sense it had',
-      'the conventions build their patterns from it', 'a repaired kind a pattern finds', 'never by a pattern over the text of a print', 'ANSI escape pattern present', 'by the pattern that finds it',
-      'the folders of that shape as one alternation of a pattern', 'RETIRED_WORDS.some(({ pattern }) => pattern.test(text))', 'filesUnder(repoRoot, dir, pattern)', 'a pattern for each term',
-      'the lexicon holds two patterns', 'the source of the pattern of each term', 'the flags of the pattern the lexicon holds', 'the first match of the pattern in a line',
-      'the groups of the pattern a script reads', 'a word becomes a pattern of the lexicon', 'the folders turn into patterns of the walk', 'a loop over a pattern of the lexicon',
-      'the term is the pattern itself', 'a script finds the text by a pattern', 'a printer that tells a spelling from the text by a pattern', 'a word of another sense is no pattern of the lexicon',
-      'each pattern reads text the conventions read', 'a pattern cuts no word of another sense', 'patterns rank by the order the table writes them', 'the pattern the call gives to git grep',
-      'a pattern whose groups capture the name of a case', 'a text or a pattern a check finds', 'the engine a pattern of JavaScript runs on', 'a name holds a pattern of the lexicon',
-      'the pattern prints the words it found', 'a pattern keeping its generic sense', 'a regex, a value of `::regex`', '`#"\\d+"` is a regex', '::string/toRegex/TextNotRegexError', '| takes :regex',
+      'a part whose elision prints no shorter than it stays',
+      'a regex, a value of `::regex`', '`#"\\d+"` is a regex', '::string/toRegex/TextNotRegexError', '| takes :regex',
       ':needle', 'Vectors of one length that part index by index are tuples.', ':readsTuplesIndexByIndex', 'tupleOf', 'two tuples of one length index by index', 'a shape reads a tuple index by index',
       'shape-merges-a-tuple-with-a-list-of-another-length-into-one-element', 'shape-keeps-each-index-of-two-tuples-that-part', 'get-reads-two-fields-of-one-record-by-a-template',
       ':readsTwoFieldsByATemplate', 'query-reads-each-path-of-a-template-softly', 'shape reads a tuple', 'a shape reads a tuple of two kinds', 'a shape reads a tuple of a string and a number',
@@ -381,11 +384,10 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'the paste marker is left out of the line the reader takes', 'a comment marker prints shorter than a doc', 'the end-of-paste marker gives way to the next chunk',
       'the marker `|~|` of a comment reads to the end of the line, `:read` aside', 'a line comment, its marker `|~|`, runs to the end of the line; an elision prints no comment',
       'the comment markers are left out of the highlighted span', 'the bracketed paste markers are left out of the budget of a line', 'its markers of a comment',
-      'each pattern of the lexicon is a JavaScript RegExp, not a `::regex`', 'the pattern of the grammar that paints `#"` as a regexp',
-      'a pattern of the lexicon that finds `toRegex` where it is written', 'a shape reads a tuple index by index, `get /0` reading its first index',
+      'a shape reads a tuple index by index, `get /0` reading its first index',
       '`shape` writes a tuple of two fields as a shape for each index', 'a tuple is a vector of one length; `query` reads it softly as any vector', 'the template of `get` is no tuple',
-      'A gathered paste lands with every bracket marker it holds left out.', 'the source of a pattern of the lexicon', '::string/capture/RegexNamesNoGroupError', 'StringCaptureRegexNamesNoGroupError',
-      ':RegexNamesNoGroupError/refusesARegexOfNumberedGroupsAlone', 'and the tokenizer of patterns paints until it has loaded', 'Embedders hosting qlang in a browser tab copy this pattern:',
+      'A gathered paste lands with every bracket marker it holds left out.', '::string/capture/RegexNamesNoGroupError', 'StringCaptureRegexNamesNoGroupError',
+      ':RegexNamesNoGroupError/refusesARegexOfNumberedGroupsAlone',
       'reads a bracketed paste up to its end marker, a pause past the window inside it', 'shapes or more a tuple, vectors of one length that part index by',
       'capture-refuses-a-regex-that-names-no-group', 'reads a bracketed paste whose begin marker\'s escape is split',
       'a line that holds a marker of a block comment', 'a doc gives way to a marker of a block comment'

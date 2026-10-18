@@ -24,7 +24,7 @@ function activate(context) {
   client.start();
 
   // The core loads by its name, a dependency of the extension's package,
-  // and the tokenizer of patterns paints until it has loaded [D361].
+  // and the tokenizer of the grammar paints until it has loaded [D361].
   import('@kaluchi/qlang-core')
     .then(m => { qlang = m; })
     .catch(e => console.warn('qlang markdown highlight: parser load failed:', e.message));

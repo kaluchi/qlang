@@ -7,7 +7,7 @@
 // the language alongside the evaluator and resolves every one of them
 // from an in-process Map without a network fetch.
 //
-// Embedders hosting qlang in a browser tab copy this pattern:
+// Embedders hosting qlang in a browser tab do the same:
 // re-export the core API from `@kaluchi/qlang-core`, statically
 // import every source of the language, which the bundler lists from
 // `LANGUAGE_SOURCES`, and expose an `inlineCatalogLocator` named export.

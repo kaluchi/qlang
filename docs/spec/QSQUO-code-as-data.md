@@ -10,10 +10,11 @@ A quote is written `~(…)`, its code a pipeline read with the text
 around it, so a quote whose content reads as no pipeline is refused by
 the parser. `~()` is the empty quote, which runs as the identity. A
 quote of a single name or tag name may drop its parentheses, `~add`,
-`~::T`; the full form is the one the printer writes. Two quotes are
-equal when their steps are, spacing and comments aside. A quote is a
-value like any other: a container holds it, a name holds it, and it
-runs where a verb applies it.
+`~::T`; the full form is the one the printer writes, and `toString`
+writes the text of its code, wherever the quote stands, in a vector or a
+map among them. Two quotes are equal when their steps are, spacing and
+comments aside. A quote is a value like any other: a container holds it,
+a name holds it, and it runs where a verb applies it.
 
 ```qlang
 > ~add
@@ -22,6 +23,9 @@ runs where a verb applies it.
 > ~(mul 2 |~ note ~|) | eq ~(mul 2)
 true
 
+> {:body ~(mul 2)} | get /body | toString
+"mul 2"
+
 > 5 | apply ~()
 5
 ```
@@ -29,30 +33,32 @@ true
 ## step
 
 A quote is a vector of steps under `::quote`, and the verbs of a vector
-apply to it as to any vector under a tag. A step is held as the record
-of its act: a call as `::call`, its `:name` and its `:modifiers`, each
-modifier the step it is, so `add ~(x)` holds `[~(x)]` and `add x` holds
-`[::call{:name :x}]`; a declaration, which writes a `::binding` into its
-scope, as `::bind`, its `:name`, the doc values of its slot as `:docs`
-and its body, the step after its name and its page, as `:body`, each
-where the declaration writes one; a tagged literal as `::construct`, its
-`:tag` and the `:payload` the literal writes; a step of the fail track
-under `::fail`; a group as its quote under `::group`; an error literal
-as the error at rest it writes; any other literal as itself, a step that
-stands at the head alone. `::fail` and a declaration stand in a pipeline
-alone, so inside a container, a field or a payload a step is an element
-step. The constructor of each record, `::construct/construct` among
-them, checks the fields the printer reads against its schema, refusing
-under its own tag, `::bind/PayloadNotSchemaError`, prints the step and
-reads the text back, so an assembly that reads back as another step is
-refused where it is made, `::construct/ReadBackDiffersError`.
-`tag ::quote` builds a quote from a vector of steps: a payload that is
-no vector is refused as `::quote/PayloadKindNotTakenError`, an element
-that is no step as `::quote/ElementNotStepError`, and a literal after
-the head as `::quote/ReadBackDiffersError`. A quote built over a path
-alone prints under its tag, `::quote[/age]`, reads back as it, and
-answers the path it holds; written as `~(/age)` it is refused by the
-parser, which gives the path bare.
+apply to it as to any vector under a tag, a path reading a step by its
+index. A step is held as the record of its act: a call as `::call`, its
+`:name` and its `:modifiers`, each modifier the step it is, so
+`add ~(x)` holds `[~(x)]` and `add x` holds `[::call{:name :x}]`; a
+declaration, which writes a `::binding` into its scope, as `::bind`, its
+`:name`, the doc values of its slot as `:docs` and its body, the step
+after its name and its page, as `:body`, each where the declaration
+writes one; a tagged literal as `::construct`, its `:tag` and the
+`:payload` the literal writes; a step of the fail track under `::fail`;
+a group as its quote under `::group`; an error literal as the error at
+rest it writes; any other literal as itself, a regex among them, a step
+that stands at the head alone. `::fail` and a declaration stand in a
+pipeline alone, so inside a container, a field or a payload a step is an
+element step. The constructor of each record, `::construct/construct`
+among them, checks the fields the printer reads against its schema,
+refusing under its own tag, `::bind/PayloadNotSchemaError`, prints the
+step and reads the text back, so an assembly that reads back as another
+step is refused where it is made, `::construct/ReadBackDiffersError`.
+`tag ::quote` builds a quote from a vector of steps, which `toString`
+writes as their text: a payload that is no vector is refused as
+`::quote/PayloadKindNotTakenError`, an element that is no step as
+`::quote/ElementNotStepError`, and a literal after the head as
+`::quote/ReadBackDiffersError`. A quote built over a path alone prints
+under its tag, `::quote[/age]`, reads back as it, and answers the path
+it holds; written as `~(/age)` it is refused by the parser, which gives
+the path bare.
 
 ```qlang
 > ~(filter ~(gt 1)) | payload
@@ -70,8 +76,11 @@ parser, which gives the path bare.
 > ~(::Box[1 2]) | first | get [~(type) /tag /payload]
 [::construct ::Box [1 2]]
 
-> [[1 2] ::call{:name :count}] | tag ::quote | parse
+> [[1 2] ::call{:name :count}] | tag ::quote | toString
 "[1 2] | count"
+
+> [[1 2] 5] | tag ::quote !| type
+::quote/ReadBackDiffersError
 
 > [/age] | tag ::quote | print
 "::quote[/age]"
@@ -79,29 +88,41 @@ parser, which gives the path bare.
 
 ## parse
 
-`parse` turns text into the quote it writes and a quote into its text:
-the text a quote prints reads back as the quote, and a text comes back
-as its quote prints it, `"5 |  mul   2" | parse | parse` answering
-`"5 | mul 2"`. A blank source is the empty quote, and a source that
-reads as no pipeline is refused as `::quote/ParseError` with its
-`:marker`, its `:location`, its `:message`, the form meant where the
-parser names one, the `:expected` of the place it stopped where the
-reading stops short of a form [QSSYN#refusal], [QSPRN#span], and the
-`:uri` of `parse`. A quote whose steps are all declarations, or of
-several steps one of which takes several lines, prints a step a line,
-each after the first led by its pipe, a step that takes several lines
-printing on them, and any other quote prints on one line. Every text a
-quote prints reads back as the same quote.
+`parse` reads text alone, into the quote it writes, a blank source the
+empty quote, and refuses any other subject under its one verb,
+`::string/parse/SubjectNotStringError`. A source that reads as no
+pipeline is refused as `::quote/ParseError` with its `:source`, the line
+where the reading stopped, the one text that holds what `parse` read
+from a string the query computed, its `:location`, the place where the
+reading stopped as a `::span` [QSPRN#span], the `:message` of the habit
+the grammar names or the `:expected` continuations of the place it
+stopped and what it met there as `:found` [QSSYN#refusal], and its
+`:origin`, the verb that read it, `:string/parse`. `toString` writes a
+quote as the text of its code, its steps in the one spelling the printer
+writes and without its brackets, `"5 |  mul   2" | parse | toString`
+answering `"5 | mul 2"`, and `parse` reads that text back as the quote,
+so a quote turned into text and read back is itself. A quote whose steps
+are all declarations, or of several steps one of which takes several
+lines, writes a step a line, each after the first led by its pipe, a
+step that takes several lines written on them, and any other quote
+writes its steps on one line. Every text a quote prints reads back as
+the same quote.
 
 ```qlang
 > "add 1 | mul 2" | parse
 ~(add 1 | mul 2)
 
-> ~(add 1 | mul 2) | parse
-"add 1 | mul 2"
+> ~(add 1 | mul 2) | get [~(toString) ~(print) ~(toString | parse | eq ~(add 1 | mul 2))]
+["add 1 | mul 2" "~(add 1 | mul 2)" true]
 
-> ~(:a 1 | :b 2) | parse
+> ~(:a 1 | :b 2) | toString
 ":a 1\n| :b 2"
+
+> ~(add 1 | mul 2) | parse !| get [~(type) /actualType]
+[::string/parse/SubjectNotStringError ::quote]
+
+> "add (" | parse !| get [~(type) /source /origin]
+[::quote/ParseError "add (" :string/parse]
 ```
 
 ## apply
@@ -113,7 +134,9 @@ args, `apply f [4]`, where a quote and a path take none,
 refused as `::any/apply/args/KindNotTakenError`. Code a quote declares
 stays inside its run. A value of another kind is refused as
 `::any/apply/code/KindNotTakenError`. `open`, a verb of `::quote`, runs a
-quote from null, beneath whatever tags stand over it.
+quote from null, beneath whatever tags stand over it, so a print reads
+back as the value it writes by `parse | open`, and it runs a link and a
+snippet alike.
 
 ```qlang
 > 5 | apply ~(add 1 | mul 2)
@@ -127,6 +150,9 @@ quote from null, beneath whatever tags stand over it.
 
 > 42 | apply 1 !| type
 ::any/apply/code/KindNotTakenError
+
+> get [~({:a 1} | print | parse | open) ~("10 | add 5" | parse | open)]
+[{:a 1} 15]
 ```
 
 ## modifier
@@ -136,7 +162,7 @@ the call against the subject, a bare name and a group among them, so
 `take count` takes as many elements as there are; their values are the
 args of the call, which the inputs of its function read by their places.
 The modifiers of a command are forks against the subject, their values
-the args by position, none seeing another; a call computes them in
+the args in their order, none seeing another; a call computes them in
 their order up to the first that answers a failure, and the forks of
 every sequence run in its order: the elements a verb runs over, the
 parts of a template, the modifiers of a command, the keys of `sort` and
@@ -179,7 +205,7 @@ meaning of held code is its text and the vocabulary.
 
 Any other code runs in a lane of its own: a quote held in a name, a
 field or a page, a law and a snippet among them, a quote a call answered
-or a group computed, and the steps a trail skipped. The lane is the one
+or a group computed, and the steps a trace skipped. The lane is the one
 of the step a call keeps as the code's origin, or else of the step that
 runs it: its past is the subject it runs on, the verbs, the nodes and
 the labels of that step's scope, and the names the code declares itself,

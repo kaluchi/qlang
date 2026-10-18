@@ -26,7 +26,7 @@ head of a query, of a group and of a quote, after a declaration, and as
 a modifier. A value written as a later step on the success track is
 refused by the parser: a path, a container literal and a tagged literal
 naming `get`, a tag name `tag` and a quote `apply`, and an atom, a
-pattern, an error literal and a doc refused as a value standing where a
+regex, an error literal and a doc refused as a value standing where a
 command stands; after `!|` a value is the recovery the catch answers,
 and a path is refused as after `|`. A question mark after a segment of a
 path is refused, naming `query`. A quote whose code is a path alone, a
@@ -120,7 +120,7 @@ holds one, so a closer inside the pair closes nothing. A pipe is
 written beside a comment. A source of whitespace and comments alone is
 the empty pipeline, which answers the value it is handed and reads as
 the empty quote. Comments live beside the tree the parser reads, where
-the tools paint them.
+the tools paint them, so none stands among the steps a trace skipped.
 
 ```qlang
 > 5 | |~ why ~| add 3
@@ -167,12 +167,17 @@ true
 ## refusal
 
 A source the parser refuses answers `::quote/ParseError` with its
-`:source`, the line where the reading stopped, a `:marker` under the
-place it failed and its `:location`,
-and its `:uri` where `parse` read it. A refusal the grammar writes holds
-a `:message` that names the habit it met; any other holds the
-continuations a reader could have meant as `:expected` and what it met
-as `:found`, none at the end of the source. A source that ends with a
+`:source`, the line where the reading stopped, its `:location`, a
+`::span` whose `start` and `end` are the points `line` and `column` read
+[QSPRN#span], and its `:origin`, the source, the cell or the verb that
+read it. A refusal the grammar writes holds a `:message` that names the
+habit it met; any other holds the continuations a reader could have
+meant as `:expected` and what it met as `:found`, none at the end of the
+source. A continuation is the text of a literal or a keyword, or a part
+of the grammar named in the words of the language: a name and the
+letters of a name [QSNAM#letters], whitespace, a doc, the end of the
+source, and a character by what it reads, a character of prose and a
+character and a flag of a regex among them. A source that ends with a
 bracket, a string, a quote or a doc open, where four closers at most
 complete it, names it and where it opened, its `:message` naming the
 closers that complete the source and its `:expected` the one closer the
@@ -191,4 +196,10 @@ space.
 
 > "#{1}" | parse !| get /message | contains "#["
 true
+
+> "[1 2" | parse !| get [/source ~(get /location | start | column) /origin]
+["[1 2" 5 :string/parse]
+
+> "[1 2 x" | parse !| get /expected
+[:"letters of a name" "/" :whitespace "]"]
 ```

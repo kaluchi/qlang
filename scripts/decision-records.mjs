@@ -18,20 +18,20 @@ export const REPLACED = `${JOURNAL}/replaced`;
 export const RESEARCH = `${JOURNAL}/research`;
 const recordFolders = root => [join(root, JOURNAL), join(root, REPLACED)];
 
-// The folders of the research by the shape of what each holds
+// The folders of the research by the form of what each holds
 // [QSWRK#review]: a report named after the record that called for it, `D329~2.md`,
 // beside the session's reading, `D329~2~reading.md`, or a run of several
 // readers, `D323~1/`, its reports and the session's `reading.md` within it.
 export const RESEARCH_FOLDERS = [
-  { folder: 'design-check', shape: 'report' },
-  { folder: 'reviews', shape: 'report' },
-  { folder: 'outside-audit', shape: 'report' },
-  { folder: 'spec-check', shape: 'run' },
-  { folder: 'pentimento-audit', shape: 'run' },
+  { folder: 'design-check', form: 'report' },
+  { folder: 'reviews', form: 'report' },
+  { folder: 'outside-audit', form: 'report' },
+  { folder: 'spec-check', form: 'run' },
+  { folder: 'pentimento-audit', form: 'run' },
 ];
-// foldersShaped(shape) → the folders of that shape as one alternation of a
+// foldersOfForm(form) → the folders of that form as one alternation of a
 // regex.
-export const foldersShaped = shape => RESEARCH_FOLDERS.filter(entry => entry.shape === shape).map(({ folder }) => folder).join('|');
+export const foldersOfForm = form => RESEARCH_FOLDERS.filter(entry => entry.form === form).map(({ folder }) => folder).join('|');
 
 // statementsOf(text) → the statements of a record, each `{ text, from, to }`
 // over the indices of its lines: a line that opens a field, `Source.` or

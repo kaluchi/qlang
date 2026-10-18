@@ -1,18 +1,20 @@
-// Container primitives, each taking the values alone, the value the walk served
-// and the inputs of the call, an input that takes code arriving closed at the
-// call, code run on the element [QSBLD#fn], [QSDSP#walk]: a verb of vectors
-// reads the elements in order, a set reaching it through the walk in its one
-// order [QSORD#order], [QSDSP#residence], a map's reads its values and keeps its keys
-// [QSCOL#map], a string's reads its characters [QSTXT#string], and a refusal
-// names the verb that refused [QSERR#site].
+// The words a sequence answers across its kinds, each taking the values alone,
+// the value the walk served and the inputs of the call, an input that takes
+// code arriving closed at the call, code run on the element [QSBLD#fn],
+// [QSDSP#walk]: a verb of vectors reads the elements in order, a set reaching it
+// through the walk in its one order [QSORD#order], [QSDSP#residence], a map's reads
+// its values and keeps its keys [QSCOL#map], a string's reads its characters
+// [QSTXT#string], and a refusal names the verb that refused [QSERR#site].
 
-import { beneathTags, isNumber, keyword, isErrorValue, isVec, NULL, makeSet, makePath } from '../types.mjs';
-import { compareValues } from '../ordering.mjs';
+import { beneathTags, isNumber, keyword, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath } from '../types.mjs';
+import { compareValues, makeSet } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive, runs } from '../primitives.mjs';
 import { resolveBinaryReducer } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
+import { writtenAsText } from './string.mjs';
+import { pathReads } from './path.mjs';
 
 // The elements, each beside the fact that names it in a refusal, its index
 // from zero in a sequence and its key in a map [QSERR#site].
@@ -321,6 +323,40 @@ registerPrimitive('map/take', (map, count) => new Map([...map].slice(0, Math.max
 registerPrimitive('string/drop', (text, count) => Array.from(text).slice(Math.max(0, count)).join(''));
 registerPrimitive('vec/drop', (sequence, count) => sequence.slice(Math.max(0, count)));
 registerPrimitive('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count))));
+
+// Whether a vector holds a value equal to the element: a set by a search in
+// its one order, which ranks two values alike exactly when they are equal,
+// and any other vector element by element [QSORD#order], [QSCOL#sequence].
+function containsElement(vector, element) {
+  if (!isSet(vector)) return vector.some(held => compareValues(held, element) === 0);
+  let low = 0;
+  let high = vector.length - 1;
+  while (low <= high) {
+    const middle = (low + high) >> 1;
+    const byOrder = compareValues(vector[middle], element);
+    if (byOrder === 0) return true;
+    if (byOrder < 0) low = middle + 1;
+    else high = middle - 1;
+  }
+  return false;
+}
+
+// `has` asks whether a path reads, and of any other value whether it is
+// held [QSPTH#has]; `contains` asks whether the element is held alone.
+registerPrimitive('vec/has', (vector, element) => (isPath(element) ? pathReads(vector, element) : containsElement(vector, element)));
+registerPrimitive('vec/contains', containsElement);
+
+registerPrimitive('vec/prepend', (vector, element) => [element, ...vector]);
+registerPrimitive('vec/append', (vector, element) => [...vector, element]);
+
+// An element `join` writes is a string or a keyword, written as text [QSTXT#string].
+const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNotStringOrKeywordError');
+
+registerPrimitive('vec/join', (subject, separator) => {
+  const stranger = subject.findIndex(element => typeof element !== 'string' && !isKeyword(element));
+  if (stranger >= 0) throw new VecJoinElementNotStringOrKeywordError({ index: stranger, actualValue: subject[stranger] });
+  return subject.map(writtenAsText).join(writtenAsText(separator));
+});
 
 // ── order and nesting ──────────────────────────────────────────
 

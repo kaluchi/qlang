@@ -36,7 +36,7 @@ is delivered as a sheet: the caller controls the shape and the detail of
 what it receives. And the shape of an answer is known before the answer
 is fetched, from the word about to be called. An answer is as exact and
 as short as the query asks, and a default answer, the print of a value
-and of a failure and the outline of a value among them, carries signal
+and of a failure and the shape of a value among them, carries signal
 enough to pay for the round trip that brings it into the context; where a
 literal is hard to read on, or one round trip cannot ask several
 questions at once, the round trips grow with the inconvenience of the
@@ -108,7 +108,7 @@ as to carry the most valuable information it holds, and says what it
 left out and how to read it. A failure follows the same rule, an alert
 and a refusal giving the most useful signal in the least room, and every
 literal comes with the help and the words it needs, its page, its
-outline and its words.
+shape and its words.
 
 The language carries its tools. The language carries the tools a reader
 needs for any further reading of its literals, processing, transforming

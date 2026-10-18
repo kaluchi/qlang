@@ -6,8 +6,8 @@ import { registerStateReader } from '../primitives.mjs';
 import { TAG_HEADER_SYMBOL, isErrorValue, typeOf } from '../types.mjs';
 import { elide, elideAnswer as answerWithin } from '../elide.mjs';
 import { rootState } from '../state.mjs';
-import { printValue } from './print-value.mjs';
-import { nodeOf, residenceOnSubject } from './nouns.mjs';
+import { printValue } from '../print-value.mjs';
+import { nodeOf, residenceOnSubject } from '../nouns.mjs';
 import { callVerbOn } from '../eval.mjs';
 
 // printsOfKinds(value, env, state?) → `printedOf(part)`: the print a kind

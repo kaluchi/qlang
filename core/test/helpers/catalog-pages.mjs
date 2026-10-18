@@ -4,8 +4,7 @@
 // link of a page leads to the page of another name [QSSLF#page], and no quote
 // of a page falls to its prose [QSSLF#doc].
 
-import { printQuoteSource } from '../../src/quote.mjs';
-import { printValue } from '../../src/runtime/format.mjs';
+import { printQuoteSource, printValue } from '../../src/print-value.mjs';
 import { beneathTags, isDoc, isErrorValue } from '../../src/types.mjs';
 
 // The prose of a page with its code spans taken out: a `~(` left in it is

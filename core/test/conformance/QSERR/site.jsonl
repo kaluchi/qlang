@@ -11,7 +11,7 @@
 {"name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :index 1\n  :actualType ::string\n  :actualValue \"two\"\n  :trace ::trace[::frame[[1 \"two\" 3] ~(sum)]]\n} | raise"}
 {"name":"a-refusal-is-tagged-by-its-address-its-noun-said-once","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"a-refusal-names-the-place-it-guards","query":"blah !| type","expect":"::call/UnknownNameError"}
-{"name":"type-error-tag","query":"[1 2 3] | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
+{"name":"a-vector-is-refused-by-the-label-add-resides-on","query":"[1 2 3] | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"the-digits-of-round-are-refused-under-the-input","query":"2.5 | round 0.5 !| type","expect":"::number/round/digits/NotIntegerError"}
 {"name":"take-refuses-a-fractional-count","query":"[1 2 3] | take 0.5 !| type","expect":"::vec/take/count/NotIntegerError"}
 {"name":"drop-refuses-a-fractional-count","query":"[1 2 3] | drop 1.5 !| type","expect":"::vec/drop/count/NotIntegerError"}

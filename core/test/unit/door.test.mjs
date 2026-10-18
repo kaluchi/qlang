@@ -7,10 +7,10 @@
 // `::builtin/ForeignValueError`; the primitives of the core are never walked.
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import { createSession } from '../../src/session.mjs';
-import { evalQuery } from '../../src/eval.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { printValue, toPlain } from '../../src/runtime/format.mjs';
+import { printValue } from '../../src/print-value.mjs';
+import { toPlain } from '../../src/runtime/json.mjs';
 import { compareValues } from '../../src/ordering.mjs';
 import { declareRefusal, declareInvariantError } from '../../src/errors.mjs';
 import { WITHHELD_KEY } from '../../src/env-keys.mjs';
@@ -154,7 +154,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
 
   it('raises past the fail track a defect a host\'s primitive throws, whatever its facts hold', async () => {
     const cell = await session.evalCell(`${answering({ status: 404 })} | break !| 0`);
-    expect([cell.result, cell.error]).toEqual([null, expect.any(AnyBreakBrokenError)]);
+    expect([cell.result, cell.defect]).toEqual([null, expect.any(AnyBreakBrokenError)]);
   });
 
   it('holds the answer of the constructor a host hands a kind, which takes the payload alone and passes it back as it is', async () => {
@@ -179,7 +179,7 @@ describe('the primitives of the core run unwalked, whatever function runs them [
     expect((await session.evalCell(`1e308 | apply ${overAdd('')} [1e308] | type`)).result).toEqual(makeTag('number'));
     for (const verb of ['print', 'json']) {
       const cell = await session.evalCell(`1e308 | apply ${overAdd('')} [1e308] | ${verb}`);
-      expect([cell.result, cell.error?.address, cell.error?.facts]).toEqual([null, 'builtin/ForeignValueError', { actualValue: 'number Infinity' }]);
+      expect([cell.result, cell.defect?.address, cell.defect?.facts]).toEqual([null, 'builtin/ForeignValueError', { actualValue: 'number Infinity' }]);
     }
   });
 });
@@ -198,9 +198,9 @@ describe('the second door: what a host hands where the core takes it [QSHST#sour
   it('raises each value of no kind as the subject of a cell, naming it as JavaScript holds it', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
       const cell = await session.evalCell('type', { initialPipeValue: value });
-      expect([cell.result, cell.error], account).toEqual([null, expect.any(BuiltinForeignValueError)]);
-      expect(cell.error.facts, account).toEqual({ actualValue: account });
-      expect(cell.error.message).toBe(`the core met ${account}, a value of no kind of the language`);
+      expect([cell.result, cell.defect], account).toEqual([null, expect.any(BuiltinForeignValueError)]);
+      expect(cell.defect.facts, account).toEqual({ actualValue: account });
+      expect(cell.defect.message).toBe(`the core met ${account}, a value of no kind of the language`);
     }
   });
 

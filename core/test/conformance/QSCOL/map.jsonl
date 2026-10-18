@@ -1,5 +1,5 @@
-{"name":"keys","query":"{:name \"Alice\" :age 30} | keys","expect":"#[:age :name]"}
-{"name":"vals","query":"{:name \"Alice\" :age 30} | vals","expect":"[\"Alice\" 30]"}
+{"name":"keys-answers-the-set-of-the-keys-of-a-map","query":"{:name \"Alice\" :age 30} | keys","expect":"#[:age :name]"}
+{"name":"vals-answers-the-vector-of-the-values-of-a-map","query":"{:name \"Alice\" :age 30} | vals","expect":"[\"Alice\" 30]"}
 {"name":"vals-map-yields-vec","query":"{:a 1 :b 2} | vals | type","expect":"::vec"}
 {"name":"keys-map-yields-set","query":"{:a 1 :b 2} | keys | type","expect":"::set"}
 {"name":"keys-map-elements-are-keywords","query":"{:a 1 :b 2} | keys | first | type","expect":"::keyword"}
@@ -18,6 +18,6 @@
 {"name":"first-of-an-empty-map-is-null","query":"{} | first","expect":"null"}
 {"name":"entries-answers-the-pairs-of-a-map","query":"{:a 1 :b 2} | entries","expect":"[[:a 1] [:b 2]]"}
 {"name":"a-key-stands-beside-its-value-in-a-record","query":"{:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 (get {:name ~(get /0 | toString)})) | sort /port","expect":"[{:port 3000 :name \"auth\"} {:port 5432 :name \"db\"}]"}
-{"name":"map-empty-keys","query":"{} | keys","expect":"#[]"}
-{"name":"map-empty-vals","query":"{} | vals","expect":"[]"}
+{"name":"keys-of-the-empty-map-answers-the-empty-set","query":"{} | keys","expect":"#[]"}
+{"name":"vals-of-the-empty-map-answers-the-empty-vector","query":"{} | vals","expect":"[]"}
 {"name":"size-and-length-answer-as-count-over-a-map","query":"{:a 1 :b 2} | get [~(size) ~(length) ~(count)]","expect":"[2 2 2]"}

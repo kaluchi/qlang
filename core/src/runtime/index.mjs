@@ -4,21 +4,22 @@
 
 // Each module registers the primitives of the language's verbs and kinds
 // into PRIMITIVE_REGISTRY, by address, as it loads [QSDSP#residence].
-import './vec.mjs';
+import './sequence.mjs';
 import './map.mjs';
 import './setops.mjs';
 import './arith.mjs';
 import './string.mjs';
-import './format.mjs';
+import './json.mjs';
 import './predicates.mjs';
 import './control.mjs';
 import './raise.mjs';
 import './convert.mjs';
 import './regex.mjs';
 import './path.mjs';
+import './shape.mjs';
+import './constructors.mjs';
 import './tagged.mjs';
 import './quote-steps.mjs';
-import './verb.mjs';
 import './env.mjs';
 import './manifest.mjs';
 import './code.mjs';

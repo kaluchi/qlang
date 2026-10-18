@@ -1,15 +1,15 @@
 {"name":"ne-is-the-negation-of-eq","query":"[1 null 2] | filter ~(ne null)","expect":"[1 2]"}
-{"name":"eq-numbers","query":"42 | eq 42","expect":"true"}
-{"name":"eq-numbers-false","query":"42 | eq 43","expect":"false"}
-{"name":"eq-strings","query":"\"hello\" | eq \"hello\"","expect":"true"}
-{"name":"eq-vecs","query":"[1 2 3] | eq [1 2 3]","expect":"true"}
-{"name":"eq-vecs-different","query":"[1 2 3] | eq [1 2 4]","expect":"false"}
-{"name":"eq-keywords","query":":foo | eq :foo","expect":"true"}
-{"name":"gt-true","query":"10 | gt 5","expect":"true"}
-{"name":"gt-false","query":"5 | gt 10","expect":"false"}
-{"name":"lt-true","query":"5 | lt 10","expect":"true"}
-{"name":"gte-equal","query":"10 | gte 10","expect":"true"}
-{"name":"lte-equal","query":"10 | lte 10","expect":"true"}
+{"name":"eq-answers-true-for-two-equal-numbers","query":"42 | eq 42","expect":"true"}
+{"name":"eq-answers-false-for-two-different-numbers","query":"42 | eq 43","expect":"false"}
+{"name":"eq-answers-true-for-two-equal-strings","query":"\"hello\" | eq \"hello\"","expect":"true"}
+{"name":"eq-answers-true-for-two-vectors-of-equal-elements","query":"[1 2 3] | eq [1 2 3]","expect":"true"}
+{"name":"eq-answers-false-for-vectors-that-differ-in-an-element","query":"[1 2 3] | eq [1 2 4]","expect":"false"}
+{"name":"eq-answers-true-for-two-equal-keywords","query":":foo | eq :foo","expect":"true"}
+{"name":"gt-answers-true-where-the-subject-is-greater-than-the-value","query":"10 | gt 5","expect":"true"}
+{"name":"gt-answers-false-where-the-subject-is-less-than-the-value","query":"5 | gt 10","expect":"false"}
+{"name":"lt-answers-true-where-the-subject-is-less-than-the-value","query":"5 | lt 10","expect":"true"}
+{"name":"gte-answers-true-for-a-value-equal-to-the-subject","query":"10 | gte 10","expect":"true"}
+{"name":"lte-answers-true-for-a-value-equal-to-the-subject","query":"10 | lte 10","expect":"true"}
 {"name":"the-test-for-null-is-eq-null","query":"[null 1] | filter ~(eq null)","expect":"[null]"}
 {"name":"eq-keeps-a-keyword-apart-from-its-string","query":":a | eq \"a\"","expect":"false"}
 {"name":"a-value-of-another-kind-is-refused-under-the-input","query":"5 | gt \"a\" !| type","expect":"::number/gt/value/KindNotTakenError"}

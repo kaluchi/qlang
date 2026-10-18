@@ -2,9 +2,9 @@
 // the value in the pipe, and the steps after it read the name.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { makeTag, formOf } from '../../src/types.mjs';
-import { docText } from '../../src/quote.mjs';
+import { docText } from '../../src/print-value.mjs';
 
 describe('a name declared by its page alone', () => {
   it('a name declared by its page alone holds the page, a doc', async () => {

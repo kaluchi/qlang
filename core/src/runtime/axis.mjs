@@ -24,7 +24,7 @@ import {
 } from '../types.mjs';
 import {
   addressesOf, declarationsUnder, nodeOf, refuseWithheld, residenceOnSubject
-} from './nouns.mjs';
+} from '../nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { nearestTagNames, nearestNodes } from '../nearest-names.mjs';
 import { splitAddress } from '../address.mjs';

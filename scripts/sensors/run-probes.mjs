@@ -49,12 +49,8 @@ const chapters = readdirSync(specDir).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(
 const documents = process.argv.length > 2 ? process.argv.slice(2)
   : [...new Set([...openRecords, ...transitRecords, ...chapters])];
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
-const { evalQuery } = await core('eval.mjs');
-const { printValue } = await core('index.mjs');
-const { parse } = await core('parse.mjs');
+const { evalQuery, printValue, parse, isErrorValue, makeTag, createSession } = await core('index.mjs');
 const { deepEqual } = await core('equality.mjs');
-const { isErrorValue, makeTag } = await core('types.mjs');
-const { createSession } = await core('session.mjs');
 const { cliSources } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'cli-sources.mjs')).href);
 const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
 
@@ -69,8 +65,8 @@ const answers = new Map();
 function answerOf(query) {
   if (!answers.has(query)) {
     answers.set(query, createSession({ scope: withTheCommandLine }).then(async session => {
-      const { result, error } = await session.evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
-      if (result === null && error !== null) throw error;
+      const { result, defect } = await session.evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
+      if (defect !== null) throw defect;
       return result;
     }));
   }

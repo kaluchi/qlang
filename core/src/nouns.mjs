@@ -7,20 +7,18 @@
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isPrimitiveHanded, isMap, isQuote, isVec, isTag, isTagged,
-  isValueClass, isPath, isFn, isKind, recipeOf, makeSet, makeTag, makeTagged,
+  isValueClass, isFn, isKind, recipeOf, makeTag, makeTagged,
   typeOf, bindingValueOf, keyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS
-} from '../types.mjs';
-import { rootOf, isRootVerbScope } from '../state.mjs';
-import { splitAddress } from '../address.mjs';
-import { ROOT_KEY, WITHHELD_KEY } from '../env-keys.mjs';
-import { declareRefusal } from '../errors.mjs';
-import { astOfQuote } from '../quote.mjs';
-import { segmentIndex } from '../path-read.mjs';
-import { ANSWER_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
-
-// The kind every value answers, and the kind of every value under a tag.
-export const ANY_KIND_NAME = 'any';
-export const TAGGED_KIND_NAME = 'tagged';
+} from './types.mjs';
+import { makeSet } from './ordering.mjs';
+import { rootOf, isRootVerbScope } from './state.mjs';
+import {
+  splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME, subjectRefusalAddress, argsBeyondInputsAddress, notGivenAddress,
+  kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName
+} from './address.mjs';
+import { ROOT_KEY, WITHHELD_KEY } from './env-keys.mjs';
+import { declareRefusal } from './errors.mjs';
+import { ANSWER_NAME, CONSTRUCT_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
 
 // The bindings of a scope by name: the root's a name of the scope does
 // not stand over, then the scope's.
@@ -81,8 +79,6 @@ export function declaresVerb(address, runs, isLabelName) {
   const [labelName, lastName] = splitAddress(address);
   return runs && labelName !== null && lastName !== CONSTRUCT_NAME && isLabelName(labelName);
 }
-
-export const CONSTRUCT_NAME = 'construct';
 
 // Whether a record holds a verb, its value a quote or the descriptor of a
 // host's primitive, which run on the label's values.
@@ -331,40 +327,6 @@ const kindsWalkedFrom = kindName => (KINDS_OF_OWN_VECTORS.includes(kindName)
   ? [...kindsOfWalk(makeTagged(makeTag(kindName), []))]
   : [kindName]);
 
-// placesOfReadings(readings) → the places the inputs of a function read,
-// one past the greatest index an input reads strictly or softly, or null
-// when one reads no index, the args whole, a place counted from its end,
-// code of several steps or anything else, and so takes any number of
-// values [QSBLD#input].
-export function placesOfReadings(readings) {
-  let places = 0;
-  for (const { index, ast } of readings) {
-    if (!Number.isInteger(index) || ast.type === 'Pipeline') return null;
-    places = Math.max(places, index + 1);
-  }
-  return places;
-}
-
-// The refusals the runtime raises by rule under a verb, each named by the
-// address of what refused [QSERR#site]: a subject the walk of
-// whose tags reaches no value of the verb's label, args of more values than
-// its inputs read places, an input the call leaves out where its place reads
-// one, and an answer that reaches none of the kinds `returns` names; and under
-// a kind, a payload of none of its kinds, or an element of none, a refusal of
-// kinds named by the role of its holder alone.
-export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kindsWord(kinds)}Error`;
-// The subject of a function `apply` runs, which no label serves, is refused
-// by its role, the kinds `on` names its `:expected` [QSBLD#fn].
-export const subjectKindsRefusalAddress = address => `${address}/SubjectKindNotTakenError`;
-export const argsBeyondInputsAddress = address => `${address}/ArgsBeyondInputsError`;
-export const notGivenAddress = holderAddress => `${holderAddress}/NotGivenError`;
-export const kindsRefusalAddress = address => `${address}/KindNotTakenError`;
-export const elementsRefusalAddress = address => `${address}/ElementKindNotTakenError`;
-export const payloadRefusalName = each => `${each ? 'Element' : 'Payload'}KindNotTakenError`;
-
-const kindsWord = kinds => kinds.map(capitalOf).join('Or');
-const capitalOf = name => { const [, word] = splitAddress(name); return word[0].toUpperCase() + word.slice(1); };
-
 // ruleRefusalsOf(scope, address) → the addresses of the refusals a verb or a
 // kind at the address may raise by rule, which its chain pages: a verb's
 // read from its function, a recipe's from the function of no commands it
@@ -383,7 +345,7 @@ export function ruleRefusalsOf(scope, address) {
 // input of none of its kinds, or that is no vector where it names the
 // kinds of each element, and an element of none of them, and an answer of
 // none of several kinds.
-export function functionRuleRefusalsOf(chain, address, labelName) {
+function functionRuleRefusalsOf(chain, address, labelName) {
   const refusals = [subjectRefusalAddress(address, [labelName])];
   if (chain.places !== null) refusals.push(argsBeyondInputsAddress(address));
   for (const { name, kinds, each, reading } of chain.inputs) {
@@ -402,7 +364,7 @@ export function functionRuleRefusalsOf(chain, address, labelName) {
 // no vector where they are the kinds of each element, and an element of none;
 // a field the payload leaves out, and a field of none of its kinds, or no
 // vector, and an element of none.
-export function kindRuleRefusalsOf({ payload, fields }, address) {
+function kindRuleRefusalsOf({ payload, fields }, address) {
   const refusals = [];
   if (payload?.each) refusals.push(`${address}/${payloadRefusalName(false)}`);
   if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.each)}`);
@@ -413,47 +375,6 @@ export function kindRuleRefusalsOf({ payload, fields }, address) {
     if (kinds !== null) refusals.push(each ? elementsRefusalAddress(fieldAddress) : kindsRefusalAddress(fieldAddress));
   }
   return refusals;
-}
-
-// readingOfPlace(place) → how the place of an input of a function reads the
-// args, once per place [QSBLD#input]: its tree, a path read as it is written, the
-// index of the arg its first step reads, whether the place is that one step,
-// and whether it reads the args whole, `~(it)`.
-const READINGS = new WeakMap();
-
-export function readingOfPlace(value) {
-  let reading = READINGS.get(value);
-  if (reading === undefined) {
-    const ast = isPath(value) ? { type: 'Path', keys: value.segments } : astOfQuote(value);
-    const index = indexReadBy(ast);
-    const onePlace = readsOnePlace(ast, index);
-    reading = {
-      ast, index, onePlace,
-      strict: onePlace && ast.type === 'Path',
-      fallback: onePlace && ast.type === 'Call' && ast.args.length === 2 ? ast.args[1] : null,
-      readsArgs: ast.type === 'Call' && ast.name === 'it' && ast.args.length === 0
-    };
-    READINGS.set(value, reading);
-  }
-  return reading;
-}
-
-// The index of the arg the first step of a place reads, by a path or by
-// `query`, a whole number, or none for a place that reads the args whole,
-// one counted from its end or anything else.
-function indexReadBy(ast) {
-  const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
-  const index = head.type === 'Path' ? segmentIndex(head.keys[0])
-    : head.type === 'Call' && head.name === 'query' && head.args[0]?.type === 'Path' && head.args[0].keys.length === 1 ? segmentIndex(head.args[0].keys[0])
-    : NaN;
-  return Number.isInteger(index) && index >= 0 ? index : NaN;
-}
-
-// Whether a place is one step that reads one arg, `/n` or `query /n` with a
-// default or none.
-function readsOnePlace(ast, index) {
-  if (!Number.isInteger(index) || ast.type === 'Pipeline') return false;
-  return ast.type === 'Path' ? ast.keys.length === 1 : ast.args.length <= 2;
 }
 
 // The nodes declared one name under a noun, by their last names: the
@@ -538,3 +459,19 @@ export function verbNames(scope) {
   return names;
 }
 
+// shownFor(scope, name, kindNames?) → what a tool shows for a name, `{ address,
+// inputs }`: the verb a subject of the kinds reaches, or, where the tool
+// knows no kinds or they reach none, the address the name reaches with no
+// subject, or the first verb of a name several kinds answer, and the names
+// of the inputs its function takes [QSHST#tools]; undefined for a name that reaches
+// no name under a label.
+export function shownFor(scope, name, kindNames = null) {
+  const reached = kindNames === null ? undefined : verbsReaching(scope, kindNames).get(name);
+  const record = reached === undefined
+    ? bareNameReach(scope, name)?.record ?? residencesOf(scope, name)[0]?.[1]
+    : nodeOf(scope, reached.address.name);
+  const value = bindingValueOf(record);
+  if (!isVerbValue(value)) return undefined;
+  const inputs = isFn(value) ? chainOfFn(value).inputs.map(({ name: input }) => input.name) : [];
+  return { address: makeTag(record.get('name').name), inputs };
+}

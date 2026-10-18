@@ -25,7 +25,7 @@ function expectFact(errorValue, fact, expected) {
 // A refusal named by its address, the facts listed among those its error
 // value holds: a name's subject, an input's invariant, or a site of a verb.
 export function expectRefusalByAddress(cellEntry, address, expectedFacts) {
-  expect(cellEntry.error, 'cellEntry.error must be null (the refusal is a value)').toBeNull();
+  expect(cellEntry.defect, 'cellEntry.defect must be null (the refusal is a value)').toBeNull();
   const errorValue = cellEntry.result;
   expect(isErrorValue(errorValue), 'cellEntry.result must be an error value').toBe(true);
   expect(errorValue.tag.name).toBe(address);

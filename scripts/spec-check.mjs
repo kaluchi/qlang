@@ -51,7 +51,7 @@ const valuesAfter = flag => {
 const records = valuesAfter('--records');
 const calledFor = valuesAfter('--for')?.[0] ?? null;
 const why = valuesAfter('--why')?.join(' ') ?? null;
-const shape = records === null ? 'run' : 'report';
+const form = records === null ? 'run' : 'report';
 const checksDir = join(repoRoot, RESEARCH, records === null ? 'spec-check' : 'design-check');
 const promptPath = join(repoRoot, 'scripts', records === null ? 'spec-check-prompt.txt' : 'design-check-prompt.txt');
 const shown = path => relative(repoRoot, path).replaceAll('\\', '/');
@@ -77,9 +77,9 @@ if (process.argv.includes('--dry')) {
 if (records === null) refuseNoRecordInForce(repoRoot, calledFor, 'a check of the chapters');
 
 const { tree, baseline, date, onTheBaseline } = treeOfTheRun(repoRoot);
-for (const record of records ?? [calledFor]) refuseASecondRun(checksDir, record, shape, tree, shown);
-const run = records === null ? join(checksDir, nextRunOf(checksDir, calledFor, shape)) : checksDir;
-const reportOf = new Map((records ?? []).map(record => [record, `${nextRunOf(checksDir, record, shape)}.md`]));
+for (const record of records ?? [calledFor]) refuseASecondRun(checksDir, record, form, tree, shown);
+const run = records === null ? join(checksDir, nextRunOf(checksDir, calledFor, form)) : checksDir;
+const reportOf = new Map((records ?? []).map(record => [record, `${nextRunOf(checksDir, record, form)}.md`]));
 
 const prompt = readFileSync(promptPath, 'utf8').replaceAll('{{repo}}', repoPath);
 const listed = files => {

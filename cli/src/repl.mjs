@@ -6,8 +6,8 @@
 // [QSHST#answer]; `.help` lists the commands of the REPL, and `.exit` or
 // Ctrl+D on an empty line closes it.
 
-import { createSession } from '@kaluchi/qlang-core/session';
 import {
+  createSession,
   printAnswer,
   elideAnswer,
   caretOf,
@@ -15,7 +15,8 @@ import {
   verbNames
 } from '@kaluchi/qlang-core';
 import { cliSources } from './cli-sources.mjs';
-import { DEFAULT_SUBJECT } from './script-mode.mjs';
+import { DEFAULT_SUBJECT } from './stdin.mjs';
+import { defectLine } from './render.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 import { createLineEditor } from './line-editor.mjs';
 
@@ -116,7 +117,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
       }
 
       const cellEntry = await session.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
-      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, budget);
+      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, budget);
       lineEditor.prompt();
     }
   });
@@ -125,9 +126,21 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 // An answer prints whole, an error as an alert, or within the budget the
 // caller asked for, what does not fit given way to elisions that read it, on
 // stdout: a failed cell, one that does not parse among them with its caret
-// where the alert shows its line, is an answer as every failure is [QSHST#answer].
-async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, budget) {
-  const shown = await elideAnswer(cellEntry.result, budget, cellEntry.scopeAfterCell);
-  const printed = [await printAnswer(shown, cellEntry.scopeAfterCell), caretOf(shown)].filter(part => part !== null).join('\n');
+// where the alert shows its line, is an answer as every failure is [QSHST#answer],
+// and a defect raised past the fail track as the cell ran or as its answer
+// printed is written on stderr [QSHST#repl].
+async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, budget) {
+  if (cellEntry.defect !== null) {
+    stderrWrite(defectLine(cellEntry.defect));
+    return;
+  }
+  let printed;
+  try {
+    const shown = await elideAnswer(cellEntry.result, budget, cellEntry.scopeAfterCell);
+    printed = [await printAnswer(shown, cellEntry.scopeAfterCell), caretOf(shown)].filter(part => part !== null).join('\n');
+  } catch (defect) {
+    stderrWrite(defectLine(defect));
+    return;
+  }
   stdoutWrite(highlightAnsi(printed, rootVerbNames) + '\n');
 }

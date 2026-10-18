@@ -1,7 +1,7 @@
 // The coverage of the effectful verbs of the streams. Each is tested
 // through a real session evalCell with a captured ioContext, so the dispatch
 // path, the per-site error sites, and the side-effect writers are
-// all exercised together — the same shape the real bin executes.
+// all exercised together — as the real bin runs them.
 // The rules it holds: [QSHST#effect].
 
 import { describe, it, expect } from 'vitest';
@@ -24,7 +24,7 @@ describe('in', () => {
   it('replaces pipeValue with the stdin payload as a String', async () => {
     const io = captureIoContext('hello\nworld');
     const cellEntry = await runQuery('in', io);
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe('hello\nworld');
   });
 
@@ -39,7 +39,7 @@ describe('out — the subject, written when it is a string', () => {
   it('writes the String subject to stdoutWrite with a trailing newline and is identity on pipeValue', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"hello" | out | append "!"', io);
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(io.stdoutText()).toBe('hello\n');
     expect(cellEntry.result).toBe('hello!');
   });
@@ -58,7 +58,7 @@ describe('out — the text the call gives, computed against the subject', () => 
   it('writes the text the call gives, computed against the subject, and answers the subject', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out print', io);
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(io.stdoutText()).toBe('42\n');
     expect(cellEntry.result).toBe(42);
   });
@@ -86,7 +86,7 @@ describe('err — the subject, written when it is a string', () => {
   it('writes to stderrWrite, leaves stdout untouched, identity on pipeValue', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"oops" | err', io);
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(io.stderrText()).toBe('oops\n');
     expect(io.stdoutText()).toBe('');
     expect(cellEntry.result).toBe('oops');
@@ -105,7 +105,7 @@ describe('err — the text the call gives, computed against the subject', () => 
   it('writes the text the call gives, computed against the subject, to stderr', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err print', io);
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(io.stderrText()).toBe('[1 2 3]\n');
   });
 
@@ -122,7 +122,7 @@ describe('tap', () => {
   it('mirrors pipeValue onto stderr with the labelled prefix and is identity', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | tap :before-count | count', io);
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe(3);
     expect(io.stderrText()).toBe('[tap before-count] [1 2 3]\n');
     expect(io.stdoutText()).toBe('');

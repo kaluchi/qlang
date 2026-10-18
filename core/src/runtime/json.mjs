@@ -4,9 +4,7 @@
 import { TAG_HEADER_SYMBOL, refuseForeign } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
-import { dispatchQlangValue, printValue, printRegex, printPath } from './print-value.mjs';
-
-export { printValue };
+import { dispatchQlangValue, printValue, printRegex, printPath } from '../print-value.mjs';
 
 function dispatchPlainValue(v, handlers, path) {
   if (Array.isArray(v)) return handlers.array(v, path);
@@ -14,8 +12,8 @@ function dispatchPlainValue(v, handlers, path) {
   return handlers.atom(v, path);
 }
 
-// `toPlain` writes a value in JSON's shape, for `json` and a host, a number
-// past the doubles raised [QSHST#source], and `fromPlain` reads that shape back as
+// `toPlain` writes a value in the kinds of JSON, for `json` and a host, a number
+// past the doubles raised [QSHST#source], and `fromPlain` reads them back as
 // maps, vectors and the atoms, for a host.
 const TO_PLAIN_HANDLERS = {
   null:    () => null,

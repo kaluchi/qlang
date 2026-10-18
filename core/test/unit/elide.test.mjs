@@ -3,9 +3,9 @@
 // left out.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { elide, alertOf, elideAnswer } from '../../src/elide.mjs';
-import { printValue } from '../../src/runtime/format.mjs';
+import { printValue } from '../../src/print-value.mjs';
 import { isErrorValue, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 

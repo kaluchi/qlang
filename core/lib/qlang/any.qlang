@@ -253,7 +253,7 @@
 :any/json
   |~~ Answers the subject written as JSON text, for a reader that does
       not read qlang: `{:a 1 :b 2} | json` answers `{"a":1,"b":2}`.
-      Every value answers, and the shapes of qlang alone give way at
+      Every value answers, and the kinds of qlang alone give way at
       this boundary: a keyword writes as its bare name, a key and a
       value alike; a set as an array; a value under a tag as an object
       of its `$tag` and its `payload`, an error at rest among them; a
@@ -2333,28 +2333,28 @@
     | impl ~(true)
 
 :any/paths
-  |~~ Answers the outline of a value, the set of its leaves, each the pair
-      of the path `get` reads it by and its kind:
+  |~~ Answers the leaves of a value, a set of pairs, each the path `get`
+      reads a leaf by and its kind:
       `{:a {:b 1 :c [2 "x"]}} | paths` answers
       `#[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string]]`. A part
       under a tag is a leaf of its kind, which tells of itself on its
       page, a quote and a doc among them; a set opens as a vector does,
       its elements read by their indices; an empty vector or map is a part
       that holds none, and the subject is read beneath the tags over it.
-      `shape` folds the leaves of every element into one schema.
+      `shape` folds the leaves of every element into one shape.
       ::link~(::any/shape | doc) ::link~(::any/get | doc)
       ::link~(::path | doc)
   ~~|
   ::fn
     | returns |~~ The pairs of the path and the kind of each leaf. ~~| ::set
-    | proves :answersTheOutline
-        |~~ The outline holds the path and the kind of every leaf. ~~|
+    | proves :answersTheLeaves
+        |~~ The pairs hold the path and the kind of every leaf. ~~|
         ~({:a {:b 1 :c [2 "x"]} :d []} | paths | eq #[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string] [/d ::vec]])
     | proves :answersNoPathOfAValueWithoutParts
         |~~ A value that has no parts has no path in it. ~~|
         ~(5 | paths | eq #[])
     | proves :readsBeneathTheTags
-        |~~ The outline reads beneath the tags stacked over the subject.
+        |~~ The leaves are read beneath the tags stacked over the subject.
         ~~|
         ~(::A::B{:w 2} | paths | eq #[[/w ::number]])
     | proves :standsAtATag
@@ -2364,43 +2364,19 @@
         |~~ A set is read as its vector, its elements by their indices. ~~|
         ~({:s #[1 2]} | paths | eq #[[/s/0 ::number] [/s/1 ::number]])
     | proves :eachReadsByGet
-        |~~ Each path of the outline reads its part. ~~|
+        |~~ Each path `paths` answers reads its leaf. ~~|
         ~({:a {:b 1}} | :v it | paths | map ~(:p (get /0) | (v | get p)) | eq [1])
     | impl ::builtin{}
 
 :any/shape
-  |~~ Answers the shape of a value, its schema in its own literal under
-      `::shape`, whose page tells how a shape reads: each map keeps its
-      keys, but a map every key of which is data, ids, dates, uuids or
-      emails, or of more than eight names over records of one shape,
-      folds into `::each` over its first key and the shape of its values,
-      `{:"17" {:id 1} :"42" {:id 2}} | shape` answering
-      `::shape::each{:"17" {:id ::number}}`; each vector and each
-      set holds one element whose shape holds of all its elements, a set
-      as `#[E]` and the element of one empty in some marked `::absent`,
-      vectors of one length that part index by index a tuple, `[::string
-      ::number]`, and each part that holds no parts stands as its kind, as
-      `type` answers it, a part under a tag as its tag, which tells of
-      itself on its page:
-      `{:users [{:name "a" :age 1} {:name "b" :age "2"}]} | shape`
-      answers `::shape{:users [{:name ::string :age #[::number ::string]}]}`.
-      Records that share a key merge into one, a key some lack marked
-      `::absent` and a part null in some `::nullable`, and records that
-      share no key stand apart; where the elements part, the shape there is
-      the set of their kinds:
-      `[{:a 1} {:a null :b "x"} {:c 2}] | shape` answers
-      `::shape[#[{:a ::nullable::number :b ::absent::string} {:c ::number}]]`.
-      An empty vector is `[]`, and the subject is read beneath the tags
-      over it. So a reader looks at the data before the query is shaped,
-      and the paths of the data read its shape through its marks as far as
-      a part holds one kind, `/users/0/age` the kinds the age of every
-      user holds.
-      ::link~(::shape | doc) ::link~(::absent | doc)
-      ::link~(::nullable | doc) ::link~(::each | doc)
-      ::link~(::any/paths | doc) ::link~(::any/type | doc)
+  |~~ Answers the shape of a value, its structure beneath its tags as a
+      value of `::shape`, whose page tells how a shape reads:
+      `{:users [{:name "a" :age 1} {:name "b" :age "2"}]} | shape` answers
+      `::shape{:users [{:name ::string :age #[::number ::string]}]}`.
+      ::link~(::shape | doc) ::link~(::any/paths | doc)
   ~~|
   ::fn
-    | returns |~~ The schema of the value. ~~| ::shape
+    | returns |~~ The shape of the value. ~~| ::shape
     | proves :answersTheKindOfAnAtom
         |~~ An atom answers its kind. ~~|
         ~([5 "a" null :k /a] | map ~shape | eq [::shape::number ::shape::string ::shape::null ::shape::keyword ::shape::path])
@@ -2442,8 +2418,8 @@
     | proves :showsNoElementOfAnEmptyVector
         |~~ An empty vector shows no element. ~~|
         ~([] | shape | eq ::shape[])
-    | proves :readsByThePathsOfTheData
-        |~~ The paths of the data read its shape. ~~|
+    | proves :readsAListByItsOneElement
+        |~~ A list of a shape reads by its one element. ~~|
         ~({:users [{:age 1} {:age "2"}]} | shape | get /users/0/age | eq #[::number ::string])
     | impl ::builtin{}
 

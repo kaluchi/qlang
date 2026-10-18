@@ -7,11 +7,11 @@
 {"name":"an-input-given-a-path-names-its-repair","query":"5 | mul /qty !| get /repair","expect":"~(mul (get /qty))"}
 {"name":"an-input-given-a-path-among-other-args-names-its-repair","query":"\"abc\" | replace /x \"y\" !| get /repair","expect":"~(replace (get /x) \"y\")"}
 {"name":"the-verbs-that-combine-values-of-one-subject-read-the-paths-they-take","query":"{:total 10 :paid 3} | subOf /total /paid","expect":"7"}
-{"name":"path-after-filter","query":"[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter ~(get /age | gte 18) | map /name","expect":"[\"Alice\"]"}
-{"name":"any-with-path","query":"[{:active false} {:active true}] | any /active","expect":"true"}
-{"name":"any-with-path-none","query":"[{:active false} {:active false}] | any /active","expect":"false"}
-{"name":"every-with-path","query":"[{:active true} {:active true}] | every /active","expect":"true"}
-{"name":"every-with-path-fails","query":"[{:active true} {:active false}] | every /active","expect":"false"}
+{"name":"map-reads-a-path-from-each-element-filter-kept","query":"[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter ~(get /age | gte 18) | map /name","expect":"[\"Alice\"]"}
+{"name":"any-takes-a-path-as-its-predicate","query":"[{:active false} {:active true}] | any /active","expect":"true"}
+{"name":"any-of-a-path-answers-false-where-no-element-holds-true-there","query":"[{:active false} {:active false}] | any /active","expect":"false"}
+{"name":"every-takes-a-path-as-its-predicate","query":"[{:active true} {:active true}] | every /active","expect":"true"}
+{"name":"every-of-a-path-answers-false-where-an-element-holds-false-there","query":"[{:active true} {:active false}] | every /active","expect":"false"}
 {"name":"paths-as-modifiers-read","query":"{:qty 2 :price 3} | mulOf /qty /price","expect":"6"}
 {"name":"a-query-reads-by-get-and-its-verbs-take-a-path","query":"{:data {:users [{:name \"Ann\" :age 30 :active true} {:name \"Bo\" :age 15 :active false} {:name \"Cy\" :age 20 :active true}]}} | get /data/users | filter /active | sort /age | map /name","expect":"[\"Cy\" \"Ann\"]"}
 {"name":"a-path-run-as-code-passes-a-frame-at-the-value-it-missed-as-its-get-does","query":"[{:n 1} {:m 2}] | map /n !| get [~(trace | map ~subject) ~(trace | map ~failed)]","expect":"[[{:m 2} [{:n 1} {:m 2}]] [~(get /n) ~(map /n)]]"}

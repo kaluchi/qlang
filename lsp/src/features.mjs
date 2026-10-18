@@ -15,7 +15,6 @@ import {
   TAG_SPELLING,
   FORK_ISOLATING_AST_TYPES,
   walkAst,
-  tokenize,
   isNameStart,
   isNameContinue,
   shownFor,
@@ -29,6 +28,7 @@ import {
   isVerb,
   declaresVerb
 } from '@kaluchi/qlang-core';
+import { tokenize } from '@kaluchi/qlang-core/highlight';
 
 // A tag as the server names it, `::number`, apart from the names of verbs.
 const TAG_SIGIL = '::';

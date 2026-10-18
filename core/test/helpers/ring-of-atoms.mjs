@@ -1,20 +1,19 @@
-// The ring of atoms [QSLIT#atoms]: every value comes apart into its atoms and
-// a shape, and the shape applied to the atoms builds it back, both written in
-// qlang with the language's own verbs in `test/qlang/atoms.qlang`. The round
-// trip runs over every example of the catalog, read at the address of each
-// verb and at the name of each tag it declares, and over every literal the
-// conformance cases expect, a failure among them caught to its error at rest,
-// the trace it left among its facts [QSERR#trace]. The examples of the
+// The ring of atoms [QSLIT#atoms]: every value comes apart into its atoms and a
+// template, and `get` over the template builds it back from the atoms, both
+// written in qlang with the language's own verbs in `test/qlang/atoms.qlang`.
+// The round trip runs over every example of the catalog, read at the address
+// of each verb and at the name of each tag it declares, and over every literal
+// the conformance cases expect, a failure among them caught to its error at
+// rest, the trace it left among its facts [QSERR#trace]. The examples of the
 // catalog are walked in shares, a file each, which run side by side.
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { createSession } from '../../src/session.mjs';
-import { evalQuery } from '../../src/eval.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { printValue } from '../../src/runtime/format.mjs';
+import { printValue } from '../../src/print-value.mjs';
 import { isErrorValue } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { rootAddressesOf } from './root-addresses.mjs';
@@ -29,7 +28,7 @@ export const SHARES = 4;
 export async function ringSession() {
   const session = await createSession();
   const loaded = await session.evalCell(readFileSync(atomsModulePath, 'utf8'));
-  expect(loaded.error, 'atoms.qlang loads').toBeNull();
+  expect([loaded.defect, isErrorValue(loaded.result)], 'atoms.qlang loads').toEqual([null, false]);
   return session;
 }
 

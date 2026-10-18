@@ -11,9 +11,9 @@
 // finds it.
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { printValue } from '../../src/runtime/format.mjs';
+import { printValue } from '../../src/print-value.mjs';
 import { rootAddressesOf } from '../helpers/root-addresses.mjs';
 import { declaredPagesOf, linksOf, wrongLinksOf, wrongTarget } from '../helpers/catalog-pages.mjs';
 

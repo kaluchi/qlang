@@ -3,8 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { shownFor } from '../../src/runtime/verb.mjs';
-import { nodeOf, verbsReaching } from '../../src/runtime/nouns.mjs';
+import { shownFor, nodeOf, verbsReaching } from '../../src/nouns.mjs';
 import { answerKindsOf } from '../../src/eval.mjs';
 import { createSession } from '../../src/session.mjs';
 

@@ -62,7 +62,7 @@ null
 ## map
 
 A map is a record and a dictionary at once. Its elements are its
-values, and its keys are the shape that travels with them: `map`,
+values, and its keys travel with them: `map`,
 `filter`, `sort`, `take`, `drop` and `reverse` act on the values and
 keep the keys, `first`, `last`, `sum`, `avg`, `min`, `max`, `reduce`,
 `every` and `any` read the values, a predicate sees the value alone, and
@@ -121,7 +121,7 @@ its key, and one that answers a failure hands it on.
 ## reduce
 
 `reduce` folds a vector, a set or a map's values from a seed by code of
-any shape, the seed first and the code after it, a call with one arg
+any form, the seed first and the code after it, a call with one arg
 refused as `::vec/reduce/reducer/NotGivenError` and code computed at the
 call as `::vec/reduce/reducer/KindNotTakenError`. A quote of one word
 that names a verb, by its name or its address, is the short form: the

@@ -4,7 +4,8 @@
 // literal writes, the trace it left among them, laid as `raise` lays it
 // [QSERR#print].
 
-import { evalQuery, factsWithTheirTrace } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
+import { factsWithTheirTrace } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import { rootState } from '../../src/state.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';

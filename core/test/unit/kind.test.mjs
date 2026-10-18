@@ -5,11 +5,10 @@
 // not yet handed.
 
 import { describe, it, expect } from 'vitest';
-import { createSession } from '../../src/session.mjs';
-import { evalQuery } from '../../src/eval.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
-import { ruleRefusalsOf } from '../../src/runtime/nouns.mjs';
-import { printValue } from '../../src/runtime/print-value.mjs';
+import { ruleRefusalsOf } from '../../src/nouns.mjs';
+import { printValue } from '../../src/print-value.mjs';
 
 const answers = async query => printValue(await evalQuery(query));
 

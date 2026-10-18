@@ -636,7 +636,7 @@ the chapters and a pentimento audit, whose readers write into the folder
 of the run, `docs/journal/research/spec-check/D323~1/` and
 `docs/journal/research/pentimento-audit/<Dnn>~<k>/`. One table,
 `RESEARCH_FOLDERS` of `scripts/decision-records.mjs`, names each folder
-of the research and the shape of what it holds, a report or a run, and
+of the research and the form of what it holds, a report or a run, and
 the walk and the conventions build their regexes from it. Every report
 opens with its head, what it is and the record that called for it, the
 tree it read and the baseline that tree stood on, when it ran and how, a
@@ -717,12 +717,13 @@ that shows through them [QSWRK#documents].
 `node scripts/pentimento-audit.mjs --for Dnn` runs it for the record in
 force that calls for it and carries its fates, six readers at once unless
 `--groups` names another count, and `--dry` prints its groups and the
-cycles of the imports of `core/src`, the strongly connected components of
-their relative imports, and starts no reader. The script builds the
+cycles of the imports of the core, the strongly connected components
+`scripts/core-imports.mjs` computes, and starts no reader. The script builds the
 groups from the texts the walk of the baseline cites, in units taken in
 the order the texts rank, from the topic of the language to the seeds,
 each source of the catalog a unit with the modules of `core/src` that
-bind most of their addresses under its noun, packs them into groups of
+register most of their addresses under its noun, the first noun a module
+registers under where two tie, packs them into groups of
 about one weight, and writes into each prompt its group, the cycles and
 the first line of every open record, whose content counts as known, a
 finding an open record holds reported only where it adds to that record,
@@ -736,7 +737,7 @@ mechanism that a tree built for the mission from a clean sheet would not
 hold, or would hold simpler or fewer; an archaism, a term of a model the
 language left, read against the pages of the catalog; a shim, newer code
 that reaches older code through a conversion, a wrapper, a second table,
-a special case, a flag or an export kept for an older shape; a
+a special case, a flag or an export kept for an older form; a
 subordination, a part that depends on what should depend on it; and a
 pentimento and a drift [QSWRK#documents], the drift read both ways. Each
 gives the layer it keeps, what a tree built for the mission from a clean
@@ -769,8 +770,37 @@ of each platform chosen by the condition of `#qlang/load-source`; the
 parser is built from `core/src/grammar.peggy` by `npm run build`; and a
 workspace depends on a sibling by the range `^x.y.z` of the sibling's
 version. The core exports its root, `core/src/index.mjs`, beside
-`./session`, `./errors` and `./highlight` and the sources of its
-catalog.
+`./errors`, `./highlight`, the light door that loads the parser and its
+walks and no runtime, and the sources of its catalog, each function of
+the package at one door. The modules of `core/src` import in the order of
+the concepts, from the bottom: the letters of a name, the address, the
+keys of the scope and the declaration of a refusal; the values, their one
+order and their equality; the records of the steps and the rules their
+constructors hold, `core/src/steps.mjs`, which registers nothing and
+imports no parser; the parser and the walks of its tree; the reading of a
+path and the nearness of two names; the printer of the core's forms; the parts of a doc; the state of a
+query, the table of primitives, the resolution of names and the chain;
+the walk of a value's tags and the run of a primitive,
+`core/src/dispatch.mjs`; the evaluator; in `core/src/runtime/` the words,
+which register their primitives as they load and `package.json#sideEffects`
+keeps, and the root that boots them; and above them the session and the
+root of the package. No module of the core imports a module that imports
+it, the parser and the loaders among its imports, and none outside
+`runtime/` imports one inside it but the session and the root of the
+package, which `core/test/unit/imports.test.mjs` holds by the strong
+components `scripts/core-imports.mjs` computes. Each module is named for
+what it holds and its head says so: the codec of JSON in
+`core/src/runtime/json.mjs`, which exports no print; the words a sequence
+answers across its kinds in `core/src/runtime/sequence.mjs`; the
+constructors of the kinds of the core's values in
+`core/src/runtime/constructors.mjs`, but those of `::fn`, `::kind` and the
+steps of code, each beside the other words of its kind; the shape of a
+value, its leaves and their marks in `core/src/runtime/shape.mjs`, and the
+verbs of a path in `core/src/runtime/path.mjs`; and in the command line
+the reading and the lift of standard input in `cli/src/stdin.mjs` and what
+it writes for an answer, with the code it exits with, in
+`cli/src/render.mjs`. A script of the work takes `evalQuery` and
+`createSession` from the root of the package.
 
 The hosts beside the core: `cli/src/bin.mjs` is the one file of the
 command line that touches `process`, handing the arguments, the streams

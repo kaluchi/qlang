@@ -1,5 +1,5 @@
-// A session keeps the scope its cells write, taking what its host hands by
-// the walk of the door [QSNAM#root], [QSDSP#residence], [QSHST#source].
+// A session keeps the scope its cells write, each cell a query, taking what
+// its host hands by the walk of the door [QSNAM#root], [QSDSP#residence], [QSHST#source].
 
 import { parse, ParseError } from './parse.mjs';
 import { evalAst } from './eval.mjs';
@@ -7,22 +7,31 @@ import { langRuntime } from './runtime/index.mjs';
 import { rootState } from './state.mjs';
 import { errorFromParse } from './error-convert.mjs';
 import { declareRoot } from './runtime/root.mjs';
-import { takenFromAHost, scopeTakenFromAHost } from './runtime/verb.mjs';
+import { foreignPartOf } from './dispatch.mjs';
+import { BuiltinForeignValueError } from './types.mjs';
 
-// createSession(opts?) → Session
-//
-// opts:
-//   scope   — the scope its first cell reads (defaults to a fresh langRuntime())
-//   sources — the host's sources, `{ uri, source, primitives? }` in order,
-//             which declare the root beside the language's [QSDSP#residence].
-//
-// Returns an object with:
-//   evalCell(source, evalOpts?) — parse and evaluate one cell, the
-//     entry { source, uri, ast, result, error, scopeAfterCell } its
-//     answer; `evalOpts.initialPipeValue` is the subject of its first
-//     step, null where the host gives none, and `evalOpts.uri` its
-//     name, a cell without one numbered among the cells without one.
-//   scope — the current scope
+// A value a host hands where the core takes it, the subject of a cell or what
+// a name of a scope holds, held by the walk of the door, a value of no kind
+// raised as `::builtin/ForeignValueError`; a scope is taken name by name, its
+// root and the keys of the runtime's own aside [QSHST#source].
+function takenFromAHost(value) {
+  const foreign = foreignPartOf(value);
+  if (foreign !== null) throw new BuiltinForeignValueError({ actualValue: foreign.account });
+  return value;
+}
+
+function scopeTakenFromAHost(scope) {
+  for (const [name, entry] of scope) if (typeof name === 'string') takenFromAHost(entry);
+  return scope;
+}
+
+// createSession(opts?) → a session over `opts.scope`, the root's where none is
+// handed, beside which `opts.sources`, `{ uri, source, primitives? }` in
+// order, declare the root [QSDSP#residence]. `evalCell(source, evalOpts?)`
+// runs one cell from `evalOpts.initialPipeValue`, null where the host gives
+// none, its name `evalOpts.uri` or its number among the cells with none, and
+// answers its entry `{ source, uri, result, defect, scopeAfterCell }`;
+// `scope` is the scope its cells write.
 export async function createSession(opts = {}) {
   let scope = opts.scope ? scopeTakenFromAHost(opts.scope) : await langRuntime();
   if (opts.sources) scope = await declareRoot(scope, opts.sources);
@@ -30,33 +39,30 @@ export async function createSession(opts = {}) {
 
   return {
     async evalCell(source, evalOpts = {}) {
-      const cellUri = evalOpts.uri ?? `cell-${++cellCount}`;
-      let cellAst = null;
-      let cellResult = null;
-      let cellError = null;
+      const uri = evalOpts.uri ?? `cell-${++cellCount}`;
+      const entry = (result, defect) => ({ source, uri, result, defect, scopeAfterCell: scope });
       try {
-        cellAst = parse(source, { uri: cellUri });
-        const cellSeedPipeValue = 'initialPipeValue' in evalOpts
-          ? takenFromAHost(evalOpts.initialPipeValue)
-          : null;
-        const cellInitialState = rootState(cellSeedPipeValue, scope);
-        const cellFinalState = await evalAst(cellAst, cellInitialState);
-        cellResult = cellFinalState.pipeValue;
-        scope = cellFinalState.env;
-      } catch (evalCellErr) {
-        // A parse failure answers its error value beside the throw, so
-        // the host prints it as it prints any error and still tells a
-        // syntactic failure by the error channel; it names the source
-        // its text came from where the host named one, a cell the
-        // session numbers itself naming none.
-        if (evalCellErr instanceof ParseError) {
-          cellResult = errorFromParse(evalCellErr, scope, evalOpts.uri ?? null);
-        }
-        cellError = evalCellErr;
+        const ast = parse(source, { uri });
+        const subject = 'initialPipeValue' in evalOpts ? takenFromAHost(evalOpts.initialPipeValue) : null;
+        const answered = await evalAst(ast, rootState(subject, scope));
+        scope = answered.env;
+        return entry(answered.pipeValue, null);
+      } catch (thrown) {
+        // A failure to parse is an answer, naming the source a host named, a
+        // cell the session numbers naming none; a throw past the fail track is
+        // the cell's defect, which answers nothing [QSHST#source].
+        return thrown instanceof ParseError ? entry(errorFromParse(thrown, scope, evalOpts.uri ?? null), null) : entry(null, thrown);
       }
-      return { source, uri: cellUri, ast: cellAst, result: cellResult, error: cellError, scopeAfterCell: scope };
     },
 
     get scope() { return scope; }
   };
+}
+
+// evalQuery(source, scope?) → the answer of one cell of a session over the
+// scope, the root's where none is handed, a defect raised to its caller [QSHST#source].
+export async function evalQuery(source, scope) {
+  const { result, defect } = await (await createSession({ scope })).evalCell(source);
+  if (defect !== null) throw defect;
+  return result;
 }

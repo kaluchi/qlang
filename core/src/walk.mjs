@@ -106,9 +106,9 @@ export function attachAstParents(root) {
   walkAst(root, (n, parent) => { n.parent = parent; });
 }
 
-// originOf(node) — the uri of the source a node was read from, which
-// the root of its tree carries: a source of the root's name, a session
-// cell's, `inline` for a query, `quote` for code assembled from data.
+// originOf(node) — the uri of the source a node was read from, which the
+// root of its tree carries: a source of the root's name, a cell's, `inline`
+// for a text read with no name, `quote` for code assembled from data.
 export function originOf(node) {
   let root = node;
   while (root.parent) root = root.parent;

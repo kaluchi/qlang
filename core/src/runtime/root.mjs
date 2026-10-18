@@ -17,7 +17,7 @@ import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, isPrimitiveHanded, 
 import { ROOT_KEY } from '../env-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareInvariantError } from '../errors.mjs';
-import { isUnderLabel } from './nouns.mjs';
+import { isUnderLabel } from '../nouns.mjs';
 
 // A source of the root whose run answers an error, or that declares again
 // a name the root holds, left its declarations out of the root, `:origin`

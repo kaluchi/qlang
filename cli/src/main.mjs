@@ -10,8 +10,7 @@ import { parseArgv, HELP_TEXT, VERSION_LINE } from './argv.mjs';
 import { runQuery } from './run.mjs';
 import { renderCellOutcome } from './render.mjs';
 import { runRepl } from './repl.mjs';
-import { readStdinToString, memoiseStdinReader } from './io-stdin.mjs';
-import { liftStdinToPipeValue } from './script-mode.mjs';
+import { readStdinToString, memoiseStdinReader, liftStdinToPipeValue } from './stdin.mjs';
 
 // Whether the answer is painted: as `--color` says, and under `auto` as
 // `FORCE_COLOR`, then `NO_COLOR` say, and otherwise where stdout is a

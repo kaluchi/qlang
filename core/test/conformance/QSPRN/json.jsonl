@@ -1,13 +1,13 @@
 {"name":"codec-writes-a-keyword-value-bare","query":"{:k :v} | json","expect":"\"{\\\"k\\\":\\\"v\\\"}\""}
 {"name":"codec-writes-keywords-in-a-vector-bare","query":"[:foo :bar] | json","expect":"\"[\\\"foo\\\",\\\"bar\\\"]\""}
-{"name":"json-number","query":"42 | json","expect":"\"42\""}
-{"name":"json-string","query":"\"hello\" | json","expect":"\"\\\"hello\\\"\""}
-{"name":"json-vec","query":"[1 2 3] | json","expect":"\"[1,2,3]\""}
-{"name":"json-map","query":"{:name \"Alice\" :age 30} | json","expect":"\"{\\\"name\\\":\\\"Alice\\\",\\\"age\\\":30}\""}
-{"name":"json-nested","query":"{:point {:x 1 :y 2}} | json","expect":"\"{\\\"point\\\":{\\\"x\\\":1,\\\"y\\\":2}}\""}
-{"name":"json-null","query":"null | json","expect":"\"null\""}
-{"name":"json-keyword","query":":foo | json","expect":"\"\\\"foo\\\"\""}
-{"name":"json-tag-keyword","query":"::quote/ParseError | json","expect":"\"\\\"::quote/ParseError\\\"\""}
+{"name":"json-writes-a-number-as-its-text","query":"42 | json","expect":"\"42\""}
+{"name":"json-writes-a-string-in-double-quotes","query":"\"hello\" | json","expect":"\"\\\"hello\\\"\""}
+{"name":"json-writes-a-vector-as-an-array","query":"[1 2 3] | json","expect":"\"[1,2,3]\""}
+{"name":"json-writes-a-map-as-an-object-of-its-keys","query":"{:name \"Alice\" :age 30} | json","expect":"\"{\\\"name\\\":\\\"Alice\\\",\\\"age\\\":30}\""}
+{"name":"json-writes-a-map-in-a-map-as-an-object-in-an-object","query":"{:point {:x 1 :y 2}} | json","expect":"\"{\\\"point\\\":{\\\"x\\\":1,\\\"y\\\":2}}\""}
+{"name":"json-writes-null-as-null","query":"null | json","expect":"\"null\""}
+{"name":"json-writes-a-keyword-as-the-string-of-its-name","query":":foo | json","expect":"\"\\\"foo\\\"\""}
+{"name":"json-writes-a-tag-name-as-the-string-of-its-print","query":"::quote/ParseError | json","expect":"\"\\\"::quote/ParseError\\\"\""}
 {"name":"json-quote-renders-as-source","query":"~(count) | json","expect":"\"\\\"~(count)\\\"\""}
 {"name":"json-doc-renders-as-source","query":"|~~ hello ~~| | json","expect":"\"\\\"|~~ hello ~~|\\\"\""}
 {"name":"json-writes-a-set-as-the-array-of-its-elements","query":"#[3 1] | json","expect":"\"[1,3]\""}

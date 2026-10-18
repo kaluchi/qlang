@@ -1,19 +1,19 @@
-{"name":"quote-literal-atom","query":"~(42)","expect":"~(42)"}
-{"name":"quote-literal-arith","query":"~(mul 2)","expect":"~(mul 2)"}
-{"name":"quote-literal-pipeline","query":"~([1 2 3] | filter ~(gt 1))","expect":"~([1 2 3] | filter ~(gt 1))"}
-{"name":"quote-literal-path","query":"~(get /name)","expect":"~(get /name)"}
-{"name":"quote-literal-empty","query":"~()","expect":"~()"}
-{"name":"quote-literal-keyword","query":"~(:foo)","expect":"~(:foo)"}
-{"name":"quote-literal-multiline","query":"~({\n  :a 1\n  :b 2\n})","expect":"~({\n  :a 1\n  :b 2\n})"}
-{"name":"quote-literal-holds-code","query":"\"~( , )\" | parse !| type","expect":"::quote/ParseError"}
+{"name":"a-quote-of-a-number-is-a-value-as-written","query":"~(42)","expect":"~(42)"}
+{"name":"a-quote-of-a-call-is-a-value-as-written","query":"~(mul 2)","expect":"~(mul 2)"}
+{"name":"a-quote-of-a-pipeline-that-holds-a-quote-is-a-value-as-written","query":"~([1 2 3] | filter ~(gt 1))","expect":"~([1 2 3] | filter ~(gt 1))"}
+{"name":"a-quote-of-a-read-by-get-is-a-value-as-written","query":"~(get /name)","expect":"~(get /name)"}
+{"name":"the-empty-quote-is-a-value-as-written","query":"~()","expect":"~()"}
+{"name":"a-quote-of-a-keyword-is-a-value-as-written","query":"~(:foo)","expect":"~(:foo)"}
+{"name":"a-quote-of-a-literal-across-lines-is-a-value-as-written","query":"~({\n  :a 1\n  :b 2\n})","expect":"~({\n  :a 1\n  :b 2\n})"}
+{"name":"a-quote-whose-content-reads-as-no-pipeline-is-refused","query":"\"~( , )\" | parse !| type","expect":"::quote/ParseError"}
 {"name":"quote-type-answers-quote","query":"~(mul 2) | type | eq ::quote","expect":"true"}
-{"name":"quote-equality-same-source","query":"~(mul 2) | eq ~(mul 2)","expect":"true"}
-{"name":"quote-equality-different-source","query":"~(mul 2) | eq ~(mul 3)","expect":"false"}
+{"name":"two-quotes-of-the-same-steps-are-equal","query":"~(mul 2) | eq ~(mul 2)","expect":"true"}
+{"name":"two-quotes-of-different-steps-differ","query":"~(mul 2) | eq ~(mul 3)","expect":"false"}
 {"name":"quote-equality-ignores-spacing","query":"~(mul 2) | eq ~(mul  2)","expect":"true"}
 {"name":"quote-equality-ignores-comments","query":"~(mul 2 |~ note ~|) | eq ~(mul 2)","expect":"true"}
-{"name":"quote-equality-cross-type-string","query":"~(mul 2) | eq \"mul 2\"","expect":"false"}
-{"name":"quote-in-vec","query":"[~(a) ~(b) ~(c)] | count","expect":"3"}
+{"name":"a-quote-is-not-equal-to-the-string-of-its-text","query":"~(mul 2) | eq \"mul 2\"","expect":"false"}
+{"name":"a-vector-holds-quotes-as-its-elements","query":"[~(a) ~(b) ~(c)] | count","expect":"3"}
 {"name":"a-quote-in-a-vector-writes-the-text-of-its-code","query":"[~(a) ~(b) ~(c)] | first | toString","expect":"\"a\""}
 {"name":"a-quote-in-a-map-writes-the-text-of-its-code","query":"{:body ~(mul 2)} | get /body | toString","expect":"\"mul 2\""}
-{"name":"quote-in-set","query":"#[~(a) ~(b)] | count","expect":"2"}
+{"name":"a-set-holds-quotes-as-its-elements","query":"#[~(a) ~(b)] | count","expect":"2"}
 {"name":"a-short-quote-is-the-quote-of-its-word","query":"~add","expect":"~(add)"}

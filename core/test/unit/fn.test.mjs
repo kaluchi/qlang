@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
-import { ruleRefusalsOf } from '../../src/runtime/nouns.mjs';
+import { ruleRefusalsOf } from '../../src/nouns.mjs';
 import { runs } from '../../src/primitives.mjs';
 
 const session = await createSession();

@@ -1,28 +1,19 @@
 |~ `::nullable`, the mark in a shape of a part null in some of the data,
    and the laws declared under it.
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [QSPTH#shape]. ~|
 
 :nullable
-  |~~ A nullable marks, in the shape of a value, a part that is null in
-      some of the data and of the shape under the mark in the rest:
-      `[1 null 3] | shape` answers `::shape[::nullable::number]`, and a
-      record that is null in some is `::nullable` over the record, so the
-      paths of the data read on through the mark,
-      `[{:author {:login "a"}} {:author null}] | shape | get /0/author/login`
-      answering `::string`. A part that is null alone stands as `::null`,
-      and kinds that part stand as the set of them under the mark,
-      `::nullable#[::number ::string]`; null is never among the kinds of
-      that set. `query` reads such a part softly, and a default stands
-      for the null, `query /author/login "-"`.
-      ::link~(::shape | doc) ::link~(::absent | doc)
-      ::link~(::any/query | doc)
+  |~~ A nullable marks in a shape a part null in some of the data over the
+      shape of the rest, a part null in all of it standing as `::null`:
+      `[1 null 3] | shape` answers `::shape[::nullable::number]`.
+      ::link~(::shape | doc)
   ~~|
   ::kind
     | proves :marksAPartNullInSomeOfTheData
         |~~ A part null in some of the data stands marked nullable. ~~|
         ~([1 null 3] | shape | eq ::shape[::nullable::number])
-    | proves :readsThePathsOfTheDataThroughIt
-        |~~ The paths of the data read on through the mark. ~~|
+    | proves :answersAPartBeneathItWithoutTheMark
+        |~~ A part read beneath the mark is answered without the mark. ~~|
         ~([{:author {:login "a"}} {:author null}] | shape | get /0/author/login | eq ::string)
     | proves :standsOverTheKindsThatPart
         |~~ Kinds that part stand under the mark, null not among them. ~~|

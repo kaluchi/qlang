@@ -29,16 +29,14 @@ function captureIoContext() {
 describe('runQuery', () => {
   it('materialises a cell entry from a freshly seeded session', async () => {
     const cellEntry = await runQuery('[1 2 3] | sum', captureIoContext());
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe(6);
     expect(cellEntry.source).toBe('[1 2 3] | sum');
   });
 
-  it('captures a parse error on the cell entry as both a host-error marker and a lifted ErrorValue', async () => {
+  it('answers a query that does not parse by its failure, the cell no defect [QSHST#source]', async () => {
     const cellEntry = await runQuery('[1 2', captureIoContext());
-    expect(cellEntry.error).not.toBeNull();
-    expect(cellEntry.error.name).toBe('ParseError');
-    expect(cellEntry.result).not.toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(isErrorValue(cellEntry.result)).toBe(true);
     expect(cellEntry.result.tag.name).toBe('quote/ParseError');
   });
@@ -46,7 +44,7 @@ describe('runQuery', () => {
   it('binds the ioContext writers so `out` reaches the captured stdout chunks', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"qlang" | out', io);
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(io.stdoutText()).toBe('qlang\n');
     expect(io.stdoutEffectCount()).toBe(1);
   });
@@ -55,7 +53,7 @@ describe('runQuery', () => {
     const io = captureIoContext();
     const seeded = new Map([['k', 'v']]);
     const cellEntry = await runQuery('get /k', io, { initialPipeValue: seeded });
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe('v');
   });
 });

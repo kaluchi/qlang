@@ -329,7 +329,7 @@ describe('hoverAtOffset', () => {
   });
 });
 
-// A catalog context for definition fallback tests, in the shape of a
+// A catalog context for definition fallback tests, in the form of a
 // source of the language: a contract under `::any` and verbs under a
 // kind, each a declaration `buildCatalogIndex` records by its span, and
 // the scope of the root that answers what a bare name reaches. The server merges

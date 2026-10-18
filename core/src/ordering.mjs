@@ -6,11 +6,12 @@
 // vector, maps by their keys and then their values, a desc by the reverse of
 // its payload's place, and a tagged value by its payload. `sort`, `min` and
 // `max` order by it, and so do the ordering predicates, whose inputs take a
-// value of the subject's kind [QSDSP#walk], [QSDSP#residence].
+// value of the subject's kind [QSDSP#walk], [QSDSP#residence]. The set is made
+// here by it, and the set of the kinds a refusal expects.
 
 import {
-  isKeyword, isTag, isRegex, isPath, isDoc, isValueClass, typeOf,
-  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, ELISION_TAG, DESC_TAG, CORE_KIND
+  isKeyword, isTag, isRegex, isPath, isDoc, isValueClass, typeOf, makeTag, stampTagHeader,
+  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, SET_TAG, ELISION_TAG, DESC_TAG, CORE_KIND
 } from './types.mjs';
 
 // The kinds in their order.
@@ -54,9 +55,9 @@ function kindOf(value) {
   return TAGGED_KIND;
 }
 
-// The kind a container has by its shape alone, which is the kind of a
-// tagged container's payload.
-function shapeKindOf(container) {
+// The kind of the core a container holds beneath its tag, which is the kind
+// of a tagged container's payload.
+function coreKindOf(container) {
   return Array.isArray(container) ? VECTOR_KIND : MAP_KIND;
 }
 
@@ -97,6 +98,22 @@ function compareSegments(left, right) {
 // compareValues(a, b) → -1 / 0 / 1 — the one order.
 export function compareValues(a, b) {
   return compareKinded(kindOf(a), a, kindOf(b), b);
+}
+
+// A set is the vector in the one order without duplicates under `::set`,
+// made here alone; the order ranks two values alike exactly when they are
+// equal [QSORD#set].
+export function makeSet(elements) {
+  const ordered = [...elements].sort(compareValues);
+  const set = ordered.filter((element, index) => index === 0 || compareValues(ordered[index - 1], element) !== 0);
+  stampTagHeader(set, SET_TAG);
+  return Object.freeze(set);
+}
+
+// The kinds a holder takes, the set of their tags a refusal of a value of
+// none of them holds as `:expected` [QSERR#site].
+export function kindsExpected(...kindNames) {
+  return makeSet(kindNames.map(makeTag));
 }
 
 function compareKinded(leftKind, left, rightKind, right) {
@@ -167,8 +184,8 @@ function compareMaps(leftMap, rightMap) {
   return 0;
 }
 
-// A tagged container's payload is the container itself read by its
-// shape; a tag over an atom or a value class wraps its payload.
+// A tagged container's payload is the container itself read by the kind of
+// its core; a tag over an atom or a value class wraps its payload.
 function comparePayloads(leftTagged, rightTagged) {
   const [leftPayload, leftKind] = payloadOf(leftTagged);
   const [rightPayload, rightKind] = payloadOf(rightTagged);
@@ -177,5 +194,5 @@ function comparePayloads(leftTagged, rightTagged) {
 
 function payloadOf(tagged) {
   if (isValueClass(tagged, 'underTag')) return [tagged.payload, kindOf(tagged.payload)];
-  return [tagged, shapeKindOf(tagged)];
+  return [tagged, coreKindOf(tagged)];
 }

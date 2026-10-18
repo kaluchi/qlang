@@ -4,8 +4,7 @@
 // named by the address of what refused.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
-import { createSession } from '../../src/session.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
 import { runs } from '../../src/primitives.mjs';
 import { makeTag, makeTagged } from '../../src/types.mjs';
 

@@ -3,9 +3,9 @@
 // and the lift from parsed JSON keeps numbers in the finite range.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { isMap, isVec, formOf, typeOf, makeTag } from '../../src/types.mjs';
-import { fromJsonText, fromPlain, toPlain } from '../../src/runtime/format.mjs';
+import { fromJsonText, fromPlain, toPlain } from '../../src/runtime/json.mjs';
 import { BuiltinForeignValueError } from '../../src/types.mjs';
 
 describe('JSON syntax reads into the one map and the one vector', () => {
@@ -76,7 +76,7 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
   // the lift is the boundary that keeps it out of the pipeline —
   // `cat huge.json | qlang '/big'` seeds through this exact path.
   it('lifts an out-of-range magnitude into a per-site codec error', async () => {
-    const { StringParseJsonNumberNotFiniteError } = await import('../../src/runtime/format.mjs');
+    const { StringParseJsonNumberNotFiniteError } = await import('../../src/runtime/json.mjs');
     let thrown = null;
     try { fromPlain(JSON.parse('1e400')); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(StringParseJsonNumberNotFiniteError);
@@ -85,7 +85,7 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
   });
 
   it('names the path it walked to when the magnitude sits nested', async () => {
-    const { StringParseJsonNumberNotFiniteError } = await import('../../src/runtime/format.mjs');
+    const { StringParseJsonNumberNotFiniteError } = await import('../../src/runtime/json.mjs');
     let thrown = null;
     try { fromPlain(JSON.parse('{"a": {"b": [1, 1e400]}}')); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(StringParseJsonNumberNotFiniteError);

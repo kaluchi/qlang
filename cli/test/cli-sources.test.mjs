@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { cliSources } from '../src/cli-sources.mjs';
-import { createSession } from '@kaluchi/qlang-core/session';
+import { createSession } from '@kaluchi/qlang-core';
 import { silentStreams } from './helpers/silent-streams.mjs';
 
 describe('cliSources', () => {

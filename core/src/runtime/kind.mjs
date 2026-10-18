@@ -6,8 +6,8 @@
 
 import { registerPrimitive } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { chainOfKind } from './chain.mjs';
-import { commandStep } from '../quote.mjs';
+import { chainOfKind } from '../chain.mjs';
+import { commandStep } from '../steps.mjs';
 import {
   isVec, isNull, isQuote, isBuiltinDescriptor, isKind, commandsOf, constructorOf,
   makeTag, makeTagged, makeQuote, KIND_TAG_NAME

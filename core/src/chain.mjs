@@ -1,11 +1,14 @@
 // The chain of a function and of a kind, the commands that built it folded
 // into the quote its literal holds, read once for each value as the roles
-// they declare [QSBLD#fn], [QSBLD#kind].
+// they declare and the places its inputs read [QSBLD#fn], [QSBLD#kind].
 
-import { declareRefusal } from '../errors.mjs';
-import { readsAsBareKeyword, LITERAL_WORDS } from '../name-chars.mjs';
-import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, CALL_TAG, FN_TAG_NAME, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { ANY_KIND_NAME, CONSTRUCT_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName, placesOfReadings, readingOfPlace } from './nouns.mjs';
+import { declareRefusal } from './errors.mjs';
+import { readsAsBareKeyword, LITERAL_WORDS } from './name-chars.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, TAG_HEADER_SYMBOL } from './types.mjs';
+import { isCommandStep } from './steps.mjs';
+import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
+import { astOfQuote } from './quote.mjs';
+import { segmentIndex } from './path-read.mjs';
 
 const FnCommandNotTakenError = declareRefusal('fn/CommandNotTakenError');
 const FnNameDeclaredTwiceError = declareRefusal('fn/NameDeclaredTwiceError');
@@ -21,6 +24,7 @@ const KindFactUnderNoNameError = declareRefusal('kind/FactUnderNoNameError');
 export const ANSWER_NAME = 'answer';
 export const SUBJECT_NAME = 'subject';
 export const PAYLOAD_NAME = 'payload';
+export const CONSTRUCT_NAME = 'construct';
 
 const isNameOfChain = value => isKeyword(value) && readsAsBareKeyword(value.name);
 const isNameOfOneSegment = value => isNameOfChain(value) && !value.name.includes('/') && !LITERAL_WORDS.has(value.name);
@@ -58,9 +62,9 @@ const KIND_COMMANDS = new Map([
 export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), 'impl'])]);
 
 // The modifiers of a step that is one of the commands of a table in the
-// shapes it takes, or null.
+// forms it takes, or null.
 function modifiersOf(step, commands) {
-  if (step?.[TAG_HEADER_SYMBOL]?.name !== CALL_TAG.name || !commands.has(step.get('name').name)) return null;
+  if (!isCommandStep(step) || !commands.has(step.get('name').name)) return null;
   const { taken, optional } = commands.get(step.get('name').name);
   const modifiers = step.get('modifiers') ?? [];
   if (modifiers.length < taken.length || modifiers.length > taken.length + optional.length) return null;
@@ -274,4 +278,58 @@ export function pageOfConstructor(address) {
 // under the answer, in their order.
 export function invariantsOf(chain, name) {
   return chain.invariants.filter(invariant => invariant.name.startsWith(`${name}/`));
+}
+
+// The places the inputs of a function read, one past the greatest index an
+// input reads strictly or softly, or null when one reads no index, the args
+// whole, a place counted from its end, code of several steps or anything
+// else, and so takes any number of values [QSBLD#input].
+function placesOfReadings(readings) {
+  let places = 0;
+  for (const { index, ast } of readings) {
+    if (!Number.isInteger(index) || ast.type === 'Pipeline') return null;
+    places = Math.max(places, index + 1);
+  }
+  return places;
+}
+
+// How the place of an input of a function reads the args, once per place
+// [QSBLD#input]: its tree, a path read as it is written, the index of the arg
+// its first step reads, whether the place is that one step, and whether it
+// reads the args whole, `~(it)`.
+const READINGS = new WeakMap();
+
+function readingOfPlace(value) {
+  let reading = READINGS.get(value);
+  if (reading === undefined) {
+    const ast = isPath(value) ? { type: 'Path', keys: value.segments } : astOfQuote(value);
+    const index = indexReadBy(ast);
+    const onePlace = readsOnePlace(ast, index);
+    reading = {
+      ast, index, onePlace,
+      strict: onePlace && ast.type === 'Path',
+      fallback: onePlace && ast.type === 'Call' && ast.args.length === 2 ? ast.args[1] : null,
+      readsArgs: ast.type === 'Call' && ast.name === 'it' && ast.args.length === 0
+    };
+    READINGS.set(value, reading);
+  }
+  return reading;
+}
+
+// The index of the arg the first step of a place reads, by a path or by
+// `query`, a whole number, or none for a place that reads the args whole,
+// one counted from its end or anything else.
+function indexReadBy(ast) {
+  const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
+  const index = head.type === 'Path' ? segmentIndex(head.keys[0])
+    : head.type === 'Call' && head.name === 'query' && head.args[0]?.type === 'Path' && head.args[0].keys.length === 1 ? segmentIndex(head.args[0].keys[0])
+    : NaN;
+  return Number.isInteger(index) && index >= 0 ? index : NaN;
+}
+
+// Whether a place is one step that reads one arg, `/n` or `query /n` with a
+// default or none.
+function readsOnePlace(ast, index) {
+  if (!Number.isInteger(index) || ast.type === 'Pipeline') return false;
+  return ast.type === 'Path' ? ast.keys.length === 1 : ast.args.length <= 2;
 }

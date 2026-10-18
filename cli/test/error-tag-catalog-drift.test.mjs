@@ -12,12 +12,11 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { createSession } from '@kaluchi/qlang-core/session';
-import { evalQuery, nodeAddresses, nodeOf, typeOf, isVerb, ruleRefusalsOf } from '@kaluchi/qlang-core';
+import { createSession, evalQuery, nodeAddresses, nodeOf, typeOf, isVerb, ruleRefusalsOf } from '@kaluchi/qlang-core';
 import { cliSources } from '../src/cli-sources.mjs';
 import '../src/streams.mjs';
 import '../src/table.mjs';
-import '../src/script-mode.mjs';
+import '../src/stdin.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const isInvariant = value => typeOf(value).name === 'invariant';

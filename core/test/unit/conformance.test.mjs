@@ -19,7 +19,7 @@ import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { evalQuery } from '../../src/eval.mjs';
+import { evalQuery } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
 import { walkAst } from '../../src/walk.mjs';
 import { deepEqual } from '../../src/equality.mjs';

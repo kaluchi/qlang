@@ -10,10 +10,10 @@
 {"name":"a-vector-key-that-fails-at-an-index-answers-the-call","query":"[{:a 2} {:b 1}] | sort ~(get [/a]) !| type","expect":"::path/KeyNotInMapError"}
 {"name":"max-takes-a-key-and-answers-the-element","query":"[{:age 30} {:age 40}] | max /age","expect":"{:age 40}"}
 {"name":"min-takes-a-key-and-answers-the-first-of-equal-ones","query":"[{:n 1 :i 0} {:n 1 :i 1}] | min /n | get /i","expect":"0"}
-{"name":"the-key-of-the-greatest-value-of-a-map","query":"{:a 3 :b 1} | entries | max /1 | get /0","expect":":a"}
+{"name":"max-of-the-entries-by-their-values-finds-the-key-of-the-greatest","query":"{:a 3 :b 1} | entries | max /1 | get /0","expect":":a"}
 {"name":"a-key-of-max-that-fails-answers-the-call","query":"[{:a 2} {:b 1}] | max /a !| type","expect":"::path/KeyNotInMapError"}
-{"name":"sort-by-key","query":"[{:age 30} {:age 20} {:age 25}] | sort /age","expect":"[{:age 20} {:age 25} {:age 30}]"}
-{"name":"sort-by-string-key","query":"[{:name \"Bob\"} {:name \"Alice\"}] | sort /name","expect":"[{:name \"Alice\"} {:name \"Bob\"}]"}
+{"name":"sort-ranks-the-elements-by-what-a-path-reads-from-each","query":"[{:age 30} {:age 20} {:age 25}] | sort /age","expect":"[{:age 20} {:age 25} {:age 30}]"}
+{"name":"sort-ranks-the-elements-by-a-key-that-reads-strings","query":"[{:name \"Bob\"} {:name \"Alice\"}] | sort /name","expect":"[{:name \"Alice\"} {:name \"Bob\"}]"}
 {"name":"sort-by-key-orders-the-entries-by-what-the-key-answers","query":"{:a {:n 2} :b {:n 1}} | sort /n | vals | map /n","expect":"[1 2]"}
 {"name":"a-path-as-the-key-of-sort-reads-each-element","query":"[{:a 2} {:a 1}] | sort /a | first | get /a","expect":"1"}
 {"name":"a-key-of-another-kind-is-refused-under-the-key","query":"[2 1] | sort 5 !| type","expect":"::vec/sort/key/KindNotTakenError"}

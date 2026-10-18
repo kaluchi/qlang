@@ -6,8 +6,7 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { cliSources } from '../src/cli-sources.mjs';
-import { createSession } from '@kaluchi/qlang-core/session';
-import { nodeAddresses } from '@kaluchi/qlang-core';
+import { createSession, nodeAddresses } from '@kaluchi/qlang-core';
 import { silentStreams } from './helpers/silent-streams.mjs';
 import { declaredPagesOf, failingLawsOf, linksOf, proseQuotesOf, quoteInProse, reportOfLaws, wrongLinksOf } from '../../core/test/helpers/catalog-pages.mjs';
 

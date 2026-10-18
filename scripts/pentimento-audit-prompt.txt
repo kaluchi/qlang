@@ -9,7 +9,7 @@ Then read your group, in its order: {{group}}. A unit marked "by grep" is read b
 Report each finding under a heading of its kind and its place, `### <kind> · path:line`, the kind one of six:
 - vestige: a name, a fact, a refusal, a path, a module or a mechanism that a tree built for the mission from a clean sheet would not hold, or would hold simpler or fewer; an identifier that says what its value is not, and two mechanisms where one serves, are among them;
 - archaism: a term of a model the language left, in a name, a doc, a comment, a title or the name of a case, read against the pages of the catalog, `qlang '… | doc' < /dev/null` and `manifest`;
-- shim: newer code reaching older code through a conversion, a wrapper, a second table, a special case, a flag or an export kept for an older shape; one fact computed in two places is among them;
+- shim: newer code reaching older code through a conversion, a wrapper, a second table, a special case, a flag or an export kept for an older form; one fact computed in two places is among them;
 - subordination: a part that depends on what should depend on it, the core holding a need of a tool or a host, a function under the wrong noun, or a concept told by a later one;
 - pentimento and drift: as the section `## documents` of docs/spec/QSWRK-the-work.md defines them.
 

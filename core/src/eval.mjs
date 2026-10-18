@@ -1,10 +1,9 @@
 // The evaluator: the state pair of value and scope threaded through the
 // steps, each node a function `(node, state) → state`.
 
-import { parse } from './parse.mjs';
 import { ROOT_KEY, QUERY_KEY, CALL_BINDS_KEY, WITHHELD_KEY } from './env-keys.mjs';
 import {
-  rootState, withPipeValue, withEnv, nestState, depthBelow, envSet, envHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
+  withPipeValue, withEnv, nestState, depthBelow, envSet, envHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
   withCall, originIn, ownScopeOf
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError, declareInvariantError } from './errors.mjs';
@@ -13,24 +12,26 @@ import { readPath, partsOfTemplate, PathIndexOutOfBoundsError, PathKeyNotInMapEr
 import {
   isSet, isErrorValue, isQuote, isDoc, primitiveOf,
   typeOf, keyword, NULL, makeErrorValue,
-  makeDoc, makeSet, makeRegex, makePath, isPath,
+  makeDoc, makeRegex, makePath, isPath,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest,
   isFn, isKind, recipeOf, constructorOf, makeQuote, isMap, stampTagHeader, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isValueClass, isTag, kindsExpected
+  ERROR_TAG, TRACE_TAG, isValueClass, isTag
 } from './types.mjs';
+import { makeSet, kindsExpected } from './ordering.mjs';
 import { declaredNameOf, originOf, repeatsDeclarationInScope } from './walk.mjs';
-import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode, tagCallStepOf, commandStep, groupStep } from './quote.mjs';
-import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder } from './error-convert.mjs';
-import { langRuntime } from './runtime/index.mjs';
+import { quoteOfBody, quoteOfLiteral, docOfNode, slotDocsOf, astOfQuote, stepOfNode } from './quote.mjs';
+import { tagCallStepOf, commandStep, groupStep } from './steps.mjs';
+import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  ANY_KIND_NAME, INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, argsBeyondInputsAddress, bareNameReach, subjectKindsRefusalAddress, CONSTRUCT_NAME, declaresALabel, elementsRefusalAddress, isInvariant, isLabel, isVerbValue, isRecipe, isUnderLabel, isVerb, kindsRefusalAddress, nodeOf, notGivenAddress, payloadRefusalName, refuseWithheld, residenceOnSubject, subjectRefusalAddress, CallValueWithheldError, kindsOfWalk
-} from './runtime/nouns.mjs';
-import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './runtime/chain.mjs';
+  INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, bareNameReach, declaresALabel, isInvariant, isLabel, isVerbValue, isRecipe, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, CallValueWithheldError, kindsOfWalk
+} from './nouns.mjs';
+import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
 import { inputsRunBy, inputsRunWithin } from './primitives.mjs';
-import { splitAddress } from './address.mjs';
 import {
-  runPrimitive, heldAtTheDoor, scopeTakenFromAHost, isThenable, keptAsSubject, walkToKinds, CallKindAnswersNoVerbError
-} from './runtime/verb.mjs';
+  splitAddress, ANY_KIND_NAME, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
+  notGivenAddress, payloadRefusalName, subjectRefusalAddress
+} from './address.mjs';
+import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds } from './dispatch.mjs';
 import {
   answerOfStep, answerOfPart, skipping, raisedBy, isRaisedBy
 } from './eval-trace.mjs';
@@ -50,19 +51,9 @@ const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifier
 const FnRecipeMissingError = declareRefusal('fn/RecipeMissingError');
 const BindWrittenOutsideItsChainError = declareRefusal('bind/WrittenOutsideItsChainError');
 
-// evalQuery(source, scope?) → the value a query answers from null, in the
-// scope it is handed, taken from its host, or the root's [QSHST#source].
-export async function evalQuery(source, scope) {
-  const initialScope = scope ? scopeTakenFromAHost(scope) : await langRuntime();
-  let ast;
-  try {
-    ast = parse(source);
-  } catch (parseErr) {
-    return errorFromParse(parseErr, initialScope);
-  }
-  const finalState = await evalBody(ast, rootState(null, initialScope));
-  return finalState.pipeValue;
-}
+// A call of a name no kind of whose subject answers names what the reader
+// needs: where the verbs of the name live [QSDSP#refusal].
+const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
 
 // evalAst(ast, state) → Promise<state'>
 //
@@ -703,6 +694,31 @@ async function applyVerb(record, modifiers, state) {
   return await applyFunctionVerb(record, isFn(value) ? value : functionOfRecipe(value), modifiers, state);
 }
 
+// The value under the tags from the innermost out, each laid again through
+// its kind [QSDSP#answer]; an error passes as it is, as it does under every
+// tag [QSERR#flow].
+async function underTags(value, tags, state) {
+  let wrapped = value;
+  for (const tag of [...tags].reverse()) wrapped = await layTag(tag.name, wrapped, state);
+  return wrapped;
+}
+
+// The answer of the subject's own kind, made by its constructor, a set's, a
+// tag's or a quote's among them, under the tags the walk passed
+// [QSDSP#answer], [QSSLF#catalog], and at once where it is of the kind and the
+// walk passed no tag.
+function keptAsSubject(answer, served, passedTags, state) {
+  const ownKind = typeOf(served).name;
+  const reached = walkToKinds(answer, [ownKind]);
+  if (reached !== null && passedTags.length === 0) return reached.served;
+  return keptUnderTags(answer, reached, ownKind, passedTags, state);
+}
+
+async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
+  const kept = reached?.served ?? await layTag(ownKind, answer, state);
+  return await underTags(kept, passedTags, state);
+}
+
 // The answer brought to the kinds `returns` names, a verb that names `::any`
 // bringing none [QSBLD#answer]: one that reaches another of the
 // kinds is the value it reaches; one of the verb's own label goes back under
@@ -1133,7 +1149,7 @@ function laneOf(env) {
 // reducer's quote names by one word, its name or its address, called as the
 // pipe calls it, `acc | add item`, the verb residing on the accumulator among
 // them, and a value of the scope under the name meeting the verb there; null
-// for code of any other shape or a name of no verb, which `reduce` runs on
+// for code of any other form or a name of no verb, which `reduce` runs on
 // the pair of the value so far and the element [QSCOL#reduce]. A call the
 // accumulator refuses answers the failure it raised, which the fold marks at
 // the place of its element [QSERR#trace].

@@ -1,6 +1,6 @@
 import { keyword, makeErrorValue, makeTag, makeTagged, typeOf, ERROR_TAG } from './types.mjs';
 import { declareInvariantError, recordRefusal } from './errors.mjs';
-import { namesDeclaredUnder } from './runtime/nouns.mjs';
+import { namesDeclaredUnder } from './nouns.mjs';
 import { deepEqual } from './equality.mjs';
 import { nameOfContinuation } from './parse.mjs';
 

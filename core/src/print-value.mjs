@@ -1,27 +1,33 @@
 // The printer of the core: the text that reads back as a value, a part a
 // kind whose `print` is declared under it prints its own way taken from that
-// kind before the forms of the core write the rest [QSPRN#print].
+// kind before the forms of the core write the rest, the text of code among
+// them [QSPRN#print].
 
-import { printQuoteSource, docText } from '../quote.mjs';
-import { regexLiteral } from '../regex-read.mjs';
-import { readsAsBareKeyword } from '../name-chars.mjs';
-import { segmentIndex } from '../path-read.mjs';
+import { regexLiteral } from './regex-read.mjs';
+import { readsAsBareKeyword } from './name-chars.mjs';
+import { segmentIndex } from './path-read.mjs';
+import { stepTagOf, errorFieldsOf, CALL_TAG, BIND_TAG, CONSTRUCT_TAG, FAIL_TAG, GROUP_TAG } from './steps.mjs';
 import {
   isVec,
   isMap,
+  isSet,
   isPath,
+  isQuote,
+  isDoc,
   isFrame,
   isTrace,
+  isValueClass,
   ELISION_TAG,
   ERROR_TAG,
+  QUOTE_AST_SLOT,
   formOf,
   refuseForeign,
   TAG_HEADER_SYMBOL,
   canonicalKeywordLiteral
-} from '../types.mjs';
+} from './types.mjs';
 
 // `dispatchQlangValue(pipeValue, handlers, ...extraArgs)`: the handler of the
-// value's form, `formOf`, which the views of `format.mjs` share.
+// value's form, `formOf`, which the codec of JSON shares.
 export function dispatchQlangValue(pipeValue, handlers, ...extraArgs) {
   return handlers[formOf(pipeValue)](pipeValue, ...extraArgs);
 }
@@ -119,7 +125,7 @@ function printErrorValue(e, indent, printedOf) {
 // [QSLIT#tag].
 const KINDS_AFTER_HASH = new Set(['number', 'boolean', 'null', 'path']);
 
-export function underTagLiteral(tagLiteral, payload, payloadPrint) {
+function underTagLiteral(tagLiteral, payload, payloadPrint) {
   return KINDS_AFTER_HASH.has(formOf(payload)) ? `${tagLiteral}#${payloadPrint}` : tagLiteral + payloadPrint;
 }
 
@@ -146,4 +152,83 @@ function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const pad = '  '.repeat(indent + 1);
   const lines = entries.map(([k, v]) => `${pad}${canonicalKeywordLiteral(k)} ${printValue(v, indent + 1, printedOf)}`);
   return `${open}\n${lines.join('\n')}\n${'  '.repeat(indent)}}`;
+}
+
+// printQuoteSource(quote) → the text between `~(` and `)`, in the command
+// form. A quote read from that text leaves steps equal to the ones
+// printed, since the constructor of every record and wrapper refuses one
+// whose text reads back as another step.
+export function printQuoteSource(quote) {
+  return printSteps(quote);
+}
+
+// The text a quote of a doc was written in, the source its literal
+// spelled, which reads back as the same steps; a quote assembled from
+// data, which has no source, is printed [QSSLF#doc].
+function writtenSourceOf(quote) {
+  const writtenText = quote[QUOTE_AST_SLOT]?.ast?.text;
+  return typeof writtenText === 'string' ? writtenText : printQuoteSource(quote);
+}
+
+// docText(doc) → its prose with each quote written where it stands as its
+// author wrote it, a quote under tags with its stack before it, the text
+// a doc's `content` answers [QSSLF#doc].
+export function docText(doc) {
+  return doc.map(segment => typeof segment === 'string' ? segment
+    : isQuote(segment) ? `~(${writtenSourceOf(segment)})` : printValue(segment)).join('');
+}
+
+// A quote of declarations alone, the story `source` reads, prints one
+// declaration a line, each after the first led by its pipe, as the
+// catalog writes it [QSQUO#parse], and so does a quote of several steps one of
+// which takes several lines, the commands of a chain among them.
+function printSteps(steps) {
+  const printed = steps.map(step => (stepTagOf(step) === FAIL_TAG.name ? { fail: printSteps(step.payload) } : { step: printStep(step) }));
+  const lined = steps.length > 1 && (steps.every(step => stepTagOf(step) === BIND_TAG.name) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
+  const gap = lined ? '\n' : ' ';
+  return printed.map(({ fail, step }, index) => {
+    if (fail !== undefined) return `${index === 0 ? '' : gap}!| ${fail}`;
+    return (index === 0 ? '' : `${gap}| `) + step;
+  }).join('');
+}
+
+function printStep(step) {
+  if (isQuote(step)) return `~(${printSteps(step)})`;
+  if (isDoc(step)) return printValue(step);
+  if (isSet(step)) return `#[${step.map(printStep).join(' ')}]`;
+  switch (stepTagOf(step)) {
+    case CALL_TAG.name: return printCall(step);
+    case BIND_TAG.name: return printBind(step);
+    case CONSTRUCT_TAG.name: return printConstruct(step.get('tag').literal, step.get('payload'));
+    case GROUP_TAG.name: return `(${printSteps(step.payload)})`;
+  }
+  const errorFields = errorFieldsOf(step);
+  if (errorFields !== null) return `${isValueClass(step, 'underTag') ? step.tag.literal : ''}!{${printEntries([...errorFields])}}`;
+  if (isVec(step)) return `[${step.map(printStep).join(' ')}]`;
+  if (isMap(step)) return `{${printEntries([...step])}}`;
+  return printValue(step);
+}
+
+// A construct step writes its payload after its tag as a tagged literal
+// does, and a payload of code in the parentheses the parser refuses after
+// a tag, so the step reads back as none [QSLIT#tag].
+function printConstruct(tagLiteral, payload) {
+  const kind = stepTagOf(payload);
+  if (kind === CALL_TAG.name || kind === BIND_TAG.name) return `${tagLiteral}(${printStep(payload)})`;
+  return underTagLiteral(tagLiteral, payload, printStep(payload));
+}
+
+function printEntries(entries) {
+  return entries.map(([key, value]) => `${canonicalKeywordLiteral(key)} ${printStep(value)}`).join(' ');
+}
+
+function printCall(call) {
+  return [call.get('name').name, ...(call.get('modifiers') ?? []).map(printStep)].join(' ');
+}
+
+function printBind(bind) {
+  const parts = [bind.get('name').literal];
+  if (bind.has('docs')) parts.push(...bind.get('docs').map(printStep));
+  if (bind.has('body')) parts.push(printStep(bind.get('body')));
+  return parts.join(' ');
 }

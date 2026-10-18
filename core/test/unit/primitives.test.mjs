@@ -192,7 +192,7 @@ describe('createPrimitiveRegistry — isolation between instances', () => {
 });
 
 describe('PRIMITIVE_REGISTRY', () => {
-  it('is the module-level singleton with the registry shape', () => {
+  it('is the module-level singleton with the methods of a registry', () => {
     expect(PRIMITIVE_REGISTRY).toBeDefined();
     expect(typeof PRIMITIVE_REGISTRY.register).toBe('function');
     expect(typeof PRIMITIVE_REGISTRY.primitivesUnder).toBe('function');

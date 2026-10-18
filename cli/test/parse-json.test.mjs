@@ -1,6 +1,6 @@
 // parseJson coverage. The parser is exercised through
 // runQuery so the bound verb's path, the per-site error sites, and
-// the qlang-shape conversion all fire against a real session.
+// the lift of JSON into the values of qlang all fire against a real session.
 // The rules it holds: [QSHST#answer], [QSDSP#walk].
 
 import { describe, it, expect } from 'vitest';
@@ -11,7 +11,7 @@ import { silentStreams } from './helpers/silent-streams.mjs';
 describe('parseJson — happy path', () => {
   it('lifts a JSON object into a Map with keyword keys', async () => {
     const cellEntry = await runQuery('"{\\"name\\":\\"alice\\"}" | parseJson', silentStreams);
-    expect(cellEntry.error).toBeNull();
+    expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBeInstanceOf(Map);
     expect(cellEntry.result.get('name')).toBe('alice');
   });

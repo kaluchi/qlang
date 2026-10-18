@@ -1,11 +1,12 @@
 // The quote as a vector of steps — what `quote.mjs` reads a tree into,
-// which values it takes for steps, and what the constructors of the
-// records and wrappers refuse when a hand assembly does not read back
+// which values `steps.mjs` takes for steps, and what the constructors of
+// the records and wrappers refuse when a hand assembly does not read back
 // as itself.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/eval.mjs';
-import { printQuoteSource, quoteOfSource } from '../../src/quote.mjs';
+import { evalQuery } from '../../src/session.mjs';
+import { quoteOfSource } from '../../src/quote.mjs';
+import { printQuoteSource } from '../../src/print-value.mjs';
 import { isQuote } from '../../src/types.mjs';
 
 describe('the empty quote', () => {

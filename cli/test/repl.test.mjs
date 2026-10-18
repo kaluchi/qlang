@@ -94,7 +94,7 @@ describe('runRepl — query evaluation', () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // REPL paints output with ANSI colour codes — strip before
-    // matching the structural shape.
+    // matching the text.
     const text = replHarness.stdoutText().replace(/\x1b\[[0-9;]*m/g, '');
     expect(text).toContain('::quote/ParseError!{');
     expect(text).toContain(':source "[1 2"');
@@ -174,6 +174,26 @@ describe('runRepl — output highlighting', () => {
 
     const stdoutText = stdoutChunks.join('');
     expect(stdoutText).toMatch(/\x1b\[33m4/);
+  });
+});
+
+// A defect raised past the fail track is no answer: the REPL writes it on
+// stderr and runs the next cell [QSHST#repl].
+describe('runRepl — a defect of a cell', () => {
+  it('writes the defect on stderr as `qlang:` and its message, and runs the next cell', async () => {
+    const leaked = '1e308 | apply (::fn | takes :x |~~ An x. ~~| /0 | impl (::number/add | binding | get /value | get /1)) [1e308] | print';
+    const replHarness = captureRepl(`${leaked}\n[1 2] | count\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    expect(replHarness.stderrText()).toBe('qlang: the core met number Infinity, a value of no kind of the language\n');
+    expect(stripAnsi(replHarness.stdoutText())).toContain('2\n');
+  });
+
+  it('writes a defect the printer raises on the answer on stderr, and runs the next cell', async () => {
+    const leaked = '1e308 | apply (::fn | takes :x |~~ An x. ~~| /0 | impl (::number/add | binding | get /value | get /1)) [1e308]';
+    const replHarness = captureRepl(`${leaked}\n[1 2] | count\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    expect(replHarness.stderrText()).toBe('qlang: the core met number Infinity, a value of no kind of the language\n');
+    expect(stripAnsi(replHarness.stdoutText())).toContain('2\n');
   });
 });
 

@@ -6,7 +6,7 @@
 {"name":"a-quote-of-declarations-prints-a-declaration-a-line","query":"~(:a 1 | :b 2) | toString","expect":"\":a 1\n| :b 2\""}
 {"name":"a-quote-of-other-steps-prints-on-one-line","query":"~(:a 1 | a) | toString","expect":"\":a 1 | a\""}
 {"name":"a-story-printed-reads-back-as-itself","query":"::number | source | print | parse | first | eq (::number | source)","expect":"true"}
-{"name":"parse-number-literal","query":"\"42\" | parse","expect":"~(42)"}
+{"name":"parse-reads-the-text-of-a-number-into-its-quote","query":"\"42\" | parse","expect":"~(42)"}
 {"name":"parse-pipeline-is-a-quote","query":"\"42 | add 1\" | parse | type","expect":"::quote"}
 {"name":"parse-reads-text-alone-and-refuses-a-quote-under-its-address","query":"~(5 | mul 2) | parse !| type","expect":"::string/parse/SubjectNotStringError"}
 {"name":"a-text-read-as-a-quote-is-written-back-in-the-one-spelling","query":"\"5 |  mul   2\" | parse | toString","expect":"\"5 | mul 2\""}

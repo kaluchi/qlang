@@ -1,7 +1,6 @@
 import { readsAsBareKeyword } from './name-chars.mjs';
 import { declareInvariantError } from './errors.mjs';
 import { TAG_SIGIL } from './env-keys.mjs';
-import { compareValues } from './ordering.mjs';
 
 export const NULL = null;
 
@@ -180,25 +179,10 @@ export function constructorOf(kind) {
   return kind[1];
 }
 
-// A set is the vector in the one order without duplicates under `::set`
-// [QSORD#order], made here alone; the order ranks two values alike exactly
-// when they are equal.
+// The names of the tags of a set, a binding and a descriptor.
 export const SET_TAG_NAME = 'set';
 export const BINDING_TAG_NAME = 'binding';
 const BUILTIN_TAG_NAME = 'builtin';
-
-// The kinds a holder takes, the set of their tags a refusal of a value of
-// none of them holds as `:expected` [QSERR#site].
-export function kindsExpected(...kindNames) {
-  return makeSet(kindNames.map(makeTag));
-}
-
-export function makeSet(elements) {
-  const ordered = [...elements].sort(compareValues);
-  const set = ordered.filter((element, index) => index === 0 || compareValues(ordered[index - 1], element) !== 0);
-  stampTagHeader(set, SET_TAG);
-  return Object.freeze(set);
-}
 
 // An error at rest, a value like any other: its facts under `::error` and
 // the tag of its site over them, none for the kind of errors, what a catch
@@ -218,8 +202,7 @@ export function isDoc(v) {
 }
 
 // The kinds of the core whose values are vectors under a tag of their own,
-// a set, a quote and a doc, each read as a vector wherever a vector is read
-// and keeping its shape where a plain vector gives way.
+// a set, a quote and a doc, each read as a vector wherever a vector is read.
 export const KINDS_OF_OWN_VECTORS = [SET_TAG_NAME, QUOTE_TAG_NAME, DOC_TAG_NAME];
 
 export function isVecOfOwnKind(v) {
@@ -261,16 +244,12 @@ function stampSlot(target, slot, value) {
 // The tags the runtime names.
 export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
-export const ABSENT_TAG      = makeTag('absent');
 export const DESC_TAG        = makeTag('desc');
 export const DOC_TAG         = makeTag(DOC_TAG_NAME);
-export const EACH_TAG        = makeTag('each');
 export const ELISION_TAG     = makeTag('elision');
 export const ERROR_TAG       = makeTag('error');
-export const NULLABLE_TAG    = makeTag('nullable');
 export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
 export const SET_TAG         = makeTag(SET_TAG_NAME);
-export const SHAPE_TAG       = makeTag('shape');
 
 // The kind of every value without a tag of its own, the one its literal
 // implies, which `type` answers [QSLIT#kind].
@@ -290,17 +269,9 @@ export const CORE_KIND = Object.freeze({
   doc:     DOC_TAG
 });
 
-// The tags of a quote's steps [QSQUO#step]: the records of what computes,
-// and the wrappers a step takes on the fail track or in parentheses.
-export const CALL_TAG      = makeTag('call');
-export const BIND_TAG      = makeTag('bind');
-export const CONSTRUCT_TAG = makeTag('construct');
-export const FAIL_TAG      = makeTag('fail');
-export const GROUP_TAG     = makeTag('group');
-
-// A tag over a payload: an untagged vector or map keeps its shape under
-// the tag, so every verb of the container reads it; any other payload, a
-// tagged one among them, is held by a wrapper, which `payload` opens.
+// A tag over a payload: an untagged vector or map holds the tag on itself,
+// so every verb of the container reads it; any other payload, a tagged one
+// among them, is held by a wrapper, which `payload` opens.
 export function makeTagged(tag, payload) {
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     const arr = [...payload];

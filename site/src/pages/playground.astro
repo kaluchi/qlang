@@ -200,7 +200,7 @@ import Base from "../layouts/Base.astro"
   import { highlightQlang } from '../lib/qlang-highlight.js';
 
   async function initPlayground() {
-    const { evalQuery, printValue, caretOf, langRuntime, inlineCatalogLocator, isErrorValue, verbNames } = await import(
+    const { createSession, cellShown, langRuntime, inlineCatalogLocator, verbNames } = await import(
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
@@ -230,22 +230,22 @@ import Base from "../layouts/Base.astro"
       const source = editor.value.trim();
       if (!source) return;
 
-      // Split by blank lines into the queries it holds
+      // Split by blank lines into the cells it holds, which run in one
+      // session, a name one declares staying for the cells after it.
       const cells = source.split(/\n\s*\n/).filter(s => s.trim());
+      const session = await createSession({ scope });
 
       const entries: HTMLElement[] = [];
       for (const cell of cells) {
-        const result = await evalQuery(cell.trim(), scope);
-        const isError = isErrorValue(result);
+        const { text: printed, failed } = cellShown(await session.evalCell(cell.trim()));
         const entry = document.createElement('div');
         entry.className = 'pg-entry';
         const highlighted = highlightQlang(cell.trim(), rootVerbNames)
           .replace(/\n/g, '<br>');
-        const printed = [printValue(result), caretOf(result)].filter(part => part !== null).join('\n');
         const highlightedResult = highlightQlang(printed, rootVerbNames);
         entry.innerHTML = `
           <div class="pg-source">${highlighted}</div>
-          <div class="${isError ? 'pg-error' : 'pg-value'}">${highlightedResult}</div>
+          <div class="${failed ? 'pg-error' : 'pg-value'}">${highlightedResult}</div>
         `;
         entries.push(entry);
       }

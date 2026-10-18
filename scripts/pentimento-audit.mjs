@@ -10,11 +10,11 @@
 // its reading beside them, `reading.md`, every finding with its probe and
 // its fate. The units are the texts the walk of the baseline cites, taken in
 // the order the texts rank [QSWRK#documents]: the topic of the language;
-// each source of the catalog with the modules of `core/src` that bind most
-// of their addresses under its noun; the names of the cases and the titles
+// each source of the catalog with the modules of `core/src` that register
+// most of their addresses under its noun; the names of the cases and the titles
 // of the tests, read by grep; the other code of the core with the grammar;
 // the hosts; the tools with the configurations; and the seeds. Into each
-// prompt go its group, the cycles of the imports of `core/src` and the first
+// prompt go its group, the cycles of the imports of the core and the first
 // line of every open record.
 //
 // Usage: node scripts/pentimento-audit.mjs --for Dnn [--why "…"] [--groups N] [--dry]
@@ -23,6 +23,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, posix, relative } from 'node:path';
 import { CITING_CODE_FILES, CITING_DOCUMENTS, citingCodeOf } from './baseline-walk.mjs';
+import { importsOfCore, cyclesOf } from './core-imports.mjs';
 import { JOURNAL, RESEARCH, isOpenText } from './decision-records.mjs';
 import {
   allowedReading, headOf, holdTheRun, minuteOf, nextRunOf, packByWeight, refuseASecondRun, refuseNoRecordInForce,
@@ -44,11 +45,12 @@ const shown = path => relative(repoRoot, path).replaceAll('\\', '/');
 const sizeOf = path => statSync(join(repoRoot, path)).size;
 const read = path => readFileSync(join(repoRoot, path), 'utf8');
 
-// The modules of `core/src` by the noun under which they bind most of their
-// addresses, through the binders of `core/src/primitives.mjs`.
+// The modules of `core/src` by the noun under which they register most of
+// their addresses, the first they register under where two tie, read from the
+// calls that register their primitives in the table of `core/src/primitives.mjs`.
 const code = citingCodeOf(repoRoot);
 const coreModules = code.filter(path => path.startsWith('core/src/'));
-const BOUND = /bind(?:Prim|StateReader|ReaderOfPassedTags)\(\s*(\[[^\]]*\]|'[^']*')/g;
+const BOUND = /register(?:Primitive|StateReader|ReaderOfPassedTags)\(\s*(\[[^\]]*\]|'[^']*')/g;
 const nounOf = new Map(coreModules.map(path => {
   const counts = new Map();
   for (const [, addresses] of read(path).matchAll(BOUND)) {
@@ -85,47 +87,9 @@ const units = [
 ].filter(unit => unit.files.length > 0);
 const groups = packByWeight(units, groupCount);
 
-// The cycles of the imports of `core/src`, the strongly connected components
-// of the graph of their relative imports, as their paths.
-const IMPORTED = /^\s*(?:import|export)\b[^'"]*?from\s+'(\.[^']+)'|^\s*import\s+'(\.[^']+)'|\bimport\(\s*'(\.[^']+)'\s*\)/gm;
-const importsOf = path => [...read(path).matchAll(IMPORTED)]
-  .map(match => posix.join(posix.dirname(path), match[1] ?? match[2] ?? match[3])).filter(target => coreModules.includes(target));
-function cyclesOf(modules) {
-  const index = new Map();
-  const low = new Map();
-  const stack = [];
-  const onStack = new Set();
-  const components = [];
-  let counter = 0;
-  const visit = module => {
-    index.set(module, counter);
-    low.set(module, counter);
-    counter += 1;
-    stack.push(module);
-    onStack.add(module);
-    for (const target of importsOf(module)) {
-      if (!index.has(target)) {
-        visit(target);
-        low.set(module, Math.min(low.get(module), low.get(target)));
-      } else if (onStack.has(target)) {
-        low.set(module, Math.min(low.get(module), index.get(target)));
-      }
-    }
-    if (low.get(module) !== index.get(module)) return;
-    const component = [];
-    let member;
-    do {
-      member = stack.pop();
-      onStack.delete(member);
-      component.push(member);
-    } while (member !== module);
-    if (component.length > 1) components.push(component.sort());
-  };
-  for (const module of modules) if (!index.has(module)) visit(module);
-  return components;
-}
-const cycles = cyclesOf(coreModules.filter(path => path.endsWith('.mjs')));
-const cyclesText = cycles.length === 0 ? 'none' : cycles.map(component => component.map(path => path.slice('core/src/'.length)).join(', ')).map(line => `[${line}]`).join('; ');
+// The cycles of the imports of `core/src`, as their paths from it.
+const cycles = cyclesOf(importsOfCore(repoRoot));
+const cyclesText = cycles.length === 0 ? 'none' : cycles.map(component => component.map(path => posix.relative('core/src', path)).join(', ')).map(line => `[${line}]`).join('; ');
 
 const nameOf = group => (group.length === 1 ? group[0].name : `${group[0].name}--${group.at(-1).name}`);
 if (process.argv.includes('--dry')) {

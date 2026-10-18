@@ -1,4 +1,4 @@
-{"name":"wrap-with-original","query":"[{:id 1 :name \"a\"}] | map ~(:item it | get {:key /id :record ~(item)})","expect":"[{:key 1 :record {:id 1 :name \"a\"}}]"}
+{"name":"a-part-of-a-template-reads-a-name-the-code-of-map-declared","query":"[{:id 1 :name \"a\"}] | map ~(:item it | get {:key /id :record ~(item)})","expect":"[{:key 1 :record {:id 1 :name \"a\"}}]"}
 {"name":"a-name-is-declared-once-in-a-scope","query":":k 1 | :k 2 | k !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :k]"}
 {"name":"a-second-declaration-is-the-step-that-failed","query":":k 1 | :k 2 | k !| trace | first | failed","expect":"~(:k 2)"}
 {"name":"a-tag-is-declared-once-in-a-scope","query":":T |~~ T. ~~| | :T |~~ T. ~~| !| get [~(type) /name]","expect":"[::bind/NameDeclaredTwiceError :T]"}

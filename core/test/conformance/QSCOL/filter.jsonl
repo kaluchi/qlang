@@ -1,16 +1,16 @@
-{"name":"filter-gt","query":"[1 2 3 4 5] | filter ~(gt 2)","expect":"[3 4 5]"}
-{"name":"filter-lt","query":"[1 2 3 4 5] | filter ~(lt 3)","expect":"[1 2]"}
-{"name":"filter-then-count","query":"[1 2 3 4 5] | filter ~(gt 3) | count","expect":"2"}
-{"name":"filter-map-value-gt","query":"{:a 1 :b 2 :c 3} | filter ~(gt 1)","expect":"{:b 2 :c 3}"}
-{"name":"filter-map-empty","query":"{} | filter ~(gt 0)","expect":"{}"}
+{"name":"filter-keeps-in-order-the-elements-its-predicate-answers-true-for","query":"[1 2 3 4 5] | filter ~(gt 2)","expect":"[3 4 5]"}
+{"name":"filter-leaves-out-the-elements-its-predicate-answers-false-for","query":"[1 2 3 4 5] | filter ~(lt 3)","expect":"[1 2]"}
+{"name":"count-after-filter-counts-the-elements-it-kept","query":"[1 2 3 4 5] | filter ~(gt 3) | count","expect":"2"}
+{"name":"filter-of-a-map-reads-its-values-and-keeps-their-keys","query":"{:a 1 :b 2 :c 3} | filter ~(gt 1)","expect":"{:b 2 :c 3}"}
+{"name":"filter-of-the-empty-map-answers-the-empty-map","query":"{} | filter ~(gt 0)","expect":"{}"}
 {"name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1)","expect":"{:c 3 :b 2}"}
 {"name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]"}
 {"name":"an-input-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| type","expect":"::vec/filter/predicate/KindNotTakenError"}
 {"name":"filter-keeps-the-entries-whose-value-passes","query":"{:a 1 :b 2} | filter ~(gt 1)","expect":"{:b 2}"}
 {"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| get [~(type) /index /actualType]","expect":"[::vec/filter/ConditionNotBooleanError 0 ::number]"}
-{"name":"classify-in-filter-over-map-string","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
-{"name":"classify-in-filter-over-map-map","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
-{"name":"classify-in-filter-over-map-vec","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}
+{"name":"filter-keeps-the-entries-of-a-map-whose-values-are-strings","query":"{:a 1 :b \"x\" :c [1]} | filter ~(type | eq ::string)","expect":"{:b \"x\"}"}
+{"name":"filter-keeps-the-entries-of-a-map-whose-values-are-maps","query":"{:a 1 :b {:x 1}} | filter ~(type | eq ::map)","expect":"{:b {:x 1}}"}
+{"name":"filter-keeps-the-entries-of-a-map-whose-values-are-vectors","query":"{:a 1 :b [1 2]} | filter ~(type | eq ::vec)","expect":"{:b [1 2]}"}
 {"name":"filter-keeps-a-set-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]"}
 {"name":"a-predicate-of-a-map-that-answers-no-boolean-is-refused-at-its-key","query":"{:a 1} | filter ~(5) !| get [~(type) /key]","expect":"[::map/filter/ConditionNotBooleanError :a]"}
 {"name":"a-predicate-that-fails-hands-the-failure-on","query":"[1 2] | filter ~(div 0) !| type","expect":"::number/div/divisor/ZeroError"}

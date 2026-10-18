@@ -60,7 +60,7 @@ describe('`!|` runs a group and a verb on the error at rest', () => {
     // The last frame of the trace holds the steps the error skipped, and a
     // comment is whitespace, so `count` alone joins them [D359],
     // [QSSYN#comment].
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | parse');
+    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | toString');
     expect(evalResult).toBe('count');
   });
 
@@ -73,11 +73,11 @@ describe('`!|` runs a group and a verb on the error at rest', () => {
 
 describe('source axis prints the declaration for rare body shapes', () => {
   it('renders a call that gives no modifiers as the body of a declaration', async () => {
-    expect(await evalQuery('[1 2] | :x count | ::x | source | parse')).toBe(':x count');
+    expect(await evalQuery('[1 2] | :x count | ::x | source | toString')).toBe(':x count');
   });
 
   it('a line comment inside the body of a declaration leaves no step', async () => {
-    const evalResult = await evalQuery(':x (42 |~| note\n) | ::x | source | parse');
+    const evalResult = await evalQuery(':x (42 |~| note\n) | ::x | source | toString');
     expect(evalResult).toBe(':x (42)');
   });
 
@@ -88,14 +88,14 @@ describe('source axis prints the declaration for rare body shapes', () => {
   });
 
   it('renders an error literal as the body of a declaration', async () => {
-    expect(await evalQuery('~(:x !{:a 1}) | parse')).toBe(':x !{:a 1}');
+    expect(await evalQuery('~(:x !{:a 1}) | toString')).toBe(':x !{:a 1}');
   });
 
   it('renders a group that opens with `!|` as the body of a declaration', async () => {
     // The body of a declaration is a step, so a pipeline that opens with
     // `!|` is written as a group, which keeps its parentheses in print
     // [QSNAM#declare].
-    expect(await evalQuery(':handler (!| get /kind) | ::handler | source | parse')).toBe(':handler (!| get /kind)');
+    expect(await evalQuery(':handler (!| get /kind) | ::handler | source | toString')).toBe(':handler (!| get /kind)');
   });
 });
 

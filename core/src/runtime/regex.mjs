@@ -1,18 +1,18 @@
-// The verbs of a string that read its text by a pattern: whether a match
+// The verbs of a string that read its text by a regex: whether a match
 // stands, the first match and its groups, the groups it names, the text of
 // every match, the text put in the place of every match, and the pieces
 // between the matches.
-// The rules it holds: [QSTXT#pattern].
+// The rules it holds: [D362].
 
 import { registerPrimitive, runs } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { isRegex, isErrorValue } from '../types.mjs';
-import { engineOf } from '../pattern.mjs';
+import { engineOf } from '../regex-read.mjs';
 
 const engineFor = (regex, extra = '') => engineOf(regex.source, regex.flags, extra);
 
-// The engine of a pattern that matches the empty text at once, which
-// answers the groups the pattern holds, every one of them unmatched.
+// The engine of a regex that matches the empty text at once, which
+// answers the groups the regex holds, every one of them unmatched.
 const groupsOf = regex => engineOf(`${regex.source}|`, regex.flags).exec('');
 
 // The vector of a match: its text, then each group at the index of its
@@ -21,8 +21,8 @@ const matchVector = found => Object.freeze(Array.from(found, part => part ?? nul
 
 export const containsMatch = (text, regex) => engineFor(regex).test(text);
 
-// The pieces of a text between the matches of a pattern, as the pieces of
-// a text between its separators: what the groups of the pattern capture
+// The pieces of a text between the matches of a regex, as the pieces of
+// a text between its separators: what the groups of the regex capture
 // stays out of them.
 export function piecesBetweenMatches(text, regex) {
   const stride = groupsOf(regex).length;
@@ -34,18 +34,18 @@ registerPrimitive('string/match', (text, regex) => {
   return found === null ? null : matchVector(found);
 });
 
-const StringCapturePatternNamesNoGroupError = declareRefusal('string/capture/PatternNamesNoGroupError');
+const StringCaptureRegexNamesNoGroupError = declareRefusal('string/capture/RegexNamesNoGroupError');
 
 registerPrimitive('string/capture', (text, regex) => {
   const names = Object.keys(groupsOf(regex).groups ?? {});
-  if (names.length === 0) throw new StringCapturePatternNamesNoGroupError({ actualValue: regex });
+  if (names.length === 0) throw new StringCaptureRegexNamesNoGroupError({ actualValue: regex });
   const found = engineFor(regex).exec(text);
   return found === null ? null : new Map(names.map(name => [name, found.groups[name] ?? null]));
 });
 
 registerPrimitive('string/scan', (text, regex) => Object.freeze(Array.from(text.matchAll(engineFor(regex, 'g')), found => found[0])));
 
-// A text looked for as a pattern of itself, every character the engine
+// A text looked for as a regex of itself, every character the engine
 // reads as syntax escaped.
 const SYNTAX_CHARACTERS = /[\\^$.*+?()[\]{}|/]/g;
 const engineOfText = needle => engineOf(needle.replace(SYNTAX_CHARACTERS, '\\$&'), '', 'g');
@@ -68,17 +68,17 @@ async function replacedByCode(text, engine, code) {
   return replaced + text.slice(from);
 }
 
-// A pattern's replacement names the parts of a match, `$1`, `$<name>`,
-// `$&`, a `$<name>` of a group the pattern lacks standing as written; a
+// A regex's replacement names the parts of a match, `$1`, `$<name>`,
+// `$&`, a `$<name>` of a group the regex lacks standing as written; a
 // text's stands as written. A text is looked for by code points as a
-// pattern is, so the empty text cuts no character in halves [QSTXT#match].
-registerPrimitive('string/replace', runs(['with'], (text, pattern, replacement) => {
-  const engine = isRegex(pattern) ? engineFor(pattern, 'g') : engineOfText(pattern);
+// regex is, so the empty text cuts no character in halves [D362].
+registerPrimitive('string/replace', runs(['with'], (text, needle, replacement) => {
+  const engine = isRegex(needle) ? engineFor(needle, 'g') : engineOfText(needle);
   if (typeof replacement === 'function') return replacedByCode(text, engine, replacement);
-  return text.replace(engine, isRegex(pattern) ? withGroupsOf(pattern, replacement) : () => replacement);
+  return text.replace(engine, isRegex(needle) ? withGroupsOf(needle, replacement) : () => replacement);
 }));
 
-// The replacement with each `$<name>` of a group the pattern lacks escaped,
+// The replacement with each `$<name>` of a group the regex lacks escaped,
 // so it stands as written.
 function withGroupsOf(regex, replacement) {
   const groups = new Set(Object.keys(groupsOf(regex).groups ?? {}));

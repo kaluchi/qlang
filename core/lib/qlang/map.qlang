@@ -50,10 +50,10 @@
         ~(::map{:a 1} | eq {:a 1})
     | proves :readsJson
         |~~ A JSON object is a map literal. ~~|
-        ~("{\"a\": 1, \"b\": [true, null]}" | parse | apply it | eq {:a 1 :b [true null]})
+        ~("{\"a\": 1, \"b\": [true, null]}" | parse | open | eq {:a 1 :b [true null]})
     | proves :keepsTheLastOfAKey
         |~~ A key written twice keeps the last value. ~~|
-        ~("{:a 1 :a 2}" | parse | apply it | eq {:a 2})
+        ~("{:a 1 :a 2}" | parse | open | eq {:a 2})
     | proves :buildsBackFromEntries
         |~~ The entries of a map build it back by `toMap`. ~~|
         ~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})

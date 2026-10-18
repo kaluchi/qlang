@@ -7,10 +7,10 @@
 // inside a vector [D359], one with a frame on its trace among them, and
 // functions and kinds built by their chains, pages over several lines, inputs,
 // fields, invariants, refusals, facts and laws among them [QSBLD#fn],
-// [QSBLD#kind], each printed, parsed and applied, and held equal to itself by
+// [QSBLD#kind], each printed, parsed and opened, and held equal to itself by
 // `eq`. A part computed goes into a container by the template of `get`, each
 // part of it a quote that answers it, and under a tag by `tag`, since a
-// literal computes nothing [QSLIT#tag].
+// literal computes nothing [D362].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -129,7 +129,7 @@ describe('the round trip of the print [QSPRN#print]', () => {
   it('reads every value back from its print as itself', async () => {
     const failing = [];
     for (const source of literalsOf(300, 7)) {
-      const held = await evalQuery(`${source} | :v it | print | parse | apply it | eq v`);
+      const held = await evalQuery(`${source} | :v it | print | parse | open | eq v`);
       if (held !== true) failing.push(source);
     }
     expect(failing).toEqual([]);

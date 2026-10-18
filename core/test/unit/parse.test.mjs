@@ -396,7 +396,7 @@ describe('parse — error handling', () => {
   it('says what could stand where the reading stopped as `:expected` names it, and what stood there [D360]', () => {
     expect(refusalOf('"a" | :').message).toBe('Expected "\\"" or name but end-of-source found.');
     expect(refusalOf('"\\u12"').message).toBe('Expected hexadecimal digit but "\\"" found.');
-    expect(refusalOf('#"a")').message).toBe('Expected end-of-source, flag of a pattern or whitespace but ")" found.');
+    expect(refusalOf('#"a")').message).toBe('Expected end-of-source, flag of a regex or whitespace but ")" found.');
   });
 
   it('attaches the opts.uri to ParseError', () => {

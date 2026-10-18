@@ -10,7 +10,7 @@ and passes it through steps, each answering a new value.
 > :number/double ~(mul 2) | [10 20 30] | map ~double
 [20 40 60]
 
-> "10 | add 3" | parse | apply it
+> "10 | add 3" | parse | open
 13
 ```
 

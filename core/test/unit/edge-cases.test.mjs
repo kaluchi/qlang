@@ -221,16 +221,16 @@ describe('runtime/string.mjs lines', () => {
 
 describe('source on a verb, a declaration of it and a tag', () => {
   // `source` reads a name by its tag, the quote of the declaration written
-  // under its address, which `parse` prints as its text, and a keyword by
-  // its kind [QSSLF#axis].
+  // under its address, which `toString` writes as its text, and a keyword by
+  // its kind [D362].
 
   it('source on the address of a verb returns the whole declaration', async () => {
-    const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | parse');
+    const source = await evalQuery(':any/double ~(mul 2) | ::any/double | source | toString');
     expect(source).toBe(':any/double ~(mul 2)');
   });
 
   it('source on a declaration of it answers the declaration', async () => {
-    const source = await evalQuery('42 | :snap it | ::snap | source | parse');
+    const source = await evalQuery('42 | :snap it | ::snap | source | toString');
     expect(source).toBe(':snap it');
   });
 });

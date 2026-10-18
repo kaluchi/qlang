@@ -1,6 +1,6 @@
-// The view of a value within a budget [QSPRN#elide]: each way a part gives
-// way, and the `:read` of every marker applied to the value taken answering
-// the part left out.
+// The view of a value within a budget [D362]: each way a part gives way, and
+// the `:read` of every elision applied to the value taken answering the part
+// left out.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';
@@ -9,9 +9,9 @@ import { printValue } from '../../src/runtime/format.mjs';
 import { isErrorValue, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 
-// Long enough that the marker standing for it prints shorter than it.
-const LONG = 'a long line of text to leave out for sure, which runs on long enough that its marker prints shorter';
-const readBack = async (value, marker) => evalQuery(`${printValue(value)} | apply ${printValue(marker.get('read'))}`);
+// Long enough that the elision standing for it prints shorter than it.
+const LONG = 'a long line of text to leave out for sure, which runs on long enough that its elision prints shorter';
+const readBack = async (value, elision) => evalQuery(`${printValue(value)} | apply ${printValue(elision.get('read'))}`);
 
 describe('elide [QSPRN#elide]', () => {
   it('answers a value whose print fits as it is', () => {
@@ -19,7 +19,7 @@ describe('elide [QSPRN#elide]', () => {
     expect(elide(value, 100)).toBe(value);
   });
 
-  it('keeps the first half of a vector and marks the rest, which its read answers', async () => {
+  it('keeps the first half of a vector and gives the rest way to an elision, which its read answers', async () => {
     const forty = Array.from({ length: 40 }, (_, index) => index + 1);
     const view = elide(forty, 80);
     const trailing = view[view.length - 1];
@@ -27,7 +27,7 @@ describe('elide [QSPRN#elide]', () => {
     expect(deepEqual(await readBack(forty, trailing), forty.slice(view.length - 1))).toBe(true);
   });
 
-  it('keeps the top as it is where its first element and a marker of the rest print no shorter', () => {
+  it('keeps the top as it is where its first element and an elision of the rest print no shorter', () => {
     const ten = Array.from({ length: 10 }, (_, index) => index + 1);
     expect(elide(ten, 15)).toBe(ten);
   });
@@ -42,17 +42,17 @@ describe('elide [QSPRN#elide]', () => {
 
   it('gives a string way whole with its head', async () => {
     const value = await evalQuery(`{:s "${LONG}" :n 1}`);
-    const marker = elide(value, 50).get('s');
-    expect(marker.get('size')).toBe(LONG.length);
-    expect(LONG.startsWith(marker.get('head'))).toBe(true);
-    expect(await readBack(value, marker)).toBe(LONG);
+    const elision = elide(value, 50).get('s');
+    expect(elision.get('size')).toBe(LONG.length);
+    expect(LONG.startsWith(elision.get('head'))).toBe(true);
+    expect(await readBack(value, elision)).toBe(LONG);
   });
 
   it('gives a map way whole', async () => {
     const value = await evalQuery('{:m {:a "some text here" :b "more text there"} :n 1}');
-    const marker = elide(value, 40).get('m');
-    expect(marker.get('size')).toBe(2);
-    expect(deepEqual(await readBack(value, marker), value.get('m'))).toBe(true);
+    const elision = elide(value, 40).get('m');
+    expect(elision.get('size')).toBe(2);
+    expect(deepEqual(await readBack(value, elision), value.get('m'))).toBe(true);
   });
 
   it('keeps the tag of a map it gives way within, and reads through a tag over an atom', async () => {
@@ -75,8 +75,8 @@ describe('elide [QSPRN#elide]', () => {
 
   it('reads a key with a space by a quoted path', async () => {
     const value = await evalQuery(`{:"a key" "${LONG}"}`);
-    const marker = elide(value, 30).get('a key');
-    expect(await readBack(value, marker)).toBe(LONG);
+    const elision = elide(value, 30).get('a key');
+    expect(await readBack(value, elision)).toBe(LONG);
   });
 
   it('gives the largest part way first, the others staying once the print fits', async () => {
@@ -86,7 +86,7 @@ describe('elide [QSPRN#elide]', () => {
     expect([view.get('a'), view.get('c')]).toEqual([value.get('a'), value.get('c')]);
   });
 
-  it('keeps a part whose marker prints no shorter than it, so a budget never lengthens a print [QSPRN#elide]', async () => {
+  it('keeps a part whose elision prints no shorter than it, so a budget never lengthens a print [D362]', async () => {
     const value = await evalQuery('[[] {:n 1} "short"]');
     expect(elide(value, 3)).toBe(value);
     const failing = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
@@ -128,10 +128,10 @@ describe('elideAnswer [QSPRN#elide]', () => {
 // A failure a host prints is an alert [D359]: the subject of the frame where
 // the failure arose within an excerpt, a subject it only passed given way whole,
 // an error at rest among its facts a value cut within its excerpt, a value
-// shown once, and the read of every marker continuing the query beneath `!|`.
+// shown once, and the read of every elision continuing the query beneath `!|`.
 describe('alertOf [D359]', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
-  const continued = (query, marker) => evalQuery(`${query} ${printValue(marker.get('read')).slice(2, -1)}`);
+  const continued = (query, elision) => evalQuery(`${query} ${printValue(elision.get('read')).slice(2, -1)}`);
 
   it('keeps the subject where the failure arose and gives a vector it passed way whole', async () => {
     const query = `${records} | filter ~(nope)`;
@@ -167,12 +167,12 @@ describe('alertOf [D359]', () => {
   it('cuts a long string where the failure arose to its head', async () => {
     const text = LONG.repeat(10);
     const query = `"${text}" | add 1`;
-    const marker = alertOf(await evalQuery(query)).descriptor.get('trace')[0][0];
-    expect(text.startsWith(marker.get('head'))).toBe(true);
-    expect(await continued(query, marker)).toBe(text);
+    const elision = alertOf(await evalQuery(query)).descriptor.get('trace')[0][0];
+    expect(text.startsWith(elision.get('head'))).toBe(true);
+    expect(await continued(query, elision)).toBe(text);
   });
 
-  it('gives a map and a string it passed way whole, and keeps what prints shorter than its marker', async () => {
+  it('gives a map and a string it passed way whole, and keeps what prints shorter than its elision', async () => {
     const [, map] = alertOf(await evalQuery(`{:s "${LONG}" :t "${LONG}"} | (add 1)`)).descriptor.get('trace');
     expect(map[0].get('size')).toBe(2);
     const text = LONG.repeat(3);

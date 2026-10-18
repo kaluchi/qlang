@@ -212,8 +212,8 @@ describe('the literal reads back error values and values under a tag', () => {
 });
 
 describe('deepEqual tells an Array, a Map and a Set under a tag from one under none', () => {
-  // Tag mismatch on overlay-shape collections — same content,
-  // different (or absent) header tag — must not compare equal.
+  // Tag mismatch on overlay-shape collections — same content, a
+  // different header tag or none — must not compare equal.
   // Each branch (Array / Map / Set) gets its own assertion.
   it('rejects tagged Array vs untagged Array with same elements', async () => {
     const { makeTagged } = await import('../../src/types.mjs');

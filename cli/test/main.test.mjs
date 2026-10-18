@@ -393,7 +393,7 @@ describe('main — a query the shell turned into a path', () => {
     expect(queryAsWritten('C:/data/users', UNDER_MSYS, () => false)).toBe('C:/data/users');
   });
 
-  it('leaves a query of the language and the absent query of a REPL as they came [QSHST#shell]', () => {
+  it('leaves a query of the language, and no query where a REPL starts without one, as they came [QSHST#shell]', () => {
     expect(queryAsWritten('/data/users', UNDER_MSYS, () => true)).toBe('/data/users');
     expect(queryAsWritten(null, UNDER_MSYS, () => true)).toBe(null);
   });

@@ -7,13 +7,13 @@
 {"name":"quote-filter-keeps-a-quote","query":"~(add 1 | mul 2) | filter ~(get /name | eq :mul)","expect":"~(mul 2)"}
 {"name":"map-over-a-quote-drops-the-tag","query":"~(add 1 | mul 2) | map /name","expect":"[:add :mul]"}
 {"name":"quote-tag-refuses-a-non-step","query":"[::Box[1]] | tag ::quote !| type","expect":"::quote/ElementNotStepError"}
-{"name":"quote-assembled-from-steps","query":"[[1 2] ::call{:name :count}] | tag ::quote | parse","expect":"\"[1 2] | count\""}
+{"decision":"D362","name":"a-quote-assembled-from-steps-writes-them-as-its-text","query":"[[1 2] ::call{:name :count}] | tag ::quote | toString","expect":"\"[1 2] | count\""}
 {"name":"call-record-that-reads-back-as-no-code-is-refused","query":"::call{:name :\"a b\"} !| get [~(type) /printed]","expect":"[::call/ReadBackDiffersError \"a b\"]"}
 {"name":"the-step-of-a-tagged-literal-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct"}
 {"name":"a-construct-step-over-an-error-literal-step-reads-back-as-another","query":"~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct !| type","expect":"::construct/ReadBackDiffersError"}
 {"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| it) | first | get /docs | first | type","expect":"::doc"}
 {"decision":"D359","name":"the-step-of-an-error-literal-maps-as-the-map-of-its-fields","query":"~(!{:kind :oops :trace 5}) | map ~count","expect":"[2]"}
-{"name":"a-quote-holds-a-pattern-as-a-step","query":"\"match #\\\"\\\\d\\\"\" | parse | get [~(first | get /modifiers | first | type) ~(print)]","expect":"[::regex \"~(match #\\\"\\\\d\\\")\"]"}
+{"decision":"D362","name":"a-quote-holds-a-regex-as-a-step","query":"\"match #\\\"\\\\d\\\"\" | parse | get [~(first | get /modifiers | first | type) ~(print)]","expect":"[::regex \"~(match #\\\"\\\\d\\\")\"]"}
 {"name":"parse-call-name","query":"\"add 1 2\" | parse | first | get /name","expect":":add"}
 {"name":"parse-call-modifiers-count","query":"\"add 1 2\" | parse | first | get /modifiers | count","expect":"2"}
 {"name":"parse-command-modifiers-are-their-steps","query":"\"add 1 2\" | parse | first | get /modifiers","expect":"[1 2]"}
@@ -23,7 +23,7 @@
 {"name":"parse-keyword-literal-step","query":"\":foo\" | parse | first","expect":":foo"}
 {"name":"parse-pipeline-step-count","query":"\"42 | add 1 | mul 2\" | parse | count","expect":"3"}
 {"name":"a-payload-of-a-quote-is-a-vector-of-steps","query":"5 | tag ::quote !| type","expect":"::quote/PayloadKindNotTakenError"}
-{"name":"a-quote-of-a-path-alone-prints-and-reads-back","query":"::quote[/age] | :q it | print | parse | apply it | eq q","expect":"true"}
+{"decision":"D362","name":"a-quote-of-a-path-alone-prints-and-reads-back","query":"::quote[/age] | :q it | print | parse | open | eq q","expect":"true"}
 {"name":"the-step-of-an-error-literal-comes-back-as-the-error-at-rest-it-is","query":"~(!{:k 1}) | get [~(first)] | tag ::quote","expect":"~(!{:k 1})"}
 {"name":"a-declaration-assembled-from-data-names-a-keyword","query":"{:name ::Box :body 1} | tag ::bind !| get [~(type) /field]","expect":"[::bind/PayloadNotSchemaError :name]"}
 {"name":"a-quote-assembled-from-data-that-reads-back-as-another-is-refused","query":"[[1] [2]] | tag ::quote !| get [~(type) /printed]","expect":"[::quote/ReadBackDiffersError \"[1] | [2]\"]"}

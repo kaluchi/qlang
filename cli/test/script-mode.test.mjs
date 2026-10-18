@@ -100,7 +100,7 @@ describe('answerText — the budget of the answer', () => {
   const budget = 200;
   const forty = Array.from({ length: 40 }, (_, index) => index + 1);
 
-  it('prints a value past its budget with a marker that reads the rest', async () => {
+  it('prints a value past its budget with an elision that reads the rest', async () => {
     const text = await answerText(forty, await langRuntime(), 80);
     expect(text).toContain('::elision{');
     expect(text).toContain(':read ~(drop ');

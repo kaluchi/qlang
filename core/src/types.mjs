@@ -5,7 +5,7 @@ import { compareValues } from './ordering.mjs';
 
 export const NULL = null;
 
-// The pattern, the keyword, the tag name, the path, the error and the
+// The regex, the keyword, the tag name, the path, the error and the
 // wrapper of a tag are objects branded on a hidden slot, so data never
 // forges one.
 export const VALUE_CLASS_TAG = Symbol('qlang/valueClass');
@@ -106,8 +106,8 @@ export function bindingValueOf(entry) {
   return isBinding(entry) ? entry.get('value') : entry;
 }
 
-// A pattern of text, the value of a `#"…"` literal: its source as written
-// and its flags, which `pattern.mjs` hands to the engine [QSTXT#pattern].
+// A regex, the value of a `#"…"` literal: its source as written and its
+// flags, which `regex-read.mjs` hands to the engine [D362].
 export function makeRegex(source, flags) {
   return Object.freeze(brandValueClass({ source, flags }, 'regex'));
 }

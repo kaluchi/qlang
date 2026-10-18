@@ -200,7 +200,7 @@ function evalStringLit(node, state)  { return withPipeValue(state, node.value); 
 function evalBooleanLit(node, state) { return withPipeValue(state, node.value); }
 function evalNullLit(_node, state)    { return withPipeValue(state, NULL); }
 function evalKeyword(node, state)    { return withPipeValue(state, keyword(node.name)); }
-function evalRegexLit(node, state)   { return withPipeValue(state, makeRegex(node.pattern, node.flags)); }
+function evalRegexLit(node, state)   { return withPipeValue(state, makeRegex(node.regexSource, node.flags)); }
 
 // Each element and each value of a literal is a literal, read one after
 // another in their order [QSQUO#modifier], none reading the scope or the

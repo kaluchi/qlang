@@ -1,13 +1,13 @@
-// The patterns of text: a source the engine reads as it is written, in
-// the dialect of ECMAScript of 2018 the engine reads alike on every
-// platform, with the flags `i`, `m` and `s`, and always by code points,
-// as Unicode reads characters.
-// The rules it holds: [QSTXT#pattern].
+// Reading a regex: a source the engine reads as it is written, in the
+// dialect of ECMAScript of 2018 the engine reads alike on every platform,
+// with the flags `i`, `m` and `s`, and always by code points, as Unicode
+// reads characters.
+// The rules it holds: [D362].
 
-// The flags a pattern may take, in the order they are written.
-export const PATTERN_FLAGS = 'ims';
+// The flags a regex may take, in the order they are written.
+export const REGEX_FLAGS = 'ims';
 
-// engineOf(source, flags, extra?) → the expression of the engine a pattern
+// engineOf(source, flags, extra?) → the expression of the engine a regex
 // reads as, `extra` the flags of a reading, `g` for every match.
 export function engineOf(source, flags, extra = '') {
   return new RegExp(source, `u${flags}${extra}`);
@@ -76,10 +76,10 @@ function readsWithoutNeedlessEscapes(source, flags) {
   return engineReason(plain, flags) === null;
 }
 
-// patternProblem(source, flags) → what keeps a source from being a
-// pattern, `{ reason, habit }`, its habit that of another dialect where
-// one wrote it, `flags` or `escape`, or null for a pattern.
-export function patternProblem(source, flags) {
+// regexProblem(source, flags) → what keeps a source from being a regex,
+// `{ reason, habit }`, its habit that of another dialect where one wrote it,
+// `flags` or `escape`, or null for a regex.
+export function regexProblem(source, flags) {
   const later = laterEditionOf(source);
   if (later !== null) return later;
   const reason = engineReason(source, flags);
@@ -94,11 +94,11 @@ const REPAIRS = {
   escape: { literal: `${NEEDED_ESCAPES}, and \`\\"\` writes a quote`, text: NEEDED_ESCAPES }
 };
 
-// patternRefusal(source, flags, problem) → the sentence that refuses a
-// literal whose source is no pattern: the reason, and the repair of the
+// regexRefusal(source, flags, problem) → the sentence that refuses a
+// literal whose source is no regex: the reason, and the repair of the
 // habit that wrote it where one shows.
-export function patternRefusal(source, flags, { reason, habit }) {
-  const said = `\`${patternLiteral(source, flags)}\` is no pattern: ${reason}`;
+export function regexRefusal(source, flags, { reason, habit }) {
+  const said = `\`${regexLiteral(source, flags)}\` is no regex: ${reason}`;
   return habit === null ? said : `${said}; ${REPAIRS[habit].literal}`;
 }
 
@@ -107,11 +107,11 @@ export function textRefusal({ reason, habit }) {
   return habit === null ? reason : `${reason}; ${REPAIRS[habit].text}`;
 }
 
-// patternLiteral(source, flags) → the literal a pattern writes: its source
+// regexLiteral(source, flags) → the literal a regex writes: its source
 // as the engine reads it, a quote in it written `\"`, which the literal
 // reads back as the quote, and every backslash with the character after
 // it as it stands.
-export function patternLiteral(source, flags) {
+export function regexLiteral(source, flags) {
   let body = '';
   for (let at = 0; at < source.length; at++) {
     if (source[at] === '\\') body += source[at] + source[++at];
@@ -124,6 +124,6 @@ export function patternLiteral(source, flags) {
 // or null for a letter that is no flag or a flag written twice.
 export function canonicalFlags(written) {
   const letters = [...written];
-  if (letters.some((letter, index) => !PATTERN_FLAGS.includes(letter) || letters.indexOf(letter) !== index)) return null;
-  return [...PATTERN_FLAGS].filter(flag => letters.includes(flag)).join('');
+  if (letters.some((letter, index) => !REGEX_FLAGS.includes(letter) || letters.indexOf(letter) !== index)) return null;
+  return [...REGEX_FLAGS].filter(flag => letters.includes(flag)).join('');
 }

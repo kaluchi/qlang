@@ -243,9 +243,9 @@ describe('a tag name as a value', () => {
 
 });
 
-describe('a quote is text to `parse` and code to `apply`', () => {
-  it('`~(code) | parse` prints the quote as its text', async () => {
-    expect(await evalQuery('~(5 | mul 2) | parse')).toBe('5 | mul 2');
+describe('a quote is text to `toString` and code to `apply`', () => {
+  it('`~(code) | toString` writes the quote as the text of its code', async () => {
+    expect(await evalQuery('~(5 | mul 2) | toString')).toBe('5 | mul 2');
   });
 
   it('`~(code) | apply it` runs the quote on itself', async () => {

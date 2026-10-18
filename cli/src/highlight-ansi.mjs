@@ -12,7 +12,7 @@ const ANSI_RESET = '\x1b[0m';
 // bright so a dark scheme does not swallow them; whitespace has none.
 const KIND_TO_SGR = {
   string:   '32',         // green
-  regex:    '95',         // bright magenta — a pattern `#"…"`
+  regex:    '95',         // bright magenta — a regex `#"…"`
   quote:    '32',         // green — `~(` and `)`, the body in italics
   number:   '33',         // yellow
   comment:  '2',          // dim

@@ -44,7 +44,7 @@
         ~~|
     | proves :dropsDuplicates
         |~~ A set literal drops duplicates. ~~|
-        ~("#[3 1 3]" | parse | apply it | eq #[1 3])
+        ~("#[3 1 3]" | parse | open | eq #[1 3])
     | proves :buildsFromAVector
         |~~ A vector under `::set` is its distinct elements. ~~|
         ~([3 1 3] | tag ::set | eq ([3 1 3] | toSet))

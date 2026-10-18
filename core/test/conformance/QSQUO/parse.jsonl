@@ -1,15 +1,15 @@
-{"name":"quote-prints-as-its-text","query":"~(mul 2) | parse","expect":"\"mul 2\""}
-{"name":"quote-empty-prints-as-nothing","query":"~() | parse","expect":"\"\""}
-{"name":"a-quote-of-two-steps-prints-them-joined-by-the-pipe","query":"~(a | b) | parse","expect":"\"a | b\""}
-{"decision":"D359","name":"a-quote-that-opens-with-a-catch-parses-to-its-text","query":"~(!| 0 | sort) | parse","expect":"\"!| 0 | sort\""}
-{"name":"quote-parse-twice-is-identity","query":"~(mul 2) | parse | parse","expect":"~(mul 2)"}
-{"name":"a-quote-of-declarations-prints-a-declaration-a-line","query":"~(:a 1 | :b 2) | parse","expect":"\":a 1\n| :b 2\""}
-{"name":"a-quote-of-other-steps-prints-on-one-line","query":"~(:a 1 | a) | parse","expect":"\":a 1 | a\""}
+{"decision":"D362","name":"a-quote-writes-the-text-of-its-code-by-toString","query":"~(mul 2) | toString","expect":"\"mul 2\""}
+{"decision":"D362","name":"the-empty-quote-writes-the-empty-string","query":"~() | toString","expect":"\"\""}
+{"decision":"D362","name":"a-quote-of-two-steps-writes-them-joined-by-the-pipe","query":"~(a | b) | toString","expect":"\"a | b\""}
+{"decision":"D362","name":"a-quote-that-opens-with-a-catch-writes-it-in-its-text","query":"~(!| 0 | sort) | toString","expect":"\"!| 0 | sort\""}
+{"decision":"D362","name":"a-quote-turned-into-text-and-read-back-is-itself","query":"~(mul 2) | toString | parse","expect":"~(mul 2)"}
+{"decision":"D362","name":"a-quote-of-declarations-prints-a-declaration-a-line","query":"~(:a 1 | :b 2) | toString","expect":"\":a 1\n| :b 2\""}
+{"decision":"D362","name":"a-quote-of-other-steps-prints-on-one-line","query":"~(:a 1 | a) | toString","expect":"\":a 1 | a\""}
 {"name":"a-story-printed-reads-back-as-itself","query":"::number | source | print | parse | first | eq (::number | source)","expect":"true"}
 {"name":"parse-number-literal","query":"\"42\" | parse","expect":"~(42)"}
 {"name":"parse-pipeline-is-a-quote","query":"\"42 | add 1\" | parse | type","expect":"::quote"}
-{"name":"parse-quote-subject-prints-its-text","query":"~(5 | mul 2) | parse","expect":"\"5 | mul 2\""}
-{"name":"parse-is-an-involution","query":"\"5 |  mul   2\" | parse | parse","expect":"\"5 | mul 2\""}
+{"decision":"D362","name":"parse-reads-text-alone-and-refuses-a-quote-under-its-address","query":"~(5 | mul 2) | parse !| type","expect":"::string/parse/SubjectNotStringError"}
+{"decision":"D362","name":"a-text-read-as-a-quote-is-written-back-in-the-one-spelling","query":"\"5 |  mul   2\" | parse | toString","expect":"\"5 | mul 2\""}
 {"name":"the-parse-of-a-source-of-whitespace-alone-is-the-empty-quote","query":"\" \" | parse","expect":"~()"}
 {"name":"parse-refuses-a-malformed-source","query":"\"this is bad [\" | parse !| type","expect":"::quote/ParseError"}
 {"decision":"D361","name":"a-text-parse-refuses-names-the-verb-that-read-it-as-its-origin","query":"\"add (\" | parse !| get /origin","expect":":string/parse"}

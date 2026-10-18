@@ -1,8 +1,8 @@
 // The primitives of code as a value: `parse`, which reads source text into a
-// quote and prints a quote as its text, `apply`, which runs a quote or a path
-// against the subject, and a function with a vector of args, as a call holds
-// its args, and `open`, which runs the query a quote holds as held code, in a
-// lane of its own [QSQUO#apply].
+// quote, `toString`, which writes a quote as the text of its code, `apply`,
+// which runs a quote or a path against the subject, and a function with a
+// vector of args, as a call holds its args, and `open`, which runs the query a
+// quote holds as held code, in a lane of its own [QSQUO#apply].
 
 import { registerPrimitive, registerStateReader, runs } from '../primitives.mjs';
 import { quoteOfSource, printQuoteSource } from '../quote.mjs';
@@ -13,9 +13,9 @@ import { codeOf, applyFunction } from '../eval.mjs';
 
 const AnyApplyArgsNotTakenError = declareRefusal('any/apply/args/NotTakenError');
 
-// A source the parser refuses answers the `::quote/ParseError` with
-// the location and the excerpt of the source; a quote answers the
-// source it prints as.
+// A source the parser refuses answers the `::quote/ParseError` with the
+// location and the excerpt of the source, and a quote writes the text of its
+// code, its steps as the printer writes them [D362].
 registerStateReader('string/parse', (source, state) => {
   try {
     return quoteOfSource(source, 'string/parse');
@@ -23,7 +23,7 @@ registerStateReader('string/parse', (source, state) => {
     return errorFromParse(parseErr, state.env);
   }
 });
-registerPrimitive('quote/parse', quote => printQuoteSource(quote));
+registerPrimitive('quote/toString', quote => printQuoteSource(quote));
 
 // A function takes the args its inputs read, and a quote and a path take
 // none.

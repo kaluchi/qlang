@@ -12,7 +12,7 @@
       reads the shape, `/17/id` answering `::number`; another key of the
       data reads by the one shown, and `keys` reads them all. A map folds
       so where every key is data, an id of digits, a date or a time, a
-      uuid, an address, whatever its values hold, the kinds where they
+      uuid, an email, whatever its values hold, the kinds where they
       part among them, `::each{:"0" #[::number ::string]}`; and where it
       holds more than eight names whose values, maps, vectors, sets,
       values under a tag or null, share one shape, the users of a reader's

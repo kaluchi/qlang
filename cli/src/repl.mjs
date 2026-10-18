@@ -123,7 +123,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
 }
 
 // An answer prints whole, an error as an alert, or within the budget the
-// caller asked for, what does not fit given way to markers that read it, on
+// caller asked for, what does not fit given way to elisions that read it, on
 // stdout: a failed cell, one that does not parse among them with its caret
 // where the alert shows its line, is an answer as every failure is [D360].
 async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, budget) {

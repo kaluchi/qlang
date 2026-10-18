@@ -39,8 +39,8 @@
       && next`: a failure exits with 1, written as without it.
 
       An answer prints whole, and `--budget=N` or `| elide N` bounds it,
-      what is left out an `::elision` marker whose `:read` continues the
-      query to it. `in`, `out`, `err` and `tap` read and write the
+      what is left out an `::elision` whose `:read` continues the query
+      to it. `in`, `out`, `err` and `tap` read and write the
       streams, `tap` showing a value halfway through a query on stderr;
       a query that writes to stdout by `out` holds the channel, and its
       answer is left unwritten. A value one query hands another over a

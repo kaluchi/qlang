@@ -98,7 +98,7 @@
         ~(::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by) | print | eq "::fn[~(takes :by |~~ How much. ~~| /0 ::number) ~(add by)]")
     | proves :readsBackFromItsPrint
         |~~ The print of a function reads back as the function. ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | :f it | print | parse | apply it | eq f)
+        ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | :f it | print | parse | open | eq f)
     | proves :isAVerbNamedUnderALabel
         |~~ A function named under a label is a verb, called by its
             function.

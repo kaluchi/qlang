@@ -1,14 +1,12 @@
-// One order ranks every value [QSORD#order]: first by kind, null,
-// boolean, number, string, pattern, keyword, tag name, path, vector, set,
-// map, quote, doc, elision and desc, then every other tag by its name; within
-// a kind numbers by value, a text by its code points, as a string counts
-// them [QSTXT#string], patterns by their
-// text and then their flags [QSTXT#pattern], vectors element
-// by element, a set as its vector, maps by their keys and then their
-// values, a desc by the reverse of its payload's place, and a
-// tagged value by its payload. `sort`, `min` and `max`
-// order by it, and so do the ordering predicates, whose inputs take a value
-// of the subject's kind [QSDSP#walk], [QSDSP#residence].
+// One order ranks every value [D362]: first by kind, null, boolean, number,
+// string, regex, keyword, tag name, path, vector, set, map, quote, doc,
+// elision and desc, then every other tag by its name; within a kind numbers
+// by value, a text by its code points, as a string counts them, regexes by
+// their text and then their flags, vectors element by element, a set as its
+// vector, maps by their keys and then their values, a desc by the reverse of
+// its payload's place, and a tagged value by its payload. `sort`, `min` and
+// `max` order by it, and so do the ordering predicates, whose inputs take a
+// value of the subject's kind [QSDSP#walk], [QSDSP#residence].
 
 import {
   isKeyword, isTag, isRegex, isPath, isDoc, isValueClass, typeOf,

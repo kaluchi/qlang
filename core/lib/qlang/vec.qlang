@@ -46,7 +46,7 @@
         ~~|
     | proves :takesCommas
         |~~ A comma between every two elements writes the same vector. ~~|
-        ~("[1, 2]" | parse | apply it | eq [1 2])
+        ~("[1, 2]" | parse | open | eq [1 2])
     | proves :takesCommasBetweenAllOrNone
         |~~ A literal writes a comma between every two elements or between
             none.
@@ -1123,7 +1123,7 @@
   |~~ Answers the elements in the one order of values, the order every
       value takes against every other, the way a reader ranks what a query
       found, `[3 1 4 1 5] | sort` answering `[1 1 3 4 5]`. Kinds come
-      first, null, boolean, number, string, pattern, keyword, tag name,
+      first, null, boolean, number, string, regex, keyword, tag name,
       path, vector, set, map, quote, doc, elision and desc, then every
       other tag by its name, the errors among them; strings order by
       their characters, an upper letter before a lower one.

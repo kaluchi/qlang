@@ -20,8 +20,8 @@ import { takenFromAHost, scopeTakenFromAHost } from './runtime/verb.mjs';
 //   evalCell(source, evalOpts?) — parse and evaluate one cell, the
 //     entry { source, uri, ast, result, error, scopeAfterCell } its
 //     answer; `evalOpts.initialPipeValue` is the subject of its first
-//     step, null when absent, and `evalOpts.uri` its name, a cell
-//     without one numbered among the cells without one.
+//     step, null where the host gives none, and `evalOpts.uri` its
+//     name, a cell without one numbered among the cells without one.
 //   scope — the current scope
 export async function createSession(opts = {}) {
   let scope = opts.scope ? scopeTakenFromAHost(opts.scope) : await langRuntime();

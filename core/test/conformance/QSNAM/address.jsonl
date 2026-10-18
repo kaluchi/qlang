@@ -1,7 +1,7 @@
 {"name":"a-name-with-a-path-declares-a-node-under-its-noun","query":":Box |~~ Box. ~~| | :Box/area ~(1) | ::Box | manifest","expect":"#[::Box/area]"}
 {"name":"a-reader-extends-a-kind-of-the-root","query":":vec/second ~(get /1) | [7 8 9] | second","expect":"8"}
 {"name":"an-address-the-root-holds-is-declared-once","query":":vec/count ~(0) !| type","expect":"::bind/NameDeclaredTwiceError"}
-{"name":"the-address-of-a-name-is-the-name-as-declared","query":"::vec/count | source | parse | startsWith \":vec/count\"","expect":"true"}
+{"decision":"D362","name":"the-address-of-a-name-is-the-name-as-declared","query":"::vec/count | source | toString | startsWith \":vec/count\"","expect":"true"}
 {"name":"an-address-reads-a-value","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side","expect":"3"}
 {"name":"a-path-names-a-noun-declared-before-it","query":":Box/area ~(1) !| get [~(type) /noun]","expect":"[::bind/NounNotDeclaredError ::Box]"}
 {"name":"an-address-no-declaration-names-is-refused-with-the-tags-near-it","query":"5 | vec/cout !| get [~(type) /address /nearest]","expect":"[::call/UnknownAddressError ::vec/cout [::vec/count]]"}

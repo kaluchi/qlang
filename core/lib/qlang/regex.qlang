@@ -1,11 +1,11 @@
 |~ `::regex` and what is declared under it: its constructor and its
-   refusal, and `toRegex`, which answers the pattern itself. The verbs
-   that read text by a pattern live under `::string`.
-   The rules it holds: [QSTXT#pattern]. ~|
+   refusal, and `toRegex`, which answers the regex itself. The verbs
+   that read text by a regex live under `::string`.
+   The rules it holds: [D362]. ~|
 
 :regex
-  |~~ A pattern of text, `#"\d+ms"`, which the verbs of a string read text
-      by: whether a match stands, `"took 12ms" | contains #"\d+ms"`, the
+  |~~ A regex, `#"\d+ms"`, which the verbs of a string read text by:
+      whether a match stands, `"took 12ms" | contains #"\d+ms"`, the
       first match and its groups, `match`, the groups it names, `capture`,
       the text of every match, `scan`, the text put in the place of every
       match, `replace`, and the pieces between the matches, `split`.
@@ -15,34 +15,34 @@
       is a quote that does not end the literal. The flags follow the
       closing quote, each once, `i` to ignore case, `m` for `^` and `$` at
       every line and `s` for a dot that matches a line break,
-      `#"^error"im`. A pattern reads text by code points, as Unicode
-      names characters, so `#"\p{L}+"` is a run of letters of any script.
+      `#"^error"im`. A regex reads text by code points, as Unicode names
+      characters, so `#"\p{L}+"` is a run of letters of any script.
       The dialect is the one of JavaScript in its edition of 2018, which
       the engine reads alike on every platform: a group of flags,
       `(?i:…)`, and a group name written twice, which only later engines
-      read, do not parse, nor does a pattern the engine cannot read, and
+      read, do not parse, nor does a regex the engine cannot read, and
       the refusal says why, naming the repair of a habit of another
       dialect, flags written inside or a backslash before a character
       that needs none, `\-`, `\:`.
 
-      A pattern is no string: `split "."` cuts a text at its dots, and
-      `split #"[.,;]"` at any of three marks. Text becomes a pattern by
+      A regex is no string: `split "."` cuts a text at its dots, and
+      `split #"[.,;]"` at any of three marks. Text becomes a regex by
       `toRegex`, the flags its input `flags`, `"error" | toRegex "i"`,
-      and a pattern prints as its literal, which `print` writes. JSON
-      writes that literal as a string, which `parse | apply it` reads back,
-      and patterns rank after strings, by their text and then their flags.
+      and a regex prints as its literal, which `print` writes. JSON
+      writes that literal as a string, which `parse | open` reads back,
+      and regexes rank after strings, by their text and then their flags.
       ::snippet~(::string | manifest)
       ::link~(::string/match | doc) ::link~(::string/capture | doc)
       ::link~(::string | doc) ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A pattern, read as itself. ~~|
+    | wraps |~~ A regex, read as itself. ~~|
     | throws :PayloadKindNotTakenError
-        |~~ `::regex` reads its payload as the pattern it is; text becomes
+        |~~ `::regex` reads its payload as the regex it is; text becomes
             one by `toRegex`, `"\\d+" | toRegex`.
         ~~|
-    | proves :isAPattern
-        |~~ `#"\d+"` is a pattern. ~~|
+    | proves :isARegex
+        |~~ `#"\d+"` is a regex. ~~|
         ~(#"\d+" | type | eq ::regex)
     | proves :readsAsWritten
         |~~ A backslash reaches the engine as written, and `\"` writes a
@@ -55,7 +55,7 @@
         ~~|
         ~(["ERROR here" "a\nerror"] | get [~(get /0 | contains #"error"i) ~(get /1 | contains #"^error"m)] | eq [true true])
     | proves :readsLettersOfAnyScript
-        |~~ A pattern reads text by code points, a class of Unicode among
+        |~~ A regex reads text by code points, a class of Unicode among
             it.
         ~~|
         ~("данные 42" | match #"\p{L}+" | eq ["данные"])
@@ -70,40 +70,39 @@
         ~~|
         ~("#\"a\\:b\"" | parse !| get /message | contains "a backslash stands before")
     | proves :readsBackFromJson
-        |~~ JSON writes a pattern as its literal, which `parse | apply it`
-            reads back.
+        |~~ JSON writes a regex as its literal, which `parse | open` reads
+            back.
         ~~|
-        ~(#"\d+"i | :p it | json | parseJson | parse | apply it | eq p)
+        ~(#"\d+"i | :p it | json | parseJson | parse | open | eq p)
     | proves :printsAsItsLiteral
-        |~~ A pattern prints as its literal and reads back as itself. ~~|
-        ~(#"\"(\d+)\""i | :p it | print | parse | apply it | eq p)
+        |~~ A regex prints as its literal and reads back as itself. ~~|
+        ~(#"\"(\d+)\""i | :p it | print | parse | open | eq p)
     | proves :isNoString
-        |~~ A pattern is no string, so a text cuts at a dot and a pattern
-            at any mark.
+        |~~ A regex is no string, so a text cuts at a dot and a regex at
+            any mark.
         ~~|
         ~("a.b,c" | get [~(split ".") ~(split #"[.,]")] | eq [["a" "b,c"] ["a" "b" "c"]])
     | proves :ranksAfterStrings
-        |~~ Patterns rank after strings and before keywords, by their
+        |~~ Regexes rank after strings and before keywords, by their
             text.
         ~~|
         ~([:k #"b" "z" #"a"] | sort | eq ["z" #"a" #"b" :k])
     | proves :PayloadKindNotTakenError/refusesAString
-        |~~ A string payload is refused; `toRegex` reads text as a
-            pattern.
+        |~~ A string payload is refused; `toRegex` reads text as a regex.
         ~~|
         ~(::regex"a" !| get [~(type) /actualType] | eq [::regex/PayloadKindNotTakenError ::string])
     | impl ::builtin{}
 
 :regex/toRegex
-  |~~ Answers the pattern itself, so `map ~toRegex` turns patterns and
-      the strings that hold their sources into patterns; given flags, as
+  |~~ Answers the regex itself, so `map ~toRegex` turns regexes and the
+      strings that hold their sources into regexes; given flags, as
       `string/toRegex` takes them, it answers its source with those flags,
       `#"a" | toRegex "i"` answering `#"a"i`.
       ::link~(::string/toRegex | doc)
   ~~|
   ::fn
     | takes :flags
-        |~~ The flags of the pattern written in a string, the pattern's own
+        |~~ The flags of the regex written in a string, the regex's own
             where none is given.
         ~~|
         ~(query /0 null) #[::null ::string]
@@ -117,13 +116,13 @@
     | proves :flags/NotFlagsError/refusesALetterOfNoFlag
         |~~ A letter that names no flag is refused. ~~|
         ~(#"a" | toRegex "z" !| type | eq ::regex/toRegex/flags/NotFlagsError)
-    | returns |~~ The pattern itself, or its source with the flags. ~~| ::regex
+    | returns |~~ The regex itself, or its source with the flags. ~~| ::regex
     | proves :takesFlagsAsAStringDoes
-        |~~ A pattern given flags answers its source with them. ~~|
+        |~~ A regex given flags answers its source with them. ~~|
         ~(#"a" | toRegex "i" | eq ("a" | toRegex "i"))
     | proves :answersItself
-        |~~ A pattern answers itself, so patterns and their sources turn
-            into patterns.
+        |~~ A regex answers itself, so regexes and their sources turn into
+            regexes.
         ~~|
         ~([#"\d" "\\d"] | map ~toRegex | eq [#"\d" #"\d"])
     | impl ::builtin{}

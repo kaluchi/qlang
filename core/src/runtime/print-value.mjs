@@ -3,7 +3,7 @@
 // kind before the forms of the core write the rest [QSPRN#print].
 
 import { printQuoteSource, docText } from '../quote.mjs';
-import { patternLiteral } from '../pattern.mjs';
+import { regexLiteral } from '../regex-read.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
 import { segmentIndex } from '../path-read.mjs';
 import {
@@ -39,8 +39,8 @@ function escapeQlangStringLiteral(s) {
 
 const literalOfKeyword = k => k.literal;
 
-// A pattern writes its literal, its flags after it [QSTXT#pattern].
-export const printRegex = r => patternLiteral(r.source, r.flags);
+// A regex writes its literal, its flags after it [D362].
+export const printRegex = r => regexLiteral(r.source, r.flags);
 
 // A path writes its segments so they read back [D360]: an index as its
 // digits, a key as its bare name, behind a colon where its name carries a
@@ -134,9 +134,9 @@ function printUnderTag(tagged, indent, printedOf, oneLine) {
 }
 
 // A map of two entries or fewer, none a container, stands on one line, and
-// so does a marker of what a view left out, whatever it holds, so what
-// holds it keeps its layout [QSPRN#elide]; any other map puts each entry on
-// a line of its own.
+// so does an elision of what a view left out, whatever it holds, so what
+// holds it keeps its layout [D362]; any other map puts each entry on a line
+// of its own.
 function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];
   const hasComposite = entries.some(([, v]) => isMap(v) || isVec(v));

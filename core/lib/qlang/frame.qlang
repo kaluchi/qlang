@@ -114,8 +114,8 @@
       `::frame["x" ~(add 1 | mul 2)] | failed` answering `~(add 1)`, so
       `!| trace | map ~failed` reads the trace of a failure a step at a
       time, from the step that refused to the step of the level that
-      reads it. The step is code that runs again by `apply` and reads as
-      text by `parse`, and `failed | first` reads the record of its form,
+      reads it. The step is code that runs again by `apply` and is written
+      as text by `toString`, and `failed | first` reads the record of its form,
       a `::call`.
       ::link~(::frame/skipped | doc) ::link~(::frame/unfinished | doc)
       ::link~(::trace | doc)

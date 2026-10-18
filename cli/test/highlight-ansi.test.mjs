@@ -23,7 +23,7 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[32m"hi"\x1b[0m');
   });
 
-  it('wraps a pattern literal, its flags among it, in the bright-magenta escape pair', () => {
+  it('wraps a regex literal, its flags among it, in the bright-magenta escape pair', () => {
     const out = highlightAnsi('#"\\d+"i', noVerbNames);
     expect(out).toBe('\x1b[95m#"\\d+"i\x1b[0m');
   });

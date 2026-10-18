@@ -182,7 +182,7 @@ const STEP_OF_NODE = {
   BooleanLit:      node => node.value,
   NullLit:         () => null,
   Keyword:         node => keyword(node.name),
-  RegexLit:        node => makeRegex(node.pattern, node.flags),
+  RegexLit:        node => makeRegex(node.regexSource, node.flags),
   TagLit:          node => makeTag(node.tag),
   QuoteLit:        quoteOfLiteral,
   DocLit:          docOfNode,

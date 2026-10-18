@@ -13,15 +13,15 @@
       `\\`, `\n`, `\t` and `\uXXXX`, any other character raw between
       them, `"line one\nline two"`, and JSON writes it the same.
       `::string"s"` is `"s"`. Strings rank after numbers and before
-      patterns, by their characters, the code points `count` reads.
+      regexes, by their characters, the code points `count` reads.
 
       Its verbs read it whole or by its characters, `count`, `take`,
       `drop`, `contains`, `startsWith`, `upper`, break it, `split` and
       `lines`, into a vector that `join` makes text again, and read it by
-      a pattern, `match`, `capture`, `scan` and `replace`. A number, a
-      keyword, a tag name and a boolean turn into text by `toString`,
-      `5 | toString` answering `"5"`, while `print` writes any value as
-      its literal and `json` as JSON.
+      a regex, `match`, `capture`, `scan` and `replace`. A number, a
+      keyword, a tag name, a boolean and the code of a quote turn into
+      text by `toString`, `5 | toString` answering `"5"`, while `print`
+      writes any value as its literal and `json` as JSON.
       ::snippet~(::string | manifest) lists its verbs and refusals.
       ::link~(::regex | doc) ::link~(::keyword | doc)
       ::link~(::any/print | doc) ::link~(::qlang/values | doc)
@@ -46,8 +46,8 @@
             colon.
         ~~|
         ~([5 :a] | map ~print | eq ["5" ":a"])
-    | proves :readsTextByAPattern
-        |~~ A pattern reads text, its match and its groups. ~~|
+    | proves :readsTextByARegex
+        |~~ A regex reads text, its match and its groups. ~~|
         ~("took 12ms" | match #"(\d+)ms" | eq ["12ms" "12"])
     | proves :buildsAString
         |~~ The constructor of a string answers it. ~~|
@@ -431,7 +431,7 @@
       by side leave an empty piece between them, a separator at an end an
       empty piece there, and the empty string is one empty piece; a
       separator the string lacks leaves it whole, one piece. The separator
-      is any string, a line break or `"::"` among them, or a pattern,
+      is any string, a line break or `"::"` among them, or a regex,
       which cuts at every match, `"a, b;c" | split #"[,;]\s*"` answering
       `["a" "b" "c"]`, the groups it captures left out of the pieces; a
       keyword is refused. The empty separator cuts the string into its
@@ -443,12 +443,12 @@
   ~~|
   ::fn
     | takes :separator
-        |~~ The text or the pattern the subject is cut at, computed
+        |~~ The text or the regex the subject is cut at, computed
             against the subject.
         ~~|
         /0 #[::regex ::string]
     | throws :separator/KindNotTakenError
-        |~~ The separator is a text or a pattern, `#"[,;]"`; a keyword
+        |~~ The separator is a text or a regex, `#"[,;]"`; a keyword
             gives its name by `toString`.
         ~~|
     | throws :separator/NotGivenError
@@ -464,8 +464,8 @@
             `map ~(split ",")`, and a number or a keyword becomes text by
             `toString`.
         ~~|
-    | proves :cutsAtEveryMatchOfAPattern
-        |~~ A pattern cuts at every match, its groups left out of the
+    | proves :cutsAtEveryMatchOfARegex
+        |~~ A regex cuts at every match, its groups left out of the
             pieces.
         ~~|
         ~("a, b;c" | get [~(split #"[,;]\s*") ~(split #"([,;])\s*")] | eq [["a" "b" "c"] ["a" "b" "c"]])
@@ -705,7 +705,7 @@
       `"hello" | contains "ell"` answers `true`. Every string holds the
       empty needle. Case counts, `"Hello" | contains "h"` answering
       `false`; where it should not, `lower` comes first,
-      `lower | contains "h"`. The needle is a text or a pattern, which
+      `lower | contains "h"`. The needle is a text or a regex, which
       asks whether a match stands anywhere,
       `"took 12ms" | contains #"\d+ms"`, and of the whole text when `^`
       and `$` anchor it; a keyword is refused, and `toString` gives its
@@ -718,12 +718,12 @@
   ~~|
   ::fn
     | takes :needle
-        |~~ The text or the pattern looked for, computed against the
+        |~~ The text or the regex looked for, computed against the
             subject.
         ~~|
         /0 #[::regex ::string]
     | throws :needle/KindNotTakenError
-        |~~ The needle is a text or a pattern, `#"\d+"`; a keyword gives
+        |~~ The needle is a text or a regex, `#"\d+"`; a keyword gives
             its name by `toString`.
         ~~|
     | returns
@@ -735,7 +735,7 @@
     | proves :findsTextInside
         |~~ Text inside a word is found. ~~|
         ~("hello" | contains "ell")
-    | proves :missesAbsentText
+    | proves :missesTextTheStringLacks
         |~~ Text the string lacks is not found. ~~|
         ~("hello" | contains "xyz" | not)
     | proves :holdsTheEmptyNeedle
@@ -744,8 +744,8 @@
     | proves :countsCase
         |~~ Case counts. ~~|
         ~("Hello" | contains "h" | not)
-    | proves :findsAMatchOfAPattern
-        |~~ A pattern is asked whether a match stands anywhere. ~~|
+    | proves :findsAMatchOfARegex
+        |~~ A regex is asked whether a match stands anywhere. ~~|
         ~(["took 12ms" "took long"] | map ~(contains #"\d+ms") | eq [true false])
     | proves :ignoresCaseAfterLower
         |~~ Lowered first, the string holds the needle whatever its case.
@@ -783,7 +783,7 @@
     | throws :prefix/KindNotTakenError
         |~~ The prefix is a string, `"abc" | startsWith "ab"`; a keyword
             gives its name by `toString` first,
-            `startsWith (:ab | toString)`, and a pattern at the start of
+            `startsWith (:ab | toString)`, and a regex at the start of
             the text is asked by `contains`, `contains #"^\d"`.
         ~~|
     | returns
@@ -839,7 +839,7 @@
     | throws :suffix/KindNotTakenError
         |~~ The suffix is a string, `"abc" | endsWith "bc"`; a keyword
             gives its name by `toString` first,
-            `endsWith (:bc | toString)`, and a pattern at the end of the
+            `endsWith (:bc | toString)`, and a regex at the end of the
             text is asked by `contains`, `contains #"\d$"`.
         ~~|
     | returns
@@ -1054,16 +1054,17 @@
 
 :string/parse
   |~~ Answers the quote of the steps the source text spells,
-      `"add 1" | parse` answering `~(add 1)`, the reverse of `parse`
-      on a quote, which answers its text; the empty text spells the empty
-      quote. `apply` runs the quote on a subject,
+      `"add 1" | parse` answering `~(add 1)`, the reverse of `toString`
+      on a quote, which answers the text of its code; the empty text
+      spells the empty quote. `apply` runs the quote on a subject,
       `5 | apply ("add 1" | parse)`, and a source that starts from a value
-      of its own runs by `apply it`, so source text is evaluated without
+      of its own runs by `open`, so source text is evaluated without
       leaving the language. A source the parser cannot read is refused
       with a `::quote/ParseError`, whose `:expected` and `:location` tell
       what the parser wanted and where, with `:found` when a token stood
       there, and `!|` reads it as every other error.
-      ::link~(::quote/parse | doc) ::link~(::any/apply | doc)
+      ::link~(::quote/toString | doc) ::link~(::any/apply | doc)
+      ::link~(::quote/open | doc)
   ~~|
   ::fn
     | returns |~~ The quote of the steps the text spells. ~~| ::quote
@@ -1076,17 +1077,15 @@
     | proves :readsTheEmptyQuote
         |~~ The empty text spells the empty quote. ~~|
         ~("" | parse | eq ~())
-    | proves :readsBackByParse
-        |~~ `parse` on the quote answers the text again. ~~|
-        ~("add 1" | parse | parse | eq "add 1")
+    | proves :writesBackByToString
+        |~~ `toString` writes the quote as the text again. ~~|
+        ~("add 1" | parse | toString | eq "add 1")
     | proves :runsByApply
         |~~ `apply` runs the quote on a subject. ~~|
         ~(5 | apply ("add 1" | parse) | eq 6)
-    | proves :runsASourceWithItsOwnValueByApply
-        |~~ A source that starts from a value of its own runs by
-            `apply it`.
-        ~~|
-        ~("1 | add 1" | parse | apply it | eq 2)
+    | proves :runsASourceWithItsOwnValueByOpen
+        |~~ A source that starts from a value of its own runs by `open`. ~~|
+        ~("1 | add 1" | parse | open | eq 2)
     | proves :refusesASourceTheParserRefuses
         |~~ A source the parser cannot read is refused. ~~|
         ~("add (" | parse !| type | eq ::quote/ParseError)
@@ -1185,12 +1184,12 @@
   |~~ Answers the string itself, so `map ~toString` turns the atoms of
       a vector into strings whatever their kinds,
       `[42 :a "s"] | map ~toString` answering `["42" "a" "s"]`, null
-      `"null"`. A vector, a set, a map and a pattern have no `toString`:
-      `print` writes the literal of any value and `json` its JSON, while a quote
-      gives its text by `parse` and a doc its prose by `content`.
+      `"null"`, and a quote the text of its code. A vector, a set, a map
+      and a regex have no `toString`: `print` writes the literal of any
+      value and `json` its JSON, while a doc gives its prose by `content`.
       ::link~(::number/toString | doc) ::link~(::keyword/toString | doc)
-      ::link~(::any/print | doc) ::link~(::any/json | doc)
-      ::link~(::quote/parse | doc) ::link~(::doc/content | doc)
+      ::link~(::quote/toString | doc) ::link~(::any/print | doc)
+      ::link~(::any/json | doc) ::link~(::doc/content | doc)
   ~~|
   ::fn
     | returns |~~ The string itself. ~~| ::string
@@ -1200,31 +1199,31 @@
         ~~|
         ~([42 :a "s"] | map ~toString | eq ["42" "a" "s"])
     | proves :leadsAValueOfNoStringToItsText
-        |~~ A vector is led to `print` and `json`, and a quote to `parse`
+        |~~ A vector is led to `print` and `json`, and a doc to `content`
             beside them.
         ~~|
-        ~(get [~([1 2] | toString !| get /nearest) ~(~(add 1) | toString !| get /nearest)] | eq [[:json :print] [:json :parse :print]])
+        ~(get [~([1 2] | toString !| get /nearest) ~(|~~ a ~~| | toString !| get /nearest)] | eq [[:json :print] [:content :json :print]])
     | impl ::builtin{}
 
 :string/match
-  |~~ Answers the first match of the pattern the call gives as a vector,
+  |~~ Answers the first match of the regex the call gives as a vector,
       its text and then each group at the index of its number, or `null`
       where none stands: `"took 12ms" | match #"(\d+)ms"` answers
       `["12ms" "12"]`, so
       `match #"(\d+)ms" | get /1` reads the number's text. A group that took no
-      part in the match is `null`. The groups a pattern names come as a map
+      part in the match is `null`. The groups a regex names come as a map
       from `capture`, every match from `scan`, and whether one stands at all
       from `contains`.
       ::link~(::string/capture | doc) ::link~(::string/scan | doc)
       ::link~(::regex | doc)
   ~~|
   ::fn
-    | takes :pattern
-        |~~ The pattern the text is read by, `#"(\d+)ms"`. ~~|
+    | takes :regex
+        |~~ The regex the text is read by, `#"(\d+)ms"`. ~~|
         /0 ::regex
-    | throws :pattern/KindNotTakenError
-        |~~ The pattern is a `#"…"`; text that holds one becomes a pattern
-            by `toRegex`, and a text looked for as it is is asked by
+    | throws :regex/KindNotTakenError
+        |~~ The regex is a `#"…"`; text that holds one becomes a regex by
+            `toRegex`, and a text looked for as it is is asked by
             `contains`.
         ~~|
     | returns
@@ -1239,36 +1238,36 @@
     | proves :answersNullForAGroupThatTookNoPart
         |~~ A group that took no part is null. ~~|
         ~("5" | match #"(\d)(x)?" | eq ["5" "5" null])
-    | proves :pattern/KindNotTakenError/refusesAString
-        |~~ Text is no pattern; `toRegex` reads it as one. ~~|
-        ~("a1" | match "\\d" !| type | eq ::string/match/pattern/KindNotTakenError)
+    | proves :regex/KindNotTakenError/refusesAString
+        |~~ Text is no regex; `toRegex` reads it as one. ~~|
+        ~("a1" | match "\\d" !| type | eq ::string/match/regex/KindNotTakenError)
     | impl ::builtin{}
 
 :string/capture
-  |~~ Answers the groups the pattern names in its first match as a map,
+  |~~ Answers the groups the regex names in its first match as a map,
       each under the keyword of its name, or `null` where none stands:
       `"2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+)"`
       answers `{:date "2026-10-12" :level "ERROR"}`, so a line of a log
       becomes a record, `lines | map ~(capture #"…")`. A named group that
-      took no part is `null`. A pattern that names no group is refused;
+      took no part is `null`. A regex that names no group is refused;
       `match` answers the groups by their indices.
       ::link~(::string/match | doc) ::link~(::string/lines | doc)
   ~~|
   ::fn
-    | takes :pattern
-        |~~ The pattern whose groups are named, `#"(?<level>\w+)"`. ~~|
+    | takes :regex
+        |~~ The regex whose groups are named, `#"(?<level>\w+)"`. ~~|
         /0 ::regex
-    | throws :pattern/KindNotTakenError
-        |~~ The pattern is a `#"…"` that names its groups, `(?<name>…)`. ~~|
-    | proves :pattern/KindNotTakenError/refusesANumber
-        |~~ A pattern that is no pattern and no string is refused. ~~|
-        ~("a" | capture 5 !| type | eq ::string/capture/pattern/KindNotTakenError)
+    | throws :regex/KindNotTakenError
+        |~~ The regex is a `#"…"` that names its groups, `(?<name>…)`. ~~|
+    | proves :regex/KindNotTakenError/refusesANumber
+        |~~ A number is no regex. ~~|
+        ~("a" | capture 5 !| type | eq ::string/capture/regex/KindNotTakenError)
     | returns
         |~~ The named groups of the first match, or `null`. ~~|
         #[::map ::null]
-    | throws :PatternNamesNoGroupError
-        |~~ `capture` answers the groups a pattern names, `(?<level>\w+)`,
-            and this pattern names none: `match` answers its groups by
+    | throws :RegexNamesNoGroupError
+        |~~ `capture` answers the groups a regex names, `(?<level>\w+)`,
+            and this regex names none: `match` answers its groups by
             their indices, `match #"(\w+)" | get /1`.
         ~~|
     | proves :turnsALineIntoARecord
@@ -1280,13 +1279,13 @@
     | proves :answersNullForAGroupThatTookNoPart
         |~~ A named group that took no part is null. ~~|
         ~("5" | capture #"(?<digit>\d)(?<unit>ms)?" | eq {:digit "5" :unit null})
-    | proves :PatternNamesNoGroupError/refusesAPatternOfNumberedGroupsAlone
-        |~~ A pattern that names no group is refused. ~~|
-        ~("5" | capture #"(\d)" !| type | eq ::string/capture/PatternNamesNoGroupError)
+    | proves :RegexNamesNoGroupError/refusesARegexOfNumberedGroupsAlone
+        |~~ A regex that names no group is refused. ~~|
+        ~("5" | capture #"(\d)" !| type | eq ::string/capture/RegexNamesNoGroupError)
     | impl ::builtin{}
 
 :string/scan
-  |~~ Answers the text of every match of the pattern, in order, `[]`
+  |~~ Answers the text of every match of the regex, in order, `[]`
       where none stands: `"took 12ms, then 7ms" | scan #"\d+"` answers
       `["12" "7"]`, which `map ~toNumber` turns into numbers. The groups
       of each match come from `match` and `capture` on its text,
@@ -1294,14 +1293,14 @@
       ::link~(::string/match | doc) ::link~(::string/toNumber | doc)
   ~~|
   ::fn
-    | takes :pattern
-        |~~ The pattern every match of which is read, `#"\d+"`. ~~|
+    | takes :regex
+        |~~ The regex every match of which is read, `#"\d+"`. ~~|
         /0 ::regex
-    | throws :pattern/KindNotTakenError
-        |~~ The pattern is a `#"…"`; text becomes one by `toRegex`. ~~|
-    | proves :pattern/KindNotTakenError/refusesANumber
-        |~~ A pattern that is no pattern and no string is refused. ~~|
-        ~("a" | scan 5 !| type | eq ::string/scan/pattern/KindNotTakenError)
+    | throws :regex/KindNotTakenError
+        |~~ The regex is a `#"…"`; text becomes one by `toRegex`. ~~|
+    | proves :regex/KindNotTakenError/refusesANumber
+        |~~ A number is no regex. ~~|
+        ~("a" | scan 5 !| type | eq ::string/scan/regex/KindNotTakenError)
     | returns |~~ The text of every match, in order. ~~| ::vec
     | proves :readsEveryMatch
         |~~ Every match comes, in order. ~~|
@@ -1313,12 +1312,12 @@
 
 :string/replace
   |~~ Answers the text with the replacement the call gives in the place of
-      every match of the pattern: `"a-b-c" | replace "-" "+"` answers
-      `"a+b+c"`. The pattern is a `#"…"` or a text looked for as it is.
-      The replacement is a string, in which `$1`, `$<name>` and `$&` name
-      a group, a named group and the whole match of a pattern,
+      every match of the needle: `"a-b-c" | replace "-" "+"` answers
+      `"a+b+c"`. The needle is a regex, `#"…"`, or a text looked for as it
+      is. The replacement is a string, in which `$1`, `$<name>` and `$&`
+      name a group, a named group and the whole match of a regex,
       `"2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1"` answering
-      `"12.10.2026"`, a `$<name>` of a group the pattern lacks standing as
+      `"12.10.2026"`, a `$<name>` of a group the regex lacks standing as
       written, while the replacement of a text stands as written; or code,
       which runs on the vector `match` answers for each match and answers
       the text that takes its place,
@@ -1328,16 +1327,16 @@
       ::link~(::string/match | doc) ::link~(::regex | doc)
   ~~|
   ::fn
-    | takes :pattern
-        |~~ What is looked for, a pattern or a text. ~~|
+    | takes :needle
+        |~~ What is looked for, a regex or a text. ~~|
         /0 #[::regex ::string]
-    | throws :pattern/KindNotTakenError
+    | throws :needle/KindNotTakenError
         |~~ What is looked for is a `#"…"` or a text; a keyword gives its
             name by `toString`.
         ~~|
-    | proves :pattern/KindNotTakenError/refusesANumber
-        |~~ A pattern that is no pattern and no string is refused. ~~|
-        ~("a" | replace 5 "b" !| type | eq ::string/replace/pattern/KindNotTakenError)
+    | proves :needle/KindNotTakenError/refusesANumber
+        |~~ A needle that is no regex and no string is refused. ~~|
+        ~("a" | replace 5 "b" !| type | eq ::string/replace/needle/KindNotTakenError)
     | takes :with
         |~~ What takes the place of each match: a string, or code that
             answers one from the match, a quote or a path.
@@ -1387,9 +1386,9 @@
             dollar.
         ~~|
         ~("2026-10" | replace #"(?<y>\d+)-(?<m>\d+)" "$<m>.$<y> $$" | eq "10.2026 $")
-    | proves :keepsTheNameOfAGroupThePatternLacks
-        |~~ A `$<name>` of a group the pattern lacks stands as written,
-            whether the pattern names other groups or none.
+    | proves :keepsTheNameOfAGroupTheRegexLacks
+        |~~ A `$<name>` of a group the regex lacks stands as written,
+            whether the regex names other groups or none.
         ~~|
         ~("abc" | get [~(replace #"(?<n>b)" "$<zz>") ~(replace #"b" "$<zz>")] | eq ["a$<zz>c" "a$<zz>c"])
     | proves :with/AnswerNotStringError/refusesANumber
@@ -1398,19 +1397,19 @@
     | impl ::builtin{}
 
 :string/toRegex
-  |~~ Answers the pattern whose source the string holds, with the flags
+  |~~ Answers the regex whose source the string holds, with the flags
       the call gives, none when it gives none: `"\\d+" | toRegex` answers
-      `#"\d+"` and `"error" | toRegex "i"` answers `#"error"i`, a pattern
+      `#"\d+"` and `"error" | toRegex "i"` answers `#"error"i`, a regex
       kept in data or built from parts. The string is read as a string
       reads, so its backslashes are doubled where a literal `#"…"` writes
-      one. A source that is no pattern is refused with the reason, and so
-      is a text that writes the literal of a pattern whole, as `json`
-      writes one, which `parse | apply it` reads.
+      one. A source that is no regex is refused with the reason, and so is
+      a text that writes the literal of a regex whole, as `json` writes
+      one, which `parse | open` reads.
       ::link~(::regex | doc) ::link~(::string/parse | doc)
   ~~|
   ::fn
     | takes :flags
-        |~~ The flags of the pattern written in a string, none when the
+        |~~ The flags of the regex written in a string, none when the
             call gives none or null, `toRegex "im"`.
         ~~|
         ~(query /0 null) #[::null ::string]
@@ -1424,49 +1423,49 @@
             line and `s` for a dot that matches a line break, each written
             once, `toRegex "im"`.
         ~~|
-    | returns |~~ The pattern the source writes, with its flags. ~~| ::regex
-    | throws :TextNotPatternError
-        |~~ `toRegex` reads the string as the source of a pattern, and it
+    | returns |~~ The regex the source writes, with its flags. ~~| ::regex
+    | throws :TextNotRegexError
+        |~~ `toRegex` reads the string as the source of a regex, and it
             is none: `:message` says why, and names the repair where the
             source shows the habit of another dialect, flags written
             inside it or a backslash before a character that needs none.
         ~~|
-    | carries :TextNotPatternError/message
-        |~~ Why the source is no pattern, and its repair where one shows.
+    | carries :TextNotRegexError/message
+        |~~ Why the source is no regex, and its repair where one shows.
         ~~|
         ::string
     | throws :LiteralNotSourceError
-        |~~ `toRegex` reads the source of a pattern, and this text writes
+        |~~ `toRegex` reads the source of a regex, and this text writes
             the literal of one whole, `#"\d+"i`, as `json` writes a
-            pattern: the literal reads back by `parse | apply it`, its
-            flags among it.
+            regex: the literal reads back by `parse | open`, its flags
+            among it.
         ~~|
     | proves :readsTheSource
-        |~~ A string reads as the pattern whose source it holds. ~~|
+        |~~ A string reads as the regex whose source it holds. ~~|
         ~("a1" | contains ("\\d" | toRegex))
     | proves :takesTheFlags
-        |~~ The flags the call gives go with the pattern, in their order.
+        |~~ The flags the call gives go with the regex, in their order.
         ~~|
         ~("error" | toRegex "si" | eq #"error"is)
     | proves :takesNullForNoFlags
-        |~~ Null gives no flags, as it gives a pattern its own. ~~|
+        |~~ Null gives no flags, as it gives a regex its own. ~~|
         ~("a" | toRegex null | eq #"a")
     | proves :flags/NotFlagsError/refusesALetterOfNoFlag
         |~~ A letter that is no flag is refused. ~~|
         ~("a" | toRegex "x" !| type | eq ::string/toRegex/flags/NotFlagsError)
-    | proves :TextNotPatternError/refusesAnOpenGroup
+    | proves :TextNotRegexError/refusesAnOpenGroup
         |~~ A source the engine cannot read is refused. ~~|
-        ~("(a" | toRegex !| type | eq ::string/toRegex/TextNotPatternError)
-    | proves :TextNotPatternError/namesTheFlagsAsAnInput
+        ~("(a" | toRegex !| type | eq ::string/toRegex/TextNotRegexError)
+    | proves :TextNotRegexError/namesTheFlagsAsAnInput
         |~~ Flags written inside the source are refused, the refusal
             naming the input `flags`.
         ~~|
         ~("(?i)abc" | toRegex !| get /message | contains "toRegex \"i\"")
     | proves :LiteralNotSourceError/refusesALiteral
-        |~~ The literal of a pattern is refused, and `parse | apply it`
-            reads it.
+        |~~ The literal of a regex is refused, and `parse | open` reads
+            it.
         ~~|
-        ~(#"\d+"i | json | parseJson | get [~(toRegex !| type) ~(parse | apply it)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
+        ~(#"\d+"i | json | parseJson | get [~(toRegex !| type) ~(parse | open)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
     | impl ::builtin{}
 
 :string/toPath

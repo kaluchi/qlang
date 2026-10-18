@@ -25,14 +25,13 @@ describe('the laws of the catalog, run by runLaws', () => {
     if (failures.length > 0) throw new Error(`${failures.length} law(s) of the catalog failed:\n${reportOfLaws(failures)}`);
   }, 30000);
 
-  it('every law reads back as the steps it prints as', async () => {
-    // `parse` prints a quote and reads text back; a law that printed as
-    // text reading back as other steps would be a printer that loses
-    // code.
+  it('every law reads back from the text of its code as itself', async () => {
+    // `toString` writes each law as the text of its code, which `parse` reads
+    // back as the law, a reader whose read answers a failure failing [D362].
     const unequal = [];
     for (const reader of await catalogReaders()) {
-      const changed = await evalQuery(`${reader} | laws | vals | map /1 | filter ~(:law it | parse | parse | eq law | not)`);
-      if (changed.length > 0) unequal.push(reader);
+      const changed = await evalQuery(`${reader} | laws | vals | map /1 | filter ~(:law it | toString | parse | eq law | not)`);
+      if (isErrorValue(changed) || changed.length > 0) unequal.push(reader);
     }
     expect(unequal).toEqual([]);
   }, 30000);

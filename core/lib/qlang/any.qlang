@@ -308,7 +308,7 @@
       a set, a quote, a doc and an error by brackets of their own; any
       other value under a tag as its tag before the print of its payload.
       A set prints in its one order, and the text reads back as the value
-      by `parse` and `apply`. A kind may answer a `print` of its own
+      by `parse` and `open`. A kind may answer a `print` of its own
       declared under it, `:Box/print`, and the print of a value takes it
       for each part of that kind. The call takes no value: a print within
       a budget is `elide 80 | print`.
@@ -331,10 +331,10 @@
         ~(::builtin{:a 1} | print | eq "::builtin{:a 1}")
     | proves :printsASetInItsOrder
         |~~ A set prints in its one order. ~~|
-        ~("#[2 1]" | parse | apply it | print | eq "#[1 2]")
+        ~("#[2 1]" | parse | open | print | eq "#[1 2]")
     | proves :readsBack
         |~~ The text reads back as the value. ~~|
-        ~({:a [1 "x"]} | :v it | print | parse | :q it | apply q | eq v)
+        ~({:a [1 "x"]} | :v it | print | parse | open | eq v)
     | proves :takesThePrintOfAKind
         |~~ The print of a value takes the `print` of a kind for each part
             of it.
@@ -347,21 +347,21 @@
 
 :any/elide
   |~~ Answers the subject within a budget of characters of its print,
-      what does not fit given way to markers under `::elision`, and a
-      value whose print fits as it is. The largest part gives way first,
+      what does not fit given way to elisions, values of `::elision`, and
+      a value whose print fits as it is. The largest part gives way first,
       or in its place a part within it that prints more than half of it:
       a string, a doc, a quote or a map beneath the top gives way whole,
-      the marker of a text keeping its first characters under `:head`; a
+      the elision of a text keeping its first characters under `:head`; a
       vector or a set keeps the first half of its elements, and half of
-      those until it fits, ending with a marker of the rest, a set
+      those until it fits, ending with an elision of the rest, a set
       standing in the one order; a value under a tag keeps its tag, its
       parts giving way within; and a part a kind prints its own way
       stands as that kind prints it, the budget counting that print. The
       top keeps its shape: a vector or a set there keeps its first
       element, a map gives way within, and a string, a doc, a quote or an
       atom alone is answered whole. A part gives way only where the least
-      it gives way to prints shorter than it, `[]` or `{:n 1}` staying. A
-      marker's `:size` counts what it stands for, a text by its
+      it gives way to prints shorter than it, `[]` or `{:n 1}` staying. An
+      elision's `:size` counts what it stands for, a text by its
       characters as `count` counts them, and its `:read`, applied to the
       value `elide` took,
       answers the part left out. The call gives the budget, a number; a
@@ -386,7 +386,7 @@
         ~~|
     | returns
         |~~ The subject within the budget, its parts that did not fit
-            given way to markers.
+            given way to elisions.
         ~~|
         ::any
     | proves :leavesWhatFits
@@ -394,22 +394,22 @@
         ~([1 2] | elide 100 | eq [1 2])
     | proves :elidesTheLargestPart
         |~~ The largest part gives way to an elision. ~~|
-        ~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}
+        ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it" :n 1}
           | elide 40 | get /s | type | eq ::elision)
     | proves :keepsTheHeadOfAString
-        |~~ The marker of a string keeps its first characters. ~~|
-        ~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}
+        |~~ The elision of a string keeps its first characters. ~~|
+        ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it" :n 1}
           | elide 40 | get /s/head | eq "a long line of text to leave out, which ")
-    | proves :keepsAPartShorterThanItsMarker
-        |~~ A part whose marker prints no shorter than it stays. ~~|
+    | proves :keepsAPartShorterThanItsElision
+        |~~ A part whose elision prints no shorter than it stays. ~~|
         ~([[] {:n 1} "short"] | elide 3 | eq [[] {:n 1} "short"])
     | proves :countsATextByItsCharacters
-        |~~ The marker of a text counts and keeps characters as `count`
+        |~~ The elision of a text counts and keeps characters as `count`
             and `take` do.
         ~~|
         ~(61 | range | map ~("😀") | join "" | :s it | {} | put /s s | elide 30 | get /s | get [/size ~(get /head | count)] | eq [61 30])
     | proves :halvesAVectorUntilItFits
-        |~~ A vector keeps its first elements and ends with a marker of
+        |~~ A vector keeps its first elements and ends with an elision of
             the rest.
         ~~|
         ~(["alpha" "bravo" "charlie" "delta" "echo" "foxtrot" "golf" "hotel" "india" "juliet"]
@@ -417,7 +417,7 @@
           | eq ["alpha" "bravo" "charlie" "delta" "echo" ::elision{:size 5 :read ~(drop 5)}])
     | proves :keepsATag
         |~~ A value under a tag keeps its tag. ~~|
-        ~(::Box{:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it"}
+        ~(::Box{:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it"}
           | elide 10 | type | eq ::Box)
     | proves :keepsTheFirstElementOfTheTop
         |~~ The top keeps its first element, the part within it giving way.
@@ -429,7 +429,7 @@
         ~~|
         ~(40 | range | toSet | elide 60 | get [~(type) ~(last | type)] | eq [::set ::elision])
     | proves :givesADocWayWithTheHeadOfItsText
-        |~~ A doc beneath the top gives way whole, its marker keeping the
+        |~~ A doc beneath the top gives way whole, its elision keeping the
             first characters of its text.
         ~~|
         ~(get [~(::vec/sort | doc)] | elide 100 | get /0/head | type | eq ::string)
@@ -439,7 +439,7 @@
         ~(:Box |~~ B ~~| | :Box/print ~("b") | [::Box#1 ::Box#2 ::Box#3 ::Box#4 ::Box#5 ::Box#6 ::Box#7] | elide 10 | print | count | eq 15)
     | proves :readsTheElidedPartBack
         |~~ An elision holds the query that reads its part back. ~~|
-        ~({:s "a long line of text to leave out, which runs on long enough that its marker prints shorter than it" :n 1}
+        ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it" :n 1}
           | :v it | elide 40 | get /s/read | :r it | v | apply r | eq (v | get /s))
     | proves :answersAStringWhole
         |~~ A string alone is answered whole. ~~|
@@ -726,10 +726,10 @@
       `5 | apply f [3]`. Its steps run in order, a
       leading `!|` routing the first through the fail track, so the steps
       a frame of a trace skipped run again, as held code runs. Code held
-      as the subject runs on itself by `apply it`, and text runs once
-      `parse` reads it, `"10 | add 3" | parse | apply it`. The code runs
-      under the fork rule: its declarations stay inside it, and only its
-      value comes out. A step written without its quote runs at the
+      as the subject runs on itself by `apply it`, and text runs on a
+      subject once `parse` reads it, `5 | apply ("add 3" | parse)`. The
+      code runs under the fork rule: its declarations stay inside it, and
+      only its value comes out. A step written without its quote runs at the
       call, so `apply (add 1)` is refused, as is the error a step
       answered there. The call takes one code; code of several steps is
       one quote.
@@ -779,8 +779,8 @@
         |~~ Several steps run in order. ~~|
         ~([[1 2] [3 4]] | apply ~(flat | sort) | eq [1 2 3 4])
     | proves :runsParsedText
-        |~~ Text parsed into a quote runs. ~~|
-        ~("10 | add 3" | parse | apply it | eq 13)
+        |~~ Text parsed into a quote runs on a subject. ~~|
+        ~(5 | apply ("add 3" | parse) | eq 8)
     | proves :keepsTheDeclarationsInside
         |~~ The declarations of the code stay inside it. ~~|
         ~(5 | apply ~(:x 1 | x) | :y it | env | has :x | not)
@@ -985,8 +985,8 @@
 
 :any/source
   |~~ Answers the code written under a name, one quote of its
-      declarations in the order they were written, which `parse` prints
-      as its text, a declaration a line: the declaration that binds the
+      declarations in the order they were written, which `toString`
+      writes as its text, a declaration a line: the declaration that binds the
       name in its scope, the chain of a verb's function with its inputs,
       its answer, its refusals and its laws, and every declaration under
       its address. `::Tag | source` reads what was written
@@ -1033,15 +1033,15 @@
           | eq [:Box :Box/a :Box/b :Box/note])
     | proves :printsTheDeclaration
         |~~ The source of a verb prints as its declaration. ~~|
-        ~(::vec/filter | source | parse | contains ":vec/filter")
+        ~(::vec/filter | source | toString | contains ":vec/filter")
     | proves :printsADeclarationALine
         |~~ The source of a verb prints a declaration a line. ~~|
-        ~(::number/round | source | parse | lines | first | eq ":number/round |~~ Answers the subject rounded to the digits after the point the call")
+        ~(::number/round | source | toString | lines | first | eq ":number/round |~~ Answers the subject rounded to the digits after the point the call")
     | proves :printsARefusalInTheChainOfItsKind
         |~~ A refusal a kind pages prints in the source of the kind, the
             chain that declares it.
         ~~|
-        ~(::number | source | parse | contains "throws :NotFiniteError")
+        ~(::number | source | toString | contains "throws :NotFiniteError")
     | proves :readsTheKindOfAValue
         |~~ A string reads the source of `::string`. ~~|
         ~("text" | source | eq (::string | source))
@@ -2114,7 +2114,7 @@
     | proves :readsAKeyTheQueryComputes
         |~~ A key the query computes reads as the path of one segment. ~~|
         ~({:k "b" :b 7} | get (get /k) | eq 7)
-    | proves :readsATuple
+    | proves :readsTwoFieldsByATemplate
         |~~ Two fields of one record are read in one step. ~~|
         ~({:price 4 :qty 3} | get [/price /qty] | eq [4 3])
     | proves :buildsTheShapeOfItsTemplate
@@ -2170,7 +2170,7 @@
     | proves :refusesAnotherKind
         |~~ A value on the path that has no parts is refused. ~~|
         ~({:a 5} | query /a/b !| type | eq ::path/SubjectHasNoPartsError)
-    | proves :readsATupleSoftly
+    | proves :readsATemplateSoftly
         |~~ Each path of a template is read softly. ~~|
         ~({:a 1} | query [/a /b] | eq [1 null])
     | impl ::builtin{}
@@ -2373,7 +2373,7 @@
   |~~ Answers the shape of a value, its schema in its own literal under
       `::shape`, whose page tells how a shape reads: each map keeps its
       keys, but a map every key of which is data, ids, dates, uuids or
-      addresses, or of more than eight names over records of one shape,
+      emails, or of more than eight names over records of one shape,
       folds into `::each` over its first key and the shape of its values,
       `{:"17" {:id 1} :"42" {:id 2}} | shape` answering
       `::shape::each{:"17" {:id ::number}}`; each vector and each

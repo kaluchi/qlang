@@ -191,7 +191,7 @@ function tupleOf(elements) {
 
 // A map folds into `::each` over its first key and the shape of its values,
 // the one key standing for all of them, where every key is data, an id of
-// digits, a date or a time, a uuid, an address, whatever its values hold,
+// digits, a date or a time, a uuid, an email, whatever its values hold,
 // kinds that part among them; and where it holds more than eight names
 // whose values, maps, vectors, sets, values under a tag or null, share one
 // shape, the map a reader's data keys by its users' names. A map of names
@@ -204,7 +204,7 @@ const DATA_KEYS = [
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
   /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 ];
-const isDataKey = key => DATA_KEYS.some(pattern => pattern.test(key));
+const isDataKey = key => DATA_KEYS.some(regex => regex.test(key));
 const NAMES_A_RECORD_HOLDS = 8;
 const holdsParts = part => part === null || isMap(part) || isVec(part) || isTagged(part);
 

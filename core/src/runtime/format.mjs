@@ -24,7 +24,7 @@ const TO_PLAIN_HANDLERS = {
   boolean: v => v,
   keyword: k => k.name,
   tag:     k => k.literal,
-  // A pattern writes its literal, which JSON has no form for [QSTXT#pattern].
+  // A regex writes its literal, which JSON has no form for [D362].
   regex:   printRegex,
   // A path writes its literal [QSPTH#value].
   path:    printPath,

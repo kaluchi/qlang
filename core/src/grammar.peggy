@@ -21,7 +21,7 @@
 
 {{
   import { isNameStart, isNameContinue, readsAsBareKeyword, LITERAL_WORDS } from '../src/name-chars.mjs';
-  import { canonicalFlags, patternProblem, patternRefusal, PATTERN_FLAGS } from '../src/pattern.mjs';
+  import { canonicalFlags, regexProblem, regexRefusal, REGEX_FLAGS } from '../src/regex-read.mjs';
   import { builtFrom } from '../src/walk.mjs';
 
   function node(type, fields, loc, txt) {
@@ -204,18 +204,17 @@
     }
   }
 
-  // Whether the engine reads a pattern a literal writes with its flags
-  // [QSTXT#pattern].
-  function patternRead(source, written) {
+  // Whether the engine reads a regex a literal writes with its flags [D362].
+  function regexRead(source, written) {
     const flags = canonicalFlags(written);
-    return flags !== null && patternProblem(source, flags) === null;
+    return flags !== null && regexProblem(source, flags) === null;
   }
 
-  function refuseUnreadPattern(source, written) {
+  function refuseUnreadRegex(source, written) {
     const flags = canonicalFlags(written);
-    if (flags === null) error(`a pattern takes the flags ${[...PATTERN_FLAGS].map(flag => '`' + flag + '`').join(', ')}, each once after its closing quote, \`#"error"i\``);
-    const problem = patternProblem(source, flags);
-    if (problem !== null) error(patternRefusal(source, flags, problem));
+    if (flags === null) error(`a regex takes the flags ${[...REGEX_FLAGS].map(flag => '`' + flag + '`').join(', ')}, each once after its closing quote, \`#"error"i\``);
+    const problem = regexProblem(source, flags);
+    if (problem !== null) error(regexRefusal(source, flags, problem));
   }
 }
 
@@ -780,28 +779,28 @@ QlangMapEntry
   = key:Keyword __ value:Element
     { return node('MapEntry', { key, value }, span(), text()); }
 
-// A pattern of text, read as written: a backslash passes to the engine
-// with the character after it, but for `\"`, a quote in the pattern that
-// does not end it, and the flags may follow the closing quote,
-// `#"error"i` [QSTXT#pattern], [D360].
+// A regex, read as written: a backslash passes to the engine with the
+// character after it, but for `\"`, a quote in the regex that does not end
+// it, and the flags may follow the closing quote, `#"error"i` [D362],
+// [D360].
 RegexLit
-  = "#\"" chars:RegexChar* "\"" written:$PatternFlag*
-    &{ return docQuoteDepth === 0 || patternRead(chars.join(''), written); }
+  = "#\"" chars:RegexChar* "\"" written:$RegexFlag*
+    &{ return docQuoteDepth === 0 || regexRead(chars.join(''), written); }
     {
-      const pattern = chars.join('');
-      refuseUnreadPattern(pattern, written);
-      return node('RegexLit', { pattern, flags: canonicalFlags(written) }, span(), text());
+      const source = chars.join('');
+      refuseUnreadRegex(source, written);
+      return node('RegexLit', { regexSource: source, flags: canonicalFlags(written) }, span(), text());
     }
 
 RegexChar
   = "\\\"" { return '"'; }
   / $("\\" .)
-  / PatternCharacter
+  / RegexSourceCharacter
 
-PatternCharacter "character of a pattern"
+RegexSourceCharacter "character of a regex"
   = [^"\\]
 
-PatternFlag "flag of a pattern"
+RegexFlag "flag of a regex"
   = [a-zA-Z]
 
 // A set written with braces, the form of another language, is refused

@@ -82,7 +82,7 @@
       "patterns": [{ "include": "#span-code" }]
     },
     "span-code": {
-      "comment": "The code of a span in backticks: a string, a pattern, a quoted keyword, a comment and a doc each close before the backtick that closes the span, so a mark the prose shows alone, a quote mark or the opening of a doc, opens nothing past it.",
+      "comment": "The code of a span in backticks: a string, a regex, a quoted keyword, a comment and a doc each close before the backtick that closes the span, so a mark the prose shows alone, a quote mark or the opening of a doc, opens nothing past it.",
       "patterns": [
         { "name": "comment.line.documentation.qlang", "match": "\\|~~\\|[^`]*" },
         { "name": "comment.block.documentation.qlang", "match": "\\|~~(?!\\|)[^`]*?~~\\|" },
@@ -128,7 +128,7 @@
     },
 
     "regex": {
-      "comment": "A pattern `#\"…\"` read as written: a backslash keeps the character after it, and the flags follow the closing quote.",
+      "comment": "A regex `#\"…\"` read as written: a backslash keeps the character after it, and the flags follow the closing quote.",
       "name": "string.regexp.qlang",
       "begin": "#\"",
       "end": "\"([ims]*)",

@@ -47,7 +47,7 @@ describe('assembling steps by hand', () => {
   const tagOf = name => evalQuery(name);
 
   it('a record assembled from its fields reads back as itself', async () => {
-    expect(await evalQuery('{:name :filter :modifiers [~(gt 1)]} | tag ::call | get [~(it)] | tag ::quote | parse'))
+    expect(await evalQuery('{:name :filter :modifiers [~(gt 1)]} | tag ::call | get [~(it)] | tag ::quote | toString'))
       .toBe('filter ~(gt 1)');
   });
 
@@ -66,17 +66,17 @@ describe('assembling steps by hand', () => {
   });
 
   it('the body of a declaration may be a command with its modifiers', async () => {
-    expect(await evalQuery('::bind{:name :six :body ::call{:name :add :modifiers [1]}} | get [~(it)] | tag ::quote | parse'))
+    expect(await evalQuery('::bind{:name :six :body ::call{:name :add :modifiers [1]}} | get [~(it)] | tag ::quote | toString'))
       .toBe(':six add 1');
   });
 
   it('a keyword or a tag name is the body of its declaration [QSSYN#line]', async () => {
-    expect(await evalQuery('::bind{:name :s :body :active} | get [~(it)] | tag ::quote | parse')).toBe(':s :active');
-    expect(await evalQuery('::bind{:name :s :body ::vec} | get [~(it)] | tag ::quote | parse')).toBe(':s ::vec');
+    expect(await evalQuery('::bind{:name :s :body :active} | get [~(it)] | tag ::quote | toString')).toBe(':s :active');
+    expect(await evalQuery('::bind{:name :s :body ::vec} | get [~(it)] | tag ::quote | toString')).toBe(':s ::vec');
   });
 
   it('a number payload touches its tag by `#`, and reads back as itself [QSLIT#tag]', async () => {
-    expect(await evalQuery('::construct{:tag ::T :payload 42} | get [~(it)] | tag ::quote | parse')).toBe('::T#42');
+    expect(await evalQuery('::construct{:tag ::T :payload 42} | get [~(it)] | tag ::quote | toString')).toBe('::T#42');
   });
 
   it('a value of another tag is no step', async () => {
@@ -88,7 +88,7 @@ describe('assembling steps by hand', () => {
     // The tag an error literal writes before its bang is the tag of the
     // error at rest it spells, so an error of any tag stands in a quote
     // [D359].
-    expect(await evalQuery('get [~("x" | add 1 !| minus #[:trace])] | tag ::quote | parse'))
+    expect(await evalQuery('get [~("x" | add 1 !| minus #[:trace])] | tag ::quote | toString'))
       .toBe('::number/add/SubjectNotNumberError!{:actualType ::string}');
   });
 
@@ -98,9 +98,9 @@ describe('assembling steps by hand', () => {
   });
 
   it('an index, a tag name and calls and paths inside a container are steps', async () => {
-    expect(await evalQuery('[[/items/0]] | tag ::quote | parse')).toBe('[/items/0]');
-    expect(await evalQuery('::bind{:name :point :body {:x 0}} | get [~(it)] | tag ::quote | parse')).toBe(':point {:x 0}');
-    expect(await evalQuery('~(get [~(count) /a]) | filter ~(true) | parse')).toBe('get [~(count) /a]');
+    expect(await evalQuery('[[/items/0]] | tag ::quote | toString')).toBe('[/items/0]');
+    expect(await evalQuery('::bind{:name :point :body {:x 0}} | get [~(it)] | tag ::quote | toString')).toBe(':point {:x 0}');
+    expect(await evalQuery('~(get [~(count) /a]) | filter ~(true) | toString')).toBe('get [~(count) /a]');
   });
 
   it('a payload that is no Map names no field', async () => {
@@ -111,12 +111,12 @@ describe('assembling steps by hand', () => {
 
 describe('printing steps read from text', () => {
   it('a doc in the slot of a declaration prints in its slot', async () => {
-    expect(await evalQuery('~(:x |~~ note ~~| it) | parse')).toBe(':x |~~ note ~~| it');
+    expect(await evalQuery('~(:x |~~ note ~~| it) | toString')).toBe(':x |~~ note ~~| it');
   });
 
   it('a key that is no bare name prints quoted, a keyword of names joined by a slash behind a colon', async () => {
-    expect(await evalQuery('~(get /"a b") | parse')).toBe('get /"a b"');
-    expect(await evalQuery('~(get /:ns/name) | parse')).toBe('get /:ns/name');
+    expect(await evalQuery('~(get /"a b") | toString')).toBe('get /"a b"');
+    expect(await evalQuery('~(get /:ns/name) | toString')).toBe('get /:ns/name');
   });
 
   it('a quote read from text keeps the tree it was read from', () => {

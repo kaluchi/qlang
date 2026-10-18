@@ -13,7 +13,7 @@
 {"name":"quote-equality-ignores-comments","query":"~(mul 2 |~ note ~|) | eq ~(mul 2)","expect":"true"}
 {"name":"quote-equality-cross-type-string","query":"~(mul 2) | eq \"mul 2\"","expect":"false"}
 {"name":"quote-in-vec","query":"[~(a) ~(b) ~(c)] | count","expect":"3"}
-{"name":"quote-in-vec-prints","query":"[~(a) ~(b) ~(c)] | first | parse","expect":"\"a\""}
-{"name":"quote-in-map","query":"{:body ~(mul 2)} | get /body | parse","expect":"\"mul 2\""}
+{"decision":"D362","name":"a-quote-in-a-vector-writes-the-text-of-its-code","query":"[~(a) ~(b) ~(c)] | first | toString","expect":"\"a\""}
+{"decision":"D362","name":"a-quote-in-a-map-writes-the-text-of-its-code","query":"{:body ~(mul 2)} | get /body | toString","expect":"\"mul 2\""}
 {"name":"quote-in-set","query":"#[~(a) ~(b)] | count","expect":"2"}
 {"name":"a-short-quote-is-the-quote-of-its-word","query":"~add","expect":"~(add)"}

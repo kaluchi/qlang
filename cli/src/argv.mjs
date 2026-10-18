@@ -31,11 +31,11 @@ Reading stdin (script):
 Output budget:
   (default)   a value prints whole, and an error as an alert: the
               subject where it arose cut to an excerpt, each subject
-              it passed an ::elision marker whose :read continues the
-              query to it
+              it passed an ::elision whose :read continues the query
+              to it
   --budget=N  print every answer within N characters; what does not
-              fit gives way to ::elision markers whose :read continues
-              the query to the part left out. A query bounds its own
+              fit gives way to an ::elision whose :read continues the
+              query to the part left out. A query bounds its own
               answer the same way by '| elide N'.
 
 Output colour:

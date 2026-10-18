@@ -89,7 +89,7 @@ describe('the verbs a value of a kind reaches [QSDSP#walk]', () => {
     const env = await langRuntime();
     const addressesFrom = (kindName, names) => names.map(name => verbsReaching(env, [kindName]).get(name)?.address.name);
     expect(addressesFrom('set', ['sort', 'count', 'take', 'within'])).toEqual(['set/sort', 'vec/count', 'vec/take', 'tagged/within']);
-    expect(addressesFrom('quote', ['count', 'parse'])).toEqual(['vec/count', 'quote/parse']);
+    expect(addressesFrom('quote', ['count', 'toString'])).toEqual(['vec/count', 'quote/toString']);
     expect(addressesFrom('doc', ['count', 'links'])).toEqual(['vec/count', 'doc/links']);
     expect(shownFor(env, 'count', ['set']).address.name).toBe('vec/count');
   });

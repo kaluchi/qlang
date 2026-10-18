@@ -47,7 +47,7 @@ export function deepEqual(a, b) {
   if (isTag(a)) {
     return isTag(b) && a.name === b.name;
   }
-  // Two patterns are one when their text and their flags are [QSTXT#pattern].
+  // Two regexes are one when their text and their flags are [D362].
   if (isRegex(a)) {
     return isRegex(b) && a.source === b.source && a.flags === b.flags;
   }

@@ -16,7 +16,7 @@
       quotes around a bare name change nothing. A keyword is no string,
       `:a | eq "a"` answering `false`, and `toKeyword` and `toString`
       turn one into the other, `"draft" | toKeyword` answering `:draft`. JSON writes a
-      keyword as its name, `"draft"`, and keywords rank after patterns
+      keyword as its name, `"draft"`, and keywords rank after regexes
       and before tags.
       ::snippet~(::keyword | manifest) lists its verbs.
       ::link~(::map | doc) ::link~(::string | doc)

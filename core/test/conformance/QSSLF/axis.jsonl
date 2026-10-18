@@ -4,13 +4,13 @@
 {"name":"an-anchor-a-value-holds-no-node-under-is-refused-with-no-address","query":"5 | doc :nosuch !| get [~(type) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
 {"name":"an-anchor-a-verb-declares-no-input-under-is-refused","query":"::vec/take | doc :nosuch !| get [~(type) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
 {"name":"an-unknown-name-under-a-verb-is-named-by-the-keyword-asked","query":"::vec/take | doc :\"a b\" !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :\"a b\"]"}
-{"name":"a-declared-name-source-axis","query":":number/double ~(mul 2) | ::number/double | source | parse","expect":"\":number/double ~(mul 2)\""}
+{"decision":"D362","name":"a-declared-name-source-axis","query":":number/double ~(mul 2) | ::number/double | source | toString","expect":"\":number/double ~(mul 2)\""}
 {"name":"an-anchor-under-a-tag-that-names-nothing-is-refused-by-its-name","query":"::Nothing | doc :x !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :x]"}
 {"name":"an-anchor-reads-the-input-of-a-kinds-verb","query":"::vec | doc [:take :count] | eq (::vec/take/count | doc)","expect":"true"}
 {"name":"an-address-reads-its-page-whatever-the-scope-binds","query":":limit 5 | ::vec/filter | doc | type","expect":"::doc"}
 {"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::vec/count | doc | type","expect":"::doc"}
 {"name":"a-tag-nothing-declares-is-refused-by-the-axis","query":"::count | doc !| type","expect":"::any/doc/UnknownNameError"}
-{"name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | parse | contains \"::builtin{}\"","expect":"true"}
+{"decision":"D362","name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | toString | contains \"::builtin{}\"","expect":"true"}
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true"}
 {"name":"an-axis-reads-the-input-a-verb-holds-under-an-anchor","query":"::vec/take | binding :count | get /value | print","expect":"\"/0\""}
 {"name":"an-anchor-no-node-answers-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :nosuch]"}

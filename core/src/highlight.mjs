@@ -10,7 +10,7 @@
 // Token kinds:
 //
 //   'string'      String literal, including the surrounding quotes
-//   'regex'       Pattern literal `#"…"`, its flags among it [QSTXT#pattern]
+//   'regex'       Regex literal `#"…"`, its flags among it [D362]
 //   'number'      Number literal, plus boolean and null literals
 //   'comment'     A comment, and the prose of a doc: the quotes a
 //                 doc holds and its spans in backticks paint as code

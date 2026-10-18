@@ -222,7 +222,7 @@ describe('runRepl — the first cell given on the command line', () => {
 describe('runRepl — the budget of an answer', () => {
   const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
 
-  it('prints a value past its budget with a marker that reads the rest', async () => {
+  it('prints a value past its budget with an elision that reads the rest', async () => {
     const replHarness = captureRepl(`${forty}\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toContain('::elision{');

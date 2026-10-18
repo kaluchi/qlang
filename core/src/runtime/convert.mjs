@@ -5,7 +5,7 @@
 // [QSCND#convert].
 
 import { keyword, makeTag, makeSet, makeRegex, isKeyword, isTag, isVec, kindsExpected, typeOf } from '../types.mjs';
-import { canonicalFlags, patternProblem, textRefusal } from '../pattern.mjs';
+import { canonicalFlags, regexProblem, textRefusal } from '../regex-read.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
@@ -74,10 +74,10 @@ registerPrimitive('keyword/toTag', key => {
   return makeTag(key.name);
 });
 
-// A string reads as the source of a pattern with the flags the call gives,
-// none for null, and a text that writes the literal of a pattern whole is
-// refused [QSTXT#pattern].
-const StringToRegexTextNotPatternError = declareRefusal('string/toRegex/TextNotPatternError');
+// A string reads as the source of a regex with the flags the call gives,
+// none for null, and a text that writes the literal of a regex whole is
+// refused [D362].
+const StringToRegexTextNotRegexError = declareRefusal('string/toRegex/TextNotRegexError');
 const StringToRegexLiteralNotSourceError = declareRefusal('string/toRegex/LiteralNotSourceError');
 const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/flags/NotFlagsError');
 
@@ -92,8 +92,8 @@ registerPrimitive('string/toRegex', (text, written) => {
   const flags = canonicalFlags(written ?? '');
   if (flags === null) throw new StringToRegexFlagsNotFlagsError({ actualValue: written });
   if (literalWritten(text, 'RegexLit') !== null) throw new StringToRegexLiteralNotSourceError({ actualValue: text });
-  const problem = patternProblem(text, flags);
-  if (problem !== null) throw new StringToRegexTextNotPatternError({ message: textRefusal(problem), actualValue: text });
+  const problem = regexProblem(text, flags);
+  if (problem !== null) throw new StringToRegexTextNotRegexError({ message: textRefusal(problem), actualValue: text });
   return makeRegex(text, flags);
 });
 

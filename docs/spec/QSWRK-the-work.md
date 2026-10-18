@@ -526,7 +526,9 @@ in the commit that retires it, a regex of the one sense it had, the
 term written in its place and the record. The lexicon holds the terms of
 the project, each of one sense and high in entropy: a generic word of
 other projects, which a search finds in a heap of senses, stays out of
-it, its uses held by the readers of the pentimento audit; the journal and
+it, its uses held by the readers of the pentimento audit, but for a
+generic word the texts that state what holds write in no sense at all,
+which it refuses whole; the journal and
 the research, which carry the change, keep the words they quote.
 
 The apophatic texts are where the work lives. While a branch works, a

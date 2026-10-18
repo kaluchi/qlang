@@ -49,11 +49,11 @@ const PATH_MARKS = [
 ];
 const SISTER_MARK = /\(qlang ((?:D\d+)(?:,\s*D?\d+)*)\)/g;
 
-function marksOfText(text, pattern) {
+function marksOfText(text, regex) {
   const marks = [];
   const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
-    for (const match of line.matchAll(pattern)) {
+    for (const match of line.matchAll(regex)) {
       for (const name of match[1].split(/,\s*/)) marks.push({ name: /^(D|E|QS)/.test(name) ? name : `D${name}`, line: index + 1 });
     }
   });
@@ -114,7 +114,7 @@ export function marksOfTree(root = repoRoot) {
   const orphans = [];
   const blocks = new Map();
   for (const path of git(root, 'ls-files').split('\n').filter(Boolean)) {
-    const byPath = PATH_MARKS.map(pattern => pattern.exec(path)?.[1]).find(Boolean);
+    const byPath = PATH_MARKS.map(regex => regex.exec(path)?.[1]).find(Boolean);
     if (byPath !== undefined) {
       marks.push({ path, name: byPath, line: 1 });
       blocks.set(path, [{ from: 1, to: Infinity, names: new Set([byPath]) }]);

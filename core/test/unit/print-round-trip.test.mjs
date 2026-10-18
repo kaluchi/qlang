@@ -10,7 +10,7 @@
 // [QSBLD#kind], each printed, parsed and opened, and held equal to itself by
 // `eq`. A part computed goes into a container by the template of `get`, each
 // part of it a quote that answers it, and under a tag by `tag`, since a
-// literal computes nothing [QSPRN#print].
+// literal computes nothing [QSLIT#closed].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

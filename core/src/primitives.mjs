@@ -84,7 +84,7 @@ export function registerPrimitive(addresses, primitive) {
 }
 
 // A primitive that reads the state of its call takes it after the values of
-// its inputs [QSDSP#residence], and every other takes the values alone [QSHST#source].
+// its inputs, and every other takes the values alone [QSHST#source].
 const STATE_READERS = new WeakSet();
 
 export function readingState(primitive) {

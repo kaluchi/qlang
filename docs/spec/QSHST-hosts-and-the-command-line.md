@@ -25,9 +25,13 @@ refuses, as it is declared, a `::builtin{}` its host handed no primitive
 for, `::builtin/PrimitiveNotHandedError`, a primitive handed for a name
 its source declares otherwise, `::builtin/PrimitiveNamesNoBuiltinError`,
 and a source whose run answers an error or declares again a name the
-root holds, `::builtin/RootSourceNotDeclaredError`; the modules of the
-runtime register the core's primitives in its table, two under one
-address refused as `::builtin/AddressRegisteredTwiceError`. A
+root holds, `::builtin/RootSourceNotDeclaredError`. A name that holds the
+`::builtin{}` another name took first runs the primitive of that name,
+and a primitive handed for it is refused so, its `:sharedWith` naming
+that name. The modules of the runtime register the core's primitives in
+its table, an address that is no string refused as
+`::builtin/AddressNotStringError` and two under one address as
+`::builtin/AddressRegisteredTwiceError`. A
 `::builtin{}` a reader writes is the value it is: as the recipe of a
 function under a label, the address answers the function as a value, and
 its bare name reaches no verb; as a step of a recipe's quote, the verb
@@ -97,8 +101,9 @@ walk: a value of no kind there is a defect of the host, raised past the
 fail track as `::builtin/ForeignValueError`, whose `:actualValue` names
 the value as JavaScript holds it, its type and its name or its maker,
 `"function hello"`, `"number Infinity"`, or what makes a container of no
-kind, `"a map whose key number 1 is no string"`; the printer and the
-codec of JSON raise the same defect for a value of no kind no door met.
+kind, `"a map whose key number 1 is no string"`; the printer, the codec
+of JSON and every read of the kind of a value, `type` and the one order
+among them, raise the same defect for a value of no kind no door met.
 The doors hold the shape of a value, and `fromPlain` is the road a host
 builds a lawful answer by from data it holds parsed.
 

@@ -1,7 +1,7 @@
 // The trace of a failure, written in flight: a failure lives in the pipe
 // alone, and its `:trace` holds a frame at every step that raised it or
 // handed it on, from the step where it arose to the `!|` that catches it,
-// a step it skips joining the steps of the last [QSERR#trace]. The helpers build a
+// a step it skips joining the steps of the last [QSERR#catch], [QSERR#trace]. The helpers build a
 // new error for every change; none re-enters the evaluator.
 //
 //   `answerOfStep(answer, stepQuoteOf, subject, env)` — the answer of a step
@@ -17,7 +17,8 @@
 //   `raisedBy(error, node)` — marks the failure a node's own fault raised.
 //
 // A failure holds its trace from its first frame, and the refusal of the
-// text of a query, which flew no step, holds no `:trace` [QSERR#trace].
+// text of a query, which flew no step, holds no `:trace` [QSERR#trace],
+// [QSERR#print].
 
 import { isErrorValue, isPath, isQuote, isTagged, isTrace, isVec, kindsExpected, makeErrorValue, makeFrame, makeQuote, makeTrace, FRAME_TAG } from './types.mjs';
 import { quoteOfBody } from './quote.mjs';

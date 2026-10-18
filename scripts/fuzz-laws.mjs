@@ -34,8 +34,8 @@ const MUTATORS = [
 function variantOf(law) {
   let variant = law;
   for (let times = 1 + Math.floor(random() * 2); times > 0; times--) {
-    const [pattern, edges] = pick(MUTATORS);
-    const spots = [...variant.matchAll(pattern)];
+    const [regex, edges] = pick(MUTATORS);
+    const spots = [...variant.matchAll(regex)];
     if (spots.length === 0) continue;
     const spot = pick(spots);
     variant = variant.slice(0, spot.index) + pick(edges) + variant.slice(spot.index + spot[0].length);

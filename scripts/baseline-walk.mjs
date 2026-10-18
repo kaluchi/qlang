@@ -27,12 +27,12 @@ const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets
 export const CITATION_IN_WORDS = /\bdecisions? ((?:[DE]\d+)(?:(?:,\s*| and )[DE]\d+)*)/g;
 const CITATION = new RegExp(`\\[((?:[DE]\\d+)(?:,\\s*[DE]\\d+)*)\\]|${CITATION_IN_WORDS.source}`, 'g');
 
-function filesUnder(repoRoot, dir, pattern) {
+function filesUnder(repoRoot, dir, regex) {
   const absolute = join(repoRoot, dir);
   if (!existsSync(absolute)) return [];
   return readdirSync(absolute, { withFileTypes: true }).flatMap(entry => {
-    if (entry.isDirectory()) return UNCITING_FOLDERS.has(entry.name) ? [] : filesUnder(repoRoot, `${dir}/${entry.name}`, pattern);
-    return pattern.test(entry.name) ? [`${dir}/${entry.name}`] : [];
+    if (entry.isDirectory()) return UNCITING_FOLDERS.has(entry.name) ? [] : filesUnder(repoRoot, `${dir}/${entry.name}`, regex);
+    return regex.test(entry.name) ? [`${dir}/${entry.name}`] : [];
   });
 }
 

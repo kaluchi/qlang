@@ -177,7 +177,8 @@ function evalBody(node, state) {
 // the site that refused laid through its label as a tagged literal lays
 // it, so `!| type` reads the site and a verb of `::error` reaches every
 // error, a value passing, a label's refusal answering for the catch, and a
-// raise that writes the `:trace` it read resuming it [QSERR#catch], [QSERR#trace].
+// raise that writes the `:trace` it read resuming it [QSERR#catch],
+// [QSERR#rest], [QSERR#trace].
 async function applyFailTrack(state, stepNode) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
@@ -1059,7 +1060,8 @@ function closeCode(astNode, capturedState, evaluate = evalBody) {
 // written in the step, which the call runs it in; a literal of an atom its
 // value one deeper in the evaluation depth than the call; and any other
 // modifier the code it is, whose value the call keeps as a value of the step.
-// A modifier answers within the frame of its step, which holds it [QSNAM#verb], [QSERR#trace].
+// A modifier answers within the frame of its step, which holds it [QSQUO#held],
+// [QSNAM#verb], [QSERR#trace].
 function modifierOf(argNode, state) {
   if (argNode.type === 'QuoteLit') return withOrigin(() => quoteOfLiteral(argNode), { step: state, written: true });
   if (WRITTEN_LITERALS.has(argNode.type)) return withOrigin(closeCode(argNode, state, evalNode), { step: state, written: true });

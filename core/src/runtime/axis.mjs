@@ -111,7 +111,7 @@ registerStateReader('any/binding', (subject, anchor, state) =>
 // The source of a record and of every declaration under its address,
 // one quote of their steps in the order they were written, what stands
 // under the address read at once; a binding no declaration wrote holds
-// none [QSSLF#catalog], [QSSLF#axis].
+// none [QSSLF#axis].
 registerStateReader('any/source', (subject, anchor, state) => {
   const record = recordReadBy(subject, anchor, state, AnySourceUnknownNameError);
   const written = [record, ...declarationsUnder(state.env, record.get('name').name)].filter(declared => declared.get('source') !== null);

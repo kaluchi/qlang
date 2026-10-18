@@ -83,7 +83,7 @@ export const isThenable = value => typeof value?.then === 'function';
 // beneath over the tags the walk passed after them, and a reader of the scope
 // over the state of the call after those, its scope the tree of the query,
 // wherever it is called, held at the door under the address of its call
-// [QSDSP#residence], [QSNAM#owner], [QSHST#source].
+// [QSDSP#residence], [QSNAM#owner], [QSERR#raise], [QSHST#source].
 export function runPrimitive(descriptor, served, passedTags, inputValues, state, address) {
   const primitive = primitiveOf(descriptor);
   const read = readsPassedTags(primitive) ? [...inputValues, passedTags] : inputValues;

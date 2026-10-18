@@ -77,7 +77,8 @@ registerStateReader('any/query', runsWithin(['path'], (subject, path, fallback, 
 // index it takes moving up. The path is followed as `get` follows it, and
 // every container on the way is built again and laid under the tags it
 // stood under, each laid again through its kind, as `within` lays
-// its answer; an error the code answers is the answer, at its path [QSPTH#write].
+// its answer; an error the code answers is the answer, at its path
+// [QSPTH#write], [QSERR#trace].
 async function written(value, path, at, write, state) {
   if (isValueClass(value, 'underTag')) return await relaid(value, await written(value.payload, path, at, write, state), state);
   const segment = path.segments[at];

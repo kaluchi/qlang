@@ -111,7 +111,7 @@ describe('deepEqual Set vs non-Set non-Array', async () => {
   });
 });
 
-describe('error-convert.mjs — errorFromParse and the origin of a text [QSQUO#parse]', async () => {
+describe('error-convert.mjs — errorFromParse and the origin of a text [QSHST#source]', async () => {
   it('names no origin where the text came from no source a host named', async () => {
     const parseError = Object.assign(new Error('unexpected token'), { location: null });
     // no .uri property — tests the false arm of `if (uri)`

@@ -1,7 +1,7 @@
 // `raise`, and the catch, `!|`, which passes a value by and runs its step on
 // the error at rest, a group and a verb among them; the trace of the steps a
 // failure skips, and the refusals of the runtime, each under the address of
-// its site [QSERR#catch], [QSERR#trace].
+// its site [QSERR#catch], [QSERR#trace], [QSERR#site].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/eval.mjs';

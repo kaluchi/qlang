@@ -50,7 +50,8 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       '`add 1`, which broke on `"x"`', '`map`, which broke where its code ran', '`mul 2`, which broke on',
       'the path of the part, where it broke, null where it ran it on no part', 'that broke, the first broken and the rest left unrun',
       'an input read from its place meets the budget', 'a read with no state meets the budget by it alone.',
-      'leaves the budget intact for recursion that terminates', 'the frames of the evaluator', 'the budget of the evaluator'
+      'leaves the budget intact for recursion that terminates', 'the frames of the evaluator', 'the budget of the evaluator',
+      'QSERR#trail', 'Trail of a failure', 'the trails of two failures', 'makeTrails', 'theTrailEnd', 'TRAILS_KEY', 'KEY_TRAILS'
     ]) expect(refused(text), text).toBe(true);
   });
 
@@ -85,7 +86,8 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'the frames nested under the frame of `map`', 'the frame below it in the print',
       'the frame of `map` stands a frame below the frame of `count` in the print', 'the frame of the raise lies one frame below the catch',
       'the frames one below another print a frame a line', 'the deepest frame of a trace is its first',
-      'the steps a failure skips stay on the frame of the step that failed', 'the key that broke the order', 'the code that broke it'
+      'the steps a failure skips stay on the frame of the step that failed', 'the key that broke the order', 'the code that broke it',
+      'the Nissan XTrail', 'a makeTrailer helper', 'a TRAILER of a print'
     ]) expect(refused(text), text).toBe(false);
   });
 

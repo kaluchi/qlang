@@ -7,10 +7,10 @@ import { describe, it, expect } from 'vitest';
 import { Readable } from 'node:stream';
 import { runRepl } from '../src/repl.mjs';
 
-const ANSI_PATTERN = /\x1b\[[0-9;]*m/g;
+const ANSI_ESCAPE = /\x1b\[[0-9;]*m/g;
 
 function stripAnsi(text) {
-  return text.replace(ANSI_PATTERN, '');
+  return text.replace(ANSI_ESCAPE, '');
 }
 
 function captureRepl(scriptedInput) {

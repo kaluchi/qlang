@@ -3,7 +3,7 @@
    runtime no reader reaches by a query, the table of primitives, the
    declarations of the refusals, the tree the evaluator does not know, a
    value of no kind a host handed and the sources of the root.
-   The rules it holds: [QSHST#source], [QSDSP#residence]. ~|
+   The rules it holds: [QSHST#source], [QSERR#site], [QSDSP#residence]. ~|
 
 :builtin
   |~~ A builtin marks a verb a host answers by a primitive: the recipe of

@@ -1,6 +1,6 @@
 // Arithmetic primitives, each taking the values alone, the number the walk
-// served and the inputs its call reads [QSBLD#fn]. The invariants of the inputs hold
-// before a primitive runs, a divisor no zero among them [QSHST#source],
+// served and the inputs its call reads [QSHST#source]. The invariants of the inputs hold
+// before a primitive runs, a divisor no zero among them [QSERR#site],
 // [QSBLD#fn], and an answer that left the finite doubles is refused as it is
 // brought under `::number` [QSNUM#arithmetic].
 

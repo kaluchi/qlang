@@ -8,7 +8,7 @@
 // beside the source under its name, the answer of one the table of the core
 // does not hold held at the door [QSDSP#residence], [QSQUO#modifier], and is
 // refused as the root is declared when it was handed none; a refusal the
-// source declares takes its address, the name it is declared by, once [QSHST#source].
+// source declares takes its address, the name it is declared by, once [QSERR#site].
 
 import { parse } from '../parse.mjs';
 import { evalAst } from '../eval.mjs';

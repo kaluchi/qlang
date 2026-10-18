@@ -146,7 +146,7 @@ const RULESET_FILES = new Set([
   'scripts/check-conventions.mjs'  // this file quotes the list
 ]);
 
-const FORBIDDEN_PATTERNS = [
+const FORBIDDEN_REGEXES = [
   { rule: 'TODO marker',                 regex: /\bTODO\b/ },
   { rule: 'FIXME marker',                regex: /\bFIXME\b/ },
   { rule: 'HACK marker',                 regex: /\bHACK\b/ },
@@ -198,7 +198,7 @@ function scanForbiddenWords() {
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
       const line = lines[lineIndex];
-      for (const { rule, regex } of FORBIDDEN_PATTERNS) {
+      for (const { rule, regex } of FORBIDDEN_REGEXES) {
         if (regex.test(line)) {
           violations.push({
             file: relFile,

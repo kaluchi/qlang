@@ -17,9 +17,10 @@
 //   node scripts/marks.mjs --sister <dir>  the places of the sister project that mark a record
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { baselineOf } from './baseline-walk.mjs';
+import { readText } from './tree-reads.mjs';
 import { FATE, FIELD_OPENS, LINK_DEFINITION, RUN_LINE, JOURNAL } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
@@ -123,13 +124,13 @@ export function marksOfTree(root = repoRoot) {
       // A file of a chapter marks its section, and a case in it the record
       // in transit over it [QSWRK#cases].
       const section = /\/(QS[A-Z]{3})\/([^/]+)\.jsonl$/.exec(path);
-      const found = [...(section === null ? [] : [{ name: `${section[1]}#${section[2]}`, line: 1 }]), ...marksOfCases(readFileSync(join(root, path), 'utf8'))];
+      const found = [...(section === null ? [] : [{ name: `${section[1]}#${section[2]}`, line: 1 }]), ...marksOfCases(readText(join(root, path)))];
       marks.push(...found.map(mark => ({ path, ...mark })));
       blocks.set(path, found.map(({ name, line }) => ({ from: line, to: line, names: new Set([name]) })));
       continue;
     }
     if (!isArtifact(path)) continue;
-    const text = readFileSync(join(root, path), 'utf8');
+    const text = readText(join(root, path));
     const found = marksOfText(text, MARK);
     if (found.length === 0) orphans.push(path);
     marks.push(...found.map(mark => ({ path, ...mark })));
@@ -263,7 +264,7 @@ export function touchedRecords(root = repoRoot, { baseline = baselineOf(root) } 
 
 function marksOfSister(dir) {
   return git(dir, 'ls-files').split('\n').filter(path => /\.(mjs|js|qlang|md)$/.test(path))
-    .flatMap(path => marksOfText(readFileSync(join(dir, path), 'utf8'), SISTER_MARK).map(mark => ({ path, ...mark })));
+    .flatMap(path => marksOfText(readText(join(dir, path)), SISTER_MARK).map(mark => ({ path, ...mark })));
 }
 
 const [command, argument] = process.argv.slice(2);

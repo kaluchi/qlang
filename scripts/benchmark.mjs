@@ -17,7 +17,7 @@
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { Readable } from 'node:stream';
 import { isDeepStrictEqual } from 'node:util';
 import { TASKS } from './benchmark/tasks.mjs';
 import { firstScreen, shortHash } from './benchmark/screens.mjs';
@@ -28,19 +28,24 @@ import { verdict } from './benchmark/verdict.mjs';
 const repoRoot = join(import.meta.dirname, '..');
 const benchDir = join(repoRoot, 'scripts', 'benchmark');
 const inputsDir = join(benchDir, 'inputs');
-const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs');
 
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery } = await core('eval.mjs');
 const { printValue } = await core('index.mjs');
 const { deepEqual } = await core('equality.mjs');
+const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
 
 // What the command line answers for a query over the data of its task,
-// as JSON text, which `| json` writes [QSHST#answer].
-function answerOf(query, task) {
+// as JSON text, which `| json` writes [QSHST#answer], run in this process as
+// `bin.mjs` runs it, its data handed as standard input.
+async function answerOf(query, task) {
   const flags = task.raw ? ['--raw', `(${query}) | json`] : [`(${query}) | json`];
-  return execFileSync(process.execPath, [commandLine, ...flags],
-    { input: readFileSync(join(inputsDir, task.input)), encoding: 'utf8', env: pipeEnv });
+  let stdout = '';
+  let stderr = '';
+  const stdin = Readable.from([readFileSync(join(inputsDir, task.input))], { objectMode: false });
+  const code = await main(flags, stdin, { write: written => { stdout += written; } }, { write: written => { stderr += written; } }, pipeEnv);
+  if (code !== 0) throw new Error(`the command line exits ${code}: ${stderr}`);
+  return stdout;
 }
 
 // A task over data answers JSON through the command line; a task of
@@ -48,14 +53,14 @@ function answerOf(query, task) {
 // answer.
 async function referenceHolds(task) {
   if (task.input === undefined) return deepEqual(await evalQuery(task.reference), await evalQuery(task.answer));
-  return isDeepStrictEqual(JSON.parse(answerOf(task.reference, task)), JSON.parse(task.answer));
+  return isDeepStrictEqual(JSON.parse(await answerOf(task.reference, task)), JSON.parse(task.answer));
 }
 
 async function check() {
   const wrong = [];
   for (const task of TASKS) if (!(await referenceHolds(task))) wrong.push(task);
   for (const task of wrong) {
-    const given = task.input === undefined ? printValue(await evalQuery(task.reference)) : answerOf(task.reference, task).trim();
+    const given = task.input === undefined ? printValue(await evalQuery(task.reference)) : (await answerOf(task.reference, task)).trim();
     console.log(`${task.id}: the reference answers ${given}, the task ${task.answer}`);
   }
   if (wrong.length > 0) {

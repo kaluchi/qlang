@@ -25,15 +25,15 @@
 {"name":"shape-folds-a-map-keyed-by-data-whose-values-part","query":"{:\"0\" 0 :\"1\" \"n/a\" :\"2\" 2} | shape","expect":"::shape::each{:\"0\" #[::number ::string]}"}
 {"name":"shape-keeps-the-fields-of-many-names-over-atoms","query":"{:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8 :i 9} | shape | keys | count","expect":"9"}
 {"name":"shape-keeps-a-key-that-reads-as-no-name-among-fields","query":"{:\"@type\" \"Person\" :name \"Ann\" :age 30} | shape","expect":"::shape{:\"@type\" ::string :name ::string :age ::number}"}
-{"name":"shape-folds-a-map-keyed-by-dates-uuids-or-emails","query":"get [~({:\"2024-01-01\" 5 :\"2024-01-02\" 7} | shape) ~({:\"ann@x.org\" 1 :\"bo@y.org\" 2} | shape)]","expect":"[::shape::each{:\"2024-01-01\" ::number} ::shape::each{:\"ann@x.org\" ::number}]"}
-{"name":"shape-folds-a-map-of-values-under-one-tag","query":"{:\"1\" ::user{:id 1} :\"2\" ::user{:id 2}} | shape","expect":"::shape::each{:\"1\" ::user}"}
+{"name":"shape-folds-a-map-keyed-by-dates-or-emails","query":"get [~({:\"2024-01-01\" 5 :\"2024-01-02\" 7} | shape) ~({:\"ann@x.org\" 1 :\"bo@y.org\" 2} | shape)]","expect":"[::shape::each{:\"2024-01-01\" ::number} ::shape::each{:\"ann@x.org\" ::number}]"}
+{"name":"shape-folds-a-map-keyed-by-data-over-values-under-a-tag","query":"{:\"1\" ::user{:id 1} :\"2\" ::user{:id 2}} | shape","expect":"::shape::each{:\"1\" ::user}"}
 {"name":"shape-keeps-the-fields-of-a-map-of-atoms","query":"{:x 1 :y 2} | shape","expect":"::shape{:x ::number :y ::number}"}
 {"name":"shape-keeps-the-key-of-a-map-of-one","query":"{:users [{:id 1}]} | shape","expect":"::shape{:users [{:id ::number}]}"}
 {"name":"shape-merges-the-folds-of-a-vector-of-maps","query":"[{:\"1\" {:id 1} :\"2\" {:id 2}} {:\"3\" {:id null}} {}] | shape","expect":"::shape[::each{:\"1\" ::absent{:id ::nullable::number}}]"}
 {"name":"shape-folds-a-map-with-null-among-its-values","query":"{:\"1\" {:id 1} :\"2\" null :\"3\" {:id 3}} | shape","expect":"::shape::each{:\"1\" ::nullable{:id ::number}}"}
 {"name":"a-shape-reads-a-fold-by-the-key-it-shows","query":"{:\"17\" {:id 1} :\"42\" {:id 2}} | shape | get /17/id","expect":"::number"}
 {"name":"shape-stands-at-a-part-under-a-tag","query":"{:t ::Box{:w 1} :q ~(add 1) :d |~~ d ~~|} | shape","expect":"::shape{:t ::Box :q ::quote :d ::doc}"}
-{"name":"shape-reads-a-set-as-its-vector","query":"get [~({:s #[1 2]} | shape) ~(#[:a :b] | shape)]","expect":"[::shape{:s #[::number]} ::shape#[::keyword]]"}
+{"name":"shape-writes-a-set-of-the-shape-its-elements-share","query":"get [~({:s #[1 2]} | shape) ~(#[:a :b] | shape)]","expect":"[::shape{:s #[::number]} ::shape#[::keyword]]"}
 {"name":"shape-reads-its-subject-beneath-its-tags","query":"::Box{:w 1} | shape","expect":"::shape{:w ::number}"}
 {"name":"shape-of-an-empty-vector-and-an-empty-map-are-themselves","query":"get [~([] | shape) ~({} | shape)]","expect":"[::shape[] ::shape{}]"}
 {"name":"a-shape-reads-a-list-by-its-one-element","query":"{:users [{:age 1} {:age \"2\"}]} | shape | get /users/0/age","expect":"#[::number ::string]"}

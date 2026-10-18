@@ -1,7 +1,8 @@
-// The verbs of a path [QSPTH]: `get` reads it strictly and `query` softly,
-// over a path, a key or a literal that holds paths; `put`, `update` and
-// `delete` write it; `segments` and `toPath` turn a path and its keys into
-// each other, JSON Pointer's form read with its escapes.
+// The verbs of a path: `get` reads it strictly and `query` softly, over a
+// path, a key or a literal that holds paths; `put`, `update` and `delete`
+// write it; `segments` and `toPath` turn a path and its keys into each other,
+// JSON Pointer's form read with its escapes [QSPTH#get], [QSPTH#query],
+// [QSPTH#template], [QSPTH#write], [QSPTH#verbs].
 
 import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';

@@ -1,6 +1,6 @@
 |~ `::shape`, the kind of the shape `shape` answers, and the laws
    declared under it.
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [QSPTH#shape]. ~|
 
 :shape
   |~~ A shape is the structure of a value beneath its tags, which `shape`

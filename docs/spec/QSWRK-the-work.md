@@ -775,10 +775,10 @@ walks and no runtime, and the sources of its catalog, each function of
 the package at one door. The modules of `core/src` import in the order of
 the concepts, from the bottom: the letters of a name, the address, the
 keys of the scope and the declaration of a refusal; the values, their one
-order and their equality; the parser and the walks of its tree; the
-records of the steps and the rules their constructors hold,
-`core/src/steps.mjs`; the reading of a path and the nearness of two
-names; the printer of the core's forms; the parts of a doc; the state of a
+order and their equality; the records of the steps and the rules their
+constructors hold, `core/src/steps.mjs`, which registers nothing and
+imports no parser; the parser and the walks of its tree; the reading of a
+path and the nearness of two names; the printer of the core's forms; the parts of a doc; the state of a
 query, the table of primitives, the resolution of names and the chain;
 the walk of a value's tags and the run of a primitive,
 `core/src/dispatch.mjs`; the evaluator; in `core/src/runtime/` the words,
@@ -788,8 +788,19 @@ root of the package. No module of the core imports a module that imports
 it, the parser and the loaders among its imports, and none outside
 `runtime/` imports one inside it but the session and the root of the
 package, which `core/test/unit/imports.test.mjs` holds by the strong
-components `scripts/core-imports.mjs` computes; the scripts of the work
-run a query by the `evalQuery` of the root.
+components `scripts/core-imports.mjs` computes. Each module is named for
+what it holds and its head says so: the codec of JSON in
+`core/src/runtime/json.mjs`, which exports no print; the words a sequence
+answers across its kinds in `core/src/runtime/sequence.mjs`; the
+constructors of the kinds of the core's values in
+`core/src/runtime/constructors.mjs`, but those of `::fn`, `::kind` and the
+steps of code, each beside the other words of its kind; the shape of a
+value, its leaves and their marks in `core/src/runtime/shape.mjs`, and the
+verbs of a path in `core/src/runtime/path.mjs`; and in the command line
+the reading and the lift of standard input in `cli/src/stdin.mjs` and what
+it writes for an answer, with the code it exits with, in
+`cli/src/render.mjs`. A script of the work takes `evalQuery` and
+`createSession` from the root of the package.
 
 The hosts beside the core: `cli/src/bin.mjs` is the one file of the
 command line that touches `process`, handing the arguments, the streams

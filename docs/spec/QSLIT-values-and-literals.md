@@ -212,18 +212,19 @@ as prose.
 
 ## atoms
 
-Every value comes apart into the set of its atoms and a quote that
-builds it back, and the quote applied to the set builds a value equal to
+Every value comes apart into the set of its atoms and a template, and
+`get` over the template, read against the set, builds a value equal to
 the first. The atoms
 are the leaves the decomposition stops at: null, booleans, numbers,
 strings, regexes, keywords, tag names and paths, each once and in the
 one order; the keys of maps and the tags over payloads are atoms as the
-other leaves are. The quote reads the value back by `get` over a
-template of the reads of its parts: an atom by the path of
+other leaves are. The template is the literal of the reads of its
+parts: an atom by the path of
 its index in the set, a vector as the vector of its elements' reads, a
 map from the pairs of its keys and values by `indexBy`, and a tagged
 value, a set, a quote, a doc and an error at rest among them, from its
-tag and its payload by `tag`. Every value comes back so, each example of
+tag and its payload by `tag`, each of the two a quote `get` runs against
+the set. Every value comes back so, each example of
 the catalog and each literal a case expects among them.
 
 ```qlang

@@ -1,6 +1,6 @@
 |~ `::nullable`, the mark in a shape of a part null in some of the data,
    and the laws declared under it.
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [QSPTH#shape]. ~|
 
 :nullable
   |~~ A nullable marks in a shape a part null in some of the data over the

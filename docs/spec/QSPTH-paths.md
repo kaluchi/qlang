@@ -248,25 +248,29 @@ an empty vector `[]`, and each part that holds no parts its kind, as
 `type` answers it, a part under a tag standing whole as its tag, a quote
 and a doc among them. The tags a shape lays over a part are its marks:
 `::absent` over a part some of the data lacks, `::nullable` over a part
-null in some of the data, and `::each` over a map whose keys are data.
+null in some of the data, and `::each` over a map that stands for its
+values, its first key over the shape they share.
 Records that share a key merge into one, the keys of all of them, a key
 some lack marked `::absent` over its shape and a part null in some
 `::nullable`, `::absent` outside, and a part that is null alone stands as
-`::null`; records that share no key stand apart, and where the elements
+`::null`; an empty map shares a key with every record and merges with a
+fold, and two folds whose values merge are one; records that share no key
+stand apart, and where the elements
 part, the shape there is the set of their kinds, as `:expected` writes
 the kinds a holder takes, any two of them that merge merged until none
 do, so records that share keys merge whatever their order. The element
 of a vector or a set empty in some of the data stands marked `::absent`,
 and vectors of one length that part index by index are tuples, a shape
 for each index, where vectors of one length and one shape are lists. A
-map folds into `::each` over its first key and the shape of its values,
-the one key standing for all of them and telling how the keys of the data
-read: where every key is data, an id of digits, a date or a time, a uuid,
-an email, whatever its values hold, and where it holds more than eight
-names whose values, maps, vectors, sets or values under a tag, share one
-shape, a null among them taken as no value; a map of names over atoms
-keeps them however many, a key that reads as no name among them, as a map
-of fewer names or of names whose values part does.
+map whose values are not all null folds into `::each` over its first key
+and the shape of its values, the one key standing for all of them and
+telling how the keys of the data read: where every key is data, a number,
+a text that begins with a date, a uuid or an email, whatever its values
+hold, and where it holds more than eight names whose values, maps,
+vectors, sets, values under a tag or null, share one shape, a null among
+them marking it `::nullable`; a map of names over atoms keeps them however
+many, a key that reads as no name among them, as a map of fewer names, of
+names whose values part and of null alone does.
 
 A shape is a value read as every value is: a path reads it beneath the
 tags over each part it meets, its marks among them, a list by its one
@@ -297,6 +301,12 @@ atom.
 
 > {:a {:n 1} :b {:n 2} :c {:n 3} :d {:n 4} :e {:n 5} :f {:n 6} :g {:n 7} :h {:n 8} :i null} | shape
 ::shape::each{:a ::nullable{:n ::number}}
+
+> get [~({:"2024-01-01xyz" 1 :"2024-01-02 x" 2} | shape) ~({:"-1" 1 :"1.5" 2} | shape) ~({:"10:00" 1 :"11:30" 2} | shape) ~({:"1" null :"2" null} | shape)]
+[::shape::each{:"2024-01-01xyz" ::number} ::shape::each{:"-1" ::number} ::shape{:"10:00" ::number :"11:30" ::number} ::shape{:"1" ::null :"2" ::null}]
+
+> get [~([{:a 1} {}] | shape) ~([{:"1" 1 :"2" 2} {:"3" 3}] | shape) ~([{:"1" 1 :"2" 2} {}] | shape)]
+[::shape[{:a ::absent::number}] ::shape[::each{:"1" ::number}] ::shape[::each{:"1" ::absent::number}]]
 
 > {:users [{:name "a" :age 1 :tags ["x" "y"]} {:name "b" :age "2" :tags []}]} | shape | get [/users/0/name /users/0/age /users/0/tags]
 [::string #[::number ::string] [::absent::string]]

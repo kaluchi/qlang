@@ -330,7 +330,7 @@ function sectionsOfChapter(text) {
 // stands with the session's reading beside it, `D329~2~reading.md` or the
 // `reading.md` of the run, the two one unit held while that record is in
 // force or a text in force cites it. Any other document of the research is
-// a unit of its own, held by a citation of its path [QSWRK#baseline],
+// a unit of its own, held by a citation of its path [QSWRK#review],
 // and the README of a folder says what the folder holds and holds none of it.
 const RESEARCH_DOCUMENT = new RegExp(`^${RESEARCH}/[^/]+/.+`);
 const OF_A_RECORD = new RegExp(`^${RESEARCH}/(?:(?:${foldersOfForm('report')})/(D\\d+)~\\d+(?=(?:~reading)?\\.md$)|(?:${foldersOfForm('run')})/(D\\d+)~\\d+(?=/))`);

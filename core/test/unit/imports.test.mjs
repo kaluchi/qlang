@@ -1,7 +1,8 @@
 // The imports of the core [QSWRK#tooling]: no module of `core/src` imports a module
 // that imports it, through the parser `core/gen` holds and the loaders of
-// `core/host` among them, and no module outside `runtime/` imports one inside
-// it, the session and the root of the package aside.
+// `core/host` among them, no module outside `runtime/` imports one inside it,
+// the session and the root of the package aside, and the records of the steps
+// reach no module of the parser.
 
 import { describe, it, expect } from 'vitest';
 import { fileURLToPath } from 'node:url';
@@ -13,6 +14,7 @@ import { importsOfCore, cyclesOf } from '../../../scripts/core-imports.mjs';
 const repoRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const ABOVE_THE_WORDS = new Set(['core/src/session.mjs', 'core/src/index.mjs']);
 const isOfTheWords = path => path.startsWith('core/src/runtime/');
+const OF_THE_PARSER = new Set(['core/src/parse.mjs', 'core/gen/grammar.mjs', 'core/src/walk.mjs']);
 
 // The imports of a module outside the words that reach into them.
 const reachesIntoTheWords = imports => [...imports].filter(([path]) => !isOfTheWords(path) && !ABOVE_THE_WORDS.has(path))
@@ -30,6 +32,14 @@ describe('the imports of core/src', () => {
   it('reach the words and the root from the session and the root of the package alone', () => {
     expect(reachesIntoTheWords(imports)).toEqual([]);
     expect(imports.get('core/src/session.mjs')).toContain('core/src/runtime/index.mjs');
+  });
+
+  it('keep the records of the steps below the parser, reaching none of its modules', () => {
+    const reached = new Set();
+    const reach = path => imports.get(path).filter(target => !reached.has(target)).forEach(target => { reached.add(target); reach(target); });
+    reach('core/src/steps.mjs');
+    expect([...reached].filter(path => OF_THE_PARSER.has(path))).toEqual([]);
+    expect(reached).toContain('core/src/types.mjs');
   });
 
   it('find a cycle and a reach into the words where a module writes one, the words and the session aside', () => {

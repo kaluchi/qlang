@@ -10,11 +10,11 @@
 // its reading beside them, `reading.md`, every finding with its probe and
 // its fate. The units are the texts the walk of the baseline cites, taken in
 // the order the texts rank [QSWRK#documents]: the topic of the language;
-// each source of the catalog with the modules of `core/src` that bind most
-// of their addresses under its noun; the names of the cases and the titles
+// each source of the catalog with the modules of `core/src` that register
+// most of their addresses under its noun; the names of the cases and the titles
 // of the tests, read by grep; the other code of the core with the grammar;
 // the hosts; the tools with the configurations; and the seeds. Into each
-// prompt go its group, the cycles of the imports of `core/src` and the first
+// prompt go its group, the cycles of the imports of the core and the first
 // line of every open record.
 //
 // Usage: node scripts/pentimento-audit.mjs --for Dnn [--why "…"] [--groups N] [--dry]

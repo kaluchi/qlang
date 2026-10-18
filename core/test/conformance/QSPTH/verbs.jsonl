@@ -1,4 +1,4 @@
-{"name":"a-path-answers-its-own-verbs-alone","query":"/tags | count !| type","expect":"::call/KindAnswersNoVerbError"}
+{"name":"a-path-refuses-a-name-whose-verbs-serve-other-kinds","query":"/tags | count !| type","expect":"::call/KindAnswersNoVerbError"}
 {"name":"segments-answers-the-keys-and-indices-of-a-path","query":"/a/0 | segments","expect":"[:a 0]"}
 {"name":"a-name-called-on-a-path-names-its-repair","query":"/tags | count !| get /repair","expect":"~(get /tags | count)"}
 {"name":"toPath-reads-a-vector-of-keys","query":"[:a 0] | toPath | print","expect":"\"/a/0\""}

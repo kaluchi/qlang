@@ -1,7 +1,7 @@
 // The constructors of the kinds of the core's values, but those of `::fn`,
 // `::kind` and the steps of code, each beside the other words of its kind,
 // each `(payload) → value` under the address of the kind's `construct`,
-// `number/construct` [QSBLD#kind].
+// `number/construct` [QSBLD#kind], [QSWRK#tooling].
 
 import { registerPrimitive } from '../primitives.mjs';
 import {

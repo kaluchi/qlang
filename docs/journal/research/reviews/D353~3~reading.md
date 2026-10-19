@@ -56,5 +56,5 @@ Second pass: the session repaired the branch by your sixteen findings in commit 
 [D257]: ../../D257.md
 [D296]: ../../D296.md
 [D372]: ../../replaced/D372.md
-[D373]: ../../D373.md
-[D374]: ../../D374.md
+[D373]: ../../replaced/D373.md
+[D374]: ../../replaced/D374.md

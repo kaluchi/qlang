@@ -75,5 +75,5 @@ A finding is something you can show: a file and a line, the rule of the work or 
 
 [D296]: ../../D296.md
 [D372]: ../../replaced/D372.md
-[D373]: ../../D373.md
-[D374]: ../../D374.md
+[D373]: ../../replaced/D373.md
+[D374]: ../../replaced/D374.md

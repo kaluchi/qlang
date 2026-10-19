@@ -52,5 +52,5 @@ Third pass, narrow: the session answered your second pass in commit 1e7c0913 (`g
 [D296]: ../../D296.md
 [D353]: ../../D353.md
 [D372]: ../../replaced/D372.md
-[D373]: ../../D373.md
-[D374]: ../../D374.md
+[D373]: ../../replaced/D373.md
+[D374]: ../../replaced/D374.md

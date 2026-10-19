@@ -379,8 +379,17 @@ code with a feature good work, and more code with features asks what
 they are worth to qlang. Measured from the baseline, the core sources,
 the documents and the tests are held to a diff that deletes more than it
 adds; the catalog grows by the verbs a task asks for
-and the pages that tell them. A commit message, a page and a record carry
-no count the history answers.
+and the pages that tell them. The documents are the texts that state what
+holds; the journal, which carries the change, grows by every decision, its
+history above all, and stands outside the count, apart from the documents
+of the steps and beneath the total of the summary, held instead to the
+records it keeps in force, open or in transit, which the desk shows. A
+commit message, a page and a record carry no count the history answers.
+
+```sh
+$ node scripts/measure.mjs --steps 6ebe3da0 b9008a4d | tail -1
+b9008a4d (17): +1704 −1968 | +279 −135 | +237 −78 | +1893 −1327 | +541 −831
+```
 
 ## probe
 

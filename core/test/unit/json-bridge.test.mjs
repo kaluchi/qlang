@@ -72,16 +72,15 @@ describe('a map whose data key "type" collides with a value-class name', () => {
 });
 
 describe('fromPlain refuses a JSON number past the finite double range', () => {
-  // `JSON.parse` reads a magnitude past the range as an infinity, so
-  // the lift is the boundary that keeps it out of the pipeline —
-  // `cat huge.json | qlang '/big'` seeds through this exact path.
-  it('lifts an out-of-range magnitude into a per-site codec error', async () => {
+  // `JSON.parse` reads a magnitude past the range as an infinity, which the
+  // lift refuses at the path to it [QSPRN#json].
+  it('lifts an out-of-range magnitude into a per-site codec error, with no path where it is the whole text', async () => {
     const { StringParseJsonNumberNotFiniteError } = await import('../../src/runtime/json.mjs');
     let thrown = null;
     try { fromPlain(JSON.parse('1e400')); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(StringParseJsonNumberNotFiniteError);
     expect(thrown.address).toBe('string/parseJson/NumberNotFiniteError');
-    expect(thrown.facts.path).toEqual([]);
+    expect(thrown.facts.path).toBeUndefined();
   });
 
   it('names the path it walked to when the magnitude sits nested', async () => {
@@ -89,7 +88,7 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
     let thrown = null;
     try { fromPlain(JSON.parse('{"a": {"b": [1, 1e400]}}')); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(StringParseJsonNumberNotFiniteError);
-    expect(thrown.facts.path).toEqual(['a', 'b', 1]);
+    expect(thrown.facts.path.segments).toEqual(['a', 'b', '1']);
   });
 
   it('lifts every in-range magnitude unchanged', async () => {
@@ -143,7 +142,7 @@ describe('a JSON text reads as its literal reads, the keys in the order it write
     let thrown = null;
     try { fromJsonText('{"a": {"b": [1, 1e400]}}'); } catch (caught) { thrown = caught; }
     expect(thrown.address).toBe('string/parseJson/NumberNotFiniteError');
-    expect(thrown.facts.path).toEqual(['a', 'b', 1]);
+    expect(thrown.facts.path.segments).toEqual(['a', 'b', '1']);
   });
 
   it('writes a key JavaScript reads as the prototype as any key', async () => {

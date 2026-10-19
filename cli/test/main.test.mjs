@@ -314,28 +314,28 @@ describe('main — error paths', () => {
     // `JSON.parse` reads `1e400` as an infinity, which the lift
     // refuses. Auto-mode keeps the refusal instead of re-labelling
     // the document as text, and the answer is the refusal `parseJson`
-    // gives the text, its `:path` the keys that reach the number.
+    // gives the text, its `:path` the path to the number [QSPRN#json].
     const s = captureStreams('{"big": 1e400, "n": 1}');
     const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
     expect(s.stderrText()).toBe('');
     expect(s.stdoutText()).toContain('::string/parseJson/NumberNotFiniteError!{');
-    expect(s.stdoutText()).toContain(':path ["big"]');
+    expect(s.stdoutText()).toContain(':path /big');
   });
 
-  it('answers a bare out-of-range magnitude with an empty path', async () => {
+  it('answers a bare out-of-range magnitude with no path', async () => {
     const s = captureStreams('1e400');
     const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toContain('::string/parseJson/NumberNotFiniteError!{');
-    expect(s.stdoutText()).toContain(':path []');
+    expect(s.stdoutText()).not.toMatch(/^ +:path /m);
   });
 
   it('answers the same refusal where --json reads stdin', async () => {
     const s = captureStreams('{"deep": [0, 1e400]}');
     const exitCode = await main(['--json', 'count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
-    expect(s.stdoutText()).toContain(':path ["deep" 1]');
+    expect(s.stdoutText()).toContain(':path /deep/1');
   });
 
   it('encodes a fail-track error value as data on stdout, exit 0', async () => {

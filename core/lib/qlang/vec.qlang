@@ -1710,7 +1710,7 @@
       set loses the elements the next set holds,
       `[#[:a :b :c] #[:b]] | minus` answering `#[:a :c]`, and a map loses
       the keys of the next, which is a map, a set or a vector of keys,
-      each a keyword or a string, `[{:a 1 :b 2} [:a]] | minus` answering
+      each a keyword, a number or a string, `[{:a 1 :b 2} [:a]] | minus` answering
       `{:b 2}`; a key of another kind is refused at its element. The
       first value is a set or a map, refused at its index when it is
       neither, a value after it the algebra has no rule for is refused
@@ -1740,9 +1740,10 @@
             or a vector of keys; another value is refused with the pair.
         ~~|
     | throws :KeyKindNotTakenError
-        |~~ A key `minus` takes out of a map is a keyword or a string;
-            `:index` names the first element of the vector of keys that is
-            neither, and `:expected` the two kinds.
+        |~~ A key `minus` takes out of a map is a keyword, a number or a
+            string, as `get` reads a key alone; `:index` names the first
+            element of the vector of keys that is none of them, and
+            `:expected` the three kinds.
         ~~|
     | throws :ArgsBeyondInputsError
         |~~ `minus` over a vector takes from its first value the ones
@@ -1773,13 +1774,13 @@
         ~([#[:a] {:b 1}] | minus
           !| get [~(type) /leftType /rightType]
           |  eq [::vec/minus/KindsMismatchedError ::set ::map])
-    | proves :KeyKindNotTakenError/refusesANumber
-        |~~ A number among the keys is refused at its index, with the kinds
-            of a key.
+    | proves :KeyKindNotTakenError/refusesABoolean
+        |~~ A boolean among the keys is refused at its index, with the
+            kinds of a key.
         ~~|
-        ~([{:a 1} [:a 1]] | minus
+        ~([{:a 1} [:a true]] | minus
           !| get [~(type) /actualType /index /expected]
-          |  eq [::vec/minus/KeyKindNotTakenError ::number 1 #[::keyword ::string]])
+          |  eq [::vec/minus/KeyKindNotTakenError ::boolean 1 #[::keyword ::number ::string]])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
         |~~ A value the call gives is refused under the verb. ~~|
         ~([#[1]] | minus #[2] !| type | eq ::vec/minus/ArgsBeyondInputsError)
@@ -1796,7 +1797,7 @@
       answering `#[:b]`, and a map keeps the keys of the next, which is a
       map, a set or a vector of keys, with its own values,
       `[{:a 1 :b 2} {:a 3}] | inter` answering `{:a 1}`, each key of a
-      vector of keys a keyword or a string and a key of another kind
+      vector of keys a keyword, a number or a string and a key of another kind
       refused at its element. The first value is a set or a map, refused
       at its index when it is neither, a value after it the algebra has no
       rule for is refused with the pair, and the vector holds one value at
@@ -1822,9 +1823,10 @@
             or a vector of keys; another value is refused with the pair.
         ~~|
     | throws :KeyKindNotTakenError
-        |~~ A key `inter` keeps of a map is a keyword or a string;
-            `:index` names the first element of the vector of keys that is
-            neither, and `:expected` the two kinds.
+        |~~ A key `inter` keeps of a map is a keyword, a number or a
+            string, as `get` reads a key alone; `:index` names the first
+            element of the vector of keys that is none of them, and
+            `:expected` the three kinds.
         ~~|
     | throws :ArgsBeyondInputsError
         |~~ `inter` over a vector keeps what its values share and takes no
@@ -1859,7 +1861,7 @@
         ~~|
         ~([{:a 1} [[:a]]] | inter
           !| get [~(type) /actualType /index /expected]
-          |  eq [::vec/inter/KeyKindNotTakenError ::vec 0 #[::keyword ::string]])
+          |  eq [::vec/inter/KeyKindNotTakenError ::vec 0 #[::keyword ::number ::string]])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
         |~~ A value the call gives is refused under the verb. ~~|
         ~([#[1]] | inter #[2] !| type | eq ::vec/inter/ArgsBeyondInputsError)
@@ -2116,17 +2118,19 @@
     | impl ::builtin{}
 
 :vec/toPath
-  |~~ Answers the path whose segments are the elements, a key written as
-      a keyword or a string and an index as a whole number:
-      `[:items 0] | toPath` answers `/items/0`, the path `segments` takes
-      apart.
+  |~~ Answers the path whose segments are the elements: a keyword and a
+      string name a key, and a number the segment of its digits, an index
+      of a vector or the key of a map that spells it, as `get` reads a key
+      alone. `[:items 0] | toPath` answers `/items/0`, the path `segments`
+      takes apart, and `[:a 1.5] | toPath` answers `/a/"1.5"`, which reads
+      the key `:"1.5"` of a map, as `get 1.5` does.
       ::link~(::path/segments | doc) ::link~(::string/toPath | doc)
   ~~|
   ::fn
     | returns |~~ The path of the segments. ~~| ::path
     | throws :ElementNotKeyError
-        |~~ Each element is a key, a keyword or a string, or an index, a
-            whole number, `[:items 0] | toPath`.
+        |~~ Each element is a key alone, a keyword, a string or a number,
+            `[:items 0] | toPath`; a value of another kind names no segment.
         ~~|
     | throws :SubjectEmptyError
         |~~ A path names one segment at least: the value itself is `it`,
@@ -2135,11 +2139,14 @@
     | proves :buildsAPath
         |~~ Keys and indices build a path. ~~|
         ~([:items 0] | toPath | print | eq "/items/0")
+    | proves :readsANumberAsTheSegmentOfItsText
+        |~~ A number is the segment of its text, as `get` reads it. ~~|
+        ~({:"1.5" 3} | get ([1.5] | toPath) | eq 3)
     | proves :SubjectEmptyError/refusesTheEmptyVector
         |~~ The empty vector names no path. ~~|
         ~([] | toPath !| type | eq ::vec/toPath/SubjectEmptyError)
-    | proves :ElementNotKeyError/refusesAFraction
-        |~~ A fraction names no index, and is refused at its own. ~~|
-        ~([:a 0.5] | toPath !| get [~(type) /index] | eq [::vec/toPath/ElementNotKeyError 1])
+    | proves :ElementNotKeyError/refusesABoolean
+        |~~ A boolean names no segment, and is refused at its own. ~~|
+        ~([:a true] | toPath !| get [~(type) /index] | eq [::vec/toPath/ElementNotKeyError 1])
     | impl ::builtin{}
 

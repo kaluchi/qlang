@@ -568,21 +568,26 @@
     | impl ::builtin{}
 
 :any/coalesce
-  |~~ Answers the first answer of the alternatives the call gives, run in
-      order against the subject, that is neither null nor a failure:
+  |~~ Answers the first of the alternatives the call gives that answers a
+      value, each in its place: code, a quote or a path, runs against the
+      subject, and a value answers itself,
       `{:nickname null :name "alice"} | coalesce /nickname /name`
-      answers `"alice"`. Every other value ends the walk, false, `0` and
-      `""` among them, an error at rest a value as any, and when every
-      alternative answers null or a failure the call answers null. So
+      answering `"alice"`. An alternative passes to the next where it
+      answers null, or the refusal of a read `query` answers null for, a
+      key the map lacks, an index past the end or null on the way, so
       `coalesce /key ~(fallback)` reads "the key where the map holds it,
-      else the fallback", since `/key` fails where the map lacks the key. An
-      alternative that is no code, a quote or a path, answers itself, and
-      a call of such alternatives alone puts the subject first: `coalesce 30` reads
-      "the subject, else 30". An error the steps before answered passes
-      over the call, as over every step, so a field that may be missing
-      is read inside an alternative, `coalesce /key 0`, not before
-      it. The call takes one alternative at least.
+      else the fallback"; any other failure of its code is the answer of
+      the call, a misspelled name among them, and every other value ends
+      the walk, false, `0` and `""` among them. When every alternative
+      passes the call answers null. One alternative that is a value stands
+      after the subject: `coalesce 30` reads "the subject, else 30", while
+      `coalesce (get /t) 30` reads `/t` at the call, else 30. An error the
+      steps before answered passes over the call, as over every step, so a
+      field that may be missing is read inside an alternative,
+      `coalesce /key 0`, not before it. The call takes one alternative at
+      least.
       ::link~(::any/if | doc) ::link~(::any/cond | doc)
+      ::link~(::any/query | doc)
   ~~|
   ::fn
     | takes :alternatives
@@ -597,8 +602,8 @@
         ~~|
         ~(count | gt 0)
     | returns
-        |~~ The first answer that is neither null nor a failure, null
-            when every alternative answers one.
+        |~~ The first answer that is a value, a failure of the code that
+            answered it, or null when every alternative passes.
         ~~|
         ::any
     | proves :passesOverNull
@@ -610,14 +615,27 @@
     | proves :keepsFalse
         |~~ False ends the walk as a value. ~~|
         ~({:on false} | coalesce /on ~(true) | not)
-    | proves :answersNullWhenEveryAlternativeFails
-        |~~ When every alternative answers null or an error, the call
-            answers null.
+    | proves :answersNullWhenEveryAlternativePasses
+        |~~ When every alternative answers null or misses its part, the
+            call answers null.
         ~~|
         ~({} | coalesce /a /b | eq null)
-    | proves :passesOverAFailure
-        |~~ An error passes to the next alternative. ~~|
+    | proves :passesOverAMissedPart
+        |~~ A key the map lacks passes to the next alternative. ~~|
         ~({:a 2 :b 3} | coalesce /missing ~("fallback") | eq "fallback")
+    | proves :passesOverNullOnTheWay
+        |~~ A null on the way of a path passes, as `query` reads it. ~~|
+        ~({:user null} | coalesce /user/name ~("anonymous") | eq "anonymous")
+    | proves :answersAnyOtherFailureOfItsCode
+        |~~ Code that fails otherwise than by a missed part answers the
+            call with its failure.
+        ~~|
+        ~({} | coalesce ~(nosuchword) 30 !| type | eq ::call/UnknownNameError)
+    | proves :standsEachAlternativeInItsPlace
+        |~~ A value computed at the call stands in its place, the subject
+            standing before one alternative alone.
+        ~~|
+        ~({:t null} | coalesce (get /t) 30 | eq 30)
     | proves :fallsToTheLast
         |~~ The last alternative answers when the rest give nothing. ~~|
         ~({:nickname null :name null}
@@ -2085,7 +2103,9 @@
       with the keys near it, so a misspelled field is found where it is
       read, `{:a {:b 1}} | get /a/b` answering `1`. A key the query
       computes is read as the path of one segment, a keyword, a string or
-      a number, its text the segment, `get (get /k)`. Over a template, a literal of paths
+      a number, its text the segment, `get (get /k)`, and a value that
+      names no part, null, a boolean, a regex or a tag name, is refused, so
+      a key the data leaves null is found where it is read. Over a template, a literal of paths
       and quotes, it answers the template with each path read and each
       quote run against the subject in its place, the answer written in
       the shape the template takes:
@@ -2103,7 +2123,18 @@
         |~~ The path read, a key of one segment, or a template of paths
             and quotes.
         ~~|
-        /0
+        /0 #[::keyword ::map ::number ::path ::string ::tagged ::vec]
+    | throws :path/KindNotTakenError
+        |~~ The path is a path, `get /a/b`, a key of one segment, a keyword,
+            a number or a string, or a template, a vector, a map or a set of
+            paths and quotes, or a value under a tag, a quote among them;
+            null, a boolean, a regex and a tag name name no part, so a key
+            computed from data that answered one names no key the data
+            holds.
+        ~~|
+    | proves :path/KindNotTakenError/refusesNull
+        |~~ Null names no part. ~~|
+        ~({:k null} | get (get /k) !| get [~(type) /actualType] | eq [::any/get/path/KindNotTakenError ::null])
     | proves :readsANestedPart
         |~~ A path reads a part at any depth. ~~|
         ~({:a {:b [10 20]}} | get /a/b/-1 | eq 20)
@@ -2148,7 +2179,17 @@
         |~~ The path read, a key of one segment, or a template of paths
             and quotes.
         ~~|
-        /0
+        /0 #[::keyword ::map ::number ::path ::string ::tagged ::vec]
+    | throws :path/KindNotTakenError
+        |~~ The path is a path, `query /a/b`, a key of one segment, a
+            keyword, a number or a string, or a template, a vector, a map or
+            a set of paths and quotes, or a value under a tag, a quote among
+            them; null, a boolean, a regex and a tag name name no part,
+            which `query` reads no more softly than `get`.
+        ~~|
+    | proves :path/KindNotTakenError/refusesABoolean
+        |~~ A boolean names no part. ~~|
+        ~({:a 1} | query true 7 !| type | eq ::any/query/path/KindNotTakenError)
     | takes :default
         |~~ What a missed path answers, held and never run, null when the
             call gives none.

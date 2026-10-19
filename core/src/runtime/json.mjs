@@ -1,7 +1,7 @@
 // The codec of JSON both ways [QSWRK#catalog], [QSPRN#json], `json` writing
 // the JSON text of a value and `parseJson` reading one.
 
-import { TAG_HEADER_SYMBOL, refuseForeign } from '../types.mjs';
+import { TAG_HEADER_SYMBOL, makePath, refuseForeign } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { dispatchQlangValue, printValue, printRegex, printPath } from '../print-value.mjs';
@@ -60,7 +60,8 @@ function qMapToPlainObject(m) {
 }
 
 // A number of a JSON document past the doubles, which `JSON.parse` reads
-// as an infinity, is refused at the `:path` of keys and indices to it.
+// as an infinity, is refused at the `:path` to it, a path of its keys and
+// indices, none where it is the whole text [QSPRN#json].
 export const StringParseJsonNumberNotFiniteError = declareRefusal('string/parseJson/NumberNotFiniteError');
 
 const FROM_PLAIN_HANDLERS = {
@@ -71,7 +72,7 @@ const FROM_PLAIN_HANDLERS = {
 
 function liftPlainAtom(atom, path) {
   if (typeof atom === 'number' && !Number.isFinite(atom)) {
-    throw new StringParseJsonNumberNotFiniteError({ path: Object.freeze([...path]) });
+    throw new StringParseJsonNumberNotFiniteError(path.length === 0 ? {} : { path: makePath(path) });
   }
   return atom;
 }

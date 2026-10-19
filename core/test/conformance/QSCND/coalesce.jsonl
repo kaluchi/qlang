@@ -27,9 +27,16 @@
 {"name":"coalesce-reads-a-path-of-several-segments-as-an-alternative","query":"{:user {:name \"Alice\"}} | coalesce /admin /user/name ~(\"Unknown\")","expect":"\"Alice\""}
 {"name":"coalesce-answers-the-first-alternative-where-none-is-null","query":"{:a {:b {:c 42}}} | coalesce /a/b/c /a/b /a ~(0)","expect":"42"}
 {"name":"coalesce-passes-a-missing-field-to-the-next-alternative","query":"{:a 1} | coalesce /b /a","expect":"1"}
-{"name":"coalesce-of-values-reads-the-subject-first","query":"[{:t 45} {:t null} {}] | map ~(query /t | coalesce 30)","expect":"[45 30 30]"}
+{"decision":"D375","name":"coalesce-of-one-value-reads-the-subject-first","query":"[{:t 45} {:t null} {}] | map ~(query /t | coalesce 30)","expect":"[45 30 30]"}
 {"name":"coalesce-keeps-a-subject-that-is-a-value","query":"[1] | coalesce []","expect":"[1]"}
 {"name":"coalesce-walks-values-after-null","query":"null | coalesce null 7","expect":"7"}
 {"name":"coalesce-with-a-quote-keeps-the-subject-out","query":"{:a 2} | coalesce /missing \"fallback\"","expect":"\"fallback\""}
 {"name":"an-alternative-that-is-no-quote-answers-itself","query":"{:a 1} | coalesce /b (get /a)","expect":"1"}
 {"name":"query-and-coalesce-give-a-default","query":"{:a 1} | query /port | coalesce 8080","expect":"8080"}
+{"decision":"D375","name":"coalesce-stands-a-value-computed-at-the-call-in-its-place","query":"{:t null} | coalesce (get /t) 30","expect":"30"}
+{"decision":"D375","name":"coalesce-of-one-value-reads-the-subject-and-of-two-each-in-its-place","query":"get [~(5 | coalesce 30) ~(null | coalesce 30) ~(5 | coalesce null 30)]","expect":"[5 30 30]"}
+{"decision":"D375","name":"coalesce-answers-a-failure-of-its-code-other-than-a-missed-part","query":"get [~({} | coalesce ~(nosuchword) 30 !| type) ~({} | coalesce ~(1 | div 0) ~(2) !| type) ~(null | coalesce ~(add 1) 0 !| type)]","expect":"[::call/UnknownNameError ::number/div/divisor/ZeroError ::number/add/SubjectNotNumberError]"}
+{"decision":"D375","name":"coalesce-answers-the-refusal-of-a-path-query-refuses","query":"get [~({:a 5} | coalesce /a/b 0 !| type) ~([1] | coalesce /a 0 !| type)]","expect":"[::path/SubjectHasNoPartsError ::path/IndexNotIntegerError]"}
+{"decision":"D375","name":"coalesce-passes-over-null-on-the-way-and-an-index-past-the-end","query":"get [~({:a null} | coalesce /a/b 0) ~([1] | coalesce /5 0)]","expect":"[0 0]"}
+{"decision":"D375","name":"coalesce-passes-over-a-part-its-code-misses","query":"{} | coalesce ~(get /a | add 1) 0","expect":"0"}
+{"decision":"D375","name":"coalesce-answers-the-refusal-of-a-withheld-name-as-apply-does","query":":k 1 | :q ~(add k) | 5 | get [~(coalesce q ~(\"none\") !| type) ~(apply q !| type)]","expect":"[::call/ValueWithheldError ::call/ValueWithheldError]"}

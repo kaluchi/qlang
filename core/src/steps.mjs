@@ -227,12 +227,29 @@ export function constructOfData(payload, written) {
   return construct;
 }
 
+// Whether a literal holds a path or a quote at any depth, the parts of the
+// template `get` reads [QSPTH#template], walked by a stack of its own.
+function holdsATemplatePart(literal) {
+  const pending = [...partsOfALiteral(literal)];
+  while (pending.length > 0) {
+    const part = pending.pop();
+    if (isPath(part) || isQuote(part)) return true;
+    pending.push(...partsOfALiteral(part));
+  }
+  return false;
+}
+
 // `::fail`, the step `!|` runs: the quote of one step, no step of the fail
-// track and no path, which a verb reads [QSQUO#step], [QSSYN#step].
+// track, and no path and no literal that holds a path or a quote, which a
+// verb reads [QSQUO#step], [QSSYN#step].
 export function failOf(payload, written) {
   if (!isQuote(payload)) throw new FailPayloadKindNotTakenError({ expected: kindsExpected('quote'), actualValue: payload });
   if (payload.length !== 1 || isFailStep(payload[0])) throw new FailPayloadNotOneStepError({ actualValue: payload });
-  if (isPath(payload[0])) throw new FailStepNotCommandError({ message: laterStepMessage(payload[0], written), actualValue: payload[0] });
+  const [step] = payload;
+  if (isPath(step)) throw new FailStepNotCommandError({ message: laterStepMessage(step, written), actualValue: step });
+  if (holdsATemplatePart(step)) {
+    throw new FailStepNotCommandError({ message: `a literal that holds a path or a quote is the template \`get\` reads: write \`get ${written.quoting(step)}\``, actualValue: step });
+  }
   return makeTagged(FAIL_TAG, payload);
 }
 

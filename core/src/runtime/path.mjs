@@ -6,28 +6,25 @@
 
 import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
+import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate, isKeyAlone, keyNameOf } from '../path-read.mjs';
 import { layTag } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
-import { isPath, makePath, isKeyword, isMap, isVec, isValueClass, isErrorValue, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
 const VecToPathElementNotKeyError = declareRefusal('vec/toPath/ElementNotKeyError');
 const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError');
 
-// The path a key names, a keyword, a string or a number, of one segment.
-function pathOfKey(key) {
-  return makePath([isKeyword(key) ? key.name : String(key)]);
-}
+// The path of one segment a key alone names [QSPTH#key].
+const pathOfKey = key => makePath([keyNameOf(key)]);
 
-const isKey = value => isKeyword(value) || typeof value === 'string' || typeof value === 'number';
-
-// A path or a key read from the subject; any other value a template whose
-// paths are read and whose quotes, closed at the call, are run against the
-// subject in their places, its other values kept, each container laid back
-// under its tags as a write lays it, the first failure the answer [QSLIT#tag].
+// A path or a key read from the subject; any other value its input takes a
+// template whose paths are read and whose quotes, closed at the call, are
+// run against the subject in their places, its other values kept, each
+// container laid back under its tags as a write lays it, the first failure
+// the answer [QSLIT#tag].
 function readByPath(subject, path, soft, fallback, state) {
-  if (isPath(path) || isKey(path)) {
+  if (isPath(path) || isKeyAlone(path)) {
     const read = readPath(subject, isPath(path) ? path : pathOfKey(path), soft);
     return read === MISSED ? fallback : read;
   }
@@ -143,16 +140,17 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
   return Number.isNaN(index) || String(index) !== segment ? keyword(segment) : index;
 })));
 
-// A path names one segment at least, the value itself being `it` [QSPTH#value].
+// A path names one segment at least, the value itself being `it`
+// [QSPTH#value], each the text of a key alone, as `get` reads one
+// [QSPTH#key]; a path is the path it reads as.
 registerPrimitive('vec/toPath', keys => {
   if (keys.length === 0) throw new VecToPathSubjectEmptyError({ actualValue: keys });
   return makePath(keys.map((key, index) => {
-    if (!isKey(key) || (typeof key === 'number' && !Number.isInteger(key))) {
-      throw new VecToPathElementNotKeyError({ index, actualValue: key });
-    }
-    return isKeyword(key) ? key.name : String(key);
+    if (!isKeyAlone(key)) throw new VecToPathElementNotKeyError({ index, actualValue: key });
+    return keyNameOf(key);
   }));
 });
+registerPrimitive('path/toPath', path => path);
 
 // A string in JSON Pointer's form, a fragment's `#` before it read too,
 // `~1` a slash and `~0` a tilde within a segment.

@@ -8,6 +8,7 @@
 import { isNull, isErrorValue, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive, runs } from '../primitives.mjs';
+import { isMissedRead } from '../path-read.mjs';
 
 const AnyCondConditionNotBooleanError = declareRefusal('any/cond/ConditionNotBooleanError');
 const AnyAllOfConditionNotBooleanError = declareRefusal('any/allOf/ConditionNotBooleanError');
@@ -33,19 +34,18 @@ async function verdictOfConditions(subject, conditions, decisive, ConditionNotBo
 registerPrimitive('any/allOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, false, AnyAllOfConditionNotBooleanError)));
 registerPrimitive('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionNotBooleanError)));
 
-// The first alternative that answers neither null nor an error value: a strict
-// read's miss, `get /missing` on a map without the key, is an error, and the
-// walk skips it as it skips null, so `coalesce /a /b ~("default")` reads the
-// first value defined. An alternative that is no code answers itself, and a
-// call of such alternatives alone reads the subject first, `query /timeout |
-// coalesce 30` [QSCND#coalesce]; the invariant of the alternatives holds one
-// at least.
+// The first alternative that answers a value, each in its place: code runs
+// against the subject and passes on null and on a read `query` answers null
+// for, `coalesce /a /b ~("default")` reading the first value defined, any
+// other failure its answer, and a value answers itself; one alternative that
+// is a value stands after the subject, `query /timeout | coalesce 30`
+// [QSCND#coalesce]; the invariant of the alternatives holds one at least.
 registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alternatives) => {
   const isCode = alternative => typeof alternative === 'function';
-  const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];
+  const candidates = alternatives.length === 1 && !isCode(alternatives[0]) ? [subject, ...alternatives] : alternatives;
   for (const alternative of candidates) {
     const answer = isCode(alternative) ? await alternative(subject) : alternative;
-    if (isNull(answer) || isErrorValue(answer)) continue;
+    if (isNull(answer) || (isErrorValue(answer) && isMissedRead(answer))) continue;
     return answer;
   }
   return NULL;

@@ -3,8 +3,8 @@
 Чтение модели, сессия d7f52e95, 2026-10-19. Отчёт — [D353~2.md](D353~2.md):
 Opus, запущенный сессией по слову мейнтейнера, на дереве bb62f35b,
 18:03–18:49 UTC, вердикт `changes asked`, шестнадцать находок. Все
-починены коммитом 44ad7c8d, кроме находки 6, которую держат [D296] и
-источник [D353], и правил инструментов, которые второй и третий проходы
+починены коммитом 44ad7c8d, кроме находки 6, которую решили [D373] для
+журнала и [D296] для тестов, и правил инструментов, которые второй и третий проходы
 ([D353~3.md](D353~3.md), [D353~4.md](D353~4.md)) велели записать: их решила
 запись [D372], растворённая при этом же переносе.
 
@@ -46,14 +46,16 @@ A finding is something you can show: a file and a line, the rule of the work or 
    `rg -n "read by the name alone" docs/spec/QSHST-hosts-and-the-command-line.md` → одна строка; правило в [D372].
 4. **Сделана.** Зазор читает грамматика: справка подписи на
    `[1 2 3] | take |~ how many ~| ` → `take count`, тест падает на сервере до
-   починки; шаг у курсора и знаки автодополнения сервер берёт из ядра,
-   `partsBeforeACursor` и `SIGNS_A_WORD_FOLLOWS`. Проба:
-   `git grep -l -F -e "partsBeforeACursor" -e "SIGNS_A_WORD_FOLLOWS" -- lsp/src` → features.mjs, server.mjs.
+   починки; шаг у курсора и знаки автодополнения сервер пишет сам, ядро их
+   не экспортирует [D374]. Проба:
+   `git grep -l -F -e "partsBeforeACursor" -e "SIGNS_A_WORD_FOLLOWS" -- core/src lsp/src` → пусто.
 5. **Сделана.** Проба: `rg -n "part of its node" docs/spec lsp/src` → пусто.
-6. **Держит открытая запись.** Рост тестов ветки вошёл в [D296], запись
-   тестов и проверок, которую несёт пачка 17; рост документов назван в
-   источнике [D353] со ссылкой на этот отчёт. Проба:
-   `node scripts/measure.mjs --steps 6ebe3da0 HEAD` → документы и тесты в плюсе.
+6. **Решена записями.** Документы выросли журналом, его историей и
+   отчётами ревью, а журнал стоит вне счёта диффа [D373]; главы выросли
+   правилами пачек, которые перенос записал в их разделы, при ядре в минусе;
+   рост тестов держит [D296], запись тестов и проверок, которую несёт пачка 17.
+   Проба: `node scripts/measure.mjs --steps 6ebe3da0 b9008a4d` → ядро
+   +1704 −1968, документы +237 −78, тесты +1893 −1327.
 7. **Сделана.** `answerKindsOf` для `vec/h` с `returns #[::vec ::number]`
    → `[vec number]`; тест verb-tooling.
 8. **Сделана.** Проба: `rg -n "as \`answerKindsOf\` reads them" lsp/src/features.mjs` → одна строка.
@@ -72,5 +74,6 @@ A finding is something you can show: a file and a line, the rule of the work or 
 16. **Сделана.** Проба: `::call[1] !| type` → `::call/PayloadKindNotTakenError`.
 
 [D296]: ../../D296.md
-[D353]: ../../D353.md
 [D372]: ../../replaced/D372.md
+[D373]: ../../replaced/D373.md
+[D374]: ../../replaced/D374.md

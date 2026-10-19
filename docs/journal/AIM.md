@@ -78,9 +78,11 @@ the seventh yields only to a branch that introduces a model.
    few lines handle.
 6. The aim is written down, here, and every session lands on it.
 7. The work deletes more than it adds: the diff of a piece of work is
-   negative in the core sources, the texts and the tests, and the catalog
-   grows by the words a task asks for and the pages that tell them
-   [QSWRK#diff].
+   negative in the core sources, the texts that state what holds and the
+   tests, and the catalog grows by the words a task asks for and the pages
+   that tell them [QSWRK#diff]; the journal stands outside that count,
+   growing by the history of every decision, and every record lies in
+   `replaced/`.
 
 ## principles
 

@@ -331,9 +331,10 @@ selects a word by the letters of a name [QSNAM#letters].
 The language server runs over stdio and reads the language from the core:
 the walks of the parts, the kinds of a value, the tokens of `tokenize`,
 the pages by `doc | prose`, and the grammar, which reads the steps before
-the cursor with the step `it` written there, `partsBeforeACursor`, what
-stands as whitespace there, a comment among it, and the signs after which
-an editor asks a completion, `SIGNS_A_WORD_FOLLOWS`. The names the server
+the cursor, a step the server writes at the cursor and drops before the
+steps run, and what stands as whitespace there, a comment among it; the
+characters it asks a completion and the help of a signature at are its
+own. The names the server
 reaches at a place, which its hover, its goto-definition and its completion
 read, are the declarations visible there across the groups and the quotes
 around it [QSNAM#scope], and inside the body of a verb, of the declarations
@@ -378,9 +379,8 @@ bound by name is a kind to the runtime and a value to the tools:
 ```
 
 ```sh
-$ git grep -l -F -e "partsBeforeACursor" -e "SIGNS_A_WORD_FOLLOWS" -- lsp/src | sort
-lsp/src/features.mjs
-lsp/src/server.mjs
+$ git grep -c -F "triggerCharacters: [" -- lsp/src/server.mjs
+lsp/src/server.mjs:2
 ```
 
 The site is built by Astro; its

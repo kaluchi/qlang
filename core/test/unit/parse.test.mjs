@@ -1000,12 +1000,3 @@ describe('parse — block comment nesting', () => {
     });
   });
 });
-
-describe('partsBeforeACursor — the steps before a cursor, read with a step written there [QSHST#tools]', () => {
-  it('reads the steps before the cursor as a pipeline whose last step stands for the one being typed, and throws where the text so completed reads as none', async () => {
-    const { partsBeforeACursor } = await import('../../src/parse.mjs');
-    const root = partsBeforeACursor('[1 2] | ');
-    expect([root.parts.length, isCallStep(root.parts.at(-1).value), root.parts.at(-1).value.get('name').name]).toEqual([2, true, 'it']);
-    expect(() => partsBeforeACursor('[1 2] | (')).toThrow(ParseError);
-  });
-});

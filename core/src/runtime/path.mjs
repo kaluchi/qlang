@@ -18,11 +18,10 @@ const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError'
 // The path of one segment a key alone names [QSPTH#key].
 const pathOfKey = key => makePath([keyNameOf(key)]);
 
-// A path or a key read from the subject; any other value its input takes a
-// template whose paths are read and whose quotes, closed at the call, are
-// run against the subject in their places, its other values kept, each
-// container laid back under its tags as a write lays it, the first failure
-// the answer [QSLIT#tag].
+// A path or a key read from the subject; any other value a template whose
+// paths are read and whose quotes, closed at the call, are run against the
+// subject in their places, its other values kept, each container laid back
+// under its tags as a write lays it, the first failure the answer [QSLIT#tag].
 function readByPath(subject, path, soft, fallback, state) {
   if (isPath(path) || isKeyAlone(path)) {
     const read = readPath(subject, isPath(path) ? path : pathOfKey(path), soft);

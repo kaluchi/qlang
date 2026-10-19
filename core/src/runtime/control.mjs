@@ -34,12 +34,10 @@ async function verdictOfConditions(subject, conditions, decisive, ConditionNotBo
 registerPrimitive('any/allOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, false, AnyAllOfConditionNotBooleanError)));
 registerPrimitive('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionNotBooleanError)));
 
-// The first alternative that answers a value, each in its place: code runs
-// against the subject and passes on null and on a read `query` answers null
-// for, `coalesce /a /b ~("default")` reading the first value defined, any
-// other failure its answer, and a value answers itself; one alternative that
-// is a value stands after the subject, `query /timeout | coalesce 30`
-// [QSCND#coalesce]; the invariant of the alternatives holds one at least.
+// The first alternative that answers a value, each in its place, code passing
+// on null and on a read `query` answers null for, any other failure its answer,
+// one alternative that is a value standing after the subject [QSCND#coalesce];
+// the invariant of the alternatives holds one at least.
 registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alternatives) => {
   const isCode = alternative => typeof alternative === 'function';
   const candidates = alternatives.length === 1 && !isCode(alternatives[0]) ? [subject, ...alternatives] : alternatives;

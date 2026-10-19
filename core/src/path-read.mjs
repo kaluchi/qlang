@@ -16,15 +16,13 @@ export const PathIndexNotIntegerError = declareRefusal('path/IndexNotIntegerErro
 // missing or null standing before its last segment.
 export const MISSED = Symbol('qlang/missed');
 
-// A key alone, a keyword, a string or a number, names the segment of its
-// text, which a map reads as the key that spells it [QSPTH#key].
+// A key alone, a keyword, a string or a number, names the segment of its text [QSPTH#key].
 export const isKeyAlone = value => isKeyword(value) || typeof value === 'string' || typeof value === 'number';
 
 export const keyNameOf = key => (isKeyword(key) ? key.name : String(key));
 
-// A strict read's refusal of a part the subject lacks, a key a map lacks or
-// an index past an end, and of null on the way, each a miss a soft read
-// answers null for [QSPTH#query].
+// A strict read's refusal of a part the subject lacks and of null on the way,
+// a miss a soft read answers null for [QSPTH#query].
 const MISSED_PARTS = new Set([PathKeyNotInMapError.prototype.address, PathIndexOutOfBoundsError.prototype.address]);
 
 export const isMissedPart = error => MISSED_PARTS.has(error.tag.name);

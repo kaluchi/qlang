@@ -87,7 +87,8 @@ export const standsAsCommand = step => isCallStep(step) || isBindStep(step) || i
 // Whether a step declares a name, itself or after `!|` [D367].
 export const declaresAName = step => isBindStep(step) || (isFailStep(step) && isBindStep(step.payload[0]));
 
-const holdsALiteral = step => isLiteral(step) || isConstructStep(step);
+// holdsALiteral(step) — a literal step, a literal or a tagged literal [D367].
+export const holdsALiteral = step => isLiteral(step) || isConstructStep(step);
 
 // partsOfALiteral(value) → the parts a part that computes is searched among:
 // the payload of a tagged literal and the parts of a container, none of a
@@ -116,9 +117,10 @@ function literalMessage(literal, written) {
   return `an error literal computes nothing: facts computed are built by \`get\` and \`raise\` makes them an error, write \`get ${template.slice(template.indexOf('!') + 1)}${tagged} | raise\``;
 }
 
-// A literal holds no part that computes, as `written` reads its parts.
+// A literal holds no part that computes, as `written` reads its parts, the
+// value refused the literal where the facts name none.
 function heldAsALiteral(literal, Refusal, facts, written) {
-  if (written.computesWithin(literal)) throw new Refusal({ ...facts, message: literalMessage(literal, written), actualValue: literal });
+  if (written.computesWithin(literal)) throw new Refusal({ actualValue: literal, ...facts, message: literalMessage(literal, written) });
 }
 
 function laterStepMessage(step, written) {
@@ -217,11 +219,11 @@ export function constructOf(payload) {
   return recordFrom(payload, CONSTRUCT);
 }
 
-// `::construct` assembled from data holds its payload a literal that
-// computes nothing [QSLIT#closed].
+// `::construct` assembled from data holds its payload a literal that computes
+// nothing, refused as the map its record is built from [QSLIT#closed], [D367].
 export function constructOfData(payload, written) {
   const construct = constructOf(payload);
-  heldAsALiteral(construct, ConstructLiteralComputesError, {}, written);
+  heldAsALiteral(construct, ConstructLiteralComputesError, { actualValue: payload }, written);
   return construct;
 }
 

@@ -8,11 +8,11 @@ import { linkedAddressesOf } from './doc-parts.mjs';
 import { splitAddress, ANY_KIND_NAME } from './address.mjs';
 import { nearestOf } from './nearness.mjs';
 
-// The names a step reaches: those of the scope and the last names of the
-// verbs declared under a kind, a label of the root among them as the tag
-// that reaches it [QSDSP#residence].
+// The names of one segment a step reaches: those of the scope and the last
+// names of the verbs declared under a kind, a label of the root among them as
+// the tag that reaches it [QSDSP#residence].
 function namesOfSteps(scope) {
-  return new Set([...scopeNamesOf(scope).keys(), ...verbNames(scope)]);
+  return new Set([...scopeNamesOf(scope).keys(), ...verbNames(scope)].filter(name => splitAddress(name)[0] === null));
 }
 
 // The verbs the page of a verb the typed name begins with links, whose

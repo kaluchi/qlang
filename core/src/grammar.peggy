@@ -30,15 +30,28 @@
   import { quoteOf, callOf, bindOf, constructOf, failOf, groupOf, standsAsCommand, computes, partsOfALiteral, isOfTheKindOfErrors, isGroupStep } from '../src/steps.mjs';
   import { walkParts } from '../src/walk.mjs';
 
-  // The segments of a doc: its prose, each run of it one string, and the
-  // parts of the quotes among it.
+  // A span between backquotes in the prose of a doc: its text and the span of
+  // the code its runs of backquotes hold [D371].
+  class Backquoted {
+    constructor(text, code) {
+      this.text = text;
+      this.code = code;
+    }
+  }
+
+  // The segments of a doc, its prose, each run of it one string, and the parts
+  // of the quotes among it, with the spans of the code its spans between
+  // backquotes hold [D371].
   function proseJoined(parts) {
     const segments = [];
+    const backquoted = [];
     for (const part of parts) {
-      if (typeof part === 'string' && typeof segments[segments.length - 1] === 'string') segments[segments.length - 1] += part;
-      else segments.push(part);
+      if (part instanceof Backquoted) backquoted.push(part.code);
+      const segment = part instanceof Backquoted ? part.text : part;
+      if (typeof segment === 'string' && typeof segments[segments.length - 1] === 'string') segments[segments.length - 1] += segment;
+      else segments.push(segment);
     }
-    return segments;
+    return { segments, backquoted };
   }
 
   // A rule a constructor holds, refused at the part it names.
@@ -232,17 +245,33 @@
     return part(make(new Map(entries.map(({ key, value }) => [key.value.name, value.value]))), [...heads, ...entries.flatMap(({ key, value }) => [key, value])]);
   }
 
-  // An error literal, the tag written before its bang a part of it
-  // [QSERR#rest].
-  const errorRead = (tag, entries) => entriesRead(facts => errorAtRest(tag?.value ?? ERROR_TAG, facts), entries, tag === null ? [] : [tag]);
+  // An error literal, the tag written before its bang a part of it and the
+  // span of its tags its head [QSERR#rest], [D371].
+  const errorRead = (tag, entries) => Object.assign(entriesRead(facts => errorAtRest(tag?.value ?? ERROR_TAG, facts), entries, tag === null ? [] : [tag]), tag === null ? {} : { head: tag.span });
 
   // A tagged literal, and a tag written before an error literal of the kind
   // of errors the tag of that error, `::Late::error!{…}` the literal
   // `::Late!{…}` [QSERR#rest].
   function taggedRead(head, payload) {
-    if (!isOfTheKindOfErrors(payload.value)) return part(constructOf(new Map([['tag', head.value], ['payload', payload.value]])), [payload]);
-    return part(errorAtRest(head.value, new Map(payload.value)), [head, ...payload.parts]);
+    if (!isOfTheKindOfErrors(payload.value)) return Object.assign(part(constructOf(new Map([['tag', head.value], ['payload', payload.value]])), [payload]), { head: head.span });
+    return Object.assign(part(errorAtRest(head.value, new Map(payload.value)), [head, ...payload.parts]), { head: { ...head.span, end: (payload.head ?? head.span).end } });
   }
+
+  // The segments of a doc, the span of its text to its last word and the spans
+  // of the code between its backquotes [D371].
+  function textRead(parts) {
+    const { source, start } = range();
+    return { ...proseJoined(parts), text: { source, start: pointOf(start), end: pointOf(start + text().trimEnd().length) } };
+  }
+
+  // A span between backquotes, its runs of backquotes as many on each side
+  // [D371].
+  function backquotedRead(run) {
+    const { source, start, end } = range();
+    return new Backquoted(text(), { source, start: pointOf(start + run), end: pointOf(end - run) });
+  }
+
+  const docRead = ({ segments, text, backquoted }) => Object.assign(part(makeDoc(segments.map(segment => (typeof segment === 'string' ? segment : segment.value))), segments.filter(segment => typeof segment !== 'string')), { text, backquoted });
 
   // A map writes its keys one way, as keywords or as the strings of JSON
   // [QSLIT#json].
@@ -621,8 +650,8 @@ CallName
 // by `#`, `::Width#5`; parentheses after a tag,
 // the sign of code, are refused [QSLIT#closed]. `::tag` alone is the tag name.
 TaggedLit
-  = "::" tag:TagName "#" payload:PayloadAfterHash
-    { return part(constructOf(new Map([['tag', makeTag(tag)], ['payload', payload.value]])), [payload]); }
+  = head:TagLit "#" payload:PayloadAfterHash
+    { return taggedRead(head, payload); }
   / &{ return docQuoteDepth === 0; } "::" tag:TagName "(" _ payload:PayloadAfterHash _ ")"
     { error(`a number, a boolean, null or a path touches its tag by \`#\`: write \`::${tag}#${sourceOf(payload)}\``); }
   / &{ return docQuoteDepth === 0; } "::" tag:TagName "(" _ payload:TaggedPayload _ ")"
@@ -759,10 +788,10 @@ QuoteSpanChar
 // stays on its line. The printer writes the block form. A parse error
 // names its opening `doc` and its prose among the continuations [QSSYN#refusal].
 DocLit
-  = LineDocOpen segments:LineDocSegments
-    { return part(makeDoc(segments.map(segment => (typeof segment === 'string' ? segment : segment.value))), segments.filter(segment => typeof segment !== 'string')); }
-  / BlockDocOpen segments:BlockDocSegments "~~|"
-    { return part(makeDoc(segments.map(segment => (typeof segment === 'string' ? segment : segment.value))), segments.filter(segment => typeof segment !== 'string')); }
+  = LineDocOpen text:LineDocText
+    { return docRead(text); }
+  / BlockDocOpen text:BlockDocText "~~|"
+    { return docRead(text); }
 
 LineDocOpen "doc"
   = "|~~|"
@@ -770,8 +799,11 @@ LineDocOpen "doc"
 BlockDocOpen "doc"
   = "|~~" !"|"
 
-LineDocSegments
-  = parts:LineDocPart* { return proseJoined(parts); }
+LineDocText
+  = parts:LineDocPart* { return textRead(parts); }
+
+BlockDocText
+  = parts:BlockDocPart* { return textRead(parts); }
 
 // A run of prose free of `~`, a backquote, `:` and, in a block, `|` is
 // one part: a quote begins at `~` or at the `::` of its tags, a span
@@ -783,17 +815,14 @@ LineDocPart
   = ProseRunOfALine { return text(); }
   / quote:DocQuote &{ return !sourceOf(quote).includes('\n'); } { return quote; }
   / LineQuoteSpan
-  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / ProseOfALine))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
+  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / ProseOfALine))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
   / "`"+ { return text(); }
   / ProseOfALine
-
-BlockDocSegments
-  = parts:BlockDocPart* { return proseJoined(parts); }
 
 BlockDocPart
   = ProseRunOfABlock { return text(); }
   / DocQuote
-  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return text(); }
+  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
   / "`"+ { return text(); }
   / QuoteSpan
   / NestedLineDocSpan
@@ -827,11 +856,11 @@ LineQuoteSpan "character of prose"
   / &{ spanOfALine = false; return false; } "~("
 
 // A quote of a doc, under the stack of tags written before it, which gives it
-// its role [D367], the depth `docQuoteDepth` counts given back whether a quote
-// is read or not.
+// its role [D367] and is its head [D371], the depth `docQuoteDepth` counts given
+// back whether a quote is read or not.
 DocQuote
   = &{ docQuoteDepth++; return true; } tags:DocQuoteTag* quote:QuoteLit &{ docQuoteDepth--; return true; }
-    { return tags.length === 0 ? quote : part(tags.reduceRight((inner, tagName) => makeTagged(makeTag(tagName), inner), quote.value), [quote]); }
+    { return tags.length === 0 ? quote : Object.assign(part(tags.reduceRight((inner, tagName) => makeTagged(makeTag(tagName), inner), quote.value), [quote]), { head: { ...span(), end: quote.span.start } }); }
   / &{ docQuoteDepth--; return false; } "~("
 
 DocQuoteTag

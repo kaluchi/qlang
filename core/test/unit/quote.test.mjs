@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
 import { printQuoteSource } from '../../src/print-value.mjs';
-import { isQuote } from '../../src/types.mjs';
+import { isQuote, makeTag } from '../../src/types.mjs';
 
 describe('the empty quote', () => {
   it('runs as the identity', async () => {
@@ -134,6 +134,27 @@ describe('assembling steps by hand', () => {
   it('a value after the head assembled from data is refused by the message of its kind [D367]', async () => {
     expect(await evalQuery('[5 ::Box] | tag ::quote !| get /message')).toBe('a tag goes over the value in the pipe by `tag`: write `tag ::Box`');
     expect(await evalQuery('[5 ~(x)] | tag ::quote !| get /message')).toBe('code runs on the value in the pipe by `apply`: write `apply ~(…)`');
+  });
+
+  it('each refusal of the constructors of the steps holds values whose print reads back, a payload of code refused as the map its record is built from [QSLIT#closed], [D367]', async () => {
+    const refusals = [
+      ['1 | tag ::quote', 'quote/PayloadKindNotTakenError'], ['[{:a ::Box[1]}] | tag ::quote', 'quote/ElementNotStepError'],
+      ['[[1] [2]] | tag ::quote', 'quote/StepNotCommandError'], ['[[::call{:name :count}]] | tag ::quote', 'quote/LiteralComputesError'],
+      ['[1] | tag ::call', 'call/PayloadKindNotTakenError'], ['{:name :f :extra 1} | tag ::call', 'call/PayloadNotSchemaError'],
+      ['{:name :"a b"} | tag ::call', 'call/NameNotCallableError'], ['{:name :take :modifiers [[::call{:name :x}]]} | tag ::call', 'call/LiteralComputesError'],
+      ['[1] | tag ::bind', 'bind/PayloadKindNotTakenError'], ['{:name :x} | tag ::bind', 'bind/PayloadNotSchemaError'],
+      ['{:name :true :body 1} | tag ::bind', 'bind/NameNotCallableError'], ['{:name :x :body [::call{:name :y}]} | tag ::bind', 'bind/LiteralComputesError'],
+      ['[1] | tag ::construct', 'construct/PayloadKindNotTakenError'], ['{:tag :Box :payload [1]} | tag ::construct', 'construct/PayloadNotSchemaError'],
+      ['get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct', 'construct/LiteralComputesError'],
+      ['[::construct{:tag ::Box :payload ::call{:name :count}}]', 'construct/LiteralComputesError'],
+      ['1 | tag ::fail', 'fail/PayloadKindNotTakenError'], ['~(a | b) | tag ::fail', 'fail/PayloadNotOneStepError'],
+      ['[/a] | tag ::quote | tag ::fail', 'fail/StepNotCommandError'], ['1 | tag ::group', 'group/PayloadKindNotTakenError'],
+      ['~() | tag ::group', 'group/PayloadEmptyError']
+    ];
+    for (const [query, address] of refusals) {
+      expect(await evalQuery(`${query} !| get [~(type) ~(:e it | print | parse | open | eq e)]`), query).toEqual([makeTag(address), true]);
+    }
+    expect(await evalQuery('[::construct{:tag ::Box :payload ::call{:name :count}}] !| get /actualValue | type')).toEqual(makeTag('map'));
   });
 
   it('a call takes no field its record does not name, and a modifier that is a call takes no modifiers of its own [D367]', async () => {

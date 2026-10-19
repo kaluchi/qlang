@@ -7,7 +7,7 @@ import {
   documentSymbols, signatureHelpAtOffset,
   semanticTokensFor, SEMANTIC_TOKEN_TYPES, foldingRangesOf
 } from '../src/features.mjs';
-import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
+import { langRuntime, evalQuery, isTag } from '@kaluchi/qlang-core';
 
 // Docs whose quote stands under the tag of a group or of the fail track, in a
 // literal, as a modifier and in the quote of a doc [D367].
@@ -58,6 +58,7 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('filter');
     expect(labels).toContain('add');
     expect(labels).toContain('manifest');
+    expect(labels).not.toContain('vec/count');
   });
 
   it('returns the names of more than 60 verbs of the language', async () => {
@@ -66,11 +67,11 @@ describe('completionsAtOffset', () => {
     expect(items.length).toBeGreaterThan(60);
   });
 
-  it('a verb of the language completes as a function', async () => {
+  it('a verb of the language completes as a verb [D371]', async () => {
     const { root } = parseDocument('', 'test.qlang');
     const items = await completionsAtOffset(root, 0);
     const countItem = items.find(i => i.label === 'count');
-    expect(countItem.kind).toBe('function');
+    expect(countItem.role).toBe('verb');
   });
 
   it('a verb of the language completes with the documentation of its page', async () => {
@@ -90,12 +91,27 @@ describe('completionsAtOffset', () => {
     expect(labels).toContain('myVar');
   });
 
-  it('a name the document declares completes as a variable', async () => {
+  it('a value the document names completes as a value [D371]', async () => {
     const src = ':myVar 42 | myVar';
     const { root } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(root, src.length);
     const myVarItem = items.find(i => i.label === 'myVar');
-    expect(myVarItem.kind).toBe('variable');
+    expect(myVarItem.role).toBe('value');
+  });
+
+  it('names each name the document declares by the role of its declaration, a verb under its own label or a label of the root and a label by its name and its tag [D371]', async () => {
+    const src = ':Box |~~ A box. ~~| | :Box/area ~(1) | :vec/second ~(get /1) | :n 1 | n';
+    const { root } = parseDocument(src, 'test.qlang');
+    const roles = new Map((await completionsAtOffset(root, src.length)).map(item => [item.label, item.role]));
+    expect(['area', 'second', 'n', 'Box', '::Box'].map(label => roles.get(label))).toEqual(['verb', 'verb', 'value', 'label', 'label']);
+  });
+
+  it('offers each name the document declares once, by the name a step calls it by, a name with a path by its last name, after a subject and with none [QSNAM#verb], [D371]', async () => {
+    for (const typed of [':vec/second ~(get /1) | [1 2] | ', ':vec/second ~(get /1) | ']) {
+      const src = `${typed}it`;
+      const labels = (await completionsAtOffset(parseDocument(src, 'test.qlang').root, typed.length, src)).map(item => item.label);
+      expect([labels.filter(label => label === 'second').length, labels.includes('vec/second')], typed).toEqual([1, false]);
+    }
   });
 
   it('works on a text that does not parse', async () => {
@@ -111,20 +127,26 @@ describe('completionsAtOffset', () => {
     expect(items.some(i => i.label === '::number/NotFiniteError')).toBe(true);
   });
 
-  it('cursor right after `::` filters to tags only', async () => {
+  it('cursor right after `::` completes the names of the root as tags alone, each by its role [D371]', async () => {
     const src = '::';
     const { root } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(root, 2, src);
     expect(items.length).toBeGreaterThan(0);
     expect(items.every(i => i.label.startsWith('::'))).toBe(true);
-    expect(items.every(i => i.kind === 'tag')).toBe(true);
+    const roles = new Map(items.map(item => [item.label, item.role]));
+    expect(['::vec', '::vec/count', '::number/NotFiniteError', '::number/add/addend'].map(label => roles.get(label))).toEqual(['label', 'verb', 'label', 'value']);
   });
 
-  it('a kind the document declares is among the completions of tags', async () => {
-    const src = ':MyTag |~~ MyTag. ~~| (::kind | impl ~(42))';
+  it('completes every name after one colon of the sign of a tag', async () => {
+    const items = await completionsAtOffset(null, 1, '::');
+    expect(items.some(i => !i.label.startsWith('::'))).toBe(true);
+  });
+
+  it('a kind the document declares is among the completions of tags, one with a path by its address', async () => {
+    const src = ':MyTag |~~ MyTag. ~~| (::kind | impl ~(42)) | :MyTag/In |~~ In. ~~|';
     const { root } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(root, src.length, src);
-    expect(items.some(i => i.label === '::MyTag')).toBe(true);
+    expect(['::MyTag', '::MyTag/In'].map(label => items.some(i => i.label === label))).toEqual([true, true]);
   });
 });
 
@@ -158,13 +180,52 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('count');
   });
 
-  it('keeps the kinds of the subject through a declaration, and offers every name after a tagged literal [D367]', async () => {
+  it('keeps the kinds of the subject through a declaration, and offers after a tagged literal the verbs the walk of its tags reaches [D371]', async () => {
     const labels = await labelsAt('[1 2 3] | :xs it | ');
     expect(labels).toContain('count');
     expect(labels).not.toContain('add');
     const afterTagged = await labelsAt('[1 2 3] | :xs it | ::Box{:a 1} | ');
     expect(afterTagged).toContain('count');
-    expect(afterTagged).toContain('add');
+    expect(afterTagged).toContain('payload');
+    expect(afterTagged).not.toContain('add');
+  });
+
+  it('reads a literal alone over the root, a label the document declares a tag of identity, and a literal its constructor refuses by the kinds of its refusal [D371]', async () => {
+    const afterIdentity = await labelsAt(':Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)) | ::Pos#-1 | ');
+    expect(afterIdentity).toContain('add');
+    expect(afterIdentity).not.toContain('trace');
+    const afterRefusal = await labelsAt('::number"5" | ');
+    expect(afterRefusal).toContain('trace');
+    expect(afterRefusal).not.toContain('add');
+  });
+
+  it('offers after a tag name the verbs that serve it, those of a tag name, of any value and of its noun whose `on` names `::tag`, none of its noun refusing it [QSDSP#tagname], [D371]', async () => {
+    const afterVec = await labelsAt('::vec | ');
+    expect(['manifest', 'toTag', 'count', 'sort', 'add'].map(label => afterVec.includes(label))).toEqual([true, true, false, false, false]);
+    expect(await labelsAt('::kind | ')).toContain('wraps');
+    for (const label of afterVec.filter(offered => !offered.startsWith('::'))) {
+      const answer = await evalQuery(`::vec | ${label} !| type`);
+      expect(isTag(answer) && /^vec\/[^/]+\/Subject\w*Error$/.test(answer.name), label).toBe(false);
+    }
+  });
+
+  it('reads no kind after a call its subject refuses, a verb of the noun a tag name names that serves no tag name [QSDSP#tagname], [D371]', async () => {
+    const labels = await labelsAt('::vec | count | ');
+    expect(labels).toContain('count');
+    expect(labels).toContain('add');
+  });
+
+  it('follows the walk of the subject through the label of a verb that returns its own label, the noun of a tag name left out, and elsewhere the kinds it returns [QSBLD#answer], [QSDSP#tagname], [D371]', async () => {
+    const afterATag = await labelsAt('1 | type | ');
+    for (const src of ['::vec | toTag | ', '::number | toTag | ']) {
+      const labels = await labelsAt(src);
+      expect([labels, labels.includes('count'), labels.includes('add')], src).toEqual([afterATag, false, false]);
+    }
+    const afterWraps = await labelsAt('::kind | wraps |~~ w ~~| ::vec | ');
+    expect(['reads', 'type', 'toTag'].map(label => afterWraps.includes(label))).toEqual([true, true, false]);
+    const afterSorts = await Promise.all(['::Box[3 1 2] | sort | ', '::frame[1 ~(a)] | sort | ', '[3 1 2] | sort | '].map(labelsAt));
+    expect(afterSorts.map(labels => ['count', 'payload', 'failed', 'add'].map(label => labels.includes(label))))
+      .toEqual([[true, true, false, false], [true, true, true, false], [true, false, false, false]]);
   });
 
   it('follows the kind a verb declares it returns', async () => {
@@ -335,6 +396,39 @@ describe('hoverAtOffset', () => {
     }
   });
 
+  it('shows the page of a verb called in its own body, which calls itself by its name, and none for a value its own body names [QSNAM#verb], [D371]', async () => {
+    const src = ':map/walk\n  |~~ Walks a tree. ~~|\n  ~(get {:n /n :kids ~(get /kids | map ~walk)})\n| {:n 1 :kids [{:n 2 :kids []}]} | walk | get /kids/0/n';
+    expect((await hoverAtOffset(parseDocument(src, 'test.qlang').root, src, src.indexOf('~walk') + 1)).content).toBe("**walk** — a reader's name  \n  \nWalks a tree.  ");
+    const value = ':n |~~ A number. ~~| (n | add 1)';
+    expect(await hoverAtOffset(parseDocument(value, 'test.qlang').root, value, value.indexOf('(n') + 1)).toBeNull();
+  });
+
+  it('shows the prose of each doc of a declaration of the document, its links left out [D371]', async () => {
+    const src = ':x |~~ see ::link~(::vec | doc) here ~~| |~~| and a line\n  1\n| x';
+    const { root } = parseDocument(src, 'test.qlang');
+    const { content } = await hoverAtOffset(root, src, src.lastIndexOf('x'));
+    expect([content.includes('see  here'), content.includes('and a line'), content.includes('::link')]).toEqual([true, true, false]);
+  });
+
+  it('shows nothing for a call that reaches no declaration of the document with docs, one a closed group holds among them [QSNAM#scope], [D371]', async () => {
+    for (const [src, name] of [['(:x |~~ inner ~~| 1) | x', 'x'], [':x 1 | x', 'x'], ['nosuch', 'nosuch']]) {
+      const { root } = parseDocument(src, 'test.qlang');
+      expect(await hoverAtOffset(root, src, src.lastIndexOf(name)), src).toBeNull();
+    }
+  });
+
+  it('shows a keyword by its literal, the key of a JSON literal among them [QSLIT#keyword]', async () => {
+    const src = '{"1": 2}';
+    const { root } = parseDocument(src, 'test.qlang');
+    expect((await hoverAtOffset(root, src, 2)).content).toBe('keyword `:"1"`');
+  });
+
+  it('shows nothing on the sign that joins a payload to its tag, past the head of the tag [QSLIT#tag]', async () => {
+    const src = '::number#2 | add 1';
+    const { root } = parseDocument(src, 'test.qlang');
+    expect(await hoverAtOffset(root, src, src.indexOf('#'))).toBeNull();
+  });
+
   it('shows the verb the subject of the call reaches, the form of its call over its page', async () => {
     for (const [src, address, words] of [['[1 2 3] | count', '::vec/count', 'elements the vector holds'], ['{:a 1} | count', '::map/count', 'entries the map holds'], ['#[1 2] | count', '::vec/count', 'elements the vector holds']]) {
       const { root } = parseDocument(src, 'test.qlang');
@@ -361,6 +455,43 @@ describe('hoverAtOffset', () => {
   });
 });
 
+describe('the names a step reaches in the body of a verb, the verbs, the nodes and the labels around it wherever they stand and no value a reader named there [QSNAM#verb], [D371]', () => {
+  const hoverOf = async (src, offset) => (await hoverAtOffset(parseDocument(src, 'test.qlang').root, src, offset))?.content ?? null;
+  const gotoOf = async (src, offset) => (await definitionAtOffset(parseDocument(src, 'test.qlang').root, offset))?.startOffset ?? null;
+  const pageOf = (name, prose) => `**${name}** — a reader's name  \n  \n${prose}  `;
+
+  it('reaches a verb declared after the verb, one that calls it back among them, in the body of a verb under a label of the root and of the document alike', async () => {
+    const later = ':vec/f ~(g) | :vec/g |~~ G. ~~| ~(7) | [1] | f';
+    const mutual = ':vec/even |~~ E. ~~| ~(odd) | :vec/odd |~~ O. ~~| ~(1) | [1] | even';
+    const underALabel = ':Box |~~ B. ~~| | :Box/f ~(g) | :vec/g |~~ G. ~~| ~(7) | ::Box[1] | f';
+    expect([await hoverOf(later, later.indexOf('~(g)') + 2), await gotoOf(later, later.indexOf('~(g)') + 2), await hoverOf(mutual, mutual.indexOf('(odd)') + 1), await hoverOf(underALabel, underALabel.indexOf('~(g)') + 2)])
+      .toEqual([pageOf('g', 'G.'), later.indexOf(':vec/g'), pageOf('odd', 'O.'), pageOf('g', 'G.')]);
+    expect(await evalQuery(`get [~(${later}) ~(${mutual}) ~(${underALabel})]`)).toEqual([7, 1, 7]);
+  });
+
+  it('reaches no value a reader named outside the body, which the language refuses there, and the verb where a value of its name stands outside it', async () => {
+    const value = ':k |~~ K. ~~| 1 | :vec/f ~(k) | [1] | f';
+    expect([await hoverOf(value, value.indexOf('~(k)') + 2), await gotoOf(value, value.indexOf('~(k)') + 2)]).toEqual([null, null]);
+    expect(await evalQuery(`${value} !| get [~(type) /name]`)).toEqual(await evalQuery('[::call/UnknownNameError :k]'));
+    const shadowed = ':f |~~ F value. ~~| 1 | :vec/f |~~ The verb. ~~| ~(if (count | gt 1) ~(drop 1 | f) ~(count)) | [1 2] | vec/f';
+    expect([await hoverOf(shadowed, shadowed.indexOf('| f)') + 2), await gotoOf(shadowed, shadowed.indexOf('| f)') + 2), await evalQuery(shadowed)])
+      .toEqual([pageOf('f', 'The verb.'), shadowed.indexOf(':vec/f'), 1]);
+  });
+
+  it('reaches a declaration of the body before one outside it, and a name outside any verb\'s body as the declarations before it', async () => {
+    const inner = ':vec/f |~~ The verb. ~~| ~(:k |~~ Inner. ~~| 1 | k) | :k |~~ Outer. ~~| 2 | [1] | f';
+    const outside = ':k |~~ K. ~~| 1 | get [~(k)]';
+    expect([await hoverOf(inner, inner.indexOf('| k)') + 2), await gotoOf(inner, inner.indexOf('| k)') + 2), await hoverOf(outside, outside.lastIndexOf('k')), await gotoOf(outside, outside.lastIndexOf('k'))])
+      .toEqual([pageOf('k', 'Inner.'), inner.indexOf(':k'), pageOf('k', 'K.'), 0]);
+  });
+
+  it('completes in the body of a verb the names it reaches by their roles, a verb under a label declared after it among them', async () => {
+    const src = ':k 1 | :vec/f ~(here) | :Late |~~ L. ~~| | :Late/g ~(1)';
+    const roles = new Map((await completionsAtOffset(parseDocument(src, 'test.qlang').root, src.indexOf('here'), src)).map(item => [item.label, item.role]));
+    expect(['f', 'g', 'Late', '::Late', 'k'].map(label => roles.get(label))).toEqual(['verb', 'verb', 'label', 'label', undefined]);
+  });
+});
+
 // A catalog context for definition fallback tests, in the form of a
 // source of the language: a contract under `::any` and verbs under a
 // kind, each a declaration `buildCatalogIndex` records by its span, and
@@ -381,83 +512,106 @@ for (const [name, range] of buildCatalogIndex(catalogRoot)) {
 const testCatalogCtx = { index: testCatalogIndex, scope: await langRuntime() };
 
 describe('definitionAtOffset', () => {
-  it('jumps from the use site of a verb to its declaration under a label', () => {
+  it('jumps from the use site of a verb to its declaration under a label', async () => {
     const src = ':number/double ~(mul 2) | 10 | double';
     const { root } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('double');
-    const def = definitionAtOffset(root, useOffset);
+    const def = await definitionAtOffset(root, useOffset);
     expect(def).not.toBeNull();
     expect(def.startOffset).toBe(0);
     expect(def.fileUri).toBeUndefined(); // in-document
   });
 
-  it('jumps to last visible declaration when shadowed', () => {
+  it('jumps to last visible declaration when shadowed', async () => {
     const src = ':x 1 | :x 2 | x';
     const { root } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
-    const def = definitionAtOffset(root, useOffset);
+    const def = await definitionAtOffset(root, useOffset);
     expect(def).not.toBeNull();
     // Should point to the second declaration, `:x 2`, not the first.
     expect(def.startOffset).toBe(src.lastIndexOf(':x'));
   });
 
-  it('declaration inside fork is invisible outside', () => {
+  it('declaration inside fork is invisible outside', async () => {
     const src = '(:x 1) | x';
     const { root } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
     // x is declared inside a group, a fork — invisible at the
     // use site. Falls through to catalog (none provided) or null.
-    const def = definitionAtOffset(root, useOffset);
+    const def = await definitionAtOffset(root, useOffset);
     expect(def === null || def.fileUri !== undefined).toBe(true);
   });
 
-  it('jumps from a name several kinds answer to the first of its verbs the catalog declares', () => {
+  it('jumps from a name several kinds answer to the first of its verbs the catalog declares', async () => {
     const src = '[1 2 3] | count';
     const { root } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(root, src.indexOf('count'), testCatalogCtx);
+    const def = await definitionAtOffset(root, src.indexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
     expect(def.fileUri).toBe('file:///test/core.qlang');
     expect(def.startOffset).toBe(0);
   });
 
-  it('jumps from an address to the verb it names', () => {
+  it('jumps from an address to the verb it names', async () => {
     const src = '[1 2 3] | vec/count';
     const { root } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(root, src.indexOf('vec/count'), testCatalogCtx);
+    const def = await definitionAtOffset(root, src.indexOf('vec/count'), testCatalogCtx);
     expect(def.startOffset).toBe(catalogSrc.indexOf(':vec/count'));
   });
 
-  it('falls back to the one verb of a name under a kind when no contract names it', () => {
+  it('falls back to the one verb of a name under a kind when no contract names it', async () => {
     const src = '1 | add 2';
     const { root } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(root, src.indexOf('add'), testCatalogCtx);
+    const def = await definitionAtOffset(root, src.indexOf('add'), testCatalogCtx);
     expect(def.startOffset).toBe(catalogSrc.indexOf(':number/add'));
   });
 
-  it('returns null for a verb of the language without a catalog context', () => {
+  it('returns null for a verb of the language without a catalog context', async () => {
     const src = '[1 2 3] | count';
     const { root } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(root, src.indexOf('count'));
+    const def = await definitionAtOffset(root, src.indexOf('count'));
     expect(def).toBeNull();
   });
 
-  it('a declaration of the document shadows a verb of the language — jumps to the declaration, not the catalog', () => {
+  it('a declaration of the document shadows a verb of the language — jumps to the declaration, not the catalog', async () => {
     const src = ':count 42 | count';
     const { root } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(root, src.lastIndexOf('count'), testCatalogCtx);
+    const def = await definitionAtOffset(root, src.lastIndexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
     expect(def.fileUri).toBeUndefined(); // in-document, not catalog
     expect(def.startOffset).toBe(0);
   });
 
-  it('returns null for a part that names no declaration', () => {
+  it('returns null for a part that names no declaration', async () => {
     const src = '42';
     const { root } = parseDocument(src, 'test.qlang');
-    expect(definitionAtOffset(root, 0)).toBeNull();
+    expect(await definitionAtOffset(root, 0)).toBeNull();
   });
 
-  it('returns null for a text that does not parse', () => {
-    expect(definitionAtOffset(null, 0)).toBeNull();
+  it('reads a name by the spelling it was read under: a call reaches the declaration of its name, a label\'s among them, and a tag no declaration by its last name [QSNAM#reach], [D371]', async () => {
+    const src = ':Box |~~ B ~~| | :Box/Inner |~~ I ~~| | Box | get [::Inner ::Box]';
+    const { root } = parseDocument(src, 'test.qlang');
+    expect((await definitionAtOffset(root, src.indexOf('| Box') + 2)).startOffset).toBe(0);
+    expect(await definitionAtOffset(root, src.indexOf('::Inner') + 3)).toBeNull();
+    expect((await definitionAtOffset(root, src.lastIndexOf('::Box') + 3)).startOffset).toBe(0);
+  });
+
+  it('jumps from a call by address to the declaration of that address alone, a declaration of its last name aside [QSNAM#address], [D371]', async () => {
+    const src = ':vec/x ~(1) | :string/x ~(2) | :count 5 | [1] | get [~(vec/x) ~(vec/count)]';
+    const { root } = parseDocument(src, 'test.qlang');
+    expect((await definitionAtOffset(root, src.indexOf('vec/x)'))).startOffset).toBe(0);
+    expect(await definitionAtOffset(root, src.indexOf('vec/count'))).toBeNull();
+    expect((await definitionAtOffset(root, src.indexOf('vec/count'), testCatalogCtx)).fileUri).toBe('file:///test/core.qlang');
+  });
+
+  it('jumps from a call of a verb in its own body to its declaration, by its name and by its address, and a value its own body names to none [QSNAM#verb], [D371]', async () => {
+    const src = ':map/walk ~(get {:n /n :kids ~(get /kids | map ~walk | map ~map/walk)}) | :n (n | add 1)';
+    const { root } = parseDocument(src, 'test.qlang');
+    for (const offset of [src.indexOf('~walk') + 1, src.indexOf('~map/walk') + 1]) expect((await definitionAtOffset(root, offset)).startOffset).toBe(0);
+    expect(await definitionAtOffset(root, src.indexOf('(n') + 1)).toBeNull();
+  });
+
+  it('returns null for a text that does not parse', async () => {
+    expect(await definitionAtOffset(null, 0)).toBeNull();
   });
 });
 
@@ -499,40 +653,53 @@ describe('referencesAtOffset', () => {
 });
 
 describe('foldingRangesOf', () => {
-  it('folds a declaration, its doc as a comment, and a quote, leaving a closer alone open', () => {
+  const foldsOf = src => foldingRangesOf(parseDocument(src, 'test.qlang').root);
+
+  it('folds a declaration, its doc as a comment, and a quote, each to the line where its last part ends [D371]', () => {
     const src = [':double', '  |~~ Doubles.', '      ~(', '        2 | double', '      )', '  ~~|', '  ~(mul 2)', ':x 1'].join('\n');
-    const { root } = parseDocument(src, 'test.qlang');
-    expect(foldingRangesOf(root, src)).toEqual([
+    expect(foldsOf(src)).toEqual([
       { startLine: 0, endLine: 6, kind: 'region' },
       { startLine: 1, endLine: 4, kind: 'comment' },
       { startLine: 2, endLine: 3, kind: 'region' }
     ]);
   });
 
+  it('ends the fold of a declaration of docs alone and of a doc on the line where the text of its doc ends, before its closer [D371]', () => {
+    expect(foldsOf([':Box', '  |~~ A box', '      of parts.', '  ~~|'].join('\n'))).toEqual([
+      { startLine: 0, endLine: 2, kind: 'region' },
+      { startLine: 1, endLine: 2, kind: 'comment' }
+    ]);
+    expect(foldsOf(['|~~ A box', '    of parts. ~~|'].join('\n'))).toEqual([{ startLine: 0, endLine: 1, kind: 'comment' }]);
+  });
+
+  it('folds no quote that holds no step [D371]', () => {
+    expect(foldsOf(['get [~(', '  |~| none', ')]'].join('\n'))).toEqual([]);
+  });
+
   it('folds nothing for a text that does not parse', () => {
-    expect(foldingRangesOf(null, '')).toEqual([]);
+    expect(foldingRangesOf(null)).toEqual([]);
   });
 });
 
 describe('documentSymbols', () => {
-  it('collects the verbs a reader declares under a label as verb symbols', async () => {
+  it('collects the verbs a reader declares under a label as verb symbols [D371]', async () => {
     const src = ':number/double ~(mul 2) | :number/triple ~(mul 3) | :q ~(add 1)';
     const { root } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(root, await langRuntime());
     expect(syms).toHaveLength(3);
     expect(syms[0].name).toBe('number/double');
-    expect(syms[0].kind).toBe('verb');
-    expect(syms[2].kind).toBe('value');
+    expect(syms[0].role).toBe('verb');
+    expect(syms[2].role).toBe('value');
     expect(syms[1].name).toBe('number/triple');
-    expect(syms[1].kind).toBe('verb');
+    expect(syms[1].role).toBe('verb');
   });
 
-  it('shows a label of the document and the verbs under it as the core reads them', async () => {
+  it('shows a label of the document and the verbs under it as the core reads them [D371]', async () => {
     const src = ':Box |~~ A box. ~~| | :Box/area ~(1) | :Ring/area ~(2)';
     const { root } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(root, await langRuntime());
-    expect(syms.map(sym => [sym.name, sym.kind])).toEqual([
-      ['::Box', 'tag'], ['Box/area', 'verb'], ['Ring/area', 'value']
+    expect(syms.map(sym => [sym.name, sym.role])).toEqual([
+      ['::Box', 'label'], ['Box/area', 'verb'], ['Ring/area', 'value']
     ]);
   });
 
@@ -550,15 +717,15 @@ describe('documentSymbols', () => {
       '| :f |~~ A function. ~~| (::fn | impl ~(add 1))'
     ].join('\n');
     const { root } = parseDocument(src, 'test.qlang');
-    expect(documentSymbols(root, await langRuntime()).map(sym => [sym.name, sym.kind])).toEqual([
-      ['::Box', 'tag'], ['::Crate', 'tag'], ['Box/area', 'verb'], ['Box/rule', 'value'], ['Crate/count', 'verb'], ['Crate/size', 'value'], ['f', 'value']
+    expect(documentSymbols(root, await langRuntime()).map(sym => [sym.name, sym.role])).toEqual([
+      ['::Box', 'label'], ['::Crate', 'label'], ['Box/area', 'verb'], ['Box/rule', 'value'], ['Crate/count', 'verb'], ['Crate/size', 'value'], ['f', 'value']
     ]);
   });
 
   it('shows a reader\'s ::builtin{} under a label as a value, a primitive it reaches none', async () => {
     const src = ':Box |~~ B. ~~| | :Box/area ::builtin{}';
     const { root } = parseDocument(src, 'test.qlang');
-    expect(documentSymbols(root, await langRuntime()).map(sym => sym.kind)).toEqual(['tag', 'value']);
+    expect(documentSymbols(root, await langRuntime()).map(sym => sym.role)).toEqual(['label', 'value']);
   });
 
   it('collects a binding of a computed body as a value symbol', async () => {
@@ -566,7 +733,7 @@ describe('documentSymbols', () => {
     const { root } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(root, await langRuntime());
     expect(syms).toHaveLength(1);
-    expect(syms[0].kind).toBe('value');
+    expect(syms[0].role).toBe('value');
   });
 
   it('collects a declaration of it as a value symbol', async () => {
@@ -575,7 +742,7 @@ describe('documentSymbols', () => {
     const syms = documentSymbols(root, await langRuntime());
     expect(syms).toHaveLength(1);
     expect(syms[0].name).toBe('answer');
-    expect(syms[0].kind).toBe('value');
+    expect(syms[0].role).toBe('value');
   });
 
   it('returns empty for plain pipeline with no bindings', async () => {
@@ -729,6 +896,16 @@ describe('semanticTokensFor', () => {
     const { data } = await semanticTokensFor('42');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     expect(tokens.some(t => t.type === 'number')).toBe(true);
+  });
+
+  it('coats each kind of the core\'s tokens by a type of the protocol, a path and a keyword as the property they read, and a bracket and a gap by none [D371]', async () => {
+    const src = ':x |~~ d ~~| 1 | [null true /a/b :k !{} ::T] !| count | x';
+    const tokens = decodeSemanticTokens((await semanticTokensFor(src)).data, SEMANTIC_TOKEN_TYPES);
+    expect(tokens.map(({ char, length, type }) => [src.slice(char, char + length), type])).toEqual([
+      [':x', 'keyword'], ['|~~ d ~~|', 'comment'], ['1', 'number'], ['null', 'number'], ['true', 'number'], ['/a/b', 'property'], [':k', 'property'],
+      ['!{', 'keyword'], ['}', 'keyword'], ['::T', 'struct'], ['!|', 'keyword'], ['count', 'function'], ['x', 'variable']
+    ]);
+    expect(SEMANTIC_TOKEN_TYPES).toEqual([...new Set(SEMANTIC_TOKEN_TYPES)]);
   });
 
   it('splits a multi-line comment into per-line entries', async () => {

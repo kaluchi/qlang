@@ -4,8 +4,8 @@
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, LITERAL_WORDS } from './name-chars.mjs';
-import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, TAG_HEADER_SYMBOL } from './types.mjs';
-import { isCallStep, isPathAlone } from './steps.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, recipeOf, FN_TAG_NAME, TAG_HEADER_SYMBOL } from './types.mjs';
+import { isCallStep, isGroupStep, isPathAlone, builtFrom } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
 import { segmentIndex } from './path-read.mjs';
 
@@ -58,7 +58,20 @@ const KIND_COMMANDS = new Map([
 
 // The names of the commands a chain is written in, those its quote folds and
 // `impl`, which gives a function its recipe or a kind its constructor [QSBLD#fn], [QSBLD#kind].
-export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), 'impl'])]);
+const IMPL_NAME = 'impl';
+export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), IMPL_NAME])]);
+
+// bodyRuns(body) → whether the body of a declaration, as it is written, runs on
+// the values of its label: a quote, and a function its chain gives a recipe by
+// `impl`, or its literal one that is no null [QSBLD#fn], [D371].
+export function bodyRuns(body) {
+  if (isQuote(body)) return true;
+  if (builtFrom(body) !== FN_TAG_NAME) return false;
+  const steps = isGroupStep(body) ? body.payload : [body];
+  if (steps.length > 1) return steps.slice(1).some(step => isCallStep(step) && step.get('name').name === IMPL_NAME);
+  const payload = steps[0].get('payload');
+  return isPlainVec(payload) && recipeOf(payload) !== null;
+}
 
 // The modifiers of a step that is one of the commands of a table in the
 // forms it takes, or null.

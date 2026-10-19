@@ -3,9 +3,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { shownFor, nodeOf, verbsReaching } from '../../src/nouns.mjs';
-import { answerKindsOf } from '../../src/eval.mjs';
+import { shownFor, answerKindsOf, nodeOf, verbsReaching, verbNames } from '../../src/nouns.mjs';
+import { servesTheSubject } from '../../src/dispatch.mjs';
 import { createSession } from '../../src/session.mjs';
+import { parse } from '../../src/parse.mjs';
+import { bodyRuns } from '../../src/chain.mjs';
+import { holdsALiteral } from '../../src/steps.mjs';
+import { makeTag } from '../../src/types.mjs';
 
 describe('a verb as the tooling reads it', () => {
   it('shows a name under a label by its address and the inputs of its function [QSBLD#fn]', async () => {
@@ -46,6 +50,16 @@ describe('a verb as the tooling reads it', () => {
     expect(answerKindsOf(scope, nodeOf(scope, 'any/coalesce'), ['vec'])).toBeNull();
   });
 
+  it('reads the kinds of the answer of a call as the evaluator lays it: the walk of the subject through the verb\'s own label where the walk reaches it, the noun a tag name names reached by no label and left out, and the kinds its returns names elsewhere [QSBLD#answer], [QSDSP#tagname], [D371]', async () => {
+    const session = await createSession();
+    await session.evalCell(':Box |~~ A box. ~~| | :Box/f ~(1)');
+    const { scope } = session;
+    const kindsAfter = (address, kinds) => answerKindsOf(scope, nodeOf(scope, address), kinds);
+    expect([kindsAfter('tag/toTag', ['tag', 'vec']), kindsAfter('kind/wraps', ['tag', 'kind']), kindsAfter('vec/sort', ['Box', 'tagged', 'vec'])])
+      .toEqual([['tag'], ['kind'], ['Box', 'tagged', 'vec']]);
+    expect(verbsReaching(scope, kindsAfter('vec/sort', ['Box', 'tagged', 'vec'])).get('f').address.name).toBe('Box/f');
+  });
+
   it('reads the kinds of an answer its returns names as a set [QSBLD#fn]', async () => {
     const session = await createSession();
     await session.evalCell(':Box |~~ A box. ~~| | :Box/f (::fn | returns |~~ The value. ~~| #[::number ::string] | impl ~(eq 1))');
@@ -56,6 +70,33 @@ describe('a verb as the tooling reads it', () => {
     const session = await createSession();
     await session.evalCell(':number/double ~(mul 2)');
     expect(shownFor(session.scope, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
+  });
+
+  it('reads whether the body of a declaration runs as it is written: a quote, and a function its chain or its literal gives a recipe [QSBLD#fn], [D371]', () => {
+    const bodyOf = source => parse(source)[0].get('body');
+    const bodies = [
+      ':v/f ~(add 1)', ':v/f (::fn | takes :x |~~ x ~~| /0 | impl ~(add x))', ':v/f ::fn[~() ~(add 1)]',
+      ':v/f (::fn | takes :x |~~ x ~~| /0)', ':v/f (::fn | (impl ~(add 1)))', ':v/f ::fn[~() null]', ':v/f ::fn"x"', ':v/f (::kind | impl ~(1))', ':v/f 1'
+    ];
+    expect(bodies.map(source => bodyRuns(bodyOf(source)))).toEqual([true, true, true, false, false, false, false, false, false]);
+  });
+
+  it('reads a literal step, a tagged literal among them, apart from a step that computes or declares [QSLIT#closed], [D371]', () => {
+    expect(['[1 2]', '::Box{:a 1}', '1', '~(a)', '(add 1)', ':x 1', 'count'].map(source => holdsALiteral(parse(source)[0]))).toEqual([true, true, true, true, false, false, false]);
+  });
+
+  it('names the verbs of the root by their last names and their addresses, an address no verb stands at among none [QSNAM#verb], [D371]', async () => {
+    const names = verbNames(await langRuntime());
+    expect(['sort', 'vec/sort', 'count', 'map/count', 'string/sort', 'vec', 'number/NotFiniteError'].map(name => names.has(name))).toEqual([true, true, true, true, false, false, false]);
+  });
+
+  it('holds whether a verb serves a subject as its call does, a tag name served by a verb of its noun whose `on` names `::tag` alone [QSDSP#tagname], [D371]', async () => {
+    const session = await createSession();
+    await session.evalCell(':Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk. ~~| ::tag | impl ~("9 to 5")) | :Desk/size ~(count)');
+    const serves = (address, subject) => servesTheSubject(nodeOf(session.scope, address), subject);
+    const [desk, vec] = [makeTag('Desk'), makeTag('vec')];
+    expect([serves('vec/count', [1]), serves('vec/count', vec), serves('tag/toTag', vec), serves('Desk/hours', desk), serves('Desk/hours', vec), serves('Desk/size', desk)])
+      .toEqual([true, false, true, true, false, false]);
   });
 });
 

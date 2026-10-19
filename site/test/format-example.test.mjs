@@ -1,4 +1,7 @@
-// The rules it holds: [QSWRK#tooling].
+// The examples of the landing page: a comment line, a prompt and its query,
+// the lines that continue it and an answer, each query painted by the core's
+// tokens with the context of its lines [D371].
+// The rules it holds: [QSWRK#tooling], [D371].
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { langRuntime, verbNames } from '@kaluchi/qlang-core';
@@ -29,10 +32,10 @@ describe('comment lines', () => {
 });
 
 describe('prompt lines', () => {
-  it('">" prefix becomes punct span, the query is highlighted', () => {
+  it('">" prefix becomes a span of the prompt, the class of no kind of a token, the query is highlighted', () => {
     const out = fmt('> count');
-    expect(out).toContain('<span class="punct">&gt; </span>');
-    expect(out).toContain('<span class="word">count</span>');
+    expect(out).toContain('<span class="prompt">&gt; </span>');
+    expect(out).toContain('<span class="verb">count</span>');
   });
 
   it('strips "> " before passing to highlighter', () => {
@@ -47,7 +50,7 @@ describe('continuation lines', () => {
   it('two-space indent preserved, the query highlighted', () => {
     const out = fmt('  add 1');
     expect(out.startsWith('  ')).toBe(true);
-    expect(out).toContain('<span class="word">add</span>');
+    expect(out).toContain('<span class="verb">add</span>');
   });
 });
 
@@ -74,7 +77,7 @@ describe('multi-line blocks', () => {
     ].join('\n');
     const lines = fmt(src).split('\n');
     expect(lines[0]).toContain('class="comment"');
-    expect(lines[1]).toContain('class="punct"');  // the "> " span
+    expect(lines[1]).toContain('class="prompt"');  // the "> " span
     expect(lines[2]).toContain('<span class="number">3</span>');
   });
 
@@ -84,8 +87,8 @@ describe('multi-line blocks', () => {
       '  | [10 20] | map ~double'
     ].join('\n');
     const lines = fmt(src).split('\n');
-    // prompt line has the > punct prefix
-    expect(lines[0]).toContain('<span class="punct">&gt; </span>');
+    // prompt line has the > prompt prefix
+    expect(lines[0]).toContain('<span class="prompt">&gt; </span>');
     // continuation line starts with two spaces
     expect(lines[1].startsWith('  ')).toBe(true);
     // the continuation body is highlighted (double, a reader's name quoted, → a quoted name)
@@ -108,7 +111,7 @@ describe('real landing page example', () => {
     expect(() => fmt(src)).not.toThrow();
     const out = fmt(src);
     expect(out).toContain('class="comment"');
-    expect(out).toContain('class="word"');
+    expect(out).toContain('class="verb"');
     expect(out).toContain('<span class="number">2</span>');
   });
 });

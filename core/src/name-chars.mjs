@@ -1,11 +1,18 @@
-// The letters of a name, read by the grammar and by the printer, which
-// writes a keyword bare where its name reads back so: UAX #31 `ID_Start`
-// and `ID_Continue`, `_` starting a name and `_` and `-` continuing one,
-// a character a code unit as the parser reads it.
-// The rules it holds: [QSNAM#letters].
+// The letters of a name, read by the grammar, by the printer, which writes a
+// keyword bare where its name reads back so, and by an editor, which selects a
+// word by them: UAX #31 `ID_Start` and `ID_Continue`, `_` starting a name and
+// `_` and `-` continuing one, a character a code unit as the parser reads it.
+// The rules it holds: [QSNAM#letters], [D371].
 
-const NAME_START = /^[_\p{ID_Start}]$/u;
-const NAME_CONTINUE = /^[\p{ID_Continue}_-]$/u;
+const START = '[_\\p{ID_Start}]';
+const CONTINUE = '[\\p{ID_Continue}_-]';
+const NAME_START = new RegExp(`^${START}$`, 'u');
+const NAME_CONTINUE = new RegExp(`^${CONTINUE}$`, 'u');
+
+// The regex of a name, which an editor selects a word by, a character past the
+// first plane of Unicode no code unit and so no letter [D371].
+const UNIT = '(?![\\u{10000}-\\u{10FFFF}])';
+export const NAME_REGEX = new RegExp(`${UNIT}${START}(?:${UNIT}${CONTINUE})*`, 'u');
 
 // The words of the literals, which no name takes.
 export const LITERAL_WORDS = new Set(['true', 'false', 'null']);

@@ -1,14 +1,16 @@
-// The parts the parser read beside the records of the steps, the span of
-// every step, modifier, element, key, name and segment, and the walks over
-// them every reader of a text reads [D367].
+// The parts the parser read beside the records of the steps, and the walks
+// over them: the part at an offset, the end of the head of a tag, the
+// occurrences of a name and its two spellings, the names visible at a place,
+// whether a query reads its subject and the rule of a name declared twice
+// [D367], [D371].
 
 import { splitAddress } from './address.mjs';
 import { isPath, isTag } from './types.mjs';
-import { isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, isLiteral, declaresAName, declaresKind } from './steps.mjs';
+import { isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, holdsALiteral, declaresAName, declaresKind } from './steps.mjs';
 
-// The two spellings of a name in source, which the editor passes to say
-// which occurrences and declarations count: called by its name, `count`,
-// or written as a tag, the address of a node, `::Box` [QSNAM#address].
+// The two spellings of a name, which tell the occurrences and the
+// declarations of it that count: called by its name, `count`, or written as
+// a tag, the address of a node, `::Box` [QSNAM#address].
 export const CALL_SPELLING = 'call';
 export const TAG_SPELLING   = 'tag';
 
@@ -46,13 +48,14 @@ export function walkParts(read, visit, parent = null) {
   for (const held of read.parts) walkParts(held, visit, read);
 }
 
+const holds = (span, offset) => span.start.offset <= offset && offset < span.end.offset;
+
 // partAtOffset(root, offset) → the narrowest part whose span holds the
 // UTF-16 offset, a cursor inside `filter ~(gt 2)` landing on `gt 2`, or null.
 export function partAtOffset(root, offset) {
   let narrowest = null;
   walkParts(root, (read) => {
-    const { start, end } = read.span;
-    if (start.offset <= offset && offset < end.offset) narrowest = read;
+    if (holds(read.span, offset)) narrowest = read;
   });
   return narrowest;
 }
@@ -63,6 +66,11 @@ export function partAtOffset(root, offset) {
 export function tagWrittenBy({ value }) {
   return isConstructStep(value) ? value.get('tag').name : null;
 }
+
+// tagHeadEnd(part) → where the tags a tagged literal, an error literal or a
+// quote of a doc writes at its head end, which the parser records, or null
+// [QSERR#rest], [D371].
+export const tagHeadEnd = read => read.head?.end.offset ?? null;
 
 // findNameOccurrences(root, name, spelling?) → the parts that name it, a
 // keyword written as a value none of them: called, a call of the name, its
@@ -84,31 +92,54 @@ export function findNameOccurrences(root, name, spelling = CALL_SPELLING) {
   return occurrences;
 }
 
+// The groups and the quotes around a part, the nearest first.
+function* forksAround(read) {
+  for (let around = read.parent; around !== null; around = around.parent) if (around.content !== undefined) yield around;
+}
+
 // visibleAt(declaration, offset) — whether a declaration is seen at an
 // offset across the groups and the quotes around it, each holding the
 // offset within its pipeline [D367].
 export function visibleAt(declaration, offset) {
-  for (let around = declaration.parent; around !== null; around = around.parent) {
-    if (around.content !== undefined && (around.content.start.offset > offset || around.content.end.offset < offset)) return false;
-  }
+  for (const { content } of forksAround(declaration)) if (content.start.offset > offset || content.end.offset < offset) return false;
   return true;
 }
 
-// bindingNamesVisibleAt(root, offset, spelling?) → the names a step may
-// call at the UTF-16 offset: the declarations that end at or before it and
-// are visible there, under the spelling of a tag the labels alone
-// [QSSLF#catalog].
-export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING) {
-  const visible = new Set();
+// bindingNamesVisibleAt(root, offset, spelling?, declaresAVerb?) → the names a
+// step may call at the UTF-16 offset, a name with a path by its address and its
+// last name, each with the part of its nearest declaration visible there: one
+// that ends at or before it, and in the body of the innermost verb
+// `declaresAVerb` holds of, the last part of its declaration, of those outside
+// the body the nodes and the labels wherever they stand, the verb among them;
+// under the spelling of a tag the labels alone [QSSLF#catalog], [QSNAM#address],
+// [QSNAM#verb], [D371].
+export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING, declaresAVerb = () => false) {
+  const declarations = [];
   walkParts(root, (read) => {
-    const { value } = read;
-    if (!isBindStep(value) || (spelling === TAG_SPELLING && !declaresKind(value))) return;
-    if (read.span.end.offset > offset || !visibleAt(read, offset)) return;
-    const name = value.get('name').name;
-    visible.add(spelling === TAG_SPELLING ? name : splitAddress(name)[1]);
+    if (isBindStep(read.value)) declarations.push(read);
   });
+  const body = declarations.findLast(read => holds(read.parts.at(-1).span, offset) && declaresAVerb(read))?.parts.at(-1);
+  const visible = new Map();
+  const depths = new Map();
+  for (const read of declarations) {
+    const { value, span } = read;
+    if (spelling === TAG_SPELLING && !declaresKind(value)) continue;
+    const outside = body !== undefined && (span.start.offset < body.span.start.offset || span.end.offset > body.span.end.offset);
+    if ((outside ? !declaresANodeOrALabel(value) : span.end.offset > offset) || !visibleAt(read, offset)) continue;
+    const name = value.get('name').name;
+    const depth = [...forksAround(read)].length;
+    for (const key of spelling === CALL_SPELLING ? [name, splitAddress(name)[1]] : [name]) {
+      if (depths.get(key) > depth) continue;
+      visible.set(key, read);
+      depths.set(key, depth);
+    }
+  }
   return visible;
 }
+
+// Whether a declaration writes a node, a name with a path, or a label, the
+// names the scope a call opens keeps [QSNAM#verb].
+const declaresANodeOrALabel = bind => splitAddress(bind.get('name').name)[0] !== null || declaresKind(bind);
 
 // readsItsSubject(quote) → whether a query reads the subject it is handed,
 // which a host that lifts the subject from a stream waits on only then
@@ -125,7 +156,7 @@ export function readsItsSubject(steps) {
   return true;
 }
 
-const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload) : !isLiteral(step) && !isConstructStep(step));
+const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload) : !holdsALiteral(step));
 
 // Whether a declaration repeats a name an earlier step of its quote
 // declared, the steps sharing one scope [D367].

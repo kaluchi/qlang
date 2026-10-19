@@ -114,7 +114,7 @@ describe('runRepl — output highlighting', () => {
   it('paints the printed result with ANSI escape sequences', async () => {
     const replHarness = captureRepl('[1 2 3]\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    // Numbers render under the yellow escape; brackets under punct.
+    // Numbers render under the yellow escape.
     expect(replHarness.stdoutText()).toMatch(/\x1b\[33m/);
   });
 

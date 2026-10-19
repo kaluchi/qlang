@@ -11,7 +11,7 @@ import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, 
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
 import { readPath, partsOfTemplate, PathIndexOutOfBoundsError, PathKeyNotInMapError } from './path-read.mjs';
 import {
-  isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, isTag, primitiveOf,
+  isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, primitiveOf,
   typeOf, keyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
   isFn, isKind, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
@@ -25,15 +25,15 @@ import {
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, answerOf, bareNameReach, declaresALabel, isInvariant, isLabel, isVerbValue, isRecipe, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, CallValueWithheldError, kindsOfWalk
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLabel, isVerbValue, isRecipe, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
 import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
 import { inputsRunBy, inputsRunWithin, inputsFoldedBy } from './primitives.mjs';
 import {
-  splitAddress, ANY_KIND_NAME, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
+  splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
   notGivenAddress, payloadRefusalName, subjectRefusalAddress
 } from './address.mjs';
-import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds } from './dispatch.mjs';
+import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, servesTheSubject } from './dispatch.mjs';
 import {
   answerOfStep, answerOfElement, skipping, raisedBy, isRaisedBy
 } from './eval-trace.mjs';
@@ -435,14 +435,6 @@ async function callByName(lookupName, modifiers, state, call) {
   return await applyBinding(reach.record, lookupName, lookupName, modifiers, state);
 }
 
-// Whether the verb a walk reached serves the subject, as its call would
-// [QSNAM#reach].
-function servesTheSubject(record, subject) {
-  const value = bindingValueOf(record);
-  const fn = isFn(value) ? value : functionOfRecipe(value);
-  return subjectOfCall(chainOfFn(fn), splitAddress(record.get('name').name)[0], subject) !== null;
-}
-
 // A name reads the value its record holds, so `:x it | x` sees the raw
 // data, a quote among it, which `apply` runs [QSNAM#value].
 async function applyBinding(entry, name, lastName, modifiers, state) {
@@ -670,7 +662,7 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
   const reached = others.length === 0 ? null : walkToKinds(answer, others);
   if (reached !== null) return reached.served;
   const refused = () => refusalUnder(kindsRefusalAddress(address), { expected: kindsExpected(...kinds), actualValue: answer }, state.scope);
-  if (kinds.includes(labelName)) {
+  if (returnsItsLabel(kinds, labelName)) {
     if (walkToKinds(answer, [labelName]) !== null) return keptAsSubject(answer, walked.served, walked.passedTags, state);
     const keeping = () => keptOfTheLabel(answer, labelName, walked, refused, state);
     return typeOf(walked.served).name === labelName ? answerMadeBy(labelName, keeping, refused) : keeping();
@@ -705,17 +697,6 @@ async function answerMadeBy(kindName, make, refused) {
 // among them [QSPRN#print].
 export async function callVerbOn(record, subject, state) {
   return (await applyVerb(record, [], withPipeValue(state, subject))).pipeValue;
-}
-
-// answerKindsOf(scope, record, subjectKinds) → the kinds of the answer a
-// name under a label gives, for a tool: the subject's own where the
-// answer's kind is the verb's own label, the kinds `returns` names, or
-// null for a verb that answers any value [QSBLD#answer].
-export function answerKindsOf(scope, record, subjectKinds) {
-  const address = record.get('name').name;
-  const answerDefinition = answerOf(scope, address);
-  if (answerDefinition === null || answerDefinition.kinds.includes(ANY_KIND_NAME)) return null;
-  return answerDefinition.kinds.includes(splitAddress(address)[0]) ? subjectKinds : answerDefinition.kinds;
 }
 
 // ─── Functions ──────────────────────────────────────────────────
@@ -872,21 +853,6 @@ function foldingCodeOf(value, originOfQuote, state) {
   }
   if (addressesOf(callerState.scope, name).length === 0) return onThePair;
   return calledOn((modifiers, at) => callByName(name, modifiers, at, call));
-}
-
-// The subject a function's call serves: for a verb, the value of its label
-// the walk of the subject's tags reaches, or of a kind `on` names beside
-// it, the noun's own tag name for a verb of the noun itself, since the walk
-// of a tag name passes the noun it names and no other [QSDSP#tagname]; for a
-// function `apply` runs, a value of the kinds `on` names, or the subject as
-// it is; null where the walk reaches none.
-function subjectOfCall(chain, labelName, subject) {
-  const onKinds = chain.subject?.kinds ?? null;
-  if (labelName === null) return onKinds === null ? { served: subject, passedTags: [] } : walkToKinds(subject, onKinds);
-  const byLabel = walkToKinds(subject, [labelName]);
-  if (byLabel !== null) return { ...byLabel, byLabel: true };
-  const byKinds = onKinds === null ? null : walkToKinds(subject, onKinds);
-  return byKinds !== null && isTag(byKinds.served) && ![...kindsOfWalk(byKinds.served)].includes(labelName) ? null : byKinds;
 }
 
 // The values of the inputs of a function's call, read from its args by

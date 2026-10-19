@@ -47,3 +47,8 @@
 {"decision":"D367","name":"two-equal-docs-print-alike-whatever-their-spacing","query":"get [~(|~~ a ~(add   1) ~~| | print) ~(|~~ a ~(add 1) ~~| | print)] | toSet | count","expect":"1"}
 {"decision":"D367","name":"a-doc-s-quote-under-the-tag-of-a-group-is-a-segment-that-computes-nothing","query":"get [~(|~~ see ::group~(add 1) ~~| | segments | count) ~([|~~ ::group~(add 1) ~~|] | count) ~(\"f |~~ ::group~(x) ~~|\" | parse | first | get /modifiers | count) ~([\"a\" ::group~(x)] | tag ::doc | :d it | print | parse | first | eq d)]","expect":"[3 1 1 true]"}
 {"decision":"D367","name":"a-doc-s-quote-whose-text-the-grammar-refuses-reads-as-prose","query":"get [~(\"|~~ a ~(f 01) ~~|\" | parse | first | segments | count) ~(\"|~~ a ~(f [x] 01) ~~|\" | parse | first | segments | count) ~(\"[01]\" | parse !| type)]","expect":"[1 1 ::quote/ParseError]"}
+{"decision":"D371","name":"prose-answers-the-prose-of-a-doc-its-quotes-left-out","query":"|~~ a ~(add 1) b ~~| | prose","expect":"\" a  b \""}
+{"decision":"D371","name":"prose-leaves-out-a-link-and-a-snippet","query":"|~~ a ::link~(::qlang | doc) b ::snippet~(1) c ~~| | prose","expect":"\" a  b  c \""}
+{"decision":"D371","name":"prose-of-a-doc-of-prose-alone-is-its-content","query":"|~~ only prose ~~| | :d it | prose | eq (d | content)","expect":"true"}
+{"decision":"D371","name":"prose-reads-a-doc-under-a-tag","query":"::Box|~~ a ~(add 1) b ~~| | prose","expect":"\" a  b \""}
+{"decision":"D371","name":"prose-refuses-a-subject-that-is-no-doc","query":"\"x\" | prose !| type","expect":"::doc/prose/SubjectNotDocError"}

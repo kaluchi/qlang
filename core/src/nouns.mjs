@@ -8,7 +8,7 @@
 import {
   isBinding, isBuiltinDescriptor, isDoc, isPrimitiveHanded, isMap, isQuote, isVec, isTag, isTagged,
   isValueClass, isFn, isKind, recipeOf, makeTag, makeTagged,
-  typeOf, bindingValueOf, keyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS
+  typeOf, bindingValueOf, keyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
@@ -111,6 +111,23 @@ export function isRecipe(value) {
 export function answerOf(scope, address) {
   const record = nodeOf(scope, `${address}/${ANSWER_NAME}`);
   return record === null ? null : { address: record.get('name').name, kinds: kindsNamedBy(bindingValueOf(record)) };
+}
+
+// Whether `returns` names the verb's own label [QSBLD#answer].
+export const returnsItsLabel = (kinds, labelName) => kinds.includes(labelName);
+
+// answerKindsOf(scope, record, subjectKinds) → the kinds of the answer a
+// name under a label gives, for a tool, as the evaluator lays it: the walk of
+// the subject through the verb's own label where `returns` names that label
+// and the walk reaches it, the kinds it names elsewhere, or null for a verb
+// that answers any value [QSBLD#answer], [D371].
+export function answerKindsOf(scope, record, subjectKinds) {
+  const address = record.get('name').name;
+  const answer = answerOf(scope, address);
+  if (answer === null || answer.kinds.includes(ANY_KIND_NAME)) return null;
+  const [labelName] = splitAddress(address);
+  const walked = kindsWalkedTo(subjectKinds, labelName);
+  return returnsItsLabel(answer.kinds, walked === null ? null : labelName) ? walked : answer.kinds;
 }
 
 // Whether a value is an invariant, a quote under `::invariant`, whose name
@@ -327,6 +344,14 @@ const kindsWalkedFrom = kindName => (KINDS_OF_OWN_VECTORS.includes(kindName)
   ? [...kindsOfWalk(makeTagged(makeTag(kindName), []))]
   : [kindName]);
 
+// The kinds a walk passes up to the first whose walk reaches a label, or null
+// where none does, the noun a tag name names, which the walk passes after the
+// kind of tag names, reached by no label [QSDSP#walk], [QSDSP#tagname].
+function kindsWalkedTo(kindNames, labelName) {
+  const at = kindNames.findIndex((kindName, index) => kindNames[index - 1] !== CORE_KIND.tag.name && kindsWalkedFrom(kindName).includes(labelName));
+  return at === -1 ? null : kindNames.slice(0, at + 1);
+}
+
 // ruleRefusalsOf(scope, address) → the addresses of the refusals a verb or a
 // kind at the address may raise by rule, which its chain pages: a verb's
 // read from its function, a recipe's from the function of no commands it
@@ -355,7 +380,7 @@ function functionRuleRefusalsOf(chain, address, labelName) {
     if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress));
   }
   const kinds = chain.answer?.kinds ?? null;
-  if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`));
+  if (kinds !== null && kinds.length > 1 && !returnsItsLabel(kinds, labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`));
   return refusals;
 }
 
@@ -448,13 +473,13 @@ export function nodeAddresses(scope) {
   return [...bindingsOf(scope)].map(([name]) => name);
 }
 
-// The names the verbs and the names under a label go by, which a guessed
-// name of a step is held against beside the scope's [QSSLF#near].
+// verbNames(scope) → the names a step calls the verbs of a scope by, the last
+// name of each and its address [QSNAM#verb], [D371].
 export function verbNames(scope) {
   const names = new Set();
   for (const [name, record] of bindingsOf(scope)) {
     const [nounName, lastName] = splitAddress(name);
-    if (nounName !== null && residesOn(record, scope)) names.add(lastName);
+    if (nounName !== null && residesOn(record, scope)) names.add(lastName).add(name);
   }
   return names;
 }

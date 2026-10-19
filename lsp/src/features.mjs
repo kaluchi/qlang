@@ -1,17 +1,18 @@
-// The features of the language server, pure functions over the public
-// API of the core that `server.mjs` maps to the protocol, reading the
-// records of the steps and the parts the parser keeps beside them [D367].
+// The features of the language server, pure functions over the public API
+// of the core that `server.mjs` maps to the protocol, which ask the language
+// what a literal and a page answer [D367], [D371].
 
 import {
   parse, ParseError,
-  langRuntime, evalQuery, answerKindsOf,
+  langRuntime, evalQuery,
   partOf,
   partAtOffset,
   findNameOccurrences,
   tagWrittenBy,
+  tagHeadEnd,
   bindingNamesVisibleAt,
-  visibleAt,
-  builtFrom,
+  holdsALiteral,
+  bodyRuns,
   declaresKind,
   splitAddress,
   CALL_SPELLING,
@@ -20,15 +21,17 @@ import {
   isNameStart,
   isNameContinue,
   isKeyword,
+  makeTag,
   isTag,
-  isLiteral,
   isCallStep,
   isBindStep,
   isGroupStep,
   isFailStep,
-  errorFieldsOf,
   typeOf,
   shownFor,
+  answerKindsOf,
+  kindsOfWalk,
+  servesTheSubject,
   verbsReaching,
   verbNames,
   nodeOf,
@@ -41,16 +44,7 @@ import {
 } from '@kaluchi/qlang-core';
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 
-// A tag as the server names it, `::number`, apart from the names of verbs.
-const TAG_SIGIL = '::';
-const tagNameOf = tag => TAG_SIGIL + tag;
-const isTagName = name => name.startsWith(TAG_SIGIL);
-
 const kindOf = value => typeOf(value).name;
-
-// The prose of a doc, its segments without its quotes [D367], which hover
-// and completion show.
-const proseOfSegments = segments => segments.filter(segment => typeof segment === 'string').join('');
 
 function tidyProse(prose) {
   return dedent(prose.replace(/\n{3,}/g, '\n\n').trim());
@@ -74,21 +68,12 @@ function dedent(text) {
   return lines.map(l => l.slice(Math.min(minIndent, l.search(/\S|$/) ))).join('\n');
 }
 
-// The contents of the page at an address, `::vec/count`, once per
-// address; a verb's is read at the address the tool shows for it, so the
-// form of its call and its page name one verb [QSHST#tools].
-const docsCache = new Map();
-async function pageContents(address) {
-  if (docsCache.has(address)) return docsCache.get(address);
-  let page;
-  try {
-    page = await evalQuery(`${address} | doc`);
-  } catch {
-    page = null;
-  }
-  const contents = Array.isArray(page) ? [proseOfSegments(page)] : [];
-  docsCache.set(address, contents);
-  return contents;
+// The prose of the page at an address as `doc | prose` answers it, read once
+// for each address, a verb's at the address the tool shows for it [D371].
+const proseOfPages = new Map();
+async function proseOfThePage(address) {
+  if (!proseOfPages.has(address)) proseOfPages.set(address, tidyProse(await evalQuery(`${address} | doc | prose !| ""`)));
+  return proseOfPages.get(address);
 }
 
 // The form of a call of a verb: its address and the inputs of its function.
@@ -161,21 +146,37 @@ function catalogDeclarationOf({ index, scope }, name) {
   return index.get(name) ?? null;
 }
 
+// The role of a node of the root, a label, a verb or a value [D371].
+function roleOfNode(scope, address) {
+  if (isLabel(scope, address)) return 'label';
+  return isVerb(scope, address) ? 'verb' : 'value';
+}
+
+// The role of a declaration of the document, a label, a verb as the core
+// reads it or a value a reader named [QSBLD#kind], [D371].
+function roleOf(bind, scope, isLabelName) {
+  if (declaresKind(bind)) return 'label';
+  const name = bind.get('name').name;
+  const isAVerb = nodeOf(scope, name) !== null ? isVerb(scope, name) : declaresVerb(name, bodyRuns(bind.get('body')), isLabelName);
+  return isAVerb ? 'verb' : 'value';
+}
+
 // ── Completion ────────────────────────────────────────────────
 
-// The names of the root, its verbs and its tags, read once.
-let _valueCompletions = null;
+// The names of the root, its verbs by their last names and its tags, read once.
+let _verbCompletions = null;
 let _tagCompletions = null;
 
 async function nameCompletions() {
-  if (_valueCompletions) return _valueCompletions;
+  if (_verbCompletions) return _verbCompletions;
   const scope = await langRuntime();
-  _valueCompletions = [];
+  _verbCompletions = [];
   for (const name of verbNames(scope)) {
+    if (splitAddress(name)[0] !== null) continue;
     const item = await verbCompletion(scope, name, null);
-    if (item !== null) _valueCompletions.push(item);
+    if (item !== null) _verbCompletions.push(item);
   }
-  return _valueCompletions;
+  return _verbCompletions;
 }
 
 // The completion of a verb as a call of it from a subject of the kinds
@@ -184,13 +185,7 @@ async function nameCompletions() {
 async function verbCompletion(scope, name, kinds) {
   const shown = shownFor(scope, name, kinds);
   if (shown === undefined) return null;
-  const docContents = await pageContents(shown.address.literal);
-  return {
-    label: name,
-    kind: 'function',
-    detail: callFormOf(shown),
-    documentation: tidyProse(docContents[0] ?? '')
-  };
+  return { label: name, role: 'verb', detail: callFormOf(shown), documentation: await proseOfThePage(shown.address.literal) };
 }
 
 async function tagCompletions() {
@@ -198,62 +193,71 @@ async function tagCompletions() {
   const scope = await langRuntime();
   _tagCompletions = [];
   for (const address of nodeAddresses(scope)) {
-    const label = tagNameOf(address);
-    const docContents = await pageContents(label);
-    _tagCompletions.push({
-      label,
-      kind: 'tag',
-      detail: 'a name of the root',
-      documentation: tidyProse(docContents[0] ?? '')
-    });
+    const label = makeTag(address).literal;
+    _tagCompletions.push({ label, role: roleOfNode(scope, address), detail: 'a name of the root', documentation: await proseOfThePage(label) });
   }
   return _tagCompletions;
 }
 
-// After `::` the cursor completes a tag name alone.
-function justTypedDoubleColon(source, offset) {
-  if (typeof source !== 'string' || offset < 2) return false;
-  return source[offset - 2] === ':' && source[offset - 1] === ':';
-}
+// After the sign a tag opens with, the literal of a tag of no name yet, the
+// cursor completes a tag name alone.
+const SIGN_OF_A_TAG = makeTag('').literal;
+const followsTheSignOfATag = (source, offset) => typeof source === 'string' && offset >= SIGN_OF_A_TAG.length
+  && source.startsWith(SIGN_OF_A_TAG, offset - SIGN_OF_A_TAG.length);
 
-// After a value the cursor completes the verbs that accept it and the
-// names the document declares; where the kind of the value is no
-// declaration's, every name.
+// After a value the cursor completes the verbs that serve it and the names
+// the document declares; where the steps before it name no kind, every name.
 export async function completionsAtOffset(root, offset, source = null) {
-  if (justTypedDoubleColon(source, offset)) {
-    return withDeclaredNames([...(await tagCompletions())], root, offset, [TAG_SPELLING]);
+  const scope = await langRuntime();
+  if (followsTheSignOfATag(source, offset)) {
+    return withDeclaredNames([...(await tagCompletions())], root, offset, [TAG_SPELLING], scope);
   }
   const subject = typeof source === 'string' ? await subjectAt(source, offset) : null;
   if (subject !== null) {
-    const scope = await langRuntime();
     const verbs = [];
-    for (const name of verbsReaching(scope, subject.kinds).keys()) {
+    for (const name of verbsServing(scope, subject).keys()) {
       const item = await verbCompletion(scope, name, subject.kinds);
       if (item !== null) verbs.push(item);
     }
-    return withDeclaredNames(verbs, subject.root, subject.end, [CALL_SPELLING]);
+    return withDeclaredNames(verbs, subject.root, subject.end, [CALL_SPELLING], scope);
   }
   const everyName = [...(await nameCompletions()), ...(await tagCompletions())];
-  return withDeclaredNames(everyName, root, offset, [CALL_SPELLING, TAG_SPELLING]);
+  return withDeclaredNames(everyName, root, offset, [CALL_SPELLING, TAG_SPELLING], scope);
 }
 
-function withDeclaredNames(items, root, offset, spellings) {
+// The items with the names the document declares that the offset sees, each
+// by the name a step calls it by and the role of its declaration, where no
+// item of its label stands.
+function withDeclaredNames(items, root, offset, spellings, scope) {
   if (!root) return items;
   for (const spelling of spellings) {
-    for (const declared of bindingNamesVisibleAt(root, offset, spelling)) {
-      const name = spelling === TAG_SPELLING ? tagNameOf(declared) : declared;
-      if (items.some(item => item.label === name)) continue;
-      items.push(spelling === TAG_SPELLING
-        ? { label: name, kind: 'tag', detail: "a reader's kind", documentation: null }
-        : { label: name, kind: 'variable', detail: "a reader's name", documentation: null });
+    const ofTags = spelling === TAG_SPELLING;
+    const { names, isLabelName } = declaredAt(root, offset, spelling, scope);
+    for (const [name, read] of names) {
+      const label = ofTags ? makeTag(name).literal : name;
+      if ((!ofTags && splitAddress(name)[0] !== null) || items.some(item => item.label === label)) continue;
+      items.push({ label, role: roleOf(read.value, scope, isLabelName), detail: ofTags ? "a reader's kind" : "a reader's name", documentation: null });
     }
   }
   return items;
 }
 
-// The kinds an error literal's walk reaches: its tag, the kind of errors
-// and the map of its facts [QSLIT#kind].
-const kindsOfErrorLiteral = step => [...(kindOf(step) === 'error' ? [] : [kindOf(step)]), 'error', 'map'];
+// The names of the document a step may call at an offset under a spelling,
+// the body of a verb found by the labels declared before the offset, and
+// whether a name is a label's there [QSNAM#verb], [D371].
+function declaredAt(root, offset, spelling, scope) {
+  const labelNameIn = labels => name => labels.has(name) || isLabel(scope, name);
+  let labelNameBefore = null;
+  const declaresAVerb = read => roleOf(read.value, scope, labelNameBefore ??= labelNameIn(bindingNamesVisibleAt(root, offset, TAG_SPELLING))) === 'verb';
+  const labels = bindingNamesVisibleAt(root, offset, TAG_SPELLING, declaresAVerb);
+  return { names: spelling === TAG_SPELLING ? labels : bindingNamesVisibleAt(root, offset, spelling, declaresAVerb), isLabelName: labelNameIn(labels) };
+}
+
+// The declaration of the document the name a part reads reaches, by the
+// spelling it is read under, where the part stands, or undefined.
+function declarationOf(root, read, { name, spelling }, scope) {
+  return declaredAt(root, read.span.start.offset, spelling, scope).names.get(name);
+}
 
 // Where the name being typed before the cursor begins.
 function wordStartBefore(source, offset) {
@@ -264,52 +268,72 @@ function wordStartBefore(source, offset) {
 
 // The subject of the step at the cursor, the word being typed aside: the
 // steps before it, where the source with a step at the cursor parses, that
-// step follows `|`, and the value before it has kinds its declarations
-// name; a step after `!|` takes an error, and has none. The parser tells
+// step follows `|`, and the steps before it name the kinds of the value they
+// answer; a step after `!|` takes an error, and has none. The parser tells
 // the combinator, the grammar written once.
 async function subjectAt(source, offset) {
   const start = wordStartBefore(source, offset);
-  let quote;
+  const text = `${source.slice(0, start)}${STEP_AT_CURSOR}`;
+  let root;
   try {
-    quote = parse(`${source.slice(0, start)}${STEP_AT_CURSOR}`);
+    root = partOf(parse(text));
   } catch {
     return null;
   }
-  const steps = stepsOf(quote);
+  const steps = stepsOf(root);
   if (steps.length < 2 || steps[steps.length - 1].combinator === '!|') return null;
-  const kinds = await kindsOfSteps(steps.slice(0, -1), null);
-  return kinds === null ? null : { kinds, root: partOf(quote), end: start };
+  const subject = await subjectOfSteps(steps.slice(0, -1), null, text);
+  return subject === null ? null : { ...subject, root, end: start };
 }
 
 const STEP_AT_CURSOR = ' it';
 
-function stepsOf(quote) {
-  return quote.map(step => (isFailStep(step) ? { combinator: '!|', step: step.payload[0] } : { combinator: '|', step }));
+function stepsOf(pipeline) {
+  return pipeline.parts.map(read => (isFailStep(read.value) ? { combinator: '!|', read: read.parts[0] } : { combinator: '|', read }));
 }
 
-// The kinds of the value the steps answer from a subject of the kinds: a
-// literal's own, the subject's through a declaration and a `!|` step, and a
-// name's the kinds its `returns` names, the subject's own where that is the
-// verb's own label [QSBLD#answer]; null where a step answers no declared kind.
-async function kindsOfSteps(steps, subjectKinds) {
-  let kinds = subjectKinds;
-  for (const { combinator, step } of steps) {
+// The subject the steps answer from a subject, the kinds of its value and the
+// value where a literal step answers it: the subject itself through a
+// declaration and a `!|` step, and the kinds the `returns` of a verb that
+// serves it names [QSBLD#answer]; null where a step answers no declared kind.
+async function subjectOfSteps(steps, subject, text) {
+  let answered = subject;
+  for (const { combinator, read } of steps) {
     if (combinator === '!|') continue;
-    kinds = await kindsAfterStep(step, kinds);
+    answered = await subjectAfterStep(read, answered, text);
   }
-  return kinds;
+  return answered;
 }
 
-async function kindsAfterStep(step, kinds) {
-  if (errorFieldsOf(step) !== null) return kindsOfErrorLiteral(step);
-  if (isLiteral(step)) return [kindOf(step)];
-  if (isBindStep(step)) return kinds;
-  if (isGroupStep(step)) return await kindsOfSteps(stepsOf(step.payload), kinds);
-  if (!isCallStep(step) || kinds === null) return null;
+async function subjectAfterStep(read, subject, text) {
+  const step = read.value;
+  if (isBindStep(step)) return subject;
+  if (isGroupStep(step)) return await subjectOfSteps(stepsOf(read), subject, text);
+  if (holdsALiteral(step)) return await subjectOfLiteral(text.slice(read.span.start.offset, read.span.end.offset));
+  if (subject === null) return null;
   const scope = await langRuntime();
-  const reached = verbsReaching(scope, kinds).get(step.get('name').name);
-  if (reached === undefined) return null;
-  return answerKindsOf(scope, nodeOf(scope, reached.address.name), kinds);
+  const reached = verbsServing(scope, subject).get(step.get('name').name);
+  const kinds = reached === undefined ? null : answerKindsOf(scope, nodeOf(scope, reached.address.name), subject.kinds);
+  return kinds === null ? null : { kinds };
+}
+
+// What a literal answers run alone over the root, closed [QSLIT#closed], a
+// refusal of its constructor at rest, and the walk of its tags, the last kept [D371].
+let lastLiteral = { literal: null, subject: null };
+async function subjectOfLiteral(literal) {
+  if (lastLiteral.literal !== literal) {
+    const value = await evalQuery(`${literal}\n!| it`);
+    lastLiteral = { literal, subject: { kinds: [...kindsOfWalk(value)], value } };
+  }
+  return lastLiteral.subject;
+}
+
+// The verbs a subject reaches by name, those that serve its value where a
+// literal answers it, as its call would [QSDSP#tagname], [D371].
+function verbsServing(scope, { kinds, value }) {
+  const reached = verbsReaching(scope, kinds);
+  if (value === undefined) return reached;
+  return new Map([...reached].filter(([, { address }]) => servesTheSubject(nodeOf(scope, address.name), value)));
 }
 
 // ── Hover ─────────────────────────────────────────────────────
@@ -322,10 +346,10 @@ export async function hoverAtOffset(root, source, offset) {
   const { value } = read;
 
   if (isCallStep(value)) return await hoverForCall(read, root, source);
-  if (isTag(value)) return await hoverForTag(value.name, read);
-  if (isOnTagHead(read, offset)) return await hoverForTag(tagWrittenBy(read), read);
+  if (isTag(value)) return await hoverForTag(value.name, spanOf(read));
+  if (isOnTagHead(read, offset)) return await hoverForTag(tagWrittenBy(read), { startOffset: read.span.start.offset, endOffset: tagHeadEnd(read) });
   if (kindOf(value) === 'path') return await hoverForPath(read, source);
-  if (isKeyword(value)) return { content: `keyword \`:${value.name}\``, ...spanOf(read) };
+  if (isKeyword(value)) return { content: `keyword \`${value.literal}\``, ...spanOf(read) };
   return null;
 }
 
@@ -337,198 +361,121 @@ async function hoverForCall(read, root, source) {
   const scope = await langRuntime();
   const shown = shownFor(scope, name, await subjectKindsAt(source, read.span.start.offset));
   if (shown !== undefined) {
-    const docContents = await pageContents(shown.address.literal);
-    const prose = tidyProse(docContents.join('\n'));
-    const heading = [`**${name}** — ${callFormOf(shown)}`];
-    return { content: markdownHardBreaks([...heading, '', prose].join('\n')), ...spanOf(read) };
+    const heading = `**${name}** — ${callFormOf(shown)}`;
+    return { content: markdownHardBreaks([heading, '', await proseOfThePage(shown.address.literal)].join('\n')), ...spanOf(read) };
   }
-  const docStrings = findInDocumentDocs(root, name);
-  if (docStrings.length === 0) return null;
-  const prose = tidyProse(docStrings.join('\n'));
-  return {
-    content: markdownHardBreaks([
-      `**${name}** — a reader's name`,
-      '',
-      prose
-    ].join('\n')),
-    ...spanOf(read)
-  };
+  const docs = await proseOfTheDocs(declarationOf(root, read, { name, spelling: CALL_SPELLING }, scope), source);
+  if (docs.length === 0) return null;
+  return { content: markdownHardBreaks([`**${name}** — a reader's name`, '', tidyProse(docs.join('\n'))].join('\n')), ...spanOf(read) };
 }
 
-// The docs of the last declaration of the name in the document, a verb
-// under a label by the name a step calls it by.
-function findInDocumentDocs(root, name) {
-  let lastDocs = null;
-  walkParts(root, ({ value }) => {
-    if (kindOf(value) === 'doc') return false;
-    if (!isBindStep(value)) return;
-    const declared = value.get('name').name;
-    if (declared === name || splitAddress(declared)[1] === name) lastDocs = (value.get('docs') ?? []).map(proseOfSegments);
-  });
-  return lastDocs ?? [];
+// The prose of each doc of a declaration of the document, each run alone,
+// closed [QSLIT#closed], through `prose` [D371].
+async function proseOfTheDocs(declaration, source) {
+  return await Promise.all((declaration?.value.get('docs') ?? []).map(doc => {
+    const { start, end } = partOf(doc).span;
+    return evalQuery(`${source.slice(start.offset, end.offset)}\n| prose !| ""`);
+  }));
 }
 
 // A click on the head of a tagged literal, the `::Tag` of `::Tag[…]`; the
 // head of an error literal, `::Tag!{…}`, is a part of its own [QSERR#rest].
 function isOnTagHead(read, offset) {
-  const tag = tagWrittenBy(read);
-  return tag !== null && offset < read.span.start.offset + 2 + tag.length;
+  return tagWrittenBy(read) !== null && offset < tagHeadEnd(read);
 }
 
 // The page of a tag a part names or writes, over the span of its head.
-async function hoverForTag(tag, read) {
-  const tagKey = tagNameOf(tag);
+async function hoverForTag(tag, head) {
   const scope = await langRuntime();
   if (nodeOf(scope, tag) === null) return null;
-
-  const docContents = await pageContents(tagKey);
-  const headStart = read.span.start.offset;
-  const prose = tidyProse(docContents.join('\n'));
-  return {
-    content: markdownHardBreaks([
-      `**${tagKey}** — a name of the root`,
-      '',
-      prose
-    ].join('\n')),
-    startOffset: headStart,
-    endOffset: headStart + 2 + tag.length
-  };
+  const literal = makeTag(tag).literal;
+  return { content: markdownHardBreaks([`**${literal}** — a name of the root`, '', await proseOfThePage(literal)].join('\n')), ...head };
 }
 
-// A path shows its literal over the page of the kind of paths.
+// A path shows its literal over the page of its kind.
 async function hoverForPath(read, source) {
-  const prose = tidyProse((await pageContents('::path')).join('\n'));
   const written = source.slice(read.span.start.offset, read.span.end.offset);
-  return { content: markdownHardBreaks([`path \`${written}\``, '', prose].join('\n')), ...spanOf(read) };
+  return { content: markdownHardBreaks([`path \`${written}\``, '', await proseOfThePage(typeOf(read.value).literal)].join('\n')), ...spanOf(read) };
 }
 
 // ── Go to Definition ──────────────────────────────────────────
 
+function nameAt(read, offset) {
+  if (isCallStep(read.value)) return { name: read.value.get('name').name, spelling: CALL_SPELLING };
+  if (isTag(read.value)) return { name: read.value.name, spelling: TAG_SPELLING };
+  return isOnTagHead(read, offset) ? { name: tagWrittenBy(read), spelling: TAG_SPELLING } : null;
+}
+
 // The declaration a name, a tag name or the head of a tag a part writes
 // resolves to: the last one the document makes visible at the cursor,
 // else the catalog's.
-export function definitionAtOffset(root, offset, catalogCtx) {
+export async function definitionAtOffset(root, offset, catalogCtx) {
   if (!root) return null;
 
   const read = partAtOffset(root, offset);
-  if (!read) return null;
+  const named = read === null ? null : nameAt(read, offset);
+  if (named === null) return null;
 
-  let name, address;
-  if (isCallStep(read.value)) [name, address] = [read.value.get('name').name, read.value.get('name').name];
-  else if (isTag(read.value)) [name, address] = [tagNameOf(read.value.name), read.value.name];
-  else if (isOnTagHead(read, offset)) [name, address] = [tagNameOf(tagWrittenBy(read)), tagWrittenBy(read)];
-  else return null;
+  const declaration = declarationOf(root, read, named, await langRuntime());
+  if (declaration !== undefined) return spanOf(declaration);
 
-  const localDecl = findLastVisibleDeclaration(root, name, offset);
-  if (localDecl) return localDecl;
-
-  return catalogCtx ? catalogDeclarationOf(catalogCtx, address) : null;
+  return catalogCtx ? catalogDeclarationOf(catalogCtx, named.name) : null;
 }
 
-// The name a declaration binds and what it declares: a label, its tag,
-// for a page alone or for the chain or the literal of a kind [QSBLD#kind], a
-// value otherwise.
-function bindingDeclarationOf({ value }) {
+// The name a declaration binds and the spelling a step reads it under, a
+// label's that of a tag [QSBLD#kind], or null.
+function declaredNameOf({ value }) {
   if (!isBindStep(value)) return null;
-  return declaresKind(value)
-    ? { name: tagNameOf(value.get('name').name), kind: 'tag' }
-    : { name: value.get('name').name, kind: 'value' };
-}
-
-// Whether a body runs on the values of the label it is declared under: a
-// quote, and a function its chain gives a recipe, `| impl …`, or its
-// literal one that is no null [QSBLD#fn].
-function bodyRuns(body) {
-  if (kindOf(body) === 'quote') return true;
-  if (builtFrom(body) !== 'fn') return false;
-  const steps = isGroupStep(body) ? body.payload : [body];
-  if (steps.length > 1) return steps.slice(1).some(step => isCallStep(step) && step.get('name').name === 'impl');
-  const payload = steps[0].get('payload');
-  return kindOf(payload) === 'vec' && payload[1] !== null;
-}
-
-// Whether a declaration of a value declares a verb, by the core's rule: a name
-// the root holds as the core answers it, and one of the document as
-// `declaresVerb` reads it, a quote or a function with a recipe running where a
-// reader's `::builtin{}` reaches no primitive [QSNAM#verb], [QSHST#source].
-function declaresVerbIn(bind, scope, isLabelName) {
-  const name = bind.get('name').name;
-  return nodeOf(scope, name) !== null
-    ? isVerb(scope, name)
-    : declaresVerb(name, bodyRuns(bind.get('body')), isLabelName);
-}
-
-// The span of the last declaration of the name that stands before the
-// cursor in a scope that encloses it, or null: a call by address reaches
-// the declaration of that address, and a bare call one whose name a step
-// calls it by.
-function findLastVisibleDeclaration(root, name, offset) {
-  let lastVisible = null;
-  walkParts(root, (read) => {
-    if (kindOf(read.value) === 'doc') return false;
-    const decl = bindingDeclarationOf(read);
-    if (decl === null || (decl.name !== name && (isTagName(name) || splitAddress(decl.name)[1] !== name))) return;
-    if (read.span.end.offset > offset || !visibleAt(read, offset)) return;
-    lastVisible = spanOf(read);
-  });
-  return lastVisible;
+  return { name: value.get('name').name, spelling: declaresKind(value) ? TAG_SPELLING : CALL_SPELLING };
 }
 
 // ── Find References ───────────────────────────────────────────
+
+// The name a part names with the spelling it is read under: a call and a
+// declaration by the name a step calls, a label by its tag.
+function referencedAt(read) {
+  const { value, parent } = read;
+  if (isCallStep(value)) return { name: splitAddress(value.get('name').name)[1], spelling: CALL_SPELLING };
+  if (isBindStep(value)) {
+    const declared = declaredNameOf(read);
+    return declared.spelling === TAG_SPELLING ? declared : { name: splitAddress(declared.name)[1], spelling: CALL_SPELLING };
+  }
+  if (isKeyword(value) && isBindStep(parent.value) && parent.parts[0] === read) return { name: splitAddress(value.name)[1], spelling: CALL_SPELLING };
+  return isTag(value) ? { name: value.name, spelling: TAG_SPELLING } : null;
+}
 
 export function referencesAtOffset(root, offset) {
   if (!root) return [];
 
   const read = partAtOffset(root, offset);
-  if (!read) return [];
+  const named = read === null ? null : referencedAt(read);
+  if (named === null) return [];
 
-  // A call, a declaration or the keyword of its name, each by the name a
-  // step calls it by, and a tag name.
-  const { value, parent } = read;
-  let name = null;
-  if (isCallStep(value)) {
-    name = splitAddress(value.get('name').name)[1];
-  } else if (isBindStep(value)) {
-    const declared = bindingDeclarationOf(read).name;
-    name = isTagName(declared) ? declared : splitAddress(declared)[1];
-  } else if (isKeyword(value) && isBindStep(parent.value) && parent.parts[0] === read) {
-    name = splitAddress(value.name)[1];
-  } else if (isTag(value)) {
-    name = tagNameOf(value.name);
-  }
-
-  if (!name) return [];
-
-  const occurrences = isTagName(name)
-    ? findNameOccurrences(root, name.slice(TAG_SIGIL.length), TAG_SPELLING)
-    : findNameOccurrences(root, name);
-  return occurrences.map(spanOf);
+  return findNameOccurrences(root, named.name, named.spelling).map(spanOf);
 }
 
 // ── Document Symbols ──────────────────────────────────────────
 
-// documentSymbols(root, scope) → the declarations of a document, each
-// shown as a label, a verb or a value, a label a kind the document declares
-// under a name, by its chain or by its page alone, or one the root holds
-// [QSNAM#address].
+// documentSymbols(root, scope) → the declarations of a document, each by
+// its role, a label written as its tag, a verb or a value [D371].
 export function documentSymbols(root, scope) {
   if (!root) return [];
 
   const labels = new Set();
   walkParts(root, (read) => {
     if (kindOf(read.value) === 'doc') return false;
-    if (bindingDeclarationOf(read)?.kind === 'tag') labels.add(read.value.get('name').name);
+    if (declaredNameOf(read)?.spelling === TAG_SPELLING) labels.add(read.value.get('name').name);
   });
   const isLabelName = name => labels.has(name) || isLabel(scope, name);
 
   const symbols = [];
   walkParts(root, (read) => {
     if (kindOf(read.value) === 'doc') return false;
-    const decl = bindingDeclarationOf(read);
-    if (decl === null) return;
+    const declared = declaredNameOf(read);
+    if (declared === null) return;
     symbols.push({
-      name: decl.name,
-      kind: decl.kind === 'value' && declaresVerbIn(read.value, scope, isLabelName) ? 'verb' : decl.kind,
+      name: declared.spelling === TAG_SPELLING ? makeTag(declared.name).literal : declared.name,
+      role: roleOf(read.value, scope, isLabelName),
       ...spanOf(read)
     });
   });
@@ -537,21 +484,20 @@ export function documentSymbols(root, scope) {
 
 // ── Folding ───────────────────────────────────────────────────
 
-// foldingRangesOf(root, source) → the line ranges an editor folds, from
-// 0: a declaration, a doc and a quote that span lines, the line of a
-// closer that stands alone left open; a doc folds as a comment.
+// foldingRangesOf(root) → the lines a declaration, a doc and a quote span,
+// from 0 to where the last part of its node ends, a doc's where its text
+// ends; a doc folds as a comment [D371].
 const folds = read => isBindStep(read.value) || kindOf(read.value) === 'doc' || (kindOf(read.value) === 'quote' && read.content !== undefined);
 
-export function foldingRangesOf(root, source) {
+const lastLineOf = read => (read.text ?? read.span).end.line - 1;
+
+export function foldingRangesOf(root) {
   if (!root) return [];
-  const lines = source.split(/\r?\n/);
   const ranges = [];
   walkParts(root, (read) => {
     if (!folds(read)) return;
     const startLine = read.span.start.line - 1;
-    const lastLine = read.span.end.line - 1;
-    const closerAlone = /^\s*(~~\||\))\s*$/.test(lines[lastLine]);
-    const endLine = closerAlone ? lastLine - 1 : lastLine;
+    const endLine = kindOf(read.value) === 'doc' ? lastLineOf(read) : read.parts.length === 0 ? startLine : lastLineOf(read.parts.at(-1));
     if (endLine > startLine) ranges.push({ startLine, endLine, kind: kindOf(read.value) === 'doc' ? 'comment' : 'region' });
   });
   return ranges;
@@ -571,7 +517,6 @@ export async function signatureHelpAtOffset(root, source, offset) {
   if (shown === undefined || (call.parts.length === 0 && shown.inputs.length === 0)) return null;
 
   const inputs = shown.inputs;
-  const docContents = await pageContents(shown.address.literal);
 
   // The active parameter of the protocol is the input whose modifier the
   // cursor stands on or after: one per modifier that ends before it.
@@ -579,7 +524,7 @@ export async function signatureHelpAtOffset(root, source, offset) {
 
   return {
     label: [name, ...inputs].join(' '),
-    documentation: tidyProse(docContents[0] ?? ''),
+    documentation: await proseOfThePage(shown.address.literal),
     parameters: inputs.map(input => ({ label: input })),
     activeParameter
   };
@@ -601,33 +546,34 @@ function callAround(root, source, offset) {
 
 // ── Semantic tokens ───────────────────────────────────────────
 
-// The kinds of `tokenize` as the semantic-token types of the protocol; a
-// bracket has none, and the editor's grammar paints it.
-export const SEMANTIC_TOKEN_TYPES = [
-  'function',
-  'variable',
-  'keyword',
-  'struct',
-  'string',
-  'number',
-  'comment',
-  'regexp'
-];
-
-const KIND_TO_TYPE_INDEX = {
-  word:    0,
-  name:    1,
-  keyword: 2,
-  tag:     3,
-  string:  4,
-  quote:   4,
-  number:  5,
-  comment: 6,
-  regex:   7,
-  err:     2
+// The type of semantic token of the protocol each kind of `tokenize` is coated
+// by, a path a property as the keys it reads; a kind with none, a bracket, a
+// gap or the source past the parse, sends no token [D371].
+const TYPE_OF_KIND = {
+  verb:        'function',
+  name:        'variable',
+  declaration: 'keyword',
+  keyword:     'property',
+  path:        'property',
+  tag:         'struct',
+  string:      'string',
+  quote:       'string',
+  null:        'number',
+  boolean:     'number',
+  number:      'number',
+  regex:       'regexp',
+  doc:         'comment',
+  comment:     'comment',
+  error:       'keyword',
+  fail:        'keyword'
 };
 
-// The verbs of the root, which `tokenize` paints as words.
+// The types of the legend the server answers `initialize` with, each once.
+export const SEMANTIC_TOKEN_TYPES = [...new Set(Object.values(TYPE_OF_KIND))];
+
+const TYPE_INDEX_OF_KIND = new Map(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [kind, SEMANTIC_TOKEN_TYPES.indexOf(type)]));
+
+// The verbs of the root, which `tokenize` paints as verbs.
 let _rootVerbNames = null;
 async function rootVerbNames() {
   if (_rootVerbNames) return _rootVerbNames;
@@ -645,7 +591,7 @@ export async function semanticTokensFor(source) {
   let prevChar = 0;
   const offsetToLineChar = buildLineCharIndex(source);
   for (const tok of tokens) {
-    const typeIndex = KIND_TO_TYPE_INDEX[tok.kind];
+    const typeIndex = TYPE_INDEX_OF_KIND.get(tok.kind);
     if (typeIndex === undefined) continue;
     let segStart = tok.start;
     while (segStart < tok.end) {

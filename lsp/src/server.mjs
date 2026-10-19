@@ -1,8 +1,6 @@
-// qlang language server — LSP wiring over features.mjs.
-//
-// Runs as a child process a client of the protocol launches and
-// talks JSON-RPC over stdio: it reads the sources of the language and
-// answers each request of the protocol by the functions of features.mjs.
+// The language server, a child process a client of the protocol launches,
+// which talks JSON-RPC over stdio and answers each request of the protocol
+// by the functions of features.mjs.
 
 import { readFileSync } from 'node:fs';
 import {
@@ -124,10 +122,17 @@ documents.onDidClose(e => {
 
 // ── Completion ────────────────────────────────────────────────
 
-const COMPLETION_KIND_MAP = {
-  function: CompletionItemKind.Function,
-  variable: CompletionItemKind.Variable,
-  tag:      CompletionItemKind.Struct
+// The roles of a declaration as the kinds of a completion and a symbol [D371].
+const COMPLETION_KIND_OF_ROLE = {
+  verb:  CompletionItemKind.Function,
+  value: CompletionItemKind.Variable,
+  label: CompletionItemKind.Struct
+};
+
+const SYMBOL_KIND_OF_ROLE = {
+  verb:  SymbolKind.Function,
+  value: SymbolKind.Variable,
+  label: SymbolKind.Struct
 };
 
 connection.onCompletion(async (params) => {
@@ -140,7 +145,7 @@ connection.onCompletion(async (params) => {
 
   return items.map(item => ({
     label: item.label,
-    kind: COMPLETION_KIND_MAP[item.kind] ?? CompletionItemKind.Text,
+    kind: COMPLETION_KIND_OF_ROLE[item.role],
     detail: item.detail,
     documentation: item.documentation
       ? { kind: MarkupKind.Markdown, value: item.documentation }
@@ -170,18 +175,16 @@ connection.onHover(async (params) => {
 
 // ── Go to Definition ──────────────────────────────────────────
 
-connection.onDefinition((params) => {
+connection.onDefinition(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
   if (!state?.root || !doc) return null;
 
   const offset = doc.offsetAt(params.position);
-  const def = definitionAtOffset(state.root, offset, catalogCtx);
+  const def = await definitionAtOffset(state.root, offset, catalogCtx);
   if (!def) return null;
 
-  // Catalog hits carry their own source-text + file URI; in-document
-  // declarations carry only offsets and rely on the current document
-  // for offset→position conversion.
+  // A declaration of the catalog stands in the file of its source.
   if (def.fileUri) {
     return {
       uri: def.fileUri,
@@ -238,12 +241,6 @@ connection.onReferences((params) => {
 
 // ── Document Symbols ──────────────────────────────────────────
 
-const SYMBOL_KIND_MAP = {
-  verb:     SymbolKind.Function,
-  value:    SymbolKind.Variable,
-  tag:      SymbolKind.Struct
-};
-
 connection.onDocumentSymbol(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
@@ -253,7 +250,7 @@ connection.onDocumentSymbol(async (params) => {
 
   return symbols.map(sym => ({
     name: sym.name,
-    kind: SYMBOL_KIND_MAP[sym.kind] ?? SymbolKind.Variable,
+    kind: SYMBOL_KIND_OF_ROLE[sym.role],
     range: {
       start: doc.positionAt(sym.startOffset),
       end: doc.positionAt(sym.endOffset)
@@ -269,7 +266,7 @@ connection.onDocumentSymbol(async (params) => {
 
 connection.onFoldingRanges((params) => {
   const state = documentStates.get(params.textDocument.uri);
-  return state?.root ? foldingRangesOf(state.root, state.source) : [];
+  return state?.root ? foldingRangesOf(state.root) : [];
 });
 
 // ── Signature Help ────────────────────────────────────────────

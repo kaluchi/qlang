@@ -10,6 +10,7 @@ import {
   walkParts,
   partAtOffset,
   tagWrittenBy,
+  tagHeadEnd,
   findNameOccurrences,
   visibleAt,
   bindingNamesVisibleAt, readsItsSubject, repeatsDeclarationAt, TAG_SPELLING } from '../../src/walk.mjs';
@@ -86,6 +87,22 @@ describe('the parts of a text', () => {
     expect(originOf(parse('add 1', { uri: 'cell-3' }))).toBe('cell-3');
     expect(originOf(makeQuote([commandStep('count', [])]))).toBe('quote');
   });
+
+  it('holds the span of the text of a doc, its quotes among it, which ends where its last word does, the whitespace before its closer aside [D371]', () => {
+    const source = ':x\n  |~~ one\n  two ~(add 1)\n  three\n  ~~|\n  1 | |~~| a line  ';
+    const [bind, line] = rootOf(source).parts;
+    const [, doc] = bind.parts;
+    const textOf = ({ text }) => [source.slice(text.start.offset, text.end.offset), text.end.line];
+    expect(textOf(doc)).toEqual([' one\n  two ~(add 1)\n  three', 4]);
+    expect(textOf(line)).toEqual([' a line', 6]);
+  });
+
+  it('holds the code between the backquotes of a doc, a run of them closing at a run of as many, across the lines of a block doc [D371]', () => {
+    const codeOf = source => rootOf(source).parts[0].backquoted.map(({ start, end }) => source.slice(start.offset, end.offset));
+    expect(codeOf('|~~ a `count` b ``x`y`` c `` d ~~|')).toEqual(['count', 'x`y']);
+    expect(codeOf('|~~ a `[1\n2]` ~(`x`) ~~|')).toEqual(['[1\n2]']);
+    expect(codeOf('|~~| a `add 1`')).toEqual(['add 1']);
+  });
 });
 
 describe('walkParts', () => {
@@ -126,6 +143,31 @@ describe('partAtOffset', () => {
 
   it('returns the part at the start of a number literal', () => {
     expect(partAtOffset(rootOf('42'), 0).value).toBe(42);
+  });
+});
+
+describe('tagHeadEnd', () => {
+  const headsOf = source => {
+    const heads = [];
+    walkParts(rootOf(source), read => { if (tagHeadEnd(read) !== null) heads.push(source.slice(read.span.start.offset, tagHeadEnd(read))); });
+    return heads;
+  };
+
+  it('reads where the head of the tag a tagged literal writes ends, before its payload and its sign [D371]', () => {
+    expect(headsOf('get [::Width#5 ::A::B[1] ::T"s"]')).toEqual(['::Width', '::A', '::B', '::T']);
+  });
+
+  it('reads where the tags an error literal writes before its bang end, none for an error literal that writes none [QSERR#rest], [D371]', () => {
+    expect(headsOf('[::E!{:k 1} ::E::error!{} !{:j 2} ::A::B!{}]')).toEqual(['::E', '::E::error', '::A', '::B']);
+    expect(headsOf(':Late |~~ A late error. ~~|\n  ::Late!{:by 3}')).toEqual(['::Late']);
+  });
+
+  it('reads where the tags written before a quote of a doc end [D371]', () => {
+    expect(headsOf('|~~ see ::link~(x) and ::A::B~(1) or ~(2) ~~|')).toEqual(['::link', '::A::B']);
+  });
+
+  it('answers null for a part that writes no head', () => {
+    expect(['42', '::Box', '[1]', 'count'].map(source => tagHeadEnd(rootOf(source).parts[0]))).toEqual([null, null, null, null]);
   });
 });
 
@@ -255,6 +297,35 @@ describe('bindingNamesVisibleAt', () => {
   it('hides the kind a closed group declares under the spelling of a tag', () => {
     const source = '(:Local |~~ Local. ~~| (::kind | impl ~(42))) | here';
     expect(visibleIn(source, source.indexOf('here'), TAG_SPELLING).has('Local')).toBe(false);
+  });
+
+  it('answers each name with the part of the last of its declarations visible there [D371]', () => {
+    const source = ':x 1 | :vec/x ~(2) | (:x 3) | here';
+    const read = visibleIn(source, source.indexOf('here')).get('x');
+    expect(source.slice(read.span.start.offset, read.span.end.offset)).toBe(':vec/x ~(2)');
+  });
+
+  it('answers a name with a path by its address beside its last name, and a label under the spelling of a tag by its address alone [QSNAM#address], [D371]', () => {
+    const source = ':vec/x ~(1) | :string/x ~(2) | :Box |~~ B ~~| | :Box/In |~~ I ~~| | here';
+    const visible = visibleIn(source, source.indexOf('here'));
+    const written = name => source.slice(visible.get(name).span.start.offset, visible.get(name).span.end.offset);
+    expect(['vec/x', 'string/x', 'x', 'In'].map(written)).toEqual([':vec/x ~(1)', ':string/x ~(2)', ':string/x ~(2)', ':Box/In |~~ I ~~|']);
+    expect([...visibleIn(source, source.indexOf('here'), TAG_SPELLING).keys()]).toEqual(['Box', 'Box/In']);
+  });
+
+  it('sees in the body of a verb `declaresAVerb` holds of the declarations of the body before the offset and, outside the body, the nodes and the labels wherever they stand, the verb among them, and no value, and in its docs the declarations before the offset [QSNAM#verb], [D371]', () => {
+    const source = ':k 1 | :map/walk |~~ see ~(walk) ~~| ~(:j 2 | get /kids | map ~walk) | here | :vec/f ~(f) | :Late |~~ L ~~| | :n 3';
+    const verbs = read => read.value.get('name').name.includes('/');
+    const namesAt = (offset, spelling, declaresAVerb) => [...bindingNamesVisibleAt(rootOf(source), offset, spelling, declaresAVerb).keys()];
+    const inTheBody = source.indexOf('~walk') + 1;
+    expect([namesAt(inTheBody, undefined, verbs), namesAt(inTheBody, TAG_SPELLING, verbs), namesAt(inTheBody), namesAt(source.indexOf('here'), undefined, verbs), namesAt(source.indexOf('(walk)') + 1, undefined, verbs)])
+      .toEqual([['map/walk', 'walk', 'j', 'vec/f', 'f', 'Late'], ['Late'], ['k', 'j'], ['k', 'map/walk', 'walk'], ['k']]);
+  });
+
+  it('answers a name in the body of a verb with its nearest declaration, one in a pipeline nearer the verb before one written later farther out [QSNAM#verb], [D371]', () => {
+    const source = '(:vec/g |~~ inner ~~| ~(1) | :vec/f ~(g) | [1] | f) | :vec/g |~~ outer ~~| ~(2)';
+    const reached = bindingNamesVisibleAt(rootOf(source), source.indexOf('~(g)') + 2, undefined, read => read.value.get('name').name.includes('/')).get('g');
+    expect(source.slice(reached.span.start.offset, reached.span.end.offset)).toBe(':vec/g |~~ inner ~~| ~(1)');
   });
 });
 

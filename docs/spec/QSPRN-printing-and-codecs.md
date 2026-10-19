@@ -60,8 +60,8 @@ host converts, which no value of the pipe holds, writes
 reads such an object back as the plain map it is. `parseJson` takes a
 string, `::string/parseJson/SubjectNotStringError` refusing another,
 and refuses a text that is no JSON with the reason, and a number past
-the doubles with its `:path`, the vector of the keys, strings as JSON
-writes them, and the indices to it; a duplicate key reads as
+the doubles with its `:path`, the path to it in the text, and none where
+the number is the whole text [QSPTH#value]; a duplicate key reads as
 `JSON.parse` reads it.
 
 ```qlang
@@ -75,7 +75,10 @@ writes them, and the indices to it; a duplicate key reads as
 ::string/parseJson/TextNotJsonError
 
 > "[1e400]" | parseJson !| get [~(type) /path]
-[::string/parseJson/NumberNotFiniteError [0]]
+[::string/parseJson/NumberNotFiniteError /0]
+
+> "1e400" | parseJson !| keys
+#[:trace]
 ```
 
 ## elide

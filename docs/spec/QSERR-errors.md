@@ -63,7 +63,9 @@ An error at rest raised again is the error it was.
 A failure lives in the pipe alone: `|` passes it by, and `!|` alone
 catches it, its step running on the error at rest, a value from then
 on. `!|` passes a value by. A value written after `!|` is the recovery
-the catch answers. A pipe written before `!|`, `a | !| b`, stands for the
+the catch answers, and the facts of the error are read from it by `get`,
+a path or a literal that holds one or a quote refused there by the
+parser naming `get` [QSSYN#step]. A pipe written before `!|`, `a | !| b`, stands for the
 combinator after it. The error at rest a catch holds is laid under the
 tag of its site through the tag's label, and a label whose payload takes
 no facts refuses it with a frame at the step of the catch. `ok` answers
@@ -74,6 +76,9 @@ taken on the way and a failure recovered by its type in lines of
 ```qlang
 > "x" | add 1 !| 0
 0
+
+> !{:k 1 :j 2} | raise !| get [/k /j]
+[1 2]
 
 > 42 !| get /kind
 42

@@ -17,5 +17,5 @@
 {"name":"a-catch-whose-label-invariant-refuses-passes-a-frame-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it | count !| trace | map ~(get [~(failed) ~(skipped)])","expect":"[[~(it) ~(count)]]"}
 {"name":"an-error-at-rest-a-quote-holds-under-the-tag-of-a-kind-raised-is-caught-by-the-refusal-of-the-kind","query":"~(::number!{:a 1}) | first | raise !| it !| get [~(type) /actualType]","expect":"[::number/PayloadKindNotTakenError ::error]"}
 {"name":"an-error-at-rest-a-quote-holds-under-a-label-raised-is-caught-by-the-refusal-of-its-invariant","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it !| type","expect":"::Box/k"}
-{"decision":"D375","name":"a-literal-that-holds-no-path-after-a-catch-is-its-recovery","query":"!{:k 1} | raise !| [1 2]","expect":"[1 2]"}
-{"decision":"D375","name":"a-step-of-the-fail-track-built-from-data-refuses-a-literal-of-paths-and-quotes","query":"get [~(::fail~([/k]) !| type) ~(::fail~({:k ~(get /k)}) !| type)]","expect":"[::fail/StepNotCommandError ::fail/StepNotCommandError]"}
+{"name":"a-literal-that-holds-no-path-after-a-catch-is-its-recovery","query":"!{:k 1} | raise !| [1 2]","expect":"[1 2]"}
+{"name":"a-step-of-the-fail-track-built-from-data-refuses-a-literal-of-paths-and-quotes","query":"get [~(::fail~([/k]) !| type) ~(::fail~({:k ~(get /k)}) !| type)]","expect":"[::fail/StepNotCommandError ::fail/StepNotCommandError]"}

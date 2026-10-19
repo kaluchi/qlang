@@ -155,10 +155,11 @@ verbs of a set and of a map meet the value their call gives: those of a
 set take the `:other` set, `#[1] | union #[2]`; the `union` of a map takes
 the `:other` map, the later value of a key standing, `merge` answering as
 it does; and the `minus` and `inter` of a map take off or keep the
-`:keys` a map, a vector or a set names, each a keyword or a string, an
-element of another kind refused under that input at its index as
+`:keys` a map, a vector or a set names, each a keyword, a number or a
+string as a key alone names one [QSPTH#key], an element of another kind
+refused under that input at its index as
 `::map/minus/keys/ElementKindNotTakenError` with
-`:expected #[::keyword ::string]`. A call that gives none is refused under
+`:expected #[::keyword ::number ::string]`. A call that gives none is refused under
 the input, `::set/union/other/NotGivenError` as
 `::map/union/other/NotGivenError`, and a value of another kind, null
 among them, as `::set/union/other/KindNotTakenError`. A vector folds the
@@ -209,8 +210,11 @@ none, under the tags of the first; one part answers itself.
 > [{:a 1 :b 2} #[:a]] | get [~(minus) ~(inter) ~(union !| type)]
 [{:b 2} {:a 1} ::vec/union/KindsMismatchedError]
 
-> get [~({:a 1} | minus [:a 1] !| get [~(type) /index /expected]) ~([{:a 1} [1]] | minus !| type)]
-[[::map/minus/keys/ElementKindNotTakenError 1 #[::keyword ::string]] ::vec/minus/KeyKindNotTakenError]
+> get [~({:a 1} | minus [:a true] !| get [~(type) /index /expected]) ~([{:a 1} [true]] | minus !| type)]
+[[::map/minus/keys/ElementKindNotTakenError 1 #[::keyword ::number ::string]] ::vec/minus/KeyKindNotTakenError]
+
+> [{:"1" 5 :b 2} [1]] | minus
+{:b 2}
 ```
 
 ## group

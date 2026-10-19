@@ -114,14 +114,20 @@ true
 
 ## coalesce
 
-`coalesce` answers the first alternative that is not null, one at least,
-`::any/coalesce/alternatives/EmptyError` refusing none. An alternative is
-code, a quote or a path, which runs against the subject, or a value,
-which answers itself; a call whose alternatives are all values puts the
-subject first, so `query /timeout | coalesce 30` reads the timeout, else
-30. Code that answers a failure is taken as no value, as null is, and a
-value computed at the call that is a failure is the answer of the call
-[QSQUO#modifier]. Code after the alternative that answers stays unrun.
+`coalesce` answers the first of its alternatives that answers a value,
+one at least, `::any/coalesce/alternatives/EmptyError` refusing none.
+Each alternative stands in its place: code, a quote or a path, runs
+against the subject, and a value answers itself; the subject stands
+before them only where the call gives one alternative and it is a value,
+so `query /timeout | coalesce 30` reads the timeout, else 30, and
+`coalesce (get /t) 30` reads `:t` at the call, else 30. An alternative
+passes to the next where it answers null or the refusal of a read
+`query` answers null for, a key a map lacks, an index past an end or
+null on the way [QSPTH#query], wherever its code read it; code that
+answers any other failure answers the call with it, and so does a value
+computed at the call that is a failure [QSQUO#modifier]. Null answers
+where every alternative passes, and code after the alternative that
+answers stays unrun.
 
 ```qlang
 > {} | coalesce /missing ~("fallback")
@@ -129,6 +135,12 @@ value computed at the call that is a failure is the answer of the call
 
 > [{:t 45} {:t null}] | map ~(query /t | coalesce 30)
 [45 30]
+
+> {:t null} | coalesce (get /t) 30
+30
+
+> get [~({:a null} | coalesce /a/b 0) ~({} | coalesce ~(nosuchword) 30 !| type)]
+[0 ::call/UnknownNameError]
 ```
 
 ## convert

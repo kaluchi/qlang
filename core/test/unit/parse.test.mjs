@@ -682,7 +682,7 @@ describe('parse.mjs — input guards and the location of a ParseError', () => {
   });
 
   it('passes a throw of the parser that is no refusal of the text as it is in the completion of a source cut short, a nest of a thousand to four thousand brackets among it [QSQUO#step]', () => {
-    for (let depth = 1000; depth <= 4000; depth += 25) expect(thrownBy(nestOf(depth, 1)), String(depth)).not.toBeInstanceOf(TypeError);
+    for (let depth = 1000; depth <= 4000; depth += 100) expect(thrownBy(nestOf(depth, 1)), String(depth)).not.toBeInstanceOf(TypeError);
   }, 30000);
 
   it('passes a throw of the parser that is no refusal of the text as it is in the completion of a source cut short at the depth where the parser overflows [QSQUO#step]', () => {

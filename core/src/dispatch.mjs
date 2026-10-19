@@ -58,7 +58,7 @@ export function subjectOfCall(chain, labelName, subject) {
 }
 
 // servesTheSubject(record, subject) → whether the verb a record holds serves
-// the subject, as its call would [QSNAM#reach], [D371].
+// the subject, as its call would [QSNAM#reach], [QSHST#tools].
 export function servesTheSubject(record, subject) {
   const value = bindingValueOf(record);
   const fn = isFn(value) ? value : functionOfRecipe(value);

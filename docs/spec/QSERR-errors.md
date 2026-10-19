@@ -194,7 +194,9 @@ failure answers the verb, the elements after it left unrun: `map`,
 `sort`, `groupBy` and `indexBy`, while code that recovers inside keeps
 every element. A literal whose part fails answers that failure, and so
 does a template of `get` whose quote answers one, the first in the order
-written; the body of a declaration that fails leaves the scope as it
+the literal holds its parts, a set in its one order and a map with the
+last value of each key, a value a later entry of its key replaces
+running nowhere; the body of a declaration that fails leaves the scope as it
 was and answers the failure; a tag over a payload that fails answers the
 failure, and so does a verb whose answer the kind of its subject refuses,
 under the tags its walk passed as under none, since no tag is laid over a
@@ -218,6 +220,9 @@ false
 
 > [1 2] | map (1 | div 0) !| type
 ::vec/map/code/KindNotTakenError
+
+> get [~(#[::number"b" ::string#1] !| type) ~({:k ::number"x" :k 1} | count)]
+[::string/PayloadKindNotTakenError 1]
 ```
 
 ## site
@@ -227,8 +232,8 @@ of the place it guards and a last name that says in the language's
 words what was refused, `::number/add/SubjectNotNumberError` for the
 subject of `add` and `::number/add/addend/KindNotTakenError` for its
 input. The last name names the refusal alone, so two places may share
-one, `::construct/ReadBackDiffersError` beside
-`::bind/ReadBackDiffersError`. A value of none of the kinds a holder
+one, `::construct/LiteralComputesError` beside
+`::quote/LiteralComputesError`. A value of none of the kinds a holder
 takes is refused by the holder's role, `KindNotTakenError`,
 `PayloadKindNotTakenError` or `ElementKindNotTakenError`, the answer of a
 verb, the subject of a function `apply` runs, `SubjectKindNotTakenError`,
@@ -245,11 +250,15 @@ of its place [QSSLF#axis]. The refusal of a primitive takes the address
 of the verb that ran it, a refusal of the read of a path sits under
 `::path`, whichever verb reads it, a place of the args an input reads and
 the call leaves out refused under the input [QSBLD#input], and a refusal
-of the language's own steps sits under the kind of that step, `::call`,
-`::bind`, `::construct`, `::quote` and `::error`, and links the page of
-its place; what no query reaches, the table of primitives or a node of
-the parser's tree the evaluator does not know, is a defect of the runtime
-under `::builtin`. A failure inside a primitive a host hands is
+of the language's own steps sits under the record or the kind that holds
+the rule, `::call`, `::bind`, `::construct`, `::fail`, `::group`,
+`::quote` and `::error`, and links the page of its place [QSQUO#step];
+what no query reaches is a defect of the runtime declared at its site
+under `::builtin`, the descriptor of a primitive: the table of
+primitives, the declarations of refusals and their facts, the root, the
+bootstrap and the loaders, and a value of no kind a host handed, whose
+addresses and pages a query reads as it reads any name's. A failure
+inside a primitive a host hands is
 `::call/HostFailureError`, with its `:message` and `:causes`, and so is
 an answer of such a primitive, or a fact of a refusal it throws, that is
 or holds a value of no kind of the language, its `:message` naming the
@@ -279,6 +288,9 @@ true
 
 > :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(::number/plus/by/KindNotTakenError | binding | get /name) ~(::number/plus/by/NotGivenError | binding | get /name)]
 [:number/plus/by/KindNotTakenError :number/plus/by]
+
+> ::builtin | manifest | filter ~(binding | get /name | toString | endsWith "Error") | count
+12
 ```
 
 ## print

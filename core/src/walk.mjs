@@ -2,7 +2,7 @@
 // over them: the part at an offset, the end of the head of a tag, the
 // occurrences of a name and its two spellings, the names visible at a place,
 // whether a query reads its subject and the rule of a name declared twice
-// [D367], [D371].
+// [QSQUO#step], [QSHST#tools].
 
 import { splitAddress } from './address.mjs';
 import { isPath, isTag } from './types.mjs';
@@ -69,7 +69,7 @@ export function tagWrittenBy({ value }) {
 
 // tagHeadEnd(part) → where the tags a tagged literal, an error literal or a
 // quote of a doc writes at its head end, which the parser records, or null
-// [QSERR#rest], [D371].
+// [QSERR#rest], [QSHST#tools].
 export const tagHeadEnd = read => read.head?.end.offset ?? null;
 
 // findNameOccurrences(root, name, spelling?) → the parts that name it, a
@@ -99,7 +99,7 @@ function* forksAround(read) {
 
 // visibleAt(declaration, offset) — whether a declaration is seen at an
 // offset across the groups and the quotes around it, each holding the
-// offset within its pipeline [D367].
+// offset within its pipeline [QSNAM#scope].
 export function visibleAt(declaration, offset) {
   for (const { content } of forksAround(declaration)) if (content.start.offset > offset || content.end.offset < offset) return false;
   return true;
@@ -112,7 +112,7 @@ export function visibleAt(declaration, offset) {
 // `declaresAVerb` holds of, the last part of its declaration, of those outside
 // the body the nodes and the labels wherever they stand, the verb among them;
 // under the spelling of a tag the labels alone [QSSLF#catalog], [QSNAM#address],
-// [QSNAM#verb], [D371].
+// [QSNAM#verb], [QSHST#tools].
 export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING, declaresAVerb = () => false) {
   const declarations = [];
   walkParts(root, (read) => {
@@ -159,7 +159,7 @@ export function readsItsSubject(steps) {
 const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload) : !holdsALiteral(step));
 
 // Whether a declaration repeats a name an earlier step of its quote
-// declared, the steps sharing one scope [D367].
+// declared, the steps sharing one scope [QSNAM#scope].
 const REPEATED_DECLARATIONS = new WeakMap();
 
 export function repeatsDeclarationAt(steps, index) {

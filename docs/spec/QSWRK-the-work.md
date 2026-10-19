@@ -155,8 +155,9 @@ set in the order its print shows.
 
 The runner, `core/test/unit/conformance.test.mjs`, refuses a file that
 is no section of a chapter, a case that names a record and does not open
-with one record in force, a target that names no record, and two cases
-that hold one query to two answers; `check:conventions` refuses a case
+with one record in force, a target that names no record, two cases that
+hold one query to two answers, and a case whose name holds fewer than
+four words, the words its hyphens part; `check:conventions` refuses a case
 whose record overrides neither its section nor its chapter whole.
 
 ## target

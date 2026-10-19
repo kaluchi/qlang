@@ -95,8 +95,8 @@ describe('conformance: the requirements agree', () => {
     expect(ungated).toEqual([]);
   });
 
-  // The name of a case says the rule it shows, in four words at least [D368].
-  it('names each case by the rule it shows, in four words at least [D368]', () => {
+  // The name of a case says the rule it shows, in four words at least [QSWRK#cases].
+  it('names each case by the rule it shows, in four words at least [QSWRK#cases]', () => {
     const terse = allCases.filter(test => test.name.split('-').length < 4).map(test => `${test.file}#${test.name}`);
     expect(terse).toEqual([]);
   });

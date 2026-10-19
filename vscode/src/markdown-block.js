@@ -2,8 +2,8 @@
 // tokens, each kind coated by a class of highlight.js the preview colours: a
 // block that holds a prompt, `> `, is the queries after its prompts, each with
 // the indented lines that follow it, and the answers below them, and any other
-// block one source [D371].
-// The rules it holds: [D371].
+// block one source [QSHST#tools].
+// The rules it holds: [QSHST#tools].
 
 // The class of highlight.js each kind is coated by, a path the class of the
 // keys it reads; a kind with none is written plain.
@@ -46,7 +46,7 @@ function painted(source, { tokenize, verbNames }) {
 
 // blockHtml(code, painter) → the HTML of a block painted by `painter.tokenize`
 // with the names of the root's words `painter.verbNames` holds, or '' while
-// the core's painter has not loaded, which markdown-it writes plain [D371].
+// the core's painter has not loaded, which markdown-it writes plain [QSHST#tools].
 function blockHtml(code, painter) {
   if (painter.tokenize === null) return '';
   const lines = code.split('\n');

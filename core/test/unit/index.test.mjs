@@ -42,14 +42,14 @@ describe('the package root', () => {
     expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
   });
 
-  it('hands an editor the regex of a name, which reads the letters of a name as the parser reads them [QSNAM#letters], [D371]', () => {
+  it('hands an editor the regex of a name, which reads the letters of a name as the parser reads them [QSNAM#letters], [QSHST#tools]', () => {
     const whole = new RegExp(`^(?:${core.NAME_REGEX.source})$`, 'u');
     const letters = Array.from({ length: 0x10000 }, (_, code) => String.fromCharCode(code)).filter(letter => !/[\ud800-\udfff]/.test(letter));
     expect(letters.filter(letter => whole.test(letter) !== core.isNameStart(letter) || whole.test(`a${letter}`) !== core.isNameContinue(letter))).toEqual([]);
     expect([...':имя 5 | vec/count | _x-1'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['имя', 'vec', 'count', '_x-1']);
   });
 
-  it('reads no letter past the first plane of Unicode in the regex of a name, as the parser reads a character a code unit [QSNAM#letters], [D371]', async () => {
+  it('reads no letter past the first plane of Unicode in the regex of a name, as the parser reads a character a code unit [QSNAM#letters], [QSHST#tools]', async () => {
     expect([...'a𝐀b c𝐁'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['a', 'b', 'c']);
     expect(await core.evalQuery('":a𝐀 1" | parse !| type')).toEqual(core.makeTag('quote/ParseError'));
   });

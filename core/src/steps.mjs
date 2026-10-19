@@ -1,7 +1,7 @@
 // The records of the steps of code, each under its tag, any other step a
 // literal standing as itself, and the rules their constructors hold, which a
 // quote assembled from data and the parser reading a text both go through,
-// a refusal of a rule writing the parts it names as `written` writes them [D367].
+// a refusal of a rule writing the parts it names as `written` writes them [QSQUO#step].
 
 import { readsAsBareKeyword, LITERAL_WORDS } from './name-chars.mjs';
 import { declareRefusal } from './errors.mjs';
@@ -37,7 +37,7 @@ export const isPathAlone = quote => quote.length === 1 && isPath(quote[0]);
 
 // isOfTheKindOfErrors(value) — whether a value is the error `!{…}` writes, the
 // map of its facts under `::error` alone, a tag written before it the tag of
-// its error, `::E::error!{…}` the step `::E!{…}` is [QSERR#rest], [D367].
+// its error, `::E::error!{…}` the step `::E!{…}` is [QSERR#rest], [QSQUO#step].
 export const isOfTheKindOfErrors = value => isMap(value) && tagNameOf(value) === ERROR_TAG.name;
 
 // The fields of the step of an error literal, a map under `::error` beneath
@@ -54,7 +54,7 @@ export const computes = value => isCallStep(value) || isGroupStep(value);
 const isPartOfALiteral = value => isLiteral(value) || isConstructStep(value) || computes(value);
 
 // The parts of a container literal, the facts of an error literal and the
-// elements of a set, a vector and a map, or null for any other value [D367].
+// elements of a set, a vector and a map, or null for any other value [QSQUO#step].
 function partsOfAContainer(value) {
   const fields = errorFieldsOf(value);
   if (fields !== null) return [...fields.values()];
@@ -64,7 +64,7 @@ function partsOfAContainer(value) {
 
 // isLiteral(step) — a step that is no record: an atom, a quote, a doc and an
 // error literal, a set, a vector or a map of the parts of a literal, walked by
-// a stack of its own [D367].
+// a stack of its own [QSQUO#step].
 export function isLiteral(value) {
   const pending = [value];
   while (pending.length > 0) {
@@ -77,29 +77,29 @@ export function isLiteral(value) {
   return true;
 }
 
-// Every element of a quote is a step, a record or a literal [D367].
+// Every element of a quote is a step, a record or a literal [QSQUO#step].
 const isStep = value => isCallStep(value) || isBindStep(value) || isConstructStep(value)
   || isFailStep(value) || isGroupStep(value) || isLiteral(value);
 
 // A command, what a later step of the success track is [QSSYN#step].
 export const standsAsCommand = step => isCallStep(step) || isBindStep(step) || isGroupStep(step);
 
-// Whether a step declares a name, itself or after `!|` [D367].
+// Whether a step declares a name, itself or after `!|` [QSNAM#scope].
 export const declaresAName = step => isBindStep(step) || (isFailStep(step) && isBindStep(step.payload[0]));
 
-// holdsALiteral(step) — a literal step, a literal or a tagged literal [D367].
+// holdsALiteral(step) — a literal step, a literal or a tagged literal [QSQUO#step].
 export const holdsALiteral = step => isLiteral(step) || isConstructStep(step);
 
 // partsOfALiteral(value) → the parts a part that computes is searched among:
 // the payload of a tagged literal and the parts of a container, none of a
 // quote, which holds code, or of a doc, whose segments compute nothing
-// [QSLIT#closed], [D367].
+// [QSLIT#closed], [QSQUO#step].
 export function partsOfALiteral(value) {
   return isConstructStep(value) ? [value.get('payload')] : partsOfAContainer(value) ?? [];
 }
 
 // computesWithin(literal) — whether a part of a literal computes, walked by a
-// stack of its own [QSLIT#closed], [D367].
+// stack of its own [QSLIT#closed], [QSQUO#step].
 export function computesWithin(value) {
   const pending = [value];
   while (pending.length > 0) {
@@ -178,7 +178,7 @@ const CONSTRUCT = {
 };
 
 // The record a map writes, a payload of another kind refused by the role of
-// the holder and a field that breaks its record by its name [D367].
+// the holder and a field that breaks its record by its name [QSQUO#step].
 function recordFrom(payload, record) {
   if (!isMap(payload)) throw new record.PayloadKindNotTakenError({ expected: kindsExpected('map'), actualValue: payload });
   for (const name of record.required) if (!payload.has(name)) throw new record.PayloadNotSchemaError({ field: keyword(name), actualValue: null });
@@ -189,7 +189,7 @@ function recordFrom(payload, record) {
 }
 
 // `::call`, a command: its name one a step calls, its modifiers words, a
-// literal among them computing nothing [D367], [QSNAM#letters].
+// literal among them computing nothing [QSQUO#step], [QSNAM#letters].
 export function callOf(payload, written) {
   const call = recordFrom(payload, CALL);
   const name = call.get('name');
@@ -202,7 +202,7 @@ export function callOf(payload, written) {
 
 // `::bind`, a declaration: its name, its docs and its body, a body or a page
 // at least, the name one a step calls and the body no doc, which reads as
-// the page, a literal body computing nothing [D367], [QSNAM#letters].
+// the page, a literal body computing nothing [QSQUO#step], [QSNAM#letters].
 export function bindOf(payload, written) {
   const bind = recordFrom(payload, BIND);
   if (!bind.has('docs') && !bind.has('body')) throw new BindPayloadNotSchemaError({ field: keyword('body'), actualValue: null });
@@ -213,14 +213,14 @@ export function bindOf(payload, written) {
 }
 
 // `::construct`, a tagged literal: its tag and its payload, no error literal,
-// which the tag before its bang writes [D367]; the parser's literal is
+// which the tag before its bang writes [QSQUO#step]; the parser's literal is
 // held to the rule of a literal whole by the step that holds it [QSLIT#closed].
 export function constructOf(payload) {
   return recordFrom(payload, CONSTRUCT);
 }
 
 // `::construct` assembled from data holds its payload a literal that computes
-// nothing, refused as the map its record is built from [QSLIT#closed], [D367].
+// nothing, refused as the map its record is built from [QSLIT#closed], [QSQUO#step].
 export function constructOfData(payload, written) {
   const construct = constructOf(payload);
   heldAsALiteral(construct, ConstructLiteralComputesError, { actualValue: payload }, written);
@@ -228,7 +228,7 @@ export function constructOfData(payload, written) {
 }
 
 // `::fail`, the step `!|` runs: the quote of one step, no step of the fail
-// track and no path, which a verb reads [D367], [QSSYN#step].
+// track and no path, which a verb reads [QSQUO#step], [QSSYN#step].
 export function failOf(payload, written) {
   if (!isQuote(payload)) throw new FailPayloadKindNotTakenError({ expected: kindsExpected('quote'), actualValue: payload });
   if (payload.length !== 1 || isFailStep(payload[0])) throw new FailPayloadNotOneStepError({ actualValue: payload });
@@ -236,7 +236,7 @@ export function failOf(payload, written) {
   return makeTagged(FAIL_TAG, payload);
 }
 
-// `::group`, steps in parentheses: the quote of a step at least [D367].
+// `::group`, steps in parentheses: the quote of a step at least [QSQUO#step].
 export function groupOf(payload) {
   if (!isQuote(payload)) throw new GroupPayloadKindNotTakenError({ expected: kindsExpected('quote'), actualValue: payload });
   if (payload.length === 0) throw new GroupPayloadEmptyError({ actualValue: payload });
@@ -245,7 +245,7 @@ export function groupOf(payload) {
 
 // `::quote`, a vector of steps: a literal of them computing nothing, and a
 // value after the head of the success track refused but after a
-// declaration, by the message of its kind [D367], [QSSYN#step].
+// declaration, by the message of its kind [QSQUO#step], [QSSYN#step].
 export function quoteOf(payload, written) {
   if (!isVec(payload)) throw new QuotePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   payload.forEach((element, index) => {
@@ -291,7 +291,7 @@ export const groupStep = steps => makeTagged(GROUP_TAG, makeQuote(steps));
 
 // The step that answers a value where it stands: a literal as itself, a
 // container of the steps of its parts and a value under a tag the tagged
-// literal of its payload [D367].
+// literal of its payload [QSQUO#step].
 function stepOfValue(value) {
   const fields = errorFieldsOf(value);
   if (fields !== null) return errorAtRest(isValueClass(value, 'underTag') ? value.tag : ERROR_TAG, new Map([...fields].map(([key, fact]) => [key, stepOfValue(fact)])));

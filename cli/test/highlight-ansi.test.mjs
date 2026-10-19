@@ -1,7 +1,7 @@
 // The colour of the REPL, a layer over the core's `tokenize`: each kind of
 // token in the escape of its colour, a token inside a quote in italics, and
-// whitespace and the source past the parse written plain [D371].
-// The rules it holds: [QSWRK#tooling], [D371].
+// whitespace and the source past the parse written plain [QSHST#repl].
+// The rules it holds: [QSWRK#tooling], [QSHST#repl].
 
 import { describe, it, expect } from 'vitest';
 import { highlightAnsi } from '../src/highlight-ansi.mjs';

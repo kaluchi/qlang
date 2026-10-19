@@ -63,7 +63,7 @@ export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...K
 
 // bodyRuns(body) → whether the body of a declaration, as it is written, runs on
 // the values of its label: a quote, and a function its chain gives a recipe by
-// `impl`, or its literal one that is no null [QSBLD#fn], [D371].
+// `impl`, or its literal one that is no null [QSBLD#fn], [QSHST#tools].
 export function bodyRuns(body) {
   if (isQuote(body)) return true;
   if (builtFrom(body) !== FN_TAG_NAME) return false;

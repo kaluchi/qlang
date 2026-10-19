@@ -23,5 +23,5 @@ export async function runQuery(queryText, ioContext, runOpts = {}) {
 const ERROR_KIND = 'error';
 
 // The prose of the page of a failure's site, which the command line writes
-// below the failure, null for a site with no page [QSHST#answer], [D371].
+// below the failure, null for a site with no page [QSHST#answer], [QSSLF#doc].
 const PROSE_OF_THE_PAGE = '!| type | doc | prose !| null';

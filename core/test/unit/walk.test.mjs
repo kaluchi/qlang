@@ -1,5 +1,5 @@
 // The parts the parser reads beside the records of the steps, and the walks
-// over them the readers of a text share [D367].
+// over them the readers of a text share [QSQUO#step].
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
@@ -88,7 +88,7 @@ describe('the parts of a text', () => {
     expect(originOf(makeQuote([commandStep('count', [])]))).toBe('quote');
   });
 
-  it('holds the span of the text of a doc, its quotes among it, which ends where its last word does, the whitespace before its closer aside [D371]', () => {
+  it('holds the span of the text of a doc, its quotes among it, which ends where its last word does, the whitespace before its closer aside [QSHST#tools]', () => {
     const source = ':x\n  |~~ one\n  two ~(add 1)\n  three\n  ~~|\n  1 | |~~| a line  ';
     const [bind, line] = rootOf(source).parts;
     const [, doc] = bind.parts;
@@ -97,7 +97,7 @@ describe('the parts of a text', () => {
     expect(textOf(line)).toEqual([' a line', 6]);
   });
 
-  it('holds the code between the backquotes of a doc, a run of them closing at a run of as many, across the lines of a block doc [D371]', () => {
+  it('holds the code between the backquotes of a doc, a run of them closing at a run of as many, across the lines of a block doc [QSHST#tools]', () => {
     const codeOf = source => rootOf(source).parts[0].backquoted.map(({ start, end }) => source.slice(start.offset, end.offset));
     expect(codeOf('|~~ a `count` b ``x`y`` c `` d ~~|')).toEqual(['count', 'x`y']);
     expect(codeOf('|~~ a `[1\n2]` ~(`x`) ~~|')).toEqual(['[1\n2]']);
@@ -153,16 +153,16 @@ describe('tagHeadEnd', () => {
     return heads;
   };
 
-  it('reads where the head of the tag a tagged literal writes ends, before its payload and its sign [D371]', () => {
+  it('reads where the head of the tag a tagged literal writes ends, before its payload and its sign [QSHST#tools]', () => {
     expect(headsOf('get [::Width#5 ::A::B[1] ::T"s"]')).toEqual(['::Width', '::A', '::B', '::T']);
   });
 
-  it('reads where the tags an error literal writes before its bang end, none for an error literal that writes none [QSERR#rest], [D371]', () => {
+  it('reads where the tags an error literal writes before its bang end, none for an error literal that writes none [QSERR#rest], [QSHST#tools]', () => {
     expect(headsOf('[::E!{:k 1} ::E::error!{} !{:j 2} ::A::B!{}]')).toEqual(['::E', '::E::error', '::A', '::B']);
     expect(headsOf(':Late |~~ A late error. ~~|\n  ::Late!{:by 3}')).toEqual(['::Late']);
   });
 
-  it('reads where the tags written before a quote of a doc end [D371]', () => {
+  it('reads where the tags written before a quote of a doc end [QSHST#tools]', () => {
     expect(headsOf('|~~ see ::link~(x) and ::A::B~(1) or ~(2) ~~|')).toEqual(['::link', '::A::B']);
   });
 
@@ -172,7 +172,7 @@ describe('tagHeadEnd', () => {
 });
 
 describe('tagWrittenBy', () => {
-  it('names the tag a tagged literal writes, an error literal holding each tag written before its bang as a part [QSERR#rest], [D367]', () => {
+  it('names the tag a tagged literal writes, an error literal holding each tag written before its bang as a part [QSERR#rest], [QSQUO#step]', () => {
     const [error, call] = rootOf('::Foo!{:k 1} | get [::Bar[1] !{:j 2} ::Baz]').parts;
     const [vec] = call.parts;
     expect(vec.parts.map(tagWrittenBy)).toEqual(['Bar', null, null]);
@@ -299,13 +299,13 @@ describe('bindingNamesVisibleAt', () => {
     expect(visibleIn(source, source.indexOf('here'), TAG_SPELLING).has('Local')).toBe(false);
   });
 
-  it('answers each name with the part of the last of its declarations visible there [D371]', () => {
+  it('answers each name with the part of the last of its declarations visible there [QSHST#tools]', () => {
     const source = ':x 1 | :vec/x ~(2) | (:x 3) | here';
     const read = visibleIn(source, source.indexOf('here')).get('x');
     expect(source.slice(read.span.start.offset, read.span.end.offset)).toBe(':vec/x ~(2)');
   });
 
-  it('answers a name with a path by its address beside its last name, and a label under the spelling of a tag by its address alone [QSNAM#address], [D371]', () => {
+  it('answers a name with a path by its address beside its last name, and a label under the spelling of a tag by its address alone [QSNAM#address], [QSHST#tools]', () => {
     const source = ':vec/x ~(1) | :string/x ~(2) | :Box |~~ B ~~| | :Box/In |~~ I ~~| | here';
     const visible = visibleIn(source, source.indexOf('here'));
     const written = name => source.slice(visible.get(name).span.start.offset, visible.get(name).span.end.offset);
@@ -313,7 +313,7 @@ describe('bindingNamesVisibleAt', () => {
     expect([...visibleIn(source, source.indexOf('here'), TAG_SPELLING).keys()]).toEqual(['Box', 'Box/In']);
   });
 
-  it('sees in the body of a verb `declaresAVerb` holds of the declarations of the body before the offset and, outside the body, the nodes and the labels wherever they stand, the verb among them, and no value, and in its docs the declarations before the offset [QSNAM#verb], [D371]', () => {
+  it('sees in the body of a verb `declaresAVerb` holds of the declarations of the body before the offset and, outside the body, the nodes and the labels wherever they stand, the verb among them, and no value, and in its docs the declarations before the offset [QSNAM#verb], [QSHST#tools]', () => {
     const source = ':k 1 | :map/walk |~~ see ~(walk) ~~| ~(:j 2 | get /kids | map ~walk) | here | :vec/f ~(f) | :Late |~~ L ~~| | :n 3';
     const verbs = read => read.value.get('name').name.includes('/');
     const namesAt = (offset, spelling, declaresAVerb) => [...bindingNamesVisibleAt(rootOf(source), offset, spelling, declaresAVerb).keys()];
@@ -322,7 +322,7 @@ describe('bindingNamesVisibleAt', () => {
       .toEqual([['map/walk', 'walk', 'j', 'vec/f', 'f', 'Late'], ['Late'], ['k', 'j'], ['k', 'map/walk', 'walk'], ['k']]);
   });
 
-  it('answers a name in the body of a verb with its nearest declaration, one in a pipeline nearer the verb before one written later farther out [QSNAM#verb], [D371]', () => {
+  it('answers a name in the body of a verb with its nearest declaration, one in a pipeline nearer the verb before one written later farther out [QSNAM#verb], [QSHST#tools]', () => {
     const source = '(:vec/g |~~ inner ~~| ~(1) | :vec/f ~(g) | [1] | f) | :vec/g |~~ outer ~~| ~(2)';
     const reached = bindingNamesVisibleAt(rootOf(source), source.indexOf('~(g)') + 2, undefined, read => read.value.get('name').name.includes('/')).get('g');
     expect(source.slice(reached.span.start.offset, reached.span.end.offset)).toBe(':vec/g |~~ inner ~~| ~(1)');
@@ -336,7 +336,7 @@ describe('visibleAt', () => {
     return found;
   };
 
-  it('sees a declaration inside a quote within the pipeline the quote holds, its end included [D367]', () => {
+  it('sees a declaration inside a quote within the pipeline the quote holds, its end included [QSNAM#scope]', () => {
     const source = 'get [~(:x 1 | x) 5]';
     const declaration = declarationIn(source);
     expect(visibleAt(declaration, source.indexOf('| x') + 2)).toBe(true);
@@ -352,7 +352,7 @@ describe('visibleAt', () => {
 });
 
 describe('repeatsDeclarationAt', () => {
-  it('holds a declaration that repeats a name an earlier step of its quote declared, on either track [D367]', () => {
+  it('holds a declaration that repeats a name an earlier step of its quote declared, on either track [QSNAM#scope]', () => {
     const quote = parse(':x 1 | :y 2 | :x 3 | x !| :y 4');
     expect([0, 1, 2, 3, 4].map(index => repeatsDeclarationAt(quote, index))).toEqual([false, false, true, false, true]);
   });

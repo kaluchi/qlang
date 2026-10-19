@@ -1,6 +1,6 @@
 // The quote as a vector of steps: the values `steps.mjs` takes for steps,
 // and what the constructors of the records refuse where a hand assembly
-// breaks a rule of a step [D367].
+// breaks a rule of a step [QSQUO#step].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';
@@ -22,14 +22,14 @@ describe('the empty quote', () => {
   });
 });
 
-describe('the steps a quote holds, each a record or a literal [D367]', () => {
+describe('the steps a quote holds, each a record or a literal [QSQUO#step]', () => {
   it('takes literals, containers of steps, docs, quotes and error literals, each a step at the head', async () => {
     for (const element of [':k', '::T', '|~~ d ~~|', '~(x)', '::error{:k 1}', '[1]', '#[2]', '{:a 3}', '[1, 2]', '{"j": 4}', '/a/0']) {
       expect(await evalQuery(`[${element}] | tag ::quote | count`), element).toBe(1);
     }
   });
 
-  it('refuses a value after the head, which is no command [D367]', async () => {
+  it('refuses a value after the head, which is no command [QSQUO#step]', async () => {
     expect(await evalQuery('[[1] [2]] | tag ::quote !| get [~(type) /index]'))
       .toEqual(await evalQuery('[::quote/StepNotCommandError 1]'));
   });
@@ -41,7 +41,7 @@ describe('the steps a quote holds, each a record or a literal [D367]', () => {
     }
   });
 
-  it('refuses an error literal holding a fact with no reading as code [D367]', async () => {
+  it('refuses an error literal holding a fact with no reading as code [QSQUO#step]', async () => {
     expect(await evalQuery('{:a ::Box[1]} | tag ::error | get [~(it)] | tag ::quote !| get [~(type) /index]'))
       .toEqual(await evalQuery('[::quote/ElementNotStepError 0]'));
   });
@@ -56,7 +56,7 @@ describe('assembling steps by hand', () => {
       .toBe('filter ~(gt 1)');
   });
 
-  it('a step of the fail track over several steps is refused [D367]', async () => {
+  it('a step of the fail track over several steps is refused [QSQUO#step]', async () => {
     expect(await refusal('~(a | b) | tag ::fail')).toEqual(await tagOf('::fail/PayloadNotOneStepError'));
   });
 
@@ -108,12 +108,12 @@ describe('assembling steps by hand', () => {
     expect(await evalQuery('~(get [~(count) /a]) | filter ~(true) | toString')).toBe('get [~(count) /a]');
   });
 
-  it('a payload that is no map is refused by the role of its holder [D367]', async () => {
+  it('a payload that is no map is refused by the role of its holder [QSQUO#step]', async () => {
     expect(await evalQuery('[1] | tag ::call !| get [~(type) /expected]'))
       .toEqual(await evalQuery('[::call/PayloadKindNotTakenError #[::map]]'));
   });
 
-  it('a literal that computes writes its template as the printer writes it, each part that computes as its quote [D367]', async () => {
+  it('a literal that computes writes its template as the printer writes it, each part that computes as its quote [QSQUO#step]', async () => {
     const messageOf = async query => await evalQuery(`${query} | get [~(it)] | tag ::quote !| get /message`);
     expect(await messageOf('[::call{:name :add :modifiers [1]}]')).toContain('write `get [~(add 1)]`');
     expect(await messageOf('#[::call{:name :x} 1]')).toContain('write `get #[1 ~(x)]`');
@@ -121,22 +121,22 @@ describe('assembling steps by hand', () => {
     expect(await messageOf('{:a ::call{:name :count}} | tag ::error | tag ::Foo')).toContain('write `get {:a ~(count)} | tag ::Foo | raise`');
   });
 
-  it('searches a literal for a part that computes on the road of its text as on the road of data, the segments of a doc computing nothing [D367]', async () => {
+  it('searches a literal for a part that computes on the road of its text as on the road of data, the segments of a doc computing nothing [QSQUO#step]', async () => {
     for (const literal of ['[|~~ ::group~(x) ~~|]', '{:k |~~ ::fail~(x) ~~|}', '#[|~~ ::group~(x) ~~|]', '::Box[|~~ ::group~(x) ~~|]', '!{:k |~~ ::group~(x) ~~|}']) {
       expect(await evalQuery(`"${literal}" | parse | :q it | first | get [~(it)] | tag ::quote | eq q`), literal).toBe(true);
     }
   });
 
-  it('holds a literal assembled from data to the rules of a step at any depth, its parts walked by a stack of their own [D367]', async () => {
+  it('holds a literal assembled from data to the rules of a step at any depth, its parts walked by a stack of their own [QSQUO#step]', async () => {
     expect(await evalQuery('6000 | range | reduce [] ~(get [/0]) | get [~(it)] | tag ::quote | count')).toBe(1);
   });
 
-  it('a value after the head assembled from data is refused by the message of its kind [D367]', async () => {
+  it('a value after the head assembled from data is refused by the message of its kind [QSQUO#step]', async () => {
     expect(await evalQuery('[5 ::Box] | tag ::quote !| get /message')).toBe('a tag goes over the value in the pipe by `tag`: write `tag ::Box`');
     expect(await evalQuery('[5 ~(x)] | tag ::quote !| get /message')).toBe('code runs on the value in the pipe by `apply`: write `apply ~(…)`');
   });
 
-  it('each refusal of the constructors of the steps holds values whose print reads back, a payload of code refused as the map its record is built from [QSLIT#closed], [D367]', async () => {
+  it('each refusal of the constructors of the steps holds values whose print reads back, a payload of code refused as the map its record is built from [QSLIT#closed], [QSQUO#step]', async () => {
     const refusals = [
       ['1 | tag ::quote', 'quote/PayloadKindNotTakenError'], ['[{:a ::Box[1]}] | tag ::quote', 'quote/ElementNotStepError'],
       ['[[1] [2]] | tag ::quote', 'quote/StepNotCommandError'], ['[[::call{:name :count}]] | tag ::quote', 'quote/LiteralComputesError'],
@@ -157,7 +157,7 @@ describe('assembling steps by hand', () => {
     expect(await evalQuery('[::construct{:tag ::Box :payload ::call{:name :count}}] !| get /actualValue | type')).toEqual(makeTag('map'));
   });
 
-  it('a call takes no field its record does not name, and a modifier that is a call takes no modifiers of its own [D367]', async () => {
+  it('a call takes no field its record does not name, and a modifier that is a call takes no modifiers of its own [QSQUO#step]', async () => {
     expect(await evalQuery('{:name :f :extra 1} | tag ::call !| get [~(type) /field]')).toEqual(await evalQuery('[::call/PayloadNotSchemaError :extra]'));
     expect(await evalQuery('{:name :f :modifiers [::call{:name :g :modifiers [1]}]} | tag ::call !| get [~(type) /field]'))
       .toEqual(await evalQuery('[::call/PayloadNotSchemaError :modifiers]'));

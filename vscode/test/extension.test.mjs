@@ -2,8 +2,8 @@
 // by the core's tokens, plain until the core's painter loads and every call a
 // name until the root hands over the names of its words, each kind coated by a
 // class of highlight.js, and selects a word by the regex of a name the core
-// exports, the language server folding a document [D371].
-// The rules it holds: [D371].
+// exports, the language server folding a document [QSHST#tools].
+// The rules it holds: [QSHST#tools].
 
 import { describe, it, expect, vi } from 'vitest';
 import Module, { createRequire } from 'node:module';

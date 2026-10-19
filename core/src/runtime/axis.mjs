@@ -39,7 +39,7 @@ const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError'
 
 // What a refusal of an axis holds, the subject a name nothing declares:
 // the tag it read, the addresses where the pages of its last name live and
-// the names near it [QSDSP#walk], [D367], [QSSLF#near].
+// the names near it [QSDSP#walk], [QSERR#site], [QSSLF#near].
 function refusalOf(scope, subject) {
   return { name: subject, addresses: addressesOf(scope, splitAddress(subject.name)[1]), nearest: nearestTagNames(scope, subject.name) };
 }

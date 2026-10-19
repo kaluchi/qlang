@@ -445,7 +445,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each name and phrase in which the code called a tag over a payload and the steps of the fail track and of a group a wrapper, or the tag `within` lays back over the payload it edits by another word, where it is written [D367]', () => {
+  it('refuses each name and phrase in which the code called a tag over a payload and the steps of the fail track and of a group a wrapper, or the tag `within` lays back over the payload it edits by another word, where it is written [QSCOL#within]', () => {
     for (const text of [
       'wrapperConstructor', 'the wrappers a step takes on the fail track or in parentheses',
       'any other payload, a tagged one among them, is held by a wrapper, which `payload` opens',
@@ -461,7 +461,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the word in its other senses, the command `wraps` and a line wrapped at its width, and the words written in its place [D367]', () => {
+  it('leaves the word in its other senses, the command `wraps` and a line wrapped at its width, and the words written in its place [QSCOL#within]', () => {
     for (const text of [
       'newer code reaching older code through a conversion, a wrapper, a second table', 'a wrapper a query lays over its answer',
       'the wrapper the host would take off before it prints', '`wraps` names its payload and its kinds', '::kind | wraps |~~ The sizes. ~~| ::map',
@@ -473,7 +473,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each name in which the code called the scope an environment, a pipeline a body and the parts the parser read a tree of nodes, where it is written [D367]', () => {
+  it('refuses each name in which the code called the scope an environment, a pipeline a body and the parts the parser read a tree of nodes, where it is written [QSNAM#scope]', () => {
     for (const text of [
       'state.env', 'withEnv', 'envSet', 'envHas', 'envMerge', 'nextEnv', 'bodyEnv', 'core/src/env-keys.mjs',
       'evalBody', 'answerOfBody', 'quoteOfBody', 'stepsOfBody', 'CALL_BINDS_KEY', 'capturedState', 'resolveBinaryReducer',
@@ -485,7 +485,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the words written in their place, the verb `env`, the environment of a process and the nodes of the tree of names [D367]', () => {
+  it('leaves the words written in their place, the verb `env`, the environment of a process and the nodes of the tree of names [QSNAM#scope]', () => {
     for (const text of [
       'state.scope', 'withScope', 'scopeSet', 'scopeHas', 'recipeScope', 'core/src/scope-keys.mjs', 'RECIPE_KEY', 'evalPipeline', 'closeQuote',
       'foldingCodeOf', 'walkParts', 'partAtOffset', 'partOf', '`env` lists what the reader declared', 'process.env', 'the body of a declaration',

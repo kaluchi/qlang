@@ -1,6 +1,6 @@
 // The evaluator: the records of the steps of a quote run by their tags, a
 // quote read from text and one assembled from data alike, on the state pair
-// of value and scope [D367].
+// of value and scope [QSQUO#step].
 
 import { ROOT_KEY, QUERY_KEY, RECIPE_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import {
@@ -53,7 +53,7 @@ const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError')
 
 // evalPipeline(steps, state) → the state after the steps of a pipeline, its
 // head riding `|` like every other step, which a query, a condition, a place,
-// a recipe, a group and the code a verb runs all go through [D367].
+// a recipe, a group and the code a verb runs all go through [QSQUO#step].
 export async function evalPipeline(steps, state, origin = originOf(steps)) {
   let current = state;
   for (const [index, step] of steps.entries()) {
@@ -147,7 +147,7 @@ async function applyFailTrack(state, step, at) {
 }
 
 // A group runs its quote as a fork, a step of the quote that holds it
-// [D367].
+// [QSQUO#step].
 async function evalGroup(group, state, at) {
   return await fork(state, inner => evalPipeline(group.payload, inner, at?.origin ?? originOf(group.payload)));
 }
@@ -164,7 +164,7 @@ function evalItself(step, state) {
 // another in the order the literal holds them [QSQUO#modifier], none reading
 // the scope or the subject [QSLIT#closed]; a failure lives in the pipe
 // alone, so the first an element answers, a kind's refusal of its payload, is
-// the answer of the literal, the elements after it left unread [D367].
+// the answer of the literal, the elements after it left unread [QSERR#flow].
 async function evalVec(vec, state) {
   return withPipeValue(state, await elementValues(vec, state));
 }
@@ -215,7 +215,7 @@ async function evalErrorLiteral(step, state) {
 // A doc's quote takes the role the tags written before it give, each laid
 // over the quote through its label as a tagged literal lays a payload, so a
 // tag whose label takes no quote refuses the doc,
-// `|~~ see ::number~(~(x)) ~~|` as `::number~(~(x))` does [D367].
+// `|~~ see ::number~(~(x)) ~~|` as `::number~(~(x))` does [QSSLF#doc].
 async function evalDoc(doc, state) {
   for (const segment of doc) {
     if (!isValueClass(segment, 'underTag')) continue;
@@ -256,7 +256,7 @@ function passedUntagged(payloadError, construct, payloadStep, tagName, scope) {
 // against the current value, `42 | :x it | add 1 | x` answering 42, a quote
 // among them as the data it is [QSBLD#fn], a declaration of docs alone binding
 // them as a page, and a body that fails answering the failure, which no name
-// holds [D367]; a name is declared once in its scope [D367], a
+// holds [QSERR#flow]; a name is declared once in its scope [QSNAM#scope], a
 // node the root holds once at all and a name with a path under a noun declared
 // before it [QSNAM#address], never a value withheld from held code
 // [QSQUO#held]; what the chain of a kind or a function holds alone, declared
@@ -361,7 +361,7 @@ function nodesOfFunction(fn, address, scope, origin) {
 
 // Whether a declaration among the steps of the recipe of a verb names what
 // its call bound in the scope the recipe runs in, `args` or an input; a
-// group of the recipe is a scope of its own [D367].
+// group of the recipe is a scope of its own [QSNAM#scope].
 function declaresWhatTheCallBinds(steps, scope, name) {
   const recipe = scope.get(RECIPE_KEY);
   return recipe !== undefined && recipe.steps === steps && recipe.names.has(name);
@@ -478,7 +478,7 @@ async function callByAddress(call, address, modifierSteps, state) {
 // the kind of the value refused in the order the catalog declares them; the
 // value itself rides the facts where the trace does not hold it, an input or
 // the args, and leaves them for the subject, which the trace's first frame
-// holds [D367].
+// holds [QSERR#site].
 function refusalUnder(tagName, facts, scope, refused = facts.actualValue) {
   const tag = makeTag(tagName);
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeOf(refused)), scope));
@@ -626,7 +626,7 @@ async function applyVerb(record, modifiers, state) {
 
 // The value under the tags from the innermost out, each laid again through
 // its kind [QSDSP#answer]; an error passes as it is, as it does under every
-// tag [D367].
+// tag [QSERR#flow].
 async function underTags(value, tags, state) {
   let laid = value;
   for (const tag of [...tags].reverse()) laid = await layTag(tag.name, laid, state);
@@ -827,7 +827,7 @@ function codeOfArg(value, originOfQuote, state) {
   return isPath(value) ? codeOfPath(value, state) : value;
 }
 
-// The code a fold is handed [D367]: a quote of one step, a call
+// The code a fold is handed [QSCOL#reduce]: a quote of one step, a call
 // with no modifiers that reaches a verb, calls it as the pipe calls it, the
 // value so far its subject and the element its arg, in the scope the quote
 // came from, a value of that scope under the name meeting the verb; any
@@ -928,7 +928,7 @@ function refusalOfFailedModifier(chain, address, index, error, scope) {
 // layTag(tagName, payload, state) → the payload under the tag
 // through its label [QSDSP#answer]: built by its kind [QSBLD#kind], laid over
 // as it is where no kind answers the tag [QSLIT#tag], [QSBLD#label], never
-// over an error [D367], and never under the name of a value withheld
+// over an error [QSERR#flow], and never under the name of a value withheld
 // from held code [QSQUO#held].
 export async function layTag(tagName, payload, state) {
   if (isErrorValue(payload)) return payload;
@@ -991,14 +991,14 @@ async function fieldRefusal(tagName, field, payload, invariants, state, opened) 
 // The code of a step a call closes over, which keeps the scope it runs in,
 // the evaluation depth of its call and the calls it runs within, with the
 // origin of each quote they received, run against the subject it is handed
-// one deeper, the frame of the step its own [D367], [QSNAM#verb],
+// one deeper, the frame of the step its own [QSNAM#scope], [QSNAM#verb],
 // [QSQUO#held], [QSERR#trace].
 function closeStep(step, state) {
   return async subject => (await evalStep(step, nestState(state, subject, state.scope))).pipeValue;
 }
 
 // The code of a quote a call closes over, which keeps the scope, the depth
-// and the calls the code of a step keeps, run as that code is [D367], [QSNAM#verb].
+// and the calls the code of a step keeps, run as that code is [QSNAM#scope], [QSNAM#verb].
 function closeQuote(quote, state) {
   return async subject => (await evalPipeline(quote, nestState(state, subject, state.scope))).pipeValue;
 }

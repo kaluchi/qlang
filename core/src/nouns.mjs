@@ -120,7 +120,7 @@ export const returnsItsLabel = (kinds, labelName) => kinds.includes(labelName);
 // name under a label gives, for a tool, as the evaluator lays it: the walk of
 // the subject through the verb's own label where `returns` names that label
 // and the walk reaches it, the kinds it names elsewhere, or null for a verb
-// that answers any value [QSBLD#answer], [D371].
+// that answers any value [QSBLD#answer], [QSHST#tools].
 export function answerKindsOf(scope, record, subjectKinds) {
   const address = record.get('name').name;
   const answer = answerOf(scope, address);
@@ -474,7 +474,7 @@ export function nodeAddresses(scope) {
 }
 
 // verbNames(scope) → the names a step calls the verbs of a scope by, the last
-// name of each and its address [QSNAM#verb], [D371].
+// name of each and its address [QSNAM#verb], [QSHST#tools].
 export function verbNames(scope) {
   const names = new Set();
   for (const [name, record] of bindingsOf(scope)) {

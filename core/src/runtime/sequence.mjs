@@ -4,7 +4,7 @@
 // [QSDSP#walk]: a verb of vectors reads the elements in order, a set reaching it
 // through the walk in its one order [QSORD#order], [QSDSP#residence], a map's reads
 // its values and keeps its keys [QSCOL#map], a string's reads its characters
-// [QSTXT#string], and a refusal names the verb that refused [D367].
+// [QSTXT#string], and a refusal names the verb that refused [QSERR#site].
 
 import { beneathTags, isNumber, keyword, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath } from '../types.mjs';
 import { compareValues, makeSet } from '../ordering.mjs';
@@ -372,7 +372,7 @@ registerPrimitive('vec/flat', sequence => sequence.flatMap(element => (isVec(ele
 // The fold, `reduce seed ~(reducer)`: the reducer folds the value so far and
 // each element into the value so far after it; `seed` answers for an empty
 // subject, and a failure of the reducer stops the fold at the place of its
-// element [D367].
+// element [QSCOL#reduce].
 async function foldOf(entries, seed, reducer) {
   let acc = seed;
   for (const [segment, element] of entries) {

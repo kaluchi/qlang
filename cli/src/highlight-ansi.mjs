@@ -1,7 +1,7 @@
 // highlightAnsi(source, verbNames) → the source painted for a terminal, each
 // token of the core's `tokenize` in the colour of its kind among the eight of
 // ANSI and their bright and dim variants, a token inside a quote in italics.
-// The rules it holds: [QSWRK#tooling], [D371].
+// The rules it holds: [QSWRK#tooling], [QSHST#repl].
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 

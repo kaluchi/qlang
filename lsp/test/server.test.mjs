@@ -3,8 +3,8 @@
 // features alone never reaches, since those import `features.mjs` and
 // leave the server's own imports unread, it reads each source of the
 // language where the core's package exports it [QSHST#source], and it maps
-// the role of a declaration to the kinds of the protocol [D371].
-// The rules it holds: [QSWRK#tooling], [D371].
+// the role of a declaration to the kinds of the protocol [QSHST#tools].
+// The rules it holds: [QSWRK#tooling], [QSHST#tools].
 
 import { describe, it, expect } from 'vitest';
 import { spawn } from 'node:child_process';
@@ -63,7 +63,7 @@ describe('the language server process', () => {
     }
   }, 30_000);
 
-  it('names a declaration of a document by its role, a verb a function, a value a variable and a label a struct of the protocol [D371]', async () => {
+  it('names a declaration of a document by its role, a verb a function, a value a variable and a label a struct of the protocol [QSHST#tools]', async () => {
     const serverProcess = spawn(process.execPath, [serverPath, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
     try {
       const initialized = answerOf(serverProcess, 1);

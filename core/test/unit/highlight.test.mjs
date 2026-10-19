@@ -3,7 +3,7 @@
 // in the language, one sense to a kind, the gaps between them their whitespace,
 // their combinators and their punctuation, a source that does not parse
 // painted up to where its parse stopped, and every character of the source
-// covered once [D371].
+// covered once [QSHST#tools].
 
 import { describe, it, expect } from 'vitest';
 import { tokenize } from '../../src/highlight.mjs';
@@ -147,13 +147,13 @@ describe('tokenize — a quote', () => {
 });
 
 describe('tokenize — the name of a call by what it reaches', () => {
-  it('paints the name of a word of the root as a verb, a call by its address among them [D371]', async () => {
+  it('paints the name of a word of the root as a verb, a call by its address among them [QSHST#tools]', async () => {
     expect(await painted('count')).toEqual([['count', 'verb']]);
     expect(await painted('[1] | vec/count')).toContainEqual(['vec/count', 'verb']);
     expect(await painted('[1] | vec/sort')).toContainEqual(['vec/sort', 'verb']);
   });
 
-  it('paints any other name as a name, a call by an address no word of the root stands at among them, its last name one\'s [D371]', async () => {
+  it('paints any other name as a name, a call by an address no word of the root stands at among them, its last name one\'s [QSHST#tools]', async () => {
     expect(await painted('myVerb')).toEqual([['myVerb', 'name']]);
     expect(await painted('Box/area')).toEqual([['Box/area', 'name']]);
     expect(await painted('[1] | string/sort')).toContainEqual(['string/sort', 'name']);
@@ -284,7 +284,7 @@ describe('tokenize — a source that does not parse', () => {
     expect(tokens.at(-1)).toEqual({ start: src.indexOf('|'), end: src.length, kind: 'unparsed' });
   });
 
-  it('passes a throw of the parser that is no refusal of the text as it is, the overflow of the stack of a deep nest among it [D367]', async () => {
+  it('passes a throw of the parser that is no refusal of the text as it is, the overflow of the stack of a deep nest among it [QSQUO#step]', async () => {
     let thrown = null;
     try { tokenize('['.repeat(20000) + ']'.repeat(20000), await rootVerbNames()); } catch (e) { thrown = e; }
     expect(thrown).toBeInstanceOf(RangeError);
@@ -295,7 +295,7 @@ describe('tokenize — a source that does not parse', () => {
     expect(tokenize('[[[[[1 )', await rootVerbNames())).toEqual([{ start: 0, end: 8, kind: 'unparsed' }]);
   });
 
-  it('paints a source refused after a line doc whose `~(` reads as no code up to where its reading stopped [D367]', async () => {
+  it('paints a source refused after a line doc whose `~(` reads as no code up to where its reading stopped [QSSYN#doc]', async () => {
     const src = '[|~~| x ~(a\n 1 2 , 3]';
     expect(tokenize(src, await rootVerbNames()).map(token => [src.slice(token.start, token.end), token.kind])).toEqual([
       ['[', 'vec'], ['|~~| x ~(a', 'doc'], ['\n ', 'whitespace'], ['1', 'number'], [' ', 'whitespace'], ['2', 'number'], [' ', 'whitespace'], [', 3]', 'unparsed']
@@ -305,7 +305,7 @@ describe('tokenize — a source that does not parse', () => {
 
 describe('tokenize — the code a doc holds', () => {
   // Only the prose of a doc paints as a doc: its quotes and its spans between
-  // backquotes paint as the code they are [D371].
+  // backquotes paint as the code they are [QSHST#tools].
 
   it('paints a quote of the prose as code', async () => {
     expect(await painted('|~~ see ~(add 1) ~~|')).toEqual([
@@ -338,7 +338,7 @@ describe('tokenize — the code a doc holds', () => {
     expect(tokens).toContainEqual(['count', 'verb italic']);
   });
 
-  it('paints a doc whose quote stands under the tag of a group or of the fail track, in a literal or a doc, its quote as code [D367]', async () => {
+  it('paints a doc whose quote stands under the tag of a group or of the fail track, in a literal or a doc, its quote as code [QSSLF#doc]', async () => {
     for (const src of ['|~~ see ::group~(add 1) ~~|', '[|~~ ::group~(add 1) ~~|]', 'f |~~ ::fail~(add 1) ~~|', '|~~ ~([|~~ ::group~(add 1) ~~|]) ~~|']) {
       expectCoversInputExactly(tokenize(src, await rootVerbNames()), src);
       expect(await painted(src), src).toContainEqual(['add', 'verb italic']);
@@ -348,7 +348,7 @@ describe('tokenize — the code a doc holds', () => {
 
 describe('tokenize — the docs of a slot', () => {
   // The doc literals of a declaration's slot are parts the parser reads as it
-  // reads every doc, each of prose painted as one doc [D371].
+  // reads every doc, each of prose painted as one doc [QSHST#tools].
 
   it('a doc of prose between the key and the body is one doc', async () => {
     expect(await painted(':double |~~ Doubles the input. ~~| mul 2')).toEqual([

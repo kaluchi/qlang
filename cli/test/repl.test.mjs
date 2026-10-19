@@ -90,7 +90,7 @@ describe('runRepl — query evaluation', () => {
     expect(text).toMatch(/sub/);
   });
 
-  it('reads a doc whose quote stands under the tag of a group as a cell, its answer on stdout and no defect [D367]', async () => {
+  it('reads a doc whose quote stands under the tag of a group as a cell, its answer on stdout and no defect [QSSLF#doc]', async () => {
     const replHarness = captureRepl('|~~ see ::group~(add 1) ~~| | segments | get /1\n["a" ::group~(x)] | tag ::doc | :d it | print | parse | first | eq d\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toBe('qlang> ::group~(add 1)\nqlang> true\nqlang> ');

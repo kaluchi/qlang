@@ -13,13 +13,13 @@
 // it holds; a rule a constructor holds is refused at the part its refusal
 // names, but in a `~(…)` of a doc tried as code, whose try a rule of a step
 // and a refusal the grammar does not pass over there fail, a refusal it
-// passes over letting the quote read as code [D367].
+// passes over letting the quote read as code [QSSYN#doc].
 //
 // A comment, `|~| …` to the end of its line or `|~ … ~|`, is
-// whitespace wherever whitespace stands [D367]; the parser
+// whitespace wherever whitespace stands [QSSYN#comment]; the parser
 // records each on the side, `options.commentTrivia`, for the tools. The
 // doc forms, `|~~| …` and `|~~ … ~~|`, are the doc literal, which
-// documents the declaration whose slot it stands in [D367].
+// documents the declaration whose slot it stands in [QSSYN#doc].
 
 {{
   import { isNameStart, isNameContinue } from '../src/name-chars.mjs';
@@ -31,7 +31,7 @@
   import { walkParts } from '../src/walk.mjs';
 
   // A span between backquotes in the prose of a doc: its text and the span of
-  // the code its runs of backquotes hold [D371].
+  // the code its runs of backquotes hold [QSHST#tools].
   class Backquoted {
     constructor(text, code) {
       this.text = text;
@@ -41,7 +41,7 @@
 
   // The segments of a doc, its prose, each run of it one string, and the parts
   // of the quotes among it, with the spans of the code its spans between
-  // backquotes hold [D371].
+  // backquotes hold [QSHST#tools].
   function proseJoined(parts) {
     const segments = [];
     const backquoted = [];
@@ -142,7 +142,7 @@
   }
 
   // The parts of a literal that compute, searched where `partsOfALiteral`
-  // searches the values [QSLIT#closed], [D367].
+  // searches the values [QSLIT#closed], [QSQUO#step].
   function computingReadsOf(read) {
     const computing = [];
     walkParts(read, held => {
@@ -156,7 +156,7 @@
   // The records a rule builds, kept for its action where they keep the rules
   // of a step; a broken rule is refused at the part it names, but in the
   // quote of a doc, where it fails the try of its rule, and a throw of a
-  // constructor that is no refusal passes as it is [D367].
+  // constructor that is no refusal passes as it is [QSQUO#step].
   let built = null;
 
   function accepted(build) {
@@ -191,7 +191,7 @@
   // The quote of a pipeline, each step after `!|` the step of the fail track
   // that holds it, answering the first rule of its steps in the order written
   // but the rules a step holds itself, a modifier's and a group's among them,
-  // answered when it is read [D367].
+  // answered when it is read [QSQUO#step].
   function pipelineOf(leadingCombinator, head, tail) {
     const parts = [];
     for (const { combinator, step } of [{ combinator: leadingCombinator, step: head }, ...tail]) {
@@ -213,7 +213,7 @@
   }
 
   // A word read as a step answers the rules it holds itself when it is read,
-  // as a modifier and a group do [D367].
+  // as a modifier and a group do [QSQUO#step].
   function wordStepRead(word) {
     through(() => quoteOf([word.value], asWritten), () => word);
     return { read: word };
@@ -246,7 +246,7 @@
   }
 
   // An error literal, the tag written before its bang a part of it and the
-  // span of its tags its head [QSERR#rest], [D371].
+  // span of its tags its head [QSERR#rest], [QSHST#tools].
   const errorRead = (tag, entries) => Object.assign(entriesRead(facts => errorAtRest(tag?.value ?? ERROR_TAG, facts), entries, tag === null ? [] : [tag]), tag === null ? {} : { head: tag.span });
 
   // A tagged literal, and a tag written before an error literal of the kind
@@ -258,14 +258,14 @@
   }
 
   // The segments of a doc, the span of its text to its last word and the spans
-  // of the code between its backquotes [D371].
+  // of the code between its backquotes [QSHST#tools].
   function textRead(parts) {
     const { source, start } = range();
     return { ...proseJoined(parts), text: { source, start: pointOf(start), end: pointOf(start + text().trimEnd().length) } };
   }
 
   // A span between backquotes, its runs of backquotes as many on each side
-  // [D371].
+  // [QSHST#tools].
   function backquotedRead(run) {
     const { source, start, end } = range();
     return new Backquoted(text(), { source, start: pointOf(start + run), end: pointOf(end - run) });
@@ -293,7 +293,7 @@
 
   // How deep the parser is in a `~(…)` of a doc it tries as code, whose try a
   // rule of a step and a refusal the grammar does not pass over there fail, a
-  // refusal it passes over letting the quote read as code [D367].
+  // refusal it passes over letting the quote read as code [QSSYN#doc].
   let docQuoteDepth = 0;
 
   // How deep the parser is in a look ahead for a declaration that opens on
@@ -301,7 +301,7 @@
   let lookingAhead = 0;
 
   // Whether the parser reads the span of a `~(` of a line doc, which reads no
-  // line break [D367].
+  // line break [QSSYN#doc].
   let spanOfALine = false;
 
   // The path a quote holds alone, a leading pipe before it among it, or null.
@@ -328,7 +328,7 @@
 
 // A source of whitespace alone, comments among it, is the empty
 // pipeline, which answers the value it is handed, as the empty quote
-// does [D367].
+// does [QSSYN#comment].
 Query
   = _ p:Pipeline _ { return p; }
   / _ { return part(quoteOf([], asWritten)); }
@@ -416,7 +416,7 @@ DocBeforeDeclaration
 
 // A doc written after a step with no combinator is refused: a note in a
 // pipeline is a comment, which is whitespace, and a doc as a value stands
-// at the head or where a verb takes it [D367].
+// at the head or where a verb takes it [QSSYN#doc].
 DocAfterStep
   = &{ return docQuoteDepth === 0; } &DocOpen DocOpen
     { error('a doc is a value, which stands at the head or where a verb takes it; a note inside a pipeline is a comment, `|~ … ~|`'); }
@@ -623,7 +623,7 @@ Word
   / AtomLit
 
 // The element of a literal and the modifier of a command, which a doc value
-// may be too [D367].
+// may be too [QSSYN#doc].
 Element
   = Word
   / DocLit
@@ -778,13 +778,13 @@ QuoteLinePlainSpan
 QuoteChar
   = ![()] @QuoteSpanChar
 
-// A character of a `~(…)` span, which in a line doc is no line break [D367].
+// A character of a `~(…)` span, which in a line doc is no line break [QSSYN#doc].
 QuoteSpanChar
   = c:. &{ return c !== '\n' || !spanOfALine; } { return c; }
 
 // A doc value, in a line form and a block form, read as its segments: a
 // `~(…)` that reads as code is a quote, a span between backquotes is
-// prose whole, and the rest is prose [QSQUO#literal], [D367]; a line doc's quote
+// prose whole, and the rest is prose [QSQUO#literal], [QSSYN#doc]; a line doc's quote
 // stays on its line. The printer writes the block form. A parse error
 // names its opening `doc` and its prose among the continuations [QSSYN#refusal].
 DocLit
@@ -810,7 +810,7 @@ BlockDocText
 // between backquotes at a backquote, as markdown reads it, a run of them
 // closing at a run of as many and a run with no such closer prose, and in
 // a block a nested comment or doc at `|`; a `~(` that reads as no code
-// reads to the `)` that pairs it as prose, in a line doc on its line [D367].
+// reads to the `)` that pairs it as prose, in a line doc on its line [QSSYN#doc].
 LineDocPart
   = ProseRunOfALine { return text(); }
   / quote:DocQuote &{ return !sourceOf(quote).includes('\n'); } { return quote; }
@@ -850,13 +850,13 @@ ProseOfAString "character of prose"
   = !["\\] @QuoteSpanChar
 
 // A `~(` of a line doc that reads as no code, read as prose to the `)` that
-// pairs it on its line, `spanOfALine` holding while the span is read [D367].
+// pairs it on its line, `spanOfALine` holding while the span is read [QSSYN#doc].
 LineQuoteSpan "character of prose"
   = &{ spanOfALine = true; return true; } prose:QuoteSpan &{ spanOfALine = false; return true; } { return prose; }
   / &{ spanOfALine = false; return false; } "~("
 
 // A quote of a doc, under the stack of tags written before it, which gives it
-// its role [D367] and is its head [D371], the depth `docQuoteDepth` counts given
+// its role [QSSLF#doc] and is its head [QSHST#tools], the depth `docQuoteDepth` counts given
 // back whether a quote is read or not.
 DocQuote
   = &{ docQuoteDepth++; return true; } tags:DocQuoteTag* quote:QuoteLit &{ docQuoteDepth--; return true; }
@@ -1010,7 +1010,7 @@ HexDigit "hexadecimal digit"
 
 // A number is a finite double, so digits naming a magnitude outside that
 // domain match no production, and a leading zero is refused [QSLIT#number]
-// but in a quote of a doc, where it fails the try [D367]. `text()` reads
+// but in a quote of a doc, where it fails the try [QSSYN#doc]. `text()` reads
 // empty inside a semantic predicate, so the predicate reads its labels.
 NumberLit "number within the finite double range"
   = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)? exp:([eE] [+\-]? [0-9]+)?

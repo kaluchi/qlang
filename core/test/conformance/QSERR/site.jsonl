@@ -19,7 +19,7 @@
 {"name":"a-refusal-links-the-page-of-the-place-it-guards","query":"::path/KeyNotInMapError | doc | links | map ~open | any ~(eq (::path | doc))","expect":"true"}
 {"name":"a-refusal-is-declared-in-the-source-of-its-place","query":"::path/KeyNotInMapError | binding | get /origin","expect":":qlang/path"}
 {"name":"reading-text-as-code-is-refused-under-quote","query":"::quote/ParseError | binding | get /origin","expect":":qlang/quote"}
-{"decision":"D367","name":"a-defect-of-the-runtime-sits-under-builtin","query":"::builtin/RefusalFactNotDeclaredError | binding | get /origin","expect":":qlang/builtin"}
+{"name":"a-defect-of-the-runtime-sits-under-builtin","query":"::builtin/RefusalFactNotDeclaredError | binding | get /origin","expect":":qlang/builtin"}
 {"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string"}
 {"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| get /key","expect":":b"}
 {"name":"an-input-raises-the-refusal-under-its-address","query":"1 | add \"a\" !| get [~(type) /actualType]","expect":"[::number/add/addend/KindNotTakenError ::string]"}
@@ -29,4 +29,4 @@
 {"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | toString | contains \"throws :addend/KindNotTakenError\"","expect":"true"}
 {"name":"a-step-lists-its-refusals-on-its-noun","query":"::path | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :KeyNotInMapError) | count","expect":"1"}
 {"name":"a-noun-lists-each-refusal-once","query":"::vec | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :PayloadKindNotTakenError) | count","expect":"1"}
-{"decision":"D367","name":"two-places-share-the-last-name-of-the-rule-they-refuse","query":"get [~([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| type) ~([[::call{:name :count}]] | tag ::quote !| type)] | map ~(toString | split \"/\" | last)","expect":"[\"LiteralComputesError\" \"LiteralComputesError\"]"}
+{"name":"two-places-share-the-last-name-of-the-rule-they-refuse","query":"get [~([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| type) ~([[::call{:name :count}]] | tag ::quote !| type)] | map ~(toString | split \"/\" | last)","expect":"[\"LiteralComputesError\" \"LiteralComputesError\"]"}

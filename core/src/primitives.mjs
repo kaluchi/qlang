@@ -145,7 +145,7 @@ export function inputsRunWithin(primitive) {
 
 // folds(names, primitive) → the primitive, which folds by the inputs of
 // those names, each handed as the code that folds the value so far and an
-// element [D367].
+// element [QSCOL#reduce].
 const INPUTS_FOLDED_BY = new WeakMap();
 
 export function folds(names, primitive) {

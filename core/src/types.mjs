@@ -134,7 +134,7 @@ export function isQuote(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === QUOTE_TAG_NAME;
 }
 
-// A quote is a vector of steps under `::quote` [D367], made here alone.
+// A quote is a vector of steps under `::quote` [QSQUO#step], made here alone.
 export const QUOTE_TAG_NAME = 'quote';
 
 export function makeQuote(steps) {
@@ -206,7 +206,7 @@ export function isVecOfOwnKind(v) {
 }
 
 // A segment of a doc: a run of its prose, a quote, or a quote under a
-// stack of tags, which gives the quote its role [D367].
+// stack of tags, which gives the quote its role [QSSLF#doc].
 export function isDocSegment(v) {
   return typeof v === 'string' || isQuote(beneathTags(v));
 }

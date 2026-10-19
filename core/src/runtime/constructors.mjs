@@ -94,7 +94,7 @@ registerPrimitive('doc/construct', docConstructor);
 
 // `::quote[…]` — the quote of a vector of steps, under `tag ::quote` and
 // after every transform of a quote alike, the rules of a step held where it
-// is made [D367].
+// is made [QSQUO#step].
 registerPrimitive('quote/construct', payload => quoteOf(payload, asPrinted));
 
 // `::trace[…]` — the trace of a failure, its frames in the order it flew [QSERR#trace].

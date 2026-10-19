@@ -160,14 +160,14 @@ export function printQuoteSource(quote) {
 
 // docText(doc) → its prose with each quote written where it stands as
 // `print` writes it, a quote under tags with its stack before it, the text
-// a doc's `content` answers [D367].
+// a doc's `content` answers [QSSLF#doc].
 export function docText(doc) {
   return doc.map(segment => (typeof segment === 'string' ? segment : printValue(segment))).join('');
 }
 
 // How a rule of a step built from data reads and writes the parts it names:
 // as the record holds them and the printer writes them, a literal with each
-// part of it that computes written as its quote [D367].
+// part of it that computes written as its quote [QSQUO#step].
 export const asPrinted = { of: value => printValue(value), quoting: literal => printStep(literal, true), computesWithin };
 
 // A quote of declarations alone, the story `source` reads, prints one

@@ -1,5 +1,5 @@
 // The errors of the runtime: a refusal of a query, one kind for every
-// place that refuses, whose facts the catalog declares [D367], and the
+// place that refuses, whose facts the catalog declares [QSERR#site], and the
 // defects of the runtime and of what its host handed, which never reach
 // a query as values. Every QlangError carries `.facts`, the facts its site
 // hands, which the lift into an error value orders as the catalog declares them.

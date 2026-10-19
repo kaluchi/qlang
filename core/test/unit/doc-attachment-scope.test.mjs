@@ -3,7 +3,7 @@
 //      the key of a map entry — parse error.
 //   2. In the slot of a declaration, between its name and its body, it
 //      documents the declaration; before a declaration it is refused
-//      [D367].
+//      [QSSYN#doc].
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';

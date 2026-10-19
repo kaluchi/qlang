@@ -207,15 +207,18 @@ prints the page above the value.
 A doc is the markdown of the language, the vector of its segments, prose
 strings and quotes, under `::doc`. The parser reads the segments: a
 `~(…)` whose text reads as code is a quote, under the tags written
-before it, a span between backquotes and an unclosed quote are prose,
-and each run of prose is one string, an empty one dropped. `content`
-answers the text, each quote and its tags where it stands, written as
-its literal spelled it, a quote assembled from data printed; `segments`
-answers the parts, of a doc under a tag as well, and `tag ::doc` builds
-a doc from a vector of strings and quotes, joining strings that stand
-together and dropping an empty one, as the parser does, a payload that
-is no vector refused as `::doc/PayloadKindNotTakenError` and an element
-of another kind as `::doc/ElementNotSegmentError`. A tag gives a quote a
+before it, a span between backquotes and a `~(` that reads as no code
+are prose [QSSYN#doc], and each run of prose is one string, an empty one
+dropped. The segments compute nothing, a quote under the tag of a group
+among them. `content` answers the text, each quote and its tags where it
+stands, the quote written as `print` writes it, so two equal docs print
+alike; `prose` answers the prose alone, the strings of its segments
+joined, its quotes, links and snippets left out; `segments` answers the
+parts, of a doc under a tag as well, and `tag ::doc` builds a doc from a
+vector of strings and quotes, joining strings that stand together and
+dropping an empty one, as the parser does, a payload that is no vector
+refused as `::doc/PayloadKindNotTakenError` and an element of another
+kind as `::doc/ElementNotSegmentError`. A tag gives a quote a
 role, the tags of a stack read from the outside in: `::link`, which
 `links` answers and `open` runs to what its query answers, a page where
 it reads one, and `::snippet`, which `snippets` answers and `open` runs
@@ -231,6 +234,12 @@ its role.
 
 > ::Box|~~ a ~(add 1) b ~~| | segments
 [" a " ~(add 1) " b "]
+
+> get [~(|~~ a ~(add   1) b ~~| | print) ~(|~~ see ::group~(add 1) ~~| | segments | count)]
+["|~~ a ~(add 1) b ~~|" 3]
+
+> get [~(|~~ a ~(add 1) b ~~| | prose | count) ~(|~~ a ::link~(::qlang | doc) b ~~| | prose | contains "link") ~(|~~ a ~(add 1) b ~~| | content | contains "~(add 1)")]
+[6 false true]
 
 > |~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | open
 2

@@ -301,19 +301,56 @@ read to its end marker. Enter submits, Alt+Enter submits a paste in both
 its spellings, ESC then CR and ESC then LF, an Escape alone does nothing,
 an escape before `[` opens a sequence however its chunks split it, and
 Alt with an arrow reads as the arrow. Its colour is a layer over the
-tokens of the core's `tokenize`, the painters reading the verbs of the
-root by `verbNames`, where the name of a call that reaches a verb of the
-language is a `word`, and a keyword or a reader's name a `name`.
+tokens of the core's `tokenize` [QSHST#tools], a colour to each kind and
+a token inside a quote in italics.
 
 ## tools
 
 `cli/src/bin.mjs` is the one file of the command line that touches the
-process. The language server runs over stdio, answers goto-definition
-by the reach of a bare name [QSNAM#reach] and shows a verb with the
-inputs of its function and its page; the extension of the editor
-launches it. The painters of the REPL, the language server and the site
-paint by the `tokenize` of `./highlight`, the door of the core that loads
-its parser and its walks and no runtime. The site is built by Astro; its
+process. The core's `tokenize`, of `./highlight`, the door of the core
+that loads its parser and its walks and no runtime, names each token of a
+source by what it writes in the language, one sense to a kind: a literal
+by the kind of its value, `null`, `boolean`, `number`, `string`,
+`regex`, `keyword`, `tag` and `path`; `quote` the `~(` and `)` of a quote
+and the `~` of its short form, what it holds painted as the code it is;
+`vec`, `set`, `map` and `error` the brackets of a container and of an
+error literal; `doc` the prose of a doc, its quotes, the code its spans
+between backquotes hold and the tags written before a quote of it
+painted as they are; `comment`; `declaration` the name a declaration
+writes; `verb` the name of a call that reaches a word of the root, by its
+last name or its address, and `name` any other; `group` the parentheses
+of a group; `fail` the combinator `!|`; `punctuation` the rest a gap
+holds; `whitespace`; and `unparsed` the source past where its parse
+stopped. The REPL, the site, the language server and the extension of the
+editor coat those kinds each its own way, the site by a class named for
+the kind, the REPL by a colour and the server by a type of semantic
+token; the extension, which launches the language server of the
+checkout, paints a block of qlang in a preview of markdown by them and
+selects a word by the letters of a name [QSNAM#letters].
+
+The language server runs over stdio and reads the language from the
+core, spelling none of it. The names a step may call where it stands,
+which its hover, its goto-definition and its completion read, are the
+declarations visible there across the groups and the quotes around it
+[QSNAM#scope], and inside the body of a verb, of the declarations outside
+it, the verbs, the nodes and the labels of the pipelines that hold it
+wherever they stand, the verb itself among them, and no value a reader
+named there, as a verb reads the tree where it is called [QSNAM#verb]; a
+name the document declares nowhere goes to the catalog by the reach of a
+bare name [QSNAM#reach]. A verb of the root shows the inputs of its
+function and the prose of its page, `doc | prose`, and a reader's name
+the prose of the docs of its declaration. After a step the server offers
+the verbs that serve the value the step answers as far as it knows the
+value: the value of a literal, which it runs alone over the root, and
+after a call the kinds of the answer as the evaluator lays it, the walk
+of the subject through the verb's own label where `returns` names that
+label and the walk reached it, the noun a tag name names left out, and
+the kinds `returns` names elsewhere, the walk of a tag name passing the
+noun it names, whose verbs serve it only where their `on` names `::tag`
+[QSDSP#tagname]; where it knows no kind, it offers every name. A fold ends
+on the line where the last part of its node ends, a doc's where its text
+ends, and the server names a declaration by its role, a verb, a value a
+reader named or a label. The site is built by Astro; its
 REPL keeps one session across its cells, a name one cell declares staying
 for the cells after it, and its playground runs the cells of one run in
 one session, each showing a defect as `qlang:` and its message. The words

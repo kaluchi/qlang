@@ -122,7 +122,7 @@ documents.onDidClose(e => {
 
 // ── Completion ────────────────────────────────────────────────
 
-// The roles of a declaration as the kinds of a completion and a symbol [D371].
+// The roles of a declaration as the kinds of a completion and a symbol [QSHST#tools].
 const COMPLETION_KIND_OF_ROLE = {
   verb:  CompletionItemKind.Function,
   value: CompletionItemKind.Variable,

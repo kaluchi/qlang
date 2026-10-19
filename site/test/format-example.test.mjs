@@ -1,7 +1,7 @@
 // The examples of the landing page: a comment line, a prompt and its query,
 // the lines that continue it and an answer, each query painted by the core's
-// tokens with the context of its lines [D371].
-// The rules it holds: [QSWRK#tooling], [D371].
+// tokens with the context of its lines [QSHST#tools].
+// The rules it holds: [QSWRK#tooling], [QSHST#tools].
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { langRuntime, verbNames } from '@kaluchi/qlang-core';

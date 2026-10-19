@@ -34,31 +34,55 @@ true
 
 A quote is a vector of steps under `::quote`, and the verbs of a vector
 apply to it as to any vector under a tag, a path reading a step by its
-index. A step is held as the record of its act: a call as `::call`, its
-`:name` and its `:modifiers`, each modifier the step it is, so
-`add ~(x)` holds `[~(x)]` and `add x` holds `[::call{:name :x}]`; a
-declaration, which writes a `::binding` into its scope, as `::bind`, its
-`:name`, the doc values of its slot as `:docs` and its body, the step
-after its name and its page, as `:body`, each where the declaration
-writes one; a tagged literal as `::construct`, its `:tag` and the
-`:payload` the literal writes; a step of the fail track under `::fail`;
-a group as its quote under `::group`; an error literal as the error at
-rest it writes; any other literal as itself, a regex among them, a step
-that stands at the head alone. `::fail` and a declaration stand in a
-pipeline alone, so inside a container, a field or a payload a step is an
-element step. The constructor of each record, `::construct/construct`
-among them, checks the fields the printer reads against its schema,
-refusing under its own tag, `::bind/PayloadNotSchemaError`, prints the
-step and reads the text back, so an assembly that reads back as another
-step is refused where it is made, `::construct/ReadBackDiffersError`.
-`tag ::quote` builds a quote from a vector of steps, which `toString`
-writes as their text: a payload that is no vector is refused as
-`::quote/PayloadKindNotTakenError`, an element that is no step as
-`::quote/ElementNotStepError`, and a literal after the head as
-`::quote/ReadBackDiffersError`. A quote built over a path alone prints
-under its tag, `::quote[/age]`, reads back as it, and answers the path
-it holds; written as `~(/age)` it is refused by the parser, which gives
-the path bare.
+index. Code is one model, the records of its steps, which the evaluator
+runs by their tags, a quote read from text and a quote assembled from
+data alike: a call is held as `::call`, its `:name` and its
+`:modifiers`, each modifier the step it is, so `add ~(x)` holds
+`[~(x)]` and `add x` holds `[::call{:name :x}]`; a declaration, which
+writes a `::binding` into its scope, as `::bind`, its `:name`, the doc
+values of its slot as `:docs` and its body, the step after its name and
+its page, as `:body`, each where the declaration writes one; a tagged
+literal as `::construct`, its `:tag` and the `:payload` the literal
+writes; a step of the fail track under `::fail`; a group as its quote
+under `::group`; and any other value as itself, a literal, the step that
+stands as the value it writes, a regex and the error at rest an error
+literal writes among them, so two texts that write one value are one
+step, `::E::error!{:k 1}` the step `::E!{:k 1}` is. `::fail` and a
+declaration stand in a pipeline alone, so inside a container, a field or
+a payload a step is an element step. The parser reads a text into these
+records, building each through its constructor, and keeps beside them
+the span of every part it read, which the place of a refusal and the
+tools read.
+
+Each rule a step holds stands once, in the constructor of the record or
+of `::quote` that holds the step, which `tag ::quote` and the parser both
+go through, refusing under its holder: a value written as a later step on
+the success track as `::quote/StepNotCommandError`, its message naming
+the verb that takes the value, `get` a path and a container, `tag` a tag
+name, `apply` a quote, and any other value 'a step is a command'
+[QSSYN#step]; a part that computes inside a literal [QSLIT#closed], the
+payload of a tagged literal as `::construct/LiteralComputesError`, the
+value it refuses the map the record is built from, which reads back from
+its print, and an element or a field of a container step as
+`::quote/LiteralComputesError`; a name that is no name of the language
+[QSNAM#letters] under `::call` and `::bind`; and every other rule of a
+step under the record that holds it. A payload that is no map, and of
+`::fail` and `::group` one that is no quote, is refused by the role of
+its holder, `…/PayloadKindNotTakenError` with `:expected`, and a map
+whose fields break the fields of its record as `…/PayloadNotSchemaError`,
+its `:field` the field. A text that breaks a rule of a step answers
+`::quote/ParseError` at its place with the rule's message, and a throw
+of the parser that is no refusal of the text, the overflow of its stack
+under a nest too deep among it, passes as it is, which `parse` answers as
+`::quote/ParseError` with its message. `tag ::quote`
+builds a quote from a vector of steps, which `toString` writes as their
+text: a payload that is no vector is refused as
+`::quote/PayloadKindNotTakenError`, and an element that no text writes
+as a step, a value under a tag of its own and the quote of a path alone
+among them, as `::quote/ElementNotStepError`. A quote built over a path
+alone prints under its tag, `::quote[/age]`, reads back as it, and
+answers the path it holds; written as `~(/age)` it is refused by the
+parser, which gives the path bare.
 
 ```qlang
 > ~(filter ~(gt 1)) | payload
@@ -80,10 +104,22 @@ the path bare.
 "[1 2] | count"
 
 > [[1 2] 5] | tag ::quote !| type
-::quote/ReadBackDiffersError
+::quote/StepNotCommandError
 
 > [/age] | tag ::quote | print
 "::quote[/age]"
+
+> get [~([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| type) ~([[::call{:name :count}]] | tag ::quote !| type)]
+[::construct/LiteralComputesError ::quote/LiteralComputesError]
+
+> get [~(::call[1] !| get [~(type) /expected]) ~(::fail[1] !| get [~(type) /expected]) ~(::call{:name 1} !| get /field)]
+[[::call/PayloadKindNotTakenError #[::map]] [::fail/PayloadKindNotTakenError #[::quote]] :name]
+
+> get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| :e it | get [~(type) /actualType ~(print | parse | open | eq e)]
+[::construct/LiteralComputesError ::map true]
+
+> "::E::error!{:k 1}" | parse | eq ("::E!{:k 1}" | parse)
+true
 ```
 
 ## parse

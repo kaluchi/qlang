@@ -1,6 +1,6 @@
 // The features of the language server, pure functions over the public API
 // of the core that `server.mjs` maps to the protocol, which ask the language
-// what a literal and a page answer [D367], [D371].
+// what a literal and a page answer [QSQUO#step], [QSHST#tools].
 
 import {
   parse, ParseError,
@@ -69,7 +69,7 @@ function dedent(text) {
 }
 
 // The prose of the page at an address as `doc | prose` answers it, read once
-// for each address, a verb's at the address the tool shows for it [D371].
+// for each address, a verb's at the address the tool shows for it [QSHST#tools].
 const proseOfPages = new Map();
 async function proseOfThePage(address) {
   if (!proseOfPages.has(address)) proseOfPages.set(address, tidyProse(await evalQuery(`${address} | doc | prose !| ""`)));
@@ -146,14 +146,14 @@ function catalogDeclarationOf({ index, scope }, name) {
   return index.get(name) ?? null;
 }
 
-// The role of a node of the root, a label, a verb or a value [D371].
+// The role of a node of the root, a label, a verb or a value [QSHST#tools].
 function roleOfNode(scope, address) {
   if (isLabel(scope, address)) return 'label';
   return isVerb(scope, address) ? 'verb' : 'value';
 }
 
 // The role of a declaration of the document, a label, a verb as the core
-// reads it or a value a reader named [QSBLD#kind], [D371].
+// reads it or a value a reader named [QSBLD#kind], [QSHST#tools].
 function roleOf(bind, scope, isLabelName) {
   if (declaresKind(bind)) return 'label';
   const name = bind.get('name').name;
@@ -244,7 +244,7 @@ function withDeclaredNames(items, root, offset, spellings, scope) {
 
 // The names of the document a step may call at an offset under a spelling,
 // the body of a verb found by the labels declared before the offset, and
-// whether a name is a label's there [QSNAM#verb], [D371].
+// whether a name is a label's there [QSNAM#verb], [QSHST#tools].
 function declaredAt(root, offset, spelling, scope) {
   const labelNameIn = labels => name => labels.has(name) || isLabel(scope, name);
   let labelNameBefore = null;
@@ -318,7 +318,7 @@ async function subjectAfterStep(read, subject, text) {
 }
 
 // What a literal answers run alone over the root, closed [QSLIT#closed], a
-// refusal of its constructor at rest, and the walk of its tags, the last kept [D371].
+// refusal of its constructor at rest, and the walk of its tags, the last kept [QSHST#tools].
 let lastLiteral = { literal: null, subject: null };
 async function subjectOfLiteral(literal) {
   if (lastLiteral.literal !== literal) {
@@ -329,7 +329,7 @@ async function subjectOfLiteral(literal) {
 }
 
 // The verbs a subject reaches by name, those that serve its value where a
-// literal answers it, as its call would [QSDSP#tagname], [D371].
+// literal answers it, as its call would [QSDSP#tagname], [QSHST#tools].
 function verbsServing(scope, { kinds, value }) {
   const reached = verbsReaching(scope, kinds);
   if (value === undefined) return reached;
@@ -370,7 +370,7 @@ async function hoverForCall(read, root, source) {
 }
 
 // The prose of each doc of a declaration of the document, each run alone,
-// closed [QSLIT#closed], through `prose` [D371].
+// closed [QSLIT#closed], through `prose` [QSHST#tools].
 async function proseOfTheDocs(declaration, source) {
   return await Promise.all((declaration?.value.get('docs') ?? []).map(doc => {
     const { start, end } = partOf(doc).span;
@@ -457,7 +457,7 @@ export function referencesAtOffset(root, offset) {
 // ── Document Symbols ──────────────────────────────────────────
 
 // documentSymbols(root, scope) → the declarations of a document, each by
-// its role, a label written as its tag, a verb or a value [D371].
+// its role, a label written as its tag, a verb or a value [QSHST#tools].
 export function documentSymbols(root, scope) {
   if (!root) return [];
 
@@ -486,7 +486,7 @@ export function documentSymbols(root, scope) {
 
 // foldingRangesOf(root) → the lines a declaration, a doc and a quote span,
 // from 0 to where the last part of its node ends, a doc's where its text
-// ends; a doc folds as a comment [D371].
+// ends; a doc folds as a comment [QSHST#tools].
 const folds = read => isBindStep(read.value) || kindOf(read.value) === 'doc' || (kindOf(read.value) === 'quote' && read.content !== undefined);
 
 const lastLineOf = read => (read.text ?? read.span).end.line - 1;
@@ -548,7 +548,7 @@ function callAround(root, source, offset) {
 
 // The type of semantic token of the protocol each kind of `tokenize` is coated
 // by, a path a property as the keys it reads; a kind with none, a bracket, a
-// gap or the source past the parse, sends no token [D371].
+// gap or the source past the parse, sends no token [QSHST#tools].
 const TYPE_OF_KIND = {
   verb:        'function',
   name:        'variable',

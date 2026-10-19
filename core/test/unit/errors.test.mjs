@@ -27,7 +27,7 @@ describe('QlangError base class', () => {
 // A refusal whose site hands no facts.
 const TestsProbeError = declareRefusal('tests/ProbeError');
 
-describe('a refusal declared by its address [D367]', () => {
+describe('a refusal declared by its address [QSERR#site]', () => {
   it('carries the facts its site hands, named by the last name of its address', () => {
     const unresolvedErr = new CallUnknownNameError({ name: keyword('foo') });
     expect(unresolvedErr).toBeInstanceOf(QlangError);
@@ -58,7 +58,7 @@ describe('QlangInvariantError', () => {
   });
 });
 
-describe('the location of a refusal of the runtime, the span of the step that raised it [D367]', () => {
+describe('the location of a refusal of the runtime, the span of the step that raised it [QSERR#site]', () => {
   it('locates a refusal at the call that raised it', async () => {
     const source = '[1 2 3] | filter ~(gt 0) | count | filter ~(gt 0)';
     expect((await expectErrorResult(source)).location.start.offset).toBe(source.indexOf('filter', 25));

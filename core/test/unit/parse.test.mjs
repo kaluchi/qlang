@@ -1,5 +1,5 @@
 // The parser reads a text into the records of its steps, each a literal or
-// a record its constructor built, and the parts it read beside them [D367].
+// a record its constructor built, and the parts it read beside them [QSQUO#step].
 // The rules it holds: [QSSYN#step], [QSSYN#line].
 
 import { describe, it, expect } from 'vitest';
@@ -337,14 +337,14 @@ describe('parse — error handling', () => {
     expect(refusalOf('#"a")').message).toBe('Expected end-of-source, flag of a regex or whitespace but ")" found.');
   });
 
-  it('refuses a rule of a step its constructor holds at the part it names, with the rule\'s message [D367]', () => {
+  it('refuses a rule of a step its constructor holds at the part it names, with the rule\'s message [QSQUO#step]', () => {
     const refused = refusalOf('5 | [1 2]');
     expect(refused.message).toBe('a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`');
     expect([refused.location.start.offset, refused.location.end.offset]).toEqual([4, 9]);
     expect(refusalOf('[::Box[x] 1]').message).toContain('write `get [::Box[~(x)] 1]`');
   });
 
-  it('refuses the name of a declaration at its name and its body at its body [D367]', () => {
+  it('refuses the name of a declaration at its name and its body at its body [QSQUO#step]', () => {
     const spanOf = refused => [refused.location.start.offset, refused.location.end.offset];
     expect(spanOf(refusalOf(':"a b" 5'))).toEqual([0, 6]);
     expect(spanOf(refusalOf(':x [y]'))).toEqual([3, 6]);
@@ -362,7 +362,7 @@ describe('parse — error handling', () => {
     ]) expect(refusalOf(source).message, source).toBe(message);
   });
 
-  it('refuses a literal step that computes where it is read, before a fault later in its pipeline [D367]', () => {
+  it('refuses a literal step that computes where it is read, before a fault later in its pipeline [QSQUO#step]', () => {
     const refused = refusalOf('[x]e');
     expect(refused.message).toContain('write `get [~(x)]`');
     expect([refused.location.start.offset, refused.location.end.offset]).toEqual([0, 3]);
@@ -377,11 +377,11 @@ describe('parse — error handling', () => {
     expect(refusalOf('::Foo!{:a (count)}').message).toContain('write `get {:a ~(count)} | tag ::Foo | raise`');
   });
 
-  it('reads a quote of a path alone in a doc as prose [D367]', () => {
+  it('reads a quote of a path alone in a doc as prose [QSSYN#doc]', () => {
     expect([...stepOf('|~~ see ~(/a) ~~|')]).toEqual([' see ~(/a) ']);
   });
 
-  it('answers the first rule of the steps of a pipeline in the order written but the rules a step holds itself, a modifier\'s and a group\'s among them, when it is read [D367]', () => {
+  it('answers the first rule of the steps of a pipeline in the order written but the rules a step holds itself, a modifier\'s and a group\'s among them, when it is read [QSQUO#step]', () => {
     for (const [source, column] of [
       ['1 | [2] !| /a', 5], ['5 | /b !| /a', 5], ['5 | 6 | count', 5], ['5 !| /a | 6', 6], ['f 1 [x]', 5],
       ['5 | 6 | f [x]', 11], ['5 | 6 | (7 | 8)', 14], ['5 | 6 | [x]', 9], ['5 | 6 | :true 1', 9]
@@ -402,52 +402,52 @@ describe('parse — error handling', () => {
     expect(isBindStep(stepOf(':Late |~~ A late error. ~~|\n  ::Late!{:by 3}'))).toBe(true);
   });
 
-  it('refuses two texts that write one error literal by one message at one place, as the one step they are [D367]', () => {
+  it('refuses two texts that write one error literal by one message at one place, as the one step they are [QSQUO#step]', () => {
     const [written, short] = [refusalOf('1 | ::number::error!{:k 1}'), refusalOf('1 | ::number!{:k 1}')];
     expect(written.message).toBe(short.message);
     expect(written.location.start).toEqual(short.location.start);
   });
 
-  it('reads the quote of a doc under the tag of a group or of the fail track as a segment that computes nothing, in a literal and as a modifier [D367]', () => {
+  it('reads the quote of a doc under the tag of a group or of the fail track as a segment that computes nothing, in a literal and as a modifier [QSSLF#doc]', () => {
     expect(isGroupStep(stepOf('|~~ see ::group~(add 1) ~~|')[1])).toBe(true);
     for (const source of ['[|~~ ::group~(add 1) ~~|]', 'f |~~ ::fail~(x) ~~|', '{:k |~~ ::group~(x) ~~|}', '::Box[|~~ ::group~(x) ~~|]', '!{:k |~~ ::group~(x) ~~|}', '|~~ ~([|~~ ::group~(x) ~~|]) ~~|']) {
       expect(refusalOf(source), source).toBeNull();
     }
   });
 
-  it('reads a number written with a leading zero in the quote of a doc as prose, and refuses it outside one [D367]', () => {
+  it('reads a number written with a leading zero in the quote of a doc as prose, and refuses it outside one [QSSYN#doc]', () => {
     for (const source of ['|~~ a ~(f 01) ~~|', '|~~ a ~(f [x] 01) ~~|', '|~~| a ~(-01.5e3) b', '|~~ ::link~(00) ~~|']) expect(stepOf(source), source).toHaveLength(1);
     expect(refusalOf('f 01').message).toBe('a number is written without a leading zero: write `1`');
   });
 
-  it('reads a `~(` of a line doc that reads as no code to the `)` that pairs it on its line, as prose [D367]', () => {
+  it('reads a `~(` of a line doc that reads as no code to the `)` that pairs it on its line, as prose [QSSYN#doc]', () => {
     expect([...stepOf('|~~|~(0 | ~())')]).toEqual(['~(0 | ~())']);
     expect(refusalOf('[|~~| ~(a,\n 1) 2\n]')).toBeInstanceOf(ParseError);
   });
 
-  it('reads a `~(` of a block doc that reads as no code to the `)` that pairs it across its lines after a line doc whose `~(` pairs none on its line [D367]', () => {
+  it('reads a `~(` of a block doc that reads as no code to the `)` that pairs it across its lines after a line doc whose `~(` pairs none on its line [QSSYN#doc]', () => {
     expect(stepOf('[|~~| a ~(b\n |~~ ~(a,\n ~(add 1)) ~~|]').map(doc => [...doc])).toEqual([[' a ~(b'], [' ~(a,\n ~(add 1)) ']]);
   });
 
-  it('reads the span of a `~(` of a line doc no further than its line, through a doc or a comment nested in it [D367]', () => {
+  it('reads the span of a `~(` of a line doc no further than its line, through a doc or a comment nested in it [QSSYN#doc]', () => {
     for (const nested of ['|~~ b\n 1 2 ~~|', '|~ b\n 1 2 ~|']) expect(refusalOf(`[|~~| a ~(f ${nested}) c\n]`)?.location.start.line, nested).toBe(2);
   });
 
-  it('reads a `~(` of a line doc after a span of its line read as prose as it reads it with no span before it [D367]', () => {
+  it('reads a `~(` of a line doc after a span of its line read as prose as it reads it with no span before it [QSSYN#doc]', () => {
     for (const quote of ['~(f |~~ ~(( ~~|) d', '~(f |~ ~(( ~|) d']) {
       expect([...stepOf(`(|~~| ~(a,) ${quote}\n)`).payload[0]], quote).toEqual([` ~(a,) ${quote}`]);
       expect([...stepOf(`(|~~| ${quote}\n)`).payload[0]], quote).toEqual([` ${quote}`]);
     }
   });
 
-  it('refuses a text after a line doc whose `~(` reads as no code where its reading stopped, the span naming no continuation of its own [D367]', () => {
+  it('refuses a text after a line doc whose `~(` reads as no code where its reading stopped, the span naming no continuation of its own [QSSYN#doc]', () => {
     const refused = refusalOf('[|~~| x ~(a\n 1 2 , 3]');
     expect([refused.location.start.offset, refused.found]).toEqual([17, ',']);
     expect([...new Set(refusalOf('[|~~| x ~(a').expected.map(alternative => alternative.text ?? alternative.description))])
       .toEqual(['letters of a name', '/', 'whitespace', ')', 'character of prose', '::', '~(', '`', ',', ']']);
   });
 
-  it('fails the try of the quote of a doc on a rule of a step and on a refusal the grammar does not pass over there, a refusal it passes over letting the quote read as code [D367]', () => {
+  it('fails the try of the quote of a doc on a rule of a step and on a refusal the grammar does not pass over there, a refusal it passes over letting the quote read as code [QSSYN#doc]', () => {
     for (const text of [
       '| | f', '|f', '::Box f', '::Box |~~ d ~~|', 'f |~ c', 'f | ', 'f | !| | g', 'f | | g', 'f| g', 'f |g', 'f(a)(b)', 'f a, b', '5 f', '5\nf',
       '5 |~~ d ~~|', '/ne ""', '::T(1)', '::T([1])', '::T(add 1)', '(f a, b)', '~(/a)', '~(f a, b)', '~/a', '~[1]',
@@ -475,7 +475,7 @@ describe('parse — error handling', () => {
   });
 });
 
-describe('parse — a `~(` of a doc that reads as prose [D367]', () => {
+describe('parse — a `~(` of a doc that reads as prose [QSSYN#doc]', () => {
   it('reads as code a quote that takes a value after a declaration or after `!|`', () => {
     for (const quote of ['~(:x 1 | 5)', '~(f !| 0)']) expect(stepOf(`|~~ a ${quote} b ~~|`), quote).toHaveLength(3);
   });
@@ -676,16 +676,16 @@ describe('parse.mjs — input guards and the location of a ParseError', () => {
   const thrownBy = source => { try { parse(source); } catch (e) { return e; } return null; };
   const nestOf = (depth, missing = 0) => '['.repeat(depth) + ']'.repeat(depth - missing);
 
-  it('passes a throw of the parser or of a constructor of a step that is no refusal of the text as it is, the overflow of the stack of a deep nest among it [D367]', () => {
+  it('passes a throw of the parser or of a constructor of a step that is no refusal of the text as it is, the overflow of the stack of a deep nest among it [QSQUO#step]', () => {
     expect(thrownBy(nestOf(20000))).toBeInstanceOf(RangeError);
     for (let depth = 1000; depth < 4000; depth += 50) expect(thrownBy(nestOf(depth)), String(depth)).not.toBeInstanceOf(TypeError);
   });
 
-  it('passes a throw of the parser that is no refusal of the text as it is in the completion of a source cut short, a nest of a thousand to four thousand brackets among it [D367]', () => {
+  it('passes a throw of the parser that is no refusal of the text as it is in the completion of a source cut short, a nest of a thousand to four thousand brackets among it [QSQUO#step]', () => {
     for (let depth = 1000; depth <= 4000; depth += 25) expect(thrownBy(nestOf(depth, 1)), String(depth)).not.toBeInstanceOf(TypeError);
   }, 30000);
 
-  it('passes a throw of the parser that is no refusal of the text as it is in the completion of a source cut short at the depth where the parser overflows [D367]', () => {
+  it('passes a throw of the parser that is no refusal of the text as it is in the completion of a source cut short at the depth where the parser overflows [QSQUO#step]', () => {
     let [read, overflown] = [1000, 20000];
     while (overflown - read > 1) {
       const depth = (read + overflown) >> 1;
@@ -695,7 +695,7 @@ describe('parse.mjs — input guards and the location of a ParseError', () => {
     for (let depth = read - 8; depth <= read + 8; depth++) expect(thrownBy(nestOf(depth, 1)), String(depth)).not.toBeInstanceOf(TypeError);
   });
 
-  it('reads a nest of literals as deep as the parser itself reads, the parts of a literal walked by a stack of their own [D367]', () => {
+  it('reads a nest of literals as deep as the parser itself reads, the parts of a literal walked by a stack of their own [QSQUO#step]', () => {
     for (const depth of [2300, 2500]) expect(parse(nestOf(depth)), String(depth)).toHaveLength(1);
   });
 

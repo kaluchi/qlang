@@ -111,7 +111,7 @@ export function makeSet(elements) {
 }
 
 // The kinds a holder takes, the set of their tags a refusal of a value of
-// none of them holds as `:expected` [D367].
+// none of them holds as `:expected` [QSERR#site].
 export function kindsExpected(...kindNames) {
   return makeSet(kindNames.map(makeTag));
 }

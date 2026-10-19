@@ -119,8 +119,9 @@ inside a block comment reads to the `)` that pairs it, where the source
 holds one, so a closer inside the pair closes nothing. A pipe is
 written beside a comment. A source of whitespace and comments alone is
 the empty pipeline, which answers the value it is handed and reads as
-the empty quote. Comments live beside the tree the parser reads, where
-the tools paint them, so none stands among the steps a trace skipped.
+the empty quote. Comments live beside the steps and the spans the parser
+keeps, where the tools paint them, so none stands among the steps a
+trace skipped.
 
 ```qlang
 > 5 | |~ why ~| add 3
@@ -150,8 +151,11 @@ inside a pipeline being a comment. Inside a doc, a span between
 backquotes is prose, as markdown reads it, a run of backquotes closing
 at the next run of as many and a run with no such closer prose itself,
 and a `~(…)` outside one, under the tags written before it, is a segment
-of code where it reads as code, and prose where it does not, a `~(` of
-a block doc reading to the `)` that pairs it, as in a comment.
+of code where it reads as code, and prose where it does not, its steps
+breaking a rule of a step or its text a rule the grammar holds there, a
+number written with a leading zero among them; a `~(` that reads as no
+code reads to the `)` that pairs it, in a line doc on its line as in a
+block doc, as in a comment.
 
 ```qlang
 > :foo |~~ one ~~| |~ why ~| |~~ two ~~| 42 | ::foo | doc | content
@@ -159,6 +163,9 @@ a block doc reading to the `)` that pairs it, as in a comment.
 
 > |~~ a ``~(add 1)`` c ~~| | segments
 [" a ``~(add 1)`` c "]
+
+> get [~("|~~| a ~(b, ~(add 1)) c" | parse | first | segments | count) ~("|~~ a ~(f 01) ~~|" | parse | first | segments | count) ~(|~~ a ~(count | 1) b ~~| | segments | count)]
+[1 1 1]
 
 > "|~~ note ~~| :x 42" | parse !| get /message | contains "the slot of the declaration"
 true

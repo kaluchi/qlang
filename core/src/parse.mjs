@@ -2,7 +2,7 @@
 // source, the records of its steps, or throws a `ParseError`; the parts it
 // read stand beside the records in walk.mjs, the root holding the source,
 // its uri and the comments the grammar read as whitespace, in the order of
-// the source [D367].
+// the source [QSQUO#step].
 
 import {
   parse as peggyParse,
@@ -47,7 +47,7 @@ export function parse(source, opts = {}) {
     root = peggyParse(source, { commentTrivia, grammarSource: uri });
   } catch (err) {
     // A throw of the parser that is no refusal of the text passes as it is
-    // [D367]; a refusal the grammar writes holds its own sentence, and a
+    // [QSQUO#step]; a refusal the grammar writes holds its own sentence, and a
     // failure where the source ends names what completes it [QSSYN#refusal].
     if (!(err instanceof PeggySyntaxError)) throw err;
     const atTheEnd = err.expected !== null && err.found === null;
@@ -95,7 +95,7 @@ const CLOSER_DEPTH = 4;
 
 // The parts of a source, or the closers the parser expects where a source
 // cut short stops, in the order of `OPENERS_BY_CLOSER`, none where it stops
-// before its end, a throw that is no refusal passing as it is [D367].
+// before its end, a throw that is no refusal passing as it is [QSQUO#step].
 function attemptOf(candidate) {
   try {
     return { root: peggyParse(candidate, { commentTrivia: new Map() }), closers: [] };

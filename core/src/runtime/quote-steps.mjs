@@ -1,6 +1,6 @@
-// The constructors of the steps of a quote from data [D367], each the
+// The constructors of the steps of a quote from data [QSQUO#step], each the
 // record its rules hold, a refusal writing what it names as the printer
-// writes it [D367].
+// writes it [QSQUO#step].
 
 import { registerPrimitive } from '../primitives.mjs';
 import { asPrinted } from '../print-value.mjs';

@@ -1,6 +1,6 @@
 // The site paints a source by the core's `tokenize`, each token a span whose
-// class is its kind [D371].
-// The rules it holds: [QSWRK#tooling], [D371].
+// class is its kind [QSHST#tools].
+// The rules it holds: [QSWRK#tooling], [QSHST#tools].
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { langRuntime, verbNames } from '@kaluchi/qlang-core';

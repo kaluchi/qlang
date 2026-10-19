@@ -371,7 +371,7 @@ describe('hoverAtOffset', () => {
     expect(await hoverAtOffset(root, src, src.indexOf('!{'))).toBeNull();
   });
 
-  it('returns hover for `::error` written before a bang, and finds it among the references of `::error` [QSQUO#step]', async () => {
+  it('returns hover for `::error` written before a bang, and finds it among the references of `::error` [QSERR#rest], [QSHST#tools]', async () => {
     const src = '[::error!{:k 1} ::error]';
     const { root } = parseDocument(src, 'test.qlang');
     expect((await hoverAtOffset(root, src, 2)).content).toContain('**::error** — a name of the root');
@@ -633,7 +633,7 @@ describe('referencesAtOffset', () => {
     expect(refs.length).toBe(2);
   });
 
-  it('finds no references from a keyword that is no name of a declaration [QSQUO#step]', () => {
+  it('finds no references from a keyword that is no name of a declaration [QSHST#tools]', () => {
     for (const src of [':x :y | y', '[:y] | y']) {
       const { root } = parseDocument(src, 'test.qlang');
       expect(referencesAtOffset(root, src.indexOf(':y') + 1), src).toEqual([]);
@@ -797,6 +797,12 @@ describe('signatureHelpAtOffset', () => {
     const src = '[1 2 3] | take ';
     const { root } = parseDocument(src, 'test.qlang');
     const sig = await signatureHelpAtOffset(root, src, src.length);
+    expect([sig.label, sig.activeParameter]).toEqual(['take count', 0]);
+  });
+
+  it('opens after a verb across a comment between it and the cursor, which the grammar reads as whitespace [QSSYN#comment]', async () => {
+    const src = '[1 2 3] | take |~ how many ~| ';
+    const sig = await signatureHelpAtOffset(parseDocument(src, 'test.qlang').root, src, src.length);
     expect([sig.label, sig.activeParameter]).toEqual(['take count', 0]);
   });
 

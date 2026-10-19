@@ -66,9 +66,9 @@ value it refuses the map the record is built from, which reads back from
 its print, and an element or a field of a container step as
 `::quote/LiteralComputesError`; a name that is no name of the language
 [QSNAM#letters] under `::call` and `::bind`; and every other rule of a
-step under the record that holds it. A payload that is no map, and of
-`::fail` and `::group` one that is no quote, is refused by the role of
-its holder, `…/PayloadKindNotTakenError` with `:expected`, and a map
+step under the record that holds it. The payload of a record of a step
+that is no map, and of `::fail` and `::group` one that is no quote, is
+refused by the role of its holder, `…/PayloadKindNotTakenError` with `:expected`, and a map
 whose fields break the fields of its record as `…/PayloadNotSchemaError`,
 its `:field` the field. A text that breaks a rule of a step answers
 `::quote/ParseError` at its place with the rule's message, and a throw

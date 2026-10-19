@@ -13,7 +13,7 @@
 // it holds; a rule a constructor holds is refused at the part its refusal
 // names, but in a `~(…)` of a doc tried as code, whose try a rule of a step
 // and a refusal the grammar does not pass over there fail, a refusal it
-// passes over letting the quote read as code [QSSYN#doc].
+// passes over letting the quote read as code [QSQUO#step], [QSSYN#doc].
 //
 // A comment, `|~| …` to the end of its line or `|~ … ~|`, is
 // whitespace wherever whitespace stands [QSSYN#comment]; the parser

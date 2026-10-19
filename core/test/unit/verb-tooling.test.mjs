@@ -60,6 +60,17 @@ describe('a verb as the tooling reads it', () => {
     expect(verbsReaching(scope, kindsAfter('vec/sort', ['Box', 'tagged', 'vec'])).get('f').address.name).toBe('Box/f');
   });
 
+  it('keeps of the walk the tag of the value its label reached and none of the kinds beneath it, which the answer may change, and beside it the other kinds its returns names [QSBLD#answer], [QSHST#tools]', async () => {
+    const session = await createSession();
+    await session.evalCell(':Box |~~ A box. ~~| | :Box/g (::fn | returns |~~ A box. ~~| ::Box | impl ~(it)) | :vec/h (::fn | returns |~~ A count or a vector. ~~| #[::vec ::number] | impl ~(count))');
+    const { scope } = session;
+    const kindsAfter = (address, kinds) => answerKindsOf(scope, nodeOf(scope, address), kinds);
+    expect([kindsAfter('tagged/within', ['Box', 'tagged', 'vec']), kindsAfter('Box/g', ['Box', 'tagged', 'vec']), kindsAfter('vec/h', ['vec'])])
+      .toEqual([['Box', 'tagged'], ['Box', 'tagged'], ['vec', 'number']]);
+    const answers = await Promise.all(['::Box[1 2] | within ~(get /0) | type', '[1 2] | h | type'].map(query => session.evalCell(query)));
+    expect(answers.map(cell => cell.result.name)).toEqual(['Box', 'number']);
+  });
+
   it('reads the kinds of an answer its returns names as a set [QSBLD#fn]', async () => {
     const session = await createSession();
     await session.evalCell(':Box |~~ A box. ~~| | :Box/f (::fn | returns |~~ The value. ~~| #[::number ::string] | impl ~(eq 1))');

@@ -147,7 +147,7 @@ async function applyFailTrack(state, step, at) {
 }
 
 // A group runs its quote as a fork, a step of the quote that holds it
-// [QSQUO#step].
+// [QSNAM#scope].
 async function evalGroup(group, state, at) {
   return await fork(state, inner => evalPipeline(group.payload, inner, at?.origin ?? originOf(group.payload)));
 }

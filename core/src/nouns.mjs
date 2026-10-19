@@ -119,15 +119,16 @@ export const returnsItsLabel = (kinds, labelName) => kinds.includes(labelName);
 // answerKindsOf(scope, record, subjectKinds) → the kinds of the answer a
 // name under a label gives, for a tool, as the evaluator lays it: the walk of
 // the subject through the verb's own label where `returns` names that label
-// and the walk reaches it, the kinds it names elsewhere, or null for a verb
-// that answers any value [QSBLD#answer], [QSHST#tools].
+// and the walk reaches it, beside the other kinds it names, the kinds it names
+// elsewhere, or null for a verb that answers any value [QSBLD#answer], [QSHST#tools].
 export function answerKindsOf(scope, record, subjectKinds) {
   const address = record.get('name').name;
   const answer = answerOf(scope, address);
   if (answer === null || answer.kinds.includes(ANY_KIND_NAME)) return null;
   const [labelName] = splitAddress(address);
   const walked = kindsWalkedTo(subjectKinds, labelName);
-  return returnsItsLabel(answer.kinds, walked === null ? null : labelName) ? walked : answer.kinds;
+  if (walked === null || !returnsItsLabel(answer.kinds, labelName)) return answer.kinds;
+  return [...walked, ...answer.kinds.filter(kind => kind !== labelName)];
 }
 
 // Whether a value is an invariant, a quote under `::invariant`, whose name
@@ -344,12 +345,15 @@ const kindsWalkedFrom = kindName => (KINDS_OF_OWN_VECTORS.includes(kindName)
   ? [...kindsOfWalk(makeTagged(makeTag(kindName), []))]
   : [kindName]);
 
-// The kinds a walk passes up to the first whose walk reaches a label, or null
-// where none does, the noun a tag name names, which the walk passes after the
-// kind of tag names, reached by no label [QSDSP#walk], [QSDSP#tagname].
+// The kinds a walk passes up to the first whose walk reaches a label, the tag
+// that value stands under with it, or null where none does: what an answer laid
+// back as that value keeps, the kinds beneath it, which the answer may change,
+// left out, and the noun a tag name names, which the walk passes after the kind
+// of tag names, reached by no label [QSDSP#walk], [QSDSP#tagname].
 function kindsWalkedTo(kindNames, labelName) {
   const at = kindNames.findIndex((kindName, index) => kindNames[index - 1] !== CORE_KIND.tag.name && kindsWalkedFrom(kindName).includes(labelName));
-  return at === -1 ? null : kindNames.slice(0, at + 1);
+  if (at === -1) return null;
+  return kindNames.slice(0, kindNames[at + 1] === TAGGED_KIND_NAME ? at + 2 : at + 1);
 }
 
 // ruleRefusalsOf(scope, address) → the addresses of the refusals a verb or a

@@ -58,7 +58,7 @@ describe('QlangInvariantError', () => {
   });
 });
 
-describe('the location of a refusal of the runtime, the span of the step that raised it [QSERR#site]', () => {
+describe('the location of a refusal of the runtime, the span of the step that raised it [QSQUO#step]', () => {
   it('locates a refusal at the call that raised it', async () => {
     const source = '[1 2 3] | filter ~(gt 0) | count | filter ~(gt 0)';
     expect((await expectErrorResult(source)).location.start.offset).toBe(source.indexOf('filter', 25));

@@ -294,8 +294,9 @@ function stepsOf(pipeline) {
 
 // The subject the steps answer from a subject, the kinds of its value and the
 // value where a literal step answers it: the subject itself through a
-// declaration and a `!|` step, and the kinds the `returns` of a verb that
-// serves it names [QSBLD#answer]; null where a step answers no declared kind.
+// declaration and a `!|` step, and the kinds of the answer of a call as
+// `answerKindsOf` reads them [QSHST#tools]; null where a step answers no
+// declared kind.
 async function subjectOfSteps(steps, subject, text) {
   let answered = subject;
   for (const { combinator, read } of steps) {
@@ -485,8 +486,8 @@ export function documentSymbols(root, scope) {
 // ── Folding ───────────────────────────────────────────────────
 
 // foldingRangesOf(root) → the lines a declaration, a doc and a quote span,
-// from 0 to where the last part of its node ends, a doc's where its text
-// ends; a doc folds as a comment [QSHST#tools].
+// from 0 to where its last part ends, a doc's where its text ends; a doc
+// folds as a comment [QSHST#tools].
 const folds = read => isBindStep(read.value) || kindOf(read.value) === 'doc' || (kindOf(read.value) === 'quote' && read.content !== undefined);
 
 const lastLineOf = read => (read.text ?? read.span).end.line - 1;
@@ -531,17 +532,28 @@ export async function signatureHelpAtOffset(root, source, offset) {
 }
 
 // The call the cursor writes the words of: the narrowest call with words
-// that holds it, or the call that spaces before the cursor follow, a verb
-// taking inputs among them.
+// that holds it, or the last call before the cursor where what stands
+// between them reads as whitespace, a comment among it, a verb taking inputs
+// among them [QSSYN#comment].
 function callAround(root, source, offset) {
   for (let read = partAtOffset(root, offset); read; read = read.parent) {
     if (isCallStep(read.value) && read.parts.length > 0) return read;
   }
   let followed = null;
   walkParts(root, (candidate) => {
-    if (isCallStep(candidate.value) && /^[ \t]+$/.test(source.slice(candidate.span.end.offset, offset))) followed = candidate;
+    const end = candidate.span.end.offset;
+    if (isCallStep(candidate.value) && end < offset && (followed === null || end >= followed.span.end.offset)) followed = candidate;
   });
-  return followed;
+  return followed !== null && readsAsWhitespace(source.slice(followed.span.end.offset, offset)) ? followed : null;
+}
+
+// Whether a text reads as whitespace alone, the empty pipeline of the grammar.
+function readsAsWhitespace(text) {
+  try {
+    return parse(text).length === 0;
+  } catch {
+    return false;
+  }
 }
 
 // ── Semantic tokens ───────────────────────────────────────────

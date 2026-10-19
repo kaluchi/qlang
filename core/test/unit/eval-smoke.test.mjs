@@ -280,7 +280,7 @@ describe('eval.mjs — a call assembled from data', async () => {
     expect(await evalQuery(':k 5 | [1] | get #[~(k)]')).toEqual(await evalQuery('#[5]'));
   });
 
-  it('places the failure of a step a text wrote at its span, and of a step no text wrote at none [QSERR#site]', async () => {
+  it('places the failure of a step a text wrote at its span, and of a step no text wrote at none [QSQUO#step]', async () => {
     const written = await evalQuery(':q ~(nosuchverb) | 5 | apply q');
     expect([written.location.start.offset, written.location.end.offset]).toEqual([5, 15]);
     expect((await evalQuery(':q ([::call{:name :nosuchverb}] | tag ::quote) | 5 | apply q')).location).toBe(null);

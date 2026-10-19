@@ -218,7 +218,7 @@ describe('the second door: what a host hands where the core takes it [QSHST#sour
     expect((await session.evalCell('get [~(eq [1 null 3]) ~(print) ~(print | parse | open | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
   });
 
-  it('prints a value a host hands under `::error` over a payload that is no map as the payload under its tag, the error literal writing a map alone [QSQUO#step]', async () => {
+  it('prints a value a host hands under `::error` over a payload that is no map as the payload under its tag, the error literal writing a map alone [QSERR#rest]', async () => {
     expect(await evalQuery('held | print', await scopeHolding(makeTagged(ERROR_TAG, 5)))).toBe('::error#5');
   });
 

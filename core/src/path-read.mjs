@@ -22,15 +22,13 @@ export const isKeyAlone = value => isKeyword(value) || typeof value === 'string'
 
 export const keyNameOf = key => (isKeyword(key) ? key.name : String(key));
 
-// isMissedPart(error) → whether a failure is a strict read's refusal of a
-// part the subject lacks, a key a map lacks or an index past an end.
+// A strict read's refusal of a part the subject lacks, a key a map lacks or
+// an index past an end, and of null on the way, each a miss a soft read
+// answers null for [QSPTH#query].
 const MISSED_PARTS = new Set([PathKeyNotInMapError.prototype.address, PathIndexOutOfBoundsError.prototype.address]);
 
 export const isMissedPart = error => MISSED_PARTS.has(error.tag.name);
 
-// isMissedRead(error) → whether a failure is a strict read's miss that a
-// soft read answers null for, a part the subject lacks or null on the way
-// [QSPTH#query].
 export const isMissedRead = error => isMissedPart(error)
   || (error.tag.name === PathSubjectHasNoPartsError.prototype.address && error.descriptor.get('actualType')?.name === CORE_KIND.null.name);
 

@@ -140,9 +140,8 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
   return Number.isNaN(index) || String(index) !== segment ? keyword(segment) : index;
 })));
 
-// A path names one segment at least, the value itself being `it`
-// [QSPTH#value], each the text of a key alone, as `get` reads one
-// [QSPTH#key]; a path is the path it reads as.
+// A path names one segment at least, the value itself being `it` [QSPTH#value],
+// each the text of a key alone [QSPTH#key]; a path is itself.
 registerPrimitive('vec/toPath', keys => {
   if (keys.length === 0) throw new VecToPathSubjectEmptyError({ actualValue: keys });
   return makePath(keys.map((key, index) => {

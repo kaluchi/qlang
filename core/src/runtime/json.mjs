@@ -59,9 +59,8 @@ function qMapToPlainObject(m) {
   return obj;
 }
 
-// A number of a JSON document past the doubles, which `JSON.parse` reads
-// as an infinity, is refused at the `:path` to it, a path of its keys and
-// indices, none where it is the whole text [QSPRN#json].
+// A number of a JSON document past the doubles, which `JSON.parse` reads as
+// an infinity, is refused at the `:path` to it, none for the whole text [QSPRN#json].
 export const StringParseJsonNumberNotFiniteError = declareRefusal('string/parseJson/NumberNotFiniteError');
 
 const FROM_PLAIN_HANDLERS = {

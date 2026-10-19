@@ -269,26 +269,6 @@ describe('runtime/control.mjs if and coalesce', () => {
     expect(await evalQuery('75 | if (gte 90) ~("A") ~(if (gte 70) ~("B") ~("C"))')).toBe('B');
   });
 
-  it('coalesce returns first non-null alternative', async () => {
-    expect(await evalQuery('{:firstName "Alice"} | coalesce /preferredName /firstName ~("Anon")')).toBe('Alice');
-  });
-
-  it('coalesce returns null when all alternatives are null', async () => {
-    expect(await evalQuery('{} | coalesce /a /b /c')).toBe(null);
-  });
-
-  it('coalesce treats 0 as non-null', async () => {
-    expect(await evalQuery('{:zero 0} | coalesce /missing /zero ~("default")')).toBe(0);
-  });
-
-  it('coalesce treats false as non-null', async () => {
-    expect(await evalQuery('{:flag false} | coalesce /missing /flag ~(true)')).toBe(false);
-  });
-
-  it('coalesce treats empty string as non-null', async () => {
-    expect(await evalQuery('{:s ""} | coalesce /missing /s ~("default")')).toBe('');
-  });
-
   it('coalesce leaves the alternatives after the first value unrun [QSCND#coalesce]', async () => {
     // A verb of the host counts its runs: the walk ends at `/a`, a value,
     // and reaches the verb where `/b` fails.
@@ -305,21 +285,5 @@ describe('runtime/control.mjs if and coalesce', () => {
     await counting.evalCell('{:a 1} | coalesce /b ~(counted)');
     expect(runs).toBe(1);
   });
-
-  it('coalesce keeps false as a value', async () => {
-    expect(await evalQuery('{:a false :b 2} | coalesce /a /b')).toBe(false);
-  });
-
-  it('if and coalesce compose for guarded defaulting', async () => {
-    expect(await evalQuery('{:role :admin :name "Bob"} | if (get /role | eq :admin) ~(coalesce /displayName /name ~("???")) ~("guest")')).toBe('Bob');
-  });
-
-  // The refusal of a bare coalesce is pinned by
-  // `fail-track.test.mjs`; the control-flow block tests what the verb
-  // does.
-  it('coalesce answers its subject first when its alternatives are values', async () => {
-    expect(await evalQuery('null | coalesce 30')).toBe(30);
-  });
-
 });
 

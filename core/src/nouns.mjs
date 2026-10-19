@@ -345,11 +345,12 @@ const kindsWalkedFrom = kindName => (KINDS_OF_OWN_VECTORS.includes(kindName)
   ? [...kindsOfWalk(makeTagged(makeTag(kindName), []))]
   : [kindName]);
 
-// The kinds a walk passes up to the first whose walk reaches a label, the tag
-// that value stands under with it, or null where none does: what an answer laid
-// back as that value keeps, the kinds beneath it, which the answer may change,
-// left out, and the noun a tag name names, which the walk passes after the kind
-// of tag names, reached by no label [QSDSP#walk], [QSDSP#tagname].
+// The kinds a walk passes up to the first whose walk reaches a label, with
+// `::tagged` where the value it reached stands under a tag, or null where none
+// does: what an answer laid back as that value keeps, the kinds beneath it,
+// which the answer may change, left out, and the noun a tag name names, which
+// the walk passes after the kind of tag names, reached by no label
+// [QSDSP#walk], [QSDSP#tagname].
 function kindsWalkedTo(kindNames, labelName) {
   const at = kindNames.findIndex((kindName, index) => kindNames[index - 1] !== CORE_KIND.tag.name && kindsWalkedFrom(kindName).includes(labelName));
   if (at === -1) return null;

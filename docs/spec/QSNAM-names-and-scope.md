@@ -150,8 +150,8 @@ call that recurses without end among them, is refused as
 ## scope
 
 A step runs on a state of two parts, the value in the pipe and its
-scope, the names in force before it over the root, which `env` lists, a
-recipe's those its call opens [QSBLD#recipe]. A scope is shared by the steps of one
+scope, the names in force where it stands over the root, a recipe's those
+its call opens [QSBLD#recipe]. A scope is shared by the steps of one
 pipeline, its first step and every step `|` or `!|` joins to it. A name
 is declared once in a scope,
 counted in its steps as they are written, run or skipped: a declaration

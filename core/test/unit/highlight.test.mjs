@@ -146,7 +146,7 @@ describe('tokenize — a quote', () => {
   });
 });
 
-describe('tokenize — the name of a call by what it reaches', () => {
+describe('tokenize — the name of a call by its name, a word of the root a verb', () => {
   it('paints the name of a word of the root as a verb, a call by its address among them [QSHST#tools]', async () => {
     expect(await painted('count')).toEqual([['count', 'verb']]);
     expect(await painted('[1] | vec/count')).toContainEqual(['vec/count', 'verb']);

@@ -3,7 +3,7 @@
 // what a literal and a page answer [QSQUO#step], [QSHST#tools].
 
 import {
-  parse, ParseError,
+  parse, ParseError, partsBeforeACursor,
   langRuntime, evalQuery,
   partOf,
   partAtOffset,
@@ -273,20 +273,18 @@ function wordStartBefore(source, offset) {
 // the combinator, the grammar written once.
 async function subjectAt(source, offset) {
   const start = wordStartBefore(source, offset);
-  const text = `${source.slice(0, start)}${STEP_AT_CURSOR}`;
+  const textBefore = source.slice(0, start);
   let root;
   try {
-    root = partOf(parse(text));
+    root = partsBeforeACursor(textBefore);
   } catch {
     return null;
   }
   const steps = stepsOf(root);
   if (steps.length < 2 || steps[steps.length - 1].combinator === '!|') return null;
-  const subject = await subjectOfSteps(steps.slice(0, -1), null, text);
+  const subject = await subjectOfSteps(steps.slice(0, -1), null, textBefore);
   return subject === null ? null : { ...subject, root, end: start };
 }
-
-const STEP_AT_CURSOR = ' it';
 
 function stepsOf(pipeline) {
   return pipeline.parts.map(read => (isFailStep(read.value) ? { combinator: '!|', read: read.parts[0] } : { combinator: '|', read }));

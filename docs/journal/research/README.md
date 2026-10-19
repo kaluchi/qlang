@@ -15,10 +15,12 @@ A folder for each kind of report, told by what calls a report into being:
   the record calls for, `node scripts/spec-check.mjs --records Dnn`. Named
   after the record and numbered in the order its critiques ran,
   `D329~2.md`, its reading `D329~2~reading.md`.
-- `reviews/`: a review of the work a record did, by a clean reader, named
-  so, `D324~4.md` with `D324~4~reading.md`; and a review of a branch
-  against the aim and the rules of the work, which the branch calls for,
-  `<date>-<branch>.md`, the fate of each finding below it.
+- `reviews/`: a review of the work a record did, by a clean reader or by a
+  reader the session starts, its head saying which, named so, `D324~4.md`
+  with `D324~4~reading.md`, a review of the branch that carries the
+  batches of a record before it lands among them, `D353~2.md`; and a review
+  of a branch the work of no record holds, `2026-10-13-the-path-is-a-value.md`,
+  the fate of each finding below it.
 - `spec-check/`: a check of the chapters by clean readers, which a record
   calls for and carries the fates of, `node scripts/spec-check.mjs --for
   Dnn`: a folder for each run named after the record, `D323~1/`, a report

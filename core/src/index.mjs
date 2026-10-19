@@ -3,7 +3,7 @@
 // the runtime modules, which register their primitives as they load.
 // The rules it holds: [QSWRK#tooling].
 
-export { parse, ParseError } from './parse.mjs';
+export { parse, ParseError, partsBeforeACursor, SIGNS_A_WORD_FOLLOWS } from './parse.mjs';
 export { langRuntime } from './runtime/index.mjs';
 export { LANGUAGE_SOURCES } from './runtime/bootstrap.mjs';
 export { createSession, evalQuery } from './session.mjs';

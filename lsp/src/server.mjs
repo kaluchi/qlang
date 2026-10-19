@@ -16,7 +16,7 @@ import {
   ParameterInformation
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parse, partOf, langRuntime, LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
+import { parse, partOf, langRuntime, LANGUAGE_SOURCES, SIGNS_A_WORD_FOLLOWS } from '@kaluchi/qlang-core';
 import {
   parseDocument,
   buildCatalogIndex,
@@ -75,7 +75,7 @@ connection.onInitialize(async () => {
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
-      completionProvider: { triggerCharacters: ['|', '/', ':', '(', ' '] },
+      completionProvider: { triggerCharacters: [...SIGNS_A_WORD_FOLLOWS] },
       hoverProvider: true,
       definitionProvider: true,
       referencesProvider: true,

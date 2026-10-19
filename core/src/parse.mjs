@@ -8,7 +8,7 @@ import {
   parse as peggyParse,
   SyntaxError as PeggySyntaxError
 } from '../gen/grammar.mjs';
-import { keepParts } from './walk.mjs';
+import { keepParts, partOf } from './walk.mjs';
 
 
 // The refusal of a source [QSSYN#refusal]: `location` holds its place, `uri`
@@ -139,6 +139,17 @@ function completionOf(source) {
 export function closersCompleting(source) {
   return completionOf(source)?.closers ?? null;
 }
+
+// partsBeforeACursor(textBefore) → the parts of a text cut at a cursor with
+// the step `it` written there, so the steps before the cursor read as the
+// steps of a pipeline and its last step stands for the one being typed; it
+// throws as `parse` does [QSHST#tools].
+export const partsBeforeACursor = textBefore => partOf(parse(`${textBefore} it`));
+
+// The signs after which a reader writes a word of a step, which an editor
+// asks a completion at: the combinator, the slash of a path, the colon of a
+// keyword, the parenthesis of a group and the space of a gap [QSHST#tools].
+export const SIGNS_A_WORD_FOLLOWS = Object.freeze(['|', '/', ':', '(', ' ']);
 
 // The innermost part of a completed source that ends at `offset` and opens
 // with one of `openers`: parts that end together nest, and the walk meets

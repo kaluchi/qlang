@@ -58,6 +58,7 @@ describe('the language server process', () => {
       const response = await answer;
       expect(response.result.capabilities.hoverProvider).toBe(true);
       expect(response.result.capabilities.signatureHelpProvider.triggerCharacters).toEqual([' ']);
+      expect(response.result.capabilities.completionProvider.triggerCharacters).toEqual(['|', '/', ':', '(', ' ']);
     } finally {
       serverProcess.kill();
     }

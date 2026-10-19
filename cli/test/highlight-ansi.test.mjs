@@ -38,12 +38,12 @@ describe('highlightAnsi', () => {
     expect(out).toContain('\x1b[32m)\x1b[0m');            // upright close
   });
 
-  it('wraps a ::tag TagLit in the bright-cyan tag escape', () => {
+  it('wraps a tag name in the bright-cyan tag escape', () => {
     const out = highlightAnsi('::Box', noVerbNames);
     expect(out).toBe('\x1b[96m::Box\x1b[0m');
   });
 
-  it('wraps the ::tag head of a TaggedLit and descends into the payload', () => {
+  it('wraps the ::tag head of a tagged literal and descends into the payload', () => {
     const out = highlightAnsi('::Box~(mul x)', noVerbNames);
     expect(out).toContain('\x1b[96m::Box\x1b[0m');
     // Quote payload — upright delimiters + italic body. With no names
@@ -65,7 +65,7 @@ describe('highlightAnsi', () => {
     expect(out).toBe('\x1b[94mcount\x1b[0m');
   });
 
-  it('wraps a BindStep key in the bold-bright-blue keyword escape', () => {
+  it('wraps the name a declaration binds in the bold-bright-blue keyword escape', () => {
     const out = highlightAnsi(':x 1', new Set());
     expect(out).toMatch('\x1b[1;94m:x\x1b[0m');
   });

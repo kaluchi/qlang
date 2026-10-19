@@ -111,7 +111,7 @@ export function makeSet(elements) {
 }
 
 // The kinds a holder takes, the set of their tags a refusal of a value of
-// none of them holds as `:expected` [QSERR#site].
+// none of them holds as `:expected` [D367].
 export function kindsExpected(...kindNames) {
   return makeSet(kindNames.map(makeTag));
 }
@@ -185,7 +185,7 @@ function compareMaps(leftMap, rightMap) {
 }
 
 // A tagged container's payload is the container itself read by the kind of
-// its core; a tag over an atom or a value class wraps its payload.
+// its core; a tag over an atom or a value class holds its payload under it.
 function comparePayloads(leftTagged, rightTagged) {
   const [leftPayload, leftKind] = payloadOf(leftTagged);
   const [rightPayload, rightKind] = payloadOf(rightTagged);

@@ -50,18 +50,36 @@
         |~~ Every element of a quote is a step: a literal, a path, a
             quote, a vector, a set or a map of steps, or a step as data,
             `::call`, `::bind` and their kin. A value with no reading as
-            code, a value under a tag of another kind among them, is
-            refused at the index it stands at.
+            code, a value under a tag of another kind among them and the
+            quote of a path alone, which a step writes bare, is refused at
+            the index it stands at.
             ::link~(::quote | doc)
         ~~|
-    | throws :ReadBackDiffersError
-        |~~ The steps print as text that reads as no steps, and `:printed`
-            is that text: a value assembled after the first step prints as
-            a value written as a later step, which no pipeline holds. A
-            value a step answers is built by a verb, `get [1 2]`, and a
-            value under a tag by `tag`.
+    | throws :StepNotCommandError
+        |~~ A step after the first is a command, a call, a declaration or
+            a group, and a value stands at the head, where it is the
+            subject, after a declaration and after `!|`, where it is the
+            recovery: the step at `:index` is a value, and `:message` names
+            the verb that takes it, `get` for a path and a literal, `tag`
+            for a tag and `apply` for a quote. A value a step answers is
+            built by a verb, `get [1 2]`, and a value under a tag by `tag`.
             ::link~(::quote | doc) ::link~(::qlang/pipeline | doc)
         ~~|
+    | carries :StepNotCommandError/message
+        |~~ What the rule says of the value, the verb that takes it. ~~|
+        ::string
+    | throws :LiteralComputesError
+        |~~ A literal computes nothing: the step at `:index` is a literal
+            that holds a name or a group, which the shape `get` builds
+            computes, and `:message` writes that template, its parts
+            computed written as quotes, `get [~(count)]`.
+            ::link~(::quote | doc) ::link~(::any/get | doc)
+        ~~|
+    | carries :LiteralComputesError/message
+        |~~ What the rule says of the literal, the template `get` builds it
+            from.
+        ~~|
+        ::string
     | throws :ParseError
         |~~ The source does not read as qlang: `:location` names where the
             reading stopped, its line and column read by `line` and
@@ -126,13 +144,31 @@
     | proves :ElementNotStepError/refusesAValueWithNoReading
         |~~ A value with no reading as a step is refused at its index. ~~|
         ~([::Box[1]] | tag ::quote !| get [~(type) /index] | eq [::quote/ElementNotStepError 0])
-    | proves :ReadBackDiffersError/refusesAValueAfterTheHead
-        |~~ A value after the first step is refused, its text naming it. ~~|
-        ~([[1] [2]] | tag ::quote !| get [~(type) /printed] | eq [::quote/ReadBackDiffersError "[1] | [2]"])
-    | proves :ReadBackDiffersError/keepsAValueAtTheHead
+    | proves :ElementNotStepError/refusesTheQuoteOfAPathAlone
+        |~~ The quote of a path alone, which a step writes bare, is refused
+            at its index.
+        ~~|
+        ~(get [1 ~("/name" | parse)] | tag ::quote !| get [~(type) /index] | eq [::quote/ElementNotStepError 1])
+    | proves :StepNotCommandError/refusesAValueAfterTheHead
+        |~~ A value after the first step is refused at its index. ~~|
+        ~([[1] [2]] | tag ::quote !| get [~(type) /index] | eq [::quote/StepNotCommandError 1])
+    | proves :StepNotCommandError/namesTheVerbThatTakesThePath
+        |~~ A path after the first step names the verb that reads it. ~~|
+        ~([1 /a] | tag ::quote !| get /message | contains "write `get /a`")
+    | proves :StepNotCommandError/keepsAValueAtTheHead
         |~~ A value at the head is the subject the steps after it run on.
         ~~|
         ~(get [[1 2] ~(~(count) | first)] | tag ::quote | apply it | eq 2)
+    | proves :StepNotCommandError/keepsAValueAfterADeclaration
+        |~~ A value after a declaration is the subject the steps after it
+            run on.
+        ~~|
+        ~(get [~(~(:x 1) | first) 5] | tag ::quote | apply it | eq 5)
+    | proves :LiteralComputesError/refusesANameInAVector
+        |~~ A vector that holds a name is refused, naming the template
+            `get` builds.
+        ~~|
+        ~([[::call{:name :count}]] | tag ::quote !| get [~(type) /message] | eq [::quote/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(count)]`"])
     | proves :ParseError/refusesASourceCutShort
         |~~ A source cut short after a pipe is refused. ~~|
         ~("42 |" | parse !| type | eq ::quote/ParseError)

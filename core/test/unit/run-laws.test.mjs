@@ -101,11 +101,11 @@ describe('runLaws Quote-as-test outcomes', () => {
     expect(cellEntry.result).toBe(true);
   });
 
-  it('example does not leak BindStep writes back into the calling session', async () => {
-    // The law under `:writer` runs a BindStep — the session-env copy
-    // isolates the write so the calling session still sees no
-    // `:scratch` after runLaws completes. Reading `:scratch` on the
-    // session after `runLaws` therefore lifts ::call/UnknownNameError.
+  it('example does not leak the writes of a declaration back into the calling session', async () => {
+    // The law under `:writer` runs a declaration in a scope of its own,
+    // so the calling session still sees no `:scratch` after runLaws
+    // completes. Reading `:scratch` on the session after `runLaws`
+    // therefore lifts ::call/UnknownNameError.
     const moduleSource = ':writer 1\n:writer/declares |~~ Declares a name of its own. ~~| ::law~(:scratch 99 | scratch | eq 99)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]

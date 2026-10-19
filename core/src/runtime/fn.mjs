@@ -9,8 +9,7 @@
 
 import { registerPrimitive, registerStateReader } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { declarationStep } from '../quote.mjs';
-import { commandStep } from '../steps.mjs';
+import { commandStep, declarationStep } from '../steps.mjs';
 import { inputsOfFunction } from '../eval.mjs';
 import { chainOfFn } from '../chain.mjs';
 import {

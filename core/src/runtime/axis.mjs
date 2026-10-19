@@ -39,55 +39,55 @@ const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError'
 
 // What a refusal of an axis holds, the subject a name nothing declares:
 // the tag it read, the addresses where the pages of its last name live and
-// the names near it [QSDSP#walk], [QSERR#site], [QSSLF#near].
-function refusalOf(env, subject) {
-  return { name: subject, addresses: addressesOf(env, splitAddress(subject.name)[1]), nearest: nearestTagNames(env, subject.name) };
+// the names near it [QSDSP#walk], [D367], [QSSLF#near].
+function refusalOf(scope, subject) {
+  return { name: subject, addresses: addressesOf(scope, splitAddress(subject.name)[1]), nearest: nearestTagNames(scope, subject.name) };
 }
 
 // The record a subject names, the one record every axis and `runLaws` read: a
 // name by its tag, the address of its node, null where nothing declares it,
 // and any other value, a keyword among them, by its kind [QSLIT#keyword]; a
 // tag of a value withheld from held code is refused [QSQUO#held].
-function declaringRecordOf(env, subject) {
+function declaringRecordOf(scope, subject) {
   if (isBinding(subject)) return subject;
   if (isTag(subject)) {
-    refuseWithheld(env, subject.name, true);
-    return nodeOf(env, subject.name) ?? nodeOfRefused(env, subject.name);
+    refuseWithheld(scope, subject.name, true);
+    return nodeOf(scope, subject.name) ?? nodeOfRefused(scope, subject.name);
   }
-  return recordOfKind(env, subject);
+  return recordOfKind(scope, subject);
 }
 
 // The record of the first kind a value's stack of tags declares, from the
 // outside in, as a call of a verb walks it, a tag of identity read past to
 // the kind beneath it [QSSLF#axis]; null where none is declared.
-function recordOfKind(env, value) {
+function recordOfKind(scope, value) {
   const name = typeOf(value).name;
-  return nodeOf(env, name) ?? nodeOfRefused(env, name) ?? recordOfKind(env, payloadBeneath(value));
+  return nodeOf(scope, name) ?? nodeOfRefused(scope, name) ?? recordOfKind(scope, payloadBeneath(value));
 }
 
 // The node a refusal named by the address of what refused reads its page
 // from, that address, when no node of its own declares it [QSSLF#catalog].
-function nodeOfRefused(env, name) {
+function nodeOfRefused(scope, name) {
   const [refusedName] = splitAddress(name);
-  return refusedName !== null && name.endsWith('Error') ? nodeOf(env, refusedName) : null;
+  return refusedName !== null && name.endsWith('Error') ? nodeOf(scope, refusedName) : null;
 }
 
 // The record of the node the subject holds under an anchor, or null: the
 // node under the address a tag name writes, an input of a verb among them,
 // and otherwise the verb the subject's walk reaches under the anchor [QSSLF#axis].
-function nodeUnderAnchor(env, subject, anchorName) {
-  const under = isTag(subject) ? nodeOf(env, `${subject.name}/${anchorName}`) : null;
-  return under ?? residenceOnSubject(env, anchorName, subject);
+function nodeUnderAnchor(scope, subject, anchorName) {
+  const under = isTag(subject) ? nodeOf(scope, `${subject.name}/${anchorName}`) : null;
+  return under ?? residenceOnSubject(scope, anchorName, subject);
 }
 
 // What the refusal of an anchor holds: the name the reader asked, a
 // keyword, where the verbs of that name live, and the nodes of the subject
 // near it [QSSLF#axis].
-function anchorRefusalOf(env, subject, anchorName) {
+function anchorRefusalOf(scope, subject, anchorName) {
   return {
     name: keyword(anchorName),
-    addresses: addressesOf(env, anchorName),
-    nearest: nearestNodes(env, subject, anchorName)
+    addresses: addressesOf(scope, anchorName),
+    nearest: nearestNodes(scope, subject, anchorName)
   };
 }
 
@@ -97,12 +97,12 @@ function anchorRefusalOf(env, subject, anchorName) {
 // the call [QSDSP#residence].
 export function recordReadBy(subject, anchor, state, NotFoundError) {
   if (!isNull(anchor)) {
-    const node = nodeUnderAnchor(state.env, subject, anchor.name);
-    if (node === null) throw new NotFoundError(anchorRefusalOf(state.env, subject, anchor.name));
+    const node = nodeUnderAnchor(state.scope, subject, anchor.name);
+    if (node === null) throw new NotFoundError(anchorRefusalOf(state.scope, subject, anchor.name));
     return node;
   }
-  const record = declaringRecordOf(state.env, subject);
-  if (record === null) throw new NotFoundError(refusalOf(state.env, subject));
+  const record = declaringRecordOf(state.scope, subject);
+  if (record === null) throw new NotFoundError(refusalOf(state.scope, subject));
   return record;
 }
 
@@ -114,7 +114,7 @@ registerStateReader('any/binding', (subject, anchor, state) =>
 // none [QSSLF#axis].
 registerStateReader('any/source', (subject, anchor, state) => {
   const record = recordReadBy(subject, anchor, state, AnySourceUnknownNameError);
-  const written = [record, ...declarationsUnder(state.env, record.get('name').name)].filter(declared => declared.get('source') !== null);
+  const written = [record, ...declarationsUnder(state.scope, record.get('name').name)].filter(declared => declared.get('source') !== null);
   return written.length === 0 ? NULL : makeQuote(written.flatMap(declared => [...declared.get('source')]));
 });
 // The one page of a record: its docs joined, a line break between two,

@@ -26,7 +26,7 @@ describe('the imports of core/src', () => {
   it('form no cycle, the parser and the modules its grammar imports among them', () => {
     expect(cyclesOf(imports)).toEqual([]);
     expect(imports.get('core/src/parse.mjs')).toContain('core/gen/grammar.mjs');
-    expect(imports.get('core/gen/grammar.mjs')).toContain('core/src/walk.mjs');
+    expect(imports.get('core/gen/grammar.mjs')).toEqual(expect.arrayContaining(['core/src/steps.mjs', 'core/src/walk.mjs']));
   });
 
   it('reach the words and the root from the session and the root of the package alone', () => {

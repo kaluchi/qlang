@@ -1,16 +1,14 @@
-// The one caller of the generated parser: `parse` answers the tree of a
-// source or throws a `ParseError`, and the tools that read the tree
-// through walk.mjs find on it:
-//   - a .parent on each node but the root
-//   - the source on the root as .source, and its name as .uri, a file
-//     path, 'inline' or 'cell-N'
-//   - .comments on the root, the comments the grammar read as
-//     whitespace [QSSYN#comment], in the order of the source
+// The one caller of the generated parser: `parse` answers the quote of a
+// source, the records of its steps, or throws a `ParseError`; the parts it
+// read stand beside the records in walk.mjs, the root holding the source,
+// its uri and the comments the grammar read as whitespace, in the order of
+// the source [D367].
 
 import {
-  parse as peggyParse
+  parse as peggyParse,
+  SyntaxError as PeggySyntaxError
 } from '../gen/grammar.mjs';
-import { attachAstParents } from './walk.mjs';
+import { keepParts } from './walk.mjs';
 
 
 // The refusal of a source [QSSYN#refusal]: `location` holds its place, `uri`
@@ -32,17 +30,8 @@ export class ParseError extends Error {
   }
 }
 
-// parse(source, opts?) → AST root node
-//
-// opts:
-//   uri — string identifier for the source (file path,
-//         'inline', 'cell-N'). Defaults to 'inline'.
-//
-// Throws ParseError on syntactic failure. The AST is a tree of
-// objects of JavaScript with a `type` field; see grammar.peggy for the
-// catalog of node types. Every node carries .location, .text and
-// (except the root) .parent. The root additionally carries
-// .source, .uri and .comments.
+// parse(source, opts?) → the quote of the source, `opts.uri` naming it, a
+// file path, a cell, `inline` where the caller names none.
 export function parse(source, opts = {}) {
   if (typeof source !== 'string') {
     throw new ParseError(
@@ -52,12 +41,15 @@ export function parse(source, opts = {}) {
     );
   }
   const commentTrivia = new Map();
-  let ast;
+  const uri = opts.uri ?? 'inline';
+  let root;
   try {
-    ast = peggyParse(source, { commentTrivia });
+    root = peggyParse(source, { commentTrivia, grammarSource: uri });
   } catch (err) {
-    // A refusal the grammar writes holds its own sentence; a failure where
-    // the source ends names what completes it [QSSYN#refusal].
+    // A throw of the parser that is no refusal of the text passes as it is
+    // [D367]; a refusal the grammar writes holds its own sentence, and a
+    // failure where the source ends names what completes it [QSSYN#refusal].
+    if (!(err instanceof PeggySyntaxError)) throw err;
     const atTheEnd = err.expected !== null && err.found === null;
     const unclosed = atTheEnd ? bracketLeftOpen(source) : null;
     const sentence = unclosed?.message ?? (atTheEnd ? stepMissedAtTheEnd(source) : undefined);
@@ -68,13 +60,10 @@ export function parse(source, opts = {}) {
       sentence
     });
   }
-  // Post-pass decoration: AST parent pointers first, so the root
-  // receives .parent = null, then the root's metadata.
-  attachAstParents(ast);
-  ast.source = source;
-  ast.uri = opts.uri ?? 'inline';
-  ast.comments = [...commentTrivia.values()].sort((left, right) => left.location.start.offset - right.location.start.offset);
-  return ast;
+  root.source = source;
+  root.uri = uri;
+  root.comments = [...commentTrivia.values()].sort((left, right) => left.location.start.offset - right.location.start.offset);
+  return keepParts(root).value;
 }
 
 // nameOfContinuation(alternative) → the name the language gives a continuation
@@ -104,16 +93,17 @@ const OPENERS_BY_CLOSER = new Map([
 ]);
 const CLOSER_DEPTH = 4;
 
-// The tree of a source, or the closers the parser expects where a source
-// cut short stops, in the order of `OPENERS_BY_CLOSER`; none where it
-// stops before its end, which no closer written after it completes.
+// The parts of a source, or the closers the parser expects where a source
+// cut short stops, in the order of `OPENERS_BY_CLOSER`, none where it stops
+// before its end, a throw that is no refusal passing as it is [D367].
 function attemptOf(candidate) {
   try {
-    return { tree: peggyParse(candidate, { commentTrivia: new Map() }), closers: [] };
+    return { root: peggyParse(candidate, { commentTrivia: new Map() }), closers: [] };
   } catch (refusal) {
-    if (refusal.location.start.offset !== candidate.length) return { tree: null, closers: [] };
+    if (!(refusal instanceof PeggySyntaxError)) throw refusal;
+    if (refusal.location.start.offset !== candidate.length) return { root: null, closers: [] };
     const expected = new Set(refusal.expected.map(alternative => alternative.text));
-    return { tree: null, closers: [...OPENERS_BY_CLOSER.keys()].filter(closer => expected.has(closer)) };
+    return { root: null, closers: [...OPENERS_BY_CLOSER.keys()].filter(closer => expected.has(closer)) };
   }
 }
 
@@ -125,8 +115,8 @@ function stepMissedAtTheEnd(source) {
 }
 
 // The shortest run of closers that completes a source, each a closer the
-// parser expects where the source stops, with the tree the completed
-// source parses to, or null when none within CLOSER_DEPTH does.
+// parser expects where the source stops, with the parts the completed
+// source reads as, or null when none within CLOSER_DEPTH does.
 function completionOf(source) {
   let frontier = [{ run: [], closers: attemptOf(source).closers }];
   for (let depth = 1; depth <= CLOSER_DEPTH && frontier.length > 0; depth++) {
@@ -135,7 +125,7 @@ function completionOf(source) {
       for (const closer of closers) {
         const extended = [...run, closer];
         const attempt = attemptOf(source + extended.join(''));
-        if (attempt.tree !== null) return { closers: extended, tree: attempt.tree };
+        if (attempt.root !== null) return { closers: extended, root: attempt.root };
         next.push({ run: extended, closers: attempt.closers });
       }
     }
@@ -150,19 +140,16 @@ export function closersCompleting(source) {
   return completionOf(source)?.closers ?? null;
 }
 
-// The innermost node that ends at `offset` and opens with one of
-// `openers`: nodes that end together nest, and the walk meets the outer
-// before the inner.
-function nodeClosedAt(tree, offset, openers) {
+// The innermost part of a completed source that ends at `offset` and opens
+// with one of `openers`: parts that end together nest, and the walk meets
+// the outer before the inner.
+function partClosedAt(root, completed, offset, openers) {
   let found = null;
-  const visit = node => {
-    if (node === null || typeof node !== 'object') return;
-    if (Array.isArray(node)) { node.forEach(visit); return; }
-    if (typeof node.text === 'string' && node.location.end.offset === offset
-      && openers.some(opener => node.text.startsWith(opener))) found = node;
-    for (const value of Object.values(node)) visit(value);
+  const visit = read => {
+    if (read.span.end.offset === offset && openers.some(opener => completed.startsWith(opener, read.span.start.offset))) found = read;
+    read.parts.forEach(visit);
   };
-  visit(tree);
+  visit(root);
   return found;
 }
 
@@ -174,10 +161,11 @@ function bracketLeftOpen(source) {
   if (completion === null) return null;
   const [innermostCloser] = completion.closers;
   const openers = OPENERS_BY_CLOSER.get(innermostCloser);
-  const opened = nodeClosedAt(completion.tree, source.length + innermostCloser.length, openers);
+  const completed = source + completion.closers.join('');
+  const opened = partClosedAt(completion.root, completed, source.length + innermostCloser.length, openers);
   if (opened === null) return null;
-  const opener = openers.find(candidate => opened.text.startsWith(candidate));
-  const { line, column } = opened.location.start;
+  const opener = openers.find(candidate => completed.startsWith(candidate, opened.span.start.offset));
+  const { line, column } = opened.span.start;
   return {
     message: `\`${opener}\` opened at line ${line}, column ${column} is never closed; \`${completion.closers.join('')}\` completes the source`,
     expected: [{ type: 'literal', text: innermostCloser }]

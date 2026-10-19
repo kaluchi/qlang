@@ -3,8 +3,7 @@
 //      the key of a map entry — parse error.
 //   2. In the slot of a declaration, between its name and its body, it
 //      documents the declaration; before a declaration it is refused
-//      [QSSYN#doc].
-//   3. MapEntry AST node carries no .docs field.
+//      [D367].
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parse.mjs';
@@ -16,7 +15,7 @@ describe('a doc before the key of a map entry is a parse error', () => {
   });
 });
 
-describe('DocLit literal is a Vec / Set element by itself', () => {
+describe('a doc is an element of a vector or a set by itself', () => {
   it('a Doc-value at the head of a Vec is its first element', async () => {
     const result = await evalQuery('[|~~ doc ~~| 42] | first | type | eq ::doc');
     expect(result).toBe(true);
@@ -34,9 +33,9 @@ describe('a doc documents the declaration whose slot it stands in', () => {
     expect(result).toBe(' note ');
   });
 
-  it('holds the doc literals of the slot as the tree holds any doc', () => {
-    const ast = parse(':x |~~ one ~~| |~~ two ~~| 42');
-    expect(ast.docs.map(doc => [doc.type, doc.content])).toEqual([['DocLit', ' one '], ['DocLit', ' two ']]);
+  it('holds the docs of the slot as the record of the declaration holds any doc', () => {
+    const [declaration] = parse(':x |~~ one ~~| |~~ two ~~| 42');
+    expect(declaration.get('docs').map(doc => [...doc])).toEqual([[' one '], [' two ']]);
   });
 
   it('refuses a doc written before a declaration, on its line or the one above', () => {
@@ -54,9 +53,3 @@ describe('a doc documents the declaration whose slot it stands in', () => {
   });
 });
 
-describe('MapEntry AST node has no .docs field', () => {
-  it('parses MapEntry without a docs field', () => {
-    const ast = parse('{:k 1}');
-    expect(ast.entries[0].docs).toBeUndefined();
-  });
-});

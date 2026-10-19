@@ -26,3 +26,5 @@
 {"name":"a-verb-the-reader-declares-with-an-input-folds-a-vector-by-the-short-form","query":":number/plus (::fn | takes :elem |~~ The elem. ~~| /0 ::number | impl ~(add elem)) | [1 2 3] | reduce 0 ~plus","expect":"6"}
 {"name":"reduce-takes-a-reducer-as-code","query":"get [~([1] | reduce 0 !| type) ~([1] | reduce 0 (add 1) !| type)]","expect":"[::vec/reduce/reducer/NotGivenError ::vec/reduce/reducer/KindNotTakenError]"}
 {"name":"a-quote-of-one-word-after-a-leading-pipe-is-the-short-form","query":"[1 2 3] | reduce 0 ~(| add)","expect":"6"}
+{"decision":"D367","name":"a-reducer-assembled-from-data-folds-by-the-short-form","query":"[1 2 3] | reduce 0 ([::call{:name :add}] | tag ::quote)","expect":"6"}
+{"decision":"D367","name":"a-reducer-of-a-call-and-a-step-after-it-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add | it) !| type","expect":"::number/add/SubjectNotNumberError"}

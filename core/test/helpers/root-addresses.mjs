@@ -2,8 +2,8 @@
 // every name the host's sources declared, `::number` and `::vec/count` alike,
 // in the order of their names.
 
-import { ROOT_KEY } from '../../src/env-keys.mjs';
+import { ROOT_KEY } from '../../src/scope-keys.mjs';
 
-export function rootAddressesOf(env) {
-  return [...env.get(ROOT_KEY).keys()].sort().map(name => `::${name}`);
+export function rootAddressesOf(scope) {
+  return [...scope.get(ROOT_KEY).keys()].sort().map(name => `::${name}`);
 }

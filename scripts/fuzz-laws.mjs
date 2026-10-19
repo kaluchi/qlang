@@ -6,7 +6,7 @@
 // The rules it holds: [QSWRK#tooling].
 
 import { evalQuery, printValue, langRuntime } from '../core/src/index.mjs';
-import { ROOT_KEY } from '../core/src/env-keys.mjs';
+import { ROOT_KEY } from '../core/src/scope-keys.mjs';
 import { deepEqual } from '../core/src/equality.mjs';
 import { isErrorValue } from '../core/src/types.mjs';
 

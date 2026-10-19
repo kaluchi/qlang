@@ -21,7 +21,7 @@ export function deepEqual(a, b) {
   // A value JavaScript leaves undefined is null [QSHST#source].
   if (isNull(a) || isNull(b)) return isNull(a) && isNull(b);
   if (typeof a !== typeof b) return false;
-  // A value under a tag's wrapper equals one under the same tag over an
+  // A tag that holds its payload under it equals the same tag over an
   // equal payload.
   if (isValueClass(a, 'underTag')) {
     return isValueClass(b, 'underTag')

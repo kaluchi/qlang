@@ -13,7 +13,7 @@ const ANSI_RESET = '\x1b[0m';
 const KIND_TO_SGR = {
   string:   '32',         // green
   regex:    '95',         // bright magenta — a regex `#"…"`
-  quote:    '32',         // green — `~(` and `)`, the body in italics
+  quote:    '32',         // green — `~(` and `)`, the content in italics
   number:   '33',         // yellow
   comment:  '2',          // dim
   name:     '36',         // cyan

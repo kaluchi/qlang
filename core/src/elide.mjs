@@ -171,9 +171,9 @@ function leastOf(part, start, working) {
 function replacedAt(value, path, replacement, working) {
   if (path.length === 0) return replacement;
   if (isValueClass(value, 'underTag')) {
-    const wrapped = makeTagged(value.tag, replacedAt(value.payload, path, replacement, working));
-    working.add(wrapped);
-    return wrapped;
+    const laid = makeTagged(value.tag, replacedAt(value.payload, path, replacement, working));
+    working.add(laid);
+    return laid;
   }
   const [head, ...rest] = path;
   const copy = isVec(value) ? [...value] : new Map(value);

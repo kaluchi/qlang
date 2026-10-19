@@ -1,5 +1,5 @@
 // Tests for src/errors.mjs — the one kind of refusal, the defects of the
-// runtime, the names of the classes and location propagation.
+// runtime, the names of the classes and the location of a refusal.
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -12,13 +12,12 @@ import {
   declareForeignError
 } from '../../src/errors.mjs';
 import { keyword } from '../../src/types.mjs';
-import { catchOriginalError } from '../helpers/error-assertions.mjs';
+import { catchOriginalError, expectErrorResult } from '../helpers/error-assertions.mjs';
 
 describe('QlangError base class', () => {
-  it('carries its facts and location=null', () => {
+  it('carries its facts', () => {
     const qlangErr = new QlangError('boom', { count: 5 });
     expect(qlangErr.facts).toEqual({ count: 5 });
-    expect(qlangErr.location).toBeNull();
     expect(qlangErr.message).toBe('boom');
     expect(qlangErr.name).toBe('QlangError');
     expect(qlangErr).toBeInstanceOf(Error);
@@ -28,7 +27,7 @@ describe('QlangError base class', () => {
 // A refusal whose site hands no facts.
 const TestsProbeError = declareRefusal('tests/ProbeError');
 
-describe('a refusal declared by its address [QSERR#site]', () => {
+describe('a refusal declared by its address [D367]', () => {
   it('carries the facts its site hands, named by the last name of its address', () => {
     const unresolvedErr = new CallUnknownNameError({ name: keyword('foo') });
     expect(unresolvedErr).toBeInstanceOf(QlangError);
@@ -59,43 +58,19 @@ describe('QlangInvariantError', () => {
   });
 });
 
-describe('runtime error location propagation via evalNode', () => {
-  // Runtime errors are error values; `catchOriginalError` (shared
-  // helper) unwraps the underlying QlangError off `.originalError`
-  // so the location / name assertions below read structurally.
-
-  it('attaches a location to a refusal of the runtime', async () => {
-    const originalErr = await catchOriginalError('42 | filter ~(gt 0)');
-    expect(originalErr).toBeInstanceOf(QlangError);
-    expect(originalErr.location).not.toBeNull();
-    expect(typeof originalErr.location.start.offset).toBe('number');
-  });
-
-  it('the attached location points to the failing call', async () => {
+describe('the location of a refusal of the runtime, the span of the step that raised it [D367]', () => {
+  it('locates a refusal at the call that raised it', async () => {
     const source = '[1 2 3] | filter ~(gt 0) | count | filter ~(gt 0)';
-    //              0         1         2         3         4
-    //              0123456789012345678901234567890123456789012345678
-    const originalErr = await catchOriginalError(source);
-    expect(originalErr).not.toBeNull();
-    // The second filter is at offset 34 (`filter` after the `count | `)
-    expect(originalErr.location.start.offset).toBe(source.indexOf('filter', 25));
+    expect((await expectErrorResult(source)).location.start.offset).toBe(source.indexOf('filter', 25));
   });
 
-  it('the location of a refusal inside a quote a step hands a verb points into the source of the query', async () => {
+  it('locates a refusal inside a quote a step hands a verb in the source of the query', async () => {
     const source = '[1 2] | map ~(add 1 | nope 2)';
-    const originalErr = await catchOriginalError(source);
-    expect(originalErr.location.start.offset).toBe(source.indexOf('nope'));
+    expect((await expectErrorResult(source)).location.start.offset).toBe(source.indexOf('nope'));
   });
 
-  it('does not overwrite a location set by an inner step', async () => {
-    // An error in an inner step carries its location through the pipeline.
-    // The outer step (mul) is never reached — the error value propagates.
-    // Location references the inner `count` call site, not the outer `mul`.
-    const originalErr = await catchOriginalError('42 | count | mul 2');
-    expect(originalErr).toBeInstanceOf(QlangError);
-    expect(originalErr.location).not.toBeNull();
-    // count is at offset 5 in the source
-    expect(originalErr.location.start.offset).toBe(5);
+  it('keeps the location of the step that raised it past the steps it skips', async () => {
+    expect((await expectErrorResult('42 | count | mul 2')).location.start.offset).toBe(5);
   });
 
   it('per-site name is set on the refusals the runtime raises', async () => {

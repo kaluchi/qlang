@@ -97,7 +97,7 @@ Tier 2, by topic, only the files the topic names:
   `core/lib/qlang/any.qlang` for the verbs every value answers
 - names, scope, the root, sessions: `docs/spec/QSNAM-names-and-scope.md`
   first, then `core/src/state.mjs`,
-  `core/src/env-keys.mjs`,
+  `core/src/scope-keys.mjs`,
   `core/src/runtime/root.mjs`, `core/src/runtime/env.mjs`,
   `core/src/session.mjs`
 - errors: `core/src/errors.mjs`, `core/src/error-convert.mjs`,
@@ -106,8 +106,8 @@ Tier 2, by topic, only the files the topic names:
   `core/src/runtime/manifest.mjs`, `core/src/runtime/doc.mjs`,
   `core/lib/qlang/doc.qlang`,
   `core/lib/qlang/builtin.qlang`
-- code as data: `core/src/quote.mjs`, `core/src/steps.mjs`,
-  `core/src/runtime/code.mjs`, `core/src/walk.mjs`
+- code as data: `core/src/steps.mjs`, `core/src/runtime/code.mjs`,
+  `core/src/walk.mjs`
 - printing and codecs: `core/src/print-value.mjs`,
   `core/src/runtime/print.mjs`, `core/src/runtime/json.mjs`
 - host boundary: `core/src/runtime/bootstrap.mjs`, `core/host/`,

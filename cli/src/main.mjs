@@ -52,13 +52,13 @@ export function queryAsWritten(queryText, env, exists = existsSync) {
 // Whether a query reads the subject standard input lifts to [QSHST#stdin]; a
 // query that does not parse reads none, its refusal written at once.
 function queryReadsStdin(queryText) {
-  let ast;
+  let quote;
   try {
-    ast = parse(queryText);
+    quote = parse(queryText);
   } catch {
     return false;
   }
-  return readsItsSubject(ast);
+  return readsItsSubject(quote);
 }
 
 export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env) {

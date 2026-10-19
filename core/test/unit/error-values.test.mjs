@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { keyword, isErrorValue, makeBinding, makeErrorValue, formOf, makeTag, makeFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { makeSet } from '../../src/ordering.mjs';
-import { quoteOfSource } from '../../src/quote.mjs';
+import { parse } from '../../src/parse.mjs';
 import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
@@ -25,7 +25,7 @@ describe('makeErrorValue', () => {
   });
 
   it('keeps a trace it is handed as it is [QSERR#trace]', () => {
-    const trace = makeTrace([makeFrame('x', quoteOfSource('add 1 | mul 2 | count'))]);
+    const trace = makeTrace([makeFrame('x', parse('add 1 | mul 2 | count'))]);
     const descriptor = new Map([['trace', trace]]);
     const errorVal = makeErrorValue(makeTag('Oops'), descriptor);
     expect(errorVal.descriptor).toBe(descriptor);
@@ -81,7 +81,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
   });
 
   it('a plain vector of frames on the answer of a host\'s verb is laid under the kind, and an empty trace is none, the frame of the step after it', async () => {
-    expect(await answerIn(await hostHanding([makeFrame(0, quoteOfSource('pre'))]), '1 | answered !| trace | eq ::trace[::frame[0 ~(pre)] ::frame[1 ~(answered)]]')).toBe(true);
+    expect(await answerIn(await hostHanding([makeFrame(0, parse('pre'))]), '1 | answered !| trace | eq ::trace[::frame[0 ~(pre)] ::frame[1 ~(answered)]]')).toBe(true);
     for (const trace of [[], makeTrace([])]) {
       expect(await answerIn(await hostHanding(trace), '1 | answered !| trace | eq ::trace[::frame[1 ~(answered)]]')).toBe(true);
     }
@@ -94,7 +94,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
   });
 
   it('a fold names the place of its element on its frame where its one word, a host\'s verb, answers or throws such a failure', async () => {
-    const answered = await hostHanding([makeFrame(0, quoteOfSource('pre'))]);
+    const answered = await hostHanding([makeFrame(0, parse('pre'))]);
     expect(await answerIn(answered, '[1 2] | reduce 0 ~(answeredToTheFold) !| trace | map ~place | eq [null /0]')).toBe(true);
     const thrown = await hostHanding('at Foo.bar(Foo.java:1)');
     expect(await answerIn(thrown, '[1 2] | reduce 0 ~(thrownToTheFold) !| get [~(type) ~(trace | last | place)] | eq [::trace/PayloadKindNotTakenError /0]')).toBe(true);
@@ -127,7 +127,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
   });
 
   it('a trace a host stamps `::trace` over by hand is walked to its frames, an element that is no frame refused at its index', async () => {
-    const trace = [makeFrame(0, quoteOfSource('pre')), [1, quoteOfSource('post')]];
+    const trace = [makeFrame(0, parse('pre')), [1, parse('post')]];
     stampTagHeader(trace, makeTag('trace'));
     expect(await answerIn(await hostHanding(trace), '1 | answered !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 1]')).toBe(true);
   });
@@ -137,8 +137,8 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
       stampTagHeader(parts, makeTag('frame'));
       return parts;
     };
-    const steps = quoteOfSource('add 1');
-    const holed = [makeFrame(0, quoteOfSource('pre')), undefined, makeFrame(2, quoteOfSource('post'))];
+    const steps = parse('add 1');
+    const holed = [makeFrame(0, parse('pre')), undefined, makeFrame(2, parse('post'))];
     const laidOut = [[1], [1, [1, 2]], [1, makeQuote([])], [1, steps, 5], [1, steps, makePath([0]), 9]].map(parts => [makeFrame(0, steps), stamped(parts)]);
     for (const trace of [...laidOut, holed]) {
       expect(await answerIn(await hostHanding(trace), '1 | answered !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 1]')).toBe(true);
@@ -244,7 +244,7 @@ describe('errorFromQlang', () => {
   // The facts of the site come in the order the catalog declares them,
   // its label's first and those of `::error` after, and the trace last
   // [QSERR#site].
-  it('converts a refusal — its address the tag, its facts in the order the catalog declares them [QSERR#site]', async () => {
+  it('converts a refusal — its address the tag, its facts in the order the catalog declares them [D367]', async () => {
     const typeErr = new TestsProbeTypeError({ actualValue: 'the-value' });
     const errorVal = errorFromQlang(typeErr, 'the-subject', await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
@@ -265,8 +265,8 @@ describe('errorFromQlang', () => {
   });
 
   it('refuses a fact neither the label nor ::error declares, a defect of the runtime', async () => {
-    const env = await langRuntime();
-    expect(() => errorFromQlang(new TestsProbeTypeError({ undeclared: 1 }), 42, env)).toThrow(/carries :undeclared/);
+    const scope = await langRuntime();
+    expect(() => errorFromQlang(new TestsProbeTypeError({ undeclared: 1 }), 42, scope)).toThrow(/carries :undeclared/);
   });
 
   it('converts a refusal whose site hands no facts to an error of no facts [QSERR#rest]', async () => {
@@ -280,7 +280,7 @@ describe('errorFromQlang', () => {
 
 describe('errorFromForeign', () => {
   // A host's failure carries the facts every host can give, its account
-  // and the accounts of the failures beneath it [QSHST#answer], [QSERR#site].
+  // and the accounts of the failures beneath it [QSHST#answer], [D367].
   it('lifts a JavaScript error to its account under the tag of the language', async () => {
     const jsErr = new Error('something went wrong');
     const errorVal = errorFromForeign(jsErr, { location: null }, await langRuntime());
@@ -318,9 +318,9 @@ describe('errorFromForeign', () => {
   });
 
   it('gives no causes where none stands beneath it', async () => {
-    const env = await langRuntime();
-    expect(errorFromForeign(new Error('no cause'), null, env).descriptor.has('causes')).toBe(false);
-    expect(errorFromForeign(new Error('a null cause', { cause: null }), null, env).descriptor.has('causes')).toBe(false);
+    const scope = await langRuntime();
+    expect(errorFromForeign(new Error('no cause'), null, scope).descriptor.has('causes')).toBe(false);
+    expect(errorFromForeign(new Error('a null cause', { cause: null }), null, scope).descriptor.has('causes')).toBe(false);
   });
 
   it('takes a thrown value that is no error by its text', async () => {

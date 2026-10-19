@@ -1,9 +1,9 @@
 |~ `::builtin`, the descriptor of a primitive, and what is declared
    under it: its constructor and its refusal, and the refusals of the
    runtime no reader reaches by a query, the table of primitives, the
-   declarations of the refusals, the tree the evaluator does not know, a
-   value of no kind a host handed and the sources of the root.
-   The rules it holds: [QSHST#source], [QSERR#site], [QSDSP#residence]. ~|
+   declarations of the refusals, a value of no kind a host handed and the
+   sources of the root.
+   The rules it holds: [QSHST#source], [D367], [QSDSP#residence]. ~|
 
 :builtin
   |~~ A builtin marks a verb a host answers by a primitive: the recipe of
@@ -26,12 +26,6 @@
             a host's verb ends with and the constructor a kind of the core
             takes, `impl ::builtin{}`; a payload of another kind is refused,
             and the descriptor is written `::builtin{}`.
-        ~~|
-    | throws :UnknownAstNodeTypeError
-        |~~ The evaluator met a node of the parser's tree it has no rule
-            for: a defect of the runtime, and no failure of the query,
-            raised past the fail track to the host. The node is given its
-            rule, and the query that met it is the case that shows it.
         ~~|
     | throws :AddressRegisteredTwiceError
         |~~ Two modules of the runtime registered a primitive under one

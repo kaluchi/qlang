@@ -84,7 +84,7 @@ function highlightQlang(code) {
 function tokenize(expr) {
   if (qlang) {
     try {
-      return tokenizeWithAst(expr);
+      return tokenizeWithParts(expr);
     } catch {
       // parse error — fall through to regex
     }
@@ -92,40 +92,21 @@ function tokenize(expr) {
   return tokenizeWithRegex(expr);
 }
 
-// ── AST-based tokenizer ───────────────────────────────────────
+// ── The tokenizer over the parts the parser reads ─────────────
 
-function tokenizeWithAst(code) {
-  const { parse, walkAst } = qlang;
-  const ast = parse(code);
+function tokenizeWithParts(code) {
+  const { parse, partOf, walkParts, isCallStep, isKeyword, typeOf } = qlang;
   const annotations = [];
 
-  walkAst(ast, node => {
-    if (!node.location) return;
-    const s = node.location.start.offset;
-    const e = node.location.end.offset;
-
-    switch (node.type) {
-      case 'Call':
-        // Annotate only the name token, not the whole call expression.
-        annotations.push({
-          start: s,
-          end: s + node.name.length,
-          cls: 'hljs-built_in'
-        });
-        break;
-      case 'Keyword':
-        annotations.push({ start: s, end: e, cls: 'hljs-type' });
-        break;
-      case 'NumberLit':
-        annotations.push({ start: s, end: e, cls: 'hljs-number' });
-        break;
-      case 'StringLit':
-        annotations.push({ start: s, end: e, cls: 'hljs-string' });
-        break;
-      case 'Path':
-        annotations.push({ start: s, end: e, cls: 'hljs-attr' });
-        break;
-    }
+  walkParts(partOf(parse(code)), ({ value, span }) => {
+    const s = span.start.offset;
+    const e = span.end.offset;
+    // A call is annotated by its name alone, not the whole call.
+    if (isCallStep(value)) annotations.push({ start: s, end: s + value.get('name').name.length, cls: 'hljs-built_in' });
+    else if (isKeyword(value)) annotations.push({ start: s, end: e, cls: 'hljs-type' });
+    else if (typeof value === 'number') annotations.push({ start: s, end: e, cls: 'hljs-number' });
+    else if (typeof value === 'string') annotations.push({ start: s, end: e, cls: 'hljs-string' });
+    else if (typeOf(value).name === 'path') annotations.push({ start: s, end: e, cls: 'hljs-attr' });
   });
 
   return renderAnnotated(code, annotations);

@@ -1,5 +1,5 @@
-// HTML renderer over core's AST tokenizer. The token stream
-// (kind + offsets) lives in @kaluchi/qlang-core/highlight; this
+// HTML renderer over the core's tokenizer of the parts its parser reads.
+// The token stream (kind + offsets) lives in @kaluchi/qlang-core/highlight; this
 // file only paints each token kind into its `<span class="…">`
 // envelope and HTML-escapes the slice, for the examples the build of the
 // site paints and for the playground and the REPL of the site in the

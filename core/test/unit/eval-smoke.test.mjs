@@ -2,8 +2,10 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';
-import { evalAst } from '../../src/eval.mjs';
-import { keyword } from '../../src/types.mjs';
+import { evalPipeline } from '../../src/eval.mjs';
+import { callOf } from '../../src/steps.mjs';
+import { asPrinted } from '../../src/print-value.mjs';
+import { keyword, makeQuote } from '../../src/types.mjs';
 import { rootState } from '../../src/state.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 
@@ -143,7 +145,7 @@ describe('eval — a declaration of it', () => {
   });
 });
 
-describe('eval — BindStep declaration', () => {
+describe('eval — a declaration', () => {
   it('binds and runs a verb', async () => {
     expect(await evalQuery(':any/double ~(mul 2) | 10 | double')).toBe(20);
   });
@@ -157,15 +159,6 @@ describe('eval — env', () => {
 
   it('env holds no verb of the core', async () => {
     expect(await evalQuery('env | has :count')).toBe(false);
-  });
-});
-
-describe('eval.mjs unknown node type', () => {
-  it('throws on unknown AST node', async () => {
-    const fakeNode = { type: 'BogusNode' };
-    const scope = await langRuntime();
-    const state = rootState(null, scope);
-    await expect(evalAst(fakeNode, state)).rejects.toThrow(/unknown AST node type/);
   });
 });
 
@@ -267,13 +260,34 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
   });
 });
 
-describe('eval.mjs — a Call node built by hand', async () => {
-  it('runs the verb it names, its location null', async () => {
-    const ast = { type: 'Call', name: 'count', args: [], location: null };
+describe('eval.mjs — a call assembled from data', async () => {
+  it('runs the verb it names, a step no text wrote [D367]', async () => {
+    const quote = makeQuote([callOf(new Map([['name', keyword('count')]]), asPrinted)]);
     const scope = await langRuntime();
     const state = rootState([1, 2, 3], scope);
-    const evalResult = await evalAst(ast, state);
+    const evalResult = await evalPipeline(quote, state);
     const result = evalResult.pipeValue;
     expect(result).toBe(3);
+  });
+
+  it('declares a name of a group by the origin of the quote the group runs in [QSDSP#residence]', async () => {
+    const originIn = held => evalQuery(`${held} | apply it`);
+    expect(await originIn('get [~(~((:x 1 | env | get /x | get /origin)) | first)] | tag ::quote')).toEqual(keyword('quote'));
+    expect(await originIn('~((:x 1 | env | get /x | get /origin))')).toEqual(keyword('cell-1'));
+  });
+
+  it('runs a template of a set as code written in the step, its quotes reading the names of the step [QSQUO#held]', async () => {
+    expect(await evalQuery(':k 5 | [1] | get #[~(k)]')).toEqual(await evalQuery('#[5]'));
+  });
+
+  it('places the failure of a step a text wrote at its span, and of a step no text wrote at none [D367]', async () => {
+    const written = await evalQuery(':q ~(nosuchverb) | 5 | apply q');
+    expect([written.location.start.offset, written.location.end.offset]).toEqual([5, 15]);
+    expect((await evalQuery(':q ([::call{:name :nosuchverb}] | tag ::quote) | 5 | apply q')).location).toBe(null);
+  });
+
+  it('repairs no refusal of a path that no modifier of the call wrote [QSPTH#code]', async () => {
+    expect(await evalQuery(':any/f (::fn | returns |~~ N. ~~| ::number | impl ~(it)) | /a | f !| get [~(type) ~(has :repair)]'))
+      .toEqual(await evalQuery('[::any/f/answer/KindNotTakenError false]'));
   });
 });

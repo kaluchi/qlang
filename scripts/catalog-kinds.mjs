@@ -5,20 +5,15 @@
 // catalog bears the name of a command.
 
 import { parse } from '../core/src/parse.mjs';
-import { declaresKind } from '../core/src/walk.mjs';
+import { partOf } from '../core/src/walk.mjs';
+import { isBindStep, declaresKind } from '../core/src/steps.mjs';
 import { COMMAND_NAMES } from '../core/src/chain.mjs';
-
-// The declarations of the catalog a source writes, the steps of its pipeline.
-function declarationsOf(ast) {
-  const steps = ast.type === 'Pipeline' ? [ast.steps[0], ...ast.steps.slice(1).map(unit => unit.step)] : [ast];
-  return steps.filter(step => step.type === 'BindStep');
-}
 
 // kindsNamedForCommands(sources) → the kinds the sources, each `{ path, text
 // }`, declare that bear the name of a command of a chain, each `{ path, line,
-// name }`.
+// name }`, the declarations the steps of its pipeline.
 export function kindsNamedForCommands(sources) {
-  return sources.flatMap(({ path, text }) => declarationsOf(parse(text, { uri: path }))
-    .filter(declaration => declaresKind(declaration) && COMMAND_NAMES.includes(declaration.key.name))
-    .map(declaration => ({ path, line: declaration.location.start.line, name: declaration.key.name })));
+  return sources.flatMap(({ path, text }) => partOf(parse(text, { uri: path })).parts
+    .filter(({ value }) => isBindStep(value) && declaresKind(value) && COMMAND_NAMES.includes(value.get('name').name))
+    .map(({ value, span }) => ({ path, line: span.start.line, name: value.get('name').name })));
 }

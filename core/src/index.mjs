@@ -9,10 +9,10 @@ export { langRuntime } from './runtime/index.mjs';
 export { LANGUAGE_SOURCES } from './runtime/bootstrap.mjs';
 export { createSession, evalQuery } from './session.mjs';
 export {
-  walkAst, findAstNodeAtOffset, findNameOccurrences, writesTag, readsItsSubject,
-  bindingNamesVisibleAt, builtFrom, declaresKind, CALL_SPELLING, TAG_SPELLING,
-  FORK_ISOLATING_AST_TYPES
+  partOf, walkParts, partAtOffset, findNameOccurrences, tagWrittenBy, readsItsSubject,
+  bindingNamesVisibleAt, visibleAt, CALL_SPELLING, TAG_SPELLING
 } from './walk.mjs';
+export { isLiteral, isCallStep, isBindStep, isGroupStep, isFailStep, errorFieldsOf, builtFrom, declaresKind } from './steps.mjs';
 export { splitAddress } from './address.mjs';
 export { printValue, printQuoteSource } from './print-value.mjs';
 export {

@@ -38,3 +38,5 @@
 {"name":"a-step-computed-where-no-input-reads-answers-its-error","query":"[1 2] | query /0 5 (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError"}
 {"name":"a-refusal-in-a-branch-of-if-answers-the-call","query":"5 | if (gt 0) ~(add \"x\") ~(0) !| type","expect":"::number/add/addend/KindNotTakenError"}
 {"name":"an-answer-its-kind-refuses-raises-the-refusal-under-the-tags-a-walk-passed","query":":Foo |~~ F ~~| (::kind | wraps |~~ v ~~| ::vec | holds :LongError |~~ l ~~| ~(count | gt 2)) | ::Bar::Foo[1 2 3] | take 1 !| type","expect":"::Foo/LongError"}
+{"decision":"D367","name":"a-set-literal-runs-its-parts-in-the-one-order-it-holds-them","query":"#[::number\"b\" ::string#1] !| type","expect":"::string/PayloadKindNotTakenError"}
+{"decision":"D367","name":"a-part-a-later-entry-of-its-key-replaces-runs-nowhere","query":"{:k ::number\"x\" :k 1} | count","expect":"1"}

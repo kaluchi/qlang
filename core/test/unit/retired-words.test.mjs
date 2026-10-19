@@ -1,12 +1,13 @@
 // The retired terms of the chain, of the slot of a kind, of the node an
 // axis reads, of the trace a failure leaves, of a refusal, of the boundary
 // of a host, of the read of text into code and back, of the elision, of the
-// template, of the read of a print and of the shape of a value, each held
-// by the lexicon of retired terms as one regex of its one sense, which
-// refuses the term where it is written, in prose, a name of the code or the
-// name of a case, and leaves the words of another sense, and the generic
-// words the texts that state what holds write in no sense, which it refuses
-// whole [QSWRK#documents].
+// template, of the read of a print, of the shape of a value, of the tag over
+// a payload and of the scope and the parts the parser reads, each held by the
+// lexicon of retired terms as one regex of
+// its one sense, which refuses the term where it is written, in prose, a
+// name of the code or the name of a case, and leaves the words of another
+// sense, and the generic words the texts that state what holds write in no
+// sense, which it refuses whole [QSWRK#documents].
 
 import { describe, it, expect } from 'vitest';
 import { RETIRED_WORDS } from '../../../scripts/retired-words.mjs';
@@ -46,7 +47,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       '`step` reads a frame, which the trace of a failure holds', 'the element the code of `map` broke on',
       'The frame the budget refused.', 'itself without end, is refused on the frame past it', 'the frame past the budget refuses',
       'depth of the frames nested under the query', 'meet the budget of frames one below',
-      'rootState opens depth 0; withPipeValue and withEnv stay on the frame', 'nestState descends one frame with the inner pair',
+      'rootState opens depth 0; withPipeValue and withScope stay on the frame', 'nestState descends one frame with the inner pair',
       'nestState admits the frame at EVAL_DEPTH_LIMIT', 'Each call runs a frame: an input',
       '`add 1`, which broke on `"x"`', '`map`, which broke where its code ran', '`mul 2`, which broke on',
       'the path of the part, where it broke, null where it ran it on no part', 'that broke, the first broken and the rest left unrun',
@@ -220,11 +221,11 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       '`impl` gives a function its recipe', 'the command `impl`', '| impl ::builtin{}', '::fn/impl', 'a primitive of the host',
       'the primitives a host hands beside its source', '`{ uri, source, primitives }`', 'registerPrimitive', 'PRIMITIVE_REGISTRY.register',
       'the runtime, the evaluator with its table of primitives', '::builtin/PrimitiveNotHandedError', '::builtin/AddressRegisteredTwiceError',
-      'process.env', 'the environment Node gives the process', '`env | keys` lists the names a query declared', 'state.env', 'envSet', 'withEnv',
-      'core/src/env-keys.mjs', 'session.scope', 'scopeAfterCell', '`createSession({ scope?, sources? })`',
+      'process.env', 'the environment Node gives the process', '`env | keys` lists the names a query declared', 'state.scope', 'scopeSet', 'withScope',
+      'core/src/scope-keys.mjs', 'session.scope', 'scopeAfterCell', '`createSession({ scope?, sources? })`',
       'a plain map', '`{:a 1}` a plain map beside `::Box{:a 1}`', 'a plain vector of what each answered', 'plain Enter (CR), which submits',
       'plain text world', 'evalOpts.uri', 'uri: cellUri', 'parse(source, { uri })', 'the host\'s field `uri`', 'fileUri', 'textDocument.uri',
-      'toPlain', 'fromPlain', '::call/UnknownNameError', '::unknownTag', 'an unknown AST node type', '::bind', '::binding',
+      'toPlain', 'fromPlain', '::call/UnknownNameError', '::unknownTag', '::bind', '::binding',
       '::bind/NameDeclaredTwiceError', 'binds `limit` in the scope', 'a name the scope binds to a value', '`|` and `!|` bind alike',
       'the expression of the engine a regex reads as', 'the core met function hello, a value of no kind of the language',
       'pick one of the impls that end a generated chain', 'the impls, each a quote', 'a source that declares two builtins hands a primitive for each',
@@ -441,6 +442,55 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'Every value answers, and the kinds of qlang alone give way at this boundary', '`toPlain` writes a value in the kinds of JSON, for `json` and a host',
       'the lift of JSON into the values of qlang all fire against a real session', 'An answer of a new shape is built by `get` over a template',
       'a query names the shape of what it reads', 'a subject of another shape is refused, a vector of another length among them', 'a :trace of another shape'
+    ]) expect(refused(text), text).toBe(false);
+  });
+
+  it('refuses each name and phrase in which the code called a tag over a payload and the steps of the fail track and of a group a wrapper, or the tag `within` lays back over the payload it edits by another word, where it is written [D367]', () => {
+    for (const text of [
+      'wrapperConstructor', 'the wrappers a step takes on the fail track or in parentheses',
+      'any other payload, a tagged one among them, is held by a wrapper, which `payload` opens',
+      'The value beneath every tag a wrapper holds over it', 'the value a wrapper holds',
+      'the error and the wrapper of a tag are objects branded on a hidden slot',
+      'A value under a tag\'s wrapper equals one under the same tag over an equal payload',
+      'A wrapper\'s payload is the quote of the step it wraps', 'The constructors of the steps of a quote: a record or a wrapper',
+      '── wrappers ───────────────', 'since the constructor of every record and wrapper refuses one',
+      'the records and wrappers refuse when a hand assembly does not read back',
+      'a fail wrapper over several steps reads back as another step', 'a wrapper stands in the quote itself and in no container',
+      'In a quote the step is a record that wraps the quote of its one step', 'The payload of `::fail` is the quote of the step it wraps',
+      ':PayloadNotOneStepError/wrapsAPipelineInAGroup', 'within-edits-under-a-tag-and-rewraps-it', 'rewrap', 'Rewrapped', 'rewrapping'
+    ]) expect(refused(text), text).toBe(true);
+  });
+
+  it('leaves the word in its other senses, the command `wraps` and a line wrapped at its width, and the words written in its place [D367]', () => {
+    for (const text of [
+      'newer code reaching older code through a conversion, a wrapper, a second table', 'a wrapper a query lays over its answer',
+      'the wrapper the host would take off before it prints', '`wraps` names its payload and its kinds', '::kind | wraps |~~ The sizes. ~~| ::map',
+      'its lines wrapped at the width', 'white-space: pre-wrap', 'unwraps the underlying QlangError',
+      'a tag over a payload that is no bare vector or map holds the payload under it', 'the class `\'underTag\'` of `makeTagged`',
+      'the steps `::fail` and `::group` hold the quote of the step they stand for',
+      'In a quote the step is a record that holds the quote of the step it stands for', ':PayloadNotOneStepError/holdsAPipelineInAGroup',
+      'within-edits-under-a-tag-and-lays-the-tag-back', 'lays the tag back through its kind'
+    ]) expect(refused(text), text).toBe(false);
+  });
+
+  it('refuses each name in which the code called the scope an environment, a pipeline a body and the parts the parser read a tree of nodes, where it is written [D367]', () => {
+    for (const text of [
+      'state.env', 'withEnv', 'envSet', 'envHas', 'envMerge', 'nextEnv', 'bodyEnv', 'core/src/env-keys.mjs',
+      'evalBody', 'answerOfBody', 'quoteOfBody', 'stepsOfBody', 'CALL_BINDS_KEY', 'capturedState', 'resolveBinaryReducer',
+      'walkAst', 'findAstNodeAtOffset', 'astNode', 'evalAst', 'AST_NODE_EVALUATORS', 'astChildrenOf', 'attachAstParents', 'QUOTE_AST_SLOT',
+      'astOfQuote', 'tokenizeWithAst', 'FORK_ISOLATING_AST_TYPES', '::builtin/UnknownAstNodeTypeError', 'an unknown AST node type',
+      'stepOfNode', 'docOfNode', 'partNode', 'nodeClosedAt', 'the parser\'s tree', 'a node of the tree of the parser',
+      'Comments live beside the tree the parser reads',
+      '::quote/ReadBackDiffersError', 'readBackOrRefuse'
+    ]) expect(refused(text), text).toBe(true);
+  });
+
+  it('leaves the words written in their place, the verb `env`, the environment of a process and the nodes of the tree of names [D367]', () => {
+    for (const text of [
+      'state.scope', 'withScope', 'scopeSet', 'scopeHas', 'recipeScope', 'core/src/scope-keys.mjs', 'RECIPE_KEY', 'evalPipeline', 'closeQuote',
+      'foldingCodeOf', 'walkParts', 'partAtOffset', 'partOf', '`env` lists what the reader declared', 'process.env', 'the body of a declaration',
+      'a node the root holds', 'nodeOf', 'nodesOfKind', 'the tree of the query', 'Astro', 'site/astro.config.mjs', 'PAST', 'FAST_PATH', 'lastIndexOf',
+      'a value reads back from its print', 'resolves its names through the tree of names'
     ]) expect(refused(text), text).toBe(false);
   });
 });

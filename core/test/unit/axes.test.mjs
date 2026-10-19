@@ -235,7 +235,7 @@ describe('::name | binding | /value answers the value of the declaration', () =>
   });
 
   it('the record of a declaration of it holds the value', async () => {
-    // `:name it` writes the record of a binding under :name in env
+    // `:name it` writes the record of a binding under :name in its scope
     // [QSNAM#binding], which `binding` reads.
     expect(await evalQuery('42 | :answer it | ::answer | binding | get /value')).toBe(42);
   });

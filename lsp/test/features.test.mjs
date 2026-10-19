@@ -9,17 +9,28 @@ import {
 } from '../src/features.mjs';
 import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
 
+// Docs whose quote stands under the tag of a group or of the fail track, in a
+// literal, as a modifier and in the quote of a doc [D367].
+const DOCS_OF_STEP_TAGS = ['|~~ see ::group~(add 1) ~~|', '[|~~ ::group~(add 1) ~~|]', 'f |~~ ::fail~(add 1) ~~|', '|~~ ~([|~~ ::group~(add 1) ~~|]) ~~|'];
+
 describe('parseDocument', () => {
   it('parses valid qlang source without diagnostics', () => {
-    const { ast, diagnostics } = parseDocument('[1 2 3] | count', 'test.qlang');
-    expect(ast).not.toBeNull();
-    expect(ast.type).toBe('Pipeline');
+    const { root, diagnostics } = parseDocument('[1 2 3] | count', 'test.qlang');
+    expect(root.parts).toHaveLength(2);
     expect(diagnostics).toHaveLength(0);
   });
 
+  it('reads a doc whose quote stands under the tag of a group or of the fail track with no diagnostic [D367]', () => {
+    for (const src of DOCS_OF_STEP_TAGS) {
+      const { root, diagnostics } = parseDocument(src, 'test.qlang');
+      expect(diagnostics, src).toEqual([]);
+      expect(root, src).not.toBeNull();
+    }
+  });
+
   it('returns a diagnostic for a parse error', () => {
-    const { ast, diagnostics } = parseDocument('[1 2 3', 'test.qlang');
-    expect(ast).toBeNull();
+    const { root, diagnostics } = parseDocument('[1 2 3', 'test.qlang');
+    expect(root).toBeNull();
     expect(diagnostics).toHaveLength(1);
     expect(diagnostics[0].severity).toBe('error');
     expect(diagnostics[0].message).toBeTruthy();
@@ -31,12 +42,17 @@ describe('parseDocument', () => {
     expect(diagnostics[0]).toHaveProperty('startLine');
     expect(diagnostics[0]).toHaveProperty('startChar');
   });
+
+  it('places the diagnostic of a source refused after a line doc whose `~(` reads as no code where its reading stopped [D367]', () => {
+    const { diagnostics } = parseDocument('[|~~| x ~(a\n 1 2 , 3]', 'test.qlang');
+    expect(diagnostics.map(({ startLine, startChar, endLine, endChar }) => [startLine, startChar, endLine, endChar])).toEqual([[1, 5, 1, 6]]);
+  });
 });
 
 describe('completionsAtOffset', () => {
   it('includes the names of the verbs of the language', async () => {
-    const { ast } = parseDocument('', 'test.qlang');
-    const items = await completionsAtOffset(ast, 0);
+    const { root } = parseDocument('', 'test.qlang');
+    const items = await completionsAtOffset(root, 0);
     const labels = items.map(i => i.label);
     expect(labels).toContain('count');
     expect(labels).toContain('filter');
@@ -45,21 +61,21 @@ describe('completionsAtOffset', () => {
   });
 
   it('returns the names of more than 60 verbs of the language', async () => {
-    const { ast } = parseDocument('', 'test.qlang');
-    const items = await completionsAtOffset(ast, 0);
+    const { root } = parseDocument('', 'test.qlang');
+    const items = await completionsAtOffset(root, 0);
     expect(items.length).toBeGreaterThan(60);
   });
 
   it('a verb of the language completes as a function', async () => {
-    const { ast } = parseDocument('', 'test.qlang');
-    const items = await completionsAtOffset(ast, 0);
+    const { root } = parseDocument('', 'test.qlang');
+    const items = await completionsAtOffset(root, 0);
     const countItem = items.find(i => i.label === 'count');
     expect(countItem.kind).toBe('function');
   });
 
   it('a verb of the language completes with the documentation of its page', async () => {
-    const { ast } = parseDocument('', 'test.qlang');
-    const items = await completionsAtOffset(ast, 0);
+    const { root } = parseDocument('', 'test.qlang');
+    const items = await completionsAtOffset(root, 0);
     const countItem = items.find(i => i.label === 'count');
     expect(countItem.documentation).toBeTruthy();
     expect(countItem.documentation).toMatch(/how many/);
@@ -67,38 +83,38 @@ describe('completionsAtOffset', () => {
 
   it('includes a name the document declares before the offset', async () => {
     const src = ':myVar 42 | myVar';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     const offsetAtEnd = src.length;
-    const items = await completionsAtOffset(ast, offsetAtEnd);
+    const items = await completionsAtOffset(root, offsetAtEnd);
     const labels = items.map(i => i.label);
     expect(labels).toContain('myVar');
   });
 
   it('a name the document declares completes as a variable', async () => {
     const src = ':myVar 42 | myVar';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const items = await completionsAtOffset(ast, src.length);
+    const { root } = parseDocument(src, 'test.qlang');
+    const items = await completionsAtOffset(root, src.length);
     const myVarItem = items.find(i => i.label === 'myVar');
     expect(myVarItem.kind).toBe('variable');
   });
 
-  it('works with null ast (parse failure)', async () => {
+  it('works on a text that does not parse', async () => {
     const items = await completionsAtOffset(null, 0);
     expect(items.length).toBeGreaterThan(60);
   });
 
   it('mixed completions surface the nodes of the tree alongside the verbs', async () => {
     const src = 'foo';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const items = await completionsAtOffset(ast, 3, src);
+    const { root } = parseDocument(src, 'test.qlang');
+    const items = await completionsAtOffset(root, 3, src);
     expect(items.some(i => i.label === 'count')).toBe(true);
     expect(items.some(i => i.label === '::number/NotFiniteError')).toBe(true);
   });
 
   it('cursor right after `::` filters to tags only', async () => {
     const src = '::';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const items = await completionsAtOffset(ast, 2, src);
+    const { root } = parseDocument(src, 'test.qlang');
+    const items = await completionsAtOffset(root, 2, src);
     expect(items.length).toBeGreaterThan(0);
     expect(items.every(i => i.label.startsWith('::'))).toBe(true);
     expect(items.every(i => i.kind === 'tag')).toBe(true);
@@ -106,16 +122,16 @@ describe('completionsAtOffset', () => {
 
   it('a kind the document declares is among the completions of tags', async () => {
     const src = ':MyTag |~~ MyTag. ~~| (::kind | impl ~(42))';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const items = await completionsAtOffset(ast, src.length, src);
+    const { root } = parseDocument(src, 'test.qlang');
+    const items = await completionsAtOffset(root, src.length, src);
     expect(items.some(i => i.label === '::MyTag')).toBe(true);
   });
 });
 
 describe('completionsAtOffset after a value offers the verbs that accept it', () => {
   const labelsAt = async (src) => {
-    const { ast } = parseDocument(src, 'test.qlang');
-    return (await completionsAtOffset(ast, src.length, src)).map(item => item.label);
+    const { root } = parseDocument(src, 'test.qlang');
+    return (await completionsAtOffset(root, src.length, src)).map(item => item.label);
   };
 
   it('offers the verbs of a vector and of any value after a vector', async () => {
@@ -142,6 +158,15 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
     expect(labels).not.toContain('count');
   });
 
+  it('keeps the kinds of the subject through a declaration, and offers every name after a tagged literal [D367]', async () => {
+    const labels = await labelsAt('[1 2 3] | :xs it | ');
+    expect(labels).toContain('count');
+    expect(labels).not.toContain('add');
+    const afterTagged = await labelsAt('[1 2 3] | :xs it | ::Box{:a 1} | ');
+    expect(afterTagged).toContain('count');
+    expect(afterTagged).toContain('add');
+  });
+
   it('follows the kind a verb declares it returns', async () => {
     const labels = await labelsAt('[1 2 3] | count | ');
     expect(labels).toContain('add');
@@ -163,8 +188,8 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
   });
 
   it('shows each verb as a call from the subject reaches it, the form of its call over its page', async () => {
-    const { ast } = parseDocument('{:a 1} | ', 'test.qlang');
-    const count = (await completionsAtOffset(ast, 9, '{:a 1} | ')).find(item => item.label === 'count');
+    const { root } = parseDocument('{:a 1} | ', 'test.qlang');
+    const count = (await completionsAtOffset(root, 9, '{:a 1} | ')).find(item => item.label === 'count');
     expect(count.detail).toBe('::map/count');
     expect(count.documentation).toMatch(/entries the map holds/);
   });
@@ -201,9 +226,9 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
 describe('hoverAtOffset', () => {
   it('returns hover for a verb of the language', async () => {
     const src = '[1 2 3] | count';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     const countOffset = src.indexOf('count');
-    const hover = await hoverAtOffset(ast, src, countOffset);
+    const hover = await hoverAtOffset(root, src, countOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/count/);
     expect(hover.content).toMatch(/::[a-z]+\/count/);
@@ -211,9 +236,9 @@ describe('hoverAtOffset', () => {
 
   it('hover includes docs from manifest', async () => {
     const src = '[1 2 3] | filter ~(gt 2)';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     const filterOffset = src.indexOf('filter');
-    const hover = await hoverAtOffset(ast, src, filterOffset);
+    const hover = await hoverAtOffset(root, src, filterOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/predicate/i);
     expect(hover.content).not.toMatch(/~\{/);
@@ -221,9 +246,9 @@ describe('hoverAtOffset', () => {
 
   it('returns hover for a path', async () => {
     const src = '{:name "alice"} | get /name';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     const projOffset = src.indexOf('/name');
-    const hover = await hoverAtOffset(ast, src, projOffset);
+    const hover = await hoverAtOffset(root, src, projOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/path/);
     expect(hover.content).toMatch(/\/name/);
@@ -232,8 +257,8 @@ describe('hoverAtOffset', () => {
 
   it('returns hover for a keyword literal', async () => {
     const src = ':hello';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const hover = await hoverAtOffset(ast, src, 0);
+    const { root } = parseDocument(src, 'test.qlang');
+    const hover = await hoverAtOffset(root, src, 0);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/keyword/);
     expect(hover.content).toMatch(/:hello/);
@@ -241,32 +266,32 @@ describe('hoverAtOffset', () => {
 
   it('hover has range', async () => {
     const src = '[1 2 3] | count';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const hover = await hoverAtOffset(ast, src, src.indexOf('count'));
+    const { root } = parseDocument(src, 'test.qlang');
+    const hover = await hoverAtOffset(root, src, src.indexOf('count'));
     expect(hover).toHaveProperty('startOffset');
     expect(hover).toHaveProperty('endOffset');
     expect(hover.startOffset).toBeLessThan(hover.endOffset);
   });
 
-  it('returns null for null ast', async () => {
+  it('returns null for a text that does not parse', async () => {
     expect(await hoverAtOffset(null, '', 0)).toBeNull();
   });
 
-  it('returns hover for TagLit tag reference', async () => {
+  it('returns hover for a tag name', async () => {
     const src = '::number/NotFiniteError | doc';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     const tagOffset = src.indexOf('::number/NotFiniteError') + 5;
-    const hover = await hoverAtOffset(ast, src, tagOffset);
+    const hover = await hoverAtOffset(root, src, tagOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toContain("::number/NotFiniteError");
     expect(hover.content).toMatch(/a name of the root/);
   });
 
-  it('returns hover for TaggedLit constructor invocation', async () => {
+  it('returns hover for the head of a tagged literal', async () => {
     const src = '::number#2 | add 1';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     const tagOffset = src.indexOf('::number') + 4;
-    const hover = await hoverAtOffset(ast, src, tagOffset);
+    const hover = await hoverAtOffset(root, src, tagOffset);
     expect(hover).not.toBeNull();
     expect(hover.content).toMatch(/::number/);
     expect(hover.content).toMatch(/a name of the root/);
@@ -274,39 +299,46 @@ describe('hoverAtOffset', () => {
 
   it('returns hover for the tag an error literal writes before its bang', async () => {
     // `::Tag!{…}` is one literal, the error whose content carries the
-    // tag, so its head resolves like every tag head, and its braces,
-    // which the literal owns, show no tag [QSERR#rest].
+    // tag, its head a part of it that resolves like every tag, and its
+    // braces, which the literal owns, show no tag [QSERR#rest].
     const src = '::number/NotFiniteError!{:step 1}';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const hover = await hoverAtOffset(ast, src, 5);
+    const { root } = parseDocument(src, 'test.qlang');
+    const hover = await hoverAtOffset(root, src, 5);
     expect(hover).not.toBeNull();
     expect(hover.content).toContain("::number/NotFiniteError");
     expect(hover.endOffset - hover.startOffset).toBe('::number/NotFiniteError'.length);
-    expect(await hoverAtOffset(ast, src, src.indexOf('!{'))).toBeNull();
+    expect(await hoverAtOffset(root, src, src.indexOf('!{'))).toBeNull();
+  });
+
+  it('returns hover for `::error` written before a bang, and finds it among the references of `::error` [D367]', async () => {
+    const src = '[::error!{:k 1} ::error]';
+    const { root } = parseDocument(src, 'test.qlang');
+    expect((await hoverAtOffset(root, src, 2)).content).toContain('**::error** — a name of the root');
+    expect(referencesAtOffset(root, src.lastIndexOf('::error') + 2).map(({ startOffset }) => startOffset)).toEqual([1, 16]);
   });
 
   it('hover on ::Tag spans only the tag head, not the payload', async () => {
     const src = '::number#2 | add 1';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     const tagOffset = src.indexOf('::number') + 4;
-    const hover = await hoverAtOffset(ast, src, tagOffset);
+    const hover = await hoverAtOffset(root, src, tagOffset);
     expect(hover).not.toBeNull();
     expect(hover.endOffset - hover.startOffset).toBe('::number'.length);
   });
 
   it('returns the doc of a verb the document declares under a label, called by its name or its address', async () => {
     const src = ':number/double |~~ Doubles a number. ~~| ~(mul 2) | 10 | double | number/double';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     for (const offset of [src.indexOf('| double') + 2, src.lastIndexOf('number/double')]) {
-      const hover = await hoverAtOffset(ast, src, offset);
+      const hover = await hoverAtOffset(root, src, offset);
       expect(hover.content).toMatch(/Doubles a number/);
     }
   });
 
   it('shows the verb the subject of the call reaches, the form of its call over its page', async () => {
     for (const [src, address, words] of [['[1 2 3] | count', '::vec/count', 'elements the vector holds'], ['{:a 1} | count', '::map/count', 'entries the map holds'], ['#[1 2] | count', '::vec/count', 'elements the vector holds']]) {
-      const { ast } = parseDocument(src, 'test.qlang');
-      const hover = await hoverAtOffset(ast, src, src.indexOf('count'));
+      const { root } = parseDocument(src, 'test.qlang');
+      const hover = await hoverAtOffset(root, src, src.indexOf('count'));
       expect(hover.content).toContain(`**count** — ${address}`);
       expect(hover.content).toContain(words);
     }
@@ -314,17 +346,17 @@ describe('hoverAtOffset', () => {
 
   it('shows a verb with no subject under the address whose page it shows', async () => {
     const src = 'count';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const hover = await hoverAtOffset(ast, src, 0);
+    const { root } = parseDocument(src, 'test.qlang');
+    const hover = await hoverAtOffset(root, src, 0);
     const address = /— (::[A-Za-z/]+)/.exec(hover.content)[1];
     const page = await evalQuery(`${address} | doc | content`);
     expect(hover.content).toContain(page.trim().split('\n')[0].trim());
   });
 
-  it('returns null for offset outside any node', async () => {
+  it('returns null for an offset outside any part', async () => {
     const src = '42';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const hover = await hoverAtOffset(ast, src, 100);
+    const { root } = parseDocument(src, 'test.qlang');
+    const hover = await hoverAtOffset(root, src, 100);
     expect(hover).toBeNull();
   });
 });
@@ -337,9 +369,9 @@ describe('hoverAtOffset', () => {
 // handler resolves offsets without re-reading the source — the test
 // mirror does the same.
 const catalogSrc = ':vec/count ~(1) | :number/add ~(1)';
-const catalogAst = parseDocument(catalogSrc, 'qlang/any').ast;
+const catalogRoot = parseDocument(catalogSrc, 'qlang/any').root;
 const testCatalogIndex = new Map();
-for (const [name, range] of buildCatalogIndex(catalogAst)) {
+for (const [name, range] of buildCatalogIndex(catalogRoot)) {
   testCatalogIndex.set(name, {
     ...range,
     fileUri: 'file:///test/core.qlang',
@@ -351,9 +383,9 @@ const testCatalogCtx = { index: testCatalogIndex, scope: await langRuntime() };
 describe('definitionAtOffset', () => {
   it('jumps from the use site of a verb to its declaration under a label', () => {
     const src = ':number/double ~(mul 2) | 10 | double';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('double');
-    const def = definitionAtOffset(ast, useOffset);
+    const def = definitionAtOffset(root, useOffset);
     expect(def).not.toBeNull();
     expect(def.startOffset).toBe(0);
     expect(def.fileUri).toBeUndefined(); // in-document
@@ -361,28 +393,28 @@ describe('definitionAtOffset', () => {
 
   it('jumps to last visible declaration when shadowed', () => {
     const src = ':x 1 | :x 2 | x';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
-    const def = definitionAtOffset(ast, useOffset);
+    const def = definitionAtOffset(root, useOffset);
     expect(def).not.toBeNull();
-    // Should point to the second `:x 2` BindStep, not the first.
+    // Should point to the second declaration, `:x 2`, not the first.
     expect(def.startOffset).toBe(src.lastIndexOf(':x'));
   });
 
   it('declaration inside fork is invisible outside', () => {
     const src = '(:x 1) | x';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
-    // x is declared inside a ParenGroup fork — invisible at the
+    // x is declared inside a group, a fork — invisible at the
     // use site. Falls through to catalog (none provided) or null.
-    const def = definitionAtOffset(ast, useOffset);
+    const def = definitionAtOffset(root, useOffset);
     expect(def === null || def.fileUri !== undefined).toBe(true);
   });
 
   it('jumps from a name several kinds answer to the first of its verbs the catalog declares', () => {
     const src = '[1 2 3] | count';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(ast, src.indexOf('count'), testCatalogCtx);
+    const { root } = parseDocument(src, 'test.qlang');
+    const def = definitionAtOffset(root, src.indexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
     expect(def.fileUri).toBe('file:///test/core.qlang');
     expect(def.startOffset).toBe(0);
@@ -390,41 +422,41 @@ describe('definitionAtOffset', () => {
 
   it('jumps from an address to the verb it names', () => {
     const src = '[1 2 3] | vec/count';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(ast, src.indexOf('vec/count'), testCatalogCtx);
+    const { root } = parseDocument(src, 'test.qlang');
+    const def = definitionAtOffset(root, src.indexOf('vec/count'), testCatalogCtx);
     expect(def.startOffset).toBe(catalogSrc.indexOf(':vec/count'));
   });
 
   it('falls back to the one verb of a name under a kind when no contract names it', () => {
     const src = '1 | add 2';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(ast, src.indexOf('add'), testCatalogCtx);
+    const { root } = parseDocument(src, 'test.qlang');
+    const def = definitionAtOffset(root, src.indexOf('add'), testCatalogCtx);
     expect(def.startOffset).toBe(catalogSrc.indexOf(':number/add'));
   });
 
   it('returns null for a verb of the language without a catalog context', () => {
     const src = '[1 2 3] | count';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(ast, src.indexOf('count'));
+    const { root } = parseDocument(src, 'test.qlang');
+    const def = definitionAtOffset(root, src.indexOf('count'));
     expect(def).toBeNull();
   });
 
   it('a declaration of the document shadows a verb of the language — jumps to the declaration, not the catalog', () => {
     const src = ':count 42 | count';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const def = definitionAtOffset(ast, src.lastIndexOf('count'), testCatalogCtx);
+    const { root } = parseDocument(src, 'test.qlang');
+    const def = definitionAtOffset(root, src.lastIndexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
     expect(def.fileUri).toBeUndefined(); // in-document, not catalog
     expect(def.startOffset).toBe(0);
   });
 
-  it('returns null for non-resolving nodes', () => {
+  it('returns null for a part that names no declaration', () => {
     const src = '42';
-    const { ast } = parseDocument(src, 'test.qlang');
-    expect(definitionAtOffset(ast, 0)).toBeNull();
+    const { root } = parseDocument(src, 'test.qlang');
+    expect(definitionAtOffset(root, 0)).toBeNull();
   });
 
-  it('returns null for null ast', () => {
+  it('returns null for a text that does not parse', () => {
     expect(definitionAtOffset(null, 0)).toBeNull();
   });
 });
@@ -432,29 +464,36 @@ describe('definitionAtOffset', () => {
 describe('referencesAtOffset', () => {
   it('finds all occurrences of a verb a reader declares', () => {
     const src = ':number/double ~(mul 2) | [1 2] | map ~double';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const refs = referencesAtOffset(ast, src.lastIndexOf('double'));
+    const { root } = parseDocument(src, 'test.qlang');
+    const refs = referencesAtOffset(root, src.lastIndexOf('double'));
     // declaration (`:number/double …`) + use site (`map ~double`)
     expect(refs.length).toBe(2);
   });
 
   it('finds references from the declaration site', () => {
     const src = ':x 42 | x';
-    const { ast } = parseDocument(src, 'test.qlang');
-    // Click on :x in the BindStep key
+    const { root } = parseDocument(src, 'test.qlang');
+    // Click on the name of the declaration, :x
     const kwOffset = src.indexOf(':x') + 1; // inside the keyword
-    const refs = referencesAtOffset(ast, kwOffset);
+    const refs = referencesAtOffset(root, kwOffset);
     expect(refs.length).toBe(2);
+  });
+
+  it('finds no references from a keyword that is no name of a declaration [D367]', () => {
+    for (const src of [':x :y | y', '[:y] | y']) {
+      const { root } = parseDocument(src, 'test.qlang');
+      expect(referencesAtOffset(root, src.indexOf(':y') + 1), src).toEqual([]);
+    }
   });
 
   it('returns references for the verbs of the language', () => {
     const src = '[1 2 3] | count | add 1';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const refs = referencesAtOffset(ast, src.indexOf('count'));
+    const { root } = parseDocument(src, 'test.qlang');
+    const refs = referencesAtOffset(root, src.indexOf('count'));
     expect(refs.length).toBe(1);
   });
 
-  it('returns empty for null ast', () => {
+  it('returns empty for a text that does not parse', () => {
     expect(referencesAtOffset(null, 0)).toEqual([]);
   });
 });
@@ -462,15 +501,15 @@ describe('referencesAtOffset', () => {
 describe('foldingRangesOf', () => {
   it('folds a declaration, its doc as a comment, and a quote, leaving a closer alone open', () => {
     const src = [':double', '  |~~ Doubles.', '      ~(', '        2 | double', '      )', '  ~~|', '  ~(mul 2)', ':x 1'].join('\n');
-    const { ast } = parseDocument(src, 'test.qlang');
-    expect(foldingRangesOf(ast, src)).toEqual([
+    const { root } = parseDocument(src, 'test.qlang');
+    expect(foldingRangesOf(root, src)).toEqual([
       { startLine: 0, endLine: 6, kind: 'region' },
       { startLine: 1, endLine: 4, kind: 'comment' },
       { startLine: 2, endLine: 3, kind: 'region' }
     ]);
   });
 
-  it('folds nothing without a tree', () => {
+  it('folds nothing for a text that does not parse', () => {
     expect(foldingRangesOf(null, '')).toEqual([]);
   });
 });
@@ -478,8 +517,8 @@ describe('foldingRangesOf', () => {
 describe('documentSymbols', () => {
   it('collects the verbs a reader declares under a label as verb symbols', async () => {
     const src = ':number/double ~(mul 2) | :number/triple ~(mul 3) | :q ~(add 1)';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const syms = documentSymbols(ast, await langRuntime());
+    const { root } = parseDocument(src, 'test.qlang');
+    const syms = documentSymbols(root, await langRuntime());
     expect(syms).toHaveLength(3);
     expect(syms[0].name).toBe('number/double');
     expect(syms[0].kind).toBe('verb');
@@ -490,8 +529,8 @@ describe('documentSymbols', () => {
 
   it('shows a label of the document and the verbs under it as the core reads them', async () => {
     const src = ':Box |~~ A box. ~~| | :Box/area ~(1) | :Ring/area ~(2)';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const syms = documentSymbols(ast, await langRuntime());
+    const { root } = parseDocument(src, 'test.qlang');
+    const syms = documentSymbols(root, await langRuntime());
     expect(syms.map(sym => [sym.name, sym.kind])).toEqual([
       ['::Box', 'tag'], ['Box/area', 'verb'], ['Ring/area', 'value']
     ]);
@@ -507,32 +546,33 @@ describe('documentSymbols', () => {
       '| :Box/area |~~ The area. ~~| (::fn | returns |~~ A number. ~~| ::number | impl ~(mulOf /w /h))',
       '| :Box/rule |~~ A contract. ~~| (::fn | returns |~~ A number. ~~| ::number)',
       '| :Crate/count |~~ The goods. ~~| ::fn[~() ~(count)]',
+      '| :Crate/size |~~ A contract. ~~| ::fn[~() null]',
       '| :f |~~ A function. ~~| (::fn | impl ~(add 1))'
     ].join('\n');
-    const { ast } = parseDocument(src, 'test.qlang');
-    expect(documentSymbols(ast, await langRuntime()).map(sym => [sym.name, sym.kind])).toEqual([
-      ['::Box', 'tag'], ['::Crate', 'tag'], ['Box/area', 'verb'], ['Box/rule', 'value'], ['Crate/count', 'verb'], ['f', 'value']
+    const { root } = parseDocument(src, 'test.qlang');
+    expect(documentSymbols(root, await langRuntime()).map(sym => [sym.name, sym.kind])).toEqual([
+      ['::Box', 'tag'], ['::Crate', 'tag'], ['Box/area', 'verb'], ['Box/rule', 'value'], ['Crate/count', 'verb'], ['Crate/size', 'value'], ['f', 'value']
     ]);
   });
 
   it('shows a reader\'s ::builtin{} under a label as a value, a primitive it reaches none', async () => {
     const src = ':Box |~~ B. ~~| | :Box/area ::builtin{}';
-    const { ast } = parseDocument(src, 'test.qlang');
-    expect(documentSymbols(ast, await langRuntime()).map(sym => sym.kind)).toEqual(['tag', 'value']);
+    const { root } = parseDocument(src, 'test.qlang');
+    expect(documentSymbols(root, await langRuntime()).map(sym => sym.kind)).toEqual(['tag', 'value']);
   });
 
   it('collects a binding of a computed body as a value symbol', async () => {
     const src = '[1 2] | :n count';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const syms = documentSymbols(ast, await langRuntime());
+    const { root } = parseDocument(src, 'test.qlang');
+    const syms = documentSymbols(root, await langRuntime());
     expect(syms).toHaveLength(1);
     expect(syms[0].kind).toBe('value');
   });
 
   it('collects a declaration of it as a value symbol', async () => {
     const src = '42 | :answer it';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const syms = documentSymbols(ast, await langRuntime());
+    const { root } = parseDocument(src, 'test.qlang');
+    const syms = documentSymbols(root, await langRuntime());
     expect(syms).toHaveLength(1);
     expect(syms[0].name).toBe('answer');
     expect(syms[0].kind).toBe('value');
@@ -540,11 +580,11 @@ describe('documentSymbols', () => {
 
   it('returns empty for plain pipeline with no bindings', async () => {
     const src = '[1 2 3] | count';
-    const { ast } = parseDocument(src, 'test.qlang');
-    expect(documentSymbols(ast, await langRuntime())).toHaveLength(0);
+    const { root } = parseDocument(src, 'test.qlang');
+    expect(documentSymbols(root, await langRuntime())).toHaveLength(0);
   });
 
-  it('returns empty for null ast', async () => {
+  it('returns empty for a text that does not parse', async () => {
     expect(documentSymbols(null, await langRuntime())).toEqual([]);
   });
 });
@@ -552,67 +592,67 @@ describe('documentSymbols', () => {
 describe('signatureHelpAtOffset', () => {
   it('returns the form of the call around the cursor', async () => {
     const src = '[1 2 3] | filter ~(gt 2)';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     // The cursor on the `g` of `gt` stands in the narrowest call with
     // modifiers, `gt 2`, whose form the help shows.
     const offset = src.indexOf('gt');
-    const sig = await signatureHelpAtOffset(ast, src, offset);
+    const sig = await signatureHelpAtOffset(root, src, offset);
     expect(sig).not.toBeNull();
     expect(sig.label).toMatch(/gt/);
   });
 
   it('returns null for a command without modifiers', async () => {
     const src = '[1 2 3] | count';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const sig = await signatureHelpAtOffset(ast, src, src.indexOf('count'));
+    const { root } = parseDocument(src, 'test.qlang');
+    const sig = await signatureHelpAtOffset(root, src, src.indexOf('count'));
     // A call of `count` writes no modifiers, and the help shows nothing.
     expect(sig).toBeNull();
   });
 
   it('tracks the active parameter by the modifiers before the cursor', async () => {
     const src = '{:x 1 :y 2} | subOf /x /y';
-    const { ast } = parseDocument(src, 'test.qlang');
+    const { root } = parseDocument(src, 'test.qlang');
     // Cursor on the second modifier
     const offset = src.indexOf('/y');
-    const sig = await signatureHelpAtOffset(ast, src, offset);
+    const sig = await signatureHelpAtOffset(root, src, offset);
     expect(sig).not.toBeNull();
     expect(sig.activeParameter).toBe(1);
   });
 
   it('shows the page of the verb the subject of the call reaches', async () => {
     const src = '[1 2 3] | take 2';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const sig = await signatureHelpAtOffset(ast, src, src.lastIndexOf('2'));
+    const { root } = parseDocument(src, 'test.qlang');
+    const sig = await signatureHelpAtOffset(root, src, src.lastIndexOf('2'));
     expect(sig.documentation).toMatch(/first elements, as many as the count/);
   });
 
   it('opens at the space after a verb that takes inputs, its first input active', async () => {
     const src = '[1 2 3] | take ';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const sig = await signatureHelpAtOffset(ast, src, src.length);
+    const { root } = parseDocument(src, 'test.qlang');
+    const sig = await signatureHelpAtOffset(root, src, src.length);
     expect([sig.label, sig.activeParameter]).toEqual(['take count', 0]);
   });
 
   it('moves past the words written at the space after them', async () => {
     const src = '{:x 1 :y 2} | subOf /x ';
-    const { ast } = parseDocument(src, 'test.qlang');
-    const sig = await signatureHelpAtOffset(ast, src, src.length);
+    const { root } = parseDocument(src, 'test.qlang');
+    const sig = await signatureHelpAtOffset(root, src, src.length);
     expect(sig.activeParameter).toBe(1);
   });
 
   it('opens nothing for a verb a later step follows', async () => {
     const src = '[1 2 3] | take 2 | take';
-    const { ast } = parseDocument(src, 'test.qlang');
-    expect(await signatureHelpAtOffset(ast, src, src.lastIndexOf('take'))).toBeNull();
+    const { root } = parseDocument(src, 'test.qlang');
+    expect(await signatureHelpAtOffset(root, src, src.lastIndexOf('take'))).toBeNull();
   });
 
   it('opens nothing at the space after a verb that takes no input', async () => {
     const src = '[1 2 3] | count ';
-    const { ast } = parseDocument(src, 'test.qlang');
-    expect(await signatureHelpAtOffset(ast, src, src.length)).toBeNull();
+    const { root } = parseDocument(src, 'test.qlang');
+    expect(await signatureHelpAtOffset(root, src, src.length)).toBeNull();
   });
 
-  it('returns null for null ast', async () => {
+  it('returns null for a text that does not parse', async () => {
     expect(await signatureHelpAtOffset(null, '', 0)).toBeNull();
   });
 });
@@ -678,7 +718,7 @@ describe('semanticTokensFor', () => {
     expect(tokens.some(t => t.type === 'string')).toBe(true);
   });
 
-  it('paints a Quote body as `string`', async () => {
+  it('paints the delimiters of a quote as `string`', async () => {
     const { data } = await semanticTokensFor('~(count)');
     const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
     // Quote literal renders the ~( and ) delimiters as `string` kind
@@ -721,5 +761,12 @@ describe('semanticTokensFor', () => {
 
   it('returns the tokens of a source cut short, as it is typed', async () => {
     expect((await semanticTokensFor('[1 2 3')).data.length).toBeGreaterThan(0);
+  });
+
+  it('paints a doc whose quote stands under the tag of a group or of the fail track, its verb as `function` [D367]', async () => {
+    for (const src of DOCS_OF_STEP_TAGS) {
+      const tokens = decodeSemanticTokens((await semanticTokensFor(src)).data, SEMANTIC_TOKEN_TYPES);
+      expect(tokens.some(t => t.type === 'function'), src).toBe(true);
+    }
   });
 });

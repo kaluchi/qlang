@@ -29,10 +29,10 @@ describe('a verb as the tooling reads it', () => {
   });
 
   it('shows the verb a subject of the kinds reaches, and the inputs of its function [QSHST#tools]', async () => {
-    const env = await langRuntime();
-    expect(shownFor(env, 'count', ['vec']).address.name).toBe('vec/count');
-    expect(shownFor(env, 'count', ['map']).address.name).toBe('map/count');
-    expect(shownFor(env, 'take', ['string'])).toEqual({ address: expect.objectContaining({ name: 'string/take' }), inputs: ['count'] });
+    const scope = await langRuntime();
+    expect(shownFor(scope, 'count', ['vec']).address.name).toBe('vec/count');
+    expect(shownFor(scope, 'count', ['map']).address.name).toBe('map/count');
+    expect(shownFor(scope, 'take', ['string'])).toEqual({ address: expect.objectContaining({ name: 'string/take' }), inputs: ['count'] });
   });
 
   it('shows the verb a name reaches with no subject where the kinds reach none', async () => {
@@ -40,10 +40,10 @@ describe('a verb as the tooling reads it', () => {
   });
 
   it('reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the verb\'s own label [QSBLD#answer]', async () => {
-    const env = await langRuntime();
-    expect(answerKindsOf(env, nodeOf(env, 'vec/filter'), ['set'])).toEqual(['set']);
-    expect(answerKindsOf(env, nodeOf(env, 'vec/count'), ['vec'])).toEqual(['number']);
-    expect(answerKindsOf(env, nodeOf(env, 'any/coalesce'), ['vec'])).toBeNull();
+    const scope = await langRuntime();
+    expect(answerKindsOf(scope, nodeOf(scope, 'vec/filter'), ['set'])).toEqual(['set']);
+    expect(answerKindsOf(scope, nodeOf(scope, 'vec/count'), ['vec'])).toEqual(['number']);
+    expect(answerKindsOf(scope, nodeOf(scope, 'any/coalesce'), ['vec'])).toBeNull();
   });
 
   it('reads the kinds of an answer its returns names as a set [QSBLD#fn]', async () => {
@@ -68,9 +68,9 @@ describe('the verbs a value of a kind reaches [QSDSP#walk]', () => {
   });
 
   it('leaves out a verb its kind does not answer', async () => {
-    const env = await langRuntime();
-    expect(verbsReaching(env, ['number']).has('count')).toBe(false);
-    expect(verbsReaching(env, ['vec']).get('count').address.name).toBe('vec/count');
+    const scope = await langRuntime();
+    expect(verbsReaching(scope, ['number']).has('count')).toBe(false);
+    expect(verbsReaching(scope, ['vec']).get('count').address.name).toBe('vec/count');
   });
 
   it('takes the verb of the outermost kind a name lives on', async () => {
@@ -85,11 +85,11 @@ describe('the verbs a value of a kind reaches [QSDSP#walk]', () => {
   });
 
   it('takes the walk from a set, a quote and a doc to the verbs of tagged values and of vectors, a set\'s own verb first [QSDSP#walk]', async () => {
-    const env = await langRuntime();
-    const addressesFrom = (kindName, names) => names.map(name => verbsReaching(env, [kindName]).get(name)?.address.name);
+    const scope = await langRuntime();
+    const addressesFrom = (kindName, names) => names.map(name => verbsReaching(scope, [kindName]).get(name)?.address.name);
     expect(addressesFrom('set', ['sort', 'count', 'take', 'within'])).toEqual(['set/sort', 'vec/count', 'vec/take', 'tagged/within']);
     expect(addressesFrom('quote', ['count', 'toString'])).toEqual(['vec/count', 'quote/toString']);
     expect(addressesFrom('doc', ['count', 'links'])).toEqual(['vec/count', 'doc/links']);
-    expect(shownFor(env, 'count', ['set']).address.name).toBe('vec/count');
+    expect(shownFor(scope, 'count', ['set']).address.name).toBe('vec/count');
   });
 });

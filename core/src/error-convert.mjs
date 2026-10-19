@@ -33,15 +33,15 @@ export function spanOfLocation(loc, source) {
 // The code points of the source between two offsets of its UTF-16 text.
 const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).length;
 
-// factsInOrder(tag, facts, env) → the facts of a refusal of the runtime in
+// factsInOrder(tag, facts, scope) → the facts of a refusal of the runtime in
 // the order of the definitions that describe them, each named as its fact
-// [QSERR#site]: those under the refusal's label first, then those under
+// [D367]: those under the refusal's label first, then those under
 // `::error`, which every refusal shares, the trace an error leaves coming
 // after them as it joins them. A fact neither declares is a
 // defect of the runtime.
-export function factsInOrder(tag, facts, env) {
+export function factsInOrder(tag, facts, scope) {
   const ordered = new Map();
-  for (const name of [...namesDeclaredUnder(env, tag.name), ...namesDeclaredUnder(env, ERROR_TAG.name)]) {
+  for (const name of [...namesDeclaredUnder(scope, tag.name), ...namesDeclaredUnder(scope, ERROR_TAG.name)]) {
     if (facts.has(name) && !ordered.has(name)) ordered.set(name, facts.get(name));
   }
   for (const name of facts.keys()) {
@@ -50,10 +50,10 @@ export function factsInOrder(tag, facts, env) {
   return ordered;
 }
 
-// The error a refusal of the runtime raised: the facts its site handed
-// with the kind of the value refused, the value left out where it equals
-// the subject the first frame holds [QSERR#site].
-export function errorFromQlang(qlangError, subject, env) {
+// The error a refusal of the runtime raised at the span of its step, or at
+// none: the facts its site handed with the kind of the value refused, the
+// value left out where it equals the subject the first frame holds [D367].
+export function errorFromQlang(qlangError, subject, scope, location = null) {
   const tag = makeTag(qlangError.address);
   const facts = new Map();
   for (const [name, value] of Object.entries(qlangError.facts)) {
@@ -61,16 +61,13 @@ export function errorFromQlang(qlangError, subject, env) {
     facts.set(name, value);
   }
   if (qlangError.facts.actualValue !== undefined) facts.set('actualType', typeOf(qlangError.facts.actualValue));
-  return makeErrorValue(tag, factsInOrder(tag, facts, env), {
-    location: qlangError.location,
-    originalError: qlangError
-  });
+  return makeErrorValue(tag, factsInOrder(tag, facts, scope), { location, originalError: qlangError });
 }
 
 // The error of a text the parser refused: the line where it stopped, what it
 // wanted there, the span of the place and where the text came from, in the
 // order its label declares [QSSYN#refusal].
-export function errorFromParse(parseError, env, uri = parseError.uri) {
+export function errorFromParse(parseError, scope, uri = parseError.uri) {
   const d = new Map();
   if (parseError.source != null && parseError.location) d.set('source', parseError.source.split('\n')[parseError.location.start.line - 1]);
   // A refusal the grammar names itself carries its sentence, which says
@@ -83,7 +80,7 @@ export function errorFromParse(parseError, env, uri = parseError.uri) {
   if (parseError.location) d.set('location', spanOfLocation(parseError.location, parseError.source));
   if (uri) d.set('origin', keyword(uri));
   const tag = makeTag('quote/ParseError');
-  return makeErrorValue(tag, factsInOrder(tag, d, env), {
+  return makeErrorValue(tag, factsInOrder(tag, d, scope), {
     location: parseError.location,
     originalError: parseError
   });
@@ -113,10 +110,11 @@ const CAUSES_RECOUNTED = 8;
 
 // A JavaScript error escaping a primitive is a failure of the host: a tag of
 // the language, its account and the accounts of the failures beneath it
-// [QSERR#site]. The step that failed stands in the trace; the stack, the
-// class and the fields of the error stay with the host in `originalError`,
-// and a host that has facts to hand declares a refusal of its own.
-export function errorFromForeign(jsError, node, env) {
+// [D367], at the span of the step that ran it. The step that failed
+// stands in the trace; the stack, the class and the fields of the error stay
+// with the host in `originalError`, and a host that has facts to hand
+// declares a refusal of its own.
+export function errorFromForeign(jsError, location, scope) {
   const tag = makeTag('call/HostFailureError');
   const facts = new Map([['message', accountOf(jsError)]]);
   const causes = [];
@@ -124,8 +122,8 @@ export function errorFromForeign(jsError, node, env) {
     causes.push(accountOf(cause));
   }
   if (causes.length > 0) facts.set('causes', Object.freeze(causes));
-  return makeErrorValue(tag, factsInOrder(tag, facts, env), {
-    location: node?.location ?? null,
+  return makeErrorValue(tag, factsInOrder(tag, facts, scope), {
+    location,
     originalError: jsError
   });
 }

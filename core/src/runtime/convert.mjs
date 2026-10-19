@@ -4,7 +4,7 @@
 // itself, and what a verb cannot read whole it refuses under its address
 // [QSCND#convert].
 
-import { keyword, makeTag, makeRegex, isKeyword, isTag, isVec, typeOf } from '../types.mjs';
+import { keyword, makeTag, makeRegex, isKeyword, isTag, isVec, isRegex, typeOf } from '../types.mjs';
 import { makeSet, kindsExpected } from '../ordering.mjs';
 import { canonicalFlags, regexProblem, textRefusal } from '../regex-read.mjs';
 import { registerPrimitive } from '../primitives.mjs';
@@ -12,6 +12,7 @@ import { declareRefusal } from '../errors.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
 import { splitAddress } from '../address.mjs';
 import { parse } from '../parse.mjs';
+import { partOf } from '../walk.mjs';
 
 const textOf = value => (isKeyword(value) || isTag(value) ? value.name : String(value));
 registerPrimitive(['string/toString', 'number/toString', 'keyword/toString', 'tag/toString', 'boolean/toString'], textOf);
@@ -33,19 +34,21 @@ export function keywordFiledFor(value) {
 
 registerPrimitive(TO_KEYWORD_ADDRESSES, keywordFiledFor);
 
-// The node of a literal of the kind a text writes whole, or null.
-function literalWritten(text, nodeType) {
-  let ast;
+// The literal of the kind a text writes whole, its one step spanning it, or null.
+function literalWritten(text, isOfKind) {
+  let quote;
   try {
-    ast = parse(text);
+    quote = parse(text);
   } catch {
     return null;
   }
-  return ast.type === nodeType && ast.text === text ? ast : null;
+  if (!isOfKind(quote[0])) return null;
+  const { start, end } = partOf(quote).parts[0].span;
+  return start.offset === 0 && end.offset === text.length ? quote[0] : null;
 }
 
 // The number a text writes whole as the literal of a number, or null.
-const numberWritten = text => literalWritten(text, 'NumberLit')?.value ?? null;
+const numberWritten = text => literalWritten(text, step => typeof step === 'number');
 
 const StringToNumberTextNotNumberError = declareRefusal('string/toNumber/TextNotNumberError');
 const KeywordToNumberNameNotNumberError = declareRefusal('keyword/toNumber/NameNotNumberError');
@@ -92,7 +95,7 @@ registerPrimitive('regex/toRegex', (regex, written) => {
 registerPrimitive('string/toRegex', (text, written) => {
   const flags = canonicalFlags(written ?? '');
   if (flags === null) throw new StringToRegexFlagsNotFlagsError({ actualValue: written });
-  if (literalWritten(text, 'RegexLit') !== null) throw new StringToRegexLiteralNotSourceError({ actualValue: text });
+  if (literalWritten(text, isRegex) !== null) throw new StringToRegexLiteralNotSourceError({ actualValue: text });
   const problem = regexProblem(text, flags);
   if (problem !== null) throw new StringToRegexTextNotRegexError({ message: textRefusal(problem), actualValue: text });
   return makeRegex(text, flags);

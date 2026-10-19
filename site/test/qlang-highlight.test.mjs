@@ -66,7 +66,7 @@ describe('the verbs of the language', () => {
     expect(out).toBe('<span class="word">count</span>');
   });
 
-  it('BindStep key gets keyword span', () => {
+  it('the name a declaration binds gets the keyword span', () => {
     const out = hl(':x 1');
     expect(out).toContain('<span class="keyword">:x</span>');
   });

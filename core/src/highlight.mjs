@@ -1,4 +1,4 @@
-// AST-based syntax highlighter for qlang source.
+// The painter of qlang source over the parts its parser reads [D367].
 //
 // `tokenize(src, verbNames)` returns a flat, gap-free, sorted
 // `Array<{ start, end, kind }>` covering exactly `[0, src.length]`
@@ -19,24 +19,24 @@
 //   'word'        a call's name that resolves to a verb of the
 //                 language supplied by `langRuntime` AND each key
 //                 segment of a `Path`
-//   'keyword'     the head keyword of a BindStep declaration
+//   'keyword'     the name a declaration binds
 //   'err'         the `!` and the bracket it touches
 //                 in `!{` / closing `}` of an error literal, and the
 //                 `!|` fail-track combinator — an error and the track
 //                 that catches it
-//   'quote'       Quote literal `~( … )`, including the `~(`
+//   'quote'       a quote `~( … )`, including the `~(`
 //                 opener and `)` closer, and the `~` of the short
-//                 form `~add` (DocLit `|~~ … ~~|` falls under
+//                 form `~add` (a doc `|~~ … ~~|` falls under
 //                 'comment')
-//   'tag'         `::tag` head of a TaggedLit, of an ErrorLit that
-//                 writes one, or a TagLit — the
+//   'tag'         the `::tag` head of a tagged literal, of an error literal
+//                 that writes one, or a tag name — the
 //                 sign of the tag and the address it names
-//   'set'         `#[` opener and matching `]` closer of a SetLit
-//   'vec'         `[` opener and matching `]` closer of a VecLit
+//   'set'         `#[` opener and matching `]` closer of a set
+//   'vec'         `[` opener and matching `]` closer of a vector
 //   'punct'       the pipe `|`, the `{` / `}` of an ordinary
-//                 MapLit, `(` / `)` of a group, the commas of a
+//                 map, `(` / `)` of a group, the commas of a
 //                 JSON literal, and the `/` separator inside a
-//                 `Path`
+//                 path
 //   'whitespace'  runs of whitespace between meaningful tokens, and
 //                 the source past where its parse stopped
 //
@@ -45,8 +45,10 @@
 // [QSSYN#refusal], and one the parser refuses up to the place of the refusal,
 // the rest as whitespace.
 
-import { closersCompleting, parse } from './parse.mjs';
-import { walkAst } from './walk.mjs';
+import { closersCompleting, parse, ParseError } from './parse.mjs';
+import { partOf, walkParts, tagWrittenBy } from './walk.mjs';
+import { isCallStep, isBindStep, errorFieldsOf } from './steps.mjs';
+import { isQuote, isDoc, isSet, isVec, isKeyword, isTag, isRegex, isPath, TAG_HEADER_SYMBOL } from './types.mjs';
 
 // ── Public surface ────────────────────────────────────────────
 
@@ -54,7 +56,7 @@ export function tokenize(src, verbNames) {
   if (src.length === 0) return [];
   const read = readOf(src);
   if (read === null) return [{ start: 0, end: src.length, kind: 'whitespace' }];
-  const semanticSpans = collectSemanticSpans(read.source, read.ast, verbNames)
+  const semanticSpans = collectSemanticSpans(read.source, read.root, verbNames)
     .filter(span => span.start < read.end)
     .map(span => span.end > read.end ? { ...span, end: read.end } : span);
   const tokens = interleaveGapTokens(src.slice(0, read.end), semanticSpans);
@@ -62,146 +64,92 @@ export function tokenize(src, verbNames) {
   return tokens;
 }
 
-// The tree a source is painted from: `{ ast, source, end }`, the source
-// the tree was parsed from and how far into the painted one it reads,
-// or null when no prefix of it completes.
+// The parts a source is painted from: `{ root, source, end }`, the source
+// they were read from and how far into the painted one it reads, or null when
+// no prefix completes, a throw that is no refusal passing as it is [D367].
 function readOf(src) {
   let refusal;
   try {
-    return { ast: parse(src), source: src, end: src.length };
+    return { root: partOf(parse(src)), source: src, end: src.length };
   } catch (error) {
+    if (!(error instanceof ParseError)) throw error;
     refusal = error;
   }
   for (const prefix of [src, src.slice(0, refusal.location.start.offset)]) {
     const closers = closersCompleting(prefix);
-    if (closers !== null) return { ast: parse(prefix + closers.join('')), source: prefix + closers.join(''), end: prefix.length };
+    if (closers !== null) return { root: partOf(parse(prefix + closers.join(''))), source: prefix + closers.join(''), end: prefix.length };
   }
   return null;
 }
 
-// ── AST-driven semantic spans ──────────────────────────────────
+// ── The spans of the parts ─────────────────────────────────────
 
-// Walk the AST, harvest spans for the leaf nodes that carry
-// recognisable semantic categories. Nodes whose children are
-// themselves spanned (Pipeline, VecLit, MapLit, ParenGroup, …)
-// emit nothing here — their structural punctuation shows up via
-// the gap-interleaving pass below.
-function collectSemanticSpans(src, ast, verbNames) {
-  // A comment is whitespace the parser keeps on the side [QSSYN#comment].
-  const spans = ast.comments.map(comment =>
+// The spans of the parts whose kind paints, by the value each read; the
+// punctuation of a part that holds others shows up by the pass over the
+// gaps below.
+function collectSemanticSpans(src, root, verbNames) {
+  // A comment is whitespace the parser keeps on the side [D367].
+  const spans = root.comments.map(comment =>
     ({ start: comment.location.start.offset, end: comment.location.end.offset, kind: 'comment' }));
 
-  walkAst(ast, (node) => {
-    const startOffset = node.location.start.offset;
-    const endOffset   = node.location.end.offset;
+  walkParts(root, (read) => {
+    const { value } = read;
+    const startOffset = read.span.start.offset;
+    const endOffset   = read.span.end.offset;
+    const paint = kind => spans.push({ start: startOffset, end: endOffset, kind });
 
-    switch (node.type) {
-      case 'DocLit': {
-        // The prose of a doc paints as a comment and the quotes it holds
-        // as the code they are, so only prose reads grey [QSSYN#doc].
-        let cursor = startOffset;
-        for (const segment of node.segments) {
-          if (typeof segment === 'string') continue;
-          pushProseSpans(src, cursor, segment.location.start.offset, verbNames, spans);
-          cursor = segment.location.end.offset;
-        }
-        pushProseSpans(src, cursor, endOffset, verbNames, spans);
-        return; // descend into the quotes
+    if (isDoc(value)) {
+      // The prose of a doc paints as a comment and the quotes it holds
+      // as the code they are, so only prose reads grey [D367].
+      let cursor = startOffset;
+      for (const segment of read.parts) {
+        pushProseSpans(src, cursor, segment.span.start.offset, verbNames, spans);
+        cursor = segment.span.end.offset;
       }
-
-      case 'StringLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'string' });
-        return false;
-
-      case 'RegexLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'regex' });
-        return false;
-
-      case 'NumberLit':
-      case 'BooleanLit':
-      case 'NullLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'number' });
-        return false;
-
-      case 'Keyword':
-        spans.push({ start: startOffset, end: endOffset, kind: 'name' });
-        return false;
-
-      case 'ErrorLit': {
-        // The tag an error literal writes before its bang paints as
-        // every tag head does, then the `!{` / `}` of the error [QSERR#rest].
-        const bangOffset = node.tag === null ? startOffset : startOffset + 2 + node.tag.length;
-        if (node.tag !== null) spans.push({ start: startOffset, end: bangOffset, kind: 'tag' });
-        emitBracketSpans(bangOffset, endOffset, 2, 1, 'err', spans);
-        return;
+      pushProseSpans(src, cursor, endOffset, verbNames, spans);
+      return;
+    }
+    if (typeof value === 'string') return void paint('string');
+    if (isRegex(value)) return void paint('regex');
+    if (value === null || typeof value === 'number' || typeof value === 'boolean') return void paint('number');
+    if (isKeyword(value)) return void paint('name');
+    if (isTag(value)) return void paint('tag');
+    if (isPath(value)) return void emitPathSpans(src, startOffset, endOffset, spans);
+    if (isQuote(value) && read.content !== undefined) {
+      // A quote: its `~(` / `)` delimiters, or the `~` of the short
+      // form, in the `quote` palette colour, and its content painted
+      // again, every inner span `italic`, code as data painted as code.
+      const isShortForm = src[startOffset + 1] !== '(';
+      const contentStart = startOffset + (isShortForm ? 1 : 2);
+      const contentEnd = isShortForm ? endOffset : endOffset - 1;
+      spans.push({ start: startOffset, end: contentStart, kind: 'quote' });
+      for (const inner of tokenize(src.slice(contentStart, contentEnd), verbNames)) {
+        spans.push({ start: contentStart + inner.start, end: contentStart + inner.end, kind: inner.kind, italic: true });
       }
-
-      case 'QuoteLit': {
-        // Quote literal — paint the `~(` / `)` delimiters, or the
-        // `~` of the short form, in the `quote` palette colour, then
-        // sub-tokenise the body; every inner span carries
-        // `italic: true`, code as data painted as code, italicised.
-        const isShortForm = src[startOffset + 1] !== '(';
-        const bodyStart = startOffset + (isShortForm ? 1 : 2);
-        const bodyEnd = isShortForm ? endOffset : endOffset - 1;
-        spans.push({ start: startOffset, end: bodyStart, kind: 'quote' });
-        const innerSource = src.slice(bodyStart, bodyEnd);
-        const innerSpans = tokenize(innerSource, verbNames);
-        for (const inner of innerSpans) {
-          spans.push({
-            start: bodyStart + inner.start,
-            end:   bodyStart + inner.end,
-            kind:  inner.kind,
-            italic: true
-          });
-        }
-        if (!isShortForm) spans.push({ start: bodyEnd, end: endOffset, kind: 'quote' });
-        return false;
+      if (!isShortForm) spans.push({ start: contentEnd, end: endOffset, kind: 'quote' });
+      return false;
+    }
+    if (errorFieldsOf(value) !== null) {
+      // The tags an error literal writes before its bang, its first parts,
+      // paint as tags, and the `!{` / `}` of the error after them [QSERR#rest].
+      let bang = startOffset;
+      for (const held of read.parts) {
+        if (!isTag(held.value)) break;
+        bang = held.span.end.offset;
       }
-
-      case 'BindStep': {
-        // The keyword that declares a name paints as `keyword`, and the
-        // doc literals of its slot paint as every doc does [QSNAM#declare],
-        // [QSSYN#doc].
-        const key = node.key;
-        spans.push({ start: key.location.start.offset, end: key.location.end.offset, kind: 'keyword' });
-        return; // descend into docs / body
-      }
-
-      case 'TagLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'tag' });
-        return false;
-
-      case 'TaggedLit': {
-        // Cover the `::tag` head with a single 'tag' span; descend
-        // into the payload below so VecLit/MapLit/StringLit children
-        // emit their own spans.
-        const tagHeadEnd = startOffset + 2 + node.tag.length;
-        spans.push({ start: startOffset, end: tagHeadEnd, kind: 'tag' });
-        return; // descend into payload
-      }
-
-      case 'SetLit':
-        emitBracketSpans(startOffset, endOffset, 2, 1, 'set', spans);
-        return;
-
-      case 'VecLit':
-        emitBracketSpans(startOffset, endOffset, 1, 1, 'vec', spans);
-        return;
-
-      case 'Path':
-        emitPathSpans(src, startOffset, endOffset, spans);
-        return false;
-
-      case 'Call': {
-        const nameEndOffset = startOffset + node.name.length;
-        spans.push({
-          start: startOffset,
-          end:   nameEndOffset,
-          kind:  classifyCallName(node.name, verbNames)
-        });
-        return; // descend into args
-      }
+      emitBracketSpans(bang, endOffset, 2, 1, 'err', spans);
+      return;
+    }
+    const tag = tagWrittenBy(read);
+    // The name a declaration binds paints as `keyword`, its docs as every
+    // doc does [QSNAM#declare], [D367].
+    if (isBindStep(value)) return void spans.push({ start: read.parts[0].span.start.offset, end: read.parts[0].span.end.offset, kind: 'keyword' });
+    if (tag !== null) return void spans.push({ start: startOffset, end: startOffset + 2 + tag.length, kind: 'tag' });
+    if (isSet(value)) return void emitBracketSpans(startOffset, endOffset, 2, 1, 'set', spans);
+    if (isVec(value) && value[TAG_HEADER_SYMBOL] === undefined) return void emitBracketSpans(startOffset, endOffset, 1, 1, 'vec', spans);
+    if (isCallStep(value)) {
+      const name = value.get('name').name;
+      spans.push({ start: startOffset, end: startOffset + name.length, kind: classifyCallName(name, verbNames) });
     }
   });
 
@@ -210,7 +158,7 @@ function collectSemanticSpans(src, ast, verbNames) {
 
 // The prose of a doc between `start` and `end`: a comment, but for a
 // span in backticks, a run of them closing at a run of as many, which
-// names code and paints as the code it spells [QSSYN#doc].
+// names code and paints as the code it spells [D367].
 const CODE_SPAN = /(?<!`)(`+)(?!`)([^\n]*?[^`\n])\1(?!`)/g;
 
 function pushProseSpans(src, start, end, verbNames, spans) {
@@ -231,11 +179,8 @@ function classifyCallName(callName, verbNames) {
   return verbNames.has(callName) ? 'word' : 'name';
 }
 
-// Emit opener and closer spans for a literal with known bracket
-// widths (VecLit / SetLit / ErrorLit). Interior children still
-// walk through their own AST cases; the opener/closer fill in the
-// code units of the brackets that would otherwise fall to the gap pass
-// as undifferentiated `punct`.
+// The opener and the closer of a vector, a set and an error literal, which
+// would otherwise fall to the pass over the gaps as `punct`.
 function emitBracketSpans(startOffset, endOffset, openerLen, closerLen, kind, spans) {
   spans.push({ start: startOffset, end: startOffset + openerLen, kind });
   spans.push({ start: endOffset - closerLen, end: endOffset, kind });
@@ -312,7 +257,7 @@ function interleaveGapTokens(src, semanticSpans) {
   return interleavedTokens;
 }
 
-// A gap between the nodes splits into `whitespace` runs and `punct`
+// A gap between the parts splits into `whitespace` runs and `punct`
 // tokens, `!|` one token and every other character of structure one
 // token each, commas, brackets and the `|` combinator among them.
 function pushGapTokens(src, startOffset, endOffset, outputTokens) {

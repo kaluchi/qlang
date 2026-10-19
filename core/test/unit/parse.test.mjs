@@ -1,79 +1,64 @@
+// The parser reads a text into the records of its steps, each a literal or
+// a record its constructor built, and the parts it read beside them [D367].
 // The rules it holds: [QSSYN#step], [QSSYN#line].
 
 import { describe, it, expect } from 'vitest';
 import { parse, ParseError } from '../../src/parse.mjs';
+import { partOf } from '../../src/walk.mjs';
+import { isCallStep, isBindStep, isGroupStep, isFailStep } from '../../src/steps.mjs';
+import { docText } from '../../src/print-value.mjs';
+import { isKeyword, isPath, isSet, isMap, isDoc } from '../../src/types.mjs';
+
+const stepOf = source => parse(source)[0];
+const rootOf = (source, opts) => partOf(parse(source, opts));
 
 describe('parse — the literals of atoms', () => {
   it('parses an integer', () => {
-    const ast = parse('42');
-    expect(ast.type).toBe('NumberLit');
-    expect(ast.value).toBe(42);
+    expect(stepOf('42')).toBe(42);
   });
 
   it('parses a negative integer', () => {
-    const ast = parse('-7');
-    expect(ast.type).toBe('NumberLit');
-    expect(ast.value).toBe(-7);
+    expect(stepOf('-7')).toBe(-7);
   });
 
   it('parses a decimal number', () => {
-    const ast = parse('3.14');
-    expect(ast.type).toBe('NumberLit');
-    expect(ast.value).toBe(3.14);
+    expect(stepOf('3.14')).toBe(3.14);
   });
 
   it('parses a string literal', () => {
-    const ast = parse('"hello"');
-    expect(ast.type).toBe('StringLit');
-    expect(ast.value).toBe('hello');
+    expect(stepOf('"hello"')).toBe('hello');
   });
 
   it('parses an empty string literal', () => {
-    const ast = parse('""');
-    expect(ast.type).toBe('StringLit');
-    expect(ast.value).toBe('');
+    expect(stepOf('""')).toBe('');
   });
 
   it('parses an escaped string', () => {
-    const ast = parse('"line1\\nline2"');
-    expect(ast.type).toBe('StringLit');
-    expect(ast.value).toBe('line1\nline2');
+    expect(stepOf('"line1\\nline2"')).toBe('line1\nline2');
   });
 
   it('parses JSON unicode escape \\uXXXX', () => {
-    const ast = parse('"\\u0041"');
-    expect(ast.type).toBe('StringLit');
-    expect(ast.value).toBe('A');
+    expect(stepOf('"\\u0041"')).toBe('A');
   });
 
   it('parses JSON unicode escape for non-ASCII', () => {
-    const ast = parse('"caf\\u00e9"');
-    expect(ast.type).toBe('StringLit');
-    expect(ast.value).toBe('café');
+    expect(stepOf('"caf\\u00e9"')).toBe('café');
   });
 
   it('parses JSON unicode escape \\u0000 (null byte)', () => {
-    const ast = parse('"a\\u0000b"');
-    expect(ast.type).toBe('StringLit');
-    expect(ast.value).toBe('a\x00b');
+    expect(stepOf('"a\\u0000b"')).toBe('a\x00b');
   });
 
   it('parses \\b (backspace)', () => {
-    const ast = parse('"a\\bb"');
-    expect(ast.type).toBe('StringLit');
-    expect(ast.value).toBe('a\bb');
+    expect(stepOf('"a\\bb"')).toBe('a\bb');
   });
 
   it('parses \\f (form feed)', () => {
-    const ast = parse('"a\\fb"');
-    expect(ast.type).toBe('StringLit');
-    expect(ast.value).toBe('a\fb');
+    expect(stepOf('"a\\fb"')).toBe('a\fb');
   });
 
   it('parses \\/ (solidus)', () => {
-    const ast = parse('"a\\/b"');
-    expect(ast.type).toBe('StringLit');
-    expect(ast.value).toBe('a/b');
+    expect(stepOf('"a\\/b"')).toBe('a/b');
   });
 
   it('rejects invalid hex in \\u escape', () => {
@@ -85,266 +70,219 @@ describe('parse — the literals of atoms', () => {
   });
 
   it('parses true', () => {
-    const ast = parse('true');
-    expect(ast.type).toBe('BooleanLit');
-    expect(ast.value).toBe(true);
+    expect(stepOf('true')).toBe(true);
   });
 
   it('parses false', () => {
-    const ast = parse('false');
-    expect(ast.type).toBe('BooleanLit');
-    expect(ast.value).toBe(false);
+    expect(stepOf('false')).toBe(false);
   });
 
   it('parses null', () => {
-    const ast = parse('null');
-    expect(ast.type).toBe('NullLit');
+    expect(stepOf('null')).toBe(null);
   });
 
   it('parses a keyword', () => {
-    const ast = parse(':name');
-    expect(ast.type).toBe('Keyword');
-    expect(ast.name).toBe('name');
+    const step = stepOf(':name');
+    expect(isKeyword(step)).toBe(true);
+    expect(step.name).toBe('name');
   });
 
   it('parses a keyword with hyphen', () => {
-    const ast = parse(':first-name');
-    expect(ast.type).toBe('Keyword');
-    expect(ast.name).toBe('first-name');
+    expect(stepOf(':first-name').name).toBe('first-name');
   });
 });
 
 describe('parse — Vec literal', () => {
   it('parses an empty Vec', () => {
-    const ast = parse('[]');
-    expect(ast.type).toBe('VecLit');
-    expect(ast.elements).toEqual([]);
+    expect(stepOf('[]')).toEqual([]);
   });
 
   it('parses a Vec of numbers', () => {
-    const ast = parse('[1 2 3]');
-    expect(ast.type).toBe('VecLit');
-    expect(ast.elements.map(e => e.value)).toEqual([1, 2, 3]);
+    expect(stepOf('[1 2 3]')).toEqual([1, 2, 3]);
   });
 
   it('parses a Vec with comma separators', () => {
-    const ast = parse('[1, 2, 3]');
-    expect(ast.elements).toHaveLength(3);
+    expect(stepOf('[1, 2, 3]')).toHaveLength(3);
   });
 
   it('parses a Vec of strings', () => {
-    const ast = parse('["a" "b"]');
-    expect(ast.elements.map(e => e.value)).toEqual(['a', 'b']);
+    expect(stepOf('["a" "b"]')).toEqual(['a', 'b']);
   });
 
   it('parses a nested Vec', () => {
-    const ast = parse('[[:a] [:b]]');
-    expect(ast.type).toBe('VecLit');
-    expect(ast.elements[0].type).toBe('VecLit');
-    expect(ast.elements[1].type).toBe('VecLit');
+    const [first, second] = stepOf('[[:a] [:b]]');
+    expect(first[0].name).toBe('a');
+    expect(second[0].name).toBe('b');
   });
 
   it('parses a nested Vec whose inner vectors hold one element each', () => {
-    const ast = parse('[[1] [2]]');
-    expect(ast.type).toBe('VecLit');
-    expect(ast.elements[0].type).toBe('VecLit');
-    expect(ast.elements[1].type).toBe('VecLit');
+    expect(stepOf('[[1] [2]]')).toEqual([[1], [2]]);
   });
 });
 
 describe('parse — Map literal', () => {
   it('parses an empty Map', () => {
-    const ast = parse('{}');
-    expect(ast.type).toBe('MapLit');
-    expect(ast.entries).toEqual([]);
+    const step = stepOf('{}');
+    expect(isMap(step)).toBe(true);
+    expect(step.size).toBe(0);
   });
 
   it('parses a single-entry Map', () => {
-    const ast = parse('{:name "Alice"}');
-    expect(ast.type).toBe('MapLit');
-    expect(ast.entries).toHaveLength(1);
-    expect(ast.entries[0].key.name).toBe('name');
+    expect([...stepOf('{:name "Alice"}').keys()]).toEqual(['name']);
   });
 
   it('parses a multi-entry Map', () => {
-    const ast = parse('{:name "Alice" :age 30}');
-    expect(ast.entries).toHaveLength(2);
-    expect(ast.entries.map(e => e.key.name)).toEqual(['name', 'age']);
+    expect([...stepOf('{:name "Alice" :age 30}').keys()]).toEqual(['name', 'age']);
   });
 
   it('parses a Map whose value is itself a Map', () => {
-    const ast = parse('{:point {:x 1 :y 2}}');
-    expect(ast.entries[0].value.type).toBe('MapLit');
+    expect(isMap(stepOf('{:point {:x 1 :y 2}}').get('point'))).toBe(true);
   });
 });
 
 describe('parse — Set literal', () => {
   it('parses an empty Set', () => {
-    const ast = parse('#[]');
-    expect(ast.type).toBe('SetLit');
-    expect(ast.elements).toEqual([]);
+    const step = stepOf('#[]');
+    expect(isSet(step)).toBe(true);
+    expect(step).toHaveLength(0);
   });
 
   it('parses a single-element Set', () => {
-    const ast = parse('#[:tag]');
-    expect(ast.elements[0].type).toBe('Keyword');
+    expect(isKeyword(stepOf('#[:tag]')[0])).toBe(true);
   });
 
   it('parses a multi-element Set with commas', () => {
-    const ast = parse('#[:a :b :c]');
-    expect(ast.elements).toHaveLength(3);
+    expect(stepOf('#[:a :b :c]')).toHaveLength(3);
   });
 });
 
 describe('parse — Path', () => {
   it('parses a single key path', () => {
-    const ast = parse('/name');
-    expect(ast.type).toBe('Path');
-    expect(ast.keys).toEqual(['name']);
+    const step = stepOf('/name');
+    expect(isPath(step)).toBe(true);
+    expect(step.segments).toEqual(['name']);
   });
 
   it('parses a nested path', () => {
-    const ast = parse('/team/lead/email');
-    expect(ast.type).toBe('Path');
-    expect(ast.keys).toEqual(['team', 'lead', 'email']);
+    expect(stepOf('/team/lead/email').segments).toEqual(['team', 'lead', 'email']);
   });
 });
 
 describe('parse — Call', () => {
   it('parses a bare identifier', () => {
-    const ast = parse('count');
-    expect(ast.type).toBe('Call');
-    expect(ast.name).toBe('count');
-    expect(ast.args).toEqual([]);
+    const step = stepOf('count');
+    expect(isCallStep(step)).toBe(true);
+    expect(step.get('name').name).toBe('count');
+    expect(step.has('modifiers')).toBe(false);
   });
 
   it('parses a name nothing declares as a call', () => {
-    const ast = parse('callers');
-    expect(ast.type).toBe('Call');
-    expect(ast.name).toBe('callers');
-    expect(ast.args).toEqual([]);
+    expect(stepOf('callers').get('name').name).toBe('callers');
   });
 
   it('parses an identifier with _ prefix', () => {
-    const ast = parse('_private');
-    expect(ast.type).toBe('Call');
-    expect(ast.name).toBe('_private');
-    expect(ast.args).toEqual([]);
+    expect(stepOf('_private').get('name').name).toBe('_private');
   });
 
   it('parses a call of one modifier', () => {
-    const ast = parse('add 2');
-    expect(ast.type).toBe('Call');
-    expect(ast.name).toBe('add');
-    expect(ast.args).toHaveLength(1);
-    expect(ast.args[0].value).toBe(2);
+    const step = stepOf('add 2');
+    expect(step.get('name').name).toBe('add');
+    expect(step.get('modifiers')).toEqual([2]);
   });
 
   it('parses a multi-arg call', () => {
-    const ast = parse('mulOf /price /qty');
-    expect(ast.args).toHaveLength(2);
-    expect(ast.args[0].type).toBe('Path');
-    expect(ast.args[1].type).toBe('Path');
-  });
-
-  it('parses a zero-arg call form', () => {
-    const ast = parse('count');
-    expect(ast.args).toEqual([]);
+    const modifiers = stepOf('mulOf /price /qty').get('modifiers');
+    expect(modifiers).toHaveLength(2);
+    expect(modifiers.every(isPath)).toBe(true);
   });
 });
 
-describe('parse — declarations: BindStep and the declaration of it', () => {
-  it('parses :name it as a BindStep over the word it', () => {
-    const ast = parse(':roster it');
-    expect(ast.type).toBe('BindStep');
-    expect(ast.key.name).toBe('roster');
-    expect(ast.body.type).toBe('Call');
-    expect(ast.body.name).toBe('it');
+describe('parse — declarations', () => {
+  it('parses :name it as a declaration over the word it', () => {
+    const step = stepOf(':roster it');
+    expect(isBindStep(step)).toBe(true);
+    expect(step.get('name').name).toBe('roster');
+    expect(step.get('body').get('name').name).toBe('it');
   });
 
-  it('parses :name body as a BindStep', () => {
-    const ast = parse(':double mul 2');
-    expect(ast.type).toBe('BindStep');
-    expect(ast.key.type).toBe('Keyword');
-    expect(ast.key.name).toBe('double');
-    expect(ast.body.type).toBe('Call');
-    expect(ast.body.name).toBe('mul');
+  it('parses :name body as a declaration', () => {
+    const step = stepOf(':double mul 2');
+    expect(step.get('name').name).toBe('double');
+    expect(step.get('body').get('name').name).toBe('mul');
   });
+});
 
+describe('parse — the body of a definition begun on a later line [QSSYN#line]', () => {
+  it('runs on through a command and a step of the fail track, and ends at a value after `|`', () => {
+    const [definition, value] = parse(':any/f\n  count\n  !| 0\n| [1 2]');
+    const body = definition.get('body');
+    expect(isGroupStep(body)).toBe(true);
+    expect([isCallStep(body.payload[0]), isFailStep(body.payload[1])]).toEqual([true, true]);
+    expect(value).toEqual([1, 2]);
+  });
 });
 
 describe('parse — Pipeline composition', () => {
   it('parses a two-step pipeline', () => {
-    const ast = parse('[1 2 3] | count');
-    expect(ast.type).toBe('Pipeline');
-    expect(ast.steps).toHaveLength(2);
-    expect(ast.steps[0].type).toBe('VecLit');
-    expect(ast.steps[1].combinator).toBe('|');
-    expect(ast.steps[1].step.type).toBe('Call');
+    const quote = parse('[1 2 3] | count');
+    expect(quote).toHaveLength(2);
+    expect(quote[0]).toEqual([1, 2, 3]);
+    expect(isCallStep(quote[1])).toBe(true);
   });
 
   it('parses a declaration of it inside a pipeline', () => {
-    const ast = parse('foo | :snapshot it | bar');
-    expect(ast.steps).toHaveLength(3);
-    expect(ast.steps[1].step.type).toBe('BindStep');
-    expect(ast.steps[1].step.key.name).toBe('snapshot');
+    const quote = parse('foo | :snapshot it | bar');
+    expect(quote).toHaveLength(3);
+    expect(quote[1].get('name').name).toBe('snapshot');
   });
 
-  it('parses :name body as a BindStep inside a pipeline', () => {
-    const ast = parse('items | :total count | total');
-    expect(ast.steps).toHaveLength(3);
-    expect(ast.steps[1].step.type).toBe('BindStep');
-    expect(ast.steps[1].step.key.type).toBe('Keyword');
-    expect(ast.steps[1].step.key.name).toBe('total');
+  it('parses :name body as a declaration inside a pipeline', () => {
+    const quote = parse('items | :total count | total');
+    expect(isBindStep(quote[1])).toBe(true);
+    expect(quote[1].get('name').name).toBe('total');
   });
 });
 
-describe('parse — ParenGroup', () => {
+describe('parse — groups', () => {
   it('parses a parenthesized sub-pipeline', () => {
-    const ast = parse('([1 2] | map ~(add 1))');
-    expect(ast.type).toBe('ParenGroup');
-    expect(ast.pipeline.type).toBe('Pipeline');
+    const step = stepOf('([1 2] | map ~(add 1))');
+    expect(isGroupStep(step)).toBe(true);
+    expect(step.payload).toHaveLength(2);
   });
 
-  it('parses paren group as a step inside an outer pipeline', () => {
-    const ast = parse('xs | (:elem it | get {:k /id :v ~(elem)})');
-    expect(ast.steps).toHaveLength(2);
-    expect(ast.steps[1].step.type).toBe('ParenGroup');
+  it('parses a group as a step inside an outer pipeline', () => {
+    expect(isGroupStep(parse('xs | (:elem it | get {:k /id :v ~(elem)})')[1])).toBe(true);
   });
 });
 
 describe('parse — comments and whitespace', () => {
   it('reads a line comment as whitespace and keeps it on the side', () => {
-    const ast = parse(`|~| this is a comment
-      | [1 2 3] | count`);
-    expect(ast.type).toBe('Pipeline');
-    expect(ast.steps[0].type).toBe('VecLit');
-    expect(ast.comments.map(comment => [comment.type, comment.content]))
+    const source = `|~| this is a comment
+      | [1 2 3] | count`;
+    expect(parse(source)[0]).toEqual([1, 2, 3]);
+    expect(rootOf(source).comments.map(comment => [comment.type, comment.content]))
       .toEqual([['LinePlainComment', ' this is a comment']]);
   });
 
   it('handles multi-line pipelines', () => {
-    const ast = parse(`
+    expect(parse(`
       [1 2 3 4 5]
         | filter ~(gt 2)
         | count
-    `);
-    expect(ast.type).toBe('Pipeline');
-    expect(ast.steps).toHaveLength(3);
+    `)).toHaveLength(3);
   });
 
   it('reads a comment where a word would touch another as no pipe', () => {
-    expect(parse('|~ note ~| count').type).toBe('Call');
-    expect(parse('(|~ note ~| !| 0)').pipeline.leadingCombinator).toBe('!|');
+    expect(isCallStep(stepOf('|~ note ~| count'))).toBe(true);
+    expect(isFailStep(stepOf('(|~ note ~| !| 0)').payload[0])).toBe(true);
     expect(() => parse('[1] |~ note ~| count')).toThrow(ParseError);
-    expect(parse('[1] | |~ note ~| count').steps[1].combinator).toBe('|');
-    expect(parse('|~ note ~| :x |~~| about x\n1').type).toBe('BindStep');
+    expect(isCallStep(parse('[1] | |~ note ~| count')[1])).toBe(true);
+    expect(isBindStep(stepOf('|~ note ~| :x |~~| about x\n1'))).toBe(true);
   });
 
   it('reads a source of comments alone as the empty pipeline', () => {
-    const ast = parse('|~ only a note ~|');
-    expect(ast.type).toBe('Blank');
-    expect(ast.comments).toHaveLength(1);
+    expect(parse('|~ only a note ~|')).toHaveLength(0);
+    expect(rootOf('|~ only a note ~|').comments).toHaveLength(1);
   });
 });
 
@@ -360,7 +298,7 @@ describe('parse — error handling', () => {
   it('refuses a leading combinator and an explicit combinator on the first step after a comment head', () => {
     expect(() => parse('(!| |~| note\n| count)')).toThrow(ParseError);
     expect(() => parse('!| |~ one ~| |~ two ~| | count')).toThrow(ParseError);
-    expect(parse('!| |~ note ~| count').leadingCombinator).toBe('!|');
+    expect(isFailStep(stepOf('!| |~ note ~| count'))).toBe(true);
   });
 
   it('attaches a location to ParseError', () => {
@@ -399,6 +337,133 @@ describe('parse — error handling', () => {
     expect(refusalOf('#"a")').message).toBe('Expected end-of-source, flag of a regex or whitespace but ")" found.');
   });
 
+  it('refuses a rule of a step its constructor holds at the part it names, with the rule\'s message [D367]', () => {
+    const refused = refusalOf('5 | [1 2]');
+    expect(refused.message).toBe('a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`');
+    expect([refused.location.start.offset, refused.location.end.offset]).toEqual([4, 9]);
+    expect(refusalOf('[::Box[x] 1]').message).toContain('write `get [::Box[~(x)] 1]`');
+  });
+
+  it('refuses the name of a declaration at its name and its body at its body [D367]', () => {
+    const spanOf = refused => [refused.location.start.offset, refused.location.end.offset];
+    expect(spanOf(refusalOf(':"a b" 5'))).toEqual([0, 6]);
+    expect(spanOf(refusalOf(':x [y]'))).toEqual([3, 6]);
+  });
+
+  it('refuses a value after the head by the message of its kind [QSSYN#step]', () => {
+    for (const [source, message] of [
+      ['5 | /a', 'a path is a value, which the verb that takes it reads: write `get /a`'],
+      ['5 | ::Box', 'a tag goes over the value in the pipe by `tag`: write `tag ::Box`'],
+      ['5 | ~(x)', 'code runs on the value in the pipe by `apply`: write `apply ~(…)`'],
+      ['5 | ::Box{:a 1}', 'a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`'],
+      ['5 | #[1]', 'a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`'],
+      ['5 | {:a 1}', 'a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`'],
+      ['5 | 6', 'a step is a command: a value stands at the head, where it is the subject, or as what a verb takes']
+    ]) expect(refusalOf(source).message, source).toBe(message);
+  });
+
+  it('refuses a literal step that computes where it is read, before a fault later in its pipeline [D367]', () => {
+    const refused = refusalOf('[x]e');
+    expect(refused.message).toContain('write `get [~(x)]`');
+    expect([refused.location.start.offset, refused.location.end.offset]).toEqual([0, 3]);
+  });
+
+  it('writes the template of a literal that computes, each part that computes as its quote [QSLIT#closed]', () => {
+    expect(refusalOf('[(count) 1]').message).toContain('write `get [~(count) 1]`');
+    expect(refusalOf('[~(count) x]').message).toContain('write `get [~(count) ~(x)]`');
+    expect(refusalOf('{:a x}').message).toContain('write `get {:a ~(x)}`');
+    expect(refusalOf('#[x 1]').message).toContain('write `get #[~(x) 1]`');
+    expect(refusalOf('::Box[(add 1 | mul 2)]').message).toContain('write `get ::Box[~(add 1 | mul 2)]`');
+    expect(refusalOf('::Foo!{:a (count)}').message).toContain('write `get {:a ~(count)} | tag ::Foo | raise`');
+  });
+
+  it('reads a quote of a path alone in a doc as prose [D367]', () => {
+    expect([...stepOf('|~~ see ~(/a) ~~|')]).toEqual([' see ~(/a) ']);
+  });
+
+  it('answers the first rule of the steps of a pipeline in the order written but the rules a step holds itself, a modifier\'s and a group\'s among them, when it is read [D367]', () => {
+    for (const [source, column] of [
+      ['1 | [2] !| /a', 5], ['5 | /b !| /a', 5], ['5 | 6 | count', 5], ['5 !| /a | 6', 6], ['f 1 [x]', 5],
+      ['5 | 6 | f [x]', 11], ['5 | 6 | (7 | 8)', 14], ['5 | 6 | [x]', 9], ['5 | 6 | :true 1', 9]
+    ]) {
+      expect(refusalOf(source).location.start.column, source).toBe(column);
+    }
+  });
+
+  it('refuses a literal whose part computes under a key a later entry writes again, as the text writes it [QSLIT#closed]', () => {
+    for (const source of ['{:a x :a 1}', '!{:k x :k 1}', '{"a": x, "a": 1}', '::Box{:a x :a 1}']) expect(refusalOf(source)?.message, source).toMatch(/computes nothing/);
+    expect(refusalOf('{:a x :a 1}').message).toContain('write `get {:a ~(x) :a 1}`');
+    expect([...stepOf('|~~ a ~({:a x :a 1}) b ~~|')]).toEqual([' a ~({:a x :a 1}) b ']);
+  });
+
+  it('reads a tag written before an error literal of the kind of errors as the tag of its error [QSERR#rest]', async () => {
+    const { evalQuery } = await import('../../src/session.mjs');
+    expect(await evalQuery('["::E::error!{:k 1}" "::error::error!{}" "::A::B::error!{}"] | map ~parse | eq [~(::E!{:k 1}) ~(!{}) ~(::A::B!{})]')).toBe(true);
+    expect(isBindStep(stepOf(':Late |~~ A late error. ~~|\n  ::Late!{:by 3}'))).toBe(true);
+  });
+
+  it('refuses two texts that write one error literal by one message at one place, as the one step they are [D367]', () => {
+    const [written, short] = [refusalOf('1 | ::number::error!{:k 1}'), refusalOf('1 | ::number!{:k 1}')];
+    expect(written.message).toBe(short.message);
+    expect(written.location.start).toEqual(short.location.start);
+  });
+
+  it('reads the quote of a doc under the tag of a group or of the fail track as a segment that computes nothing, in a literal and as a modifier [D367]', () => {
+    expect(isGroupStep(stepOf('|~~ see ::group~(add 1) ~~|')[1])).toBe(true);
+    for (const source of ['[|~~ ::group~(add 1) ~~|]', 'f |~~ ::fail~(x) ~~|', '{:k |~~ ::group~(x) ~~|}', '::Box[|~~ ::group~(x) ~~|]', '!{:k |~~ ::group~(x) ~~|}', '|~~ ~([|~~ ::group~(x) ~~|]) ~~|']) {
+      expect(refusalOf(source), source).toBeNull();
+    }
+  });
+
+  it('reads a number written with a leading zero in the quote of a doc as prose, and refuses it outside one [D367]', () => {
+    for (const source of ['|~~ a ~(f 01) ~~|', '|~~ a ~(f [x] 01) ~~|', '|~~| a ~(-01.5e3) b', '|~~ ::link~(00) ~~|']) expect(stepOf(source), source).toHaveLength(1);
+    expect(refusalOf('f 01').message).toBe('a number is written without a leading zero: write `1`');
+  });
+
+  it('reads a `~(` of a line doc that reads as no code to the `)` that pairs it on its line, as prose [D367]', () => {
+    expect([...stepOf('|~~|~(0 | ~())')]).toEqual(['~(0 | ~())']);
+    expect(refusalOf('[|~~| ~(a,\n 1) 2\n]')).toBeInstanceOf(ParseError);
+  });
+
+  it('reads a `~(` of a block doc that reads as no code to the `)` that pairs it across its lines after a line doc whose `~(` pairs none on its line [D367]', () => {
+    expect(stepOf('[|~~| a ~(b\n |~~ ~(a,\n ~(add 1)) ~~|]').map(doc => [...doc])).toEqual([[' a ~(b'], [' ~(a,\n ~(add 1)) ']]);
+  });
+
+  it('reads the span of a `~(` of a line doc no further than its line, through a doc or a comment nested in it [D367]', () => {
+    for (const nested of ['|~~ b\n 1 2 ~~|', '|~ b\n 1 2 ~|']) expect(refusalOf(`[|~~| a ~(f ${nested}) c\n]`)?.location.start.line, nested).toBe(2);
+  });
+
+  it('reads a `~(` of a line doc after a span of its line read as prose as it reads it with no span before it [D367]', () => {
+    for (const quote of ['~(f |~~ ~(( ~~|) d', '~(f |~ ~(( ~|) d']) {
+      expect([...stepOf(`(|~~| ~(a,) ${quote}\n)`).payload[0]], quote).toEqual([` ~(a,) ${quote}`]);
+      expect([...stepOf(`(|~~| ${quote}\n)`).payload[0]], quote).toEqual([` ${quote}`]);
+    }
+  });
+
+  it('refuses a text after a line doc whose `~(` reads as no code where its reading stopped, the span naming no continuation of its own [D367]', () => {
+    const refused = refusalOf('[|~~| x ~(a\n 1 2 , 3]');
+    expect([refused.location.start.offset, refused.found]).toEqual([17, ',']);
+    expect([...new Set(refusalOf('[|~~| x ~(a').expected.map(alternative => alternative.text ?? alternative.description))])
+      .toEqual(['letters of a name', '/', 'whitespace', ')', 'character of prose', '::', '~(', '`', ',', ']']);
+  });
+
+  it('fails the try of the quote of a doc on a rule of a step and on a refusal the grammar does not pass over there, a refusal it passes over letting the quote read as code [D367]', () => {
+    for (const text of [
+      '| | f', '|f', '::Box f', '::Box |~~ d ~~|', 'f |~ c', 'f | ', 'f | !| | g', 'f | | g', 'f| g', 'f |g', 'f(a)(b)', 'f a, b', '5 f', '5\nf',
+      '5 |~~ d ~~|', '/ne ""', '::T(1)', '::T([1])', '::T(add 1)', '(f a, b)', '~(/a)', '~(f a, b)', '~/a', '~[1]',
+      '{:a 1 "b": 2}', '{"a": 1, :b 2}', '{:k f x}', '#"("', '#{1}', '[1[2]]', 'get /a?', 'get /', 'f 01', 'f [x]', ':x [y]', ':true 1', '5 | 6', '[x]',
+      'f !| /a', 'f\n:x [y]', '::Box[x]', '!{:k x}', '::E!{:k x}'
+    ]) {
+      expect(refusalOf(text), text).toBeInstanceOf(ParseError);
+      expect([...stepOf(`|~~ a ~(${text}) b ~~|`)], text).toEqual([` a ~(${text}) b `]);
+      if (!text.includes('\n')) expect([...stepOf(`|~~| a ~(${text}) b`)], text).toEqual([` a ~(${text}) b`]);
+    }
+    for (const text of ['/ne :x 1', '::Box :x 1', '|~~ note ~~| :x 1', ':true :x 1']) {
+      expect(refusalOf(text), text).toBeInstanceOf(ParseError);
+      expect(stepOf(`|~~ a ~(${text}) b ~~|`), text).toHaveLength(3);
+    }
+  });
+
   it('attaches the opts.uri to ParseError', () => {
     try {
       parse('[1 2', { uri: 'cell-7' });
@@ -410,124 +475,105 @@ describe('parse — error handling', () => {
   });
 });
 
-describe('parse — source-mapping metadata on AST root', () => {
+describe('parse — a `~(` of a doc that reads as prose [D367]', () => {
+  it('reads as code a quote that takes a value after a declaration or after `!|`', () => {
+    for (const quote of ['~(:x 1 | 5)', '~(f !| 0)']) expect(stepOf(`|~~ a ${quote} b ~~|`), quote).toHaveLength(3);
+  });
+});
+
+describe('parse — the source and its name on the root of the parts', () => {
   it('records source and uri on the root', () => {
-    const ast = parse('42', { uri: 'test.qlang' });
-    expect(ast.source).toBe('42');
-    expect(ast.uri).toBe('test.qlang');
+    const root = rootOf('42', { uri: 'test.qlang' });
+    expect(root.source).toBe('42');
+    expect(root.uri).toBe('test.qlang');
   });
 
   it('defaults uri to "inline" when opts not given', () => {
-    const ast = parse('42');
-    expect(ast.uri).toBe('inline');
+    expect(rootOf('42').uri).toBe('inline');
   });
 });
 
 describe('parse — quoted keyword and path segments', () => {
-  it('parses :"name" as a Keyword whose name equals "name"', () => {
-    const ast = parse(':"name"');
-    expect(ast.type).toBe('Keyword');
-    expect(ast.name).toBe('name');
+  it('parses :"name" as a keyword whose name equals "name"', () => {
+    expect(stepOf(':"name"').name).toBe('name');
   });
 
   it('parses :"foo bar" with embedded space', () => {
-    const ast = parse(':"foo bar"');
-    expect(ast.name).toBe('foo bar');
+    expect(stepOf(':"foo bar"').name).toBe('foo bar');
   });
 
   it('parses :"" as the empty-string keyword', () => {
-    const ast = parse(':""');
-    expect(ast.name).toBe('');
+    expect(stepOf(':""').name).toBe('');
   });
 
   it('parses :"123" with leading digit', () => {
-    const ast = parse(':"123"');
-    expect(ast.name).toBe('123');
+    expect(stepOf(':"123"').name).toBe('123');
   });
 
   it('parses :"$ref", a keyword of a name in quotes', () => {
-    const ast = parse(':"$ref"');
-    expect(ast.name).toBe('$ref');
+    expect(stepOf(':"$ref"').name).toBe('$ref');
   });
 
   it('parses :"with\\nnewline" honoring escape sequences', () => {
-    const ast = parse(':"with\\nnewline"');
-    expect(ast.name).toBe('with\nnewline');
+    expect(stepOf(':"with\\nnewline"').name).toBe('with\nnewline');
   });
 
-  it('produces the same AST .name for :name and :"name"', () => {
-    expect(parse(':name').name).toBe(parse(':"name"').name);
+  it('reads :name and :"name" as one name', () => {
+    expect(stepOf(':name').name).toBe(stepOf(':"name"').name);
   });
 
   it('parses /"foo bar" as a single-key path', () => {
-    const ast = parse('/"foo bar"');
-    expect(ast.type).toBe('Path');
-    expect(ast.keys).toEqual(['foo bar']);
+    expect(stepOf('/"foo bar"').segments).toEqual(['foo bar']);
   });
 
   it('parses /"a.b"/"$ref"/"123" as a multi-segment path', () => {
-    const ast = parse('/"a.b"/"$ref"/"123"');
-    expect(ast.type).toBe('Path');
-    expect(ast.keys).toEqual(['a.b', '$ref', '123']);
+    expect(stepOf('/"a.b"/"$ref"/"123"').segments).toEqual(['a.b', '$ref', '123']);
   });
 
   it('parses a mixed path /name/"weird key"/age', () => {
-    const ast = parse('/name/"weird key"/age');
-    expect(ast.keys).toEqual(['name', 'weird key', 'age']);
+    expect(stepOf('/name/"weird key"/age').segments).toEqual(['name', 'weird key', 'age']);
   });
 
   it('parses a Map literal with quoted keys', () => {
-    const ast = parse('{:"key one" 1 :"123" 2}');
-    expect(ast.type).toBe('MapLit');
-    expect(ast.entries.map(e => e.key.name)).toEqual(['key one', '123']);
+    expect([...stepOf('{:"key one" 1 :"123" 2}').keys()]).toEqual(['key one', '123']);
   });
 });
 
-describe('parse — per-node location and text', () => {
-  it('every produced node carries .location with start/end offsets', () => {
-    const ast = parse('add 2 3');
-    expect(ast.location.start.offset).toBe(0);
-    expect(ast.location.end.offset).toBe(7);
-    expect(ast.args[0].location.start.offset).toBe(4);
-    expect(ast.args[0].location.end.offset).toBe(5);
+describe('parse — the span of each part', () => {
+  it('keeps the span of every step and modifier it read', () => {
+    const [call] = rootOf('add 2 3').parts;
+    expect([call.span.start.offset, call.span.end.offset]).toEqual([0, 7]);
+    expect([call.parts[0].span.start.offset, call.parts[0].span.end.offset]).toEqual([4, 5]);
   });
 
-  it('every produced node carries .text with the matched substring', () => {
-    const ast = parse('add 2 3');
-    expect(ast.text).toBe('add 2 3');
-    expect(ast.args[0].text).toBe('2');
-    expect(ast.args[1].text).toBe('3');
-  });
-
-  it('text matches source.substring(location.start.offset, location.end.offset)', () => {
+  it('spans the text each part read', () => {
     const source = '[1 2] | filter ~(gt 0)';
-    const ast = parse(source);
-    expect(source.substring(ast.location.start.offset, ast.location.end.offset))
-      .toBe(ast.text);
+    const root = rootOf(source);
+    expect(source.substring(root.span.start.offset, root.span.end.offset)).toBe(source);
+    expect(root.parts[1].parts.map(modifier => source.slice(modifier.span.start.offset, modifier.span.end.offset))).toEqual(['~(gt 0)']);
+  });
+
+  it('keeps a part for each key and value of a map, as they are written', () => {
+    const source = '{:a 1 :a 2}';
+    expect(rootOf(source).parts[0].parts.map(read => source.slice(read.span.start.offset, read.span.end.offset))).toEqual([':a', '1', ':a', '2']);
   });
 });
 
 describe('parse — path with digit-led / hyphen-led bare segments', () => {
   it('parses `/0` as a single-segment path with key "0"', () => {
-    const ast = parse('/0');
-    expect(ast.type).toBe('Path');
-    expect(ast.keys).toEqual(['0']);
+    expect(stepOf('/0').segments).toEqual(['0']);
   });
 
   it('parses `/-1` as a single-segment path with key "-1"', () => {
-    const ast = parse('/-1');
-    expect(ast.type).toBe('Path');
-    expect(ast.keys).toEqual(['-1']);
+    expect(stepOf('/-1').segments).toEqual(['-1']);
   });
 
   it('parses `/items/0/name` as a three-segment mixed path', () => {
-    const ast = parse('/items/0/name');
-    expect(ast.keys).toEqual(['items', '0', 'name']);
+    expect(stepOf('/items/0/name').segments).toEqual(['items', '0', 'name']);
   });
 
   it('parses `/rows/-1/0` as a three-segment mixed path with negative index', () => {
-    const ast = parse('/rows/-1/0');
-    expect(ast.keys).toEqual(['rows', '-1', '0']);
+    expect(stepOf('/rows/-1/0').segments).toEqual(['rows', '-1', '0']);
   });
 
   it('bare digit-led segments only appear inside paths, not as keyword literals', () => {
@@ -538,25 +584,19 @@ describe('parse — path with digit-led / hyphen-led bare segments', () => {
   });
 });
 
-describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
+describe('parse — a map literal takes whitespace around the colon of a string key', () => {
   it('accepts whitespace between string key and colon (strict-JSON compat)', () => {
-    const ast = parse('{ "name" : "alice" }');
-    expect(ast.type).toBe('MapLit');
-    expect(ast.entries).toHaveLength(1);
-    expect(ast.entries[0].key.name).toBe('name');
-    expect(ast.entries[0].value.value).toBe('alice');
+    const step = stepOf('{ "name" : "alice" }');
+    expect([...step.keys()]).toEqual(['name']);
+    expect(step.get('name')).toBe('alice');
   });
 
   it('accepts whitespace around colon with digit-led string key', () => {
-    const ast = parse('{ "0" : [0, 1] }');
-    expect(ast.entries[0].key.name).toBe('0');
-    expect(ast.entries[0].value.type).toBe('VecLit');
+    expect(stepOf('{ "0" : [0, 1] }').get('0')).toEqual([0, 1]);
   });
 
   it('accepts newline between string key and colon', () => {
-    const ast = parse('{"name"\n:\n"alice"}');
-    expect(ast.entries[0].key.name).toBe('name');
-    expect(ast.entries[0].value.value).toBe('alice');
+    expect(stepOf('{"name"\n:\n"alice"}').get('name')).toBe('alice');
   });
 
   it('keyword-form still requires at least one whitespace between key and value', () => {
@@ -569,57 +609,39 @@ describe('parse — MapLit whitespace tolerance around string-key `:`', () => {
 
 describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () => {
   it('parses a Cyrillic bare keyword', () => {
-    const ast = parse(':имя');
-    expect(ast.type).toBe('Keyword');
-    expect(ast.name).toBe('имя');
+    expect(stepOf(':имя').name).toBe('имя');
   });
 
   it('parses a CJK bare keyword', () => {
-    const ast = parse(':元素');
-    expect(ast.type).toBe('Keyword');
-    expect(ast.name).toBe('元素');
+    expect(stepOf(':元素').name).toBe('元素');
   });
 
   it('parses a Greek bare keyword', () => {
-    const ast = parse(':αβγ');
-    expect(ast.type).toBe('Keyword');
-    expect(ast.name).toBe('αβγ');
+    expect(stepOf(':αβγ').name).toBe('αβγ');
   });
 
   it('parses a Cyrillic path segment', () => {
-    const ast = parse('/имя');
-    expect(ast.type).toBe('Path');
-    expect(ast.keys).toEqual(['имя']);
+    expect(stepOf('/имя').segments).toEqual(['имя']);
   });
 
   it('parses a multi-segment Cyrillic path', () => {
-    const ast = parse('/пользователь/имя');
-    expect(ast.type).toBe('Path');
-    expect(ast.keys).toEqual(['пользователь', 'имя']);
+    expect(stepOf('/пользователь/имя').segments).toEqual(['пользователь', 'имя']);
   });
 
   it('parses a mixed Cyrillic + ASCII path', () => {
-    const ast = parse('/user/имя');
-    expect(ast.type).toBe('Path');
-    expect(ast.keys).toEqual(['user', 'имя']);
+    expect(stepOf('/user/имя').segments).toEqual(['user', 'имя']);
   });
 
   it('accepts digits and hyphens in Unicode identifiers (ID_Continue)', () => {
-    const ast = parse(':пользователь-42');
-    expect(ast.type).toBe('Keyword');
-    expect(ast.name).toBe('пользователь-42');
+    expect(stepOf(':пользователь-42').name).toBe('пользователь-42');
   });
 
   it('parses the Cyrillic name of a call', () => {
-    const ast = parse('посчитать(1)');
-    expect(ast.type).toBe('Call');
-    expect(ast.name).toBe('посчитать');
+    expect(stepOf('посчитать(1)').get('name').name).toBe('посчитать');
   });
 
   it('parses a keyword of Cyrillic names joined by a slash', () => {
-    const ast = parse(':проект/пользователь');
-    expect(ast.type).toBe('Keyword');
-    expect(ast.name).toBe('проект/пользователь');
+    expect(stepOf(':проект/пользователь').name).toBe('проект/пользователь');
   });
 
   it('rejects a digit as the start of a name', () => {
@@ -633,8 +655,8 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
   });
 
   it('accepts digits and hyphens mid-identifier (ID_Continue)', () => {
-    expect(parse(':имя42').name).toBe('имя42');
-    expect(parse(':item-01').name).toBe('item-01');
+    expect(stepOf(':имя42').name).toBe('имя42');
+    expect(stepOf(':item-01').name).toBe('item-01');
   });
 
   it('supplementary-plane characters (emoji) fall through to the quoted form', () => {
@@ -642,15 +664,39 @@ describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () =>
     // UTF-16 code unit, so 🙂 (2 code units) does not satisfy IdentStart.
     expect(() => parse(':🙂')).toThrow(ParseError);
     // The quoted form accepts it verbatim.
-    const ast = parse(':"🙂"');
-    expect(ast.type).toBe('Keyword');
-    expect(ast.name).toBe('🙂');
+    expect(stepOf(':"🙂"').name).toBe('🙂');
   });
 });
 
 describe('parse.mjs — input guards and the location of a ParseError', () => {
-  it('rethrows non-PeggySyntaxError as-is', () => {
+  it('refuses undefined as a source, which is no string', () => {
     expect(() => parse(undefined)).toThrow(/string source/);
+  });
+
+  const thrownBy = source => { try { parse(source); } catch (e) { return e; } return null; };
+  const nestOf = (depth, missing = 0) => '['.repeat(depth) + ']'.repeat(depth - missing);
+
+  it('passes a throw of the parser or of a constructor of a step that is no refusal of the text as it is, the overflow of the stack of a deep nest among it [D367]', () => {
+    expect(thrownBy(nestOf(20000))).toBeInstanceOf(RangeError);
+    for (let depth = 1000; depth < 4000; depth += 50) expect(thrownBy(nestOf(depth)), String(depth)).not.toBeInstanceOf(TypeError);
+  });
+
+  it('passes a throw of the parser that is no refusal of the text as it is in the completion of a source cut short, a nest of a thousand to four thousand brackets among it [D367]', () => {
+    for (let depth = 1000; depth <= 4000; depth += 25) expect(thrownBy(nestOf(depth, 1)), String(depth)).not.toBeInstanceOf(TypeError);
+  }, 30000);
+
+  it('passes a throw of the parser that is no refusal of the text as it is in the completion of a source cut short at the depth where the parser overflows [D367]', () => {
+    let [read, overflown] = [1000, 20000];
+    while (overflown - read > 1) {
+      const depth = (read + overflown) >> 1;
+      if (thrownBy(nestOf(depth)) === null) read = depth;
+      else overflown = depth;
+    }
+    for (let depth = read - 8; depth <= read + 8; depth++) expect(thrownBy(nestOf(depth, 1)), String(depth)).not.toBeInstanceOf(TypeError);
+  });
+
+  it('reads a nest of literals as deep as the parser itself reads, the parts of a literal walked by a stack of their own [D367]', () => {
+    for (const depth of [2300, 2500]) expect(parse(nestOf(depth)), String(depth)).toHaveLength(1);
   });
 
   it('exposes ParseError with location', () => {
@@ -723,7 +769,7 @@ describe('parse — the docs in the slot of a declaration, one doc each, and a c
 // terminates the body; (4) every unbalanced/malformed nesting raises
 // ParseError with a usable location.
 describe('parse — block comment nesting', () => {
-  const blockStep = (src) => parse(src).comments[0];
+  const blockStep = (src) => rootOf(src).comments[0];
 
   describe('positive — content captured verbatim', () => {
     it('plain block nests plain block pair', () => {
@@ -780,8 +826,7 @@ describe('parse — block comment nesting', () => {
     });
 
     it('plain block empty body', () => {
-      const step = parse('|~~|\n| count').steps[0];
-      expect(step.type).toBe('DocLit');
+      expect(isDoc(stepOf('|~~|\n| count'))).toBe(true);
     });
 
     it('plain block with empty nested pair', () => {
@@ -837,7 +882,7 @@ describe('parse — block comment nesting', () => {
       expect(docs).toEqual([' pair holds |~~| line-doc marker inline ']);
     });
 
-    it('doc-attached block on BindStep keeps nested doc-pair verbatim', async () => {
+    it('doc-attached block on a declaration keeps nested doc-pair verbatim', async () => {
       const { evalQuery } = await import('../../src/session.mjs');
       const docs = await evalQuery(
         ':foo |~~ outer |~~ inner ~~| more ~~|\n42\n| env | get /foo | get /docs | map ~content'
@@ -845,7 +890,7 @@ describe('parse — block comment nesting', () => {
       expect(docs).toEqual([' outer |~~ inner ~~| more ']);
     });
 
-    it('standalone DocLit captures nested doc-pair', async () => {
+    it('standalone doc captures nested doc-pair', async () => {
       const { evalQuery } = await import('../../src/session.mjs');
       const content = await evalQuery(
         '|~~ mentions |~~ inner pair ~~| inside ~~| | content'
@@ -948,12 +993,10 @@ describe('parse — block comment nesting', () => {
     ];
 
     it.each(cases)('reproduces .content from source slice — %s', (src) => {
-      const ast = parse(src + '\n| count');
-      const step = src.startsWith('|~~') ? ast.steps[0] : ast.comments[0];
+      const content = src.startsWith('|~~') ? docText(stepOf(src + '\n| count')) : blockStep(src + '\n| count').content;
       const opener = src.startsWith('|~~') ? '|~~' : '|~';
       const closer = src.startsWith('|~~') ? '~~|' : '~|';
-      const expected = src.slice(opener.length, src.length - closer.length);
-      expect(step.content).toBe(expected);
+      expect(content).toBe(src.slice(opener.length, src.length - closer.length));
     });
   });
 });

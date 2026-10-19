@@ -21,9 +21,10 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { evalQuery } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
-import { walkAst } from '../../src/walk.mjs';
+import { partOf, walkParts } from '../../src/walk.mjs';
+import { isCallStep } from '../../src/steps.mjs';
 import { deepEqual } from '../../src/equality.mjs';
-import { isErrorValue, isTag } from '../../src/types.mjs';
+import { isErrorValue, isQuote, isTag } from '../../src/types.mjs';
 import { expectedValueOf, raisedLiteralOf } from '../helpers/expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -33,17 +34,16 @@ const files = readdirSync(conformanceDir, { recursive: true })
   .map(f => f.split(/[\\/]/).join('/'))
   .sort();
 
-// assertLiteralAst refuses an expectation that holds a call outside a
-// quote, a failure's print, `!{…} | raise`, read by the literal it raises;
-// a path is a value [QSPTH#value], and a quote literal is a literal
-// whatever steps it holds.
-function assertLiteralAst(parsed, testName) {
-  const ast = raisedLiteralOf(parsed) ?? parsed;
-  walkAst(ast, (node) => {
-    if (node.type === 'QuoteLit') return false;
-    if (node.type === 'Call') {
+// assertLiteral refuses an expectation that holds a call outside a quote,
+// a failure's print, `!{…} | raise`, read by the literal it raises; a path
+// is a value [QSPTH#value], and a quote literal is a literal whatever steps
+// it holds.
+function assertLiteral(quote, testName) {
+  walkParts(raisedLiteralOf(quote) ?? partOf(quote), ({ value, content }) => {
+    if (isQuote(value) && content !== undefined) return false;
+    if (isCallStep(value)) {
       throw new Error(
-        `expect in "${testName}" contains Call "${node.name}" — ` +
+        `expect in "${testName}" contains the call of "${value.get('name').name}" — ` +
         `expected values must be pure literals, not computations`
       );
     }
@@ -116,8 +116,7 @@ for (const { file, cases } of casesByFile) {
   describe(`conformance: ${file}`, () => {
     for (const test of cases) {
       it(test.target === true ? `target: ${test.name}` : test.name, async () => {
-        const expectedAst = parse(test.expect);
-        assertLiteralAst(expectedAst, test.name);
+        assertLiteral(parse(test.expect), test.name);
 
         const queryResult = await evalQuery(test.query);
         const expectedValue = await expectedValueOf(test.expect);
@@ -126,7 +125,7 @@ for (const { file, cases } of casesByFile) {
           expect(test.decision, `${test.name}: a target names the decision that left it`).toBeDefined();
           expect(answersAsExpected, `${test.name}: the tree meets this target of ${test.decision}; drop its "target" mark`).toBe(false);
           expect(test.now, `${test.name}: a target records the answer the tree gives today as "now"`).toBeDefined();
-          assertLiteralAst(parse(test.now), test.name);
+          assertLiteral(parse(test.now), test.name);
           expect(await answersAsPresent(queryResult, test.now),
             `${test.name}: the target answers neither its goal nor its present "now"; tell whether a repair moved it or the case broke, then rewrite "now" or the case`).toBe(true);
         } else {

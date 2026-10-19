@@ -9,7 +9,7 @@ import { tokenize } from '../../src/highlight.mjs';
 
 describe('the package root', () => {
   it('parses a source and evaluates a query', async () => {
-    expect(core.parse('42').type).toBe('NumberLit');
+    expect([...core.parse('42')]).toEqual([42]);
     expect(await core.evalQuery('[1 2 3] | count')).toBe(3);
   });
 
@@ -36,14 +36,14 @@ describe('the package root', () => {
     expect(core.toPlain(lifted)).toEqual({ name: 'alice' });
   });
 
-  it('hands the tools the tree and the letters of a name', () => {
-    const ast = core.parse(':x 1 | x');
-    expect(core.findNameOccurrences(ast, 'x').length).toBeGreaterThan(0);
+  it('hands the tools the parts of a text and the letters of a name', () => {
+    const root = core.partOf(core.parse(':x 1 | x'));
+    expect(core.findNameOccurrences(root, 'x').length).toBeGreaterThan(0);
     expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
   });
 
   it('exports no symbol of the runtime a consumer does not read', () => {
-    for (const internal of ['evalAst', 'astChildrenOf', 'QlangError', 'makeTagged', 'formOf', 'EVAL_DEPTH_LIMIT']) {
+    for (const internal of ['evalPipeline', 'keepParts', 'repeatsDeclarationAt', 'QlangError', 'makeTagged', 'formOf', 'EVAL_DEPTH_LIMIT']) {
       expect(core[internal], internal).toBeUndefined();
     }
   });

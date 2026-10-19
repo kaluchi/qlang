@@ -20,27 +20,47 @@
   ::kind
     | wraps
         |~~ The record of a declaration, `:name`, `:docs` and `:body`,
-            built into its step, which reads back as itself.
+            built into its step.
+        ~~|
+    | throws :PayloadKindNotTakenError
+        |~~ `::bind` builds the step of a declaration from its record, a
+            map; a payload of another kind is refused.
+            ::link~(::bind | doc)
         ~~|
     | throws :PayloadNotSchemaError
         |~~ A `::bind` is a map of `:name`, a keyword, `:docs`, a vector
-            of docs, and `:body`, a step, and `:field` names the field
-            that does not fit: a tag is no name a declaration binds, and
-            the body is the step a quote holds, so the declaration
+            of a doc at least, and `:body`, a step, and `:field` names the
+            field that does not fit: a tag is no name a declaration binds,
+            a declaration binds a body or a page, and a doc is no body,
+            which reads as the page, a doc bound as the value the body of a
+            group; the body is the step a quote holds, so the declaration
             `:inc add 1` is
             `get {:name :inc :body ~(~(add 1) | first)} | tag ::bind`.
             ::link~(::bind | doc)
         ~~|
-    | throws :ReadBackDiffersError
-        |~~ The `::bind` prints as text that reads back as another step,
-            and `:printed` is that text: a declaration with neither a body
-            nor a page prints as the bare keyword, which reads back as the
-            keyword, and a body that is a doc prints where a page of the
-            declaration stands, and reads back as its page. A declaration
-            binds a body or a page, and a doc bound as the value is the
-            body of a group.
-            ::link~(::bind | doc)
+    | throws :NameNotCallableError
+        |~~ A declaration names what a step calls, names joined by `/`,
+            each a letter or `_` and the letters, digits, `_` and `-` after
+            it, and no word of a literal, which a step reads as the value,
+            but for a label: `:"a b"` names nothing a step calls. `:name`
+            holds the name, and `:message` what the rule says of it.
+            ::link~(::bind | doc) ::link~(::qlang/names | doc)
         ~~|
+    | carries :NameNotCallableError/message
+        |~~ What the rule of a name says of the name. ~~|
+        ::string
+    | throws :LiteralComputesError
+        |~~ A body that is a literal computes nothing: a name or a group
+            inside it is refused, and `:message` writes the template `get`
+            builds the shape from, its parts computed written as quotes,
+            `:x (get [~(y)])`.
+            ::link~(::bind | doc) ::link~(::any/get | doc)
+        ~~|
+    | carries :LiteralComputesError/message
+        |~~ What the rule says of the literal, the template `get` builds it
+            from.
+        ~~|
+        ::string
     | throws :NounNotDeclaredError
         |~~ A name with a path is declared under the noun its path names
             before its last name, and that noun is declared before it, so
@@ -118,18 +138,31 @@
         |~~ A keyword and the step a quote holds build the declaration. ~~|
         ~(get {:name :inc :body ~(~(add 1) | first)} | tag ::bind
           | get [~(it)] | tag ::quote | eq ~(:inc add 1))
-    | proves :ReadBackDiffersError/refusesABindOfNothing
-        |~~ A bind with neither a body nor docs prints as a bare name,
-            which reads back as another step.
+    | proves :PayloadNotSchemaError/refusesABindOfNothing
+        |~~ A bind with neither a body nor docs is refused under the body.
         ~~|
-        ~(::bind{:name :inc} !| get [~(type) /printed] | eq [::bind/ReadBackDiffersError ":inc"])
-    | proves :ReadBackDiffersError/refusesABodyThatIsADoc
-        |~~ A doc as the body reads back as the page of the declaration. ~~|
+        ~(::bind{:name :inc} !| get [~(type) /field] | eq [::bind/PayloadNotSchemaError :body])
+    | proves :PayloadNotSchemaError/refusesABodyThatIsADoc
+        |~~ A doc as the body is refused; it reads as the page of the
+            declaration.
+        ~~|
         ~(get {:name :k :body ~(~(|~~ x ~~|) | first)} | tag ::bind
-          !| type | eq ::bind/ReadBackDiffersError)
-    | proves :ReadBackDiffersError/bindsADocInAGroup
+          !| get [~(type) /field] | eq [::bind/PayloadNotSchemaError :body])
+    | proves :PayloadNotSchemaError/bindsADocInAGroup
         |~~ A doc in a group is the value a declaration binds. ~~|
         ~(:k (|~~ x ~~|) | k | content | eq " x ")
+    | proves :PayloadKindNotTakenError/refusesAVector
+        |~~ A vector is no record of a declaration. ~~|
+        ~(::bind[1] !| get [~(type) /expected] | eq [::bind/PayloadKindNotTakenError #[::map]])
+    | proves :NameNotCallableError/refusesANameOfTwoWords
+        |~~ A name with a space is no name a step calls. ~~|
+        ~({:name :"a b" :body 1} | tag ::bind !| get [~(type) /name] | eq [::bind/NameNotCallableError :"a b"])
+    | proves :NameNotCallableError/refusesTheWordOfALiteral
+        |~~ The word of a literal declares no value. ~~|
+        ~({:name :true :body 1} | tag ::bind !| type | eq ::bind/NameNotCallableError)
+    | proves :LiteralComputesError/refusesANameInsideTheBody
+        |~~ A body that is a vector of a name computes, and is refused. ~~|
+        ~({:name :x :body [::call{:name :y}]} | tag ::bind !| type | eq ::bind/LiteralComputesError)
     | proves :NounNotDeclaredError/refusesANameUnderNoNoun
         |~~ A name under a noun no declaration made is refused, naming the
             noun.

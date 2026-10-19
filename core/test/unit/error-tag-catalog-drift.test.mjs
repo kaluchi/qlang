@@ -2,7 +2,7 @@
 // itself in two planes: in the JavaScript, where its site declares it by its
 // address, and in the tree of names, where a source of the language pages it
 // under the noun of the place it guards, with the prose, the facts and the
-// laws a reader reaches through `doc` [QSNAM#address], [QSERR#site]. Nothing
+// laws a reader reaches through `doc` [QSNAM#address], [D367]. Nothing
 // in the language forces the two to exist in pairs, so a renamed address or a
 // fresh site without a page drifts silently, and surfaces to a reader as `!|
 // type | doc` answering a refusal of its own.
@@ -12,7 +12,7 @@ import { createSession } from '../../src/session.mjs';
 import { declaredRefusals } from '../../src/errors.mjs';
 import { declaresALabel, isVerb, nodeOf, ruleRefusalsOf } from '../../src/nouns.mjs';
 import { splitAddress } from '../../src/address.mjs';
-import { ROOT_KEY } from '../../src/env-keys.mjs';
+import { ROOT_KEY } from '../../src/scope-keys.mjs';
 import { bindingValueOf, isDoc, isKind } from '../../src/types.mjs';
 
 const session = await createSession();

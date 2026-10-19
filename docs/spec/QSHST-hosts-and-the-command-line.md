@@ -350,7 +350,11 @@ noun it names, whose verbs serve it only where their `on` names `::tag`
 [QSDSP#tagname]; where it knows no kind, it offers every name. A fold ends
 on the line where the last part of its node ends, a doc's where its text
 ends, and the server names a declaration by its role, a verb, a value a
-reader named or a label. The site is built by Astro; its
+reader named or a label, read from the form its source writes, a body
+that opens with `::kind` a label and a body that runs on the values of its
+label a verb, and no document run to name them, so a kind built elsewhere
+and bound by name is a kind to the runtime and a value to the tools. The
+site is built by Astro; its
 REPL keeps one session across its cells, a name one cell declares staying
 for the cells after it, and its playground runs the cells of one run in
 one session, each showing a defect as `qlang:` and its message. The words

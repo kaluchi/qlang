@@ -212,7 +212,7 @@ describe('PRIMITIVE_REGISTRY', () => {
 describe('PRIMITIVE_REGISTRY — the primitives of the language by address [QSDSP#residence]', () => {
   it('registers one under the address of every verb and kind of the language that ends in ::builtin{}, a function whose recipe it is among them, and no other', async () => {
     const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const { ROOT_KEY } = await import('../../src/env-keys.mjs');
+    const { ROOT_KEY } = await import('../../src/scope-keys.mjs');
     const { isBuiltinDescriptor, isFn, recipeOf } = await import('../../src/types.mjs');
     const root = (await langRuntime()).get(ROOT_KEY);
     const builtinOf = value => (isFn(value) ? recipeOf(value) : value);

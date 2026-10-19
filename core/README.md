@@ -82,8 +82,13 @@ cell.defect;              // what was raised past the fail track, else null
   for any other answer. `toPlain` and
   `fromPlain` cross the JSON boundary, losing the kinds JSON has no form
   for.
-- `parse(source)` answers the syntax tree, and `tokenize(source, names)`
-  the tokens a highlighter paints, from `@kaluchi/qlang-core/highlight`,
+- `parse(source)` answers the quote of the steps the text writes, the
+  records of its steps and its literals, and `partOf(quote)` the parts it
+  read, each with its span, which the walks of the tools read;
+  `tokenize(source, verbNames)` answers the tokens a highlighter paints,
+  each named by what it writes in the language, the call of a word of the
+  root told by the names `verbNames` answers, from
+  `@kaluchi/qlang-core/highlight`,
   the light door that loads the parser and its walks and no runtime. The
   doors of the package are its root, `./errors`, `./highlight` and the
   sources of its catalog.

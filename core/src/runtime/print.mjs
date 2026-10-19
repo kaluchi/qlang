@@ -10,14 +10,14 @@ import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject } from '../nouns.mjs';
 import { callVerbOn } from '../eval.mjs';
 
-// printsOfKinds(value, env, state?) → `printedOf(part)`: the print a kind
+// printsOfKinds(value, scope, state?) → `printedOf(part)`: the print a kind
 // answers of its own for each part of the value whose kind declares one,
 // found by the walk of that part, a fact of an error among them, and
 // undefined for every other part, which the forms of the core write
 // [QSPRN#print].
-export async function printsOfKinds(value, env, state = rootState(value, env)) {
+export async function printsOfKinds(value, scope, state = rootState(value, scope)) {
   const printedByKind = new Map();
-  await collectPrintsOfKinds(value, env, state, nodeOf(env, 'any/print'), printedByKind);
+  await collectPrintsOfKinds(value, scope, state, nodeOf(scope, 'any/print'), printedByKind);
   return part => printedByKind.get(part);
 }
 
@@ -56,10 +56,10 @@ export function caretOf(answer) {
   return `|~| ${source}\n|~| ${' '.repeat(startColumn - 1)}^${'~'.repeat(Math.max(1, end - startColumn) - 1)}`;
 }
 
-async function collectPrintsOfKinds(part, env, state, printOfAny, printedByKind) {
+async function collectPrintsOfKinds(part, scope, state, printOfAny, printedByKind) {
   if (part === null || typeof part !== 'object') return;
   if (part[TAG_HEADER_SYMBOL] !== undefined) {
-    const printOfKind = residenceOnSubject(env, 'print', part);
+    const printOfKind = residenceOnSubject(scope, 'print', part);
     if (printOfKind !== null && printOfKind !== printOfAny) {
       const printed = await callVerbOn(printOfKind, part, state);
       printedByKind.set(part, typeof printed === 'string' ? printed : printValue(printed));
@@ -70,8 +70,8 @@ async function collectPrintsOfKinds(part, env, state, printOfAny, printedByKind)
     : Array.isArray(part) ? part
     : isErrorValue(part) ? part.descriptor.values()
     : 'payload' in part ? [part.payload] : [];
-  for (const inner of parts) await collectPrintsOfKinds(inner, env, state, printOfAny, printedByKind);
+  for (const inner of parts) await collectPrintsOfKinds(inner, scope, state, printOfAny, printedByKind);
 }
 
-registerStateReader('any/print', (subject, state) => printAnswer(subject, state.env, state));
-registerStateReader('any/elide', async (subject, budget, state) => elide(subject, budget, await printsOfKinds(subject, state.env, state)));
+registerStateReader('any/print', (subject, state) => printAnswer(subject, state.scope, state));
+registerStateReader('any/elide', async (subject, budget, state) => elide(subject, budget, await printsOfKinds(subject, state.scope, state)));

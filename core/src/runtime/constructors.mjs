@@ -6,14 +6,13 @@
 import { registerPrimitive } from '../primitives.mjs';
 import {
   isVec, isKeyword, isRegex, isPath, isMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTag, makeQuote, makeTagged, makeTrace, TAG_HEADER_SYMBOL, BUILTIN_TAG, DESC_TAG, stampTagHeader
+  isTag, makeTagged, makeTrace, TAG_HEADER_SYMBOL, BUILTIN_TAG, DESC_TAG, stampTagHeader
 } from '../types.mjs';
 import { kindsExpected, makeSet } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { framesOfTrace } from '../eval-trace.mjs';
-import { isStep } from '../steps.mjs';
-import { printQuoteSource } from '../print-value.mjs';
-import { quoteOfSource } from '../quote.mjs';
+import { quoteOf } from '../steps.mjs';
+import { asPrinted } from '../print-value.mjs';
 
 // `::set[…]` — the set of a vector's elements, the one `toSet` answers
 // [QSORD#order], [QSCND#convert], so `::set[3 1 3]`, `#[3 1 3]` and `[3 1 3] | toSet`
@@ -93,29 +92,10 @@ function docConstructor(payload) {
 
 registerPrimitive('doc/construct', docConstructor);
 
-// `::quote[…]` — the quote of a vector every element of which is a step and
-// whose print reads back, under `tag ::quote` and after every transform of a
-// quote alike, so a value assembled after the head, which a step is not, is
-// refused where it is made [QSQUO#step].
-const QuotePayloadKindNotTakenError = declareRefusal('quote/PayloadKindNotTakenError');
-const QuoteElementNotStepError = declareRefusal('quote/ElementNotStepError');
-const QuoteReadBackDiffersError = declareRefusal('quote/ReadBackDiffersError');
-
-function quoteConstructor(payload) {
-  if (!isVec(payload)) throw new QuotePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
-  payload.forEach((element, index) => {
-    if (!isStep(element)) throw new QuoteElementNotStepError({ index, actualValue: element });
-  });
-  const printed = printQuoteSource(payload);
-  try {
-    quoteOfSource(printed, 'quote-read-back');
-  } catch {
-    throw new QuoteReadBackDiffersError({ printed });
-  }
-  return makeQuote(payload);
-}
-
-registerPrimitive('quote/construct', quoteConstructor);
+// `::quote[…]` — the quote of a vector of steps, under `tag ::quote` and
+// after every transform of a quote alike, the rules of a step held where it
+// is made [QSQUO#step].
+registerPrimitive('quote/construct', payload => quoteOf(payload, asPrinted));
 
 // `::trace[…]` — the trace of a failure, its frames in the order it flew [QSERR#trace].
 registerPrimitive('trace/construct', payload => makeTrace(framesOfTrace(payload)));

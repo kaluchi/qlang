@@ -2,7 +2,7 @@
 // answer is its subject's kind, `take` among them [QSDSP#answer].
 
 import { describe, it, expect } from 'vitest';
-import { evalAst } from '../../src/eval.mjs';
+import { evalPipeline } from '../../src/eval.mjs';
 import { parse } from '../../src/parse.mjs';
 import { rootState } from '../../src/state.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
@@ -13,7 +13,7 @@ describe('a tag nothing declares stays over the answer of a verb of its subject\
   // [QSDSP#answer], [QSLIT#tag].
   async function transform(tagged, src) {
     const state = rootState(tagged, await langRuntime());
-    return (await evalAst(parse(src), state)).pipeValue;
+    return (await evalPipeline(parse(src), state)).pipeValue;
   }
 
   it('take keeps a tag nothing declares over a vector a host built', async () => {

@@ -1,6 +1,6 @@
 // The print and the JSON of the values the printer meets at its edges: a
 // binding record, a doc, a value under a tag, an error and its facts, the
-// doubles at their bounds, the print a kind declares, and the scope `env`
+// doubles at their bounds, the print a kind declares, and the names `env`
 // answers, which the parser reads back.
 
 import { describe, it, expect } from 'vitest';
@@ -35,7 +35,7 @@ describe('printValue — binding record / Function branches', () => {
     expect(printValue(doc)).toBe('|~~ hello ~~|');
   });
 
-  it('renders a vector under a tag as ::Tag[payload…] — round-trip TaggedLit literal', async () => {
+  it('renders a vector under a tag as ::Tag[payload…], the tagged literal that reads back as it', async () => {
     const { makeTagged } = await import('../../src/types.mjs');
     const tagged = makeTagged(makeTag('Box'), [42, 'inner']);
     expect(printValue(tagged)).toBe('::Box[42 "inner"]');
@@ -67,11 +67,11 @@ describe('printErrorValue — head + payload-filter branches', () => {
   });
 
   it('an answer that is a failure prints under the line that says it was raised, an error at rest under none [QSERR#rest]', async () => {
-    const env = await langRuntime();
+    const scope = await langRuntime();
     const failure = await evalQuery('"x" | add 1');
-    expect(await printAnswer(failure, env)).toBe(`|~| raised, and no !| caught it\n${printValue(failure)}`);
+    expect(await printAnswer(failure, scope)).toBe(`|~| raised, and no !| caught it\n${printValue(failure)}`);
     const atRest = await evalQuery('"x" | add 1 !| it');
-    expect(await printAnswer(atRest, env)).toBe(printValue(atRest));
+    expect(await printAnswer(atRest, scope)).toBe(printValue(atRest));
   });
 
   it('a :kind in the descriptor is a fact like any other', async () => {

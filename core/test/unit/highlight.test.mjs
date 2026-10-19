@@ -1,7 +1,9 @@
-// `tokenize` backs every painter of source, the site's, the command line's
-// and the language server's: each token its kind, the gaps between them
-// whitespace, a source that does not parse painted up to the refusal, and
-// every character of the source covered once.
+// `tokenize` backs every painter of source, the site's, the command line's,
+// the language server's and the editor's: each token named by what it writes
+// in the language, one sense to a kind, the gaps between them their whitespace,
+// their combinators and their punctuation, a source that does not parse
+// painted up to where its parse stopped, and every character of the source
+// covered once [QSHST#tools].
 
 import { describe, it, expect } from 'vitest';
 import { tokenize } from '../../src/highlight.mjs';
@@ -24,6 +26,12 @@ function expectCoversInputExactly(tokens, src) {
   expect(cursor).toBe(src.length);
 }
 
+// Each token as the text it covers and its kind, a token inside a quote
+// marked by its italics, the whitespace aside.
+const painted = async src => tokenize(src, await rootVerbNames())
+  .filter(token => token.kind !== 'whitespace')
+  .map(token => [src.slice(token.start, token.end), token.italic ? `${token.kind} italic` : token.kind]);
+
 describe('tokenize — empty and whitespace-only inputs', () => {
   it('returns the empty token stream for the empty source', async () => {
     expect(tokenize('', await rootVerbNames())).toEqual([]);
@@ -35,238 +43,200 @@ describe('tokenize — empty and whitespace-only inputs', () => {
   });
 });
 
-describe('tokenize — atomic literal kinds', () => {
-  it('classifies a String literal including the surrounding quotes', async () => {
+describe('tokenize — a literal by the kind of its value', () => {
+  it('paints a string with its quotes', async () => {
     expect(tokenize('"hello"', await rootVerbNames())).toEqual([
       { start: 0, end: 7, kind: 'string' }
     ]);
   });
 
-  it('classifies a Number literal', async () => {
-    expect(tokenize('42', await rootVerbNames())).toEqual([
-      { start: 0, end: 2, kind: 'number' }
+  it('paints a number, a boolean and null each by its own kind', async () => {
+    expect(await painted('[42 true false null]')).toEqual([
+      ['[', 'vec'], ['42', 'number'], ['true', 'boolean'], ['false', 'boolean'], ['null', 'null'], [']', 'vec']
     ]);
   });
 
-  it('classifies a regex literal, its quote escape and its flags among it [QSTXT#regex]', async () => {
+  it('paints a regex, its quote escape and its flags among it [QSTXT#regex]', async () => {
     const src = 'contains #"\\"\\d+"i';
     const tokens = tokenize(src, await rootVerbNames());
     expect(tokens.at(-1)).toEqual({ start: 9, end: src.length, kind: 'regex' });
     expectCoversInputExactly(tokens, src);
   });
 
-  it('classifies a ~(...) QuoteLit as quote delimiters plus italic-flagged sub-tokens', async () => {
-    // `~(mul 2)` — `~(` and `)` are upright `quote`-kind delimiters
-    // (green); the body sub-tokenises with the regular tokeniser
-    // pipeline, every inner span carrying `italic: true` so the
-    // renderer composes italic on top of each kind's colour.
+  it('paints a keyword, a key of a map and the key of a JSON map among them, as a keyword', async () => {
+    expect(await painted(':foo')).toEqual([[':foo', 'keyword']]);
+    expect(await painted('{:a 1}')).toEqual([['{', 'map'], [':a', 'keyword'], ['1', 'number'], ['}', 'map']]);
+    expect(await painted('{"a": 1, "b": 2}')).toEqual([
+      ['{', 'map'], ['"a"', 'keyword'], [':', 'punctuation'], ['1', 'number'], [',', 'punctuation'],
+      ['"b"', 'keyword'], [':', 'punctuation'], ['2', 'number'], ['}', 'map']
+    ]);
+  });
+
+  it('paints a tag name alone as a tag', async () => {
+    expect(tokenize('::snapshot', await rootVerbNames())).toEqual([
+      { start: 0, end: 10, kind: 'tag' }
+    ]);
+  });
+
+  it('paints a path whole, its slashes, a quoted segment and an escaped quote among it', async () => {
+    for (const src of ['/name', '/a/b/0', '/"a/b"', '/"a\\"b"', '/:a/b']) {
+      expect(tokenize(src, await rootVerbNames()), src).toEqual([{ start: 0, end: src.length, kind: 'path' }]);
+    }
+    expect(await painted('{:name "x"} | get /name')).toContainEqual(['/name', 'path']);
+  });
+});
+
+describe('tokenize — the head of a tag', () => {
+  it('paints the tag a tagged literal writes at its head and descends into the payload', async () => {
+    expect(await painted('::Box[~(x) ~(y)]')).toEqual([
+      ['::Box', 'tag'], ['[', 'vec'], ['~(', 'quote'], ['x', 'name italic'], [')', 'quote'],
+      ['~(', 'quote'], ['y', 'name italic'], [')', 'quote'], [']', 'vec']
+    ]);
+    expect(await painted('::Width#5')).toEqual([['::Width', 'tag'], ['#', 'punctuation'], ['5', 'number']]);
+  });
+
+  it('paints the tag an error literal writes before its bang, then its `!{` and `}`', async () => {
+    const tokens = tokenize('::Oops!{:a 1}', await rootVerbNames());
+    expect(tokens[0]).toEqual({ start: 0, end: 6, kind: 'tag' });
+    expect(tokens[1]).toEqual({ start: 6, end: 8, kind: 'error' });
+    expect(tokens.at(-1)).toEqual({ start: 12, end: 13, kind: 'error' });
+  });
+
+  it('paints `::error` written before a bang and each tag written before it as tags, the parts of the literal [QSERR#rest]', async () => {
+    expect(tokenize('::error!{:k 1}', await rootVerbNames()).slice(0, 3)).toEqual([
+      { start: 0, end: 7, kind: 'tag' }, { start: 7, end: 9, kind: 'error' }, { start: 9, end: 11, kind: 'keyword' }
+    ]);
+    expect(tokenize('::E::error!{:k 1}', await rootVerbNames()).slice(0, 3)).toEqual([
+      { start: 0, end: 3, kind: 'tag' }, { start: 3, end: 10, kind: 'tag' }, { start: 10, end: 12, kind: 'error' }
+    ]);
+  });
+});
+
+describe('tokenize — a quote', () => {
+  it('paints the `~(` and `)` of a quote upright and what it holds as the code it is, in italics', async () => {
     expect(tokenize('~(mul 2)', await rootVerbNames())).toEqual([
       { start: 0, end: 2, kind: 'quote' },
-      { start: 2, end: 5, kind: 'word',    italic: true },
+      { start: 2, end: 5, kind: 'verb', italic: true },
       { start: 5, end: 6, kind: 'whitespace', italic: true },
-      { start: 6, end: 7, kind: 'number',     italic: true },
+      { start: 6, end: 7, kind: 'number', italic: true },
       { start: 7, end: 8, kind: 'quote' }
     ]);
   });
 
-  it('paints the tilde of the short form as the quote delimiter', async () => {
+  it('paints the tilde of the short form as a quote', async () => {
     expect(tokenize('~add', await rootVerbNames())).toEqual([
       { start: 0, end: 1, kind: 'quote' },
-      { start: 1, end: 4, kind: 'word', italic: true }
+      { start: 1, end: 4, kind: 'verb', italic: true }
     ]);
   });
 
-  it('paints an empty Quote body as bare delimiters with no inner span', async () => {
-    // `~()` — zero-length body, sub-tokeniser returns no spans,
-    // only the two delimiter spans land in the output.
+  it('paints the empty quote as its `~(` and `)` alone', async () => {
     expect(tokenize('~()', await rootVerbNames())).toEqual([
       { start: 0, end: 2, kind: 'quote' },
       { start: 2, end: 3, kind: 'quote' }
     ]);
   });
 
-  it('paints a blank Quote body as a single italic-whitespace span', async () => {
-    // `~( )` — the empty quote; its blank body reads as no pipeline,
-    // so the body sub-tokeniser emits a single whitespace-kind span
-    // covering the entire body and the renderer still paints it
-    // uniformly italic.
+  it('paints the blank content of a quote as whitespace in italics', async () => {
     expect(tokenize('~( )', await rootVerbNames())).toEqual([
       { start: 0, end: 2, kind: 'quote' },
       { start: 2, end: 3, kind: 'whitespace', italic: true },
       { start: 3, end: 4, kind: 'quote' }
     ]);
   });
+});
 
-  it('classifies boolean and null literals as numbers', async () => {
-    expect(tokenize('true',  await rootVerbNames())[0].kind).toBe('number');
-    expect(tokenize('false', await rootVerbNames())[0].kind).toBe('number');
-    expect(tokenize('null',  await rootVerbNames())[0].kind).toBe('number');
+describe('tokenize — the name of a call by its name, a word of the root a verb', () => {
+  it('paints the name of a word of the root as a verb, a call by its address among them [QSHST#tools]', async () => {
+    expect(await painted('count')).toEqual([['count', 'verb']]);
+    expect(await painted('[1] | vec/count')).toContainEqual(['vec/count', 'verb']);
+    expect(await painted('[1] | vec/sort')).toContainEqual(['vec/sort', 'verb']);
   });
 
-  it('classifies a `:name` keyword atom', async () => {
-    expect(tokenize(':foo', await rootVerbNames())).toEqual([
-      { start: 0, end: 4, kind: 'name' }
-    ]);
+  it('paints any other name as a name, a call by an address no word of the root stands at among them, its last name one\'s [QSHST#tools]', async () => {
+    expect(await painted('myVerb')).toEqual([['myVerb', 'name']]);
+    expect(await painted('Box/area')).toEqual([['Box/area', 'name']]);
+    expect(await painted('[1] | string/sort')).toContainEqual(['string/sort', 'name']);
   });
 
-  it('classifies a bare `::tag` TagLit as a single tag-kind span', async () => {
-    expect(tokenize('::snapshot', await rootVerbNames())).toEqual([
-      { start: 0, end: 10, kind: 'tag' }
-    ]);
-  });
-
-  it('classifies the `::tag` head of a TaggedLit and descends into the payload', async () => {
-    const tokens = tokenize('::Box[~(x) ~(y)]', await rootVerbNames());
-    expect(tokens[0]).toEqual({ start: 0, end: 5, kind: 'tag' });
-    expect(tokens.some(t => t.kind === 'quote')).toBe(true);
-    expect(tokens.some(t => t.kind === 'vec')).toBe(true);
-  });
-
-  it('paints the tag an error literal writes before its bang, then its `!{` and `}`', async () => {
-    // `::Tag!{…}` is one literal, the error whose content carries the
-    // tag [QSERR#rest].
-    const tokens = tokenize('::Oops!{:a 1}', await rootVerbNames());
-    expect(tokens[0]).toEqual({ start: 0, end: 6, kind: 'tag' });
-    expect(tokens[1]).toEqual({ start: 6, end: 8, kind: 'err' });
-    expect(tokens[tokens.length - 1]).toEqual({ start: 12, end: 13, kind: 'err' });
+  it('paints the name a declaration writes as a declaration', async () => {
+    expect(await painted(':x 1 | x')).toEqual([[':x', 'declaration'], ['1', 'number'], ['|', 'punctuation'], ['x', 'name']]);
   });
 });
 
-describe('tokenize — the kind of a call\'s name', () => {
-  it('the name of a verb of the language resolves to `word`', async () => {
-    const tokens = tokenize('count', await rootVerbNames());
-    expect(tokens[0].kind).toBe('word');
-  });
-
-  it('the keyword that declares a name resolves to `keyword`', async () => {
-    const tokens = tokenize(':x 1', await rootVerbNames());
-    expect(tokens.find(t => t.kind === 'keyword')).toBeDefined();
-  });
-
-  it('a name outside the verbs of the language resolves to `name`', async () => {
-    const tokens = tokenize('myVerb', await rootVerbNames());
-    expect(tokens[0].kind).toBe('name');
-  });
-});
-
-describe('tokenize — paths', () => {
-  it('renders `/name` as a `punct` slash plus a `word` key', async () => {
-    expect(tokenize('/name', await rootVerbNames())).toEqual([
-      { start: 0, end: 1, kind: 'punct' },
-      { start: 1, end: 5, kind: 'word' }
-    ]);
-  });
-
-  it('renders `/a/b` as two slash + key pairs', async () => {
-    const tokens = tokenize('/a/b', await rootVerbNames());
-    expect(tokens.filter(t => t.kind === 'punct')).toHaveLength(2);
-    expect(tokens.filter(t => t.kind === 'word')).toHaveLength(2);
-  });
-
-  it('handles a path nested in a pipeline', async () => {
-    // /name follows a pipe; both the slash and the field segment
-    // appear in the token stream alongside the pipeline's own
-    // structural punct.
-    const tokens = tokenize('{:name "x"} | get /name', await rootVerbNames());
-    expect(tokens.find(t => t.kind === 'word' && t.end - t.start === 4)).toBeDefined();
-  });
-
-  it('keeps a quoted segment with an inner slash as one word token', async () => {
-    // `/"a/b"` is a single path segment `a/b`; the slash inside
-    // the quotes must not split it into two word tokens.
-    expect(tokenize('/"a/b"', await rootVerbNames())).toEqual([
-      { start: 0, end: 1, kind: 'punct' },
-      { start: 1, end: 6, kind: 'word' }
-    ]);
-  });
-
-  it('keeps an escaped quote inside a quoted segment within the segment', async () => {
-    // `/"a\"b"` — the escaped `"` stays inside the one segment, so the
-    // word token spans the whole `"a\"b"` slice.
-    expect(tokenize('/"a\\"b"', await rootVerbNames())).toEqual([
-      { start: 0, end: 1, kind: 'punct' },
-      { start: 1, end: 7, kind: 'word' }
-    ]);
-  });
-});
-
-describe('tokenize — comments', () => {
-  // A comment is whitespace the parser keeps beside the tree, which the
-  // painter reads from it, and a doc is a value painted whole
-  // [QSSYN#comment], [QSSYN#doc].
-
-  it('paints a comment to the end of its line as `comment`', async () => {
+describe('tokenize — comments and docs', () => {
+  it('paints a comment to the end of its line as a comment', async () => {
     const src = '|~| short note |~|';
     const tokens = tokenize(src, await rootVerbNames());
     expect(tokens[0].kind).toBe('comment');
   });
 
-  it('paints a doc literal as `comment`', async () => {
-    const src = '|~~ a doc ~~|';
-    const tokens = tokenize(src, await rootVerbNames());
-    expect(tokens.at(-1)).toEqual({ start: 0, end: src.length, kind: 'comment' });
+  it('paints a doc as a doc, apart from a comment', async () => {
+    const src = '|~~ a doc ~~| |~ a comment ~|';
+    expect(await painted(src)).toEqual([['|~~ a doc ~~|', 'doc'], ['|~ a comment ~|', 'comment']]);
   });
 
-  it('paints a block comment as `comment`', async () => {
+  it('paints a block comment as a comment', async () => {
     const src = '|~ block ~|';
     const tokens = tokenize(src, await rootVerbNames());
     expect(tokens[0].kind).toBe('comment');
   });
 
-  it('paints a block comment that nests another as one `comment` span', async () => {
+  it('paints a block comment that nests another as one comment', async () => {
     const src = '|~ outer |~ inner ~| more ~|';
     const tokens = tokenize(src, await rootVerbNames());
     expect(tokens[0]).toEqual({ start: 0, end: src.length, kind: 'comment' });
   });
 
-  it('paints a block comment that holds a doc as one `comment` span', async () => {
+  it('paints a block comment that holds a doc as one comment', async () => {
     const src = '|~ holds |~~ inner ~~| inline ~|';
     const tokens = tokenize(src, await rootVerbNames());
     expect(tokens[0]).toEqual({ start: 0, end: src.length, kind: 'comment' });
   });
 
-  it('paints a line-marker mention inside plain block as one `comment` span', async () => {
+  it('paints a line-marker mention inside a block comment as one comment', async () => {
     const src = '|~ before |~| mention ~|';
     const tokens = tokenize(src, await rootVerbNames());
     expect(tokens[0]).toEqual({ start: 0, end: src.length, kind: 'comment' });
   });
 });
 
-describe('tokenize — gap interleaving', () => {
-  it('splits `[1 2 3]` into bracketed number sequence with `vec` openers/closers', async () => {
-    const tokens = tokenize('[1 2 3]', await rootVerbNames());
-    expect(tokens.map(t => t.kind)).toEqual([
-      'vec', 'number', 'whitespace',
-      'number', 'whitespace', 'number', 'vec'
+describe('tokenize — the gaps between the parts', () => {
+  it('paints the brackets of a vector, a set and a map each by its kind', async () => {
+    expect(tokenize('[1 2 3]', await rootVerbNames()).map(t => t.kind)).toEqual([
+      'vec', 'number', 'whitespace', 'number', 'whitespace', 'number', 'vec'
     ]);
+    expect(await painted('#[:a]')).toEqual([['#[', 'set'], [':a', 'keyword'], [']', 'set']]);
+    expect(await painted('{ }')).toEqual([['{', 'map'], ['}', 'map']]);
   });
 
-  it('labels the `!|` fail-track combinator with kind `err`', async () => {
-    const fail = tokenize('1 !| get /k', await rootVerbNames());
-    expect(fail.find(t => t.kind === 'err' && t.end - t.start === 2)).toBeDefined();
-  });
-
-  it('labels the `#[` set opener and matching `]` with kind `set`', async () => {
-    const tokens = tokenize('#[:a]', await rootVerbNames());
-    expect(tokens[0]).toEqual({ start: 0, end: 2, kind: 'set' });
-    expect(tokens[tokens.length - 1]).toEqual({ start: 4, end: 5, kind: 'set' });
-  });
-
-  it('labels `{:a 1}` map braces with kind `punct`', async () => {
-    const tokens = tokenize('{:a 1}', await rootVerbNames());
-    expect(tokens[0]).toEqual({ start: 0, end: 1, kind: 'punct' });
-    expect(tokens[tokens.length - 1]).toEqual({ start: 5, end: 6, kind: 'punct' });
-  });
-
-  it('labels the `!{` opener and matching `}` of an error literal with kind `err`', async () => {
+  it('paints the `!{` and the `}` of an error literal as an error', async () => {
     const tokens = tokenize('!{:a 1}', await rootVerbNames());
-    expect(tokens[0]).toEqual({ start: 0, end: 2, kind: 'err' });
-    expect(tokens[tokens.length - 1]).toEqual({ start: 6, end: 7, kind: 'err' });
+    expect(tokens[0]).toEqual({ start: 0, end: 2, kind: 'error' });
+    expect(tokens.at(-1)).toEqual({ start: 6, end: 7, kind: 'error' });
   });
 
-  it('splits the pipe combinator into its own punct token', async () => {
-    const tokens = tokenize('1 | count', await rootVerbNames());
-    expect(tokens.find(t => t.kind === 'punct' && t.end - t.start === 1)).toBeDefined();
+  it('paints the combinator `!|` as the fail track, a pipe written before it a punctuation', async () => {
+    expect(await painted('1 !| get /k')).toEqual([['1', 'number'], ['!|', 'fail'], ['get', 'verb'], ['/k', 'path']]);
+    expect(await painted('"x" | add 1 | !| 0')).toContainEqual(['!|', 'fail']);
+  });
+
+  it('paints the pipe and the commas of a JSON literal as punctuation', async () => {
+    expect(await painted('[1, 2] | count')).toEqual([['[', 'vec'], ['1', 'number'], [',', 'punctuation'], ['2', 'number'], [']', 'vec'], ['|', 'punctuation'], ['count', 'verb']]);
+  });
+
+  it('paints the parentheses of a group as a group, a modifier\'s and the first one touching its name among them', async () => {
+    expect(await painted('take (count | sub 1)')).toEqual([
+      ['take', 'verb'], ['(', 'group'], ['count', 'verb'], ['|', 'punctuation'], ['sub', 'verb'], ['1', 'number'], [')', 'group']
+    ]);
+    expect(await painted('filter(gt 1)')).toEqual([['filter', 'verb'], ['(', 'group'], ['gt', 'verb'], ['1', 'number'], [')', 'group']]);
+  });
+
+  it('paints no parenthesis where the steps of a body begun on a later line stand in a group the text writes none of [QSSYN#line]', async () => {
+    expect(await painted('[1 2 3] | :vec/f\n  ~(get /1) | count')).toEqual([
+      ['[', 'vec'], ['1', 'number'], ['2', 'number'], ['3', 'number'], [']', 'vec'], ['|', 'punctuation'], [':vec/f', 'declaration'],
+      ['~(', 'quote'], ['get', 'verb italic'], ['/1', 'path italic'], [')', 'quote'], ['|', 'punctuation'], ['count', 'verb']
+    ]);
   });
 });
 
@@ -288,12 +258,17 @@ describe('tokenize — coverage invariant', () => {
     const tokens = tokenize(src, await rootVerbNames());
     expectCoversInputExactly(tokens, src);
   });
+
+  it('leaves no token of no character between two quotes of a doc that touch', async () => {
+    const src = '|~~ ~(a)~(b) ~~|';
+    expectCoversInputExactly(tokenize(src, await rootVerbNames()), src);
+  });
 });
 
 describe('tokenize — a source that does not parse', () => {
   it('paints a source cut short through the closers that complete it [QSSYN#refusal]', async () => {
     expect(tokenize('(unclosed', await rootVerbNames())).toEqual([
-      { start: 0, end: 1, kind: 'punct' },
+      { start: 0, end: 1, kind: 'group' },
       { start: 1, end: 9, kind: 'name' }
     ]);
   });
@@ -302,75 +277,91 @@ describe('tokenize — a source that does not parse', () => {
     expect(tokenize('"abc', await rootVerbNames())).toEqual([{ start: 0, end: 4, kind: 'string' }]);
   });
 
-  it('paints a refused source up to the refusal, the rest as whitespace', async () => {
+  it('paints a refused source up to the refusal, the rest unparsed', async () => {
     const src = '{:a 1 | zz) 5';
     const tokens = tokenize(src, await rootVerbNames());
-    expect(tokens[1]).toEqual({ start: 1, end: 3, kind: 'name' });
-    expect(tokens.at(-1)).toEqual({ start: src.indexOf('|'), end: src.length, kind: 'whitespace' });
+    expect(tokens[1]).toEqual({ start: 1, end: 3, kind: 'keyword' });
+    expect(tokens.at(-1)).toEqual({ start: src.indexOf('|'), end: src.length, kind: 'unparsed' });
   });
 
-  it('leaves a source no prefix of which completes as whitespace', async () => {
-    expect(tokenize(')))', await rootVerbNames())).toEqual([{ start: 0, end: 3, kind: 'whitespace' }]);
-    expect(tokenize('[[[[[1 )', await rootVerbNames())).toEqual([{ start: 0, end: 8, kind: 'whitespace' }]);
+  it('passes a throw of the parser that is no refusal of the text as it is, the overflow of the stack of a deep nest among it [QSQUO#step]', async () => {
+    let thrown = null;
+    try { tokenize('['.repeat(20000) + ']'.repeat(20000), await rootVerbNames()); } catch (e) { thrown = e; }
+    expect(thrown).toBeInstanceOf(RangeError);
+  });
+
+  it('leaves a source no prefix of which completes unparsed', async () => {
+    expect(tokenize(')))', await rootVerbNames())).toEqual([{ start: 0, end: 3, kind: 'unparsed' }]);
+    expect(tokenize('[[[[[1 )', await rootVerbNames())).toEqual([{ start: 0, end: 8, kind: 'unparsed' }]);
+  });
+
+  it('paints a source refused after a line doc whose `~(` reads as no code up to where its reading stopped [QSSYN#doc]', async () => {
+    const src = '[|~~| x ~(a\n 1 2 , 3]';
+    expect(tokenize(src, await rootVerbNames()).map(token => [src.slice(token.start, token.end), token.kind])).toEqual([
+      ['[', 'vec'], ['|~~| x ~(a', 'doc'], ['\n ', 'whitespace'], ['1', 'number'], [' ', 'whitespace'], ['2', 'number'], [' ', 'whitespace'], [', 3]', 'unparsed']
+    ]);
   });
 });
 
 describe('tokenize — the code a doc holds', () => {
-  // Only the prose of a doc paints as a comment: its quotes and its
-  // spans in backticks paint as the code they are [QSSYN#doc].
-  const paint = async src => tokenize(src, await rootVerbNames())
-    .filter(token => token.kind !== 'whitespace')
-    .map(token => [src.slice(token.start, token.end), token.kind]);
+  // Only the prose of a doc paints as a doc: its quotes and its spans between
+  // backquotes paint as the code they are [QSHST#tools].
 
   it('paints a quote of the prose as code', async () => {
-    expect(await paint('|~~ see ~(add 1) ~~|')).toEqual([
-      ['|~~ see ', 'comment'], ['~(', 'quote'], ['add', 'word'], ['1', 'number'], [')', 'quote'], [' ~~|', 'comment']
+    expect(await painted('|~~ see ~(add 1) ~~|')).toEqual([
+      ['|~~ see ', 'doc'], ['~(', 'quote'], ['add', 'verb italic'], ['1', 'number italic'], [')', 'quote'], [' ~~|', 'doc']
     ]);
   });
 
-  it('paints a span in backticks as the code it spells', async () => {
-    expect(await paint('|~~ a `count` b ~~|')).toEqual([['|~~ a `', 'comment'], ['count', 'word'], ['` b ~~|', 'comment']]);
+  it('paints the tags written before a quote of the prose as tags', async () => {
+    expect(await painted('|~~ see ::link~(::qlang | doc) b ~~|')).toEqual([
+      ['|~~ see ', 'doc'], ['::link', 'tag'], ['~(', 'quote'], ['::qlang', 'tag italic'], ['|', 'punctuation italic'], ['doc', 'verb italic'], [')', 'quote'], [' b ~~|', 'doc']
+    ]);
+    expect(await painted('|~~| ::A::B~(1)')).toEqual([['|~~| ', 'doc'], ['::A::B', 'tag'], ['~(', 'quote'], ['1', 'number italic'], [')', 'quote']]);
   });
 
-  it('closes a span at a run of as many backquotes as opened it', async () => {
-    expect(await paint('|~~ a ``"x`y" | count`` b ~~|')).toContainEqual(['count', 'word']);
-    expect(await paint('|~~ a `` b ~~|')).toEqual([['|~~ a `` b ~~|', 'comment']]);
+  it('paints a span between backquotes as the code it spells', async () => {
+    expect(await painted('|~~ a `count` b ~~|')).toEqual([['|~~ a `', 'doc'], ['count', 'verb'], ['` b ~~|', 'doc']]);
+  });
+
+  it('closes a span at a run of as many backquotes as opened it, across the lines of a block doc', async () => {
+    expect(await painted('|~~ a ``"x`y" | count`` b ~~|')).toContainEqual(['count', 'verb']);
+    expect(await painted('|~~ a `` b ~~|')).toEqual([['|~~ a `` b ~~|', 'doc']]);
+    expect(await painted('|~~ a `[1\n2] | count` b ~~|')).toEqual([
+      ['|~~ a `', 'doc'], ['[', 'vec'], ['1', 'number'], ['2', 'number'], [']', 'vec'], ['|', 'punctuation'], ['count', 'verb'], ['` b ~~|', 'doc']
+    ]);
   });
 
   it('closes a doc inside a quote of a doc at its own marker', async () => {
-    const painted = await paint('|~~ ~(|~~ a ~~| | count) after ~~|');
-    expect(painted.at(-1)).toEqual([' after ~~|', 'comment']);
-    expect(painted).toContainEqual(['count', 'word']);
+    const tokens = await painted('|~~ ~(|~~ a ~~| | count) after ~~|');
+    expect(tokens.at(-1)).toEqual([' after ~~|', 'doc']);
+    expect(tokens).toContainEqual(['count', 'verb italic']);
+  });
+
+  it('paints a doc whose quote stands under the tag of a group or of the fail track, in a literal or a doc, its quote as code [QSSLF#doc]', async () => {
+    for (const src of ['|~~ see ::group~(add 1) ~~|', '[|~~ ::group~(add 1) ~~|]', 'f |~~ ::fail~(add 1) ~~|', '|~~ ~([|~~ ::group~(add 1) ~~|]) ~~|']) {
+      expectCoversInputExactly(tokenize(src, await rootVerbNames()), src);
+      expect(await painted(src), src).toContainEqual(['add', 'verb italic']);
+    }
   });
 });
 
 describe('tokenize — the docs of a slot', () => {
-  // The doc literals of a declaration's slot are the DocLit nodes the
-  // tree holds for every doc [QSSYN#doc], so each paints as one `comment`
-  // span instead of `pushGapTokens` misclassifying the prose as punct.
+  // The doc literals of a declaration's slot are parts the parser reads as it
+  // reads every doc, each of prose painted as one doc [QSHST#tools].
 
-  it('a doc of prose between the key and the body gets one comment span', async () => {
-    const src = ':double |~~ Doubles the input. ~~| mul 2';
-    const tokens = tokenize(src, await rootVerbNames());
-    const commentSpan = tokens.find(t => t.kind === 'comment');
-    expect(commentSpan).toBeDefined();
-    expect(src.slice(commentSpan.start, commentSpan.end))
-      .toMatch(/^\|~~ Doubles the input\. ~~\|/);
+  it('a doc of prose between the key and the body is one doc', async () => {
+    expect(await painted(':double |~~ Doubles the input. ~~| mul 2')).toEqual([
+      [':double', 'declaration'], ['|~~ Doubles the input. ~~|', 'doc'], ['mul', 'verb'], ['2', 'number']
+    ]);
   });
 
-  it('each doc of a slot gets a comment span of its own', async () => {
-    const src = ':double |~~ One. ~~| |~~ Two. ~~| mul 2';
-    const tokens = tokenize(src, await rootVerbNames());
-    const commentSpans = tokens.filter(t => t.kind === 'comment').map(t => src.slice(t.start, t.end));
-    expect(commentSpans).toEqual(['|~~ One. ~~|', '|~~ Two. ~~|']);
+  it('each doc of a slot is a doc of its own', async () => {
+    const tokens = await painted(':double |~~ One. ~~| |~~ Two. ~~| mul 2');
+    expect(tokens.filter(([, kind]) => kind === 'doc').map(([text]) => text)).toEqual(['|~~ One. ~~|', '|~~ Two. ~~|']);
   });
 
-  it('a docs-only BindStep (no body) paints its doc to the BindStep end', async () => {
-    const src = ':forward |~~ placeholder ~~|';
-    const tokens = tokenize(src, await rootVerbNames());
-    const commentSpan = tokens.find(t => t.kind === 'comment');
-    expect(commentSpan).toBeDefined();
-    expect(src.slice(commentSpan.start, commentSpan.end))
-      .toBe('|~~ placeholder ~~|');
+  it('a declaration of docs alone, with no body, paints its doc to the end of the declaration', async () => {
+    expect(await painted(':forward |~~ placeholder ~~|')).toEqual([[':forward', 'declaration'], ['|~~ placeholder ~~|', 'doc']]);
   });
 });

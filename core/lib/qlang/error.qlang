@@ -105,17 +105,8 @@
     | carries :leftType |~~ The kind of the value on the left. ~~| ::tag
     | carries :rightType |~~ The kind of the value on the right. ~~| ::tag
     | carries :field
-        |~~ The field that does not fit, null when the payload is no map.
-        ~~|
-        #[::keyword ::null]
-    | carries :printed
-        |~~ The text a value prints as, its literal: a step that reads
-            back as another step or as none, where
-            `::quote/ReadBackDiffersError` or the refusal of that name
-            under `::group`, `::bind`, `::call`, `::construct` or `::fail`
-            refuses it.
-        ~~|
-        ::string
+        |~~ The field of the record of a step that does not fit. ~~|
+        ::keyword
     | proves :writesAnErrorAtRestByItsBang
         |~~ The bang writes an error at rest of the kind of errors. ~~|
         ~(!{:detail "boom"} | type | eq ::error)

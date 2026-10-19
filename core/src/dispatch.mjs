@@ -4,12 +4,14 @@
 
 import { readsState, readsPassedTags, PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { queryStateOf } from './state.mjs';
-import { ANY_KIND_NAME, TAGGED_KIND_NAME } from './address.mjs';
+import { splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME } from './address.mjs';
 import { QlangError, QlangInvariantError } from './errors.mjs';
 import { printPath } from './print-value.mjs';
+import { kindsOfWalk } from './nouns.mjs';
+import { functionOfRecipe, chainOfFn } from './chain.mjs';
 import {
-  isVec, isMap, isTagged, isValueClass, isKeyword, isTag, isRegex, isPath, isErrorValue,
-  makeTag, makePath, typeOf, primitiveOf, accountOfForeign, TAG_HEADER_SYMBOL
+  isVec, isMap, isTagged, isValueClass, isKeyword, isTag, isRegex, isPath, isErrorValue, isFn,
+  makeTag, makePath, typeOf, primitiveOf, accountOfForeign, bindingValueOf, TAG_HEADER_SYMBOL
 } from './types.mjs';
 
 // ── kinds ──────────────────────────────────────────────────────
@@ -38,6 +40,29 @@ export function walkToKinds(value, kindNames) {
     served = served.payload;
   }
   return { served, passedTags };
+}
+
+// subjectOfCall(chain, labelName, subject) → the subject a function's call
+// serves: for a verb, the value of its label the walk of the subject's tags
+// reaches, or of a kind `on` names beside it, the noun's own tag name for a
+// verb of the noun itself, since the walk of a tag name passes the noun it
+// names and no other [QSDSP#tagname]; for a function `apply` runs, a value of
+// the kinds `on` names, or the subject as it is; null where the walk reaches none.
+export function subjectOfCall(chain, labelName, subject) {
+  const onKinds = chain.subject?.kinds ?? null;
+  if (labelName === null) return onKinds === null ? { served: subject, passedTags: [] } : walkToKinds(subject, onKinds);
+  const byLabel = walkToKinds(subject, [labelName]);
+  if (byLabel !== null) return { ...byLabel, byLabel: true };
+  const byKinds = onKinds === null ? null : walkToKinds(subject, onKinds);
+  return byKinds !== null && isTag(byKinds.served) && ![...kindsOfWalk(byKinds.served)].includes(labelName) ? null : byKinds;
+}
+
+// servesTheSubject(record, subject) → whether the verb a record holds serves
+// the subject, as its call would [QSNAM#reach], [QSHST#tools].
+export function servesTheSubject(record, subject) {
+  const value = bindingValueOf(record);
+  const fn = isFn(value) ? value : functionOfRecipe(value);
+  return subjectOfCall(chainOfFn(fn), splitAddress(record.get('name').name)[0], subject) !== null;
 }
 
 // Whether an answer is waited on: anything with a `then`, so a host's

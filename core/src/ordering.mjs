@@ -185,7 +185,7 @@ function compareMaps(leftMap, rightMap) {
 }
 
 // A tagged container's payload is the container itself read by the kind of
-// its core; a tag over an atom or a value class wraps its payload.
+// its core; a tag over an atom or a value class holds its payload under it.
 function comparePayloads(leftTagged, rightTagged) {
   const [leftPayload, leftKind] = payloadOf(leftTagged);
   const [rightPayload, rightKind] = payloadOf(rightTagged);

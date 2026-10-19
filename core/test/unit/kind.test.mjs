@@ -9,6 +9,8 @@ import { createSession, evalQuery } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
 import { ruleRefusalsOf } from '../../src/nouns.mjs';
 import { printValue } from '../../src/print-value.mjs';
+import { isGroupStep, isConstructStep, builtFrom } from '../../src/steps.mjs';
+import { isTag } from '../../src/types.mjs';
 
 const answers = async query => printValue(await evalQuery(query));
 
@@ -67,26 +69,30 @@ describe('a field of a kind', () => {
 });
 
 describe('the chain of a kind as the body of a bare name [QSBLD#kind]', () => {
-  const bodyOf = source => parse(source).steps?.[0]?.body ?? parse(source).body;
+  const bodyOf = source => parse(source)[0].get('body');
 
-  it('reads the chain of a bare name with its page begun on a later line', () => {
+  it('reads the chain of a bare name with its page begun on a later line, the group of its steps', () => {
     const body = bodyOf(':Box\n  |~~ A parcel. ~~|\n  ::kind\n    | wraps |~~ The sizes. ~~| ::map');
-    expect(body.type).toBe('Pipeline');
-    expect(body.steps.length).toBe(2);
+    expect(isGroupStep(body)).toBe(true);
+    expect(body.payload.length).toBe(2);
   });
 
   it('reads one step on the line of the name', () => {
-    const ast = parse(':Box |~~ A parcel. ~~| ::kind | wraps |~~ The sizes. ~~| ::map');
-    expect(ast.steps[0].body.type).toBe('TagLit');
+    expect(isTag(bodyOf(':Box |~~ A parcel. ~~| ::kind | wraps |~~ The sizes. ~~| ::map'))).toBe(true);
   });
 
   it('reads one step of a bare name with no page', () => {
-    const ast = parse(':s\n::vec\n| s');
-    expect(ast.steps[0].body.type).toBe('TagLit');
+    expect(isTag(bodyOf(':s\n::vec\n| s'))).toBe(true);
   });
 
   it('reads a literal of a kind as the body, which no chain heads', () => {
-    expect(bodyOf(':Box\n  |~~ A parcel. ~~|\n  ::kind[~() null]').type).toBe('TaggedLit');
+    expect(isConstructStep(bodyOf(':Box\n  |~~ A parcel. ~~|\n  ::kind[~() null]'))).toBe(true);
+  });
+
+  it('builds a body from the noun its literal names, in a group or not, and a group of another step from none', () => {
+    expect(builtFrom(bodyOf(':Box |~~ A parcel. ~~| (::kind[~() null])'))).toBe('kind');
+    expect(builtFrom(bodyOf(':Box |~~ A parcel. ~~| ::kind[~() null]'))).toBe('kind');
+    expect(builtFrom(bodyOf(':x (count)'))).toBe(null);
   });
 
   it('declares a word of a literal by the chain of a kind, and refuses it any other body', () => {

@@ -1,12 +1,12 @@
 import { readsAsBareKeyword } from './name-chars.mjs';
 import { declareInvariantError } from './errors.mjs';
-import { TAG_SIGIL } from './env-keys.mjs';
+import { TAG_SIGIL } from './scope-keys.mjs';
 
 export const NULL = null;
 
-// The regex, the keyword, the tag name, the path, the error and the
-// wrapper of a tag are objects branded on a hidden slot, so data never
-// forges one.
+// The regex, the keyword, the tag name, the path, the error and a tag over
+// a payload that is no bare vector or map are objects branded on a hidden
+// slot, so data never forges one.
 export const VALUE_CLASS_TAG = Symbol('qlang/valueClass');
 
 export function brandValueClass(target, valueClass) {
@@ -134,16 +134,12 @@ export function isQuote(v) {
   return Array.isArray(v) && v[TAG_HEADER_SYMBOL]?.name === QUOTE_TAG_NAME;
 }
 
-// A quote is a vector of steps under `::quote` [QSQUO#step], made here
-// alone, with a holder of the tree it runs through, the parser's for a quote
-// read from text and filled at its first run for one assembled from data.
+// A quote is a vector of steps under `::quote` [QSQUO#step], made here alone.
 export const QUOTE_TAG_NAME = 'quote';
-export const QUOTE_AST_SLOT = Symbol('qlang/quoteAst');
 
-export function makeQuote(steps, ast = undefined) {
+export function makeQuote(steps) {
   const quote = [...steps];
   stampTagHeader(quote, QUOTE_TAG);
-  stampSlot(quote, QUOTE_AST_SLOT, { ast });
   return Object.freeze(quote);
 }
 
@@ -232,12 +228,8 @@ export function makeDoc(segments) {
 export const TAG_HEADER_SYMBOL = Symbol('qlang/tag');
 
 export function stampTagHeader(m, tag) {
-  stampSlot(m, TAG_HEADER_SYMBOL, tag);
-}
-
-function stampSlot(target, slot, value) {
-  Object.defineProperty(target, slot, {
-    value, enumerable: false, configurable: false, writable: false
+  Object.defineProperty(m, TAG_HEADER_SYMBOL, {
+    value: tag, enumerable: false, configurable: false, writable: false
   });
 }
 
@@ -270,8 +262,8 @@ export const CORE_KIND = Object.freeze({
 });
 
 // A tag over a payload: an untagged vector or map holds the tag on itself,
-// so every verb of the container reads it; any other payload, a tagged one
-// among them, is held by a wrapper, which `payload` opens.
+// so every verb of the container reads it, and the tag holds any other
+// payload, a tagged one among them, under it, which `payload` takes off.
 export function makeTagged(tag, payload) {
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     const arr = [...payload];
@@ -284,21 +276,21 @@ export function makeTagged(tag, payload) {
     stampTagHeader(m, tag);
     return m;
   }
-  const wrap = brandValueClass({ tag, payload }, 'underTag');
-  stampTagHeader(wrap, tag);
-  return Object.freeze(wrap);
+  const underTag = brandValueClass({ tag, payload }, 'underTag');
+  stampTagHeader(underTag, tag);
+  return Object.freeze(underTag);
 }
 
-// The value beneath every tag a wrapper holds over it [QSLIT#kind].
+// The value beneath every tag that holds a payload under it [QSLIT#kind].
 export function beneathTags(value) {
   let beneath = value;
   while (isValueClass(beneath, 'underTag')) beneath = beneath.payload;
   return beneath;
 }
 
-// The payload beneath a value's own tag [QSLIT#kind]: the value a wrapper
-// holds, or a copy of the vector or the map that holds the tag on itself,
-// without it, a set's vector among them.
+// The payload beneath a value's own tag [QSLIT#kind]: the payload the tag
+// holds under it, or a copy of the vector or the map that holds the tag on
+// itself, without it, a set's vector among them.
 export function payloadBeneath(value) {
   if (isValueClass(value, 'underTag')) return value.payload;
   return isMap(value) ? new Map(value) : Object.freeze([...value]);

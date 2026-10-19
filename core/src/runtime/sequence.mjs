@@ -9,8 +9,7 @@
 import { beneathTags, isNumber, keyword, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath } from '../types.mjs';
 import { compareValues, makeSet } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { registerPrimitive, runs } from '../primitives.mjs';
-import { resolveBinaryReducer } from '../eval.mjs';
+import { registerPrimitive, runs, folds } from '../primitives.mjs';
 import { atPlace } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
 import { writtenAsText } from './string.mjs';
@@ -370,21 +369,18 @@ registerPrimitive('vec/flat', sequence => sequence.flatMap(element => (isVec(ele
 
 // ── the fold ───────────────────────────────────────────────────
 
-// The fold, `reduce seed ~(reducer)`: a quote of one word names the verb
-// called as the pipe calls it, `acc | add element`, the element the first of
-// its args; any other code runs on the pair of the value so far and the
-// element, and its answer is the value so far after it; `seed` answers for an
-// empty subject, and a failure of the reducer stops the fold at the place of
-// its element [QSCOL#reduce].
+// The fold, `reduce seed ~(reducer)`: the reducer folds the value so far and
+// each element into the value so far after it; `seed` answers for an empty
+// subject, and a failure of the reducer stops the fold at the place of its
+// element [QSCOL#reduce].
 async function foldOf(entries, seed, reducer) {
-  const combine = resolveBinaryReducer(reducer) ?? ((acc, element) => reducer([acc, element]));
   let acc = seed;
   for (const [segment, element] of entries) {
-    acc = await combine(acc, element);
+    acc = await reducer(acc, element);
     if (isErrorValue(acc)) return failedAt(acc, segment);
   }
   return acc;
 }
 
-registerPrimitive('vec/reduce', runs(['reducer'], (sequence, seed, reducer) => foldOf(sequence.entries(), seed, reducer)));
-registerPrimitive('map/reduce', runs(['reducer'], (map, seed, reducer) => foldOf(map, seed, reducer)));
+registerPrimitive('vec/reduce', folds(['reducer'], (sequence, seed, reducer) => foldOf(sequence.entries(), seed, reducer)));
+registerPrimitive('map/reduce', folds(['reducer'], (map, seed, reducer) => foldOf(map, seed, reducer)));

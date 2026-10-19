@@ -44,7 +44,7 @@ export function formatExample(code, verbNames) {
   return infos.map(({ type, content }) => {
     switch (type) {
       case 'comment': return `<span class="comment">${esc(content)}</span>`;
-      case 'prompt':  return `<span class="punct">&gt; </span>${hlSplit[codeIdx++] ?? ''}`;
+      case 'prompt':  return `<span class="prompt">&gt; </span>${hlSplit[codeIdx++] ?? ''}`;
       case 'cont':    return `  ${hlSplit[codeIdx++] ?? ''}`;
       default:        return highlightQlang(content, verbNames);
     }

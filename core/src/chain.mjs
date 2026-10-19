@@ -4,10 +4,9 @@
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, LITERAL_WORDS } from './name-chars.mjs';
-import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, TAG_HEADER_SYMBOL } from './types.mjs';
-import { isCommandStep } from './steps.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, recipeOf, FN_TAG_NAME, TAG_HEADER_SYMBOL } from './types.mjs';
+import { isCallStep, isGroupStep, isPathAlone, builtFrom } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
-import { astOfQuote } from './quote.mjs';
 import { segmentIndex } from './path-read.mjs';
 
 const FnCommandNotTakenError = declareRefusal('fn/CommandNotTakenError');
@@ -59,12 +58,25 @@ const KIND_COMMANDS = new Map([
 
 // The names of the commands a chain is written in, those its quote folds and
 // `impl`, which gives a function its recipe or a kind its constructor [QSBLD#fn], [QSBLD#kind].
-export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), 'impl'])]);
+const IMPL_NAME = 'impl';
+export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), IMPL_NAME])]);
+
+// bodyRuns(body) → whether the body of a declaration, as it is written, runs on
+// the values of its label: a quote, and a function its chain gives a recipe by
+// `impl`, or its literal one that is no null [QSBLD#fn], [QSHST#tools].
+export function bodyRuns(body) {
+  if (isQuote(body)) return true;
+  if (builtFrom(body) !== FN_TAG_NAME) return false;
+  const steps = isGroupStep(body) ? body.payload : [body];
+  if (steps.length > 1) return steps.slice(1).some(step => isCallStep(step) && step.get('name').name === IMPL_NAME);
+  const payload = steps[0].get('payload');
+  return isPlainVec(payload) && recipeOf(payload) !== null;
+}
 
 // The modifiers of a step that is one of the commands of a table in the
 // forms it takes, or null.
 function modifiersOf(step, commands) {
-  if (!isCommandStep(step) || !commands.has(step.get('name').name)) return null;
+  if (!isCallStep(step) || !commands.has(step.get('name').name)) return null;
   const { taken, optional } = commands.get(step.get('name').name);
   const modifiers = step.get('modifiers') ?? [];
   if (modifiers.length < taken.length || modifiers.length > taken.length + optional.length) return null;
@@ -286,30 +298,34 @@ export function invariantsOf(chain, name) {
 // else, and so takes any number of values [QSBLD#input].
 function placesOfReadings(readings) {
   let places = 0;
-  for (const { index, ast } of readings) {
-    if (!Number.isInteger(index) || ast.type === 'Pipeline') return null;
+  for (const { index, ofSeveralSteps } of readings) {
+    if (!Number.isInteger(index) || ofSeveralSteps) return null;
     places = Math.max(places, index + 1);
   }
   return places;
 }
 
 // How the place of an input of a function reads the args, once per place
-// [QSBLD#input]: its tree, a path read as it is written, the index of the arg
-// its first step reads, whether the place is that one step, and whether it
-// reads the args whole, `~(it)`.
+// [QSBLD#input]: the path it reads, a quote of a path alone among them, or
+// else the quote it runs, the index of the arg its first step reads, whether
+// the place is that one step, and whether it reads the args whole, `~(it)`.
 const READINGS = new WeakMap();
 
 function readingOfPlace(value) {
   let reading = READINGS.get(value);
   if (reading === undefined) {
-    const ast = isPath(value) ? { type: 'Path', keys: value.segments } : astOfQuote(value);
-    const index = indexReadBy(ast);
-    const onePlace = readsOnePlace(ast, index);
+    const path = isPath(value) ? value : isPathAlone(value) ? value[0] : null;
+    const steps = path === null ? value : [path];
+    const head = steps[0];
+    const call = isCallStep(head) ? { name: head.get('name').name, modifiers: head.get('modifiers') ?? [] } : null;
+    const index = indexReadBy(head, call);
+    const onePlace = steps.length === 1 && Number.isInteger(index) && (path === null ? call.modifiers.length <= 2 : path.segments.length === 1);
     reading = {
-      ast, index, onePlace,
-      strict: onePlace && ast.type === 'Path',
-      fallback: onePlace && ast.type === 'Call' && ast.args.length === 2 ? ast.args[1] : null,
-      readsArgs: ast.type === 'Call' && ast.name === 'it' && ast.args.length === 0
+      path, place: value, index, onePlace,
+      ofSeveralSteps: steps.length > 1,
+      strict: onePlace && path !== null,
+      fallback: call?.modifiers.length === 2 ? call.modifiers[1] : null,
+      readsArgs: steps.length === 1 && call?.name === 'it' && call.modifiers.length === 0
     };
     READINGS.set(value, reading);
   }
@@ -319,17 +335,8 @@ function readingOfPlace(value) {
 // The index of the arg the first step of a place reads, by a path or by
 // `query`, a whole number, or none for a place that reads the args whole,
 // one counted from its end or anything else.
-function indexReadBy(ast) {
-  const head = ast.type === 'Pipeline' ? ast.steps[0] : ast;
-  const index = head.type === 'Path' ? segmentIndex(head.keys[0])
-    : head.type === 'Call' && head.name === 'query' && head.args[0]?.type === 'Path' && head.args[0].keys.length === 1 ? segmentIndex(head.args[0].keys[0])
-    : NaN;
+function indexReadBy(head, call) {
+  const read = isPath(head) ? head : call?.name === 'query' && isPath(call.modifiers[0]) && call.modifiers[0].segments.length === 1 ? call.modifiers[0] : null;
+  const index = read === null ? NaN : segmentIndex(read.segments[0]);
   return Number.isInteger(index) && index >= 0 ? index : NaN;
-}
-
-// Whether a place is one step that reads one arg, `/n` or `query /n` with a
-// default or none.
-function readsOnePlace(ast, index) {
-  if (!Number.isInteger(index) || ast.type === 'Pipeline') return false;
-  return ast.type === 'Path' ? ast.keys.length === 1 : ast.args.length <= 2;
 }

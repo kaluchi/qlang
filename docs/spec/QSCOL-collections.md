@@ -123,16 +123,23 @@ its key, and one that answers a failure hands it on.
 `reduce` folds a vector, a set or a map's values from a seed by code of
 any form, the seed first and the code after it, a call with one arg
 refused as `::vec/reduce/reducer/NotGivenError` and code computed at the
-call as `::vec/reduce/reducer/KindNotTakenError`. A quote of one word
-that names a verb, by its name or its address, is the short form: the
-fold calls the verb as the pipe calls it, the value so far its subject
-and the element its first arg. Any other code runs on the pair of the
-value so far and the element. A value the scope binds under the name of
-the verb meets it, as a step does.
+call as `::vec/reduce/reducer/KindNotTakenError`. The fold reads the
+steps of its code: a quote of one step that is a call with no modifiers,
+by the name of a verb or its address, `~(add)` or `~(number/add)`,
+written or assembled from data alike, is the short form, which calls the
+verb as the pipe calls it, the value so far its subject and the element
+its first arg, in the scope of the step that wrote the quote, a value
+that scope binds under the name of the verb meeting it as a step does.
+Any other code runs on the pair of the value so far and the element, a
+path, a call with modifiers, a quote of more steps and a name that
+reaches no verb among it.
 
 ```qlang
 > [1 2 3] | reduce 0 ~(add)
 6
+
+> [1 2 3] | get [~(reduce 0 ([::call{:name :add}] | tag ::quote)) ~(reduce 0 ~(add | it) !| type)]
+[6 ::number/add/SubjectNotNumberError]
 
 > [1 2 3] | reduce 0 ~(:acc (get /0) | :el (get /1) | acc | mul 10 | add el)
 123
@@ -250,4 +257,7 @@ under no tag is refused as `::tagged/within/SubjectNotTaggedError`.
 
 > ::Box[1 2] | within ~(append 3)
 ::Box[1 2 3]
+
+> #[1 2] | within ~(get [/0 /0 /1])
+#[1 2]
 ```

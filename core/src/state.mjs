@@ -6,7 +6,7 @@
 // the scope and then the root [QSDSP#residence], [QSNAM#verb].
 
 import { CallEvaluationDepthExceededError } from './errors.mjs';
-import { ROOT_KEY, QUERY_KEY } from './env-keys.mjs';
+import { ROOT_KEY, QUERY_KEY } from './scope-keys.mjs';
 
 // The deepest evaluation depth `nestState` admits: a runaway, a verb that
 // calls itself without end, is refused one deeper, and the host's heap stays
@@ -16,25 +16,25 @@ export const EVAL_DEPTH_LIMIT = 1000;
 // The calls a state runs within keep the origin of each quote they
 // received, the nearest first, and a state a verb of the host reads keeps
 // beside the tree of the query the scope of its own step [QSQUO#held], [QSNAM#owner].
-function makeState(pipeValue, env, depth, calls = null, own = null) {
-  return Object.freeze({ pipeValue, env, depth, calls, own });
+function makeState(pipeValue, scope, depth, calls = null, own = null) {
+  return Object.freeze({ pipeValue, scope, depth, calls, own });
 }
 
-// rootState(pipeValue, env) → a state at depth 0, the first of a query, a
+// rootState(pipeValue, scope) → a state at depth 0, the first of a query, a
 // cell of a session or a source of the root.
-export function rootState(pipeValue, env) {
-  return makeState(pipeValue, env, 0);
+export function rootState(pipeValue, scope) {
+  return makeState(pipeValue, scope, 0);
 }
 
 // withPipeValue(state, nextPipeValue) → a state at the same depth holding
 // the value.
 export function withPipeValue(state, nextPipeValue) {
-  return makeState(nextPipeValue, state.env, state.depth, state.calls);
+  return makeState(nextPipeValue, state.scope, state.depth, state.calls);
 }
 
-// withEnv(state, nextEnv) → a state at the same depth holding the scope.
-export function withEnv(state, nextEnv) {
-  return makeState(state.pipeValue, nextEnv, state.depth, state.calls);
+// withScope(state, nextScope) → a state at the same depth holding the scope.
+export function withScope(state, nextScope) {
+  return makeState(state.pipeValue, nextScope, state.depth, state.calls);
 }
 
 // depthBelow(state) → the evaluation depth one deeper than a state, or
@@ -47,17 +47,17 @@ export function depthBelow(state) {
   return depth;
 }
 
-// nestState(state, pipeValue, env) → the state one deeper in the evaluation
+// nestState(state, pipeValue, scope) → the state one deeper in the evaluation
 // depth.
-export function nestState(state, pipeValue, env) {
-  return makeState(pipeValue, env, depthBelow(state), state.calls);
+export function nestState(state, pipeValue, scope) {
+  return makeState(pipeValue, scope, depthBelow(state), state.calls);
 }
 
 // withCall(state, origins) → the state of the run of a call, which keeps
 // the origin of each quote the call received for the code run within it,
 // before those of the calls around it [QSQUO#held].
 export function withCall(state, origins) {
-  return makeState(state.pipeValue, state.env, state.depth, { origins, around: state.calls }, state.own);
+  return makeState(state.pipeValue, state.scope, state.depth, { origins, around: state.calls }, state.own);
 }
 
 // originIn(state, quote) → the origin the nearest call around a state keeps
@@ -73,44 +73,45 @@ export function originIn(state, quote) {
 // ownScopeOf(state) → the scope of the step a state runs, its own where a
 // verb of the host reads the tree of the query [QSNAM#owner].
 export function ownScopeOf(state) {
-  return state.own ?? state.env;
+  return state.own ?? state.scope;
 }
 
 const NO_ROOT = new Map();
 
-// rootOf(env) → the root beneath a scope, the bindings the host's
+// rootOf(scope) → the root beneath a scope, the bindings the host's
 // sources declared.
-export function rootOf(env) {
-  return env.get(ROOT_KEY) ?? NO_ROOT;
+export function rootOf(scope) {
+  return scope.get(ROOT_KEY) ?? NO_ROOT;
 }
 
-// envHas(env, name) → whether the scope or the root holds the name.
-export function envHas(env, name) {
-  return env.has(name) || rootOf(env).has(name);
+// scopeHas(scope, name) → whether the scope or the root holds the name.
+export function scopeHas(scope, name) {
+  return scope.has(name) || rootOf(scope).has(name);
 }
 
-// queryTreeOf(env) → the tree of names of the query a scope runs under:
+// queryTreeOf(scope) → the tree of names of the query a scope runs under:
 // in the recipe of a verb, the tree of the query that called it, carried
 // down through every verb the recipe calls, and elsewhere the scope itself.
 // A verb of the host reads it at its call, while the names a recipe writes
 // read the scope the recipe runs in, so a verb written in the language and
 // a verb of the host read the same tree [QSNAM#owner].
-export function queryTreeOf(env) {
-  return env.get(QUERY_KEY) ?? env;
+export function queryTreeOf(scope) {
+  return scope.get(QUERY_KEY) ?? scope;
 }
 
 // queryStateOf(state) → the state as a verb of the host reads it at its
 // call: its value and its depth over the tree of the query [QSNAM#owner].
 export function queryStateOf(state) {
-  const tree = queryTreeOf(state.env);
-  return tree === state.env ? state : makeState(state.pipeValue, tree, state.depth, state.calls, state.env);
+  const tree = queryTreeOf(state.scope);
+  return tree === state.scope ? state : makeState(state.pipeValue, tree, state.depth, state.calls, state.scope);
 }
 
-// envSet(env, name, value) → a new scope, the name holding the value; the
+// scopeSet(scope, name, value) → a new scope, the name holding the value; the
 // recipe of a verb keeps its own names out of the tree of the query, as a
 // verb of the host does [QSNAM#owner].
-export function envSet(env, name, value) {
-  return asScopeOf(env, new Map(env).set(name, value));
+export function scopeSet(scope, name, value) {
+  const made = new Map(scope).set(name, value);
+  return isRootVerbScope(scope) ? markRootVerbScope(made) : made;
 }
 
 // The scopes of the verbs of the root, where a name under a noun of the
@@ -124,15 +125,4 @@ export function markRootVerbScope(scope) {
 
 export function isRootVerbScope(scope) {
   return ROOT_VERB_SCOPES.has(scope);
-}
-
-export function asScopeOf(from, made) {
-  return ROOT_VERB_SCOPES.has(from) ? markRootVerbScope(made) : made;
-}
-
-// envMerge(env, otherMap) → a new scope, the names of the map over its own.
-export function envMerge(env, otherMap) {
-  const next = new Map(env);
-  for (const [key, value] of otherMap) next.set(key, value);
-  return asScopeOf(env, next);
 }

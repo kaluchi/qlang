@@ -31,3 +31,5 @@
 {"name":"a-vector-holds-a-doc-as-its-last-element","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
 {"name":"a-doc-that-opens-a-query-is-a-value-a-name-holds","query":"|~~ note ~~| | :n it | n | content","expect":"\" note \""}
 {"name":"a-run-of-backquotes-closes-at-a-run-of-as-many","query":"|~~ a ``~(add 1)`` c ~~| | segments","expect":"[\" a ``~(add 1)`` c \"]"}
+{"name":"a-line-doc-reads-a-quote-of-no-code-to-the-parenthesis-that-pairs-it","query":"\"|~~| a ~(b, ~(add 1)) c\" | parse | first | segments","expect":"[\" a ~(b, ~(add 1)) c\"]"}
+{"name":"a-line-doc-that-holds-a-quote-of-no-code-reads-back-from-its-print","query":"\"|~~| a ~(b, ~(add 1)) c\" | parse | first | :d it | print | parse | first | eq d","expect":"true"}

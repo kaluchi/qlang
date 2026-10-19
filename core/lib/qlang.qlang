@@ -77,7 +77,7 @@
       `{:b 2 :a 1}`; `reduce` folds the elements into a seed, calling
       its verb with the value so far as the subject and the element as
       its first arg, `[1 2 3] | reduce 0 ~(add)` answering `6`, and
-      running code of several steps on the pair of the two,
+      running any other code on the pair of the two,
       `[{:n 1} {:n 2}] | reduce 0 ~(sumOf /0 /1/n)` answering `3`.
       Several steps stand in one quote,
       `[{:price 3}] | map ~(get /price | mul 2)` answering `[6]`, and
@@ -267,8 +267,8 @@
         |~~ `reduce` folds the elements from a seed. ~~|
         ~([3 1 2] | reduce 0 ~(add) | eq 6)
     | proves :foldsCodeOnThePair
-        |~~ Code of several steps folds on the pair of the value so far
-            and the element.
+        |~~ Any other code folds on the pair of the value so far and the
+            element.
         ~~|
         ~([{:n 1} {:n 2}] | reduce 0 ~(sumOf /0 /1/n) | eq 3)
     | proves :ordersASet

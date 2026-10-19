@@ -1,4 +1,4 @@
-{"name":"a-doc-shows-its-quote-as-written","query":"|~~ x ~({\"a\": 1} | eq {:a 1}) ~~| | content","expect":"\" x ~({\\\"a\\\": 1} | eq {:a 1}) \""}
+{"name":"a-doc-shows-its-quote-as-print-writes-it","query":"|~~ x ~({\"a\": 1} | eq {:a 1}) ~~| | content","expect":"\" x ~({:a 1} | eq {:a 1}) \""}
 {"name":"a-quote-assembled-from-data-is-printed","query":"~(add 1 | mul 2) | take 1 | :q it | get [~(q)] | tag ::doc | content","expect":"\"~(add 1)\""}
 {"name":"content-answers-the-text-of-a-doc-of-prose","query":"|~~ x ~~| | content","expect":"\" x \""}
 {"name":"the-content-of-the-empty-doc-is-the-empty-string","query":"|~~~~| | content","expect":"\"\""}
@@ -43,3 +43,12 @@
 {"name":"a-doc-held-in-a-name-is-equal-to-itself","query":"|~~ same ~~| | :d it | eq d","expect":"true"}
 {"name":"a-payload-of-a-doc-is-a-vector","query":"5 | tag ::doc !| type","expect":"::doc/PayloadKindNotTakenError"}
 {"name":"a-quote-holds-a-doc-under-the-tag-of-a-kind-as-written","query":"~(|~~ see ::number~(~(x)) ~~|) | print","expect":"\"~(|~~ see ::number~(~(x)) ~~|)\""}
+{"name":"a-doc-prints-its-quote-as-print-writes-it-and-reads-a-broken-one-as-prose","query":"get [~(|~~ a ~(add   1) b ~~| | print) ~(|~~ a ~(count | 1) b ~~| | segments | count)]","expect":"[\"|~~ a ~(add 1) b ~~|\" 1]"}
+{"name":"two-equal-docs-print-alike-whatever-their-spacing","query":"get [~(|~~ a ~(add   1) ~~| | print) ~(|~~ a ~(add 1) ~~| | print)] | toSet | count","expect":"1"}
+{"name":"a-doc-s-quote-under-the-tag-of-a-group-is-a-segment-that-computes-nothing","query":"get [~(|~~ see ::group~(add 1) ~~| | segments | count) ~([|~~ ::group~(add 1) ~~|] | count) ~(\"f |~~ ::group~(x) ~~|\" | parse | first | get /modifiers | count) ~([\"a\" ::group~(x)] | tag ::doc | :d it | print | parse | first | eq d)]","expect":"[3 1 1 true]"}
+{"name":"a-doc-s-quote-whose-text-the-grammar-refuses-reads-as-prose","query":"get [~(\"|~~ a ~(f 01) ~~|\" | parse | first | segments | count) ~(\"|~~ a ~(f [x] 01) ~~|\" | parse | first | segments | count) ~(\"[01]\" | parse !| type)]","expect":"[1 1 ::quote/ParseError]"}
+{"name":"prose-answers-the-prose-of-a-doc-its-quotes-left-out","query":"|~~ a ~(add 1) b ~~| | prose","expect":"\" a  b \""}
+{"name":"prose-leaves-out-a-link-and-a-snippet","query":"|~~ a ::link~(::qlang | doc) b ::snippet~(1) c ~~| | prose","expect":"\" a  b  c \""}
+{"name":"prose-of-a-doc-of-prose-alone-is-its-content","query":"|~~ only prose ~~| | :d it | prose | eq (d | content)","expect":"true"}
+{"name":"prose-reads-a-doc-under-a-tag","query":"::Box|~~ a ~(add 1) b ~~| | prose","expect":"\" a  b \""}
+{"name":"prose-refuses-a-subject-that-is-no-doc","query":"\"x\" | prose !| type","expect":"::doc/prose/SubjectNotDocError"}

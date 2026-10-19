@@ -16,6 +16,7 @@ import {
   isErrorValue
 } from '../../src/types.mjs';
 import { parse } from '../../src/parse.mjs';
+import { partOf } from '../../src/walk.mjs';
 import { errorFromParse, spanOfLocation } from '../../src/error-convert.mjs';
 import { printValue } from '../../src/print-value.mjs';
 
@@ -148,7 +149,7 @@ describe('error-convert.mjs — spanOfLocation [QSPRN#span]', async () => {
   });
 
   it('writes the start and the end of a location as the six numbers of a span', async () => {
-    const span = spanOfLocation(parse('42').location, '42');
+    const span = spanOfLocation(partOf(parse('42')).span, '42');
     expect(typeOf(span).name).toBe('span');
     expect([...span]).toEqual([0, 1, 1, 2, 1, 3]);
   });
@@ -326,5 +327,13 @@ describe('printValue round-trip — all composite types', async () => {
 
   it('deeply nested composite', async () => {
     await assertRoundTrip('{:data [{:id 1 :tags #[:a :b]} {:id 2 :tags #[:c]}]}', 'deep composite');
+  });
+});
+
+describe('string/toNumber — the number a text writes whole [QSCND#convert]', () => {
+  it('refuses a text that writes a number beside whitespace', async () => {
+    for (const text of ['"5 "', '" 5"']) {
+      expect(await evalQuery(`${text} | toNumber !| type`), text).toEqual(await evalQuery('::string/toNumber/TextNotNumberError'));
+    }
   });
 });

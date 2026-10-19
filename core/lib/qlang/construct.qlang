@@ -20,24 +20,35 @@
   ::kind
     | wraps
         |~~ The record of the step, `:tag` and `:payload`, built into its
-            step, which reads back as itself.
+            step.
+        ~~|
+    | throws :PayloadKindNotTakenError
+        |~~ `::construct` builds the step of a tagged literal from its
+            record, a map; a payload of another kind is refused.
+            ::link~(::construct | doc)
         ~~|
     | throws :PayloadNotSchemaError
         |~~ A `::construct` is a map of `:tag`, a tag name, and
-            `:payload`, a step, both given, and `:field` names the field
+            `:payload`, a literal, both given, and `:field` names the field
             that does not fit: the tag is written with its two colons, so
             the step `::Box[1]` is
-            `{:tag ::Box :payload [1]} | tag ::construct`.
+            `{:tag ::Box :payload [1]} | tag ::construct`, and an error
+            literal is written with its tag before its bang, `::Box!{:k 1}`.
             ::link~(::construct | doc)
         ~~|
-    | throws :ReadBackDiffersError
-        |~~ The `::construct` prints as text that reads back as another
-            step, and `:printed` is that text: a payload is a literal,
-            touching its tag by its sign or by `#`, `::Box#42`, and the
-            step of code, a call or a group, stands after its tag in the
-            parentheses of code, which no literal holds.
-            ::link~(::construct | doc)
+    | throws :LiteralComputesError
+        |~~ A payload computes nothing, as every part of a literal: a name
+            or a group in it is refused, and `:message` writes the template
+            `get` builds the value from, its parts computed written as
+            quotes, `get ::Box[~(x)]`, while a value computed goes under a
+            tag by `tag`, `x | tag ::Box`.
+            ::link~(::construct | doc) ::link~(::any/get | doc)
         ~~|
+    | carries :LiteralComputesError/message
+        |~~ What the rule says of the literal, the template `get` builds it
+            from.
+        ~~|
+        ::string
     | throws :TagNotKindError
         |~~ The tag before a payload addresses a kind, a label declared by
             its chain or by its page alone, a verb, whose args it lays
@@ -67,16 +78,20 @@
     | proves :PayloadNotSchemaError/buildsTheStepOfATag
         |~~ A tag name and the step of a payload build the step. ~~|
         ~({:tag ::Box :payload [1]} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Box[1]))
-    | proves :ReadBackDiffersError/refusesAPayloadOfCode
-        |~~ The step of a call as the payload prints in the parentheses
-            of code after its tag, which no literal holds.
+    | proves :PayloadNotSchemaError/refusesAnErrorLiteralWithoutItsTag
+        |~~ An error literal is no payload; its tag stands before its bang.
         ~~|
+        ~(~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct
+          !| get [~(type) /field] | eq [::construct/PayloadNotSchemaError :payload])
+    | proves :PayloadKindNotTakenError/refusesAVector
+        |~~ A vector is no record of a tagged literal. ~~|
+        ~(::construct[1] !| get [~(type) /expected] | eq [::construct/PayloadKindNotTakenError #[::map]])
+    | proves :LiteralComputesError/refusesAPayloadOfCode
+        |~~ The step of a call as the payload computes, and is refused. ~~|
         ~(get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct
-          !| get [~(type) /printed] | eq [::construct/ReadBackDiffersError "::Box(x)"])
-    | proves :ReadBackDiffersError/writesANumberPayloadByAHash
-        |~~ A number payload touches its tag by `#` and reads back as
-            itself.
-        ~~|
+          !| get [~(type) /message] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get ::Box~(x)`"])
+    | proves :writesANumberPayloadByAHash
+        |~~ A number payload touches its tag by `#`. ~~|
         ~(::construct{:tag ::Box :payload 42} | get [~(it)] | tag ::quote | eq ~(::Box#42))
     | proves :TagNotKindError/refusesTheTagOfAValue
         |~~ The tag of a name that holds a value builds nothing. ~~|

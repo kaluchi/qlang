@@ -15,10 +15,10 @@ import { readText, treeAt } from './tree-reads.mjs';
 import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, foldersOfForm, JOURNAL, RESEARCH } from './decision-records.mjs';
 
 export const RECORDS_A_WALK_TAKES = 20;
-export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
+export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
 // The code beside the roots: the configurations at the root of the
 // repository and of each workspace.
-export const CITING_CODE_FILES = ['eslint.config.mjs', 'core/vitest.config.mjs', 'cli/vitest.config.mjs', 'cli/vitest.integration.config.mjs', 'lsp/vitest.config.mjs', 'site/astro.config.mjs', 'site/vitest.config.mjs'];
+export const CITING_CODE_FILES = ['eslint.config.mjs', 'core/vitest.config.mjs', 'cli/vitest.config.mjs', 'cli/vitest.integration.config.mjs', 'lsp/vitest.config.mjs', 'vscode/vitest.config.mjs', 'site/astro.config.mjs', 'site/vitest.config.mjs'];
 export const CITING_DOCUMENTS = ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'];
 export const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang|yml)$/;
 const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets']);

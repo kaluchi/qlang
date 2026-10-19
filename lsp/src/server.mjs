@@ -1,8 +1,6 @@
-// qlang language server — LSP wiring over features.mjs.
-//
-// Runs as a child process a client of the protocol launches and
-// talks JSON-RPC over stdio: it reads the sources of the language and
-// answers each request of the protocol by the functions of features.mjs.
+// The language server, a child process a client of the protocol launches,
+// which talks JSON-RPC over stdio and answers each request of the protocol
+// by the functions of features.mjs.
 
 import { readFileSync } from 'node:fs';
 import {
@@ -18,7 +16,7 @@ import {
   ParameterInformation
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parse, langRuntime, LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
+import { parse, partOf, langRuntime, LANGUAGE_SOURCES, SIGNS_A_WORD_FOLLOWS } from '@kaluchi/qlang-core';
 import {
   parseDocument,
   buildCatalogIndex,
@@ -58,8 +56,8 @@ async function loadCatalogContext() {
   for (const { fileUri, uri } of sources) {
     try {
       const source = readFileSync(new URL(fileUri), 'utf8');
-      const ast = parse(source, { uri });
-      const entries = buildCatalogIndex(ast);
+      const root = partOf(parse(source, { uri }));
+      const entries = buildCatalogIndex(root);
       for (const [name, range] of entries) {
         mergedIndex.set(name, { ...range, fileUri, source });
       }
@@ -77,7 +75,7 @@ connection.onInitialize(async () => {
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
-      completionProvider: { triggerCharacters: ['|', '/', ':', '(', ' '] },
+      completionProvider: { triggerCharacters: [...SIGNS_A_WORD_FOLLOWS] },
       hoverProvider: true,
       definitionProvider: true,
       referencesProvider: true,
@@ -97,9 +95,9 @@ connection.onInitialize(async () => {
 function validateDocument(textDocument) {
   const source = textDocument.getText();
   const uri = textDocument.uri;
-  const { ast, diagnostics: rawDiags } = parseDocument(source, uri);
+  const { root, diagnostics: rawDiags } = parseDocument(source, uri);
 
-  documentStates.set(uri, { ast, source });
+  documentStates.set(uri, { root, source });
 
   const diagnostics = rawDiags.map(d => ({
     range: {
@@ -124,10 +122,17 @@ documents.onDidClose(e => {
 
 // ── Completion ────────────────────────────────────────────────
 
-const COMPLETION_KIND_MAP = {
-  function: CompletionItemKind.Function,
-  variable: CompletionItemKind.Variable,
-  tag:      CompletionItemKind.Struct
+// The roles of a declaration as the kinds of a completion and a symbol [QSHST#tools].
+const COMPLETION_KIND_OF_ROLE = {
+  verb:  CompletionItemKind.Function,
+  value: CompletionItemKind.Variable,
+  label: CompletionItemKind.Struct
+};
+
+const SYMBOL_KIND_OF_ROLE = {
+  verb:  SymbolKind.Function,
+  value: SymbolKind.Variable,
+  label: SymbolKind.Struct
 };
 
 connection.onCompletion(async (params) => {
@@ -136,11 +141,11 @@ connection.onCompletion(async (params) => {
   if (!doc) return [];
 
   const offset = doc.offsetAt(params.position);
-  const items = await completionsAtOffset(state?.ast ?? null, offset, state?.source ?? null);
+  const items = await completionsAtOffset(state?.root ?? null, offset, state?.source ?? null);
 
   return items.map(item => ({
     label: item.label,
-    kind: COMPLETION_KIND_MAP[item.kind] ?? CompletionItemKind.Text,
+    kind: COMPLETION_KIND_OF_ROLE[item.role],
     detail: item.detail,
     documentation: item.documentation
       ? { kind: MarkupKind.Markdown, value: item.documentation }
@@ -153,10 +158,10 @@ connection.onCompletion(async (params) => {
 connection.onHover(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
-  if (!state?.ast || !doc) return null;
+  if (!state?.root || !doc) return null;
 
   const offset = doc.offsetAt(params.position);
-  const hover = await hoverAtOffset(state.ast, state.source, offset);
+  const hover = await hoverAtOffset(state.root, state.source, offset);
   if (!hover) return null;
 
   return {
@@ -170,18 +175,16 @@ connection.onHover(async (params) => {
 
 // ── Go to Definition ──────────────────────────────────────────
 
-connection.onDefinition((params) => {
+connection.onDefinition(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
-  if (!state?.ast || !doc) return null;
+  if (!state?.root || !doc) return null;
 
   const offset = doc.offsetAt(params.position);
-  const def = definitionAtOffset(state.ast, offset, catalogCtx);
+  const def = await definitionAtOffset(state.root, offset, catalogCtx);
   if (!def) return null;
 
-  // Catalog hits carry their own source-text + file URI; in-document
-  // declarations carry only offsets and rely on the current document
-  // for offset→position conversion.
+  // A declaration of the catalog stands in the file of its source.
   if (def.fileUri) {
     return {
       uri: def.fileUri,
@@ -222,10 +225,10 @@ function offsetToPosition(source, offset) {
 connection.onReferences((params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
-  if (!state?.ast || !doc) return [];
+  if (!state?.root || !doc) return [];
 
   const offset = doc.offsetAt(params.position);
-  const refs = referencesAtOffset(state.ast, offset);
+  const refs = referencesAtOffset(state.root, offset);
 
   return refs.map(ref => ({
     uri: params.textDocument.uri,
@@ -238,22 +241,16 @@ connection.onReferences((params) => {
 
 // ── Document Symbols ──────────────────────────────────────────
 
-const SYMBOL_KIND_MAP = {
-  verb:     SymbolKind.Function,
-  value:    SymbolKind.Variable,
-  tag:      SymbolKind.Struct
-};
-
 connection.onDocumentSymbol(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
-  if (!state?.ast || !doc) return [];
+  if (!state?.root || !doc) return [];
 
-  const symbols = documentSymbols(state.ast, await langRuntime());
+  const symbols = documentSymbols(state.root, await langRuntime());
 
   return symbols.map(sym => ({
     name: sym.name,
-    kind: SYMBOL_KIND_MAP[sym.kind] ?? SymbolKind.Variable,
+    kind: SYMBOL_KIND_OF_ROLE[sym.role],
     range: {
       start: doc.positionAt(sym.startOffset),
       end: doc.positionAt(sym.endOffset)
@@ -269,7 +266,7 @@ connection.onDocumentSymbol(async (params) => {
 
 connection.onFoldingRanges((params) => {
   const state = documentStates.get(params.textDocument.uri);
-  return state?.ast ? foldingRangesOf(state.ast, state.source) : [];
+  return state?.root ? foldingRangesOf(state.root) : [];
 });
 
 // ── Signature Help ────────────────────────────────────────────
@@ -277,10 +274,10 @@ connection.onFoldingRanges((params) => {
 connection.onSignatureHelp(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
-  if (!state?.ast || !doc) return null;
+  if (!state?.root || !doc) return null;
 
   const offset = doc.offsetAt(params.position);
-  const sig = await signatureHelpAtOffset(state.ast, state.source, offset);
+  const sig = await signatureHelpAtOffset(state.root, state.source, offset);
   if (!sig) return null;
 
   const sigInfo = SignatureInformation.create(

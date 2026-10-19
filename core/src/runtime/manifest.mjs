@@ -7,7 +7,7 @@ import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue, bindingValueOf, makeTag, errorAtRest, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { codeOf } from '../eval.mjs';
-import { rootOf, withEnv } from '../state.mjs';
+import { rootOf, withScope } from '../state.mjs';
 import { recordReadBy, pageOfRecord } from './axis.mjs';
 import { namesUnder, lawsUnder, rootScopeOf } from '../nouns.mjs';
 
@@ -16,7 +16,7 @@ import { namesUnder, lawsUnder, rootScopeOf } from '../nouns.mjs';
 // any other value its kind's [QSSLF#manifest].
 const AnyManifestUnknownNameError = declareRefusal('any/manifest/UnknownNameError');
 registerStateReader('any/manifest', (subject, state) =>
-  namesUnder(state.env, recordReadBy(subject, NULL, state, AnyManifestUnknownNameError).get('name').name));
+  namesUnder(state.scope, recordReadBy(subject, NULL, state, AnyManifestUnknownNameError).get('name').name));
 
 // The laws declared under the address of the record a value reads, as
 // `doc` reads it: each one's last name and the pair of its page, null for
@@ -25,7 +25,7 @@ registerStateReader('any/manifest', (subject, state) =>
 const AnyLawsUnknownNameError = declareRefusal('any/laws/UnknownNameError');
 registerStateReader('any/laws', (subject, state) => {
   const address = recordReadBy(subject, NULL, state, AnyLawsUnknownNameError).get('name').name;
-  return new Map(lawsUnder(state.env, address).map(([lastName, record]) =>
+  return new Map(lawsUnder(state.scope, address).map(([lastName, record]) =>
     [lastName, Object.freeze([pageOfRecord(record), bindingValueOf(record).payload])]));
 });
 
@@ -58,15 +58,15 @@ async function runLaw({ law, quote, says }, callerState) {
 // [QSSLF#laws].
 async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   const address = recordReadBy(subject, anchor, state, UnknownNameError).get('name').name;
-  const root = rootOf(state.env);
-  const claims = lawsUnder(state.env, address).map(([lastName, lawRecord]) => ({
+  const root = rootOf(state.scope);
+  const claims = lawsUnder(state.scope, address).map(([lastName, lawRecord]) => ({
     law: makeTag(`${address}/${lastName}`),
     quote: bindingValueOf(lawRecord).payload,
     says: pageOfRecord(lawRecord),
     ofTheRoot: root.get(`${address}/${lastName}`) === lawRecord
   }));
   const results = [];
-  for (const claim of claims) results.push(await runLaw(claim, claim.ofTheRoot ? withEnv(state, rootScopeOf(state.env)) : state));
+  for (const claim of claims) results.push(await runLaw(claim, claim.ofTheRoot ? withScope(state, rootScopeOf(state.scope)) : state));
   return results;
 }
 

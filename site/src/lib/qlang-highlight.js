@@ -1,58 +1,16 @@
-// HTML renderer over core's AST tokenizer. The token stream
-// (kind + offsets) lives in @kaluchi/qlang-core/highlight; this
-// file only paints each token kind into its `<span class="…">`
-// envelope and HTML-escapes the slice, for the examples the build of the
-// site paints and for the playground and the REPL of the site in the
-// browser.
-//
-// Usage:
-//   highlightQlang(src, verbNames) → HTML string
-//
-//     `src`       qlang source text, no prompt prefix or result lines
-//     `verbNames` Set<string> of the names of verbs that resolve through
-//                 langRuntime — the playground builds this once at
-//                 startup and reuses it across every highlighted
-//                 snippet. Pass null to paint the name of every call
-//                 as a reader's name.
-// The rules it holds: [QSWRK#tooling].
+// highlightQlang(source, verbNames) → the HTML of a source for the examples
+// the build of the site paints and for its playground and its REPL, each token
+// of the core's `tokenize` a span whose class is its kind, `italic` beside it
+// inside a quote, which `site/src/styles/global.css` coats; every call is a
+// name where no names of the root's words are handed.
+// The rules it holds: [QSWRK#tooling], [QSHST#tools].
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
+const escaped = text => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const KIND_TO_CLASS = {
-  string:   'string',
-  regex:    'regex',
-  quote:    'quote',
-  number:   'number',
-  comment:  'comment',
-  name:     'name',
-  tag:      'tag',
-  word:     'word',
-  keyword:  'keyword',
-  err:      'err',
-  set:      'set',
-  vec:      'vec',
-  punct:    'punct'
-};
-
-export function highlightQlang(src, verbNames) {
-  const tokens = tokenize(src, verbNames ?? new Set());
-  let out = '';
-  for (const { start, end, kind, italic } of tokens) {
-    const slice = src.slice(start, end);
-    const cls = KIND_TO_CLASS[kind];
-    if (cls === undefined) {
-      out += escHtml(slice);
-    } else {
-      const classes = italic ? `${cls} italic` : cls;
-      out += `<span class="${classes}">${escHtml(slice)}</span>`;
-    }
-  }
-  return out;
+export function highlightQlang(source, verbNames) {
+  return tokenize(source, verbNames ?? new Set())
+    .map(({ start, end, kind, italic }) => `<span class="${italic ? `${kind} italic` : kind}">${escaped(source.slice(start, end))}</span>`)
+    .join('');
 }

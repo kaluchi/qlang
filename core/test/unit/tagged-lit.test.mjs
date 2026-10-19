@@ -5,27 +5,28 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
-import { isErrorValue, isQuote, makeTag } from '../../src/types.mjs';
+import { isErrorValue, isQuote, isTag, isMap, makeTag } from '../../src/types.mjs';
+import { isConstructStep } from '../../src/steps.mjs';
 import { printQuoteSource } from '../../src/print-value.mjs';
 
 describe('the parser reads a tag before a payload as a tagged literal', () => {
   it('reads a quote after a tag as its payload', () => {
-    const ast = parse('::invariant~(mul 2)');
-    expect(ast.type).toBe('TaggedLit');
-    expect(ast.tag).toBe('invariant');
-    expect(ast.payload.type).toBe('QuoteLit');
+    const [step] = parse('::invariant~(mul 2)');
+    expect(isConstructStep(step)).toBe(true);
+    expect(step.get('tag').name).toBe('invariant');
+    expect(isQuote(step.get('payload'))).toBe(true);
   });
 
   it('reads a tag alone as the tag name', () => {
-    const ast = parse('::Box');
-    expect(ast.type).toBe('TagLit');
-    expect(ast.tag).toBe('Box');
+    const [step] = parse('::Box');
+    expect(isTag(step)).toBe(true);
+    expect(step.name).toBe('Box');
   });
 
   it('reads a map touching a tag as its payload', () => {
-    const ast = parse('::Box{:k 1}');
-    expect(ast.type).toBe('TaggedLit');
-    expect(ast.payload.type).toBe('MapLit');
+    const [step] = parse('::Box{:k 1}');
+    expect(isConstructStep(step)).toBe(true);
+    expect(isMap(step.get('payload'))).toBe(true);
   });
 });
 
@@ -261,9 +262,9 @@ describe('a tag no node answers is a kind of identity, and declares nothing [QSN
   });
 });
 
-describe('within edits under one tag and rewraps it', () => {
-  // The payload runs through the quote as a fork and is laid back under the
-  // subject's tag, whose constructor runs once, at the rewrap [QSDSP#answer].
+describe('within edits under one tag and lays the tag back', () => {
+  // The payload runs through the quote as a fork and the subject's tag is
+  // laid back over the answer, its constructor running once [QSDSP#answer].
   it('a set normalizes the vector the edit answers', async () => {
     expect(await evalQuery('#[1 2] | within ~(get [/0 /0 /1]) | eq #[1 2]')).toBe(true);
   });

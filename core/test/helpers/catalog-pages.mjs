@@ -68,7 +68,7 @@ export async function wrongLinksOf(answerOf, links, declaredPages) {
 export async function proseQuotesOf(answerOf, addresses) {
   const holding = [];
   for (const address of addresses) {
-    const prose = await answerOf(`${address} | doc !| |~~ ~~| | segments | filter ~(type | eq ::string) | join ""`);
+    const prose = await answerOf(`${address} | doc !| |~~ ~~| | prose`);
     if (quoteInProse(prose)) holding.push(address);
   }
   return holding;

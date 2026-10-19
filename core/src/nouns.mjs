@@ -8,7 +8,7 @@
 import {
   isBinding, isBuiltinDescriptor, isDoc, isPrimitiveHanded, isMap, isQuote, isVec, isTag, isTagged,
   isValueClass, isFn, isKind, recipeOf, makeTag, makeTagged,
-  typeOf, bindingValueOf, keyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS
+  typeOf, bindingValueOf, keyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
@@ -16,15 +16,15 @@ import {
   splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME, subjectRefusalAddress, argsBeyondInputsAddress, notGivenAddress,
   kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName
 } from './address.mjs';
-import { ROOT_KEY, WITHHELD_KEY } from './env-keys.mjs';
+import { ROOT_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import { declareRefusal } from './errors.mjs';
 import { ANSWER_NAME, CONSTRUCT_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
 
 // The bindings of a scope by name: the root's a name of the scope does
 // not stand over, then the scope's.
-function* bindingsOf(env) {
-  for (const [name, entry] of rootOf(env)) if (!env.has(name)) yield [name, entry];
-  for (const [name, entry] of env) if (isBinding(entry)) yield [name, entry];
+function* bindingsOf(scope) {
+  for (const [name, entry] of rootOf(scope)) if (!scope.has(name)) yield [name, entry];
+  for (const [name, entry] of scope) if (isBinding(entry)) yield [name, entry];
 }
 
 // nodeOf(scope, tagName) → the record of the node a tag name addresses, or
@@ -46,9 +46,9 @@ export function nodeOf(scope, tagName) {
 // before any name of the reader, and the label stays.
 export const CallValueWithheldError = declareRefusal('call/ValueWithheldError');
 
-export function refuseWithheld(env, name, readByTag = false) {
-  if (env.has(name) || !env.get(WITHHELD_KEY)?.has(name)) return;
-  if (readByTag && declaresALabel(rootOf(env).get(name))) return;
+export function refuseWithheld(scope, name, readByTag = false) {
+  if (scope.has(name) || !scope.get(WITHHELD_KEY)?.has(name)) return;
+  if (readByTag && declaresALabel(rootOf(scope).get(name))) return;
   throw new CallValueWithheldError({ name: keyword(name) });
 }
 
@@ -66,9 +66,9 @@ export function isLabel(scope, name) {
 
 // Whether a name stands under a label, where a quote or a host's
 // primitive runs on the label's values [QSNAM#verb].
-export function isUnderLabel(env, name) {
+export function isUnderLabel(scope, name) {
   const [labelName] = splitAddress(name);
-  return labelName !== null && isLabel(env, labelName);
+  return labelName !== null && isLabel(scope, labelName);
 }
 
 // declaresVerb(address, runs, isLabelName) → whether a declaration at the
@@ -82,8 +82,8 @@ export function declaresVerb(address, runs, isLabelName) {
 
 // Whether a record holds a verb, its value a quote or the descriptor of a
 // host's primitive, which run on the label's values.
-function residesOn(record, env) {
-  return declaresVerb(record.get('name').name, isVerbValue(bindingValueOf(record)), labelName => isLabel(env, labelName));
+function residesOn(record, scope) {
+  return declaresVerb(record.get('name').name, isVerbValue(bindingValueOf(record)), labelName => isLabel(scope, labelName));
 }
 
 // isVerb(scope, address) → whether the name at the address is a verb; a
@@ -104,13 +104,31 @@ export function isRecipe(value) {
   return isQuote(value) || (isBuiltinDescriptor(value) && isPrimitiveHanded(value));
 }
 
-// answerOf(env, address) → the answer of the verb at the address as the
+// answerOf(scope, address) → the answer of the verb at the address as the
 // node `answer` its function lays under it holds it, the kinds `returns`
 // names, `{ address, kinds }`, or null for a verb that answers any value
 // [QSBLD#answer].
-export function answerOf(env, address) {
-  const record = nodeOf(env, `${address}/${ANSWER_NAME}`);
+export function answerOf(scope, address) {
+  const record = nodeOf(scope, `${address}/${ANSWER_NAME}`);
   return record === null ? null : { address: record.get('name').name, kinds: kindsNamedBy(bindingValueOf(record)) };
+}
+
+// Whether `returns` names the verb's own label [QSBLD#answer].
+export const returnsItsLabel = (kinds, labelName) => kinds.includes(labelName);
+
+// answerKindsOf(scope, record, subjectKinds) → the kinds of the answer a
+// name under a label gives, for a tool, as the evaluator lays it: the walk of
+// the subject through the verb's own label where `returns` names that label
+// and the walk reaches it, beside the other kinds it names, the kinds it names
+// elsewhere, or null for a verb that answers any value [QSBLD#answer], [QSHST#tools].
+export function answerKindsOf(scope, record, subjectKinds) {
+  const address = record.get('name').name;
+  const answer = answerOf(scope, address);
+  if (answer === null || answer.kinds.includes(ANY_KIND_NAME)) return null;
+  const [labelName] = splitAddress(address);
+  const walked = kindsWalkedTo(subjectKinds, labelName);
+  if (walked === null || !returnsItsLabel(answer.kinds, labelName)) return answer.kinds;
+  return [...walked, ...answer.kinds.filter(kind => kind !== labelName)];
 }
 
 // Whether a value is an invariant, a quote under `::invariant`, whose name
@@ -131,10 +149,10 @@ export function isLaw(value) {
 export const LAW_TAG = makeTag('law');
 const LAW_TAG_NAME = LAW_TAG.name;
 
-// lawsUnder(env, address) → the laws declared one name under an address,
+// lawsUnder(scope, address) → the laws declared one name under an address,
 // each `[lastName, record]` in the order of their declarations [QSSLF#laws].
-export function lawsUnder(env, address) {
-  return [...namesUnderOf(env, address)].filter(([, record]) => isLaw(bindingValueOf(record)));
+export function lawsUnder(scope, address) {
+  return [...namesUnderOf(scope, address)].filter(([, record]) => isLaw(bindingValueOf(record)));
 }
 
 // The kinds the answer of a verb names, the tag or the set of tags its
@@ -146,35 +164,35 @@ const kindsNamedBy = value => (isTag(value) ? [value.name] : value.map(tag => ta
 // root alone, a reader's extension of it staying in the reader's queries,
 // and a noun the reader declared, whose values carry it, as the reader
 // wrote it [QSNAM#owner].
-export function readsTheReaderUnder(env, nounName) {
-  return !isRootVerbScope(env) || !rootOf(env).has(nounName);
+export function readsTheReaderUnder(scope, nounName) {
+  return !isRootVerbScope(scope) || !rootOf(scope).has(nounName);
 }
 
 // The record of the verb of `verbName` residing on a kind, or null; a
 // scope that does not declare the address, or reads the root alone under
 // the kind, reads the root's.
-function residenceOf(env, kindName, verbName) {
+function residenceOf(scope, kindName, verbName) {
   const address = `${kindName}/${verbName}`;
-  return readsTheReaderUnder(env, kindName) && pathNamesOf(env).includes(address) ? residenceAt(env, address) : onceForRoot(ROOT_RESIDENCES, env, address, rootResidenceAt);
+  return readsTheReaderUnder(scope, kindName) && pathNamesOf(scope).includes(address) ? residenceAt(scope, address) : onceForRoot(ROOT_RESIDENCES, scope, address, rootResidenceAt);
 }
 
-const rootResidenceAt = (env, address) => residenceAt(rootScopeOf(env), address);
+const rootResidenceAt = (scope, address) => residenceAt(rootScopeOf(scope), address);
 
-// rootScopeOf(env) → the scope of the root alone beneath a scope.
+// rootScopeOf(scope) → the scope of the root alone beneath a scope.
 const ROOT_SCOPES = new WeakMap();
 
-export function rootScopeOf(env) {
-  const root = rootOf(env);
-  let scope = ROOT_SCOPES.get(root);
-  if (scope === undefined) ROOT_SCOPES.set(root, scope = new Map([[ROOT_KEY, root]]));
-  return scope;
+export function rootScopeOf(scope) {
+  const root = rootOf(scope);
+  let rootScope = ROOT_SCOPES.get(root);
+  if (rootScope === undefined) ROOT_SCOPES.set(root, rootScope = new Map([[ROOT_KEY, root]]));
+  return rootScope;
 }
 
 const ROOT_RESIDENCES = new WeakMap();
 
-function residenceAt(env, address) {
-  const record = nodeOf(env, address);
-  return record !== null && residesOn(record, env) ? record : null;
+function residenceAt(scope, address) {
+  const record = nodeOf(scope, address);
+  return record !== null && residesOn(record, scope) ? record : null;
 }
 
 // onceForRoot(table, scope, key, read) → what `read(scope, key)` answers,
@@ -188,14 +206,14 @@ export function onceForRoot(table, scope, key, read) {
   return value;
 }
 
-// pathNamesOf(env) → the names with a path a scope declares;
+// pathNamesOf(scope) → the names with a path a scope declares;
 // a scope never changes once made, so they are read once for it.
-export function pathNamesOf(env) {
-  let names = PATH_NAMES.get(env);
+export function pathNamesOf(scope) {
+  let names = PATH_NAMES.get(scope);
   if (names === undefined) {
     names = [];
-    for (const [name, entry] of env) if (typeof name === 'string' && name.includes('/') && isBinding(entry)) names.push(name);
-    PATH_NAMES.set(env, names);
+    for (const [name, entry] of scope) if (typeof name === 'string' && name.includes('/') && isBinding(entry)) names.push(name);
+    PATH_NAMES.set(scope, names);
   }
   return names;
 }
@@ -226,17 +244,17 @@ export function* kindsOfWalk(subject) {
   }
 }
 
-// residenceOnSubject(env, verbName, subject) → the record of the verb of
+// residenceOnSubject(scope, verbName, subject) → the record of the verb of
 // `verbName` the walk of the subject's tags reaches, the one on `::any`
 // last, or null [QSDSP#walk]; with no subject, the one on `::any` alone.
-export function residenceOnSubject(env, verbName, subject) {
+export function residenceOnSubject(scope, verbName, subject) {
   if (subject !== undefined) {
     for (const kindName of kindsOfWalk(subject)) {
-      const record = residenceOf(env, kindName, verbName);
+      const record = residenceOf(scope, kindName, verbName);
       if (record !== null) return record;
     }
   }
-  return residenceOf(env, ANY_KIND_NAME, verbName);
+  return residenceOf(scope, ANY_KIND_NAME, verbName);
 }
 
 // bareNameReach(scope, name, subject?) → what a bare name reaches, nearest
@@ -272,35 +290,35 @@ export function residencesOf(scope, verbName) {
 // The names of a scope, those of one segment: the nouns of the root and
 // what the reader declared; a name with a path is a node under its noun
 // [QSDSP#residence].
-export function scopeNamesOf(env) {
+export function scopeNamesOf(scope) {
   const scopeNames = new Map();
-  for (const [name, record] of bindingsOf(env)) {
+  for (const [name, record] of bindingsOf(scope)) {
     if (splitAddress(name)[0] === null) scopeNames.set(name, record);
   }
   return scopeNames;
 }
 
-// readerNamesOf(env) → what the reader declared, by name, the root apart
+// readerNamesOf(scope) → what the reader declared, by name, the root apart
 // [QSNAM#binding].
-export function readerNamesOf(env) {
+export function readerNamesOf(scope) {
   const readerNames = new Map();
-  for (const [name, entry] of env) if (isBinding(entry)) readerNames.set(name, entry);
+  for (const [name, entry] of scope) if (isBinding(entry)) readerNames.set(name, entry);
   return readerNames;
 }
 
-// kindNamesOf(env) → the labels of one segment, a topic among them, the
+// kindNamesOf(scope) → the labels of one segment, a topic among them, the
 // root's first, as a tag reads them, then the reader's [QSNAM#root].
-export function kindNamesOf(env) {
-  const names = [...rootOf(env).keys(), ...[...env.keys()].filter(name => !rootOf(env).has(name))];
-  return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isLabel(env, name));
+export function kindNamesOf(scope) {
+  const names = [...rootOf(scope).keys(), ...[...scope.keys()].filter(name => !rootOf(scope).has(name))];
+  return names.filter(name => typeof name === 'string' && splitAddress(name)[0] === null && isLabel(scope, name));
 }
 
 // The addresses where the verbs of a name live, one for each kind that
 // answers it, any value among them, which a refusal of the name hands on
 // [QSDSP#refusal].
-export function addressesOf(env, verbName) {
-  const addresses = residencesOf(env, verbName).map(([kindName]) => makeTag(`${kindName}/${verbName}`));
-  if (residenceOf(env, ANY_KIND_NAME, verbName) !== null) addresses.push(makeTag(`${ANY_KIND_NAME}/${verbName}`));
+export function addressesOf(scope, verbName) {
+  const addresses = residencesOf(scope, verbName).map(([kindName]) => makeTag(`${kindName}/${verbName}`));
+  if (residenceOf(scope, ANY_KIND_NAME, verbName) !== null) addresses.push(makeTag(`${ANY_KIND_NAME}/${verbName}`));
   return makeSet(addresses);
 }
 
@@ -326,6 +344,18 @@ export function verbsReaching(scope, kindNames) {
 const kindsWalkedFrom = kindName => (KINDS_OF_OWN_VECTORS.includes(kindName)
   ? [...kindsOfWalk(makeTagged(makeTag(kindName), []))]
   : [kindName]);
+
+// The kinds a walk passes up to the first whose walk reaches a label, with
+// `::tagged` where the value it reached stands under a tag, or null where none
+// does: what an answer laid back as that value keeps, the kinds beneath it,
+// which the answer may change, left out, and the noun a tag name names, which
+// the walk passes after the kind of tag names, reached by no label
+// [QSDSP#walk], [QSDSP#tagname].
+function kindsWalkedTo(kindNames, labelName) {
+  const at = kindNames.findIndex((kindName, index) => kindNames[index - 1] !== CORE_KIND.tag.name && kindsWalkedFrom(kindName).includes(labelName));
+  if (at === -1) return null;
+  return kindNames.slice(0, kindNames[at + 1] === TAGGED_KIND_NAME ? at + 2 : at + 1);
+}
 
 // ruleRefusalsOf(scope, address) → the addresses of the refusals a verb or a
 // kind at the address may raise by rule, which its chain pages: a verb's
@@ -355,7 +385,7 @@ function functionRuleRefusalsOf(chain, address, labelName) {
     if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress));
   }
   const kinds = chain.answer?.kinds ?? null;
-  if (kinds !== null && kinds.length > 1 && !kinds.includes(labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`));
+  if (kinds !== null && kinds.length > 1 && !returnsItsLabel(kinds, labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`));
   return refusals;
 }
 
@@ -381,10 +411,10 @@ function kindRuleRefusalsOf({ payload, fields }, address) {
 // root's, read from its index, with the scope's over them, and the map of
 // the index itself where the scope declares none under the noun, so what
 // a call derives from it is read once for every scope.
-function namesUnderOf(env, nounName) {
-  const fromRoot = rootIndexOf(rootOf(env)).get(nounName) ?? NO_NAMES;
+function namesUnderOf(scope, nounName) {
+  const fromRoot = rootIndexOf(rootOf(scope)).get(nounName) ?? NO_NAMES;
   let under = fromRoot;
-  for (const [name, entry] of env) {
+  for (const [name, entry] of scope) {
     if (!isBinding(entry) || !isOneNameUnder(name, nounName)) continue;
     if (under === fromRoot) under = new Map(fromRoot);
     under.set(name.slice(nounName.length + 1), entry);
@@ -420,26 +450,26 @@ function rootIndexOf(root) {
   return index;
 }
 
-// namesUnder(env, tagName) → the nodes declared one name under a noun,
+// namesUnder(scope, tagName) → the nodes declared one name under a noun,
 // its verbs, refusals and pages, by address [QSDSP#walk]; its laws are read by
 // `laws` [QSSLF#laws].
-export function namesUnder(env, tagName) {
-  return makeSet([...namesUnderOf(env, tagName)]
+export function namesUnder(scope, tagName) {
+  return makeSet([...namesUnderOf(scope, tagName)]
     .filter(([, record]) => !isLaw(bindingValueOf(record)))
     .map(([name]) => makeTag(`${tagName}/${name}`)));
 }
 
-// declarationsUnder(env, address) → the records declared under an
+// declarationsUnder(scope, address) → the records declared under an
 // address at any depth, in the order they were written [QSSLF#catalog].
-export function declarationsUnder(env, address) {
+export function declarationsUnder(scope, address) {
   const prefix = `${address}/`;
-  return [...bindingsOf(env)].filter(([name]) => name.startsWith(prefix)).map(([, record]) => record);
+  return [...bindingsOf(scope)].filter(([name]) => name.startsWith(prefix)).map(([, record]) => record);
 }
 
-// namesDeclaredUnder(env, address) → the last names of the nodes declared
+// namesDeclaredUnder(scope, address) → the last names of the nodes declared
 // one name under an address, in the order of their declarations.
-export function namesDeclaredUnder(env, address) {
-  return [...namesUnderOf(env, address).keys()];
+export function namesDeclaredUnder(scope, address) {
+  return [...namesUnderOf(scope, address).keys()];
 }
 
 // The names of every node, which a guessed tag name is held against
@@ -448,13 +478,13 @@ export function nodeAddresses(scope) {
   return [...bindingsOf(scope)].map(([name]) => name);
 }
 
-// The names the verbs and the names under a label go by, which a guessed
-// name of a step is held against beside the scope's [QSSLF#near].
+// verbNames(scope) → the names a step calls the verbs of a scope by, the last
+// name of each and its address [QSNAM#verb], [QSHST#tools].
 export function verbNames(scope) {
   const names = new Set();
   for (const [name, record] of bindingsOf(scope)) {
     const [nounName, lastName] = splitAddress(name);
-    if (nounName !== null && residesOn(record, scope)) names.add(lastName);
+    if (nounName !== null && residesOn(record, scope)) names.add(lastName).add(name);
   }
   return names;
 }

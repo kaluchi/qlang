@@ -11,10 +11,10 @@
 // source declares takes its address, the name it is declared by, once [QSERR#site].
 
 import { parse } from '../parse.mjs';
-import { evalAst } from '../eval.mjs';
+import { evalPipeline } from '../eval.mjs';
 import { rootState } from '../state.mjs';
 import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, isPrimitiveHanded, recipeOf, bindingValueOf, takePrimitive, keyword } from '../types.mjs';
-import { ROOT_KEY } from '../env-keys.mjs';
+import { ROOT_KEY } from '../scope-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareInvariantError } from '../errors.mjs';
 import { isUnderLabel } from '../nouns.mjs';
@@ -51,11 +51,11 @@ export async function declareRoot(scope, sources) {
   for (const { uri, source, primitives = {} } of sources) {
     const origin = keyword(uri);
     const sourceScope = new Map([[ROOT_KEY, root]]);
-    const answered = await evalAst(parse(source, { uri }), rootState(null, sourceScope));
+    const answered = await evalPipeline(parse(source, { uri }), rootState(null, sourceScope));
     if (isErrorValue(answered.pipeValue)) {
       throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: answered.pipeValue.tag.literal });
     }
-    const declared = new Map([...answered.env].filter(([, record]) => isBinding(record)));
+    const declared = new Map([...answered.scope].filter(([, record]) => isBinding(record)));
     const again = [...declared.keys()].find(name => root.has(name));
     if (again !== undefined) throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: DECLARED_TWICE, name: keyword(again) });
     const taking = new Set();
@@ -68,7 +68,7 @@ export async function declareRoot(scope, sources) {
       taking.add(name);
     }
     for (const primitiveName of Object.keys(primitives)) {
-      if (taking.has(primitiveName) && isUnderLabel(answered.env, primitiveName)) continue;
+      if (taking.has(primitiveName) && isUnderLabel(answered.scope, primitiveName)) continue;
       const held = builtinOf(bindingValueOf(declared.get(primitiveName)));
       const facts = { origin, name: keyword(primitiveName) };
       if (held !== null && !taking.has(primitiveName)) facts.sharedWith = keyword([...root, ...declared].find(([, record]) => builtinOf(bindingValueOf(record)) === held)[0]);

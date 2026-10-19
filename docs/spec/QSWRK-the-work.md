@@ -155,8 +155,9 @@ set in the order its print shows.
 
 The runner, `core/test/unit/conformance.test.mjs`, refuses a file that
 is no section of a chapter, a case that names a record and does not open
-with one record in force, a target that names no record, and two cases
-that hold one query to two answers; `check:conventions` refuses a case
+with one record in force, a target that names no record, two cases that
+hold one query to two answers, and a case whose name holds fewer than
+four words, the words its hyphens part; `check:conventions` refuses a case
 whose record overrides neither its section nor its chapter whole.
 
 ## target
@@ -176,9 +177,13 @@ so the block is written again as what holds.
 A requirement is written on the side of design and met on the side of
 implementation. A target is taken in hand where landing it changes no
 met case and no record's text; otherwise a move of design with its
-record comes first. A branch that works targets starts from master with
-its suite green; it changes the implementation, may add cases under its
-own record, and drops the mark of each target it met, its query and
+record comes first. A target lives in the branch that wrote it: the
+branch meets it, or before it lands writes the record that left it again
+as an open one whose question the target states, so no target outlives
+the move that lands its branch. A branch that works targets, a worktree
+of a subagent among them, starts from the head of the branch that wrote
+them, its suite green; it changes the implementation, may add cases under
+its own record, and drops the mark of each target it met, its query and
 answer as they were; it keeps every case, record and gate as it found
 them. Master's copy of the diff, `git show master:scripts/gate-diff.mjs`
 run with `--task Dnn`, compares the branch with its merge base on master

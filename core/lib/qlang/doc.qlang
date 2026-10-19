@@ -1,7 +1,7 @@
 |~ `::doc`, the kind of a page, and what is declared under it: its
    constructor and the refusals of a payload that is no vector of
    segments, and the verbs that read a doc.
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [QSSLF#doc]. ~|
 
 :doc
   |~~ A doc is prose held as a value, text that carries quotes of qlang:
@@ -17,10 +17,10 @@
       what it shows, and a quote with no tag code the prose holds. JSON
       writes a doc as its print.
 
-      `content` answers its text, `segments` its prose and its quotes in
-      order, `links` its links and `snippets` its snippets, so
-      `::qlang | doc | links | map ~open` opens every page the first
-      page names.
+      `content` answers its text, `prose` its prose alone, `segments` its
+      prose and its quotes in order, `links` its links and `snippets` its
+      snippets, so `::qlang | doc | links | map ~open` opens every page the
+      first page names.
       ::snippet~(::doc | manifest) lists its verbs and refusals.
       ::link~(::link | doc) ::link~(::snippet | doc)
       ::link~(::qlang/hypertext | doc)
@@ -63,9 +63,10 @@
       name is read by `doc` first, `::vec/join | doc | content`; a name
       declared without a page has none, `doc` answering null, which
       `content` refuses as it refuses a string. The parts of the doc in
-      their order `segments` answers, and its links `links`.
+      their order `segments` answers, its prose alone `prose`, and its links
+      `links`.
       ::link~(::any/doc | doc) ::link~(::doc/segments | doc)
-      ::link~(::doc/links | doc)
+      ::link~(::doc/prose | doc) ::link~(::doc/links | doc)
   ~~|
   ::fn
     | returns
@@ -93,6 +94,40 @@
         |~~ A string is no doc. ~~|
         ~("x" | content !| type | eq ::doc/content/SubjectNotDocError)
     | impl ::builtin{}
+
+:doc/prose
+  |~~ Answers the prose of the doc, a string: its runs of prose joined and
+      each quote left out where it stands, a link and a snippet among them,
+      `|~~ a ~(add 1) b ~~| | prose` answering `" a  b "`, where `content`
+      writes each quote. The prose of a page reads in one step,
+      `::vec/join | doc | prose`, and a doc of prose alone answers its
+      content. The subject is a doc, the page of a name read by `doc`
+      first.
+      ::link~(::doc/content | doc) ::link~(::doc/segments | doc)
+  ~~|
+  ::fn
+    | returns |~~ The prose of the doc, its quotes left out. ~~| ::string
+    | throws :SubjectNotDocError
+        |~~ `prose` reads a doc: the page of a name is read by `doc` first,
+            `::vec/join | doc | prose`, and a name declared without a page
+            has none, `doc` answering null.
+        ~~|
+    | proves :leavesTheQuotesOut
+        |~~ The prose leaves each quote out where it stands. ~~|
+        ~(|~~ a ~(add 1) b ~~| | prose | eq " a  b ")
+    | proves :leavesTheLinksAndTheSnippetsOut
+        |~~ A link and a snippet are no prose. ~~|
+        ~(|~~ see ::link~(::vec | doc) and ::snippet~(1) ~~| | prose | eq " see  and  ")
+    | proves :answersTheContentOfProseAlone
+        |~~ A doc of prose alone answers its content. ~~|
+        ~(|~~ only prose ~~| | :d it | prose | eq (d | content))
+    | proves :readsThePageOfAVerb
+        |~~ The prose of a verb's page reads in one step. ~~|
+        ~(::vec/join | doc | prose | contains "separator")
+    | proves :SubjectNotDocError/refusesAString
+        |~~ A string is no doc. ~~|
+        ~("x" | prose !| get [~(type) /actualType] | eq [::doc/prose/SubjectNotDocError ::string])
+    | impl ~(segments | filter ~(type | eq ::string) | join "")
 
 :doc/segments
   |~~ Answers the parts of the doc in their order, a vector: each run of

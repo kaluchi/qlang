@@ -5,7 +5,7 @@
 // quote holds as held code, in a lane of its own [QSQUO#apply].
 
 import { registerPrimitive, registerStateReader, runs } from '../primitives.mjs';
-import { quoteOfSource } from '../quote.mjs';
+import { parse } from '../parse.mjs';
 import { printQuoteSource } from '../print-value.mjs';
 import { errorFromParse } from '../error-convert.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -19,9 +19,9 @@ const AnyApplyArgsNotTakenError = declareRefusal('any/apply/args/NotTakenError')
 // code, its steps as the printer writes them [QSQUO#parse].
 registerStateReader('string/parse', (source, state) => {
   try {
-    return quoteOfSource(source, 'string/parse');
+    return parse(source, { uri: 'string/parse' });
   } catch (parseErr) {
-    return errorFromParse(parseErr, state.env);
+    return errorFromParse(parseErr, state.scope);
   }
 });
 registerPrimitive('quote/toString', quote => printQuoteSource(quote));

@@ -2,7 +2,7 @@
 // its host hands by the walk of the door [QSNAM#root], [QSDSP#residence], [QSHST#source].
 
 import { parse, ParseError } from './parse.mjs';
-import { evalAst } from './eval.mjs';
+import { evalPipeline } from './eval.mjs';
 import { langRuntime } from './runtime/index.mjs';
 import { rootState } from './state.mjs';
 import { errorFromParse } from './error-convert.mjs';
@@ -42,10 +42,10 @@ export async function createSession(opts = {}) {
       const uri = evalOpts.uri ?? `cell-${++cellCount}`;
       const entry = (result, defect) => ({ source, uri, result, defect, scopeAfterCell: scope });
       try {
-        const ast = parse(source, { uri });
+        const quote = parse(source, { uri });
         const subject = 'initialPipeValue' in evalOpts ? takenFromAHost(evalOpts.initialPipeValue) : null;
-        const answered = await evalAst(ast, rootState(subject, scope));
-        scope = answered.env;
+        const answered = await evalPipeline(quote, rootState(subject, scope));
+        scope = answered.scope;
         return entry(answered.pipeValue, null);
       } catch (thrown) {
         // A failure to parse is an answer, naming the source a host named, a

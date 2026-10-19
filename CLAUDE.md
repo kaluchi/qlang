@@ -97,7 +97,7 @@ Tier 2, by topic, only the files the topic names:
   `core/lib/qlang/any.qlang` for the verbs every value answers
 - names, scope, the root, sessions: `docs/spec/QSNAM-names-and-scope.md`
   first, then `core/src/state.mjs`,
-  `core/src/env-keys.mjs`,
+  `core/src/scope-keys.mjs`,
   `core/src/runtime/root.mjs`, `core/src/runtime/env.mjs`,
   `core/src/session.mjs`
 - errors: `core/src/errors.mjs`, `core/src/error-convert.mjs`,
@@ -106,8 +106,8 @@ Tier 2, by topic, only the files the topic names:
   `core/src/runtime/manifest.mjs`, `core/src/runtime/doc.mjs`,
   `core/lib/qlang/doc.qlang`,
   `core/lib/qlang/builtin.qlang`
-- code as data: `core/src/quote.mjs`, `core/src/steps.mjs`,
-  `core/src/runtime/code.mjs`, `core/src/walk.mjs`
+- code as data: `core/src/steps.mjs`, `core/src/runtime/code.mjs`,
+  `core/src/walk.mjs`
 - printing and codecs: `core/src/print-value.mjs`,
   `core/src/runtime/print.mjs`, `core/src/runtime/json.mjs`
 - host boundary: `core/src/runtime/bootstrap.mjs`, `core/host/`,
@@ -253,8 +253,10 @@ findings each with its file and its line [QSWRK#review].
   area, which `node scripts/measure.mjs` computes from the history, is
   read against what it delivered, and no commit message carries a count
   the history answers [QSWRK#diff].
-- A branch that works targets, a subagent's in its own worktree
-  among them, starts from a green master, leaves the decision
+- A target lives in the branch that wrote it, met or written as an open
+  record before the branch lands. A branch that works targets, a
+  subagent's in its own worktree among them, starts green from the head
+  of the branch that wrote them, leaves the decision
   records, the conformance cases and the gates as it found them, adding
   cases under its own record alone, and drops only the mark of a target
   it met [QSWRK#target]. Review it with master's copy of

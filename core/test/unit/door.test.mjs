@@ -13,9 +13,9 @@ import { printValue } from '../../src/print-value.mjs';
 import { toPlain } from '../../src/runtime/json.mjs';
 import { compareValues } from '../../src/ordering.mjs';
 import { declareRefusal, declareInvariantError } from '../../src/errors.mjs';
-import { WITHHELD_KEY } from '../../src/env-keys.mjs';
+import { WITHHELD_KEY } from '../../src/scope-keys.mjs';
 import {
-  keyword, makeTag, makeErrorValue, makeBinding, typeOf, accountOfForeign, BuiltinForeignValueError
+  keyword, makeTag, makeTagged, makeErrorValue, makeBinding, typeOf, accountOfForeign, BuiltinForeignValueError, ERROR_TAG
 } from '../../src/types.mjs';
 import { valuesOfTheLanguage, valuesOfNoKind } from '../helpers/values-at-the-door.mjs';
 
@@ -216,6 +216,10 @@ describe('the second door: what a host hands where the core takes it [QSHST#sour
   it('reads a value JavaScript leaves undefined as null wherever the language reads it, and refuses a hole of a vector, which is no element', async () => {
     expect((await session.evalCell('get [~(type) ~(eq null) ~(print)]', { initialPipeValue: undefined })).result).toEqual([makeTag('null'), true, 'null']);
     expect((await session.evalCell('get [~(eq [1 null 3]) ~(print) ~(print | parse | open | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
+  });
+
+  it('prints a value a host hands under `::error` over a payload that is no map as the payload under its tag, the error literal writing a map alone [QSERR#rest]', async () => {
+    expect(await evalQuery('held | print', await scopeHolding(makeTagged(ERROR_TAG, 5)))).toBe('::error#5');
   });
 
   it('leaves the keys of the runtime\'s own out of the walk of a scope', async () => {

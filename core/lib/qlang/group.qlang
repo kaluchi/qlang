@@ -10,8 +10,8 @@
       `get` runs are forks of their own, `5 | get [~(add 1) ~(mul 2)]`
       answering `[6 10]`.
 
-      In a quote the step is a record that wraps the quote of its
-      pipeline, `~((add 1 | mul 2)) | first` answering
+      In a quote the step is a record that holds the quote of the
+      pipeline it stands for, `~((add 1 | mul 2)) | first` answering
       `::group~(add 1 | mul 2)`.
       ::link~(::bind | doc) ::link~(::qlang/pipeline | doc)
   ~~|
@@ -24,12 +24,9 @@
             `(add 1 | mul 2)`.
             ::link~(::group | doc)
         ~~|
-    | throws :ReadBackDiffersError
-        |~~ The `::group` prints as text that reads back as another step,
-            or as none, and `:printed` is that text: an empty group prints
-            as `()`, which reads as no step. A group holds one step at
-            least, and `it` keeps the value as it is,
-            `~(it) | tag ::group`.
+    | throws :PayloadEmptyError
+        |~~ A group holds one step at least, and `it` keeps the value as it
+            is, `~(it) | tag ::group`.
             ::link~(::group | doc)
         ~~|
     | proves :holdsItsSteps
@@ -41,10 +38,10 @@
     | proves :PayloadKindNotTakenError/buildsTheStepOfAPipeline
         |~~ The quote of a pipeline builds the group that runs it. ~~|
         ~(~(add 1 | mul 2) | tag ::group | get [~(it)] | tag ::quote | eq ~((add 1 | mul 2)))
-    | proves :ReadBackDiffersError/refusesAnEmptyGroup
-        |~~ An empty group prints as text that reads back as none. ~~|
-        ~(~() | tag ::group !| get [~(type) /printed] | eq [::group/ReadBackDiffersError "()"])
-    | proves :ReadBackDiffersError/keepsTheValueByTheWholeValue
+    | proves :PayloadEmptyError/refusesAnEmptyGroup
+        |~~ An empty group holds no step. ~~|
+        ~(~() | tag ::group !| type | eq ::group/PayloadEmptyError)
+    | proves :PayloadEmptyError/keepsTheValueByIt
         |~~ A group of `it` is a step that keeps the value. ~~|
         ~(~(it) | tag ::group | get [~(it)] | tag ::quote | eq ~((it)))
     | impl ::builtin{}

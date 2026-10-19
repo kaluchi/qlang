@@ -97,3 +97,41 @@ describe('a verb a later source declares as a function [QSBLD#recipe]', () => {
     expect((await hosted.evalCell(':by 99 | 5 | twice 1')).result).toBe(7);
   });
 });
+
+// An input reads the args by its place: one step that reads one arg, a path
+// or `query` with a default or none, is read where it stands, a quote of a
+// path alone as the path, and any other place runs as code over the args,
+// `~(it)` alone reading them whole [QSBLD#input].
+describe('the place of an input [QSBLD#input]', () => {
+  const answerOf = async query => (await (await createSession()).evalCell(query)).result;
+
+  it('fills the head of the code with the step that answers the value of each input, a value of every kind [QSBLD#fn]', async () => {
+    for (const [value, written] of [
+      ['[1 2]', '[1 2]'], ['{:a 1}', '{:a 1}'], ['#[1]', '#[1]'], ['::Box[1]', '::Box[1]'], ['!{:a 1}', '!{:a 1}'],
+      ['::Foo!{:a 1}', '::Foo!{:a 1}'], ['~(add 1)', '~(add 1)'], ['("/a" | parse)', '::quote[/a]'], ['|~~ d ~~|', '(|~~ d ~~|)'],
+      ['[~(add 1) {:b #[2]}]', '[~(add 1) {:b #[2]}]']
+    ]) {
+      const filled = await answerOf(`(::fn | takes :v |~~ V. ~~| /0 | impl ~(v)) | fill ${value} | get [~(toString) ~(:q it | null | apply q | eq ${value})]`);
+      expect(filled, value).toEqual([`:v |~~ V. ~~| ${written} | v`, true]);
+    }
+  });
+
+  it('reads a place of a path a quote holds alone as the path', async () => {
+    expect(await answerOf(':any/h (::fn | takes :n |~~ N. ~~| ("/0" | parse) | impl ~(n)) | 1 | h 7')).toBe(7);
+  });
+
+  it('runs a place that reads a part deeper than one arg as code over the args', async () => {
+    expect(await answerOf(':any/deep (::fn | takes :n |~~ N. ~~| ~(query /0/a 5) | impl ~(n)) | 1 | get [~(deep {:a 7}) ~(deep {:b 1})]')).toEqual([7, 5]);
+  });
+
+  it('runs a place of `query` with more modifiers than it takes as code, which `query` refuses', async () => {
+    expect((await answerOf(':any/three (::fn | takes :n |~~ N. ~~| ~(query /0 1 2) | impl ~(n)) | 1 | three 9')).tag.name).toBe('any/query/ArgsBeyondInputsError');
+  });
+
+  it('reads the args whole by `~(it)` alone, so a failed modifier is the answer under any other place', async () => {
+    for (const place of ['~(it | first)', '~(it 1)']) {
+      const failed = await answerOf(`:any/g (::fn | takes :code |~~ C. ~~| ${place} ::quote | impl ~(code)) | 1 | g (count)`);
+      expect(failed.tag.name, place).toBe('call/KindAnswersNoVerbError');
+    }
+  });
+});

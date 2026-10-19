@@ -16,31 +16,52 @@
       `::call{:name :add :modifiers [1]}`: `:name` is the keyword of the
       name it calls and `:modifiers` the step of each modifier, where
       the call gives any. Like every record of a step, its constructor
-      checks each field, prints the step and reads it back.
+      holds the rules a step keeps, whether a quote is read from text or
+      assembled from data.
       ::link~(::quote | doc) ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
     | wraps
         |~~ The record of a command, `:name` and `:modifiers`, built into
-            its step, which reads back as itself.
+            its step.
+        ~~|
+    | throws :PayloadKindNotTakenError
+        |~~ `::call` builds the step of a command from its record, a map;
+            a payload of another kind is refused.
+            ::link~(::call | doc)
         ~~|
     | throws :PayloadNotSchemaError
         |~~ A `::call` is a map of `:name`, a keyword, and `:modifiers`, a
-            vector of steps, and `:field` names the field that does not
+            vector of a word at least, each a literal, a name, a group or a
+            tagged literal, and `:field` names the field that does not
             fit: `{:name :take :modifiers [2]} | tag ::call` is the step
-            `take 2`.
-            ::link~(::call | doc)
-        ~~|
-    | throws :ReadBackDiffersError
-        |~~ The `::call` prints as text that reads back as another step,
-            or as none, and `:printed` is that text: a name of two words,
-            `:"a b"`, prints as two calls, a name that reads as a number,
-            `:"1"`, as the number, and an empty vector of modifiers as a
-            call that gives none. The name of a call is one word,
-            `:count`, and a call that gives no modifiers holds no
+            `take 2`, and a call that gives no modifiers holds no
             `:modifiers`.
             ::link~(::call | doc)
         ~~|
+    | throws :NameNotCallableError
+        |~~ The name of a call is one a step calls, names joined by `/`,
+            each a letter or `_` and the letters, digits, `_` and `-` after
+            it, the first no word of a literal: `:"a b"` writes two words
+            and `:"1"` a number. `:name` holds the name, and `:message`
+            what the rule says of it.
+            ::link~(::call | doc) ::link~(::qlang/names | doc)
+        ~~|
+    | carries :NameNotCallableError/message
+        |~~ What the rule of a name says of the name. ~~|
+        ::string
+    | throws :LiteralComputesError
+        |~~ A modifier that is a literal computes nothing: the modifier at
+            `:index` holds a name or a group, and `:message` writes the
+            template `get` builds the shape from, its parts computed
+            written as quotes, `get [~(x)]`.
+            ::link~(::call | doc) ::link~(::any/get | doc)
+        ~~|
+    | carries :LiteralComputesError/message
+        |~~ What the rule says of the literal, the template `get` builds it
+            from.
+        ~~|
+        ::string
     | throws :HostFailureError
         |~~ A failure inside a primitive: an error of the language the
             runtime is written in escaped a verb, or the primitive a host
@@ -201,19 +222,31 @@
     | proves :PayloadNotSchemaError/buildsTheStepOfACall
         |~~ A keyword and a vector of steps build the step of the call. ~~|
         ~({:name :take :modifiers [2]} | tag ::call | get [~(it)] | tag ::quote | eq ~(take 2))
-    | proves :ReadBackDiffersError/refusesANameOfTwoWords
-        |~~ A name with a space prints as two words, which read back as
-            another step.
-        ~~|
-        ~(::call{:name :"a b"} !| get [~(type) /printed] | eq [::call/ReadBackDiffersError "a b"])
-    | proves :ReadBackDiffersError/refusesANameThatReadsAsANumber
-        |~~ A name that reads as a number prints as the number. ~~|
-        ~(::call{:name :"1"} !| get [~(type) /printed] | eq [::call/ReadBackDiffersError "1"])
-    | proves :ReadBackDiffersError/refusesAnEmptyVectorOfModifiers
-        |~~ An empty vector of modifiers prints as a call that gives none.
+    | proves :PayloadNotSchemaError/refusesAnEmptyVectorOfModifiers
+        |~~ An empty vector of modifiers is refused; a call that gives none
+            holds no `:modifiers`.
         ~~|
         ~(::call{:name :count :modifiers []}
-          !| get [~(type) /printed] | eq [::call/ReadBackDiffersError "count"])
+          !| get [~(type) /field] | eq [::call/PayloadNotSchemaError :modifiers])
+    | proves :PayloadKindNotTakenError/refusesAVector
+        |~~ A vector is no record of a command. ~~|
+        ~(::call[1] !| get [~(type) /expected] | eq [::call/PayloadKindNotTakenError #[::map]])
+    | proves :NameNotCallableError/refusesANameOfTwoWords
+        |~~ A name with a space is no name a step calls. ~~|
+        ~(::call{:name :"a b"} !| get [~(type) /name] | eq [::call/NameNotCallableError :"a b"])
+    | proves :NameNotCallableError/refusesANameThatReadsAsANumber
+        |~~ A name that reads as a number is no name a step calls. ~~|
+        ~(::call{:name :"1"} !| type | eq ::call/NameNotCallableError)
+    | proves :NameNotCallableError/refusesTheWordOfALiteral
+        |~~ A name whose first word is the word of a literal is no name a
+            step calls.
+        ~~|
+        ~(get [~(::call{:name :null} !| type) ~(::call{:name :true/count} !| type)] | eq [::call/NameNotCallableError ::call/NameNotCallableError])
+    | proves :LiteralComputesError/refusesANameInsideAModifier
+        |~~ A vector of a name given as a modifier computes, and is
+            refused.
+        ~~|
+        ~({:name :take :modifiers [[::call{:name :x}]]} | tag ::call !| get [~(type) /index] | eq [::call/LiteralComputesError 0])
     | proves :ValueMeetsVerbError/refusesAValueAndAVerbThatMeet
         |~~ A value and a verb that meet at a step are refused with the
             verb's address.

@@ -1,342 +1,155 @@
-// AST-based syntax highlighter for qlang source.
-//
-// `tokenize(src, verbNames)` returns a flat, gap-free, sorted
-// `Array<{ start, end, kind }>` covering exactly `[0, src.length]`
-// — every character of the source falls inside exactly one token.
-// Renderers (HTML for the docs site, ANSI for the CLI REPL,
-// LSP semantic tokens for the editor) consume the same token
-// stream and only differ in how they coat each `kind`.
-//
-// Token kinds:
-//
-//   'string'      String literal, including the surrounding quotes
-//   'regex'       Regex literal `#"…"`, its flags among it [QSTXT#regex]
-//   'number'      Number literal, plus boolean and null literals
-//   'comment'     A comment, and the prose of a doc: the quotes a
-//                 doc holds and its spans in backticks paint as code
-//   'name'        `:name` keyword OR a call's name that resolves
-//                 through a reader's binding
-//   'word'        a call's name that resolves to a verb of the
-//                 language supplied by `langRuntime` AND each key
-//                 segment of a `Path`
-//   'keyword'     the head keyword of a BindStep declaration
-//   'err'         the `!` and the bracket it touches
-//                 in `!{` / closing `}` of an error literal, and the
-//                 `!|` fail-track combinator — an error and the track
-//                 that catches it
-//   'quote'       Quote literal `~( … )`, including the `~(`
-//                 opener and `)` closer, and the `~` of the short
-//                 form `~add` (DocLit `|~~ … ~~|` falls under
-//                 'comment')
-//   'tag'         `::tag` head of a TaggedLit, of an ErrorLit that
-//                 writes one, or a TagLit — the
-//                 sign of the tag and the address it names
-//   'set'         `#[` opener and matching `]` closer of a SetLit
-//   'vec'         `[` opener and matching `]` closer of a VecLit
-//   'punct'       the pipe `|`, the `{` / `}` of an ordinary
-//                 MapLit, `(` / `)` of a group, the commas of a
-//                 JSON literal, and the `/` separator inside a
-//                 `Path`
-//   'whitespace'  runs of whitespace between meaningful tokens, and
-//                 the source past where its parse stopped
-//
-// A source that does not parse paints as far as the parser reads it: a source
-// cut short, as a line being typed is, through the closers that complete it
-// [QSSYN#refusal], and one the parser refuses up to the place of the refusal,
-// the rest as whitespace.
+// The painter of a source over the parts its parser reads, each token named by
+// what it writes in the language, one sense to a kind [QSHST#tools].
 
-import { closersCompleting, parse } from './parse.mjs';
-import { walkAst } from './walk.mjs';
+import { closersCompleting, parse, ParseError } from './parse.mjs';
+import { partOf, walkParts, tagHeadEnd } from './walk.mjs';
+import { isCallStep, isBindStep, isGroupStep, errorFieldsOf } from './steps.mjs';
+import { formOf } from './types.mjs';
 
-// ── Public surface ────────────────────────────────────────────
-
-export function tokenize(src, verbNames) {
-  if (src.length === 0) return [];
-  const read = readOf(src);
-  if (read === null) return [{ start: 0, end: src.length, kind: 'whitespace' }];
-  const semanticSpans = collectSemanticSpans(read.source, read.ast, verbNames)
+// tokenize(source, verbNames) → `{ start, end, kind }` in the order of the
+// source, every character in one token and a token inside a quote `italic`: a
+// literal by the kind of its value, `null`, `boolean`, `number`, `string`,
+// `regex`, `keyword`, `tag` and `path`; `quote` the `~(`, `)` and `~` of a
+// quote; `vec`, `set`, `map` and `error` the brackets of a container and of an
+// error literal; `doc` the prose of a doc; `comment`; `declaration` the name a
+// declaration writes; `verb` the name of a call `verbNames` holds, a last name
+// or an address, and `name` any other; `group` the parentheses of a group;
+// `fail` the combinator `!|`; `punctuation` the rest of a gap; `whitespace`;
+// and `unparsed` the source past where its parse stopped [QSHST#tools].
+export function tokenize(source, verbNames) {
+  if (source.length === 0) return [];
+  const read = readOf(source);
+  if (read === null) return [{ start: 0, end: source.length, kind: 'unparsed' }];
+  const spans = spansOf(read.source, read.root, verbNames)
     .filter(span => span.start < read.end)
-    .map(span => span.end > read.end ? { ...span, end: read.end } : span);
-  const tokens = interleaveGapTokens(src.slice(0, read.end), semanticSpans);
-  if (read.end < src.length) tokens.push({ start: read.end, end: src.length, kind: 'whitespace' });
+    .map(span => (span.end > read.end ? { ...span, end: read.end } : span));
+  const tokens = withGaps(source.slice(0, read.end), spans);
+  if (read.end < source.length) tokens.push({ start: read.end, end: source.length, kind: 'unparsed' });
   return tokens;
 }
 
-// The tree a source is painted from: `{ ast, source, end }`, the source
-// the tree was parsed from and how far into the painted one it reads,
-// or null when no prefix of it completes.
-function readOf(src) {
+// The parts a source is painted from: `{ root, source, end }`, the source
+// they were read from and how far into the painted one it reads, or null when
+// no prefix completes, a throw that is no refusal passing as it is [QSQUO#step].
+function readOf(source) {
   let refusal;
   try {
-    return { ast: parse(src), source: src, end: src.length };
+    return { root: partOf(parse(source)), source, end: source.length };
   } catch (error) {
+    if (!(error instanceof ParseError)) throw error;
     refusal = error;
   }
-  for (const prefix of [src, src.slice(0, refusal.location.start.offset)]) {
+  for (const prefix of [source, source.slice(0, refusal.location.start.offset)]) {
     const closers = closersCompleting(prefix);
-    if (closers !== null) return { ast: parse(prefix + closers.join('')), source: prefix + closers.join(''), end: prefix.length };
+    if (closers !== null) return { root: partOf(parse(prefix + closers.join(''))), source: prefix + closers.join(''), end: prefix.length };
   }
   return null;
 }
 
-// ── AST-driven semantic spans ──────────────────────────────────
-
-// Walk the AST, harvest spans for the leaf nodes that carry
-// recognisable semantic categories. Nodes whose children are
-// themselves spanned (Pipeline, VecLit, MapLit, ParenGroup, …)
-// emit nothing here — their structural punctuation shows up via
-// the gap-interleaving pass below.
-function collectSemanticSpans(src, ast, verbNames) {
-  // A comment is whitespace the parser keeps on the side [QSSYN#comment].
-  const spans = ast.comments.map(comment =>
-    ({ start: comment.location.start.offset, end: comment.location.end.offset, kind: 'comment' }));
-
-  walkAst(ast, (node) => {
-    const startOffset = node.location.start.offset;
-    const endOffset   = node.location.end.offset;
-
-    switch (node.type) {
-      case 'DocLit': {
-        // The prose of a doc paints as a comment and the quotes it holds
-        // as the code they are, so only prose reads grey [QSSYN#doc].
-        let cursor = startOffset;
-        for (const segment of node.segments) {
-          if (typeof segment === 'string') continue;
-          pushProseSpans(src, cursor, segment.location.start.offset, verbNames, spans);
-          cursor = segment.location.end.offset;
-        }
-        pushProseSpans(src, cursor, endOffset, verbNames, spans);
-        return; // descend into the quotes
-      }
-
-      case 'StringLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'string' });
-        return false;
-
-      case 'RegexLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'regex' });
-        return false;
-
-      case 'NumberLit':
-      case 'BooleanLit':
-      case 'NullLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'number' });
-        return false;
-
-      case 'Keyword':
-        spans.push({ start: startOffset, end: endOffset, kind: 'name' });
-        return false;
-
-      case 'ErrorLit': {
-        // The tag an error literal writes before its bang paints as
-        // every tag head does, then the `!{` / `}` of the error [QSERR#rest].
-        const bangOffset = node.tag === null ? startOffset : startOffset + 2 + node.tag.length;
-        if (node.tag !== null) spans.push({ start: startOffset, end: bangOffset, kind: 'tag' });
-        emitBracketSpans(bangOffset, endOffset, 2, 1, 'err', spans);
-        return;
-      }
-
-      case 'QuoteLit': {
-        // Quote literal — paint the `~(` / `)` delimiters, or the
-        // `~` of the short form, in the `quote` palette colour, then
-        // sub-tokenise the body; every inner span carries
-        // `italic: true`, code as data painted as code, italicised.
-        const isShortForm = src[startOffset + 1] !== '(';
-        const bodyStart = startOffset + (isShortForm ? 1 : 2);
-        const bodyEnd = isShortForm ? endOffset : endOffset - 1;
-        spans.push({ start: startOffset, end: bodyStart, kind: 'quote' });
-        const innerSource = src.slice(bodyStart, bodyEnd);
-        const innerSpans = tokenize(innerSource, verbNames);
-        for (const inner of innerSpans) {
-          spans.push({
-            start: bodyStart + inner.start,
-            end:   bodyStart + inner.end,
-            kind:  inner.kind,
-            italic: true
-          });
-        }
-        if (!isShortForm) spans.push({ start: bodyEnd, end: endOffset, kind: 'quote' });
-        return false;
-      }
-
-      case 'BindStep': {
-        // The keyword that declares a name paints as `keyword`, and the
-        // doc literals of its slot paint as every doc does [QSNAM#declare],
-        // [QSSYN#doc].
-        const key = node.key;
-        spans.push({ start: key.location.start.offset, end: key.location.end.offset, kind: 'keyword' });
-        return; // descend into docs / body
-      }
-
-      case 'TagLit':
-        spans.push({ start: startOffset, end: endOffset, kind: 'tag' });
-        return false;
-
-      case 'TaggedLit': {
-        // Cover the `::tag` head with a single 'tag' span; descend
-        // into the payload below so VecLit/MapLit/StringLit children
-        // emit their own spans.
-        const tagHeadEnd = startOffset + 2 + node.tag.length;
-        spans.push({ start: startOffset, end: tagHeadEnd, kind: 'tag' });
-        return; // descend into payload
-      }
-
-      case 'SetLit':
-        emitBracketSpans(startOffset, endOffset, 2, 1, 'set', spans);
-        return;
-
-      case 'VecLit':
-        emitBracketSpans(startOffset, endOffset, 1, 1, 'vec', spans);
-        return;
-
-      case 'Path':
-        emitPathSpans(src, startOffset, endOffset, spans);
-        return false;
-
-      case 'Call': {
-        const nameEndOffset = startOffset + node.name.length;
-        spans.push({
-          start: startOffset,
-          end:   nameEndOffset,
-          kind:  classifyCallName(node.name, verbNames)
-        });
-        return; // descend into args
-      }
-    }
-  });
-
-  return dedupeOverlappingSpans(spans);
-}
-
-// The prose of a doc between `start` and `end`: a comment, but for a
-// span in backticks, a run of them closing at a run of as many, which
-// names code and paints as the code it spells [QSSYN#doc].
-const CODE_SPAN = /(?<!`)(`+)(?!`)([^\n]*?[^`\n])\1(?!`)/g;
-
-function pushProseSpans(src, start, end, verbNames, spans) {
-  let cursor = start;
-  for (const match of src.slice(start, end).matchAll(CODE_SPAN)) {
-    const codeStart = start + match.index + match[1].length;
-    const codeEnd = codeStart + match[2].length;
-    spans.push({ start: cursor, end: codeStart, kind: 'comment' });
-    for (const inner of tokenize(match[2], verbNames)) {
-      spans.push({ ...inner, start: codeStart + inner.start, end: codeStart + inner.end });
-    }
-    cursor = codeEnd;
-  }
-  spans.push({ start: cursor, end, kind: 'comment' });
-}
-
-function classifyCallName(callName, verbNames) {
-  return verbNames.has(callName) ? 'word' : 'name';
-}
-
-// Emit opener and closer spans for a literal with known bracket
-// widths (VecLit / SetLit / ErrorLit). Interior children still
-// walk through their own AST cases; the opener/closer fill in the
-// code units of the brackets that would otherwise fall to the gap pass
-// as undifferentiated `punct`.
-function emitBracketSpans(startOffset, endOffset, openerLen, closerLen, kind, spans) {
-  spans.push({ start: startOffset, end: startOffset + openerLen, kind });
-  spans.push({ start: endOffset - closerLen, end: endOffset, kind });
-}
-
-function emitPathSpans(src, startOffset, endOffset, spans) {
-  const pathText = src.slice(startOffset, endOffset);
-  let cursor = 0;
-  // The grammar spells a path as `/` KeySeg (`/` KeySeg)*, so
-  // every iteration opens on a `/` and every segment it scans runs
-  // at least one character wide.
-  while (cursor < pathText.length) {
-    spans.push({
-      start: startOffset + cursor,
-      end:   startOffset + cursor + 1,
-      kind:  'punct'
-    });
-    cursor += 1;
-    let segEnd = cursor;
-    while (segEnd < pathText.length && pathText[segEnd] !== '/') {
-      // A quoted segment (`/"a/b"`) keeps its inner `/` — skip the
-      // whole `"…"` span so a slash inside it does not split the
-      // segment into two word tokens.
-      if (pathText[segEnd] === '"') {
-        segEnd += 1;
-        while (segEnd < pathText.length && pathText[segEnd] !== '"') {
-          // A backslash escapes the next char (including `\"`), so
-          // step over both; every other char advances by one.
-          segEnd += pathText[segEnd] === '\\' ? 2 : 1;
-        }
-      }
-      segEnd += 1;
-    }
-    spans.push({
-      start: startOffset + cursor,
-      end:   startOffset + segEnd,
-      kind:  'word'
-    });
-    cursor = segEnd;
-  }
-}
-
-// Sort by start, then a strict cursor drops overlaps; the sort is stable,
-// so the keyword span of a declaration, pushed first, stands over the name
-// span of its key at the same start.
-function dedupeOverlappingSpans(spans) {
-  spans.sort((a, b) => a.start - b.start);
-  const dedupedSpans = [];
+// The spans of the parts and of the comments the parser keeps on the side, in
+// the order of their starts, one that starts inside the span before it giving
+// way, a part's before those of the parts it holds [QSHST#tools].
+function spansOf(source, root, verbNames) {
+  const spans = [];
+  const paint = (start, end, kind) => {
+    if (end > start) spans.push({ start, end, kind });
+  };
+  for (const { location } of root.comments) paint(location.start.offset, location.end.offset, 'comment');
+  walkParts(root, read => paintPart(read, source, verbNames, paint, spans));
+  spans.sort((left, right) => left.start - right.start);
+  const kept = [];
   let cursor = 0;
   for (const span of spans) {
-    if (span.start >= cursor) {
-      dedupedSpans.push(span);
-      cursor = span.end;
-    }
-  }
-  return dedupedSpans;
-}
-
-// ── Gap interleaving — every code unit ends up in exactly one token ──
-
-function interleaveGapTokens(src, semanticSpans) {
-  const interleavedTokens = [];
-  let cursor = 0;
-  for (const span of semanticSpans) {
-    if (span.start > cursor) {
-      pushGapTokens(src, cursor, span.start, interleavedTokens);
-    }
-    interleavedTokens.push(span);
+    if (span.start < cursor) continue;
+    kept.push(span);
     cursor = span.end;
   }
-  if (cursor < src.length) {
-    pushGapTokens(src, cursor, src.length, interleavedTokens);
-  }
-  return interleavedTokens;
+  return kept;
 }
 
-// A gap between the nodes splits into `whitespace` runs and `punct`
-// tokens, `!|` one token and every other character of structure one
-// token each, commas, brackets and the `|` combinator among them.
-function pushGapTokens(src, startOffset, endOffset, outputTokens) {
-  let cursor = startOffset;
-  while (cursor < endOffset) {
-    if (/\s/.test(src[cursor])) {
-      let runEnd = cursor + 1;
-      while (runEnd < endOffset && /\s/.test(src[runEnd])) runEnd += 1;
-      outputTokens.push({ start: cursor, end: runEnd, kind: 'whitespace' });
-      cursor = runEnd;
-    } else {
-      const { end: punctRunEnd, kind } = scanPunctRun(src, cursor);
-      outputTokens.push({ start: cursor, end: punctRunEnd, kind });
-      cursor = punctRunEnd;
+// The spans a part paints by what it writes, false where it paints the parts
+// it holds itself [QSHST#tools].
+function paintPart(read, source, verbNames, paint, spans) {
+  const { value } = read;
+  const start = read.span.start.offset;
+  const end = read.span.end.offset;
+  const brackets = (opener, kind, from = start) => {
+    paint(from, from + opener, kind);
+    paint(end - 1, end, kind);
+  };
+  const form = formOf(value);
+  switch (form) {
+    case 'doc': return paintDoc(read, source, verbNames, paint, spans);
+    case 'quote': return read.content === undefined ? undefined : paintQuote(read, source, verbNames, paint, spans);
+    case 'vec': return brackets(1, 'vec');
+    case 'set': return brackets(2, 'set');
+    case 'map': return brackets(1, 'map');
+    case 'underTag': break;
+    default: return paint(start, end, form);
+  }
+  if (errorFieldsOf(value) !== null) return brackets(2, 'error', tagHeadEnd(read) ?? start);
+  if (tagHeadEnd(read) !== null) return paint(start, tagHeadEnd(read), 'tag');
+  if (isBindStep(value)) return paint(read.parts[0].span.start.offset, read.parts[0].span.end.offset, 'declaration');
+  if (isGroupStep(value) && read.content !== undefined) return brackets(1, 'group');
+  if (!isCallStep(value)) return undefined;
+  const name = value.get('name').name;
+  return paint(start, start + name.length, verbNames.has(name) ? 'verb' : 'name');
+}
+
+// The `~(` and `)` of a quote, or the `~` of its short form, and what it holds
+// painted as the code it is, each token of it `italic` [QSHST#tools].
+function paintQuote(read, source, verbNames, paint, spans) {
+  const start = read.span.start.offset;
+  const end = read.span.end.offset;
+  const short = source[start + 1] !== '(';
+  const from = start + (short ? 1 : 2);
+  const to = short ? end : end - 1;
+  paint(start, from, 'quote');
+  for (const inner of tokenize(source.slice(from, to), verbNames)) spans.push({ ...inner, start: from + inner.start, end: from + inner.end, italic: true });
+  paint(to, end, 'quote');
+  return false;
+}
+
+// The prose of a doc around the quotes it holds, which the walk paints, and
+// the code its spans between backquotes hold, painted as code [QSHST#tools].
+function paintDoc(read, source, verbNames, paint, spans) {
+  const quotes = read.parts.map(({ span }) => ({ start: span.start.offset, end: span.end.offset, code: false }));
+  const backquoted = read.backquoted.map(({ start, end }) => ({ start: start.offset, end: end.offset, code: true }));
+  let cursor = read.span.start.offset;
+  for (const { start, end, code } of [...quotes, ...backquoted].sort((left, right) => left.start - right.start)) {
+    paint(cursor, start, 'doc');
+    if (code) for (const inner of tokenize(source.slice(start, end), verbNames)) spans.push({ ...inner, start: start + inner.start, end: start + inner.end });
+    cursor = end;
+  }
+  paint(cursor, read.span.end.offset, 'doc');
+}
+
+// The tokens of a source, its spans and each gap between them split into runs
+// of whitespace, the combinator `!|`, `fail`, and each other character,
+// `punctuation` [QSHST#tools].
+function withGaps(source, spans) {
+  const tokens = [];
+  let cursor = 0;
+  const gapUntil = end => {
+    while (cursor < end) {
+      let next = cursor + 1;
+      let kind = 'punctuation';
+      if (/\s/.test(source[cursor])) {
+        while (next < end && /\s/.test(source[next])) next += 1;
+        kind = 'whitespace';
+      } else if (source.startsWith('!|', cursor)) {
+        next = cursor + 2;
+        kind = 'fail';
+      }
+      tokens.push({ start: cursor, end: next, kind });
+      cursor = next;
     }
+  };
+  for (const span of spans) {
+    gapUntil(span.start);
+    tokens.push(span);
+    cursor = span.end;
   }
-}
-
-// The kind of a run of combinator characters in a gap: `!|`, the fail
-// track, paints as `err`, the palette of the brackets of an error literal
-// [QSERR#flow].
-function scanPunctRun(src, startOffset) {
-  const ch = src[startOffset];
-  const next = src[startOffset + 1];
-  if (ch === '!' && next === '|') return { end: startOffset + 2, kind: 'err'   };
-  return { end: startOffset + 1, kind: 'punct' };
+  gapUntil(source.length);
+  return tokens;
 }

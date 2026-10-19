@@ -215,7 +215,7 @@ const features = [
       const entry = document.createElement('div');
       entry.className = 'repl-entry';
       entry.innerHTML = `
-        <div class="repl-entry-input"><span class="punct">&gt; </span>${hi(src)}</div>
+        <div class="repl-entry-input"><span class="prompt">&gt; </span>${hi(src)}</div>
         <div class="repl-entry-output">${hl(printed, rootVerbNames)}</div>
       `;
       return entry;

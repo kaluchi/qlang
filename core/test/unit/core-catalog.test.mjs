@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { nodeOf } from '../../src/nouns.mjs';
 import { parse } from '../../src/parse.mjs';
-import { keyword, isMap, isVec, makeTag, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
+import { keyword, isMap, isVec, isQuote, makeTag, bindingValueOf, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { makeSet } from '../../src/ordering.mjs';
 import { platformLocator, LANGUAGE_SOURCES } from '../../src/runtime/bootstrap.mjs';
 import { evalQuery } from '../../src/session.mjs';
@@ -17,8 +17,7 @@ import { verdictOf } from '../../../scripts/conventions-verdict.mjs';
 describe('the sources of the language', () => {
   it('each parses without errors', async () => {
     for (const uri of LANGUAGE_SOURCES) {
-      const ast = parse((await platformLocator(uri)).source, { uri });
-      expect(ast.type, uri).toBeDefined();
+      expect(isQuote(parse((await platformLocator(uri)).source, { uri })), uri).toBe(true);
     }
   });
 });

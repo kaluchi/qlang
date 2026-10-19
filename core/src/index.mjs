@@ -3,26 +3,30 @@
 // the runtime modules, which register their primitives as they load.
 // The rules it holds: [QSWRK#tooling].
 
-export { parse, ParseError } from './parse.mjs';
-export { answerKindsOf } from './eval.mjs';
+export { parse, ParseError, partsBeforeACursor, SIGNS_A_WORD_FOLLOWS } from './parse.mjs';
 export { langRuntime } from './runtime/index.mjs';
 export { LANGUAGE_SOURCES } from './runtime/bootstrap.mjs';
 export { createSession, evalQuery } from './session.mjs';
 export {
-  walkAst, findAstNodeAtOffset, findNameOccurrences, writesTag, readsItsSubject,
-  bindingNamesVisibleAt, builtFrom, declaresKind, CALL_SPELLING, TAG_SPELLING,
-  FORK_ISOLATING_AST_TYPES
+  partOf, walkParts, partAtOffset, findNameOccurrences, tagWrittenBy, tagHeadEnd, readsItsSubject,
+  bindingNamesVisibleAt, CALL_SPELLING, TAG_SPELLING
 } from './walk.mjs';
+export { isCallStep, isBindStep, isGroupStep, isFailStep, holdsALiteral, declaresKind } from './steps.mjs';
+export { bodyRuns } from './chain.mjs';
 export { splitAddress } from './address.mjs';
 export { printValue, printQuoteSource } from './print-value.mjs';
 export {
   toPlain, fromPlain, fromJsonText, StringParseJsonNumberNotFiniteError
 } from './runtime/json.mjs';
 export { printAnswer, elideAnswer, caretOf } from './runtime/print.mjs';
-export { isNameStart, isNameContinue } from './name-chars.mjs';
+export { isNameStart, isNameContinue, NAME_REGEX } from './name-chars.mjs';
 export {
   keyword, isKeyword, makeTag, isTag, isErrorValue,
   bindingValueOf, makeErrorValue,
   TAG_HEADER_SYMBOL, stampTagHeader, typeOf
 } from './types.mjs';
-export { verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isVerb, declaresVerb, ruleRefusalsOf, shownFor } from './nouns.mjs';
+export {
+  verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isVerb, declaresVerb, ruleRefusalsOf,
+  shownFor, answerKindsOf, kindsOfWalk
+} from './nouns.mjs';
+export { servesTheSubject } from './dispatch.mjs';

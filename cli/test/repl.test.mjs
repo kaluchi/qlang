@@ -90,6 +90,13 @@ describe('runRepl — query evaluation', () => {
     expect(text).toMatch(/sub/);
   });
 
+  it('reads a doc whose quote stands under the tag of a group as a cell, its answer on stdout and no defect [QSSLF#doc]', async () => {
+    const replHarness = captureRepl('|~~ see ::group~(add 1) ~~| | segments | get /1\n["a" ::group~(x)] | tag ::doc | :d it | print | parse | first | eq d\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    expect(stripAnsi(replHarness.stdoutText())).toBe('qlang> ::group~(add 1)\nqlang> true\nqlang> ');
+    expect(replHarness.stderrText()).toBe('');
+  });
+
   it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout, its caret drawn below it [QSHST#answer]', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
@@ -107,7 +114,7 @@ describe('runRepl — output highlighting', () => {
   it('paints the printed result with ANSI escape sequences', async () => {
     const replHarness = captureRepl('[1 2 3]\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    // Numbers render under the yellow escape; brackets under punct.
+    // Numbers render under the yellow escape.
     expect(replHarness.stdoutText()).toMatch(/\x1b\[33m/);
   });
 

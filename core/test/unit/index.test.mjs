@@ -9,7 +9,7 @@ import { tokenize } from '../../src/highlight.mjs';
 
 describe('the package root', () => {
   it('parses a source and evaluates a query', async () => {
-    expect(core.parse('42').type).toBe('NumberLit');
+    expect([...core.parse('42')]).toEqual([42]);
     expect(await core.evalQuery('[1 2 3] | count')).toBe(3);
   });
 
@@ -36,14 +36,26 @@ describe('the package root', () => {
     expect(core.toPlain(lifted)).toEqual({ name: 'alice' });
   });
 
-  it('hands the tools the tree and the letters of a name', () => {
-    const ast = core.parse(':x 1 | x');
-    expect(core.findNameOccurrences(ast, 'x').length).toBeGreaterThan(0);
+  it('hands the tools the parts of a text and the letters of a name', () => {
+    const root = core.partOf(core.parse(':x 1 | x'));
+    expect(core.findNameOccurrences(root, 'x').length).toBeGreaterThan(0);
     expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
   });
 
+  it('hands an editor the regex of a name, which reads the letters of a name as the parser reads them [QSNAM#letters], [QSHST#tools]', () => {
+    const whole = new RegExp(`^(?:${core.NAME_REGEX.source})$`, 'u');
+    const letters = Array.from({ length: 0x10000 }, (_, code) => String.fromCharCode(code)).filter(letter => !/[\ud800-\udfff]/.test(letter));
+    expect(letters.filter(letter => whole.test(letter) !== core.isNameStart(letter) || whole.test(`a${letter}`) !== core.isNameContinue(letter))).toEqual([]);
+    expect([...':имя 5 | vec/count | _x-1'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['имя', 'vec', 'count', '_x-1']);
+  });
+
+  it('reads no letter past the first plane of Unicode in the regex of a name, as the parser reads a character a code unit [QSNAM#letters], [QSHST#tools]', async () => {
+    expect([...'a𝐀b c𝐁'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['a', 'b', 'c']);
+    expect(await core.evalQuery('":a𝐀 1" | parse !| type')).toEqual(core.makeTag('quote/ParseError'));
+  });
+
   it('exports no symbol of the runtime a consumer does not read', () => {
-    for (const internal of ['evalAst', 'astChildrenOf', 'QlangError', 'makeTagged', 'formOf', 'EVAL_DEPTH_LIMIT']) {
+    for (const internal of ['evalPipeline', 'keepParts', 'repeatsDeclarationAt', 'QlangError', 'makeTagged', 'formOf', 'EVAL_DEPTH_LIMIT']) {
       expect(core[internal], internal).toBeUndefined();
     }
   });

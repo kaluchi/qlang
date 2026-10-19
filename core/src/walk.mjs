@@ -1,249 +1,179 @@
-// The walks of the parser's tree over the children `astChildrenOf` names,
-// which the decoration of a parse, the language server and the editor
-// read: the node at an offset, the occurrences of a name, and the names
-// visible at a cursor.
+// The parts the parser read beside the records of the steps, and the walks
+// over them: the part at an offset, the end of the head of a tag, the
+// occurrences of a name and its two spellings, the names visible at a place,
+// whether a query reads its subject and the rule of a name declared twice
+// [QSQUO#step], [QSHST#tools].
 
 import { splitAddress } from './address.mjs';
+import { isPath, isTag } from './types.mjs';
+import { isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, holdsALiteral, declaresAName, declaresKind } from './steps.mjs';
 
-// The two spellings of a name in source, which the editor passes to say
-// which occurrences and declarations count: called by its name, `count`,
-// or written as a tag, the address of a node, `::Box` [QSNAM#address].
+// The two spellings of a name, which tell the occurrences and the
+// declarations of it that count: called by its name, `count`, or written as
+// a tag, the address of a node, `::Box` [QSNAM#address].
 export const CALL_SPELLING = 'call';
 export const TAG_SPELLING   = 'tag';
 
-// astChildrenOf(node) → the children of a node that hold meaning, the
-// step of each unit of a pipeline among them, none for a leaf.
-export function astChildrenOf(node) {
-  if (!node || typeof node !== 'object' || !('type' in node)) return [];
-  const out = [];
-  switch (node.type) {
-    case 'Pipeline':
-      if (node.steps.length > 0) out.push(node.steps[0]);
-      for (let i = 1; i < node.steps.length; i++) {
-        out.push(node.steps[i].step);
-      }
-      break;
-    case 'ParenGroup':
-      out.push(node.pipeline);
-      break;
-    case 'VecLit':
-    case 'SetLit':
-      for (const elem of node.elements) out.push(elem);
-      break;
-    case 'MapLit':
-    case 'ErrorLit':
-      for (const entry of node.entries) out.push(entry);
-      break;
-    case 'MapEntry':
-      out.push(node.key);
-      out.push(node.value);
-      break;
-    case 'Call':
-      for (const arg of node.args) out.push(arg);
-      break;
-    case 'TaggedLit':
-      out.push(node.payload);
-      break;
-    case 'QuoteLit':
-      if (node.pipeline !== null) out.push(node.pipeline);
-      break;
-    case 'DocTaggedQuote':
-      out.push(node.quote);
-      break;
-    case 'BindStep':
-      out.push(node.key);
-      for (const doc of node.docs ?? []) out.push(doc);
-      if (node.body) out.push(node.body);
-      break;
-    case 'DocLit':
-      for (const segment of node.segments) if (typeof segment !== 'string') out.push(segment);
-      break;
-    // Leaves: NumberLit, StringLit, BooleanLit, NullLit, Keyword,
-    // RegexLit, Path, TagLit (a tag, the address of a node) have
-    // no semantic children.
-  }
-  return out;
-}
+// The part each value read stands at, the quote of a group and of a step of
+// the fail track at the part of the step.
+const PARTS = new WeakMap();
 
-// The literals, which answer themselves whatever the subject, their parts
-// literals [QSLIT#closed], a path among them [QSPTH#value], a quote, whose code
-// does not run, and a doc.
-const LITERALS = new Set([
-  'NumberLit', 'StringLit', 'BooleanLit', 'NullLit', 'Keyword', 'TagLit', 'RegexLit', 'Path',
-  'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'TaggedLit', 'QuoteLit', 'DocLit', 'DocTaggedQuote'
-]);
+const keep = (value, read) => {
+  if (typeof value === 'object' && value !== null) PARTS.set(value, read);
+};
 
-// readsItsSubject(node) → whether a query reads the subject it is handed,
-// which a host that lifts the subject from a stream waits on only then
-// [QSHST#stdin]: a pipeline where its first step that declares nothing reads
-// it, or where a declaration before that step runs a body that does; a
-// group where its code reads it; a literal never; a call, a declaration,
-// which answers its subject, and a node this walk does not name always.
-export function readsItsSubject(node) {
-  if (node.type === 'Pipeline') return stepsReadTheirSubject([node.steps[0], ...node.steps.slice(1).map(unit => unit.step)]);
-  if (node.type === 'ParenGroup') return readsItsSubject(node.pipeline);
-  return !LITERALS.has(node.type);
-}
-
-function stepsReadTheirSubject(steps) {
-  for (const step of steps) {
-    if (step.type !== 'BindStep') return readsItsSubject(step);
-    if (astChildrenOf(step).some(readsItsSubject)) return true;
-  }
-  return true;
-}
-
-// walkAst(node, visit) → a walk of the tree, each node before its
-// children, which it skips for a node `visit(node, parent)` answers false
-// for.
-export function walkAst(node, visit, parent = null) {
-  if (visit(node, parent) === false) return;
-  for (const child of astChildrenOf(node)) walkAst(child, visit, node);
-}
-
-// attachAstParents(root) → each node its `.parent`, the root's null.
-export function attachAstParents(root) {
-  walkAst(root, (n, parent) => { n.parent = parent; });
-}
-
-// originOf(node) — the uri of the source a node was read from, which the
-// root of its tree carries: a source of the root's name, a cell's, `inline`
-// for a text read with no name, `quote` for code assembled from data.
-export function originOf(node) {
-  let root = node;
-  while (root.parent) root = root.parent;
-  return root.uri;
-}
-
-// declaredNameOf(bindStep) — the name a declaration writes, its keyword's
-// [QSNAM#address].
-export function declaredNameOf(bindStep) {
-  return bindStep.key.name;
-}
-
-// builtFrom(body) → the noun a body builds its value from as it is
-// written: the tag at the head of its chain of commands, in parentheses or
-// not, `::kind | wraps …`, or the tag of its literal, `::fn[~(…) ~(…)]`;
-// null for any other body [QSBLD#fn], [QSBLD#kind].
-export function builtFrom(body) {
-  const chain = body.type === 'ParenGroup' ? body.pipeline : body;
-  if (chain.type === 'TaggedLit') return chain.tag;
-  return chain.type === 'Pipeline' && chain.steps[0].type === 'TagLit' ? chain.steps[0].tag : null;
-}
-
-// declaresKind(bindStep) — whether a declaration declares a label: a name
-// by its page alone, `:Box |~~ A parcel. ~~|`, or by the chain of a kind,
-// `:Box |~~ A parcel. ~~| (::kind | wraps …)` [QSBLD#kind].
-export function declaresKind(bindStep) {
-  return bindStep.body === null || builtFrom(bindStep.body) === 'kind';
-}
-
-// The declarations of a pipeline that repeat a name an earlier step of
-// the same scope declared, the steps sharing one env [QSNAM#scope].
-const REPEATED_DECLARATIONS_OF_PIPELINE = new WeakMap();
-
-function repeatedDeclarationsOf(pipeline) {
-  let repeated = REPEATED_DECLARATIONS_OF_PIPELINE.get(pipeline);
-  if (repeated !== undefined) return repeated;
-  repeated = new Set();
-  const declared = new Set();
-  pipeline.steps.forEach((unit, index) => {
-    const step = index === 0 ? unit : unit.step;
-    if (step.type !== 'BindStep') return;
-    const name = declaredNameOf(step);
-    if (declared.has(name)) repeated.add(step);
-    declared.add(name);
+// keepParts(root) → the root of the parts of a text, each part holding its
+// parent and kept by the value it read.
+export function keepParts(root) {
+  walkParts(root, (read, parent) => {
+    read.parent = parent;
+    keep(read.value, read);
+    if (isGroupStep(read.value) || isFailStep(read.value)) keep(read.value.payload, read);
   });
-  REPEATED_DECLARATIONS_OF_PIPELINE.set(pipeline, repeated);
-  return repeated;
+  return root;
 }
 
-// repeatsDeclarationInScope(bindStep) — whether an earlier step of the
-// declaration's scope declares its name [QSNAM#scope].
-export function repeatsDeclarationInScope(bindStep) {
-  return bindStep.parent?.type === 'Pipeline' && repeatedDeclarationsOf(bindStep.parent).has(bindStep);
+// partOf(value) → the part a value was read at, undefined for a value no
+// text wrote.
+export const partOf = value => (typeof value === 'object' && value !== null ? PARTS.get(value) : undefined);
+
+// originOf(quote) — the source a quote was read from, the name its reader
+// gave it, `quote` for one assembled from data [QSDSP#residence].
+export const originOf = quote => partOf(quote)?.span.source ?? 'quote';
+
+// walkParts(part, visit) → a walk of the parts, each before the parts it
+// holds, which it skips for a part `visit(part, parent)` answers false for.
+export function walkParts(read, visit, parent = null) {
+  if (visit(read, parent) === false) return;
+  for (const held of read.parts) walkParts(held, visit, read);
 }
 
-// findAstNodeAtOffset(ast, offset) → the narrowest node whose span holds
-// the UTF-16 offset, a cursor inside `filter ~(gt 2)` landing on `gt 2`,
-// or null.
-export function findAstNodeAtOffset(ast, offset) {
+const holds = (span, offset) => span.start.offset <= offset && offset < span.end.offset;
+
+// partAtOffset(root, offset) → the narrowest part whose span holds the
+// UTF-16 offset, a cursor inside `filter ~(gt 2)` landing on `gt 2`, or null.
+export function partAtOffset(root, offset) {
   let narrowest = null;
-  walkAst(ast, (node) => {
-    if (!node.location) return;
-    const { start, end } = node.location;
-    // A node is walked after the nodes that hold it, so the last wins.
-    if (start.offset <= offset && offset < end.offset) narrowest = node;
+  walkParts(root, (read) => {
+    if (holds(read.span, offset)) narrowest = read;
   });
   return narrowest;
 }
 
-// findNameOccurrences(ast, name, spelling?) → the nodes that name
-// it, a keyword written as a value none of them: called, a call of the
-// name, its declaration and a path that reads it as a key; written
-// as a tag [QSNAM#address], its declaration, a tagged or an error literal that
-// writes it [QSERR#rest] and the tag name alone.
-export function findNameOccurrences(ast, name, spelling = CALL_SPELLING) {
-  if (spelling === TAG_SPELLING) return findTagOccurrences(ast, name);
+// tagWrittenBy(part) → the name of the tag a tagged literal writes at its
+// head, `::Tag[…]`, or null; an error literal holds the tag written before
+// its bang as a part of it [QSERR#rest].
+export function tagWrittenBy({ value }) {
+  return isConstructStep(value) ? value.get('tag').name : null;
+}
+
+// tagHeadEnd(part) → where the tags a tagged literal, an error literal or a
+// quote of a doc writes at its head end, which the parser records, or null
+// [QSERR#rest], [QSHST#tools].
+export const tagHeadEnd = read => read.head?.end.offset ?? null;
+
+// findNameOccurrences(root, name, spelling?) → the parts that name it, a
+// keyword written as a value none of them: called, a call of the name, its
+// declaration and a path that reads it as a key; written as a tag
+// [QSNAM#address], its declaration, a tagged literal that writes it and the
+// tag name alone, the head of an error literal among them.
+export function findNameOccurrences(root, name, spelling = CALL_SPELLING) {
   const occurrences = [];
-  walkAst(ast, (node) => {
-    if (node.type === 'Call' && splitAddress(node.name)[1] === name) occurrences.push(node);
-    else if (node.type === 'BindStep' && splitAddress(node.key.name)[1] === name) occurrences.push(node);
-    else if (node.type === 'Path' && node.keys.includes(name)) occurrences.push(node);
-  });
-  return occurrences;
-}
-
-// writesTag(node) — a node whose head is a tag it writes: a tagged
-// literal, `::Tag(…)`, or an error literal that writes the tag of its
-// content before its bang, `::Tag!{…}` [QSERR#rest].
-export function writesTag(node) {
-  return node.type === 'TaggedLit' || (node.type === 'ErrorLit' && node.tag !== null);
-}
-
-function findTagOccurrences(ast, tagName) {
-  const occurrences = [];
-  walkAst(ast, (node) => {
-    if (writesTag(node) && node.tag === tagName) occurrences.push(node);
-    else if (node.type === 'TagLit' && node.tag === tagName) occurrences.push(node);
-    else if (node.type === 'BindStep' && declaresKind(node) && node.key.name === tagName) occurrences.push(node);
-  });
-  return occurrences;
-}
-
-// The nodes whose declarations stay inside them [QSQUO#modifier]: a group, a
-// quote, each word of a literal and each value of a map; the steps of a
-// pipeline share their scope, each seeing the declarations before it.
-export const FORK_ISOLATING_AST_TYPES = new Set([
-  'ParenGroup', 'QuoteLit', 'VecLit', 'SetLit', 'MapLit', 'ErrorLit', 'MapEntry'
-]);
-
-// bindingNamesVisibleAt(ast, offset, spelling?) → the names a step may
-// call at the UTF-16 offset: the declarations that end at or before it,
-// one inside a node whose declarations stay inside it only for an offset
-// within the part of that node that holds it, its end included, and
-// under the spelling of a tag the labels alone [QSSLF#catalog].
-export function bindingNamesVisibleAt(ast, offset, spelling = CALL_SPELLING) {
-  const visible = new Set();
-  walkAst(ast, (node) => {
-    if (node.type !== 'BindStep' || (spelling === TAG_SPELLING && !declaresKind(node))) return;
-    const bindingName = node.key.name;
-    if (!node.location || node.location.end.offset > offset) return;
-    let current = node;
-    let parent = current.parent;
-    while (parent) {
-      if (FORK_ISOLATING_AST_TYPES.has(parent.type)) {
-        if (!current.location
-            || current.location.start.offset > offset
-            || current.location.end.offset < offset) {
-          return;
-        }
-      }
-      current = parent;
-      parent = current.parent;
+  walkParts(root, (read) => {
+    const { value } = read;
+    if (spelling === TAG_SPELLING) {
+      if (tagWrittenBy(read) === name || (isTag(value) && value.name === name) || (isBindStep(value) && declaresKind(value) && value.get('name').name === name)) occurrences.push(read);
+    } else if ((isCallStep(value) || isBindStep(value)) && splitAddress(value.get('name').name)[1] === name) {
+      occurrences.push(read);
+    } else if (isPath(value) && value.segments.includes(name)) {
+      occurrences.push(read);
     }
-    visible.add(spelling === TAG_SPELLING ? bindingName : splitAddress(bindingName)[1]);
   });
+  return occurrences;
+}
+
+// The groups and the quotes around a part, the nearest first.
+function* forksAround(read) {
+  for (let around = read.parent; around !== null; around = around.parent) if (around.content !== undefined) yield around;
+}
+
+// visibleAt(declaration, offset) — whether a declaration is seen at an
+// offset across the groups and the quotes around it, each holding the
+// offset within its pipeline [QSNAM#scope].
+export function visibleAt(declaration, offset) {
+  for (const { content } of forksAround(declaration)) if (content.start.offset > offset || content.end.offset < offset) return false;
+  return true;
+}
+
+// bindingNamesVisibleAt(root, offset, spelling?, declaresAVerb?) → the names a
+// step may call at the UTF-16 offset, a name with a path by its address and its
+// last name, each with the part of its nearest declaration visible there: one
+// that ends at or before it, and in the body of the innermost verb
+// `declaresAVerb` holds of, the last part of its declaration, of those outside
+// the body the nodes and the labels wherever they stand, the verb among them;
+// under the spelling of a tag the labels alone [QSSLF#catalog], [QSNAM#address],
+// [QSNAM#verb], [QSHST#tools].
+export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING, declaresAVerb = () => false) {
+  const declarations = [];
+  walkParts(root, (read) => {
+    if (isBindStep(read.value)) declarations.push(read);
+  });
+  const body = declarations.findLast(read => holds(read.parts.at(-1).span, offset) && declaresAVerb(read))?.parts.at(-1);
+  const visible = new Map();
+  const depths = new Map();
+  for (const read of declarations) {
+    const { value, span } = read;
+    if (spelling === TAG_SPELLING && !declaresKind(value)) continue;
+    const outside = body !== undefined && (span.start.offset < body.span.start.offset || span.end.offset > body.span.end.offset);
+    if ((outside ? !declaresANodeOrALabel(value) : span.end.offset > offset) || !visibleAt(read, offset)) continue;
+    const name = value.get('name').name;
+    const depth = [...forksAround(read)].length;
+    for (const key of spelling === CALL_SPELLING ? [name, splitAddress(name)[1]] : [name]) {
+      if (depths.get(key) > depth) continue;
+      visible.set(key, read);
+      depths.set(key, depth);
+    }
+  }
   return visible;
 }
 
+// Whether a declaration writes a node, a name with a path, or a label, the
+// names the scope a call opens keeps [QSNAM#verb].
+const declaresANodeOrALabel = bind => splitAddress(bind.get('name').name)[0] !== null || declaresKind(bind);
+
+// readsItsSubject(quote) → whether a query reads the subject it is handed,
+// which a host that lifts the subject from a stream waits on only then
+// [QSHST#stdin]: where its first step that declares nothing reads it, or a
+// declaration before that step runs a body that does; a group where its
+// code reads it, a literal never, a call always, and so does a query of
+// declarations alone.
+export function readsItsSubject(steps) {
+  for (const step of steps) {
+    const held = isFailStep(step) ? step.payload[0] : step;
+    if (!isBindStep(held)) return readsBy(held);
+    if (held.has('body') && readsBy(held.get('body'))) return true;
+  }
+  return true;
+}
+
+const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload) : !holdsALiteral(step));
+
+// Whether a declaration repeats a name an earlier step of its quote
+// declared, the steps sharing one scope [QSNAM#scope].
+const REPEATED_DECLARATIONS = new WeakMap();
+
+export function repeatsDeclarationAt(steps, index) {
+  let repeated = REPEATED_DECLARATIONS.get(steps);
+  if (repeated === undefined) {
+    repeated = new Set();
+    const declared = new Set();
+    steps.forEach((step, at) => {
+      if (!declaresAName(step)) return;
+      const name = (isFailStep(step) ? step.payload[0] : step).get('name').name;
+      if (declared.has(name)) repeated.add(at);
+      declared.add(name);
+    });
+    REPEATED_DECLARATIONS.set(steps, repeated);
+  }
+  return repeated.has(index);
+}

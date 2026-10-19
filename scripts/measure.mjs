@@ -4,7 +4,8 @@
 // lines per code line. With
 // --steps it prints instead the diff of every step of a stack by the
 // areas a branch reports: core sources, catalog, documents, tests,
-// tooling. Runs wherever the checkout is with the history it names.
+// tooling. The journal stands outside the count, apart from the documents
+// and beneath the total. Runs wherever the checkout is with the history it names.
 //
 // Usage:
 //   node scripts/measure.mjs [<fromRef> [<toRef>]]   from the baseline, or the root of a history that holds none, to HEAD where none is named
@@ -18,7 +19,7 @@ const repoRoot = join(import.meta.dirname, '..');
 const git = args => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
 
 const FINE_AREAS = ['core sources', 'core catalog', 'core conformance', 'core unit tests', 'cli sources',
-  'cli catalog', 'cli tests', 'lsp', 'vscode', 'site', 'scripts', 'spec', 'journal', 'other docs',
+  'cli catalog', 'cli tests', 'lsp', 'vscode', 'site', 'scripts', 'spec', 'other docs',
   'lockfile', 'rest'];
 const COARSE_AREAS = ['core sources', 'catalog', 'documents', 'tests', 'tooling'];
 
@@ -42,8 +43,9 @@ function coarseAreaOf(path) {
   const fine = fineAreaOf(path);
   if (fine === 'core sources') return 'core sources';
   if (fine.endsWith('catalog')) return 'catalog';
+  if (fine === 'journal') return 'journal';
   if (`/${path}`.includes('/test/')) return 'tests';
-  if (['spec', 'journal', 'other docs'].includes(fine) || path.endsWith('.md')) return 'documents';
+  if (['spec', 'other docs'].includes(fine) || path.endsWith('.md')) return 'documents';
   return 'tooling';
 }
 
@@ -98,19 +100,19 @@ const signed = n => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '0');
 function printSummary(fromRef, toRef) {
   const [before, after] = [linesByArea(fromRef), linesByArea(toRef)];
   const diff = diffByArea(fromRef, toRef, fineAreaOf);
+  const countsOf = area => ({ before: before.get(area) ?? 0, after: after.get(area) ?? 0, ...(diff.get(area) ?? { added: 0, removed: 0 }) });
+  const printRow = (label, { before: linesBefore, after: linesAfter, added, removed }) => console.log(
+    `${label.padEnd(17)}${String(linesBefore).padStart(6)} → ${String(linesAfter).padEnd(6)}${signed(linesAfter - linesBefore).padEnd(7)} +${added} −${removed}`);
   const total = { before: 0, after: 0, added: 0, removed: 0 };
   console.log(`== ${fromRef} → ${toRef}, ${git(['rev-list', '--count', `${fromRef}..${toRef}`]).trim()} commits`);
   for (const area of FINE_AREAS) {
-    const [linesBefore, linesAfter] = [before.get(area) ?? 0, after.get(area) ?? 0];
-    const { added, removed } = diff.get(area) ?? { added: 0, removed: 0 };
-    if (linesBefore === 0 && linesAfter === 0) continue;
-    Object.assign(total, { before: total.before + linesBefore, after: total.after + linesAfter,
-      added: total.added + added, removed: total.removed + removed });
-    console.log(`${area.padEnd(17)}${String(linesBefore).padStart(6)} → ${String(linesAfter).padEnd(6)}` +
-      `${signed(linesAfter - linesBefore).padEnd(7)} +${added} −${removed}`);
+    const counts = countsOf(area);
+    if (counts.before === 0 && counts.after === 0) continue;
+    for (const key of Object.keys(total)) total[key] += counts[key];
+    printRow(area, counts);
   }
-  console.log(`${'total'.padEnd(17)}${String(total.before).padStart(6)} → ${String(total.after).padEnd(6)}` +
-    `${signed(total.after - total.before).padEnd(7)} +${total.added} −${total.removed}`);
+  printRow('total', total);
+  printRow('journal', countsOf('journal'));
   for (const [label, regex, pathspec] of SURFACE) {
     console.log(`${label}: ${matchingLines(fromRef, regex, pathspec)} → ${matchingLines(toRef, regex, pathspec)}`);
   }

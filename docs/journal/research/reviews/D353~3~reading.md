@@ -19,20 +19,22 @@ Second pass: the session repaired the branch by your sixteen findings in commit 
 1. **Записана.** Правила, которые починка написала в главу и в код, решила
    [D372]: окраска по имени, виды ответа после вызова, зазор по грамматике,
    имена тела глагола по тексту, шаг у курсора и знаки автодополнения из
-   ядра, оговорка QSHST#stdin. Растворена в QSHST#tools и QSHST#stdin. Проба:
+   ядра, которые [D374] вернула серверу, оговорка QSHST#stdin. Растворена в
+   QSHST#tools и QSHST#stdin. Проба:
    `rg -n "^Dissolved into" docs/journal/replaced/D372.md` → одна строка.
 2. **Записана.** Чтение имён тела глагола по тексту решила [D372], чтение у
    каждого вызова отставлено с ценой; из списка идей [D257] пункт ушёл. Проба:
    `rg -n "read at each call" docs/journal/replaced/D372.md` → одна строка.
-3. **Сделана с третьего прохода.** Шаг у курсора и знаки, после которых
-   редактор просит автодополнение, пишет ядро, `partsBeforeACursor` и
-   `SIGNS_A_WORD_FOLLOWS` из `core/src/parse.mjs`, а сервер их берёт. Проба:
-   `git grep -l -F -e "partsBeforeACursor" -e "SIGNS_A_WORD_FOLLOWS" -- lsp/src` → features.mjs, server.mjs.
-4. **Держит открытая запись.** Рост тестов ветки вошёл в [D296], запись
-   тестов и проверок, рост документов назван в источнике [D353]; отчёты
-   названы по записи, `D353~2`–`D353~4`, и стоят под `Runs.` записи. Проба:
-   `rg -n "D353~2.md" docs/journal/D353.md docs/journal/D296.md` → источник
-   и `Runs.` у D353, источник у D296.
+3. **Отставлена.** Шаг у курсора и знаки, после которых редактор просит
+   автодополнение, третья починка отдала ядру, `partsBeforeACursor` и
+   `SIGNS_A_WORD_FOLLOWS`; [D374] вернула их серверу: шаг сервер отбрасывает
+   до шагов, а список знаков был второй грамматикой поверх парсера. Проба:
+   `git grep -l -F -e "partsBeforeACursor" -e "SIGNS_A_WORD_FOLLOWS" -- core/src lsp/src` → пусто.
+4. **Решена записями.** Рост документов — рост журнала, который [D373]
+   выводит из счёта, рост тестов держит [D296]; отчёты названы по записи,
+   `D353~2`–`D353~4`, и стоят под `Runs.` записи. Проба:
+   `rg -n "D353~2.md" docs/journal/D353.md docs/journal/D296.md` → `Runs.` у
+   D353, источник у D296.
 5. **Сделана.** QSNAM#scope говорит об именах в силе там, где стоит шаг, у
    рецепта — о тех, что открывает вызов, без `env`. Проба:
    `:number/m (::fn | takes :x |~~ x ~~| /0 | impl ~(env | keys)) | 1 | m 2`
@@ -40,7 +42,8 @@ Second pass: the session repaired the branch by your sixteen findings in commit 
    не находит его в первой фразе раздела.
 6. **Сделана.** Проба видов ниже метки стоит под фразой о видах после вызова:
    `get [~(::Box[1 2] | within ~(get /0) | payload | type) ~(::Box[1 2] | payload | type)]`
-   → `[::number ::vec]`; вычислительная половина теста читает `payload | type`.
+   → `[::number ::vec]`; вычислительная половина теста читает `type` и
+   `payload | type`.
 7. **Сделана.** Проба: `rg -n "by what it reaches" core/test/unit/highlight.test.mjs` → пусто.
 8. **Сделана.** `::tagged` назван видом. Проба:
    `rg -n "the tag the value it reached|the tag that value stands under|the tag of the value its label reached" docs core` → пусто.
@@ -51,5 +54,7 @@ Second pass: the session repaired the branch by your sixteen findings in commit 
     [D353~2~reading.md](D353~2~reading.md) и этот разбор.
 
 [D257]: ../../D257.md
-[D353]: ../../D353.md
+[D296]: ../../D296.md
 [D372]: ../../replaced/D372.md
+[D373]: ../../D373.md
+[D374]: ../../D374.md

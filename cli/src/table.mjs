@@ -3,7 +3,7 @@
 // walk served alone [QSQUO#modifier].
 
 import { printValue } from '@kaluchi/qlang-core';
-import { declareRefusal } from '@kaluchi/qlang-core/errors';
+import { declareRefusal, refusingAPart } from '@kaluchi/qlang-core/errors';
 
 const VecTableRowNotMapError     = declareRefusal('vec/table/RowNotMapError');
 
@@ -28,7 +28,7 @@ function columnOrderOf(rows) {
 function table(subject) {
   if (subject.length === 0) return '(empty)';
   subject.forEach((row, rowIndex) => {
-    if (!(row instanceof Map)) throw new VecTableRowNotMapError({ index: rowIndex, actualValue: row });
+    if (!(row instanceof Map)) throw refusingAPart(new VecTableRowNotMapError({ actualValue: row }), rowIndex);
   });
   const columnNames = columnOrderOf(subject);
   const widths = columnNames.map(columnName => columnName.length);

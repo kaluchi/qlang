@@ -21,8 +21,9 @@ export const TAGGED_KIND_NAME = 'tagged';
 // a kind, a payload of none of its kinds, or an element of none, a refusal of
 // kinds named by the role of its holder alone.
 export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kindsWord(kinds)}Error`;
-// The subject of a function `apply` runs, which no label serves, is refused
-// by its role, the kinds `on` names its `:expected` [QSBLD#fn].
+// The call of a function `apply` runs or `fill` fills, under which every refusal of
+// it is named, its subject refused by its role, the kinds `on` names its `:expected` [QSBLD#fn].
+export const FN_CALL_ADDRESS = 'fn/call';
 export const subjectKindsRefusalAddress = address => `${address}/SubjectKindNotTakenError`;
 export const argsBeyondInputsAddress = address => `${address}/ArgsBeyondInputsError`;
 export const notGivenAddress = holderAddress => `${holderAddress}/NotGivenError`;

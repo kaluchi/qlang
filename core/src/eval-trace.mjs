@@ -8,20 +8,21 @@
 //     of a step of a pipeline: a failure its subject was not passes a frame
 //     there at the place the flight of its call names, unless it resumes.
 //   `skipping(error, skippedStep, scope)` — the failure that skipped a step.
-//   `flightOfACall()` — the place and the resumption a call answers beside its failure.
+//   `flightOfACall()`, `flightOfThrow(thrown)` — the place and the resumption a call answers beside its failure, a throw the part its refusal names.
 //   `atPlace(code, error, place)` — the failure of the code of a call at a part.
 //
 // A failure holds its trace from its first frame, and the refusal of the
 // text of a query, which flew no step, holds no `:trace` [QSERR#trace],
 // [QSERR#print].
 
-import { isErrorValue, isVec, holdsNoOtherTag, makeErrorValue, makeFrame, makeQuote, makeTrace, partsOfFrame, holdsTheLayoutOfAFrame, FRAME_TAG, TRACE_TAG } from './types.mjs';
+import { isErrorValue, isVec, holdsNoOtherTag, makeErrorValue, makeFrame, makePath, makeQuote, makeTrace, partsOfFrame, holdsTheLayoutOfAFrame, FRAME_TAG, TRACE_TAG } from './types.mjs';
 import { kindsExpected } from './ordering.mjs';
 import { declareRefusal } from './errors.mjs';
 import { errorFromQlang } from './error-convert.mjs';
 import { walkToKinds } from './dispatch.mjs';
 
 export const flightOfACall = () => ({ place: null, resumes: false });
+export const flightOfThrow = thrown => ({ place: thrown?.part === undefined ? null : makePath(thrown.part.map(String)), resumes: false });
 
 export function atPlace(code, error, place) {
   code.flight.place = place;

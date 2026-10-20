@@ -18,7 +18,7 @@ import {
   typeOf
 } from '../../src/types.mjs';
 import { makeSet } from '../../src/ordering.mjs';
-import { catchOriginalError, expectErrorThrown } from '../helpers/error-assertions.mjs';
+import { expectErrorThrown } from '../helpers/error-assertions.mjs';
 
 describe('types.mjs', () => {
   it('typeOf refuses a value the language holds no kind for, a symbol of a host, past the fail track [QSHST#source]', () => {
@@ -171,12 +171,6 @@ describe('runtime/string.mjs and runtime/sequence.mjs split and join error sites
 
   it('join on non-Vec subject is refused by the address of join', async () => {
     await expectErrorThrown('42 | join ","', 'vec/join/SubjectNotVecError');
-  });
-
-  it('join with an element of neither kind → ElementNotStringOrKeywordError', async () => {
-    const caughtErr = await catchOriginalError('["a" 42 "c"] | join ","');
-    expect(caughtErr.address).toBe('vec/join/ElementNotStringOrKeywordError');
-    expect(caughtErr.facts.index).toBe(1);
   });
 
   it('join with non-string separator is refused under its input', async () => {

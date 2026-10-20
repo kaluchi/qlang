@@ -31,10 +31,10 @@ import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfReci
 import { inputsAsCode } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
-  notGivenAddress, payloadRefusalName, subjectRefusalAddress
+  notGivenAddress, payloadRefusalName, subjectRefusalAddress, FN_CALL_ADDRESS
 } from './address.mjs';
 import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, servesTheSubject } from './dispatch.mjs';
-import { answerOfStep, skipping, flightOfACall } from './eval-trace.mjs';
+import { answerOfStep, skipping, flightOfACall, flightOfThrow } from './eval-trace.mjs';
 
 // The tag of a name that holds data puts no value under it: a value goes
 // under a label, a verb, an invariant or a tag no node answers [QSBLD#label].
@@ -67,7 +67,7 @@ async function evalStep(step, state, at) {
   try {
     return await evaluatorOf(step)(step, state, at);
   } catch (caughtError) {
-    return withPipeValue(state, errorOfThrow(caughtError, step, state.pipeValue, state.scope));
+    return withFlight(withPipeValue(state, errorOfThrow(caughtError, step, state.pipeValue, state.scope)), flightOfThrow(caughtError));
   }
 }
 
@@ -697,8 +697,6 @@ async function applyFunctionVerb(record, fn, modifiers, state) {
 // applyFunction(fn, subject, args, state) → the answer of a function `apply`
 // runs on a subject, the values of a vector its args, every refusal named
 // under `fn/call`, which no verb names, its flight the flight of `apply`.
-const FN_CALL_ADDRESS = 'fn/call';
-
 export async function applyFunction(fn, subject, args, state) {
   const at = { address: FN_CALL_ADDRESS, labelName: null, ofTheRoot: !isQuote(recipeOf(fn)) && isRootVerbScope(state.scope) };
   return await callFunction(fn, at, args.map(value => () => value), withPipeValue(state, subject), state.flight);
@@ -728,7 +726,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const scope = callScopeOf(state, ofTheRoot);
   const refusedSubject = await invariantRefusal(invariantsOf(chain, SUBJECT_NAME), address, walked.served, state, scope, state.pipeValue, {});
   if (refusedSubject !== null) return refusedSubject;
-  const called = await inputsOfCall(chain, address, modifiers, state, scope, steps);
+  const called = await inputsOfCall(chain, address, modifiers, state, scope, steps, flight);
   if (isErrorValue(called)) return called;
   const running = steps === null
     ? runPrimitive(handed.primitive, walked.served, walked.passedTags, handedTo(handed.primitive, chain, called, state, flight), withFlight(called.state, flight), address)
@@ -828,7 +826,7 @@ function foldingCodeOf(value, originOfQuote, state) {
     try {
       answered = await invoke([() => element], withPipeValue(callerState, acc));
     } catch (caughtError) {
-      answered = withPipeValue(callerState, errorOfThrow(caughtError, call, acc, callerState.scope));
+      answered = withFlight(withPipeValue(callerState, errorOfThrow(caughtError, call, acc, callerState.scope)), flightOfThrow(caughtError));
     }
     return answerOfStep(answered.pipeValue, () => makeQuote([call]), acc, callerState.scope, answered.flight);
   };
@@ -852,11 +850,11 @@ function foldingCodeOf(value, originOfQuote, state) {
 // refused, each refusal named under the address, and so is a value that
 // breaks an invariant written under its input, which holds of the value as
 // the args give it.
-async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps) {
+async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps, flight) {
   const values = [];
   const origins = new Map();
   for (const [index, modifier] of modifiers.entries()) {
-    const computing = modifier(state.pipeValue);
+    const computing = modifier(state.pipeValue, flight);
     const value = isThenable(computing) ? await computing : computing;
     if (isErrorValue(value)) return refusalOfFailedModifier(chain, address, index, value, scope);
     values.push(value);
@@ -972,11 +970,13 @@ async function fieldRefusal(tagName, field, payload, invariants, state, opened) 
 // The code of a step a call closes over, which keeps the scope it runs in,
 // the evaluation depth of its call and the calls it runs within, with the
 // origin of each quote they received, run against the subject it is handed
-// one deeper, the frame of the step its own [QSNAM#scope], [QSNAM#verb],
-// [QSQUO#held], [QSERR#trace].
-function closeStep(step, state) {
-  return async subject => (await evalStep(step, nestState(state, subject, state.scope))).pipeValue;
-}
+// one deeper, the place where it failed at a part of that subject handed to
+// the flight of the call it computes for [QSNAM#scope], [QSNAM#verb], [QSQUO#held], [QSERR#trace].
+const closeStep = (step, state) => async (subject, flight) => {
+  const answered = await evalStep(step, nestState(state, subject, state.scope));
+  if (answered.flight?.place) flight.place = answered.flight.place;
+  return answered.pipeValue;
+};
 
 // The code of a quote a call closes over, which keeps the scope, the depth
 // and the calls the code of a step keeps, run as that code is [QSNAM#scope], [QSNAM#verb].

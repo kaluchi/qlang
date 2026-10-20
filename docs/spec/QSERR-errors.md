@@ -110,31 +110,36 @@ under `:trace`, a value of `::trace` that the verb `trace` reads: a frame
 for each step that raised it or handed it on, from the step where it
 arose to the step where it is read. A frame is a value of `::frame`, the
 vector of the subject the step met, the quote of the steps of its level
-from the one that failed, and, where the step ran its code on a part of
-its subject, the path of that part; a step the failure skips joins the
-steps of the last frame. The verbs of `::frame` read its parts:
+from the one that failed, and, where the step failed at a part of its
+subject, the path of that part; a step the failure skips joins the steps
+of the last frame. The verbs of `::frame` read its parts:
 `subject` the value its step met, `unfinished` the steps from the one
 that failed, `failed` that step and `skipped` the steps after it, and
 `place` the path of the part, or null; a path reads a frame as the vector
-it is, `/0` its subject, so the part a verb's code failed on is one read
-away.
+it is, `/0` its subject, so the part a step failed at is one read away.
 
 A step whose answer is a failure its subject was not passes a frame: a
 step that fails, `raise`, and a step that answers a failure from inside
 it, the call of a verb, a group, a verb running a quote and the one word
 of a fold [QSCOL#reduce], while a modifier of a step, a raise written
 there among it, and a part of a literal, which is one step, answer within
-the frame of that step, and no step the reader did not write joins it. A
-verb that runs its code on the parts of its subject, `map`, `filter`,
-`every`, `any` and `reduce`, and the keys of `sort`, `min`, `max`,
-`groupBy` and `indexBy`, names the place of the part its code failed on,
-the path of its index, in a set the index in the one order, or of its key
-in a map, and `update` the path it wrote. The place and whether a raise
-resumes its trace are facts of the call, which the step that receives the
-failure writes its frame by, the step of `apply` by those of the function
-it runs and a declaration by those of the call of its body, so no value
-carries them from one call into another; a step that ran no code on a
-part names none. The
+the frame of that step, and no step the reader did not write joins it.
+Where a step failed at a part of its subject is named once, by the place
+of its frame, the path of its index, in a set the index in the one order,
+or of its key in a map: the part the code of a verb failed on, `map`,
+`filter`, `every`, `any` and `reduce` and the keys of `sort`, `min`,
+`max`, `groupBy` and `indexBy`; the part whose answer it refused, the
+verdict of `filter`, `every` and `any` and the key of `groupBy` and
+`indexBy`; the part it refused itself, an element of `sum`, `avg`, `zip`,
+`join`, `toPath`, `toMap` and a fold of the algebra, the key of a pair of
+`toMap` and a key a fold of `minus` or `inter` reads at its path within
+the value; the part a modifier of the step failed at; and the path
+`update` wrote. The place and whether a raise resumes its trace are facts
+of the call, which the step that receives the failure writes its frame
+by, a refusal carrying the place of its part on its throw, the step of
+`apply` by those of the function it runs and a declaration by those of
+the call of its body, so no value carries them from one call into
+another; a step that failed at no part names none. The
 steps skipped at the level that reads the failure,
 `trace | last | skipped`, run again by `apply` as held code runs
 [QSQUO#held].
@@ -212,6 +217,9 @@ true
 
 > !{:a 1 :trace 5} | trace !| type
 ::error/trace/answer/KindNotTakenError
+
+> get [~([1 "x"] | sum !| trace | first | place) ~([[1 "x"]] | map ~(sum) !| trace | map ~place) ~([1 "x"] | eq sum !| trace | map ~place) ~({:a 1} | filter ~(5) !| trace | last | place)]
+[/1 [/1 /0] [/1] /a]
 ```
 
 ## flow
@@ -299,11 +307,13 @@ value it refuses as `:actualValue`, whatever that value equals, and its
 kind as `:actualType`, but a refusal of the subject its step was served,
 which holds the kind of that value alone, the first frame holding the
 subject, a host refusing its own so through `refusingTheSubject`
-[QSHST#source]; an error a reader writes holds its facts as written,
+[QSHST#source], and a refusal of a part of the subject holds no index and
+no key, the place of its frame naming the part [QSERR#trace]; an error a
+reader writes holds its facts as written,
 a `:trace` it writes where it stands and the trace its flight begins
-last. A fact is a value of the language: a name a step read and a key a
-path read are keywords, an index and a segment a path read as an index
-numbers, an entry of a map named by its `:key`.
+last. A fact is a value of the language: a name a step read, a key a path
+read and the keyword two values file under are keywords, and an index and
+a segment a path read as an index numbers.
 
 ```qlang
 > "hello" | add 1 !| type
@@ -317,6 +327,9 @@ numbers, an entry of a map named by its `:key`.
 
 > get [~("zz" | toRegex "zz" !| has /actualValue) ~(::W"x" | toNumber !| get [~(keys) /actualType])]
 [true [#[:actualType :trace] ::string]]
+
+> [1 "x"] | sum !| get [~(keys) ~(trace | first | place)]
+[#[:actualType :actualValue :trace] /1]
 
 > ::error | manifest | has ::error/actualType
 true

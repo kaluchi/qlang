@@ -14,11 +14,10 @@ export class QlangError extends Error {
   }
 }
 
-// refusingTheSubject(refusal) → the refusal of the subject its step was served [QSERR#site].
-export function refusingTheSubject(refusal) {
-  refusal.refusesTheSubject = true;
-  return refusal;
-}
+// refusingTheSubject(refusal) → the refusal of the subject its step was served [QSERR#site],
+// refusingAPart(refusal, ...segments) of the part of it its segments name [QSERR#trace].
+export const refusingTheSubject = refusal => Object.assign(refusal, { refusesTheSubject: true });
+export const refusingAPart = (refusal, ...segments) => Object.assign(refusal, { part: segments });
 
 // A defect of the runtime or of what a host handed: the table of
 // primitives, the bootstrap, the root a host's sources declare. It is

@@ -22,8 +22,8 @@ is one value, whichever axis reaches it: `doc`, `binding | doc`,
 `explain | page`, `tutorial | first` and the anchor of its noun,
 `::vec | doc :sort`.
 
-`binding`, `doc`, `runLaws` and `source` take an anchor, `:anchor`, a
-keyword, the last name of a node, and read the node the subject holds
+`binding`, `doc`, `laws`, `manifest`, `runLaws` and `source` take an
+anchor, `:anchor`, a keyword, the last name of a node, and read the node the subject holds
 under it: the node at the address of a tag name, an input of a verb
 among them, `::vec/take | binding :count`, or else the verb of that name
 the walk of the subject's tags reaches, `[1 2] | doc :count` the page of
@@ -36,13 +36,14 @@ refused under the input, `::any/source/anchor/KindNotTakenError` and its
 kin, an anchor read in turn that is no keyword as
 `::any/doc/anchor/ElementNotKeywordError` with its `:index`, and so is
 an element of a set that is neither null, a keyword nor a vector, its
-index in the one order of the set its `:index`; `laws`, `explain`,
-`manifest` and
-`tutorial` take no anchor, refusing one as
-`::any/manifest/ArgsBeyondInputsError` and its kin.
+index in the one order of the set its `:index`; `explain`, which reads
+the value it explains, and `tutorial`, which pairs the page and the laws
+of the name its subject reads, take no anchor, refusing one as
+`::any/explain/ArgsBeyondInputsError` and its kin.
 
 A tag nothing declares whose last name ends in `Error` reads the record
-of the address before it; any other name nothing declares is refused
+of the address before it, and under the call of a function, where no node
+declares that address, the page of `::fn/call` [QSBLD#fn]; any other name nothing declares is refused
 under the axis that read it, `::any/doc/UnknownNameError`, named by the
 tag asked, with the addresses where the verbs of its last name live and
 the names near it, and so is an anchor no node answers, named by the
@@ -73,6 +74,9 @@ true
 
 > ::number/add/FooError | binding | get /name
 :number/add
+
+> get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| get [~(type) ~(explain | page | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | get /name)]
+[[::fn/call/by/KindNotTakenError true] :fn/call/refusesArgsPastItsInputs]
 ```
 
 ## manifest
@@ -86,7 +90,8 @@ each named by the refusal of a value that breaks it, and the facts a
 refusal carries; the laws stand aside, which `laws` reads. A value
 answers those of the kind it shows, `5 | manifest` those of `::number`,
 and a name nothing declares is refused as
-`::any/manifest/UnknownNameError`. A noun lists what is declared under
+`::any/manifest/UnknownNameError`; an anchor reads the node the name
+holds under it, as `doc` reads one. A noun lists what is declared under
 it alone: the verbs a set answers as a vector lie under `::vec`, which
 the walk of its tags reaches, so `::vec | manifest` lists the verbs a
 set answers beside its own. The topic of the language lists its
@@ -108,6 +113,9 @@ true
 > ::vec/take/count/NotIntegerError | binding | get /value | type
 ::invariant
 
+> ::vec | manifest :take | eq (::vec/take | manifest)
+true
+
 > get [~(::set | manifest | has ::set/count) ~(#[3 1 2] | count) ~(#[3 1 2] | binding :count | get /name)]
 [false 3 :vec/count]
 ```
@@ -119,11 +127,12 @@ tags it is given under, another value refused, `::law#3` as
 `::law/PayloadKindNotTakenError`, declared
 under the name whose claim it proves, by the command `proves` of a chain
 or by a name of its own, `:three/isThree ::law~(3 | eq 3)`, its page the
-claim. `laws` answers a map from the name of each law under a name, in
-the order of their declarations, to the pair of its page and its query,
-and refuses a name nothing declares as `::any/laws/UnknownNameError`;
-`runLaws` runs each as held code on null [QSQUO#held], the laws of the
-node the subject holds under an anchor when it is given one,
+claim. `laws` answers a map from the name of each law under a name, or
+under the node the subject holds under an anchor when it is given one,
+`::qlang | laws :errors`, in the order of their declarations, to the pair
+of its page and its query, and refuses a name nothing declares as
+`::any/laws/UnknownNameError`; `runLaws` runs each as held code on null
+[QSQUO#held], the laws under an anchor as `laws` reads them,
 `::qlang | runLaws :errors`, and answers an outcome per law,
 `{:law :says :actual :error :ok}`, `:says` null for a law without a
 page, a law passing only where it answers `true` and a law that answers
@@ -188,7 +197,8 @@ value the error at rest that `raise` raises again; a refusal the runtime raises 
 rule under a verb, with no page of its own, reads the page of what
 refused; a name nothing declares is refused as
 `::any/explain/UnknownNameError`. The page of a refusal says what
-failed, which fact names the culprit and how the call is repaired, and
+failed, which fact or which place of the frame names the culprit and how
+the call is repaired, and
 the laws of a refusal a query can meet hold the recovery through `!|`,
 a defect of the runtime and a failure inside a primitive a host hands,
 which no query of the language raises, holding none. An explanation

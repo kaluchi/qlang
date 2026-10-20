@@ -204,8 +204,9 @@
 :map/sum
   |~~ Answers the sum of the values, each a number, `{:a 10 :b 20} | sum`
       answering `30` and the empty map `0`; it takes no value. A value
-      that is no number is refused with its key, and a field of each value
-      is read first by `map`, `map /amount | sum`. A vector and a set sum
+      that is no number is refused, the place of its frame naming its key,
+      and a field of each value is read first by `map`,
+      `map /amount | sum`. A vector and a set sum
       their elements by the `sum` of vectors, and two fields of one record
       add by `sumOf /x /y`.
       ::link~(::map/avg | doc) ::link~(::vec/sum | doc)
@@ -214,13 +215,10 @@
   ::fn
     | returns |~~ The sum of the values, `0` for the empty map. ~~| ::number
     | throws :ElementNotNumberError
-        |~~ `sum` adds the numbers the map holds; `:key` names the first
-            entry whose value is none, and a field is read first,
-            `map /amount | sum`.
+        |~~ `sum` adds the numbers the map holds; the place of its frame
+            names the first entry whose value is none, and a field is
+            read first, `map /amount | sum`.
         ~~|
-    | carries :ElementNotNumberError/key
-        |~~ The key of the first entry whose value is no number. ~~|
-        ::keyword
     | throws :ArgsBeyondInputsError
         |~~ `sum` takes no value: a field of each value is read first by
             `map`, `map /amount | sum`.
@@ -237,11 +235,11 @@
     | proves :ElementNotNumberError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | sum
-          !| get [~(type) /actualType /key]
-          |  eq [::map/sum/ElementNotNumberError ::string :b])
+          !| get [~(type) /actualType ~(trace | last | place)]
+          |  eq [::map/sum/ElementNotNumberError ::string /b])
     | proves :ElementNotNumberError/refusesANull
         |~~ A null value is no number either. ~~|
-        ~({:a null} | sum !| get [~(type) /key] | eq [::map/sum/ElementNotNumberError :a])
+        ~({:a null} | sum !| get [~(type) ~(trace | last | place)] | eq [::map/sum/ElementNotNumberError /a])
     | proves :ArgsBeyondInputsError/refusesAField
         |~~ A field given to `sum` is refused; `map` reads it first. ~~|
         ~({:a 1} | sum (get /a) !| type | eq ::map/sum/ArgsBeyondInputsError)
@@ -252,8 +250,9 @@
       answering `1.5`, or null for the empty map, which has no mean, the
       mean of numbers staying among the finite doubles,
       `{:a 1e308 :b -1e308} | avg` answering `0`; it takes no value. A
-      value that is no number is refused with its key, and a field of each
-      value is read first by `map`, `map /amount | avg`. A vector and a
+      value that is no number is refused, the place of its frame naming its
+      key, and a field of each value is read first by `map`,
+      `map /amount | avg`. A vector and a
       set answer by the `avg` of vectors.
       ::link~(::map/sum | doc) ::link~(::vec/avg | doc)
   ~~|
@@ -262,12 +261,9 @@
         |~~ The mean of the values, null for the empty map. ~~|
         #[::number ::null]
     | throws :ElementNotNumberError
-        |~~ `avg` takes the mean of the numbers the map holds; `:key`
-            names the first entry whose value is none.
+        |~~ `avg` takes the mean of the numbers the map holds; the place
+            of its frame names the first entry whose value is none.
         ~~|
-    | carries :ElementNotNumberError/key
-        |~~ The key of the first entry whose value is no number. ~~|
-        ::keyword
     | proves :answersTheMean
         |~~ The mean of one and three is two. ~~|
         ~({:a 1 :b 3} | avg | eq 2)
@@ -282,8 +278,8 @@
     | proves :ElementNotNumberError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | avg
-          !| get [~(type) /actualType /key]
-          |  eq [::map/avg/ElementNotNumberError ::string :b])
+          !| get [~(type) /actualType ~(trace | last | place)]
+          |  eq [::map/avg/ElementNotNumberError ::string /b])
     | impl ::builtin{}
 
 :map/min
@@ -447,12 +443,9 @@
         ::map
     | throws :ConditionNotBooleanError
         |~~ The predicate of `filter` answers a boolean for the value of
-            each entry; `:key` names the entry whose predicate answered
-            another kind.
+            each entry; the place of its frame names the entry whose
+            predicate answered another kind.
         ~~|
-    | carries :ConditionNotBooleanError/key
-        |~~ The key of the entry whose predicate answered another kind. ~~|
-        ::keyword
     | proves :keepsTheKeys
         |~~ The entries kept keep their keys. ~~|
         ~({:a 1 :b 2 :c 3} | filter ~(gt 1) | eq {:b 2 :c 3})
@@ -473,8 +466,8 @@
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | filter ~(1)
-          !| get [~(type) /key /actualType]
-          |  eq [::map/filter/ConditionNotBooleanError :a ::number])
+          !| get [~(type) ~(trace | last | place) /actualType]
+          |  eq [::map/filter/ConditionNotBooleanError /a ::number])
     | impl ::builtin{}
 
 :map/every
@@ -502,12 +495,9 @@
         ::boolean
     | throws :ConditionNotBooleanError
         |~~ The predicate of `every` answers a boolean for the value of
-            each entry; `:key` names the entry whose predicate answered
-            another kind.
+            each entry; the place of its frame names the entry whose
+            predicate answered another kind.
         ~~|
-    | carries :ConditionNotBooleanError/key
-        |~~ The key of the entry whose predicate answered another kind. ~~|
-        ::keyword
     | proves :holdsOfEveryValue
         |~~ Every value is positive. ~~|
         ~({:a 1 :b 2 :c 3} | every ~(gt 0))
@@ -522,8 +512,8 @@
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | every ~(1)
-          !| get [~(type) /key /actualType]
-          |  eq [::map/every/ConditionNotBooleanError :a ::number])
+          !| get [~(type) ~(trace | last | place) /actualType]
+          |  eq [::map/every/ConditionNotBooleanError /a ::number])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
@@ -556,12 +546,9 @@
         ::boolean
     | throws :ConditionNotBooleanError
         |~~ The predicate of `any` answers a boolean for the value of each
-            entry; `:key` names the entry whose predicate answered another
-            kind.
+            entry; the place of its frame names the entry whose predicate
+            answered another kind.
         ~~|
-    | carries :ConditionNotBooleanError/key
-        |~~ The key of the entry whose predicate answered another kind. ~~|
-        ::keyword
     | proves :holdsOfSomeValue
         |~~ One positive value is enough. ~~|
         ~({:a -1 :b 0 :c 2} | any ~(gt 0))
@@ -571,8 +558,8 @@
     | proves :ConditionNotBooleanError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | any ~(1)
-          !| get [~(type) /key /actualType]
-          |  eq [::map/any/ConditionNotBooleanError :a ::number])
+          !| get [~(type) ~(trace | last | place) /actualType]
+          |  eq [::map/any/ConditionNotBooleanError /a ::number])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.

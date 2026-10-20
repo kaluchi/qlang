@@ -8,7 +8,7 @@ import { keyword, makeTag, makeRegex, isKeyword, isTag, isVec, isRegex, typeOf, 
 import { makeSet, kindsExpected } from '../ordering.mjs';
 import { canonicalFlags, regexProblem, textRefusal } from '../regex-read.mjs';
 import { registerPrimitive } from '../primitives.mjs';
-import { declareRefusal, refusingTheSubject } from '../errors.mjs';
+import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
 import { splitAddress } from '../address.mjs';
 import { parse } from '../parse.mjs';
@@ -114,9 +114,9 @@ function mapOfPairs(pairs) {
   const built = new Map();
   pairs.forEach((element, index) => {
     const pair = beneathTags(element);
-    if (!isVec(pair) || pair.length !== 2) throw new VecToMapElementNotPairError({ index, actualValue: element });
+    if (!isVec(pair) || pair.length !== 2) throw refusingAPart(new VecToMapElementNotPairError({ actualValue: element }), index);
     const key = keywordFiledFor(beneathTags(pair[0]));
-    if (key === null) throw new VecToMapKeyKindNotTakenError({ index, expected: KINDS_A_KEY_FILES_UNDER, actualValue: pair[0] });
+    if (key === null) throw refusingAPart(new VecToMapKeyKindNotTakenError({ expected: KINDS_A_KEY_FILES_UNDER, actualValue: pair[0] }), index, 0);
     built.set(key.name, pair[1]);
   });
   return built;

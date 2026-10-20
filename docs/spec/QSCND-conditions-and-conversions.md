@@ -103,8 +103,9 @@ all do, each stopping at the first that decides: `any` false and `every`
 true over an empty container. They reside on vectors and on maps, a set
 reaching those of vectors [QSDSP#residence], and over a map they read
 its values. A predicate that answers no boolean is refused as
-`::vec/every/ConditionNotBooleanError` at its index, at its `:key` over
-a map, and a predicate that answers a failure hands it on as the answer.
+`::vec/every/ConditionNotBooleanError` at its index, at its key over a
+map, the place of the step's frame naming it [QSERR#trace], and a
+predicate that answers a failure hands it on as the answer.
 
 ```qlang
 > [] | every ~(gt 0)
@@ -115,6 +116,9 @@ true
 
 > get [~(#[true 1] | every ~(it) !| type) ~(42 | any ~(gt 0) !| get /addresses)]
 [::vec/every/ConditionNotBooleanError #[::map/any ::vec/any]]
+
+> {:a true :b 1} | every ~(it) !| get [~(type) ~(trace | last | place)]
+[::map/every/ConditionNotBooleanError /b]
 ```
 
 ## coalesce
@@ -182,8 +186,9 @@ while a set beneath a tag, which that constructor refuses, answers
 itself under the tag; `toVec` answers the elements of a set in its order;
 `toMap` reads pairs, the last pair of a key holding, an element that is no
 pair refused at its index and a key of another kind as
-`::vec/toMap/KeyKindNotTakenError`, its `:index` the element and its
-`:expected` the kinds a key files under. A number, a keyword, a string or
+`::vec/toMap/KeyKindNotTakenError` at the key of its pair, its `:expected`
+the kinds a key files under, the place of the step's frame naming each
+[QSERR#trace]. A number, a keyword, a string or
 a tag turned into a wider kind and back is itself, and so is a quote
 turned into text and read back by `parse`, while a boolean and null turn
 into text and a keyword one way. A container's texts are `print` and
@@ -213,8 +218,8 @@ puts a value under `::desc`, so `::Box#5 | desc` answers `::desc::Box#5`
 > [[:a 1] [:a 2]] | toMap
 {:a 2}
 
-> [[[1] 2]] | toMap !| get [~(type) /index /expected]
-[::vec/toMap/KeyKindNotTakenError 0 #[::boolean ::keyword ::null ::number ::string ::tag]]
+> [[[1] 2]] | toMap !| get [~(type) ~(trace | last | place) /expected]
+[::vec/toMap/KeyKindNotTakenError /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1] | toKeyword !| type
 ::call/KindAnswersNoVerbError

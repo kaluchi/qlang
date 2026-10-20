@@ -76,8 +76,10 @@ cell.defect;              // what was raised past the fail track, else null
   address, `declareRefusal('any/out/SubjectNotStringError')` from
   `@kaluchi/qlang-core/errors`, and paged under its noun in the host's
   source, a refusal of the subject its call was served thrown through
-  `refusingTheSubject`, which holds the kind of that subject alone; a
-  failure of the host's own world is an error value,
+  `refusingTheSubject`, which holds the kind of that subject alone, and a
+  refusal of a part of it through `refusingAPart` with the segments of the
+  part's path, which the frame of the step places; a failure of the host's
+  own world is an error value,
   `makeErrorValue(makeTag('Late'), facts)`, its facts a map, a keyword
   made by `keyword`; and `typeOf` answers the kind of a value, the tag
   `type` answers.

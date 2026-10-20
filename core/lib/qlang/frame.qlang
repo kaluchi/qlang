@@ -171,19 +171,22 @@
     | impl ~(unfinished | drop 1)
 
 :frame/place
-  |~~ Answers the path of the part of the subject the step ran its code on
-      where it failed, null where it ran it on no part:
+  |~~ Answers the path of the part of the subject the step failed at,
+      null where it failed at no part:
       `[1 "x" 3] | map ~(mul 2) !| trace | last | place` answers `/1`. A
-      verb that runs its code on the elements of its subject, `map`,
-      `filter`, `every`, `any` and `reduce`, and the keys of `sort`,
-      `min`, `max`, `groupBy` and `indexBy`, names the place of the
-      part, the path of its index or of its key, and `update` the path it
-      wrote; the
-      subject reads the part by it, `get (f | place)` with `f` the frame.
+      verb names the part its code failed on, `map`, `filter`, `every`,
+      `any` and `reduce` and the keys of `sort`, `min`, `max`, `groupBy`
+      and `indexBy`, the part whose answer it refused, the verdict of a
+      predicate and the key of a partition, and the part it refused
+      itself, an element of `sum`, `avg`, `zip`, `join`, `toPath`,
+      `toMap` and a fold of the algebra, each by the path of its index or
+      of its key, `update` the path it wrote, and a step the part its
+      modifier failed at; the subject reads the part by it,
+      `get (f | place)` with `f` the frame.
       ::link~(::frame/subject | doc) ::link~(::path | doc)
   ~~|
   ::fn
-    | returns |~~ The path of the part, null where the step ran its code on none. ~~| #[::null ::path]
+    | returns |~~ The path of the part, null where the step failed at none. ~~| #[::null ::path]
     | throws :SubjectNotFrameError
         |~~ `place` reads a frame, which the trace of a failure holds,
             `[1 "x"] | map ~(mul 2) !| trace | last | place`.
@@ -197,8 +200,14 @@
     | proves :namesThePathUpdateWrote
         |~~ `update` names the path it wrote. ~~|
         ~({:a {:n "x"}} | update /a/n ~(add 1) !| trace | last | place | eq /a/n)
-    | proves :answersNullWhereNoCodeRanOnAPart
-        |~~ A step that ran no code on a part names none. ~~|
+    | proves :namesTheElementAVerbRefused
+        |~~ `sum` names the element it refused. ~~|
+        ~([1 "x"] | sum !| trace | first | place | eq /1)
+    | proves :namesThePartAModifierFailedAt
+        |~~ A step names the part its modifier failed at. ~~|
+        ~([1 "x"] | eq sum !| trace | first | place | eq /1)
+    | proves :answersNullWhereTheStepFailedAtNoPart
+        |~~ A step that failed at no part names none. ~~|
         ~("x" | add 1 !| trace | first | place | eq null)
     | proves :readsThePartFromTheSubject
         |~~ The subject of the frame reads the part by its place. ~~|

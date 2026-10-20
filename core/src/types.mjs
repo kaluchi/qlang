@@ -345,8 +345,7 @@ export function makeFrame(subject, unfinished, place = null) {
   return makeTagged(FRAME_TAG, place === null ? [subject, unfinished] : [subject, unfinished, place]);
 }
 
-// The parts of a frame in their places, which `makeFrame` lays and every
-// reader of a frame in the code reads it by [QSERR#trace].
+// The parts of a frame in their places, which every reader of a frame reads it by [QSERR#trace].
 export const SUBJECT_INDEX_OF_A_FRAME = 0;
 
 export function partsOfFrame(frame) {

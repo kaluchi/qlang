@@ -13,10 +13,9 @@ import { ROOT_KEY, QUERY_KEY } from './scope-keys.mjs';
 // bounded [QSNAM#verb].
 export const EVAL_DEPTH_LIMIT = 1000;
 
-// The calls a state runs within keep the origin of each quote they
-// received, the nearest first, a state a verb of the host reads keeps beside
-// the tree of the query the scope of its own step, and the state of a call
-// the flight of its failure, which no other keeps [QSQUO#held], [QSNAM#owner], [QSERR#trace].
+// The calls a state runs within keep the origin of each quote they received, the
+// nearest first, a state a verb of the host reads the scope of its own step beside the
+// tree of the query, and the state of a call its flight [QSQUO#held], [QSNAM#owner], [QSERR#trace].
 function makeState(pipeValue, scope, depth, calls = null, own = null, flight = null) {
   return Object.freeze({ pipeValue, scope, depth, calls, own, flight });
 }

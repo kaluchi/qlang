@@ -19,8 +19,9 @@ given that is no vector refused as
 `::vec/concat/vectors/ElementKindNotTakenError`, so `reduce [] ~(concat)`
 joins the vectors a vector holds, `sum`, a number beneath the tags over
 an element read as the number and an element that is no number refused
-at its index, at its key over a map, and `min` and `max` in the one
-order or by a key [QSORD#sort]; `first`, `last`, `min`, `max` and `avg`
+at its index, at its key over a map, the place of the step's frame naming
+it [QSERR#trace], and `min` and `max` in the one order or by a key
+[QSORD#sort]; `first`, `last`, `min`, `max` and `avg`
 answer null over an empty container. `avg` answers the mean, null over
 nothing, kept as a running mean, a number beneath its tags read as `sum`
 reads it, an element that is no number refused at its index, at its key
@@ -51,6 +52,9 @@ verb keeps or leaves the tags of its subject as its kind says
 
 > [1 2 3 4] | avg
 2.5
+
+> [1 "x"] | avg !| get [~(type) ~(trace | last | place)]
+[::vec/avg/ElementNotNumberError /1]
 
 > [::W#2 1] | sum
 3
@@ -111,11 +115,15 @@ code is refused with the repair.
 `filter` keeps the elements its predicate, a quote or a path, answers
 `true` for, in their order, a map keeping its keys and a set its kind;
 a predicate that answers no boolean is refused at its index, a map's at
-its key, and one that answers a failure hands it on.
+its key, and one that answers a failure hands it on, the place of the
+step's frame naming the element on either road [QSERR#trace].
 
 ```qlang
 > {:c 3 :a 1 :b 2} | filter ~(gt 1)
 {:c 3 :b 2}
+
+> get [~([1 2] | filter ~(add 1) !| trace | last | place) ~([1 "x"] | filter ~(add 1 | gt 1) !| trace | last | place)]
+[/0 /1]
 ```
 
 ## reduce
@@ -174,7 +182,9 @@ refuses so a later value that is no set or map, while `minus` and
 verbs of a map do; a later value the algebra has no rule
 for beside the one before it is refused as the pair,
 `KindsMismatchedError` with `:leftType` and `:rightType`, a set beside a
-map in `union` among them; and a fold of nothing is refused as
+map in `union` among them, each refusal of a fold at the value or the key
+it met, the place of its frame naming its path, a key's within its value
+[QSERR#trace]; and a fold of nothing is refused as
 `SubjectEmptyError`, a refusal of its subject [QSERR#site]. A set of sets
 is folded by the verb of vectors,
 `#[#[1] #[2]] | vec/union`, or as the vector it is in the one order,
@@ -211,6 +221,9 @@ none, under the tags of the first; one part answers itself.
 
 > [{:a 1 :b 2} #[:a]] | get [~(minus) ~(inter) ~(union !| type)]
 [{:b 2} {:a 1} ::vec/union/KindsMismatchedError]
+
+> get [~([#[1] #[2] {:a 1}] | union !| get [~(type) ~(trace | last | place)]) ~([{:a 1} [:a true]] | minus !| get [~(type) ~(trace | last | place)])]
+[[::vec/union/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]
 ```
 
 ## group
@@ -223,18 +236,18 @@ keyword `toKeyword` answers for it [QSCND#convert]: a keyword as it is, a
 string or a number under the keyword of its text, a boolean or null
 under that of its literal, a tag name under that of its name, and without
 a key an element is its own. A key of another kind is refused at its
-element under the verb as `…/KeyKindNotTakenError`, its `:index` the
-element and its `:expected` the kinds a key files under, and two values
-that file under one keyword meet, the second refused as `KeyTakenError`,
-its `:key` the keyword, `:taken` the value that filed under it first and
-`:index` the element that met it.
+element under the verb as `…/KeyKindNotTakenError`, its `:expected` the
+kinds a key files under, and two values that file under one keyword meet,
+the second refused as `KeyTakenError`, its `:key` the keyword and
+`:taken` the value that filed under it first, the place of the step's
+frame naming the element in each [QSERR#trace].
 
 ```qlang
 > [1 2 3] | groupBy ~(gt 1)
 {:false [1] :true [2 3]}
 
-> [{:k [1]}] | indexBy /k !| get [~(type) /index /expected]
-[::vec/indexBy/KeyKindNotTakenError 0 #[::boolean ::keyword ::null ::number ::string ::tag]]
+> [{:k [1]}] | indexBy /k !| get [~(type) ~(trace | last | place) /expected]
+[::vec/indexBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1 "1"] | groupBy !| type
 ::vec/groupBy/KeyTakenError

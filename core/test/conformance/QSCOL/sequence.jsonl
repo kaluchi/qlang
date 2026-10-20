@@ -40,7 +40,7 @@
 {"name":"avg-is-the-mean","query":"[1 2 3 4] | avg","expect":"2.5"}
 {"name":"avg-of-nothing-is-null","query":"[] | avg","expect":"null"}
 {"name":"avg-answers-the-mean-of-each-bucket-groupBy-files","query":"[{:d :a :n 1} {:d :a :n 3} {:d :b :n 5}] | groupBy /d | map ~(map /n | avg)","expect":"{:a 2 :b 5}"}
-{"decision":"D381","name":"avg-refuses-an-element-that-is-no-number","query":"[1 \"x\"] | avg !| get [~(type) ~(trace | last | place)]","expect":"[::vec/avg/ElementNotNumberError /1]"}
+{"name":"avg-refuses-an-element-that-is-no-number","query":"[1 \"x\"] | avg !| get [~(type) ~(trace | last | place)]","expect":"[::vec/avg/ElementNotNumberError /1]"}
 {"name":"has-answers-false-for-a-value-a-set-of-several-kinds-lacks","query":"#[1 \"a\"] | has 42","expect":"false"}
 {"name":"flat-of-sets-is-their-union","query":"#[#[3 1] #[2 1]] | flat","expect":"#[1 2 3]"}
 {"name":"first-of-an-empty-set-is-null","query":"#[] | first","expect":"null"}
@@ -49,7 +49,7 @@
 {"name":"has-misses-a-value-between-two-elements","query":"#[1 3 5] | has 4","expect":"false"}
 {"name":"a-vector-takes-any-element-at-its-head","query":"[1] | prepend \"x\"","expect":"[\"x\" 1]"}
 {"name":"sum-and-avg-read-a-number-beneath-its-tags","query":"[::W#2 4] | get [~(sum) ~(avg)]","expect":"[6 3]"}
-{"decision":"D381","name":"zip-refuses-an-element-that-is-no-vector-at-its-index","query":"[[1] 2] | zip !| get [~(type) ~(trace | last | place)]","expect":"[::vec/zip/ElementNotVecError /1]"}
+{"name":"zip-refuses-an-element-that-is-no-vector-at-its-index","query":"[[1] 2] | zip !| get [~(type) ~(trace | last | place)]","expect":"[::vec/zip/ElementNotVecError /1]"}
 {"name":"a-count-under-a-tag-is-whole-where-it-equals-its-floor","query":"[1 2 3] | take ::N#2","expect":"[1 2]"}
 {"name":"take-refuses-a-fraction-and-a-value-of-another-kind","query":"[1 2] | get [~(take 1.5 !| type) ~(take \"x\" !| type)]","expect":"[::vec/take/count/NotIntegerError ::vec/take/count/KindNotTakenError]"}
 {"name":"flatten-answers-as-flat-over-a-vector","query":"[[1 2] [3 [4]]] | get [~(flatten) ~(flat)]","expect":"[[1 2 3 [4]] [1 2 3 [4]]]"}

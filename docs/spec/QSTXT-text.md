@@ -82,7 +82,8 @@ code point; a separator at an end or two together leave empty pieces, so
 `split` and `join` round-trip by one separator string. `join` writes the
 elements of a vector, or of a set in its order, between a separator, a
 keyword written as its name; an element that is no string or keyword is
-refused at its index.
+refused at its index, the place of the step's frame naming it
+[QSERR#trace].
 
 ```qlang
 > "a,,b" | split ","
@@ -91,8 +92,8 @@ refused at its index.
 > "a,b,c" | split "," | join ";"
 "a;b;c"
 
-> ["a" 42] | join "," !| type
-::vec/join/ElementNotStringOrKeywordError
+> ["a" 42] | join "," !| get [~(type) ~(trace | last | place)]
+[::vec/join/ElementNotStringOrKeywordError /1]
 ```
 
 ## regex

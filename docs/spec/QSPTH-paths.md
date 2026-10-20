@@ -244,7 +244,8 @@ that writes no number a key, `/01` answering `[:"01"]`. `toPath` reads a
 path from a vector of keys alone, each a keyword, a string or a number,
 the segment of its text [QSPTH#key], an empty one refused as
 `::vec/toPath/SubjectEmptyError` and an element of another kind as
-`::vec/toPath/ElementNotKeyError`; from a string in the form of JSON
+`::vec/toPath/ElementNotKeyError` at its index, the place of the step's
+frame naming it [QSERR#trace]; from a string in the form of JSON
 Pointer, its escapes read and a leading `#` of a fragment among it, a
 string of another form refused as `::string/toPath/NotPointerError`; and
 a path answers it with itself.

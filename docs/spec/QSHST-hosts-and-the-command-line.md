@@ -47,8 +47,10 @@ answers it; and as the constructor of a kind, the kind lays its tag over
 the payload as it is. A host's verb refuses a call by a refusal declared
 at its site by its address through `./errors` and paged under its noun
 in the host's source, a refusal of the subject its call was served thrown
-through `refusingTheSubject`, which holds the kind of that value alone
-[QSERR#site]; a failure of the host's own world is the error
+through `refusingTheSubject`, which holds the kind of that value alone,
+and a refusal of a part of it through `refusingAPart` with the segments
+of the part's path, which the frame of the step places [QSERR#site],
+[QSERR#trace]; a failure of the host's own world is the error
 value `makeErrorValue` makes of a tag and a map of its facts, and a host
 lays a tag over its answer through the language, by the kind its verb
 `returns`.

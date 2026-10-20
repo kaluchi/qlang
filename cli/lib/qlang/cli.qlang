@@ -195,8 +195,8 @@
             first, `{:name "alice"} | get [~(it)] | table`.
         ~~|
     | throws :RowNotMapError
-        |~~ Every row of `table` is a map, its keys the columns; `:index`
-            names the first that is not.
+        |~~ Every row of `table` is a map, its keys the columns; the place
+            of its frame names the first that is not.
         ~~|
     | proves :drawsEachRow
         |~~ Each row is drawn. ~~|
@@ -218,7 +218,7 @@
         ~(42 | table !| get [~(type) /actualType] | eq [::vec/table/SubjectNotVecError ::number])
     | proves :RowNotMapError/refusesARowThatIsNoMap
         |~~ A row that is no map is refused at its index. ~~|
-        ~([42 "hello"] | table !| get [~(type) /index /actualType]
-          | eq [::vec/table/RowNotMapError 0 ::number])
+        ~([42 "hello"] | table !| get [~(type) ~(trace | last | place) /actualType]
+          | eq [::vec/table/RowNotMapError /0 ::number])
     | impl ::builtin{}
 

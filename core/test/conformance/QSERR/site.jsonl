@@ -6,9 +6,9 @@
 {"name":"a-refusal-of-a-primitive-sits-under-the-verb-that-ran-it","query":"[1 \"x\"] | sum !| type","expect":"::vec/sum/ElementNotNumberError"}
 {"name":"a-count-that-is-no-whole-number-breaks-the-law-of-its-input","query":"\"ab\" | take 1.5 !| type","expect":"::string/take/count/NotIntegerError"}
 {"name":"the-segment-a-path-read-as-an-index-is-a-number","query":"42 | get /0 !| get /segment","expect":"0"}
-{"name":"a-refusal-over-a-map-names-the-entry-by-its-key","query":"{:a 1 :b \"x\"} | sum !| get /key","expect":":b"}
+{"decision":"D381","name":"a-refusal-over-a-map-names-the-entry-by-its-key","query":"{:a 1 :b \"x\"} | sum !| trace | last | place","expect":"/b"}
 {"name":"a-refusal-is-an-error-under-the-tag-of-its-site","query":"\"x\" | add 1 !| payload | type","expect":"::error"}
-{"name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :index 1\n  :actualType ::string\n  :actualValue \"two\"\n  :trace ::trace[::frame[[1 \"two\" 3] ~(sum)]]\n} | raise"}
+{"decision":"D381","name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementNotNumberError!{\n  :actualType ::string\n  :actualValue \"two\"\n  :trace ::trace[::frame[[1 \"two\" 3] ~(sum) /1]]\n} | raise"}
 {"name":"a-refusal-is-tagged-by-its-address-its-noun-said-once","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"a-refusal-names-the-place-it-guards","query":"blah !| type","expect":"::call/UnknownNameError"}
 {"name":"a-vector-is-refused-by-the-label-add-resides-on","query":"[1 2 3] | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
@@ -21,10 +21,10 @@
 {"name":"reading-text-as-code-is-refused-under-quote","query":"::quote/ParseError | binding | get /origin","expect":":qlang/quote"}
 {"name":"a-defect-of-the-runtime-sits-under-builtin","query":"::builtin/RefusalFactNotDeclaredError | binding | get /origin","expect":":qlang/builtin"}
 {"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualType","expect":"::string"}
-{"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| get /key","expect":":b"}
+{"decision":"D381","name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| trace | last | place","expect":"/b"}
 {"name":"an-input-raises-the-refusal-under-its-address","query":"1 | add \"a\" !| get [~(type) /actualType]","expect":"[::number/add/addend/KindNotTakenError ::string]"}
 {"name":"the-prefix-is-refused-at-its-residence","query":"\"a\" | prepend 1 !| type","expect":"::string/prepend/prefix/KindNotTakenError"}
-{"name":"each-value-the-call-gives-is-refused-with-its-index","query":"{:a 1 :b \"x\"} | sumOf /a /b !| get [~(type) /index /actualType]","expect":"[::vec/sum/ElementNotNumberError 1 ::string]"}
+{"decision":"D381","name":"each-value-the-call-gives-is-refused-at-the-place-its-frame-names","query":"{:a 1 :b \"x\"} | sumOf /a /b !| get [~(type) ~(trace | first | place) /actualType]","expect":"[::vec/sum/ElementNotNumberError /1 ::string]"}
 {"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | toString | contains \"throws :addend/KindNotTakenError\"","expect":"true"}
 {"name":"a-step-lists-its-refusals-on-its-noun","query":"::path | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :KeyNotInMapError) | count","expect":"1"}
 {"name":"a-noun-lists-each-refusal-once","query":"::vec | binding | get /value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :PayloadKindNotTakenError) | count","expect":"1"}

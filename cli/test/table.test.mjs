@@ -67,6 +67,6 @@ describe('table — a view for a terminal', () => {
 
   it('lifts VecTableRowNotMapError on a row other than a Map, naming it', async () => {
     const cellEntry = await runQuery('[{:a 1} 42] | table', silentStreams);
-    expectRefusalRaised(cellEntry, 'vec/table/RowNotMapError', { index: 1, actualType: { name: 'number' } });
+    expectRefusalRaised(cellEntry, 'vec/table/RowNotMapError', { actualType: { name: 'number' } });
   });
 });

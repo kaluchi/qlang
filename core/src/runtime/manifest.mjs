@@ -4,27 +4,25 @@
 // binding live in `axis.mjs`.
 
 import { registerStateReader } from '../primitives.mjs';
-import { isErrorValue, bindingValueOf, makeTag, errorAtRest, beneathTags, NULL } from '../types.mjs';
+import { isErrorValue, bindingValueOf, makeTag, errorAtRest, beneathTags } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { codeOf } from '../eval.mjs';
 import { rootOf, withScope } from '../state.mjs';
 import { recordReadBy, pageOfRecord } from './axis.mjs';
 import { namesUnder, lawsUnder, rootScopeOf } from '../nouns.mjs';
 
-
-// `manifest` reads its subject's record as the axes do, a name its own and
-// any other value its kind's [QSSLF#manifest].
+// `manifest` reads its subject's record as the axes do, a name its own, any
+// other value its kind's and an anchor the node under it [QSSLF#manifest].
 const AnyManifestUnknownNameError = declareRefusal('any/manifest/UnknownNameError');
-registerStateReader('any/manifest', (subject, state) =>
-  namesUnder(state.scope, recordReadBy(subject, NULL, state, AnyManifestUnknownNameError).get('name').name));
+registerStateReader('any/manifest', (subject, anchor, state) =>
+  namesUnder(state.scope, recordReadBy(subject, anchor, state, AnyManifestUnknownNameError).get('name').name));
 
-// The laws declared under the address of the record a value reads, as
-// `doc` reads it: each one's last name and the pair of its page, null for
-// a law without one, and its query, in the order of their declarations
-// [QSSLF#laws].
+// The laws declared under the address of the record a value or its anchor
+// reads, as `doc` reads it: each one's last name and the pair of its page,
+// null for a law without one, and its query, in their order [QSSLF#laws].
 const AnyLawsUnknownNameError = declareRefusal('any/laws/UnknownNameError');
-registerStateReader('any/laws', (subject, state) => {
-  const address = recordReadBy(subject, NULL, state, AnyLawsUnknownNameError).get('name').name;
+registerStateReader('any/laws', (subject, anchor, state) => {
+  const address = recordReadBy(subject, anchor, state, AnyLawsUnknownNameError).get('name').name;
   return new Map(lawsUnder(state.scope, address).map(([lastName, record]) =>
     [lastName, Object.freeze([pageOfRecord(record), bindingValueOf(record).payload])]));
 });

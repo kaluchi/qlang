@@ -27,7 +27,7 @@ import {
 } from '../nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { nearestTagNames, nearestNodes } from '../nearest-names.mjs';
-import { splitAddress } from '../address.mjs';
+import { splitAddress, FN_CALL_ADDRESS } from '../address.mjs';
 
 // Each axis refuses under its own address, `name` the name it read, a
 // keyword or a tag [QSERR#site].
@@ -65,11 +65,12 @@ function recordOfKind(scope, value) {
   return nodeOf(scope, name) ?? nodeOfRefused(scope, name) ?? recordOfKind(scope, payloadBeneath(value));
 }
 
-// The node a refusal named by the address of what refused reads its page
-// from, that address, when no node of its own declares it [QSSLF#catalog].
+// The node a refusal no node declares reads its page from: the address of
+// what refused, the call of a function `apply` runs for a role of it [QSSLF#axis].
 function nodeOfRefused(scope, name) {
   const [refusedName] = splitAddress(name);
-  return refusedName !== null && name.endsWith('Error') ? nodeOf(scope, refusedName) : null;
+  if (refusedName === null || !name.endsWith('Error')) return null;
+  return nodeOf(scope, refusedName.startsWith(`${FN_CALL_ADDRESS}/`) ? FN_CALL_ADDRESS : refusedName);
 }
 
 // The record of the node the subject holds under an anchor, or null: the

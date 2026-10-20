@@ -8,7 +8,7 @@
 
 import { isSet, isVec, isMap, typeOf, beneathTags } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
-import { declareRefusal, refusingTheSubject } from '../errors.mjs';
+import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
 
@@ -54,48 +54,49 @@ function unionOfMaps(left, right) {
 // by key, each a key alone, an element of another kind refused at its index [QSPTH#key].
 const KINDS_NAMING_A_MAP_KEY = kindsExpected(...KINDS_OF_A_KEY_ALONE);
 
-function keyNamesOf(keysValue, KeyRefusal) {
+function keyNamesOf(keysValue, KeyRefusal, at) {
   if (isMap(keysValue)) return keysValue;
   return new Set(keysValue.map((keyOfEntry, index) => {
     const key = beneathTags(keyOfEntry);
-    if (!isKeyAlone(key)) throw new KeyRefusal({ index, expected: KINDS_NAMING_A_MAP_KEY, actualValue: keyOfEntry });
-    return keyNameOf(key);
+    if (isKeyAlone(key)) return keyNameOf(key);
+    if (at === undefined) throw new KeyRefusal({ index, expected: KINDS_NAMING_A_MAP_KEY, actualValue: keyOfEntry });
+    throw refusingAPart(new KeyRefusal({ expected: KINDS_NAMING_A_MAP_KEY, actualValue: keyOfEntry }), at, index);
   }));
 }
 
-const minusOfMap = (map, keys, KeyRefusal) => {
-  const names = keyNamesOf(keys, KeyRefusal);
+const minusOfMap = (map, keys, KeyRefusal, at) => {
+  const names = keyNamesOf(keys, KeyRefusal, at);
   return new Map([...map].filter(([key]) => !names.has(key)));
 };
 
-const interOfMap = (map, keys, KeyRefusal) => {
-  const names = keyNamesOf(keys, KeyRefusal);
+const interOfMap = (map, keys, KeyRefusal, at) => {
+  const names = keyNamesOf(keys, KeyRefusal, at);
   return new Map([...map].filter(([key]) => names.has(key)));
 };
 
 // The pairs a fold meets: two sets merge, two maps merge, and a map
 // drops or keeps the keys a map, a vector or a set names; any other pair
 // is refused with the kinds it met.
-function mismatched(left, right, KindsMismatchedError) {
-  return new KindsMismatchedError({ leftType: typeOf(left), rightType: typeOf(right) });
+function mismatched(left, right, KindsMismatchedError, at) {
+  return refusingAPart(new KindsMismatchedError({ leftType: typeOf(left), rightType: typeOf(right) }), at);
 }
 
-function unionPair(left, right, { KindsMismatchedError }) {
+function unionPair(left, right, { KindsMismatchedError }, at) {
   if (isSet(left) && isSet(right)) return mergeSets(left, right, UNION_KEEPS);
   if (isMap(left) && isMap(right)) return unionOfMaps(left, right);
-  throw mismatched(left, right, KindsMismatchedError);
+  throw mismatched(left, right, KindsMismatchedError, at);
 }
 
-function minusPair(left, right, { KindsMismatchedError, KeyKindNotTakenError }) {
+function minusPair(left, right, { KindsMismatchedError, KeyKindNotTakenError }, at) {
   if (isSet(left) && isSet(right)) return mergeSets(left, right, MINUS_KEEPS);
-  if (isMap(left) && (isMap(right) || isVec(right))) return minusOfMap(left, right, KeyKindNotTakenError);
-  throw mismatched(left, right, KindsMismatchedError);
+  if (isMap(left) && (isMap(right) || isVec(right))) return minusOfMap(left, right, KeyKindNotTakenError, at);
+  throw mismatched(left, right, KindsMismatchedError, at);
 }
 
-function interPair(left, right, { KindsMismatchedError, KeyKindNotTakenError }) {
+function interPair(left, right, { KindsMismatchedError, KeyKindNotTakenError }, at) {
   if (isSet(left) && isSet(right)) return mergeSets(left, right, INTER_KEEPS);
-  if (isMap(left) && (isMap(right) || isVec(right))) return interOfMap(left, right, KeyKindNotTakenError);
-  throw mismatched(left, right, KindsMismatchedError);
+  if (isMap(left) && (isMap(right) || isVec(right))) return interOfMap(left, right, KeyKindNotTakenError, at);
+  throw mismatched(left, right, KindsMismatchedError, at);
 }
 
 // The fold of the values a vector holds beneath their tags, from the first as
@@ -106,9 +107,9 @@ function foldOf(values, pair, refusals, readsEvery) {
   if (values.length === 0) throw refusingTheSubject(new refusals.SubjectEmptyError({ actualValue: values }));
   const read = values.map(beneathTags);
   (readsEvery ? read : read.slice(0, 1)).forEach((value, index) => {
-    if (!isSet(value) && !isMap(value)) throw new refusals.ElementNotSetOrMapError({ index, actualValue: values[index] });
+    if (!isSet(value) && !isMap(value)) throw refusingAPart(new refusals.ElementNotSetOrMapError({ actualValue: values[index] }), index);
   });
-  return read.reduce((left, right) => pair(left, right, refusals));
+  return read.reduce((left, right, at) => pair(left, right, refusals, at));
 }
 
 // ── union ──────────────────────────────────────────────────────

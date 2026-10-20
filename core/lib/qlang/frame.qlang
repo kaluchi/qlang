@@ -171,15 +171,17 @@
     | impl ~(unfinished | drop 1)
 
 :frame/place
-  |~~ Answers the path of the part of the subject the step ran its code on
-      where it failed, null where it ran it on no part:
+  |~~ Answers the path of the part of the subject the step failed at,
+      null where it failed at no part:
       `[1 "x" 3] | map ~(mul 2) !| trace | last | place` answers `/1`. A
-      verb that runs its code on the elements of its subject, `map`,
-      `filter`, `every`, `any` and `reduce`, and the keys of `sort`,
-      `min`, `max`, `groupBy` and `indexBy`, names the place of the
-      part, the path of its index or of its key, and `update` the path it
-      wrote; the
-      subject reads the part by it, `get (f | place)` with `f` the frame.
+      verb names the part its code failed on, `map`, `filter`, `every`,
+      `any` and `reduce` and the keys of `sort`, `min`, `max`, `groupBy`
+      and `indexBy`, the part whose answer it refused, the verdict of a
+      predicate and the key of a partition, and the part it refused
+      itself, an element of `sum`, `avg`, `zip`, `join`, `toPath`,
+      `toMap` and a fold of the algebra, each by the path of its index or
+      of its key, and `update` the path it wrote; the subject reads the
+      part by it, `get (f | place)` with `f` the frame.
       ::link~(::frame/subject | doc) ::link~(::path | doc)
   ~~|
   ::fn

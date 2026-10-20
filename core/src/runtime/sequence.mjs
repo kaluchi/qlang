@@ -6,22 +6,20 @@
 // its values and keeps its keys [QSCOL#map], a string's reads its characters
 // [QSTXT#string], and a refusal names the verb that refused [QSERR#site].
 
-import { beneathTags, isNumber, keyword, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath } from '../types.mjs';
+import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath } from '../types.mjs';
 import { compareValues, makeSet } from '../ordering.mjs';
-import { declareRefusal } from '../errors.mjs';
+import { declareRefusal, refusingAPart } from '../errors.mjs';
 import { registerPrimitive, runs, folds } from '../primitives.mjs';
 import { atPlace } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
 import { writtenAsText } from './string.mjs';
 import { pathReads } from './path.mjs';
 
-// The elements, each beside the fact that names it in a refusal, its index
-// from zero in a sequence and its key in a map [QSERR#site].
-const indexed = sequence => [...sequence].map((element, index) => [{ index }, element]);
-const keyed = map => [...map].map(([key, value]) => [{ key: keyword(key) }, value]);
+// The elements, each beside the segment of the path that places it, its index
+// from zero in a sequence and its key in a map [QSERR#trace].
+const entriesOf = elements => [...elements.entries()];
 
 const failedAt = (code, error, segment) => atPlace(code, error, makePath([String(segment)]));
-const segmentOf = at => at.index ?? at.key.name;
 
 // ── size and ends ──────────────────────────────────────────────
 
@@ -47,7 +45,7 @@ const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
 registerPrimitive('vec/zip', vectors => {
   const columns = vectors.map(beneathTags);
   columns.forEach((column, index) => {
-    if (!Array.isArray(column)) throw new VecZipElementNotVecError({ index, actualValue: vectors[index] });
+    if (!Array.isArray(column)) throw refusingAPart(new VecZipElementNotVecError({ actualValue: vectors[index] }), index);
   });
   const length = columns.length === 0 ? 0 : Math.min(...columns.map(column => column.length));
   return Array.from({ length }, (_, index) => columns.map(column => column[index]));
@@ -68,7 +66,7 @@ function totalOf(elements, ElementNotNumberError) {
   let total = 0;
   for (const [at, element] of elements) {
     const number = numberBeneath(element);
-    if (number === undefined) throw new ElementNotNumberError({ ...at, actualValue: element });
+    if (number === undefined) throw refusingAPart(new ElementNotNumberError({ actualValue: element }), at);
     total += number;
   }
   return total;
@@ -76,8 +74,8 @@ function totalOf(elements, ElementNotNumberError) {
 
 const VecSumElementNotNumberError = declareRefusal('vec/sum/ElementNotNumberError');
 const MapSumElementNotNumberError = declareRefusal('map/sum/ElementNotNumberError');
-registerPrimitive('vec/sum', vector => totalOf(indexed(vector), VecSumElementNotNumberError));
-registerPrimitive('map/sum', map => totalOf(keyed(map), MapSumElementNotNumberError));
+registerPrimitive('vec/sum', vector => totalOf(entriesOf(vector), VecSumElementNotNumberError));
+registerPrimitive('map/sum', map => totalOf(entriesOf(map), MapSumElementNotNumberError));
 
 // The mean of the numbers, a running mean whose every step stays among
 // the finite doubles; an empty container has none, and answers null as
@@ -87,7 +85,7 @@ function meanOf(elements, ElementNotNumberError) {
   let mean = 0;
   for (const [count, [at, element]] of elements.entries()) {
     const number = numberBeneath(element);
-    if (number === undefined) throw new ElementNotNumberError({ ...at, actualValue: element });
+    if (number === undefined) throw refusingAPart(new ElementNotNumberError({ actualValue: element }), at);
     const gap = number - mean;
     mean += Number.isFinite(gap) ? gap / (count + 1) : number / (count + 1) - mean / (count + 1);
   }
@@ -96,8 +94,8 @@ function meanOf(elements, ElementNotNumberError) {
 
 const VecAvgElementNotNumberError = declareRefusal('vec/avg/ElementNotNumberError');
 const MapAvgElementNotNumberError = declareRefusal('map/avg/ElementNotNumberError');
-registerPrimitive('vec/avg', vector => meanOf(indexed(vector), VecAvgElementNotNumberError));
-registerPrimitive('map/avg', map => meanOf(keyed(map), MapAvgElementNotNumberError));
+registerPrimitive('vec/avg', vector => meanOf(entriesOf(vector), VecAvgElementNotNumberError));
+registerPrimitive('map/avg', map => meanOf(entriesOf(map), MapAvgElementNotNumberError));
 
 // ── ranking ────────────────────────────────────────────────────
 
@@ -179,15 +177,15 @@ async function answersOf(elements, code) {
   const answers = [];
   for (const [at, element] of elements) {
     const answer = await code(element);
-    if (isErrorValue(answer)) return failedAt(code, answer, segmentOf(at));
+    if (isErrorValue(answer)) return failedAt(code, answer, at);
     answers.push(answer);
   }
   return answers;
 }
 
-registerPrimitive('vec/map', runs(['code'], (sequence, code) => answersOf(indexed(sequence), code)));
+registerPrimitive('vec/map', runs(['code'], (sequence, code) => answersOf(entriesOf(sequence), code)));
 registerPrimitive('map/map', runs(['code'], async (map, code) => {
-  const answers = await answersOf(keyed(map), code);
+  const answers = await answersOf(entriesOf(map), code);
   return isErrorValue(answers) ? answers : new Map([...map.keys()].map((key, index) => [key, answers[index]]));
 }));
 
@@ -198,17 +196,17 @@ registerPrimitive('map/map', runs(['code'], async (map, code) => {
 // another answer is refused where the element stands.
 async function verdictOf(predicate, at, element, ConditionNotBooleanError) {
   const verdict = await predicate(element);
-  if (isErrorValue(verdict)) return failedAt(predicate, verdict, segmentOf(at));
+  if (isErrorValue(verdict)) return failedAt(predicate, verdict, at);
   const beneath = beneathTags(verdict);
   if (typeof beneath === 'boolean') return beneath;
-  throw new ConditionNotBooleanError({ ...at, actualValue: verdict });
+  throw refusingAPart(new ConditionNotBooleanError({ actualValue: verdict }), at);
 }
 
 // `filter` keeps the elements whose predicate answers true, and a map the
 // entries whose values do.
 async function keptElements(sequence, predicate, ConditionNotBooleanError) {
   const kept = [];
-  for (const [at, element] of indexed(sequence)) {
+  for (const [at, element] of entriesOf(sequence)) {
     const verdict = await verdictOf(predicate, at, element, ConditionNotBooleanError);
     if (isErrorValue(verdict)) return verdict;
     if (verdict) kept.push(element);
@@ -219,7 +217,7 @@ async function keptElements(sequence, predicate, ConditionNotBooleanError) {
 async function keptEntries(map, predicate, ConditionNotBooleanError) {
   const kept = new Map();
   for (const [key, value] of map) {
-    const verdict = await verdictOf(predicate, { key: keyword(key) }, value, ConditionNotBooleanError);
+    const verdict = await verdictOf(predicate, key, value, ConditionNotBooleanError);
     if (isErrorValue(verdict)) return verdict;
     if (verdict) kept.set(key, value);
   }
@@ -244,13 +242,13 @@ async function firstVerdict(elements, predicate, decisive, ConditionNotBooleanEr
 
 const VecEveryConditionNotBooleanError = declareRefusal('vec/every/ConditionNotBooleanError');
 const MapEveryConditionNotBooleanError = declareRefusal('map/every/ConditionNotBooleanError');
-registerPrimitive('vec/every', runs(['predicate'], (vector, predicate) => firstVerdict(indexed(vector), predicate, false, VecEveryConditionNotBooleanError)));
-registerPrimitive('map/every', runs(['predicate'], (map, predicate) => firstVerdict(keyed(map), predicate, false, MapEveryConditionNotBooleanError)));
+registerPrimitive('vec/every', runs(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, false, VecEveryConditionNotBooleanError)));
+registerPrimitive('map/every', runs(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, false, MapEveryConditionNotBooleanError)));
 
 const VecAnyConditionNotBooleanError = declareRefusal('vec/any/ConditionNotBooleanError');
 const MapAnyConditionNotBooleanError = declareRefusal('map/any/ConditionNotBooleanError');
-registerPrimitive('vec/any', runs(['predicate'], (vector, predicate) => firstVerdict(indexed(vector), predicate, true, VecAnyConditionNotBooleanError)));
-registerPrimitive('map/any', runs(['predicate'], (map, predicate) => firstVerdict(keyed(map), predicate, true, MapAnyConditionNotBooleanError)));
+registerPrimitive('vec/any', runs(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, true, VecAnyConditionNotBooleanError)));
+registerPrimitive('map/any', runs(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, true, MapAnyConditionNotBooleanError)));
 
 // ── partitions ─────────────────────────────────────────────────
 
@@ -264,10 +262,10 @@ async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenErro
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return failedAt(key, answer, index);
   const named = keywordFiledFor(beneathTags(answer));
-  if (named === null) throw new KeyKindNotTakenError({ index, expected: KINDS_A_KEY_FILES_UNDER, actualValue: answer });
+  if (named === null) throw refusingAPart(new KeyKindNotTakenError({ expected: KINDS_A_KEY_FILES_UNDER, actualValue: answer }), index);
   const taken = filed.get(named.name);
   if (taken === undefined) filed.set(named.name, answer);
-  else if (compareValues(taken, answer) !== 0) throw new KeyTakenError({ key: named, taken, index, actualValue: answer });
+  else if (compareValues(taken, answer) !== 0) throw refusingAPart(new KeyTakenError({ key: named, taken, actualValue: answer }), index);
   return named;
 }
 
@@ -356,7 +354,7 @@ const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNo
 registerPrimitive('vec/join', (subject, separator) => {
   const texts = subject.map(beneathTags);
   const stranger = texts.findIndex(text => typeof text !== 'string' && !isKeyword(text));
-  if (stranger >= 0) throw new VecJoinElementNotStringOrKeywordError({ index: stranger, actualValue: subject[stranger] });
+  if (stranger >= 0) throw refusingAPart(new VecJoinElementNotStringOrKeywordError({ actualValue: subject[stranger] }), stranger);
   return texts.map(writtenAsText).join(writtenAsText(separator));
 });
 

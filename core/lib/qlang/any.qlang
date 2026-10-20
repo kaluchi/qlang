@@ -1280,13 +1280,25 @@
       `::any/manifest/UnknownNameError`. The laws of a
       name are no part of the answer, `laws` reads them; the kinds of the
       scope `kinds` lists, and what the reader declared `env`; and what
-      one name holds the axes read, `::vec/count | source`, `| doc`. The
-      call takes no value, so `manifest ::vec` is refused.
+      one name holds the axes read, `::vec/count | source`, `| doc`. An
+      anchor, a keyword after it, reads the node the name holds under it,
+      as `doc` reads one, `::vec | manifest :take`; the noun itself is the
+      subject, so `manifest ::vec` is refused.
       ::snippet~(::number | manifest) ::link~(::any/laws | doc)
       ::link~(::any/kinds | doc) ::link~(::any/env | doc)
       ::link~(::any/source | doc)
   ~~|
   ::fn
+    | takes :anchor
+        |~~ The last name of the node whose names the call answers, a
+            keyword, null when the call gives none.
+        ~~|
+        ~(query /0) #[::keyword ::null]
+    | throws :anchor/KindNotTakenError
+        |~~ The anchor is a keyword or null, the last name of a node under
+            the subject, `::vec | manifest :take`; a noun is the subject,
+            `::vec | manifest`.
+        ~~|
     | returns
         |~~ The addresses of the names declared one name under the name. ~~|
         ::set
@@ -1294,10 +1306,6 @@
         |~~ `manifest` found no declaration of the name it read, as
             `binding` finds none.
             ::link~(::any/binding/UnknownNameError | doc)
-        ~~|
-    | throws :ArgsBeyondInputsError
-        |~~ `manifest` reads the name of the subject and takes no value:
-            the manifest of vectors is `::vec | manifest`.
         ~~|
     | proves :holdsAVerbOfTheNoun
         |~~ The manifest of numbers holds `add`. ~~|
@@ -1327,9 +1335,14 @@
         ~(::Nothing | manifest
           !| get [~(type) /name]
           |  eq [::any/manifest/UnknownNameError ::Nothing])
-    | proves :ArgsBeyondInputsError/refusesANounGivenAsAValue
-        |~~ A noun given as a value is refused; it is the subject. ~~|
-        ~(::qlang | manifest ::vec !| type | eq ::any/manifest/ArgsBeyondInputsError)
+    | proves :readsTheNodeUnderAnAnchor
+        |~~ An anchor reads the names under the node the name holds under
+            it.
+        ~~|
+        ~(::vec | manifest :take | eq (::vec/take | manifest))
+    | proves :anchor/KindNotTakenError/refusesANounGivenAsTheAnchor
+        |~~ A noun given as the anchor is refused; it is the subject. ~~|
+        ~(::qlang | manifest ::vec !| type | eq ::any/manifest/anchor/KindNotTakenError)
     | impl ::builtin{}
 
 :any/laws
@@ -1340,11 +1353,21 @@
       true. A value reads the laws of its kind, and a name with no laws
       answers `{}`. `runLaws` runs them, and `tutorial` pairs them with
       the page. A name nothing declares is refused,
-      `::any/laws/UnknownNameError`. The call takes no anchor: the laws of
-      a node are read by its address.
+      `::any/laws/UnknownNameError`. An anchor, a keyword after it, reads
+      the laws of the node the name holds under it, as `doc` reads one,
+      `::qlang | laws :errors`.
       ::link~(::any/runLaws | doc) ::link~(::any/tutorial | doc)
   ~~|
   ::fn
+    | takes :anchor
+        |~~ The last name of the node whose laws the call answers, a
+            keyword, null when the call gives none.
+        ~~|
+        ~(query /0) #[::keyword ::null]
+    | throws :anchor/KindNotTakenError
+        |~~ The anchor is a keyword or null, the last name of a node under
+            the subject, `::qlang | laws :errors`.
+        ~~|
     | returns
         |~~ The name of each law and the pair of its page and its query. ~~|
         ::map
@@ -1352,10 +1375,6 @@
         |~~ `laws` found no declaration of the name it read, as `binding`
             finds none.
             ::link~(::any/binding/UnknownNameError | doc)
-        ~~|
-    | throws :ArgsBeyondInputsError
-        |~~ `laws` reads the laws of its subject and takes no anchor: the
-            laws of a node are read by its address, `::vec/take | laws`.
         ~~|
     | proves :answersEachLawByItsName
         |~~ A law declared under a name is answered under its own name. ~~|
@@ -1377,9 +1396,13 @@
         ~(::nonexistent-binding | laws
           !| get [~(type) /name]
           |  eq [::any/laws/UnknownNameError ::nonexistent-binding])
-    | proves :ArgsBeyondInputsError/refusesAnAnchor
-        |~~ An anchor given to `laws` is refused under the verb. ~~|
-        ~(::vec | laws :take !| type | eq ::any/laws/ArgsBeyondInputsError)
+    | proves :readsTheLawsUnderAnAnchor
+        |~~ An anchor reads the laws of the node the name holds under it.
+        ~~|
+        ~(::qlang | laws :errors | eq (::qlang/errors | laws))
+    | proves :anchor/KindNotTakenError/refusesANumber
+        |~~ An anchor that is a number is refused under the input. ~~|
+        ~(::qlang | laws 1 !| type | eq ::any/laws/anchor/KindNotTakenError)
     | impl ::builtin{}
 
 :any/runLaws
@@ -1469,16 +1492,22 @@
       is, and the laws that show it at work, each the pair of its claim
       and its query, `::number | tutorial`. A value reads the page and
       the laws of its kind. A name nothing declares is refused as `doc`
-      refuses it, under the tag of `doc`. The call takes no anchor: a
-      node is read by its address, `::vec/take | tutorial`.
+      refuses it, under the tag of `doc`. An anchor, a keyword after it,
+      reads the node the name holds under it, as `doc` reads one,
+      `::vec | tutorial :take`.
       ::link~(::any/doc | doc) ::link~(::any/laws | doc)
   ~~|
   ::fn
-    | returns |~~ The page and the laws. ~~| ::vec
-    | throws :ArgsBeyondInputsError
-        |~~ `tutorial` reads the name of its subject and takes no anchor:
-            a node is read by its address, `::vec/take | tutorial`.
+    | takes :anchor
+        |~~ The last name of the node whose page and laws the call
+            answers, a keyword, null when the call gives none.
         ~~|
+        ~(query /0) #[::keyword ::null]
+    | throws :anchor/KindNotTakenError
+        |~~ The anchor is a keyword or null, the last name of a node under
+            the subject, `::vec | tutorial :take`.
+        ~~|
+    | returns |~~ The page and the laws. ~~| ::vec
     | proves :pairsThePageWithTheLaws
         |~~ A tutorial is the page of a name and its laws. ~~|
         ~(::number | tutorial | get [~(get /0 | type) ~(get /1 | type)] | eq [::doc ::map])
@@ -1488,10 +1517,12 @@
     | proves :refusesANameNothingDeclares
         |~~ A name nothing declares is refused as `doc` refuses it. ~~|
         ~(::nothere | tutorial !| type | eq ::any/doc/UnknownNameError)
-    | proves :ArgsBeyondInputsError/refusesAnAnchor
-        |~~ An anchor given to `tutorial` is refused under the verb. ~~|
-        ~(::vec | tutorial :take !| type | eq ::any/tutorial/ArgsBeyondInputsError)
-    | impl ~(:subject it | doc | get [~(it) ~(subject | laws)])
+    | proves :readsTheNodeUnderAnAnchor
+        |~~ An anchor reads the page and the laws of the node the name holds
+            under it.
+        ~~|
+        ~(::vec | tutorial :take | eq (::vec/take | tutorial))
+    | impl ~(if (anchor | eq null) ~(get [~(doc) ~(laws)]) ~(get [~(doc anchor) ~(laws anchor)]))
 
 :any/tag
   |~~ Answers the subject under the name the call gives, a tag name,

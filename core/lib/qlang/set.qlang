@@ -164,15 +164,16 @@
             under the keyword of its text, a boolean or null under that of
             its literal and a tag name under that of its name. A key of
             another kind, a vector, a set, a map or a quote, is refused,
-            `:index` naming the element and `:expected` the kinds a key
-            files under.
+            the place of its frame naming the element and `:expected` the
+            kinds a key files under.
         ~~|
     | throws :KeyTakenError
         |~~ Two values the key answers file under one keyword, `1` and
             `"1"` both under `:"1"`, and a map holds the elements of one
             value under a key: the second is refused, `:key` naming the
             keyword, `:taken` the value that filed under it first and
-            `:index` the element that met it. A key that means both
+            the place of its frame the element that met it. A key that
+            means both
             answers one kind,
             `~(get /id | if (type | eq ::string) ~(it) ~(print))`.
         ~~|
@@ -217,7 +218,7 @@
         |~~ An element that is a vector files under no key, and is refused
             with the kinds a key files under.
         ~~|
-        ~(#[[1]] | groupBy !| get [~(type) /index /expected] | eq [::set/groupBy/KeyKindNotTakenError 0 #[::boolean ::keyword ::null ::number ::string ::tag]])
+        ~(#[[1]] | groupBy !| get [~(type) ~(trace | last | place) /expected] | eq [::set/groupBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{}
 
 :set/toVec

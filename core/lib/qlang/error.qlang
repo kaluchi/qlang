@@ -86,7 +86,11 @@
         ~~|
         ::path
     | carries :index
-        |~~ The index of the element refused, counted from zero. ~~|
+        |~~ The index, from zero, of the element refused in a value no
+            frame holds as its subject, an input, a payload, the args or
+            the conditions of `allOf`, `anyOf` and `cond`; a part of the
+            subject a step refused is named by the place of its frame.
+        ~~|
         ::number
     | carries :expected
         |~~ The kinds the holder takes, where a value of none of them was

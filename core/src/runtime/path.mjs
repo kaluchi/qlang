@@ -5,7 +5,7 @@
 // [QSPTH#template], [QSPTH#write], [QSPTH#verbs].
 
 import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
-import { declareRefusal, refusingTheSubject } from '../errors.mjs';
+import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate, isKeyAlone, keyNameOf } from '../path-read.mjs';
 import { layTag } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
@@ -144,7 +144,7 @@ registerPrimitive('vec/toPath', keys => {
   if (keys.length === 0) throw refusingTheSubject(new VecToPathSubjectEmptyError({ actualValue: keys }));
   return makePath(keys.map((element, index) => {
     const key = beneathTags(element);
-    if (!isKeyAlone(key)) throw new VecToPathElementNotKeyError({ index, actualValue: element });
+    if (!isKeyAlone(key)) throw refusingAPart(new VecToPathElementNotKeyError({ actualValue: element }), index);
     return keyNameOf(key);
   }));
 });

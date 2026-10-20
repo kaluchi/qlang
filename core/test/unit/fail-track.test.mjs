@@ -151,14 +151,6 @@ describe('per-site error classes carry unique identity', () => {
     expect((await evalQuery('"x" | append 42')).tag.name).toBe('string/append/suffix/KindNotTakenError');
   });
 
-  it('sum element non-number → VecSumElementNotNumberError, the element and its kind among the facts', async () => {
-    const refused = await evalQuery('[1 "two" 3] | sum');
-    expect(refused.originalError.address).toBe('vec/sum/ElementNotNumberError');
-    expect(refused.facts.get('index')).toBe(1);
-    expect(refused.facts.get('actualType').name).toBe('string');
-    expect(refused.facts.get('actualValue')).toBe('two');
-  });
-
   it('gt across kinds is refused by the kinds of its input, the kind it met among the facts [QSBLD#fn]', async () => {
     const refused = await evalQuery('"a" | gt 5');
     expect(refused.tag.name).toBe('string/gt/value/KindNotTakenError');

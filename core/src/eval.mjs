@@ -31,10 +31,10 @@ import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfReci
 import { inputsAsCode } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
-  notGivenAddress, payloadRefusalName, subjectRefusalAddress
+  notGivenAddress, payloadRefusalName, subjectRefusalAddress, FN_CALL_ADDRESS
 } from './address.mjs';
 import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, servesTheSubject } from './dispatch.mjs';
-import { answerOfStep, skipping, flightOfACall } from './eval-trace.mjs';
+import { answerOfStep, skipping, flightOfACall, flightOfThrow } from './eval-trace.mjs';
 
 // The tag of a name that holds data puts no value under it: a value goes
 // under a label, a verb, an invariant or a tag no node answers [QSBLD#label].
@@ -67,7 +67,7 @@ async function evalStep(step, state, at) {
   try {
     return await evaluatorOf(step)(step, state, at);
   } catch (caughtError) {
-    return withPipeValue(state, errorOfThrow(caughtError, step, state.pipeValue, state.scope));
+    return withFlight(withPipeValue(state, errorOfThrow(caughtError, step, state.pipeValue, state.scope)), flightOfThrow(caughtError));
   }
 }
 
@@ -697,8 +697,6 @@ async function applyFunctionVerb(record, fn, modifiers, state) {
 // applyFunction(fn, subject, args, state) → the answer of a function `apply`
 // runs on a subject, the values of a vector its args, every refusal named
 // under `fn/call`, which no verb names, its flight the flight of `apply`.
-const FN_CALL_ADDRESS = 'fn/call';
-
 export async function applyFunction(fn, subject, args, state) {
   const at = { address: FN_CALL_ADDRESS, labelName: null, ofTheRoot: !isQuote(recipeOf(fn)) && isRootVerbScope(state.scope) };
   return await callFunction(fn, at, args.map(value => () => value), withPipeValue(state, subject), state.flight);
@@ -828,7 +826,7 @@ function foldingCodeOf(value, originOfQuote, state) {
     try {
       answered = await invoke([() => element], withPipeValue(callerState, acc));
     } catch (caughtError) {
-      answered = withPipeValue(callerState, errorOfThrow(caughtError, call, acc, callerState.scope));
+      answered = withFlight(withPipeValue(callerState, errorOfThrow(caughtError, call, acc, callerState.scope)), flightOfThrow(caughtError));
     }
     return answerOfStep(answered.pipeValue, () => makeQuote([call]), acc, callerState.scope, answered.flight);
   };

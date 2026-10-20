@@ -127,7 +127,7 @@ function readChainOfFn(quote) {
   for (const step of quote) {
     const refused = objectNotTaken(step, COMMANDS);
     if (refused !== null) throw new FnCommandNotTakenError({ command: makeQuote([step]), ...refused });
-    const [first, second, third, fourth] = step.get('modifiers') ?? [];
+    const [first, second, third, fourth] = step.get('modifiers');
     switch (step.get('name').name) {
       case 'on':
         names.declare(SUBJECT_NAME);
@@ -188,7 +188,7 @@ function readChainOfKind(quote) {
   for (const step of quote) {
     const refused = objectNotTaken(step, KIND_COMMANDS);
     if (refused !== null) throw new KindCommandNotTakenError({ command: makeQuote([step]), ...refused });
-    const [first, second, third, fourth] = step.get('modifiers') ?? [];
+    const [first, second, third, fourth] = step.get('modifiers');
     switch (step.get('name').name) {
       case 'wraps': {
         names.declare(PAYLOAD_NAME);

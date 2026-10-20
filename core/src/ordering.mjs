@@ -1,14 +1,8 @@
-// One order ranks every value [QSORD#order]: first by kind, null, boolean, number,
-// string, regex, keyword, tag name, path, vector, set, map, quote, doc,
-// elision and desc, then every other tag by its name; within a kind numbers
-// by value, a text by its code points, as a string counts them, regexes by
-// their text and then their flags, vectors element by element, a set as its
-// vector, maps by their keys and then their values, a desc by the reverse of
-// its payload's place, and a tagged value, a failure raised among them, by its
-// tag and then its payload. `sort`, `min` and `max` order by it, and so do the
-// ordering predicates, whose inputs take a value of the subject's kind
-// [QSDSP#walk], [QSDSP#residence]; two values are equal where it ranks them
-// alike [QSORD#order]. The set is made here by it, and the set of the kinds a refusal expects.
+// One order ranks every value, kind before kind and within a kind by value, a
+// failure raised by its tag and then its facts [QSORD#order]: `sort`, `min`,
+// `max`, the ordering predicates [QSDSP#walk], [QSDSP#residence] and equality,
+// two values equal where it ranks them alike, read it, and the sets and the set
+// of the kinds a refusal expects are made here by it.
 
 import {
   isKeyword, isTag, isRegex, isPath, isDoc, isErrorValue, isValueClass, typeOf, makeTag, stampTagHeader,

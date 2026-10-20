@@ -135,8 +135,7 @@ const eachAndEmpty = (left, right) => (isMark(left, EACH_TAG) && isEmptyRecord(r
 const mergesWith = (left, right) => compareValues(left, right) === 0 || eachesMerge(left, right) || eachAndEmpty(left, right) || (isSetOf(left) && isSetOf(right))
   || (isList(left) && isList(right)) || (isRecord(left) && isRecord(right) && shareAKey(left, right));
 const lacked = shape => marked({ ...marksOf(shape), absent: true });
-// The shape the shapes of parts share, merged in the one order, so the order of
-// the data changes none [QSPTH#shape].
+// The shape the shapes of parts share, merged in the one order [QSPTH#shape].
 const collapsed = shapes => [...shapes].sort(compareValues).reduce(mergedShape);
 
 function mergedByIndex(left, right) {

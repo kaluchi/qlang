@@ -19,7 +19,7 @@ export const TAGGED_KIND_NAME = 'tagged';
 // its inputs read places, an input the call leaves out where its place reads
 // one, and an answer that reaches none of the kinds `returns` names; and under
 // a kind, a payload of none of its kinds, or an element of none, a refusal of
-// kinds named by the role of its holder alone, the subject's by its label [D389].
+// kinds named by the role of its holder alone, the subject's by its label [QSERR#site].
 export const subjectRefusalAddress = (address, labelName) => `${address}/SubjectNot${capitalOf(labelName)}Error`;
 // The call of a function `apply` runs or `fill` fills, under which every refusal of
 // it is named, its subject refused by its role, the kinds `on` names its `:expected` [QSBLD#fn].

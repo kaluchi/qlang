@@ -41,7 +41,7 @@ registerPrimitive('map/last', map => lastOf([...map.values()]));
 // ── side by side ───────────────────────────────────────────────
 // The elements at each index of the vectors a vector or a set holds, as long
 // as the shortest, an element that is no vector refused at its index
-// [D389].
+// [QSCOL#sequence], [QSORD#set].
 const VecZipElementKindNotTakenError = declareRefusal('vec/zip/ElementKindNotTakenError');
 const SetZipElementKindNotTakenError = declareRefusal('set/zip/ElementKindNotTakenError');
 function columnsOf(vectors, ElementKindNotTakenError) {
@@ -65,7 +65,7 @@ function numberBeneath(element) {
 }
 
 // The tags of the numbers the elements hold, each handed to `take`, an element
-// refused where it stands for its kind first, then for its tags [D389].
+// refused where it stands for its kind first, then for its tags [QSCOL#sequence].
 function eachNumber(elements, ElementKindNotTakenError, take) {
   const tally = new TagsInCommon();
   for (const [count, [at, element]] of elements.entries()) {
@@ -203,7 +203,7 @@ registerPrimitive('map/map', runs(['code'], async (map, code) => {
 
 // ── predicates ─────────────────────────────────────────────────
 
-// A predicate answers a boolean for each element or fails [D389]: the
+// A predicate answers a boolean for each element or fails [QSCND#boolean]: the
 // error it answered is handed on at the place of the element [QSERR#trace], and
 // another answer is refused where the element stands.
 async function verdictOf(predicate, at, element, ConditionKindNotTakenError) {
@@ -364,7 +364,7 @@ registerPrimitive('vec/append', (vector, element) => [...vector, element]);
 registerPrimitive('vec/concat', combines((vector, vectors) => [...vector, ...vectors.flat()]));
 
 // An element `join` writes is a string or a keyword, written as text, and the
-// text stands under the tags its strings share [QSTXT#string], [D389].
+// text stands under the tags its strings share [QSTXT#string], [QSCOL#sequence].
 const VecJoinElementKindNotTakenError = declareRefusal('vec/join/ElementKindNotTakenError');
 
 registerStateReader('vec/join', (subject, separator, state) => {

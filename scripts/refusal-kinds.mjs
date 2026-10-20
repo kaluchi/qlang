@@ -1,4 +1,4 @@
-// The kinds the name of a refusal carries [D389]: the words of its last name
+// The kinds the name of a refusal carries [QSERR#site]: the words of its last name
 // after `Not` name a kind only as the label its subject resides on,
 // `number/add/SubjectNotNumberError`, or as the kind a conversion of its
 // address reads, `string/toNumber/TextNotNumberError`, a place after `NotIn`,
@@ -43,7 +43,7 @@ function stepsOfChain(body) {
 
 // refusalsOfTheCatalog(sources) → the refusals the pages of the sources name,
 // each `{ address, file, line }`: what `throws` and `holds` write in the chain
-// of a declaration, under its name [D389].
+// of a declaration, under its name [QSERR#site].
 export function refusalsOfTheCatalog(sources) {
   return declarationsOf(sources).flatMap(({ path, value }) => [...stepsOfChain(value.get('body'))]
     .filter(step => isCallStep(step) && ['throws', 'holds'].includes(step.get('name').name) && isKeyword(step.get('modifiers')?.[0]))

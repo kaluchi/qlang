@@ -16,7 +16,7 @@
 {"name":"a-reducer-that-names-the-address-of-a-value-runs-on-the-pair","query":":Box |~~ A box. ~~| | :Box/side 3 | [1 2] | reduce 0 ~(Box/side)","expect":"3"}
 {"name":"a-reducer-of-code-folds-a-set","query":"#[1 2 3] | reduce 0 ~(sumOf /0 /1)","expect":"6"}
 {"name":"a-reducer-of-code-folds-the-values-of-a-map","query":"{:a 1 :b 2} | reduce 0 ~(sumOf /0 /1)","expect":"3"}
-{"decision":"D389","name":"a-reducer-of-code-that-fails-answers-the-failure","query":"[1 \"x\" 3] | reduce 0 ~(sumOf /0 /1) !| type","expect":"::vec/sum/ElementKindNotTakenError"}
+{"name":"a-reducer-of-code-that-fails-answers-the-failure","query":"[1 \"x\" 3] | reduce 0 ~(sumOf /0 /1) !| type","expect":"::vec/sum/ElementKindNotTakenError"}
 {"name":"reduce-folds-the-values","query":"{:a 1 :b 2} | reduce 0 ~(add)","expect":"3"}
 {"name":"a-reducer-of-a-literal-answers-it","query":"[1 2 3] | reduce 0 ~(42)","expect":"42"}
 {"name":"a-reducer-that-gives-its-verb-an-arg-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add 1) !| get [~(type) /actualType]","expect":"[::number/add/SubjectNotNumberError ::vec]"}

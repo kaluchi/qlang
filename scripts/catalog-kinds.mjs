@@ -31,7 +31,7 @@ export function kindsNamedForCommands(sources) {
 }
 
 // kindsDeclaredBy(sources) → the names of the kinds the sources declare, each
-// a bare name [D389].
+// a bare name [QSERR#site].
 export function kindsDeclaredBy(sources) {
   return new Set(declarationsOf(sources).map(({ value }) => value).filter(declaresKind)
     .map(value => value.get('name').name).filter(name => !name.includes('/')));

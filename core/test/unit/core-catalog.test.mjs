@@ -64,7 +64,7 @@ describe('no kind of the catalog bears the name of a command of a chain', () => 
 
 // A refusal is public, so its name carries a kind only where its address
 // names it, which the check of the conventions holds over the code and the
-// pages of the catalog [D389].
+// pages of the catalog [QSERR#site].
 describe('a refusal names a kind only where its address names it', () => {
   const nouns = new Set(['boolean', 'keyword', 'map', 'number', 'set', 'string', 'vec']);
   const named = addresses => kindsNamedOffTheirAddress(addresses.map(address => ({ address })), nouns);

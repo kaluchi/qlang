@@ -141,15 +141,16 @@ points, three integers under `::point`, read by `offset`, `line` and
 refused as `…/PayloadKindNotTakenError`, an element that is no number as
 `…/ElementKindNotTakenError` with its `:index`, and a vector of another
 length or with a fraction by the invariant of the kind,
-`::span/PayloadNotSixNumbersError` and
-`::point/PayloadNotThreeNumbersError`.
+`::span/PayloadNotStartAndEndError` and
+`::point/PayloadNotOffsetLineAndColumnError`, each naming the roles of
+its numbers.
 
 ```qlang
 > "[1 2" | parse !| get /location | start
 ::point[4 1 5]
 
 > ::span[0 1 1] !| type
-::span/PayloadNotSixNumbersError
+::span/PayloadNotStartAndEndError
 
 > ::span[0 1 "x" 1 1 2] !| get [~(type) /index]
 [::span/ElementKindNotTakenError 2]

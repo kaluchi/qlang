@@ -37,7 +37,7 @@ import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, se
 import { answerOfStep, skipping, flightOfACall, flightOfThrow } from './eval-trace.mjs';
 
 // The tag of a name that holds data puts no value under it: a value goes
-// under a label, a verb, an invariant or a tag no node answers [D389].
+// under a label, a verb, an invariant or a tag no node answers [QSBLD#label].
 const ConstructTagNamesAValueError = declareRefusal('construct/TagNamesAValueError');
 const CallValueMeetsVerbError = declareRefusal('call/ValueMeetsVerbError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');

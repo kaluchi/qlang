@@ -7,10 +7,10 @@
 {"name":"an-invariant-with-a-path-names-a-field-read-before-it","query":"::kind | holds :w/NegativeError |~~ No width below zero. ~~| ~(gte 0) !| type","expect":"::kind/NameUnderNoFieldError"}
 {"name":"a-law-with-a-path-names-a-name-declared-before-it","query":"::kind | proves :x/y |~~ An x. ~~| ~(true) !| type","expect":"::kind/LawUnderNoNameError"}
 {"name":"a-fact-of-no-kinds-holds-its-page","query":":Box |~~ A box. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| | carries :TooWideError/note |~~ A note. ~~|) | ::Box/TooWideError/note | binding | get /value | type","expect":"::doc"}
-{"decision":"D389","name":"a-kind-takes-no-constructor-but-the-hosts","query":"get [~(::kind | impl ~(get {:s ~(it)}) !| type) ~(::kind | impl 5 !| type) ~(::kind[~() 5] !| type)]","expect":"[::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError]"}
+{"name":"a-kind-takes-no-constructor-but-the-hosts","query":"get [~(::kind | impl ~(get {:s ~(it)}) !| type) ~(::kind | impl 5 !| type) ~(::kind[~() 5] !| type)]","expect":"[::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError]"}
 {"name":"the-literal-of-a-kind-reads-back","query":":Box |~~ A box. ~~| ::kind[~(wraps |~~ The sizes. ~~| ::map) null] | ::Box\"x\" !| type","expect":"::Box/PayloadKindNotTakenError"}
 {"name":"a-readers-kind-with-a-constructor-no-host-hands-lays-its-tag","query":":B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1] | type","expect":"::B"}
-{"decision":"D389","name":"a-kind-built-as-data-takes-the-constructor-of-a-host-alone","query":"::kind[~() ~(add 1)] !| type","expect":"::kind/ConstructorKindNotTakenError"}
+{"name":"a-kind-built-as-data-takes-the-constructor-of-a-host-alone","query":"::kind[~() ~(add 1)] !| type","expect":"::kind/ConstructorKindNotTakenError"}
 {"name":"a-fact-of-a-kind-under-a-name-declared-after-it-is-refused","query":"::kind | carries :X/f |~~ f ~~| ::number !| type","expect":"::kind/FactUnderNoNameError"}
 {"name":"a-fact-written-with-no-path-is-a-fact-of-the-payload","query":":B |~~ B ~~| (::kind | carries :note |~~ n ~~| ::number) | ::B/note | binding | get /value","expect":"::number"}
 {"name":"the-literal-of-a-kind-whose-commands-are-no-quote-is-no-pair","query":"::kind[[] null] !| type","expect":"::kind/PayloadNotPairError"}

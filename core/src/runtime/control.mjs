@@ -22,7 +22,7 @@ registerPrimitive('any/if', runs(['then', 'else'], async (subject, condition, th
 // Whether every condition holds of the subject, and whether some does:
 // a condition computed at the call is the boolean it answered, a quote
 // answers one in its turn, and the first condition that decides answers
-// with the quotes after it unrun [D389].
+// with the quotes after it unrun [QSCND#boolean].
 async function verdictOfConditions(subject, conditions, decisive, ConditionKindNotTakenError) {
   for (const [index, condition] of conditions.entries()) {
     const verdict = typeof condition === 'function' ? await condition(subject) : condition;
@@ -49,7 +49,7 @@ registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alterna
 }));
 
 // The clauses alternate a predicate and its branch, a pair at least by
-// the invariant of the clauses, and a clause left over is the default [D389].
+// the invariant of the clauses, and a clause left over is the default [QSCND#branch].
 registerPrimitive('any/cond', runs(['clauses'], async (subject, clauses) => {
   let clauseIndex = 0;
   while (clauseIndex + 1 < clauses.length) {

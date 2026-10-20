@@ -36,7 +36,7 @@ primitive of that name, a primitive handed for it refused so, its
 `::builtin{}` runs nothing. The modules of the runtime register the
 core's primitives in its table, which the bootstrap seals, an address
 that is no string
-refused as `::builtin/AddressNotStringError`, two under one address as
+refused as `::builtin/AddressKindNotTakenError`, two under one address as
 `::builtin/AddressRegisteredTwiceError` and one after the seal as
 `::builtin/TableSealedError`. A
 `::builtin{}` no host handed with what holds it runs nothing: as the
@@ -45,8 +45,10 @@ call by its name, its address or `apply` is refused as
 `::fn/RecipeMissingError`; as a step of a recipe's quote, the verb
 answers it; and as the constructor of a kind, the kind lays its tag over
 the payload as it is. A host's verb refuses a call by a refusal declared
-at its site by its address through `./errors` and paged under its noun
-in the host's source, a refusal of the subject its call was served thrown
+at its site by its address through `./errors`, a value of none of the
+kinds its holder takes refused by the holder's role with those kinds as
+`:expected`, which `kindsExpected` of the root makes, and paged under its
+noun in the host's source, a refusal of the subject its call was served thrown
 through `refusingTheSubject`, which holds the kind of that value alone,
 and a refusal of a part of it through `refusingAPart` with the segments
 of the part's path, which the frame of the step places [QSERR#site],

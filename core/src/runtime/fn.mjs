@@ -26,7 +26,7 @@ const FnRecipeKindNotTakenError = declareRefusal('fn/RecipeKindNotTakenError');
 const FnFillRecipeKindNotTakenError = declareRefusal('fn/fill/RecipeKindNotTakenError');
 
 // A function of its commands and a recipe, held here on every road to one: a
-// recipe that is no code and a command its chain does not take are refused [D389].
+// recipe that is no code and a command its chain does not take are refused [QSBLD#fn].
 function madeFn(commands, recipe) {
   if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new FnRecipeKindNotTakenError({ expected: kindsExpected('builtin', 'null', 'quote'), actualValue: recipe });
   const fn = makeTagged(FN_TAG, Object.freeze([commands, recipe]));
@@ -65,7 +65,7 @@ registerPrimitive('fn/impl', (subject, recipe) => madeFn(commandsOf(functionOf(s
 // `fill 3` — the args of a call written into the head of the code,
 // each input a declaration with its page of the value it reads, as its call
 // reads it; the code answers, a recipe that is no quote refused as the part
-// of the subject it is [D389].
+// of the subject it is [QSBLD#fn].
 registerStateReader('fn/fill', async (fn, args, state) => {
   const recipe = recipeOf(fn);
   if (!isQuote(recipe)) throw refusingAPart(new FnFillRecipeKindNotTakenError({ expected: kindsExpected('quote'), actualValue: recipe }), 1);

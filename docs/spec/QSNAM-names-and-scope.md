@@ -332,7 +332,7 @@ topic of the command line `::cli`. What `tells` declares under a topic
 is a chapter, the page of a concept, read by `manifest` of its noun; a
 chapter of `::qlang` holds the set of the kinds it tells of, data, so
 its tag lays nothing, `::qlang/values[1]` refused as
-`::construct/TagNotKindError`.
+`::construct/TagNamesAValueError`.
 
 ```qlang
 > ::vec/filter | binding | get /origin
@@ -342,7 +342,7 @@ its tag lays nothing, `::qlang/values[1]` refused as
 [true true]
 
 > get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | type) ~(::qlang | manifest | map ~(binding | get /value | type) | toSet) ~(::qlang/values[1] !| type)]
-[true ::kind #[::set] ::construct/TagNotKindError]
+[true ::kind #[::set] ::construct/TagNamesAValueError]
 ```
 
 ## binding

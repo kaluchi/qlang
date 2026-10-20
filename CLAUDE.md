@@ -204,7 +204,9 @@ digit followed by a noun in markdown prose when a grep or a run already
 answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
 literal or held by a constant the address does not name
-(`VecToMapElementNotPairError` for `vec/toMap/ElementNotPairError`) [QSERR#site],
+(`VecToMapElementNotPairError` for `vec/toMap/ElementNotPairError`), or
+whose last name names a kind after `Not` but as the label its subject
+resides on or the kind a conversion of its address reads [QSERR#site],
 on an export of the root of the core that no workspace beside it reads
 from the package and its README does not write [QSWRK#tooling],
 on a decision named in a page of the catalog, which a reader of the

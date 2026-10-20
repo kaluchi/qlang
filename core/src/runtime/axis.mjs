@@ -135,7 +135,7 @@ const anchorsOf = anchor => (isNull(beneathTags(anchor)) ? [] : isVec(beneathTag
 
 // The record the anchors reach, read in turn, each the last name of a node
 // under the record the one before it reached, no anchor the record of the
-// subject itself, a name of another kind refused by its role [D389].
+// subject itself, a name of another kind refused by its role [QSSLF#axis].
 function recordOfAnchors(subject, anchors, state) {
   if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocUnknownNameError);
   return anchors.reduce((reached, anchor, index) => {
@@ -153,7 +153,7 @@ const underRecord = record => makeTag(record.get('name').name);
 const pageAt = (subject, anchor, state) => pageOfRecord(recordOfAnchors(subject, anchorsOf(anchor), state));
 
 // A set of anchors reads a page at each, in the order of the set, an
-// element that is no anchor and no vector of them refused at its index [D389].
+// element that is no anchor and no vector of them refused at its index [QSSLF#axis].
 registerStateReader('any/doc', (subject, anchor, state) => {
   if (!isSet(anchor)) return pageAt(subject, anchor, state);
   const stranger = anchor.map(beneathTags).findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));

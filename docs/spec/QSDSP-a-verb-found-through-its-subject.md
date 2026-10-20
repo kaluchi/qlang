@@ -112,7 +112,7 @@ of two kinds refused [QSCND#compare].
 [::call/KindAnswersNoVerbError #[::set/zip ::vec/zip]]
 
 > get [~(#[1 "a"] | sum !| type) ~(true | flat !| type) ~(::set | count !| type) ~(::set | manifest | has ::set/count)]
-[::vec/sum/ElementNotNumberError ::vec/flat/SubjectNotVecError ::call/KindAnswersNoVerbError false]
+[::vec/sum/ElementKindNotTakenError ::vec/flat/SubjectNotVecError ::call/KindAnswersNoVerbError false]
 
 > ~(a | b | c) | take 2
 ~(a | b)

@@ -111,7 +111,7 @@
 //       resides on or the kind a conversion of its address reads; any other
 //       refusal of a kind is named by the role of its holder, the kinds
 //       `:expected`: the refusals the code declares, read as (2) reads them,
-//       and those the pages of the catalog write, read by the parser [D389].
+//       and those the pages of the catalog write, read by the parser [QSERR#site].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -311,7 +311,7 @@ function refusalsOffTheirAddress() {
 // ── (20) A refusal names a kind only where its address names it ─
 //
 // The refusals the code declares and those the pages of the catalog write,
-// read against the kinds the catalog declares [D389].
+// read against the kinds the catalog declares [QSERR#site].
 
 function refusalsNamingKinds() {
   const declared = refusalDeclarations().declarations.filter(({ address }) => address !== undefined);

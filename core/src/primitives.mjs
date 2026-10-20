@@ -2,7 +2,7 @@
 // serves, `number/add`, `vec` [QSDSP#residence]: each module of the runtime
 // registers its own as it loads, and the bootstrap hands each source of the
 // language those under its noun as a host hands its own and seals the table
-// [D389].
+// [QSHST#source].
 
 import { declareDefect } from './errors.mjs';
 import { splitAddress } from './address.mjs';

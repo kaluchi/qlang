@@ -80,7 +80,7 @@ registerPrimitive('error/construct', facts => facts);
 // one order the reverse of its payload's [QSORD#desc].
 registerPrimitive('desc/construct', payload => makeTagged(DESC_TAG, payload));
 
-// `::doc[…]` — the doc of a vector of prose strings and quotes [D389], so
+// `::doc[…]` — the doc of a vector of prose strings and quotes [QSSLF#doc], so
 // a doc comes apart into its segments and back by `tag`.
 const DocPayloadKindNotTakenError = declareRefusal('doc/PayloadKindNotTakenError');
 const DocElementKindNotTakenError = declareRefusal('doc/ElementKindNotTakenError');

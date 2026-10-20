@@ -33,10 +33,11 @@ each under the node the one before it reached,
 itself, and a set of anchors, a page at each in the order of the set,
 null and a vector of anchors among them. An anchor of another kind is
 refused under the input, `::any/source/anchor/KindNotTakenError` and its
-kin, an anchor read in turn that is no keyword as
-`::any/doc/anchor/ElementNotKeywordError` with its `:index`, and so is
-an element of a set that is neither null, a keyword nor a vector, its
-index in the one order of the set its `:index`; `explain`, which reads
+kin, a name read in turn that is no keyword as
+`::any/doc/anchor/NameKindNotTakenError`, its index in its vector its
+`:index`, and an element of a set that is neither null, a keyword nor a
+vector as `::any/doc/anchor/ElementKindNotTakenError`, its index in the
+one order of the set its `:index`; `explain`, which reads
 the value it explains, and `tutorial`, which pairs the page and the laws
 of the name its subject reads, take no anchor, refusing one as
 `::any/explain/ArgsBeyondInputsError` and its kin.
@@ -231,7 +232,7 @@ parts, of a doc under a tag as well, and `tag ::doc` builds a doc from a
 vector of strings and quotes, joining strings that stand together and
 dropping an empty one, as the parser does, a payload that is no vector
 refused as `::doc/PayloadKindNotTakenError` and an element of another
-kind as `::doc/ElementNotSegmentError`. A tag gives a quote a
+kind as `::doc/ElementKindNotTakenError`. A tag gives a quote a
 role, the tags of a stack read from the outside in: `::link`, which
 `links` answers and `open` runs to what its query answers, a page where
 it reads one, and `::snippet`, which `snippets` answers and `open` runs
@@ -297,7 +298,7 @@ true
 ::doc
 
 > get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | type) ~(::qlang/values[1] !| type) ~(::qlang | manifest | has ::qlang/values)]
-[true ::kind ::construct/TagNotKindError true]
+[true ::kind ::construct/TagNamesAValueError true]
 
 > ::qlang | doc | content | get [~(contains "x | elide 4000") ~(contains "an ::elision whose `:read` continues")]
 [true true]

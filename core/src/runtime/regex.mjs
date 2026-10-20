@@ -55,7 +55,7 @@ const StringReplaceWithAnswerKindNotTakenError = declareRefusal('string/replace/
 
 // The text with every match of the code's own: the code runs on the vector
 // `match` answers for each, and its answer is a string or the error it
-// raised [D389].
+// raised [QSTXT#match].
 async function replacedByCode(text, engine, code) {
   let replaced = '';
   let from = 0;

@@ -1,5 +1,5 @@
 // The primitive of `table`, the renderer of the command line, a name its
-// source declares under `::vec` [D389], taking the vector the
+// source declares under `::vec` [QSDSP#residence], taking the vector the
 // walk served alone [QSQUO#modifier].
 
 import { kindsExpected, printValue } from '@kaluchi/qlang-core';

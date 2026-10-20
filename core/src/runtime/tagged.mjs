@@ -20,7 +20,7 @@ registerPrimitive('tagged/within', runs(['code'], async (subject, code) => await
 // `tag` resides on `::any` and reads the state of its call, whose scope holds
 // the constructor of the tag [QSDSP#residence]: `value | tag ::Foo` lays the
 // tag over the subject, and `[::Foo value] | tag` over the second element of
-// the pair it takes apart, whose first is a tag [D389].
+// the pair it takes apart, whose first is a tag [QSLIT#tag].
 async function layTagOfPair(subject, state) {
   const pair = beneathTags(subject);
   if (!isVec(pair) || pair.length !== 2) throw refusingTheSubject(new AnyTagSubjectNotPairError({ actualValue: subject }));

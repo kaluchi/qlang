@@ -141,7 +141,7 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
 
 // A path names one segment at least, the value itself being `it` [QSPTH#value],
 // each the text of a key alone [QSPTH#key], an element of no key refused by
-// its role [D389]; a path is itself.
+// its role [QSPTH#verbs]; a path is itself.
 registerPrimitive('vec/toPath', keys => {
   if (keys.length === 0) throw refusingTheSubject(new VecToPathSubjectEmptyError({ actualValue: keys }));
   return makePath(keys.map((element, index) => {

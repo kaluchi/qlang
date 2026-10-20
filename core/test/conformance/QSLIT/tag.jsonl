@@ -10,9 +10,9 @@
 {"name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(type) ~(payload)]\" | parse | open","expect":"[::Width 8]"}
 {"name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| type) ~(#[2 1] | tag ::vec !| type)]","expect":"[::map/PayloadKindNotTakenError ::vec/PayloadKindNotTakenError]"}
 {"name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
-{"decision":"D389","name":"the-subject-of-tag-alone-is-a-pair","query":"[[:foo 42] 5] | map ~(tag !| type)","expect":"[::any/tag/PairTagKindNotTakenError ::any/tag/SubjectNotPairError]"}
+{"name":"the-subject-of-tag-alone-is-a-pair","query":"[[:foo 42] 5] | map ~(tag !| type)","expect":"[::any/tag/PairTagKindNotTakenError ::any/tag/SubjectNotPairError]"}
 {"name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}
-{"decision":"D389","name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| get [~(type) /actualType /expected]","expect":"[::any/tag/PairTagKindNotTakenError ::keyword #[::tag]]"}
+{"name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| get [~(type) /actualType /expected]","expect":"[::any/tag/PairTagKindNotTakenError ::keyword #[::tag]]"}
 {"name":"an-undeclared-tag-keeps-its-payload","query":"::AutoBox[1 2 3] | payload","expect":"[1 2 3]"}
 {"name":"an-undeclared-tag-over-a-set-answers-its-tag","query":"::AutoSet#[1 2 3] | type","expect":"::AutoSet"}
 {"name":"an-undeclared-tag-keeps-a-set-a-set","query":"::AutoSet#[1 2 3] | payload | type","expect":"::set"}

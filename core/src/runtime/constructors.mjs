@@ -6,7 +6,7 @@
 import { registerPrimitive } from '../primitives.mjs';
 import {
   isVec, isKeyword, isRegex, isPath, isMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTag, makeTagged, makeTrace, holdsNoOtherTag, BUILTIN_TAG, DESC_TAG, SET_TAG_NAME, DOC_TAG_NAME, stampTagHeader
+  isTag, makeTagged, makeTrace, holdsNoOtherTag, TAG_HEADER_SYMBOL, BUILTIN_TAG, DESC_TAG, SET_TAG_NAME, DOC_TAG_NAME, stampTagHeader
 } from '../types.mjs';
 import { kindsExpected, makeSet } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -51,8 +51,8 @@ function coreKindConstructor(isOfKind, ErrorCls) {
   };
 }
 
-const isBareVec = payload => isVec(payload) && holdsNoOtherTag(payload, 'vec');
-const isBareMap = payload => isMap(payload) && holdsNoOtherTag(payload, 'map');
+const isBareVec = payload => isVec(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
+const isBareMap = payload => isMap(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
 
 registerPrimitive('null/construct',    coreKindConstructor(isNull, NullPayloadKindNotTakenError));
 registerPrimitive('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError));

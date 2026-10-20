@@ -263,12 +263,11 @@ registerPrimitive('map/any', runs(['predicate'], (map, predicate) => firstVerdic
 async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return failedAt(answer, index);
-  const beneath = beneathTags(answer);
-  const named = keywordFiledFor(beneath);
+  const named = keywordFiledFor(beneathTags(answer));
   if (named === null) throw new KeyKindNotTakenError({ index, expected: KINDS_A_KEY_FILES_UNDER, actualValue: answer });
   const taken = filed.get(named.name);
-  if (taken === undefined) filed.set(named.name, beneath);
-  else if (compareValues(taken, beneath) !== 0) throw new KeyTakenError({ key: named, taken, index, actualValue: answer });
+  if (taken === undefined) filed.set(named.name, answer);
+  else if (compareValues(taken, answer) !== 0) throw new KeyTakenError({ key: named, taken, index, actualValue: answer });
   return named;
 }
 

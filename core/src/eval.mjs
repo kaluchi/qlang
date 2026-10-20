@@ -13,9 +13,9 @@ import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, primitiveOf,
   typeOf, keyword, makeErrorValue, makeDoc, makeQuote,
-  makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags, payloadBeneath,
+  makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
   isFn, isKind, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, CORE_KIND, isValueClass
+  ERROR_TAG, TRACE_TAG, isValueClass
 } from './types.mjs';
 import { makeSet, kindsExpected } from './ordering.mjs';
 import { partOf, originOf, repeatsDeclarationAt } from './walk.mjs';
@@ -31,7 +31,7 @@ import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfReci
 import { inputsRunBy, inputsRunWithin, inputsFoldedBy } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
-  notGivenAddress, payloadRefusalName, subjectRefusalAddress, TAGGED_KIND_NAME
+  notGivenAddress, payloadRefusalName, subjectRefusalAddress
 } from './address.mjs';
 import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, servesTheSubject } from './dispatch.mjs';
 import {
@@ -484,8 +484,8 @@ function refusalUnder(tagName, facts, scope, refused = facts.actualValue) {
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeOf(refused)), scope));
 }
 
-// The value an input, a payload or a field holds: the value of its kind
-// beneath every tag over it, or, where it names the kinds of each element,
+// The value an input, a payload or a field holds: the value of its kind the
+// walk of its tags reaches, or, where it names the kinds of each element,
 // the vector, or the set, of each element's, a quote and a doc, whose
 // elements are steps and segments, as they are; a value of none of its kinds
 // is refused, a value that is no vector where they are the kinds of each
@@ -496,7 +496,7 @@ function heldByItsKinds({ kinds, each }, refusalOf, value, scope) {
   if (!each) {
     if (kinds === null) return value;
     const reached = walkToKinds(value, kinds);
-    return reached === null ? refusalUnder(refusalOf(false), { expected: kindsExpected(...kinds), actualValue: value }, scope) : bareOf(reached.served, kinds);
+    return reached === null ? refusalUnder(refusalOf(false), { expected: kindsExpected(...kinds), actualValue: value }, scope) : reached.served;
   }
   const elements = walkToKinds(value, ['vec']);
   if (elements === null) return refusalUnder(refusalOf(false), { expected: kindsExpected('vec'), actualValue: value }, scope);
@@ -504,15 +504,8 @@ function heldByItsKinds({ kinds, each }, refusalOf, value, scope) {
   const refused = refusedElementOf(elements.served, kinds);
   if (refused !== null) return refusalUnder(refusalOf(true), { index: refused.index, expected: kindsExpected(...kinds), actualValue: refused.element }, scope);
   if (isQuote(elements.served) || isDoc(elements.served)) return elements.served;
-  const served = Array.from(elements.served, element => bareOf(walkToKinds(element, kinds).served, kinds));
+  const served = Array.from(elements.served, element => walkToKinds(element, kinds).served);
   return isSet(elements.served) ? makeSet(served) : Object.freeze(served);
-}
-
-// A vector or a map the walk reached, bare where the tag it holds is no kind
-// of the core and none the holder names [QSDSP#walk].
-function bareOf(value, kinds) {
-  const tag = value?.[TAG_HEADER_SYMBOL];
-  return tag === undefined || Object.hasOwn(CORE_KIND, tag.name) || kinds.some(kind => kind === tag.name || kind === TAGGED_KIND_NAME) ? value : payloadBeneath(value);
 }
 
 // The names of the refusals of the kinds of an input or a field under its
@@ -535,7 +528,7 @@ async function invariantRefusal(invariants, address, value, state, scope, held =
   for (const { name, condition } of invariants) {
     const answer = (await evalPipeline(condition, nestState(state, value, scope))).pipeValue;
     if (isErrorValue(answer)) return answer;
-    if (answer !== true) return refusalUnder(`${address}/${name}`, { actualValue: held }, scope);
+    if (beneathTags(answer) !== true) return refusalUnder(`${address}/${name}`, { actualValue: held }, scope);
   }
   return null;
 }

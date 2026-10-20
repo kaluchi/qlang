@@ -2120,10 +2120,9 @@
       with the keys near it, so a misspelled field is found where it is
       read, `{:a {:b 1}} | get /a/b` answering `1`. A key the query
       computes is read as the path of one segment, a keyword, a string or
-      a number, its text the segment, `get (get /k)`, a key or a path
-      under a tag read beneath it, and any other value that is no
-      template is refused, so a key the data leaves null is found where it
-      is read;
+      a number, its text the segment, `get (get /k)`, a key under a tag
+      read beneath it, and any other value that is no template is
+      refused, so a key the data leaves null is found where it is read;
       a boolean, null and a tag name a map files under the keyword
       `toKeyword` answers, which reads that key, `get :true`. Over a template, a literal of paths
       and quotes, it answers the template with each path read and each

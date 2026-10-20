@@ -53,8 +53,7 @@ export function atPlace(error, place) {
   return error;
 }
 
-// Whether a failure arose in the code a verb ran on a part of its subject, a
-// frame of its trace naming the place of the part [QSERR#trace].
+// Whether a failure arose in the code a verb ran on a part, a frame naming its place [QSERR#trace].
 export const failedOnAPart = error => error.descriptor.get('trace').some(frame => frame.length === 3);
 
 // framesOfTrace(payload) → the frames of a trace, the one check of the

@@ -50,11 +50,8 @@ function unionOfMaps(left, right) {
   return merged;
 }
 
-// A map minus or inter another map or a vector of keys drops or keeps its
-// entries by key: the other map's keys, or the keys the vector names, a set
-// among them (`#[:tmp]`, `[:a "c" 1]`), each a key alone naming a key as
-// `get` and `has` read it, and an element of another kind refused at its
-// index with the kinds of a key alone as `:expected` [QSPTH#key].
+// A map minus or inter a map or a vector of keys drops or keeps its entries
+// by key, each a key alone, an element of another kind refused at its index [QSPTH#key].
 const KINDS_NAMING_A_MAP_KEY = kindsExpected('keyword', 'number', 'string');
 
 function keyNamesOf(keysValue, KeyRefusal) {

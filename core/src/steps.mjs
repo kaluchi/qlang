@@ -229,9 +229,8 @@ export function constructOfData(payload, written) {
   return construct;
 }
 
-// `::fail`, the step `!|` runs: the quote of one step, no step of the fail track,
-// no path, no quote and no literal that holds either, which `get` and `apply`
-// read [QSQUO#step], [QSSYN#step].
+// `::fail`, the step `!|` runs: the quote of one step, no step of the fail track, no
+// path, no quote and no literal that holds either [QSQUO#step], [QSSYN#step].
 export function failOf(payload, written) {
   if (!isQuote(payload)) throw new FailPayloadKindNotTakenError({ expected: kindsExpected('quote'), actualValue: payload });
   if (payload.length !== 1 || isFailStep(payload[0])) throw new FailPayloadNotOneStepError({ actualValue: payload });

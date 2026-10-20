@@ -18,24 +18,22 @@ const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError'
 // A path, or the path of one segment a key alone names [QSPTH#key].
 const pathOf = pathOrKey => (isPath(pathOrKey) ? pathOrKey : makePath([keyNameOf(pathOrKey)]));
 
+// A path read from the subject, a miss read softly answering the fallback.
+function readOne(subject, path, soft, fallback) {
+  const read = readPath(subject, path, soft);
+  return read === MISSED ? fallback : read;
+}
+
 // A path or a key read from the subject; any other value a template whose
 // paths are read and whose quotes, closed at the call, are run against the
 // subject in their places, its other values kept, each container laid back
 // under its tags as a write lays it, the first failure the answer [QSLIT#tag].
-function readByPath(subject, path, soft, fallback, state) {
-  if (isPath(path) || isKeyAlone(path)) {
-    const read = readPath(subject, pathOf(path), soft);
-    return read === MISSED ? fallback : read;
-  }
-  return readTemplate(subject, path, soft, fallback, state);
-}
+const readByPath = (subject, path, soft, fallback, state) =>
+  (isPath(path) || isKeyAlone(path) ? readOne(subject, pathOf(path), soft, fallback) : readTemplate(subject, path, soft, fallback, state));
 
 async function readTemplate(subject, template, soft, fallback, state) {
   if (typeof template === 'function') return await template(subject);
-  if (isPath(template)) {
-    const read = readPath(subject, template, soft);
-    return read === MISSED ? fallback : read;
-  }
+  if (isPath(template)) return readOne(subject, template, soft, fallback);
   if (isValueClass(template, 'underTag')) {
     const payload = await readTemplate(subject, template.payload, soft, fallback, state);
     if (payload === template.payload) return template;

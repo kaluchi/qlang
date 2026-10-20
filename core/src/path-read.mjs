@@ -53,9 +53,8 @@ export function segmentIndex(segment) {
 // meets read beneath the tags over it. A miss is refused with the key and
 // the keys near it, or the index and the length, and a value on the path
 // that has no parts with the segment it met, each refusal with the path it
-// followed and the value it met beneath its tags, a refusal of the value it
-// was handed at its first segment; read softly, a miss answers MISSED and
-// the refusal of a kind stands.
+// followed and the value it met beneath its tags, of the subject at its first
+// segment; read softly, a miss answers MISSED and a refusal of a kind stands.
 export function readPath(subject, path, soft = false) {
   let current = subject;
   for (const [depth, segment] of path.segments.entries()) {
@@ -80,8 +79,7 @@ export function readPath(subject, path, soft = false) {
   return current;
 }
 
-// A refusal of a read at the segment of a depth of its path, of the value
-// the read was handed at the first [QSPTH#get].
+// A refusal of a read at a depth of its path, of the subject at the first [QSPTH#get].
 const refusalAt = (refusal, depth) => (depth === 0 ? refusingTheSubject(refusal) : refusal);
 
 // The refusal of a key the map lacks, with the keys near it, as a name is

@@ -2,19 +2,15 @@
 // alone, and its `:trace` holds a frame at every step that raised it or
 // handed it on, from the step where it arose to the `!|` that catches it,
 // a step it skips joining the steps of the last [QSERR#catch], [QSERR#trace]. The helpers build a
-// new error for every change; none re-enters the evaluator. The facts of the
-// flight are the call's: the place of the part its code failed on and whether
-// a raise resumes the trace its map wrote, which the call answers in the
-// state beside its failure for the step that receives it.
+// new error for every change; none re-enters the evaluator.
 //
 //   `answerOfStep(answer, stepQuoteOf, subject, scope, flight)` — the answer
 //     of a step of a pipeline: a failure its subject was not passes a frame
-//     there at the place its call answered, unless the call resumes its trace.
+//     there at the place the flight of its call names, unless it resumes.
 //   `skipping(error, skippedStep, scope)` — the failure that skipped a step.
-//   `flightOfACall()` — the flight a call answers, written as it runs.
-//   `atPlace(code, error, place)` — the failure the code a call handed a
-//     primitive answered at a part, its place written into the flight of
-//     that call.
+//   `flightOfACall()` — the facts a call answers beside its failure: the
+//     place its code failed at and whether a raise resumes its trace.
+//   `atPlace(code, error, place)` — the failure of the code of a call at a part.
 //
 // A failure holds its trace from its first frame, and the refusal of the
 // text of a query, which flew no step, holds no `:trace` [QSERR#trace],

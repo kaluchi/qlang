@@ -14,9 +14,7 @@ export class QlangError extends Error {
   }
 }
 
-// refusingTheSubject(refusal) → the refusal of the subject its step was
-// served, which holds the kind of that subject alone, the first frame
-// holding the subject [QSERR#site].
+// refusingTheSubject(refusal) → the refusal of the subject its step was served [QSERR#site].
 export function refusingTheSubject(refusal) {
   refusal.refusesTheSubject = true;
   return refusal;

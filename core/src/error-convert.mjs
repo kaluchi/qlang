@@ -50,9 +50,8 @@ export function factsInOrder(tag, facts, scope) {
 }
 
 // The error a refusal of the runtime raised at the span of its step, or at
-// none: the facts its site handed with the kind of the value refused, and a
-// refusal of the subject its step was served the kind of that subject alone,
-// which the first frame holds [QSERR#site].
+// none: the facts its site handed with the kind of the value refused, of the
+// subject its step was served the kind alone [QSERR#site].
 export function errorFromQlang(qlangError, subject, scope, location = null) {
   const tag = makeTag(qlangError.address);
   const facts = new Map(Object.entries(qlangError.facts).filter(([, value]) => value !== undefined));

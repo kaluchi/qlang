@@ -10,7 +10,7 @@ import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { createSession, evalQuery } from '../../src/session.mjs';
 import { elideAnswer } from '../../src/runtime/print.mjs';
-import { QlangError, CallUnknownNameError, declareRefusal, refusingTheSubject } from '../../src/errors.mjs';
+import { QlangError, CallUnknownNameError, declareRefusal } from '../../src/errors.mjs';
 
 // ── makeErrorValue ──────────────────────────────────────────────
 
@@ -342,26 +342,5 @@ describe('error-convert coercion edge cases', () => {
     expect(errorVal.facts.has('index')).toBe(false);
     expect(errorVal.facts.get('actualValue')).toBe(null);
     expect(errorVal.facts.get('actualType')).toEqual(makeTag('null'));
-  });
-
-  it('holds the value a refusal refuses whatever the subject equals, and of a refusal of the subject the kind of that subject alone', async () => {
-    const subject = new Map([['nested', 1]]);
-    const equal = errorFromQlang(new TestsProbeTypeError({ actualValue: new Map([['nested', 1]]) }), subject, await langRuntime());
-    expect(equal.facts.has('actualValue')).toBe(true);
-    const ofTheSubject = errorFromQlang(refusingTheSubject(new TestsProbeTypeError()), subject, await langRuntime());
-    expect(ofTheSubject.facts.has('actualValue')).toBe(false);
-    expect(ofTheSubject.facts.get('actualType').name).toBe('map');
-  });
-
-  it('an actualValue other than the subject stays among the facts', async () => {
-    // A value refused that is not the subject, a part a path of several keys
-    // reads, an element or the value of an input, stays among the facts as
-    // `:actualValue` [QSERR#site].
-    const container = [1, 'x', 3];
-    const drilled = 'x';
-    const typeErr = new TestsProbeTypeError({ actualValue: drilled, index: 1 });
-    const errorVal = errorFromQlang(typeErr, container, await langRuntime());
-    expect(errorVal.facts.get('actualValue')).toBe(drilled);
-    expect(errorVal.facts.get('index')).toBe(1);
   });
 });

@@ -113,9 +113,9 @@ async function fork(state, sub) {
   return withPipeValue(state, innerEnd.pipeValue);
 }
 
-// `|` runs the step on a value, an error it answers taking a frame there by
-// the flight its call answered, and an error in the pipe skips it, the step
-// joining the skipped steps of its last frame [QSERR#trace].
+// `|` runs the step on a value, an error it answers taking a frame there,
+// and an error in the pipe skips it, the step joining the skipped steps of
+// its last frame [QSERR#trace].
 async function applySuccessTrack(state, step, at) {
   if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, step, state.scope));
   const answered = await evalStep(step, state, at);
@@ -162,8 +162,7 @@ function evalItself(step, state) {
 // another in the order the literal holds them [QSQUO#modifier], none reading
 // the scope or the subject [QSLIT#closed]; a failure lives in the pipe
 // alone, so the first an element answers, a kind's refusal of its payload, is
-// the answer of the literal, the elements after it left unread [QSERR#flow],
-// within the frame of the literal's step [QSERR#trace].
+// the answer of the literal, the elements after it left unread [QSERR#flow].
 async function evalVec(vec, state) {
   return withPipeValue(state, await elementValues(vec, state));
 }
@@ -219,8 +218,7 @@ async function evalDoc(doc, state) {
 }
 
 // A tagged literal lays its tag over its payload through the tag's label, a
-// payload that fails answering its failure, over which no tag is laid
-// [QSERR#flow].
+// payload that fails answering its failure [QSERR#flow].
 async function evalConstruct(construct, state) {
   const payload = (await evalStep(construct.get('payload'), state)).pipeValue;
   return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
@@ -536,8 +534,7 @@ function placeRead({ path, place, index, onePlace, strict, fallback, readsArgs }
 
 // A place that is a path other than one index, `/0/by` or `/-1`, reads it
 // from the args as `get` does, a part the args do not hold one the call
-// left out, a refusal holding the value it met, which is no subject of a
-// step [QSBLD#input], [QSPTH#get].
+// left out, a refusal holding the value it met [QSBLD#input], [QSPTH#get].
 function pathOfArgs(path, state) {
   try {
     return readPath(state.pipeValue, path);
@@ -700,8 +697,7 @@ async function applyFunctionVerb(record, fn, modifiers, state) {
 
 // applyFunction(fn, subject, args, state) → the answer of a function `apply`
 // runs on a subject, the values of a vector its args, every refusal named
-// under the call of a function, `fn/call`, since no verb names it, the
-// flight of its failure the flight of the call of `apply`.
+// under `fn/call`, which no verb names, its flight the flight of `apply`.
 const FN_CALL_ADDRESS = 'fn/call';
 
 export async function applyFunction(fn, subject, args, state) {
@@ -748,10 +744,9 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 
 // The values a primitive is handed, its inputs in the order `takes` names
 // them, each it runs as code closed at the call where the call keeps that
-// the quote came from, a path read as `get` reads it, and every element so
-// of one that holds the args of the call whole, the reducer of a fold the
-// code that folds, each code holding the flight of the call it is handed
-// to; any other value as it is [QSHST#source], [QSERR#trace].
+// the quote came from and holding the flight of the call, a path read as
+// `get` reads it, and every element so of one that holds the args whole, the
+// reducer of a fold the code that folds; any other value as it is [QSHST#source].
 function handedTo(primitive, chain, { values, origins }, state, flight) {
   const asCode = inputsAsCode(primitive);
   if (asCode === undefined) return values;

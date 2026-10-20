@@ -14,10 +14,9 @@ import { ROOT_KEY, QUERY_KEY } from './scope-keys.mjs';
 export const EVAL_DEPTH_LIMIT = 1000;
 
 // The calls a state runs within keep the origin of each quote they
-// received, the nearest first, a state a verb of the host reads keeps
-// beside the tree of the query the scope of its own step, and the state a
-// call answers the flight of its failure, which the step that receives it
-// reads and every other state drops [QSQUO#held], [QSNAM#owner], [QSERR#trace].
+// received, the nearest first, a state a verb of the host reads keeps beside
+// the tree of the query the scope of its own step, and the state of a call
+// the flight of its failure, which no other keeps [QSQUO#held], [QSNAM#owner], [QSERR#trace].
 function makeState(pipeValue, scope, depth, calls = null, own = null, flight = null) {
   return Object.freeze({ pipeValue, scope, depth, calls, own, flight });
 }
@@ -39,8 +38,7 @@ export function withScope(state, nextScope) {
   return makeState(state.pipeValue, nextScope, state.depth, state.calls);
 }
 
-// withFlight(state, flight) → the state a call answers, holding the flight
-// of its failure [QSERR#trace].
+// withFlight(state, flight) → the state of a call with the flight of its failure.
 export function withFlight(state, flight) {
   return makeState(state.pipeValue, state.scope, state.depth, state.calls, state.own, flight);
 }

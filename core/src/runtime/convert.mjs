@@ -56,12 +56,12 @@ const KeywordToNumberNameNotNumberError = declareRefusal('keyword/toNumber/NameN
 registerPrimitive('number/toNumber', number => number);
 registerPrimitive('string/toNumber', text => {
   const number = numberWritten(text);
-  if (number === null) throw refusingTheSubject(new StringToNumberTextNotNumberError());
+  if (number === null) throw refusingTheSubject(new StringToNumberTextNotNumberError({ actualValue: text }));
   return number;
 });
 registerPrimitive('keyword/toNumber', key => {
   const number = numberWritten(key.name);
-  if (number === null) throw refusingTheSubject(new KeywordToNumberNameNotNumberError());
+  if (number === null) throw refusingTheSubject(new KeywordToNumberNameNotNumberError({ actualValue: key }));
   return number;
 });
 
@@ -70,11 +70,11 @@ const KeywordToTagNameNotTagError = declareRefusal('keyword/toTag/NameNotTagErro
 
 registerPrimitive('tag/toTag', tag => tag);
 registerPrimitive('string/toTag', text => {
-  if (!readsAsBareKeyword(text)) throw refusingTheSubject(new StringToTagTextNotTagError());
+  if (!readsAsBareKeyword(text)) throw refusingTheSubject(new StringToTagTextNotTagError({ actualValue: text }));
   return makeTag(text);
 });
 registerPrimitive('keyword/toTag', key => {
-  if (!readsAsBareKeyword(key.name)) throw refusingTheSubject(new KeywordToTagNameNotTagError());
+  if (!readsAsBareKeyword(key.name)) throw refusingTheSubject(new KeywordToTagNameNotTagError({ actualValue: key }));
   return makeTag(key.name);
 });
 
@@ -95,9 +95,9 @@ registerPrimitive('regex/toRegex', (regex, written) => {
 registerPrimitive('string/toRegex', (text, written) => {
   const flags = canonicalFlags(written ?? '');
   if (flags === null) throw new StringToRegexFlagsNotFlagsError({ actualValue: written });
-  if (literalWritten(text, isRegex) !== null) throw refusingTheSubject(new StringToRegexLiteralNotSourceError());
+  if (literalWritten(text, isRegex) !== null) throw refusingTheSubject(new StringToRegexLiteralNotSourceError({ actualValue: text }));
   const problem = regexProblem(text, flags);
-  if (problem !== null) throw refusingTheSubject(new StringToRegexTextNotRegexError({ message: textRefusal(problem) }));
+  if (problem !== null) throw refusingTheSubject(new StringToRegexTextNotRegexError({ message: textRefusal(problem), actualValue: text }));
   return makeRegex(text, flags);
 });
 

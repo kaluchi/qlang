@@ -2,7 +2,7 @@
 // the JSON text of a value and `parseJson` reading one.
 
 import { TAG_HEADER_SYMBOL, makePath, refuseForeign } from '../types.mjs';
-import { declareRefusal } from '../errors.mjs';
+import { declareRefusal, refusingTheSubject } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { dispatchQlangValue, printValue, printRegex, printPath } from '../print-value.mjs';
 
@@ -157,7 +157,7 @@ registerPrimitive('string/parseJson', subject => {
   try {
     JSON.parse(subject);
   } catch (jsParseError) {
-    throw new StringParseJsonTextNotJsonError({ message: jsParseError.message });
+    throw refusingTheSubject(new StringParseJsonTextNotJsonError({ message: jsParseError.message, actualValue: subject }));
   }
   return fromJsonText(subject);
 });

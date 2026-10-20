@@ -79,7 +79,7 @@ export function answerOfStep(answer, stepQuoteOf, subject, scope, flight = null)
 }
 
 // The failure that skipped a step, its last frame taking the step; one whose
-// trace holds no frame, a refusal inside a literal before its step answers
+// trace holds no frame, a failure a host hands as the first value of its pipe
 // among them, goes on as it is, and a trace its kind refuses gives way to
 // the refusal [QSERR#trace].
 export function skipping(error, skippedStep, scope) {

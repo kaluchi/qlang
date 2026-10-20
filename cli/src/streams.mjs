@@ -14,7 +14,7 @@ const AnyErrSubjectNotStringError = declareRefusal('any/err/SubjectNotStringErro
 function makeWriter(writer, recordEffect, SubjectError) {
   return (subject, text) => {
     const written = text === null ? subject : text;
-    if (typeof written !== 'string') throw refusingTheSubject(new SubjectError());
+    if (typeof written !== 'string') throw refusingTheSubject(new SubjectError({ actualValue: subject }));
     writer(written + '\n');
     recordEffect();
     return subject;

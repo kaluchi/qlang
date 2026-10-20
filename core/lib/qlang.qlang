@@ -782,8 +782,8 @@
     | proves :errors/recoversWhereRead
         |~~ `!|` inside the code `map` runs recovers each failure. ~~|
         ~([1 "x"] | map ~(mul 2 !| 0) | eq [2 0])
-    | proves :errors/holdsTheRefusedValue
-        |~~ The first frame holds the refused value. ~~|
+    | proves :errors/holdsTheRefusedSubject
+        |~~ The first frame holds the subject the step refused. ~~|
         ~("a" | mul 2 !| get [/actualType /trace/0/0] | eq [::string "a"])
     | proves :errors/holdsAFrameForEachLevel
         |~~ The trace holds a frame for each level the error left. ~~|

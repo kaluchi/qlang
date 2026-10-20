@@ -66,7 +66,7 @@ registerPrimitive('fn/impl', (subject, recipe) => madeFn(commandsOf(functionOf(s
 // reads it; the code answers.
 registerStateReader('fn/fill', async (fn, args, state) => {
   const recipe = recipeOf(fn);
-  if (!isQuote(recipe)) throw refusingTheSubject(new FnFillRecipeNotCodeError());
+  if (!isQuote(recipe)) throw refusingTheSubject(new FnFillRecipeNotCodeError({ actualValue: fn }));
   const values = await inputsOfFunction(fn, [...args], state);
   if (isErrorValue(values)) return values;
   return makeQuote([...chainOfFn(fn).inputs.map(({ name, page }, at) => declarationStep(name.name, [page], values[at])), ...recipe]);

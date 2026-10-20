@@ -31,10 +31,6 @@ describe('the package root', () => {
     expect(await core.printAnswer(shown, cell.scopeAfterCell)).toBe('[b b b b b b b]');
   });
 
-  it('names the kind of a raised error by its tag, as `!| type` names it at rest [QSLIT#kind], [QSHST#source]', async () => {
-    expect(core.typeOf(await core.evalQuery('5 | get /a')).name).toBe('path/SubjectHasNoPartsError');
-  });
-
   it('crosses the JSON boundary both ways', () => {
     const lifted = core.fromPlain({ name: 'alice' });
     expect(core.toPlain(lifted)).toEqual({ name: 'alice' });

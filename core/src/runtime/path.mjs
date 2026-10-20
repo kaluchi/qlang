@@ -141,7 +141,7 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
 // A path names one segment at least, the value itself being `it` [QSPTH#value],
 // each the text of a key alone [QSPTH#key]; a path is itself.
 registerPrimitive('vec/toPath', keys => {
-  if (keys.length === 0) throw refusingTheSubject(new VecToPathSubjectEmptyError());
+  if (keys.length === 0) throw refusingTheSubject(new VecToPathSubjectEmptyError({ actualValue: keys }));
   return makePath(keys.map((element, index) => {
     const key = beneathTags(element);
     if (!isKeyAlone(key)) throw new VecToPathElementNotKeyError({ index, actualValue: element });
@@ -154,6 +154,6 @@ registerPrimitive('path/toPath', path => path);
 // `~1` a slash and `~0` a tilde within a segment.
 registerPrimitive('string/toPath', text => {
   const pointer = text.startsWith('#') ? text.slice(1) : text;
-  if (!pointer.startsWith('/')) throw refusingTheSubject(new StringToPathNotPointerError());
+  if (!pointer.startsWith('/')) throw refusingTheSubject(new StringToPathNotPointerError({ actualValue: text }));
   return makePath(pointer.slice(1).split('/').map(segment => segment.replace(/~1/g, '/').replace(/~0/g, '~')));
 });

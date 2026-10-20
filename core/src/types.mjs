@@ -380,11 +380,10 @@ export function formOf(v) {
 }
 
 // typeOf(v) — the kind of a value, the tag `type` answers [QSLIT#kind]: its
-// outermost tag, a raised error's among them, or the kind of the core its
-// literal implies, an object of no kind raised as `::builtin/ForeignValueError` [QSHST#source].
+// outermost tag, or the kind of the core its literal implies, an object of no
+// kind of the core raised as `::builtin/ForeignValueError` [QSHST#source].
 export function typeOf(v) {
   if (isNull(v)) return CORE_KIND.null;
-  if (isErrorValue(v)) return v.tag;
   if (isBoolean(v)) return CORE_KIND.boolean;
   if (isNumber(v)) return CORE_KIND.number;
   if (isString(v)) return CORE_KIND.string;

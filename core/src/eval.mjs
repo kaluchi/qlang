@@ -254,10 +254,9 @@ async function evalBind(bind, state, at) {
     if (isErrorValue(doc)) return withPipeValue(state, doc);
     docs.push(doc);
   }
-  const answered = bind.has('body')
-    ? (await evalStep(bind.get('body'), state)).pipeValue
-    : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
-  if (isErrorValue(answered)) return withPipeValue(state, answered);
+  const body = bind.has('body') ? await evalStep(bind.get('body'), state) : null;
+  const answered = body !== null ? body.pipeValue : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
+  if (isErrorValue(answered)) return withFlight(withPipeValue(state, answered), body.flight);
   if (writesOutsideItsChain(state.scope, nounName, splitAddress(name)[1], answered)) {
     throw new BindWrittenOutsideItsChainError({ name: keyword(name), noun: nounName === null ? undefined : makeTag(nounName) });
   }
@@ -406,7 +405,7 @@ async function callByName(lookupName, modifiers, state, call) {
     if (addresses.length > 0) {
       const nearest = nearestVerbs(state.scope, addresses, state.pipeValue);
       const repair = isPath(state.pipeValue) ? repairOfPathSubject(state.pipeValue, call) : undefined;
-      throw refusingTheSubject(new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair }));
+      throw refusingTheSubject(new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair, actualValue: state.pipeValue }));
     }
     throw new CallUnknownNameError({
       name: keyword(lookupName), nearest: nearestNames(state.scope, lookupName), addresses
@@ -757,7 +756,7 @@ function handedTo(primitive, chain, { values, origins }, state, flight) {
     if (asCode.within?.has(name.name)) return quotesClosedIn(value, originOfQuote);
     if (asCode.folded?.has(name.name)) return ofTheCall(foldingCodeOf(value, originOfQuote, state));
     if (!asCode.run?.has(name.name)) return value;
-    return reading.readsArgs ? value.map(element => ofTheCall(codeOfArg(element, originOfQuote, state))) : ofTheCall(codeOfArg(value, originOfQuote, state));
+    return reading.readsArgs ? value.map(element => codeOfArg(element, originOfQuote, state)) : ofTheCall(codeOfArg(value, originOfQuote, state));
   });
 }
 

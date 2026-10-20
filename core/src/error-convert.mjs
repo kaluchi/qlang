@@ -51,13 +51,12 @@ export function factsInOrder(tag, facts, scope) {
 
 // The error a refusal of the runtime raised at the span of its step, or at
 // none: the facts its site handed with the kind of the value refused, of the
-// subject its step was served the kind alone [QSERR#site].
+// subject a step was served the kind alone [QSERR#site].
 export function errorFromQlang(qlangError, subject, scope, location = null) {
   const tag = makeTag(qlangError.address);
   const facts = new Map(Object.entries(qlangError.facts).filter(([, value]) => value !== undefined));
-  const ofTheSubject = qlangError.refusesTheSubject === true && subject !== undefined;
-  if (ofTheSubject) facts.delete('actualValue');
-  if (ofTheSubject || facts.has('actualValue')) facts.set('actualType', typeOf(ofTheSubject ? subject : facts.get('actualValue')));
+  if (facts.has('actualValue')) facts.set('actualType', typeOf(facts.get('actualValue')));
+  if (qlangError.refusesTheSubject === true && subject !== undefined) facts.delete('actualValue');
   return makeErrorValue(tag, factsInOrder(tag, facts, scope), { location, originalError: qlangError });
 }
 

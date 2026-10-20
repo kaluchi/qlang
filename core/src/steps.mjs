@@ -284,10 +284,6 @@ export function commandStep(name, modifiers) {
   return makeTagged(CALL_TAG, new Map([['name', keyword(name)], ['modifiers', Object.freeze([...modifiers])]]));
 }
 
-// tagCallStepOf(tag) → the step `tag ::Tag`, the call a tagged literal
-// stands for [QSERR#trace].
-export const tagCallStepOf = tag => commandStep('tag', [tag]);
-
 export const groupStep = steps => makeTagged(GROUP_TAG, makeQuote(steps));
 
 // The step that answers a value where it stands: a literal as itself, a

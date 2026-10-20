@@ -22,7 +22,7 @@ registerPrimitive('tagged/within', runs(['code'], async (subject, code) => await
 // the pair it takes apart.
 async function layTagOfPair(subject, state) {
   const pair = beneathTags(subject);
-  if (!isVec(pair) || pair.length !== 2) throw refusingTheSubject(new AnyTagSubjectNotPairError());
+  if (!isVec(pair) || pair.length !== 2) throw refusingTheSubject(new AnyTagSubjectNotPairError({ actualValue: subject }));
   const [pairTag, value] = pair;
   if (!isTag(beneathTags(pairTag))) throw new AnyTagPairTagNotTagError({ actualValue: pairTag });
   return await layTag(beneathTags(pairTag).name, value, state);

@@ -112,6 +112,9 @@ export function kindsExpected(...kindNames) {
   return makeSet(kindNames.map(makeTag));
 }
 
+// Two values rank kind before kind, and two of one kind by value, a value
+// under another tag by the name of its tag and then its payload, which a
+// desc reverses [D393].
 function compareKinded(leftKind, left, rightKind, right) {
   if (leftKind !== rightKind) return leftKind < rightKind ? -1 : 1;
   switch (leftKind) {

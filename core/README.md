@@ -91,10 +91,10 @@ cell.defect;              // what was raised past the fail track, else null
   it makes names its origin as every cell's does, `:cell-1`.
 - `printValue(value)` writes the literal of a value, which `evalQuery`
   reads back; the literal is the one lossless form. `caretOf(answer)`
-  answers, for a refusal of a text, the line its `:source` holds and a
-  caret under the column its `:location` names, the two line comments a
-  host that prints for a person's eye writes below the refusal, and null
-  for any other answer. `toPlain` and
+  answers, for a refusal of a text, the line its `:source` holds within
+  an excerpt around the column its `:location` names and a caret under
+  that column, the two line comments a host that prints for a person's
+  eye writes below the refusal, and null for any other answer. `toPlain` and
   `fromPlain` cross the JSON boundary, losing the kinds JSON has no form
   for.
 - `parse(source)` answers the quote of the steps the text writes, the

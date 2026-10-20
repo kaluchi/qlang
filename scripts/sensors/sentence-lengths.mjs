@@ -19,9 +19,10 @@ const proseOfChapter = text => text.split(/^```[\s\S]*?^```/m).join('\n').replac
 const proseOfSource = text => [...text.matchAll(/\|~~([\s\S]*?)~~\|/g)].map(match => match[1]).join('\n');
 
 // The sentences of prose, each cut at a full stop that ends a word before a
-// space and a capital or the end, its words those its spaces part.
-const sentencesOf = prose => prose.replace(/`[^`]*`/g, 'code').replace(/\s+/g, ' ')
-  .split(/(?<=[.!?])\s+(?=[A-Z`(])/).map(sentence => sentence.trim()).filter(sentence => /[a-z]/.test(sentence));
+// space and a capital, a span of code or the end, a span of code one word,
+// its words those its spaces part.
+const sentencesOf = prose => prose.replace(/`[^`]*`/g, 'Code').replace(/\s+/g, ' ')
+  .split(/(?<=[.!?])\s+(?=[A-Z(])/).map(sentence => sentence.trim()).filter(sentence => /[a-z]/.test(sentence));
 const wordsOf = sentence => sentence.split(' ').filter(Boolean).length;
 
 const catalogFiles = dir => readdirSync(join(root, dir), { withFileTypes: true })

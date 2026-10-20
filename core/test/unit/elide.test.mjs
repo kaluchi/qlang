@@ -12,6 +12,29 @@ import { compareValues } from '../../src/ordering.mjs';
 // Long enough that the elision standing for it prints shorter than it.
 const LONG = 'a long line of text to leave out for sure, which runs on long enough that its elision prints shorter';
 const readBack = async (value, elision) => evalQuery(`${printValue(value)} | apply ${printValue(elision.get('read'))}`);
+const continued = (query, elision) => evalQuery(`${query} ${printValue(elision.get('read')).slice(2, -1)}`);
+
+// The elisions a view holds, the facts of a failure among it.
+function elisionsOf(value, found = []) {
+  if (isErrorValue(value)) for (const fact of value.facts.values()) elisionsOf(fact, found);
+  else if (value instanceof Map && value[TAG_HEADER_SYMBOL]?.name === 'elision') found.push(value);
+  else if (value instanceof Map) for (const part of value.values()) elisionsOf(part, found);
+  else if (Array.isArray(value)) for (const part of value) elisionsOf(part, found);
+  else if (value !== null && typeof value === 'object' && 'payload' in value) elisionsOf(value.payload, found);
+  return found;
+}
+
+// Every elision of the view of the answer of a query counts the elements, the
+// entries or the characters its read, continued from the query, answers.
+async function sizesHold(query, view) {
+  const elisions = elisionsOf(view);
+  expect(elisions.length).toBeGreaterThan(0);
+  for (const elision of elisions) {
+    const answered = await continued(query, elision);
+    const count = typeof answered === 'string' ? Array.from(answered).length : answered instanceof Map ? answered.size : answered.length;
+    expect([printValue(elision.get('read')), elision.get('size')]).toEqual([printValue(elision.get('read')), count]);
+  }
+}
 
 describe('elide [QSPRN#elide]', () => {
   it('answers a value whose print fits as it is', () => {
@@ -103,13 +126,32 @@ describe('elideAnswer [QSPRN#elide]', () => {
     expect(printValue(view)).toContain(':read ~(!| get /trace/');
   });
 
-  it('cuts an alert past a budget as it cuts every answer, its first facts kept and the rest read beneath !| [D393]', async () => {
+  it('cuts an alert past a budget fact by fact, the failure keeping its tag and the names of its facts [D393]', async () => {
     const skipped = Array.from({ length: 12 }, (_, index) => `add ${index}`).join(' | ');
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope) | ${skipped}`);
     const view = elideAnswer(failing, 60);
-    expect([...view.facts.keys()]).toEqual(['name', '…']);
-    expect(printValue(view.facts.get('…').get('read'))).toBe('~(!| drop 1)');
-    expect(view.facts.get('…').get('size')).toBe(failing.facts.size - 1);
+    expect([...view.facts.keys()]).toEqual([...failing.facts.keys()]);
+    expect(printValue(view.facts.get('trace').get('read'))).toBe('~(!| get /trace)');
+    expect(view.facts.get('trace').get('size')).toBe(failing.facts.get('trace').length);
+  });
+
+  it('keeps the facts of a failure whose first fact is named as the rest of a map is [D393]', async () => {
+    const forty = Array.from({ length: 40 }, (_, index) => index).join(' ');
+    const failing = await evalQuery(`!{:"…" 1 :b "${'a'.repeat(134)}" :c [${forty}]} | raise`);
+    const view = elideAnswer(failing, 60);
+    expect([...view.facts.keys()]).toEqual([...failing.facts.keys()]);
+    expect([view.facts.get('…'), view.facts.get('b').get('size'), view.facts.get('c').get('size')]).toEqual([1, 134, 40]);
+  });
+
+  it('counts what each read answers where the views of an alert cut a part again [D393]', async () => {
+    const runaway = ':number/inf ~(add 1 | inf) | 0 | inf';
+    for (const budget of [150, 250, 2000]) await sizesHold(runaway, elideAnswer(await evalQuery(runaway), budget));
+    const growing = ':vec/inf ~(append 1 | inf) | [] | inf';
+    await sizesHold(growing, elideAnswer(await evalQuery(growing), 2000));
+    const counted = '1000 | range | add 1';
+    await sizesHold(counted, elideAnswer(await evalQuery(counted), 150));
+    const ranked = '40 | range | map ~(tag ::zeta) | toSet | add 1';
+    await sizesHold(ranked, elideAnswer(await evalQuery(ranked), 150));
   });
 
   it('keeps the first frames of a trace past the budget within an excerpt, each with its steps, and the rest read beneath !| [D393]', async () => {
@@ -127,7 +169,8 @@ describe('elideAnswer [QSPRN#elide]', () => {
     const refused = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] x`);
     const view = elideAnswer(refused, 80);
     expect(view.facts.has('trace')).toBe(false);
-    expect(view.facts.get('…').get('size')).toBe(refused.facts.size - (view.facts.size - 1));
+    expect([...view.facts.keys()]).toEqual([...refused.facts.keys()]);
+    expect(view.facts.get('source').get('size')).toBe(refused.facts.get('source').length);
   });
 
   it('keeps every frame of an alert within its budget [D393]', async () => {
@@ -152,9 +195,8 @@ describe('elideAnswer [QSPRN#elide]', () => {
 // the failure arose within an excerpt, a subject it only passed given way whole,
 // an error at rest among its facts a value cut within its excerpt, a value
 // shown once, and the read of every elision continuing the query beneath `!|`.
-describe('alertOf [QSHST#answer]', () => {
+describe('alertOf [D393]', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
-  const continued = (query, elision) => evalQuery(`${query} ${printValue(elision.get('read')).slice(2, -1)}`);
 
   it('keeps the subject where the failure arose and gives a vector it passed way whole', async () => {
     const query = `${records} | filter ~(nope)`;
@@ -168,6 +210,12 @@ describe('alertOf [QSHST#answer]', () => {
     const query = `"${'a'.repeat(100)}" | tag ::Box | within ~(add 1)`;
     const passed = alertOf(await evalQuery(query)).facts.get('trace')[1][0];
     expect(passed.get('size')).toBe(100);
+  });
+
+  it('counts a vector it passed by its elements, through the tags over it', async () => {
+    const query = '300 | range | tag ::B | tag ::A | map ~(add "x")';
+    const passed = alertOf(await evalQuery(query)).facts.get('trace')[1][0];
+    expect(passed.get('size')).toBe(300);
   });
 
   it('cuts a vector where the failure arose to its first elements, the rest read beneath !|', async () => {

@@ -4,19 +4,24 @@
 // kind `::elision`. A vector, a set and a map keep their first parts and an
 // elision of the rest, a map's under the key `:"…"`, halving until they give
 // way whole, the top keeping its first part at the least; a value under a tag
-// is cut as its payload, its tag kept over the cut; a string, a doc, a quote
-// and a part a kind prints its own way give way whole, their elision keeping
-// the first characters of their text, or of that print, under `:head`; and an
-// atom stands. A part gives way only where the least it gives way to prints
-// shorter than it. An elision holds `:size`, what its `:read`, applied to the
-// value taken, answers counted, and `:read`; an elision the value taken holds
-// counts as one element, the view telling the rest by the elisions it made.
+// halves as its payload, its tag kept over what it keeps, and gives way whole
+// with its tags; a string, a doc, a quote and a part a kind prints its own way
+// give way whole, their elision keeping the first characters of their text, or
+// of that print, under `:head`; and an atom stands. A part gives way only where
+// the least it gives way to prints shorter than it. An elision holds `:read`
+// and `:size`, the elements or the entries of a container its `:read`, applied
+// to the value taken, answers, or the characters of a text or of a print; an
+// elision the value taken holds counts as one element, the views of one answer
+// telling the rest by the elisions they made.
 //
-// A failure a host prints is an alert [QSHST#answer]: its tag and its facts, the data
+// A failure a host prints is an alert [D393]: its tag and its facts, the data
 // it carries cut to what places the failure. The subject of the first frame
 // of its trace, where the failure arose, and every other fact print within an
 // excerpt each; the subject of every later frame, which the failure only
-// passed, gives way whole. Every `:read` reads its part beneath `!|`.
+// passed, gives way whole. Past a budget its trace keeps its first frames
+// within an excerpt of its own, and then its facts give way within the
+// budget, the failure keeping its tag and the names of its facts. Every
+// `:read` reads its part beneath `!|`.
 //
 //   elide(value, budget, printedOf?) → the value within the budget
 //   alertOf(error, printedOf?) → the error as an alert
@@ -53,8 +58,9 @@ function isElision(value) {
 
 const isText = value => typeof value === 'string' || isDoc(value) || isQuote(value);
 
-// A vector, a set, a frame's own kin and a map, plain or under a tag on
-// themselves, the containers that halve.
+// A vector and a map, under whatever tag they hold on themselves, the
+// containers that halve, a set, a frame and a trace among them; a doc and a
+// quote, vectors of kinds of their own, give way whole as texts.
 const isContainer = value => isVec(value) || isMap(value);
 
 // A text counts and cuts by its code points, as `count` and `take` do
@@ -70,41 +76,49 @@ const OF_THE_FACTS = { caught: true, from: [] };
 const readBelow = ({ caught, from }, segments) => ({ caught, from: [...from, ...segments] });
 
 // The read of a part: `get` with the path to it and `drop` after it where a
-// container keeps its first parts, beneath `!|` for a fact of an alert
-// [QSPTH#value]; the top read whole by the empty quote.
+// container keeps its first parts, beneath `!|` for a fact of an alert, which
+// a read beneath it names [QSPTH#value]; the top read whole by the empty
+// quote.
 function readOf(start, path, kept = null) {
   const segments = [...start.from, ...path].map(String);
   const steps = segments.length === 0 ? [] : [commandStep('get', [makePath(segments)])];
   if (kept !== null) steps.push(commandStep('drop', [kept]));
-  if (start.caught && steps.length > 0) steps[0] = makeTagged(FAIL_TAG, makeQuote([steps[0]]));
+  if (start.caught) steps[0] = makeTagged(FAIL_TAG, makeQuote([steps[0]]));
   return makeQuote(steps);
 }
 
-// The view under way: the containers it built and the elisions of a rest it
-// made, the rest of a container told by its own elision alone.
-function viewOf(value, start, printedOf, oneLine) {
-  return { value, start, printedOf, sizeOf: measureBy(printedOf, oneLine), built: new WeakSet(), rests: new WeakSet() };
+// A view under way: the containers it built, and the elisions of a rest the
+// views of one answer made, which they share, the rest of a container told
+// by its own elision alone.
+function viewOf(start, printedOf, oneLine, rests) {
+  return { start, printedOf, sizeOf: measureBy(printedOf, oneLine), built: new WeakSet(), rests };
 }
 
 const elisionOf = fields => makeTagged(ELISION_TAG, new Map(fields));
 
-// The parts of a container in its order, the elision of its rest the view made
-// left out, and what that rest stands for: a vector's and a set's elements, a
-// map's entries.
+// The parts of a container in its order, the elision of its rest a view of
+// the answer made left out wherever the one order put it, each element at its
+// index without it, and what that rest stands for: a vector's and a set's
+// elements, a map's entries.
 function partsOfContainer(value, view) {
-  const entries = isMap(value) ? [...value] : value.map((element, index) => [index, element]);
-  const last = entries.at(-1);
-  const rest = last !== undefined && view.rests.has(last[1]) ? last[1] : null;
-  return { entries: rest === null ? entries : entries.slice(0, -1), standsFor: rest === null ? 0 : rest.get('size') };
+  const parts = isMap(value) ? [...value] : value.map(element => [null, element]);
+  const at = parts.findIndex(([, part]) => view.rests.has(part));
+  const kept = at === -1 ? parts : parts.toSpliced(at, 1);
+  return { entries: isMap(value) ? kept : kept.map(([, element], index) => [index, element]), standsFor: at === -1 ? 0 : parts[at][1].get('size') };
 }
 
 // Every part that may give way, with the path to it: a text and a part a kind
 // prints its own way, at the top as beneath it; a container of more than one
 // part at the top and of any beneath it, through the tags over it, and each of
-// its parts; a frame's subject alone, its steps and its place kept
-// [D393]; an elision, made or held, and an atom never.
+// its parts; a frame's subject alone, its steps and its place kept; and each
+// fact of a failure, which keeps its tag and the names of its facts [D393];
+// an elision, made or held, and an atom never.
 function partsOf(value, path, view, parts) {
   if (isElision(value)) return;
+  if (isErrorValue(value)) {
+    for (const [name, fact] of value.facts) partsOf(fact, [...path, name], view, parts);
+    return;
+  }
   if (isText(value) || view.printedOf(value) !== undefined) {
     parts.push({ path, value });
     return;
@@ -117,19 +131,41 @@ function partsOf(value, path, view, parts) {
   for (const [key, part] of entries) partsOf(part, [...path, key], view, parts);
 }
 
-// The elision a part gives way to whole: a text's and a printed part's with
-// their head, a container's standing for every part it held.
-function wholeOf({ path, value }, view) {
-  const read = readOf(view.start, path);
+// The text a part gives way whole with: the print a kind gives it, or the
+// text of a string, a doc or a quote through the tags over it; undefined for
+// any other part.
+function textOf(value, view) {
   const printed = view.printedOf(value);
-  if (isText(value) || printed !== undefined) {
-    const text = printed ?? (typeof value === 'string' ? value : isDoc(value) ? docText(value) : printQuoteSource(value));
-    const size = lengthOf(text);
-    return elisionOf([['size', size], ['read', read], ['head', headOf(text, Math.min(HEAD_CHARACTERS, Math.floor(size / 2)))]]);
-  }
-  const { entries, standsFor } = partsOfContainer(value, view);
-  return elisionOf([['size', entries.length + standsFor], ['read', read]]);
+  if (printed !== undefined) return printed;
+  const beneath = beneathTags(value);
+  if (typeof beneath === 'string') return beneath;
+  if (isDoc(beneath)) return docText(beneath);
+  return isQuote(beneath) ? printQuoteSource(beneath) : undefined;
 }
+
+// What a part given way whole stands for beside a text: the elements or the
+// entries of a container, through the tags over it, and the characters of
+// the print of any other value.
+function countOf(value, view) {
+  const beneath = beneathTags(value);
+  if (!isContainer(beneath)) return view.sizeOf(value);
+  const { entries, standsFor } = partsOfContainer(beneath, view);
+  return entries.length + standsFor;
+}
+
+// The elision a part gives way to whole, a text's and a printed part's with
+// their head.
+function wholeOf({ path, value }, view) {
+  const text = textOf(value, view);
+  const size = text === undefined ? countOf(value, view) : lengthOf(text);
+  const fields = [['size', size], ['read', readOf(view.start, path)]];
+  if (text !== undefined) fields.push(['head', headOf(text, Math.min(HEAD_CHARACTERS, Math.floor(size / 2)))]);
+  return elisionOf(fields);
+}
+
+// Whether a part halves: a container that is no text and that no kind prints
+// its own way; any other part gives way whole.
+const halves = (value, view) => isContainer(value) && !isText(value) && view.printedOf(value) === undefined;
 
 // A container keeping its first parts and ending with an elision of the rest,
 // a map's under the key `:"…"`, its tag kept; a map whose kept entries hold the
@@ -153,7 +189,7 @@ function halvedTo(part, kept, view) {
 // than one part, and any other part, a container of one among them beneath the
 // top, its elision.
 function givenWay(part, view) {
-  if (!isContainer(part.value) || isText(part.value) || view.printedOf(part.value) !== undefined) return wholeOf(part, view);
+  if (!halves(part.value, view)) return wholeOf(part, view);
   const { entries } = partsOfContainer(part.value, view);
   const kept = Math.ceil(entries.length / 2);
   return kept === entries.length ? wholeOf(part, view) : halvedTo(part, kept, view);
@@ -162,13 +198,19 @@ function givenWay(part, view) {
 // The least a part gives way to: a container at the top its first part and an
 // elision of the rest, any other part its elision.
 function leastOf(part, view) {
-  const halving = part.path.length === 0 && isContainer(part.value) && !isText(part.value) && view.printedOf(part.value) === undefined;
-  return halving ? halvedTo(part, 1, view) : wholeOf(part, view);
+  return part.path.length === 0 && halves(part.value, view) ? halvedTo(part, 1, view) : wholeOf(part, view);
 }
 
-// The value with the part at the path given way, the tags over a container
-// it halved kept over the cut.
+// The value with the part at the path given way: a failure keeping its tag and
+// the names of its facts, the tags over a container it halved kept over the
+// cut, and a value given way whole giving way with its tags.
 function replacedAt(value, path, replacement, view) {
+  if (isErrorValue(value)) {
+    const [name, ...rest] = path;
+    const laid = makeErrorValue(value.tag, new Map(value.facts).set(name, replacedAt(value.facts.get(name), rest, replacement, view)));
+    view.built.add(laid);
+    return laid;
+  }
   if (isValueClass(value, 'underTag') && (path.length > 0 || !isElision(replacement))) {
     const laid = makeTagged(value.tag, replacedAt(value.payload, path, replacement, view));
     view.built.add(laid);
@@ -190,6 +232,7 @@ function replacedAt(value, path, replacement, view) {
 // the order of the value taken [D393].
 function inOrder(value, view) {
   if (!view.built.has(value)) return value;
+  if (isErrorValue(value)) return makeErrorValue(value.tag, new Map([...value.facts].map(([name, fact]) => [name, inOrder(fact, view)])));
   if (isValueClass(value, 'underTag')) return makeTagged(value.tag, inOrder(value.payload, view));
   if (isSet(value)) return makeSet(value.map(element => inOrder(element, view)));
   const rebuilt = isMap(value)
@@ -219,8 +262,8 @@ function partGivingWay(sized) {
 // the most; where no part's least is shorter, the view stands over the budget.
 // A view that prints on one line, the subject of a frame, is measured so
 // [D393].
-function elideWithin(value, budget, start, printedOf, oneLine = false) {
-  const view = viewOf(value, start, printedOf, oneLine);
+function elideWithin(value, budget, start, printedOf, oneLine = false, rests = new WeakSet()) {
+  const view = viewOf(start, printedOf, oneLine, rests);
   let shown = value;
   while (view.sizeOf(shown) > budget) {
     const parts = [];
@@ -242,54 +285,54 @@ export function elide(value, budget, printedOf = printedByTheCore) {
 // cut as `elide` cuts it; a value whose cut still passes the excerpt gives
 // way whole as a subject the failure passed does, so the excerpt holds
 // whatever data the failure arose over.
-function excerptOf(value, read, printedOf, oneLine = false) {
-  const cut = elideWithin(value, EXCERPT_CHARACTERS, read, printedOf, oneLine);
-  return measureBy(printedOf, oneLine)(cut) > EXCERPT_CHARACTERS ? passedOver(value, read, printedOf, oneLine) : cut;
+function excerptOf(value, read, printedOf, oneLine, rests) {
+  const cut = elideWithin(value, EXCERPT_CHARACTERS, read, printedOf, oneLine, rests);
+  return measureBy(printedOf, oneLine)(cut) > EXCERPT_CHARACTERS ? passedOver(value, read, printedOf, oneLine, rests) : cut;
 }
 
-// A subject the failure only passed, given way whole where its elision is
-// the shorter print: the characters of a text through the tags over it,
-// the elements or the entries it stands for, and the read that reaches it.
-function passedOver(value, read, printedOf, oneLine = false) {
-  const sizeOf = measureBy(printedOf, oneLine);
-  const beneath = beneathTags(value);
-  const size = isText(beneath) ? lengthOf(typeof beneath === 'string' ? beneath : isDoc(beneath) ? docText(beneath) : printQuoteSource(beneath))
-    : isVec(value) ? value.length : isMap(value) ? value.size : sizeOf(value);
-  const shown = elisionOf([['size', size], ['read', readOf(read, [])]]);
-  return sizeOf(shown) < sizeOf(value) ? shown : value;
+// A subject the failure only passed, given way whole where its elision is the
+// shorter print: what it stands for counted as a part given way whole counts
+// it, and the read that reaches it.
+function passedOver(value, read, printedOf, oneLine, rests) {
+  const view = viewOf(read, printedOf, oneLine, rests);
+  const text = textOf(value, view);
+  const shown = elisionOf([['size', text === undefined ? countOf(value, view) : lengthOf(text)], ['read', readOf(read, [])]]);
+  return view.sizeOf(shown) < view.sizeOf(value) ? shown : value;
 }
 
 // The trace of an alert: each frame keeps its steps and its place, the
 // subject of the first within its excerpt, of every later one given way
-// whole, each measured on the one line a frame prints on [QSHST#answer].
-function framesOf(trace, read, printedOf) {
+// whole, each measured on the one line a frame prints on [D393].
+function framesOf(trace, read, printedOf, rests) {
   return makeTrace(trace.map((frame, index) => {
     const { subject, unfinished, place } = partsOfFrame(frame);
     const subjectRead = readBelow(read, [index, SUBJECT_INDEX_OF_A_FRAME]);
-    return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true) : passedOver(subject, subjectRead, printedOf, true), unfinished, place);
+    return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true, rests) : passedOver(subject, subjectRead, printedOf, true, rests), unfinished, place);
   }));
 }
 
-export function alertOf(error, printedOf = printedByTheCore) {
+export function alertOf(error, printedOf = printedByTheCore, rests = new WeakSet()) {
   const facts = new Map();
   for (const [name, value] of error.facts) {
     const factRead = readBelow(OF_THE_FACTS, [name]);
-    facts.set(name, isTrace(value) ? framesOf(value, factRead, printedOf) : excerptOf(value, factRead, printedOf));
+    facts.set(name, isTrace(value) ? framesOf(value, factRead, printedOf, rests) : excerptOf(value, factRead, printedOf, false, rests));
   }
   return makeErrorValue(error.tag, facts);
 }
 
 // Within a budget an alert that fits stands; past it, its trace keeps its
-// first frames within an excerpt of its own and ends with the elision of the
-// rest, and then its facts give way within the budget, so the error stays one
-// the core builds, and every `:read` reads beneath `!|` [D393].
+// first frames within an excerpt of its own, ending with the elision of the
+// rest, and then its facts give way within the budget, the failure keeping
+// its tag and the names of its facts. The views of one answer share the rests
+// they made, so every `:size` counts what its `:read` answers beneath `!|`
+// [D393].
 export function elideAnswer(answer, budget = null, printedOf = printedByTheCore) {
   if (!isErrorValue(answer)) return budget === null ? answer : elide(answer, budget, printedOf);
-  const alert = alertOf(answer, printedOf);
-  const sizeOf = measureBy(printedOf);
-  if (budget === null || sizeOf(alert) <= budget) return alert;
-  const facts = new Map(alert.facts);
-  if (facts.has('trace')) facts.set('trace', excerptOf(facts.get('trace'), readBelow(OF_THE_FACTS, ['trace']), printedOf));
-  const header = sizeOf(alert) - sizeOf(alert.facts);
-  return makeErrorValue(alert.tag, elideWithin(facts, budget - header, OF_THE_FACTS, printedOf));
+  const rests = new WeakSet();
+  const alert = alertOf(answer, printedOf, rests);
+  if (budget === null || measureBy(printedOf)(alert) <= budget) return alert;
+  const trace = alert.facts.get('trace');
+  const excerpted = trace === undefined ? alert
+    : makeErrorValue(alert.tag, new Map(alert.facts).set('trace', elideWithin(trace, EXCERPT_CHARACTERS, readBelow(OF_THE_FACTS, ['trace']), printedOf, false, rests)));
+  return elideWithin(excerpted, budget, OF_THE_FACTS, printedOf, false, rests);
 }

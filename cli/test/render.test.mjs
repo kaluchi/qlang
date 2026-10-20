@@ -188,8 +188,9 @@ describe('answerText — the answer as the language prints it', () => {
   });
 });
 
-// The command line draws the caret of a refused text below its alert where
-// the alert shows its line, above the prose of the page [QSHST#answer].
+// The command line draws the caret of a refused text below its alert, the
+// line within an excerpt around the place, above the prose of the page
+// [D393].
 describe('answerText — the caret of a refused text', () => {
   const refused = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] x`;
 

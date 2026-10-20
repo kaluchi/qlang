@@ -20,7 +20,8 @@
       and the elision of a rest stands last in a vector. A failure the
       host prints is an alert, each subject it passed given way to an
       elision where the elision prints shorter, and past a budget its
-      trace keeps its first frames and an elision of the rest.
+      trace keeps its first frames and an elision of the rest, and its
+      facts give way, each under its name.
       ::link~(::any/elide | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind

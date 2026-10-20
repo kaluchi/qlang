@@ -142,7 +142,7 @@ function printUnderTag(tagged, indent, printedOf, oneLine) {
 // of its own.
 function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];
-  const hasComposite = entries.some(([, v]) => isMap(v) || isVec(v));
+  const hasComposite = entries.some(([, v]) => (isMap(v) || isVec(v)) && v[TAG_HEADER_SYMBOL]?.name !== ELISION_TAG.name);
   if (oneLine || (entries.length <= 2 && !hasComposite)) {
     return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf, oneLine)}`).join(' ')}}`;
   }

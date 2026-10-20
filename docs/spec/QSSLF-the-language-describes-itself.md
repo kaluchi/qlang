@@ -223,10 +223,14 @@ role, the tags of a stack read from the outside in: `::link`, which
 `links` answers and `open` runs to what its query answers, a page where
 it reads one, and `::snippet`, which `snippets` answers and `open` runs
 to what it shows; each is a kind of the core with a page, and a role
-whose quotes hold an invariant is a label of its own. A doc lays each
-tag of a quote's role through the tag's label, so a tag that takes no
-quote refuses the doc, and so does a quote that breaks an invariant of
-its role.
+whose quotes hold an invariant is a label of its own. A doc is built
+once from the values the labels of the tags of its roles lay over its
+quotes, from the inside out, wherever it stands as a value, the docs of
+the slot of a declaration among them: a tag that takes no quote refuses
+the doc and the declaration that holds it as its page, and so does a
+quote that breaks an invariant of its role, and `::quote~(a)` in a doc
+is the quote itself; code holds a doc with the quotes of its roles as
+written.
 
 ```qlang
 > |~~ a ~(add 1) b ~~| | segments
@@ -246,6 +250,9 @@ its role.
 
 > :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| type
 ::Role/k
+
+> get [~(|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)) ~(:x |~~ see ::vec~(x) ~~| 1 !| type)]
+[true ::vec/PayloadKindNotTakenError]
 ```
 
 ## page

@@ -43,11 +43,13 @@ writes a `::binding` into its scope, as `::bind`, its `:name`, the doc
 values of its slot as `:docs` and its body, the step after its name and
 its page, as `:body`, each where the declaration writes one; a tagged
 literal as `::construct`, its `:tag` and the `:payload` the literal
-writes; a step of the fail track under `::fail`; a group as its quote
+writes, a tag written before an error literal among them, `::E!{:k 1}`
+the construction of `::E` over `!{:k 1}` and `::E::error!{:k 1}` the
+same step; a step of the fail track under `::fail`; a group as its quote
 under `::group`; and any other value as itself, a literal, the step that
-stands as the value it writes, a regex and the error at rest an error
-literal writes among them, so two texts that write one value are one
-step, `::E::error!{:k 1}` the step `::E!{:k 1}` is. `::fail` and a
+stands as the value it writes, a regex, the error at rest `!{…}` writes
+and a doc, the quotes of its roles under the tags written before them,
+among them. `::fail` and a
 declaration stand in a pipeline alone, so inside a container, a field or
 a payload a step is an element step. The parser reads a text into these
 records, building each through its constructor, and keeps beside them
@@ -70,7 +72,8 @@ step under the record that holds it. The payload of a record of a step
 that is no map, and of `::fail` and `::group` one that is no quote, is
 refused by the role of its holder, `…/PayloadKindNotTakenError` with `:expected`, and a map
 whose fields break the fields of its record as `…/PayloadNotSchemaError`,
-its `:field` the field. A text that breaks a rule of a step answers
+its `:field` the field, the kind of errors over an error literal, which
+is that literal, refused by `::construct` naming its `:tag`. A text that breaks a rule of a step answers
 `::quote/ParseError` at its place with the rule's message, and a throw
 of the parser that is no refusal of the text, the overflow of its stack
 under a nest too deep among it, passes as it is, which `parse` answers as
@@ -120,6 +123,9 @@ parser, which gives the path bare.
 
 > "::E::error!{:k 1}" | parse | eq ("::E!{:k 1}" | parse)
 true
+
+> get [~(~(::Foo!{:k 1}) | first | get [~(type) /tag /payload]) ~(::construct{:tag ::error :payload !{:k 1}} !| get [~(type) /field])]
+[[::construct ::Foo !{:k 1}] [::construct/PayloadNotSchemaError :tag]]
 ```
 
 ## parse
@@ -234,7 +240,8 @@ its modifier on as the answer of the call.
 
 Code a verb runs is code of a step or code held as data. A quote written
 in a step, a modifier of a call or a part of a template it writes, a
-quote or a template under a tag among them, is code of that step: the
+quote, an error literal or a template under a tag among them, is code of
+that step: the
 call runs it in the scope of the step that wrote it, by whatever road it
 takes inside the call. A quote stays the value its print shows, and the
 meaning of held code is its text and the vocabulary.
@@ -258,6 +265,9 @@ verb.
 ```qlang
 > :k 10 | [1 2] | map ~(add k)
 [11 12]
+
+> :k 10 | 5 | get [~(get ::E!{:q ~(add k)}) ~(get !{:q ~(add k)})]
+[::E!{:q 15} !{:q 15}]
 
 > :big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(type) /name]
 [::call/ValueWithheldError :lim]

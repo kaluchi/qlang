@@ -14,7 +14,8 @@ reads back as itself. `!{…}` is its literal, the literal of `::error`,
 whose payload is the map of the facts, a payload of another kind refused
 as `::error/PayloadKindNotTakenError`, and `::Foo!{…}` is
 `::Foo::error{…}`, the facts laid under the tag written before the bang
-through its label, a refusal of the label answering for the literal. An
+through its label, a refusal of the label answering for the literal; the
+kind of errors over an error at rest is that error. An
 error at rest holds the facts it is written with, a `:kind` entry a fact
 as any key is and a `:trace` that holds no frames among them, so
 `!{:trace 5}` stands as the value it writes. The walk of an error passes
@@ -37,6 +38,9 @@ true
 
 > :error/twice ~(get /a | mul 2) | ::Oops!{:a 3} | twice
 6
+
+> !{:by 3} | tag ::error | eq !{:by 3}
+true
 ```
 
 ## raise
@@ -69,8 +73,9 @@ either [QSSYN#step], so a quote the recovery answers is computed by a
 group, `!| (~(…))`. A pipe written before `!|`, `a | !| b`, stands for the
 combinator after it. The error at rest a catch holds is laid under the
 tag of its site through the tag's label, none where the site is the kind
-of errors itself, and a label whose payload takes
-no facts refuses it with a frame at the step of the catch. `ok` answers
+of errors itself, and a label whose payload takes no facts, or whose
+invariant the error at rest breaks, refuses it with a frame at the step
+of the catch. `ok` answers
 `true`, so `ok !| false` asks whether the step before stood. A fact is
 taken on the way and a failure recovered by its type in lines of
 `!| … | raise`.
@@ -93,6 +98,9 @@ true
 
 > !{:a 1} | raise !| payload | type
 ::map
+
+> :Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(type | eq ::map)) | {:a 1} | tag ::Box | raise !| it !| get [~(type) /actualType]
+[::Box/k ::Box]
 ```
 
 ## trace

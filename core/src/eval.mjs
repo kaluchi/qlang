@@ -11,7 +11,7 @@ import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnkn
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
 import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
-  isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, primitiveOf,
+  isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, primitiveFor,
   typeOf, keyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
   isFn, isKind, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
@@ -25,7 +25,7 @@ import {
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLabel, isVerbValue, isRecipe, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLabel, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
 import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
 import { inputsRunBy, inputsRunWithin, inputsFoldedBy } from './primitives.mjs';
@@ -521,16 +521,17 @@ function refusedElementOf(elements, kinds) {
   return index === -1 ? null : { index, element: elements[index] };
 }
 
-// The refusal of the first invariant written under an input or the answer
-// whose condition the value does not answer true to, named under the
-// address, the error a condition answered handed on as it is, or null; an
+// The refusal of the first invariant written under the subject, an input or
+// the answer whose condition the value does not answer true to, named under
+// the address, the error a condition answered handed on as it is, or null; an
 // invariant of a kind's value runs on the payload beneath the tag and its
-// refusal holds the value under the tag [QSBLD#value].
-async function invariantRefusal(invariants, address, value, state, scope, held = value) {
+// refusal holds the value under the tag [QSBLD#value], and one of the subject
+// holds its kind alone, the subject standing in the first frame [QSBLD#fn].
+async function invariantRefusal(invariants, address, value, state, scope, held = value, facts = { actualValue: held }) {
   for (const { name, condition } of invariants) {
     const answer = (await evalPipeline(condition, nestState(state, value, scope))).pipeValue;
     if (isErrorValue(answer)) return answer;
-    if (beneathTags(answer) !== true) return refusalUnder(`${address}/${name}`, { actualValue: held }, scope);
+    if (beneathTags(answer) !== true) return refusalUnder(`${address}/${name}`, facts, scope, held);
   }
   return null;
 }
@@ -539,10 +540,12 @@ async function invariantRefusal(invariants, address, value, state, scope, held =
 
 // The value an input reads from the args by its place: a place of one
 // step, `/n` or `query /n default`, is the value there, read here as
-// `get` and `query` read it, so the inputs of `query` itself read
-// without calling it; any other place runs as code over the args, one
-// deeper in the evaluation depth than the call [QSNAM#verb].
-function placeRead({ path, place, index, onePlace, strict, fallback }, values, overArgs) {
+// `get` and `query` read it, and `~(it)` the args whole, each a form no
+// verb of those names reaches, so the inputs of `query` itself read without
+// calling it; any other place runs as code over the args, one deeper in the
+// evaluation depth than the call [QSBLD#input], [QSNAM#verb].
+function placeRead({ path, place, index, onePlace, strict, fallback, readsArgs }, values, overArgs) {
+  if (readsArgs) return overArgs().pipeValue;
   if (!onePlace) return path !== null ? pathOfArgs(path, overArgs()) : answerOfPipeline(place, overArgs());
   if (index < values.length) return values[index];
   if (strict) return MISSED_PLACE;
@@ -696,8 +699,9 @@ export async function callVerbOn(record, subject, state) {
 
 // ─── Functions ──────────────────────────────────────────────────
 
-// A verb that is a function is called by its function alone [QSBLD#fn]: its
-// subject served by its label or by the kinds `on` names, its inputs read
+// A verb that is a function is called by its function alone [QSBLD#fn]: the
+// recipe it holds runs or the call is refused, its subject served by its
+// label or by the kinds `on` names and held to its invariants, its inputs read
 // from the args by their places and held to their kinds and invariants, its
 // recipe run in the scope its call opens, a recipe written in steps of a
 // verb of the root's marked as the root's and a primitive keeping the mark
@@ -711,14 +715,11 @@ async function applyFunctionVerb(record, fn, modifiers, state) {
 
 // applyFunction(fn, subject, args, state) → the answer of a function `apply`
 // runs on a subject, the values of a vector its args, every refusal named
-// under the call of a function, `fn/call`, since no verb names it; a
-// function with no recipe, a contract, runs nothing.
+// under the call of a function, `fn/call`, since no verb names it.
 const FN_CALL_ADDRESS = 'fn/call';
 
 export async function applyFunction(fn, subject, args, state) {
-  const recipe = recipeOf(fn);
-  if (!isRecipe(recipe)) throw new FnRecipeMissingError({ actualValue: fn });
-  const at = { address: FN_CALL_ADDRESS, labelName: null, ofTheRoot: !isQuote(recipe) && isRootVerbScope(state.scope) };
+  const at = { address: FN_CALL_ADDRESS, labelName: null, ofTheRoot: !isQuote(recipeOf(fn)) && isRootVerbScope(state.scope) };
   return await callFunction(fn, at, args.map(value => () => value), withPipeValue(state, subject));
 }
 
@@ -733,15 +734,19 @@ export async function inputsOfFunction(fn, args, state) {
 async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, state) {
   const chain = chainOfFn(fn);
   const recipe = recipeOf(fn);
+  const steps = isQuote(recipe) ? recipe : null;
+  const primitive = steps === null ? primitiveFor(recipe, fn) : undefined;
+  if (steps === null && primitive === undefined) throw new FnRecipeMissingError({ actualValue: fn });
   const walked = subjectOfCall(chain, labelName, state.pipeValue);
   if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), { expected: kindsExpected(...chain.subject.kinds) }, state.scope, state.pipeValue);
   if (walked === null) return refusalUnder(subjectRefusalAddress(address, [labelName]), {}, state.scope, state.pipeValue);
   const scope = callScopeOf(state, ofTheRoot);
-  const steps = isQuote(recipe) ? recipe : null;
+  const refusedSubject = await invariantRefusal(invariantsOf(chain, SUBJECT_NAME), address, walked.served, state, scope, state.pipeValue, {});
+  if (refusedSubject !== null) return refusedSubject;
   const called = await inputsOfCall(chain, address, modifiers, state, scope, steps);
   if (isErrorValue(called)) return called;
   const running = steps === null
-    ? runPrimitive(recipe, walked.served, walked.passedTags, handedTo(primitiveOf(recipe), chain, called, state), called.state, address)
+    ? runPrimitive(primitive, walked.served, walked.passedTags, handedTo(primitive, chain, called, state), called.state, address)
     : (await evalPipeline(steps, nestState(called.state, state.pipeValue, called.recipeScope))).pipeValue;
   const answer = isThenable(running) ? await running : running;
   if (isErrorValue(answer)) return answer;
@@ -952,7 +957,7 @@ async function underKind(tagName, kind, payload, state) {
     const refused = await fieldRefusal(tagName, field, held, invariants, state, opened);
     if (refused !== null) return refused;
   }
-  const constructs = primitiveOf(constructorOf(kind));
+  const constructs = primitiveFor(constructorOf(kind), kind);
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), `${tagName}/construct`, [held]);
   const labelled = constructs !== undefined && typeOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed);
   const ofTheValue = invariants.filter(({ field }) => field === null);

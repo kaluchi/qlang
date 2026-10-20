@@ -24,9 +24,12 @@ const FnPayloadNotPairError = declareRefusal('fn/PayloadNotPairError');
 const FnRecipeNotCodeError = declareRefusal('fn/RecipeNotCodeError');
 const FnFillRecipeNotCodeError = declareRefusal('fn/fill/RecipeNotCodeError');
 
-// A function of its commands and a recipe, its chain read here, so a step it
-// does not take is refused where the function is made.
+// A function of its commands and a recipe, held here on every road to one,
+// the verbs that build it and its literal: a recipe that is no code is refused
+// and its chain read, so a command it does not take is refused where the
+// function is made [QSBLD#fn].
 function madeFn(commands, recipe) {
+  if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new FnRecipeNotCodeError({ actualValue: recipe });
   const fn = makeTagged(FN_TAG, Object.freeze([commands, recipe]));
   chainOfFn(fn);
   return fn;
@@ -37,9 +40,7 @@ function madeFn(commands, recipe) {
 // for a contract no call runs; a payload that is no such pair is refused.
 registerPrimitive('fn/construct', payload => {
   if (!isVec(payload) || !holdsNoOtherTag(payload, FN_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new FnPayloadNotPairError({ actualValue: payload });
-  const [commands, recipe] = payload;
-  if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new FnRecipeNotCodeError({ actualValue: recipe });
-  return madeFn(commands, recipe);
+  return madeFn(...payload);
 });
 
 // The function a command of its chain runs on: a function, or the noun
@@ -89,11 +90,9 @@ registerPrimitive('fn/holds', (subject, name, page, condition) =>
 registerPrimitive('fn/proves', (subject, name, page, query) =>
   withCommand(functionOf(subject), 'proves', [name, page, query]));
 
-// `impl ~(add by)` — the recipe; a function of no commands is its code.
-registerPrimitive('fn/impl', (subject, recipe) => {
-  const fn = functionOf(subject);
-  return commandsOf(fn).length === 0 && isQuote(recipe) ? recipe : madeFn(commandsOf(fn), recipe);
-});
+// `impl ~(add by)` — the recipe of the function it builds, `::fn | impl ~(add 1)`
+// the function of no commands.
+registerPrimitive('fn/impl', (subject, recipe) => madeFn(commandsOf(functionOf(subject)), recipe));
 
 // `fill 3` — the args of a call written into the head of the code,
 // each input a declaration with its page of the value it reads, as its call

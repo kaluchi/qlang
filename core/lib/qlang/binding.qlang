@@ -9,18 +9,33 @@
       declared, and `binding` the record of a name,
       `::vec/count | binding | get /origin` answering `:qlang/vec`.
 
-      It prints as a map under its tag; the record of `:x 5` read from
-      the cell `cell-1` is
+      It prints as a map under its tag, its fields read under the kind;
+      the record of `:x 5` read from the cell `cell-1` is
       `::binding{:name :x :docs [] :value 5 :source ~(:x 5) :origin :cell-1}`.
-      `:name` is the keyword it binds, `:docs` one doc for each doc of
-      its slot, `:value` what the name holds, `:source` the quote of the
-      step that declared it, and `:origin` the source or the cell it was
-      read from. A binding no declaration wrote, a node a chain lays among
-      them, holds no source.
+      A binding no declaration wrote, a node a chain lays among them, holds
+      no source.
       ::link~(::bind | doc) ::link~(::any/binding | doc)
       ::link~(::qlang/names | doc)
   ~~|
   ::kind
+    | wraps |~~ The fields of the record, a map. ~~| ::map
+    | reads :name |~~ The keyword the binding binds. ~~| /name ::keyword
+    | reads :docs
+        |~~ The docs of its page, one for each doc of the slot of its
+            declaration.
+        ~~|
+        /docs [::doc]
+    | reads :value |~~ What the name holds. ~~| /value
+    | reads :source
+        |~~ The quote of the step that declared it, null for a binding no
+            declaration wrote.
+        ~~|
+        /source #[::null ::quote]
+    | reads :origin
+        |~~ The source or the cell it was read from, null for a name a call
+            binds.
+        ~~|
+        /origin #[::keyword ::null]
     | proves :holdsTheValue
         |~~ The record of a name holds its value. ~~|
         ~(:x |~~ One. ~~| 1 | env | get /x | get /value | eq 1)
@@ -35,4 +50,13 @@
             source.
         ~~|
         ~(::number/add/addend | binding | get /source | eq null)
+    | proves :readsBackFromItsPrint
+        |~~ The record of a name reads back from its print. ~~|
+        ~(:x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b)
+    | proves :docs/NotGivenError/refusesARecordWithNoDocs
+        |~~ A binding a reader writes holds every field of the record. ~~|
+        ~(::binding{:name :x} !| type | eq ::binding/docs/NotGivenError)
+    | proves :name/KindNotTakenError/refusesANameThatIsNoKeyword
+        |~~ The name of a binding is a keyword. ~~|
+        ~(::binding{:name "x" :docs [] :value 1 :source null :origin null} !| type | eq ::binding/name/KindNotTakenError)
 

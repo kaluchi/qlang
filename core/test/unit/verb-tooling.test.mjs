@@ -7,7 +7,7 @@ import { shownFor, answerKindsOf, nodeOf, verbsReaching, verbNames } from '../..
 import { servesTheSubject } from '../../src/dispatch.mjs';
 import { createSession } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
-import { bodyRuns } from '../../src/chain.mjs';
+import { isVerbBody } from '../../src/chain.mjs';
 import { holdsALiteral } from '../../src/steps.mjs';
 import { makeTag } from '../../src/types.mjs';
 
@@ -83,13 +83,13 @@ describe('a verb as the tooling reads it', () => {
     expect(shownFor(session.scope, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
   });
 
-  it('reads whether the body of a declaration runs as it is written: a quote, and a function its chain or its literal gives a recipe [QSBLD#fn], [QSHST#tools]', () => {
+  it('reads whether the body of a declaration is the value of a verb as it is written: a quote, a `::builtin{}`, and a function built from `::fn` whatever recipe it holds [QSNAM#address], [QSHST#tools]', () => {
     const bodyOf = source => parse(source)[0].get('body');
     const bodies = [
-      ':v/f ~(add 1)', ':v/f (::fn | takes :x |~~ x ~~| /0 | impl ~(add x))', ':v/f ::fn[~() ~(add 1)]',
-      ':v/f (::fn | takes :x |~~ x ~~| /0)', ':v/f (::fn | (impl ~(add 1)))', ':v/f ::fn[~() null]', ':v/f ::fn"x"', ':v/f (::kind | impl ~(1))', ':v/f 1'
+      ':v/f ~(add 1)', ':v/f (::fn | takes :x |~~ x ~~| /0 | impl ~(add x))', ':v/f ::fn[~() ~(add 1)]', ':v/f ::builtin{}',
+      ':v/f (::fn | takes :x |~~ x ~~| /0)', ':v/f (::fn | (impl ~(add 1)))', ':v/f ::fn[~() null]', ':v/f (::kind | impl ~(1))', ':v/f 1'
     ];
-    expect(bodies.map(source => bodyRuns(bodyOf(source)))).toEqual([true, true, true, false, false, false, false, false, false]);
+    expect(bodies.map(source => isVerbBody(bodyOf(source)))).toEqual([true, true, true, true, true, true, true, false, false]);
   });
 
   it('reads a literal step, a tagged literal among them, apart from a step that computes or declares [QSLIT#closed], [QSHST#tools]', () => {

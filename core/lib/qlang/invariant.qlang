@@ -25,6 +25,7 @@
       ::link~(::law | doc) ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
+    | wraps |~~ The condition its values keep, a quote. ~~| ::quote
     | proves :liesUnderItsRefusal
         |~~ The node an invariant of a chain lays under the name of its
             refusal holds a quote under `::invariant`.
@@ -38,4 +39,7 @@
     | proves :refusesUnderItsName
         |~~ A value that breaks an invariant is refused under its name. ~~|
         ~(:Small |~~ Below ten. ~~| (::kind | holds :TooLargeError |~~ A number below ten. ~~| ~(lt 10)) | get [~(::Small#3 | type) ~(::Small#12 !| type)] | eq [::Small ::Small/TooLargeError])
+    | proves :PayloadKindNotTakenError/refusesANumber
+        |~~ An invariant is a quote. ~~|
+        ~(::invariant#5 !| type | eq ::invariant/PayloadKindNotTakenError)
 

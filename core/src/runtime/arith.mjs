@@ -1,12 +1,12 @@
 // Arithmetic primitives, each taking the values alone, the number the walk
-// served and the inputs its call reads [QSHST#source]. The invariants of the inputs hold
-// before a primitive runs, a divisor no zero among them [QSERR#site],
-// [QSBLD#fn], and an answer that left the finite doubles is refused as it is
-// brought under `::number` [QSNUM#arithmetic].
+// served and the inputs its call reads [QSHST#source]. The invariants of the
+// subject and of the inputs hold before a primitive runs, a divisor no zero and
+// a count of `range` a whole number among them [QSERR#site], [QSBLD#fn], and an
+// answer that left the finite doubles is refused as it is brought under
+// `::number` [QSNUM#arithmetic].
 
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
-const NumberRangeCountNotIntegerError = declareRefusal('number/range/CountNotIntegerError');
 const NumberRangeCountTooLargeError = declareRefusal('number/range/CountTooLargeError');
 
 registerPrimitive('number/add', (augend, addend) => augend + addend);
@@ -30,7 +30,6 @@ registerPrimitive('number/ceil', subject => unsignedZero(Math.ceil(subject)));
 // longer than the length a JavaScript array may have.
 const LONGEST_VECTOR = 2 ** 32 - 1;
 registerPrimitive('number/range', count => {
-  if (!Number.isInteger(count)) throw new NumberRangeCountNotIntegerError({ actualValue: count });
   if (count > LONGEST_VECTOR) throw new NumberRangeCountTooLargeError({ longest: LONGEST_VECTOR, actualValue: count });
   return Array.from({ length: Math.max(count, 0) }, (_, index) => index);
 });

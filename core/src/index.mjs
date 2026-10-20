@@ -12,7 +12,7 @@ export {
   bindingNamesVisibleAt, CALL_SPELLING, TAG_SPELLING
 } from './walk.mjs';
 export { isCallStep, isBindStep, isGroupStep, isFailStep, holdsALiteral, declaresKind } from './steps.mjs';
-export { bodyRuns } from './chain.mjs';
+export { isVerbBody } from './chain.mjs';
 export { splitAddress } from './address.mjs';
 export { printValue } from './print-value.mjs';
 export { toPlain, fromPlain, fromJsonText } from './runtime/json.mjs';

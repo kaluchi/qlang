@@ -18,9 +18,16 @@
       ::link~(::qlang/errors | doc)
   ~~|
   ::kind
+    | wraps
+        |~~ The page and the value, a map, which `page` and `value` read.
+        ~~|
+        ::map
     | proves :explainsAFailure
         |~~ An error explained is an `::explanation`. ~~|
         ~("x" | add 1 !| explain | type | eq ::explanation)
+    | proves :PayloadKindNotTakenError/refusesANumber
+        |~~ An explanation is a map of its page and its value. ~~|
+        ~(::explanation#5 !| type | eq ::explanation/PayloadKindNotTakenError)
 
 :explanation/page
   |~~ Answers the page that explains what `explain` was asked of: of a

@@ -18,9 +18,12 @@ const KIND_TAG = makeTag(KIND_TAG_NAME);
 const KindPayloadNotPairError = declareRefusal('kind/PayloadNotPairError');
 const KindConstructorNotBuiltinError = declareRefusal('kind/ConstructorNotBuiltinError');
 
-// A kind of its commands and its constructor, its chain read here, so a step
-// it does not take is refused where the kind is made.
+// A kind of its commands and its constructor, held here on every road to one,
+// the verbs that build it and its literal: a constructor that is no
+// `::builtin{}` is refused and its chain read, so a command it does not take
+// is refused where the kind is made [QSBLD#kind].
 function madeKind(commands, constructor) {
+  if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorNotBuiltinError({ actualValue: constructor });
   const kind = makeTagged(KIND_TAG, Object.freeze([commands, constructor]));
   chainOfKind(kind);
   return kind;
@@ -31,9 +34,7 @@ function madeKind(commands, constructor) {
 // kind its commands alone build [QSLIT#tag]; another payload is refused.
 registerPrimitive('kind/construct', payload => {
   if (!isVec(payload) || !holdsNoOtherTag(payload, KIND_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new KindPayloadNotPairError({ actualValue: payload });
-  const [commands, constructor] = payload;
-  if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorNotBuiltinError({ actualValue: constructor });
-  return madeKind(commands, constructor);
+  return madeKind(...payload);
 });
 
 // The kind a command of its chain runs on: a kind, or the noun itself,

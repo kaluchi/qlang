@@ -18,6 +18,9 @@ import { ROOT_KEY } from '../scope-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareDefect } from '../errors.mjs';
 import { isUnderLabel } from '../nouns.mjs';
+import { splitAddress } from '../address.mjs';
+import { CONSTRUCT_NAME, chainOfFn, functionOfRecipe } from '../chain.mjs';
+import { inputsRunBy, inputsRunWithin, inputsFoldedBy } from '../primitives.mjs';
 
 // A source of the root whose run answers an error, or that declares again
 // a name the root holds, left its declarations out of the root, `:origin`
@@ -38,6 +41,11 @@ export const BuiltinPrimitiveNotHandedError = declareDefect('builtin/PrimitiveNo
 export const BuiltinPrimitiveNamesNoBuiltinError = declareDefect('builtin/PrimitiveNamesNoBuiltinError',
   ({ origin, name, sharedWith }) => `qlang root: the source ${origin.name} is handed a primitive for ${name.literal}, ${sharedWith === undefined
     ? 'which it declares as no ::builtin{} under a label' : `whose ::builtin{} is another name's, ${sharedWith.literal}, whose primitive it runs`}`);
+
+// A primitive that runs an input as code, runs the quotes of its template or
+// folds by it names an input of the function it is handed with [QSHST#source].
+const BuiltinInputNotTakenError = declareDefect('builtin/InputNotTakenError',
+  ({ origin, name, input }) => `qlang root: the source ${origin.name} hands ${name.literal} a primitive that runs ${input.literal}, an input its function does not take`);
 
 const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 
@@ -60,11 +68,14 @@ export async function declareRoot(scope, sources) {
     if (again !== undefined) throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: DECLARED_TWICE, name: keyword(again) });
     const taking = new Set();
     for (const [name, record] of declared) {
-      const builtin = builtinOf(bindingValueOf(record));
+      const value = bindingValueOf(record);
+      const builtin = builtinOf(value);
       if (builtin === null || isPrimitiveHanded(builtin)) continue;
       const primitive = primitives[name];
       if (primitive === undefined) throw new BuiltinPrimitiveNotHandedError({ origin, name: keyword(name) });
-      takePrimitive(builtin, primitive);
+      const holders = holdersOf(name, value, declared);
+      refuseInputsNotTaken(primitive, holders[0], origin, name);
+      takePrimitive(builtin, primitive, holders);
       taking.add(name);
     }
     for (const primitiveName of Object.keys(primitives)) {
@@ -85,4 +96,21 @@ export async function declareRoot(scope, sources) {
 function builtinOf(value) {
   const recipe = isFn(value) ? recipeOf(value) : value;
   return isBuiltinDescriptor(recipe) ? recipe : null;
+}
+
+// The functions or the kind a primitive is handed with, which alone run it: a
+// function, or the function of no commands a `::builtin{}` written alone is,
+// that of a node `construct` beside the kind whose constructor it holds
+// [QSNAM#address], [QSHST#source].
+function holdersOf(name, value, declared) {
+  if (isFn(value)) return [value];
+  const [labelName, lastName] = splitAddress(name);
+  return lastName === CONSTRUCT_NAME ? [functionOfRecipe(value), bindingValueOf(declared.get(labelName))] : [functionOfRecipe(value)];
+}
+
+function refuseInputsNotTaken(primitive, holder, origin, name) {
+  const inputs = new Set(chainOfFn(holder).inputs.map(input => input.name.name));
+  const named = [inputsRunBy, inputsRunWithin, inputsFoldedBy].flatMap(read => [...(read(primitive) ?? [])]);
+  const untaken = named.find(input => !inputs.has(input));
+  if (untaken !== undefined) throw new BuiltinInputNotTakenError({ origin, name: keyword(name), input: keyword(untaken) });
 }

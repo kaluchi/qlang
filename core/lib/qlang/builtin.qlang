@@ -122,6 +122,13 @@
             A `::builtin{}` the host hands nothing for is refused with
             `::builtin/PrimitiveNotHandedError`.
         ~~|
+    | throws :InputNotTakenError
+        |~~ A primitive that runs an input as code, runs the quotes of its
+            template or folds by it names an input of the function the host
+            hands it with; `:origin` names the source, `:name` the name and
+            `:input` the input its function does not take. The function
+            takes the input by `takes`, or the primitive reads none.
+        ~~|
     | throws :SourceLoadError
         |~~ A source of the language was found where its package maps it,
             and could not be read; `:origin` names the source,

@@ -55,3 +55,4 @@
 {"name":"prose-of-a-doc-of-prose-alone-is-its-content","query":"|~~ only prose ~~| | :d it | prose | eq (d | content)","expect":"true"}
 {"name":"prose-reads-a-doc-under-a-tag","query":"::Box|~~ a ~(add 1) b ~~| | prose","expect":"\" a  b \""}
 {"name":"prose-refuses-a-subject-that-is-no-doc","query":"\"x\" | prose !| type","expect":"::doc/prose/SubjectNotDocError"}
+{"decision":"D379","name":"a-link-and-a-snippet-hold-a-quote-beneath-the-tags-it-is-given-under","query":"get [~(::link#5 !| type) ~(::snippet\"x\" !| type) ~(|~~ a ::link::snippet~(1) b ~~| | get [~(links | count) ~(snippets | count)])]","expect":"[::link/PayloadKindNotTakenError ::snippet/PayloadKindNotTakenError [1 1]]"}

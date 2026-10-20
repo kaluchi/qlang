@@ -16,8 +16,9 @@ export const PathIndexNotIntegerError = declareRefusal('path/IndexNotIntegerErro
 // missing or null standing before its last segment.
 export const MISSED = Symbol('qlang/missed');
 
-// A key alone, a keyword, a string or a number, names the segment of its text [QSPTH#key].
-export const isKeyAlone = value => isKeyword(value) || typeof value === 'string' || typeof value === 'number';
+// A key alone, a keyword, a number or a string, names the segment of its text [QSPTH#key].
+export const KINDS_OF_A_KEY_ALONE = Object.freeze(['keyword', 'number', 'string']);
+export const isKeyAlone = value => KINDS_OF_A_KEY_ALONE.includes(isKeyword(value) ? 'keyword' : typeof value);
 
 export const keyNameOf = key => (isKeyword(key) ? key.name : String(key));
 

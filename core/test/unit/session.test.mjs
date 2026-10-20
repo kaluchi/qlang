@@ -8,6 +8,7 @@ import { createSession, evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { keyword, makeBinding, makeErrorValue, makeTag, isErrorValue, BuiltinForeignValueError } from '../../src/types.mjs';
 import { QlangDefect, declareRefusal } from '../../src/errors.mjs';
+import { runs, runsWithin, folds } from '../../src/primitives.mjs';
 import { valuesOfTheLanguage, valuesOfNoKind } from '../helpers/values-at-the-door.mjs';
 
 describe('createSession lifecycle', () => {
@@ -190,6 +191,21 @@ describe('the sources a host hands [QSDSP#residence]', () => {
   it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared, naming the source and the name [QSHST#source]', async () => {
     await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':any/hello ::builtin{}' }] }))
       .rejects.toMatchObject({ name: 'PrimitiveNotHandedError', address: 'builtin/PrimitiveNotHandedError', facts: { origin: keyword('tests/bare'), name: keyword('any/hello') } });
+  });
+
+  it('refuses a primitive that runs as code, runs within or folds by an input its function does not take, as the root is declared [QSHST#source]', async () => {
+    for (const marks of [runs, runsWithin, folds]) {
+      await expect(createSession({ sources: [{
+        uri: 'tests/runs',
+        source: ':any/each (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ::builtin{})',
+        primitives: { 'any/each': marks(['cod'], subject => subject) }
+      }] })).rejects.toMatchObject({ name: 'InputNotTakenError', address: 'builtin/InputNotTakenError', facts: { origin: keyword('tests/runs'), name: keyword('any/each'), input: keyword('cod') } });
+    }
+    const session = await createSession({ sources: [{
+      uri: 'tests/runs', source: ':any/each (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ::builtin{})',
+      primitives: { 'any/each': runs(['code'], async (subject, code) => await code(subject)) }
+    }] });
+    expect((await session.evalCell('5 | each ~(add 1)')).result).toBe(6);
   });
 
   it('takes no primitive for a name that holds a ::builtin{} another name took, which runs that name\'s, and refuses one handed for it, naming the name whose ::builtin{} it holds [QSHST#source]', async () => {

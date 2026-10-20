@@ -1,11 +1,12 @@
 // The chain of a function and of a kind, the commands that built it folded
 // into the quote its literal holds, read once for each value as the roles
-// they declare and the places its inputs read [QSBLD#fn], [QSBLD#kind].
+// they declare and the places its inputs read, the one reading of what each
+// command takes on every road to a function or a kind [QSBLD#fn], [QSBLD#kind].
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, LITERAL_WORDS } from './name-chars.mjs';
-import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, recipeOf, FN_TAG_NAME, TAG_HEADER_SYMBOL } from './types.mjs';
-import { isCallStep, isGroupStep, isPathAlone, builtFrom } from './steps.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
+import { isCallStep, isPathAlone, builtFrom } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
 import { segmentIndex } from './path-read.mjs';
 
@@ -61,16 +62,11 @@ const KIND_COMMANDS = new Map([
 const IMPL_NAME = 'impl';
 export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), IMPL_NAME])]);
 
-// bodyRuns(body) → whether the body of a declaration, as it is written, runs on
-// the values of its label: a quote, and a function its chain gives a recipe by
-// `impl`, or its literal one that is no null [QSBLD#fn], [QSHST#tools].
-export function bodyRuns(body) {
-  if (isQuote(body)) return true;
-  if (builtFrom(body) !== FN_TAG_NAME) return false;
-  const steps = isGroupStep(body) ? body.payload : [body];
-  if (steps.length > 1) return steps.slice(1).some(step => isCallStep(step) && step.get('name').name === IMPL_NAME);
-  const payload = steps[0].get('payload');
-  return isPlainVec(payload) && recipeOf(payload) !== null;
+// isVerbBody(body) → whether the body of a declaration, as it is written, is
+// the value of a verb: a quote, a host's `::builtin{}`, or a function built
+// from `::fn`, whatever recipe it holds [QSNAM#address], [QSHST#tools].
+export function isVerbBody(body) {
+  return isQuote(body) || [FN_TAG_NAME, BUILTIN_TAG.name].includes(builtFrom(body));
 }
 
 // The modifiers of a step that is one of the commands of a table in the
@@ -123,11 +119,11 @@ function readChainOfFn(quote) {
   const names = namesOf(quote, FnNameDeclaredTwiceError);
   const underAnInput = name => {
     const [head] = name.split('/');
-    if (head !== ANSWER_NAME && !chain.inputs.some(input => input.name.name === head)) throw new FnNameUnderNoInputError({ name: keyword(name), actualValue: quote });
+    if (head !== ANSWER_NAME && head !== SUBJECT_NAME && !chain.inputs.some(input => input.name.name === head)) throw new FnNameUnderNoInputError({ name: keyword(name), actualValue: quote });
   };
   for (const step of quote) {
     const modifiers = modifiersOf(step, COMMANDS);
-    if (modifiers === null) throw new FnCommandNotTakenError({ actualValue: quote });
+    if (modifiers === null) throw new FnCommandNotTakenError({ actualValue: makeQuote([step]) });
     const [first, second, third, fourth] = modifiers;
     switch (step.get('name').name) {
       case 'on':
@@ -188,7 +184,7 @@ function readChainOfKind(quote) {
   };
   for (const step of quote) {
     const modifiers = modifiersOf(step, KIND_COMMANDS);
-    if (modifiers === null) throw new KindCommandNotTakenError({ actualValue: quote });
+    if (modifiers === null) throw new KindCommandNotTakenError({ actualValue: makeQuote([step]) });
     const [first, second, third, fourth] = modifiers;
     switch (step.get('name').name) {
       case 'wraps': {
@@ -286,8 +282,8 @@ export function pageOfConstructor(address) {
   return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the \`::builtin{}\` \`impl\` gives it, which attaches the tag to a payload or refuses it by the primitive a host hands beside its source, and constructs nothing where none is handed. `]);
 }
 
-// invariantsOf(chain, name) → the invariants written under an input or
-// under the answer, in their order.
+// invariantsOf(chain, name) → the invariants written under the subject, an
+// input or the answer, in their order.
 export function invariantsOf(chain, name) {
   return chain.invariants.filter(invariant => invariant.name.startsWith(`${name}/`));
 }

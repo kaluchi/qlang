@@ -11,11 +11,18 @@
 
       A link opens a page, every link of the catalog among them; a query
       that lists or shows something is a snippet, and one that answers
-      true a law. A host may stack its own tag over a link.
+      true a law. A link is a quote under a stack of tags that holds
+      `::link`, the stack read from the outside in, so a tag a host or a
+      reader lays over a link keeps it a link.
       ::snippet~(::qlang | doc | links) lists the links of the first page.
       ::link~(::snippet | doc) ::link~(::qlang/hypertext | doc)
   ~~|
   ::kind
+    | wraps
+        |~~ The query a link opens, a quote beneath the tags it is given
+            under.
+        ~~|
+        ::quote
     | proves :isALink
         |~~ A link a doc holds is a `::link`. ~~|
         ~(|~~ ::link~(::qlang/values | doc) ~~| | links | first | type | eq ::link)
@@ -25,4 +32,10 @@
     | proves :holdsUnderAStackOfTags
         |~~ A quote under a stack of tags holding `::link` is a link. ~~|
         ~(|~~ ::Host::link~(1) ~~| | links | count | eq 1)
+    | proves :PayloadKindNotTakenError/refusesANumber
+        |~~ A link is a quote. ~~|
+        ~(::link#5 !| type | eq ::link/PayloadKindNotTakenError)
+    | proves :staysASnippetUnderIt
+        |~~ A quote under a link and a snippet is both. ~~|
+        ~(|~~ a ::link::snippet~(1) b ~~| | get [~(links | count) ~(snippets | count)] | eq [1 1])
 

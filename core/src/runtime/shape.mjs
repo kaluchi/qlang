@@ -167,7 +167,7 @@ function mergeTogether(left, right) {
   return isFold(one) && isFold(other) && !isAlternatives(marksOf(collapsed([...left, ...right].map(eachShape))).core);
 }
 
-const keysOf = records => [...new Set([...records].sort(compareValues).flatMap(record => [...record.keys()]))];
+const keysOf = records => [...new Set(records.flatMap(record => [...record.keys()]))];
 
 function mergedClass(members, lacks) {
   const [first] = members;
@@ -176,7 +176,7 @@ function mergedClass(members, lacks) {
   if (isRecord(first)) return recordMerged(members, lacks);
   if (!isFold(first)) return first;
   const values = collapsed(members.map(eachShape));
-  return makeTagged(EACH_TAG, new Map([[leastOf(members.map(eachKey)), lacks ? lacked(values) : values]]));
+  return makeTagged(EACH_TAG, new Map([[eachKey(first), lacks ? lacked(values) : values]]));
 }
 
 // The element vectors or sets share: none where all are empty, marked

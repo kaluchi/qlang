@@ -156,7 +156,7 @@ const pageAt = (subject, anchor, state) => pageOfRecord(recordOfAnchors(subject,
 registerStateReader('any/doc', (subject, anchor, state) => {
   if (!isSet(anchor)) return pageAt(subject, anchor, state);
   const stranger = anchor.map(beneathTags).findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
-  if (stranger >= 0) throw new AnyDocAnchorElementKindNotTakenError({ index: stranger, expected: kindsExpected('keyword'), actualValue: anchor[stranger] });
+  if (stranger >= 0) throw new AnyDocAnchorElementKindNotTakenError({ index: stranger, expected: kindsExpected('keyword', 'null', 'vec'), actualValue: anchor[stranger] });
   return Object.freeze(anchor.map(each => pageAt(subject, each, state)));
 });
 

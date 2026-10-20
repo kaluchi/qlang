@@ -150,7 +150,7 @@
         |~~ The condition is asked of the boolean the step before answered,
             so a comparison of the element there is refused.
         ~~|
-        ~([1 2 3] | filter ~(gt 1 | and (lt 3)) !| get [~(type) /leftType] | eq [::any/lt/KindsMismatchedError ::boolean])
+        ~([1 2 3] | filter ~(gt 1 | and (lt 3)) !| get [~(type) /leftType] | eq [::call/KindsMismatchedError ::boolean])
     | impl ::builtin{}
 
 :boolean/or
@@ -214,7 +214,7 @@
         |~~ The condition is asked of the boolean the step before answered,
             so a comparison of the element there is refused.
         ~~|
-        ~([1 2 3] | filter ~(gt 1 | or (lt 3)) !| get [~(type) /leftType] | eq [::any/lt/KindsMismatchedError ::boolean])
+        ~([1 2 3] | filter ~(gt 1 | or (lt 3)) !| get [~(type) /leftType] | eq [::call/KindsMismatchedError ::boolean])
     | impl ::builtin{}
 
 :boolean/toString

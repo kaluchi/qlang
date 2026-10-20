@@ -6,7 +6,7 @@
 {"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| get [~(type) /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]"}
 {"name":"a-comparison-of-strings-resides-on-strings","query":"\"b\" | gt \"a\"","expect":"true"}
 {"name":"a-comparison-of-keywords-resides-on-keywords","query":":b | lt :a","expect":"false"}
-{"name":"a-comparison-refuses-a-pair-of-two-kinds","query":"1 | gt \"x\" !| type","expect":"::any/gt/KindsMismatchedError"}
+{"decision":"D388","name":"a-comparison-refuses-a-pair-of-two-kinds","query":"1 | gt \"x\" !| type","expect":"::call/KindsMismatchedError"}
 {"name":"a-call-by-address-reaches-the-residence","query":"5 | any/gt 3","expect":"true"}
 {"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"a-set-is-a-vector-to-a-verb-of-vectors","query":"#[1 2] | vec/count","expect":"2"}

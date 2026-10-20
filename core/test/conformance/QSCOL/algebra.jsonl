@@ -34,7 +34,8 @@
 {"name":"unionOf-takes-one-part-at-least-and-keeps-the-tags-of-the-first","query":"get [~({} | unionOf !| type) ~(5 | unionOf ::T{:a 1} {:b 2})]","expect":"[::any/unionOf/parts/EmptyError ::T{:a 1 :b 2}]"}
 {"name":"minus-of-a-map-takes-a-set-of-keys","query":"{:a 1} | minus :a !| type","expect":"::map/minus/keys/KindNotTakenError"}
 {"name":"union-of-a-map-refuses-a-value-of-another-kind","query":"{:a 1} | union [1] !| type","expect":"::map/union/other/KindNotTakenError"}
-{"name":"a-pair-the-algebra-has-no-rule-for-names-its-kinds","query":"[#[1] {:a 1}] | union !| get [~(type) /leftType /rightType]","expect":"[::vec/union/KindsMismatchedError ::set ::map]"}
+{"decision":"D388","name":"a-pair-the-algebra-has-no-rule-for-names-its-kinds","query":"[#[1] {:a 1}] | union !| get [~(type) /leftType /rightType]","expect":"[::call/KindsMismatchedError ::set ::map]"}
 {"name":"merge-answers-as-union-over-maps","query":"{:a 1 :b 2} | get [~(merge {:b 3 :c 4}) ~(union {:b 3 :c 4})]","expect":"[{:a 1 :b 3 :c 4} {:a 1 :b 3 :c 4}]"}
 {"name":"merge-refuses-a-value-that-is-no-map","query":"{:a 1} | merge #[:b] !| type","expect":"::map/merge/other/KindNotTakenError"}
-{"name":"a-fold-of-the-algebra-places-the-element-and-the-key-it-refuses","query":"get [~([#[1] #[2] {:a 1}] | union !| get [~(type) ~(trace | last | place)]) ~([{:a 1} [:a true]] | minus !| get [~(type) ~(trace | last | place)])]","expect":"[[::vec/union/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]"}
+{"decision":"D388","name":"a-fold-of-the-algebra-places-the-element-and-the-key-it-refuses","query":"get [~([#[1] #[2] {:a 1}] | union !| get [~(type) ~(trace | last | place)]) ~([{:a 1} [:a true]] | minus !| get [~(type) ~(trace | last | place)])]","expect":"[[::call/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]"}
+{"decision":"D388","name":"a-fold-of-the-algebra-answers-under-the-tag-its-values-share","query":"get [~([::A#[1] #[2]] | union) ~([::A#[1] ::B#[2]] | union !| type) ~(#[1] | union ::A#[2])]","expect":"[::A#[1 2] ::call/KindsMismatchedError ::A#[1 2]]"}

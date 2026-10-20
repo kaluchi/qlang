@@ -3,8 +3,7 @@
 {"name":"sort-descends-through-reverse","query":"[{:k 1} {:k 3} {:k 2}] | sort /k | reverse","expect":"[{:k 3} {:k 2} {:k 1}]"}
 {"name":"sort-keeps-equal-keys-in-subject-order","query":"[{:k 1 :i 0} {:k 0 :i 1} {:k 1 :i 2}] | sort /k","expect":"[{:k 0 :i 1} {:k 1 :i 0} {:k 1 :i 2}]"}
 {"name":"sort-orders-keys-of-every-kind","query":"[{:k \"a\"} {:k null} {:k 2}] | sort /k","expect":"[{:k null} {:k 2} {:k \"a\"}]"}
-{"name":"min-answers-the-first-value-in-the-order","query":"[3 \"a\" null] | min","expect":"null"}
-{"name":"max-answers-the-last-value-in-the-order","query":"[3 \"a\" null] | max","expect":"\"a\""}
+{"decision":"D388","name":"min-and-max-relate-values-of-one-kind","query":"get [~([3 1 2] | min) ~([3 1 2] | max) ~([3 \"a\" null] | min !| type) ~([3 \"a\" null] | max !| get [/leftType /rightType ~(trace | last | place)])]","expect":"[1 3 ::call/KindsMismatchedError [::number ::string /1]]"}
 {"name":"a-key-that-answers-an-error-answers-it-over-a-map","query":"{:a {:n 1}} | sort /b !| type","expect":"::path/KeyNotInMapError"}
 {"name":"a-vector-key-ranks-by-its-next-index-among-ties","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b]) | map /b","expect":"[9 1 2]"}
 {"name":"a-vector-key-that-fails-at-an-index-answers-the-call","query":"[{:a 2} {:b 1}] | sort ~(get [/a]) !| type","expect":"::path/KeyNotInMapError"}
@@ -21,3 +20,4 @@
 {"name":"a-key-of-min-that-is-no-code-is-refused","query":"[1] | min 5 !| type","expect":"::vec/min/key/KindNotTakenError"}
 {"name":"an-error-at-rest-a-key-answers-ranks-as-the-one-order-ranks-it","query":"[{:a 2 :e !{:k 1}} {:a 1 :e !{:k 1}}] | sort ~(get [/e /a]) | map /a","expect":"[1 2]"}
 {"name":"a-value-that-is-no-container-answers-no-sort","query":"\"cab\" | sort !| type","expect":"::call/KindAnswersNoVerbError"}
+{"decision":"D388","name":"a-missing-value-is-taken-out-before-max-relates-the-rest","query":"get [~([1 null 3] | max !| get [/leftType /rightType]) ~([1 null 3] | filter ~(ne null) | max) ~([{:age 30} {:age \"15\"}] | max /age !| type)]","expect":"[[::number ::null] 3 ::call/KindsMismatchedError]"}

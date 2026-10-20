@@ -155,6 +155,22 @@
     | carries :KindAnswersNoVerbError/name
         |~~ The name the step called. ~~|
         ::keyword
+    | throws :KindsMismatchedError
+        |~~ A step met two values it cannot combine or relate, of two kinds
+            or under two different tags: `:leftType` and `:rightType` hold
+            their kinds, and where a fold met the second, the place of its
+            frame names that part. A step works beneath the tag its values
+            share, a bare value taking any, `::Cents#100 | add 1` answering
+            `::Cents#101`, so a value under another tag is brought to the
+            first by a word of its reader, `::Dollars#1 | toCents`; text
+            that holds a number is read by `toNumber`, a container beside a
+            number counted first, `count | gte 2`, and a value turned by
+            `desc` compared with one turned. A comparison, `min` and `max`
+            relate values of one kind, so a missing value is taken out
+            first, `filter ~(ne null) | max`, or counted as zero,
+            `map ~(coalesce 0) | max`.
+            ::link~(::call | doc) ::link~(::any/gt | doc)
+        ~~|
     | throws :UnknownNameError
         |~~ A step called a name nothing declares, no name of the scope
             and no verb of any kind: `:nearest` holds the names it was
@@ -217,6 +233,19 @@
     | proves :buildsAStep
         |~~ A map under `::call` builds the step. ~~|
         ~({:name :filter :modifiers [~(gt 1)]} | tag ::call | get [~(it)] | tag ::quote | eq ~(filter ~(gt 1)))
+    | proves :KindsMismatchedError/refusesTwoTagsInAStep
+        |~~ Values under two tags combine in no step, a sum among them, the
+            frame naming the part.
+        ~~|
+        ~(get [~(::Cents#100 | add ::Dollars#1 !| get [~(type) /leftType /rightType]) ~([::Cents#100 ::Dollars#1] | sum !| trace | last | place)]
+          | eq [[::call/KindsMismatchedError ::Cents ::Dollars] /1])
+    | proves :KindsMismatchedError/laysTheTagABareValueTakes
+        |~~ A bare value takes the tag of the other, the answer under it. ~~|
+        ~(get [~(::Cents#100 | add 1) ~(100 | add ::Cents#1) ~([1 ::Cents#100] | sum)] | eq [::Cents#101 ::Cents#101 ::Cents#101])
+    | proves :KindsMismatchedError/takesAMissingValueOutOfAMaximum
+        |~~ `max` relates values of one kind, a missing one taken out first.
+        ~~|
+        ~(get [~([1 null 3] | max !| type) ~([1 null 3] | filter ~(ne null) | max)] | eq [::call/KindsMismatchedError 3])
     | proves :PayloadNotSchemaError/refusesANameThatIsNoKeyword
         |~~ A `:name` that is no keyword is refused, `:field` naming it. ~~|
         ~(::call{:name 42} !| get [~(type) /field] | eq [::call/PayloadNotSchemaError :name])

@@ -6,11 +6,12 @@
 // a pair the algebra has no rule for refused by the verb with the kinds it
 // met [QSORD#order], [QSCOL#algebra].
 
-import { isSet, isVec, isMap, typeOf, beneathTags } from '../types.mjs';
+import { isSet, isVec, isMap, typeOf, beneathTags, underTagsNamed } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
-import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
+import { declareRefusal, refusingTheSubject, refusingAPart, CallKindsMismatchedError } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
+import { tagsTheElementsShare } from './sequence.mjs';
 
 // The algebra of two sets is a merge of their elements in the one
 // order [QSORD#order]: each operation keeps the elements of the left alone,
@@ -76,46 +77,48 @@ const interOfMap = (map, keys, KeyRefusal, at) => {
 
 // The pairs a fold meets: two sets merge, two maps merge, and a map
 // drops or keeps the keys a map, a vector or a set names; any other pair
-// is refused with the kinds it met.
-function mismatched(left, right, KindsMismatchedError, at) {
-  return refusingAPart(new KindsMismatchedError({ leftType: typeOf(left), rightType: typeOf(right) }), at);
+// is refused with the kinds it met [D388].
+function mismatched(left, right, at) {
+  return refusingAPart(new CallKindsMismatchedError({ leftType: typeOf(left), rightType: typeOf(right) }), at);
 }
 
-function unionPair(left, right, { KindsMismatchedError }, at) {
+function unionPair(left, right, refusals, at) {
   if (isSet(left) && isSet(right)) return mergeSets(left, right, UNION_KEEPS);
   if (isMap(left) && isMap(right)) return unionOfMaps(left, right);
-  throw mismatched(left, right, KindsMismatchedError, at);
+  throw mismatched(left, right, at);
 }
 
-function minusPair(left, right, { KindsMismatchedError, KeyKindNotTakenError }, at) {
+function minusPair(left, right, { KeyKindNotTakenError }, at) {
   if (isSet(left) && isSet(right)) return mergeSets(left, right, MINUS_KEEPS);
   if (isMap(left) && (isMap(right) || isVec(right))) return minusOfMap(left, right, KeyKindNotTakenError, at);
-  throw mismatched(left, right, KindsMismatchedError, at);
+  throw mismatched(left, right, at);
 }
 
-function interPair(left, right, { KindsMismatchedError, KeyKindNotTakenError }, at) {
+function interPair(left, right, { KeyKindNotTakenError }, at) {
   if (isSet(left) && isSet(right)) return mergeSets(left, right, INTER_KEEPS);
   if (isMap(left) && (isMap(right) || isVec(right))) return interOfMap(left, right, KeyKindNotTakenError, at);
-  throw mismatched(left, right, KindsMismatchedError, at);
+  throw mismatched(left, right, at);
 }
 
 // The fold of the values a vector holds beneath their tags, from the first as
 // it is written; it holds one at least, and the values it reads as sets or
 // maps, every one of a union and the first of a difference or a common part,
-// are sets or maps.
+// are sets or maps. The answer stands under the tags the values of the first's
+// kind share, a vector of keys none of them [D388].
 function foldOf(values, pair, refusals, readsEvery) {
   if (values.length === 0) throw refusingTheSubject(new refusals.SubjectEmptyError({ actualValue: values }));
   const read = values.map(beneathTags);
   (readsEvery ? read : read.slice(0, 1)).forEach((value, index) => {
     if (!isSet(value) && !isMap(value)) throw refusingAPart(new refusals.ElementNotSetOrMapError({ actualValue: values[index] }), index);
   });
-  return read.reduce((left, right, at) => pair(left, right, refusals, at));
+  const ofTheKind = isSet(read[0]) ? isSet : isMap;
+  const tags = tagsTheElementsShare([...values.entries()].filter((_, at) => ofTheKind(read[at])));
+  return underTagsNamed(read.reduce((left, right, at) => pair(left, right, refusals, at)), tags);
 }
 
 // ── union ──────────────────────────────────────────────────────
 
 const VEC_UNION = {
-  KindsMismatchedError: declareRefusal('vec/union/KindsMismatchedError'),
   SubjectEmptyError: declareRefusal('vec/union/SubjectEmptyError'),
   ElementNotSetOrMapError: declareRefusal('vec/union/ElementNotSetOrMapError')
 };
@@ -129,7 +132,6 @@ registerPrimitive('map/union', (map, other) => unionOfMaps(map, other));
 const MapMinusKeysElementKindNotTakenError = declareRefusal('map/minus/keys/ElementKindNotTakenError');
 
 const VEC_MINUS = {
-  KindsMismatchedError: declareRefusal('vec/minus/KindsMismatchedError'),
   SubjectEmptyError: declareRefusal('vec/minus/SubjectEmptyError'),
   ElementNotSetOrMapError: declareRefusal('vec/minus/ElementNotSetOrMapError'),
   KeyKindNotTakenError: declareRefusal('vec/minus/KeyKindNotTakenError')
@@ -144,7 +146,6 @@ registerPrimitive('map/minus', (map, keys) => minusOfMap(map, keys, MapMinusKeys
 const MapInterKeysElementKindNotTakenError = declareRefusal('map/inter/keys/ElementKindNotTakenError');
 
 const VEC_INTER = {
-  KindsMismatchedError: declareRefusal('vec/inter/KindsMismatchedError'),
   SubjectEmptyError: declareRefusal('vec/inter/SubjectEmptyError'),
   ElementNotSetOrMapError: declareRefusal('vec/inter/ElementNotSetOrMapError'),
   KeyKindNotTakenError: declareRefusal('vec/inter/KeyKindNotTakenError')

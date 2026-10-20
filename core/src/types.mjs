@@ -288,6 +288,37 @@ export function beneathTags(value) {
   return beneath;
 }
 
+// The names of the tags over a value down to its kind of the core, from the
+// outside in, a tag a vector or a map holds on itself among them but a kind
+// of the core's own [D388].
+export function tagsOver(value) {
+  const tags = [];
+  let part = value;
+  for (; isValueClass(part, 'underTag'); part = part.payload) tags.push(part.tag.name);
+  const header = part !== null && typeof part === 'object' ? part[TAG_HEADER_SYMBOL] : undefined;
+  if (header !== undefined && !Object.hasOwn(CORE_KIND, header.name)) tags.push(header.name);
+  return tags;
+}
+
+// A value under the tags named, from the outside in, each laid as it is.
+export const underTagsNamed = (value, tags) => tags.reduceRight((laid, name) => makeTagged(makeTag(name), laid), value);
+
+const sameTags = (left, right) => left.length === right.length && left.every((name, at) => name === right[at]);
+
+// tagsShared(entries) → `{ tags }`, the tags the values a step combines share, a
+// bare one sharing any, or `{ clash }`, the first two under different tags and
+// the place of the second [D388].
+export function tagsShared(entries) {
+  let shared = null;
+  for (const [at, value] of entries) {
+    const tags = tagsOver(value);
+    if (tags.length === 0) continue;
+    if (shared === null) shared = { value, tags };
+    else if (!sameTags(shared.tags, tags)) return { clash: { left: shared.value, right: value, at } };
+  }
+  return { tags: shared?.tags ?? [] };
+}
+
 // The payload beneath a value's own tag [QSLIT#kind]: the payload the tag
 // holds under it, or a copy of the vector or the map that holds the tag on
 // itself, without it, a set's vector among them.

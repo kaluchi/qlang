@@ -30,3 +30,5 @@
 {"name":"sort-over-a-tag-stacked-on-a-set-answers-the-bare-vector","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | sort","expect":"[1 2 3]"}
 {"name":"an-answer-of-another-kind-leaves-an-undeclared-tag-behind","query":"::AutoDist[1 2 1 3] | distinct | type","expect":"::set"}
 {"name":"the-set-of-the-elements-beneath-the-tag-of-a-vector-is-made-within-it","query":"::Box[2 1 2] | within ~(distinct)","expect":"::Box#[1 2]"}
+{"decision":"D388","name":"values-under-two-tags-combine-in-no-step-of-any-kind","query":"get [~(::Name\"a\" | append ::Other\"b\" !| type) ~(::Name\"a\" | append \"b\") ~(\"a\" | append ::Name\"b\")]","expect":"[::call/KindsMismatchedError ::Name\"ab\" ::Name\"ab\"]"}
+{"decision":"D388","name":"a-container-under-a-tag-it-holds-combines-as-every-tagged-value-does","query":"get [~([1] | concat ::Box[2]) ~(::A[1] | concat ::B[2] !| type) ~(::A{:a 1} | union {:b 2}) ~({:a 1} | union ::B{:b 2}) ~(::A{:a 1} | union ::B{:b 2} !| type)]","expect":"[::Box[1 2] ::call/KindsMismatchedError ::A{:a 1 :b 2} ::B{:a 1 :b 2} ::call/KindsMismatchedError]"}

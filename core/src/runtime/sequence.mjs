@@ -6,9 +6,9 @@
 // its values and keeps its keys [QSCOL#map], a string's reads its characters
 // [QSTXT#string], and a refusal names the verb that refused [QSERR#site].
 
-import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath } from '../types.mjs';
+import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, typeOf, tagsShared, underTagsNamed } from '../types.mjs';
 import { compareValues, makeSet } from '../ordering.mjs';
-import { declareRefusal, refusingAPart } from '../errors.mjs';
+import { declareRefusal, refusingAPart, CallKindsMismatchedError } from '../errors.mjs';
 import { registerPrimitive, runs, folds } from '../primitives.mjs';
 import { atPlace } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
@@ -63,16 +63,25 @@ function numberBeneath(element) {
   return isNumber(beneath) ? beneath : undefined;
 }
 
-// The total of the numbers, an element of another kind refused where it
-// stands.
+// The tags the elements a fold combines share, a bare one sharing any, two
+// under different tags refused as the pair at the place of the second [D388].
+export function tagsTheElementsShare(entries) {
+  const { tags, clash } = tagsShared(entries);
+  if (clash !== undefined) throw refusingAPart(new CallKindsMismatchedError({ leftType: typeOf(clash.left), rightType: typeOf(clash.right) }), clash.at);
+  return tags;
+}
+
+// The total of the numbers under the tags they share, an element of another
+// kind refused where it stands.
 function totalOf(elements, ElementNotNumberError) {
+  const tags = tagsTheElementsShare(elements);
   let total = 0;
   for (const [at, element] of elements) {
     const number = numberBeneath(element);
     if (number === undefined) throw refusingAPart(new ElementNotNumberError({ actualValue: element }), at);
     total += number;
   }
-  return total;
+  return underTagsNamed(total, tags);
 }
 
 const VecSumElementNotNumberError = declareRefusal('vec/sum/ElementNotNumberError');
@@ -80,11 +89,12 @@ const MapSumElementNotNumberError = declareRefusal('map/sum/ElementNotNumberErro
 registerPrimitive('vec/sum', vector => totalOf(entriesOf(vector), VecSumElementNotNumberError));
 registerPrimitive('map/sum', map => totalOf(entriesOf(map), MapSumElementNotNumberError));
 
-// The mean of the numbers, a running mean whose every step stays among
-// the finite doubles; an empty container has none, and answers null as
-// `min` and `max` do [QSCOL#sequence].
+// The mean of the numbers under the tags they share, a running mean whose
+// every step stays among the finite doubles; an empty container has none, and
+// answers null as `min` and `max` do [QSCOL#sequence].
 function meanOf(elements, ElementNotNumberError) {
   if (elements.length === 0) return NULL;
+  const tags = tagsTheElementsShare(elements);
   let mean = 0;
   for (const [count, [at, element]] of elements.entries()) {
     const number = numberBeneath(element);
@@ -92,7 +102,7 @@ function meanOf(elements, ElementNotNumberError) {
     const gap = number - mean;
     mean += Number.isFinite(gap) ? gap / (count + 1) : number / (count + 1) - mean / (count + 1);
   }
-  return mean;
+  return underTagsNamed(mean, tags);
 }
 
 const VecAvgElementNotNumberError = declareRefusal('vec/avg/ElementNotNumberError');
@@ -129,13 +139,16 @@ async function keyedEntries(entries, key) {
 
 // The least or the greatest element in the one order, or by the value
 // the key answers for each, `pick` naming which side wins a comparison,
-// the first of equal ones staying [QSORD#sort].
+// the first of equal ones staying [QSORD#sort]; two of two kinds are refused
+// as the pair at the place of the second, as a comparison refuses them [D388].
 async function extremeOf(entries, key, pick) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
   if (ranked.length === 0) return NULL;
   let best = ranked[0];
   for (const candidate of ranked.slice(1)) {
+    const [leftType, rightType] = [typeOf(ranked[0].sortKey), typeOf(candidate.sortKey)];
+    if (leftType.name !== rightType.name) throw refusingAPart(new CallKindsMismatchedError({ leftType, rightType }), candidate.entry[0]);
     if (pick(compareValues(candidate.sortKey, best.sortKey))) best = candidate;
   }
   return best.entry[1];

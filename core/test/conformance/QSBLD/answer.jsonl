@@ -12,3 +12,4 @@
 {"name":"the-node-of-the-answer-of-a-verb-holds-its-kinds","query":"::vec/count/answer | binding | get /value","expect":"::number"}
 {"name":"returns-an-empty-set-of-kinds-is-refused","query":"::fn | returns |~~ r ~~| #[] !| type","expect":"::fn/CommandNotTakenError"}
 {"name":"returns-with-a-page-and-no-kinds-is-refused","query":"::fn | returns |~~ r ~~| !| get [~(type) /index]","expect":"[::fn/CommandNotTakenError 1]"}
+{"decision":"D388","name":"an-answer-of-another-kind-stands-under-its-tags","query":":any/f (::fn | returns |~~ r ~~| ::number | impl ~(::W#5)) | 1 | f","expect":"::W#5"}

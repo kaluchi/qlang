@@ -28,5 +28,5 @@
 {"name":"the-laws-a-page-carried-stand-under-its-name","query":"::number/add | laws | count","expect":"4"}
 {"name":"a-law-of-a-spelled-form-shows-the-form","query":"::map | laws | get /readsJson | get /1 | print","expect":"\"~(\\\"{\\\\\\\"a\\\\\\\": 1, \\\\\\\"b\\\\\\\": [true, null]}\\\" | parse | open | eq {:a 1 :b [true null]})\""}
 {"name":"laws-and-runLaws-refuse-a-name-nothing-declares","query":"get [~(::nothere | laws !| type) ~(::nothere | runLaws !| type)]","expect":"[::any/laws/UnknownNameError ::any/runLaws/UnknownNameError]"}
-{"decision":"D379","name":"a-law-is-a-quote-under-its-kind","query":"get [~(::law#3 !| type) ~(::law~(true) | payload)]","expect":"[::law/PayloadKindNotTakenError ~(true)]"}
-{"decision":"D379","name":"a-law-runs-the-query-beneath-the-tags-it-is-given-under","query":":three 3 | :three/x |~~ x ~~| ::law::Foo~(3 | eq 3) | ::three | runLaws | map /ok","expect":"[true]"}
+{"name":"a-law-is-a-quote-under-its-kind","query":"get [~(::law#3 !| type) ~(::law~(true) | payload)]","expect":"[::law/PayloadKindNotTakenError ~(true)]"}
+{"name":"a-law-runs-the-query-beneath-the-tags-it-is-given-under","query":":three 3 | :three/x |~~ x ~~| ::law::Foo~(3 | eq 3) | ::three | runLaws | map /ok","expect":"[true]"}

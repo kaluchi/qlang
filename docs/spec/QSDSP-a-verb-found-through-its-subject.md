@@ -59,8 +59,10 @@ noun's own alone [QSDSP#tagname]; a subject no verb of a name serves is
 refused, where one verb holds the name, by that verb under its own
 address, with its page and its repair, `42 | keys` as
 `::map/keys/SubjectNotMapError`, and where several hold it by the call
-[QSDSP#refusal]. A refinement a verb wants checked is written where the
-value is made, `x | tag ::Pos | f`, its kind answering there. A
+[QSDSP#refusal]. A refinement a verb checks of its subject is an
+invariant under its subject, `holds :subject/NotIntegerError`, and one
+that names a concept a kind of its own, written where the value is made,
+`x | tag ::Pos | f`, its kind answering there. A
 verb is called by its name or by its address, which checks the subject
 by that residence. A set, a quote and a doc are vectors to a verb of
 vectors, an answer of the vector's label brought back as their own kind

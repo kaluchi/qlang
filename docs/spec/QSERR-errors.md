@@ -258,8 +258,9 @@ verb, the subject of a function `apply` runs, `SubjectKindNotTakenError`,
 and the key an element files under, `KeyKindNotTakenError`, among them,
 the set of the kinds it takes the fact `:expected`; the subject of a verb
 is refused by the label it resides on, `SubjectNotNumberError`. The
-refusal of an input's value lives under the input, whether an invariant
-or a primitive raises it, and what a run answers under the verb. A
+refusal of an input's value lives under the input and that of the
+subject's under `subject`, whether an invariant or a primitive raises
+it, and what a run answers under the verb. A
 refusal is declared in the source of the place it guards, but for one the
 runtime raises by rule: the refusal of the kinds of an input, a field or
 a payload is a node the chain lays, with a page of its own where no

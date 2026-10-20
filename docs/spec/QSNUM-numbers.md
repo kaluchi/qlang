@@ -26,8 +26,9 @@ one within them is given,
 `div`, `::number/div/divisor/ZeroError`, and a remainder by zero under
 that of `mod`, `::number/mod/divisor/ZeroError`. `range` answers the
 whole numbers from zero below its subject, `[]` from zero and below, a
-fraction refused as `::number/range/CountNotIntegerError` and a count
-past the length a vector may have as `::number/range/CountTooLargeError`.
+fraction refused by the invariant of its subject,
+`::number/range/subject/NotIntegerError`, and a count past the length a
+vector may have as `::number/range/CountTooLargeError`.
 
 ```qlang
 > 10 | add 5 | mul 2 | sub 10

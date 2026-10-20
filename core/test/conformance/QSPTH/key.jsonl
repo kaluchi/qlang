@@ -16,4 +16,4 @@
 {"name":"get-and-query-refuse-a-value-that-names-no-part","query":"{:true 1 :k null :f true} | get [~(get (get /k) !| type) ~(get (get /f) !| type) ~(query #\"a\" !| type) ~(get ::a !| type)]","expect":"[::any/get/path/KindNotTakenError ::any/get/path/KindNotTakenError ::any/query/path/KindNotTakenError ::any/get/path/KindNotTakenError]"}
 {"name":"get-reads-a-set-a-value-under-a-tag-and-a-quote-as-templates","query":"{:a 1} | get [~(get #[/a]) ~(get ::Box[/a]) ~(get ~(get /a)) ~(get !{:x /a})]","expect":"[#[1] ::Box[1] 1 !{:x 1}]"}
 {"name":"a-key-a-modifier-failed-to-compute-answers-its-failure","query":"{} | get (get /k) !| type","expect":"::path/KeyNotInMapError"}
-{"decision":"D376","name":"the-group-of-a-boolean-is-read-by-its-keyword","query":"[1 2 3] | groupBy ~(gt 1) | get [~(get true !| type) ~(get :true)]","expect":"[::any/get/path/KindNotTakenError [2 3]]"}
+{"name":"the-group-of-a-boolean-is-read-by-its-keyword","query":"[1 2 3] | groupBy ~(gt 1) | get [~(get true !| type) ~(get :true)]","expect":"[::any/get/path/KindNotTakenError [2 3]]"}

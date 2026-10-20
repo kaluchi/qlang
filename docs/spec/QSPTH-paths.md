@@ -112,11 +112,14 @@ one segment of its text where `get`, `query` and the verbs that write
 take a path, which a map reads as a key and a vector as an index, so one
 the query computes is read. Any other value `get` and `query` take is a
 template [QSPTH#template], a vector, a map or a set, or a value under a
-tag, a quote among them; a value that names no part, null, a boolean, a
-regex or a tag name, is refused under their input `path`,
-`::any/get/path/KindNotTakenError`, so a key computed from data that
-holds null is refused where it is read. Every place that takes a key of
-a map reads a string so, and a number as the key of its text. The keys
+tag, a quote among them, and they refuse the rest under their input
+`path`, `::any/get/path/KindNotTakenError`, so a key computed from data
+that holds null is refused where it is read, and a key a modifier failed
+to compute answers its failure [QSQUO#modifier]. A boolean, null and a
+tag name are no key: a map files them under the keyword `toKeyword`
+answers [QSCND#convert], which reads that key, `get :true`. Every place
+that takes a key of a map reads a string so, and a number as the key of
+its text. The keys
 `minus` takes out of a map and `inter` keeps of it are the value of
 their input `keys`, a map, a vector or a set of keys, each a keyword, a
 number or a string: an element of another kind is refused under that
@@ -136,11 +139,14 @@ reading `:b` under `:a`.
 > {:k "b" :b 7} | get (get /k)
 7
 
-> {:k null} | get (get /k) !| type
-::any/get/path/KindNotTakenError
+> get [~({:k null} | get (get /k) !| type) ~({} | get (get /k) !| type)]
+[::any/get/path/KindNotTakenError ::path/KeyNotInMapError]
 
-> {:"1" 5 :b 2} | get [~(minus ["b"]) ~(inter [1])]
-[{:"1" 5} {:"1" 5}]
+> [1 2 3] | groupBy ~(gt 1) | get [~(get true !| type) ~(get :true)]
+[::any/get/path/KindNotTakenError [2 3]]
+
+> {:"1" 5 :b 2} | get [~(minus ["b"]) ~(inter [1]) ~(get [~(it) [1]] | minus)]
+[{:"1" 5} {:"1" 5} {:b 2}]
 
 > get [~({:a 1} | minus [:a true] !| get [~(type) /index /expected]) ~([{:a 1} [true]] | minus !| type)]
 [[::map/minus/keys/ElementKindNotTakenError 1 #[::keyword ::number ::string]] ::vec/minus/KeyKindNotTakenError]

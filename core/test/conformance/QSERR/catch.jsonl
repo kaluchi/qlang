@@ -19,5 +19,5 @@
 {"name":"an-error-at-rest-a-quote-holds-under-a-label-raised-is-caught-by-the-refusal-of-its-invariant","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it !| type","expect":"::Box/k"}
 {"name":"a-literal-that-holds-no-path-after-a-catch-is-its-recovery","query":"!{:k 1} | raise !| [1 2]","expect":"[1 2]"}
 {"name":"a-step-of-the-fail-track-built-from-data-refuses-a-literal-of-paths-and-quotes","query":"get [~(::fail~([/k]) !| type) ~(::fail~({:k ~(get /k)}) !| type)]","expect":"[::fail/StepNotCommandError ::fail/StepNotCommandError]"}
-{"decision":"D376","name":"a-quote-the-recovery-answers-is-computed-by-a-group","query":"\"x\" | add 1 !| (~(get /message))","expect":"~(get /message)"}
-{"decision":"D376","name":"a-step-of-the-fail-track-built-from-data-refuses-a-quote","query":"::fail~(~(get /k)) !| type","expect":"::fail/StepNotCommandError"}
+{"name":"a-quote-the-recovery-answers-is-computed-by-a-group","query":"\"x\" | add 1 !| (~(get /message))","expect":"~(get /message)"}
+{"name":"a-step-of-the-fail-track-built-from-data-refuses-a-quote","query":"::fail~(~(get /k)) !| type","expect":"::fail/StepNotCommandError"}

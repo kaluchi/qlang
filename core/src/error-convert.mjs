@@ -1,7 +1,6 @@
 import { keyword, makeErrorValue, makeTag, makeTagged, typeOf, ERROR_TAG } from './types.mjs';
 import { declareDefect, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './nouns.mjs';
-import { deepEqual } from './equality.mjs';
 import { nameOfContinuation } from './parse.mjs';
 
 // The reading of text into code refuses on `::quote`, and a primitive that
@@ -51,16 +50,15 @@ export function factsInOrder(tag, facts, scope) {
 }
 
 // The error a refusal of the runtime raised at the span of its step, or at
-// none: the facts its site handed with the kind of the value refused, the
-// value left out where it equals the subject the first frame holds [QSERR#site].
+// none: the facts its site handed with the kind of the value refused, and a
+// refusal of the subject its step was served the kind of that subject alone,
+// which the first frame holds [QSERR#site].
 export function errorFromQlang(qlangError, subject, scope, location = null) {
   const tag = makeTag(qlangError.address);
-  const facts = new Map();
-  for (const [name, value] of Object.entries(qlangError.facts)) {
-    if (value === undefined || (name === 'actualValue' && deepEqual(value, subject))) continue;
-    facts.set(name, value);
-  }
-  if (qlangError.facts.actualValue !== undefined) facts.set('actualType', typeOf(qlangError.facts.actualValue));
+  const facts = new Map(Object.entries(qlangError.facts).filter(([, value]) => value !== undefined));
+  const ofTheSubject = qlangError.refusesTheSubject === true && subject !== undefined;
+  if (ofTheSubject) facts.delete('actualValue');
+  if (ofTheSubject || facts.has('actualValue')) facts.set('actualType', typeOf(ofTheSubject ? subject : facts.get('actualValue')));
   return makeErrorValue(tag, factsInOrder(tag, facts, scope), { location, originalError: qlangError });
 }
 

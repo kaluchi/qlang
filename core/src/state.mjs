@@ -14,10 +14,12 @@ import { ROOT_KEY, QUERY_KEY } from './scope-keys.mjs';
 export const EVAL_DEPTH_LIMIT = 1000;
 
 // The calls a state runs within keep the origin of each quote they
-// received, the nearest first, and a state a verb of the host reads keeps
-// beside the tree of the query the scope of its own step [QSQUO#held], [QSNAM#owner].
-function makeState(pipeValue, scope, depth, calls = null, own = null) {
-  return Object.freeze({ pipeValue, scope, depth, calls, own });
+// received, the nearest first, a state a verb of the host reads keeps
+// beside the tree of the query the scope of its own step, and the state a
+// call answers the flight of its failure, which the step that receives it
+// reads and every other state drops [QSQUO#held], [QSNAM#owner], [QSERR#trace].
+function makeState(pipeValue, scope, depth, calls = null, own = null, flight = null) {
+  return Object.freeze({ pipeValue, scope, depth, calls, own, flight });
 }
 
 // rootState(pipeValue, scope) → a state at depth 0, the first of a query, a
@@ -35,6 +37,12 @@ export function withPipeValue(state, nextPipeValue) {
 // withScope(state, nextScope) → a state at the same depth holding the scope.
 export function withScope(state, nextScope) {
   return makeState(state.pipeValue, nextScope, state.depth, state.calls);
+}
+
+// withFlight(state, flight) → the state a call answers, holding the flight
+// of its failure [QSERR#trace].
+export function withFlight(state, flight) {
+  return makeState(state.pipeValue, state.scope, state.depth, state.calls, state.own, flight);
 }
 
 // depthBelow(state) → the evaluation depth one deeper than a state, or
@@ -103,7 +111,7 @@ export function queryTreeOf(scope) {
 // call: its value and its depth over the tree of the query [QSNAM#owner].
 export function queryStateOf(state) {
   const tree = queryTreeOf(state.scope);
-  return tree === state.scope ? state : makeState(state.pipeValue, tree, state.depth, state.calls, state.scope);
+  return tree === state.scope ? state : makeState(state.pipeValue, tree, state.depth, state.calls, state.scope, state.flight);
 }
 
 // scopeSet(scope, name, value) → a new scope, the name holding the value; the

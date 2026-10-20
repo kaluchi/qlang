@@ -29,7 +29,8 @@
 
 import {
   isVec, isSet, isQuote, isDoc, isVecOfOwnKind, isMap, isErrorValue, isValueClass, isFrame, isTrace,
-  makeTagged, beneathTags, makeErrorValue, makeFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL,
+  makeTagged, beneathTags, makeErrorValue, makeFrame, partsOfFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL,
+  SUBJECT_INDEX_OF_A_FRAME,
   ELISION_TAG, SET_TAG
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
@@ -95,7 +96,7 @@ function elisionOf(fields) {
 // prints its own way stands as that kind prints it.
 function partsOf(value, path, printedOf, parts, underTag = false) {
   if (isElision(value) || printedOf(value) !== undefined) return;
-  if (isFrame(value)) return partsOf(value[0], [...path, 0], printedOf, parts);
+  if (isFrame(value)) return partsOf(partsOfFrame(value).subject, [...path, SUBJECT_INDEX_OF_A_FRAME], printedOf, parts);
   const beneath = path.length > 0;
   if (beneath && isText(value)) parts.push({ path, value });
   if (halves(value)) {
@@ -266,9 +267,10 @@ function passedOver(value, read, printedOf, oneLine = false) {
 // subject of the first within its excerpt, of every later one given way
 // whole, each measured on the one line a frame prints on [QSHST#answer].
 function framesOf(trace, read, printedOf) {
-  return makeTrace(trace.map(([subject, steps, place = null], index) => {
-    const subjectRead = readBelow(read, [index, 0]);
-    return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true) : passedOver(subject, subjectRead, printedOf, true), steps, place);
+  return makeTrace(trace.map((frame, index) => {
+    const { subject, unfinished, place } = partsOfFrame(frame);
+    const subjectRead = readBelow(read, [index, SUBJECT_INDEX_OF_A_FRAME]);
+    return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true) : passedOver(subject, subjectRead, printedOf, true), unfinished, place);
   }));
 }
 

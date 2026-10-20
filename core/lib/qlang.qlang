@@ -762,8 +762,9 @@
             failure where it is read. No value holds a failure: a template
             whose quote fails, a literal whose constructor refuses its
             payload and a name whose body fails answer the failure. The
-            facts name what refused, and the first frame of the trace holds
-            the value the step refused. `explain` shows the page of the
+            facts name what refused and hold the value refused, but where
+            the step refused its subject, which the first frame of the
+            trace holds. `explain` shows the page of the
             site above the error. The trace is written as the failure
             flies: a frame for each level it left, the subject its step met
             and the steps from the one that failed, the last frame holding

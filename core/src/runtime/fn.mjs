@@ -8,7 +8,7 @@
 // which reads its inputs.
 
 import { registerPrimitive, registerStateReader } from '../primitives.mjs';
-import { declareRefusal } from '../errors.mjs';
+import { declareRefusal, refusingTheSubject } from '../errors.mjs';
 import { commandStep, declarationStep } from '../steps.mjs';
 import { inputsOfFunction } from '../eval.mjs';
 import { chainOfFn, FN_COMMAND_NAMES } from '../chain.mjs';
@@ -66,7 +66,7 @@ registerPrimitive('fn/impl', (subject, recipe) => madeFn(commandsOf(functionOf(s
 // reads it; the code answers.
 registerStateReader('fn/fill', async (fn, args, state) => {
   const recipe = recipeOf(fn);
-  if (!isQuote(recipe)) throw new FnFillRecipeNotCodeError({ actualValue: fn });
+  if (!isQuote(recipe)) throw refusingTheSubject(new FnFillRecipeNotCodeError());
   const values = await inputsOfFunction(fn, [...args], state);
   if (isErrorValue(values)) return values;
   return makeQuote([...chainOfFn(fn).inputs.map(({ name, page }, at) => declarationStep(name.name, [page], values[at])), ...recipe]);

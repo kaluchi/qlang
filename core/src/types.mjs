@@ -341,8 +341,23 @@ export function isFrame(value) {
   return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === FRAME_TAG.name;
 }
 
-export function makeFrame(subject, steps, place = null) {
-  return makeTagged(FRAME_TAG, place === null ? [subject, steps] : [subject, steps, place]);
+export function makeFrame(subject, unfinished, place = null) {
+  return makeTagged(FRAME_TAG, place === null ? [subject, unfinished] : [subject, unfinished, place]);
+}
+
+// The parts of a frame in their places, which `makeFrame` lays and every
+// reader of a frame in the code reads it by: the subject, the steps of its
+// level from the one that failed, one at least, and the place of the part
+// its code failed on, a path written third where it failed on one.
+export const SUBJECT_INDEX_OF_A_FRAME = 0;
+
+export function partsOfFrame(frame) {
+  const [subject, unfinished, place = null] = frame;
+  return { subject, unfinished, place };
+}
+
+export function holdsTheLayoutOfAFrame(parts) {
+  return parts.length <= 3 && isQuote(parts[1]) && parts[1].length > 0 && (parts.length === 2 || isPath(parts[2]));
 }
 
 export function makeTrace(frames) {
@@ -368,10 +383,12 @@ export function formOf(v) {
 }
 
 // typeOf(v) — the kind of a value, the tag `type` answers [QSLIT#kind]: its
-// outermost tag, or the kind of the core its literal implies, an object of no
-// kind of the core raised as `::builtin/ForeignValueError` [QSHST#source].
+// outermost tag, the tag of a raised error among them, or the kind of the core
+// its literal implies, an object of no kind of the core raised as
+// `::builtin/ForeignValueError` [QSHST#source].
 export function typeOf(v) {
   if (isNull(v)) return CORE_KIND.null;
+  if (isErrorValue(v)) return v.tag;
   if (isBoolean(v)) return CORE_KIND.boolean;
   if (isNumber(v)) return CORE_KIND.number;
   if (isString(v)) return CORE_KIND.string;

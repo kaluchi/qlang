@@ -4,7 +4,7 @@
 import { layTag } from '../eval.mjs';
 import { registerPrimitive, registerStateReader, runs } from '../primitives.mjs';
 import { isVec, isNull, isTag, payloadBeneath, beneathTags } from '../types.mjs';
-import { declareRefusal } from '../errors.mjs';
+import { declareRefusal, refusingTheSubject } from '../errors.mjs';
 
 const AnyTagPairTagNotTagError = declareRefusal('any/tag/PairTagNotTagError');
 const AnyTagSubjectNotPairError = declareRefusal('any/tag/SubjectNotPairError');
@@ -22,7 +22,7 @@ registerPrimitive('tagged/within', runs(['code'], async (subject, code) => await
 // the pair it takes apart.
 async function layTagOfPair(subject, state) {
   const pair = beneathTags(subject);
-  if (!isVec(pair) || pair.length !== 2) throw new AnyTagSubjectNotPairError({ actualValue: subject });
+  if (!isVec(pair) || pair.length !== 2) throw refusingTheSubject(new AnyTagSubjectNotPairError());
   const [pairTag, value] = pair;
   if (!isTag(beneathTags(pairTag))) throw new AnyTagPairTagNotTagError({ actualValue: pairTag });
   return await layTag(beneathTags(pairTag).name, value, state);

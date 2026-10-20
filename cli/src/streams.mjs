@@ -4,7 +4,7 @@
 // [QSBLD#fn].
 
 import { printValue } from '@kaluchi/qlang-core';
-import { declareRefusal } from '@kaluchi/qlang-core/errors';
+import { declareRefusal, refusingTheSubject } from '@kaluchi/qlang-core/errors';
 
 const AnyOutSubjectNotStringError = declareRefusal('any/out/SubjectNotStringError');
 const AnyErrSubjectNotStringError = declareRefusal('any/err/SubjectNotStringError');
@@ -14,7 +14,7 @@ const AnyErrSubjectNotStringError = declareRefusal('any/err/SubjectNotStringErro
 function makeWriter(writer, recordEffect, SubjectError) {
   return (subject, text) => {
     const written = text === null ? subject : text;
-    if (typeof written !== 'string') throw new SubjectError({ actualValue: subject });
+    if (typeof written !== 'string') throw refusingTheSubject(new SubjectError());
     writer(written + '\n');
     recordEffect();
     return subject;

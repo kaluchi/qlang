@@ -5,7 +5,7 @@
 // [QSPTH#template], [QSPTH#write], [QSPTH#verbs].
 
 import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
-import { declareRefusal } from '../errors.mjs';
+import { declareRefusal, refusingTheSubject } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate, isKeyAlone, keyNameOf } from '../path-read.mjs';
 import { layTag } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
@@ -79,14 +79,14 @@ async function written(value, path, at, write, state) {
   let bare;
   let slot;
   if (isMap(value)) {
-    if (!value.has(segment) && !(last && write.adds)) throw keyNotInMap(value, segment, path);
+    if (!value.has(segment) && !(last && write.adds)) throw keyNotInMap(value, segment, path, at);
     bare = new Map(value);
     slot = segment;
   } else if (isVec(value)) {
     bare = [...value];
-    slot = indexIn(value, segment, path);
+    slot = indexIn(value, segment, path, at);
   } else {
-    throw noPartsOn(value, segment, path);
+    throw noPartsOn(value, segment, path, at);
   }
   if (last && write.removes) {
     if (isMap(bare)) bare.delete(slot);
@@ -114,7 +114,7 @@ registerStateReader('any/update', runs(['code'], (subject, pathOrKey, code, stat
   const path = pathOf(pathOrKey);
   const part = async old => {
     const answer = await code(old);
-    return isErrorValue(answer) ? atPlace(answer, path) : answer;
+    return isErrorValue(answer) ? atPlace(code, answer, path) : answer;
   };
   return written(subject, path, 0, { adds: false, removes: false, part }, state);
 }));
@@ -141,7 +141,7 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
 // A path names one segment at least, the value itself being `it` [QSPTH#value],
 // each the text of a key alone [QSPTH#key]; a path is itself.
 registerPrimitive('vec/toPath', keys => {
-  if (keys.length === 0) throw new VecToPathSubjectEmptyError({ actualValue: keys });
+  if (keys.length === 0) throw refusingTheSubject(new VecToPathSubjectEmptyError());
   return makePath(keys.map((element, index) => {
     const key = beneathTags(element);
     if (!isKeyAlone(key)) throw new VecToPathElementNotKeyError({ index, actualValue: element });
@@ -154,6 +154,6 @@ registerPrimitive('path/toPath', path => path);
 // `~1` a slash and `~0` a tilde within a segment.
 registerPrimitive('string/toPath', text => {
   const pointer = text.startsWith('#') ? text.slice(1) : text;
-  if (!pointer.startsWith('/')) throw new StringToPathNotPointerError({ actualValue: text });
+  if (!pointer.startsWith('/')) throw refusingTheSubject(new StringToPathNotPointerError());
   return makePath(pointer.slice(1).split('/').map(segment => segment.replace(/~1/g, '/').replace(/~0/g, '~')));
 });

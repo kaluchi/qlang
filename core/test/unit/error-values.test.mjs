@@ -10,7 +10,7 @@ import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { createSession, evalQuery } from '../../src/session.mjs';
 import { elideAnswer } from '../../src/runtime/print.mjs';
-import { QlangError, CallUnknownNameError, declareRefusal } from '../../src/errors.mjs';
+import { QlangError, CallUnknownNameError, declareRefusal, refusingTheSubject } from '../../src/errors.mjs';
 
 // ── makeErrorValue ──────────────────────────────────────────────
 
@@ -95,7 +95,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
 
   it('a fold names the place of its element on its frame where its one word, a host\'s verb, answers or throws such a failure', async () => {
     const answered = await hostHanding([makeFrame(0, parse('pre'))]);
-    expect(await answerIn(answered, '[1 2] | reduce 0 ~(answeredToTheFold) !| trace | map ~place | eq [null /0]')).toBe(true);
+    expect(await answerIn(answered, '[1 2] | reduce 0 ~(answeredToTheFold) !| trace | map ~place | eq [null null /0]')).toBe(true);
     const thrown = await hostHanding('at Foo.bar(Foo.java:1)');
     expect(await answerIn(thrown, '[1 2] | reduce 0 ~(thrownToTheFold) !| get [~(type) ~(trace | last | place)] | eq [::trace/PayloadKindNotTakenError /0]')).toBe(true);
   });
@@ -103,6 +103,13 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
   it('a constructor of a host\'s kind that refuses the error at rest a catch holds with such a :trace answers the refusal of the kind', async () => {
     const session = await hostHanding('at Foo.bar(Foo.java:1)');
     expect(await answerIn(session, '::Built{:a 1} | raise !| type !| type')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
+  });
+
+  it('carries no place of a fold\'s call of a host\'s word into another call that answers the same failure, the place a fact of its call', async () => {
+    const kept = makeErrorValue(makeTag('error'), new Map());
+    const session = await createSession({ sources: [{ uri: 'host', source: ':any/again |~~ Answers the one failure its host keeps. ~~| (::fn | takes :x |~~ x ~~| ~(it) | impl ::builtin{})', primitives: { 'any/again': () => kept } }] });
+    expect(await answerIn(session, '[1 2] | reduce 0 ~(again) !| trace | last | place')).toEqual(makePath(['0']));
+    expect(await answerIn(session, '5 | again 1 !| trace | last | place')).toBe(null);
   });
 
   it('a refusal the constructor of a host\'s kind throws inside a literal with an empty trace holds none, the literal\'s frame its first', async () => {
@@ -337,14 +344,13 @@ describe('error-convert coercion edge cases', () => {
     expect(errorVal.facts.get('actualType')).toEqual(makeTag('null'));
   });
 
-  it('an actualValue equal to the subject the first frame holds is left out of the facts', async () => {
-    // The value refused equals the subject, whatever its identity, so the
-    // first frame of the trace holds it alone [QSERR#site].
+  it('holds the value a refusal refuses whatever the subject equals, and of a refusal of the subject the kind of that subject alone', async () => {
     const subject = new Map([['nested', 1]]);
-    const typeErr = new TestsProbeTypeError({ actualValue: new Map([['nested', 1]]) });
-    const errorVal = errorFromQlang(typeErr, subject, await langRuntime());
-    expect(errorVal.facts.has('actualValue')).toBe(false);
-    expect(errorVal.facts.get('actualType').name).toBe('map');
+    const equal = errorFromQlang(new TestsProbeTypeError({ actualValue: new Map([['nested', 1]]) }), subject, await langRuntime());
+    expect(equal.facts.has('actualValue')).toBe(true);
+    const ofTheSubject = errorFromQlang(refusingTheSubject(new TestsProbeTypeError()), subject, await langRuntime());
+    expect(ofTheSubject.facts.has('actualValue')).toBe(false);
+    expect(ofTheSubject.facts.get('actualType').name).toBe('map');
   });
 
   it('an actualValue other than the subject stays among the facts', async () => {

@@ -106,7 +106,8 @@ export function refuseASecondRun(dir, record, form, tree, shown) {
 // The start of a clean reader: a clean Opus from an empty directory of its
 // own, with no instruction file, memory or server, the tree's `qlang` first
 // on its path, its tools Read, Grep, Glob and Bash for what its caller
-// allows, and no git command but the listing of the files a caller gives it.
+// allows and the commands that only read, which the harness passes unasked,
+// and no git command but the listing of the files a caller gives it [D392].
 export const READER_TOOLS = ['Read', 'Grep', 'Glob', 'Bash'];
 export const allowedReading = repoPath => ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(grep:*)', `Bash(git -C ${repoPath} ls-files:*)`];
 
@@ -116,7 +117,7 @@ export const allowedReading = repoPath => ['Read', 'Grep', 'Glob', 'Bash(qlang:*
 export const headOf = ({ what, tree, onTheBaseline, date, started, ended, allowed }) => [
   `> ${what}`,
   `> Tree \`${tree}\`, ${onTheBaseline}; run ${date}, ${minuteOf(started)}–${minuteOf(ended)} UTC. A path it names reads as \`git show ${tree}:<path>\`.`,
-  `> Run as \`claude -p --model opus\` from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, tools \`${READER_TOOLS.join(' ')}\`, ${allowed} allowed, no CLAUDE.md, memory or MCP server, no \`FORCE_COLOR\`.`
+  `> Run as \`claude -p --model opus\` from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, tools \`${READER_TOOLS.join(' ')}\`, ${allowed} allowed and the commands of Bash that only read, which the harness passes unasked, no CLAUDE.md, memory or MCP server, no \`FORCE_COLOR\`.`
 ].join('\n');
 
 // startReaders(repoRoot, { prompts, allowed, workPrefix }) → the answers of

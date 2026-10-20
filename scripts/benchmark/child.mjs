@@ -19,6 +19,15 @@ const COMMAND_LINE_TOOLS = ['Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)',
 // mangles a query that reads a part, and the conversion is off.
 export const CHILD_ENVIRONMENT = Object.freeze({ MSYS_NO_PATHCONV: '1' });
 
+// The effort a child and an author of the benchmark run at, `high`, which no
+// run changes, set by `CLAUDE_CODE_EFFORT_LEVEL` in the environment of their
+// start, where no flag and no settings file overrides it [D394].
+export const BENCHMARK_EFFORT = Object.freeze({ CLAUDE_CODE_EFFORT_LEVEL: 'high' });
+
+// The environment a child of the benchmark adds to the session's, which its
+// run fixes [QSWRK#measure].
+export const RUN_ENVIRONMENT = Object.freeze({ ...CHILD_ENVIRONMENT, ...BENCHMARK_EFFORT });
+
 // The environment with the command line of a tree first on the PATH as
 // `qlang`, so a reader of a worktree runs the language of the tree it reads
 // [QSWRK#review].
@@ -103,7 +112,7 @@ export function runChild({ prompt, model, workDir }) {
   const flags = ['-p', '--model', model, '--tools', 'Bash', '--allowedTools', ...COMMAND_LINE_TOOLS, '--strict-mcp-config', '--restricted',
     '--system-prompt', SYSTEM_PROMPT, '--output-format', 'stream-json', '--verbose'];
   return new Promise(resolve => {
-    const child = spawn('claude', flags, { cwd: workDir, env: { ...process.env, ...CHILD_ENVIRONMENT } });
+    const child = spawn('claude', flags, { cwd: workDir, env: { ...process.env, ...RUN_ENVIRONMENT } });
     let streamText = '';
     child.stdout.on('data', chunk => { streamText += chunk; });
     child.on('close', () => resolve(recordOfStream(streamText)));

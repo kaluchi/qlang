@@ -14,7 +14,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFi
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync, spawn } from 'node:child_process';
-import { runChild, CHILD_ENVIRONMENT } from './child.mjs';
+import { runChild, BENCHMARK_EFFORT, RUN_ENVIRONMENT } from './child.mjs';
 import { screenText, fixScreen } from './screens.mjs';
 import { pipeEnv } from '../pipe-env.mjs';
 import { JOURNAL } from '../decision-records.mjs';
@@ -44,8 +44,9 @@ function markSeen(setId, reason) {
 // ── author ─────────────────────────────────────────────────────
 
 // A clean author writes the set in a directory of its own, with the
-// file tools and node alone; its data, tasks and generator are copied
-// under `sets/<id>/`, the scratch directory lying on any drive.
+// file tools and node alone, at the effort of the benchmark; its data, tasks
+// and generator are copied under `sets/<id>/`, the scratch directory lying on
+// any drive.
 export async function author(setId, model = 'sonnet') {
   if (existsSync(setDirOf(setId))) throw new Error(`set ${setId} exists: a set is authored once and its reader never saw it [QSWRK#measure]`);
   const workDir = join(scratchRoot, 'author', setId);
@@ -55,7 +56,7 @@ export async function author(setId, model = 'sonnet') {
   const authorRecord = await new Promise(resolve => {
     const child = spawn('claude', ['-p', '--model', model, '--strict-mcp-config', '--system-prompt', 'You are a careful assistant.',
       '--tools', 'Bash,Write,Read', '--allowedTools', 'Write', 'Read', 'Bash(node:*)', 'Bash(ls:*)', 'Bash(cat:*)',
-      '--output-format', 'json'], { cwd: workDir });
+      '--output-format', 'json'], { cwd: workDir, env: { ...process.env, ...BENCHMARK_EFFORT } });
     let output = '';
     child.stdout.on('data', chunk => { output += chunk; });
     child.on('close', () => resolve(output));
@@ -116,8 +117,8 @@ function changesOutsideCommit() {
 // run(setId, { decision, model, runs, reason }) — a measurement of a
 // decision [QSWRK#measure]: the numbers measured grow, a decision measured before is
 // measured again with a reason alone, and each run fixes the screen the
-// tree printed, the commit of a clean tree, the model that answered and
-// its score.
+// tree printed, the commit of a clean tree, the model that answered, the
+// environment its child was started with, its effort among it, and its score.
 export async function run(setId, { decision, model, runs, reason }) {
   const mode = 'cli';
   if (!/^D\d+$/.test(decision ?? '') || !existsSync(join(repoRoot, JOURNAL, `${decision}.md`))) {
@@ -147,7 +148,7 @@ export async function run(setId, { decision, model, runs, reason }) {
     for (const name of dataNamesOf(setId)) copyFileSync(join(setDirOf(setId), 'data', name), join(workDir, name));
     jobs.push(runChild({ prompt, model, workDir }).then(record => writeFileSync(join(runsDir, `${prefix}${runIndex}.json`), JSON.stringify({
       set: setId, decision, screen: screen.name, screenHash: screen.hash, mode, model, run: runIndex,
-      date: new Date().toISOString().slice(0, 10), commit, reason: reason ?? null, environment: CHILD_ENVIRONMENT, ...record,
+      date: new Date().toISOString().slice(0, 10), commit, reason: reason ?? null, environment: RUN_ENVIRONMENT, ...record,
       score: scoreOf(setId, record.result)
     }, null, 1) + '\n')));
   }

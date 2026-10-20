@@ -150,8 +150,16 @@ laws of the catalog are the claims of its pages, which the language runs
 on itself, and a requirement a law proves as well stays a case. The rule
 a case shows is stated by its section, or by the record it names, and a
 rule neither states is written into a record in transit over the section
-before a case shows it. The runner compares values, so a case writes a
-set in the order its print shows.
+before a case shows it. The runner holds an answer to the literal it
+expects by the tie of the one order, the equality of the language, a
+failure raised ranking after every value by its tag and then its facts,
+so a case that expects a refusal tells it from the error at rest a catch
+answers, and a case writes a set in the order its print shows; the probes,
+the fuzz of the laws and the benchmark over a task that reads no data
+judge by the same tie, and the benchmark judges the answer of a task over
+data as JSON. The tie is the order the cases hold, so the unit tests of
+the order hold its sign over a ladder of values of every kind, which no
+tie judges.
 
 The runner, `core/test/unit/conformance.test.mjs`, refuses a file that
 is no section of a chapter, a case that names a record and does not open
@@ -793,8 +801,8 @@ of the package, `core/README.md`, writes. One test,
 core and the command line declare and of every one a rule raises. The
 modules of `core/src` import in the order of
 the concepts, from the bottom: the letters of a name, the address, the
-keys of the scope and the declaration of a refusal; the values, their one
-order and their equality; the records of the steps and the rules their
+keys of the scope and the declaration of a refusal; the values and their
+one order; the records of the steps and the rules their
 constructors hold, `core/src/steps.mjs`, which registers nothing and
 imports no parser; the parser and the walks of its tree; the reading of a
 path and the nearness of two names; the printer of the core's forms; the parts of a doc; the state of a
@@ -845,7 +853,11 @@ GitHub, `.github/workflows/ci.yml`, run its steps but `check:fuzz` and
 `check:benchmark` on every push to master and every pull request. The
 thresholds of coverage, pinned in the `vitest.config.mjs` of `core` and
 `cli`, hold the sources under the `src/` of both at a hundred on every
-axis, the browser's loader and `cli/src/bin.mjs` aside. `scripts/fuzz-laws.mjs`
+axis, the browser's loader and `cli/src/bin.mjs` aside, and the setup of
+vitest in the core, the command line and the language server registers
+an equality that compares a value of the language by the tie of the one
+order, which reads the tag a vector or a map holds on itself, leaving any
+other value to the equality of vitest. `scripts/fuzz-laws.mjs`
 runs every law of the root again with its literals changed to edge
 values, failing on a host's failure, a throw past the fail track, or a
 print that reads back as another value. `check:conventions` holds,

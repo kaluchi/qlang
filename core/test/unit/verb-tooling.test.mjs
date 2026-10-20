@@ -127,7 +127,7 @@ describe('the verbs a value of a kind reaches [QSDSP#walk]', () => {
 
   it('takes the verb of the outermost kind a name lives on', async () => {
     const reached = verbsReaching(await langRuntime(), ['tag', 'number']);
-    expect(reached.get('gt').address.name).toBe('tag/gt');
+    expect(reached.get('toString').address.name).toBe('tag/toString');
   });
 
   it('reaches only the verbs of any value for a kind no module declares', async () => {

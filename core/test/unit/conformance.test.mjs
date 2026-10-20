@@ -3,7 +3,7 @@
 // Each JSONL line has two qlang expressions: query (arbitrary) and
 // expect (must be a pure literal — no calls, no pipelines — or the print
 // of a failure, its error at rest raised, `!{…} | raise` [QSWRK#cases]).
-// Both are eval'd, results compared via deepEqual.
+// Both are eval'd, results compared by the tie of the one order.
 //
 // Every file is a section of a chapter, and a case that names a record
 // opens with a record in force, `{"decision":"Dnn",…}` [QSWRK#cases],
@@ -23,7 +23,7 @@ import { evalQuery } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
 import { partOf, walkParts } from '../../src/walk.mjs';
 import { isCallStep } from '../../src/steps.mjs';
-import { deepEqual } from '../../src/equality.mjs';
+import { compareValues } from '../../src/ordering.mjs';
 import { isErrorValue, isQuote, isTag } from '../../src/types.mjs';
 import { expectedValueOf, raisedLiteralOf } from '../helpers/expected-value.mjs';
 
@@ -53,7 +53,7 @@ function assertLiteral(quote, testName) {
 async function answersAsPresent(queryResult, now) {
   const present = await expectedValueOf(now);
   if (isErrorValue(queryResult) && isTag(present)) return queryResult.tag.name === present.name;
-  return deepEqual(queryResult, present);
+  return compareValues(queryResult, present) === 0;
 }
 
 // The chapter of the specification a file stands under, `QSNAM` for
@@ -77,7 +77,7 @@ describe('conformance: the requirements agree', () => {
     for (const [query, sameQuery] of Map.groupBy(allCases, test => test.query)) {
       if (sameQuery.length < 2) continue;
       const answers = await Promise.all(sameQuery.map(test => expectedValueOf(test.expect)));
-      if (answers.some(answer => !deepEqual(answer, answers[0]))) {
+      if (answers.some(answer => compareValues(answer, answers[0]) !== 0)) {
         contradictions.push(`${query}: ${sameQuery.map(test => `${test.file}#${test.name}`).join(', ')}`);
       }
     }
@@ -120,7 +120,7 @@ for (const { file, cases } of casesByFile) {
 
         const queryResult = await evalQuery(test.query);
         const expectedValue = await expectedValueOf(test.expect);
-        const answersAsExpected = deepEqual(queryResult, expectedValue);
+        const answersAsExpected = compareValues(queryResult, expectedValue) === 0;
         if (test.target === true) {
           expect(test.decision, `${test.name}: a target names the decision that left it`).toBeDefined();
           expect(answersAsExpected, `${test.name}: the tree meets this target of ${test.decision}; drop its "target" mark`).toBe(false);

@@ -1,11 +1,10 @@
-// Tests for error value type and its trace, deepEqual, the literal,
+// Tests for error value type and its trace, its rank in the one order, the literal,
 // error-convert.mjs, and the trace of a failure a host hands [QSERR#trace].
 
 import { describe, it, expect } from 'vitest';
 import { keyword, isErrorValue, makeBinding, makeErrorValue, formOf, makeTag, makeFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
-import { makeSet } from '../../src/ordering.mjs';
+import { makeSet, compareValues } from '../../src/ordering.mjs';
 import { parse } from '../../src/parse.mjs';
-import { deepEqual } from '../../src/equality.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { createSession, evalQuery } from '../../src/session.mjs';
@@ -166,28 +165,28 @@ describe('formOf for error values', () => {
   });
 });
 
-// ── deepEqual ───────────────────────────────────────────────────
+// ── the one order ───────────────────────────────────────────────────
 
-describe('deepEqual for error values', () => {
-  it('compares error values by tag and facts', () => {
+describe('the one order ranks a failure raised after every value, by its tag and then its facts', () => {
+  it('ties two failures of one tag and one set of facts', () => {
     const tag = makeTag('Oops');
     const errorVal1 = makeErrorValue(tag, new Map([['index', 1]]));
     const errorVal2 = makeErrorValue(tag, new Map([['index', 1]]));
-    expect(deepEqual(errorVal1, errorVal2)).toBe(true);
+    expect(compareValues(errorVal1, errorVal2)).toBe(0);
   });
 
-  it('separates errors carrying the same facts under different tags', () => {
-    const desc = new Map([['index', 1]]);
-    const left  = makeErrorValue(makeTag('Foo'), desc);
-    const right = makeErrorValue(makeTag('Bar'), desc);
-    expect(deepEqual(left, right)).toBe(false);
+  it('ranks two failures by their tags, then by their facts', () => {
+    const facts = new Map([['index', 1]]);
+    expect(compareValues(makeErrorValue(makeTag('Bar'), facts), makeErrorValue(makeTag('Foo'), facts))).toBe(-1);
+    expect(compareValues(makeErrorValue(makeTag('Foo'), new Map([['index', 2]])), makeErrorValue(makeTag('Foo'), facts))).toBe(1);
   });
 
-  it('rejects error vs non-error', () => {
-    const errorVal = makeErrorValue(makeTag('Oops'), new Map());
-    expect(deepEqual(errorVal, new Map([['kind', keyword('oops')]]))).toBe(false);
-    expect(deepEqual(errorVal, null)).toBe(false);
-    expect(deepEqual(errorVal, 42)).toBe(false);
+  it('ranks a failure raised after its error at rest, a value under its tag and every value', async () => {
+    const { evalQuery } = await import('../../src/session.mjs');
+    const raised = await evalQuery('::Foo!{:a 1} | raise');
+    for (const value of [null, 42, keyword('oops'), new Map([['a', 1]])]) expect(compareValues(raised, value)).toBe(1);
+    for (const query of ['::Foo!{:a 1} | raise !| it', '::Foo{:a 1}', '!{:a 1}', '1 | desc']) expect(compareValues(raised, await evalQuery(query))).toBe(1);
+    expect(compareValues(await evalQuery('!{:a 1} | raise'), await evalQuery('!{:a 1} | raise !| it'))).toBe(1);
   });
 });
 
@@ -213,31 +212,30 @@ describe('the literal reads back error values and values under a tag', () => {
       makeTagged(makeTag('Count'), 42)
     ];
     for (const value of hostBuilt) {
-      expect(deepEqual(await evalQuery(printValue(value)), value)).toBe(true);
+      expect(compareValues(await evalQuery(printValue(value)), value) === 0).toBe(true);
     }
   });
 });
 
-describe('deepEqual tells an Array, a Map and a Set under a tag from one under none', () => {
-  // Tag mismatch on collections that hold their tag on themselves — same
-  // content, a different header tag or none — must not compare equal.
-  // Each branch (Array / Map / Set) gets its own assertion.
+describe('the one order tells an Array, a Map and a Set under a tag from one under none', () => {
+  // Collections that hold their tag on themselves, of one content under
+  // another tag or none, are not equal.
   it('rejects tagged Array vs untagged Array with same elements', async () => {
     const { makeTagged } = await import('../../src/types.mjs');
     const tagged = makeTagged(makeTag('A'), [1, 2, 3]);
-    expect(deepEqual(tagged, [1, 2, 3])).toBe(false);
+    expect(compareValues(tagged, [1, 2, 3]) === 0).toBe(false);
   });
 
   it('rejects tagged Map vs untagged Map with same entries', async () => {
     const { makeTagged } = await import('../../src/types.mjs');
     const tagged = makeTagged(makeTag('U'), new Map([['k', 1]]));
-    expect(deepEqual(tagged, new Map([['k', 1]]))).toBe(false);
+    expect(compareValues(tagged, new Map([['k', 1]])) === 0).toBe(false);
   });
 
   it('rejects a tag over a set vs the set of the same elements', async () => {
     const { makeTagged } = await import('../../src/types.mjs');
     const tagged = makeTagged(makeTag('S'), makeSet([1, 2]));
-    expect(deepEqual(tagged, makeSet([1, 2]))).toBe(false);
+    expect(compareValues(tagged, makeSet([1, 2])) === 0).toBe(false);
   });
 });
 

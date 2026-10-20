@@ -19,11 +19,17 @@ as its vector, maps by their keys and then their values, a quote by its
 steps, a doc by its segments in turn, a run of prose before a quote, an
 elision by its payload, a desc by the reverse of its payload's rank, an
 error by its tag and then its facts, and a value under another tag by
-its payload.
+its payload. Two values are equal where the order ranks them alike:
+`eq` answers by that tie, as `has` of a vector and of a set, the
+elements a set keeps, the algebra of sets, the keys `groupBy` and
+`indexBy` file under and the merge of a shape do.
 
 ```qlang
 > [{:a 1} #[1] [1] ::t :k "s" 1 true null] | sort
 [null true 1 "s" :k ::t [1] #[1] {:a 1}]
+
+> get [~(!{:a 1} | eq !{:a 2}) ~(#[!{:a 1} !{:a 2}] | count) ~(::A#1 | eq ::A::A#1) ~(#[::A#1 ::A::A#1] | count) ~(#[1 2] | eq [1 2])]
+[false 2 false 2 false]
 
 > ["b" "B" "a"] | sort
 ["B" "a" "b"]
@@ -45,12 +51,14 @@ set reads by index as its vector does, two sets are equal by their
 elements, and equality reads the kind, so `#[1 2] | eq [1 2]` is false.
 Its own verbs are those whose answer on a set is not the answer of the
 verb of vectors on it: `sort` and `reverse` answer the vector of an
-order, `toVec` the vector of its elements, `toSet` and `distinct` the set
-itself, `groupBy` files into sets, and `union`, `minus` and `inter` meet
-the set the call gives [QSCOL#algebra]. Every other verb of vectors
-reaches a set through the walk, an answer of the vector's label brought
-back as a set [QSDSP#residence], `filter` and `take` among them, while
-`map` answers the vector of the images.
+order, `toVec` the vector of its elements, `zip` the vector of its
+columns, two equal ones kept, `toSet` and `distinct` the set itself,
+`groupBy` files into sets, and `union`, `minus` and `inter` meet the set
+the call gives [QSCOL#algebra]. Every other verb of vectors reaches a set
+through the walk, an answer of the vector's label brought back as a set,
+each value held once there [QSDSP#residence], `filter`, `take` and `flat`
+among them, and so does a verb of vectors called by its address on a set,
+while `map` answers the vector of the images.
 
 ```qlang
 > [2 1 2] | distinct
@@ -73,6 +81,9 @@ false
 
 > #[1 2] | get [~(binding :filter | get /name) ~(binding :sort | get /name)]
 [:vec/filter :set/sort]
+
+> get [~(#[[1 1] [2 2]] | zip) ~(#[[1 1] [2 2]] | flat) ~(#[[1 1] [2 2]] | vec/zip)]
+[[[1 2] [1 2]] #[1 2] #[[1 2]]]
 ```
 
 ## sort
@@ -111,11 +122,11 @@ compare within one kind [QSCND#compare].
 `::desc` is a kind whose order is the reverse of its payload's, written
 by `desc` or by its literal, `::desc#5`, and a desc of a desc stands
 twice, its reversals undoing each other, so it ranks as the value does.
-It owns its comparisons, `gt`,
-`gte`, `lt` and `lte`, which rank its payloads of any kinds by the one
-order as `sort` does, so `min`, `max` and `sort` read it alike, and one
-element of a vector key descends whatever the kind it ranks; the
-comparisons of the core compare within one kind.
+The comparisons compare two values under `::desc` by the reverse of their
+payloads of any kinds, as `sort` ranks them, so `min`, `max` and `sort`
+read it alike, and one element of a vector key descends whatever the
+kind it ranks; a value under `::desc` beside one that is not is a pair of
+two kinds, which a comparison refuses [QSCND#compare].
 
 ```qlang
 > ["b" "c" "a"] | sort ~(desc)
@@ -129,6 +140,9 @@ true
 
 > 1 | desc | gt ("a" | desc)
 true
+
+> get [~(1 | desc | gt 2 !| type) ~(2 | gt (1 | desc | desc) !| type) ~(get [2 ~(1 | desc | desc)] | sort)]
+[::any/gt/KindsMismatchedError ::any/gt/KindsMismatchedError [2 ::desc::desc#1]]
 
 > [1 3 2] | sort ~(desc | desc)
 [1 2 3]

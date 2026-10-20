@@ -19,7 +19,11 @@ reaches `::vec` or `::map` after `::tagged`. A word reads a value it takes
 from its subject or from code as a kind the same way, beneath every tag
 over it, `::desc` among them: an element, a key, a condition, a pair and a
 part a path meets on its way, two values that file under one keyword
-meeting as they are. A name means one act
+meeting as they are. The verbs of `::any` meet the subject whole: `eq`
+and the comparisons relate two values as they are, so a value under a tag
+and a value of its payload's kind are a pair of two kinds to a comparison
+[QSCND#compare], while a verb of the payload's kind answers under the tag.
+A name means one act
 wherever it resolves, each kind that answers it implementing that act,
 and a verb on a label the walk reaches first stands over one of the same
 name it reaches later, a verb of `::tagged` over one of the payload's
@@ -31,8 +35,15 @@ of `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true.
 > ::Box#1 | payload
 1
 
+> ::Box#5 | add 3
+::Box#8
+
 > ::Box#5 | gt 3
-true
+|~| raised, and no !| caught it
+::any/gt/KindsMismatchedError!{
+  :leftType ::Box
+  :rightType ::number
+…
 
 > :number/type ~("mine") | 5 | type
 "mine"
@@ -69,13 +80,15 @@ vectors, an answer of the vector's label brought back as their own kind
 [QSDSP#answer]. A set declares, beside its constructor, the page of its
 payload and its refusal, the verbs whose answer on a set is not the
 answer of the verb of vectors on it: `sort` and `reverse`, which answer
-the vector of an order, `groupBy`, whose buckets are sets, `toVec`,
-`toSet` with `distinct` beside it, and `union`, `minus` and `inter`,
-which meet a value [QSCOL#algebra]; every other verb reaches a set
-through the walk as the verb of vectors, with its page, its laws and its
-refusals, and `::vec | manifest` lists the verbs a set answers beside its
-own. The comparisons reside on each kind whose values they compare, an
-input of another kind refused.
+the vector of an order, `zip`, the vector of its columns, `groupBy`, whose
+buckets are sets, `toVec`, `toSet` with `distinct` beside it, and
+`union`, `minus` and `inter`, which meet a value [QSCOL#algebra]; every
+other verb reaches a set through the walk as the verb of vectors, with
+its page, its laws and its refusals, and `::vec | manifest` lists the
+verbs a set answers beside its own. Two nouns hold `zip`, so a subject
+neither serves is refused by the call with their addresses. The
+comparisons reside on `::any`, two values of one kind compared and a pair
+of two kinds refused [QSCND#compare].
 
 ```qlang
 > :Pos |~~ Pos. ~~| | :Pos/f ~(1) | -1 | f !| type
@@ -91,7 +104,10 @@ input of another kind refused.
 [:vec/count #[2 3] #[1 2] [2 4 6]]
 
 > ::set | manifest
-#[::set/PayloadKindNotTakenError ::set/construct ::set/distinct ::set/groupBy ::set/inter ::set/minus ::set/payload ::set/reverse ::set/sort ::set/toSet ::set/toVec ::set/union]
+#[::set/PayloadKindNotTakenError ::set/construct ::set/distinct ::set/groupBy ::set/inter ::set/minus ::set/payload ::set/reverse ::set/sort ::set/toSet ::set/toVec ::set/union ::set/zip]
+
+> 42 | zip !| get [~(type) /addresses]
+[::call/KindAnswersNoVerbError #[::set/zip ::vec/zip]]
 
 > get [~(#[1 "a"] | sum !| type) ~(true | flat !| type) ~(::set | count !| type) ~(::set | manifest | has ::set/count)]
 [::vec/sum/ElementNotNumberError ::vec/flat/SubjectNotVecError ::call/KindAnswersNoVerbError false]
@@ -103,7 +119,7 @@ input of another kind refused.
 true
 
 > 1 | gt "x" !| type
-::number/gt/value/KindNotTakenError
+::any/gt/KindsMismatchedError
 ```
 
 ## refusal

@@ -53,11 +53,11 @@ describe('types.mjs', () => {
 });
 
 describe('runtime/predicates.mjs ordering type errors', () => {
-  it('gt rejects heterogeneous comparison by the law of its input', async () => {
-    await expectErrorThrown('"a" | gt 5', 'string/gt/value/KindNotTakenError');
-  });
-  it('lt rejects non-comparable subject', async () => {
-    await expectErrorThrown('null | lt 5', 'call/KindAnswersNoVerbError');
+  it('each comparison refuses a pair of two kinds', async () => {
+    await expectErrorThrown('"a" | gt 5', 'any/gt/KindsMismatchedError');
+    await expectErrorThrown('null | lt 5', 'any/lt/KindsMismatchedError');
+    await expectErrorThrown('[1] | gte {}', 'any/gte/KindsMismatchedError');
+    await expectErrorThrown('true | lte 1', 'any/lte/KindsMismatchedError');
   });
 });
 
@@ -139,7 +139,7 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
   });
 });
 
-describe('runtime/predicates.mjs deepEqual', () => {
+describe('eq by the tie of the one order', () => {
   it('eq of Maps with same content', async () => {
     expect(await evalQuery('{:a 1 :b 2} | eq {:a 1 :b 2}')).toBe(true);
   });

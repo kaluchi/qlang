@@ -13,7 +13,7 @@
 {"name":"a-declaration-whose-body-fails-answers-the-failure","query":":x (1 | div 0) | 5 !| trace | map ~failed","expect":"[~(div 0) ~(:x (1 | div 0))]"}
 {"name":"a-declaration-whose-body-fails-binds-nothing","query":":x (1 | div 0) !| env | has :x","expect":"false"}
 {"name":"a-failure-caught-in-each-element-is-an-error-at-rest","query":"[1 \"x\"] | map ~(add 1 !| it) | filter ~(is ::error) | map /actualType","expect":"[::string]"}
-{"name":"a-fact-computed-at-the-call-holds-the-error-at-rest","query":"[1 2 3] | filter (gt 1) !| get /actualValue | type","expect":"::call/KindAnswersNoVerbError"}
+{"name":"a-fact-computed-at-the-call-holds-the-error-at-rest","query":"[1 2 3] | filter (gt 1) !| get /actualValue | type","expect":"::any/gt/KindsMismatchedError"}
 {"name":"a-value-input-hands-an-error-on-unchanged","query":"1 | add (!{:k 1} | raise) !| type","expect":"::error"}
 {"name":"a-tag-over-a-failed-payload-answers-the-failure","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::Foo[::Pos#-3] !| type","expect":"::Pos/NotPositiveError"}
 {"name":"a-constructor-of-the-core-never-meets-a-failure","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::set[::Pos#-3] !| type","expect":"::Pos/NotPositiveError"}

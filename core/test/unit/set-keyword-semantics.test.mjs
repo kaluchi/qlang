@@ -60,16 +60,6 @@ describe('a set holds a keyword made fresh as an element', async () => {
     expect(await evalQuery('#[:a :b :c] | has :z')).toBe(false);
   });
 
-  it('deepEqual on Sets with keywords compares by name', async () => {
-    const { evalQuery } = await import('../../src/session.mjs');
-    const { deepEqual } = await import('../../src/equality.mjs');
-    const s1 = await evalQuery('#[:x :y]');
-    const s2 = await evalQuery('#[:x :y]');
-    expect(deepEqual(s1, s2)).toBe(true);
-    const s3 = await evalQuery('#[:x :z]');
-    expect(deepEqual(s1, s3)).toBe(false);
-  });
-
   it('Map×Set minus drops keys present in Set', async () => {
     const { evalQuery } = await import('../../src/session.mjs');
     const result = await evalQuery('[{:a 1 :b 2 :c 3}, #[:b]] | minus');
@@ -90,17 +80,6 @@ describe('has over a set of values that are no keywords', async () => {
     const { evalQuery } = await import('../../src/session.mjs');
     expect(await evalQuery('#[1 2 3] | has 2')).toBe(true);
     expect(await evalQuery('#[1 2 3] | has 9')).toBe(false);
-  });
-});
-
-describe('two sets of different keywords are unequal', async () => {
-  it('returns false when keyword names differ between Sets', async () => {
-    const { keyword } = await import('../../src/types.mjs');
-    const { makeSet } = await import('../../src/ordering.mjs');
-    const { deepEqual } = await import('../../src/equality.mjs');
-    const s1 = makeSet([keyword('a'), keyword('b')]);
-    const s2 = makeSet([keyword('a'), keyword('c')]);
-    expect(deepEqual(s1, s2)).toBe(false);
   });
 });
 

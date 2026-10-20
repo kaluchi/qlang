@@ -7,7 +7,7 @@ import { evalQuery } from '../../src/session.mjs';
 import { elide, alertOf, elideAnswer } from '../../src/elide.mjs';
 import { printValue } from '../../src/print-value.mjs';
 import { isErrorValue, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
-import { deepEqual } from '../../src/equality.mjs';
+import { compareValues } from '../../src/ordering.mjs';
 
 // Long enough that the elision standing for it prints shorter than it.
 const LONG = 'a long line of text to leave out for sure, which runs on long enough that its elision prints shorter';
@@ -24,7 +24,7 @@ describe('elide [QSPRN#elide]', () => {
     const view = elide(forty, 80);
     const trailing = view[view.length - 1];
     expect(trailing.get('size')).toBe(40 - (view.length - 1));
-    expect(deepEqual(await readBack(forty, trailing), forty.slice(view.length - 1))).toBe(true);
+    expect(compareValues(await readBack(forty, trailing), forty.slice(view.length - 1)) === 0).toBe(true);
   });
 
   it('keeps the top as it is where its first element and an elision of the rest print no shorter', () => {
@@ -52,7 +52,7 @@ describe('elide [QSPRN#elide]', () => {
     const value = await evalQuery('{:m {:a "some text here" :b "more text there"} :n 1}');
     const elision = elide(value, 40).get('m');
     expect(elision.get('size')).toBe(2);
-    expect(deepEqual(await readBack(value, elision), value.get('m'))).toBe(true);
+    expect(compareValues(await readBack(value, elision), value.get('m')) === 0).toBe(true);
   });
 
   it('keeps the tag of a map it gives way within, and reads through a tag over an atom', async () => {
@@ -138,7 +138,7 @@ describe('alertOf [QSHST#answer]', () => {
     const [arose, passed] = alertOf(await evalQuery(query)).facts.get('trace');
     expect(printValue(arose[0])).toBe('{:n 0}');
     expect(passed[0].get('size')).toBe(30);
-    expect(deepEqual(await continued(query, passed[0]), await evalQuery(records))).toBe(true);
+    expect(compareValues(await continued(query, passed[0]), await evalQuery(records)) === 0).toBe(true);
   });
 
   it('counts a text it passed by its characters, through the tags over it', async () => {
@@ -152,7 +152,7 @@ describe('alertOf [QSHST#answer]', () => {
     const query = `${many} | add 1`;
     const subject = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
     const rest = subject[subject.length - 1];
-    expect(deepEqual(await continued(query, rest), (await evalQuery(many)).slice(subject.length - 1))).toBe(true);
+    expect(compareValues(await continued(query, rest), (await evalQuery(many)).slice(subject.length - 1)) === 0).toBe(true);
   });
 
   it('gives a wide map where the failure arose way whole, so the excerpt holds, its read answering the map', async () => {
@@ -161,7 +161,7 @@ describe('alertOf [QSHST#answer]', () => {
     const subject = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
     expect(subject.get('size')).toBe(200);
     expect(printValue(subject.get('read'))).toBe('~(!| get /trace/0/0)');
-    expect(deepEqual(await continued(query, subject), await evalQuery(wide))).toBe(true);
+    expect(compareValues(await continued(query, subject), await evalQuery(wide)) === 0).toBe(true);
   });
 
   it('cuts a long string where the failure arose to its head', async () => {
@@ -185,10 +185,10 @@ describe('alertOf [QSHST#answer]', () => {
   it('measures the subject of a frame on the one line the frame prints on', async () => {
     const six = '6 | range | map ~(get {:id ~(it) :name "user" :tags ["a" "b"]})';
     const [arose] = alertOf(await evalQuery(`${six} | get /9`)).facts.get('trace');
-    expect(deepEqual(arose[0], await evalQuery(six))).toBe(true);
+    expect(compareValues(arose[0], await evalQuery(six)) === 0).toBe(true);
     const nested = '[{:a {:b 1}} {:a {:b 2}} {:a {:b "x"}}]';
     const [, passed] = alertOf(await evalQuery(`${nested} | map ~(get /a/b | add 1)`)).facts.get('trace');
-    expect(deepEqual(passed[0], await evalQuery(nested))).toBe(true);
+    expect(compareValues(passed[0], await evalQuery(nested)) === 0).toBe(true);
   });
 
   it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [QSHST#answer]', async () => {

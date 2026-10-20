@@ -24,8 +24,8 @@
       least element and `take 2` its least two, and an answer those verbs
       give as a vector comes back a set, `#[1 2 3] | filter ~(gt 1)`
       answering `#[2 3]`, while `map` answers the vector of the images.
-      Its own verbs are those whose answer differs: `sort` and `reverse`
-      answer a vector, which `toSet` makes a set again, `toVec` answers
+      Its own verbs are those whose answer differs: `sort`, `reverse` and
+      `zip` answer a vector, which `toSet` makes a set again, `toVec` answers
       the vector of its elements, `toSet` and `distinct`, the name of
       habit beside it, answer the set itself, `groupBy` files into sets,
       and `union`, `inter` and `minus` combine sets.
@@ -124,6 +124,32 @@
     | proves :answersAVectorThatToSetMakesASet
         |~~ A reversed set is a set again after `toSet`. ~~|
         ~(#[3 1 2] | reverse | toSet | eq #[1 2 3])
+    | impl ::builtin{}
+
+:set/zip
+  |~~ Answers the vectors the set holds read side by side, in its one
+      order, one vector of the elements at each index, as long as the
+      shortest: `#[[1 1] [2 2]] | zip` answers `[[1 2] [1 2]]`, a vector,
+      since two columns may be equal, as `sort` and `reverse` answer one.
+      It takes no value.
+      ::link~(::vec/zip | doc) ::link~(::set/reverse | doc)
+  ~~|
+  ::fn
+    | returns |~~ The elements at each index, a vector each. ~~| ::vec
+    | throws :ElementNotVecError
+        |~~ `zip` reads the vectors a set holds side by side; the place of
+            its frame names the first element that is no vector, the
+            vectors its elements hold read first, `map /a | zip`.
+        ~~|
+    | proves :keepsEqualColumns
+        |~~ The columns stand in a vector, two equal ones kept. ~~|
+        ~(#[[1 1] [2 2]] | zip | eq [[1 2] [1 2]])
+    | proves :ElementNotVecError/refusesANumber
+        |~~ An element that is no vector is refused at its index. ~~|
+        ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | place)] | eq [::set/zip/ElementNotVecError /0])
+    | proves :ElementNotVecError/readsTheVectorsOfItsElementsFirst
+        |~~ The vectors the elements of a set hold are read first. ~~|
+        ~(#[{:a [1 2]} {:a [3 4]}] | map /a | zip | eq [[1 3] [2 4]])
     | impl ::builtin{}
 
 :set/groupBy

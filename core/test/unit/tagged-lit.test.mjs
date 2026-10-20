@@ -229,13 +229,6 @@ describe('a tag name as a value', () => {
     expect(typeOf(k)).toEqual(makeTag('tag'));
   });
 
-  it('tag equality compares by name', async () => {
-    const { makeTag } = await import('../../src/types.mjs');
-    const { deepEqual } = await import('../../src/equality.mjs');
-    expect(deepEqual(makeTag('foo'), makeTag('foo'))).toBe(true);
-    expect(deepEqual(makeTag('foo'), makeTag('bar'))).toBe(false);
-  });
-
   it('printValue renders a tag as ::name', async () => {
     const { printValue } = await import('../../src/print-value.mjs');
     const { makeTag } = await import('../../src/types.mjs');

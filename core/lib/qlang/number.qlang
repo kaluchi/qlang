@@ -18,12 +18,14 @@
       string, `"42" | toNumber | add 1` answering `43`. Numbers rank
       after booleans and before strings.
 
-      Its verbs add, subtract, multiply, divide and compare, `add`,
-      `sub`, `mul`, `div`, `mod`, `gt`, and round, `round`, `floor`,
-      `ceil`; `sum`, `avg`, `min` and `max` read the numbers of a
-      vector, and `range` counts up to one.
+      Its verbs add, subtract, multiply and divide, `add`, `sub`, `mul`,
+      `div`, `mod`, and round, `round`, `floor`, `ceil`; `sum`, `avg`,
+      `min` and `max` read the numbers of a vector, `range` counts up to
+      one, and `gt` compares two numbers as it compares any two values of
+      one kind.
       ::snippet~(::number | manifest) lists its verbs and refusals.
-      ::link~(::string/toNumber | doc) ::link~(::qlang/values | doc)
+      ::link~(::string/toNumber | doc) ::link~(::any/gt | doc)
+      ::link~(::qlang/values | doc)
   ~~|
   ::kind
     | wraps |~~ A number, read as itself, a finite double. ~~|
@@ -530,153 +532,6 @@
             input.
         ~~|
         ~(3.14 | round "2" !| type | eq ::number/round/digits/KindNotTakenError)
-    | impl ::builtin{}
-
-:number/gt
-  |~~ Answers whether the subject is greater than the number the call
-      gives, `10 | gt 5`, a decimal against a whole number among them,
-      `3 | gt 2.5`. Numbers compare with numbers: a string, a keyword, a
-      tag name and a value under `::desc` each compare with their own
-      kind by a `gt` of their own, and a vector, a set, a map or null
-      answers no `gt`, which the refusal of the call names with the
-      kinds that do. The value is computed against the subject, and in a
-      condition the subject is the element, `filter ~(gt 1)`. `gte`
-      answers whether the subject is greater or equal, `lt` and `lte`
-      the reverse.
-      ::link~(::number/gte | doc) ::link~(::number/lt | doc)
-      ::link~(::number/lte | doc) ::link~(::desc | doc)
-  ~~|
-  ::fn
-    | takes :value
-        |~~ The number the subject is compared with, computed against the
-            subject, `5 | gt 3`.
-        ~~|
-        /0 ::number
-    | throws :value/KindNotTakenError
-        |~~ The value compared is a number; text that holds one is read by
-            `toNumber` first, `5 | gt ("3" | toNumber)`.
-        ~~|
-    | returns
-        |~~ `true` when the subject comes after the value, `false`
-            otherwise.
-        ~~|
-        ::boolean
-    | proves :comparesNumbers |~~ Ten is greater than five. ~~| ~(10 | gt 5)
-    | proves :comparesADecimal
-        |~~ A whole number compares with a decimal. ~~|
-        ~(3 | gt 2.5)
-    | proves :keepsOneNumberApartFromItself
-        |~~ A number is not greater than itself. ~~|
-        ~(5 | gt 5 | not)
-    | proves :filtersByTheElement
-        |~~ In a condition the subject is the element. ~~|
-        ~([1 2 3] | filter ~(gt 1) | eq [2 3])
-    | proves :value/KindNotTakenError/refusesAString
-        |~~ A string is no number to compare with. ~~|
-        ~(5 | gt "a" !| type | eq ::number/gt/value/KindNotTakenError)
-    | proves :namesTheKindsThatAnswerIt
-        |~~ A vector answers no `gt`, and the refusal names the kinds that
-            do.
-        ~~|
-        ~([1] | gt [0] !| get /addresses | eq #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt])
-    | impl ::builtin{}
-
-:number/gte
-  |~~ Answers whether the subject is greater than or equal to the number
-      the call gives, `10 | gte 10`. It compares as `gt` does, numbers
-      with numbers, a whole number with a decimal, `5 | gte 5.0`
-      answering `true`.
-      ::link~(::number/gt | doc) ::link~(::number/lte | doc)
-  ~~|
-  ::fn
-    | takes :value
-        |~~ The number the subject is compared with, computed against the
-            subject, `5 | gte 3`.
-        ~~|
-        /0 ::number
-    | throws :value/KindNotTakenError
-        |~~ The value compared is a number; text that holds one is read by
-            `toNumber` first, `5 | gte ("3" | toNumber)`.
-        ~~|
-    | returns
-        |~~ `true` when the subject comes after the value or equals it,
-            `false` otherwise.
-        ~~|
-        ::boolean
-    | proves :holdsOfItself
-        |~~ A number is greater than or equal to itself. ~~|
-        ~(10 | gte 10)
-    | proves :holdsOfItsDecimal
-        |~~ A whole number equals its decimal. ~~|
-        ~(5 | gte 5.0)
-    | proves :value/KindNotTakenError/refusesAString
-        |~~ A string is no number to compare with. ~~|
-        ~(5 | gte "3" !| type | eq ::number/gte/value/KindNotTakenError)
-    | proves :failsBelow
-        |~~ A smaller number is not at least the value. ~~|
-        ~(2 | gte 3 | not)
-    | impl ::builtin{}
-
-:number/lt
-  |~~ Answers whether the subject is less than the number the call gives,
-      `5 | lt 10`. It compares as `gt` does, numbers with numbers, and
-      `lte` answers whether the subject is less or equal.
-      ::link~(::number/gt | doc) ::link~(::number/lte | doc)
-  ~~|
-  ::fn
-    | takes :value
-        |~~ The number the subject is compared with, computed against the
-            subject, `5 | lt 3`.
-        ~~|
-        /0 ::number
-    | throws :value/KindNotTakenError
-        |~~ The value compared is a number; text that holds one is read by
-            `toNumber` first, `5 | lt ("3" | toNumber)`.
-        ~~|
-    | returns
-        |~~ `true` when the subject comes before the value, `false`
-            otherwise.
-        ~~|
-        ::boolean
-    | proves :comparesNumbers |~~ Five is less than ten. ~~| ~(5 | lt 10)
-    | proves :keepsOneNumberApartFromItself
-        |~~ A number is not less than itself. ~~|
-        ~(5 | lt 5 | not)
-    | proves :value/KindNotTakenError/refusesAString
-        |~~ A string is no number to compare with. ~~|
-        ~(5 | lt "3" !| type | eq ::number/lt/value/KindNotTakenError)
-    | impl ::builtin{}
-
-:number/lte
-  |~~ Answers whether the subject is less than or equal to the number the
-      call gives, `10 | lte 10`. It compares as `gt` does, numbers with
-      numbers.
-      ::link~(::number/lt | doc) ::link~(::number/gte | doc)
-  ~~|
-  ::fn
-    | takes :value
-        |~~ The number the subject is compared with, computed against the
-            subject, `5 | lte 3`.
-        ~~|
-        /0 ::number
-    | throws :value/KindNotTakenError
-        |~~ The value compared is a number; text that holds one is read by
-            `toNumber` first, `5 | lte ("3" | toNumber)`.
-        ~~|
-    | returns
-        |~~ `true` when the subject comes before the value or equals it,
-            `false` otherwise.
-        ~~|
-        ::boolean
-    | proves :holdsOfItself
-        |~~ A number is less than or equal to itself. ~~|
-        ~(10 | lte 10)
-    | proves :value/KindNotTakenError/refusesAString
-        |~~ A string is no number to compare with. ~~|
-        ~(5 | lte "3" !| type | eq ::number/lte/value/KindNotTakenError)
-    | proves :failsAbove
-        |~~ A greater number is not at most the value. ~~|
-        ~(2 | lte 1 | not)
     | impl ::builtin{}
 
 :number/toString

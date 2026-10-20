@@ -1,6 +1,6 @@
 {"name":"the-kind-of-a-value-has-its-page","query":"5 | type | doc | type | eq ::doc","expect":"true"}
 {"name":"the-walk-of-the-subject-comes-before-the-root","query":"[1 2] | doc | type","expect":"::doc"}
-{"name":"a-comparison-has-its-page-on-each-kind","query":"::number/gt | doc | type | eq ::doc","expect":"true"}
+{"name":"a-comparison-has-its-page-on-any","query":"::any/gt | doc | type | eq ::doc","expect":"true"}
 {"name":"an-anchor-a-value-holds-no-node-under-is-refused-with-no-address","query":"5 | doc :nosuch !| get [~(type) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
 {"name":"an-anchor-a-verb-declares-no-input-under-is-refused","query":"::vec/take | doc :nosuch !| get [~(type) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
 {"name":"an-unknown-name-under-a-verb-is-named-by-the-keyword-asked","query":"::vec/take | doc :\"a b\" !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :\"a b\"]"}

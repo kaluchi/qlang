@@ -38,18 +38,21 @@ registerPrimitive('vec/last', lastOf);
 registerPrimitive('map/last', map => lastOf([...map.values()]));
 
 // ── side by side ───────────────────────────────────────────────
-// The elements at each index of the vectors a vector holds, as long as
-// the shortest, an element that is no vector refused at its index
-// [QSCOL#sequence].
+// The elements at each index of the vectors a vector or a set holds, as long
+// as the shortest, an element that is no vector refused at its index
+// [QSCOL#sequence], [QSORD#set].
 const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
-registerPrimitive('vec/zip', vectors => {
+const SetZipElementNotVecError = declareRefusal('set/zip/ElementNotVecError');
+function columnsOf(vectors, ElementNotVecError) {
   const columns = vectors.map(beneathTags);
   columns.forEach((column, index) => {
-    if (!Array.isArray(column)) throw refusingAPart(new VecZipElementNotVecError({ actualValue: vectors[index] }), index);
+    if (!Array.isArray(column)) throw refusingAPart(new ElementNotVecError({ actualValue: vectors[index] }), index);
   });
   const length = columns.length === 0 ? 0 : Math.min(...columns.map(column => column.length));
   return Array.from({ length }, (_, index) => columns.map(column => column[index]));
-});
+}
+registerPrimitive('vec/zip', vectors => columnsOf(vectors, VecZipElementNotVecError));
+registerPrimitive('set/zip', vectors => columnsOf(vectors, SetZipElementNotVecError));
 
 // ── sum and mean ───────────────────────────────────────────────
 
@@ -323,9 +326,9 @@ registerPrimitive('string/drop', (text, count) => Array.from(text).slice(Math.ma
 registerPrimitive('vec/drop', (sequence, count) => sequence.slice(Math.max(0, count)));
 registerPrimitive('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count))));
 
-// Whether a vector holds a value equal to the element: a set by a search in
-// its one order, which ranks two values alike exactly when they are equal,
-// and any other vector element by element [QSORD#order], [QSCOL#sequence].
+// Whether a vector holds a value the one order ranks alike with the element
+// [QSORD#order]: a set by a search in its one order, and any other vector element by
+// element [QSCOL#sequence].
 function containsElement(vector, element) {
   if (!isSet(vector)) return vector.some(held => compareValues(held, element) === 0);
   let low = 0;

@@ -31,7 +31,7 @@ const dataDir = join(benchDir, 'data');
 
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery, printValue } = await core('index.mjs');
-const { deepEqual } = await core('equality.mjs');
+const { compareValues } = await core('ordering.mjs');
 const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
 
 // What the command line answers for a query over the data of its task,
@@ -51,7 +51,7 @@ async function answerOf(query, task) {
 // the language alone answers a value, held against the literal of its
 // answer.
 async function referenceHolds(task) {
-  if (task.data === undefined) return deepEqual(await evalQuery(task.reference), await evalQuery(task.answer));
+  if (task.data === undefined) return compareValues(await evalQuery(task.reference), await evalQuery(task.answer)) === 0;
   return isDeepStrictEqual(JSON.parse(await answerOf(task.reference, task)), JSON.parse(task.answer));
 }
 

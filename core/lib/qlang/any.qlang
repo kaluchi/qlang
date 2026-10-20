@@ -181,6 +181,210 @@
         ~(5 | ne 6 7 !| type | eq ::any/ne/ArgsBeyondInputsError)
     | impl ::builtin{}
 
+:any/gt
+  |~~ Answers whether the subject comes after the value the call gives in
+      the one order, the order `sort` ranks by, the two of one kind, as
+      `type` answers it: numbers by their value, `10 | gt 5`, a decimal
+      against a whole number among them; strings by their characters,
+      `"b" | gt "a"`, an upper-case letter before every lower-case one and
+      digits as characters, `"10" | gt "9"` answering `false`; keywords
+      and tag names by their names; values under `::desc` the other way,
+      `1 | desc | gt (2 | desc)`; and vectors, sets, maps, booleans and
+      values under one tag as `sort` ranks them. So `gt` answers `true`
+      exactly where `sort` puts the value before the subject. A pair of two
+      kinds is refused: a number under a tag is read by `payload`,
+      `::Width#5 | payload | gt 3`, and text that holds a number by
+      `toNumber`, `get /age | toNumber | gt 18`. The value is computed
+      against the subject, and in a condition the subject is the element,
+      `filter ~(gt 1)`. `gte` answers whether the subject comes after the
+      value or ranks with it, `lt` and `lte` the reverse.
+      ::link~(::any/gte | doc) ::link~(::any/lt | doc)
+      ::link~(::any/lte | doc) ::link~(::vec/sort | doc)
+      ::link~(::desc | doc)
+  ~~|
+  ::fn
+    | takes :value
+        |~~ The value the subject is compared with, of the subject's kind,
+            computed against the subject, `5 | gt 3`.
+        ~~|
+        /0
+    | throws :KindsMismatchedError
+        |~~ `gt` compares two values of one kind: a value under a tag
+            beside a value of its payload's kind is read by `payload`,
+            `::Width#5 | payload | gt 3`, text that holds a number by
+            `toNumber`, `"5" | toNumber | gt 3`, a value turned by `desc` is
+            compared with one turned, `gt (2 | desc)`, and two values under
+            two tags, `::Cents#100` and `::Dollars#50`, are brought to one
+            first.
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `gt` compares the subject with one value: two fields of one
+            record compare through a name, `:r it | get /a | gt (r | get /b)`.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes after the value, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | proves :comparesNumbers |~~ Ten is greater than five. ~~| ~(10 | gt 5)
+    | proves :comparesADecimal
+        |~~ A whole number compares with a decimal. ~~|
+        ~(3 | gt 2.5)
+    | proves :keepsOneValueApartFromItself
+        |~~ A value does not come after itself. ~~|
+        ~(5 | gt 5 | not)
+    | proves :ordersStringsByCharacters
+        |~~ Strings compare by their characters, an upper-case letter
+            before every lower-case one and digits as characters.
+        ~~|
+        ~(get [~("b" | gt "a") ~("B" | gt "a") ~("10" | gt "9")] | eq [true false false])
+    | proves :comparesKeywordsAndTagNamesByName
+        |~~ Keywords and tag names compare by their names. ~~|
+        ~(get [~(:b | gt :a) ~(::B | gt ::A)] | eq [true true])
+    | proves :comparesTurnedValuesTheOtherWay
+        |~~ Values under `::desc` compare the other way. ~~|
+        ~(1 | desc | gt (2 | desc))
+    | proves :comparesAsSortRanks
+        |~~ Vectors, booleans and values under one tag compare as `sort`
+            ranks them.
+        ~~|
+        ~(get [~([1 2] | gt [1]) ~(true | gt false) ~(::Width#5 | gt ::Width#3)] | eq [true true true])
+    | proves :answersWhereSortPutsTheValueFirst
+        |~~ The subject comes after the value where `sort` puts the value
+            first, and not where it puts the subject first.
+        ~~|
+        ~(get [~(::Width#5 | gt ::Width#3) ~([::Width#5 ::Width#3] | sort | first) ~("B" | gt "a") ~(["B" "a"] | sort | first)]
+          | eq [true ::Width#3 false "B"])
+    | proves :filtersByTheElement
+        |~~ In a condition the subject is the element. ~~|
+        ~([1 2 3] | filter ~(gt 1) | eq [2 3])
+    | proves :KindsMismatchedError/refusesANumberUnderATag
+        |~~ A number under a tag beside a number is refused with the two
+            kinds, and its payload compares.
+        ~~|
+        ~(get [~(::Width#5 | gt 3 !| get [~(type) /leftType /rightType]) ~(::Width#5 | payload | gt 3)]
+          | eq [[::any/gt/KindsMismatchedError ::Width ::number] true])
+    | proves :KindsMismatchedError/refusesTextBesideANumber
+        |~~ Text that holds a number is read by `toNumber` first. ~~|
+        ~(get [~("5" | gt 3 !| type) ~("5" | toNumber | gt 3)] | eq [::any/gt/KindsMismatchedError true])
+    | proves :KindsMismatchedError/refusesTwoTags
+        |~~ Two values under two tags are refused. ~~|
+        ~(::Cents#100 | gt ::Dollars#50 !| get [/leftType /rightType] | eq [::Cents ::Dollars])
+    | impl ::builtin{}
+
+:any/gte
+  |~~ Answers whether the subject comes after the value the call gives or
+      ranks with it in the one order, `10 | gte 10`, the two of one kind as
+      `gt` compares them, so a whole number ranks with its decimal,
+      `5 | gte 5.0`.
+      ::link~(::any/gt | doc) ::link~(::any/lte | doc)
+  ~~|
+  ::fn
+    | takes :value
+        |~~ The value the subject is compared with, of the subject's kind,
+            computed against the subject, `5 | gte 3`.
+        ~~|
+        /0
+    | throws :KindsMismatchedError
+        |~~ `gte` compares two values of one kind, as `gt` does: a value
+            under a tag is read by `payload` and text that holds a number by
+            `toNumber` before it is compared with a number.
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `gte` compares the subject with one value, as `gt` does: two
+            fields of one record compare through a name.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes after the value or ranks with it,
+            `false` otherwise.
+        ~~|
+        ::boolean
+    | proves :holdsOfItself |~~ A value ranks with itself. ~~| ~(10 | gte 10)
+    | proves :holdsOfItsDecimal
+        |~~ A whole number ranks with its decimal. ~~|
+        ~(5 | gte 5.0)
+    | proves :failsBelow
+        |~~ A smaller number is not at least the value. ~~|
+        ~(2 | gte 3 | not)
+    | proves :KindsMismatchedError/refusesAString
+        |~~ A string is no number to compare with. ~~|
+        ~(5 | gte "3" !| type | eq ::any/gte/KindsMismatchedError)
+    | impl ::builtin{}
+
+:any/lt
+  |~~ Answers whether the subject comes before the value the call gives in
+      the one order, `5 | lt 10`, the two of one kind as `gt` compares
+      them, the empty string before every other; `lte` answers whether it
+      comes before the value or ranks with it.
+      ::link~(::any/gt | doc) ::link~(::any/lte | doc)
+  ~~|
+  ::fn
+    | takes :value
+        |~~ The value the subject is compared with, of the subject's kind,
+            computed against the subject, `5 | lt 3`.
+        ~~|
+        /0
+    | throws :KindsMismatchedError
+        |~~ `lt` compares two values of one kind, as `gt` does: a value
+            under a tag is read by `payload` and text that holds a number by
+            `toNumber` before it is compared with a number.
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `lt` compares the subject with one value, as `gt` does: two
+            fields of one record compare through a name.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes before the value, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | proves :comparesNumbers |~~ Five is less than ten. ~~| ~(5 | lt 10)
+    | proves :keepsOneValueApartFromItself
+        |~~ A value does not come before itself. ~~|
+        ~(5 | lt 5 | not)
+    | proves :putsTheEmptyStringFirst
+        |~~ The empty string comes before every other. ~~|
+        ~("" | lt "a")
+    | proves :KindsMismatchedError/refusesAString
+        |~~ A string is no number to compare with. ~~|
+        ~(5 | lt "3" !| type | eq ::any/lt/KindsMismatchedError)
+    | impl ::builtin{}
+
+:any/lte
+  |~~ Answers whether the subject comes before the value the call gives or
+      ranks with it in the one order, `10 | lte 10`, the two of one kind as
+      `gt` compares them.
+      ::link~(::any/lt | doc) ::link~(::any/gte | doc)
+  ~~|
+  ::fn
+    | takes :value
+        |~~ The value the subject is compared with, of the subject's kind,
+            computed against the subject, `5 | lte 3`.
+        ~~|
+        /0
+    | throws :KindsMismatchedError
+        |~~ `lte` compares two values of one kind, as `gt` does: a value
+            under a tag is read by `payload` and text that holds a number by
+            `toNumber` before it is compared with a number.
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `lte` compares the subject with one value, as `gt` does: two
+            fields of one record compare through a name.
+        ~~|
+    | returns
+        |~~ `true` when the subject comes before the value or ranks with
+            it, `false` otherwise.
+        ~~|
+        ::boolean
+    | proves :holdsOfItself |~~ A value ranks with itself. ~~| ~(10 | lte 10)
+    | proves :failsAbove
+        |~~ A greater number is not at most the value. ~~|
+        ~(2 | lte 1 | not)
+    | proves :KindsMismatchedError/refusesAString
+        |~~ A string is no number to compare with. ~~|
+        ~(5 | lte "3" !| type | eq ::any/lte/KindsMismatchedError)
+    | impl ::builtin{}
+
 :any/type
   |~~ Answers the kind of the subject, the tag its value stands under,
       `5 | type` answering `::number`. The answer is a tag name, a value

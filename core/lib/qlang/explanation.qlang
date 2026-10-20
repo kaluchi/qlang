@@ -74,7 +74,7 @@
         |~~ A refusal with no page of its own is explained by the page of
             what refused.
         ~~|
-        ~(::a | gt !| explain | page | eq (::tag/gt/value | doc))
+        ~(::a | gt !| explain | page | eq (::any/gt/value | doc))
     | proves :isNullForANameWithoutOne
         |~~ A name declared without a page is explained by none. ~~|
         ~(:x 1 | ::x | explain | page | eq null)

@@ -1,11 +1,9 @@
-// The branches of equality, of the forms of values, of the reading of a
-// parse failure and of the printer that the laws of the catalog leave
-// out, a `describe` for each.
+// The branches of the forms of values, of the reading of a parse failure and
+// of the printer that the laws of the catalog leave out, a `describe` for each.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';
-import { deepEqual } from '../../src/equality.mjs';
-import { makeSet } from '../../src/ordering.mjs';
+import { compareValues, makeSet } from '../../src/ordering.mjs';
 import {
   formOf,
   typeOf,
@@ -19,33 +17,6 @@ import { parse } from '../../src/parse.mjs';
 import { partOf } from '../../src/walk.mjs';
 import { errorFromParse, spanOfLocation } from '../../src/error-convert.mjs';
 import { printValue } from '../../src/print-value.mjs';
-
-describe('equality.deepEqual rejection branches', async () => {
-  it('returns false when only one side is null', async () => {
-    expect(deepEqual(null, 5)).toBe(false);
-    expect(deepEqual(5, null)).toBe(false);
-  });
-
-  it('returns false when types differ', async () => {
-    expect(deepEqual(1, '1')).toBe(false);
-  });
-
-  it('returns false when one side is array and the other is not', async () => {
-    expect(deepEqual([1, 2], 'x')).toBe(false);
-  });
-
-  it('returns false when arrays have different length', async () => {
-    expect(deepEqual([1, 2], [1, 2, 3])).toBe(false);
-  });
-
-  it('returns false when one side is a set and the other its vector', async () => {
-    expect(deepEqual(makeSet([1]), [1])).toBe(false);
-  });
-
-  it('returns false when sets have different size', async () => {
-    expect(deepEqual(makeSet([1, 2]), makeSet([1, 2, 3]))).toBe(false);
-  });
-});
 
 describe('formOf of a binding record and of a vector under a tag', async () => {
   it('formOf reads a binding record as a value under a tag, underTag', async () => {
@@ -99,16 +70,6 @@ describe('typeOf covers all value kinds', () => {
   it('typeOf returns ::binding for a binding record', () => {
     const record = makeBinding({ name: keyword('x'), value: 42 });
     expect(typeOf(record).name).toBe('binding');
-  });
-});
-
-describe('deepEqual Set vs non-Set non-Array', async () => {
-  it('returns false when first is a set and second is an object of JavaScript', async () => {
-    expect(deepEqual(makeSet([1]), {})).toBe(false);
-  });
-
-  it('returns false when same-size sets contain different elements', async () => {
-    expect(deepEqual(makeSet([1, 2]), makeSet([1, 3]))).toBe(false);
   });
 });
 
@@ -240,39 +201,36 @@ describe('printValue keyword round-trip', async () => {
   it('quoted keywords round-trip through printValue → parse → eval', async () => {
     const { evalQuery } = await import('../../src/session.mjs');
     const { printValue } = await import('../../src/print-value.mjs');
-    const { deepEqual } = await import('../../src/equality.mjs');
 
     const cases = [':"1"', ':"foo bar"', ':"$ref"', ':""', ':"123"', ':foo', ':qlang/error'];
     for (const src of cases) {
       const original = await evalQuery(src);
       const printed = printValue(original);
       const reparsed = await evalQuery(printed);
-      expect(deepEqual(original, reparsed), `a quoted keyword read back as another value: ${src} → ${printed}`).toBe(true);
+      expect(compareValues(original, reparsed) === 0, `a quoted keyword read back as another value: ${src} → ${printed}`).toBe(true);
     }
   });
 
   it('Map with quoted-keyword keys round-trips through printValue', async () => {
     const { evalQuery } = await import('../../src/session.mjs');
     const { printValue } = await import('../../src/print-value.mjs');
-    const { deepEqual } = await import('../../src/equality.mjs');
 
     const original = await evalQuery('{:"$ref" 1 :"foo bar" 2}');
     const printed = printValue(original);
     const reparsed = await evalQuery(printed);
-    expect(deepEqual(original, reparsed)).toBe(true);
+    expect(compareValues(original, reparsed) === 0).toBe(true);
   });
 });
 
 describe('printValue round-trip — all composite types', async () => {
   const { evalQuery } = await import('../../src/session.mjs');
   const { printValue } = await import('../../src/print-value.mjs');
-  const { deepEqual } = await import('../../src/equality.mjs');
 
   async function assertRoundTrip(src, label) {
     const original = await evalQuery(src);
     const printed = printValue(original);
     const reparsed = await evalQuery(printed);
-    expect(deepEqual(original, reparsed), `${label}: ${src} → ${printed}`).toBe(true);
+    expect(compareValues(original, reparsed) === 0, `${label}: ${src} → ${printed}`).toBe(true);
   }
 
   it('Vec of mixed types', async () => {

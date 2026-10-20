@@ -311,10 +311,7 @@ describe('main — error paths', () => {
   });
 
   it('answers a stdin magnitude outside the finite-double domain as parseJson refuses it, naming the path [QSHST#answer]', async () => {
-    // `JSON.parse` reads `1e400` as an infinity, which the lift
-    // refuses. Auto-mode keeps the refusal instead of re-labelling
-    // the document as text, and the answer is the refusal `parseJson`
-    // gives the text, its `:path` the path to the number [QSPRN#json].
+    // The answer is the refusal `parseJson` gives the text, its `:path` the path to the number [QSPRN#json].
     const s = captureStreams('{"big": 1e400, "n": 1}');
     const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);

@@ -9,6 +9,7 @@ import { isNull, isErrorValue, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive, runs } from '../primitives.mjs';
 import { isMissedRead } from '../path-read.mjs';
+import { failedOnAPart } from '../eval-trace.mjs';
 
 const AnyCondConditionNotBooleanError = declareRefusal('any/cond/ConditionNotBooleanError');
 const AnyAllOfConditionNotBooleanError = declareRefusal('any/allOf/ConditionNotBooleanError');
@@ -35,15 +36,16 @@ registerPrimitive('any/allOf', runs(['conditions'], (subject, conditions) => ver
 registerPrimitive('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionNotBooleanError)));
 
 // The first alternative that answers a value, each in its place, code passing
-// on null and on a read `query` answers null for, any other failure its answer,
-// one alternative that is a value standing after the subject [QSCND#coalesce];
-// the invariant of the alternatives holds one at least.
+// on null and on a read `query` answers null for that missed on its own way,
+// any other failure its answer, and a value alone standing after the subject
+// [QSCND#coalesce]; the invariants of the alternatives hold one at least, and
+// code among several.
 registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alternatives) => {
   const isCode = alternative => typeof alternative === 'function';
-  const candidates = alternatives.length === 1 && !isCode(alternatives[0]) ? [subject, ...alternatives] : alternatives;
+  const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];
   for (const alternative of candidates) {
     const answer = isCode(alternative) ? await alternative(subject) : alternative;
-    if (isNull(answer) || (isErrorValue(answer) && isMissedRead(answer))) continue;
+    if (isNull(answer) || (isErrorValue(answer) && isMissedRead(answer) && !failedOnAPart(answer))) continue;
     return answer;
   }
   return NULL;

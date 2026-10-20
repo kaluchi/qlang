@@ -15,8 +15,8 @@ const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerErro
 const VecToPathElementNotKeyError = declareRefusal('vec/toPath/ElementNotKeyError');
 const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError');
 
-// The path of one segment a key alone names [QSPTH#key].
-const pathOfKey = key => makePath([keyNameOf(key)]);
+// A path, or the path of one segment a key alone names [QSPTH#key].
+const pathOf = pathOrKey => (isPath(pathOrKey) ? pathOrKey : makePath([keyNameOf(pathOrKey)]));
 
 // A path or a key read from the subject; any other value a template whose
 // paths are read and whose quotes, closed at the call, are run against the
@@ -24,7 +24,7 @@ const pathOfKey = key => makePath([keyNameOf(key)]);
 // under its tags as a write lays it, the first failure the answer [QSLIT#tag].
 function readByPath(subject, path, soft, fallback, state) {
   if (isPath(path) || isKeyAlone(path)) {
-    const read = readPath(subject, isPath(path) ? path : pathOfKey(path), soft);
+    const read = readPath(subject, pathOf(path), soft);
     return read === MISSED ? fallback : read;
   }
   return readTemplate(subject, path, soft, fallback, state);
@@ -106,8 +106,6 @@ async function relaid(original, rebuilt, state) {
   if (tag === undefined) return isVec(rebuilt) ? Object.freeze(rebuilt) : rebuilt;
   return await layTag(tag.name, rebuilt, state);
 }
-
-const pathOf = pathOrKey => (isPath(pathOrKey) ? pathOrKey : pathOfKey(pathOrKey));
 
 registerStateReader('any/put', (subject, pathOrKey, value, state) =>
   written(subject, pathOf(pathOrKey), 0, { adds: true, removes: false, part: () => value }, state));

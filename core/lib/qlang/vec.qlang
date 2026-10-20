@@ -2118,10 +2118,10 @@
     | impl ::builtin{}
 
 :vec/toPath
-  |~~ Answers the path whose segments are the elements: a keyword and a
-      string name a key, and a number the segment of its digits, an index
-      of a vector or the key of a map that spells it, as `get` reads a key
-      alone. `[:items 0] | toPath` answers `/items/0`, the path `segments`
+  |~~ Answers the path whose segments are the texts of the elements, each
+      a key alone, a keyword, a string or a number, as `get` reads one: a
+      map reads a segment as the key that spells it and a vector as the
+      index its digits write. `[:items 0] | toPath` answers `/items/0`, the path `segments`
       takes apart, and `[:a 1.5] | toPath` answers `/a/"1.5"`, which reads
       the key `:"1.5"` of a map, as `get 1.5` does.
       ::link~(::path/segments | doc) ::link~(::string/toPath | doc)
@@ -2130,7 +2130,8 @@
     | returns |~~ The path of the segments. ~~| ::path
     | throws :ElementNotKeyError
         |~~ Each element is a key alone, a keyword, a string or a number,
-            `[:items 0] | toPath`; a value of another kind names no segment.
+            `[:items 0] | toPath`, a boolean, null and a tag name written by
+            the keyword a map files them under, `:true`.
         ~~|
     | throws :SubjectEmptyError
         |~~ A path names one segment at least: the value itself is `it`,
@@ -2146,7 +2147,7 @@
         |~~ The empty vector names no path. ~~|
         ~([] | toPath !| type | eq ::vec/toPath/SubjectEmptyError)
     | proves :ElementNotKeyError/refusesABoolean
-        |~~ A boolean names no segment, and is refused at its own. ~~|
+        |~~ A boolean is no key alone, and is refused at its index. ~~|
         ~([:a true] | toPath !| get [~(type) /index] | eq [::vec/toPath/ElementNotKeyError 1])
     | impl ::builtin{}
 

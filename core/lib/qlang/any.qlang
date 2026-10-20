@@ -573,17 +573,19 @@
       subject, and a value answers itself,
       `{:nickname null :name "alice"} | coalesce /nickname /name`
       answering `"alice"`. An alternative passes to the next where it
-      answers null, or the refusal of a read `query` answers null for, a
-      key the map lacks, an index past the end or null on the way, so
-      `coalesce /key ~(fallback)` reads "the key where the map holds it,
-      else the fallback"; any other failure of its code is the answer of
-      the call, a misspelled name among them, and every other value ends
+      answers null, or the refusal of a read `query` answers null for met
+      on its own way, a key the map lacks, an index past the end or null on
+      the way, so `coalesce /key ~(fallback)` reads "the key where the map
+      holds it, else the fallback"; a miss in the code a verb ran on a part
+      of it, `map /price`, and any other failure of its code is the answer
+      of the call, a misspelled name among them, and every other value ends
       the walk, false, `0` and `""` among them. When every alternative
-      passes the call answers null. One alternative that is a value stands
-      after the subject: `coalesce 30` reads "the subject, else 30", while
-      `coalesce (get /t) 30` reads `/t` at the call, else 30. An error the
-      steps before answered passes over the call, as over every step, so a
-      field that may be missing is read inside an alternative,
+      passes the call answers null. A value alone stands after the subject,
+      `coalesce 30` reading "the subject, else 30", and several values
+      alone are refused, the subject first written by a quote,
+      `coalesce ~(it) e 8080`, and a field by a path, `coalesce /t 30`. An
+      error the steps before answered passes over the call, as over every
+      step, so a field that may be missing is read inside an alternative,
       `coalesce /key 0`, not before it. The call takes one alternative at
       least.
       ::link~(::any/if | doc) ::link~(::any/cond | doc)
@@ -601,6 +603,14 @@
             `coalesce /nickname ~("anonymous")`.
         ~~|
         ~(count | gt 0)
+    | holds :alternatives/ValuesAloneError
+        |~~ `coalesce` reads the subject before one value,
+            `query /t | coalesce 30`, and several values alone leave its
+            place open: the subject first is written by a quote,
+            `coalesce ~(it) e 8080`, a value a name holds by a quote,
+            `coalesce ~(e) 8080`, and a field by a path, `coalesce /t 30`.
+        ~~|
+        ~(map ~type | anyOf ~(count | lt 2) ~(has ::quote) ~(has ::path))
     | returns
         |~~ The first answer that is a value, a failure of the code that
             answered it, or null when every alternative passes.
@@ -631,11 +641,15 @@
             call with its failure.
         ~~|
         ~({} | coalesce ~(nosuchword) 30 !| type | eq ::call/UnknownNameError)
-    | proves :standsEachAlternativeInItsPlace
-        |~~ A value computed at the call stands in its place, the subject
-            standing before one alternative alone.
+    | proves :answersAMissInCodeRunOnAPart
+        |~~ A field one element lacks under `map` is the answer of the
+            call.
         ~~|
-        ~({:t null} | coalesce (get /t) 30 | eq 30)
+        ~({:items [{:price 1} {:cost 2}]} | coalesce ~(get /items | map /price) [] !| type | eq ::path/KeyNotInMapError)
+    | proves :readsTheSubjectFirstByAQuote
+        |~~ A quote of `it` stands the subject first among several values.
+        ~~|
+        ~(9000 | coalesce ~(it) 7000 8080 | eq 9000)
     | proves :fallsToTheLast
         |~~ The last alternative answers when the rest give nothing. ~~|
         ~({:nickname null :name null}
@@ -657,6 +671,9 @@
         ~({} | coalesce
           !| get [~(type) /actualValue]
           |  eq [::any/coalesce/alternatives/EmptyError ::any/coalesce[]])
+    | proves :alternatives/ValuesAloneError/refusesSeveralValues
+        |~~ Several values alone are refused. ~~|
+        ~({:t null} | coalesce (get /t) 30 !| type | eq ::any/coalesce/alternatives/ValuesAloneError)
     | proves :keepsZeroAndTheEmptyString
         |~~ Zero and the empty string end the walk. ~~|
         ~([0 ""] | map ~(coalesce 1) | eq [0 ""])
@@ -2103,9 +2120,10 @@
       with the keys near it, so a misspelled field is found where it is
       read, `{:a {:b 1}} | get /a/b` answering `1`. A key the query
       computes is read as the path of one segment, a keyword, a string or
-      a number, its text the segment, `get (get /k)`, and a value that
-      names no part, null, a boolean, a regex or a tag name, is refused, so
-      a key the data leaves null is found where it is read. Over a template, a literal of paths
+      a number, its text the segment, `get (get /k)`, and any other value
+      is refused, so a key the data leaves null is found where it is read;
+      a boolean, null and a tag name a map files under the keyword
+      `toKeyword` answers, which reads that key, `get :true`. Over a template, a literal of paths
       and quotes, it answers the template with each path read and each
       quote run against the subject in its place, the answer written in
       the shape the template takes:
@@ -2127,14 +2145,18 @@
     | throws :path/KindNotTakenError
         |~~ The path is a path, `get /a/b`, a key of one segment, a keyword,
             a number or a string, or a template, a vector, a map or a set of
-            paths and quotes, or a value under a tag, a quote among them;
-            null, a boolean, a regex and a tag name name no part, so a key
-            computed from data that answered one names no key the data
-            holds.
+            paths and quotes, or a value under a tag, a quote among them. A
+            boolean, null and a tag name are no key: a map files them under
+            the keyword `toKeyword` answers, which reads that key,
+            `groupBy ~(gt 1) | get :true`, `get (… | toKeyword)`, and a key
+            computed from data that holds null is refused where it is read.
         ~~|
     | proves :path/KindNotTakenError/refusesNull
-        |~~ Null names no part. ~~|
+        |~~ A key the data leaves null is refused. ~~|
         ~({:k null} | get (get /k) !| get [~(type) /actualType] | eq [::any/get/path/KindNotTakenError ::null])
+    | proves :path/KindNotTakenError/readsTheKeyOfABooleanByItsKeyword
+        |~~ The group of `true` is read by its keyword. ~~|
+        ~([1 2 3] | groupBy ~(gt 1) | get [~(get true !| type) ~(get :true)] | eq [::any/get/path/KindNotTakenError [2 3]])
     | proves :readsANestedPart
         |~~ A path reads a part at any depth. ~~|
         ~({:a {:b [10 20]}} | get /a/b/-1 | eq 20)
@@ -2184,11 +2206,13 @@
         |~~ The path is a path, `query /a/b`, a key of one segment, a
             keyword, a number or a string, or a template, a vector, a map or
             a set of paths and quotes, or a value under a tag, a quote among
-            them; null, a boolean, a regex and a tag name name no part,
-            which `query` reads no more softly than `get`.
+            them, and `query` reads any other no more softly than `get`. A
+            boolean, null and a tag name are no key: a map files them under
+            the keyword `toKeyword` answers, which reads that key,
+            `query :true`.
         ~~|
     | proves :path/KindNotTakenError/refusesABoolean
-        |~~ A boolean names no part. ~~|
+        |~~ A boolean is no key. ~~|
         ~({:a 1} | query true 7 !| type | eq ::any/query/path/KindNotTakenError)
     | takes :default
         |~~ What a missed path answers, held and never run, null when the

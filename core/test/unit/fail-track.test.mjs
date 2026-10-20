@@ -153,7 +153,7 @@ describe('per-site error classes carry unique identity', () => {
 
   it('gt across kinds is refused as the pair, the two kinds among the facts [QSCND#compare]', async () => {
     const refused = await evalQuery('"a" | gt 5');
-    expect(refused.tag.name).toBe('any/gt/KindsMismatchedError');
+    expect(refused.tag.name).toBe('call/KindsMismatchedError');
     expect([refused.facts.get('leftType').name, refused.facts.get('rightType').name]).toEqual(['string', 'number']);
   });
 

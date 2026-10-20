@@ -284,7 +284,9 @@ runtime raises by rule: the refusal of the kinds of an input, a field or
 a payload is a node the chain lays, with a page of its own where no
 `throws` gives one, and any other no `throws` declares reads the record
 of its place [QSSLF#axis]. The refusal of a primitive takes the address
-of the verb that ran it, a refusal of the read of a path sits under
+of the verb that ran it, but for a pair a step relates or combines and
+cannot, which the call refuses as `::call/KindsMismatchedError`
+[QSDSP#answer], a refusal of the read of a path sits under
 `::path`, whichever verb reads it, a place of the args an input reads and
 the call leaves out refused under the input [QSBLD#input], and a refusal
 of the language's own steps sits under the record or the kind that holds

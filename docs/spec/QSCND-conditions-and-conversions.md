@@ -16,7 +16,7 @@ of its kind as `type` answers it, by the one order, so `a | gt b` answers
 `true` exactly where `sort` puts `b` before `a`, and `gte` with `lte`
 exactly where `eq` does. The order ranks every value, the kinds among
 themselves, while a comparison relates two values of one kind: a pair of
-two kinds is refused as the pair, `::any/gt/KindsMismatchedError`, its
+two kinds is refused as the pair, `::call/KindsMismatchedError`, its
 facts the two kinds, `:leftType` and `:rightType`, a value under a tag
 compared with a value of its payload's kind by `payload`, and text that
 holds a number with a number by `toNumber`. A comparison takes one value,
@@ -34,10 +34,10 @@ true
 [null]
 
 > get [~(5 | gt "a" !| type) ~(true | gt false !| type)]
-[::any/gt/KindsMismatchedError true]
+[::call/KindsMismatchedError true]
 
-> get [~([1 "a"] | max) ~([1 "a"] | sort) ~("a" | gt 1 !| type) ~(::Cents#100 | gt ::Dollars#50 !| get [/leftType /rightType])]
-["a" [1 "a"] ::any/gt/KindsMismatchedError [::Cents ::Dollars]]
+> get [~([1 "a"] | max !| type) ~([1 "a"] | sort) ~("a" | gt 1 !| type) ~(::Cents#100 | gt ::Dollars#50 !| get [/leftType /rightType])]
+[::call/KindsMismatchedError [1 "a"] ::call/KindsMismatchedError [::Cents ::Dollars]]
 
 > get [~(#"a"i | eq #"a"i) ~(#"a"i | eq #"a") ~(/a/0 | eq /a/0) ~(1 | desc | eq (1 | desc)) ~({:b [1] :a #[2]} | eq {:a #[2] :b [1]}) ~(~(add 1) | eq ~(add 1))]
 [true false true true true true]

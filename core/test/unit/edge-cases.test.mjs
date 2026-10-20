@@ -54,10 +54,10 @@ describe('types.mjs', () => {
 
 describe('runtime/predicates.mjs ordering type errors', () => {
   it('each comparison refuses a pair of two kinds', async () => {
-    await expectErrorThrown('"a" | gt 5', 'any/gt/KindsMismatchedError');
-    await expectErrorThrown('null | lt 5', 'any/lt/KindsMismatchedError');
-    await expectErrorThrown('[1] | gte {}', 'any/gte/KindsMismatchedError');
-    await expectErrorThrown('true | lte 1', 'any/lte/KindsMismatchedError');
+    await expectErrorThrown('"a" | gt 5', 'call/KindsMismatchedError');
+    await expectErrorThrown('null | lt 5', 'call/KindsMismatchedError');
+    await expectErrorThrown('[1] | gte {}', 'call/KindsMismatchedError');
+    await expectErrorThrown('true | lte 1', 'call/KindsMismatchedError');
   });
 });
 

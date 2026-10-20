@@ -208,15 +208,6 @@
             computed against the subject, `5 | gt 3`.
         ~~|
         /0
-    | throws :KindsMismatchedError
-        |~~ `gt` compares two values of one kind: a value under a tag
-            beside a value of its payload's kind is read by `payload`,
-            `::Width#5 | payload | gt 3`, text that holds a number by
-            `toNumber`, `"5" | toNumber | gt 3`, a value turned by `desc` is
-            compared with one turned, `gt (2 | desc)`, and two values under
-            two tags, `::Cents#100` and `::Dollars#50`, are brought to one
-            first.
-        ~~|
     | throws :ArgsBeyondInputsError
         |~~ `gt` compares the subject with one value: two fields of one
             record compare through a name, `:r it | get /a | gt (r | get /b)`.
@@ -258,16 +249,16 @@
     | proves :filtersByTheElement
         |~~ In a condition the subject is the element. ~~|
         ~([1 2 3] | filter ~(gt 1) | eq [2 3])
-    | proves :KindsMismatchedError/refusesANumberUnderATag
+    | proves :refusesANumberUnderATag
         |~~ A number under a tag beside a number is refused with the two
             kinds, and its payload compares.
         ~~|
         ~(get [~(::Width#5 | gt 3 !| get [~(type) /leftType /rightType]) ~(::Width#5 | payload | gt 3)]
-          | eq [[::any/gt/KindsMismatchedError ::Width ::number] true])
-    | proves :KindsMismatchedError/refusesTextBesideANumber
+          | eq [[::call/KindsMismatchedError ::Width ::number] true])
+    | proves :refusesTextBesideANumber
         |~~ Text that holds a number is read by `toNumber` first. ~~|
-        ~(get [~("5" | gt 3 !| type) ~("5" | toNumber | gt 3)] | eq [::any/gt/KindsMismatchedError true])
-    | proves :KindsMismatchedError/refusesTwoTags
+        ~(get [~("5" | gt 3 !| type) ~("5" | toNumber | gt 3)] | eq [::call/KindsMismatchedError true])
+    | proves :refusesTwoTags
         |~~ Two values under two tags are refused. ~~|
         ~(::Cents#100 | gt ::Dollars#50 !| get [/leftType /rightType] | eq [::Cents ::Dollars])
     | impl ::builtin{}
@@ -285,11 +276,6 @@
             computed against the subject, `5 | gte 3`.
         ~~|
         /0
-    | throws :KindsMismatchedError
-        |~~ `gte` compares two values of one kind, as `gt` does: a value
-            under a tag is read by `payload` and text that holds a number by
-            `toNumber` before it is compared with a number.
-        ~~|
     | throws :ArgsBeyondInputsError
         |~~ `gte` compares the subject with one value, as `gt` does: two
             fields of one record compare through a name.
@@ -306,9 +292,9 @@
     | proves :failsBelow
         |~~ A smaller number is not at least the value. ~~|
         ~(2 | gte 3 | not)
-    | proves :KindsMismatchedError/refusesAString
+    | proves :refusesAString
         |~~ A string is no number to compare with. ~~|
-        ~(5 | gte "3" !| type | eq ::any/gte/KindsMismatchedError)
+        ~(5 | gte "3" !| type | eq ::call/KindsMismatchedError)
     | impl ::builtin{}
 
 :any/lt
@@ -324,11 +310,6 @@
             computed against the subject, `5 | lt 3`.
         ~~|
         /0
-    | throws :KindsMismatchedError
-        |~~ `lt` compares two values of one kind, as `gt` does: a value
-            under a tag is read by `payload` and text that holds a number by
-            `toNumber` before it is compared with a number.
-        ~~|
     | throws :ArgsBeyondInputsError
         |~~ `lt` compares the subject with one value, as `gt` does: two
             fields of one record compare through a name.
@@ -345,9 +326,9 @@
     | proves :putsTheEmptyStringFirst
         |~~ The empty string comes before every other. ~~|
         ~("" | lt "a")
-    | proves :KindsMismatchedError/refusesAString
+    | proves :refusesAString
         |~~ A string is no number to compare with. ~~|
-        ~(5 | lt "3" !| type | eq ::any/lt/KindsMismatchedError)
+        ~(5 | lt "3" !| type | eq ::call/KindsMismatchedError)
     | impl ::builtin{}
 
 :any/lte
@@ -362,11 +343,6 @@
             computed against the subject, `5 | lte 3`.
         ~~|
         /0
-    | throws :KindsMismatchedError
-        |~~ `lte` compares two values of one kind, as `gt` does: a value
-            under a tag is read by `payload` and text that holds a number by
-            `toNumber` before it is compared with a number.
-        ~~|
     | throws :ArgsBeyondInputsError
         |~~ `lte` compares the subject with one value, as `gt` does: two
             fields of one record compare through a name.
@@ -380,9 +356,9 @@
     | proves :failsAbove
         |~~ A greater number is not at most the value. ~~|
         ~(2 | lte 1 | not)
-    | proves :KindsMismatchedError/refusesAString
+    | proves :refusesAString
         |~~ A string is no number to compare with. ~~|
-        ~(5 | lte "3" !| type | eq ::any/lte/KindsMismatchedError)
+        ~(5 | lte "3" !| type | eq ::call/KindsMismatchedError)
     | impl ::builtin{}
 
 :any/type
@@ -1846,7 +1822,7 @@
         |~~ Each of the numbers is a number or a path; text that holds one
             is read by `toNumber`, `sumOf (get /x | toNumber) /y`.
         ~~|
-    | returns |~~ The sum of the numbers. ~~| ::number
+    | returns |~~ The sum of the numbers, under the tags they share. ~~| ::number
     | proves :addsTwoFields
         |~~ Two fields of one map add. ~~|
         ~({:x 10 :y 3} | sumOf /x /y | eq 13)
@@ -1896,7 +1872,7 @@
         |~~ Each of the factors is a number or a path; text that holds one
             is read by `toNumber`.
         ~~|
-    | returns |~~ The factors multiplied. ~~| ::number
+    | returns |~~ The factors multiplied, under the tags they share. ~~| ::number
     | proves :multipliesAsManyAsGiven
         |~~ As many factors as the call gives multiply. ~~|
         ~({:a 2 :b 3 :c 4} | mulOf /a /b /c | eq 24)
@@ -1943,7 +1919,7 @@
         |~~ `subOf` subtracts the subtrahend from the minuend and was
             given the minuend alone: `subOf /total /paid`.
         ~~|
-    | returns |~~ The minuend less the subtrahend. ~~| ::number
+    | returns |~~ The minuend less the subtrahend, under the tags they share. ~~| ::number
     | throws :ArgsBeyondInputsError
         |~~ `subOf` subtracts one number from another: a sum subtracted is
             computed in its place, `subOf /total (sumOf /a /b)`.
@@ -2002,7 +1978,7 @@
         |~~ `divOf` divides the dividend by the divisor and was given the
             dividend alone: `divOf /sum /count`.
         ~~|
-    | returns |~~ The dividend divided by the divisor. ~~| ::number
+    | returns |~~ The dividend divided by the divisor, under the tags they share. ~~| ::number
     | throws :ArgsBeyondInputsError
         |~~ `divOf` divides one number by another: a product divided is
             computed in its place, `divOf /total (mulOf /a /b)`.
@@ -2232,7 +2208,7 @@
       earlier: the value of a pair with its name beside it is
       `unionOf /1 (get {:name ~(get /0 | toString)})`. Maps unite with maps and sets
       with sets, a map with a set being refused by `union`, and the
-      union keeps the tags of the first part. One part answers itself,
+      union stands under the tags the parts share. One part answers itself,
       and the call gives one at least.
       ::link~(::map/union | doc) ::link~(::set/union | doc)
   ~~|
@@ -2243,7 +2219,7 @@
             `unionOf /a /b`.
         ~~|
         ~(count | gt 0)
-    | returns |~~ The parts united, under the tags of the first. ~~| ::any
+    | returns |~~ The parts united, under the tags they share. ~~| ::any
     | proves :mergesTwoFields
         |~~ Two maps one value holds merge. ~~|
         ~({:a {:x 1} :b {:y 2}} | unionOf /a /b | eq {:x 1 :y 2})
@@ -2259,9 +2235,9 @@
     | proves :refusesAMapWithASet
         |~~ A map with a set is refused by `union`. ~~|
         ~({:a {:x 1} :b #[2]} | unionOf /a /b !| type | eq ::map/union/other/KindNotTakenError)
-    | proves :keepsTheTagsOfTheFirst
-        |~~ The union keeps the tags of the first part. ~~|
-        ~({:a ::Box{:x 1} :b {:y 2}} | unionOf /a /b | eq ::Box{:x 1 :y 2})
+    | proves :answersUnderTheTagsThePartsShare
+        |~~ The union stands under the tags the parts share. ~~|
+        ~({:a {:x 1} :b ::Box{:y 2}} | unionOf /a /b | eq ::Box{:x 1 :y 2})
     | proves :answersOnePart
         |~~ One part answers itself. ~~|
         ~({:a {:x 1}} | unionOf /a | eq {:x 1})

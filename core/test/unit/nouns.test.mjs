@@ -125,7 +125,7 @@ describe('the verbs that live on a kind', () => {
   });
 
   it('an address the listing answers leads the axes to its name', async () => {
-    expect(await evalQuery('[::any/gt ::any/lt] | map ~manifest | eq [#[::any/gt/ArgsBeyondInputsError ::any/gt/KindsMismatchedError ::any/gt/answer ::any/gt/value] #[::any/lt/ArgsBeyondInputsError ::any/lt/KindsMismatchedError ::any/lt/answer ::any/lt/value]]')).toBe(true);
+    expect(await evalQuery('[::any/gt ::any/lt] | map ~manifest | eq [#[::any/gt/ArgsBeyondInputsError ::any/gt/answer ::any/gt/value] #[::any/lt/ArgsBeyondInputsError ::any/lt/answer ::any/lt/value]]')).toBe(true);
   });
 
   it('a verb of any tagged value lives on the kind of tagged values', async () => {

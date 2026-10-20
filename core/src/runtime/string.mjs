@@ -1,7 +1,7 @@
 // The primitives of strings, whose verbs the catalog declares under
 // `::string` [QSTXT#string].
 
-import { registerPrimitive } from '../primitives.mjs';
+import { registerPrimitive, combines } from '../primitives.mjs';
 import { isKeyword, isRegex } from '../types.mjs';
 import { containsMatch, piecesBetweenMatches } from './regex.mjs';
 
@@ -9,8 +9,8 @@ import { containsMatch, piecesBetweenMatches } from './regex.mjs';
 // its name, as `json` writes it [QSTXT#string].
 export const writtenAsText = value => (isKeyword(value) ? value.name : value);
 
-registerPrimitive('string/prepend', (text, prefix) => writtenAsText(prefix) + text);
-registerPrimitive('string/append', (text, suffix) => text + writtenAsText(suffix));
+registerPrimitive('string/prepend', combines((text, prefix) => writtenAsText(prefix) + text));
+registerPrimitive('string/append', combines((text, suffix) => text + writtenAsText(suffix)));
 
 // The empty separator cuts the text into its characters, the code points
 // `count` counts, so no character falls in halves, and a regex cuts it at

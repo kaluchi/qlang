@@ -3,7 +3,8 @@
    verb of vectors serves a vector under any tag, a quote and a doc
    among them, and a set where the set has no verb of its own; a verb
    whose answer names the vector answers under the tags of the subject,
-   and `map`, whose answer is any value, under none. The inputs of a verb
+   `concat` under those it shares with the vectors it joins, and `map`,
+   whose answer is any value, under none. The inputs of a verb
    are read and held to their invariants before the verb runs.
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -235,7 +236,7 @@
       ::link~(::vec/avg | doc) ::link~(::any/sumOf | doc)
   ~~|
   ::fn
-    | returns |~~ The sum of the elements. ~~| ::number
+    | returns |~~ The sum of the elements, under the tags they share. ~~| ::number
     | throws :ElementNotNumberError
         |~~ `sum` adds numbers; the place of its frame names the first
             element that is none, and a field is read first,
@@ -288,7 +289,9 @@
   ~~|
   ::fn
     | returns
-        |~~ The mean of the elements, null for an empty vector. ~~|
+        |~~ The mean of the elements, under the tags they share, null for
+            an empty vector.
+        ~~|
         #[::number ::null]
     | throws :ElementNotNumberError
         |~~ `avg` takes the mean of numbers; the place of its frame names
@@ -340,9 +343,10 @@
 
 :vec/min
   |~~ Answers the least element in the one order of values,
-      `[3 1 4] | min` answering `1`, or null for the empty vector. The
-      order runs across kinds, null first, then booleans, numbers and
-      strings, so `[3 "a" null] | min` answers null. With a key the call
+      `[3 1 4] | min` answering `1`, or null for the empty vector. It
+      relates elements of one kind, as `lt` relates two values, so two of
+      two kinds are refused as the pair, a missing value among them, which
+      is taken out first, `filter ~(ne null) | min`. With a key the call
       gives, the element whose key answers least answers whole, the first
       of equal ones, `[{:age 30} {:age 20}] | min /age` answering
       `{:age 20}`. The key is code run on each element, a path, `/age`, or
@@ -374,9 +378,11 @@
     | proves :answersNullOfNothing
         |~~ The empty vector has no least element. ~~|
         ~([] | min | eq null)
-    | proves :ordersAcrossKinds
-        |~~ Null precedes every other kind in the one order. ~~|
-        ~([3 "a" null] | min | eq null)
+    | proves :relatesValuesOfOneKind
+        |~~ Two elements of two kinds are refused, a missing one taken out
+            first.
+        ~~|
+        ~(get [~([3 null 1] | min !| type) ~([3 null 1] | filter ~(ne null) | min)] | eq [::call/KindsMismatchedError 1])
     | proves :answersTheElementOfTheLeastKey
         |~~ The element whose key answers least answers whole. ~~|
         ~([{:age 30} {:age 20}] | min /age | eq {:age 20})
@@ -404,7 +410,7 @@
 :vec/max
   |~~ Answers the greatest element in the one order of values,
       `[3 1 4] | max` answering `4`, or null for the empty vector, as
-      `min` answers from the other end: a string follows a number, and
+      `min` answers from the other end, of elements of one kind, and
       with a key the element whose key answers greatest answers whole, the
       first of equal ones, `[{:age 30} {:age 40}] | max /age` answering
       `{:age 40}`. The key is read as `min` reads it; a set answers its
@@ -429,9 +435,9 @@
     | proves :answersNullOfNothing
         |~~ The empty vector has no greatest element. ~~|
         ~([] | max | eq null)
-    | proves :ordersAcrossKinds
-        |~~ A string follows a number in the one order. ~~|
-        ~([3 "a" null] | max | eq "a")
+    | proves :relatesValuesOfOneKind
+        |~~ A number and a string are no pair a maximum relates. ~~|
+        ~([3 "a"] | max !| type | eq ::call/KindsMismatchedError)
     | proves :answersTheElementOfTheGreatestKey
         |~~ The element whose key answers most answers whole. ~~|
         ~([{:age 30} {:age 40}] | max /age | eq {:age 40})
@@ -713,7 +719,7 @@
             fails decides, where the vector asks the string first.
         ~~|
         ~(["x" 0] | get [~(every ~(gt 0) !| type) ~(toSet | every ~(gt 0))]
-          | eq [::any/gt/KindsMismatchedError false])
+          | eq [::call/KindsMismatchedError false])
     | impl ::builtin{}
 
 :vec/any
@@ -778,7 +784,7 @@
             holds decides, where the vector asks the string first.
         ~~|
         ~(["x" 3] | get [~(any ~(gt 2) !| type) ~(toSet | any ~(gt 2))]
-          | eq [::any/gt/KindsMismatchedError true])
+          | eq [::call/KindsMismatchedError true])
     | impl ::builtin{}
 
 :vec/has
@@ -1463,8 +1469,8 @@
   |~~ Answers the subject with the elements of each vector the call gives
       after its own, in their order, `[1] | concat [2 3] [4]` answering
       `[1 2 3 4]`, so `reduce [] ~(concat)` joins the vectors a vector
-      holds, as `flat` does. A vector under a tag answers under the tag;
-      `append` puts one element at the end.
+      holds. The vectors join beneath the tags they share, a bare one
+      sharing any; `append` puts one element at the end.
       ::link~(::vec/flat | doc) ::link~(::vec/append | doc)
   ~~|
   ::fn
@@ -1475,7 +1481,7 @@
         ~~|
     | returns
         |~~ The elements of the subject and of each vector, in order,
-            under the tags of the subject.
+            under the tags they share.
         ~~|
         ::vec
     | proves :joinsTheVectorsAfterTheSubject
@@ -1490,7 +1496,7 @@
     | proves :vectors/ElementKindNotTakenError/refusesANumber
         |~~ A number is no vector to join. ~~|
         ~([1] | concat 2 !| type | eq ::vec/concat/vectors/ElementKindNotTakenError)
-    | impl ~(:joined it | vectors | prepend joined | flat)
+    | impl ::builtin{}
 
 :vec/zip
   |~~ Answers the vectors the subject holds read side by side, one vector
@@ -1666,10 +1672,6 @@
             frame names the first that is neither, and a vector of vectors unites once
             each is a set, `map ~(toSet) | union`.
         ~~|
-    | throws :KindsMismatchedError
-        |~~ The values `union` unites are all sets or all maps; a set
-            beside a map is refused with the pair.
-        ~~|
     | throws :ArgsBeyondInputsError
         |~~ `union` over a vector unites the values it holds and takes no
             value: two values unite as `a | union b`, `#[1] | union #[2]`.
@@ -1696,11 +1698,11 @@
     | proves :ElementNotSetOrMapError/unitesVectorsMadeSets
         |~~ A vector of vectors unites once each is a set. ~~|
         ~([[1 2] [2 3]] | map ~(toSet) | union | eq #[1 2 3])
-    | proves :KindsMismatchedError/refusesASetAndAMap
+    | proves :refusesASetAndAMap
         |~~ A set and a map do not unite. ~~|
         ~([#[:a] {:b 1}] | union
           !| get [~(type) /leftType /rightType]
-          |  eq [::vec/union/KindsMismatchedError ::set ::map])
+          |  eq [::call/KindsMismatchedError ::set ::map])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
         |~~ A value the call gives is refused under the verb. ~~|
         ~([#[1]] | union #[2] !| type | eq ::vec/union/ArgsBeyondInputsError)
@@ -1741,10 +1743,6 @@
             its frame names the first value of the vector, which is
             neither.
         ~~|
-    | throws :KindsMismatchedError
-        |~~ After a set `minus` takes a set, and after a map a map, a set
-            or a vector of keys; another value is refused with the pair.
-        ~~|
     | throws :KeyKindNotTakenError
         |~~ A key `minus` takes out of a map is a keyword, a number or a
             string, as `get` reads a key alone; the place of its frame
@@ -1775,11 +1773,11 @@
             its index.
         ~~|
         ~([1 #[1]] | minus !| get [~(type) ~(trace | last | place)] | eq [::vec/minus/ElementNotSetOrMapError /0])
-    | proves :KindsMismatchedError/refusesAMapAfterASet
+    | proves :refusesAMapAfterASet
         |~~ A map after a set is refused with the pair. ~~|
         ~([#[:a] {:b 1}] | minus
           !| get [~(type) /leftType /rightType]
-          |  eq [::vec/minus/KindsMismatchedError ::set ::map])
+          |  eq [::call/KindsMismatchedError ::set ::map])
     | proves :KeyKindNotTakenError/refusesABoolean
         |~~ A boolean among the keys is refused at its index, with the
             kinds of a key.
@@ -1825,10 +1823,6 @@
             its frame names the first value of the vector, which is
             neither.
         ~~|
-    | throws :KindsMismatchedError
-        |~~ After a set `inter` takes a set, and after a map a map, a set
-            or a vector of keys; another value is refused with the pair.
-        ~~|
     | throws :KeyKindNotTakenError
         |~~ A key `inter` keeps of a map is a keyword, a number or a
             string, as `get` reads a key alone; the place of its frame
@@ -1857,11 +1851,11 @@
             its index.
         ~~|
         ~([1 #[1]] | inter !| get [~(type) ~(trace | last | place)] | eq [::vec/inter/ElementNotSetOrMapError /0])
-    | proves :KindsMismatchedError/refusesAMapAfterASet
+    | proves :refusesAMapAfterASet
         |~~ A map after a set is refused with the pair. ~~|
         ~([#[:a] {:b 1}] | inter
           !| get [~(type) /leftType /rightType]
-          |  eq [::vec/inter/KindsMismatchedError ::set ::map])
+          |  eq [::call/KindsMismatchedError ::set ::map])
     | proves :KeyKindNotTakenError/refusesAVector
         |~~ A vector among the keys is refused at its index, with the kinds
             of a key.
@@ -1904,7 +1898,9 @@
             `toString` first, `join (1 | toString)`.
         ~~|
     | returns
-        |~~ The elements joined into one string by the separator. ~~|
+        |~~ The elements joined into one string by the separator, under the
+            tags its strings share.
+        ~~|
         ::string
     | throws :SubjectNotVecError
         |~~ `join` writes a vector of strings as one: a map's values are

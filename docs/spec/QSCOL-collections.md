@@ -13,19 +13,22 @@ clamped to what there is, a count whole where it equals its floor, a
 fraction refused as `::vec/take/count/NotIntegerError` and a value of
 another kind as `…/count/KindNotTakenError`, `reverse`, the reverse of a
 set a vector and of a vector under a tag the vector under that tag,
-`flat`, which lifts one level, and `flatten` as it does, `concat`, the
-vectors the call gives joined after the subject under its tags, a value
-given that is no vector refused as
-`::vec/concat/vectors/ElementKindNotTakenError`, so `reduce [] ~(concat)`
-joins the vectors a vector holds, `sum`, a number beneath the tags over
-an element read as the number and an element that is no number refused
-at its index, at its key over a map, the place of the step's frame naming
-it [QSERR#trace], and `min` and `max` in the one order or by a key
-[QSORD#sort]; `first`, `last`, `min`, `max` and `avg`
-answer null over an empty container. `avg` answers the mean, null over
-nothing, kept as a running mean, a number beneath its tags read as `sum`
-reads it, an element that is no number refused at its index, at its key
-over a map. `has` asks whether the vector or the set holds an element
+`flat`, which lifts one level under the tags of its subject, and
+`flatten` as it does, `concat`, the vectors the call gives joined after
+the subject under the tags they share, a value given that is no vector
+refused as `::vec/concat/vectors/ElementKindNotTakenError`, so
+`reduce [] ~(concat)` joins the vectors a vector holds, `join`, the texts
+of the elements under the tags its strings share, `sum`, the numbers the
+elements hold beneath their tags added under the tags they share, an
+element that is no number refused at its index, at its key over a map,
+and then one under other tags than an element before it as the pair, the
+place of the step's frame naming it [QSERR#trace], a total past the
+doubles refused as no number, and `min` and `max`, which relate the
+elements as `gt` relates two values [QSORD#sort]; `first`, `last`,
+`min`, `max` and `avg` answer null over an empty container. `avg`
+answers the mean, null over nothing, kept as a running mean, under the
+tags its numbers share, read as `sum` reads them, an element that is no
+number refused at its index, at its key over a map. `has` asks whether the vector or the set holds an element
 equal to one [QSPTH#has]. `append` and `prepend` put one element at an
 end, a vector given among them, and a set takes it into its order. `zip`
 reads vectors side by side, as long as the shortest, an element that is
@@ -61,7 +64,10 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 [::vec/avg/ElementNotNumberError /1]
 
 > [::W#2 1] | sum
-3
+::W#3
+
+> get [~([::T"a" ::T"b"] | join ",") ~([::A[1] ::B[2]] | flat) ~([::Cents#1 ::Dollars#2] | sum !| get [~(type) ~(trace | last | place)])]
+[::T"a,b" [1 2] [::call/KindsMismatchedError /1]]
 
 > [] | min
 null
@@ -185,18 +191,23 @@ refuses so a later value that is no set or map, while `minus` and
 `inter` take after a map the keys a map, a vector or a set names, as the
 verbs of a map do; a later value the algebra has no rule
 for beside the one before it is refused as the pair,
-`KindsMismatchedError` with `:leftType` and `:rightType`, a set beside a
+`::call/KindsMismatchedError` with `:leftType` and `:rightType`, a set beside a
 map in `union` among them, each refusal of a fold at the value or the key
 it met, the place of its frame naming its path, a key's within its value
 [QSERR#trace]; and a fold of nothing is refused as
 `SubjectEmptyError`, a refusal of its subject [QSERR#site]. A set of sets
 is folded by the verb of vectors,
 `#[#[1] #[2]] | vec/union`, or as the vector it is in the one order,
-`toVec | minus`, and `flat` unites it. The verbs of sets and of maps
-answer under the subject's tags [QSDSP#answer]; a vector's fold answers
-a set or a map of its own. `unionOf` unites the maps or the sets its call
-computes, one part at least, `::any/unionOf/parts/EmptyError` refusing
-none, under the tags of the first; one part answers itself.
+`toVec | minus`, and `flat` unites it. The verbs of sets and the `union`
+of a map answer under the tags the subject and the value they take
+share, and the `minus` and the `inter` of a map under the subject's, the
+keys sharing none [QSDSP#answer]; a vector's fold answers a set or a map
+under the tags the values it combines share, a later value of a map's
+difference or common part naming keys and sharing none, each laid
+through its kind, and refuses at each value its kind, its pair and then
+its tags. `unionOf` unites the maps or the sets its call computes, one
+part at least, `::any/unionOf/parts/EmptyError` refusing none, under the
+tags they share; one part answers itself.
 
 ```qlang
 > {:age 20} | union {:age 30}
@@ -224,10 +235,13 @@ none, under the tags of the first; one part answers itself.
 ::T{:a 1 :b 2}
 
 > [{:a 1 :b 2} #[:a]] | get [~(minus) ~(inter) ~(union !| type)]
-[{:b 2} {:a 1} ::vec/union/KindsMismatchedError]
+[{:b 2} {:a 1} ::call/KindsMismatchedError]
 
 > get [~([#[1] #[2] {:a 1}] | union !| get [~(type) ~(trace | last | place)]) ~([{:a 1} [:a true]] | minus !| get [~(type) ~(trace | last | place)])]
-[[::vec/union/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]
+[[::call/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]
+
+> get [~([::A#[1] #[2]] | union) ~({:a 1} | union ::B{:b 2}) ~({:a 1 :b 2} | minus ::T[:a])]
+[::A#[1 2] ::B{:a 1 :b 2} {:b 2}]
 ```
 
 ## group

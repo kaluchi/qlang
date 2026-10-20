@@ -657,7 +657,11 @@
             commands it is, which takes no args; an input, an answer, a
             subject and an invariant are written in the chain alone. An
             answer of the verb's own label goes back under the tags the
-            subject came through. A modifier is evaluated at the call
+            subject came through, and a verb that combines the subject
+            with a value of its kind, `add`, `append`, `concat` or
+            `union`, answers beneath the tags the two share, a bare one
+            sharing any, two under different tags combining in no step. A
+            modifier is evaluated at the call
             against the subject, the value in the pipe, which is always
             the subject of the call; a verb that combines several values
             of one subject reads each from its args, `mulOf /price /qty`;

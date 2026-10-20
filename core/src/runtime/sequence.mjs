@@ -6,10 +6,11 @@
 // its values and keeps its keys [QSCOL#map], a string's reads its characters
 // [QSTXT#string], and a refusal names the verb that refused [QSERR#site].
 
-import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath } from '../types.mjs';
+import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, typeOf, TagsInCommon, pairRefused } from '../types.mjs';
 import { compareValues, makeSet } from '../ordering.mjs';
 import { declareRefusal, refusingAPart } from '../errors.mjs';
-import { registerPrimitive, runs, folds } from '../primitives.mjs';
+import { registerPrimitive, registerStateReader, runs, folds, combines } from '../primitives.mjs';
+import { underSharedTags } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
 import { writtenAsText } from './string.mjs';
@@ -63,42 +64,48 @@ function numberBeneath(element) {
   return isNumber(beneath) ? beneath : undefined;
 }
 
-// The total of the numbers, an element of another kind refused where it
-// stands.
-function totalOf(elements, ElementNotNumberError) {
-  let total = 0;
-  for (const [at, element] of elements) {
+// The tags of the numbers the elements hold, each handed to `take`, an element
+// refused where it stands for its kind first, then for its tags [QSCOL#sequence].
+function eachNumber(elements, ElementNotNumberError, take) {
+  const tally = new TagsInCommon();
+  for (const [count, [at, element]] of elements.entries()) {
     const number = numberBeneath(element);
     if (number === undefined) throw refusingAPart(new ElementNotNumberError({ actualValue: element }), at);
-    total += number;
+    const met = tally.meet(element);
+    if (met !== null) throw refusingAPart(pairRefused(met, element), at);
+    take(number, count);
   }
-  return total;
+  return tally.tags;
+}
+
+function totalOf(elements, ElementNotNumberError, state) {
+  let total = 0;
+  const tags = eachNumber(elements, ElementNotNumberError, number => { total += number; });
+  return underSharedTags(total, tags, state);
 }
 
 const VecSumElementNotNumberError = declareRefusal('vec/sum/ElementNotNumberError');
 const MapSumElementNotNumberError = declareRefusal('map/sum/ElementNotNumberError');
-registerPrimitive('vec/sum', vector => totalOf(entriesOf(vector), VecSumElementNotNumberError));
-registerPrimitive('map/sum', map => totalOf(entriesOf(map), MapSumElementNotNumberError));
+registerStateReader('vec/sum', (vector, state) => totalOf(entriesOf(vector), VecSumElementNotNumberError, state));
+registerStateReader('map/sum', (map, state) => totalOf(entriesOf(map), MapSumElementNotNumberError, state));
 
-// The mean of the numbers, a running mean whose every step stays among
-// the finite doubles; an empty container has none, and answers null as
-// `min` and `max` do [QSCOL#sequence].
-function meanOf(elements, ElementNotNumberError) {
+// The mean of the numbers under the tags they share, a running mean whose
+// every step stays among the finite doubles; an empty container has none, and
+// answers null as `min` and `max` do [QSCOL#sequence].
+function meanOf(elements, ElementNotNumberError, state) {
   if (elements.length === 0) return NULL;
   let mean = 0;
-  for (const [count, [at, element]] of elements.entries()) {
-    const number = numberBeneath(element);
-    if (number === undefined) throw refusingAPart(new ElementNotNumberError({ actualValue: element }), at);
+  const tags = eachNumber(elements, ElementNotNumberError, (number, count) => {
     const gap = number - mean;
     mean += Number.isFinite(gap) ? gap / (count + 1) : number / (count + 1) - mean / (count + 1);
-  }
-  return mean;
+  });
+  return underSharedTags(mean, tags, state);
 }
 
 const VecAvgElementNotNumberError = declareRefusal('vec/avg/ElementNotNumberError');
 const MapAvgElementNotNumberError = declareRefusal('map/avg/ElementNotNumberError');
-registerPrimitive('vec/avg', vector => meanOf(entriesOf(vector), VecAvgElementNotNumberError));
-registerPrimitive('map/avg', map => meanOf(entriesOf(map), MapAvgElementNotNumberError));
+registerStateReader('vec/avg', (vector, state) => meanOf(entriesOf(vector), VecAvgElementNotNumberError, state));
+registerStateReader('map/avg', (map, state) => meanOf(entriesOf(map), MapAvgElementNotNumberError, state));
 
 // ── ranking ────────────────────────────────────────────────────
 
@@ -129,13 +136,15 @@ async function keyedEntries(entries, key) {
 
 // The least or the greatest element in the one order, or by the value
 // the key answers for each, `pick` naming which side wins a comparison,
-// the first of equal ones staying [QSORD#sort].
+// the first of equal ones staying, two of two kinds refused as a comparison
+// refuses them [QSORD#sort].
 async function extremeOf(entries, key, pick) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
   if (ranked.length === 0) return NULL;
   let best = ranked[0];
   for (const candidate of ranked.slice(1)) {
+    if (typeOf(ranked[0].sortKey).name !== typeOf(candidate.sortKey).name) throw refusingAPart(pairRefused(ranked[0].sortKey, candidate.sortKey), candidate.entry[0]);
     if (pick(compareValues(candidate.sortKey, best.sortKey))) best = candidate;
   }
   return best.entry[1];
@@ -351,14 +360,24 @@ registerPrimitive('vec/contains', containsElement);
 registerPrimitive('vec/prepend', (vector, element) => [element, ...vector]);
 registerPrimitive('vec/append', (vector, element) => [...vector, element]);
 
-// An element `join` writes is a string or a keyword, written as text [QSTXT#string].
+// `concat` joins the vectors the call gives after its subject [QSCOL#sequence].
+registerPrimitive('vec/concat', combines((vector, vectors) => [...vector, ...vectors.flat()]));
+
+// An element `join` writes is a string or a keyword, written as text, and the
+// text stands under the tags its strings share [QSTXT#string], [QSCOL#sequence].
 const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNotStringOrKeywordError');
 
-registerPrimitive('vec/join', (subject, separator) => {
-  const texts = subject.map(beneathTags);
-  const stranger = texts.findIndex(text => typeof text !== 'string' && !isKeyword(text));
-  if (stranger >= 0) throw refusingAPart(new VecJoinElementNotStringOrKeywordError({ actualValue: subject[stranger] }), stranger);
-  return texts.map(writtenAsText).join(writtenAsText(separator));
+registerStateReader('vec/join', (subject, separator, state) => {
+  const tally = new TagsInCommon();
+  const texts = subject.map((element, at) => {
+    const text = beneathTags(element);
+    if (typeof text !== 'string' && !isKeyword(text)) throw refusingAPart(new VecJoinElementNotStringOrKeywordError({ actualValue: element }), at);
+    const met = isKeyword(text) ? null : tally.meet(element);
+    if (met !== null) throw refusingAPart(pairRefused(met, element), at);
+    return writtenAsText(text);
+  });
+  const joined = texts.join(writtenAsText(separator));
+  return underSharedTags(joined, tally.tags, state);
 });
 
 // ── order and nesting ──────────────────────────────────────────

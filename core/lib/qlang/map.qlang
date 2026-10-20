@@ -2,7 +2,8 @@
    refusals of a payload it cannot read, and the verbs of maps. A map's
    elements are its values, and its keys travel with them: a verb whose
    answer names the map keeps the keys of the entries it keeps and
-   answers under the tags of the map, and `map`, whose answer is any
+   answers under the tags of the map, `union` and `merge` under those it
+   shares with the other map, and `map`, whose answer is any
    value, answers under none.
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -283,8 +284,8 @@
     | impl ::builtin{}
 
 :map/min
-  |~~ Answers the least value in the one order of values, a number before
-      a string, or null for the empty map: `{:a 3 :b 1} | min` answers
+  |~~ Answers the least value in the one order of values, the values of
+      one kind, or null for the empty map: `{:a 3 :b 1} | min` answers
       `1`. A key the call gives, code run on each value, ranks the values,
       `{:a {:n 2} :b {:n 1}} | min /n` answering `{:n 1}`,
       and a key under `desc` ranks in reverse. The entry of the least
@@ -307,9 +308,9 @@
     | proves :answersTheLeastValue
         |~~ The least value answers. ~~|
         ~({:a 3 :b 1} | min | eq 1)
-    | proves :ranksANumberBeforeAString
-        |~~ In the one order a number comes before a string. ~~|
-        ~({:a 1 :b "x"} | min | eq 1)
+    | proves :relatesValuesOfOneKind
+        |~~ A number and a string are no pair a minimum relates. ~~|
+        ~({:a 1 :b "x"} | min !| type | eq ::call/KindsMismatchedError)
     | proves :ranksByTheKey
         |~~ The key ranks each value. ~~|
         ~({:a {:n 2} :b {:n 1}} | min /n | eq {:n 1})
@@ -332,8 +333,8 @@
     | impl ::builtin{}
 
 :map/max
-  |~~ Answers the greatest value in the one order of values, a string
-      after a number, or null for the empty map; a key the call gives
+  |~~ Answers the greatest value in the one order of values, the values
+      of one kind, or null for the empty map; a key the call gives
       ranks the values, as for `min`. The entry of the greatest
       value, key and value, is `entries | max /1`. A vector and a set
       answer by the `max` of vectors.
@@ -350,9 +351,9 @@
     | proves :answersTheGreatestValue
         |~~ The greatest value answers. ~~|
         ~({:a 3 :b 1} | max | eq 3)
-    | proves :ranksAStringAfterANumber
-        |~~ In the one order a string comes after a number. ~~|
-        ~({:a 1 :b "x"} | max | eq "x")
+    | proves :relatesValuesOfOneKind
+        |~~ A number and a string are no pair a maximum relates. ~~|
+        ~({:a 1 :b "x"} | max !| type | eq ::call/KindsMismatchedError)
     | proves :findsTheKeyByEntries
         |~~ The key of the greatest value is read by `entries`. ~~|
         ~({:a 3 :b 1} | entries | max /1 | get /0 | eq :a)
@@ -925,8 +926,8 @@
 
 :map/union
   |~~ Answers the entries of the subject together with those of the map
-      the call gives, which wins a key both hold, under the tags of the
-      subject: `{:a 1 :b 2} | union {:b 3 :c 4}` answers
+      the call gives, which wins a key both hold, under the tags the two
+      share: `{:a 1 :b 2} | union {:b 3 :c 4}` answers
       `{:a 1 :b 3 :c 4}`. The values are not merged deeper; a key both
       hold takes the value of the other map whole. A set or a vector of
       keys unites with no map; a set and a vector unite by a `union` of
@@ -943,7 +944,7 @@
         ~~|
     | returns
         |~~ The entries of both maps, the other winning a key both hold,
-            under the tags of the subject.
+            under the tags they share.
         ~~|
         ::map
     | proves :letsTheOtherWin
@@ -981,7 +982,7 @@
         ~~|
     | returns
         |~~ The entries of both maps, the other winning a key both hold,
-            under the tags of the subject.
+            under the tags they share.
         ~~|
         ::map
     | proves :answersAsUnion

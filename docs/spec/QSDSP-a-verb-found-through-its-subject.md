@@ -22,8 +22,10 @@ part a path meets on its way, two values that file under one keyword
 meeting as they are. The verbs of `::any` meet the subject whole: `eq`
 and the comparisons relate two values as they are, so a value under a tag
 and a value of its payload's kind are a pair of two kinds to a comparison
-[QSCND#compare], while a verb of the payload's kind answers under the tag.
-A name means one act
+[QSCND#compare], while a verb of the payload's kind answers under the tag,
+and two values a step combines meet beneath the tags they share, a bare
+one sharing any, two under different tags combining in no step
+[QSDSP#answer]. A name means one act
 wherever it resolves, each kind that answers it implementing that act,
 and a verb on a label the walk reaches first stands over one of the same
 name it reaches later, a verb of `::tagged` over one of the payload's
@@ -40,7 +42,7 @@ of `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true.
 
 > ::Box#5 | gt 3
 |~| raised, and no !| caught it
-::any/gt/KindsMismatchedError!{
+::call/KindsMismatchedError!{
   :leftType ::Box
   :rightType ::number
 …
@@ -55,7 +57,7 @@ of `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true.
 [true false true true]
 
 > get [~([::A::T{:a 1} {:b 2}] | union) ~([::T"a" "b"] | join ",") ~([1 2] | filter ~(gt 1 | tag ::Ok)) ~([::W#1 ::W#1] | groupBy)]
-[{:a 1 :b 2} "a,b" [2] {:"1" [::W#1 ::W#1]}]
+[::A::T{:a 1 :b 2} ::T"a,b" [2] {:"1" [::W#1 ::W#1]}]
 ```
 
 ## residence
@@ -119,7 +121,7 @@ of two kinds refused [QSCND#compare].
 true
 
 > 1 | gt "x" !| type
-::any/gt/KindsMismatchedError
+::call/KindsMismatchedError
 ```
 
 ## refusal
@@ -153,15 +155,26 @@ root holds the call's, its address beside the root's.
 
 ## answer
 
-A verb written in steps runs on the subject with its tags, and what it
-answers keeps the tags its steps keep; a primitive runs on the value the
-walk served. `returns` names the kinds a verb answers, each answer
+A verb written in steps runs on its subject and its inputs as the call
+gives them, their tags with them, and what it answers keeps the tags its
+steps keep; a primitive runs on the values the walk served. A primitive
+that combines its subject with the value its input takes, `add`, `sub`,
+`mul`, `div` and `mod`, `append` and `prepend`, `concat`, the `union`
+of a set or a map and the `minus` and the `inter` of a set, works
+beneath the tags the two share, a bare one sharing any and a value of
+another kind its input takes sharing none, and two under different tags
+are refused as the pair, `::call/KindsMismatchedError`, its facts their
+kinds where their tags part; an input of any other step steers it and
+shares no tag, the digits of `round` and the keys a map's `minus` takes
+off among them. `returns` names the kinds a verb answers, each answer
 brought to them by the one rule of [QSBLD#answer]: an answer of the
-verb's own label goes back under the tags the walk passed, each laid
-again through its kind, so an edit that breaks an invariant of a tag is
+verb's own label goes under the tags its operands share, the tags the
+walk passed where it combines nothing, each laid again through its kind,
+its own giving way, so an edit that breaks an invariant of a tag is
 refused under it and a set under a tag keeps it, `::Box#[2 1] | distinct`
-answering `::Box#[1 2]`; and an answer of another kind leaves the tags
-the walk passed behind, so `distinct`, whose answer names `::set`,
+answering `::Box#[1 2]`, and it stands as it is where no tag is laid;
+and an answer of another kind leaves the tags the walk passed behind and
+stands as it is, so `distinct`, whose answer names `::set`,
 answers a set under no tag over a vector under one,
 `::Box[2 1 2] | distinct` answering `#[1 2]`, and the distinct elements
 beneath the tag of a vector, a quote or a doc stay under it by
@@ -186,6 +199,9 @@ under the rule, which the laws of each verb hold [QSSLF#laws].
 
 > get [~(::Box[2 1 2] | distinct) ~(::Box#[2 1] | distinct) ~(::Box[2 1 2] | within ~(distinct)) ~(~(a | a) | distinct)]
 [#[1 2] ::Box#[1 2] ::Box#[1 2] #[::call{:name :a}]]
+
+> get [~(100 | add ::Cents#1) ~(::Cents#100 | add ::Dollars#1 !| get [~(type) /leftType /rightType]) ~(1.234 | round ::D#2)]
+[::Cents#101 [::call/KindsMismatchedError ::Cents ::Dollars] 1.23]
 ```
 
 ## tagname

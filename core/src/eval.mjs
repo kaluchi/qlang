@@ -200,22 +200,17 @@ async function elementAnswer(element, state) {
   return answerOfElement((await evalStep(element, state)).pipeValue, element, state.pipeValue, state.scope);
 }
 
-// An error literal is the literal of the kind of errors, as `#[…]` is the
-// set's: `!{…}` is `::error{…}`, an error at rest, its facts laid through the
-// label of `::error`, and `::Foo!{…}` the tagged literal of it; every entry is
-// a fact, and `raise` raises the error [QSERR#rest].
+// An error literal, `!{…}`, is the literal of `::error`, as `#[…]` is the
+// set's, every entry a fact, which `raise` raises [QSERR#rest].
 async function evalErrorLiteral(step, state) {
   const facts = await entryValues(errorFieldsOf(step), state);
   if (isErrorValue(facts)) return withPipeValue(state, facts);
   return withPipeValue(state, await layTag(ERROR_TAG.name, facts, state));
 }
 
-// A doc is the literal of `::doc`, as `#[…]` is the set's: it lays each tag of
-// the role of a quote through the tag's label, from the inside out, as a
-// tagged literal lays a payload, and is built once from the values they lay,
-// so a tag whose label takes no quote refuses the doc,
-// `|~~ see ::number~(~(x)) ~~|` as `::number~(~(x))` does, and `::quote~(a)` in
-// a doc is the quote `~(a)` [QSSLF#doc].
+// A doc, the literal of `::doc`, lays the tags of the role of each quote
+// through their labels, from the inside out, and is built from the values
+// they lay, `::quote~(a)` the quote `~(a)` [QSSLF#doc].
 async function evalDoc(doc, state) {
   const segments = [];
   for (const segment of doc) {
@@ -255,9 +250,9 @@ function passedUntagged(payloadError, construct, payloadStep, tagName, scope) {
 // The one binding form: the value passes on, and a fresh scope holds the
 // record of the binding, whose value is the body evaluated once at declaration
 // against the current value, `42 | :x it | add 1 | x` answering 42, a quote
-// among them as the data it is [QSBLD#fn], its docs the docs of its slot laid
-// as every doc is [QSSLF#doc], a declaration of docs alone binding them as a
-// page, and a doc or a body that fails answering the failure, which no name
+// among them as the data it is [QSBLD#fn], its docs laid [QSSLF#doc], a
+// declaration of docs alone binding them as a page, and a doc or a body that
+// fails answering the failure, which no name
 // holds [QSERR#flow]; a name is declared once in its scope [QSNAM#scope], a
 // node the root holds once at all and a name with a path under a noun declared
 // before it [QSNAM#address], never a value withheld from held code
@@ -1011,9 +1006,9 @@ function modifierOf(step, state) {
   return closeStep(step, state);
 }
 
-// The literals a template is written as, a value under a tag among them,
-// whose quotes are written in the step [QSQUO#held], [QSLIT#tag].
-const isTemplate = step => isConstructStep(step) || isSet(step) || ((isVec(step) || isMap(step)) && step[TAG_HEADER_SYMBOL] === undefined);
+// The literals a template is written as, an error literal and a value under
+// a tag among them, whose quotes are written in the step [QSQUO#held].
+const isTemplate = step => isConstructStep(step) || errorFieldsOf(step) !== null || isSet(step) || ((isVec(step) || isMap(step)) && step[TAG_HEADER_SYMBOL] === undefined);
 
 function withOrigin(code, origin) {
   code.origin = origin;

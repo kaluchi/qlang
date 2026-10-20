@@ -39,3 +39,5 @@
 {"name":"a-quote-holds-no-scope","query":":f (:k 10 | :g ~(mul k) | g) | :k 2 | :h ~(mul k) | get [~(f | eq h) ~(3 | apply f !| type) ~(3 | apply h !| type)]","expect":"[true ::call/ValueWithheldError ::call/ValueWithheldError]"}
 {"name":"a-quote-handed-to-a-verb-reads-the-step-that-wrote-it-over-an-input-of-its-name","query":":x 10 | :any/t (::fn | takes :q |~~ The q. ~~| /0 ::quote | takes :x |~~ The x. ~~| /1 | impl ~(apply q)) | 2 | t ~(add x) 99","expect":"12"}
 {"name":"map-runs-in-the-scope-of-the-call","query":":k 10 | [1 2] | map ~(add k)","expect":"[11 12]"}
+{"decision":"D378","name":"a-quote-an-error-literal-of-a-step-holds-is-code-of-that-step","query":":k 10 | 5 | get [~(get ::E!{:q ~(add k)}) ~(get !{:q ~(add k)}) ~(get ::error!{:q ~(add k)})]","expect":"[::E!{:q 15} !{:q 15} !{:q 15}]"}
+{"decision":"D378","name":"a-quote-an-error-literal-of-a-step-holds-reads-the-verbs-of-the-reader","query":":vec/twice ~(count | mul 2) | :k 10 | [1 2] | get !{:n ~(twice) :m ~(get /0 | add k)}","expect":"!{:n 4 :m 11}"}

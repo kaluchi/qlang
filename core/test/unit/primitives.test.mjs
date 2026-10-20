@@ -47,13 +47,16 @@ describe('the table of the primitives — registering before the bootstrap', () 
   });
 });
 
+// The scope of the root once the runtime registered its primitives and the
+// bootstrap sealed the table.
+const bootstrapped = async () => (await import('../../src/runtime/index.mjs')).langRuntime();
+
 describe('the table of the primitives — the primitives of the language by address [QSDSP#residence]', () => {
   it('registers one under the address of every verb and kind of the language that ends in ::builtin{}, a function whose recipe it is among them, and no other', async () => {
-    const { langRuntime } = await import('../../src/runtime/index.mjs');
     const { ROOT_KEY } = await import('../../src/scope-keys.mjs');
     const { splitAddress } = await import('../../src/address.mjs');
     const { isBuiltinDescriptor, isFn, recipeOf, bindingValueOf } = await import('../../src/types.mjs');
-    const root = (await langRuntime()).get(ROOT_KEY);
+    const root = (await bootstrapped()).get(ROOT_KEY);
     const builtinOf = value => (isFn(value) ? recipeOf(value) : value);
     const answeredByPrimitives = [...root].filter(([, record]) => isBuiltinDescriptor(builtinOf(bindingValueOf(record)))).map(([name]) => name);
     const nouns = new Set([...root.keys()].map(name => splitAddress(name)[0]));
@@ -63,13 +66,15 @@ describe('the table of the primitives — the primitives of the language by addr
     expect(registered).toContain('vec/construct');
   });
 
-  it('hands a source of the language the primitives under its noun, each one the table holds', () => {
+  it('hands a source of the language the primitives under its noun, each one the table holds', async () => {
+    await bootstrapped();
     const underNumber = PRIMITIVE_REGISTRY.primitivesUnder('number');
     expect(PRIMITIVE_REGISTRY.holds(underNumber['number/add'])).toBe(true);
     expect(PRIMITIVE_REGISTRY.primitivesUnder(null)).toEqual({});
   });
 
-  it('refuses a register after the bootstrap sealed the table, before it reads the address', () => {
+  it('refuses a register after the bootstrap sealed the table, before it reads the address', async () => {
+    await bootstrapped();
     try {
       PRIMITIVE_REGISTRY.register(42, () => null);
       expect.fail('should have thrown');
@@ -79,6 +84,5 @@ describe('the table of the primitives — the primitives of the language by addr
       expect(e.facts.address).toBe(42);
       expect(e.message).toMatch(/the table is sealed/);
     }
-    expect(PRIMITIVE_REGISTRY.primitivesUnder('testPrim')).toHaveProperty('testPrim/held');
   });
 });

@@ -50,12 +50,12 @@ describe('a refusal declared by its address [QSERR#site]', () => {
 });
 
 describe('QlangDefect', () => {
-  it('is constructible with message and context', () => {
-    const invariantErr = new QlangDefect('registration failed', { site: 'X', verb: 'foo' });
-    expect(invariantErr.message).toBe('registration failed');
-    expect(invariantErr.facts.site).toBe('X');
-    expect(invariantErr.facts.verb).toBe('foo');
-    expect(invariantErr).toBeInstanceOf(QlangError);
+  it('carries its message and its facts', () => {
+    const defect = new QlangDefect('registration failed', { site: 'X', verb: 'foo' });
+    expect(defect.message).toBe('registration failed');
+    expect(defect.facts.site).toBe('X');
+    expect(defect.facts.verb).toBe('foo');
+    expect(defect).toBeInstanceOf(QlangError);
   });
 });
 

@@ -73,6 +73,9 @@ registerPrimitive('tag/construct',     coreKindConstructor(isTag, TagPayloadKind
 registerPrimitive('vec/construct',     coreKindConstructor(isBareVec, VecPayloadKindNotTakenError));
 registerPrimitive('map/construct',     coreKindConstructor(isBareMap, MapPayloadKindNotTakenError));
 
+// `::error{…}` — an error at rest the value itself [QSERR#rest].
+registerPrimitive('error/construct', facts => facts);
+
 // `::desc` over any value turned to descend, `::desc#5`, its place in the
 // one order the reverse of its payload's [QSORD#desc].
 registerPrimitive('desc/construct', payload => makeTagged(DESC_TAG, payload));

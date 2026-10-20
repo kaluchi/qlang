@@ -102,6 +102,11 @@
 //       the chain of a function or of a kind takes, the command named by its
 //       act and what it writes by the noun of the thing [QSBLD#fn].
 //
+//   (19) The root of the package exports what a host builds on, a name a
+//       workspace beside the core reads from the package or the page of the
+//       package writes, by name from a module no other door opens
+//       [QSWRK#tooling].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -109,6 +114,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
+import { codeOf, namesReadFrom, namesWrittenBy, unreadExports } from './root-exports.mjs';
 import { baselineOf, isCitingCode, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_DOCUMENTS } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
@@ -228,7 +234,7 @@ function scanForbiddenWords() {
 const ABSTRACT_BASES = new Set(['QlangError', 'QlangDefect']);
 
 const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declareDefect|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
-const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|Error)\b/g;
+const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang(?:Error|Defect)|Error)\b/g;
 const ADDRESS_RE = /^'((?:[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
 const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs']);
 
@@ -814,28 +820,27 @@ function kindsOfCommands() {
 
 // ── (19) The exports of the root of the package ────────────────
 //
-// The root exports what a host builds on: a name a workspace outside the core
-// imports by the name of the package, or the page of the package names
+// The root of the core, its manifest's `.`, exports what the workspaces beside
+// it read from the package by its name or its page, the README of the core,
+// writes, each by name from a module no other door of the manifest opens
 // [QSWRK#tooling].
 
-const ROOT_OF_THE_PACKAGE = 'core/src/index.mjs';
-const PAGE_OF_THE_PACKAGE = 'core/README.md';
-const EXPORTED_NAMES_RE = /export\s*\{([^}]*)\}\s*from/g;
-const NAMES_A_HOST_IMPORTS_RE = /import\s*\{([^}]*)\}\s*from\s*['"]@kaluchi\/qlang-core['"]/g;
-const NAME_A_PAGE_WRITES_RE = /`([A-Za-z_$][\w$]*)/g;
-
-const namesOfList = list => list.split(',').map(entry => entry.trim()).filter(Boolean);
-
 function exportsNoHostReads() {
-  const read = new Set([...readText(join(repoRoot, PAGE_OF_THE_PACKAGE)).matchAll(NAME_A_PAGE_WRITES_RE)].map(([, name]) => name));
-  const hosts = execFileSync('git', ['ls-files', 'cli', 'lsp', 'site', 'vscode'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(path => /\.(?:mjs|js|astro)$/.test(path));
-  for (const path of hosts) {
-    for (const [, imported] of readText(join(repoRoot, path)).matchAll(NAMES_A_HOST_IMPORTS_RE)) namesOfList(imported).forEach(name => read.add(name));
+  const workspaces = readWorkspaces(repoRoot);
+  const core = workspaces.find(({ dir }) => dir === 'core');
+  const { name: packageName, exports: doors } = core.manifest;
+  const rootPath = join(core.dir, doors['.'].import);
+  const doorModules = new Set(Object.entries(doors)
+    .filter(([door, target]) => door !== '.' && target.import !== undefined)
+    .map(([, target]) => `./${relative(dirname(rootPath), join(core.dir, target.import)).split(sep).join('/')}`));
+  const read = new Set();
+  for (const { dir } of workspaces.filter(workspace => workspace !== core)) {
+    const sources = execFileSync('git', ['ls-files', dir], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(path => /\.(?:mjs|js|astro)$/.test(path));
+    for (const path of sources) namesReadFrom(packageName, codeOf(path, readText(join(repoRoot, path)))).forEach(name => read.add(name));
   }
-  return [...readText(join(repoRoot, ROOT_OF_THE_PACKAGE)).matchAll(EXPORTED_NAMES_RE)]
-    .flatMap(([, names]) => namesOfList(names))
-    .filter(name => !read.has(name))
-    .map(name => ({ file: ROOT_OF_THE_PACKAGE, name }));
+  const written = namesWrittenBy(readText(join(repoRoot, core.dir, 'README.md')));
+  return unreadExports({ rootText: readText(join(repoRoot, rootPath)), doorModules, read, written })
+    .map(finding => ({ file: rootPath.split(sep).join('/'), ...finding }));
 }
 
 // ── Main ───────────────────────────────────────────────────────

@@ -24,8 +24,7 @@ const primitives = new Map();
 const registered = new WeakSet();
 let sealed = false;
 
-// The table every module of the runtime registers into and the bootstrap
-// seals.
+// The table the runtime registers into and the bootstrap seals.
 export const PRIMITIVE_REGISTRY = {
   register(address, primitive) {
     if (sealed) throw new BuiltinTableSealedError({ address });

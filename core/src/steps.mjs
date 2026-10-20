@@ -39,9 +39,7 @@ export const isPathAlone = quote => quote.length === 1 && isPath(quote[0]);
 // map of its facts under `::error` alone [QSERR#rest].
 export const isOfTheKindOfErrors = value => isMap(value) && tagNameOf(value) === ERROR_TAG.name;
 
-// The fields of the step of an error literal, its facts, a tag written
-// before its bang a tagged literal over it [QSERR#rest], [QSQUO#step]; null
-// for any other value.
+// The facts of the step of an error literal, or null [QSERR#rest].
 export const errorFieldsOf = value => (isOfTheKindOfErrors(value) ? value : null);
 
 // computes(step) — a step that computes, which no literal holds [QSLIT#closed].
@@ -210,10 +208,8 @@ export function bindOf(payload, written) {
 }
 
 // `::construct`, a tagged literal: its tag and its payload, an error literal
-// a tag before its bang writes among them, but the kind of errors over an
-// error literal, which is the literal itself [QSQUO#step], [QSERR#rest]; the
-// parser's literal is held to the rule of a literal whole by the step that
-// holds it [QSLIT#closed].
+// among them, but under `::error`, which it is [QSQUO#step]; the parser's
+// literal is held to the rule of a literal whole by its step [QSLIT#closed].
 export function constructOf(payload) {
   const construct = recordFrom(payload, CONSTRUCT);
   if (construct.get('tag').name === ERROR_TAG.name && isOfTheKindOfErrors(construct.get('payload'))) throw new ConstructPayloadNotSchemaError({ field: keyword('tag'), actualValue: construct.get('tag') });

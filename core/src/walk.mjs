@@ -61,8 +61,8 @@ export function partAtOffset(root, offset) {
 }
 
 // tagWrittenBy(part) → the name of the tag a tagged literal writes at its
-// head, `::Tag[…]`, or null; an error literal holds the tag written before
-// its bang as a part of it [QSERR#rest].
+// head, `::Tag[…]` and `::Tag!{…}`, or null; the kind of errors written
+// before a bang is a part of its literal [QSERR#rest].
 export function tagWrittenBy({ value }) {
   return isConstructStep(value) ? value.get('tag').name : null;
 }

@@ -205,6 +205,8 @@ answers the count, on an internal dependency range other than the
 sibling's `^x.y.z`, on a refusal not declared by its address as a
 literal or held by a constant the address does not name
 (`VecToMapElementNotPairError` for `vec/toMap/ElementNotPairError`) [QSERR#site],
+on an export of the root of the core that no workspace beside it reads
+from the package and its README does not write [QSWRK#tooling],
 on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [QSWRK#journal], and
 on a path this file, the aim or the chapter of the work

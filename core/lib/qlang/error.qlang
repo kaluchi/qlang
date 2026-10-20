@@ -140,6 +140,10 @@
             repair.
         ~~|
         ~(:p /qty | 5 | mul p !| query /repair | eq null)
+    | proves :readsAnErrorAtRestAsItself
+        |~~ The kind of errors over an error at rest is that error. ~~|
+        ~(!{:by 3} | tag ::error | eq !{:by 3})
+    | impl ::builtin{}
 
 :error/trace
   |~~ Answers the trace of the error, the frames it left from the step

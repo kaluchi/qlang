@@ -359,9 +359,8 @@ describe('hoverAtOffset', () => {
   });
 
   it('returns hover for the tag an error literal writes before its bang', async () => {
-    // `::Tag!{…}` is one literal, the error whose content carries the
-    // tag, its head a part of it that resolves like every tag, and its
-    // braces, which the literal owns, show no tag [QSERR#rest].
+    // `::Tag!{…}` is the tagged literal of an error, its head resolving
+    // like every tag and its braces showing no tag [QSERR#rest].
     const src = '::number/NotFiniteError!{:step 1}';
     const { root } = parseDocument(src, 'test.qlang');
     const hover = await hoverAtOffset(root, src, 5);
@@ -645,6 +644,14 @@ describe('referencesAtOffset', () => {
     const { root } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(root, src.indexOf('count'));
     expect(refs.length).toBe(1);
+  });
+
+  it('finds the references of a tag from the head of a tagged literal, an error literal among them, each head spanned alone [QSERR#rest], [QSHST#tools]', () => {
+    const src = ':E |~~ An E. ~~| | :Box |~~ A box. ~~| | get [::E!{:k 1} ::E ::Box[1] ::Box]';
+    const { root } = parseDocument(src, 'test.qlang');
+    const written = offset => referencesAtOffset(root, offset).map(({ startOffset, endOffset }) => src.slice(startOffset, endOffset));
+    expect(written(src.indexOf('::E!') + 1)).toEqual([':E |~~ An E. ~~|', '::E', '::E']);
+    expect(written(src.indexOf('::Box[') + 2)).toEqual([':Box |~~ A box. ~~|', '::Box', '::Box']);
   });
 
   it('returns empty for a text that does not parse', () => {

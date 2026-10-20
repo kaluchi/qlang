@@ -86,6 +86,7 @@ async function subjectKindsAt(source, offset) {
 }
 
 const spanOf = read => ({ startOffset: read.span.start.offset, endOffset: read.span.end.offset });
+const headOf = read => ({ startOffset: read.span.start.offset, endOffset: tagHeadEnd(read) });
 
 // ── Document state ────────────────────────────────────────────
 
@@ -350,7 +351,7 @@ export async function hoverAtOffset(root, source, offset) {
 
   if (isCallStep(value)) return await hoverForCall(read, root, source);
   if (isTag(value)) return await hoverForTag(value.name, spanOf(read));
-  if (isOnTagHead(read, offset)) return await hoverForTag(tagWrittenBy(read), { startOffset: read.span.start.offset, endOffset: tagHeadEnd(read) });
+  if (isOnTagHead(read, offset)) return await hoverForTag(tagWrittenBy(read), headOf(read));
   if (kindOf(value) === 'path') return await hoverForPath(read, source);
   if (isKeyword(value)) return { content: `keyword \`${value.literal}\``, ...spanOf(read) };
   return null;
@@ -381,8 +382,8 @@ async function proseOfTheDocs(declaration, source) {
   }));
 }
 
-// A click on the head of a tagged literal, the `::Tag` of `::Tag[…]`; the
-// head of an error literal, `::Tag!{…}`, is a part of its own [QSERR#rest].
+// A click on the head of a tagged literal, the `::Tag` of `::Tag[…]` and
+// of `::Tag!{…}` [QSERR#rest].
 function isOnTagHead(read, offset) {
   return tagWrittenBy(read) !== null && offset < tagHeadEnd(read);
 }
@@ -435,9 +436,10 @@ function declaredNameOf({ value }) {
 // ── Find References ───────────────────────────────────────────
 
 // The name a part names with the spelling it is read under: a call and a
-// declaration by the name a step calls, a label by its tag.
-function referencedAt(read) {
+// declaration by the name a step calls, a label and a head by its tag.
+function referencedAt(read, offset) {
   const { value, parent } = read;
+  if (isOnTagHead(read, offset)) return { name: tagWrittenBy(read), spelling: TAG_SPELLING };
   if (isCallStep(value)) return { name: splitAddress(value.get('name').name)[1], spelling: CALL_SPELLING };
   if (isBindStep(value)) {
     const declared = declaredNameOf(read);
@@ -451,10 +453,10 @@ export function referencesAtOffset(root, offset) {
   if (!root) return [];
 
   const read = partAtOffset(root, offset);
-  const named = read === null ? null : referencedAt(read);
+  const named = read === null ? null : referencedAt(read, offset);
   if (named === null) return [];
 
-  return findNameOccurrences(root, named.name, named.spelling).map(spanOf);
+  return findNameOccurrences(root, named.name, named.spelling).map(occurrence => (tagWrittenBy(occurrence) === null ? spanOf(occurrence) : headOf(occurrence)));
 }
 
 // ── Document Symbols ──────────────────────────────────────────

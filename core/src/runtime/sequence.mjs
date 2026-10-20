@@ -6,7 +6,7 @@
 // its values and keeps its keys [QSCOL#map], a string's reads its characters
 // [QSTXT#string], and a refusal names the verb that refused [QSERR#site].
 
-import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, typeOf, tagsInCommon, pairRefused } from '../types.mjs';
+import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, typeOf, TagsInCommon, pairRefused } from '../types.mjs';
 import { compareValues, makeSet } from '../ordering.mjs';
 import { declareRefusal, refusingAPart } from '../errors.mjs';
 import { registerPrimitive, registerStateReader, runs, folds, combines } from '../primitives.mjs';
@@ -64,11 +64,10 @@ function numberBeneath(element) {
   return isNumber(beneath) ? beneath : undefined;
 }
 
-// Each number the elements hold handed to `take` with its count, an element of
-// another kind refused where it stands and then one under other tags than an
-// element before it as the pair; the tags the numbers share answered [D388].
+// The tags of the numbers the elements hold, each handed to `take`, an element
+// refused where it stands for its kind first, then for its tags [D388].
 function eachNumber(elements, ElementNotNumberError, take) {
-  const tally = tagsInCommon();
+  const tally = new TagsInCommon();
   for (const [count, [at, element]] of elements.entries()) {
     const number = numberBeneath(element);
     if (number === undefined) throw refusingAPart(new ElementNotNumberError({ actualValue: element }), at);
@@ -79,7 +78,6 @@ function eachNumber(elements, ElementNotNumberError, take) {
   return tally.tags;
 }
 
-// The total of the numbers, under the tags they share.
 function totalOf(elements, ElementNotNumberError, state) {
   let total = 0;
   const tags = eachNumber(elements, ElementNotNumberError, number => { total += number; });
@@ -138,8 +136,8 @@ async function keyedEntries(entries, key) {
 
 // The least or the greatest element in the one order, or by the value
 // the key answers for each, `pick` naming which side wins a comparison,
-// the first of equal ones staying [QSORD#sort]; two of two kinds are refused
-// as the pair at the place of the second, as a comparison refuses them [D388].
+// the first of equal ones staying, two of two kinds refused as a comparison
+// refuses them [QSORD#sort], [D388].
 async function extremeOf(entries, key, pick) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
@@ -362,8 +360,7 @@ registerPrimitive('vec/contains', containsElement);
 registerPrimitive('vec/prepend', (vector, element) => [element, ...vector]);
 registerPrimitive('vec/append', (vector, element) => [...vector, element]);
 
-// `concat` joins the vectors the call gives after its subject, each sharing
-// its tags [QSCOL#sequence], [D388].
+// `concat` joins the vectors the call gives after its subject [QSCOL#sequence].
 registerPrimitive('vec/concat', combines((vector, vectors) => [...vector, ...vectors.flat()]));
 
 // An element `join` writes is a string or a keyword, written as text, and the
@@ -371,7 +368,7 @@ registerPrimitive('vec/concat', combines((vector, vectors) => [...vector, ...vec
 const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNotStringOrKeywordError');
 
 registerStateReader('vec/join', (subject, separator, state) => {
-  const tally = tagsInCommon();
+  const tally = new TagsInCommon();
   const texts = subject.map((element, at) => {
     const text = beneathTags(element);
     if (typeof text !== 'string' && !isKeyword(text)) throw refusingAPart(new VecJoinElementNotStringOrKeywordError({ actualValue: element }), at);

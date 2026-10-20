@@ -290,9 +290,8 @@ export function beneathTags(value) {
 
 const NO_TAGS = Object.freeze([]);
 
-// The names of the tags over a value down to its kind of the core, from the
-// outside in, a tag a vector or a map holds on itself among them but a kind
-// of the core's own [D388].
+// The names of the tags over a value, from the outside in, a tag a vector or
+// a map holds on itself among them but a kind of the core's own [D388].
 export function tagsOver(value) {
   if (value === null || typeof value !== 'object') return NO_TAGS;
   const tags = [];
@@ -305,43 +304,30 @@ export function tagsOver(value) {
 
 const sameTags = (left, right) => left.length === right.length && left.every((name, at) => name === right[at]);
 
-// The tally of the tags of the values a step combines, a bare one sharing any:
-// `meet` answers the value met first where a value stands under other tags, or
-// null, and `tags` names the tags they share [D388].
-class TagsInCommon {
+// The tags the values a step combines share, a bare one sharing any, `meet`
+// answering the first where a value stands under other tags [D388].
+export class TagsInCommon {
   first = null;
   tags = NO_TAGS;
 
   meet(value) {
     const over = tagsOver(value);
-    if (over.length === 0) return null;
-    if (this.first === null) {
-      this.first = value;
-      this.tags = over;
-    }
-    return sameTags(this.tags, over) ? null : this.first;
+    if (over.length > 0 && this.first === null) [this.first, this.tags] = [value, over];
+    return over.length === 0 || sameTags(this.tags, over) ? null : this.first;
   }
 }
 
-export const tagsInCommon = () => new TagsInCommon();
-
-// The kind of the core beneath every tag over a value, a vector or a map that
-// holds a tag of its own read as the container it is.
-function coreKindOf(value) {
-  const beneath = beneathTags(value);
-  const kind = typeOf(beneath);
-  if (Object.hasOwn(CORE_KIND, kind.name)) return kind;
-  return isVec(beneath) ? CORE_KIND.vec : CORE_KIND.map;
-}
-
 // pairRefused(left, right) → the refusal of two values a step relates or
-// combines and cannot, its facts the kinds of the two where their tags part,
-// from the outside in, the kind of the core where the tags of one end [D388].
+// combines and cannot, its facts their kinds where their tags part [D388].
 export function pairRefused(left, right) {
   const [lefts, rights] = [tagsOver(left), tagsOver(right)];
   let depth = 0;
-  while (depth < lefts.length && depth < rights.length && lefts[depth] === rights[depth]) depth++;
-  const kindAt = (tags, value) => (depth < tags.length ? makeTag(tags[depth]) : coreKindOf(value));
+  while (depth < lefts.length && lefts[depth] === rights[depth]) depth++;
+  const kindAt = (tags, value) => {
+    if (depth < tags.length) return makeTag(tags[depth]);
+    const beneath = beneathTags(value);
+    return isMap(beneath) ? CORE_KIND.map : isVec(beneath) && !isVecOfOwnKind(beneath) ? CORE_KIND.vec : typeOf(beneath);
+  };
   return new CallKindsMismatchedError({ leftType: kindAt(lefts, left), rightType: kindAt(rights, right) });
 }
 

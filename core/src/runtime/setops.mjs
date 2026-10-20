@@ -6,7 +6,7 @@
 // a pair the algebra has no rule for refused as the pair with the kinds it
 // met [QSORD#order], [QSCOL#algebra].
 
-import { isSet, isVec, isMap, beneathTags, tagsInCommon, pairRefused } from '../types.mjs';
+import { isSet, isVec, isMap, beneathTags, TagsInCommon, pairRefused } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
 import { registerPrimitive, registerStateReader, combines } from '../primitives.mjs';
@@ -98,16 +98,13 @@ function interPair(left, right, { KeyKindNotTakenError }, at) {
   throw mismatched(left, right, at);
 }
 
-// The fold of the values a vector holds beneath their tags, from the first as
-// it is written, one at least: at each value, one a union or the first reads
-// as a set or a map refused where it is neither, the pair it makes with the
-// fold so far, and the tags of every value of a union or a fold of sets and of
-// a map that heads a fold, whose later values name keys; the fold stands under
-// the tags they share [D388].
+// The fold of the values a vector holds beneath their tags, one at least, each
+// refused where it stands for its kind, its pair and its tags, a later value
+// of a map's difference or common part naming keys and sharing none [D388].
 function foldOf(values, pair, refusals, readsEvery, state) {
   if (values.length === 0) throw refusingTheSubject(new refusals.SubjectEmptyError({ actualValue: values }));
   const first = beneathTags(values[0]);
-  const tally = tagsInCommon();
+  const tally = new TagsInCommon();
   let folded = first;
   for (const [at, value] of values.entries()) {
     const read = beneathTags(value);
@@ -126,9 +123,7 @@ const VEC_UNION = {
   ElementNotSetOrMapError: declareRefusal('vec/union/ElementNotSetOrMapError')
 };
 
-// The set or the map each verb of a set or the `union` of a map takes shares the
-// subject's tags, and the keys the `minus` and the `inter` of a map take share
-// none [D388].
+// The keys the `minus` and the `inter` of a map take share no tag [D388].
 registerStateReader('vec/union', (vector, state) => foldOf(vector, unionPair, VEC_UNION, true, state));
 registerPrimitive('set/union', combines((set, other) => mergeSets(set, other, UNION_KEEPS)));
 registerPrimitive('map/union', combines((map, other) => unionOfMaps(map, other)));

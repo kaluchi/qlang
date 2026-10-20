@@ -15,7 +15,7 @@ import {
   typeOf, keyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
   isFn, isKind, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, tagsInCommon, pairRefused
+  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused
 } from './types.mjs';
 import { makeSet, kindsExpected } from './ordering.mjs';
 import { partOf, originOf, repeatsDeclarationAt } from './walk.mjs';
@@ -471,12 +471,11 @@ function refusalUnder(tagName, facts, scope, refused = facts.actualValue) {
 // The value an input, a payload or a field holds: the value of its kind the
 // walk of its tags reaches, or, where it names the kinds of each element,
 // the vector, or the set, of each element's, a quote and a doc, whose
-// elements are steps and segments, as they are; held as given, the value or
-// each element stands as the call gave it, its tags with it. A value of none
-// of its kinds is refused, a value that is no vector where they are the kinds
-// of each element is refused as of no `::vec`, and an element of none is
-// refused with its index, each refusal named as the holder names the refusal
-// of its kinds, or of each element's.
+// elements are steps and segments, as they are, or, held as given, each as the
+// call gave it; a value of none of its kinds is refused, a value that is no
+// vector where they are the kinds of each element is refused as of no
+// `::vec`, and an element of none is refused with its index, each refusal
+// named as the holder names the refusal of its kinds, or of each element's.
 function heldByItsKinds({ kinds, each }, refusalOf, value, scope, asGiven = false) {
   if (!each) {
     if (kinds === null) return value;
@@ -612,8 +611,7 @@ async function underTags(value, tags, state) {
   return laid;
 }
 
-// underSharedTags(answer, tagNames, state) → what a fold combined, made a value
-// of its kind, then laid under the tags its values share [D388].
+// underSharedTags(answer, tagNames, state) → a fold's answer, made a value of its kind, under the tags its values share [D388].
 export async function underSharedTags(answer, tagNames, state) {
   return await underTags(await layTag(typeOf(answer).name, answer, state), tagNames.map(makeTag), state);
 }
@@ -748,12 +746,11 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   return await invariantRefusal(invariantsOf(chain, ANSWER_NAME), address, brought, called.state, scope) ?? brought;
 }
 
-// The tags the operands of a primitive that combines share, its subject and
-// each value of its label its input took, a bare one sharing any: the tags
-// laid over its answer where the subject is bare, or null; two under different
-// tags are refused as the pair [D388].
+// The tags a combining primitive's subject and each value of its label its
+// input took share, laid over its answer where the subject is bare, else null,
+// two under different tags refused as the pair [D388].
 function tagsTheOperandsShare(chain, labelName, subject, given) {
-  const tally = tagsInCommon();
+  const tally = new TagsInCommon();
   tally.meet(subject);
   for (const [at, { each }] of chain.inputs.entries()) {
     for (const value of each ? walkToKinds(given[at], ['vec']).served : [given[at]]) {

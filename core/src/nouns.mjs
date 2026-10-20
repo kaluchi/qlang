@@ -7,7 +7,7 @@
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
-  isValueClass, isFn, isKind, makeTag, makeTagged,
+  isValueClass, isFn, isKind, makeTag, makeTagged, beneathTags,
   typeOf, bindingValueOf, keyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
@@ -126,19 +126,19 @@ export function answerKindsOf(scope, record, subjectKinds) {
   return [...walked, ...answer.kinds.filter(kind => kind !== labelName)];
 }
 
-// Whether a value is an invariant, a quote under `::invariant`, whose name
-// is the refusal of a value that breaks it [QSBLD#fn].
+// Whether a value is an invariant, a quote under `::invariant` beneath the
+// tags it is given under, whose name is the refusal of a value that breaks it [QSBLD#fn].
 export function isInvariant(value) {
-  return isValueClass(value, 'underTag') && value.tag.name === INVARIANT_TAG_NAME && isQuote(value.payload);
+  return isValueClass(value, 'underTag') && value.tag.name === INVARIANT_TAG_NAME && isQuote(beneathTags(value.payload));
 }
 
 export const INVARIANT_TAG = makeTag('invariant');
 const INVARIANT_TAG_NAME = INVARIANT_TAG.name;
 
-// Whether a value is a law, a quote under `::law`, which proves the
-// claim its name makes [QSSLF#laws].
+// Whether a value is a law, a quote under `::law` beneath the tags it is
+// given under, which proves the claim its name makes [QSSLF#laws].
 export function isLaw(value) {
-  return isValueClass(value, 'underTag') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload);
+  return isValueClass(value, 'underTag') && value.tag.name === LAW_TAG_NAME && isQuote(beneathTags(value.payload));
 }
 
 export const LAW_TAG = makeTag('law');

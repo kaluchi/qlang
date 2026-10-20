@@ -7,15 +7,13 @@
 {"name":"an-invariant-with-a-path-names-a-field-read-before-it","query":"::kind | holds :w/NegativeError |~~ No width below zero. ~~| ~(gte 0) !| type","expect":"::kind/NameUnderNoFieldError"}
 {"name":"a-law-with-a-path-names-a-name-declared-before-it","query":"::kind | proves :x/y |~~ An x. ~~| ~(true) !| type","expect":"::kind/LawUnderNoNameError"}
 {"name":"a-fact-of-no-kinds-holds-its-page","query":":Box |~~ A box. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| | carries :TooWideError/note |~~ A note. ~~|) | ::Box/TooWideError/note | binding | get /value | type","expect":"::doc"}
-{"decision":"D379","name":"a-kind-takes-no-constructor-but-the-hosts","query":"::kind | impl ~(get {:s ~(it)}) !| type","expect":"::kind/ConstructorNotBuiltinError"}
+{"decision":"D379","name":"a-kind-takes-no-constructor-but-the-hosts","query":"get [~(::kind | impl ~(get {:s ~(it)}) !| type) ~(::kind | impl 5 !| type) ~(::kind[~() 5] !| type)]","expect":"[::kind/ConstructorNotBuiltinError ::kind/ConstructorNotBuiltinError ::kind/ConstructorNotBuiltinError]"}
 {"name":"the-literal-of-a-kind-reads-back","query":":Box |~~ A box. ~~| ::kind[~(wraps |~~ The sizes. ~~| ::map) null] | ::Box\"x\" !| type","expect":"::Box/PayloadKindNotTakenError"}
 {"name":"a-readers-kind-with-a-constructor-no-host-hands-lays-its-tag","query":":B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1] | type","expect":"::B"}
-{"decision":"D379","name":"the-constructor-impl-gives-a-kind-is-the-hosts","query":"::kind | impl ~(1) !| type","expect":"::kind/ConstructorNotBuiltinError"}
 {"name":"a-kind-built-as-data-takes-the-constructor-of-a-host-alone","query":"::kind[~() ~(add 1)] !| type","expect":"::kind/ConstructorNotBuiltinError"}
 {"name":"a-fact-of-a-kind-under-a-name-declared-after-it-is-refused","query":"::kind | carries :X/f |~~ f ~~| ::number !| type","expect":"::kind/FactUnderNoNameError"}
 {"name":"a-fact-written-with-no-path-is-a-fact-of-the-payload","query":":B |~~ B ~~| (::kind | carries :note |~~ n ~~| ::number) | ::B/note | binding | get /value","expect":"::number"}
 {"name":"the-literal-of-a-kind-whose-commands-are-no-quote-is-no-pair","query":"::kind[[] null] !| type","expect":"::kind/PayloadNotPairError"}
 {"name":"a-command-of-a-kind-written-with-args-its-chain-does-not-take-is-refused","query":"::kind | reads :null |~~ n ~~| /n !| type","expect":"::kind/CommandNotTakenError"}
-{"decision":"D379","name":"a-constructor-that-is-no-builtin-is-refused-alike-by-impl-and-the-literal","query":"get [~(::kind | impl 5 !| type) ~(::kind[~() 5] !| type)]","expect":"[::kind/ConstructorNotBuiltinError ::kind/ConstructorNotBuiltinError]"}
-{"decision":"D379","name":"a-command-a-verb-of-a-kind-writes-is-refused-by-the-chain-as-written","query":"::kind | reads 5 |~~ x ~~| /x !| get [~(type) /actualValue]","expect":"[::kind/CommandNotTakenError ~(reads 5 |~~ x ~~| /x)]"}
+{"decision":"D379","name":"a-command-a-verb-of-a-kind-writes-is-refused-by-the-chain-as-written","query":"::kind | reads 5 |~~ x ~~| /x !| get [~(type) /command /index /actualValue]","expect":"[::kind/CommandNotTakenError ~(reads 5 |~~ x ~~| /x) 0 5]"}
 {"decision":"D379","name":"a-constructor-handed-with-another-kind-constructs-nothing-under-this-one","query":":B |~~ B. ~~| (::kind | impl (::number/construct | binding | get /value)) | get [~(::B\"x\" | type) ~(::B\"x\" | payload)]","expect":"[::B \"x\"]"}

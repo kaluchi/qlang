@@ -11,7 +11,7 @@ import { registerPrimitive, registerStateReader } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { commandStep, declarationStep } from '../steps.mjs';
 import { inputsOfFunction } from '../eval.mjs';
-import { chainOfFn } from '../chain.mjs';
+import { chainOfFn, FN_COMMAND_NAMES } from '../chain.mjs';
 import {
   isQuote, isVec, isNull, isBuiltinDescriptor, isErrorValue, isFn, commandsOf, recipeOf,
   makeTag, makeTagged, makeQuote, holdsNoOtherTag, FN_TAG_NAME
@@ -48,45 +48,15 @@ function functionOf(subject) {
   return isFn(subject) ? subject : makeTagged(FN_TAG, Object.freeze([NO_COMMANDS, null]));
 }
 
-// A function with a command written after the ones its chain holds.
-function withCommand(fn, command, args) {
-  return madeFn(makeQuote([...commandsOf(fn), commandStep(command, args.filter(arg => arg !== null))]), recipeOf(fn));
+// Each command of a chain, `takes :by |~~ How much. ~~| /0 ::number`, written
+// by its verb after the ones the function holds with the objects the verb is
+// called with, as written, which the chain holds [QSBLD#fn].
+for (const command of FN_COMMAND_NAMES) {
+  registerPrimitive(`fn/${command}`, (subject, objects) => {
+    const fn = functionOf(subject);
+    return madeFn(makeQuote([...commandsOf(fn), commandStep(command, [...objects])]), recipeOf(fn));
+  });
 }
-
-// `on |~~ A number. ~~| ::number` — the subject, its page and its kinds.
-registerPrimitive('fn/on', (subject, page, kinds) =>
-  withCommand(functionOf(subject), 'on', [page, kinds]));
-
-// `takes :by |~~ How much. ~~| /0 ::number` — an input, its page, the place
-// of the args it reads and its kinds.
-registerPrimitive('fn/takes', (subject, name, page, place, kinds) =>
-  withCommand(functionOf(subject), 'takes', [name, page, place, kinds]));
-
-// `returns |~~ The sum. ~~| ::number` — the answer, its page and its kinds.
-registerPrimitive('fn/returns', (subject, page, kinds) =>
-  withCommand(functionOf(subject), 'returns', [page, kinds]));
-
-// `throws :TooBigError |~~ A sum past a bound. ~~|` — a refusal and its
-// page.
-registerPrimitive('fn/throws', (subject, name, page) =>
-  withCommand(functionOf(subject), 'throws', [name, page]));
-
-// `carries :TooBigError/bound |~~ The bound. ~~| ::number` — a fact a
-// refusal carries, its page and its kinds.
-registerPrimitive('fn/carries', (subject, name, page, kinds) =>
-  withCommand(functionOf(subject), 'carries', [name, page, kinds]));
-
-// `holds :by/TooBigError |~~ A sum past a bound. ~~| ~(lt 100)` — an
-// invariant of an input or of the answer: the refusal of a value that
-// breaks it, its page and its condition.
-registerPrimitive('fn/holds', (subject, name, page, condition) =>
-  withCommand(functionOf(subject), 'holds', [name, page, condition]));
-
-// `proves :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8)` —
-// a law, the claim its name makes, its page and the query that proves it,
-// under a name the function declares where it is written with a path.
-registerPrimitive('fn/proves', (subject, name, page, query) =>
-  withCommand(functionOf(subject), 'proves', [name, page, query]));
 
 // `impl ~(add by)` — the recipe of the function it builds, of no commands over the noun.
 registerPrimitive('fn/impl', (subject, recipe) => madeFn(commandsOf(functionOf(subject)), recipe));

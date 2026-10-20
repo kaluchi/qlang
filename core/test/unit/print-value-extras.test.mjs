@@ -237,8 +237,7 @@ describe('json.toPlain writes the keys of a map a host hands', () => {
 describe('the finite-double domain holds at every render seam', () => {
   // A number past the doubles has no literal [QSLIT#number], and an answer
   // brought under `::number` past them is refused as `::number/NotFiniteError`
-  // [QSNUM#arithmetic]; a function of the reader that answers one from a
-  // primitive of the core under no kind meets the printer and the codec of
+  // [QSNUM#arithmetic]; one a host hands meets the printer and the codec of
   // JSON, which raise it where they write it [QSHST#source].
   it('printValue refuses an infinity and a NaN as values of no kind', async () => {
     const { BuiltinForeignValueError } = await import('../../src/types.mjs');

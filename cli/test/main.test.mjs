@@ -295,7 +295,7 @@ describe('main — error paths', () => {
   });
 
   it('writes a defect raised past the fail track on stderr as `qlang:` and its message, with the code 1 [QSHST#answer]', async () => {
-    // A query nested past the stack of the engine fails its cell past the fail track.
+    // A literal nested past the stack the parser reads it with raises a defect past the fail track.
     const s = captureStreams();
     const exitCode = await main(['['.repeat(20000) + ']'.repeat(20000)], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect([exitCode, s.stdoutText(), s.stderrText()]).toEqual([1, '', 'qlang: Maximum call stack size exceeded\n']);

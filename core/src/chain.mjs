@@ -56,10 +56,12 @@ const KIND_COMMANDS = new Map([
   ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
 ]);
 
-// The names of the commands a chain is written in, those its quote folds and
-// `impl`, which gives a function its recipe or a kind its constructor [QSBLD#fn], [QSBLD#kind].
-const IMPL_NAME = 'impl';
-export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), IMPL_NAME])]);
+// The names of the commands of the chain of a function and of a kind, which
+// their verbs write, and of every command a chain is written in, `impl`, which
+// gives the recipe or the constructor, among them [QSBLD#fn], [QSBLD#kind].
+export const FN_COMMAND_NAMES = Object.freeze([...COMMANDS.keys()]);
+export const KIND_COMMAND_NAMES = Object.freeze([...KIND_COMMANDS.keys()]);
+export const COMMAND_NAMES = Object.freeze([...new Set([...FN_COMMAND_NAMES, ...KIND_COMMAND_NAMES, 'impl'])]);
 
 // isVerbBody(body) → whether the body of a declaration as written is the value of a
 // verb: a quote, a `::builtin{}` or a function built from `::fn` [QSNAM#address], [QSHST#tools].
@@ -67,14 +69,17 @@ export function isVerbBody(body) {
   return isQuote(body) || [FN_TAG_NAME, BUILTIN_TAG.name].includes(builtFrom(body));
 }
 
-// The modifiers of a step that is one of the commands of a table in the
-// forms it takes, or null.
-function modifiersOf(step, commands) {
-  if (!isCallStep(step) || !commands.has(step.get('name').name)) return null;
+// The object of a step a table of commands does not take: `{ index, actualValue }`,
+// its place among the objects written and the object, its place alone where it is
+// left out, `{}` for a step that is no command, or null where every one is taken.
+function objectNotTaken(step, commands) {
+  if (!isCallStep(step) || !commands.has(step.get('name').name)) return {};
   const { taken, optional } = commands.get(step.get('name').name);
-  const modifiers = step.get('modifiers') ?? [];
-  if (modifiers.length < taken.length || modifiers.length > taken.length + optional.length) return null;
-  return modifiers.every((modifier, at) => [...taken, ...optional][at](modifier)) ? modifiers : null;
+  const objects = step.get('modifiers') ?? [];
+  const rules = [...taken, ...optional];
+  const index = rules.findIndex((rule, at) => (at < objects.length ? !rule(objects[at]) : at < taken.length));
+  if (index !== -1) return { index, actualValue: objects[index] };
+  return objects.length > rules.length ? { index: rules.length, actualValue: objects[rules.length] } : null;
 }
 
 // The names of the kinds a tag or a set of tags names, or null for any
@@ -120,9 +125,9 @@ function readChainOfFn(quote) {
     if (head !== ANSWER_NAME && head !== SUBJECT_NAME && !chain.inputs.some(input => input.name.name === head)) throw new FnNameUnderNoInputError({ name: keyword(name), actualValue: quote });
   };
   for (const step of quote) {
-    const modifiers = modifiersOf(step, COMMANDS);
-    if (modifiers === null) throw new FnCommandNotTakenError({ actualValue: makeQuote([step]) });
-    const [first, second, third, fourth] = modifiers;
+    const refused = objectNotTaken(step, COMMANDS);
+    if (refused !== null) throw new FnCommandNotTakenError({ command: makeQuote([step]), ...refused });
+    const [first, second, third, fourth] = step.get('modifiers') ?? [];
     switch (step.get('name').name) {
       case 'on':
         names.declare(SUBJECT_NAME);
@@ -181,9 +186,9 @@ function readChainOfKind(quote) {
     return head;
   };
   for (const step of quote) {
-    const modifiers = modifiersOf(step, KIND_COMMANDS);
-    if (modifiers === null) throw new KindCommandNotTakenError({ actualValue: makeQuote([step]) });
-    const [first, second, third, fourth] = modifiers;
+    const refused = objectNotTaken(step, KIND_COMMANDS);
+    if (refused !== null) throw new KindCommandNotTakenError({ command: makeQuote([step]), ...refused });
+    const [first, second, third, fourth] = step.get('modifiers') ?? [];
     switch (step.get('name').name) {
       case 'wraps': {
         names.declare(PAYLOAD_NAME);

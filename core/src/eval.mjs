@@ -11,7 +11,7 @@ import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnkn
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
 import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
-  isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, primitiveFor,
+  isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, handedFor,
   typeOf, keyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
   isFn, isKind, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
@@ -306,7 +306,7 @@ function layerOf(scope, address, origin, pages) {
   let under = scope;
   const lay = (lastName, page, value) => {
     const name = `${address}/${lastName}`;
-    under = scopeSet(under, name, makeBinding({ name: keyword(name), docs: [page], value, origin }));
+    under = scopeSet(under, name, makeBinding({ name: keyword(name), docs: page === null ? [] : [page], value, origin }));
   };
   return {
     lay,
@@ -347,17 +347,21 @@ function nodesOfKind(kind, address, scope, origin) {
 }
 
 // The nodes a function named under a label lays under its address, each
-// role of its chain with its page, which its call never reads [QSNAM#address].
+// role of its chain with its page, which its call never reads, the subject and
+// the answer with none where a name stands under them alone [QSNAM#address], [QSSLF#manifest].
 function nodesOfFunction(fn, address, scope, origin) {
   const chain = chainOfFn(fn);
   const { subject, inputs, answer } = chain;
   const { lay, layKindsRefusal, layRest } = layerOf(scope, address, origin, chain.pages);
+  const standsUnder = role => [...chain.invariants.map(({ name }) => name), ...chain.pages.keys()].some(name => name.startsWith(`${role}/`));
   if (subject !== null) lay(SUBJECT_NAME, subject.page, subject.written ?? subject.page);
+  else if (standsUnder(SUBJECT_NAME)) lay(SUBJECT_NAME, null, null);
   for (const { name, page, place, kinds, each } of inputs) {
     lay(name.name, page, place);
     if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
   }
   if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
+  else if (standsUnder(ANSWER_NAME)) lay(ANSWER_NAME, null, null);
   return layRest(chain);
 }
 
@@ -697,7 +701,8 @@ export async function callVerbOn(record, subject, state) {
 // ─── Functions ──────────────────────────────────────────────────
 
 // A verb that is a function is called by its function alone [QSBLD#fn]: its
-// subject served by its label or by the kinds `on` names, its subject and its
+// subject served by its label or by the kinds `on` names, and a primitive's by
+// the label its host handed it under [QSHST#source], its subject and its
 // inputs held to their kinds and invariants, the inputs read from the args by
 // their places, its recipe run in the scope its call opens, a recipe written in steps of a
 // verb of the root's marked as the root's and a primitive keeping the mark
@@ -731,18 +736,22 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const chain = chainOfFn(fn);
   const recipe = recipeOf(fn);
   const steps = isQuote(recipe) ? recipe : null;
-  const primitive = steps === null ? primitiveFor(recipe, fn) : undefined;
-  if (steps === null && primitive === undefined) throw new FnRecipeMissingError({ actualValue: fn });
-  const walked = subjectOfCall(chain, labelName, state.pipeValue);
+  const handed = steps === null ? handedFor(recipe, fn) : undefined;
+  if (steps === null && handed === undefined) throw new FnRecipeMissingError({ actualValue: fn });
+  let walked = subjectOfCall(chain, labelName, state.pipeValue);
   if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), { expected: kindsExpected(...chain.subject.kinds) }, state.scope, state.pipeValue);
   if (walked === null) return refusalUnder(subjectRefusalAddress(address, [labelName]), {}, state.scope, state.pipeValue);
+  if (handed !== undefined && handed.labelName !== labelName) {
+    walked = subjectOfCall(chain, handed.labelName, state.pipeValue);
+    if (walked === null) return refusalUnder(subjectRefusalAddress(address, [handed.labelName]), {}, state.scope, state.pipeValue);
+  }
   const scope = callScopeOf(state, ofTheRoot);
   const refusedSubject = await invariantRefusal(invariantsOf(chain, SUBJECT_NAME), address, walked.served, state, scope, state.pipeValue, {});
   if (refusedSubject !== null) return refusedSubject;
   const called = await inputsOfCall(chain, address, modifiers, state, scope, steps);
   if (isErrorValue(called)) return called;
   const running = steps === null
-    ? runPrimitive(primitive, walked.served, walked.passedTags, handedTo(primitive, chain, called, state), called.state, address)
+    ? runPrimitive(handed.primitive, walked.served, walked.passedTags, handedTo(handed.primitive, chain, called, state), called.state, address)
     : (await evalPipeline(steps, nestState(called.state, state.pipeValue, called.recipeScope))).pipeValue;
   const answer = isThenable(running) ? await running : running;
   if (isErrorValue(answer)) return answer;
@@ -951,7 +960,7 @@ async function underKind(tagName, kind, payload, state) {
     const refused = await fieldRefusal(tagName, field, held, invariants, state, opened);
     if (refused !== null) return refused;
   }
-  const constructs = primitiveFor(constructorOf(kind), kind);
+  const constructs = handedFor(constructorOf(kind), kind)?.primitive;
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), `${tagName}/construct`, [held]);
   const labelled = constructs !== undefined && typeOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed);
   const ofTheValue = invariants.filter(({ field }) => field === null);

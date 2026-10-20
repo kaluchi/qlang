@@ -1,7 +1,7 @@
 |~ `::explanation`, the kind of what `explain` answers, the page `doc`
    reads for a value and the value itself, and what is declared under
    it: the verbs that read it.
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [QSSLF#explain]. ~|
 
 :explanation
   |~~ An explanation sets a value beside the page that explains it, the
@@ -22,12 +22,20 @@
         |~~ The page and the value, a map, which `page` and `value` read.
         ~~|
         ::map
+    | holds :NotPageAndValueError
+        |~~ An explanation is the map of a page, under `:page`, and the
+            value it explains, under `:value`.
+        ~~|
+        ~(keys | eq #[:page :value])
     | proves :explainsAFailure
         |~~ An error explained is an `::explanation`. ~~|
         ~("x" | add 1 !| explain | type | eq ::explanation)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ An explanation is a map of its page and its value. ~~|
         ~(::explanation#5 !| type | eq ::explanation/PayloadKindNotTakenError)
+    | proves :NotPageAndValueError/refusesAMapOfNeither
+        |~~ A map of no page and no value is no explanation. ~~|
+        ~(::explanation{} !| type | eq ::explanation/NotPageAndValueError)
 
 :explanation/page
   |~~ Answers the page that explains what `explain` was asked of: of a

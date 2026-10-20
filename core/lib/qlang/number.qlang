@@ -432,6 +432,7 @@
       ::link~(::vec/map | doc)
   ~~|
   ::fn
+    | on |~~ The count, a whole number. ~~|
     | holds :subject/NotIntegerError
         |~~ The count of `range`, its subject, is a whole number: a
             fraction is rounded first, `7.5 | floor | range`.

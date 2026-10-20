@@ -59,8 +59,10 @@ cell.defect;              // what was raised past the fail track, else null
   under the address of its node, `<label>/construct`, a function of the
   payload that answers the value its tag is laid over or refuses the
   payload. A source that declares a name the root holds is refused.
-- A primitive answers a value of the language, held to its kinds at any
-  depth whatever function runs it: an answer that is or holds a function,
+- A primitive runs within the function or the kind it was handed with,
+  on a subject the label it was handed under serves, and answers a value
+  of the language, held to its kinds at any depth: an answer that is or
+  holds a function,
   an object of JavaScript, a map whose key is no string, a failure whose
   facts are no map, a value under a tag that is no tag, a container that
   holds itself or a number past the finite doubles fails the call as

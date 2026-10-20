@@ -316,13 +316,15 @@ export function isPrimitiveHanded(descriptor) {
   return HANDED_PRIMITIVES.has(descriptor);
 }
 
-export function primitiveFor(descriptor, holder) {
+// handedFor(descriptor, holder) → `{ primitive, labelName }`, the primitive and
+// the label its host handed it under, where the holder is one it was handed with.
+export function handedFor(descriptor, holder) {
   const handed = HANDED_PRIMITIVES.get(descriptor);
-  return handed?.holders.includes(holder) ? handed.primitive : undefined;
+  return handed?.holders.includes(holder) ? handed : undefined;
 }
 
-export function takePrimitive(descriptor, primitive, holders) {
-  HANDED_PRIMITIVES.set(descriptor, { primitive, holders });
+export function takePrimitive(descriptor, primitive, holders, labelName) {
+  HANDED_PRIMITIVES.set(descriptor, { primitive, holders, labelName });
 }
 
 // A trace is a vector of frames under `::trace`, a frame the vector of the

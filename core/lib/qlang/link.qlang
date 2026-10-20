@@ -1,5 +1,5 @@
 |~ `::link`, the kind of a link, and the laws declared under it.
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [QSSLF#doc]. ~|
 
 :link
   |~~ A link is a query a page names for its reader to follow to another

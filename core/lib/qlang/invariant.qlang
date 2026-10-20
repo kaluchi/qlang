@@ -25,7 +25,11 @@
       ::link~(::law | doc) ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | wraps |~~ The condition its values keep, a quote. ~~| ::quote
+    | wraps
+        |~~ The condition its values keep, a quote beneath the tags it is
+            given under.
+        ~~|
+        ::quote
     | proves :liesUnderItsRefusal
         |~~ The node an invariant of a chain lays under the name of its
             refusal holds a quote under `::invariant`.
@@ -42,4 +46,9 @@
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ An invariant is a quote. ~~|
         ~(::invariant#5 !| type | eq ::invariant/PayloadKindNotTakenError)
+    | proves :isWrittenInAChainBeneathItsTags
+        |~~ An invariant declared by a name is refused, under whatever tags
+            its condition stands.
+        ~~|
+        ~(:Positive ::invariant::Foo~(gt 0) !| type | eq ::bind/WrittenOutsideItsChainError)
 

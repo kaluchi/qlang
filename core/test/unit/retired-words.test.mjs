@@ -493,4 +493,24 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'a value reads back from its print', 'resolves its names through the tree of names'
     ]) expect(refused(text), text).toBe(false);
   });
+
+  it('refuses each spelling in which the work named the defect of the runtime an invariant, a check by drift, the data of a task its input and the facts of an error a descriptor, where it is written [QSWRK#documents]', () => {
+    for (const text of [
+      'QlangInvariantError', 'declareInvariantError', 'refusalDeclarationDrift', 'baselineDrift', 'cli/test/error-tag-catalog-drift.test.mjs', 'the catalog\'s drift test',
+      'scripts/benchmark/inputs/users.json', 'sets/V/inputs/orders.json', 'the files of `inputs/`', 'inputsDir', 'task.input', 'the input files of the current directory',
+      'with :depth and :limit on the descriptor', 'compares error values by tag and descriptor', 'pretty-prints error with many descriptor fields',
+      'its facts stand in its descriptor', 'a :kind in the descriptor is a fact', 'errorVal.descriptor.get(fact)', 'isErrorValue + descriptor inspection',
+      'a descriptor of the facts of its site', 'errors carrying the same descriptor'
+    ]) expect(refused(text), text).toBe(true);
+  });
+
+  it('leaves the defect, the drift that names a kind of finding, the input of a function and the descriptor of a primitive [QSWRK#documents]', () => {
+    for (const text of [
+      'QlangDefect', 'declareDefect', 'the kind of an invariant, `::invariant`', 'a quote that breaks an invariant of its role',
+      'a pentimento and a drift', 'the drift read both ways', 'for a drift, one thing named by two words',
+      '::fn/inputs/SubjectNotFnError', 'the inputs a function declares, `inputs`', 'inputTokens', 'an input of none of its kinds', 'scripts/benchmark/data/users.json',
+      'the descriptor of a recipe or a constructor a host answers by a primitive', 'a descriptor\'s `::builtin`', 'isBuiltinDescriptor',
+      'the function whose recipe is its descriptor', 'runPrimitive(descriptor, served)', 'a-descriptor-comes-apart-by-payload-as-any-tagged-value'
+    ]) expect(refused(text), text).toBe(false);
+  });
 });

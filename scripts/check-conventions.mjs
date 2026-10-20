@@ -22,7 +22,7 @@
 //   (3) Derivable tallies in markdown prose. A count that
 //       `npm test`, the manifest, or a grep already answers —
 //       the cases of the conformance suite, the tests, the
-//       primitives, the files — drifts the moment the next commit
+//       primitives, the files — is false the moment the next commit
 //       lands. Prose states the invariant, the generator states
 //       the number. Scanned outside fenced blocks and inline
 //       code spans so example values stay legal.
@@ -102,6 +102,11 @@
 //       the chain of a function or of a kind takes, the command named by its
 //       act and what it writes by the noun of the thing [QSBLD#fn].
 //
+//   (19) The root of the package exports what a host builds on, a name a
+//       workspace beside the core reads from the package or the page of the
+//       package writes, by name from a module no other door opens
+//       [QSWRK#tooling].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -109,6 +114,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
+import { codeOf, namesReadFrom, namesWrittenBy, unreadExports } from './root-exports.mjs';
 import { baselineOf, isCitingCode, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_DOCUMENTS } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
@@ -225,10 +231,10 @@ function scanForbiddenWords() {
 // `class Foo extends …` ends in `Error`; the abstract roots are the bases
 // every site extends.
 
-const ABSTRACT_BASES = new Set(['QlangError', 'QlangInvariantError']);
+const ABSTRACT_BASES = new Set(['QlangError', 'QlangDefect']);
 
-const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
-const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|Error)\b/g;
+const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declareDefect|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
+const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang(?:Error|Defect)|Error)\b/g;
 const ADDRESS_RE = /^'((?:[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
 const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs']);
 
@@ -256,7 +262,7 @@ function* walkRefusalScanRoots() {
   }
 }
 
-function refusalDeclarationDrift() {
+function refusalsOffTheirAddress() {
   const violations = [];
   for (const filePath of walkRefusalScanRoots()) {
     const text = readText(filePath);
@@ -343,10 +349,10 @@ function scanProseTallies() {
 // `workspace-manifests.mjs` owns the rule: which dependency maps
 // count and what range a sibling declaration carries. The release
 // script rewrites against that module; this check enforces it, so a
-// range that drifts between releases fails here rather than in the
+// range off its sibling's version fails here rather than in the
 // registry, where a consumer resolves it for real.
 
-function workspaceRangeDrift() {
+function rangesOffTheirSibling() {
   const violations = [];
   for (const declaration of siblingDeclarations(readWorkspaces(repoRoot))) {
     if (declaration.declaredRange === declaration.expectedRange) continue;
@@ -376,7 +382,7 @@ function anchorRootOf(anchorPath) {
   return existsSync(sisterRoot) ? sisterRoot : null;
 }
 
-function anchorDrift() {
+function anchorsTheTreeLacks() {
   const violations = [];
   for (const documentPath of ANCHOR_DOCUMENTS) {
     const text = readText(join(repoRoot, documentPath));
@@ -476,7 +482,7 @@ function misplacedRecords() {
 // cases cite the records in force, and the documents that hold the work
 // those in force or waiting on a target [QSWRK#baseline].
 
-function baselineDrift() {
+function baselineUnwalked() {
   return walkOfBaseline(repoRoot).violations;
 }
 
@@ -812,27 +818,53 @@ function kindsOfCommands() {
   return kindsNamedForCommands(sources);
 }
 
+// ── (19) The exports of the root of the package ────────────────
+//
+// The root of the core, its manifest's `.`, exports what the workspaces beside
+// it read from the package by its name or its page, the README of the core,
+// writes, each by name from a module no other door of the manifest opens
+// [QSWRK#tooling].
+
+function exportsNoHostReads() {
+  const workspaces = readWorkspaces(repoRoot);
+  const core = workspaces.find(({ dir }) => dir === 'core');
+  const { name: packageName, exports: doors } = core.manifest;
+  const rootPath = join(core.dir, doors['.'].import);
+  const doorModules = new Set(Object.entries(doors)
+    .filter(([door, target]) => door !== '.' && target.import !== undefined)
+    .map(([, target]) => `./${relative(dirname(rootPath), join(core.dir, target.import)).split(sep).join('/')}`));
+  const read = new Set();
+  for (const { dir } of workspaces.filter(workspace => workspace !== core)) {
+    const sources = execFileSync('git', ['ls-files', dir], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(path => /\.(?:mjs|js|astro)$/.test(path));
+    for (const path of sources) namesReadFrom(packageName, codeOf(path, readText(join(repoRoot, path)))).forEach(name => read.add(name));
+  }
+  const written = namesWrittenBy(readText(join(repoRoot, core.dir, 'README.md')));
+  return unreadExports({ rootText: readText(join(repoRoot, rootPath)), doorModules, read, written })
+    .map(finding => ({ file: rootPath.split(sep).join('/'), ...finding }));
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const { text, failed } = verdictOf({
   forbidden: scanForbiddenWords(),
-  refusalDeclarations: refusalDeclarationDrift(),
+  refusalDeclarations: refusalsOffTheirAddress(),
   proseTallies: scanProseTallies(),
-  workspaceRanges: workspaceRangeDrift(),
-  anchors: anchorDrift(),
+  workspaceRanges: rangesOffTheirSibling(),
+  anchors: anchorsTheTreeLacks(),
   catalogDecisions: decisionsInCatalog(),
   undecided: recordsWithoutDecider(),
   unmarked: unmarkedArtifacts(),
   misplaced: misplacedRecords(),
   broken: brokenLinks(),
   outOfStep: fatesOutOfStep(),
-  unwalked: baselineDrift(),
+  unwalked: baselineUnwalked(),
   intrusions: specIntrusions(),
   swollen: seriesBeyondTwo(),
   unread: unreadReports(),
   takenOutNamed: namesOfTakenOut(),
   retired: retiredWordsWritten(),
-  commandKinds: kindsOfCommands()
+  commandKinds: kindsOfCommands(),
+  unreadExports: exportsNoHostReads()
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

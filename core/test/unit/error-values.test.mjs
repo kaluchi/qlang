@@ -21,15 +21,15 @@ describe('makeErrorValue', () => {
     expect(isErrorValue(errorVal)).toBe(true);
     expect(Object.isFrozen(errorVal)).toBe(true);
     expect(errorVal.tag).toBe(tag);
-    expect([...errorVal.descriptor.keys()]).toEqual(['message']);
+    expect([...errorVal.facts.keys()]).toEqual(['message']);
   });
 
   it('keeps a trace it is handed as it is [QSERR#trace]', () => {
     const trace = makeTrace([makeFrame('x', parse('add 1 | mul 2 | count'))]);
-    const descriptor = new Map([['trace', trace]]);
-    const errorVal = makeErrorValue(makeTag('Oops'), descriptor);
-    expect(errorVal.descriptor).toBe(descriptor);
-    expect(errorVal.descriptor.get('trace')).toBe(trace);
+    const facts = new Map([['trace', trace]]);
+    const errorVal = makeErrorValue(makeTag('Oops'), facts);
+    expect(errorVal.facts).toBe(facts);
+    expect(errorVal.facts.get('trace')).toBe(trace);
   });
 });
 
@@ -162,14 +162,14 @@ describe('formOf for error values', () => {
 // ── deepEqual ───────────────────────────────────────────────────
 
 describe('deepEqual for error values', () => {
-  it('compares error values by tag and descriptor', () => {
+  it('compares error values by tag and facts', () => {
     const tag = makeTag('Oops');
     const errorVal1 = makeErrorValue(tag, new Map([['index', 1]]));
     const errorVal2 = makeErrorValue(tag, new Map([['index', 1]]));
     expect(deepEqual(errorVal1, errorVal2)).toBe(true);
   });
 
-  it('separates errors carrying the same descriptor under different tags', () => {
+  it('separates errors carrying the same facts under different tags', () => {
     const desc = new Map([['index', 1]]);
     const left  = makeErrorValue(makeTag('Foo'), desc);
     const right = makeErrorValue(makeTag('Bar'), desc);
@@ -198,7 +198,7 @@ describe('the literal reads back error values and values under a tag', () => {
     const restoredError = await evalQuery(`${printValue(errorVal)} | raise`);
     expect(isErrorValue(restoredError)).toBe(true);
     expect(restoredError.tag.name).toBe('Oops');
-    expect(restoredError.descriptor.get('message')).toBe('something went wrong');
+    expect(restoredError.facts.get('message')).toBe('something went wrong');
     const hostBuilt = [
       makeTagged(makeTag('Box'), [1, 2, 3]),
       makeTagged(makeTag('Keys'), makeSet([keyword('b'), keyword('a')])),
@@ -248,7 +248,7 @@ describe('errorFromQlang', () => {
     const typeErr = new TestsProbeTypeError({ actualValue: 'the-value' });
     const errorVal = errorFromQlang(typeErr, 'the-subject', await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
-    const desc = errorVal.descriptor;
+    const desc = errorVal.facts;
     expect(typeErr).toBeInstanceOf(QlangError);
     expect(typeErr.name).toBe('ProbeTypeError');
     expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
@@ -261,7 +261,7 @@ describe('errorFromQlang', () => {
     const unresolvedErr = new CallUnknownNameError({ addresses: makeSet([]), name: keyword('myName') });
     const errorVal = errorFromQlang(unresolvedErr, 42, await langRuntime());
     expect(errorVal.tag).toEqual(makeTag('call/UnknownNameError'));
-    expect([...errorVal.descriptor.keys()]).toEqual(['name', 'addresses']);
+    expect([...errorVal.facts.keys()]).toEqual(['name', 'addresses']);
   });
 
   it('refuses a fact neither the label nor ::error declares, a defect of the runtime', async () => {
@@ -272,7 +272,7 @@ describe('errorFromQlang', () => {
   it('converts a refusal whose site hands no facts to an error of no facts [QSERR#rest]', async () => {
     const errorVal = errorFromQlang(new TestsProbeTypeError(), 10, await langRuntime());
     expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
-    expect([...errorVal.descriptor.keys()]).toEqual([]);
+    expect([...errorVal.facts.keys()]).toEqual([]);
   });
 });
 
@@ -286,8 +286,8 @@ describe('errorFromForeign', () => {
     const errorVal = errorFromForeign(jsErr, { location: null }, await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
     expect(errorVal.tag).toEqual(makeTag('call/HostFailureError'));
-    expect([...errorVal.descriptor.keys()]).toEqual(['message']);
-    expect(errorVal.descriptor.get('message')).toBe('something went wrong');
+    expect([...errorVal.facts.keys()]).toEqual(['message']);
+    expect(errorVal.facts.get('message')).toBe('something went wrong');
     expect(errorVal.originalError).toBe(jsErr);
   });
 
@@ -301,30 +301,30 @@ describe('errorFromForeign', () => {
       }
     }
     const errorVal = errorFromForeign(new AppError(), null, await langRuntime());
-    expect([...errorVal.descriptor.keys()]).toEqual(['message']);
+    expect([...errorVal.facts.keys()]).toEqual(['message']);
     expect(errorVal.originalError.code).toBe('NOT_FOUND');
   });
 
   it('recounts the accounts of the failures beneath it, outermost first', async () => {
     const top = new Error('top error', { cause: new Error('intermediate', { cause: 'root cause' }) });
     const errorVal = errorFromForeign(top, null, await langRuntime());
-    expect(errorVal.descriptor.get('causes')).toEqual(['intermediate', 'root cause']);
+    expect(errorVal.facts.get('causes')).toEqual(['intermediate', 'root cause']);
   });
 
   it('recounts eight failures beneath it at most', async () => {
     let current = new Error('leaf');
     for (let i = 0; i < 12; i++) current = new Error(`level-${i}`, { cause: current });
-    expect(errorFromForeign(current, null, await langRuntime()).descriptor.get('causes')).toHaveLength(8);
+    expect(errorFromForeign(current, null, await langRuntime()).facts.get('causes')).toHaveLength(8);
   });
 
   it('gives no causes where none stands beneath it', async () => {
     const scope = await langRuntime();
-    expect(errorFromForeign(new Error('no cause'), null, scope).descriptor.has('causes')).toBe(false);
-    expect(errorFromForeign(new Error('a null cause', { cause: null }), null, scope).descriptor.has('causes')).toBe(false);
+    expect(errorFromForeign(new Error('no cause'), null, scope).facts.has('causes')).toBe(false);
+    expect(errorFromForeign(new Error('a null cause', { cause: null }), null, scope).facts.has('causes')).toBe(false);
   });
 
   it('takes a thrown value that is no error by its text', async () => {
-    expect(errorFromForeign('a bare string', null, await langRuntime()).descriptor.get('message')).toBe('a bare string');
+    expect(errorFromForeign('a bare string', null, await langRuntime()).facts.get('message')).toBe('a bare string');
   });
 });
 
@@ -332,9 +332,9 @@ describe('error-convert coercion edge cases', () => {
   it('leaves out a fact its site hands as undefined', async () => {
     const typeErr = new TestsProbeTypeError({ index: undefined, actualValue: null });
     const errorVal = errorFromQlang(typeErr, 42, await langRuntime());
-    expect(errorVal.descriptor.has('index')).toBe(false);
-    expect(errorVal.descriptor.get('actualValue')).toBe(null);
-    expect(errorVal.descriptor.get('actualType')).toEqual(makeTag('null'));
+    expect(errorVal.facts.has('index')).toBe(false);
+    expect(errorVal.facts.get('actualValue')).toBe(null);
+    expect(errorVal.facts.get('actualType')).toEqual(makeTag('null'));
   });
 
   it('an actualValue equal to the subject the first frame holds is left out of the facts', async () => {
@@ -343,8 +343,8 @@ describe('error-convert coercion edge cases', () => {
     const subject = new Map([['nested', 1]]);
     const typeErr = new TestsProbeTypeError({ actualValue: new Map([['nested', 1]]) });
     const errorVal = errorFromQlang(typeErr, subject, await langRuntime());
-    expect(errorVal.descriptor.has('actualValue')).toBe(false);
-    expect(errorVal.descriptor.get('actualType').name).toBe('map');
+    expect(errorVal.facts.has('actualValue')).toBe(false);
+    expect(errorVal.facts.get('actualType').name).toBe('map');
   });
 
   it('an actualValue other than the subject stays among the facts', async () => {
@@ -355,7 +355,7 @@ describe('error-convert coercion edge cases', () => {
     const drilled = 'x';
     const typeErr = new TestsProbeTypeError({ actualValue: drilled, index: 1 });
     const errorVal = errorFromQlang(typeErr, container, await langRuntime());
-    expect(errorVal.descriptor.get('actualValue')).toBe(drilled);
-    expect(errorVal.descriptor.get('index')).toBe(1);
+    expect(errorVal.facts.get('actualValue')).toBe(drilled);
+    expect(errorVal.facts.get('index')).toBe(1);
   });
 });

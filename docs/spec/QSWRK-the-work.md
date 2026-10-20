@@ -786,7 +786,12 @@ workspace depends on a sibling by the range `^x.y.z` of the sibling's
 version. The core exports its root, `core/src/index.mjs`, beside
 `./errors`, `./highlight`, the light door that loads the parser and its
 walks and no runtime, and the sources of its catalog, each function of
-the package at one door. The modules of `core/src` import in the order of
+the package at one door, the root re-exporting by name from a module of
+the core what a workspace beside it reads from the package or the page
+of the package, `core/README.md`, writes. One test,
+`cli/test/refusal-pages.test.mjs`, holds the page of every refusal the
+core and the command line declare and of every one a rule raises. The
+modules of `core/src` import in the order of
 the concepts, from the bottom: the letters of a name, the address, the
 keys of the scope and the declaration of a refusal; the values, their one
 order and their equality; the records of the steps and the rules their
@@ -852,7 +857,8 @@ the site and the workflows among them; a month of the
 history in a chapter, a seed, a page of the catalog, a case and the
 code; a count in markdown prose that
 a command answers; the ranges of the siblings; every refusal declared by
-its address; a report of the research without the session's reading
+its address; an export of the root of the core no host reads and no page
+writes; a report of the research without the session's reading
 beside it [QSWRK#review]; a comment, a doc of the catalog and a sentence
 of the prose that name a token the branch took out [QSWRK#documents];
 and the form of a record from `D155` on, its `Domain.`, its decider and
@@ -860,9 +866,10 @@ the fields of an open record.
 
 `node scripts/release.mjs <version>` runs a release end to end from a
 clean master in step with its remote whose checks on GitHub are green:
-a preflight, the bump, the ranges, the parser, the coverage of the core
-and the tests, the commit, the push, the wait for the checks, the tag
-and its push; the tag runs `.github/workflows/deploy.yml`, which
+a preflight, the bump of the workspaces the matrix of
+`.github/workflows/deploy.yml` publishes, the ranges, the parser, the
+coverage of the core and the tests, the commit, the push, the wait for
+the checks, the tag and its push; the tag runs that workflow, which
 publishes the core and the command line through the trusted publishing
 of npm, whose publisher names that file; the commit of a release
 lands on master directly. A release happens at the maintainer's word,

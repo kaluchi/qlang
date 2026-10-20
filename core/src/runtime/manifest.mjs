@@ -42,7 +42,7 @@ async function runLaw({ law, quote, says }, callerState) {
   const actualValue = await codeOf(quote, callerState)(null);
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
-    result.set('error', errorAtRest(actualValue.tag, new Map(actualValue.descriptor)));
+    result.set('error', errorAtRest(actualValue.tag, new Map(actualValue.facts)));
     result.set('ok', false);
     return result;
   }

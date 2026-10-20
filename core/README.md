@@ -70,6 +70,13 @@ cell.defect;              // what was raised past the fail track, else null
   scope)` are handed hold by the same walk, and a value of no kind there
   is a defect of the host, `::builtin/ForeignValueError`, raised past the
   fail track: a cell holds it as its `defect`, and the others throw it.
+- A host's verb refuses a call by a refusal declared at its site by its
+  address, `declareRefusal('any/out/SubjectNotStringError')` from
+  `@kaluchi/qlang-core/errors`, and paged under its noun in the host's
+  source; a failure of the host's own world is an error value,
+  `makeErrorValue(makeTag('Late'), facts)`, its facts a map, a keyword
+  made by `keyword`; and `typeOf` answers the kind of a value, the tag
+  `type` answers.
 - `evalQuery(source, scope?)` answers the value one cell of a session over
   the scope it is handed answers, by default over the scope of the root
   `langRuntime()` answers, a defect raised to its caller; a declaration

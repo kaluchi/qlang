@@ -10,7 +10,9 @@
       payload.
 
       In a quote the step is a record, `~(::Box[1 2]) | first` answering
-      `::construct{:tag ::Box :payload [1 2]}`: `:tag` the tag and
+      `::construct{:tag ::Box :payload [1 2]}`, a tag written before an
+      error literal among them, `~(::Late!{:k 1}) | first` answering
+      `::construct{:tag ::Late :payload !{:k 1}}`: `:tag` the tag and
       `:payload` the step of the payload the literal writes, the record
       built into its step by its constructor, `::construct/construct`, as
       the constructor a kind holds in its slot lies under its label as
@@ -33,8 +35,10 @@
             `:payload`, a literal, both given, and `:field` names the field
             that does not fit: the tag is written with its two colons, so
             the step `::Box[1]` is
-            `{:tag ::Box :payload [1]} | tag ::construct`, and an error
-            literal is written with its tag before its bang, `::Box!{:k 1}`.
+            `{:tag ::Box :payload [1]} | tag ::construct`, and the step
+            `::Box!{:k 1}` is `{:tag ::Box :payload !{:k 1}} | tag ::construct`,
+            while the kind of errors over an error literal is the literal
+            itself, `!{:k 1}`.
             ::link~(::construct | doc)
         ~~|
     | throws :LiteralComputesError
@@ -79,11 +83,16 @@
     | proves :PayloadNotSchemaError/buildsTheStepOfATag
         |~~ A tag name and the step of a payload build the step. ~~|
         ~({:tag ::Box :payload [1]} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Box[1]))
-    | proves :PayloadNotSchemaError/refusesAnErrorLiteralWithoutItsTag
-        |~~ An error literal is no payload; its tag stands before its bang.
+    | proves :PayloadNotSchemaError/buildsTheStepOfAnErrorLiteralUnderATag
+        |~~ A tag name and an error literal build the step of the error
+            literal written with the tag before its bang.
         ~~|
-        ~(~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct
-          !| get [~(type) /field] | eq [::construct/PayloadNotSchemaError :payload])
+        ~(~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Foo!{:k 1}))
+    | proves :PayloadNotSchemaError/refusesTheKindOfErrorsOverAnErrorLiteral
+        |~~ The kind of errors over an error literal is the literal itself,
+            and `:field` names the tag.
+        ~~|
+        ~(::construct{:tag ::error :payload !{:k 1}} !| get [~(type) /field] | eq [::construct/PayloadNotSchemaError :tag])
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no record of a tagged literal. ~~|
         ~(::construct[1] !| get [~(type) /expected] | eq [::construct/PayloadKindNotTakenError #[::map]])

@@ -49,7 +49,7 @@ Third pass, narrow: the session answered your second pass in commit 1e7c0913 (`g
    судьбы 9 называет все пять цитат. Проба:
    `rg -n "Sample at least forty" docs/journal/research/reviews/D353~2~reading.md` → одна строка.
 
-[D296]: ../../D296.md
+[D296]: ../../replaced/D296.md
 [D353]: ../../D353.md
 [D372]: ../../replaced/D372.md
 [D373]: ../../replaced/D373.md

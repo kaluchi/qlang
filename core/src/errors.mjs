@@ -17,10 +17,10 @@ export class QlangError extends Error {
 // A defect of the runtime or of what a host handed: the table of
 // primitives, the bootstrap, the root a host's sources declare. It is
 // raised past the fail track to the host, with its message.
-export class QlangInvariantError extends QlangError {
+export class QlangDefect extends QlangError {
   constructor(message, facts = {}) {
     super(message, facts);
-    this.name = 'QlangInvariantError';
+    this.name = 'QlangDefect';
   }
 }
 
@@ -59,11 +59,11 @@ export function declareRefusal(address) {
   return brand(Cls, address);
 }
 
-// declareInvariantError(address, buildMessage) → the class of a defect,
+// declareDefect(address, buildMessage) → the class of a defect,
 // its message built from the facts the site hands.
-export function declareInvariantError(address, buildMessage) {
+export function declareDefect(address, buildMessage) {
   recordRefusal(address);
-  const Cls = class extends QlangInvariantError {
+  const Cls = class extends QlangDefect {
     constructor(facts = {}) {
       super(buildMessage(facts), facts);
       this.name = splitAddress(address)[1];
@@ -91,7 +91,7 @@ export function declareForeignError(address, buildMessage) {
 
 // First among the classes, which `recordRefusal` reaches for on an
 // address declared twice.
-export const BuiltinRefusalDeclaredTwiceError = declareInvariantError('builtin/RefusalDeclaredTwiceError',
+export const BuiltinRefusalDeclaredTwiceError = declareDefect('builtin/RefusalDeclaredTwiceError',
   ({ address }) => `${address} is declared by two sites of the runtime, and one page names it`);
 
 export const CallUnknownNameError = declareRefusal('call/UnknownNameError');

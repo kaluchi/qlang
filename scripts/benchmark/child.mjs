@@ -1,7 +1,7 @@
 // A clean child [QSWRK#measure]: `claude -p` started from a directory of its own,
 // with no settings, no memory, no MCP server and a one-line system
 // prompt, so its context is the prompt it is handed and nothing the
-// session that runs it knows. It runs `qlang` alone, on the input files
+// session that runs it knows. It runs `qlang` alone, on the data files
 // copied beside it [QSWRK#measure], and its record keeps every call it made and
 // what the language answered, the frictions a reading of the run looks
 // for.
@@ -96,7 +96,7 @@ function recordOfStream(streamText) {
 }
 
 // runChild({ prompt, model, workDir }) → the record of the run;
-// `workDir` the directory the child starts in, which holds the input
+// `workDir` the directory the child starts in, which holds the data
 // files.
 export function runChild({ prompt, model, workDir }) {
   mkdirSync(workDir, { recursive: true });

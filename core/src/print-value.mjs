@@ -15,7 +15,6 @@ import {
   isDoc,
   isFrame,
   isTrace,
-  isValueClass,
   ELISION_TAG,
   ERROR_TAG,
   formOf,
@@ -115,7 +114,7 @@ function printListLike(open, elements, indent, printedOf, oneLine = false, stack
 // raised [QSERR#print].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
-  return `${tagHead}${printMapLike('!{', e.descriptor, indent, printedOf)}`;
+  return `${tagHead}${printMapLike('!{', e.facts, indent, printedOf)}`;
 }
 
 // A payload touches its tag by its own sign, and a number, a boolean,
@@ -191,7 +190,7 @@ function printStep(step, quoting = false) {
   if (isBindStep(step)) return printBind(step);
   if (isConstructStep(step)) return underTagLiteral(step.get('tag').literal, step.get('payload'), printStep(step.get('payload'), quoting));
   const errorFields = errorFieldsOf(step);
-  if (errorFields !== null) return `${isValueClass(step, 'underTag') ? step.tag.literal : ''}!{${printEntries([...errorFields], quoting)}}`;
+  if (errorFields !== null) return `!{${printEntries([...errorFields], quoting)}}`;
   if (isQuote(step)) return `~(${printSteps(step)})`;
   if (isDoc(step)) return printValue(step);
   if (isSet(step)) return `#[${step.map(part => printStep(part, quoting)).join(' ')}]`;

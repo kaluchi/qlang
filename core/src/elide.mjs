@@ -274,7 +274,7 @@ function framesOf(trace, read, printedOf) {
 
 export function alertOf(error, printedOf = printedByTheCore) {
   const facts = new Map();
-  for (const [name, value] of error.descriptor) {
+  for (const [name, value] of error.facts) {
     const factRead = readBelow(OF_THE_FACTS, [name]);
     facts.set(name, isTrace(value) ? framesOf(value, factRead, printedOf) : excerptOf(value, factRead, printedOf));
   }
@@ -289,7 +289,7 @@ export function elideAnswer(answer, budget = null, printedOf = printedByTheCore)
   const alert = alertOf(answer, printedOf);
   if (budget === null) return alert;
   const sizeOf = measureBy(printedOf);
-  const header = sizeOf(alert) - sizeOf(alert.descriptor);
-  const facts = elideWithin(new Map(alert.descriptor), budget - header, OF_THE_FACTS, printedOf);
+  const header = sizeOf(alert) - sizeOf(alert.facts);
+  const facts = elideWithin(new Map(alert.facts), budget - header, OF_THE_FACTS, printedOf);
   return makeErrorValue(alert.tag, facts);
 }

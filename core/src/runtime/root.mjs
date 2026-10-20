@@ -16,26 +16,26 @@ import { rootState } from '../state.mjs';
 import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, isPrimitiveHanded, recipeOf, bindingValueOf, takePrimitive, keyword } from '../types.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
 import { rootOf } from '../state.mjs';
-import { declareInvariantError } from '../errors.mjs';
+import { declareDefect } from '../errors.mjs';
 import { isUnderLabel } from '../nouns.mjs';
 
 // A source of the root whose run answers an error, or that declares again
 // a name the root holds, left its declarations out of the root, `:origin`
 // the source, `:tagName` the refusal and `:name` the name declared again;
 // one the parser refuses raises the parse error with its uri.
-export const BuiltinRootSourceNotDeclaredError = declareInvariantError('builtin/RootSourceNotDeclaredError',
+export const BuiltinRootSourceNotDeclaredError = declareDefect('builtin/RootSourceNotDeclaredError',
   ({ origin, tagName, name }) => `qlang root: the source ${origin.name} is refused with ${tagName}${name === undefined ? '' : ` for ${name.literal}`}, and its declarations stay out of the root`);
 
 // A name a source of the root declares as `::builtin{}` that its host
 // handed no primitive for has nothing to run [QSDSP#residence].
-export const BuiltinPrimitiveNotHandedError = declareInvariantError('builtin/PrimitiveNotHandedError',
+export const BuiltinPrimitiveNotHandedError = declareDefect('builtin/PrimitiveNotHandedError',
   ({ origin, name }) => `qlang root: no primitive is handed for ${name.literal}, which the source ${origin.name} declares as ::builtin{}`);
 
 // A primitive a host hands for a name its source declares as no `::builtin{}`
 // under a label has nothing to run under: a name written in steps runs them, a
 // bare name reads its value, and one that holds the `::builtin{}` another name
 // took, `:sharedWith`, runs its primitive [QSDSP#walk], [QSQUO#modifier], [QSHST#source].
-export const BuiltinPrimitiveNamesNoBuiltinError = declareInvariantError('builtin/PrimitiveNamesNoBuiltinError',
+export const BuiltinPrimitiveNamesNoBuiltinError = declareDefect('builtin/PrimitiveNamesNoBuiltinError',
   ({ origin, name, sharedWith }) => `qlang root: the source ${origin.name} is handed a primitive for ${name.literal}, ${sharedWith === undefined
     ? 'which it declares as no ::builtin{} under a label' : `whose ::builtin{} is another name's, ${sharedWith.literal}, whose primitive it runs`}`);
 

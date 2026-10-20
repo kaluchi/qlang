@@ -1,5 +1,5 @@
 import { keyword, makeErrorValue, makeTag, makeTagged, typeOf, ERROR_TAG } from './types.mjs';
-import { declareInvariantError, recordRefusal } from './errors.mjs';
+import { declareDefect, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './nouns.mjs';
 import { deepEqual } from './equality.mjs';
 import { nameOfContinuation } from './parse.mjs';
@@ -12,7 +12,7 @@ recordRefusal('call/HostFailureError');
 // A refusal of the runtime that carries a fact neither its label nor the
 // kind of errors declares: the source of the refusal and the catalog
 // disagree, a defect of the runtime.
-const BuiltinRefusalFactNotDeclaredError = declareInvariantError('builtin/RefusalFactNotDeclaredError',
+const BuiltinRefusalFactNotDeclaredError = declareDefect('builtin/RefusalFactNotDeclaredError',
   ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`);
 
 const SPAN_TAG = makeTag('span');

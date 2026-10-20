@@ -4,78 +4,54 @@
 // language those under its noun as a host hands its own and seals the table
 // [QSHST#source].
 
-import { declareInvariantError } from './errors.mjs';
+import { declareDefect } from './errors.mjs';
 import { splitAddress } from './address.mjs';
 import { accountOfForeign } from './types.mjs';
 
-const BuiltinAddressNotStringError = declareInvariantError(
+const BuiltinAddressNotStringError = declareDefect(
   'builtin/AddressNotStringError',
   ({ actualValue }) => `register: an address must be a string, got ${actualValue}`);
 
-const BuiltinAddressRegisteredTwiceError = declareInvariantError(
+const BuiltinAddressRegisteredTwiceError = declareDefect(
   'builtin/AddressRegisteredTwiceError',
   ({ address }) => `register: ${address} is already registered; two runtime modules claim the same address`);
 
-const BuiltinTableSealedError = declareInvariantError(
+const BuiltinTableSealedError = declareDefect(
   'builtin/TableSealedError',
   ({ address }) => `register: the table is sealed; cannot register ${address} after the bootstrap`);
 
-// createPrimitiveRegistry() → a table of its own, for a test.
-export function createPrimitiveRegistry() {
-  const primitives = new Map();
-  const registered = new WeakSet();
-  let sealed = false;
+const primitives = new Map();
+const registered = new WeakSet();
+let sealed = false;
 
-  return {
-    register(address, primitive) {
-      if (sealed) {
-        throw new BuiltinTableSealedError({ address });
-      }
-      if (typeof address !== 'string') {
-        throw new BuiltinAddressNotStringError({ actualValue: accountOfForeign(address) });
-      }
-      if (primitives.has(address)) {
-        throw new BuiltinAddressRegisteredTwiceError({ address });
-      }
-      primitives.set(address, primitive);
-      registered.add(primitive);
-      return address;
-    },
+// The table the runtime registers into and the bootstrap seals.
+export const PRIMITIVE_REGISTRY = {
+  register(address, primitive) {
+    if (sealed) throw new BuiltinTableSealedError({ address });
+    if (typeof address !== 'string') throw new BuiltinAddressNotStringError({ actualValue: accountOfForeign(address) });
+    if (primitives.has(address)) throw new BuiltinAddressRegisteredTwiceError({ address });
+    primitives.set(address, primitive);
+    registered.add(primitive);
+  },
 
-    has(address) {
-      return primitives.has(address);
-    },
+  // Whether the table holds a primitive, one of the core's own.
+  holds(primitive) {
+    return registered.has(primitive);
+  },
 
-    // Whether the table holds a primitive, one of the core's own.
-    holds(primitive) {
-      return registered.has(primitive);
-    },
-
-    // The primitives under a noun, by address, each a name under one.
-    primitivesUnder(nounName) {
-      const under = {};
-      for (const [address, primitive] of primitives) {
-        if (splitAddress(address)[0] === nounName) under[address] = primitive;
-      }
-      return under;
-    },
-
-    seal() {
-      sealed = true;
-    },
-
-    get isSealed() {
-      return sealed;
-    },
-
-    get size() {
-      return primitives.size;
+  // The primitives under a noun, by address, each a name under one.
+  primitivesUnder(nounName) {
+    const under = {};
+    for (const [address, primitive] of primitives) {
+      if (splitAddress(address)[0] === nounName) under[address] = primitive;
     }
-  };
-}
+    return under;
+  },
 
-// The table every module of the runtime registers into.
-export const PRIMITIVE_REGISTRY = createPrimitiveRegistry();
+  seal() {
+    sealed = true;
+  }
+};
 
 // registerPrimitive(addresses, primitive) — registers a primitive under the
 // address of each verb or kind it serves, one or several.

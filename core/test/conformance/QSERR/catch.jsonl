@@ -13,10 +13,9 @@
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map ~(mul 2) | !| 0","expect":"0"}
 {"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| get /kind","expect":":inner"}
 {"name":"a-path-reads-before-a-combinator","query":"{:a 1} | get /a !| 0","expect":"1"}
-{"name":"a-catch-whose-label-refuses-passes-a-frame-at-its-step","query":"~(::number!{:a 1}) | first | raise !| it | count !| trace | map ~(get [~(failed) ~(skipped)])","expect":"[[~(it) ~(count)]]"}
-{"name":"a-catch-whose-label-invariant-refuses-passes-a-frame-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it | count !| trace | map ~(get [~(failed) ~(skipped)])","expect":"[[~(it) ~(count)]]"}
-{"name":"an-error-at-rest-a-quote-holds-under-the-tag-of-a-kind-raised-is-caught-by-the-refusal-of-the-kind","query":"~(::number!{:a 1}) | first | raise !| it !| get [~(type) /actualType]","expect":"[::number/PayloadKindNotTakenError ::error]"}
-{"name":"an-error-at-rest-a-quote-holds-under-a-label-raised-is-caught-by-the-refusal-of-its-invariant","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ~(::Box!{:a 1}) | first | raise !| it !| type","expect":"::Box/k"}
+{"name":"a-catch-whose-label-refuses-the-error-at-rest-passes-a-frame-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(type | eq ::map)) | {:a 1} | tag ::Box | raise !| it | count !| trace | map ~(get [~(failed) ~(skipped)])","expect":"[[~(it) ~(count)]]"}
+{"name":"an-error-raised-under-a-label-whose-invariant-refuses-it-at-rest-is-caught-by-that-refusal","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(type | eq ::map)) | {:a 1} | tag ::Box | raise !| it !| get [~(type) /actualType]","expect":"[::Box/k ::Box]"}
+{"name":"a-catch-whose-label-takes-no-facts-refuses-the-error-at-rest","query":"{:a 1} | tag ::P | :v it | :P |~~ P. ~~| (::kind | wraps |~~ A number. ~~| ::number) | v | raise !| it !| get [~(type) /actualType]","expect":"[::P/PayloadKindNotTakenError ::error]"}
 {"name":"a-literal-that-holds-no-path-after-a-catch-is-its-recovery","query":"!{:k 1} | raise !| [1 2]","expect":"[1 2]"}
 {"name":"a-step-of-the-fail-track-built-from-data-refuses-a-literal-of-paths-and-quotes","query":"get [~(::fail~([/k]) !| type) ~(::fail~({:k ~(get /k)}) !| type)]","expect":"[::fail/StepNotCommandError ::fail/StepNotCommandError]"}
 {"name":"a-quote-the-recovery-answers-is-computed-by-a-group","query":"\"x\" | add 1 !| (~(get /message))","expect":"~(get /message)"}

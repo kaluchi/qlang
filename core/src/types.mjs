@@ -1,5 +1,5 @@
 import { readsAsBareKeyword } from './name-chars.mjs';
-import { declareInvariantError } from './errors.mjs';
+import { declareDefect } from './errors.mjs';
 import { TAG_SIGIL } from './scope-keys.mjs';
 
 export const NULL = null;
@@ -347,11 +347,10 @@ export function makeTrace(frames) {
 }
 
 // An error carries its tag, the kind of errors for a literal that names
-// none, and a descriptor of the facts of its site, and once a step raised it
-// or handed it on its trace, `:trace`, the frames `eval-trace.mjs` writes
-// [QSERR#trace].
-export function makeErrorValue(tag, descriptor, { location = null, originalError = null } = {}) {
-  return Object.freeze(brandValueClass({ tag, descriptor, location, originalError }, 'error'));
+// none, and the facts of its site, and once a step raised it or handed it on
+// its trace, `:trace`, the frames `eval-trace.mjs` writes [QSERR#trace].
+export function makeErrorValue(tag, facts, { location = null, originalError = null } = {}) {
+  return Object.freeze(brandValueClass({ tag, facts, location, originalError }, 'error'));
 }
 
 // formOf(v) → the form a writer of the core reads a value by: `error`,
@@ -386,7 +385,7 @@ export function typeOf(v) {
 // A value of no kind where the core takes what a host hands or reads a kind,
 // and a number past the doubles where it is written, a defect raised past the
 // fail track, `:actualValue` naming it as JavaScript holds it [QSHST#source].
-export const BuiltinForeignValueError = declareInvariantError('builtin/ForeignValueError',
+export const BuiltinForeignValueError = declareDefect('builtin/ForeignValueError',
   ({ actualValue }) => `the core met ${actualValue}, a value of no kind of the language`);
 
 export function refuseForeign(value) {

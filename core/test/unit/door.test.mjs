@@ -12,7 +12,7 @@ import { langRuntime } from '../../src/runtime/index.mjs';
 import { printValue } from '../../src/print-value.mjs';
 import { toPlain } from '../../src/runtime/json.mjs';
 import { compareValues } from '../../src/ordering.mjs';
-import { declareRefusal, declareInvariantError } from '../../src/errors.mjs';
+import { declareRefusal, declareDefect } from '../../src/errors.mjs';
 import { WITHHELD_KEY } from '../../src/scope-keys.mjs';
 import {
   keyword, makeTag, makeTagged, makeErrorValue, makeBinding, typeOf, accountOfForeign, BuiltinForeignValueError, ERROR_TAG
@@ -25,7 +25,7 @@ import { valuesOfTheLanguage, valuesOfNoKind } from '../helpers/values-at-the-do
 const ANSWERS = [];
 const answering = value => ANSWERS.push(value) - 1;
 const AnyRefuseRefusedError = declareRefusal('any/refuse/RefusedError');
-const AnyBreakBrokenError = declareInvariantError('any/break/BrokenError', () => 'the host broke');
+const AnyBreakBrokenError = declareDefect('any/break/BrokenError', () => 'the host broke');
 let session;
 let lawful;
 
@@ -87,7 +87,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
 
   it('passes a failure the primitive answers, whose facts are values', async () => {
     const failure = makeErrorValue(makeTag('error'), new Map([['a', 1]]));
-    expect((await answerOf(failure)).descriptor.get('a')).toBe(1);
+    expect((await answerOf(failure)).facts.get('a')).toBe(1);
     expect((await session.evalCell(`${answering(failure)} | answer !| get /a`)).result).toBe(1);
   });
 

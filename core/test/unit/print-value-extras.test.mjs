@@ -74,8 +74,8 @@ describe('printErrorValue — head + payload-filter branches', () => {
     expect(await printAnswer(atRest, scope)).toBe(printValue(atRest));
   });
 
-  it('a :kind in the descriptor is a fact like any other', async () => {
-    // A `:kind` names no tag [QSERR#rest]: it stays in the descriptor as
+  it('a :kind among the facts is a fact like any other', async () => {
+    // A `:kind` names no tag [QSERR#rest]: it stays among the facts as
     // ordinary user data, the error staying of the kind of errors.
     const err = makeErrorValue(makeTag('error'), new Map([
       ['kind', keyword('oops')]
@@ -87,7 +87,7 @@ describe('printErrorValue — head + payload-filter branches', () => {
     // User-stamped `:message` fields ride through the printer
     // verbatim so round-trip preserves them exactly. Runtime-
     // side errors (`errorFromQlang`) simply omit `:message` from
-    // the descriptor at construction.
+    // the facts at construction.
     const err = makeErrorValue(makeTag('Foo'), new Map([
       ['message', 'user-stamped prose'],
       ['category', keyword('oops')]

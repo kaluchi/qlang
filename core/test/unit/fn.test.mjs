@@ -1,6 +1,6 @@
 // The refusals a verb that is a function raises by rule, read from its
-// chain as its call raises them, which the catalog's drift test holds
-// against the pages of the root's verbs [QSERR#site].
+// chain as its call raises them, which the guard of the pages of the
+// refusals holds against the pages of the root's verbs [QSERR#site].
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';
@@ -45,6 +45,12 @@ describe('the refusals by rule of an input that names the kinds of each element 
       'number/each/xs/KindNotTakenError',
       'number/each/xs/ElementKindNotTakenError'
     ]);
+  });
+
+  it('names an element of none of its kinds alone where its place reads the args whole, which are a vector', async () => {
+    const own = await createSession();
+    await own.evalCell(':number/all (::fn | takes :xs |~~ Values. ~~| ~(it) [::number] | impl ~(xs))');
+    expect(ruleRefusalsOf(own.scope, 'number/all')).toEqual(['number/all/SubjectNotNumberError', 'number/all/xs/ElementKindNotTakenError']);
   });
 });
 

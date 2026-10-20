@@ -54,7 +54,7 @@ export function atPlace(error, place) {
 }
 
 // Whether a failure arose in the code a verb ran on a part, a frame naming its place [QSERR#trace].
-export const failedOnAPart = error => error.descriptor.get('trace').some(frame => frame.length === 3);
+export const failedOnAPart = error => error.facts.get('trace').some(frame => frame.length === 3);
 
 // framesOfTrace(payload) → the frames of a trace, the one check of the
 // constructor of `::trace` and of every trace a frame joins, each element
@@ -78,9 +78,9 @@ export function framesOfTrace(payload) {
 // The failure and its frames, or in its place the refusal of its trace,
 // which names the trace it refused [QSERR#trace].
 function heldTrace(error, scope) {
-  if (!error.descriptor.has('trace')) return [error, []];
+  if (!error.facts.has('trace')) return [error, []];
   try {
-    return [error, framesOfTrace(error.descriptor.get('trace'))];
+    return [error, framesOfTrace(error.facts.get('trace'))];
   } catch (refusal) {
     return [errorFromQlang(refusal, undefined, scope), []];
   }
@@ -88,8 +88,8 @@ function heldTrace(error, scope) {
 
 // The error with its frames given, a fresh value that carries no mark.
 function withTrace(error, frames) {
-  const descriptor = new Map(error.descriptor).set('trace', makeTrace(frames));
-  return makeErrorValue(error.tag, descriptor, { location: error.location, originalError: error.originalError });
+  const facts = new Map(error.facts).set('trace', makeTrace(frames));
+  return makeErrorValue(error.tag, facts, { location: error.location, originalError: error.originalError });
 }
 
 function withFrame(error, stepQuote, subject, scope) {
@@ -100,7 +100,7 @@ function withFrame(error, stepQuote, subject, scope) {
 
 export function answerOfStep(answer, stepQuoteOf, subject, scope) {
   if (!isErrorValue(answer)) return answer;
-  if (resumesItsTrace(answer)) return withTrace(answer, answer.descriptor.get('trace'));
+  if (resumesItsTrace(answer)) return withTrace(answer, answer.facts.get('trace'));
   return withFrame(answer, stepQuoteOf(), subject, scope);
 }
 

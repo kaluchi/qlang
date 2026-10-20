@@ -124,14 +124,14 @@ describe('what a tag before a payload refuses and hands on', () => {
     const err = await evalQuery('::builtin"hello"');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('builtin/PayloadKindNotTakenError'));
-    expect(err.descriptor.get('actualType')).toEqual(makeTag('string'));
+    expect(err.facts.get('actualType')).toEqual(makeTag('string'));
   });
 
   it('`::builtin` refuses a vector for its payload', async () => {
     const err = await evalQuery('::builtin[1 2 3]');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('builtin/PayloadKindNotTakenError'));
-    expect(err.descriptor.get('actualType')).toEqual(makeTag('vec'));
+    expect(err.facts.get('actualType')).toEqual(makeTag('vec'));
   });
 
   it('tag hands on an error in the pipe and lays no tag over it', async () => {
@@ -155,8 +155,8 @@ describe('a tag no declaration answers lays itself over any payload', () => {
     const err = await evalQuery('::number/add/SubjectNotNumberError!{:custom "field" :note 42} | raise');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('number/add/SubjectNotNumberError'));
-    expect(err.descriptor.get('custom')).toBe('field');
-    expect(err.descriptor.get('note')).toBe(42);
+    expect(err.facts.get('custom')).toBe('field');
+    expect(err.facts.get('note')).toBe(42);
   });
 
   it('a vector under a tag is read as a vector, and `type` reads the tag', async () => {

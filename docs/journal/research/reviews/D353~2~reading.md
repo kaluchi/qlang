@@ -73,7 +73,7 @@ A finding is something you can show: a file and a line, the rule of the work or 
     Проба: `:number/m (::fn | takes :x |~~ x ~~| /0 | impl ~(x)) | 1 | m 2` → `2`.
 16. **Сделана.** Проба: `::call[1] !| type` → `::call/PayloadKindNotTakenError`.
 
-[D296]: ../../D296.md
+[D296]: ../../replaced/D296.md
 [D372]: ../../replaced/D372.md
 [D373]: ../../replaced/D373.md
 [D374]: ../../replaced/D374.md

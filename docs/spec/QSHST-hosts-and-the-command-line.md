@@ -30,15 +30,20 @@ root holds, `::builtin/RootSourceNotDeclaredError`. A name that holds the
 `::builtin{}` another name took first runs the primitive of that name,
 and a primitive handed for it is refused so, its `:sharedWith` naming
 that name. The modules of the runtime register the core's primitives in
-its table, an address that is no string refused as
-`::builtin/AddressNotStringError` and two under one address as
-`::builtin/AddressRegisteredTwiceError`. A
+its table, which the bootstrap seals, an address that is no string
+refused as `::builtin/AddressNotStringError`, two under one address as
+`::builtin/AddressRegisteredTwiceError` and one after the seal as
+`::builtin/TableSealedError`. A
 `::builtin{}` a reader writes is the value it is: as the recipe of a
 function under a label, the address answers the function as a value, and
 its bare name reaches no verb; as a step of a recipe's quote, the verb
 answers it; and as the constructor of a kind, the kind lays its tag over
-the payload as it is. A host makes an error of a tag by
-`makeErrorValue`.
+the payload as it is. A host's verb refuses a call by a refusal declared
+at its site by its address through `./errors` and paged under its noun
+in the host's source, a failure of the host's own world is the error
+value `makeErrorValue` makes of a tag and a map of its facts, and a host
+lays a tag over its answer through the language, by the kind its verb
+`returns`.
 
 Each source is the source of one noun, its page first and what is
 declared under it after, so a kind lives whole in the source of its

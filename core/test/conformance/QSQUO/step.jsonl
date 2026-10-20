@@ -10,7 +10,10 @@
 {"name":"a-quote-assembled-from-steps-writes-them-as-its-text","query":"[[1 2] ::call{:name :count}] | tag ::quote | toString","expect":"\"[1 2] | count\""}
 {"name":"a-call-record-of-a-name-no-step-calls-is-refused","query":"::call{:name :\"a b\"} !| get [~(type) /name]","expect":"[::call/NameNotCallableError :\"a b\"]"}
 {"name":"the-step-of-a-tagged-literal-is-a-construct","query":"~(::Box[1 2]) | first | type","expect":"::construct"}
-{"name":"a-construct-step-refuses-an-error-literal-written-without-its-tag","query":"~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct !| get [~(type) /field]","expect":"[::construct/PayloadNotSchemaError :payload]"}
+{"name":"a-construct-step-of-a-tag-over-an-error-literal-is-the-step-its-literal-writes","query":"~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Foo!{:k 1})","expect":"true"}
+{"name":"a-construct-of-the-kind-of-errors-over-an-error-literal-is-refused-naming-its-tag","query":"::construct{:tag ::error :payload !{:k 1}} !| get [~(type) /field]","expect":"[::construct/PayloadNotSchemaError :tag]"}
+{"name":"a-quote-holds-a-tagged-error-literal-as-the-record-of-its-construction","query":"~(::number!{:a 1}) | first | get [~(type) /tag /payload]","expect":"[::construct ::number !{:a 1}]"}
+{"name":"the-print-of-the-step-of-an-error-literal-under-a-tag-its-label-refuses-reads-back-as-that-step","query":"~(::number!{:a 1}) | first | :s it | print | parse | open | eq s","expect":"true"}
 {"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| it) | first | get /docs | first | type","expect":"::doc"}
 {"name":"the-step-of-an-error-literal-maps-as-the-map-of-its-fields","query":"~(!{:kind :oops :trace 5}) | map ~count","expect":"[2]"}
 {"name":"a-quote-holds-a-regex-as-a-step","query":"\"match #\\\"\\\\d\\\"\" | parse | get [~(first | get /modifiers | first | type) ~(print)]","expect":"[::regex \"~(match #\\\"\\\\d\\\")\"]"}

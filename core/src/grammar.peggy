@@ -241,20 +241,23 @@
     return { value, parts: [key, ...(docs ?? []), ...(body === null ? [] : [body])] };
   }
 
-  function entriesRead(make, entries, heads = []) {
-    return part(make(new Map(entries.map(({ key, value }) => [key.value.name, value.value]))), [...heads, ...entries.flatMap(({ key, value }) => [key, value])]);
+  function entriesRead(make, entries, heads = [], at = span()) {
+    return part(make(new Map(entries.map(({ key, value }) => [key.value.name, value.value]))), [...heads, ...entries.flatMap(({ key, value }) => [key, value])], at);
   }
 
-  // An error literal, the tag written before its bang a part of it and the
-  // span of its tags its head [QSERR#rest], [QSHST#tools].
-  const errorRead = (tag, entries) => Object.assign(entriesRead(facts => errorAtRest(tag?.value ?? ERROR_TAG, facts), entries, tag === null ? [] : [tag]), tag === null ? {} : { head: tag.span });
+  // A tagged literal, the construction of its tag over its payload, its head
+  // the tag, but `::error` before an error literal, which is that literal
+  // [QSQUO#step], [QSERR#rest], [QSHST#tools].
+  function taggedRead(head, payload, at = span()) {
+    if (head.value.name === ERROR_TAG.name && isOfTheKindOfErrors(payload.value)) return Object.assign(part(payload.value, [head, ...payload.parts], at), { head: { ...head.span, end: (payload.head ?? head.span).end } });
+    return Object.assign(part(constructOf(new Map([['tag', head.value], ['payload', payload.value]])), [payload], at), { head: head.span });
+  }
 
-  // A tagged literal, and a tag written before an error literal of the kind
-  // of errors the tag of that error, `::Late::error!{…}` the literal
-  // `::Late!{…}` [QSERR#rest].
-  function taggedRead(head, payload) {
-    if (!isOfTheKindOfErrors(payload.value)) return Object.assign(part(constructOf(new Map([['tag', head.value], ['payload', payload.value]])), [payload]), { head: head.span });
-    return Object.assign(part(errorAtRest(head.value, new Map(payload.value)), [head, ...payload.parts]), { head: { ...head.span, end: (payload.head ?? head.span).end } });
+  // An error literal, a tag before its bang the tagged literal of it,
+  // `::Late!{…}` the literal `::Late::error!{…}` [QSERR#rest].
+  function errorRead(tag, entries) {
+    if (tag === null) return entriesRead(facts => errorAtRest(ERROR_TAG, facts), entries);
+    return taggedRead(tag, entriesRead(facts => errorAtRest(ERROR_TAG, facts), entries, [], { ...span(), start: tag.span.end }));
   }
 
   // The segments of a doc, the span of its text to its last word and the spans

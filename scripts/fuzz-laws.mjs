@@ -53,7 +53,7 @@ async function breakOf(text) {
     const answer = await evalQuery(text, scope);
     if (isErrorValue(answer)) {
       if (answer.tag.name === 'quote/ParseError') counts.unparsed++;
-      return answer.tag.name === 'call/HostFailureError' ? `a host's failure: ${answer.descriptor.get('message')}` : null;
+      return answer.tag.name === 'call/HostFailureError' ? `a host's failure: ${answer.facts.get('message')}` : null;
     }
     counts.values++;
     const printed = printValue(answer);

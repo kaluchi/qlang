@@ -50,5 +50,7 @@ const SECTIONS = {
     'a word the language retired stays retired in every text that states what holds, and a record that renames a word writes the old one into scripts/retired-words.mjs [QSWRK#documents].'),
   // The kinds of the catalog that bear the name of a command of a chain [QSBLD#fn].
   commandKinds: found => section('Kinds that bear the name of a command', found, ({ path, line, name }) => `  ${path}:${line}  ::${name}, the name of the command \`${name}\`\n`,
-    'a command of a chain is named by its act and what it writes by the noun of the thing, as `holds` writes an `::invariant` and `proves` a `::law`: the kind takes a noun of its own [QSBLD#fn].')
+    'a command of a chain is named by its act and what it writes by the noun of the thing, as `holds` writes an `::invariant` and `proves` a `::law`: the kind takes a noun of its own [QSBLD#fn].'),
+  unreadExports: found => section('Exports of the root of the package beyond what a host builds on', found, ({ file, line, name, problem }) => `  ${file}${line === undefined ? '' : `:${line}`}  ${name === undefined ? '' : `\`${name}\` `}${problem}\n`,
+    'the root re-exports by name from a module of the core what a workspace beside the core reads from the package or the page of the package writes, each function of the package at one door, and the core reads its own names from their modules [QSWRK#tooling].')
 };

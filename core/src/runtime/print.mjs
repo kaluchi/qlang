@@ -46,8 +46,8 @@ const RAISED_LINE = '|~| raised, and no !| caught it';
 // host that prints for a person's eye draws below it [QSERR#print]; null otherwise.
 export function caretOf(answer) {
   if (!isErrorValue(answer) || answer.tag.name !== 'quote/ParseError') return null;
-  const source = answer.descriptor.get('source');
-  const location = answer.descriptor.get('location');
+  const source = answer.facts.get('source');
+  const location = answer.facts.get('location');
   if (typeof source !== 'string' || source.includes('\n') || typeOf(location).name !== 'span') return null;
   const [, startLine, startColumn, , endLine, endColumn] = location;
   const pastTheLine = Array.from(source).length + 1;
@@ -68,7 +68,7 @@ async function collectPrintsOfKinds(part, scope, state, printOfAny, printedByKin
   }
   const parts = part instanceof Map ? part.values()
     : Array.isArray(part) ? part
-    : isErrorValue(part) ? part.descriptor.values()
+    : isErrorValue(part) ? part.facts.values()
     : 'payload' in part ? [part.payload] : [];
   for (const inner of parts) await collectPrintsOfKinds(inner, scope, state, printOfAny, printedByKind);
 }

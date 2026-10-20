@@ -119,14 +119,14 @@ describe('error-convert.mjs — errorFromParse and the origin of a text [QSHST#s
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const errVal = errorFromParse(parseError, await langRuntime());
     expect(isErrorValue(errVal)).toBe(true);
-    expect(errVal.descriptor.has('origin')).toBe(false);
+    expect(errVal.facts.has('origin')).toBe(false);
   });
 
   it('names as its origin, a keyword, the uri of the source the text came from', async () => {
     const parseError = Object.assign(new Error('unexpected token'), { location: null, uri: 'shop.qlang' });
     const { langRuntime } = await import('../../src/runtime/index.mjs');
     const errVal = errorFromParse(parseError, await langRuntime());
-    expect(errVal.descriptor.get('origin')).toEqual(keyword('shop.qlang'));
+    expect(errVal.facts.get('origin')).toEqual(keyword('shop.qlang'));
   });
 });
 
@@ -210,14 +210,14 @@ describe('printValue — qlang literal serialization', async () => {
     expect(out).toContain(':c 3');
   });
 
-  it('prints error value with tag head and descriptor', async () => {
+  it('prints error value with tag head and facts', async () => {
     const err = makeErrorValue(makeTag('Test'), new Map([['index', 1]]));
     const out = printValue(err);
     expect(out).toMatch(/^::Test!\{/);
     expect(out).toContain(':index 1');
   });
 
-  it('pretty-prints error with many descriptor fields', async () => {
+  it('pretty-prints error with many facts', async () => {
     const err = makeErrorValue(makeTag('Test'), new Map([
       ['actualType', makeTag('number')],
       ['message', 'boom'],
@@ -247,7 +247,7 @@ describe('printValue keyword round-trip', async () => {
       const original = await evalQuery(src);
       const printed = printValue(original);
       const reparsed = await evalQuery(printed);
-      expect(deepEqual(original, reparsed), `quoted-keyword round-trip drift on ${src} → ${printed}`).toBe(true);
+      expect(deepEqual(original, reparsed), `a quoted keyword read back as another value: ${src} → ${printed}`).toBe(true);
     }
   });
 

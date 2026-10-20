@@ -28,7 +28,7 @@ const MISSED_PARTS = new Set([PathKeyNotInMapError.prototype.address, PathIndexO
 export const isMissedPart = error => MISSED_PARTS.has(error.tag.name);
 
 export const isMissedRead = error => isMissedPart(error)
-  || (error.tag.name === PathSubjectHasNoPartsError.prototype.address && error.descriptor.get('actualType')?.name === CORE_KIND.null.name);
+  || (error.tag.name === PathSubjectHasNoPartsError.prototype.address && error.facts.get('actualType')?.name === CORE_KIND.null.name);
 
 // partsOfTemplate(value) → the parts a template of `get` reads in their
 // places, the elements of a vector or a set and the values of a map, under

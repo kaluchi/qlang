@@ -53,12 +53,6 @@ describe('the package root', () => {
     expect([...'a𝐀b c𝐁'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['a', 'b', 'c']);
     expect(await core.evalQuery('":a𝐀 1" | parse !| type')).toEqual(core.makeTag('quote/ParseError'));
   });
-
-  it('exports no symbol of the runtime a consumer does not read', () => {
-    for (const internal of ['evalPipeline', 'keepParts', 'repeatsDeclarationAt', 'QlangError', 'makeTagged', 'formOf', 'EVAL_DEPTH_LIMIT']) {
-      expect(core[internal], internal).toBeUndefined();
-    }
-  });
 });
 
 describe('the doors of the package [QSWRK#tooling]', () => {

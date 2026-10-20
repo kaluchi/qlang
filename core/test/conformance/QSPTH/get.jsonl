@@ -33,4 +33,4 @@
 {"name":"a-set-reads-a-negative-index-from-the-end-of-its-order","query":"#[:z :x :y] | get /-1","expect":":z"}
 {"name":"get-refuses-an-index-past-the-end-of-a-set","query":"#[:a :b] | get /99 !| type","expect":"::path/IndexOutOfBoundsError"}
 {"name":"a-quote-a-function-and-a-kind-read-by-index","query":"get [~(~(add 1 | mul 2) | get /1 | type) ~(::fn[~(takes :by |~~ b ~~| /0) ~(add by)] | get /1) ~(::kind | reads :w |~~ w ~~| /w ::number | get /0)]","expect":"[::call ~(add by) ~(reads :w |~~ w ~~| /w ::number)]"}
-{"decision":"D377","name":"a-refusal-of-a-path-names-the-value-it-met-beneath-its-tags","query":"{:b ::T#5 :m ::A::T{:x 1}} | get [~(get /b/c !| get [~(type) /actualValue]) ~(get /m/y !| get [~(type) /actualValue])]","expect":"[[::path/SubjectHasNoPartsError 5] [::path/KeyNotInMapError ::T{:x 1}]]"}
+{"name":"a-refusal-of-a-path-names-the-value-it-met-beneath-its-tags","query":"{:b ::T#5 :m ::A::T{:x 1}} | get [~(get /b/c !| get [~(type) /actualValue]) ~(get /m/y !| get [~(type) /actualValue])]","expect":"[[::path/SubjectHasNoPartsError 5] [::path/KeyNotInMapError ::T{:x 1}]]"}

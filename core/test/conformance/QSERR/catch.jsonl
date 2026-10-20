@@ -21,4 +21,4 @@
 {"name":"a-step-of-the-fail-track-built-from-data-refuses-a-literal-of-paths-and-quotes","query":"get [~(::fail~([/k]) !| type) ~(::fail~({:k ~(get /k)}) !| type)]","expect":"[::fail/StepNotCommandError ::fail/StepNotCommandError]"}
 {"name":"a-quote-the-recovery-answers-is-computed-by-a-group","query":"\"x\" | add 1 !| (~(get /message))","expect":"~(get /message)"}
 {"name":"a-step-of-the-fail-track-built-from-data-refuses-a-quote","query":"::fail~(~(get /k)) !| type","expect":"::fail/StepNotCommandError"}
-{"decision":"D377","name":"a-raised-map-is-caught-under-the-kind-of-errors-once","query":"get [~(!{:a 1} | raise !| payload | type) ~({:a 1} | raise !| payload | type)]","expect":"[::map ::map]"}
+{"name":"a-raised-map-is-caught-under-the-kind-of-errors-once","query":"get [~(!{:a 1} | raise !| payload | type) ~({:a 1} | raise !| payload | type)]","expect":"[::map ::map]"}

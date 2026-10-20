@@ -15,7 +15,11 @@ of any value live: `type`, `eq`, `apply`, `if`, `cond`, `coalesce`,
 own tag and before its payload, where `payload` and `within` live, so a
 tag over a value passes to the verbs of its payload, and a vector or a
 map that holds a tag of its own, a set, a quote and a doc among them,
-reaches `::vec` or `::map` after `::tagged`. A name means one act
+reaches `::vec` or `::map` after `::tagged`. A word reads a value it takes
+from its subject or from code as a kind the same way, beneath every tag
+over it, `::desc` among them: an element, a key, a condition, a pair and a
+part a path meets on its way, two values that file under one keyword
+meeting as they are. A name means one act
 wherever it resolves, each kind that answers it implementing that act,
 and a verb on a label the walk reaches first stands over one of the same
 name it reaches later, a verb of `::tagged` over one of the payload's
@@ -38,6 +42,9 @@ true
 
 > get [~(5 | is ::number) ~(::vec | is ::vec) ~(::vec | is ::tag) ~(#[1] | is ::vec)]
 [true false true true]
+
+> get [~([::A::T{:a 1} {:b 2}] | union) ~([::T"a" "b"] | join ",") ~([1 2] | filter ~(gt 1 | tag ::Ok)) ~([::W#1 ::W#1] | groupBy)]
+[{:a 1 :b 2} "a,b" [2] {:"1" [::W#1 ::W#1]}]
 ```
 
 ## residence

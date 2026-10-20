@@ -5,4 +5,4 @@
 {"name":"a-map-sorts-by-a-descending-key-and-keeps-its-keys","query":"{:a 1 :b 3 :c 2} | sort ~(desc) | vals","expect":"[3 2 1]"}
 {"name":"desc-reverses-the-rank-of-two-kinds","query":"1 | desc | gt (\"a\" | desc)","expect":"true"}
 {"name":"a-desc-of-a-desc-ranks-as-the-value-does","query":"[1 3 2] | sort ~(desc | desc)","expect":"[1 2 3]"}
-{"decision":"D388","name":"a-turned-value-compares-with-a-turned-one-and-refuses-another-kind","query":"get [~(1 | desc | gt (2 | desc)) ~(1 | desc | gt (\"a\" | desc)) ~(1 | desc | gt 2 !| type) ~(2 | gt (1 | desc | desc) !| type) ~(get [2 ~(1 | desc | desc)] | sort)]","expect":"[true true ::call/KindsMismatchedError ::call/KindsMismatchedError [2 ::desc::desc#1]]"}
+{"name":"a-turned-value-compares-with-a-turned-one-and-refuses-another-kind","query":"get [~(1 | desc | gt (2 | desc)) ~(1 | desc | gt (\"a\" | desc)) ~(1 | desc | gt 2 !| type) ~(2 | gt (1 | desc | desc) !| type) ~(get [2 ~(1 | desc | desc)] | sort)]","expect":"[true true ::call/KindsMismatchedError ::call/KindsMismatchedError [2 ::desc::desc#1]]"}

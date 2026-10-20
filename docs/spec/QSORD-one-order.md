@@ -90,9 +90,12 @@ false
 
 `sort` orders a vector, a set or a map by the one order of its values,
 equal values keeping the order they stood in, a map's entries ordered by
-their values, each value keeping its key; `min` and `max` answer the
-first and the last value in it, null for an empty container, and a value
-that is no container answers none of them. Each takes a key, null, a
+their values, each value keeping its key; `min` and `max` relate the
+values as `gt` relates two and answer the least and the greatest, null
+for an empty container, a pair of two kinds, null beside a number among
+them, refused where its second stands, a missing value taken out first,
+`filter ~(ne null) | max`, and a value that is no container answers none
+of them. Each takes a key, null, a
 quote or a path, another kind refused under its input `key`,
 `::vec/sort/key/KindNotTakenError`, `::map/sort/key/…` and `::vec/min/key/…`,
 and ranks by what the key answers, a vector key ranking index by index,
@@ -115,6 +118,9 @@ compare within one kind [QSCND#compare].
 
 > [!{:k 1} 1 null] | sort
 [null 1 !{:k 1}]
+
+> get [~([3 1 2] | min) ~([1 null 3] | max !| get [~(type) ~(trace | last | place)]) ~([1 null 3] | filter ~(ne null) | max)]
+[1 [::call/KindsMismatchedError /1] 3]
 ```
 
 ## desc
@@ -142,7 +148,7 @@ true
 true
 
 > get [~(1 | desc | gt 2 !| type) ~(2 | gt (1 | desc | desc) !| type) ~(get [2 ~(1 | desc | desc)] | sort)]
-[::any/gt/KindsMismatchedError ::any/gt/KindsMismatchedError [2 ::desc::desc#1]]
+[::call/KindsMismatchedError ::call/KindsMismatchedError [2 ::desc::desc#1]]
 
 > [1 3 2] | sort ~(desc | desc)
 [1 2 3]

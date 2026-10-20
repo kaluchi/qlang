@@ -11,7 +11,7 @@ registerPrimitive('any/eq',  (subject, value) => compareValues(subject, value) =
 registerPrimitive('any/ne',  (subject, value) => compareValues(subject, value) !== 0);
 
 // Two values of one kind, as `type` answers it, compare by the one order, and
-// a pair of two kinds is refused with the kinds it met [QSCND#compare], [D388].
+// a pair of two kinds is refused with the kinds it met [QSCND#compare].
 const comparing = holds => (subject, value) => {
   if (typeOf(subject).name !== typeOf(value).name) throw pairRefused(subject, value);
   return holds(compareValues(subject, value));

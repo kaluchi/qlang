@@ -611,7 +611,8 @@ async function underTags(value, tags, state) {
   return laid;
 }
 
-// underSharedTags(answer, tagNames, state) → a fold's answer, made a value of its kind, under the tags its values share [D388].
+// underSharedTags(answer, tagNames, state) → a fold's answer, made a value of
+// its kind, under the tags its values share [QSCOL#sequence], [QSCOL#algebra].
 export async function underSharedTags(answer, tagNames, state) {
   return await underTags(await layTag(typeOf(answer).name, answer, state), tagNames.map(makeTag), state);
 }
@@ -619,7 +620,7 @@ export async function underSharedTags(answer, tagNames, state) {
 // The answer of the subject's own kind, made by its constructor, a set's, a
 // tag's or a quote's among them, under the tags laid over it
 // [QSDSP#answer], [QSSLF#catalog], and as it is where it is of the kind and no
-// tag is laid [D388].
+// tag is laid [QSBLD#answer].
 function keptAsSubject(answer, served, passedTags, state) {
   const ownKind = typeOf(served).name;
   const reached = walkToKinds(answer, [ownKind]);
@@ -634,7 +635,7 @@ async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
 
 // The answer brought to the kinds `returns` names, a verb that names `::any`
 // bringing none [QSBLD#answer]: one that reaches another of the
-// kinds stands as it is [D388]; one of the verb's own label goes back under
+// kinds stands as it is; one of the verb's own label goes back under
 // the tags the walk passed or its operands share, as the subject's kind; one kind alone makes the
 // value as a value is put under it, a number past the finite doubles refused
 // under `::number`, and so does a kind of the answer's own kind the walk
@@ -748,7 +749,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 
 // The tags a combining primitive's subject and each value of its label its
 // input took share, laid over its answer where the subject is bare, else null,
-// two under different tags refused as the pair [D388].
+// two under different tags refused as the pair [QSDSP#answer].
 function tagsTheOperandsShare(chain, labelName, subject, given) {
   const tally = new TagsInCommon();
   tally.meet(subject);

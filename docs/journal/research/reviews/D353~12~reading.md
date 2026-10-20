@@ -233,4 +233,4 @@
     [[::vec/sum/ElementNotNumberError /0] [::call/KindsMismatchedError /1]]
     ```
 
-[D388]: ../../D388.md
+[D388]: ../../replaced/D388.md

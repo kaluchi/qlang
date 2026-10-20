@@ -110,8 +110,10 @@ under the tag of its verb, `::number/add[1 2]`, which reads back as it
 prints; inside a recipe `args` reads them, and the counts of `coalesce`
 and `cond` are the invariants of their inputs.
 
-An input holds the value of its kind the walk of its tags reaches: a
-value of none is refused under the input as `…/by/KindNotTakenError`,
+An input holds a value of its kind the walk of its tags reaches, a recipe
+the value as the call gives it, its tags with it, and a primitive the
+value the walk reaches [QSDSP#answer]: a value of none is refused under
+the input as `…/by/KindNotTakenError`,
 the kinds it takes its `:expected`, a set of tags, and the value of an
 input of each element that is no vector as of no `::vec`; a place the
 call leaves out, read strictly by a path or by code, as
@@ -125,8 +127,8 @@ number; and a value that breaks an invariant under the invariant's name,
 the invariant holding of the value as the call gives it, its tags among
 it, which the refusal holds as `:actualValue`. Kinds written as a vector
 of one tag or of one set are the kinds of each element: the input holds
-a vector, or a set, of the value of its kind of each, a quote and a doc
-as they are, a value that is no vector refused as `…/KindNotTakenError`
+a vector, or a set, of the value of each, a recipe each as given, a quote
+and a doc as they are, a value that is no vector refused as `…/KindNotTakenError`
 and an element of none as `…/ElementKindNotTakenError` with its
 `:index`.
 
@@ -145,6 +147,9 @@ and an element of none as `…/ElementKindNotTakenError` with its
 
 > :vec/it ~(99) | :vec/query (::fn | takes :p |~~ P. ~~| /0 | takes :d |~~ D. ~~| ~(query /1 null) | impl ~(99)) | :number/w (::fn | takes :cs |~~ C. ~~| ~(it) | impl ~(cs)) | :number/a (::fn | takes :by |~~ B. ~~| ~(query /0 1) | impl ~(add by)) | 5 | get [~(w 1 2) ~(a) ~(a 2)]
 [::number/w[1 2] 6 7]
+
+> get [~(:any/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(x)) | null | m ::Width#5) ~("abc" | take ::N#2)]
+[::Width#5 "ab"]
 ```
 
 ## answer
@@ -152,10 +157,10 @@ and an element of none as `…/ElementKindNotTakenError` with its
 `returns` names the kinds of the answer of a function, at least one,
 `::fn/CommandNotTakenError` refusing none given and an empty set alike;
 a failure the recipe answers passes as it is. An answer the walk of whose tags reaches one of the
-kinds other than the verb's own label is the value it reaches, `::W#5`
-the number `5` where `returns` names `::number`; an answer of the verb's
-own label goes back under the subject's tags, held to the label; and
-where the walk reaches none, the one kind `returns` names makes the
+kinds other than the verb's own label stands as it is, `::W#5` where
+`returns` names `::number`; an answer of the verb's own label goes under
+the tags its operands share [QSDSP#answer], held to the label, and stands
+as it is where none is laid; and where the walk reaches none, the one kind `returns` names makes the
 answer as a value is put under it [QSBLD#value]. An answer of none of the
 kinds, a payload the one kind refuses for its kind among them, is
 refused as `…/answer/KindNotTakenError` with the kinds as `:expected`,
@@ -168,7 +173,7 @@ it is.
 ::Box/half/answer/KindNotTakenError
 
 > :any/f (::fn | returns |~~ r ~~| ::number | impl ~(::W#5)) | 1 | f
-5
+::W#5
 ```
 
 ## recipe

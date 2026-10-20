@@ -291,7 +291,7 @@ export function beneathTags(value) {
 const NO_TAGS = Object.freeze([]);
 
 // The names of the tags over a value, from the outside in, a tag a vector or
-// a map holds on itself among them but a kind of the core's own [D388].
+// a map holds on itself among them but a kind of the core's own [QSDSP#answer].
 export function tagsOver(value) {
   if (value === null || typeof value !== 'object') return NO_TAGS;
   const tags = [];
@@ -305,7 +305,7 @@ export function tagsOver(value) {
 const sameTags = (left, right) => left.length === right.length && left.every((name, at) => name === right[at]);
 
 // The tags the values a step combines share, a bare one sharing any, `meet`
-// answering the first where a value stands under other tags [D388].
+// answering the first where a value stands under other tags [QSDSP#answer].
 export class TagsInCommon {
   first = null;
   tags = NO_TAGS;
@@ -318,7 +318,8 @@ export class TagsInCommon {
 }
 
 // pairRefused(left, right) → the refusal of two values a step relates or
-// combines and cannot, its facts their kinds where their tags part [D388].
+// combines and cannot, its facts their kinds where their tags part
+// [QSDSP#answer], [QSCND#compare].
 export function pairRefused(left, right) {
   const [lefts, rights] = [tagsOver(left), tagsOver(right)];
   let depth = 0;

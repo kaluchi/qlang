@@ -65,7 +65,7 @@ function numberBeneath(element) {
 }
 
 // The tags of the numbers the elements hold, each handed to `take`, an element
-// refused where it stands for its kind first, then for its tags [D388].
+// refused where it stands for its kind first, then for its tags [QSCOL#sequence].
 function eachNumber(elements, ElementNotNumberError, take) {
   const tally = new TagsInCommon();
   for (const [count, [at, element]] of elements.entries()) {
@@ -137,7 +137,7 @@ async function keyedEntries(entries, key) {
 // The least or the greatest element in the one order, or by the value
 // the key answers for each, `pick` naming which side wins a comparison,
 // the first of equal ones staying, two of two kinds refused as a comparison
-// refuses them [QSORD#sort], [D388].
+// refuses them [QSORD#sort].
 async function extremeOf(entries, key, pick) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
@@ -364,7 +364,7 @@ registerPrimitive('vec/append', (vector, element) => [...vector, element]);
 registerPrimitive('vec/concat', combines((vector, vectors) => [...vector, ...vectors.flat()]));
 
 // An element `join` writes is a string or a keyword, written as text, and the
-// text stands under the tags its strings share [QSTXT#string], [D388].
+// text stands under the tags its strings share [QSTXT#string], [QSCOL#sequence].
 const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNotStringOrKeywordError');
 
 registerStateReader('vec/join', (subject, separator, state) => {

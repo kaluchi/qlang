@@ -104,7 +104,8 @@ export const CallUnknownNameError = declareRefusal('call/UnknownNameError');
 // A name with a path that no declaration names [QSDSP#walk], [QSDSP#residence].
 export const CallUnknownAddressError = declareRefusal('call/UnknownAddressError');
 
-// Two values a step combines or relates, of two kinds or under two tags [D388].
+// Two values a step combines or relates, of two kinds or under two tags
+// [QSCND#compare], [QSDSP#answer].
 export const CallKindsMismatchedError = declareRefusal('call/KindsMismatchedError');
 
 // A step one deeper than the limit of the evaluation depth, a runaway in

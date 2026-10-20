@@ -105,7 +105,7 @@ export const folds = marking('folded');
 export const inputsAsCode = primitive => INPUTS_AS_CODE.get(primitive);
 
 // A primitive that combines its subject with the value its input takes, whose
-// value of the subject's kind shares its tags [D388].
+// value of the subject's kind shares its tags [QSDSP#answer].
 const COMBINERS = new WeakSet();
 
 export function combines(primitive) {

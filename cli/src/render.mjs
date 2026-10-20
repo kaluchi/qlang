@@ -25,9 +25,8 @@ async function maybePaint(text, shouldColorize) {
 
 const defectLine = defect => `qlang: ${defect.message}\n`;
 
-// cellText(cellEntry, print) → what a cell writes: `{ stdoutText }`, its answer
-// as `print` writes it, or `{ stderrText }`, the line of a defect raised past
-// the fail track as the cell ran or as its answer printed [QSHST#answer], [QSHST#repl].
+// cellText(cellEntry, print) → `{ stdoutText }`, the answer as `print` writes it, or `{ stderrText }`,
+// the line of a defect raised as the cell ran or as its answer printed [QSHST#answer], [QSHST#repl].
 export async function cellText(cellEntry, print) {
   if (cellEntry.defect !== null) return { stderrText: defectLine(cellEntry.defect) };
   try {

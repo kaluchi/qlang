@@ -28,7 +28,7 @@ import {
   INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLabel, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
 import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
-import { inputsRunBy, inputsRunWithin, inputsFoldedBy } from './primitives.mjs';
+import { inputsAsCode } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
   notGivenAddress, payloadRefusalName, subjectRefusalAddress
@@ -525,8 +525,7 @@ function refusedElementOf(elements, kinds) {
 // the answer whose condition the value does not answer true to, named under
 // the address, the error a condition answered handed on as it is, or null; an
 // invariant of a kind's value runs on the payload beneath the tag and its
-// refusal holds the value under the tag [QSBLD#value], and one of the subject
-// holds its kind alone, the subject standing in the first frame [QSBLD#fn].
+// refusal holds the value under the tag [QSBLD#value], one of the subject its kind.
 async function invariantRefusal(invariants, address, value, state, scope, held = value, facts = { actualValue: held }) {
   for (const { name, condition } of invariants) {
     const answer = (await evalPipeline(condition, nestState(state, value, scope))).pipeValue;
@@ -538,12 +537,10 @@ async function invariantRefusal(invariants, address, value, state, scope, held =
 
 // ─── The places of the args ─────────────────────────────────────
 
-// The value an input reads from the args by its place: a place of one
-// step, `/n` or `query /n default`, is the value there, read here as
-// `get` and `query` read it, and `~(it)` the args whole, each a form no
-// verb of those names reaches, so the inputs of `query` itself read without
-// calling it; any other place runs as code over the args, one deeper in the
-// evaluation depth than the call [QSBLD#input], [QSNAM#verb].
+// The value an input reads from the args by its place: a place of one step,
+// `/n` or `query /n default`, is the value there, and `~(it)` the args whole,
+// forms no verb of those names reaches; any other place runs as code over the
+// args, one deeper in the evaluation depth than the call [QSBLD#input], [QSNAM#verb].
 function placeRead({ path, place, index, onePlace, strict, fallback, readsArgs }, values, overArgs) {
   if (readsArgs) return overArgs().pipeValue;
   if (!onePlace) return path !== null ? pathOfArgs(path, overArgs()) : answerOfPipeline(place, overArgs());
@@ -699,11 +696,10 @@ export async function callVerbOn(record, subject, state) {
 
 // ─── Functions ──────────────────────────────────────────────────
 
-// A verb that is a function is called by its function alone [QSBLD#fn]: the
-// recipe it holds runs or the call is refused, its subject served by its
-// label or by the kinds `on` names and held to its invariants, its inputs read
-// from the args by their places and held to their kinds and invariants, its
-// recipe run in the scope its call opens, a recipe written in steps of a
+// A verb that is a function is called by its function alone [QSBLD#fn]: its
+// subject served by its label or by the kinds `on` names, its subject and its
+// inputs held to their kinds and invariants, the inputs read from the args by
+// their places, its recipe run in the scope its call opens, a recipe written in steps of a
 // verb of the root's marked as the root's and a primitive keeping the mark
 // of the scope it is called in, and its answer brought to the kinds
 // `returns` names, every refusal named under the verb's address.
@@ -762,16 +758,14 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 // of one that holds the args of the call whole, the reducer of a fold the
 // code that folds; any other value as it is [QSHST#source].
 function handedTo(primitive, chain, { values, origins }, state) {
-  const run = inputsRunBy(primitive);
-  const within = inputsRunWithin(primitive);
-  const folded = inputsFoldedBy(primitive);
-  if (run === undefined && within === undefined && folded === undefined) return values;
+  const asCode = inputsAsCode(primitive);
+  if (asCode === undefined) return values;
   const originOfQuote = quote => origins.get(quote);
   return values.map((value, at) => {
     const { name, reading } = chain.inputs[at];
-    if (within?.has(name.name)) return quotesClosedIn(value, originOfQuote);
-    if (folded?.has(name.name)) return foldingCodeOf(value, originOfQuote, state);
-    if (!run?.has(name.name)) return value;
+    if (asCode.within?.has(name.name)) return quotesClosedIn(value, originOfQuote);
+    if (asCode.folded?.has(name.name)) return foldingCodeOf(value, originOfQuote, state);
+    if (!asCode.run?.has(name.name)) return value;
     return reading.readsArgs ? value.map(element => codeOfArg(element, originOfQuote, state)) : codeOfArg(value, originOfQuote, state);
   });
 }

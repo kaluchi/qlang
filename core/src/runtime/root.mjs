@@ -20,7 +20,7 @@ import { declareDefect } from '../errors.mjs';
 import { isUnderLabel } from '../nouns.mjs';
 import { splitAddress } from '../address.mjs';
 import { CONSTRUCT_NAME, chainOfFn, functionOfRecipe } from '../chain.mjs';
-import { inputsRunBy, inputsRunWithin, inputsFoldedBy } from '../primitives.mjs';
+import { inputsAsCode } from '../primitives.mjs';
 
 // A source of the root whose run answers an error, or that declares again
 // a name the root holds, left its declarations out of the root, `:origin`
@@ -42,8 +42,7 @@ export const BuiltinPrimitiveNamesNoBuiltinError = declareDefect('builtin/Primit
   ({ origin, name, sharedWith }) => `qlang root: the source ${origin.name} is handed a primitive for ${name.literal}, ${sharedWith === undefined
     ? 'which it declares as no ::builtin{} under a label' : `whose ::builtin{} is another name's, ${sharedWith.literal}, whose primitive it runs`}`);
 
-// A primitive that runs an input as code, runs the quotes of its template or
-// folds by it names an input of the function it is handed with [QSHST#source].
+// A primitive reads as code an input its function takes [QSHST#source].
 const BuiltinInputNotTakenError = declareDefect('builtin/InputNotTakenError',
   ({ origin, name, input }) => `qlang root: the source ${origin.name} hands ${name.literal} a primitive that runs ${input.literal}, an input its function does not take`);
 
@@ -98,10 +97,8 @@ function builtinOf(value) {
   return isBuiltinDescriptor(recipe) ? recipe : null;
 }
 
-// The functions or the kind a primitive is handed with, which alone run it: a
-// function, or the function of no commands a `::builtin{}` written alone is,
-// that of a node `construct` beside the kind whose constructor it holds
-// [QSNAM#address], [QSHST#source].
+// The functions or the kind a primitive is handed with, which alone run it,
+// the kind beside the node `construct` that holds its constructor [QSHST#source].
 function holdersOf(name, value, declared) {
   if (isFn(value)) return [value];
   const [labelName, lastName] = splitAddress(name);
@@ -109,8 +106,7 @@ function holdersOf(name, value, declared) {
 }
 
 function refuseInputsNotTaken(primitive, holder, origin, name) {
-  const inputs = new Set(chainOfFn(holder).inputs.map(input => input.name.name));
-  const named = [inputsRunBy, inputsRunWithin, inputsFoldedBy].flatMap(read => [...(read(primitive) ?? [])]);
-  const untaken = named.find(input => !inputs.has(input));
+  const taken = chainOfFn(holder).inputs.map(input => input.name.name);
+  const untaken = Object.values(inputsAsCode(primitive) ?? {}).flatMap(names => [...names]).find(input => !taken.includes(input));
   if (untaken !== undefined) throw new BuiltinInputNotTakenError({ origin, name: keyword(name), input: keyword(untaken) });
 }

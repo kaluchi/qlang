@@ -309,8 +309,7 @@ export function isBuiltinDescriptor(v) {
 
 // The descriptor of a name under a label a source declared, which alone
 // reaches a primitive [QSDSP#walk], with the primitive handed beside that
-// source and the functions or the kind that hold it, which alone run it
-// [QSDSP#residence], [QSHST#source].
+// source and what holds it, which alone runs it [QSHST#source].
 const HANDED_PRIMITIVES = new WeakMap();
 
 export function isPrimitiveHanded(descriptor) {

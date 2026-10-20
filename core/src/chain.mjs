@@ -1,7 +1,6 @@
 // The chain of a function and of a kind, the commands that built it folded
 // into the quote its literal holds, read once for each value as the roles
-// they declare and the places its inputs read, the one reading of what each
-// command takes on every road to a function or a kind [QSBLD#fn], [QSBLD#kind].
+// they declare and the places its inputs read, on every road to one [QSBLD#fn], [QSBLD#kind].
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, LITERAL_WORDS } from './name-chars.mjs';
@@ -62,9 +61,8 @@ const KIND_COMMANDS = new Map([
 const IMPL_NAME = 'impl';
 export const COMMAND_NAMES = Object.freeze([...new Set([...COMMANDS.keys(), ...KIND_COMMANDS.keys(), IMPL_NAME])]);
 
-// isVerbBody(body) → whether the body of a declaration, as it is written, is
-// the value of a verb: a quote, a host's `::builtin{}`, or a function built
-// from `::fn`, whatever recipe it holds [QSNAM#address], [QSHST#tools].
+// isVerbBody(body) → whether the body of a declaration as written is the value of a
+// verb: a quote, a `::builtin{}` or a function built from `::fn` [QSNAM#address], [QSHST#tools].
 export function isVerbBody(body) {
   return isQuote(body) || [FN_TAG_NAME, BUILTIN_TAG.name].includes(builtFrom(body));
 }

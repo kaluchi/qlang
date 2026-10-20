@@ -1,9 +1,8 @@
 // Arithmetic primitives, each taking the values alone, the number the walk
-// served and the inputs its call reads [QSHST#source]. The invariants of the
-// subject and of the inputs hold before a primitive runs, a divisor no zero and
-// a count of `range` a whole number among them [QSERR#site], [QSBLD#fn], and an
-// answer that left the finite doubles is refused as it is brought under
-// `::number` [QSNUM#arithmetic].
+// served and the inputs its call reads [QSHST#source]. The invariants of a call
+// hold before a primitive runs, a divisor no zero and the count of `range` whole
+// [QSERR#site], [QSBLD#fn], and an answer that left the finite doubles is refused
+// as it is brought under `::number` [QSNUM#arithmetic].
 
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';

@@ -24,10 +24,8 @@ const FnPayloadNotPairError = declareRefusal('fn/PayloadNotPairError');
 const FnRecipeNotCodeError = declareRefusal('fn/RecipeNotCodeError');
 const FnFillRecipeNotCodeError = declareRefusal('fn/fill/RecipeNotCodeError');
 
-// A function of its commands and a recipe, held here on every road to one,
-// the verbs that build it and its literal: a recipe that is no code is refused
-// and its chain read, so a command it does not take is refused where the
-// function is made [QSBLD#fn].
+// A function of its commands and a recipe, held here on every road to one: a
+// recipe that is no code and a command its chain does not take are refused [QSBLD#fn].
 function madeFn(commands, recipe) {
   if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new FnRecipeNotCodeError({ actualValue: recipe });
   const fn = makeTagged(FN_TAG, Object.freeze([commands, recipe]));
@@ -90,8 +88,7 @@ registerPrimitive('fn/holds', (subject, name, page, condition) =>
 registerPrimitive('fn/proves', (subject, name, page, query) =>
   withCommand(functionOf(subject), 'proves', [name, page, query]));
 
-// `impl ~(add by)` — the recipe of the function it builds, `::fn | impl ~(add 1)`
-// the function of no commands.
+// `impl ~(add by)` — the recipe of the function it builds, of no commands over the noun.
 registerPrimitive('fn/impl', (subject, recipe) => madeFn(commandsOf(functionOf(subject)), recipe));
 
 // `fill 3` — the args of a call written into the head of the code,

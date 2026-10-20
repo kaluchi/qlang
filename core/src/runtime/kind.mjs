@@ -18,10 +18,8 @@ const KIND_TAG = makeTag(KIND_TAG_NAME);
 const KindPayloadNotPairError = declareRefusal('kind/PayloadNotPairError');
 const KindConstructorNotBuiltinError = declareRefusal('kind/ConstructorNotBuiltinError');
 
-// A kind of its commands and its constructor, held here on every road to one,
-// the verbs that build it and its literal: a constructor that is no
-// `::builtin{}` is refused and its chain read, so a command it does not take
-// is refused where the kind is made [QSBLD#kind].
+// A kind of its commands and its constructor, held here on every road to one: a
+// constructor that is no `::builtin{}` and a command its chain does not take are refused [QSBLD#kind].
 function madeKind(commands, constructor) {
   if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorNotBuiltinError({ actualValue: constructor });
   const kind = makeTagged(KIND_TAG, Object.freeze([commands, constructor]));

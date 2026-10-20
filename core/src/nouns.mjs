@@ -93,9 +93,8 @@ export function isVerb(scope, address) {
   return record !== null && residesOn(record, scope);
 }
 
-// The value of a verb, a function or a recipe under a label: a function,
-// whatever recipe it holds, or a recipe written alone, code or a host's
-// `::builtin{}` [QSNAM#address].
+// The value of a verb: a function, whatever recipe it holds, or a recipe
+// written alone, code or a host's `::builtin{}` [QSNAM#address].
 export function isVerbValue(value) {
   return isFn(value) || isQuote(value) || isBuiltinDescriptor(value);
 }

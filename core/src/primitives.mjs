@@ -90,45 +90,16 @@ export function readsPassedTags(primitive) {
   return READERS_OF_PASSED_TAGS.has(primitive);
 }
 
-// runs(names, primitive) → the primitive, which runs the inputs of those
-// names as code [QSHST#source]: its call hands each as code closed at the call, each
-// element of one that holds the args of the call whole, and any other value
-// as it is.
-const INPUTS_RUN = new WeakMap();
+// The inputs a primitive reads as code, by name [QSHST#source]: `runs` closed at the call,
+// `runsWithin` the quotes of a template [QSPTH#template], `folds` folding [QSCOL#reduce].
+const INPUTS_AS_CODE = new WeakMap();
 
-export function runs(names, primitive) {
-  INPUTS_RUN.set(primitive, new Set(names));
+const marking = way => (names, primitive) => {
+  INPUTS_AS_CODE.set(primitive, { ...INPUTS_AS_CODE.get(primitive), [way]: new Set(names) });
   return primitive;
-}
+};
 
-export function inputsRunBy(primitive) {
-  return INPUTS_RUN.get(primitive);
-}
-
-// runsWithin(names, primitive) → the primitive, which runs the quotes a
-// template of those inputs holds, at any depth of it, as code closed at the
-// call, its paths and its other values handed as they are [QSPTH#template].
-const INPUTS_RUN_WITHIN = new WeakMap();
-
-export function runsWithin(names, primitive) {
-  INPUTS_RUN_WITHIN.set(primitive, new Set(names));
-  return primitive;
-}
-
-export function inputsRunWithin(primitive) {
-  return INPUTS_RUN_WITHIN.get(primitive);
-}
-
-// folds(names, primitive) → the primitive, which folds by the inputs of
-// those names, each handed as the code that folds the value so far and an
-// element [QSCOL#reduce].
-const INPUTS_FOLDED_BY = new WeakMap();
-
-export function folds(names, primitive) {
-  INPUTS_FOLDED_BY.set(primitive, new Set(names));
-  return primitive;
-}
-
-export function inputsFoldedBy(primitive) {
-  return INPUTS_FOLDED_BY.get(primitive);
-}
+export const runs = marking('run');
+export const runsWithin = marking('within');
+export const folds = marking('folded');
+export const inputsAsCode = primitive => INPUTS_AS_CODE.get(primitive);

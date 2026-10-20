@@ -103,13 +103,36 @@ describe('elideAnswer [QSPRN#elide]', () => {
     expect(printValue(view)).toContain(':read ~(!| get /trace/');
   });
 
-  it('keeps the steps and the place of every frame within a budget, its subject alone giving way [QSHST#answer]', async () => {
+  it('cuts an alert past a budget as it cuts every answer, its first facts kept and the rest read beneath !| [D393]', async () => {
     const skipped = Array.from({ length: 12 }, (_, index) => `add ${index}`).join(' | ');
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope) | ${skipped}`);
-    const trace = elideAnswer(failing, 60).facts.get('trace');
-    expect(trace.map(([, steps, place = null]) => [printValue(steps), place === null ? null : printValue(place)]))
-      .toEqual([['~(nope)', null], [`~(filter ~(nope) | ${skipped})`, '/0']]);
-    expect(trace.map(([subject]) => printValue(subject).startsWith('::elision{'))).toEqual([false, true]);
+    const view = elideAnswer(failing, 60);
+    expect([...view.facts.keys()]).toEqual(['name', '…']);
+    expect(printValue(view.facts.get('…').get('read'))).toBe('~(!| drop 1)');
+    expect(view.facts.get('…').get('size')).toBe(failing.facts.size - 1);
+  });
+
+  it('keeps the first frames of a trace past the budget within an excerpt, each with its steps, and the rest read beneath !| [D393]', async () => {
+    const failing = await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf');
+    const trace = elideAnswer(failing, 2000).facts.get('trace');
+    const rest = trace[trace.length - 1];
+    expect(trace[TAG_HEADER_SYMBOL].name).toBe('trace');
+    expect(printValue(trace[0][1])).toBe('~(add 1 | inf)');
+    expect(printValue(rest.get('read'))).toBe(`~(!| get /trace | drop ${trace.length - 1})`);
+    expect(rest.get('size')).toBe(failing.facts.get('trace').length - (trace.length - 1));
+    expect(printValue(trace).length).toBeLessThanOrEqual(300);
+  });
+
+  it('cuts an alert that holds no trace past a budget, the refusal of a text among them [D393]', async () => {
+    const refused = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] x`);
+    const view = elideAnswer(refused, 80);
+    expect(view.facts.has('trace')).toBe(false);
+    expect(view.facts.get('…').get('size')).toBe(refused.facts.size - (view.facts.size - 1));
+  });
+
+  it('keeps every frame of an alert within its budget [D393]', async () => {
+    const failing = await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf');
+    expect(elideAnswer(failing, 100000).facts.get('trace').length).toBe(failing.facts.get('trace').length);
   });
 
   it('elides a value that is no error as elide does', () => {
@@ -155,13 +178,15 @@ describe('alertOf [QSHST#answer]', () => {
     expect(compareValues(await continued(query, rest), (await evalQuery(many)).slice(subject.length - 1)) === 0).toBe(true);
   });
 
-  it('gives a wide map where the failure arose way whole, so the excerpt holds, its read answering the map', async () => {
+  it('keeps the first entries of a wide map where the failure arose, the rest under :"…" read beneath !| [D393]', async () => {
     const wide = `{${Array.from({ length: 200 }, (_, index) => `:k${index} ${index}`).join(' ')}}`;
     const query = `${wide} | add 1`;
     const subject = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
-    expect(subject.get('size')).toBe(200);
-    expect(printValue(subject.get('read'))).toBe('~(!| get /trace/0/0)');
-    expect(compareValues(await continued(query, subject), await evalQuery(wide)) === 0).toBe(true);
+    const kept = subject.size - 1;
+    const rest = subject.get('…');
+    expect(printValue(rest.get('read'))).toBe(`~(!| get /trace/0/0 | drop ${kept})`);
+    expect(rest.get('size')).toBe(200 - kept);
+    expect((await continued(query, rest)).size).toBe(200 - kept);
   });
 
   it('cuts a long string where the failure arose to its head', async () => {

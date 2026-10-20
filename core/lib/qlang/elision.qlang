@@ -13,10 +13,14 @@
       `::elision{:size 28 :read ~(!| get /trace/0/0 | drop 2)}`:
       `:size` counts the elements, the entries or the characters it
       stands for, `:read` is the query that, continued from the answer,
-      reads the part left out, and `:head` holds the first characters of
-      the text of a string, a doc or a quote. A failure the host prints
-      is an alert, each subject it passed given way to an elision where
-      the elision prints shorter.
+      reads the part left out, `~()` for the answer itself, and `:head`
+      holds the first characters of the text of a string, a doc or a
+      quote, or of the print a kind gives a part. The rest of a map stands
+      under the key `:"…"`, `{:a 1 :"…" ::elision{:size 7 :read ~(drop 1)}}`,
+      and the elision of a rest stands last in a vector. A failure the
+      host prints is an alert, each subject it passed given way to an
+      elision where the elision prints shorter, and past a budget its
+      trace keeps its first frames and an elision of the rest.
       ::link~(::any/elide | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind

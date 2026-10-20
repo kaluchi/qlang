@@ -117,6 +117,15 @@ describe('caretOf — the caret under the line where the reading stopped [QSERR#
     expect(await caretOfQuery(refusalAt('xyz', '1 1 2 1000000000 1 1000000000'))).toBe('|~| xyz\n|~|  ^~');
   });
 
+  it('draws a line past the excerpt within an excerpt around the place, an ellipsis where it cuts, the caret under the place [D393]', async () => {
+    const [tail, under] = (await caretOfQuery(refusalAt('x'.repeat(400), '349 1 350 349 1 351'))).split('\n');
+    expect(tail).toBe(`|~| …${'x'.repeat(300)}`);
+    expect(under).toBe(`|~| ${' '.repeat(250)}^`);
+    const [middle, beneath] = (await caretOfQuery(refusalAt('x'.repeat(1000), '499 1 500 499 1 501'))).split('\n');
+    expect(middle).toBe(`|~| …${'x'.repeat(300)}…`);
+    expect(beneath).toBe(`|~| ${' '.repeat(151)}^`);
+  });
+
   it('draws none for a column before the line or past its end', async () => {
     for (const span of ['0 0 0 0 0 0', '0 1 -3 0 1 2', '2 1 3 2 1 3', '0 1 1000000000 0 1 1000000000']) {
       expect(await caretOfQuery(refusalAt('x', span)), span).toBe(null);

@@ -51,13 +51,13 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
 // answerText(value, scope, budget, page) → the text the command line writes for
 // an answer: a string as it is, so `| json` writes JSON text and `| table` a
 // table, and any other value as its print, whole unless the caller asked for a
-// budget, an error as its alert, a refused text with its caret below the alert
-// where the alert shows its line, and a failure with the prose of its refusal's
-// page last, line comments a reading of the literal passes over [QSHST#answer].
+// budget, an error as its alert, a refused text with its caret below the alert,
+// its line within an excerpt around the place, and a failure with the prose of its refusal's
+// page last, line comments a reading of the literal passes over [D393].
 export async function answerText(value, scope, budget = null, page = null) {
   if (typeof value === 'string') return value;
   const shown = await elideAnswer(value, budget, scope);
-  return [await printAnswer(shown, scope), caretOf(shown), page === null ? null : commentLinesOf(page)].filter(part => part !== null).join('\n');
+  return [await printAnswer(shown, scope), caretOf(value), page === null ? null : commentLinesOf(page)].filter(part => part !== null).join('\n');
 }
 
 const oneLine = text => text.replace(/\s+/g, ' ').trim();

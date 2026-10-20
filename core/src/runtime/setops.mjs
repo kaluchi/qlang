@@ -3,15 +3,15 @@
 // meets the other set its call gives, a map the other map or the keys a
 // vector or a set names, and a vector folds the values it holds and takes
 // none beside it, a value of no kind of the algebra refused at its index and
-// a pair the algebra has no rule for refused by the verb with the kinds it
+// a pair the algebra has no rule for refused as the pair with the kinds it
 // met [QSORD#order], [QSCOL#algebra].
 
-import { isSet, isVec, isMap, typeOf, beneathTags, underTagsNamed } from '../types.mjs';
+import { isSet, isVec, isMap, beneathTags, tagsInCommon, pairRefused } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
-import { declareRefusal, refusingTheSubject, refusingAPart, CallKindsMismatchedError } from '../errors.mjs';
-import { registerPrimitive } from '../primitives.mjs';
+import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
+import { registerPrimitive, registerStateReader, combines } from '../primitives.mjs';
 import { isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
-import { tagsTheElementsShare } from './sequence.mjs';
+import { underSharedTags } from '../eval.mjs';
 
 // The algebra of two sets is a merge of their elements in the one
 // order [QSORD#order]: each operation keeps the elements of the left alone,
@@ -77,10 +77,8 @@ const interOfMap = (map, keys, KeyRefusal, at) => {
 
 // The pairs a fold meets: two sets merge, two maps merge, and a map
 // drops or keeps the keys a map, a vector or a set names; any other pair
-// is refused with the kinds it met [D388].
-function mismatched(left, right, at) {
-  return refusingAPart(new CallKindsMismatchedError({ leftType: typeOf(left), rightType: typeOf(right) }), at);
-}
+// is refused as the pair [D388].
+const mismatched = (left, right, at) => refusingAPart(pairRefused(left, right), at);
 
 function unionPair(left, right, refusals, at) {
   if (isSet(left) && isSet(right)) return mergeSets(left, right, UNION_KEEPS);
@@ -101,19 +99,24 @@ function interPair(left, right, { KeyKindNotTakenError }, at) {
 }
 
 // The fold of the values a vector holds beneath their tags, from the first as
-// it is written; it holds one at least, and the values it reads as sets or
-// maps, every one of a union and the first of a difference or a common part,
-// are sets or maps. The answer stands under the tags the values of the first's
-// kind share, a vector of keys none of them [D388].
-function foldOf(values, pair, refusals, readsEvery) {
+// it is written, one at least: at each value, one a union or the first reads
+// as a set or a map refused where it is neither, the pair it makes with the
+// fold so far, and the tags of every value of a union or a fold of sets and of
+// a map that heads a fold, whose later values name keys; the fold stands under
+// the tags they share [D388].
+function foldOf(values, pair, refusals, readsEvery, state) {
   if (values.length === 0) throw refusingTheSubject(new refusals.SubjectEmptyError({ actualValue: values }));
-  const read = values.map(beneathTags);
-  (readsEvery ? read : read.slice(0, 1)).forEach((value, index) => {
-    if (!isSet(value) && !isMap(value)) throw refusingAPart(new refusals.ElementNotSetOrMapError({ actualValue: values[index] }), index);
-  });
-  const ofTheKind = isSet(read[0]) ? isSet : isMap;
-  const tags = tagsTheElementsShare([...values.entries()].filter((_, at) => ofTheKind(read[at])));
-  return underTagsNamed(read.reduce((left, right, at) => pair(left, right, refusals, at)), tags);
+  const first = beneathTags(values[0]);
+  const tally = tagsInCommon();
+  let folded = first;
+  for (const [at, value] of values.entries()) {
+    const read = beneathTags(value);
+    if ((readsEvery || at === 0) && !isSet(read) && !isMap(read)) throw refusingAPart(new refusals.ElementNotSetOrMapError({ actualValue: value }), at);
+    if (at > 0) folded = pair(folded, read, refusals, at);
+    const met = at === 0 || readsEvery || isSet(first) ? tally.meet(value) : null;
+    if (met !== null) throw refusingAPart(pairRefused(met, value), at);
+  }
+  return underSharedTags(folded, tally.tags, state);
 }
 
 // ── union ──────────────────────────────────────────────────────
@@ -123,9 +126,12 @@ const VEC_UNION = {
   ElementNotSetOrMapError: declareRefusal('vec/union/ElementNotSetOrMapError')
 };
 
-registerPrimitive('vec/union', vector => foldOf(vector, unionPair, VEC_UNION, true));
-registerPrimitive('set/union', (set, other) => mergeSets(set, other, UNION_KEEPS));
-registerPrimitive('map/union', (map, other) => unionOfMaps(map, other));
+// The set or the map each verb of a set or the `union` of a map takes shares the
+// subject's tags, and the keys the `minus` and the `inter` of a map take share
+// none [D388].
+registerStateReader('vec/union', (vector, state) => foldOf(vector, unionPair, VEC_UNION, true, state));
+registerPrimitive('set/union', combines((set, other) => mergeSets(set, other, UNION_KEEPS)));
+registerPrimitive('map/union', combines((map, other) => unionOfMaps(map, other)));
 
 // ── minus ──────────────────────────────────────────────────────
 
@@ -137,8 +143,8 @@ const VEC_MINUS = {
   KeyKindNotTakenError: declareRefusal('vec/minus/KeyKindNotTakenError')
 };
 
-registerPrimitive('vec/minus', vector => foldOf(vector, minusPair, VEC_MINUS, false));
-registerPrimitive('set/minus', (set, other) => mergeSets(set, other, MINUS_KEEPS));
+registerStateReader('vec/minus', (vector, state) => foldOf(vector, minusPair, VEC_MINUS, false, state));
+registerPrimitive('set/minus', combines((set, other) => mergeSets(set, other, MINUS_KEEPS)));
 registerPrimitive('map/minus', (map, keys) => minusOfMap(map, keys, MapMinusKeysElementKindNotTakenError));
 
 // ── inter ──────────────────────────────────────────────────────
@@ -151,6 +157,6 @@ const VEC_INTER = {
   KeyKindNotTakenError: declareRefusal('vec/inter/KeyKindNotTakenError')
 };
 
-registerPrimitive('vec/inter', vector => foldOf(vector, interPair, VEC_INTER, false));
-registerPrimitive('set/inter', (set, other) => mergeSets(set, other, INTER_KEEPS));
+registerStateReader('vec/inter', (vector, state) => foldOf(vector, interPair, VEC_INTER, false, state));
+registerPrimitive('set/inter', combines((set, other) => mergeSets(set, other, INTER_KEEPS)));
 registerPrimitive('map/inter', (map, keys) => interOfMap(map, keys, MapInterKeysElementKindNotTakenError));

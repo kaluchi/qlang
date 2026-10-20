@@ -277,11 +277,6 @@ export function pageOfKindsRefusal(name, kinds, each) {
   return makeDoc([` ${holder} holds a value of ${listed}. `]);
 }
 
-// operandsOf(chain, labelName) → the inputs of a verb that take a value of the
-// verb's own label, or each of whose elements is one, the operands its subject
-// combines with [D388].
-export const operandsOf = (chain, labelName) => chain.inputs.filter(({ kinds }) => kinds?.includes(labelName) ?? false);
-
 // pageOfConstructor(address) → the page of the constructor of a kind, the
 // `::builtin{}` its `impl` gives, which constructs by the primitive a host
 // hands beside its source and constructs nothing where none is handed

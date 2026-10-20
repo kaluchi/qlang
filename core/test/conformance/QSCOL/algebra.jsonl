@@ -31,7 +31,7 @@
 {"name":"a-map-folds-no-values","query":"{:a 1} | union !| type","expect":"::map/union/other/NotGivenError"}
 {"name":"a-set-given-no-set-is-refused-under-its-input","query":"#[] | union !| type","expect":"::set/union/other/NotGivenError"}
 {"name":"a-set-refuses-null-for-the-set-its-call-gives","query":"#[#[1] #[2]] | union null !| type","expect":"::set/union/other/KindNotTakenError"}
-{"name":"unionOf-takes-one-part-at-least-and-keeps-the-tags-of-the-first","query":"get [~({} | unionOf !| type) ~(5 | unionOf ::T{:a 1} {:b 2})]","expect":"[::any/unionOf/parts/EmptyError ::T{:a 1 :b 2}]"}
+{"decision":"D388","name":"unionOf-takes-one-part-at-least-and-answers-under-the-tags-they-share","query":"get [~({} | unionOf !| type) ~(5 | unionOf {:a 1} ::T{:b 2})]","expect":"[::any/unionOf/parts/EmptyError ::T{:a 1 :b 2}]"}
 {"name":"minus-of-a-map-takes-a-set-of-keys","query":"{:a 1} | minus :a !| type","expect":"::map/minus/keys/KindNotTakenError"}
 {"name":"union-of-a-map-refuses-a-value-of-another-kind","query":"{:a 1} | union [1] !| type","expect":"::map/union/other/KindNotTakenError"}
 {"decision":"D388","name":"a-pair-the-algebra-has-no-rule-for-names-its-kinds","query":"[#[1] {:a 1}] | union !| get [~(type) /leftType /rightType]","expect":"[::call/KindsMismatchedError ::set ::map]"}
@@ -39,3 +39,4 @@
 {"name":"merge-refuses-a-value-that-is-no-map","query":"{:a 1} | merge #[:b] !| type","expect":"::map/merge/other/KindNotTakenError"}
 {"decision":"D388","name":"a-fold-of-the-algebra-places-the-element-and-the-key-it-refuses","query":"get [~([#[1] #[2] {:a 1}] | union !| get [~(type) ~(trace | last | place)]) ~([{:a 1} [:a true]] | minus !| get [~(type) ~(trace | last | place)])]","expect":"[[::call/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]"}
 {"decision":"D388","name":"a-fold-of-the-algebra-answers-under-the-tag-its-values-share","query":"get [~([::A#[1] #[2]] | union) ~([::A#[1] ::B#[2]] | union !| type) ~(#[1] | union ::A#[2])]","expect":"[::A#[1 2] ::call/KindsMismatchedError ::A#[1 2]]"}
+{"decision":"D388","name":"a-fold-of-the-algebra-lays-the-tags-its-values-share-through-their-kind","query":":Rec |~~ R. ~~| (::kind | holds :HasAError |~~ No a. ~~| ~(has /a | not)) | get [~([::Rec{:b 1} {:a 2}] | union !| type) ~([{:a 2} ::Rec{:b 1}] | union !| type) ~({:a 2} | union ::Rec{:b 1} !| type) ~([::Rec{:b 1} {:c 2}] | union) ~([::A#[1 2] ::B#[2]] | minus !| get [~(type) ~(trace | last | place)])]","expect":"[::Rec/HasAError ::Rec/HasAError ::Rec/HasAError ::Rec{:b 1 :c 2} [::call/KindsMismatchedError /1]]"}

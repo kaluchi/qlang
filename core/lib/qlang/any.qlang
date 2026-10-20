@@ -1822,7 +1822,7 @@
         |~~ Each of the numbers is a number or a path; text that holds one
             is read by `toNumber`, `sumOf (get /x | toNumber) /y`.
         ~~|
-    | returns |~~ The sum of the numbers. ~~| ::number
+    | returns |~~ The sum of the numbers, under the tags they share. ~~| ::number
     | proves :addsTwoFields
         |~~ Two fields of one map add. ~~|
         ~({:x 10 :y 3} | sumOf /x /y | eq 13)
@@ -1872,7 +1872,7 @@
         |~~ Each of the factors is a number or a path; text that holds one
             is read by `toNumber`.
         ~~|
-    | returns |~~ The factors multiplied. ~~| ::number
+    | returns |~~ The factors multiplied, under the tags they share. ~~| ::number
     | proves :multipliesAsManyAsGiven
         |~~ As many factors as the call gives multiply. ~~|
         ~({:a 2 :b 3 :c 4} | mulOf /a /b /c | eq 24)
@@ -1919,7 +1919,7 @@
         |~~ `subOf` subtracts the subtrahend from the minuend and was
             given the minuend alone: `subOf /total /paid`.
         ~~|
-    | returns |~~ The minuend less the subtrahend. ~~| ::number
+    | returns |~~ The minuend less the subtrahend, under the tags they share. ~~| ::number
     | throws :ArgsBeyondInputsError
         |~~ `subOf` subtracts one number from another: a sum subtracted is
             computed in its place, `subOf /total (sumOf /a /b)`.
@@ -1978,7 +1978,7 @@
         |~~ `divOf` divides the dividend by the divisor and was given the
             dividend alone: `divOf /sum /count`.
         ~~|
-    | returns |~~ The dividend divided by the divisor. ~~| ::number
+    | returns |~~ The dividend divided by the divisor, under the tags they share. ~~| ::number
     | throws :ArgsBeyondInputsError
         |~~ `divOf` divides one number by another: a product divided is
             computed in its place, `divOf /total (mulOf /a /b)`.
@@ -2208,7 +2208,7 @@
       earlier: the value of a pair with its name beside it is
       `unionOf /1 (get {:name ~(get /0 | toString)})`. Maps unite with maps and sets
       with sets, a map with a set being refused by `union`, and the
-      union keeps the tags of the first part. One part answers itself,
+      union stands under the tags the parts share. One part answers itself,
       and the call gives one at least.
       ::link~(::map/union | doc) ::link~(::set/union | doc)
   ~~|
@@ -2219,7 +2219,7 @@
             `unionOf /a /b`.
         ~~|
         ~(count | gt 0)
-    | returns |~~ The parts united, under the tags of the first. ~~| ::any
+    | returns |~~ The parts united, under the tags they share. ~~| ::any
     | proves :mergesTwoFields
         |~~ Two maps one value holds merge. ~~|
         ~({:a {:x 1} :b {:y 2}} | unionOf /a /b | eq {:x 1 :y 2})
@@ -2235,9 +2235,9 @@
     | proves :refusesAMapWithASet
         |~~ A map with a set is refused by `union`. ~~|
         ~({:a {:x 1} :b #[2]} | unionOf /a /b !| type | eq ::map/union/other/KindNotTakenError)
-    | proves :keepsTheTagsOfTheFirst
-        |~~ The union keeps the tags of the first part. ~~|
-        ~({:a ::Box{:x 1} :b {:y 2}} | unionOf /a /b | eq ::Box{:x 1 :y 2})
+    | proves :answersUnderTheTagsThePartsShare
+        |~~ The union stands under the tags the parts share. ~~|
+        ~({:a {:x 1} :b ::Box{:y 2}} | unionOf /a /b | eq ::Box{:x 1 :y 2})
     | proves :answersOnePart
         |~~ One part answers itself. ~~|
         ~({:a {:x 1}} | unionOf /a | eq {:x 1})

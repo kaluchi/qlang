@@ -303,7 +303,7 @@
 
 :set/union
   |~~ Answers the set of the elements of either set, in the one order and
-      under the tags of the subject: `#[:a :b] | union #[:b :c]` answers
+      under the tags the two share: `#[:a :b] | union #[:b :c]` answers
       `#[:a :b :c]`. The other value is a set the call gives; a vector or
       a map beside a set is refused under the input, and so is a call
       that gives none, and the parts a call computes against one subject
@@ -324,8 +324,7 @@
             vectors, `#[#[1] #[2]] | vec/union`, or by `flat`.
         ~~|
     | returns
-        |~~ The elements of both sets, a set under the tags of the
-            subject.
+        |~~ The elements of both sets, a set under the tags they share.
         ~~|
         ::set
     | throws :ArgsBeyondInputsError
@@ -352,7 +351,7 @@
 
 :set/minus
   |~~ Answers the set of the elements of the subject the other set does
-      not hold, under the tags of the subject: `#[:a :b :c] | minus #[:b]`
+      not hold, under the tags the two share: `#[:a :b :c] | minus #[:b]`
       answers `#[:a :c]`. The other value is a set the call gives; a
       vector or a map beside a set is refused under the input, and so is
       a call that gives none. `union` and `inter` answer the whole and the
@@ -398,8 +397,8 @@
     | impl ::builtin{}
 
 :set/inter
-  |~~ Answers the set of the elements both sets hold, under the tags of
-      the subject: `#[:a :b :c] | inter #[:b :d]` answers `#[:b]`, and
+  |~~ Answers the set of the elements both sets hold, under the tags the
+      two share: `#[:a :b :c] | inter #[:b :d]` answers `#[:b]`, and
       whether the set holds each of several elements is
       `inter #[1 2] | eq #[1 2]`. The other value is a set the call
       gives; a vector or a map beside a set is refused under the input,
@@ -419,8 +418,7 @@
             verb of vectors, `#[#[1 2] #[2 3]] | vec/inter`.
         ~~|
     | returns
-        |~~ The elements both sets hold, a set under the tags of the
-            subject.
+        |~~ The elements both sets hold, a set under the tags they share.
         ~~|
         ::set
     | throws :ArgsBeyondInputsError

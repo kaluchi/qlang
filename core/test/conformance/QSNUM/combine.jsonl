@@ -10,3 +10,4 @@
 {"name":"sumOf-takes-one-number-at-least","query":"{:a 1} | sumOf !| type","expect":"::any/sumOf/numbers/EmptyError"}
 {"name":"subOf-takes-two-values","query":"{:a 1} | subOf /a 1 1 !| type","expect":"::any/subOf/ArgsBeyondInputsError"}
 {"name":"subOf-given-one-value-is-refused","query":"{:a 1} | subOf /a !| type","expect":"::any/subOf/subtrahend/NotGivenError"}
+{"decision":"D388","name":"the-verbs-of-one-subject-combine-numbers-under-the-tags-they-share","query":"{:a ::Cents#5 :b ::Dollars#2} | get [~(sumOf (get /a) (get /b) !| type) ~(subOf /a /b !| type) ~(mulOf (get /a) 3) ~(divOf /a 5)]","expect":"[::call/KindsMismatchedError ::call/KindsMismatchedError ::Cents#15 ::Cents#1]"}

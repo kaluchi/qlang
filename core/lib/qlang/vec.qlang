@@ -3,7 +3,8 @@
    verb of vectors serves a vector under any tag, a quote and a doc
    among them, and a set where the set has no verb of its own; a verb
    whose answer names the vector answers under the tags of the subject,
-   and `map`, whose answer is any value, under none. The inputs of a verb
+   `concat` under those it shares with the vectors it joins, and `map`,
+   whose answer is any value, under none. The inputs of a verb
    are read and held to their invariants before the verb runs.
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -235,7 +236,7 @@
       ::link~(::vec/avg | doc) ::link~(::any/sumOf | doc)
   ~~|
   ::fn
-    | returns |~~ The sum of the elements. ~~| ::number
+    | returns |~~ The sum of the elements, under the tags they share. ~~| ::number
     | throws :ElementNotNumberError
         |~~ `sum` adds numbers; the place of its frame names the first
             element that is none, and a field is read first,
@@ -288,7 +289,9 @@
   ~~|
   ::fn
     | returns
-        |~~ The mean of the elements, null for an empty vector. ~~|
+        |~~ The mean of the elements, under the tags they share, null for
+            an empty vector.
+        ~~|
         #[::number ::null]
     | throws :ElementNotNumberError
         |~~ `avg` takes the mean of numbers; the place of its frame names
@@ -1466,8 +1469,8 @@
   |~~ Answers the subject with the elements of each vector the call gives
       after its own, in their order, `[1] | concat [2 3] [4]` answering
       `[1 2 3 4]`, so `reduce [] ~(concat)` joins the vectors a vector
-      holds, as `flat` does. A vector under a tag answers under the tag;
-      `append` puts one element at the end.
+      holds. The vectors join beneath the tags they share, a bare one
+      sharing any; `append` puts one element at the end.
       ::link~(::vec/flat | doc) ::link~(::vec/append | doc)
   ~~|
   ::fn
@@ -1478,7 +1481,7 @@
         ~~|
     | returns
         |~~ The elements of the subject and of each vector, in order,
-            under the tags of the subject.
+            under the tags they share.
         ~~|
         ::vec
     | proves :joinsTheVectorsAfterTheSubject
@@ -1493,7 +1496,7 @@
     | proves :vectors/ElementKindNotTakenError/refusesANumber
         |~~ A number is no vector to join. ~~|
         ~([1] | concat 2 !| type | eq ::vec/concat/vectors/ElementKindNotTakenError)
-    | impl ~(:joined it | vectors | prepend joined | flat)
+    | impl ::builtin{}
 
 :vec/zip
   |~~ Answers the vectors the subject holds read side by side, one vector
@@ -1895,7 +1898,9 @@
             `toString` first, `join (1 | toString)`.
         ~~|
     | returns
-        |~~ The elements joined into one string by the separator. ~~|
+        |~~ The elements joined into one string by the separator, under the
+            tags its strings share.
+        ~~|
         ::string
     | throws :SubjectNotVecError
         |~~ `join` writes a vector of strings as one: a map's values are

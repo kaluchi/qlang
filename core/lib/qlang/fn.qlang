@@ -354,14 +354,14 @@
     | proves :holdsTheKinds
         |~~ An input of kinds refuses a value of none under its name. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| type | eq ::fn/call/by/KindNotTakenError)
-    | proves :holdsTheValueOfItsKind
-        |~~ An input holds the value of its kind beneath the tags of what
-            it is given.
+    | proves :holdsTheValueAsItIsGiven
+        |~~ An input holds the value as the call gives it, its tags with it,
+            where the walk of its tags reaches one of its kinds.
         ~~|
         ~(:Width |~~ A width. ~~|
           | 5
           | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(by | type)) [::Width#3]
-          | eq ::number)
+          | eq ::Width)
     | proves :pagesTheRefusalOfItsKinds
         |~~ The refusal the kinds of an input name is paged by them where
             `throws` gives it no page.
@@ -372,11 +372,11 @@
           | content
           | trim
           | eq "`by` holds a value of `::number`.")
-    | proves :holdsTheKindsOfEachElement
-        |~~ An input of the kinds of each element holds the value of its
-            kind of each, beneath the tags it is given under.
+    | proves :holdsEachElementAsItIsGiven
+        |~~ An input of the kinds of each element holds each as the call
+            gives it, where the walk of its tags reaches one of the kinds.
         ~~|
-        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 ::Width#2]] | eq [1 2])
+        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 ::Width#2]] | eq [1 ::Width#2])
     | proves :keepsASetOfElements
         |~~ A set an input of the kinds of each element holds stays a set.
         ~~|

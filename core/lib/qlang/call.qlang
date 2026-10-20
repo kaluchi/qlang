@@ -2,7 +2,8 @@
    its constructor and the refusals of a call, a name that names
    nothing, a kind that answers no verb of the name, a value given
    modifiers, a value that meets a verb, a value withheld from held code,
-   a call too deep and a failure inside a primitive.
+   two values a step cannot relate or combine, a call too deep and a
+   failure inside a primitive.
 
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -156,19 +157,23 @@
         |~~ The name the step called. ~~|
         ::keyword
     | throws :KindsMismatchedError
-        |~~ A step met two values it cannot combine or relate, of two kinds
-            or under two different tags: `:leftType` and `:rightType` hold
-            their kinds, and where a fold met the second, the place of its
-            frame names that part. A step works beneath the tag its values
-            share, a bare value taking any, `::Cents#100 | add 1` answering
-            `::Cents#101`, so a value under another tag is brought to the
-            first by a word of its reader, `::Dollars#1 | toCents`; text
-            that holds a number is read by `toNumber`, a container beside a
-            number counted first, `count | gte 2`, and a value turned by
-            `desc` compared with one turned. A comparison, `min` and `max`
-            relate values of one kind, so a missing value is taken out
-            first, `filter ~(ne null) | max`, or counted as zero,
-            `map ~(coalesce 0) | max`.
+        |~~ A step met two values it cannot relate or combine:
+            `:leftType` and `:rightType` name their kinds where their tags
+            part, and where a fold met the second, the place of its frame
+            names that part. A comparison, `min` and `max` relate two
+            values of one kind as `type` answers it, so a value under a tag
+            beside a bare one is a pair of two kinds, related beneath the
+            tag by `payload`, `::Width#5 | payload | gt 3`; text that holds
+            a number is read by `toNumber`, a container beside a number
+            counted first, `count | gte 2`, a value turned by `desc` set
+            beside one turned, and a missing value taken out first,
+            `filter ~(ne null) | max`, or counted as zero,
+            `map ~(coalesce 0) | max`. A step that combines values of one
+            kind, `add`, `append`, `concat`, `union` or `sum`, works
+            beneath the tags they share, a bare value sharing any,
+            `100 | add ::Cents#1` answering `::Cents#101`, so two under
+            different tags are brought to one by a word of their reader
+            first, `::Dollars#1 | toCents`.
             ::link~(::call | doc) ::link~(::any/gt | doc)
         ~~|
     | throws :UnknownNameError
@@ -246,6 +251,10 @@
         |~~ `max` relates values of one kind, a missing one taken out first.
         ~~|
         ~(get [~([1 null 3] | max !| type) ~([1 null 3] | filter ~(ne null) | max)] | eq [::call/KindsMismatchedError 3])
+    | proves :KindsMismatchedError/namesTheKindsWhereTheTagsPart
+        |~~ The facts name the kinds of the two where their tags part. ~~|
+        ~(get [~(::A::T#1 | add ::A::U#2 !| get [/leftType /rightType]) ~(::A#1 | add ::A::T#2 !| get [/leftType /rightType])]
+          | eq [[::T ::U] [::number ::T]])
     | proves :PayloadNotSchemaError/refusesANameThatIsNoKeyword
         |~~ A `:name` that is no keyword is refused, `:field` naming it. ~~|
         ~(::call{:name 42} !| get [~(type) /field] | eq [::call/PayloadNotSchemaError :name])

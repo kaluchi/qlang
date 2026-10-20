@@ -2,7 +2,8 @@
    refusals of a payload it cannot read, and the verbs of maps. A map's
    elements are its values, and its keys travel with them: a verb whose
    answer names the map keeps the keys of the entries it keeps and
-   answers under the tags of the map, and `map`, whose answer is any
+   answers under the tags of the map, `union` and `merge` under those it
+   shares with the other map, and `map`, whose answer is any
    value, answers under none.
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -925,8 +926,8 @@
 
 :map/union
   |~~ Answers the entries of the subject together with those of the map
-      the call gives, which wins a key both hold, under the tags of the
-      subject: `{:a 1 :b 2} | union {:b 3 :c 4}` answers
+      the call gives, which wins a key both hold, under the tags the two
+      share: `{:a 1 :b 2} | union {:b 3 :c 4}` answers
       `{:a 1 :b 3 :c 4}`. The values are not merged deeper; a key both
       hold takes the value of the other map whole. A set or a vector of
       keys unites with no map; a set and a vector unite by a `union` of

@@ -5,22 +5,23 @@
 // as it is brought under `::number` [QSNUM#arithmetic].
 
 import { declareRefusal, refusingTheSubject } from '../errors.mjs';
-import { registerPrimitive } from '../primitives.mjs';
+import { registerPrimitive, combines } from '../primitives.mjs';
 const NumberRangeCountTooLargeError = declareRefusal('number/range/CountTooLargeError');
 
-registerPrimitive('number/add', (augend, addend) => augend + addend);
-registerPrimitive('number/sub', (minuend, subtrahend) => minuend - subtrahend);
-registerPrimitive('number/mul', (multiplicand, multiplier) => multiplicand * multiplier);
-registerPrimitive('number/div', (dividend, divisor) => dividend / divisor);
+// The number each combines with its subject shares its tags [D388].
+registerPrimitive('number/add', combines((augend, addend) => augend + addend));
+registerPrimitive('number/sub', combines((minuend, subtrahend) => minuend - subtrahend));
+registerPrimitive('number/mul', combines((multiplicand, multiplier) => multiplicand * multiplier));
+registerPrimitive('number/div', combines((dividend, divisor) => dividend / divisor));
 
 // The remainder takes the sign of the divisor, the floored remainder, read
 // from the remainder of the doubles so no quotient leaves their range
 // [QSNUM#arithmetic]; a zero answer is no negative zero.
 const unsignedZero = number => (number === 0 ? 0 : number);
-registerPrimitive('number/mod', (dividend, divisor) => {
+registerPrimitive('number/mod', combines((dividend, divisor) => {
   const remainder = dividend % divisor;
   return unsignedZero(remainder !== 0 && Math.sign(remainder) !== Math.sign(divisor) ? remainder + divisor : remainder);
-});
+}));
 registerPrimitive('number/abs', subject => Math.abs(subject));
 registerPrimitive('number/floor', subject => Math.floor(subject));
 registerPrimitive('number/ceil', subject => unsignedZero(Math.ceil(subject)));

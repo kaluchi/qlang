@@ -7,7 +7,7 @@ import {
   withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
   withCall, originIn, ownScopeOf
 } from './state.mjs';
-import { declareRefusal, refusingTheSubject, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, CallKindsMismatchedError, BindNameDeclaredTwiceError } from './errors.mjs';
+import { declareRefusal, refusingTheSubject, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
 import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
@@ -15,7 +15,7 @@ import {
   typeOf, keyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
   isFn, isKind, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, tagsShared
+  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, tagsInCommon, pairRefused
 } from './types.mjs';
 import { makeSet, kindsExpected } from './ordering.mjs';
 import { partOf, originOf, repeatsDeclarationAt } from './walk.mjs';
@@ -27,8 +27,8 @@ import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.
 import {
   INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLabel, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
-import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn, operandsOf } from './chain.mjs';
-import { inputsAsCode } from './primitives.mjs';
+import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
+import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
   notGivenAddress, payloadRefusalName, subjectRefusalAddress, FN_CALL_ADDRESS
@@ -471,16 +471,18 @@ function refusalUnder(tagName, facts, scope, refused = facts.actualValue) {
 // The value an input, a payload or a field holds: the value of its kind the
 // walk of its tags reaches, or, where it names the kinds of each element,
 // the vector, or the set, of each element's, a quote and a doc, whose
-// elements are steps and segments, as they are; a value of none of its kinds
-// is refused, a value that is no vector where they are the kinds of each
-// element is refused as of no `::vec`, and an element of none is refused
-// with its index, each refusal named as the holder names the refusal of
-// its kinds, or of each element's.
-function heldByItsKinds({ kinds, each }, refusalOf, value, scope) {
+// elements are steps and segments, as they are; held as given, the value or
+// each element stands as the call gave it, its tags with it. A value of none
+// of its kinds is refused, a value that is no vector where they are the kinds
+// of each element is refused as of no `::vec`, and an element of none is
+// refused with its index, each refusal named as the holder names the refusal
+// of its kinds, or of each element's.
+function heldByItsKinds({ kinds, each }, refusalOf, value, scope, asGiven = false) {
   if (!each) {
     if (kinds === null) return value;
     const reached = walkToKinds(value, kinds);
-    return reached === null ? refusalUnder(refusalOf(false), { expected: kindsExpected(...kinds), actualValue: value }, scope) : reached.served;
+    if (reached === null) return refusalUnder(refusalOf(false), { expected: kindsExpected(...kinds), actualValue: value }, scope);
+    return asGiven ? value : reached.served;
   }
   const elements = walkToKinds(value, ['vec']);
   if (elements === null) return refusalUnder(refusalOf(false), { expected: kindsExpected('vec'), actualValue: value }, scope);
@@ -488,7 +490,7 @@ function heldByItsKinds({ kinds, each }, refusalOf, value, scope) {
   const refused = refusedElementOf(elements.served, kinds);
   if (refused !== null) return refusalUnder(refusalOf(true), { index: refused.index, expected: kindsExpected(...kinds), actualValue: refused.element }, scope);
   if (isQuote(elements.served) || isDoc(elements.served)) return elements.served;
-  const served = Array.from(elements.served, element => walkToKinds(element, kinds).served);
+  const served = asGiven ? [...elements.served] : Array.from(elements.served, element => walkToKinds(element, kinds).served);
   return isSet(elements.served) ? makeSet(served) : Object.freeze(served);
 }
 
@@ -610,14 +612,20 @@ async function underTags(value, tags, state) {
   return laid;
 }
 
+// underSharedTags(answer, tagNames, state) → what a fold combined, made a value
+// of its kind, then laid under the tags its values share [D388].
+export async function underSharedTags(answer, tagNames, state) {
+  return await underTags(await layTag(typeOf(answer).name, answer, state), tagNames.map(makeTag), state);
+}
+
 // The answer of the subject's own kind, made by its constructor, a set's, a
-// tag's or a quote's among them, under the tags the walk passed
-// [QSDSP#answer], [QSSLF#catalog], and at once where it is of the kind and the
-// walk passed no tag.
+// tag's or a quote's among them, under the tags laid over it
+// [QSDSP#answer], [QSSLF#catalog], and as it is where it is of the kind and no
+// tag is laid [D388].
 function keptAsSubject(answer, served, passedTags, state) {
   const ownKind = typeOf(served).name;
   const reached = walkToKinds(answer, [ownKind]);
-  if (reached !== null && passedTags.length === 0) return reached.served;
+  if (reached !== null && passedTags.length === 0) return answer;
   return keptUnderTags(answer, reached, ownKind, passedTags, state);
 }
 
@@ -628,17 +636,16 @@ async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
 
 // The answer brought to the kinds `returns` names, a verb that names `::any`
 // bringing none [QSBLD#answer]: one that reaches another of the
-// kinds is the value it reaches; one of the verb's own label goes back under
-// the tags the walk passed, as the subject's kind; one kind alone makes the
+// kinds stands as it is [D388]; one of the verb's own label goes back under
+// the tags the walk passed or its operands share, as the subject's kind; one kind alone makes the
 // value as a value is put under it, a number past the finite doubles refused
 // under `::number`, and so does a kind of the answer's own kind the walk
 // passed by; an answer of none of several kinds is refused under the
 // answer's address.
 function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
   const others = kinds.filter(kind => kind !== labelName);
-  const reached = others.length === 0 ? null : walkToKinds(answer, others);
-  if (reached !== null) return reached.passedTags.length === 0 ? reached.served : underTags(reached.served, reached.passedTags, state);
-  const refused = () => refusalUnder(kindsRefusalAddress(address), { expected: kindsExpected(...kinds), actualValue: answer }, state.scope);
+  if (walkToKinds(answer, others) !== null) return answer;
+  const refused =() => refusalUnder(kindsRefusalAddress(address), { expected: kindsExpected(...kinds), actualValue: answer }, state.scope);
   if (returnsItsLabel(kinds, labelName)) {
     if (walkToKinds(answer, [labelName]) !== null) return keptAsSubject(answer, walked.served, walked.passedTags, state);
     const keeping = () => keptOfTheLabel(answer, labelName, walked, refused, state);
@@ -728,7 +735,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (refusedSubject !== null) return refusedSubject;
   const called = await inputsOfCall(chain, address, modifiers, state, scope, steps, flight);
   if (isErrorValue(called)) return called;
-  const laid = tagsTheOperandsShare(chain, labelName, state.pipeValue, called.given);
+  const laid = handed !== undefined && combinesItsInput(handed.primitive) ? tagsTheOperandsShare(chain, handed.labelName, state.pipeValue, called.given) : null;
   const running = steps === null
     ? runPrimitive(handed.primitive, walked.served, walked.passedTags, handedTo(handed.primitive, chain, called, state, flight), withFlight(called.state, flight), address)
     : (await evalPipeline(steps, nestState(called.state, state.pipeValue, called.recipeScope))).pipeValue;
@@ -741,18 +748,21 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   return await invariantRefusal(invariantsOf(chain, ANSWER_NAME), address, brought, called.state, scope) ?? brought;
 }
 
-// The tags the operands of a step share, its subject and each value an input of
-// its label takes, a bare one sharing any: the tags laid over an answer of the
-// label where the subject is bare, or null; two under different tags are
-// refused as the pair [D388].
+// The tags the operands of a primitive that combines share, its subject and
+// each value of its label its input took, a bare one sharing any: the tags
+// laid over its answer where the subject is bare, or null; two under different
+// tags are refused as the pair [D388].
 function tagsTheOperandsShare(chain, labelName, subject, given) {
-  const operands = operandsOf(chain, labelName).flatMap(input => {
-    const value = given[chain.inputs.indexOf(input)];
-    return input.each ? [...value] : [value];
-  });
-  const { tags, clash } = tagsShared([subject, ...operands].entries());
-  if (clash !== undefined) throw new CallKindsMismatchedError({ leftType: typeOf(clash.left), rightType: typeOf(clash.right) });
-  return tags.length > 0 && tagsOver(subject).length === 0 ? tags.map(makeTag) : null;
+  const tally = tagsInCommon();
+  tally.meet(subject);
+  for (const [at, { each }] of chain.inputs.entries()) {
+    for (const value of each ? walkToKinds(given[at], ['vec']).served : [given[at]]) {
+      if (walkToKinds(value, [labelName]) === null) continue;
+      const met = tally.meet(value);
+      if (met !== null) throw pairRefused(met, value);
+    }
+  }
+  return tagsOver(subject).length === 0 ? tally.tags.map(makeTag) : null;
 }
 
 // The values a primitive is handed, its inputs in the order `takes` names
@@ -858,7 +868,7 @@ function foldingCodeOf(value, originOfQuote, state) {
 // The values of the inputs of a function's call, read from its args by
 // their places, the values its modifiers computed against the subject,
 // and, for a recipe written in steps, the scope it runs in, each input
-// bound by its name and the args as `args`, names the steps of the recipe
+// bound by its name as the call gave it and the args as `args`, names the steps of the recipe
 // declare no second time, and the state of the call's run, which keeps the
 // origin of each quote its args hold [QSBLD#input]: args of more values than the
 // inputs read places are refused, an input the args leave out where its
@@ -894,7 +904,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
     if (read === MISSED_PLACE || (isErrorValue(read) && isMissedPart(read))) return refusalUnder(notGivenAddress(inputAddress), { actualValue: argsValue() }, scope);
     if (isErrorValue(read)) return read;
     given.push(read);
-    const held = heldByItsKinds(input, refusalsUnder(inputAddress), read, scope);
+    const held = heldByItsKinds(input, refusalsUnder(inputAddress), read, scope, recipeSteps !== null);
     if (isErrorValue(held)) return held;
     const refused = await invariantRefusal(invariantsOf(chain, name.name), address, read, called, scope);
     if (refused !== null) return refused;

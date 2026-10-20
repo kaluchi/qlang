@@ -103,3 +103,14 @@ export const runs = marking('run');
 export const runsWithin = marking('within');
 export const folds = marking('folded');
 export const inputsAsCode = primitive => INPUTS_AS_CODE.get(primitive);
+
+// A primitive that combines its subject with the value its input takes, whose
+// value of the subject's kind shares its tags [D388].
+const COMBINERS = new WeakSet();
+
+export function combines(primitive) {
+  COMBINERS.add(primitive);
+  return primitive;
+}
+
+export const combinesItsInput = primitive => COMBINERS.has(primitive);

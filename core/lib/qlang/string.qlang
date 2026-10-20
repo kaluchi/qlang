@@ -698,8 +698,9 @@
 
 :string/prepend
   |~~ Answers the string with the prefix the call gives in front of it,
-      `"world" | prepend "hello "` answering `"hello world"`. A string
-      under a tag answers under the tag. The prefix is a string, or a
+      `"world" | prepend "hello "` answering `"hello world"`. Two strings
+      join beneath the tags they share, a bare one sharing any. The
+      prefix is a string, or a
       keyword written as its name, `"x" | prepend :a` answering `"ax"`;
       a number becomes text by `toString` first, `prepend (n | toString)`.
       The name `prepend` also puts an element in front of a vector,
@@ -715,8 +716,8 @@
             number becomes text by `toString`.
         ~~|
     | returns
-        |~~ The text with the prefix before it, under the tags of the
-            subject.
+        |~~ The text with the prefix before it, under the tags the two
+            strings share.
         ~~|
         ::string
     | proves :putsThePrefixInFront
@@ -755,8 +756,8 @@
             number becomes text by `toString`.
         ~~|
     | returns
-        |~~ The text with the suffix after it, under the tags of the
-            subject.
+        |~~ The text with the suffix after it, under the tags the two
+            strings share.
         ~~|
         ::string
     | proves :putsTheSuffixAfter

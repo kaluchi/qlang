@@ -73,9 +73,11 @@
       `append`; and text that holds a number is read first by
       `toNumber`, `"5" | toNumber | add 1`. The addend is computed
       against the subject, so `5 | add (mul 2)` adds ten, and two fields
-      of one record add by `sumOf /x /y`. A number under a tag answers
-      under the tag, `::Width#2 | add 3` answering `::Width#5`, and a
-      sum past the doubles is refused as no number.
+      of one record add by `sumOf /x /y`. Two numbers add beneath the
+      tags they share, a bare one sharing any, `::Width#2 | add 3`
+      answering `::Width#5`, and two under different tags are refused,
+      `::call/KindsMismatchedError`; a sum past the doubles is refused as
+      no number.
       ::link~(::number/sub | doc) ::link~(::any/sumOf | doc)
   ~~|
   ::fn
@@ -88,8 +90,7 @@
             `toNumber`.
         ~~|
     | returns
-        |~~ The subject and the addend added, under the tags of the
-            subject.
+        |~~ The subject and the addend added, under the tags they share.
         ~~|
         ::number
     | throws :SubjectNotNumberError
@@ -147,8 +148,7 @@
             `toNumber` first, `10 | sub ("3" | toNumber)`.
         ~~|
     | returns
-        |~~ The subject less the subtrahend, under the tags of the
-            subject.
+        |~~ The subject less the subtrahend, under the tags they share.
         ~~|
         ::number
     | throws :SubjectNotNumberError
@@ -196,8 +196,7 @@
             `toNumber` first, `2 | mul ("3" | toNumber)`.
         ~~|
     | returns
-        |~~ The subject times the multiplier, under the tags of the
-            subject.
+        |~~ The subject times the multiplier, under the tags they share.
         ~~|
         ::number
     | throws :SubjectNotNumberError
@@ -262,8 +261,7 @@
         ~~|
         ~(ne 0)
     | returns
-        |~~ The subject divided by the divisor, under the tags of the
-            subject.
+        |~~ The subject divided by the divisor, under the tags they share.
         ~~|
         ::number
     | throws :SubjectNotNumberError
@@ -318,8 +316,8 @@
         ~~|
         ~(ne 0)
     | returns
-        |~~ The remainder, its sign the divisor's, under the tags of the
-            subject.
+        |~~ The remainder, its sign the divisor's, under the tags the
+            subject and the divisor share.
         ~~|
         ::number
     | throws :SubjectNotNumberError

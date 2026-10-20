@@ -2,9 +2,8 @@
 // kinds, whose verbs the catalog declares under `::any` and `::boolean`
 // [QSCND#compare], [QSCND#boolean].
 
-import { typeOf } from '../types.mjs';
+import { typeOf, pairRefused } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
-import { CallKindsMismatchedError } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { walkToKinds } from '../dispatch.mjs';
 
@@ -14,9 +13,7 @@ registerPrimitive('any/ne',  (subject, value) => compareValues(subject, value) !
 // Two values of one kind, as `type` answers it, compare by the one order, and
 // a pair of two kinds is refused with the kinds it met [QSCND#compare], [D388].
 const comparing = holds => (subject, value) => {
-  const leftType = typeOf(subject);
-  const rightType = typeOf(value);
-  if (leftType.name !== rightType.name) throw new CallKindsMismatchedError({ leftType, rightType });
+  if (typeOf(subject).name !== typeOf(value).name) throw pairRefused(subject, value);
   return holds(compareValues(subject, value));
 };
 

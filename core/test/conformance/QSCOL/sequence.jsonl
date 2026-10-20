@@ -60,3 +60,7 @@
 {"name":"concat-answers-under-the-tag-of-its-subject","query":"::Box[1] | concat [2]","expect":"::Box[1 2]"}
 {"name":"concat-refuses-an-element-that-is-no-vector","query":"[1] | concat 2 !| get [~(type) /index]","expect":"[::vec/concat/vectors/ElementKindNotTakenError 0]"}
 {"decision":"D388","name":"a-fold-refuses-numbers-under-two-tags-at-the-part","query":"[::Cents#100 ::Cents#1 ::Dollars#1] | sum !| get [~(type) /leftType /rightType ~(trace | last | place)]","expect":"[::call/KindsMismatchedError ::Cents ::Dollars /2]"}
+{"decision":"D388","name":"a-fold-refuses-the-first-element-that-fails-its-kind-before-its-tags","query":"get [~([\"x\" ::Cents#1 ::Dollars#2] | sum !| get [~(type) ~(trace | last | place)]) ~([::Cents#1 ::Dollars#2 \"x\"] | sum !| get [~(type) ~(trace | last | place)])]","expect":"[[::vec/sum/ElementNotNumberError /0] [::call/KindsMismatchedError /1]]"}
+{"decision":"D388","name":"a-total-past-the-doubles-is-refused-before-its-tags-are-laid","query":"get [~([::W#1e308 ::W#1e308] | sum !| type) ~([::W#1 ::W#2] | avg)]","expect":"[::number/NotFiniteError ::W#1.5]"}
+{"decision":"D388","name":"join-answers-under-the-tags-its-strings-share","query":"get [~([::T\"a\" ::T\"b\"] | join \",\") ~([::T\"a\" ::U\"b\"] | join \",\" !| get [~(type) ~(trace | last | place)]) ~([::K:a \"b\"] | join \",\")]","expect":"[::T\"a,b\" [::call/KindsMismatchedError /1] \"a,b\"]"}
+{"decision":"D388","name":"flat-answers-under-the-tags-of-its-subject-alone","query":"get [~([::A[1] ::B[2]] | flat) ~(::Box[[1] [2]] | flat)]","expect":"[[1 2] ::Box[1 2]]"}

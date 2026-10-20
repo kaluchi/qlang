@@ -46,8 +46,8 @@
         |~~ The literal of a kind is a pair, the quote of the commands of
             its chain and its constructor or null,
             `::kind[~(wraps |~~ The sizes. ~~| ::map) null]`: a payload of
-            another shape, a first that is no quote among them, is
-            refused.
+            another shape, a first that is no quote and a pair under
+            another tag among them, is refused.
         ~~|
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a kind is a command the chain takes,
@@ -132,10 +132,10 @@
           !| get [~(type) /index]
           |  eq [::Nums/ElementKindNotTakenError 1])
     | proves :holdsThePayloadOfItsKind
-        |~~ The payload is the value of its kind beneath the tags it is
-            given under.
+        |~~ The payload holds a value of its kind beneath the tags it is
+            given under, which stay beneath the tag of the kind.
         ~~|
-        ~(:Count |~~ A count. ~~| (::kind | wraps |~~ The number. ~~| ::number) | ::Count::Width#3 | payload | eq 3)
+        ~(:Count |~~ A count. ~~| (::kind | wraps |~~ The number. ~~| ::number) | get [~(::Count::Width#3 | payload) ~(::Count::Width"3" !| type)] | eq [::Width#3 ::Count/PayloadKindNotTakenError])
     | proves :readsAField
         |~~ A field of none of its kinds is refused under the field. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)

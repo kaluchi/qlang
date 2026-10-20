@@ -20,7 +20,7 @@
 import { registerStateReader } from '../primitives.mjs';
 import {
   isKeyword, isTag, isBinding, isNull, isSet, isVec, keyword, typeOf, makeTagged,
-  makeTag, makeQuote, makeDoc, payloadBeneath, NULL
+  makeTag, makeQuote, makeDoc, payloadBeneath, beneathTags, NULL
 } from '../types.mjs';
 import {
   addressesOf, declarationsUnder, nodeOf, refuseWithheld, residenceOnSubject
@@ -125,10 +125,10 @@ export function pageOfRecord(record) {
   return makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
 }
 
-// The anchors `doc` reads in turn: none for null, a keyword alone, the
-// elements of a vector, and any other value one anchor the read refuses
-// [QSSLF#axis].
-const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anchor]);
+// The anchors `doc` reads in turn beneath their tags: none for null, a
+// keyword alone, the elements of a vector, and any other value one anchor
+// the read refuses [QSSLF#axis].
+const anchorsOf = anchor => (isNull(beneathTags(anchor)) ? [] : isVec(beneathTags(anchor)) ? beneathTags(anchor) : [anchor]);
 
 // The record the anchors reach, read in turn, each the last name of a node
 // under the record the one before it reached, no anchor the record of the
@@ -136,8 +136,9 @@ const anchorsOf = anchor => (isNull(anchor) ? [] : isVec(anchor) ? anchor : [anc
 function recordOfAnchors(subject, anchors, state) {
   if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocUnknownNameError);
   return anchors.reduce((reached, anchor, index) => {
-    if (!isKeyword(anchor)) throw new AnyDocAnchorElementNotKeywordError({ index, actualValue: anchor });
-    return recordReadBy(index === 0 ? reached : underRecord(reached), anchor, state, AnyDocUnknownNameError);
+    const name = beneathTags(anchor);
+    if (!isKeyword(name)) throw new AnyDocAnchorElementNotKeywordError({ index, actualValue: anchor });
+    return recordReadBy(index === 0 ? reached : underRecord(reached), name, state, AnyDocUnknownNameError);
   }, subject);
 }
 
@@ -152,7 +153,7 @@ const pageAt = (subject, anchor, state) => pageOfRecord(recordOfAnchors(subject,
 // element that is no anchor and no vector of them refused at its index.
 registerStateReader('any/doc', (subject, anchor, state) => {
   if (!isSet(anchor)) return pageAt(subject, anchor, state);
-  const stranger = anchor.findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
+  const stranger = anchor.map(beneathTags).findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
   if (stranger >= 0) throw new AnyDocAnchorElementNotKeywordError({ index: stranger, actualValue: anchor[stranger] });
   return Object.freeze(anchor.map(each => pageAt(subject, each, state)));
 });

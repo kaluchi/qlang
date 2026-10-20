@@ -68,7 +68,8 @@ the parser refusing there a path, a quote and a literal that holds
 either [QSSYN#step], so a quote the recovery answers is computed by a
 group, `!| (~(…))`. A pipe written before `!|`, `a | !| b`, stands for the
 combinator after it. The error at rest a catch holds is laid under the
-tag of its site through the tag's label, and a label whose payload takes
+tag of its site through the tag's label, none where the site is the kind
+of errors itself, and a label whose payload takes
 no facts refuses it with a frame at the step of the catch. `ok` answers
 `true`, so `ok !| false` asks whether the step before stood. A fact is
 taken on the way and a failure recovered by its type in lines of
@@ -89,6 +90,9 @@ taken on the way and a failure recovered by its type in lines of
 
 > 5 | ok !| false
 true
+
+> !{:a 1} | raise !| payload | type
+::map
 ```
 
 ## trace

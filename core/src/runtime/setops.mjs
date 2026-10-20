@@ -6,7 +6,7 @@
 // a pair the algebra has no rule for refused by the verb with the kinds it
 // met [QSORD#order], [QSCOL#algebra].
 
-import { isSet, isVec, isMap, typeOf } from '../types.mjs';
+import { isSet, isVec, isMap, typeOf, beneathTags } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
@@ -57,8 +57,9 @@ const KINDS_NAMING_A_MAP_KEY = kindsExpected('keyword', 'number', 'string');
 function keyNamesOf(keysValue, KeyRefusal) {
   if (isMap(keysValue)) return keysValue;
   return new Set(keysValue.map((keyOfEntry, index) => {
-    if (!isKeyAlone(keyOfEntry)) throw new KeyRefusal({ index, expected: KINDS_NAMING_A_MAP_KEY, actualValue: keyOfEntry });
-    return keyNameOf(keyOfEntry);
+    const key = beneathTags(keyOfEntry);
+    if (!isKeyAlone(key)) throw new KeyRefusal({ index, expected: KINDS_NAMING_A_MAP_KEY, actualValue: keyOfEntry });
+    return keyNameOf(key);
   }));
 }
 
@@ -97,16 +98,17 @@ function interPair(left, right, { KindsMismatchedError, KeyKindNotTakenError }) 
   throw mismatched(left, right, KindsMismatchedError);
 }
 
-// The fold of the values a vector holds, from the first as it is written;
-// it holds one at least, and the values it reads as sets or maps, every one
-// of a union and the first of a difference or a common part, are sets or
-// maps.
+// The fold of the values a vector holds beneath their tags, from the first as
+// it is written; it holds one at least, and the values it reads as sets or
+// maps, every one of a union and the first of a difference or a common part,
+// are sets or maps.
 function foldOf(values, pair, refusals, readsEvery) {
   if (values.length === 0) throw new refusals.SubjectEmptyError();
-  (readsEvery ? values : values.slice(0, 1)).forEach((value, index) => {
-    if (!isSet(value) && !isMap(value)) throw new refusals.ElementNotSetOrMapError({ index, actualValue: value });
+  const read = values.map(beneathTags);
+  (readsEvery ? read : read.slice(0, 1)).forEach((value, index) => {
+    if (!isSet(value) && !isMap(value)) throw new refusals.ElementNotSetOrMapError({ index, actualValue: values[index] });
   });
-  return [...values].reduce((left, right) => pair(left, right, refusals));
+  return read.reduce((left, right) => pair(left, right, refusals));
 }
 
 // ── union ──────────────────────────────────────────────────────

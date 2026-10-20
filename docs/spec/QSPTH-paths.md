@@ -48,7 +48,8 @@ with the index as `:index`; a segment that is no whole number on a value
 read by index, `::path/IndexNotIntegerError`, and a value on the path
 that has no parts, `::path/SubjectHasNoPartsError`, each naming the
 segment it could not read as `:segment`. A path reads beneath the tags
-over each value it meets, and a vector, a set, a doc, a quote, a function
+over each value it meets, each refusal naming the value it met beneath
+them as `:actualValue`, and a vector, a set, a doc, a quote, a function
 and a kind read by index.
 
 ```qlang
@@ -63,19 +64,23 @@ and a kind read by index.
 
 > {:a 5} | get /a/b !| get [~(type) /segment]
 [::path/SubjectHasNoPartsError :b]
+
+> {:b ::T#5} | get /b/c !| get [~(type) /actualValue]
+[::path/SubjectHasNoPartsError 5]
 ```
 
 ## query
 
 `query` reads a path as `get` does and answers `null` where a key or an
-index is missing or `null` stands on the path; another kind on the path
+index is missing or `null` stands on the path, beneath the tags over it
+as every value the path meets; another kind on the path
 it refuses as `get` does, a segment that is no whole number on a vector
 among it. Its second input is a default, answered as it is where the
 path misses; a `null` that stands at the path is answered as it stands.
 
 ```qlang
-> {:a null} | query /a/b
-null
+> get [~({:a null} | query /a/b) ~({:a ::T#null} | query /a/b)]
+[null null]
 
 > [] | query /0 7
 7
@@ -107,12 +112,13 @@ asked for by `contains` [QSCOL#sequence].
 
 ## key
 
-A key or an index alone, a keyword, a number or a string, is the path of
-one segment of its text where `get`, `query` and the verbs that write
-take a path, which a map reads as a key and a vector as an index, so one
-the query computes is read. Any other value `get` and `query` take is a
-template [QSPTH#template], a vector, a map or a set, or a value under a
-tag, a quote among them, and they refuse the rest under their input
+A key or an index alone, a keyword, a number or a string, beneath the
+tags over it, is the path of one segment of its text where `get`, `query`
+and the verbs that write take a path, which a map reads as a key and a
+vector as an index, so one the query computes is read. Any other value
+`get` and `query` take is a template [QSPTH#template], a vector, a map or
+a set, or a path or a container under a tag, a quote among them, and they
+refuse the rest under their input
 `path`, `::any/get/path/KindNotTakenError`, so a key computed from data
 that holds null is refused where it is read, and a key a modifier failed
 to compute answers its failure [QSQUO#modifier]. A boolean, null and a
@@ -144,6 +150,9 @@ reading `:b` under `:a`.
 
 > [1 2 3] | groupBy ~(gt 1) | get [~(get true !| type) ~(get :true)]
 [::any/get/path/KindNotTakenError [2 3]]
+
+> {:a 1} | get [~(get ::K:a) ~(has ::K:a) ~(get ::T#/a)]
+[1 true ::T#1]
 
 > {:"1" 5 :b 2} | get [~(minus ["b"]) ~(inter [1]) ~(get [~(it) [1]] | minus)]
 [{:"1" 5} {:"1" 5} {:b 2}]

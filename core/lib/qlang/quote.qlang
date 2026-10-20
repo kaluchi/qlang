@@ -43,7 +43,8 @@
         ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::quote` builds code from the vector of its steps; a payload
-            of another kind is refused.
+            of another kind is refused, a vector under another tag among
+            them, which `payload` opens.
             ::link~(::quote | doc)
         ~~|
     | throws :ElementNotStepError

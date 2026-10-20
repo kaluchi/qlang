@@ -5,7 +5,7 @@
 // [QSDSP#walk], and the condition of `if` is a boolean computed at the call
 // [QSCND#boolean].
 
-import { isNull, isErrorValue, NULL } from '../types.mjs';
+import { isNull, isErrorValue, beneathTags, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive, runs } from '../primitives.mjs';
 import { isMissedRead } from '../path-read.mjs';
@@ -26,8 +26,8 @@ async function verdictOfConditions(subject, conditions, decisive, ConditionNotBo
   for (const [index, condition] of conditions.entries()) {
     const verdict = typeof condition === 'function' ? await condition(subject) : condition;
     if (isErrorValue(verdict)) return verdict;
-    if (typeof verdict !== 'boolean') throw new ConditionNotBooleanError({ index, actualValue: verdict });
-    if (verdict === decisive) return decisive;
+    if (typeof beneathTags(verdict) !== 'boolean') throw new ConditionNotBooleanError({ index, actualValue: verdict });
+    if (beneathTags(verdict) === decisive) return decisive;
   }
   return !decisive;
 }
@@ -41,7 +41,7 @@ registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alterna
   const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];
   for (const alternative of candidates) {
     const answer = isCode(alternative) ? await alternative(subject) : alternative;
-    if (isNull(answer) || (isErrorValue(answer) && isMissedRead(answer) && !failedOnAPart(answer))) continue;
+    if (isNull(beneathTags(answer)) || (isErrorValue(answer) && isMissedRead(answer) && !failedOnAPart(answer))) continue;
     return answer;
   }
   return NULL;
@@ -54,10 +54,10 @@ registerPrimitive('any/cond', runs(['clauses'], async (subject, clauses) => {
   while (clauseIndex + 1 < clauses.length) {
     const answer = await clauses[clauseIndex](subject);
     if (isErrorValue(answer)) return answer;
-    if (typeof answer !== 'boolean') {
+    if (typeof beneathTags(answer) !== 'boolean') {
       throw new AnyCondConditionNotBooleanError({ index: clauseIndex, actualValue: answer });
     }
-    if (answer) return await clauses[clauseIndex + 1](subject);
+    if (beneathTags(answer)) return await clauses[clauseIndex + 1](subject);
     clauseIndex += 2;
   }
   return clauseIndex < clauses.length ? await clauses[clauseIndex](subject) : NULL;

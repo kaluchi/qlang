@@ -9,7 +9,7 @@ import { declareRefusal } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate, isKeyAlone, keyNameOf } from '../path-read.mjs';
 import { layTag } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
-import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, keyword, beneathTags, TAG_HEADER_SYMBOL } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
 const VecToPathElementNotKeyError = declareRefusal('vec/toPath/ElementNotKeyError');
@@ -24,12 +24,15 @@ function readOne(subject, path, soft, fallback) {
   return read === MISSED ? fallback : read;
 }
 
-// A path or a key read from the subject; any other value a template whose
-// paths are read and whose quotes, closed at the call, are run against the
-// subject in their places, its other values kept, each container laid back
-// under its tags as a write lays it, the first failure the answer [QSLIT#tag].
-const readByPath = (subject, path, soft, fallback, state) =>
-  (isPath(path) || isKeyAlone(path) ? readOne(subject, pathOf(path), soft, fallback) : readTemplate(subject, path, soft, fallback, state));
+// A path, or a key alone beneath the tags over it, read from the subject;
+// any other value a template whose paths are read and whose quotes, closed at
+// the call, are run against the subject in their places, its other values
+// kept, each container laid back under its tags as a write lays it, the first
+// failure the answer [QSLIT#tag].
+function readByPath(subject, path, soft, fallback, state) {
+  const key = beneathTags(path);
+  return isPath(path) || isKeyAlone(key) ? readOne(subject, pathOf(key), soft, fallback) : readTemplate(subject, path, soft, fallback, state);
+}
 
 async function readTemplate(subject, template, soft, fallback, state) {
   if (typeof template === 'function') return await template(subject);
@@ -139,8 +142,9 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
 // each the text of a key alone [QSPTH#key]; a path is itself.
 registerPrimitive('vec/toPath', keys => {
   if (keys.length === 0) throw new VecToPathSubjectEmptyError({ actualValue: keys });
-  return makePath(keys.map((key, index) => {
-    if (!isKeyAlone(key)) throw new VecToPathElementNotKeyError({ index, actualValue: key });
+  return makePath(keys.map((element, index) => {
+    const key = beneathTags(element);
+    if (!isKeyAlone(key)) throw new VecToPathElementNotKeyError({ index, actualValue: element });
     return keyNameOf(key);
   }));
 });

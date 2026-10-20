@@ -30,7 +30,8 @@
         |~~ A vector of prose strings and quotes, built into the doc. ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::doc` builds a doc from the vector of its segments, prose
-            strings and quotes; a payload of another kind is refused.
+            strings and quotes; a payload of another kind is refused, a
+            vector under another tag among them, which `payload` opens.
         ~~|
     | throws :ElementNotSegmentError
         |~~ Every element of a doc is a segment, a string of prose or a

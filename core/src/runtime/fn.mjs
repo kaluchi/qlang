@@ -14,7 +14,7 @@ import { inputsOfFunction } from '../eval.mjs';
 import { chainOfFn } from '../chain.mjs';
 import {
   isQuote, isVec, isNull, isBuiltinDescriptor, isErrorValue, isFn, commandsOf, recipeOf,
-  makeTag, makeTagged, makeQuote, FN_TAG_NAME
+  makeTag, makeTagged, makeQuote, holdsNoOtherTag, FN_TAG_NAME
 } from '../types.mjs';
 
 const FN_TAG = makeTag(FN_TAG_NAME);
@@ -36,7 +36,7 @@ function madeFn(commands, recipe) {
 // commands of its chain, and its recipe, a quote, a host's primitive, or null
 // for a contract no call runs; a payload that is no such pair is refused.
 registerPrimitive('fn/construct', payload => {
-  if (!isVec(payload) || payload.length !== 2 || !isQuote(payload[0])) throw new FnPayloadNotPairError({ actualValue: payload });
+  if (!isVec(payload) || !holdsNoOtherTag(payload, FN_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new FnPayloadNotPairError({ actualValue: payload });
   const [commands, recipe] = payload;
   if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new FnRecipeNotCodeError({ actualValue: recipe });
   return madeFn(commands, recipe);

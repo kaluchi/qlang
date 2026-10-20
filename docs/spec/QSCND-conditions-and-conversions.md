@@ -32,8 +32,10 @@ true
 
 ## boolean
 
-A condition answers a boolean, `true` or `false`, or is refused under
-the verb that runs it or the input that takes it. `not` takes a boolean
+A condition answers a boolean, `true` or `false`, read beneath the tags
+over it, the condition of an invariant and of a law among them
+[QSDSP#walk], or is refused under the verb that runs it or the input
+that takes it. `not` takes a boolean
 subject, and `and` and `or` join a boolean subject with the
 `:condition` the call gives, a value computed at the call and checked
 whatever the subject decides, a subject of another kind refused under
@@ -62,6 +64,9 @@ false
 
 > 5 | allOf ~(1) !| get [~(type) /index]
 [::any/allOf/ConditionNotBooleanError 0]
+
+> 5 | allOf ~(true | tag ::Ok)
+true
 ```
 
 ## branch
@@ -124,7 +129,8 @@ values alone, which leave the place of the subject open, are refused,
 `::any/coalesce/alternatives/ValuesAloneError`, the subject first written
 by a quote, `coalesce ~(it) e 8080`, and a field by a path,
 `coalesce /t 30`. An alternative passes to the next where it answers
-null or the refusal of a read `query` answers null for, a key a map
+null, beneath the tags over it, or the refusal of a read `query` answers
+null for, a key a map
 lacks, an index past an end or null on the way [QSPTH#query], met on its
 own way and not in the code a verb ran on a part of it, whose frame
 names the place of the part [QSERR#trace]; code that answers any other
@@ -146,8 +152,8 @@ unrun.
 > {:items [{:price 1} {:cost 2}]} | get [~(coalesce ~(get /items | map /price | sum) 0 !| type) ~(coalesce ~(get /items | first | get /cost) 0)]
 [::path/KeyNotInMapError 0]
 
-> get [~({:a null} | coalesce /a/b 0) ~({} | coalesce ~(nosuchword) 30 !| type)]
-[0 ::call/UnknownNameError]
+> get [~({:a null} | coalesce /a/b 0) ~({} | coalesce ~(nosuchword) 30 !| type) ~({:a ::T#null} | coalesce /a 0)]
+[0 ::call/UnknownNameError 0]
 ```
 
 ## convert

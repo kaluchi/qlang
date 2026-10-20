@@ -147,13 +147,15 @@ whose first character would continue the tag's name, take `#`:
 `::Width#5`, `::T#/a`, and print so. The words of the literals are tag
 names after `::`, `::null`.
 
-The tag's kind attaches the tag to the payload the literal writes, or
-refuses it naming why the payload does not fit [QSBLD#value]. A kind of
-the core reads its payload, a value of its own kind or, for a set, a
-quote and a doc, a vector, and for an error the map of its facts,
-so `::number"5"` is refused and `::set[3 1]` is `#[1 3]`; a label laid
-over a value already under it stands once, `::Lab::Lab[1]` reading
-`::Lab[1]`, but for `::desc`, whose reversals stack [QSORD#desc]. A tag
+The tag's kind lays the tag before the tags of the payload the literal
+writes and never in their place, or refuses it naming why the payload
+does not fit [QSBLD#value], so a label laid over a value already under it
+stands again, `::Lab::Lab[1]`, and `::desc` stacks its reversals
+[QSORD#desc]. A kind of the core reads its payload, a value of its own
+kind or, for a set, a quote and a doc, a vector, and for an error the map
+of its facts, so `::number"5"` is refused and `::set[3 1]` is `#[1 3]`,
+a vector or a map under a tag of another kind refused, which `payload`
+opens. A tag
 no declaration names, the tag of a verb and the tag of an invariant lay
 themselves over a payload as it is [QSNAM#address], and the tag of a
 name that holds data is refused as `::construct/TagNotKindError`. `tag`
@@ -172,6 +174,9 @@ whose first is no tag as `::any/tag/PairTagNotTagError`.
 
 > ::number"5" !| type
 ::number/PayloadKindNotTakenError
+
+> :Lab |~~ L ~~| | get [~(::Lab::Lab[1]) ~(::T[2 1] | tag ::set !| type)]
+[::Lab::Lab[1] ::set/PayloadKindNotTakenError]
 
 > #[2 1] | tag ::vec !| type
 ::vec/PayloadKindNotTakenError

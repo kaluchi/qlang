@@ -20,7 +20,7 @@
 // text of a query, which flew no step, holds no `:trace` [QSERR#trace],
 // [QSERR#print].
 
-import { isErrorValue, isPath, isQuote, isTagged, isTrace, isVec, makeErrorValue, makeFrame, makeQuote, makeTrace, FRAME_TAG } from './types.mjs';
+import { isErrorValue, isPath, isQuote, isVec, holdsNoOtherTag, makeErrorValue, makeFrame, makeQuote, makeTrace, FRAME_TAG, TRACE_TAG } from './types.mjs';
 import { kindsExpected } from './ordering.mjs';
 import { declareRefusal } from './errors.mjs';
 import { errorFromQlang } from './error-convert.mjs';
@@ -68,7 +68,7 @@ function frameOf(element) {
 }
 
 export function framesOfTrace(payload) {
-  if (!isVec(payload) || (isTagged(payload) && !isTrace(payload))) throw new TracePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
+  if (!isVec(payload) || !holdsNoOtherTag(payload, TRACE_TAG.name)) throw new TracePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   const frames = payload.map(frameOf);
   const index = frames.findIndex(frame => frame === undefined);
   if (index !== -1) throw new TraceElementKindNotTakenError({ index, expected: kindsExpected(FRAME_TAG.name), actualValue: payload[index] });

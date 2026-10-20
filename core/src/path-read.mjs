@@ -48,52 +48,53 @@ export function segmentIndex(segment) {
   return /^-?\d+$/.test(String(segment)) ? parseInt(segment, 10) : NaN;
 }
 
-// readPath(subject, path, soft?) → the value at the path. A miss is
-// refused with the key and the keys near it, or the index and the length,
-// and a value on the path that has no parts with the segment it met, each
-// refusal with the path it followed; read softly, a miss answers MISSED
-// and the refusal of a kind stands.
+// readPath(subject, path, soft?) → the value at the path, each value it
+// meets read beneath the tags over it. A miss is refused with the key and
+// the keys near it, or the index and the length, and a value on the path
+// that has no parts with the segment it met, each refusal with the path it
+// followed and the value it met beneath its tags; read softly, a miss
+// answers MISSED and the refusal of a kind stands.
 export function readPath(subject, path, soft = false) {
   let current = subject;
   for (const segment of path.segments) {
-    if (current === null && soft) return MISSED;
     const container = beneathTags(current);
+    if (container === null && soft) return MISSED;
     if (isMap(container)) {
       if (!container.has(segment)) {
         if (soft) return MISSED;
-        throw keyNotInMap(container, segment, path, current);
+        throw keyNotInMap(container, segment, path);
       }
       current = container.get(segment);
       continue;
     }
     if (isVec(container)) {
-      const at = indexIn(container, segment, path, current, soft);
+      const at = indexIn(container, segment, path, soft);
       if (at === MISSED) return MISSED;
       current = container[at];
       continue;
     }
-    throw noPartsOn(current, segment, path);
+    throw noPartsOn(container, segment, path);
   }
   return current;
 }
 
 // The refusal of a key the map lacks, with the keys near it, as a name is
 // near the names of the scope [QSSLF#near].
-export function keyNotInMap(container, segment, path, met = container) {
+export function keyNotInMap(container, segment, path) {
   const nearest = Object.freeze(nearestOf(container.keys(), segment).map(name => keyword(name)));
-  return new PathKeyNotInMapError({ key: keyword(segment), nearest, path, actualValue: met });
+  return new PathKeyNotInMapError({ key: keyword(segment), nearest, path, actualValue: container });
 }
 
 // The index a segment names in a vector, counted from the end where it
 // is negative; a segment that names no index is refused, and an index
 // past the end too, or answers MISSED read softly.
-export function indexIn(container, segment, path, met = container, soft = false) {
+export function indexIn(container, segment, path, soft = false) {
   const index = segmentIndex(segment);
-  if (Number.isNaN(index)) throw new PathIndexNotIntegerError({ segment: keyword(segment), path, actualValue: met });
+  if (Number.isNaN(index)) throw new PathIndexNotIntegerError({ segment: keyword(segment), path, actualValue: container });
   const at = index < 0 ? container.length + index : index;
   if (at >= 0 && at < container.length) return at;
   if (soft) return MISSED;
-  throw new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: met });
+  throw new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: container });
 }
 
 // The refusal of a value on the path that has no parts.

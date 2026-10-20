@@ -4,7 +4,7 @@
 // binding live in `axis.mjs`.
 
 import { registerStateReader } from '../primitives.mjs';
-import { isErrorValue, bindingValueOf, makeTag, errorAtRest, NULL } from '../types.mjs';
+import { isErrorValue, bindingValueOf, makeTag, errorAtRest, beneathTags, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { codeOf } from '../eval.mjs';
 import { rootOf, withScope } from '../state.mjs';
@@ -48,7 +48,7 @@ async function runLaw({ law, quote, says }, callerState) {
   }
   result.set('actual', actualValue);
   result.set('error', null);
-  result.set('ok', actualValue === true);
+  result.set('ok', beneathTags(actualValue) === true);
   return result;
 }
 

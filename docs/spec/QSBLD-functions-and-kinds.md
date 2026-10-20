@@ -237,7 +237,8 @@ chain and a constructor refused as `::kind/PayloadNotPairError`.
 
 ## value
 
-A value put under a kind holds the value of its payload's kinds,
+A value put under a kind holds a value of its payload's kinds beneath
+the tags it is given under, which stay beneath the tag of the kind,
 refused under the kind where it holds none, `…/PayloadKindNotTakenError`
 with the kinds as `:expected`, and where its kinds are of each element
 an element of none as `…/ElementKindNotTakenError` with its `:index`. Each
@@ -258,6 +259,9 @@ an error hands it on. `get` reads a field's place.
 
 > :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| get /actualValue)]
 [[1 2] ::Sorted[2 1]]
+
+> :Pos |~~ P ~~| (::kind | wraps |~~ n ~~| ::number) | get [~(::W#5 | tag ::Pos) ~(::W#5 | tag ::Pos | payload)]
+[::Pos::W#5 ::W#5]
 ```
 
 ## label

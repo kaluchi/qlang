@@ -45,11 +45,12 @@ registerPrimitive('map/last', map => lastOf([...map.values()]));
 // [QSCOL#sequence].
 const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
 registerPrimitive('vec/zip', vectors => {
-  vectors.forEach((element, index) => {
-    if (!Array.isArray(element)) throw new VecZipElementNotVecError({ index, actualValue: element });
+  const columns = vectors.map(beneathTags);
+  columns.forEach((column, index) => {
+    if (!Array.isArray(column)) throw new VecZipElementNotVecError({ index, actualValue: vectors[index] });
   });
-  const length = vectors.length === 0 ? 0 : Math.min(...vectors.map(vector => vector.length));
-  return Array.from({ length }, (_, index) => vectors.map(vector => vector[index]));
+  const length = columns.length === 0 ? 0 : Math.min(...columns.map(column => column.length));
+  return Array.from({ length }, (_, index) => columns.map(column => column[index]));
 });
 
 // ── sum and mean ───────────────────────────────────────────────
@@ -198,7 +199,8 @@ registerPrimitive('map/map', runs(['code'], async (map, code) => {
 async function verdictOf(predicate, at, element, ConditionNotBooleanError) {
   const verdict = await predicate(element);
   if (isErrorValue(verdict)) return failedAt(verdict, segmentOf(at));
-  if (typeof verdict === 'boolean') return verdict;
+  const beneath = beneathTags(verdict);
+  if (typeof beneath === 'boolean') return beneath;
   throw new ConditionNotBooleanError({ ...at, actualValue: verdict });
 }
 
@@ -261,7 +263,7 @@ registerPrimitive('map/any', runs(['predicate'], (map, predicate) => firstVerdic
 async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return failedAt(answer, index);
-  const named = keywordFiledFor(answer);
+  const named = keywordFiledFor(beneathTags(answer));
   if (named === null) throw new KeyKindNotTakenError({ index, expected: KINDS_A_KEY_FILES_UNDER, actualValue: answer });
   const taken = filed.get(named.name);
   if (taken === undefined) filed.set(named.name, answer);
@@ -352,9 +354,10 @@ registerPrimitive('vec/append', (vector, element) => [...vector, element]);
 const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNotStringOrKeywordError');
 
 registerPrimitive('vec/join', (subject, separator) => {
-  const stranger = subject.findIndex(element => typeof element !== 'string' && !isKeyword(element));
+  const texts = subject.map(beneathTags);
+  const stranger = texts.findIndex(text => typeof text !== 'string' && !isKeyword(text));
   if (stranger >= 0) throw new VecJoinElementNotStringOrKeywordError({ index: stranger, actualValue: subject[stranger] });
-  return subject.map(writtenAsText).join(writtenAsText(separator));
+  return texts.map(writtenAsText).join(writtenAsText(separator));
 });
 
 // ── order and nesting ──────────────────────────────────────────
@@ -365,7 +368,7 @@ registerPrimitive('map/reverse', map => new Map([...map].reverse()));
 // `flat` lifts one level of nesting: the inner sequences splice in
 // order, and the answer of a set is a set again, so a set of sets
 // flattens into their union [QSCOL#sequence], [QSCOL#algebra].
-registerPrimitive('vec/flat', sequence => sequence.flatMap(element => (isVec(element) ? element : [element])));
+registerPrimitive('vec/flat', sequence => sequence.flatMap(element => (isVec(beneathTags(element)) ? beneathTags(element) : [element])));
 
 // ── the fold ───────────────────────────────────────────────────
 

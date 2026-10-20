@@ -137,7 +137,7 @@ async function applyFailTrack(state, step, at) {
   const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.descriptor));
   let atRest;
   try {
-    atRest = raised.tag === ERROR_TAG ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
+    atRest = raised.tag.name === ERROR_TAG.name ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
   } catch (caughtError) {
     atRest = errorOfThrow(caughtError, step, errorOfKind, state.scope);
   }
@@ -528,7 +528,7 @@ async function invariantRefusal(invariants, address, value, state, scope, held =
   for (const { name, condition } of invariants) {
     const answer = (await evalPipeline(condition, nestState(state, value, scope))).pipeValue;
     if (isErrorValue(answer)) return answer;
-    if (answer !== true) return refusalUnder(`${address}/${name}`, { actualValue: held }, scope);
+    if (beneathTags(answer) !== true) return refusalUnder(`${address}/${name}`, { actualValue: held }, scope);
   }
   return null;
 }
@@ -929,22 +929,17 @@ export async function layTag(tagName, payload, state) {
   const node = nodeOf(state.scope, tagName);
   const declared = bindingValueOf(node);
   if (isKind(declared)) return await underKind(tagName, declared, payload, state);
-  if (isDoc(declared)) return laidUnder(tagName, payload);
-  if (node === null || isVerb(state.scope, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
+  if (isDoc(declared) || node === null || isVerb(state.scope, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
   throw new ConstructTagNotKindError({ tag: makeTag(tagName), actualValue: declared });
-}
-
-// A value under the tag of a label, a value of the label's own kind staying
-// as it is.
-function laidUnder(tagName, value) {
-  return typeOf(value).name === tagName ? value : makeTagged(makeTag(tagName), value);
 }
 
 // A value under a kind [QSBLD#value]: its payload held to its kinds, each field
 // read and held, the constructor a host hands its kind run, its answer held at
 // the door, and the invariants of the value held, every refusal named under
 // the label, the code of a place or a condition running in the scope a call
-// opens; the kind attaches the tag or refuses the payload [QSLIT#tag], [QSHST#source].
+// opens; the kind lays its tag before the tags of the payload, a value its
+// constructor makes of its kind standing as it is, or refuses the payload
+// [QSLIT#tag], [QSHST#source].
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, each => `${tagName}/${payloadRefusalName(each)}`, payload, state.scope);
@@ -957,7 +952,7 @@ async function underKind(tagName, kind, payload, state) {
   }
   const constructs = primitiveOf(constructorOf(kind));
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), `${tagName}/construct`, [held]);
-  const labelled = laidUnder(tagName, constructed);
+  const labelled = constructs !== undefined && typeOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed);
   const ofTheValue = invariants.filter(({ field }) => field === null);
   return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, constructed, state, opened(), labelled) ?? labelled;
 }

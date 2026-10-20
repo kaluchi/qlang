@@ -167,26 +167,26 @@ describe('formOf for error values', () => {
 
 // ── the one order ───────────────────────────────────────────────────
 
-describe('the one order ranks a failure raised by its tag and then its facts', () => {
-  it('compares error values by tag and facts', () => {
+describe('the one order ranks a failure raised after every value, by its tag and then its facts', () => {
+  it('ties two failures of one tag and one set of facts', () => {
     const tag = makeTag('Oops');
     const errorVal1 = makeErrorValue(tag, new Map([['index', 1]]));
     const errorVal2 = makeErrorValue(tag, new Map([['index', 1]]));
-    expect(compareValues(errorVal1, errorVal2) === 0).toBe(true);
+    expect(compareValues(errorVal1, errorVal2)).toBe(0);
   });
 
-  it('separates errors carrying the same facts under different tags', () => {
-    const desc = new Map([['index', 1]]);
-    const left  = makeErrorValue(makeTag('Foo'), desc);
-    const right = makeErrorValue(makeTag('Bar'), desc);
-    expect(compareValues(left, right) === 0).toBe(false);
+  it('ranks two failures by their tags, then by their facts', () => {
+    const facts = new Map([['index', 1]]);
+    expect(compareValues(makeErrorValue(makeTag('Bar'), facts), makeErrorValue(makeTag('Foo'), facts))).toBe(-1);
+    expect(compareValues(makeErrorValue(makeTag('Foo'), new Map([['index', 2]])), makeErrorValue(makeTag('Foo'), facts))).toBe(1);
   });
 
-  it('rejects error vs non-error', () => {
-    const errorVal = makeErrorValue(makeTag('Oops'), new Map());
-    expect(compareValues(errorVal, new Map([['kind', keyword('oops')]])) === 0).toBe(false);
-    expect(compareValues(errorVal, null) === 0).toBe(false);
-    expect(compareValues(errorVal, 42) === 0).toBe(false);
+  it('ranks a failure raised after its error at rest, a value under its tag and every value', async () => {
+    const { evalQuery } = await import('../../src/session.mjs');
+    const raised = await evalQuery('::Foo!{:a 1} | raise');
+    for (const value of [null, 42, keyword('oops'), new Map([['a', 1]])]) expect(compareValues(raised, value)).toBe(1);
+    for (const query of ['::Foo!{:a 1} | raise !| it', '::Foo{:a 1}', '!{:a 1}', '1 | desc']) expect(compareValues(raised, await evalQuery(query))).toBe(1);
+    expect(compareValues(await evalQuery('!{:a 1} | raise'), await evalQuery('!{:a 1} | raise !| it'))).toBe(1);
   });
 });
 
@@ -218,9 +218,8 @@ describe('the literal reads back error values and values under a tag', () => {
 });
 
 describe('the one order tells an Array, a Map and a Set under a tag from one under none', () => {
-  // Tag mismatch on collections that hold their tag on themselves — same
-  // content, a different header tag or none — must not compare equal.
-  // Each branch (Array / Map / Set) gets its own assertion.
+  // Collections that hold their tag on themselves, of one content under
+  // another tag or none, are not equal.
   it('rejects tagged Array vs untagged Array with same elements', async () => {
     const { makeTagged } = await import('../../src/types.mjs');
     const tagged = makeTagged(makeTag('A'), [1, 2, 3]);

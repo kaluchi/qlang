@@ -4,6 +4,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['test/**/*.test.mjs']
+    include: ['test/**/*.test.mjs'],
+    // A value of the language compares by the tie of the one order [D387].
+    setupFiles: ['../core/test/helpers/language-equality.mjs']
   }
 });

@@ -1,6 +1,5 @@
-// The branches of equality, of the forms of values, of the reading of a
-// parse failure and of the printer that the laws of the catalog leave
-// out, a `describe` for each.
+// The branches of the forms of values, of the reading of a parse failure and
+// of the printer that the laws of the catalog leave out, a `describe` for each.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';

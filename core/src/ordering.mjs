@@ -1,8 +1,7 @@
-// One order ranks every value, kind before kind and within a kind by value, a
-// failure raised by its tag and then its facts [QSORD#order]: `sort`, `min`,
-// `max`, the ordering predicates [QSDSP#walk], [QSDSP#residence] and equality,
-// two values equal where it ranks them alike, read it, and the sets and the set
-// of the kinds a refusal expects are made here by it.
+// One order ranks every value, kind before kind and within a kind by value
+// [QSORD#order]: `sort`, `min`, `max`, the comparisons of two values of one kind
+// [D386] and equality, two values equal where it ranks them alike [D383], read
+// it, and the sets and the set of the kinds a refusal expects are made here by it.
 
 import {
   isKeyword, isTag, isRegex, isPath, isDoc, isErrorValue, isValueClass, typeOf, makeTag, stampTagHeader,
@@ -27,6 +26,10 @@ const DOC_KIND      = 12;
 const ELISION_KIND  = 13;
 const DESC_KIND     = 14;
 const TAGGED_KIND   = 15;
+// A failure raised, which no value holds, ranks after every value by its tag
+// and then its facts, so the tools that hold an answer to the one they expect
+// tell it from every value [D387].
+const RAISED_KIND   = 16;
 
 // The kind of a value as the order ranks it, a value of no kind refused as
 // `typeOf` refuses it [QSHST#source].
@@ -40,7 +43,7 @@ function kindOf(value) {
   if (isTag(value)) return TAG_NAME_KIND;
   if (isPath(value)) return PATH_KIND;
   if (isDoc(value)) return DOC_KIND;
-  if (isErrorValue(value)) return TAGGED_KIND;
+  if (isErrorValue(value)) return RAISED_KIND;
   const kind = typeOf(value);
   if (kind === CORE_KIND.vec) return VECTOR_KIND;
   if (kind === CORE_KIND.map) return MAP_KIND;
@@ -143,8 +146,12 @@ function compareKinded(leftKind, left, rightKind, right) {
       return comparePayloads(left, right);
     case DESC_KIND:
       return comparePayloads(right, left);
+    case RAISED_KIND: {
+      const byTag = compareText(left.tag.name, right.tag.name);
+      return byTag !== 0 ? byTag : compareMaps(left.facts, right.facts);
+    }
     default: {
-      const byTag = compareText(tagNameOf(left), tagNameOf(right));
+      const byTag = compareText(left[TAG_HEADER_SYMBOL].name, right[TAG_HEADER_SYMBOL].name);
       return byTag !== 0 ? byTag : comparePayloads(left, right);
     }
   }
@@ -187,11 +194,7 @@ function comparePayloads(leftTagged, rightTagged) {
   return compareKinded(leftKind, leftPayload, rightKind, rightPayload);
 }
 
-// A failure raised holds its tag and its facts, which rank as its payload.
-const tagNameOf = tagged => (isErrorValue(tagged) ? tagged.tag : tagged[TAG_HEADER_SYMBOL]).name;
-
 function payloadOf(tagged) {
-  if (isErrorValue(tagged)) return [tagged.facts, MAP_KIND];
   if (isValueClass(tagged, 'underTag')) return [tagged.payload, kindOf(tagged.payload)];
   return [tagged, coreKindOf(tagged)];
 }

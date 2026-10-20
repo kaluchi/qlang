@@ -32,6 +32,7 @@ const GATES = [
   /^core\/test\/unit\/conformance\.test\.mjs$/,
   /^core\/src\/ordering\.mjs$/,
   /^core\/test\/helpers\/expected-value\.mjs$/,
+  /^core\/test\/helpers\/language-equality\.mjs$/,
   /^docs\/spec\//,
   /^scripts\//,
   /^\.github\//,

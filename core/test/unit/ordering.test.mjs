@@ -1,6 +1,6 @@
 // The one order held by its sign over a ladder of values, each after the one
 // before it, kind before kind and within a kind by value [QSORD#order], and its
-// tie, which the tests compare a value of the language by [D387].
+// tie, which the tests compare a value of the language by [QSWRK#cases].
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';

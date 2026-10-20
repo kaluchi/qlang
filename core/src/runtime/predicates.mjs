@@ -12,7 +12,7 @@ registerPrimitive('any/eq',  (subject, value) => compareValues(subject, value) =
 registerPrimitive('any/ne',  (subject, value) => compareValues(subject, value) !== 0);
 
 // Two values of one kind, as `type` answers it, compare by the one order, and
-// a pair of two kinds is refused with the kinds it met [D386].
+// a pair of two kinds is refused with the kinds it met [QSCND#compare].
 const AnyGtKindsMismatchedError = declareRefusal('any/gt/KindsMismatchedError');
 const AnyLtKindsMismatchedError = declareRefusal('any/lt/KindsMismatchedError');
 const AnyGteKindsMismatchedError = declareRefusal('any/gte/KindsMismatchedError');

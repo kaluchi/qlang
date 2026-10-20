@@ -1,6 +1,6 @@
 // The tests compare a value of the language by the tie of the one order, which
 // reads the tag a vector or a map holds on itself, and leave any other value
-// to the equality of vitest [D387].
+// to the equality of vitest [QSWRK#tooling].
 
 import { expect } from 'vitest';
 import { compareValues } from '../../src/ordering.mjs';

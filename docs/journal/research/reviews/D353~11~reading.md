@@ -187,10 +187,10 @@ D311, и пачка решила её записью [D386].
 
 [D308]: ../../D308.md
 [D329]: ../../D329.md
-[D383]: ../../D383.md
-[D384]: ../../D384.md
-[D385]: ../../D385.md
-[D386]: ../../D386.md
-[D387]: ../../D387.md
+[D383]: ../../replaced/D383.md
+[D384]: ../../replaced/D384.md
+[D385]: ../../replaced/D385.md
+[D386]: ../../replaced/D386.md
+[D387]: ../../replaced/D387.md
 [QSWRK#cases]: ../../../spec/QSWRK-the-work.md#cases
 [QSWRK#tooling]: ../../../spec/QSWRK-the-work.md#tooling

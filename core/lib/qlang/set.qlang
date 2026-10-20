@@ -5,7 +5,7 @@
    through the walk as the verb of vectors, `#["b" "a"] | join ","`
    answering `"a,b"`, an answer of the vector's label brought back as a
    set.
-   The rules it holds: [QSDSP#residence], [QSORD#set], [D384]. ~|
+   The rules it holds: [QSDSP#residence], [QSORD#set]. ~|
 
 :set
   |~~ A set is a vector in the one order without duplicates, `#[1 2 3]`:

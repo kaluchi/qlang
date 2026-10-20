@@ -1,5 +1,5 @@
 {"name":"a-refusal-raised-by-rule-pages-how-to-repair-it","query":"5 | eq !| explain | page | content | contains \"with no value\"","expect":"true"}
-{"decision":"D386","name":"a-refusal-raised-by-rule-with-no-page-reads-the-page-of-what-refused","query":"5 | gte !| get [~(type) ~(explain | page | content | contains \"compared with\")]","expect":"[::any/gte/value/NotGivenError true]"}
+{"name":"a-refusal-raised-by-rule-with-no-page-reads-the-page-of-what-refused","query":"5 | gte !| get [~(type) ~(explain | page | content | contains \"compared with\")]","expect":"[::any/gte/value/NotGivenError true]"}
 {"name":"explain-reads-the-page-of-the-site","query":"\"x\" | add 1 !| explain | page | eq (::number/add/SubjectNotNumberError | doc)","expect":"true"}
 {"name":"explain-answers-an-explanation","query":"\"x\" | add 1 !| explain | type","expect":"::explanation"}
 {"name":"an-explanation-holds-the-page-and-the-value","query":"\"x\" | add 1 !| explain | payload | keys","expect":"#[:page :value]"}

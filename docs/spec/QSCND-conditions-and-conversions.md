@@ -7,14 +7,21 @@ of each section are the cases of its file under
 
 ## compare
 
-`eq` and `ne` compare any two values by their structure. `gt`, `gte`,
-`lt` and `lte` reside on numbers, strings, keywords, tags and values
-under `::desc`, and compare the subject with the `:value` the call gives,
-a value of its kind, by the one order [QSORD#order]: a value of another
-kind is refused as `::number/gt/value/KindNotTakenError`, and a subject
-of a kind none of them resides on, a boolean, a vector, a set, a map, a
-regex, a path and null among them, as `::call/KindAnswersNoVerbError`
-with the addresses of the verbs. Null is tested with `eq null`.
+`eq` and `ne` compare any two values, equal where the one order ranks
+them alike [QSORD#order]: a keyword is not its string, a vector is not
+the set of its elements, and two maps of the same entries are equal
+whatever the order of their keys. `gt`, `gte`, `lt` and `lte` reside on
+`::any` and compare the subject with the `:value` the call gives, a value
+of its kind as `type` answers it, by the one order, so `a | gt b` answers
+`true` exactly where `sort` puts `b` before `a`, and `gte` with `lte`
+exactly where `eq` does. The order ranks every value, the kinds among
+themselves, while a comparison relates two values of one kind: a pair of
+two kinds is refused as the pair, `::any/gt/KindsMismatchedError`, its
+facts the two kinds, `:leftType` and `:rightType`, a value under a tag
+compared with a value of its payload's kind by `payload`, and text that
+holds a number with a number by `toNumber`. A comparison takes one value,
+two fields of one record compared through a name. Null is tested with
+`eq null`.
 
 ```qlang
 > [1 2 3] | eq [1 2 3]
@@ -27,7 +34,13 @@ true
 [null]
 
 > get [~(5 | gt "a" !| type) ~(true | gt false !| type)]
-[::number/gt/value/KindNotTakenError ::call/KindAnswersNoVerbError]
+[::any/gt/KindsMismatchedError true]
+
+> get [~([1 "a"] | max) ~([1 "a"] | sort) ~("a" | gt 1 !| type) ~(::Cents#100 | gt ::Dollars#50 !| get [/leftType /rightType])]
+["a" [1 "a"] ::any/gt/KindsMismatchedError [::Cents ::Dollars]]
+
+> get [~(#"a"i | eq #"a"i) ~(#"a"i | eq #"a") ~(/a/0 | eq /a/0) ~(1 | desc | eq (1 | desc)) ~({:b [1] :a #[2]} | eq {:a #[2] :b [1]}) ~(~(add 1) | eq ~(add 1))]
+[true false true true true true]
 ```
 
 ## boolean

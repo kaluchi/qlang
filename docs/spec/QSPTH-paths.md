@@ -281,21 +281,25 @@ an empty vector `[]`, and each part that holds no parts its kind, as
 and a doc among them. The tags a shape lays over a part are its marks:
 `::absent` over a part some of the data lacks, `::nullable` over a part
 null in some of the data, and `::each` over a map that stands for its
-values, its first key over the shape they share.
-Records that share a key merge into one, the keys of all of them, a key
-some lack marked `::absent` over its shape and a part null in some
-`::nullable`, `::absent` outside, and a part that is null alone stands as
-`::null`; an empty map shares a key with every record and merges with a
-fold, and two folds whose values merge are one; records that share no key
-stand apart, and where the elements
-part, the shape there is the set of their kinds, as `:expected` writes
-the kinds a holder takes, any two of them that merge merged until none
-do, so records that share keys merge whatever their order. The element
-of a vector or a set empty in some of the data stands marked `::absent`,
-and vectors of one length that part index by index are tuples, a shape
-for each index, where vectors of one length and one shape are lists. A
-map whose values are not all null folds into `::each` over its first key
-and the shape of its values, the one key standing for all of them and
+values, its least key over the shape they share.
+The shapes of the parts of a value, the elements of a vector or a set, an
+index of a tuple, the values of a fold and the values of one key in the
+records that merge, merge from all of them at once, so data in any order
+answers one shape at any depth. Records that share a key merge into one,
+the keys of all of them, a key some lack marked `::absent` over its shape
+and a part null in some `::nullable`, `::absent` outside, and a part that
+is null alone stands as `::null`; an empty map holds no key, so it joins
+no records, and lacks each key of the records and folds beside it, which
+it marks `::absent`; two folds whose values merge into one shape beneath
+their marks are one; records that share no key stand apart, and where
+the elements part, the shape there is the set of their kinds, as
+`:expected` writes the kinds a holder takes, those that merge merged. The
+element of a vector or a set empty in some of the data stands marked
+`::absent`, and vectors of one length that part index by index are
+tuples, a shape for each index, where vectors of one length and one shape
+are lists, and so are tuples whose indices merge alike. A map whose
+values are not all null folds into `::each` over its least key and the
+shape of its values, the one key standing for all of them and
 telling how the keys of the data read: where every key is data, a number,
 a text that begins with a date, a uuid or an email, whatever its values
 hold, and where it holds more than eight names whose values, maps,
@@ -339,6 +343,12 @@ atom.
 
 > get [~([{:a 1} {}] | shape) ~([{:"1" 1 :"2" 2} {:"3" 3}] | shape) ~([{:"1" 1 :"2" 2} {}] | shape)]
 [::shape[{:a ::absent::number}] ::shape[::each{:"1" ::number}] ::shape[::each{:"1" ::absent::number}]]
+
+> get [~([{:b 2} {:a 1} {}] | shape) ~([{:k true :x {:b 2}} {:k 1 :x {}} {:k "s" :x {:a 1}}] | shape | get /0/x) ~([{:"1" 1 :"2" 2} {} {:x 1}] | shape)]
+[::shape[#[{:a ::absent::number} {:b ::absent::number}]] #[{:a ::absent::number} {:b ::absent::number}] ::shape[#[{:x ::absent::number} ::each{:"1" ::absent::number}]]]
+
+> get [~({:"42" 1 :"17" 1} | shape) ~({:"3" {} :"2" {:b 2} :"1" {:a 1}} | shape | eq ({:"1" {:a 1} :"2" {:b 2} :"3" {}} | shape)) ~([{:"1" 1} {:"2" "s"} {}] | shape)]
+[::shape::each{:"17" ::number} true ::shape[#[::each{:"1" ::absent::number} ::each{:"2" ::absent::string}]]]
 
 > {:users [{:name "a" :age 1 :tags ["x" "y"]} {:name "b" :age "2" :tags []}]} | shape | get [/users/0/name /users/0/age /users/0/tags]
 [::string #[::number ::string] [::absent::string]]

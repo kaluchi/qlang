@@ -59,7 +59,7 @@ function tupleOf(elements) {
 }
 
 // A map whose values are not all null folds into `::each` over its least key
-// [D385] and the shape of its values where every key is data, an id of digits, a
+// [QSPTH#shape] and the shape of its values where every key is data, an id of digits, a
 // date or a time, a uuid or an email, and where more than eight names hold
 // containers, values under a tag or null of one shape.
 const DATA_KEYS = [
@@ -118,7 +118,7 @@ const eachKey = each => [...payloadBeneath(each).keys()][0];
 const eachShape = each => [...payloadBeneath(each).values()][0];
 
 // The shape the shapes of parts share, merged from all of them at once, so data
-// in any order answers one shape at any depth [D385]: their marks joined over the
+// in any order answers one shape at any depth [QSPTH#shape]: their marks joined over the
 // cores they share, a null giving way to the rest as `::nullable`.
 function collapsed(shapes) {
   const marks = shapes.map(marksOf);
@@ -133,7 +133,7 @@ function collapsed(shapes) {
 // The cores of parts merged: vectors into one, sets into one, records that
 // share a key into one, folds whose values merge into one, and an empty map,
 // which holds no key, lacking each key of the records and folds beside it; the
-// rest stand apart as the set of their kinds [D385].
+// rest stand apart as the set of their kinds [QSPTH#shape].
 function mergedCores(cores) {
   const kinds = [...makeSet(cores)];
   const lacks = kinds.some(kind => isRecord(kind) && kind.size === 0) && kinds.some(kind => (isRecord(kind) && kind.size > 0) || isFold(kind));

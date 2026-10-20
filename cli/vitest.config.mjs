@@ -9,7 +9,7 @@ export default defineConfig({
     // command line in processes of their own, run by
     // `vitest.integration.config.mjs`, the script `test:integration`.
     exclude: ['node_modules/**', 'test/integration/**'],
-    // A value of the language compares by the tie of the one order [D387].
+    // A value of the language compares by the tie of the one order [QSWRK#tooling].
     setupFiles: ['../core/test/helpers/language-equality.mjs'],
     // A test waits fifteen seconds, the boot of the root under the
     // coverage among them, as in the core.

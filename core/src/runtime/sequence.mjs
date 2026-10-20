@@ -39,7 +39,8 @@ registerPrimitive('map/last', map => lastOf([...map.values()]));
 
 // ── side by side ───────────────────────────────────────────────
 // The elements at each index of the vectors a vector or a set holds, as long
-// as the shortest, an element that is no vector refused at its index [D384].
+// as the shortest, an element that is no vector refused at its index
+// [QSCOL#sequence], [QSORD#set].
 const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
 const SetZipElementNotVecError = declareRefusal('set/zip/ElementNotVecError');
 function columnsOf(vectors, ElementNotVecError) {
@@ -326,7 +327,7 @@ registerPrimitive('vec/drop', (sequence, count) => sequence.slice(Math.max(0, co
 registerPrimitive('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count))));
 
 // Whether a vector holds a value the one order ranks alike with the element
-// [D383]: a set by a search in its one order, and any other vector element by
+// [QSORD#order]: a set by a search in its one order, and any other vector element by
 // element [QSCOL#sequence].
 function containsElement(vector, element) {
   if (!isSet(vector)) return vector.some(held => compareValues(held, element) === 0);

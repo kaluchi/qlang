@@ -30,9 +30,10 @@ equal to one [QSPTH#has]. `append` and `prepend` put one element at an
 end, a vector given among them, and a set takes it into its order. `zip`
 reads vectors side by side, as long as the shortest, an element that is
 no vector refused at its index. A set answers these by the verbs of
-vectors but `reverse`, its own [QSDSP#residence], and the answer of a
-verb keeps or leaves the tags of its subject as its kind says
-[QSDSP#answer].
+vectors, each value held once in the set they answer, but `reverse` and
+`zip`, its own, which answer a vector, the columns of `zip` in the one
+order, two equal ones kept [QSDSP#residence], and the answer of a verb
+keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 
 ```qlang
 > [1 2 3] | take -1
@@ -46,6 +47,9 @@ verb keeps or leaves the tags of its subject as its kind says
 
 > [[1 2 3] [:a :b]] | zip
 [[1 :a] [2 :b]]
+
+> get [~(#[[1 1] [2 2]] | zip) ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | place)])]
+[[[1 2] [1 2]] [::set/zip/ElementNotVecError /0]]
 
 > get [~([1] | concat [2 3] [4]) ~([[1] [2 3]] | reduce [] ~(concat)) ~([[1 2] [3 [4]]] | flatten) ~(#[1 2] | size)]
 [[1 2 3 4] [1 2 3] [1 2 3 [4]] 2]

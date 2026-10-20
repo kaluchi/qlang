@@ -1171,7 +1171,7 @@
     | proves :with/KindNotTakenError/refusesANumber
         |~~ A replacement that is no string and no quote is refused. ~~|
         ~("a" | replace "a" 5 !| type | eq ::string/replace/with/KindNotTakenError)
-    | throws :with/AnswerNotStringError
+    | throws :with/AnswerKindNotTakenError
         |~~ The code of `replace` answers the text that takes the place of
             a match: a number becomes text by `toString`,
             `~(get /0 | toNumber | mul 2 | toString)`.
@@ -1211,9 +1211,9 @@
             whether the regex names other groups or none.
         ~~|
         ~("abc" | get [~(replace #"(?<n>b)" "$<zz>") ~(replace #"b" "$<zz>")] | eq ["a$<zz>c" "a$<zz>c"])
-    | proves :with/AnswerNotStringError/refusesANumber
+    | proves :with/AnswerKindNotTakenError/refusesANumber
         |~~ Code that answers no string is refused. ~~|
-        ~("2" | replace #"\d" ~(get /0 | toNumber) !| type | eq ::string/replace/with/AnswerNotStringError)
+        ~("2" | replace #"\d" ~(get /0 | toNumber) !| get [~(type) /expected] | eq [::string/replace/with/AnswerKindNotTakenError #[::string]])
     | impl ::builtin{}
 
 :string/toRegex

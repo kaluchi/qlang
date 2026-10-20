@@ -146,7 +146,7 @@
         ~(#[[1 1] [2 2]] | zip | eq [[1 2] [1 2]])
     | proves :ElementKindNotTakenError/refusesANumber
         |~~ An element that is no vector is refused at its index. ~~|
-        ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | place)] | eq [::set/zip/ElementKindNotTakenError /0])
+        ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | place) /expected] | eq [::set/zip/ElementKindNotTakenError /0 #[::vec]])
     | proves :ElementKindNotTakenError/readsTheVectorsOfItsElementsFirst
         |~~ The vectors the elements of a set hold are read first. ~~|
         ~(#[{:a [1 2]} {:a [3 4]}] | map /a | zip | eq [[1 3] [2 4]])

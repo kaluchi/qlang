@@ -186,7 +186,7 @@ describe('per-site error classes carry unique identity', () => {
   it('a tag of a pair that is a keyword is refused by the primitive of tag', async () => {
     const refused = await evalQuery('[:foo 42] | tag');
     expect(refused.originalError).toBeInstanceOf(QlangError);
-    expect(refused.originalError.name).toBe('PairTagNotTagError');
+    expect(refused.originalError.name).toBe('PairTagKindNotTakenError');
     expect(refused.facts.get('actualType').name).toBe('keyword');
   });
 

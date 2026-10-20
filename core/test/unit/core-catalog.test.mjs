@@ -11,8 +11,8 @@ import { keyword, isMap, isVec, isQuote, makeTag, bindingValueOf, TAG_HEADER_SYM
 import { makeSet } from '../../src/ordering.mjs';
 import { platformLocator, LANGUAGE_SOURCES } from '../../src/runtime/bootstrap.mjs';
 import { evalQuery } from '../../src/session.mjs';
-import { kindsNamedForCommands } from '../../../scripts/catalog-kinds.mjs';
-import { kindsNamedOffTheirAddress } from '../../../scripts/refusal-kinds.mjs';
+import { kindsNamedForCommands, kindsDeclaredBy } from '../../../scripts/catalog-kinds.mjs';
+import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from '../../../scripts/refusal-kinds.mjs';
 import { verdictOf } from '../../../scripts/conventions-verdict.mjs';
 
 describe('the sources of the language', () => {
@@ -64,22 +64,52 @@ describe('no kind of the catalog bears the name of a command of a chain', () => 
 
 // A refusal is public, so its name carries a kind only where its address
 // names it, which the check of the conventions holds over the code and the
-// catalog [QSERR#site].
+// pages of the catalog [D389].
 describe('a refusal names a kind only where its address names it', () => {
   const nouns = new Set(['boolean', 'keyword', 'map', 'number', 'set', 'string', 'vec']);
+  const named = addresses => kindsNamedOffTheirAddress(addresses.map(address => ({ address })), nouns);
 
-  it('finds a kind and a list of kinds the address does not name', () => {
-    const refusals = [{ address: 'vec/join/ElementNotStringOrKeywordError' }, { address: 'vec/sum/ElementNotNumberError' }, { address: 'vec/filter/ConditionNotBooleanError' }];
-    expect(kindsNamedOffTheirAddress(refusals, nouns)).toEqual([
+  it('finds a kind after `Not`, a list of them however joined, a plural and one after a word of no kind', () => {
+    expect(named(['vec/join/ElementNotStringOrKeywordError', 'vec/join/ElementNotStringNorKeywordError', 'vec/sum/ElementNotANumberError', 'point/PayloadNotThreeNumbersError'])).toEqual([
       { address: 'vec/join/ElementNotStringOrKeywordError', kinds: ['string', 'keyword'] },
-      { address: 'vec/sum/ElementNotNumberError', kinds: ['number'] },
-      { address: 'vec/filter/ConditionNotBooleanError', kinds: ['boolean'] }
+      { address: 'vec/join/ElementNotStringNorKeywordError', kinds: ['string', 'keyword'] },
+      { address: 'vec/sum/ElementNotANumberError', kinds: ['number'] },
+      { address: 'point/PayloadNotThreeNumbersError', kinds: ['number'] }
     ]);
   });
 
-  it('leaves the label of a subject, the kind a conversion reads, a word of no kind and a name by the role', () => {
-    const refusals = [{ address: 'number/add/SubjectNotNumberError' }, { address: 'string/toNumber/TextNotNumberError' }, { address: 'vec/toMap/ElementNotPairError' }, { address: 'vec/sum/ElementKindNotTakenError' }];
-    expect(kindsNamedOffTheirAddress(refusals, nouns)).toEqual([]);
+  it('finds the label of the address named by a role other than the subject, and a verb of the address that names a kind', () => {
+    expect(named(['vec/zip/ElementNotVecError', 'string/replace/with/AnswerNotStringError', 'set/zip/SubjectNotVecError'])).toEqual([
+      { address: 'vec/zip/ElementNotVecError', kinds: ['vec'] },
+      { address: 'string/replace/with/AnswerNotStringError', kinds: ['string'] },
+      { address: 'set/zip/SubjectNotVecError', kinds: ['vec'] }
+    ]);
+  });
+
+  it('leaves the label of a subject, the kind a conversion reads, a place a key is missing from, a word of no kind and a name by the role', () => {
+    expect(named(['number/add/SubjectNotNumberError', 'string/toNumber/TextNotNumberError', 'path/KeyNotInMapError', 'vec/toMap/ElementNotPairError', 'vec/sum/ElementKindNotTakenError'])).toEqual([]);
+  });
+
+  it('reads what `throws` and `holds` write in a chain and in the quote of a literal, and leaves a law, a doc and a command of no name', () => {
+    const planted = [{ path: 'box.qlang', text: [
+      ':Box', '  |~~ A box. ~~|', '  ::kind', '    | holds :NotWideError |~~ Wide. ~~| ~(gt 0)',
+      '    | proves :x |~~ An x. ~~| ~(:Pos |~~ P. ~~| (::kind | holds :NotPositiveError |~~ P. ~~| ~(gt 0)) | true)',
+      ':Box/w', '  |~~ The width, `| throws :NotNumberError`. ~~|', '  ::fn', '    | throws :SubjectNotBoxError |~~ A box. ~~|',
+      '    | throws |~~ No name. ~~|', '    | holds',
+      ':Box/h ::fn[~(throws :RowNotMapError |~~ A row. ~~|) ::builtin{}]', ':Box/d |~~ A page. ~~|', ''].join('\n') }];
+    expect(refusalsOfTheCatalog(planted)).toEqual([
+      { address: 'Box/NotWideError', file: 'box.qlang', line: 4 },
+      { address: 'Box/w/SubjectNotBoxError', file: 'box.qlang', line: 9 },
+      { address: 'Box/h/RowNotMapError', file: 'box.qlang', line: 12 }
+    ]);
+  });
+
+
+  it('reads the kinds a source declares, by the page alone and by the chain, and no node under one and no value', () => {
+    const planted = [{ path: 'kinds.qlang', text: [
+      ':Holds', '  |~~ A page alone. ~~|', ':Box', '  |~~ A box. ~~|', '  ::kind', '    | wraps |~~ The payload. ~~| ::vec',
+      ':Box/w', '  |~~ A node. ~~|', ':limit 5', ':double ~(mul 2)', ''].join('\n') }];
+    expect(kindsDeclaredBy(planted)).toEqual(new Set(['Holds', 'Box']));
   });
 
   it('fails the check of the conventions on such a refusal and names it, and passes on none [QSWRK#tooling]', () => {

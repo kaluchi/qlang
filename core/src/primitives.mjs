@@ -2,14 +2,15 @@
 // serves, `number/add`, `vec` [QSDSP#residence]: each module of the runtime
 // registers its own as it loads, and the bootstrap hands each source of the
 // language those under its noun as a host hands its own and seals the table
-// [QSHST#source].
+// [D389].
 
 import { declareDefect } from './errors.mjs';
 import { splitAddress } from './address.mjs';
 import { accountOfForeign } from './types.mjs';
+import { kindsExpected } from './ordering.mjs';
 
-const BuiltinAddressNotStringError = declareDefect(
-  'builtin/AddressNotStringError',
+const BuiltinAddressKindNotTakenError = declareDefect(
+  'builtin/AddressKindNotTakenError',
   ({ actualValue }) => `register: an address must be a string, got ${actualValue}`);
 
 const BuiltinAddressRegisteredTwiceError = declareDefect(
@@ -28,7 +29,7 @@ let sealed = false;
 export const PRIMITIVE_REGISTRY = {
   register(address, primitive) {
     if (sealed) throw new BuiltinTableSealedError({ address });
-    if (typeof address !== 'string') throw new BuiltinAddressNotStringError({ actualValue: accountOfForeign(address) });
+    if (typeof address !== 'string') throw new BuiltinAddressKindNotTakenError({ expected: kindsExpected('string'), actualValue: accountOfForeign(address) });
     if (primitives.has(address)) throw new BuiltinAddressRegisteredTwiceError({ address });
     primitives.set(address, primitive);
     registered.add(primitive);

@@ -100,7 +100,7 @@ function interPair(left, right, { KeyKindNotTakenError }, at) {
 
 // The fold of the values a vector holds beneath their tags, one at least, each
 // refused where it stands for its kind, its pair and its tags, a later value
-// of a map's difference or common part naming keys and sharing none [QSCOL#algebra].
+// of a map's difference or common part naming keys and sharing none [D389].
 function foldOf(values, pair, refusals, readsEvery, state) {
   if (values.length === 0) throw refusingTheSubject(new refusals.SubjectEmptyError({ actualValue: values }));
   const first = beneathTags(values[0]);

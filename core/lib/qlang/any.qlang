@@ -928,8 +928,8 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at its index. ~~|
         ~(5 | cond ~(1) ~("yes")
-          !| get [~(type) /index /actualType]
-          |  eq [::any/cond/ConditionKindNotTakenError 0 ::number])
+          !| get [~(type) /index /actualType /expected]
+          |  eq [::any/cond/ConditionKindNotTakenError 0 ::number #[::boolean]])
     | impl ::builtin{}
 
 :any/apply
@@ -1305,7 +1305,7 @@
   ::fn
     | takes :anchor
         |~~ The last name of the node read under the subject, a keyword, a
-            vector of them read in turn or a set of them, null when the
+            vector of them read in turn or a set of anchors, null when the
             call gives none.
         ~~|
         ~(query /0) #[::keyword ::null ::set ::vec]
@@ -1313,9 +1313,14 @@
         |~~ The anchor is a keyword, a vector, a set or null, the last
             names of nodes under the subject, `::qlang | doc :pipeline`.
         ~~|
+    | throws :anchor/NameKindNotTakenError
+        |~~ A name `doc` reads in turn is a keyword, each naming a node
+            under the one before it, `doc [:take :count]`.
+        ~~|
     | throws :anchor/ElementKindNotTakenError
-        |~~ An anchor `doc` reads in turn is no keyword: each names a node
-            by a keyword, `doc [:take :count]`.
+        |~~ An element of a set of anchors is a keyword, a vector of names
+            read in turn or null, each reading a page,
+            `doc #[:take [:take :count]]`.
         ~~|
     | returns
         |~~ The page of the name, null for a declaration without one, a
@@ -1391,11 +1396,14 @@
             it.
         ~~|
         ~(::qlang | doc :pipelin !| get /nearest | eq [:pipeline])
-    | proves :anchor/ElementKindNotTakenError/refusesANumberAmongTheAnchors
-        |~~ A number among the anchors read in turn is refused at its
-            index.
+    | proves :anchor/NameKindNotTakenError/refusesANumberAmongTheNames
+        |~~ A number among the names read in turn is refused at its index.
         ~~|
-        ~(::vec | doc [:take 1] !| get [~(type) /index] | eq [::any/doc/anchor/ElementKindNotTakenError 1])
+        ~(::vec | doc [:take 1] !| get [~(type) /index /expected] | eq [::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]])
+    | proves :anchor/ElementKindNotTakenError/refusesANumberInASet
+        |~~ A number in a set of anchors is refused at its index in the set.
+        ~~|
+        ~(::vec | doc #[:take 5] !| get [~(type) /index /expected] | eq [::any/doc/anchor/ElementKindNotTakenError 0 #[::keyword ::null ::vec]])
     | proves :ArgsBeyondInputsError/refusesTwoAnchors
         |~~ Two anchors given apart are refused under the verb. ~~|
         ~(::vec | doc :take :count !| type | eq ::any/doc/ArgsBeyondInputsError)
@@ -1727,7 +1735,7 @@
             field and no kind.
         ~~|
     | returns |~~ The subject under the tag, read by its kind. ~~| ::any
-    | throws :PairTagNotTagError
+    | throws :PairTagKindNotTakenError
         |~~ The tag of the pair `tag` reads is a tag name,
             `[::Box 5] | tag`; a keyword, `:box`, names a field and no
             kind.
@@ -1781,9 +1789,9 @@
     | proves :name/KindNotTakenError/refusesAKeyword
         |~~ A keyword given as the name is refused under the input. ~~|
         ~(5 | tag :box !| get [~(type) /actualType] | eq [::any/tag/name/KindNotTakenError ::keyword])
-    | proves :PairTagNotTagError/refusesAKeyword
+    | proves :PairTagKindNotTakenError/refusesAKeyword
         |~~ A keyword names a field and no kind. ~~|
-        ~([:foo 42] | tag !| get [~(type) /actualType] | eq [::any/tag/PairTagNotTagError ::keyword])
+        ~([:foo 42] | tag !| get [~(type) /actualType /expected] | eq [::any/tag/PairTagKindNotTakenError ::keyword #[::tag]])
     | proves :SubjectNotPairError/refusesANumber
         |~~ A number is no pair. ~~|
         ~(42 | tag !| get [~(type) /actualType] | eq [::any/tag/SubjectNotPairError ::number])
@@ -2096,8 +2104,8 @@
     | proves :ConditionKindNotTakenError/refusesAQuoteThatAnswersAString
         |~~ A quote that answers a string is refused at its index. ~~|
         ~({:email "a@b.org"} | allOf true /email
-          !| get [~(type) /index /actualType]
-          |  eq [::any/allOf/ConditionKindNotTakenError 1 ::string])
+          !| get [~(type) /index /actualType /expected]
+          |  eq [::any/allOf/ConditionKindNotTakenError 1 ::string #[::boolean]])
     | proves :ConditionKindNotTakenError/holdsAQuoteThatCompares
         |~~ A quote that compares the field it reads answers a condition.
         ~~|
@@ -2191,8 +2199,8 @@
     | proves :ConditionKindNotTakenError/refusesAQuoteThatAnswersANumber
         |~~ A quote that answers a number is refused at its index. ~~|
         ~({:score 99} | anyOf false /score
-          !| get [~(type) /index /actualType]
-          |  eq [::any/anyOf/ConditionKindNotTakenError 1 ::number])
+          !| get [~(type) /index /actualType /expected]
+          |  eq [::any/anyOf/ConditionKindNotTakenError 1 ::number #[::boolean]])
     | proves :ConditionKindNotTakenError/holdsAQuoteThatCompares
         |~~ A quote that compares the field it reads answers a condition.
         ~~|

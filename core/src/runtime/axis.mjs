@@ -35,6 +35,7 @@ import { splitAddress, FN_CALL_ADDRESS } from '../address.mjs';
 const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
 const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
 const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError');
+const AnyDocAnchorNameKindNotTakenError = declareRefusal('any/doc/anchor/NameKindNotTakenError');
 const AnyDocAnchorElementKindNotTakenError = declareRefusal('any/doc/anchor/ElementKindNotTakenError');
 const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError');
 
@@ -134,12 +135,12 @@ const anchorsOf = anchor => (isNull(beneathTags(anchor)) ? [] : isVec(beneathTag
 
 // The record the anchors reach, read in turn, each the last name of a node
 // under the record the one before it reached, no anchor the record of the
-// subject itself [QSSLF#axis].
+// subject itself, a name of another kind refused by its role [D389].
 function recordOfAnchors(subject, anchors, state) {
   if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocUnknownNameError);
   return anchors.reduce((reached, anchor, index) => {
     const name = beneathTags(anchor);
-    if (!isKeyword(name)) throw new AnyDocAnchorElementKindNotTakenError({ index, expected: kindsExpected('keyword'), actualValue: anchor });
+    if (!isKeyword(name)) throw new AnyDocAnchorNameKindNotTakenError({ index, expected: kindsExpected('keyword'), actualValue: anchor });
     return recordReadBy(index === 0 ? reached : underRecord(reached), name, state, AnyDocUnknownNameError);
   }, subject);
 }
@@ -152,7 +153,7 @@ const underRecord = record => makeTag(record.get('name').name);
 const pageAt = (subject, anchor, state) => pageOfRecord(recordOfAnchors(subject, anchorsOf(anchor), state));
 
 // A set of anchors reads a page at each, in the order of the set, an
-// element that is no anchor and no vector of them refused at its index.
+// element that is no anchor and no vector of them refused at its index [D389].
 registerStateReader('any/doc', (subject, anchor, state) => {
   if (!isSet(anchor)) return pageAt(subject, anchor, state);
   const stranger = anchor.map(beneathTags).findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));

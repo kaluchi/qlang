@@ -9,11 +9,30 @@ import { partOf } from '../core/src/walk.mjs';
 import { isBindStep, declaresKind } from '../core/src/steps.mjs';
 import { COMMAND_NAMES } from '../core/src/chain.mjs';
 
-// kindsNamedForCommands(sources) → the kinds the sources, each `{ path, text
-// }`, declare that bear the name of a command of a chain, each `{ path, line,
-// name }`, the declarations the steps of its pipeline.
+// The declarations of a source, the steps of its pipeline that declare, read
+// once for each text.
+const READ = new Map();
+
+// declarationsOf(sources) → the declarations the sources, each `{ path, text
+// }`, hold, each `{ path, value, span }`.
+export function declarationsOf(sources) {
+  return sources.flatMap(({ path, text }) => {
+    if (!READ.has(text)) READ.set(text, partOf(parse(text, { uri: path })).parts.filter(({ value }) => isBindStep(value)));
+    return READ.get(text).map(({ value, span }) => ({ path, value, span }));
+  });
+}
+
+// kindsNamedForCommands(sources) → the kinds the sources declare that bear the
+// name of a command of a chain, each `{ path, line, name }`.
 export function kindsNamedForCommands(sources) {
-  return sources.flatMap(({ path, text }) => partOf(parse(text, { uri: path })).parts
-    .filter(({ value }) => isBindStep(value) && declaresKind(value) && COMMAND_NAMES.includes(value.get('name').name))
-    .map(({ value, span }) => ({ path, line: span.start.line, name: value.get('name').name })));
+  return declarationsOf(sources)
+    .filter(({ value }) => declaresKind(value) && COMMAND_NAMES.includes(value.get('name').name))
+    .map(({ path, value, span }) => ({ path, line: span.start.line, name: value.get('name').name }));
+}
+
+// kindsDeclaredBy(sources) → the names of the kinds the sources declare, each
+// a bare name [D389].
+export function kindsDeclaredBy(sources) {
+  return new Set(declarationsOf(sources).map(({ value }) => value).filter(declaresKind)
+    .map(value => value.get('name').name).filter(name => !name.includes('/')));
 }

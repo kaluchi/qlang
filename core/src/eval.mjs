@@ -37,7 +37,7 @@ import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, se
 import { answerOfStep, skipping, flightOfACall, flightOfThrow } from './eval-trace.mjs';
 
 // The tag of a name that holds data puts no value under it: a value goes
-// under a label, a verb, an invariant or a tag no node answers [QSBLD#label].
+// under a label, a verb, an invariant or a tag no node answers [D389].
 const ConstructTagNamesAValueError = declareRefusal('construct/TagNamesAValueError');
 const CallValueMeetsVerbError = declareRefusal('call/ValueMeetsVerbError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
@@ -724,10 +724,10 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (steps === null && handed === undefined) throw new FnRecipeMissingError({ actualValue: fn });
   let walked = subjectOfCall(chain, labelName, state.pipeValue);
   if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), { expected: kindsExpected(...chain.subject.kinds) }, state.scope, state.pipeValue);
-  if (walked === null) return refusalUnder(subjectRefusalAddress(address, [labelName]), {}, state.scope, state.pipeValue);
+  if (walked === null) return refusalUnder(subjectRefusalAddress(address, labelName), {}, state.scope, state.pipeValue);
   if (handed !== undefined && handed.labelName !== labelName) {
     walked = subjectOfCall(chain, handed.labelName, state.pipeValue);
-    if (walked === null) return refusalUnder(subjectRefusalAddress(address, [handed.labelName]), {}, state.scope, state.pipeValue);
+    if (walked === null) return refusalUnder(subjectRefusalAddress(address, handed.labelName), {}, state.scope, state.pipeValue);
   }
   const scope = callScopeOf(state, ofTheRoot);
   const refusedSubject = await invariantRefusal(invariantsOf(chain, SUBJECT_NAME), address, walked.served, state, scope, state.pipeValue, {});

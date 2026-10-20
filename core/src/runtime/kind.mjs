@@ -20,7 +20,7 @@ const KindPayloadNotPairError = declareRefusal('kind/PayloadNotPairError');
 const KindConstructorKindNotTakenError = declareRefusal('kind/ConstructorKindNotTakenError');
 
 // A kind of its commands and its constructor, held here on every road to one: a
-// constructor that is no `::builtin{}` and a command its chain does not take are refused [QSBLD#kind].
+// constructor that is no `::builtin{}` and a command its chain does not take are refused [D389].
 function madeKind(commands, constructor) {
   if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorKindNotTakenError({ expected: kindsExpected('builtin', 'null'), actualValue: constructor });
   const kind = makeTagged(KIND_TAG, Object.freeze([commands, constructor]));

@@ -236,8 +236,8 @@
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | sum
-          !| get [~(type) /actualType ~(trace | last | place)]
-          |  eq [::map/sum/ElementKindNotTakenError ::string /b])
+          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          |  eq [::map/sum/ElementKindNotTakenError ::string /b #[::number]])
     | proves :ElementKindNotTakenError/refusesANull
         |~~ A null value is no number either. ~~|
         ~({:a null} | sum !| get [~(type) ~(trace | last | place)] | eq [::map/sum/ElementKindNotTakenError /a])
@@ -279,8 +279,8 @@
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | avg
-          !| get [~(type) /actualType ~(trace | last | place)]
-          |  eq [::map/avg/ElementKindNotTakenError ::string /b])
+          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          |  eq [::map/avg/ElementKindNotTakenError ::string /b #[::number]])
     | impl ::builtin{}
 
 :map/min
@@ -467,8 +467,8 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | filter ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType]
-          |  eq [::map/filter/ConditionKindNotTakenError /a ::number])
+          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          |  eq [::map/filter/ConditionKindNotTakenError /a ::number #[::boolean]])
     | impl ::builtin{}
 
 :map/every
@@ -513,8 +513,8 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | every ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType]
-          |  eq [::map/every/ConditionKindNotTakenError /a ::number])
+          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          |  eq [::map/every/ConditionKindNotTakenError /a ::number #[::boolean]])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
@@ -559,8 +559,8 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | any ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType]
-          |  eq [::map/any/ConditionKindNotTakenError /a ::number])
+          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          |  eq [::map/any/ConditionKindNotTakenError /a ::number #[::boolean]])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.

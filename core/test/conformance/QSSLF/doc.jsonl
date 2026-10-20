@@ -9,7 +9,7 @@
 {"name":"a-quote-between-backquotes-is-prose","query":"|~~ write `~(add 1)` here ~~| | segments | count","expect":"1"}
 {"name":"a-tag-in-prose-is-prose","query":"|~~ see ::set[1 2] here ~~| | segments | count","expect":"1"}
 {"name":"a-doc-comes-back-from-its-segments-by-tag","query":"[\"a\" ~(add 1)] | tag ::doc | content","expect":"\"a~(add 1)\""}
-{"name":"a-doc-refuses-a-segment-of-another-kind","query":"[1] | tag ::doc !| type","expect":"::doc/ElementNotSegmentError"}
+{"decision":"D389","name":"a-doc-refuses-a-segment-of-another-kind","query":"[1] | tag ::doc !| get [~(type) /expected]","expect":"[::doc/ElementKindNotTakenError #[::quote ::string]]"}
 {"name":"a-doc-that-opens-on-a-quote-holds-no-prose-before-it","query":"|~~~(add 1) b~~| | segments | first | type","expect":"::quote"}
 {"name":"an-unclosed-quote-in-a-doc-is-prose","query":"|~~ a ~(add 1 b ~~| | segments | count","expect":"1"}
 {"name":"a-doc-holds-each-run-of-its-prose-as-one-string","query":"[\"a\" \"\" \"b\" ~(add 1)] | tag ::doc | segments | count","expect":"2"}

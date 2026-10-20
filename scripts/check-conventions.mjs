@@ -107,10 +107,11 @@
 //       package writes, by name from a module no other door opens
 //       [QSWRK#tooling].
 //
-//   (20) A refusal names a kind only where its address names it, the label
-//       of its subject or the kind a conversion reads; any other refusal of
-//       a kind is named by the role of its holder, the kinds `:expected`
-//       [QSERR#site].
+//   (20) A refusal names a kind after `Not` only as the label its subject
+//       resides on or the kind a conversion of its address reads; any other
+//       refusal of a kind is named by the role of its holder, the kinds
+//       `:expected`: the refusals the code declares, read as (2) reads them,
+//       and those the pages of the catalog write, read by the parser [D389].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -124,8 +125,8 @@ import { baselineOf, isCitingCode, recordsInTransit, reportsWithoutReading, seri
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
-import { kindsNamedForCommands } from './catalog-kinds.mjs';
-import { kindsNamedOffTheirAddress } from './refusal-kinds.mjs';
+import { kindsNamedForCommands, kindsDeclaredBy } from './catalog-kinds.mjs';
+import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from './refusal-kinds.mjs';
 import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
 import { readText, treeAt } from './tree-reads.mjs';
@@ -268,63 +269,54 @@ function* walkRefusalScanRoots() {
   }
 }
 
-function refusalsOffTheirAddress() {
-  const violations = [];
+// The declarations of the refusals across the sources of the workspaces, each
+// factory with its constant and its address and each class extending a root,
+// read once for (2) and (20).
+let declarationsRead;
+function refusalDeclarations() {
+  if (declarationsRead !== undefined) return declarationsRead;
+  declarationsRead = { declarations: [], classes: [] };
   for (const filePath of walkRefusalScanRoots()) {
     const text = readText(filePath);
-    const relFile = relative(repoRoot, filePath).split(sep).join('/');
+    const file = relative(repoRoot, filePath).split(sep).join('/');
     const lineAt = index => text.slice(0, index).split('\n').length;
     for (const match of text.matchAll(refusalDeclarationRe)) {
-      const [, constant, factory, argument] = match;
-      if (FACTORY_DEFINITION_FILES.has(relFile) && /^[a-z]\w*$/.test(argument.trim())) continue;
-      const address = ADDRESS_RE.exec(argument.trim())?.[1];
-      const line = lineAt(match.index);
-      if (address === undefined) {
-        violations.push({ file: relFile, line, problem: `${factory} takes ${argument.trim() || 'nothing'}, where a refusal's address stands, \`'noun/LastNameError'\`` });
-      } else if (constant !== undefined && constant !== constantOfAddress(address)) {
-        violations.push({ file: relFile, line, problem: `${constant} holds ${address}, which names it ${constantOfAddress(address)}` });
-      }
+      const [, constant, factory, written] = match;
+      const argument = written.trim();
+      if (FACTORY_DEFINITION_FILES.has(file) && /^[a-z]\w*$/.test(argument)) continue;
+      declarationsRead.declarations.push({ file, line: lineAt(match.index), constant, factory, argument, address: ADDRESS_RE.exec(argument)?.[1] });
     }
-    for (const match of text.matchAll(directClassRe)) {
-      if (ABSTRACT_BASES.has(match[1]) || match[1].endsWith('Error')) continue;
-      violations.push({ file: relFile, line: lineAt(match.index), problem: `class ${match[1]} names a refusal without the suffix Error` });
+    for (const match of text.matchAll(directClassRe)) declarationsRead.classes.push({ file, line: lineAt(match.index), name: match[1] });
+  }
+  return declarationsRead;
+}
+
+function refusalsOffTheirAddress() {
+  const { declarations, classes } = refusalDeclarations();
+  const violations = [];
+  for (const { file, line, constant, factory, argument, address } of declarations) {
+    if (address === undefined) {
+      violations.push({ file, line, problem: `${factory} takes ${argument || 'nothing'}, where a refusal's address stands, \`'noun/LastNameError'\`` });
+    } else if (constant !== undefined && constant !== constantOfAddress(address)) {
+      violations.push({ file, line, problem: `${constant} holds ${address}, which names it ${constantOfAddress(address)}` });
     }
+  }
+  for (const { file, line, name } of classes) {
+    if (ABSTRACT_BASES.has(name) || name.endsWith('Error')) continue;
+    violations.push({ file, line, problem: `class ${name} names a refusal without the suffix Error` });
   }
   return violations;
 }
 
 // ── (20) A refusal names a kind only where its address names it ─
 //
-// The refusals the code declares and the pages of the catalog throw, read
-// against the nouns of the sources of the catalog, a defect of the runtime,
-// which no catch meets, outside [QSERR#site].
-
-const CATALOG_FOLDERS = ['core/lib/qlang', 'cli/lib/qlang'];
-
-function refusalAddresses() {
-  const addresses = [];
-  for (const filePath of walkRefusalScanRoots()) {
-    const text = readText(filePath);
-    const file = relative(repoRoot, filePath).split(sep).join('/');
-    for (const match of text.matchAll(/\bdeclareRefusal\(\s*'([^']+)'/g)) addresses.push({ address: match[1], file, line: text.slice(0, match.index).split('\n').length });
-  }
-  for (const folder of CATALOG_FOLDERS) {
-    for (const entry of readdirSync(join(repoRoot, folder)).filter(name => name.endsWith('.qlang'))) {
-      const file = `${folder}/${entry}`;
-      let declared = null;
-      readText(join(repoRoot, file)).split(/\r?\n/).forEach((text, index) => {
-        declared = text.match(/^:([A-Za-z][\w/]*)/)?.[1] ?? declared;
-        const thrown = text.match(/\|\s*throws :([\w/]+)/)?.[1];
-        if (thrown !== undefined && declared !== null && !declared.startsWith('builtin')) addresses.push({ address: `${declared}/${thrown}`, file, line: index + 1 });
-      });
-    }
-  }
-  return addresses;
-}
+// The refusals the code declares and those the pages of the catalog write,
+// read against the kinds the catalog declares [D389].
 
 function refusalsNamingKinds() {
-  const nouns = new Set(CATALOG_FOLDERS.flatMap(folder => readdirSync(join(repoRoot, folder)).filter(name => name.endsWith('.qlang')).map(name => name.slice(0, -'.qlang'.length).toLowerCase())));
-  return kindsNamedOffTheirAddress(refusalAddresses(), nouns);
+  const declared = refusalDeclarations().declarations.filter(({ address }) => address !== undefined);
+  const nouns = new Set([...kindsDeclaredBy(catalogSources())].map(name => name.toLowerCase()));
+  return kindsNamedOffTheirAddress([...declared, ...refusalsOfTheCatalog(catalogSources())], nouns);
 }
 
 // ── (3) Derivable tallies in markdown prose ────────────────────
@@ -853,9 +845,12 @@ function retiredWordsWritten() {
 // A command of a chain is named by its act and what it writes by the noun of
 // the thing, so no kind of the catalog bears the name of a command [QSBLD#fn].
 
+// The sources of the catalog, read once for (18) and (20).
+let catalogRead;
+const catalogSources = () => catalogRead ??= CATALOG_ROOTS.flatMap(catalogFiles).map(file => ({ path: file.replace(/\\/g, '/'), text: readText(join(repoRoot, file)) }));
+
 function kindsOfCommands() {
-  const sources = CATALOG_ROOTS.flatMap(catalogFiles).map(file => ({ path: file.replace(/\\/g, '/'), text: readText(join(repoRoot, file)) }));
-  return kindsNamedForCommands(sources);
+  return kindsNamedForCommands(catalogSources());
 }
 
 // ── (19) The exports of the root of the package ────────────────

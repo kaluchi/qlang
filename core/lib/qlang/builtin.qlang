@@ -52,7 +52,7 @@
             `::path/IndexOutOfBoundsError/length` holding `::number`, or
             under `::error` when every refusal shares it.
         ~~|
-    | throws :AddressNotStringError
+    | throws :AddressKindNotTakenError
         |~~ A module of the runtime registered a primitive under an address
             that is no string, a defect of the runtime found as it loads,
             `:actualValue` naming the address as JavaScript holds it. The

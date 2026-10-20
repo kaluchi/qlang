@@ -33,7 +33,7 @@
             strings and quotes; a payload of another kind is refused, a
             vector under another tag among them, which `payload` opens.
         ~~|
-    | throws :ElementNotSegmentError
+    | throws :ElementKindNotTakenError
         |~~ Every element of a doc is a segment, a string of prose or a
             quote, and another value is refused at the index it stands at;
             a number is made prose by `toString` first,
@@ -51,9 +51,9 @@
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
         ~(::doc"x" !| get [~(type) /actualType] | eq [::doc/PayloadKindNotTakenError ::string])
-    | proves :ElementNotSegmentError/refusesANumberAmongTheSegments
+    | proves :ElementKindNotTakenError/refusesANumberAmongTheSegments
         |~~ A number among the segments is refused at its index. ~~|
-        ~(["a" 1] | tag ::doc !| get [~(type) /index] | eq [::doc/ElementNotSegmentError 1])
+        ~(["a" 1] | tag ::doc !| get [~(type) /index /expected] | eq [::doc/ElementKindNotTakenError 1 #[::quote ::string]])
     | impl ::builtin{}
 
 :doc/content

@@ -8,7 +8,8 @@
 // which reads its inputs.
 
 import { registerPrimitive, registerStateReader } from '../primitives.mjs';
-import { declareRefusal, refusingTheSubject } from '../errors.mjs';
+import { declareRefusal, refusingAPart } from '../errors.mjs';
+import { kindsExpected } from '../ordering.mjs';
 import { commandStep, declarationStep } from '../steps.mjs';
 import { inputsOfFunction } from '../eval.mjs';
 import { chainOfFn, FN_COMMAND_NAMES } from '../chain.mjs';
@@ -21,13 +22,13 @@ const FN_TAG = makeTag(FN_TAG_NAME);
 const NO_COMMANDS = makeQuote([]);
 
 const FnPayloadNotPairError = declareRefusal('fn/PayloadNotPairError');
-const FnRecipeNotCodeError = declareRefusal('fn/RecipeNotCodeError');
-const FnFillRecipeNotCodeError = declareRefusal('fn/fill/RecipeNotCodeError');
+const FnRecipeKindNotTakenError = declareRefusal('fn/RecipeKindNotTakenError');
+const FnFillRecipeKindNotTakenError = declareRefusal('fn/fill/RecipeKindNotTakenError');
 
 // A function of its commands and a recipe, held here on every road to one: a
-// recipe that is no code and a command its chain does not take are refused [QSBLD#fn].
+// recipe that is no code and a command its chain does not take are refused [D389].
 function madeFn(commands, recipe) {
-  if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new FnRecipeNotCodeError({ actualValue: recipe });
+  if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new FnRecipeKindNotTakenError({ expected: kindsExpected('builtin', 'null', 'quote'), actualValue: recipe });
   const fn = makeTagged(FN_TAG, Object.freeze([commands, recipe]));
   chainOfFn(fn);
   return fn;
@@ -63,10 +64,11 @@ registerPrimitive('fn/impl', (subject, recipe) => madeFn(commandsOf(functionOf(s
 
 // `fill 3` — the args of a call written into the head of the code,
 // each input a declaration with its page of the value it reads, as its call
-// reads it; the code answers.
+// reads it; the code answers, a recipe that is no quote refused as the part
+// of the subject it is [D389].
 registerStateReader('fn/fill', async (fn, args, state) => {
   const recipe = recipeOf(fn);
-  if (!isQuote(recipe)) throw refusingTheSubject(new FnFillRecipeNotCodeError({ actualValue: fn }));
+  if (!isQuote(recipe)) throw refusingAPart(new FnFillRecipeKindNotTakenError({ expected: kindsExpected('quote'), actualValue: recipe }), 1);
   const values = await inputsOfFunction(fn, [...args], state);
   if (isErrorValue(values)) return values;
   return makeQuote([...chainOfFn(fn).inputs.map(({ name, page }, at) => declarationStep(name.name, [page], values[at])), ...recipe]);

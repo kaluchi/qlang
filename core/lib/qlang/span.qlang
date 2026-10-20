@@ -14,14 +14,14 @@
   ~~|
   ::kind
     | wraps |~~ The six numbers, the start and the end. ~~| [::number]
-    | holds :PayloadNotSixNumbersError
+    | holds :PayloadNotStartAndEndError
         |~~ A span holds six whole numbers, the offset, the line and the
             column of its start and of its end.
         ~~|
         ~(allOf ~(count | eq 6) ~(every ~(eq (floor))))
-    | proves :PayloadNotSixNumbersError/refusesThreeNumbers
+    | proves :PayloadNotStartAndEndError/refusesThreeNumbers
         |~~ Three numbers make a point, no span. ~~|
-        ~(::span[0 1 1] !| type | eq ::span/PayloadNotSixNumbersError)
+        ~(::span[0 1 1] !| type | eq ::span/PayloadNotStartAndEndError)
     | proves :PayloadKindNotTakenError/refusesText
         |~~ Text is no vector of numbers. ~~|
         ~(::span"abcdef" !| type | eq ::span/PayloadKindNotTakenError)

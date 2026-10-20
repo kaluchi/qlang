@@ -6,13 +6,14 @@
 
 import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
-import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate, isKeyAlone, keyNameOf } from '../path-read.mjs';
+import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate, isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
+import { kindsExpected } from '../ordering.mjs';
 import { layTag } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
 import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, keyword, beneathTags, TAG_HEADER_SYMBOL } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
-const VecToPathElementNotKeyError = declareRefusal('vec/toPath/ElementNotKeyError');
+const VecToPathElementKindNotTakenError = declareRefusal('vec/toPath/ElementKindNotTakenError');
 const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError');
 
 // A path, or the path of one segment a key alone names [QSPTH#key].
@@ -139,12 +140,13 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
 })));
 
 // A path names one segment at least, the value itself being `it` [QSPTH#value],
-// each the text of a key alone [QSPTH#key]; a path is itself.
+// each the text of a key alone [QSPTH#key], an element of no key refused by
+// its role [D389]; a path is itself.
 registerPrimitive('vec/toPath', keys => {
   if (keys.length === 0) throw refusingTheSubject(new VecToPathSubjectEmptyError({ actualValue: keys }));
   return makePath(keys.map((element, index) => {
     const key = beneathTags(element);
-    if (!isKeyAlone(key)) throw refusingAPart(new VecToPathElementNotKeyError({ actualValue: element }), index);
+    if (!isKeyAlone(key)) throw refusingAPart(new VecToPathElementKindNotTakenError({ expected: kindsExpected(...KINDS_OF_A_KEY_ALONE), actualValue: element }), index);
     return keyNameOf(key);
   }));
 });

@@ -250,7 +250,7 @@
         ~(::kind[~(carries :x/y |~~ A y. ~~|) null] !| type | eq ::kind/FactUnderNoNameError)
     | proves :ConstructorKindNotTakenError/refusesANumber
         |~~ A number is no constructor of a host. ~~|
-        ~(::kind[~() 5] !| type | eq ::kind/ConstructorKindNotTakenError)
+        ~(::kind[~() 5] !| get [~(type) /expected] | eq [::kind/ConstructorKindNotTakenError #[::builtin ::null]])
     | proves :ConstructorKindNotTakenError/refusesCode
         |~~ Code that would build another value is refused. ~~|
         ~(::kind[~() ~(add 1)] !| type | eq ::kind/ConstructorKindNotTakenError))

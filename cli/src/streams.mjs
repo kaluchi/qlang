@@ -10,7 +10,7 @@ const AnyOutSubjectKindNotTakenError = declareRefusal('any/out/SubjectKindNotTak
 const AnyErrSubjectKindNotTakenError = declareRefusal('any/err/SubjectKindNotTakenError');
 
 // A writer takes the text the call gives, or bare, its subject, which is
-// then a string; the subject passes on either way.
+// then a string; the subject passes on either way [D389].
 function makeWriter(writer, recordEffect, SubjectError) {
   return (subject, text) => {
     const written = text === null ? subject : text;

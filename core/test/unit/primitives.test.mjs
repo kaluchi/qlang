@@ -19,7 +19,7 @@ describe('the table of the primitives — registering before the bootstrap', () 
     expect(PRIMITIVE_REGISTRY.holds(() => 'held')).toBe(false);
   });
 
-  it('refuses an address that is no string, naming the address as JavaScript holds it [QSHST#source]', () => {
+  it('refuses an address that is no string, naming the address as JavaScript holds it and the kind it takes [D389]', () => {
     for (const [address, account] of [[Symbol('bad'), 'symbol Symbol(bad)'], [42, 'number 42'], [{ not: 'keyword' }, 'object Object']]) {
       expect(() => PRIMITIVE_REGISTRY.register(address, () => null)).toThrow(`an address must be a string, got ${account}`);
     }
@@ -28,8 +28,9 @@ describe('the table of the primitives — registering before the bootstrap', () 
       expect.fail('should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(QlangDefect);
-      expect(e.name).toBe('AddressNotStringError');
-      expect(e.facts).toEqual({ actualValue: 'null' });
+      expect(e.name).toBe('AddressKindNotTakenError');
+      expect(e.facts.actualValue).toBe('null');
+      expect(e.facts.expected.map(kind => kind.name)).toEqual(['string']);
     }
   });
 

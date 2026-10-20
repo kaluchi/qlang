@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';
-import { deepEqual } from '../../src/equality.mjs';
+import { compareValues } from '../../src/ordering.mjs';
 
 const content = await evalQuery('::qlang | doc | content');
 
@@ -22,6 +22,6 @@ describe('the first page [QSSLF#page]', () => {
   });
 
   it.each(examples)('$query answers $answer', async ({ query, answer }) => {
-    expect(deepEqual(await evalQuery(query), await evalQuery(answer))).toBe(true);
+    expect(compareValues(await evalQuery(query), await evalQuery(answer)) === 0).toBe(true);
   });
 });

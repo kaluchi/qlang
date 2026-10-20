@@ -50,7 +50,7 @@ const documents = process.argv.length > 2 ? process.argv.slice(2)
   : [...new Set([...openRecords, ...transitRecords, ...chapters])];
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery, printValue, parse, isErrorValue, makeTag, createSession } = await core('index.mjs');
-const { deepEqual } = await core('equality.mjs');
+const { compareValues } = await core('ordering.mjs');
 const { cliSources } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'cli-sources.mjs')).href);
 const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
 
@@ -181,7 +181,7 @@ async function answersAsRecorded({ query, answer }) {
   if (typeof await answerOf(query) === 'string' && squash(await onCommandLine(query)) === answer) return true;
   try { parse(answer); } catch { return squash(await onCommandLine(query)) === answer; }
   if ((await printedByCore(query)) !== (await printedByCore(answer))) return false;
-  try { return deepEqual(await answerOf(query), await evalQuery(answer)) || 'lossy'; } catch { return 'lossy'; }
+  try { return compareValues(await answerOf(query), await evalQuery(answer)) === 0 || 'lossy'; } catch { return 'lossy'; }
 }
 
 const textOf = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');

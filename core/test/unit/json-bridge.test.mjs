@@ -27,8 +27,8 @@ describe('JSON syntax reads into the one map and the one vector', () => {
   it('a parsed document lifts into the same map a literal reads into', async () => {
     const lifted = fromPlain(JSON.parse('{"a": [1, 2]}'));
     const read = await evalQuery('{"a": [1, 2]}');
-    const { deepEqual } = await import('../../src/equality.mjs');
-    expect(deepEqual(lifted, read)).toBe(true);
+    const { compareValues } = await import('../../src/ordering.mjs');
+    expect(compareValues(lifted, read) === 0).toBe(true);
   });
 });
 
@@ -126,8 +126,8 @@ describe('a JSON text reads as its literal reads, the keys in the order it write
 
   it('reads every kind a document writes, through any whitespace', async () => {
     const text = ' \t{ "v" :\r\n[ 1 , -2.5e1 , "q\\"t\\\\" , true , false , null , { } , [ ] ] }\n';
-    const { deepEqual } = await import('../../src/equality.mjs');
-    expect(deepEqual(fromJsonText(text), await evalQuery('{:v [1 -25 "q\\"t\\\\" true false null {} []]}'))).toBe(true);
+    const { compareValues } = await import('../../src/ordering.mjs');
+    expect(compareValues(fromJsonText(text), await evalQuery('{:v [1 -25 "q\\"t\\\\" true false null {} []]}')) === 0).toBe(true);
     expect(fromJsonText('5')).toBe(5);
     expect(fromJsonText('"x"')).toBe('x');
   });

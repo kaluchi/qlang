@@ -15,3 +15,4 @@
 {"name":"a-value-of-another-kind-is-refused-under-the-input","query":"5 | gt \"a\" !| type","expect":"::number/gt/value/KindNotTakenError"}
 {"name":"a-kind-with-no-comparison-names-the-kinds-that-have-one","query":"true | gt false !| get [~(type) /addresses]","expect":"[::call/KindAnswersNoVerbError #[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]]"}
 {"name":"strings-keywords-and-tag-names-compare-within-their-kind","query":"get [~(\"b\" | gt \"a\") ~(:b | gt :a) ~(::b | gt ::a)]","expect":"[true true true]"}
+{"decision":"D383","name":"eq-answers-the-tie-of-the-one-order-over-every-kind","query":"get [~(#\"a\"i | eq #\"a\"i) ~(#\"a\"i | eq #\"a\") ~(/a/0 | eq /a/0) ~(1 | desc | eq (1 | desc)) ~({:b [1] :a #[2]} | eq {:a #[2] :b [1]}) ~(~(add 1) | eq ~(add 1))]","expect":"[true false true true true true]"}

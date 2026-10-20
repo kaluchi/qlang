@@ -3,11 +3,10 @@
 // lays over a part, and `paths` the pair of the path and the kind of each leaf.
 
 import { registerPrimitive } from '../primitives.mjs';
-import { deepEqual } from '../equality.mjs';
 import {
   makePath, makeTag, isMap, isVec, isSet, isTagged, makeTagged, beneathTags, payloadBeneath, typeOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
-import { makeSet } from '../ordering.mjs';
+import { makeSet, compareValues } from '../ordering.mjs';
 
 // The tag of a shape and the marks a shape lays over a part [QSPTH#shape].
 const SHAPE_TAG = makeTag('shape');
@@ -56,7 +55,7 @@ function shapeOf(current, top) {
 function tupleOf(elements) {
   if (!elements.every(isList) || new Set(elements.map(element => element.length)).size !== 1 || elements[0].length < 2) return null;
   const byIndex = elements[0].map((_, index) => elements.map(element => shapeOf(element[index], false)).reduce(mergedShape));
-  return byIndex.every(shape => deepEqual(shape, byIndex[0])) ? null : Object.freeze(byIndex);
+  return byIndex.every(shape => compareValues(shape, byIndex[0]) === 0) ? null : Object.freeze(byIndex);
 }
 
 // A map whose values are not all null folds into `::each` over its first key
@@ -102,18 +101,18 @@ function marksOf(shape) {
 }
 
 function marked({ absent, nullable, core }) {
-  const held = nullable && !deepEqual(core, NULL_KIND) ? makeTagged(NULLABLE_TAG, core) : core;
+  const held = nullable && compareValues(core, NULL_KIND) !== 0 ? makeTagged(NULLABLE_TAG, core) : core;
   return absent ? makeTagged(ABSENT_TAG, held) : held;
 }
 
 // The shape two parts share: their marks joined over the shape their cores
 // share, a null giving way to the other as `::nullable`.
 function mergedShape(left, right) {
-  if (deepEqual(left, right)) return left;
+  if (compareValues(left, right) === 0) return left;
   const l = marksOf(left);
   const r = marksOf(right);
-  const leftNull = deepEqual(l.core, NULL_KIND);
-  const rightNull = deepEqual(r.core, NULL_KIND);
+  const leftNull = compareValues(l.core, NULL_KIND) === 0;
+  const rightNull = compareValues(r.core, NULL_KIND) === 0;
   const core = leftNull ? r.core : rightNull ? l.core : mergedCore(l.core, r.core);
   return marked({ absent: l.absent || r.absent, nullable: l.nullable || r.nullable || leftNull || rightNull, core });
 }
@@ -133,7 +132,7 @@ const eachShape = each => [...payloadBeneath(each).values()][0];
 const eachesMerge = (left, right) => isMark(left, EACH_TAG) && isMark(right, EACH_TAG) && !isAlternatives(mergedShape(eachShape(left), eachShape(right)));
 const isEmptyRecord = shape => isRecord(shape) && shape.size === 0;
 const eachAndEmpty = (left, right) => (isMark(left, EACH_TAG) && isEmptyRecord(right)) || (isEmptyRecord(left) && isMark(right, EACH_TAG));
-const mergesWith = (left, right) => deepEqual(left, right) || eachesMerge(left, right) || eachAndEmpty(left, right) || (isSetOf(left) && isSetOf(right))
+const mergesWith = (left, right) => compareValues(left, right) === 0 || eachesMerge(left, right) || eachAndEmpty(left, right) || (isSetOf(left) && isSetOf(right))
   || (isList(left) && isList(right)) || (isRecord(left) && isRecord(right) && shareAKey(left, right));
 const lacked = shape => marked({ ...marksOf(shape), absent: true });
 const collapsed = shapes => shapes.reduce(mergedShape);
@@ -142,11 +141,11 @@ function mergedByIndex(left, right) {
   if (left.length === 0 || right.length === 0) return [lacked(collapsed(left.length === 0 ? right : left))];
   if (left.length !== right.length) return [collapsed([...left, ...right])];
   const byIndex = left.map((shape, index) => mergedShape(shape, right[index]));
-  return byIndex.every(shape => deepEqual(shape, byIndex[0])) ? [byIndex[0]] : byIndex;
+  return byIndex.every(shape => compareValues(shape, byIndex[0]) === 0) ? [byIndex[0]] : byIndex;
 }
 
 function mergedCore(left, right) {
-  if (deepEqual(left, right)) return left;
+  if (compareValues(left, right) === 0) return left;
   if (eachesMerge(left, right)) return makeTagged(EACH_TAG, new Map([[eachKey(left), mergedShape(eachShape(left), eachShape(right))]]));
   if (eachAndEmpty(left, right)) {
     const each = isEmptyRecord(left) ? right : left;

@@ -3,13 +3,12 @@
 // kinds they compare [QSCND#compare], [QSCND#boolean].
 
 import { typeOf } from '../types.mjs';
-import { deepEqual } from '../equality.mjs';
 import { compareValues } from '../ordering.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { walkToKinds } from '../dispatch.mjs';
 
-registerPrimitive('any/eq',  (subject, value) => deepEqual(subject, value));
-registerPrimitive('any/ne',  (subject, value) => !deepEqual(subject, value));
+registerPrimitive('any/eq',  (subject, value) => compareValues(subject, value) === 0);
+registerPrimitive('any/ne',  (subject, value) => compareValues(subject, value) !== 0);
 registerPrimitive(['tag/gt', 'number/gt', 'string/gt', 'keyword/gt', 'desc/gt'],  (subject, value) => compareValues(subject, value) > 0);
 registerPrimitive(['tag/lt', 'number/lt', 'string/lt', 'keyword/lt', 'desc/lt'],  (subject, value) => compareValues(subject, value) < 0);
 registerPrimitive(['tag/gte', 'number/gte', 'string/gte', 'keyword/gte', 'desc/gte'], (subject, value) => compareValues(subject, value) >= 0);

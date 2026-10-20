@@ -139,7 +139,7 @@ describe('runtime/setops.mjs Map×Map and errors', () => {
   });
 });
 
-describe('runtime/predicates.mjs deepEqual', () => {
+describe('eq by the tie of the one order', () => {
   it('eq of Maps with same content', async () => {
     expect(await evalQuery('{:a 1 :b 2} | eq {:a 1 :b 2}')).toBe(true);
   });

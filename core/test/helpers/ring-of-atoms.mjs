@@ -15,7 +15,7 @@ import { createSession, evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { printValue } from '../../src/print-value.mjs';
 import { isErrorValue } from '../../src/types.mjs';
-import { deepEqual } from '../../src/equality.mjs';
+import { compareValues } from '../../src/ordering.mjs';
 import { rootAddressesOf } from './root-addresses.mjs';
 import { expectedValueOf } from './expected-value.mjs';
 
@@ -37,7 +37,7 @@ export async function unbuiltOf(session, valuesBySource) {
   const unbuilt = [];
   for (const [source, value] of valuesBySource) {
     const taken = isErrorValue(value) ? (await session.evalCell('!| it', { initialPipeValue: value })).result : value;
-    if (!deepEqual((await session.evalCell('rebuilt', { initialPipeValue: taken })).result, taken)) unbuilt.push(source);
+    if (compareValues((await session.evalCell('rebuilt', { initialPipeValue: taken })).result, taken) !== 0) unbuilt.push(source);
   }
   return unbuilt;
 }

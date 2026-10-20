@@ -4,13 +4,14 @@
 // by value, a text by its code points, as a string counts them, regexes by
 // their text and then their flags, vectors element by element, a set as its
 // vector, maps by their keys and then their values, a desc by the reverse of
-// its payload's place, and a tagged value by its payload. `sort`, `min` and
-// `max` order by it, and so do the ordering predicates, whose inputs take a
-// value of the subject's kind [QSDSP#walk], [QSDSP#residence]. The set is made
-// here by it, and the set of the kinds a refusal expects.
+// its payload's place, and a tagged value, a failure raised among them, by its
+// tag and then its payload. `sort`, `min` and `max` order by it, and so do the
+// ordering predicates, whose inputs take a value of the subject's kind
+// [QSDSP#walk], [QSDSP#residence]; two values are equal where it ranks them
+// alike [QSORD#order]. The set is made here by it, and the set of the kinds a refusal expects.
 
 import {
-  isKeyword, isTag, isRegex, isPath, isDoc, isValueClass, typeOf, makeTag, stampTagHeader,
+  isKeyword, isTag, isRegex, isPath, isDoc, isErrorValue, isValueClass, typeOf, makeTag, stampTagHeader,
   TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, SET_TAG, ELISION_TAG, DESC_TAG, CORE_KIND
 } from './types.mjs';
 
@@ -45,6 +46,7 @@ function kindOf(value) {
   if (isTag(value)) return TAG_NAME_KIND;
   if (isPath(value)) return PATH_KIND;
   if (isDoc(value)) return DOC_KIND;
+  if (isErrorValue(value)) return TAGGED_KIND;
   const kind = typeOf(value);
   if (kind === CORE_KIND.vec) return VECTOR_KIND;
   if (kind === CORE_KIND.map) return MAP_KIND;
@@ -101,8 +103,7 @@ export function compareValues(a, b) {
 }
 
 // A set is the vector in the one order without duplicates under `::set`,
-// made here alone; the order ranks two values alike exactly when they are
-// equal [QSORD#set].
+// made here alone, a value held once where the order ranks two alike [QSORD#set].
 export function makeSet(elements) {
   const ordered = [...elements].sort(compareValues);
   const set = ordered.filter((element, index) => index === 0 || compareValues(ordered[index - 1], element) !== 0);
@@ -149,7 +150,7 @@ function compareKinded(leftKind, left, rightKind, right) {
     case DESC_KIND:
       return comparePayloads(right, left);
     default: {
-      const byTag = compareText(left[TAG_HEADER_SYMBOL].name, right[TAG_HEADER_SYMBOL].name);
+      const byTag = compareText(tagNameOf(left), tagNameOf(right));
       return byTag !== 0 ? byTag : comparePayloads(left, right);
     }
   }
@@ -192,7 +193,11 @@ function comparePayloads(leftTagged, rightTagged) {
   return compareKinded(leftKind, leftPayload, rightKind, rightPayload);
 }
 
+// A failure raised holds its tag and its facts, which rank as its payload.
+const tagNameOf = tagged => (isErrorValue(tagged) ? tagged.tag : tagged[TAG_HEADER_SYMBOL]).name;
+
 function payloadOf(tagged) {
+  if (isErrorValue(tagged)) return [tagged.facts, MAP_KIND];
   if (isValueClass(tagged, 'underTag')) return [tagged.payload, kindOf(tagged.payload)];
   return [tagged, coreKindOf(tagged)];
 }

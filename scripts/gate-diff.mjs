@@ -30,7 +30,7 @@ const task = new Set(optionOf('task', '').split(',').filter(Boolean));
 // the agents.
 const GATES = [
   /^core\/test\/unit\/conformance\.test\.mjs$/,
-  /^core\/src\/equality\.mjs$/,
+  /^core\/src\/ordering\.mjs$/,
   /^core\/test\/helpers\/expected-value\.mjs$/,
   /^docs\/spec\//,
   /^scripts\//,

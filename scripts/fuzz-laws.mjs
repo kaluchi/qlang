@@ -7,7 +7,7 @@
 
 import { evalQuery, printValue, langRuntime } from '../core/src/index.mjs';
 import { ROOT_KEY } from '../core/src/scope-keys.mjs';
-import { deepEqual } from '../core/src/equality.mjs';
+import { compareValues } from '../core/src/ordering.mjs';
 import { isErrorValue } from '../core/src/types.mjs';
 
 const variantsOfEachLaw = Number(process.argv[2] ?? 10);
@@ -58,7 +58,7 @@ async function breakOf(text) {
     counts.values++;
     const printed = printValue(answer);
     if (printed.includes('::elision')) return null;
-    return deepEqual(answer, await evalQuery(printed, scope)) ? null : `reads back as another value: ${printed.slice(0, 80)}`;
+    return compareValues(answer, await evalQuery(printed, scope)) === 0 ? null : `reads back as another value: ${printed.slice(0, 80)}`;
   } catch (thrown) {
     return `threw: ${String(thrown?.message ?? thrown).slice(0, 120)}`;
   }

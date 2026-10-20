@@ -137,7 +137,7 @@ async function applyFailTrack(state, step, at) {
   const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.descriptor));
   let atRest;
   try {
-    atRest = raised.tag === ERROR_TAG ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
+    atRest = raised.tag.name === ERROR_TAG.name ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
   } catch (caughtError) {
     atRest = errorOfThrow(caughtError, step, errorOfKind, state.scope);
   }

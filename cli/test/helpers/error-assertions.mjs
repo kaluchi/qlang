@@ -2,7 +2,7 @@
 //
 // A refusal reaches the query as an error value: its tag is the address
 // of what refused, `result !| type` answering
-// `::any/out/SubjectNotStringError` and the like, and its facts stand in
+// `::any/out/SubjectKindNotTakenError` and the like, and its facts stand in
 // the order the catalog declares them [QSERR#site]. A
 // refusal a site of a verb raised keeps the JavaScript instance it
 // was raised as in the opaque `originalError` slot, which a host

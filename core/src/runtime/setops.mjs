@@ -108,7 +108,7 @@ function foldOf(values, pair, refusals, readsEvery, state) {
   let folded = first;
   for (const [at, value] of values.entries()) {
     const read = beneathTags(value);
-    if ((readsEvery || at === 0) && !isSet(read) && !isMap(read)) throw refusingAPart(new refusals.ElementNotSetOrMapError({ actualValue: value }), at);
+    if ((readsEvery || at === 0) && !isSet(read) && !isMap(read)) throw refusingAPart(new refusals.ElementKindNotTakenError({ expected: kindsExpected('map', 'set'), actualValue: value }), at);
     if (at > 0) folded = pair(folded, read, refusals, at);
     const met = at === 0 || readsEvery || isSet(first) ? tally.meet(value) : null;
     if (met !== null) throw refusingAPart(pairRefused(met, value), at);
@@ -120,7 +120,7 @@ function foldOf(values, pair, refusals, readsEvery, state) {
 
 const VEC_UNION = {
   SubjectEmptyError: declareRefusal('vec/union/SubjectEmptyError'),
-  ElementNotSetOrMapError: declareRefusal('vec/union/ElementNotSetOrMapError')
+  ElementKindNotTakenError: declareRefusal('vec/union/ElementKindNotTakenError')
 };
 
 registerStateReader('vec/union', (vector, state) => foldOf(vector, unionPair, VEC_UNION, true, state));
@@ -133,7 +133,7 @@ const MapMinusKeysElementKindNotTakenError = declareRefusal('map/minus/keys/Elem
 
 const VEC_MINUS = {
   SubjectEmptyError: declareRefusal('vec/minus/SubjectEmptyError'),
-  ElementNotSetOrMapError: declareRefusal('vec/minus/ElementNotSetOrMapError'),
+  ElementKindNotTakenError: declareRefusal('vec/minus/ElementKindNotTakenError'),
   KeyKindNotTakenError: declareRefusal('vec/minus/KeyKindNotTakenError')
 };
 
@@ -147,7 +147,7 @@ const MapInterKeysElementKindNotTakenError = declareRefusal('map/inter/keys/Elem
 
 const VEC_INTER = {
   SubjectEmptyError: declareRefusal('vec/inter/SubjectEmptyError'),
-  ElementNotSetOrMapError: declareRefusal('vec/inter/ElementNotSetOrMapError'),
+  ElementKindNotTakenError: declareRefusal('vec/inter/ElementKindNotTakenError'),
   KeyKindNotTakenError: declareRefusal('vec/inter/KeyKindNotTakenError')
 };
 

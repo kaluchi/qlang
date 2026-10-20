@@ -107,6 +107,11 @@
 //       package writes, by name from a module no other door opens
 //       [QSWRK#tooling].
 //
+//   (20) A refusal names a kind only where its address names it, the label
+//       of its subject or the kind a conversion reads; any other refusal of
+//       a kind is named by the role of its holder, the kinds `:expected`
+//       [QSERR#site].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -120,6 +125,7 @@ import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
 import { kindsNamedForCommands } from './catalog-kinds.mjs';
+import { kindsNamedOffTheirAddress } from './refusal-kinds.mjs';
 import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
 import { readText, treeAt } from './tree-reads.mjs';
@@ -224,9 +230,9 @@ function scanForbiddenWords() {
 // A refusal's address is the one key the implementation and its page in the
 // catalog share: every declaration of a refusal and every recording of an
 // address outside one takes it as a literal, the path of the place that
-// refused and a last name ending in `Error`, `vec/sum/ElementNotNumberError`,
+// refused and a last name ending in `Error`, `vec/sum/ElementKindNotTakenError`,
 // and the constant that holds the class is named by the address without its
-// slashes, `VecSumElementNotNumberError`, so a grep for either finds the
+// slashes, `VecSumElementKindNotTakenError`, so a grep for either finds the
 // declaration, every throw and the page [QSERR#site]. A class declared by
 // `class Foo extends …` ends in `Error`; the abstract roots are the bases
 // every site extends.
@@ -285,6 +291,40 @@ function refusalsOffTheirAddress() {
     }
   }
   return violations;
+}
+
+// ── (20) A refusal names a kind only where its address names it ─
+//
+// The refusals the code declares and the pages of the catalog throw, read
+// against the nouns of the sources of the catalog, a defect of the runtime,
+// which no catch meets, outside [QSERR#site].
+
+const CATALOG_FOLDERS = ['core/lib/qlang', 'cli/lib/qlang'];
+
+function refusalAddresses() {
+  const addresses = [];
+  for (const filePath of walkRefusalScanRoots()) {
+    const text = readText(filePath);
+    const file = relative(repoRoot, filePath).split(sep).join('/');
+    for (const match of text.matchAll(/\bdeclareRefusal\(\s*'([^']+)'/g)) addresses.push({ address: match[1], file, line: text.slice(0, match.index).split('\n').length });
+  }
+  for (const folder of CATALOG_FOLDERS) {
+    for (const entry of readdirSync(join(repoRoot, folder)).filter(name => name.endsWith('.qlang'))) {
+      const file = `${folder}/${entry}`;
+      let declared = null;
+      readText(join(repoRoot, file)).split(/\r?\n/).forEach((text, index) => {
+        declared = text.match(/^:([A-Za-z][\w/]*)/)?.[1] ?? declared;
+        const thrown = text.match(/\|\s*throws :([\w/]+)/)?.[1];
+        if (thrown !== undefined && declared !== null && !declared.startsWith('builtin')) addresses.push({ address: `${declared}/${thrown}`, file, line: index + 1 });
+      });
+    }
+  }
+  return addresses;
+}
+
+function refusalsNamingKinds() {
+  const nouns = new Set(CATALOG_FOLDERS.flatMap(folder => readdirSync(join(repoRoot, folder)).filter(name => name.endsWith('.qlang')).map(name => name.slice(0, -'.qlang'.length).toLowerCase())));
+  return kindsNamedOffTheirAddress(refusalAddresses(), nouns);
 }
 
 // ── (3) Derivable tallies in markdown prose ────────────────────
@@ -848,6 +888,7 @@ function exportsNoHostReads() {
 const { text, failed } = verdictOf({
   forbidden: scanForbiddenWords(),
   refusalDeclarations: refusalsOffTheirAddress(),
+  kindNames: refusalsNamingKinds(),
   proseTallies: scanProseTallies(),
   workspaceRanges: rangesOffTheirSibling(),
   anchors: anchorsTheTreeLacks(),

@@ -7,7 +7,7 @@
 // [QSTXT#string], and a refusal names the verb that refused [QSERR#site].
 
 import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, typeOf, TagsInCommon, pairRefused } from '../types.mjs';
-import { compareValues, makeSet } from '../ordering.mjs';
+import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal, refusingAPart } from '../errors.mjs';
 import { registerPrimitive, registerStateReader, runs, folds, combines } from '../primitives.mjs';
 import { underSharedTags } from '../eval.mjs';
@@ -42,18 +42,18 @@ registerPrimitive('map/last', map => lastOf([...map.values()]));
 // The elements at each index of the vectors a vector or a set holds, as long
 // as the shortest, an element that is no vector refused at its index
 // [QSCOL#sequence], [QSORD#set].
-const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
-const SetZipElementNotVecError = declareRefusal('set/zip/ElementNotVecError');
-function columnsOf(vectors, ElementNotVecError) {
+const VecZipElementKindNotTakenError = declareRefusal('vec/zip/ElementKindNotTakenError');
+const SetZipElementKindNotTakenError = declareRefusal('set/zip/ElementKindNotTakenError');
+function columnsOf(vectors, ElementKindNotTakenError) {
   const columns = vectors.map(beneathTags);
   columns.forEach((column, index) => {
-    if (!Array.isArray(column)) throw refusingAPart(new ElementNotVecError({ actualValue: vectors[index] }), index);
+    if (!Array.isArray(column)) throw refusingAPart(new ElementKindNotTakenError({ expected: kindsExpected('vec'), actualValue: vectors[index] }), index);
   });
   const length = columns.length === 0 ? 0 : Math.min(...columns.map(column => column.length));
   return Array.from({ length }, (_, index) => columns.map(column => column[index]));
 }
-registerPrimitive('vec/zip', vectors => columnsOf(vectors, VecZipElementNotVecError));
-registerPrimitive('set/zip', vectors => columnsOf(vectors, SetZipElementNotVecError));
+registerPrimitive('vec/zip', vectors => columnsOf(vectors, VecZipElementKindNotTakenError));
+registerPrimitive('set/zip', vectors => columnsOf(vectors, SetZipElementKindNotTakenError));
 
 // ── sum and mean ───────────────────────────────────────────────
 
@@ -66,11 +66,11 @@ function numberBeneath(element) {
 
 // The tags of the numbers the elements hold, each handed to `take`, an element
 // refused where it stands for its kind first, then for its tags [QSCOL#sequence].
-function eachNumber(elements, ElementNotNumberError, take) {
+function eachNumber(elements, ElementKindNotTakenError, take) {
   const tally = new TagsInCommon();
   for (const [count, [at, element]] of elements.entries()) {
     const number = numberBeneath(element);
-    if (number === undefined) throw refusingAPart(new ElementNotNumberError({ actualValue: element }), at);
+    if (number === undefined) throw refusingAPart(new ElementKindNotTakenError({ expected: kindsExpected('number'), actualValue: element }), at);
     const met = tally.meet(element);
     if (met !== null) throw refusingAPart(pairRefused(met, element), at);
     take(number, count);
@@ -78,34 +78,34 @@ function eachNumber(elements, ElementNotNumberError, take) {
   return tally.tags;
 }
 
-function totalOf(elements, ElementNotNumberError, state) {
+function totalOf(elements, ElementKindNotTakenError, state) {
   let total = 0;
-  const tags = eachNumber(elements, ElementNotNumberError, number => { total += number; });
+  const tags = eachNumber(elements, ElementKindNotTakenError, number => { total += number; });
   return underSharedTags(total, tags, state);
 }
 
-const VecSumElementNotNumberError = declareRefusal('vec/sum/ElementNotNumberError');
-const MapSumElementNotNumberError = declareRefusal('map/sum/ElementNotNumberError');
-registerStateReader('vec/sum', (vector, state) => totalOf(entriesOf(vector), VecSumElementNotNumberError, state));
-registerStateReader('map/sum', (map, state) => totalOf(entriesOf(map), MapSumElementNotNumberError, state));
+const VecSumElementKindNotTakenError = declareRefusal('vec/sum/ElementKindNotTakenError');
+const MapSumElementKindNotTakenError = declareRefusal('map/sum/ElementKindNotTakenError');
+registerStateReader('vec/sum', (vector, state) => totalOf(entriesOf(vector), VecSumElementKindNotTakenError, state));
+registerStateReader('map/sum', (map, state) => totalOf(entriesOf(map), MapSumElementKindNotTakenError, state));
 
 // The mean of the numbers under the tags they share, a running mean whose
 // every step stays among the finite doubles; an empty container has none, and
 // answers null as `min` and `max` do [QSCOL#sequence].
-function meanOf(elements, ElementNotNumberError, state) {
+function meanOf(elements, ElementKindNotTakenError, state) {
   if (elements.length === 0) return NULL;
   let mean = 0;
-  const tags = eachNumber(elements, ElementNotNumberError, (number, count) => {
+  const tags = eachNumber(elements, ElementKindNotTakenError, (number, count) => {
     const gap = number - mean;
     mean += Number.isFinite(gap) ? gap / (count + 1) : number / (count + 1) - mean / (count + 1);
   });
   return underSharedTags(mean, tags, state);
 }
 
-const VecAvgElementNotNumberError = declareRefusal('vec/avg/ElementNotNumberError');
-const MapAvgElementNotNumberError = declareRefusal('map/avg/ElementNotNumberError');
-registerStateReader('vec/avg', (vector, state) => meanOf(entriesOf(vector), VecAvgElementNotNumberError, state));
-registerStateReader('map/avg', (map, state) => meanOf(entriesOf(map), MapAvgElementNotNumberError, state));
+const VecAvgElementKindNotTakenError = declareRefusal('vec/avg/ElementKindNotTakenError');
+const MapAvgElementKindNotTakenError = declareRefusal('map/avg/ElementKindNotTakenError');
+registerStateReader('vec/avg', (vector, state) => meanOf(entriesOf(vector), VecAvgElementKindNotTakenError, state));
+registerStateReader('map/avg', (map, state) => meanOf(entriesOf(map), MapAvgElementKindNotTakenError, state));
 
 // ── ranking ────────────────────────────────────────────────────
 
@@ -206,61 +206,61 @@ registerPrimitive('map/map', runs(['code'], async (map, code) => {
 // A predicate answers a boolean for each element or fails [QSCND#boolean]: the
 // error it answered is handed on at the place of the element [QSERR#trace], and
 // another answer is refused where the element stands.
-async function verdictOf(predicate, at, element, ConditionNotBooleanError) {
+async function verdictOf(predicate, at, element, ConditionKindNotTakenError) {
   const verdict = await predicate(element);
   if (isErrorValue(verdict)) return failedAt(predicate, verdict, at);
   const beneath = beneathTags(verdict);
   if (typeof beneath === 'boolean') return beneath;
-  throw refusingAPart(new ConditionNotBooleanError({ actualValue: verdict }), at);
+  throw refusingAPart(new ConditionKindNotTakenError({ expected: kindsExpected('boolean'), actualValue: verdict }), at);
 }
 
 // `filter` keeps the elements whose predicate answers true, and a map the
 // entries whose values do.
-async function keptElements(sequence, predicate, ConditionNotBooleanError) {
+async function keptElements(sequence, predicate, ConditionKindNotTakenError) {
   const kept = [];
   for (const [at, element] of entriesOf(sequence)) {
-    const verdict = await verdictOf(predicate, at, element, ConditionNotBooleanError);
+    const verdict = await verdictOf(predicate, at, element, ConditionKindNotTakenError);
     if (isErrorValue(verdict)) return verdict;
     if (verdict) kept.push(element);
   }
   return kept;
 }
 
-async function keptEntries(map, predicate, ConditionNotBooleanError) {
+async function keptEntries(map, predicate, ConditionKindNotTakenError) {
   const kept = new Map();
   for (const [key, value] of map) {
-    const verdict = await verdictOf(predicate, key, value, ConditionNotBooleanError);
+    const verdict = await verdictOf(predicate, key, value, ConditionKindNotTakenError);
     if (isErrorValue(verdict)) return verdict;
     if (verdict) kept.set(key, value);
   }
   return kept;
 }
 
-const VecFilterConditionNotBooleanError = declareRefusal('vec/filter/ConditionNotBooleanError');
-const MapFilterConditionNotBooleanError = declareRefusal('map/filter/ConditionNotBooleanError');
-registerPrimitive('vec/filter', runs(['predicate'], (vector, predicate) => keptElements(vector, predicate, VecFilterConditionNotBooleanError)));
-registerPrimitive('map/filter', runs(['predicate'], (map, predicate) => keptEntries(map, predicate, MapFilterConditionNotBooleanError)));
+const VecFilterConditionKindNotTakenError = declareRefusal('vec/filter/ConditionKindNotTakenError');
+const MapFilterConditionKindNotTakenError = declareRefusal('map/filter/ConditionKindNotTakenError');
+registerPrimitive('vec/filter', runs(['predicate'], (vector, predicate) => keptElements(vector, predicate, VecFilterConditionKindNotTakenError)));
+registerPrimitive('map/filter', runs(['predicate'], (map, predicate) => keptEntries(map, predicate, MapFilterConditionKindNotTakenError)));
 
 // Whether the predicate of every element answers true, the first false
 // answering for the call, and whether the predicate of any does, the
 // first true answering.
-async function firstVerdict(elements, predicate, decisive, ConditionNotBooleanError) {
+async function firstVerdict(elements, predicate, decisive, ConditionKindNotTakenError) {
   for (const [at, element] of elements) {
-    const verdict = await verdictOf(predicate, at, element, ConditionNotBooleanError);
+    const verdict = await verdictOf(predicate, at, element, ConditionKindNotTakenError);
     if (isErrorValue(verdict) || verdict === decisive) return verdict;
   }
   return !decisive;
 }
 
-const VecEveryConditionNotBooleanError = declareRefusal('vec/every/ConditionNotBooleanError');
-const MapEveryConditionNotBooleanError = declareRefusal('map/every/ConditionNotBooleanError');
-registerPrimitive('vec/every', runs(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, false, VecEveryConditionNotBooleanError)));
-registerPrimitive('map/every', runs(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, false, MapEveryConditionNotBooleanError)));
+const VecEveryConditionKindNotTakenError = declareRefusal('vec/every/ConditionKindNotTakenError');
+const MapEveryConditionKindNotTakenError = declareRefusal('map/every/ConditionKindNotTakenError');
+registerPrimitive('vec/every', runs(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, false, VecEveryConditionKindNotTakenError)));
+registerPrimitive('map/every', runs(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, false, MapEveryConditionKindNotTakenError)));
 
-const VecAnyConditionNotBooleanError = declareRefusal('vec/any/ConditionNotBooleanError');
-const MapAnyConditionNotBooleanError = declareRefusal('map/any/ConditionNotBooleanError');
-registerPrimitive('vec/any', runs(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, true, VecAnyConditionNotBooleanError)));
-registerPrimitive('map/any', runs(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, true, MapAnyConditionNotBooleanError)));
+const VecAnyConditionKindNotTakenError = declareRefusal('vec/any/ConditionKindNotTakenError');
+const MapAnyConditionKindNotTakenError = declareRefusal('map/any/ConditionKindNotTakenError');
+registerPrimitive('vec/any', runs(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, true, VecAnyConditionKindNotTakenError)));
+registerPrimitive('map/any', runs(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, true, MapAnyConditionKindNotTakenError)));
 
 // ── partitions ─────────────────────────────────────────────────
 
@@ -365,13 +365,13 @@ registerPrimitive('vec/concat', combines((vector, vectors) => [...vector, ...vec
 
 // An element `join` writes is a string or a keyword, written as text, and the
 // text stands under the tags its strings share [QSTXT#string], [QSCOL#sequence].
-const VecJoinElementNotStringOrKeywordError = declareRefusal('vec/join/ElementNotStringOrKeywordError');
+const VecJoinElementKindNotTakenError = declareRefusal('vec/join/ElementKindNotTakenError');
 
 registerStateReader('vec/join', (subject, separator, state) => {
   const tally = new TagsInCommon();
   const texts = subject.map((element, at) => {
     const text = beneathTags(element);
-    if (typeof text !== 'string' && !isKeyword(text)) throw refusingAPart(new VecJoinElementNotStringOrKeywordError({ actualValue: element }), at);
+    if (typeof text !== 'string' && !isKeyword(text)) throw refusingAPart(new VecJoinElementKindNotTakenError({ expected: kindsExpected('keyword', 'string'), actualValue: element }), at);
     const met = isKeyword(text) ? null : tally.meet(element);
     if (met !== null) throw refusingAPart(pairRefused(met, element), at);
     return writtenAsText(text);

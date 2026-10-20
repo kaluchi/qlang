@@ -1,6 +1,6 @@
-{"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(it) !| get [~(type) ~(trace | last | place)]","expect":"[::vec/every/ConditionNotBooleanError /1]"}
+{"decision":"D389","name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(it) !| get [~(type) ~(trace | last | place)]","expect":"[::vec/every/ConditionKindNotTakenError /1]"}
 {"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(it)","expect":"false"}
-{"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(it) !| get [~(type) ~(trace | last | place)]","expect":"[::vec/any/ConditionNotBooleanError /1]"}
+{"decision":"D389","name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(it) !| get [~(type) ~(trace | last | place)]","expect":"[::vec/any/ConditionKindNotTakenError /1]"}
 {"name":"at-least-one-satisfies","query":"[1 2 3] | any ~(gt 2)","expect":"true"}
 {"name":"any-answers-false-where-no-element-meets-the-predicate","query":"[1 2 3] | any ~(gt 99)","expect":"false"}
 {"name":"any-answers-true-where-the-first-element-meets-the-predicate","query":"[5 1 2] | any ~(gt 2)","expect":"true"}
@@ -40,5 +40,5 @@
 {"name":"every-over-a-set-answers-false-where-one-element-does-not-meet-the-predicate","query":"#[2 4 -1] | every ~(gt 0)","expect":"false"}
 {"name":"every-over-a-set-runs-a-verb-the-reader-declares-in-its-predicate","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
 {"name":"every-over-a-set-takes-a-verb-handed-on-as-code","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
-{"name":"a-condition-over-a-map-that-is-no-boolean-is-refused-at-its-key","query":"{:a true :b 1} | every ~(it) !| get [~(type) ~(trace | last | place)]","expect":"[::map/every/ConditionNotBooleanError /b]"}
+{"decision":"D389","name":"a-condition-over-a-map-that-is-no-boolean-is-refused-at-its-key","query":"{:a true :b 1} | every ~(it) !| get [~(type) ~(trace | last | place)]","expect":"[::map/every/ConditionKindNotTakenError /b]"}
 {"name":"a-predicate-that-fails-fails-the-quantifier","query":"[1 2] | any ~(div 0) !| type","expect":"::number/div/divisor/ZeroError"}

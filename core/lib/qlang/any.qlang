@@ -895,7 +895,7 @@
             and no default is given.
         ~~|
         ::any
-    | throws :ConditionNotBooleanError
+    | throws :ConditionKindNotTakenError
         |~~ Every predicate of `cond` answers a boolean; `:index` names
             the predicate that answered another kind by its index among the
             args, from zero.
@@ -925,11 +925,11 @@
     | proves :clauses/NoBranchesError/refusesALoneDefault
         |~~ A lone default is no pair. ~~|
         ~(5 | cond ~("only") !| type | eq ::any/cond/clauses/NoBranchesError)
-    | proves :ConditionNotBooleanError/refusesANumberAnswer
+    | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at its index. ~~|
         ~(5 | cond ~(1) ~("yes")
           !| get [~(type) /index /actualType]
-          |  eq [::any/cond/ConditionNotBooleanError 0 ::number])
+          |  eq [::any/cond/ConditionKindNotTakenError 0 ::number])
     | impl ::builtin{}
 
 :any/apply
@@ -1313,7 +1313,7 @@
         |~~ The anchor is a keyword, a vector, a set or null, the last
             names of nodes under the subject, `::qlang | doc :pipeline`.
         ~~|
-    | throws :anchor/ElementNotKeywordError
+    | throws :anchor/ElementKindNotTakenError
         |~~ An anchor `doc` reads in turn is no keyword: each names a node
             by a keyword, `doc [:take :count]`.
         ~~|
@@ -1391,11 +1391,11 @@
             it.
         ~~|
         ~(::qlang | doc :pipelin !| get /nearest | eq [:pipeline])
-    | proves :anchor/ElementNotKeywordError/refusesANumberAmongTheAnchors
+    | proves :anchor/ElementKindNotTakenError/refusesANumberAmongTheAnchors
         |~~ A number among the anchors read in turn is refused at its
             index.
         ~~|
-        ~(::vec | doc [:take 1] !| get [~(type) /index] | eq [::any/doc/anchor/ElementNotKeywordError 1])
+        ~(::vec | doc [:take 1] !| get [~(type) /index] | eq [::any/doc/anchor/ElementKindNotTakenError 1])
     | proves :ArgsBeyondInputsError/refusesTwoAnchors
         |~~ Two anchors given apart are refused under the verb. ~~|
         ~(::vec | doc :take :count !| type | eq ::any/doc/ArgsBeyondInputsError)
@@ -2049,7 +2049,7 @@
             held.
         ~~|
     | returns |~~ Whether every condition holds. ~~| ::boolean
-    | throws :ConditionNotBooleanError
+    | throws :ConditionKindNotTakenError
         |~~ A quote or a path among the conditions of `allOf` answers a
             boolean when it runs; `:index` names, from zero, the condition
             whose code answered another kind, and a quote that reads a
@@ -2093,12 +2093,12 @@
         ~({:age 15} | allOf (get /age)
           !| get [~(type) /index /actualType]
           |  eq [::any/allOf/conditions/ElementKindNotTakenError 0 ::number])
-    | proves :ConditionNotBooleanError/refusesAQuoteThatAnswersAString
+    | proves :ConditionKindNotTakenError/refusesAQuoteThatAnswersAString
         |~~ A quote that answers a string is refused at its index. ~~|
         ~({:email "a@b.org"} | allOf true /email
           !| get [~(type) /index /actualType]
-          |  eq [::any/allOf/ConditionNotBooleanError 1 ::string])
-    | proves :ConditionNotBooleanError/holdsAQuoteThatCompares
+          |  eq [::any/allOf/ConditionKindNotTakenError 1 ::string])
+    | proves :ConditionKindNotTakenError/holdsAQuoteThatCompares
         |~~ A quote that compares the field it reads answers a condition.
         ~~|
         ~({:email "a@b.org"} | allOf true ~(get /email | ne null))
@@ -2145,7 +2145,7 @@
             held.
         ~~|
     | returns |~~ Whether some condition holds. ~~| ::boolean
-    | throws :ConditionNotBooleanError
+    | throws :ConditionKindNotTakenError
         |~~ A quote or a path among the conditions of `anyOf` answers a
             boolean when it runs; `:index` names, from zero, the condition
             whose code answered another kind, and a quote that reads a
@@ -2188,12 +2188,12 @@
         ~({:a 1} | anyOf (get /a)
           !| get [~(type) /index /actualType]
           |  eq [::any/anyOf/conditions/ElementKindNotTakenError 0 ::number])
-    | proves :ConditionNotBooleanError/refusesAQuoteThatAnswersANumber
+    | proves :ConditionKindNotTakenError/refusesAQuoteThatAnswersANumber
         |~~ A quote that answers a number is refused at its index. ~~|
         ~({:score 99} | anyOf false /score
           !| get [~(type) /index /actualType]
-          |  eq [::any/anyOf/ConditionNotBooleanError 1 ::number])
-    | proves :ConditionNotBooleanError/holdsAQuoteThatCompares
+          |  eq [::any/anyOf/ConditionKindNotTakenError 1 ::number])
+    | proves :ConditionKindNotTakenError/holdsAQuoteThatCompares
         |~~ A quote that compares the field it reads answers a condition.
         ~~|
         ~({:score 99} | anyOf false ~(get /score | gt 95))

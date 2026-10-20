@@ -18,6 +18,8 @@ const SECTIONS = {
     'a text says what holds, not when it changed, and leaves no marker of work undone [QSWRK#tooling].'),
   refusalDeclarations: found => section('Refusals not declared by their address', found, v => `  ${v.file}:${v.line}  ${v.problem}\n`,
     'the address is the key the implementation and the page of the catalog share [QSERR#site].'),
+  kindNames: found => section('Refusals that name a kind their address does not', found, v => `  ${v.file}:${v.line}  ${v.address} names ${v.kinds.map(kind => `::${kind}`).join(', ')}\n`,
+    'a refusal is public, and a kind its name carries breaks the name when the holder takes another: name it by the role of its holder, `…/ElementKindNotTakenError`, `…/ConditionKindNotTakenError`, the kinds the fact `:expected` [QSERR#site].'),
   proseTallies: found => [`\nDerivable tallies in prose (${found.length}):\n`, ...found.map(v => `  ${v.file}:${v.line}  [tally: '${v.tally}']  ${v.snippet}\n`
     + '    state the invariant and name the generator (npm test / the manifest / the catalog) — the number belongs to the run, not to the prose [QSWRK#tooling].\n')].join(''),
   workspaceRanges: found => [`\nInternal workspace dependency ranges (${found.length}):\n`, ...found.map(v => `  ${v.file}  ${v.dependencyMap}.${v.depName}: '${v.declaredRange}' — expected '${v.expectedRange}'\n`

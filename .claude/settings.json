@@ -9,5 +9,19 @@
       "Bash(npm run test:coverage)",
       "Bash(npm run test:integration)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/commit-hook.mjs\" --run",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
   }
 }

@@ -12,6 +12,7 @@ import { makeSet } from '../../src/ordering.mjs';
 import { platformLocator, LANGUAGE_SOURCES } from '../../src/runtime/bootstrap.mjs';
 import { evalQuery } from '../../src/session.mjs';
 import { kindsNamedForCommands } from '../../../scripts/catalog-kinds.mjs';
+import { kindsNamedOffTheirAddress } from '../../../scripts/refusal-kinds.mjs';
 import { verdictOf } from '../../../scripts/conventions-verdict.mjs';
 
 describe('the sources of the language', () => {
@@ -61,6 +62,34 @@ describe('no kind of the catalog bears the name of a command of a chain', () => 
   });
 });
 
+// A refusal is public, so its name carries a kind only where its address
+// names it, which the check of the conventions holds over the code and the
+// catalog [QSERR#site].
+describe('a refusal names a kind only where its address names it', () => {
+  const nouns = new Set(['boolean', 'keyword', 'map', 'number', 'set', 'string', 'vec']);
+
+  it('finds a kind and a list of kinds the address does not name', () => {
+    const refusals = [{ address: 'vec/join/ElementNotStringOrKeywordError' }, { address: 'vec/sum/ElementNotNumberError' }, { address: 'vec/filter/ConditionNotBooleanError' }];
+    expect(kindsNamedOffTheirAddress(refusals, nouns)).toEqual([
+      { address: 'vec/join/ElementNotStringOrKeywordError', kinds: ['string', 'keyword'] },
+      { address: 'vec/sum/ElementNotNumberError', kinds: ['number'] },
+      { address: 'vec/filter/ConditionNotBooleanError', kinds: ['boolean'] }
+    ]);
+  });
+
+  it('leaves the label of a subject, the kind a conversion reads, a word of no kind and a name by the role', () => {
+    const refusals = [{ address: 'number/add/SubjectNotNumberError' }, { address: 'string/toNumber/TextNotNumberError' }, { address: 'vec/toMap/ElementNotPairError' }, { address: 'vec/sum/ElementKindNotTakenError' }];
+    expect(kindsNamedOffTheirAddress(refusals, nouns)).toEqual([]);
+  });
+
+  it('fails the check of the conventions on such a refusal and names it, and passes on none [QSWRK#tooling]', () => {
+    expect(verdictOf({ kindNames: [] })).toEqual({ text: 'check:conventions — OK\n', failed: false });
+    const { text, failed } = verdictOf({ kindNames: [{ file: 'core/src/runtime/sequence.mjs', line: 9, address: 'vec/sum/ElementNotNumberError', kinds: ['number'] }] });
+    expect(failed).toBe(true);
+    expect(text).toContain('core/src/runtime/sequence.mjs:9  vec/sum/ElementNotNumberError names ::number');
+  });
+});
+
 describe('the verbs of the language reach their primitives', () => {
 
   it('spot-check — :add is a function under ::number whose recipe a primitive answers [QSBLD#input], [QSBLD#fn]', async () => {
@@ -75,7 +104,7 @@ describe('the verbs of the language reach their primitives', () => {
 
   it('spot-check — filter takes its predicate as an input of the kinds of a quote and a path, on each kind that answers it [QSSLF#catalog], [QSBLD#fn]', async () => {
     const { evalQuery } = await import('../../src/session.mjs');
-    expect(await evalQuery('::map/filter | manifest')).toEqual(makeSet([makeTag('map/filter/ConditionNotBooleanError'), makeTag('map/filter/answer'), makeTag('map/filter/predicate')]));
+    expect(await evalQuery('::map/filter | manifest')).toEqual(makeSet([makeTag('map/filter/ConditionKindNotTakenError'), makeTag('map/filter/answer'), makeTag('map/filter/predicate')]));
     expect(await evalQuery('[::vec/filter ::map/filter] | map ~(binding | get /value | inputs | map /kinds) | print')).toBe('[[#[::path ::quote]] [#[::path ::quote]]]');
   });
 });

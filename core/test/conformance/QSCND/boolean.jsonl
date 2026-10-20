@@ -19,6 +19,6 @@
 {"name":"if-takes-either-condition-by-anyOf","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
 {"name":"filter-by-allOf-of-two-negations-keeps-the-strings-equal-to-neither","query":"\"a,b,c,d\" | split \",\" | filter ~(allOf (eq \"a\" | not) (eq \"c\" | not))","expect":"[\"b\" \"d\"]"}
 {"name":"allOf-takes-one-condition-at-least","query":"5 | allOf !| type","expect":"::any/allOf/conditions/EmptyError"}
-{"name":"a-condition-of-allOf-answers-a-boolean","query":"5 | allOf ~(1) !| type","expect":"::any/allOf/ConditionNotBooleanError"}
+{"decision":"D389","name":"a-condition-of-allOf-answers-a-boolean","query":"5 | allOf ~(1) !| type","expect":"::any/allOf/ConditionKindNotTakenError"}
 {"name":"a-path-is-a-condition-of-allOf","query":"{:a true :b true} | allOf /a /b","expect":"true"}
 {"name":"a-failure-computed-at-the-call-is-refused-before-the-kinds-of-the-conditions","query":"get [~(5 | allOf 3 true !| get /index) ~(5 | allOf 3 (1 | div 0) !| get /index)]","expect":"[0 1]"}

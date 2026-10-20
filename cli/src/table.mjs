@@ -2,10 +2,10 @@
 // source declares under `::vec` [QSDSP#residence], taking the vector the
 // walk served alone [QSQUO#modifier].
 
-import { printValue } from '@kaluchi/qlang-core';
+import { kindsExpected, printValue } from '@kaluchi/qlang-core';
 import { declareRefusal, refusingAPart } from '@kaluchi/qlang-core/errors';
 
-const VecTableRowNotMapError     = declareRefusal('vec/table/RowNotMapError');
+const VecTableRowKindNotTakenError     = declareRefusal('vec/table/RowKindNotTakenError');
 
 // A cell is a view at the boundary: a String prints bare, null as an
 // empty cell, and every other value as its literal on one line.
@@ -28,7 +28,7 @@ function columnOrderOf(rows) {
 function table(subject) {
   if (subject.length === 0) return '(empty)';
   subject.forEach((row, rowIndex) => {
-    if (!(row instanceof Map)) throw refusingAPart(new VecTableRowNotMapError({ actualValue: row }), rowIndex);
+    if (!(row instanceof Map)) throw refusingAPart(new VecTableRowKindNotTakenError({ expected: kindsExpected('map'), actualValue: row }), rowIndex);
   });
   const columnNames = columnOrderOf(subject);
   const widths = columnNames.map(columnName => columnName.length);

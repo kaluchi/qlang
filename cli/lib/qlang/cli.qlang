@@ -91,7 +91,7 @@
             made text first, `out json` or `out print`.
         ~~|
     | returns |~~ The subject as it came. ~~| ::any
-    | throws :SubjectNotStringError
+    | throws :SubjectKindNotTakenError
         |~~ `out` alone writes its subject, a string, as a line; another
             value is written as the text the call computes from it,
             `42 | out json` or `{:x 1} | out print`.
@@ -101,9 +101,9 @@
             `"hi" | out`; texts are joined first,
             `out (["a" "b"] | join "")`.
         ~~|
-    | proves :SubjectNotStringError/refusesANumber
+    | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `out` writes alone. ~~|
-        ~(42 | out !| type | eq ::any/out/SubjectNotStringError)
+        ~(42 | out !| get [~(type) /expected] | eq [::any/out/SubjectKindNotTakenError #[::string]])
     | proves :text/KindNotTakenError/refusesANumber
         |~~ A number is no text to write. ~~|
         ~("hi" | out 5 !| type | eq ::any/out/text/KindNotTakenError)
@@ -133,7 +133,7 @@
         |~~ A text that is no string is refused. ~~|
         ~(5 | err 7 !| type | eq ::any/err/text/KindNotTakenError)
     | returns |~~ The subject as it came. ~~| ::any
-    | throws :SubjectNotStringError
+    | throws :SubjectKindNotTakenError
         |~~ `err` alone writes its subject, a string, as a line on stderr;
             another value is written as the text the call computes from
             it, `err json` or `err print`.
@@ -143,9 +143,9 @@
             `"hi" | err`; texts are joined first,
             `err (["a" "b"] | join "")`.
         ~~|
-    | proves :SubjectNotStringError/refusesANumber
+    | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `err` writes alone. ~~|
-        ~(42 | err !| type | eq ::any/err/SubjectNotStringError)
+        ~(42 | err !| get [~(type) /expected] | eq [::any/err/SubjectKindNotTakenError #[::string]])
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
         ~("hi" | err "a" "b" !| type | eq ::any/err/ArgsBeyondInputsError)
@@ -194,7 +194,7 @@
         |~~ `table` draws a vector of maps; a single map goes in a vector
             first, `{:name "alice"} | get [~(it)] | table`.
         ~~|
-    | throws :RowNotMapError
+    | throws :RowKindNotTakenError
         |~~ Every row of `table` is a map, its keys the columns; the place
             of its frame names the first that is not.
         ~~|
@@ -216,9 +216,9 @@
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of rows. ~~|
         ~(42 | table !| get [~(type) /actualType] | eq [::vec/table/SubjectNotVecError ::number])
-    | proves :RowNotMapError/refusesARowThatIsNoMap
+    | proves :RowKindNotTakenError/refusesARowThatIsNoMap
         |~~ A row that is no map is refused at its index. ~~|
-        ~([42 "hello"] | table !| get [~(type) ~(trace | last | place) /actualType]
-          | eq [::vec/table/RowNotMapError /0 ::number])
+        ~([42 "hello"] | table !| get [~(type) ~(trace | last | place) /actualType /expected]
+          | eq [::vec/table/RowKindNotTakenError /0 ::number #[::map]])
     | impl ::builtin{}
 

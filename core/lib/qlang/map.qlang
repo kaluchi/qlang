@@ -944,7 +944,7 @@
         ~~|
     | returns
         |~~ The entries of both maps, the other winning a key both hold,
-            under the tags of the subject.
+            under the tags they share.
         ~~|
         ::map
     | proves :letsTheOtherWin
@@ -982,7 +982,7 @@
         ~~|
     | returns
         |~~ The entries of both maps, the other winning a key both hold,
-            under the tags of the subject.
+            under the tags they share.
         ~~|
         ::map
     | proves :answersAsUnion

@@ -20,7 +20,8 @@
       condition; `throws` a refusal and its page; `carries` a fact a
       refusal carries, its page and its kinds; `proves` a law, its page and
       its query; and `impl ::builtin{}` the constructor of a kind of the
-      core. A value put under a kind holds the value of the kinds of its
+      core. Each command hands what it is written with to the chain, which
+      holds it as it holds the literal. A value put under a kind holds the value of the kinds of its
       payload, each field read and held, and the invariants of the value,
       each refusal named under the kind, `::Box/w/KindNotTakenError`: the
       kind attaches the tag to the payload or refuses it, and builds no
@@ -51,17 +52,19 @@
         ~~|
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a kind is a command the chain takes,
-            written with the args its rules take: `wraps` a page and kinds,
-            `reads` a name, a page, a place and kinds, `holds` a name, a
-            page and a condition, `throws` a name and a page, `carries` a
-            name, a page and kinds, `tells` a name, a page and kinds, and `proves`
-            a name, a page and a query. The name of a field and of a page is
-            one segment, beside `payload`, `construct` and the words of a
-            literal; the name of a refusal, a fact and a law is read as a
-            tag; a page is a doc, a place a path or a quote, and kinds a
-            tag, a set of one tag or more, `wraps |~~ w ~~| #[]` naming
-            none, or a vector of one of them for the kinds of each element.
+            written with the objects the page of its verb names in their
+            order, `::kind/reads | doc` those of `reads`, whether the verb
+            wrote it or the literal: `:command` holds the command as
+            written, `:index` the place of the object refused, from zero, or
+            of the first left out, and `:actualValue` the object.
+            ::link~(::kind/wraps | doc) ::link~(::kind/reads | doc)
+            ::link~(::kind/tells | doc) ::link~(::kind/carries | doc)
+            ::link~(::kind/holds | doc) ::link~(::kind/throws | doc)
+            ::link~(::kind/proves | doc)
         ~~|
+    | carries :CommandNotTakenError/command
+        |~~ The command as written, a quote of its step. ~~|
+        ::quote
     | throws :NameDeclaredTwiceError
         |~~ A name of a kind is declared once: the payload, each field,
             refusal, fact, invariant and law by its name, and an invariant
@@ -84,10 +87,11 @@
             `carries :TooWideError/w …`.
         ~~|
     | throws :ConstructorNotBuiltinError
-        |~~ The second of the pair is the constructor a host hands a kind
-            of the core, `::builtin{}`, or null: a kind attaches its tag by
-            its commands, and code that would build another value from the
-            payload has no place in it.
+        |~~ The constructor of a kind is the one a host hands a kind of the
+            core, `::builtin{}`, or null, whether `impl` gives it or the
+            literal writes it: a kind attaches its tag by its commands, and
+            code that would build another value from the payload has no
+            place in it.
         ~~|
     | proves :isBuiltByCommands
         |~~ A kind is built from the noun. ~~|
@@ -196,6 +200,11 @@
     | proves :PayloadNotPairError/refusesCommandsThatAreNoQuote
         |~~ The commands of a chain are a quote. ~~|
         ~(::kind[[] null] !| type | eq ::kind/PayloadNotPairError)
+    | proves :CommandNotTakenError/refusesACommandItsVerbWrites
+        |~~ A command its verb writes with what the chain does not take is
+            refused as the literal's is, the command its `:actualValue`.
+        ~~|
+        ~(::kind | reads 5 |~~ x ~~| /x !| get [~(type) /command /index /actualValue] | eq [::kind/CommandNotTakenError ~(reads 5 |~~ x ~~| /x) 0 5])
     | proves :CommandNotTakenError/refusesAStepThatIsNoCommand
         |~~ A step of a recipe is no command of a kind. ~~|
         ~(::kind[~(add 1) null] !| type | eq ::kind/CommandNotTakenError)
@@ -215,13 +224,11 @@
         |~~ A place is a path or a quote. ~~|
         ~(::kind[~(reads :w |~~ A w. ~~| 0) null] !| type | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesAWordOfALiteralAsAField
-        |~~ A word of a literal is no field, which the verb `reads` takes
-            as a keyword and the rules of the chain refuse.
-        ~~|
+        |~~ A word of a literal is no field, which the chain refuses. ~~|
         ~(::kind | reads :null |~~ Nothing. ~~| /n !| type | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesAnEmptySetOfKindsOfThePayload
-        |~~ The payload names one kind at least, which the verb `wraps`
-            takes as a set and the rules of the chain refuse empty.
+        |~~ The payload names one kind at least, a set of none refused by
+            the chain.
         ~~|
         ~(::kind | wraps |~~ w ~~| #[] !| type | eq ::kind/CommandNotTakenError)
     | proves :NameDeclaredTwiceError/refusesTwoFieldsOfOneName
@@ -257,19 +264,13 @@
       each element, and a payload that is no vector is refused.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :page |~~ The page of the payload. ~~| /0 ::doc
-    | proves :page/KindNotTakenError/refusesANumber
-        |~~ A page that is no doc is refused. ~~|
-        ~(::kind | wraps 5 ::number !| type | eq ::kind/wraps/page/KindNotTakenError)
-    | takes :kinds
-        |~~ The kinds of the payload, a tag or a set of tags, or a vector
-            of one of them for the kinds of each element; any value where
-            none is given.
+    | takes :objects
+        |~~ The objects of the command as written: the page of the payload, a
+            doc, and its kinds, a tag or a set of one tag or more, or a vector of
+            one of them for the kinds of each element, any value where none is
+            written.
         ~~|
-        ~(query /1 null) #[::null ::set ::tag ::vec]
-    | proves :kinds/KindNotTakenError/refusesANumber
-        |~~ Kinds that are no tag and no set of tags are refused. ~~|
-        ~(::kind | wraps |~~ p ~~| 5 !| type | eq ::kind/wraps/kinds/KindNotTakenError)
+        ~(it)
     | returns |~~ The kind with its payload. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `wraps` names the payload of the noun's kind,
@@ -300,35 +301,14 @@
       refused under the field. A field is no verb: `get` reads its place.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :name
-        |~~ The name of the field, its node under the kind. ~~|
-        /0 ::keyword
-    | proves :name/KindNotTakenError/refusesANumber
-        |~~ A name that is no keyword is refused. ~~|
-        ~(::kind | reads 5 |~~ p ~~| /x ::number !| type | eq ::kind/reads/name/KindNotTakenError)
-    | takes :page |~~ The page of the field. ~~| /1 ::doc
-    | proves :page/KindNotTakenError/refusesANumber
-        |~~ A page that is no doc is refused. ~~|
-        ~(::kind | reads :x 5 /x ::number !| type | eq ::kind/reads/page/KindNotTakenError)
-    | takes :place
-        |~~ The place of the payload the field reads, a path or a quote. ~~|
-        /2 #[::path ::quote]
-    | throws :place/KindNotTakenError
-        |~~ The place is a path, `/w`, or a quote that reads the payload,
-            `~(query /h 1)`.
+    | takes :objects
+        |~~ The objects of the command as written: the name of the field, a
+            keyword of one segment, none of `payload`, `construct` and the words
+            of a literal; its page, a doc; the place of the payload it reads, a
+            path or a quote; and its kinds, as `wraps` writes them, any value
+            where none is written.
         ~~|
-    | proves :place/KindNotTakenError/refusesANumber
-        |~~ A place that is no path and no quote is refused. ~~|
-        ~(::kind | reads :x |~~ p ~~| 5 ::number !| type | eq ::kind/reads/place/KindNotTakenError)
-    | takes :kinds
-        |~~ The kinds the field holds, a tag or a set of tags, or a vector
-            of one of them for the kinds of each element; any value where
-            none is given.
-        ~~|
-        ~(query /3 null) #[::null ::set ::tag ::vec]
-    | proves :kinds/KindNotTakenError/refusesANumber
-        |~~ Kinds that are no tag and no set of tags are refused. ~~|
-        ~(::kind | reads :x |~~ p ~~| /x 5 !| type | eq ::kind/reads/kinds/KindNotTakenError)
+        ~(it)
     | returns |~~ The kind with the field after the ones it read. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `reads` builds from the noun, `::kind | reads …`, or a kind. ~~|
@@ -359,22 +339,13 @@
       under its name lies under it.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :name |~~ The name of the page. ~~| /0 ::keyword
-    | proves :name/KindNotTakenError/refusesANumber
-        |~~ A name that is no keyword is refused. ~~|
-        ~(::kind | tells 5 |~~ p ~~| ::number !| type | eq ::kind/tells/name/KindNotTakenError)
-    | takes :page |~~ The page told. ~~| /1 ::doc
-    | proves :page/KindNotTakenError/refusesANumber
-        |~~ A page that is no doc is refused. ~~|
-        ~(::kind | tells :x 5 ::number !| type | eq ::kind/tells/page/KindNotTakenError)
-    | takes :kinds
-        |~~ The kinds the page tells of, a tag or a set of tags; none
-            where none is given.
+    | takes :objects
+        |~~ The objects of the command as written: the name of the page, a
+            keyword of one segment, none of `payload`, `construct` and the words
+            of a literal; the page told, a doc; and the kinds it tells of, a tag
+            or a set of one tag or more, none where none is written.
         ~~|
-        ~(query /2 null) #[::null ::set ::tag]
-    | proves :kinds/KindNotTakenError/refusesANumber
-        |~~ Kinds that are no tag and no set of tags are refused. ~~|
-        ~(::kind | tells :x |~~ p ~~| 5 !| type | eq ::kind/tells/kinds/KindNotTakenError)
+        ~(it)
     | returns |~~ The kind with the page. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `tells` writes a page of the noun's kind, `::kind | tells …`,
@@ -407,22 +378,14 @@
       error may carry.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :name |~~ The name of the fact. ~~| /0 ::keyword
-    | proves :name/KindNotTakenError/refusesANumber
-        |~~ A name that is no keyword is refused. ~~|
-        ~(::kind | carries 5 |~~ p ~~| ::number !| type | eq ::kind/carries/name/KindNotTakenError)
-    | takes :page |~~ The page of the fact. ~~| /1 ::doc
-    | proves :page/KindNotTakenError/refusesANumber
-        |~~ A page that is no doc is refused. ~~|
-        ~(::kind | carries :x 5 ::number !| type | eq ::kind/carries/page/KindNotTakenError)
-    | takes :kinds
-        |~~ The kinds of the fact, a tag or a set of tags; any value where
-            none is given.
+    | takes :objects
+        |~~ The objects of the command as written: the name of the fact, a
+            keyword read as a tag, under a name declared before it where it is
+            written with a path and else a fact of the payload; its page, a doc;
+            and its kinds, a tag or a set of one tag or more, any value where
+            none is written.
         ~~|
-        ~(query /2 null) #[::null ::set ::tag]
-    | proves :kinds/KindNotTakenError/refusesANumber
-        |~~ Kinds that are no tag and no set of tags are refused. ~~|
-        ~(::kind | carries :x |~~ p ~~| 5 !| type | eq ::kind/carries/kinds/KindNotTakenError)
+        ~(it)
     | returns |~~ The kind with the fact. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `carries` names a fact of the noun's kind,
@@ -451,22 +414,13 @@
       ::link~(::invariant | doc)
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :name
-        |~~ The name of the refusal of a value that breaks it. ~~|
-        /0 ::keyword
-    | proves :name/KindNotTakenError/refusesANumber
-        |~~ A name that is no keyword is refused. ~~|
-        ~(::kind | holds 5 |~~ p ~~| ~(true) !| type | eq ::kind/holds/name/KindNotTakenError)
-    | takes :page |~~ The page of the refusal. ~~| /1 ::doc
-    | proves :page/KindNotTakenError/refusesANumber
-        |~~ A page that is no doc is refused. ~~|
-        ~(::kind | holds :YError 5 ~(true) !| type | eq ::kind/holds/page/KindNotTakenError)
-    | takes :condition
-        |~~ The condition the value answers true to. ~~|
-        /2 ::quote
-    | proves :condition/KindNotTakenError/refusesANumber
-        |~~ A condition that is no quote is refused. ~~|
-        ~(::kind | holds :YError |~~ p ~~| 5 !| type | eq ::kind/holds/condition/KindNotTakenError)
+    | takes :objects
+        |~~ The objects of the command as written: the name of the refusal of
+            a value that breaks it, a keyword read as a tag, under a field read
+            before it where it is written with a path; its page, a doc; and the
+            condition the value answers true to, a quote.
+        ~~|
+        ~(it)
     | returns |~~ The kind with the invariant. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `holds` writes an invariant of the noun's kind,
@@ -491,14 +445,12 @@
       of the kind raises is paged so.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :name |~~ The name of the refusal. ~~| /0 ::keyword
-    | proves :name/KindNotTakenError/refusesANumber
-        |~~ A name that is no keyword is refused. ~~|
-        ~(::kind | throws 5 |~~ p ~~| !| type | eq ::kind/throws/name/KindNotTakenError)
-    | takes :page |~~ The page of the refusal. ~~| /1 ::doc
-    | proves :page/KindNotTakenError/refusesANumber
-        |~~ A page that is no doc is refused. ~~|
-        ~(::kind | throws :XError 5 !| type | eq ::kind/throws/page/KindNotTakenError)
+    | takes :objects
+        |~~ The objects of the command as written: the name of the refusal, a
+            keyword read as a tag, under a field read before it where it is
+            written with a path, and its page, a doc.
+        ~~|
+        ~(it)
     | returns |~~ The kind with the refusal. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `throws` names a refusal of the noun's kind,
@@ -527,20 +479,13 @@
       the kind declares before it.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :name |~~ The name of the law. ~~| /0 ::keyword
-    | proves :name/KindNotTakenError/refusesANumber
-        |~~ A name that is no keyword is refused. ~~|
-        ~(::kind | proves 5 |~~ p ~~| ~(true) !| type | eq ::kind/proves/name/KindNotTakenError)
-    | takes :page |~~ The page of the law, the claim it proves. ~~| /1 ::doc
-    | proves :page/KindNotTakenError/refusesANumber
-        |~~ A page that is no doc is refused. ~~|
-        ~(::kind | proves :x 5 ~(true) !| type | eq ::kind/proves/page/KindNotTakenError)
-    | takes :query
-        |~~ The query that proves the claim, answering `true`. ~~|
-        /2 ::quote
-    | proves :query/KindNotTakenError/refusesANumber
-        |~~ A query that is no quote is refused. ~~|
-        ~(::kind | proves :x |~~ p ~~| 5 !| type | eq ::kind/proves/query/KindNotTakenError)
+    | takes :objects
+        |~~ The objects of the command as written: the name of the law, a
+            keyword read as a tag, under a name declared before it where it is
+            written with a path; its page, the claim it proves, a doc; and the
+            query that proves the claim, answering `true`, a quote.
+        ~~|
+        ~(it)
     | returns |~~ The kind with the law. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `proves` writes a law of the noun's kind, `::kind | proves …`,
@@ -560,20 +505,18 @@
 
 :kind/impl
   |~~ Gives a kind its constructor, `| impl ::builtin{}`, which lies under
-      it as `construct`: the one a host hands a kind of the core attaches
-      the tag to a payload or refuses it, and one no host hands constructs
-      nothing, a kind of yours laying its tag by its commands; code that
-      would build another value from the payload is refused.
+      it as `construct`: the one a host hands with a kind of the core
+      attaches the tag to a payload or refuses it, and one no host handed
+      with the kind constructs nothing, a kind of yours laying its tag by
+      its commands; code that would build another value from the payload
+      is refused.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :constructor
-        |~~ The constructor, a primitive of the host. ~~|
-        /0 ::builtin
-    | throws :constructor/KindNotTakenError
-        |~~ The constructor of a kind is the host's, `::builtin{}`: a kind
-            of yours attaches its tag by `wraps`, `reads` and `holds`, and
-            code that would build another value has no place in it.
+        |~~ The constructor, a primitive of the host, `::builtin{}`, or
+            null.
         ~~|
+        /0
     | returns |~~ The kind with its constructor. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `impl` gives the constructor of the noun's kind,
@@ -582,12 +525,16 @@
     | proves :liesUnderTheKindAsItsConstructor
         |~~ The constructor lies under the kind as `construct`. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | impl ::builtin{}) | ::Box/construct | binding | get /value | eq ::builtin{})
-    | proves :constructor/KindNotTakenError/refusesANumber
-        |~~ A number is no constructor. ~~|
-        ~(::kind | impl 5 !| type | eq ::kind/impl/constructor/KindNotTakenError)
-    | proves :constructor/KindNotTakenError/refusesAQuote
-        |~~ Code that would build another value is refused. ~~|
-        ~(::kind | impl ~(add 1) !| type | eq ::kind/impl/constructor/KindNotTakenError)
+    | proves :refusesAConstructorThatIsNoBuiltin
+        |~~ A constructor that is no `::builtin{}` is refused as the
+            literal refuses it.
+        ~~|
+        ~(get [~(::kind | impl 5 !| type) ~(::kind | impl ~(add 1) !| type)] | eq [::kind/ConstructorNotBuiltinError ::kind/ConstructorNotBuiltinError])
+    | proves :constructsNothingByAConstructorOfAnotherKind
+        |~~ A constructor a host handed with another kind constructs
+            nothing under this one.
+        ~~|
+        ~(:Box |~~ A parcel. ~~| (::kind | impl (::number/construct | binding | get /value)) | ::Box"x" | type | eq ::Box)
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | kind/impl ::builtin{} !| type | eq ::kind/impl/SubjectNotKindError))

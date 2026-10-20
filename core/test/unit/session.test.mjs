@@ -192,7 +192,7 @@ describe('the sources a host hands [QSDSP#residence]', () => {
       .rejects.toMatchObject({ name: 'PrimitiveNotHandedError', address: 'builtin/PrimitiveNotHandedError', facts: { origin: keyword('tests/bare'), name: keyword('any/hello') } });
   });
 
-  it('takes no primitive for a name that holds a ::builtin{} another name took, which runs that name\'s, and refuses one handed for it, naming the name whose ::builtin{} it holds [QSHST#source]', async () => {
+  it('takes no primitive for a name that holds a ::builtin{} another name took, which runs that name\'s where it holds that name\'s value, and refuses one handed for it, naming the name whose ::builtin{} it holds [QSHST#source]', async () => {
     const aliasing = primitives => createSession({ sources: [{
       uri: 'tests/alias',
       source: ':any/plus (::number/add | binding | get /value)\n:any/greet ::builtin{}\n:any/hail (::any/greet | binding | get /value)',
@@ -203,7 +203,7 @@ describe('the sources a host hands [QSDSP#residence]', () => {
       await expect(aliasing({ 'any/greet': () => 'hi', [name]: () => 0 })).rejects.toMatchObject({
         name: 'PrimitiveNamesNoBuiltinError',
         facts: { origin: keyword('tests/alias'), name: keyword(name), sharedWith: keyword(sharedWith) },
-        message: `qlang root: the source tests/alias is handed a primitive for :${name}, whose ::builtin{} is another name's, :${sharedWith}, whose primitive it runs`
+        message: `qlang root: the source tests/alias is handed a primitive for :${name}, whose ::builtin{} is another name's, :${sharedWith}, which took it first`
       });
     }
     expect((await (await createSession()).evalCell('1 | add 2')).result).toBe(3);

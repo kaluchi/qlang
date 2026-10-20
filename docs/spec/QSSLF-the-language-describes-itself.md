@@ -114,7 +114,9 @@ true
 
 ## laws
 
-A law is a query that answers `true`, a quote under `::law`, declared
+A law is a query that answers `true`, a quote under `::law` beneath the
+tags it is given under, another value refused, `::law#3` as
+`::law/PayloadKindNotTakenError`, declared
 under the name whose claim it proves, by the command `proves` of a chain
 or by a name of its own, `:three/isThree ::law~(3 | eq 3)`, its page the
 claim. `laws` answers a map from the name of each law under a name, in
@@ -177,9 +179,10 @@ guess for itself.
 ## explain
 
 `explain`, a verb of `::any`, answers the explanation of a value, a
-value of the kind `::explanation`: the page `doc` reads for it under
-`:page`, then the value under `:value`, which the verbs `page` and
-`value` read. A name reads its own page, a value the page of the kind it
+value of the kind `::explanation`, the map of the page `doc` reads for
+it under `:page` and the value under `:value`, which the verbs `page`
+and `value` read, a map of other keys refused as
+`::explanation/NotPageAndValueError`. A name reads its own page, a value the page of the kind it
 shows, and the error at rest a catch holds the page of its site, its
 value the error at rest that `raise` raises again; a refusal the runtime raises by
 rule under a verb, with no page of its own, reads the page of what
@@ -192,8 +195,8 @@ which no query of the language raises, holding none. An explanation
 prints the page above the value.
 
 ```qlang
-> "x" | add 1 !| explain | payload | keys
-#[:page :value]
+> get [~("x" | add 1 !| explain | payload | keys) ~(::explanation{} !| type)]
+[#[:page :value] ::explanation/NotPageAndValueError]
 
 > 42 | explain | value
 42
@@ -222,8 +225,11 @@ kind as `::doc/ElementNotSegmentError`. A tag gives a quote a
 role, the tags of a stack read from the outside in: `::link`, which
 `links` answers and `open` runs to what its query answers, a page where
 it reads one, and `::snippet`, which `snippets` answers and `open` runs
-to what it shows; each is a kind of the core with a page, and a role
-whose quotes hold an invariant is a label of its own. A doc is built
+to what it shows; each is a kind of the core with a page, which wraps a
+quote beneath the tags it is given under, so a tag a host or a reader
+lays over a link keeps it a link, `::link#5` refused as
+`::link/PayloadKindNotTakenError`, and a role whose quotes hold an
+invariant is a label of its own. A doc is built
 once from the values the labels of the tags of its roles lay over its
 quotes, from the inside out, wherever it stands as a value, the docs of
 the slot of a declaration among them: a tag that takes no quote refuses
@@ -247,6 +253,9 @@ written.
 
 > |~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | open
 2
+
+> get [~(::link#5 !| type) ~(|~~ a ::Host::link~(1) b ~~| | links | count)]
+[::link/PayloadKindNotTakenError 1]
 
 > :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| type
 ::Role/k

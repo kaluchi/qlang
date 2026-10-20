@@ -1,6 +1,6 @@
 |~ `::snippet`, the kind of a snippet, and the laws declared under it.
 
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [QSSLF#doc]. ~|
 
 :snippet
   |~~ A snippet is a query a page shows its reader to run and see,
@@ -15,7 +15,15 @@
       ::link~(::link | doc) ::link~(::qlang/hypertext | doc)
   ~~|
   ::kind
+    | wraps
+        |~~ The query a snippet shows, a quote beneath the tags it is given
+            under.
+        ~~|
+        ::quote
     | proves :opensToWhatItShows
         |~~ A snippet opens to what it shows. ~~|
         ~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | open | has ::vec/count)
+    | proves :PayloadKindNotTakenError/refusesAString
+        |~~ A snippet is a quote. ~~|
+        ~(::snippet"x" !| type | eq ::snippet/PayloadKindNotTakenError)
 

@@ -182,7 +182,8 @@
 :doc/links
   |~~ Answers the links of the doc in their order, a vector: each a quote
       under a stack of tags that holds `::link`, `::link~(::vec | doc)`
-      or a host's `::Host::link~(…)`, the query a reader follows to
+      or one a tag of a host or a reader stands over, `::Host::link~(…)`,
+      the query a reader follows to
       another page. A doc without links answers the empty vector, and a
       snippet is no link. A link opens to what its query answers, so
       `::vec | doc | links | map ~open` reads every page the page of vectors

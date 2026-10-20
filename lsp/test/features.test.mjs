@@ -710,7 +710,7 @@ describe('documentSymbols', () => {
     ]);
   });
 
-  it('shows a kind built from ::kind as a label and a function with a recipe under it as a verb [QSNAM#address]', async () => {
+  it('shows a kind built from ::kind as a label and a function under it as a verb, whatever its recipe [QSNAM#address]', async () => {
     const src = [
       ':Box',
       '  |~~ A parcel. ~~|',
@@ -725,14 +725,14 @@ describe('documentSymbols', () => {
     ].join('\n');
     const { root } = parseDocument(src, 'test.qlang');
     expect(documentSymbols(root, await langRuntime()).map(sym => [sym.name, sym.role])).toEqual([
-      ['::Box', 'label'], ['::Crate', 'label'], ['Box/area', 'verb'], ['Box/rule', 'value'], ['Crate/count', 'verb'], ['Crate/size', 'value'], ['f', 'value']
+      ['::Box', 'label'], ['::Crate', 'label'], ['Box/area', 'verb'], ['Box/rule', 'verb'], ['Crate/count', 'verb'], ['Crate/size', 'verb'], ['f', 'value']
     ]);
   });
 
-  it('shows a reader\'s ::builtin{} under a label as a value, a primitive it reaches none', async () => {
+  it('shows a reader\'s ::builtin{} under a label as a verb, which its call refuses for the primitive it holds none [QSHST#source]', async () => {
     const src = ':Box |~~ B. ~~| | :Box/area ::builtin{}';
     const { root } = parseDocument(src, 'test.qlang');
-    expect(documentSymbols(root, await langRuntime()).map(sym => sym.role)).toEqual(['label', 'value']);
+    expect(documentSymbols(root, await langRuntime()).map(sym => sym.role)).toEqual(['label', 'verb']);
   });
 
   it('collects a binding of a computed body as a value symbol', async () => {

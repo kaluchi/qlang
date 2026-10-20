@@ -432,11 +432,13 @@
       ::link~(::vec/map | doc)
   ~~|
   ::fn
-    | returns |~~ The whole numbers from zero below the subject. ~~| ::vec
-    | throws :CountNotIntegerError
+    | on |~~ The count, a whole number. ~~|
+    | holds :subject/NotIntegerError
         |~~ The count of `range`, its subject, is a whole number: a
             fraction is rounded first, `7.5 | floor | range`.
         ~~|
+        ~(eq (floor))
+    | returns |~~ The whole numbers from zero below the subject. ~~| ::vec
     | throws :CountTooLargeError
         |~~ The count of `range` is no longer than the length a vector of
             the engine may have, which `:longest` names: a count past it
@@ -461,9 +463,9 @@
     | proves :countsFromOneByMap
         |~~ A count from one adds one to each. ~~|
         ~(3 | range | map ~(add 1) | eq [1 2 3])
-    | proves :CountNotIntegerError/refusesAFraction
+    | proves :subject/NotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
-        ~(2.5 | range !| get [~(type) /actualType] | eq [::number/range/CountNotIntegerError ::number])
+        ~(2.5 | range !| get [~(type) /actualType] | eq [::number/range/subject/NotIntegerError ::number])
     | proves :CountTooLargeError/refusesACountPastTheLongest
         |~~ A count past the length `:longest` names is refused. ~~|
         ~(1e10 | range !| get [~(type) ~(get /longest | lt 1e10)] | eq [::number/range/CountTooLargeError true])

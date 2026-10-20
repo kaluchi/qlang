@@ -11,7 +11,7 @@ import { kindsOfWalk } from './nouns.mjs';
 import { functionOfRecipe, chainOfFn } from './chain.mjs';
 import {
   isVec, isMap, isTagged, isValueClass, isKeyword, isTag, isRegex, isPath, isErrorValue, isFn,
-  makeTag, makePath, typeOf, primitiveOf, accountOfForeign, bindingValueOf, TAG_HEADER_SYMBOL
+  makeTag, makePath, typeOf, accountOfForeign, bindingValueOf, TAG_HEADER_SYMBOL
 } from './types.mjs';
 
 // ── kinds ──────────────────────────────────────────────────────
@@ -69,14 +69,12 @@ export function servesTheSubject(record, subject) {
 // promise of another realm and a thenable resolve as the core's own do.
 export const isThenable = value => typeof value?.then === 'function';
 
-// The primitive a descriptor holds runs over the value the walk served and the
-// values of the inputs of the call, a reader of the tags its subject stood
-// beneath over the tags the walk passed after them, and a reader of the scope
-// over the state of the call after those, its scope the tree of the query,
-// wherever it is called, held at the door under the address of its call
+// A primitive runs over the value the walk served and the values of the inputs
+// of the call, a reader of the tags its subject stood beneath over the tags the
+// walk passed, and a reader of the scope over the state of the call, its scope
+// the tree of the query, held at the door under the address of its call
 // [QSDSP#residence], [QSNAM#owner], [QSERR#raise], [QSHST#source].
-export function runPrimitive(descriptor, served, passedTags, inputValues, state, address) {
-  const primitive = primitiveOf(descriptor);
+export function runPrimitive(primitive, served, passedTags, inputValues, state, address) {
   const read = readsPassedTags(primitive) ? [...inputValues, passedTags] : inputValues;
   const run = () => (readsState(primitive) ? primitive(served, ...read, queryStateOf(state)) : primitive(served, ...read));
   return heldAtTheDoor(primitive, run, address, [served, ...inputValues]);

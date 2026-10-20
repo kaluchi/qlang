@@ -6,7 +6,7 @@
 
 import { registerPrimitive } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { chainOfKind } from '../chain.mjs';
+import { chainOfKind, KIND_COMMAND_NAMES } from '../chain.mjs';
 import { commandStep } from '../steps.mjs';
 import {
   isVec, isNull, isQuote, isBuiltinDescriptor, isKind, commandsOf, constructorOf,
@@ -18,9 +18,10 @@ const KIND_TAG = makeTag(KIND_TAG_NAME);
 const KindPayloadNotPairError = declareRefusal('kind/PayloadNotPairError');
 const KindConstructorNotBuiltinError = declareRefusal('kind/ConstructorNotBuiltinError');
 
-// A kind of its commands and its constructor, its chain read here, so a step
-// it does not take is refused where the kind is made.
+// A kind of its commands and its constructor, held here on every road to one: a
+// constructor that is no `::builtin{}` and a command its chain does not take are refused [QSBLD#kind].
 function madeKind(commands, constructor) {
+  if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorNotBuiltinError({ actualValue: constructor });
   const kind = makeTagged(KIND_TAG, Object.freeze([commands, constructor]));
   chainOfKind(kind);
   return kind;
@@ -31,9 +32,7 @@ function madeKind(commands, constructor) {
 // kind its commands alone build [QSLIT#tag]; another payload is refused.
 registerPrimitive('kind/construct', payload => {
   if (!isVec(payload) || !holdsNoOtherTag(payload, KIND_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new KindPayloadNotPairError({ actualValue: payload });
-  const [commands, constructor] = payload;
-  if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorNotBuiltinError({ actualValue: constructor });
-  return madeKind(commands, constructor);
+  return madeKind(...payload);
 });
 
 // The kind a command of its chain runs on: a kind, or the noun itself,
@@ -43,38 +42,15 @@ const NO_KIND = madeKind(makeQuote([]), null);
 
 const kindFrom = subject => (isKind(subject) ? subject : NO_KIND);
 
-// A kind with a command written after the ones it holds.
-function withCommand(subject, command, args) {
-  const kind = kindFrom(subject);
-  return madeKind(makeQuote([...commandsOf(kind), commandStep(command, args.filter(arg => arg !== null))]), constructorOf(kind));
+// Each command of a chain, `reads :w |~~ The width. ~~| /w ::number`, written
+// by its verb after the ones the kind holds with the objects the verb is called
+// with, as written, which the chain holds [QSBLD#kind].
+for (const command of KIND_COMMAND_NAMES) {
+  registerPrimitive(`kind/${command}`, (subject, objects) => {
+    const kind = kindFrom(subject);
+    return madeKind(makeQuote([...commandsOf(kind), commandStep(command, [...objects])]), constructorOf(kind));
+  });
 }
-
-// `wraps |~~ The sizes. ~~| ::map` — the payload, its page and its kinds.
-registerPrimitive('kind/wraps', (subject, page, kinds) => withCommand(subject, 'wraps', [page, kinds]));
-
-// `reads :w |~~ The width. ~~| /w ::number` — a field of the payload, its
-// name, its page, the place of the payload it reads and its kinds.
-registerPrimitive('kind/reads', (subject, name, page, place, kinds) => withCommand(subject, 'reads', [name, page, place, kinds]));
-
-// `tells :values |~~ Values. … ~~| #[::tag ::vec]` — a page of the kind on
-// a name, a chapter of a topic among them, and the kinds it tells of.
-registerPrimitive('kind/tells', (subject, name, page, kinds) => withCommand(subject, 'tells', [name, page, kinds]));
-
-// `carries :TooWideError/w |~~ The width. ~~| ::number` — a fact a refusal
-// carries, or the payload, its page and its kinds.
-registerPrimitive('kind/carries', (subject, name, page, kinds) => withCommand(subject, 'carries', [name, page, kinds]));
-
-// `holds :TooWideError |~~ … ~~| ~(subOf /h /w | gte 0)` — an invariant
-// of the value or of a field: the refusal of one that breaks it, its page
-// and its condition.
-registerPrimitive('kind/holds', (subject, name, page, condition) => withCommand(subject, 'holds', [name, page, condition]));
-
-// `throws :w/KindNotTakenError |~~ … ~~|` — a refusal and its page.
-registerPrimitive('kind/throws', (subject, name, page) => withCommand(subject, 'throws', [name, page]));
-
-// `proves :holdsItsSizes |~~ … ~~| ~(…)` — a law of the kind, the claim its
-// name makes, its page and the query that proves it.
-registerPrimitive('kind/proves', (subject, name, page, query) => withCommand(subject, 'proves', [name, page, query]));
 
 // `impl ::builtin{}` — the constructor a host hands a kind of the core
 // [QSLIT#tag].

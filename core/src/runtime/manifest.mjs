@@ -61,7 +61,7 @@ async function resultsOfLaws(subject, anchor, state, UnknownNameError) {
   const root = rootOf(state.scope);
   const claims = lawsUnder(state.scope, address).map(([lastName, lawRecord]) => ({
     law: makeTag(`${address}/${lastName}`),
-    quote: bindingValueOf(lawRecord).payload,
+    quote: beneathTags(bindingValueOf(lawRecord).payload),
     says: pageOfRecord(lawRecord),
     ofTheRoot: root.get(`${address}/${lastName}`) === lawRecord
   }));

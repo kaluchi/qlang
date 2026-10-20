@@ -13,3 +13,4 @@
 {"name":"a-tagged-value-explains-by-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box{:a 1} | explain | page | content | contains \"A box\"","expect":"true"}
 {"name":"an-error-value-explains-as-it-is","query":"::error{:k 1} | explain | value | type","expect":"::error"}
 {"name":"explain-refuses-a-name-nothing-declares","query":"::Nothing | explain !| type","expect":"::any/explain/UnknownNameError"}
+{"name":"an-explanation-a-reader-writes-is-the-map-of-a-page-and-a-value","query":"get [~(::explanation#5 !| type) ~(::explanation{} !| type) ~(::explanation{:page null :value 1} | value)]","expect":"[::explanation/PayloadKindNotTakenError ::explanation/NotPageAndValueError 1]"}

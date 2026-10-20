@@ -309,19 +309,22 @@ export function isBuiltinDescriptor(v) {
 
 // The descriptor of a name under a label a source declared, which alone
 // reaches a primitive [QSDSP#walk], with the primitive handed beside that
-// source [QSQUO#literal], [QSDSP#residence], [QSHST#source].
+// source and what holds it, which alone runs it [QSHST#source].
 const HANDED_PRIMITIVES = new WeakMap();
 
 export function isPrimitiveHanded(descriptor) {
   return HANDED_PRIMITIVES.has(descriptor);
 }
 
-export function primitiveOf(descriptor) {
-  return HANDED_PRIMITIVES.get(descriptor);
+// handedFor(descriptor, holder) → `{ primitive, labelName }`, the primitive and
+// the label its host handed it under, where the holder is one it was handed with.
+export function handedFor(descriptor, holder) {
+  const handed = HANDED_PRIMITIVES.get(descriptor);
+  return handed?.holders.includes(holder) ? handed : undefined;
 }
 
-export function takePrimitive(descriptor, primitive) {
-  HANDED_PRIMITIVES.set(descriptor, primitive);
+export function takePrimitive(descriptor, primitive, holders, labelName) {
+  HANDED_PRIMITIVES.set(descriptor, { primitive, holders, labelName });
 }
 
 // A trace is a vector of frames under `::trace`, a frame the vector of the

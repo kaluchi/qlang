@@ -18,25 +18,31 @@ primitive, a JavaScript function, under each address the source declares
 as `::builtin{}` under a label, the descriptor of a recipe or a
 constructor a host answers by a primitive: for the recipe of a verb a
 function of the values of its inputs, the subject first and the inputs
-in their order, a primitive naming the inputs it runs as code, each
-handed to it as code closed at the call; and for the constructor of a
-kind, its node `<label>/construct`, a function of the payload that
-answers the value the tag is laid over or refuses the payload. The root
+in their order, a primitive of the core marking the inputs it runs as
+code, each handed to it as code closed at the call; and for the
+constructor of a kind, its node `<label>/construct`, a function of the
+payload that answers the value the tag is laid over or refuses the
+payload. The root
 refuses, as it is declared, a `::builtin{}` its host handed no primitive
 for, `::builtin/PrimitiveNotHandedError`, a primitive handed for a name
 its source declares otherwise, `::builtin/PrimitiveNamesNoBuiltinError`,
 and a source whose run answers an error or declares again a name the
-root holds, `::builtin/RootSourceNotDeclaredError`. A name that holds the
-`::builtin{}` another name took first runs the primitive of that name,
-and a primitive handed for it is refused so, its `:sharedWith` naming
-that name. The modules of the runtime register the core's primitives in
-its table, which the bootstrap seals, an address that is no string
+root holds, `::builtin/RootSourceNotDeclaredError`. A primitive runs
+within the function or the kind its host handed it with, on a subject
+the label it was handed under serves, beside the label of the name that
+calls it: a name that holds the value another name took first runs the
+primitive of that name, a primitive handed for it refused so, its
+`:sharedWith` naming that name, and a function of its own over the same
+`::builtin{}` runs nothing. The modules of the runtime register the
+core's primitives in its table, which the bootstrap seals, an address
+that is no string
 refused as `::builtin/AddressNotStringError`, two under one address as
 `::builtin/AddressRegisteredTwiceError` and one after the seal as
 `::builtin/TableSealedError`. A
-`::builtin{}` a reader writes is the value it is: as the recipe of a
-function under a label, the address answers the function as a value, and
-its bare name reaches no verb; as a step of a recipe's quote, the verb
+`::builtin{}` no host handed with what holds it runs nothing: as the
+recipe of a function, one a reader writes or reads back from a print, its
+call by its name, its address or `apply` is refused as
+`::fn/RecipeMissingError`; as a step of a recipe's quote, the verb
 answers it; and as the constructor of a kind, the kind lays its tag over
 the payload as it is. A host's verb refuses a call by a refusal declared
 at its site by its address through `./errors` and paged under its noun
@@ -102,7 +108,7 @@ finite doubles fails the call as `::call/HostFailureError`, its
 `:message` naming the verb and the path where that value stands in its
 answer; a value the call handed in passes back as it is, unwalked, and
 the
-primitives of the core are never walked, whatever function runs them. A
+primitives of the core are never walked. A
 value JavaScript leaves undefined is null wherever the language reads
 it. The subject a host hands a cell and the values of the scope it hands
 a session or `evalQuery` are held where the core takes them, by the same
@@ -141,6 +147,9 @@ true
 
 > :B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1]
 ::B[1]
+
+> get [~({:a 1} | apply (::vec/first | binding | get /value) [] !| type) ~(:any/v (::fn | impl ::builtin{}) | 5 | v !| type)]
+[::fn/call/SubjectNotVecError ::fn/RecipeMissingError]
 
 > get [~("add (" | parse !| get /origin) ~(::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
 [:string/parse true]

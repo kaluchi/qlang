@@ -112,11 +112,6 @@ describe('the first door: the answer of a primitive a host hands beside its sour
     expect((await session.evalCell(`${index} | answer !| get [~(type) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'a vector that holds itself'));
   });
 
-  it('passes back as it is a value the call handed in, one of no kind a function of the reader made from a primitive of the core among them', async () => {
-    const overAdd = '(::fn | takes :x |~~ An x. ~~| /0 | impl (::number/add | binding | get /value | get /1))';
-    expect((await session.evalCell(`1e308 | apply ${overAdd} [1e308] | same | type`)).result).toEqual(makeTag('number'));
-  });
-
   it('passes back unwalked a value the call handed in', async () => {
     const { vector, reads } = counted(1);
     expect((await session.evalCell('same', { initialPipeValue: vector })).result).toBe(vector);
@@ -164,22 +159,18 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 });
 
-describe('the primitives of the core run unwalked, whatever function runs them [QSHST#source]', () => {
+describe('a primitive of the core runs within the function its host handed it with [QSHST#source]', () => {
   const overAdd = returns => `(::fn | takes :x |~~ An x. ~~| /0${returns} | impl (::number/add | binding | get /value | get /1))`;
 
-  it('brings an answer past the doubles under the kinds `returns` names, as a verb written in steps does', async () => {
-    for (const returns of [' | returns |~~ A sum. ~~| ::number', ' | returns |~~ A sum. ~~| #[::number ::string]']) {
-      expect((await session.evalCell(`1e308 | apply ${overAdd(returns)} [1e308] !| type`)).result).toEqual(makeTag('number/NotFiniteError'));
+  it('refuses a function of the reader made from a primitive of the core as one that holds no recipe it runs, whatever its returns names', async () => {
+    for (const returns of ['', ' | returns |~~ A sum. ~~| ::number', ' | returns |~~ A sum. ~~| #[::number ::string]']) {
+      expect((await session.evalCell(`1e308 | apply ${overAdd(returns)} [1e308] !| type`)).result).toEqual(makeTag('fn/RecipeMissingError'));
     }
-    expect((await session.evalCell('1e308 | apply (::fn | takes :x |~~ An x. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(add x)) [1e308] !| type')).result)
-      .toEqual(makeTag('number/NotFiniteError'));
   });
 
-  it('answers under no kind a number past the doubles, which the printer and the codec of JSON raise as no value of the language', async () => {
-    expect((await session.evalCell(`1e308 | apply ${overAdd('')} [1e308] | type`)).result).toEqual(makeTag('number'));
-    for (const verb of ['print', 'json']) {
-      const cell = await session.evalCell(`1e308 | apply ${overAdd('')} [1e308] | ${verb}`);
-      expect([cell.result, cell.defect?.address, cell.defect?.facts]).toEqual([null, 'builtin/ForeignValueError', { actualValue: 'number Infinity' }]);
+  it('brings an answer past the doubles under the kinds `returns` names, the function of a verb of the core and one written in steps alike', async () => {
+    for (const fn of ['(::number/add | binding | get /value)', '(::fn | takes :x |~~ An x. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(add x))']) {
+      expect((await session.evalCell(`1e308 | apply ${fn} [1e308] !| type`)).result).toEqual(makeTag('number/NotFiniteError'));
     }
   });
 });

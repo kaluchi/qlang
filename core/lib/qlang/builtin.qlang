@@ -85,8 +85,7 @@
             `:actualValue` naming the value as JavaScript holds it, its type
             and its name or its maker, `"function hello"`, or what makes a
             vector or a map of no kind; the printer and the codec of JSON
-            raise it too for a number past the doubles that a function of
-            the reader answered from a primitive of the core under no kind.
+            raise it too for a value of no kind a host hands a cell.
             The answer of a primitive a host hands beside its source is held
             to the kinds at its call and refused as `::call/HostFailureError`,
             and a host builds a value of the language from the data it holds
@@ -115,9 +114,10 @@
             `:name` the name and `:sharedWith` that other name. A verb
             written in steps runs them, a `::builtin{}` written among them
             the value it is, a bare name reads its value, and a name that
-            holds the `::builtin{}` of another name runs the primitive of
-            that name, so a host declares its primitive as the recipe of a
-            verb under the label of its subject,
+            holds the value of another name runs the primitive of that
+            name while a function of its own over the same `::builtin{}`
+            runs nothing, so a host declares its primitive as the recipe of
+            a verb under the label of its subject,
             `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})`.
             A `::builtin{}` the host hands nothing for is refused with
             `::builtin/PrimitiveNotHandedError`.

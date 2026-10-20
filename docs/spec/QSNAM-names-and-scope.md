@@ -264,8 +264,10 @@ builds it from `::kind` or by its page alone, which declares a kind of
 no commands: its verbs reside on it, its nodes lie under its address,
 `kinds` answers it where its name is of one segment [QSNAM#root], and a
 value goes under its tag through the kind [QSBLD#label]. A verb is a
-function or a recipe named under a label, its constructor `construct`
-aside, what runs on the values of its label [QSNAM#verb]; under it lie
+function named under a label, whatever recipe it holds, or a recipe
+written alone there, the value its declaration wrote, its constructor
+`construct` aside, what runs on the values of its label [QSNAM#verb];
+under it lie
 the roles of its chain, its subject, its inputs, its answer, its
 refusals and the facts they carry, its invariants and its laws, so what
 a verb is is the set of the nodes under its address, and a helper
@@ -305,6 +307,9 @@ true
 > ::Nobody[1 2] | type
 ::Nobody
 
+> :number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | get /value | type) ~(::number/b | binding | get /value | type) ~(5 | a) ~(5 | b)]
+[::fn ::quote 6 6]
+
 > get [~(5 | number/construct) ~("x" | number/construct !| type) ~(::vec/take/count/NotIntegerError#5 | type)]
 [5 ::number/construct/SubjectNotNumberError ::vec/take/count/NotIntegerError]
 ```
@@ -341,9 +346,11 @@ its tag lays nothing, `::qlang/values[1]` refused as
 
 ## binding
 
-A declaration writes into its scope a record, `::binding`: the name,
-the docs of its page, the value, the source of the declaration, null for
-a node a chain lays, and its origin. `env` answers the declarations of
+A declaration writes into its scope a record, `::binding`, a map its
+kind reads: `:name`, a keyword, `:docs`, the docs of its page, `:value`,
+`:source`, the declaration, null for a node a chain lays, and `:origin`,
+a keyword or null, a record a reader writes refused where it leaves one
+out, `::binding{:name :x}` as `::binding/docs/NotGivenError`. `env` answers the declarations of
 the reader where the step stands, in the recipe of a verb those of the
 query that called it [QSNAM#owner], in code held as data its own and the
 nodes and the labels of the step it runs from [QSQUO#held], each by its
@@ -356,6 +363,9 @@ subject holds under it [QSSLF#axis].
 ```qlang
 > :x |~~ note ~~| 1 | ::x | binding | keys
 #[:docs :name :origin :source :value]
+
+> get [~(::binding{:name :x} !| type) ~(:x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b)]
+[::binding/docs/NotGivenError true]
 
 > :x 1 | env | get [~(has :x) ~(has :vec)]
 [true false]

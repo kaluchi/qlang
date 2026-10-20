@@ -18,6 +18,8 @@ import { ROOT_KEY } from '../scope-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareDefect } from '../errors.mjs';
 import { isUnderLabel } from '../nouns.mjs';
+import { splitAddress } from '../address.mjs';
+import { CONSTRUCT_NAME, functionOfRecipe } from '../chain.mjs';
 
 // A source of the root whose run answers an error, or that declares again
 // a name the root holds, left its declarations out of the root, `:origin`
@@ -34,10 +36,10 @@ export const BuiltinPrimitiveNotHandedError = declareDefect('builtin/PrimitiveNo
 // A primitive a host hands for a name its source declares as no `::builtin{}`
 // under a label has nothing to run under: a name written in steps runs them, a
 // bare name reads its value, and one that holds the `::builtin{}` another name
-// took, `:sharedWith`, runs its primitive [QSDSP#walk], [QSQUO#modifier], [QSHST#source].
+// took, `:sharedWith`, takes no primitive of its own [QSDSP#walk], [QSQUO#modifier], [QSHST#source].
 export const BuiltinPrimitiveNamesNoBuiltinError = declareDefect('builtin/PrimitiveNamesNoBuiltinError',
   ({ origin, name, sharedWith }) => `qlang root: the source ${origin.name} is handed a primitive for ${name.literal}, ${sharedWith === undefined
-    ? 'which it declares as no ::builtin{} under a label' : `whose ::builtin{} is another name's, ${sharedWith.literal}, whose primitive it runs`}`);
+    ? 'which it declares as no ::builtin{} under a label' : `whose ::builtin{} is another name's, ${sharedWith.literal}, which took it first`}`);
 
 const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 
@@ -60,11 +62,12 @@ export async function declareRoot(scope, sources) {
     if (again !== undefined) throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: DECLARED_TWICE, name: keyword(again) });
     const taking = new Set();
     for (const [name, record] of declared) {
-      const builtin = builtinOf(bindingValueOf(record));
+      const value = bindingValueOf(record);
+      const builtin = builtinOf(value);
       if (builtin === null || isPrimitiveHanded(builtin)) continue;
       const primitive = primitives[name];
       if (primitive === undefined) throw new BuiltinPrimitiveNotHandedError({ origin, name: keyword(name) });
-      takePrimitive(builtin, primitive);
+      takePrimitive(builtin, primitive, holdersOf(name, value, declared), splitAddress(name)[0]);
       taking.add(name);
     }
     for (const primitiveName of Object.keys(primitives)) {
@@ -86,3 +89,12 @@ function builtinOf(value) {
   const recipe = isFn(value) ? recipeOf(value) : value;
   return isBuiltinDescriptor(recipe) ? recipe : null;
 }
+
+// The functions or the kind a primitive is handed with, which alone run it,
+// the kind beside the node `construct` that holds its constructor [QSHST#source].
+function holdersOf(name, value, declared) {
+  if (isFn(value)) return [value];
+  const [labelName, lastName] = splitAddress(name);
+  return lastName === CONSTRUCT_NAME ? [functionOfRecipe(value), bindingValueOf(declared.get(labelName))] : [functionOfRecipe(value)];
+}
+

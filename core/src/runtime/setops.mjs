@@ -10,7 +10,7 @@ import { isSet, isVec, isMap, typeOf, beneathTags } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
-import { isKeyAlone, keyNameOf } from '../path-read.mjs';
+import { isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
 
 // The algebra of two sets is a merge of their elements in the one
 // order [QSORD#order]: each operation keeps the elements of the left alone,
@@ -52,7 +52,7 @@ function unionOfMaps(left, right) {
 
 // A map minus or inter a map or a vector of keys drops or keeps its entries
 // by key, each a key alone, an element of another kind refused at its index [QSPTH#key].
-const KINDS_NAMING_A_MAP_KEY = kindsExpected('keyword', 'number', 'string');
+const KINDS_NAMING_A_MAP_KEY = kindsExpected(...KINDS_OF_A_KEY_ALONE);
 
 function keyNamesOf(keysValue, KeyRefusal) {
   if (isMap(keysValue)) return keysValue;

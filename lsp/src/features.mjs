@@ -12,7 +12,7 @@ import {
   tagHeadEnd,
   bindingNamesVisibleAt,
   holdsALiteral,
-  bodyRuns,
+  isVerbBody,
   declaresKind,
   splitAddress,
   CALL_SPELLING,
@@ -158,7 +158,7 @@ function roleOfNode(scope, address) {
 function roleOf(bind, scope, isLabelName) {
   if (declaresKind(bind)) return 'label';
   const name = bind.get('name').name;
-  const isAVerb = nodeOf(scope, name) !== null ? isVerb(scope, name) : declaresVerb(name, bodyRuns(bind.get('body')), isLabelName);
+  const isAVerb = nodeOf(scope, name) !== null ? isVerb(scope, name) : declaresVerb(name, isVerbBody(bind.get('body')), isLabelName);
   return isAVerb ? 'verb' : 'value';
 }
 

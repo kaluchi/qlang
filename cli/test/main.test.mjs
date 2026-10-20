@@ -295,19 +295,10 @@ describe('main — error paths', () => {
   });
 
   it('writes a defect raised past the fail track on stderr as `qlang:` and its message, with the code 1 [QSHST#answer]', async () => {
-    // The sum of a primitive of the core under no kind leaves the doubles,
-    // which the printer raises as no value of the language.
+    // A literal nested past the stack the parser reads it with raises a defect past the fail track.
     const s = captureStreams();
-    const leaked = '1e308 | apply (::fn | takes :x |~~ An x. ~~| /0 | impl (::number/add | binding | get /value | get /1)) [1e308] | print';
-    const exitCode = await main([leaked], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect([exitCode, s.stdoutText(), s.stderrText()]).toEqual([1, '', 'qlang: the core met number Infinity, a value of no kind of the language\n']);
-  });
-
-  it('writes a defect the printer raises on the answer on stderr as `qlang:` and its message, with the code 1 [QSHST#answer]', async () => {
-    const s = captureStreams();
-    const leaked = '1e308 | apply (::fn | takes :x |~~ An x. ~~| /0 | impl (::number/add | binding | get /value | get /1)) [1e308]';
-    const exitCode = await main([leaked], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect([exitCode, s.stdoutText(), s.stderrText()]).toEqual([1, '', 'qlang: the core met number Infinity, a value of no kind of the language\n']);
+    const exitCode = await main(['['.repeat(20000) + ']'.repeat(20000)], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect([exitCode, s.stdoutText(), s.stderrText()]).toEqual([1, '', 'qlang: Maximum call stack size exceeded\n']);
   });
 
   it('answers a stdin magnitude outside the finite-double domain as parseJson refuses it, naming the path [QSHST#answer]', async () => {

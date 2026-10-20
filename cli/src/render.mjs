@@ -23,28 +23,28 @@ async function maybePaint(text, shouldColorize) {
   return highlightAnsi(text, await rootVerbNames());
 }
 
-// The line a defect raised past the fail track is written as, on stderr [QSHST#answer].
-export const defectLine = defect => `qlang: ${defect.message}\n`;
+const defectLine = defect => `qlang: ${defect.message}\n`;
 
-const defectOutcome = defect => ({ stdoutText: '', stderrText: defectLine(defect), exitCode: 1 });
+// cellText(cellEntry, print) → `{ stdoutText }`, the answer as `print` writes it, or `{ stderrText }`,
+// the line of a defect raised as the cell ran or as its answer printed [QSHST#answer], [QSHST#repl].
+export async function cellText(cellEntry, print) {
+  if (cellEntry.defect !== null) return { stderrText: defectLine(cellEntry.defect) };
+  try {
+    return { stdoutText: await print(cellEntry.result, cellEntry.scopeAfterCell) };
+  } catch (defect) {
+    return { stderrText: defectLine(defect) };
+  }
+}
 
 export async function renderCellOutcome(cellEntry, outcomeOpts) {
   const { didExplicitStdoutEffect, shouldColorize, budget = null, failureExitCode = 0 } = outcomeOpts;
-
-  if (cellEntry.defect !== null) return defectOutcome(cellEntry.defect);
+  const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => (didExplicitStdoutEffect ? null : await answerText(result, scope, budget, cellEntry.page ?? null)));
+  if (stderrText !== undefined) return { stdoutText: '', stderrText, exitCode: 1 };
   // A failure the query wrote by `out` and left unwritten exits so too.
   const exitCode = isErrorValue(cellEntry.result) ? failureExitCode : 0;
-  if (didExplicitStdoutEffect) {
-    return { stdoutText: '', stderrText: '', exitCode };
-  }
-  let written;
-  try {
-    written = await answerText(cellEntry.result, cellEntry.scopeAfterCell, budget, cellEntry.page ?? null);
-  } catch (defect) {
-    return defectOutcome(defect);
-  }
+  if (stdoutText === null) return { stdoutText: '', stderrText: '', exitCode };
   // A string is written as its text, which no colour paints as code.
-  const painted = typeof cellEntry.result === 'string' ? written : await maybePaint(written, shouldColorize);
+  const painted = typeof cellEntry.result === 'string' ? stdoutText : await maybePaint(stdoutText, shouldColorize);
   return { stdoutText: painted + '\n', stderrText: '', exitCode };
 }
 

@@ -9,3 +9,4 @@
 {"name":"a-tag-no-declaration-names-is-identity","query":"::code{:a 1} | type","expect":"::code"}
 {"name":"the-address-of-the-constructor-a-host-hands-runs-it-on-the-subject-its-label-serves","query":"get [~(5 | number/construct) ~(\"x\" | number/construct !| type)]","expect":"[5 ::number/construct/SubjectNotNumberError]"}
 {"name":"the-tag-of-an-invariant-lays-itself-over-a-payload-as-it-is","query":"::vec/take/count/NotIntegerError#5 | type","expect":"::vec/take/count/NotIntegerError"}
+{"name":"a-verb-is-what-its-declaration-wrote-a-function-or-a-quote","query":":number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | get /value | type) ~(::number/b | binding | get /value | type) ~(5 | a) ~(5 | b)]","expect":"[::fn ::quote 6 6]"}

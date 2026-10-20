@@ -6,8 +6,8 @@
 // of a subject's tags the verbs residing on each kind it passes [QSNAM#reach].
 
 import {
-  isBinding, isBuiltinDescriptor, isDoc, isPrimitiveHanded, isMap, isQuote, isVec, isTag, isTagged,
-  isValueClass, isFn, isKind, recipeOf, makeTag, makeTagged,
+  isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
+  isValueClass, isFn, isKind, makeTag, makeTagged, beneathTags,
   typeOf, bindingValueOf, keyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
@@ -71,17 +71,17 @@ export function isUnderLabel(scope, name) {
   return labelName !== null && isLabel(scope, labelName);
 }
 
-// declaresVerb(address, runs, isLabelName) → whether a declaration at the
-// address whose value runs is a verb, a name under a label but its
+// declaresVerb(address, ofAVerb, isLabelName) → whether a declaration at the
+// address whose value is a verb's is a verb, a name under a label but its
 // `construct`, which builds the label's values, for the records of a scope
 // and the declarations of a document alike.
-export function declaresVerb(address, runs, isLabelName) {
+export function declaresVerb(address, ofAVerb, isLabelName) {
   const [labelName, lastName] = splitAddress(address);
-  return runs && labelName !== null && lastName !== CONSTRUCT_NAME && isLabelName(labelName);
+  return ofAVerb && labelName !== null && lastName !== CONSTRUCT_NAME && isLabelName(labelName);
 }
 
-// Whether a record holds a verb, its value a quote or the descriptor of a
-// host's primitive, which run on the label's values.
+// Whether a record holds a verb, its value a function, a quote or the
+// descriptor of a host's primitive.
 function residesOn(record, scope) {
   return declaresVerb(record.get('name').name, isVerbValue(bindingValueOf(record)), labelName => isLabel(scope, labelName));
 }
@@ -93,15 +93,10 @@ export function isVerb(scope, address) {
   return record !== null && residesOn(record, scope);
 }
 
-// The value of a verb, a function or a recipe under a label, what runs on
-// the values of its label: a recipe, code or a host's primitive, or a
-// function whose recipe is one [QSNAM#address].
+// The value of a verb: a function, whatever recipe it holds, or a recipe
+// written alone, code or a host's `::builtin{}` [QSNAM#address].
 export function isVerbValue(value) {
-  return isRecipe(value) || (isFn(value) && isRecipe(recipeOf(value)));
-}
-
-export function isRecipe(value) {
-  return isQuote(value) || (isBuiltinDescriptor(value) && isPrimitiveHanded(value));
+  return isFn(value) || isQuote(value) || isBuiltinDescriptor(value);
 }
 
 // answerOf(scope, address) → the answer of the verb at the address as the
@@ -131,19 +126,19 @@ export function answerKindsOf(scope, record, subjectKinds) {
   return [...walked, ...answer.kinds.filter(kind => kind !== labelName)];
 }
 
-// Whether a value is an invariant, a quote under `::invariant`, whose name
-// is the refusal of a value that breaks it [QSBLD#fn].
+// Whether a value is an invariant, a quote under `::invariant` beneath the
+// tags it is given under, whose name is the refusal of a value that breaks it [QSBLD#fn].
 export function isInvariant(value) {
-  return isValueClass(value, 'underTag') && value.tag.name === INVARIANT_TAG_NAME && isQuote(value.payload);
+  return isValueClass(value, 'underTag') && value.tag.name === INVARIANT_TAG_NAME && isQuote(beneathTags(value.payload));
 }
 
 export const INVARIANT_TAG = makeTag('invariant');
 const INVARIANT_TAG_NAME = INVARIANT_TAG.name;
 
-// Whether a value is a law, a quote under `::law`, which proves the
-// claim its name makes [QSSLF#laws].
+// Whether a value is a law, a quote under `::law` beneath the tags it is
+// given under, which proves the claim its name makes [QSSLF#laws].
 export function isLaw(value) {
-  return isValueClass(value, 'underTag') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload);
+  return isValueClass(value, 'underTag') && value.tag.name === LAW_TAG_NAME && isQuote(beneathTags(value.payload));
 }
 
 export const LAW_TAG = makeTag('law');

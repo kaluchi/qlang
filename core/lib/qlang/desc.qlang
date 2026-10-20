@@ -1,6 +1,6 @@
 |~ `::desc`, the kind of a value turned to descend, whose place in the
    one order is the reverse of its payload's, and what is declared under
-   it: its constructor and the comparisons of values turned.
+   it: its constructor.
    The rules it holds: [QSDSP#residence]. ~|
 
 :desc
@@ -13,10 +13,12 @@
       name.
 
       It is a value under its tag, `::desc#5`, which `desc` lays over
-      any value and `payload` opens. Every comparison agrees with it,
-      `gt` and `lt` as `sort` and `max`.
-      ::snippet~(::desc | manifest) lists its verbs.
-      ::link~(::vec/sort | doc) ::link~(::qlang/values | doc)
+      any value and `payload` opens. Two values turned compare as `sort`
+      ranks them, `1 | desc | gt (2 | desc)` answering `true`, and a value
+      turned beside one that is not is refused as a pair of two kinds,
+      `gt (2 | desc)` turning the other first.
+      ::link~(::vec/sort | doc) ::link~(::any/gt | doc)
+      ::link~(::qlang/values | doc)
   ~~|
   ::kind
     | wraps |~~ Any value, its place in the one order turned around. ~~|
@@ -33,141 +35,3 @@
         |~~ A key of `desc` sorts in reverse. ~~|
         ~(["b" "c" "a"] | sort ~(desc) | eq ["c" "b" "a"])
     | impl ::builtin{}
-
-:desc/gt
-  |~~ Answers whether the subject comes after the value the call gives
-      among values turned to descend, `1 | desc | gt (2 | desc)` answering
-      `true`: under `::desc` the one order runs in reverse, so a value
-      comes after another when its payload comes before the other's, and
-      the greater payload ranks first, as `sort` and `max` rank a key
-      turned by `desc`. A value turned compares with a value turned alone:
-      a number given is refused under the value, `1 | desc | gt 2`, and is
-      turned first, `gt (2 | desc)`. `gte` answers whether the subject
-      comes after the value or ranks with it, `lt` and `lte` the reverse.
-      ::link~(::desc | doc) ::link~(::any/desc | doc)
-      ::link~(::desc/gte | doc) ::link~(::desc/lt | doc)
-  ~~|
-  ::fn
-    | takes :value
-        |~~ The value turned to descend the subject is compared with,
-            computed against the subject, `2 | desc | gt (3 | desc)`.
-        ~~|
-        /0 ::desc
-    | throws :value/KindNotTakenError
-        |~~ The value compared is turned to descend, a value of `::desc`.
-        ~~|
-    | returns
-        |~~ `true` when the subject comes after the value among values
-            turned to descend, `false` otherwise.
-        ~~|
-        ::boolean
-    | proves :reversesTheOrder
-        |~~ Among values turned to descend, one comes after two. ~~|
-        ~(1 | desc | gt (2 | desc))
-    | proves :ranksTheGreaterPayloadFirst
-        |~~ The greater payload does not come after the smaller. ~~|
-        ~(2 | desc | gt (1 | desc) | not)
-    | proves :value/KindNotTakenError/refusesANumber
-        |~~ A number given is no value turned to compare with. ~~|
-        ~(1 | desc | gt 2 !| type | eq ::desc/gt/value/KindNotTakenError)
-    | impl ::builtin{}
-
-:desc/gte
-  |~~ Answers whether the subject comes after the value the call gives
-      among values turned to descend, or ranks with it,
-      `2 | desc | gte (2 | desc)` answering `true`. It compares as `gt`
-      does, a value turned with a value turned, the smaller payload
-      after the greater.
-      ::link~(::desc/gt | doc) ::link~(::desc/lte | doc)
-  ~~|
-  ::fn
-    | takes :value
-        |~~ The value turned to descend the subject is compared with,
-            computed against the subject, `2 | desc | gte (3 | desc)`.
-        ~~|
-        /0 ::desc
-    | throws :value/KindNotTakenError
-        |~~ The value compared is turned to descend, a value of `::desc`.
-        ~~|
-    | returns
-        |~~ `true` when the subject comes after the value among values
-            turned to descend or ranks with it, `false` otherwise.
-        ~~|
-        ::boolean
-    | proves :equalsWithOnePayload
-        |~~ Two values turned of one payload rank together. ~~|
-        ~(2 | desc | gte (2 | desc))
-    | proves :reversesTheOrder
-        |~~ Among values turned to descend, one comes after two. ~~|
-        ~(1 | desc | gte (2 | desc))
-    | proves :value/KindNotTakenError/refusesANumber
-        |~~ A number not turned to descend is refused. ~~|
-        ~(2 | desc | gte 1 !| type | eq ::desc/gte/value/KindNotTakenError)
-    | impl ::builtin{}
-
-:desc/lt
-  |~~ Answers whether the subject comes before the value the call gives
-      among values turned to descend, `2 | desc | lt (1 | desc)`
-      answering `true`: a value comes before another when its payload
-      comes after the other's. It compares as `gt` does, a value turned
-      with a value turned, and `lte` answers whether the subject comes
-      before the value or ranks with it.
-      ::link~(::desc/gt | doc) ::link~(::desc/lte | doc)
-  ~~|
-  ::fn
-    | takes :value
-        |~~ The value turned to descend the subject is compared with,
-            computed against the subject, `2 | desc | lt (3 | desc)`.
-        ~~|
-        /0 ::desc
-    | throws :value/KindNotTakenError
-        |~~ The value compared is turned to descend, a value of `::desc`.
-        ~~|
-    | returns
-        |~~ `true` when the subject comes before the value among values
-            turned to descend, `false` otherwise.
-        ~~|
-        ::boolean
-    | proves :reversesTheOrder
-        |~~ Among values turned to descend, two comes before one. ~~|
-        ~(2 | desc | lt (1 | desc))
-    | proves :keepsTheSmallerPayloadBehind
-        |~~ The smaller payload does not come before the greater. ~~|
-        ~(1 | desc | lt (2 | desc) | not)
-    | proves :value/KindNotTakenError/refusesANumber
-        |~~ A number not turned to descend is refused. ~~|
-        ~(2 | desc | lt 1 !| type | eq ::desc/lt/value/KindNotTakenError)
-    | impl ::builtin{}
-
-:desc/lte
-  |~~ Answers whether the subject comes before the value the call gives
-      among values turned to descend, or ranks with it,
-      `2 | desc | lte (2 | desc)` answering `true`. It compares as `gt`
-      does, a value turned with a value turned.
-      ::link~(::desc/lt | doc) ::link~(::desc/gte | doc)
-  ~~|
-  ::fn
-    | takes :value
-        |~~ The value turned to descend the subject is compared with,
-            computed against the subject, `2 | desc | lte (3 | desc)`.
-        ~~|
-        /0 ::desc
-    | throws :value/KindNotTakenError
-        |~~ The value compared is turned to descend, a value of `::desc`.
-        ~~|
-    | returns
-        |~~ `true` when the subject comes before the value among values
-            turned to descend or ranks with it, `false` otherwise.
-        ~~|
-        ::boolean
-    | proves :equalsWithOnePayload
-        |~~ Two values turned of one payload rank together. ~~|
-        ~(2 | desc | lte (2 | desc))
-    | proves :reversesTheOrder
-        |~~ Among values turned to descend, two comes before one. ~~|
-        ~(2 | desc | lte (1 | desc))
-    | proves :value/KindNotTakenError/refusesANumber
-        |~~ A number not turned to descend is refused. ~~|
-        ~(2 | desc | lte 1 !| type | eq ::desc/lte/value/KindNotTakenError)
-    | impl ::builtin{}
-

@@ -713,7 +713,7 @@
             fails decides, where the vector asks the string first.
         ~~|
         ~(["x" 0] | get [~(every ~(gt 0) !| type) ~(toSet | every ~(gt 0))]
-          | eq [::string/gt/value/KindNotTakenError false])
+          | eq [::any/gt/KindsMismatchedError false])
     | impl ::builtin{}
 
 :vec/any
@@ -778,7 +778,7 @@
             holds decides, where the vector asks the string first.
         ~~|
         ~(["x" 3] | get [~(any ~(gt 2) !| type) ~(toSet | any ~(gt 2))]
-          | eq [::string/gt/value/KindNotTakenError true])
+          | eq [::any/gt/KindsMismatchedError true])
     | impl ::builtin{}
 
 :vec/has

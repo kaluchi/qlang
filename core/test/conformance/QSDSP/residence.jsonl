@@ -6,9 +6,9 @@
 {"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| get [~(type) /actualType]","expect":"[::number/add/SubjectNotNumberError ::string]"}
 {"name":"a-comparison-of-strings-resides-on-strings","query":"\"b\" | gt \"a\"","expect":"true"}
 {"name":"a-comparison-of-keywords-resides-on-keywords","query":":b | lt :a","expect":"false"}
-{"name":"a-comparison-refuses-an-input-of-another-kind-by-its-law","query":"1 | gt \"x\" !| type","expect":"::number/gt/value/KindNotTakenError"}
-{"name":"a-call-by-address-reaches-the-residence","query":"5 | number/gt 3","expect":"true"}
-{"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/gt 1 !| type","expect":"::number/gt/SubjectNotNumberError"}
+{"decision":"D386","name":"a-comparison-refuses-a-pair-of-two-kinds","query":"1 | gt \"x\" !| type","expect":"::any/gt/KindsMismatchedError"}
+{"decision":"D386","name":"a-call-by-address-reaches-the-residence","query":"5 | any/gt 3","expect":"true"}
+{"decision":"D386","name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
 {"name":"a-set-is-a-vector-to-a-verb-of-vectors","query":"#[1 2] | vec/count","expect":"2"}
 {"name":"a-set-reaches-the-verbs-of-vectors-it-does-not-declare-an-answer-of-their-label-back-as-a-set-and-the-images-of-map-a-vector","query":"#[3 1 2] | get [~(binding :count | get /name) ~(filter ~(gt 1)) ~(take 2) ~(map ~(mul 2))]","expect":"[:vec/count #[2 3] #[1 2] [2 4 6]]"}
 {"name":"a-verb-of-any-value-is-called-by-its-address","query":"\"x\" | any/type","expect":"::string"}
@@ -27,3 +27,4 @@
 {"name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true"}
 {"name":"an-input-refuses-under-the-address-of-its-kinds-verb","query":"get [~(\"ab\" | take \"x\" !| type) ~([1] | take \"x\" !| type)]","expect":"[::string/take/count/KindNotTakenError ::vec/take/count/KindNotTakenError]"}
 {"name":"a-subject-that-is-no-string-is-refused-by-the-address","query":"42 | string/contains \"x\"","expect":"::string/contains/SubjectNotStringError!{\n  :actualType ::number\n  :trace ::trace[::frame[42 ~(string/contains \"x\")]]\n} | raise"}
+{"decision":"D384","name":"zip-resides-on-vectors-and-sets-whose-addresses-a-number-is-refused-with","query":"42 | zip !| get [~(type) /addresses]","expect":"[::call/KindAnswersNoVerbError #[::set/zip ::vec/zip]]"}

@@ -56,7 +56,7 @@ describe('the args of a call', () => {
   });
 
   it('reads a place softly by query, and the values after the lead by any other step', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | get [~(tally) ~(tally 1 2 3)]')).toEqual(await evalQuery('[[null []] [1 [2 3]]]'));
+    expect(await evalQuery(BOX + '::Box[4 2] | get [~(tally) ~(tally 1 2 3)]')).toEqual(await evalQuery('[[null ::Box/tally[]] [1 ::Box/tally[2 3]]]'));
   });
 
   it('reads the page of the invariant that refused, named by its refusal', async () => {
@@ -99,7 +99,7 @@ describe('a host\'s primitive under a label', () => {
       }]
     });
     expect((await session.evalCell('::Gauge#5 | payload')).result).toBe(10);
-    expect((await session.evalCell('::Gauge#5 | over ~(gt 9)')).result).toBe(true);
+    expect((await session.evalCell('::Gauge#5 | over ~(payload | gt 9)')).result).toBe(true);
     expect((await session.evalCell('::Gauge#5 | shifted 3')).result).toBe(13);
     expect((await session.evalCell('::Dial#1 | payload')).result).toBe(2);
   });

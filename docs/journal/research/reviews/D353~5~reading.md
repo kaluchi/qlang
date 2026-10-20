@@ -103,7 +103,7 @@
 
 [D272]: ../../replaced/D272.md
 [D308]: ../../D308.md
-[D311]: ../../D311.md
+[D311]: ../../replaced/D311.md
 [D353]: ../../D353.md
 [D375]: ../../replaced/D375.md
 [D376]: ../../replaced/D376.md

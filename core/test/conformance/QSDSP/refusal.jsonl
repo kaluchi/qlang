@@ -1,5 +1,4 @@
 {"name":"a-call-no-kind-of-the-subject-answers-names-the-residences-of-its-name","query":"5 | count !| get [~(type) /addresses]","expect":"[::call/KindAnswersNoVerbError #[::map/count ::string/count ::vec/count]]"}
-{"name":"a-comparison-of-a-kind-it-does-not-compare-names-its-residences","query":"null | gt 1 !| get /addresses","expect":"#[::desc/gt ::keyword/gt ::number/gt ::string/gt ::tag/gt]"}
 {"name":"the-contract-of-filter-names-its-residences","query":"42 | filter ~(gt 0) !| get /addresses","expect":"#[::map/filter ::vec/filter]"}
 {"name":"the-contract-of-prepend-names-its-residences","query":"42 | prepend \"x\" !| get /addresses","expect":"#[::string/prepend ::vec/prepend]"}
 {"name":"a-call-of-a-name-no-kind-answers-names-where-its-verbs-live","query":"42 | toTag !| get /addresses","expect":"#[::keyword/toTag ::string/toTag ::tag/toTag]"}

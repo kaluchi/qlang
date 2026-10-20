@@ -1,9 +1,9 @@
-{"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/gt","expect":"true"}
+{"decision":"D386","name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/add","expect":"true"}
 {"name":"the-manifest-of-a-verb-lists-its-inputs","query":"::any/query | manifest","expect":"#[::any/query/default ::any/query/path]"}
 {"name":"a-tag-over-a-tag-name-shows-the-kind-of-tag-names","query":"::Box::vec | manifest | eq (::tag | manifest)","expect":"true"}
 {"name":"manifest-reads-the-kind-of-a-value","query":"5 | manifest | eq (::number | manifest)","expect":"true"}
 {"name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | get [~(manifest | has ::vec/count) ~(doc :count | eq (::vec/count | doc))]","expect":"[true true]"}
-{"name":"a-comparison-lives-on-each-kind-it-compares","query":"::string | manifest | has ::string/gt","expect":"true"}
+{"decision":"D386","name":"the-comparisons-live-on-any-and-on-no-kind-they-compare","query":"get [~(::any | manifest | has ::any/gt) ~(::string | manifest | has ::string/gt)]","expect":"[true false]"}
 {"name":"each-kind-declares-the-inputs-and-the-answer-of-its-verb","query":"get [~(::vec/take | manifest) ~(::string/take | manifest)]","expect":"[#[::vec/take/ArgsBeyondInputsError ::vec/take/answer ::vec/take/count] #[::string/take/answer ::string/take/count]]"}
 {"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true"}
 {"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::any | manifest | has ::any/doc","expect":"true"}

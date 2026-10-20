@@ -9,7 +9,6 @@ import { containsMatch, piecesBetweenMatches } from './regex.mjs';
 // its name, as `json` writes it [QSTXT#string].
 export const writtenAsText = value => (isKeyword(value) ? value.name : value);
 
-// The text each joins to its subject shares its tags [D388].
 registerPrimitive('string/prepend', combines((text, prefix) => writtenAsText(prefix) + text));
 registerPrimitive('string/append', combines((text, suffix) => text + writtenAsText(suffix)));
 

@@ -8,7 +8,6 @@ import { declareRefusal, refusingTheSubject } from '../errors.mjs';
 import { registerPrimitive, combines } from '../primitives.mjs';
 const NumberRangeCountTooLargeError = declareRefusal('number/range/CountTooLargeError');
 
-// The number each combines with its subject shares its tags [D388].
 registerPrimitive('number/add', combines((augend, addend) => augend + addend));
 registerPrimitive('number/sub', combines((minuend, subtrahend) => minuend - subtrahend));
 registerPrimitive('number/mul', combines((multiplicand, multiplier) => multiplicand * multiplier));

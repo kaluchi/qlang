@@ -123,7 +123,6 @@ const VEC_UNION = {
   ElementNotSetOrMapError: declareRefusal('vec/union/ElementNotSetOrMapError')
 };
 
-// The keys the `minus` and the `inter` of a map take share no tag [D388].
 registerStateReader('vec/union', (vector, state) => foldOf(vector, unionPair, VEC_UNION, true, state));
 registerPrimitive('set/union', combines((set, other) => mergeSets(set, other, UNION_KEEPS)));
 registerPrimitive('map/union', combines((map, other) => unionOfMaps(map, other)));
